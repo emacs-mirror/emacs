@@ -408,6 +408,14 @@ name of the package archive directory.  You can alter this list if you
 wish to use third party package archives---but do so at your own risk,
 and use only third parties that you think you can trust!
 
+@cindex suggestions
+@findex package-autosuggest
+  Emacs has a built-in database of suggested packages for certain file
+types.  If Emacs opens a file with no specific mode, you can use the
+@code{package-autosuggest} command to install the recommended packages
+from ELPA.  By default, Emacs will display a clickable hint in the
+mode-line if it there is a suggested package.
+
 @anchor{Package Signing}
 @cindex package security
 @cindex package signing
