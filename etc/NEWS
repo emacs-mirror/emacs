@@ -704,6 +704,13 @@ Use 'if-let*', 'when-let*' and 'and-let*' instead.
 This effectively obsoletes the old '(if-let (SYMBOL SOMETHING) ...)'
 single binding syntax, which we'd kept only for backwards compatibility.
 
+---
+** The Eshell 'pwd' command now expands the directory name on all systems.
+This ensures that user directories are properly expanded to their full
+name.  Previously, Eshell only did this for MS-Windows systems. To
+restore the old behavior, you can set 'eshell-pwd-convert-function' to
+'identity'.
+
 
 * Lisp Changes in Emacs 31.1
 

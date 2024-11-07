@@ -65,9 +65,7 @@ they lack somewhat in feel from the typical shell equivalents."
   :version "24.1"			; removed eshell-dirs-initialize
   :type 'hook)
 
-(defcustom eshell-pwd-convert-function (if (eshell-under-windows-p)
-					   #'expand-file-name
-					 #'identity)
+(defcustom eshell-pwd-convert-function #'expand-file-name
   "The function used to normalize the value of Eshell's `pwd'.
 The value returned by `pwd' is also used when recording the
 last-visited directory in the last-dir-ring, so it will affect the
@@ -75,7 +73,8 @@ form of the list used by `cd ='."
   :type '(radio (function-item file-truename)
 		(function-item expand-file-name)
 		(function-item identity)
-		(function :tag "Other")))
+		(function :tag "Other"))
+  :version "31.1")
 
 (defcustom eshell-ask-to-save-last-dir 'always
   "Determine if the last-dir-ring should be automatically saved.
