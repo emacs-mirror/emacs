@@ -666,6 +666,12 @@ the directory into which the repository was cloned.
 Using a built-in database of package suggestions from ELPA, this command
 will install viable packages if no specific major mode is available.
 
++++
+*** New minor mode 'package-autosuggest-mode'
+When enabled, this displays a hint in the mode line indicating the
+availability of a suggested package.  You can customise the presentation
+of these hints using 'package-autosuggest-style'.
+
 
 * New Modes and Packages in Emacs 31.1
 

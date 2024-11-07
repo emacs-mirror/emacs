@@ -4567,9 +4567,10 @@ the existence of a suggestion."
                  (const :tag "Prompt only once" once)
                  (const :tag "Indicate with message" message)))
 
+;;;###autoload
 (define-minor-mode package-autosuggest-mode
   "Enable the automatic suggestion and installation of packages."
-  :init-value t :global t
+  :global t
   (funcall (if package-autosuggest-mode #'add-hook #'remove-hook)
            'after-change-major-mode-hook
            #'package--autosuggest-after-change-mode))
