@@ -700,6 +700,13 @@ ftcrhbfont_end_hb_font (struct font *font, hb_font_t *hb_font)
   struct font_info *ftcrfont_info = (struct font_info *) font;
   cairo_scaled_font_t *scaled_font = ftcrfont_info->cr_scaled_font;
 
+  eassert (hb_font == ftcrfont_info->hb_font);
+  /* ftcrfont_info->hb_font holds a reference to the FT_Face returned by
+     cairo_ft_scaled_font_lock_face. Keeping it around after the
+     matching unlock call would violate the API contract (Bug#73752). */
+  hb_font_destroy (ftcrfont_info->hb_font);
+  ftcrfont_info->hb_font = NULL;
+
   cairo_ft_scaled_font_unlock_face (scaled_font);
   ftcrfont_info->ft_size = NULL;
 }
