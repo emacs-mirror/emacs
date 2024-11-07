@@ -122,7 +122,7 @@ Entries are as with rules in `quail-define-rules'.")
 Entries are as with rules in `quail-define-rules'.")
 
 (quail-define-package
- "mohawk-postfix" "Mohawk" "MOH<" nil
+ "mohawk-postfix" "Mohawk" "MOH<" t
  "Mohawk (Kanien’kéha) input method with postfix modifiers
 
 Stress diacritics:
@@ -228,7 +228,7 @@ Entries are as with rules in `quail-define-rules'.")
 Entries are as with rules in `quail-define-rules'.")
 
 (quail-define-package
- "oneida-postfix" "Oneida" "ONE<" nil
+ "oneida-postfix" "Oneida" "ONE<" t
  "Oneida (Onʌyota:ká:) input method with postfix modifiers
 
 Modifiers:
@@ -401,7 +401,7 @@ Entries are as with rules in `quail-define-rules'.")
 Entries are as with rules in `quail-define-rules'.")
 
 (quail-define-package
- "onondaga-postfix" "Onondaga" "ONO<" nil
+ "onondaga-postfix" "Onondaga" "ONO<" t
  "Onondaga (Onųdaʔgegáʔ) input method with postfix modifiers
 
 Modifiers:
@@ -571,7 +571,7 @@ Entries are as with rules in `quail-define-rules'.")
 Entries are as with rules in `quail-define-rules'.")
 
 (quail-define-package
- "cayuga-postfix" "Cayuga" "CAY<" nil
+ "cayuga-postfix" "Cayuga" "CAY<" t
  "Cayuga (Gayogo̱ho:nǫhnéha:ˀ) input method with postfix modifiers
 
 Stress diacritics:
@@ -744,7 +744,7 @@ Entries are as with rules in `quail-define-rules'.")
 Entries are as with rules in `quail-define-rules'.")
 
 (quail-define-package
- "seneca-postfix" "Seneca" "SEE<" nil
+ "seneca-postfix" "Seneca" "SEE<" t
  "Seneca (Onödowá’ga:’) input method with postfix modifiers
 
 Stress diacritics:
@@ -890,7 +890,7 @@ Entries are as with rules in `quail-define-rules'.")
 Entries are as with rules in `quail-define-rules'.")
 
 (quail-define-package
- "haudenosaunee-postfix" "Haudenosaunee" "HOD<" nil
+ "haudenosaunee-postfix" "Haudenosaunee" "HOD<" t
  "Composite input method for Haudenosaunee (Northern Iroquoian) languages
 
 This input method can be used to enter the following languages:
