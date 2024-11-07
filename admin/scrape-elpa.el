@@ -55,7 +55,9 @@ Please review the results before updating the autosuggest database!"
                     dir "-autoloads\\.el\\'"))
                  directories))
           "Scraping files..."
-        (let ((inhibit-message t))
+        (and-let* (((string-match "/\\([^/]+?\\)-autoloads\\.el\\'" file))
+                   (pkg (intern (match-string 1 file)))
+                   (inhibit-message t))
           (with-temp-buffer
             (insert-file-contents file)
             (condition-case nil
@@ -70,7 +72,8 @@ Please review the results before updating the autosuggest database!"
                          '(,(and (pred stringp) regexp) .
                            ,(and (pred symbolp) mode)))
                        (terpri)
-                       (prin1 `(,mode ,variable ,regexp))
+                       (prin1 (append (list pkg variable regexp)
+                                      (and (not (eq pkg mode)) (list mode))))
                        (princ (concat " ;from " file))))))
               (end-of-file nil))))))
     (insert "\n)\n")))

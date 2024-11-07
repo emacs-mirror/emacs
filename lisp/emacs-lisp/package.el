@@ -4547,12 +4547,14 @@ the `Version:' header."
       (read (current-buffer))))
   "List of hints for packages to suggest installing.
 Each hint has the form (PACKAGE TYPE DATA), where PACKAGE is a symbol
-denoting the package the hint applies to, TYPE is one of
+denoting the package and major-mode the hint applies to, TYPE is one of
 `auto-mode-alist', `magic-mode-alist' or `interpreter-mode-alist'
 indicating the type of check to be made and DATA is the value to check
 against TYPE in the intuitive way (e.g. for `auto-mode-alist' DATA is a
 regular expression matching a file name that PACKAGE should be suggested
-for).")
+for).  If the package name and the major mode name differ, then an
+optional forth element MAJOR-MODE can indicate what command to invoke to
+enable the package.")
 
 (defcustom package-autosuggest-style 'mode-line
   "How to draw attention to `package-autosuggest-mode' suggestions.
@@ -4591,15 +4593,18 @@ SUG should be an element of `package-autosuggest-database'."
             (pred package-installed-p))
        . ,_)
      nil)
-    (`(,_ auto-mode-alist ,ext)
+    ((or `(,_ auto-mode-alist ,ext ,_)
+         `(,_ auto-mode-alist ,ext))
      (and (string-match-p ext (buffer-name)) t))
-    (`(,_ magic-mode-alist ,mag)
+    ((or `(,_ magic-mode-alist ,mag ,_)
+         `(,_ magic-mode-alist ,mag))
      (save-restriction
        (widen)
        (save-excursion
          (goto-char (point-min))
          (looking-at-p mag))))
-    (`(,_ interpreter-mode-alist ,magic)
+    ((or `(,_ interpreter-mode-alist ,magic ,_)
+         `(,_ interpreter-mode-alist ,magic))
      (save-restriction
        (widen)
        (save-excursion
