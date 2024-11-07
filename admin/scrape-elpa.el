@@ -73,8 +73,7 @@ Please review the results before updating the autosuggest database!"
                            ,(and (pred symbolp) mode)))
                        (terpri)
                        (prin1 (append (list pkg variable regexp)
-                                      (and (not (eq pkg mode)) (list mode))))
-                       (princ (concat " ;from " file))))))
+                                      (and (not (eq pkg mode)) (list mode))))))))
               (end-of-file nil))))))
     (insert "\n)\n")))
 
