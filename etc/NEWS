@@ -659,6 +659,13 @@ cloning, or prompts for that, too.
 When the argument is non-nil, the function switches to a buffer visiting
 the directory into which the repository was cloned.
 
+** Package
+
++++
+*** New command 'package-autosuggest'
+Using a built-in database of package suggestions from ELPA, this command
+will install viable packages if no specific major mode is available.
+
 
 * New Modes and Packages in Emacs 31.1
 
