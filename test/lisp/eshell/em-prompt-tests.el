@@ -57,8 +57,8 @@
                'read-only t
                'field 'prompt
                'font-lock-face 'eshell-prompt
-               'front-sticky '(read-only field font-lock-face)
-               'rear-nonsticky '(read-only field font-lock-face))))
+               'front-sticky '(read-only font-lock-face field)
+               'rear-nonsticky '(read-only font-lock-face field))))
      (should (equal last-input "echo hello\n"))
      (should (equal-including-properties
               last-output
@@ -88,6 +88,33 @@ This tests the case when `eshell-highlight-prompt' is nil."
                 (apply #'propertize "hello\n"
                        eshell-command-output-properties)))))))
 
+(ert-deftest em-prompt-test/field-properties/merge-stickiness ()
+  "Check that stickiness properties are properly merged on Eshell prompts."
+  (let ((eshell-prompt-function
+         (lambda ()
+           (concat (propertize (eshell/pwd) 'front-sticky '(front))
+                   (propertize "$ " 'rear-nonsticky '(rear))))))
+    (with-temp-eshell
+     (eshell-insert-command "echo hello")
+     (let ((last-prompt (field-string (1- eshell-last-input-start))))
+       (should (equal-including-properties
+                last-prompt
+                (concat
+                 (propertize
+                  (directory-file-name default-directory)
+                  'read-only t
+                  'field 'prompt
+                  'font-lock-face 'eshell-prompt
+                  'front-sticky '(front read-only font-lock-face field)
+                  'rear-nonsticky '(read-only font-lock-face field))
+                 (propertize
+                  "$ "
+                  'read-only t
+                  'field 'prompt
+                  'font-lock-face 'eshell-prompt
+                  'front-sticky '(read-only font-lock-face field)
+                  'rear-nonsticky '(rear read-only font-lock-face field)))))))))
+
 (ert-deftest em-prompt-test/after-failure ()
   "Check that current prompt shows the exit code of the last failed command."
   (with-temp-eshell
@@ -104,8 +131,8 @@ This tests the case when `eshell-highlight-prompt' is nil."
                'read-only t
                'field 'prompt
                'font-lock-face 'eshell-prompt
-               'front-sticky '(read-only field font-lock-face)
-               'rear-nonsticky '(read-only field font-lock-face)))))))
+               'front-sticky '(read-only font-lock-face field)
+               'rear-nonsticky '(read-only font-lock-face field)))))))
 
 
 ;; Prompt navigation
