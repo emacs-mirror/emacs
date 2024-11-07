@@ -22,6 +22,7 @@
  ("22.1" fun version=)
  ("22.1" fun version<)
  ("22.1" fun version<=)
+ ("22.1" fun read-number)
  ("19.7" fun defsubst)
  ("19.34" fun make-directory)
  ("18.59" fun mark)
