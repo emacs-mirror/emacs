@@ -4686,7 +4686,7 @@ This function should be added to `after-change-major-mode-hook'."
        (message
         (substitute-command-keys
          (format "Found suggested packages: %s.  Install using  \\[package-autosuggest]"
-                 pkgs)))p))))
+                 pkgs)))))))
 
 (defun package-autosuggest ()
   "Prompt the user to install the suggested packages."
