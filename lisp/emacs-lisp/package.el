@@ -4634,11 +4634,12 @@ SUG should be an element of `package-autosuggest-database'."
         (when (and (eq major-mode 'fundamental-mode) (buffer-file-name)
                    (package--suggestion-applies-p sug))
           (push buf buffers-to-update))))
-    (package-install (car sug))
-    (dolist (buf buffers-to-update)
-      (with-demoted-errors "Failed to enable major mode: %S"
-        (with-current-buffer buf
-          (funcall-interactively (or (cadddr sug) (car sug))))))))
+    (with-demoted-errors "Failed to install package: %S"
+      (package-install (car sug))
+      (dolist (buf buffers-to-update)
+        (with-demoted-errors "Failed to enable major mode: %S"
+          (with-current-buffer buf
+            (funcall-interactively (or (cadddr sug) (car sug)))))))))
 
 (defvar package--autosugest-line-format
   '(:eval (package--autosugest-line-format)))
