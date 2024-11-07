@@ -4970,7 +4970,7 @@ face_before_or_after_it_pos (struct it *it, bool before_p)
 		  /* For composition, we must check the position after
 		     the composition.  */
 		  pos.charpos += it->cmp_it.nchars;
-		  pos.bytepos += it->len;
+		  pos.bytepos += it->cmp_it.nbytes;
 		}
 	      else
 		INC_TEXT_POS (pos, it->multibyte_p);
