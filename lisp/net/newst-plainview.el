@@ -805,6 +805,7 @@ not get changed."
                 (widen)
                 (put-text-property (point) pos 'nt-age 'old)
                 (newsticker--buffer-set-faces (point) pos)))
+            (newsticker--cache-save-feed (newsticker--cache-get-feed feed))
             (set-buffer-modified-p nil)))))))
 
 (defun newsticker-mark-item-at-point-as-immortal ()
