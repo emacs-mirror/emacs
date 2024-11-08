@@ -718,10 +718,11 @@ class declarations.")
            "aiter" "anext" "ascii" "breakpoint" "bytearray" "bytes" "exec"
            ;; Special attributes:
            ;; https://docs.python.org/3/reference/datamodel.html
-           "__annotations__" "__closure__" "__code__"
-           "__defaults__" "__dict__" "__doc__" "__globals__"
-           "__kwdefaults__" "__name__" "__module__" "__package__"
-           "__qualname__"
+           "__annotations__" "__bases__" "__closure__" "__code__"
+           "__defaults__" "__dict__" "__doc__" "__firstlineno__"
+           "__globals__" "__kwdefaults__" "__name__" "__module__"
+           "__mro__" "__package__" "__qualname__"
+           "__static_attributes__" "__type_params__"
            ;; Extras:
            "__all__")
           symbol-end) . font-lock-builtin-face))
@@ -1034,10 +1035,12 @@ It makes underscores and dots word constituent chars.")
     ">>" ">>=" "|" "|=" "~" "@" "@="))
 
 (defvar python--treesit-special-attributes
-  '("__annotations__" "__closure__" "__code__"
-    "__defaults__" "__dict__" "__doc__" "__globals__"
-    "__kwdefaults__" "__name__" "__module__" "__package__"
-    "__qualname__" "__all__"))
+  '("__annotations__" "__bases__" "__closure__" "__code__"
+    "__defaults__" "__dict__" "__doc__" "__firstlineno__"
+    "__globals__" "__kwdefaults__" "__name__" "__module__"
+    "__mro__" "__package__" "__qualname__"
+    "__static_attributes__" "__type_params__"
+    "__all__"))
 
 (defvar python--treesit-exceptions
   '(;; Python 2 and 3:
