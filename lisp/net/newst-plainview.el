@@ -805,6 +805,7 @@ not get changed."
                 (widen)
                 (put-text-property (point) pos 'nt-age 'old)
                 (newsticker--buffer-set-faces (point) pos)))
+            (newsticker--cache-save-feed (newsticker--cache-get-feed feed))
             (set-buffer-modified-p nil)))))))
 
 (defun newsticker-mark-item-at-point-as-immortal ()
@@ -1279,7 +1280,7 @@ FEED-NAME-SYMBOL tells to which feed this item belongs."
                         (let ((img (newsticker--image-read feed-name-symbol
                                                            disabled)))
                           (when img
-                            (newsticker--insert-image img (car item)))))
+                            (newsticker--insert-image img (format "[logo: %s]" (car item))))))
                       (setq format (substring format 2)))
                      ((string= "%L" prefix)
                       ;; logo or title
@@ -1292,7 +1293,7 @@ FEED-NAME-SYMBOL tells to which feed this item belongs."
                         (let ((img (newsticker--image-read feed-name-symbol
                                                            disabled)))
                           (if img
-                              (newsticker--insert-image img (car item))
+                              (newsticker--insert-image img (format "[logo: %s]" (car item)))
                             (when (car item)
                               (setq pos-text-start (point-marker))
 			      (if (eq (newsticker--age item) 'feed)

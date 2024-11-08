@@ -41,7 +41,7 @@ INLINE_HEADER_BEGIN
 struct itree_node
 {
   /* The normal parent, left and right links found in binary trees.
-     See also `red`, below, which completes the Red-Black tree
+     See also 'red', below, which completes the Red-Black tree
      representation.  */
   struct itree_node *parent;
   struct itree_node *left;
@@ -147,13 +147,13 @@ struct itree_iterator
     struct itree_node *node;
     ptrdiff_t begin;
     ptrdiff_t end;
-    uintmax_t otick;    /* A copy of the tree's `otick`.  */
+    uintmax_t otick;    /* A copy of the tree's 'otick'.  */
     enum itree_order order;
   };
 
 /* Iterate over the intervals between BEG and END in the tree T.
-   N will hold successive nodes.  ORDER can be one of : `ASCENDING`,
-   `DESCENDING`, `POST_ORDER`, or `PRE_ORDER`.
+   N will hold successive nodes.  ORDER can be one of : 'ASCENDING',
+   'DESCENDING', 'POST_ORDER', or 'PRE_ORDER'.
    It should be used as:
 
       ITREE_FOREACH (n, t, beg, end, order)
@@ -167,12 +167,12 @@ struct itree_iterator
    - Don't modify the tree during the iteration.
  */
 #define ITREE_FOREACH(n, t, beg, end, order)                        \
-  /* FIXME: We'd want to declare `n` right here, but I can't figure out
-     how to make that work here: the `for` syntax only allows a single
+  /* FIXME: We'd want to declare 'n' right here, but I can't figure out
+     how to make that work here: the 'for' syntax only allows a single
      clause for the var declarations where we need 2 different types.
-     We could use the `struct {foo x; bar y; } p;` trick to declare two
-     vars `p.x` and `p.y` of unrelated types, but then none of the names
-     of the vars matches the `n` we receive :-(.  */             \
+     We could use the 'struct {foo x; bar y; } p;' trick to declare two
+     vars 'p.x' and 'p.y' of unrelated types, but then none of the names
+     of the vars matches the 'n' we receive :-(.  */             \
   if (!t)                                                        \
     { }                                                          \
   else                                                           \

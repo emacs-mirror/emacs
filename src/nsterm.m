@@ -7899,6 +7899,9 @@ ns_in_echo_area (void)
 
   NSTRACE_RETURN_SIZE (frameSize);
 
+  /* Trigger `move-frame-functions' (Bug#74074).  */
+  [self windowDidMove:(NSNotification *)sender];
+
   return frameSize;
 }
 

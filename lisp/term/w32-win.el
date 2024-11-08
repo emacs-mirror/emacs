@@ -469,10 +469,10 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
     "application/yaml"
     "application/json-seq"
     "\\`text/"
-    "+xml\\'"
-    "+json\\'"
-    "+yaml\\'"
-    "+json-seq\\'"))
+    "\\+xml\\'"
+    "\\+json\\'"
+    "\\+yaml\\'"
+    "\\+json-seq\\'"))
 
 (defun w32--mime-type-textual-p (mime-type)
   "Returns t if MIME-TYPE, a symbol, names a textual MIME type.

@@ -299,7 +299,7 @@ value of last one, or nil if there are none."
   (if body
       (list 'if cond (cons 'progn body))
     (macroexp-warn-and-return (format-message "`when' with empty body")
-                              cond '(empty-body when) t)))
+                              (list 'progn cond nil) '(empty-body when) t)))
 
 (defmacro unless (cond &rest body)
   "If COND yields nil, do BODY, else return nil.
@@ -309,7 +309,7 @@ value of last one, or nil if there are none."
   (if body
       (cons 'if (cons cond (cons nil body)))
     (macroexp-warn-and-return (format-message "`unless' with empty body")
-                              cond '(empty-body unless) t)))
+                              (list 'progn cond nil) '(empty-body unless) t)))
 
 (defsubst subr-primitive-p (object)
   "Return t if OBJECT is a built-in primitive written in C.

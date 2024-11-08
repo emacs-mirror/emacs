@@ -19,6 +19,10 @@
 ;; https://github.com/larsbrinkhoff/emacs-history/tree/sources/decuslib.com/decus/vax85b/gnuemax
 
  ("24.4" fun set-transient-map)
+ ("22.1" fun version=)
+ ("22.1" fun version<)
+ ("22.1" fun version<=)
+ ("22.1" fun read-number)
  ("19.7" fun defsubst)
  ("19.34" fun make-directory)
  ("18.59" fun mark)
