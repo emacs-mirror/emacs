@@ -223,7 +223,7 @@ for generating repeated time stamps.
 These variables are best changed with file-local variables.
 If you were to change `time-stamp-end' or `time-stamp-inserts-lines' in
 your init file, you would be incompatible with other people's files.")
-;;;###autoload(put 'time-stamp-inserts-lines 'safe-local-variable 'symbolp)
+;;;###autoload(put 'time-stamp-inserts-lines 'safe-local-variable 'booleanp)
 
 
 (defvar time-stamp-count 1		;Do not change!
@@ -519,7 +519,8 @@ and all `time-stamp-format' compatibility."
 		     (setq cur-char (if (< ind fmt-len)
 				        (aref format ind)
 				      ?\0))
-		     (or (eq ?. cur-char)
+		     (or (eq ?. cur-char) (eq ?* cur-char)
+		         (eq ?E cur-char) (eq ?O cur-char)
 		         (eq ?, cur-char) (eq ?: cur-char) (eq ?@ cur-char)
 		         (eq ?- cur-char) (eq ?+ cur-char) (eq ?_ cur-char)
 		         (eq ?\s cur-char) (eq ?# cur-char) (eq ?^ cur-char)
@@ -602,12 +603,18 @@ and all `time-stamp-format' compatibility."
 	            (time-stamp-do-number cur-char alt-form field-width time))
 	           ((eq cur-char ?M)    ;minute, 0-59
 	            (time-stamp-do-number cur-char alt-form field-width time))
-	           ((eq cur-char ?p)    ;am or pm
+	           ((eq cur-char ?p)    ;AM or PM
 	            (if change-case
-                        (time-stamp--format "%#p" time)
-                      (time-stamp--format "%p" time)))
+	                (time-stamp--format "%#p" time)
+	              (if upcase
+	                  (time-stamp--format "%^p" time)
+	                (time-stamp--format "%p" time))))
 	           ((eq cur-char ?P)    ;AM or PM
-	            (time-stamp--format "%p" time))
+	            (if change-case
+	                (time-stamp--format "%#p" time)
+	              (if upcase
+	                  ""           ;discourage inconsistent "%^P"
+	                (time-stamp--format "%p" time))))
 	           ((eq cur-char ?S)    ;seconds, 00-60
 	            (time-stamp-do-number cur-char alt-form field-width time))
 	           ((eq cur-char ?w)    ;weekday number, Sunday is 0

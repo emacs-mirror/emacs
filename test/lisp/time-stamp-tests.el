@@ -504,18 +504,32 @@
 (ert-deftest time-stamp-format-am-pm ()
   "Test time-stamp formats for AM and PM strings."
   (with-time-stamp-test-env
-    (let ((pm (format-time-string "%#p" ref-time1 t))
-          (am (format-time-string "%#p" ref-time3 t))
-          (PM (format-time-string "%p" ref-time1 t))
-          (AM (format-time-string "%p" ref-time3 t)))
+    (let ((pm (format-time-string "%P" ref-time1 t))
+          (am (format-time-string "%P" ref-time3 t))
+          (Pm (format-time-string "%p" ref-time1 t))
+          (Am (format-time-string "%p" ref-time3 t))
+          (PM (format-time-string "%^p" ref-time1 t))
+          (AM (format-time-string "%^p" ref-time3 t)))
       ;; implemented and documented since 1997
       (should (equal (time-stamp-string "%#p" ref-time1) pm))
       (should (equal (time-stamp-string "%#p" ref-time3) am))
-      (should (equal (time-stamp-string "%P" ref-time1) PM))
-      (should (equal (time-stamp-string "%P" ref-time3) AM))
+      (should (equal (time-stamp-string "%P" ref-time1) Pm))
+      (should (equal (time-stamp-string "%P" ref-time3) Am))
+      ;; implemented since 1997
+      (should (equal (time-stamp-string "%^#p" ref-time1) pm))
+      (should (equal (time-stamp-string "%^#p" ref-time3) am))
       ;; warned 1997-2019, changed in 2019
-      (should (equal (time-stamp-string "%p" ref-time1) PM))
-      (should (equal (time-stamp-string "%p" ref-time3) AM)))))
+      (should (equal (time-stamp-string "%p" ref-time1) Pm))
+      (should (equal (time-stamp-string "%p" ref-time3) Am))
+      ;; changed in 2024
+      (should (equal (time-stamp-string "%^p" ref-time1) PM))
+      (should (equal (time-stamp-string "%^p" ref-time3) AM))
+      (should (equal (time-stamp-string "%#P" ref-time1) pm))
+      (should (equal (time-stamp-string "%#P" ref-time3) am))
+      (should (equal (time-stamp-string "%^#P" ref-time1) pm))
+      (should (equal (time-stamp-string "%^#P" ref-time3) am))
+      (should (equal (time-stamp-string "%^P" ref-time1) ""))
+      (should (equal (time-stamp-string "%^P" ref-time3) "")))))
 
 (ert-deftest time-stamp-format-day-number-in-week ()
   "Test time-stamp formats for day number in week."
@@ -528,7 +542,7 @@
   "Test time-stamp format %Z."
   (with-time-stamp-test-env
     (let ((UTC-abbr (format-time-string "%Z" ref-time1 t))
-	  (utc-abbr (format-time-string "%#Z" ref-time1 t)))
+          (utc-abbr (format-time-string "%#Z" ref-time1 t)))
       ;; implemented and documented since 1995
       (should (equal (time-stamp-string "%Z" ref-time1) UTC-abbr))
       ;; implemented since 1997, documented since 2019
@@ -596,7 +610,7 @@
   (with-time-stamp-test-env
    (let ((May (format-time-string "%B" ref-time3 t)))
      ;; allowed modifiers
-     (should (equal (time-stamp-string "%.,@+ (stuff)B" ref-time3) May))
+     (should (equal (time-stamp-string "%.,@+*EO (stuff)B" ref-time3) May))
      ;; parens nest
      (should (equal (time-stamp-string "%(st(u)ff)B" ref-time3) May))
      ;; escaped parens do not change the nesting level
@@ -703,7 +717,7 @@
   (should-not (safe-local-variable-p 'time-stamp-format '(a list)))
   (should (safe-local-variable-p 'time-stamp-time-zone "a string"))
   (should-not (safe-local-variable-p 'time-stamp-time-zone 0.5))
-  (should (safe-local-variable-p 'time-stamp-line-limit 8))
+  (should (safe-local-variable-p 'time-stamp-line-limit -10))
   (should-not (safe-local-variable-p 'time-stamp-line-limit "a string"))
   (should (safe-local-variable-p 'time-stamp-start "a string"))
   (should-not (safe-local-variable-p 'time-stamp-start 17))
@@ -961,6 +975,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+000030" formatz-mod-del-colons)
   ("+100:00")
   ("+100:00:30"))
+
 ;; Tests that minus with padding pads with spaces.
 (formatz-generate-tests ("%-12z")
   ("+00         " formatz-mod-pad-r12)
@@ -968,6 +983,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+000030     " formatz-mod-del-colons formatz-mod-pad-r12)
   ("+100:00     " formatz-mod-pad-r12)
   ("+100:00:30  " formatz-mod-pad-r12))
+
 ;; Tests that 0 after other digits becomes padding of ten, not zero flag.
 (formatz-generate-tests ("%-10z")
   ("+00       " formatz-mod-pad-r10)
