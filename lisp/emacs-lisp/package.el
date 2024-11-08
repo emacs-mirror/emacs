@@ -4618,7 +4618,7 @@ SUG should be an element of `package-autosuggest-database'."
   "Return a list of suggestions that might be interesting the current buffer.
 The elements of the returned list will be a subset of the elements of
 `package--autosuggest-suggested'."
-  (and package-autosuggest-mode
+  (and package-autosuggest-mode (eq major-mode 'fundamental-mode)
        (let (suggetions)
          (dolist (sug package-autosuggest-database)
            (when (package--suggestion-applies-p sug)
