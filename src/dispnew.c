@@ -3517,6 +3517,8 @@ prepare_desired_root_row (struct frame *root, int y)
   /* Start with the root's desired matrix row.  If that hasn't been
      redisplayed, copy from the root's current matrix.  */
   struct glyph_row *root_row = MATRIX_ROW (root->desired_matrix, y);
+  /* Don't copy rows that aren't enabled, in particuler because they
+     might not have the 'frame' member of glyphs set.  */
   if (!root_row->enabled_p)
     {
       struct glyph_row *from = MATRIX_ROW (root->current_matrix, y);
