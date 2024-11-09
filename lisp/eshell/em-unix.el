@@ -910,67 +910,64 @@ external command."
 
 (defun eshell/du (&rest args)
   "Implementation of \"du\" in Lisp, passing ARGS."
-  (setq args (if args
-		 (eshell-stringify-list (flatten-tree args))
-	       '(".")))
-  (let ((ext-du (eshell-search-path "du")))
-    (if (and ext-du
-	     (not (catch 'have-ange-path
-		    (dolist (arg args)
-		      (if (string-equal
-			   (file-remote-p (expand-file-name arg) 'method) "ftp")
-			  (throw 'have-ange-path t))))))
-	(throw 'eshell-external (eshell-external-command ext-du args))
-      (eshell-eval-using-options
-       "du" args
-       '((?a "all" nil show-all
-	     "write counts for all files, not just directories")
-	 (nil "block-size" t block-size
-	      "use SIZE-byte blocks (i.e., --block-size SIZE)")
-	 (?b "bytes" nil by-bytes
-	     "print size in bytes")
-	 (?c "total" nil grand-total
-	     "produce a grand total")
-	 (?d "max-depth" t max-depth
-	     "display data only this many levels of data")
-	 (?h "human-readable" 1024 human-readable
-	     "print sizes in human readable format")
-	 (?H "si" 1000 human-readable
-	     "likewise, but use powers of 1000 not 1024")
-	 (?k "kilobytes" 1024 block-size
-	     "like --block-size 1024")
-	 (?L "dereference" nil dereference-links
-	     "dereference all symbolic links")
-	 (?m "megabytes" 1048576 block-size
-	     "like --block-size 1048576")
-	 (?s "summarize" 0 max-depth
-	     "display only a total for each argument")
-	 (?x "one-file-system" nil only-one-filesystem
-	     "skip directories on different filesystems")
-	 (nil "help" nil nil
-	      "show this usage screen")
-	 :external "du"
-	 :usage "[OPTION]... FILE...
+  (let ((original-args args))
+    (eshell-eval-using-options
+     "du" args
+     '((?a "all" nil show-all
+           "write counts for all files, not just directories")
+       (nil "block-size" t block-size
+            "use SIZE-byte blocks (i.e., --block-size SIZE)")
+       (?b "bytes" nil by-bytes
+           "print size in bytes")
+       (?c "total" nil grand-total
+           "produce a grand total")
+       (?d "max-depth" t max-depth
+           "display data only this many levels of data")
+       (?h "human-readable" 1024 human-readable
+           "print sizes in human readable format")
+       (?H "si" 1000 human-readable
+           "likewise, but use powers of 1000 not 1024")
+       (?k "kilobytes" 1024 block-size
+           "like --block-size 1024")
+       (?L "dereference" nil dereference-links
+           "dereference all symbolic links")
+       (?m "megabytes" 1048576 block-size
+           "like --block-size 1048576")
+       (?s "summarize" 0 max-depth
+           "display only a total for each argument")
+       (?x "one-file-system" nil only-one-filesystem
+           "skip directories on different filesystems")
+       (nil "help" nil nil
+            "show this usage screen")
+       :external "du"
+       :usage "[OPTION]... FILE...
 Summarize disk usage of each FILE, recursively for directories.")
-       (unless by-bytes
-	 (setq block-size (or block-size 1024)))
-       (if (and max-depth (stringp max-depth))
-	   (setq max-depth (string-to-number max-depth)))
-       ;; filesystem support means nothing under Windows
-       (if (eshell-under-windows-p)
-	   (setq only-one-filesystem nil))
-       (let ((size 0.0))
-	 (while args
-	   (if only-one-filesystem
-	       (setq only-one-filesystem
-		     (file-attribute-device-number (eshell-file-attributes
-			      (file-name-as-directory (car args))))))
-	   (setq size (+ size (eshell-du-sum-directory
-			       (directory-file-name (car args)) 0)))
-	   (setq args (cdr args)))
-	 (if grand-total
-	     (eshell-print (concat (eshell-du-size-string size)
-				   "total\n"))))))))
+     ;; If possible, use the external "du" command.
+     (when-let* (((not (seq-some
+                        (lambda (i) (and (stringp i) (file-remote-p i)))
+                        args)))
+                 (ext-du (eshell-search-path "du")))
+       (throw 'eshell-external (eshell-external-command ext-du original-args)))
+     (unless by-bytes
+       (setq block-size (or block-size 1024)))
+     (when (stringp block-size)
+       (setq block-size (string-to-number block-size)))
+     (when (stringp max-depth)
+       (setq max-depth (string-to-number max-depth)))
+     ;; Filesystem support means nothing under MS-Windows.
+     (when (eshell-under-windows-p)
+       (setq only-one-filesystem nil))
+     (let ((size 0.0))
+       (dolist (arg (or args '(".")))
+         (when only-one-filesystem
+           (setq only-one-filesystem
+                 (file-attribute-device-number
+                  (eshell-file-attributes (file-name-as-directory arg)))))
+         (setq size (+ size (eshell-du-sum-directory
+                             (directory-file-name arg) 0))))
+       (if grand-total
+           (eshell-print (concat (eshell-du-size-string size)
+                                 "total\n")))))))
 
 (put 'eshell/du 'eshell-filename-arguments t)
 
