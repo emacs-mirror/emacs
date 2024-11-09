@@ -72,7 +72,7 @@
 
 (defcustom lua-ts-luacheck-program "luacheck"
   "Location of the Luacheck program."
-  :type '(choice (const :tag "None" nil) string)
+  :type 'file
   :version "30.1")
 
 (defcustom lua-ts-inferior-buffer "*Lua*"
@@ -83,7 +83,7 @@
 
 (defcustom lua-ts-inferior-program "lua"
   "Program to run in the inferior Lua process."
-  :type '(choice (const :tag "None" nil) string)
+  :type 'file
   :version "30.1")
 
 (defcustom lua-ts-inferior-options '("-i")
@@ -643,47 +643,49 @@ Calls REPORT-FN directly."
 (defun lua-ts-inferior-lua ()
   "Run a Lua interpreter in an inferior process."
   (interactive)
-  (unless (comint-check-proc lua-ts-inferior-buffer)
-    (apply #'make-comint-in-buffer
-           (string-replace "*" "" lua-ts-inferior-buffer)
-           lua-ts-inferior-buffer
-           lua-ts-inferior-program
-           lua-ts-inferior-startfile
-           lua-ts-inferior-options)
-    (when lua-ts-inferior-history
+  (if (not lua-ts-inferior-program)
+      (user-error "You must set `lua-ts-inferior-program' to use this command")
+    (unless (comint-check-proc lua-ts-inferior-buffer)
+      (apply #'make-comint-in-buffer
+             (string-replace "*" "" lua-ts-inferior-buffer)
+             lua-ts-inferior-buffer
+             lua-ts-inferior-program
+             lua-ts-inferior-startfile
+             lua-ts-inferior-options)
+      (when lua-ts-inferior-history
         (set-process-sentinel (get-buffer-process lua-ts-inferior-buffer)
                               'lua-ts-inferior--write-history))
-    (with-current-buffer lua-ts-inferior-buffer
-      (setq-local comint-input-ignoredups t
-                  comint-input-ring-file-name lua-ts-inferior-history
-                  comint-prompt-read-only t
-                  comint-prompt-regexp (rx-to-string `(: bol
-                                                         ,lua-ts-inferior-prompt
-                                                         (1+ space))))
-      (comint-read-input-ring t)
-      (add-hook 'comint-preoutput-filter-functions
-                (lambda (string)
-                  (if (equal string (concat lua-ts-inferior-prompt-continue " "))
-                      string
-                    (concat
-                     ;; Filter out the extra prompt characters that
-                     ;; accumulate in the output when sending regions
-                     ;; to the inferior process.
-                     (replace-regexp-in-string (rx-to-string
-                                                `(: bol
-                                                    (* ,lua-ts-inferior-prompt
-                                                       (? ,lua-ts-inferior-prompt)
-                                                       (1+ space))
-                                                    (group (* nonl))))
-                                               "\\1" string)
-                     ;; Re-add the prompt for the next line.
-                     lua-ts-inferior-prompt " ")))
-                nil t)))
-  (select-window (display-buffer lua-ts-inferior-buffer
-                                 '((display-buffer-reuse-window
-                                    display-buffer-pop-up-window)
-                                   (reusable-frames . t))))
-  (get-buffer-process (current-buffer)))
+      (with-current-buffer lua-ts-inferior-buffer
+        (setq-local comint-input-ignoredups t
+                    comint-input-ring-file-name lua-ts-inferior-history
+                    comint-prompt-read-only t
+                    comint-prompt-regexp (rx-to-string `(: bol
+                                                           ,lua-ts-inferior-prompt
+                                                           (1+ space))))
+        (comint-read-input-ring t)
+        (add-hook 'comint-preoutput-filter-functions
+                  (lambda (string)
+                    (if (equal string (concat lua-ts-inferior-prompt-continue " "))
+                        string
+                      (concat
+                       ;; Filter out the extra prompt characters that
+                       ;; accumulate in the output when sending regions
+                       ;; to the inferior process.
+                       (replace-regexp-in-string
+                        (rx-to-string `(: bol
+                                          (* ,lua-ts-inferior-prompt
+                                             (? ,lua-ts-inferior-prompt)
+                                             (1+ space))
+                                          (group (* nonl))))
+                        "\\1" string)
+                       ;; Re-add the prompt for the next line.
+                       lua-ts-inferior-prompt " ")))
+                  nil t)))
+    (select-window (display-buffer lua-ts-inferior-buffer
+                                   '((display-buffer-reuse-window
+                                      display-buffer-pop-up-window)
+                                     (reusable-frames . t))))
+    (get-buffer-process (current-buffer))))
 
 (defun lua-ts-send-buffer ()
   "Send current buffer to the inferior Lua process."
