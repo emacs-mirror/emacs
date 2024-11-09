@@ -3520,9 +3520,12 @@ prepare_desired_root_row (struct frame *root, int y)
   if (!root_row->enabled_p)
     {
       struct glyph_row *from = MATRIX_ROW (root->current_matrix, y);
-      memcpy (root_row->glyphs[0], from->glyphs[0],
-	      root->current_matrix->matrix_w * sizeof (struct glyph));
-      root_row->enabled_p = true;
+      if (from->enabled_p)
+	{
+	  memcpy (root_row->glyphs[0], from->glyphs[0],
+		  root->current_matrix->matrix_w * sizeof (struct glyph));
+	  root_row->enabled_p = true;
+	}
     }
   return root_row;
 }
