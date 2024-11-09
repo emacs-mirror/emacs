@@ -118,11 +118,11 @@ Each function is called with the current vector as argument.")
 (defun tramp-cleanup-connection
     (vec &optional keep-debug keep-password keep-processes)
   "Flush all connection related objects.
-This includes password cache, file cache, connection cache,
-buffers, processes.  KEEP-DEBUG non-nil preserves the debug
-buffer.  KEEP-PASSWORD non-nil preserves the password cache.
-KEEP-PROCESSES non-nil preserves the asynchronous processes.
-When called interactively, a Tramp connection has to be selected."
+This includes password cache, file cache, connection cache, buffers,
+processes.  KEEP-DEBUG non-nil preserves the debug and trace buffer.
+KEEP-PASSWORD non-nil preserves the password cache.  KEEP-PROCESSES
+non-nil preserves the asynchronous processes.  When called
+interactively, a Tramp connection has to be selected."
   (declare (completion tramp-active-command-completion-p))
   (interactive
    ;; When interactive, select the Tramp remote identification.

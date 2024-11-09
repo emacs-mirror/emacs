@@ -183,8 +183,8 @@ Input methods are now implemented for Haudenosaunee languages in the
 Northern Iroquoian language family: 'mohawk-postfix' (Mohawk
 [Kanien’kéha / Onkwehonwehnéha]), 'oneida-postfix' (Oneida [Onʌyota:ká:
 / Ukwehuwehnéha]), 'cayuga-postfix' (Cayuga [Gayogo̱ho:nǫhnéha:ˀ]),
-'onondaga-postfix (Onondaga [[Onųdaʔgegáʔ]), and `seneca-postfix'
-[Onödowá’ga:’]).  Additionally, there is a general-purpose
+'onondaga-postfix' (Onondaga [Onųdaʔgegáʔ]), and 'seneca-postfix'
+(Seneca [Onödowá’ga:’]).  Additionally, there is a general-purpose
 'haudenosaunee-postfix' input method to facilitate writing in the
 orthographies of the five languages simultaneously.
 
@@ -267,7 +267,7 @@ It removes all the buttons in the specified region.
 This command scrolls the screen so that only the current prompt is
 visible, optionally erasing all the previous input/output as well.
 Previously, the Eshell built-in command 'eshell/clear' supported this
-(e.g. to call it via 'M-x'), but this new command behaves more
+(e.g., to call it via 'M-x'), but this new command behaves more
 consistently if you have a partially-typed command at the Eshell prompt.
 
 ---
@@ -486,6 +486,19 @@ The host name for Kubernetes connections can be of kind
 used.  This overrides the setting in 'tramp-kubernetes-namespace', if
 any.
 
++++
+*** Different proxies for the same destination host name can be specified.
+A typical example are docker containers, which run on different hosts
+under the same docker name.  When the user option
+'tramp-show-ad-hoc-proxies' is non-nil, such ad-hoc multi-hop file names
+can be used in parallel.  Example: on both remote hosts "host1" and
+"host2" there is a docker container "name", respectively:
+
+    /ssh:user1@host1|docker:name:
+    /ssh:user2@host2|docker:name:
+
+This feature is experimental.
+
 ** Diff
 
 ---
@@ -562,17 +575,17 @@ be set as a connection-local variable.
 
 ---
 *** New user option 'dired-hide-details-hide-absolute-location'.
-When dired's 'dired-hide-details-mode' is enabled, also hide the
+When Dired's 'dired-hide-details-mode' is enabled, also hide the
 'default-directory' absolute location, typically displayed as the first
-line in a dired buffer.
+line in a Dired buffer.
 
-With dired-hide-details-hide-absolute-location:
+With 'dired-hide-details-hide-absolute-location':
 
-  project: (100 GiB available)
+    project: (100 GiB available)
 
-Without dired-hide-details-hide-absolute-location:
+Without 'dired-hide-details-hide-absolute-location':
 
-  /absolute/path/to/my/important/project: (100 GiB available)
+    /absolute/path/to/my/important/project: (100 GiB available)
 
 ** Grep
 
@@ -622,7 +635,7 @@ The hardcoded '^' shortcut gets you back to the previous menu.
 ---
 *** New user option 'tmm-shortcut-inside-entry'.
 When non-nil, highlight the character shortcut in the menu entry's
-string instead of preprending it and `tmm-mid-prompt' to said entry.
+string instead of preprending it and 'tmm-mid-prompt' to said entry.
 
 ** Foldout
 
@@ -655,8 +668,8 @@ of seconds.  Crossfading can be toggled using the command
 *** New user option 'vc-allow-rewriting-published-history'.
 Some VCS commands can change your copy of published change history
 without warning.  In VC we try to detect before that happens, and stop.
-You can customize this variable to permit rewriting history
-even though Emacs thinks it is dangerous.
+You can customize this option to permit rewriting history even though
+Emacs thinks it is dangerous.
 
 ---
 *** 'vc-clone' is now an interactive command.
@@ -846,7 +859,7 @@ variable 'w32-inhibit-dwrite' to t.  Also see 'w32-dwrite-available' and
 'w32-dwrite-reinit' to check availability and to configure the
 DirectWrite rendering parameters.
 
-To show color Emoji in Emacs, customize the default fontset to use a
+To show color Emojis in Emacs, customize the default fontset to use a
 color Emoji font installed on your system for the 'emoji' script.
 
 +++

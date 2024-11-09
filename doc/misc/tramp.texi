@@ -3914,6 +3914,30 @@ shall be taken, add a proper rule to the user option
 @end lisp
 
 
+@subsection Using different proxies for the same destination
+
+@strong{Note}: This feature is experimental, don't use it in
+production systems!
+
+Sometimes, it is needed to specify different proxies for the same
+destination host name.  This can happen for the same destination when
+the local host is located in different networks over the time.  This
+can also happen when the remote destination is specified by the remote
+same file name, although different hosts are meant depending on the
+used proxy.  A typical example are docker containers, which run on
+different hosts under the same docker name.
+
+When the user option @code{tramp-show-ad-hoc-proxies} is
+non-@code{nil}, such ad-hoc multi-hop file names can be used in
+parallel.  In the following, on both remote hosts @samp{host1} and
+@samp{host2} there is a docker container @samp{name}, respectively:
+
+@example
+@trampfn{ssh@value{postfixhop}user1@@host1|docker,name,}
+@trampfn{ssh@value{postfixhop}user2@@host2|docker,name,}
+@end example
+
+
 @node Home directories
 @section Expanding @file{~} to home directory
 
