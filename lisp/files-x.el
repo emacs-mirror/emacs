@@ -239,18 +239,23 @@ This command deletes all existing settings of VARIABLE (except `mode'
 and `eval') and adds a new file-local VARIABLE with VALUE to the
 Local Variables list.
 
-If there is no Local Variables list in the current file buffer
-then this function adds the first line containing the string
-`Local Variables:' and the last line containing the string `End:'."
+If there is no Local Variables list in the current file buffer,
+then this function adds it at the end of the file, with the first
+line containing the string `Local Variables:' and the last line
+containing the string `End:'.
+
+For adding local variables on the first line of a file, for example
+for settings like `lexical-binding, which must be specified there,
+use the `add-file-local-variable-prop-line' command instead."
   (interactive
    (let ((variable (read-file-local-variable "Add file-local variable")))
      ;; Error before reading value.
      (if (equal variable 'lexical-binding)
-	 (user-error "The `%s' variable must be set at the start of the file"
+	 (user-error "Use `add-file-local-variable-prop-line' to add the `%s' variable"
 		     variable))
      (list variable (read-file-local-variable-value variable) t)))
   (if (equal variable 'lexical-binding)
-      (user-error "The `%s' variable must be set at the start of the file"
+      (user-error "Use `add-file-local-variable-prop-line' to add the `%s' variable"
                   variable))
   (modify-file-local-variable variable value 'add-or-replace interactive))
 
@@ -394,10 +399,13 @@ from the -*- line ignoring the input argument VALUE."
 
 This command deletes all existing settings of VARIABLE (except `mode'
 and `eval') and adds a new file-local VARIABLE with VALUE to
-the -*- line.
+the -*- line at the beginning of the file.
 
 If there is no -*- line at the beginning of the current file buffer
-then this function adds it."
+then this function adds it.
+
+To add variables to the Local Variables list at the end of the file,
+use the `add-file-local-variable' command instead."
   (interactive
    (let ((variable (read-file-local-variable "Add -*- file-local variable")))
      (list variable (read-file-local-variable-value variable) t)))
