@@ -55,6 +55,7 @@ If FRAME cannot display COLOR, return nil."
   (let ((valmax (float (car (color-values "#ffffffffffff")))))
     (mapcar (lambda (x) (/ x valmax)) (color-values color frame))))
 
+;;;###autoload
 (defun color-rgb-to-hex  (red green blue &optional digits-per-component)
   "Return hexadecimal #RGB notation for the color specified by RED GREEN BLUE.
 RED, GREEN, and BLUE should be numbers between 0.0 and 1.0, inclusive.
@@ -75,6 +76,7 @@ components (e.g. \"#ffff1212ecec\")."
           (- 1.0 (nth 1 color))
           (- 1.0 (nth 2 color)))))
 
+;;;###autoload
 (defun color-blend (a b &optional alpha)
   "Blend the two colors A and B in linear space with ALPHA.
 A and B should be lists (RED GREEN BLUE), where each element is
@@ -83,7 +85,7 @@ has on the result and should be between 0.0 and 1.0, inclusive.
 
 For instance:
 
-   (color-blend '(1 0.5 1) '(0 0 0) 0.75)
+   (color-blend \\='(1 0.5 1) \\='(0 0 0) 0.75)
       => (0.75 0.375 0.75)"
   (setq alpha (or alpha 0.5))
   (let (blend)
