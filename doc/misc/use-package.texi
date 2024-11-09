@@ -1416,6 +1416,13 @@ for the same variable, as this risks having conflicting values in your
 use-package declaration and your @code{custom-file}, which can lead to
 problems that are both tricky and tedious to debug.
 
+Also note that if you use @code{:custom} in a file that you
+byte-compile, you could have some unexpected results if you later load
+or @code{require} @file{use-package} (e.g., due to lazy loading): the
+value of the corresponding user options could be reset back to their
+initial values.  We therefore recommend against byte-compiling files
+that use @file{use-package} with @code{:custom} settings.
+
 @node Faces
 @section Faces
 @cindex faces, setting
