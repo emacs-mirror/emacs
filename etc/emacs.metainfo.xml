@@ -48,6 +48,7 @@
  </screenshots>
  <update_contact>emacs-devel_AT_gnu.org</update_contact>
  <branding>
-   <color type="primary">#7f5ab6</color>
+    <color type="primary" scheme_preference="light">#7f5ab6</color>
+    <color type="primary" scheme_preference="dark">#624195</color>
  </branding>
 </component>
