@@ -4631,6 +4631,18 @@ which must be set to a non-@code{nil} value.  Example:
 @end group
 @end lisp
 
+This enables direct async processes for the host @samp{remotehost}.
+If you want to enable direct async processes for all remote hosts
+connected via the same method (e.g., @option{ssh}), use instead
+
+@lisp
+@group
+(connection-local-set-profiles
+ '(:application tramp :protocol "ssh")
+ 'remote-direct-async-process)
+@end group
+@end lisp
+
 Using direct asynchronous processes in @value{tramp} is not possible,
 if the remote host is connected via multiple hops
 (@pxref{Multi-hops}).  In this case, @value{tramp} falls back to its

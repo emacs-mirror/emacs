@@ -1593,7 +1593,7 @@ be made.
 
   Other characters can also have special case-conversion rules.  They
 all have non-@code{nil} character properties @code{special-uppercase},
-@code{special-lowercase} or @code{special-titlecase} (@pxref{Character
+@code{special-lowercase}, or @code{special-titlecase} (@pxref{Character
 Properties}) defined by the Unicode Standard.  These properties define
 special case-conversion rules which override the current case table
 (@pxref{Case Tables}).
@@ -1640,11 +1640,11 @@ maps for both lower case and upper case.
   Some characters have special case-conversion rules defined for them,
 which by default override the current case table.  These characters have
 non-@code{nil} character properties @code{special-uppercase},
-@code{special-lowercase} or @code{special-titlecase} (@pxref{Character
+@code{special-lowercase}, or @code{special-titlecase} (@pxref{Character
 Properties}) defined by the Unicode Standard.  An example is U+00DF
 LATIN SMALL LETTER SHARP S, @ss{}, which by default up-cases to the
 string @code{"SS"}, not to U+1E9E LATIN CAPITAL LETTER SHARP S@.  To
-force these characters follow the case-table conversions, set the
+force these characters to follow the case-table conversions, set the
 corresponding Unicode property to @code{nil}:
 
 @example
