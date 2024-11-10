@@ -6819,7 +6819,8 @@ Consults the auth-source package."
 	 (setq tramp-password-save-function nil)
 	 ;; See if auth-sources contains something useful.
 	 (ignore-errors
-	   (and (tramp-get-connection-property vec "first-password-request")
+	   (and auth-sources
+                (tramp-get-connection-property vec "first-password-request")
 		;; Try with Tramp's current method.  If there is no
 		;; user name, `:create' triggers to ask for.  We
 		;; suppress it.
