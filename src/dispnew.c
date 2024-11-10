@@ -2636,10 +2636,21 @@ build_frame_matrix_from_leaf_window (struct glyph_matrix *frame_matrix, struct w
 
       if (current_row_p)
 	{
-	  /* Copy window row to frame row.  */
-	  memcpy (frame_row->glyphs[TEXT_AREA] + window_matrix->matrix_x,
-		  window_row->glyphs[0],
-		  window_matrix->matrix_w * sizeof (struct glyph));
+	  /* If the desired glyphs for this row haven't been built,
+	     copy from the corresponding current row, but only if it
+	     is enabled, because ottherwise its contents are invalid.  */
+	  struct glyph *to = frame_row->glyphs[TEXT_AREA] + window_matrix->matrix_x;
+	  struct glyph *from = window_row->glyphs[0];
+	  for (int i = 0; i < window_matrix->matrix_w; ++i)
+	    {
+	      if (window_row->enabled_p)
+		to[i] = from[i];
+	      else
+		{
+		  to[i] = space_glyph;
+		  to[i].frame = f;
+		}
+	    }
 	}
       else
 	{
