@@ -474,14 +474,73 @@ enum
 
 static_assert (IGC_OBJ_NUM_TYPES - 1 < (1 << IGC_HEADER_TYPE_BITS));
 
+struct igc_exthdr
+{
+  EMACS_UINT nwords;
+  EMACS_UINT hash;
+  enum igc_obj_type obj_type;
+  Lisp_Object extra_dependency;
+};
+
+enum igc_tag
+{
+  IGC_TAG_NULL = 0, /* entire value must be 0 to avoid MPS issues */
+  IGC_TAG_OBJ = 1, /* IGC object */
+  IGC_TAG_EXTHDR = 2, /* pointer to aligned external header */
+};
+
+#ifdef IN_MY_FORK
+
+/* After Pip Cet's header changes, Lisp objects include a gc_header
+   union, which has an uint64_t member 'v'. struct igc_header then
+   contained the same 'v', and not bitfields anymore. This makes things
+   inconvinient in LLDB.  */
+
+struct igc_header
+{
+  enum igc_tag tag : IGC_HEADER_TAG_BITS;
+  enum igc_obj_type obj_type : IGC_HEADER_TYPE_BITS;
+  mps_word_t hash : IGC_HEADER_HASH_BITS;
+  mps_word_t nwords : IGC_HEADER_NWORDS_BITS;
+};
+
+static unsigned
+header_nwords (const struct igc_header *h)
+{
+  return h->nwords;
+}
+
+static unsigned
+header_hash (const struct igc_header *h)
+{
+  return h->hash;
+}
+
+static enum igc_obj_type
+header_type (const struct igc_header *h)
+{
+  return h->obj_type;
+}
+
+static uint64_t
+header_tag (const struct igc_header *h)
+{
+  return h->tag;
+}
+
+static struct igc_exthdr *
+header_exthdr (const struct igc_header *h)
+{
+  uint64_t v = *(uint64_t *) h;
+  return ((struct igc_exthdr *)(intptr_t)(v & ~IGC_HEADER_TAG_MASK));
+}
+
+#else
+
 struct igc_header
 {
   uint64_t v;
 };
-
-unsigned igc_header_hash (struct igc_header *h);
-size_t igc_header_nwords (const struct igc_header *h);
-enum igc_obj_type igc_header_type (struct igc_header *h);
 
 static unsigned
 header_nwords (const struct igc_header *h)
@@ -507,26 +566,17 @@ header_tag (const struct igc_header *h)
   return h->v & IGC_HEADER_TAG_MASK;
 }
 
-struct igc_exthdr
-{
-  EMACS_UINT nwords;
-  EMACS_UINT hash;
-  enum igc_obj_type obj_type;
-  Lisp_Object extra_dependency;
-};
-
 static struct igc_exthdr *
 header_exthdr (const struct igc_header *h)
 {
   return ((struct igc_exthdr *)(intptr_t)(h->v & ~IGC_HEADER_TAG_MASK));
 }
 
-enum igc_tag
-{
-  IGC_TAG_NULL = 0, /* entire value must be 0 to avoid MPS issues */
-  IGC_TAG_OBJ = 1, /* IGC object */
-  IGC_TAG_EXTHDR = 2, /* pointer to aligned external header */
-};
+#endif /* not IN_MY_FORK */
+
+unsigned igc_header_hash (struct igc_header *h);
+size_t igc_header_nwords (const struct igc_header *h);
+enum igc_obj_type igc_header_type (struct igc_header *h);
 
 enum igc_obj_type
 igc_header_type (struct igc_header *h)
@@ -610,10 +660,10 @@ set_header (struct igc_header *h, enum igc_obj_type type,
   /* Make sure upper 32-bit word is unaligned on IA-32.  */
   if (INTPTR_MAX <= INT_MAX)
     tag += (1LL << 32);
-  h->v = (((uint64_t) to_words (nbytes) << IGC_HEADER_NWORDS_SHIFT) +
-	  ((hash & IGC_HEADER_HASH_MASK) << (IGC_HEADER_HASH_SHIFT)) +
-	  (type << IGC_HEADER_TYPE_SHIFT) +
-	  tag);
+  uint64_t v = (((uint64_t) to_words (nbytes) << IGC_HEADER_NWORDS_SHIFT)
+		+ ((hash & IGC_HEADER_HASH_MASK) << (IGC_HEADER_HASH_SHIFT))
+		+ (type << IGC_HEADER_TYPE_SHIFT) + tag);
+  *(uint64_t *) h = v;
 }
 
 static unsigned alloc_hash (void);
@@ -4456,7 +4506,8 @@ igc_external_header (struct igc_header *h)
       exthdr->obj_type = header_type (h);
       exthdr->extra_dependency = Qnil;
       /* On IA-32, the upper 32-bit word is 0 after this, which is okay.  */
-      h->v = (intptr_t)exthdr + IGC_TAG_EXTHDR;
+      uint64_t v = (intptr_t)exthdr + IGC_TAG_EXTHDR;
+      *(uint64_t *) h = v;
       mps_addr_t ref = (mps_addr_t) h;
       mps_res_t res = mps_finalize (global_igc->arena, &ref);
       IGC_CHECK_RES (res);
