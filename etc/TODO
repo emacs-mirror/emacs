@@ -943,13 +943,13 @@ This sections contains features found in other official Emacs ports.
 Emacs 25 has support for xwidgets, a system to include WebKit widgets
 into an Emacs buffer.
 
-They work on NS, but not very well.  For example, trying to display a
-xwidget in the "killed" state will make Emacs crash.  This is because
-the NS code has not been updated to keep with recent changes to the
-X11 and GTK code.
+They work on NS, but not very well.  This is because the NS code has
+not been updated to keep with recent changes to the X11 and GTK code.
 
-Many features such as xwidget-webkit-edit-mode do not work correctly
-on NS either.
+Many features do not work correctly on NS, such as:
+ - xwidget-webkit-edit-mode
+ - xwidget-webkit-isearch-mode
+ - xwidget-webkit-browse-history.
 
 **** Respect 'frame-inhibit-implied-resize'
 When the variable 'frame-inhibit-implied-resize' is non-nil, frames
