@@ -113,7 +113,7 @@ static int last_per_buffer_idx;
 static void call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay,
                                     bool after, Lisp_Object arg1,
                                     Lisp_Object arg2, Lisp_Object arg3);
-static void reset_buffer_local_variables (struct buffer *, bool);
+static void reset_buffer_local_variables (struct buffer *, int);
 
 /* Alist of all buffer names vs the buffers.  This used to be
    a Lisp-visible variable, but is no longer, to prevent lossage
@@ -1112,10 +1112,11 @@ reset_buffer (register struct buffer *b)
    Instead, use Fkill_all_local_variables.
 
    If PERMANENT_TOO, reset permanent buffer-local variables.
-   If not, preserve those.  */
+   If not, preserve those.  PERMANENT_TOO = 2 means ignore
+   the permanent-local property of non-builtin variables.  */
 
 static void
-reset_buffer_local_variables (struct buffer *b, bool permanent_too)
+reset_buffer_local_variables (struct buffer *b, int permanent_too)
 {
   int offset, i;
 
@@ -1141,7 +1142,7 @@ reset_buffer_local_variables (struct buffer *b, bool permanent_too)
   bset_invisibility_spec (b, Qt);
 
   /* Reset all (or most) per-buffer variables to their defaults.  */
-  if (permanent_too)
+  if (permanent_too == 1)
     bset_local_var_alist (b, Qnil);
   else
     {
@@ -1170,7 +1171,7 @@ reset_buffer_local_variables (struct buffer *b, bool permanent_too)
 	      swap_in_global_binding (XSYMBOL (sym));
 	    }
 
-          if (!NILP (prop))
+          if (!NILP (prop) && !permanent_too)
             {
               /* If permanent-local, keep it.  */
               last = tmp;
@@ -3001,7 +3002,7 @@ the normal hook `change-major-mode-hook'.  */)
 
   /* Actually eliminate all local bindings of this buffer.  */
 
-  reset_buffer_local_variables (current_buffer, !NILP (kill_permanent));
+  reset_buffer_local_variables (current_buffer, !NILP (kill_permanent) ? 2 : 0);
 
   /* Force mode-line redisplay.  Useful here because all major mode
      commands call this function.  */
