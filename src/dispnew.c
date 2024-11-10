@@ -3519,28 +3519,32 @@ make_matrix_current (struct frame *f)
 	make_current (f, NULL, i);
 }
 
-/* Prepare ROOT's desired row at index Y for copying child
-   frame contents to it.  */
+/* Prepare ROOT's desired row at index Y for copying child frame
+   contents to it.  Value is the prepared desired row or NULL if we
+   don't have, and can't contruct a desired row.  */
 
 static struct glyph_row *
 prepare_desired_root_row (struct frame *root, int y)
 {
-  /* Start with the root's desired matrix row.  If that hasn't been
-     redisplayed, copy from the root's current matrix.  */
-  struct glyph_row *root_row = MATRIX_ROW (root->desired_matrix, y);
+  /* If we have a desired row that has been displayed, use that.  */
+  struct glyph_row *desired_row = MATRIX_ROW (root->desired_matrix, y);
+  if (desired_row->enabled_p)
+    return desired_row;
+
+  /* If we have a current row that is up to date, copy that to the
+     desired row and use that.  */
   /* Don't copy rows that aren't enabled, in particuler because they
      might not have the 'frame' member of glyphs set.  */
-  if (!root_row->enabled_p)
+  struct glyph_row *current_row = MATRIX_ROW (root->current_matrix, y);
+  if (current_row->enabled_p)
     {
-      struct glyph_row *from = MATRIX_ROW (root->current_matrix, y);
-      if (from->enabled_p)
-	{
-	  memcpy (root_row->glyphs[0], from->glyphs[0],
-		  root->current_matrix->matrix_w * sizeof (struct glyph));
-	  root_row->enabled_p = true;
-	}
+      memcpy (desired_row->glyphs[0], current_row->glyphs[0],
+	      root->current_matrix->matrix_w * sizeof (struct glyph));
+      desired_row->enabled_p = true;
+      return desired_row;
     }
-  return root_row;
+
+  return NULL;
 }
 
 /* Change GLYPH to be a space glyph.  */
@@ -3667,6 +3671,8 @@ produce_box_line (struct frame *root, struct frame *child, int x, int y, int w,
 		  bool first)
 {
   struct glyph_row *root_row = prepare_desired_root_row (root, y);
+  if (root_row == NULL)
+    return;
   if (first)
     produce_box_sides (BOX_DOWN_RIGHT, BOX_DOWN_LEFT, root_row, x, w, root, child);
   else
@@ -3703,8 +3709,9 @@ copy_child_glyphs (struct frame *root, struct frame *child)
       for (int y = r.y; y < r.y + r.h; ++y)
 	{
 	  struct glyph_row *root_row = prepare_desired_root_row (root, y);
-	  produce_box_sides (BOX_VERTICAL, BOX_VERTICAL, root_row, r.x, r.w,
-			     root, child);
+	  if (root_row)
+	    produce_box_sides (BOX_VERTICAL, BOX_VERTICAL, root_row, r.x, r.w,
+			       root, child);
 	}
 
       /* Horizontal line below.  */
@@ -3722,6 +3729,8 @@ copy_child_glyphs (struct frame *root, struct frame *child)
   for (int y = r.y; y < r.y + r.h; ++y, ++child_y)
     {
       struct glyph_row *root_row = prepare_desired_root_row (root, y);
+      if (root_row == NULL)
+	continue;
 
       /* Deal with wide characters unless already done as part of
 	 drawing a box around the child frame.  */
