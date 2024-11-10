@@ -264,9 +264,14 @@ Use \"\\[command-apropos] picture-movement\" to see commands which control motio
 	  (move-to-column picture-desired-column t))
       (let ((col (+ picture-desired-column width)))
 	(or (eolp)
-	    (let ((pos (point)))
-	      (move-to-column col t)
-	      (let ((old-width (string-width (buffer-substring pos (point)))))
+	    (let ((pos (point))
+                  (col0 (current-column))
+                  col1)
+	      (setq col1 (move-to-column col t))
+              ;; We count columns, not width, because move-to-column
+              ;; could insert TABs, which width depends on horizontal
+              ;; position.
+	      (let ((old-width (- (max col0 col1) (min col0 col1))))
 		(delete-region pos (point))
 		(when (> old-width width)
 		  (insert-char ?  (- old-width width))
