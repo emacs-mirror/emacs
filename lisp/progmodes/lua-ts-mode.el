@@ -289,7 +289,8 @@ values of OVERRIDE."
 
 (defvar lua-ts--simple-indent-rules
   `((lua
-     ((or (node-is "comment")
+     ((or (and (node-is "comment") (parent-is "chunk"))
+          lua-ts--multi-line-comment-start
           (parent-is "comment_content")
           (parent-is "string_content")
           (node-is "]]"))
@@ -473,9 +474,10 @@ values of OVERRIDE."
     (= 1 (length (cadr sparse-tree)))))
 
 (defun lua-ts--comment-first-sibling-matcher (node &rest _)
-  "Matches if NODE if it's previous sibling is a comment."
+  "Matches NODE if its previous sibling is a comment."
   (let ((sibling (treesit-node-prev-sibling node)))
-    (equal "comment" (treesit-node-type sibling))))
+    (and (= 0 (treesit-node-index sibling t))
+         (equal "comment" (treesit-node-type sibling)))))
 
 (defun lua-ts--top-level-function-call-matcher (node &rest _)
   "Matches if NODE is within a top-level function call."
@@ -507,6 +509,15 @@ values of OVERRIDE."
     (when (looking-back (rx bol (* whitespace))
                         (line-beginning-position))
       (point))))
+
+(defun lua-ts--multi-line-comment-start (node &rest _)
+  "Matches if NODE is the beginning of a multi-line comment."
+  (and node
+       (equal "comment" (treesit-node-type node))
+       (save-excursion
+         (goto-char (treesit-node-start node))
+         (forward-char 2)               ; Skip the -- part.
+         (looking-at "\\[\\["))))
 
 (defvar lua-ts--syntax-table
   (let ((table (make-syntax-table)))
