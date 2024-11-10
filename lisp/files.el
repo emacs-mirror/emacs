@@ -1280,7 +1280,7 @@ NOERROR is equal to `reload'), or otherwise emit a warning."
       (let* ((fn (locate-file (or filename (symbol-name feature))
                               load-path (get-load-suffixes) nil
                               )) ;; load-prefer-newer
-             ;;  We used to look for `fn' in `load-history' with `assoc'
+             ;; We used to look for `fn' in `load-history' with `assoc'
              ;; which works in most cases, but in some cases (e.g. when
              ;; `load-prefer-newer' is set) `locate-file' can return a
              ;; different file than the file that `require' would load,
@@ -1288,10 +1288,11 @@ NOERROR is equal to `reload'), or otherwise emit a warning."
              ;; we did load "it".  (bug#74040)
              ;; So use a "permissive" search which doesn't pay attention to
              ;; differences between file extensions.
-             (prefix (if (string-match
-                          (concat (regexp-opt (get-load-suffixes)) "\\'") fn)
-                         (concat (substring fn 0 (match-beginning 0)) ".")
-                       fn))
+             (prefix (when fn
+                       (if (string-match
+                            (concat (regexp-opt (get-load-suffixes)) "\\'") fn)
+                           (concat (substring fn 0 (match-beginning 0)) ".")
+                         fn)))
              (lh load-history))
         (while (and lh (let ((file (car-safe (car lh))))
                          (not (and file (string-prefix-p prefix file)))))
