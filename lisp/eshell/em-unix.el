@@ -860,11 +860,15 @@ external command."
 
 (cl-defun eshell-du-sum-directory (path depth-remaining &rest args
                                    &key print-function show-all
-                                   dereference-links only-one-filesystem)
+                                   dereference-links only-one-filesystem
+                                   seen-files)
   "Summarize PATH, and its member directories."
   (let ((size 0.0))
     (dolist (entry (eshell-directory-files-and-attributes path))
-      (unless (string-match "\\`\\.\\.?\\'" (car entry))
+      (unless (or (string-match "\\`\\.\\.?\\'" (car entry))
+                  (gethash (file-attribute-file-identifier (cdr entry))
+                           seen-files))
+        (puthash (file-attribute-file-identifier (cdr entry)) t seen-files)
         (let* ((file-name (concat path "/" (car entry)))
                (file-type (file-attribute-type (cdr entry)))
                (symlink (and (stringp file-type) file-type)))
@@ -938,6 +942,7 @@ Summarize disk usage of each FILE, recursively for directories.")
      (when (eshell-under-windows-p)
        (setq only-one-filesystem nil))
      (let ((size 0.0)
+           (seen-files (make-hash-table :test #'equal))
            (print-function
             (lambda (size name)
               (let ((size-str (eshell-printable-size size human-readable
@@ -952,7 +957,8 @@ Summarize disk usage of each FILE, recursively for directories.")
                              (directory-file-name arg) max-depth
                              :print-function print-function :show-all show-all
                              :dereference-links dereference-links
-                             :only-one-filesystem only-one-filesystem))))
+                             :only-one-filesystem only-one-filesystem
+                             :seen-files seen-files))))
        (when grand-total
          (funcall print-function size "total"))))))
 
