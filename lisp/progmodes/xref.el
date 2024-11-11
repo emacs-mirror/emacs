@@ -1140,6 +1140,7 @@ XREF-ALIST is of the form ((GROUP . (XREF ...)) ...), where
 GROUP is a string for decoration purposes and XREF is an
 `xref-item' object."
   (require 'compile) ; For the compilation faces.
+  (setq xref-num-matches-found 0)
   (cl-loop for (group . xrefs) in xref-alist
            for max-line = (cl-loop for xref in xrefs
                                    maximize (xref-location-line
@@ -1159,6 +1160,7 @@ GROUP is a string for decoration purposes and XREF is an
            (xref--insert-propertized '(face xref-file-header xref-group t)
                                      group "\n")
            (dolist (xref xrefs)
+             (cl-incf xref-num-matches-found)
              (pcase-let (((cl-struct xref-item summary location) xref))
                (let* ((line (xref-location-line location))
                       (prefix
@@ -1248,7 +1250,6 @@ Return an alist of the form ((GROUP . (XREF ...)) ...)."
       (xref--ensure-default-directory dd (current-buffer))
       (xref--xref-buffer-mode)
       (xref--show-common-initialize xref-alist fetcher alist)
-      (setq xref-num-matches-found (length xrefs))
       (setq mode-line-process (list xref-mode-line-matches))
       (pop-to-buffer (current-buffer))
       (setq buf (current-buffer)))
