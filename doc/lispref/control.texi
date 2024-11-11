@@ -322,31 +322,73 @@ There's a number of variations on this theme, and they're briefly
 described below.
 
 @defmac if-let* varlist then-form else-forms...
-Evaluate each binding in @var{varlist} in turn, like in @code{let*}
-(@pxref{Local Variables}), stopping if a binding value is @code{nil}.
-If all are non-@code{nil}, return the value of @var{then-form},
-otherwise the last form in @var{else-forms}.
+Evaluate each binding in @var{varlist}, stopping if a binding value is
+@code{nil}.  If all are non-@code{nil}, return the value of
+@var{then-form}, otherwise the last form in @var{else-forms}.
+
+Each element of @code{varlist} has the form @w{@code{(@var{symbol}
+@var{value-form})}}: @var{value-form} is evaluated and @var{symbol} is
+locally bound to the result.  Bindings are sequential, as in @code{let*}
+(@pxref{Local Variables}).  As a special case, @var{symbol} can be
+omitted if only the test result of @var{value-form} is of interest:
+@var{value-form} is evaluated and checked for @code{nil}, but its value
+is not bound.
 @end defmac
 
 @defmac when-let* varlist then-forms...
-Like @code{if-let*}, but without @var{else-forms}.
+Evaluate each binding in @var{varlist}, stopping if a binding value is
+@code{nil}.  If all are non-@code{nil}, return the value of the last
+form in @var{then-forms}.
+
+@var{varlist} has the same form as in @code{if-let*}: Each element of
+@code{varlist} has the form @w{@code{(@var{symbol} @var{value-form})}},
+in which @var{value-form} is evaluated and @var{symbol} is locally bound
+to the result.  Bindings are sequential, as in @code{let*} (@pxref{Local
+Variables}).  As a special case, @var{symbol} can be omitted if only the
+test result of @var{value-form} is of interest: @var{value-form} is
+evaluated and checked for @code{nil}, but its value is not bound.
 @end defmac
 
 @defmac and-let* varlist then-forms...
-Like @code{when-let*}, but in addition, if there are no
-@var{then-forms} and all the bindings evaluate to non-@code{nil}, return
+Evaluate each binding in @var{varlist}, stopping if a binding value is
+@code{nil}.  If all are non-@code{nil}, return the value of the last
+form in @var{then-forms}, or, if there are no @var{then-forms}, return
 the value of the last binding.
-@end defmac
 
-@defmac while-let spec then-forms...
-Like @code{when-let*}, but repeat until a binding in @var{spec} is
-@code{nil}.  The return value is always @code{nil}.
+@var{varlist} has the same form as in @code{if-let*}: Each element of
+@code{varlist} has the form @w{@code{(@var{symbol} @var{value-form})}},
+in which @var{value-form} is evaluated and @var{symbol} is locally bound
+to the result.  Bindings are sequential, as in @code{let*} (@pxref{Local
+Variables}).  As a special case, @var{symbol} can be omitted if only the
+test result of @var{value-form} is of interest: @var{value-form} is
+evaluated and checked for @code{nil}, but its value is not bound.
 @end defmac
 
 Some Lisp programmers follow the convention that @code{and} and
 @code{and-let*} are for forms evaluated for return value, and
 @code{when} and @code{when-let*} are for forms evaluated for side-effect
 with returned values ignored.
+
+A similar macro exists to run a loop until one binding evaluates to
+@code{nil}:
+
+@defmac while-let spec then-forms...
+Evaluate each binding in @var{spec} in turn, stopping if a binding value
+is @code{nil}.  If all are non-@code{nil}, execute @var{then-forms},
+then repeat the loop.  Note that when the loop is repeated, the
+@var{value-forms} in @var{spec} are re-evaluated and the bindings are
+established anew.
+
+@var{varlist} has the same form as in @code{if-let*}: Each element of
+@code{varlist} has the form @w{@code{(@var{symbol} @var{value-form})}},
+in which @var{value-form} is evaluated and @var{symbol} is locally bound
+to the result.  Bindings are sequential, as in @code{let*} (@pxref{Local
+Variables}).  As a special case, @var{symbol} can be omitted if only the
+test result of @var{value-form} is of interest: @var{value-form} is
+evaluated and checked for @code{nil}, but its value is not bound.
+
+The return value of @code{while-let} is always @code{nil}.
+@end defmac
 
 @node Combining Conditions
 @section Constructs for Combining Conditions
