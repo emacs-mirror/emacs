@@ -2479,9 +2479,22 @@ static Lisp_Object
 process_dropfiles (DROPFILES *files)
 {
   char *start_of_files = (char *) files + files->pFiles;
+#ifndef NTGUI_UNICODE
   char filename[MAX_UTF8_PATH];
+#endif
   Lisp_Object lisp_files = Qnil;
 
+#ifdef NTGUI_UNICODE
+  WCHAR *p = (WCHAR *) start_of_files;
+  for (; *p; p += wcslen (p) + 1)
+    {
+      Lisp_Object fn = from_unicode_buffer (p);
+#ifdef CYGWIN
+      fn = Fcygwin_convert_file_name_to_windows (fn, Qt);
+#endif
+      lisp_files = Fcons (fn, lisp_files);
+    }
+#else
   if (files->fWide)
     {
       WCHAR *p = (WCHAR *) start_of_files;
@@ -2502,6 +2515,7 @@ process_dropfiles (DROPFILES *files)
 			      lisp_files);
 	}
     }
+#endif
   return lisp_files;
 }
 
