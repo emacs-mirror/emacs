@@ -37,7 +37,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <math.h>
 #include <windows.h>
 
-#ifndef MINGW_W64
+#if !defined MINGW_W64 && !defined CYGWIN
 # define INITGUID
 #endif
 #include <initguid.h>
@@ -659,7 +659,7 @@ w32_dwrite_encode_char (struct font *font, int c)
   if (dwrite_font_face == NULL)
     return FONT_INVALID_CODE;
   hr = dwrite_font_face->lpVtbl->GetGlyphIndices (dwrite_font_face,
-						  &c, 1, &index);
+						  (UINT32 *) &c, 1, &index);
   if (verify_hr (hr, "Failed to GetGlyphIndices"))
     {
       if (index == 0)

@@ -4853,11 +4853,14 @@ struct dump_memory_map_heap_control_block
 static void
 dump_mm_heap_cb_release (struct dump_memory_map_heap_control_block *cb)
 {
-  eassert (cb->refcount > 0);
-  if (--cb->refcount == 0)
+  if (cb)
     {
-      free (cb->mem);
-      free (cb);
+      eassert (cb->refcount > 0);
+      if (--cb->refcount == 0)
+	{
+	  free (cb->mem);
+	  free (cb);
+	}
     }
 }
 
