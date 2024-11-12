@@ -187,8 +187,8 @@ Lisp_Object
 w32_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
 {
 #ifdef NTGUI_UNICODE
-  typedef int (WINAPI *WideCharToMultiByte_Proc)(UINT,DWORD,LPCWSTR,int,LPSTR,
-						 int,LPCSTR,LPBOOL);
+  typedef int (WINAPI *WideCharToMultiByte_Proc)(UINT,DWORD,LPCSTR,int,
+						 LPWSTR, int);
   static MultiByteToWideChar_Proc pMultiByteToWideChar = MultiByteToWideChar;
 #endif /* NTGUI_UNICODE */
   check_window_system (f);
