@@ -17035,19 +17035,22 @@ redisplay_internal (void)
   if (face_change)
     windows_or_buffers_changed = 47;
 
-  /* FIXME: Can we do better for tty child frames?  It could be
-     a bit faster when we switch between child frames of the same
-     root frame.  OTOH, it's probably not a frequent use case.  */
+  struct frame *previous_frame;
   if ((FRAME_TERMCAP_P (sf) || FRAME_MSDOS_P (sf))
-      && FRAME_TTY (sf)->previous_frame != sf)
+      && (previous_frame = FRAME_TTY (sf)->previous_frame,
+	  previous_frame != sf))
     {
-      /* Since frames on a single ASCII terminal share the same
-	 display area, displaying a different frame means redisplay
-	 the whole thing.  */
-      SET_FRAME_GARBAGED (sf);
+      if (previous_frame == NULL
+	  || root_frame (previous_frame) != root_frame (sf))
+	{
+	  /* Since frames on a single terminal share the same display
+	     area, displaying a different frame means redisplay the
+	     whole thing.  */
+	  SET_FRAME_GARBAGED (sf);
 #if !defined DOS_NT && !defined HAVE_ANDROID
-      set_tty_color_mode (FRAME_TTY (sf), sf);
+	  set_tty_color_mode (FRAME_TTY (sf), sf);
 #endif
+	}
       FRAME_TTY (sf)->previous_frame = sf;
     }
 
