@@ -438,10 +438,9 @@ rulesets defined previously with `define-peg-ruleset'."
     (macroexpand-all
      `(cl-labels
           ,(mapcar (lambda (rule)
-		     ;; FIXME: Use `peg--lambda' as well.
 		     `(,(peg--rule-id (car rule))
-		       ()
-		       ,(peg--translate-rule-body (car rule) (cdr rule))))
+		       (peg--lambda ',(cdr rule) ()
+		         ,(peg--translate-rule-body (car rule) (cdr rule)))))
 		   rules)
         ,@body)
      `((:peg-rules ,@(append rules (cdr ctx)))
