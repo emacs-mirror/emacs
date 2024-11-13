@@ -236,6 +236,11 @@ modal editing packages.
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
+** CL-Lib
++++
+*** 'cl-labels' now also accepts (FUNC EXP) bindings, like 'cl-flet'.
+Such bindings make it possible to compute which function to bind to FUNC.
+
 ** Whitespace
 
 ---
