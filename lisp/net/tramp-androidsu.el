@@ -111,7 +111,7 @@ multibyte mode and waits for the shell prompt to appear."
 
   (with-tramp-debug-message vec "Opening connection"
     (let ((p (tramp-get-connection-process vec))
-	  (process-name (tramp-get-connection-property vec "process-name"))
+	  (process-name (tramp-get-connection-property vec " process-name"))
 	  (process-environment (copy-sequence process-environment)))
       ;; Open a new connection.
       (condition-case err

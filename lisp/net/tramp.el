@@ -1956,11 +1956,11 @@ Unless DONT-CREATE, the buffer is created when it doesn't exist yet."
   (or (get-buffer (tramp-buffer-name vec))
       (unless dont-create
 	(with-current-buffer (get-buffer-create (tramp-buffer-name vec))
-	  ;; We use the existence of connection property "process-buffer"
+	  ;; We use the existence of connection property " process-buffer"
 	  ;; as indication, whether a connection is active.
 	  (tramp-set-connection-property
-	   vec "process-buffer"
-	   (tramp-get-connection-property vec "process-buffer"))
+	   vec " process-buffer"
+	   (tramp-get-connection-property vec " process-buffer"))
 	  (setq buffer-undo-list t
 		default-directory
 		(tramp-make-tramp-file-name vec 'noloc))
@@ -1972,14 +1972,14 @@ Unless DONT-CREATE, the buffer is created when it doesn't exist yet."
 Unless DONT-CREATE, the buffer is created when it doesn't exist yet.
 In case a second asynchronous communication has been started, it is different
 from `tramp-get-buffer'."
-  (or (tramp-get-connection-property vec "process-buffer")
+  (or (tramp-get-connection-property vec " process-buffer")
       (tramp-get-buffer vec dont-create)))
 
 (defun tramp-get-connection-name (vec)
   "Get the connection name to be used for VEC.
 In case a second asynchronous communication has been started, it is different
 from the default one."
-  (or (tramp-get-connection-property vec "process-name")
+  (or (tramp-get-connection-property vec " process-name")
       (tramp-buffer-name vec)))
 
 (defun tramp-get-unique-process-name (name)
@@ -2477,7 +2477,7 @@ Fall back to normal file name handler if no Tramp file name handler exists."
 			(with-tramp-debug-message
 			    v (format "Running `%S'" (cons operation args))
 			  ;; We flush connection properties
-			  ;; "process-name" and "process-buffer",
+			  ;; " process-name" and " process-buffer",
 			  ;; because the operations shall be applied
 			  ;; in the main connection process.  In order
 			  ;; to avoid superfluous debug buffers during
@@ -2492,12 +2492,12 @@ Fall back to normal file name handler if no Tramp file name handler exists."
 		          ;; a short time frame.
 		          ;; In both cases, we try the default handler then.
 			  (with-tramp-saved-connection-properties
-			      v '("process-name" "process-buffer")
+			      v '(" process-name" " process-buffer")
 			    (let ((tramp-verbose
 				   (if minibuffer-completing-file-name
 				       0 tramp-verbose)))
-			      (tramp-flush-connection-property v "process-name")
-			      (tramp-flush-connection-property v "process-buffer"))
+			      (tramp-flush-connection-property v " process-name")
+			      (tramp-flush-connection-property v " process-buffer"))
 		            (setq result
 				  (catch 'non-essential
 			            (catch 'suppress
@@ -5694,7 +5694,7 @@ of."
       ;; Sometimes, the process returns a new password request
       ;; immediately after rejecting the previous (wrong) one.
       (unless (or tramp-password-prompt-not-unique
-		  (tramp-get-connection-property vec "first-password-request"))
+		  (tramp-get-connection-property vec " first-password-request"))
 	(tramp-clear-passwd vec))
       (goto-char (point-min))
       (tramp-check-for-regexp proc tramp-process-action-regexp)
@@ -5901,7 +5901,7 @@ performed successfully.  Any other value means an error."
   (tramp-set-connection-property
    (tramp-get-connection-property
     proc "password-vector" (process-get proc 'tramp-vector))
-   "first-password-request" tramp-cache-read-persistent-data)
+   " first-password-request" tramp-cache-read-persistent-data)
   (save-restriction
     (with-tramp-progress-reporter
 	proc 3 "Waiting for prompts from remote shell"
@@ -6872,7 +6872,8 @@ Consults the auth-source package."
 	 (setq tramp-password-save-function nil)
 	 ;; See if auth-sources contains something useful.
 	 (ignore-errors
-	   (and (tramp-get-connection-property vec "first-password-request")
+	   (and auth-sources
+                (tramp-get-connection-property vec " first-password-request")
 		;; Try with Tramp's current method.  If there is no
 		;; user name, `:create' triggers to ask for.  We
 		;; suppress it.
@@ -6894,7 +6895,7 @@ Consults the auth-source package."
 		 (lambda () (password-cache-add key auth-passwd)))
 	   auth-passwd))
 
-      (tramp-set-connection-property vec "first-password-request" nil))))
+      (tramp-set-connection-property vec " first-password-request" nil))))
 
 (defun tramp-read-passwd-without-cache (proc &optional prompt)
   "Read a password from user (compat function)."

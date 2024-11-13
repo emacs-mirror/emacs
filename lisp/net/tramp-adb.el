@@ -811,10 +811,10 @@ will be used."
 	   v 'file-error "Cannot apply multibyte command `%s'" command))
 
 	(with-tramp-saved-connection-properties
-	    v '("process-name" "process-buffer")
+	    v '(" process-name" " process-buffer")
 	  ;; Set the new process properties.
-	  (tramp-set-connection-property v "process-name" name)
-	  (tramp-set-connection-property v "process-buffer" buffer)
+	  (tramp-set-connection-property v " process-name" name)
+	  (tramp-set-connection-property v " process-buffer" buffer)
 	  (with-current-buffer (tramp-get-connection-buffer v)
 	    (unwind-protect
 		;; We catch this event.  Otherwise, `make-process'
@@ -857,8 +857,8 @@ will be used."
 			;; We must flush them here already;
 			;; otherwise `rename-file', `delete-file'
 			;; or `insert-file-contents' will fail.
-			(tramp-flush-connection-property v "process-name")
-			(tramp-flush-connection-property v "process-buffer")
+			(tramp-flush-connection-property v " process-name")
+			(tramp-flush-connection-property v " process-buffer")
 			;; Copy tmpstderr file.
 			(when (and (stringp stderr)
 				   (not (tramp-tramp-file-p stderr)))

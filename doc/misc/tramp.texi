@@ -3937,6 +3937,9 @@ parallel.  In the following, on both remote hosts @samp{host1} and
 @trampfn{ssh@value{postfixhop}user2@@host2|docker,name,}
 @end example
 
+If you use the shortened name @samp{@trampfn{docker,name,}}, the last
+used proxy definition is expanded for.
+
 
 @node Home directories
 @section Expanding @file{~} to home directory

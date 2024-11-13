@@ -1801,7 +1801,7 @@ a downcased host name only."
 	    (setq domain (read-string "Domain name: ")))
 
 	  (tramp-message l 6 "%S %S %S %d" message user domain flags)
-	  (unless (tramp-get-connection-property l "first-password-request")
+	  (unless (tramp-get-connection-property l " first-password-request")
 	    (tramp-clear-passwd l))
 
 	  (setq password (tramp-read-passwd
@@ -2252,7 +2252,7 @@ connection if a previous connection has died for some reason."
 
 	  ;; Enable `auth-source'.
 	  (tramp-set-connection-property
-	   vec "first-password-request" tramp-cache-read-persistent-data)
+	   vec " first-password-request" tramp-cache-read-persistent-data)
 
 	  ;; There will be a callback of "askPassword" when a password is needed.
 	  (dbus-register-method

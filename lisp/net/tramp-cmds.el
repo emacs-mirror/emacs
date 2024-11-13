@@ -173,7 +173,7 @@ interactively, a Tramp connection has to be selected."
 		     (get-buffer (tramp-debug-buffer-name vec)))
 		   (unless keep-debug
 		     (get-buffer (tramp-trace-buffer-name vec)))
-		   (tramp-get-connection-property vec "process-buffer")))
+		   (tramp-get-connection-property vec " process-buffer")))
       (when (bufferp buf) (kill-buffer buf)))
 
     ;; Flush file cache.

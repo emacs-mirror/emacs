@@ -352,7 +352,7 @@ connection if a previous connection has died for some reason."
 			   (tramp-compat-make-temp-file " .nocrypt" 'dir-flag))))
 	    ;; Enable `auth-source', unless "emacs -Q" has been called.
 	    (tramp-set-connection-property
-	     vec "first-password-request" tramp-cache-read-persistent-data)
+	     vec " first-password-request" tramp-cache-read-persistent-data)
 	    (with-temp-buffer
 	      (insert
 	       (tramp-read-passwd
@@ -408,7 +408,7 @@ ARGS are the arguments.  It returns t if ran successful, and nil otherwise."
 	   (args (delq nil args)))
       ;; Enable `auth-source', unless "emacs -Q" has been called.
       (tramp-set-connection-property
-       vec "first-password-request" tramp-cache-read-persistent-data)
+       vec " first-password-request" tramp-cache-read-persistent-data)
       (insert
        (tramp-read-passwd
 	(tramp-get-connection-process vec)

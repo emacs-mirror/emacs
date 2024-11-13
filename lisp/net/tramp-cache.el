@@ -68,7 +68,7 @@
 
 ;; Some properties are handled special:
 ;;
-;; - "process-name", "process-buffer" and "first-password-request" are
+;; - Properties which start with a space, like " process-name", are
 ;;   not saved in the file `tramp-persistency-file-name', although
 ;;   being connection properties related to a `tramp-file-name'
 ;;   structure.
@@ -554,7 +554,7 @@ PROPERTIES is a list of file properties (strings)."
      (lambda (key)
        (and (tramp-file-name-p key)
 	    (null (tramp-file-name-localname key))
-	    (tramp-connection-property-p key "process-buffer")
+	    (tramp-connection-property-p key " process-buffer")
 	    key))
      (hash-table-keys tramp-cache-data))))
 
@@ -586,10 +586,9 @@ PROPERTIES is a list of file properties (strings)."
 		    (not (tramp-file-name-localname key))
 		    (not (gethash "login-as" value))
 		    (not (gethash "started" value)))
-	       (progn
-		 (remhash "process-name" value)
-		 (remhash "process-buffer" value)
-		 (remhash "first-password-request" value))
+	       (dolist (k (hash-table-keys value))
+		 (when (string-prefix-p " " k)
+		   (remhash k value)))
 	     (remhash key cache)))
 	 cache)
 	;; Dump it.
