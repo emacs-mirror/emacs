@@ -2624,6 +2624,12 @@ The candidate will still be chosen by `choose-completion' unless
              (sort-fun (completion-metadata-get all-md 'display-sort-function))
              (group-fun (completion-metadata-get all-md 'group-function))
              (mainbuf (current-buffer))
+             (current-candidate-and-offset
+              (when-let* ((buffer (get-buffer "*Completions*"))
+                          (window (get-buffer-window buffer 0)))
+                (with-current-buffer buffer
+                  (when-let* ((beg (completions--start-of-candidate-at (window-point window))))
+                    (cons (get-text-property beg 'completion--string) (- (point) beg))))))
              ;; If the *Completions* buffer is shown in a new
              ;; window, mark it as softly-dedicated, so bury-buffer in
              ;; minibuffer-hide-completions will know whether to
@@ -2647,7 +2653,7 @@ The candidate will still be chosen by `choose-completion' unless
             ,(when temp-buffer-resize-mode
                '(preserve-size . (nil . t)))
             (body-function
-             . ,#'(lambda (_window)
+             . ,#'(lambda (window)
                     (with-current-buffer mainbuf
                       (when completion-auto-deselect
                         (add-hook 'after-change-functions #'completions--after-change nil t))
@@ -2737,7 +2743,16 @@ The candidate will still be chosen by `choose-completion' unless
                                                      (if (eq (car bounds) (length result))
                                                          'exact 'finished))))))
 
-                      (display-completion-list completions nil group-fun)))))
+                      (display-completion-list completions nil group-fun)
+                      (when current-candidate-and-offset
+                        (with-current-buffer standard-output
+                          (when-let* ((match (text-property-search-forward
+                                              'completion--string (car current-candidate-and-offset) t)))
+                            (goto-char (prop-match-beginning match))
+                            ;; Preserve the exact offset for the sake of
+                            ;; `choose-completion-deselect-if-after'.
+                            (forward-char (cdr current-candidate-and-offset))
+                            (set-window-point window (point)))))))))
           nil)))
     nil))
 
@@ -2746,8 +2761,12 @@ The candidate will still be chosen by `choose-completion' unless
   ;; FIXME: We could/should use minibuffer-scroll-window here, but it
   ;; can also point to the minibuffer-parent-window, so it's a bit tricky.
   (interactive)
-  (let ((win (get-buffer-window "*Completions*" 0)))
-    (if win (with-selected-window win (bury-buffer)))))
+  (when-let* ((win (get-buffer-window "*Completions*" 0)))
+    (with-selected-window win
+      ;; Move point off any completions, so we don't move point there
+      ;; again the next time `minibuffer-completion-help' is called.
+      (goto-char (point-min))
+      (bury-buffer))))
 
 (defun exit-minibuffer ()
   "Terminate this minibuffer argument."
@@ -4905,8 +4924,6 @@ insert the selected completion candidate to the minibuffer."
   (interactive "p")
   (let ((auto-choose minibuffer-completion-auto-choose))
     (with-minibuffer-completions-window
-      (when completions-highlight-face
-        (setq-local cursor-face-highlight-nonselected-window t))
       (if vertical
           (next-line-completion (or n 1))
         (next-completion (or n 1)))
