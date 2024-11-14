@@ -785,7 +785,7 @@ in case of error, t otherwise."
       ;; Avoid process status message in output buffer.
       (set-process-sentinel p #'ignore)
       (tramp-post-process-creation p vec)
-      (tramp-set-connection-property p "password-vector" tramp-sudoedit-null-hop)
+      (tramp-set-connection-property p "pw-vector" tramp-sudoedit-null-hop)
       (tramp-process-actions p vec nil tramp-sudoedit-sudo-actions)
       (tramp-message vec 6 "%s\n%s" (process-exit-status p) (buffer-string))
       (prog1

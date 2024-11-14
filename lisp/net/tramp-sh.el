@@ -5246,9 +5246,10 @@ connection if a previous connection has died for some reason."
 			(setq r-shell t)))
 		    (setq current-host l-host)
 
-		    ;; Set password prompt vector.
+		    ;; Set hop and password prompt vector.
+		    (tramp-set-connection-property p "hop-vector" hop)
 		    (tramp-set-connection-property
-		     p "password-vector"
+		     p "pw-vector"
 		     (if (tramp-get-method-parameter
 			  hop 'tramp-password-previous-hop)
 			 (let ((pv (copy-tramp-file-name previous-hop)))
@@ -5304,6 +5305,8 @@ connection if a previous connection has died for some reason."
 		       tramp-actions-before-shell connection-timeout))
 
 		    ;; Next hop.
+		    (tramp-flush-connection-property p "hop-vector")
+		    (tramp-flush-connection-property p "pw-vector")
 		    (setq options ""
 			  target-alist (cdr target-alist)
 			  previous-hop hop)))

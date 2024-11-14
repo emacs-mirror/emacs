@@ -1106,7 +1106,8 @@ connection if a previous connection has died for some reason."
       ;; Maybe we know already that "su" is not supported.  We cannot
       ;; use a connection property, because we have not checked yet
       ;; whether it is still the same device.
-      (when (and user (not (tramp-get-file-property vec "/" "su-command-p" t)))
+      (when
+	  (and user (not (tramp-get-connection-property vec " su-command-p" t)))
 	(tramp-error vec 'file-error "Cannot switch to user `%s'" user))
 
       (unless (process-live-p p)
@@ -1191,7 +1192,7 @@ connection if a previous connection has died for some reason."
 		(unless (tramp-adb-send-command-and-check vec nil)
 		  (delete-process p)
 		  ;; Do not flush, we need the nil value.
-		  (tramp-set-file-property vec "/" "su-command-p" nil)
+		  (tramp-set-connection-property vec " su-command-p" nil)
 		  (tramp-error
 		   vec 'file-error "Cannot switch to user `%s'" user)))
 

@@ -4707,7 +4707,7 @@ Parsing the remote \"ps\" output is controlled by
 It is not guaranteed, that all process attributes as described in
 `process-attributes' are returned.  The additional attribute
 `pid' shall be returned always."
-  (with-tramp-file-property vec "/" "process-attributes"
+  (with-tramp-connection-property vec " process-attributes"
     (ignore-errors
       (with-temp-buffer
         (hack-connection-local-variables-apply
@@ -4754,7 +4754,7 @@ It is not guaranteed, that all process attributes as described in
 (defun tramp-handle-list-system-processes ()
   "Like `list-system-processes' for Tramp files."
   (let ((v (tramp-dissect-file-name default-directory)))
-    (tramp-flush-file-property v "/" "process-attributes")
+    (tramp-flush-connection-property v " process-attributes")
     (mapcar (lambda (x) (cdr (assq 'pid x))) (tramp-get-process-attributes v))))
 
 (defun tramp-get-lock-file (file)
@@ -4962,74 +4962,74 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 	(item vec)
 	choices proxy)
 
-    ;; Ad-hoc proxy definitions.
-    (tramp-add-hops vec)
+    ;; `tramp-compute-multi-hops' could be called also for other file
+    ;; name handlers, for example in `tramp-clear-passwd'.
+    (when (tramp-sh-file-name-handler-p vec)
 
-    ;; Look for proxy hosts to be passed.
-    (setq choices tramp-default-proxies-alist)
-    (while choices
-      (setq item (pop choices)
-	    proxy (eval (nth 2 item) t))
-      (when (and
-	     ;; Host.
-	     (string-match-p
-	      (or (eval (nth 0 item) t) "")
-	      (or (tramp-file-name-host-port (car target-alist)) ""))
-	     ;; User.
-	     (string-match-p
-	      (or (eval (nth 1 item) t) "")
-	      (or (tramp-file-name-user-domain (car target-alist)) "")))
-	(if (null proxy)
-	    ;; No more hops needed.
-	    (setq choices nil)
-	  ;; Replace placeholders.  The proxy could contain "%" which
-	  ;; is not intended as format character, for example in
-	  ;; USER%DOMAIN or POD%NAMESPACE.
-	  (setq proxy
-		(replace-regexp-in-string
-		 (rx "%" (group (= 2 alnum))) "%%\\1" proxy)
-		proxy
-		(format-spec
-		 proxy
-		 (format-spec-make
-		  ?u (or (tramp-file-name-user (car target-alist)) "")
-		  ?h (or (tramp-file-name-host (car target-alist)) ""))))
-	  (with-parsed-tramp-file-name proxy l
-	    ;; Add the hop.
-	    (push l target-alist)
-	    ;; Start next search.
-	    (setq choices tramp-default-proxies-alist)))))
+      ;; Ad-hoc proxy definitions.
+      (tramp-add-hops vec)
 
-    ;; Foreign and out-of-band methods are not supported for multi-hops.
-    (when (cdr target-alist)
-      (setq choices target-alist)
-      (while (setq item (pop choices))
-	(unless (tramp-multi-hop-p item)
-	  (setq tramp-default-proxies-alist saved-tdpa)
-	  (tramp-user-error
-	   vec "Method `%s' is not supported for multi-hops"
-	   (tramp-file-name-method item)))))
+      ;; Look for proxy hosts to be passed.
+      (setq choices tramp-default-proxies-alist)
+      (while choices
+	(setq item (pop choices)
+	      proxy (eval (nth 2 item) t))
+	(when (and
+	       ;; Host.
+	       (string-match-p
+		(or (eval (nth 0 item) t) "")
+		(or (tramp-file-name-host-port (car target-alist)) ""))
+	       ;; User.
+	       (string-match-p
+		(or (eval (nth 1 item) t) "")
+		(or (tramp-file-name-user-domain (car target-alist)) "")))
+	  (if (null proxy)
+	      ;; No more hops needed.
+	      (setq choices nil)
+	    ;; Replace placeholders.
+	    (setq proxy
+		  (format-spec
+		   proxy
+		   (format-spec-make
+		    ?u (or (tramp-file-name-user (car target-alist)) "")
+		    ?h (or (tramp-file-name-host (car target-alist)) ""))))
+	    (with-parsed-tramp-file-name proxy l
+	      ;; Add the hop.
+	      (push l target-alist)
+	      ;; Start next search.
+	      (setq choices tramp-default-proxies-alist)))))
 
-    ;; Some methods ("su", "sg", "sudo", "doas", "run0", "ksu") do not
-    ;; use the host name in their command template.  In this case, the
-    ;; remote file name must use either a local host name (first hop),
-    ;; or a host name matching the previous hop.
-    (let ((previous-host (or tramp-local-host-regexp "")))
-      (setq choices target-alist)
-      (while (setq item (pop choices))
-	(let ((host (tramp-file-name-host item)))
-	  (unless
-	      (or
-	       ;; The host name is used for the remote shell command.
-	       (member
-		"%h" (flatten-tree
-		      (tramp-get-method-parameter item 'tramp-login-args)))
-	       ;; The host name must match previous hop.
-	       (string-match-p previous-host host))
+      ;; Foreign and out-of-band methods are not supported for
+      ;; multi-hops.
+      (when (cdr target-alist)
+	(setq choices target-alist)
+	(while (setq item (pop choices))
+	  (unless (tramp-multi-hop-p item)
 	    (setq tramp-default-proxies-alist saved-tdpa)
 	    (tramp-user-error
-	     vec "Host name `%s' does not match `%s'" host previous-host))
-	  (setq previous-host (rx bol (literal host) eol)))))
+	     vec "Method `%s' is not supported for multi-hops"
+	     (tramp-file-name-method item)))))
+
+      ;; Some methods ("su", "sg", "sudo", "doas", "run0", "ksu") do
+      ;; not use the host name in their command template.  In this
+      ;; case, the remote file name must use either a local host name
+      ;; (first hop), or a host name matching the previous hop.
+      (let ((previous-host (or tramp-local-host-regexp "")))
+	(setq choices target-alist)
+	(while (setq item (pop choices))
+	  (let ((host (tramp-file-name-host item)))
+	    (unless
+		(or
+		 ;; The host name is used for the remote shell command.
+		 (member
+		  "%h" (flatten-tree
+			(tramp-get-method-parameter item 'tramp-login-args)))
+		 ;; The host name must match previous hop.
+		 (string-match-p previous-host host))
+	      (setq tramp-default-proxies-alist saved-tdpa)
+	      (tramp-user-error
+	       vec "Host name `%s' does not match `%s'" host previous-host))
+	    (setq previous-host (rx bol (literal host) eol))))))
 
     ;; Result.
     target-alist))
@@ -5694,7 +5694,11 @@ of."
       ;; Sometimes, the process returns a new password request
       ;; immediately after rejecting the previous (wrong) one.
       (unless (or tramp-password-prompt-not-unique
-		  (tramp-get-connection-property vec " first-password-request"))
+		  (tramp-get-connection-property
+		   (tramp-get-connection-property
+		    proc "hop-vector"
+		    (process-get proc 'tramp-vector))
+		   " first-password-request"))
 	(tramp-clear-passwd vec))
       (goto-char (point-min))
       (tramp-check-for-regexp proc tramp-process-action-regexp)
@@ -5897,10 +5901,10 @@ because the shell prompt has been detected), it shall throw a
 result.  The symbol `ok' means that all ACTIONs have been
 performed successfully.  Any other value means an error."
   ;; Enable `auth-source', unless "emacs -Q" has been called.  We must
-  ;; use the "password-vector" property in case we have several hops.
+  ;; use the "hop-vector" property in case we have several hops.
   (tramp-set-connection-property
    (tramp-get-connection-property
-    proc "password-vector" (process-get proc 'tramp-vector))
+    proc "hop-vector" (process-get proc 'tramp-vector))
    " first-password-request" tramp-cache-read-persistent-data)
   (save-restriction
     (with-tramp-progress-reporter
@@ -6843,15 +6847,16 @@ Consults the auth-source package."
 	 ;; adapt `default-directory'.  (Bug#39389, Bug#39489)
 	 (default-directory tramp-compat-temporary-file-directory)
 	 (case-fold-search t)
-	 ;; In tramp-sh.el, we must use "password-vector" due to
-	 ;; multi-hop.
-	 (vec (tramp-get-connection-property
-	       proc "password-vector" (process-get proc 'tramp-vector)))
-	 (key (tramp-make-tramp-file-name vec 'noloc))
-	 (method (tramp-file-name-method vec))
-	 (user-domain (or (tramp-file-name-user-domain vec)
-			  (tramp-get-connection-property key "login-as")))
-	 (host-port (tramp-file-name-host-port vec))
+	 ;; In tramp-sh.el, we must use "hop-vector" and "pw-vector"
+	 ;; due to multi-hop.
+	 (vec (process-get proc 'tramp-vector))
+	 (hop-vec (tramp-get-connection-property proc "hop-vector" vec))
+	 (pw-vec (tramp-get-connection-property proc "pw-vector" hop-vec))
+	 (key (tramp-make-tramp-file-name pw-vec 'noloc))
+	 (method (tramp-file-name-method pw-vec))
+	 (user-domain (or (tramp-file-name-user-domain pw-vec)
+			  (tramp-get-connection-property pw-vec "login-as")))
+	 (host-port (tramp-file-name-host-port pw-vec))
 	 (pw-prompt
 	  (string-trim-left
 	   (or prompt
@@ -6860,29 +6865,23 @@ Consults the auth-source package."
 		 (if (string-match-p "passphrase" (match-string 1))
 		     (match-string 0)
 		   (format "%s for %s " (capitalize (match-string 1)) key))))))
+	 ;; If there is no user name, `:create' triggers to ask for.
+	 ;; We suppress it.
+	 (pw-spec (list :max 1 :user user-domain :host host-port :port method
+			:require (cons :secret (and user-domain '(:user)))
+			:create (and user-domain t)))
 	 (auth-source-creation-prompts `((secret . ,pw-prompt)))
 	 ;; Use connection-local value.
 	 (auth-sources (buffer-local-value 'auth-sources (process-buffer proc)))
 	 auth-info auth-passwd tramp-dont-suspend-timers)
 
     (unwind-protect
-	;; We cannot use `with-parsed-tramp-file-name', because it
-	;; expands the file name.
 	(or
 	 (setq tramp-password-save-function nil)
-	 ;; See if auth-sources contains something useful.
+	 ;; See if `auth-sources' contains something useful.
 	 (ignore-errors
-	   (and auth-sources
-                (tramp-get-connection-property vec " first-password-request")
-		;; Try with Tramp's current method.  If there is no
-		;; user name, `:create' triggers to ask for.  We
-		;; suppress it.
-		(setq auth-info
-		      (car
-		       (auth-source-search
-			:max 1 :user user-domain :host host-port :port method
-			:require (cons :secret (and user-domain '(:user)))
-			:create (and user-domain t)))
+	   (and (tramp-get-connection-property hop-vec " first-password-request")
+		(setq auth-info (car (apply #'auth-source-search pw-spec))
 		      tramp-password-save-function
 		      (plist-get auth-info :save-function)
 		      auth-passwd
@@ -6890,12 +6889,19 @@ Consults the auth-source package."
 
 	 ;; Try the password cache.
 	 (with-tramp-suspended-timers
-	   (setq auth-passwd (password-read pw-prompt key)
+	   (setq auth-passwd
+		 (password-read
+		  pw-prompt (auth-source-format-cache-entry pw-spec))
 		 tramp-password-save-function
-		 (lambda () (password-cache-add key auth-passwd)))
+                 (when auth-source-do-cache
+		   (lambda ()
+		     (password-cache-add
+		      (auth-source-format-cache-entry pw-spec) auth-passwd))))
 	   auth-passwd))
 
-      (tramp-set-connection-property vec " first-password-request" nil))))
+      ;; Remember the values.
+      (tramp-set-connection-property hop-vec " pw-spec" pw-spec)
+      (tramp-set-connection-property hop-vec " first-password-request" nil))))
 
 (defun tramp-read-passwd-without-cache (proc &optional prompt)
   "Read a password from user (compat function)."
@@ -6912,17 +6918,11 @@ Consults the auth-source package."
 (defun tramp-clear-passwd (vec)
   "Clear password cache for connection related to VEC."
   (declare (tramp-suppress-trace t))
-  (let ((method (tramp-file-name-method vec))
-	(user-domain (tramp-file-name-user-domain vec))
-	(host-port (tramp-file-name-host-port vec))
-	(hop (tramp-file-name-hop vec)))
-    (when hop
-      ;; Clear also the passwords of the hops.
-      (tramp-clear-passwd (tramp-dissect-hop-name hop)))
-    (auth-source-forget
-     `(:max 1 ,(and user-domain :user) ,user-domain
-       :host ,host-port :port ,method))
-    (password-cache-remove (tramp-make-tramp-file-name vec 'noloc))))
+  (when-let* ((hop (cadr (reverse (tramp-compute-multi-hops vec)))))
+    ;; Clear also the passwords of the hops.
+    (tramp-clear-passwd hop))
+  (when-let* ((pw-spec (tramp-get-connection-property vec " pw-spec")))
+    (auth-source-forget pw-spec)))
 
 (defun tramp-time-diff (t1 t2)
   "Return the difference between the two times, in seconds.

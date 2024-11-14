@@ -2258,6 +2258,12 @@ this interactively.
 @vindex auth-source-do-cache
 Set @code{auth-source-do-cache} to @code{nil} to disable password caching.
 
+For connections which use a session-timeout, like @option{sudo},
+@option{doas} and @option{run0}, the password cache is expired by
+@value{tramp} when the session expires (@pxref{Predefined connection
+information}).  However, this makes only sense if the password cannot
+be retrieved from a persistent authentication file or store.
+
 
 @node Connection caching
 @section Reusing connection related information
