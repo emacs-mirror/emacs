@@ -2245,14 +2245,18 @@ like this:
 @value{tramp} can cache passwords as entered and reuse when needed for
 the same user or host name independent of the access method.
 
-@vindex password-cache-expiry
-@code{password-cache-expiry} sets the duration (in seconds) the
-passwords are remembered.  Passwords are never saved permanently nor
-can they extend beyond the lifetime of the current Emacs session.  Set
-@code{password-cache-expiry} to @code{nil} to disable expiration.
+@vindex auth-source-cache-expiry
+@code{auth-source-cache-expiry}@footnote{It overrides
+@code{password-cache-expiry}.} sets the duration (in seconds) the
+passwords are remembered.  Set @code{auth-source-cache-expiry} to
+@code{nil} to disable expiration.
 
-@vindex password-cache
-Set @code{password-cache} to @code{nil} to disable password caching.
+Cached passwords are never saved permanently nor can they extend
+beyond the lifetime of the current Emacs session unless you confirm
+this interactively.
+
+@vindex auth-source-do-cache
+Set @code{auth-source-do-cache} to @code{nil} to disable password caching.
 
 
 @node Connection caching

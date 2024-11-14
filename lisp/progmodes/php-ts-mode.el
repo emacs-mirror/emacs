@@ -84,7 +84,7 @@
 
 ;;; Install treesitter language parsers
 (defvar php-ts-mode--language-source-alist
-  '((php . ("https://github.com/tree-sitter/tree-sitter-php" "v0.23.4" "php/src"))
+  '((php . ("https://github.com/tree-sitter/tree-sitter-php" "v0.23.5" "php/src"))
     (phpdoc . ("https://github.com/claytonrcarter/tree-sitter-phpdoc"))
     (html . ("https://github.com/tree-sitter/tree-sitter-html"  "v0.23.0"))
     (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.0"))
@@ -640,6 +640,7 @@ characters of the current line."
            ((query "(class_interface_clause (qualified_name) @indent)")
             parent-bol php-ts-mode-indent-offset)
            ((parent-is "class_declaration") parent-bol 0)
+	   ((parent-is "namespace_use_declaration") parent-bol php-ts-mode-indent-offset)
            ((parent-is "namespace_use_group") parent-bol php-ts-mode-indent-offset)
            ((parent-is "function_definition") parent-bol 0)
            ((parent-is "member_call_expression") first-sibling php-ts-mode-indent-offset)
@@ -781,7 +782,7 @@ characters of the current line."
   '("--" "**=" "*=" "/=" "%=" "+=" "-=" ".=" "<<=" ">>=" "&=" "^="
     "|=" "??"  "??=" "||" "&&" "|" "^" "&" "==" "!=" "<>" "===" "!=="
     "<" ">" "<=" ">=" "<=>" "<<" ">>" "+" "-" "." "*" "**" "/" "%"
-    "->" "?->")
+    "->" "?->" "...")
   "PHP operators for tree-sitter font-locking.")
 
 (defconst php-ts-mode--predefined-constant
@@ -993,7 +994,7 @@ characters of the current line."
      (member_call_expression
       name: (_) @font-lock-function-call-face)
      (nullsafe_member_call_expression
-      name: (_) @font-lock-constant-face))
+      name: (_) @font-lock-function-call-face))
 
    :language 'php
    :feature 'argument
@@ -1266,8 +1267,14 @@ less common PHP-style # comment.  SOFT works the same as in
          (line-end-position)
          t nil))
       (let ((offset (- (match-beginning 0) (line-beginning-position)))
-            (comment-prefix (match-string 0)))
-        (if soft (insert-and-inherit ?\n) (newline 1))
+            (comment-prefix (match-string 0))
+	    (insert-line-break
+             (lambda ()
+	       (delete-horizontal-space)
+	       (if soft
+		   (insert-and-inherit ?\n)
+		 (newline  1)))))
+	(funcall insert-line-break)
         (delete-region (line-beginning-position) (point))
         (insert
          (make-string offset ?\s)
