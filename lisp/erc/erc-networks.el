@@ -831,6 +831,10 @@ respectively.  The separator is given by `erc-networks--id-sep'."
   (len 0 :type integer
        :documentation "Length of active `parts' interval."))
 
+(define-inline erc-networks--id-string (id)
+  "Return the symbol for `erc-networks--id' ID as a string."
+  (inline-quote (symbol-name (erc-networks--id-symbol ,id))))
+
 ;; For now, please use this instead of `erc-networks--id-fixed-p'.
 (cl-defgeneric erc-networks--id-given (net-id)
   "Return the preassigned identifier for a network context, if any.
@@ -1159,10 +1163,10 @@ TARGET to be an `erc--target' object."
            ((not (with-suppressed-warnings ((obsolete erc-reuse-buffers))
                    erc-reuse-buffers))
             (cadr (split-string
-                   (symbol-name (erc-networks--id-symbol erc-networks--id))
+                   (erc-networks--id-string erc-networks--id)
                    "/")))
            ((erc--target-channel-local-p target) erc-server-announced-name)
-           (t (symbol-name (erc-networks--id-symbol erc-networks--id))))))
+           (t (erc-networks--id-string erc-networks--id)))))
 
 (defun erc-networks--ensure-unique-target-buffer-name ()
   (when-let* ((new-name (erc-networks--construct-target-buffer-name
@@ -1171,8 +1175,7 @@ TARGET to be an `erc--target' object."
     (rename-buffer new-name 'unique)))
 
 (defun erc-networks--ensure-unique-server-buffer-name ()
-  (when-let* ((new-name (symbol-name (erc-networks--id-symbol
-                                      erc-networks--id)))
+  (when-let* ((new-name (erc-networks--id-string erc-networks--id))
               ((not (equal (buffer-name) new-name))))
     (rename-buffer new-name 'unique)))
 
@@ -1489,7 +1492,7 @@ to be a false alarm.  If `erc-reuse-buffers' is nil, let
   ;; buffer may have been deleted.
   (erc-networks--reclaim-orphaned-target-buffers new-proc erc-networks--id
                                                  erc-server-announced-name)
-  (let* ((name (symbol-name (erc-networks--id-symbol erc-networks--id)))
+  (let* ((name (erc-networks--id-string erc-networks--id))
          ;; When this ends up being the current buffer, either we have
          ;; a "given" ID or the buffer was reused on reconnecting.
          (existing (get-buffer name)))

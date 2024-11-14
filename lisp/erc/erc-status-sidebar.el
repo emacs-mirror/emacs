@@ -390,8 +390,8 @@ focused window."
                          (next (cadr (member buffer buflist)))
                          ((buffer-live-p next))
                          (proc (buffer-local-value 'erc-server-process next))
-                         (id (process-get proc 'erc-networks--id)))
-                (symbol-name (erc-networks--id-symbol id)))
+                         (id (process-get proc 'erc-networks--id))
+                         ((erc-networks--id-string id))))
               "???")
           "\n"))
 

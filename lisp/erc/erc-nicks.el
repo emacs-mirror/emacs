@@ -659,7 +659,7 @@ Abandon search after examining LIMIT faces."
                 (progn (delete-region (pos-bol) (1+ (pos-eol)))
                        (forward-line -1))
               (when-let* ((nid (get face 'erc-nicks--netid))
-                          (net (symbol-name (erc-networks--id-symbol nid))))
+                          (net (erc-networks--id-string nid)))
                 (goto-char (button-end (point)))
                 (skip-syntax-forward "-")
                 (put-text-property (point) (1+ (point)) 'rear-nonsticky nil)

@@ -2060,8 +2060,7 @@ same manner."
     (if (and (with-suppressed-warnings ((obsolete erc-reuse-buffers))
                erc-reuse-buffers)
              id)
-        (let ((string (symbol-name (erc-networks--id-symbol
-                                    (erc-networks--id-create id)))))
+        (let ((string (erc-networks--id-string (erc-networks--id-create id))))
           (when-let* ((buf (get-buffer string))
                       ((erc-server-process-alive buf)))
             (user-error  "Session with ID %S already exists" string))
@@ -3063,9 +3062,8 @@ such inconsistent labeling may pose a problem until the MOTD is
 received.  Setting a fixed `erc-networks--id' can serve as a
 workaround."
   (when erc-debug-irc-protocol
-    (let ((esid (if-let* ((erc-networks--id)
-                          (esid (erc-networks--id-symbol erc-networks--id)))
-                    (symbol-name esid)
+    (let ((esid (if erc-networks--id
+                    (erc-networks--id-string erc-networks--id)
                   (or erc-server-announced-name
                       (format "%s:%s" erc-session-server erc-session-port))))
           (ts (when erc-debug-irc-protocol-time-format
@@ -4669,9 +4667,8 @@ node `(erc) auth-source'."
                  function))
 
 (defun erc--auth-source-determine-params-defaults ()
-  (let* ((net (and-let* ((erc-networks--id)
-                         (esid (erc-networks--id-symbol erc-networks--id))
-                         ((symbol-name esid)))))
+  (let* ((net (and erc-networks--id
+                   (erc-networks--id-string erc-networks--id)))
          (localp (and erc--target (erc--target-channel-local-p erc--target)))
          (hosts (if localp
                     (list erc-server-announced-name erc-session-server net)
@@ -9188,9 +9185,8 @@ This should be a string with substitution variables recognized by
 If the name of the network is not available, then use the
 shortened server name instead."
   (if-let* ((erc--target)
-            (name (if-let* ((erc-networks--id)
-                            (esid (erc-networks--id-symbol erc-networks--id)))
-                      (symbol-name esid)
+            (name (if erc-networks--id
+                      (erc-networks--id-string erc-networks--id)
                     (erc-shorten-server-name (or erc-server-announced-name
                                                  erc-session-server)))))
       (concat (erc--target-string erc--target) "@" name)
