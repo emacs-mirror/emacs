@@ -138,13 +138,17 @@
   "Time period to check whether the mount point still exists.
 It has the same meaning as `remote-file-name-inhibit-cache'.")
 
+;;;###tramp-autoload
+(defconst tramp-fuse-name-prefix "tramp-"
+  "Prefix to use for temporary FUSE mount points.")
+
 (defun tramp-fuse-mount-point (vec)
   "Return local mount point of VEC."
   (let ((remote-file-name-inhibit-cache tramp-fuse-mount-timeout))
     (or (tramp-get-file-property vec "/" "mount-point")
 	(expand-file-name
 	 (concat
-	  tramp-temp-name-prefix
+	  tramp-fuse-name-prefix
 	  (tramp-file-name-method vec) "."
 	  (when (tramp-file-name-user vec)
 	    (concat (tramp-file-name-user-domain vec) "@"))

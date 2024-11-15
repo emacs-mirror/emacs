@@ -765,7 +765,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	(forward-line)
 	(delete-region (point-min) (point)))
       (while (and (not (eobp)) (looking-at-p (rx bol (+ nonl) ":" (+ nonl))))
- 	(forward-line))
+	(forward-line))
       (delete-region (point) (point-max))
       (throw 'tramp-action 'ok))))
 
