@@ -4002,6 +4002,9 @@ combine_updates_for_frame (struct frame *f, bool force_p, bool inhibit_scrolling
 bool
 combine_updates (Lisp_Object roots, bool force_p, bool inhibit_scrolling)
 {
+  if (redisplay_dont_pause)
+    force_p = true;
+
   for (; CONSP (roots); roots = XCDR (roots))
     {
       struct frame *root = XFRAME (XCAR (roots));
