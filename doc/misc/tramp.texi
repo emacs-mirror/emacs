@@ -1973,9 +1973,9 @@ They can be installed with Emacs's Package Manager.  This includes
 @c @item ibuffer-tramp.el
 @c Contact Svend Sorensen <svend@@ciffer.net>
 
-@item incus-tramp
 @cindex method @option{incus}
 @cindex @option{incus} method
+@item incus-tramp
 Integration for Incus containers.  A container is accessed via
 @file{@trampfn{incus,user@@container,/path/to/file}}, @samp{user} and
 @samp{container} have the same meaning as with the @option{docker}
