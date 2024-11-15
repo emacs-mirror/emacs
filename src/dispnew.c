@@ -93,10 +93,10 @@ static void check_matrix_pointers (struct glyph_matrix *,
                                    struct glyph_matrix *);
 #endif
 static void mirror_line_dance (struct window *, int, int, int *, char *);
-static bool update_window_tree (struct window *, bool);
-static bool update_window (struct window *, bool);
-static bool write_matrix (struct frame *, bool, bool, bool, bool);
-static bool scrolling (struct frame *);
+static void update_window_tree (struct window *);
+static void update_window (struct window *);
+static void write_matrix (struct frame *, bool, bool, bool);
+static void scrolling (struct frame *);
 static void set_window_cursor_after_update (struct window *);
 static void adjust_frame_glyphs_for_window_redisplay (struct frame *);
 static void adjust_frame_glyphs_for_frame_redisplay (struct frame *);
@@ -115,10 +115,6 @@ check_rows (struct frame *f)
       }
 }
 #endif
-
-/* True means last display completed.  False means it was preempted.  */
-
-bool display_completed;
 
 /* True means SIGWINCH happened when not safe.  */
 
@@ -175,11 +171,10 @@ static uintmax_t history_tick;
 
 /* Add to the redisplay history how window W has been displayed.
    MSG is a trace containing the information how W's glyph matrix
-   has been constructed.  PAUSED_P means that the update
-   has been interrupted for pending input.  */
+   has been constructed.  */
 
 static void
-add_window_display_history (struct window *w, const char *msg, bool paused_p)
+add_window_display_history (struct window *w, const char *msg)
 {
   char *buf;
   void *ptr = w;
@@ -190,14 +185,13 @@ add_window_display_history (struct window *w, const char *msg, bool paused_p)
   ++history_idx;
 
   snprintf (buf, sizeof redisplay_history[0].trace,
-	    "%"PRIuMAX": window %p (%s)%s\n%s",
+	    "%"PRIuMAX": window %p %s\n%s",
 	    history_tick++,
 	    ptr,
 	    ((BUFFERP (w->contents)
 	      && STRINGP (BVAR (XBUFFER (w->contents), name)))
 	     ? SSDATA (BVAR (XBUFFER (w->contents), name))
 	     : "???"),
-	    paused_p ? " ***paused***" : "",
 	    msg);
 }
 
@@ -2136,8 +2130,7 @@ adjust_frame_glyphs_for_frame_redisplay (struct frame *f)
 	 current matrix over a call to adjust_glyph_matrix, we must
 	 make a copy of the current glyphs, and restore the current
 	 matrix' contents from that copy.  */
-      if (display_completed
-	  && !FRAME_GARBAGED_P (f)
+      if (!FRAME_GARBAGED_P (f)
 	  && matrix_dim.width == f->current_matrix->matrix_w
 	  && matrix_dim.height == f->current_matrix->matrix_h
 	  /* For some reason, the frame glyph matrix gets corrupted if
@@ -2682,7 +2675,7 @@ build_frame_matrix_from_leaf_window (struct glyph_matrix *frame_matrix, struct w
 	     frame and window share glyphs.  */
 
 	  strcpy (w->current_matrix->method, w->desired_matrix->method);
-	  add_window_display_history (w, w->current_matrix->method, 0);
+	  add_window_display_history (w, w->current_matrix->method);
 #endif
 	}
 
@@ -3778,7 +3771,7 @@ update_bar_window (Lisp_Object window, Lisp_Object *current,
       struct window *w = XWINDOW (window);
       if (w->must_be_updated_p)
 	{
-	  update_window (w, true);
+	  update_window (w);
 	  w->must_be_updated_p = false;
 	  Lisp_Object tem = *current;
 	  *current = *desired;
@@ -3808,8 +3801,8 @@ update_tool_bar (struct frame *f)
 #endif
 }
 
-static bool
-update_window_frame (struct frame *f, bool force_p)
+static void
+update_window_frame (struct frame *f)
 {
   eassert (FRAME_WINDOW_P (f));
   update_begin (f);
@@ -3817,19 +3810,17 @@ update_window_frame (struct frame *f, bool force_p)
   update_tab_bar (f);
   update_tool_bar (f);
   struct window *root_window = XWINDOW (f->root_window);
-  bool paused_p = update_window_tree (root_window, force_p);
+  update_window_tree (root_window);
   update_end (f);
   set_window_update_flags (root_window, false);
-  return paused_p;
 }
 
-static bool
-update_initial_frame (struct frame *f, bool force_p)
+static void
+update_initial_frame (struct frame *f)
 {
   build_frame_matrix (f);
   struct window *root_window = XWINDOW (f->root_window);
   set_window_update_flags (root_window, false);
-  return false;
 }
 
 static void
@@ -3840,11 +3831,10 @@ flush_terminal (struct frame *f)
   fflush (FRAME_TTY (f)->output);
 }
 
-static bool
-update_tty_frame (struct frame *f, bool force_p)
+static void
+update_tty_frame (struct frame *f)
 {
   build_frame_matrix (f);
-  return false;
 }
 
 /* Return the cursor position of the selected window of frame F, in
@@ -3952,8 +3942,8 @@ terminal_cursor_magic (struct frame *root, struct frame *topmost_child)
     }
 }
 
-bool
-combine_updates_for_frame (struct frame *f, bool force_p, bool inhibit_scrolling)
+void
+combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
 {
   struct frame *root = root_frame (f);
   eassert (FRAME_VISIBLE_P (root));
@@ -3969,13 +3959,12 @@ combine_updates_for_frame (struct frame *f, bool force_p, bool inhibit_scrolling
     }
 
   update_begin (root);
-  bool paused = write_matrix (root, force_p, inhibit_scrolling, 1, false);
-  if (!paused)
-    make_matrix_current (root);
+  write_matrix (root, inhibit_scrolling, 1, false);
+  make_matrix_current (root);
   update_end (root);
 
   /* If a child is displayed, and the cursor is displayed in another
-     frame, the child might lay above the cursor, so that it appers to
+     frame, the child might lay above the cursor, so that it appears to
      "shine through" the child.  Avoid that because it's confusing.  */
   if (topmost_child)
     terminal_cursor_magic (root, topmost_child);
@@ -3992,66 +3981,33 @@ combine_updates_for_frame (struct frame *f, bool force_p, bool inhibit_scrolling
       add_frame_display_history (f, false);
 #endif
     }
-
-  return paused;
 }
 
 /* Update on the screen all root frames ROOTS.  Called from
    redisplay_internal as the last step of redisplaying.  */
 
-bool
-combine_updates (Lisp_Object roots, bool force_p, bool inhibit_scrolling)
+void
+combine_updates (Lisp_Object roots, bool inhibit_scrolling)
 {
-  if (redisplay_dont_pause)
-    force_p = true;
-
   for (; CONSP (roots); roots = XCDR (roots))
     {
       struct frame *root = XFRAME (XCAR (roots));
-      if (combine_updates_for_frame (root, force_p, inhibit_scrolling))
-	{
-	  display_completed = false;
-	  return true;
-	}
+      combine_updates_for_frame (root, inhibit_scrolling);
     }
-
-  display_completed = true;
-  return false;
 }
 
 /* Update frame F based on the data in desired matrices.
+   If INHIBIT_SCROLLING, don't try scrolling. */
 
-   If FORCE_P, don't let redisplay be stopped by detecting pending input.
-   If INHIBIT_SCROLLING, don't try scrolling.
-
-   Value is true if redisplay was stopped due to pending input.  */
-
-bool
-update_frame (struct frame *f, bool force_p, bool inhibit_scrolling)
+void
+update_frame (struct frame *f, bool inhibit_scrolling)
 {
-  struct window *root_window = XWINDOW (f->root_window);
-
-  if (redisplay_dont_pause)
-    force_p = true;
-  else if (!force_p && detect_input_pending_ignore_squeezables ())
-    {
-      /* Reset flags indicating that a window should be updated.  */
-      set_window_update_flags (root_window, false);
-      display_completed = false;
-      return true;
-    }
-
-  bool paused;
   if (FRAME_WINDOW_P (f))
-    paused = update_window_frame (f, force_p);
+    update_window_frame (f);
   else if (FRAME_INITIAL_P (f))
-    paused = update_initial_frame (f, force_p);
+    update_initial_frame (f);
   else
-    paused = update_tty_frame (f, force_p);
-
-  if (paused)
-    display_completed = false;
-  return paused;
+    update_tty_frame (f);
 }
 
 /* Update a TTY frame F that has a menu dropped down over some of its
@@ -4077,7 +4033,7 @@ update_frame_with_menu (struct frame *f, int row, int col)
   cursor_at_point_p = !(row >= 0 && col >= 0);
   /* Do not stop due to pending input, and do not try scrolling.  This
      means that write_glyphs will always return false.  */
-  write_matrix (f, 1, 1, cursor_at_point_p, true);
+  write_matrix (f, 1, cursor_at_point_p, true);
   make_matrix_current (f);
   clear_desired_matrices (f);
   /* ROW and COL tell us where in the menu to position the cursor, so
@@ -4100,7 +4056,6 @@ update_frame_with_menu (struct frame *f, int row, int col)
 
   /* Reset flags indicating that a window should be updated.  */
   set_window_update_flags (root_window, false);
-  display_completed = true;
 }
 
 /* Update the mouse position for a frame F.  This handles both
@@ -4156,30 +4111,24 @@ properties or updating the help echo text.  */)
 			 Window-based updates
  ************************************************************************/
 
-/* Perform updates in window tree rooted at W.
-   If FORCE_P, don't stop updating if input is pending.  */
+/* Perform updates in window tree rooted at W.  */
 
-static bool
-update_window_tree (struct window *w, bool force_p)
+static void
+update_window_tree (struct window *w)
 {
-  bool paused_p = 0;
-
-  while (w && !paused_p)
+  while (w)
     {
       if (WINDOWP (w->contents))
-	paused_p |= update_window_tree (XWINDOW (w->contents), force_p);
+	update_window_tree (XWINDOW (w->contents));
       else if (w->must_be_updated_p)
-	paused_p |= update_window (w, force_p);
+	update_window (w);
 
       w = NILP (w->next) ? 0 : XWINDOW (w->next);
     }
-
-  return paused_p;
 }
 
 
-/* Update window W if its flag must_be_updated_p is set.
-   If FORCE_P, don't stop updating if input is pending.  */
+/* Update window W if its flag must_be_updated_p is set.  */
 
 void
 update_single_window (struct window *w)
@@ -4190,7 +4139,7 @@ update_single_window (struct window *w)
 
       /* Update W.  */
       update_begin (f);
-      update_window (w, true);
+      update_window (w);
       update_end (f);
 
       /* Reset flag in W.  */
@@ -4330,15 +4279,12 @@ check_current_matrix_flags (struct window *w)
 #endif /* GLYPH_DEBUG */
 
 
-/* Update display of window W.
-   If FORCE_P, don't stop updating when input is pending.  */
+/* Update display of window W.  */
 
-static bool
-update_window (struct window *w, bool force_p)
+static void
+update_window (struct window *w)
 {
   struct glyph_matrix *desired_matrix = w->desired_matrix;
-  bool paused_p;
-  int preempt_count = clip_to_bounds (1, baud_rate / 2400 + 1, INT_MAX);
 #ifdef HAVE_WINDOW_SYSTEM
   struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
 #endif
@@ -4347,224 +4293,200 @@ update_window (struct window *w, bool force_p)
   eassert (FRAME_WINDOW_P (XFRAME (WINDOW_FRAME (w))));
 #endif
 
-  /* Check pending input the first time so that we can quickly return.  */
-  if (!force_p)
-    detect_input_pending_ignore_squeezables ();
-
   /* If forced to complete the update, no input is pending, or we are
      tracking the mouse, do the update.  */
-  if (force_p || !input_pending || !NILP (track_mouse))
-    {
-      struct glyph_row *row, *end;
-      struct glyph_row *mode_line_row;
-      struct glyph_row *tab_line_row;
-      struct glyph_row *header_line_row;
-      int yb;
-      bool changed_p = 0, mouse_face_overwritten_p = 0;
-      int n_updated = 0;
-      bool invisible_rows_marked = false;
+  struct glyph_row *row, *end;
+  struct glyph_row *mode_line_row;
+  struct glyph_row *tab_line_row;
+  struct glyph_row *header_line_row;
+  int yb;
+  bool changed_p = 0, mouse_face_overwritten_p = 0;
+  bool invisible_rows_marked = false;
 
 #ifdef HAVE_WINDOW_SYSTEM
-      gui_update_window_begin (w);
+  gui_update_window_begin (w);
 #else
-      (void) changed_p;
+  (void) changed_p;
 #endif
-      yb = window_text_bottom_y (w);
-      row = MATRIX_ROW (desired_matrix, 0);
-      end = MATRIX_MODE_LINE_ROW (desired_matrix);
+  yb = window_text_bottom_y (w);
+  row = MATRIX_ROW (desired_matrix, 0);
+  end = MATRIX_MODE_LINE_ROW (desired_matrix);
 
-      /* Take note of the tab line, if there is one.  We will
-	 update it below, after updating all of the window's lines.  */
-      if (row->mode_line_p && row->tab_line_p)
-	{
-	  tab_line_row = row;
-	  ++row;
-	}
-      else
-	tab_line_row = NULL;
-
-      /* Take note of the header line, if there is one.  We will
-	 update it below, after updating all of the window's lines.  */
-      if (row->mode_line_p)
-	{
-	  header_line_row = row;
-	  ++row;
-	}
-      else
-	header_line_row = NULL;
-
-      /* Update the mode line, if necessary.  */
-      mode_line_row = MATRIX_MODE_LINE_ROW (desired_matrix);
-      if (mode_line_row->mode_line_p && mode_line_row->enabled_p)
-	{
-	  mode_line_row->y = yb + WINDOW_SCROLL_BAR_AREA_HEIGHT (w);
-	  update_window_line (w, MATRIX_ROW_VPOS (mode_line_row,
-						  desired_matrix),
-			      &mouse_face_overwritten_p);
-	}
-
-      /* Find first enabled row.  Optimizations in redisplay_internal
-	 may lead to an update with only one row enabled.  There may
-	 be also completely empty matrices.  */
-      while (row < end && !row->enabled_p)
-	++row;
-
-      /* Try reusing part of the display by copying.  */
-      if (row < end && !desired_matrix->no_scrolling_p)
-	{
-	  int rc = scrolling_window (w, (tab_line_row != NULL ? 1 : 0)
-				     + (header_line_row != NULL ? 1 : 0));
-	  if (rc < 0)
-	    {
-	      /* All rows were found to be equal.  */
-	      paused_p = 0;
-	      goto set_cursor;
-	    }
-	  else if (rc > 0)
-	    {
-	      /* We've scrolled the display.  */
-	      force_p = 1;
-	      changed_p = 1;
-	    }
-	}
-
-      /* Update the rest of the lines.  */
-      for (; row < end && (force_p || !input_pending); ++row)
-	/* scrolling_window resets the enabled_p flag of the rows it
-	   reuses from current_matrix.  */
-	if (row->enabled_p)
-	  {
-	    int vpos = MATRIX_ROW_VPOS (row, desired_matrix);
-	    int i;
-
-	    /* We'll have to play a little bit with when to
-	       detect_input_pending.  If it's done too often,
-	       scrolling large windows with repeated scroll-up
-	       commands will too quickly pause redisplay.  */
-	    if (!force_p && ++n_updated % preempt_count == 0)
-	      detect_input_pending_ignore_squeezables ();
-	    changed_p |= update_window_line (w, vpos,
-					     &mouse_face_overwritten_p);
-
-	    /* Mark all rows below the last visible one in the current
-	       matrix as invalid.  This is necessary because of
-	       variable line heights.  Consider the case of three
-	       successive redisplays, where the first displays 5
-	       lines, the second 3 lines, and the third 5 lines again.
-	       If the second redisplay wouldn't mark rows in the
-	       current matrix invalid, the third redisplay might be
-	       tempted to optimize redisplay based on lines displayed
-	       in the first redisplay.  */
-	    if (MATRIX_ROW_BOTTOM_Y (row) >= yb)
-	      {
-		for (i = vpos + 1; i < w->current_matrix->nrows - 1; ++i)
-		  SET_MATRIX_ROW_ENABLED_P (w->current_matrix, i, false);
-		invisible_rows_marked = true;
-	      }
-	  }
-
-      /* If the window doesn't display its mode line, make sure the
-         corresponding row of the current glyph matrix is disabled, so
-         that if and when the mode line is displayed again, it will be
-         cleared and completely redrawn.  */
-      if (!window_wants_mode_line (w))
-	SET_MATRIX_ROW_ENABLED_P (w->current_matrix,
-				  w->current_matrix->nrows - 1, false);
-
-      /* Was display preempted?  */
-      paused_p = row < end;
-
-      if (!paused_p && !invisible_rows_marked)
-	{
-	  /* If we didn't mark the invisible rows in the current
-	     matrix as invalid above, do that now.  This can happen if
-	     scrolling_window updates the last visible rows of the
-	     current matrix, in which case the above loop doesn't get
-	     to examine the last visible row.  */
-	  int i;
-	  for (i = 0; i < w->current_matrix->nrows - 1; ++i)
-	    {
-	      struct glyph_row *current_row = MATRIX_ROW (w->current_matrix, i);
-	      if (current_row->enabled_p
-		  && MATRIX_ROW_BOTTOM_Y (current_row) >= yb)
-		{
-		  for (++i ; i < w->current_matrix->nrows - 1; ++i)
-		    SET_MATRIX_ROW_ENABLED_P (w->current_matrix, i, false);
-		}
-	    }
-	}
-
-    set_cursor:
-
-      /* Update the tab line after scrolling because a new tab
-	 line would otherwise overwrite lines at the top of the window
-	 that can be scrolled.  */
-      if (tab_line_row && tab_line_row->enabled_p)
-	{
-	  tab_line_row->y = 0;
-	  update_window_line (w, 0, &mouse_face_overwritten_p);
-	}
-
-      /* Update the header line after scrolling because a new header
-	 line would otherwise overwrite lines at the top of the window
-	 that can be scrolled.  */
-      if (header_line_row && header_line_row->enabled_p)
-	{
-	  header_line_row->y = tab_line_row ? CURRENT_TAB_LINE_HEIGHT (w) : 0;
-	  update_window_line (w, tab_line_row ? 1 : 0, &mouse_face_overwritten_p);
-	}
-
-      /* Fix the appearance of overlapping/overlapped rows.  */
-      if (!paused_p && !w->pseudo_window_p)
-	{
-#ifdef HAVE_WINDOW_SYSTEM
-	  if (changed_p && rif->fix_overlapping_area)
-	    {
-	      redraw_overlapped_rows (w, yb);
-	      redraw_overlapping_rows (w, yb);
-	    }
-#endif
-
-	  /* Make cursor visible at cursor position of W.  */
-	  set_window_cursor_after_update (w);
-
-#if 0 /* Check that current matrix invariants are satisfied.  This is
-	 for debugging only.  See the comment of check_matrix_invariants.  */
-	  IF_DEBUG (check_matrix_invariants (w));
-#endif
-	}
-
-#ifdef GLYPH_DEBUG
-      /* Remember the redisplay method used to display the matrix.  */
-      strcpy (w->current_matrix->method, w->desired_matrix->method);
-#endif
-
-#ifdef HAVE_WINDOW_SYSTEM
-      update_window_fringes (w, 0);
-
-      /* End the update of window W.  Don't set the cursor if we
-         paused updating the display because in this case,
-         set_window_cursor_after_update hasn't been called, and
-         W->output_cursor doesn't contain the cursor location.  */
-      gui_update_window_end (w, !paused_p, mouse_face_overwritten_p);
-#endif
-      /* If the update wasn't interrupted, this window has been
-	 completely updated.  */
-      if (!paused_p)
-	w->must_be_updated_p = false;
+  /* Take note of the tab line, if there is one.  We will
+     update it below, after updating all of the window's lines.  */
+  if (row->mode_line_p && row->tab_line_p)
+    {
+      tab_line_row = row;
+      ++row;
     }
   else
-    paused_p = 1;
+    tab_line_row = NULL;
+
+  /* Take note of the header line, if there is one.  We will
+     update it below, after updating all of the window's lines.  */
+  if (row->mode_line_p)
+    {
+      header_line_row = row;
+      ++row;
+    }
+  else
+    header_line_row = NULL;
+
+  /* Update the mode line, if necessary.  */
+  mode_line_row = MATRIX_MODE_LINE_ROW (desired_matrix);
+  if (mode_line_row->mode_line_p && mode_line_row->enabled_p)
+    {
+      mode_line_row->y = yb + WINDOW_SCROLL_BAR_AREA_HEIGHT (w);
+      update_window_line (w, MATRIX_ROW_VPOS (mode_line_row,
+					      desired_matrix),
+			  &mouse_face_overwritten_p);
+    }
+
+  /* Find first enabled row.  Optimizations in redisplay_internal
+     may lead to an update with only one row enabled.  There may
+     be also completely empty matrices.  */
+  while (row < end && !row->enabled_p)
+    ++row;
+
+  /* Try reusing part of the display by copying.  */
+  if (row < end && !desired_matrix->no_scrolling_p)
+    {
+      int rc = scrolling_window (w, (tab_line_row != NULL ? 1 : 0)
+				    + (header_line_row != NULL ? 1 : 0));
+      if (rc < 0)
+	{
+	  /* All rows were found to be equal.  */
+	  goto set_cursor;
+	}
+      else if (rc > 0)
+	{
+	  /* We've scrolled the display.  */
+	  changed_p = 1;
+	}
+    }
+
+  /* Update the rest of the lines.  */
+  for (; row < end; ++row)
+    /* scrolling_window resets the enabled_p flag of the rows it
+       reuses from current_matrix.  */
+    if (row->enabled_p)
+      {
+	int vpos = MATRIX_ROW_VPOS (row, desired_matrix);
+	int i;
+
+	changed_p |= update_window_line (w, vpos,
+					 &mouse_face_overwritten_p);
+
+	/* Mark all rows below the last visible one in the current
+	   matrix as invalid.  This is necessary because of
+	   variable line heights.  Consider the case of three
+	   successive redisplays, where the first displays 5
+	   lines, the second 3 lines, and the third 5 lines again.
+	   If the second redisplay wouldn't mark rows in the
+	   current matrix invalid, the third redisplay might be
+	   tempted to optimize redisplay based on lines displayed
+	   in the first redisplay.  */
+	if (MATRIX_ROW_BOTTOM_Y (row) >= yb)
+	  {
+	    for (i = vpos + 1; i < w->current_matrix->nrows - 1; ++i)
+	      SET_MATRIX_ROW_ENABLED_P (w->current_matrix, i, false);
+	    invisible_rows_marked = true;
+	  }
+      }
+
+  /* If the window doesn't display its mode line, make sure the
+     corresponding row of the current glyph matrix is disabled, so
+     that if and when the mode line is displayed again, it will be
+     cleared and completely redrawn.  */
+  if (!window_wants_mode_line (w))
+    SET_MATRIX_ROW_ENABLED_P (w->current_matrix,
+			      w->current_matrix->nrows - 1, false);
+
+  if (!invisible_rows_marked)
+    {
+      /* If we didn't mark the invisible rows in the current
+	 matrix as invalid above, do that now.  This can happen if
+	 scrolling_window updates the last visible rows of the
+	 current matrix, in which case the above loop doesn't get
+	 to examine the last visible row.  */
+      int i;
+      for (i = 0; i < w->current_matrix->nrows - 1; ++i)
+	{
+	  struct glyph_row *current_row = MATRIX_ROW (w->current_matrix, i);
+	  if (current_row->enabled_p
+	      && MATRIX_ROW_BOTTOM_Y (current_row) >= yb)
+	    {
+	      for (++i ; i < w->current_matrix->nrows - 1; ++i)
+		SET_MATRIX_ROW_ENABLED_P (w->current_matrix, i, false);
+	    }
+	}
+    }
+
+ set_cursor:
+
+  /* Update the tab line after scrolling because a new tab
+     line would otherwise overwrite lines at the top of the window
+     that can be scrolled.  */
+  if (tab_line_row && tab_line_row->enabled_p)
+    {
+      tab_line_row->y = 0;
+      update_window_line (w, 0, &mouse_face_overwritten_p);
+    }
+
+  /* Update the header line after scrolling because a new header
+     line would otherwise overwrite lines at the top of the window
+     that can be scrolled.  */
+  if (header_line_row && header_line_row->enabled_p)
+    {
+      header_line_row->y = tab_line_row ? CURRENT_TAB_LINE_HEIGHT (w) : 0;
+      update_window_line (w, tab_line_row ? 1 : 0, &mouse_face_overwritten_p);
+    }
+
+  /* Fix the appearance of overlapping/overlapped rows.  */
+  if (!w->pseudo_window_p)
+    {
+#ifdef HAVE_WINDOW_SYSTEM
+      if (changed_p && rif->fix_overlapping_area)
+	{
+	  redraw_overlapped_rows (w, yb);
+	  redraw_overlapping_rows (w, yb);
+	}
+#endif
+
+      /* Make cursor visible at cursor position of W.  */
+      set_window_cursor_after_update (w);
+
+#if 0 /* Check that current matrix invariants are satisfied.  This is
+ for debugging only.  See the comment of check_matrix_invariants.  */
+    IF_DEBUG (check_matrix_invariants (w));
+#endif
+    }
+
+#ifdef GLYPH_DEBUG
+  /* Remember the redisplay method used to display the matrix.  */
+  strcpy (w->current_matrix->method, w->desired_matrix->method);
+#endif
+
+#ifdef HAVE_WINDOW_SYSTEM
+  update_window_fringes (w, 0);
+
+  /* End the update of window W.  Don't set the cursor if we
+     paused updating the display because in this case,
+     set_window_cursor_after_update hasn't been called, and
+     W->output_cursor doesn't contain the cursor location.  */
+  gui_update_window_end (w, true, mouse_face_overwritten_p);
+#endif
+  /* If the update wasn't interrupted, this window has been
+     completely updated.  */
+  w->must_be_updated_p = false;
 
 #ifdef GLYPH_DEBUG
   /* check_current_matrix_flags (w); */
-  add_window_display_history (w, w->current_matrix->method, paused_p);
+  add_window_display_history (w, w->current_matrix->method);
 #endif
 
   xwidget_end_redisplay (w, w->current_matrix);
   clear_glyph_matrix (desired_matrix);
-
-  return paused_p;
 }
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -5697,20 +5619,13 @@ tty_set_cursor (void)
 }
 
 /* Write desired matix of tty frame F and make it current.
-
-   FORCE_P means that the update should not be stopped by pending input.
    INHIBIT_ID_P means that scrolling by insert/delete should not be tried.
-   SET_CURSOR_P false means do not set cursor at point in selected window.
+   SET_CURSOR_P false means do not set cursor at point in selected window.  */
 
-   Value is true if update was stopped due to pending input.  */
-
-static bool
-write_matrix (struct frame *f, bool force_p, bool inhibit_id_p,
+static void
+write_matrix (struct frame *f, bool inhibit_id_p,
 	      bool set_cursor_p, bool updating_menu_p)
 {
-  if (!force_p && detect_input_pending_ignore_squeezables ())
-    return true;
-
   /* If we cannot insert/delete lines, it's no use trying it.  */
   if (!FRAME_LINE_INS_DEL_OK (f))
     inhibit_id_p = true;
@@ -5722,7 +5637,7 @@ write_matrix (struct frame *f, bool force_p, bool inhibit_id_p,
      i/d line if just want cursor motion.  */
   int first_row = first_enabled_row (f->desired_matrix);
   if (!inhibit_id_p && first_row >= 0)
-    force_p |= scrolling (f);
+    scrolling (f);
 
   /* Update the individual lines as needed.  Do bottom line first.  This
      is done so that messages are made visible when pausing.  */
@@ -5730,36 +5645,19 @@ write_matrix (struct frame *f, bool force_p, bool inhibit_id_p,
   if (MATRIX_ROW_ENABLED_P (f->desired_matrix, last_row))
     write_row (f, last_row, updating_menu_p);
 
-  bool pause_p = false;
   if (first_row >= 0)
-    {
-      const int preempt_count = clip_to_bounds (1, baud_rate / 2400 + 1, INT_MAX);
-
-      for (int i = first_row, n = 0; i < last_row; ++i)
-	if (MATRIX_ROW_ENABLED_P (f->desired_matrix, i))
-	  {
-	    if (!force_p && n % preempt_count == 0
-		&& detect_input_pending_ignore_squeezables ())
-	      {
-		pause_p = true;
-		break;
-	      }
-
-	    write_row (f, i, updating_menu_p);
-	    ++n;
-	  }
-    }
+    for (int i = first_row; i < last_row; ++i)
+      if (MATRIX_ROW_ENABLED_P (f->desired_matrix, i))
+	write_row (f, i, updating_menu_p);
 
   /* Now just clean up termcap drivers and set cursor, etc.  */
-  if (!pause_p && set_cursor_p)
+  if (set_cursor_p)
     tty_set_cursor ();
-
-  return pause_p;
 }
 
 /* Do line insertions/deletions on frame F for frame-based redisplay.  */
 
-static bool
+static void
 scrolling (struct frame *frame)
 {
   /* In fact this code should never be reached at all under
@@ -5796,7 +5694,7 @@ scrolling (struct frame *frame)
       if (!MATRIX_ROW_ENABLED_P (current_matrix, i))
 	{
 	  SAFE_FREE ();
-	  return false;
+	  return;
 	}
       old_hash[i] = line_hash_code (frame, MATRIX_ROW (current_matrix, i));
       if (! MATRIX_ROW_ENABLED_P (desired_matrix, i))
@@ -5827,7 +5725,7 @@ scrolling (struct frame *frame)
       || unchanged_at_bottom == height)
     {
       SAFE_FREE ();
-      return true;
+      return;
     }
 
   window_size = (height - unchanged_at_top
@@ -5857,7 +5755,6 @@ scrolling (struct frame *frame)
 
   SAFE_FREE ();
 #endif
-  return false;
 }
 
 
@@ -6989,27 +6886,18 @@ sit_for (Lisp_Object timeout, bool reading, int display_option)
 
 
 DEFUN ("redisplay", Fredisplay, Sredisplay, 0, 1, 0,
-       doc: /* Perform redisplay.
-Optional arg FORCE, if non-nil, prevents redisplay from being
-preempted by arriving input, even if `redisplay-dont-pause' is nil.
-If `redisplay-dont-pause' is non-nil (the default), redisplay is never
-preempted by arriving input, so FORCE does nothing.
-
-Return t if redisplay was performed, nil if redisplay was preempted
-immediately by pending input.  */)
+       doc : /* Perform redisplay.
+Optional arg FORCE exists for historical reasons and is ignored.
+Value is t if redisplay has been performed, nil if executing a
+keyboard macro.  */)
   (Lisp_Object force)
 {
   swallow_events (true);
-  if ((detect_input_pending_run_timers (1)
-       && NILP (force) && !redisplay_dont_pause)
-      || !NILP (Vexecuting_kbd_macro))
+  if (!NILP (Vexecuting_kbd_macro))
     return Qnil;
 
-  specpdl_ref count = SPECPDL_INDEX ();
-  if (!NILP (force) && !redisplay_dont_pause)
-    specbind (Qredisplay_dont_pause, Qt);
   redisplay_preserve_echo_area (2);
-  return unbind_to (count, Qt);
+  return Qt;
 }
 
 
@@ -7462,8 +7350,6 @@ syms_of_display (void)
   /* This is the "purpose" slot of a display table.  */
   DEFSYM (Qdisplay_table, "display-table");
   DEFSYM (Qframe__z_order_lessp, "frame--z-order-lessp");
-
-  DEFSYM (Qredisplay_dont_pause, "redisplay-dont-pause");
   DEFSYM (Qtty_non_selected_cursor, "tty-non-selected-cursor");
 
   DEFVAR_INT ("baud-rate", baud_rate,
@@ -7544,17 +7430,6 @@ Each element can be:
 It is also used for standard output and error streams.
 See `buffer-display-table' for more information.  */);
   Vstandard_display_table = Qnil;
-
-  DEFVAR_BOOL ("redisplay-dont-pause", redisplay_dont_pause,
-	       doc: /* Nil means display update is paused when input is detected.  */);
-  /* Contrary to expectations, a value of "false" can be detrimental to
-     responsiveness since aborting a redisplay throws away some of the
-     work already performed.  It's usually more efficient (and gives
-     more prompt feedback to the user) to let the redisplay terminate,
-     and just completely skip the next command's redisplay (which is
-     done regardless of this setting if there's pending input at the
-     beginning of the next redisplay).  */
-  redisplay_dont_pause = true;
 
   DEFVAR_LISP ("x-show-tooltip-timeout", Vx_show_tooltip_timeout,
 	      doc: /* The default timeout (in seconds) for `x-show-tip'.  */);

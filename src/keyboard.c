@@ -2663,8 +2663,7 @@ read_char (int commandflag, Lisp_Object map,
 	swallow_events (false);		/* May clear input_pending.  */
 
       /* Redisplay if no pending input.  */
-      while (!(input_pending
-	       && (input_was_pending || !redisplay_dont_pause)))
+      while (!(input_pending && input_was_pending))
 	{
 	  input_was_pending = input_pending;
 	  if (help_echo_showing_p && !BASE_EQ (selected_window, minibuf_window))

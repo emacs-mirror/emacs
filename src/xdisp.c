@@ -1116,7 +1116,6 @@ static void set_iterator_to_next (struct it *, bool);
 static void mark_window_display_accurate_1 (struct window *, bool);
 static bool row_for_charpos_p (struct glyph_row *, ptrdiff_t);
 static bool cursor_row_p (struct glyph_row *);
-static int redisplay_mode_lines (Lisp_Object, bool);
 
 static void handle_line_prefix (struct it *);
 
@@ -13521,24 +13520,6 @@ echo_area_display (bool update_frame_p)
 	 here could cause confusion.  */
       if (update_frame_p && !redisplaying_p)
 	{
-	  int n = 0;
-
-	  /* If the display update has been interrupted by pending
-	     input, update mode lines in the frame.  Due to the
-	     pending input, it might have been that redisplay hasn't
-	     been called, so that mode lines above the echo area are
-	     garbaged.  This looks odd, so we prevent it here.  */
-	  if (!display_completed)
-	    {
-	      n = redisplay_mode_lines (FRAME_ROOT_WINDOW (f), false);
-
-#ifdef HAVE_WINDOW_SYSTEM
-              if (FRAME_WINDOW_P (f)
-                  && FRAME_RIF (f)->clear_under_internal_border)
-                FRAME_RIF (f)->clear_under_internal_border (f);
-#endif
-	    }
-
 	  if (window_height_changed_p
 	      /* Don't do this if Emacs is shutting down.  Redisplay
 	         needs to run hooks.  */
@@ -13547,13 +13528,10 @@ echo_area_display (bool update_frame_p)
 	      /* Must update other windows.  Likewise as in other
 		 cases, don't let this update be interrupted by
 		 pending input.  */
-	      specpdl_ref count = SPECPDL_INDEX ();
-	      specbind (Qredisplay_dont_pause, Qt);
 	      fset_redisplay (f);
 	      redisplay_internal ();
-	      unbind_to (count, Qnil);
 	    }
-	  else if (FRAME_WINDOW_P (f) && n == 0)
+	  else if (FRAME_WINDOW_P (f))
 	    {
 	      /* Window configuration is the same as before.
 		 Can do with a display update of the echo area,
@@ -13563,9 +13541,9 @@ echo_area_display (bool update_frame_p)
 	    }
 	  else
 	    {
-	      update_frame (f, true, true);
+	      update_frame (f, true);
 	      if (is_tty_frame (f))
-		combine_updates_for_frame (f, true, true);
+		combine_updates_for_frame (f, true);
 	    }
 
 	  /* If cursor is in the echo area, make sure that the next
@@ -16948,7 +16926,6 @@ redisplay_internal (void)
   struct window *w = XWINDOW (selected_window);
   struct window *sw;
   struct frame *fr;
-  bool pending;
   bool must_finish = false, match_p;
   struct text_pos tlbufpos, tlendpos;
   int number_of_visible_frames;
@@ -17034,7 +17011,6 @@ redisplay_internal (void)
   /* Remember the currently selected window.  */
   sw = w;
 
-  pending = false;
   forget_escape_and_glyphless_faces ();
 
   inhibit_free_realized_faces = false;
@@ -17594,7 +17570,7 @@ redisplay_internal (void)
 		    unrequest_sigio ();
 		  STOP_POLLING;
 
-		  pending |= update_frame (f, false, false);
+		  update_frame (f, false);
 		  /* On some platforms (at least MS-Windows), the
 		     scroll_run_hook called from scrolling_window
 		     called from update_frame could set the frame's
@@ -17616,27 +17592,24 @@ redisplay_internal (void)
 	}
 
       if (CONSP (tty_root_frames))
-	pending |= combine_updates (tty_root_frames, false, false);
+	combine_updates (tty_root_frames, false);
 
       eassert (EQ (XFRAME (selected_frame)->selected_window, selected_window));
 
-      if (!pending)
+      /* Do the mark_window_display_accurate after all windows have
+	 been redisplayed because this call resets flags in buffers
+	 which are needed for proper redisplay.  */
+      FOR_EACH_FRAME (tail, frame)
 	{
-	  /* Do the mark_window_display_accurate after all windows have
-	     been redisplayed because this call resets flags in buffers
-	     which are needed for proper redisplay.  */
-	  FOR_EACH_FRAME (tail, frame)
-	    {
-	      struct frame *f = XFRAME (frame);
-              if (f->updated_p)
-                {
-		  f->redisplay = false;
-		  f->garbaged = false;
-                  mark_window_display_accurate (f->root_window, true);
-                  if (FRAME_TERMINAL (f)->frame_up_to_date_hook)
-                    FRAME_TERMINAL (f)->frame_up_to_date_hook (f);
-                }
-	    }
+	  struct frame *f = XFRAME (frame);
+          if (f->updated_p)
+            {
+	      f->redisplay = false;
+	      f->garbaged = false;
+              mark_window_display_accurate (f->root_window, true);
+              if (FRAME_TERMINAL (f)->frame_up_to_date_hook)
+                FRAME_TERMINAL (f)->frame_up_to_date_hook (f);
+            }
 	}
     }
   else if (FRAME_REDISPLAY_P (sf))
@@ -17700,10 +17673,10 @@ redisplay_internal (void)
             }
 
 	  XWINDOW (selected_window)->must_be_updated_p = true;
-	  pending = update_frame (sf, false, false);
+	  update_frame (sf, false);
 
 	  if (is_tty_frame (sf))
-	    pending |= combine_updates_for_frame (sf, false, false);
+	    combine_updates_for_frame (sf, false);
 
 	  sf->cursor_type_changed = false;
 	  sf->inhibit_clear_image_cache = false;
@@ -17720,11 +17693,11 @@ redisplay_internal (void)
       if (mini_frame != sf)
 	{
 	  XWINDOW (mini_window)->must_be_updated_p = true;
-	  pending |= update_frame (mini_frame, false, false);
+	  update_frame (mini_frame, false);
 	  if (is_tty_frame (mini_frame))
-	    pending |= combine_updates_for_frame (mini_frame, false, false);
+	    combine_updates_for_frame (mini_frame, false);
 	  mini_frame->cursor_type_changed = false;
-          if (!pending && hscroll_retries <= MAX_HSCROLL_RETRIES
+          if (hscroll_retries <= MAX_HSCROLL_RETRIES
               && hscroll_windows (mini_window))
             {
               hscroll_retries++;
@@ -17733,47 +17706,26 @@ redisplay_internal (void)
 	}
     }
 
-  /* If display was paused because of pending input, make sure we do a
-     thorough update the next time.  */
-  if (pending)
+  if (!consider_all_windows_p)
     {
-      /* Prevent the optimization at the beginning of
-	 redisplay_internal that tries a single-line update of the
-	 line containing the cursor in the selected window.  */
-      CHARPOS (this_line_start_pos) = 0;
+      /* This has already been done above if
+	 consider_all_windows_p is set.  */
+      if (XBUFFER (w->contents)->text->redisplay
+	  && buffer_window_count (XBUFFER (w->contents)) > 1)
+	/* This can happen if b->text->redisplay was set during
+	   jit-lock.  */
+	propagate_buffer_redisplay ();
+      mark_window_display_accurate_1 (w, true);
 
-      /* Let the overlay arrow be updated the next time.  */
-      update_overlay_arrows (0);
+      /* Say overlay arrows are up to date.  */
+      update_overlay_arrows (1);
 
-      /* If we pause after scrolling, some rows in the current
-	 matrices of some windows are not valid.  */
-      if (!WINDOW_FULL_WIDTH_P (w)
-	  && !FRAME_WINDOW_P (XFRAME (w->frame)))
-	update_mode_lines = 36;
+      if (FRAME_TERMINAL (sf)->frame_up_to_date_hook != 0)
+	FRAME_TERMINAL (sf)->frame_up_to_date_hook (sf);
     }
-  else
-    {
-      if (!consider_all_windows_p)
-	{
-	  /* This has already been done above if
-	     consider_all_windows_p is set.  */
-	  if (XBUFFER (w->contents)->text->redisplay
-	      && buffer_window_count (XBUFFER (w->contents)) > 1)
-	    /* This can happen if b->text->redisplay was set during
-	       jit-lock.  */
-	    propagate_buffer_redisplay ();
-	  mark_window_display_accurate_1 (w, true);
 
-	  /* Say overlay arrows are up to date.  */
-	  update_overlay_arrows (1);
-
-	  if (FRAME_TERMINAL (sf)->frame_up_to_date_hook != 0)
-	    FRAME_TERMINAL (sf)->frame_up_to_date_hook (sf);
-	}
-
-      update_mode_lines = 0;
-      windows_or_buffers_changed = 0;
-    }
+  update_mode_lines = 0;
+  windows_or_buffers_changed = 0;
 
   /* Start SIGIO interrupts coming again.  Having them off during the
      code above makes it less likely one will discard output, but not
@@ -17789,26 +17741,23 @@ redisplay_internal (void)
      redisplay constructing glyphs, so simply exposing a frame won't
      display anything in this case.  So, we have to display these
      frames here explicitly.  */
-  if (!pending)
+  int new_count = 0;
+
+  FOR_EACH_FRAME (tail, frame)
     {
-      int new_count = 0;
-
-      FOR_EACH_FRAME (tail, frame)
-	{
-	  if (FRAME_REDISPLAY_P (XFRAME (frame)))
-	    new_count++;
-	}
-
-      if (new_count != number_of_visible_frames)
-	windows_or_buffers_changed = 52;
+      if (FRAME_REDISPLAY_P (XFRAME (frame)))
+	new_count++;
     }
+
+    if (new_count != number_of_visible_frames)
+      windows_or_buffers_changed = 52;
 
   /* Change frame size now if a change is pending.  */
   do_pending_window_change (true);
 
   /* If we just did a pending size change, or have additional
      visible frames, or selected_window changed, redisplay again.  */
-  if ((windows_or_buffers_changed && !pending)
+  if (windows_or_buffers_changed
       || (WINDOWP (selected_window)
 	  && (w = XWINDOW (selected_window)) != sw))
     goto retry;
@@ -27431,60 +27380,6 @@ display_tty_menu_item (const char *item_text, int width, int face_id,
 /***********************************************************************
 			      Mode Line
  ***********************************************************************/
-
-/* Redisplay mode lines in the window tree whose root is WINDOW.
-   If FORCE, redisplay mode lines unconditionally.
-   Otherwise, redisplay only mode lines that are garbaged.  Value is
-   the number of windows whose mode lines were redisplayed.  */
-
-static int
-redisplay_mode_lines (Lisp_Object window, bool force)
-{
-  int nwindows = 0;
-
-  while (!NILP (window))
-    {
-      struct window *w = XWINDOW (window);
-
-      if (WINDOWP (w->contents))
-	nwindows += redisplay_mode_lines (w->contents, force);
-      else if (force
-	       || FRAME_GARBAGED_P (XFRAME (w->frame))
-	       || !MATRIX_MODE_LINE_ROW (w->current_matrix)->enabled_p)
-	{
-	  struct text_pos lpoint;
-	  struct buffer *old = current_buffer;
-
-	  /* Set the window's buffer for the mode line display.  */
-	  SET_TEXT_POS (lpoint, PT, PT_BYTE);
-	  set_buffer_internal_1 (XBUFFER (w->contents));
-
-	  /* Point refers normally to the selected window.  For any
-	     other window, set up appropriate value.  */
-	  if (!EQ (window, selected_window))
-	    {
-	      struct text_pos pt;
-
-	      CLIP_TEXT_POS_FROM_MARKER (pt, w->pointm);
-	      TEMP_SET_PT_BOTH (CHARPOS (pt), BYTEPOS (pt));
-	    }
-
-	  /* Display mode lines.  */
-	  clear_glyph_matrix (w->desired_matrix);
-	  if (display_mode_lines (w))
-	    ++nwindows;
-
-	  /* Restore old settings.  */
-	  set_buffer_internal_1 (old);
-	  TEMP_SET_PT_BOTH (CHARPOS (lpoint), BYTEPOS (lpoint));
-	}
-
-      window = w->next;
-    }
-
-  return nwindows;
-}
-
 
 /* Display the mode line, the header line, and the tab-line of window
    W.  Value is the sum number of mode lines, header lines, and tab
