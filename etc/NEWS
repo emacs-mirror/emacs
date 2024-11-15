@@ -618,6 +618,12 @@ functionality of the standard 'xref' commands in TeX buffers.  You can
 restore the standard 'etags' backend with the 'M-x xref-etags-mode'
 toggle.
 
+** BibTeX mode
+
+---
+*** New user option 'bibtex-entry-ask-for-key'.
+When enabled, 'bibtex-entry' asks for a key.
+
 ** Midnight mode
 
 ---

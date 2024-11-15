@@ -1377,6 +1377,12 @@ and must return a string (the key to use)."
   :version "28.1"
   :type 'function)
 
+(defcustom bibtex-entry-ask-for-key t
+  "If non-nil, `bibtex-entry' asks for a key."
+  :group 'bibtex
+  :version "31.1"
+  :type 'boolean)
+
 (defcustom bibtex-entry-offset 0
   "Offset for BibTeX entries.
 Added to the value of all other variables which determine columns."
@@ -3852,7 +3858,8 @@ is non-nil."
    (let ((completion-ignore-case t))
      (list (completing-read "Entry Type: " bibtex-entry-alist
                             nil t nil 'bibtex-entry-type-history))))
-  (let ((key (if bibtex-maintain-sorted-entries
+  (let ((key (if (and bibtex-maintain-sorted-entries
+                      bibtex-entry-ask-for-key)
                  (bibtex-read-key (format "%s key: " entry-type))))
         (field-list (bibtex-field-list entry-type)))
     (unless (bibtex-prepare-new-entry (list key nil entry-type))
