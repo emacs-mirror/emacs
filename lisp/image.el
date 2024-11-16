@@ -1434,7 +1434,7 @@ Also return nil if rotation is not a multiples of 90 degrees (0, 90,
 Return a copy of :original-map transformed based on IMAGE's :scale,
 :rotation, and :flip.  When IMAGE's :original-map is nil, return nil.
 When :rotation is not a multiple of 90, return copy of :original-map."
-  (when-let ((map (image-property image :original-map)))
+  (when-let* ((map (image-property image :original-map)))
     (setq map (copy-tree map t))
     (let* ((size (image-size image t))
            ;; The image can be scaled for many reasons (:scale,
@@ -1469,7 +1469,7 @@ When :rotation is not a multiple of 90, return copy of :original-map."
   "Return original map for IMAGE.
 If IMAGE lacks :map property, return nil.
 When there is no transformation, return copy of :map."
-  (when-let ((original-map (image-property image :map)))
+  (when-let* ((original-map (image-property image :map)))
     (setq original-map (copy-tree original-map t))
     (let* ((size (image-size image t))
            ;; The image can be scaled for many reasons (:scale,

@@ -186,8 +186,7 @@
 		     (with-current-buffer b
 		       c-buffer-is-cc-mode))
 		(throw 'found nil)))
-	  (remove-hook 'post-command-hook 'c-post-command)
-	  (remove-hook 'post-gc-hook 'c-post-gc-hook)))
+	  (remove-hook 'post-command-hook 'c-post-command t)))
       (c-save-buffer-state ()
 	(c-clear-char-properties (point-min) (point-max) 'category)
 	(c-clear-char-properties (point-min) (point-max) 'syntax-table)
@@ -761,7 +760,7 @@ that requires a literal mode spec at compile time."
   ;; would do since font-lock uses a(n implicit) depth of 0) so we don't need
   ;; c-after-font-lock-init.
   (add-hook 'after-change-functions 'c-after-change nil t)
-  (add-hook 'post-command-hook 'c-post-command)
+  (add-hook 'post-command-hook 'c-post-command nil t)
 
   (when (boundp 'font-lock-extend-after-change-region-function)
     (set (make-local-variable 'font-lock-extend-after-change-region-function)
@@ -2008,6 +2007,70 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 ;; define a type.
 (defvar c-new-id-is-type nil)
 (make-variable-buffer-local 'c-new-id-is-type)
+
+(defun c-before-change-include-<> (beg end)
+  "Remove category/syntax-table properties from each #include <..>.
+In particular, from the < and > characters which have been marked as parens
+using these properties.  This is done on every such #include <..> with a
+portion between BEG and END.
+
+This function is used solely as a member of
+`c-get-state-before-change-functions' where it should appear early, before
+`c-depropertize-CPP'.  It should be used only together with
+`c-after-change-include-<>'."
+  (c-save-buffer-state ((search-end (progn (goto-char end)
+					   (c-end-of-macro)
+					   (point)))
+			hash-pos)
+    (goto-char beg)
+    (c-beginning-of-macro)
+    (while (and (< (point) search-end)
+		(search-forward-regexp c-cpp-include-key search-end 'bound)
+		(setq hash-pos (match-beginning 0)))
+      (save-restriction
+	(narrow-to-region (point-min) (c-point 'eoll))
+	(c-forward-comments))
+      (when (and (< (point) search-end)
+		 (looking-at "\\s(")
+		 (looking-at "\\(<\\)[^>\n\r]*\\(>\\)?")
+		 (not (cdr (c-semi-pp-to-literal hash-pos))))
+	(c-unmark-<->-as-paren (match-beginning 1))
+	(when (< hash-pos c-new-BEG)
+	  (setq c-new-BEG hash-pos))
+	(when (match-beginning 2)
+	  (c-unmark-<->-as-paren (match-beginning 2))
+	  (when (> (match-end 2) c-new-END)
+	    (setq c-new-END (match-end 2))))))))
+
+(defun c-after-change-include-<> (beg end _old-len)
+  "Apply category/syntax-table properties to each #include <..>.
+In particular, to the < and > characters to mark them as matching parens
+using these properties.  This is done on every such #include <..> with a
+portion between BEG and END.
+
+This function is used solely as a member of
+`c-before-font-lock-functions' where is should appear late, but before
+`c-neutralize-syntax-in-CPP'.  It should be used only together with
+`c-before-change-include-<>'."
+  (c-save-buffer-state ((search-end (progn (goto-char end)
+					   (c-end-of-macro)
+					   (point)))
+			hash-pos)
+    (goto-char beg)
+    (c-beginning-of-macro)
+    (while (and (< (point) search-end)
+		(search-forward-regexp c-cpp-include-key search-end 'bound)
+		(setq hash-pos (match-beginning 0)))
+      (save-restriction
+	(narrow-to-region (point-min) (c-point 'eoll))
+	(c-forward-comments))
+      (when (and (< (point) search-end)
+		 (looking-at "\\(<\\)[^>\n\r]*\\(>\\)")
+		 (not (cdr (c-semi-pp-to-literal (match-beginning 0)))))
+	(c-mark-<-as-paren (match-beginning 1))
+	(when (< hash-pos c-new-BEG) (setq c-new-BEG hash-pos))
+	(c-mark->-as-paren (match-beginning 2))
+	(when (> (match-end 2) c-new-END) (setq c-new-END (match-end 2)))))))
 
 (defun c-before-change-fix-comment-escapes (beg end)
   "Remove punctuation syntax-table text properties from C/C++ comment markers.

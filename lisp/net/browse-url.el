@@ -689,7 +689,7 @@ websites are increasingly rare, but they do still exist."
 (defun browse-url-url-at-point ()
   (or (thing-at-point 'url t)
       ;; assume that the user is pointing at something like gnu.org/gnu
-      (when-let ((f (thing-at-point 'filename t)))
+      (when-let* ((f (thing-at-point 'filename t)))
 	(if (string-match-p browse-url-button-regexp f)
 	    f
 	  (concat browse-url-default-scheme "://" f)))))
@@ -764,7 +764,7 @@ interactively.  Turn the filename into a URL with function
 (defun browse-url-file-url (file)
   "Return the URL corresponding to FILE.
 Use variable `browse-url-filename-alist' to map filenames to URLs."
-  (when-let ((coding (browse-url--file-name-coding-system)))
+  (when-let* ((coding (browse-url--file-name-coding-system)))
     (setq file (encode-coding-string file coding)))
   (if (and (file-remote-p file)
            ;; We're applying special rules for FTP URLs for historical
@@ -1361,7 +1361,7 @@ currently selected window instead."
     (if (equal (url-type parsed) "file")
         ;; It's a file; just open it.
         (let ((file (url-unhex-string (url-filename parsed))))
-          (when-let ((coding (browse-url--file-name-coding-system)))
+          (when-let* ((coding (browse-url--file-name-coding-system)))
             (setq file (decode-coding-string file 'utf-8)))
           ;; The local-part of file: URLs on Windows is supposed to
           ;; start with an extra slash.

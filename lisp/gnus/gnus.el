@@ -3119,9 +3119,9 @@ g -- Group name."
   "Check whether GROUP supports function FUNC.
 GROUP can either be a string (a group name) or a select method."
   (ignore-errors
-    (when-let ((method (if (stringp group)
-		           (car (gnus-find-method-for-group group))
-		         group)))
+    (when-let* ((method (if (stringp group)
+		            (car (gnus-find-method-for-group group))
+		          group)))
       (unless (featurep method)
 	(require method))
       (fboundp (intern (format "%s-%s" method func))))))

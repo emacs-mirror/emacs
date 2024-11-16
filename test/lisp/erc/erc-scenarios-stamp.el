@@ -29,7 +29,7 @@
 (defvar erc-scenarios-stamp--user-marker nil)
 
 (defun erc-scenarios-stamp--on-post-modify ()
-  (when-let (((erc--check-msg-prop 'erc--cmd 4)))
+  (when-let* (((erc--check-msg-prop 'erc--cmd 4)))
     (set-marker erc-scenarios-stamp--user-marker (point-max))
     (ert-info ("User marker correctly placed at `erc-insert-marker'")
       (should (= ?\n (char-before erc-scenarios-stamp--user-marker)))

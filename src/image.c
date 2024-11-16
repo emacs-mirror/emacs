@@ -3049,12 +3049,10 @@ image_set_transform (struct frame *f, struct image *img)
   flip = !NILP (image_spec_value (img->spec, QCflip, NULL));
 
 # if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_NS || defined HAVE_HAIKU \
-  || defined HAVE_ANDROID
+  || defined HAVE_ANDROID || defined HAVE_NTGUI
   /* We want scale up operations to use a nearest neighbor filter to
      show real pixels instead of munging them, but scale down
-     operations to use a blended filter, to avoid aliasing and the like.
-
-     TODO: implement for Windows.  */
+     operations to use a blended filter, to avoid aliasing and the like.  */
   bool smoothing;
   Lisp_Object s = image_spec_value (img->spec, QCtransform_smoothing, NULL);
   if (NILP (s))
@@ -3065,6 +3063,10 @@ image_set_transform (struct frame *f, struct image *img)
 
 #ifdef HAVE_HAIKU
   img->use_bilinear_filtering = smoothing;
+#endif
+
+#ifdef HAVE_NTGUI
+  img->smoothing = smoothing;
 #endif
 
   /* Perform scale transformation.  */

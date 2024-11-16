@@ -40,46 +40,37 @@ naturally accessible within Emacs."
 
 ;;; Functions:
 
-(autoload 'eshell-parse-command "esh-cmd")
-
 (defun eshell/expr (&rest args)
   "Implementation of expr, using the calc package."
   (calc-eval (eshell-flatten-and-stringify args)))
 
-(defun eshell/substitute (&rest args)
+(defun eshell/substitute (new old seq &rest args)
   "Easy front-end to `cl-substitute', for comparing lists of strings."
-  (apply #'cl-substitute (car args) (cadr args) :test #'equal
-	 (cddr args)))
+  (apply #'cl-substitute new old seq :test #'equal args))
 
-(defun eshell/count (&rest args)
+(defun eshell/count (item seq &rest args)
   "Easy front-end to `cl-count', for comparing lists of strings."
-  (apply #'cl-count (car args) (cadr args) :test #'equal
-	 (cddr args)))
+  (apply #'cl-count item seq :test #'equal args))
 
-(defun eshell/mismatch (&rest args)
+(defun eshell/mismatch (seq1 seq2 &rest args)
   "Easy front-end to `cl-mismatch', for comparing lists of strings."
-  (apply #'cl-mismatch (car args) (cadr args) :test #'equal
-	 (cddr args)))
+  (apply #'cl-mismatch seq1 seq2 :test #'equal args))
 
-(defun eshell/union (&rest args)
+(defun eshell/union (list1 list2 &rest args)
   "Easy front-end to `cl-union', for comparing lists of strings."
-  (apply #'cl-union (car args) (cadr args) :test #'equal
-	 (cddr args)))
+  (apply #'cl-union list1 list2 :test #'equal args))
 
-(defun eshell/intersection (&rest args)
+(defun eshell/intersection (list1 list2 &rest args)
   "Easy front-end to `cl-intersection', for comparing lists of strings."
-  (apply #'cl-intersection (car args) (cadr args) :test #'equal
-	 (cddr args)))
+  (apply #'cl-intersection list1 list2 :test #'equal args))
 
-(defun eshell/set-difference (&rest args)
+(defun eshell/set-difference (list1 list2 &rest args)
   "Easy front-end to `cl-set-difference', for comparing lists of strings."
-  (apply #'cl-set-difference (car args) (cadr args) :test #'equal
-	 (cddr args)))
+  (apply #'cl-set-difference list1 list2 :test #'equal args))
 
-(defun eshell/set-exclusive-or (&rest args)
+(defun eshell/set-exclusive-or (list1 list2 &rest args)
   "Easy front-end to `cl-set-exclusive-or', for comparing lists of strings."
-  (apply #'cl-set-exclusive-or (car args) (cadr args) :test #'equal
-	 (cddr args)))
+  (apply #'cl-set-exclusive-or list1 list2 :test #'equal args))
 
 (defalias 'eshell/ff #'find-name-dired)
 (defalias 'eshell/gf #'find-grep-dired)

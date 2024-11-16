@@ -667,7 +667,7 @@ in `Info-file-supports-index-cookies-list'."
 	  (goto-char (point-min))
 	  (condition-case ()
 	      (if (and (re-search-forward
-			"makeinfo[ \n]version[ \n]\\([0-9]+.[0-9]+\\)"
+                        "\\(?:makeinfo\\|texi2any\\)[ \n]version[ \n]\\([0-9]+.[0-9]+\\)"
 			(line-beginning-position 4) t)
 		       (not (version< (match-string 1) "4.7")))
 		  (setq found t))
@@ -823,10 +823,10 @@ Select the window used, if it has been made."
 	    ;; If we just created the Info buffer, go to the directory.
 	    (Info-directory))))
 
-    (when-let ((window (display-buffer buffer
-			               (if other-window
-				           '(nil (inhibit-same-window . t))
-			                 '(display-buffer-same-window)))))
+    (when-let* ((window (display-buffer buffer
+			                (if other-window
+				            '(nil (inhibit-same-window . t))
+			                  '(display-buffer-same-window)))))
       (select-window window))))
 
 
@@ -2020,7 +2020,7 @@ See `completing-read' for a description of arguments and usage."
          (lambda (string pred action)
            (complete-with-action
             action
-            (when-let ((file2 (Info-find-file file1 'noerror t)))
+            (when-let* ((file2 (Info-find-file file1 'noerror t)))
               (Info-build-node-completions file2))
             string pred))
 	 nodename predicate code))))

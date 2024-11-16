@@ -595,7 +595,7 @@ PROC is the process that's exiting.  STRING is the exit message."
                             "buffer for external process `%s' already killed"
                             proc)))))
               (funcall finish-io)))
-        (when-let ((entry (assq proc eshell-process-list)))
+        (when-let* ((entry (assq proc eshell-process-list)))
           (eshell-remove-process-entry entry))))))
 
 (defun eshell-process-interact (func &optional all query)

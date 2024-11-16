@@ -480,7 +480,7 @@ When called interactively prompt for MARK;  RET remove all marks."
   (save-excursion
     (goto-char (point-min))
     (while (not (eobp))
-      (when-let ((entry (tabulated-list-get-entry)))
+      (when-let* ((entry (tabulated-list-get-entry)))
         (let ((xmarks (list (aref entry 0) (aref entry 2))))
           (when (or (char-equal mark ?\r)
                     (member (char-to-string mark) xmarks))
@@ -891,7 +891,7 @@ See more at `Buffer-menu-filter-predicate'."
 (declare-function project-root "project" (project))
 (defun Buffer-menu-group-by-root (entry)
   (with-current-buffer (car entry)
-    (if-let ((project (project-current)))
+    (if-let* ((project (project-current)))
         (project-root project)
       default-directory)))
 

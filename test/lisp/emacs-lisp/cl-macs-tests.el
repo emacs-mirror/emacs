@@ -666,7 +666,15 @@ collection clause."
          (len4 (xs n)
            (cond (xs (cond (nil 'nevertrue)
                            ((len4 (cdr xs) (1+ n)))))
-                 (t n))))
+                 (t n)))
+
+         ;; Tail calls through obstacles.
+         (len5
+           (if (not (fboundp 'oclosure-lambda))
+               #'ignore
+             (oclosure-lambda (accessor (type 'cl-macs-test) (slot 'length))
+                 (xs n)
+               (if xs (len5 (cdr xs) (1+ n)) n)))))
       (should (equal (len nil 0) 0))
       (should (equal (len2 nil 0) 0))
       (should (equal (len3 nil 0) 0))
@@ -675,11 +683,13 @@ collection clause."
       (should (equal (len2 list-42 0) 42))
       (should (equal (len3 list-42 0) 42))
       (should (equal (len4 list-42 0) 42))
+      (should (equal (len5 list-42 0) 42))
       ;; Should not bump into stack depth limits.
       (should (equal (len list-42k 0) 42000))
       (should (equal (len2 list-42k 0) 42000))
       (should (equal (len3 list-42k 0) 42000))
-      (should (equal (len4 list-42k 0) 42000))))
+      (should (equal (len4 list-42k 0) 42000))
+      (should (equal (len5 list-42k 0) 42000))))
 
   ;; Check that non-recursive functions are handled more efficiently.
   (should (pcase (macroexpand '(cl-labels ((f (x) (+ x 1))) (f 5)))

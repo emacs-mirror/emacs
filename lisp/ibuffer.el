@@ -832,7 +832,7 @@ width and the longest string in LIST."
       (let ((pt (save-excursion
 		  (mouse-set-point event)
 		  (point))))
-        (if-let ((it (get-text-property (point) 'ibuffer-filter-group-name)))
+        (if-let* ((it (get-text-property (point) 'ibuffer-filter-group-name)))
 	    (ibuffer-toggle-marks it)
 	  (goto-char pt)
 	  (let ((mark (ibuffer-current-mark)))
@@ -1263,7 +1263,7 @@ become unmarked.
 If point is on a group name, then this function operates on that
 group."
   (interactive)
-  (when-let ((it (get-text-property (point) 'ibuffer-filter-group-name)))
+  (when-let* ((it (get-text-property (point) 'ibuffer-filter-group-name)))
     (setq group it))
   (let ((count
 	 (ibuffer-map-lines
@@ -1336,7 +1336,7 @@ If point is on a group name, this function operates on that group."
   (when (and movement (< movement 0))
     (setq arg (- arg)))
   (ibuffer-forward-line 0)
-  (if-let ((it (get-text-property (point) 'ibuffer-filter-group-name)))
+  (if-let* ((it (get-text-property (point) 'ibuffer-filter-group-name)))
       (progn
 	(require 'ibuf-ext)
 	(ibuffer-mark-on-buffer #'identity mark it))
@@ -1540,7 +1540,7 @@ If point is on a group name, this function operates on that group."
 		    ;; `ibuffer-inline-columns' alist and insert it
 		    ;; into our generated code.  Otherwise, we just
 		    ;; generate a call to the column function.
-                    (if-let ((it (assq sym ibuffer-inline-columns)))
+                    (if-let* ((it (assq sym ibuffer-inline-columns)))
 			(nth 1 it)
 		      `(or (,sym buffer mark) "")))
 		   ;; You're not expected to understand this.  Hell, I
@@ -1737,7 +1737,7 @@ If point is on a group name, this function operates on that group."
        (cond ((zerop total) "No processes")
 	     ((= 1 total) "1 process")
 	     (t (format "%d processes" total))))))
-  (if-let ((it (get-buffer-process buffer)))
+  (if-let* ((it (get-buffer-process buffer)))
       (format "(%s %s)" it (process-status it))
     ""))
 
@@ -1872,8 +1872,8 @@ the buffer object itself and the current mark symbol."
 	    (let ((result
 		   (if (buffer-live-p (ibuffer-current-buffer))
 		       (when (or (null group)
-                                 (when-let ((it (get-text-property
-                                                 (point) 'ibuffer-filter-group)))
+                                 (when-let* ((it (get-text-property
+                                                  (point) 'ibuffer-filter-group)))
                                    (equal group it)))
 			 (save-excursion
 			   (funcall function

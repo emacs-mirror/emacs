@@ -416,22 +416,22 @@ It runs the hook `save-place-after-find-file-hook'."
   "Position point in a Dired buffer according to its saved place.
 This is run via `dired-initial-position-hook', which see."
   (or save-place-loaded (save-place-load-alist-from-file))
-  (when-let ((directory (and (derived-mode-p 'dired-mode)
-                             (boundp 'dired-subdir-alist)
-			     dired-subdir-alist
-			     (dired-current-directory)))
-             (item (expand-file-name (if (consp directory)
-					 (car directory)
-				       directory)))
-	     (cell (assoc (if save-place-abbreviate-file-names
-                              (abbreviate-file-name item) item)
-		          save-place-alist)))
+  (when-let* ((directory (and (derived-mode-p 'dired-mode)
+                              (boundp 'dired-subdir-alist)
+			      dired-subdir-alist
+			      (dired-current-directory)))
+              (item (expand-file-name (if (consp directory)
+					  (car directory)
+				        directory)))
+	      (cell (assoc (if save-place-abbreviate-file-names
+                               (abbreviate-file-name item) item)
+		           save-place-alist)))
     (or revert-buffer-in-progress-p
         (cond
 	 ((integerp (cdr cell))
 	  (goto-char (cdr cell)))
 	 ((listp (cdr cell))
-          (when-let ((elt (assq 'dired-filename (cdr cell))))
+          (when-let* ((elt (assq 'dired-filename (cdr cell))))
             (dired-goto-file (expand-file-name (cdr elt)))))))
     ;; and make sure it will be saved again for later
     (setq save-place-mode t)))

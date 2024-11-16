@@ -2823,8 +2823,8 @@ static ptrdiff_t hash_lookup_with_hash (struct Lisp_Hash_Table *h,
    if EQUAL_KIND == EQUAL_NO_QUIT.  */
 
 static bool
-internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
-		int depth, Lisp_Object ht)
+internal_equal_1 (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
+		  int depth, Lisp_Object *ht)
 {
  tail_recurse:
   if (depth > 10)
@@ -2832,13 +2832,13 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
       eassert (equal_kind != EQUAL_NO_QUIT);
       if (depth > 200)
 	error ("Stack overflow in equal");
-      if (NILP (ht))
-	ht = CALLN (Fmake_hash_table, QCtest, Qeq);
+      if (NILP (*ht))
+	*ht = CALLN (Fmake_hash_table, QCtest, Qeq);
       switch (XTYPE (o1))
 	{
 	case Lisp_Cons: case Lisp_Vectorlike:
 	  {
-	    struct Lisp_Hash_Table *h = XHASH_TABLE (ht);
+	    struct Lisp_Hash_Table *h = XHASH_TABLE (*ht);
 	    hash_hash_t hash = hash_from_key (h, o1);
 	    ptrdiff_t i = hash_lookup_with_hash (h, o1, hash);
 	    if (i >= 0)
@@ -2888,8 +2888,8 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 	  {
 	    if (! CONSP (o2))
 	      return false;
-	    if (! internal_equal (XCAR (o1), XCAR (o2),
-				  equal_kind, depth + 1, ht))
+	    if (! internal_equal_1 (XCAR (o1), XCAR (o2),
+				    equal_kind, depth + 1, ht))
 	      return false;
 	    o2 = XCDR (o2);
 	    if (EQ (XCDR (o1), o2))
@@ -2964,7 +2964,7 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 	    Lisp_Object v1, v2;
 	    v1 = AREF (o1, i);
 	    v2 = AREF (o2, i);
-	    if (!internal_equal (v1, v2, equal_kind, depth + 1, ht))
+	    if (!internal_equal_1 (v1, v2, equal_kind, depth + 1, ht))
 	      return false;
 	  }
 	return true;
@@ -2983,6 +2983,13 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
     }
 
   return false;
+}
+
+static bool
+internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
+		int depth, Lisp_Object ht)
+{
+  return internal_equal_1 (o1, o2, equal_kind, depth, &ht);
 }
 
 /* Return -1/0/1 for the </=/> lexicographic relation between bool-vectors.  */

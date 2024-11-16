@@ -1075,7 +1075,7 @@ even if it doesn't match the type.)
 (defun setopt--set (variable value)
   (custom-load-symbol variable)
   ;; Check that the type is correct.
-  (when-let ((type (get variable 'custom-type)))
+  (when-let* ((type (get variable 'custom-type)))
     (unless (widget-apply (widget-convert type) :match value)
       (warn "Value `%S' for variable `%s' does not match its type \"%s\""
             value variable type)))
@@ -5927,7 +5927,7 @@ The appropriate types are:
 
 (defun custom-dirlocals-maybe-update-cons ()
   "If focusing out from the first widget in a cons widget, update its value."
-  (when-let ((w (widget-at)))
+  (when-let* ((w (widget-at)))
     (when (widget-get w :custom-dirlocals-symbol)
       (widget-value-set (widget-get w :parent)
                         (cons (widget-value w) ""))
@@ -6018,7 +6018,7 @@ Moves point into the widget that holds the value."
 If at least an option doesn't validate, signals an error and moves point
 to the widget with the invalid value."
   (dolist (opt (custom-dirlocals-get-options))
-    (when-let ((w (widget-apply opt :validate)))
+    (when-let* ((w (widget-apply opt :validate)))
       (goto-char (widget-get w :from))
       (error "%s" (widget-get w :error))))
   t)

@@ -4097,7 +4097,7 @@ a communication channel."
           (unless (hash-table-p table-head-cache)
             (setq table-head-cache (make-hash-table :test #'eq))
             (plist-put info :org-latex-table-head-cache table-head-cache))
-          (if-let ((head-contents (gethash (org-element-parent table-row) table-head-cache)))
+          (if-let* ((head-contents (gethash (org-element-parent table-row) table-head-cache)))
               (puthash (org-element-parent table-row) (concat head-contents "\\\\\n" contents)
                        table-head-cache)
             (puthash (org-element-parent table-row) contents table-head-cache))))

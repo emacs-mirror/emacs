@@ -111,7 +111,7 @@ multibyte mode and waits for the shell prompt to appear."
 
   (with-tramp-debug-message vec "Opening connection"
     (let ((p (tramp-get-connection-process vec))
-	  (process-name (tramp-get-connection-property vec "process-name"))
+	  (process-name (tramp-get-connection-property vec " process-name"))
 	  (process-environment (copy-sequence process-environment)))
       ;; Open a new connection.
       (condition-case err
@@ -502,15 +502,15 @@ FUNCTION."
 ;;;###tramp-autoload
 (defsubst tramp-androidsu-file-name-p (vec-or-filename)
   "Check whether VEC-OR-FILENAME is for the `androidsu' method."
-  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
-    (equal (tramp-file-name-method vec) tramp-androidsu-method)))
+  (and-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename))
+	     ((equal (tramp-file-name-method vec) tramp-androidsu-method)))))
 
 ;;;###tramp-autoload
 (defun tramp-androidsu-file-name-handler (operation &rest args)
   "Invoke the `androidsu' handler for OPERATION.
 First arg specifies the OPERATION, second arg is a list of
 arguments to pass to the OPERATION."
-  (if-let ((fn (assoc operation tramp-androidsu-file-name-handler-alist)))
+  (if-let* ((fn (assoc operation tramp-androidsu-file-name-handler-alist)))
       (prog1 (save-match-data (apply (cdr fn) args))
 	(setq tramp-debug-message-fnh-function (cdr fn)))
     (prog1 (tramp-run-real-handler operation args)

@@ -1362,7 +1362,7 @@ Return t if THEME was successfully loaded, nil otherwise."
                  t))))
           (t
            (error "Unable to load theme `%s'" theme))))
-  (when-let ((obs (get theme 'byte-obsolete-info)))
+  (when-let* ((obs (get theme 'byte-obsolete-info)))
     (display-warning 'initialization
                      (format "The `%s' theme is obsolete%s"
                              theme

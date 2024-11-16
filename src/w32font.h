@@ -57,6 +57,26 @@ struct w32font_info
   HFONT hfont;
 };
 
+/* Extension of w32font_info used by Uniscribe and HarfBuzz backends.  */
+struct uniscribe_font_info
+{
+  struct w32font_info w32_font;
+  /* This is used by the Uniscribe backend as a pointer to the script
+     cache, and by the HarfBuzz backend as a pointer to a hb_font_t
+     object.  */
+  void *cache;
+  /* This is used by the HarfBuzz backend to store the font scale.  */
+  double scale;
+  /* This is used by DirectWrite to store the FontFace object.
+     DirectWrite works on top of the HarfBuzz backend, modifying some
+     calls.  If there are problems manipulating this font,
+     dwrite_skip_font is set to true.  Future operations will not use
+     DirectWrite and fall back to the HarfBuzz backend.  */
+  void *dwrite_cache;
+  float dwrite_font_size;
+  bool dwrite_skip_font;
+};
+
 /* Macros for getting OS specific information from a font struct.  */
 #define FONT_HANDLE(f) (((struct w32font_info *)(f))->hfont)
 #define FONT_TEXTMETRIC(f) (((struct w32font_info *)(f))->metrics)
@@ -83,6 +103,17 @@ int w32font_draw (struct glyph_string *s, int from, int to,
 int uniscribe_check_otf (LOGFONT *font, Lisp_Object otf_spec);
 
 Lisp_Object intern_font_name (char *);
+
+/* Function prototypes for DirectWrite.  */
+void w32_initialize_direct_write (void);
+bool w32_use_direct_write (struct w32font_info *w32font);
+bool w32_dwrite_draw (HDC hdc, int x, int y, unsigned *glyphs, int len,
+		      COLORREF color, struct font *font );
+bool w32_dwrite_text_extents (struct font *font, const unsigned *code,
+			      int nglyphs, struct font_metrics *metrics);
+unsigned w32_dwrite_encode_char (struct font *font, int c);
+void w32_dwrite_free_cached_face (void *cache);
+void syms_of_w32dwrite (void);
 
 extern void globals_of_w32font (void);
 

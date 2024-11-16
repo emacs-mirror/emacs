@@ -299,7 +299,7 @@ value of last one, or nil if there are none."
   (if body
       (list 'if cond (cons 'progn body))
     (macroexp-warn-and-return (format-message "`when' with empty body")
-                              cond '(empty-body when) t)))
+                              (list 'progn cond nil) '(empty-body when) t)))
 
 (defmacro unless (cond &rest body)
   "If COND yields nil, do BODY, else return nil.
@@ -309,7 +309,7 @@ value of last one, or nil if there are none."
   (if body
       (cons 'if (cons cond (cons nil body)))
     (macroexp-warn-and-return (format-message "`unless' with empty body")
-                              cond '(empty-body unless) t)))
+                              (list 'progn cond nil) '(empty-body unless) t)))
 
 (defsubst subr-primitive-p (object)
   "Return t if OBJECT is a built-in primitive written in C.
@@ -2622,8 +2622,17 @@ Affects only hooks run in the current buffer."
 
 (defmacro if-let* (varlist then &rest else)
   "Bind variables according to VARLIST and evaluate THEN or ELSE.
-This is like `if-let' but doesn't handle a VARLIST of the form
-\(SYMBOL SOMETHING) specially."
+Evaluate each binding in turn, as in `let*', stopping if a
+binding value is nil.  If all are non-nil return the value of
+THEN, otherwise the value of the last form in ELSE, or nil if
+there are none.
+
+Each element of VARLIST is a list (SYMBOL VALUEFORM) that binds
+SYMBOL to the value of VALUEFORM.  An element can additionally be
+of the form (VALUEFORM), which is evaluated and checked for nil;
+i.e. SYMBOL can be omitted if only the test result is of
+interest.  It can also be of the form SYMBOL, then the binding of
+SYMBOL is checked for nil."
   (declare (indent 2)
            (debug ((&rest [&or symbolp (symbolp form) (form)])
                    body)))
@@ -2636,15 +2645,26 @@ This is like `if-let' but doesn't handle a VARLIST of the form
 
 (defmacro when-let* (varlist &rest body)
   "Bind variables according to VARLIST and conditionally evaluate BODY.
-This is like `when-let' but doesn't handle a VARLIST of the form
-\(SYMBOL SOMETHING) specially."
+Evaluate each binding in turn, stopping if a binding value is nil.
+If all are non-nil, return the value of the last form in BODY.
+
+The variable list VARLIST is the same as in `if-let*'.
+
+See also `and-let*'."
   (declare (indent 1) (debug if-let*))
   (list 'if-let* varlist (macroexp-progn body)))
 
 (defmacro and-let* (varlist &rest body)
   "Bind variables according to VARLIST and conditionally evaluate BODY.
 Like `when-let*', except if BODY is empty and all the bindings
-are non-nil, then the result is the value of the last binding."
+are non-nil, then the result is the value of the last binding.
+
+Some Lisp programmers follow the convention that `and' and `and-let*'
+are for forms evaluated for return value, and `when' and `when-let*' are
+for forms evaluated for side-effect with returned values ignored."
+  ;; ^ Document this convention here because it explains why we have
+  ;;   both `when-let*' and `and-let*' (in addition to the additional
+  ;;   feature of `and-let*' when BODY is empty).
   (declare (indent 1) (debug if-let*))
   (let (res)
     (if varlist
@@ -2655,21 +2675,10 @@ are non-nil, then the result is the value of the last binding."
 
 (defmacro if-let (spec then &rest else)
   "Bind variables according to SPEC and evaluate THEN or ELSE.
-Evaluate each binding in turn, as in `let*', stopping if a
-binding value is nil.  If all are non-nil return the value of
-THEN, otherwise the value of the last form in ELSE, or nil if
-there are none.
-
-Each element of SPEC is a list (SYMBOL VALUEFORM) that binds
-SYMBOL to the value of VALUEFORM.  An element can additionally be
-of the form (VALUEFORM), which is evaluated and checked for nil;
-i.e. SYMBOL can be omitted if only the test result is of
-interest.  It can also be of the form SYMBOL, then the binding of
-SYMBOL is checked for nil.
-
-As a special case, interprets a SPEC of the form \(SYMBOL SOMETHING)
-like \((SYMBOL SOMETHING)).  This exists for backward compatibility
-with an old syntax that accepted only one binding."
+This is like `if-let*' except, as a special case, interpret a SPEC of
+the form \(SYMBOL SOMETHING) like \((SYMBOL SOMETHING)).  This exists
+for backward compatibility with an old syntax that accepted only one
+binding."
   (declare (indent 2)
            (debug ([&or (symbolp form)  ; must be first, Bug#48489
                         (&rest [&or symbolp (symbolp form) (form)])]
@@ -2688,6 +2697,10 @@ If all are non-nil, return the value of the last form in BODY.
 The variable list SPEC is the same as in `if-let'."
   (declare (indent 1) (debug if-let))
   (list 'if-let spec (macroexp-progn body)))
+
+(make-obsolete 'if-let 'if-let* "31.1")
+(make-obsolete 'when-let "use `when-let*' or `and-let*' instead."
+               "31.1")
 
 (defmacro while-let (spec &rest body)
   "Bind variables according to SPEC and conditionally evaluate BODY.
@@ -3410,9 +3423,10 @@ with Emacs.  Do not call it directly in your own packages."
 (defun read-number (prompt &optional default hist)
   "Read a numeric value in the minibuffer, prompting with PROMPT.
 DEFAULT specifies a default value to return if the user just types RET.
-The value of DEFAULT is inserted into PROMPT.
-HIST specifies a history list variable.  See `read-from-minibuffer'
-for details of the HIST argument.
+For historical reasons, the value of DEFAULT is always inserted into
+PROMPT, so it's recommended to use `format' instead of `format-prompt'
+to generate PROMPT.  HIST specifies a history list variable.  See
+`read-from-minibuffer' for details of the HIST argument.
 
 This function is used by the `interactive' code letter \"n\"."
   (let ((n nil)

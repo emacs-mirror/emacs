@@ -56,12 +56,12 @@
               (insert-file-contents feed)
             (mm-url-insert-file-contents (concat "https://" feed)))
         (file-error (nnheader-report nnatom-backend (cdr e)))
-        (:success (when-let ((data (if (libxml-available-p)
-                                       (libxml-parse-xml-region
-                                        (point-min) (point-max))
-                                     (car (xml-parse-region
-                                           (point-min) (point-max)))))
-                             (authors (list 'authors)))
+        (:success (when-let* ((data (if (libxml-available-p)
+                                        (libxml-parse-xml-region
+                                         (point-min) (point-max))
+                                      (car (xml-parse-region
+                                            (point-min) (point-max)))))
+                              (authors (list 'authors)))
                     (when (eq (car data) 'top)
                       (setq data (assq 'feed data)))
                     (dom-add-child-before data authors)
@@ -93,8 +93,8 @@
   (when (eq (car data) 'feed) (setq data (dom-children data)))
   ;; Discard any children between/after entries.
   (while (and data (not (eq (car-safe (car data)) 'entry))) (pop data))
-  (when-let ((article (car data))
-             (auths (list 'authors)) (links (list 'links)))
+  (when-let* ((article (car data))
+              (auths (list 'authors)) (links (list 'links)))
     (dom-add-child-before article links)
     (dom-add-child-before article auths)
     (dolist (child (cddddr article) `(,article . ,(cdr data)))
@@ -126,7 +126,7 @@
 
 (defun nnatom--read-article-or-group-authors (article-or-group)
   "Return the authors of ARTICLE-OR-GROUP, or nil."
-  (when-let
+  (when-let*
       ((a (mapconcat
            (lambda (author)
              (let* ((name (nnatom--dom-line (dom-child-by-tag author 'name)))
@@ -161,14 +161,14 @@ return the subject.  Otherwise, return nil."
 
 (defun nnatom--read-publish (article)
   "Return the date and time ARTICLE was published, or nil."
-  (when-let (d (dom-child-by-tag article 'published))
+  (when-let* ((d (dom-child-by-tag article 'published)))
     (date-to-time (nnatom--dom-line d))))
 (defvoo nnatom-read-publish-date-function #'nnatom--read-publish
   nil nnfeed-read-publish-date-function)
 
 (defun nnatom--read-update (article)
   "Return the date and time of the last update to ARTICLE, or nil."
-  (when-let (d (dom-child-by-tag article 'updated))
+  (when-let* ((d (dom-child-by-tag article 'updated)))
     (date-to-time (nnatom--dom-line d))))
 (defvoo nnatom-read-update-date-function #'nnatom--read-update
   nil nnfeed-read-update-date-function)
@@ -178,56 +178,56 @@ return the subject.  Otherwise, return nil."
   (let ((alt 0) (rel 0) (sel 0) (enc 0) (via 0) (aut 0))
     (mapcan
      (lambda (link)
-       (when-let ((l (car-safe link)))
+       (when-let* ((l (car-safe link)))
          (or
-          (when-let (((eq l 'content))
-                     (src (dom-attr link 'src))
-                     (label (concat "Link"
-                                    (and (< 1 (cl-incf alt))
-                                         (format " %s" alt)))))
+          (when-let* (((eq l 'content))
+                      (src (dom-attr link 'src))
+                      (label (concat "Link"
+                                     (and (< 1 (cl-incf alt))
+                                          (format " %s" alt)))))
             `(((("text/plain") . ,(format "%s: %s\n" label src))
                (("text/html") . ,(format "<a href=\"%s\">[%s]</a> "
                                          src label)))))
-          (when-let (((or (eq l 'author) (eq l 'contributor)))
-                     (name (nnatom--dom-line (dom-child-by-tag link 'name)))
-                     (name (if (string-blank-p name)
-                               (concat "Author"
-                                       (and (< 1 (cl-incf aut))
-                                            (format " %s" aut)))
-                             name))
-                     (uri (nnatom--dom-line (dom-child-by-tag link 'uri)))
-                     ((not (string-blank-p uri))))
+          (when-let* (((or (eq l 'author) (eq l 'contributor)))
+                      (name (nnatom--dom-line (dom-child-by-tag link 'name)))
+                      (name (if (string-blank-p name)
+                                (concat "Author"
+                                        (and (< 1 (cl-incf aut))
+                                             (format " %s" aut)))
+                              name))
+                      (uri (nnatom--dom-line (dom-child-by-tag link 'uri)))
+                      ((not (string-blank-p uri))))
             `(((("text/plain") . ,(format "%s: %s\n" name uri))
                (("text/html") . ,(format "<a href=\"%s\">[%s]</a> "
                                          uri name)))))
-          (when-let (((eq l 'link))
-                     (attrs (dom-attributes link))
-                     (label (or (cdr (assq 'title attrs))
-                                (pcase (cdr (assq 'rel attrs))
-                                  ("related"
-                                   (concat "Related"
-                                           (and (< 1 (cl-incf rel))
-                                                (format " %s" rel))))
-                                  ("self"
-                                   (concat "More"
-                                           (and (< 1 (cl-incf sel))
-                                                (format " %s" sel))))
-                                  ("enclosure"
-                                   (concat "Enclosure"
-                                           (and (< 1 (cl-incf enc))
-                                                (format " %s" enc))))
-                                  ("via"
-                                   (concat "Source"
-                                           (and (< 1 (cl-incf via))
-                                                (format " %s" via))))
-                                  (_ (if-let
-                                         ((lang (cdr (assq 'hreflang link))))
-                                         (format "Link (%s)" lang)
-                                       (concat
-                                        "Link"
-                                        (and (< 1 (cl-incf alt))
-                                             (format " %s" alt))))))))
-                     (link (cdr (assq 'href attrs))))
+          (when-let* (((eq l 'link))
+                      (attrs (dom-attributes link))
+                      (label (or (cdr (assq 'title attrs))
+                                 (pcase (cdr (assq 'rel attrs))
+                                   ("related"
+                                    (concat "Related"
+                                            (and (< 1 (cl-incf rel))
+                                                 (format " %s" rel))))
+                                   ("self"
+                                    (concat "More"
+                                            (and (< 1 (cl-incf sel))
+                                                 (format " %s" sel))))
+                                   ("enclosure"
+                                    (concat "Enclosure"
+                                            (and (< 1 (cl-incf enc))
+                                                 (format " %s" enc))))
+                                   ("via"
+                                    (concat "Source"
+                                            (and (< 1 (cl-incf via))
+                                                 (format " %s" via))))
+                                   (_ (if-let*
+                                          ((lang (cdr (assq 'hreflang link))))
+                                          (format "Link (%s)" lang)
+                                        (concat
+                                         "Link"
+                                         (and (< 1 (cl-incf alt))
+                                              (format " %s" alt))))))))
+                      (link (cdr (assq 'href attrs))))
             `(((("text/plain") . ,(format "%s: %s\n" label link))
                (("text/html") . ,(format "<a href=\"%s\">[%s]</a> "
                                          link label))))))))

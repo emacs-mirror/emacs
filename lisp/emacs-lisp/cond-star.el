@@ -31,12 +31,14 @@
 ;; and, or, if, progn, let, let*, setq.
 ;; For regexp matching only, it can call string-match and match-string.
 
-;;; ??? If a clause starts with a keyword,
-;;; should the element after the keyword be treated in the usual way
-;;; as a pattern?  Currently `cond*-non-exit-clause-substance' explicitly
-;;; prevents that by adding t at the front of its value.
+;; ??? If a clause starts with a keyword,
+;; should the element after the keyword be treated in the usual way
+;; as a pattern?  Currently `cond*-non-exit-clause-substance' explicitly
+;; prevents that by adding t at the front of its value.
 
 ;;; Code:
+
+(require 'cl-lib) ; for cl-assert
 
 (defmacro cond* (&rest clauses)
   "Extended form of traditional Lisp `cond' construct.
@@ -44,15 +46,20 @@ A `cond*' construct is a series of clauses, and a clause
 normally has the form (CONDITION BODY...).
 
 CONDITION can be a Lisp expression, as in `cond'.
-Or it can be `(bind* BINDINGS...)' or `(match* PATTERN DATUM)'.
+Or it can be one of `(pcase* PATTERN DATUM)',
+`(bind* BINDINGS...)', or `(match* PATTERN DATUM)',
+
+`(pcase* PATTERN DATUM)' means to match DATUM against the
+pattern PATTERN, using the same pattern syntax as `pcase'.
+The condition counts as true if PATTERN matches DATUM.
 
 `(bind* BINDINGS...)' means to bind BINDINGS (as if they were in `let*')
 for the body of the clause.  As a condition, it counts as true
 if the first binding's value is non-nil.  All the bindings are made
 unconditionally for whatever scope they cover.
 
-`(match* PATTERN DATUM)' means to match DATUM against the pattern PATTERN
-The condition counts as true if PATTERN matches DATUM.
+`(match* PATTERN DATUM)' is an alternative to `pcase*' that uses another
+syntax for its patterns, see `match*'.
 
 When a clause's condition is true, and it exits the `cond*'
 or is the last clause, the value of the last expression
@@ -70,7 +77,7 @@ are passed along to the rest of the clauses in this `cond*' construct.
 \\[match*\\] for documentation of the patterns for use in `match*'."
   (cond*-convert clauses))
 
-(defmacro match* (pattern datum)
+(defmacro match* (pattern _datum)
   "This specifies matching DATUM against PATTERN.
 It is not really a Lisp function, and it is meaningful
 only in the CONDITION of a `cond*' clause.
@@ -133,7 +140,7 @@ ATOM (meaning any other kind of non-list not described above)
 \(constrain SYMBOL EXP)
   matches datum if the form EXP is true.
   EXP can refer to symbols bound earlier in the pattern."
-  (ignore datum)
+  ;; FIXME: `byte-compile-warn-x' is not necessarily defined here.
   (byte-compile-warn-x pattern "`match*' used other than as a `cond*' condition"))
 
 (defun cond*-non-exit-clause-p (clause)
@@ -245,8 +252,8 @@ This is used for conditional exit clauses."
                    ;; Then always go on to run the UNCONDIT-CLAUSES.
                    (if true-exps
                        `(let ((,init-gensym ,first-value))
-;;; ??? Should we make the bindings a second time for the UNCONDIT-CLAUSES.
-;;; as the doc string says, for uniformity with match*?
+;;;  ??? Should we make the bindings a second time for the UNCONDIT-CLAUSES.
+;;;  as the doc string says, for uniformity with match*?
                           (let* ,mod-bindings
                             (when ,init-gensym
                               . ,true-exps)
@@ -262,6 +269,24 @@ This is used for conditional exit clauses."
                     (let* ,mod-bindings
                       (when ,init-gensym
                         . ,true-exps)))))))
+          ((eq pat-type 'pcase*)
+           (if true-exps
+               (progn
+                 (when uncondit-clauses
+                   ;; FIXME: This happens in cases like
+                   ;;     (cond* ((match* `(,x . ,y) EXP) THEN :non-exit)
+                   ;;            (t ELSE))
+                   ;; where ELSE is supposed to run after THEN also (and
+                   ;; with access to `x' and `y').
+                   (error ":non-exit not supported with `pcase*'"))
+                 (cl-assert (or (null iffalse) rest))
+                 `(pcase ,(nth 2 condition)
+                    (,(nth 1 condition) ,@true-exps)
+                    (_ ,iffalse)))
+             (cl-assert (null iffalse))
+             (cl-assert (null rest))
+             `(pcase-let ((,(nth 1 condition) ,(nth 2 condition)))
+                (cond* . ,uncondit-clauses))))
           ((eq pat-type 'match*)
            (cond*-match condition true-exps uncondit-clauses iffalse))
           (t
@@ -369,11 +394,11 @@ as in `cond*-condition'."
     ;; because they are all gensyms anyway.
     (if (cdr backtrack-aliases)
         (setq expression
-              `(let ,(mapcar 'cdr (cdr backtrack-aliases))
+              `(let ,(mapcar #'cdr (cdr backtrack-aliases))
                  ,expression)))
     (if retrieve-value-swap-outs
         (setq expression
-              `(let ,(mapcar 'cadr retrieve-value-swap-outs)
+              `(let ,(mapcar #'cadr retrieve-value-swap-outs)
                  ,expression)))
     ;; If we used a gensym, wrap on code to bind it.
     (if gensym
@@ -397,8 +422,8 @@ This is used for the bindings specified explicitly in match* patterns."
 
 (defvar cond*-debug-pattern nil)
 
-;;; ??? Structure type patterns not implemented yet.
-;;; ??? Probably should optimize the `nth' calls in handling `list'.
+;; ??? Structure type patterns not implemented yet.
+;; ??? Probably should optimize the `nth' calls in handling `list'.
 
 (defun cond*-subpat (subpat cdr-ignore bindings inside-or backtrack-aliases data)
   "Generate code to match the subpattern within `match*'.
@@ -486,7 +511,7 @@ whether SUBPAT (as well as the subpatterns that contain/precede it) matches,"
                (unless (symbolp elt)
                  (byte-compile-warn-x vars "Non-symbol %s given as name for matched substring" elt)))
              ;; Bind these variables to nil, before the pattern.
-             (setq bindings (nconc (mapcar 'list vars) bindings))
+             (setq bindings (nconc (mapcar #'list vars) bindings))
              ;; Make the expressions to set the variables.
              (setq setqs (mapcar
                           (lambda (var)

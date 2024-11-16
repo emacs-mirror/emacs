@@ -4757,15 +4757,16 @@ to encoding or decoding by any coding system.
 
 @node Yanking Media
 @section Yanking Media
+@cindex yank media from window-system selections
 
-  Data saved within window system selections is not restricted to
-plain text.  It is possible for selection data to encompass images or
-other binary data of the like, as well as rich text content instanced
-by HTML, and also PostScript.  Since the selection data types incident
-to this data are at variance with those for plain text, the insertion
-of such data is facilitated by a set of functions dubbed
-@dfn{yank-media handlers}, which are registered by each major mode
-undertaking its insertion and called where warranted upon the
+  Data saved within window system selections and the MS-Windows
+clipboard is not restricted to plain text.  It is possible for selection
+data to encompass images or other binary data of the like, as well as
+rich text content instanced by HTML, and also PostScript.  Since the
+selection data types incident to this data are at variance with those
+for plain text, the insertion of such data is facilitated by a set of
+functions dubbed @dfn{yank-media handlers}, which are registered by each
+major mode undertaking its insertion and called where warranted upon the
 execution of the @code{yank-media} command.
 
 @defun yank-media-handler types handler

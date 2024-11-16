@@ -1153,7 +1153,7 @@ is the buffer position of the start of the containing expression."
 (defun lisp--local-defform-body-p (state)
   "Return non-nil when at local definition body according to STATE.
 STATE is the `parse-partial-sexp' state for current position."
-  (when-let ((start-of-innermost-containing-list (nth 1 state)))
+  (when-let* ((start-of-innermost-containing-list (nth 1 state)))
     (let* ((parents (nth 9 state))
            (first-cons-after (cdr parents))
            (second-cons-after (cdr first-cons-after))
@@ -1171,11 +1171,11 @@ STATE is the `parse-partial-sexp' state for current position."
         (let (local-definitions-starting-point)
           (and (save-excursion
                  (goto-char (1+ second-order-parent))
-                 (when-let ((head (ignore-errors
-                                    ;; FIXME: This does not distinguish
-                                    ;; between reading nil and a read error.
-                                    ;; We don't care but still, better fix this.
-                                    (read (current-buffer)))))
+                 (when-let* ((head (ignore-errors
+                                     ;; FIXME: This does not distinguish
+                                     ;; between reading nil and a read error.
+                                     ;; We don't care but still, better fix this.
+                                     (read (current-buffer)))))
                    (when (memq head '( cl-flet cl-labels cl-macrolet cl-flet*
                                        cl-symbol-macrolet))
                      ;; In what follows, we rely on (point) returning non-nil.

@@ -246,6 +246,17 @@ scope during the evaluation of TEST-SEXP."
 
 (declare-function eshell-extended-glob "em-glob" (glob))
 (defvar eshell-error-if-no-glob)
+(defvar eshell-glob-splice-results)
+
+(defun eshell-ls--expand-wildcards (file)
+  "Expand the shell wildcards in FILE if any."
+  (if (and (atom file)
+           (not (file-exists-p file)))
+      (let ((eshell-error-if-no-glob t)
+            ;; Ensure `eshell-extended-glob' returns a list.
+            (eshell-glob-splice-results t))
+        (mapcar #'file-relative-name (eshell-extended-glob file)))
+    (list (file-relative-name file))))
 
 (defun eshell-ls--insert-directory
   (orig-fun file switches &optional wildcard full-directory-p)
@@ -277,13 +288,7 @@ instead."
           (require 'em-glob)
           (let* ((insert-func 'insert)
                  (error-func 'insert)
-                 (eshell-error-if-no-glob t)
-                 (target ; Expand the shell wildcards if any.
-                  (if (and (atom file)
-                           (string-match "[[?*]" file)
-                           (not (file-exists-p file)))
-                      (mapcar #'file-relative-name (eshell-extended-glob file))
-                    (file-relative-name file)))
+                 (target (eshell-ls--expand-wildcards file))
                  (switches
                   (append eshell-ls-dired-initial-args
                           (and (or (consp dired-directory) wildcard) (list "-d"))

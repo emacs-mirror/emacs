@@ -1,4 +1,4 @@
-;;; loadup.el --- load up standardly loaded Lisp files for Emacs  -*- lexical-binding: t; -*-
+;;; loadup.el --- load up always-loaded Lisp files for Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985-1986, 1992, 1994, 2001-2024 Free Software
 ;; Foundation, Inc.

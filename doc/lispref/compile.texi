@@ -927,6 +927,14 @@ compilation subprocesses in parallel, under the control of
 Variables}).
 @end defun
 
+@defun native-compile-directory directory
+This function compiles into native code all the @file{*.el} files in the
+specified @var{directory} and, recursively, in all of its
+subdirectories, if a corresponding @file{.eln} file could not be found
+in any of the directories mentioned in the
+@code{native-comp-eln-load-path} list (@pxref{Library Search}).
+@end defun
+
 @deffn Command emacs-lisp-native-compile
 This command compiles the file visited by the current buffer into
 native code, if the file was changed since the last time it was

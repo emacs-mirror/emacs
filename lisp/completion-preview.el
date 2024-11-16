@@ -380,11 +380,11 @@ candidates or if there are multiple matching completions and
          (prefix (substring string base)))
     (when last
       (setcdr last nil)
-      (when-let ((sorted (funcall sort-fn
-                                  (delete prefix (all-completions prefix all))))
-                 (common (try-completion prefix sorted))
-                 (lencom (length common))
-                 (suffixes sorted))
+      (when-let* ((sorted (funcall sort-fn
+                                   (delete prefix (all-completions prefix all))))
+                  (common (try-completion prefix sorted))
+                  (lencom (length common))
+                  (suffixes sorted))
         (unless (and (cdr suffixes) completion-preview-exact-match-only)
           ;; Remove the common prefix from each candidate.
           (while sorted
@@ -398,8 +398,8 @@ candidates or if there are multiple matching completions and
     (and (consp res)
          (not (functionp res))
          (seq-let (beg end table &rest plist) res
-           (or (when-let ((data (completion-preview--try-table
-                                 table beg end plist)))
+           (or (when-let* ((data (completion-preview--try-table
+                                  table beg end plist)))
                  `(,(+ beg (length (car data))) ,end ,plist ,@data))
                (unless (eq 'no (plist-get plist :exclusive))
                  ;; Return non-nil to exclude other capfs.
@@ -411,7 +411,7 @@ candidates or if there are multiple matching completions and
       (run-hook-wrapped
        'completion-at-point-functions
        #'completion-preview--capf-wrapper)
-    (when-let ((suffix (car suffixes)))
+    (when-let* ((suffix (car suffixes)))
       (set-text-properties 0 (length suffix)
                            (list 'face (if (cdr suffixes)
                                            'completion-preview

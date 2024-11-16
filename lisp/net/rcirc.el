@@ -576,11 +576,11 @@ If ARG is non-nil, instead prompt for connection parameters."
                                      'certfp)
                              (rcirc-get-server-cert (car c))))
               contact)
-          (when-let (((not password))
-                     (auth (auth-source-search :host server
-                                               :user user-name
-                                               :port port))
-                     (pwd (auth-info-password (car auth))))
+          (when-let* (((not password))
+                      (auth (auth-source-search :host server
+                                                :user user-name
+                                                :port port))
+                      (pwd (auth-info-password (car auth))))
             (setq password pwd))
           (when server
             (let (connected)
@@ -709,7 +709,7 @@ that are joined after authentication."
            process)
 
       ;; Ensure any previous process is killed
-      (when-let ((old-process (get-process (or server-alias server))))
+      (when-let* ((old-process (get-process (or server-alias server))))
         (set-process-sentinel old-process #'ignore)
         (delete-process process))
 
@@ -1158,7 +1158,7 @@ element in PARTS is a list, append it to PARTS."
   (let ((last (car (last parts))))
     (when (listp last)
       (setf parts (append (butlast parts) last))))
-  (when-let (message (memq : parts))
+  (when-let* ((message (memq : parts)))
     (cl-check-type (cadr message) string)
     (setf (cadr message) (concat ":" (cadr message))
           parts (remq : parts)))
@@ -1630,7 +1630,7 @@ with it."
                rcirc-log-directory)
       (rcirc-log-write))
     (rcirc-clean-up-buffer "Killed buffer")
-    (when-let ((process (get-buffer-process (current-buffer))))
+    (when-let* ((process (get-buffer-process (current-buffer))))
       (delete-process process))
     (when (and rcirc-buffer-alist ;; it's a server buffer
                rcirc-kill-channel-buffers)
@@ -2041,7 +2041,7 @@ connection."
                ;; do not ignore if we sent the message
                (not (string= sender (rcirc-nick process))))
     (let* ((buffer (rcirc-target-buffer process sender response target text))
-           (time (if-let ((time (rcirc-get-tag "time")))
+           (time (if-let* ((time (rcirc-get-tag "time")))
                      (parse-iso8601-time-string time t)
                    (current-time)))
            (inhibit-read-only t))
@@ -2178,7 +2178,7 @@ connection."
 (defun rcirc-when ()
   "Show the time of reception of the message at point."
   (interactive)
-  (if-let (time (get-text-property (point) 'rcirc-time))
+  (if-let* ((time (get-text-property (point) 'rcirc-time)))
       (message (format-time-string "%c" time))
     (message "No time information at point.")))
 
@@ -3133,13 +3133,13 @@ indicated by RESPONSE)."
               (or #x03 #x0f eol))
           nil t)
     (let (foreground background)
-      (when-let ((fg-raw (match-string 1))
-                 (fg (string-to-number fg-raw))
-                 ((<= 0 fg (1- (length rcirc-color-codes)))))
+      (when-let* ((fg-raw (match-string 1))
+                  (fg (string-to-number fg-raw))
+                  ((<= 0 fg (1- (length rcirc-color-codes)))))
         (setq foreground (aref rcirc-color-codes fg)))
-      (when-let ((bg-raw (match-string 2))
-                 (bg (string-to-number bg-raw))
-                 ((<= 0 bg (1- (length rcirc-color-codes)))))
+      (when-let* ((bg-raw (match-string 2))
+                  (bg (string-to-number bg-raw))
+                  ((<= 0 bg (1- (length rcirc-color-codes)))))
         (setq background (aref rcirc-color-codes bg)))
       (rcirc-add-face (match-beginning 0) (match-end 0)
                       `(face (,@(and foreground (list :foreground foreground))
@@ -3475,7 +3475,7 @@ PROCESS is the process object for the current connection."
     (dolist (target channels)
       (rcirc-print process sender "NICK" target new-nick))
     ;; update chat buffer, if it exists
-    (when-let ((chat-buffer (rcirc-get-buffer process old-nick)))
+    (when-let* ((chat-buffer (rcirc-get-buffer process old-nick)))
       (with-current-buffer chat-buffer
         (rcirc-print process sender "NICK" old-nick new-nick)
         (setq rcirc-target new-nick)
@@ -3799,8 +3799,8 @@ is the process object for the current connection."
   "Handle a empty tag message from SENDER.
 PROCESS is the process object for the current connection."
   (dolist (tag rcirc-message-tags)
-    (when-let ((handler (intern-soft (concat "rcirc-tag-handler-" (car tag))))
-               ((fboundp handler)))
+    (when-let* ((handler (intern-soft (concat "rcirc-tag-handler-" (car tag))))
+                ((fboundp handler)))
       (funcall handler process sender (cdr tag)))))
 
 (defun rcirc-handler-BATCH (process _sender args _text)
@@ -3837,7 +3837,7 @@ object for the current connection."
                         (args (nth 3 message))
                         (text (nth 4 message))
                         (rcirc-message-tags (nth 5 message)))
-                    (if-let (handler (intern-soft (concat "rcirc-handler-" cmd)))
+                    (if-let* ((handler (intern-soft (concat "rcirc-handler-" cmd))))
                         (funcall handler process sender args text)
                       (rcirc-handler-generic process cmd sender args text))))))))
         (setq rcirc-batch-attributes

@@ -3172,7 +3172,7 @@ if test "${HAVE_W32}" = "yes"; then
   AC_CHECK_TOOL([WINDRES], [windres],
                 [AC_MSG_ERROR([No resource compiler found.])])
   W32_OBJ="w32fns.o w32menu.o w32reg.o w32font.o w32term.o"
-  W32_OBJ="$W32_OBJ w32xfns.o w32select.o w32uniscribe.o w32cygwinx.o"
+  W32_OBJ="$W32_OBJ w32xfns.o w32select.o w32uniscribe.o w32dwrite.o w32cygwinx.o"
   EMACSRES="emacs.res"
   case "$canonical" in
     x86_64-*-*) EMACS_MANIFEST="emacs-x64.manifest" ;;
@@ -7116,6 +7116,9 @@ AC_CACHE_CHECK([for usable FIONREAD], [emacs_cv_usable_FIONREAD],
 			    #include <sys/ioctl.h>
 			    #ifdef USG5_4
 			    # include <sys/filio.h>
+			    #endif
+			    #ifdef HAVE_UNISTD_H
+			    # include <unistd.h> /* defines ioctl() on Solaris */
 			    #endif
 			  ]],
 			  [[int foo = ioctl (0, FIONREAD, &foo);]])],

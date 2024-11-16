@@ -72,7 +72,7 @@ calling this function."
 	(when address
 	  (setq address (rfc6068-unhexify-string address))
 	  ;; Deal with multiple 'To' recipients.
-	  (if-let ((elem (assoc "To" headers-alist)))
+	  (if-let* ((elem (assoc "To" headers-alist)))
 	      (setcdr elem (concat address ", " (cdr elem)))
             (push (cons "To" address) headers-alist)))
 

@@ -363,7 +363,7 @@ Methods are prefixed with the receiver name, unless SKIP-PREFIX is t."
 The added docstring is prefilled with the defun's name.  If the
 comment already exists, jump to it."
   (interactive)
-  (when-let ((defun-node (treesit-defun-at-point)))
+  (when-let* ((defun-node (treesit-defun-at-point)))
     (goto-char (treesit-node-start defun-node))
     (if (go-ts-mode--comment-on-previous-line-p)
         ;; go to top comment line
@@ -375,9 +375,9 @@ comment already exists, jump to it."
 
 (defun go-ts-mode--comment-on-previous-line-p ()
   "Return t if the previous line is a comment."
-  (when-let ((point (- (pos-bol) 1))
-             ((> point 0))
-             (node (treesit-node-at point)))
+  (when-let* ((point (- (pos-bol) 1))
+              ((> point 0))
+              (node (treesit-node-at point)))
     (and
      ;; check point is actually inside the found node
      ;; treesit-node-at can return nodes after point
@@ -432,10 +432,10 @@ specifying build tags."
   "Return a regular expression for the tests at point.
 If region is active, the regexp will include all the functions under the
 region."
-  (if-let ((range (if (region-active-p)
-                      (list (region-beginning) (region-end))
-                    (list (point) (point))))
-           (funcs (apply #'go-ts-mode--get-functions-in-range range)))
+  (if-let* ((range (if (region-active-p)
+                       (list (region-beginning) (region-end))
+                     (list (point) (point))))
+            (funcs (apply #'go-ts-mode--get-functions-in-range range)))
       (string-join funcs "|")
     (error "No test function found")))
 
@@ -450,7 +450,7 @@ be run."
 (defun go-ts-mode-test-this-file ()
   "Run all the unit tests in the current file."
   (interactive)
-  (if-let ((defuns (go-ts-mode--get-functions-in-range (point-min) (point-max))))
+  (if-let* ((defuns (go-ts-mode--get-functions-in-range (point-min) (point-max))))
       (go-ts-mode--compile-test (string-join defuns "|"))
     (error "No test functions found in the current file")))
 

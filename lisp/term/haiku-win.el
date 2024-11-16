@@ -142,7 +142,7 @@ two markers or an overlay.  Otherwise, it is nil."
 Return a list of the appropriate MIME type, and UTF-8 data of
 VALUE as a unibyte string, or nil if VALUE was not a string."
   (unless (stringp value)
-    (when-let ((bounds (haiku-selection-bounds value)))
+    (when-let* ((bounds (haiku-selection-bounds value)))
       (setq value (ignore-errors
                     (with-current-buffer (nth 2 bounds)
                       (buffer-substring (nth 0 bounds)
@@ -260,7 +260,7 @@ CLIPBOARD should be the symbol `PRIMARY', `SECONDARY' or
 VALUE will be encoded as Latin-1 (like on X Windows) and stored
 under the type `text/plain;charset=iso-8859-1'."
   (unless (stringp value)
-    (when-let ((bounds (haiku-selection-bounds value)))
+    (when-let* ((bounds (haiku-selection-bounds value)))
       (setq value (ignore-errors
                     (with-current-buffer (nth 2 bounds)
                       (buffer-substring (nth 0 bounds)
@@ -274,7 +274,7 @@ under the type `text/plain;charset=iso-8859-1'."
 VALUE will be encoded as UTF-8 and stored under the type
 `text/plain'."
   (unless (stringp value)
-    (when-let ((bounds (haiku-selection-bounds value)))
+    (when-let* ((bounds (haiku-selection-bounds value)))
       (setq value (ignore-errors
                     (with-current-buffer (nth 2 bounds)
                       (buffer-substring (nth 0 bounds)

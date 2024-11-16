@@ -33,7 +33,6 @@
 
 (eval-when-compile (require 'cl-lib))
 (eval-when-compile (require 'pcase))
-(eval-when-compile (require 'subr-x))        ; if-let
 (require 'find-func)
 (require 'help-mode)     ; Define `help-function-def' button type.
 (require 'lisp-mode)
@@ -202,6 +201,7 @@ frames where the source code location is known.")
   "+"   #'backtrace-multi-line
   "-"   #'backtrace-single-line
   "."   #'backtrace-expand-ellipses
+  "C-]"    #'abort-recursive-edit
   "<follow-link>" 'mouse-face
   "<mouse-2>"     #'mouse-select-window
 

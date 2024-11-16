@@ -1274,23 +1274,42 @@ NOERROR is equal to `reload'), or otherwise emit a warning."
         (res (require feature filename (if (eq noerror 'reload) nil noerror))))
     ;; If the `feature' was not yet provided, `require' just loaded the right
     ;; file, so we're done.
-    (when (eq lh load-history)
+    (when (and res (eq lh load-history))
       ;; If `require' did nothing, we need to make sure that was warranted.
-      (let ((fn (locate-file (or filename (symbol-name feature))
-                             load-path (get-load-suffixes))))
+      (let* ((fn (locate-file (or filename (symbol-name feature))
+                              load-path (get-load-suffixes) nil
+                              )) ;; load-prefer-newer
+             ;; We used to look for `fn' in `load-history' with `assoc'
+             ;; which works in most cases, but in some cases (e.g. when
+             ;; `load-prefer-newer' is set) `locate-file' can return a
+             ;; different file than the file that `require' would load,
+             ;; so the file won't be found in `load-history' even though
+             ;; we did load "it".  (bug#74040)
+             ;; So use a "permissive" search which doesn't pay attention to
+             ;; differences between file extensions.
+             (prefix (if (string-match
+                          (concat (regexp-opt (get-load-suffixes)) "\\'") fn)
+                         (concat (substring fn 0 (match-beginning 0)) ".")
+                       fn))
+             (lh load-history))
+        (while (and lh (let ((file (car-safe (car lh))))
+                         (not (and file (string-prefix-p prefix file)))))
+          (setq lh (cdr lh)))
         (cond
-         ((assoc fn load-history) nil)  ;We loaded the right file.
+         (lh nil)                       ;We loaded the right file.
          ((eq noerror 'reload) (load fn nil 'nomessage))
          ((and fn (memq feature features))
-          (funcall (if noerror #'warn #'error)
-                   "Feature `%S' is now provided by a different file %s"
-                   feature fn))
+          (let ((oldfile (symbol-file feature 'provide)))
+            (funcall (if noerror #'warn #'error)
+                     "Feature `%S' loaded from %S is now provided by %S"
+                     feature (if oldfile (abbreviate-file-name oldfile))
+                     (abbreviate-file-name fn))))
          (fn
           (funcall (if noerror #'warn #'error)
-                   "Could not load file %s" fn))
+                   "Could not load file: %s" fn))
          (t
           (funcall (if noerror #'warn #'error)
-                   "Could not locate file %s in load path"
+                   "Could not locate file in load path: %s"
                    (or filename (symbol-name feature)))))))
     res))
 
@@ -1338,7 +1357,7 @@ Tip: You can use this expansion of remote identifier components
      returns a remote file name for file \"/bin/sh\" that has the
      same remote identifier as FILE but expanded; a name such as
      \"/sudo:root@myhost:/bin/sh\"."
-  (when-let ((handler (find-file-name-handler file 'file-remote-p)))
+  (when-let* ((handler (find-file-name-handler file 'file-remote-p)))
     (funcall handler 'file-remote-p file identification connected)))
 
 ;; Probably this entire variable should be obsolete now, in favor of
@@ -2194,7 +2213,7 @@ if you want to permanently change your home directory after having
 started Emacs, set `abbreviated-home-dir' to nil so it will be recalculated)."
   ;; Get rid of the prefixes added by the automounter.
   (save-match-data                      ;FIXME: Why?
-    (if-let ((handler (find-file-name-handler filename 'abbreviate-file-name)))
+    (if-let* ((handler (find-file-name-handler filename 'abbreviate-file-name)))
         (funcall handler 'abbreviate-file-name filename)
       ;; Avoid treating /home/foo as /home/Foo during `~' substitution.
       (let ((case-fold-search (file-name-case-insensitive-p filename)))
@@ -3033,8 +3052,6 @@ since only a single case-insensitive search through the alist is made."
      ;; Anyway, the following extensions are supported by gfortran.
      ("\\.f9[05]\\'" . f90-mode)
      ("\\.f0[38]\\'" . f90-mode)
-     ("\\.indent\\.pro\\'" . fundamental-mode) ; to avoid idlwave-mode
-     ("\\.\\(pro\\|PRO\\)\\'" . idlwave-mode)
      ("\\.srt\\'" . srecode-template-mode)
      ("\\.prolog\\'" . prolog-mode)
      ("\\.tar\\'" . tar-mode)
@@ -3529,7 +3546,7 @@ we don't actually set it to the same mode the buffer already has."
      ;; If we didn't, look for an interpreter specified in the first line.
      ;; As a special case, allow for things like "#!/bin/env perl", which
      ;; finds the interpreter anywhere in $PATH.
-     (when-let
+     (when-let*
 	 ((interp (save-excursion
 		    (goto-char (point-min))
 		    (if (looking-at auto-mode-interpreter-regexp)
@@ -4158,7 +4175,7 @@ all the specified local variables, but ignores any settings of \"mode:\"."
           ;; Handle `lexical-binding' and other special local
           ;; variables.
           (dolist (variable permanently-enabled-local-variables)
-            (when-let ((elem (assq variable result)))
+            (when-let* ((elem (assq variable result)))
               (push elem file-local-variables-alist)))
           (hack-local-variables-apply))))))
 
@@ -4416,7 +4433,7 @@ already the major mode."
   (pcase var
     ('mode
      (let ((mode (intern (concat (downcase (symbol-name val))
-                          "-mode"))))
+                                 "-mode"))))
        (set-auto-mode-0 mode t)))
     ('eval
      (pcase val
@@ -6936,8 +6953,8 @@ buffer read-only, or keeping minor modes, etc.")
 
 (defun revert-buffer-restore-read-only ()
   "Preserve read-only state for `revert-buffer'."
-  (when-let ((state (and (boundp 'read-only-mode--state)
-                         (list read-only-mode--state))))
+  (when-let* ((state (and (boundp 'read-only-mode--state)
+                          (list read-only-mode--state))))
     (lambda ()
       (setq buffer-read-only (car state))
       (setq-local read-only-mode--state (car state)))))
@@ -8488,7 +8505,8 @@ If RESTART, restart Emacs after killing the current Emacs process."
      ;; Query the user for other things, perhaps.
      (run-hook-with-args-until-failure 'kill-emacs-query-functions)
      (or (null confirm)
-         (funcall confirm "Really exit Emacs? "))
+         (funcall confirm (format "Really %s Emacs? "
+                                  (if restart "restart" "exit"))))
      (kill-emacs nil restart))))
 
 (defun save-buffers-kill-terminal (&optional arg)

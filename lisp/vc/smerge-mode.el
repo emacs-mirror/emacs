@@ -168,6 +168,10 @@ Used in `smerge-diff-base-upper' and related functions."
 		 (const :tag "none"  "")
 		 string))
 
+;; Make it so `C-c ^ n' doesn't insert `n' but just signals an error
+;; when SMerge mode is not enabled (bug#73544).
+;;;###autoload (global-set-key "\C-c^" (make-sparse-keymap))
+
 (defvar-keymap smerge-mode-map
   (key-description smerge-command-prefix) smerge-basic-map)
 
@@ -1240,7 +1244,7 @@ spacing of the \"Lower\" chunk."
     (write-region beg2 end2 file2 nil 'nomessage)
     (unwind-protect
 	(save-current-buffer
-          (if-let (buffer (get-buffer smerge-diff-buffer-name))
+          (if-let* ((buffer (get-buffer smerge-diff-buffer-name)))
               (set-buffer buffer)
             (set-buffer (get-buffer-create smerge-diff-buffer-name))
             (setq buffer-read-only t))

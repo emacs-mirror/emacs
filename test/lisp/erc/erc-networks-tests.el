@@ -76,6 +76,14 @@
                                                       :symbol 'fake.chat)))))
       (kill-buffer))))
 
+(ert-deftest erc-networks--id-string ()
+  (should (equal (erc-networks--id-string (erc-networks--id-fixed-create 'foo))
+                 "foo"))
+  (should (equal (let* ((erc-network 'FooNet)
+                        (erc-server-current-nick "Joe")) ; needs letstar
+                   (erc-networks--id-string (erc-networks--id-create nil)))
+                 "FooNet")))
+
 (ert-deftest erc-networks--id-create ()
   (cl-letf (((symbol-function 'float-time)
              (lambda (&optional _) 0.0)))

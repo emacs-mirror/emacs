@@ -963,8 +963,8 @@ changed by, or (parse-state) if line starts in a quoted string."
   (save-excursion
     (skip-chars-backward " \t\n")
     (beginning-of-line)
-    (when-let ((comm (and (looking-at "^\\.$")
-                          (nth 8 (syntax-ppss)))))
+    (when-let* ((comm (and (looking-at "^\\.$")
+                           (nth 8 (syntax-ppss)))))
       (goto-char comm)
       (beginning-of-line)
       (looking-at perl--format-regexp))))

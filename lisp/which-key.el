@@ -1219,7 +1219,7 @@ total height."
 ;;; Show/hide which-key buffer
 
 (defun which-key--hide-popup ()
-  "This function is called to hide the which-key buffer."
+  "Hide the `which-key' buffer."
   (unless (or which-key-persistent-popup
               (member real-this-command which-key--paging-functions))
     (setq which-key--last-try-2-loc nil)
@@ -2346,10 +2346,7 @@ enough space based on your settings and frame size." prefix-keys)
           (when (cdr page-echo) (funcall (cdr page-echo)))
           (which-key--show-popup (cons height width)))))
     ;; used for paging at top-level
-    (if (fboundp 'set-transient-map)
-        (set-transient-map (which-key--get-popup-map))
-      (with-no-warnings
-        (set-temporary-overlay-map (which-key--get-popup-map))))))
+    (set-transient-map (which-key--get-popup-map))))
 
 ;;; Paging functions
 

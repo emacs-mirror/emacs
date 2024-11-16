@@ -708,6 +708,17 @@ ftcrhbfont_end_hb_font (struct font *font, hb_font_t *hb_font)
   struct font_info *ftcrfont_info = (struct font_info *) font;
   cairo_scaled_font_t *scaled_font = ftcrfont_info->cr_scaled_font;
 
+  eassert (hb_font == ftcrfont_info->hb_font);
+  /* ftcrfont_info->hb_font holds a reference to the FT_Face returned by
+     cairo_ft_scaled_font_lock_face.  Keeping it around after the matching
+     unlock call would violate the API contract, and cause corrupted
+     display of composed characters (Bug#73752).  We destroy and NULLify
+     hb_font here, which will then cause fthbfont_begin_hb_font, called by
+     ftcrhbfont_begin_hb_font, to recreate hb_font anew, taking into
+     consideration any scale changes in FT_Face.  */
+  hb_font_destroy (ftcrfont_info->hb_font);
+  ftcrfont_info->hb_font = NULL;
+
   cairo_ft_scaled_font_unlock_face (scaled_font);
   ftcrfont_info->ft_size = NULL;
 }

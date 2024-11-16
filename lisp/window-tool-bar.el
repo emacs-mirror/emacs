@@ -305,8 +305,8 @@ MENU-ITEM is a menu item to convert.  See info node `(elisp)Tool Bar'."
                               'face
                               'window-tool-bar-button-disabled
                               str))
-         (when-let ((spec (and (window-tool-bar--use-images)
-                               (plist-get menu-item :image))))
+         (when-let* ((spec (and (window-tool-bar--use-images)
+                                (plist-get menu-item :image))))
            (put-text-property 0 len
                               'display
                               (append spec

@@ -3569,8 +3569,8 @@ the context.
 The @code{add-face-text-property} function provides a convenient way
 to set this text property.  @xref{Changing Properties}.
 
-@item font-lock-face
 @kindex font-lock-face @r{(text property)}
+@item font-lock-face
 This property specifies a value for the @code{face} property that Font
 Lock mode should apply to the underlying text.  It is one of the
 fontification methods used by Font Lock mode, and is useful for
@@ -3578,8 +3578,8 @@ special modes that implement their own highlighting.
 @xref{Precalculated Fontification}.  When Font Lock mode is disabled,
 @code{font-lock-face} has no effect.
 
-@item mouse-face
 @kindex mouse-face @r{(text property)}
+@item mouse-face
 This property is used instead of @code{face} when the mouse pointer
 hovers over the text which has this property.  When this happens, the
 entire stretch of text that has the same @code{mouse-face} property
@@ -3590,10 +3590,10 @@ that alter the text size (e.g., @code{:height}, @code{:weight}, and
 @code{:slant}).  Those attributes are always the same as for the
 unhighlighted text.
 
-@item cursor-face
 @kindex cursor-face @r{(text property)}
 @findex cursor-face-highlight-mode
 @vindex cursor-face-highlight-nonselected-window
+@item cursor-face
 This property is similar to @code{mouse-face}, but it is used when
 point (not the mouse) is inside text that has this property.  The
 highlighting happens only if the mode
@@ -3604,8 +3604,8 @@ similarly to what @code{highlight-nonselected-windows} does for the
 region (@pxref{Mark,, The Mark and the Region, emacs, The GNU Emacs
 Manual}).
 
-@item fontified
 @kindex fontified @r{(text property)}
+@item fontified
 This property says whether the text is ready for display.  If
 @code{nil}, Emacs's redisplay routine calls the functions in
 @code{fontification-functions} (@pxref{Auto Faces}) to prepare this
@@ -3618,9 +3618,9 @@ way text is displayed.  For example, it can make text appear taller
 or shorter, higher or lower, wider or narrow, or replaced with an image.
 @xref{Display Property}.
 
-@item help-echo
 @kindex help-echo @r{(text property)}
 @cindex tooltip for help strings
+@item help-echo
 @anchor{Text help-echo}
 If text has a string as its @code{help-echo} property, then when you
 move the mouse onto that text, Emacs displays that string in the echo
@@ -3655,17 +3655,17 @@ You can alter the way help text is displayed by setting the variable
 
 This feature is used in the mode line and for other active text.
 
-@item help-echo-inhibit-substitution
 @cindex help-echo text, avoid command-key substitution
 @kindex help-echo-inhibit-substitution @r{(text property)}
+@item help-echo-inhibit-substitution
 If the first character of a @code{help-echo} string has a
 non-@code{nil} @code{help-echo-inhibit-substitution} property, then it
 is displayed as-is by @code{show-help-function}, without being passed
 through @code{substitute-command-keys}.
 
+@cindex help-echo text on fringes
 @item left-fringe-help
 @itemx right-fringe-help
-@cindex help-echo text on fringes
 If any visible text of a screen line has the @code{left-fringe-help} or
 @code{right-fringe-help} text property whose value is a string, then
 that string will be displayed when the mouse pointer hovers over the
@@ -3673,9 +3673,9 @@ corresponding line's fringe through @code{show-help-function}
 (@pxref{Help display}).  This is useful when used together with fringe
 cursors and bitmaps (@pxref{Fringes}).
 
-@item keymap
 @cindex keymap of character
 @kindex keymap @r{(text property)}
+@item keymap
 The @code{keymap} property specifies an additional keymap for
 commands.  When this keymap applies, it is used for key lookup before
 the minor mode keymaps and before the buffer's local map.
@@ -3688,8 +3688,8 @@ character after point applies if it is non-@code{nil} and
 front-sticky.  (For mouse clicks, the position of the click is used
 instead of the position of point.)
 
-@item local-map
 @kindex local-map @r{(text property)}
+@item local-map
 This property works like @code{keymap} except that it specifies a
 keymap to use @emph{instead of} the buffer's local map.  For most
 purposes (perhaps all purposes), it is better to use the @code{keymap}
@@ -3699,9 +3699,9 @@ property.
 The @code{syntax-table} property overrides what the syntax table says
 about this particular character.  @xref{Syntax Properties}.
 
-@item read-only
 @cindex read-only character
 @kindex read-only @r{(text property)}
+@item read-only
 If a character has the property @code{read-only}, then modifying that
 character is not allowed.  Any command that would do so gets an error,
 @code{text-read-only}.  If the property value is a string, that string
@@ -3717,23 +3717,23 @@ possible to remove a @code{read-only} property unless you know the
 special trick: bind @code{inhibit-read-only} to a non-@code{nil} value
 and then remove the property.  @xref{Read Only Buffers}.
 
-@item inhibit-read-only
 @kindex inhibit-read-only @r{(text property)}
+@item inhibit-read-only
 Characters that have the property @code{inhibit-read-only} can be
 edited even in read-only buffers.  @xref{Read Only Buffers}.
 
-@item invisible
 @kindex invisible @r{(text property)}
+@item invisible
 A non-@code{nil} @code{invisible} property can make a character invisible
 on the screen.  @xref{Invisible Text}, for details.
 
-@kindex inhibit-isearch @r{(text property)}
 @item inhibit-isearch
+@kindex inhibit-isearch @r{(text property)}
 A non-@code{nil} @code{inhibit-isearch} property will make isearch
 skip the text.
 
-@item intangible
 @kindex intangible @r{(text property)}
+@item intangible
 If a group of consecutive characters have equal and non-@code{nil}
 @code{intangible} properties, then you cannot place point between them.
 If you try to move point forward into the group, point actually moves to
@@ -3754,10 +3754,10 @@ the command loop will move point outside of the invisible text at the end of
 each command anyway.  @xref{Adjusting Point}.  For these reasons, this
 property is obsolete; use the @code{cursor-intangible} property instead.
 
-@item cursor-intangible
 @kindex cursor-intangible @r{(text property)}
 @findex cursor-intangible-mode
 @cindex rear-nonsticky, and cursor-intangible property
+@item cursor-intangible
 When the minor mode @code{cursor-intangible-mode} is turned on, point
 is moved away from any position that has a non-@code{nil}
 @code{cursor-intangible} property, just before redisplay happens.
@@ -3777,15 +3777,15 @@ When the variable @code{cursor-sensor-inhibit} is non-@code{nil}, the
 @code{cursor-intangible} property and the
 @code{cursor-sensor-functions} property (described below) are ignored.
 
-@item field
 @kindex field @r{(text property)}
+@item field
 Consecutive characters with the same @code{field} property constitute a
 @dfn{field}.  Some motion functions including @code{forward-word} and
 @code{beginning-of-line} stop moving at a field boundary.
 @xref{Fields}.
 
-@item cursor
 @kindex cursor @r{(text property)}
+@item cursor
 Normally, the cursor is displayed at the beginning or the end of any
 overlay and text property strings that ``hide'' (i.e., are displayed
 instead of) the current buffer position.  You can instead tell Emacs
@@ -3834,21 +3834,21 @@ Lisp program wants to put the cursor, or where the user would expect
 the cursor, when point is located on some buffer position that is
 ``covered'' by the display or overlay string.
 
-@item pointer
 @kindex pointer @r{(text property)}
+@item pointer
 This specifies a specific pointer shape when the mouse pointer is over
 this text or image.  @xref{Pointer Shape}, for possible pointer
 shapes.
 
-@item line-spacing
 @kindex line-spacing @r{(text property)}
+@item line-spacing
 A newline can have a @code{line-spacing} text or overlay property that
 controls the height of the display line ending with that newline.  The
 property value overrides the default frame line spacing and the buffer
 local @code{line-spacing} variable.  @xref{Line Height}.
 
-@item line-height
 @kindex line-height @r{(text property)}
+@item line-height
 A newline can have a @code{line-height} text or overlay property that
 controls the total height of the display line ending in that newline.
 @xref{Line Height}.
@@ -3892,10 +3892,10 @@ A line-prefix may also be specified for an entire buffer using the
 @code{line-prefix} text-property takes precedence over the value of
 the @code{line-prefix} variable).  @xref{Truncation}.
 
-@item modification-hooks
 @cindex change hooks for a character
 @cindex hooks for changing a character
 @kindex modification-hooks @r{(text property)}
+@item modification-hooks
 If a character has the property @code{modification-hooks}, then its
 value should be a list of functions; modifying that character calls
 all of those functions before the actual modification.  Each function
@@ -3918,10 +3918,10 @@ recursive calls.  @xref{Change Hooks}.
 Overlays also support the @code{modification-hooks} property, but the
 details are somewhat different (@pxref{Overlay Properties}).
 
-@item insert-in-front-hooks
-@itemx insert-behind-hooks
 @kindex insert-in-front-hooks @r{(text property)}
 @kindex insert-behind-hooks @r{(text property)}
+@item insert-in-front-hooks
+@itemx insert-behind-hooks
 The operation of inserting text in a buffer also calls the functions
 listed in the @code{insert-in-front-hooks} property of the following
 character and in the @code{insert-behind-hooks} property of the
@@ -3939,11 +3939,11 @@ prepare for that.
 See also @ref{Change Hooks}, for other hooks that are called
 when you change text in a buffer.
 
-@item point-entered
-@itemx point-left
 @cindex hooks for motion of point
 @kindex point-entered @r{(text property)}
 @kindex point-left @r{(text property)}
+@item point-entered
+@itemx point-left
 The special properties @code{point-entered} and @code{point-left}
 record hook functions that report motion of point.  Each time point
 moves, Emacs compares these two property values:
@@ -3979,9 +3979,9 @@ running the @code{point-left} and @code{point-entered} hooks, see
 These properties are obsolete; please use
 @code{cursor-sensor-functions} instead.
 
-@item cursor-sensor-functions
 @kindex cursor-sensor-functions @r{(text property)}
 @findex cursor-sensor-mode
+@item cursor-sensor-functions
 This special property records a list of functions that react to cursor
 motion.  Each function in the list is called, just before redisplay,
 with 3 arguments: the affected window, the previous known position of
@@ -3993,15 +3993,15 @@ mode @code{cursor-sensor-mode} is turned on.
 When the variable @code{cursor-sensor-inhibit} is non-@code{nil}, the
 @code{cursor-sensor-functions} property is ignored.
 
-@item composition
 @kindex composition @r{(text property)}
+@item composition
 This text property is used to display a sequence of characters as a
 single glyph composed from components.  But the value of the property
 itself is completely internal to Emacs and should not be manipulated
 directly by, for instance, @code{put-text-property}.
 
-@item minibuffer-message
 @kindex minibuffer-message @r{(text property)}
+@item minibuffer-message
 This text property tells where to display temporary messages in an
 active minibuffer.  Specifically, the first character of the
 minibuffer text which has this property will have the temporary
@@ -4009,6 +4009,12 @@ message displayed before it.  The default is to display temporary
 messages at the end of the minibuffer text.  This text property is
 used by the function that is the default value of
 @code{set-message-function} (@pxref{Displaying Messages}).
+
+@kindex display-line-numbers-disable @r{(text property)}
+@item display-line-numbers-disable
+This text property prevents display of line numbers (@pxref{Display
+Custom, display-line-numbers,, emacs, The GNU Emacs Manual}) for the
+text which has this property.
 
 @end table
 

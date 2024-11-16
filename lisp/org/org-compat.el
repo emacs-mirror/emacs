@@ -115,10 +115,10 @@ This is an action function for buffer display, see Info
 node `(elisp) Buffer Display Action Functions'.  It should be
 called only by `display-buffer' or a function directly or
 indirectly called by the latter."
-    (when-let ((window (or (display-buffer-reuse-window buffer alist)
-                           (display-buffer-same-window buffer alist)
-                           (display-buffer-pop-up-window buffer alist)
-                           (display-buffer-use-some-window buffer alist))))
+    (when-let* ((window (or (display-buffer-reuse-window buffer alist)
+                            (display-buffer-same-window buffer alist)
+                            (display-buffer-pop-up-window buffer alist)
+                            (display-buffer-use-some-window buffer alist))))
       (delete-other-windows window)
       window)))
 

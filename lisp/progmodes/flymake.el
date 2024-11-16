@@ -845,7 +845,7 @@ Return to original margin width if ORIG-WIDTH is non-nil."
     (widen)
     (dolist (o (overlays-in (point-min) (point-max)))
       (when (overlay-get o 'flymake--eol-overlay)
-        (if-let ((src-ovs (overlay-get o 'flymake-eol-source-overlays)))
+        (if-let* ((src-ovs (overlay-get o 'flymake-eol-source-overlays)))
             (overlay-put o 'before-string (flymake--eol-overlay-summary src-ovs))
           (delete-overlay o))))))
 
@@ -1533,7 +1533,7 @@ START and STOP and LEN are as in `after-change-functions'."
 (defun flymake-eldoc-function (report-doc &rest _)
   "Document diagnostics at point.
 Intended for `eldoc-documentation-functions' (which see)."
-  (when-let ((diags (flymake-diagnostics (point))))
+  (when-let* ((diags (flymake-diagnostics (point))))
     (funcall report-doc
              (mapconcat #'flymake-diagnostic-text diags "\n")
              :echo (mapconcat #'flymake-diagnostic-oneliner

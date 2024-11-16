@@ -39,10 +39,10 @@
 (defun pcmpl-git--tracked-file-predicate (&rest args)
   "Return a predicate function determining the Git status of a file.
 Files listed by `git ls-files ARGS' satisfy the predicate."
-  (when-let ((files (mapcar #'expand-file-name
-                            (ignore-errors
-                              (apply #'process-lines
-                                     vc-git-program "ls-files" args)))))
+  (when-let* ((files (mapcar #'expand-file-name
+                             (ignore-errors
+                               (apply #'process-lines
+                                      vc-git-program "ls-files" args)))))
     (lambda (file)
       (setq file (expand-file-name file))
       (if (string-suffix-p "/" file)

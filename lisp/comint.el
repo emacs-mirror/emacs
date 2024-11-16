@@ -4111,7 +4111,7 @@ setting."
   (font-lock-flush))
 
 (defun comint--fontify-input-ppss-flush-indirect (beg &rest rest)
-  (when-let ((buf (comint-indirect-buffer t)))
+  (when-let* ((buf (comint-indirect-buffer t)))
     (with-current-buffer buf
       (when (memq #'syntax-ppss-flush-cache before-change-functions)
         (apply #'syntax-ppss-flush-cache beg rest)))))
@@ -4170,7 +4170,7 @@ function called, or nil, if no function was called (if BEG = END)."
                     (text-property-not-all beg1 end 'field 'output)
                   (text-property-any beg1 end 'field 'output))
                 end))
-      (when-let ((fun (if is-output fun-output fun-input)))
+      (when-let* ((fun (if is-output fun-output fun-input)))
         (save-restriction
           (let ((beg2 beg1)
                 (end2 end1))

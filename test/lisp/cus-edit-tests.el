@@ -31,7 +31,7 @@
   `(save-window-excursion
      (unwind-protect
          (progn ,@body)
-       (when-let ((buf (get-buffer ,buffer)))
+       (when-let* ((buf (get-buffer ,buffer)))
          (kill-buffer buf)))))
 
 

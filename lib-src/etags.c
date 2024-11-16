@@ -7420,7 +7420,7 @@ regex_tag_multiline (void)
 
 	      /* Force explicit tag name, if a name is there. */
 	      pfnote (name, true, buffer + linecharno,
-		      charno - linecharno + 1, lineno, linecharno);
+		      charno - linecharno, lineno, linecharno);
 
 	      if (debug)
 		fprintf (stderr, "%s on %s:%"PRIdMAX": %s\n",

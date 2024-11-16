@@ -1904,7 +1904,7 @@ if there are no other active clients."
                    (length> server-clients 1)
                    (seq-some
                     (lambda (frame)
-                      (when-let ((p (frame-parameter frame 'client)))
+                      (when-let* ((p (frame-parameter frame 'client)))
                         (not (eq proc p))))
                     (frame-list)))
                ;; If `server-stop-automatically' is not enabled, there

@@ -109,6 +109,14 @@
         (should (member "backup-inhibited" comps))
         (should-not (member "backup-buffer" comps))))))
 
+(ert-deftest elisp-completes-functions-after-empty-let-bindings ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(let () (ba")
+    (let ((comps (elisp--test-completions)))
+      (should (member "backup-buffer" comps))
+      (should-not (member "backup-inhibited" comps)))))
+
 (ert-deftest elisp-completes-functions-after-let-bindings-2 ()
   (with-temp-buffer
     (emacs-lisp-mode)

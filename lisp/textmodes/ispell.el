@@ -3723,7 +3723,7 @@ If APPEND is non-nil, don't erase previous debugging output."
          (while cur
            (unless (string-prefix-p word (car cur))
              (setcar cur (concat word (substring (car cur) len))))
-           (while (when-let ((next (cadr cur)))
+           (while (when-let* ((next (cadr cur)))
                     (not (string-prefix-p word next t)))
              (setcdr cur (cddr cur)))
            (setq cur (cdr cur)))

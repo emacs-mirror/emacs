@@ -547,7 +547,7 @@ Return the last evalled form in BODY."
                            (delq nil
                                  (mapcar
                                   (lambda (chr)
-                                    (when-let (it (alist-get chr char-nums))
+                                    (when-let* ((it (alist-get chr char-nums)))
                                       (if (cdr it)
                                           `(,(cons 'or it) ,chr)
                                         `(,(car it) ,chr))))

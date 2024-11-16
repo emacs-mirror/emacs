@@ -141,7 +141,7 @@ or send-related hooks.  When recentering has not been performed,
 attempt to restore last `window-start', if known."
   (dolist (window (get-buffer-window-list nil nil 'visible))
     (with-selected-window window
-      (when-let
+      (when-let*
           ((erc--scrolltobottom-window-info)
            (found (assq window erc--scrolltobottom-window-info))
            ((not (erc--scrolltobottom-confirm (nth 2 found)))))
@@ -350,19 +350,19 @@ Do so only when switching to a new buffer in the same window if
 the replaced buffer is no longer visible in another window and
 its `window-start' at the time of switching is strictly greater
 than the indicator's position."
-  (when-let ((erc-keep-place-indicator-follow)
-             (window (selected-window))
-             ((not (eq window (active-minibuffer-window))))
-             (old-buffer (window-old-buffer window))
-             ((buffer-live-p old-buffer))
-             ((not (eq old-buffer (current-buffer))))
-             (ov (buffer-local-value 'erc--keep-place-indicator-overlay
-                                     old-buffer))
-             ((not (get-buffer-window old-buffer 'visible)))
-             (prev (assq old-buffer (window-prev-buffers window)))
-             (old-start (nth 1 prev))
-             (old-inmkr (buffer-local-value 'erc-insert-marker old-buffer))
-             ((< (overlay-end ov) old-start old-inmkr)))
+  (when-let* ((erc-keep-place-indicator-follow)
+              (window (selected-window))
+              ((not (eq window (active-minibuffer-window))))
+              (old-buffer (window-old-buffer window))
+              ((buffer-live-p old-buffer))
+              ((not (eq old-buffer (current-buffer))))
+              (ov (buffer-local-value 'erc--keep-place-indicator-overlay
+                                      old-buffer))
+              ((not (get-buffer-window old-buffer 'visible)))
+              (prev (assq old-buffer (window-prev-buffers window)))
+              (old-start (nth 1 prev))
+              (old-inmkr (buffer-local-value 'erc-insert-marker old-buffer))
+              ((< (overlay-end ov) old-start old-inmkr)))
     (with-current-buffer old-buffer
       (erc-keep-place-move old-start))))
 
@@ -392,15 +392,15 @@ and `keep-place-indicator' in different buffers."
        (progn
          (erc--restore-initialize-priors erc-keep-place-indicator-mode
            erc--keep-place-indicator-overlay (make-overlay 0 0))
-         (when-let (((memq erc-keep-place-indicator-style '(t arrow)))
-                    (ov-property (if (zerop (fringe-columns 'left))
-                                     'after-string
-                                   'before-string))
-                    (display (if (zerop (fringe-columns 'left))
-                                 `((margin left-margin) ,overlay-arrow-string)
-                               '(left-fringe right-triangle
-                                             erc-keep-place-indicator-arrow)))
-                    (bef (propertize " " 'display display)))
+         (when-let* (((memq erc-keep-place-indicator-style '(t arrow)))
+                     (ov-property (if (zerop (fringe-columns 'left))
+                                      'after-string
+                                    'before-string))
+                     (display (if (zerop (fringe-columns 'left))
+                                  `((margin left-margin) ,overlay-arrow-string)
+                                '(left-fringe right-triangle
+                                              erc-keep-place-indicator-arrow)))
+                     (bef (propertize " " 'display display)))
            (overlay-put erc--keep-place-indicator-overlay ov-property bef))
          (when (memq erc-keep-place-indicator-style '(t face))
            (overlay-put erc--keep-place-indicator-overlay 'face
@@ -440,11 +440,11 @@ Do this by simulating `keep-place' in all buffers where
 
 (defun erc--keep-place-indicator-adjust-on-clear (beg end)
   "Either shrink region bounded by BEG to END to preserve overlay, or reset."
-  (when-let ((pos (overlay-start erc--keep-place-indicator-overlay))
-             ((<= beg pos end)))
+  (when-let* ((pos (overlay-start erc--keep-place-indicator-overlay))
+              ((<= beg pos end)))
     (if (and erc-keep-place-indicator-truncation
              (not erc--called-as-input-p))
-        (when-let ((pos (erc--get-inserted-msg-beg pos)))
+        (when-let* ((pos (erc--get-inserted-msg-beg pos)))
           (set-marker end pos))
       (let (erc--keep-place-move-hook)
         ;; Move earlier than `beg', which may delimit date stamps, etc.
@@ -473,7 +473,7 @@ window's first line.  Interpret an integer as an offset in lines."
     (let ((inhibit-field-text-motion t))
       (when pos
         (goto-char pos))
-      (when-let ((pos (erc--get-inserted-msg-beg)))
+      (when-let* ((pos (erc--get-inserted-msg-beg)))
         (goto-char pos))
       (run-hooks 'erc--keep-place-move-hook)
       (move-overlay erc--keep-place-indicator-overlay
@@ -638,8 +638,8 @@ Do nothing if the variable `erc-command-indicator' is nil."
                                   (map-into `((erc--msg . slash-cmd)
                                               ,@(reverse ovs))
                                             'hash-table)))))
-        (when-let ((string (erc-command-indicator))
-                   (erc-input-marker (copy-marker erc-input-marker)))
+        (when-let* ((string (erc-command-indicator))
+                    (erc-input-marker (copy-marker erc-input-marker)))
           (erc-display-prompt nil nil string 'erc-command-indicator-face)
           (remove-text-properties insert-position (point)
                                   '(field nil erc-prompt nil))

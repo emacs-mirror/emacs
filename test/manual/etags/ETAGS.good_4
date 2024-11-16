@@ -175,7 +175,7 @@ package body Truc.Bidule Truc.Bidule/b138,2153
   protected body Bidule Bidule/b139,2181
   protected body Machin_T Machin_T/b146,2281
 
-c-src/abbrev.c,3055
+c-src/abbrev.c,3044
 Lisp_Object Vabbrev_table_name_list;43,1429
 Lisp_Object Vglobal_abbrev_table;48,1574
 Lisp_Object Vfundamental_mode_abbrev_table;52,1685
@@ -222,17 +222,17 @@ syms_of_abbrev 534,15885
   DEFVAR_PER_BUFFER ("local-abbrev-table"580,17852
   DEFVAR_BOOL ("abbrevs-changed"583,17995
   DEFVAR_BOOL ("abbrev-all-caps"588,18198
-  DEFVAR_LISP ("abbrev-table-name-list",\1536,15905
-  DEFVAR_LISP ("global-abbrev-table",\1542,16167
-  DEFVAR_LISP ("fundamental-mode-abbrev-table",\1549,16489
-  DEFVAR_LISP ("last-abbrev",\1555,16831
-  DEFVAR_LISP ("last-abbrev-text",\1558,16954
-  DEFVAR_INT ("last-abbrev-location",\1562,17112
-  DEFVAR_LISP ("abbrev-start-location",\1569,17311
-  DEFVAR_LISP ("abbrev-start-location-buffer",\1575,17588
-  DEFVAR_PER_BUFFER ("local-abbrev-table",\1580,17852
-  DEFVAR_BOOL ("abbrevs-changed",\1583,17995
-  DEFVAR_BOOL ("abbrev-all-caps",\1588,18198
+  DEFVAR_LISP ("abbrev-table-name-list"\1536,15905
+  DEFVAR_LISP ("global-abbrev-table"\1542,16167
+  DEFVAR_LISP ("fundamental-mode-abbrev-table"\1549,16489
+  DEFVAR_LISP ("last-abbrev"\1555,16831
+  DEFVAR_LISP ("last-abbrev-text"\1558,16954
+  DEFVAR_INT ("last-abbrev-location"\1562,17112
+  DEFVAR_LISP ("abbrev-start-location"\1569,17311
+  DEFVAR_LISP ("abbrev-start-location-buffer"\1575,17588
+  DEFVAR_PER_BUFFER ("local-abbrev-table"\1580,17852
+  DEFVAR_BOOL ("abbrevs-changed"\1583,17995
+  DEFVAR_BOOL ("abbrev-all-caps"\1588,18198
 
 c-src/torture.c,197
 (*tag1 tag118,452
@@ -859,7 +859,7 @@ typedef enum { RECC_ERROR 609,22954
 } re_wctype_t;618,23261
 typedef int re_wchar_t;623,23388
 
-c-src/emacs/src/keyboard.c,22931
+c-src/emacs/src/keyboard.c,22861
 volatile int interrupt_input_blocked;76,1809
 volatile bool pending_signals;80,1945
 #define KBD_BUFFER_SIZE 82,1977
@@ -1278,76 +1278,76 @@ syms_of_keyboard 11045,333580
   DEFVAR_LISP ("debug-on-event"11825,366557
 keys_of_keyboard 11841,367118
 mark_kboards 11916,370437
-  DEFVAR_LISP ("internal--top-level-message",\111058,333975
-  DEFVAR_LISP ("last-command-event",\111312,342176
-  DEFVAR_LISP ("last-nonmenu-event",\111315,342300
-  DEFVAR_LISP ("last-input-event",\111321,342639
-  DEFVAR_LISP ("unread-command-events",\111324,342733
-  DEFVAR_LISP ("unread-post-input-method-events",\111332,343193
-  DEFVAR_LISP ("unread-input-method-events",\111338,343532
-  DEFVAR_LISP ("meta-prefix-char",\111346,343901
-  DEFVAR_KBOARD ("last-command",\111351,344109
-  DEFVAR_KBOARD ("real-last-command",\111368,344790
-  DEFVAR_KBOARD ("last-repeatable-command",\111372,344976
-  DEFVAR_LISP ("this-command",\111378,345264
-  DEFVAR_LISP ("real-this-command",\111384,345501
-  DEFVAR_LISP ("this-command-keys-shift-translated",\111388,345683
-  DEFVAR_LISP ("this-original-command",\111396,346126
-  DEFVAR_INT ("auto-save-interval",\111403,346523
-  DEFVAR_LISP ("auto-save-timeout",\111408,346737
-  DEFVAR_LISP ("echo-keystrokes",\111415,347082
-  DEFVAR_INT ("polling-period",\111421,347353
-  DEFVAR_LISP ("double-click-time",\111428,347696
-  DEFVAR_INT ("double-click-fuzz",\111435,348032
-  DEFVAR_INT ("num-input-keys",\111446,348522
-  DEFVAR_INT ("num-nonmacro-input-events",\111452,348797
-  DEFVAR_LISP ("last-event-frame",\111457,349035
-  DEFVAR_LISP ("tty-erase-char",\111463,349314
-  DEFVAR_LISP ("help-char",\111466,349437
-  DEFVAR_LISP ("help-event-list",\111472,349720
-  DEFVAR_LISP ("help-form",\111477,349931
-  DEFVAR_LISP ("prefix-help-command",\111483,350179
-  DEFVAR_LISP ("top-level",\111489,350457
-  DEFVAR_KBOARD ("keyboard-translate-table",\111495,350678
-  DEFVAR_BOOL ("cannot-suspend",\111511,351491
-  DEFVAR_BOOL ("menu-prompting",\111516,351718
-  DEFVAR_LISP ("menu-prompt-more-char",\111526,352148
-  DEFVAR_INT ("extra-keyboard-modifiers",\111531,352394
-  DEFVAR_LISP ("deactivate-mark",\111545,353120
-  DEFVAR_LISP ("pre-command-hook",\111553,353489
-  DEFVAR_LISP ("post-command-hook",\111560,353844
-  DEFVAR_LISP ("echo-area-clear-hook",\111568,354207
-  DEFVAR_LISP ("lucid-menu-bar-dirty-flag",\111574,354422
-  DEFVAR_LISP ("menu-bar-final-items",\111578,354625
-  DEFVAR_LISP ("tool-bar-separator-image-expression",\111583,354875
-  DEFVAR_KBOARD ("overriding-terminal-local-map",\111589,355233
-  DEFVAR_LISP ("overriding-local-map",\111598,355655
-  DEFVAR_LISP ("overriding-local-map-menu-flag",\111607,356106
-  DEFVAR_LISP ("special-event-map",\111613,356445
-  DEFVAR_LISP ("track-mouse",\111617,356633
-  DEFVAR_KBOARD ("system-key-alist",\111620,356760
-  DEFVAR_KBOARD ("local-function-key-map",\111629,357141
-  DEFVAR_KBOARD ("input-decode-map",\111658,358600
-  DEFVAR_LISP ("function-key-map",\111675,359388
-  DEFVAR_LISP ("key-translation-map",\111683,359804
-  DEFVAR_LISP ("deferred-action-list",\111689,360148
-  DEFVAR_LISP ("deferred-action-function",\111694,360396
-  DEFVAR_LISP ("delayed-warnings-list",\111700,360695
-  DEFVAR_LISP ("timer-list",\111708,361103
-  DEFVAR_LISP ("timer-idle-list",\111712,361255
-  DEFVAR_LISP ("input-method-function",\111716,361418
-  DEFVAR_LISP ("input-method-previous-message",\111737,362387
-  DEFVAR_LISP ("show-help-function",\111744,362748
-  DEFVAR_LISP ("disable-point-adjustment",\111749,362980
-  DEFVAR_LISP ("global-disable-point-adjustment",\111761,363530
-  DEFVAR_LISP ("minibuffer-message-timeout",\111770,363896
-  DEFVAR_LISP ("throw-on-input",\111775,364174
-  DEFVAR_LISP ("command-error-function",\111781,364425
-  DEFVAR_LISP ("enable-disabled-menus-and-buttons",\111790,364912
-  DEFVAR_LISP ("select-active-regions",\111798,365239
-  DEFVAR_LISP ("saved-region-selection",\111807,365631
-  DEFVAR_LISP ("selection-inhibit-update-commands",\111815,366016
-  DEFVAR_LISP ("debug-on-event",\111825,366557
+  DEFVAR_LISP ("internal--top-level-message"\111058,333975
+  DEFVAR_LISP ("last-command-event"\111312,342176
+  DEFVAR_LISP ("last-nonmenu-event"\111315,342300
+  DEFVAR_LISP ("last-input-event"\111321,342639
+  DEFVAR_LISP ("unread-command-events"\111324,342733
+  DEFVAR_LISP ("unread-post-input-method-events"\111332,343193
+  DEFVAR_LISP ("unread-input-method-events"\111338,343532
+  DEFVAR_LISP ("meta-prefix-char"\111346,343901
+  DEFVAR_KBOARD ("last-command"\111351,344109
+  DEFVAR_KBOARD ("real-last-command"\111368,344790
+  DEFVAR_KBOARD ("last-repeatable-command"\111372,344976
+  DEFVAR_LISP ("this-command"\111378,345264
+  DEFVAR_LISP ("real-this-command"\111384,345501
+  DEFVAR_LISP ("this-command-keys-shift-translated"\111388,345683
+  DEFVAR_LISP ("this-original-command"\111396,346126
+  DEFVAR_INT ("auto-save-interval"\111403,346523
+  DEFVAR_LISP ("auto-save-timeout"\111408,346737
+  DEFVAR_LISP ("echo-keystrokes"\111415,347082
+  DEFVAR_INT ("polling-period"\111421,347353
+  DEFVAR_LISP ("double-click-time"\111428,347696
+  DEFVAR_INT ("double-click-fuzz"\111435,348032
+  DEFVAR_INT ("num-input-keys"\111446,348522
+  DEFVAR_INT ("num-nonmacro-input-events"\111452,348797
+  DEFVAR_LISP ("last-event-frame"\111457,349035
+  DEFVAR_LISP ("tty-erase-char"\111463,349314
+  DEFVAR_LISP ("help-char"\111466,349437
+  DEFVAR_LISP ("help-event-list"\111472,349720
+  DEFVAR_LISP ("help-form"\111477,349931
+  DEFVAR_LISP ("prefix-help-command"\111483,350179
+  DEFVAR_LISP ("top-level"\111489,350457
+  DEFVAR_KBOARD ("keyboard-translate-table"\111495,350678
+  DEFVAR_BOOL ("cannot-suspend"\111511,351491
+  DEFVAR_BOOL ("menu-prompting"\111516,351718
+  DEFVAR_LISP ("menu-prompt-more-char"\111526,352148
+  DEFVAR_INT ("extra-keyboard-modifiers"\111531,352394
+  DEFVAR_LISP ("deactivate-mark"\111545,353120
+  DEFVAR_LISP ("pre-command-hook"\111553,353489
+  DEFVAR_LISP ("post-command-hook"\111560,353844
+  DEFVAR_LISP ("echo-area-clear-hook"\111568,354207
+  DEFVAR_LISP ("lucid-menu-bar-dirty-flag"\111574,354422
+  DEFVAR_LISP ("menu-bar-final-items"\111578,354625
+  DEFVAR_LISP ("tool-bar-separator-image-expression"\111583,354875
+  DEFVAR_KBOARD ("overriding-terminal-local-map"\111589,355233
+  DEFVAR_LISP ("overriding-local-map"\111598,355655
+  DEFVAR_LISP ("overriding-local-map-menu-flag"\111607,356106
+  DEFVAR_LISP ("special-event-map"\111613,356445
+  DEFVAR_LISP ("track-mouse"\111617,356633
+  DEFVAR_KBOARD ("system-key-alist"\111620,356760
+  DEFVAR_KBOARD ("local-function-key-map"\111629,357141
+  DEFVAR_KBOARD ("input-decode-map"\111658,358600
+  DEFVAR_LISP ("function-key-map"\111675,359388
+  DEFVAR_LISP ("key-translation-map"\111683,359804
+  DEFVAR_LISP ("deferred-action-list"\111689,360148
+  DEFVAR_LISP ("deferred-action-function"\111694,360396
+  DEFVAR_LISP ("delayed-warnings-list"\111700,360695
+  DEFVAR_LISP ("timer-list"\111708,361103
+  DEFVAR_LISP ("timer-idle-list"\111712,361255
+  DEFVAR_LISP ("input-method-function"\111716,361418
+  DEFVAR_LISP ("input-method-previous-message"\111737,362387
+  DEFVAR_LISP ("show-help-function"\111744,362748
+  DEFVAR_LISP ("disable-point-adjustment"\111749,362980
+  DEFVAR_LISP ("global-disable-point-adjustment"\111761,363530
+  DEFVAR_LISP ("minibuffer-message-timeout"\111770,363896
+  DEFVAR_LISP ("throw-on-input"\111775,364174
+  DEFVAR_LISP ("command-error-function"\111781,364425
+  DEFVAR_LISP ("enable-disabled-menus-and-buttons"\111790,364912
+  DEFVAR_LISP ("select-active-regions"\111798,365239
+  DEFVAR_LISP ("saved-region-selection"\111807,365631
+  DEFVAR_LISP ("selection-inhibit-update-commands"\111815,366016
+  DEFVAR_LISP ("debug-on-event"\111825,366557
 
 c-src/emacs/src/lisp.h,20276
 #define EMACS_LISP_H22,801

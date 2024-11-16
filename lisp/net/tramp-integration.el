@@ -578,11 +578,11 @@ See `tramp-process-attributes-ps-format'.")
 
 ;; Preset default "ps" profile for local hosts, based on system type.
 
-(when-let ((local-profile
-	    (cond ((eq system-type 'darwin)
-		   'tramp-connection-local-darwin-ps-profile)
-		  ;; ... Add other system types here.
-		  )))
+(when-let* ((local-profile
+	     (cond ((eq system-type 'darwin)
+		    'tramp-connection-local-darwin-ps-profile)
+		   ;; ... Add other system types here.
+		   )))
   (connection-local-set-profiles
    `(:application tramp :machine ,(system-name))
    local-profile)

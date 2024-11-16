@@ -395,8 +395,8 @@ variable `ert-resource-directory-format'.  Before formatting, the
 file name will be trimmed using `string-trim' with arguments
 `ert-resource-directory-trim-left-regexp' and
 `ert-resource-directory-trim-right-regexp'."
-  `(when-let ((testfile ,(or (macroexp-file-name)
-                             buffer-file-name)))
+  `(when-let* ((testfile ,(or (macroexp-file-name)
+                              buffer-file-name)))
      (let ((default-directory (file-name-directory testfile)))
        (file-truename
         (if (file-accessible-directory-p "resources/")

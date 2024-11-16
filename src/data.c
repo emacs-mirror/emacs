@@ -756,7 +756,7 @@ global value outside of any lexical scope.  */)
    breaking backward compatibility, as some users of fboundp may
    expect t in particular, rather than any true value.  */
 DEFUN ("fboundp", Ffboundp, Sfboundp, 1, 1, 0,
-       doc: /* Return t if SYMBOL's function definition is not void.  */)
+       doc: /* Return t if SYMBOL's function definition is not nil.  */)
   (Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
@@ -782,12 +782,12 @@ See also `fmakunbound'.  */)
 }
 
 DEFUN ("fmakunbound", Ffmakunbound, Sfmakunbound, 1, 1, 0,
-       doc: /* Make SYMBOL's function definition be void.
+       doc: /* Make SYMBOL's function definition be nil.
 Return SYMBOL.
 
-If a function definition is void, trying to call a function by that
-name will cause a `void-function' error.  For more details, see Info
-node `(elisp) Function Cells'.
+If a function definition is nil, trying to call a function by
+that name will cause a `void-function' error.  For more details, see
+Info node `(elisp) Function Cells'.
 
 See also `makunbound'.  */)
   (register Lisp_Object symbol)
@@ -800,7 +800,7 @@ See also `makunbound'.  */)
 }
 
 DEFUN ("symbol-function", Fsymbol_function, Ssymbol_function, 1, 1, 0,
-       doc: /* Return SYMBOL's function definition, or nil if that is void.  */)
+       doc: /* Return SYMBOL's function definition.  */)
   (Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);

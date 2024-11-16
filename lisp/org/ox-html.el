@@ -1732,7 +1732,7 @@ targets and targets."
 	   (and (memq type '(radio-target target))
 		(org-element-property :value datum))
 	   (org-element-property :name datum)
-	   (when-let ((id (org-element-property :ID datum)))
+	   (when-let* ((id (org-element-property :ID datum)))
 	     (concat org-html--id-attr-prefix id)))))
 
     (cond
@@ -2052,7 +2052,7 @@ INFO is a plist used as a communication channel."
           (when value
             (pcase symbol
               (`font
-               (when-let
+               (when-let*
                    ((value-new
                      (pcase value
                        ("TeX" "mathjax-tex")
@@ -2697,7 +2697,7 @@ information."
   (let ((attributes (org-export-read-attribute :attr_html example-block)))
     (if (plist-get attributes :textarea)
 	(org-html--textarea-block example-block)
-      (if-let ((class-val (plist-get attributes :class)))
+      (if-let* ((class-val (plist-get attributes :class)))
           (setq attributes (plist-put attributes :class (concat "example " class-val)))
         (setq attributes (plist-put attributes :class "example")))
       (format "<pre%s>\n%s</pre>"

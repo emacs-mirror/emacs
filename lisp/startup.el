@@ -1106,9 +1106,9 @@ init-file, or to a default value if loading is not possible."
                           ;; The next test is for builds without native
                           ;; compilation support or builds with unexec.
                           (boundp 'comp-eln-to-el-h))
-                 (if-let (source (gethash (file-name-nondirectory
-                                           user-init-file)
-                                          comp-eln-to-el-h))
+                 (if-let* ((source (gethash (file-name-nondirectory
+                                             user-init-file)
+                                            comp-eln-to-el-h)))
                      ;; source exists or the .eln file would not load
                      (setq user-init-file source)
                    (message "Warning: unknown source file for init file %S"

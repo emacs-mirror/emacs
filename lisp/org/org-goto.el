@@ -241,7 +241,7 @@ position or nil."
 	(message "Select location and press RET")
 	(use-local-map org-goto-map)
 	(unwind-protect (recursive-edit)
-          (when-let ((window (get-buffer-window "*Org Help*" t)))
+          (when-let* ((window (get-buffer-window "*Org Help*" t)))
             (quit-window 'kill window)))))
     (when (get-buffer "*org-goto*") (kill-buffer "*org-goto*"))
     (cons org-goto-selected-point org-goto-exit-command)))

@@ -135,16 +135,19 @@
 (ert-deftest esh-proc-test/sentinel/change-buffer ()
   "Check that changing the current buffer while running a command works.
 See bug#71778."
-  (eshell-with-temp-buffer bufname ""
-    (with-temp-eshell
-      (let (eshell-test-value)
-        (eshell-insert-command
-         (concat (format "for i in 1 2 {sleep 1; echo hello} > #<%s>; " bufname)
-                 "setq eshell-test-value t"))
-        (with-current-buffer bufname
-          (eshell-wait-for (lambda () eshell-test-value))
-          (should (equal (buffer-string) "hellohello")))
-        (eshell-match-command-output "echo goodbye" "\\`goodbye\n")))))
+  (let ((starting-process-list (process-list)))
+    (eshell-with-temp-buffer bufname ""
+      (with-temp-eshell
+        (let (eshell-test-value)
+          (eshell-insert-command
+           (concat (format "for i in 1 2 {sleep 1; echo hello} > #<%s>; "
+                           bufname)
+                   "setq eshell-test-value t"))
+          (with-current-buffer bufname
+            (eshell-wait-for (lambda () eshell-test-value))
+            (should (equal (buffer-string) "hellohello")))
+          (should (equal (process-list) starting-process-list))
+          (eshell-match-command-output "echo goodbye" "\\`goodbye\n"))))))
 
 
 ;; Pipelines

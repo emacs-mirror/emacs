@@ -221,7 +221,7 @@ which the process was running."
     (terpri)
     (princ (buffer-substring-no-properties (point-min) (point-max)))
     ;; Search audit logs for Seccomp messages.
-    (when-let ((ausearch (executable-find "ausearch")))
+    (when-let* ((ausearch (executable-find "ausearch")))
       (terpri)
       (princ "Potentially relevant Seccomp audit events:")
       (terpri)
@@ -236,7 +236,7 @@ which the process was running."
                       (format-time-string "%T" end-time)
                       "--interpret")))
     ;; Print coredump information if available.
-    (when-let ((coredumpctl (executable-find "coredumpctl")))
+    (when-let* ((coredumpctl (executable-find "coredumpctl")))
       (terpri)
       (princ "Potentially useful coredump information:")
       (terpri)

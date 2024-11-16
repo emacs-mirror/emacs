@@ -3444,8 +3444,8 @@
 (ert-deftest erc-modules--internal-property ()
   (let (ours)
     (mapatoms (lambda (s)
-                (when-let ((v (get s 'erc--module))
-                           ((eq v s)))
+                (when-let* ((v (get s 'erc--module))
+                            ((eq v s)))
                   (push s ours))))
     (should (equal (sort ours #'string-lessp) erc-tests--modules))))
 
@@ -3480,7 +3480,7 @@
       (setq mods (sort mods (lambda (a b) (if (zerop (random 2)) a b))))
       (dolist (mod mods)
         (unless (keywordp mod)
-          (push (if-let ((mode (erc--find-mode mod))) mod (list :missing mod))
+          (push (if-let* ((mode (erc--find-mode mod))) mod (list :missing mod))
                 moded)))
       (message "%S"
                (sort moded (lambda (a b)
@@ -3578,7 +3578,7 @@
     (cl-letf (((symbol-function 'require)
                (lambda (s &rest _)
                  ;; Simulate library being loaded, things defined.
-                 (when-let ((h (alist-get s on-load))) (funcall h))
+                 (when-let* ((h (alist-get s on-load))) (funcall h))
                  (push (cons 'req s) calls)))
 
               ;; Spoof global module detection.

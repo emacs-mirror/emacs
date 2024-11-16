@@ -310,7 +310,7 @@ Should be a simple file name with no extension or directory specification.")
 
 (defvar tex-print-file nil
   "File name that \\[tex-print] prints.
-Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
+Set by \\[tex-region], \\[tex-buffer], \\[tex-file] and \\[tex-compile].")
 
 (defvar tex-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -2212,6 +2212,8 @@ If NOT-ALL is non-nil, save the `.dvi' file."
      t "%r.dvi")
     ("xdvi %r &" "%r.dvi")
     ("\\doc-view \"%r.pdf\"" "%r.pdf")
+    ("evince %r.pdf &" "%r.pdf")
+    ("mupdf %r.pdf &" "%r.pdf")
     ("xpdf %r.pdf &" "%r.pdf")
     ("gv %r.ps &" "%r.ps")
     ("yap %r &" "%r.dvi")
@@ -2530,6 +2532,7 @@ Only applies the FSPEC to the args part of FORMAT."
       (if (tex-shell-running)
           (tex-kill-job)
         (tex-start-shell))
+      (setq tex-print-file (expand-file-name (tex-main-file)))
       (tex-send-tex-command cmd dir))))
 
 (defun tex-start-tex (command file &optional dir)
@@ -2749,9 +2752,9 @@ line LINE of the window, or centered if LINE is nil."
   (let ((tex-shell (get-buffer "*tex-shell*")))
     (if (null tex-shell)
 	(message "No TeX output buffer")
-      (when-let ((window
-                  (with-suppressed-warnings ((obsolete display-tex-shell-buffer-action))
-                    (display-buffer tex-shell display-tex-shell-buffer-action))))
+      (when-let* ((window
+                   (with-suppressed-warnings ((obsolete display-tex-shell-buffer-action))
+                     (display-buffer tex-shell display-tex-shell-buffer-action))))
         (with-selected-window window
 	  (bury-buffer tex-shell)
 	  (goto-char (point-max))
@@ -4003,12 +4006,12 @@ There might be text before point."
                            (seq-union amalist extlist #'string-match-p))))
         (setq tex--buffers-list bufs)
         (dolist (buf bufs)
-          (when-let ((fbuf (buffer-file-name buf))
-                     (ext (file-name-extension fbuf))
-                     (finext (concat "*." ext))
-                     ((not (seq-find (lambda (elt) (string-match-p elt finext))
-                                     extlist-new)))
-                     ((push finext extlist-new)))))
+          (when-let* ((fbuf (buffer-file-name buf))
+                      (ext (file-name-extension fbuf))
+                      (finext (concat "*." ext))
+                      ((not (seq-find (lambda (elt) (string-match-p elt finext))
+                                      extlist-new)))
+                      ((push finext extlist-new)))))
         (unless (seq-set-equal-p extlist-new extlist)
           (setf (alist-get mode semantic-symref-filepattern-alist)
                 extlist-new))))

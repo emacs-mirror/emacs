@@ -485,7 +485,7 @@
 ;; This function gives ^ (faked here to avoid gpg and file IO).  See
 ;; `auth-source-pass--with-store' in ../auth-source-pass-tests.el
 (defun erc-services-tests--asp-parse-entry (store entry)
-  (when-let ((found (cl-find entry store :key #'car :test #'string=)))
+  (when-let* ((found (cl-find entry store :key #'car :test #'string=)))
     (list (assoc 'secret (cdr found)))))
 
 (defvar erc-join-tests--auth-source-pass-entries

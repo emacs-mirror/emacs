@@ -464,8 +464,21 @@ direction of search to backward if set non-nil.
 
 See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
   (interactive "*P")
-  (let (abbrev record-case-pattern
-	       expansion old direction (orig-point (point)))
+  ;; There are three possible sources of the expansion, which we need to
+  ;; check in a specific order:
+  (let ((buf (cond ((window-minibuffer-p)
+                    ;; If we invoked dabbrev-expand in the minibuffer,
+                    ;; this is the buffer from which we entered the
+                    ;; minibuffer.
+                    (window-buffer (get-mru-window)))
+                   ;; Otherwise, if we found the expansion in another
+                   ;; buffer, use that buffer for further expansions.
+                   (dabbrev--last-buffer-found dabbrev--last-buffer-found)
+                   ;; Otherwise, use the buffer where we invoked
+                   ;; dabbrev-expand.
+                   (t (current-buffer))))
+        abbrev record-case-pattern expansion old direction
+        (orig-point (point)))
     ;; abbrev -- the abbrev to expand
     ;; expansion -- the expansion found (eventually) or nil until then
     ;; old -- the text currently in the buffer
@@ -480,6 +493,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 			   (point)))))
 	  ;; Find a different expansion for the same abbrev as last time.
 	  (progn
+            (setq dabbrev--last-buffer-found nil)
 	    (setq abbrev dabbrev--last-abbreviation)
 	    (setq old dabbrev--last-expansion)
 	    (setq direction dabbrev--last-direction))
@@ -488,7 +502,14 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	(if (and (eq (preceding-char) ?\s)
 		 (markerp dabbrev--last-abbrev-location)
 		 (marker-position dabbrev--last-abbrev-location)
-		 (= (point) (1+ dabbrev--last-abbrev-location)))
+                 ;; Comparing with point only makes sense in the buffer
+                 ;; where we called dabbrev-expand, but if that differs
+                 ;; from the buffer containing the expansion, we want to
+                 ;; get the next word in the latter buffer, so we skip
+                 ;; the comparison.
+		 (if (eq buf (current-buffer))
+                     (= (point) (1+ dabbrev--last-abbrev-location))
+                   t))
 	    (progn
 	      ;; The "abbrev" to expand is just the space.
 	      (setq abbrev " ")
@@ -549,29 +570,43 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
                   (if old " further" "") abbrev))
      (t
       (if (not (or (eq dabbrev--last-buffer dabbrev--last-buffer-found)
-		   (minibuffer-window-active-p (selected-window))))
+                   ;; If we are in the minibuffer and an expansion has
+                   ;; been found but dabbrev--last-buffer-found is not
+                   ;; yet set, we need to set it now.
+                   (and dabbrev--last-buffer-found
+		        (minibuffer-window-active-p (selected-window)))))
 	  (progn
             (when (buffer-name dabbrev--last-buffer)
 	      (message "Expansion found in `%s'"
 		       (buffer-name dabbrev--last-buffer)))
 	    (setq dabbrev--last-buffer-found dabbrev--last-buffer))
 	(message nil))
-      (if (and (or (eq (current-buffer) dabbrev--last-buffer)
-		   (null dabbrev--last-buffer)
-                   (buffer-live-p dabbrev--last-buffer))
-	       (numberp dabbrev--last-expansion-location)
-	       (and (> dabbrev--last-expansion-location (point))))
-	  (setq dabbrev--last-expansion-location
-		(copy-marker dabbrev--last-expansion-location)))
+      ;; To get correct further expansions we have to be sure to use the
+      ;; buffer containing the already found expansions.
+      (when dabbrev--last-buffer-found
+        (setq buf dabbrev--last-buffer-found))
+      ;; If the buffer where we called dabbrev-expand differs from the
+      ;; buffer containing the expansion, make sure copy-marker is
+      ;; called in the latter buffer.
+      (with-current-buffer buf
+        (if (and (or (eq (current-buffer) dabbrev--last-buffer)
+		     (null dabbrev--last-buffer)
+                     (buffer-live-p dabbrev--last-buffer))
+	         (numberp dabbrev--last-expansion-location)
+	         (and (> dabbrev--last-expansion-location (point))))
+	    (setq dabbrev--last-expansion-location
+		  (copy-marker dabbrev--last-expansion-location))))
       ;; Success: stick it in and return.
       (setq buffer-undo-list (cons orig-point buffer-undo-list))
       (setq expansion (dabbrev--substitute-expansion old abbrev expansion
                                                      record-case-pattern))
 
-      ;; Save state for re-expand.
-      (setq dabbrev--last-expansion expansion)
-      (setq dabbrev--last-abbreviation abbrev)
-      (setq dabbrev--last-abbrev-location (point-marker))))))
+      ;; Save state for re-expand (making sure it's the state of the
+      ;; buffer containing the already found expansions).
+      (with-current-buffer buf
+        (setq dabbrev--last-expansion expansion)
+        (setq dabbrev--last-abbreviation abbrev)
+        (setq dabbrev--last-abbrev-location (point-marker)))))))
 
 ;;----------------------------------------------------------------
 ;; Local functions

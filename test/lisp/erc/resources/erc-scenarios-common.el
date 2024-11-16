@@ -185,8 +185,8 @@ Dialog resource directories are located by expanding the variable
 
          (ert-info ("Restore autojoin, etc., kill ERC buffers")
            (dolist (buf (buffer-list))
-             (when-let ((erc-d-u--process-buffer)
-                        (proc (get-buffer-process buf)))
+             (when-let* ((erc-d-u--process-buffer)
+                         (proc (get-buffer-process buf)))
                (delete-process proc)))
 
            (erc-scenarios-common--remove-silence)

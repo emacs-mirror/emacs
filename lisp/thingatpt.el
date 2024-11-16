@@ -408,7 +408,7 @@ E.g.:
 
 (defun thing-at-point-file-at-point (&optional _lax _bounds)
   "Return the name of the existing file at point."
-  (when-let ((filename (thing-at-point 'filename)))
+  (when-let* ((filename (thing-at-point 'filename)))
     (setq filename (expand-file-name filename))
     (and (file-exists-p filename)
          filename)))
@@ -423,7 +423,7 @@ E.g.:
 
 (defun thing-at-point-face-at-point (&optional _lax _bounds)
   "Return the name of the face at point as a symbol."
-  (when-let ((face (thing-at-point 'symbol)))
+  (when-let* ((face (thing-at-point 'symbol)))
     (and (facep face) (intern face))))
 
 (put 'face 'thing-at-point 'thing-at-point-face-at-point)

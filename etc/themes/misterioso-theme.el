@@ -134,4 +134,4 @@
 
 (provide-theme 'misterioso)
 
-;;; misterioso-theme.el  ends here
+;;; misterioso-theme.el ends here

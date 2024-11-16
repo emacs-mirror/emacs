@@ -1681,6 +1681,7 @@ used.  Some examples are:
                   nil 'append)
 @end example
 
+@vindex use-default-font-for-symbols
 When modifying the fontset for the @code{symbol} script, the value of
 @code{use-default-font-for-symbols} will affect whether the fontset is
 actually used.

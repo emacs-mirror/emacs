@@ -208,7 +208,7 @@ int main()
 }
 =-=-=
 
-Name: Return Compund Literal
+Name: Return Compound Literal
 
 =-=
 struct pair { int fst, snd; };

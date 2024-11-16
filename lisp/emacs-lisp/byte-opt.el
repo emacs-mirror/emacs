@@ -483,7 +483,7 @@ There can be multiple entries for the same NAME if it has several aliases.")
          `(,fn ,name . ,optimized-rest)))
 
       ((guard (when for-effect
-		(if-let ((tmp (byte-opt--fget fn 'side-effect-free)))
+		(if-let* ((tmp (byte-opt--fget fn 'side-effect-free)))
 		    (or byte-compile-delete-errors
 		        (eq tmp 'error-free)))))
        (byte-compile-log "  %s called for effect; deleted" fn)

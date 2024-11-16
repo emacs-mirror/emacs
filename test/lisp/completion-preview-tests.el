@@ -24,7 +24,7 @@
 
 (defun completion-preview-tests--capf (completions &rest props)
   (lambda ()
-    (when-let ((bounds (bounds-of-thing-at-point 'symbol)))
+    (when-let* ((bounds (bounds-of-thing-at-point 'symbol)))
       (append (list (car bounds) (cdr bounds) completions) props))))
 
 (defun completion-preview-tests--check-preview

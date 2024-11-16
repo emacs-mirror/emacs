@@ -2247,15 +2247,35 @@ Like `cl-flet' but the definitions can refer to previous ones.
                       . ,optimized-body))
              ,retvar)))))))
 
+(defun cl--self-tco-on-form (var form)
+  ;; Apply self-tco to the function returned by FORM, assuming that
+  ;; it will be bound to VAR.
+  (pcase form
+    (`(function (lambda ,fargs . ,ebody)) form
+     (pcase-let* ((`(,decls . ,body) (macroexp-parse-body ebody))
+                  (`(,ofargs . ,obody) (cl--self-tco var fargs body)))
+       `(function (lambda ,ofargs ,@decls . ,obody))))
+    (`(let ,bindings ,form)
+     `(let ,bindings ,(cl--self-tco-on-form var form)))
+    (`(if ,cond ,exp1 ,exp2)
+     `(if ,cond ,(cl--self-tco-on-form var exp1)
+        ,(cl--self-tco-on-form var exp2)))
+    (`(oclosure--fix-type ,exp1 ,exp2)
+     `(oclosure--fix-type ,exp1 ,(cl--self-tco-on-form var exp2)))
+    (_ form)))
+
 ;;;###autoload
 (defmacro cl-labels (bindings &rest body)
   "Make local (recursive) function definitions.
-BINDINGS is a list of definitions of the form (FUNC ARGLIST BODY...) where
+BINDINGS is a list of definitions of the form either (FUNC EXP)
+where EXP is a form that should return the function to bind to the
+function name FUNC, or (FUNC ARGLIST BODY...) where
 FUNC is the function name, ARGLIST its arguments, and BODY the
-forms of the function body.  FUNC is defined in any BODY, as well
+forms of the function body.  FUNC is in scope in any BODY or EXP, as well
 as FORM, so you can write recursive and mutually recursive
-function definitions.  See info node `(cl) Function Bindings' for
-details.
+function definitions, with the caveat that EXPs are evaluated in sequence
+and you cannot call a FUNC before its EXP has been evaluated.
+See info node `(cl) Function Bindings' for details.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1) (debug cl-flet))
@@ -2273,18 +2293,16 @@ details.
     (unless (assq 'function newenv)
       (push (cons 'function #'cl--labels-convert) newenv))
     ;; Perform self-tail call elimination.
-    (setq binds (mapcar
-                 (lambda (bind)
-                   (pcase-let*
-                       ((`(,var ,sargs . ,sbody) bind)
-                        (`(function (lambda ,fargs . ,ebody))
-                         (macroexpand-all `(cl-function (lambda ,sargs . ,sbody))
-                                          newenv))
-                        (`(,ofargs . ,obody)
-                         (cl--self-tco var fargs ebody)))
-                     `(,var (function (lambda ,ofargs . ,obody)))))
-                 (nreverse binds)))
-    `(letrec ,binds
+    `(letrec ,(mapcar
+               (lambda (bind)
+                 (pcase-let* ((`(,var ,sargs . ,sbody) bind))
+                   `(,var ,(cl--self-tco-on-form
+                            var (macroexpand-all
+                                 (if (null sbody)
+                                     sargs ;A (FUNC EXP) definition.
+                                   `(cl-function (lambda ,sargs . ,sbody)))
+                                 newenv)))))
+               (nreverse binds))
        . ,(macroexp-unprogn
            (macroexpand-all
             (macroexp-progn body)

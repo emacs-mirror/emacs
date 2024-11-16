@@ -1035,8 +1035,8 @@ BYTE-ARRAY must be a list of structure (c1 c2 ...), or a byte array as
 produced by `dbus-string-to-byte-array', and the individual bytes must
 be a valid UTF-8 byte sequence."
   (declare (advertised-calling-convention (byte-array) "30.1"))
-  (if-let ((bytes (seq-filter #'characterp byte-array))
-           (string (apply #'unibyte-string bytes)))
+  (if-let* ((bytes (seq-filter #'characterp byte-array))
+            (string (apply #'unibyte-string bytes)))
       (let (last-coding-system-used)
         (decode-coding-string string 'utf-8 'nocopy))
     ""))
@@ -2100,7 +2100,7 @@ either a method name, a signal name, or an error name."
   "Goto D-Bus message with the same serial number."
   (interactive)
   (when (mouse-event-p last-input-event) (mouse-set-point last-input-event))
-  (when-let ((point (get-text-property (point) 'dbus-serial)))
+  (when-let* ((point (get-text-property (point) 'dbus-serial)))
     (goto-char point)))
 
 (defun dbus-monitor-handler (&rest _args)

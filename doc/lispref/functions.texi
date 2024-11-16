@@ -1510,10 +1510,7 @@ indirect-function}.
 @kindex void-function
 This returns the object in the function cell of @var{symbol}.  It does
 not check that the returned object is a legitimate function.
-
-If the function cell is void, the return value is @code{nil}.  To
-distinguish between a function cell that is void and one set to
-@code{nil}, use @code{fboundp} (see below).
+If the function is void, the return value is @code{nil}.
 
 @example
 @group
@@ -1533,29 +1530,29 @@ distinguish between a function cell that is void and one set to
 @end defun
 
 @cindex void function cell
-  If you have never given a symbol any function definition, we say
-that that symbol's function cell is @dfn{void}.  In other words, the
-function cell does not have any Lisp object in it.  If you try to call
+  If you have never given a symbol any function definition, its function
+cell contains the default value @code{nil} and we say
+that that function is @dfn{void}.  If you try to call
 the symbol as a function, Emacs signals a @code{void-function} error.
 
-  Note that void is not the same as @code{nil} or the symbol
-@code{void}.  The symbols @code{nil} and @code{void} are Lisp objects,
-and can be stored into a function cell just as any other object can be
-(and @code{void} can be a valid function if you define it with
-@code{defun}).  A void function cell contains no object whatsoever.
+  Unlike with void variables (@pxref{Void Variables}), a symbol's
+function cell that contains @code{nil} is indistinguishable from the
+function's being void.  Note that void is not the same as the symbol
+@code{void}: @code{void} can be a valid function if you define it with
+@code{defun}.
 
   You can test the voidness of a symbol's function definition with
 @code{fboundp}.  After you have given a symbol a function definition, you
 can make it void once more using @code{fmakunbound}.
 
 @defun fboundp symbol
-This function returns @code{t} if the symbol has an object in its
-function cell, @code{nil} otherwise.  It does not check that the object
-is a legitimate function.
+This function returns @code{t} if the symbol has a non-@code{nil} object
+in its function cell, @code{nil} otherwise.  It does not check that the
+object is a legitimate function.
 @end defun
 
 @defun fmakunbound symbol
-This function makes @var{symbol}'s function cell void, so that a
+This function makes @var{symbol}'s function cell @code{nil}, so that a
 subsequent attempt to access this cell will cause a
 @code{void-function} error.  It returns @var{symbol}.  (See also
 @code{makunbound}, in @ref{Void Variables}.)

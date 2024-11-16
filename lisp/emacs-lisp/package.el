@@ -858,22 +858,22 @@ byte-compilation of the new package to fail."
                             (cl-remove-if-not #'stringp
                                               (mapcar #'car load-history)))))
       (dolist (file files)
-        (when-let ((library (package--library-stem
-                             (file-relative-name file dir)))
-                   (canonical (locate-library library nil effective-path))
-                   (truename (file-truename canonical))
-                   ;; Normally, all files in a package are compiled by
-                   ;; now, but don't assume that.  E.g. different
-                   ;; versions can add or remove `no-byte-compile'.
-                   (altname (if (string-suffix-p ".el" truename)
-                                (replace-regexp-in-string
-                                 "\\.el\\'" ".elc" truename t)
-                              (replace-regexp-in-string
-                               "\\.elc\\'" ".el" truename t)))
-                   (found (or (member truename history)
-                              (and (not (string= altname truename))
-                                   (member altname history))))
-                   (recent-index (length found)))
+        (when-let* ((library (package--library-stem
+                              (file-relative-name file dir)))
+                    (canonical (locate-library library nil effective-path))
+                    (truename (file-truename canonical))
+                    ;; Normally, all files in a package are compiled by
+                    ;; now, but don't assume that.  E.g. different
+                    ;; versions can add or remove `no-byte-compile'.
+                    (altname (if (string-suffix-p ".el" truename)
+                                 (replace-regexp-in-string
+                                  "\\.el\\'" ".elc" truename t)
+                               (replace-regexp-in-string
+                                "\\.elc\\'" ".el" truename t)))
+                    (found (or (member truename history)
+                               (and (not (string= altname truename))
+                                    (member altname history))))
+                    (recent-index (length found)))
           (unless (equal (file-name-base library)
                          (format "%s-autoloads" (package-desc-name pkg-desc)))
             (push (cons (expand-file-name library dir) recent-index) result))))

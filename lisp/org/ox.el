@@ -2672,7 +2672,7 @@ from tree."
 		(let ((type (org-element-type data)))
 		  (if (org-export--skip-p data info selected excluded)
 		      (if (memq type '(table-cell table-row)) (push data ignore)
-                        (if-let ((keep-spaces (org-export--keep-spaces data info)))
+                        (if-let* ((keep-spaces (org-export--keep-spaces data info)))
 			    ;; Keep spaces in place of removed
 			    ;; element, if necessary.
 			    ;; Example: "Foo.[10%] Bar" would become
@@ -3456,7 +3456,7 @@ file."
        (with-temp-buffer
          (let ((org-inhibit-startup t)
                (lines
-                (if-let ((location (plist-get parameters :location)))
+                (if-let* ((location (plist-get parameters :location)))
                     (org-export--inclusion-absolute-lines
                      file location
                      (plist-get parameters :only-contents)

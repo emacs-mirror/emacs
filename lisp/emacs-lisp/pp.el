@@ -491,8 +491,8 @@ the bounds of a region containing Lisp code to pretty-print."
     (cons (cond
            ((consp (cdr sexp))
             (let ((head (car sexp)))
-              (if-let (((null (cddr sexp)))
-                       (syntax-entry (assq head pp--quoting-syntaxes)))
+              (if-let* (((null (cddr sexp)))
+                        (syntax-entry (assq head pp--quoting-syntaxes)))
                   (progn
                     (insert (cdr syntax-entry))
                     (pp--insert-lisp (cadr sexp)))

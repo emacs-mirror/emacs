@@ -65,7 +65,7 @@
 (defun dom-remove-attribute (node attribute)
   "Remove ATTRIBUTE from NODE."
   (setq node (dom-ensure-node node))
-  (when-let ((old (assoc attribute (cadr node))))
+  (when-let* ((old (assoc attribute (cadr node))))
     (setcar (cdr node) (delq old (cadr node)))))
 
 (defmacro dom-attr (node attr)

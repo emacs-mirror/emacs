@@ -8,6 +8,7 @@
 ;; Maintainer: emacs-devel@gnu.org
 ;; Version: 6.1.22
 ;; Keywords: languages
+;; Obsolete-since: 31.1
 
 ;; This file is part of GNU Emacs.
 
@@ -25,6 +26,11 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; NOTE: IDLWAVE has been moved to GNU ELPA.  The version bundled with
+;;       Emacs is out-of-date, marked as obsolete, and will be removed
+;;       in a future release.  Please use `M-x package-list' to install
+;;       IDLWAVE from GNU ELPA instead of using this version.
 
 ;; IDLWAVE enables feature-rich development and interaction with IDL,
 ;; the Interactive Data Language.  It provides a compelling,
@@ -3900,7 +3906,7 @@ you specify /."
 					       "sh" nil errbuf nil "-c"
 					       (concat cmd append item)))
 					0
-  	                                1)))
+                                      1)))
 		    ;;
 		    ;; Append additional tags
 		    (setq append " --append ")
@@ -4610,7 +4616,7 @@ Gets set in cached XML rinfo, or `idlw-rinfo.el'.")
     (if (setq master-elt (assoc master-link linkfiles))
 	(if (eq (car linkfiles) master-elt)
 	    linkfiles
- 	  (cons master-elt (delq master-elt linkfiles)))
+	  (cons master-elt (delq master-elt linkfiles)))
       (push (list master-link) linkfiles))))
 
 (defun idlwave-convert-xml-clean-statement-aliases (aliases)
@@ -6326,7 +6332,7 @@ ARROW:  Location of the arrow"
   (idlwave-routines)
   (let* (;(bos (save-excursion (idlwave-beginning-of-statement) (point)))
          (bos (save-excursion (idlwave-start-of-substatement 'pre) (point)))
- 	 (func-entry (idlwave-what-function bos))
+         (func-entry (idlwave-what-function bos))
          (func (car func-entry))
          (func-class (nth 1 func-entry))
          (func-arrow (nth 2 func-entry))

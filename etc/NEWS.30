@@ -57,10 +57,10 @@ operating systems instead.
 
 ---
 ** New configuration option '--disable-gc-mark-trace'.
-This disables the GC mark trace buffer for about 5 % better garbage
+This disables the GC mark trace buffer for about 5% better garbage
 collection performance.  Doing so may make it more difficult for Emacs
 developers to help finding GC-related bugs that you run into, which is
-why it the mark trace buffer is enabled by default.
+why the mark trace buffer is enabled by default.
 
 
 * Startup Changes in Emacs 30.1
@@ -1413,10 +1413,12 @@ method but "sudo" can be configured with user option
 +++
 *** Direct asynchronous processes are indicated by a connection-local variable.
 If direct asynchronous processes shall be used, set the connection-local
-variable 'tramp-direct-async-process' to a non-nil value.  This has been
-changed, in previous Emacs versions this was indicated by the now
-deprecated connection property "direct-async-process".  See the Tramp
-manual "(tramp) Improving performance of asynchronous remote processes".
+variable 'tramp-direct-async-process' to a non-nil value.  In previous
+Emacs versions this was indicated by the connection property
+"direct-async-process".  That connection property (though not connection
+properties and 'tramp-connection-properties' in general) is now
+deprecated.  See the Tramp manual "(tramp) Improving performance of
+asynchronous remote processes".
 
 ---
 *** Direct asynchronous processes use 'tramp-remote-path'.

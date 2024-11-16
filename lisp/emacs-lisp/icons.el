@@ -119,7 +119,7 @@ If OBJECT is an icon, return the icon properties."
     (setq spec (icons--copy-spec spec))
     ;; Let the Customize theme override.
     (unless inhibit-theme
-      (when-let ((theme-spec (cadr (car (get icon 'theme-icon)))))
+      (when-let* ((theme-spec (cadr (car (get icon 'theme-icon)))))
         (setq spec (icons--merge-spec (icons--copy-spec theme-spec) spec))))
     ;; Inherit from the parent spec (recursively).
     (unless inhibit-inheritance
@@ -149,15 +149,15 @@ If OBJECT is an icon, return the icon properties."
                    ;; Go through all the variations in this section
                    ;; and return the first one we can display.
                    (dolist (icon (icon-spec-values type-spec))
-                     (when-let ((result
-                                 (icons--create type icon type-keywords)))
+                     (when-let* ((result
+                                  (icons--create type icon type-keywords)))
                        (throw 'found
-                              (if-let ((face (plist-get type-keywords :face)))
+                              (if-let* ((face (plist-get type-keywords :face)))
                                   (propertize result 'face face)
                                 result)))))))))
         (unless icon-string
           (error "Couldn't find any way to display the %s icon" name))
-        (when-let ((help (plist-get keywords :help-echo)))
+        (when-let* ((help (plist-get keywords :help-echo)))
           (setq icon-string (propertize icon-string 'help-echo help)))
         (propertize icon-string 'rear-nonsticky t)))))
 
@@ -200,18 +200,18 @@ present if the icon is represented by an image."
           " " 'display
           (let ((props
                  (append
-                  (if-let ((height (plist-get keywords :height)))
+                  (if-let* ((height (plist-get keywords :height)))
                       (list :height (if (eq height 'line)
                                         (window-default-line-height)
                                       height)))
-                  (if-let ((width (plist-get keywords :width)))
+                  (if-let* ((width (plist-get keywords :width)))
                       (list :width (if (eq width 'font)
                                        (default-font-width)
                                      width)))
                   '(:scale 1)
-                  (if-let ((rotation (plist-get keywords :rotation)))
+                  (if-let* ((rotation (plist-get keywords :rotation)))
                       (list :rotation rotation))
-                  (if-let ((margin (plist-get keywords :margin)))
+                  (if-let* ((margin (plist-get keywords :margin)))
                       (list :margin margin))
                   (list :ascent (if (plist-member keywords :ascent)
                                     (plist-get keywords :ascent)
@@ -219,10 +219,10 @@ present if the icon is represented by an image."
             (apply 'create-image file nil nil props))))))
 
 (cl-defmethod icons--create ((_type (eql 'emoji)) icon _keywords)
-  (when-let ((font (and (display-multi-font-p)
-                        ;; FIXME: This is not enough for ensuring
-                        ;; display of color Emoji.
-                        (car (internal-char-font nil ?🟠)))))
+  (when-let* ((font (and (display-multi-font-p)
+                         ;; FIXME: This is not enough for ensuring
+                         ;; display of color Emoji.
+                         (car (internal-char-font nil ?🟠)))))
     (and (font-has-char-p font (aref icon 0))
          icon)))
 

@@ -354,7 +354,7 @@ Return the new list."
            (while (pcomplete-here
                    '("-amin" "-anewer" "-atime" "-cmin" "-cnewer" "-context"
                      "-ctime" "-daystart" "-delete" "-depth" "-empty" "-exec"
-                     "-execdir" "-executable" "-false" "-fls" "-follow"
+                     "-execdir" "-executable" "-false" "-files0-from" "-fls" "-follow"
                      "-fprint" "-fprint0" "-fprintf" "-fstype" "-gid" "-group"
                      "-help" "-ignore_readdir_race" "-ilname" "-iname"
                      "-inum" "-ipath" "-iregex" "-iwholename"

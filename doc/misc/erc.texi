@@ -1915,8 +1915,8 @@ interactve contexts covered by the option
 @lisp
 (defun my-erc-interactive-display-buffer (buffer action)
   "Pop to BUFFER when running \\[erc-tls], clicking a link, etc."
-  (when-let ((alist (cdr action))
-             (found (alist-get 'erc-interactive-display alist)))
+  (when-let* ((alist (cdr action))
+              (found (alist-get 'erc-interactive-display alist)))
     (if (eq found 'erc-tls)
         (pop-to-buffer-same-window buffer action)
       (pop-to-buffer buffer action))))

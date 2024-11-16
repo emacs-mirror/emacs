@@ -560,8 +560,8 @@ This function can be used to force exit of repetition while it's active."
      (mapconcat (lambda (key-cmd)
                   (let ((key (car key-cmd))
                         (cmd (cdr key-cmd)))
-                    (if-let ((hint (and (symbolp cmd)
-                                        (get cmd 'repeat-hint))))
+                    (if-let* ((hint (and (symbolp cmd)
+                                         (get cmd 'repeat-hint))))
                         ;; Reuse `read-multiple-choice' formatting.
                         (cdr (rmc--add-key-description (list key hint)))
                       (propertize (key-description (vector key))

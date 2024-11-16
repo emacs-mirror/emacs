@@ -84,7 +84,7 @@ located."
                          pos1 (match-beginning 0))))
               (setq ansi-osc--marker nil)
               (delete-region pos0 (point))
-              (when-let ((fun (cdr (assoc-string code ansi-osc-handlers))))
+              (when-let* ((fun (cdr (assoc-string code ansi-osc-handlers))))
                 (funcall fun code text)))
           (put-text-property pos0 end 'invisible t)
           (setq ansi-osc--marker (copy-marker pos0)))))))
@@ -137,7 +137,7 @@ and `shell-dirtrack-mode'."
 (define-button-type 'ansi-osc-hyperlink
   'keymap ansi-osc-hyperlink-map
   'help-echo (lambda (_ buffer pos)
-               (when-let ((url (get-text-property pos 'browse-url-data buffer)))
+               (when-let* ((url (get-text-property pos 'browse-url-data buffer)))
                  (format "mouse-2, C-c RET: Open %s" url))))
 
 (defvar-local ansi-osc-hyperlink--state nil)

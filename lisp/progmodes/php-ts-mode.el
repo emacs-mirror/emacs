@@ -84,7 +84,7 @@
 
 ;;; Install treesitter language parsers
 (defvar php-ts-mode--language-source-alist
-  '((php . ("https://github.com/tree-sitter/tree-sitter-php" "v0.23.0" "php/src"))
+  '((php . ("https://github.com/tree-sitter/tree-sitter-php" "v0.23.5" "php/src"))
     (phpdoc . ("https://github.com/claytonrcarter/tree-sitter-phpdoc"))
     (html . ("https://github.com/tree-sitter/tree-sitter-html"  "v0.23.0"))
     (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.0"))
@@ -428,6 +428,27 @@ Useful for debugging."
 
 ;;; Indent
 
+(defconst php-ts-mode--possibly-braceless-keyword-re
+  (regexp-opt '("if" "for" "foreach" "while" "do") 'symbols)
+  "Regexp matching keywords optionally followed by an opening brace.")
+
+(defun php-ts-mode--open-statement-group-heuristic (node _parent bol &rest _)
+  "Heuristic matcher for statement-group without closing bracket.
+
+Return `php-ts-mode-indent-offset' plus 1 when BOL is after
+`php-ts-mode--possibly-braceless-keyword-re', otherwise return 0.  It's
+useful for matching incomplete compound_statement or colon_block.
+PARENT is NODE's parent, BOL is the beginning of non-whitespace
+characters of the current line."
+  (and (null node)
+       (save-excursion
+	   (forward-line -1)
+	   (if (re-search-forward
+		php-ts-mode--possibly-braceless-keyword-re
+		bol t)
+	       (+ 1 php-ts-mode-indent-offset)
+	     0))))
+
 ;; taken from c-ts-mode
 (defun php-ts-mode--else-heuristic (node parent bol &rest _)
   "Heuristic matcher for when \"else\" is followed by a closing bracket.
@@ -475,43 +496,50 @@ NODE is the node to match and PARENT is its parent."
     (goto-char (treesit-node-start parent))
     (line-end-position)))
 
-(defun php-ts-mode--parent-html-bol (node parent _bol &rest _)
+(defun php-ts-mode--parent-html-bol (node parent bol &rest _)
   "Find the first non-space characters of the HTML tags before NODE.
 
+When NODE is nil call `php-ts-mode--open-statement-group-heuristic'.
 PARENT is NODE's parent, BOL is the beginning of non-whitespace
 characters of the current line."
-  (save-excursion
-    (let ((html-node (treesit-search-forward node "text" t)))
-      (if html-node
-          (let ((end-html (treesit-node-end html-node)))
-            (goto-char end-html)
-            (backward-word)
-            (back-to-indentation)
-            (point))
-        (treesit-node-start parent)))))
+  (if (null node)
+      ;; If NODE is nil it could be an open statement-group.
+      (php-ts-mode--open-statement-group-heuristic node parent bol)
+    (save-excursion
+      (let ((html-node (treesit-search-forward node "text" t)))
+	(if html-node
+            (let ((end-html (treesit-node-end html-node)))
+              (goto-char end-html)
+              (backward-word)
+              (back-to-indentation)
+              (point))
+          (treesit-node-start parent))))))
 
-(defun php-ts-mode--parent-html-heuristic (node parent _bol &rest _)
+(defun php-ts-mode--parent-html-heuristic (node parent bol &rest _)
   "Return position based on html indentation.
 
 Returns 0 if the NODE is after the </html>, otherwise returns the
-indentation point of the last word before the NODE, plus the
-indentation offset.  If there is no HTML tag, it returns the beginning
-of the parent.
+indentation point of the last word before the NODE, plus the indentation
+offset.  If there is no HTML tag, it returns the beginning of the
+parent.  When NODE is nil call `php-ts-mode--open-statement-group-heuristic'.
 It can be used when you want to indent PHP code relative to the HTML.
 PARENT is NODE's parent, BOL is the beginning of non-whitespace
 characters of the current line."
-  (let ((html-node (treesit-search-forward node "text" t)))
-    (if html-node
-        (let ((end-html (treesit-node-end html-node)))
-          (save-excursion
-            (goto-char end-html)
-            (backward-word)
-            (back-to-indentation)
-            (if (search-forward "</html>" end-html t 1)
-                0
-              (+ (point) php-ts-mode-indent-offset))))
-      ;; Maybe it's better to use bol?
-      (treesit-node-start parent))))
+  (if (null node)
+      ;; If NODE is nil it could be an open statement-group.
+      (php-ts-mode--open-statement-group-heuristic node parent bol)
+    (let ((html-node (treesit-search-forward node "text" t)))
+      (if html-node
+          (let ((end-html (treesit-node-end html-node)))
+            (save-excursion
+	      (goto-char end-html)
+	      (backward-word)
+	      (back-to-indentation)
+	      (if (search-forward "</html>" end-html t 1)
+                  0
+		(+ (point) php-ts-mode-indent-offset))))
+	;; Maybe it's better to use bol?
+	(treesit-node-start parent)))))
 
 (defun php-ts-mode--array-element-heuristic (_node parent _bol &rest _)
   "Return of the position of the first element of the array.
@@ -563,12 +591,12 @@ doesn't have a child.
 
 PARENT is NODE's parent, BOL is the beginning of non-whitespace
 characters of the current line."
-  (when-let ((prev-sibling
-              (or (treesit-node-prev-sibling node t)
-                  (treesit-node-prev-sibling
-                   (treesit-node-first-child-for-pos parent bol) t)
-                  (treesit-node-child parent -1 t)))
-             (continue t))
+  (when-let* ((prev-sibling
+               (or (treesit-node-prev-sibling node t)
+                   (treesit-node-prev-sibling
+                    (treesit-node-first-child-for-pos parent bol) t)
+                   (treesit-node-child parent -1 t)))
+              (continue t))
     (save-excursion
       (while (and prev-sibling continue)
         (goto-char (treesit-node-start prev-sibling))
@@ -612,6 +640,7 @@ characters of the current line."
            ((query "(class_interface_clause (qualified_name) @indent)")
             parent-bol php-ts-mode-indent-offset)
            ((parent-is "class_declaration") parent-bol 0)
+	   ((parent-is "namespace_use_declaration") parent-bol php-ts-mode-indent-offset)
            ((parent-is "namespace_use_group") parent-bol php-ts-mode-indent-offset)
            ((parent-is "function_definition") parent-bol 0)
            ((parent-is "member_call_expression") first-sibling php-ts-mode-indent-offset)
@@ -648,16 +677,22 @@ characters of the current line."
            ((parent-is "initializer_list") parent-bol php-ts-mode-indent-offset)
 
            ;; Statement in {} blocks.
-           ((or (and (parent-is "compound_statement")
+           ((or (and (or (parent-is "compound_statement")
+			 (parent-is "colon_block"))
                      ;; If the previous sibling(s) are not on their
                      ;; own line, indent as if this node is the first
                      ;; sibling
                      php-ts-mode--first-sibling)
-                (match null "compound_statement"))
+                (or (match null "compound_statement")
+		    (match null "colon_block")))
             standalone-parent php-ts-mode-indent-offset)
-           ((parent-is "compound_statement") parent-bol php-ts-mode-indent-offset)
+           ((or (parent-is "compound_statement")
+		(parent-is "colon_block"))
+	    parent-bol php-ts-mode-indent-offset)
            ;; Opening bracket.
-           ((node-is "compound_statement") standalone-parent php-ts-mode-indent-offset)
+           ((or (node-is "compound_statement")
+                (node-is "colon_block"))
+                standalone-parent php-ts-mode-indent-offset)
 
            ((parent-is "match_block") parent-bol php-ts-mode-indent-offset)
            ((parent-is "switch_block") parent-bol 0)
@@ -667,6 +702,7 @@ characters of the current line."
            ;; rule for PHP alternative syntax
            ((or (node-is "else_if_clause")
                 (node-is "endif")
+                (node-is "endfor")
                 (node-is "endforeach")
                 (node-is "endwhile"))
             parent-bol 0)
@@ -679,9 +715,13 @@ characters of the current line."
                 (parent-is "switch_statement")
                 (parent-is "case_statement")
                 (parent-is "empty_statement"))
-            parent-bol php-ts-mode-indent-offset))))
+            parent-bol php-ts-mode-indent-offset)
+
+	   ;; Workaround: handle "for" open statement group. Currently
+           ;; the grammar handles it differently than other control structures.
+	   (no-node php-ts-mode--open-statement-group-heuristic 0))))
     `((psr2
-       ((parent-is "program") parent-bol 0)
+       ((parent-is "program") php-ts-mode--open-statement-group-heuristic 0)
        ((parent-is "text_interpolation") column-0 0)
        ((parent-is "function_call_expression") parent-bol php-ts-mode-indent-offset)
        ,@common)
@@ -742,7 +782,7 @@ characters of the current line."
   '("--" "**=" "*=" "/=" "%=" "+=" "-=" ".=" "<<=" ">>=" "&=" "^="
     "|=" "??"  "??=" "||" "&&" "|" "^" "&" "==" "!=" "<>" "===" "!=="
     "<" ">" "<=" ">=" "<=>" "<<" ">>" "+" "-" "." "*" "**" "/" "%"
-    "->" "?->")
+    "->" "?->" "...")
   "PHP operators for tree-sitter font-locking.")
 
 (defconst php-ts-mode--predefined-constant
@@ -774,20 +814,31 @@ characters of the current line."
     "__FUNCTION__" "__LINE__" "__METHOD__" "__NAMESPACE__" "__TRAIT__")
   "PHP predefined constant.")
 
-(defun php-ts-mode--test-namespace-name-as-prefix-p  ()
-  "Return t if namespace_name_as_prefix keyword is a named node, nil otherwise."
+(defconst php-ts-mode--class-magic-methods
+  '("__construct" "__destruct" "__call" "__callStatic" "__get" "__set"
+    "__isset" "__unset" "__sleep" "__wakeup" "__serialize" "__unserialize"
+    "__toString" "__invoke" "__set_state" "__clone" "__debugInfo")
+  "PHP predefined magic methods.")
+
+(defun php-ts-mode--test-namespace-name-as-prefix-p ()
+  "Return t if namespace_name_as_prefix is a named node, nil otherwise."
   (ignore-errors
     (progn (treesit-query-compile 'php "(namespace_name_as_prefix)" t) t)))
 
-(defun php-ts-mode--test-namespace-aliasing-clause-p  ()
-  "Return t if namespace_name_as_prefix keyword is named node, nil otherwise."
+(defun php-ts-mode--test-namespace-aliasing-clause-p ()
+  "Return t if namespace_aliasing_clause is a named node, nil otherwise."
   (ignore-errors
-    (progn (treesit-query-compile 'php "(namespace_name_as_prefix)" t) t)))
+    (progn (treesit-query-compile 'php "(namespace_aliasing_clause)" t) t)))
 
 (defun php-ts-mode--test-namespace-use-group-clause-p ()
-  "Return t if namespace_use_group_clause keyword is named node, nil otherwise."
+  "Return t if namespace_use_group_clause is a named node, nil otherwise."
   (ignore-errors
     (progn (treesit-query-compile 'php "(namespace_use_group_clause)" t) t)))
+
+(defun php-ts-mode--test-visibility-modifier-operation-clause-p ()
+  "Return t if (visibility_modifier (operation)) is defined, nil otherwise."
+  (ignore-errors
+    (progn (treesit-query-compile 'php "(visibility_modifier (operation))" t) t)))
 
 (defun php-ts-mode--font-lock-settings ()
   "Tree-sitter font-lock settings."
@@ -796,7 +847,10 @@ characters of the current line."
    :language 'php
    :feature 'keyword
    :override t
-   `([,@php-ts-mode--keywords] @font-lock-keyword-face)
+   `([,@php-ts-mode--keywords] @font-lock-keyword-face
+     ,@(when (php-ts-mode--test-visibility-modifier-operation-clause-p)
+	 '((visibility_modifier (operation) @font-lock-builtin-face)))
+     (var_modifier) @font-lock-builtin-face)
 
    :language 'php
    :feature 'comment
@@ -826,7 +880,6 @@ characters of the current line."
      (named_label_statement (name) @font-lock-constant-face))
 
    :language 'php
-   ;;:override t
    :feature 'delimiter
    `((["," ":" ";" "\\"]) @font-lock-delimiter-face)
 
@@ -850,7 +903,6 @@ characters of the current line."
 
    :language 'php
    :feature 'string
-   ;;:override t
    `(("\"") @font-lock-string-face
      (encapsed_string) @font-lock-string-face
      (string_content) @font-lock-string-face
@@ -892,32 +944,38 @@ characters of the current line."
       name: (_) @font-lock-type-face)
      (trait_declaration
       name: (_) @font-lock-type-face)
-     (property_declaration
-      (visibility_modifier) @font-lock-keyword-face)
-     (property_declaration
-      (var_modifier) @font-lock-keyword-face)
      (enum_declaration
       name: (_) @font-lock-type-face)
      (function_definition
       name: (_) @font-lock-function-name-face)
      (method_declaration
       name: (_) @font-lock-function-name-face)
+     (method_declaration
+      name: (name) @font-lock-builtin-face
+      (:match ,(rx-to-string
+                `(: bos (or ,@php-ts-mode--class-magic-methods) eos))
+              @font-lock-builtin-face))
      ("=>") @font-lock-keyword-face
      (object_creation_expression
       (name) @font-lock-type-face)
      ,@(when (php-ts-mode--test-namespace-name-as-prefix-p)
-	   '((namespace_name_as_prefix "\\" @font-lock-delimiter-face)
-	     (namespace_name_as_prefix
-	      (namespace_name (name)) @font-lock-type-face)))
+           '((namespace_name_as_prefix "\\" @font-lock-delimiter-face)
+             (namespace_name_as_prefix
+              (namespace_name (name)) @font-lock-type-face)))
      ,@(if (php-ts-mode--test-namespace-aliasing-clause-p)
-	   '((namespace_aliasing_clause (name) @font-lock-type-face))
-	 '((namespace_use_clause alias: (name) @font-lock-type-face)))
+           '((namespace_aliasing_clause (name) @font-lock-type-face))
+         '((namespace_use_clause alias: (name) @font-lock-type-face)))
      ,@(when (not (php-ts-mode--test-namespace-use-group-clause-p))
-	 '((namespace_use_group
-	    (namespace_use_clause (name) @font-lock-type-face))))
+         '((namespace_use_group
+            (namespace_use_clause (name) @font-lock-type-face))))
+     (namespace_use_clause (name) @font-lock-type-face)
      (namespace_name "\\" @font-lock-delimiter-face)
      (namespace_name (name) @font-lock-type-face)
-     (use_declaration (name) @font-lock-property-use-face))
+     (use_declaration (name) @font-lock-property-use-face)
+     (use_instead_of_clause (name) @font-lock-type-face)
+     (binary_expression
+      operator: "instanceof"
+      right: (name) @font-lock-type-face))
 
    :language 'php
    :feature 'function-scope
@@ -932,11 +990,11 @@ characters of the current line."
    '((function_call_expression
       function: (name) @font-lock-function-call-face)
      (scoped_call_expression
-      name: (_) @font-lock-function-name-face)
+      name: (_) @font-lock-function-call-face)
      (member_call_expression
-      name: (_) @font-lock-function-name-face)
+      name: (_) @font-lock-function-call-face)
      (nullsafe_member_call_expression
-      name: (_) @font-lock-constant-face))
+      name: (_) @font-lock-function-call-face))
 
    :language 'php
    :feature 'argument
@@ -1168,8 +1226,8 @@ Return nil if the NODE has no field “name” or if NODE is not a defun node."
   "Indent the current top-level declaration syntactically.
 `treesit-defun-type-regexp' defines what constructs to indent."
   (interactive "*")
-  (when-let ((orig-point (point-marker))
-             (node (treesit-defun-at-point)))
+  (when-let* ((orig-point (point-marker))
+              (node (treesit-defun-at-point)))
     (indent-region (treesit-node-start node)
                    (treesit-node-end node))
     (goto-char orig-point)))
@@ -1209,8 +1267,14 @@ less common PHP-style # comment.  SOFT works the same as in
          (line-end-position)
          t nil))
       (let ((offset (- (match-beginning 0) (line-beginning-position)))
-            (comment-prefix (match-string 0)))
-        (if soft (insert-and-inherit ?\n) (newline 1))
+            (comment-prefix (match-string 0))
+	    (insert-line-break
+             (lambda ()
+	       (delete-horizontal-space)
+	       (if soft
+		   (insert-and-inherit ?\n)
+		 (newline  1)))))
+	(funcall insert-line-break)
         (delete-region (line-beginning-position) (point))
         (insert
          (make-string offset ?\s)

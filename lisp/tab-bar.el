@@ -298,7 +298,7 @@ For any other value of KEY, the value is t."
 (defvar tab-bar--dragging-in-progress)
 
 (defun tab-bar--event-to-item (posn)
-  "This function extracts extra info from the mouse event at position POSN.
+  "Extract extra info from the mouse event at position POSN.
 It returns a list of the form (KEY KEY-BINDING CLOSE-P), where:
  KEY is a symbol representing a tab, such as \\='tab-1 or \\='current-tab;
  KEY-BINDING is the binding of KEY;
@@ -803,7 +803,9 @@ Return its existing value or a new value."
                   (funcall tab-bar-tab-name-function))))
       ;; Create default tabs
       (setq tabs (list (tab-bar--current-tab-make)))
-      (tab-bar-tabs-set tabs frame))
+      (tab-bar-tabs-set tabs frame)
+      (run-hook-with-args 'tab-bar-tab-post-open-functions
+                          (car tabs)))
     tabs))
 
 (defun tab-bar-tabs-set (tabs &optional frame)

@@ -67,7 +67,7 @@
 (ert-deftest mule-cmds-tests--ucs-names-missing-names ()
   (let (code-points)
     (dotimes (u (1+ (max-char 'ucs)))
-      (when-let ((name (get-char-code-property u 'name)))
+      (when-let* ((name (get-char-code-property u 'name)))
         (when (and (not (<= #xD800 u #xDFFF))
                    (not (<= #x18800 u #x18AFF))
                    (not (char-from-name name)))

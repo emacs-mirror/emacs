@@ -2028,7 +2028,7 @@ non-interactively, don't allow editing the default description."
 			   (setq link (substring link 0 -1))))
 	      (setq link (with-current-buffer origbuf
 			   (org-link--try-special-completion link)))))
-        (when-let ((window (get-buffer-window "*Org Links*" t)))
+        (when-let* ((window (get-buffer-window "*Org Links*" t)))
           (quit-window 'kill window))
 	(set-window-configuration wcf)
 	(when (get-buffer "*Org Links*")

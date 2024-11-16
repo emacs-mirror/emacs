@@ -382,9 +382,6 @@ See also `reftex-toc-split-windows-horizontally'."
   :group 'reftex-table-of-contents-browser
   :type 'number)
 
-(defvar reftex-toc-split-windows-horizontally-fraction 0.5
-  "This variable is obsolete, use `reftex-toc-split-windows-fraction' instead.")
-
 (defcustom reftex-toc-keep-other-windows t
   "Non-nil means, split the selected window to display the *toc* buffer.
 This helps to keep the window configuration, but makes the *toc* small.
@@ -2112,6 +2109,9 @@ the following construct: \\bbb [xxx] {aaa}."
   :group 'reftex-miscellaneous-configurations
   :type 'hook)
 
+(defvar reftex-toc-split-windows-horizontally-fraction 0.5)
+(make-obsolete-variable 'reftex-toc-split-windows-horizontally-fraction
+                        'reftex-toc-split-windows-fraction "31.1")
 
 (provide 'reftex-vars)
 

@@ -3852,6 +3852,7 @@ If given numerical prefix, toggle the N next groups."
   (gnus-group-next-group 1))
 
 (defun gnus-group-toggle-subscription (group &optional silent)
+  "Prompt for group, and toggle its subscription."
   (interactive (list (gnus-group-completing-read
 		      nil nil (gnus-read-active-file-p)))
 	       gnus-group-mode)

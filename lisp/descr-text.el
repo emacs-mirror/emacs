@@ -673,10 +673,10 @@ The character information includes:
                       (if display
                           (format "terminal code %s" display)
                         "not encodable for terminal"))))))
-              ,@(when-let ((composition-name
-                            (and composition-string
-                                 (eq (aref char-script-table char) 'emoji)
-                                 (emoji-describe composition-string))))
+              ,@(when-let* ((composition-name
+                             (and composition-string
+                                  (eq (aref char-script-table char) 'emoji)
+                                  (emoji-describe composition-string))))
                   (list (list "composition name" composition-name)))
               ,@(let ((face
                        (if (not (or disp-vector composition))

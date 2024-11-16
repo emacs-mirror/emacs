@@ -275,8 +275,8 @@ The whitespace before and including \"|\" on each line is removed."
                  expected))))))
 
 (defmacro ruby-ts-resource-file (file)
-  `(when-let ((testfile ,(or (macroexp-file-name)
-                             buffer-file-name)))
+  `(when-let* ((testfile ,(or (macroexp-file-name)
+                              buffer-file-name)))
      (let ((default-directory (file-name-directory testfile)))
        (file-truename
         (expand-file-name (format "ruby-mode-resources/%s" ,file))))))

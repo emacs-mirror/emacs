@@ -52,15 +52,17 @@
 
 (defcustom erc-spelling-dictionaries nil
   "An alist mapping buffer names to dictionaries.
-The `car' of every cell is a buffer name, the `cadr' is the
-string name of an associated dictionary.
+
+Each element is a list of the form (KEY VALUE), where KEY is a buffer
+name and VALUE a locale or dictionary name known to `ispell', for
+example: ((\"Libera.Chat\" \"en_US\") (\"#esperanto\" \"esperanto\")).
+
 The dictionary is inherited from server buffers, so if you want a
 default dictionary for some server, you can use a server buffer
 name here."
   :type '(choice (const nil)
-                 (repeat (cons (string :tag "Buffer name")
-                               (string :tag "Dictionary"))))
-  :group 'erc-spelling)
+                 (repeat (list (string :tag "Buffer name")
+                               (string :tag "Dictionary")))))
 
 (defun erc-spelling-init (buffer)
   "Enable flyspell mode in an ERC buffer.

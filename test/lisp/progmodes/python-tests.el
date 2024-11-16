@@ -3790,8 +3790,8 @@ condition is met.  If env string EMACS_PYTHON_INTERPRETER exists, use it
 as preferred one."
   (unless python-tests-shell-interpreters
     (setq python-tests-shell-interpreters
-          (if-let ((interpreter (getenv "EMACS_PYTHON_INTERPRETER")))
-              (if-let ((info (python-tests--get-interpreter-info interpreter)))
+          (if-let* ((interpreter (getenv "EMACS_PYTHON_INTERPRETER")))
+              (if-let* ((info (python-tests--get-interpreter-info interpreter)))
                   (list info)
                 (error "Couldn't find EMACS_PYTHON_INTERPRETER(%s) in path"
                        interpreter))
@@ -3805,7 +3805,7 @@ as preferred one."
   "Get Python interpreter information specified by NAME.
 The information returned is a cons cell consisting of the file path and
 the version string."
-  (when-let ((interpreter (executable-find name)))
+  (when-let* ((interpreter (executable-find name)))
     (with-temp-buffer
       (and (equal (call-process interpreter nil t nil "--version") 0)
            (goto-char (point-min))

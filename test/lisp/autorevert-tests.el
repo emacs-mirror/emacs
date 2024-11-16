@@ -132,12 +132,15 @@ This expects `auto-revert--messages' to be bound by
          (error (message "%s" err) (signal (car err) (cdr err)))))))
 
 (defmacro with-auto-revert-test (&rest body)
-  `(let ((auto-revert-interval-orig auto-revert-interval))
+  `(let ((auto-revert-interval-orig auto-revert-interval)
+         (auto-revert--lockout-interval-orig auto-revert--lockout-interval))
      (unwind-protect
          (progn
            (customize-set-variable 'auto-revert-interval 0.1)
+           (setq auto-revert--lockout-interval 0.05)
            ,@body)
-       (customize-set-variable 'auto-revert-interval auto-revert-interval-orig))))
+       (customize-set-variable 'auto-revert-interval auto-revert-interval-orig)
+       (setq auto-revert--lockout-interval auto-revert--lockout-interval-orig))))
 
 (defun auto-revert-tests--write-file (text file time-delta &optional append)
   (write-region text nil file append 'no-message)

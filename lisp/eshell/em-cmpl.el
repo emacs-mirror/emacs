@@ -444,7 +444,7 @@ to writing a completion function."
                ('nil
                 (propertize "" 'pcomplete-arg-value arg))
                (_
-                (propertize (eshell-stringify arg)
+                (propertize (eshell-stringify arg t)
                             'pcomplete-arg-value arg))))
 	   args)
 	  posns)))

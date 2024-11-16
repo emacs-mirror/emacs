@@ -88,7 +88,7 @@ HOST, USER, PORT, REQUIRE, and MAX."
         (auth-source-pass-extra-query-keywords
          (auth-source-pass--build-result-many host port user require max))
         (t
-         (when-let ((result (auth-source-pass--build-result host port user)))
+         (when-let* ((result (auth-source-pass--build-result host port user)))
            (list result)))))
 
 (defun auth-source-pass--build-result (hosts port user)
@@ -220,7 +220,7 @@ CONTENTS is the contents of a password-store formatted file."
   (let ((lines (cdr (split-string contents "\n" t "[ \t]+"))))
     (seq-remove #'null
                 (mapcar (lambda (line)
-                          (when-let ((pos (seq-position line ?:)))
+                          (when-let* ((pos (seq-position line ?:)))
                             (cons (string-trim (substring line 0 pos))
                                   (string-trim (substring line (1+ pos))))))
                         lines))))
@@ -291,7 +291,7 @@ HOSTS can be a string or a list of strings."
           (dolist (user (or users (list u)))
             (dolist (port (or ports (list p)))
               (dolist (e entries)
-                (when-let
+                (when-let*
                     ((m (or (gethash e seen) (auth-source-pass--retrieve-parsed
                                               seen e (integerp port))))
                      ((equal host (plist-get m :host)))

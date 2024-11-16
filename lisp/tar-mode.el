@@ -1049,7 +1049,7 @@ return nil.  Otherwise point is returned."
     (while (and (not found)
                 (not (eobp)))
       (forward-line 1)
-      (when-let ((descriptor (ignore-errors (tar-get-descriptor))))
+      (when-let* ((descriptor (ignore-errors (tar-get-descriptor))))
         (when (equal (tar-header-name descriptor) file)
           (setq found t))))
     (if (not found)
@@ -1074,7 +1074,7 @@ return nil.  Otherwise point is returned."
                          (beginning-of-line)
                          (bobp)))))
       (tar-next-line n)
-      (when-let ((descriptor (ignore-errors (tar-get-descriptor))))
+      (when-let* ((descriptor (ignore-errors (tar-get-descriptor))))
         (let ((candidate (tar-header-name descriptor))
               (buffer (current-buffer)))
           (when (and candidate

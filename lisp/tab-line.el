@@ -461,7 +461,7 @@ named the same as the mode.")
 (defun tab-line-tabs-buffer-group-by-project (&optional buffer)
   "Group tab buffers by project name."
   (with-current-buffer buffer
-    (if-let ((project (project-current)))
+    (if-let* ((project (project-current)))
         (project-name project)
       "No project")))
 

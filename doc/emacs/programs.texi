@@ -84,7 +84,6 @@ mode for the C programming language is @code{c-mode}.
 @cindex Javascript mode
 @cindex Awk mode
 @cindex C# mode
-@cindex IDLWAVE mode
 @cindex JSON mode
 @cindex SQL mode
 @cindex TypeScript mode
@@ -94,7 +93,7 @@ mode for the C programming language is @code{c-mode}.
 @cindex TOML mode
   Emacs has programming language modes for Lisp, Scheme, the
 Scheme-based DSSSL expression language, Ada, ASM, AWK, C, C++, C#,
-Elixir, Fortran, Icon, IDL (CORBA), HEEx, IDLWAVE, Java, Javascript,
+Elixir, Fortran, Icon, IDL (CORBA), HEEx, Java, Javascript,
 Lua, M4, Makefiles, Metafont (@TeX{}'s companion for font creation),
 Modula2, Object Pascal, Objective-C, Octave, Pascal, Perl, PHP, Pike,
 PostScript, Prolog, Python, Ruby, Simula, SQL, Tcl, TypeScript, Verilog,
@@ -141,10 +140,9 @@ For instance, entering C mode runs the hooks @code{prog-mode-hook} and
 @code{c-mode-hook}.  @xref{Hooks}, for information about hooks.
 
 @ifnottex
-  Separate manuals are available for the modes for Ada (@pxref{Top,,
-Ada Mode, ada-mode, Ada Mode}), C/C++/Objective C/Java/Corba
-IDL/Pike/AWK (@pxref{Top, , CC Mode, ccmode, CC Mode}), Octave, VHDL,
-and IDLWAVE (@pxref{Top,, IDLWAVE, idlwave, IDLWAVE User Manual}).
+  Separate manuals are available for the modes for Ada (@pxref{Top,, Ada
+Mode, ada-mode, Ada Mode}), C/C++/Objective C/Java/Corba IDL/Pike/AWK
+(@pxref{Top, , CC Mode, ccmode, CC Mode}), Octave, and VHDL.
 @end ifnottex
 @iftex
   The Emacs distribution contains Info manuals for the major modes for

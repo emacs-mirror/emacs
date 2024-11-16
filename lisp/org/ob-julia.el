@@ -75,7 +75,7 @@
   "Associate R code buffer with an R session.
 Make SESSION be the inferior ESS process associated with the
 current code buffer."
-  (when-let ((process (get-buffer-process session)))
+  (when-let* ((process (get-buffer-process session)))
     (setq ess-local-process-name (process-name process))
     (ess-make-buffer-current))
   (setq-local ess-gen-proc-buffer-name-function (lambda (_) session)))

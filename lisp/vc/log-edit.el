@@ -246,7 +246,11 @@ when this variable is set to nil.")
 (defvar log-edit-initial-files nil)
 (defvar log-edit-callback nil)
 (defvar log-edit-diff-function
-  (lambda () (error "Diff functionality has not been setup")))
+  (lambda () (error "Diff functionality has not been set up"))
+  "Function to display an appropriate `diff-mode' buffer for the change.
+Called by the `log-edit-show-diff' command.
+Should not leave the `diff-mode' buffer's window selected; that is, the
+Log Edit buffer's window should be selected when the function returns.")
 (defvar log-edit-listfun nil)
 
 (defvar log-edit-parent-buffer nil)

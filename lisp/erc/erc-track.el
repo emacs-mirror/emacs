@@ -409,12 +409,12 @@ For now, omit relevant options like `erc-track-shorten-start' and
 friends, even though they do affect the outcome, because they
 likely change too infrequently to matter over sub-second
 intervals and are unlikely to be let-bound or set locally."
-  (when-let ((hash (setq erc-track--shortened-names-current-hash
-                         (sxhash-equal (list channel-names
-                                             (buffer-list)
-                                             erc-track-shorten-function))))
-             (erc-track--shortened-names)
-             ((= hash (car erc-track--shortened-names))))
+  (when-let* ((hash (setq erc-track--shortened-names-current-hash
+                          (sxhash-equal (list channel-names
+                                              (buffer-list)
+                                              erc-track-shorten-function))))
+              (erc-track--shortened-names)
+              ((= hash (car erc-track--shortened-names))))
     (cdr erc-track--shortened-names)))
 
 (gv-define-simple-setter erc-track--shortened-names-get
@@ -674,8 +674,8 @@ binding, set the cache variable's local value to that of server's."
             (when (local-variable-p opt)
               (erc-track--massage-nick-button-faces opt (symbol-value opt)
                                                     #'set))
-            (when-let ((migrations (get opt 'erc-track--obsolete-faces))
-                       ((consp migrations)))
+            (when-let* ((migrations (get opt 'erc-track--obsolete-faces))
+                        ((consp migrations)))
               (push (cons opt
                           (mapcar (pcase-lambda (`(,old . ,new))
                                     (format (if new "changed %s to %s"
@@ -980,11 +980,11 @@ Failing that, choose the first face in both NEW-FACES and NORMALS."
   ;; Choose the highest ranked face in `erc-track-faces-priority-list'
   ;; that's either `cur-face' itself or one appearing in the region
   ;; being processed.
-  (when-let ((choice (catch 'face
-                       (dolist (candidate (cdr ranks))
-                         (when (or (equal candidate cur-face)
-                                   (gethash candidate (car new-faces)))
-                           (throw 'face candidate))))))
+  (when-let* ((choice (catch 'face
+                        (dolist (candidate (cdr ranks))
+                          (when (or (equal candidate cur-face)
+                                    (gethash candidate (car new-faces)))
+                            (throw 'face candidate))))))
     (or (and erc-track--alt-normals-function
              (funcall erc-track--alt-normals-function
                       cur-face choice new-faces ranks normals))
@@ -1040,7 +1040,7 @@ the current buffer is in `erc-mode'."
 	;; (in the car), change its face attribute (in the cddr) if
 	;; necessary.  See `erc-modified-channels-alist' for the
 	;; exact data structure used.
-        (when-let
+        (when-let*
             ((faces (if erc-track-ignore-normal-contenders-p
                         (erc-faces-in (buffer-string))
                       (erc-track--collect-faces-in)))
@@ -1128,7 +1128,7 @@ seen to least."
          (faces (make-hash-table :test #'equal))
          (rfaces ()))
     (while p
-      (when-let ((cur (get-text-property p prop)))
+      (when-let* ((cur (get-text-property p prop)))
         (unless (gethash cur seen)
           (puthash cur t seen)
           (when erc-track--face-reject-function
@@ -1214,8 +1214,8 @@ unless any passes.")
                                    (current-buffer))
 	     (setq erc-track-last-non-erc-buffer (current-buffer)))
 	   ;; and jump to the next active channel
-           (if-let ((buf (erc-track-get-active-buffer arg))
-                    ((buffer-live-p buf)))
+           (if-let* ((buf (erc-track-get-active-buffer arg))
+                     ((buffer-live-p buf)))
                (funcall fun buf)
              (erc-modified-channels-update)
              (erc-track--switch-buffer fun arg)))
@@ -1244,7 +1244,7 @@ reverse it."
   (erc-track--switch-buffer 'switch-to-buffer-other-window arg))
 
 (defun erc-track--replace-killed-buffer (existing)
-  (when-let ((found (assq existing erc-modified-channels-alist)))
+  (when-let* ((found (assq existing erc-modified-channels-alist)))
     (setcar found (current-buffer))))
 
 (provide 'erc-track)

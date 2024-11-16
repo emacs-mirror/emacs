@@ -246,8 +246,8 @@ For simplicity, assume string evaluates to itself."
   (defvar erc-stamp--deferred-date-stamp)
   (let (erc-stamp--deferred-date-stamp)
     (prog1 (apply orig args)
-      (when-let ((inst erc-stamp--deferred-date-stamp)
-                 (fn (erc-stamp--date-fn inst)))
+      (when-let* ((inst erc-stamp--deferred-date-stamp)
+                  (fn (erc-stamp--date-fn inst)))
         (funcall fn)))))
 
 (defun erc-tests-common-display-message (&rest args)
@@ -338,8 +338,8 @@ string."
   "Return subprocess for running CODE in an inferior Emacs.
 Include SWITCHES, like \"-batch\", as well as libs, after
 interspersing \"-l\" between members."
-  (let* ((package (if-let ((found (getenv "ERC_PACKAGE_NAME"))
-                           ((string-prefix-p "erc-" found)))
+  (let* ((package (if-let* ((found (getenv "ERC_PACKAGE_NAME"))
+                            ((string-prefix-p "erc-" found)))
                       (intern found)
                     'erc))
          ;; For integrations testing with managed configs that use a

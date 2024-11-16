@@ -434,8 +434,18 @@ heuristic for those modes not found there."
   (let ((style (gethash 'indent_style props))
         (size (gethash 'indent_size props))
         (tab_width (gethash 'tab_width props)))
-    (when tab_width
-      (setq tab_width (string-to-number tab_width)))
+    (cond
+     (tab_width (setq tab_width (string-to-number tab_width)))
+     ;; The EditorConfig spec is excessively eager to set `tab-width'
+     ;; even when not explicitly requested (bug#73991).
+     ;; As a trade-off, we accept `indent_style=tab' as a good enough hint.
+     ((and (equal style "tab") (editorconfig-string-integer-p size))
+      (setq tab_width (string-to-number size))))
+
+    ;; When users choose `indent_size=tab', they most likely prefer
+    ;; `indent_style=tab' as well.
+    (when (and (null style) (equal size "tab"))
+      (setq style "tab"))
 
     (setq size
           (cond ((editorconfig-string-integer-p size)

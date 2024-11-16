@@ -37,7 +37,7 @@
 ;; viewed, for example, the Gnus group buffer, consistent and logical
 ;; color choices are the only sane option.  Gnus groups can be newa
 ;; (blueish) or mail (greenish), have states (large number of under
-;; messages, normal, and empty). The large number unread groups have
+;; messages, normal, and empty).  The large number unread groups have
 ;; highest luminance (appear brighter), and the empty one have lower
 ;; luminance (appear grayer), but have the same chroma and saturation.
 ;; Sub states and group priorities are rendered using a color series
@@ -704,4 +704,4 @@ jarring angry fruit salad look to reduce eye fatigue."
 
 (provide-theme 'manoj-dark)
 
-;;; manoj-dark.el ends here
+;;; manoj-dark-theme.el ends here

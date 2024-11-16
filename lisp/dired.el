@@ -387,6 +387,12 @@ new Dired buffers."
   :version "24.4"
   :group 'dired)
 
+(defcustom dired-hide-details-hide-absolute-location nil
+  "Non-nil means `dired-hide-details-mode' hides directory absolute location."
+  :type 'boolean
+  :version "31.1"
+  :group 'dired)
+
 (defcustom dired-always-read-filesystem nil
   "Non-nil means revert buffers visiting files before searching them.
 By default,  commands like `dired-mark-files-containing-regexp' will
@@ -855,7 +861,7 @@ Set it to nil for remote directories, which suffer from a slow connection."
                  (if (not (connection-local-value dired-check-symlinks))
                      (search-forward-regexp
                       "\\(.+-> ?\\)\\(.+\\)" end t)
-                   (when-let ((file (dired-file-name-at-point)))
+                   (when-let* ((file (dired-file-name-at-point)))
                      (let ((truename (ignore-errors (file-truename file))))
                        (and (or (not truename)
 		                (not (file-directory-p truename)))
@@ -1735,11 +1741,11 @@ see `dired-use-ls-dired' for more details.")
                             (executable-find "sh")))
                     (switch (if remotep "-c" shell-command-switch)))
                ;; Enable globstar
-               (when-let ((globstar dired-maybe-use-globstar)
-                          (enable-it
-                           (assoc-default
-                            (file-truename sh) dired-enable-globstar-in-shell
-                            (lambda (reg shell) (string-match reg shell)))))
+               (when-let* ((globstar dired-maybe-use-globstar)
+                           (enable-it
+                            (assoc-default
+                             (file-truename sh) dired-enable-globstar-in-shell
+                             (lambda (reg shell) (string-match reg shell)))))
                  (setq script (format "%s; %s" enable-it script)))
                (unless
                    (zerop
@@ -1816,12 +1822,25 @@ see `dired-use-ls-dired' for more details.")
 	  (when (and (or hdr wildcard)
 		     (not (and (looking-at "^  \\(.*\\):$")
 			       (file-name-absolute-p (match-string 1)))))
-	    ;; Note that dired-build-subdir-alist will replace the name
-	    ;; by its expansion, so it does not matter whether what we insert
-	    ;; here is fully expanded, but it should be absolute.
-	    (insert "  " (or (car-safe dir-wildcard)
-                             (directory-file-name (file-name-directory dir)))
-                    ":\n")
+            (let* ((dir-indent "  ")
+                   (dir-name (or (car-safe dir-wildcard)
+                                 (directory-file-name
+                                  (file-name-directory dir))))
+                   (dir-name-point (+ (point) (length dir-indent)))
+                   (hideable-location
+                    (and dired-hide-details-hide-absolute-location
+                         (not (string-empty-p (file-name-nondirectory
+                                               dir-name))))))
+	      ;; Inserted directory name must be absolute, but keep in
+              ;; mind it may be replaced in some instances like in
+              ;; `dired-build-subdir-alist'.
+              (insert dir-indent dir-name ":\n")
+              (when hideable-location
+                (put-text-property
+                 dir-name-point
+                 (+ dir-name-point
+                    (length (file-name-directory dir-name)))
+                 'invisible 'dired-hide-details-absolute-location)))
 	    (setq content-point (point)))
 	  (when wildcard
 	    ;; Insert "wildcard" line where "total" line would be for a full dir.
@@ -1844,7 +1863,7 @@ see `dired-use-ls-dired' for more details.")
         ;; Replace "total" with "total used in directory" to
         ;; avoid confusion.
         (replace-match "total used in directory" nil nil nil 1))
-      (if-let ((available (get-free-disk-space file)))
+      (if-let* ((available (get-free-disk-space file)))
         (cond
          ((eq dired-free-space 'separate)
 	  (end-of-line)
@@ -2784,7 +2803,7 @@ Keybindings:
                   (let ((point (window-point w)))
                     (save-excursion
                       (goto-char point)
-                      (if-let ((f (dired-get-filename nil t)))
+                      (if-let* ((f (dired-get-filename nil t)))
                           `((dired-filename . ,f))
                         `((position . ,(point)))))))))
   (setq-local window-point-context-use-function
@@ -2792,9 +2811,9 @@ Keybindings:
                 (with-current-buffer (window-buffer w)
                   (let ((point (window-point w)))
                     (save-excursion
-                      (if-let ((f (alist-get 'dired-filename context)))
+                      (if-let* ((f (alist-get 'dired-filename context)))
                           (dired-goto-file f)
-                        (when-let ((p (alist-get 'position context)))
+                        (when-let* ((p (alist-get 'position context)))
                           (goto-char p)))
                       (setq point (point)))
                     (set-window-point w point)))))
@@ -3257,8 +3276,9 @@ unchanged."
 When this minor mode is enabled, details such as file ownership and
 permissions are hidden from view.
 
-See options: `dired-hide-details-hide-symlink-targets' and
-`dired-hide-details-hide-information-lines'."
+See options: `dired-hide-details-hide-symlink-targets',
+`dired-hide-details-hide-information-lines' and
+`dired-hide-details-hide-absolute-location'."
   :group 'dired
   (unless (derived-mode-p '(dired-mode wdired-mode))
     (error "Not a Dired buffer"))
@@ -3282,6 +3302,11 @@ See options: `dired-hide-details-hide-symlink-targets' and
 	       'add-to-invisibility-spec
 	     'remove-from-invisibility-spec)
 	   'dired-hide-details-information)
+  (funcall (if (and dired-hide-details-mode
+		    dired-hide-details-hide-absolute-location)
+	       #'add-to-invisibility-spec
+	     #'remove-from-invisibility-spec)
+	   'dired-hide-details-absolute-location)
   (funcall (if (and dired-hide-details-mode
 		    dired-hide-details-hide-symlink-targets
 		    (not (derived-mode-p 'wdired-mode)))
@@ -3688,7 +3713,18 @@ instead of `dired-actual-switches'."
 				(substring new-dir-name (match-end 0)))
 		      (expand-file-name new-dir-name))))
 	    (delete-region (point) (match-end 1))
-	    (insert new-dir-name))
+            (let ((new-dir-name-pos (point))
+                  (hideable-location
+                   (and dired-hide-details-hide-absolute-location
+                        (not (string-empty-p
+                              (file-name-nondirectory new-dir-name))))))
+              (insert new-dir-name)
+              (when hideable-location
+                (put-text-property
+                 new-dir-name-pos
+                 (+ new-dir-name-pos
+                    (length (file-name-directory new-dir-name)))
+		 'invisible 'dired-hide-details-absolute-location))))
 	  (setq count (1+ count))
 	  ;; Undo any escaping of newlines and \ by dired-insert-directory.
 	  ;; Convert "n" preceded by odd number of \ to newline, and \\ to \.

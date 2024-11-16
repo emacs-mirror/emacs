@@ -76,7 +76,7 @@ struct.")
   "Remove DESCRIPTOR from `file-notify-descriptors'.
 DESCRIPTOR should be an object returned by `file-notify-add-watch'.
 If it is registered in `file-notify-descriptors', a `stopped' event is sent."
-  (when-let ((watch (gethash descriptor file-notify-descriptors)))
+  (when-let* ((watch (gethash descriptor file-notify-descriptors)))
     (unwind-protect
         ;; Send `stopped' event.
         (file-notify-handle-event

@@ -241,7 +241,7 @@ using `browse-url-secondary-browser-function' instead."
                              (line-beginning-position)))
                  (not (looking-at goto-address-url-regexp))))
           (compose-mail address)
-        (if-let ((url (browse-url-url-at-point)))
+        (if-let* ((url (browse-url-url-at-point)))
             (browse-url-button-open-url url)
           (error "No e-mail address or URL found"))))))
 

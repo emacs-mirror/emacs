@@ -63,71 +63,19 @@
 (defconst package-vc--elpa-packages-version 1
   "Version number of the package specification format understood by package-vc.")
 
-(defconst package-vc--backend-type
-  `(choice :convert-widget
-           ,(lambda (widget)
-              (let (opts)
-                (dolist (be vc-handled-backends)
-                  (when (or (vc-find-backend-function be 'clone)
-                            (alist-get 'clone (get be 'vc-functions)))
-                    (push (widget-convert (list 'const be)) opts)))
-                (widget-put widget :args opts))
-              widget))
-  "The type of VC backends that support cloning package VCS repositories.")
-
-(defcustom package-vc-heuristic-alist
-  `((,(rx bos "http" (? "s") "://"
-          (or (: (? "www.") "github.com"
-                 "/" (+ (or alnum "-" "." "_"))
-                 "/" (+ (or alnum "-" "." "_")))
-              (: "codeberg.org"
-                 "/" (+ (or alnum "-" "." "_"))
-                 "/" (+ (or alnum "-" "." "_")))
-              (: (? "www.") "gitlab" (+ "." (+ alnum))
-                 "/" (+ (or alnum "-" "." "_"))
-                 "/" (+ (or alnum "-" "." "_")))
-              (: "git.sr.ht"
-                 "/~" (+ (or alnum "-" "." "_"))
-                 "/" (+ (or alnum "-" "." "_")))
-              (: "git." (or "savannah" "sv") "." (? "non") "gnu.org/"
-                 (or "r" "git") "/"
-                 (+ (or alnum "-" "." "_")) (? "/")))
-          (or (? "/") ".git") eos)
-     . Git)
-    (,(rx bos "http" (? "s") "://"
-          (or (: "hg.sr.ht"
-                 "/~" (+ (or alnum "-" "." "_"))
-                 "/" (+ (or alnum "-" "." "_")))
-              (: "hg." (or "savannah" "sv") "." (? "non") "gnu.org/hgweb/"
-                 (+ (or alnum "-" "." "_")) (? "/")))
-          eos)
-     . Hg)
-    (,(rx bos "http" (? "s") "://"
-          (or (: "bzr." (or "savannah" "sv") "." (? "non") "gnu.org/r/"
-                 (+ (or alnum "-" "." "_")) (? "/")))
-          eos)
-     . Bzr))
-  "Alist mapping repository URLs to VC backends.
-`package-vc-install' consults this alist to determine the VC
-backend from the repository URL when you call it without
-specifying a backend.  Each element of the alist has the form
-\(URL-REGEXP . BACKEND).  `package-vc-install' will use BACKEND of
-the first association for which the URL of the repository matches
-the URL-REGEXP of the association.  If no match is found,
-`package-vc-install' uses `package-vc-default-backend' instead."
-  :type `(alist :key-type (regexp :tag "Regular expression matching URLs")
-                :value-type ,package-vc--backend-type)
-  :version "29.1")
+(define-obsolete-variable-alias
+  'package-vc-heuristic-alist
+  'vc-clone-heuristic-alist "31.1")
 
 (defcustom package-vc-default-backend 'Git
   "Default VC backend to use for cloning package repositories.
 `package-vc-install' uses this backend when you specify neither
 the backend nor a repository URL that's recognized via
-`package-vc-heuristic-alist'.
+`vc-clone-heuristic-alist'.
 
 The value must be a member of `vc-handled-backends' that supports
 the `clone' VC function."
-  :type package-vc--backend-type
+  :type vc-cloneable-backends-custom-type
   :version "29.1")
 
 (defcustom package-vc-register-as-project t
@@ -247,8 +195,8 @@ This function is meant to be used as a hook for `package-read-archive-hook'."
                     (car spec)))
             (setf (alist-get (intern archive) package-vc--archive-data-alist)
                   (cdr spec))
-            (when-let ((default-vc (plist-get (cdr spec) :default-vc))
-                       ((not (memq default-vc vc-handled-backends))))
+            (when-let* ((default-vc (plist-get (cdr spec) :default-vc))
+                        ((not (memq default-vc vc-handled-backends))))
               (warn "Archive `%S' expects missing VC backend %S"
                     archive (plist-get (cdr spec) :default-vc)))))))))
 
@@ -279,7 +227,7 @@ asynchronously."
 (defun package-vc--version (pkg)
   "Return the version number for the VC package PKG."
   (cl-assert (package-vc-p pkg))
-  (if-let ((main-file (package-vc--main-file pkg)))
+  (if-let* ((main-file (package-vc--main-file pkg)))
       (with-temp-buffer
         (insert-file-contents main-file)
         (package-strip-rcs-id
@@ -626,13 +574,6 @@ documentation and marking the package as installed."
                  "")))
     t))
 
-(defun package-vc--guess-backend (url)
-  "Guess the VC backend for URL.
-This function will internally query `package-vc-heuristic-alist'
-and return nil if it cannot reasonably guess."
-  (and url (alist-get url package-vc-heuristic-alist
-                      nil nil #'string-match-p)))
-
 (declare-function project-remember-projects-under "project" (dir &optional recursive))
 
 (defun package-vc--clone (pkg-desc pkg-spec dir rev)
@@ -646,7 +587,7 @@ attribute in PKG-SPEC."
     (unless (file-exists-p dir)
       (make-directory (file-name-directory dir) t)
       (let ((backend (or (plist-get pkg-spec :vc-backend)
-                         (package-vc--guess-backend url)
+                         (vc-guess-url-backend url)
                          (plist-get (alist-get (package-desc-archive pkg-desc)
                                                package-vc--archive-data-alist
                                                nil nil #'string=)
@@ -663,7 +604,7 @@ attribute in PKG-SPEC."
 
     ;; Check out the latest release if requested
     (when (eq rev :last-release)
-      (if-let ((release-rev (package-vc--release-rev pkg-desc)))
+      (if-let* ((release-rev (package-vc--release-rev pkg-desc)))
           (vc-retrieve-tag dir release-rev)
         (message "No release revision was found, continuing...")))))
 
@@ -753,7 +694,7 @@ VC packages that have already been installed."
                            ;; pointing towards a repository, and use that as a backup
                            (and-let* ((extras (package-desc-extras (cadr pkg)))
                                       (url (alist-get :url extras))
-                                      ((package-vc--guess-backend url)))))))
+                                      ((vc-guess-url-backend url)))))))
                    (not allow-url)))
 
 (defun package-vc--read-package-desc (prompt &optional installed)
@@ -868,7 +809,7 @@ If PACKAGE is a string, it specifies the URL of the package
 repository.  In this case, optional argument BACKEND specifies
 the VC backend to use for cloning the repository; if it's nil,
 this function tries to infer which backend to use according to
-the value of `package-vc-heuristic-alist' and if that fails it
+the value of `vc-clone-heuristic-alist' and if that fails it
 uses `package-vc-default-backend'.  Optional argument NAME
 specifies the package name in this case; if it's nil, this
 package uses `file-name-base' on the URL to obtain the package
@@ -917,7 +858,7 @@ installs takes precedence."
      (cdr package)
      rev))
    ((and-let* (((stringp package))
-               (backend (or backend (package-vc--guess-backend package))))
+               (backend (or backend (vc-guess-url-backend package))))
       (package-vc--unpack
        (package-desc-create
         :name (or name (intern (file-name-base package)))
@@ -930,7 +871,7 @@ installs takes precedence."
        (or (package-vc--desc->spec (cadr desc))
            (and-let* ((extras (package-desc-extras (cadr desc)))
                       (url (alist-get :url extras))
-                      (backend (package-vc--guess-backend url)))
+                      (backend (vc-guess-url-backend url)))
              (list :vc-backend backend :url url))
            (user-error "Package `%s' has no VC data" package))
        rev)))
@@ -958,7 +899,7 @@ for the last released version of the package."
   (let ((pkg-spec (or (package-vc--desc->spec pkg-desc)
                       (and-let* ((extras (package-desc-extras pkg-desc))
                                  (url (alist-get :url extras))
-                                 (backend (package-vc--guess-backend url)))
+                                 (backend (vc-guess-url-backend url)))
                         (list :vc-backend backend :url url))
                       (user-error "Package `%s' has no VC data"
                                   (package-desc-name pkg-desc)))))

@@ -285,7 +285,7 @@ entirely by setting `warning-suppress-types' or
     (unless buffer-name
       (setq buffer-name "*Warnings*"))
     (with-suppressed-warnings ((obsolete warning-level-aliases))
-      (when-let ((new (cdr (assq level warning-level-aliases))))
+      (when-let* ((new (cdr (assq level warning-level-aliases))))
         (warn "Warning level `%s' is obsolete; use `%s' instead" level new)
         (setq level new)))
     (or (< (warning-numeric-level level)

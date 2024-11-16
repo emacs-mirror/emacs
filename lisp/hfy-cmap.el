@@ -835,7 +835,7 @@ Loads the variable `hfy-rgb-txt-color-map', which is used by
     (when (and rgb-txt
                (file-readable-p rgb-txt))
       (setq rgb-buffer (find-file-noselect rgb-txt 'nowarn))
-      (when-let ((result (hfy-cmap--parse-buffer rgb-buffer)))
+      (when-let* ((result (hfy-cmap--parse-buffer rgb-buffer)))
         (setq hfy-rgb-txt-color-map result))
       (kill-buffer rgb-buffer))))
 

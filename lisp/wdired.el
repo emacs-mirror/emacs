@@ -93,8 +93,7 @@ is not nil."
 That is, always move the point to the beginning of the filename at line.
 
 If `sometimes', only move to the beginning of filename if the point is
-before it, and `track-eol' is non-nil.  This behavior is very handy
-when editing several filenames.
+before it.  This behavior is very handy when editing several filenames.
 
 If nil, \"up\" and \"down\" movement is done as in any other buffer."
   :type '(choice (const :tag "As in any other mode" nil)

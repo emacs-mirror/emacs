@@ -646,7 +646,7 @@ that."
                 ;; Quoted symbols
                 (save-excursion
                   (while (re-search-forward help-xref-symbol-regexp nil t)
-                    (when-let ((sym (intern-soft (match-string 9))))
+                    (when-let* ((sym (intern-soft (match-string 9))))
                       (if (match-string 8)
                           (delete-region (match-beginning 8)
                                          (match-end 8))

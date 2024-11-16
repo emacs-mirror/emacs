@@ -176,6 +176,21 @@ bug#59469."
    (eshell-match-command-output "[ foo = bar ] && echo hi"
                                 "\\`\\'")))
 
+(ert-deftest esh-cmd-test/and-operator/output ()
+  "Test output with logical && operator."
+  (skip-unless (executable-find "sh"))
+  (with-temp-eshell
+   ;; Direct commands
+   (eshell-match-command-output "sh -c 'echo one; exit 1' && echo two"
+                                "\\`one\n\\'")
+   (eshell-match-command-output "echo one && echo two"
+                                "\\`one\ntwo\n\\'")
+   ;; Subcommands
+   (eshell-match-command-output "{ sh -c 'echo one; exit 1' } && echo two"
+                                "\\`one\n\\'")
+   (eshell-match-command-output "{ echo one } && echo two"
+                                "\\`one\ntwo\n\\'")))
+
 (ert-deftest esh-cmd-test/or-operator ()
   "Test logical || operator."
   (skip-unless (executable-find "["))
@@ -184,6 +199,21 @@ bug#59469."
                                 "\\`\\'")
    (eshell-match-command-output "[ foo = bar ] || echo hi"
                                 "hi\n")))
+
+(ert-deftest esh-cmd-test/or-operator/output ()
+  "Test output with logical || operator."
+  (skip-unless (executable-find "sh"))
+  (with-temp-eshell
+   ;; Direct commands
+   (eshell-match-command-output "sh -c 'echo one; exit 1' || echo two"
+                                "\\`one\ntwo\n\\'")
+   (eshell-match-command-output "echo one || echo two"
+                                "\\`one\n\\'")
+   ;; Subcommands
+   (eshell-match-command-output "{ sh -c 'echo one; exit 1' } || echo two"
+                                "\\`one\ntwo\n\\'")
+   (eshell-match-command-output "{ echo one } || echo two"
+                                "\\`one\n\\'")))
 
 
 ;; Pipelines
@@ -289,8 +319,15 @@ processes correctly."
 (ert-deftest esh-cmd-test/for-loop ()
   "Test invocation of a for loop."
   (with-temp-eshell
-   (eshell-match-command-output "for i in 5 { echo $i }"
-                                "5\n")))
+    (eshell-match-command-output "for i in 1 2 { echo $i }"
+                                 "1\n2\n")))
+
+(ert-deftest esh-cmd-test/for-loop-string ()
+  "Test invocation of a for loop with complex string arguments."
+  (let ((eshell-test-value "X"))
+    (with-temp-eshell
+      (eshell-match-command-output "for i in a b$eshell-test-value { echo $i }"
+                                   "a\nbX\n"))))
 
 (ert-deftest esh-cmd-test/for-loop-list ()
   "Test invocation of a for loop iterating over a list."
@@ -298,7 +335,28 @@ processes correctly."
    (eshell-match-command-output "for i in (list 1 2 (list 3 4)) { echo $i }"
                                 "1\n2\n(3 4)\n")))
 
-(ert-deftest esh-cmd-test/for-loop-multiple-args ()
+(ert-deftest esh-cmd-test/for-loop-vector ()
+  "Test invocation of a for loop iterating over a vector."
+  (with-temp-eshell
+    (eshell-match-command-output "for i in `[1 2 3] { echo $i }"
+                                 "1\n2\n3\n")))
+
+(ert-deftest esh-cmd-test/for-loop-range ()
+  "Test invocation of a for loop iterating over a range."
+  (with-temp-eshell
+    (eshell-match-command-output "for i in 1..5 { echo $i }"
+                                 "1\n2\n3\n4\n")
+    (let ((eshell-test-value 2))
+      (eshell-match-command-output "for i in $eshell-test-value..5 { echo $i }"
+                                   "2\n3\n4\n"))
+    ;; Make sure range syntax only work when it's part of the literal
+    ;; syntax; a variable expanding to something that looks like a range
+    ;; doesn't count.
+    (let ((eshell-test-value "1..5"))
+      (eshell-match-command-output "for i in $eshell-test-value { echo $i }"
+                                   "1..5\n"))))
+
+(ert-deftest esh-cmd-test/for-loop-mixed-args ()
   "Test invocation of a for loop iterating over multiple arguments."
   (with-temp-eshell
    (eshell-match-command-output "for i in 1 2 (list 3 4) { echo $i }"
@@ -317,13 +375,6 @@ processes correctly."
      (eshell-match-command-output
       "echo $name; for name in 3 { echo $name }; echo $name"
       "env-value\n3\nenv-value\n"))))
-
-(ert-deftest esh-cmd-test/for-loop-for-items-shadow ()
-  "Test that the variable `for-items' isn't shadowed inside for loops."
-  (with-temp-eshell
-   (with-no-warnings (setq-local for-items "hello"))
-   (eshell-match-command-output "for i in 1 { echo $for-items }"
-                                "hello\n")))
 
 (ert-deftest esh-cmd-test/for-loop-lisp-body ()
   "Test invocation of a for loop with a Lisp body form."

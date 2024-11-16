@@ -44,18 +44,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "pdumper.h"
 #include "w32common.h"
 
-/* Extension of w32font_info used by Uniscribe and HarfBuzz backends.  */
-struct uniscribe_font_info
-{
-  struct w32font_info w32_font;
-  /* This is used by the Uniscribe backend as a pointer to the script
-     cache, and by the HarfBuzz backend as a pointer to a hb_font_t
-     object.  */
-  void *cache;
-  /* This is used by the HarfBuzz backend to store the font scale.  */
-  double scale;
-};
-
 int uniscribe_available = 0;
 
 /* EnumFontFamiliesEx callback.  */
@@ -200,6 +188,8 @@ uniscribe_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
 
   /* Initialize the cache for this font.  */
   uniscribe_font->cache = NULL;
+  uniscribe_font->dwrite_cache = NULL;
+  uniscribe_font->dwrite_skip_font = false;
 
   /* Uniscribe and HarfBuzz backends use glyph indices.  */
   uniscribe_font->w32_font.glyph_idx = ETO_GLYPH_INDEX;
@@ -221,6 +211,7 @@ uniscribe_close (struct font *font)
     = (struct uniscribe_font_info *) font;
 
 #ifdef HAVE_HARFBUZZ
+  w32_dwrite_free_cached_face (uniscribe_font->dwrite_cache);
   if (uniscribe_font->w32_font.font.driver == &harfbuzz_font_driver
       && uniscribe_font->cache)
     hb_font_destroy ((hb_font_t *) uniscribe_font->cache);
@@ -1372,6 +1363,17 @@ w32hb_encode_char (struct font *font, int c)
   struct uniscribe_font_info *uniscribe_font
     = (struct uniscribe_font_info *) font;
   eassert (uniscribe_font->w32_font.font.driver == &harfbuzz_font_driver);
+
+  if (w32_use_direct_write (&uniscribe_font->w32_font))
+    {
+      unsigned encoded = w32_dwrite_encode_char (font, c);
+
+      /* The call to w32_dwrite_encode_char may fail, disabling
+	 DirectWrite for this font.  So check again.  */
+      if (w32_use_direct_write (&uniscribe_font->w32_font))
+	return encoded;
+    }
+
   hb_font_t *hb_font = uniscribe_font->cache;
 
   /* First time we use this font with HarfBuzz, create the hb_font_t
@@ -1624,5 +1626,8 @@ syms_of_w32uniscribe_for_pdumper (void)
   harfbuzz_font_driver.combining_capability = hbfont_combining_capability;
   harfbuzz_font_driver.begin_hb_font = w32hb_begin_font;
   register_font_driver (&harfbuzz_font_driver, NULL);
+
+  w32_initialize_direct_write ();
+
 #endif	/* HAVE_HARFBUZZ */
 }

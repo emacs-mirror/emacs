@@ -492,8 +492,8 @@ changing `tabulated-list-sort-key'."
     (if groups
         (dolist (group groups)
           (insert (car group) ?\n)
-          (when-let ((saved-pt-new (tabulated-list-print-entries
-                                    (cdr group) sorter update entry-id)))
+          (when-let* ((saved-pt-new (tabulated-list-print-entries
+                                     (cdr group) sorter update entry-id)))
             (setq saved-pt saved-pt-new)))
       (setq saved-pt (tabulated-list-print-entries
                       entries sorter update entry-id)))

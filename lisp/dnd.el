@@ -270,8 +270,8 @@ for it will be modified."
       ;; assigned their own handlers.
       (dolist (leftover urls)
         (setq return-value 'private)
-        (if-let ((handler (browse-url-select-handler leftover
-                                                     'internal)))
+        (if-let* ((handler (browse-url-select-handler leftover
+                                                      'internal)))
             (funcall handler leftover action)
           (dnd-insert-text window action leftover)))
       (or return-value 'private))))

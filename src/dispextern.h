@@ -3177,6 +3177,7 @@ struct image
 #endif /* HAVE_ANDROID */
 #ifdef HAVE_NTGUI
   XFORM xform;
+  bool smoothing;
 #endif
 #ifdef HAVE_HAIKU
   /* The affine transformation to apply to this image.  */

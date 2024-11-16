@@ -56,7 +56,6 @@
 
 ;;; Code:
 (require 'cl-lib)
-(eval-when-compile (require 'subr-x)) 	; when-let
 
 ;; The `string' widget completion uses this.
 (declare-function ispell-get-word "ispell"
@@ -1042,8 +1041,8 @@ button end points."
 
 (defun widget-text (widget)
   "Get the text representation of the widget."
-  (when-let ((from (widget-get widget :from))
-             (to (widget-get widget :to)))
+  (when-let* ((from (widget-get widget :from))
+              (to (widget-get widget :to)))
     (when (eq (marker-buffer from) (marker-buffer to)) ; is this check necessary?
       (buffer-substring-no-properties from to))))
 
@@ -2942,7 +2941,7 @@ Otherwise, the new widget is the default child of WIDGET.
 The new widget gets inserted at the position of the BEFORE child."
   (save-excursion
     (let ((children (widget-get widget :children))
-          (last-deleted (when-let ((lst (widget-get widget :last-deleted)))
+          (last-deleted (when-let* ((lst (widget-get widget :last-deleted)))
                           (prog1
                               (pop lst)
                             (widget-put widget :last-deleted lst)))))

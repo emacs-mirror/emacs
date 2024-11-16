@@ -462,18 +462,18 @@ retrieve it during buttonizing via
 
 (defun erc-button-add-nickname-buttons (entry)
   "Search through the buffer for nicknames, and add buttons."
-  (when-let ((form (nth 2 entry))
-             ;; Spoof `form' slot of default legacy `nicknames' entry
-             ;; so `erc-button--extract-form' sees a function value.
-             (form (let ((erc-button-buttonize-nicks
-                          (and erc-button-buttonize-nicks
-                               erc-button--modify-nick-function)))
-                     (erc-button--extract-form form)))
-             (oncep (if-let ((erc-button-highlight-nick-once)
-                             (c (erc--check-msg-prop 'erc--cmd))
-                             ((memq c erc-button-highlight-nick-once)))
-                        1 0))
-             (seen 0))
+  (when-let* ((form (nth 2 entry))
+              ;; Spoof `form' slot of default legacy `nicknames' entry
+              ;; so `erc-button--extract-form' sees a function value.
+              (form (let ((erc-button-buttonize-nicks
+                           (and erc-button-buttonize-nicks
+                                erc-button--modify-nick-function)))
+                      (erc-button--extract-form form)))
+              (oncep (if-let* ((erc-button-highlight-nick-once)
+                               (c (erc--check-msg-prop 'erc--cmd))
+                               ((memq c erc-button-highlight-nick-once)))
+                         1 0))
+              (seen 0))
     (goto-char (point-min))
     (while-let
         (((or (zerop seen) (zerop oncep)))
@@ -665,14 +665,14 @@ greater than `point-min' with a text property of `erc-callback'.")
          (p start))
     (while (progn
              ;; Break out of current search context.
-             (when-let ((low (max (point-min) (1- (pos-bol))))
-                        (high (min (point-max) (1+ (pos-eol))))
-                        (prop (get-text-property p 'erc-callback))
-                        (q (if nextp
-                               (text-property-not-all p high
-                                                      'erc-callback prop)
-                             (funcall search-fn p 'erc-callback nil low)))
-                        ((< low q high)))
+             (when-let* ((low (max (point-min) (1- (pos-bol))))
+                         (high (min (point-max) (1+ (pos-eol))))
+                         (prop (get-text-property p 'erc-callback))
+                         (q (if nextp
+                                (text-property-not-all p high
+                                                       'erc-callback prop)
+                              (funcall search-fn p 'erc-callback nil low)))
+                         ((< low q high)))
                (setq p q))
              ;; Assume that buttons occur frequently enough that
              ;; omitting LIMIT is acceptable.
