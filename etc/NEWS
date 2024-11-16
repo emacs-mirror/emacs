@@ -116,12 +116,12 @@ non-Tree-Sitter mode, customize the user option 'major-mode-remap-alist'
 to specify that a non-Tree-Sitter mode is "remapped" to itself.  For
 example:
 
-   (add-to-list 'major-mode-remap-alist '(c-mode))
+    (add-to-list 'major-mode-remap-alist '(c-mode))
 
 specifies that C Mode should not be remapped to 'c-ts-mode' even if and
 when 'c-ts-mode' is loaded.  Conversely,
 
-   (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
+    (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
 
 tells Emacs to always invoke 'c-ts-mode' whenever 'c-mode' is
 requested, either by 'auto-mode-alist' or by file/directory-local
