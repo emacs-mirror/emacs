@@ -103,6 +103,36 @@ collections of snippets automatically apply to the new Tree-Sitter modes.
 Note that those modes still do not inherit from the non-TS mode, so
 configuration settings installed via mode hooks are not affected.
 
+Loading a Tree-Sitter mode (such as by using 'M-x load-library' or with
+'M-x load-file') by default causes the corresponding non-Tree-Sitter
+mode be remapped to the Tree-Sitter mode.  This remapping affects
+visiting files for which 'auto-mode-alist' specifies a non-Tree-Sitter
+mode, and also affects mode-specification cookies on the first line of a
+file and mode specifications in file- and directory-local variables.  To
+revert to using a non-Tree-Sitter mode, reload the corresponding mode
+file anew.  To prevent file loading from turning on Tree-Sitter mode
+when 'auto-mode-alist' or the file/directory-local variables specify a
+non-Tree-Sitter mode, customize the user option 'major-mode-remap-alist'
+to specify that a non-Tree-Sitter mode is "remapped" to itself.  For
+example:
+
+   (add-to-list 'major-mode-remap-alist '(c-mode))
+
+specifies that C Mode should not be remapped to 'c-ts-mode' even if and
+when 'c-ts-mode' is loaded.  Conversely,
+
+   (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
+
+tells Emacs to always invoke 'c-ts-mode' whenever 'c-mode' is
+requested, either by 'auto-mode-alist' or by file/directory-local
+variables.
+
+We recommend using 'major-mode-remap-alist' to express your preferences
+for using Tree-Sitter or non-Tree-Sitter modes for files for which both
+variants of major modes are available, because that variable overrides
+the remapping Emacs might decide to perform as result of loading Lisp
+files and features.
+
 ---
 ** Mouse wheel events should now always be 'wheel-up/down/left/right'.
 At those places where the old 'mouse-4/5/6/7' events could still occur

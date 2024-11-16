@@ -1091,6 +1091,13 @@ is non-@code{nil}, use a shorter @kbd{y/n} query instead of a longer
   You can also tell Emacs to revert buffers automatically when their
 visited files change on disk; @pxref{Auto Revert}.
 
+@vindex major-mode-remap-alist@r{, and reverting a buffer}
+  Note that reverting a buffer turns on the major mode appropriate for
+visiting the buffer's file, as described in @ref{Choosing Modes}.  Thus,
+the major mode actually turned on as result of reverting a buffer
+depends on mode remapping, and could be different from the original mode
+if you customized @code{major-mode-remap-alist} in-between.
+
 @node Auto Revert
 @section Auto Revert: Keeping buffers automatically up-to-date
 @cindex Global Auto Revert mode
