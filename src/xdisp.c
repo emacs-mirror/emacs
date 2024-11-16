@@ -17592,7 +17592,7 @@ redisplay_internal (void)
 	}
 
       if (CONSP (tty_root_frames))
-	combine_updates (tty_root_frames, false);
+	combine_updates (tty_root_frames);
 
       eassert (EQ (XFRAME (selected_frame)->selected_window, selected_window));
 
