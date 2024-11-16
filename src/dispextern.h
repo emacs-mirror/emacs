@@ -1322,6 +1322,9 @@ struct glyph_row *matrix_row (struct glyph_matrix *, int);
 
 extern struct glyph space_glyph;
 
+/* True means last display completed.  False means it was preempted.  */
+
+extern bool display_completed;
 
 /************************************************************************
 			  Glyph Strings
@@ -3803,7 +3806,7 @@ extern Lisp_Object marginal_area_string (struct window *, enum window_part,
                                          Lisp_Object *,
                                          int *, int *, int *, int *);
 extern void redraw_frame (struct frame *);
-void update_frame (struct frame *, bool);
+extern bool update_frame (struct frame *, bool, bool);
 extern void update_frame_with_menu (struct frame *, int, int);
 extern int update_mouse_position (struct frame *, int, int);
 extern void bitch_at_user (void);
@@ -3922,8 +3925,8 @@ Lisp_Object frames_in_reverse_z_order (struct frame *f, bool visible);
 bool is_tty_frame (struct frame *f);
 bool is_tty_child_frame (struct frame *f);
 bool is_tty_root_frame (struct frame *f);
-void combine_updates (Lisp_Object root_frames, bool inhibit_id_p);
-void combine_updates_for_frame (struct frame *f, bool inhibit_id_p);
+bool combine_updates (Lisp_Object root_frames, bool force_p, bool inhibit_id_p);
+bool combine_updates_for_frame (struct frame *f, bool force_p, bool inhibit_id_p);
 void tty_raise_lower_frame (struct frame *f, bool raise);
 int max_child_z_order (struct frame *parent);
 
