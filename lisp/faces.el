@@ -2825,14 +2825,14 @@ Use the face `mode-line-highlight' for features that can be selected."
   '((t :inherit header-line))
   "Face for the selected header line.
 This inherits from the `header-line' face."
-  :version "29.5"
+  :version "31.1"
   :group 'mode-line-faces
   :group 'basic-faces)
 
 (defface header-line-inactive
   '((t :inherit header-line))
   "Basic header line face for non-selected windows."
-  :version "29.5"
+  :version "31.1"
   :group 'mode-line-faces
   :group 'basic-faces)
 
