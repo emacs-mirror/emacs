@@ -28,17 +28,17 @@
 
 (require 'cl-lib)
 
-(defcustom flymake-cc-command 'flymake-cc-use-special-make-target
+(defcustom flymake-cc-command #'flymake-cc-use-special-make-target
   "Command used by the `flymake-cc' backend.
-A list of strings, or a symbol naming a function that produces one
-such list when called with no arguments in the buffer where the
-variable `flymake-mode' is active.
+A list of strings, or a function that produces one such list when called
+with no arguments in the buffer where the variable `flymake-mode' is
+active.
 
 The command should invoke a GNU-style compiler that checks the
 syntax of a (Obj)C(++) program passed to it via its standard
 input and prints the result on its standard output."
   :type '(choice
-          (symbol :tag "Function")
+          (function :tag "Function")
           (repeat :tag "Command(s)" string))
   :version "27.1"
   :group 'flymake-cc)
@@ -128,7 +128,7 @@ REPORT-FN is Flymake's callback."
        (make-process
         :name "gcc-flymake"
         :buffer (generate-new-buffer "*gcc-flymake*")
-        :command (if (symbolp flymake-cc-command)
+        :command (if (functionp flymake-cc-command)
                      (funcall flymake-cc-command)
                    flymake-cc-command)
         :noquery t :connection-type 'pipe
