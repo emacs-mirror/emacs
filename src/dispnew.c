@@ -3987,12 +3987,12 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
    redisplay_internal as the last step of redisplaying.  */
 
 void
-combine_updates (Lisp_Object roots, bool inhibit_scrolling)
+combine_updates (Lisp_Object roots)
 {
   for (; CONSP (roots); roots = XCDR (roots))
     {
       struct frame *root = XFRAME (XCAR (roots));
-      combine_updates_for_frame (root, inhibit_scrolling);
+      combine_updates_for_frame (root, false);
     }
 }
 
