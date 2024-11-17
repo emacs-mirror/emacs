@@ -322,8 +322,15 @@ Completion Preview mode adds this function to
   "Mode for when the completion preview is shown."
   :interactive nil
   (if completion-preview-active-mode
-      (add-hook 'window-selection-change-functions
-                #'completion-preview--window-selection-change nil t)
+      (progn
+        (add-hook 'window-selection-change-functions
+                  #'completion-preview--window-selection-change nil t)
+        ;; Give keymap precedence over other minor mode maps.
+        ;; TODO: Use explicit minor mode precedence instead when
+        ;; implemented (bug#74492).
+        (setf (alist-get 'completion-preview-active-mode
+                         minor-mode-overriding-map-alist)
+              completion-preview-active-mode-map))
     (remove-hook 'window-selection-change-functions
                  #'completion-preview--window-selection-change t)
     (completion-preview-hide)))
