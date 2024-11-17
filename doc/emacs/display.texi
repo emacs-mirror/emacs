@@ -783,7 +783,7 @@ Most windows do not have a header line---only some special modes, such
 Info mode, create one.
 
 The @code{header-line-active} and @code{header-line-inactive} faces (which
-are the ones used on the header lines) inherit from this face.
+are the ones actually used on the header lines) inherit from this face.
 
 @cindex faces for header lines
 @item header-line-active

@@ -163,9 +163,10 @@ obsolete.  Use 'M-x list-packages' to install the 'idlwave' package from
 GNU ELPA instead.
 
 +++
-** New face 'header-line-active'.
-This inherits from the 'header-line' face, but is the face actually used
-on the header lines (along with 'header-line-inactive').
+** New faces 'header-line-active' and 'header-line-inactive'.
+These inherit from the 'header-line' face, but the faces actually used
+on the header lines are now these two: the selected window uses
+'header-line-active', non-selected windows use 'header-line-inactive'.
 
 
 * Editing Changes in Emacs 31.1
