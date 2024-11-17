@@ -10249,22 +10249,21 @@ Also see the `completion-auto-wrap' variable."
 
 This makes `completions--deselect' effective.")
 
-(defun completions--start-of-candidate-at (position)
-  "Return the start position of the completion candidate at POSITION."
-  (save-excursion
-    (goto-char position)
-    (let (beg)
-      (cond
-       ((and (not (eobp))
-             (get-text-property (point) 'completion--string))
-        (setq beg (1+ (point))))
-       ((and (not (bobp))
-             (get-text-property (1- (point)) 'completion--string))
-        (setq beg (point))))
-      (when beg
-        (or (previous-single-property-change
-             beg 'completion--string)
-            beg)))))
+(defun completion-list-candidate-at-point (&optional pt)
+  "Candidate string and bounds at PT in completions buffer.
+The return value has the format (STR BEG END).
+The optional argument PT defaults to (point)."
+  (setq pt (or pt (point)))
+  (when (cond
+         ((and (/= pt (point-max))
+               (get-text-property pt 'completion--string))
+          (cl-incf pt))
+         ((and (/= pt (point-min))
+               (get-text-property (1- pt) 'completion--string))))
+    (setq pt (or (previous-single-property-change pt 'completion--string) pt))
+    (list (get-text-property pt 'completion--string) pt
+          (or (next-single-property-change pt 'completion--string)
+              (point-max)))))
 
 (defun choose-completion (&optional event no-exit no-quit)
   "Choose the completion at point.
@@ -10289,11 +10288,9 @@ minibuffer, but don't quit the completions window."
                (or (get-text-property (posn-point (event-start event))
                                       'completion--string)
                    (error "No completion here"))
-             (if-let* ((candidate-start
-                        (completions--start-of-candidate-at
-                         (posn-point (event-start event)))))
-                 (get-text-property candidate-start 'completion--string)
-               (error "No completion here")))))
+             (or (car (completion-list-candidate-at-point
+                       (posn-point (event-start event))))
+                 (error "No completion here")))))
 
       (unless (buffer-live-p buffer)
         (error "Destination buffer is dead"))

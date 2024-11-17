@@ -2628,8 +2628,9 @@ The candidate will still be chosen by `choose-completion' unless
               (when-let* ((buffer (get-buffer "*Completions*"))
                           (window (get-buffer-window buffer 0)))
                 (with-current-buffer buffer
-                  (when-let* ((beg (completions--start-of-candidate-at (window-point window))))
-                    (cons (get-text-property beg 'completion--string) (- (point) beg))))))
+                  (when-let* ((cand (completion-list-candidate-at-point
+                                     (window-point window))))
+                    (cons (car cand) (- (point) (cadr cand)))))))
              ;; If the *Completions* buffer is shown in a new
              ;; window, mark it as softly-dedicated, so bury-buffer in
              ;; minibuffer-hide-completions will know whether to
