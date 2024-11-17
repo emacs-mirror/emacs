@@ -8522,6 +8522,11 @@ ns_in_echo_area (void)
 
   NSTRACE ("[EmacsView toggleFullScreen:]");
 
+  /* Reset fs_is_native to value of ns-use-native-full-screen if not
+     fullscreen already */
+  if (fs_state != FULLSCREEN_BOTH)
+    fs_is_native = ns_use_native_fullscreen;
+
   if (fs_is_native)
     {
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
