@@ -277,7 +277,7 @@ being the result.")
 		  ;; trouble.
 		  (string-match-p (rx bos (literal tramp-temp-name-prefix)
 				      (| "rclone" "fuse") ".")
-				  (file-name-nondirectory file))
+				  (file-name-nondirectory file)))
 	    (tramp--test-message "Delete %s" file)
 	    (if (file-directory-p file)
 		(delete-directory file 'recursive)
