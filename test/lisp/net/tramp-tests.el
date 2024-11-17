@@ -45,6 +45,12 @@
 ;; might be too heavy.  Setting $REMOTE_PARALLEL_PROCESSES to a proper
 ;; value less than 10 could help.
 
+;; This test suite obeys the environment variables $EMACS_HYDRA_CI and
+;; $EMACS_EMBA_CI, used on the Emacs CI/CD platforms.
+
+;; The following test tags are used: `:expensive-test',
+;; `:tramp-asynchronous-processes' and `:unstable'.
+
 ;; A whole test run can be performed calling the command `tramp-test-all'.
 
 ;;; Code:
@@ -82,7 +88,7 @@
 (defvar tramp-remote-process-environment)
 (defvar tramp-use-connection-share)
 
-;; Declared in Emacs 30.
+;; Declared in Emacs 30.1.
 (defvar remote-file-name-access-timeout)
 (defvar remote-file-name-inhibit-delete-by-moving-to-trash)
 
@@ -264,7 +270,14 @@ being the result.")
 		   "srw" (file-attribute-modes (file-attributes file)))
 		  (string-match-p (rx bos (literal tramp-fuse-name-prefix)
 				      (regexp tramp-method-regexp) ".")
-				  (file-name-nondirectory file)))
+				  (file-name-nondirectory file))
+		  ;; Prior Emacs 31.1, the FUSE mount points where
+		  ;; "tramp-rclone.*" and "tramp-sshfs.*".  We should
+		  ;; exclude them as well, in order not to make
+		  ;; trouble.
+		  (string-match-p (rx bos (literal tramp-temp-name-prefix)
+				      (| "rclone" "fuse") ".")
+				  (file-name-nondirectory file))
 	    (tramp--test-message "Delete %s" file)
 	    (if (file-directory-p file)
 		(delete-directory file 'recursive)
@@ -7945,7 +7958,7 @@ process sentinels.  They shall not disturb each other."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-crypt-p)))
-  ;; Starting with Emacs 29.1, `dired-compress-file' is performed by
+  ;; Starting with Emacs 29.1, `dired-compress-dir' is performed by
   ;; default handler.
   (skip-unless (not (tramp--test-emacs29-p)))
 
