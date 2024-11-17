@@ -973,6 +973,27 @@ foo(sec)[, bar(sec) [, ...]] [other stuff] - description"
               (search-forward-regexp "\\=, *\\([^ \t,]+\\)" bound t)))))
     (nreverse table)))
 
+(defvar Man-man-k-flags
+  ;; It's not clear which man page will "always" be available, `man -k man'
+  ;; seems like the safest choice, but `man -k apropos' seems almost as safe
+  ;; and usually returns a much shorter output.
+  (with-temp-buffer
+    (with-demoted-errors "%S" (call-process "man" nil t nil "-k" "apropos"))
+    (let ((lines (count-lines (point-min) (point-max)))
+          (completions (Man-parse-man-k)))
+      (if (>= (length completions) lines)
+          '("-k") ;; "-k" seems to return sane results: look no further!
+        (erase-buffer)
+        ;; Try "-k -l" (bug#73656).
+        (with-demoted-errors "%S" (call-process "man" nil t nil
+                                                "-k" "-l" "apropos"))
+        (let ((lines (count-lines (point-min) (point-max)))
+              (completions (Man-parse-man-k)))
+          (if (and (> lines 0) (>= (length completions) lines))
+              '("-k" "-l") ;; "-k -l" seems to return sane results.
+            '("-k"))))))
+  "List of arguments to pass to get the expected \"man -k\" output.")
+
 (defun Man-completion-table (string pred action)
   (cond
    ;; This ends up returning t for pretty much any string, and hence leads to
@@ -1007,9 +1028,13 @@ foo(sec)[, bar(sec) [, ...]] [other stuff] - description"
             ;; error later.
             (when (eq 0
                       (ignore-errors
-                        (process-file
+                        (apply
+                         #'process-file
                          manual-program nil '(t nil) nil
-                         "-k" (concat (when (or Man-man-k-use-anchor
+                         ;; FIXME: When `process-file' runs on a remote hosts,
+                         ;; `Man-man-k-flags' may be wrong.
+                         `(,@Man-man-k-flags
+                           ,(concat (when (or Man-man-k-use-anchor
                                                 (string-equal prefix ""))
                                         "^")
                                       (if (string-equal prefix "")
@@ -1021,7 +1046,7 @@ foo(sec)[, bar(sec) [, ...]] [other stuff] - description"
                                         ;; But we don't have that, and
                                         ;; shell-quote-argument does
                                         ;; the job...
-                                        (shell-quote-argument prefix))))))
+                                      (shell-quote-argument prefix)))))))
               (setq table (Man-parse-man-k)))))
 	;; Cache the table for later reuse.
         (when table
