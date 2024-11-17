@@ -48,7 +48,8 @@
 (defconst custom-face-attributes
   `((:family
      (string :tag "Font Family"
-	     :help-echo "Font family or fontset alias name."))
+	     :completions custom-face--font-completion
+	     :help-echo "Font family or fontset alias name (with completion)."))
 
     (:foundry
      (string :tag "Font Foundry"

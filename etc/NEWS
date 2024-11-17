@@ -167,6 +167,8 @@ GNU ELPA instead.
 This inherits from the 'header-line' face, but is the face actually used
 on the header lines (along with 'header-line-inactive').
 
+** In 'customize-face', the "Font family" attribute now supports completion.
+
 
 * Editing Changes in Emacs 31.1
 

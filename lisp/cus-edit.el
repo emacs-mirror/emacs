@@ -3425,6 +3425,28 @@ to switch between two values."
 
 ;;; The `custom-face-edit' Widget.
 
+(defvar custom-face--font-cache-timeout 60
+  "Refresh the cache of font families after at most this many seconds.")
+
+(defalias 'custom-face--font-completion
+  (let ((lastlist nil)
+        (lasttime nil)
+        (lastframe nil))
+    (completion-table-case-fold
+     (completion-table-dynamic
+      (lambda (_string)
+        ;; Flush the cache timeout after a while.
+        (let ((time (float-time)))
+         (if (and lastlist (eq (selected-frame) lastframe)
+                  (> custom-face--font-cache-timeout (- time lasttime)))
+             lastlist
+           ;; (message "last list time: %s" (if lasttime (- time lasttime)))
+           (setq lasttime time)
+           (setq lastframe (selected-frame))
+           (setq lastlist
+                 (nconc (mapcar #'car face-font-family-alternatives)
+                        (font-family-list))))))))))
+
 (define-widget 'custom-face-edit 'checklist
   "Widget for editing face attributes.
 The following properties have special meanings for this widget:
