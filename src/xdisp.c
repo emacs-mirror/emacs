@@ -17467,16 +17467,9 @@ redisplay_internal (void)
 		continue;
 
 	      /* Remember tty root frames which we've seen.  */
-	      if (!FRAME_PARENT_FRAME (f))
-		{
-		  Lisp_Object found;
-		  for (found = tty_root_frames;
-		       CONSP (found) && !EQ (XCAR (found), frame);
-		       found = XCDR (found))
-		    ;
-		  if (!CONSP (found))
-		    tty_root_frames = Fcons (frame, tty_root_frames);
-		}
+	      if (!FRAME_PARENT_FRAME (f)
+		  && NILP (assq_no_quit (frame, tty_root_frames)))
+		tty_root_frames = Fcons (frame, tty_root_frames);
 	    }
 
 	retry_frame:
