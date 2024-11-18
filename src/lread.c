@@ -2313,7 +2313,7 @@ build_load_history (Lisp_Object filename, bool entire)
   if (entire || !foundit)
     {
       Lisp_Object tem = Fnreverse (Vcurrent_load_list);
-      eassert (EQ (filename, Fcar (tem)));
+      eassert (!NILP (Fequal (filename, Fcar (tem))));
       Vload_history = Fcons (tem, Vload_history);
       /* FIXME: There should be an unbind_to right after calling us which
          should re-establish the previous value of Vcurrent_load_list.  */
