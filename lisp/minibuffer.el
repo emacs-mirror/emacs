@@ -4500,12 +4500,17 @@ the same set of elements."
       ;; Then for each of those non-constant elements, extract the
       ;; commonality between them.
       (let ((res ())
-            (fixed ""))
+            (fixed "")
+            ;; Accumulate each stretch of wildcards, and process them as a unit.
+            (wildcards ()))
         ;; Make the implicit trailing `any' explicit.
         (dolist (elem (append pattern '(any)))
           (if (stringp elem)
-              (setq fixed (concat fixed elem))
+              (progn
+                (setq fixed (concat fixed elem))
+                (setq wildcards nil))
             (let ((comps ()))
+              (push elem wildcards)
               (dolist (cc (prog1 ccs (setq ccs nil)))
                 (push (car cc) comps)
                 (push (cdr cc) ccs))
@@ -4529,14 +4534,16 @@ the same set of elements."
                     (push prefix res)
                   ;; `prefix' only wants to include the fixed part before the
                   ;; wildcard, not the result of growing that fixed part.
-                  (when (eq elem 'prefix)
+                  (when (seq-some (lambda (elem) (eq elem 'prefix)) wildcards)
                     (setq prefix fixed))
                   (push prefix res)
-                  (push elem res)
+                  ;; Push all the wildcards in this stretch, to preserve `point' and
+                  ;; `star' wildcards before ELEM.
+                  (setq res (append wildcards res))
                   ;; Extract common suffix additionally to common prefix.
                   ;; Don't do it for `any' since it could lead to a merged
                   ;; completion that doesn't itself match the candidates.
-                  (when (and (memq elem '(star point prefix))
+                  (when (and (seq-some (lambda (elem) (memq elem '(star point prefix))) wildcards)
                              ;; If prefix is one of the completions, there's no
                              ;; suffix left to find.
                              (not (assoc-string prefix comps t)))
@@ -4550,7 +4557,9 @@ the same set of elements."
                                         comps))))))
                       (cl-assert (stringp suffix))
                       (unless (equal suffix "")
-                        (push suffix res)))))
+                        (push suffix res))))
+                  ;; We pushed these wildcards on RES, so we're done with them.
+                  (setq wildcards nil))
                 (setq fixed "")))))
         ;; We return it in reverse order.
         res)))))
