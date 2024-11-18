@@ -3807,6 +3807,7 @@
     sasl
     scrolltobottom
     services
+    settings
     smiley
     sound
     spelling

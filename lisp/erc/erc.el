@@ -2016,6 +2016,10 @@ buries those."
                     (target (buffer-local-value 'erc--target target))
                     ((erc--target-channel-p target)))))))
 
+(defun erc-channel-buffer-p (&optional buffer)
+  "Call `erc-channel-p' with BUFFER or the current buffer."
+  (erc-channel-p (or buffer (current-buffer))))
+
 ;; For the sake of compatibility, a historical quirk concerning this
 ;; option, when nil, has been preserved: all buffers are suffixed with
 ;; the original dialed host name, which is usually something like
@@ -2410,6 +2414,7 @@ removed modules.  It also gives packages access to the hook
            scrolltobottom)
     (const :tag "services: Identify to Nickserv (IRC Services) automatically"
            services)
+    (const :tag "settings: Set ERC user options buffer locally" settings)
     (const :tag "smiley: Convert smileys to pretty icons" smiley)
     (const :tag "sound: Play sounds when you receive CTCP SOUND requests"
            sound)

@@ -34,6 +34,13 @@ skip messages from "fools" and those in untracked buffers.
 Option 'erc-desktop-notifications-ignored-when-focused' can spare users
 from being notified when interacting with the initiating buffer.
 
+** Apply options granularly to specific connections or buffers.
+Based on an idea drafted nearly a quarter century ago by ERC's earliest
+contributors, the 'settings' module offers a ready-made method for
+binding arbitrary user options to various "scopes" of interest.  It
+leverages buffer-local variables and match conditions reminiscent of
+'buffer-match-p'.
+
 ** Changes in the library API.
 
 *** Module setup runs in query buffers on reconnect.
@@ -60,6 +67,10 @@ depend on such initialization immediately and without fear of their
 being killed.  For modules still needing to run delayed, session-aware
 code, a new convenience macro called 'erc-with-initialized-session' is
 now available to automate any 'erc-mode-hook' wrangling for you.
+
+*** A predicate to detect if the current buffer is a channel.
+New function 'erc-channel-buffer-p' is a channel-detecting complement to
+'erc-query-buffer-p' and a light wrapper around 'erc-channel-p'.
 
 
 * Changes in ERC 5.6.2

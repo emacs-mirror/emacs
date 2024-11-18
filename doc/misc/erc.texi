@@ -83,6 +83,10 @@ Advanced Module Topics
 * Example: Module Example.      An example module.
 * Usage: Module Usage.          How to use specific modules.
 
+Individual Modules
+
+* Settings: Settings Module.    Per-buffer configuration.
+
 Advanced Usage
 
 * Connecting::                  Ways of connecting to an IRC server.
@@ -144,7 +148,6 @@ ERC comes with the following capabilities enabled by default.
 
 @node Getting Started
 @chapter Getting Started
-@cindex settings
 
 The command @kbd{M-x erc} will start ERC and prompt for the server to
 connect to.  If you're unsure of which server or network to connect
@@ -551,6 +554,10 @@ Scroll to the bottom of the buffer
 @cindex modules, services
 @item services
 Identify to Nickserv (IRC Services) automatically
+
+@cindex modules, settings
+@item settings
+Apply options locally per-buffer (@pxref{Settings Module})
 
 @cindex modules, smiley
 @item smiley
@@ -1011,6 +1018,383 @@ list or the bug tracker.
 
 
 @c PRE5_4: Document every option of every module in its own subnode
+@node Module Usage
+@section Usage
+@cindex individual modules
+@cindex module usage
+
+Detailed documentation on individual built-in modules.
+
+@menu
+* Settings: Settings Module.          Scoped user options.
+@end menu
+
+@node Settings Module
+@subsection Settings
+@cindex settings
+
+This global module lets you apply ERC options on a per-buffer basis as
+local variable bindings (@pxref{Buffer-Local Variables,,, elisp,}).  It
+consists of a single @dfn{meta option}:
+
+@defopt erc-settings
+An alist where each key is a @dfn{match condition} and each value a list
+of bindings that loosely resembles a @code{let}-style @var{varlist}.
+The first element of each binding is the variable of a user option and
+the second an arbitrary sexp assigned to it locally in all matching
+buffers.  You can tell ERC to evaluate a given sexp as a Lisp form
+before assigning it by including a trailing third element: the
+@dfn{modifier flag} @code{:eval}.
+
+A match condition specifies when and whether ERC should apply each group
+of bindings.  These resemble @code{buffer-match-p} conditions, with two
+major differences (@pxref{Buffer List,,, elisp,}).  The first is that
+predicate conditions don't take any arguments.  Instead, ERC runs them
+with the candidate buffer current.  The second difference is that the
+assortment of associative cons-cell conditions is completely new.  Gone
+are @code{major-mode}, @code{category}, etc.  In their place, ERC offers
+the following:
+
+@itemize
+@item @code{(network . @samp{<symbol>})}
+@item @code{(id . @samp{<symbol>})}
+@item @code{(name . @samp{<string>})}
+@item @code{(target . @samp{<string or nil>})}
+@end itemize
+
+The associated @code{cdr} values for the @code{network} and @code{id}
+conditions are symbols identifying the current IRC network and the
+@dfn{network context}, respectively.  When first connecting, a
+@code{network} condition is always @code{nil}, but an @code{id}
+condition can be non-@code{nil} if you supply a matching @var{ID}
+argument to an entry-point command, like @code{erc-tls} (@pxref{Network
+Identifier}).
+
+Additionally, ERC also recognizes @code{buffer-match-p}'s boolean
+operations and constants:
+
+@itemize
+@item @code{(and @samp{<condition...>})}
+@item @code{(or @samp{<condition...>})}
+@item @code{(not @samp{<condition>})}
+@item @code{t}
+@item @code{nil}
+@end itemize
+
+Also valid are regular expressions and nullary predicates:
+
+@itemize
+@item @code{"<some regexp>"}
+@item @code{<predicate symbol>}
+@end itemize
+
+@end defopt
+
+@noindent
+Here's a contrived @code{erc-settings} value containing seven entries,
+the first of which has two assignments:
+
+@lisp
+(((and (network . Libera.Chat)          ; buffers #emacs,
+       "\\`#emacs")                     ; #emacs-foo, etc.,
+  (my-own-variable 42)                  ; on Libera.Chat only
+  (erc-foo ""))
+
+ ((or (target . "#chan")                ; buffers #chan, bob,
+      (target . "bob"))                 ; chan@@Libera.Chat,
+  (erc-foo (erc-current-nick) :eval))   ; bob@@OFTC, etc.
+
+ (erc-open-server-buffer-p (erc-bar 1)) ; connected server buffers
+ (erc-query-buffer-p (erc-bar 2))       ; query buffers only
+ (erc-channel-buffer-p (erc-bar 3))     ; channel buffers only
+ (erc-target (erc-bar 4))               ; query or channel buffers
+ (t (erc-bar 5)))                       ; any `erc-mode' buffer
+@end lisp
+
+@noindent
+Unfortunately, predicate functions too dissimilar from those in the last
+hunk above may not work in all match contexts due to the interaction
+between this module and ERC's rather convoluted major-mode setup.  While
+the only way to know for sure is to try them, selecting them becomes
+much easier if you can gain a sense for when exactly @samp{settings}
+attempts to create bindings:
+
+@itemize
+@item
+In server buffers
+@enumerate
+@item
+before ERC enables any modules or sets any local variables
+@item
+after establishing a logical IRC connection and learning what network
+it's connected to
+@end enumerate
+
+@item
+In target buffers
+@enumerate
+@item
+before enabling any modules, but only if you're overriding
+@code{erc-modules} and, only then, for that option alone
+@item
+after ERC has set most of its default local variables and run
+global-module setup but before running major-mode hooks or local-module
+setup
+@end enumerate
+@end itemize
+
+The main downside of this staggered approach is that @samp{settings}
+skips any bindings for variables that already have a local binding
+rather than do the intuitive thing and simply clobber them.  The reason
+for this is to retain a consistent state between a global module's minor
+mode setup and any local-module setup or major-mode hooks.  They must
+all witness the same value for the same variable.
+
+Revisiting the phony example above with this precedence quirk in mind,
+notice that the made-up variable @code{erc-bar} will be @code{2} in
+query buffers, @code{3} in channel buffers, and @code{5} in server
+buffers.  It's never @code{1} because the first binding opportunity
+occurs before connecting, when @code{erc-open-server-buffer-p} returns
+@code{nil}.  It's likewise never @code{4} because that binding appears
+lower in the list than those for @code{2} and @code{3}.  For more on
+this behavior, see the very last example below.
+
+When it comes to binding the option @code{erc-modules}, @samp{settings}
+must make special accommodations.  Getting it right may take some trial
+and error, and it's only guaranteed to work for local modules because
+most global ones share state among all sessions.  However, it's fine to
+include global modules in an @code{erc-modules} binding as long as they
+also appear in the @code{default-value}.  To set @code{erc-modules} for
+a specific server buffer, specify an entry like
+
+@lisp
+("[.]libera[.]chat:"
+ (erc-modules (seq-union '(sasl keep-place-indicator) erc-modules)
+              :eval)
+ (erc-sasl-user :nick))
+@end lisp
+
+@noindent
+Here, the match condition is a regexp matching a dialed @acronym{TCP}
+address because server buffers typically have these as temporary names
+while connecting.  As mentioned, ERC later renames them to reflect a
+discovered network, after which @samp{settings} binds any matching
+unbound options.
+
+A session's target buffers normally share the @code{erc-modules} value
+bound locally in their server buffer.  To specify a separate, overriding
+set of modules for certain target buffers, use a condition that only
+applies to them:
+
+@lisp
+((and (network . Libera.Chat) erc-channel-buffer-p)
+ (erc-modules (seq-union '(fill-wrap) erc-modules) :eval))
+@end lisp
+
+@noindent
+This is often unnecessary because local modules that only operate in one
+kind of buffer tend to disable themselves elsewhere.  And some, like
+@samp{keep-place-indicator}, offer an option to restrict activation
+based on buffer type.
+
+@anchor{Settings Examples}
+@subsection Settings Examples
+@cindex settings, examples
+
+A typical setup might include configuration for two networks, one that
+uses @acronym{SASL} to authenticate and another that uses a server
+password.
+
+@lisp
+(setopt erc-modules
+        `(settings ,@@erc-modules) ; assuming `erc' is loaded
+
+        erc-settings
+        ;; Pre-connect and server buffer config for @samp{Libera.Chat}.
+        '(("libera\\.chat:"
+           (erc-prompt "Libera>")
+           (erc-autojoin-channels-alist ((Libera.Chat "##jrh")))
+           (erc-header-line-format "%n on %S (%m, %l)")
+           (erc-sasl-user :nick)
+           (erc-modules `(sasl ,@@erc-modules) :eval))
+
+          ;; Channel buffer config for @samp{Libera.Chat}.
+          ((and (network . Libera.Chat) erc-channel-buffer-p)
+           (erc-modules `(keep-place-indicator ,@@erc-modules) :eval)
+           (erc-prompt erc-prompt-format)
+           (erc-prompt-format "%c%b>")
+           (erc-header-line-format "%t: %o"))
+
+          ;; Query buffer configuration for any network.
+          (erc-query-buffer-p
+           (erc-prompt erc-prompt-format)
+           (erc-prompt-format "%S>")
+           (erc-header-line-format nil))
+
+          ;; Pre-connect and server-buffer config for @samp{OFTC}.
+          ("oftc\\.net:"
+           (erc-prompt "OFTC!")
+           (erc-modules `(nicks ,@@erc-modules) :eval))))
+@end lisp
+
+@noindent
+Note that the pre-connection config described in the last entry can't
+use the @dfn{global module} @samp{services} because it's incompatible
+with the @dfn{local module} @samp{sasl}, needed for Libera by the first
+entry.  In this scenario, instead of a server password, the @samp{OFTC}
+connection could alternatively use @dfn{CertFP} via auth-source (see
+next example).
+
+@anchor{ID-based Settings Example}
+@subsubsection ID-based
+@cindex settings, examples, id-based
+
+New users coming from traditional IRC clients often express a desire to
+store connection details alongside other per-network or per-connection
+configuration.  Although ERC was designed to keep these concerns
+separate, the @samp{settings} module can emulate that experience to some
+degree.
+
+@lisp
+(setopt erc-modules
+        `(settings ,@@erc-modules)
+
+        erc-settings
+        ;; Connection details common to both @samp{Libera.Chat} IDs.
+        '(((and (or (id . lib-jrh) (id . lib-jrbot))
+                (not erc-server-process-alive))
+           (erc-server "irc.libera.chat")
+           (erc-port 6697)
+           (erc-modules `(sasl ,@@erc-modules) :eval))
+
+          ;; Connection details for account @samp{jrh}.
+          ((and (id . lib-jrh) (not erc-server-process-alive))
+           (erc-nick "jrh")
+           (erc-user-full-name "J. Random Hacker")
+           (erc-email-userid "jrh")
+           (erc-autojoin-channels-alist ((lib-jrh "##jrh"))))
+
+          ;; Connection details for account @samp{jrbot}.
+          ((and (id . lib-jrbot) (not erc-server-process-alive))
+           (erc-nick "jrbot")
+           (erc-email-userid "jrbot")
+           (erc-user-full-name "J.R. Bot (jrh's bot)")
+           (erc-sasl-auth-source-function erc-auth-source-function)
+           (erc-autojoin-channels-alist ((lib-jrbot "##jrh" "##jrbot"))))
+
+          ;; Non-connection opts for both @samp{Libera.Chat} sessions.
+          ((and (network . Libera.Chat) erc-open-server-buffer-p)
+           (erc-prompt "libera>")
+           (erc-header-line-format "%n on %S (%m, %l)"))
+          ((and (network . Libera.Chat) erc-channel-buffer-p)
+           (erc-modules `(keep-place-indicator ,@@erc-modules) :eval)
+           (erc-prompt erc-prompt-format)
+           (erc-prompt-format "%c%b>")
+           (erc-header-line-format "%t: %o"))
+
+          ;; Server details for @samp{OFTC}.
+          ((and (id . oftc) (target . nil))
+           (erc-server "irc.oftc.net")
+           (erc-port 6697)
+           (erc-nick "jrh")
+           (erc-email-userid "jrh")
+           (erc-user-full-name "J. Random Hacker")
+           (network-stream-use-client-certificates t)
+           (erc-modules `(services-regain ,@@erc-modules) :eval)
+           (erc-prompt "jrh@@OFTC!"))))
+
+(defun my-erc-up (id)
+  "Connect to preconfigured session identified by ID."
+  (interactive "SNet id: ")
+  (erc-tls :server nil
+           :port nil
+           :nick nil
+           :user nil
+           :password nil
+           :full-name nil
+           :id network-id))
+@end lisp
+
+@noindent
+With a setup like the above, you can connect to a predefined session by
+supplying an identifying symbol, like @code{lib-jrh}, along with the
+@var{ID} keyword parameter to the entry-point command @code{erc-tls}.
+The main gotcha when using these identifiers is that a regexp targeting
+a dialed @acronym{TCP} address, like
+@code{"\\`irc[.]libera[.]chat:6697\\'"}, won't work for conditions like
+the first one above because server buffers receive permanent names
+immediately upon creation, long before connecting.  Instead, you'll want
+to specify a chosen identifier via the @samp{(id . <symbol>)} pattern
+and likely qualify it with another subcondition, like @code{(not
+erc-server-process-alive)}, to ensure that the @code{erc-modules}
+binding only matches the server buffer and not any target buffers.
+Equivalent qualifying subconditions would be @code{(not erc-target)} and
+@code{(target . nil)}.
+
+Regarding authentication, notice that the @samp{lib-jrbot} connection
+retrieves its @acronym{SASL} credentials, which might be a client
+certificate, via auth-source, while session @samp{lib-jrh} prompts you
+interactively for a password.  (@xref{SASL, SASL in ERC}.)  The
+@samp{oftc} connection also uses auth-source to supply its credentials,
+this time for non-@acronym{SASL} client-cert (@dfn{CertFP})
+authentication.  Lastly, in the scenario above, a user would need to run
+@kbd{M-x my-erc-up @key{RET}} instead of @kbd{M-x erc @key{RET}} when
+connecting to IRC.  For convenience, ERC provides a similar command:
+
+@defun erc-settings-connect-by-id network-id
+Prompt the user and provide completion for some @samp{(id . <symbol>)}
+appearing in their @code{erc-settings}, and specify it as the argument
+to the @var{ID} keyword parameter when invoking @code{erc-tls}.
+@end defun
+
+With both traditional and ID-based setups, it's often more convenient to
+define less exclusive, more ``overlapping'' match conditions:
+
+@lisp
+(use-package erc-settings
+  :custom
+  (erc-settings
+   '(((not erc-server-process-alive) ; common to all servers
+      (erc-nick "jrh")
+      (erc-port 6697)
+      (erc-email-userid "jrh")
+      (erc-user-full-name "J. Random Hacker"))
+
+     (erc-channel-buffer-p ; all channels
+      (erc-modules `(keep-place-indicator ,@@erc-modules) :eval))
+
+     ((id . id-libera) ; Libera.Chat only, including targets
+      (erc-server "irc.libera.chat")
+      (erc-sasl-password "changeme")
+      (erc-modules `(sasl ,@@erc-modules) :eval)
+      (erc-prompt erc-prompt-format)
+      (erc-autojoin-channels-alist ((id-foonet "#erc"))))
+
+     ((id . id-oftc) ; OFTC only, including targets
+      (erc-server "irc.oftc.net")
+      (erc-modules `(fill-wrap ,@@erc-modules) :eval)
+      (erc-autojoin-channels-alist ((id-barnet "##jrh")))))))
+@end lisp
+
+If you go this route, know that @samp{settings} will often create local
+bindings in buffers where they're not applicable.  In the above example,
+buffer @file{#erc} on @samp{Libera.Chat} will have @code{erc-server} and
+@code{erc-sasl-password} bound locally for no reason.  In most cases,
+this is perfectly harmless.
+
+A final thing to notice about the example above is that the
+@code{erc-modules} binding in the second group, the one with match
+condition @code{erc-channel-buffer-p}, effectively @dfn{shadow}s that
+same variable in all remaining settings affecting channel buffers.  If
+it instead appeared at the end of the list, ERC would skip its
+@code{erc-modules} binding because the variable would already be locally
+bound.  But, as is, both @file{##jrh} on @samp{OFTC} and @file{#erc} on
+@samp{Libera.Chat} activate @samp{keep-place-indicator} but not
+@samp{fll-wrap}.  Server buffer @file{id-oftc} has only @samp{fll-wrap},
+and server buffer @file{id-libera} has neither.  And, if you were to
+receive a query from @samp{alice} on @samp{OFTC}, buffer @file{alice}
+would only have @samp{fill-wrap} but not @samp{keep-place-indicator}
+because it's a non-channel on @samp{OFTC}.
 
 
 @node Advanced Usage
@@ -1518,6 +1902,11 @@ authenticate successfully.
 
 @item
 Multiple networks
+
+If you use the @samp{settings} module, introduced in ERC 5.7, please
+refer to that section's guide for a more modern, config-based approach
+to specifying buffer-local @acronym{SASL} options (@pxref{Settings
+Examples}).
 
 @example
 # ~/.authinfo.gpg
