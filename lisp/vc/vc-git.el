@@ -739,9 +739,9 @@ or an empty string if none."
   "RET"     #'push-button)
 
 (defconst vc-git-stash-shared-help
-  "\\<vc-git-stash-shared-map>\\[vc-git-stash]: Create named stash\n\\[vc-git-stash-snapshot]: Snapshot stash")
+  "\\<vc-git-stash-shared-map>\\[vc-git-stash]: Create named stash\n\\[vc-git-stash-snapshot]: Snapshot: stash from current tree")
 
-(defconst vc-git-stash-list-help (concat "\\<vc-git-stash-map>mouse-3: Show stash menu\n\\[vc-git-stash-show-at-point], =: Show stash\n\\[vc-git-stash-apply-at-point]: Apply stash\n\\[vc-git-stash-pop-at-point]: Apply and remove stash (pop)\n\\[vc-git-stash-delete-at-point]: Delete stash\n"
+(defconst vc-git-stash-list-help (concat "\\<vc-git-stash-map>mouse-3: Show stash menu\n\\[vc-git-stash-show-at-point], =: Show stash\n\\[vc-git-stash-apply-at-point]: Apply stash\n\\[vc-git-stash-pop-at-point]: Apply and remove stash (pop)\n\\[vc-git-stash-delete-at-point]: Delete (drop) stash\n"
                                          vc-git-stash-shared-help))
 
 (defun vc-git--make-button-text (show count1 count2)
@@ -779,19 +779,19 @@ or an empty string if none."
   (let ((map (make-sparse-keymap "Git Stash")))
     (define-key map [sn]
       '(menu-item "Snapshot Stash" vc-git-stash-snapshot
-		  :help "Snapshot stash"))
+		  :help "Create stash from the current tree state"))
     (define-key map [cr]
       '(menu-item "Create Named Stash" vc-git-stash
 		  :help "Create named stash"))
     (define-key map [de]
       '(menu-item "Delete Stash" vc-git-stash-delete-at-point
-		  :help "Delete the current stash"))
+		  :help "Delete (drop) the current stash"))
     (define-key map [ap]
       '(menu-item "Apply Stash" vc-git-stash-apply-at-point
 		  :help "Apply the current stash and keep it in the stash list"))
     (define-key map [po]
       '(menu-item "Apply and Remove Stash (Pop)" vc-git-stash-pop-at-point
-		  :help "Apply the current stash and remove it"))
+		  :help "Apply the current stash and remove it (pop)"))
     (define-key map [sh]
       '(menu-item "Show Stash" vc-git-stash-show-at-point
 		  :help "Show the contents of the current stash"))
