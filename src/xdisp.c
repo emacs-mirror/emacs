@@ -13413,18 +13413,22 @@ clear_message (bool current_p, bool last_displayed_p)
   message_buf_print = false;
 }
 
-/* Clear garbaged frames.
+/* Clear garbaged frames.  Value is true if current matrices have been
+   cleared on at least one tty frame.  This information is needed to
+   determine if more than one window has to be updated on ttys, whose
+   update requires building a frame matrix from window matrices.
 
    This function is used where the old redisplay called
    redraw_garbaged_frames which in turn called redraw_frame which in
    turn called clear_frame.  The call to clear_frame was a source of
    flickering.  I believe a clear_frame is not necessary.  It should
    suffice in the new redisplay to invalidate all current matrices,
-   and ensure a complete redisplay of all windows.  */
+   and ensure a complete redisplay of all windows. */
 
-static void
+static bool
 clear_garbaged_frames (void)
 {
+  bool current_matrices_cleared = false;
   if (frame_garbaged)
     {
       Lisp_Object tail, frame;
@@ -13446,6 +13450,8 @@ clear_garbaged_frames (void)
 		redraw_frame (f);
 	      else
 		clear_current_matrices (f);
+	      if (is_tty_frame (f))
+		current_matrices_cleared = true;
 
 #ifdef HAVE_WINDOW_SYSTEM
               if (FRAME_WINDOW_P (f)
@@ -13460,6 +13466,8 @@ clear_garbaged_frames (void)
 
       frame_garbaged = false;
     }
+
+  return current_matrices_cleared;
 }
 
 
@@ -17092,7 +17100,7 @@ redisplay_internal (void)
   do_pending_window_change (true);
 
   /* Clear frames marked as garbaged.  */
-  clear_garbaged_frames ();
+  bool current_matrices_cleared = clear_garbaged_frames ();
 
   /* Build menubar and tool-bar items.  */
   if (NILP (Vmemory_full))
@@ -17183,7 +17191,8 @@ redisplay_internal (void)
   overlay_arrows_changed_p (true);
 
   consider_all_windows_p = (update_mode_lines
-			    || windows_or_buffers_changed);
+			    || windows_or_buffers_changed
+			    || current_matrices_cleared);
 
 #define AINC(a,i)							\
   {									\
