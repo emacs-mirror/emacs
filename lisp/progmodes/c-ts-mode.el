@@ -403,6 +403,12 @@ PARENT is its parent."
               (treesit-node-start parent)
               (line-end-position))))))
 
+(defun c-ts-mode--parent-is-not-top-compound (_n parent &rest _)
+  "Matches when PARENT is not the top level compound statement.
+The top-level compound is the {} that immediately follows the function
+signature."
+  (not (equal "function_definition" (treesit-node-type (treesit-node-parent parent)))))
+
 (defun c-ts-mode--indent-styles (mode)
   "Indent rules supported by `c-ts-mode'.
 MODE is either `c' or `cpp'."
@@ -479,6 +485,7 @@ MODE is either `c' or `cpp'."
            ;; Closing bracket.  This should be before initializer_list
            ;; (and probably others) rule because that rule (and other
            ;; similar rules) will match the closing bracket.  (Bug#61398)
+           ((and (node-is "}") c-ts-mode--parent-is-not-top-compound) parent-bol 0)
            ((node-is "}") standalone-parent 0)
            ,@(when (eq mode 'cpp)
                '(((node-is "access_specifier") parent-bol 0)
@@ -498,6 +505,8 @@ MODE is either `c' or `cpp'."
            ((parent-is "field_declaration_list") c-ts-mode--anchor-prev-sibling 0)
 
            ;; Statement in {} blocks.
+           ((and (parent-is "compound_statement") c-ts-mode--parent-is-not-top-compound)
+            parent-bol c-ts-mode-indent-offset)
            ((or (and (parent-is "compound_statement")
                      ;; If the previous sibling(s) are not on their
                      ;; own line, indent as if this node is the first

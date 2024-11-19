@@ -223,6 +223,36 @@ make_pair(int long_identifier_a[], int long_identifier_b[],
 
 =-=-=
 
+Name: Compound Statement after code
+
+=-=
+#define IOTA(var, n) for (int var = 0; var != (n); ++var)
+int main()
+{
+IOTA (v, 10) {
+printf("%d ", v);
+}
+
+const char *msg = "Hello, world!"; {
+puts("Hello, world!");
+}
+}
+
+=-=
+#define IOTA(var, n) for (int var = 0; var != (n); ++var)
+int main()
+{
+  IOTA (v, 10) {
+    printf("%d ", v);
+  }
+
+  const char *msg = "Hello, world!"; {
+    puts("Hello, world!");
+  }
+}
+
+=-=-=
+
 Name: Switch-Case statement
 
 =-=
