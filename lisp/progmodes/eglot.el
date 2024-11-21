@@ -279,7 +279,7 @@ automatically)."
     (elm-mode . ("elm-language-server"))
     (mint-mode . ("mint" "ls"))
     ((kotlin-mode kotlin-ts-mode) . ("kotlin-language-server"))
-    ((go-mode go-dot-mod-mode go-dot-work-mode go-ts-mode go-mod-ts-mode)
+    ((go-mode go-dot-mod-mode go-dot-work-mode go-ts-mode go-mod-ts-mode go-work-ts-mode)
      . ("gopls"))
     ((R-mode ess-r-mode) . ("R" "--slave" "-e"
                             "languageserver::run()"))

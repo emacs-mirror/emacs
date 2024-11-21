@@ -1,0 +1,16 @@
+Code:
+  (lambda ()
+    (go-mod-ts-mode)
+    (indent-region (point-min) (point-max)))
+
+Point-Char: |
+
+Name: Basic
+
+=-=
+require (
+	gnu.org/go/package1 v1.0.0
+	gnu.org/go/package2 v1.0.0
+)
+
+=-=-=

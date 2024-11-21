@@ -1474,6 +1474,12 @@ means of the GDI+ library.
 In addition to ':file FILE' for playing a sound from a file, ':data
 DATA' can now be used to play a sound from memory.
 
+---
+** New major mode 'go-work-ts-mode'.
+A major mode based on the tree-sitter library for editing "go.work"
+files.  If tree-sitter is properly set-up by the user, it can be
+enabled for files named "go.work".
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.

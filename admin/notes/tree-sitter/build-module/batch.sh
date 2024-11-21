@@ -11,6 +11,7 @@ languages=(
     'elixir'
     'go'
     'go-mod'
+    'go-work'
     'heex'
     'html'
     'java'

@@ -1,0 +1,16 @@
+Code:
+  (lambda ()
+    (go-work-ts-mode)
+    (indent-region (point-min) (point-max)))
+
+Point-Char: |
+
+Name: Basic
+
+=-=
+use (
+	./package1
+	./package2
+)
+
+=-=-=
