@@ -224,6 +224,8 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 (defvar libgnutls-version)              ; gnutls.c
 
+(defvar tree-sitter--library-abi)       ; treesit.c
+
 ;;; Set default known names for external libraries
 (setq dynamic-library-alist
       (list
