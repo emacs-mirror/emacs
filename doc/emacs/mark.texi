@@ -112,7 +112,8 @@ to @code{set-mark-command}, so unless you are unlucky enough to have
 a text terminal that behaves differently, you might as well think of
 @kbd{C-@@} as @kbd{C-@key{SPC}}.}.  This sets the mark where point is,
 and activates it.  You can then move point away, leaving the mark
-behind.
+behind.  If the mark is already set where point is, this command doesn't
+set another mark, but only activates the existing mark.
 
   For example, suppose you wish to convert part of the buffer to upper
 case.  To accomplish this, go to one end of the desired text, type
@@ -397,6 +398,11 @@ previous mark setting.  Hence, the global mark ring records a sequence
 of buffers that you have been in, and, for each buffer, a place where
 you set the mark.  The length of the global mark ring is controlled by
 @code{global-mark-ring-max}, and is 16 by default.
+
+  Note that a mark is recorded in the global mark ring only when some
+command sets the mark.  If an existing mark is merely activated, as is
+the case when you use @kbd{C-@key{SPC}} where a mark is already set
+(@pxref{Setting Mark}), that doesn't push the mark onto the global ring.
 
 @kindex C-x C-SPC
 @findex pop-global-mark
