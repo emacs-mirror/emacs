@@ -1506,13 +1506,13 @@ An example of a type descriptor is any instance of
 
 A type specifier is an expression that denotes a type.  A type
 represents a set of possible values.  Type specifiers can be classified
-in primitives and compounds.
+into primitive types and compound types.
 
-Type specifiers are in use for several purposes including: documenting
+Type specifiers are in use for several purposes, including: documenting
 function interfaces through declaration (@pxref{Declare Form}),
 specifying structure slot values (@pxref{Structures,,, cl, Common Lisp
 Extensions for GNU Emacs Lisp}), type-checking through @code{cl-the}
-(@pxref{Declarations,,, cl, Common Lisp Extensions for GNU Emacs Lisp})
+(@pxref{Declarations,,, cl, Common Lisp Extensions for GNU Emacs Lisp}),
 and others.
 
 @table @asis
@@ -1521,7 +1521,7 @@ Primitive types specifiers are the basic types (i.e.@: not composed by other
 type specifiers).
 
 Built-in primitive types (like @code{integer}, @code{float},
-@code{string} etc) are listed in @ref{Type Hierarchy}.
+@code{string} etc.@:) are listed in @ref{Type Hierarchy}.
 
 @item Compound type specifiers
 Compound types serve the purpose of defining more complex or precise
@@ -1530,55 +1530,59 @@ type specifications by combining or modifying simpler types.
 List of compound type specifiers:
 
 @table @code
-@item (or @var{type-1} .. @var{type-n})
+@item (or @var{type-1} @dots{} @var{type-n})
 The @code{or} type specifier describes a type that satisfies at least
 one of the given types.
 
-@item (and @var{type-1} .. @var{type-n})
+@item (and @var{type-1} @dots{} @var{type-n})
 Similarly the @code{and} type specifier describes a type that satisfies
-all the given types.
+all of the given types.
 
 @item (not @var{type})
 The @code{not} type specifier defines any type except the specified one.
 
-@item (member @var{value-1} .. @var{value-n})
+@item (member @var{value-1} @dots{} @var{value-n})
 The @code{member} type specifier allows to specify a type that includes
 only the explicitly listed values.
 
-@item (function (@var{arg-1-type} ... @var{arg-n-type}) @var{return-type})
+@item (function (@var{arg-1-type} @dots{} @var{arg-n-type}) @var{return-type})
 The @code{function} type specifier is used to describe the argument
-types and return type of a function.  Argument types can be interleaved
+types and the return type of a function.  Argument types can be interleaved
 with symbols @code{&optional} and @code{&rest} to match the function's
 arguments (@pxref{Argument List}).
 
-The following is to represent a function with: a first parameter of type
-@code{symbol}, a second optional parameter of type @code{float} and
-returning an @code{integer}:
+The type specifier represent a function whose first parameter is of type
+@code{symbol}, the second optional parameter is of type @code{float},
+and which returns an @code{integer}:
+
 @example
-(function (symbol &optional float) integer)
+ (function (symbol &optional float) integer)
 @end example
 
 @item (integer @var{lower-bound} @var{upper-bound})
-
-@code{integer} can be used as well as a compound type specifier to
-define a subset of integers by specifying a range.  This allows to
-precisely control which integers are valid for a given type.
+The @code{integer} type specifier can also be used as a compound type
+specifier to define a subset of integer values by specifying a range.
+This allows to precisely control which integers are valid for a given
+type.
 
 @var{lower-bound} is the minimum integer value in the range and
-@var{upper-bound} the maximum.  It is possible to use @code{*} to
-indicate no lower or uper limit.
+@var{upper-bound} the maximum.  You can use @code{*} instead of the
+lower or upper bound to indicate no limit.
 
-The following represents all integers from -10 to 10.
+The following represents all integers from -10 to 10:
+
 @example
 (integer -10 10)
 @end example
 
-The following represents 10.
+The following represents the single value of 10:
+
 @example
 (integer 10 10)
 @end example
 
-The following represents all integers from negative infinity to 10.
+The following represents all the integers from negative infinity to 10:
+
 @example
 (integer * 10)
 @end example

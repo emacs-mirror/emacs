@@ -2734,7 +2734,7 @@ generation and for deriving more precisely the type of other functions
 without type declaration.
 
 @var{type} is a @dfn{type specifier} (@pxref{Type Specifiers}) in the
-form @w{@code{(function (@var{arg-1-type} ... @var{arg-n-type})
+form @w{@code{(function (@var{arg-1-type} @dots{} @var{arg-n-type})
 RETURN-TYPE)}}.  Argument types can be interleaved with symbols
 @code{&optional} and @code{&rest} to match the function's arguments
 (@pxref{Argument List}).
