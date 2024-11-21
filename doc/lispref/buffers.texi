@@ -1000,6 +1000,12 @@ Satisfied if the buffer's major mode is equal to @var{expr}.  Prefer
 using @code{derived-mode} instead, when both can work.  Note that this
 condition might fail to report a match if @code{buffer-match-p} is
 invoked before the major mode of the buffer has been established.
+@item category
+This is pertinent only when this function is called by
+@code{display-buffer} (@pxref{Buffer Display Action Alists}), and is
+satisfied if the action alist with which @code{display-buffer} was
+called includes @w{@code{(category . @var{expr})}} in the value of its
+@var{action} argument.  @xref{Buffer Display Action Alists}.
 @end table
 @item t
 Satisfied by any buffer.  A convenient alternative to @code{""} (empty

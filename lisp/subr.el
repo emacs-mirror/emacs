@@ -7447,9 +7447,10 @@ CONDITION is either:
   * `major-mode': the buffer matches if the buffer's major mode
     is eq to the cons-cell's cdr.  Prefer using `derived-mode'
     instead when both can work.
-  * `category': the buffer matches a category as a symbol if
-    the caller of `display-buffer' provides `(category . symbol)'
-    in its action argument.
+  * `category': when this function is called from `display-buffer',
+    the buffer matches if the caller of `display-buffer' provides
+    `(category . SYMBOL)' in its ACTION argument, and SYMBOL is `eq'
+    to the cons-cell's cdr.
   * `not': the cadr is interpreted as a negation of a condition.
   * `and': the cdr is a list of recursive conditions, that all have
     to be met.
