@@ -1488,19 +1488,20 @@ the code is C or C++, and based on that chooses whether to enable
            'c-ts-mode)))
     (funcall (major-mode-remap mode))))
 
-;; The entries for C++ must come first to prevent *.c files be taken
-;; as C++ on case-insensitive filesystems, since *.C files are C++,
-;; not C.
-(if (treesit-ready-p 'cpp)
-    (add-to-list 'major-mode-remap-defaults
-                 '(c++-mode . c++-ts-mode)))
+(when (treesit-ready-p 'cpp)
+  (setq major-mode-remap-defaults
+        (assq-delete-all 'c++-mode major-mode-remap-defaults))
+  (add-to-list 'major-mode-remap-defaults '(c++-mode . c++-ts-mode)))
 
 (when (treesit-ready-p 'c)
-  (add-to-list 'major-mode-remap-defaults '(c++-mode . c++-ts-mode))
+  (setq major-mode-remap-defaults
+        (assq-delete-all 'c-mode major-mode-remap-defaults))
   (add-to-list 'major-mode-remap-defaults '(c-mode . c-ts-mode)))
 
 (when (and (treesit-ready-p 'cpp)
            (treesit-ready-p 'c))
+  (setq major-mode-remap-defaults
+        (assq-delete-all 'c-or-c++-mode major-mode-remap-defaults))
   (add-to-list 'major-mode-remap-defaults '(c-or-c++-mode . c-or-c++-ts-mode)))
 
 (provide 'c-ts-mode)
