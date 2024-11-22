@@ -810,6 +810,18 @@ Mostly we check word delimiters."
              (let ((pos (point)))
                (or (>= pos start) (<= pos stop) (= pos (1+ stop))))))))
 
+(defcustom flyspell-delay-use-timer nil
+  "Whether Flyspell should use a timer for waiting after a delayed command.
+
+If this is non-nil, Flyspell sets up a timer for checking the word at
+point `flyspell-delay' seconds after you invoke a delayed command.
+Otherwise, if this option is nil, Flyspell uses `sit-for' to wait for
+that duration instead."
+  :type 'boolean
+  :version "31.1")
+
+(defvar flyspell--timer nil)
+
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-check-word-p ...                                        */
 ;;*---------------------------------------------------------------------*/
@@ -844,7 +856,15 @@ Mostly we check word delimiters."
 	;; The current command is not delayed, that
 	;; is that we must check the word now.
 	(and (not unread-command-events)
-	     (sit-for flyspell-delay)))
+             (if (not flyspell-delay-use-timer)
+                 (sit-for flyspell-delay)
+               (setq flyspell--timer
+                     (run-with-idle-timer
+                      flyspell-delay nil
+                      (lambda (buffer)
+                        (when (eq (current-buffer) buffer) (flyspell-word)))
+                      (current-buffer)))
+               nil)))
        (t t)))
      (t t))))
 
@@ -955,6 +975,7 @@ Mostly we check word delimiters."
 (defun flyspell-post-command-hook ()
   "The `post-command-hook' used by flyspell to check a word on-the-fly."
   (interactive)
+  (when (timerp flyspell--timer) (cl-callf cancel-timer flyspell--timer))
   (when flyspell-mode
     (with-local-quit
       (let ((command this-command)
@@ -1179,7 +1200,7 @@ spell-check."
 		  (set-process-query-on-exit-flag ispell-process nil)
                   ;; Wait until ispell has processed word.
                   (while (progn
-                           (accept-process-output ispell-process)
+                           (accept-process-output ispell-process 1)
                            (not (string= "" (car ispell-filter)))))
                   ;; (ispell-send-string "!\n")
                   ;; back to terse mode.

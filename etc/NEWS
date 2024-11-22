@@ -498,6 +498,17 @@ the 'mutool' program after their initial conversion to PDF format.  The
 name of the 'djvused' program can be customized by changing the user
 option 'doc-view-djvused-program'.
 
+** Flyspell
+
+---
+*** New user option 'flyspell-delay-use-timer'.
+By default, Flyspell waits after so-called "delayed" commands by calling
+'sit-for'.  If you customize this option to non-nil, Flyspell instead
+sets up a timer to perform spell-checking after a short delay, which
+allows idle timers and other code to run during this delay period.  We
+consider making this behavior the default in a future Emacs version, so
+we invite Flyspell users to enable this new option and report issues.
+
 ** Tramp
 
 +++
