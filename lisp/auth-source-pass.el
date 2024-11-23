@@ -195,10 +195,15 @@ See `auth-source-pass-get'."
 (defun auth-source-pass--read-entry (entry)
   "Return a string with the file content of ENTRY."
   (with-temp-buffer
-    (insert-file-contents (expand-file-name
-                           (format "%s.gpg" entry)
-                           auth-source-pass-filename))
-    (buffer-substring-no-properties (point-min) (point-max))))
+    ;; `file-name-handler-alist' could be nil, or miss the
+    ;; `epa-file-handler' entry.  We ensure, that it does exist.
+    ;; (Bug#67937)
+    (let ((file-name-handler-alist
+           (cons epa-file-handler file-name-handler-alist)))
+      (insert-file-contents (expand-file-name
+                             (format "%s.gpg" entry)
+                             auth-source-pass-filename))
+      (buffer-substring-no-properties (point-min) (point-max)))))
 
 (defun auth-source-pass-parse-entry (entry)
   "Return an alist of the data associated with ENTRY.
