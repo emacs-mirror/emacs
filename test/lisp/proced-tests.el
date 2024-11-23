@@ -114,6 +114,8 @@ CPU is as in `proced--assert-process-valid-cpu-refinement'."
      (proced--assert-emacs-pid-in-buffer))))
 
 (ert-deftest proced-refine-test ()
+  ;; %CPU is not implemented on macOS
+  (skip-when (eq system-type 'darwin))
   (proced--within-buffer
    'verbose
    'user
@@ -127,6 +129,7 @@ CPU is as in `proced--assert-process-valid-cpu-refinement'."
        (forward-line)))))
 
 (ert-deftest proced-refine-with-update-test ()
+  (skip-when (eq system-type 'darwin))
   (proced--within-buffer
    'verbose
    'user

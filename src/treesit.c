@@ -4516,4 +4516,15 @@ applies to LANGUAGE-A will be redirected to LANGUAGE-B instead.  */);
   defsubr (&Streesit_subtree_stat);
 #endif /* HAVE_TREE_SITTER */
   defsubr (&Streesit_available_p);
+#ifdef WINDOWSNT
+  DEFSYM (Qtree_sitter__library_abi, "tree-sitter--library-abi");
+  Fset (Qtree_sitter__library_abi,
+#if HAVE_TREE_SITTER
+	make_fixnum (TREE_SITTER_LANGUAGE_VERSION)
+#else
+	make_fixnum (-1)
+#endif
+	);
+#endif
+
 }

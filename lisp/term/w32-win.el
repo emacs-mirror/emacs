@@ -247,6 +247,8 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 (defvar libgnutls-version)              ; gnutls.c
 
+(defvar tree-sitter--library-abi)       ; treesit.c
+
 ;;; Set default known names for external libraries
 (setq dynamic-library-alist
       (list
@@ -313,8 +315,18 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
        '(lcms2 "liblcms2-2.dll")
        '(gccjit "libgccjit-0.dll")
        ;; MSYS2 distributes libtree-sitter.dll, without API version
-       ;; number...
-       '(tree-sitter "libtree-sitter.dll" "libtree-sitter-0.dll")))
+       ;; number, upto and including version 0.24.3-2; later versions
+       ;; come with libtree-sitter-major.minor.dll (as in
+       ;; libtree-sitter-0.24.dll).  Sadly, the header files don't have
+       ;; any symbols for library version, so we can only use the
+       ;; library-language ABI version; according to
+       ;; https://github.com/tree-sitter/tree-sitter/issues/3925, the
+       ;; language ABI must change when the library's ABI is modified.
+       (if (<= tree-sitter--library-abi 14)
+           '(tree-sitter "libtree-sitter-0.24.dll"
+                         "libtree-sitter.dll"
+                         "libtree-sitter-0.dll")
+         '(tree-sitter "libtree-sitter-0.25.dll"))))
 
 ;;; multi-tty support
 (defvar w32-initialized nil

@@ -2733,10 +2733,11 @@ native compiler (@pxref{Native Compilation}) for improving code
 generation and for deriving more precisely the type of other functions
 without type declaration.
 
-@var{type} is a type specifier in the form @w{@code{(function
-(ARG-1-TYPE ... ARG-N-TYPE) RETURN-TYPE)}}.  Argument types can be
-interleaved with symbols @code{&optional} and @code{&rest} to match the
-function's arguments (@pxref{Argument List}).
+@var{type} is a @dfn{type specifier} (@pxref{Type Specifiers}) in the
+form @w{@code{(function (@var{arg-1-type} @dots{} @var{arg-n-type})
+RETURN-TYPE)}}.  Argument types can be interleaved with symbols
+@code{&optional} and @code{&rest} to match the function's arguments
+(@pxref{Argument List}).
 
 @var{function} if present should be the name of function being defined.
 

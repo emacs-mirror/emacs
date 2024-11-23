@@ -1604,6 +1604,12 @@ after switching back from another virtual desktop.  Setting the variable
 'x-set-frame-visibility-more-laxly' to one of 'focus-in', 'expose' or
 't' should fix this.
 
+*** Gnome desktop does not respect frame size specified in .Xresources
+
+This has been obeserved when running a GTK+ build of Emacs 29 from the
+launch pad on Ubuntu 24.04 with mutter as window manager.  The problem
+can be resolved by running Emacs from the command line instead.
+
 *** Gnome: Emacs receives input directly from the keyboard, bypassing XIM.
 
 This seems to happen when gnome-settings-daemon version 2.12 or later
