@@ -26407,7 +26407,7 @@ Optional argument FACE specifies the face to do the highlighting.
 ;;; Generated autoloads from progmodes/python.el
 
 (push (purecopy '(python 0 28)) package--builtin-versions)
-(defconst python--auto-mode-alist-regexp (rx (or (seq "." (or "py" "pth" "pyi" "pyw")) (seq "/" (or "SConstruct" "SConscript"))) eos))
+(defconst python--auto-mode-alist-regexp "\\(?:\\.\\(?:p\\(?:th\\|y[iw]?\\)\\)\\|/\\(?:SCons\\(?:\\(?:crip\\|truc\\)t\\)\\)\\)\\'")
 (add-to-list 'auto-mode-alist (cons python--auto-mode-alist-regexp 'python-mode))
 (add-to-list 'interpreter-mode-alist (cons (purecopy "python[0-9.]*") 'python-mode))
 (autoload 'run-python "python" "\

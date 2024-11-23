@@ -278,13 +278,15 @@
 
 ;;;###autoload
 (defconst python--auto-mode-alist-regexp
-  (rx (or
-       (seq "." (or "py"
-                    "pth"               ; Python Path Configuration File
-                    "pyi"               ; Python Stub File (PEP 484)
-                    "pyw"))             ; MS-Windows specific extension
-       (seq "/" (or "SConstruct" "SConscript"))) ; SCons Build Files
-      eos))
+  ;; (rx (or
+  ;;      (seq "." (or "py"
+  ;;                   "pth"               ; Python Path Configuration File
+  ;;                   "pyi"               ; Python Stub File (PEP 484)
+  ;;                   "pyw"))             ; MS-Windows specific extension
+  ;;      (seq "/" (or "SConstruct" "SConscript"))) ; SCons Build Files
+  ;;     eos)
+  "\\(?:\\.\\(?:p\\(?:th\\|y[iw]?\\)\\)\\|/\\(?:SCons\\(?:\\(?:crip\\|truc\\)t\\)\\)\\)\\'"
+  )
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist (cons python--auto-mode-alist-regexp 'python-mode))
