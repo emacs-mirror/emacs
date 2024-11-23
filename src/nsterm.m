@@ -9361,7 +9361,10 @@ ns_in_echo_area (void)
 
 - (void)createToolbar: (struct frame *)f
 {
-  if (FRAME_UNDECORATED (f) || !FRAME_EXTERNAL_TOOL_BAR (f) || [self toolbar] != nil)
+  if (FRAME_UNDECORATED (f)
+      || [self styleMask] == NSWindowStyleMaskBorderless
+      || !FRAME_EXTERNAL_TOOL_BAR (f)
+      || [self toolbar] != nil)
     return;
 
   EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
