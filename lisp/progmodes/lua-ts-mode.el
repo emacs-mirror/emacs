@@ -659,9 +659,9 @@ Calls REPORT-FN directly."
         (setq-local comint-input-ignoredups t
                     comint-input-ring-file-name lua-ts-inferior-history
                     comint-prompt-read-only t
-                    comint-prompt-regexp (rx-to-string `(: bol
-                                                           ,lua-ts-inferior-prompt
-                                                           (1+ space))))
+                    comint-prompt-regexp (rx bol
+                                             (literal lua-ts-inferior-prompt)
+                                             (1+ space)))
         (comint-read-input-ring t)
         (add-hook 'comint-preoutput-filter-functions
                   (lambda (string)
@@ -672,11 +672,11 @@ Calls REPORT-FN directly."
                        ;; accumulate in the output when sending regions
                        ;; to the inferior process.
                        (replace-regexp-in-string
-                        (rx-to-string `(: bol
-                                          (* ,lua-ts-inferior-prompt
-                                             (? ,lua-ts-inferior-prompt)
-                                             (1+ space))
-                                          (group (* nonl))))
+                        (rx bol
+                            (* (literal lua-ts-inferior-prompt)
+                               (? (literal lua-ts-inferior-prompt))
+                               (1+ space))
+                            (group (* nonl)))
                         "\\1" string)
                        ;; Re-add the prompt for the next line.
                        lua-ts-inferior-prompt " ")))
