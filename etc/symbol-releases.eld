@@ -10,6 +10,8 @@
 
 (
  ("28.1" fun always)
+ ("26.1" fun when-let*)
+ ("26.1" fun if-let*)
 
 ;; Since much of early Emacs source history is lost, these versions are
 ;; conservative estimates: the actual version of first appearance may very
