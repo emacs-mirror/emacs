@@ -466,8 +466,17 @@ ignored."
 (define-obsolete-variable-alias 'jrpc-default-request-timeout
   'jsonrpc-default-request-timeout "28.1")
 
-(defconst jsonrpc-default-request-timeout 10
-  "Time in seconds before timing out a JSONRPC request.")
+(defgroup jsonrpc nil
+  "JSON-RPC customization."
+  :prefix "jsonrpc-"
+  :group 'comm)
+
+(defcustom jsonrpc-default-request-timeout 10
+  "Time in seconds before timing out a JSON-RPC request without response."
+  :version "30.1"
+  :type 'number
+  :safe 'numberp
+  :group 'jsonrpc)
 
 
 ;;; Specific to `jsonrpc-process-connection'
