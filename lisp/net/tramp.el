@@ -1208,7 +1208,10 @@ See also `tramp-file-name-regexp'.")
 
 ;;;###autoload
 (defconst tramp-initial-file-name-regexp
-  (rx bos "/" (+ (not (any "/:"))) ":" (* (not (any "/:"))) ":")
+  ;; We shouldn't use `rx' in autoloaded objects, because we don't
+  ;; know whether it does exist already.  (Bug#74490)
+  ;; (rx bos "/" (+ (not (any "/:"))) ":" (* (not (any "/:"))) ":")
+  "\\`/[^/:]+:[^/:]*:"
   "Value for `tramp-file-name-regexp' for autoload.
 It must match the initial `tramp-syntax' settings.")
 
@@ -1287,7 +1290,10 @@ Also see `tramp-file-name-structure'.")
 ;;;###autoload
 (defconst tramp-autoload-file-name-regexp
   ;; The method is either "-", or at least two characters.
-  (rx bos "/" (| "-" (>= 2 (not (any "/:|")))) ":")
+  ;; We shouldn't use `rx' in autoloaded objects, because we don't
+  ;; know whether it does exist already.  (Bug#74490)
+  ;; (rx bos "/" (| "-" (>= 2 (not (any "/:|")))) ":")
+  "\\`/\\(?:-\\|[^/:|]\\{2,\\}\\):"
   "Regular expression matching file names handled by Tramp autoload.
 It must match the initial `tramp-syntax' settings.  It should not
 match file names at root of the underlying local file system,
