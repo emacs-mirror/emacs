@@ -255,11 +255,12 @@ face to apply)."
   :package-version '(which-key . "1.0") :version "30.1")
 
 (defcustom which-key-special-keys '()
-  "These keys will automatically be truncated to one character.
-They also have `which-key-special-key-face' applied to them.  This
-is disabled by default.  An example configuration is
+  "Keys which will be truncated to their first character.
+They also have `which-key-special-key-face' applied to them.  This is
+disabled by default.  Format is a list of strings, an example
+configuration is:
 
-\(setq which-key-special-keys \\='(\"SPC\" \"TAB\" \"RET\" \"ESC\" \"DEL\")\)"
+\(setopt which-key-special-keys \\='(\"SPC\" \"TAB\" \"RET\" \"ESC\" \"DEL\")\)"
   :type '(repeat string)
   :package-version '(which-key . "1.0") :version "30.1")
 
