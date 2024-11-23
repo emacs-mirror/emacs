@@ -188,15 +188,24 @@ See the end of the file for license conditions.
   where PACKAGES is the list of packages you want to install.  The
   full list is as follows:
 
-    mingw-w64-x86_64-giflib
-    mingw-w64-x86_64-gnutls
-    mingw-w64-x86_64-libjpeg-turbo
-    mingw-w64-x86_64-libpng
-    mingw-w64-x86_64-librsvg
-    mingw-w64-x86_64-libtiff
-    mingw-w64-x86_64-libxml2
+    base-devel
+    mingw-w64-x86_64-toolchain
     mingw-w64-x86_64-xpm-nox
+    mingw-w64-x86_64-gmp
+    mingw-w64-x86_64-gnutls
+    mingw-w64-x86_64-libtiff
+    mingw-w64-x86_64-giflib
+    mingw-w64-x86_64-libpng
+    mingw-w64-x86_64-libjpeg-turbo
+    mingw-w64-x86_64-librsvg
+    mingw-w64-x86_64-libwebp
     mingw-w64-x86_64-lcms2
+    mingw-w64-x86_64-libxml2
+    mingw-w64-x86_64-zlib
+    mingw-w64-x86_64-harfbuzz
+    mingw-w64-x86_64-libgccjit
+    mingw-w64-x86_64-sqlite3
+    mingw-w64-x86_64-libtree-sitter (or mingw-w64-x86_64-tree-sitter)
 
   You can type any subset of this list.  When asked whether to proceed
   with installation, answer Y.

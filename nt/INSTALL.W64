@@ -60,7 +60,7 @@ packages (you can copy and paste it into the shell with Shift + Insert):
   mingw-w64-x86_64-harfbuzz \
   mingw-w64-x86_64-libgccjit \
   mingw-w64-x86_64-sqlite3 \
-  mingw-w64-x86_64-tree-sitter
+  mingw-w64-x86_64-libtree-sitter (or mingw-w64-x86_64-tree-sitter)
 
 The packages include the base developer tools (autoconf, grep, make,
 etc.), the compiler toolchain (gcc, gdb, etc.), several image
