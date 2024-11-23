@@ -12,6 +12,11 @@
  ("28.1" fun always)
  ("26.1" fun when-let*)
  ("26.1" fun if-let*)
+ ("24.4" fun set-transient-map)
+ ("22.1" fun version=)
+ ("22.1" fun version<)
+ ("22.1" fun version<=)
+ ("22.1" fun read-number)
 
 ;; Since much of early Emacs source history is lost, these versions are
 ;; conservative estimates: the actual version of first appearance may very
@@ -20,11 +25,6 @@
 ;; damaged.  See
 ;; https://github.com/larsbrinkhoff/emacs-history/tree/sources/decuslib.com/decus/vax85b/gnuemax
 
- ("24.4" fun set-transient-map)
- ("22.1" fun version=)
- ("22.1" fun version<)
- ("22.1" fun version<=)
- ("22.1" fun read-number)
  ("19.7" fun defsubst)
  ("19.34" fun make-directory)
  ("18.59" fun mark)
