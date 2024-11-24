@@ -1254,9 +1254,6 @@ BEG and END are described in `treesit-range-rules'."
               `((c ,@c-ts-mode--thing-settings)
                 (cpp ,@c-ts-mode--thing-settings)))
 
-  ;; Nodes like struct/enum/union_specifier can appear in
-  ;; function_definitions, so we need to find the top-level node.
-  (setq-local treesit-defun-prefer-top-level t)
 
   ;; When the code is in incomplete state, try to make a better guess
   ;; about which node to indent against.
@@ -1346,6 +1343,9 @@ in your init files."
     ;; Font-lock.
     (setq-local treesit-font-lock-settings (c-ts-mode--font-lock-settings 'c))
     ;; Navigation.
+    ;;
+    ;; Nodes like struct/enum/union_specifier can appear in
+    ;; function_definitions, so we need to find the top-level node.
     (setq-local treesit-defun-tactic 'top-level)
     (treesit-major-mode-setup)
 

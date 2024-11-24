@@ -1198,9 +1198,6 @@ leading double colon is not added."
                                            (treesit-node-parent node))
                                           "interpolation"))))))))
 
-  ;; AFAIK, Ruby can not nest methods
-  (setq-local treesit-defun-prefer-top-level nil)
-
   ;; Imenu.
   (setq-local imenu-create-index-function #'ruby-ts--imenu)
 

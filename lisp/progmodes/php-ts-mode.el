@@ -1479,10 +1479,6 @@ Depends on `c-ts-common-comment-setup'."
                                   "statement")))
                    (text ,(regexp-opt '("comment" "text"))))))
 
-    ;; Nodes like struct/enum/union_specifier can appear in
-    ;; function_definitions, so we need to find the top-level node.
-    (setq-local treesit-defun-prefer-top-level t)
-
     ;; Indent.
     (when (eq php-ts-mode-indent-style 'wordpress)
       (setq-local indent-tabs-mode t))

@@ -462,7 +462,6 @@ This mode is intended to be inherited by concrete major modes."
 
   ;; Comments.
   (c-ts-common-comment-setup)
-  (setq-local treesit-defun-prefer-top-level t)
 
   ;; Electric
   (setq-local electric-indent-chars
