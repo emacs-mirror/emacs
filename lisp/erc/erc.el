@@ -4674,8 +4674,9 @@ node `(erc) auth-source'."
                   (list net erc-server-announced-name erc-session-server)))
          (ports (list (cl-typecase erc-session-port
                         (integer (number-to-string erc-session-port))
-                        (string (and (string= erc-session-port "irc")
-                                     erc-session-port)) ; or nil
+                        (string (and (not (member erc-session-port
+                                                  '("" "irc")))
+                                     erc-session-port))
                         (t erc-session-port))
                       "irc")))
     (list (cons :host (delq nil hosts))
