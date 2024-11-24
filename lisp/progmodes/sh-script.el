@@ -300,6 +300,18 @@ naming the shell."
 	(nil
 	 "^\\s-*\\([[:alpha:]_][[:alnum:]_]*\\)\\s-*()"
 	 1)))
+    ;; The difference between the Bash regular expression and the sh regular
+    ;; expression is that Bash also allows hyphens (-).
+    (bash
+     . ((nil
+         ;; function FOO
+         ;; function FOO()
+         "^\\s-*function\\s-+\\([[:alpha:]_][[:alnum:]_-]*\\)\\s-*\\(?:()\\)?"
+         1)
+        ;; FOO()
+        (nil
+         "^\\s-*\\([[:alpha:]_][[:alnum:]_-]*\\)\\s-*()"
+         1)))
     (mksh
      . ((nil
          ;; function FOO
