@@ -3515,8 +3515,7 @@ modification hooks)."
                     (add-text-properties (point-min) (1+ (point-min)) props)))
                 (erc--refresh-prompt)))))
         (run-hooks 'erc-insert-done-hook)
-        (erc-update-undo-list (- (or (marker-position (or erc--insert-marker
-                                                          erc-insert-marker))
+        (erc-update-undo-list (- (or erc--insert-marker erc-insert-marker
                                      (point-max))
                                  insert-position))))))
 
@@ -8200,10 +8199,9 @@ ERC prints them as a single message joined by newlines.")
                   ;; Fix the buffer if the command didn't kill it
                   (when (buffer-live-p old-buf)
                     (with-current-buffer old-buf
-                      (save-restriction
-                        (widen)
-                        (let ((buffer-modified (buffer-modified-p)))
-                          (set-buffer-modified-p buffer-modified))))))
+                      (setq buffer-undo-list nil)
+                      ;; `set-buffer-modified-p' used to do this here.
+                      (force-mode-line-update))))
 
                 ;; Only when last hook has been run...
                 (run-hook-with-args 'erc-send-completed-hook str)))
