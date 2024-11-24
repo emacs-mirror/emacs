@@ -4438,7 +4438,8 @@ already the major mode."
     ('eval
      (pcase val
        (`(add-hook ',hook . ,_) (hack-one-local-variable--obsolete hook)))
-     (save-excursion (eval val t)))
+     (let ((enable-local-variables nil)) ;FIXME: Should be buffer-local!
+       (save-excursion (eval val t))))
     (_
      (hack-one-local-variable--obsolete var)
      ;; Make sure the string has no text properties.
@@ -4484,6 +4485,21 @@ Returns the new list."
 	;; Need a new cons in case we setcdr later.
 	(push (cons variable value) variables)))))
 
+(defun dir-locals--load-mode-if-needed (key alist)
+  ;; If KEY is an extra parent it may remain not loaded
+  ;; (hence with some of its mode-specific vars missing their
+  ;; `safe-local-variable' property), leading to spurious
+  ;; prompts about unsafe vars (bug#68246).
+  (when (and (symbolp key) (autoloadp (indirect-function key)))
+    (let ((unsafe nil))
+      (pcase-dolist (`(,var . ,_val) alist)
+        (unless (or (memq var '(mode eval))
+                    (get var 'safe-local-variable))
+          (setq unsafe t)))
+      (when unsafe
+        (ignore-errors
+          (autoload-do-load (indirect-function key)))))))
+
 (defun dir-locals-collect-variables (class-variables root variables
                                                      &optional predicate)
   "Collect entries from CLASS-VARIABLES into VARIABLES.
@@ -4514,15 +4530,9 @@ to see whether it should be considered."
                   (funcall predicate key)
                 (or (not key)
                     (derived-mode-p key)))
-              ;; If KEY is an extra parent it may remain not loaded
-              ;; (hence with some of its mode-specific vars missing their
-              ;; `safe-local-variable' property), leading to spurious
-              ;; prompts about unsafe vars (bug#68246).
-              (if (and (symbolp key) (autoloadp (indirect-function key)))
-                  (ignore-errors (autoload-do-load (indirect-function key))))
               (let* ((alist (cdr entry))
                      (subdirs (assq 'subdirs alist)))
-                (if (or (not subdirs)
+                (when (or (not subdirs)
                         (progn
                           (setq alist (remq subdirs alist))
                           (cdr-safe subdirs))
@@ -4531,6 +4541,7 @@ to see whether it should be considered."
                         ;; variables apply to this directory and N levels
                         ;; below it (0 == nil).
                         (equal root (expand-file-name default-directory)))
+                  (dir-locals--load-mode-if-needed key alist)
                     (setq variables (dir-locals-collect-mode-variables
                                      alist variables))))))))
       (error
