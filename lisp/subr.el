@@ -2683,7 +2683,8 @@ binding."
   (declare (indent 2)
            (debug ([&or (symbolp form)  ; must be first, Bug#48489
                         (&rest [&or symbolp (symbolp form) (form)])]
-                   body)))
+                   body))
+           (obsolete if-let* "31.1"))
   (when (and (<= (length spec) 2)
              (not (listp (car spec))))
     ;; Adjust the single binding case
@@ -2696,12 +2697,10 @@ Evaluate each binding in turn, stopping if a binding value is nil.
 If all are non-nil, return the value of the last form in BODY.
 
 The variable list SPEC is the same as in `if-let'."
-  (declare (indent 1) (debug if-let))
-  (list 'if-let spec (macroexp-progn body)))
-
-(make-obsolete 'if-let 'if-let* "31.1")
-(make-obsolete 'when-let "use `when-let*' or `and-let*' instead."
-               "31.1")
+  (declare (indent 1) (debug if-let)
+           (obsolete "use `when-let*' or `and-let*' instead." "31.1"))
+  `(with-suppressed-warnings ((obsolete if-let))
+     (if-let ,spec ,(macroexp-progn body))))
 
 (defmacro while-let (spec &rest body)
   "Bind variables according to SPEC and conditionally evaluate BODY.
