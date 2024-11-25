@@ -5786,7 +5786,7 @@ weak_hash_remove_from_table (struct Lisp_Weak_Hash_Table *h, Lisp_Object key)
     {
       if (EQ (key, WEAK_HASH_KEY (h, i))
 	  || (h->strong->test->cmpfn
-	      && hashval == WEAK_HASH_HASH (h, i)
+	      && EQ (hashval, WEAK_HASH_HASH (h, i))
 	      && !NILP (h->strong->test->cmpfn (key, WEAK_HASH_KEY (h, i), NULL))))
 	{
 	  /* Take entry out of collision chain.  */
