@@ -5770,6 +5770,7 @@ connection-local value.
 @end group
 @end lisp
 
+@vindex XDG_DATA_HOME@r{, environment variable}
 If Emacs is configured to use the XDG conventions for the trash
 directory, remote files cannot be restored with the respective tools,
 because those conventions don't specify remote paths.  Such files must
@@ -6201,6 +6202,36 @@ as above in your @file{~/.emacs}:
       (cons 'remote-file-error debug-ignored-errors))
 @end group
 @end lisp
+
+
+@item
+I get an error @samp{unix_listener: path
+"/very/long/path/.cache/emacs/tramp.XXX" too long for Unix domain
+socket} when connectiong via @option{ssh} to a remote host.
+
+@vindex small-temporary-file-directory
+By default, @value{tramp} uses the directory @file{~/.cache/emacs/}
+for creation of OpenSSH Unix domain sockets.  On GNU/Linux, domain
+sockets have a much lower maximum path length (currently 107
+characters) than normal files.
+
+You can change this directory by setting the user option
+@code{small-temporary-file-directory} to another name, like
+
+@lisp
+@group
+(unless small-temporary-file-directory
+  (customize-set-variable
+   'small-temporary-file-directory
+   (format "/run/user/%d/emacs/" (user-uid)))
+  (make-directory small-temporary-file-directory t))
+@end group
+@end lisp
+
+@vindex XDG_RUNTIME_DIR@r{, environment variable}
+@t{"/run/user/UID"} is the value of the environment variable
+@env{XDG_RUNTIME_DIR}, which you can use instead via @code{(getenv
+"XDG_RUNTIME_DIR")}.
 
 
 @item
