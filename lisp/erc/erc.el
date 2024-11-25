@@ -1987,13 +1987,12 @@ the existing buffers will be reused."
                         "old behavior when t now permanent" "29.1")
 
 (defun erc-normalize-port (port)
-  "Normalize the port specification PORT to integer form.
-PORT may be an integer, a string or a symbol.  If it is a string or a
-symbol, it may have these values:
-* irc         -> 194
-* ircs        -> 994
-* ircd        -> 6667
-* ircd-dalnet -> 7000"
+  "Normalize known PORT specifications to an integer.
+Expect PORT to be an integer, a string, or a symbol to coerce into a
+standardized form for the express purpose of equality comparisons.  If
+PORT is an IANA recognized service, return its numeric mapping.  Do the
+same for a few traditional but nonstandard names.  Return nil in
+pathological cases."
   ;; These were updated somewhat in 2022 to reflect modern standards
   ;; and practices.  See also:
   ;;
@@ -2001,7 +2000,7 @@ symbol, it may have these values:
   ;; https://www.iana.org/assignments/service-names-port-numbers
   (cond
    ((symbolp port)
-    (erc-normalize-port (symbol-name port)))
+    (and port (erc-normalize-port (symbol-name port))))
    ((stringp port)
     (let ((port-nr (string-to-number port)))
       (cond
@@ -2011,14 +2010,19 @@ symbol, it may have these values:
         194)
        ((string-equal port "ircs")
         994)
-       ((string-equal port "ircu") 6667) ; 6665-6669
+       ((string-equal port "ircu") 6665)
+       ((string-equal port "ircu-2") 6666)
+       ((string-equal port "ircu-3") 6667)
+       ((string-equal port "ircu-4") 6668)
+       ((string-equal port "ircu-5") 6669)
        ((string-equal port "ircd") ; nonstandard (irc-serv is 529)
         6667)
        ((string-equal port "ircs-u") 6697)
        ((string-equal port "ircd-dalnet")
         7000)
+       ((string-empty-p port) nil)
        (t
-        nil))))
+        0))))
    ((numberp port)
     port)
    (t
@@ -2665,7 +2669,7 @@ side effect of setting the current buffer to the one it returns.  Use
 
     (if connect
         (erc-server-connect erc-session-server
-                            erc-session-port
+                            (erc-string-to-port erc-session-port)
                             buffer
                             erc-session-client-certificate)
       (erc-update-mode-line))
@@ -2769,8 +2773,8 @@ properties needed by entry-point commands, like `erc-tls'."
          (port (or (url-portspec url)
                    (erc-compute-port
                     (let ((d (erc-compute-port sp))) ; may be a string
-                      (read-string (format-prompt "Port" d)
-                                   nil nil d)))))
+                      (erc-string-to-port
+                       (read-string (format-prompt "Port" d) nil nil d))))))
          ;; Trust the user not to connect twice accidentally.  We
          ;; can't use `erc-already-logged-in' to check for an existing
          ;; connection without modifying it to consider USER and PASS.
@@ -2792,10 +2796,10 @@ properties needed by entry-point commands, like `erc-tls'."
                                (format-prompt "Server password" p)
                              "Server password (optional): ")))
                    (if erc-prompt-for-password (read-passwd m nil p) p)))
-         (opener (and (or sp (eql port erc-default-port-tls)
+         (opener (and (or sp (erc-port-equal port erc-default-port-tls)
                           (and (equal server erc-default-server)
                                (not (string-prefix-p "irc://" input))
-                               (eql port erc-default-port)
+                               (erc-port-equal port erc-default-port)
                                (y-or-n-p "Connect using TLS instead? ")
                                (setq port erc-default-port-tls)))
                       #'erc-open-tls-stream))
@@ -2891,7 +2895,8 @@ and defers to `erc-compute-port', `erc-compute-user', and
 
 ;;;###autoload
 (cl-defun erc-tls (&key (server (erc-compute-server))
-                        (port   (erc-compute-port 'ircs-u))
+                        (port   (let ((erc-default-port erc-default-port-tls))
+                                  (erc-compute-port)))
                         (nick   (erc-compute-nick))
                         (user   (erc-compute-user))
                         password
@@ -8839,7 +8844,7 @@ Sets the buffer local variables:
 - `erc-server-current-nick'"
   (setq erc-session-connector erc-server-connect-function
         erc-session-server (erc-compute-server server)
-        erc-session-port (or port erc-default-port)
+        erc-session-port (erc-compute-port port)
         erc-session-user-full-name (erc-compute-full-name name)
         erc-session-username (erc-compute-user user)
         erc-session-password (erc--compute-server-password passwd nick))
@@ -8912,8 +8917,12 @@ non-nil value is found.
 
 - PORT (the argument passed to this function)
 - The `erc-port' option
-- The `erc-default-port' variable"
-  (erc-normalize-port (or port erc-port erc-default-port)))
+- The `erc-default-port' variable
+
+Note that between ERC 5.5 and 5.6.1, this function filtered its result
+through `erc-normalize-port', which introduced regrettable surprises,
+such as unwelcome, possibly null, type conversions."
+  (or (and port (not (equal "" port)) port) erc-port erc-default-port))
 
 ;; time routines
 
@@ -9873,9 +9882,8 @@ by `erc' and `erc-tls'."
                   (or (eql 6697 (plist-get plist :port))
                       (yes-or-no-p "Connect using TLS? "))))
          (erc-server (plist-get plist :server))
-         (erc-port (or (plist-get plist :port)
-                       (and ircsp (erc-normalize-port 'ircs-u))
-                       erc-port))
+         (erc-default-port (if ircsp erc-default-port-tls erc-default-port))
+         (erc-port (erc-compute-port (plist-get plist :port)))
          (erc-nick (or (plist-get plist :nick) erc-nick))
          (erc-password (plist-get plist :password))
          (args (erc-select-read-args)))
@@ -9907,9 +9915,9 @@ Customize `erc-url-connect-function' to override this."
                            (and (string-equal erc-session-server host)
                                 ;; Ports only matter when dialed hosts
                                 ;; match and we have sufficient info.
-                                (or (not port)
-                                    (= (erc-normalize-port erc-session-port)
-                                       port)))))))))
+                                (or (null port)
+                                    (erc-port-equal erc-session-port
+                                                    port)))))))))
          key deferred)
     (unless server-buffer
       (setq deferred t

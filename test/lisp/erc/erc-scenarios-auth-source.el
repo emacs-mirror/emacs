@@ -44,15 +44,19 @@
                                    (string-join ents "\n")))
        (auth-sources (list netrc-file))
        (auth-source-do-cache nil)
+       (erc-port (and (eq erc-port 'test) (number-to-string port)))
        (erc-scenarios-common-extra-teardown (lambda ()
-                                              (delete-file netrc-file))))
+                                              (delete-file netrc-file)))
+       ;; With a `cl-defun', a keyword's presence prevents the default
+       ;; init form from being evaluated, even if its value is nil.
+       (args `( :server "127.0.0.1"
+                ,@(and (null erc-port) (list :port port))
+                :nick "tester"
+                :full-name "tester"
+                :id ,id)))
 
     (ert-info ("Connect")
-      (with-current-buffer (erc :server "127.0.0.1"
-                                :port port
-                                :nick "tester"
-                                :full-name "tester"
-                                :id id)
+      (with-current-buffer (apply #'erc args)
         (should (string= (buffer-name) (if id
                                            (symbol-name id)
                                          (format "127.0.0.1:%d" port))))
@@ -60,12 +64,13 @@
 
 (ert-deftest erc-scenarios-base-auth-source-server--dialed ()
   :tags '(:expensive-test)
-  (erc-scenarios-common--auth-source
-   nil 'foonet
-   "machine GNU.chat port %d user tester password fake"
-   "machine FooNet port %d user tester password fake"
-   "machine 127.0.0.1 port %d user tester password changeme"
-   "machine 127.0.0.1 port %d user imposter password fake"))
+  (let ((erc-port 'test))
+    (erc-scenarios-common--auth-source
+     nil 'foonet
+     "machine GNU.chat port %d user tester password fake"
+     "machine FooNet port %d user tester password fake"
+     "machine 127.0.0.1 port \"%s\" user tester password changeme" ; correct
+     "machine 127.0.0.1 port %d user imposter password fake")))
 
 (ert-deftest erc-scenarios-base-auth-source-server--netid ()
   :tags '(:expensive-test)

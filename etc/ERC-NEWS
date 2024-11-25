@@ -62,6 +62,32 @@ of concerns and the newer module's "experimental" status, the migration
 was deemed worth any potential disruption, despite this being a point
 release.  ERC appreciates your understanding in this matter.
 
+** Entry-point command 'erc-tls' once again considers option 'erc-port'.
+In its zeal to enforce a preference for TLS connections, ERC 5.5 went a
+bit far in disregarding the useful user option 'erc-port'.  When called
+from Lisp code without a ':port' keyword, 'erc-tls' once again respects
+the option.
+
+** Changes in the library API.
+
+*** Function 'erc-normalize-port' may return 0 instead of nil.
+When given a nonempty, non-numeric string, this function now returns 0.
+Moreover, ERC officially requests that users not use its output for
+anything but comparing port equality, which was always its intended
+purpose.
+
+*** Function 'erc-compute-port' no longer uses 'erc-normalize-port'.
+An uninformed change in ERC 5.5 led to 'erc-compute-port' filtering its
+result through 'erc-normalize-port', which brought unwelcome type
+coercion and possible null return values.  This defied its purpose of
+ensuring a usable port.  Users reliant on the aberrant 5.5 behavior
+should wrap its return value in 'erc-normalize-port'.
+
+*** Local variable 'erc-session-port' may be a string.
+Although this has always been the case, string values are now more
+likely to be seen because ERC no longer coerces service names to port
+numbers.
+
 
 * Changes in ERC 5.6
 

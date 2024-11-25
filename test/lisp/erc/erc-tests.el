@@ -3057,6 +3057,22 @@
     (should-not (buffer-live-p spam-buffer))
     (kill-buffer chan-buffer)))
 
+(ert-deftest erc-normalize-port ()
+  ;; The empty string, nil, and unsupported types become nil.
+  (should-not (erc-normalize-port ""))
+  (should-not (erc-normalize-port nil))
+  (should-not (erc-normalize-port (current-buffer)))
+
+  ;; Unrecognized names are coerced to 0.
+  (should (equal 0 (erc-normalize-port "fake")))
+
+  ;; Numbers pass through, but numeric strings are coerced.
+  (should (equal 6667 (erc-normalize-port 6667)))
+  (should (equal 6697 (erc-normalize-port "6697")))
+
+  ;; Strange IANA mappings recognized.
+  (should (equal 6665 (erc-normalize-port "ircu"))))
+
 (defvar erc-tests--ipv6-examples
   '("1:2:3:4:5:6:7:8"
     "::ffff:10.0.0.1" "::ffff:1.2.3.4" "::ffff:0.0.0.0"
