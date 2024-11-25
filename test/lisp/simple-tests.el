@@ -571,6 +571,51 @@ See bug#35036."
     (simple-tests--exec '(undo-redo))
     (should (equal (buffer-string) "abcde"))))
 
+(ert-deftest simple-tests--undo-apply () ;bug#74523
+  (with-temp-buffer
+    (modula-2-mode) ;; A simple mode with non-LF terminated comments.
+    (buffer-enable-undo)
+    (insert "foo\n\n")
+    (let ((midbeg (point-marker))
+          (_ (insert "midmid"))
+          (midend (point-marker)))
+      (insert "\n\nbar")
+      (undo-boundary)
+      (goto-char (+ midbeg 3))
+      (insert "\n")
+      (undo-boundary)
+      (comment-region (point-min) midbeg) ;inserts an `apply' element.
+      (undo-boundary)
+      (comment-region midend (point-max)) ;inserts an `apply' element.
+      (undo-boundary)
+      (progn
+        (goto-char midbeg)
+        (set-mark midend)
+        (setq last-command 'something-else) ;Not `undo', so we start a new run.
+        (undo '(4))
+        (should (equal (buffer-substring midbeg midend) "midmid")))
+      ;; (progn
+      ;;   (goto-char (point-min))
+      ;;   ;; FIXME: `comment-region-default' puts a too conservative boundary
+      ;;   ;; on the `apply' block, so we have to use a larger undo-region to
+      ;;   ;; include the comment-region action.  This in turn makes the
+      ;;   ;; undo-region include the \n insertion/deletion so we need 2 undo
+      ;;   ;; steps.
+      ;;   (set-mark (1+ midend))
+      ;;   (setq last-command 'something-else) ;Not `undo', so we start a new run.
+      ;;   (undo '(4))
+      ;;   (setq last-command 'undo) ;Continue the undo run.
+      ;;   (undo)
+      ;;   (should (equal (buffer-substring (point-min) midbeg) "foo\n\n")))
+      ;; (progn
+      ;;   (goto-char (point-max))
+      ;;   (set-mark midend)
+      ;;   (setq last-command 'something-else) ;Not `undo', so we start a new run.
+      ;;   (undo '(4))
+      ;;   (should (equal (buffer-substring midend (point-max)) "\n\nbar"))
+      ;;   (should (equal (buffer-string) "foo\n\nmidmid\n\nbar")))
+      )))
+
 (defun simple-tests--sans-leading-nil (lst)
   "Return LST sans the leading nils."
   (while (and (consp lst) (null (car lst)))
@@ -589,7 +634,8 @@ See bug#35036."
         (undo-boundary))
       (should (equal (buffer-string) "abc"))
       ;; Tests mappings in `undo-equiv-table'.
-      (simple-tests--exec '(undo))
+      ;; `ignore' makes sure the `undo' won't continue a previous `undo'.
+      (simple-tests--exec '(ignore undo))
       (should (equal (buffer-string) "ab"))
       (should (eq (gethash (simple-tests--sans-leading-nil
                             buffer-undo-list)

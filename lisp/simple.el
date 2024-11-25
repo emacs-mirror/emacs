@@ -3993,6 +3993,9 @@ with < or <= based on USE-<."
 	    ((integerp (car undo-elt))
 	     ;; (BEGIN . END)
 	     (cons (car undo-elt) (- (car undo-elt) (cdr undo-elt))))
+	    ;; (apply DELTA BEG END FUNC . ARGS)
+	    ((and (eq (car undo-elt) 'apply) (integerp (nth 1 undo-elt)))
+	     (cons (nth 2 undo-elt) (nth 1 undo-elt)))
 	    (t
 	     '(0 . 0)))
     '(0 . 0)))
