@@ -386,8 +386,13 @@ buf_bytepos_to_charpos (struct buffer *b, ptrdiff_t bytepos)
 	 It will last until the next GC.
 	 But don't do it if BUF_MARKERS is nil;
 	 that is a signal from Fset_buffer_multibyte.  */
+#ifdef HAVE_MPS
+      if (record && !NILP (BUF_MARKERS (b)))
+	build_marker (b, best_below, best_below_byte);
+#else
       if (record && BUF_MARKERS (b))
 	build_marker (b, best_below, best_below_byte);
+#endif
 
       byte_char_debug_check (b, best_below, best_below_byte);
 
