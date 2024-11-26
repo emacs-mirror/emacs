@@ -151,7 +151,6 @@ Res TransformAddOldNew(Transform transform,
 {
   Res res;
   Index i;
-  Count added = 0;
   Arena arena;
 
   AVERT(Transform, transform);
@@ -190,8 +189,6 @@ Res TransformAddOldNew(Transform transform,
     AVER(res != ResFAIL); /* It's a static error to add the same old twice. */
     if (res != ResOK)
       return res;
-    
-    ++added;
   }
 
   AVERT(Transform, transform);
