@@ -33,6 +33,7 @@ jobs:
     # See <https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#using-a-matrix-strategy>.
     
     strategy:
+      fail-fast: false # don't cancel all builds when one build fails
       matrix:
         os: [ubuntu-latest, macos-latest]
         compiler: [clang, gcc]
