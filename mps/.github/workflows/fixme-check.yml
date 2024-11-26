@@ -17,5 +17,5 @@ jobs:
   check-fixme:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4 # see <https://github.com/actions/checkout/blob/main/README.md#usage>
       - run: tool/check-fixme
