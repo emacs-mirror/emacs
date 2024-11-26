@@ -1096,7 +1096,7 @@ x                        ; @r{Note that @code{x} has no global value.}
 @end example
 
 @noindent
-The @code{let} binding defines a lexical environment in which the
+Here, the @code{let} binding defines a lexical environment in which the
 variable @code{x} is locally bound to 0.  Within this binding
 construct, we define a lambda expression which increments @code{x} by
 one and returns the incremented value.  This lambda expression is
@@ -1112,6 +1112,12 @@ functions which take a symbol argument (like @code{symbol-value},
 @code{boundp}, and @code{set}) can only retrieve or modify a
 variable's dynamic binding (i.e., the contents of its symbol's value
 cell).
+
+  Note also that variables may be declared special, in which case they
+will use dynamic binding, even for new bindings such as a @code{let}
+binding.  Depending on how the variable is declared, it can be
+special globally, for a single file, or for a portion of a file.
+@xref{Dynamic Binding} for details.
 
 @node Dynamic Binding
 @subsection Dynamic Binding
