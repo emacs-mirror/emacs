@@ -3621,7 +3621,10 @@ instead.
 FUNCTION is typically a major mode which \"does the same thing\" as
 MODE, but can also be nil to hide other entries (either in this var or
 in `major-mode-remap-defaults') and means that we should call MODE."
-  :type '(alist (symbol) (function)))
+  :type '(alist
+          :tag "Remappings"
+          :key-type (symbol :tag "From major mode")
+          :value-type (function :tag "To mode (or function)")))
 
 (defvar major-mode-remap-defaults nil
   "Alist mapping file-specified modes to alternative modes.
