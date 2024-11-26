@@ -723,12 +723,51 @@ The regexp should match at end of buffer."
 	 "No supported authentication methods left to try!"
 	 (: "Login " (| "Incorrect" "incorrect"))
 	 (: "Connection " (| "refused" "closed"))
-	 (: "Received signal " (+ digit)))
+	 (: "Received signal " (+ digit))
+	 ;; Fingerprint.
+	 "Verification timed out"
+	 "Failed to match fingerprint"
+	 "An unknown error occurred")
       (* nonl))
   "Regexp matching a `login failed' message.
 The regexp should match at end of buffer."
   :type 'regexp
   :link '(tramp-info-link :tag "Tramp manual" tramp-wrong-passwd-regexp))
+
+;; <https://gitlab.freedesktop.org/libfprint/fprintd/-/blob/master/pam/fingerprint-strings.h?ref_type=heads>
+(defcustom tramp-fingerprint-prompt-regexp
+  (rx (| "Place your finger on"
+	 "Swipe your finger across"
+	 "Place your left thumb on"
+	 "Swipe your left thumb across"
+	 "Place your left index finger on"
+	 "Swipe your left index finger across"
+	 "Place your left middle finger on"
+	 "Swipe your left middle finger across"
+	 "Place your left ring finger on"
+	 "Swipe your left ring finger across"
+	 "Place your left little finger on"
+	 "Swipe your left little finger across"
+	 "Place your right thumb on"
+	 "Swipe your right thumb across"
+	 "Place your right index finger on"
+	 "Swipe your right index finger across"
+	 "Place your right middle finger on"
+	 "Swipe your right middle finger across"
+	 "Place your right ring finger on"
+	 "Swipe your right ring finger across"
+	 "Place your right little finger on"
+	 "Swipe your right little finger across"
+	 "Place your finger on the reader again"
+	 "Swipe your finger again"
+	 "Swipe was too short, try again"
+	 "Your finger was not centred, try swiping your finger again"
+	 "Remove your finger, and try swiping your finger again")
+      (* nonl) (* (any "\r\n")))
+  "Regexp matching fingerprint prompts.
+The regexp should match at end of buffer."
+  :version "30.2"
+  :type 'regexp)
 
 (defcustom tramp-yesno-prompt-regexp
   (rx "Are you sure you want to continue connecting (yes/no"
@@ -5742,6 +5781,23 @@ of."
       (narrow-to-region (point-max) (point-max))))
   t)
 
+(defcustom tramp-use-fingerprint t
+  "Whether fingerprint prompts shall be used for authentication."
+  :version "30.2"
+  :type 'boolean
+  :link '(tramp-info-link :tag "Tramp manual" tramp-use-fingerprint))
+
+(defun tramp-action-fingerprint (proc vec)
+  "Query the user for a fingerprint verification.
+Interrupt the query if `tramp-use-fingerprint' is nil."
+  (with-current-buffer (process-buffer proc)
+    (if tramp-use-fingerprint
+	(tramp-action-show-message proc vec)
+      (interrupt-process proc)
+      ;; Hide message.
+      (narrow-to-region (point-max) (point-max))))
+  t)
+
 (defun tramp-action-succeed (_proc _vec)
   "Signal success in finding shell prompt."
   (throw 'tramp-action 'ok))
@@ -5788,6 +5844,26 @@ The terminal type can be configured with `tramp-terminal-type'."
   (tramp-send-string vec (concat tramp-terminal-type tramp-local-end-of-line))
   t)
 
+(defun tramp-action-show-message (proc vec)
+  "Show the user a message for confirmation.
+Wait, until the connection buffer changes."
+  (with-current-buffer (process-buffer proc)
+    (let ((cursor-in-echo-area t)
+	  set-message-function clear-message-function tramp-dont-suspend-timers)
+      (with-tramp-suspended-timers
+	;; Silence byte compiler.
+	(ignore set-message-function clear-message-function)
+	(tramp-message vec 6 "\n%s" (buffer-string))
+	(goto-char (point-min))
+	(tramp-check-for-regexp proc tramp-process-action-regexp)
+	(with-temp-message (concat (string-trim (match-string 0)) " ")
+	  ;; Hide message in buffer.
+	  (narrow-to-region (point-max) (point-max))
+	  ;; Wait for new output.
+	  (while (length= (buffer-string) 0)
+	    (tramp-accept-process-output proc))))))
+  t)
+
 (defun tramp-action-confirm-message (_proc vec)
   "Return RET in order to confirm the message."
   (tramp-message
@@ -5805,6 +5881,7 @@ Wait, until the connection buffer changes."
 	;; Silence byte compiler.
 	(ignore set-message-function clear-message-function)
 	(tramp-message vec 6 "\n%s" (buffer-string))
+	(goto-char (point-min))
 	(tramp-check-for-regexp proc tramp-process-action-regexp)
 	(with-temp-message (concat (string-trim (match-string 0)) " ")
 	  ;; Hide message in buffer.

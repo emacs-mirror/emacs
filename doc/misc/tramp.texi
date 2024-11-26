@@ -5587,6 +5587,23 @@ nitrokey, or titankey.
 (residential) keys by @command{ssh-agent}.  As workaround, you might
 disable @command{ssh-agent} for such keys.
 
+
+@item
+Does @value{tramp} support a fingerprint reader?
+
+Yes.  A fingerprint reader could be used as additional authentication
+method for @option{sudo}-based logins.  @value{tramp} supports the
+additional handshaking messages for it@footnote{It supports
+fingerprint readers driven by @command{fprintd}.}.  If the fingerprint
+isn't recognized by the fingerprint reader in time, the authentication
+falls back to request a password.
+
+@vindex tramp-use-fingerprint
+If the user option @code{tramp-use-fingerprint} is @code{nil},
+@value{tramp} interrupts the fingerprint request, falling back to
+password authentication immediately.
+
+
 @item
 @value{tramp} does not connect to Samba or MS Windows hosts running
 SMB1 connection protocol
