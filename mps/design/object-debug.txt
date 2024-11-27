@@ -130,7 +130,7 @@ in the fencepost pattern. Possibly something like this (while we could
 still store the parameters in the pool or allocation point, there
 seems little point in doing so in this case, and having them as
 explicit parameters to the macros allows the client to specify
-constants to gain effiency)::
+constants to gain efficiency)::
 
     #define mps_add_fencepost(size, fp_size)
     #define mps_fill_fenceposts(obj, size, fp_size, fp_pattern)
@@ -227,7 +227,7 @@ problem; we can turn features on or off with pool init parameters.
 
 _`.fence.pool.abstract`: We could simply use pool init parameters only
 to control all debugging features (optargs would be useful here).
-While there migh be subclasses and wrappers internally, the client
+While there might be subclasses and wrappers internally, the client
 would only see a single pool class; in the internal view, this would
 be an abstract class, and the parameters would determine which
 concrete class actually gets instantiated.
@@ -325,7 +325,7 @@ _`.interface.fenceposting.format`: A function to wrap a format
 ``typedef void (*mps_fmt_adjust_fencepost_t)(size_t *size_io)``
 
 _`.interface.fenceposting.adjust`: A format method to adjust size of a
-block about to be allocted to allow for fenceposts.
+block about to be allocated to allow for fenceposts.
 
 ``typedef void (*mps_fmt_put_fencepost_t)(mps_addr_t * addr_io, size_t size)``
 

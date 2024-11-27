@@ -30,7 +30,7 @@ the eventual test output. The processing program will
 pass straight through all lines beginning with %, and all
 blank lines. It will strip a ! from the beginning of any
 line which begins with one (use for !<var>=<value>),
-and do platform-speciic stuff on all the remaining lines.
+and do platform-specific stuff on all the remaining lines.
 It will complain about (at least) the first line it
 doesn't understand.
 

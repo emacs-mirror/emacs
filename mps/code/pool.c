@@ -59,7 +59,7 @@ Bool PoolClassCheck(PoolClass klass)
   CHECKL(FUNCHECK(klass->freeSize));
   CHECKL(FUNCHECK(klass->addrObject));
 
-  /* Check that pool classes overide sets of related methods. */
+  /* Check that pool classes override sets of related methods. */
   CHECKL((klass->init == PoolAbsInit) ==
          (klass->instClassStruct.finish == PoolAbsFinish));
   CHECKL((klass->bufferFill == PoolNoBufferFill) ==
