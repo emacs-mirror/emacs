@@ -513,6 +513,9 @@ Erase the stack slots following this one."
 ;;;###autoload
 (define-obsolete-function-alias 'xref-pop-marker-stack #'xref-go-back "29.1")
 
+(defun xref--switch-to-buffer (buf)
+  (pop-to-buffer buf '((display-buffer-same-window) (category . xref-jump))))
+
 ;;;###autoload
 (defun xref-go-back ()
   "Go back to the previous position in xref history.
@@ -523,8 +526,8 @@ To undo, use \\[xref-go-forward]."
         (user-error "At start of xref history")
       (let ((marker (pop (car history))))
         (xref--push-forward (point-marker))
-        (switch-to-buffer (or (marker-buffer marker)
-                              (user-error "The marked buffer has been deleted")))
+        (xref--switch-to-buffer (or (marker-buffer marker)
+                                    (user-error "The marked buffer has been deleted")))
         (goto-char (marker-position marker))
         (set-marker marker nil nil)
         (run-hooks 'xref-after-return-hook)))))
@@ -538,8 +541,8 @@ To undo, use \\[xref-go-forward]."
         (user-error "At end of xref history")
       (let ((marker (pop (cdr history))))
         (xref--push-backward (point-marker))
-        (switch-to-buffer (or (marker-buffer marker)
-                              (user-error "The marked buffer has been deleted")))
+        (xref--switch-to-buffer (or (marker-buffer marker)
+                                    (user-error "The marked buffer has been deleted")))
         (goto-char (marker-position marker))
         (set-marker marker nil nil)
         (run-hooks 'xref-after-return-hook)))))
@@ -612,7 +615,7 @@ If SELECT is non-nil, select the target window."
                    (xref-location-marker (xref-item-location item))))
          (buf (marker-buffer marker)))
     (cl-ecase action
-      ((nil)  (switch-to-buffer buf))
+      ((nil)  (xref--switch-to-buffer buf))
       (window (pop-to-buffer buf t))
       (frame  (let ((pop-up-frames t)) (pop-to-buffer buf t))))
     (xref--goto-char marker))
@@ -688,7 +691,10 @@ and finally return the window."
                   (or (not (window-dedicated-p xref--original-window))
                       (eq (window-buffer xref--original-window) buf)))
                  `((xref--display-buffer-in-window)
-                   (window . ,xref--original-window))))))
+                   (category . xref-jump)
+                   (window . ,xref--original-window)))
+                (t
+                 '(nil (category . xref-jump))))))
     (with-selected-window (display-buffer buf action)
       (xref--goto-char pos)
       (run-hooks 'xref-after-jump-hook)
