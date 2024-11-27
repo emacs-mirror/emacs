@@ -424,7 +424,7 @@ static void AWLNoteScan(Seg seg, ScanState ss)
         /* This is "successful" scan at proper rank. */
         ++ awl->stats.goodScans;
         if (0 < awlseg->singleAccesses) {
-          /* Accesses have been proceesed singly. Record that we
+          /* Accesses have been processed singly. Record that we
            * genuinely did save a protection-provoked scan */
           ++ awl->stats.savedScans;
           awl->stats.savedAccesses += awlseg->singleAccesses;

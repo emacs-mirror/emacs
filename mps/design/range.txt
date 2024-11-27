@@ -130,7 +130,7 @@ Document history
 
 - 2013-05-21 GDR_ Created.
 - 2014-01-15 GDR_ Added ``RangeContains()``.
-- 2016-03-27 RB_ Addded ``RangeSetBase()`` and ``RangeSetLimit()``.
+- 2016-03-27 RB_ Added ``RangeSetBase()`` and ``RangeSetLimit()``.
 
 .. _GDR: https://www.ravenbrook.com/consultants/gdr/
 .. _RB: https://www.ravenbrook.com/consultants/rb/

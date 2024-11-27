@@ -987,7 +987,7 @@ Res ArenaFreeLandDelete(Arena arena, Addr base, Addr limit)
 }
 
 
-/* ArenaFreeLandAlloc -- allocate a continguous range of tracts of
+/* ArenaFreeLandAlloc -- allocate a contiguous range of tracts of
  * size bytes from the arena's free land.
  *
  * size, zones, and high are as for LandFindInZones.

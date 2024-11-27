@@ -213,10 +213,10 @@ object with other objects corresponding to the same thread (same
 suspended state, or when this is the only ``PThreadext`` object with
 this ``id`` in the suspended state, this ring is single.
 
-_`.impl.global.suspend-ring`: The module maintains a global varaible
+_`.impl.global.suspend-ring`: The module maintains a global variable
 ``suspendedRing``, a ring of ``PThreadext`` objects which are in a
 suspended state. This is primarily so that it's possible to determine
-whether a thread is curently suspended anyway because of another
+whether a thread is currently suspended anyway because of another
 ``PThreadext`` object, when a suspend attempt is made.
 
 _`.impl.global.victim`: The module maintains a global variable

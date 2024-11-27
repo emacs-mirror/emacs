@@ -25,7 +25,7 @@ them with wi by running tests and measuring times. Tests to run:
 - MMQA_test_function!{77,78,79,80}.c and others
 
 It's not quite clear in the quote above whether "a slow-down of
-more than 10%" means a slow down in memory-managament time, or
+more than 10%" means a slow down in memory-management time, or
 a slow down in total application time. I take it to refer to a
 slow-down in memory-management time, given a typical pattern of
 allocation, freeing, &c. Therefore if, say, Dylan goes 5% slower

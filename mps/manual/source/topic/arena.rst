@@ -1172,7 +1172,7 @@ not access any memory managed by the MPS.
 
 .. note::
 
-    The extenstion callback is also called immediately after the arena
+    The extension callback is also called immediately after the arena
     is created, in other words, the creation of the arena is treated as
     a special example of an extension of the arena.
 

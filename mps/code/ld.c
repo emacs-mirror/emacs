@@ -171,7 +171,7 @@ void LDReset(mps_ld_t ld, Arena arena)
  * .add.sync: Add must take place _before_ the location of the reference
  * is depended on.  If the reference changes between adding and
  * depending it will show up as moved because the movement will have
- * occured since the epoch recorded in the dependency.  If the location
+ * occurred since the epoch recorded in the dependency.  If the location
  * were used first only the new location of the reference would end up
  * in the set.
  *
@@ -212,7 +212,7 @@ void LDAdd(mps_ld_t ld, Arena arena, Addr addr)
  * to use the prehistory instead.
  *
  * .stale.old: Otherwise, if the dependency is older than the length
- * of the history, check it against all movement that has ever occured.
+ * of the history, check it against all movement that has ever occurred.
  */
 Bool LDIsStaleAny(mps_ld_t ld, Arena arena)
 {
