@@ -34,7 +34,7 @@ MMQA_LOG_DIR / -g
  'log' directory inside the MMQA 'test' directory.
 
 MMQA_DATA_DIR / -data
- the diretory in which MMQA data files may be found. Default is
+ the directory in which MMQA data files may be found. Default is
  '../data' from the MMQA 'test' directory. This is used when tests
  specify a particular file as their standard input. If you specify
  the standard input with MMQA_STDIN, the current directory is used.

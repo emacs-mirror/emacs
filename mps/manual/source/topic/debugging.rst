@@ -42,7 +42,7 @@ debugging:
   :dfn:`free space splatting` overwrites recycled space with a pattern
   of data. If the pattern is designed so that it does not resemble a
   live object (and if code checks the consistency of its data
-  structues), then this helps to detect :term:`dangling pointer`
+  structures), then this helps to detect :term:`dangling pointer`
   dereferences. The pattern is checked just before allocation, and
   when a block of memory is released from the pool to the arena, to
   see that it is unchanged. All free space in a pool can be checked

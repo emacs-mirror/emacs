@@ -164,7 +164,7 @@ modify their modules.
 _`.if.msg.dgram`: Neither the MPM nor the external tools should assume
 that the messages will be delivered in finite time, exactly once, or
 in order. This will allow the I/O modules to be implemented using
-unreliable transport layers such as the Internet User Datagram Protocl
+unreliable transport layers such as the Internet User Datagram Protocol
 (UDP). It will also give the I/O module the freedom to drop
 information rather than block on a congested network, or stop the
 memory manager when the disk is full, or similar events which really

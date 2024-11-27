@@ -22,7 +22,7 @@ SRCID(policy, "$Id$");
  *
  * pref describes the address space preferences for the allocation.
  * size is the amount of memory requested to be allocated, in bytes.
- * pool is the pool that is requresting the memory.
+ * pool is the pool that is requesting the memory.
  *
  * If successful, update *tractReturn to point to the initial tract of
  * the allocated memory and return ResOK. Otherwise return a result
@@ -198,7 +198,7 @@ Bool PolicyShouldCollectWorld(Arena arena, double availableTime,
 }
 
 
-/* policyCondemnChain -- condemn approriate parts of this chain
+/* policyCondemnChain -- condemn appropriate parts of this chain
  *
  * If successful, set *mortalityReturn to an estimate of the mortality
  * of the condemned parts of this chain and return ResOK.

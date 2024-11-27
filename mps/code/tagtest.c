@@ -22,7 +22,7 @@ typedef struct cons_s {
 } cons_s, *cons_t;
 
 typedef mps_word_t imm_t;       /* Immediate value. */
-typedef mps_word_t fwd_t;       /* Fowarding pointer. */
+typedef mps_word_t fwd_t;       /* Forwarding pointer. */
 
 static mps_word_t tag_bits;     /* Number of tag bits */
 static mps_word_t tag_cons;     /* Tag bits indicating pointer to cons */

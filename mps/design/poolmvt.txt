@@ -171,10 +171,10 @@ with a particular response time or throughput, just so long as we
 don't block for too long. Clearly there is a missing requirement.]
 
 _`.req.attr.performance.time`: By inference, the time overhead must be
-competetive.
+competitive.
 
 _`.req.attr.performance.space`: By inference, the space overhead must
-be competetive.
+be competitive.
 
 _`.req.attr.reliability`: The pool class must have "rock-solid
 reliability" (source: req.dylan.attr.rel.mtbf, req.epcore.attr.rel,
@@ -829,7 +829,7 @@ free" (`mail.ptw.1997-12-05.19-07`_) being added in the future.
 .. _mail.ptw.1997-12-05.19-07: https://info.ravenbrook.com/project/mps/mail/1997/12/05/19-07/0.txt
 
 _`.impl.c.parameters`: The pool parameters are calculated as follows
-from the input parameters: minimum, mean, and maximum size are taked
+from the input parameters: minimum, mean, and maximum size are taken
 directly from the parameters.
 
 _`.impl.c.parameter.fill-size`: The fill size is set to the maximum

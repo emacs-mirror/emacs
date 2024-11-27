@@ -1,7 +1,7 @@
 Numbering of test programs
 % $Id$
 
-Test program are indentified by their hope names, i.e. by a hope
+Test program are identified by their hope names, i.e. by a hope
 compound, an exclamation mark, and the test file name. The test
 file name will usually be a number followed by .c.
 

@@ -27,7 +27,7 @@ the means by which the client program communicates this information to
 the MPS.
 
 An object format is a collection of :term:`format methods` and other
-(usually scalar) values which together describe programatically the
+(usually scalar) values which together describe programmatically the
 layout of objects belonging to the format. Format methods include the
 :term:`skip method` (which calculates an object's size), the
 :term:`scan method` (which :term:`fixes <fix>` references in the

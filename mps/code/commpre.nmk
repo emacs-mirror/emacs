@@ -7,7 +7,7 @@
 #
 # .description: This makefile fragment is included in more specific
 # makefiles for platforms which use the "mv" builder.  This is
-# the first of two common makefile fragements (the other is commpost.nmk).
+# the first of two common makefile fragments (the other is commpost.nmk).
 # Alas, due to shortcomings in nmake, it is not possible to use only one
 # common fragment.
 #
@@ -41,7 +41,7 @@
 #
 # EDITING
 #
-# To add new targets. varieties, and parts:
+# To add new targets, varieties, and parts:
 # Search for the string "%%TARGET", "%%VARIETY", or "%%PART" in this makefile
 # and follow the instructions.
 #

@@ -301,7 +301,7 @@ services run commands equivalent to::
   make install
   make test
 
-which execises the testci target, as defined by `Makefile.in
+which exercises the testci target, as defined by `Makefile.in
 <../Makefile.in>`_ in the root of the MPS tree.
 
 _`.ci.run.windows`: On Windows the CI services run commands that do at

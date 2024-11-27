@@ -50,7 +50,7 @@ is *no* ambiguous reference to that address, but that can only be
 established when the trace is complete.)
 
 _`.req.range`: A nailboard must be able to determine if any nail is
-set in a continguous range. (Because we must preserve the whole object
+set in a contiguous range. (Because we must preserve the whole object
 if there is any ambiguous reference to it.)
 
 _`.req.range.cost`: Determining if any nail is set in a continuous

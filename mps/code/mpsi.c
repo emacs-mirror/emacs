@@ -58,7 +58,7 @@ SRCID(mpsi, "$Id$");
 /* mpsi_check -- check consistency of interface mappings
  *
  * .check.purpose: The mpsi_check function attempts to check whether
- * the defintions in <code/mpsi.h> match the equivalent definition in
+ * the definitions in <code/mpsi.h> match the equivalent definition in
  * the MPM.  It is checking the assumptions made in the other functions
  * in this implementation.
  *

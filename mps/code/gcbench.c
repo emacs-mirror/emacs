@@ -139,7 +139,7 @@ static obj_t new_tree(mps_ap_t ap, obj_t oldtree, unsigned d)
 
 /* Update tree to be identical tree but with nodes reallocated
  * with probability pupdate.  This avoids writing to vector slots
- * if unecessary. */
+ * if unnecessary. */
 static obj_t update_tree(mps_ap_t ap, obj_t oldtree, unsigned d)
 {
   obj_t tree;

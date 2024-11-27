@@ -139,7 +139,7 @@ collections in those circumstances.
 
 _`.req.queue`: Must support a client that enables, but does not
 promptly retrieve, GC messages. Messages that have not yet been
-retrived must remain queued, and the client must be able to retrieve
+retrieved must remain queued, and the client must be able to retrieve
 them later without loss. It is not acceptable to stop issuing GC
 messages for subsequent collections merely because messages from
 previous collections have not yet been retrieved. _`.req.queue.why`:
@@ -185,7 +185,7 @@ using ``ControlAlloc()``.
 
     .. _job001570: https://www.ravenbrook.com/project/mps/issue/job001570/
 
-Poiters to these messages are stored in ``tsMessage[ti]`` and
+Pointers to these messages are stored in ``tsMessage[ti]`` and
 ``tMessage[ti]`` arrays in the ``ArenaStruct``.
 
 .. note::
