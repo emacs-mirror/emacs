@@ -12,7 +12,7 @@ from docutils import nodes, transforms
 from docutils.parsers.rst import Directive
 from docutils.parsers.rst.directives.admonitions import BaseAdmonition
 from sphinx import addnodes
-from sphinx.directives.other import VersionChange
+from sphinx.domains.changeset import VersionChange
 from sphinx.domains import Domain
 from sphinx.domains.changeset import versionlabels
 from sphinx.locale import admonitionlabels
