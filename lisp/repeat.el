@@ -504,7 +504,9 @@ See `describe-repeat-maps' for a list of all repeatable commands."
   (let ((was-in-progress repeat-in-progress))
     (setq repeat-in-progress nil)
     (let ((map (repeat-get-map)))
-      (when (repeat-check-map map)
+      (when (and (repeat-check-map map)
+                 (or (null (repeat--command-property 'repeat-continue-only))
+                     was-in-progress))
         ;; Messaging
         (funcall repeat-echo-function map)
 

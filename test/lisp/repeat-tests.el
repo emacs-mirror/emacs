@@ -25,7 +25,7 @@
 (require 'repeat)
 
 ;; Key mnemonics: a - Activate (enter, also b), c - Continue (also d),
-;;                q - Quit (exit)
+;;                o - continue-Only (not activate), q - Quit (exit)
 
 (defvar repeat-tests-calls nil)
 
@@ -45,6 +45,10 @@
   (interactive "p")
   (push `(,arg d) repeat-tests-calls))
 
+(defun repeat-tests-call-o (&optional arg)
+  (interactive "p")
+  (push `(,arg o) repeat-tests-calls))
+
 (defun repeat-tests-call-q (&optional arg)
   (interactive "p")
   (push `(,arg q) repeat-tests-calls))
@@ -54,7 +58,8 @@
   :doc "Keymap for keys that initiate repeating sequences."
   "C-x w a" 'repeat-tests-call-a
   "C-M-a"   'repeat-tests-call-a
-  "C-M-b"   'repeat-tests-call-b)
+  "C-M-b"   'repeat-tests-call-b
+  "C-M-o"   'repeat-tests-call-o)
 
 (defvar-keymap repeat-tests-repeat-map
   :doc "Keymap for repeating sequences."
@@ -63,7 +68,11 @@
   "a"     'ignore ;; for non-nil repeat-check-key only
   "c"     'repeat-tests-call-c
   "d"     'repeat-tests-call-d
+  "C-M-o" 'repeat-tests-call-o
   "q"     'repeat-tests-call-q)
+
+;; TODO: add new keyword ':continue-only (repeat-tests-call-o)'
+(put 'repeat-tests-call-o 'repeat-continue-only t)
 
 ;; Test using a variable instead of the symbol:
 (put 'repeat-tests-call-b 'repeat-map repeat-tests-repeat-map)
@@ -171,6 +180,19 @@
 
 ;; TODO: :tags '(:expensive-test)  for repeat-exit-timeout
 
+(ert-deftest repeat-tests-continue-only ()
+  (with-repeat-mode repeat-tests-map
+    (let ((repeat-echo-function 'ignore)
+          (repeat-check-key nil))
+      ;; 'C-M-o' used as continue-only
+      (repeat-tests--check
+       "C-M-a c C-M-o c z"
+       '((1 a) (1 c) (1 o) (1 c)) "z")
+      ;; 'C-M-o' should not activate
+      (repeat-tests--check
+       "C-M-o c z"
+       '((1 o)) "cz"))))
+
 
 (require 'use-package)
 
@@ -186,6 +208,10 @@
   (interactive "p")
   (push `(,arg d) repeat-tests-calls))
 
+(defun repeat-tests-bind-call-o (&optional arg)
+  (interactive "p")
+  (push `(,arg o) repeat-tests-calls))
+
 (defun repeat-tests-bind-call-q (&optional arg)
   (interactive "p")
   (push `(,arg q) repeat-tests-calls))
@@ -195,9 +221,12 @@
   (bind-keys
    :map repeat-tests-bind-keys-map
    ("C-M-a" . repeat-tests-bind-call-a)
+   ("C-M-o" . repeat-tests-bind-call-o)
    :repeat-map repeat-tests-bind-keys-repeat-map
    :continue
    ("c"     . repeat-tests-bind-call-c)
+   ;; :continue-only
+   ("C-M-o" . repeat-tests-bind-call-o)
    :exit
    ("q"     . repeat-tests-bind-call-q)
    )
@@ -208,6 +237,14 @@
   (with-repeat-mode repeat-tests-bind-keys-map
     (let ((repeat-echo-function 'ignore)
           (repeat-check-key nil))
+      ;; 'C-M-o' used as continue-only
+      (repeat-tests--check
+       "C-M-a c C-M-o c z"
+       '((1 a) (1 c) (1 o) (1 c)) "z")
+      ;; 'C-M-o' should not activate
+      ;; (repeat-tests--check
+      ;;  "C-M-o c z"
+      ;;  '((1 o)) "cz")
       ;; 'q' should exit
       (repeat-tests--check
        "C-M-a c q c"

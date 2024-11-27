@@ -944,6 +944,9 @@ provide a ':columns' spec, so that the number of columns and their
 widths can be determined.  Columns widths can be set explicitly, or they
 will be calculated based on the window width.
 
+** New symbol propery 'repeat-continue-only' for 'repeat-mode'.
+A command with this symbol propery will not activate the repeat map,
+but will only continue the already activated repeating sequence.
 
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
