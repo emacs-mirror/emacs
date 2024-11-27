@@ -1353,10 +1353,10 @@ INLINE bool
 INLINE bool
 EQ (Lisp_Object x, Lisp_Object y)
 {
-  return BASE_EQ ((symbols_with_pos_enabled && SYMBOL_WITH_POS_P (x)
-		   ? XSYMBOL_WITH_POS_SYM (x) : x),
-		  (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (y)
-		   ? XSYMBOL_WITH_POS_SYM (y) : y));
+  return BASE_EQ ((__builtin_expect (symbols_with_pos_enabled, false)
+		   && SYMBOL_WITH_POS_P (x) ? XSYMBOL_WITH_POS_SYM (x) : x),
+		  (__builtin_expect (symbols_with_pos_enabled, false)
+		   && SYMBOL_WITH_POS_P (y) ? XSYMBOL_WITH_POS_SYM (y) : y));
 }
 
 INLINE intmax_t
