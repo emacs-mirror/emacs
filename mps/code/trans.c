@@ -163,8 +163,8 @@ Res TransformAddOldNew(Transform transform,
      lists (old_list, new_list), using ArenaRead.  Insisting on
      parking keeps things simple. */
   arena = transform->arena;
-  AVER(ArenaGlobals(arena)->clamped);
-  AVER(arena->busyTraces == TraceSetEMPTY);
+  AVER(ArenaGlobals(arena)->clamped);           /* .assume.parked */
+  AVER(arena->busyTraces == TraceSetEMPTY);     /* .assume.parked */
 
   res = TableGrow(transform->oldToNew, count);
   if (res != ResOK)
