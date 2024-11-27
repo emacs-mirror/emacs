@@ -2699,8 +2699,14 @@ If all are non-nil, return the value of the last form in BODY.
 The variable list SPEC is the same as in `if-let'."
   (declare (indent 1) (debug if-let)
            (obsolete "use `when-let*' or `and-let*' instead." "31.1"))
-  `(with-suppressed-warnings ((obsolete if-let))
-     (if-let ,spec ,(macroexp-progn body))))
+  ;; Previously we expanded to `if-let', and then required a
+  ;; `with-suppressed-warnings' to avoid doubling up the obsoletion
+  ;; warnings.  But that triggers a bytecompiler bug; see bug#74530.
+  ;; So for now we reimplement `if-let' here.
+  (when (and (<= (length spec) 2)
+             (not (listp (car spec))))
+    (setq spec (list spec)))
+  (list 'if-let* spec (macroexp-progn body)))
 
 (defmacro while-let (spec &rest body)
   "Bind variables according to SPEC and conditionally evaluate BODY.
