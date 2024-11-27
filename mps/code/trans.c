@@ -151,7 +151,6 @@ Res TransformAddOldNew(Transform transform,
 {
   Res res;
   Index i;
-  Count added = 0;
   Arena arena;
 
   AVERT(Transform, transform);
@@ -164,8 +163,8 @@ Res TransformAddOldNew(Transform transform,
      lists (old_list, new_list), using ArenaRead.  Insisting on
      parking keeps things simple. */
   arena = transform->arena;
-  AVER(ArenaGlobals(arena)->clamped);
-  AVER(arena->busyTraces == TraceSetEMPTY);
+  AVER(ArenaGlobals(arena)->clamped);           /* .assume.parked */
+  AVER(arena->busyTraces == TraceSetEMPTY);     /* .assume.parked */
 
   res = TableGrow(transform->oldToNew, count);
   if (res != ResOK)
@@ -190,8 +189,6 @@ Res TransformAddOldNew(Transform transform,
     AVER(res != ResFAIL); /* It's a static error to add the same old twice. */
     if (res != ResOK)
       return res;
-    
-    ++added;
   }
 
   AVERT(Transform, transform);
