@@ -3104,8 +3104,7 @@ will be used."
 			;; needed when sending signals remotely.
 			(let ((pid (tramp-send-command-and-read v "echo $$")))
 			  (setq p (tramp-get-connection-process v))
-			  (process-put p 'remote-pid pid)
-			  (tramp-set-connection-property p "remote-pid" pid))
+			  (process-put p 'remote-pid pid))
 			(when (memq connection-type '(nil pipe))
 			  ;; Disable carriage return to newline
 			  ;; translation.  This does not work on
