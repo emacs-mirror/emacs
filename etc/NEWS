@@ -783,11 +783,13 @@ will not prompt the user for confirmation before installing packages.
 
 ** Xref
 
+---
+*** Xref commands that jump to some location use 'display-buffer'.
 The commands that jump to some location use 'display-buffer' and specify
-the category 'xref-jump'.  As a result you can customize how the
+the category 'xref-jump'.  As a result, you can customize how the
 destination window is chosen using 'display-buffer-alist'.  Example:
 
-  (setq display-buffer-alist '(((category . xref)
+  (setq display-buffer-alist '(((category . xref-jump)
                                 (display-buffer-reuse-window
                                  display-buffer-use-some-window)
                                 (some-window . mru))))
