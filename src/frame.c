@@ -5102,15 +5102,19 @@ gui_set_scroll_bar_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   int unit = FRAME_COLUMN_WIDTH (f);
 
-  if (RANGED_FIXNUMP (1, arg, INT_MAX)
-      && XFIXNAT (arg) != FRAME_CONFIG_SCROLL_BAR_WIDTH (f))
+  if (RANGED_FIXNUMP (1, arg, INT_MAX))
     {
-      FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = XFIXNAT (arg);
-      FRAME_CONFIG_SCROLL_BAR_COLS (f) = (XFIXNAT (arg) + unit - 1) / unit;
-      if (FRAME_NATIVE_WINDOW (f))
-	adjust_frame_size (f, -1, -1, 3, 0, Qscroll_bar_width);
+      if (XFIXNAT (arg) == FRAME_CONFIG_SCROLL_BAR_WIDTH (f))
+	return;
+      else
+	{
+	  FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = XFIXNAT (arg);
+	  FRAME_CONFIG_SCROLL_BAR_COLS (f) = (XFIXNAT (arg) + unit - 1) / unit;
+	  if (FRAME_NATIVE_WINDOW (f))
+	    adjust_frame_size (f, -1, -1, 3, 0, Qscroll_bar_width);
 
-      SET_FRAME_GARBAGED (f);
+	  SET_FRAME_GARBAGED (f);
+	}
     }
   else
     {
@@ -5133,15 +5137,19 @@ gui_set_scroll_bar_height (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 #if USE_HORIZONTAL_SCROLL_BARS
   int unit = FRAME_LINE_HEIGHT (f);
 
-  if (RANGED_FIXNUMP (1, arg, INT_MAX)
-      && XFIXNAT (arg) != FRAME_CONFIG_SCROLL_BAR_HEIGHT (f))
+  if (RANGED_FIXNUMP (1, arg, INT_MAX))
     {
-      FRAME_CONFIG_SCROLL_BAR_HEIGHT (f) = XFIXNAT (arg);
-      FRAME_CONFIG_SCROLL_BAR_LINES (f) = (XFIXNAT (arg) + unit - 1) / unit;
-      if (FRAME_NATIVE_WINDOW (f))
-	adjust_frame_size (f, -1, -1, 3, 0, Qscroll_bar_height);
+      if (XFIXNAT (arg) == FRAME_CONFIG_SCROLL_BAR_HEIGHT (f))
+	return;
+      else
+	{
+	  FRAME_CONFIG_SCROLL_BAR_HEIGHT (f) = XFIXNAT (arg);
+	  FRAME_CONFIG_SCROLL_BAR_LINES (f) = (XFIXNAT (arg) + unit - 1) / unit;
+	  if (FRAME_NATIVE_WINDOW (f))
+	    adjust_frame_size (f, -1, -1, 3, 0, Qscroll_bar_height);
 
-      SET_FRAME_GARBAGED (f);
+	  SET_FRAME_GARBAGED (f);
+	}
     }
   else
     {
