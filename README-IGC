@@ -53,4 +53,31 @@ TBD
 Building MPS yourself
 ---------------------
 
-TBD
+Clone the MPS repository:
+
+$ git clone https://github.com/Ravenbrook/mps.git
+
+See the file mps/INSTALL for instructions on how to build MPS.  But in
+short:
+
+$ cd mps/code
+
+$ gcc -O2 mps.c
+$ ar rvs libmps.a mps.o
+
+Then you can proceed with building Emacs, telling the `configure` script
+where mps.h and libmps.a are:
+
+$ configure CPPFLAGS=-I/path/to/mps/code LDFLAGS=-L/path/to/mps/code --with-mps=yes ... other options
+
+(replace /path/to/mps/code with the path to the mps/code directory.)
+
+To build the debug version of MP:
+
+$ gcc -O0 -g -DCONFIG_VAR_COOL -c mpc.c -o mps-debug.o
+$ ar rvs libmps-debug.a mps-debug.o
+
+Then pass --with-mps=debug instead --with-mps=yes to the Emacs configure
+script (it is recommended that you build Emacs in debug mode while
+debugging MPS problems, see the INSTALL in the root directory of the
+Emacs source tree.)
