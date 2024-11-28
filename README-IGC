@@ -65,17 +65,25 @@ $ cd mps/code
 $ gcc -O2 mps.c
 $ ar rvs libmps.a mps.o
 
+Now copy the header files and libmps.a to a new empty directory of your
+choosing (~/mps-artifacts in what follows):
+
+$ mkdir ~/mps-artifacts
+$ cp mps*.h libmps.a ~/mps-artifacts
+
 Then you can proceed with building Emacs, telling the `configure` script
-where mps.h and libmps.a are:
+where the mps header files and libmps.a are:
 
-$ configure CPPFLAGS=-I/path/to/mps/code LDFLAGS=-L/path/to/mps/code --with-mps=yes ... other options
+$ configure CPPFLAGS=-I/path/to/mps-artifacts LDFLAGS=-L/path/to/mps-artifacts --with-mps=yes <... rest of options ...>
 
-(replace /path/to/mps/code with the path to the mps/code directory.)
+(Replace /path/to/mps-artifacts with the full path to the directory
+where you copied the MPS header files and library.)
 
 To build the debug version of MP:
 
 $ gcc -O0 -g -DCONFIG_VAR_COOL -c mpc.c -o mps-debug.o
 $ ar rvs libmps-debug.a mps-debug.o
+$ cp libmps-debug.a ~/mps-artifacts
 
 Then pass --with-mps=debug instead --with-mps=yes to the Emacs configure
 script (it is recommended that you build Emacs in debug mode while
