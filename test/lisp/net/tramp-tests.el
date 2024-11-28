@@ -7983,25 +7983,24 @@ process sentinels.  They shall not disturb each other."
   ;; Not all read commands understand argument "-s" or "-p".
   (skip-unless
    (string-empty-p
-    (let ((shell-file-name "sh"))
+    (let ((shell-file-name tramp-default-remote-shell))
       (shell-command-to-string "read -s -p Password: pass"))))
 
-  (let ((pass "secret")
-	(mock-entry (copy-tree (assoc "mock" tramp-methods)))
-	mocked-input tramp-methods auth-sources)
+  (let* ((pass "secret")
+	 (tramp-connection-properties
+	  `((nil "login-args"
+		 (("-c")
+		  (,(tramp-shell-quote-argument
+		     (concat
+		      "read -s -p 'Password: ' pass; echo; "
+		      "(test \"pass$pass\" != \"pass" pass "\" && "
+		      "echo \"Login incorrect\" || "
+		      tramp-default-remote-shell " -i)")))))))
+	 mocked-input auth-sources)
     ;; We must mock `read-string', in order to avoid interactive
     ;; arguments.
     (cl-letf* (((symbol-function #'read-string)
 		(lambda (&rest _args) (pop mocked-input))))
-      (setcdr
-       (assq 'tramp-login-args mock-entry)
-       `((("-c")
-	  (,(tramp-shell-quote-argument
-	     (concat
-	      "read -s -p 'Password: ' pass; echo; "
-	      "(test \"pass$pass\" != \"pass" pass "\" && "
-	      "echo \"Login incorrect\" || sh -i)"))))))
-      (setq tramp-methods `(,mock-entry))
 
       ;; Reading password from stdin works.
       (tramp-cleanup-connection tramp-test-vec 'keep-debug)
@@ -8062,7 +8061,10 @@ process sentinels.  They shall not disturb each other."
 	  (should-not
 	   (password-in-cache-p
 	    (auth-source-format-cache-entry
-	     (tramp-get-connection-property tramp-test-vec " pw-spec"))))))))))
+	     (tramp-get-connection-property tramp-test-vec " pw-spec")))))))))
+
+  ;; Cleanup.
+  (tramp-cleanup-connection tramp-test-vec 'keep-debug))
 
 (ert-deftest tramp-test47-read-otp-password ()
   "Check Tramp one-time password handling."
@@ -8071,25 +8073,24 @@ process sentinels.  They shall not disturb each other."
   ;; Not all read commands understand argument "-s" or "-p".
   (skip-unless
    (string-empty-p
-    (let ((shell-file-name "sh"))
+    (let ((shell-file-name tramp-default-remote-shell))
       (shell-command-to-string "read -s -p Password: pass"))))
 
-  (let ((pass "secret")
-	(mock-entry (copy-tree (assoc "mock" tramp-methods)))
-	mocked-input tramp-methods)
+  (let* ((pass "secret")
+	 (tramp-connection-properties
+	  `((nil "login-args"
+		 (("-c")
+		  (,(tramp-shell-quote-argument
+		     (concat
+		      "read -s -p 'Verification code: ' pass; echo; "
+		      "(test \"pass$pass\" != \"pass" pass "\" && "
+		      "echo \"Login incorrect\" || "
+		      tramp-default-remote-shell " -i)")))))))
+	 mocked-input auth-sources)
     ;; We must mock `read-string', in order to avoid interactive
     ;; arguments.
     (cl-letf* (((symbol-function #'read-string)
 		(lambda (&rest _args) (pop mocked-input))))
-      (setcdr
-       (assq 'tramp-login-args mock-entry)
-       `((("-c")
-	  (,(tramp-shell-quote-argument
-	     (concat
-	      "read -s -p 'Verification code: ' pass; echo; "
-	      "(test \"pass$pass\" != \"pass" pass "\" && "
-	      "echo \"Login incorrect\" || sh -i)"))))))
-      (setq tramp-methods `(,mock-entry))
 
       ;; Reading password from stdin works.
       (tramp-cleanup-connection tramp-test-vec 'keep-debug)
@@ -8121,7 +8122,86 @@ process sentinels.  They shall not disturb each other."
 		 pass)
 	  (let ((auth-sources `(,netrc-file)))
 	    (should-error
-	     (file-exists-p ert-remote-temporary-file-directory)))))))))
+	     (file-exists-p ert-remote-temporary-file-directory))))))))
+
+  ;; Cleanup.
+  (tramp-cleanup-connection tramp-test-vec 'keep-debug))
+
+(ert-deftest tramp-test47-read-security-key ()
+  "Check Tramp security key handling."
+  :tags '(:expensive-test)
+  (skip-unless (tramp--test-mock-p))
+  ;; Not all read commands understand argument "-s" or "-p".
+  (skip-unless
+   (string-empty-p
+    (let ((shell-file-name tramp-default-remote-shell))
+      (shell-command-to-string "read -s -p Password: pass"))))
+
+  (let (;; Suppress "exec".
+	(tramp-restricted-shell-hosts-alist `(,tramp-system-name)))
+
+    ;; Reading security key works.
+    (tramp-cleanup-connection tramp-test-vec 'keep-debug)
+    (let ((tramp-connection-properties
+	   `((nil "login-args"
+		  (("-c")
+		   (,(tramp-shell-quote-argument
+		      "echo Confirm user presence for key XXX"))
+		   (";") ("sleep" "1")
+		   (";") ("echo" "User presence confirmed")
+		   (";") ("sleep" "1")
+		   (";") (,tramp-default-remote-shell "-i"))))))
+      (should (file-exists-p ert-remote-temporary-file-directory)))
+
+    (let* ((pin "1234")
+	   (tramp-connection-properties
+	    `((nil "login-args"
+		   (("-c")
+		    (,(tramp-shell-quote-argument
+		       (concat
+			"echo Confirm user presence for key XXX; sleep 1; "
+			"read -s -p 'Enter PIN for XXX ' pin; echo; "
+			"(test \"pin$pin\" != \"pin" pin "\" && "
+			"echo \"Login incorrect\" || "
+			"(echo User presence confirmed; "
+			tramp-default-remote-shell " -i))")))))))
+	   mocked-input auth-sources)
+      ;; We must mock `read-string', in order to avoid interactive
+      ;; arguments.
+      (cl-letf* (((symbol-function #'read-string)
+		  (lambda (&rest _args) (pop mocked-input))))
+
+	;; Reading security PIN works.
+	(tramp-cleanup-connection tramp-test-vec 'keep-debug)
+	;; We don't want to invalidate the pin.
+	(setq mocked-input `(,(copy-sequence pin)))
+	(should (file-exists-p ert-remote-temporary-file-directory))
+
+	;; Don't entering a security PIN returns in error.
+	(tramp-cleanup-connection tramp-test-vec 'keep-debug)
+	(setq mocked-input nil)
+	(should-error (file-exists-p ert-remote-temporary-file-directory))
+
+	;; A wrong security PIN doesn't work either.
+	(tramp-cleanup-connection tramp-test-vec 'keep-debug)
+	(setq mocked-input `(,(concat pin pin)))
+	(should-error (file-exists-p ert-remote-temporary-file-directory))))
+
+    ;; Timeout is detected.
+    (tramp-cleanup-connection tramp-test-vec 'keep-debug)
+    (let ((tramp-connection-properties
+	   `((nil "login-args"
+		  (("-c")
+		   (,(tramp-shell-quote-argument
+		      "echo Confirm user presence for key XXX"))
+		   (";") ("sleep" "1")
+		   (";") ("echo" "sign_and_send_pubkey: signing failed for XXX")
+		   (";") ("sleep" "1")
+		   (";") ("exit" "1"))))))
+      (should-error (file-exists-p ert-remote-temporary-file-directory))))
+
+  ;; Cleanup.
+  (tramp-cleanup-connection tramp-test-vec 'keep-debug))
 
 (ert-deftest tramp-test47-read-fingerprint ()
   "Check Tramp fingerprint handling."
@@ -8139,7 +8219,7 @@ process sentinels.  They shall not disturb each other."
 		   (,(tramp-shell-quote-argument
 		      "echo Place your finger on the fingerprint reader"))
 		   (";") ("sleep" "1")
-		   (";") ("sh" "-i"))))))
+		   (";") (,tramp-default-remote-shell "-i"))))))
       (should (file-exists-p ert-remote-temporary-file-directory)))
 
     ;; Falling back after a timeout works.
@@ -8151,7 +8231,7 @@ process sentinels.  They shall not disturb each other."
 		      "echo Place your finger on the fingerprint reader"))
 		   (";") ("sleep" "1")
 		   (";") ("echo" "Failed to match fingerprint")
-		   (";") ("sh" "-i"))))))
+		   (";") (,tramp-default-remote-shell "-i"))))))
       (should (file-exists-p ert-remote-temporary-file-directory)))
 
     ;; Interrupting the fingerprint handshaking works.
@@ -8162,9 +8242,12 @@ process sentinels.  They shall not disturb each other."
 		   (,(tramp-shell-quote-argument
 		      "echo Place your finger on the fingerprint reader"))
 		   (";") ("sleep" "1")
-		   (";") ("sh" "-i")))))
+		   (";") (,tramp-default-remote-shell "-i")))))
 	  tramp-use-fingerprint)
-      (should (file-exists-p ert-remote-temporary-file-directory)))))
+      (should (file-exists-p ert-remote-temporary-file-directory))))
+
+  ;; Cleanup.
+  (tramp-cleanup-connection tramp-test-vec 'keep-debug))
 
 ;; This test is inspired by Bug#29163.
 (ert-deftest tramp-test48-auto-load ()
