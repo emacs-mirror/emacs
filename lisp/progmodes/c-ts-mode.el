@@ -35,7 +35,7 @@
 ;; To use these modes by default, assuming you have the respective
 ;; tree-sitter grammars available, do one of the following:
 ;;
-;; - Add one or mode of the following to your init file:
+;; - Add one or more of the following lines to your init file:
 ;;
 ;;    (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
 ;;    (add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
