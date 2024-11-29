@@ -155,6 +155,7 @@
        (dumb-server (erc-d-run "localhost" t 'reconnect-retry
                                'reconnect-retry-again))
        (port (process-contact dumb-server :service))
+       (erc-server-reconnect-function #'erc-server-delayed-reconnect)
        (erc-server-auto-reconnect t)
        (erc-modules `(services-regain sasl ,@erc-modules))
        (erc-services-regain-alist

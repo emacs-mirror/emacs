@@ -43,6 +43,7 @@
        (chan-buf-foo (format "#chan@127.0.0.1:%d" port))
        (chan-buf-bar (format "#chan@127.0.0.1:%d<2>" port))
        (expect (erc-d-t-make-expecter))
+       (erc-server-reconnect-function #'erc-server-delayed-reconnect)
        (erc-server-auto-reconnect auto)
        erc-server-buffer-foo erc-server-process-foo
        erc-server-buffer-bar erc-server-process-bar)

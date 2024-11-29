@@ -1340,8 +1340,7 @@ settings (@pxref{Sample configuration via Customize}).
   ;; Scroll all windows to prompt when submitting input.
   (erc-scrolltobottom-all t)
 
-  ;; Reconnect automatically using a fancy strategy.
-  (erc-server-reconnect-function #'erc-server-delayed-check-reconnect)
+  ;; Wait a bit longer between automatic reconnect attempts.
   (erc-server-reconnect-timeout 30)
 
   ;; Show new buffers in the current window instead of a split.
@@ -1444,30 +1443,18 @@ descriptions just in case you want to disable them later.  When
 finished, hit @kbd{C-x C-s} or click @samp{[Apply and Save]} atop the
 buffer.
 
-Now do the same for another couple options, this time having to do
-with automatic reconnection.  But instead of searching for their print
-names, try running @kbd{M-x customize-option @key{RET} @samp{<option>}
-@key{RET}}, replacing @samp{<option>} with:
+Now do the same for another option, this time having to do with
+automatic reconnection.  But instead of searching for its print name,
+try running @kbd{M-x customize-option @key{RET}
+erc-server-reconnect-timeout @key{RET}}.  (If it helps, hit @key{TAB}
+for completion.)  As you may have noticed, when customizing options
+individually, each buffer displays but a single option's widget.  For
+@code{erc-server-reconnect-timeout}, you'll encounter a text field
+(instead of a button), which works like those in a typical web form.
+Enter @samp{30} and either hit @kbd{C-x C-s} to save or @key{TAB} over
+to @samp{[State]} and hit @key{RET} followed by @kbd{1} to persist your
+changes.
 
-@itemize @bullet
-@item @code{erc-server-reconnect-function}, a function
-@item @code{erc-server-reconnect-timeout}, a number
-@end itemize
-
-@noindent
-(If it helps, hit @key{TAB} for completion.)  As you may have noticed,
-when customizing options individually, each buffer displays but a
-single option's widget.  When you get to the buffer for ``Erc Server
-Reconnect Function'', you'll see that @samp{[Toggle]} has been
-replaced with @samp{[Value Menu]} and that clicking it reveals three
-choices in a pop-up window.  Enter @kbd{1} to select
-@code{erc-server-delayed-check-reconnect} before @key{TAB}'ing over to
-@samp{[State]} and hitting @key{RET}.  Enter @kbd{1} again, this time
-to persists your changes.
-
-For the final option, @code{erc-server-reconnect-timeout}, you'll
-encounter a text field (instead of a button), which works like those
-in a typical web form.  Enter @samp{30} and hit @kbd{C-x C-s} to save.
 Just for fun, click the group link for @samp{Erc Server} at the bottom
 of the buffer.  You could just as well have set the last two options
 from this ``custom group'' buffer alone, which very much resembles the

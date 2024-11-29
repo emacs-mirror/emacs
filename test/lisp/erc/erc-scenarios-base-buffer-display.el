@@ -40,6 +40,7 @@
        (port (process-contact dumb-server :service))
        (expect (erc-d-t-make-expecter))
        (erc-server-flood-penalty 0.1)
+       (erc-server-reconnect-function #'erc-server-delayed-reconnect)
        (erc-server-auto-reconnect t)
        erc-autojoin-channels-alist)
 

@@ -26,6 +26,7 @@
 
 (ert-deftest erc-scenarios-base-netid-bouncer--recon-base ()
   :tags '(:expensive-test)
-  (erc-scenarios-common--base-network-id-bouncer--reconnect nil nil))
+  (let ((erc-server-reconnect-function #'erc-server-delayed-reconnect))
+    (erc-scenarios-common--base-network-id-bouncer--reconnect nil nil)))
 
 ;;; erc-scenarios-base-netid-bouncer-recon-base.el ends here

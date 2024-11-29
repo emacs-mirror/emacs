@@ -429,15 +429,16 @@ this value to 120 or greater and/or exploring the option
 means of handling this situation on some servers."
   :type 'number)
 
-(defcustom erc-server-reconnect-function 'erc-server-delayed-reconnect
+(defcustom erc-server-reconnect-function 'erc-server-prefer-check-reconnect
   "Function called by the reconnect timer to create a new connection.
 Called with a server buffer as its only argument.  Potential uses
 include exponential backoff and probing for connectivity prior to
 dialing.  Use `erc-schedule-reconnect' to instead try again later
 and optionally alter the attempts tally."
-  :package-version '(ERC . "5.5")
+  :package-version '(ERC . "5.6.1")
   :type '(choice (function-item erc-server-delayed-reconnect)
                  (function-item erc-server-delayed-check-reconnect)
+                 (function-item erc-server-prefer-check-reconnect)
                  function))
 
 (defcustom erc-split-line-length 440
@@ -879,7 +880,7 @@ Expect BUFFER to be the server buffer for the current connection."
              (sentinel (lambda (proc event)
                          (pcase event
                            ("open\n"
-                            (run-at-time nil nil #'send-string proc
+                            (run-at-time nil nil #'process-send-string proc
                                          (format "PING %d\r\n"
                                                  (time-convert nil 'integer))))
                            ((or "connection broken by remote peer\n"
@@ -900,6 +901,19 @@ Expect BUFFER to be the server buffer for the current connection."
               (set-process-filter proc filter)
               (set-process-sentinel proc sentinel))
           (file-error (funcall reschedule nil)))))))
+
+(defvar erc--server-delayed-check-connectors
+  '(erc-open-tls-stream erc-open-network-stream)
+  "Functions compatible with `erc-server-delayed-check-reconnect'.")
+
+(defun erc-server-prefer-check-reconnect (buffer)
+  "Defer to another reconnector based on BUFFER's `erc-session-connector'.
+Prefer `erc-server-delayed-check-reconnect' if the connector is known to
+be \"check-aware\".  Otherwise, use `erc-server-delayed-reconnect'."
+  (if (memq (buffer-local-value 'erc-session-connector buffer)
+            erc--server-delayed-check-connectors)
+      (erc-server-delayed-check-reconnect buffer)
+    (erc-server-delayed-reconnect buffer)))
 
 (defun erc-server-filter-function (process string)
   "The process filter for the ERC server."

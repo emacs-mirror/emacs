@@ -24,6 +24,10 @@
   (let ((load-path (cons (ert-resource-directory) load-path)))
     (require 'erc-scenarios-common)))
 
+;; This tests `erc-server-delayed-check-reconnect', which is called by
+;; `erc-server-prefer-check-reconnect' (the default value of
+;; `erc-server-reconnect-function' as of ERC 5.6.1).
+
 (defun erc-scenarios-base-auto-recon--get-unused-port ()
   (let ((server (make-network-process :name "*erc-scenarios-base-auto-recon*"
                                       :host "localhost"
@@ -42,7 +46,6 @@
        (port (erc-scenarios-base-auto-recon--get-unused-port))
        (erc--server-reconnect-timeout-scale-function (lambda (_) 1))
        (erc-server-auto-reconnect t)
-       (erc-server-reconnect-function #'erc-server-delayed-check-reconnect)
        (expect (erc-d-t-make-expecter))
        (erc-scenarios-common-dialog "base/reconnect")
        (dumb-server nil))
@@ -89,7 +92,7 @@
         (erc-cmd-RECONNECT "cancel")
         (funcall expect 10 "canceled")))))
 
-;; In this test, a listener accepts but doesn't respond to any messages.
+;; Here, a listener accepts but doesn't respond to any messages.
 
 (ert-deftest erc-scenarios-base-auto-recon-no-proto ()
   :tags '(:expensive-test)
@@ -102,7 +105,6 @@
        (erc--server-reconnect-timeout-scale-function (lambda (_) 1))
        (erc--server-reconnect-timeout-check 0.5)
        (erc-server-auto-reconnect t)
-       (erc-server-reconnect-function #'erc-server-delayed-check-reconnect)
        (expect (erc-d-t-make-expecter)))
 
     (ert-info ("Session succeeds but cut short")
