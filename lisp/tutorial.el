@@ -650,7 +650,12 @@ with some explanatory links."
 	  (delete-region prop-start prop-end))))))
 
 (defvar tutorial--starting-point)
+
+;; For when the user saves the TUTORIAL to a file.
 (put 'tutorial--starting-point 'permanent-local t)
+(put 'tutorial--lang 'permanent-local t)
+(put 'tutorial--point-before-chkeys 'permanent-local t)
+
 (defun tutorial--save-on-kill ()
   "Query the user about saving the tutorial when killing Emacs."
   (when (buffer-live-p tutorial--buffer)
