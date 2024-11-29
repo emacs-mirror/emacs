@@ -1943,6 +1943,32 @@ PARENT is its parent; ANCHOR is a point (not a node), and OFFSET
 is a number.  Emacs finds the column of ANCHOR and adds OFFSET to
 it as the final indentation of the current line.")
 
+(defun treesit--indent-largest-node-at (pos)
+  "Get largest node that still starts at POS."
+  (let* ((local-parsers (treesit-local-parsers-at pos nil t))
+         (smallest-node
+          (cond ((car local-parsers)
+                 (let ((local-parser (caar local-parsers))
+                       (host-parser (cdar local-parsers)))
+                   (if (eq (treesit-node-start
+                            (treesit-parser-root-node local-parser))
+                           pos)
+                       (treesit-node-at pos host-parser)
+                     (treesit-node-at pos local-parser))))
+                ((null (treesit-parser-list)) nil)
+                ((eq 1 (length (treesit-parser-list nil nil t)))
+                 (treesit-node-at pos))
+                ((treesit-language-at pos)
+                 (treesit-node-at pos (treesit-language-at pos)))
+                (t (treesit-node-at pos))))
+         (root (treesit-parser-root-node
+                (treesit-node-parser smallest-node))))
+    (treesit-parent-while
+     smallest-node
+     (lambda (node)
+       (and (eq pos (treesit-node-start node))
+            (not (treesit-node-eq node root)))))))
+
 (defun treesit--indent-1 ()
   "Indent the current line.
 Return (ANCHOR . OFFSET).  This function is used by
@@ -1952,32 +1978,9 @@ Return (ANCHOR . OFFSET).  This function is used by
                 (forward-line 0)
                 (skip-chars-forward " \t")
                 (point)))
-         (local-parsers (treesit-local-parsers-at bol nil t))
-         (smallest-node
-          (cond ((car local-parsers)
-                 (let ((local-parser (caar local-parsers))
-                       (host-parser (cdar local-parsers)))
-                   (if (eq (treesit-node-start
-                            (treesit-parser-root-node local-parser))
-                           bol)
-                       (treesit-node-at bol host-parser)
-                     (treesit-node-at bol local-parser))))
-                ((null (treesit-parser-list)) nil)
-                ((eq 1 (length (treesit-parser-list nil nil t)))
-                 (treesit-node-at bol))
-                ((treesit-language-at bol)
-                 (treesit-node-at bol (treesit-language-at bol)))
-                (t (treesit-node-at bol))))
-         (root (treesit-parser-root-node
-                (treesit-node-parser smallest-node)))
-         (node (treesit-parent-while
-                smallest-node
-                (lambda (node)
-                  (and (eq bol (treesit-node-start node))
-                       (not (treesit-node-eq node root)))))))
-    (let*
-        ((parser (if smallest-node
-                     (treesit-node-parser smallest-node)
+         (node (treesit--indent-largest-node-at bol))
+         (parser (if node
+                     (treesit-node-parser node)
                    nil))
          ;; NODE would be nil if BOL is on a whitespace.  In that case
          ;; we set PARENT to the "node at point", which would
@@ -1985,7 +1988,7 @@ Return (ANCHOR . OFFSET).  This function is used by
          (parent (cond ((and node parser)
                         (treesit-node-parent node))
                        (t (treesit-node-on bol bol)))))
-      (funcall treesit-indent-function node parent bol))))
+    (funcall treesit-indent-function node parent bol)))
 
 (defun treesit-indent ()
   "Indent according to the result of `treesit-indent-function'."
