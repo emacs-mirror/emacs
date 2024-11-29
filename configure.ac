@@ -5624,16 +5624,16 @@ LIBMPS=
 IGCOBJ=
 if test "${with_mps}" != "no"; then
   AC_CHECK_HEADER([mps.h],
-    [AC_CHECK_LIB([mps], [mps_arena_create], [HAVE_MPS=yes])])
+    [AC_CHECK_LIB([mps], [mps_arena_create], [HAVE_MPS=yes], [], [$LIB_PTHREAD])])
 
   if test "${HAVE_MPS}" = "yes"; then
     IGCOBJ="igc.o"
     AC_DEFINE([HAVE_MPS], [1],
       [Define to 1 if you have the mps library (-lmps).])
     if test "${with_mps}" = "debug"; then
-      LIBMPS=-lmps-debug
+      LIBMPS="-lmps-debug $LIB_PTHREAD"
     else
-      LIBMPS=-lmps
+      LIBMPS="-lmps $LIB_PTHREAD"
     fi
   else
     AC_MSG_ERROR([The MPS library libmps is missing]):
