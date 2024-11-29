@@ -1559,13 +1559,13 @@ START and END mark the current to-be-propertized region."
 
 (defvar-local treesit-simple-indent-rules nil
   "A list of indent rule settings.
-Each indent rule setting should be (LANGUAGE . RULES),
-where LANGUAGE is a language symbol, and RULES is a list of
+Each indent rule setting should be (LANGUAGE RULE...), where LANGUAGE is
+a language symbol, and each RULE is of the form
 
-    (MATCHER ANCHOR OFFSET).
+    (MATCHER ANCHOR OFFSET)
 
-MATCHER determines whether this rule applies, ANCHOR and OFFSET
-together determines which column to indent to.
+MATCHER determines whether this rule applies, ANCHOR and
+OFFSET together determines which column to indent to.
 
 A MATCHER is a function that takes three arguments (NODE PARENT
 BOL).  BOL is the point where we are indenting: the beginning of
@@ -1582,7 +1582,12 @@ ANCHOR and adds OFFSET to it, and indents to that column.  OFFSET
 can be an integer or a variable whose value is an integer.
 
 For MATCHER and ANCHOR, Emacs provides some convenient presets.
-See `treesit-simple-indent-presets'.")
+See `treesit-simple-indent-presets'.
+
+For complex cases, a RULE can also be a single function.  This function
+should take the same argument as MATCHER or ANCHOR.  If it matches,
+return a cons (ANCHOR-POS . OFFSET), where ANCHOR-POS is a position and
+OFFSET is the indent offset; if it doesn't match, return nil.")
 
 (defvar treesit-simple-indent-presets
   (list (cons 'match
@@ -2121,31 +2126,37 @@ OFFSET."
     (let* ((language (treesit-node-language parent))
            (rules (alist-get language
                              treesit-simple-indent-rules)))
-      (cl-loop for rule in rules
-               for pred = (nth 0 rule)
-               for anchor = (nth 1 rule)
-               for offset = (nth 2 rule)
-               if (treesit--simple-indent-eval
-                   (list pred node parent bol))
-               do (when treesit--indent-verbose
+      (catch 'match
+        (dolist (rule rules)
+          (if (functionp rule)
+              (let ((result (funcall rule node parent bol)))
+                (when result
+                  (when treesit--indent-verbose
                     (message "Matched rule: %S" rule))
-               and
-               return
-               (let ((anchor-pos
-                      (treesit--simple-indent-eval
-                       (list anchor node parent bol)))
-                     (offset-val
-                      (cond ((numberp offset) offset)
-                            ((and (symbolp offset)
-                                  (boundp offset))
-                             (symbol-value offset))
-                            (t (treesit--simple-indent-eval
-                                (list offset node parent bol))))))
-                 (cons anchor-pos offset-val))
-               finally return
-               (progn (when treesit--indent-verbose
-                        (message "No matched rule"))
-                      (cons nil nil))))))
+                  (throw 'match result)))
+            (let ((pred (nth 0 rule))
+                  (anchor (nth 1 rule))
+                  (offset (nth 2 rule)))
+              ;; Found a match.
+              (when (treesit--simple-indent-eval
+                     (list pred node parent bol))
+                (when treesit--indent-verbose
+                  (message "Matched rule: %S" rule))
+                (let ((anchor-pos
+                       (treesit--simple-indent-eval
+                        (list anchor node parent bol)))
+                      (offset-val
+                       (cond ((numberp offset) offset)
+                             ((and (symbolp offset)
+                                   (boundp offset))
+                              (symbol-value offset))
+                             (t (treesit--simple-indent-eval
+                                 (list offset node parent bol))))))
+                  (throw 'match (cons anchor-pos offset-val)))))))
+        ;; Didn't find any match.
+        (when treesit--indent-verbose
+          (message "No matched rule"))
+        (cons nil nil)))))
 
 (defun treesit--read-major-mode ()
   "Read a major mode using completion.
@@ -2201,12 +2212,14 @@ RULES."
                     (_ func)))
                 ;; Optimize a rule (MATCHER ANCHOR OFFSET).
                 (optimize-rule (rule)
-                  (let ((matcher (nth 0 rule))
-                        (anchor (nth 1 rule))
-                        (offset (nth 2 rule)))
-                    (list (optimize-func matcher)
-                          (optimize-func anchor)
-                          offset))))
+                  (if (functionp rule)
+                      rule
+                    (let ((matcher (nth 0 rule))
+                          (anchor (nth 1 rule))
+                          (offset (nth 2 rule)))
+                      (list (optimize-func matcher)
+                            (optimize-func anchor)
+                            offset)))))
              (cons lang (mapcar #'optimize-rule indent-rules)))))
 
 ;;; Search

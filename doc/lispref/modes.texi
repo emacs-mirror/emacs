@@ -5243,11 +5243,13 @@ more complex indentation engines.
 @cindex indentation rules, for parser-based indentation
 
 @defvar treesit-simple-indent-rules
-This local variable stores indentation rules for every language.  It
-is an alist with elements of the form @w{@code{(@var{language}
-. @var{rules})}}, where @var{language} is a language symbol, and
-@var{rules} is a list with elements of the form
-@w{@code{(@var{matcher} @var{anchor} @var{offset})}}.
+This local variable stores indentation rules for every language.  It is
+an list of elements of the form @w{@code{(@var{language}
+@var{rule}...)}}, where @var{language} is a language symbol, and each
+@var{rule} is either a list with elements of the form
+@w{@code{(@var{matcher} @var{anchor} @var{offset})}}, or a function. Let
+'s focus on the list variant first, we'll come back to the function
+variant later.
 
 First, Emacs passes the smallest tree-sitter node at the beginning of
 the current line to @var{matcher}; if it returns non-@code{nil}, this
@@ -5277,6 +5279,15 @@ and @var{anchor} should return a buffer position.
 or a function that returns an integer.  If it is a function, it is
 passed @var{node}, @var{parent}, and @var{bol}, like matchers and
 anchors.
+
+Remember that @var{rule} can also be a function.  This is for the
+complex cases where a rule needs to consider the matching rule and
+anchor together.  If @var{rule} is a function, it's passed the same
+argument as @var{matcher}: @var{node}, @var{parent}, and @var{bol}.  If
+it matches, @var{rule} should return a cons @w{@code{(@var{anchor-pos}
+. @var{offset})}}, where @var{anchor-pos} is a buffer position, and
+@var{offset} is the indent offset.  If @var{rule} does't match, it
+should return @code{nil}.
 @end defvar
 
 @defvar treesit-simple-indent-presets
