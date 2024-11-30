@@ -472,8 +472,10 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
                     ;; minibuffer.
                     (window-buffer (get-mru-window)))
                    ;; Otherwise, if we found the expansion in another
-                   ;; buffer, use that buffer for further expansions.
-                   (dabbrev--last-buffer-found dabbrev--last-buffer-found)
+                   ;; buffer and that buffer is still live, use that
+                   ;; buffer for further expansions.
+                   ((buffer-live-p dabbrev--last-buffer-found)
+                    dabbrev--last-buffer-found)
                    ;; Otherwise, use the buffer where we invoked
                    ;; dabbrev-expand.
                    (t (current-buffer))))
