@@ -147,10 +147,11 @@ symbol."
 (defcustom c-ts-mode-indent-style 'gnu
   "Style used for indentation.
 
-The selected style could be one of GNU, K&R, LINUX or BSD.  If
-one of the supplied styles doesn't suffice, the value could be
-a function instead.  This function is expected to return a list
-that follows the form of `treesit-simple-indent-rules'."
+The selected style could be one of GNU, K&R, LINUX or BSD.  If the
+supplied styles don't suffice, the value could be a function instead.
+This function takes no arguments and is expected to return a list of
+indent RULEs as described in `treesit-simple-indent-rules'.  Note that
+the list of RULEs doesn't need to contain the language symbol."
   :version "29.1"
   :type '(choice (symbol :tag "Gnu" gnu)
                  (symbol :tag "K&R" k&r)
