@@ -34,9 +34,38 @@
 ;; put somewhere Emacs can find it.  See the docstring of
 ;; `treesit-extra-load-path'.
 
-;; This mode doesn't associate itself with .rb files automatically.
-;; You can do that either by prepending to the value of
-;; `auto-mode-alist', or using `major-mode-remap-alist'.
+;; This mode doesn't associate itself with .rb files automatically.  To
+;; use this mode by default, assuming you have the tree-sitter grammar
+;; available, do one of the following:
+;;
+;; - Add the following to your init file:
+;;
+;;    (add-to-list 'major-mode-remap-alist '(ruby-mode . ruby-ts-mode))
+;;
+;; - Customize 'auto-mode-alist' to turn ruby-ts-mode automatically.
+;;   For example:
+;;
+;;    (add-to-list 'auto-mode-alist
+;;                 (cons (concat "\\(?:\\.\\(?:"
+;;                               "rbw?\\|ru\\|rake\\|thor\\|axlsx"
+;;                               "\\|jbuilder\\|rabl\\|gemspec\\|podspec"
+;;                               "\\)"
+;;                               "\\|/"
+;;                               "\\(?:Gem\\|Rake\\|Cap\\|Thor"
+;;                               "\\|Puppet\\|Berks\\|Brew\\|Fast"
+;;                               "\\|Vagrant\\|Guard\\|Pod\\)file"
+;;                               "\\)\\'")
+;;                       'ruby-ts-mode))
+;;
+;;   will turn on the ruby-ts-mode for Ruby source files.
+;;
+;; - If you have the Ruby grammar installed, add
+;;
+;;     (load "ruby-ts-mode")
+;;
+;;   to your init file.
+;;
+;; You can also turn on this mode manually in a buffer.
 
 ;; Tree Sitter brings a lot of power and versitility which can be
 ;; broken into these features.
@@ -1198,9 +1227,6 @@ leading double colon is not added."
                                            (treesit-node-parent node))
                                           "interpolation"))))))))
 
-  ;; AFAIK, Ruby can not nest methods
-  (setq-local treesit-defun-prefer-top-level nil)
-
   ;; Imenu.
   (setq-local imenu-create-index-function #'ruby-ts--imenu)
 
@@ -1237,8 +1263,10 @@ leading double colon is not added."
 
 (derived-mode-add-parents 'ruby-ts-mode '(ruby-mode))
 
-(if (treesit-ready-p 'ruby)
-    (add-to-list 'major-mode-remap-defaults
+(when (treesit-ready-p 'ruby)
+  (setq major-mode-remap-defaults
+        (assq-delete-all 'ruby-mode major-mode-remap-defaults))
+  (add-to-list 'major-mode-remap-defaults
                  '(ruby-mode . ruby-ts-mode)))
 
 (provide 'ruby-ts-mode)

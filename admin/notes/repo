@@ -77,16 +77,6 @@ variable in admin/merge-gnulib before running it.
 If you remove a gnulib module, or if a gnulib module
 removes a file, then remove the corresponding files by hand.
 
-* How to merge changes from emacs-24 to master
-
-[The section on git merge procedure has not yet been written.]
-
-You may see conflicts in autoload md5sums in comments.  Strictly
-speaking, the right thing to do is merge everything else, resolve the
-conflict by choosing either the master or branch version, then run
-'make -C lisp autoloads' to update the md5sums to the correct master
-value before committing.
-
 * Re-adding a file that has been removed from the repository
 
 Let's suppose you've done:

@@ -35,7 +35,7 @@
 ;; To use these modes by default, assuming you have the respective
 ;; tree-sitter grammars available, do one of the following:
 ;;
-;; - Add one or mode of the following to your init file:
+;; - Add one or more of the following lines to your init file:
 ;;
 ;;    (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
 ;;    (add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
@@ -150,10 +150,11 @@ symbol."
 (defcustom c-ts-mode-indent-style 'gnu
   "Style used for indentation.
 
-The selected style could be one of GNU, K&R, LINUX or BSD.  If
-one of the supplied styles doesn't suffice, the value could be
-a function instead.  This function is expected to return a list
-that follows the form of `treesit-simple-indent-rules'."
+The selected style could be one of GNU, K&R, LINUX or BSD.  If the
+supplied styles don't suffice, the value could be a function instead.
+This function takes no arguments and is expected to return a list of
+indent RULEs as described in `treesit-simple-indent-rules'.  Note that
+the list of RULEs doesn't need to contain the language symbol."
   :version "29.1"
   :type '(choice (symbol :tag "Gnu" gnu)
                  (symbol :tag "K&R" k&r)
@@ -1277,9 +1278,6 @@ BEG and END are described in `treesit-range-rules'."
               `((c ,@c-ts-mode--thing-settings)
                 (cpp ,@c-ts-mode--thing-settings)))
 
-  ;; Nodes like struct/enum/union_specifier can appear in
-  ;; function_definitions, so we need to find the top-level node.
-  (setq-local treesit-defun-prefer-top-level t)
 
   ;; When the code is in incomplete state, try to make a better guess
   ;; about which node to indent against.
@@ -1360,46 +1358,49 @@ in your init files."
                   (treesit-parser-create 'c nil nil 'for-each)))
 
     (let ((primary-parser (treesit-parser-create 'c)))
-      ;; Comments.
-      (setq-local comment-start "/* ")
-      (setq-local comment-end " */")
-      ;; Indent.
-      (setq-local treesit-simple-indent-rules
-                  (c-ts-mode--get-indent-style 'c))
-      ;; Font-lock.
+    ;; Comments.
+    (setq-local comment-start "/* ")
+    (setq-local comment-end " */")
+    ;; Indent.
+    (setq-local treesit-simple-indent-rules
+                (c-ts-mode--get-indent-style 'c))
+    ;; Font-lock.
+    (setq-local treesit-font-lock-settings
+                (c-ts-mode--font-lock-settings 'c))
+    ;; Navigation.
+    ;;
+    ;; Nodes like struct/enum/union_specifier can appear in
+    ;; function_definitions, so we need to find the top-level node.
+    (setq-local treesit-defun-tactic 'top-level)
+    (treesit-major-mode-setup)
+
+    ;; Emacs source support: handle DEFUN and FOR_EACH_* gracefully.
+    (when c-ts-mode-emacs-sources-support
+      (setq-local add-log-current-defun-function
+                  #'c-ts-mode--emacs-current-defun-name)
+
+      (setq-local treesit-range-settings
+                  (treesit-range-rules 'c-ts-mode--emacs-set-ranges))
+
+      (setq-local treesit-language-at-point-function
+                  (lambda (_pos) 'c))
+      (treesit-font-lock-recompute-features '(emacs-devel)))
+
+    ;; Inject doxygen parser for comment.
+    (when (and c-ts-mode-enable-doxygen (treesit-ready-p 'doxygen t))
+      (setq-local treesit-primary-parser primary-parser)
       (setq-local treesit-font-lock-settings
-                  (c-ts-mode--font-lock-settings 'c))
-      ;; Navigation.
-      (setq-local treesit-defun-tactic 'top-level)
-      (treesit-major-mode-setup)
-
-      ;; Emacs source support: handle DEFUN and FOR_EACH_* gracefully.
-      (when c-ts-mode-emacs-sources-support
-        (setq-local add-log-current-defun-function
-                    #'c-ts-mode--emacs-current-defun-name)
-
-        (setq-local treesit-range-settings
-                    (treesit-range-rules 'c-ts-mode--emacs-set-ranges))
-
-        (setq-local treesit-language-at-point-function
-                    (lambda (_pos) 'c))
-        (treesit-font-lock-recompute-features '(emacs-devel)))
-
-      ;; Inject doxygen parser for comment.
-      (when (and c-ts-mode-enable-doxygen (treesit-ready-p 'doxygen t))
-        (setq-local treesit-primary-parser primary-parser)
-        (setq-local treesit-font-lock-settings
-                    (append
-                     treesit-font-lock-settings
-                     c-ts-mode-doxygen-comment-font-lock-settings))
-        (setq-local treesit-range-settings
-                    (treesit-range-rules
-                     :embed 'doxygen
-                     :host 'c
-                     :local t
-                     `(((comment) @cap
-                        (:match
-                         ,c-ts-mode--doxygen-comment-regex @cap)))))))))
+                  (append
+                   treesit-font-lock-settings
+                   c-ts-mode-doxygen-comment-font-lock-settings))
+      (setq-local treesit-range-settings
+                  (treesit-range-rules
+                   :embed 'doxygen
+                   :host 'c
+                   :local t
+                   `(((comment) @cap
+                      (:match
+                       ,c-ts-mode--doxygen-comment-regex @cap)))))))))
 
 (derived-mode-add-parents 'c-ts-mode '(c-mode))
 

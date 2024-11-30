@@ -235,7 +235,8 @@ use `diary-list-entries-hook', which runs only for the main diary file."
   :type 'hook
   :options '(diary-bahai-list-entries
              diary-hebrew-list-entries
-             diary-islamic-list-entries)
+             diary-islamic-list-entries
+             diary-chinese-list-entries)
   :group 'diary)
 
 (defcustom diary-nongregorian-marking-hook nil
@@ -252,7 +253,8 @@ use `diary-mark-entries-hook', which runs only for the main diary file."
   :type 'hook
   :options '(diary-bahai-mark-entries
              diary-hebrew-mark-entries
-             diary-islamic-mark-entries)
+             diary-islamic-mark-entries
+             diary-chinese-mark-entries)
   :group 'diary)
 
 (defcustom diary-print-entries-hook #'lpr-buffer
