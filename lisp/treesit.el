@@ -3632,6 +3632,14 @@ window."
                  #'treesit--explorer-kill-explorer-buffer t)
     (treesit--explorer-kill-explorer-buffer)))
 
+(defun treesit-explore ()
+  "Show the explorer."
+  (interactive)
+  (if (and treesit-explore-mode
+           (buffer-live-p treesit--explorer-buffer))
+      (display-buffer treesit--explorer-buffer '(nil (inhibit-same-window . t)))
+    (treesit-explore-mode)))
+
 ;;; Install & build language grammar
 
 (defvar treesit-language-source-alist nil
