@@ -317,6 +317,7 @@ Otherwise, `dictionary-search' displays definitions in a *Dictionary* buffer."
                       dictionary-read-dictionary-function)
                      vals))
          (set-default-toplevel-value symbol value))
+  :initialize #'custom-initialize-changed
   :version "30.1")
 
 (defface dictionary-word-definition-face
