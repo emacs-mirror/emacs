@@ -301,7 +301,7 @@ naming the shell."
 	 "^\\s-*\\([[:alpha:]_][[:alnum:]_]*\\)\\s-*()"
 	 1)))
     ;; The difference between the Bash regular expression and the sh regular
-    ;; expression is that Bash also allows hyphens (-).
+    ;; expression is that Bash also allows hyphens (-) in function names.
     (bash
      . ((nil
          ;; function FOO
