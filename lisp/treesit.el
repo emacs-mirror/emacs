@@ -1744,10 +1744,7 @@ OFFSET is the indent offset; if it doesn't match, return nil.")
                              (forward-line -1)
                              (skip-chars-forward " \t")
                              (point))))
-        (cons 'column-0 (lambda (_n _p bol &rest _)
-                          (save-excursion
-                            (goto-char bol)
-                            (line-beginning-position))))
+        (cons 'column-0 (lambda (&rest _) (pos-bol)))
         ;; TODO: Document.
         (cons 'and (lambda (&rest fns)
                      (lambda (node parent bol &rest _)
