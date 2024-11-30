@@ -1589,6 +1589,14 @@ should take the same argument as MATCHER or ANCHOR.  If it matches,
 return a cons (ANCHOR-POS . OFFSET), where ANCHOR-POS is a position and
 OFFSET is the indent offset; if it doesn't match, return nil.")
 
+(defun treesit--indent-prev-line-node (pos)
+  "Return the largest node on the previous line of POS."
+  (save-excursion
+    (goto-char pos)
+    (when (eq (forward-line -1) 0)
+      (back-to-indentation)
+      (treesit--indent-largest-node-at (point)))))
+
 (defvar treesit-simple-indent-presets
   (list (cons 'match
               (lambda
@@ -1639,6 +1647,12 @@ OFFSET is the indent offset; if it doesn't match, return nil.")
                          (lambda (node &rest _)
                            (string-match-p
                             type (or (treesit-node-type node) "")))))
+        ;; FIXME: Add to manual.
+        (cons 'prev-line-is (lambda (type)
+                              (lambda (_n _p bol &rest _)
+                                (treesit-node-match-p
+                                 (treesit--indent-prev-line-node bol)
+                                 type))))
         (cons 'field-is (lambda (name)
                           (lambda (node &rest _)
                             (string-match-p
