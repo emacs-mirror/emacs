@@ -2736,10 +2736,10 @@ for example:
 
 @example
 @group
-(setopt
- display-buffer-alist
- (cons '((category . comint) (display-buffer-same-window))
-        display-buffer-alist))
+(add-to-list 'display-buffer-alist
+             '((category . comint)
+               (display-buffer-same-window)
+               (inhibit-same-window . nil)))
 
 (display-buffer (get-buffer-create "*my-shell*")
                 '(nil (category . comint)))
