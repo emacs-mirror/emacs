@@ -2803,7 +2803,11 @@ being pressed.  If it is @code{pressed-button}, the box looks like a
 If you use the @code{:box} face attribute on strings displayed instead
 of buffer text via the @code{display} text property, special
 considerations might apply if the surrounding buffer text also has the
-@code{:box} face attribute.  @xref{Replacing Specs}.
+@code{:box} face attribute.  @xref{Replacing Specs}.  Also note that the
+vertical lines of the box are only drawn when @code{:box} attribute
+changes from @code{nil} to non-@code{nil} or vice versa; two consecutive
+face properties with a non-@code{nil} @code{:box} attribute will be
+displayed without the vertical line between them.
 
 @item :inverse-video
 Whether or not characters should be displayed in inverse video.  The
