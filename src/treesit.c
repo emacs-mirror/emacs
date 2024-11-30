@@ -4017,7 +4017,8 @@ PREDICATE can be a symbol representing a thing in
 `treesit-thing-settings', or a predicate, like regexp matching node
 type, etc.  See `treesit-thing-settings' for more details.
 
-Return non-nil if NODE matches PREDICATE, nil otherwise.
+Return non-nil if NODE matches PREDICATE, nil otherwise.  If NODE is
+nil, return nil.
 
 Signals `treesit-invalid-predicate' if there's no definition of THING
 in `treesit-thing-settings', or if PREDICATE is malformed.  If
@@ -4025,6 +4026,8 @@ IGNORE-MISSING is non-nil, don't signal an error for missing THING
 definition, but still signal for malformed PREDICATE.  */)
   (Lisp_Object node, Lisp_Object predicate, Lisp_Object ignore_missing)
 {
+  if (NILP (node)) return Qnil;
+
   CHECK_TS_NODE (node);
 
   Lisp_Object parser = XTS_NODE (node)->parser;
