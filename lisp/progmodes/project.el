@@ -1486,15 +1486,14 @@ If non-nil, it overrides `compilation-buffer-name-function' for
              compilation-buffer-name-function)))
     (call-interactively #'compile)))
 
+;;;###autoload
 (defun project-recompile (&optional edit-command)
   "Run `recompile' with appropriate buffer."
   (declare (interactive-only recompile))
   (interactive "P")
-  (let ((compilation-buffer-name-function
+  (let ((default-directory (project-root (project-current t)))
+        (compilation-buffer-name-function
          (or project-compilation-buffer-name-function
-             ;; Should we error instead?  When there's no
-             ;; project-specific naming, there is no point in using
-             ;; this command.
              compilation-buffer-name-function)))
     (recompile edit-command)))
 
