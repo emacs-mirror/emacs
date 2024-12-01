@@ -656,6 +656,8 @@ that requires a literal mode spec at compile time."
 
   ;; Initialize the cache for `c-looking-at-or-maybe-in-bracelist'.
   (setq c-laomib-cache nil)
+  ;; Initialize the cache for non brace-list braces.
+  (setq c-no-bracelist-cache nil)
   ;; Initialize the three literal sub-caches.
   (c-truncate-lit-pos/state-cache 1)
   ;; Initialize the cache of brace pairs, and opening braces/brackets/parens.
@@ -2337,7 +2339,9 @@ with // and /*, not more generic line and block comments."
      ;; The following must happen after the previous, which likely alters
      ;; the macro cache.
      (when c-opt-cpp-symbol
-       (c-invalidate-macro-cache beg end)))))
+       (c-invalidate-macro-cache beg end))
+     (setq c-no-bracelist-cache
+	   (c-whack-state-after beg c-no-bracelist-cache)))))
 
 (defvar c-in-after-change-fontification nil)
 (make-variable-buffer-local 'c-in-after-change-fontification)

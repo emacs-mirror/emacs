@@ -13056,13 +13056,10 @@ comment at the start of cc-engine.el for more info."
   ;; Return that element or nil if one wasn't found.
   (let ((ptr c-laomib-cache)
 	elt)
-    (while
-	(and ptr
-	     (setq elt (car ptr))
-	     (or (not (eq (car elt) containing-sexp))
-		 (< start (car (cddr elt)))))
-      (setq ptr (cdr ptr)))
-    (when ptr
+    (while (and (setq elt (assq containing-sexp ptr))
+		(< start (car (cddr elt))))
+      (setq ptr (cdr (memq elt ptr))))
+    (when elt
       ;; Move the fetched `elt' to the front of the cache.
       (setq c-laomib-cache (delq elt c-laomib-cache))
       (push elt c-laomib-cache)
@@ -13076,46 +13073,24 @@ comment at the start of cc-engine.el for more info."
   (when lim
     (let (old-elt
 	  (new-elt (list lim start end result))
-	  big-ptr
 	  (cur-ptr c-laomib-cache)
-	  togo (size 0) cur-size)
+	  size)
 
       ;; If there is an elt which overlaps with the new element, remove it.
-      (while
-	  (and cur-ptr
-	       (setq old-elt (car cur-ptr))
-	       (or (not (eq (car old-elt) lim))
-		   (not (and (> start (car (cddr old-elt)))
-			     (<= start (cadr old-elt))))))
-	(setq cur-ptr (cdr cur-ptr)))
+      (while (and (setq old-elt (assq lim cur-ptr))
+		  (not (and (> start (car (cddr old-elt)))
+			    (<= start (cadr old-elt)))))
+	(setq cur-ptr (cdr (memq old-elt cur-ptr))))
       (when (and cur-ptr old-elt)
 	(setq c-laomib-cache (delq old-elt c-laomib-cache)))
 
-      (while (>= (length c-laomib-cache) 4)
-	;; We delete the least recently used elt which doesn't enclose START,
-	;; or ...
-	(dolist (elt c-laomib-cache)
-	  (if (or (<= start (cadr elt))
-		  (> start (car (cddr elt))))
-	      (setq togo elt)))
-
-	;; ... delete the least recently used elt which isn't the biggest.
-	(when (not togo)
-	  (setq cur-ptr c-laomib-cache)
-	  (while (cdr cur-ptr)
-	    (setq cur-size (- (cadr (cadr cur-ptr))
-			      (car (cddr (cadr cur-ptr)))))
-	    (when (> cur-size size)
-	      (setq size cur-size
-		    big-ptr cur-ptr))
-	    (setq cur-ptr (cdr cur-ptr)))
-	  (setq togo (if (cddr big-ptr)
-			 (car (last big-ptr))
-		       (car big-ptr))))
-
-	(setq c-laomib-cache (delq togo c-laomib-cache)))
-
-      (push new-elt c-laomib-cache))))
+      ;; Don't let the cache grow indefinitely.
+      (cond
+       ((fboundp 'ntake)		; >= Emacs 29.1
+	(setq c-laomib-cache (ntake 49 c-laomib-cache)))
+       ((>= (setq size (length c-laomib-cache)) 50)
+	(setq c-laomib-cache (butlast c-laomib-cache (- size 49)))))
+    (push new-elt c-laomib-cache))))
 
 (defun c-laomib-fix-elt (lwm elt paren-state)
   ;; Correct a c-laomib-cache entry ELT with respect to buffer changes, either
@@ -13162,7 +13137,7 @@ comment at the start of cc-engine.el for more info."
 	  (setq c-laomib-cache (delq elt c-laomib-cache)))))))
 
 (defun c-looking-at-or-maybe-in-bracelist (&optional containing-sexp lim)
-  ;; Point is at an open brace.  If this starts a brace list, return a list
+  ;; Point is at an open brace.  If this starts a brace list, return a cons
   ;; whose car is the buffer position of the start of the construct which
   ;; introduces the list, and whose cdr is the symbol `in-paren' if the brace
   ;; is directly enclosed in a parenthesis form (i.e. an arglist), t if we
@@ -13301,10 +13276,7 @@ comment at the start of cc-engine.el for more info."
 		    (setq sub-bassign-p (c-laomib-loop lim2))
 		    (if (<= (point) (cadr cache-entry))
 			(progn
-			  (c-laomib-put-cache containing-sexp
-					      start (nth 2 cache-entry)
-					      (nth 3 cache-entry) ;; sub-bassign-p
-					      )
+			  (setcar (cdr cache-entry) start)
 			  (setq braceassignp (nth 3 cache-entry))
 			  (goto-char (nth 2 cache-entry)))
 		      (c-laomib-put-cache containing-sexp
@@ -13395,14 +13367,20 @@ comment at the start of cc-engine.el for more info."
 	   (t t))))			;; The caller can go up one level.
 	))))
 
+;; A list of the form returned by `c-parse-state'.  Each opening brace in it
+;; is not the brace of a brace list.  Any cons items in it are ignored, and
+;; are also unreliable.
+(defvar c-no-bracelist-cache nil)
+(make-variable-buffer-local 'c-no-bracelist-cache)
+
 (defun c-inside-bracelist-p (containing-sexp paren-state accept-in-paren)
-  ;; return the buffer position of the beginning of the brace list statement
+  ;; Return the buffer position of the beginning of the brace list statement
   ;; if CONTAINING-SEXP is inside a brace list, otherwise return nil.
   ;;
-  ;; CONTAINING-SEXP is the buffer pos of the innermost containing paren.  NO
-  ;; IT ISN'T!!!  [This function is badly designed, and probably needs
-  ;; reformulating without its first argument, and the critical position being
-  ;; at point.]
+  ;; CONTAINING-SEXP must be at an open brace, and is the buffer pos of the
+  ;; innermost containing brace.  NO IT ISN'T!!!  [This function is badly
+  ;; designed, and probably needs reformulating without its first argument,
+  ;; and the critical position being at point.]
   ;;
   ;; PAREN-STATE is the remainder of the state of enclosing braces.
   ;; ACCEPT-IN-PAREN is non-nil iff we will accept as a brace list a brace
@@ -13416,32 +13394,55 @@ comment at the start of cc-engine.el for more info."
   ;; speed.
   ;;
   ;; This function might do hidden buffer changes.
-  ;; this will pick up array/aggregate init lists, even if they are nested.
-   (save-excursion
-     (let ((bufpos t)
-	    next-containing)
-       (while (and (eq bufpos t)
-		   containing-sexp)
-	 (when paren-state
-	   (setq next-containing (c-pull-open-brace paren-state)))
-
-	 (goto-char containing-sexp)
-	 (if (c-looking-at-inexpr-block next-containing next-containing)
-	     ;; We're in an in-expression block of some kind.  Do not
-	     ;; check nesting.  We deliberately set the limit to the
-	     ;; containing sexp, so that c-looking-at-inexpr-block
-	     ;; doesn't check for an identifier before it.
-	     (setq bufpos nil)
-	   (if (not (eq (char-after) ?{))
-	       (setq bufpos nil)
-	     (when (eq (setq bufpos (c-looking-at-or-maybe-in-bracelist
-					  next-containing next-containing))
-		       t)
-	       (setq containing-sexp next-containing
-		     next-containing nil)))))
-       (and (consp bufpos)
-	    (or accept-in-paren (not (eq (cdr bufpos) 'in-paren)))
-	    (car bufpos)))))
+  ;; It will pick up array/aggregate init lists, even if they are nested.
+  (save-excursion
+    (let ((bufpos t)
+	  next-containing non-brace-pos
+	  (whole-paren-state (cons containing-sexp paren-state))
+	  (current-brace containing-sexp))
+      (while (and (eq bufpos t)
+		  current-brace
+		  (not (memq current-brace c-no-bracelist-cache)))
+	(setq next-containing
+	      (and paren-state (c-pull-open-brace paren-state)))
+	(goto-char current-brace)
+	(cond
+	 ((c-looking-at-inexpr-block next-containing next-containing)
+	  ;; We're in an in-expression block of some kind.  Do not
+	  ;; check nesting.  We deliberately set the limit to the
+	  ;; containing sexp, so that c-looking-at-inexpr-block
+	  ;; doesn't check for an identifier before it.
+	  (setq bufpos nil))
+	 ((not (eq (char-after) ?{))
+	  (setq non-brace-pos (point))
+	  (setq bufpos nil))
+	 ((eq (setq bufpos (c-looking-at-or-maybe-in-bracelist
+			    next-containing next-containing))
+	      t)
+	  (setq current-brace next-containing))))
+      (cond
+       ((consp bufpos)
+	(and (or accept-in-paren (not (eq (cdr bufpos) 'in-paren)))
+	     (car bufpos)))
+       (non-brace-pos
+	;; We've encountered a ( or a [.  Remove the "middle part" of
+	;; paren-state, the part that isn't non-brace-list braces, to get the
+	;; new value of `c-no-bracelist-cache'.
+	(setq whole-paren-state
+	      ;; `c-whack-state-before' makes a copy of `whole-paren-state'.
+	      (c-whack-state-before (1+ non-brace-pos) whole-paren-state))
+	(while (and next-containing
+		    (not (memq next-containing c-no-bracelist-cache)))
+	  (setq next-containing (c-pull-open-brace paren-state)))
+	(setq c-no-bracelist-cache
+	      (nconc whole-paren-state
+		     (and next-containing (list next-containing))
+		     paren-state))
+	nil)
+       ((not (memq containing-sexp c-no-bracelist-cache))
+	;; Update `c-no-bracelist-cache'
+	(setq c-no-bracelist-cache (copy-tree whole-paren-state))
+	nil)))))
 
 (defun c-looking-at-special-brace-list ()
   ;; If we're looking at the start of a pike-style list, i.e., `({ })',
