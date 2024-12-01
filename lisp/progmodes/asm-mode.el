@@ -125,21 +125,24 @@ Turning on Asm mode runs the hook `asm-mode-hook' at the end of initialization.
 
 Special commands:
 \\{asm-mode-map}"
+  :after-hook
+  (progn
+    (run-hooks 'asm-mode-set-comment-hook)
+    ;; Make our own local child of `asm-mode-map'
+    ;; so we can define our own comment character.
+    (use-local-map (make-composed-keymap nil asm-mode-map))
+    (local-set-key (vector asm-comment-char) #'asm-comment)
+    (set-syntax-table (make-syntax-table asm-mode-syntax-table))
+    (modify-syntax-entry	asm-comment-char "< b")
+
+    (setq-local comment-start (string asm-comment-char)))
+
   (setq local-abbrev-table asm-mode-abbrev-table)
   (setq-local font-lock-defaults '(asm-font-lock-keywords))
   (setq-local indent-line-function #'asm-indent-line)
   ;; Stay closer to the old TAB behavior (was tab-to-tab-stop).
   (setq-local tab-always-indent nil)
 
-  (run-hooks 'asm-mode-set-comment-hook)
-  ;; Make our own local child of `asm-mode-map'
-  ;; so we can define our own comment character.
-  (use-local-map (nconc (make-sparse-keymap) asm-mode-map))
-  (local-set-key (vector asm-comment-char) #'asm-comment)
-  (set-syntax-table (make-syntax-table asm-mode-syntax-table))
-  (modify-syntax-entry	asm-comment-char "< b")
-
-  (setq-local comment-start (string asm-comment-char))
   (setq-local comment-add 1)
   (setq-local comment-start-skip "\\(?:\\s<+\\|/[/*]+\\)[ \t]*")
   (setq-local comment-end-skip "[ \t]*\\(\\s>\\|\\*+/\\)")
