@@ -1536,7 +1536,11 @@ The ``things'' feature in Emacs is independent of the pattern matching
 feature of tree-sitter, and comparatively less powerful, but more
 suitable for navigation and traversing the parse tree.
 
-You can define things with @code{treesit-thing-settings}.
+@findex treesit-thing-definition
+@findex treesit-thing-defined-p
+You can define things with @var{treesit-thing-settings}, retrieve the
+predicate of a defined thing with @code{treesit-thing-definition}, and
+test if a thing is defined with @code{treesit-thing-defined-p}.
 
 @defvar treesit-thing-settings
 This is an alist of thing definitions for each language.  The key of
@@ -1592,6 +1596,25 @@ functions listed elsewhere also utilize the thing feature, e.g.,
 tree-traversing functions like @code{treesit-search-forward},
 @code{treesit-induce-sparse-tree}, etc.  @xref{Retrieving Nodes}.
 
+@defun treesit-node-match-p node thing &optional ignore-missing
+This function checks whether @var{node} is a @var{thing}.
+
+If @var{node} is a @var{thing}, return non-@code{nil}, otherwise return
+@code{nil}.  For convenience, if @code{node} is @code{nil}, this
+function just returns @code{nil}.
+
+The @var{thing} can be either a thing symbol like @code{defun}, or
+simply a predicate that defines a thing, like
+@code{"function_definition"}, or @w{@code{(or comment string)}}.
+
+By default, if @var{thing} is undefined or malformed, this function
+signals @code{treesit-invalid-predicate} error.  If @var{ignore-missing}
+is @code{t}, this function doesn't signal the error when @var{thing} is
+undefined and just returns @code{nil}; but it still signals the error if
+@var{thing} is a malformed predicate.
+
+@end defun
+
 @defun treesit-thing-prev position thing
 This function returns the first node before @var{position} that is the
 specified @var{thing}.  If no such node exists, it returns @code{nil}.
@@ -1599,8 +1622,7 @@ It's guaranteed that, if a node is returned, the node's end position is
 less or equal to @var{position}.  In other words, this function never
 returns a node that encloses @var{position}.
 
-@var{thing} can be either a thing symbol like @code{defun}, or simply a
-thing definition like @code{"function_definition"}.
+Again, @var{thing} can be either a symbol or a predicate.
 @end defun
 
 @defun treesit-thing-next position thing
@@ -1624,7 +1646,7 @@ A positive @var{arg} means moving forward that many instances of
 @code{end}, stop at the end of @var{thing}.
 
 Like in @code{treesit-thing-prev}, @var{thing} can be a thing symbol
-defined in @code{treesit-thing-settings}, or a thing definition.
+defined in @code{treesit-thing-settings}, or a predicate.
 
 @var{tactic} determines how this function moves between things.  It can
 be @code{nested}, @code{top-level}, @code{restricted}, or @code{nil}.
@@ -1651,7 +1673,7 @@ i.e., start position must be strictly greater than @var{position}, and end
 position must be strictly less than @var{position}.
 
 @var{thing} can be either a thing symbol defined in
-@code{treesit-thing-settings}, or a thing definition.
+@code{treesit-thing-settings}, or a predicate.
 @end defun
 
 @findex treesit-beginning-of-thing
