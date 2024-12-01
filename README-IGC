@@ -62,7 +62,7 @@ short:
 
 $ cd mps/code
 
-$ gcc -O2 mps.c
+$ gcc -O2 -c mps.c
 $ ar rvs libmps.a mps.o
 
 Now copy the header files and libmps.a to a new empty directory of your
