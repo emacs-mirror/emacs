@@ -807,7 +807,11 @@ json_parser_done (void *parser)
 {
   struct json_parser *p = (struct json_parser *) parser;
   if (p->object_workspace != p->internal_object_workspace)
+#ifdef HAVE_MPS
+    igc_xfree (p->object_workspace);
+#else
     xfree (p->object_workspace);
+#endif
   if (p->byte_workspace != p->internal_byte_workspace)
     xfree (p->byte_workspace);
 }
@@ -833,17 +837,31 @@ json_make_object_workspace_for_slow_path (struct json_parser *parser,
   if (parser->object_workspace_size
       == JSON_PARSER_INTERNAL_OBJECT_WORKSPACE_SIZE)
     {
+#ifndef HAVE_MPS
       new_workspace_ptr
 	= xnmalloc (new_workspace_size, sizeof (Lisp_Object));
+#else
+      new_workspace_ptr
+	= igc_xalloc_lisp_objs_exact (new_workspace_size);
+#endif
       memcpy (new_workspace_ptr, parser->object_workspace,
 	      (sizeof (Lisp_Object)
 	       * parser->object_workspace_current));
     }
   else
     {
+#ifndef HAVE_MPS
       new_workspace_ptr
 	= xnrealloc (parser->object_workspace, new_workspace_size,
 		     sizeof (Lisp_Object));
+#else
+      new_workspace_ptr
+	= igc_xalloc_lisp_objs_exact (new_workspace_size);
+      memcpy (new_workspace_ptr, parser->object_workspace,
+	      (sizeof (Lisp_Object)
+	       * parser->object_workspace_current));
+      igc_xfree (parser->object_workspace);
+#endif
     }
 
   parser->object_workspace = new_workspace_ptr;
