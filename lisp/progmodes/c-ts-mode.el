@@ -130,18 +130,11 @@ the value of SYM in `c-ts-mode' and `c++-ts-mode' buffers to VAL.
 SYM should be `c-ts-mode-indent-style', and VAL should be a style
 symbol."
   (set-default sym val)
-  (named-let loop ((res nil)
-                   (buffers (buffer-list)))
-    (if (null buffers)
-        (mapc (lambda (b)
-                (with-current-buffer b
-                  (c-ts-mode-set-style val)))
-              res)
-      (let ((buffer (car buffers)))
-        (with-current-buffer buffer
-          (if (derived-mode-p '(c-ts-mode c++-ts-mode))
-              (loop (append res (list buffer)) (cdr buffers))
-            (loop res (cdr buffers))))))))
+  (dolist (buffer (buffer-list))
+    (with-current-buffer buffer
+      (when (derived-mode-p '(c-ts-mode c++-ts-mode))
+        (setq-local c-ts-mode-indent-style val)
+        (c-ts-mode-set-style val)))))
 
 (defun c-ts-indent-style-safep (style)
   "Non-nil if STYLE's value is safe for file-local variables."
@@ -165,23 +158,13 @@ the list of RULEs doesn't need to contain the language symbol."
   :safe 'c-ts-indent-style-safep
   :group 'c)
 
-(defun c-ts-mode--get-indent-style (mode)
-  "Helper function to set indentation style.
-MODE is either `c' or `cpp'."
-  (let ((style
-         (if (functionp c-ts-mode-indent-style)
-             (funcall c-ts-mode-indent-style)
-           (alist-get c-ts-mode-indent-style (c-ts-mode--indent-styles mode)))))
-    `((,mode ,@style))))
-
 (defun c-ts-mode--prompt-for-style ()
   "Prompt for an indent style and return the symbol for it."
-  (let ((mode (if (derived-mode-p 'c-ts-mode) 'c 'c++)))
-    (intern
-     (completing-read
-      "Style: "
-      (mapcar #'car (c-ts-mode--indent-styles mode))
-      nil t nil nil "gnu"))))
+  (intern
+   (completing-read
+    "Style: "
+    '(gnu k&r linux bsd)
+    nil t nil nil "gnu")))
 
 (defun c-ts-mode-set-global-style (style)
   "Set the indent style of C/C++ modes globally to STYLE.
@@ -202,9 +185,11 @@ To set the default indent style globally, use
       (user-error "The current buffer is not in `c-ts-mode' nor `c++-ts-mode'")
     (setq-local c-ts-mode-indent-style style)
     (setq treesit-simple-indent-rules
-          (treesit--indent-rules-optimize
-           (c-ts-mode--get-indent-style
-            (if (derived-mode-p 'c-ts-mode) 'c 'cpp))))))
+          (if (functionp style)
+              (funcall style)
+            (c-ts-mode--simple-indent-rules
+             (if (derived-mode-p 'c-ts-mode) 'c 'c++)
+             style)))))
 
 (defcustom c-ts-mode-emacs-sources-support t
   "Whether to enable Emacs source-specific C features.
@@ -374,8 +359,7 @@ PARENT is the parent of the current node."
 
 (defun c-ts-mode--standalone-grandparent (_node parent bol &rest args)
   "Like the standalone-parent anchor but pass it the grandparent.
-PARENT is NODE's parent, BOL is the beginning of non-whitespace
-characters of the current line."
+NODE, PARENT, BOL, ARGS are the same as in other anchors."
   (apply (alist-get 'standalone-parent treesit-simple-indent-presets)
          parent (treesit-node-parent parent) bol args))
 
@@ -408,6 +392,167 @@ PARENT is its parent."
 The top-level compound is the {} that immediately follows the function
 signature."
   (not (equal "function_definition" (treesit-node-type (treesit-node-parent parent)))))
+
+(defun c-ts-mode--for-loop-indent-rule (node parent &rest _)
+  "Indentation rule for the for-loop.
+
+NODE and PARENT as usual."
+  (when (treesit-node-match-p parent "for_statement")
+    (pcase (treesit-node-field-name node)
+      ("initializer"
+       ;; Anchor is the opening paren.
+       (cons (treesit-node-start (treesit-node-child parent 1)) 1))
+      ((or "condition" "update")
+       (cons (treesit-node-start (treesit-node-prev-sibling node 'named))
+             0))
+      ("body"
+       (cons (c-ts-common--standalone-parent parent)
+             c-ts-mode-indent-offset))
+      (_ (if (treesit-node-match-p node ")")
+             ;; Anchor is the opening paren.
+             (cons (treesit-node-start (treesit-node-child parent 1)) 0)
+           nil)))))
+
+(defvar c-ts-mode--preproc-indent-rules
+  `(((node-is "preproc") column-0 0)
+    ((node-is "#endif") column-0 0)
+    ((match "preproc_call" "compound_statement") column-0 0)
+    ((prev-line-is "#endif") c-ts-mode--anchor-prev-sibling 0)
+    ;; Top-level things under a preproc directive.  Note that
+    ;; "preproc" matches more than one type: it matches
+    ;; preproc_if, preproc_elif, etc.
+    ((n-p-gp nil "preproc" "translation_unit") column-0 0)
+    ;; Indent rule for an empty line after a preproc directive.
+    ((and no-node (parent-is ,(rx (or "\n" "preproc"))))
+     c-ts-mode--standalone-parent-skip-preproc c-ts-mode--preproc-offset)
+    ;; Statement under a preproc directive, the first statement
+    ;; indents against parent, the rest statements indent to
+    ;; their prev-sibling.
+    ((match nil ,(rx "preproc_" (or "if" "elif")) nil 3 3)
+     c-ts-mode--standalone-parent-skip-preproc c-ts-mode-indent-offset)
+    ((match nil "preproc_ifdef" nil 2 2)
+     c-ts-mode--standalone-parent-skip-preproc c-ts-mode-indent-offset)
+    ((match nil "preproc_else" nil 1 1)
+     c-ts-mode--standalone-parent-skip-preproc c-ts-mode-indent-offset)
+    ((parent-is "preproc") c-ts-mode--anchor-prev-sibling 0))
+  "Indent rules for preprocessors.")
+
+(defun c-ts-mode--macro-heuristic-rules (node parent &rest _)
+  "Heuristic indent rule for control flow macros.
+
+Eg,
+
+    #define IOTA(var, n) for (int var = 0; var != (n); ++var)
+
+    int main()
+    {
+      IOTA (v, 10) {
+        printf(\"%d \", v);   <-- Here we want to indent
+        counter++;            <-- Use baseline rule to align
+    }                             to prev sibling
+
+Checked by \"Compound Statement after code (Bug#74507)\" test.
+
+NODE and PARENT are the same as other indent rules."
+  (when (and (treesit-node-match-p parent "compound_statement")
+             (treesit-node-match-p (treesit-node-prev-sibling parent)
+                                   "expression_statement"))
+    (let ((parent-bol
+           (lambda () (save-excursion
+                        (goto-char (treesit-node-start parent))
+                        (back-to-indentation)
+                        (point)))))
+      (cond
+       ;; Closing brace.
+       ((treesit-node-match-p node "}")
+        (cons (funcall parent-bol) 0))
+       ;; First sibling.
+       ((treesit-node-eq (treesit-node-child parent 0 'named) node)
+        (cons (funcall parent-bol)
+              c-ts-mode-indent-offset))))))
+
+(defun c-ts-mode--simple-indent-rules (mode style)
+  "Return the indent rules for MODE and STYLE.
+
+The returned value can be set to `treesit-simple-indent-rules'.
+MODE can be `c' or `c++'.  STYLE can be `gnu', `k&r', `linux', `bsd'."
+  (let ((rules
+         `((c-ts-mode--for-each-tail-body-matcher
+            prev-line c-ts-mode-indent-offset)
+
+           ;; Misc overrides.
+           ((parent-is "translation_unit") column-0 0)
+           ((node-is ,(rx (or "else" "case"))) standalone-parent 0)
+           ;; Align the while keyword to the do keyword.
+           ((match "while" "do_statement") parent 0)
+           c-ts-mode--parenthesized-expression-indent-rule
+           ;; Thanks to tree-sitter-c's weird for-loop grammar, we can't
+           ;; use the baseline indent rule for it.
+           c-ts-mode--for-loop-indent-rule
+           c-ts-mode--label-indent-rules
+           ,@c-ts-mode--preproc-indent-rules
+           c-ts-mode--macro-heuristic-rules
+
+           ;; Make sure type and function definition components align and
+           ;; don't indent. Also takes care of GNU style opening braces.
+           ((parent-is ,(rx (or "function_definition"
+                                "struct_specifier"
+                                "enum_specifier"
+                                "function_declarator"
+                                "template_declaration")))
+            parent 0)
+           ;; This is for the trailing-star stype:  int *
+           ;;                                       func()
+           ((match "function_declarator" nil "declarator") parent-bol 0)
+           ;; ((match nil "function_definition" "declarator") parent 0)
+           ;; ((match nil "struct_specifier" "name") parent 0)
+           ;; ((match nil "function_declarator" "parameters") parent 0)
+           ;; ((parent-is "template_declaration") parent 0)
+
+           ;; `c-ts-common-looking-at-star' has to come before
+           ;; `c-ts-common-comment-2nd-line-matcher'.
+           ;; FIXME: consolidate into a single rule.
+           ((and (parent-is "comment") c-ts-common-looking-at-star)
+            c-ts-common-comment-start-after-first-star -1)
+           (c-ts-common-comment-2nd-line-matcher
+            c-ts-common-comment-2nd-line-anchor
+            1)
+           ((parent-is "comment") prev-adaptive-prefix 0)
+
+           ;; Labels.
+           ((node-is "labeled_statement") standalone-parent 0)
+           ((parent-is "labeled_statement")
+            c-ts-mode--standalone-grandparent c-ts-mode-indent-offset)
+
+           ;; Preproc directives
+           ((node-is "preproc_arg") no-indent)
+           ((node-is "preproc") column-0 0)
+           ((node-is "#endif") column-0 0)
+
+           ;; C++
+           ((node-is "access_specifier") parent-bol 0)
+           ((prev-line-is "access_specifier")
+            parent-bol c-ts-mode-indent-offset)
+
+           c-ts-common-baseline-indent-rule)))
+    (setq rules
+          (pcase style
+            ('gnu rules)
+            ('k&r rules)
+            ('linux
+             ;; Reference:
+             ;; https://www.kernel.org/doc/html/latest/process/coding-style.html,
+             ;; and script/Lindent in Linux kernel repository.
+             `(((node-is "labeled_statement") column-0 0)
+               ,@rules))
+            ('bsd
+             `(((match "compound_statement" "compound_statement")
+                standalone-parent c-ts-mode-indent-offset)
+               ((node-is "compound_statement") standalone-parent 0)
+               ,@rules))))
+    (pcase mode
+      ('c `((c . ,rules)))
+      ('c++ `((cpp . ,rules))))))
 
 (defun c-ts-mode--indent-styles (mode)
   "Indent rules supported by `c-ts-mode'.
@@ -557,6 +702,56 @@ MODE is either `c' or `cpp'."
        ((match "compound_statement" "case_statement") standalone-parent 0)
        ((match "compound_statement" "do_statement") standalone-parent 0)
        ,@common))))
+
+(defun c-ts-mode--parenthesized-expression-indent-rule (_node parent &rest _)
+  "Indent rule that indents aprenthesized expression.
+
+Aligns the next line to the first sibling
+
+return (a && b
+          && c)
+
+return (  a && b
+          && c
+          )
+
+Same for if/while statements
+
+if (a && b
+      && c)
+
+NODE, PARENT are the same as other indent rules."
+  (when (treesit-node-match-p
+         parent (rx (or "binary" "conditional") "_expression"))
+    (while (and parent
+                (not (treesit-node-match-p
+                      parent "parenthesized_expression")))
+      (setq parent (treesit-node-parent parent)))
+    (when parent
+      (cons (treesit-node-start
+             (treesit-node-child parent 0 'named))
+            0))))
+
+(defun c-ts-mode--label-indent-rules (node parent &rest _)
+  "Handles indentation around labels.
+NODE, PARENT are as usual."
+  (cond
+   ;; Matches the top-level labels for GNU-style.
+   ((and (eq c-ts-mode-indent-style 'gnu)
+         (treesit-node-match-p node "labeled_statement")
+         (treesit-node-match-p (treesit-node-parent parent)
+                               "function_definition"))
+    (cons (pos-bol) 1))
+   ;; If previous sibling is a labeled_statement, align to it's
+   ;; children, which is the previous statement.
+   ((and (not (treesit-node-match-p node "}"))
+         (treesit-node-match-p (treesit-node-prev-sibling node)
+                               "labeled_statement"))
+    (cons (treesit-node-start
+           (treesit-node-child
+            (treesit-node-prev-sibling node) 1 'named))
+          0))
+   (t nil)))
 
 (defun c-ts-mode--top-level-label-matcher (node parent &rest _)
   "A matcher that matches a top-level label.
@@ -796,17 +991,17 @@ MODE is either `c' or `cpp'."
    :feature 'delimiter
    '((["," ":" ";"]) @font-lock-delimiter-face)
 
-   :language mode
-   :feature 'emacs-devel
-   :override t
-   `(((call_expression
-       (call_expression function: (identifier) @fn)
-       @c-ts-mode--fontify-DEFUN)
-      (:match "\\`DEFUN\\'" @fn))
+:language mode
+:feature 'emacs-devel
+:override t
+`(((call_expression
+    (call_expression function: (identifier) @fn)
+    @c-ts-mode--fontify-DEFUN)
+   (:match "\\`DEFUN\\'" @fn))
 
-     ((function_definition type: (_) @for-each-tail)
-      @c-ts-mode--fontify-for-each-tail
-      (:match ,c-ts-mode--for-each-tail-regexp @for-each-tail)))))
+  ((function_definition type: (_) @for-each-tail)
+   @c-ts-mode--fontify-for-each-tail
+   (:match ,c-ts-mode--for-each-tail-regexp @for-each-tail)))))
 
 ;;; Font-lock helpers
 
@@ -1367,49 +1562,49 @@ in your init files."
                   (treesit-parser-create 'c nil nil 'for-each)))
 
     (let ((primary-parser (treesit-parser-create 'c)))
-    ;; Comments.
-    (setq-local comment-start "/* ")
-    (setq-local comment-end " */")
-    ;; Indent.
-    (setq-local treesit-simple-indent-rules
-                (c-ts-mode--get-indent-style 'c))
-    ;; Font-lock.
-    (setq-local treesit-font-lock-settings
-                (c-ts-mode--font-lock-settings 'c))
-    ;; Navigation.
-    ;;
-    ;; Nodes like struct/enum/union_specifier can appear in
-    ;; function_definitions, so we need to find the top-level node.
-    (setq-local treesit-defun-tactic 'top-level)
-    (treesit-major-mode-setup)
-
-    ;; Emacs source support: handle DEFUN and FOR_EACH_* gracefully.
-    (when c-ts-mode-emacs-sources-support
-      (setq-local add-log-current-defun-function
-                  #'c-ts-mode--emacs-current-defun-name)
-
-      (setq-local treesit-range-settings
-                  (treesit-range-rules 'c-ts-mode--emacs-set-ranges))
-
-      (setq-local treesit-language-at-point-function
-                  (lambda (_pos) 'c))
-      (treesit-font-lock-recompute-features '(emacs-devel)))
-
-    ;; Inject doxygen parser for comment.
-    (when (and c-ts-mode-enable-doxygen (treesit-ready-p 'doxygen t))
-      (setq-local treesit-primary-parser primary-parser)
+      ;; Comments.
+      (setq-local comment-start "/* ")
+      (setq-local comment-end " */")
+      ;; Indent.
+      (setq-local treesit-simple-indent-rules
+                  (c-ts-mode--simple-indent-rules
+                   'c c-ts-mode-indent-style))
+      ;; (setq-local treesit-simple-indent-rules
+      ;;             `((c . ,(alist-get 'gnu (c-ts-mode--indent-styles 'c)))))
+      ;; Font-lock.
       (setq-local treesit-font-lock-settings
-                  (append
-                   treesit-font-lock-settings
-                   c-ts-mode-doxygen-comment-font-lock-settings))
-      (setq-local treesit-range-settings
-                  (treesit-range-rules
-                   :embed 'doxygen
-                   :host 'c
-                   :local t
-                   `(((comment) @cap
-                      (:match
-                       ,c-ts-mode--doxygen-comment-regex @cap)))))))))
+                  (c-ts-mode--font-lock-settings 'c))
+      ;; Navigation.
+      (setq-local treesit-defun-tactic 'top-level)
+      (treesit-major-mode-setup)
+
+      ;; Emacs source support: handle DEFUN and FOR_EACH_* gracefully.
+      (when c-ts-mode-emacs-sources-support
+        (setq-local add-log-current-defun-function
+                    #'c-ts-mode--emacs-current-defun-name)
+
+        (setq-local treesit-range-settings
+                    (treesit-range-rules 'c-ts-mode--emacs-set-ranges))
+
+        (setq-local treesit-language-at-point-function
+                    (lambda (_pos) 'c))
+        (treesit-font-lock-recompute-features '(emacs-devel)))
+
+      ;; Inject doxygen parser for comment.
+      (when (and c-ts-mode-enable-doxygen (treesit-ready-p 'doxygen t))
+        (setq-local treesit-primary-parser primary-parser)
+        (setq-local treesit-font-lock-settings
+                    (append
+                     treesit-font-lock-settings
+                     c-ts-mode-doxygen-comment-font-lock-settings))
+        (setq-local treesit-range-settings
+                    (treesit-range-rules
+                     :embed 'doxygen
+                     :host 'c
+                     :local t
+                     `(((comment) @cap
+                        (:match
+                         ,c-ts-mode--doxygen-comment-regex @cap)))))))))
 
 (derived-mode-add-parents 'c-ts-mode '(c-mode))
 
@@ -1445,7 +1640,8 @@ recommended to enable `electric-pair-mode' with this mode."
 
       ;; Indent.
       (setq-local treesit-simple-indent-rules
-                  (c-ts-mode--get-indent-style 'cpp))
+                  (c-ts-mode--simple-indent-rules
+                   'c++ c-ts-mode-indent-style))
 
       ;; Font-lock.
       (setq-local treesit-font-lock-settings
