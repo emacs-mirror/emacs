@@ -37,19 +37,19 @@ Name: Labels
 int
 main (void)
 {
-  label:
-    return 0;
+label:
+  return 0;
   if (true)
   {
-    label:
-      return 0;
+  label:
+    return 0;
   }
   else
   {
     if (true)
     {
-      label:
-        return 0;
+    label:
+      return 0;
     }
   }
 }
