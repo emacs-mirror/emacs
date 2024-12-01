@@ -193,7 +193,7 @@ must never cause a Lisp error."
 		     (push (list attribute value encoded) cparams))
 		    ;; Repetition of a part; do nothing.
 		    ((and elem
-			  (null number))
+			  (null part))
 		     )
 		    ;; Concatenate continuation parts.
 		    (t
