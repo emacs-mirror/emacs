@@ -655,6 +655,7 @@ with some explanatory links."
 (put 'tutorial--starting-point 'permanent-local t)
 (put 'tutorial--lang 'permanent-local t)
 (put 'tutorial--point-before-chkeys 'permanent-local t)
+(put 'tutorial--point-after-chkeys 'permanent-local t)
 
 (defun tutorial--save-on-kill ()
   "Query the user about saving the tutorial when killing Emacs."
