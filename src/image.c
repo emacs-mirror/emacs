@@ -11706,7 +11706,11 @@ DEF_DLL_FN (void, rsvg_handle_get_dimensions,
 DEF_DLL_FN (gboolean, rsvg_handle_set_stylesheet,
 	    (RsvgHandle *, const guint8 *, gsize, GError **));
 #  endif
+#  if LIBRSVG_CHECK_VERSION (2, 58, 0)
+DEF_DLL_FN (GdkPixbuf *, rsvg_handle_get_pixbuf_and_error, (RsvgHandle *, GError **));
+#  else
 DEF_DLL_FN (GdkPixbuf *, rsvg_handle_get_pixbuf, (RsvgHandle *));
+#  endif
 DEF_DLL_FN (int, gdk_pixbuf_get_width, (const GdkPixbuf *));
 DEF_DLL_FN (int, gdk_pixbuf_get_height, (const GdkPixbuf *));
 DEF_DLL_FN (guchar *, gdk_pixbuf_get_pixels, (const GdkPixbuf *));
@@ -11765,8 +11769,11 @@ init_svg_functions (void)
 #if LIBRSVG_CHECK_VERSION (2, 48, 0)
   LOAD_DLL_FN (library, rsvg_handle_set_stylesheet);
 #endif
+#if LIBRSVG_CHECK_VERSION (2, 58, 0)
+  LOAD_DLL_FN (library, rsvg_handle_get_pixbuf_and_error);
+#else
   LOAD_DLL_FN (library, rsvg_handle_get_pixbuf);
-
+#endif
   LOAD_DLL_FN (gdklib, gdk_pixbuf_get_width);
   LOAD_DLL_FN (gdklib, gdk_pixbuf_get_height);
   LOAD_DLL_FN (gdklib, gdk_pixbuf_get_pixels);
@@ -11811,7 +11818,11 @@ init_svg_functions (void)
 #  if LIBRSVG_CHECK_VERSION (2, 48, 0)
 #   undef rsvg_handle_set_stylesheet
 #  endif
-#  undef rsvg_handle_get_pixbuf
+#  if LIBRSVG_CHECK_VERSION (2, 58, 0)
+#   undef rsvg_handle_get_pixbuf_and_error
+#  else
+#   undef rsvg_handle_get_pixbuf
+#  endif
 #  if LIBRSVG_CHECK_VERSION (2, 32, 0)
 #   undef g_file_new_for_path
 #   undef g_memory_input_stream_new_from_data
@@ -11852,7 +11863,11 @@ init_svg_functions (void)
 #  if LIBRSVG_CHECK_VERSION (2, 48, 0)
 #   define rsvg_handle_set_stylesheet fn_rsvg_handle_set_stylesheet
 #  endif
-#  define rsvg_handle_get_pixbuf fn_rsvg_handle_get_pixbuf
+#  if LIBRSVG_CHECK_VERSION (2, 58, 0)
+#   define rsvg_handle_get_pixbuf_and_error fn_rsvg_handle_get_pixbuf_and_error
+#  else
+#   define rsvg_handle_get_pixbuf fn_rsvg_handle_get_pixbuf
+#  endif
 #  if LIBRSVG_CHECK_VERSION (2, 32, 0)
 #   define g_file_new_for_path fn_g_file_new_for_path
 #   define g_memory_input_stream_new_from_data \
@@ -12357,8 +12372,13 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 
   /* We can now get a valid pixel buffer from the svg file, if all
      went ok.  */
+#if LIBRSVG_CHECK_VERSION (2, 58, 0)
+  pixbuf = rsvg_handle_get_pixbuf_and_error (rsvg_handle, &err);
+  if (err) goto rsvg_error;
+#else
   pixbuf = rsvg_handle_get_pixbuf (rsvg_handle);
   if (!pixbuf) goto rsvg_error;
+#endif
   g_object_unref (rsvg_handle);
   xfree (wrapped_contents);
 
