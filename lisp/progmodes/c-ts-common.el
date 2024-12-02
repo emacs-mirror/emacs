@@ -558,26 +558,52 @@ const a = [
   "Find the first parent that starts on a new line.
 Start searching from PARENT, so if PARENT satisfies the condition, it'll
 be returned.  Return the starting position of the parent, return nil if
-no parent satisfies the condition."
+no parent satisfies the condition.
+
+Unlike simple-indent's standalone preset, this function handles method
+chaining like
+
+    func
+    .method() <-- Considered standalone even if there's a \".\" in
+    .method()     front of the node.
+
+But ff `treesit-simple-indent-standalone-predicate' is non-nil, use that
+for determining standlone line."
   (save-excursion
     (catch 'term
       (while parent
         (goto-char (treesit-node-start parent))
-        (when (looking-back (rx bol (* whitespace))
-                            (line-beginning-position))
+        (when (if treesit-simple-indent-standalone-predicate
+                  (funcall treesit-simple-indent-standalone-predicate
+                           parent)
+                (looking-back (rx bol (* whitespace) (? "."))
+                              (line-beginning-position)))
           (throw 'term (point)))
         (setq parent (treesit-node-parent parent))))))
 
 (defun c-ts-common--prev-standalone-sibling (node)
   "Return the previous sibling of NODE that starts on a new line.
-Return nil if no sibling satisfies the condition."
+Return nil if no sibling satisfies the condition.
+
+Unlike simple-indent's standalone preset, this function handles method
+chaining like
+
+    func
+    .method() <-- Considered standalone even if there's a \".\" in
+    .method()     front of the node.
+
+But ff `treesit-simple-indent-standalone-predicate' is non-nil, use that
+for determining standlone line."
   (save-excursion
     (setq node (treesit-node-prev-sibling node 'named))
     (goto-char (treesit-node-start node))
     (while (and node
                 (goto-char (treesit-node-start node))
-                (not (looking-back (rx bol (* whitespace))
-                                   (pos-bol))))
+                (not (if treesit-simple-indent-standalone-predicate
+                         (funcall treesit-simple-indent-standalone-predicate
+                                  node)
+                       (looking-back (rx bol (* whitespace) (? "."))
+                                     (pos-bol)))))
       (setq node (treesit-node-prev-sibling node 'named)))
     node))
 
@@ -629,7 +655,13 @@ This rule tries to be smart and ignore proprocessor node in some
 situations.  By default, any node that has \"proproc\" in its type are
 considered a preprocessor node.  If that heuristic is inaccurate, define
 a `preproc' thing in `treesit-thing-settings', and this rule will use
-the thing definition instead."
+the thing definition instead.
+
+The rule also handles method chaining like
+
+    func
+    .method() <-- Considered \"starts at a newline\" even if there's
+    .method()     a \".\" in front of the node."
   (let ((prev-line-node (treesit--indent-prev-line-node bol))
         (offset (symbol-value c-ts-common-indent-offset)))
     (cond

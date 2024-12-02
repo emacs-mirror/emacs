@@ -5416,11 +5416,14 @@ on the line which @var{parent}'s start is on.
 
 @item standalone-parent
 This anchor is a function that is called with 3 arguments: @var{node},
-@var{parent}, and @var{bol}.  It finds the first ancestor node
-(parent, grandparent, etc.@:) of @var{node} that starts on its own
-line, and return the start of that node.  ``Starting on its own line''
-means there is only whitespace character before the node on the line
-which the node's start is on.
+@var{parent}, and @var{bol}.  It finds the first ancestor node (parent,
+grandparent, etc.@:) of @var{node} that starts on its own line, and
+return the start of that node.  ``Starting on its own line'' means there
+is only whitespace character before the node on the line which the
+node's start is on.  The exact definition of ``Starting on its own
+line'' can be relaxed by setting
+@code{treesit-simple-indent-standalone-predicate}, some major mode might
+want to do that for easier indentation for method chaining.
 
 @item prev-sibling
 This anchor is a function that is called with 3 arguments: @var{node},
