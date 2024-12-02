@@ -281,13 +281,13 @@ is actually the parent of point at the moment of indentation."
         0
       c-ts-mode-indent-offset)))
 
-(defun c-ts-mode--anchor-prev-sibling (node parent bol &rest _)
+(defun c-ts-mode--prev-sibling (node parent bol &rest _)
   "Return the start of the previous named sibling of NODE.
 
-This anchor handles the special case where the previous sibling
-is a labeled_statement; in that case, return the child of the
-labeled statement instead.  (Actually, recursively go down until
-the node isn't a labeled_statement.)  E.g.,
+This anchor handles the special case where the previous sibling is a
+labeled_statement or preproc directive; in that case, return the child
+of the labeled statement instead.  (Actually, recursively go down until
+the node isn't a labeled_statement or preproc.)  E.g.,
 
 label:
   int x = 1;
@@ -340,8 +340,8 @@ characters of the current line."
     ;; prev-sibling doesn't have a child.
     (treesit-node-start prev-sibling)))
 
-(defun c-ts-mode--standalone-parent-skip-preproc (_n parent &rest _)
-  "Like the standalone-parent anchor but skips preproc nodes.
+(defun c-ts-mode--standalone-parent (_n parent &rest _)
+  "Like the standalone-parent anchor but skips preproc nodes and labels.
 PARENT is the parent of the current node."
   (save-excursion
     (treesit-node-start
@@ -350,7 +350,8 @@ PARENT is the parent of the current node."
       ;; nil.
       parent (lambda (node)
                (and node
-                    (not (string-search "preproc" (treesit-node-type node)))
+                    (not (treesit-node-match-p
+                          node (rx (or "preproc" "labeled_statement"))))
                     (progn
                       (goto-char (treesit-node-start node))
                       (looking-back (rx bol (* whitespace))
@@ -381,24 +382,24 @@ NODE and PARENT as usual."
   `(((node-is "preproc") column-0 0)
     ((node-is "#endif") column-0 0)
     ((match "preproc_call" "compound_statement") column-0 0)
-    ((prev-line-is "#endif") c-ts-mode--anchor-prev-sibling 0)
+    ((prev-line-is "#endif") c-ts-mode--prev-sibling 0)
     ;; Top-level things under a preproc directive.  Note that
     ;; "preproc" matches more than one type: it matches
     ;; preproc_if, preproc_elif, etc.
     ((n-p-gp nil "preproc" "translation_unit") column-0 0)
     ;; Indent rule for an empty line after a preproc directive.
     ((and no-node (parent-is ,(rx (or "\n" "preproc"))))
-     c-ts-mode--standalone-parent-skip-preproc c-ts-mode--preproc-offset)
+     c-ts-mode--standalone-parent c-ts-mode--preproc-offset)
     ;; Statement under a preproc directive, the first statement
     ;; indents against parent, the rest statements indent to
     ;; their prev-sibling.
     ((match nil ,(rx "preproc_" (or "if" "elif")) nil 3 3)
-     c-ts-mode--standalone-parent-skip-preproc c-ts-mode-indent-offset)
+     c-ts-mode--standalone-parent c-ts-mode-indent-offset)
     ((match nil "preproc_ifdef" nil 2 2)
-     c-ts-mode--standalone-parent-skip-preproc c-ts-mode-indent-offset)
+     c-ts-mode--standalone-parent c-ts-mode-indent-offset)
     ((match nil "preproc_else" nil 1 1)
-     c-ts-mode--standalone-parent-skip-preproc c-ts-mode-indent-offset)
-    ((parent-is "preproc") c-ts-mode--anchor-prev-sibling 0))
+     c-ts-mode--standalone-parent c-ts-mode-indent-offset)
+    ((parent-is "preproc") c-ts-mode--prev-sibling 0))
   "Indent rules for preprocessors.")
 
 (defun c-ts-mode--macro-heuristic-rules (node parent &rest _)
@@ -554,24 +555,18 @@ NODE, PARENT, BOL, ARGS are as usual."
     (cons (pos-bol) 1))
    ;; Indent the label itself.
    ((treesit-node-match-p node "labeled_statement")
-    (cons (apply (alist-get 'standalone-parent
-                            treesit-simple-indent-presets)
-                 node parent bol args)
+    (cons (c-ts-mode--standalone-parent node parent bol args)
           0))
    ;; Indent the statement below the label.
    ((treesit-node-match-p parent "labeled_statement")
-    (cons (apply (alist-get 'standalone-parent
-                            treesit-simple-indent-presets)
-                 parent (treesit-node-parent parent) bol args)
+    (cons (c-ts-mode--standalone-parent node parent bol args)
           c-ts-mode-indent-offset))
    ;; If previous sibling is a labeled_statement, align to it's
    ;; children, which is the previous statement.
    ((and (not (treesit-node-match-p node "}"))
          (treesit-node-match-p (treesit-node-prev-sibling node)
                                "labeled_statement"))
-    (cons (treesit-node-start
-           (treesit-node-child
-            (treesit-node-prev-sibling node) 1 'named))
+    (cons (c-ts-mode--prev-sibling node parent bol args)
           0))
    (t nil)))
 
