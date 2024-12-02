@@ -95,8 +95,8 @@ like.
 For instance, to hide the verbose output from recursive
 makefiles, you can say something like:
 
-  (setq compilation-hidden-output
-        \\='(\"^make[^\n]+\n\"))"
+  (setopt compilation-hidden-output
+          \\='(\"^make[^\\n]+\\n\"))"
   :type '(choice regexp
                  (repeat regexp))
   :version "29.1")
