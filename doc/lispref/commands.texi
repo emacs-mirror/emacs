@@ -2671,11 +2671,14 @@ size of the object beneath the gesture: image, window, etc.
 @cindex @code{low-level-key} event
 @item (low-level-key @var{is-key-press} @var{key} @var{modifier} @var{time} @var{frame})
 This event is sent on the physical press or release of keys, only on GUI
-systems, currently X, MS-Windows and PGTK.
+systems, currently X, MS-Windows and PGTK, and only if the variable
+@code{enable-low-level-key-events} has a non-@code{nil} value.  See its
+documentation for the values it can take, that allow to filter which
+keys should generate this kind of event.
 
 @var{is-key-press} is @code{t} for a key press, @code{nil} for a key release.
 @var{time} is the event's time in milliseconds, @var{frame} is the
-frame receiving it. @var{modifier} is @code{nil} if the key is not a
+frame receiving it.  @var{modifier} is @code{nil} if the key is not a
 modifier key, @code{t} if it is, but it is unknown which one, or one of
 @code{shift}, @code{control}, @code{meta}, @code{alt}, @code{super},
 @code{hyper}.
