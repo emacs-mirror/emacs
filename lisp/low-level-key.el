@@ -1,26 +1,30 @@
 ;;; -*- lexical-binding: t -*-
 
 ;; The physical-key event is like this:
-;; (physical-key IS-KEY-PRESS KEY MODIFIER TIME FRAME)
+;; (low-level-key IS-KEY-PRESS KEY MODIFIER TIME FRAME)
 ;; IS-KEY-PRESS is t if the key has been pressed, nil if it has been released.
 ;; KEY is the keysym number.
-;; MODIFIER is the modifier associated with this key. It is nil if the key is
-;; not a modifier. It can be one of the following symbols: shift, control, meta,
-;; super, hyper, alt. It can also be t if the key is a modifier but it can't be
-;; identified.
+;; MODIFIER is the modifier associated with this key.  It is nil if the key is
+;; not a modifier.  It can be one of the following symbols: shift, control, meta,
+;; super, hyper, alt.  It can also be t if the key is a modifier but it can't be
+;; identified, as in the PGTK backend.
 ;; TIME is the timestamp in milliseconds of the event.
 ;; FRAME is the frame where the event happened.
 ;;
 ;; After calling 'llk-init' and setting a non-nil value for
 ;; 'enable-low-level-key-events', events begin to be handled by 'llk-handler',
 ;; which tries to detect n-taps and calls the corresponding function.
+;;
+;; To implement other functionalities, you can replace llk-handler with
+;; your own function.
 
 (require 'cl-lib)
 
 ;; User options
 
 (defvar llk-bindings nil
-  "Bindings for low level key events (press/release/tap).
+  "List of bindings for low level key events (press/release/tap).
+
 Use the `llk-bind' function to add bindings.  See its documentation for
 a description of the binding information.")
 
@@ -28,8 +32,7 @@ a description of the binding information.")
   "Number or key press/releases to consider a tap.")
 
 (defvar llk-tap-timeout 1000
-  "Time in milliseconds between consecutive key presses/releases to
-consider a tap.")
+  "Time (ms) between consecutive key presses/releases to consider a tap.")
 
 (defvar llk-tap-keys
   '(xk-shift-l xk-shift-r xk-control-l xk-control-r meta)
@@ -37,6 +40,7 @@ consider a tap.")
 
 (defvar llk-keysyms nil
   "List of keysym numbers and their corresponding symbols.
+
 Each element has the form (KEYSYM . SYMBOL).  The variable value for
 each symbol is the keysym.  This list is initialized by `llk-init'.")
 
@@ -53,7 +57,9 @@ each symbol is the keysym.  This list is initialized by `llk-init'.")
      (push (cons ksym ',name) llk-keysyms)))
 
 (defun llk-define-keysyms ()
-  "Initialize the keysym list, `llk-keysyms'.  Called from `llk-init'."
+  "Initialize the keysym list, `llk-keysyms'.
+
+Called from `llk-init'."
   (setq llk-keysyms nil)
 
   ;; tty keys
@@ -151,7 +157,7 @@ each symbol is the keysym.  This list is initialized by `llk-init'.")
   ;; Latin 1
   ;; For numbers and letters, MS-Windows does not define constant names.
   ;; X11 defines distinct keysyms for lowercase and uppercase
-  ;; letters. We use only the uppercase ones. Events with lowercase
+  ;; letters.  We use only the uppercase ones.  Events with lowercase
   ;; letters are converted to uppercase.
   (define-xk xk-space       #x0020 #x20) ;; XK_space VK_SPACE
   (define-xk xk-0           #x0030 #x30) ;; XK_0
@@ -192,11 +198,12 @@ each symbol is the keysym.  This list is initialized by `llk-init'.")
   (define-xk xk-z           #x005A #x5A));; XK_Z
 
 (defun llk-init ()
-  "Initialize low-level key events.
+  "Initialize low level key events.
+
 Fills the `llk-keysyms' list, and binds the `low-level-key' event
 to the `llk-handle' function.  Resets the `llk-bindings' list.
 Besides calling this function, you need to set `enable-low-level-key-events'
-to a non-nil value"
+to a non-nil value."
   (interactive)
   (llk-define-keysyms)
   (define-key special-event-map [low-level-key] 'llk-handle)
@@ -225,7 +232,7 @@ to a non-nil value"
 ;; For example:
 ;; Bind key tap to command
 ;;    (llk-bind 'tap 'xk-shift-l 'delete-other-windows)
-;; Bind modifiry tap to command
+;; Bind modifier tap to command
 ;;     (llk-bind 'tap 'shift 'delete-other-windows)
 ;; Bind tap to hyper modifier
 ;;      (llk-bind 'tap 'xk-shift-r (lambda ()
@@ -234,10 +241,11 @@ to a non-nil value"
 ;;                                    (append (event-apply-hyper-modifier nil) nil))))
 ;; Can bind to a command or function
 (defun llk-bind (action key function)
-  "Bind a command a function to a low level key event.
-The only action supported currently is `tap'. The key can be a keysym
+  "Bind a command or function to a low level key event.
+
+The only action supported currently is `tap'.  The key can be a keysym
 symbol, or a modifier symbol (shift, control, alt, meta, hyper, super).
-If there is no keysym symbol for a key, use the keysym number.  "
+If there is no keysym symbol for a key, use the keysym number."
   (push (list action key function) llk-bindings))
 
 ;; We store the last events (key/modifier is-press timestamp) here to
@@ -292,13 +300,12 @@ If there is no keysym symbol for a key, use the keysym number.  "
              key)))))
 
 (defun describe-low-level-key ()
-  "Wait for the next key press and describe the low level key event it
-generates."
+  "Wait for key press and describe the low level key event it generates."
   (interactive)
   (setq llk-describe-next-press t))
 
 (defun llk-show-event-description ()
-  "Shoe information about the last low level key event."
+  "Show information about the last low level key event."
   (setq llk-describe-next-press nil)
   (with-help-window (help-buffer)
     (insert "\n")
