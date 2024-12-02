@@ -404,7 +404,7 @@ This variable is buffer-local."
    (regexp-opt
     '("Enter" "enter" "Enter same" "enter same" "Enter the" "enter the"
       "Current"
-      "Enter Auth" "enter auth" "Old" "old" "New" "new" "'s" "login"
+      "Enter Auth" "enter auth" "Old" "old" "New" "new" "login"
       "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "PEM" "SUDO"
       "[sudo]" "doas" "Repeat" "Bad" "Retype" "Verify")
     t)
@@ -418,11 +418,13 @@ This variable is buffer-local."
    ;; The ccrypt encryption dialog doesn't end with a colon, so
    ;; treat it specially.
    "\\|^Enter encryption key: (repeat) *\\'"
+   ;; Default openssh format: "user@host's password:".
+   "\\|^[^@ \t\n]+@[^@ \t\n]+'s password: *\\'"
    ;; openssh-8.6p1 format: "(user@host) Password:".
    "\\|^([^)@ \t\n]+@[^)@ \t\n]+) Password: *\\'")
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
-  :version "29.1"
+  :version "31.1"
   :type 'regexp
   :group 'comint)
 
@@ -2569,11 +2571,12 @@ to detect the need to (prompt and) send a password.  Ignores any
 carriage returns (\\r) in STRING.
 
 This function could be in the list `comint-output-filter-functions'."
-  (let ((string (string-limit string comint-password-prompt-max-length t))
+  (let ((string (string-limit
+                 (string-replace "\r" "" string)
+                 comint-password-prompt-max-length t))
         prompt)
     (when (let ((case-fold-search t))
-            (string-match comint-password-prompt-regexp
-                          (string-replace "\r" "" string)))
+            (string-match comint-password-prompt-regexp string))
       (setq prompt (string-trim (match-string 0 string)
                                 "[ \n\r\t\v\f\b\a]+" "\n+"))
       ;; Use `run-at-time' in order not to pause execution of the
