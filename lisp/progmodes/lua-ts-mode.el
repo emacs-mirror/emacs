@@ -694,7 +694,7 @@ Calls REPORT-FN directly."
 
 (defun lua-ts-send-file (file)
   "Send contents of FILE to the inferior Lua process."
-  (interactive "f" lua-ts-mode)
+  (interactive "f")
   (with-temp-buffer
     (insert-file-contents-literally file)
     (lua-ts-send-region (point-min) (point-max))))
