@@ -1255,7 +1255,7 @@ Send them @emph{individually}.
 
 If you make two changes for separate reasons, then we might not want
 to install them both.  We might want to install just one, or install
-each one in a different versions of Emacs.  If you send them all
+them separately in different versions of Emacs.  If you send them all
 jumbled together in a single set of diffs, we have to do extra work to
 disentangle them---to figure out which parts of the change serve which
 purpose.  If we don't have time for this, we might have to postpone
