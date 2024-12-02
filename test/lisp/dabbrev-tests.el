@@ -278,12 +278,8 @@ minibuffer was entered, the replacement should found in another buffer."
 (ert-deftest dabbrev-expand-after-killing-buffer ()
   "Test expansion after killing buffer containing first expansion.
 Finding successive expansions in another live buffer should succeed, but
-after killing the buffer, expansion should fail with a user-error."
-  ;; FIXME?  The message shown by the user-error is in *Messages* but
-  ;; since the test finishes on hitting the user-error, we cannot test
-  ;; further, either for the content of the message or the content of
-  ;; the current buffer, so apparently cannot reproduce what a user
-  ;; entering these commands manually sees.
+after killing the buffer, expansion should fail with a user-error,
+leaving the unexpanded string in the buffer." ; See bug#74090.
   (with-dabbrev-test
    (with-current-buffer (get-buffer-create "foo")
      (insert "abc abd"))
@@ -298,13 +294,9 @@ after killing the buffer, expansion should fail with a user-error."
    (should (string= (buffer-string) "abc abd"))
    (kill-buffer "foo")
    (erase-buffer)
-   (should-error (execute-kbd-macro (kbd "abc SPC ab M-/ M-/"))
-                 :type 'user-error)
-   ;; (should (string= (buffer-string) "abc abc"))
-   ;; (with-current-buffer "*Messages*"
-   ;;   (goto-char (point-max))
-   ;;   (should (string= (buffer-substring (pos-bol) (pos-eol))
-   ;;                    "No further dynamic expansion for ‘ab’ found")))
-   ))
+   (let ((msg (cadr (should-error (execute-kbd-macro (kbd "abc SPC ab M-/ M-/"))
+                                  :type 'user-error))))
+     (should (string= (buffer-string) "abc ab"))
+     (should (string= msg "No further dynamic expansion for ‘ab’ found")))))
 
 ;;; dabbrev-tests.el ends here
