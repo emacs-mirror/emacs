@@ -2670,35 +2670,28 @@ size of the object beneath the gesture: image, window, etc.
 
 @cindex @code{low-level-key} event
 @item (low-level-key @var{is-key-press} @var{key} @var{modifier} @var{time} @var{frame})
-This event is sent on the physical press or release of keys, only on GUI
-systems, currently X, MS-Windows and PGTK, and only if the variable
-@code{enable-low-level-key-events} has a non-@code{nil} value.  See its
-documentation for the values it can take, that allow to filter which
-keys should generate this kind of event.
+This event is sent on the physical press or release of keys, only on
+systems where it is supported, currently X, MS-Windows and PGTK, and
+only if the variable @code{enable-low-level-key-events} has a
+non-@code{nil} value.  See its documentation for the values to use, that
+can activate the events for all or some keys.
 
-@var{is-key-press} is @code{t} for a key press, @code{nil} for a key release.
-@var{time} is the event's time in milliseconds, @var{frame} is the
-frame receiving it.  @var{modifier} is @code{nil} if the key is not a
+@var{is-key-press} is @code{t} for a key press, @code{nil} for a key
+release.  @var{time} is the event's time in milliseconds, as reported by
+the underlying platform, and should only be used to measure time
+intervals between events of this same kind.  @var{frame} is the frame
+receiving the event.  @var{modifier} is @code{nil} if the key is not a
 modifier key, @code{t} if it is, but it is unknown which one, or one of
 @code{shift}, @code{control}, @code{meta}, @code{alt}, @code{super},
 @code{hyper}.
 
 @var{key}, an integer, identifies the key pressed or released.  This
-number is platform dependent, but there are variables for most keys that
-can be used in place of the numbers to identify them.  For example, the
-variable @code{xk-backspace} identifies the @key{backspace} key.
+number is platform dependent.
 
-The names are parallel to those for KeySyms on X, as defined in
-@file{xkeysymdef.h}.  For example, @code{XK_Shift_L} (the left shift
-key), corresponds to @code{xk-shift-l}.  The @file{xkeysymdef.h} file
-defines different KeySyms for capital and small versions of letters.
-For this event, only the capital version is used, with the variables
-@code{xk-a}, @code{xk-b}, etc.
-
-These variables are initialized by calling the function @code{llk-init}.
-This function also binds a handler to this event, which allows to detect
-double taps on keys (normally modifier keys) and bind commands or
-functions to be run.  See the function @code{llk-bind}.
+This is a special event (@pxref{Special Events}), ignored by
+default. Loading @file{low-level-key.el} sets a handler
+that can generate normal input events for key press, release and multi
+tap.  See the function @code{llk-bind}.
 
 @cindex @code{preedit-text} event
 @item (preedit-text @var{arg})

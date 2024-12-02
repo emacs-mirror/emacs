@@ -13158,13 +13158,8 @@ The value configures the set of keys that are handled:
 
 If t, send events for all keys.
 
-If a number, send events for the corresponding keysym.  When calling
-`llk-init', a set of variables with the xk- prefix is initialized with
-the numeric values for keysyms.  Because this number are platform
-dependent, only the variables should be used to refer to a key.  For
-example, the 'xk-backspace' variable refer to the backspace key, with
-the numeric value 0xff08 on X, and the 0x08 on MS-Windows.  You can see
-all defined variables on the variable `llk-keysyms'.
+If a number, send events for the corresponding keysym.  This numbers are
+platform dependente.  See `llk-keysyms'.
 
 If a symbol, a predefined set of keys is selected.  The only currently
 valid symbol is 'modifiers.
