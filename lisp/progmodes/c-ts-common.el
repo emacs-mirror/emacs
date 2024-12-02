@@ -52,6 +52,12 @@
 (declare-function treesit-node-type "treesit.c")
 (declare-function treesit-node-parent "treesit.c")
 (declare-function treesit-node-prev-sibling "treesit.c")
+(declare-function treesit-parser-language "treesit.c")
+(declare-function treesit-node-match-p "treesit.c")
+(declare-function treesit-node-child "treesit.c")
+(declare-function treesit-node-eq "treesit.c")
+(declare-function treesit-parser-root-node "treesit.c")
+(declare-function treesit-node-parser "treesit.c")
 
 ;;; Comment indentation and filling
 
