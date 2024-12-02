@@ -5223,35 +5223,52 @@ pgtk_enqueue_preedit (struct frame *f, Lisp_Object preedit)
 }
 
 static void
-pgtk_maybe_send_low_level_key_event (GdkEvent *event)
+pgtk_maybe_send_low_level_key_event (struct frame *f, GdkEvent *event)
 {
-  if (!Venable_low_level_key_events)
+  GdkEventKey xkey = event->key;
+  bool is_press;
+  Lisp_Object key, modifier;
+  union buffered_input_event inev;
+
+  if (NILP (Venable_low_level_key_events))
     return;
 
-  Lisp_Object key;
-  switch (event->key.keyval)
+  switch (event->type)
     {
-    case GDK_KEY_Shift_L: key = Qlshift; break;
-    case GDK_KEY_Shift_R: key = Qrshift; break;
-    case GDK_KEY_Control_L: key = Qlctrl; break;
-    case GDK_KEY_Control_R: key = Qrctrl; break;
-    case GDK_KEY_Alt_L: key = Qlalt; break;
-    case GDK_KEY_Alt_R: key = Qralt; break;
+    case GDK_KEY_PRESS:
+      is_press = true;
+      break;
+    case GDK_KEY_RELEASE:
+      is_press = false;
+      break;
     default:
       return;
     }
-  bool keypress = event->key.type == GDK_KEY_PRESS;
-  struct frame *f = pgtk_any_window_to_frame (event->key.window);
+
+  /* We don't support modifier identification on PGTK. We only can tell
+    if the key corresponds to a modifier or not, which is used for
+    filtering enabled keys with kbd_low_level_key_is_enabled.  */
+  modifier = event->key.is_modifier ? Qt : Qnil;
+
+  int keysym = xkey.keyval;
+
+  if (keysym >= GDK_KEY_a && keysym <= GDK_KEY_z)
+    keysym -= GDK_KEY_a - GDK_KEY_A;
+  if (!kbd_low_level_key_is_enabled (keysym, modifier))
+    return;
+
+  if (!f)
+    f = pgtk_any_window_to_frame (event->key.window);
   if (!f)
     return;
 
-  union buffered_input_event inev;
+  key = make_fixnum (keysym);
 
   EVENT_INIT (inev.ie);
   XSETFRAME (inev.ie.frame_or_window, f);
   inev.ie.kind = LOW_LEVEL_KEY_EVENT;
   inev.ie.timestamp = event->key.time;
-  inev.ie.arg = list2 (keypress ? Qt : Qnil, key);
+  inev.ie.arg = list3 (is_press ? Qt : Qnil, key, modifier);
   evq_enqueue (&inev);
 }
 
@@ -5264,9 +5281,10 @@ key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
   struct frame *f;
   struct pgtk_display_info *dpyinfo;
 
-  pgtk_maybe_send_low_level_key_event(event);
-
   f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
+
+  pgtk_maybe_send_low_level_key_event (f, event);
+
   EVENT_INIT (inev.ie);
   hlinfo = MOUSE_HL_INFO (f);
   nbytes = 0;
@@ -5510,7 +5528,7 @@ key_release_event (GtkWidget *widget,
   GdkDisplay *display;
   struct pgtk_display_info *dpyinfo;
 
-  pgtk_maybe_send_low_level_key_event(event);
+  pgtk_maybe_send_low_level_key_event (NULL, event);
 
   display = gtk_widget_get_display (widget);
   dpyinfo = pgtk_display_info_for_display (display);

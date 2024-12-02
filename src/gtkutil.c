@@ -6391,18 +6391,19 @@ xg_im_context_preedit_end (GtkIMContext *imc, gpointer user_data)
   kbd_buffer_store_event (&inev);
 }
 
+#ifndef HAVE_XINPUT2
 static void
 xg_maybe_send_low_level_key_event (struct frame *f,
 				   GdkEvent *xev)
 {
   GdkEventKey xkey = xev->key;
   bool is_press;
-  int keysym;
   Lisp_Object key, modifier;
   union buffered_input_event inev;
 
-  if (!Venable_low_level_key_events)
+  if (NILP (Venable_low_level_key_events))
     return;
+
   switch (xev->type)
     {
     case GDK_KEY_PRESS:
@@ -6415,80 +6416,27 @@ xg_maybe_send_low_level_key_event (struct frame *f,
       return;
     }
 
-  keysym = xkey.keyval;
+  modifier = x_get_modifier_for_keycode (FRAME_OUTPUT_DATA (f)->display_info,
+					 xev->key.hardware_keycode);
 
-  switch (keysym)
-    {
-    case GDK_KEY_Shift_L: key = Qlshift; break;
-    case GDK_KEY_Shift_R: key = Qrshift; break;
-    case GDK_KEY_Control_L: key = Qlctrl; break;
-    case GDK_KEY_Control_R: key = Qrctrl; break;
-    case GDK_KEY_Alt_L: key = Qlalt; break;
-    case GDK_KEY_Alt_R: key = Qralt; break;
-    default:
-      key = Qnil;
-    }
+  int keysym = xkey.keyval;
 
-   switch (keysym)
-    {
-    case GDK_KEY_Shift_L:
-    case GDK_KEY_Shift_R:
-      modifier = Qshift;
-      break;
-    case GDK_KEY_Control_L:
-    case GDK_KEY_Control_R:
-      modifier = Vx_ctrl_keysym;
-      if (NILP (modifier))
-	modifier = Qctrl;
-      break;
-    case GDK_KEY_Alt_L:
-    case GDK_KEY_Alt_R:
-      modifier = Vx_meta_keysym;
-      if (NILP (modifier))
-	modifier = Qalt;
-      break;
-    case GDK_KEY_Meta_L:
-    case GDK_KEY_Meta_R:
-      modifier = Vx_meta_keysym;
-      if (NILP (modifier))
-	modifier = Qmeta;
-      break;
-    case GDK_KEY_Hyper_L:
-    case GDK_KEY_Hyper_R:
-      modifier = Vx_hyper_keysym;
-      if (NILP (modifier))
-	modifier = Qhyper;
-      break;
-    case GDK_KEY_Super_L:
-    case GDK_KEY_Super_R:
-      modifier = Vx_super_keysym;
-      if (NILP (modifier))
-	modifier = Qsuper;
-      break;
-    default:
-      modifier = Qnil;
-    }
+  if (keysym >= GDK_KEY_a && keysym <= GDK_KEY_z)
+    keysym -= GDK_KEY_a - GDK_KEY_A;
 
-  if (!NILP (key))
-    {
-      EVENT_INIT (inev.ie);
-      XSETFRAME (inev.ie.frame_or_window, f);
-      inev.ie.kind = LOW_LEVEL_KEY_EVENT;
-      inev.ie.timestamp = xkey.time;
-      inev.ie.arg = list2 (is_press ? Qt : Qnil, key);
-      kbd_buffer_store_buffered_event (&inev, &xg_pending_quit_event);
-    }
+  if (!kbd_low_level_key_is_enabled (keysym, modifier))
+    return;
 
-  if (!NILP (modifier))
-    {
-      EVENT_INIT (inev.ie);
-      XSETFRAME (inev.ie.frame_or_window, f);
-      inev.ie.kind = LOW_LEVEL_MODIFIER_KEY_EVENT;
-      inev.ie.timestamp = xkey.time;
-      inev.ie.arg = list2 (is_press ? Qt : Qnil, modifier);
-      kbd_buffer_store_buffered_event (&inev, &xg_pending_quit_event);
-    }
+  key = make_fixnum (keysym);
+
+  EVENT_INIT (inev.ie);
+  XSETFRAME (inev.ie.frame_or_window, f);
+  inev.ie.kind = LOW_LEVEL_KEY_EVENT;
+  inev.ie.timestamp = xkey.time;
+  inev.ie.arg = list3 (is_press ? Qt : Qnil, key, modifier);
+  kbd_buffer_store_buffered_event (&inev, &xg_pending_quit_event);
 }
+#endif
 
 static bool
 xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,

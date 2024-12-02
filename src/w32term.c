@@ -5285,18 +5285,8 @@ w32_read_socket (struct terminal *terminal,
 	      if (translated)
 		vk = LOWORD (translated);
 
-	      Lisp_Object key = Qnil;
+	      Lisp_Object key = make_fixnum (vk);
 	      Lisp_Object modifier = Qnil;
-
-	      switch (vk)
-		{
-		case VK_LSHIFT: key = Qlshift; break;
-		case VK_RSHIFT: key = Qrshift; break;
-		case VK_LCONTROL: key = Qlctrl; break;
-		case VK_RCONTROL: key = Qrctrl; break;
-		case VK_LMENU: key = Qlalt; break;
-		case VK_RMENU: key = Qralt; break;
-		}
 
 	      switch (vk)
 		{
@@ -5314,26 +5304,16 @@ w32_read_socket (struct terminal *terminal,
 		  break;
 		}
 
-	      if (!NILP (key))
+	      if (kbd_low_level_key_is_enabled (vk, modifier))
 		{
 		  f = w32_window_to_frame (dpyinfo, msg.msg.hwnd);
 		  inev.kind = LOW_LEVEL_KEY_EVENT;
 		  XSETFRAME (inev.frame_or_window, f);
 		  inev.timestamp = msg.msg.time;
-		  inev.arg = list2 (is_wm_keyup ? Qnil : Qt, key);
-		  kbd_buffer_store_event_hold (&inev, hold_quit);
-
-		}
-
-	      if (!NILP (modifier))
-		{
-		  f = w32_window_to_frame (dpyinfo, msg.msg.hwnd);
-		  inev.kind = LOW_LEVEL_MODIFIER_KEY_EVENT;
-		  XSETFRAME (inev.frame_or_window, f);
-		  inev.timestamp = msg.msg.time;
-		  inev.arg = list2 (is_wm_keyup ? Qnil : Qt, modifier);
+		  inev.arg = list3 (is_wm_keyup ? Qnil : Qt, key, modifier);
 		  kbd_buffer_store_event_hold (&inev, hold_quit);
 		}
+
 	      inev.kind = NO_EVENT;
 
 	    }

@@ -1906,6 +1906,8 @@ extern void x_clear_under_internal_border (struct frame *f);
 extern void tear_down_x_back_buffer (struct frame *f);
 extern void initial_set_up_x_back_buffer (struct frame *f);
 
+extern Lisp_Object x_get_modifier_for_keycode (struct x_display_info *, int);
+
 /* Defined in xfns.c.  */
 extern void x_real_positions (struct frame *, int *, int *);
 extern void x_change_tab_bar_height (struct frame *, int);

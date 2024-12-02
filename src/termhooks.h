@@ -351,7 +351,6 @@ enum event_kind
   , NOTIFICATION_EVENT
 #endif /* HAVE_ANDROID */
   , LOW_LEVEL_KEY_EVENT
-  , LOW_LEVEL_MODIFIER_KEY_EVENT
 };
 
 /* Bit width of an enum event_kind tag at the start of structs and unions.  */

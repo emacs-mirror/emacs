@@ -4275,7 +4275,6 @@ kbd_buffer_get_event (KBOARD **kbp,
       case SELECT_WINDOW_EVENT:
       case SLEEP_EVENT:
       case LOW_LEVEL_KEY_EVENT:
-      case LOW_LEVEL_MODIFIER_KEY_EVENT:
         {
           obj = make_lispy_event (&event->ie);
           kbd_fetch_ptr = next_kbd_event (event);
@@ -7234,18 +7233,10 @@ make_lispy_event (struct input_event *event)
       return list2 (Qpreedit_text, event->arg);
 
     case LOW_LEVEL_KEY_EVENT:
-      return listn (5,
-		    Qlow_level_key,
+      return listn (6, Qlow_level_key,
 		    XCAR (event->arg), /* Press or release.  */
 		    XCAR (XCDR (event->arg)), /* The key symbol.  */
-		    make_fixnum (event->timestamp),
-		    event->frame_or_window);
-
-    case LOW_LEVEL_MODIFIER_KEY_EVENT:
-      return listn (5,
-		    Qlow_level_modifier,
-		    XCAR (event->arg), /* Press or release.  */
-		    XCAR (XCDR (event->arg)), /* The key symbol.  */
+		    XCAR (XCDR (XCDR (event->arg))), /* The modifier.  */
 		    make_fixnum (event->timestamp),
 		    event->frame_or_window);
 
@@ -7253,6 +7244,33 @@ make_lispy_event (struct input_event *event)
     default:
       emacs_abort ();
     }
+}
+
+bool
+kbd_low_level_key_is_enabled (int keysym, Lisp_Object modifier)
+{
+  if (Venable_low_level_key_events == Qt)
+    return true;
+
+  if (Venable_low_level_key_events == Qnil)
+    return false;
+
+  if (FIXNUMP (Venable_low_level_key_events))
+    return keysym == XFIXNUM (Venable_low_level_key_events);
+
+  if (Venable_low_level_key_events == Qmodifiers)
+    return modifier != Qnil;
+
+  for (Lisp_Object e = Venable_low_level_key_events; CONSP (e); e = XCDR (e))
+    {
+      Lisp_Object c = XCAR (e);
+      if (FIXNUMP (c) && XFIXNUM (c) == keysym)
+	return true;
+      if (c == Qmodifiers && modifier != Qnil)
+	return true;
+    }
+
+  return false;
 }
 
 static Lisp_Object
@@ -13130,19 +13148,28 @@ syms_of_keyboard (void)
   DEFSYM (Qfile_notify, "file-notify");
 #endif /* USE_FILE_NOTIFY */
 
+
+  DEFSYM (Qmodifiers, "modifiers");
+
   DEFVAR_LISP ("enable-low-level-key-events", Venable_low_level_key_events,
-	       doc: /* Enabled the recepcion of low level key events.
-This includes 'low-level-key' and 'low-level-modifier' events.  */);
-  Venable_low_level_key_events = false;
+	       doc: /* If non-nil, reception of low-level key events is enabled.
+
+The value configures the set of keys that are handled:
+
+If t, send events for all keys.
+
+If a number, send events for the corresponding keysym.  When calling
+'llk-init', a set of variables with the xk- prefix is initialized with
+the numeric values for keysyms.  This numbers are platform dependent.
+
+If a symbol, a predefined set of keys is selected.  The only currently
+valid symbol is 'modifiers.
+
+If a list of numbers and/or symbols, the corresponding keysyms and sets
+are selected.  */);
+  Venable_low_level_key_events = Qnil;
 
   DEFSYM (Qlow_level_key, "low-level-key");
-  DEFSYM (Qlow_level_modifier, "low-level-modifier");
-  DEFSYM (Qlshift, "lshift");
-  DEFSYM (Qrshift, "rshift");
-  DEFSYM (Qlctrl, "lctrl");
-  DEFSYM (Qrctrl, "rctrl");
-  DEFSYM (Qlalt, "lalt");
-  DEFSYM (Qralt, "ralt");
 
   DEFSYM (Qtouch_end, "touch-end");
   DEFSYM (Qsleep_event, "sleep-event");
@@ -14242,10 +14269,6 @@ keys_of_keyboard (void)
 			    "ignore");
   initial_define_lispy_key (Vspecial_event_map, "low-level-key",
 			    "ignore");
-  initial_define_lispy_key (Vspecial_event_map, "low-level-modifier",
-			    "ignore");
-
-
 }
 
 /* Mark the pointers in the kboard objects.
