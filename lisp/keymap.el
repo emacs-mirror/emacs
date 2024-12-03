@@ -687,6 +687,7 @@ value can also be a property list with properties `:enter',
 `:exit' and `:hints', for example:
 
      :repeat (:enter (commands ...) :exit (commands ...)
+              :continue-only (commands ...)
               :hints ((command . \"hint\") ...))
 
 `:enter' specifies the list of additional commands that only
@@ -701,6 +702,10 @@ list is empty, no commands in the map exit `repeat-mode'.
 Specifying a list of commands is useful when those commands exist
 in this specific map, but should not have the `repeat-map' symbol
 property.
+
+`:continue-only' specifies the list of commands that should not
+enter `repeat-mode'.  These command should only continue the
+already activated repeating sequence.
 
 `:hints' is a list of cons pairs where car is a command and
 cdr is a string that is displayed alongside of the repeatable key
@@ -740,6 +745,10 @@ in the echo area.
             def)
         (dolist (def (plist-get repeat :enter))
           (push `(put ',def 'repeat-map ',variable-name) props))
+        (dolist (def (plist-get repeat :continue-only))
+          (push `(put ',def 'repeat-continue-only
+                      (cons ',variable-name (get ',def 'repeat-continue-only)))
+                props))
         (while defs
           (pop defs)
           (setq def (pop defs))

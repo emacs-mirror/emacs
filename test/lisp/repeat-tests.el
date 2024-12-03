@@ -63,16 +63,14 @@
 
 (defvar-keymap repeat-tests-repeat-map
   :doc "Keymap for repeating sequences."
-  :repeat ( :enter (repeat-tests-call-a)
-            :exit  (repeat-tests-call-q))
+  :repeat ( :enter         (repeat-tests-call-a)
+            :continue-only (repeat-tests-call-o)
+            :exit          (repeat-tests-call-q))
   "a"     'ignore ;; for non-nil repeat-check-key only
   "c"     'repeat-tests-call-c
   "d"     'repeat-tests-call-d
   "C-M-o" 'repeat-tests-call-o
   "q"     'repeat-tests-call-q)
-
-;; TODO: add new keyword ':continue-only (repeat-tests-call-o)'
-(put 'repeat-tests-call-o 'repeat-continue-only t)
 
 ;; Test using a variable instead of the symbol:
 (put 'repeat-tests-call-b 'repeat-map repeat-tests-repeat-map)
@@ -228,8 +226,7 @@
    ;; :continue-only
    ("C-M-o" . repeat-tests-bind-call-o)
    :exit
-   ("q"     . repeat-tests-bind-call-q)
-   )
+   ("q"     . repeat-tests-bind-call-q))
 
   ;; TODO: it seems there is no :entry, so need to do explicitly:
   (put 'repeat-tests-bind-call-a 'repeat-map 'repeat-tests-bind-keys-repeat-map)

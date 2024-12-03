@@ -946,10 +946,13 @@ provide a ':columns' spec, so that the number of columns and their
 widths can be determined.  Columns widths can be set explicitly, or they
 will be calculated based on the window width.
 
++++
 ** New symbol property 'repeat-continue-only' for 'repeat-mode'.
-A command with this symbol property whose value is non-nil will not
-activate the repeat map in 'repeat-mode', it will only continue the
-already activated repeating sequence.
+A command with this symbol property whose value is a list of repeat
+maps will not activate the repeat map in 'repeat-mode'.  It will only
+continue the already activated repeating sequence.  Also 'defvar-keymap'
+supports a new keyword ':continue-only' with a list of commands that
+only continue the active repeating sequence.
 
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
