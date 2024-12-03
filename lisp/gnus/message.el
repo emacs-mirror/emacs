@@ -3253,79 +3253,79 @@ Like `text-mode', but with these additional commands:
 ;;; Movement commands
 
 (defun message-goto-to ()
-  "Move point to the To header."
+  "Move point to the To header or insert an empty one."
   (interactive nil message-mode)
   (push-mark)
   (message-position-on-field "To"))
 
 (defun message-goto-from ()
-  "Move point to the From header."
+  "Move point to the From header or insert an empty one."
   (interactive nil message-mode)
   (push-mark)
   (message-position-on-field "From"))
 
 (defun message-goto-subject ()
-  "Move point to the Subject header."
+  "Move point to the Subject header or insert an empty one."
   (interactive nil message-mode)
   (push-mark)
   (message-position-on-field "Subject"))
 
 (defun message-goto-cc ()
-  "Move point to the Cc header."
+  "Move point to the Cc header or insert an empty one."
   (interactive nil message-mode)
   (push-mark)
   (message-position-on-field "Cc" "To"))
 
 (defun message-goto-bcc ()
-  "Move point to the Bcc  header."
+  "Move point to the Bcc  header or insert an empty one."
   (interactive nil message-mode)
   (push-mark)
   (message-position-on-field "Bcc" "Cc" "To"))
 
 (defun message-goto-fcc ()
-  "Move point to the Fcc header."
+  "Move point to the Fcc header or insert an empty one."
   (interactive nil message-mode)
   (push-mark)
   (message-position-on-field "Fcc" "To" "Newsgroups"))
 
 (defun message-goto-reply-to ()
-  "Move point to the Reply-To header."
+  "Move point to the Reply-To header or insert an empty one."
   (interactive nil message-mode)
   (push-mark)
   (message-position-on-field "Reply-To" "Subject"))
 
 (defun message-goto-newsgroups ()
-  "Move point to the Newsgroups header."
+  "Move point to the Newsgroups header or insert an empty one."
   (interactive nil message-mode)
   (push-mark)
   (message-position-on-field "Newsgroups"))
 
 (defun message-goto-distribution ()
-  "Move point to the Distribution header."
+  "Move point to the Distribution header or insert an empty one."
   (interactive nil message-mode)
   (push-mark)
   (message-position-on-field "Distribution"))
 
 (defun message-goto-followup-to ()
-  "Move point to the Followup-To header."
+  "Move point to the Followup-To header or insert an empty one."
   (interactive nil message-mode)
   (push-mark)
   (message-position-on-field "Followup-To" "Newsgroups"))
 
 (defun message-goto-mail-followup-to ()
-  "Move point to the Mail-Followup-To header."
+  "Move point to the Mail-Followup-To header or insert an empty one."
   (interactive nil message-mode)
   (push-mark)
   (message-position-on-field "Mail-Followup-To" "To"))
 
 (defun message-goto-keywords ()
-  "Move point to the Keywords header."
+  "Move point to the Keywords header or insert an empty one."
   (interactive nil message-mode)
   (push-mark)
   (message-position-on-field "Keywords" "Subject"))
 
 (defun message-goto-summary ()
-  "Move point to the Summary header."
+  "Move point to the Summary header or insert an empty one."
   (interactive nil message-mode)
   (push-mark)
   (message-position-on-field "Summary" "Subject"))
@@ -4249,6 +4249,10 @@ This function strips off the signature from the original message."
     (newline)))
 
 (defun message-position-on-field (header &rest afters)
+  "Move point to header HEADER or insert it if not found.
+
+If HEADER is not present, insert it with an empty value, after any
+headers specified in AFTERS."
   (let ((case-fold-search t))
     (save-restriction
       (narrow-to-region
