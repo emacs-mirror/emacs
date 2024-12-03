@@ -4900,7 +4900,7 @@ If you always want Gnus to send messages in one piece, set
 		 message-required-mail-headers))
 	;; otherwise, delete the MFT header if the field is empty
 	(when (equal "" (mail-fetch-field "mail-followup-to"))
-	  (message-remove-header "^Mail-Followup-To:")))
+	  (message-remove-header "Mail-Followup-To")))
       ;; Insert some headers.
       (let ((message-deletable-headers
 	     (if news nil message-deletable-headers)))
