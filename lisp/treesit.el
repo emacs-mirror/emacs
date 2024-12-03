@@ -1214,6 +1214,48 @@ docstring of `treesit-font-lock-rules' for what is a feature."
              (append rules
                      (nthcdr feature-idx treesit-font-lock-settings)))))))
 
+(defun treesit-validate-font-lock-rules (settings)
+  "Validate font-lock rules in SETTINGS before major mode starts.
+
+If the tree-sitter grammar currently installed on the system is
+incompatible with the major mode's font-lock rules, this procedure will
+detect the problematic rule, disable it temporarily, and notify the
+user."
+  (let ((faulty-features ()))
+    (dolist (setting settings)
+      (let* ((query (treesit-font-lock-setting-query setting))
+             (lang (treesit-query-language query))
+             (enabled (treesit-font-lock-setting-enable setting)))
+        (when (and enabled
+                   (condition-case nil
+                       (progn
+                         (treesit-query-compile lang query 'eager)
+                         nil)
+                     (treesit-query-error t)))
+          (push (cons (treesit-font-lock-setting-feature setting)
+                      lang)
+                faulty-features))))
+    (when faulty-features
+      (treesit-font-lock-recompute-features
+       nil (mapcar #'car faulty-features))
+      (let* ((languages
+              (string-join
+               (delete-dups (mapcar (lambda (feat)
+                                      (format "tree-sitter-%s" (cdr feat)))
+                                    faulty-features))
+               ", "))
+             (features (string-join
+                        (mapcar
+                         (lambda (feat)
+                           (format "- `%s' for %s"
+                                   (car feat) (cdr feat)))
+                         faulty-features)
+                        ",\n")))
+        (display-warning
+         'treesit-font-lock-rules-mismatch
+         (format "Emacs cannot compile every font-lock rules because a mismatch between the grammar and the rules.  This is most likely due to a mismatch between the font-lock rules defined by the major mode and the tree-sitter grammar.\n\nThis error can be fixed by either downgrading the grammar (%s) on your system, or upgrading the major mode package.  The following are the temporarily disabled features:\n\n%s."
+                 languages features))))))
+
 (defun treesit-fontify-with-override
     (start end face override &optional bound-start bound-end)
   "Apply FACE to the region between START and END.
@@ -3142,7 +3184,8 @@ before calling this function."
     (add-hook 'pre-redisplay-functions #'treesit--pre-redisplay 0 t)
     (when treesit-primary-parser
       (treesit-parser-add-notifier
-       treesit-primary-parser #'treesit--font-lock-mark-ranges-to-fontify)))
+       treesit-primary-parser #'treesit--font-lock-mark-ranges-to-fontify))
+    (treesit-validate-font-lock-rules treesit-font-lock-settings))
   ;; Syntax
   (add-hook 'syntax-propertize-extend-region-functions
             #'treesit--pre-syntax-ppss 0 t)
