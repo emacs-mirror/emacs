@@ -86,6 +86,7 @@
 (declare-function treesit-node-first-child-for-pos "treesit.c")
 (declare-function treesit-node-next-sibling "treesit.c")
 (declare-function treesit-node-eq "treesit.c")
+(declare-function treesit-node-match-p "treesit.c")
 (declare-function treesit-query-compile "treesit.c")
 
 ;;; Custom variables
