@@ -294,9 +294,14 @@ leaving the unexpanded string in the buffer." ; See bug#74090.
    (should (string= (buffer-string) "abc abd"))
    (kill-buffer "foo")
    (erase-buffer)
-   (let ((msg (cadr (should-error (execute-kbd-macro (kbd "abc SPC ab M-/ M-/"))
+   ;; In batch runs of this file, the user-error message contains curved
+   ;; quotes, but grave quotes when running `make check' (so here was
+   ;; evidently not passed to `substitute-command-keys'), so use grave
+   ;; quotes so the test succeeds in both modes of execution.
+   (let* ((text-quoting-style 'grave)
+          (msg (cadr (should-error (execute-kbd-macro (kbd "abc SPC ab M-/ M-/"))
                                   :type 'user-error))))
      (should (string= (buffer-string) "abc ab"))
-     (should (string= msg "No further dynamic expansion for ‘ab’ found")))))
+     (should (string= msg "No further dynamic expansion for `ab' found")))))
 
 ;;; dabbrev-tests.el ends here
