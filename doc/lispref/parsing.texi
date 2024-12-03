@@ -240,12 +240,15 @@ which displays the syntax tree of the source in the current buffer in
 real time.  Emacs also comes with an ``inspect mode'', which displays
 information of the nodes at point in the mode-line.
 
+@findex treesit-explorer-switch-parser
 @deffn Command treesit-explore
 This command pops up a window displaying the syntax tree of the source in
 the current buffer.  Selecting text in the source buffer highlights
 the corresponding nodes in the syntax tree display.  Clicking
 on nodes in the syntax tree highlights the corresponding text in the
 source buffer.
+
+To switch to another parser, use @code{treesit-explorer-switch-parser}.
 @end deffn
 
 @deffn Command treesit-inspect-mode

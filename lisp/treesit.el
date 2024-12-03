@@ -3347,7 +3347,7 @@ to the offending pattern and highlight the pattern."
 (defvar-local treesit--explorer-source-buffer nil
   "Source buffer corresponding to the playground buffer.")
 
-(defvar-local treesit--explorer-language nil
+(defvar-local treesit--explorer-parser nil
   "The language used in the playground.")
 
 (defvar-local treesit--explorer-refresh-timer nil
@@ -3361,8 +3361,8 @@ to the offending pattern and highlight the pattern."
 
 (defvar treesit-explore-mode)
 
-(defun treesit--explorer--nodes-to-highlight (language)
-  "Return nodes for LANGUAGE covered in region.
+(defun treesit--explorer--nodes-to-highlight (parser)
+  "Return nodes for PARSER covered in region.
 This function tries to return the largest node possible.  If the
 region covers exactly one node, that node is returned (in a
 list).  If the region covers more than one node, two nodes are
@@ -3370,7 +3370,7 @@ returned: the very first one in the region and the very last one
 in the region."
   (let* ((beg (region-beginning))
          (end (region-end))
-         (node (treesit-node-on beg end language))
+         (node (treesit-node-on beg end parser))
          (node (or (treesit-parent-while
                     node
                     (lambda (n)
@@ -3394,7 +3394,7 @@ in the region."
   (when (and treesit-explore-mode
              (buffer-live-p treesit--explorer-buffer))
     (let* ((root (treesit-node-on
-                  (window-start) (window-end) treesit--explorer-language))
+                  (window-start) (window-end) treesit--explorer-parser))
            ;; Only highlight the current top-level construct.
            ;; Highlighting the whole buffer is slow and unnecessary.
            ;; But if the buffer is small (ie, used in playground
@@ -3411,7 +3411,7 @@ in the region."
            (nodes-hl
             (when (region-active-p)
               (treesit--explorer--nodes-to-highlight
-               treesit--explorer-language)))
+               treesit--explorer-parser)))
            ;; If we didn't edit the buffer nor change the top-level
            ;; node, don't redraw the whole syntax tree.
            (highlight-only (treesit-node-eq
@@ -3589,10 +3589,55 @@ leaves point at the end of the last line of NODE."
   (when (buffer-live-p treesit--explorer-buffer)
     (kill-buffer treesit--explorer-buffer)))
 
+(defun treesit--explorer-generate-parser-alist ()
+  "Return an alist of (PARSER-NAME . PARSER) for relevant parsers.
+Relevant parsers include all global parsers and local parsers that
+covers point.  PARSER-NAME are unique."
+  (let* ((local-parsers (treesit-parser-list nil nil 'embedded))
+         (local-parsers-at-point
+          (treesit-local-parsers-at (point)))
+         res)
+    (dolist (parser (treesit-parser-list nil nil t))
+      ;; Exclude local parsers that doesn't cover point.
+      (when (or (memq parser local-parsers-at-point)
+                (not (memq parser local-parsers)))
+        (push (cons (concat (format "%s" parser)
+                            (if (treesit-parser-tag parser)
+                                (format " tag=%s"
+                                        (treesit-parser-tag
+                                         parser))
+                              "")
+                            (if (memq parser
+                                      local-parsers-at-point)
+                                " (local)"
+                              "")
+                            (propertize (format " %s" (gensym))
+                                        'invisible t))
+                    parser)
+              res)))
+    (nreverse res)))
+
 (define-derived-mode treesit--explorer-tree-mode special-mode
   "TS Explorer"
   "Mode for displaying syntax trees for `treesit-explore-mode'."
   nil)
+
+(defun treesit-explorer-switch-parser (parser)
+  "Switch explorer to use PARSER."
+  (interactive
+   (list (let* ((parser-alist
+                 (treesit--explorer-generate-parser-alist))
+                (parser-name (completing-read
+                              "Parser: " (mapcar #'car parser-alist))))
+           (alist-get parser-name parser-alist
+                      nil nil #'equal))))
+  (unless treesit-explore-mode
+    (user-error "Not in `treesit-explore-mode'"))
+  (setq-local treesit--explorer-parser parser)
+  (display-buffer treesit--explorer-buffer
+                  (cons nil '((inhibit-same-window . t))))
+  (setq-local treesit--explorer-last-node nil)
+  (treesit--explorer-refresh))
 
 (define-minor-mode treesit-explore-mode
   "Enable exploring the current buffer's syntax tree.
@@ -3602,40 +3647,28 @@ the text in the active region is highlighted in the explorer
 window."
   :lighter " TSexplore"
   (if treesit-explore-mode
-      (let ((language
-             (intern (completing-read
-                      "Language: "
-                      (cl-remove-duplicates
-                       (mapcar #'treesit-parser-language
-                               (treesit-parser-list nil nil t)))))))
-        (if (not (treesit-language-available-p language))
-            (user-error "Cannot find tree-sitter grammar for %s: %s"
-                        language (cdr (treesit-language-available-p
-                                       language t)))
-          ;; Create explorer buffer.
-          (unless (buffer-live-p treesit--explorer-buffer)
-            (setq-local treesit--explorer-buffer
-                        (get-buffer-create
-                         (format "*tree-sitter explorer for %s*"
-                                 (buffer-name))))
-            (setq-local treesit--explorer-language language)
-            (with-current-buffer treesit--explorer-buffer
-              (treesit--explorer-tree-mode)))
-          (display-buffer treesit--explorer-buffer
-                          (cons nil '((inhibit-same-window . t))))
-          (setq-local treesit--explorer-last-node nil)
-          (treesit--explorer-refresh)
-          ;; Set up variables and hooks.
-          (add-hook 'post-command-hook
-                    #'treesit--explorer-post-command 0 t)
-          (add-hook 'kill-buffer-hook
-                    #'treesit--explorer-kill-explorer-buffer 0 t)
-          ;; Tell `desktop-save' to not save explorer buffers.
-          (when (boundp 'desktop-modes-not-to-save)
-            (unless (memq 'treesit--explorer-tree-mode
-                          desktop-modes-not-to-save)
-              (push 'treesit--explorer-tree-mode
-                    desktop-modes-not-to-save)))))
+      (progn
+        ;; Create explorer buffer.
+        (unless (buffer-live-p treesit--explorer-buffer)
+          (setq-local treesit--explorer-buffer
+                      (get-buffer-create
+                       (format "*tree-sitter explorer for %s*"
+                               (buffer-name))))
+          (with-current-buffer treesit--explorer-buffer
+            (treesit--explorer-tree-mode)))
+        ;; Select parser.
+        (call-interactively #'treesit-explorer-switch-parser)
+        ;; Set up variables and hooks.
+        (add-hook 'post-command-hook
+                  #'treesit--explorer-post-command 0 t)
+        (add-hook 'kill-buffer-hook
+                  #'treesit--explorer-kill-explorer-buffer 0 t)
+        ;; Tell `desktop-save' to not save explorer buffers.
+        (when (boundp 'desktop-modes-not-to-save)
+          (unless (memq 'treesit--explorer-tree-mode
+                        desktop-modes-not-to-save)
+            (push 'treesit--explorer-tree-mode
+                  desktop-modes-not-to-save))))
     ;; Turn off explore mode.
     (remove-hook 'post-command-hook
                  #'treesit--explorer-post-command t)
