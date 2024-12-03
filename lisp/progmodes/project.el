@@ -591,10 +591,10 @@ See `project-vc-extra-root-markers' for the marker value format.")
                      last-matches))
            vc-handled-backends))
          project)
-    (when (and
-           (eq backend 'Git)
-           (project--vc-merge-submodules-p root)
-           (project--submodule-p root))
+    (while (and
+            (eq backend 'Git)
+            (project--vc-merge-submodules-p root)
+            (project--submodule-p root))
       (let* ((parent (file-name-directory (directory-file-name root))))
         (setq root (vc-call-backend 'Git 'root parent))))
     (when root
