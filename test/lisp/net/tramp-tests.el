@@ -144,6 +144,7 @@
 
 (setq auth-source-cache-expiry nil
       auth-source-save-behavior nil
+      ert-batch-backtrace-right-margin nil
       password-cache-expiry nil
       remote-file-name-inhibit-cache nil
       tramp-allow-unsafe-temporary-files t
@@ -254,30 +255,27 @@ being the result.")
     (dolist (dir `(,temporary-file-directory
 		   ,tramp-compat-temporary-file-directory
 		   ,ert-remote-temporary-file-directory))
-      (dolist
-	  (file
-	   (directory-files
-	    dir 'full
-	    (rx bos (? ".#")
-		(| (literal tramp-test-name-prefix)
-		   (eval (if (getenv "TRAMP_TEST_CLEANUP_TEMP_FILES")
-			     tramp-temp-name-prefix 'unmatchable))))))
+      (dolist (file (directory-files
+		     dir 'full
+		     (rx-to-string
+		      `(: bos (? ".#")
+			  (| ,tramp-test-name-prefix
+			     ,(if (getenv "TRAMP_TEST_CLEANUP_TEMP_FILES")
+				  tramp-temp-name-prefix 'unmatchable))))))
 
 	;; Exclude sockets and FUSE mount points.
 	(ignore-errors
 	  (unless
 	      (or (string-prefix-p
 		   "srw" (file-attribute-modes (file-attributes file)))
-		  (string-match-p (rx bos (literal tramp-fuse-name-prefix)
-				      (regexp tramp-method-regexp) ".")
-				  (file-name-nondirectory file))
 		  ;; Prior Emacs 31.1, the FUSE mount points where
-		  ;; "tramp-rclone.*" and "tramp-sshfs.*".  We should
-		  ;; exclude them as well, in order not to make
-		  ;; trouble.
-		  (string-match-p (rx bos (literal tramp-temp-name-prefix)
-				      (| "rclone" "fuse") ".")
-				  (file-name-nondirectory file)))
+		  ;; "tramp.rclone.*" and "tramp.sshfs.*".  We should
+		  ;; exclude them as well, in order to avoid trouble.
+		  (string-match-p
+		   (rx bos (| (literal tramp-fuse-name-prefix)
+			      (literal tramp-temp-name-prefix))
+		       (| "rclone" "sshfs") ".")
+		   (file-name-nondirectory file)))
 	    (tramp--test-message "Delete %s" file)
 	    (if (file-directory-p file)
 		(delete-directory file 'recursive)
