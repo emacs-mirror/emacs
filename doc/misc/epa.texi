@@ -398,7 +398,8 @@ Decrypt OpenPGP armors in the current buffer.
 @kindex C-c C-e C-v
 @kindex C-c C-e v
 @findex epa-mail-verify
-Verify OpenPGP cleartext signed messages in the current buffer.
+Verify OpenPGP cleartext signed messages in the current buffer.  If
+verification fails for some reason, this command signals an error.
 
 @item C-c C-e C-s and C-c C-e s
 @kindex C-c C-e C-s
