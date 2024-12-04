@@ -555,12 +555,15 @@ This means that switching to a buffer previously shown in the same
 window will keep the same order of tabs that was before switching.
 And newly displayed buffers are added to the end of the tab line."
   (let* ((old-buffers (window-parameter nil 'tab-line-buffers))
-         (buffer-positions (let ((index-table (make-hash-table :test 'eq)))
+         (buffer-positions (let ((index-table (make-hash-table
+                                               :size (length old-buffers)
+                                               :test #'eq)))
                              (seq-do-indexed
                               (lambda (buf idx) (puthash buf idx index-table))
                               old-buffers)
                              index-table))
          (new-buffers (sort (tab-line-tabs-window-buffers)
+                            :in-place t
                             :key (lambda (buffer)
                                    (gethash buffer buffer-positions
                                             most-positive-fixnum)))))
