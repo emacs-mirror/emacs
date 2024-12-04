@@ -77,8 +77,10 @@ an entry matching \"\\\\=`\" and a replacement regexp of \"bar/\", i.e.:
 Similarly, to remove a prefix \"bar/\", use:
 
     (\"\\\\=`bar/\" \"\")"
-  :type '(repeat (list regexp (choice (const :tag "No replacement" nil)
-                                      string)))
+  :type '(repeat (list (regexp :tag "Filename that matches")
+                       (radio :tag "Action"
+                              (const :tag "Do not consider as error" nil)
+                              (string :tag "Replace matched filename with"))))
   :version "27.1")
 
 (defvar compilation-filter-hook nil
