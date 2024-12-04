@@ -1557,7 +1557,6 @@ Depends on `c-ts-common-comment-setup'."
 
     ;; should be the last one
     (setq-local treesit-primary-parser (treesit-parser-create 'php))
-    (treesit-font-lock-recompute-features)
     (treesit-major-mode-setup)
     (add-hook 'flymake-diagnostic-functions #'php-ts-mode-flymake-php nil 'local)))
 
