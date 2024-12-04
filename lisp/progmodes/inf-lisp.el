@@ -308,8 +308,8 @@ quoted using shell quote syntax.
 			   "inferior-lisp" (car cmdlist) nil (cdr cmdlist)))
 	(inferior-lisp-mode)))
   (setq inferior-lisp-buffer "*inferior-lisp*")
-  (with-suppressed-warnings ((obsolete display-comint-buffer-action))
-    (pop-to-buffer "*inferior-lisp*" display-comint-buffer-action)))
+  (pop-to-buffer "*inferior-lisp*" (append display-buffer--same-window-action
+                                           '((category . comint)))))
 
 ;;;###autoload
 (defalias 'run-lisp 'inferior-lisp)

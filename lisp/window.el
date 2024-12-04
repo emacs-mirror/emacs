@@ -9115,35 +9115,6 @@ currently selected window; otherwise it will be displayed in
 another window."
   (pop-to-buffer buffer display-buffer--same-window-action norecord))
 
-(defcustom display-comint-buffer-action
-  (append display-buffer--same-window-action '((category . comint)))
-  "`display-buffer' action for displaying comint buffers."
-  :type display-buffer--action-custom-type
-  :risky t
-  :version "29.1"
-  :group 'windows
-  :group 'comint)
-
-(make-obsolete-variable
- 'display-comint-buffer-action
- "use a `(category . comint)' condition in `display-buffer-alist'."
- "30.1")
-
-(defcustom display-tex-shell-buffer-action '(display-buffer-in-previous-window
-                                             (inhibit-same-window . t)
-                                             (category . tex-shell))
-  "`display-buffer' action for displaying TeX shell buffers."
-  :type display-buffer--action-custom-type
-  :risky t
-  :version "29.1"
-  :group 'windows
-  :group 'tex-run)
-
-(make-obsolete-variable
- 'display-tex-shell-buffer-action
- "use a `(category . tex-shell)' condition in `display-buffer-alist'."
- "30.1")
-
 (defun read-buffer-to-switch (prompt)
   "Read the name of a buffer to switch to, prompting with PROMPT.
 Return the name of the buffer as a string.

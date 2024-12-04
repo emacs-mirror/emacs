@@ -953,8 +953,8 @@ Make the shell buffer the current buffer, and return it.
                  (current-buffer)))
   ;; The buffer's window must be correctly set when we call comint
   ;; (so that comint sets the COLUMNS env var properly).
-  (with-suppressed-warnings ((obsolete display-comint-buffer-action))
-    (pop-to-buffer buffer display-comint-buffer-action))
+  (pop-to-buffer buffer (append display-buffer--same-window-action
+                                '((category . comint))))
 
   (with-connection-local-variables
    (when file-name

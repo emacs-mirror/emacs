@@ -154,6 +154,12 @@ that the actual killing or burying of the buffer is done by the caller.
 With this option set, 'quit-restore-window' will delete its window more
 aggressively rather than switching to some other buffer in it.
 
+---
+*** The user option 'display-comint-buffer-action' has been removed.
+It has been obsolete since Emacs 30.1.  Use '(category . comint)' instead.
+Another user option 'display-tex-shell-buffer-action' has been removed too
+for which you can use '(category . tex-shell)'.
+
 ** Frames
 
 +++

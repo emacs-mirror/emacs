@@ -51,9 +51,9 @@ followed by a colon."
     (if (get-buffer eshell-buffer-name)
         (pop-to-buffer
          eshell-buffer-name
-         (if (boundp 'display-comint-buffer-action) ; Emacs >= 29
+         (if (boundp 'display-comint-buffer-action) ; Emacs >= 29, <= 30
              display-comint-buffer-action
-           '(display-buffer-same-window (inhibit-same-window))))
+           '(display-buffer-same-window (inhibit-same-window) (category . comint))))
       (eshell))
     (goto-char (point-max))
     (eshell-kill-input)

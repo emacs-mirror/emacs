@@ -238,8 +238,8 @@ is run).
 	(inferior-scheme-mode)))
   (setq scheme-program-name cmd)
   (setq scheme-buffer "*scheme*")
-  (with-suppressed-warnings ((obsolete display-comint-buffer-action))
-    (pop-to-buffer "*scheme*" display-comint-buffer-action)))
+  (pop-to-buffer "*scheme*" (append display-buffer--same-window-action
+                                    '((category . comint)))))
 
 (defun scheme-start-file (prog)
   "Return the name of the start file corresponding to PROG.
@@ -359,8 +359,8 @@ With argument, position cursor at end of buffer."
   (interactive "P")
   (if (or (and scheme-buffer (get-buffer scheme-buffer))
           (scheme-interactively-start-process))
-      (with-suppressed-warnings ((obsolete display-comint-buffer-action))
-        (pop-to-buffer scheme-buffer display-comint-buffer-action))
+      (pop-to-buffer scheme-buffer (append display-buffer--same-window-action
+                                           '((category . comint))))
     (error "No current process buffer.  See variable `scheme-buffer'"))
   (when eob-p
     (push-mark)
