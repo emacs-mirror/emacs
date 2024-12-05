@@ -95,8 +95,8 @@ is displayed instead.
 The string is passed through `substitute-command-keys' before it
 is displayed.
 
-If INHIBIT-WARNING is non-nil, this prevents display of the warning
-message in case there is no help properties at point.
+If INHIBIT-WARNING is non-nil, do not display a warning message when
+there is no help property at point.
 
 If DESCRIBE-BUTTON in non-nil (interactively, the prefix arg), and
 there's a button/widget at point, pop up a buffer describing that
