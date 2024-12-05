@@ -2082,7 +2082,16 @@ mouse-2: visit this file in other window"
                           "<mouse-2>" click
                           "<follow-link>" 'mouse-face
                           "RET" click))))
-          (setq segment-start (point)))))))
+          (setq segment-start (point)))
+        (when (search-forward ":" bound t)
+          (add-text-properties
+           segment-start (1- (point))
+           `(mouse-face highlight
+             help-echo "mouse-1: re-read this buffer's directory"
+             keymap ,(define-keymap
+                       "<mouse-2>" #'revert-buffer
+                       "<follow-link>" 'follow-link
+                       "RET" #'revert-buffer))))))))
 
 (defun dired--get-ellipsis-length ()
   "Return length of ellipsis."

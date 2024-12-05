@@ -685,6 +685,11 @@ Without 'dired-hide-details-hide-absolute-location':
 
     /absolute/path/to/my/important/project: (100 GiB available)
 
+---
+*** Clicking on base name of directory reverts buffer.
+When 'dired-make-directory-clickable' is non-nil, clicking on the base
+name of the directory now reverts the Dired buffer.
+
 ** Grep
 
 +++
