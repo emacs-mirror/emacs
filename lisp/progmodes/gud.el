@@ -2962,6 +2962,8 @@ It is nil if not yet present.")
 (defun gud-sentinel (proc msg)
   (cond ((null (buffer-name (process-buffer proc)))
 	 ;; buffer killed
+	 ;; Stop displaying an arrow and highlight overlay in a source file.
+	 (gud-hide-current-line-indicator t)
 	 (set-process-buffer proc nil)
 	 (if (and (boundp 'speedbar-initial-expansion-list-name)
 		  (string-equal speedbar-initial-expansion-list-name "GUD"))
