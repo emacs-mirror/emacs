@@ -491,16 +491,16 @@ This will generate compile-time constants from BINDINGS."
          ;; Words inside \\[], \\<>, \\{} or \\`' tend to be for
          ;; `substitute-command-keys'.
          (,(rx "\\\\" (or (seq "["
-                               (group-n 1 lisp-mode-symbol) (not "\\") "]")
+                               (group-n 1 (seq lisp-mode-symbol (not "\\"))) "]")
                           (seq "`" (group-n 1
                                      ;; allow multiple words, e.g. "C-x a"
                                      lisp-mode-symbol (* " " lisp-mode-symbol))
                                "'")))
           (1 font-lock-constant-face prepend))
          (,(rx "\\\\" (or (seq "<"
-                               (group-n 1 lisp-mode-symbol) (not "\\") ">")
+                               (group-n 1 (seq lisp-mode-symbol (not "\\"))) ">")
                           (seq "{"
-                               (group-n 1 lisp-mode-symbol) (not "\\") "}")))
+                               (group-n 1 (seq lisp-mode-symbol (not "\\"))) "}")))
           (1 font-lock-variable-name-face prepend))
          ;; Ineffective backslashes (typically in need of doubling).
          ("\\(\\\\\\)\\([^\"\\]\\)"
