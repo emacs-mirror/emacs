@@ -1826,14 +1826,9 @@ default values are used."
 		  user (tramp-find-user method user host)
 		  host (tramp-find-host method user host))
 	    (when hop
-	      ;; Replace placeholders.  The hop could contain "%"
-	      ;; which is not intended as format character, for
-	      ;; example in USER%DOMAIN or POD%NAMESPACE.
-	      (setq hop
-		    (replace-regexp-in-string
-		     (rx "%" (group (= 2 alnum))) "%%\\1" hop)
-		    hop
-		    (format-spec hop (format-spec-make ?h host ?u user))))))
+	      ;; Replace placeholders.
+	      (setq
+	       hop (tramp-format-spec hop (format-spec-make ?h host ?u user))))))
 
 	;; Return result.
 	(prog1
@@ -2232,6 +2227,14 @@ letter into the file name.  This function removes it."
 	    (replace-regexp-in-string
 	     (rx (regexp tramp-volume-letter-regexp) "/") "/" result))
       (if quoted (file-name-quote result 'top) result))))
+
+(defun tramp-format-spec (format specification)
+  "Implement `format-spec' in Tramp.
+FORMAT could contain \"%\" which is not intended as format character,
+for example in USER%DOMAIN or POD%NAMESPACE."
+  (format-spec
+   (replace-regexp-in-string (rx "%" (group (= 2 alnum))) "%%\\1" format)
+   specification))
 
 ;;; Config Manipulation Functions:
 
@@ -5033,7 +5036,7 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 	      (setq choices nil)
 	    ;; Replace placeholders.
 	    (setq proxy
-		  (format-spec
+		  (tramp-format-spec
 		   proxy
 		   (format-spec-make
 		    ?u (or (tramp-file-name-user (car target-alist)) "")
@@ -5108,7 +5111,7 @@ a connection-local variable."
     (flatten-tree
      (mapcar
       (lambda (x)
-	(setq x (mapcar (lambda (y) (format-spec y spec)) x))
+	(setq x (mapcar (lambda (y) (tramp-format-spec y spec)) x))
 	(unless (member "" x) x))
       args))))
 

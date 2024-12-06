@@ -368,7 +368,7 @@ function returns nil"
 	(when (string-match-p (or (eval (car item) t) "") string)
 	  (setq tdra nil
 		result
-		(format-spec
+		(tramp-format-spec
 		 (cdr item) (format-spec-make ?m method ?u user ?h host)))))
       result)))
 
