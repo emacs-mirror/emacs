@@ -310,6 +310,15 @@ error message formats and tells Emacs how to extract the locus from
 each.  A similar variable, @code{grep-regexp-alist}, tells Emacs how
 to parse output from a @code{grep} command (@pxref{Grep Searching}).
 
+@vindex compilation-transform-file-match-alist
+@cindex compilation transform file
+@cindex compilation find file
+  Sometimes @code{compilation-error-regexp-alist} doesn't correctly
+determine the filename that is the source of the error.  Use user option
+@code{compilation-transform-file-match-alist} to make any necessary
+adjustments, such as adding or changing a directory component, or even
+considering certain compiler messages not error messages at all.
+
 @findex compilation-next-error
 @findex compilation-previous-error
 @findex compilation-next-file

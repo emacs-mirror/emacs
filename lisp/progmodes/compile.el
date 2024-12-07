@@ -62,11 +62,25 @@ If nil, use Emacs default."
 (defcustom compilation-transform-file-match-alist
   '(("/bin/[a-z]*sh\\'" nil))
   "Alist of regexp/replacements to alter file names in compilation errors.
-If the replacement is nil, the file will not be considered an
-error after all.  If not nil, it should be a regexp replacement
-string."
-  :type '(repeat (list regexp (choice (const :tag "No replacement" nil)
-                                      string)))
+If the replacement is nil, the file will not be considered an error
+after all.  If not nil, it should be a regexp replacement string.
+
+When a replacement regexp is specified, the value of the file name used
+to locate the error is changed, but the compilation buffer still
+displays the original value.
+
+For example, to prepend a subdirectory \"bar/\" to all file names, add
+an entry matching \"\\\\=`\" and a replacement regexp of \"bar/\", i.e.:
+
+    (\"\\\\=`\" \"bar/\")
+
+Similarly, to remove a prefix \"bar/\", use:
+
+    (\"\\\\=`bar/\" \"\")"
+  :type '(repeat (list (regexp :tag "Filename that matches")
+                       (radio :tag "Action"
+                              (const :tag "Do not consider as error" nil)
+                              (string :tag "Replace matched filename with"))))
   :version "27.1")
 
 (defvar compilation-filter-hook nil
@@ -95,8 +109,8 @@ like.
 For instance, to hide the verbose output from recursive
 makefiles, you can say something like:
 
-  (setq compilation-hidden-output
-        \\='(\"^make[^\n]+\n\"))"
+  (setopt compilation-hidden-output
+          \\='(\"^make[^\\n]+\\n\"))"
   :type '(choice regexp
                  (repeat regexp))
   :version "29.1")

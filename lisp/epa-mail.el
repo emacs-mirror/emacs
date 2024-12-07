@@ -90,7 +90,9 @@ The buffer is expected to contain a mail message."
 ;;;###autoload
 (defun epa-mail-verify ()
   "Verify OpenPGP cleartext signed messages in the current buffer.
-The buffer is expected to contain a mail message."
+The buffer is expected to contain a mail message.
+
+If the verification fails, signal an error."
   (declare (interactive-only t))
   (interactive)
   (with-suppressed-warnings ((interactive-only epa-verify-cleartext-in-region))
