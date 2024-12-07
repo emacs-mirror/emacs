@@ -142,7 +142,8 @@ wdired-get-filename before and after editing."
   (ert-with-temp-directory test-dir
     (let* ((dired-listing-switches "-Fl")
            (dired-ls-F-marks-symlinks
-            (or (eq system-type 'darwin)
+            (or (and (memq system-type '(berkeley-unix darwin))
+		     (not (string= insert-directory-program "gls")))
                 (featurep 'ls-lisp)))
            (buf (find-file-noselect test-dir))
            proc)
