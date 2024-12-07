@@ -25,7 +25,7 @@ Use
 
 In addition, you can configure with
 
-  --enable-checking=igc_assert
+  --enable-checking=igc_debug
 
 to enable igc-specific assertions.
 
