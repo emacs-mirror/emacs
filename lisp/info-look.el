@@ -995,9 +995,11 @@ Return nil if there is nothing appropriate in the buffer near point."
  :mode 'latex-mode
  :regexp "\\\\\\([a-zA-Z]+\\|[^a-zA-Z]\\)"
  :doc-spec `((,(if (Info-find-file "latex2e" t)
-		   ;; From http://home.gna.org/latexrefman
-		   "(latex2e)Command Index"
-		 "(latex)Command Index")
+                   ;; From CTAN's https://ctan.org/pkg/latex2e-help-texinfo
+                   ;; and https://puszcza.gnu.org.ua/projects/latexrefman/
+		   "(latex2e)Index"
+                 ;; From https://savannah.nongnu.org/projects/latex-manual/
+		 "(latex-manual)Command Index")
 	      ;; \frac{NUM}{DEN} etc can have more than one {xx} argument.
 	      ;; \sqrt[ROOT]{num} and others can have square brackets.
 	      nil "[`'‘]" "\\({[^}]*}|\\[[^]]*\\]\\)*['’]")))
