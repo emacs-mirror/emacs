@@ -30,16 +30,17 @@
 
 (defcustom flymake-cc-command #'flymake-cc-use-special-make-target
   "Command used by the `flymake-cc' backend.
-A list of strings, or a function that produces one such list when called
-with no arguments in the buffer where the variable `flymake-mode' is
-active.
+The value should be a list of strings, or a function that produces
+such a list when called with no arguments in the buffer where `flymake-mode'
+is active.  The list of strings should be suitable for the `:command'
+keyword of `make-process'.
 
 The command should invoke a GNU-style compiler that checks the
 syntax of a (Obj)C(++) program passed to it via its standard
 input and prints the result on its standard output."
   :type '(choice
-          (function :tag "Function")
-          (repeat :tag "Command(s)" string))
+          (function :tag "Function to produce compilation command")
+          (repeat :tag "Compilation command and its options" string))
   :version "27.1"
   :group 'flymake-cc)
 
