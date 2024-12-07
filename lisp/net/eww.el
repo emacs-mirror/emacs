@@ -2142,11 +2142,15 @@ Interactively, EVENT is the value of `last-nonmenu-event'."
 
 (defun eww-browse-with-external-browser (&optional url)
   "Browse the current URL with an external browser.
-The browser to used is specified by the
-`browse-url-secondary-browser-function' variable."
+Use `browse-url-secondary-browser-function' if it is an external
+browser, otherwise use `browse-url-with-browser-kind' to open an
+external browser."
   (interactive nil eww-mode)
-  (funcall browse-url-secondary-browser-function
-           (or url (plist-get eww-data :url))))
+  (setq url (or url (plist-get eww-data :url)))
+  (if (eq 'external (browse-url--browser-kind
+                     browse-url-secondary-browser-function url))
+      (funcall browse-url-secondary-browser-function url)
+    (browse-url-with-browser-kind 'external url)))
 
 (defun eww-remove-tracking (url)
   "Remove the commong utm_ tracking cookies from URLs."
@@ -2160,11 +2164,12 @@ The browser to used is specified by the
     url))
 
 (defun eww-follow-link (&optional external mouse-event)
-  "Browse the URL under point.
-If EXTERNAL is single prefix, browse the URL using
-`browse-url-secondary-browser-function'.
+  "Browse the URL at point, optionally the position of MOUSE-EVENT.
 
-If EXTERNAL is double prefix, browse in new buffer."
+EXTERNAL is the prefix argument.  If called interactively with
+\\[universal-argument] pressed once, browse the URL using
+`eww-browse-with-external-browser'.  If called interactively, with
+\\[universal-argument] pressed twice, browse in new buffer."
   (interactive
    (list current-prefix-arg last-nonmenu-event)
    eww-mode)
@@ -2180,7 +2185,7 @@ If EXTERNAL is double prefix, browse in new buffer."
       ;; and `browse-url-mailto-function'.
       (browse-url url))
      ((and (consp external) (<= (car external) 4))
-      (funcall browse-url-secondary-browser-function url)
+      (eww-browse-with-external-browser url)
       (shr--blink-link))
      ;; This is a #target url in the same page as the current one.
      ((and (setq target (url-target (url-generic-parse-url url)))

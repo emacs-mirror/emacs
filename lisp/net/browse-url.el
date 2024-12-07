@@ -198,10 +198,16 @@ Also see `browse-url-secondary-browser-function' and
 
 (defcustom browse-url-secondary-browser-function 'browse-url-default-browser
   "Function used to launch an alternative browser.
-This is usually an external browser (that is, not eww or w3m),
-used as the secondary browser choice, typically when a prefix
-argument is given to a URL-opening command in those modes that
-support this (for instance, eww/shr).
+
+This browser is used as the secondary browser choice, typically
+when a prefix argument is given to a URL-opening command in those
+modes that support this (for instance `browse-url-at-point',
+`goto-addr-at-point', eww or shr).
+
+This assumption is that `browse-url-secondary-browser-function'
+and `browse-url-browser-function' are set to distinct browsers.
+Either one of the two functions should call an external browser
+and the other one should not do the same.
 
 Also see `browse-url-browser-function'."
   :version "27.1"
