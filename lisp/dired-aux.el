@@ -1440,7 +1440,7 @@ This excludes `dired-guess-shell-alist-user' and
    ((executable-find "run-mailcap")
     "run-mailcap"))
   "A shell command to open a file externally."
-  :type 'string
+  :type '(choice (const :tag "None" nil) string)
   :group 'dired
   :version "30.1")
 
