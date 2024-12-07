@@ -2272,12 +2272,16 @@ had been enabled."
     ;; `pkg-desc' will be nil when the package is an "active built-in".
     (if (and pkg-desc (package-vc-p pkg-desc))
         (package-vc-upgrade pkg-desc)
-      (when pkg-desc
-        (package-delete pkg-desc 'force 'dont-unselect))
       (package-install package
                        ;; An active built-in has never been "selected"
                        ;; before.  Mark it as installed explicitly.
-                       (and pkg-desc 'dont-select)))))
+                       (and pkg-desc 'dont-select))
+      ;; We delete the old package via the descriptor after installing
+      ;; the new package to avoid losing the package if there issues
+      ;; during installation (Bug#74556).
+      (when pkg-desc
+        (cl-assert (package-desc-dir pkg-desc))
+        (package-delete pkg-desc 'force 'dont-unselect)))))
 
 (defun package--upgradeable-packages (&optional include-builtins)
   ;; Initialize the package system to get the list of package
