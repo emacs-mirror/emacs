@@ -825,7 +825,10 @@
     (should (equal (erc-parse-modes "-o bob") '(nil nil (("o" off "bob")))))
     (should (equal (erc-parse-modes "+uo bob") '(("u") nil (("o" on "bob")))))
     (should (equal (erc-parse-modes "+o-u bob") '(nil ("u") (("o" on "bob")))))
+
     (should (equal (erc-parse-modes "+uo-tv bob alice")
+                   '(("u") ("t") (("o" on "bob") ("v" off "alice")))))
+    (should (equal (erc-parse-modes "+u-t+o-v bob alice")
                    '(("u") ("t") (("o" on "bob") ("v" off "alice")))))
 
     (ert-info ("Modes of type B are always grouped as unary")

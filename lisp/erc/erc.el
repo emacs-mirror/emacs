@@ -2519,9 +2519,9 @@ nil."
   (if old-vars
       (let ((out (list (reverse new-modes))))
         (pcase-dolist (`(,k . ,v) old-vars)
-          (when (and (string-prefix-p "erc-" (symbol-name k))
-                     (string-suffix-p "-mode" (symbol-name k))
-                     (get k 'erc-module))
+          (when (and (get k 'erc-module)
+                     (string-prefix-p "erc-" (symbol-name k))
+                     (string-suffix-p "-mode" (symbol-name k)))
             (if v
                 (cl-pushnew k (car out))
               (setf (car out) (delq k (car out)))
