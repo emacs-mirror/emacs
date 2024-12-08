@@ -898,29 +898,22 @@ t, nil, append, prepend, keep.  See more in
     (setf (nth 1 new-setting) t)
     new-setting))
 
-;; FIXME: Rewrite this in more readable fashion.
 (defun treesit--font-lock-level-setter (sym val)
   "Custom setter for `treesit-font-lock-level'.
 Set the default value of SYM to VAL, recompute fontification
 features and refontify for every buffer where tree-sitter-based
 fontification is enabled."
   (set-default sym val)
-  (and (treesit-available-p)
-       (named-let loop ((res nil)
-                        (buffers (buffer-list)))
-         (if (null buffers)
-             (mapc (lambda (b)
-                     (with-current-buffer b
-                       (setq-local treesit-font-lock-level val)
-                       (treesit-font-lock-recompute-features)
-                       (treesit-font-lock-fontify-region (point-min)
-                                                         (point-max))))
-                   res)
-           (let ((buffer (car buffers)))
-             (with-current-buffer buffer
-               (if treesit-font-lock-settings
-                   (loop (append res (list buffer)) (cdr buffers))
-                 (loop res (cdr buffers)))))))))
+  (when (treesit-available-p)
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+        ;; FIXME: This doesn't re-run major mode hooks, meaning any
+        ;; customization done in major mode hooks (e.g., with
+        ;; `treesit-font-lock-recompute-features') is lost.
+        (when treesit-font-lock-settings
+          (treesit-font-lock-recompute-features)
+          (treesit-font-lock-fontify-region
+           (point-min) (point-max)))))))
 
 (defcustom treesit-font-lock-level 3
   "Decoration level to be used by tree-sitter fontifications.
@@ -936,6 +929,15 @@ assignments, constants, numbers and literals, etc.
 Level 4 adds everything else that can be fontified: delimiters,
 operators, brackets, punctuation, all functions, properties,
 variables, etc.
+
+The value of this variable can be either a number representing a level,
+or an alist of (MAJOR-MODE . LEVEL), where MAJOR-MODE is major mode
+symbols, or t (meaning the default), and LEVEL is the font-lock level
+for that mode.  For example,
+
+    ((c-ts-mode . 3) (c++-ts-mode . 4) (t . 3))
+
+Major mode is checked with `derived-mode-p'.
 
 In addition to the decoration level, individual features can be
 turned on/off by calling `treesit-font-lock-recompute-features'.
@@ -1123,6 +1125,23 @@ name, it is ignored."
 (defvar treesit--font-lock-verbose nil
   "If non-nil, print debug messages when fontifying.")
 
+(defun treesit--compute-font-lock-level (level)
+  "Compute the font-lock level for the current major mode.
+
+LEVEL should be the value of `treesit-font-lock-level'.  Return a number
+representing the font-lock level for the current major mode.  If there's
+no match, return 3."
+  (if (numberp level)
+      level
+    (catch 'found
+      (dolist (config level)
+        (let ((mode (car config))
+              (num (cdr config)))
+          (when (derived-mode-p mode)
+            (throw 'found num))))
+      (or (alist-get t level)
+          3))))
+
 (defun treesit-font-lock-recompute-features
     (&optional add-list remove-list language)
   "Enable/disable font-lock features.
@@ -1147,7 +1166,8 @@ and leave settings for other languages unchanged."
     (signal 'treesit-font-lock-error
             (list "ADD-LIST and REMOVE-LIST contain the same feature"
                   intersection)))
-  (let* ((level treesit-font-lock-level)
+  (let* ((level (treesit--compute-font-lock-level
+                 treesit-font-lock-level))
          (base-features (cl-loop
                          for idx = 0 then (1+ idx)
                          for features in treesit-font-lock-feature-list

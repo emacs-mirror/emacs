@@ -4415,7 +4415,7 @@ ignored.
 @defvar treesit-font-lock-feature-list
 This is a list of lists of feature symbols.  Each element of the list
 is a list that represents a decoration level.
-@code{treesit-font-lock-level} controls which levels are
+@var{treesit-font-lock-level} controls which levels are
 activated.
 
 Each element of the list is a list of the form @w{@code{(@var{feature}
