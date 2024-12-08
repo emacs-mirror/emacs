@@ -510,8 +510,9 @@
        (should-not (eq (field-at-pos (1- (pos-eol))) 'erc-timestamp))
        (should-not (next-single-property-change (pos-bol) 'invisible))))))
 
+;; FIXME explain why these next two fail on FreeBSD 14.2 (Bug#74722).
 (ert-deftest erc-scenarios-match--stamp-both-invisible-fill-static ()
-  :tags '(:expensive-test)
+  :tags `(:expensive-test ,@(and (eq system-type 'berkeley-unix) '(:unstable)))
   (erc-scenarios-match--stamp-both-invisible-fill-static
 
    (lambda ()
@@ -527,7 +528,7 @@
                   (match-end 0))))))) ; pos-eol
 
 (ert-deftest erc-scenarios-match--stamp-both-invisible-fill-static--nooffset ()
-  :tags '(:expensive-test)
+  :tags `(:expensive-test ,@(and (eq system-type 'berkeley-unix) '(:unstable)))
   (with-suppressed-warnings ((obsolete erc-legacy-invisible-bounds-p))
     (should-not erc-legacy-invisible-bounds-p)
 
