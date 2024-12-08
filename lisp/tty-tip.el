@@ -153,7 +153,7 @@
 	(set-frame-position tty-tip--frame x y))
       (make-frame-visible tty-tip--frame)
       (setq tty-tip--hide-timer
-            (run-with-timer x-show-tooltip-timeout nil
+            (run-with-timer tooltip-hide-delay nil
                             #'tty-tip--delete-frame)))))
 
 (defun tty-tip--delay ()
