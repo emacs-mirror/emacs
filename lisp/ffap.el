@@ -1512,6 +1512,7 @@ which may actually result in an URL rather than a filename."
       ;; We mainly just want to disable these bits:
       (substitute-in-file-name (car args))
       (expand-file-name (car args))
+      (unhandled-file-name-directory temporary-file-directory)
       (otherwise
        (apply operation args)))))
 
