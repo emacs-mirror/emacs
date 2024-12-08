@@ -2090,7 +2090,7 @@ Interactively, EVENT is the value of `last-nonmenu-event'."
 
 (defun eww-browse-with-external-browser (&optional url)
   "Browse the current URL with an external browser.
-The browser to used is specified by the
+The browser to use is specified by the
 `browse-url-secondary-browser-function' variable."
   (interactive nil eww-mode)
   (funcall browse-url-secondary-browser-function
