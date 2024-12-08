@@ -99,8 +99,16 @@
       (setf (alist-get 'background-color params) bg))
     params))
 
+(defvar tty-tip--help-message nil)
+(defvar tty-tip--hide-time nil)
+(defvar tty-tip--show-timer nil)
+(defvar tty-tip--hide-timer nil)
+
 (defun tty-tip--delete-frame ()
   (when tty-tip--frame
+    (when tty-tip--hide-timer
+      (cancel-timer tty-tip--hide-timer)
+      (setq tty-tip--hide-timer nil))
     (delete-frame tty-tip--frame)
     (setq tty-tip--frame nil)
     t))
@@ -144,11 +152,9 @@
              (y (cdr pos)))
 	(set-frame-position tty-tip--frame x y))
       (make-frame-visible tty-tip--frame)
-      (run-at-time x-show-tooltip-timeout nil #'tty-tip--delete-frame))))
-
-(defvar tty-tip--help-message nil)
-(defvar tty-tip--hide-time nil)
-(defvar tty-tip--timeout-id nil)
+      (setq tty-tip--hide-timer
+            (run-with-timer x-show-tooltip-timeout nil
+                            #'tty-tip--delete-frame)))))
 
 (defun tty-tip--delay ()
   (if (and tty-tip--hide-time
@@ -158,12 +164,12 @@
     tooltip-delay))
 
 (defun tty-tip--cancel-delayed-tip ()
-  (when tty-tip--timeout-id
-    (cancel-timer tty-tip--timeout-id)
-    (setq tty-tip--timeout-id nil)))
+  (when tty-tip--show-timer
+    (cancel-timer tty-tip--show-timer)
+    (setq tty-tip--show-timer nil)))
 
 (defun tty-tip--start-delayed-tip ()
-  (setq tty-tip--timeout-id
+  (setq tty-tip--show-timer
         (run-with-timer (tty-tip--delay) nil
                         (lambda ()
                           (tty-tip--create-frame
