@@ -100,7 +100,7 @@ If `on-mouse' use a popup menu when `imenu' was invoked with the mouse."
                  (other :tag "Always" t)))
 
 (defcustom imenu-eager-completion-buffer t
-  "If non-nil, eagerly pop up the completion buffer."
+  "If nil, eagerly pop up the completion buffer."
   :type 'boolean
   :version "22.1")
 
@@ -767,27 +767,25 @@ Return one of the entries in index-alist or nil."
                          (imenu--in-alist name prepared-index-alist)
                          ;; Default to `name' if it's in the alist.
                          name))))
-    ;; Display the completion buffer.
     (minibuffer-with-setup-hook
-        (lambda ()
-          (setq-local minibuffer-allow-text-properties t)
-          (setq-local completion-extra-properties
-                      `( :category imenu
-                         ,@(when (eq imenu-flatten 'annotation)
-                             `(:annotation-function
-                               ,(lambda (s) (get-text-property
-                                             0 'imenu-section s))))
-                         ,@(when (eq imenu-flatten 'group)
-                             `(:group-function
-                               ,(lambda (s transform)
-                                  (if transform s
-                                    (get-text-property
-                                     0 'imenu-section s)))))))
-          (unless imenu-eager-completion-buffer
-            (minibuffer-completion-help)))
-      (setq name (completing-read prompt
-				  prepared-index-alist
-				  nil t nil 'imenu--history-list name)))
+        (lambda () (setq-local minibuffer-allow-text-properties t))
+      (setq name (completing-read
+                  prompt
+                  (completion-table-with-metadata
+		   prepared-index-alist
+                   `((category . imenu)
+                     (eager-display . ,(not imenu-eager-completion-buffer))
+                     ,@(when (eq imenu-flatten 'annotation)
+                         `((annotation-function
+                            . ,(lambda (s) (get-text-property
+                                            0 'imenu-section s)))))
+                     ,@(when (eq imenu-flatten 'group)
+                         `((group-function
+                            . ,(lambda (s transform)
+                                 (if transform s
+                                   (get-text-property
+                                    0 'imenu-section s))))))))
+		  nil t nil 'imenu--history-list name)))
 
     (when (stringp name)
       (or (get-text-property 0 'imenu-choice name)

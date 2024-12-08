@@ -1739,14 +1739,15 @@ Function CONT is applied to the entry chosen by the user."
 				    alist))))))
      ;; minibuffer with completion buffer:
      (t
-      (let ((minibuffer-setup-hook 'minibuffer-completion-help))
-	;; Bug: prompting may assume unique strings, no "".
-	(setq choice
-	      (completing-read
-	       (format-prompt title (car (car alist)))
-	       alist nil t
-	       ;; (cons (car (car alist)) 0)
-	       nil)))
+      ;; Bug: prompting may assume unique strings, no "".
+      (setq choice
+	    (completing-read
+	     (format-prompt title (car (car alist)))
+             (completion-table-with-metadata
+	      alist '((category . ffap-menu) (eager-display . t)))
+             nil t
+	     ;; (cons (car (car alist)) 0)
+	     nil))
       (sit-for 0)			; redraw original screen
       ;; Convert string to its entry, or else the default:
       (setq choice (or (assoc choice alist) (car alist)))))

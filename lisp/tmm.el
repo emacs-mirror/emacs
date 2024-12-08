@@ -119,12 +119,6 @@ is displayed with the `highlight' face to help identify it.  The
   '((t :inherit shadow))
   "Face used for inactive menu items.")
 
-(defun tmm--completion-table (items)
-  (lambda (string pred action)
-    (if (eq action 'metadata)
-	'(metadata (display-sort-function . identity))
-      (complete-with-action action items string pred))))
-
 (defvar tmm--history nil)
 
 ;;;###autoload
@@ -222,7 +216,9 @@ is used to go back through those sub-menus."
              (setq out
                    (if default-item
                        (car (nth index-of-default tmm-km-list))
-                     (minibuffer-with-setup-hook #'tmm-add-prompt
+                     (minibuffer-with-setup-hook
+                         (lambda ()
+                           (setq tmm-old-mb-map (tmm-define-keys t)))
                        ;; tmm-km-list is reversed, because history
                        ;; needs it in LIFO order.  But default list
                        ;; needs it in non-reverse order, so that the
@@ -233,7 +229,12 @@ is used to go back through those sub-menus."
                        (completing-read-default
                         (concat gl-str
                                 " (up/down to change, PgUp to menu): ")
-                        (tmm--completion-table tmm-km-list) nil t nil
+                        (completion-table-with-metadata
+                         tmm-km-list '((category . tmm)
+                                       (eager-display . tmm-add-prompt)
+                                       (display-sort-function . identity)
+                                       (cycle-sort-function . identity)))
+                        nil t nil
                         'tmm--history (reverse tmm--history)))))))
       (if (and (stringp out) (string= "^" out))
           ;; A fake choice to please the destructuring later.
@@ -402,7 +403,6 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 (defun tmm-add-prompt ()
   (unless tmm-c-prompt
     (error "No active menu entries"))
-  (setq tmm-old-mb-map (tmm-define-keys t))
   (or tmm-completion-prompt
       (add-hook 'completion-setup-hook
                 #'tmm-completion-delete-prompt 'append))
@@ -458,6 +458,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 (defun tmm-goto-completions ()
   "Jump to the completions buffer."
   (interactive)
+  (tmm-add-prompt)
   (setq tmm-c-prompt (buffer-substring (minibuffer-prompt-end) (point-max)))
   ;; Clear minibuffer old contents before using *Completions* buffer for
   ;; selection.

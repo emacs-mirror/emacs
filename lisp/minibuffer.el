@@ -138,6 +138,9 @@ This metadata is an alist.  Currently understood keys are:
    of completions.  Can operate destructively.
 - `cycle-sort-function': function to sort entries when cycling.
    Works like `display-sort-function'.
+- `eager-display': non-nil to request eager display of the
+  completion candidates.  Can also be a function which is invoked
+  after minibuffer setup.
 The metadata of a completion table should be constant between two boundaries."
   (let ((metadata (if (functionp table)
                       (funcall table string pred 'metadata))))
@@ -275,6 +278,15 @@ If DONT-FOLD is non-nil, return a completion table that is
 case sensitive instead."
   (lambda (string pred action)
     (let ((completion-ignore-case (not dont-fold)))
+      (complete-with-action action table string pred))))
+
+(defun completion-table-with-metadata (table metadata)
+  "Return new completion TABLE with METADATA.
+METADATA should be an alist of completion metadata.  See
+`completion-metadata' for a list of supported metadata."
+  (lambda (string pred action)
+    (if (eq action 'metadata)
+        `(metadata . ,metadata)
       (complete-with-action action table string pred))))
 
 (defun completion-table-subvert (table s1 s2)
@@ -1031,6 +1043,25 @@ If the current buffer is not a minibuffer, erase its entire contents."
 (defvar completion-show-inline-help t
   "If non-nil, print helpful inline messages during completion.")
 
+(defcustom completion-eager-display 'auto
+  "Whether completion commands should display *Completions* buffer eagerly.
+
+If the variable is set to t, completion commands show the *Completions*
+buffer always immediately.  Setting the variable to nil disables the
+eager *Completions* display for all commands.
+
+For the value `auto', completion commands show the *Completions* buffer
+immediately only if requested by the completion command.  Completion
+tables can request eager display via the `eager-display' metadata.
+
+See also the variables `completion-category-overrides' and
+`completion-extra-properties' for the `eager-display' completion
+metadata."
+  :type '(choice (const :tag "Never show *Completions* eagerly" nil)
+                 (const :tag "Always show *Completions* eagerly" t)
+                 (const :tag "If requested by the completion command" auto))
+  :version "31.1")
+
 (defcustom completion-auto-help t
   "Non-nil means automatically provide help for invalid completion input.
 If the value is t, the *Completions* buffer is displayed whenever completion
@@ -1247,7 +1278,11 @@ overrides the default specified in `completion-category-defaults'."
            (cons :tag "Completion Affixation"
                  (const :tag "Select one value from the menu."
                         affixation-function)
-                 (choice (function :tag "Custom function"))))))
+                 (choice (function :tag "Custom function")))
+           (cons :tag "Eager display"
+                 (const :tag "Select one value from the menu."
+                        eager-display)
+                 boolean))))
 
 (defun completion--category-override (category tag)
   (or (assq tag (cdr (assq category completion-category-overrides)))
@@ -2498,6 +2533,8 @@ These include:
 `:display-sort-function': Function to sort entries in *Completions*.
 
 `:cycle-sort-function': Function to sort entries when cycling.
+
+`:eager-display': Show the *Completions* buffer eagerly.
 
 See more information about these functions above
 in `completion-metadata'.
@@ -4815,7 +4852,17 @@ See `completing-read' for the meaning of the arguments."
                 (setq-local minibuffer--require-match require-match)
                 (setq-local minibuffer--original-buffer buffer)
                 ;; Copy the value from original buffer to the minibuffer.
-                (setq-local completion-ignore-case c-i-c))
+                (setq-local completion-ignore-case c-i-c)
+                ;; Show the completion help eagerly if
+                ;; `completion-eager-display' is t or if eager display
+                ;; has been requested by the completion table.
+                (when completion-eager-display
+                  (let* ((md (completion-metadata (or initial-input "")
+                                                  collection predicate))
+                         (fun (completion-metadata-get md 'eager-display)))
+                    (when (or fun (eq completion-eager-display t))
+                      (funcall (if (functionp fun)
+                                   fun #'minibuffer-completion-help))))))
             (read-from-minibuffer prompt initial-input keymap
                                   nil hist def inherit-input-method))))
     (when (and (equal result "") def)
@@ -5005,11 +5052,9 @@ instead of the default completion table."
            (lambda () (get-buffer-window "*Completions*" 0))))
       (completion-in-region
        (minibuffer--completion-prompt-end) (point-max)
-       (lambda (string pred action)
-         (if (eq action 'metadata)
-             '(metadata (display-sort-function . identity)
-                        (cycle-sort-function . identity))
-           (complete-with-action action completions string pred)))))))
+       (completion-table-with-metadata
+        completions '((display-sort-function . identity)
+                      (cycle-sort-function . identity)))))))
 
 (defun minibuffer-complete-defaults ()
   "Complete minibuffer defaults as far as possible.
@@ -5025,11 +5070,9 @@ instead of the completion table."
          (lambda () (get-buffer-window "*Completions*" 0))))
     (completion-in-region
      (minibuffer--completion-prompt-end) (point-max)
-     (lambda (string pred action)
-       (if (eq action 'metadata)
-           '(metadata (display-sort-function . identity)
-                      (cycle-sort-function . identity))
-         (complete-with-action action completions string pred))))))
+     (completion-table-with-metadata
+      completions '((display-sort-function . identity)
+                    (cycle-sort-function . identity))))))
 
 (define-key minibuffer-local-map [?\C-x up] 'minibuffer-complete-history)
 (define-key minibuffer-local-map [?\C-x down] 'minibuffer-complete-defaults)
