@@ -149,8 +149,7 @@
   (require 'subr-x))
 (require 'executable)
 (require 'treesit)
-
-(declare-function treesit-parser-create "treesit.c")
+(treesit-declare-unavailable-functions)
 
 (autoload 'comint-completion-at-point "comint")
 (autoload 'comint-filename-completion "comint")

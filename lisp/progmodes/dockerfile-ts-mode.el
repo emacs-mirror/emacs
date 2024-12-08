@@ -29,11 +29,7 @@
 
 (require 'treesit)
 (eval-when-compile (require 'rx))
-
-(declare-function treesit-parser-create "treesit.c")
-(declare-function treesit-node-child "treesit.c")
-(declare-function treesit-node-child-by-field-name "treesit.c")
-(declare-function treesit-node-type "treesit.c")
+(treesit-declare-unavailable-functions)
 
 (defvar dockerfile-ts-mode--syntax-table
   (let ((table (make-syntax-table)))

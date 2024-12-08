@@ -39,61 +39,69 @@
 
 ;;; Function declarations
 
-(declare-function treesit-language-available-p "treesit.c")
-(declare-function treesit-language-version "treesit.c")
+(defmacro treesit-declare-unavailable-functions ()
+  "Declare C functions and variables defined in treesit.c.
 
-(declare-function treesit-parser-p "treesit.c")
-(declare-function treesit-node-p "treesit.c")
-(declare-function treesit-compiled-query-p "treesit.c")
-(declare-function treesit-query-p "treesit.c")
-(declare-function treesit-query-language "treesit.c")
+This macro is only needed when a file needs to be able to byte-compile
+in a Emacs not built with tree-sitter library."
+  '(progn
+     (declare-function treesit-language-available-p "treesit.c")
+     (declare-function treesit-language-version "treesit.c")
 
-(declare-function treesit-node-parser "treesit.c")
+     (declare-function treesit-parser-p "treesit.c")
+     (declare-function treesit-node-p "treesit.c")
+     (declare-function treesit-compiled-query-p "treesit.c")
+     (declare-function treesit-query-p "treesit.c")
+     (declare-function treesit-query-language "treesit.c")
 
-(declare-function treesit-parser-create "treesit.c")
-(declare-function treesit-parser-delete "treesit.c")
-(declare-function treesit-parser-list "treesit.c")
-(declare-function treesit-parser-buffer "treesit.c")
-(declare-function treesit-parser-language "treesit.c")
-(declare-function treesit-parser-tag "treesit.c")
+     (declare-function treesit-node-parser "treesit.c")
 
-(declare-function treesit-parser-root-node "treesit.c")
+     (declare-function treesit-parser-create "treesit.c")
+     (declare-function treesit-parser-delete "treesit.c")
+     (declare-function treesit-parser-list "treesit.c")
+     (declare-function treesit-parser-buffer "treesit.c")
+     (declare-function treesit-parser-language "treesit.c")
+     (declare-function treesit-parser-tag "treesit.c")
 
-(declare-function treesit-parser-set-included-ranges "treesit.c")
-(declare-function treesit-parser-included-ranges "treesit.c")
-(declare-function treesit-parser-changed-ranges "treesit.c")
-(declare-function treesit-parser-add-notifier "treesit.c")
+     (declare-function treesit-parser-root-node "treesit.c")
 
-(declare-function treesit-node-type "treesit.c")
-(declare-function treesit-node-start "treesit.c")
-(declare-function treesit-node-end "treesit.c")
-(declare-function treesit-node-string "treesit.c")
-(declare-function treesit-node-parent "treesit.c")
-(declare-function treesit-node-child "treesit.c")
-(declare-function treesit-node-check "treesit.c")
-(declare-function treesit-node-field-name-for-child "treesit.c")
-(declare-function treesit-node-child-count "treesit.c")
-(declare-function treesit-node-child-by-field-name "treesit.c")
-(declare-function treesit-node-next-sibling "treesit.c")
-(declare-function treesit-node-prev-sibling "treesit.c")
-(declare-function treesit-node-first-child-for-pos "treesit.c")
-(declare-function treesit-node-descendant-for-range "treesit.c")
-(declare-function treesit-node-eq "treesit.c")
+     (declare-function treesit-parser-set-included-ranges "treesit.c")
+     (declare-function treesit-parser-included-ranges "treesit.c")
+     (declare-function treesit-parser-changed-ranges "treesit.c")
+     (declare-function treesit-parser-add-notifier "treesit.c")
 
-(declare-function treesit-pattern-expand "treesit.c")
-(declare-function treesit-query-expand "treesit.c")
-(declare-function treesit-query-compile "treesit.c")
-(declare-function treesit-query-capture "treesit.c")
+     (declare-function treesit-node-type "treesit.c")
+     (declare-function treesit-node-start "treesit.c")
+     (declare-function treesit-node-end "treesit.c")
+     (declare-function treesit-node-string "treesit.c")
+     (declare-function treesit-node-parent "treesit.c")
+     (declare-function treesit-node-child "treesit.c")
+     (declare-function treesit-node-check "treesit.c")
+     (declare-function treesit-node-field-name-for-child "treesit.c")
+     (declare-function treesit-node-child-count "treesit.c")
+     (declare-function treesit-node-child-by-field-name "treesit.c")
+     (declare-function treesit-node-next-sibling "treesit.c")
+     (declare-function treesit-node-prev-sibling "treesit.c")
+     (declare-function treesit-node-first-child-for-pos "treesit.c")
+     (declare-function treesit-node-descendant-for-range "treesit.c")
+     (declare-function treesit-node-eq "treesit.c")
 
-(declare-function treesit-search-subtree "treesit.c")
-(declare-function treesit-search-forward "treesit.c")
-(declare-function treesit-induce-sparse-tree "treesit.c")
-(declare-function treesit-subtree-stat "treesit.c")
-(declare-function treesit-node-match-p "treesit.c")
+     (declare-function treesit-pattern-expand "treesit.c")
+     (declare-function treesit-query-expand "treesit.c")
+     (declare-function treesit-query-compile "treesit.c")
+     (declare-function treesit-query-capture "treesit.c")
 
-(declare-function treesit-available-p "treesit.c")
+     (declare-function treesit-search-subtree "treesit.c")
+     (declare-function treesit-search-forward "treesit.c")
+     (declare-function treesit-induce-sparse-tree "treesit.c")
+     (declare-function treesit-subtree-stat "treesit.c")
+     (declare-function treesit-node-match-p "treesit.c")
 
-(defvar treesit-thing-settings)
+     (declare-function treesit-available-p "treesit.c")
+
+     (defvar treesit-thing-settings)))
+
+(treesit-declare-unavailable-functions)
 
 ;;; Custom options
 

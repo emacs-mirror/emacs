@@ -58,29 +58,12 @@
 (require 'css-mode) ;; for embed css into html
 (require 'js) ;; for embed javascript into html
 (require 'comint)
+(treesit-declare-unavailable-functions)
 
 (eval-when-compile
   (require 'cl-lib)
   (require 'rx)
   (require 'subr-x))
-
-(declare-function treesit-node-child "treesit.c")
-(declare-function treesit-node-child-by-field-name "treesit.c")
-(declare-function treesit-node-end "treesit.c")
-(declare-function treesit-node-parent "treesit.c")
-(declare-function treesit-node-start "treesit.c")
-(declare-function treesit-node-string "treesit.c")
-(declare-function treesit-node-type "treesit.c")
-(declare-function treesit-parser-add-notifier "treesit.c")
-(declare-function treesit-parser-buffer "treesit.c")
-(declare-function treesit-parser-create "treesit.c")
-(declare-function treesit-parser-included-ranges "treesit.c")
-(declare-function treesit-parser-list "treesit.c")
-(declare-function treesit-parser-language "treesit.c")
-(declare-function treesit-query-compile "treesit.c")
-(declare-function treesit-search-forward "treesit.c")
-(declare-function treesit-node-prev-sibling "treesit.c")
-(declare-function treesit-node-first-child-for-pos "treesit.c")
 
 ;;; Install treesitter language parsers
 (defvar php-ts-mode--language-source-alist

@@ -72,23 +72,7 @@
 (require 'treesit)
 (require 'c-ts-common)
 (eval-when-compile (require 'rx))
-
-(declare-function treesit-parser-create "treesit.c")
-(declare-function treesit-parser-root-node "treesit.c")
-(declare-function treesit-parser-set-included-ranges "treesit.c")
-(declare-function treesit-node-parent "treesit.c")
-(declare-function treesit-node-start "treesit.c")
-(declare-function treesit-node-end "treesit.c")
-(declare-function treesit-node-child "treesit.c")
-(declare-function treesit-node-child-by-field-name "treesit.c")
-(declare-function treesit-node-type "treesit.c")
-(declare-function treesit-node-prev-sibling "treesit.c")
-(declare-function treesit-node-first-child-for-pos "treesit.c")
-(declare-function treesit-node-next-sibling "treesit.c")
-(declare-function treesit-node-eq "treesit.c")
-(declare-function treesit-node-match-p "treesit.c")
-(declare-function treesit-query-compile "treesit.c")
-(declare-function treesit-node-check "treesit.c")
+(treesit-declare-unavailable-functions)
 
 ;;; Custom variables
 

@@ -33,11 +33,7 @@
 
 (require 'treesit)
 (eval-when-compile (require 'rx))
-
-(declare-function treesit-parser-create "treesit.c")
-(declare-function treesit-node-child "treesit.c")
-(declare-function treesit-node-type "treesit.c")
-(declare-function treesit-node-start "treesit.c")
+(treesit-declare-unavailable-functions)
 
 (defgroup heex-ts nil
   "Major mode for editing HEEx code."

@@ -46,18 +46,7 @@
 
 (require 'treesit)
 (eval-when-compile (require 'rx))
-
-(declare-function treesit-node-start "treesit.c")
-(declare-function treesit-node-end "treesit.c")
-(declare-function treesit-node-type "treesit.c")
-(declare-function treesit-node-parent "treesit.c")
-(declare-function treesit-node-prev-sibling "treesit.c")
-(declare-function treesit-parser-language "treesit.c")
-(declare-function treesit-node-match-p "treesit.c")
-(declare-function treesit-node-child "treesit.c")
-(declare-function treesit-node-eq "treesit.c")
-(declare-function treesit-parser-root-node "treesit.c")
-(declare-function treesit-node-parser "treesit.c")
+(treesit-declare-unavailable-functions)
 
 ;;; Comment indentation and filling
 

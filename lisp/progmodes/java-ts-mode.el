@@ -32,14 +32,7 @@
 (require 'treesit)
 (eval-when-compile (require 'rx))
 (require 'c-ts-common) ; For comment indent and filling.
-
-(declare-function treesit-parser-create "treesit.c")
-(declare-function treesit-induce-sparse-tree "treesit.c")
-(declare-function treesit-node-start "treesit.c")
-(declare-function treesit-node-type "treesit.c")
-(declare-function treesit-node-child-by-field-name "treesit.c")
-(declare-function treesit-node-child-by-field-name "treesit.c")
-(declare-function treesit-query-capture "treesit.c")
+(treesit-declare-unavailable-functions)
 
 (defcustom java-ts-mode-indent-offset 4
   "Number of spaces for each indentation step in `java-ts-mode'."

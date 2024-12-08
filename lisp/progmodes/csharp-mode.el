@@ -35,18 +35,11 @@
 (require 'cc-langs)
 (require 'treesit)
 (require 'c-ts-common) ; For comment indenting and filling.
+(treesit-declare-unavailable-functions)
 
 (eval-when-compile
   (require 'cc-fonts)
   (require 'rx))
-
-(declare-function treesit-parser-create "treesit.c")
-(declare-function treesit-induce-sparse-tree "treesit.c")
-(declare-function treesit-node-start "treesit.c")
-(declare-function treesit-node-type "treesit.c")
-(declare-function treesit-node-child-by-field-name "treesit.c")
-(declare-function treesit-query-capture "treesit.c")
-(declare-function treesit-query-compile "treesit.c")
 
 (defgroup csharp nil
   "Major mode for editing C# code."

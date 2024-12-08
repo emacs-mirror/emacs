@@ -29,13 +29,7 @@
 
 (require 'treesit)
 (require 'rx)
-
-(declare-function treesit-parser-create "treesit.c")
-(declare-function treesit-induce-sparse-tree "treesit.c")
-(declare-function treesit-node-start "treesit.c")
-(declare-function treesit-node-type "treesit.c")
-(declare-function treesit-node-child-by-field-name "treesit.c")
-
+(treesit-declare-unavailable-functions)
 
 (defcustom json-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `json-ts-mode'."

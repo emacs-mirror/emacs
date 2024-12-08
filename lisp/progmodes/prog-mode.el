@@ -33,11 +33,7 @@
                    (require 'subr-x)
                    (require 'treesit))
 
-(declare-function treesit-available-p "treesit.c")
-(declare-function treesit-parser-list "treesit.c")
-(declare-function treesit-node-type "treesit.c")
-(declare-function treesit-node-at "treesit.c")
-(declare-function treesit-node-match-p "treesit.c")
+(treesit-declare-unavailable-functions)
 
 (defgroup prog-mode nil
   "Generic programming mode, from which others derive."
