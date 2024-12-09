@@ -1381,19 +1381,22 @@ have been replaced by constants."
 
 (defun eshell/which (command &rest names)
   "Identify the COMMAND, and where it is located."
-  (dolist (name (cons command names))
-    (condition-case error
-        (eshell-printn
-         (catch 'found
-           (run-hook-wrapped
-            'eshell-named-command-hook
-            (lambda (hook)
-              (when-let* (((symbolp hook))
-                          (which-func (get hook 'eshell-which-function))
-                          (result (funcall which-func command)))
-                (throw 'found result))))
-           (eshell-plain-command--which name)))
-      (error (eshell-error (format "which: %s\n" (cadr error)))))))
+  (let (not-found)
+    (dolist (name (cons command names))
+      (condition-case error
+          (eshell-printn
+           (catch 'found
+             (run-hook-wrapped
+              'eshell-named-command-hook
+              (lambda (hook)
+                (when-let* (((symbolp hook))
+                            (which-func (get hook 'eshell-which-function))
+                            (result (funcall which-func command)))
+                  (throw 'found result))))
+             (eshell-plain-command--which name)))
+        (error (eshell-error (format "which: %s\n" (cadr error)))
+               (setq not-found t))))
+    (when not-found (eshell-set-exit-info 1))))
 
 (put 'eshell/which 'eshell-no-numeric-conversions t)
 
