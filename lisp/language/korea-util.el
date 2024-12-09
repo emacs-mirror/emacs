@@ -29,10 +29,10 @@
 
 ;;;###autoload
 (defvar default-korean-keyboard
-   (purecopy (if (string-search "3" (or (getenv "HANGUL_KEYBOARD_TYPE") ""))
+  (if (string-search "3" (or (getenv "HANGUL_KEYBOARD_TYPE") ""))
       "3"
-    ""))
-   "The kind of Korean keyboard for Korean (Hangul) input method.
+    "")
+  "The kind of Korean keyboard for Korean (Hangul) input method.
 \"\" for 2, \"3\" for 3, and \"3f\" for 3f.")
 
 ;; functions useful for Korean text input

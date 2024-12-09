@@ -177,7 +177,7 @@ changes."
 (defvar next-error-highlight-timer nil)
 
 (defvar next-error-overlay-arrow-position nil)
-(put 'next-error-overlay-arrow-position 'overlay-arrow-string (purecopy "=>"))
+(put 'next-error-overlay-arrow-position 'overlay-arrow-string "=>")
 (add-to-list 'overlay-arrow-variable-list 'next-error-overlay-arrow-position)
 
 (defvar next-error-last-buffer nil
@@ -4271,7 +4271,7 @@ which is defined in the `warnings' library.\n")
 Maximum length of the history list is determined by the value
 of `history-length', which see.")
 
-(defvar shell-command-switch (purecopy "-c")
+(defvar shell-command-switch "-c"
   "Switch used to have the shell execute its command line argument.")
 
 (defvar shell-command-default-error-buffer nil
@@ -6948,7 +6948,7 @@ START and END specify the portion of the current buffer to be copied."
       (save-excursion
 	(insert-buffer-substring oldbuf start end)))))
 
-(define-error 'mark-inactive (purecopy "The mark is not active now"))
+(define-error 'mark-inactive "The mark is not active now")
 
 (defvar activate-mark-hook nil
   "Hook run when the mark becomes active.
@@ -9264,9 +9264,9 @@ if long lines are truncated."
   (message "Word wrapping %s"
 	   (if word-wrap "enabled" "disabled")))
 
-(defvar overwrite-mode-textual (purecopy " Ovwrt")
+(defvar overwrite-mode-textual " Ovwrt"
   "The string displayed in the mode line when in overwrite mode.")
-(defvar overwrite-mode-binary (purecopy " Bin Ovwrt")
+(defvar overwrite-mode-binary " Bin Ovwrt"
   "The string displayed in the mode line when in binary overwrite mode.")
 
 (define-minor-mode overwrite-mode
