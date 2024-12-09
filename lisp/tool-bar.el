@@ -92,8 +92,8 @@ parameter is set to `top', and above the tool bar it is set to
 `bottom'.")
 
 (global-set-key [tool-bar]
-		`(menu-item ,(purecopy "tool bar") ignore
-			    :filter tool-bar-make-keymap))
+                '(menu-item "tool bar" ignore
+                            :filter tool-bar-make-keymap))
 
 (declare-function image-mask-p "image.c" (spec &optional frame))
 

@@ -395,7 +395,7 @@ Do not call this in the scope of `with-help-window'."
 
 (defalias 'help #'help-for-help)
 (make-help-screen help-for-help
-  (purecopy "Type a help option: [abcCdefFgiIkKlLmnprstvw.] C-[cdefmnoptw] or ?")
+  "Type a help option: [abcCdefFgiIkKlLmnprstvw.] C-[cdefmnoptw] or ?"
   (concat
    "(Type "
    (help--key-description-fontified (kbd "<PageDown>"))
