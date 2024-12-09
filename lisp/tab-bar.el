@@ -533,7 +533,7 @@ appropriate."
   "<touchscreen-begin>" #'tab-bar-touchscreen-begin)
 
 (global-set-key [tab-bar]
-                `(menu-item ,(purecopy "tab bar") ,(make-sparse-keymap)
+                `(menu-item "tab bar" ,(make-sparse-keymap)
                             :filter tab-bar-make-keymap))
 
 (defun tab-bar-make-keymap (&optional _ignore)

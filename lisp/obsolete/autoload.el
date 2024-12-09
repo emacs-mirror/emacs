@@ -415,8 +415,7 @@ FILE's modification time."
                                                    load-name outfile))
                                (let ((standard-output (marker-buffer output-start))
                                      (print-quoted t))
-                                 (princ `(push (purecopy
-                                                ',(cons (intern package) version))
+                                 (princ `(push ',(cons (intern package) version)
                                                package--builtin-versions))
                                  (princ "\n")))))
 

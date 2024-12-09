@@ -97,7 +97,7 @@ Disabling the mode will remove all buttons in the current buffer."
 (put 'default-button 'type 'button)
 ;; `action' may be either a function to call, or a marker to go to.
 (put 'default-button 'action #'ignore)
-(put 'default-button 'help-echo (purecopy "mouse-2, RET: Push this button"))
+(put 'default-button 'help-echo "mouse-2, RET: Push this button")
 ;; Make overlay buttons go away if their underlying text is deleted.
 (put 'default-button 'evaporate t)
 ;; Prevent insertions adjacent to text-property buttons from

@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-(defcustom term-file-prefix (purecopy "term/")
+(defcustom term-file-prefix "term/"
   "If non-nil, Emacs startup performs terminal-specific initialization.
 It does this by: (load (concat term-file-prefix (getenv \"TERM\")))
 
@@ -99,7 +99,6 @@ a font height that isn't optimal."
 ;; unavailable, and we fall back on the courier and helv families,
 ;; which are generally available.
 (defcustom face-font-family-alternatives
-  (mapcar (lambda (arg) (mapcar 'purecopy arg))
   '(("Monospace" "Cascadia Code" "Lucida Console" "courier" "fixed")
 
     ;; Monospace Serif is an Emacs invention, intended to work around
@@ -137,7 +136,7 @@ a font height that isn't optimal."
      ;; https://en.wikipedia.org/wiki/List_of_typefaces_included_with_Microsoft_Windows
      "Calibri" "Tahoma" "Lucida Sans Unicode"
      "helv" "helvetica" "arial" "fixed")
-    ("helv" "helvetica" "arial" "fixed")))
+    ("helv" "helvetica" "arial" "fixed"))
   "Alist of alternative font family names.
 Each element has the form (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...).
 If fonts of family FAMILY can't be loaded, try ALTERNATIVE1, then
@@ -152,7 +151,6 @@ ALTERNATIVE2 etc."
 
 ;; This is defined originally in xfaces.c.
 (defcustom face-font-registry-alternatives
-  (mapcar (lambda (arg) (mapcar 'purecopy arg))
   (if (featurep 'w32)
       '(("iso8859-1" "ms-oemlatin")
 	("gb2312.1980" "gb2312" "gbk" "gb18030")
@@ -162,7 +160,7 @@ ALTERNATIVE2 etc."
     '(("gb2312.1980" "gb2312.80&gb8565.88" "gbk" "gb18030")
       ("jisx0208.1990" "jisx0208.1983" "jisx0208.1978")
       ("ksc5601.1989" "ksx1001.1992" "ksc5601.1987")
-      ("muletibetan-2" "muletibetan-0"))))
+      ("muletibetan-2" "muletibetan-0")))
   "Alist of alternative font registry names.
 Each element has the form (REGISTRY ALTERNATIVE1 ALTERNATIVE2 ...).
 If fonts of registry REGISTRY can be loaded, font selection
@@ -354,11 +352,6 @@ is either `foreground-color', `background-color', or a keyword."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defcustom face-x-resources
-  (mapcar
-   (lambda (arg)
-     ;; FIXME; can we purecopy some of the conses too?
-     (cons (car arg)
-	   (cons (purecopy (car (cdr arg))) (purecopy (cdr (cdr arg))))))
   '((:family (".attributeFamily" . "Face.AttributeFamily"))
     (:foundry (".attributeFoundry" . "Face.AttributeFoundry"))
     (:width (".attributeWidth" . "Face.AttributeWidth"))
@@ -381,7 +374,7 @@ is either `foreground-color', `background-color', or a keyword."
     (:bold (".attributeBold" . "Face.AttributeBold"))
     (:italic (".attributeItalic" . "Face.AttributeItalic"))
     (:font (".attributeFont" . "Face.AttributeFont"))
-    (:inherit (".attributeInherit" . "Face.AttributeInherit"))))
+    (:inherit (".attributeInherit" . "Face.AttributeInherit")))
   "List of X resources and classes for face attributes.
 Each element has the form (ATTRIBUTE ENTRY1 ENTRY2...) where ATTRIBUTE is
 the name of a face attribute, and each ENTRY is a cons of the form
@@ -664,7 +657,7 @@ If FACE is a face-alias, get the documentation for the target face."
 (defun set-face-documentation (face string)
   "Set the documentation string for FACE to STRING."
   ;; Perhaps the text should go in DOC.
-  (put face 'face-documentation (purecopy string)))
+  (put face 'face-documentation string))
 
 
 (define-obsolete-function-alias 'face-doc-string #'face-documentation "29.1")
@@ -863,7 +856,6 @@ setting `:weight' to `bold', and a value of t for `:italic' is
 equivalent to setting `:slant' to `italic'.  But if `:weight' is
 specified in the face spec, `:bold' is ignored, and if `:slant'
 is specified, `:italic' is ignored."
-  (setq args (purecopy args))
   (let ((where (if (null frame) 0 frame))
 	(spec args)
 	family foundry orig-family orig-foundry)
@@ -893,15 +885,13 @@ is specified, `:italic' is ignored."
           (setq family orig-family)
           (setq foundry orig-foundry)))
       (when (or (stringp family) (eq family 'unspecified))
-	(internal-set-lisp-face-attribute face :family (purecopy family)
-					  where))
+        (internal-set-lisp-face-attribute face :family family where))
       (when (or (stringp foundry) (eq foundry 'unspecified))
-	(internal-set-lisp-face-attribute face :foundry (purecopy foundry)
-					  where)))
+        (internal-set-lisp-face-attribute face :foundry foundry where)))
     (while args
       (unless (memq (car args) '(:family :foundry))
 	(internal-set-lisp-face-attribute face (car args)
-					  (purecopy (cadr args))
+                                          (cadr args)
 					  where))
       (setq args (cddr args)))))
 
@@ -3192,16 +3182,15 @@ This face is used by `show-paren-mode'."
       (encoding		"[^-]+")
       )
   (setq x-font-regexp
-	(purecopy (concat "\\`\\*?[-?*]"
+        (concat "\\`\\*?[-?*]"
 		foundry - family - weight\? - slant\? - swidth - adstyle -
 		pixelsize - pointsize - resx - resy - spacing - avgwidth -
-		registry - encoding "\\*?\\'"
-		)))
+                registry - encoding "\\*?\\'"))
   (setq x-font-regexp-head
-	(purecopy (concat "\\`[-?*]" foundry - family - weight\? - slant\?
-		"\\([-*?]\\|\\'\\)")))
-  (setq x-font-regexp-slant (purecopy (concat - slant -)))
-  (setq x-font-regexp-weight (purecopy (concat - weight -)))
+        (concat "\\`[-?*]" foundry - family - weight\? - slant\?
+                "\\([-*?]\\|\\'\\)"))
+  (setq x-font-regexp-slant (concat - slant -))
+  (setq x-font-regexp-weight (concat - weight -))
   nil)
 
 

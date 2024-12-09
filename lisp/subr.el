@@ -5965,7 +5965,7 @@ See also `with-eval-after-load'."
   ;; evaluating it now).
   (let* ((regexp-or-feature
 	  (if (stringp file)
-              (setq file (purecopy (load-history-regexp file)))
+              (setq file (load-history-regexp file))
             file))
 	 (elt (assoc regexp-or-feature after-load-alist))
          (func
@@ -7131,7 +7131,7 @@ Also, \"-GIT\", \"-CVS\" and \"-NNN\" are treated as snapshot versions."
 
 (defvar package--builtin-versions
   ;; Mostly populated by loaddefs.el.
-  (purecopy `((emacs . ,(version-to-list emacs-version))))
+  `((emacs . ,(version-to-list emacs-version)))
   "Alist giving the version of each versioned builtin package.
 I.e. each element of the list is of the form (NAME . VERSION) where
 NAME is the package name as a symbol, and VERSION is its version
