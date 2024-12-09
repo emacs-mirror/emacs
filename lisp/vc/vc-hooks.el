@@ -121,9 +121,9 @@ An empty list disables VC altogether."
 ;; Note: we don't actually have a darcs back end yet.
 ;; Also, Arch is unsupported, and the Meta-CVS back end has been removed.
 ;; The Arch back end will be retrieved and fixed if it is ever required.
-(defcustom vc-directory-exclusion-list (purecopy '("SCCS" "RCS" "CVS" "MCVS"
+(defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS"
 					 ".src" ".svn" ".git" ".hg" ".bzr"
-					 "_MTN" "_darcs" "{arch}"))
+                                         "_MTN" "_darcs" "{arch}")
   "List of directory names to be ignored when walking directory trees."
   :type '(repeat string)
   :group 'vc)
@@ -683,7 +683,7 @@ Before doing that, check if there are any old backups and get rid of them."
       (vc-dir-resynch-file file))))
 
 (defvar vc-menu-entry
-  `(menu-item ,(purecopy "Version Control") vc-menu-map
+  '(menu-item "Version Control" vc-menu-map
     :filter vc-menu-map-filter))
 
 (when (boundp 'menu-bar-tools-menu)
