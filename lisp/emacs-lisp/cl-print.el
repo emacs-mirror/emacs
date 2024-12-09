@@ -160,7 +160,7 @@ Print the contents hidden by the ellipsis to STREAM."
   'follow-link t
   'action (lambda (button)
             (disassemble (button-get button 'byte-code-function)))
-  'help-echo (purecopy "mouse-2, RET: disassemble this function"))
+  'help-echo "mouse-2, RET: disassemble this function")
 
 (defvar cl-print-compiled nil
   "Control how to print byte-compiled functions.
