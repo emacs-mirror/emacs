@@ -38,7 +38,7 @@
   :group 'tools)
 
 ;;;###autoload
-(defcustom diff-switches (purecopy "-u")
+(defcustom diff-switches "-u"
   "A string or list of strings specifying switches to be passed to diff.
 
 This variable is also used in the `vc-diff' command (and related
@@ -48,7 +48,7 @@ set (`vc-git-diff-switches' for git, for instance), and
   :type '(choice string (repeat string)))
 
 ;;;###autoload
-(defcustom diff-command (purecopy "diff")
+(defcustom diff-command "diff"
   "The command to use to run diff."
   :type 'string)
 
