@@ -2120,7 +2120,7 @@ XlwMenuInitialize (Widget request, Widget w, ArgList args, Cardinal *num_args)
 
 #if defined USE_CAIRO || defined HAVE_XFT
   if (openXftFont (mw))
-    ;
+    mw->menu.font = NULL;
   else
 #endif
     {
