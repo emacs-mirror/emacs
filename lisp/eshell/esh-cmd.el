@@ -1501,11 +1501,13 @@ case."
      (when (memq eshell-in-pipeline-p '(nil last))
        (eshell-set-exit-info 1))
      (let ((msg (error-message-string err)))
-       (if (and (not form-p)
-                (string-match "^Wrong number of arguments" msg)
-                (fboundp 'eldoc-get-fnsym-args-string))
-           (let ((func-doc (eldoc-get-fnsym-args-string func-or-form)))
-             (setq msg (format "usage: %s" func-doc))))
+       (unless form-p
+         (let ((prog-name (string-trim-left (symbol-name func-or-form)
+                                            "eshell/")))
+           (if (eq (car err) 'wrong-number-of-arguments)
+               (setq msg (format "%s usage: %s" prog-name
+                                 (elisp-get-fnsym-args-string func-or-form)))
+             (setq msg (format "%s: %s" prog-name msg)))))
        (funcall errprint msg))
      nil)))
 
