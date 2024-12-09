@@ -3739,6 +3739,7 @@ variable \"NATIVE_DISABLED\" is set, only byte compile."
       (comp--write-bytecode-file eln-file)
       (setq command-line-args-left (cdr command-line-args-left)))))
 
+;;;###autoload
 (defun native-compile-prune-cache ()
   "Remove .eln files that aren't applicable to the current Emacs invocation."
   (interactive)
