@@ -27340,6 +27340,17 @@ display_tty_menu_item (const char *item_text, int width, int face_id,
       display_string (" >", Qnil, Qnil, 0, 0, &it, width, 0,
 		      FRAME_COLS (f) - 1, -1);
     }
+   else if (menu_separator_name_p (item_text))
+    {
+      /* FIXME: This is only a "good enough for now" implementation of
+	 menu separators as described in the Elisp info manual.  We
+	 should probably ignore menu separators when computing the width
+	 of a menu.  Secondly, we could draw actual horizontal lines of
+	 different styles on ttys, maybe optionally using Unicode
+	 characters via display table entries.  Patches very welcome.  */
+      display_string ("--", Qnil, Qnil, 0, 0, &it, width, 0,
+		      FRAME_COLS (f) - 1, -1);
+    }
   else
     display_string (item_text, Qnil, Qnil, 0, 0, &it,
 		    width, 0, FRAME_COLS (f) - 1, -1);
