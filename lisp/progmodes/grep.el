@@ -543,18 +543,18 @@ redundant).")
 This gets tacked on the end of the generated expressions.")
 
 ;;;###autoload
-(defvar grep-program (purecopy "grep")
+(defvar grep-program "grep"
   "The default grep program for `grep-command' and `grep-find-command'.
 This variable's value takes effect when `grep-compute-defaults' is called.")
 
 ;;;###autoload
-(defvar find-program (purecopy "find")
+(defvar find-program "find"
   "The default find program.
 This is used by commands like `grep-find-command', `find-dired'
 and others.")
 
 ;;;###autoload
-(defvar xargs-program (purecopy "xargs")
+(defvar xargs-program "xargs"
   "The default xargs program for `grep-find-command'.
 See `grep-find-use-xargs'.
 This variable's value takes effect when `grep-compute-defaults' is called.")
