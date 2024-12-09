@@ -199,17 +199,17 @@ use."
 
 ;;;###autoload
 (defcustom tex-dvi-view-command
-  `(cond
-    ((eq window-system 'x) ,(purecopy "xdvi"))
-    ((eq window-system 'w32) ,(purecopy "yap"))
-    (t ,(purecopy "dvi2tty * | cat -s")))
+  (cond ((eq window-system 'x) (purecopy "xdvi"))
+        ((eq window-system 'w32) (purecopy "yap"))
+        (t (purecopy "dvi2tty * | cat -s")))
   "Command used by \\[tex-view] to display a `.dvi' file.
-If it is a string, that specifies the command directly.
 If this string contains an asterisk (`*'), that is replaced by the file name;
 otherwise, the file name, preceded by a space, is added at the end.
 
-If the value is a form, it is evaluated to get the command to use."
-  :type '(choice (const nil) string sexp)
+For backwards-compatibility, the value can also be a form, in which case
+it is evaluated to get the command to use.  This is now obsolete, and
+will lead to a warning.  Set it to a string instead."
+  :type '(choice (const nil) string)
   :risky t
   :group 'tex-view)
 
@@ -2804,6 +2804,7 @@ Runs the shell command defined by `tex-alt-dvi-print-command'."
   (interactive)
   (tex-print t))
 
+(defvar tex-view--warned-once nil)
 (defun tex-view ()
   "Preview the last `.dvi' file made by running TeX under Emacs.
 This means, made using \\[tex-region], \\[tex-buffer] or \\[tex-file].
@@ -2816,7 +2817,14 @@ because there is no standard value that would generally work."
   ;; Restart the TeX shell if necessary.
   (or (tex-shell-running)
       (tex-start-shell))
-  (let ((tex-dvi-print-command (eval tex-dvi-view-command t)))
+  (let ((tex-dvi-print-command
+         (if (stringp tex-dvi-view-command)
+             tex-dvi-view-command
+           (unless tex-view--warned-once
+             (warn (concat "Setting `tex-dvi-view-command' to an S-expression"
+                           " is obsolete since Emacs " "31.1"))
+             (setq tex-view--warned-once t))
+           (eval tex-dvi-view-command t))))
     (tex-print)))
 
 (defun tex-append (file-name suffix)
