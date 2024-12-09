@@ -283,7 +283,10 @@ breakpoints in advance.  GDB 13.1 changed the way C-c and C-BREAK are
 handled on Windows, so with those newer versions, you don't need the
 "set new-console 1" setting to be able to interrupt Emacs by typing
 C-c or C-BREAK into the console window from which you started Emacs
-and where you interact with GDB.
+and where you interact with GDB.  Instead, make sure that SIGINT will
+stop Emacs under the debugger:
+
+  (gdb) handle SIGINT stop nopass
 
 ** Examining Lisp object values.
 
