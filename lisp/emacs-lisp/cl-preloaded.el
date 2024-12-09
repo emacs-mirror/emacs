@@ -41,7 +41,7 @@
 
 ;; The `assert' macro from the cl package signals
 ;; `cl-assertion-failed' at runtime so always define it.
-(define-error 'cl-assertion-failed (purecopy "Assertion failed"))
+(define-error 'cl-assertion-failed "Assertion failed")
 
 (defun cl--assertion-failed (form &optional string sargs args)
   (if debug-on-error
