@@ -67,7 +67,7 @@ corresponding to the mode line clicked."
 	(interactive "e")
 	(with-selected-window (posn-window (event-start e))
 	  (describe-current-input-method))))
-    (purecopy map)))
+    map))
 
 (defvar mode-line-coding-system-map
   (let ((map (make-sparse-keymap)))
@@ -83,7 +83,7 @@ corresponding to the mode line clicked."
 	(interactive "e")
 	(with-selected-window (posn-window (event-start e))
 	  (call-interactively 'set-buffer-file-coding-system))))
-    (purecopy map))
+    map)
   "Local keymap for the coding-system part of the mode line.")
 
 (defun mode-line-change-eol (event)
@@ -203,11 +203,11 @@ mouse-3: Set coding system"
     (current-input-method
      (:propertize ("" current-input-method-title)
 		  help-echo (concat
-			     ,(purecopy "Current input method: ")
+                             "Current input method: "
 			     current-input-method
-			     ,(purecopy "\n\
+                             "\n\
 mouse-2: Disable input method\n\
-mouse-3: Describe current input method"))
+mouse-3: Describe current input method")
 		  local-map ,mode-line-input-method-map
 		  mouse-face mode-line-highlight))
     ,(propertize
@@ -228,7 +228,7 @@ mnemonics of the following coding systems:
 (defvar mode-line-client
   `(:eval
     (if (frame-parameter nil 'client)
-	,(propertize "@" 'help-echo (purecopy "emacsclient frame"))))
+        ,(propertize "@" 'help-echo "emacsclient frame")))
   "Mode line construct for identifying emacsclient frames.")
 ;; Autoload if this file no longer dumped.
 ;;;###autoload
@@ -250,15 +250,15 @@ mnemonics of the following coding systems:
   (list (propertize
 	 "%1*"
 	 'help-echo 'mode-line-read-only-help-echo
-	 'local-map (purecopy (make-mode-line-mouse-map
-			       'mouse-1
-			       #'mode-line-toggle-read-only))
+         'local-map (make-mode-line-mouse-map
+                     'mouse-1
+                     #'mode-line-toggle-read-only)
 	 'mouse-face 'mode-line-highlight)
 	(propertize
 	 "%1+"
 	 'help-echo 'mode-line-modified-help-echo
-	 'local-map (purecopy (make-mode-line-mouse-map
-			       'mouse-1 #'mode-line-toggle-modified))
+         'local-map (make-mode-line-mouse-map
+                     'mouse-1 #'mode-line-toggle-modified)
 	 'mouse-face 'mode-line-highlight))
   "Mode line construct for displaying whether current buffer is modified.")
 ;;;###autoload
@@ -268,16 +268,16 @@ mnemonics of the following coding systems:
   (list (propertize
 	 "%1@"
 	 'mouse-face 'mode-line-highlight
-	 'help-echo (purecopy (lambda (window _object _point)
- 				(format "%s"
-					(with-selected-window window
-					  (if (stringp default-directory)
-					      (concat
-					       (if (file-remote-p default-directory)
-						   "Current directory is remote: "
-						 "Current directory is local: ")
-					       default-directory)
-					    "Current directory is nil")))))))
+         'help-echo (lambda (window _object _point)
+                      (format "%s"
+                              (with-selected-window window
+                                (if (stringp default-directory)
+                                    (concat
+                                     (if (file-remote-p default-directory)
+                                         "Current directory is remote: "
+                                       "Current directory is local: ")
+                                     default-directory)
+                                  "Current directory is nil"))))))
   "Mode line construct to indicate a remote buffer.")
 ;;;###autoload
 (put 'mode-line-remote 'risky-local-variable t)
@@ -301,8 +301,8 @@ Value is used for `mode-line-frame-identification', which see."
 (defvar mode-line-window-dedicated-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map [mode-line mouse-1] #'toggle-window-dedicated)
-    (purecopy map)) "\
-Keymap for what is displayed by `mode-line-window-dedicated'.")
+    map)
+  "Keymap for what is displayed by `mode-line-window-dedicated'.")
 
 (defun mode-line-window-control ()
   "Compute mode line construct for window dedicated state.
@@ -648,8 +648,8 @@ text properties for face, help-echo, and local-map to it."
   (list (propertize fmt
 		    'face 'mode-line-buffer-id
 		    'help-echo
-		    (purecopy "Buffer name
-mouse-1: Previous buffer\nmouse-3: Next buffer")
+                    "Buffer name
+mouse-1: Previous buffer\nmouse-3: Next buffer"
 		    'mouse-face 'mode-line-highlight
 		    'local-map mode-line-buffer-identification-keymap)))
 
@@ -823,8 +823,7 @@ Actually, STRING need not be a string; any mode-line construct is
 okay.  See `mode-line-format'.")
 ;;;###autoload
 (put 'minor-mode-alist 'risky-local-variable t)
-;; Don't use purecopy here--some people want to change these strings,
-;; also string properties are lost when put into pure space.
+
 (setq minor-mode-alist
       '((abbrev-mode " Abbrev")
         (overwrite-mode overwrite-mode)
@@ -842,14 +841,11 @@ okay.  See `mode-line-format'.")
 (setq completion-ignored-extensions
       (append
        (cond ((memq system-type '(ms-dos windows-nt))
-	      (mapcar 'purecopy
-	      '(".o" "~" ".bin" ".bak" ".obj" ".map" ".ico" ".pif" ".lnk"
-		".a" ".ln" ".blg" ".bbl" ".dll" ".drv" ".vxd" ".386")))
+              '(".o" "~" ".bin" ".bak" ".obj" ".map" ".ico" ".pif" ".lnk"
+                ".a" ".ln" ".blg" ".bbl" ".dll" ".drv" ".vxd" ".386"))
 	     (t
-	      (mapcar 'purecopy
-	      '(".o" "~" ".bin" ".lbin" ".so"
-		".a" ".ln" ".blg" ".bbl"))))
-       (mapcar 'purecopy
+              '(".o" "~" ".bin" ".lbin" ".so"
+                ".a" ".ln" ".blg" ".bbl")))
        '(".elc" ".lof"
 	 ".glo" ".idx" ".lot"
 	 ;; VCS metadata directories
@@ -879,7 +875,7 @@ okay.  See `mode-line-format'.")
 	 ".cp" ".fn" ".ky" ".pg" ".tp" ".vr"
 	 ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs"
 	 ;; Python byte-compiled
-	 ".pyc" ".pyo"))))
+         ".pyc" ".pyo")))
 
 ;; Suffixes used for executables.
 (setq exec-suffixes
