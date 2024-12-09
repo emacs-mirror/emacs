@@ -78,7 +78,7 @@ If nil, truncated messages will just have \"...\" to indicate truncation."
   :version "28.1")
 
 ;;;###autoload
-(defcustom eldoc-minor-mode-string (purecopy " ElDoc")
+(defcustom eldoc-minor-mode-string " ElDoc"
   "String to display in mode line when ElDoc Mode is enabled; nil for none."
   :type '(choice string (const :tag "None" nil)))
 

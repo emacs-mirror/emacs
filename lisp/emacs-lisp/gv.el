@@ -182,7 +182,7 @@ If CURRENT-NAME is a string, that is the `use instead' message.
 WHEN should be a string indicating when the variable was first
 made obsolete, for example a date or a release number."
   (put obsolete-name 'byte-obsolete-generalized-variable
-       (purecopy (list current-name when)))
+       (list current-name when))
   obsolete-name)
 
 ;; Additions for `declare'.  We specify the values as named aliases so

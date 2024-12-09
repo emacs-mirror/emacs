@@ -722,7 +722,7 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
 
 (define-button-type 'cl-type-definition
   :supertype 'help-function-def
-  'help-echo (purecopy "mouse-2, RET: find type definition"))
+  'help-echo "mouse-2, RET: find type definition")
 
 (declare-function help-fns-short-filename "help-fns" (filename))
 
