@@ -2926,31 +2926,34 @@ with completion.  If there are none, return nil."
                             (mapcar #'caddr alternates))))
           (sep-width (string-pixel-width " ")))
       (if (cdr alternates)
-          (let ((completion-extra-properties
-                 (list :annotation-function
-                       (lambda (feed)
-                         (let* ((attrs (alist-get feed
-                                                  alternates
-                                                  nil
-                                                  nil
-                                                  #'string=))
-                                (type (car attrs))
-                                (title (cadr attrs)))
+            (completing-read
+             "Alternate URL: "
+             (completion-table-with-metadata
+              alternates
+              `((annotation-function
+                 . ,(lambda (feed)
+                      (let* ((attrs (alist-get feed
+                                               alternates
+                                               nil
+                                               nil
+                                               #'string=))
+                             (type (car attrs))
+                             (title (cadr attrs)))
+                        (concat
+                         (propertize " " 'display
+                                     `(space :align-to
+                                             (,(+ sep-width
+                                                  url-max-width))))
+                         title
+                         (when type
                            (concat
                             (propertize " " 'display
                                         `(space :align-to
-                                                (,(+ sep-width
-                                                     url-max-width))))
-                            title
-                            (when type
-                              (concat
-                               (propertize " " 'display
-                                           `(space :align-to
-                                                   (,(+ (* 2 sep-width)
-                                                        url-max-width
-                                                        title-max-width))))
-                               "[" type "]"))))))))
-            (completing-read "Alternate URL: " alternates nil t))
+                                                (,(+ (* 2 sep-width)
+                                                     url-max-width
+                                                     title-max-width))))
+                            "[" type "]"))))))))
+             nil t)
         (caar alternates)))))
 
 (defun eww-copy-alternate-url ()

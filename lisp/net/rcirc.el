@@ -1323,10 +1323,8 @@ The list is updated automatically by `defun-rcirc-command'.")
                         (rcirc-channel-nicks (rcirc-buffer-process)
                                              rcirc-target))))))
          (list beg (point)
-               (lambda (str pred action)
-                 (if (eq action 'metadata)
-                     '(metadata (cycle-sort-function . identity))
-                   (complete-with-action action table str pred)))))))
+               (completion-table-with-metadata
+                table '((cycle-sort-function . identity)))))))
 
 (defun rcirc-set-decode-coding-system (coding-system)
   "Set the decode CODING-SYSTEM used in this channel."

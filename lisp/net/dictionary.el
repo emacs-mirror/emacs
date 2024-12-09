@@ -1609,15 +1609,17 @@ which usually includes the languages it supports."
 (defun dictionary-completing-read-dictionary ()
   "Prompt for a dictionary the server supports."
   (let* ((dicts (dictionary-dictionaries))
-         (len (apply #'max (mapcar #'length (mapcar #'car dicts))))
-         (completion-extra-properties
-          (list :annotation-function
-                (lambda (key)
-                  (concat (make-string (1+ (- len (length key))) ?\s)
-                          (alist-get key dicts nil nil #'string=))))))
-    (completing-read (format-prompt "Select dictionary"
-                                    dictionary-default-dictionary)
-                     dicts nil t nil nil dictionary-default-dictionary)))
+         (len (apply #'max (mapcar #'length (mapcar #'car dicts)))))
+    (completing-read
+     (format-prompt "Select dictionary"
+                    dictionary-default-dictionary)
+     (completion-table-with-metadata
+      dicts
+      `((annotation-function
+         . ,(lambda (key)
+              (concat (make-string (1+ (- len (length key))) ?\s)
+                      (alist-get key dicts nil nil #'string=))))))
+     nil t nil nil dictionary-default-dictionary)))
 
 (define-button-type 'help-word
   :supertype 'help-xref

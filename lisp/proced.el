@@ -2110,6 +2110,20 @@ The value returned is the value of the last form in BODY."
                            (window-height . fit-window-to-buffer)))
          ,@body))))
 
+(defun proced--read-signal (count)
+  "Read a SIGNAL via `completing-read' for COUNT processes."
+  (completing-read
+   (format-prompt "Send signal [%s]"
+                  "TERM"
+                  (if (= 1 count)
+                      "1 process"
+                    (format "%d processes" count)))
+   (completion-table-with-metadata
+    (completion-table-case-fold proced-signal-list)
+    `((annotation-function
+       . ,(lambda (s) (cdr (assoc s proced-signal-list))))))
+   nil nil nil nil "TERM"))
+
 (defun proced-send-signal (&optional signal process-alist)
   "Send a SIGNAL to processes in PROCESS-ALIST.
 PROCESS-ALIST is an alist as returned by `proced-marked-processes'.
@@ -2124,20 +2138,10 @@ Then PROCESS-ALIST contains the marked processes or the process point is on
 and SIGNAL is queried interactively.  This noninteractive usage is still
 supported but discouraged.  It will be removed in a future version of Emacs."
   (interactive
-   (let* ((process-alist (proced-marked-processes))
-          (pnum (if (= 1 (length process-alist))
-                    "1 process"
-                  (format "%d processes" (length process-alist))))
-          (completion-ignore-case t)
-          (completion-extra-properties
-           `(:annotation-function
-             ,(lambda (s) (cdr (assoc s proced-signal-list))))))
-     (proced-with-processes-buffer process-alist
-       (list (completing-read (format-prompt "Send signal [%s]"
-                                             "TERM" pnum)
-                              proced-signal-list
-                              nil nil nil nil "TERM")
-             process-alist)))
+   (let ((process-alist (proced-marked-processes)))
+     (proced-with-processes-buffer
+         process-alist
+       (list (proced--read-signal (length process-alist)) process-alist)))
    proced-mode)
 
   (unless (and signal process-alist)
@@ -2151,18 +2155,9 @@ supported but discouraged.  It will be removed in a future version of Emacs."
        (sit-for 2))
     (setq process-alist (proced-marked-processes))
     (unless signal
-      (let ((pnum (if (= 1 (length process-alist))
-                      "1 process"
-                    (format "%d processes" (length process-alist))))
-            (completion-ignore-case t)
-            (completion-extra-properties
-             `(:annotation-function
-               ,(lambda (s) (cdr (assoc s proced-signal-list))))))
-        (proced-with-processes-buffer process-alist
-          (setq signal (completing-read (format-prompt "Send signal [%s]"
-                                                       "TERM" pnum)
-                                        proced-signal-list
-                                        nil nil nil nil "TERM"))))))
+      (proced-with-processes-buffer
+          process-alist
+        (setq signal (proced--read-signal (length process-alist))))))
 
   (let (failures)
     ;; Why not always use `signal-process'?  See

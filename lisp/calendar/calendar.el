@@ -2335,14 +2335,14 @@ returned is (month year)."
                                    defyear))
          (month-array calendar-month-name-array)
          (defmon (aref month-array (1- (calendar-extract-month default-date))))
-         (completion-ignore-case t)
          (month (cdr (assoc-string
-                      (let ((completion-extra-properties
-                             '(:category calendar-month)))
-                        (completing-read
-                         (format-prompt "Month name" defmon)
-                         (append month-array nil)
-                         nil t nil nil defmon))
+                      (completing-read
+                       (format-prompt "Month name" defmon)
+                       (completion-table-with-metadata
+                        (completion-table-case-fold
+                         (append month-array nil))
+                        `((category . calendar-month)))
+                       nil t nil nil defmon)
                       (calendar-make-alist month-array 1) t)))
          (defday (calendar-extract-day default-date))
          (last (calendar-last-day-of-month month year)))
