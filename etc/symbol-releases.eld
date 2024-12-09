@@ -11,6 +11,7 @@
 (
  ("28.1" fun always)
  ("26.1" fun when-let*)
+ ("26.1" fun and-let*)
  ("26.1" fun if-let*)
  ("24.4" fun set-transient-map)
  ("22.1" fun version=)
