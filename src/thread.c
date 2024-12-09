@@ -1177,6 +1177,7 @@ init_threads (void)
 #ifdef HAVE_MPS
   igc_on_alloc_main_thread_bc ();
 #endif
+  gc_init_header (&main_thread.s.header.gc_header, IGC_OBJ_VECTOR);
 }
 
 void
@@ -1218,7 +1219,6 @@ syms_of_threads (void)
 
   DEFVAR_LISP ("main-thread", Vmain_thread,
     doc: /* The main thread of Emacs.  */);
-  gc_init_header (&main_thread.s.header.gc_header, IGC_OBJ_VECTOR);
 #ifdef THREADS_ENABLED
   XSETTHREAD (Vmain_thread, &main_thread.s);
 #else
