@@ -209,10 +209,6 @@ enum { MALLOC_ALIGNMENT = max (2 * sizeof (size_t), alignof (long double)) };
 
 # define MMAP_MAX_AREAS 100000000
 
-/* A pointer to the memory allocated that copies that static data
-   inside glibc's malloc.  */
-static void *malloc_state_ptr;
-
 /* Restore the dumped malloc state.  Because malloc can be invoked
    even before main (e.g. by the dynamic linker), the dumped malloc
    state must be restored as early as possible using this special hook.  */
@@ -247,10 +243,6 @@ malloc_initialize_hook (void)
 		  break;
 		}
 	}
-
-      if (malloc_set_state (malloc_state_ptr) != 0)
-	emacs_abort ();
-      alloc_unexec_post ();
     }
 }
 
@@ -266,27 +258,6 @@ voidfuncptr __MALLOC_HOOK_VOLATILE __malloc_initialize_hook EXTERNALLY_VISIBLE
 #endif
 
 #if defined DOUG_LEA_MALLOC
-
-/* Allocator-related actions to do just before and after unexec.  */
-
-void
-alloc_unexec_pre (void)
-{
-# ifdef DOUG_LEA_MALLOC
-  malloc_state_ptr = malloc_get_state ();
-  if (!malloc_state_ptr)
-    fatal ("malloc_get_state: %s", strerror (errno));
-# endif
-}
-
-void
-alloc_unexec_post (void)
-{
-# ifdef DOUG_LEA_MALLOC
-  free (malloc_state_ptr);
-# endif
-}
-
 # ifdef GNU_LINUX
 
 /* The address where the heap starts.  */
