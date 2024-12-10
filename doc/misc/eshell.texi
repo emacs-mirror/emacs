@@ -2660,10 +2660,10 @@ navigation and searching are bound to different keys:
 
 @table @kbd
 @kindex M-r
-@kindex M-s
 @item M-r
-@itemx M-s
-History I-search.
+History I-search.  @kbd{M-r} starts an incremental search in input
+history.  While searching, type @kbd{C-r} to move to the previous match,
+and @kbd{C-s} to move to the next match in the input history.
 
 @kindex M-p
 @kindex M-n
@@ -2673,6 +2673,15 @@ Previous and next history line.  If there is anything on the input
 line when you run these commands, they will instead jump to the
 previous or next line that begins with that string.
 @end table
+
+@vindex eshell-history-isearch
+If you would like to use the default Isearch key-bindings to search
+through input history, you may customize @code{eshell-history-isearch}
+to @code{t}.  That makes, for example, @kbd{C-r} and @kbd{C-M-r} in an
+Eshell buffer search in input history only.  In addition, if the value
+of @code{eshell-history-isearch} is @code{dwim}, those commands search
+in the history when the point is after the last prompt, and search in
+the buffer when the point is before or within the last prompt.
 
 @node Extension modules
 @chapter Extension modules

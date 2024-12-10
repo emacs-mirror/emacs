@@ -380,6 +380,29 @@ This hook runs after an Eshell session has been fully initialized,
 immediately before running 'eshell-post-command-hook' for the first
 time.
 
++++
+*** Improved history Isearch.
+History Isearch in Eshell is reworked.  Two new commands
+'eshell-isearch-backward-regexp' and 'eshell-isearch-forward-regexp' are
+added for incrementally searching through the input history.
+'eshell-isearch-backward-regexp' is bound to 'M-r' by default, and 'M-s'
+is freed for normal search commands.  If you would like to restore the
+previous key-bindings for the non-incremental search commands, put in
+your configuration:
+
+    (keymap-set eshell-hist-mode-map "M-r"
+                #'eshell-previous-matching-input)
+    (keymap-set eshell-hist-mode-map "M-s"
+                #'eshell-next-matching-input)
+
++++
+*** New user option 'eshell-history-isearch'
+When 'eshell-history-isearch' is nil (the default), Isearch commands
+search in the buffer contents.  If you customize it to t, those commands
+only search in input history.  If you customize it to the symbol 'dwim',
+those commands search in input history only when the point is after the
+last prompt.
+
 ** SHR
 
 +++
