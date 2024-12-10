@@ -45,7 +45,7 @@
        ,@body)))
 
 (defmacro with-time-stamp-test-time (reference-time &rest body)
-  "Force any contained time-stamp call to use time REFERENCE-TIME."
+  "Force `time-stamp' to use time REFERENCE-TIME while evaluating BODY."
   (declare (indent 1) (debug t))
   `(cl-letf*
          ((orig-time-stamp-string-fn (symbol-function 'time-stamp-string))
@@ -55,14 +55,14 @@
      ,@body))
 
 (defmacro with-time-stamp-system-name (name &rest body)
-  "Force (system-name) to return NAME while evaluating BODY."
+  "Force `system-name' to return NAME while evaluating BODY."
   (declare (indent 1) (debug t))
   `(cl-letf (((symbol-function 'system-name)
               (lambda () ,name)))
      ,@body))
 
 (defmacro time-stamp-should-warn (form)
-  "Similar to `should' but verifies that a format warning is generated."
+  "Similar to `should' and also verify that FORM generates a format warning."
   (declare (debug t))
   `(let ((warning-count 0))
      (cl-letf (((symbol-function 'time-stamp-conv-warn)
@@ -269,70 +269,111 @@
 (ert-deftest time-stamp-format-day-of-week ()
   "Test time-stamp formats for named day of week."
   (with-time-stamp-test-env
-   (let ((Mon (format-time-string "%a" ref-time1 t))
-         (MON (format-time-string "%^a" ref-time1 t))
-         (Monday (format-time-string "%A" ref-time1 t))
-         (MONDAY (format-time-string "%^A" ref-time1 t)))
-     ;; implemented and documented since 1997
-     (should (equal (time-stamp-string "%3a" ref-time1) Mon))
+   (let* ((Mon (format-time-string "%a" ref-time1 t))
+          (MON (format-time-string "%^a" ref-time1 t))
+          (Monday (format-time-string "%A" ref-time1 t))
+          (MONDAY (format-time-string "%^A" ref-time1 t))
+          (p4-Mon (string-pad Mon 4 ?\s t))
+          (p4-MON (string-pad MON 4 ?\s t))
+          (p10-Monday (string-pad Monday 10 ?\s t))
+          (p10-MONDAY (string-pad MONDAY 10 ?\s t)))
+     ;; implemented and recommended since 1997
      (should (equal (time-stamp-string "%#A" ref-time1) MONDAY))
-     ;; documented 1997-2019
-     (should (equal (time-stamp-string "%3A" ref-time1)
-                    (substring MONDAY 0 3)))
+     (should (equal (time-stamp-string "%#10A" ref-time1) p10-MONDAY))
+     ;; implemented since 1997, recommended 1997-2024
+     (should (equal (time-stamp-string "%3a" ref-time1) Mon))
+     ;; recommended 1997-2019
      (should (equal (time-stamp-string "%:a" ref-time1) Monday))
-     ;; implemented since 2001, documented since 2019
+     ;; recommended 1997-2019, warned since 2024, will change
+     (time-stamp-should-warn
+      (should (equal (time-stamp-string "%3A" ref-time1) MON)))
+     (time-stamp-should-warn
+      (should (equal (time-stamp-string "%10A" ref-time1) p10-MONDAY)))
+     ;; implemented since 2001, recommended since 2019
      (should (equal (time-stamp-string "%#a" ref-time1) MON))
+     (should (equal (time-stamp-string "%#3a" ref-time1) MON))
+     (should (equal (time-stamp-string "%#4a" ref-time1) p4-MON))
+     ;; implemented since 2001, recommended 2019-2024
      (should (equal (time-stamp-string "%:A" ref-time1) Monday))
-     ;; allowed but undocumented since 2019 (warned 1997-2019)
+     ;; broken 2019-2024
+     (should (equal (time-stamp-string "%:10A" ref-time1) p10-Monday))
+     ;; broken in 2019, changed in 2024
+     (should (equal (time-stamp-string "%-A" ref-time1) Monday))
+     (should (equal (time-stamp-string "%_A" ref-time1) Monday))
+     ;; allowed but not recommended since 2019 (warned 1997-2019)
      (should (equal (time-stamp-string "%^A" ref-time1) MONDAY))
-     ;; warned 1997-2019, changed in 2019
+     ;; warned 1997-2019, changed in 2019, recommended (with caveat) since 2024
      (should (equal (time-stamp-string "%a" ref-time1) Mon))
+     (should (equal (time-stamp-string "%4a" ref-time1) p4-Mon))
+     (should (equal (time-stamp-string "%04a" ref-time1) p4-Mon))
+     (should (equal (time-stamp-string "%A" ref-time1) Monday))
+     ;; warned 1997-2019, changed in 2019
      (should (equal (time-stamp-string "%^a" ref-time1) MON))
-     (should (equal (time-stamp-string "%A" ref-time1) Monday)))))
+     (should (equal (time-stamp-string "%^4a" ref-time1) p4-MON)))))
 
 (ert-deftest time-stamp-format-month-name ()
   "Test time-stamp formats for month name."
   (with-time-stamp-test-env
-   (let ((Jan (format-time-string "%b" ref-time1 t))
-         (JAN (format-time-string "%^b" ref-time1 t))
-         (January (format-time-string "%B" ref-time1 t))
-         (JANUARY (format-time-string "%^B" ref-time1 t)))
-     ;; implemented and documented since 1997
-     (should (equal (time-stamp-string "%3b" ref-time1)
-                    (substring January 0 3)))
+   (let* ((Jan (format-time-string "%b" ref-time1 t))
+          (JAN (format-time-string "%^b" ref-time1 t))
+          (January (format-time-string "%B" ref-time1 t))
+          (JANUARY (format-time-string "%^B" ref-time1 t))
+          (p4-Jan (string-pad Jan 4 ?\s t))
+          (p4-JAN (string-pad JAN 4 ?\s t))
+          (p10-January (string-pad January 10 ?\s t))
+          (p10-JANUARY (string-pad JANUARY 10 ?\s t)))
+     ;; implemented and recommended since 1997
      (should (equal (time-stamp-string "%#B" ref-time1) JANUARY))
-     ;; documented 1997-2019
-     (should (equal (time-stamp-string "%3B" ref-time1)
-                    (substring JANUARY 0 3)))
+     (should (equal (time-stamp-string "%#10B" ref-time1) p10-JANUARY))
+     ;; implemented since 1997, recommended 1997-2024
+     (should (equal (time-stamp-string "%3b" ref-time1) Jan))
+     ;; recommended 1997-2019
      (should (equal (time-stamp-string "%:b" ref-time1) January))
-     ;; implemented since 2001, documented since 2019
+     ;; recommended 1997-2019, warned since 2024, will change
+     (time-stamp-should-warn
+      (should (equal (time-stamp-string "%3B" ref-time1) JAN)))
+     (time-stamp-should-warn
+      (should (equal (time-stamp-string "%10B" ref-time1) p10-JANUARY)))
+     ;; implemented since 2001, recommended since 2019
      (should (equal (time-stamp-string "%#b" ref-time1) JAN))
+     (should (equal (time-stamp-string "%#3b" ref-time1) JAN))
+     (should (equal (time-stamp-string "%#4b" ref-time1) p4-JAN))
+     ;; implemented since 2001, recommended 2019-2024
      (should (equal (time-stamp-string "%:B" ref-time1) January))
-     ;; allowed but undocumented since 2019 (warned 1997-2019)
+     ;; broken 2019-2024
+     (should (equal (time-stamp-string "%:10B" ref-time1) p10-January))
+     ;; broken in 2019, changed in 2024
+     (should (equal (time-stamp-string "%-B" ref-time1) January))
+     (should (equal (time-stamp-string "%_B" ref-time1) January))
+     ;; allowed but not recommended since 2019 (warned 1997-2019)
      (should (equal (time-stamp-string "%^B" ref-time1) JANUARY))
-     ;; warned 1997-2019, changed in 2019
+     ;; warned 1997-2019, changed in 2019, recommended (with caveat) since 2024
      (should (equal (time-stamp-string "%b" ref-time1) Jan))
+     (should (equal (time-stamp-string "%4b" ref-time1) p4-Jan))
+     (should (equal (time-stamp-string "%04b" ref-time1) p4-Jan))
+     (should (equal (time-stamp-string "%B" ref-time1) January))
+     ;; warned 1997-2019, changed in 2019
      (should (equal (time-stamp-string "%^b" ref-time1) JAN))
-     (should (equal (time-stamp-string "%B" ref-time1) January)))))
+     (should (equal (time-stamp-string "%^4b" ref-time1) p4-JAN)))))
 
 (ert-deftest time-stamp-format-day-of-month ()
   "Test time-stamp formats for day of month."
   (with-time-stamp-test-env
-    ;; implemented and documented since 1995
+    ;; implemented since 1995, recommended until 2024
     (should (equal (time-stamp-string "%2d" ref-time1) " 2"))
     (should (equal (time-stamp-string "%2d" ref-time2) "18"))
     (should (equal (time-stamp-string "%02d" ref-time1) "02"))
     (should (equal (time-stamp-string "%02d" ref-time2) "18"))
-    ;; documented 1997-2019
+    ;; recommended 1997-2019
     (should (equal (time-stamp-string "%:d" ref-time1) "2"))
     (should (equal (time-stamp-string "%:d" ref-time2) "18"))
-    ;; implemented since 1997, documented since 2019
+    ;; implemented since 1997, recommended 2019-2024
     (should (equal (time-stamp-string "%1d" ref-time1) "2"))
     (should (equal (time-stamp-string "%1d" ref-time2) "18"))
-    ;; allowed but undocumented since 2019 (warned 1997-2019)
+    ;; warned 1997-2019, allowed 2019, recommended (with caveat) since 2024
     (should (equal (time-stamp-string "%-d" ref-time1) "2"))
     (should (equal (time-stamp-string "%-d" ref-time2) "18"))
-    ;; warned 1997-2019, changed in 2019
+    ;; warned 1997-2019, changed in 2019, recommended (with caveat) since 2024
     (should (equal (time-stamp-string "%_d" ref-time1) " 2"))
     (should (equal (time-stamp-string "%_d" ref-time2) "18"))
     (should (equal (time-stamp-string "%d" ref-time1) "02"))
@@ -341,26 +382,26 @@
 (ert-deftest time-stamp-format-hours-24 ()
   "Test time-stamp formats for hour on a 24-hour clock."
   (with-time-stamp-test-env
-    ;; implemented and documented since 1995
+    ;; implemented since 1995, recommended until 2024
     (should (equal (time-stamp-string "%2H" ref-time1) "15"))
     (should (equal (time-stamp-string "%2H" ref-time2) "12"))
     (should (equal (time-stamp-string "%2H" ref-time3) " 6"))
     (should (equal (time-stamp-string "%02H" ref-time1) "15"))
     (should (equal (time-stamp-string "%02H" ref-time2) "12"))
     (should (equal (time-stamp-string "%02H" ref-time3) "06"))
-    ;; documented 1997-2019
+    ;; recommended 1997-2019
     (should (equal (time-stamp-string "%:H" ref-time1) "15"))
     (should (equal (time-stamp-string "%:H" ref-time2) "12"))
     (should (equal (time-stamp-string "%:H" ref-time3) "6"))
-    ;; implemented since 1997, documented since 2019
+    ;; implemented since 1997, recommended 2019-2024
     (should (equal (time-stamp-string "%1H" ref-time1) "15"))
     (should (equal (time-stamp-string "%1H" ref-time2) "12"))
     (should (equal (time-stamp-string "%1H" ref-time3) "6"))
-    ;; allowed but undocumented since 2019 (warned 1997-2019)
+    ;; warned 1997-2019, allowed 2019, recommended (with caveat) since 2024
     (should (equal (time-stamp-string "%-H" ref-time1) "15"))
     (should (equal (time-stamp-string "%-H" ref-time2) "12"))
     (should (equal (time-stamp-string "%-H" ref-time3) "6"))
-    ;; warned 1997-2019, changed in 2019
+    ;; warned 1997-2019, changed in 2019, recommended (with caveat) since 2024
     (should (equal (time-stamp-string "%_H" ref-time1) "15"))
     (should (equal (time-stamp-string "%_H" ref-time2) "12"))
     (should (equal (time-stamp-string "%_H" ref-time3) " 6"))
@@ -371,26 +412,26 @@
 (ert-deftest time-stamp-format-hours-12 ()
   "Test time-stamp formats for hour on a 12-hour clock."
   (with-time-stamp-test-env
-    ;; implemented and documented since 1995
+    ;; implemented since 1995, recommended until 2024
     (should (equal (time-stamp-string "%2I" ref-time1) " 3"))
     (should (equal (time-stamp-string "%2I" ref-time2) "12"))
     (should (equal (time-stamp-string "%2I" ref-time3) " 6"))
     (should (equal (time-stamp-string "%02I" ref-time1) "03"))
     (should (equal (time-stamp-string "%02I" ref-time2) "12"))
     (should (equal (time-stamp-string "%02I" ref-time3) "06"))
-    ;; documented 1997-2019
+    ;; recommended 1997-2019
     (should (equal (time-stamp-string "%:I" ref-time1) "3")) ;PM
     (should (equal (time-stamp-string "%:I" ref-time2) "12")) ;PM
     (should (equal (time-stamp-string "%:I" ref-time3) "6")) ;AM
-    ;; implemented since 1997, documented since 2019
+    ;; implemented since 1997, recommended since 2019
     (should (equal (time-stamp-string "%1I" ref-time1) "3"))
     (should (equal (time-stamp-string "%1I" ref-time2) "12"))
     (should (equal (time-stamp-string "%1I" ref-time3) "6"))
-    ;; allowed but undocumented since 2019 (warned 1997-2019)
+    ;; warned 1997-2019, allowed 2019, recommended (with caveat) since 2024
     (should (equal (time-stamp-string "%-I" ref-time1) "3"))
     (should (equal (time-stamp-string "%-I" ref-time2) "12"))
     (should (equal (time-stamp-string "%-I" ref-time3) "6"))
-    ;; warned 1997-2019, changed in 2019
+    ;; warned 1997-2019, changed in 2019, recommended (with caveat) since 2024
     (should (equal (time-stamp-string "%_I" ref-time1) " 3"))
     (should (equal (time-stamp-string "%_I" ref-time2) "12"))
     (should (equal (time-stamp-string "%_I" ref-time3) " 6"))
@@ -401,21 +442,21 @@
 (ert-deftest time-stamp-format-month-number ()
   "Test time-stamp formats for month number."
   (with-time-stamp-test-env
-    ;; implemented and documented since 1995
+    ;; implemented since 1995, recommended until 2024
     (should (equal (time-stamp-string "%2m" ref-time1) " 1"))
     (should (equal (time-stamp-string "%2m" ref-time2) "11"))
     (should (equal (time-stamp-string "%02m" ref-time1) "01"))
     (should (equal (time-stamp-string "%02m" ref-time2) "11"))
-    ;; documented 1997-2019
+    ;; recommended 1997-2019
     (should (equal (time-stamp-string "%:m" ref-time1) "1"))
     (should (equal (time-stamp-string "%:m" ref-time2) "11"))
-    ;; implemented since 1997, documented since 2019
+    ;; implemented since 1997, recommended since 2019
     (should (equal (time-stamp-string "%1m" ref-time1) "1"))
     (should (equal (time-stamp-string "%1m" ref-time2) "11"))
-    ;; allowed but undocumented since 2019 (warned 1997-2019)
+    ;; warned 1997-2019, allowed 2019, recommended (with caveat) since 2024
     (should (equal (time-stamp-string "%-m" ref-time1) "1"))
     (should (equal (time-stamp-string "%-m" ref-time2) "11"))
-    ;; warned 1997-2019, changed in 2019
+    ;; warned 1997-2019, changed in 2019, recommended (with caveat) since 2024
     (should (equal (time-stamp-string "%_m" ref-time1) " 1"))
     (should (equal (time-stamp-string "%_m" ref-time2) "11"))
     (should (equal (time-stamp-string "%m" ref-time1) "01"))
@@ -424,21 +465,21 @@
 (ert-deftest time-stamp-format-minute ()
   "Test time-stamp formats for minute."
   (with-time-stamp-test-env
-    ;; implemented and documented since 1995
+    ;; implemented since 1995, recommended until 2024
     (should (equal (time-stamp-string "%2M" ref-time1) " 4"))
     (should (equal (time-stamp-string "%2M" ref-time2) "14"))
     (should (equal (time-stamp-string "%02M" ref-time1) "04"))
     (should (equal (time-stamp-string "%02M" ref-time2) "14"))
-    ;; documented 1997-2019
+    ;; recommended 1997-2019
     (should (equal (time-stamp-string "%:M" ref-time1) "4"))
     (should (equal (time-stamp-string "%:M" ref-time2) "14"))
-    ;; implemented since 1997, documented since 2019
+    ;; implemented since 1997, recommended since 2019
     (should (equal (time-stamp-string "%1M" ref-time1) "4"))
     (should (equal (time-stamp-string "%1M" ref-time2) "14"))
-    ;; allowed but undocumented since 2019 (warned 1997-2019)
+    ;; warned 1997-2019, allowed 2019, recommended (with caveat) since 2024
     (should (equal (time-stamp-string "%-M" ref-time1) "4"))
     (should (equal (time-stamp-string "%-M" ref-time2) "14"))
-    ;; warned 1997-2019, changed in 2019
+    ;; warned 1997-2019, changed in 2019, recommended (with caveat) since 2024
     (should (equal (time-stamp-string "%_M" ref-time1) " 4"))
     (should (equal (time-stamp-string "%_M" ref-time2) "14"))
     (should (equal (time-stamp-string "%M" ref-time1) "04"))
@@ -447,21 +488,21 @@
 (ert-deftest time-stamp-format-second ()
   "Test time-stamp formats for second."
   (with-time-stamp-test-env
-    ;; implemented and documented since 1995
+    ;; implemented since 1995, recommended until 2024
     (should (equal (time-stamp-string "%2S" ref-time1) " 5"))
     (should (equal (time-stamp-string "%2S" ref-time2) "15"))
     (should (equal (time-stamp-string "%02S" ref-time1) "05"))
     (should (equal (time-stamp-string "%02S" ref-time2) "15"))
-    ;; documented 1997-2019
+    ;; recommended 1997-2019
     (should (equal (time-stamp-string "%:S" ref-time1) "5"))
     (should (equal (time-stamp-string "%:S" ref-time2) "15"))
-    ;; implemented since 1997, documented since 2019
+    ;; implemented since 1997, recommended since 2019
     (should (equal (time-stamp-string "%1S" ref-time1) "5"))
     (should (equal (time-stamp-string "%1S" ref-time2) "15"))
-    ;; allowed but undocumented since 2019 (warned 1997-2019)
+    ;; warned 1997-2019, allowed 2019, recommended (with caveat) since 2024
     (should (equal (time-stamp-string "%-S" ref-time1) "5"))
     (should (equal (time-stamp-string "%-S" ref-time2) "15"))
-    ;; warned 1997-2019, changed in 2019
+    ;; warned 1997-2019, changed in 2019, recommended (with caveat) since 2024
     (should (equal (time-stamp-string "%_S" ref-time1) " 5"))
     (should (equal (time-stamp-string "%_S" ref-time2) "15"))
     (should (equal (time-stamp-string "%S" ref-time1) "05"))
@@ -470,12 +511,14 @@
 (ert-deftest time-stamp-format-year-2digit ()
   "Test time-stamp formats for %y."
   (with-time-stamp-test-env
-    ;; implemented and documented since 1995
+    ;; implemented since 1995, recommended 1995-2024
     (should (equal (time-stamp-string "%02y" ref-time1) "06"))
     (should (equal (time-stamp-string "%02y" ref-time2) "16"))
-    ;; documented 1997-2019
-    (should (equal (time-stamp-string "%:y" ref-time1) "2006"))
-    (should (equal (time-stamp-string "%:y" ref-time2) "2016"))
+    ;; recommended 1997-2019, warned since 2024
+    (time-stamp-should-warn
+     (should (equal (time-stamp-string "%:y" ref-time1) "2006")))
+    (time-stamp-should-warn
+     (should (equal (time-stamp-string "%:y" ref-time2) "2016")))
     ;; warned 1997-2019, changed in 2019
     ;; (We don't expect the %-y or %_y form to be useful,
     ;; but we test both so that we can confidently state that
@@ -484,6 +527,7 @@
     (should (equal (time-stamp-string "%-y" ref-time2) "16"))
     (should (equal (time-stamp-string "%_y" ref-time1) " 6"))
     (should (equal (time-stamp-string "%_y" ref-time2) "16"))
+    ;; warned 1997-2019, changed in 2019, recommended (with caveat) since 2024
     (should (equal (time-stamp-string "%y" ref-time1) "06"))
     (should (equal (time-stamp-string "%y" ref-time2) "16"))
     ;; implemented since 1995, warned since 2019, will change
@@ -495,7 +539,7 @@
 (ert-deftest time-stamp-format-year-4digit ()
   "Test time-stamp format %Y."
   (with-time-stamp-test-env
-    ;; implemented since 1997, documented since 2019
+    ;; implemented since 1997, recommended since 2019
     (should (equal (time-stamp-string "%Y" ref-time1) "2006"))
     ;; numbers do not truncate
     (should (equal (time-stamp-string "%2Y" ref-time1) "2006"))
@@ -510,15 +554,16 @@
           (Am (format-time-string "%p" ref-time3 t))
           (PM (format-time-string "%^p" ref-time1 t))
           (AM (format-time-string "%^p" ref-time3 t)))
-      ;; implemented and documented since 1997
+      ;; implemented and recommended since 1997
       (should (equal (time-stamp-string "%#p" ref-time1) pm))
       (should (equal (time-stamp-string "%#p" ref-time3) am))
+      ;; implemented since 1997, recommended 1997-2024
       (should (equal (time-stamp-string "%P" ref-time1) Pm))
       (should (equal (time-stamp-string "%P" ref-time3) Am))
       ;; implemented since 1997
       (should (equal (time-stamp-string "%^#p" ref-time1) pm))
       (should (equal (time-stamp-string "%^#p" ref-time3) am))
-      ;; warned 1997-2019, changed in 2019
+      ;; warned 1997-2019, changed in 2019, recommended (with caveat) since 2024
       (should (equal (time-stamp-string "%p" ref-time1) Pm))
       (should (equal (time-stamp-string "%p" ref-time3) Am))
       ;; changed in 2024
@@ -543,19 +588,22 @@
   (with-time-stamp-test-env
     (let ((UTC-abbr (format-time-string "%Z" ref-time1 t))
           (utc-abbr (format-time-string "%#Z" ref-time1 t)))
-      ;; implemented and documented since 1995
+      ;; implemented and recommended since 1995
       (should (equal (time-stamp-string "%Z" ref-time1) UTC-abbr))
-      ;; implemented since 1997, documented since 2019
-      (should (equal (time-stamp-string "%#Z" ref-time1) utc-abbr)))))
+      ;; implemented since 1997, recommended since 2019
+      (should (equal (time-stamp-string "%#Z" ref-time1) utc-abbr))
+      ;; ^ accepted and ignored since 1995/1997, test for consistency with %p
+      (should (equal (time-stamp-string "%^Z" ref-time1) UTC-abbr))
+      (should (equal (time-stamp-string "%^#Z" ref-time1) utc-abbr)))))
 
 (ert-deftest time-stamp-format-time-zone-offset ()
   "Test time-stamp legacy format %z and spot-test new offset format %5z."
   (with-time-stamp-test-env
     (let ((utc-abbr (format-time-string "%#Z" ref-time1 t)))
-    ;; documented 1995-2019, warned since 2019, will change
+    ;; recommended 1995-2019, warned since 2019, will change
       (time-stamp-should-warn
        (equal (time-stamp-string "%z" ref-time1) utc-abbr)))
-    ;; implemented and documented (with compat caveat) since 2019
+    ;; implemented and recommended (with compat caveat) since 2019
     (should (equal (time-stamp-string "%5z" ref-time1) "+0000"))
     (let ((time-stamp-time-zone "PST8"))
       (should (equal (time-stamp-string "%5z" ref-time1) "-0800")))
@@ -563,20 +611,21 @@
       (should (equal (time-stamp-string "%5z" ref-time1) "-1000")))
     (let ((time-stamp-time-zone "CET-1"))
       (should (equal (time-stamp-string "%5z" ref-time1) "+0100")))
-    ;; implemented since 2019, verify that these don't warn
+    ;; implemented since 2019, recommended (with compat caveat) since 2024
     ;; See also the "formatz" tests below, which since 2021 test more
     ;; variants with more offsets.
     (should (equal (time-stamp-string "%-z" ref-time1) "+00"))
+    (should (equal (time-stamp-string "%:::z" ref-time1) "+00"))
     (should (equal (time-stamp-string "%:z" ref-time1) "+00:00"))
+    ;; implemented since 2019
     (should (equal (time-stamp-string "%::z" ref-time1) "+00:00:00"))
-    (should (equal (time-stamp-string "%9::z" ref-time1) "+00:00:00"))
-    (should (equal (time-stamp-string "%:::z" ref-time1) "+00"))))
+    (should (equal (time-stamp-string "%9::z" ref-time1) "+00:00:00"))))
 
 (ert-deftest time-stamp-format-non-date-conversions ()
   "Test time-stamp formats for non-date items."
   (with-time-stamp-test-env
     (with-time-stamp-system-name "test-system-name.example.org"
-      ;; implemented and documented since 1995
+      ;; implemented and recommended since 1995
       (should (equal (time-stamp-string "%%" ref-time1) "%")) ;% last char
       (should (equal (time-stamp-string "%%P" ref-time1) "%P")) ;% not last char
       (should (equal (time-stamp-string "%f" ref-time1) "time-stamped-file"))
@@ -589,15 +638,18 @@
       (let ((mail-host-address nil))
         (should (equal (time-stamp-string "%h" ref-time1)
                        "test-system-name.example.org")))
-      ;; documented 1995-2019
-      (should (equal (time-stamp-string "%s" ref-time1)
-                     "test-system-name.example.org"))
-      (should (equal (time-stamp-string "%U" ref-time1) "100%d Tester"))
-      (should (equal (time-stamp-string "%u" ref-time1) "test-logname"))
-      ;; implemented since 2001, documented since 2019
+      ;; recommended 1997-2019, warned since 2024
+      (time-stamp-should-warn
+       (should (equal (time-stamp-string "%s" ref-time1)
+                      "test-system-name.example.org")))
+      (time-stamp-should-warn
+       (should (equal (time-stamp-string "%U" ref-time1) "100%d Tester")))
+      (time-stamp-should-warn
+       (should (equal (time-stamp-string "%u" ref-time1) "test-logname")))
+      ;; implemented since 2001, recommended since 2019
       (should (equal (time-stamp-string "%L" ref-time1) "100%d Tester"))
       (should (equal (time-stamp-string "%l" ref-time1) "test-logname"))
-      ;; implemented since 2007, documented since 2019
+      ;; implemented since 2007, recommended since 2019
       (should (equal (time-stamp-string "%Q" ref-time1)
                      "test-system-name.example.org"))
       (should (equal (time-stamp-string "%q" ref-time1) "test-system-name")))
@@ -668,24 +720,20 @@
 (ert-deftest time-stamp-format-string-width ()
   "Test time-stamp string width modifiers."
   (with-time-stamp-test-env
-   (let ((May (format-time-string "%b" ref-time3 t))
-         (SUN (format-time-string "%^a" ref-time3 t))
-         (NOV (format-time-string "%^b" ref-time2 t)))
-     ;; strings truncate on the right or are blank-padded on the left
-     (should (equal (time-stamp-string "%0b" ref-time3) ""))
-     (should (equal (time-stamp-string "%1b" ref-time3) (substring May 0 1)))
-     (should (equal (time-stamp-string "%2b" ref-time3) (substring May 0 2)))
-     (should (equal (time-stamp-string "%3b" ref-time3) (substring May 0 3)))
-     (should (equal (time-stamp-string "%4b" ref-time3) (concat " " May)))
-     (should (equal (time-stamp-string "%0%" ref-time3) ""))
-     (should (equal (time-stamp-string "%1%" ref-time3) "%"))
-     (should (equal (time-stamp-string "%2%" ref-time3) " %"))
-     (should (equal (time-stamp-string "%9%" ref-time3) "        %"))
-     (should (equal (time-stamp-string "%10%" ref-time3) "         %"))
-     (should (equal (time-stamp-string "%#3a" ref-time3)
-                    (substring SUN 0 3)))
-     (should (equal (time-stamp-string "%#3b" ref-time2)
-                    (substring NOV 0 3))))))
+    (let ((UTC-abbr (format-time-string "%Z" ref-time1 t)))
+      (should (equal (time-stamp-string "%1%" ref-time3) "%"))
+      (should (equal (time-stamp-string "%2%" ref-time3) " %"))
+      (should (equal (time-stamp-string "%9%" ref-time3) "        %"))
+      (should (equal (time-stamp-string "%10%" ref-time3) "         %"))
+      (should (equal (time-stamp-string "%03d" ref-time3) "025"))
+      (should (equal (time-stamp-string "%3d" ref-time3) " 25"))
+      (should (equal (time-stamp-string "%_3d" ref-time3) " 25"))
+      ;; since 2024
+      (should (equal (time-stamp-string "%0d" ref-time1) "02"))
+      (should (equal (time-stamp-string "%0d" ref-time2) "18"))
+      ;; broken 2019-2024
+      (should (equal (time-stamp-string "%-Z" ref-time1) UTC-abbr))
+      (should (equal (time-stamp-string "%_Z" ref-time1) UTC-abbr)))))
 
 ;;; Tests of helper functions
 
@@ -895,11 +943,11 @@ The functions in `pattern-mod' are composed left to right."
 
 (defun formatz-mod-pad-r10 (string)
   "Return STRING padded on the right to 10 characters."
-  (concat string (make-string (- 10 (length string)) ?\s)))
+  (string-pad string 10))
 
 (defun formatz-mod-pad-r12 (string)
   "Return STRING padded on the right to 12 characters."
-  (concat string (make-string (- 12 (length string)) ?\s)))
+  (string-pad string 12))
 
 ;; Convenience macro for generating groups of test cases.
 
@@ -966,7 +1014,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
 
 ;;;; The actual test cases for %z
 
-;;; %z formats without colons.
+;;; Test %z formats without colons.
 
 ;; Option character "-" (minus) minimizes; it removes "00" minutes.
 (formatz-generate-tests ("%-z" "%-3z")
@@ -976,7 +1024,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00")
   ("+100:00:30"))
 
-;; Tests that minus with padding pads with spaces.
+;; Minus with padding pads with spaces.
 (formatz-generate-tests ("%-12z")
   ("+00         " formatz-mod-pad-r12)
   ("+0030       " formatz-mod-del-colons formatz-mod-pad-r12)
@@ -984,7 +1032,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00     " formatz-mod-pad-r12)
   ("+100:00:30  " formatz-mod-pad-r12))
 
-;; Tests that 0 after other digits becomes padding of ten, not zero flag.
+;; 0 after other digits becomes padding of ten, not zero flag.
 (formatz-generate-tests ("%-10z")
   ("+00       " formatz-mod-pad-r10)
   ("+0030     " formatz-mod-del-colons formatz-mod-pad-r10)
@@ -1017,7 +1065,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00")
   ("+100:00:30"))
 
-;; Tests that padding adds spaces.
+;; Padding adds spaces.
 (formatz-generate-tests ("%12z")
   ("+0000       " formatz-mod-add-00 formatz-mod-pad-r12)
   ("+0030       " formatz-mod-del-colons formatz-mod-pad-r12)
@@ -1049,7 +1097,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00:00  " formatz-mod-add-colon00 formatz-mod-pad-r12)
   ("+100:00:30  " formatz-mod-pad-r12))
 
-;;; %z formats with colons
+;;; Test %z formats with colons.
 
 ;; Three colons can output hours only,
 ;; like %-z, but uses colons with non-zero minutes and seconds.
@@ -1061,14 +1109,15 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00")
   ("+100:00:30"))
 
-;; Padding with three colons adds spaces
+;; Padding with three colons adds spaces.
 (formatz-generate-tests ("%12:::z")
   ("+00         " formatz-mod-pad-r12)
   ("+00:30      " formatz-mod-pad-r12)
   ("+00:00:30   " formatz-mod-pad-r12)
   ("+100:00     " formatz-mod-pad-r12)
   ("+100:00:30  " formatz-mod-pad-r12))
-;; Tests that 0 after other digits becomes padding of ten, not zero flag.
+
+;; 0 after other digits becomes padding of ten, not zero flag.
 (formatz-generate-tests ("%10:::z")
   ("+00       " formatz-mod-pad-r10)
   ("+00:30    " formatz-mod-pad-r10)
@@ -1084,7 +1133,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00")
   ("+100:00:30"))
 
-;; Padding with one colon adds spaces
+;; Padding with one colon adds spaces.
 (formatz-generate-tests ("%12:z")
   ("+00:00      " formatz-mod-add-colon00 formatz-mod-pad-r12)
   ("+00:30      " formatz-mod-pad-r12)
@@ -1117,7 +1166,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00:00  " formatz-mod-add-colon00 formatz-mod-pad-r12)
   ("+100:00:30  " formatz-mod-pad-r12))
 
-;;; Illegal %z formats
+;;; Test illegal %z formats.
 
 (ert-deftest formatz-illegal-options ()
   "Test that illegal/nonsensical/ambiguous %z formats don't produce output."
