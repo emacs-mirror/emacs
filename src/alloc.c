@@ -3764,13 +3764,6 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
   /* Bytecode must be immovable.  */
   pin_string (args[CLOSURE_CODE]);
 
-  /* We used to purecopy everything here, if purify-flag was set.  This worked
-     OK for Emacs-23, but with Emacs-24's lexical binding code, it can be
-     dangerous, since make-byte-code is used during execution to build
-     closures, so any closure built during the preload phase would end up
-     copied into pure space, including its free variables, which is sometimes
-     just wasteful and other times plainly wrong (e.g. those free vars may want
-     to be setcar'd).  */
   Lisp_Object val = Fvector (nargs, args);
   XSETPVECTYPE (XVECTOR (val), PVEC_CLOSURE);
   return val;
