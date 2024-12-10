@@ -45,6 +45,8 @@
     map)
   "Keymap of possible alternative meanings for some keys.")
 
+(declare-function ns-setup-special-keys "term/ns-win" ())
+
 (defun x-setup-function-keys (frame)
   "Set up `function-key-map' on the graphical frame FRAME."
   ;; Don't do this twice on the same display, or it would break
@@ -56,22 +58,7 @@
         (set-keymap-parent map (keymap-parent local-function-key-map))
         (set-keymap-parent local-function-key-map map))
       (when (featurep 'ns)
-	(setq system-key-alist
-	      (list
-	       ;; These are special "keys" used to pass events from C to lisp.
-	       (cons  1 (make-non-key-event 'ns-power-off))
-	       (cons  2 (make-non-key-event 'ns-open-file))
-	       (cons  3 (make-non-key-event 'ns-open-temp-file))
-	       (cons  4 (make-non-key-event 'ns-drag-file))
-	       (cons  5 (make-non-key-event 'ns-drag-color))
-	       (cons  6 (make-non-key-event 'ns-drag-text))
-	       (cons  8 (make-non-key-event 'ns-open-file-line))
-;;;	       (cons  9 (make-non-key-event 'ns-insert-working-text))
-;;;	       (cons 10 (make-non-key-event 'ns-delete-working-text))
-	       (cons 11 (make-non-key-event 'ns-spi-service-call))
-	       (cons 12 (make-non-key-event 'ns-new-frame))
-	       (cons 13 (make-non-key-event 'ns-toggle-toolbar))
-	       (cons 14 (make-non-key-event 'ns-show-prefs))))))
+        (ns-setup-special-keys)))
     (set-terminal-parameter frame 'x-setup-function-keys t)))
 
 (defvar x-invocation-args)

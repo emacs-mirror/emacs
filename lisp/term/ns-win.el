@@ -168,6 +168,27 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [S-mouse-1] 'mouse-save-then-kill)
 (global-unset-key [S-down-mouse-1])
 
+;; Moved here from common-win.el because they need to work in a -nw
+;; invocation of a (featurep 'ns) => true build (Bug#74619).
+(defun ns-setup-special-keys ()
+  (setq system-key-alist
+        (list
+         ;; These are special "keys" used to pass events from C to lisp.
+         (cons  1 (make-non-key-event 'ns-power-off))
+         (cons  2 (make-non-key-event 'ns-open-file))
+         (cons  3 (make-non-key-event 'ns-open-temp-file))
+         (cons  4 (make-non-key-event 'ns-drag-file))
+         (cons  5 (make-non-key-event 'ns-drag-color))
+         (cons  6 (make-non-key-event 'ns-drag-text))
+         (cons  8 (make-non-key-event 'ns-open-file-line))
+;;;            (cons  9 (make-non-key-event 'ns-insert-working-text))
+;;;            (cons 10 (make-non-key-event 'ns-delete-working-text))
+         (cons 11 (make-non-key-event 'ns-spi-service-call))
+         (cons 12 (make-non-key-event 'ns-new-frame))
+         (cons 13 (make-non-key-event 'ns-toggle-toolbar))
+         (cons 14 (make-non-key-event 'ns-show-prefs)))))
+(ns-setup-special-keys)
+
 ;; Special Nextstep-generated events are converted to function keys.  Here
 ;; are the bindings for them.  Note, these keys are actually declared in
 ;; x-setup-function-keys in common-win.
