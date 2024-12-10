@@ -577,9 +577,9 @@ corresponding position in the completion alternative.
 
 @vindex completion-pcm-leading-wildcard
 If @code{completion-pcm-leading-wildcard} is set to @code{t}, this style
-always acts as if a @dfn{wildcard} is present at the start of the
-minibuffer text, similar to the @code{substring} style.  For example,
-@samp{l-m} will complete to @samp{emacs-lisp-mode}.
+always acts as if a @dfn{wildcard} is present at the start of each word
+in the minibuffer text, similar to the @code{substring} style.  For
+example, @samp{l-ode} will complete to @samp{emacs-lisp-mode}.
 
 @item emacs22
 @cindex @code{emacs22}, completion style
