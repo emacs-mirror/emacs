@@ -448,6 +448,34 @@ be used instead.
 This is used to try and avoid the most egregious problems linked to the
 use of `macroexpand-all' as a way to find the \"underlying raw code\".")
 
+(defvar elisp--macroexpand-untrusted-warning t)
+
+(defun elisp--safe-macroexpand-all (sexp)
+  (if (not (trusted-content-p))
+      ;; FIXME: We should try and do better here, either using a notion
+      ;; of "safe" macros, or with `bwrap', or ...
+      (progn
+        (when elisp--macroexpand-untrusted-warning
+          (setq-local elisp--macroexpand-untrusted-warning nil) ;Don't spam!
+          (message "Completion of local vars is disabled in %s (untrusted content)"
+                   (buffer-name)))
+        sexp)
+    (let ((macroexpand-advice
+           (lambda (expander form &rest args)
+             (condition-case err
+                 (apply expander form args)
+               (error
+                (message "Ignoring macroexpansion error: %S" err) form)))))
+      (unwind-protect
+          ;; Silence any macro expansion errors when
+          ;; attempting completion at point (bug#58148).
+          (let ((inhibit-message t)
+                (macroexp-inhibit-compiler-macros t)
+                (warning-minimum-log-level :emergency))
+            (advice-add 'macroexpand-1 :around macroexpand-advice)
+            (macroexpand-all sexp elisp--local-macroenv))
+        (advice-remove 'macroexpand-1 macroexpand-advice)))))
+
 (defun elisp--local-variables ()
   "Return a list of locally let-bound variables at point."
   (save-excursion
@@ -463,23 +491,8 @@ use of `macroexpand-all' as a way to find the \"underlying raw code\".")
                        (car (read-from-string
                              (concat txt "elisp--witness--lisp" closer)))
                      ((invalid-read-syntax end-of-file) nil)))
-             (macroexpand-advice
-              (lambda (expander form &rest args)
-                (condition-case err
-                    (apply expander form args)
-                  (error
-                   (message "Ignoring macroexpansion error: %S" err) form))))
-             (sexp
-              (unwind-protect
-                  ;; Silence any macro expansion errors when
-                  ;; attempting completion at point (bug#58148).
-                  (let ((inhibit-message t)
-                        (macroexp-inhibit-compiler-macros t)
-                        (warning-minimum-log-level :emergency))
-                    (advice-add 'macroexpand-1 :around macroexpand-advice)
-                    (macroexpand-all sexp elisp--local-macroenv))
-                (advice-remove 'macroexpand-1 macroexpand-advice)))
-             (vars (elisp--local-variables-1 nil sexp)))
+             (vars (elisp--local-variables-1
+                    nil (elisp--safe-macroexpand-all sexp))))
         (delq nil
               (mapcar (lambda (var)
                         (and (symbolp var)
@@ -2188,6 +2201,14 @@ directory of the buffer being compiled, and nothing else.")
   "A Flymake backend for elisp byte compilation.
 Spawn an Emacs process that byte-compiles a file representing the
 current buffer state and calls REPORT-FN when done."
+  (unless (trusted-content-p)
+    ;; FIXME: Use `bwrap' and friends to compile untrusted content.
+    ;; FIXME: We emit a message *and* signal an error, because by default
+    ;; Flymake doesn't display the warning it puts into "*flmake log*".
+    (message "Disabling elisp-flymake-byte-compile in %s (untrusted content)"
+             (buffer-name))
+    (error "Disabling elisp-flymake-byte-compile in %s (untrusted content)"
+           (buffer-name)))
   (when elisp-flymake--byte-compile-process
     (when (process-live-p elisp-flymake--byte-compile-process)
       (kill-process elisp-flymake--byte-compile-process)))

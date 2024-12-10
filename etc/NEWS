@@ -199,6 +199,14 @@ see the variable 'url-request-extra-headers'.
 
 * Changes in Emacs 30.1
 
+** New variable 'trusted-files' to allow potentially dangerous features.
+This variable lists those files and directories whose content Emacs should
+consider as sufficiently trusted to run any part of the code contained
+therein even without any explicit user request.
+For example, Flymake's backend for Emacs Lisp consults this variable
+and disables itself with an "untrusted content" warning if the file
+is not listed.
+
 ---
 ** Emacs now supports Unicode Standard version 15.1.
 
@@ -1858,6 +1866,12 @@ This argument specifies the prettifying algorithm to use.
 In the past they included a terminating newline in most cases but not all.
 
 ** Emacs Lisp mode
+
+*** 'elisp-flymake-byte-compile' is disabled for untrusted files.
+For security reasons, this backend can be used only in those files
+specified as trusted according to 'trusted-files' and emits an
+"untrusted content" warning otherwise.
+This fixes CVE-2024-53920.
 
 ---
 *** ',@' now has 'prefix' syntax.
