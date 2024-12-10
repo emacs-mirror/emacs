@@ -1488,7 +1488,7 @@ If non-nil, it overrides `compilation-buffer-name-function' for
 
 ;;;###autoload
 (defun project-recompile (&optional edit-command)
-  "Run `recompile' with appropriate buffer."
+  "Run `recompile' in the project root with an appropriate buffer."
   (declare (interactive-only recompile))
   (interactive "P")
   (let ((default-directory (project-root (project-current t)))
