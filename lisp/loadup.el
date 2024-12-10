@@ -565,9 +565,6 @@ directory got moved.  This is set to be a pair in the form of:
 ;; Avoid error if user loads some more libraries now.
 (setq purify-flag nil)
 
-(if (null (garbage-collect))
-    (setq pure-space-overflow t))
-
 ;; Make sure we will attempt bidi reordering henceforth.
 (setq redisplay--inhibit-bidi nil)
 

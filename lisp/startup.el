@@ -427,9 +427,6 @@ from being initialized."
 
 (defvar no-blinking-cursor nil)
 
-(defvar pure-space-overflow nil
-  "Non-nil if building Emacs overflowed pure space.")
-
 (defcustom tutorial-directory
   (file-name-as-directory (expand-file-name "tutorials" data-directory))
   "Directory containing the Emacs TUTORIAL files."
