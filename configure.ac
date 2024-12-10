@@ -3206,8 +3206,7 @@ AC_CACHE_CHECK(
        [AC_LANG_PROGRAM(
 	  [[#include <malloc.h>
 	    static void hook (void) {}]],
-	  [[malloc_set_state (malloc_get_state ());
-	    __after_morecore_hook = hook;
+          [[__after_morecore_hook = hook;
 	    __malloc_initialize_hook = hook;]])],
        [emacs_cv_var_doug_lea_malloc=yes])
    fi])
@@ -3255,7 +3254,7 @@ if test "$doug_lea_malloc" = "yes"; then
   fi
   AC_DEFINE([DOUG_LEA_MALLOC], [1],
     [Define to 1 if the system memory allocator is Doug Lea style,
-     with malloc hooks and malloc_set_state.])
+     with malloc hooks.])
 
   ## Use mmap directly for allocating larger buffers.
   ## FIXME this comes from src/s/{gnu,gnu-linux}.h:
