@@ -654,11 +654,7 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
                          (symbol-function sym)))
             ;; Prevent `defalias' from recording this as the definition site of
             ;; the generic function.
-            current-load-list
-            ;; BEWARE!  Don't purify this function definition, since that leads
-            ;; to memory corruption if the hash-tables it holds are modified
-            ;; (the GC doesn't trace those pointers).
-            (purify-flag nil))
+            current-load-list)
         (when (listp old-adv-cc)
           (set-advertised-calling-convention gfun old-adv-cc nil))
         ;; But do use `defalias', so that it interacts properly with nadvice,
