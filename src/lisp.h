@@ -4428,7 +4428,6 @@ extern void parse_str_as_multibyte (const unsigned char *, ptrdiff_t,
 
 /* Defined in alloc.c.  */
 extern intptr_t garbage_collection_inhibited;
-extern void *my_heap_start (void);
 unsigned char *resize_string_data (Lisp_Object, ptrdiff_t, int, int);
 extern void malloc_warning (const char *);
 extern AVOID memory_full (size_t);

@@ -219,9 +219,6 @@ malloc_initialize_hook (void)
 
   if (! initialized)
     {
-# ifdef GNU_LINUX
-      my_heap_start ();
-# endif
       malloc_using_checking = getenv ("MALLOC_CHECK_") != NULL;
     }
   else
@@ -254,22 +251,6 @@ typedef void (*voidfuncptr) (void);
 # endif
 voidfuncptr __MALLOC_HOOK_VOLATILE __malloc_initialize_hook EXTERNALLY_VISIBLE
   = malloc_initialize_hook;
-
-#endif
-
-#if defined DOUG_LEA_MALLOC
-# ifdef GNU_LINUX
-
-/* The address where the heap starts.  */
-void *
-my_heap_start (void)
-{
-  static void *start;
-  if (! start)
-    start = sbrk (0);
-  return start;
-}
-# endif
 
 #endif
 
