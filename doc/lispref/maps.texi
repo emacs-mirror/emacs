@@ -30,7 +30,7 @@ A sparse keymap for subcommands of the prefix @kbd{C-x a}.@*
 @xref{Defining Abbrevs,,, emacs, The GNU Emacs Manual}.
 
 @item button-buffer-map
-A sparse keymap useful for buffers containing buffers.@*
+A sparse keymap useful for buffers containing buttons.@*
 You may want to use this as a parent keymap.  @xref{Buttons}.
 
 @item button-map
