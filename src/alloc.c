@@ -5585,42 +5585,6 @@ hash_table_free_bytes (void *p, ptrdiff_t nbytes)
   xfree (p);
 }
 
-
-static Lisp_Object purecopy (Lisp_Object obj);
-
-DEFUN ("purecopy", Fpurecopy, Spurecopy, 1, 1, 0,
-       doc: /* Make a copy of object OBJ in pure storage.
-Recursively copies contents of vectors and cons cells.
-Does not copy symbols.  Copies strings without text properties.  */)
-  (register Lisp_Object obj)
-{
-  if (NILP (Vpurify_flag))
-    return obj;
-  else if (MARKERP (obj) || OVERLAYP (obj) || SYMBOLP (obj))
-    /* Can't purify those.  */
-    return obj;
-  else
-    return purecopy (obj);
-}
-
-static Lisp_Object
-purecopy (Lisp_Object obj)
-{
-  if (FIXNUMP (obj) || SUBRP (obj))
-    return obj;    /* No need to hash.  */
-
-  if (HASH_TABLE_P (Vpurify_flag)) /* Hash consing.  */
-    {
-      Lisp_Object tmp = Fgethash (obj, Vpurify_flag, Qnil);
-      if (!NILP (tmp))
-	return tmp;
-      Fputhash (obj, obj, Vpurify_flag);
-    }
-
-  return obj;
-}
-
-
 
 /***********************************************************************
 			  Protection from GC
@@ -7748,7 +7712,6 @@ N should be nonnegative.  */);
   defsubr (&Smake_symbol);
   defsubr (&Smake_marker);
   defsubr (&Smake_finalizer);
-  defsubr (&Spurecopy);
   defsubr (&Sgarbage_collect);
   defsubr (&Sgarbage_collect_maybe);
   defsubr (&Smemory_info);

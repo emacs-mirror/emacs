@@ -105,10 +105,6 @@
       ;; than usual.
       (setq max-lisp-eval-depth (max max-lisp-eval-depth 3400))))
 
-(if (eq t purify-flag)
-    ;; Hash consing saved around 11% of pure space in my tests.
-    (setq purify-flag (make-hash-table :test #'equal :size 80000)))
-
 (message "Using load-path %s" load-path)
 
 (if dump-mode
@@ -565,25 +561,8 @@ directory got moved.  This is set to be a pair in the form of:
   ;; file-local variables.
   (defvar comp--no-native-compile (make-hash-table :test #'equal)))
 
-(when (hash-table-p purify-flag)
-  (let ((strings 0)
-        (vectors 0)
-        (bytecodes 0)
-        (conses 0)
-        (others 0))
-    (maphash (lambda (k v)
-               (cond
-                ((stringp k) (setq strings (1+ strings)))
-                ((vectorp k) (setq vectors (1+ vectors)))
-                ((consp k)   (setq conses  (1+ conses)))
-                ((byte-code-function-p v) (setq bytecodes (1+ bytecodes)))
-                (t           (setq others  (1+ others)))))
-             purify-flag)
-    (message "Pure-hashed: %d strings, %d vectors, %d conses, %d bytecodes, %d others"
-             strings vectors conses bytecodes others)))
 
-;; Avoid error if user loads some more libraries now and make sure the
-;; hash-consing hash table is GC'd.
+;; Avoid error if user loads some more libraries now.
 (setq purify-flag nil)
 
 (if (null (garbage-collect))

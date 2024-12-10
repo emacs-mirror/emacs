@@ -2042,6 +2042,8 @@ instead; it will indirectly limit the specpdl stack size as well.")
 
 (define-obsolete-function-alias 'fetch-bytecode #'ignore "30.1")
 
+(define-obsolete-function-alias 'purecopy #'identity "31.1")
+
 
 ;;;; Alternate names for functions - these are not being phased out.
 
