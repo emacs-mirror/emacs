@@ -41,6 +41,12 @@ why the mark trace buffer is enabled by default.
 
 * Startup Changes in Emacs 31.1
 
+** When run inside xterm, 'xterm-mouse-mode' is turned on by default.
+This means that the mouse will work by default inside xterm terminals.
+If your terminal does not behave properly with xterm mouse tracking
+enabled, you can disable mouse tracking by putting '(xterm-mouse-mode
+-1)' in your init file.
+
 
 * Changes in Emacs 31.1
 

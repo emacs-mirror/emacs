@@ -907,6 +907,8 @@ We run the first FUNCTION whose STRING matches the input events."
 
   (when xterm-set-window-title
     (xterm--init-frame-title))
+  (when xterm-mouse-mode
+    (xterm-mouse-mode 1))
   ;; Unconditionally enable bracketed paste mode: terminals that don't
   ;; support it just ignore the sequence.
   (xterm--init-bracketed-paste-mode)

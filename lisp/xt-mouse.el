@@ -358,6 +358,8 @@ single clicks are supported.  When turned on, the normal xterm
 mouse functionality for such clicks is still available by holding
 down the SHIFT key while pressing the mouse button."
   :global t :group 'mouse
+  :init-value t
+  :version "31.1"
   (funcall (if xterm-mouse-mode 'add-hook 'remove-hook)
            'terminal-init-xterm-hook
            'turn-on-xterm-mouse-tracking-on-terminal)
