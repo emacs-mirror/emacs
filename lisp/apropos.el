@@ -731,9 +731,8 @@ the output includes key-bindings of commands."
 	('require (push (cdr x) requires))
 	('provide (push (cdr x) provides))
         ('t nil)                     ; Skip "was an autoload" entries.
-        ;; FIXME: Print information about each individual method: both
-        ;; its docstring and specializers (bug#21422).
-        ('cl-defmethod (push (cadr x) provides))
+        ;; FIXME: Print information about each method on generic
+        ;; functions: both the docstring and specializers (bug#21422).
         ;; FIXME: Add extension point (bug#72616).
 	(_ (let ((sym (or (cdr-safe x) x)))
 	     (and sym (symbolp sym)
