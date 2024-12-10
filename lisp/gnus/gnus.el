@@ -1402,9 +1402,14 @@ this variable.  I think."
 	    (string :tag "Address")
 	    (repeat :tag "Options"
 		    :inline t
-		    (list :format "%v"
-			  variable
-			  (sexp :tag "Value"))))))
+                    (radio
+		     (list :tag "Single var" :format "%v"
+			   variable
+			   (sexp :tag "Value"))
+                     (list :tag "Multiple var" :format "%v"
+			   variable
+                           variable
+			   (sexp :tag "Value")))))))
 
 (gnus-redefine-select-method-widget)
 
