@@ -41,7 +41,7 @@
 
 ;; These rules are so that src/Makefile can construct lisp.mk
 ;; automatically.  This ensures that the Lisp files are compiled (if
-;; necessary) before the emacs executable is dumped.
+;; necessary) before the "emacs" executable is dumped.
 
 ;;; Code:
 
