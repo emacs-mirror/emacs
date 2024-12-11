@@ -237,7 +237,7 @@ be used instead."
 (defcustom browse-url-button-regexp
   (concat
    "\\b\\(\\(www\\.\\|\\(s?https?\\|ftps?\\|file\\|gophers?\\|gemini\\|"
-   "nntp\\|news\\|telnet\\|wais\\|mailto\\|info\\):\\)"
+   "nntps?\\|s?news\\|telnet\\|wais\\|mailto\\|info\\):\\)"
    "\\(//[-a-z0-9_.]+:[0-9]*\\)?"
    (let ((chars "-a-z0-9_=#$@~%&*+\\/[:word:]")
 	 (punct "!?:;.,"))
@@ -252,7 +252,7 @@ be used instead."
       "\\)"))
    "\\)")
   "Regular expression that matches URLs."
-  :version "27.1"
+  :version "31.1"
   :type 'regexp)
 
 (defcustom browse-url-browser-display nil
