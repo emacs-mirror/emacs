@@ -238,6 +238,7 @@ tag with greater section value than LEVEL is found."
   ;; This will use our parser.
   (setq semantic-parser-name "HTML"
         semantic--parse-table t
+        semantic--create-index-function-origin imenu-create-index-function
         imenu-create-index-function #'semantic-create-imenu-index
 	semantic-command-separation-character ">"
 	semantic-type-relation-separator-character '(":")

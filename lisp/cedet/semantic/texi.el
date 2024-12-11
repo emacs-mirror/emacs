@@ -445,6 +445,7 @@ that start with that symbol."
   (setq semantic-parser-name "TEXI"
         ;; Setup a dummy parser table to enable parsing!
         semantic--parse-table t
+        semantic--create-index-function-origin imenu-create-index-function
         imenu-create-index-function #'semantic-create-imenu-index
 	semantic-command-separation-character "@"
 	semantic-type-relation-separator-character '(":")

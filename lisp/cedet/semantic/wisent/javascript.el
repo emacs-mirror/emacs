@@ -135,6 +135,7 @@ This is currently needed for the mozrepl omniscient database."
    semantic-tag-expand-function #'wisent-javascript-jv-expand-tag
    ;; Environment
    semantic-imenu-summary-function #'semantic-format-tag-name
+   semantic--create-index-function-origin imenu-create-index-function
    imenu-create-index-function #'semantic-create-imenu-index
    semantic-command-separation-character ";"
    ))

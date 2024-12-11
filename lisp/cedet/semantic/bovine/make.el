@@ -226,6 +226,7 @@ Uses default implementation, and also gets a list of filenames."
                                             (?+ ".")
                                             (?\\ ".")
                                             )
+        semantic--create-index-function-origin imenu-create-index-function
         imenu-create-index-function #'semantic-create-imenu-index
         )
   (setq semantic-lex-analyzer #'semantic-make-lexer)

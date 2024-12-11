@@ -53,6 +53,7 @@
    ;; Parsing
    ;; Environment
    semantic-imenu-summary-function #'semantic-format-tag-name
+   semantic--create-index-function-origin imenu-create-index-function
    imenu-create-index-function #'semantic-create-imenu-index
    semantic-command-separation-character "\n"
    semantic-lex-comment-regex ";;"

@@ -102,6 +102,7 @@ syntax as specified by the syntax table."
                                             (function . "Functions")
                                             (include  . "Loads")
                                             (package  . "DefineModule"))
+        semantic--create-index-function-origin imenu-create-index-function
         imenu-create-index-function #'semantic-create-imenu-index
         )
   (setq semantic-lex-analyzer #'semantic-scheme-lexer)
