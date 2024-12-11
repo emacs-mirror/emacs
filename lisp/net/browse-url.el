@@ -520,11 +520,12 @@ down (this *won't* always work)."
 (defcustom browse-url-kde-program "kde-open"
   "The name by which to invoke the KDE web browser."
   :type 'string
-  :version "21.1")
+  :version "31.1")
 
 (defcustom browse-url-kde-args nil
   "A list of strings defining options for `browse-url-kde-program'."
-  :type '(repeat (string :tag "Argument")))
+  :type '(repeat (string :tag "Argument"))
+  :version "31.1")
 
 (defcustom browse-url-elinks-wrapper '("xterm" "-e")
   "Wrapper command prepended to the Elinks command-line."
