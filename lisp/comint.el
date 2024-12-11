@@ -1538,16 +1538,20 @@ If nil, Isearch operates on the whole comint buffer."
   :group 'comint
   :version "23.2")
 
+(defvar comint--force-history-isearch nil
+  "Non-nil means to force searching in input history.
+If nil, respect the option `comint-history-isearch'.")
+
 (defun comint-history-isearch-backward ()
   "Search for a string backward in input history using Isearch."
   (interactive nil comint-mode)
-  (setq comint-history-isearch t)
+  (setq comint--force-history-isearch t)
   (isearch-backward nil t))
 
 (defun comint-history-isearch-backward-regexp ()
   "Search for a regular expression backward in input history using Isearch."
   (interactive nil comint-mode)
-  (setq comint-history-isearch t)
+  (setq comint--force-history-isearch t)
   (isearch-backward-regexp nil t))
 
 (defvar-local comint-history-isearch-message-overlay nil)
@@ -1563,7 +1567,8 @@ Intended to be added to `isearch-mode-hook' in `comint-mode'."
 		    (forward-line 0)
 		    (point))
 		  (comint-line-beginning-position)))
-	 (or (eq comint-history-isearch t)
+	 (or comint--force-history-isearch
+             (eq comint-history-isearch t)
 	     (and (eq comint-history-isearch 'dwim)
 		  ;; Point is at command line.
 		  (comint-after-pmark-p))))
@@ -1593,7 +1598,7 @@ Intended to be added to `isearch-mode-hook' in `comint-mode'."
   (kill-local-variable 'isearch-lazy-count)
   (remove-hook 'isearch-mode-end-hook 'comint-history-isearch-end t)
   (unless isearch-suspended
-    (custom-reevaluate-setting 'comint-history-isearch)))
+    (setq comint--force-history-isearch nil)))
 
 (defun comint-goto-input (pos)
   "Put input history item of the absolute history position POS."
