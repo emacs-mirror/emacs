@@ -1307,9 +1307,15 @@ overrides the default specified in `completion-category-defaults'."
                                string table pred point)))
                    (and probe (cons probe style))))))
            (completion--styles md)))
-         (adjust-fn (get (cdr result-and-style) 'completion--adjust-metadata)))
-    (when (and adjust-fn metadata)
-      (setcdr metadata (cdr (funcall adjust-fn metadata))))
+         (adjust-fn (get (cdr result-and-style) 'completion--adjust-metadata))
+         (adjusted (completion-metadata-get
+                    metadata 'completion--adjusted-metadata)))
+    (when (and adjust-fn metadata
+               ;; Avoid re-applying the same adjustment (bug#74718).
+               (not (memq (cdr result-and-style) adjusted)))
+      (setcdr metadata `((completion--adjusted-metadata
+                          ,(cdr result-and-style) . ,adjusted)
+                         . ,(cdr (funcall adjust-fn metadata)))))
     (if requote
         (funcall requote (car result-and-style) n)
       (car result-and-style))))
