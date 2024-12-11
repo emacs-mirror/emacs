@@ -623,7 +623,9 @@ the {...} holes that appear within f-strings."
               (forward-char 1)          ;Just skip over {{
             (let ((beg (match-beginning 0))
                   (end (condition-case nil
-                           (progn (up-list 1) (min send (point)))
+                           (let ((parse-sexp-ignore-comments))
+                             (up-list 1)
+                             (min send (point)))
                          (scan-error send))))
               (goto-char end)
               (put-text-property beg end 'face nil))))

@@ -709,6 +709,14 @@ y = \"confused\""
      (17 . font-lock-operator-face) (18)
      (19 . font-lock-string-face))))
 
+(ert-deftest python-font-lock-f-string-1 ()
+  "Test for bug#74738."
+  (python-tests-assert-faces
+   "print(f\"{value:#x} is a value\")"
+   '((1 . font-lock-builtin-face) (6)
+     (8 . font-lock-string-face) (9)
+     (19 . font-lock-string-face) (31))))
+
 
 ;;; Indentation
 
