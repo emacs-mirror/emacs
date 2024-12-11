@@ -2669,7 +2669,7 @@ typedef int32_t hash_idx_t;
 /* The reason for this unusual structure is an MPS peculiarity on 32-bit x86 systems. */
 struct Lisp_Weak_Hash_Table_Entry
 {
-  intptr_t intptr; /* must be an MPS base pointer */
+  EMACS_UINT intptr; /* must be an MPS base pointer */
   Lisp_Object fixnum; /* a fixnum indicating the tag, or just a fixnum */
 };
 

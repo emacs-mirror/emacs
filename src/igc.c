@@ -2222,8 +2222,14 @@ fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Par
 
 	for (ssize_t i = 0; i < limit; i++)
 	  {
-	    bool was_nil = w->entries[i].intptr == 0;
-	    IGC_FIX12_BASE (ss, &w->entries[i].intptr);
+	    if (w->entries[i].intptr & 1)
+	      eassert ((mps_word_t)w->entries[i].intptr ^ w->entries[i].intptr == 0);
+	    bool was_nil = (w->entries[i].intptr) == 0;
+	    intptr_t off = 0;
+#ifdef WORDS_BIGENDIAN
+	    off = sizeof (w->entries[i].intptr) - sizeof (mps_word_t);
+#endif
+	    IGC_FIX12_BASE (ss, ((char *)&w->entries[i].intptr) + off);
 	    bool is_now_nil = w->entries[i].intptr == 0;
 
 	    if (is_now_nil && !was_nil)
@@ -4093,7 +4099,7 @@ weak_hash_table_entry (struct Lisp_Weak_Hash_Table_Entry entry)
     }
   else
     {
-      intptr_t real_ptr = entry.intptr ^ alignment;
+      EMACS_UINT real_ptr = entry.intptr ^ alignment;
       client = (mps_addr_t)real_ptr;
     }
 
@@ -4125,7 +4131,7 @@ make_weak_hash_table_entry (Lisp_Object obj)
   else
     client = XUNTAG (obj, XTYPE (obj), void);
 
-  entry.intptr = (intptr_t)client;
+  entry.intptr = (EMACS_UINT)(uintptr_t)client;
 
   return entry;
 }
