@@ -140,6 +140,7 @@
 ;;; Code:
 
 (require 'url)
+(require 'xdg)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Variables
@@ -342,6 +343,16 @@ Defaults to the value of `browse-url-epiphany-arguments' at the time
 `browse-url' is loaded."
   :type '(repeat (string :tag "Argument")))
 
+(defcustom browse-url-qutebrowser-program "qutebrowser"
+  "The name by which to invoke Qutebrowser."
+  :type 'string
+  :version "31.1")
+
+(defcustom browse-url-qutebrowser-arguments nil
+  "A list of strings to pass to Qutebrowser when it starts up."
+  :type '(repeat (string :tag "Argument"))
+  :version "31.1")
+
 (defcustom browse-url-webpositive-program "WebPositive"
   "The name by which to invoke WebPositive."
   :type 'string
@@ -360,32 +371,44 @@ Defaults to the value of `browse-url-epiphany-arguments' at the time
 (make-obsolete-variable 'browse-url-gnome-moz-arguments nil "25.1")
 
 (defcustom browse-url-mozilla-new-window-is-tab nil
-  "Whether to open up new windows in a tab or a new window.
+  "Whether to open up new Mozilla windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new window if
-`browse-url-mozilla' is asked to open it in a new window."
+`browse-url-mozilla' is asked to open it in a new window via the
+NEW-WINDOW argument."
   :type 'boolean)
 (make-obsolete-variable 'browse-url-mozilla-new-window-is-tab nil "29.1")
 
 (defcustom browse-url-firefox-new-window-is-tab nil
-  "Whether to open up new windows in a tab or a new window.
+  "Whether to open up new Firefox windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new window if
-`browse-url-firefox' is asked to open it in a new window."
+`browse-url-firefox' is asked to open it in a new window via the
+NEW-WINDOW argument."
   :type 'boolean)
 
 (defcustom browse-url-conkeror-new-window-is-buffer nil
-  "Whether to open up new windows in a buffer or a new window.
+  "Whether to open up new Conkeror windows in a buffer or a new window.
 If non-nil, then open the URL in a new buffer rather than a new window if
-`browse-url-conkeror' is asked to open it in a new window."
+`browse-url-conkeror' is asked to open it in a new window via the
+NEW-WINDOW argument."
   :version "25.1"
   :type 'boolean)
 
 (make-obsolete-variable 'browse-url-conkeror-new-window-is-buffer nil "28.1")
 
 (defcustom browse-url-epiphany-new-window-is-tab nil
-  "Whether to open up new windows in a tab or a new window.
+  "Whether to open up new Epiphany windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new window if
-`browse-url-epiphany' is asked to open it in a new window."
+`browse-url-epiphany' is asked to open it in a new window via the
+NEW-WINDOW argument."
   :type 'boolean)
+
+(defcustom browse-url-qutebrowser-new-window-is-tab nil
+  "Whether to open up new Qutebrowser windows in a tab or a new window.
+If non-nil, then open the URL in a new tab rather than a new window if
+`browse-url-qutebrowser' is asked to open it in a new window via the
+NEW-WINDOW argument."
+  :type 'boolean
+  :version "31.1")
 
 (defcustom browse-url-new-window-flag nil
   "Non-nil means always open a new browser window with appropriate browsers.
@@ -1290,6 +1313,60 @@ used instead of `browse-url-new-window-flag'."
 	(apply #'start-process (concat "epiphany " url) nil
 	       browse-url-epiphany-program
 	       (append browse-url-epiphany-startup-arguments (list url))))))
+
+(defun browse-url-qutebrowser-send (cmd)
+  "Send CMD to Qutebrowser via IPC."
+  (let* ((dir (xdg-runtime-dir))
+         (sock (and dir (expand-file-name
+                         (format "qutebrowser/ipc-%s" (md5 (user-login-name)))
+                         dir))))
+    (unless (file-exists-p sock)
+      (error "No Qutebrowser IPC socket found"))
+    (let ((proc
+           (make-network-process
+            :name "qutebrowser"
+            :family 'local
+            :service sock
+            :coding 'utf-8)))
+      (unwind-protect
+          (process-send-string
+           proc
+           (concat
+            (json-serialize `( :args [,cmd]
+                               :target_arg :null
+                               :protocol_version 1))
+            "\n"))
+        (delete-process proc)))))
+
+(defun browse-url-qutebrowser (url &optional new-window)
+  "Ask the Qutebrowser WWW browser to load URL.
+Default to the URL around or before point.
+
+When called interactively, if variable `browse-url-new-window-flag' is
+non-nil, load the document in a new Qutebrowser window, otherwise use a
+random existing one.  A non-nil interactive prefix argument reverses
+the effect of `browse-url-new-window-flag'.
+
+If `browse-url-qutebrowser-new-window-is-tab' is non-nil, then whenever a
+document would otherwise be loaded in a new window, it is loaded in a
+new tab in an existing window instead.
+
+When called non-interactively, optional second argument NEW-WINDOW is
+used instead of `browse-url-new-window-flag'."
+  (interactive (browse-url-interactive-arg "URL: "))
+  (let ((cmd (concat ":open "
+                     (and (browse-url-maybe-new-window new-window)
+                          (if browse-url-qutebrowser-new-window-is-tab
+                              "-t " "-w "))
+                     (browse-url-encode-url url))))
+    (condition-case nil
+        (browse-url-qutebrowser-send cmd)
+      (error
+       (apply #'start-process (concat "qutebrowser " url) nil
+              browse-url-qutebrowser-program
+              (append browse-url-qutebrowser-arguments (list cmd)))))))
+
+(function-put 'browse-url-qutebrowser 'browse-url-browser-kind 'external)
 
 (defvar url-handler-regexp)
 

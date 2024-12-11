@@ -294,6 +294,12 @@ modal editing packages.
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
+** Browse URL
+
+*** New function 'browse-url-qutebrowser' for the Qutebrowser.
+For better integration with the Qutebrowser, set
+'browse-url(-secondary)-browser-function' to 'browse-url-qutebrowser'.
+
 ** CL-Lib
 +++
 *** 'cl-labels' now also accepts (FUNC EXP) bindings, like 'cl-flet'.
