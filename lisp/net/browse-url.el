@@ -674,13 +674,9 @@ regarding its parameter treatment."
 (defcustom browse-url-default-scheme "http"
   "URL scheme that `browse-url' (and related commands) will use by default.
 
-For example, when point is on an URL fragment like
-\"www.example.org\", `browse-url' will assume that this is an
-\"http\" URL by default (i.e. \"http://www.example.org\").
-
-Note that if you set this to \"https\", websites that do not yet
-support HTTPS may not load correctly in your web browser.  Such
-websites are increasingly rare, but they do still exist."
+For example, when point is on an URL fragment like \"www.example.org\",
+`browse-url' will assume that this is an \"http\" URL by default (for
+example, \"http://www.example.org\")."
   :type '(choice (const :tag "HTTP" "http")
                  (const :tag "HTTPS" "https")
                  (string :tag "Something else" "https"))
