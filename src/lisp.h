@@ -634,6 +634,7 @@ extern AVOID wrong_type_argument (Lisp_Object, Lisp_Object);
 extern Lisp_Object default_value (Lisp_Object symbol);
 extern void defalias (Lisp_Object symbol, Lisp_Object definition);
 extern char *fixnum_to_string (EMACS_INT number, char *buffer, char *end);
+extern bool slow_eq (Lisp_Object x, Lisp_Object y);
 
 
 /* Defined in emacs.c.  */
@@ -1325,10 +1326,12 @@ INLINE bool
 INLINE bool
 EQ (Lisp_Object x, Lisp_Object y)
 {
-  return BASE_EQ ((__builtin_expect (symbols_with_pos_enabled, false)
-		   && SYMBOL_WITH_POS_P (x) ? XSYMBOL_WITH_POS_SYM (x) : x),
-		  (__builtin_expect (symbols_with_pos_enabled, false)
-		   && SYMBOL_WITH_POS_P (y) ? XSYMBOL_WITH_POS_SYM (y) : y));
+  if (BASE_EQ (x, y))
+    return true;
+  else if (!symbols_with_pos_enabled)
+    return false;
+  else
+    return slow_eq (x, y);
 }
 
 INLINE intmax_t

@@ -155,6 +155,16 @@ circular_list (Lisp_Object list)
 
 /* Data type predicates.  */
 
+/* NO_INLINE to avoid excessive code growth when LTO is in use.  */
+NO_INLINE bool
+slow_eq (Lisp_Object x, Lisp_Object y)
+{
+  return BASE_EQ ((symbols_with_pos_enabled && SYMBOL_WITH_POS_P (x)
+                   ? XSYMBOL_WITH_POS_SYM (x) : x),
+                  (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (y)
+                   ? XSYMBOL_WITH_POS_SYM (y) : y));
+}
+
 DEFUN ("eq", Feq, Seq, 2, 2, 0,
        doc: /* Return t if the two args are the same Lisp object.  */
        attributes: const)
