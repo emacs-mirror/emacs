@@ -4108,7 +4108,7 @@ weak_hash_table_entry (struct Lisp_Weak_Hash_Table_Entry entry)
     case Lisp_Symbol:
       return make_lisp_symbol (client);
     case_Lisp_Int:
-      return make_fixnum (entry.intptr >> 1);
+      return make_fixnum ((EMACS_INT)entry.intptr >> 1);
     default:
       return make_lisp_ptr (client, XFIXNUM (entry.fixnum));
     }
