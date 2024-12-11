@@ -252,7 +252,7 @@ be used instead."
       "\\)"))
    "\\)")
   "Regular expression that matches URLs."
-  :version "27.1"
+  :version "30.1"
   :type 'regexp)
 
 (defcustom browse-url-browser-display nil
