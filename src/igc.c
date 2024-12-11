@@ -2223,7 +2223,7 @@ fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Par
 	for (ssize_t i = 0; i < limit; i++)
 	  {
 	    if (w->entries[i].intptr & 1)
-	      eassert ((mps_word_t)w->entries[i].intptr ^ w->entries[i].intptr == 0);
+	      eassert ((mps_word_t)w->entries[i].intptr ^ (w->entries[i].intptr == 0));
 	    bool was_nil = (w->entries[i].intptr) == 0;
 	    intptr_t off = 0;
 #ifdef WORDS_BIGENDIAN
