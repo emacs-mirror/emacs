@@ -3090,6 +3090,13 @@ listening on that port.  If @var{reuseaddr-flag} is @code{nil}, there
 may be a period of time after the last use of that port (by any
 process on the host) where it is not possible to make a new server on
 that port.
+
+@item :nodelay @var{nodelay-flag}
+If @var{nodelay-flag} is non-@code{nil}, the @code{TCP_NODELAY} option
+is enabled on the socket.  This disables the Nagle algorithm, meaning
+that network segments are sent as soon as possible, even when they
+contain little data.  This reduces network latency on the network
+connection, but can lead to many small packets being sent.
 @end table
 
 @defun set-network-process-option process option value &optional no-error

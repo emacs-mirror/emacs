@@ -38,6 +38,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <arpa/inet.h>
 
 #else
@@ -2861,6 +2862,9 @@ static const struct socket_options {
 #ifdef SO_REUSEADDR
     { ":reuseaddr", SOL_SOCKET, SO_REUSEADDR, SOPT_BOOL, OPIX_REUSEADDR },
 #endif
+#ifdef TCP_NODELAY
+    { ":nodelay", IPPROTO_TCP, TCP_NODELAY, SOPT_BOOL, OPIX_MISC },
+#endif
     { 0, 0, 0, SOPT_UNKNOWN, OPIX_NONE }
   };
 
@@ -3899,6 +3903,7 @@ The following network options can be specified for this connection:
 :broadcast BOOL    -- Allow send and receive of datagram broadcasts.
 :dontroute BOOL    -- Only send to directly connected hosts.
 :keepalive BOOL    -- Send keep-alive messages on network stream.
+:nodelay BOOL      -- Set TCP_NODELAY on the network socket.
 :linger BOOL or TIMEOUT -- Send queued messages before closing.
 :oobinline BOOL    -- Place out-of-band data in receive data stream.
 :priority INT      -- Set protocol defined priority for sent packets.
