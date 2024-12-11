@@ -66,11 +66,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # include "xwidget.h"
 #endif
 
-#ifndef USE_LSB_TAG
+#if !USE_LSB_TAG
 # error "USE_LSB_TAG required"
-#endif
-#ifdef WIDE_EMACS_INT
-# error "WIDE_EMACS_INT not supported"
 #endif
 #if USE_STACK_LISP_OBJECTS
 # error "USE_STACK_LISP_OBJECTS not supported"

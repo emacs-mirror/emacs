@@ -270,7 +270,11 @@ DEFINE_GDB_SYMBOL_END (INTTYPEBITS)
     b. slower, because it typically requires extra masking.
    So, USE_LSB_TAG is true only on hosts where it might be useful.  */
 DEFINE_GDB_SYMBOL_BEGIN (bool, USE_LSB_TAG)
+#ifndef HAVE_MPS
 #define USE_LSB_TAG (VAL_MAX / 2 < INTPTR_MAX)
+#else
+#define USE_LSB_TAG 1
+#endif
 DEFINE_GDB_SYMBOL_END (USE_LSB_TAG)
 
 /* Mask for the value (as opposed to the type bits) of a Lisp object.  */
