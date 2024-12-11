@@ -2185,7 +2185,11 @@ fix_weak_hash_table_strong_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Strong
 	  }
 	for (ssize_t i = 2 * XFIXNUM (t->table_size); i < limit; i++)
 	  {
-	    IGC_FIX12_BASE (ss, &t->entries[i].intptr);
+	    intptr_t off = 0;
+#ifdef WORDS_BIGENDIAN
+	    off = sizeof (t->entries[i].intptr) - sizeof (mps_word_t);
+#endif
+	    IGC_FIX12_BASE (ss, ((char *)&t->entries[i].intptr) + off);
 	  }
       }
   }
