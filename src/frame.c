@@ -1296,14 +1296,7 @@ make_terminal_frame (struct terminal *terminal, Lisp_Object parent,
 	  if (EQ (mini, Qnone) || NILP (mini))
 	    f = make_frame_without_minibuffer (Qnil, kb, Qnil);
 	  else if (EQ (mini, Qonly))
-	    {
-# if 0 /* No interest in this feature at the moment.  */
-	      f = make_minibuffer_frame ();
-	      /* Not sure about this, plus the unsplittable frame
-		 param.  */
-	      f->no_split = true;
-# endif
-	    }
+	    error ("minibuffer-only child frames are not implemented");
 	  else if (WINDOWP (mini))
 	    f = make_frame_without_minibuffer (mini, kb, Qnil);
 	}
