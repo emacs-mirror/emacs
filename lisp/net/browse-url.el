@@ -974,7 +974,13 @@ Optional prefix argument ARG non-nil inverts the value of the option
 ;;;###autoload
 (defun browse-url-with-browser-kind (kind url &optional arg)
   "Browse URL with a browser of the given browser KIND.
-KIND is either `internal' or `external'.
+
+KIND is either `internal' or `external'.  In order to find an
+appropriate browser for the given KIND, first the `browse-url-handlers'
+and `browse-url-default-handlers' lists are consulted.  If no handler is
+found, the functions `browse-url-browser-function',
+`browse-url-secondary-browser-function', `browse-url-default-browser'
+and `eww' are tried in that order.
 
 When called interactively, the default browser kind is the
 opposite of the browser kind of `browse-url-browser-function'."
@@ -994,9 +1000,14 @@ opposite of the browser kind of `browse-url-browser-function'."
      (cons k url-arg)))
   (let ((function (browse-url-select-handler url kind)))
     (unless function
-      (setq function (if (eq kind 'external)
-                         #'browse-url-default-browser
-                       #'eww)))
+      (setq function
+            (seq-find
+             (lambda (fun)
+               (eq kind (browse-url--browser-kind fun url)))
+             (list browse-url-browser-function
+                   browse-url-secondary-browser-function
+                   #'browse-url-default-browser
+                   #'eww))))
     (funcall function url arg)))
 
 ;;;###autoload
