@@ -1728,8 +1728,11 @@ calc-kill calc-kill-region calc-yank))))
   (interactive "P")
   (let* ((prompt (concat (calc-num-prefix-name n) "M-x "))
 	 (cmd (intern
-               (completing-read prompt obarray 'commandp t "calc-"
-                                'calc-extended-command-history))))
+               (let ((completion-extra-properties
+                      (list :affixation-function
+                            #'read-extended-command--affixation)))
+                 (completing-read prompt obarray 'commandp t "calc-"
+                                  'calc-extended-command-history)))))
     (setq prefix-arg n)
     (command-execute cmd)))
 
