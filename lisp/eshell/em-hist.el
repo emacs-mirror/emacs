@@ -132,13 +132,13 @@ whitespace."
   :risky t)
 
 (defcustom eshell-history-isearch nil
-  "Non-nil to Isearch in input history only.
-If t, usual Isearch keys like \\[isearch-forward] in Eshell search in
-the input history only.  If `dwim', Isearch in the input history when
-point is at the command line, otherwise search in the current Eshell
-buffer."
+  "If non-nil, Isearch searches in Eshell input history.
+If t, usual Isearch keys like \\[isearch-forward] in Eshell search only
+in the input history.  If `dwim', Isearch commands search in the input
+history when point is at the command line after the last prompt.  The
+value nil (the default) means to search in the current Eshell buffer."
   :type '(choice (const :tag "Don't search in input history" nil)
-                 (const :tag "Search histroy when point is on command line" dwim)
+                 (const :tag "Search history when point is on command line" dwim)
                  (const :tag "Always search in input history" t))
   :version "31.1")
 
