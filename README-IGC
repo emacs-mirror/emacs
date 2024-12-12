@@ -1,7 +1,13 @@
 This directory tree contains a version of Emacs master branch that
-implements a new garbage collection for Emacs that is based on
-Ravenbrook's MPS library.  The new GC is concurrent, incremental, and
-generational.
+implements a new garbage collector (GC) for Emacs that is based on
+Ravenbrook's Memory Pool System (MPS) library.  The new GC is
+concurrent, incremental, and generational.
+
+The maintainers ask users to help the Emacs developers stabilize this
+branch, so that we can merge it into the Emacs master branch faster.
+That means building this branch, running it, and, crucially, reporting
+any bugs that you run into to bug-gnu-emacs@gnu.org.  See the BUGS file
+for more information.
 
 
 Building this branch
@@ -17,13 +23,13 @@ INSTALL.REPO.  Everything said there applies to this branch as well.
 When you have 'libmps' installed, you can configure Emacs to use it with
 the new configure option '--with-mps'.
 
-Use
+Use the following configure flags:
 
   --with-mps=yes	to use the production version of libmps
   --with-mps=debug      to use the debug version of libmps
   --with-mps=no         to not use MPS (or don't use '--with-mps')
 
-In addition, you can configure with
+In addition, you can run configure with
 
   --enable-checking=igc_debug
 
