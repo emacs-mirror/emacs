@@ -88,6 +88,7 @@
 (declare-function treesit-node-eq "treesit.c")
 (declare-function treesit-node-match-p "treesit.c")
 (declare-function treesit-query-compile "treesit.c")
+(declare-function treesit-node-check "treesit.c")
 
 ;;; Custom variables
 
