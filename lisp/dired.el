@@ -1962,13 +1962,12 @@ other marked file as well.  Otherwise, unmark all files."
                        ;; a remote file.
                        (user-error (cadr error)))))))))))
 
-(defvar dired-mouse-drag-files-map (let ((keymap (make-sparse-keymap)))
-                                     (define-key keymap [down-mouse-1] #'dired-mouse-drag)
-                                     (define-key keymap [C-down-mouse-1] #'dired-mouse-drag)
-                                     (define-key keymap [S-down-mouse-1] #'dired-mouse-drag)
-                                     (define-key keymap [M-down-mouse-1] #'dired-mouse-drag)
-                                     keymap)
-  "Keymap applied to file names when `dired-mouse-drag-files' is enabled.")
+(defvar-keymap dired-mouse-drag-files-map
+  :doc "Keymap applied to file names when `dired-mouse-drag-files' is enabled."
+  "<down-mouse-1>"   #'dired-mouse-drag
+  "C-<down-mouse-1>" #'dired-mouse-drag
+  "S-<down-mouse-1>" #'dired-mouse-drag
+  "M-<down-mouse-1>" #'dired-mouse-drag)
 
 (defvar dired-click-to-select-mode)
 (defvar dired-click-to-select-map)
@@ -5290,8 +5289,8 @@ Interactively with prefix argument, read FILE-NAME."
 
 ;;; Click-To-Select mode
 
-(defvar dired-click-to-select-map (make-sparse-keymap)
-  "Keymap placed on files under `dired-click-to-select' mode.")
+(defvar-keymap dired-click-to-select-map
+  :doc "Keymap placed on files under `dired-click-to-select' mode.")
 
 (define-key dired-click-to-select-map [mouse-2]
             #'dired-mark-for-click)
