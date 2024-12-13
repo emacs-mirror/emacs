@@ -561,6 +561,8 @@ and all `time-stamp-format' compatibility."
 		     (setq field-width "1" flag-minimize t))
 		    ((eq cur-char ?_)
 		     (setq field-width "2" flag-pad-with-spaces t))))
+            (if (> (string-to-number field-width) 99)
+                (setq field-width (if flag-pad-with-zeros "099" "99")))
 	    (setq field-result
 	          (cond
 	           ((eq cur-char ?%)
