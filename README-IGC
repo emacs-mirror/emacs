@@ -101,9 +101,16 @@ Debugging the MPS build
 =======================
 
 On most systems, MPS uses the SIGSEGV POSIX signal or its emulation as
-part of its normal operation. When running Emacs with MPS support in a
-debugger such as gdb, it is important to take this inta account, because
-the debugger might stop when this signal is raised.
+part of its normal operation.  When running Emacs with MPS support in a
+debugger such as GDB, it is important to take this into account, because
+the debugger might stop when this signal is raised, and make it look
+like Emacs segfaulted.
 
-It's recommended to use the .gdbinit file in the src/ subdirectory,
-which configures gdb not to stop in this situation.
+If you use GDB, it's recommended to use the .gdbinit file in the src/
+subdirectory, which configures GDB not to stop in this situation.
+Starting GDB from the src directory will cause it automatically load and
+read the file, subject to the "auto-load safe-path" setting;
+alternatively, you can force GDB to read that file manually, after
+starting the debugger:
+
+  (gdb) source /path/to/emacs-igc/src/.gdbinit
