@@ -100,15 +100,13 @@
   "Abbrev table in use in `perl-mode' buffers.")
 (define-abbrev-table 'perl-mode-abbrev-table ())
 
-(defvar perl-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\e\C-a" 'perl-beginning-of-function)
-    (define-key map "\e\C-e" 'perl-end-of-function)
-    (define-key map "\e\C-h" 'perl-mark-function)
-    (define-key map "\e\C-q" 'perl-indent-exp)
-    (define-key map "\177" 'backward-delete-char-untabify)
-    map)
-  "Keymap used in Perl mode.")
+(defvar-keymap perl-mode-map
+  :doc "Keymap used in Perl mode."
+  "C-M-a" #'perl-beginning-of-function
+  "C-M-e" #'perl-end-of-function
+  "C-M-h" #'perl-mark-function
+  "C-M-q" #'perl-indent-exp
+  "DEL"   #'backward-delete-char-untabify)
 
 (defvar perl-mode-syntax-table
   (let ((st (make-syntax-table (standard-syntax-table))))
