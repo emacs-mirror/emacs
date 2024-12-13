@@ -85,7 +85,7 @@ $ configure CPPFLAGS=-I/path/to/mps-artifacts LDFLAGS=-L/path/to/mps-artifacts -
 (Replace /path/to/mps-artifacts with the full path to the directory
 where you copied the MPS header files and library.)
 
-To build the debug version of MP:
+To build the debug version of MPS:
 
 $ gcc -O0 -g -DCONFIG_VAR_COOL -c mpc.c -o mps-debug.o
 $ ar rvs libmps-debug.a mps-debug.o
@@ -95,3 +95,15 @@ Then pass --with-mps=debug instead --with-mps=yes to the Emacs configure
 script (it is recommended that you build Emacs in debug mode while
 debugging MPS problems, see the INSTALL in the root directory of the
 Emacs source tree.)
+
+
+Debugging the MPS build
+=======================
+
+On most systems, MPS uses the SIGSEGV POSIX signal or its emulation as
+part of its normal operation. When running Emacs with MPS support in a
+debugger such as gdb, it is important to take this inta account, because
+the debugger might stop when this signal is raised.
+
+It's recommended to use the .gdbinit file in the src/ subdirectory,
+which configures gdb not to stop in this situation.
