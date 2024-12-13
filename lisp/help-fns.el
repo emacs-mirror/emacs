@@ -1064,22 +1064,30 @@ TYPE indicates the namespace and is `fun' or `var'."
       rt)))
 
 (defun help-fns-short-filename (filename)
-  (let* ((short (help-fns--filename filename))
-         (prefixes (radix-tree-prefixes (help-fns--radix-tree load-path)
-                                        (file-name-directory short))))
-    (if (not prefixes)
-        ;; The file is not inside the `load-path'.
-        ;; FIXME: Here's the old code (too slow, bug#73766),
-        ;; which used to try and shorten it with "../" as well.
-        ;; (dolist (dir load-path)
-        ;;   (let ((rel (file-relative-name filename dir)))
-        ;;     (if (< (length rel) (length short))
-        ;;         (setq short rel)))
-        ;;   (let ((rel (file-relative-name abbrev dir)))
-        ;;     (if (< (length rel) (length short))
-        ;;         (setq short rel))))
-        short
-      (file-relative-name short (caar prefixes)))))
+  "Turn a full Elisp file name to one relative to `load-path'."
+  (if (not (file-name-absolute-p filename))
+      ;; This happens when FILENAME is a `src/*.c' returned by
+      ;; `help-C-file-name', in which case it's not searched through
+      ;; `load-path' anyway (bug#74504).
+      ;; Even if it came from elsewhere it's not clear to
+      ;; which directory it is relative.
+      filename
+    (let* ((short (help-fns--filename filename))
+           (prefixes (radix-tree-prefixes (help-fns--radix-tree load-path)
+                                          (file-name-directory short))))
+      (if (not prefixes)
+          ;; The file is not inside the `load-path'.
+          ;; FIXME: Here's the old code (too slow, bug#73766),
+          ;; which used to try and shorten it with "../" as well.
+          ;; (dolist (dir load-path)
+          ;;   (let ((rel (file-relative-name filename dir)))
+          ;;     (if (< (length rel) (length short))
+          ;;         (setq short rel)))
+          ;;   (let ((rel (file-relative-name abbrev dir)))
+          ;;     (if (< (length rel) (length short))
+          ;;         (setq short rel))))
+          short
+        (file-relative-name short (caar prefixes))))))
 
 (defun help-fns--analyze-function (function)
   ;; FIXME: Document/explain the differences between FUNCTION,
