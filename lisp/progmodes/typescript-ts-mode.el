@@ -596,11 +596,7 @@ at least 3 (which is the default value)."
   (when (treesit-available-p)
     (treesit-query-compile 'tsx
                            '(((regex pattern: (regex_pattern) @regexp))
-                             ((variable_declarator value: (jsx_element) @jsx))
-                             ((assignment_expression right: (jsx_element) @jsx))
-                             ((arguments (jsx_element) @jsx))
-                             ((parenthesized_expression (jsx_element) @jsx))
-                             ((return_statement (jsx_element) @jsx))))))
+                             ((jsx_text) @jsx)))))
 
 (defun typescript-ts--syntax-propertize (beg end)
   (let ((captures (treesit-query-capture 'typescript typescript-ts--s-p-query beg end)))
@@ -621,8 +617,15 @@ at least 3 (which is the default value)."
                       (string-to-syntax "\"/"))
                      ('jsx
                       (string-to-syntax "|")))))
-      (put-text-property ns (1+ ns) 'syntax-table syntax)
-      (put-text-property (1- ne) ne 'syntax-table syntax))))
+      ;; The string syntax require at least two characters (one for
+      ;; opening fence and one for closing fence).  So if the string has
+      ;; only one character, we apply the whitespace syntax.  The string
+      ;; has to be in a non-code syntax, lest the string could contain
+      ;; parent or brackets and messes up syntax-ppss.
+      (if (eq ne (1+ ns))
+          (put-text-property ns ne 'syntax-table "-")
+        (put-text-property ns (1+ ns) 'syntax-table syntax)
+        (put-text-property (1- ne) ne 'syntax-table syntax)))))
 
 (if (treesit-ready-p 'tsx)
     (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode)))
