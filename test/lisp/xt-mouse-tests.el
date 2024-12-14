@@ -25,6 +25,8 @@
 
 (require 'xt-mouse)
 
+;; FIXME: this doesn't work when called inside a non-batch mode Emacs
+;; session.
 (defmacro with-xterm-mouse-mode (&rest body)
   "Run BODY with `xterm-mouse-mode' temporarily enabled."
   (declare (indent 0))
@@ -42,18 +44,16 @@
                      ((terminal-parameter nil 'xterm-mouse-y) nil)
                      ((terminal-parameter nil 'xterm-mouse-last-down) nil)
                      ((terminal-parameter nil 'xterm-mouse-last-click) nil))
-             (if xterm-mouse-mode
-                 ,(macroexp-progn body)
-               (unwind-protect
-                   (progn
-                     ;; `xterm-mouse-mode' doesn't work in the initial
-                     ;; terminal.  Since we can't create a second
-                     ;; terminal in batch mode, fake it temporarily.
-                     (cl-letf (((symbol-function 'terminal-name)
-                                (lambda (&optional _terminal) "fake-terminal")))
-                       (xterm-mouse-mode))
-                     ,@body)
-                 (xterm-mouse-mode 0)))))
+             (unwind-protect
+                 (progn
+                   ;; `xterm-mouse-mode' doesn't work in the initial
+                   ;; terminal.  Since we can't create a second
+                   ;; terminal in batch mode, fake it temporarily.
+                   (cl-letf (((symbol-function 'terminal-name)
+                              (lambda (&optional _terminal) "fake-terminal")))
+                     (xterm-mouse-mode 1))
+                   ,@body)
+               (xterm-mouse-mode 0))))
        (set-frame-width nil width)
        (set-frame-height nil height))))
 
