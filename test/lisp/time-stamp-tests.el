@@ -36,7 +36,7 @@
          (ref-time3 '(21377 34956))    ;Sunday, May 25, 2014, 06:07:08 AM
          (time-stamp-time-zone t))     ;use UTC
      (cl-letf (((symbol-function 'time-stamp-conv-warn)
-                (lambda (old-format _new)
+                (lambda (old-format _new &optional _newer)
                   (ert-fail
                    (format "Unexpected format warning for '%s'" old-format)))))
        ;; Not all reference times are used in all tests;
@@ -66,7 +66,7 @@
   (declare (debug t))
   `(let ((warning-count 0))
      (cl-letf (((symbol-function 'time-stamp-conv-warn)
-                (lambda (_old _new)
+                (lambda (_old _new &optional _newer)
                   (setq warning-count (1+ warning-count)))))
        (should ,form)
        (if (not (= warning-count 1))
@@ -263,6 +263,28 @@
           (setq time-stamp-count 2)
           (time-stamp)
           (should (equal (buffer-string) buffer-expected-twice)))))))
+
+(ert-deftest time-stamp-custom-limit ()
+  "Test that `time-stamp' can expand two templates near the line limit."
+  (with-time-stamp-test-env
+    (let ((time-stamp-start "TS: ")
+          (time-stamp-format "%Y-%m-%d")
+          (time-stamp-end "$")
+          (time-stamp-count 2)
+          (time-stamp-line-limit 1)     ;changed later in the test
+          (buffer-starts-as "TS: \nTS: ")
+          (buffer-expected-1 "TS: 2006-01-02\nTS: ")
+          (buffer-expected-2 "TS: 2006-01-02\nTS: 2006-01-02"))
+      (with-time-stamp-test-time ref-time1
+        (with-temp-buffer
+          (insert buffer-starts-as)
+          (time-stamp)
+          (should (equal (buffer-string) buffer-expected-1)))
+        (with-temp-buffer
+          (insert buffer-starts-as)
+          (setq time-stamp-line-limit 2)
+          (time-stamp)
+          (should (equal (buffer-string) buffer-expected-2)))))))
 
 ;;; Tests of time-stamp-string formatting
 
@@ -728,6 +750,10 @@
       (should (equal (time-stamp-string "%03d" ref-time3) "025"))
       (should (equal (time-stamp-string "%3d" ref-time3) " 25"))
       (should (equal (time-stamp-string "%_3d" ref-time3) " 25"))
+      (should (equal (time-stamp-string "%99z" ref-time1)
+                     (time-stamp-string "%100z" ref-time1)))
+      (should (equal (time-stamp-string "%099Y" ref-time1)
+                     (time-stamp-string "%0100Y" ref-time1)))
       ;; since 2024
       (should (equal (time-stamp-string "%0d" ref-time1) "02"))
       (should (equal (time-stamp-string "%0d" ref-time2) "18"))
@@ -839,7 +865,7 @@ and is called by some low-level `time-stamp' \"%z\" unit tests."
   (- (fz-make+zone h m s)))
 
 (defmacro formatz-should-equal (zone expect)
-  "Format ZONE and compares it to EXPECT.
+  "Format ZONE and compare it to EXPECT.
 Use the free variables `form-string' and `pattern-mod'.
 The functions in `pattern-mod' are composed left to right."
   (declare (debug t))
