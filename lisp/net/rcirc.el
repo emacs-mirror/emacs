@@ -2448,7 +2448,8 @@ This function does not alter the INPUT string."
 
 (defun rcirc-next-active-buffer (arg)
   "Switch to the next rcirc buffer with activity.
-With prefix ARG, go to the next low priority buffer with activity."
+With prefix ARG, go to the next low priority buffer with activity.
+When there are no buffers with activity, bury all rcirc buffers."
   (interactive "P")
   (let* ((pair (rcirc-split-activity rcirc-activity))
          (lopri (car pair))

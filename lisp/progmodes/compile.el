@@ -61,16 +61,18 @@ If nil, use Emacs default."
 
 (defcustom compilation-transform-file-match-alist
   '(("/bin/[a-z]*sh\\'" nil))
-  "Alist of regexp/replacements to alter file names in compilation errors.
-If the replacement is nil, the file will not be considered an error
-after all.  If not nil, it should be a regexp replacement string.
+  "Alist of regexp/replacements to alter file names in compiler messages.
+If the replacement is nil, the matching message will not be considered
+an error or warning.  If not nil, it should be a replacement string
+for the matched regexp.
 
-When a replacement regexp is specified, the value of the file name used
-to locate the error is changed, but the compilation buffer still
-displays the original value.
+If a non-nil replacement is specified, the value of the matched file name
+used to locate the warning or error is modified using the replacement, but
+the compilation buffer still displays the original value.
 
-For example, to prepend a subdirectory \"bar/\" to all file names, add
-an entry matching \"\\\\=`\" and a replacement regexp of \"bar/\", i.e.:
+For example, to prepend a subdirectory \"bar/\" to all file names in
+compiler messages, add an entry matching \"\\\\=`\" and a replacement
+string of \"bar/\", i.e.:
 
     (\"\\\\=`\" \"bar/\")
 
@@ -803,10 +805,10 @@ Alternatively, FACE can evaluate to a property list of the
 form (face FACE PROP1 VAL1 PROP2 VAL2 ...), in which case all the
 listed text properties PROP# are given values VAL# as well.
 
-After identifying errors and warnings determined by this
+After identifying compilation errors and warnings determined by this
 variable, the `compilation-transform-file-match-alist' variable
 is then consulted.  It allows further transformations of the
-matched file names, and weeding out false positives."
+matched file names, and ignoring false positives."
   :type '(repeat (choice (symbol :tag "Predefined symbol")
 			 (sexp :tag "Error specification")))
   :link `(file-link :tag "example file"

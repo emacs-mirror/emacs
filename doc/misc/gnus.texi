@@ -14374,6 +14374,8 @@ where you would put a @samp{SOCKS} wrapper for instance.
 @vindex nntp-address
 The address of the @acronym{NNTP} server.
 
+@cindex nntps
+@cindex snews
 @item nntp-port-number
 @vindex nntp-port-number
 Port number to connect to the @acronym{NNTP} server.  The default is

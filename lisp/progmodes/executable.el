@@ -43,10 +43,9 @@
 ;; It also allows debugging scripts, with an adaptation of compile, as far
 ;; as interpreters give out meaningful error messages.
 
-;; Modes that use this should nconc `executable-map' to the end of their own
-;; keymap and `executable-font-lock-keywords' to the end of their own font
-;; lock keywords.  Their mode-setting commands should call
-;; `executable-set-magic'.
+;; Modes that use this should nconc `executable-font-lock-keywords' to
+;; the end of their own font lock keywords.  Their mode-setting commands
+;; should call `executable-set-magic'.
 
 ;;; Code:
 
