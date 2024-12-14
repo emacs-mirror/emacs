@@ -30,32 +30,33 @@
 (defmacro with-xterm-mouse-mode (&rest body)
   "Run BODY with `xterm-mouse-mode' temporarily enabled."
   (declare (indent 0))
-  `(let ((width (frame-width))
-         (height (frame-height)))
-     (unwind-protect
-         (progn
-           ;; Make the frame huge so that the test input events below
-           ;; don't hit the menu bar.
-           (set-frame-width nil (max width 2000))
-           (set-frame-height nil (max height 2000))
-           (cl-letf (;; Reset XTerm parameters so that the tests don't
-                     ;; get confused.
-                     ((terminal-parameter nil 'xterm-mouse-x) nil)
-                     ((terminal-parameter nil 'xterm-mouse-y) nil)
-                     ((terminal-parameter nil 'xterm-mouse-last-down) nil)
-                     ((terminal-parameter nil 'xterm-mouse-last-click) nil))
-             (unwind-protect
-                 (progn
-                   ;; `xterm-mouse-mode' doesn't work in the initial
-                   ;; terminal.  Since we can't create a second
-                   ;; terminal in batch mode, fake it temporarily.
-                   (cl-letf (((symbol-function 'terminal-name)
-                              (lambda (&optional _terminal) "fake-terminal")))
-                     (xterm-mouse-mode 1))
-                   ,@body)
-               (xterm-mouse-mode 0))))
-       (set-frame-width nil width)
-       (set-frame-height nil height))))
+  (when noninteractive
+    `(let ((width (frame-width))
+           (height (frame-height)))
+       (unwind-protect
+           (progn
+             ;; Make the frame huge so that the test input events below
+             ;; don't hit the menu bar.
+             (set-frame-width nil (max width 2000))
+             (set-frame-height nil (max height 2000))
+             (cl-letf (;; Reset XTerm parameters so that the tests don't
+                       ;; get confused.
+                       ((terminal-parameter nil 'xterm-mouse-x) nil)
+                       ((terminal-parameter nil 'xterm-mouse-y) nil)
+                       ((terminal-parameter nil 'xterm-mouse-last-down) nil)
+                       ((terminal-parameter nil 'xterm-mouse-last-click) nil))
+               (unwind-protect
+                   (progn
+                     ;; `xterm-mouse-mode' doesn't work in the initial
+                     ;; terminal.  Since we can't create a second
+                     ;; terminal in batch mode, fake it temporarily.
+                     (cl-letf (((symbol-function 'terminal-name)
+                                (lambda (&optional _terminal) "fake-terminal")))
+                       (xterm-mouse-mode 1))
+                     ,@body)
+                 (xterm-mouse-mode 0))))
+         (set-frame-width nil width)
+         (set-frame-height nil height)))))
 
 (ert-deftest xt-mouse-tracking-basic ()
   (should (equal (xterm-mouse-tracking-enable-sequence)
