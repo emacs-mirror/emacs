@@ -1588,6 +1588,12 @@ https://debbugs.gnu.org/cgi/bugreport.cgi?bug=22000,
 https://debbugs.gnu.org/cgi/bugreport.cgi?bug=22898 and
 https://lists.gnu.org/r/emacs-devel/2016-07/msg00154.html.
 
+*** In Emacs built with GTK+ toolkit, menu-bar background becomes transparent.
+
+This happens when 'alpha-background' is less than 100.  This is due a
+GTK limitation, for which no workaround is currently known,
+unfortunately.
+
 *** Metacity: Resizing Emacs or ALT-Tab causes X to be unresponsive.
 
 This happens sometimes when using Metacity.  Resizing Emacs or ALT-Tab:bing
