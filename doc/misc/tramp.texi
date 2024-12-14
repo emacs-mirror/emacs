@@ -1572,10 +1572,10 @@ for accessing the system storage, you should use it.
 
 @vindex tramp-sshfs-program
 On local hosts which have installed the @command{sshfs} client for
-mounting a file system based on @command{sftp}, this method can be
-used, see
-@uref{https://github.com/libfuse/sshfs/blob/master/README.rst/}.  If
-the @command{sshfs} program isn't found in your @env{PATH} environment
+mounting a file system based on the @command{sftp} subsystem of
+@command{ssh}, this method can be used, see
+@uref{https://github.com/libfuse/sshfs/blob/master/README.md}.  If the
+@command{sshfs} program isn't found in your @env{PATH} environment
 variable, you can tell @value{tramp} its absolute path via the user
 option @code{tramp-sshfs-program}.
 
