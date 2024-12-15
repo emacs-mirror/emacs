@@ -374,20 +374,21 @@ The time stamp is updated only if `time-stamp-active' is non-nil."
 	(cond ((> line-limit 0)
 	       (goto-char (setq start (point-min)))
 	       (forward-line line-limit)
-	       (setq search-limit (point)))
+               (setq search-limit (point-marker)))
 	      ((< line-limit 0)
-	       (goto-char (setq search-limit (point-max)))
+               (goto-char (setq search-limit (point-max-marker)))
 	       (forward-line line-limit)
 	       (setq start (point)))
 	      (t			;0 => no limit (use with care!)
 	       (setq start (point-min))
-	       (setq search-limit (point-max))))))
+               (setq search-limit (point-max-marker))))))
     (while (and start
 		(< start search-limit)
 		(> ts-count 0))
       (setq start (time-stamp-once start search-limit ts-start ts-end
 				   ts-format format-lines end-lines))
-      (setq ts-count (1- ts-count))))
+      (setq ts-count (1- ts-count)))
+    (set-marker search-limit nil))
   nil)
 
 (defun time-stamp-once (start search-limit ts-start ts-end
@@ -598,7 +599,8 @@ and all `time-stamp-format' compatibility."
                                 (string-equal field-width ""))
 			    (time-stamp--format "%A" time)
 		          (time-stamp-conv-warn (format "%%%sA" field-width)
-                                                (format "%%#%sA" field-width))
+                                                (format "%%#%sA" field-width)
+                                                (format "%%:%sA" field-width))
 	                  (time-stamp--format "%#A" time)))))
 	           ((eq cur-char ?b)    ;month name
                     (if (> alt-form 0)
@@ -623,7 +625,8 @@ and all `time-stamp-format' compatibility."
                                 (string-equal field-width ""))
 			    (time-stamp--format "%B" time)
 		          (time-stamp-conv-warn (format "%%%sB" field-width)
-                                                (format "%%#%sB" field-width))
+                                                (format "%%#%sB" field-width)
+                                                (format "%%:%sB" field-width))
 	                  (time-stamp--format "%#B" time)))))
 	           ((eq cur-char ?d)    ;day of month, 1-31
 	            (time-stamp-do-number cur-char alt-form field-width time))
@@ -686,7 +689,7 @@ and all `time-stamp-format' compatibility."
 			          (not flag-pad-with-spaces)
 			          (not flag-pad-with-zeros)
 			          (= field-width-num 0))
-		             (time-stamp-conv-warn "%z" "%#Z")
+                             (time-stamp-conv-warn "%z" "%#Z" "%5z")
 		             (time-stamp--format "%#Z" time))
 			    (t (time-stamp-formatz-from-parsed-options
 				flag-minimize
@@ -766,20 +769,34 @@ to change in the future to be compatible with `format-time-string'.
 The new forms being recommended now will continue to work then.")
 
 
-(defun time-stamp-conv-warn (old-form new-form)
+(defun time-stamp-conv-warn (old-form new-form &optional standard-form)
   "Display a warning about a soon-to-be-obsolete format.
-Suggests replacing OLD-FORM with NEW-FORM."
+Suggests replacing OLD-FORM with NEW-FORM (same effect, but stable)
+or (if provided) STANDARD-FORM (the effect the user may have expected
+if they didn't read the documentation)."
   (cond
    (time-stamp-conversion-warn
     (with-current-buffer (get-buffer-create "*Time-stamp-compatibility*")
       (goto-char (point-max))
-      (if (bobp)
-	  (progn
-	    (insert
-	     "The formats recognized in time-stamp-format will change in a future release\n"
-	     "to be more compatible with the format-time-string function.\n\n"
-	     "The following obsolescent time-stamp-format construct(s) were found:\n\n")))
-      (insert "\"" old-form "\" -- use " new-form "\n"))
+      (cond
+       ((bobp)
+        (insert
+         (substitute-quotes
+          (concat
+           "The conversions recognized in `time-stamp-format' will change in a future\n"
+           "release to be more compatible with the function `format-time-string'.\n"
+           (cond
+            (standard-form
+             (concat
+              "Conversions that are changing are ambiguous and should be replaced by\n"
+              "stable conversions that makes your intention clear.\n")))
+           "\n"
+           "The following obsolescent `time-stamp-format' conversion(s) were found:\n\n")))))
+      (insert old-form " -- use " new-form)
+      (if standard-form
+          (insert " or " standard-form))
+      (insert "\n")
+      (help-make-xrefs))
     (display-buffer "*Time-stamp-compatibility*"))))
 
 
