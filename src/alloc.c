@@ -7637,13 +7637,11 @@ If this portion is smaller than `gc-cons-threshold', this is ignored.  */);
 
   DEFVAR_LISP ("purify-flag", Vpurify_flag,
 	       doc: /* Non-nil means loading Lisp code in order to dump an executable.
-This used to mean that certain objects should be allocated in shared (pure)
-space.  It can also be set to a hash-table, in which case this table is used
-to do hash-consing of the objects allocated to pure space.
-The hash-consing still applies, but objects are not allocated in pure
-storage any more.
-This flag is still used in a few places not to decide where objects are
-allocated but to know if we're in the preload phase of Emacs's build.  */);
+This used to mean that certain objects should be allocated in shared
+(pure) space, but objects are not allocated in pure storage any more.
+This flag is still used in a few places, not to decide where objects are
+allocated, but to know if we're in the preload phase of Emacs's
+build.  */);
 
   DEFVAR_BOOL ("garbage-collection-messages", garbage_collection_messages,
 	       doc: /* Non-nil means display messages at start and end of garbage collection.  */);
