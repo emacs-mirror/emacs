@@ -6175,7 +6175,7 @@ Before and after saving the buffer, this function runs
                 (set-buffer-modified-p nil))
               ;; Return t so we don't ask about BUF again.
               t)
-           ,(purecopy "skip this buffer and mark it unmodified"))
+           "skip this buffer and mark it unmodified")
     (?\C-r
      ,(lambda (buf)
         (if (not enable-recursive-minibuffers)
