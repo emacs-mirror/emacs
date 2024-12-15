@@ -1789,6 +1789,8 @@ See Info node `(elisp) Integer Basics'."
          tool-bar-pixel-width window-system
          ;; fringe.c
          fringe-bitmaps-at-pos
+         ;; json.c
+         json-serialize json-parse-string
          ;; keyboard.c
          posn-at-point posn-at-x-y
          ;; keymap.c
@@ -1979,6 +1981,8 @@ See Info node `(elisp) Integer Basics'."
          length> member memq memql nth nthcdr proper-list-p rassoc rassq
          safe-length string-bytes string-distance string-equal string-lessp
          string-search string-version-lessp take value<
+         ;; json.c
+         json-serialize json-parse-string
          ;; search.c
          regexp-quote
          ;; syntax.c

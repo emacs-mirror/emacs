@@ -1818,16 +1818,6 @@ syms_of_json (void)
   define_error (Qjson_escape_sequence_error,
 		"invalid escape sequence", Qjson_parse_error);
 
-  DEFSYM (Qpure, "pure");
-  DEFSYM (Qside_effect_free, "side-effect-free");
-
-  DEFSYM (Qjson_serialize, "json-serialize");
-  DEFSYM (Qjson_parse_string, "json-parse-string");
-  Fput (Qjson_serialize, Qpure, Qt);
-  Fput (Qjson_serialize, Qside_effect_free, Qt);
-  Fput (Qjson_parse_string, Qpure, Qt);
-  Fput (Qjson_parse_string, Qside_effect_free, Qt);
-
   DEFSYM (QCobject_type, ":object-type");
   DEFSYM (QCarray_type, ":array-type");
   DEFSYM (QCnull_object, ":null-object");
