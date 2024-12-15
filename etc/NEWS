@@ -1111,6 +1111,11 @@ current buffer, if the major mode supports it.  (Support for
 Transformed images are smoothed using the bilinear interpolation by
 means of the GDI+ library.
 
+---
+** Emacs on MS-Windows now supports the ':data' keyword for 'play-sound'.
+In addition to ':file FILE' for playing a sound from a file, ':data
+DATA' can now be used to play a sound from memory.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.

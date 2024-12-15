@@ -3278,11 +3278,6 @@ Files larger than 4GB cause overflow in the size (represented as a
 well, since the Windows port uses a Lisp emulation of 'ls', which relies
 on 'file-attributes'.
 
-** Playing sound doesn't support the :data method
-
-Sound playing is not supported with the ':data DATA' key-value pair.
-You _must_ use the ':file FILE' method.
-
 ** Typing Alt-Shift has strange effects on MS-Windows.
 
 This combination of keys is a command to change keyboard layout.  If
