@@ -2515,8 +2515,6 @@ Adapt also mode line."
         (read-passwd--hide-password)))))
 
 (defvar read-passwd-map
-  ;; BEWARE: `defconst' would purecopy it, breaking the sharing with
-  ;; minibuffer-local-map along the way!
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map minibuffer-local-map)
     (define-key map "\C-u" #'delete-minibuffer-contents) ;bug#12570
