@@ -457,8 +457,9 @@ use of `macroexpand-all' as a way to find the \"underlying raw code\".")
       (progn
         (when elisp--macroexpand-untrusted-warning
           (setq-local elisp--macroexpand-untrusted-warning nil) ;Don't spam!
-          (message "Completion of local vars is disabled in %s (untrusted content)"
-                   (buffer-name)))
+          (let ((inhibit-message t))      ;Only log.
+            (message "Completion of local vars is disabled in %s (untrusted content)"
+                     (buffer-name))))
         sexp)
     (let ((macroexpand-advice
            (lambda (expander form &rest args)
@@ -1336,7 +1337,8 @@ Semicolons start comments.
 
 \\{lisp-interaction-mode-map}"
   :abbrev-table nil
-  (setq-local lexical-binding t))
+  (setq-local lexical-binding t)
+  (setq-local trusted-content :all))
 
 ;;; Emacs Lisp Byte-Code mode
 

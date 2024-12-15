@@ -714,7 +714,7 @@ buffer contents as untrusted.
 This variable might be subject to change without notice.")
 (put 'untrusted-content 'permanent-local t)
 
-(defcustom trusted-files nil
+(defcustom trusted-content nil
   "List of files and directories whose content we trust.
 Be extra careful here since trusting means that Emacs might execute the
 code contained within those files and directories without an explicit
@@ -732,12 +732,12 @@ all files, which opens a gaping security hole."
   :type '(choice (repeat :tag "List" file)
                  (const :tag "Trust everything (DANGEROUS!)" :all))
   :version "30.1")
-(put 'trusted-files 'risky-local-variable t)
+(put 'trusted-content 'risky-local-variable t)
 
 (defun trusted-content-p ()
   "Return non-nil if we trust the contents of the current buffer.
 Here, \"trust\" means that we are willing to run code found inside of it.
-See also `trusted-files'."
+See also `trusted-content'."
   ;; We compare with `buffer-file-truename' i.s.o `buffer-file-name'
   ;; to try and avoid marking as trusted a file that's merely accessed
   ;; via a symlink that happens to be inside a trusted dir.
@@ -746,14 +746,14 @@ See also `trusted-files'."
        (with-demoted-errors "trusted-content-p: %S"
          (let ((exists (file-exists-p buffer-file-truename)))
            (or
-            (eq trusted-files :all)
+            (eq trusted-content :all)
             ;; We can't avoid trusting the user's init file.
             (if (and exists user-init-file)
                 (file-equal-p buffer-file-truename user-init-file)
               (equal buffer-file-truename user-init-file))
             (let ((file (abbreviate-file-name buffer-file-truename))
                   (trusted nil))
-              (dolist (tf trusted-files)
+              (dolist (tf trusted-content)
                 (when (or (if exists (file-equal-p tf file) (equal tf file))
                           ;; We don't use `file-in-directory-p' here, because
                           ;; we want to err on the conservative side: "guilty

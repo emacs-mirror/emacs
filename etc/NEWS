@@ -199,7 +199,7 @@ see the variable 'url-request-extra-headers'.
 
 * Changes in Emacs 30.1
 
-** New user option 'trusted-files' to allow potentially dangerous features.
+** New user option 'trusted-content' to allow potentially dangerous features.
 This variable lists those files and directories whose content Emacs should
 consider as sufficiently trusted to run any part of the code contained
 therein even without any explicit user request.
@@ -1869,7 +1869,7 @@ In the past they included a terminating newline in most cases but not all.
 
 *** 'elisp-flymake-byte-compile' is disabled for untrusted files.
 For security reasons, this backend can be used only in those files
-specified as trusted according to 'trusted-files' and emits an
+specified as trusted according to 'trusted-content' and emits an
 "untrusted content" warning otherwise.
 This fixes CVE-2024-53920.
 
