@@ -1817,12 +1817,10 @@ escaped (\\\",\\\\)."
 	(Info-hide-cookies-node)
 	(run-hooks 'Info-selection-hook)))))
 
-(defvar Info-mode-line-node-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mode-line mouse-1] 'Info-mouse-scroll-up)
-    (define-key map [mode-line mouse-3] 'Info-mouse-scroll-down)
-    map)
-  "Keymap to put on the Info node name in the mode line.")
+(defvar-keymap Info-mode-line-node-keymap
+  :doc "Keymap to put on the Info node name in the mode line."
+  "<mode-line> <mouse-1>" #'Info-mouse-scroll-up
+  "<mode-line> <mouse-3>" #'Info-mouse-scroll-down)
 
 (defun Info-set-mode-line ()
   (setq mode-line-buffer-identification
@@ -4833,17 +4831,15 @@ the variable `Info-file-list-for-emacs'."
               "\\`%s' invokes an anonymous command defined with `lambda'"
               (key-description key))))))))
 
-(defvar Info-link-keymap
-  (let ((keymap (make-sparse-keymap)))
-    (define-key keymap [header-line down-mouse-1] 'mouse-drag-header-line)
-    (define-key keymap [header-line mouse-1] 'Info-mouse-follow-link)
-    (define-key keymap [header-line mouse-2] 'Info-mouse-follow-link)
-    (define-key keymap [mouse-2] 'Info-mouse-follow-link)
-    (define-key keymap [follow-link] 'mouse-face)
-    keymap)
-  "Keymap to put on Info links.
+(defvar-keymap Info-link-keymap
+  :doc "Keymap to put on Info links.
 This is used for the \"Next\", \"Prev\", and \"Up\" links in the
-first line or header line, and for breadcrumb links.")
+first line or header line, and for breadcrumb links."
+  "<header-line> <down-mouse-1>" #'mouse-drag-header-line
+  "<header-line> <mouse-1>"      #'Info-mouse-follow-link
+  "<header-line> <mouse-2>"      #'Info-mouse-follow-link
+  "<mouse-2>"                    #'Info-mouse-follow-link
+  "<follow-link>"                'mouse-face)
 
 (defun Info-breadcrumbs ()
   (let ((nodes (Info-toc-nodes Info-current-file))
