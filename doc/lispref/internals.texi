@@ -102,19 +102,9 @@ Emacs.
 
 @cindex @file{site-load.el}
   You can specify additional files to preload by writing a library named
-@file{site-load.el} that loads them.  You may need to rebuild Emacs
-with an added definition
-
-@example
-#define SITELOAD_PURESIZE_EXTRA @var{n}
-@end example
-
-@noindent
-to make @var{n} added bytes of pure space to hold the additional files;
-see @file{src/puresize.h}.
-(Try adding increments of 20000 until it is big enough.)  However, the
-advantage of preloading additional files decreases as machines get
-faster.  On modern machines, it is usually not advisable.
+@file{site-load.el} that loads them.  However, the advantage of
+preloading additional files decreases as machines get faster.  On modern
+machines, it is usually not advisable.
 
   After @file{loadup.el} reads @file{site-load.el}, it finds the
 documentation strings for primitive and preloaded functions (and
