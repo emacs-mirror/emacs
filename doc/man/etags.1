@@ -185,7 +185,10 @@ useless characters.  If the match is such that more characters than
 needed are unavoidably matched by \fItagregexp\fP, it may be useful to
 add a \fInameregexp\fP, to narrow down the tag scope.  \fBctags\fP
 ignores regexps without a \fInameregexp\fP.  The syntax of regexps is
-the same as in emacs, except that shy groups are not supported.
+the same as in Emacs, except that backslash escapes are the same
+as GNU grep (which means, for example, that shy groups are not supported),
+and \fB[:ascii:]\fP, \fB[:multibyte:]\fP, \fB[:nonascii:]\fP,
+\fB[:word:]\fP, and \fB[:unibyte:]\fP are not supported.
 The following character escape sequences are supported:
 \\a, \\b, \\d, \\e, \\f, \\n, \\r, \\t, \\v, which respectively
 stand for the ASCII characters BEL, BS, DEL, ESC, FF, NL, CR, TAB, VT.
