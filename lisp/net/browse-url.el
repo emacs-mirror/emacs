@@ -167,6 +167,7 @@
 		   :value browse-url-text-emacs)
     (function-item :tag "KDE" :value browse-url-kde)
     (function-item :tag "Elinks" :value browse-url-elinks)
+    (function-item :tag "Qutebrowser" :value browse-url-qutebrowser)
     (function-item :tag "Specified by `Browse Url Generic Program'"
                    :value browse-url-generic)
     ,@(when (eq system-type 'windows-nt)
