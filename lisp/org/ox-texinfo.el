@@ -826,9 +826,9 @@ holding export options."
               ;; `dn' is presumed to be just the DIRNAME part, so generate
               ;; either `* DIRNAME: (FILENAME).' or `* FILENAME.', whichever
               ;; is shortest.
-              ((and dn (not (equal dn file)))
+              (dn
                (format "* %s: (%s)." dn (or file dn)))
-              (t (format "* %s." file)))))
+              (t (format "* (%s)." file)))))
        (concat "@dircategory " dircat "\n"
 	       "@direntry\n"
 	       (let ((dirdesc
