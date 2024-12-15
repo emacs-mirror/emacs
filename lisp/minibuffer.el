@@ -4857,8 +4857,10 @@ See `completing-read' for the meaning of the arguments."
                 ;; `completion-eager-display' is t or if eager display
                 ;; has been requested by the completion table.
                 (when completion-eager-display
-                  (let* ((md (completion-metadata (or initial-input "")
-                                                  collection predicate))
+                  (let* ((md (completion-metadata
+                              (buffer-substring-no-properties
+                               (minibuffer-prompt-end) (point))
+                              collection predicate))
                          (fun (completion-metadata-get md 'eager-display)))
                     (when (or fun (eq completion-eager-display t))
                       (funcall (if (functionp fun)
