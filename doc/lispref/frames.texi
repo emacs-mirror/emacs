@@ -380,6 +380,9 @@ than one physical monitor.  You can use the functions
 @code{display-monitor-attributes-list} and @code{frame-monitor-attributes}
 to obtain information about such setups.
 
+@cindex display geometry
+@cindex monitor geometry
+@cindex geometry of display monitor
 @defun display-monitor-attributes-list &optional display
 This function returns a list of physical monitor attributes on
 @var{display}, which can be a display name (a string), a terminal, or
