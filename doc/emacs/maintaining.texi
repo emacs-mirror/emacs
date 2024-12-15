@@ -3094,7 +3094,8 @@ and all the C character escape sequences are supported: @samp{\a} for
 bell, @samp{\b} for back space, @samp{\e} for escape, @samp{\f} for
 formfeed, @samp{\n} for newline, @samp{\r} for carriage return,
 @samp{\t} for tab, and @samp{\v} for vertical tab.  In addition,
-@samp{\d} stands for the @code{DEL} character.
+@samp{\d} stands for the @code{DEL} character.  Shy groups are not
+supported by @command{etags}.
 
   Ideally, @var{tagregexp} should not match more characters than are
 needed to recognize what you want to tag.  If the syntax requires you
