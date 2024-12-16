@@ -1590,6 +1590,16 @@ Note that this example is modified for didactic purposes, and isn't
 exactly how C and C@t{++} modes define things.
 @end defvar
 
+Emacs builtin functions already make use some thing definitions.
+Command @code{treesit-forward-sexp} uses the @code{sexp} definition if
+major mode defines it; @code{treesit-forward-sentence} uses the
+@code{sentence} definition.  Defun movement functions like
+@code{treesit-end-of-defun} uses the @code{defun} definition
+(@code{defun} definition is overridden by
+@var{treesit-defun-type-regexp} for backward compatibility).  Major
+modes can also define @code{comment}, @code{string}, @code{text}
+(generally comments and strings).
+
 The rest of this section lists a few functions that take advantage of
 the thing definitions.  Besides the functions below, some other
 functions listed elsewhere also utilize the thing feature, e.g.,
