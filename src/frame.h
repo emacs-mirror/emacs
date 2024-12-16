@@ -519,10 +519,6 @@ struct frame
   bool_bf tool_bar_redisplayed : 1;
   bool_bf tool_bar_resized : 1;
 
-  /* Inhibit implied resize before after_make_frame is set.  */
-  bool_bf inhibit_horizontal_resize : 1;
-  bool_bf inhibit_vertical_resize : 1;
-
   /* Non-zero if this frame's faces need to be recomputed.  */
   bool_bf face_change : 1;
 

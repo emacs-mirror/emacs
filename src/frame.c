@@ -158,20 +158,16 @@ bool
 frame_inhibit_resize (struct frame *f, bool horizontal, Lisp_Object parameter)
 {
   Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
-  bool inhibit
-    = (f->after_make_frame
-       ? (EQ (frame_inhibit_implied_resize, Qt)
-	  || (CONSP (frame_inhibit_implied_resize)
-	      && !NILP (Fmemq (parameter, frame_inhibit_implied_resize)))
-	  || (horizontal
-	      && !NILP (fullscreen) && !EQ (fullscreen, Qfullheight))
-	  || (!horizontal
-	      && !NILP (fullscreen) && !EQ (fullscreen, Qfullwidth))
-	  || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
-       : ((horizontal && f->inhibit_horizontal_resize)
-	  || (!horizontal && f->inhibit_vertical_resize)));
 
-  return inhibit;
+  return (f->after_make_frame
+	  && (EQ (frame_inhibit_implied_resize, Qt)
+	      || (CONSP (frame_inhibit_implied_resize)
+		  && !NILP (Fmemq (parameter, frame_inhibit_implied_resize)))
+	      || (horizontal
+		  && !NILP (fullscreen) && !EQ (fullscreen, Qfullheight))
+	      || (!horizontal
+		  && !NILP (fullscreen) && !EQ (fullscreen, Qfullwidth))
+	      || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f)));
 }
 
 
@@ -957,8 +953,6 @@ make_frame (bool mini_p)
   f->garbaged = true;
   f->can_set_window_size = false;
   f->after_make_frame = false;
-  f->inhibit_horizontal_resize = false;
-  f->inhibit_vertical_resize = false;
   f->tab_bar_redisplayed = false;
   f->tab_bar_resized = false;
   f->tool_bar_redisplayed = false;
@@ -3128,8 +3122,6 @@ otherwise used with utter care to avoid that running functions on
 {
   struct frame *f = decode_live_frame (frame);
   f->after_make_frame = !NILP (made);
-  f->inhibit_horizontal_resize = false;
-  f->inhibit_vertical_resize = false;
   return made;
 }
 
@@ -5918,7 +5910,6 @@ gui_figure_window_size (struct frame *f, Lisp_Object parms, bool tabbar_p,
 		xsignal1 (Qargs_out_of_range, XCDR (width));
 
 	      text_width = XFIXNUM (XCDR (width));
-	      f->inhibit_horizontal_resize = true;
 	    }
 	  else if (FLOATP (width))
 	    {
@@ -5954,7 +5945,6 @@ gui_figure_window_size (struct frame *f, Lisp_Object parms, bool tabbar_p,
 		xsignal1 (Qargs_out_of_range, XCDR (height));
 
 	      text_height = XFIXNUM (XCDR (height));
-	      f->inhibit_vertical_resize = true;
 	    }
 	  else if (FLOATP (height))
 	    {
