@@ -65,10 +65,10 @@ checked and warned against."
 
 The default suite of TLS checks in NSM is designed to follow the
 most current security best practices.  Under some situations,
-such as attempting to connect to an email server that do not
+such as attempting to connect to an email server that does not
 follow these practices inside a school or corporate network, NSM
 may produce warnings for such occasions.  Setting this option to
-a non-nil value, or a zero-argument function that returns non-nil
+a non-nil value, or a zero-argument function that returns non-nil,
 tells NSM to skip checking for potential TLS vulnerabilities when
 connecting to hosts on a local network.
 
