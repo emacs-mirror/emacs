@@ -4605,7 +4605,7 @@ network_interface_info (Lisp_Object ifname)
 DEFUN ("network-interface-list", Fnetwork_interface_list,
        Snetwork_interface_list, 0, 2, 0,
        doc: /* Return an alist of all network interfaces and their network address.
-Each element is cons of the form (IFNAME . IP) where IFNAME is a
+Each element is a cons of the form (IFNAME . IP) where IFNAME is a
 string containing the interface name, and IP is the network address in
 internal format; see the description of ADDRESS in
 `make-network-process'.  The interface name is not guaranteed to be
