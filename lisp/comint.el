@@ -543,6 +543,7 @@ via PTYs.")
     (define-key map "\er" 	  'comint-history-isearch-backward-regexp)
     (define-key map [?\C-c ?\M-r] 'comint-previous-matching-input-from-input)
     (define-key map [?\C-c ?\M-s] 'comint-next-matching-input-from-input)
+    (define-key map [?\C-x up]    'comint-complete-input-ring)
     (define-key map "\e\C-l" 	  'comint-show-output)
     (define-key map "\C-m" 	  'comint-send-input)
     (define-key map "\C-d" 	  'comint-delchar-or-maybe-eof)
@@ -1180,6 +1181,24 @@ See also `comint-read-input-ring'."
 	    (set-window-configuration conf)
 	  (push ch unread-command-events))))))
 
+(defun comint-complete-input-ring ()
+  "Complete a list of recent inputs entered into the current buffer.
+Like `minibuffer-complete-history' but completes on comint inputs.
+This function makes `comint-dynamic-list-input-ring' obsolete."
+  (interactive)
+  (let ((completions
+         (if (and (ring-p comint-input-ring)
+                  (not (ring-empty-p comint-input-ring)))
+             (ring-elements comint-input-ring)
+           (user-error "No history available")))
+        (completion-in-region-mode-predicate
+         (lambda () (get-buffer-window "*Completions*" 0))))
+    (completion-in-region
+     (comint-line-beginning-position) (point-max)
+     (completion-table-with-metadata
+      completions '((category . comint-input)
+                    (display-sort-function . identity)
+                    (cycle-sort-function . identity))))))
 
 (defun comint-regexp-arg (prompt)
   "Return list of regexp and prefix arg using PROMPT."

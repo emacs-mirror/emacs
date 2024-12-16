@@ -337,6 +337,12 @@ It removes all the buttons in the specified region.
 +++
 *** Disabling 'button-mode' now removes all buttons in the current buffer.
 
+** Shell
+
+*** New command to complete the shell history.
+'comint-complete-input-ring' ('C-x <up>') is like 'minibuffer-complete-history'
+but completes on comint inputs.
+
 ** Eshell
 
 ---
