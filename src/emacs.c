@@ -1263,12 +1263,12 @@ maybe_load_seccomp (int argc, char **argv)
 
 #endif  /* SECCOMP_USABLE */
 
-#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
-int
-android_emacs_init (int argc, char **argv, char *dump_file)
-#else
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
 int
 main (int argc, char **argv)
+#else
+int
+android_emacs_init (int argc, char **argv, char *dump_file)
 #endif
 {
   /* Variable near the bottom of the stack, and aligned appropriately
