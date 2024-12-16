@@ -1014,6 +1014,9 @@ continue the already activated repeating sequence.  Also 'defvar-keymap'
 supports a new keyword ':continue-only' with a list of commands that
 only continue the active repeating sequence.
 
+** New function 'completion-table-with-metadata'.
+It offers a more concise way to create a completion table with metadata.
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 
