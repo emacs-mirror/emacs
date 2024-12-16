@@ -1017,6 +1017,9 @@ only continue the active repeating sequence.
 ** New function 'completion-table-with-metadata'.
 It offers a more concise way to create a completion table with metadata.
 
++++
+** 'all-completions' no longer supports the old calling convention.
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 
