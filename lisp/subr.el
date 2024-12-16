@@ -1973,7 +1973,6 @@ be a list of the form returned by `event-start' and `event-end'."
            (side-effect-free t) (obsolete log "24.4"))
   (log x 10))
 
-(set-advertised-calling-convention 'unintern '(name obarray) "23.3")
 (set-advertised-calling-convention 'indirect-function '(object) "25.1")
 (set-advertised-calling-convention 'redirect-frame-focus '(frame focus-frame) "24.3")
 (set-advertised-calling-convention 'libxml-parse-xml-region '(&optional start end base-url) "27.1")
