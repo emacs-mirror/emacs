@@ -7143,7 +7143,8 @@ implementations: `python-mode' and `python-ts-mode'."
       (defvar grep-files-aliases)
       (defvar grep-find-ignored-directories)
       (cl-pushnew '("py" . "*.py") grep-files-aliases :test #'equal)
-      (dolist (dir '(".tox" ".venv" ".mypy_cache" ".ruff_cache"))
+      (dolist (dir '(".mypy_cache" ".pytest_cache" ".ropeproject"
+                     ".ruff_cache" ".tox" ".venv"))
         (cl-pushnew dir grep-find-ignored-directories))))
 
   (setq-local prettify-symbols-alist python-prettify-symbols-alist)
