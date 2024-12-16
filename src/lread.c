@@ -962,7 +962,7 @@ floating-point value.
 
 If `inhibit-interaction' is non-nil, this function will signal an
 `inhibited-interaction' error.  */)
-(Lisp_Object prompt, Lisp_Object inherit_input_method, Lisp_Object seconds)
+  (Lisp_Object prompt, Lisp_Object inherit_input_method, Lisp_Object seconds)
 {
   Lisp_Object val;
 
