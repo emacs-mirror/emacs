@@ -2846,7 +2846,9 @@ Keybindings:
   ;; FIXME this should check the key-bindings and use
   ;; substitute-command-keys if non-standard
   (message
-   "d-elete, u-ndelete, x-punge, f-ind, o-ther window, R-ename, C-opy, h-elp"))
+   (substitute-command-keys
+    (concat "\\`d'-elete, \\`u'-ndelete, \\`x'-punge, \\`f'-ind, "
+            "\\`o'-ther window, \\`R'-ename, \\`C'-opy, \\`h'-elp"))))
 
 (defun dired-undo ()
   "Undo in a Dired buffer.
