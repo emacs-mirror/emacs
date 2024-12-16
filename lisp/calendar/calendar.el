@@ -90,6 +90,16 @@
 ;; <https://doi.org/10.1002/spe.4380230404>
 ;; <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.42.6421&rep=rep1&type=pdf>
 
+;; A note on how dates are represented:
+
+;; The standard format for a (Gregorian) calendar date in this file is a
+;; list of integers (MONTH DAY YEAR) -- see the functions
+;; `calendar-extract-year', `calendar-extract-month', and
+;; `calendar-extract-day'.  Internally it also uses an "absolute" format
+;; which is an integer number of days since December 31, 1BC (see
+;; e.g. `calendar-absolute-from-gregorian'), and converts between
+;; different calendar scales by converting to and from the absolute
+;; format (see e.g. `calendar-iso-from-absolute' in cal-iso.el).
 
 ;; A note on free variables:
 
