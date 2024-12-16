@@ -1397,6 +1397,7 @@ Otherwise, return a new string."
     ;; itself.
     (let ((keymap overriding-local-map)
           (inhibit-modification-hooks t)
+          (inhibit-read-only t)
           (orig-buf (current-buffer)))
       (with-temp-buffer
         (insert string)
