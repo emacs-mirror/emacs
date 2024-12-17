@@ -1320,7 +1320,7 @@ Default to the URL around or before point."
               'browse-url-browser-kind 'external)
 
 (defcustom browse-url-android-share nil
-  "If non-nil, share URLs instead of opening them.
+  "If non-nil, share URLs on Android systems instead of opening them.
 When non-nil, `browse-url-default-android-browser' will try to
 share the URL being browsed through programs such as mail clients
 and instant messengers instead of opening it in a web browser."
