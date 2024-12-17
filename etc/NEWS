@@ -1021,7 +1021,7 @@ only continue the active repeating sequence.
 It offers a more concise way to create a completion table with metadata.
 
 +++
-** 'all-completions' and 'obarray' no longer support their old calling conventions.
+** 'all-completions' and 'unintern' no longer support their old calling conventions.
 
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
