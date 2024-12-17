@@ -453,10 +453,17 @@ See `describe-repeat-maps' for a list of all repeatable commands."
       (and (symbolp real-this-command)
            (get real-this-command property))))
 
-(defun repeat-get-map ()
+(defun repeat-get-map (&optional rep-map)
   "Return a transient map for keys repeatable after the current command."
   (when repeat-mode
-    (let ((rep-map (or repeat-map (repeat--command-property 'repeat-map))))
+    (let ((rep-map (or rep-map repeat-map (repeat--command-property 'repeat-map)))
+          (continue-only (repeat--command-property 'repeat-continue-only)))
+      (when continue-only
+        (if repeat-in-progress
+            (when (and (consp continue-only)
+                       (memq repeat-in-progress continue-only))
+              (setq rep-map repeat-in-progress))
+          (setq rep-map nil)))
       (when rep-map
         (when (and (symbolp rep-map) (boundp rep-map))
           (setq rep-map (symbol-value rep-map)))
@@ -501,37 +508,32 @@ See `describe-repeat-maps' for a list of all repeatable commands."
 
 (defun repeat-post-hook ()
   "Function run after commands to set transient keymap for repeatable keys."
-  (let ((was-in-progress repeat-in-progress))
+  (let* ((was-in-progress repeat-in-progress)
+         (map-sym (or repeat-map (repeat--command-property 'repeat-map)))
+         (map (repeat-get-map map-sym)))
     (setq repeat-in-progress nil)
-    (let ((map (repeat-get-map)))
-      (when (and (repeat-check-map map)
-                 (let ((continue-only (repeat--command-property 'repeat-continue-only)))
-                   (or (null continue-only)
-                       (and (or (not (consp continue-only))
-                                (memq (repeat--command-property 'repeat-map)
-                                      continue-only))
-                            was-in-progress))))
-        ;; Messaging
-        (funcall repeat-echo-function map)
+    (when (repeat-check-map map)
+      ;; Messaging
+      (funcall repeat-echo-function map)
 
-        ;; Adding an exit key
-        (when repeat-exit-key
-          (setq map (copy-keymap map))
-          (define-key map (if (key-valid-p repeat-exit-key)
-                              (kbd repeat-exit-key)
-                            repeat-exit-key)
-                      'ignore))
+      ;; Adding an exit key
+      (when repeat-exit-key
+        (setq map (copy-keymap map))
+        (define-key map (if (key-valid-p repeat-exit-key)
+                            (kbd repeat-exit-key)
+                          repeat-exit-key)
+                    'ignore))
 
-        (setq repeat-in-progress t)
-        (repeat--clear-prev)
-        (let ((exitfun (set-transient-map map)))
-          (setq repeat--transient-exitfun exitfun)
+      (setq repeat-in-progress map-sym)
+      (repeat--clear-prev)
+      (let ((exitfun (set-transient-map map)))
+        (setq repeat--transient-exitfun exitfun)
 
-          (let* ((prop (repeat--command-property 'repeat-exit-timeout))
-                 (timeout (unless (eq prop 'no) (or prop repeat-exit-timeout))))
-            (when timeout
-              (setq repeat-exit-timer
-                    (run-with-idle-timer timeout nil #'repeat-exit)))))))
+        (let* ((prop (repeat--command-property 'repeat-exit-timeout))
+               (timeout (unless (eq prop 'no) (or prop repeat-exit-timeout))))
+          (when timeout
+            (setq repeat-exit-timer
+                  (run-with-idle-timer timeout nil #'repeat-exit))))))
 
     (setq repeat-map nil)
     (setq repeat--prev-mb (cons (minibuffer-depth) current-minibuffer-command))
