@@ -1210,6 +1210,7 @@ an association list that can specify properties such as:
 - `group-function': function for grouping the completion candidates.
 - `annotation-function': function to add annotations in *Completions*.
 - `affixation-function': function to prepend/append a prefix/suffix.
+- `eager-display': function to show *Completions* eagerly.
 
 Categories are symbols such as `buffer' and `file', used when
 completing buffer and file names, respectively.
@@ -1231,6 +1232,7 @@ possible values are the same as in `completions-sort'.
 - `group-function': function for grouping the completion candidates.
 - `annotation-function': function to add annotations in *Completions*.
 - `affixation-function': function to prepend/append a prefix/suffix.
+- `eager-display': function to show *Completions* eagerly.
 See more description of metadata in `completion-metadata'.
 
 Categories are symbols such as `buffer' and `file', used when
