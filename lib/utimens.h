@@ -33,12 +33,16 @@ extern "C" {
 #endif
 
 int fdutimens (int, char const *, struct timespec const [2]);
-#if !HAVE_UTIMENS
+
+#if HAVE_UTIMENS
+# define utimens rpl_utimens
+#endif
 int utimens (char const *, struct timespec const [2]);
+
+#if HAVE_LUTIMENS
+# define lutimens rpl_lutimens
 #endif
-#if !HAVE_LUTIMENS
 int lutimens (char const *, struct timespec const [2]);
-#endif
 
 #ifdef __cplusplus
 }

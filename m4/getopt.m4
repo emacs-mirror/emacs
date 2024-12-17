@@ -4,6 +4,7 @@ dnl Copyright (C) 2002-2006, 2008-2024 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
+dnl This file is offered as-is, without any warranty.
 
 # Request a POSIX compliant getopt function.
 AC_DEFUN([gl_FUNC_GETOPT_POSIX],
@@ -77,7 +78,7 @@ AC_DEFUN([gl_GETOPT_CHECK_HEADERS],
   fi
 
   dnl POSIX 2008 does not specify leading '+' behavior, but see
-  dnl http://austingroupbugs.net/view.php?id=191 for a recommendation on
+  dnl https://austingroupbugs.net/view.php?id=191 for a recommendation on
   dnl the next version of POSIX.  For now, we only guarantee leading '+'
   dnl behavior with getopt-gnu.
   if test -z "$gl_replace_getopt"; then

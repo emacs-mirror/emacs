@@ -1,6 +1,5 @@
 /* Convenience header for conditional use of GNU <libintl.h>.
-   Copyright (C) 1995-1998, 2000-2002, 2004-2006, 2009-2024 Free Software
-   Foundation, Inc.
+   Copyright (C) 1995-2024 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -17,6 +16,7 @@
 
 #ifndef _LIBGETTEXT_H
 #define _LIBGETTEXT_H 1
+
 
 /* NLS can be disabled through the configure --disable-nls option
    or through "#define ENABLE NLS 0" before including this file.  */
@@ -45,19 +45,19 @@
    as well because people using "gettext.h" will not include <libintl.h>,
    and also including <libintl.h> would fail on SunOS 4, whereas <locale.h>
    is OK.  */
-#if defined(__sun)
-# include <locale.h>
-#endif
+# if defined(__sun)
+#  include <locale.h>
+# endif
 
 /* Many header files from the libstdc++ coming with g++ 3.3 or newer include
    <libintl.h>, which chokes if dcgettext is defined as a macro.  So include
    it now, to make later inclusions of <libintl.h> a NOP.  */
-#if defined(__cplusplus) && defined(__GNUG__) && (__GNUC__ >= 3)
-# include <cstdlib>
-# if (__GLIBC__ >= 2 && !defined __UCLIBC__) || _GLIBCXX_HAVE_LIBINTL_H
-#  include <libintl.h>
+# if defined(__cplusplus) && defined(__GNUG__) && (__GNUC__ >= 3)
+#  include <cstdlib>
+#  if (__GLIBC__ >= 2 && !defined __UCLIBC__) || _GLIBCXX_HAVE_LIBINTL_H
+#   include <libintl.h>
+#  endif
 # endif
-#endif
 
 /* Disabled NLS.
    The casts to 'const char *' serve the purpose of producing warnings
@@ -93,11 +93,13 @@
 
 #endif
 
+
 /* Prefer gnulib's setlocale override over libintl's setlocale override.  */
 #ifdef GNULIB_defined_setlocale
 # undef setlocale
 # define setlocale rpl_setlocale
 #endif
+
 
 /* A pseudo function call that serves as a marker for the automated
    extraction of messages, but does not call gettext().  The run-time
@@ -108,6 +110,7 @@
    initializer for static 'char[]' or 'const char[]' variables.  */
 #define gettext_noop(String) String
 
+
 /* The separator between msgctxt and msgid in a .mo file.  */
 #define GETTEXT_CONTEXT_GLUE "\004"
 
@@ -115,6 +118,9 @@
    MSGID.  MSGCTXT and MSGID must be string literals.  MSGCTXT should be
    short and rarely need to change.
    The letter 'p' stands for 'particular' or 'special'.  */
+
+#include <locale.h> /* for LC_MESSAGES */
+
 #ifdef DEFAULT_TEXT_DOMAIN
 # define pgettext(Msgctxt, Msgid) \
    pgettext_aux (DEFAULT_TEXT_DOMAIN, Msgctxt GETTEXT_CONTEXT_GLUE Msgid, Msgid, LC_MESSAGES)
@@ -178,11 +184,12 @@ npgettext_aux (const char *domain,
     return translation;
 }
 
+
 /* The same thing extended for non-constant arguments.  Here MSGCTXT and MSGID
    can be arbitrary expressions.  But for string literals these macros are
    less efficient than those above.  */
 
-#include <string.h>
+#include <string.h> /* for memcpy */
 
 /* GNULIB_NO_VLA can be defined to disable use of VLAs even if supported.
    This relates to the -Wvla and -Wvla-larger-than warnings, enabled in
@@ -199,7 +206,7 @@ npgettext_aux (const char *domain,
 #endif
 
 #if !_LIBGETTEXT_HAVE_VARIABLE_SIZE_ARRAYS
-#include <stdlib.h>
+# include <stdlib.h> /* for malloc, free */
 #endif
 
 #define pgettext_expr(Msgctxt, Msgid) \
@@ -296,5 +303,6 @@ dcnpgettext_expr (const char *domain,
     }
   return (n == 1 ? msgid : msgid_plural);
 }
+
 
 #endif /* _LIBGETTEXT_H */

@@ -105,6 +105,7 @@ void mpn_mul_n (mp_ptr, mp_srcptr, mp_srcptr, mp_size_t);
 void mpn_sqr (mp_ptr, mp_srcptr, mp_size_t);
 int mpn_perfect_square_p (mp_srcptr, mp_size_t);
 mp_size_t mpn_sqrtrem (mp_ptr, mp_ptr, mp_srcptr, mp_size_t);
+mp_size_t mpn_gcd (mp_ptr, mp_ptr, mp_size_t, mp_ptr, mp_size_t);
 
 mp_limb_t mpn_lshift (mp_ptr, mp_srcptr, mp_size_t, unsigned int);
 mp_limb_t mpn_rshift (mp_ptr, mp_srcptr, mp_size_t, unsigned int);

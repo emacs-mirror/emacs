@@ -19,9 +19,11 @@
 
 #include <config.h>
 
-#include "acl.h"
-
+/* Specification.  */
+#define ACL_INTERNAL_INLINE _GL_EXTERN_INLINE
 #include "acl-internal.h"
+
+#include "acl.h"
 
 #if defined __CYGWIN__
 # include <sys/types.h>

@@ -5,6 +5,7 @@ dnl Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
+dnl This file is offered as-is, without any warranty.
 
 m4_version_prereq([2.73], [], [
 # Replace AC_FUNC_STRNLEN from Autoconf 2.72 and earlier,
