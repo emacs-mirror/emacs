@@ -457,11 +457,11 @@ See `describe-repeat-maps' for a list of all repeatable commands."
   "Return a transient map for keys repeatable after the current command."
   (when repeat-mode
     (let ((rep-map (or rep-map repeat-map (repeat--command-property 'repeat-map)))
-          (continue-only (repeat--command-property 'repeat-continue-only)))
-      (when continue-only
+          (continue (repeat--command-property 'repeat-continue)))
+      (when continue
         (if repeat-in-progress
-            (when (and (consp continue-only)
-                       (memq repeat-in-progress continue-only))
+            (when (and (consp continue)
+                       (memq repeat-in-progress continue))
               (setq rep-map repeat-in-progress))
           (setq rep-map nil)))
       (when rep-map
@@ -661,7 +661,7 @@ Click on a keymap to see the commands repeatable by the keymap.\n")
               (setq map-commands (seq-uniq map-commands))
               (setq commands-continue
                     (seq-filter (lambda (s) (memq (car keymap)
-                                                  (get s 'repeat-continue-only)))
+                                                  (get s 'repeat-continue)))
                                 map-commands))
               (setq commands-enter
                     (seq-difference repeat-commands map-commands))

@@ -77,9 +77,9 @@
 
 (defvar-keymap repeat-tests-another-repeat-map
   :doc "Keymap for repeating other sequences."
-  :repeat ( :enter         (repeat-tests-call-s)
-            :continue-only (repeat-tests-call-o
-                            repeat-tests-call-u))
+  :repeat ( :enter    (repeat-tests-call-s)
+            :continue (repeat-tests-call-o
+                       repeat-tests-call-u))
   "s"     'ignore ;; for non-nil repeat-check-key only
   "t"     'repeat-tests-call-t
   "C-M-o" 'repeat-tests-call-o
@@ -87,9 +87,9 @@
 
 (defvar-keymap repeat-tests-repeat-map
   :doc "Keymap for repeating sequences."
-  :repeat ( :enter         (repeat-tests-call-a)
-            :continue-only (repeat-tests-call-o)
-            :exit          (repeat-tests-call-q))
+  :repeat ( :enter    (repeat-tests-call-a)
+            :continue (repeat-tests-call-o)
+            :exit     (repeat-tests-call-q))
   "a"     'ignore ;; for non-nil repeat-check-key only
   "c"     'repeat-tests-call-c
   "d"     'repeat-tests-call-d
@@ -202,11 +202,11 @@
 
 ;; TODO: :tags '(:expensive-test)  for repeat-exit-timeout
 
-(ert-deftest repeat-tests-continue-only ()
+(ert-deftest repeat-tests-continue ()
   (with-repeat-mode repeat-tests-global-map
     (let ((repeat-echo-function 'ignore)
           (repeat-check-key nil))
-      ;; 'C-M-o' used as continue-only
+      ;; 'C-M-o' used as continue
       (repeat-tests--check
        "C-M-a c C-M-o c z"
        '((1 a) (1 c) (1 o) (1 c)) "z")
@@ -223,7 +223,7 @@
       (repeat-tests--check
        "C-M-s t t z"
        '((1 s) (1 t) (1 t)) "z")
-      ;; 'C-M-u' used as continue-only
+      ;; 'C-M-u' used as continue
       (repeat-tests--check
        "C-M-s t C-M-u t z"
        '((1 s) (1 t) (1 u) (1 t)) "z")
@@ -268,7 +268,7 @@
    :repeat-map repeat-tests-bind-keys-repeat-map
    :continue
    ("c"     . repeat-tests-bind-call-c)
-   ;; :continue-only
+   ;; :continue
    ("C-M-o" . repeat-tests-bind-call-o)
    :exit
    ("q"     . repeat-tests-bind-call-q))
@@ -279,7 +279,7 @@
   (with-repeat-mode repeat-tests-bind-keys-map
     (let ((repeat-echo-function 'ignore)
           (repeat-check-key nil))
-      ;; 'C-M-o' used as continue-only
+      ;; 'C-M-o' used as continue
       (repeat-tests--check
        "C-M-a c C-M-o c z"
        '((1 a) (1 c) (1 o) (1 c)) "z")
