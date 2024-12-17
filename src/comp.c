@@ -5160,32 +5160,6 @@ load_static_obj (struct Lisp_Native_Comp_Unit *comp_u, const char *name)
 
 }
 
-/* Return false when something is wrong or true otherwise.  */
-
-static bool
-check_comp_unit_relocs (struct Lisp_Native_Comp_Unit *comp_u)
-{
-  dynlib_handle_ptr handle = comp_u->handle;
-  Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
-
-  EMACS_INT d_vec_len = XFIXNUM (Flength (comp_u->data_vec));
-
-  for (ptrdiff_t i = 0; i < d_vec_len; i++)
-    {
-      Lisp_Object x = data_relocs[i];
-      if (EQ (x, Qlambda_fixup))
-	return false;
-      else if (NATIVE_COMP_FUNCTIONP (x))
-	{
-	  if (NILP (Fgethash (x, comp_u->lambda_gc_guard_h, Qnil)))
-	    return false;
-	}
-      else if (!EQ (x, AREF (comp_u->data_vec, i)))
-	return false;
-    }
-  return true;
-}
-
 static void
 unset_cu_load_ongoing (Lisp_Object comp_u)
 {
@@ -5315,7 +5289,6 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       /* Make sure data_ephemeral_vec still exists after top_level_run has run.
 	 Guard against sibling call optimization (or any other).  */
       data_ephemeral_vec = data_ephemeral_vec;
-      eassert (check_comp_unit_relocs (comp_u));
     }
 
   if (!recursive_load)
