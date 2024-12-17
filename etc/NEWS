@@ -109,6 +109,9 @@ the *Completions* buffer immediately.  When the variable is set to t all
 completion commands show *Completions* immediately, respectively nil
 disables the eager display for all commands.  The default setting auto
 enables eager completion only if requested by the command.
+For more fine-grained control you can also toggle this feature
+by category using the symbol 'eager-display' in the user option
+'completion-category-overrides'.
 
 +++
 *** New user option 'completion-pcm-leading-wildcard'.
