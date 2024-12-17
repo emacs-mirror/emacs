@@ -653,15 +653,23 @@ Click on a keymap to see the commands repeatable by the keymap.\n")
                             (symbol-value (car keymap))
                           (car keymap)))
                    (repeat-commands (cdr keymap))
-                   map-commands commands-enter commands-exit)
-              (map-keymap (lambda (_key cmd)
-                            (when (symbolp cmd) (push cmd map-commands)))
-                          map)
+                   map-commands commands-enter commands-exit commands-continue)
+              (cl--map-keymap-recursively
+               (lambda (_key cmd)
+                 (when (symbolp cmd) (push cmd map-commands)))
+               map)
               (setq map-commands (seq-uniq map-commands))
-              (setq commands-enter (seq-difference repeat-commands map-commands))
-              (setq commands-exit  (seq-difference map-commands repeat-commands))
+              (setq commands-continue
+                    (seq-filter (lambda (s) (memq (car keymap)
+                                                  (get s 'repeat-continue-only)))
+                                map-commands))
+              (setq commands-enter
+                    (seq-difference repeat-commands map-commands))
+              (setq commands-exit
+                    (seq-difference (seq-difference map-commands repeat-commands)
+                                    commands-continue))
 
-              (when (or commands-enter commands-exit)
+              (when (or commands-enter commands-exit commands-continue)
                 (when commands-enter
                   (insert "\n** Entered with:\n\n")
                   (fill-region-as-paragraph
@@ -670,6 +678,17 @@ Click on a keymap to see the commands repeatable by the keymap.\n")
                      (insert (mapconcat (lambda (cmd)
                                           (format-message "`%s'" cmd))
                                         (sort commands-enter #'string<)
+                                        ", "))
+                     (point)))
+                  (insert "\n"))
+                (when commands-continue
+                  (insert "\n** Continued only with:\n\n")
+                  (fill-region-as-paragraph
+                   (point)
+                   (progn
+                     (insert (mapconcat (lambda (cmd)
+                                          (format-message "`%s'" cmd))
+                                        (sort commands-continue #'string<)
                                         ", "))
                      (point)))
                   (insert "\n"))
@@ -688,7 +707,7 @@ Click on a keymap to see the commands repeatable by the keymap.\n")
           ;; Hide ^Ls.
           (goto-char (point-min))
           (while (search-forward "\n\f\n" nil t)
-	    (put-text-property (1+ (match-beginning 0)) (1- (match-end 0))
+            (put-text-property (1+ (match-beginning 0)) (1- (match-end 0))
                                'invisible t)))))))
 
 (provide 'repeat)
