@@ -4656,7 +4656,8 @@ where ADDR is the layer 3 address, BCAST is the layer 3 broadcast address,
 NETMASK is the layer 3 network mask, HWADDR is the layer 2 address, and
 FLAGS is the current flags of the interface.
 
-Data that is unavailable is returned as nil.  */)
+Data that is unavailable is returned as nil.  Only returns IPv4 layer 3
+addresses, for IPv6 use `network-interface-list'.  */)
   (Lisp_Object ifname)
 {
 #if ((defined HAVE_NET_IF_H			       \
