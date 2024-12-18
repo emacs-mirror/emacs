@@ -31,13 +31,6 @@ host system supports SSE2) or '-fno-tree-sra' (if not).  These GCC
 options work around GCC bug 58416, which can cause Emacs to behave
 incorrectly in rare cases.
 
----
-** New configuration option '--disable-gc-mark-trace'.
-This disables the GC mark trace buffer for about 5% better garbage
-collection performance.  Doing so may make it more difficult for Emacs
-developers to help finding GC-related bugs that you run into, which is
-why the mark trace buffer is enabled by default.
-
 
 * Startup Changes in Emacs 31.1
 
@@ -52,13 +45,14 @@ enabled, you can disable mouse tracking by putting '(xterm-mouse-mode
 
 +++
 ** Several font-lock face variables are now obsolete.
-The following variables are now obsolete: font-lock-comment-face,
-font-lock-comment-delimiter-face, font-lock-string-face,
-font-lock-doc-face, font-lock-doc-markup-face, font-lock-keyword-face,
-font-lock-builtin-face, font-lock-function-name-face,
-font-lock-variable-name-face, font-lock-type-face,
-font-lock-constant-face, font-lock-warning-face,
-font-lock-negation-char-face, and font-lock-preprocessor-face.
+The following variables are now obsolete: 'font-lock-builtin-face',
+'font-lock-comment-delimiter-face', 'font-lock-comment-face',
+'font-lock-constant-face', 'font-lock-doc-face',
+'font-lock-doc-markup-face', 'font-lock-function-name-face',
+'font-lock-keyword-face', 'font-lock-negation-char-face',
+'font-lock-preprocessor-face', 'font-lock-string-face',
+'font-lock-type-face', 'font-lock-variable-name-face', and
+'font-lock-warning-face'.
 
 These variables contributed both to confusion about the relation between
 faces and variables, and to inconsistency when major mode authors used
@@ -91,36 +85,6 @@ The 'find-function', 'find-library', 'find-face-definition', and
 'find-variable' commands now allow retrieving previous input using the
 usual minibuffer history commands.  Each command has a separate history.
 
-Loading a Tree-Sitter mode (such as by using 'M-x load-library' or with
-'M-x load-file') by default causes the corresponding non-Tree-Sitter
-mode be remapped to the Tree-Sitter mode.  This remapping affects
-visiting files for which 'auto-mode-alist' specifies a non-Tree-Sitter
-mode, and also affects mode-specification cookies on the first line of a
-file and mode specifications in file- and directory-local variables.  To
-revert to using a non-Tree-Sitter mode, reload the corresponding mode
-file anew.  To prevent file loading from turning on Tree-Sitter mode
-when 'auto-mode-alist' or the file/directory-local variables specify a
-non-Tree-Sitter mode, customize the user option 'major-mode-remap-alist'
-to specify that a non-Tree-Sitter mode is "remapped" to itself.  For
-example:
-
-    (add-to-list 'major-mode-remap-alist '(c-mode))
-
-specifies that C Mode should not be remapped to 'c-ts-mode' even if and
-when 'c-ts-mode' is loaded.  Conversely,
-
-    (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
-
-tells Emacs to always invoke 'c-ts-mode' whenever 'c-mode' is
-requested, either by 'auto-mode-alist' or by file/directory-local
-variables.
-
-We recommend using 'major-mode-remap-alist' to express your preferences
-for using Tree-Sitter or non-Tree-Sitter modes for files for which both
-variants of major modes are available, because that variable overrides
-the remapping Emacs might decide to perform as result of loading Lisp
-files and features.
-
 ---
 ** New minor mode 'find-function-mode' replaces 'find-function-setup-keys'.
 
@@ -128,13 +92,13 @@ files and features.
 
 +++
 *** New user option 'completion-eager-display'.
-This option configures whether completion commands should display
-the *Completions* buffer immediately.  When the variable is set to t all
-completion commands show *Completions* immediately, respectively nil
+This option configures whether completion commands should display the
+"*Completions*" buffer immediately.  When the option is set to t, all
+completion commands show "*Completions*" immediately, respectively nil
 disables the eager display for all commands.  The default setting auto
 enables eager completion only if requested by the command.
-For more fine-grained control you can also toggle this feature
-by category using the symbol 'eager-display' in the user option
+For more fine-grained control you can also toggle this feature by
+category using the symbol 'eager-display' in the user option
 'completion-category-overrides'.
 
 +++
@@ -158,12 +122,12 @@ applies for the styles configuration in 'completion-category-overrides'
 and 'completion-category-defaults'.
 
 ---
-*** Selected completion candidate is preserved across *Completions* updates.
-When point is on a completion candidate in the *Completions* buffer
+*** Selected completion candidate is preserved across "*Completions*" updates.
+When point is on a completion candidate in the "*Completions*" buffer
 (because of 'minibuffer-next-completion' or for any other reason), point
-will still be on that candidate after *Completions* is updated with a
+will still be on that candidate after "*Completions*" is updated with a
 new list of completions.  The candidate is automatically deselected when
-the *Completions* buffer is hidden.
+the "*Completions*" buffer is hidden.
 
 ** Windows
 
@@ -334,6 +298,7 @@ modal editing packages.
 *** New user option 'browse-url-transform-alist'.
 This user option is an alist that allows transforming URLs before asking
 a web browser to load them.  For example, it could be used like this:
+
     (add-to-list 'browse-url-transform-alist
                  '("www.google.com" . "www.duckduckgo.com"))
 
@@ -342,8 +307,9 @@ For better integration with the Qutebrowser, set
 'browse-url(-secondary)-browser-function' to 'browse-url-qutebrowser'.
 
 ** CL-Lib
+
 +++
-*** 'cl-labels' now also accepts (FUNC EXP) bindings, like 'cl-flet'.
+*** 'cl-labels' now also accepts '(FUNC EXP)' bindings, like 'cl-flet'.
 Such bindings make it possible to compute which function to bind to FUNC.
 
 ** Whitespace
@@ -456,7 +422,7 @@ your configuration:
                   #'eshell-next-matching-input))
 
 +++
-*** New user option 'eshell-history-isearch'
+*** New user option 'eshell-history-isearch'.
 When 'eshell-history-isearch' is nil (the default), Isearch commands
 search in the buffer contents.  If you customize it to t, those commands
 only search in input history.  If you customize it to the symbol 'dwim',
@@ -832,9 +798,9 @@ of seconds.  Crossfading can be toggled using the command
 ---
 *** New command 'mpc-describe-song'.
 This command displays information about the currently playing song or
-song at point in the MPC-Songs buffer.  The list of tags to display can
-be customized using the new user option 'mpc-song-viewer-tags' and the
-appearance of the list with the new faces 'mpc-song-viewer-tag',
+song at point in the "*MPC-Songs*" buffer.  The list of tags to display
+can be customized using the new user option 'mpc-song-viewer-tags' and
+the appearance of the list with the new faces 'mpc-song-viewer-tag',
 'mpc-song-viewer-value', and 'mpc-song-viewer-empty'.
 
 ** VC
@@ -883,10 +849,10 @@ The commands that jump to some location use 'display-buffer' and specify
 the category 'xref-jump'.  As a result, you can customize how the
 destination window is chosen using 'display-buffer-alist'.  Example:
 
-  (setq display-buffer-alist '(((category . xref-jump)
-                                (display-buffer-reuse-window
-                                 display-buffer-use-some-window)
-                                (some-window . mru))))
+    (setq display-buffer-alist '(((category . xref-jump)
+                                  (display-buffer-reuse-window
+                                   display-buffer-use-some-window)
+                                  (some-window . mru))))
 
 
 * New Modes and Packages in Emacs 31.1
@@ -1034,10 +1000,10 @@ conventions.
 +++
 ** 'make-vtable' can create an empty vtable.
 It is now possible to create a vtable without data, by leaving the
-':objects' list empty, or by providing a ':objects-function' that
+':objects' list empty, or by providing an ':objects-function' that
 (initially) produces no data.  In such a case, it is necessary to
 provide a ':columns' spec, so that the number of columns and their
-widths can be determined.  Columns widths can be set explicitly, or they
+widths can be determined.  Column widths can be set explicitly, or they
 will be calculated based on the window width.
 
 +++
@@ -1052,7 +1018,7 @@ only continue the active repeating sequence.
 It offers a more concise way to create a completion table with metadata.
 
 +++
-** 'all-completions' and 'unintern' no longer support their old calling conventions.
+** 'all-completions' and 'unintern' no longer support old calling conventions.
 
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
