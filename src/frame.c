@@ -1790,7 +1790,7 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
      the one you're actually typing in.  */
 
   /* FIXME/tty: I don't understand this.  (The comment above is from
-     Jim BLandy 1993 BTW, and the frame_ancestor_p from 2017.)
+     Jim Blandy 1993 BTW, and the frame_ancestor_p from 2017.)
 
      Setting the last event frame to nil leads to switch-frame events
      being generated even if they normally wouldn't be because the frame

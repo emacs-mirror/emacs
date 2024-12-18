@@ -194,7 +194,7 @@
 
 ;;;###autoload
 (define-minor-mode tty-tip-mode
-  "Global minor mode for displaying help in tty child frames."
+  "Global minor mode for displaying help in TTY child frames."
   :global t :group 'help
   (unless (display-graphic-p)
     (cond (tty-tip-mode
