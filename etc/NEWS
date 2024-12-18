@@ -331,6 +331,12 @@ modal editing packages.
 
 ** Browse URL
 
+*** New user option 'browse-url-transform-alist'.
+This user option is an alist that allows transforming URLs before asking
+a web browser to load them.  For example, it could be used like this:
+    (add-to-list 'browse-url-transform-alist
+                 '("www.google.com" . "www.duckduckgo.com"))
+
 *** New function 'browse-url-qutebrowser' for the Qutebrowser.
 For better integration with the Qutebrowser, set
 'browse-url(-secondary)-browser-function' to 'browse-url-qutebrowser'.

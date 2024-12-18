@@ -263,6 +263,23 @@ be used instead."
   :version "31.1"
   :type 'regexp)
 
+(defcustom browse-url-transform-alist nil
+  "Alist of transformations to apply to URLs before loading it.
+Each element has the form (ORIG . REPLACEMENT), where ORIG is a regular
+expression and REPLACEMENT is the replacement text.  Every element will
+be tested in turn, allowing more than one transformation to be made.
+
+Note that ORIG and REPLACEMENT are passed as arguments to
+`string-match', so you can, for example, use match groups in ORIG and
+backreferences in REPLACEMENT."
+  :type '(choice
+          (const :tag "None" nil)
+          (alist
+           :tag "Alist mapping from regexp to replacement"
+           :key-type (regexp :tag "Regexp")
+           :value-type (regexp :tag "Replacement")))
+  :version "31.1")
+
 (defcustom browse-url-browser-display nil
   "The X display for running the browser, if not same as Emacs's."
   :type '(choice string (const :tag "Default" nil)))
@@ -923,6 +940,10 @@ invert the prefix arg instead."
   (interactive (browse-url-interactive-arg "URL: "))
   (unless (called-interactively-p 'interactive)
     (setq args (or args (list browse-url-new-window-flag))))
+  (when browse-url-transform-alist
+    (dolist (trans browse-url-transform-alist)
+      (when (string-match (car trans) url)
+        (setq url (replace-match (cdr trans) nil t url)))))
   (when (and url-handler-mode
              (not (file-name-absolute-p url))
              (not (string-match "\\`[a-z]+:" url)))
