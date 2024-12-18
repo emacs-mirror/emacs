@@ -5173,7 +5173,7 @@ check_comp_unit_relocs (struct Lisp_Native_Comp_Unit *comp_u)
   for (ptrdiff_t i = 0; i < d_vec_len; i++)
     {
       Lisp_Object x = data_relocs[i];
-      if (EQ (x, Qlambda_fixup))
+      if (EQ (x, Q__lambda_fixup))
 	return false;
       else if (NATIVE_COMP_FUNCTIONP (x))
 	{
@@ -5622,7 +5622,7 @@ natively-compiled one.  */);
   DEFSYM (Qfixnum, "fixnum");
   DEFSYM (Qscratch, "scratch");
   DEFSYM (Qlate, "late");
-  DEFSYM (Qlambda_fixup, "lambda-fixup");
+  DEFSYM (Q__lambda_fixup, "--lambda-fixup");
   DEFSYM (Qgccjit, "gccjit");
   DEFSYM (Qcomp_subr_trampoline_install, "comp-subr-trampoline-install");
   DEFSYM (Qnative_comp_warning_on_missing_source,

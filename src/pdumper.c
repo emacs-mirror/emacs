@@ -5504,7 +5504,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	    XSETSUBR (tem, subr);
 	    Lisp_Object *fixup =
 	      &(comp_u->data_relocs[XFIXNUM (lambda_data_idx)]);
-	    eassert (EQ (*fixup, Qlambda_fixup));
+	    eassert (EQ (*fixup, Q__lambda_fixup));
 	    *fixup = tem;
 	    Fputhash (tem, Qt, comp_u->lambda_gc_guard_h);
 	  }
