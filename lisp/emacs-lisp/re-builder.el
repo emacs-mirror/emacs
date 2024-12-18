@@ -494,7 +494,7 @@ Re-Builder currently understands three different forms of input, namely
      `query-replace-regexp' (\\[query-replace-regexp]).  There is no need to escape
      backslashes and double quotes.
 
-  2. The `read' syntax is the same syntax used as when specifying the
+  2. The `read' syntax is the syntax used when specifying the
      regexp as a string in a Lisp program.
 
   3. Finally, the `rx' syntax allows editing of symbolic regular
