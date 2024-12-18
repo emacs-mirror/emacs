@@ -63,6 +63,7 @@ OMIT_GNULIB_MODULE_getdelim = true
 OMIT_GNULIB_MODULE_getline = true
 OMIT_GNULIB_MODULE_inttypes-incomplete = true
 OMIT_GNULIB_MODULE_lchmod = true
+OMIT_GNULIB_MODULE_malloc-gnu = true
 OMIT_GNULIB_MODULE_malloc-posix = true
 OMIT_GNULIB_MODULE_nanosleep = true
 OMIT_GNULIB_MODULE_nproc = true

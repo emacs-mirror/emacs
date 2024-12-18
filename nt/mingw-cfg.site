@@ -167,6 +167,11 @@ ac_cv_func_strsignal=no
 # implementation of 'free' doesn't touch errno, and it emits a
 # compilation warning.
 gl_cv_func_free_preserves_errno=yes
+# Don't build the Gnulib malloc.c: it is not needed, and it emits a
+# compilation warning.
+ac_cv_func_malloc_0_nonnull=yes
+gl_cv_malloc_ptrdiff=yes
+gl_cv_func_malloc_posix=yes
 # Don't build the Gnulib nanosleep module: it requires W2K or later,
 # and MinGW does have nanosleep.
 gl_cv_func_nanosleep=yes
