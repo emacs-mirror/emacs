@@ -4351,6 +4351,10 @@ network_interface_list (bool full, unsigned short match)
 
       if (full)
         {
+	  /* Sometimes sa_family is only filled in correctly in the
+	     interface address, not the netmask, so copy it across
+	     (Bug#74907).  */
+	  it->ifa_netmask->sa_family = it->ifa_addr->sa_family;
           elt = Fcons (conv_sockaddr_to_lisp (it->ifa_netmask, len), elt);
           /* There is an it->ifa_broadaddr field, but its contents are
              unreliable, so always calculate the broadcast address from
@@ -4764,13 +4768,17 @@ returned from the lookup.  */)
     {
       for (lres = res; lres; lres = lres->ai_next)
         {
-#ifndef AF_INET6
-          if (lres->ai_family != AF_INET)
-            continue;
+	  /* Avoid converting non-IP addresses (Bug#74907).  */
+	  if (lres->ai_family == AF_INET
+#ifdef AF_INET6
+	      || lres->ai_family == AF_INET6
 #endif
-          addresses = Fcons (conv_sockaddr_to_lisp (lres->ai_addr,
-                                                    lres->ai_addrlen),
-                             addresses);
+	      )
+	    addresses = Fcons (conv_sockaddr_to_lisp (lres->ai_addr,
+						      lres->ai_addrlen),
+			       addresses);
+	  else
+	    continue;
         }
       addresses = Fnreverse (addresses);
 

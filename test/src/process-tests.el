@@ -519,6 +519,17 @@ See Bug#30460."
 
 ;; End of tests requiring DNS
 
+(ert-deftest process-tests-check-bug-74907 ()
+  "Check that the result of `network-interface-list' is well-formed.
+(Bug#74907)"
+  (dolist (info (network-interface-list t))
+    (should (stringp (car info)))
+    (should (length= info 4))
+    (should (cl-every #'vectorp (cdr info)))
+    (let ((alen (length (cadr info))))
+      (should (memq alen '(5 9)))       ; Address info also has a port number
+      (should (cl-every (lambda (elt) (length= elt alen)) (cdr info))))))
+
 (defmacro process-tests--ignore-EMFILE (&rest body)
   "Evaluate BODY, ignoring EMFILE errors."
   (declare (indent 0) (debug t))
