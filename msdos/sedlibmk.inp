@@ -278,6 +278,7 @@ s/@PACKAGE@/emacs/
 /^LDFLAGS *=/s/@[^@\n]*@//
 /^LD_FIRSTFLAG *=/s/@[^@\n]*@//
 /^LIB_PTHREAD *=/s/@[^@\n]*@//
+/^LIB_SELINUX *=/s/@[^@\n]*@//
 /^LIBS *=/s/@[^@\n]*@//
 /^MAKEINFO *=/s/@MAKEINFO@/makeinfo/
 # MKDIR_P lines are edited further below
@@ -367,6 +368,7 @@ s/@PACKAGE@/emacs/
 /^UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS *=/s/@[^@\n]*@/0/
 /^UNISTD_H_DEFINES_STRUCT_TIMESPEC *=/s/@[^@\n]*@/0/
 /^UNDEFINE_STRTOK_R *=/s/@UNDEFINE_STRTOK_R@/0/
+/^USE_SELINUX_SELINUX_H *=/s/@USE_SELINUX_SELINUX_H@/0/
 /^WCHAR_T_SUFFIX *=/s/@WCHAR_T_SUFFIX@/h/
 /^WINT_T_SUFFIX *=/s/@WINT_T_SUFFIX@//
 /^GNULIBHEADERS_OVERRIDE_WINT_T *=/s/@[^@\n]*@/0/

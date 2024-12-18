@@ -475,3 +475,10 @@ extern int emacs_setenv_TZ (char const *);
 /* Emacs does not need glibc strftime behavior for AM and PM
    indicators.  */
 #define REQUIRE_GNUISH_STRFTIME_AM_PM false
+
+#ifdef MSDOS
+/* These are required by file-has-acl.c but defined in dirent.h and
+   errno.h, which are not generated on DOS.  */
+#define _GL_DT_NOTDIR 0x100   /* Not a directory */
+#define ENOTSUP 2007
+#endif /* MSDOS */
