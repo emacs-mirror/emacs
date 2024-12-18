@@ -3254,7 +3254,10 @@ Set it into the `type' slot."
                  ;; from the corresponding m-var.
                  collect (if (gethash obj
                                       (comp-ctxt-byte-func-to-func-h comp-ctxt))
-                             'lambda-fixup
+                             ;; Hack not to have `--lambda-fixup' in
+                             ;; data relocations as it would trigger the
+                             ;; check in 'check_comp_unit_relocs'.
+                             (intern (concat (make-string 1 ?-) "-lambda-fixup"))
                            obj))))
 
 (defun comp--finalize-relocs ()
