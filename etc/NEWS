@@ -449,10 +449,11 @@ is freed for normal search commands.  If you would like to restore the
 previous key-bindings for the non-incremental search commands, put in
 your configuration:
 
-    (keymap-set eshell-hist-mode-map "M-r"
-                #'eshell-previous-matching-input)
-    (keymap-set eshell-hist-mode-map "M-s"
-                #'eshell-next-matching-input)
+    (with-eval-after-load 'em-hist
+      (keymap-set eshell-hist-mode-map "M-r"
+                  #'eshell-previous-matching-input)
+      (keymap-set eshell-hist-mode-map "M-s"
+                  #'eshell-next-matching-input))
 
 +++
 *** New user option 'eshell-history-isearch'
