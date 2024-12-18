@@ -277,6 +277,39 @@ trusted and the default checking for these variables is irritating,
 you can set @code{enable-local-variables} to @code{:all}.  @xref{Safe
 File Variables}.
 
+@cindex trusted files and directories
+Loading a file of Emacs Lisp code with @code{load-file} or
+@code{load-library} (@pxref{Lisp Libraries}) can execute some of the
+Lisp code in the file being loaded, so you should only load Lisp files
+whose source you trust.  However, some Emacs features can in certain
+situations execute Lisp code even without your explicit command or
+request.  For example, Flymake, the on-the-fly syntax checker for Emacs
+(@pxref{Top,,, flymake, GNU Flymake}), if it is enabled, can
+automatically execute some of the code in a Lisp file you visit as part
+of its syntax-checking job.  Similarly, some completion commands
+(@pxref{Completion}) in buffers visiting Lisp files sometimes need to
+expand Lisp macros for best results.  In these cases, just visiting a
+Lisp file and performing some editing in it could trigger execution of
+Lisp code.  If the visited file came from an untrusted source, it could
+include dangerous or even malicious code that Emacs would execute in
+those situations.
+
+To protect against this, Emacs disables execution of Lisp code by
+Flymake, completion, and some other features, unless the visited file is
+@dfn{trusted}.  It is up to you to specify which files on your system
+should be trusted, by customizing the user option
+@code{trusted-content}.
+
+@defopt trusted-content
+The value of this option is @code{nil} by default, which means no file
+is trusted.  You can customize the variable to be a list of one or more
+names of trusted files and directories.  A file name that ends in a
+slash @file{/} is interpreted as a directory, which means all its files
+and subdirectories are also trusted.  A special value @code{:all} means
+@emph{all} the files and directories on your system should be trusted;
+@strong{this is not recommended}, as it opens a gaping security hole.
+@end defopt
+
 @xref{Security Considerations,,, elisp, The Emacs Lisp Reference
 Manual}, for more information about security considerations when using
 Emacs as part of a larger application.

@@ -199,6 +199,7 @@ see the variable 'url-request-extra-headers'.
 
 * Changes in Emacs 30.1
 
++++
 ** New user option 'trusted-content' to allow potentially dangerous features.
 This variable lists those files and directories whose content Emacs should
 consider as sufficiently trusted to run any part of the code contained
