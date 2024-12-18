@@ -303,62 +303,96 @@ If a number, only buffers greater than this size have fontification messages."
                  (other :tag "always" t))
   :group 'font-lock
   :version "24.1")
+
 
+;; Obsolete face variables.
 
-;; Originally these variable values were face names such as `bold' etc.
-;; Now we create our own faces, but we keep these variables for compatibility
-;; and they give users another mechanism for changing face appearance.
-;; We now allow a FACENAME in `font-lock-keywords' to be any expression that
-;; returns a face.  So the easiest thing is to continue using these variables,
-;; rather than sometimes evalling FACENAME and sometimes not.  sm.
-
-;; Note that in new code, in the vast majority of cases there is no
-;; need to create variables that specify face names.  Simply using
-;; faces directly is enough.  Font-lock is not a template to be
-;; followed in this area.
+(make-obsolete-variable
+ 'font-lock-comment-face
+ "use the quoted symbol instead: \\='font-lock-comment-face" "31.1")
 (defvar font-lock-comment-face		'font-lock-comment-face
   "Face name to use for comments.")
 
+(make-obsolete-variable
+ 'font-lock-comment-delimiter-face
+ "use the quoted symbol instead: \\='font-lock-comment-delimiter-face" "31.1")
 (defvar font-lock-comment-delimiter-face 'font-lock-comment-delimiter-face
   "Face name to use for comment delimiters.")
 
+(make-obsolete-variable
+ 'font-lock-string-face
+ "use the quoted symbol instead: \\='font-lock-string-face" "31.1")
 (defvar font-lock-string-face		'font-lock-string-face
   "Face name to use for strings.")
 
+(make-obsolete-variable
+ 'font-lock-doc-face
+ "use the quoted symbol instead: \\='font-lock-doc-face" "31.1")
 (defvar font-lock-doc-face		'font-lock-doc-face
   "Face name to use for documentation.")
 
+(make-obsolete-variable
+ 'font-lock-doc-markup-face
+ "use the quoted symbol instead: \\='font-lock-doc-markup-face" "31.1")
 (defvar font-lock-doc-markup-face       'font-lock-doc-markup-face
   "Face name to use for documentation mark-up.")
 
+(make-obsolete-variable
+ 'font-lock-keyword-face
+ "use the quoted symbol instead: \\='font-lock-keyword-face" "31.1")
 (defvar font-lock-keyword-face		'font-lock-keyword-face
   "Face name to use for keywords.")
 
+(make-obsolete-variable
+ 'font-lock-builtin-face
+ "use the quoted symbol instead: \\='font-lock-builtin-face" "31.1")
 (defvar font-lock-builtin-face		'font-lock-builtin-face
   "Face name to use for builtins.")
 
+(make-obsolete-variable
+ 'font-lock-function-name-face
+ "use the quoted symbol instead: \\='font-lock-function-name-face" "31.1")
 (defvar font-lock-function-name-face	'font-lock-function-name-face
   "Face name to use for function names.")
 
+(make-obsolete-variable
+ 'font-lock-variable-name-face
+ "use the quoted symbol instead: \\='font-lock-variable-name-face" "31.1")
 (defvar font-lock-variable-name-face	'font-lock-variable-name-face
   "Face name to use for variable names.")
 
+(make-obsolete-variable
+ 'font-lock-type-face
+ "use the quoted symbol instead: \\='font-lock-type-face" "31.1")
 (defvar font-lock-type-face		'font-lock-type-face
   "Face name to use for type and class names.")
 
+(make-obsolete-variable
+ 'font-lock-constant-face
+ "use the quoted symbol instead: \\='font-lock-constant-face" "31.1")
 (defvar font-lock-constant-face		'font-lock-constant-face
   "Face name to use for constant and label names.")
 
+(make-obsolete-variable
+ 'font-lock-warning-face
+ "use the quoted symbol instead: \\='font-lock-warning-face" "31.1")
 (defvar font-lock-warning-face		'font-lock-warning-face
   "Face name to use for things that should stand out.")
 
+(make-obsolete-variable
+ 'font-lock-negation-char-face
+ "use the quoted symbol instead: \\='font-lock-negation-char-face" "31.1")
 (defvar font-lock-negation-char-face	'font-lock-negation-char-face
   "Face name to use for easy to overlook negation.
 This can be an \"!\" or the \"n\" in \"ifndef\".")
 
+(make-obsolete-variable
+ 'font-lock-preprocessor-face
+ "use the quoted symbol instead: \\='font-lock-preprocessor-face" "31.1")
 (defvar font-lock-preprocessor-face	'font-lock-preprocessor-face
   "Face name to use for preprocessor directives.")
 
+
 ;; Fontification variables:
 
 (defvar font-lock-keywords nil

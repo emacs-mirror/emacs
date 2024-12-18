@@ -4030,10 +4030,10 @@ an attribute.  ST-L and POS are a cached from a previous call."
 	  (and (match-beginning 1)
 	       (cperl-postpone-fontification
 		(match-beginning 0) (cperl-1+ (match-beginning 0))
-		'face font-lock-constant-face))
+                'face 'font-lock-constant-face))
 	  (setq start1 (match-beginning 3) end1 (match-end 3))
 	  (cperl-postpone-fontification start1 end1
-					'face font-lock-constant-face)
+                                        'face 'font-lock-constant-face)
 	  (goto-char end1)		; end or before `('
 	  (if (match-end 4)		; Have attribute arguments...
 	      (progn
@@ -4102,7 +4102,7 @@ If IS-X-REX is non-nil, then process a regular expression which has an
       (if (eq ?\{ (preceding-char)) nil
 	(cperl-postpone-fontification
 	 (1- (point)) (point)
-	 'face font-lock-warning-face))))
+         'face 'font-lock-warning-face))))
 
 ;; Do some smarter-highlighting
 ;; XXXX Currently ignores alphanum/dash delims,
@@ -4219,7 +4219,7 @@ END-OF-HERE-DOC is the end of a previous here-doc in the same
 line, or nil if this is the first.  DELIM-BEGIN and DELIM-END are
 the positions where the here-document's delimiter has been found.
 This is part of `cperl-find-pods-heres' (below)."
-  (let* ((my-cperl-delimiters-face font-lock-constant-face)
+  (let* ((my-cperl-delimiters-face 'font-lock-constant-face)
          (delimiter (buffer-substring-no-properties delim-begin delim-end))
          (qtag (regexp-quote delimiter))
          (use-syntax-state (and cperl-syntax-state
@@ -4358,23 +4358,18 @@ recursive calls in starting lines of here-documents."
 		    (cdr cperl-syntax-state)))
 	 ;; (st-l '(nil)) (err-l '(nil)) ; Would overwrite - propagates from a function call to a function call!
 	 (st-l (list nil)) (err-l (list nil))
-	 ;; Somehow font-lock may be not loaded yet...
-	 ;; (e.g., when building TAGS via command-line call)
-	 (font-lock-string-face (if (boundp 'font-lock-string-face)
-				    font-lock-string-face
-				  'font-lock-string-face))
-	 (my-cperl-delimiters-face
-	  font-lock-constant-face)
+         (my-cperl-delimiters-face
+          'font-lock-constant-face)
 	 (my-cperl-REx-spec-char-face	; [] ^.$ and wrapper-of ({})
-          font-lock-function-name-face)
+          'font-lock-function-name-face)
 	 (my-cperl-REx-0length-face ; 0-length, (?:)etc, non-literal \
-          font-lock-builtin-face)
+          'font-lock-builtin-face)
 	 (my-cperl-REx-ctl-face		; (|)
-          font-lock-keyword-face)
+          'font-lock-keyword-face)
 	 (my-cperl-REx-modifiers-face	; //gims
 	  'cperl-nonoverridable-face)
 	 (my-cperl-REx-length1-face	; length=1 escaped chars, POSIX classes
-          font-lock-type-face)
+          'font-lock-type-face)
 	 (stop-point (if ignore-max
 			 (point-max)
 		       max))
@@ -4639,7 +4634,7 @@ recursive calls in starting lines of here-documents."
 			(end-of-line)
 			;; Highlight the format line
 			(cperl-postpone-fontification b1 (point)
-						      'face font-lock-string-face)
+                                                      'face 'font-lock-string-face)
 			(cperl-commentify b1 (point) nil)
 			(cperl-put-do-not-fontify b1 (point) t))))
 		  ;; We do not search to max, since we may be called from
@@ -4650,7 +4645,7 @@ recursive calls in starting lines of here-documents."
 		    (progn
 		      ;; Highlight the ending delimiter
 		      (cperl-postpone-fontification (point) (+ (point) 1)
-						    'face font-lock-string-face)
+                                                    'face 'font-lock-string-face)
 		      (cperl-commentify (point) (+ (point) 1) nil)
 		      (cperl-put-do-not-fontify (point) (+ (point) 1) t))
 		  (setq warning-message
@@ -4921,7 +4916,7 @@ recursive calls in starting lines of here-documents."
 				   (not (looking-at "split\\>")))
 			       (error t))))
 		      (cperl-postpone-fontification
-		       b e 'face font-lock-warning-face)
+                       b e 'face 'font-lock-warning-face)
 		    (if (or i2		; Has 2 args
 			    (and cperl-fontify-m-as-s
 				 (or
@@ -5037,8 +5032,8 @@ recursive calls in starting lines of here-documents."
 						 (eq (char-after (1+ (point))) ?\?))
 					       my-cperl-REx-0length-face
 					     my-cperl-REx-ctl-face)
-					 font-lock-warning-face))
-				   (error font-lock-warning-face)))
+                                         'font-lock-warning-face))
+                                   (error 'font-lock-warning-face)))
 				((eq was-subgr ?\| )
 				 my-cperl-REx-ctl-face)
 				((eq was-subgr ?\$ )
@@ -5052,7 +5047,7 @@ recursive calls in starting lines of here-documents."
 							 (1+ b))
 						     (eq (point)
 							 (1- e))) 1 t)))
-				       font-lock-variable-name-face)
+                                       'font-lock-variable-name-face)
 				   my-cperl-REx-spec-char-face))
 				((memq was-subgr (append "^." nil) )
 				 my-cperl-REx-spec-char-face)
@@ -5080,7 +5075,7 @@ recursive calls in starting lines of here-documents."
 				 (- (point) 2) (- (point) 1) 'face
 				 (if (memq qtag
 					   (append "ghijkmoqvFHIJKMORTVY" nil))
-				     font-lock-warning-face
+                                     'font-lock-warning-face
 				   my-cperl-REx-0length-face))
 				(if (and (eq (char-after b) qtag)
 					 (memq qtag (append ".])^$|*?+" nil)))
@@ -5221,7 +5216,7 @@ recursive calls in starting lines of here-documents."
 			      (while tag
 				(cperl-postpone-fontification
 				 (car (car tag)) (cdr (car tag))
-				 'face font-lock-variable-name-face) ;my-cperl-REx-length1-face
+                                 'face 'font-lock-variable-name-face) ;my-cperl-REx-length1-face
 				(setq tag (cdr tag)))
 			      (setq was-subgr nil)) ; did facing already
 			     ;; Now rare stuff:
@@ -5239,7 +5234,7 @@ recursive calls in starting lines of here-documents."
 				   'syntax-table cperl-st-punct))
 			      (cperl-postpone-fontification
 			       (1- (point)) (point)
-			       'face font-lock-warning-face))
+                               'face 'font-lock-warning-face))
 			     ((match-beginning 5) ; before (?{}) (??{})
 			      (setq tag (match-end 0))
 			      (if (or (setq qtag
@@ -5255,7 +5250,7 @@ recursive calls in starting lines of here-documents."
                                           (format "%s" qtag)))
 				(cperl-postpone-fontification
 				 (1- tag) (1- (point))
-				 'face font-lock-variable-name-face)
+                                 'face 'font-lock-variable-name-face)
 				(cperl-postpone-fontification
 				 REx-subgr-start (1- tag)
 				 'face my-cperl-REx-spec-char-face)
@@ -5293,7 +5288,7 @@ recursive calls in starting lines of here-documents."
 			       REx-subgr-start REx-subgr-end nil)
 			      (cperl-postpone-fontification
 			       REx-subgr-start REx-subgr-end
-			       'face font-lock-comment-face))))))
+                               'face 'font-lock-comment-face))))))
 		    (if (and is-REx is-x-REx)
 			(put-text-property (1+ b) (1- e)
 					   'syntax-subtype 'x-REx)))

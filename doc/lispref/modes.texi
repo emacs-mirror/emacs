@@ -3905,10 +3905,6 @@ faces specifically for Font Lock to use to highlight text.  These
 modes for syntactic highlighting outside of Font Lock mode (@pxref{Major
 Mode Conventions}).
 
-  Each of these symbols is both a face name, and a variable whose
-default value is the symbol itself.  Thus, the default value of
-@code{font-lock-comment-face} is @code{font-lock-comment-face}.
-
   The faces are listed with descriptions of their typical usage, and in
 order of greater to lesser prominence.  If a mode's syntactic
 categories do not fit well with the usage descriptions, the faces can be

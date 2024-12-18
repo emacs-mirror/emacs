@@ -925,26 +925,26 @@ have extra paired delimiters."
     (goto-char (point-min))
     (search-forward-regexp "\\(label:\\)")
     (should (equal (get-text-property (match-beginning 1) 'face)
-                   font-lock-constant-face))
+                   'font-lock-constant-face))
     (search-forward-regexp "\\(comment\\)")
     (should (equal (get-text-property (match-beginning 1) 'face)
-                   font-lock-comment-face))
+                   'font-lock-comment-face))
     (search-forward-regexp "\\(sanity\\)")
     (should (equal (get-text-property (match-beginning 1) 'face)
-                   font-lock-variable-name-face))
+                   'font-lock-variable-name-face))
     ;; Now switch off the minor mode and redo
     (cperl-extra-paired-delimiters-mode -1)
     (font-lock-ensure)
     (goto-char (point-min))
     (search-forward-regexp "\\(label:\\)")
     (should (equal (get-text-property (match-beginning 1) 'face)
-                   font-lock-string-face))
+                   'font-lock-string-face))
     (search-forward-regexp "\\(comment\\)")
     (should (equal (get-text-property (match-beginning 1) 'face)
-                   font-lock-string-face))
+                   'font-lock-string-face))
     (search-forward-regexp "\\(sanity\\)")
     (should (equal (get-text-property (match-beginning 1) 'face)
-                   font-lock-variable-name-face))))
+                   'font-lock-variable-name-face))))
 
 
 ;;; Function test: Building an index for imenu
@@ -1364,13 +1364,13 @@ as that quote like operator."
     (search-forward "bar")
     (should (equal (get-text-property (match-beginning 0) 'face)
                    'font-lock-string-face))
-    ; perl-mode doesn't highlight
+    ;; perl-mode doesn't highlight
     (when (eq cperl-test-mode #'cperl-mode)
       (search-forward "_")
       (should (equal (get-text-property (match-beginning 0) 'face)
                      (if (eq cperl-test-mode #'cperl-mode)
                          'font-lock-constant-face
-                       font-lock-string-face))))))
+                       'font-lock-string-face))))))
 
 (ert-deftest cperl-test-hyperactive-electric-else ()
   "Demonstrate cperl-electric-else behavior.
@@ -1511,10 +1511,10 @@ detected as left-shift operator."
     (font-lock-ensure)
     (search-forward "retur")             ; leaves point before the "n"
     (should (equal (get-text-property (point) 'face)
-                   font-lock-keyword-face))
+                   'font-lock-keyword-face))
     (search-forward "# comm")           ; leaves point before "ent"
     (should (equal (get-text-property (point) 'face)
-                   font-lock-comment-face))))
+                   'font-lock-comment-face))))
 
 (ert-deftest cperl-test-bug-66145 ()
   "Verify that hashes and arrays are only fontified in code.
@@ -1528,7 +1528,7 @@ beginning with `cperl-test-unicode`."
                  ("comment" . font-lock-comment-face)
                  ("here"    . ,(if (equal cperl-test-mode 'perl-mode)
                                    'perl-heredoc
-                                 font-lock-string-face)))))
+                                 'font-lock-string-face)))))
     (with-temp-buffer
       (insert-file-contents (ert-resource-file "cperl-bug-66145.pl"))
       (funcall cperl-test-mode)
@@ -1552,7 +1552,7 @@ cperl-mode fontifies text after the delimiter as Perl code."
     (font-lock-ensure)
     (search-forward "TODO")             ; leaves point before the colon
     (should (equal (get-text-property (point) 'face)
-                   font-lock-comment-face))))
+                   'font-lock-comment-face))))
 
 (ert-deftest cperl-test-bug-69604 ()
   "Verify that $\" in a double-quoted string does not end the string.
@@ -1571,7 +1571,7 @@ not appropriate."
         (goto-char (point-min))
         (search-forward "in string")
         (should (equal (get-text-property (point) 'face)
-                       font-lock-string-face))))))
+                       'font-lock-string-face))))))
 
 (ert-deftest cperl-test-bug-72296 ()
   "Verify that the perl modes correctly handle the flip-flop operator.

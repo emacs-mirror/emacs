@@ -1102,7 +1102,7 @@ detailed description of this mode.
   (setq gdb-buffer-type 'gdbmi)
   ;;
   (gdb-force-mode-line-update
-   (propertize "initializing..." 'face font-lock-variable-name-face))
+   (propertize "initializing..." 'face 'font-lock-variable-name-face))
 
   ;; This needs to be done before we ask GDB for anything that might
   ;; trigger questions about debuginfod queries.
@@ -2122,7 +2122,7 @@ If `gdb-thread-number' is nil, just wrap NAME in asterisks."
 If NO-PROC is non-nil, do not try to contact the GDB process."
   (when gdb-first-prompt
     (gdb-force-mode-line-update
-     (propertize "initializing..." 'face font-lock-variable-name-face))
+     (propertize "initializing..." 'face 'font-lock-variable-name-face))
     (gdb-init-1)
     (setq gdb-first-prompt nil))
 
@@ -2678,7 +2678,7 @@ Sets `gdb-thread-number' to new id."
       (setq gdb-frame-number nil)))
   (setq gdb-inferior-status "running")
   (gdb-force-mode-line-update
-   (propertize gdb-inferior-status 'face font-lock-type-face))
+   (propertize gdb-inferior-status 'face 'font-lock-type-face))
   (when (not gdb-non-stop)
     (setq gud-running t))
   (setq gdb-active-process t))
@@ -2697,7 +2697,7 @@ Sets `gdb-thread-number' to new id."
     (setq gud-async-running nil))
 
   (gdb-force-mode-line-update
-   (propertize gdb-inferior-status 'face font-lock-type-face))
+   (propertize gdb-inferior-status 'face 'font-lock-type-face))
   (setq gdb-active-process t)
   (setq gud-running t)
   (gud-hide-current-line-indicator nil))
@@ -2734,7 +2734,7 @@ current thread and update GDB buffers."
 
     (setq gdb-inferior-status (or reason "unknown"))
     (gdb-force-mode-line-update
-     (propertize gdb-inferior-status 'face font-lock-warning-face))
+     (propertize gdb-inferior-status 'face 'font-lock-warning-face))
     (if (string-equal reason "exited-normally")
 	(setq gdb-active-process nil))
 
@@ -2795,7 +2795,7 @@ current thread and update GDB buffers."
 		  (gdb-mi--c-string-from-string output-field)))
 	     (put-text-property
 	      0 (length error-message)
-	      'face font-lock-warning-face
+              'face 'font-lock-warning-face
 	      error-message)
 	     error-message)))))
 
@@ -3205,10 +3205,10 @@ See `def-gdb-auto-update-handler'."
                           (if (string-equal flag "y")
                               (eval-when-compile
                                 (propertize "y" 'font-lock-face
-                                            font-lock-warning-face))
+                                            'font-lock-warning-face))
                             (eval-when-compile
                               (propertize "n" 'font-lock-face
-                                          font-lock-comment-face))))
+                                          'font-lock-comment-face))))
                         addr
                         (or (gdb-mi--field bkpt 'times) "")
                         (if (and type (string-match ".*watchpoint" type))
@@ -3218,7 +3218,7 @@ See `def-gdb-auto-update-handler'."
                               (concat "in "
                                       (propertize (or func "unknown")
                                                   'font-lock-face
-                                                  font-lock-function-name-face)
+                                                  'font-lock-function-name-face)
                                       (gdb-frame-location bkpt)))))
                        ;; Add clickable properties only for
                        ;; breakpoints with file:line information
@@ -4565,8 +4565,8 @@ left-to-right display order of the properties."
                                             local-map ,gdb-edit-locals-map-1)
                                value))
         (setf (gdb-table-right-align table) t)
-        (setq name (propertize name 'font-lock-face font-lock-variable-name-face))
-        (setq type (propertize type 'font-lock-face font-lock-type-face))
+        (setq name (propertize name 'font-lock-face 'font-lock-variable-name-face))
+        (setq type (propertize type 'font-lock-face 'font-lock-type-face))
         (gdb-table-add-row
          table
          (gdb-locals-table-columns-list `((name  . ,name)
@@ -4685,9 +4685,9 @@ executes FUNCTION."
              table
              (list
               (propertize register-name
-                          'font-lock-face font-lock-variable-name-face)
+                          'font-lock-face 'font-lock-variable-name-face)
               (if (member register-number gdb-changed-registers)
-                  (propertize value 'font-lock-face font-lock-warning-face)
+                  (propertize value 'font-lock-face 'font-lock-warning-face)
                 value))
              `(mouse-face highlight
                           help-echo "mouse-2: edit value"
@@ -5320,7 +5320,7 @@ buffers, if required."
 	 gdb-main-file
 	 (display-buffer (gud-find-file gdb-main-file))))
   (gdb-force-mode-line-update
-   (propertize "ready" 'face font-lock-variable-name-face)))
+   (propertize "ready" 'face 'font-lock-variable-name-face)))
 
 ;;from put-image
 (defun gdb-put-string (putstring pos &optional dprop &rest sprops)

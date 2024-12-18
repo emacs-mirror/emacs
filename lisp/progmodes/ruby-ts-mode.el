@@ -223,9 +223,9 @@ values of OVERRIDE."
              (<= plus-1 end)
              (string-match-p "\\`#" text))
         (treesit-fontify-with-override node-start plus-1
-                                       font-lock-comment-delimiter-face override))
+                                       'font-lock-comment-delimiter-face override))
     (treesit-fontify-with-override (max plus-1 start) (min node-end end)
-                                   font-lock-comment-face override)))
+                                   'font-lock-comment-face override)))
 
 (defun ruby-ts--font-lock-settings (language)
   "Tree-sitter font-lock settings for Ruby."

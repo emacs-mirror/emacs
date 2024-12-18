@@ -308,7 +308,7 @@ This will generate compile-time constants from BINDINGS."
                                 (buffer-substring-no-properties
                                  beg0 end0)))))
                 (buffer-substring-no-properties (1+ beg0) end0))
-         `(face ,font-lock-warning-face
+         '(face font-lock-warning-face
                 help-echo "This \\ has no effect"))))
 
 (defun lisp--match-confusable-symbol-character  (limit)
@@ -660,9 +660,9 @@ Lisp font lock syntactic face function."
           (let ((listbeg (nth 1 state)))
             (if (or (lisp-string-in-doc-position-p listbeg startpos)
                     (lisp-string-after-doc-keyword-p listbeg startpos))
-                font-lock-doc-face
-              font-lock-string-face))))
-    font-lock-comment-face))
+                'font-lock-doc-face
+              'font-lock-string-face))))
+    'font-lock-comment-face))
 
 (defun lisp-adaptive-fill ()
   "Return fill prefix found at point.

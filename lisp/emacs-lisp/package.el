@@ -2864,7 +2864,7 @@ Helper function for `describe-package'."
                                   'action #'package-delete-button-action
                                   'package-desc desc)))
           (incompatible-reason
-           (insert (propertize "Incompatible" 'font-lock-face font-lock-warning-face)
+           (insert (propertize "Incompatible" 'font-lock-face 'font-lock-warning-face)
                    " because it depends on ")
            (if (stringp incompatible-reason)
                (insert "Emacs " incompatible-reason ".")

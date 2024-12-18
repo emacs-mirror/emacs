@@ -299,15 +299,15 @@ Match group 1 is the name of the macro.")
 (defconst js--font-lock-keywords-1
   (list
    "\\_<import\\_>"
-   (list js--function-heading-1-re 1 font-lock-function-name-face)
-   (list js--function-heading-2-re 1 font-lock-function-name-face))
+   (list js--function-heading-1-re 1 'font-lock-function-name-face)
+   (list js--function-heading-2-re 1 'font-lock-function-name-face))
   "Level one font lock keywords for `js-mode'.")
 
 (defconst js--font-lock-keywords-2
   (append js--font-lock-keywords-1
-          (list (list js--keyword-re 1 font-lock-keyword-face)
-                (cons js--basic-type-re font-lock-type-face)
-                (cons js--constant-re font-lock-constant-face)))
+          (list (list js--keyword-re 1 'font-lock-keyword-face)
+                (cons js--basic-type-re 'font-lock-type-face)
+                (cons js--constant-re 'font-lock-constant-face)))
   "Level two font lock keywords for `js-mode'.")
 
 ;; js--pitem is the basic building block of the lexical
@@ -1854,12 +1854,12 @@ This performs fontification according to `js--class-styles'."
 (defun js-font-lock-syntactic-face-function (state)
   "Return syntactic face given STATE."
   (if (nth 3 state)
-      font-lock-string-face
+      'font-lock-string-face
     (if (save-excursion
           (goto-char (nth 8 state))
           (looking-at "/\\*\\*"))
-        font-lock-doc-face
-      font-lock-comment-face)))
+        'font-lock-doc-face
+      'font-lock-comment-face)))
 
 (defconst js--syntax-propertize-regexp-regexp
   (rx

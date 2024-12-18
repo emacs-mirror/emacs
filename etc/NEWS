@@ -50,6 +50,30 @@ enabled, you can disable mouse tracking by putting '(xterm-mouse-mode
 
 * Changes in Emacs 31.1
 
++++
+** Several font-lock face variables are now obsolete.
+The following variables are now obsolete: font-lock-comment-face,
+font-lock-comment-delimiter-face, font-lock-string-face,
+font-lock-doc-face, font-lock-doc-markup-face, font-lock-keyword-face,
+font-lock-builtin-face, font-lock-function-name-face,
+font-lock-variable-name-face, font-lock-type-face,
+font-lock-constant-face, font-lock-warning-face,
+font-lock-negation-char-face, and font-lock-preprocessor-face.
+
+These variables contributed both to confusion about the relation between
+faces and variables, and to inconsistency when major mode authors used
+one or the other (sometimes interchangeably).  We always recommended
+using faces directly, and not creating variables going by the same name.
+
+If you have customized these variables, you should now customize the
+corresponding faces instead, using something like:
+
+    M-x customize-face RET font-lock-string-face RET
+
+If you have been using these variables in Lisp code (for example, in
+font-lock rules), simply quote the symbol, to use the face directly
+instead of its now-obsolete variable.
+
 ** Etags
 
 +++

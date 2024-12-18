@@ -3412,7 +3412,7 @@ Parameters get priority."
 	  (when title
 	    (unless (bobp) (insert "\n"))
 	    (insert
-	     (org-add-props (cdr title) nil 'face font-lock-comment-face))
+             (org-add-props (cdr title) nil 'face 'font-lock-comment-face))
 	    (setq titles (remove title titles)))
 	  (when (equal key (car entry)) (setq startline (org-current-line)))
 	  (let ((s (concat

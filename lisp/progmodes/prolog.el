@@ -1922,12 +1922,12 @@ Argument BOUND is a buffer position limiting searching."
         ;; "Native" Prolog patterns
         (head-predicates
          (list (format "^\\(%s\\)\\((\\|[ \t]*:-\\)" prolog-atom-regexp)
-               1 font-lock-function-name-face))
+               1 'font-lock-function-name-face))
                                        ;(list (format "^%s" prolog-atom-regexp)
                                        ;      0 font-lock-function-name-face))
         (head-predicates-1
          (list (format "\\.[ \t]*\\(%s\\)" prolog-atom-regexp)
-               1 font-lock-function-name-face) )
+               1 'font-lock-function-name-face))
         (variables
          '("\\<\\([_A-Z][a-zA-Z0-9_]*\\)"
            1 font-lock-variable-name-face))
@@ -1941,7 +1941,7 @@ Argument BOUND is a buffer position limiting searching."
         (predspecs                      ; module:predicate/cardinality
          (list (format "\\<\\(%s:\\|\\)%s/[0-9]+"
                        prolog-atom-regexp prolog-atom-regexp)
-               0 font-lock-function-name-face 'prepend))
+               0 'font-lock-function-name-face 'prepend))
         (keywords                       ; directives (queries)
          (list
           (if (eq prolog-system 'mercury)

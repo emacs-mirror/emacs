@@ -1128,9 +1128,9 @@ subshells can nest."
   (let ((q (nth 3 state)))
     (if q
         (if (characterp q)
-            (if (eq q ?\`) 'sh-quoted-exec font-lock-string-face)
+            (if (eq q ?\`) 'sh-quoted-exec 'font-lock-string-face)
           'sh-heredoc)
-      font-lock-comment-face)))
+      'font-lock-comment-face)))
 
 (defgroup sh-indentation nil
   "Variables controlling indentation in shell scripts.

@@ -535,7 +535,7 @@ If the list was changed, sort the list and remove duplicates first."
 (defun meta-indent-in-string-p ()
   "Tell if the point is in a string."
   (or (nth 3 (syntax-ppss))
-      (eq (get-text-property (point) 'face) font-lock-string-face)))
+      (eq (get-text-property (point) 'face) 'font-lock-string-face)))
 
 (defun meta-indent-looking-at-code (regexp)
   "Same as `looking-at' but checks that the point is not in a string."

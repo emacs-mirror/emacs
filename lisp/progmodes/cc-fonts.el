@@ -122,8 +122,6 @@
 	 'font-lock-reference-face)
 	(t 'font-lock-constant-face)))
 
-(cc-bytecomp-defvar font-lock-constant-face)
-
 (defconst c-label-face-name
   (cond ((c-face-name-p 'font-lock-label-face)
 	 ;; If it happens to occur in the future.  (Well, the more
@@ -712,7 +710,7 @@ stuff.  Used on level 1 and higher."
 		    (< (point) end))
 	(if (and (equal (c-get-char-property (point) 'syntax-table) '(1))
 		 (not (c-get-char-property (point) 'c-digit-separator)))
-	    (c-put-font-lock-face (point) (1+ (point)) font-lock-warning-face))
+	    (c-put-font-lock-face (point) (1+ (point)) 'font-lock-warning-face))
 	(forward-char))
       (parse-partial-sexp end limit nil nil state 'syntax-table)))
     nil)
@@ -743,7 +741,7 @@ stuff.  Used on level 1 and higher."
 	;; Font lock the block comment ender with warning face.
 	(when (not (nth 4 s))
 	  (c-put-font-lock-face (- (point) (length c-block-comment-ender))
-				(point) font-lock-warning-face)))
+				(point) 'font-lock-warning-face)))
        (t ; In a line comment, or a "valid" block comment
 	(setq s (parse-partial-sexp (point) limit nil nil s 'syntax-table))))
 
@@ -760,14 +758,14 @@ stuff.  Used on level 1 and higher."
 	  (setq s (parse-partial-sexp (point) limit nil nil s 'syntax-table)))
 	 ((nth 4 s)			; In an invalid comment
 	 ;; Fontify the invalid comment opener.
-	  (c-put-font-lock-face (nth 8 s) (point) font-lock-warning-face)
+	  (c-put-font-lock-face (nth 8 s) (point) 'font-lock-warning-face)
 	  ;; Move to end of comment or LIMIT.
 	  (setq s (parse-partial-sexp (point) limit nil nil s 'syntax-table))
 	  ;; Fontify an invalid block comment ender, if that's what we have.
 	  (when (and (not c-block-comment-flag)
 		     (not (nth 4 s)))	; We're outside the comment
 	    (c-put-font-lock-face (- (point) (length c-block-comment-ender))
-				  (point) font-lock-warning-face)))))))
+				  (point) 'font-lock-warning-face)))))))
   nil)
 
 (c-lang-defconst c-basic-matchers-before
@@ -1173,7 +1171,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	       (c-put-font-lock-face
 		(point)
 		(progn (c-forward-over-token) (point))
-		font-lock-function-name-face)))))
+		'font-lock-function-name-face)))))
        (and template-class
 	    (eq init-char ?=)		; C++ "<class X = Y>"?
 	    (progn
@@ -2066,7 +2064,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 				       ((and capture-default
 					     (eq mode capture-default))
 					'font-lock-warning-face)
-				       ((eq mode ?=) font-lock-constant-face)
+				       ((eq mode ?=) 'font-lock-constant-face)
 				       (t 'font-lock-variable-name-face))))
 	    (c-syntactic-re-search-forward "," limit 'bound t))
 
@@ -2194,7 +2192,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 		    (c-put-font-lock-face
 		     (1+ beg) (if end (1- end) (point)) font-lock-string-face)
 		  (c-put-font-lock-face
-		   beg (or end (point)) font-lock-string-face))
+		   beg (or end (point)) 'font-lock-string-face))
 		(c-forward-syntactic-ws limit)
 		t)
 	       (t nil)))
@@ -2234,9 +2232,9 @@ casts and declarations are fontified.  Used on level 2 and higher."
 					c-reference-face-name)))
 	    ;; No semicolon, so put warning faces on any delimiters.
 	    (when beg
-	      (c-put-font-lock-face beg (1+ beg) font-lock-warning-face))
+	      (c-put-font-lock-face beg (1+ beg) 'font-lock-warning-face))
 	    (when end
-	      (c-put-font-lock-face (1- end) end font-lock-warning-face))))))))
+	      (c-put-font-lock-face (1- end) end 'font-lock-warning-face))))))))
 
 (c-lang-defconst c-simple-decl-matchers
   "Simple font lock matchers for types and declarations.  These are used

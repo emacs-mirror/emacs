@@ -569,9 +569,9 @@ The type returned can be `comment', `string' or `paren'."
   "Return syntactic face given STATE."
   (if (nth 3 state)
       (if (python-info-docstring-p state)
-          font-lock-doc-face
-        font-lock-string-face)
-    font-lock-comment-face))
+          'font-lock-doc-face
+        'font-lock-string-face)
+    'font-lock-comment-face))
 
 (defconst python--f-string-start-regexp
   (rx bow

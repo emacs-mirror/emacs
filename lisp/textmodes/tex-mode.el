@@ -3070,7 +3070,7 @@ There might be text before point."
 		     '(?\n nil))))
       ;; Anything else is just as for LaTeX.
       (tex-font-lock-syntactic-face-function state)
-    font-lock-doc-face))
+    'font-lock-doc-face))
 
 (eval-when-compile
   (defconst doctex-syntax-propertize-rules

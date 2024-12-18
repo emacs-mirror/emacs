@@ -7673,14 +7673,14 @@ always located at the beginning of buffer."
     (python-ts-tests-with-temp-buffer
      (concat "t " test " t")
      (forward-to-word 1)
-     (should (eq (face-at-point) font-lock-keyword-face))
+     (should (eq (face-at-point) 'font-lock-keyword-face))
      (forward-to-word 1)
-     (should (eq (face-at-point) font-lock-keyword-face)))))
+     (should (eq (face-at-point) 'font-lock-keyword-face)))))
 
 (ert-deftest python-ts-mode-named-assignment-face-1 ()
   (python-ts-tests-with-temp-buffer
    "var := 3"
-   (should (eq (face-at-point) font-lock-variable-name-face))))
+   (should (eq (face-at-point) 'font-lock-variable-name-face))))
 
 (ert-deftest python-ts-mode-assignment-face-2 ()
   (python-ts-tests-with-temp-buffer
@@ -7688,14 +7688,14 @@ always located at the beginning of buffer."
    (dolist (test '("var" "rest"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (eq (face-at-point) font-lock-variable-name-face))))
+     (should (eq (face-at-point) 'font-lock-variable-name-face))))
 
   (python-ts-tests-with-temp-buffer
    "def func(*args):"
    (dolist (test '("args"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (not (eq (face-at-point) font-lock-variable-name-face))))))
+     (should (not (eq (face-at-point) 'font-lock-variable-name-face))))))
 
 (ert-deftest python-ts-mode-nested-types-face-1 ()
   (python-ts-tests-with-temp-buffer
@@ -7703,7 +7703,7 @@ always located at the beginning of buffer."
    (dolist (test '("dict" "list" "tuple" "str" "int" "None" "None"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (eq (face-at-point) font-lock-type-face)))))
+     (should (eq (face-at-point) 'font-lock-type-face)))))
 
 (ert-deftest python-ts-mode-union-types-face-1 ()
   (python-ts-tests-with-temp-buffer
@@ -7711,7 +7711,7 @@ always located at the beginning of buffer."
    (dolist (test '("tuple" "tuple" "list" "Lvl1" "Lvl2" "Lvl3" "Lvl4" "Lvl5" "None" "Lvl2"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (eq (face-at-point) font-lock-type-face)))))
+     (should (eq (face-at-point) 'font-lock-type-face)))))
 
 (ert-deftest python-ts-mode-union-types-face-2 ()
   (python-ts-tests-with-temp-buffer
@@ -7719,24 +7719,24 @@ always located at the beginning of buffer."
    (dolist (test '("Type0" "Type1" "Type2" "Type3" "Type4" "None"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (eq (face-at-point) font-lock-type-face)))
+     (should (eq (face-at-point) 'font-lock-type-face)))
 
    (goto-char (point-min))
    (dolist (test '("pack0" "pack1" "pack2"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (not (eq (face-at-point) font-lock-type-face))))))
+     (should (not (eq (face-at-point) 'font-lock-type-face))))))
 
 (ert-deftest python-ts-mode-types-face-1 ()
   (python-ts-tests-with-temp-buffer
    "def f(val: Callable[[Type0], (Type1, Type2)]):"
    (search-forward "val")
    (goto-char (match-beginning 0))
-   (should (eq (face-at-point) font-lock-variable-name-face))
+   (should (eq (face-at-point) 'font-lock-variable-name-face))
    (dolist (test '("Callable" "Type0" "Type1" "Type2"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (eq (face-at-point) font-lock-type-face)))))
+     (should (eq (face-at-point) 'font-lock-type-face)))))
 
 (ert-deftest python-ts-mode-types-face-2 ()
   (python-ts-tests-with-temp-buffer
@@ -7744,12 +7744,12 @@ always located at the beginning of buffer."
    (dolist (test '("Type0" "Type1"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (eq (face-at-point) font-lock-type-face)))
+     (should (eq (face-at-point) 'font-lock-type-face)))
    (goto-char (point-min))
    (dolist (test '("pack0" "pack1" "pack2" "pack3"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (not (eq (face-at-point) font-lock-type-face))))))
+     (should (not (eq (face-at-point) 'font-lock-type-face))))))
 
 (ert-deftest python-ts-mode-types-face-3 ()
   (python-ts-tests-with-temp-buffer
@@ -7757,12 +7757,12 @@ always located at the beginning of buffer."
    (dolist (test '("Iterator" "Type0"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (eq (face-at-point) font-lock-type-face)))
+     (should (eq (face-at-point) 'font-lock-type-face)))
    (goto-char (point-min))
    (dolist (test '("collections" "abc"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (not (eq (face-at-point) font-lock-type-face))))))
+     (should (not (eq (face-at-point) 'font-lock-type-face))))))
 
 (ert-deftest python-ts-mode-isinstance-type-face-1 ()
   (python-ts-tests-with-temp-buffer
@@ -7774,13 +7774,13 @@ always located at the beginning of buffer."
      (let ((case-fold-search nil))
        (search-forward test))
      (goto-char (match-beginning 0))
-     (should (not (eq (face-at-point) font-lock-type-face))))
+     (should (not (eq (face-at-point) 'font-lock-type-face))))
 
    (goto-char (point-min))
    (dolist (test '("Type0" "str" "dict" "Type1"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (eq (face-at-point) font-lock-type-face)))))
+     (should (eq (face-at-point) 'font-lock-type-face)))))
 
 (ert-deftest python-ts-mode-isinstance-type-face-2 ()
   (python-ts-tests-with-temp-buffer
@@ -7788,7 +7788,7 @@ always located at the beginning of buffer."
    (dolist (test '("int" "list" "Iterable"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (eq (face-at-point) font-lock-type-face)))))
+     (should (eq (face-at-point) 'font-lock-type-face)))))
 
 (ert-deftest python-ts-mode-isinstance-type-face-3 ()
   (python-ts-tests-with-temp-buffer
@@ -7799,13 +7799,13 @@ always located at the beginning of buffer."
    (dolist (test '("typevar1" "typevar2" "pkg0" "self" "typevar3" "typevar4"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (not (eq (face-at-point) font-lock-type-face))))
+     (should (not (eq (face-at-point) 'font-lock-type-face))))
 
    (goto-char (point-min))
    (dolist (test '("Type1" "tuple" "Coll" "Type2"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (eq (face-at-point) font-lock-type-face)))))
+     (should (eq (face-at-point) 'font-lock-type-face)))))
 
 (ert-deftest python-ts-mode-superclass-type-face ()
   (python-ts-tests-with-temp-buffer
@@ -7814,13 +7814,13 @@ always located at the beginning of buffer."
    (dolist (test '("Base1" "Base2" "Sequence" "T1" "T2"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (eq (face-at-point) font-lock-type-face)))
+     (should (eq (face-at-point) 'font-lock-type-face)))
 
    (goto-char (point-min))
    (dolist (test '("pack0"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (not (eq (face-at-point) font-lock-type-face))))))
+     (should (not (eq (face-at-point) 'font-lock-type-face))))))
 
 (ert-deftest python-ts-mode-class-patterns-face ()
   (python-ts-tests-with-temp-buffer
@@ -7835,13 +7835,13 @@ always located at the beginning of buffer."
    (dolist (test '("str" "Type0" "bytes" "Type1" "int" "float"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (eq (face-at-point) font-lock-type-face)))
+     (should (eq (face-at-point) 'font-lock-type-face)))
 
    (goto-char (point-min))
    (dolist (test '("pack0" "pack1"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (not (eq (face-at-point) font-lock-type-face))))))
+     (should (not (eq (face-at-point) 'font-lock-type-face))))))
 
 (ert-deftest python-ts-mode-dotted-decorator-face-1 ()
   (python-ts-tests-with-temp-buffer
@@ -7852,7 +7852,7 @@ always located at the beginning of buffer."
    (dolist (test '("pytest" "mark" "skip" "pytest" "mark" "skip"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (eq (face-at-point) font-lock-type-face)))))
+     (should (eq (face-at-point) 'font-lock-type-face)))))
 
 (ert-deftest python-ts-mode-dotted-decorator-face-2 ()
   (python-ts-tests-with-temp-buffer
@@ -7863,14 +7863,14 @@ always located at the beginning of buffer."
    (dolist (test '("pytest" "mark" "skip"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (eq (face-at-point) font-lock-type-face)))))
+     (should (eq (face-at-point) 'font-lock-type-face)))))
 
 (ert-deftest python-ts-mode-builtin-call-face ()
   (python-ts-tests-with-temp-buffer
    "all()"
    ;; enable 'function' feature from 4th level
    (setopt treesit-font-lock-level 4)
-   (should (eq (face-at-point) font-lock-builtin-face))))
+   (should (eq (face-at-point) 'font-lock-builtin-face))))
 
 (ert-deftest python-ts-mode-interpolation-nested-string ()
   (python-ts-tests-with-temp-buffer
@@ -7878,20 +7878,20 @@ always located at the beginning of buffer."
 
    (search-forward "True")
    (goto-char (match-beginning 0))
-   (should (eq (face-at-point) font-lock-constant-face))
+   (should (eq (face-at-point) 'font-lock-constant-face))
 
    (goto-char (point-min))
    (dolist (test '("f" "{" "+" "}"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (not (eq (face-at-point) font-lock-string-face))))
+     (should (not (eq (face-at-point) 'font-lock-string-face))))
 
 
    (goto-char (point-min))
    (dolist (test '("beg" "'string'" "\""))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (eq (face-at-point) font-lock-string-face)))))
+     (should (eq (face-at-point) 'font-lock-string-face)))))
 
 (ert-deftest python-ts-mode-level-fontification-wo-interpolation ()
   (python-ts-tests-with-temp-buffer
@@ -7900,12 +7900,12 @@ always located at the beginning of buffer."
    (setopt treesit-font-lock-level 2)
    (search-forward "f")
    (goto-char (match-beginning 0))
-   (should (not (eq (face-at-point) font-lock-string-face)))
+   (should (not (eq (face-at-point) 'font-lock-string-face)))
 
    (dolist (test '("\"" "beg" "{" "True" "var" "}" "\""))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (eq (face-at-point) font-lock-string-face)))))
+     (should (eq (face-at-point) 'font-lock-string-face)))))
 
 (ert-deftest python-ts-mode-disabled-string-interpolation ()
   (python-ts-tests-with-temp-buffer
@@ -7919,12 +7919,12 @@ always located at the beginning of buffer."
 
          (search-forward "f")
          (goto-char (match-beginning 0))
-         (should (not (eq (face-at-point) font-lock-string-face)))
+         (should (not (eq (face-at-point) 'font-lock-string-face)))
 
          (dolist (test '("\"" "beg" "{" "True" "var" "}" "\""))
            (search-forward test)
            (goto-char (match-beginning 0))
-           (should (eq (face-at-point) font-lock-string-face))))
+           (should (eq (face-at-point) 'font-lock-string-face))))
 
     (setf (nth 2 treesit-font-lock-feature-list)
           (append (nth 2 treesit-font-lock-feature-list) '(string-interpolation))))))
@@ -7935,25 +7935,25 @@ always located at the beginning of buffer."
 
    (search-forward "True")
    (goto-char (match-beginning 0))
-   (should (eq (face-at-point) font-lock-constant-face))
+   (should (eq (face-at-point) 'font-lock-constant-face))
 
    (goto-char (point-min))
    (dolist (test '("f" "{" "+" "}"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (not (eq (face-at-point) font-lock-string-face))))
+     (should (not (eq (face-at-point) 'font-lock-string-face))))
 
    (goto-char (point-min))
    (dolist (test '("\"\"\"" "beg" "end" "\"\"\""))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (eq (face-at-point) font-lock-doc-face)))
+     (should (eq (face-at-point) 'font-lock-doc-face)))
 
    (goto-char (point-min))
    (dolist (test '("'s1'" "'s2'"))
      (search-forward test)
      (goto-char (match-beginning 0))
-     (should (eq (face-at-point) font-lock-string-face)))))
+     (should (eq (face-at-point) 'font-lock-string-face)))))
 
 (provide 'python-tests)
 
