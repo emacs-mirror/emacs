@@ -311,7 +311,7 @@ files.")
     ("Lin Zhou" "georgealbert@qq\\.com")
     (nil "yan@metatem\\.net")
     (nil "gnu_lists@halloleo\\.hailmail\\.net")
-    )
+    (nil "^Chu$" "maedaqu@gmail.com"))
   "Alist of author aliases.
 
 Each entry is of the form (REALNAME REGEXP...).
@@ -1151,7 +1151,7 @@ AUTHORS file.  There are also some more recent manual additions.")
     "admin/notes/tree-sitter/build-module/batch.sh"
     "doc/misc/gnus-coding.texi"
     "gnus-coding.texi"
-    )
+    "doc/misc/org.texi")
   "File names which are valid, but no longer exist (or cannot be found)
 in the repository.")
 
@@ -1711,7 +1711,8 @@ in the repository.")
     ("lisp/emacs-lisp/tcover-unsafep.el" . "test/lisp/emacs-lisp/unsafep-tests.el")
     ("lisp/vt100-led.el" . "lisp/obsolete/vt100-led.el")
     ("lisp/mail/metamail.el" . "lisp/obsolete/metamail.el")
-    ("lisp/sb-image.el" . "lisp/obsolete/sb-image.el"))
+    ("lisp/sb-image.el" . "lisp/obsolete/sb-image.el")
+    ("lisp/cedet/semantic/grammar-wy.el" . "lisp/cedet/semantic/grm-wy-boot.el"))
   "Alist of files which have been renamed during their lifetime.
 Elements are (OLDNAME . NEWNAME).")
 
