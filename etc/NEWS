@@ -919,6 +919,7 @@ restore the old behavior, you can set 'eshell-pwd-convert-function' to
 * Lisp Changes in Emacs 31.1
 
 ---
+** The obsolete variable `redisplay-dont-pause' has been removed
 ** New function 'native-compile-directory'.
 This function natively-compiles all Lisp files in a directory and in its
 sub-directories, recursively, which were not already natively-compiled.
