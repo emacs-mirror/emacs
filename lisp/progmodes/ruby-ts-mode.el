@@ -1195,6 +1195,47 @@ leading double colon is not added."
                                 )
                                eol)
                               #'ruby-ts--sexp-p))
+                 (sexp-list
+                  ,(cons (rx
+                          bol
+                          (or
+                           "begin_block"
+                           "end_block"
+                           "method"
+                           "singleton_method"
+                           "method_parameters"
+                           "parameters"
+                           "block_parameters"
+                           "class"
+                           "singleton_class"
+                           "module"
+                           "do"
+                           "case"
+                           "case_match"
+                           "array_pattern"
+                           "find_pattern"
+                           "hash_pattern"
+                           "parenthesized_pattern"
+                           "expression_reference_pattern"
+                           "if"
+                           "unless"
+                           "begin"
+                           "parenthesized_statements"
+                           "argument_list"
+                           "do_block"
+                           "block"
+                           "destructured_left_assignment"
+                           "interpolation"
+                           "string"
+                           "string_array"
+                           "symbol_array"
+                           "delimited_symbol"
+                           "regex"
+                           "heredoc_body"
+                           "array"
+                           "hash")
+                          eol)
+                         #'ruby-ts--sexp-p))
                  (text ,(lambda (node)
                           (or (member (treesit-node-type node)
                                       '("comment" "string_content" "heredoc_content"))

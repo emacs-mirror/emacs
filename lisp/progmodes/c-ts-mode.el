@@ -1139,6 +1139,27 @@ if `c-ts-mode-emacs-sources-support' is non-nil."
   `(;; It's more useful to include semicolons as sexp so
     ;; that users can move to the end of a statement.
     (sexp (not ,(rx (or "{" "}" "[" "]" "(" ")" ","))))
+    (sexp-list
+     ,(regexp-opt '("preproc_params"
+                    "preproc_parenthesized_expression"
+                    "preproc_argument_list"
+                    "attribute_declaration"
+                    "declaration_list"
+                    "parenthesized_declarator"
+                    "parenthesized_field_declarator"
+                    "parenthesized_type_declarator"
+                    "abstract_parenthesized_declarator"
+                    "compound_statement"
+                    "enumerator_list"
+                    "field_declaration_list"
+                    "parameter_list"
+                    "argument_list"
+                    "parenthesized_expression"
+                    "initializer_list"
+                    "subscript_designator"
+                    "subscript_range_designator"
+                    "string_literal")
+                  'symbols))
     ;; compound_statement makes us jump over too big units
     ;; of code, so skip that one, and include the other
     ;; statements.

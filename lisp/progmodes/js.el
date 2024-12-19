@@ -3866,6 +3866,28 @@ See `treesit-thing-settings' for more information.")
   "Nodes that designate sexps in JavaScript.
 See `treesit-thing-settings' for more information.")
 
+(defvar js--treesit-sexp-list-nodes
+  '("export_clause"
+    "named_imports"
+    "statement_block"
+    "_for_header"
+    "switch_body"
+    "parenthesized_expression"
+    "object"
+    "object_pattern"
+    "array"
+    "array_pattern"
+    "jsx_expression"
+    "_jsx_string"
+    "string"
+    "regex"
+    "arguments"
+    "class_body"
+    "formal_parameters"
+    "computed_property_name")
+  "Nodes that designate lists in JavaScript.
+See `treesit-thing-settings' for more information.")
+
 (defvar js--treesit-jsdoc-beginning-regexp (rx bos "/**")
   "Regular expression matching the beginning of a jsdoc block comment.")
 
@@ -3909,6 +3931,7 @@ See `treesit-thing-settings' for more information.")
     (setq-local treesit-thing-settings
                 `((javascript
                    (sexp ,(js--regexp-opt-symbol js--treesit-sexp-nodes))
+                   (sexp-list ,(js--regexp-opt-symbol js--treesit-sexp-list-nodes))
                    (sentence ,(js--regexp-opt-symbol js--treesit-sentence-nodes))
                    (text ,(js--regexp-opt-symbol '("comment"
                                                    "string_fragment"))))))
