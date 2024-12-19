@@ -1987,7 +1987,6 @@ be a list of the form returned by `event-start' and `event-end'."
  ;; It's been announced as obsolete in NEWS and in the docstring since Emacs-25,
  ;; but it's only been marked for compilation warnings since Emacs-29.
  "25.1")
-(make-obsolete-variable 'redisplay-dont-pause nil "24.5")
 (make-obsolete-variable 'operating-system-release nil "28.1")
 (make-obsolete-variable 'inhibit-changing-match-data 'save-match-data "29.1")
 
