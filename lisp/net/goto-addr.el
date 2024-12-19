@@ -117,12 +117,10 @@ will have no effect.")
           thing-at-point-url-path-regexp)
   "A regular expression probably matching a URL.")
 
-(defvar goto-address-highlight-keymap
-  (let ((m (make-sparse-keymap)))
-    (define-key m (kbd "<mouse-2>") #'goto-address-at-point)
-    (define-key m (kbd "C-c RET") #'goto-address-at-point)
-    m)
-  "Keymap to hold goto-addr's mouse key defs under highlighted URLs.")
+(defvar-keymap goto-address-highlight-keymap
+  :doc "Keymap to hold goto-addr's mouse key defs under highlighted URLs."
+  "<mouse-2>" #'goto-address-at-point
+  "C-c RET"   #'goto-address-at-point)
 
 (defun goto-address-context-menu (menu click)
   "Populate MENU with `goto-address' commands at CLICK."
