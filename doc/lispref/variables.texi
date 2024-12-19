@@ -2647,10 +2647,10 @@ This function makes the byte compiler warn that the variable
 @var{obsolete-name} is obsolete.  If @var{current-name} is a symbol,
 it is the variable's new name; then the warning message says to use
 @var{current-name} instead of @var{obsolete-name}.  If
-@var{current-name} is a string, this is the message and there is no
-replacement variable.  @var{when} should be a string indicating when
-the variable was first made obsolete (usually a version number
-string).
+@var{current-name} is a string, this is the message (after passing
+through @code{substitute-command-keys}) and there is no replacement
+variable.  @var{when} should be a string indicating when the variable
+was first made obsolete (usually a version number string).
 
 The optional argument @var{access-type}, if non-@code{nil}, should
 specify the kind of access that will trigger obsolescence warnings; it

@@ -1717,7 +1717,7 @@ variable.\n")))
       (insert "This variable is obsolete")
       (if (nth 2 obsolete)
           (insert (format " since %s" (nth 2 obsolete))))
-      (insert (cond ((stringp use) (concat "; " use))
+      (insert (cond ((stringp use) (substitute-command-keys (concat "; " use)))
 		    (use (format-message "; use `%s' instead."
                                          (car obsolete)))
 		    (t "."))
