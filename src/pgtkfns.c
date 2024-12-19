@@ -3668,10 +3668,7 @@ visible.  */)
   frames = Fnreverse (tmp);
 
   /* Make sure the current matrices are up-to-date.  */
-  specpdl_ref count = SPECPDL_INDEX ();
-  specbind (Qredisplay_dont_pause, Qt);
   redisplay_preserve_echo_area (32);
-  unbind_to (count, Qnil);
 
   block_input ();
   xg_print_frames_dialog (frames);
