@@ -10399,7 +10399,9 @@ The buffer is expected to contain a mail message." t)
 (function-put 'epa-mail-decrypt 'interactive-only 't)
 (autoload 'epa-mail-verify "epa-mail" "\
 Verify OpenPGP cleartext signed messages in the current buffer.
-The buffer is expected to contain a mail message." t)
+The buffer is expected to contain a mail message.
+
+If the verification fails, signal an error." t)
 (function-put 'epa-mail-verify 'interactive-only 't)
 (autoload 'epa-mail-sign "epa-mail" "\
 Sign the current buffer.
@@ -10506,7 +10508,6 @@ Look at CONFIG and try to expand GROUP.
 (dolist (symbol '( erc-sasl erc-spelling ; 29
                   erc-imenu erc-nicks)) ; 30
  (custom-add-load symbol symbol))
-(custom-autoload 'erc-modules "erc")
 (autoload 'erc-select-read-args "erc" "\
 Prompt for connection parameters and return them in a plist.
 By default, collect `:server', `:port', `:nickname', and
@@ -11247,7 +11248,7 @@ For non-interactive use, this is superseded by `fileloop-initialize-replace'.
 (autoload 'list-tags "etags" "\
 Display list of tags in file FILE.
 Interactively, prompt for FILE, with completion, offering the current
-buffer's file name as the defaul.
+buffer's file name as the default.
 This command searches only the first table in the list of tags tables,
 and does not search included tables.
 FILE should be as it was submitted to the `etags' command, which usually
@@ -12458,9 +12459,14 @@ This command deletes all existing settings of VARIABLE (except `mode'
 and `eval') and adds a new file-local VARIABLE with VALUE to the
 Local Variables list.
 
-If there is no Local Variables list in the current file buffer
-then this function adds the first line containing the string
-`Local Variables:' and the last line containing the string `End:'.
+If there is no Local Variables list in the current file buffer,
+then this function adds it at the end of the file, with the first
+line containing the string `Local Variables:' and the last line
+containing the string `End:'.
+
+For adding local variables on the first line of a file, for example
+for settings like `lexical-binding, which must be specified there,
+use the `add-file-local-variable-prop-line' command instead.
 
 (fn VARIABLE VALUE &optional INTERACTIVE)" t)
 (autoload 'delete-file-local-variable "files-x" "\
@@ -12472,10 +12478,13 @@ Add file-local VARIABLE with its VALUE to the -*- line.
 
 This command deletes all existing settings of VARIABLE (except `mode'
 and `eval') and adds a new file-local VARIABLE with VALUE to
-the -*- line.
+the -*- line at the beginning of the file.
 
 If there is no -*- line at the beginning of the current file buffer
 then this function adds it.
+
+To add variables to the Local Variables list at the end of the file,
+use the `add-file-local-variable' command instead.
 
 (fn VARIABLE VALUE &optional INTERACTIVE)" t)
 (autoload 'delete-file-local-variable-prop-line "files-x" "\
@@ -15603,20 +15612,20 @@ If the `kbd-help' text or overlay property at point produces a
 string, return it.  Otherwise, use the `help-echo' property.
 If this produces no string either, return nil.")
 (autoload 'display-local-help "help-at-pt" "\
-Display local help in the echo area.
-This command, by default, displays a short help message, namely
-the string produced by the `kbd-help' property at point.  If
-`kbd-help' does not produce a string, but the `help-echo'
-property does, then that string is printed instead.
+Display in the echo area `kbd-help' or `help-echo' text at point.
+This command displays the help message which is the string produced
+by the `kbd-help' property at point.  If `kbd-help' at point does not
+produce a string, but the `help-echo' property does, then that string
+is displayed instead.
 
 The string is passed through `substitute-command-keys' before it
 is displayed.
 
-If INHIBIT-WARNING is non-nil, this prevents display of a message
-in case there is no help.
+If INHIBIT-WARNING is non-nil, do not display a warning message when
+there is no help property at point.
 
 If DESCRIBE-BUTTON in non-nil (interactively, the prefix arg), and
-there's a button/widget at point, pop a buffer describing that
+there's a button/widget at point, pop up a buffer describing that
 button/widget instead.
 
 (fn &optional INHIBIT-WARNING DESCRIBE-BUTTON)" t)
@@ -22196,15 +22205,18 @@ values:
 used to decode and encode the data which the process reads and
 writes.  See `make-network-process' for details.
 
-:return-list specifies this function's return value.
-  If omitted or nil, return a process object.  A non-nil means to
-  return (PROC . PROPS), where PROC is a process object and PROPS
-  is a plist of connection properties, with these keywords:
+:return-list controls the form of the function's return value.
+  If omitted or nil, return a process object.  Anything else means to
+  return (PROC . PROPS), where PROC is a process object, and PROPS is a
+  plist of connection properties, which may include the following
+  keywords:
    :greeting -- the greeting returned by HOST (a string), or nil.
    :capabilities -- a string representing HOST's capabilities,
                     or nil if none could be found.
    :type -- the resulting connection type; `plain' (unencrypted)
             or `tls' (TLS-encrypted).
+   :error -- A string describing any error when attempting
+             to negotiate STARTTLS.
 
 :end-of-command specifies a regexp matching the end of a command.
 
@@ -22243,8 +22255,9 @@ writes.  See `make-network-process' for details.
 :use-starttls-if-possible is a boolean that says to do opportunistic
 STARTTLS upgrades even if Emacs doesn't have built-in TLS functionality.
 
-:warn-unless-encrypted is a boolean which, if :return-list is
-non-nil, is used warn the user if the connection isn't encrypted.
+:warn-unless-encrypted, if non-nil, warn the user if the connection
+isn't encrypted (i.e. STARTTLS failed).  Additionally, setting
+:return-list non-nil allows capturing any error response.
 
 :nogreeting is a boolean that can be used to inhibit waiting for
 a greeting from the server.
