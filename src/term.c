@@ -4827,7 +4827,7 @@ tty_frame_geometry (Lisp_Object frame, Lisp_Object attribute)
 
 DEFUN ("tty-frame-geometry", Ftty_frame_geometry, Stty_frame_geometry, 0, 1, 0,
        doc: /* Return geometric attributes of terminal frame FRAME.
-	       See also `frame-geometry'.  */)
+See also `frame-geometry'.  */)
   (Lisp_Object frame)
 {
   return tty_frame_geometry (frame, Qnil);
@@ -4835,7 +4835,7 @@ DEFUN ("tty-frame-geometry", Ftty_frame_geometry, Stty_frame_geometry, 0, 1, 0,
 
 DEFUN ("tty-frame-edges", Ftty_frame_edges, Stty_frame_edges, 0, 2, 0,
        doc: /* Return coordinates of FRAME's edges.
-	       See also `frame-edges'.  */)
+See also `frame-edges'.  */)
   (Lisp_Object frame, Lisp_Object type)
 {
   if (!EQ (type, Qouter_edges) && !EQ (type, Qinner_edges))
@@ -4846,7 +4846,7 @@ DEFUN ("tty-frame-edges", Ftty_frame_edges, Stty_frame_edges, 0, 2, 0,
 DEFUN ("tty-frame-list-z-order", Ftty_frame_list_z_order,
        Stty_frame_list_z_order, 0, 1, 0,
        doc: /* Return list of Emacs's frames, in Z (stacking) order.
-	       See also `frame-list-z-order'.  */)
+See also `frame-list-z-order'.  */)
   (Lisp_Object frame)
 {
   struct frame *f = decode_tty_frame (frame);
@@ -4857,12 +4857,12 @@ DEFUN ("tty-frame-list-z-order", Ftty_frame_list_z_order,
 DEFUN ("tty-frame-restack", Ftty_frame_restack,
        Stty_frame_restack, 2, 3, 0,
        doc: /* Restack FRAME1 below FRAME2 on terminals.
-.	       See also `frame-restack'.  */)
+See also `frame-restack'.  */
+       attributes: noreturn)
   (Lisp_Object frame1, Lisp_Object frame2, Lisp_Object above)
 {
   /* FIXME/tty: tty-frame-restack implementation.  */
   error ("tty-frame-restack is not implemented");
-  return Qnil;
 }
 
 static void
@@ -4897,7 +4897,7 @@ tty_display_dimension (Lisp_Object frame, int *width, int *height)
 DEFUN ("tty-display-pixel-width", Ftty_display_pixel_width,
        Stty_display_pixel_width, 0, 1, 0,
        doc: /* Return the width of DISPLAY's screen in pixels.
-.	       See also `display-pixel-width'.  */)
+See also `display-pixel-width'.  */)
   (Lisp_Object display)
 {
   int width, height;
@@ -4908,7 +4908,7 @@ DEFUN ("tty-display-pixel-width", Ftty_display_pixel_width,
 DEFUN ("tty-display-pixel-height", Ftty_display_pixel_height,
        Stty_display_pixel_height, 0, 1, 0,
        doc: /* Return the height of DISPLAY's screen in pixels.
-	       See also `display-pixel-height'.  */)
+See also `display-pixel-height'.  */)
   (Lisp_Object display)
 {
   int width, height;
