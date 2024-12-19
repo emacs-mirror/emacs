@@ -44,21 +44,19 @@ enabled, you can disable mouse tracking by putting '(xterm-mouse-mode
 * Changes in Emacs 31.1
 
 ---
-** Add support for child frames on tty
+** Child frames are now supported on TTY frames.
+This supports use-cases like Posframe, Corfu, and child frames acting
+like tooltips.  Other use-cases of child frames are not supported yet.
+In particular, trying to create minibuffer-only child frames on ttys
+will signal an error.
 
-The redisplay part is complete.  The frame-handling part supports
-use-cases like Posframe, Corfu, and child frames acting like tooltips.
-Other use-cases of child frames are not currently supported.  In
-particular, trying to create minibuffer-only child frames on ttys will
-signal an error.
+To enable tooltips on TTY frames, call 'tty-tip-mode'.
 
-To enable tooltips on ttys, call 'tty-tip-mode'.
-
-The presence of child window support on ttys can be checked with
+The presence of child frame support on TTY frames can be checked with
 `(featurep 'tty-child-frames)'.
 
-Current versions of Posframe and Corfu are known to use child frames on
-ttys if supported.
+Recent versions of Posframe and Corfu are known to use child frames on
+TTYs if they are supported.
 
 +++
 ** Several font-lock face variables are now obsolete.
@@ -919,7 +917,8 @@ restore the old behavior, you can set 'eshell-pwd-convert-function' to
 * Lisp Changes in Emacs 31.1
 
 ---
-** The obsolete variable `redisplay-dont-pause' has been removed
+** The obsolete variable `redisplay-dont-pause' has been removed.
+
 ** New function 'native-compile-directory'.
 This function natively-compiles all Lisp files in a directory and in its
 sub-directories, recursively, which were not already natively-compiled.
