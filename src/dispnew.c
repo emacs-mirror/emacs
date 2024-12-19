@@ -3757,7 +3757,7 @@ update_menu_bar (struct frame *f)
 {
 #if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
   if (WINDOWP (f->menu_bar_window))
-    update_window (XWINDOW (f->menu_bar_window), true);
+    update_window (XWINDOW (f->menu_bar_window));
 #endif
 }
 
