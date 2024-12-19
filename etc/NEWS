@@ -306,6 +306,9 @@ a web browser to load them.  For example, it could be used like this:
 For better integration with the Qutebrowser, set
 'browse-url(-secondary)-browser-function' to 'browse-url-qutebrowser'.
 
+*** Support for the Conkeror web browser has been removed.
+It has been obsolete since Emacs 28.1.
+
 ** CL-Lib
 
 +++
