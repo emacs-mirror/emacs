@@ -47,8 +47,8 @@ enabled, you can disable mouse tracking by putting '(xterm-mouse-mode
 ** Child frames are now supported on TTY frames.
 This supports use-cases like Posframe, Corfu, and child frames acting
 like tooltips.  Other use-cases of child frames are not supported yet.
-In particular, trying to create minibuffer-only child frames on ttys
-will signal an error.
+In particular, trying to create minibuffer-only child frames on a TTY
+frame will signal an error.
 
 To enable tooltips on TTY frames, call 'tty-tip-mode'.
 
