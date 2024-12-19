@@ -3393,8 +3393,8 @@ of its sibling child frames.
 
   By design, operations to make or modify child frames are implemented
 with the help of frame parameters (@pxref{Frame Parameters}) without any
-specialized functions or customizable variables.  Note that child frames
-are meaningful on graphical terminals only.
+specialized functions or customizable variables.  Child frames
+are meaningful on graphical and text terminals.
 
   To create a new child frame or to convert a normal frame into a child
 frame, set that frame's @code{parent-frame} parameter (@pxref{Frame
