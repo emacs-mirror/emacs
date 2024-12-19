@@ -548,6 +548,10 @@ package of the current buffer.  It is bound to 'C-c C-t p' in 'go-ts-mode'.
 The 'go-ts-mode-build-tags' user option is available to set a list of
 build tags for the test commands.
 
+The 'go-ts-mode-test-flags' user option is available to set a list of
+additional flags to pass to the go test command line.
+
+
 ** C-ts mode
 
 +++
