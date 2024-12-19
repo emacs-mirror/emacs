@@ -79,10 +79,12 @@ But only if `goto-address-highlight-p' is also non-nil."
   "Non-nil means URLs and e-mail addresses in buffer are highlighted."
   :type 'boolean)
 
-(defcustom goto-address-fontify-maximum-size 30000
-  "Maximum size of file in which to fontify and/or highlight URLs.
+(defcustom goto-address-fontify-maximum-size (* 128 1024)
+  "Maximum size of file in which to fontify and/or highlight URLs (in bytes).
 A value of t means there is no limit--fontify regardless of the size."
-  :type '(choice (integer :tag "Maximum size") (const :tag "No limit" t)))
+  :type '(choice (integer :tag "Maximum size")
+                 (const :tag "No limit" t))
+  :version "31.1")
 
 (defvar goto-address-mail-regexp
   ;; Actually pretty much any char could appear in the username part.  -stef
