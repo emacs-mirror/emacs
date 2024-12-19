@@ -954,6 +954,13 @@ override flag by 'treesit-font-lock-setting-query',
 'treesit-font-lock-setting-feature', 'treesit-font-lock-setting-enable',
 and 'treesit-font-lock-setting-override'.
 
+*** New treesit thing 'sexp-list'.
+Unlike the existing thing 'sexp' that defines both lists and atoms,
+'sexp-list' defines only lists to be navigated by 'forward-sexp'.
+The new function 'treesit-forward-sexp-list' uses 'sexp-list'
+to move across lists.  But to move across atoms inside the list
+it uses `forward-sexp-default-function'.
+
 +++
 ** New optional BUFFER argument for 'string-pixel-width'.
 If supplied, 'string-pixel-width' will use any face remappings from
