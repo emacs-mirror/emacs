@@ -696,7 +696,6 @@ void
 free_frame_faces (struct frame *f)
 {
   struct face_cache *face_cache = FRAME_FACE_CACHE (f);
-
   if (face_cache)
     {
       free_face_cache (face_cache);

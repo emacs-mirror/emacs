@@ -1506,6 +1506,13 @@ FRAME defaults to the selected frame."
   (let ((edges (frame-edges frame 'outer-edges)))
     (- (nth 3 edges) (nth 1 edges))))
 
+(defun frame-at (x y)
+  "Return frame containing pixel position X, Y."
+  (cl-loop for frame in (frame-list-z-order)
+           as (x0 y0 x1 y1) = (frame-edges frame)
+           when (and (<= x0 x (1- x1)) (<= y0 y (1- y1)))
+           return frame))
+
 (declare-function x-list-fonts "xfaces.c"
                   (pattern &optional face frame maximum width))
 
@@ -1733,6 +1740,7 @@ live frame and defaults to the selected one."
 (declare-function pgtk-frame-geometry "pgtkfns.c" (&optional frame))
 (declare-function haiku-frame-geometry "haikufns.c" (&optional frame))
 (declare-function android-frame-geometry "androidfns.c" (&optional frame))
+(declare-function tty-frame-geometry "term.c" (&optional frame))
 
 (defun frame-geometry (&optional frame)
   "Return geometric attributes of FRAME.
@@ -1789,24 +1797,7 @@ and width values are in pixels.
      ((eq frame-type 'android)
       (android-frame-geometry frame))
      (t
-      (list
-       '(outer-position 0 . 0)
-       (cons 'outer-size (cons (frame-width frame) (frame-height frame)))
-       '(external-border-size 0 . 0)
-       '(outer-border-width . 0)
-       '(title-bar-size 0 . 0)
-       '(menu-bar-external . nil)
-       (let ((menu-bar-lines (frame-parameter frame 'menu-bar-lines)))
-	 (cons 'menu-bar-size
-	       (if menu-bar-lines
-		   (cons (frame-width frame) 1)
-		 1 0)))
-       '(tool-bar-external . nil)
-       '(tool-bar-position . nil)
-       '(tool-bar-size 0 . 0)
-       '(tab-bar-size 0 . 0)
-       (cons 'internal-border-width
-	     (frame-parameter frame 'internal-border-width)))))))
+      (tty-frame-geometry frame)))))
 
 (defun frame--size-history (&optional frame)
   "Print history of resize operations for FRAME.
@@ -1915,6 +1906,7 @@ of frames like calls to map a frame or change its visibility."
 (declare-function pgtk-frame-edges "pgtkfns.c" (&optional frame type))
 (declare-function haiku-frame-edges "haikufns.c" (&optional frame type))
 (declare-function android-frame-edges "androidfns.c" (&optional frame type))
+(declare-function tty-frame-edges "term.c" (&optional frame type))
 
 (defun frame-edges (&optional frame type)
   "Return coordinates of FRAME's edges.
@@ -1945,7 +1937,7 @@ FRAME."
      ((eq frame-type 'android)
       (android-frame-edges frame type))
      (t
-      (list 0 0 (frame-width frame) (frame-height frame))))))
+      (tty-frame-edges frame type)))))
 
 (declare-function w32-mouse-absolute-pixel-position "w32fns.c")
 (declare-function x-mouse-absolute-pixel-position "xfns.c")
@@ -2098,6 +2090,7 @@ workarea attribute."
 ;; (declare-function pgtk-frame-list-z-order "pgtkfns.c" (&optional display))
 (declare-function haiku-frame-list-z-order "haikufns.c" (&optional display))
 (declare-function android-frame-list-z-order "androidfns.c" (&optional display))
+(declare-function tty-frame-list-z-order "term.c" (&optional display))
 
 (defun frame-list-z-order (&optional display)
   "Return list of Emacs's frames, in Z (stacking) order.
@@ -2125,7 +2118,9 @@ Return nil if DISPLAY contains no Emacs frame."
      ((eq frame-type 'haiku)
       (haiku-frame-list-z-order display))
      ((eq frame-type 'android)
-      (android-frame-list-z-order display)))))
+      (android-frame-list-z-order display))
+     (t
+      (tty-frame-list-z-order display)))))
 
 (declare-function x-frame-restack "xfns.c" (frame1 frame2 &optional above))
 (declare-function w32-frame-restack "w32fns.c" (frame1 frame2 &optional above))
@@ -2134,6 +2129,7 @@ Return nil if DISPLAY contains no Emacs frame."
 (declare-function haiku-frame-restack "haikufns.c" (frame1 frame2 &optional above))
 (declare-function android-frame-restack "androidfns.c" (frame1 frame2
                                                                &optional above))
+(declare-function tty-frame-restack "term.c" (frame1 frame2 &optional above))
 
 (defun frame-restack (frame1 frame2 &optional above)
   "Restack FRAME1 below FRAME2.
@@ -2169,7 +2165,9 @@ Some window managers may refuse to restack windows."
          ((eq frame-type 'pgtk)
           (pgtk-frame-restack frame1 frame2 above))
          ((eq frame-type 'android)
-          (android-frame-restack frame1 frame2 above))))
+          (android-frame-restack frame1 frame2 above))
+         (t
+          (tty-frame-restack frame1 frame2 above))))
     (error "Cannot restack frames")))
 
 (defun frame-size-changed-p (&optional frame)
@@ -2322,6 +2320,7 @@ If DISPLAY is omitted or nil, it defaults to the selected frame's display."
       1))))
 
 (declare-function x-display-pixel-height "xfns.c" (&optional terminal))
+(declare-function tty-display-pixel-height "term.c" (&optional terminal))
 
 (defun display-pixel-height (&optional display)
   "Return the height of DISPLAY's screen in pixels.
@@ -2339,9 +2338,10 @@ with DISPLAY.  To get information for each physical monitor, use
      ((memq frame-type '(x w32 ns haiku pgtk android))
       (x-display-pixel-height display))
      (t
-      (frame-height (if (framep display) display (selected-frame)))))))
+      (tty-display-pixel-height display)))))
 
 (declare-function x-display-pixel-width "xfns.c" (&optional terminal))
+(declare-function tty-display-pixel-width "term.c" (&optional terminal))
 
 (defun display-pixel-width (&optional display)
   "Return the width of DISPLAY's screen in pixels.
@@ -2359,7 +2359,7 @@ with DISPLAY.  To get information for each physical monitor, use
      ((memq frame-type '(x w32 ns haiku pgtk android))
       (x-display-pixel-width display))
      (t
-      (frame-width (if (framep display) display (selected-frame)))))))
+      (tty-display-pixel-width display)))))
 
 (defcustom display-mm-dimensions-alist nil
   "Alist for specifying screen dimensions in millimeters.

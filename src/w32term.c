@@ -6405,14 +6405,13 @@ w32_read_socket (struct terminal *terminal,
 	if (FRAME_TOOLTIP_P (f))
 	  continue;
 
-	/* Check "visible" frames and mark each as obscured or not.
+	/* Check "visible" frames and mark each as visible or not.
 	   Note that visible is nonzero for unobscured and obscured
 	   frames, but zero for hidden and iconified frames.  */
 	if (FRAME_W32_P (f) && FRAME_VISIBLE_P (f))
 	  {
 	    RECT clipbox;
 	    HDC  hdc;
-	    bool obscured;
 
 	    enter_crit ();
 	    /* Query clipping rectangle for the entire window area
@@ -6426,29 +6425,11 @@ w32_read_socket (struct terminal *terminal,
 	    ReleaseDC (FRAME_W32_WINDOW (f), hdc);
 	    leave_crit ();
 
-	    obscured = FRAME_OBSCURED_P (f);
-
-	    if (clipbox.right == clipbox.left || clipbox.bottom == clipbox.top)
-	      {
-		/* Frame has become completely obscured so mark as such (we
-		   do this by setting visible to 2 so that FRAME_VISIBLE_P
-		   is still true, but redisplay will skip it).  */
-		SET_FRAME_VISIBLE (f, 2);
-
-		if (!obscured)
-		  DebPrint (("frame %p (%s) obscured\n", f, SDATA (f->name)));
-	      }
-	    else
+	    if (!(clipbox.right == clipbox.left
+		  || clipbox.bottom == clipbox.top))
 	      {
 		/* Frame is not obscured, so mark it as such.  */
 		SET_FRAME_VISIBLE (f, 1);
-
-		if (obscured)
-		  {
-		    SET_FRAME_GARBAGED (f);
-		    DebPrint (("obscured frame %p (%s) found to be visible\n",
-			       f, SDATA (f->name)));
-		  }
 	      }
 	  }
       }

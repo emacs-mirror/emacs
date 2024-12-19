@@ -522,9 +522,7 @@ It is the default value of `show-paren-data-function'."
                               openparen))
                     (message-log-max nil))
                 (cond
-                 ((and
-                   (eq show-paren-context-when-offscreen 'child-frame)
-                   (display-graphic-p))
+                 ((eq show-paren-context-when-offscreen 'child-frame)
                   (show-paren--show-context-in-child-frame context))
                  ((eq show-paren-context-when-offscreen 'overlay)
                   (show-paren--show-context-in-overlay context))

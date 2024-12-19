@@ -167,6 +167,7 @@ w32con_clear_end_of_line (struct frame *f, int end)
       for (i = 0; i < glyphs_len; i++)
         {
 	  memcpy (&glyphs[i], &space_glyph, sizeof (struct glyph));
+	  glyphs[i].frame = f;
         }
       ceol_initialized = TRUE;
     }
@@ -327,14 +328,19 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
     {
       /* Identify a run of glyphs with the same face.  */
       int face_id = string->face_id;
+      /* Since this is called to deliver the frame glyph matrix to the
+	 glass, some of the glyphs might be from a child frame, which
+	 affects the interpretation of face ID.  */
+      struct frame *face_id_frame = string->frame;
       int n;
 
       for (n = 1; n < len; ++n)
-	if (string[n].face_id != face_id)
+	if (!(string[n].face_id == face_id
+	      && string[n].frame == face_id_frame))
 	  break;
 
       /* Turn appearance modes of the face of the run on.  */
-      char_attr = w32_face_attributes (f, face_id);
+      char_attr = w32_face_attributes (face_id_frame, face_id);
 
       if (n == len)
 	/* This is the last run.  */
@@ -530,6 +536,11 @@ static void
 w32con_update_end (struct frame * f)
 {
   SetConsoleCursorPosition (cur_screen, cursor_coords);
+  if (!XWINDOW (selected_window)->cursor_off_p
+      && cursor_coords.X < FRAME_COLS (f))
+    w32con_show_cursor ();
+  else
+    w32con_hide_cursor ();
 }
 
 /***********************************************************************
