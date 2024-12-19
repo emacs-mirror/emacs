@@ -898,7 +898,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 			      (c-lang-const c-simple-ws) "*"
 			      "=\\(?:[^=]\\|$\\)")
 		      `((,(+ 1 (c-lang-const c-simple-ws-depth))
-			 font-lock-type-face t)))))))))
+			 'font-lock-type-face t)))))))))
 
       ;; Fontify the special declarations in Objective-C.
       ,@(when (c-major-mode-is 'objc-mode)

@@ -335,7 +335,7 @@
            ;; Chained identifiers in using/namespace statements
            ,`(,(c-make-font-lock-search-function
                 csharp--regex-using-or-namespace
-                `((csharp--color-forwards font-lock-variable-name-face)
+                `((csharp--color-forwards 'font-lock-variable-name-face)
                   nil
                   (goto-char (match-end 0)))))
 
@@ -348,7 +348,7 @@
 
            ;; Single identifier in attribute
            (eval . (list (concat "\\[" csharp--regex-type-name-matcher "\\][^;]")
-                         1 font-lock-variable-name-face t))
+                         1 'font-lock-variable-name-face t))
 
            ;; Function names
            (eval . (list "\\([A-Za-z0-9_]+\\)\\(<[a-zA-Z0-9, ]+>\\)?("
@@ -361,7 +361,7 @@
            (eval . (list (concat "\\<nameof\\> *( *"
                                  csharp--regex-identifier-matcher
                                  " *) *")
-                         1 font-lock-variable-name-face))
+                         1 'font-lock-variable-name-face))
 
            ;; Catch statements with type only
            (eval . (list (concat "\\<catch\\> *( *"

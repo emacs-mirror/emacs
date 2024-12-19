@@ -966,11 +966,11 @@
      ;; Function declarations.
      `(,(c-make-font-lock-search-function
 	 "^\\s *\\(func\\(tion\\)?\\)\\s +\\(\\(\\sw+\\(::\\sw+\\)?\\)\\s *\\)?\\(([^()]*)\\)?"
-	 '(1 font-lock-keyword-face t)
+	 '(1 'font-lock-keyword-face t)
 	 ;; We can't use LAXMATCH in `c-make-font-lock-search-function', so....
 	 '((when (match-beginning 4)
 	     (c-put-font-lock-face
-	      (match-beginning 4) (match-end 4) font-lock-function-name-face)
+	      (match-beginning 4) (match-end 4) 'font-lock-function-name-face)
 	     nil))
 	 ;; Put warning face on any use of :: inside the parens.
 	 '((when (match-beginning 6)
