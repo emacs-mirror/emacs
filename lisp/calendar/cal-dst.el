@@ -226,7 +226,7 @@ The result has the proper form for `calendar-daylight-savings-starts'."
     (car candidate-rules)))
 
 ;; TODO it might be better to extract this information directly from
-;; the system timezone database. But cross-platform...?
+;; the system timezone database.  But cross-platform...?
 ;; See thread
 ;; https://lists.gnu.org/r/emacs-pretest-bug/2006-11/msg00060.html
 (defun calendar-dst-find-data (&optional time)
@@ -309,7 +309,9 @@ system knows:
 UTC-DIFF is an integer specifying the number of minutes difference between
     standard time in the current time zone and Coordinated Universal Time
     (Greenwich Mean Time).  A negative value means west of Greenwich.
-DST-OFFSET is an integer giving the daylight saving time offset in minutes.
+DST-OFFSET is an integer giving the daylight saving time offset in minutes
+    relative to UTC-DIFF.  (That is, the total UTC offset during daylight saving
+    time is UTC-DIFF + DST-OFFSET minutes.)
 STD-ZONE is a string giving the name of the time zone when no seasonal time
     adjustment is in effect.
 DST-ZONE is a string giving the name of the time zone when there is a seasonal

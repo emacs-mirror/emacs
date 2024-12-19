@@ -2120,8 +2120,9 @@ show the diary buffer."
 Prefix argument ARG makes the entry nonmarking."
   (interactive
    (list current-prefix-arg last-nonmenu-event))
-  (diary-make-entry (calendar-date-string (calendar-cursor-to-date t event) t t)
-                    arg))
+  (calendar-dlet ((calendar-date-display-form diary-date-insertion-form))
+    (diary-make-entry (calendar-date-string (calendar-cursor-to-date t event) t t)
+                      arg)))
 
 ;;;###cal-autoload
 (defun diary-insert-weekly-entry (arg)
@@ -2318,6 +2319,7 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
   ;; Accepted formats: 10:00 10.00 10h00 10h 10am 10:00am 10.00am
   ;; Use of "." as a separator annoyingly matches numbers, eg "123.45".
   ;; Hence often prefix this with "\\(^\\|\\s-\\)."
+  ;; FIXME.
   (concat "[0-9]?[0-9]\\([AaPp][mM]\\|\\("
           "[Hh]\\([0-9][0-9]\\)?\\|[:.][0-9][0-9]"
           "\\)\\([AaPp][Mm]\\)?\\)")

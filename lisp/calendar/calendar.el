@@ -871,7 +871,15 @@ current word of the diary entry, so in no case can the pattern match more than
 a portion of the first word of the diary entry.
 
 For examples of three common styles, see `diary-american-date-forms',
-`diary-european-date-forms', and `diary-iso-date-forms'."
+`diary-european-date-forms', and `diary-iso-date-forms'.
+
+If you customize this variable, you should also customize the variable
+`diary-date-insertion-form' to contain a pseudo-pattern which produces
+dates that match one of the forms in this variable. (If
+`diary-date-insertion-form' does not correspond to one of the patterns
+in this variable, then the diary will not recognize such dates,
+including those inserted into the diary from the calendar with
+`diary-insert-entry'.)"
   :type '(repeat (choice (cons :tag "Backup"
                                :value (backup . nil)
                                (const backup)
@@ -893,6 +901,52 @@ For examples of three common styles, see `diary-american-date-forms',
            ;; to pick up any newly recognized entries.
            (and (diary-live-p)
                 (diary))))
+  :group 'diary)
+
+(defconst diary-american-date-insertion-form '(month "/" day "/" year)
+  "Pseudo-pattern for American dates in `diary-date-insertion-form'")
+
+(defconst diary-european-date-insertion-form '(day "/" month "/" year)
+  "Pseudo-pattern for European dates in `diary-date-insertion-form'")
+
+(defconst diary-iso-date-insertion-form '(year "/" month "/" day)
+  "Pseudo-pattern for ISO dates in `diary-date-insertion-form'")
+
+(defcustom diary-date-insertion-form
+  (cond ((eq calendar-date-style 'iso) diary-iso-date-insertion-form)
+        ((eq calendar-date-style 'european) diary-european-date-insertion-form)
+        (t diary-american-date-insertion-form))
+  "Pseudo-pattern describing how to format a date for a new diary entry.
+
+A pseudo-pattern is a list of expressions that can include the symbols
+`month', `day', and `year' (all numbers in string form), and `monthname'
+and `dayname' (both alphabetic strings).  For example, a typical American
+form would be
+
+       (month \"/\" day \"/\" (substring year -2))
+
+whereas
+
+       ((format \"%9s, %9s %2s, %4s\" dayname monthname day year))
+
+would give the usual American style in fixed-length fields.
+
+This pattern will be used by `calendar-date-string' (which see) to
+format dates when inserting them with `diary-insert-entry', or when
+importing them from other formats into the diary.
+
+If you customize this variable, you should also customize the variable
+`diary-date-forms' to include a pseudo-pattern which matches dates
+produced by this pattern.  (If there is no corresponding pattern in
+`diary-date-forms', then the diary will not recognize such dates,
+including those inserted into the diary from the calendar with
+`diary-insert-entry'.)"
+  :version "31.1"
+  :type 'sexp
+  :risky t
+  :set-after '(calendar-date-style diary-american-date-insertion-form
+                                   diary-european-date-insertion-form
+                                   diary-iso-date-insertion-form)
   :group 'diary)
 
 ;; Next three are provided to aid in setting calendar-date-display-form.
@@ -1028,7 +1082,9 @@ The valid styles are described in the documentation of `calendar-date-style'."
         calendar-month-header
         (symbol-value (intern-soft (format "calendar-%s-month-header" style)))
         diary-date-forms
-        (symbol-value (intern-soft (format "diary-%s-date-forms" style))))
+        (symbol-value (intern-soft (format "diary-%s-date-forms" style)))
+        diary-date-insertion-form
+        (symbol-value (intern-soft (format "diary-%s-date-insertion-form" style))))
   (calendar-redraw)
   (calendar-update-mode-line))
 
@@ -1297,6 +1353,16 @@ return negative results."
               (- (/ offset-years 100))
               (/ offset-years 400)
               (calendar-day-number '(12 31 -1))))))) ; days in year 1 BC
+
+;; This function is the inverse of `calendar-day-number':
+(defun calendar-date-from-day-of-year (year dayno)
+  "Return the date of the DAYNO-th day in YEAR.
+DAYNO must be an integer between -366 and 366."
+  (calendar-gregorian-from-absolute
+   (+ (if (< dayno 0)
+          (+ 1 dayno (if (calendar-leap-year-p year) 366 365))
+        dayno)
+      (calendar-absolute-from-gregorian (list 12 31 (1- year))))))
 
 ;;;###autoload
 (defun calendar (&optional arg)

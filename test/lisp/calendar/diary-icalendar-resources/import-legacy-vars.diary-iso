@@ -1,0 +1,8 @@
+2025/9/19 09:00-11:30 Testing legacy `icalendar-import-format*' vars
+ CLASS=private
+ DESCRIPTION=described
+ LOCATION=somewhere
+ ORGANIZER=mailto:baz@example.com
+ STATUS=confirmed
+ URL=http://example.com/foo/baz
+ UID=some-unique-id-here

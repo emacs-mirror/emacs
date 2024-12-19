@@ -3084,6 +3084,34 @@ The user options 'calendar-mark-holidays-flag' and
 'calendar-mark-diary-entries-flag' are not modified anymore when
 changing the marking state in the calendar buffer.
 
+*** New library for iCalendar data.
+A new library has been added to the calendar for handling iCalendar
+(RFC5545) data.  The library is designed for reuse in other parts of
+Emacs and in third-party packages.  Package authors can find the new
+library in the Emacs distribution under lisp/calendar/icalendar-*.el.
+
+Most of the functions and variables in the older icalendar.el have been
+marked obsolete and now suggest appropriate replacements from the new
+library.  diary-icalendar.el provides replacements for the diary-related
+features from icalendar.el; see below.
+
+** Diary
+
+*** New user option 'diary-date-insertion-form'.
+This user option determines how dates are inserted into the diary by
+Lisp functions.  Its value is a pseudo-pattern of the same type as in
+'diary-date-forms'.  It is used by 'diary-insert-entry' when inserting
+entries from the calendar, or when importing them from other formats.
+
++++
+*** New library 'diary-icalendar'.
+This library reimplements features previously provided by icalendar.el:
+import from iCalendar format to the diary, and export from the diary to
+iCalendar.  It also adds the ability to include iCalendar files in the
+diary and display and mark their contents in the calendar without
+importing them to the diary file.  The library uses the new iCalendar
+library (see above) and makes diary import and export more customizable.
+
 ** Calc
 
 *** New user option 'calc-string-maximum-character'.
@@ -3246,6 +3274,11 @@ value.  Previously, only 'hi-lock-face-buffer' supported this.
 
 
 * New Modes and Packages in Emacs 31.1
+
+** New major mode 'icalendar-mode'.
+A major mode for displaying and editing iCalendar (RFC5545) data.  This
+mode handles line unfolding and fontification, including highlighting
+syntax errors in invalid data.
 
 ** New minor mode 'delete-trailing-whitespace-mode'.
 A simple buffer-local mode that runs 'delete-trailing-whitespace'
