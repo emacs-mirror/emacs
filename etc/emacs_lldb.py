@@ -61,6 +61,7 @@ class Lisp_Object:
         "PVEC_TERMINAL": "struct terminal",
         "PVEC_WINDOW_CONFIGURATION": "struct save_window_data",
         "PVEC_SUBR": "struct Lisp_Subr",
+        "PVEC_PACKAGE": "struct Lisp_Package",
         "PVEC_OTHER": "void",
         "PVEC_XWIDGET": "void",
         "PVEC_XWIDGET_VIEW": "void",
@@ -110,7 +111,7 @@ class Lisp_Object:
                                        & ((1 << GCTYPEBITS) - 1))
         if self.lisp_type == "Lisp_Vectorlike":
             self.pvec_type = "PVEC_NORMAL_VECTOR"
-            vector = self.get_lisp_pointer("struct Lisp_Vector", False)
+            vector = self.get_lisp_pointer("struct Lisp_Vector")
             header = vector.GetChildMemberWithName("header");
             size = header.GetChildMemberWithName("size");
             size = size.GetValueAsUnsigned()
@@ -224,9 +225,39 @@ class Lisp_Object:
             return Lisp_Object(name).get_string_data()
         return None
 
+    def is_nil(self):
+        return self.lisp_type == None
+
+    # Get the package of a symbol or None if not a symbol.
+    def get_symbol_package(self):
+        if self.lisp_type == "Lisp_Symbol":
+            u = self.untagged.GetChildMemberWithName("u")
+            s = u.GetChildMemberWithName("s")
+            p = s.GetChildMemberWithName("package")
+            package = Lisp_Object(p)
+            if package.pvec_type:
+                name = Lisp_Object(package.untagged.GetChildMemberWithName("name"))
+                return name.get_string_data()
+        return None
+
+    def get_package_name(self):
+        name = Lisp_Object(self.untagged.GetChildMemberWithName("name"))
+        return name.get_string_data()
+
     # Return a summary string for this object.
     def summary(self):
         return str(self.untagged)
+
+    def dump(self, result):
+        if self.lisp_type == "Lisp_Symbol":
+            result.AppendMessage(f"package: {self.get_symbol_package()}")
+            result.AppendMessage(f"name:    {self.get_symbol_name()}")
+        elif self.lisp_type == "Lisp_String":
+            result.AppendMessage(str(self.get_string_data()))
+        elif self.lisp_type == "Lisp_Vectorlike" and self.pvec_type == "PVEC_PACKAGE":
+            result.AppendMessage(f"package {self.get_package_name()}")
+        else:
+            result.AppendMessage(self.summary())
 
 
 ########################################################################
@@ -260,6 +291,12 @@ def xdebug_print(debugger, command, result, internal_dict):
     """Print Lisp_Objects using safe_debug_print()"""
     debugger.HandleCommand(f"expr safe_debug_print({command})")
 
+def xprint(debugger, command, ctx, result, internal_dict):
+    frame = ctx.GetFrame()
+    lisp_obj = Lisp_Object(frame.EvaluateExpression(command))
+    lisp_obj.dump(result)
+
+ 
 
 ########################################################################
 #                             Formatters
@@ -368,6 +405,7 @@ def __lldb_init_module(debugger, internal_dict):
     define_command(debugger, xpostmortem)
     define_command(debugger, xbacktrace)
     define_command(debugger, xdebug_print)
+    define_command(debugger, xprint)
     define_type_summary(debugger, "Lisp_Object", type_summary_Lisp_Object)
     define_type_synthetic(debugger, "Lisp_Object", Lisp_Object_Provider)
     enable_type_category(debugger, "Emacs")
