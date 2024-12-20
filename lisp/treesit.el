@@ -866,7 +866,7 @@ debugging:
 
 Currently each SETTING has the form:
 
-    (QUERY ENABLE FEATURE OVERRIDE)
+    (QUERY ENABLE FEATURE OVERRIDE REVERSE)
 
 QUERY must be a compiled query.  See Info node `(elisp)Pattern
 Matching' for how to write a query and compile it.
@@ -880,7 +880,10 @@ which features are enabled with `treesit-font-lock-level' and
 
 OVERRIDE is the override flag for this query.  Its value can be
 t, nil, append, prepend, keep.  See more in
-`treesit-font-lock-rules'.")
+`treesit-font-lock-rules'.
+
+If REVERSED is t, enable the QUERY when FEATURE is not in the feature
+list.")
 
 ;; Follow cl-defstruct naming conventions, in case we use cl-defstruct
 ;; in the future.
@@ -899,6 +902,10 @@ t, nil, append, prepend, keep.  See more in
 (defsubst treesit-font-lock-setting-override (setting)
   "Return the OVERRIDE flag of SETTING in `treesit-font-lock-settings'."
   (nth 3 setting))
+
+(defsubst treesit-font-lock-setting-reversed (setting)
+  "Return the REVERSED flag of SETTING in `treesit-font-lock-settings'."
+  (nth 4 setting))
 
 (defsubst treesit--font-lock-setting-clone-enable (setting)
   "Return enabled SETTING."
@@ -1030,6 +1037,8 @@ Other keywords include:
              `append'   Append the new face to existing ones.
              `prepend'  Prepend the new face to existing ones.
              `keep'     Fill-in regions without an existing face.
+  :reversed  t          Enable the query only if the feature is
+                        NOT in feature list.
   :default-language  LANGUAGE  Every QUERY after this keyword
                                will use LANGUAGE by default.
 
@@ -1064,6 +1073,7 @@ name, it is ignored."
           ;; DEFAULT-LANGUAGE will be chosen when current-language is
           ;; not set.
           default-language
+          current-reversed
           ;; The list this function returns.
           (result nil))
       (while query-specs
@@ -1102,6 +1112,13 @@ name, it is ignored."
                          `("Value of :feature should be a symbol"
                            ,var)))
                (setq current-feature var)))
+            (:reversed
+             (let ((var (pop query-specs)))
+               (when (not (memq var '(t nil)))
+                 (signal 'treesit-font-lock-error
+                         `("Value of :reversed can only be t or nil"
+                           ,var)))
+               (setq current-reversed var)))
             ;; (2) Process query.
             ((pred treesit-query-p)
              (let ((lang (or default-language current-language)))
@@ -1116,12 +1133,14 @@ name, it is ignored."
                  (push `(,(treesit-query-compile lang token)
                          t
                          ,current-feature
-                         ,current-override)
+                         ,current-override
+                         ,current-reversed)
                        result))
                ;; Clears any configurations set for this query.
                (setq current-language nil
                      current-override nil
-                     current-feature nil)))
+                     current-feature nil
+                     current-reversed nil)))
             (_ (signal 'treesit-font-lock-error
                        `("Unexpected value" ,token))))))
       (nreverse result))))
@@ -1190,9 +1209,11 @@ and leave settings for other languages unchanged."
          (additive (or add-list remove-list)))
     (cl-loop for idx = 0 then (1+ idx)
              for setting in treesit-font-lock-settings
-             for lang = (treesit-query-language (nth 0 setting))
-             for feature = (nth 2 setting)
-             for current-value = (nth 1 setting)
+             for lang = (treesit-query-language
+                         (treesit-font-lock-setting-query setting))
+             for feature = (treesit-font-lock-setting-feature setting)
+             for current-value = (treesit-font-lock-setting-enable setting)
+             for reversed = (treesit-font-lock-setting-reversed setting)
              ;; Set the ENABLE flag for the setting if its language is
              ;; relevant.
              if (or (null language)
@@ -1200,7 +1221,9 @@ and leave settings for other languages unchanged."
              do (setf (nth 1 (nth idx treesit-font-lock-settings))
                       (cond
                        ((not additive)
-                        (if (memq feature features) t nil))
+                        (if (not reversed)
+                            (if (memq feature features) t nil)
+                          (if (memq feature features) nil t)))
                        ((memq feature add-list) t)
                        ((memq feature remove-list) nil)
                        (t current-value))))))

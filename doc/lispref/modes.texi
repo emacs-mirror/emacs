@@ -4378,6 +4378,8 @@ Other keywords are optional:
 @item @tab @code{append} @tab Append the new face to existing ones
 @item @tab @code{prepend} @tab Prepend the new face to existing ones
 @item @tab @code{keep} @tab Fill-in regions without an existing face
+@item @code{:reversed} @tab @code{t}
+@tab Enable @var{query} when @var{feature} is not in the feature list.
 @item @code{:default-language} @tab @var{language}
 @tab Every @var{query} after this keyword will use @var{language}
 by default.
@@ -4461,6 +4463,7 @@ For this variable to take effect, a Lisp program should call
 @findex treesit-font-lock-setting-feature
 @findex treesit-font-lock-setting-enable
 @findex treesit-font-lock-setting-override
+@findex treesit-font-lock-setting-reversed
 @defvar treesit-font-lock-settings
 A list of settings for tree-sitter based font lock.  The exact format of
 each individual setting is considered internal.  One should always use
@@ -4471,7 +4474,8 @@ the setting's query, feature, enable flag and override flag:
 @code{treesit-font-lock-setting-query},
 @code{treesit-font-lock-setting-feature},
 @code{treesit-font-lock-setting-enable},
-@code{treesit-font-lock-setting-override}.
+@code{treesit-font-lock-setting-override},
+@code{treesit-font-lock-setting-reversed}.
 
 @c Because the format is internal, we don't document them here.  Though
 @c we do have it explained in the docstring.  We also expose the fact
