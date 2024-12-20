@@ -1442,6 +1442,8 @@ tty_child_size_param (struct frame *child, Lisp_Object key,
   return dflt;
 }
 
+#ifndef HAVE_ANDROID
+
 static void
 tty_child_frame_rect (struct frame *f, Lisp_Object params,
 		      int *x, int *y, int *w, int *h)
@@ -1451,6 +1453,8 @@ tty_child_frame_rect (struct frame *f, Lisp_Object params,
   *w = tty_child_size_param (f, Qwidth, params, FRAME_TOTAL_COLS (f));
   *h = tty_child_size_param (f, Qheight, params, FRAME_TOTAL_LINES (f));
 }
+
+#endif /* !HAVE_ANDROID */
 
 DEFUN ("make-terminal-frame", Fmake_terminal_frame, Smake_terminal_frame,
        1, 1, 0,
