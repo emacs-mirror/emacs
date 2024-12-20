@@ -4340,6 +4340,7 @@ extern Lisp_Object plist_put (Lisp_Object plist, Lisp_Object prop,
 extern Lisp_Object plist_member (Lisp_Object plist, Lisp_Object prop);
 extern void syms_of_fns (void);
 extern void mark_fns (void);
+Lisp_Object memq_no_quit (Lisp_Object elt, Lisp_Object list);
 
 /* Defined in sort.c  */
 extern void tim_sort (Lisp_Object, Lisp_Object, Lisp_Object *, const ptrdiff_t,

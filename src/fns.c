@@ -1924,6 +1924,15 @@ The value is actually the tail of LIST whose car is ELT.  */)
   return Qnil;
 }
 
+Lisp_Object
+memq_no_quit (Lisp_Object elt, Lisp_Object list)
+{
+  for (; CONSP (list); list = XCDR (list))
+    if (EQ (XCAR (list), elt))
+      return list;
+  return Qnil;
+}
+
 DEFUN ("memql", Fmemql, Smemql, 2, 2, 0,
        doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `eql'.
 The value is actually the tail of LIST whose car is ELT.  */)

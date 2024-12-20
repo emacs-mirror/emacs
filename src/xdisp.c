@@ -17455,7 +17455,7 @@ redisplay_internal (void)
 
 	      /* Remember tty root frames which we've seen.  */
 	      if (!FRAME_PARENT_FRAME (f)
-		  && NILP (assq_no_quit (frame, tty_root_frames)))
+		  && NILP (memq_no_quit (frame, tty_root_frames)))
 		tty_root_frames = Fcons (frame, tty_root_frames);
 	    }
 
