@@ -22,6 +22,18 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Tree-sitter language versions
+;;
+;; c-ts-mode is known to work with the following languages and version:
+;; - tree-sitter-c: v0.20.8-61-g3efee11
+;;
+;; c++-ts-mode is known to work with the following languages and version:
+;; - tree-sitter-cpp: v0.20.5-49-gf41b4f6
+;;
+;; We try our best to make builtin modes work with latest grammar
+;; versions, so a more recent grammar version has a good chance to work.
+;; Send us a bug report if it doesn't.
+
 ;;; Commentary:
 ;;
 ;; This package provides major modes for C and C++, plus some handy
