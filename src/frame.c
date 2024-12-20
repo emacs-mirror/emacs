@@ -152,6 +152,13 @@ check_window_system (struct frame *f)
 void
 check_tty (struct frame *f)
 {
+  /* FIXME: the noninteractive case is here because some tests running
+     in batch mode, like xt-mouse-tests, test with the initial frame
+     which is no tty frame.  It would be nicer if the test harness
+     would allow testing with real tty frames.  */
+  if (f && noninteractive)
+    return;
+
   if (!f || !FRAME_TERMCAP_P (f))
     error ("tty frame should be used");
 }

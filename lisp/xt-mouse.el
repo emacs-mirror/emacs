@@ -295,7 +295,10 @@ which is the \"1006\" extension implemented in Xterm >= 277."
 			    (progn (setq xt-mouse-epoch (float-time)) 0)
 			  (car (time-convert (time-since xt-mouse-epoch)
 					     1000))))
-             (frame (frame-at x y))
+             ;; FIXME: The test for running in batch mode is here solely
+             ;; for the sake of xt-mouse-tests where the only frame is
+             ;; the initial frame.
+             (frame (unless noninteractive (frame-at x y)))
              ;;(_ (message (format "*** %S" frame)))
              (frame-pos (frame-position frame))
              ;;(_ (message (format "*** %S" frame-pos)))
