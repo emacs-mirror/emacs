@@ -182,6 +182,9 @@ frame_inhibit_resize (struct frame *f, bool horizontal, Lisp_Object parameter)
   Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
 
   return (f->after_make_frame
+#ifdef USE_GTK
+	  && f->tool_bar_resized
+#endif
 	  && (EQ (frame_inhibit_implied_resize, Qt)
 	      || (CONSP (frame_inhibit_implied_resize)
 		  && !NILP (Fmemq (parameter, frame_inhibit_implied_resize)))
