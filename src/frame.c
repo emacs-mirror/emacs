@@ -1390,7 +1390,7 @@ get_future_frame_param (Lisp_Object parameter,
 
 #endif
 
-static int
+int
 tty_child_pos_param (struct frame *child, Lisp_Object key,
 		     Lisp_Object params, int dflt)
 {
@@ -1404,7 +1404,7 @@ tty_child_pos_param (struct frame *child, Lisp_Object key,
   return dflt;
 }
 
-static int
+int
 tty_child_size_param (struct frame *child, Lisp_Object key,
 		      Lisp_Object params, int dflt)
 {

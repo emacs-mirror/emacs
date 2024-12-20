@@ -17460,7 +17460,8 @@ redisplay_internal (void)
 	    }
 
 	retry_frame:
-	  if (FRAME_WINDOW_P (f) || FRAME_TERMCAP_P (f) || f == sf)
+	  if (FRAME_WINDOW_P (f)
+	      || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f) || f == sf)
 	    {
 	      /* Only GC scrollbars when we redisplay the whole frame.  */
 	      bool gcscrollbars = f->redisplay || !REDISPLAY_SOME_P ();

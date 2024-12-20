@@ -78,7 +78,6 @@ void syms_of_win16select (void);
 
 /* Constants.  */
 #define EINPROGRESS 112
-#define ENOTSUP     ENOSYS
 /* Gnulib sets O_CLOEXEC to O_NOINHERIT, which gets in the way when we
    need to redirect standard handles for subprocesses using temporary
    files created by mkostemp, see callproc.c.  */

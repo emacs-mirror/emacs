@@ -237,11 +237,12 @@ static void
 mouse_get_xy (int *x, int *y)
 {
   union REGS regs;
+  struct frame *f = SELECTED_FRAME ();
 
   regs.x.ax = 0x0003;
   int86 (0x33, &regs, &regs);
-  *x = regs.x.cx / 8;
-  *y = regs.x.dx / 8;
+  *x = (regs.x.cx / 8) - f->left_pos;
+  *y = (regs.x.dx / 8) - f->top_pos;
 }
 
 void
@@ -249,12 +250,15 @@ mouse_moveto (int x, int y)
 {
   union REGS regs;
   struct tty_display_info *tty = CURTTY ();
+  struct frame *f = SELECTED_FRAME ();
 
   if (tty->termscript)
     fprintf (tty->termscript, "<M_XY=%dx%d>", x, y);
   regs.x.ax = 0x0004;
   mouse_last_x = regs.x.cx = x * 8;
   mouse_last_y = regs.x.dx = y * 8;
+  regs.x.cx += f->left_pos * 8;
+  regs.x.dx += f->top_pos * 8;
   int86 (0x33, &regs, &regs);
 }
 
@@ -262,6 +266,7 @@ static int
 mouse_pressed (int b, int *xp, int *yp)
 {
   union REGS regs;
+  struct frame *f = SELECTED_FRAME ();
 
   if (b >= mouse_button_count)
     return 0;
@@ -269,7 +274,10 @@ mouse_pressed (int b, int *xp, int *yp)
   regs.x.bx = mouse_button_translate[b];
   int86 (0x33, &regs, &regs);
   if (regs.x.bx)
-    *xp = regs.x.cx / 8, *yp = regs.x.dx / 8;
+    {
+      *xp = regs.x.cx / 8 - f->left_pos;
+      *yp = regs.x.dx / 8 - f->top_pos;
+    }
   return (regs.x.bx != 0);
 }
 
@@ -789,19 +797,23 @@ IT_ring_bell (struct frame *f)
     }
 }
 
+/* If otherwise than -1, a face ID that will override the FACE argument
+   to IT_set_face.  */
+static int it_face_override = -1;
+
 /* Given a face id FACE, extract the face parameters to be used for
    display until the face changes.  The face parameters (actually, its
    color) are used to construct the video attribute byte for each
    glyph during the construction of the buffer that is then blitted to
    the video RAM.  */
 static void
-IT_set_face (int face)
+IT_set_face (struct frame *f, int face_id)
 {
-  struct frame *sf = SELECTED_FRAME ();
-  struct face *fp  = FACE_FROM_ID_OR_NULL (sf, face);
-  struct face *dfp = FACE_FROM_ID_OR_NULL (sf, DEFAULT_FACE_ID);
+  int face = (it_face_override == -1 ? face_id : it_face_override);
+  struct face *fp  = FACE_FROM_ID_OR_NULL (f, face);
+  struct face *dfp = FACE_FROM_ID_OR_NULL (f, DEFAULT_FACE_ID);
   unsigned long fg, bg, dflt_fg, dflt_bg;
-  struct tty_display_info *tty = FRAME_TTY (sf);
+  struct tty_display_info *tty = FRAME_TTY (f);
 
   if (!fp)
     {
@@ -822,13 +834,13 @@ IT_set_face (int face)
      16 colors to be available for the background, since Emacs switches
      on this mode (and loses the blinking attribute) at startup.  */
   if (fg == FACE_TTY_DEFAULT_COLOR || fg == FACE_TTY_DEFAULT_FG_COLOR)
-    fg = FRAME_FOREGROUND_PIXEL (sf);
+    fg = FRAME_FOREGROUND_PIXEL (f);
   else if (fg == FACE_TTY_DEFAULT_BG_COLOR)
-    fg = FRAME_BACKGROUND_PIXEL (sf);
+    fg = FRAME_BACKGROUND_PIXEL (f);
   if (bg == FACE_TTY_DEFAULT_COLOR || bg == FACE_TTY_DEFAULT_BG_COLOR)
-    bg = FRAME_BACKGROUND_PIXEL (sf);
+    bg = FRAME_BACKGROUND_PIXEL (f);
   else if (bg == FACE_TTY_DEFAULT_FG_COLOR)
-    bg = FRAME_FOREGROUND_PIXEL (sf);
+    bg = FRAME_FOREGROUND_PIXEL (f);
 
   /* Make sure highlighted lines really stand out, come what may.  */
   if (fp->tty_reverse_p && (fg == dflt_fg && bg == dflt_bg))
@@ -876,8 +888,8 @@ IT_write_glyphs (struct frame *f, struct glyph *str, int str_len)
   int offset = 2 * (new_pos_X + screen_size_X * new_pos_Y);
   register int sl = str_len;
   struct tty_display_info *tty = FRAME_TTY (f);
-  struct frame *sf;
   unsigned char *conversion_buffer;
+  struct frame *cf_frame = f;
 
   /* If terminal_coding does any conversion, use it, otherwise use
      safe_terminal_coding.  We can't use CODING_REQUIRE_ENCODING here
@@ -889,14 +901,12 @@ IT_write_glyphs (struct frame *f, struct glyph *str, int str_len)
 
   if (str_len <= 0) return;
 
-  sf = SELECTED_FRAME ();
-
   /* Since faces get cached and uncached behind our back, we can't
      rely on their indices in the cache being consistent across
      invocations.  So always reset the screen face to the default
      face of the frame, before writing glyphs, and let the glyphs
      set the right face if it's different from the default.  */
-  IT_set_face (DEFAULT_FACE_ID);
+  IT_set_face (f, DEFAULT_FACE_ID);
 
   /* The mode bit CODING_MODE_LAST_BLOCK should be set to 1 only at
      the tail.  */
@@ -910,8 +920,10 @@ IT_write_glyphs (struct frame *f, struct glyph *str, int str_len)
       /* If the face of this glyph is different from the current
 	 screen face, update the screen attribute byte.  */
       cf = str->face_id;
-      if (cf != screen_face)
-	IT_set_face (cf);	/* handles invalid faces gracefully */
+      if ((cf != screen_face && cf != it_face_override)
+	  || cf_frame != str->frame)
+	IT_set_face (str->frame, cf);	/* handles invalid faces gracefully */
+      cf_frame = str->frame;
 
       /* Identify a run of glyphs with the same face.  */
       for (n = 1; n < sl; ++n)
@@ -964,6 +976,18 @@ popup_activated (void)
   return mouse_preempted;
 }
 
+/* Write a string of glyphs STRING of length LEN to F, disregarding
+   their invidiual faces in favor of FACE.  */
+
+static void
+IT_write_glyphs_with_face (struct frame *f, struct glyph *string,
+			   int len, int face_id)
+{
+  it_face_override = face_id;
+  IT_write_glyphs (f, string, len);
+  it_face_override = -1;
+}
+
 /* Draw TEXT_AREA glyphs between START and END of glyph row ROW on
    window W.  X is relative to TEXT_AREA in W.  HL is a face override
    for drawing the glyphs.  */
@@ -975,70 +999,38 @@ tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct tty_display_info *tty = FRAME_TTY (f);
   Mouse_HLInfo *hlinfo = &tty->mouse_highlight;
+  int nglyphs = end_hpos - start_hpos;
+  int pos_y, pos_x, save_y, save_x;
+
+  if (end_hpos >= row->used[TEXT_AREA])
+    nglyphs = row->used[TEXT_AREA] - start_hpos;
+  pos_y = row->y + WINDOW_TOP_EDGE_Y (w);
+  pos_x = (row->used[LEFT_MARGIN_AREA] + start_hpos
+	   + WINDOW_LEFT_EDGE_X (w));
+
+  /* Save current cursor position.  */
+  save_x = f->left_pos + new_pos_X;
+  save_y = f->top_pos + new_pos_Y;
+
+  /* This applies child frame offsets.  */
+  cursor_to (f, pos_y, pos_x);
+  mouse_off ();
+
+  /* Write the glyphs and restore cursor position.  */
 
   if (hl == DRAW_MOUSE_FACE)
     {
-      int vpos = row->y + WINDOW_TOP_EDGE_Y (w);
-      int kstart = (start_hpos + WINDOW_LEFT_EDGE_X (w)
-		    + row->used[LEFT_MARGIN_AREA]);
-      int nglyphs = end_hpos - start_hpos;
-      int offset = ScreenPrimary + 2*(vpos*screen_size_X + kstart) + 1;
-      int start_offset = offset;
-
-      if (end_hpos >= row->used[TEXT_AREA])
-	nglyphs = row->used[TEXT_AREA] - start_hpos;
-
-      if (tty->termscript)
-	fprintf (tty->termscript, "\n<MH+ %d-%d:%d>",
-		 kstart, kstart + nglyphs - 1, vpos);
-
-      mouse_off ();
-      IT_set_face (hlinfo->mouse_face_face_id);
-      /* Since we are going to change only the _colors_ of already
-	 displayed text, there's no need to go through all the pain of
-	 generating and encoding the text from the glyphs.  Instead,
-	 we simply poke the attribute byte of each affected position
-	 in video memory with the colors computed by IT_set_face!  */
-      _farsetsel (_dos_ds);
-      while (nglyphs--)
-	{
-	  _farnspokeb (offset, ScreenAttrib);
-	  offset += 2;
-	}
-      if (screen_virtual_segment)
-	dosv_refresh_virtual_screen (start_offset, end_hpos - start_hpos);
-      mouse_on ();
+      struct glyph *glyph = row->glyphs[TEXT_AREA] + start_hpos;
+      int face_id = tty->mouse_highlight.mouse_face_face_id;
+      IT_write_glyphs_with_face (f, glyph, nglyphs, face_id);
     }
-  else if (hl == DRAW_NORMAL_TEXT)
-    {
-      /* We are removing a previously-drawn mouse highlight.  The
-	 safest way to do so is to redraw the glyphs anew, since all
-	 kinds of faces and display tables could have changed behind
-	 our back.  */
-      int nglyphs = end_hpos - start_hpos;
-      int save_x = new_pos_X, save_y = new_pos_Y;
+  else
+    IT_write_glyphs (f, row->glyphs[TEXT_AREA] + start_hpos,
+		     nglyphs);
 
-      if (end_hpos >= row->used[TEXT_AREA])
-	nglyphs = row->used[TEXT_AREA] - start_hpos;
-
-      /* IT_write_glyphs writes at cursor position, so we need to
-	 temporarily move cursor coordinates to the beginning of
-	 the highlight region.  */
-      new_pos_X = start_hpos + WINDOW_LEFT_EDGE_X (w);
-      /* The coordinates supplied by the caller are relative to the
-	 text area, not the window itself.  */
-      new_pos_X += row->used[LEFT_MARGIN_AREA];
-      new_pos_Y = row->y + WINDOW_TOP_EDGE_Y (w);
-
-      if (tty->termscript)
-	fprintf (tty->termscript, "<MH- %d-%d:%d>",
-		 new_pos_X, new_pos_X + nglyphs - 1, new_pos_Y);
-      IT_write_glyphs (f, row->glyphs[TEXT_AREA] + start_hpos, nglyphs);
-      if (tty->termscript)
-	fputs ("\n", tty->termscript);
-      new_pos_X = save_x;
-      new_pos_Y = save_y;
-    }
+  mouse_on ();
+  new_pos_X = save_x;
+  new_pos_Y = save_y;
 }
 
 static void
@@ -1051,7 +1043,7 @@ IT_clear_end_of_line (struct frame *f, int first_unused)
   if (new_pos_X >= first_unused || fatal_error_in_progress)
     return;
 
-  IT_set_face (0);
+  IT_set_face (f, 0);
   i = (j = first_unused - new_pos_X) * 2;
   if (tty->termscript)
     fprintf (tty->termscript, "<CLR:EOL[%d..%d)>", new_pos_X, first_unused);
@@ -1086,10 +1078,10 @@ IT_clear_screen (struct frame *f)
      any valid faces and will abort.  Instead, use the initial screen
      colors; that should mimic what a Unix tty does, which simply clears
      the screen with whatever default colors are in use.  */
-  if (FACE_FROM_ID_OR_NULL (SELECTED_FRAME (), DEFAULT_FACE_ID) == NULL)
+  if (FACE_FROM_ID_OR_NULL (f, DEFAULT_FACE_ID) == NULL)
     ScreenAttrib = (initial_screen_colors[0] << 4) | initial_screen_colors[1];
   else
-    IT_set_face (0);
+    IT_set_face (f, 0);
   mouse_off ();
   ScreenClear ();
   if (screen_virtual_segment)
@@ -1718,6 +1710,33 @@ IT_set_frame_parameters (struct frame *f, Lisp_Object alist)
 		     SBYTES (val), SDATA (val));
 	}
       store_frame_param (f, prop, val);
+    }
+
+  /* If this frame has become a child frame, process its visibility and
+     a nuumber of other flags.  */
+  if (is_tty_child_frame (f))
+    {
+      int x = tty_child_pos_param (f, Qleft, alist, f->left_pos);
+      int y = tty_child_pos_param (f, Qtop, alist, f->top_pos);
+      if (x != f->left_pos || y != f->top_pos)
+	{
+	  f->left_pos = x;
+	  f->top_pos = y;
+	  SET_FRAME_GARBAGED (root_frame (f));
+	}
+
+      int w = tty_child_size_param (f, Qwidth, alist, f->total_cols);
+      int h = tty_child_size_param (f, Qheight, alist, f->total_lines);
+      if (w != f->total_cols || h != f->total_lines)
+	change_frame_size (f, w, h, false, false, false);
+
+      Lisp_Object visible = Fassq (Qvisibility, alist);
+      if (CONSP (visible))
+	SET_FRAME_VISIBLE (f, !NILP (Fcdr (visible)));
+
+      Lisp_Object no_special = Fassq (Qno_special_glyphs, alist);
+      if (CONSP (no_special))
+	FRAME_NO_SPECIAL_GLYPHS (f) = !NILP (Fcdr (no_special));
     }
 
   /* If they specified "reverse", but not the colors, we need to swap
@@ -2861,13 +2880,13 @@ IT_menu_calc_size (XMenu *menu, int *width, int *height)
 
 /* Display MENU at (X,Y) using FACES.  */
 
-#define BUILD_CHAR_GLYPH(GLYPH, CODE, FACE_ID, PADDING_P)  \
-  do							   \
-    {							   \
-      (GLYPH).type = CHAR_GLYPH;			   \
-      SET_CHAR_GLYPH (GLYPH, CODE, FACE_ID, PADDING_P);	   \
-      (GLYPH).charpos = -1;				   \
-    }							   \
+#define BUILD_CHAR_GLYPH(F, GLYPH, CODE, FACE_ID, PADDING_P)	\
+  do								\
+    {								\
+      (GLYPH).type = CHAR_GLYPH;				\
+      SET_CHAR_GLYPH (F, GLYPH, CODE, FACE_ID, PADDING_P);	\
+      (GLYPH).charpos = -1;					\
+    }								\
   while (0)
 
 static void
@@ -2891,7 +2910,7 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
     {
       int max_width = width + 2;
 
-      IT_cursor_to (sf, y + i, x);
+      cursor_to (sf, y + i, x);
       enabled
 	= (!menu->submenu[i] && menu->panenumber[i]) || (menu->submenu[i]);
       mousehere = (y + i == my && x <= mx && mx < x + max_width);
@@ -2905,7 +2924,7 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
 	  menu_help_itemno = i;
 	}
       p = text;
-      BUILD_CHAR_GLYPH (*p, ' ', face, 0);
+      BUILD_CHAR_GLYPH (sf, *p, ' ', face, 0);
       p++;
       for (j = 0, q = menu->text[i]; *q; j++)
 	{
@@ -2913,15 +2932,15 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
 
 	  if (c > 26)
 	    {
-	      BUILD_CHAR_GLYPH (*p, c, face, 0);
+	      BUILD_CHAR_GLYPH (sf, *p, c, face, 0);
 	      p++;
 	    }
 	  else	/* make '^x' */
 	    {
-	      BUILD_CHAR_GLYPH (*p, '^', face, 0);
+	      BUILD_CHAR_GLYPH (sf, *p, '^', face, 0);
 	      p++;
 	      j++;
-	      BUILD_CHAR_GLYPH (*p, c + 64, face, 0);
+	      BUILD_CHAR_GLYPH (sf, *p, c + 64, face, 0);
 	      p++;
 	    }
 	}
@@ -2932,16 +2951,16 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
 	  text[max_width - 1].u.ch = '$'; /* indicate it's truncated */
 	}
       for (; j < max_width - 2; j++, p++)
-	BUILD_CHAR_GLYPH (*p, ' ', face, 0);
+	BUILD_CHAR_GLYPH (sf, *p, ' ', face, 0);
 
       /* 16 is the character code of a character that on DOS terminal
 	 produces a nice-looking right-pointing arrow glyph.  */
-      BUILD_CHAR_GLYPH (*p, menu->submenu[i] ? 16 : ' ', face, 0);
+      BUILD_CHAR_GLYPH (sf, *p, menu->submenu[i] ? 16 : ' ', face, 0);
       p++;
       IT_write_glyphs (sf, text, max_width);
     }
   IT_update_end (sf);
-  IT_cursor_to (sf, row, col);
+  cursor_to (sf, row, col);
   xfree (text);
 }
 

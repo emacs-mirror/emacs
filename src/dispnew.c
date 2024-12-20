@@ -3468,7 +3468,7 @@ tty_raise_lower_frame (struct frame *f, bool raise)
 bool
 is_tty_frame (struct frame *f)
 {
-  return FRAME_TERMCAP_P (f);
+  return FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f);
 }
 
 /* Return true if frame F is a tty child frame.  */

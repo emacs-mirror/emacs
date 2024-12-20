@@ -1490,6 +1490,10 @@ extern struct frame *decode_live_frame (Lisp_Object);
 extern struct frame *decode_any_frame (Lisp_Object);
 extern struct frame *make_initial_frame (void);
 extern struct frame *make_frame (bool);
+extern int tty_child_pos_param (struct frame *, Lisp_Object,
+				Lisp_Object, int);
+extern int tty_child_size_param (struct frame *, Lisp_Object,
+				 Lisp_Object, int);
 #ifdef HAVE_WINDOW_SYSTEM
 extern bool display_available (void);
 #endif
