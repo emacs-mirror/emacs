@@ -229,14 +229,6 @@ get_char_width_32_w (HDC hdc, UINT uFirstChar, UINT uLastChar, LPINT lpBuffer)
 
 #endif	/* Cygwin */
 
-static int
-memq_no_quit (Lisp_Object elt, Lisp_Object list)
-{
-  while (CONSP (list) && ! EQ (XCAR (list), elt))
-    list = XCDR (list);
-  return (CONSP (list));
-}
-
 Lisp_Object
 intern_font_name (char * string)
 {
@@ -398,7 +390,7 @@ w32font_has_char (Lisp_Object entity, int c)
      certain until we open it.  Also if the font claims support for the script
      the character is from, it may only have partial coverage, so we still
      can't be certain until we open the font.  */
-  if (NILP (script) || memq_no_quit (script, supported_scripts))
+  if (NILP (script) || !NILP (memq_no_quit (script, supported_scripts)))
     return -1;
 
   /* Font reports what scripts it supports, and none of them are the script
@@ -1192,7 +1184,7 @@ add_font_name_to_list (ENUMLOGFONTEX *logical_font,
     return 1;
 
   family = intern_font_name (logical_font->elfLogFont.lfFaceName);
-  if (! memq_no_quit (family, *list))
+  if (NILP (memq_no_quit (family, *list)))
     *list = Fcons (family, *list);
 
   return 1;
@@ -1416,7 +1408,7 @@ font_matches_spec (DWORD type, NEWTEXTMETRICEX *font,
                 {
                   Lisp_Object support
                     = font_supported_scripts (&font->ntmFontSig);
-                  if (! memq_no_quit (val, support))
+                  if (NILP (memq_no_quit (val, support)))
                     return 0;
 
 		  /* Avoid using non-Japanese fonts for Japanese, even
@@ -1681,9 +1673,9 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
 			      match_data->orig_font_spec, backend,
 			      &logical_font->elfLogFont)
 	   || (!NILP (match_data->known_fonts)
-	       && memq_no_quit
-	            (intern_font_name (logical_font->elfLogFont.lfFaceName),
-		     match_data->known_fonts)))
+	       && !NILP (memq_no_quit
+			   (intern_font_name (logical_font->elfLogFont.lfFaceName),
+			    match_data->known_fonts))))
       || !w32font_coverage_ok (&physical_font->ntmFontSig,
 			       match_data->pattern.lfCharSet))
     return 1;

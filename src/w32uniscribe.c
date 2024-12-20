@@ -88,14 +88,6 @@ DEF_DLL_FN (void, hb_ot_font_set_funcs, (hb_font_t *));
 /* Used by uniscribe_otf_capability.  */
 static Lisp_Object otf_features (HDC context, const char *table);
 
-static int
-memq_no_quit (Lisp_Object elt, Lisp_Object list)
-{
-  while (CONSP (list) && ! EQ (XCAR (list), elt))
-    list = XCDR (list);
-  return (CONSP (list));
-}
-
 
 /* Uniscribe function pointers.  */
 static HRESULT (WINAPI * pfnScriptItemize) (const WCHAR *,
@@ -766,7 +758,7 @@ add_opentype_font_name_to_list (ENUMLOGFONTEX *logical_font,
     return 1;
 
   family = intern_font_name (logical_font->elfLogFont.lfFaceName);
-  if (! memq_no_quit (family, *list))
+  if (NILP (memq_no_quit (family, *list)))
     *list = Fcons (family, *list);
 
   return 1;
