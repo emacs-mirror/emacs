@@ -1557,6 +1557,8 @@ This cancels value editing without updating the value."
   (interactive nil help-fns--edit-value-mode)
   (help-fns-edit-mode-done t))
 
+(autoload 'shortdoc-help-fns-examples-function "shortdoc")
+
 (defun help-fns--run-describe-functions (functions &rest args)
   (with-current-buffer standard-output
     (unless (bolp)
