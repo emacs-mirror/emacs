@@ -3228,14 +3228,15 @@ for which LSP on-type-formatting should be requested."
             ;; Maybe completion/resolve JSON object `lsp-comp' into
             ;; another JSON object, if at all possible.  Otherwise,
             ;; just return lsp-comp.
-            (lambda (lsp-comp)
+            (lambda (lsp-comp &optional dont-cancel-on-input)
               (or (gethash lsp-comp resolved)
                   (setf (gethash lsp-comp resolved)
                         (if (and (eglot-server-capable :completionProvider
                                                         :resolveProvider)
                                  (plist-get lsp-comp :data))
                             (eglot--request server :completionItem/resolve
-                                            lsp-comp :cancel-on-input t
+                                            lsp-comp :cancel-on-input
+                                            (not dont-cancel-on-input)
                                             :immediate t)
                           lsp-comp))))))
       (when (and (consp eglot--capf-session)
@@ -3350,7 +3351,12 @@ for which LSP on-type-formatting should be requested."
                       ;; A lookup should fix that (github#148)
                       (get-text-property
                        0 'eglot--lsp-item
-                       (cl-find proxy (funcall proxies) :test #'string=))))
+                       (cl-find proxy (funcall proxies) :test #'string=)))
+                  ;; Be sure to pass non-nil here since we don't want
+                  ;; any quick typing after the soon-to-be-undone
+                  ;; insertion to potentially cancel an essential
+                  ;; resolution request (github#1474).
+                  'dont-cancel-on-input)
                (let ((snippet-fn (and (eql insertTextFormat 2)
                                       (eglot--snippet-expansion-fn))))
                  (cond (textEdit
