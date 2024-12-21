@@ -226,6 +226,14 @@ It has been obsolete since Emacs 30.1.  Use '(category . comint)' instead.
 Another user option 'display-tex-shell-buffer-action' has been removed too
 for which you can use '(category . tex-shell)'.
 
++++
+*** New user option 'split-window-preferred-direction'.
+Users can now choose in which direction Emacs tries to split first:
+vertical or horizontal.  With this new setting, when the frame is in
+landscape shape for instance, Emacs could split horizontally before
+splitting vertically.  The default setting preserves Emacs historical
+behavior to try to split vertically first.
+
 ** Frames
 
 +++
