@@ -976,11 +976,11 @@ Optional prefix argument ARG non-nil inverts the value of the option
   "Browse URL with a browser of the given browser KIND.
 
 KIND is either `internal' or `external'.  In order to find an
-appropriate browser for the given KIND, first the `browse-url-handlers'
-and `browse-url-default-handlers' lists are consulted.  If no handler is
-found, the functions `browse-url-browser-function',
+appropriate browser for the given KIND, first consult the `browse-url-handlers'
+and `browse-url-default-handlers' lists.  If no handler is found, try the
+functions `browse-url-browser-function',
 `browse-url-secondary-browser-function', `browse-url-default-browser'
-and `eww' are tried in that order.
+and `eww', in that order.
 
 When called interactively, the default browser kind is the
 opposite of the browser kind of `browse-url-browser-function'."
