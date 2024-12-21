@@ -249,9 +249,12 @@ This function should be called at BOL.  Used by
    ;; (3)
    ;; Current line: *, |, -
    ;; Prefix: same.
-   ;; This branch must return the same prefix as branch (1), as the
-   ;; second line in the paragraph; then the whole paragraph will use *
-   ;; as the prefix.
+   ;; Adaptive fill looks at the first and second line of a paragraph,
+   ;; only when both lines return the same prefix does it use that
+   ;; prefix for the following lines.  If the first lines matches branch
+   ;; (1) and returns * as prefix, and the second line matches this
+   ;; branch (3), and returns * as prefix, then the whole paragraph will
+   ;; use * as prefix.
    ((looking-at (rx (* (syntax whitespace))
                     (or "*" "|" "-")
                     (* (syntax whitespace))))
