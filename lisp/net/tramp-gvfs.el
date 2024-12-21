@@ -1772,6 +1772,24 @@ a downcased host name only."
        (string-match (rx bol (+ alnum) "://" (group (+ (not (any "/:"))))) url)
        (match-string 1 url)))
 
+;; This is used in GNU ELPA package tramp-locproc.el.
+(defun tramp-gvfs-local-file-name (filename)
+  "Return local mount name of FILENAME."
+  (setq filename (file-name-unquote (expand-file-name filename)))
+  (with-parsed-tramp-file-name filename nil
+    (with-tramp-file-property v localname "local-file-name"
+      ;; As long as we call `tramp-gvfs-maybe-open-connection' here,
+      ;; we cache the result.
+      (tramp-gvfs-maybe-open-connection v)
+      (let ((quoted (file-name-quoted-p localname))
+	    (localname (file-name-unquote localname)))
+	(funcall
+	 (if quoted #'file-name-quote #'identity)
+	 (expand-file-name
+	  (if (file-name-absolute-p localname)
+	      (substring localname 1) localname)
+	  (tramp-get-file-property v "/" "fuse-mountpoint")))))))
+
 
 ;; D-Bus GVFS functions.
 
