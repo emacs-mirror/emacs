@@ -4361,6 +4361,14 @@ two buttons: "Yes" and "No".
 *** The 'ns-popup-font-panel' command has been removed.
 Use the general command 'M-x menu-set-font' instead.
 
+*** 'native-comp-driver-options' on macOS.
+The value of 'native-comp-driver-options' has been changed to contain
+"-Wl,-w" to suppress warnings of the form
+
+    ld: warning: -undefined dynamic_lookup may not work with chained fixups
+
+emitted during native compilation on macOS 12.6 with Xcode 14.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.

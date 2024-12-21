@@ -199,6 +199,15 @@ see the variable 'url-request-extra-headers'.
 
 * Changes in Emacs 30.1
 
++++
+** New user option 'trusted-content' to allow potentially dangerous features.
+This variable lists those files and directories whose content Emacs should
+consider as sufficiently trusted to run any part of the code contained
+therein even without any explicit user request.
+For example, Flymake's backend for Emacs Lisp consults this option
+and disables itself with an "untrusted content" warning if the file
+is not listed.
+
 ---
 ** Emacs now supports Unicode Standard version 15.1.
 
@@ -1859,6 +1868,13 @@ In the past they included a terminating newline in most cases but not all.
 
 ** Emacs Lisp mode
 
++++
+*** 'elisp-flymake-byte-compile' is disabled for untrusted files.
+For security reasons, this backend can be used only in those files
+specified as trusted according to 'trusted-content' and emits an
+"untrusted content" warning otherwise.
+This fixes CVE-2024-53920.
+
 ---
 *** ',@' now has 'prefix' syntax.
 Previously, the '@' character, which normally has 'symbol' syntax,
@@ -2024,6 +2040,7 @@ By default it retains the previous behavior: read the contents of
 Gemfile and act accordingly.  But you can also set it to t or nil to
 skip checking the Gemfile.
 
+---
 *** New user option 'ruby-bracketed-args-indent'.
 When it is set to nil, multiple consecutive open braces/brackets/parens
 result in only one additional indentation level.  Default is t.
@@ -2371,6 +2388,7 @@ These hooks were named incorrectly, and so they never actually ran
 when unloading the corresponding feature.  Instead, you should use
 hooks named after the feature name, like 'esh-mode-unload-hook'.
 
+---
 ** User options 'eshell-process-wait-{seconds,milliseconds}' are now obsolete.
 Instead, use 'eshell-process-wait-time', which supports floating-point
 values.
@@ -2627,6 +2645,7 @@ The new function 'haiku-notifications-notify' provides a subset of the
 capabilities of the 'notifications-notify' function in a manner
 analogous to 'w32-notification-notify'.
 
+---
 ** New Haiku specific variable 'haiku-pass-control-tab-to-system'.
 This sets whether Emacs should pass 'C-TAB' on to the system instead of
 handling it, fixing a problem where window switching would not activate
@@ -3073,6 +3092,7 @@ inside 'treesit-language-source-alist', so that calling
 It may be useful, for example, for the purposes of bisecting a
 treesitter grammar.
 
++++
 ** New buffer-local variable 'tabulated-list-groups'.
 It controls display and separate sorting of groups of entries.  By
 default no grouping or sorting is done.
@@ -3108,6 +3128,7 @@ this case, would mean repeating the object in the argument list.)  When
 replacing an object with a different one, passing both the new and old
 objects is still necessary.
 
++++
 ** 'vtable-insert-object' can insert "before" or at an index.
 The signature of 'vtable-insert-object' has changed and is now:
 

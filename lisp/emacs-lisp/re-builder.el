@@ -485,7 +485,22 @@ If the optional PAUSE is non-nil then pause at the end in any case."
 
 (defun reb-change-syntax (&optional syntax)
   "Change the syntax used by the RE Builder.
-Optional argument SYNTAX must be specified if called non-interactively."
+Interactively, prompt for SYNTAX.
+
+Re-Builder currently understands three different forms of input, namely
+`read', `string', and `rx' syntax:
+
+  1. The `string' syntax is the same one used by functions such as
+     `query-replace-regexp' (\\[query-replace-regexp]).  There is no need to escape
+     backslashes and double quotes.
+
+  2. The `read' syntax is the syntax used when specifying the
+     regexp as a string in a Lisp program.
+
+  3. Finally, the `rx' syntax allows editing of symbolic regular
+     expressions supported by the package of the same name.
+
+When called from Lisp, SYNTAX must be specified."
   (interactive
    (list (intern
 	  (completing-read

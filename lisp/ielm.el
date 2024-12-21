@@ -580,6 +580,7 @@ Customized bindings may be defined in `ielm-map', which currently contains:
        ielm-fontify-input-enable
        (comint-fontify-input-mode))
 
+  (setq-local trusted-content :all)
   (setq comint-prompt-regexp (concat "^" (regexp-quote ielm-prompt)))
   (setq-local paragraph-separate "\\'")
   (setq-local paragraph-start comint-prompt-regexp)
