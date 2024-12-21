@@ -718,6 +718,16 @@ collection clause."
                            (f lex-var)))))
       (should (equal (f nil) 'a)))))
 
+(ert-deftest cl-macs--test-flet-block ()
+  (should (equal (cl-block f1
+                   (cl-flet ((f1 (a) (cons (cl-return-from f1 a) 6)))
+                    (cons (f1 5) 6)))
+                 '(5 . 6)))
+  (should (equal (cl-block f1
+                   (cl-labels ((f1 (a) (cons (cl-return-from f1 a) 6)))
+                     (cons (f1 7) 8)))
+                 '(7 . 8))))
+
 (ert-deftest cl-flet/edebug ()
   "Check that we can instrument `cl-flet' forms (bug#65344)."
   (with-temp-buffer
