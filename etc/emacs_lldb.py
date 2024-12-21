@@ -228,34 +228,15 @@ class Lisp_Object:
     def is_nil(self):
         return self.lisp_type == None
 
-    # Get the package of a symbol or None if not a symbol.
-    def get_symbol_package(self):
-        if self.lisp_type == "Lisp_Symbol":
-            u = self.untagged.GetChildMemberWithName("u")
-            s = u.GetChildMemberWithName("s")
-            p = s.GetChildMemberWithName("package")
-            package = Lisp_Object(p)
-            if package.pvec_type:
-                name = Lisp_Object(package.untagged.GetChildMemberWithName("name"))
-                return name.get_string_data()
-        return None
-
-    def get_package_name(self):
-        name = Lisp_Object(self.untagged.GetChildMemberWithName("name"))
-        return name.get_string_data()
-
     # Return a summary string for this object.
     def summary(self):
         return str(self.untagged)
 
     def dump(self, result):
         if self.lisp_type == "Lisp_Symbol":
-            result.AppendMessage(f"package: {self.get_symbol_package()}")
             result.AppendMessage(f"name:    {self.get_symbol_name()}")
         elif self.lisp_type == "Lisp_String":
             result.AppendMessage(str(self.get_string_data()))
-        elif self.lisp_type == "Lisp_Vectorlike" and self.pvec_type == "PVEC_PACKAGE":
-            result.AppendMessage(f"package {self.get_package_name()}")
         else:
             result.AppendMessage(self.summary())
 
