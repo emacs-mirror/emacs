@@ -1594,6 +1594,8 @@ it is displayed along with the global value."
                 (prin1-to-string (nth 1 var)))))
       (set (nth 0 var) (read str)))))
 
+(autoload 'shortdoc-help-fns-examples-function "shortdoc")
+
 (defun help-fns--run-describe-functions (functions &rest args)
   (with-current-buffer standard-output
     (unless (bolp)

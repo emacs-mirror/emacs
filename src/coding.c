@@ -10407,7 +10407,7 @@ DEFUN ("internal-decode-string-utf-8", Finternal_decode_string_utf_8,
   if (NILP (decode_method))
     {
       for (int i = 0; i < repeat_count; i++)
-	val = decode_string_utf_8 (string, buffer, ! NILP (nocopy),
+	val = decode_string_utf_8 (string, NULL, -1, buffer, ! NILP (nocopy),
 				   handle_8_bit, handle_over_uni);
     }
   else if (EQ (decode_method, Qt))
