@@ -3288,6 +3288,8 @@ struct rect
   int x, y, w, h;
 };
 
+#ifndef HAVE_ANDROID
+
 /* Compute the intersection of R1 and R2 in R.  Value is true if R1 and
    R2 intersect, false otherwise.  */
 
@@ -3329,6 +3331,8 @@ frame_rect_abs (struct frame *f)
   frame_pos_abs (f, &x, &y);
   return (struct rect) { x, y, f->total_cols, f->total_lines };
 }
+
+#endif /* !HAVE_ANDROID */
 
 /* Return the root frame of frame F.  Follow the parent_frame chain
    until we reach a frame that has no parent.  That is the root frame.
@@ -3511,6 +3515,8 @@ make_matrix_current (struct frame *f)
       if (MATRIX_ROW_ENABLED_P (f->desired_matrix, i))
 	make_current (f, NULL, i);
 }
+
+#ifndef HAVE_ANDROID
 
 /* Prepare ROOT's desired row at index Y for copying child frame
    contents to it.  Value is the prepared desired row or NULL if we
@@ -3745,6 +3751,8 @@ copy_child_glyphs (struct frame *root, struct frame *child)
     }
 }
 
+#endif /* !HAVE_ANDROID */
+
 /***********************************************************************
 			     Frame Update
  ***********************************************************************/
@@ -3837,6 +3845,8 @@ update_tty_frame (struct frame *f)
   build_frame_matrix (f);
 }
 
+#ifndef HAVE_ANDROID
+
 /* Return the cursor position of the selected window of frame F, in
    absolute coordinates in *X and *Y.  Note that if F is a child frame,
    its cursor may be clipped, i.e. outside of the bounds of the terminal
@@ -3902,8 +3912,6 @@ is_cursor_obscured (void)
   struct glyph *cursor_glyph = cursor_row->glyphs[0] + x;
   return cursor_glyph->frame != SELECTED_FRAME ();
 }
-
-#ifndef HAVE_ANDROID
 
 /* Decide where to show the cursor, and whether to hide it.
 
