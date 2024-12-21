@@ -900,6 +900,12 @@ Use `erc-make-mode-line-buffer-name' to create buttons."
   (when (called-interactively-p 'interactive)
     (erc-modified-channels-display)))
 
+(defun erc-track-clear ()
+  "Clear ERC's mode-line activity indicator."
+  (interactive)
+  (setq erc-modified-channels-alist nil)
+  (erc-modified-channels-display))
+
 (defun erc-track-find-face (faces)
   "Return the face to use in the mode line."
   (declare (obsolete erc-track-select-mode-line-face "28.1"))

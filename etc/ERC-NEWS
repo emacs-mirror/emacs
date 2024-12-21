@@ -49,6 +49,8 @@ speaker names, with the latter option also gaining 'erc-notice-face'.
 This was done to provide a more frequent and practical indication of
 channel activity in keeping with the module's original design.
 
+** Command 'erc-track-clear' clears the mode-line activity indicator.
+
 ** An arguably less distracting 'erc-nicks-track-faces' variant.
 Setting this option to t tells the 'track' module to have the mode-line
 indicator stick with the most recent speaker's face, even when they're
