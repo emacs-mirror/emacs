@@ -64,6 +64,7 @@
 
 (defcustom nnfeed-date-format "%F %X%p"
   "Format of displayed dates (see function `format-time-string')."
+  :version "30.1"
   :type 'string)
 
 (nnoo-declare nnfeed)

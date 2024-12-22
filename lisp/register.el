@@ -409,7 +409,8 @@ Format of each entry is controlled by the variable `register-preview-function'."
                                                    (window-height . fit-window-to-buffer)
 	                                           (preserve-size . (nil . t)))
   "Window configuration for the register preview buffer."
-  :type display-buffer--action-custom-type)
+  :type display-buffer--action-custom-type
+  :version "30.1")
 
 (defun register-preview-1 (buffer &optional show-empty types)
   "Pop up a window showing the preview of registers in BUFFER.

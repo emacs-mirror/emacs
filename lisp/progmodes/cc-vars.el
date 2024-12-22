@@ -286,6 +286,7 @@ This has effect only for languages in which `c-dollar-in-ids' is
 non-nil, e.g.  C, C++, Objective C.  It covers languages where
 \"$\" is permitted in ids \"informally\", but only by some compilers."
   :type 'boolean
+  :version "30.1"
   :group 'c)
 
 (defcustom-c-stylevar c-basic-offset 4

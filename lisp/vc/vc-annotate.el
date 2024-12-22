@@ -165,6 +165,7 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
 (defcustom vc-annotate-use-short-revision t
   "If non-nil, \\[vc-annotate] will use short revisions in its buffer name."
   :type 'boolean
+  :version "30.1"
   :group 'vc)
 
 (defvar-keymap vc-annotate-mode-map

@@ -274,6 +274,7 @@ a list of settings in the form (VARIABLE . VALUE)."
                                     (repeat
                                      (choice symbol
                                              (cons symbol integer)))))
+  :version "30.1"
   :risky t)
 
 (defcustom editorconfig-trim-whitespaces-mode nil
@@ -281,6 +282,7 @@ a list of settings in the form (VARIABLE . VALUE)."
 
 If set, enable that mode when `trim_trailing_whitespace` is set to true.
 Otherwise, use `delete-trailing-whitespace'."
+  :version "30.1"
   :type 'symbol)
 
 (defvar editorconfig-properties-hash nil

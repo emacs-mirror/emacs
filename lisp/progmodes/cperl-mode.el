@@ -573,6 +573,7 @@ AutoSplit.  If \"comment\", treat as comment, and do not look for
 imenu entries."
   :type '(choice (const perl-code)
 		 (const comment))
+  :version "30.1"
   :group 'cperl-faces)
 
 (defcustom cperl-ps-print-face-properties
