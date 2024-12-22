@@ -459,6 +459,35 @@ See `treesit-thing-settings' for more information.")
   "Nodes that designate sexps in TypeScript.
 See `treesit-thing-settings' for more information.")
 
+(defvar typescript-ts-mode--sexp-list-nodes
+  '("export_clause"
+    "named_imports"
+    "statement_block"
+    "_for_header"
+    "switch_body"
+    "parenthesized_expression"
+    "object"
+    "object_pattern"
+    "array"
+    "array_pattern"
+    "jsx_expression"
+    "_jsx_string"
+    "string"
+    "regex"
+    "arguments"
+    "class_body"
+    "formal_parameters"
+    "computed_property_name"
+    "decorator_parenthesized_expression"
+    "enum_body"
+    "parenthesized_type"
+    "type_arguments"
+    "object_type"
+    "type_parameters"
+    "tuple_type")
+  "Nodes that designate lists in TypeScript.
+See `treesit-thing-settings' for more information.")
+
 ;;;###autoload
 (define-derived-mode typescript-ts-base-mode prog-mode "TypeScript"
   "Generic major mode for editing TypeScript.
@@ -486,6 +515,7 @@ This mode is intended to be inherited by concrete major modes."
   (setq-local treesit-thing-settings
               `((typescript
                  (sexp ,(regexp-opt typescript-ts-mode--sexp-nodes))
+                 (sexp-list ,(regexp-opt typescript-ts-mode--sexp-list-nodes))
                  (sentence ,(regexp-opt
                              typescript-ts-mode--sentence-nodes))
                  (text ,(regexp-opt '("comment"
