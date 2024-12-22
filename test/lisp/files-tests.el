@@ -1659,8 +1659,6 @@ The door of all subtleties!
   (should (equal (file-name-base "foo") "foo"))
   (should (equal (file-name-base "foo/bar") "bar")))
 
-(defvar sh-shell)
-
 (defun files-tests--check-mode (filename)
   "Return the major mode found in `auto-mode-alist' for FILENAME."
   (set-auto-mode--find-matching-alist-entry
@@ -1681,6 +1679,8 @@ The door of all subtleties!
   (should-not (eq (files-tests--check-mode "gdbinit.c") #'gdb-script-mode))
   (should-not (eq (files-tests--check-mode "gdbinit.5") #'gdb-script-mode))
   (should-not (eq (files-tests--check-mode ".gdbinit.py.in") #'gdb-script-mode)))
+
+(defvar sh-shell)
 
 (defun files-tests--check-shebang (shebang expected-mode &optional expected-dialect)
   "Assert that mode for SHEBANG derives from EXPECTED-MODE.
