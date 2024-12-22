@@ -75,9 +75,12 @@ another.  An overview of D-Bus can be found at
 @cindex overview
 
 D-Bus is an inter-process communication mechanism for applications
-residing on the same host.  The communication is based on
-@dfn{messages}.  Data in the messages is carried in a structured way,
-it is not just a byte stream.
+residing on the same host.  Emacs uses it when it is compiled with the
+respective library, see configuration option @option{--with-dbus}.  At
+runtime, the form @code{(featurep 'dbusbind)} indicates D-Bus support.
+
+D-Bus communication is based on @dfn{messages}.  Data in the messages is
+carried in a structured way, it is not just a byte stream.
 
 The communication is connection oriented to two kinds of message
 buses: a so called @dfn{system bus}, and a @dfn{session bus}.  On a
