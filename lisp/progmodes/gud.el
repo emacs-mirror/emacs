@@ -331,20 +331,17 @@ Check it when `gud-running' is t")
       (tool-bar-local-item-from-menu
        (car x) (cdr x) map gud-menu-mode-map))))
 
-(defvar gud-gdb-repeat-map
-  (let ((map (make-sparse-keymap)))
-    (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
-                                    ("s" . gud-step)
-                                    ("i" . gud-stepi)
-                                    ("c" . gud-cont)
-                                    ("l" . gud-refresh)
-                                    ("f" . gud-finish)
-                                    ("<" . gud-up)
-                                    (">" . gud-down)))
-      (define-key map key cmd))
-    map)
-  "Keymap to repeat `gud-gdb' stepping instructions \\`C-x C-a C-n n n'.
-Used in `repeat-mode'.")
+(defvar-keymap gud-gdb-repeat-map
+  :doc "Keymap to repeat `gud-gdb' stepping instructions \\`C-x C-a C-n n n'.
+Used in `repeat-mode'."
+  "n" #'gud-next
+  "s" #'gud-step
+  "i" #'gud-stepi
+  "c" #'gud-cont
+  "l" #'gud-refresh
+  "f" #'gud-finish
+  "<" #'gud-up
+  ">" #'gud-down)
 
 (defun gud-set-repeat-map-property (keymap-symbol)
   "Set the `repeat-map' property of relevant gud commands to KEYMAP-SYMBOL.
@@ -1062,17 +1059,14 @@ SKIP is the number of chars to skip on each line, it defaults to 0."
 
 (defvar gud-sdb-lastfile nil)
 
-(defvar gud-sdb-repeat-map
-  (let ((map (make-sparse-keymap)))
-    (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
-                                    ("s" . gud-step)
-                                    ("i" . gud-stepi)
-                                    ("c" . gud-cont)
-                                    ("l" . gud-refresh)))
-      (define-key map key cmd))
-    map)
-  "Keymap to repeat `sdb' stepping instructions \\`C-x C-a C-n n n'.
-Used in `repeat-mode'.")
+(defvar-keymap gud-sdb-repeat-map
+  :doc "Keymap to repeat `sdb' stepping instructions \\`C-x C-a C-n n n'.
+Used in `repeat-mode'."
+  "n" #'gud-next
+  "s" #'gud-step
+  "i" #'gud-stepi
+  "c" #'gud-cont
+  "l" #'gud-refresh)
 
 (defun gud-sdb-marker-filter (string)
   (setq gud-marker-acc
@@ -1304,22 +1298,21 @@ whereby $stopformat=1 produces an output format compatible with
 ;; whereby `set $stopformat=1' reportedly produces output compatible
 ;; with `gud-dbx-marker-filter', which we prefer.
 
-(defvar gud-dbx-repeat-map
-  (let ((map (make-sparse-keymap)))
-    (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
-                                    ("s" . gud-step)
-                                    ("i" . gud-stepi)
-                                    ("c" . gud-cont)
-                                    ("l" . gud-refresh)
-                                    ("<" . gud-up)
-                                    (">" . gud-down)))
-      (define-key map key cmd))
-    (when (or gud-mips-p
-              gud-irix-p)
-      (define-key map "f" #'gud-finish))
-    map)
-  "Keymap to repeat `dbx' stepping instructions \\`C-x C-a C-n n n'.
-Used in `repeat-mode'.")
+(defvar-keymap gud-dbx-repeat-map
+  :doc "Keymap to repeat `dbx' stepping instructions \\`C-x C-a C-n n n'.
+Used in `repeat-mode'."
+  "n" #'gud-next
+  "s" #'gud-step
+  "i" #'gud-stepi
+  "c" #'gud-cont
+  "l" #'gud-refresh
+  "<" #'gud-up
+  ">" #'gud-down)
+
+(when (or gud-mips-p
+          gud-irix-p)
+  (keymap-set gud-dbx-repeat-map "f" #'gud-finish))
+
 
 ;; The process filter is also somewhat
 ;; unreliable, sometimes not spotting the markers; I don't know
@@ -1481,20 +1474,17 @@ and source-file directory for your debugger."
 ;; History of argument lists passed to xdb.
 (defvar gud-xdb-history nil)
 
-(defvar gud-xdb-repeat-map
-  (let ((map (make-sparse-keymap)))
-    (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
-                                    ("s" . gud-step)
-                                    ("i" . gud-stepi)
-                                    ("c" . gud-cont)
-                                    ("l" . gud-refresh)
-                                    ("f" . gud-finish)
-                                    ("<" . gud-up)
-                                    (">" . gud-down)))
-      (define-key map key cmd))
-    map)
-  "Keymap to repeat `xdb' stepping instructions \\`C-x C-a C-n n n'.
-Used in `repeat-mode'.")
+(defvar-keymap gud-xdb-repeat-map
+  :doc "Keymap to repeat `xdb' stepping instructions \\`C-x C-a C-n n n'.
+Used in `repeat-mode'."
+  "n" #'gud-next
+  "s" #'gud-step
+  "i" #'gud-stepi
+  "c" #'gud-cont
+  "l" #'gud-refresh
+  "f" #'gud-finish
+  "<" #'gud-up
+  ">" #'gud-down)
 
 (defcustom gud-xdb-directories nil
   "A list of directories that xdb should search for source code.
@@ -1573,16 +1563,13 @@ directories if your program contains sources from more than one directory."
 ;; History of argument lists passed to perldb.
 (defvar gud-perldb-history nil)
 
-(defvar gud-perldb-repeat-map
-  (let ((map (make-sparse-keymap)))
-    (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
-                                    ("s" . gud-step)
-                                    ("c" . gud-cont)
-                                    ("l" . gud-refresh)))
-      (define-key map key cmd))
-    map)
-  "Keymap to repeat `perldb' stepping instructions \\`C-x C-a C-n n n'.
-Used in `repeat-mode'.")
+(defvar-keymap gud-perldb-repeat-map
+  :doc "Keymap to repeat `perldb' stepping instructions \\`C-x C-a C-n n n'.
+Used in `repeat-mode'."
+  "n" #'gud-next
+  "s" #'gud-step
+  "c" #'gud-cont
+  "l" #'gud-refresh)
 
 (defun gud-perldb-massage-args (_file args)
   "Convert a command line as would be typed normally to run perldb
@@ -1761,19 +1748,16 @@ working directory and source-file directory for your debugger."
 
 (defvar gud-pdb-marker-regexp-start "^> ")
 
-(defvar gud-pdb-repeat-map
-  (let ((map (make-sparse-keymap)))
-    (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
-                                    ("s" . gud-step)
-                                    ("c" . gud-cont)
-                                    ("l" . gud-refresh)
-                                    ("f" . gud-finish)
-                                    ("<" . gud-up)
-                                    (">" . gud-down)))
-      (define-key map key cmd))
-    map)
-  "Keymap to repeat `pdb' stepping instructions \\`C-x C-a C-n n n'.
-Used in `repeat-mode'.")
+(defvar-keymap gud-pdb-repeat-map
+  :doc "Keymap to repeat `pdb' stepping instructions \\`C-x C-a C-n n n'.
+Used in `repeat-mode'."
+  "n" #'gud-next
+  "s" #'gud-step
+  "c" #'gud-cont
+  "l" #'gud-refresh
+  "f" #'gud-finish
+  "<" #'gud-up
+  ">" #'gud-down)
 
 ;; There's no guarantee that Emacs will hand the filter the entire
 ;; marker at once; it could be broken up across several strings.  We
@@ -1879,18 +1863,15 @@ directory and source-file directory for your debugger."
 
 (defvar gud-guiler-lastfile nil)
 
-(defvar gud-guiler-repeat-map
-  (let ((map (make-sparse-keymap)))
-    (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
-                                    ("s" . gud-step)
-                                    ("l" . gud-refresh)
-                                    ("f" . gud-finish)
-                                    ("<" . gud-up)
-                                    (">" . gud-down)))
-      (define-key map key cmd))
-    map)
-  "Keymap to repeat `guiler' stepping instructions \\`C-x C-a C-n n n'.
-Used in `repeat-mode'.")
+(defvar-keymap gud-guiler-repeat-map
+  :doc "Keymap to repeat `guiler' stepping instructions \\`C-x C-a C-n n n'.
+Used in `repeat-mode'."
+  "n" #'gud-next
+  "s" #'gud-step
+  "l" #'gud-refresh
+  "f" #'gud-finish
+  "<" #'gud-up
+  ">" #'gud-down)
 
 (defun gud-guiler-marker-filter (string)
   (setq gud-marker-acc (if gud-marker-acc (concat gud-marker-acc string) string))
@@ -2404,20 +2385,17 @@ extension EXTN.  Normally EXTN is given as the regular expression
 ;; Note: Reset to this value every time a prompt is seen
 (defvar gud-jdb-lowest-stack-level 999)
 
-(defvar gud-jdb-repeat-map
-  (let ((map (make-sparse-keymap)))
-    (pcase-dolist (`(,key . ,cmd) '(("n" . gud-next)
-                                    ("s" . gud-step)
-                                    ("i" . gud-stepi)
-                                    ("c" . gud-cont)
-                                    ("f" . gud-finish)
-                                    ("<" . gud-up)
-                                    (">" . gud-down)
-                                    ("l" . gud-refresh)))
-      (define-key map key cmd))
-    map)
-  "Keymap to repeat `jdb' stepping instructions \\`C-x C-a C-n n n'.
-Used in `repeat-mode'.")
+(defvar-keymap gud-jdb-repeat-map
+  :doc "Keymap to repeat `jdb' stepping instructions \\`C-x C-a C-n n n'.
+Used in `repeat-mode'."
+  "n" #'gud-next
+  "s" #'gud-step
+  "i" #'gud-stepi
+  "c" #'gud-cont
+  "f" #'gud-finish
+  "<" #'gud-up
+  ">" #'gud-down
+  "l" #'gud-refresh)
 
 (defun gud-jdb-find-source-using-classpath (p)
   "Find source file corresponding to fully qualified class P.
