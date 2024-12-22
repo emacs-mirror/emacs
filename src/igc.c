@@ -805,6 +805,15 @@ struct igc
 
   /* Registered threads.  */
   struct igc_thread_list *threads;
+
+  /* Flag to indicate a signal might be pending.  */
+  int signals_pending;
+  /* Per-signal flags.  These are `int' to reduce the chance of
+   * corruption when accessed non-atomically.  */
+  int pending_signals[64];
+  /* The real signal mask we want to restore after handling pending
+   * signals.  */
+  sigset_t signal_mask;
 };
 
 static bool process_one_message (struct igc *gc);
@@ -4593,6 +4602,7 @@ make_igc (void)
   gc->weak_hash_pool = make_pool_awl (gc, gc->weak_hash_fmt, weak_hash_find_dependent);
   gc->immovable_fmt = make_dflt_fmt (gc);
   gc->immovable_pool = make_pool_ams (gc, gc->immovable_fmt);
+  sigprocmask(SIG_BLOCK, NULL, &gc->signal_mask);
 
 #ifndef IN_MY_FORK
   root_create_pure (gc);
@@ -4903,6 +4913,45 @@ igc_busy_p (void)
   return mps_arena_busy (global_igc->arena);
 }
 
+/* Return false if this is an inconvenient time to receive signal SIG;
+ * also arrange for it to be re-raised at a more convenient time in that
+ * case.  */
+bool
+gc_signal_handler_can_run (int sig)
+{
+  eassume (sig >= 0);
+  eassert (sig < ARRAYELTS (global_igc->pending_signals));
+  if (igc_busy_p ())
+    {
+      sigset_t sigs;
+      global_igc->signals_pending = 1;
+      global_igc->pending_signals[sig] = 1;
+      sigemptyset (&sigs);
+      sigaddset (&sigs, sig);
+      pthread_sigmask (SIG_BLOCK, &sigs, NULL);
+      /* We cannot raise (sig) here, because there are platforms where
+       * it doesn't work.  */
+      return false;
+    }
+  return true;
+}
+
+/* Called from `maybe_quit'.  This assumes no signals are blocked.  */
+void
+gc_maybe_quit (void)
+{
+  while (global_igc->signals_pending)
+    {
+      global_igc->signals_pending = 0;
+      for (int i = 0; i < ARRAYELTS (global_igc->pending_signals); i++)
+	if (global_igc->pending_signals[i])
+	  {
+	    global_igc->pending_signals[i] = 0;
+	    raise (i);
+	  }
+      pthread_sigmask (SIG_SETMASK, &global_igc->signal_mask, NULL);
+    }
+}
 
 DEFUN ("igc--add-extra-dependency", Figc__add_extra_dependency,
        Sigc__add_extra_dependency, 3, 3, 0,

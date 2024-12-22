@@ -46,7 +46,17 @@ INLINE_HEADER_BEGIN
 
 #ifdef HAVE_MPS
 union gc_header;
+extern void gc_maybe_quit (void);
+extern bool gc_signal_handler_can_run (int);
 #else
+INLINE void gc_maybe_quit (void)
+{
+}
+
+INLINE bool gc_signal_handler_can_run (int sig)
+{
+  return true;
+}
 union gc_header { };
 #endif
 
@@ -4232,6 +4242,8 @@ maybe_quit (void)
 {
   if (!NILP (Vquit_flag) || pending_signals)
     probably_quit ();
+
+  gc_maybe_quit ();
 }
 
 /* Process a quit rarely, based on a counter COUNT, for efficiency.
