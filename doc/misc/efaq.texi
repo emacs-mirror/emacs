@@ -943,6 +943,13 @@ Emacs has been ported to the Android operating system.  See the file
 to build it.
 
 @item
+New user option @code{trusted-contents} to allow potentially dangerous
+Emacs features which could execute arbitrary Lisp code.  Use this
+variable to list files and directories whose contents Emacs should
+trust, thus allowing those potentially dangerous features when those
+files are visited.
+
+@item
 Numerous performance improvements, for example in parsing JSON, reading
 data from subprocesses, handling output from Eshell and in Shell mode, X
 selection requests, remote files, and so on.
