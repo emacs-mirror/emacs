@@ -3056,7 +3056,7 @@ since only a single case-insensitive search through the alist is made."
      ;; files, cross-debuggers can use something like
      ;; .PROCESSORNAME-gdbinit so that the host and target gdbinit files
      ;; don't interfere with each other.
-     ("/\\.[a-z0-9-]*gdbinit" . gdb-script-mode)
+     ("/[._]?[A-Za-z0-9-]*\\(?:gdbinit\\(?:\\.\\(?:ini?\\|loader\\)\\)?\\|gdb\\.ini\\)\\'" . gdb-script-mode)
      ;; GDB 7.5 introduced OBJFILE-gdb.gdb script files; e.g. a file
      ;; named 'emacs-gdb.gdb', if it exists, will be automatically
      ;; loaded when GDB reads an objfile called 'emacs'.
@@ -3455,6 +3455,35 @@ If FUNCTION is nil, then it is not called.")
   "Upper limit on `magic-mode-alist' regexp matches.
 Also applies to `magic-fallback-mode-alist'.")
 
+(defun set-auto-mode--find-matching-alist-entry (alist name case-insensitive)
+  "Find first matching entry in ALIST for file NAME.
+
+If CASE-INSENSITIVE, the file system of file NAME is case-insensitive."
+  (let (mode)
+    (while name
+      (setq mode
+            (if case-insensitive
+                ;; Filesystem is case-insensitive.
+                (let ((case-fold-search t))
+                  (assoc-default name alist 'string-match))
+              ;; Filesystem is case-sensitive.
+              (or
+               ;; First match case-sensitively.
+               (let ((case-fold-search nil))
+                 (assoc-default name alist 'string-match))
+               ;; Fallback to case-insensitive match.
+               (and auto-mode-case-fold
+                    (let ((case-fold-search t))
+                      (assoc-default name alist 'string-match))))))
+      (if (and mode
+               (not (functionp mode))
+               (consp mode)
+               (cadr mode))
+          (setq mode (car mode)
+                name (substring name 0 (match-beginning 0)))
+        (setq name nil)))
+    mode))
+
 (defun set-auto-mode--apply-alist (alist keep-mode-if-same dir-local)
   "Helper function for `set-auto-mode'.
 This function takes an alist of the same form as
@@ -3476,29 +3505,8 @@ extra checks should be done."
         (when (and (stringp remote-id)
                    (string-match (regexp-quote remote-id) name))
           (setq name (substring name (match-end 0))))
-        (while name
-          ;; Find first matching alist entry.
-          (setq mode
-                (if case-insensitive-p
-                    ;; Filesystem is case-insensitive.
-                    (let ((case-fold-search t))
-                      (assoc-default name alist 'string-match))
-                  ;; Filesystem is case-sensitive.
-                  (or
-                   ;; First match case-sensitively.
-                   (let ((case-fold-search nil))
-                     (assoc-default name alist 'string-match))
-                   ;; Fallback to case-insensitive match.
-                   (and auto-mode-case-fold
-                        (let ((case-fold-search t))
-                          (assoc-default name alist 'string-match))))))
-          (if (and mode
-                   (not (functionp mode))
-                   (consp mode)
-                   (cadr mode))
-              (setq mode (car mode)
-                    name (substring name 0 (match-beginning 0)))
-            (setq name nil)))
+        (setq mode (set-auto-mode--find-matching-alist-entry
+                    alist name case-insensitive-p))
         (when (and dir-local mode
                    (not (set-auto-mode--dir-local-valid-p mode)))
           (message "Ignoring invalid mode `%s'" mode)

@@ -1661,6 +1661,27 @@ The door of all subtleties!
 
 (defvar sh-shell)
 
+(defun files-tests--check-mode (filename)
+  "Return the major mode found in `auto-mode-alist' for FILENAME."
+  (set-auto-mode--find-matching-alist-entry
+   auto-mode-alist
+   (concat "/home/jrhacker/" filename)
+   nil))
+
+(ert-deftest files-tests-auto-mode-alist ()
+  (should (eq (files-tests--check-mode ".gdbinit.in") #'gdb-script-mode))
+  (should (eq (files-tests--check-mode ".gdbinit") #'gdb-script-mode))
+  (should (eq (files-tests--check-mode "_gdbinit") #'gdb-script-mode)) ; for MS-DOS
+  (should (eq (files-tests--check-mode "gdb.ini") #'gdb-script-mode)) ; likewise
+  (should (eq (files-tests--check-mode "gdbinit") #'gdb-script-mode))
+  (should (eq (files-tests--check-mode "gdbinit.in") #'gdb-script-mode))
+  (should (eq (files-tests--check-mode "SOMETHING-gdbinit") #'gdb-script-mode))
+  (should (eq (files-tests--check-mode ".gdbinit.loader") #'gdb-script-mode))
+  (should-not (eq (files-tests--check-mode "gdbinit-history.exp") #'gdb-script-mode))
+  (should-not (eq (files-tests--check-mode "gdbinit.c") #'gdb-script-mode))
+  (should-not (eq (files-tests--check-mode "gdbinit.5") #'gdb-script-mode))
+  (should-not (eq (files-tests--check-mode ".gdbinit.py.in") #'gdb-script-mode)))
+
 (defun files-tests--check-shebang (shebang expected-mode &optional expected-dialect)
   "Assert that mode for SHEBANG derives from EXPECTED-MODE.
 
