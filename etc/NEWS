@@ -311,6 +311,9 @@ modal editing packages.
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
+** Smerge
+*** New command 'smerge-extend' extends a conflict over surrounding lines.
+
 ** Browse URL
 
 *** New user option 'browse-url-transform-alist'.

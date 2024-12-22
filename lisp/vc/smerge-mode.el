@@ -311,7 +311,7 @@ Can be nil if the style is undecided, or else:
   (let ((ends nil))
     (dolist (i '(3 2 1 0))
       (push (if (match-end i) (copy-marker (match-end i) t)) ends))
-    (setq ends (apply 'vector ends))
+    (setq ends (apply #'vector ends))
     (goto-char (aref ends 0))
     (if (not (re-search-forward smerge-begin-re nil t))
 	(error "No next conflict")
@@ -701,7 +701,7 @@ this keeps \"LLL\"."
   (smerge-keep-n 3)
   (smerge-auto-leave))
 
-(define-obsolete-function-alias 'smerge-keep-other 'smerge-keep-lower "26.1")
+(define-obsolete-function-alias 'smerge-keep-other #'smerge-keep-lower "26.1")
 
 (defun smerge-keep-upper ()
   "Keep the \"upper\" version of a merge conflict.
@@ -718,7 +718,7 @@ this keeps \"UUU\"."
   (smerge-keep-n 1)
   (smerge-auto-leave))
 
-(define-obsolete-function-alias 'smerge-keep-mine 'smerge-keep-upper "26.1")
+(define-obsolete-function-alias 'smerge-keep-mine #'smerge-keep-upper "26.1")
 
 (defun smerge-get-current ()
   (let ((i 3))
@@ -759,7 +759,7 @@ this keeps \"UUU\"."
   (smerge-diff 2 1))
 
 (define-obsolete-function-alias 'smerge-diff-base-mine
-  'smerge-diff-base-upper "26.1")
+  #'smerge-diff-base-upper "26.1")
 
 (defun smerge-diff-base-lower ()
   "Diff `base' and `lower' version in current conflict region."
@@ -767,7 +767,7 @@ this keeps \"UUU\"."
   (smerge-diff 2 3))
 
 (define-obsolete-function-alias 'smerge-diff-base-other
-  'smerge-diff-base-lower "26.1")
+  #'smerge-diff-base-lower "26.1")
 
 (defun smerge-diff-upper-lower ()
   "Diff `upper' and `lower' version in current conflict region."
@@ -775,7 +775,7 @@ this keeps \"UUU\"."
   (smerge-diff 1 3))
 
 (define-obsolete-function-alias 'smerge-diff-mine-other
-  'smerge-diff-upper-lower "26.1")
+  #'smerge-diff-upper-lower "26.1")
 
 (defun smerge-match-conflict ()
   "Get info about the conflict.  Puts the info in the `match-data'.
@@ -1207,6 +1207,7 @@ repeating the command will highlight other two parts."
 			   '((smerge . refine) (font-lock-face . smerge-refined-added))))))
 
 (defun smerge-swap ()
+  ;; FIXME: Extend for diff3 to allow swapping the middle end as well.
   "Swap the \"Upper\" and the \"Lower\" chunks.
 Can be used before things like `smerge-keep-all' or `smerge-resolve' where the
 ordering can have some subtle influence on the result, such as preferring the
@@ -1218,6 +1219,49 @@ spacing of the \"Lower\" chunk."
     (insert (delete-and-extract-region (match-beginning 1) (match-end 1)))
     (goto-char (match-beginning 1))
     (insert txt3)))
+
+(defun smerge-extend (otherpos)
+  "Extend current conflict with some of the surrounding text.
+Point should be inside a conflict and OTHERPOS should be either a marker
+indicating the position until which to extend the conflict (either before
+or after the current conflict),
+OTHERPOS can also be an integer indicating the number of lines over which
+to extend the conflict.  If positive, it extends over the lines following
+the conflict and other, it extends over the lines preceding the conflict.
+When used interactively, you can specify OTHERPOS either using an active
+region, or with a numeric prefix.  By default it uses a numeric prefix of 1."
+  (interactive
+   (list (if (use-region-p) (mark-marker)
+           (prefix-numeric-value current-prefix-arg))))
+  ;; FIXME: If OTHERPOS is inside (or next to) another conflict
+  ;; or if there are conflicts between the current conflict and OTHERPOS,
+  ;; we end up messing up the conflict markers.  We should merge the
+  ;; conflicts instead!
+  (condition-case err
+      (smerge-match-conflict)
+    (error (if (not (markerp otherpos)) (signal (car err) (cdr err))
+             (goto-char (prog1 otherpos (setq otherpos (point-marker))))
+             (smerge-match-conflict))))
+  (let ((beg (match-beginning 0))
+        (end (copy-marker (match-end 0)))
+        text)
+    (when (integerp otherpos)
+      (goto-char (if (>= otherpos 0) end beg))
+      (setq otherpos (copy-marker (line-beginning-position (+ otherpos 1)))))
+    (setq text (cond
+                ((<= end otherpos)
+                 (buffer-substring end otherpos))
+                ((<= otherpos beg)
+                 (buffer-substring otherpos beg))
+                (t (user-error "The other end should be outside the conflict"))))
+    (dotimes (i 3)
+      (let* ((mn (- 3 i))
+             (me (funcall (if (<= end otherpos) #'match-end #'match-beginning)
+                          mn)))
+       (when me
+        (goto-char me)
+        (insert text))))
+    (delete-region (if (<= end otherpos) end beg) otherpos)))
 
 (defun smerge-diff (n1 n2)
   (smerge-match-conflict)
@@ -1252,7 +1296,7 @@ spacing of the \"Lower\" chunk."
 	  (let ((inhibit-read-only t))
 	    (erase-buffer)
 	    (let ((status
-		   (apply 'call-process diff-command nil t nil
+		   (apply #'call-process diff-command nil t nil
 			  (append smerge-diff-switches
 				  (and (diff-check-labels)
 				       (list "--label"
@@ -1394,7 +1438,7 @@ with a \\[universal-argument] prefix, makes up a 3-way conflict."
          (when current-prefix-arg (pop-mark) (mark))))
   ;; Start from the end so as to avoid problems with pos-changes.
   (pcase-let ((`(,pt1 ,pt2 ,pt3 ,pt4)
-               (sort `(,pt1 ,pt2 ,pt3 ,@(if pt4 (list pt4))) '>=)))
+               (sort `(,pt1 ,pt2 ,pt3 ,@(if pt4 (list pt4))) #'>=)))
     (goto-char pt1) (beginning-of-line)
     (insert ">>>>>>> LOWER\n")
     (goto-char pt2) (beginning-of-line)
