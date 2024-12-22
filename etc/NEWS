@@ -201,7 +201,7 @@ see the variable 'url-request-extra-headers'.
 
 +++
 ** New user option 'trusted-content' to allow potentially dangerous features.
-This variable lists those files and directories whose content Emacs should
+This option lists those files and directories whose content Emacs should
 consider as sufficiently trusted to run any part of the code contained
 therein even without any explicit user request.
 For example, Flymake's backend for Emacs Lisp consults this option
