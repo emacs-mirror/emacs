@@ -3251,7 +3251,7 @@ Such a keyword is a member of `c-paren-clause-kwds."
   c++    '("break" "continue" "goto" "return" "co_return")
   objc '("break" "continue" "goto" "return" "@throw")
   ;; Note: `goto' is not valid in Java, but the keyword is still reserved.
-  java '("break" "continue" "goto" "return" "throw")
+  java '("assert" "break" "continue" "goto" "return" "throw")
   idl  nil
   pike '("break" "continue" "return")
   awk  '(;; Not sure about "delete", "exit", "getline", etc. ; ACM 2002/5/30
