@@ -120,7 +120,8 @@ NeXTstep port of Emacs.
 
 @item
 Stephen Berman wrote @file{todo-mode.el} (based on the original version
-by Oliver Seidel), a package for maintaining @file{TODO} list files.
+by Oliver Seidel), a package for maintaining @file{TODO} list files.  He
+also wrote @file{visual-wrap.el} together with Stefan Monnier.
 
 @item
 Anna M. Bigatti wrote @file{cal-html.el}, which produces HTML calendars.
@@ -328,6 +329,10 @@ folders have mail waiting in them.
 Torbjörn Einarsson wrote @file{f90.el}, a mode for Fortran 90 files.
 
 @item
+Helmut Eller wrote @file{peg.el}, a Parsing Expression Grammars package
+for Emacs.
+
+@item
 Tsugutomo Enami co-wrote the support for international character sets.
 
 @item
@@ -354,6 +359,10 @@ Morse code.
 Oscar Figueiredo wrote EUDC, the Emacs Unified Directory Client, which
 is an interface to directory servers via LDAP, CCSO PH/QI, or BBDB; and
 @file{ldap.el}, the LDAP client interface.
+
+@item
+Jared Finder implemented window tool bars in @file{window-tool-bar.el}
+and enhanced xterm mouse support in @file{xt-mouse.el}.
 
 @item
 Fred Fish wrote the support for dumping COFF executable files.
@@ -459,6 +468,10 @@ as well as helping to maintain Org mode (q.v.).
 @item
 Henry Guillaume wrote @file{find-file.el}, a package to visit files
 related to the currently visited file.
+
+@item
+Dmitry Gutov wrote @file{etags-regen.el}, a package for automatic
+(re)generation of @file{TAGS} files.
 
 @item
 Doug Gwyn wrote the portable @code{alloca} implementation.
@@ -628,6 +641,11 @@ Richard King wrote the first version of @file{userlock.el} and
 editing the same file.  He also wrote the initial version of
 @file{uniquify.el}, a facility to make buffer names unique by adding
 parts of the file's name to the buffer name.
+
+@item
+Wilhelm H Kirschbaum wrote @file{elixir-ts-mode.el} and
+@file{heex-ts-mode.el}, Emacs major modes for editing Elixir and Heex
+files.
 
 @item
 Peter Kleiweg wrote @file{ps-mode.el}, a mode for editing PostScript
@@ -881,11 +899,17 @@ indentation engine; and @file{pcase.el}, implementing ML-style pattern
 matching.  In Emacs 24, he integrated the lexical binding code,
 cleaned up the CL namespace (making it acceptable to use CL
 functions at runtime), added generalized variables to core Emacs
-Lisp, and implemented a new lightweight advice mechanism.
+Lisp, and implemented a new lightweight advice mechanism.  He also wrote
+@file{track-changes.el}, a library which accumulates changes in a buffer
+until some client Lisp program wants to consume those changes.
 
 @item
 Morioka Tomohiko wrote several packages for MIME support in Gnus and
 elsewhere.
+
+@item
+John Muhl wrote @file{lua-ts-mode.el}, an Emacs mode for editing Lua
+programs.
 
 @item
 Sen Nagata wrote @file{crm.el}, a package for reading multiple strings
@@ -1035,6 +1059,10 @@ Michael D. Prange and Steven A. Wood wrote @file{fortran.el}, a mode
 for editing Fortran code.
 
 @item
+Vincenzo Pupillo wrote @code{php-ts-mode.el}, a major mode for editing
+PHP programs.
+
+@item
 Ashwin Ram wrote @file{refer.el}, commands to look up references in
 bibliography files by keyword.
 
@@ -1163,6 +1191,10 @@ wrote parts of the IRC client ERC (q.v.).
 Randal Schwartz wrote @file{pp.el}, a pretty-printer for lisp objects.
 
 @item
+Daniel Semyonov write @file{nnatom.el}, the Atom backend for Gnus, and
+@file{nnfeed.el}, a generic feed backend for Gnus.
+
+@item
 Manuel Serrano wrote the Flyspell package, which does spell checking
 as you type.
 
@@ -1286,6 +1318,10 @@ Spencer Thomas wrote the original @file{dabbrev.el}, providing a command
 which completes the partial word before point, based on other nearby
 words for which it is a prefix.  He also wrote the original dumping
 support.
+
+@item
+Theodor Thornhill wrote @file{html-ts-mode.el}, a major mode based on
+the tree-sitter library for editing HTML files.
 
 @item
 Toru Tomabechi contributed to Tibetan support.
@@ -1419,6 +1455,12 @@ merging two versions of a file.
 @item
 Francis J. Wright wrote @file{woman.el}, a package for browsing
 manual pages without the @code{man} command.
+
+@item
+Po Lu ported Emacs to Android, and wrote
+@code{pixel-scroll-precision-mode}.  He also added XInput2 support to
+Emacs, implemented touchpad commands in @file{touch-screen.el}, and
+extended drag-n-drop support.
 
 @item
 Masatake Yamato wrote @file{ld-script.el}, an editing mode for GNU
