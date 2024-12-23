@@ -578,7 +578,7 @@ OPTION_DEFAULT_OFF([w32], [use native MS Windows GUI in a Cygwin build])
 OPTION_DEFAULT_OFF([pgtk], [use GTK to support window systems other than X])
 
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
-OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
+OPTION_DEFAULT_IFAVAILABLE([dbus],[compile with D-Bus support])
 AC_ARG_WITH([gconf],[AS_HELP_STRING([--with-gconf],
 [compile with Gconf support (Gsettings replaces this)])],[],
 [if test $with_features = yes; then
@@ -3969,8 +3969,8 @@ dnl D-Bus has been tested under GNU/Linux only.  Must be adapted for
 dnl other platforms.
 HAVE_DBUS=no
 DBUS_OBJ=
-if test "${with_dbus}" = "yes"; then
-   EMACS_CHECK_MODULES([DBUS], [dbus-1 >= 1.0])
+if test "${with_dbus}" != "no" ; then
+   EMACS_CHECK_MODULES([DBUS], [dbus-1 >= 1.0], [HAVE_DBUS=yes], [HAVE_DBUS=no])
    if test "$HAVE_DBUS" = yes; then
      AC_DEFINE([HAVE_DBUS], [1], [Define to 1 if using D-Bus.])
      dnl dbus_watch_get_unix_fd has been introduced in D-Bus 1.1.1.
@@ -5564,6 +5564,11 @@ if test "${HAVE_X11}" = "yes"; then
        WITH_IFAVAILABLE="$WITH_IFAVAILABLE --with-tiff=ifavailable";;
   esac
 fi
+case $with_dbus,$HAVE_DBUS in
+  no,* | ifavailable,* | *,yes) ;;
+  *) MISSING="$MISSING dbus-1"
+     WITH_IFAVAILABLE="$WITH_IFAVAILABLE --with-dbus=ifavailable";;
+esac
 case $with_gnutls,$HAVE_GNUTLS in
   no,* | ifavailable,* | *,yes) ;;
   *) MISSING="$MISSING gnutls"
