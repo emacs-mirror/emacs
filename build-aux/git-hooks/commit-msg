@@ -31,6 +31,8 @@ fi
 # Use U+00A2 CENT SIGN to test whether the locale works.
 cent_sign_utf8_format='\302\242\n'
 cent_sign=`printf "$cent_sign_utf8_format"`
+replacement_character_utf8_format='\357\277\275\n'
+replacement_character=`printf "$replacement_character_utf8_format"`
 print_at_sign='BEGIN {print substr("'$cent_sign'@", 2)}'
 at_sign=`$awk "$print_at_sign" </dev/null 2>/dev/null`
 if test "$at_sign" != @; then
@@ -44,7 +46,12 @@ if test "$at_sign" != @; then
 fi
 
 # Check the log entry.
-exec $awk -v at_sign="$at_sign" -v cent_sign="$cent_sign" -v file="$1" '
+exec $awk \
+     -v at_sign="$at_sign" \
+     -v cent_sign="$cent_sign" \
+     -v file="$1" \
+     -v replacement_character="$replacement_character" \
+'
   BEGIN {
     # These regular expressions assume traditional Unix unibyte behavior.
     # They are needed for old or broken versions of awk, e.g.,
@@ -135,6 +142,10 @@ exec $awk -v at_sign="$at_sign" -v cent_sign="$cent_sign" -v file="$1" '
 
   $0 ~ non_print {
     print "Unprintable character in commit message"
+    status = 1
+  }
+  $0 ~ replacement_character {
+    print "Replacement character in commit message"
     status = 1
   }
 
