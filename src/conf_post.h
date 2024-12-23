@@ -462,16 +462,6 @@ extern int emacs_setenv_TZ (char const *);
 # define UNINIT /* empty */
 #endif
 
-/* MB_CUR_MAX is often broken on systems which copy-paste LLVM
-   headers, so replace its definition with a working one if
-   necessary.  */
-
-#ifdef REPLACEMENT_MB_CUR_MAX
-#include <stdlib.h>
-#undef MB_CUR_MAX
-#define MB_CUR_MAX REPLACEMENT_MB_CUR_MAX
-#endif /* REPLACEMENT_MB_CUR_MAX */
-
 /* Emacs does not need glibc strftime behavior for AM and PM
    indicators.  */
 #define REQUIRE_GNUISH_STRFTIME_AM_PM false
