@@ -17,7 +17,7 @@
 
 /* Written by Collin Funk.  */
 
+#define _GL_ENDIAN_INLINE _GL_EXTERN_INLINE
 #include <config.h>
 
-#define _GL_ENDIAN_INLINE _GL_EXTERN_INLINE
 #include <endian.h>

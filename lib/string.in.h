@@ -20,7 +20,7 @@
 #endif
 @PRAGMA_COLUMNS@
 
-#if defined _GL_ALREADY_INCLUDING_STRING_H
+#if defined _@GUARD_PREFIX@_ALREADY_INCLUDING_STRING_H
 /* Special invocation convention:
    - On OS X/NetBSD we have a sequence of nested includes
        <string.h> -> <strings.h> -> "string.h"
@@ -34,12 +34,12 @@
 
 #ifndef _@GUARD_PREFIX@_STRING_H
 
-#define _GL_ALREADY_INCLUDING_STRING_H
+#define _@GUARD_PREFIX@_ALREADY_INCLUDING_STRING_H
 
 /* The include_next requires a split double-inclusion guard.  */
 #@INCLUDE_NEXT@ @NEXT_STRING_H@
 
-#undef _GL_ALREADY_INCLUDING_STRING_H
+#undef _@GUARD_PREFIX@_ALREADY_INCLUDING_STRING_H
 
 #ifndef _@GUARD_PREFIX@_STRING_H
 #define _@GUARD_PREFIX@_STRING_H

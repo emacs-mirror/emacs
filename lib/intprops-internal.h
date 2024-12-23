@@ -77,10 +77,11 @@
 
 /* Does the __typeof__ keyword work?  This could be done by
    'configure', but for now it's easier to do it by hand.  */
-#if (2 <= __GNUC__ \
-     || (4 <= __clang_major__) \
-     || (1210 <= __IBMC__ && defined __IBM__TYPEOF__) \
-     || (0x5110 <= __SUNPRO_C && !__STDC__))
+#if ((defined __GNUC__ && 2 <= __GNUC__) \
+     || (defined __clang_major__ && 4 <= __clang_major__) \
+     || (defined __IBMC__ && 1210 <= __IBMC__ && defined __IBM__TYPEOF__) \
+     || (defined __SUNPRO_C && 0x5110 <= __SUNPRO_C && !__STDC__) \
+     || (defined _MSC_VER && 1939 <= _MSC_VER))
 # define _GL_HAVE___TYPEOF__ 1
 #else
 # define _GL_HAVE___TYPEOF__ 0

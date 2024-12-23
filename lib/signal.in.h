@@ -20,7 +20,7 @@
 #endif
 @PRAGMA_COLUMNS@
 
-#if defined __need_sig_atomic_t || defined __need_sigset_t || defined _GL_ALREADY_INCLUDING_SIGNAL_H || (defined _SIGNAL_H && !defined __SIZEOF_PTHREAD_MUTEX_T)
+#if defined __need_sig_atomic_t || defined __need_sigset_t || defined _@GUARD_PREFIX@_ALREADY_INCLUDING_SIGNAL_H || (defined _SIGNAL_H && !defined __SIZEOF_PTHREAD_MUTEX_T)
 /* Special invocation convention:
    - Inside glibc header files.
    - On glibc systems we have a sequence of nested includes
@@ -39,7 +39,7 @@
 
 #ifndef _@GUARD_PREFIX@_SIGNAL_H
 
-#define _GL_ALREADY_INCLUDING_SIGNAL_H
+#define _@GUARD_PREFIX@_ALREADY_INCLUDING_SIGNAL_H
 
 /* Define pid_t, uid_t.
    Also, mingw defines sigset_t not in <signal.h>, but in <sys/types.h>.
@@ -50,7 +50,7 @@
 /* The include_next requires a split double-inclusion guard.  */
 #@INCLUDE_NEXT@ @NEXT_SIGNAL_H@
 
-#undef _GL_ALREADY_INCLUDING_SIGNAL_H
+#undef _@GUARD_PREFIX@_ALREADY_INCLUDING_SIGNAL_H
 
 #ifndef _@GUARD_PREFIX@_SIGNAL_H
 #define _@GUARD_PREFIX@_SIGNAL_H
