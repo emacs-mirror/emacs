@@ -9921,6 +9921,26 @@ for `fit-frame-to-buffer'."
             ;; Move frame down.
             (setq top top-margin)))))
       ;; Apply our changes.
+      (unless frame-resize-pixelwise
+	;; When 'frame-resize-pixelwise' is nil, a frame cannot be
+	;; necessarily fit completely even if the window's calculated
+	;; width and height are integral multiples of the frame's
+	;; character width and height.  The size hints Emacs produces
+	;; are inept to handle that when the combined sizes of the
+	;; frame's fringes, scroll bar and internal border are not an
+	;; integral multiple of the frame's character width (Bug#74866).
+	;; Consequently, the window manager will round sizes down and
+	;; this may cause lines getting wrapped.  To avoid that, round
+	;; sizes up here which will, however, leave a blank space at the
+	;; end of the longest line(s).
+	(setq text-minus-body-width
+	      (+ text-minus-body-width
+		 (- char-width
+		    (% text-minus-body-width char-width))))
+	(setq text-minus-body-height
+	      (+ text-minus-body-height
+		 (- char-height
+		    (% text-minus-body-height char-height)))))
       (setq text-width
             (if width
                 (+ width text-minus-body-width)

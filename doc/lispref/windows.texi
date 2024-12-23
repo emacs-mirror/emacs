@@ -1166,7 +1166,9 @@ frame to its buffer using the command @code{fit-frame-to-buffer}.
 This command adjusts the size of @var{frame} to display the contents of
 its buffer exactly.  @var{frame} can be any live frame and defaults to
 the selected one.  Fitting is done only if @var{frame}'s root window is
-live.
+a live window.  On window systems that use size hints, exact fitting can
+be often achieved if and only if @code{frame-resize-pixelwise}
+(@pxref{Frame Size}) is non-@code{nil}.
 
 The arguments @var{max-height}, @var{min-height}, @var{max-width} and
 @var{min-width}, if non-@code{nil}, specify bounds on the new body size
