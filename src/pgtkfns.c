@@ -3819,6 +3819,44 @@ DEFUN ("x-gtk-debug", Fx_gtk_debug, Sx_gtk_debug, 1, 1, 0,
   return NILP (enable) ? Qnil : Qt;
 }
 
+static void
+unwind_gerror_ptr (void* data)
+{
+  GError* error = *(GError**)data;
+  if (error)
+    g_error_free (error);
+}
+
+DEFUN ("x-gtk-launch-uri", Fx_gtk_launch_uri, Sx_gtk_launch_uri, 2, 2, 0,
+       doc: /* launch URI */)
+  (Lisp_Object frame, Lisp_Object uri)
+{
+  CHECK_FRAME (frame);
+
+  if (!FRAME_LIVE_P (XFRAME (frame)) ||
+      !FRAME_PGTK_P (XFRAME (frame)) ||
+      !FRAME_GTK_OUTER_WIDGET (XFRAME (frame)))
+    error ("GTK URI launch not available for this frame");
+
+  CHECK_STRING (uri);
+  guint32 timestamp = gtk_get_current_event_time ();
+
+  GError *err = NULL;
+  specpdl_ref count = SPECPDL_INDEX ();
+
+  record_unwind_protect_ptr (unwind_gerror_ptr, &err);
+
+  gtk_show_uri_on_window (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (XFRAME (frame))),
+			  SSDATA (uri),
+			  timestamp,
+			  &err);
+
+  if (err)
+    error ("Failed to launch URI via GTK: %s", err->message);
+
+  return unbind_to (count, Qnil);
+}
+
 void
 syms_of_pgtkfns (void)
 {
@@ -3890,6 +3928,7 @@ syms_of_pgtkfns (void)
   defsubr (&Sx_close_connection);
   defsubr (&Sx_display_list);
   defsubr (&Sx_gtk_debug);
+  defsubr (&Sx_gtk_launch_uri);
 
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);

@@ -179,6 +179,9 @@
     ,@(when (eq system-type 'android)
         (list '(function-item :tag "Default Android browser"
                               :value browse-url-default-android-browser)))
+    ,@(when (eq window-system 'pgtk)
+        (list '(function-item :tag "Default GTK browser"
+                              :value browse-url-default-gtk-browser)))
     (function-item :tag "Default browser"
 		   :value browse-url-default-browser)
     (function :tag "Your own function")
@@ -1085,6 +1088,8 @@ one showing the selected frame."
     (and (not (equal display (getenv "DISPLAY")))
          display)))
 
+(defvar browse-url--inhibit-pgtk nil)
+
 (defun browse-url-default-browser (url &rest args)
   "Find a suitable browser and ask it to load URL.
 Default to the URL around or before point.
@@ -1106,6 +1111,9 @@ instead of `browse-url-new-window-flag'."
      'browse-url-default-haiku-browser)
     ((eq system-type 'android)
      'browse-url-default-android-browser)
+    ((and (eq (frame-parameter nil 'window-system) 'pgtk)
+          (not browse-url--inhibit-pgtk))
+     'browse-url-default-gtk-browser)
     ((browse-url-can-use-xdg-open) 'browse-url-xdg-open)
     ((executable-find browse-url-firefox-program) 'browse-url-firefox)
     ((executable-find browse-url-chromium-program) 'browse-url-chromium)
@@ -1423,6 +1431,23 @@ point."
   (android-browse-url url browse-url-android-share))
 
 (function-put 'browse-url-default-android-browser
+              'browse-url-browser-kind 'external)
+
+(declare-function x-gtk-launch-uri "pgtkfns.c")
+
+;;;###autoload
+(defun browse-url-default-gtk-browser (url &optional new-window)
+  "Browse URL with GTK's idea of the default browser.
+If the selected frame isn't a GTK frame, fall back to
+`browse-url-default-browser'."
+  (interactive (browse-url-interactive-arg "URL: "))
+  (let ((frame (selected-frame)))
+    (if (eq (frame-parameter frame 'window-system) 'pgtk)
+        (x-gtk-launch-uri frame url)
+      (let ((browse-url--inhibit-pgtk t))
+        (browse-url-default-browser url new-window)))))
+
+(function-put 'browse-url-default-gtk-browser
               'browse-url-browser-kind 'external)
 
 ;;;###autoload

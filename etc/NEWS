@@ -333,6 +333,13 @@ It has been obsolete since Emacs 28.1.
 *** Support for gnome-moz-remote has been removed.
 It has been obsolete since Emacs 25.1.
 
+*** New GTK-native launch mode
+For better Wayland support, the pgtk toolkit exposes a new
+'x-gtk-launch-uri' browse-url handler and uses it by default when URLs
+are browsed from a PGTK frame.  For other frames, we fall back to the
+default URL launch function.  This change allows us to properly raise
+browser windows under Wayland using the xdg_activation_v1 protocol.
+
 ** CL-Lib
 
 +++
