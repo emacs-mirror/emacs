@@ -96,6 +96,7 @@ queries that has problems with latest grammar."
   (let ((treesit-extra-load-path (list grammar-dir))
         (treesit-language-source-alist treesit-admin--builtin-language-sources)
         (treesit--install-language-grammar-full-clone t)
+        (treesit--install-language-grammar-blobless t)
         (version-alist nil)
         (invalid-feature-list nil)
         (valid-modes nil)

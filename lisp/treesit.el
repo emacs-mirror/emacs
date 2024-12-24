@@ -3925,6 +3925,9 @@ See `treesit-language-source-alist' for details."
 (defvar treesit--install-language-grammar-full-clone nil
   "If non-nil, do a full clone when cloning git repos.")
 
+(defvar treesit--install-language-grammar-blobless nil
+  "If non-nil, create a blobless clone when cloning git repos.")
+
 ;;;###autoload
 (defun treesit-install-language-grammar (lang &optional out-dir)
   "Build and install the tree-sitter language grammar library for LANG.
@@ -4048,6 +4051,8 @@ Use shallow clone by default.  Do a full clone when
   (let ((args (list "git" nil t nil "clone" url "--quiet")))
     (when (not treesit--install-language-grammar-full-clone)
       (setq args (append args (list "--depth" "1"))))
+    (when treesit--install-language-grammar-blobless
+      (setq args (append args (list "--filter=blob:none"))))
     (when revision
       (setq args (append args (list "-b" revision))))
     (setq args (append args (list workdir)))
