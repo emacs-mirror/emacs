@@ -4013,7 +4013,7 @@ Return the output of \"git describe\". If anything goes wrong, return
 nil."
   (with-temp-buffer
     (cond
-     ((eq 0 (call-process "git" nil t nil "describe"))
+     ((eq 0 (call-process "git" nil t nil "describe" "--tags"))
       (string-trim (buffer-string)))
      ((eq 0 (progn (erase-buffer)
                    (call-process "git" nil t nil "rev-parse" "HEAD")))
