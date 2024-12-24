@@ -4694,8 +4694,10 @@ DESC must be a `package-desc' object."
   (let ((url (cdr (assoc :url (package-desc-extras desc)))))
     (unless url
       (user-error "No website for %s" (package-desc-name desc)))
-    (if secondary
-        (funcall browse-url-secondary-browser-function url)
+    (let ((browse-url-browser-function
+           (if secondary
+               browse-url-secondary-browser-function
+             browse-url-browser-function)))
       (browse-url url))))
 
 (declare-function ietf-drums-parse-address "ietf-drums"
