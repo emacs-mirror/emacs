@@ -4927,9 +4927,9 @@ contents."
     (error (minibuffer-complete-and-exit))))
 
 (defun minibuffer-complete-history ()
-  "Complete the minibuffer history as far as possible.
-Like `minibuffer-complete' but completes on the history items
-instead of the default completion table."
+  "Complete as far as possible using the minibuffer history.
+Like `minibuffer-complete' but completes using the history of minibuffer
+inputs for the prompting command, instead of the default completion table."
   (interactive)
   (let* ((history (symbol-value minibuffer-history-variable))
          (completions
@@ -4952,9 +4952,9 @@ instead of the default completion table."
            (complete-with-action action completions string pred)))))))
 
 (defun minibuffer-complete-defaults ()
-  "Complete minibuffer defaults as far as possible.
-Like `minibuffer-complete' but completes on the default items
-instead of the completion table."
+  "Complete as far as possible using the minibuffer defaults.
+Like `minibuffer-complete' but completes using the default items
+provided by the prompting command, instead of the completion table."
   (interactive)
   (when (and (not minibuffer-default-add-done)
              (functionp minibuffer-default-add-function))

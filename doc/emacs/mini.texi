@@ -343,18 +343,44 @@ when completion is allowed.
 @table @kbd
 @item @key{TAB}
 Complete the text in the minibuffer as much as possible; if unable to
-complete, display a list of possible completions
-(@code{minibuffer-complete}).
+complete, display a list of possible completions.
 @item @key{SPC}
-Complete up to one word from the minibuffer text before point
-(@code{minibuffer-complete-word}).  This command is not available for
-arguments that often include spaces, such as file names.
+Complete up to one word from the minibuffer text before point.
+@item C-x @key{UP}
+Complete the text in the minibuffer using minibuffer history.
+@item C-x @key{DOWN}
+Complete the text in the minibuffer using minibuffer defaults.
 @item @key{RET}
 Submit the text in the minibuffer as the argument, possibly completing
-first (@code{minibuffer-complete-and-exit}).  @xref{Completion Exit}.
+first.  @xref{Completion Exit}.
 @item ?
 Display a list of completions and a few useful key bindings
 (@code{minibuffer-completion-help}).
+@item M-@key{DOWN}
+@itemx M-@key{UP}
+Navigate through list of completions.
+@item M-v
+@itemx M-g M-c
+@itemx @key{PageUp}
+@itemx @key{prior}
+While in the minibuffer, select the window showing the completion list.
+@item @key{RET}
+In the completions buffer, choose the completion at point.
+@item mouse-1
+@itemx mouse-2
+In the completions buffer, choose the completion at mouse click.
+@item @key{TAB}
+@itemx @key{RIGHT}
+@itemx @key{n}
+In the completions buffer, move to the following completion candidate.
+@item @key{S-TAB}
+@itemx @key{LEFT}
+@itemx @key{p}
+In the completions buffer, move to the previous completion candidate.
+@item q
+Quit the completions window and switch to the minibuffer window.
+@item z
+Kill the completions buffer and delete the window showing it.
 @end table
 
 @kindex TAB @r{(completion)}
@@ -372,7 +398,8 @@ are chosen.
 @samp{auto-f} in the minibuffer and type @key{SPC}, it finds that the
 completion is @samp{auto-fill-mode}, but it only inserts @samp{ill-},
 giving @samp{auto-fill-}.  Another @key{SPC} at this point completes
-all the way to @samp{auto-fill-mode}.
+all the way to @samp{auto-fill-mode}.  This command is not available for
+arguments that often include spaces, such as file names.
 
 @kindex ? @r{(completion)}
 @cindex completion list
@@ -383,7 +410,6 @@ can display the same completion list and help with @kbd{?}
 (@code{minibuffer-completion-help}).  The following commands can be used
 with the completion list:
 
-@table @kbd
 @vindex minibuffer-completion-auto-choose
 @kindex M-DOWN
 @kindex M-UP
@@ -391,12 +417,10 @@ with the completion list:
 @findex minibuffer-next-completion
 @findex minibuffer-previous-completion
 @findex minibuffer-choose-completion
-@item M-@key{DOWN}
-@itemx M-@key{UP}
 While in the minibuffer or in the completion list buffer, @kbd{M-@key{DOWN}}
 (@code{minibuffer-next-completion} and @kbd{M-@key{UP}}
 (@code{minibuffer-previous-completion}) navigate through the
-completions and displayed in the completions buffer.  When
+completions displayed in the completions buffer.  When
 @code{minibuffer-completion-auto-choose} is non-@code{nil} (which is
 the default), using these commands also inserts the current completion
 candidate into the minibuffer.  If
@@ -408,9 +432,6 @@ M-@key{RET}} inserts the currently active candidate without exiting
 the minibuffer.
 
 @findex switch-to-completions
-@item M-v
-@itemx @key{PageUp}
-@itemx @key{prior}
 Typing @kbd{M-v}, while in the minibuffer, selects the window showing
 the completion list (@code{switch-to-completions}).  This paves the
 way for using the commands below.  @key{PageUp}, @key{prior} and
@@ -418,39 +439,38 @@ way for using the commands below.  @key{PageUp}, @key{prior} and
 ways (@pxref{Windows}).
 
 @findex choose-completion
-@item @key{RET}
-@itemx mouse-1
-@itemx mouse-2
-While in the completion list buffer, this chooses the completion at
-point (@code{choose-completion}).  With a prefix argument, @kbd{C-u
-@key{RET}} inserts the completion at point into the minibuffer, but
-doesn't exit the minibuffer---thus, you can change your mind and
-choose another candidate.
+While in the completion list buffer, @kbd{@key{RET}} chooses the completion
+candidate at point (@code{choose-completion}) and @kbd{mouse-1} and
+@kbd{mouse-2} choose the completion at mouse click.  With a prefix
+argument, @kbd{C-u @key{RET}} inserts the completion at point into the
+minibuffer, but doesn't exit the minibuffer---thus, you can change your
+mind and choose another candidate.
 
 @findex next-completion
-@item @key{TAB}
-@item @key{RIGHT}
-@item @key{n}
-While in the completion list buffer, these keys move point to the
-following completion alternative (@code{next-completion}).
+While in the completion list buffer, you can use @kbd{@key{TAB}},
+@kbd{@key{RIGHT}}, or @kbd{n} to move point to the following completion
+candidate (@code{next-completion}).  You can also use @kbd{@key{S-TAB}},
+@kbd{@key{LEFT}}, and @kbd{p} to move point to the previous completion
+alternative (@code{previous-completion}).
 
-@findex previous-completion
-@item @key{S-TAB}
-@item @key{LEFT}
-@item @key{p}
-While in the completion list buffer, these keys move point to the
-previous completion alternative (@code{previous-completion}).
+@findex minibuffer-complete-history
+@findex minibuffer-complete-defaults
+@kindex C-x UP @r{(completion)}
+@kindex C-x DOWN @r{(completion)}
+You can also complete using the history of minibuffer inputs for the
+command which prompted you.  @kbd{C-x @key{UP}}
+(@code{minibuffer-complete-history}) works like @kbd{@key{TAB}}, but
+completes using minibuffer history instead of the usual completion
+candidates.  A similar command @kbd{C-x @key{DOWN}}
+(@code{minibuffer-complete-defaults}) completes using the default input
+items provided by the prompting command.
 
 @findex quit-window
-@item @kbd{q}
-While in the completion list buffer, this quits the window showing it
-and selects the window showing the minibuffer (@code{quit-window}).
-
 @findex kill-current-buffer
-@item @kbd{z}
-While in the completion list buffer, kill it and delete the window
-showing it (@code{kill-current-buffer}).
-@end table
+Finally, @kbd{q} quits the window showing it and selects the window
+showing the minibuffer (@code{quit-window}), and @kbd{z} kills the
+completion buffer and delete the window showing it
+(@code{kill-current-buffer}).
 
 @vindex minibuffer-visible-completions
   If the variable @code{minibuffer-visible-completions} is customized to

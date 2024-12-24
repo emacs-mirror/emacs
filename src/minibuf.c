@@ -1293,6 +1293,11 @@ barf_if_interaction_inhibited (void)
 DEFUN ("read-from-minibuffer", Fread_from_minibuffer,
        Sread_from_minibuffer, 1, 7, 0,
        doc: /* Read a string from the minibuffer, prompting with string PROMPT.
+While in the minibuffer, you can use \\<minibuffer-local-completion-map>\\[minibuffer-complete] and \\[minibuffer-complete-word] to complete your input.
+You can also use \\<minibuffer-local-map>\\[minibuffer-complete-history] to complete using history items in the
+input history HIST, and you can use \\[minibuffer-complete-defaults] to complete using
+the default items in DEFAULT-VALUE.
+
 The optional second arg INITIAL-CONTENTS is an obsolete alternative to
   DEFAULT-VALUE.  It normally should be nil in new code, except when
   HIST is a cons.  It is discussed in more detail below.
