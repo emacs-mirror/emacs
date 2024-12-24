@@ -830,6 +830,13 @@ Make sure you are in an ERC buffer when running this."
     (with-current-buffer buffer
       (erc-server-reconnect))))
 
+(defun erc-server--reconnect-opened (buffer process)
+  "Reconnect session for server BUFFER using open PROCESS."
+  (when (buffer-live-p buffer)
+    (with-current-buffer buffer
+      (let ((erc-session-connector (lambda (&rest _) process)))
+        (erc-server-reconnect)))))
+
 (defvar-local erc--server-reconnect-timeout nil)
 (defvar-local erc--server-reconnect-timeout-check 10)
 (defvar-local erc--server-reconnect-timeout-scale-function
@@ -845,7 +852,13 @@ Make sure you are in an ERC buffer when running this."
 
 (defun erc-server-delayed-check-reconnect (buffer)
   "Wait for internet connectivity before trying to reconnect.
-Expect BUFFER to be the server buffer for the current connection."
+Use server BUFFER's cached session info to reestablish the logical
+connection at the IRC protocol level.  Do this by probing for a
+successful response to a PING before commencing with \"connection
+registration\".  Do not distinguish between configuration problems and
+the absence of service.  For example, expect users of proxy-based
+connectors, like `erc-open-socks-tls-stream', to ensure their setup
+works before choosing this function as their reconnector."
   (when (buffer-live-p buffer)
     (with-current-buffer buffer
       (setq erc--server-reconnect-timeout
@@ -857,7 +870,8 @@ Expect BUFFER to be the server buffer for the current connection."
                              (with-current-buffer buffer
                                (let ((erc-server-reconnect-timeout
                                       erc--server-reconnect-timeout))
-                                 (delete-process proc)
+                                 (when proc ; conn refused w/o :nowait
+                                   (delete-process proc))
                                  (erc-display-message nil 'error buffer
                                                       "Nobody home...")
                                  (erc-schedule-reconnect buffer 0))))))
@@ -867,7 +881,7 @@ Expect BUFFER to be the server buffer for the current connection."
              (conchk (lambda (proc)
                        (let ((status (process-status proc))
                              (xprdp (time-less-p conchk-exp (current-time))))
-                         (when (or (not (eq 'connect status)) xprdp)
+                         (when (or xprdp (not (eq 'connect status)))
                            (cancel-timer conchk-timer))
                          (when (buffer-live-p buffer)
                            (cond (xprdp (erc-display-message
@@ -880,38 +894,50 @@ Expect BUFFER to be the server buffer for the current connection."
              (sentinel (lambda (proc event)
                          (pcase event
                            ("open\n"
-                            (run-at-time nil nil #'process-send-string proc
-                                         (format "PING %d\r\n"
-                                                 (time-convert nil 'integer))))
+                            (let ((cookie (time-convert nil 'integer)))
+                              (process-put proc 'erc--reconnect-cookie cookie)
+                              (run-at-time nil nil #'process-send-string proc
+                                           (format "PING %d\r\n" cookie))))
                            ((or "connection broken by remote peer\n"
                                 (rx bot "failed"))
                             (run-at-time nil nil reschedule proc)))))
-             (filter (lambda (proc _)
-                       (delete-process proc)
+             (filter (lambda (proc string)
                        (with-current-buffer buffer
                          (setq erc--server-reconnect-timeout nil))
-                       (run-at-time nil nil #'erc-server-delayed-reconnect
-                                    buffer))))
+                       (if-let* ; reuse proc if string has complete message
+                           ((cookie (process-get proc 'erc--reconnect-cookie))
+                            ((string-suffix-p (format "PONG %d\r\n" cookie)
+                                              string))) ; leading ":<source> "
+                           (progn
+                             (erc-log-irc-protocol string nil)
+                             (set-process-sentinel proc #'ignore)
+                             (set-process-filter proc nil)
+                             (run-at-time nil nil
+                                          #'erc-server--reconnect-opened
+                                          buffer proc))
+                         (delete-process proc)
+                         (run-at-time nil nil #'erc-server-delayed-reconnect
+                                      buffer)))))
         (condition-case _
             (let ((proc (funcall erc-session-connector
                                  "*erc-connectivity-check*" nil
-                                 erc-session-server erc-session-port
-                                 :nowait t)))
+                                 erc-session-server erc-session-port)))
               (setq conchk-timer (run-at-time 1 1 conchk proc))
               (set-process-filter proc filter)
-              (set-process-sentinel proc sentinel))
+              (set-process-sentinel proc sentinel)
+              (when (eq (process-status proc) 'open) ; :nowait is nil
+                (funcall sentinel proc "open\n")))
+          ;; E.g., "make client process failed" "Connection refused".
           (file-error (funcall reschedule nil)))))))
-
-(defvar erc--server-delayed-check-connectors
-  '(erc-open-tls-stream erc-open-network-stream)
-  "Functions compatible with `erc-server-delayed-check-reconnect'.")
 
 (defun erc-server-prefer-check-reconnect (buffer)
   "Defer to another reconnector based on BUFFER's `erc-session-connector'.
 Prefer `erc-server-delayed-check-reconnect' if the connector is known to
 be \"check-aware\".  Otherwise, use `erc-server-delayed-reconnect'."
   (if (memq (buffer-local-value 'erc-session-connector buffer)
-            erc--server-delayed-check-connectors)
+            '(erc-open-tls-stream
+              erc-open-network-stream
+              erc-open-socks-tls-stream))
       (erc-server-delayed-check-reconnect buffer)
     (erc-server-delayed-reconnect buffer)))
 

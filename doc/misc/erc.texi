@@ -1667,6 +1667,8 @@ shown in the following example:
         (socks-server '("tor" "localhost" 9050 5)))
     (apply #'erc-open-socks-tls-stream args)))
 
+(setopt erc-server-reconnect-function #'erc-server-delayed-check-reconnect)
+
 (let* ((erc-modules (cons 'sasl erc-modules))
        (erc-sasl-mechanism 'external)
        (erc-server-connect-function #'my-erc-open-socks-tls-stream))
@@ -1686,6 +1688,18 @@ available when reconnecting.  If you plan on using @acronym{SOCKS}
 with ERC exclusively, you can just set those options and variables
 globally and bind @code{erc-server-connect-function} to
 @code{erc-open-socks-tls-stream} instead.
+
+@defun erc-open-socks-tls-stream
+The default TLS @dfn{connector} for @acronym{SOCKS} connections.
+Compatible with option @code{erc-server-connect-function}.  Be aware
+that if used in conjunction with certain values of
+@code{erc-server-reconnect-function} (such as
+@code{erc-server-prefer-check-reconnect}, currently the default
+@dfn{reconnector}, or @code{erc-server-delayed-check-reconnect}, the
+more specialized workhorse it defers to), this function may cause ERC to
+misreport proxy-related failures as routine lapses in internet
+connectivity.
+@end defun
 
 @node auth-source
 @subsection auth-source

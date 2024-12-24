@@ -100,6 +100,8 @@
       ((erc-server-flood-penalty 0.1)
        (erc-scenarios-common-dialog "base/reconnect")
        (erc-d-auto-pong nil)
+       (erc-d-tmpl-vars
+        `((cookie . ,(lambda (a) (funcall a :set (funcall a :match 1))))))
        (dumb-server (erc-d-run "localhost" t 'unexpected-disconnect))
        (port (process-contact dumb-server :service))
        (erc--server-reconnect-timeout-scale-function (lambda (_) 1))
@@ -128,7 +130,6 @@
     (ert-info ("Service restored")
       (setq dumb-server (erc-d-run "localhost" port
                                    'just-ping
-                                   'ping-pong
                                    'unexpected-disconnect))
       (with-current-buffer "FooNet"
         (funcall expect 30 "server is in debug mode")))
