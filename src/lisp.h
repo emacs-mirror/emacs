@@ -1384,11 +1384,13 @@ XUFIXNUM (Lisp_Object a)
 }
 
 /* Return A's hash, which is in the range 0..INTMASK.  */
+#ifndef HAVE_MPS
 INLINE EMACS_INT
 (XHASH) (Lisp_Object a)
 {
   return lisp_h_XHASH (a);
 }
+#endif
 
 /* Like make_fixnum (N), but may be faster.  N must be in nonnegative range.  */
 INLINE Lisp_Object
