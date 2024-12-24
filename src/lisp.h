@@ -449,7 +449,9 @@ typedef EMACS_INT Lisp_Word;
 #define lisp_h_VECTORLIKEP(x) TAGGEDP (x, Lisp_Vectorlike)
 #define lisp_h_XCAR(c) XCONS (c)->u.s.car
 #define lisp_h_XCDR(c) XCONS (c)->u.s.u.cdr
+#ifndef HAVE_MPS
 #define lisp_h_XHASH(a) XUFIXNUM_RAW (a)
+#endif
 #if USE_LSB_TAG
 # define lisp_h_make_fixnum_wrap(n) \
     XIL ((EMACS_INT) (((EMACS_UINT) (n) << INTTYPEBITS) + Lisp_Int0))
@@ -499,7 +501,9 @@ typedef EMACS_INT Lisp_Word;
 # define VECTORLIKEP(x) lisp_h_VECTORLIKEP (x)
 # define XCAR(c) lisp_h_XCAR (c)
 # define XCDR(c) lisp_h_XCDR (c)
+#ifndef HAVE_MPS
 # define XHASH(a) lisp_h_XHASH (a)
+#endif
 # if USE_LSB_TAG
 #  define make_fixnum(n) lisp_h_make_fixnum (n)
 #  define XFIXNUM_RAW(a) lisp_h_XFIXNUM_RAW (a)
