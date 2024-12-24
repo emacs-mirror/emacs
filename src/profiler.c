@@ -185,9 +185,14 @@ trace_hash (Lisp_Object *trace, int depth)
   for (int i = 0; i < depth; i++)
     {
       Lisp_Object f = trace[i];
-      EMACS_UINT hash1
-	= (CLOSUREP (f) ? XHASH (AREF (f, CLOSURE_CODE)) : XHASH (f));
-      hash = sxhash_combine (hash, hash1);
+      EMACS_UINT hash1;
+#ifdef HAVE_MPS
+      hash1 = (CLOSUREP (f) ? igc_hash (AREF (f, CLOSURE_CODE)) : igc_hash (f));
+#else
+      hash1 = (CLOSUREP (f) ? XHASH (AREF (f, CLOSURE_CODE)) : XHASH (f));
+#endif
+     hash = sxhash_combine (hash, hash1);
+
     }
   return hash;
 }
