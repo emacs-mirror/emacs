@@ -160,6 +160,22 @@ grammar library loaded by Emacs for @var{language}.  If @var{language}
 is unavailable, this function returns @code{nil}.
 @end defun
 
+@vindex treesit-language-display-name-alist
+@defun treesit-language-display-name language
+This function translates @var{language} to an appropriate display name.
+For example, it translates @code{ruby} to ``Ruby'', @code{cpp} to
+``C++''.
+
+Most languages has ``regular'' names, and their display name is simply
+the symbol name with first letter capitalized.  For languages that has
+``irregular'' names, @var{treesit-language-display-name-alist} maps
+language symbols to their display names.
+
+If a major mode package uses a langauge with ``irregular'' name, they
+should add a mapping into @var{treesit-language-display-name-alist} on
+load.
+@end defun
+
 @heading Concrete syntax tree
 @cindex syntax tree, concrete
 

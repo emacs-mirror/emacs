@@ -993,6 +993,13 @@ to move across lists.  But to move across atoms inside the list
 it uses `forward-sexp-default-function'.
 
 +++
+*** New function 'treesit-language-display-name'.
+New function that returns the display name given the language symbol.
+For example, 'cpp' is translated to "C++".  Also adds a new variable
+'treesit-language-display-name-alist' that the function uses to
+translate display names.
+
++++
 ** New optional BUFFER argument for 'string-pixel-width'.
 If supplied, 'string-pixel-width' will use any face remappings from
 BUFFER when computing the string's width.

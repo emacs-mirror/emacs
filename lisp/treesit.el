@@ -835,6 +835,36 @@ omitted, default END to BEG."
                return rng
                finally return nil))))
 
+;;; Language display name
+
+;; The entries are sorted by `sort-lines'.
+(defvar treesit-language-display-name-alist
+  '(
+    (charp . "C#")
+    (cmake . "CMake")
+    (cpp . "C++")
+    (gomod . "Go Mod")
+    (heex . "HEEx")
+    (json . "JSON")
+    (php . "PHP")
+    (tsx . "TSX")
+    )
+  "An alist mapping language symbols to their display names.
+
+Used by `treesit-language-display-name'.  If there's no mapping in this
+alist, `treesit-language-display-name' converts the symbol to display
+name by capitalizing the first letter.  So languages like Java,
+Javascript, Rust don't need an entry in this variable.")
+
+(defun treesit-language-display-name (language)
+  "Returns the display name (a string) of LANGUAGE.
+
+If LANGUAGE has an entry in `treesit-language-display-name-alist', use
+the display name in their.  Otherwise, capitalize the first letter of
+LANGUAGE and return the string."
+  (or (alist-get language treesit-language-display-name-alist)
+      (capitalize (symbol-name language))))
+
 ;;; Fontification
 
 (define-error 'treesit-font-lock-error
