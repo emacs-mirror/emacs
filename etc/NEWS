@@ -1000,6 +1000,22 @@ For example, 'cpp' is translated to "C++".  Also adds a new variable
 translate display names.
 
 +++
+*** New command 'treesit-explore'
+This command replaces 'treesit-explore-mode'.  It turns on
+'treesit-explore-mode' if it’s not on, and pops up the explorer buffer
+if it’s already on.
+
++++
+*** 'treesit-explore-mode' now supports local parsers
+Now 'treesit-explore-mode' (or 'treesit-explore') prompts for a parser
+rather than a language, and it’s now possible to select a local parser
+at point to explore.
+
++++
+*** New variable 'treesit-aggregated-simple-imenu-settings'
+This variable allows major modes to setup Imenu for multiple languages.
+
++++
 ** New optional BUFFER argument for 'string-pixel-width'.
 If supplied, 'string-pixel-width' will use any face remappings from
 BUFFER when computing the string's width.
