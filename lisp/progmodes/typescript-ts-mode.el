@@ -514,12 +514,14 @@ This mode is intended to be inherited by concrete major modes."
 
   (setq-local treesit-thing-settings
               `((typescript
-                 (sexp ,(regexp-opt typescript-ts-mode--sexp-nodes))
-                 (sexp-list ,(regexp-opt typescript-ts-mode--sexp-list-nodes))
+                 (sexp ,(regexp-opt typescript-ts-mode--sexp-nodes 'symbols))
+                 (sexp-list ,(regexp-opt typescript-ts-mode--sexp-list-nodes
+                                         'symbols))
                  (sentence ,(regexp-opt
-                             typescript-ts-mode--sentence-nodes))
+                             typescript-ts-mode--sentence-nodes 'symbols))
                  (text ,(regexp-opt '("comment"
-                                      "template_string"))))))
+                                      "template_string")
+                                    'symbols)))))
 
   ;; Imenu (same as in `js-ts-mode').
   (setq-local treesit-simple-imenu-settings
@@ -597,11 +599,13 @@ at least 3 (which is the default value)."
                 `((tsx
                    (sexp ,(regexp-opt
                            (append typescript-ts-mode--sexp-nodes
-                                   '("jsx"))))
+                                   '("jsx"))
+                           'symbols))
                    (sentence ,(regexp-opt
                                (append typescript-ts-mode--sentence-nodes
                                        '("jsx_element"
-                                         "jsx_self_closing_element")))))))
+                                         "jsx_self_closing_element"))
+                               'symbols)))))
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings
