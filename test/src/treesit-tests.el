@@ -1270,6 +1270,20 @@ This tests bug#60355."
     (should node)
     (should (equal (treesit-node-text node) "2"))))
 
+;;; Imenu
+
+(ert-deftest treesit-imenu ()
+  "Test imenu functions."
+  (should (equal (treesit--imenu-merge-entries
+                  '(("Function" . (f1 f2))
+                    ("Function" . (f3 f4 f5))
+                    ("Class" . (c1 c2 c3))
+                    ("Variables" . (v1 v2))
+                    ("Class" . (c4))))
+                 '(("Function" . (f1 f2 f3 f4 f5))
+                   ("Class" . (c1 c2 c3 c4))
+                   ("Variables" . (v1 v2))))))
+
 
 ;; TODO
 ;; - Functions in treesit.el
