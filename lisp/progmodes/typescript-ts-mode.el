@@ -470,8 +470,6 @@ See `treesit-thing-settings' for more information.")
     "object_pattern"
     "array"
     "array_pattern"
-    "jsx_expression"
-    "_jsx_string"
     "string"
     "regex"
     "arguments"
@@ -599,8 +597,15 @@ at least 3 (which is the default value)."
                 `((tsx
                    (sexp ,(regexp-opt
                            (append typescript-ts-mode--sexp-nodes
-                                   '("jsx"))
-                           'symbols))
+                                   '("jsx"))))
+                   (sexp-list ,(concat "^"
+                                       (regexp-opt
+                                        (append typescript-ts-mode--sexp-list-nodes
+                                                '(
+                                                  "jsx_element"
+                                                  "jsx_self_closing_element"
+                                                  "jsx_expression")))
+                                       "$"))
                    (sentence ,(regexp-opt
                                (append typescript-ts-mode--sentence-nodes
                                        '("jsx_element"
