@@ -583,7 +583,9 @@ The alternate method, which is the one most often used, is to call
 	     (and (stringp name)
  		  ;; [ydi] Updated for imenu-use-markers.
 		  (push (cons name
-                              (if imenu-use-markers (point-marker) (point)))
+                              (if imenu-use-markers
+                                  (copy-marker (point) t)
+                                (point)))
 			index-alist)))
 	   index-alist))
 	;; Use generic expression if possible.
@@ -688,7 +690,7 @@ depending on PATTERNS."
 		(unless (assoc menu-title index-alist)
 		  (push (list menu-title) index-alist))
 		(if imenu-use-markers
-		    (setq beg (copy-marker beg)))
+		    (setq beg (copy-marker beg t)))
 		(let ((item
 		       (if function
 			   (nconc (list (match-string-no-properties index)
