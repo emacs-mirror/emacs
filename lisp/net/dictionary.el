@@ -1453,16 +1453,15 @@ via `dictionary-dictionaries'."
     (setq dictionary-tooltip-mouse-event (copy-sequence event))
     (tooltip-start-delayed-tip)))
 
-(defun dictionary-switch-tooltip-mode (on)
-  "Turn dictionary tooltip mode off or ON.
+(defun dictionary-switch-tooltip-mode (state)
+  "Turn dictionary tooltip mode on or off depending on STATE.
 
-It is normally internally called with 1 to enable support for the
-tooltip mode.  The hook function will check the value of the
-variable `dictionary-tooltip-mode' to decide if some action must be
-taken.  When disabling the tooltip mode the value of this variable
-will be set to nil."
-  (tooltip-mode on)
-  (if on
+It is normally called internally with a non-nil value to enable the
+tooltip mode.  The hook function uses the value of the variable
+`dictionary-tooltip-mode' to decide if some action must be taken.
+When disabling the tooltip mode, that variable will be set to nil."
+  (tooltip-mode state)
+  (if state
       (add-hook 'tooltip-functions #'dictionary-display-tooltip)
     (remove-hook 'tooltip-functions #'dictionary-display-tooltip)))
 
