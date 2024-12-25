@@ -3112,10 +3112,11 @@ automatically sets up Imenu if this variable is non-@code{nil}.
 @defvar treesit-aggregated-simple-imenu-settings
 This variable allows major modes to configure Imenu for multiple
 languages.  Its value is an alist mapping language symbols to Imenu
-settings described in @var{treesit-simple-imenu-settings}.
+settings of the form described above for the value of
+@code{treesit-simple-imenu-settings}.
 
-If both this variable and @var{treesit-simple-imenu-settings} is
-non-@code{nil}, Emacs uses this variable for setting up Imenu.
+If this variable is non-@code{nil}, it overrides
+@code{treesit-simple-imenu-settings} for setting up Imenu.
 @end defvar
 
 @node Outline Minor Mode
