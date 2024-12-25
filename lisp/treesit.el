@@ -3911,8 +3911,10 @@ covers point.  PARSER-NAME are unique."
   (interactive
    (list (let* ((parser-alist
                  (treesit--explorer-generate-parser-alist))
-                (parser-name (completing-read
-                              "Parser: " (mapcar #'car parser-alist))))
+                (parser-name (if (= (length parser-alist) 1)
+                                 (car parser-alist)
+                               (completing-read
+                                "Parser: " (mapcar #'car parser-alist)))))
            (alist-get parser-name parser-alist
                       nil nil #'equal))))
   (unless treesit-explore-mode
@@ -3952,7 +3954,15 @@ window."
           (unless (memq 'treesit--explorer-tree-mode
                         desktop-modes-not-to-save)
             (push 'treesit--explorer-tree-mode
-                  desktop-modes-not-to-save))))
+                  desktop-modes-not-to-save)))
+        ;; Tell `desktop-save' to not save this minor mode
+        ;; that might disrupt loading the desktop
+        ;; with the prompt to select a parser.
+        (when (boundp 'desktop-minor-mode-table)
+          (unless (member '(treesit-explore-mode nil)
+                          desktop-minor-mode-table)
+            (push '(treesit-explore-mode nil)
+                  desktop-minor-mode-table))))
     ;; Turn off explore mode.
     (remove-hook 'post-command-hook
                  #'treesit--explorer-post-command t)
