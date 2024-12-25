@@ -994,10 +994,10 @@ it uses `forward-sexp-default-function'.
 
 +++
 *** New function 'treesit-language-display-name'.
-New function that returns the display name given the language symbol.
-For example, 'cpp' is translated to "C++".  Also adds a new variable
-'treesit-language-display-name-alist' that the function uses to
-translate display names.
+This new function returns the display name of a language given the
+language symbol.  For example, 'cpp' is translated to "C++".  A new
+variable 'treesit-language-display-name-alist' holds the translations of
+language symbols where that translation is not trivial.
 
 +++
 *** New command 'treesit-explore'

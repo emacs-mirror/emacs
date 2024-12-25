@@ -851,17 +851,18 @@ omitted, default END to BEG."
     )
   "An alist mapping language symbols to their display names.
 
-Used by `treesit-language-display-name'.  If there's no mapping in this
-alist, `treesit-language-display-name' converts the symbol to display
-name by capitalizing the first letter.  So languages like Java,
-Javascript, Rust don't need an entry in this variable.")
+Used by `treesit-language-display-name'.  If there's no mapping for a
+lamguage in this alist, `treesit-language-display-name' converts the
+symbol to the display name by capitalizing the first letter of the
+symbol's name.  Thus, languages like Java, Javascript, Rust don't need
+an entry in this variable.")
 
 (defun treesit-language-display-name (language)
-  "Returns the display name (a string) of LANGUAGE.
+  "Return the display name (a string) of LANGUAGE (a symbol).
 
 If LANGUAGE has an entry in `treesit-language-display-name-alist', use
-the display name in their.  Otherwise, capitalize the first letter of
-LANGUAGE and return the string."
+the display name from there.  Otherwise, capitalize the first letter of
+LANGUAGE's name and return the resulting string."
   (or (alist-get language treesit-language-display-name-alist)
       (capitalize (symbol-name language))))
 
