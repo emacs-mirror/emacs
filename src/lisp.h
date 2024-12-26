@@ -4930,10 +4930,45 @@ Lisp_Object funcall_general (Lisp_Object fun,
 
 /* Defined in unexmacosx.c.  */
 #if defined DARWIN_OS && defined HAVE_UNEXEC
+/* Redirect calls to malloc, realloc and free to a macOS zone memory allocator.
+   FIXME: Either also redirect unexec_aligned_alloc and unexec_calloc,
+   or fix this comment to explain why those two redirections are not needed.  */
 extern void unexec_init_emacs_zone (void);
 extern void *unexec_malloc (size_t);
 extern void *unexec_realloc (void *, size_t);
 extern void unexec_free (void *);
+# ifndef UNEXMACOSX_C
+#  include <stdlib.h>
+#  undef malloc
+#  undef realloc
+#  undef free
+#  define malloc unexec_malloc
+#  define realloc unexec_realloc
+#  define free unexec_free
+# endif
+#endif
+
+/* Defined in gmalloc.c.  */
+#ifdef HYBRID_MALLOC
+/* Redirect calls to malloc and friends to a hybrid allocator that
+   uses gmalloc before dumping and the system malloc after dumping.
+   This can be useful on Cygwin, for example.  */
+extern void *hybrid_aligned_alloc (size_t, size_t);
+extern void *hybrid_calloc (size_t, size_t);
+extern void *hybrid_malloc (size_t);
+extern void *hybrid_realloc (void *, size_t);
+extern void hybrid_free (void *);
+# include <stdlib.h>
+# undef aligned_alloc
+# undef calloc
+# undef malloc
+# undef realloc
+# undef free
+# define aligned_alloc hybrid_aligned_alloc
+# define calloc hybrid_calloc
+# define malloc hybrid_malloc
+# define realloc hybrid_realloc
+# define free hybrid_free
 #endif
 
 /* The definition of Lisp_Module_Function depends on emacs-module.h,

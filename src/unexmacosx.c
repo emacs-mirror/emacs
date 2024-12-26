@@ -87,15 +87,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-/* Although <config.h> redefines malloc to unexec_malloc, etc., this
-   file wants stdlib.h to declare the originals.  */
-#undef malloc
-#undef realloc
-#undef free
-
 #include <stdlib.h>
 
 #include "unexec.h"
+#define UNEXMACOSX_C /* Tell lisp.h we want the system malloc, etc.  */
 #include "lisp.h"
 #include "sysstdio.h"
 

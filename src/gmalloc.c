@@ -62,7 +62,7 @@ extern void (*__MALLOC_HOOK_VOLATILE __malloc_initialize_hook) (void);
    grealloc... via the macros that follow).  The dumped emacs,
    however, will use the system malloc, realloc....  In other source
    files, malloc, realloc... are renamed hybrid_malloc,
-   hybrid_realloc... via macros in conf_post.h.  hybrid_malloc and
+   hybrid_realloc... via macros in lisp.h.  hybrid_malloc and
    friends are wrapper functions defined later in this file.  */
 #undef malloc
 #undef realloc
