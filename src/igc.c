@@ -4108,12 +4108,12 @@ weak_hash_table_entry (struct Lisp_Weak_Hash_Table_Entry entry)
 
   if (alignment == 0)
     {
-      client = (mps_addr_t)entry.intptr;
+      client = (mps_addr_t)(uintptr_t)entry.intptr;
     }
   else
     {
       EMACS_UINT real_ptr = entry.intptr ^ alignment;
-      client = (mps_addr_t)real_ptr;
+      client = (mps_addr_t)(uintptr_t)real_ptr;
     }
 
   switch (XFIXNUM (entry.fixnum))
