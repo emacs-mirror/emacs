@@ -397,7 +397,12 @@ and /* */ comments.  SOFT works the same as in
    :override t
    :feature 'keyword
    '((tag_name) @font-lock-constant-face
-     (storageclass) @font-lock-constant-face)
+     (type) @font-lock-type-face
+     (emphasis) @bold
+     ((tag_name) @bold (:match ".note" @bold))
+     ((tag_name) @warning (:match ".warning" @warning))
+     ((tag_name) @error (:match ".error" @error))
+     (storageclass) @font-lock-keyword-face)
 
    :language 'doxygen
    :override t
