@@ -693,6 +693,19 @@ indentation."
 (put 'match-let* 'scheme-indent-function 1)
 (put 'match-letrec 'scheme-indent-function 1)
 
+;; SRFI-227
+(put 'opt-lambda 'scheme-indent-function 1)
+(put 'opt*-lambda 'scheme-indent-function 1)
+(put 'let-optionals 'scheme-indent-function 2)
+(put 'let-optionals* 'scheme-indent-function 2)
+;; define-optionals and define-optionals* already work
+
+;; SRFI-253
+(put 'check-case 'scheme-indent-function 1)
+(put 'lambda-checked 'scheme-indent-function 1)
+(put 'case-lambda-checked 'scheme-doc-string-elt 1)
+;; define-checked and define-record-type-checked already work
+
 ;;;; MIT Scheme specific indentation.
 
 (if scheme-mit-dialect
