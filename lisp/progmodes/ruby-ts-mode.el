@@ -1052,6 +1052,9 @@ leading double colon is not added."
                              ;; Method calls with name ending with ? or !.
                              ((call method: (identifier) @ident)
                               (:match "[?!]\\'" @ident))
+                             ;; Method definitions for the above.
+                             ((method name: (identifier) @ident)
+                              (:match "[?!]\\'" @ident))
                              ;; Backtick method redefinition.
                              ((operator "`" @backtick))
                              ;; TODO: Stop at interpolations.
