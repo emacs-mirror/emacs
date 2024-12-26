@@ -1120,6 +1120,12 @@ leading double colon is not added."
       (equal (treesit-node-type (treesit-node-child node 0))
              "(")))
 
+(defun ruby-ts--sexp-list-p (node)
+  ;; Distinguish between the named `unless' node and the
+  ;; node with the same value of type.
+  (when (treesit-node-check node 'named)
+    (ruby-ts--sexp-p node)))
+
 (defvar-keymap ruby-ts-mode-map
   :doc "Keymap used in Ruby mode"
   :parent prog-mode-map
@@ -1235,7 +1241,7 @@ leading double colon is not added."
                            "array"
                            "hash")
                           eol)
-                         #'ruby-ts--sexp-p))
+                         #'ruby-ts--sexp-list-p))
                  (text ,(lambda (node)
                           (or (member (treesit-node-type node)
                                       '("comment" "string_content" "heredoc_content"))
