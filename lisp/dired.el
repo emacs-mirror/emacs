@@ -2088,8 +2088,10 @@ mouse-2: visit this file in other window"
            `(mouse-face highlight
              help-echo "mouse-1: re-read this buffer's directory"
              keymap ,(define-keymap
-                       "<mouse-2>" #'revert-buffer
-                       "<follow-link>" 'follow-link
+                       "<mouse-2>" (lambda ()
+                                     (interactive "@")
+                                     (revert-buffer))
+                       "<follow-link>" 'mouse-face
                        "RET" #'revert-buffer))))))))
 
 (defun dired--get-ellipsis-length ()
