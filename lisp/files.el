@@ -2233,7 +2233,7 @@ this function prepends a \"|\" to the final result if necessary."
          (lastname (if (string= lastname "") ; FILENAME is a root directory
                        filename lastname))
          (lastname (cond
-                    ((not (and uniquify-trailing-separator-p
+                    ((not (and uniquify-trailing-separator-flag
                                (file-directory-p filename)))
                      lastname)
                     ((eq uniquify-buffer-name-style 'forward)
