@@ -1220,7 +1220,7 @@ total height."
 ;;; Show/hide which-key buffer
 
 (defun which-key--hide-popup ()
-  "This function is called to hide the which-key buffer."
+  "Hide the which-key buffer."
   (unless (or which-key-persistent-popup
               (member real-this-command which-key--paging-functions))
     (setq which-key--last-try-2-loc nil)

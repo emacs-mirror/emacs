@@ -352,13 +352,13 @@ The result is converted to lowercase, as IRC is case-insensitive."
 	 erc-log-channels-directory)))))
 
 (defun erc-generate-log-file-name-with-date (buffer &rest _ignore)
-  "This function computes a short log file name.
+  "Return a short log file name with the current date.
 The name of the log file is composed of BUFFER and the current date.
 This function is a possible value for `erc-generate-log-file-name-function'."
   (concat (buffer-name buffer) "-" (format-time-string "%Y-%m-%d") ".txt"))
 
 (defun erc-generate-log-file-name-short (buffer &rest _ignore)
-  "This function computes a short log file name.
+  "Return a short log file name.
 In fact, it only uses the buffer name of the BUFFER argument, so
 you can affect that using `rename-buffer' and the-like.  This
 function is a possible value for

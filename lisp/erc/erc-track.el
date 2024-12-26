@@ -140,7 +140,7 @@ This setting is used by `erc-track-shorten-names'."
 		 (const :tag "Max" max)))
 
 (defcustom erc-track-shorten-function 'erc-track-shorten-names
-  "This function will be used to reduce the channel names before display.
+  "Function used to reduce the channel names before display.
 It takes one argument, CHANNEL-NAMES which is a list of strings.
 It should return a list of strings of the same number of elements.
 If nil instead of a function, shortening is disabled."

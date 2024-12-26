@@ -236,7 +236,7 @@ See the variable `sc-cite-frame-alist' for details."
   :group 'supercite-frames)
 
 (defcustom sc-cite-region-limit t
-  "This variable controls automatic citation of yanked text.
+  "Size limit for automatic citation of yanked text.
 Valid values are:
 
 non-nil   -- cite the entire region, regardless of its size

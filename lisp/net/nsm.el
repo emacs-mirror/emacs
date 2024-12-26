@@ -155,17 +155,16 @@ unencrypted."
     (dhe-kx                 high)
     (rsa-kx                 high)
     (cbc-cipher             high))
-  "This variable specifies what TLS connection checks to perform.
-It's an alist where the key is the name of the check, and the
-value is the minimum security level the check should begin.
+  "Alist of TLS connection checks to perform.
+The key is the name of the check, and the value is the minimum security
+level the check should begin.
 
-Each check function is called with the parameters HOST PORT
-STATUS SETTINGS.  HOST is the host domain, PORT is a TCP port
-number, STATUS is the peer status returned by
-`gnutls-peer-status', and SETTINGS is the persistent and session
-settings for the host HOST.  Please refer to the contents of
-`nsm-settings-file' for details.  If a problem is found, the check
-function is required to return an error message, and nil
+Each check function is called with the parameters HOST PORT STATUS
+SETTINGS.  HOST is the host domain, PORT is a TCP port number, STATUS is
+the peer status returned by `gnutls-peer-status', and SETTINGS is the
+persistent and session settings for the host HOST.  Please refer to the
+contents of `nsm-settings-file' for details.  If a problem is found, the
+check function is required to return an error message, and nil
 otherwise.
 
 See also: `nsm-check-tls-connection', `nsm-save-host-names',

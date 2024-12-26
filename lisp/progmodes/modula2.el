@@ -97,7 +97,7 @@
   "C-c C-c" #'m2-compile)
 
 (defcustom m2-indent 5
-  "This variable gives the indentation in Modula-2 mode."
+  "Indentation in Modula-2 mode."
   :type 'integer
   :safe (lambda (v) (or (null v) (integerp v))))
 

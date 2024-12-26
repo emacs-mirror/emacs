@@ -534,7 +534,7 @@ Putting this function on `eshell-pre-command-hook' will mimic Plan 9's
     (eshell-interactive-filter nil string)))
 
 (defsubst eshell-begin-on-new-line ()
-  "This function outputs a newline if not at beginning of line."
+  "Output a newline if not at beginning of line."
   (save-excursion
     (goto-char eshell-last-output-end)
     (or (bolp)

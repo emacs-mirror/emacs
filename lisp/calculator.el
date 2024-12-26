@@ -775,7 +775,7 @@ Defaults to 1."
   (or (nth 4 op) 1))
 
 (defun calculator-add-operators (more-ops)
-  "This function handles operator addition.
+  "Handle operator addition.
 Adds MORE-OPS to `calculator-operator', called initially to handle
 `calculator-initial-operators' and `calculator-user-operators'."
   (let ((added-ops nil))
