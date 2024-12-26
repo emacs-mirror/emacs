@@ -376,18 +376,6 @@ Defaults to the value of `browse-url-epiphany-arguments' at the time
   :type 'string
   :version "29.1")
 
-;; GNOME means of invoking Mozilla.
-(defvar browse-url-gnome-moz-program "gnome-moz-remote")
-
-(make-obsolete-variable 'browse-url-gnome-moz-program nil "25.1")
-
-(defcustom browse-url-gnome-moz-arguments '()
-  "A list of strings passed to the GNOME mozilla viewer as arguments."
-  :version "21.1"
-  :type '(repeat (string :tag "Argument")))
-
-(make-obsolete-variable 'browse-url-gnome-moz-arguments nil "25.1")
-
 (defcustom browse-url-mozilla-new-window-is-tab nil
   "Whether to open up new Mozilla windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new window if
@@ -1119,7 +1107,6 @@ instead of `browse-url-new-window-flag'."
     ((eq system-type 'android)
      'browse-url-default-android-browser)
     ((browse-url-can-use-xdg-open) 'browse-url-xdg-open)
-;;;    ((executable-find browse-url-gnome-moz-program) 'browse-url-gnome-moz)
     ((executable-find browse-url-firefox-program) 'browse-url-firefox)
     ((executable-find browse-url-chromium-program) 'browse-url-chromium)
     ((executable-find browse-url-kde-program) 'browse-url-kde)
@@ -1464,32 +1451,6 @@ currently selected window instead."
         (funcall func url)))))
 
 (function-put 'browse-url-emacs 'browse-url-browser-kind 'internal)
-
-;;;###autoload
-(defun browse-url-gnome-moz (url &optional new-window)
-  "Ask Mozilla to load URL via the GNOME program `gnome-moz-remote'.
-Default to the URL around or before point.  The strings in variable
-`browse-url-gnome-moz-arguments' are also passed.
-
-When called interactively, if variable `browse-url-new-window-flag' is
-non-nil, load the document in a new browser window, otherwise use an
-existing one.  A non-nil interactive prefix argument reverses the
-effect of `browse-url-new-window-flag'.
-
-When called non-interactively, optional second argument NEW-WINDOW is
-used instead of `browse-url-new-window-flag'."
-  (declare (obsolete nil "25.1"))
-  (interactive (browse-url-interactive-arg "URL: "))
-  (apply #'start-process (concat "gnome-moz-remote " url)
-	 nil
-	 browse-url-gnome-moz-program
-	 (append
-	  browse-url-gnome-moz-arguments
-	  (if (browse-url-maybe-new-window new-window)
-	      '("--newwin"))
-	  (list "--raise" url))))
-
-(function-put 'browse-url-gnome-moz 'browse-url-browser-kind 'external)
 
 ;; --- W3 ---
 
