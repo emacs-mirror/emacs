@@ -56,10 +56,14 @@
   :group 'docs)
 
 
-(defcustom makeinfo-run-command "makeinfo"
+(defcustom makeinfo-run-command
+  (cond ((executable-find "makeinfo") "makeinfo")
+        ((executable-find "texi2any") "texi2any")
+        (t "makeinfo"))
   "Command used to run `makeinfo' subjob.
 The name of the file is appended to this string, separated by a space."
-  :type 'string)
+  :type 'string
+  :version "31.1")
 
 (defcustom makeinfo-options "--fill-column=70"
   "String containing options for running `makeinfo'.
