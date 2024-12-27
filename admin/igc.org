@@ -242,3 +242,44 @@ the memory must be done with 'igc_xfree'.
 These functions are used throughout Emacs in äifdef HAVE_MPS. In
 general, it's an erro to put references to Lisp objects in malloc'd
 memory and not use the igc functions.
+
+An example:
+
+Emacs' atimers are created with the function start_atimer, which takes
+as arguments, among others, a callback to call when the atimer fires,
+and client data of type void * to pass to the callback.  The client data
+can be anything. It can be a pointer to a C string, an integer cast to
+void *, a pointer to some Lisp object, anything that fits.
+
+The atimer implementation stores away the client data until the timer
+fires. Until then, Emacs must make sure that the client data is not
+discarded, in case it is a Lisp object, which we don't know.
+
+It therefore does things like this, simplified:
+
+1. Start an aitmer.
+
+   Malloc a struct, making it an ambiguous root. The allocation is done
+   with igc_xzalloc_ambig. The xzalloc part of the name tells that it
+   does the same thing as xzalloc. The ambig part tells that it creates
+   an ambiguous root.
+
+   Store callback and client data in that struct.
+
+   #+begin_src C
+     struct atimer *t = igc_xzalloc_ambig (sizeof *t);
+     t->fn = fn;
+     t->client_data = client_data;
+     ...
+   #+end_src
+
+2. Timer fires.
+
+   Call the callback with client data, then free the memory and destroy
+   the root with igc_free.
+
+   #+begin_src C
+     ...
+     t->fn (t->client_daga);
+     igc_free (t)
+   #+end_src
