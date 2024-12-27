@@ -9103,9 +9103,8 @@ the appropriate statement modifier."
 	 (bufname (concat "Man " buffer-file-name))
 	 (buffer (generate-new-buffer bufname)))
     (with-current-buffer buffer
-      (let ((process-environment (copy-sequence process-environment)))
-        ;; Prevent any attempt to use display terminal fanciness.
-        (setenv "TERM" "dumb")
+      ;; Prevent any attempt to use display terminal fanciness.
+      (with-environment-variables (("TERM" "dumb"))
         (set-process-sentinel
          (start-process pod2man-program buffer "sh" "-c"
                         (format (cperl-pod2man-build-command) pod2man-args))

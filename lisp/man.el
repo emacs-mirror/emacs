@@ -1020,8 +1020,8 @@ foo(sec)[, bar(sec) [, ...]] [other stuff] - description"
           ;; whereas under macOS it seems to be BRE-style and doesn't
           ;; accept backslashes at all.  Let's not bother to
           ;; quote anything.
-          (let ((process-environment (copy-sequence process-environment)))
-            (setenv "COLUMNS" "999") ;; don't truncate long names
+          (with-environment-variables
+              (("COLUMNS" "999"))       ; don't truncate long names
             ;; manual-program might not even exist.  And since it's
             ;; run differently in Man-getpage-in-background, an error
             ;; here may not necessarily mean that we'll also get an
