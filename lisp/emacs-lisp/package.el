@@ -1829,10 +1829,11 @@ Populate `package-archive-contents' with the result.
 If optional argument ASYNC is non-nil, perform the downloads
 asynchronously."
   (dolist (archive package-archives)
-    (condition-case-unless-debug nil
+    (condition-case-unless-debug err
         (package--download-one-archive archive "archive-contents" async)
-      (error (message "Failed to download `%s' archive."
-               (car archive))))))
+      (error (message "Failed to download `%s' archive: %s"
+                      (car archive)
+                      (error-message-string err))))))
 
 (defvar package-refresh-contents-hook (list #'package--download-and-read-archives)
   "List of functions to call to refresh the package archive.
@@ -1856,7 +1857,8 @@ downloads in the background."
     (when (and (package-check-signature) (file-exists-p default-keyring))
       (condition-case-unless-debug error
           (package-import-keyring default-keyring)
-        (error (message "Cannot import default keyring: %S" (cdr error))))))
+        (error (message "Cannot import default keyring: %s"
+                        (error-message-string error))))))
   (run-hook-with-args 'package-refresh-contents-hook async))
 
 
@@ -3989,8 +3991,9 @@ Return nil if there were no errors; non-nil otherwise."
               (package-delete elt nil 'nosave))
           (error
            (push (package-desc-full-name elt) errors)
-           (message "Error trying to delete `%s': %S"
-                    (package-desc-full-name elt) err)))))
+           (message "Error trying to delete `%s': %s"
+                    (package-desc-full-name elt)
+                    (error-message-string err))))))
     errors))
 
 (defun package--update-selected-packages (add remove)
