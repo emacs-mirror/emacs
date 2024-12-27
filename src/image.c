@@ -210,6 +210,9 @@ static void image_disable_image (struct frame *, struct image *);
 static void image_edge_detection (struct frame *, struct image *, Lisp_Object,
                                   Lisp_Object);
 
+static double image_compute_scale (struct frame *f, Lisp_Object spec,
+				   struct image *img);
+
 static void init_color_table (void);
 static unsigned long lookup_rgb_color (struct frame *f, int r, int g, int b);
 #ifdef COLOR_TABLE_SUPPORT
@@ -2222,9 +2225,12 @@ search_image_cache (struct frame *f, Lisp_Object spec, EMACS_UINT hash,
      image spec specifies :background.  However, the extra memory
      usage is probably negligible in practice, so we don't bother.  */
 
+  double scale = image_compute_scale (f, spec, NULL);
+
   for (img = c->buckets[i]; img; img = img->next)
     if (img->hash == hash
 	&& !NILP (Fequal (img->spec, spec))
+	&& scale == img->scale
 	&& (ignore_colors || (img->face_foreground == foreground
                               && img->face_background == background
 			      && img->face_font_size == font_size
@@ -2667,18 +2673,15 @@ image_get_dimension (struct image *img, Lisp_Object symbol)
   return -1;
 }
 
-/* Compute the desired size of an image with native size WIDTH x HEIGHT,
-   which is to be displayed on F.  Use IMG to deduce the size.  Store
-   the desired size into *D_WIDTH x *D_HEIGHT.  Store -1 x -1 if the
-   native size is OK.  */
-
-static void
-compute_image_size (struct frame *f, double width, double height,
-		    struct image *img,
-		    int *d_width, int *d_height)
+/* Calculate the scale of the image.  IMG may be null as it is only
+   required when creating an image, and this function is called from
+   image cache related functions that do not have access to the image
+   structure.  */
+static double
+image_compute_scale (struct frame *f, Lisp_Object spec, struct image *img)
 {
   double scale = 1;
-  Lisp_Object value = image_spec_value (img->spec, QCscale, NULL);
+  Lisp_Object value = image_spec_value (spec, QCscale, NULL);
 
   if (EQ (value, Qdefault))
     {
@@ -2692,7 +2695,9 @@ compute_image_size (struct frame *f, double width, double height,
 	{
 	  /* This is a tag with which callers of `clear_image_cache' can
 	     refer to this image and its likenesses.  */
-	  img->dependencies = Fcons (Qauto, img->dependencies);
+	  if (img)
+	    img->dependencies = Fcons (Qauto, img->dependencies);
+
 	  scale = (FRAME_COLUMN_WIDTH (f) > 10
 		   ? (FRAME_COLUMN_WIDTH (f) / 10.0f) : 1);
 	}
@@ -2715,6 +2720,24 @@ compute_image_size (struct frame *f, double width, double height,
       if (0 <= dval)
 	scale = dval;
     }
+
+  if (img)
+    img->scale = scale;
+
+  return scale;
+}
+
+/* Compute the desired size of an image with native size WIDTH x HEIGHT,
+   which is to be displayed on F.  Use IMG to deduce the size.  Store
+   the desired size into *D_WIDTH x *D_HEIGHT.  Store -1 x -1 if the
+   native size is OK.  */
+
+static void
+compute_image_size (struct frame *f, double width, double height,
+		    struct image *img,
+		    int *d_width, int *d_height)
+{
+  double scale = image_compute_scale(f, img->spec, img);
 
   /* If width and/or height is set in the display spec assume we want
      to scale to those values.  If either h or w is unspecified, the
