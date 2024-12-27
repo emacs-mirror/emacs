@@ -168,7 +168,7 @@ can be accessed from anywhere.
 MPS allows us to specify roots having tailor-made scan functions that
 Emacs implements. Scanning here refers to the process of finding
 references in the memory area of the root, and telling MPS about the
-references.
+references, so that it can update its set of live objects.
 
 The function scan_specpdl is an example. We know the structure of a
 bindings stack, so we can tell where references to Lisp objects can
