@@ -1110,7 +1110,7 @@ are used before @code{minor-mode-map-alist} and
 @end defvar
 
 @cindex transient keymap
-@defun set-transient-map keymap &optional keep-pred on-exit
+@defun set-transient-map keymap &optional keep-pred on-exit message timeout
 This function adds @var{keymap} as a @dfn{transient} keymap, which
 takes precedence over other keymaps for one (or more) subsequent keys.
 
