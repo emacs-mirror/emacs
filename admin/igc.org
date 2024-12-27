@@ -1,192 +1,244 @@
-#+title: MPS garbage collection for Emacs
+#+title: igc: MPS-based garbage collection for Emacs
+* Introduction / Garbage collection
 
-* What is MPS?
+Implementing a programming language like Lisp requires automatic
+memory management which frees the memory of Lisp objects like conses,
+strings etc. when they are no longer in use. The automatic memory
+management used for Lisp is called garbage collection (GC), which is
+performed by a garbage collector. Objects that are no longer used are
+called garbage or dead, objects that are in use or called live
+objects. The process of getting rid of garbage is called the GC.
 
-The MPS (Memory Pool System) is a GC library developed by Ravenbrook
-Ltd. MPS is available from [[https://github.com/Ravenbrook/mps?tab=readme-ov-file][Github]] under a BSD license. See the
-[[https://memory-pool-system.readthedocs.io/en/latest/][documentation]].
+A large number of GC algorithms and implementations exist which differ
+in various dimensions. Emacs has two GC implementations which can be
+chosen at compile-time. The traditional (old) GC, which was the only
+one until recently, is a so-called mark-sweep, non-copying collector.
+The new GC implementation in this file is an incremental,
+generational, concurrent (igc) collector based on the MPS library from
+Ravenbrook. It is a so-called copying collector. The terms used here
+will become clearer in the following.
 
-In short, MPS implements incremental, generational, concurrent, copying,
-thread-safe garbage collection on a large variety of platforms. It has
-been around for a long time, is stable, and well documented.
+Emacs' traditional mark-sweep GC works in two phases:
 
-* What is this branch?
+1. The mark phase
 
-This [[https://github.com/gerd-moellmann/emacs-with-cl-packages/tree/igc][branch]] is an experiment if Emacs can be made to use a GC based on
-MPS. I'm doing this for my own entertainment, it's not in any form
-"official".
+   Start with a set of so-called (GC) roots that are known to contain
+   live objects. Examples of roots in Emacs are
 
-* Caveats
+   - the bytecode stacks
+   - the specpdl (binding) stacks
+   - Lisp variables defined in C with DEFVAR
+   - the C stacks (aka control stacks)
+   - ...
 
-This is my local Emacs, which is different from mainstream Emacs: It
-uses CL packages, doesn't have obarrays, doesn't support pure space,
-does not support shorthands and probably some other stuff.
+   Roots in a general sense are contiguous areas of memory, and they
+   are either "exact" or "ambiguous".
 
-In addition, I'm exclusively using macOS, so it's unlikely to compile or
-run on other systems OOTB. It should not be too hard to port, though.
+   If we know that a root always contains only valid Lisp object
+   references, the root is called exact. An Example for an exact root
+   is the root for a DEFVAR. The DEFVAR variable always contains a
+   valid reference to a Lisp object. The memory range of the root is
+   the Lisp_Object C variable.
 
-* Current state
+   If we only know that a root contains potential references to Lisp
+   objects, the root is called ambiguous.  An example for an ambiguous
+   root is the C stack.  The C stack can contain integers that look
+   like a Lisp_Object or pointer to a Lisp object, but actually are
+   just random integers.  Ambiguous roots are said to be scanned
+   conservatively: we make the conservative assumption that we really
+   found a reference, so that we don't discard objects that are only
+   referenced from the C stack.
 
-Build succeeds up to and including =compile-first=, i.e. Emacs pdumps, and
-compiles some =.elc= files.
+   The mark phase of the traditional GC scans all roots,
+   conservatively or exactly, and marks the Lisp objects found
+   referenced in the roots live, plus all Lisp objects reachable from
+   them, recursively.  In the end, all live objects are marked, and all
+   objects not marked are dead, i.e.  garbage.
 
-* Things worth mentioning
+2.  The sweep phase
 
-** Configuration
+   Sweeping means to free all objects that are not marked live.  The
+   collector iterates over all allocated objects, live or dead, and
+   frees the dead ones so that their memory can be reused.
 
-There is a now configure switch =--with-mps= with values =no, yes, debug=.
-If =debug= is given, Emacs links with the debug version of the MPS
-library.
+The traditional mark-sweep GC implementation is
 
-** Building MPS
+- Not concurrent.  Emacs calls GC explicitly in various places, and
+  proceeds only when the GC is done.
+- Not incremental.  The GC is not done in steps.
+- Not generational.  The GC doesn't take advantage of the so-called
+  generational hypothesis, which says that most objects used by a
+  program die young, i.e.  are only used for a short period of time.
+  Other GCs take this hypothesis into account to reduce pause times.
+- Not copying.  Lisp objects are never copied by the GC.  They stay at
+  the addresses where their initial allocation puts them.  Special
+  facilities like allocation in blocks are implemented to avoid memory
+  fragmentation.
 
-I built MPS from its Git repo. I had to make two trivial fixes for macOS
-for which I submitted issues upstream.
+In contrast, the new igc collector, using MPS, is
 
-** Every object has a 1 word header
+- Concurrent.  The GC runs in its own thread.  There are no explicit
+  calls to start GC, and Emacs doesn't have to wait for the GC to
+  complete.
+- Incremental.  The GC is done in steps.
+- Generational.  The GC takes advantage of the so-called
+  generational hypothesis.
+- Copying.  Lisp objects are copied by the GC, avoiding memory
+  fragmentation.  Special care must be taken to take into account that
+  the same Lisp object can have different addresses at different
+  times.
 
-At the moment, every object has a one-word header, which is not visible
-to the rest of Emacs. See ~struct igc_header~.
+The goal of igc is to reduce pause times when using Emacs
+interactively.  The properties listed above which come from leveraging
+MPS make that possible.
 
-This means in particular that conses are 50% larger than they would
-normally be. I did this because it is less work:
+* MPS (Memory Pool System)
 
-- All objects can be handled by one set of MPS callback functions.
+The MPS (Memory Pool System) is a C library developed by Ravenbrook
+Inc. over several decades. It is used, for example, by the OpenDylan
+project.
 
-- It simplifies the implementation of eq hash tables considerably by
-  storing an address-independent hash in the header.
+A guide and a reference manual for MPS can be found at
+https://memory-pool-system.readthedocs.io. The following can only be a
+rough and incomplete overview. It is recommended to read at least the
+MPS Guide.
 
-The header can be removed from conses (and other objects, if that's
-worth it) by writing additional code using additional MPS pools with
-their own object formats.
+MPS uses "arenas" which consist of "pools". The pools represent memory
+to allocate objects from that are subject to GC. Different types of
+pools implement different GC strategies.
 
-Note that doing this also means that one has to use MPS's location
-dependency feature for implementing eq hash tables.
+Pools have "object formats" that an application must supply when it
+creates a pool. The most important part of an object format are a
+handful of functions that an application must implement to perform
+lowest-level operations on behalf of the MPS. These functions make it
+possible to implement MPS without it having to know low-level details
+about what application objects look like.
 
-Also be aware that two calls to ~sxhash-eq~ can then return different
-hashes when a concurrent GC happens between calls, unless something is
-done to ensure that the hashed objects aren't moved by the GC for long
-enough.
+The most important MPS pool type is named AMC (Automatic Mostly
+Copying). AMC implements a variant of a copying collector. Objects
+allocated from AMS pools can therefore change their memory addresses.
 
-** MPS In-band headers
+When copying objects, a marker is left in the original object pointing
+to its copy. This marker is also called a "tombstone". A "memory
+barrier" is placed on the original object. Memory barrier means the
+memory is read and/or write protected (e.g. with mprotect). The
+barrier leads to MPS being invoked when an old object is accessed.
+The whole process is called "object forwarding".
 
-I have tried to use MPS in-band headers at first, but couldn't get it to
-work. I don't claim they don't work, though. After all I was and still
-am learning MPS.
+MPS makes sure that references to old objects are updated to refer to
+their new addresses. Functions defined in the object format are used
+by MPS to perform the lowest-level tasks of object forwarding, so that
+MPS doesn't have to know application-specific details of how objects
+look like. In the end, copying/forwarding is transparent to the
+application.
 
-** Weak hash tables
+AMC implements a "mostly-copying" collector, where "mostly" refers to
+the fact that it supports ambiguous references. Ambiguous references
+are those from ambiguous roots, where we can't tell if a reference is
+real or not. If we would copy such an object, we wouldn't be able to
+update their address in all references because we can't tell if the
+ambiguous reference is real or just some random integer, and changing
+it would have unforeseeable consequences. Ambiguously referenced
+objects are therefore never copied, and their address does not change.
 
-I didn't think that weak hash tables were important enough for my
-experiment, so I didn't implement them to save work.
+* The registry
 
-Weak tables can be implemented using the already present in =igc.c= AWL
-pool and its allocation points, and then using MPS's dependent objects
-in the hash table implementation. There are examples how to do this in
-the MPS documentation, and in an example Scheme interpreter.
+The MPS shields itself from knowing application details, for example
+which GC roots the application has, which threads, how objects look
+like and so on. MPS has an internal model instead which describes
+these details.
 
-To prepare for that, keys and values of a hash table are already split
-into two vectors. Two vectors are necessary because objects in an AWL
-pool must either contain weak references only, or strong references
-only. The currently malloc'd vectors would have to be replaced with
-special vectors allocated from the AWL pool.
+Emacs creates this model using the MPS API. For example, MPS cannot
+know what Emacs' GC roots are. We tell MPS about Emacs' roots by
+calling an MPS API function an MPS-internal model for the root, and
+get back a handle that stands for the root. This handle later used to
+refer to the model object. For example, if we want to delete a root
+later, because we don't need it anymore, we call an MPS function
+giving it the handle for the root we no longer need.
 
-** Handling of a loaded pdump
+All other model objects are handled in the same way, threads, arenas,
+pools, object formats and so on.
 
+Igc collects all these MPS handles in a 'struct igc'. This "registry"
+of MPS handles is found in the global variable 'global_igc' and thus
+can be accessed from anywhere.
 
-The hot part of a loaded pdump (ca. 18 MB) is currently used as an
-ambiguous root for MPS. A number of things could be investigated
+* Root scan functions
 
-- Use a root with barrier (~MPS_RM_PROT~)
+MPS allows us to specify roots having tailor-made scan functions that
+Emacs implements. Scanning here refers to the process of finding
+references in the memory area of the root, and telling MPS about the
+references.
 
-- Copy objects from the dump to an MPS pool that uses ~MPS_KEY_GEN~ to
-  allocate objects in an old generation.
+The function scan_specpdl is an example. We know the structure of a
+bindings stack, so we can tell where references to Lisp objects can
+be. This is generally better than letting MPS do the scanning itself,
+because MPS can only scan the whole block word for word, ambiguously
+or exactly.
 
-  It is unclear to me from the docs if the AMC pool supports that, but
-  one could use an AMS pool.
+All such scan functions in igc have the prefix scan_.
 
-  After loading a dump we would copy the whole object graph to MPS,
-  starting from static roots.  After that, the dump itself would no
-  longer be used.
+* Lisp object scan functions
 
-  Costs some load time, though.
+Igc tells MPS how to scan Lisp objects allocated via MPS by specifying
+a scan function for that purpose in an object format. This function is
+'dflt_scan' in igc.c, which dispatches to various subroutines for
+different Lisp object types.
 
-- Store objects in the dump with igc_header, so that we can make the
-  dump an exact root. This would simplify things enormously. My
-  favourite.
+The lower-level functions and macros igc defines in the call tree of
+dflt_scan have names starting with 'fix'_ or 'FIX_', because they use
+the MPS_FIX1 and MPS_FIX2 API to do their job. Please refer to the MPS
+reference for details of MPS_FIX1/2.
 
-There is also a slight problem currently that's a consequence of Emacs
-mixing GC'd objects and malloc'd ones. The loaded dump is scanned
-conservativly, but if such objects contain malloc'd data structures
-holding references, these are invisble to MPS, so one has to jump
-through hoops.
+* Initialization
 
-Examples:
+Before we can use MPS, we must define and create various things that
+MPS needs to know, i.e we create an MPS' internal model of Emacs. This
+is done at application startup, and all objects are added to the
+registry.
 
-- Hash tables hold keys and values in malloc'd vectors. If the hash
-  table is in the dump, and the vectors are on the heap, keys and values
-  won't be seen be MPS.
-
-- Symbols in the dump may have a Lisp_Buffer_Local_Value that is on the
-  heap.
-
-- Buffers have a itree_tree that is malloc'd.
-
-** Intervals and ~itree_node~
-
-Problem with these two is that there are pointers from Lisp objects to
-malloc'd memory and back. This is easier to handle if allocated
-from MPS. Moving these to MPS makes things easier because MPS triggers
-the scanning, and, not the least, makes an ambiguous scan of the loaded
-dump keep things alive.
-
-** Finalization
-
-Is now implemented.
-
-** Things old GC does except GC
-
-The function ~garbage_collect~ does some things that are not directly
-related to GC, simply because it is called every once in a while.
-
-- compact buffers, undo-list.
-
-This is currently not done, but could be done in another way, from a
-timer, for instance.
-
-** Not Considered
-
-Some things are not implemented because they were out of scope. For
-example,
-
-- ~memory-report~ Could be done with MPS's pool walk functionality.
-
-- profiler (~profiler-memory-start~...) No idea, haven't looked at it.
-
-- Anything I don't currently use either because it doesn't exist on
-  macOS (text conversions, for example), or because I didn't think it
-  being essiential (xwidgets, for example).
-
-** Knobs not tried
-
-- Number of generations
-- Size of generations
-- Mortality probabilities
-- Allocation policies, like ramp allocation
+- Pools. We tell MPS which pools we want to use, and what the object
+  formats are, i.e. which callbacks in Emacs MPS can use.
+- Threads. We define which threads Emacs has, and add their C stacks
+  as roots. This includes Emacs' main thread.
+- Roots. We tell MPS about the various roots in Emacs, the DEFVARs,
+  the byte code stack, staticpro, etc.
 - ...
 
-** Implementation
+When we done all that, we tell MPS it can start doing its job.
 
-I think it's not too terrible, but some things should be improved
+* Lisp Object Allocation
 
-- Error handling. It currently aborts in many circumstances, but
-  it is also not clear what else to do.
+All of Emacs' Lisp object allocation ultimately ends up done in igc's
+'alloc_impl' function.
 
-- Idle time use. It does something in this regard, but not much,
-  and not always with a time constraint (handling MPS messages).
+MPS allocation from pools is thread-specific, using so-called
+"allocation points". These allocation points optimize allocation by
+reducing thread-contention. Allocation points are associated with
+pools, and there is one allocation point per thread.
 
-** Debugger
+The function 'thread_ap' in igc determines which allocation point to
+use for the current thread and depending on the type of Lisp object
+to allocate.
 
-MPS uses memory barriers. In certain situations it is necessary to
-remove these to be able to do certain things.  I've added a command
-=xpostmortem= to the LLDB support for that. GDB will need something
-similar.
+* Malloc with roots
+
+In a number of places, Emacs allocates memory with its 'xmalloc'
+function family and then stores references to Lisp objects there,
+pointers or Lisp_Objects.
+
+With the traditional GC, frequently, inadvertently collecting such
+objects is prevented by inhibiting GC.
+
+With igc, we do things differently. We don't want to temporarily stop
+the GC thread to inhibit GC, as a design decision. Instead, we make
+the malloc'd memory a root. The root is destroyed when the memory is
+freed.
+
+igc provides a number if functions for doing such allocations. For
+example 'igc_xzalloc_ambig', 'igc_xpalloc_exact' and so on. Freeing
+the memory must be done with 'igc_xfree'.
+
+These functions are used throughout Emacs in äifdef HAVE_MPS. In
+general, it's an erro to put references to Lisp objects in malloc'd
+memory and not use the igc functions.
