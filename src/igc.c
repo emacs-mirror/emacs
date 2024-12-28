@@ -22,7 +22,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 #include <limits.h>
 #include <signal.h>
 #ifdef __clang__
-/* You want to use this without -Wignored-attributes because it worns
+/* You want to use this without -Wignored-attributes because it warns
    that it cannot add the attribute to functions returning void.  */
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wignored-attributes"
@@ -76,7 +76,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # error "HAVE_PDUMPER required"
 #endif
 
-#if 0 /* Not yet because that amke transfer between GNU and my fork
+#if 0 /* Not yet because that make transfer between GNU and my fork
 	 painful.  */
 #ifdef CHECK_STRUCTS
 # include "dmpstruct.h"
@@ -168,7 +168,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
    It goes from usable to IGC_STATE_DEAD if an error happens or
    something is detected that forces us to terminate the process
-   early. While terminating in this state, fallbacks are implemented
+   early.  While terminating in this state, fallbacks are implemented
    that let Emacs do its thing while terminating.  */
 
 enum igc_state
@@ -593,7 +593,7 @@ obj_client_size (const struct igc_header *h)
   return obj_size (h) - sizeof *h;
 }
 
-/* Set the fields of header H to the given values. Use this instead of
+/* Set the fields of header H to the given values.  Use this instead of
    setting the fields directly to make it easy to add assertions.  */
 
 static void
@@ -767,7 +767,7 @@ struct igc_thread
   igc_root_list *bc_root;
   igc_root_list *stack_root;
 
-  /* Back pointer to Emacs' thread object. Allocated so that it doesn't
+  /* Back pointer to Emacs' thread object.  Allocated so that it doesn't
      move in memory.  */
   struct thread_state *ts;
 };
@@ -775,7 +775,7 @@ struct igc_thread
 typedef struct igc_thread igc_thread;
 IGC_DEFINE_LIST (igc_thread);
 
-/* The registry for an MPS arena. There is only one arena used.  */
+/* The registry for an MPS arena.  There is only one arena used.  */
 
 struct igc
 {
@@ -867,12 +867,12 @@ set_state (enum igc_state state)
 }
 
 /* Register the root ROOT in registry GC with additional info.  START
-   and END are the area of memory covered by the root. END being NULL
-   means not known. AMBIG true means the root is scanned ambigously, as
+   and END are the area of memory covered by the root.  END being NULL
+   means not known.  AMBIG true means the root is scanned ambigously, as
    opposed to being scanned exactly.
 
    LABEL is a name under which the root appears on the MPS telemetry
-   stream, if user events are in the telemetry filter. This allows
+   stream, if user events are in the telemetry filter.  This allows
    mapping roots to useful names.  */
 
 static struct igc_root_list *
@@ -898,7 +898,7 @@ register_root (struct igc *gc, mps_root_t root, void *start, void *end,
 }
 
 /* Remove the root described by R from the list of known roots
-   of its registry. Value is the MPS root.  */
+   of its registry.  Value is the MPS root.  */
 
 static mps_root_t
 deregister_root (struct igc_root_list *r)
@@ -1357,7 +1357,7 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
   {
     /* MPS docs say that root scanning functions have exclusive access
        to what is being scanned, the same way format scanning functions
-       do. That does not mean one can rely on the thread's specpdl_ptr
+       do.  That does not mean one can rely on the thread's specpdl_ptr
        here because it may be updated after this function runs.  */
     struct igc_thread_list *t = closure;
     igc_assert (start == (void *) t->d.ts->m_specpdl);
@@ -1387,7 +1387,7 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
 
 	    /* The bt.args member either points to something on a
 	       thread's control stack, or to something in the bytecode
-	       stack. Both should already be ambiguous roots.  */
+	       stack.  Both should already be ambiguous roots.  */
 	  case SPECPDL_BACKTRACE:
 	    break;
 
@@ -1429,8 +1429,8 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
   return MPS_RES_OK;
 }
 
-/* Scan the area of memory [START, END) ambiguously. In general,
-   references may be either tagged words or pointers. This is used for
+/* Scan the area of memory [START, END) ambiguously.  In general,
+   references may be either tagged words or pointers.  This is used for
    blocks allocated with malloc and thread stacks.  */
 
 static mps_res_t
@@ -1446,7 +1446,7 @@ scan_ambig (mps_ss_t ss, void *start, void *end, void *closure)
 	/* If the references in the object being scanned are
 	   ambiguous then MPS_FIX2() does not update the
 	   reference (because it can't know if it's a
-	   genuine reference). The MPS handles an ambiguous
+	   genuine reference).  The MPS handles an ambiguous
 	   reference by pinning the block pointed to so that
 	   it cannot move.  */
 	mps_addr_t ref = (mps_addr_t) word;
@@ -1511,12 +1511,12 @@ scan_bc (mps_ss_t ss, void *start, void *end, void *closure)
     igc_assert (end == (void *) bc->stack_end);
     /* FIXME/igc: AFAIU the current top frame starts at
        bc->fp->next_stack and has a maximum length that is given by the
-       bytecode being executed (COMPILED_STACK_DEPTH). So, we need to
+       bytecode being executed (COMPILED_STACK_DEPTH).  So, we need to
        scan upto bc->fo->next_stack + that max depth to be safe.  Since
        I don't have that number ATM, I'm using an arbitrary estimate for
        now.
 
-       This must be changed to something better. Note that Mattias said
+       This must be changed to something better.  Note that Mattias said
        the bc stack marking will be changed in the future.  */
     const size_t HORRIBLE_ESTIMATE = 1024;
     char *scan_end = bc_next_frame (bc->fp);
@@ -2846,7 +2846,7 @@ igc_on_grow_specpdl (void)
 {
   /* Note that no two roots may overlap, so we have to temporarily
      stop the collector while replacing one root with another (xpalloc
-     may realloc). Alternatives: (1) don't realloc, (2) alloc specpdl
+     may realloc).  Alternatives: (1) don't realloc, (2) alloc specpdl
      from MPS pool that is scanned.  */
   struct igc_thread_list *t = current_thread->gc_info;
   IGC_WITH_PARKED (t->d.gc)
@@ -3081,15 +3081,15 @@ void *
 igc_xzalloc_ambig (size_t size)
 {
   /* Not sure if xzalloc can ever return NULL here, depending on all the
-     config options involved. Also not sure when it returns non-null for
-     size 0. It does for me on macOS.  */
+     config options involved.  Also not sure when it returns non-null for
+     size 0.  It does for me on macOS.  */
   while (size % IGC_ALIGN_DFLT)
     size++;
   void *p = xzalloc (size);
   if (p == NULL)
     return NULL;
 
-  /* Can't make a root that has zero length. Want one to be able to
+  /* Can't make a root that has zero length.  Want one to be able to
      detect calling igc_free on something not having a root.  */
   void *end = (char *) p + size;
   if (end == p)
@@ -3106,7 +3106,7 @@ igc_realloc_ambig (void *block, size_t size)
   IGC_WITH_PARKED (gc)
   {
     igc_destroy_root_with_start (block);
-    /* Can't make a root that has zero length. Want one to be able to
+    /* Can't make a root that has zero length.  Want one to be able to
        detect calling igc_free on something not having a root.  */
     size_t new_size = (size == 0 ? IGC_ALIGN_DFLT : size);
     p = xrealloc (block, new_size);
@@ -3122,7 +3122,7 @@ igc_xfree (void *p)
 {
   /* Check for pdumper_object_p here because xfree does the same.  Means
      that freeing something that is actually in the dump is not an
-     error. Make the same true if the dump is loaded into MPS memory.  */
+     error.  Make the same true if the dump is loaded into MPS memory.  */
   if (p == NULL || pdumper_object_p (p))
     return;
   igc_destroy_root_with_start (p);
@@ -3286,7 +3286,7 @@ static void
 finalize_vector (mps_addr_t v)
 {
   struct Lisp_Vector *vec = v;
-  /* Please use exhaustive switches, just to do me a favour :-).  */
+  /* Please use exhaustive switches, just to do me a favor :-).  */
   switch (pseudo_vector_type (v))
     {
     case PVEC_BIGNUM:
@@ -3516,8 +3516,8 @@ make_clock (double secs)
 #define IGC_WITH_CLOCK(c, duration)							\
   for (struct igc_clock c = make_clock (duration); !clock_has_expired (&c);)
 
-/* Process MPS messages. This should be extended to handle messages only
-   for a certain amount of time. See mps_clock_t, mps_clock, and
+/* Process MPS messages.  This should be extended to handle messages only
+   for a certain amount of time.  See mps_clock_t, mps_clock, and
    mps_clocks_per_sec functions.  */
 
 static bool
@@ -3567,7 +3567,7 @@ igc_process_messages (void)
 }
 
 /* Discard entries for killed buffers from LIST and return the resulting
-   list. Used in window-{next,prev}-buffers.  */
+   list.  Used in window-{next,prev}-buffers.  */
 
 Lisp_Object
 igc_discard_killed_buffers (Lisp_Object list)
@@ -3620,9 +3620,9 @@ buffer_it_next (struct igc_buffer_it *it)
 static bool
 arena_step (void)
 {
-  /* mps_arena_step does not guarantee to return swiftly. And it seems
+  /* mps_arena_step does not guarantee to return swiftly.  And it seems
      that it sometimes does an opportunistic full collection alledging
-     the client predicted lots of idle time. But it doesn't tell how
+     the client predicted lots of idle time.  But it doesn't tell how
      it comes to that conclusioin.  */
   if (!FIXNUMP (Vigc_step_interval)
       || XFIXNUM (Vigc_step_interval) != 0)
@@ -3739,7 +3739,7 @@ thread_ap (enum igc_obj_type type)
 }
 
 /* Conditional breakpoints can be so slow that it is often more
-   effective to instrument code. This function is for such cases.  */
+   effective to instrument code.  This function is for such cases.  */
 
 void
 igc_break (void)
@@ -3801,7 +3801,7 @@ igc_hash (Lisp_Object key)
 }
 
 /* Allocate an object of client size SIZE and of type TYPE from
-   allocation point AP. Value is a pointer to the client area of the new
+   allocation point AP.  Value is a pointer to the client area of the new
    object.  */
 
 static mps_addr_t
@@ -3837,7 +3837,7 @@ alloc_impl (size_t size, enum igc_obj_type type, mps_ap_t ap)
 }
 
 /* Allocate an object of client size SIZE and of type TYPE from a
-   type-dependent allocation point. Value is a pointer to the client
+   type-dependent allocation point.  Value is a pointer to the client
    area of the new object.  */
 
 static mps_addr_t
@@ -3847,7 +3847,7 @@ alloc (size_t size, enum igc_obj_type type)
 }
 
 /* Allocate an object of client size SIZE and of type TYPE from MPS in a
-   way tnat ensure that the object will not move in memory. Value is a
+   way tnat ensure that the object will not move in memory.  Value is a
    pointer to the client area of the new object.  */
 
 static mps_addr_t
@@ -3911,7 +3911,7 @@ igc_alloc_bytes (size_t nbytes)
 }
 
 /* Reallocate multibyte STRING data when a single character is
-   replaced. The character is at byte offset BYTE_POS in the string.
+   replaced.  The character is at byte offset BYTE_POS in the string.
    The character being replaced is CHAR_LEN bytes long, and the
    character that will replace it is NEW_CLEN bytes long.  Return the
    address where the caller should store the new character.  */
@@ -3932,8 +3932,8 @@ igc_replace_char (Lisp_Object string, ptrdiff_t at_byte_pos,
     (struct igc_header *)(s->u.s.data - sizeof (struct igc_header));
 
   /* The capacity is the number of bytes the client has available,
-     including the terminating NUL byte. Sizes computed from Lisp
-     strings don't include the NUL. That's the 1 in the if.  */
+     including the terminating NUL byte.  Sizes computed from Lisp
+     strings don't include the NUL.  That's the 1 in the if.  */
   ptrdiff_t capacity = obj_client_size (old_header);
   if (capacity < nbytes_needed + 1)
     {
@@ -4520,7 +4520,7 @@ make_dflt_fmt (struct igc *gc)
   MPS_ARGS_BEGIN (args)
   {
     MPS_ARGS_ADD (args, MPS_KEY_FMT_ALIGN, IGC_ALIGN);
-    /* Don't use in-band headers. I suspect they ahve problems,
+    /* Don't use in-band headers.  I suspect they have problems,
        specifically amcSegScanNailedRange calls NailboardGet with a
        client address, which calls NailboardGet, and one can see that
        the the board contains base addresses which leads to an assertion
@@ -4588,7 +4588,7 @@ make_igc (void)
   make_arena (gc);
 
   /* We cannot let the GC run until at least all staticpros haven been
-     processed. Otherwise we might allocate objects that are not
+     processed.  Otherwise we might allocate objects that are not
      protected by anything.  */
   arena_park (gc);
 
@@ -4835,9 +4835,9 @@ check_dump (mps_addr_t start, mps_addr_t end)
 
 static mps_addr_t pinned_objects_in_dump[3];
 
-/* Called from pdumper_load. [HOT_START, HOT_END) is the hot section of
-   the dump. [COL_START, COLD_END) is the cold section of the
-   dump. COLD_USER_DATA_START is where actual object memory starts.
+/* Called from pdumper_load.  [HOT_START, HOT_END) is the hot section of
+   the dump.  [COL_START, COLD_END) is the cold section of the
+   dump.  COLD_USER_DATA_START is where actual object memory starts.
    HEAP_END is the heap end as recorded in the dump header.  */
 
 void
