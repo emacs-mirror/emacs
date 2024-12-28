@@ -46,9 +46,7 @@
 
 (ert-deftest feature-harfbuzz ()
   (should
-   (eq
-    'harfbuzz
-    (car (frame-parameter nil 'font-backend)))))
+   (eq 'harfbuzz (get 'uniscribe 'font-driver-superseded-by))))
 
 (ert-deftest feature-gnutls ()
   (should (gnutls-available-p)))

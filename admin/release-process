@@ -93,7 +93,19 @@ documentation (or decide no updates are necessary) for those that aren't.
 ** For a major release, add a "New in Emacs XX" section to faq.texi.
 
 ** cusver-check from admin.el can help find new defcustoms missing
-:version tags.
+:version tags.  This asks for new and old Lisp directories; use the one
+in the current release branch as New and the one from the last released
+Emacs version as Old.
+
+Note that this doesn't (yet) know about :package-version and
+'customize-package-emacs-version-alist', so it could produce false
+positives for packages that use :package-version.  Make sure the files
+with defcustoms that use :package-version have the appropriate
+add-to-list that determines the correspondence between package versions
+and Emacs versions.  Any changes you make in :version etc. should be
+tested by running "M-x customize-changed" after regenerating cus-load.el
+(run "make custom-deps" in the lisp/ directory) and loaddefs.el (run
+"make autoloads-force").
 
 ** Manuals
 Check for node names using problematic characters:
@@ -102,7 +114,13 @@ Sadly makeinfo does not warn about such characters.
 
 Check for major new features added since the last release (e.g. new
 lisp files), and add the relevant authors to the Acknowledgments in
-doc/emacs/ack.texi and emacs.texi.
+doc/emacs/ack.texi and emacs.texi.  To find new files, you could run a
+command such as this:
+
+  $ diff -rq emacs-NN.MM emacs-XX.YY | grep "^Only in emacs-XX"
+
+where NN.MM is the previous Emacs version, and XX.YY is the new version.
+This assumes you have the source trees of both versions available.
 
 For major releases, rewrite the "Antinews" appendix of the User Manual
 (doc/emacs/anti.texi) to describe features lost by downgrading to the

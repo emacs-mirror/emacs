@@ -171,6 +171,7 @@ These are commands with a full remote file name, such as
 commands on your local host by using the \"/local:\" prefix, like
 \"/local:whoami\"."
   :type 'boolean
+  :version "30.1"
   :group 'eshell-ext)
 
 ;;; Functions:

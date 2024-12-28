@@ -485,6 +485,16 @@ running the just-built Emacs.
 
 * General runtime problems
 
+** GTK+ problems
+
+*** Some tool-bar icons aren't displayed.
+
+This could be caused by lack of support for XPM image format in the
+installed GTK packages.  Some GNU/Linux distros no longer install
+support for those formats by default, so you might need to install
+additional support packages.  E.g., on Fedora you need to install the
+'gdk-pixbuf2-modules-extra' package.
+
 ** Lisp problems
 
 *** Changes made to .el files do not take effect.

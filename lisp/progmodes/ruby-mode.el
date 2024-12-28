@@ -2584,6 +2584,7 @@ the gem \"rubocop\".  When t, it is used unconditionally."
   :type '(choice (const :tag "Always" t)
                  (const :tag "No" nil)
                  (const :tag "If rubocop is in Gemfile" check))
+  :version "30.1"
   :safe 'booleanp)
 
 (defun ruby-flymake-rubocop (report-fn &rest _args)

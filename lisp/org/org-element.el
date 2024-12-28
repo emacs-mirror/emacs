@@ -7259,7 +7259,7 @@ that range.  See `after-change-functions' for more information."
 	      #'org-element--cache-after-change -1 t)))
 
 (defvar org-element--cache-avoid-synchronous-headline-re-parsing nil
-  "This variable controls how buffer changes are handled by the cache.
+  "How buffer changes are handled by the cache.
 
 By default (when this variable is nil), cache re-parses modified
 headlines immediately after modification preserving all the unaffected

@@ -3774,7 +3774,7 @@ elisp, The Emacs Lisp Reference Manual}.
 
 @menu
 * Lexical & Dynamic Binding Differences::
-* Lexical vs. Dynamic Binding Example::
+* Lexical vs Dynamic Binding Example::
 @end menu
 
 @node Lexical & Dynamic Binding Differences
@@ -3811,7 +3811,7 @@ on the top of the stack, and then executes the @code{let} body.  Once
 the @code{let} body finishes, it takes that binding off of the stack,
 revealing the one it had (if any) before the @code{let} expression.
 
-@node Lexical vs. Dynamic Binding Example
+@node Lexical vs Dynamic Binding Example
 @unnumberedsubsubsec Example of Lexical vs. Dynamic Binding
 In some cases, both lexical and dynamic binding behave identically.
 However, in other cases, they can change the meaning of your program.

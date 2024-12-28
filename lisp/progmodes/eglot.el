@@ -182,6 +182,13 @@
   :prefix "eglot-"
   :group 'tools)
 
+(add-to-list 'customize-package-emacs-version-alist
+             '(Eglot ("1.12" . "29.1")
+                     ("1.12" . "29.2")
+                     ("1.12" . "29.3")
+                     ("1.12.29" . "29.4")
+                     ("1.17.30" . "30.1")))
+
 (defun eglot-alternatives (alternatives)
   "Compute server-choosing function for `eglot-server-programs'.
 Each element of ALTERNATIVES is a string PROGRAM or a list of
@@ -475,7 +482,8 @@ the LSP connection.  That can be done by `eglot-reconnect'."
                            (choice
                             (const :tag "Full with original JSON" full)
                             (const :tag "Shortened" short)
-                            (const :tag "Pretty-printed lisp" lisp))))))
+                            (const :tag "Pretty-printed lisp" lisp)))))
+  :package-version '(Eglot . "1.17.30"))
 
 (defcustom eglot-confirm-server-edits '((eglot-rename . nil)
                                         (t . maybe-summary))
@@ -506,7 +514,8 @@ ACTION is the default value for commands not in the alist."
                    (alist :tag "Per-command alist"
                           :key-type (choice (function :tag "Command")
                                             (const :tag "Default" t))
-                          :value-type (choice . ,basic-choices)))))
+                          :value-type (choice . ,basic-choices))))
+  :package-version '(Eglot . "1.17.30"))
 
 (defcustom eglot-extend-to-xref nil
   "If non-nil, activate Eglot in cross-referenced non-project files."
@@ -514,7 +523,8 @@ ACTION is the default value for commands not in the alist."
 
 (defcustom eglot-prefer-plaintext nil
   "If non-nil, always request plaintext responses to hover requests."
-  :type 'boolean)
+  :type 'boolean
+  :package-version '(Eglot . "1.17.30"))
 
 (defcustom eglot-menu-string "eglot"
   "String displayed in mode line when Eglot is active."
@@ -530,7 +540,7 @@ the LSP connection.  That can be done by `eglot-reconnect'."
   :type '(choice (const :tag "Don't show progress" nil)
                  (const :tag "Show progress in *Messages*" messages)
                  (const :tag "Show progress in Eglot's mode line indicator" t))
-  :version "1.10")
+  :package-version '(Eglot . "1.10"))
 
 (defcustom eglot-ignored-server-capabilities (list)
   "LSP server capabilities that Eglot could use, but won't.

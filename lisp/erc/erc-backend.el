@@ -571,7 +571,7 @@ If this is set to nil, never try to reconnect."
                  (integer :tag "Seconds")))
 
 (defvar-local erc-server-ping-handler nil
-  "This variable holds the periodic ping timer.")
+  "The periodic server ping timer.")
 
 ;;;; Helper functions
 

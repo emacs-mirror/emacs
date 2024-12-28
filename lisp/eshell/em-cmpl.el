@@ -150,7 +150,8 @@ to writing a completion function."
 
 (defcustom eshell-cmpl-remote-file-ignore nil
   (eshell-cmpl--custom-variable-docstring 'pcomplete-remote-file-ignore)
-  :type (get 'pcomplete-remote-file-ignore 'custom-type))
+  :type (get 'pcomplete-remote-file-ignore 'custom-type)
+  :version "30.1")
 
 (defcustom eshell-cmpl-ignore-case (eshell-under-windows-p)
   (eshell-cmpl--custom-variable-docstring 'completion-ignore-case)

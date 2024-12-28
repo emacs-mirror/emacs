@@ -1407,9 +1407,12 @@ Desktop, @uref{https://en.wikipedia.org/wiki/GVFS}.  Remote files on
 @acronym{GVFS} are mounted locally through @acronym{FUSE} and
 @value{tramp} uses this locally mounted directory internally.
 
-Emacs uses the D-Bus mechanism to communicate with @acronym{GVFS}@.
-Emacs must have the message bus system, D-Bus integration active,
-@pxref{Top, , D-Bus, dbus}.
+Emacs uses the D-Bus mechanism to communicate with @acronym{GVFS}@.  It
+must have been compiled with D-Bus support, @pxref{Top, , D-Bus, dbus}.
+
+@vindex tramp-gvfs-enabled
+The @code{tramp-gvfs-enabled} variable, being non-@code{nil}, signals
+that @value{tramp} can use @acronym{GVFS}-based methods.
 
 @table @asis
 @cindex method @option{afp}

@@ -96,6 +96,7 @@ retrieval interval (or the global `newsticker-retrieval-interval`) is
 recommended."
   :type 'number
   :set #'newsticker--set-customvar-ticker
+  :version "30.1"
   :group 'newsticker-ticker)
 
 (defcustom newsticker-scroll-smoothly
