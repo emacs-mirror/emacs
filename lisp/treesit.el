@@ -4171,10 +4171,7 @@ executable programs, such as the C/C++ compiler and linker.
 Interactively, prompt for the directory in which to install the
 compiled grammar files.  Non-interactively, use OUT-DIR; if it's
 nil, the grammar is installed to the standard location, the
-\"tree-sitter\" directory under `user-emacs-directory'.
-
-Return the git revision of the installed grammar, but it only works when
-`treesit--install-language-grammar-full-clone' is t."
+\"tree-sitter\" directory under `user-emacs-directory'."
   (interactive (list (intern
                       (completing-read
                        "Language: "
@@ -4199,13 +4196,12 @@ Return the git revision of the installed grammar, but it only works when
                default-out-dir)
             ;; When called non-interactively, OUT-DIR should
             ;; default to DEFAULT-OUT-DIR.
-            (or out-dir default-out-dir)))
-         version)
+            (or out-dir default-out-dir))))
     (when recipe
       (condition-case err
           (progn
-            (setq version (apply #'treesit--install-language-grammar-1
-                                 (cons out-dir recipe)))
+            (apply #'treesit--install-language-grammar-1
+                   (cons out-dir recipe))
 
             ;; Check that the installed language grammar is loadable.
             (pcase-let ((`(,available . ,err)
@@ -4226,8 +4222,7 @@ Return the git revision of the installed grammar, but it only works when
          (display-warning
           'treesit
           (format "Error encountered when installing language grammar: %s"
-                  err)))))
-    version))
+                  err)))))))
 
 (defun treesit--language-git-revision (repo-dir)
   "Return the Git revision of the repo in REPO-DIR.

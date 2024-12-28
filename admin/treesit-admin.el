@@ -82,19 +82,19 @@
 The source information are in the format of
 `treesit-language-source-alist'.  This is for development only.")
 
-(defun treesit-admin--verify-major-mode-queries (modes langs grammar-dir)
+(defun treesit-admin--verify-major-mode-queries (modes langs source-alist grammar-dir)
   "Verify font-lock queries in MODES.
 
 LANGS is a list of languages, it should cover all the languages used by
-MODES.  GRAMMAR-DIR is a temporary direction in which grammars are
-installed.
+major modes in MODES.  SOURCE-ALIST should have the same shape as
+`treesit-language-source-alist'.  GRAMMAR-DIR is a temporary direction
+in which grammars are installed.
 
 If the font-lock queries work fine with the latest grammar, insert some
 comments in the source file saying that the modes are known to work with
 that version of grammar.  At the end of the process, show a list of
 queries that has problems with latest grammar."
   (let ((treesit-extra-load-path (list grammar-dir))
-        (treesit-language-source-alist treesit-admin--builtin-language-sources)
         (treesit--install-language-grammar-full-clone t)
         (treesit--install-language-grammar-blobless t)
         (version-alist nil)
@@ -103,7 +103,9 @@ queries that has problems with latest grammar."
         (mode-language-alist nil)
         (file-modes-alist nil))
     (dolist (lang langs)
-      (let ((ver (treesit-install-language-grammar lang grammar-dir)))
+      (let* ((recipe (assoc lang source-alist))
+             (ver (apply #'treesit--install-language-grammar-1
+                         (cons grammar-dir recipe))))
         (if ver
             (push (cons lang ver) version-alist)
           (error "Cannot get version for %s" lang))))
@@ -200,6 +202,7 @@ queries that has problems with latest grammar."
   (treesit-admin--verify-major-mode-queries
    '(cmake-ts-mode dockerfile-ts-mode go-ts-mode ruby-ts-mode)
    '(cmake dockerfile go ruby)
+   treesit-admin--builtin-language-sources
    "/tmp/tree-sitter-grammars"))
 
 
