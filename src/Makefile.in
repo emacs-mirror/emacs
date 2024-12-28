@@ -446,8 +446,6 @@ ALL_CXX_CFLAGS = $(EMACS_CFLAGS) \
 .cc.o:
 	$(AM_V_CXX)$(CXX) -c $(CPPFLAGS) $(ALL_CXX_CFLAGS) $(PROFILING_CFLAGS) $<
 
-## lastfile must follow all files whose initialized data areas should
-## be dumped as pure by dump-emacs.
 base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o     \
 	charset.o coding.o category.o ccl.o character.o chartab.o bidi.o       \
 	$(CM_OBJ) term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ) $(DBUS_OBJ)    \
@@ -496,19 +494,11 @@ VMLIMIT_OBJ=@VMLIMIT_OBJ@
 ## ralloc.o if !SYSTEM_MALLOC && REL_ALLOC, else empty.
 RALLOC_OBJ=@RALLOC_OBJ@
 
-## Empty on Cygwin and MinGW, lastfile.o elsewhere.
-PRE_ALLOC_OBJ=@PRE_ALLOC_OBJ@
-## lastfile.o on Cygwin and MinGW, empty elsewhere.
-POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
-
 ## List of object files that make-docfile should not be told about.
-otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
-  $(POST_ALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
+otherobj= $(TERMCAP_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
 ## All object files linked into temacs.  $(VMLIMIT_OBJ) should be first.
-## (On MinGW, firstfile.o should be before vm-limit.o.)
-FIRSTFILE_OBJ=@FIRSTFILE_OBJ@
-ALLOBJS = $(FIRSTFILE_OBJ) $(VMLIMIT_OBJ) $(obj) $(otherobj)
+ALLOBJS = $(VMLIMIT_OBJ) $(obj) $(otherobj)
 
 # Must be first, before dep inclusion!
 ifneq ($(HAVE_BE_APP),yes)

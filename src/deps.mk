@@ -137,7 +137,6 @@ keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h character.h \
 keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
    atimer.h systime.h character.h charset.h $(INTERVALS_H) \
    keymap.h window.h coding.h frame.h lisp.h globals.h $(config_h)
-lastfile.o: lastfile.c $(config_h)
 macros.o: macros.c window.h buffer.h commands.h macros.h keyboard.h msdos.h \
    dispextern.h lisp.h globals.h $(config_h) systime.h coding.h composite.h
 gmalloc.o: gmalloc.c $(config_h)

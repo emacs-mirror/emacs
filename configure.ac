@@ -2998,7 +2998,6 @@ if test "${opsys}" = "mingw32"; then
   HAVE_W32=${emacs_cv_w32api}
 fi
 
-FIRSTFILE_OBJ=
 NTDIR=
 LIBS_ECLIENT=
 LIB_WSOCK32=
@@ -3046,7 +3045,6 @@ if test "${HAVE_W32}" = "yes"; then
     W32_RES_LINK="\$(EMACSRES)"
     CLIENTRES="emacsclient.res"
     CLIENTW="emacsclientw\$(EXEEXT)"
-    FIRSTFILE_OBJ=firstfile.o
     NTDIR=nt
     CM_OBJ=
     LIBS_ECLIENT="-lcomctl32"
@@ -3068,7 +3066,6 @@ AC_SUBST([EMACS_MANIFEST])
 AC_SUBST([CLIENTRES])
 AC_SUBST([CLIENTW])
 AC_SUBST([W32_RES_LINK])
-AC_SUBST([FIRSTFILE_OBJ])
 AC_SUBST([NTDIR])
 AC_SUBST([CM_OBJ])
 AC_SUBST([LIBS_ECLIENT])
@@ -7206,20 +7203,12 @@ AC_SUBST([RALLOC_OBJ])
 
 if test "$opsys" = "cygwin"; then
   CYGWIN_OBJ="cygw32.o"
-  PRE_ALLOC_OBJ=
-  POST_ALLOC_OBJ=lastfile.o
 elif test "$opsys" = "mingw32"; then
   CYGWIN_OBJ=
-  PRE_ALLOC_OBJ=
-  POST_ALLOC_OBJ=lastfile.o
 else
   CYGWIN_OBJ=
-  PRE_ALLOC_OBJ=lastfile.o
-  POST_ALLOC_OBJ=
 fi
 AC_SUBST([CYGWIN_OBJ])
-AC_SUBST([PRE_ALLOC_OBJ])
-AC_SUBST([POST_ALLOC_OBJ])
 
 dnl Call this 'FORTIFY_SOUR' so that it sorts before the 'FORTIFY_SOURCE'
 dnl verbatim defined above.  The tricky name is apropos, as this hack
