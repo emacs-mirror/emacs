@@ -209,7 +209,7 @@ registry.
 - Pools. We tell MPS which pools we want to use, and what the object
   formats are, i.e. which callbacks in Emacs MPS can use.
 - Threads. We define which threads Emacs has, and add their C stacks
-  as roots. This includes Emacs' main thread.
+  as roots.
 - Roots. We tell MPS about the various roots in Emacs, the DEFVARs,
   the byte code stack, staticpro, etc.
 - ...
@@ -218,17 +218,21 @@ When we done all that, we tell MPS it can start doing its job.
 
 * Lisp Object Allocation
 
-All of Emacs' Lisp object allocation ultimately ends up done in igc's
-'alloc_impl' function.
+All of Emacs' Lisp object allocation ultimately ends up being done in
+igc's =alloc_impl= function.
 
 MPS allocation from pools is thread-specific, using so-called
-"allocation points". These allocation points optimize allocation by
-reducing thread-contention. Allocation points are associated with
-pools, and there is one allocation point per thread.
+"allocation points" that are created and registered in the registry when
+we register a thread with MPS, via =create_thread_aps= and its
+subroutines.
 
-The function 'thread_ap' in igc determines which allocation point to
-use for the current thread and depending on the type of Lisp object
-to allocate.
+Allocation points optimize allocation by reducing
+thread-contention. Allocation points are associated with pools, and
+there is one allocation point per thread.
+
+The function =thread_ap= in igc determines which allocation point to use
+for the current thread and depending on the type of Lisp object to
+allocate.
 
 * Malloc with roots
 
