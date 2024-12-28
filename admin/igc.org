@@ -223,7 +223,7 @@ to allocate.
 
 * Malloc with roots
 
-In a number of places, Emacs allocates memory with its 'xmalloc'
+In a number of places, Emacs allocates memory with its =xmalloc=
 function family and then stores references to Lisp objects there,
 pointers or Lisp_Objects.
 
@@ -232,36 +232,36 @@ objects is prevented by inhibiting GC.
 
 With igc, we do things differently. We don't want to temporarily stop
 the GC thread to inhibit GC, as a design decision. Instead, we make
-the malloc'd memory a root. The root is destroyed when the memory is
+the =malloc'd= memory a root, which is destroyed when the memory is
 freed.
 
-igc provides a number if functions for doing such allocations. For
-example 'igc_xzalloc_ambig', 'igc_xpalloc_exact' and so on. Freeing
-the memory must be done with 'igc_xfree'.
+igc provides a number of functions for doing such allocations. For
+example =igc_xzalloc_ambig=, =igc_xpalloc_exact= and so on. Freeing the
+memory allocated with all these functions must be done with =igc_xfree=.
 
-These functions are used throughout Emacs in äifdef HAVE_MPS. In
-general, it's an erro to put references to Lisp objects in malloc'd
-memory and not use the igc functions.
+These malloc-with-root functions are used throughout Emacs in =#ifdef
+HAVE_MPS=. In general, it's an error to put references to Lisp objects in
+=malloc'd= memory and not use the =igc= functions.
 
 An example:
 
-Emacs' atimers are created with the function start_atimer, which takes
-as arguments, among others, a callback to call when the atimer fires,
-and client data of type void * to pass to the callback.  The client data
+Emacs' atimers are created with the function =start_atimer=, which takes
+as arguments, among others, a =callback= to call when the atimer fires,
+and =client_data= of type =void *= to pass to the callback.  The client data
 can be anything. It can be a pointer to a C string, an integer cast to
 void *, a pointer to some Lisp object, anything that fits.
 
 The atimer implementation stores away the client data until the timer
 fires. Until then, Emacs must make sure that the client data is not
-discarded, in case it is a Lisp object, which we don't know.
+discarded by the GC, in case it is a Lisp object.
 
-It therefore does things like this, simplified:
+Here is how this is done, simplified:
 
-1. Start an aitmer.
+1. Start an atimer.
 
    Malloc a struct, making it an ambiguous root. The allocation is done
-   with igc_xzalloc_ambig. The xzalloc part of the name tells that it
-   does the same thing as xzalloc. The ambig part tells that it creates
+   with =igc_xzalloc_ambig=. The =xzalloc= part of the name tells that it
+   does the same thing as =xzalloc=. The =ambig= part tells that it creates
    an ambiguous root.
 
    Store callback and client data in that struct.
@@ -276,7 +276,7 @@ It therefore does things like this, simplified:
 2. Timer fires.
 
    Call the callback with client data, then free the memory and destroy
-   the root with igc_free.
+   the root with =igc_free=.
 
    #+begin_src C
      ...
