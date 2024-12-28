@@ -1126,16 +1126,20 @@ Note that the style variables are always made local to the buffer."
 	  (progn
 	    (setq s (parse-partial-sexp beg end -1))
 	    (cond
-	     ((< (nth 0 s) 0)		; found an unmated ),},]
-	      (c-put-syntax-table-trim-caches (1- (point)) '(1))
+	     ((< (nth 0 s) 0)		; found an unmated ),},],>
+	      (if (eq (char-before) ?>)
+		  (c-clear->-pair-props (1- (point)))
+		(c-put-syntax-table-trim-caches (1- (point)) '(1)))
 	      t)
 	     ;; Unbalanced strings are now handled by
 	     ;; `c-before-change-check-unbalanced-strings', etc.
 	     ;; ((nth 3 s)			; In a string
 	     ;;  (c-put-char-property (nth 8 s) 'syntax-table '(1))
 	     ;;  t)
-	     ((> (nth 0 s) 0)		; In a (,{,[
-	      (c-put-syntax-table-trim-caches (nth 1 s) '(1))
+	     ((> (nth 0 s) 0)		; In a (,{,[,<
+	      (if (eq (char-after (nth 1 s)) ?<)
+		  (c-clear-<-pair-props (nth 1 s))
+		(c-put-syntax-table-trim-caches (nth 1 s) '(1)))
 	      t)
 	     (t nil)))))))
 
@@ -1284,7 +1288,7 @@ Note that the style variables are always made local to the buffer."
   ;; `(let ((-pos- ,pos)
   ;;	 (-value- ,value))
   (if (equal value '(15))
-      (c-put-string-fence pos)
+      (c-put-string-fence-trim-caches pos)
     (c-put-syntax-table-trim-caches pos value))
   (c-put-char-property pos 'c-fl-syn-tab value)
   (cond
@@ -2036,11 +2040,11 @@ This function is used solely as a member of
 		 (looking-at "\\s(")
 		 (looking-at "\\(<\\)[^>\n\r]*\\(>\\)?")
 		 (not (cdr (c-semi-pp-to-literal hash-pos))))
-	(c-unmark-<->-as-paren (match-beginning 1))
+	(c-unmark-<-or->-as-paren (match-beginning 1))
 	(when (< hash-pos c-new-BEG)
 	  (setq c-new-BEG hash-pos))
 	(when (match-beginning 2)
-	  (c-unmark-<->-as-paren (match-beginning 2))
+	  (c-unmark-<-or->-as-paren (match-beginning 2))
 	  (when (> (match-end 2) c-new-END)
 	    (setq c-new-END (match-end 2))))))))
 

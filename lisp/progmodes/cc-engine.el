@@ -7037,9 +7037,9 @@ comment at the start of cc-engine.el for more info."
 	(c-go-list-forward))
       (when (equal (c-get-char-property (1- (point)) 'syntax-table)
 		   c->-as-paren-syntax) ; should always be true.
-	(c-unmark-<->-as-paren (1- (point)))
+	(c-unmark-<-or->-as-paren (1- (point)))
 	(c-truncate-lit-pos/state-cache (1- (point))))
-      (c-unmark-<->-as-paren pos)
+      (c-unmark-<-or->-as-paren pos)
       (c-truncate-lit-pos/state-cache pos))))
 
 (defun c-clear->-pair-props (&optional pos)
@@ -7056,9 +7056,9 @@ comment at the start of cc-engine.el for more info."
 	(c-go-up-list-backward))
       (when (equal (c-get-char-property (point) 'syntax-table)
 			c-<-as-paren-syntax) ; should always be true.
-	(c-unmark-<->-as-paren (point))
+	(c-unmark-<-or->-as-paren (point))
 	(c-truncate-lit-pos/state-cache (point)))
-      (c-unmark-<->-as-paren pos)
+      (c-unmark-<-or->-as-paren pos)
       (c-truncate-lit-pos/state-cache pos))))
 
 (defun c-clear-<>-pair-props (&optional pos)
@@ -7091,10 +7091,10 @@ comment at the start of cc-engine.el for more info."
       (when (and (>= (point) lim)
 		 (equal (c-get-char-property (1- (point)) 'syntax-table)
 			c->-as-paren-syntax)) ; should always be true.
-	(c-unmark-<->-as-paren (1- (point)))
-	(c-unmark-<->-as-paren pos)
+	(c-unmark-<-or->-as-paren (1- (point)))
+	(c-unmark-<-or->-as-paren pos)
 	(c-truncate-lit-pos/state-cache pos)
-      (point)))))
+	(point)))))
 
 (defun c-clear->-pair-props-if-match-before (lim &optional pos)
   ;; POS (default point) is at a > character.  If it is both marked
@@ -7113,9 +7113,9 @@ comment at the start of cc-engine.el for more info."
       (when (and (<= (point) lim)
 		 (equal (c-get-char-property (point) 'syntax-table)
 			c-<-as-paren-syntax)) ; should always be true.
-	(c-unmark-<->-as-paren (point))
+	(c-unmark-<-or->-as-paren (point))
 	(c-truncate-lit-pos/state-cache (point))
-	(c-unmark-<->-as-paren pos)
+	(c-unmark-<-or->-as-paren pos)
 	(point)))))
 
 ;; Set by c-common-init in cc-mode.el.
@@ -8216,7 +8216,7 @@ multi-line strings (but not C++, for example)."
 	(goto-char (cadr end-delim))
 	t)
     (c-put-syntax-table-trim-caches (cddr delim) '(1))
-    (c-put-string-fence (1- (cadr delim)))
+    (c-put-string-fence-trim-caches (1- (cadr delim)))
     (when bound
       ;; In a CPP construct, we try to apply a generic-string
       ;; `syntax-table' text property to the last possible character in
@@ -8244,9 +8244,7 @@ multi-line strings (but not C++, for example)."
 		       "\\(\\\\\n\\)*\\=")) ; 11
 	     (cadr delim) t))
 	  (if (match-beginning 10)
-	      (progn
-		(c-put-string-fence (match-beginning 10))
-		(c-truncate-lit-pos/state-cache (match-beginning 10)))
+	      (c-put-string-fence-trim-caches (match-beginning 10))
 	    (c-put-syntax-table-trim-caches (match-beginning 5) '(1))
 	    (c-put-string-fence (1+ (match-beginning 5)))))
       (goto-char bound))
@@ -8949,7 +8947,7 @@ multi-line strings (but not C++, for example)."
 			  (and (c-go-list-backward)
 			       (eq (char-after) ?<)
 			       (c-truncate-lit-pos/state-cache (point))
-			       (c-unmark-<->-as-paren (point)))))
+			       (c-unmark-<-or->-as-paren (point)))))
 		      (c-mark-<-as-paren start)
 		      (c-mark->-as-paren (1- (point)))
 		      (c-truncate-lit-pos/state-cache start))

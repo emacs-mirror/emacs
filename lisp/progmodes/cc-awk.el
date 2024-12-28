@@ -754,15 +754,15 @@
   (if (eq (char-after beg) ?_) (setq beg (1+ beg)))
 
   ;; First put the properties on the delimiters.
-  (cond ((eq end (point-max))	        ; string/regexp terminated by EOB
-	 (c-put-string-fence beg))
+  (cond ((eq end (point-max))		; string/regexp terminated by EOB
+	 (c-put-string-fence-trim-caches beg))
 	((/= (char-after beg) (char-after end)) ; missing end delimiter
-	 (c-put-string-fence beg)
+	 (c-put-string-fence-trim-caches beg)
 	 (c-put-string-fence end))
 	((eq (char-after beg) ?/)	; Properly bracketed regexp
-	 (c-put-char-property beg 'syntax-table '(7)) ; (7) = "string"
-	 (c-put-syntax-table-trim-caches end '(7)))
-	(t))                       ; Properly bracketed string: Nothing to do.
+	 (c-put-syntax-table-trim-caches beg '(7)) ; (7) = "string"
+	 (c-put-char-property end 'syntax-table '(7)))
+	(t))			; Properly bracketed string: Nothing to do.
   ;; Now change the properties of any escaped "s in the string to punctuation.
   (save-excursion
     (goto-char (1+ beg))

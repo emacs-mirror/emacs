@@ -1267,6 +1267,14 @@ MODE is either a mode symbol or a list of mode symbols."
      (c-clear-char-property -pos- 'c-is-sws)
      (c-clear-char-property -pos- 'c-in-sws)))
 
+(defmacro c-put-string-fence-trim-caches (pos)
+  ;; Put the string-fence syntax-table text property at POS, and invalidate
+  ;; the four caches from position POS.
+  (declare (debug t))
+  `(let ((-pos- ,pos))
+     (c-put-string-fence -pos-)
+     (c-truncate-lit-pos/state-cache -pos-)))
+
 (eval-and-compile
   ;; Constant to decide at compilation time whether to use category
   ;; properties.  Currently (2010-03) they're available only on GNU
@@ -1859,8 +1867,8 @@ from the first position, if any, where a property was put."
       `(c-put-char-property ,pos 'category 'c->-as-paren-syntax)
     `(c-put-char-property ,pos 'syntax-table c->-as-paren-syntax)))
 
-(defmacro c-unmark-<->-as-paren (pos)
-  ;; Unmark the "<" or "<" character at POS as an sexp list opener using the
+(defmacro c-unmark-<-or->-as-paren (pos)
+  ;; Unmark the "<" or ">" character at POS as an sexp list opener using the
   ;; `syntax-table' property either directly or indirectly through a
   ;; `category' text property.
   ;;
