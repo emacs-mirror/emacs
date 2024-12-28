@@ -327,3 +327,41 @@ receive in =igc_process_messages=. We call =finalize= on the object
 contained in the message, and =finalize= dispatches to various subroutines
 with the name prefix =finalize_= to do the finalization for different Lisp
 object types. Examples: =finalize_font=, =finalize_bignum=, and so on.
+
+* Pdump
+
+Emacs' portable dumper (pdumper) writes a large number of Lisp objects
+into a file when a dump is created, and it loads that file into memory
+when Emacs is initialized.
+
+in an Emacs using the traditional GC, once the pdump is loaded, we have
+the following situation:
+
+- The pdump creates in a number of memory regions containing Lisp
+  objects.
+- These Lisp objects are used just like any other Lisp object by
+  Emacs. They are not read-only, they can be modified.
+- Since the objects are modifiable, the traditional GC has to scan
+  them for references in its mark phase.
+- The GC doesn't sweep the objects from the pdump, of course. It can't
+  because the objects were not not allocated normally, and there's no
+  need to anyway.
+
+With igc, things are a bit different.
+
+We need to scan the objects in the pdump for the same reason the old GC
+has to. To do the scanning, we could make the memory areas that the
+pdumper creates roots. This is not a good solution because the pdump is
+big, and we want to keep the number and size of roots low because this
+has an impact on overall GC performance.
+
+What igc does instead is that it doesn't let the pdumper create memory
+areas as it does with the traditional GC. It allocates memory from MPS
+instead.
+
+The Lisp objects contained in the pdump are stored in a way that they
+come from a pdump becomes transparent. The objects are like any other
+Lisp objects that are later allocated normally.
+
+The code doing this can be found in =igc_on_pdump_loaded,= =igc_alloc_dump=,
+and their subroutines.
