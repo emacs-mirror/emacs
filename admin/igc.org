@@ -126,11 +126,16 @@ barrier leads to MPS being invoked when an old object is accessed.
 The whole process is called "object forwarding".
 
 MPS makes sure that references to old objects are updated to refer to
-their new addresses. Functions defined in the object format are used
-by MPS to perform the lowest-level tasks of object forwarding, so that
-MPS doesn't have to know application-specific details of how objects
-look like. In the end, copying/forwarding is transparent to the
-application.
+their new addresses. Functions defined in the object format are used by
+MPS to perform the lowest-level tasks of object forwarding, so that MPS
+doesn't have to know application-specific details of how objects look
+like. This is also true for the actual updating of references to new
+addresses. This done by the scan function specified in the object
+format. In the scan function the MPS_FIX1 and MPS_FIX2 macros can be
+used to determine if a reference is to an MPS-managed object and what
+Its current address is, object forwarding taken into account.
+
+In the end, copying/forwarding is transparent to the application.
 
 AMC implements a "mostly-copying" collector, where "mostly" refers to
 the fact that it supports ambiguous references. Ambiguous references
