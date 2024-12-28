@@ -144,7 +144,7 @@ objects are therefore never copied, and their address does not change.
 * The registry
 
 The MPS shields itself from knowing application details, for example
-which GC roots the application has, which threads, how objects look
+which GC roots an application has, which threads, how objects look
 like and so on. MPS has an internal model instead which describes
 these details.
 
@@ -162,6 +162,15 @@ pools, object formats and so on.
 Igc collects all these MPS handles in a 'struct igc'. This "registry"
 of MPS handles is found in the global variable 'global_igc' and thus
 can be accessed from anywhere.
+
+The creation of MPS model objects and their registration are usually
+combined into a functions in igc. For example, the call to create an MPS
+root object, error checking, and putting the root handle into the
+registry is factored out into one function =root_create=. Other functions
+like =root_create_ambig= and =root_create_exact= exist to create different
+kinds of roots. This is just the result of factoring out commonalities
+so that not every caller has to deal with the necessarily complex
+argument list of =root_create=.
 
 * Root scan functions
 
