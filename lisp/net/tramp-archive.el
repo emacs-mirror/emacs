@@ -426,6 +426,7 @@ arguments to pass to the OPERATION."
 
 ;; File name conversions.
 
+;;;###tramp-autoload
 (defun tramp-archive-file-name-p (name)
   "Return t if NAME is a string with archive file name syntax."
   (and (stringp name)
@@ -580,6 +581,11 @@ offered."
 (defun tramp-archive-gvfs-file-name (name)
   "Return NAME in GVFS syntax."
   (tramp-make-tramp-file-name (tramp-archive-dissect-file-name name)))
+
+;; This is used in GNU ELPA package tramp-locproc.el.
+(defun tramp-archive-local-file-name (filename)
+  "Return local mount name of FILENAME."
+  (tramp-gvfs-local-file-name (tramp-archive-gvfs-file-name filename)))
 
 
 ;; File name primitives.
