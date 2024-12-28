@@ -515,7 +515,6 @@ build should run on Windows 9X and newer systems).
        Does Emacs support Xwidgets?                            no
        Does Emacs have threading support in lisp?              yes
        Does Emacs support the portable dumper?                 yes
-       Does Emacs support the legacy unexec dumping?           no
        Which dumping strategy does Emacs use?                  pdumper
 
   You are almost there, hang on.
