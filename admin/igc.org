@@ -296,3 +296,34 @@ Here is how this is done, simplified:
      t->fn (t->client_daga);
      igc_free (t)
    #+end_src
+
+* Finalization
+
+For some Lisp object types, Emacs needs to do something before a dead
+object's memory can finally be reclaimed. This is called "finalization".
+
+Examples of objects requiring finalization are
+
+- Bignums. We must call =mpz_clear= on the GMP value.
+- Fonts. We must close the font in a platform-specific way.
+- Mutexes. We must destroy the OS mutex.
+- ...
+
+Finally, there are also finalizer objects that a user can create with
+=make-finalizer=.
+
+In Emacs' traditional GC, finalization is part of the sweep
+phase. It just does what it needs to do when the time comes.
+
+Igc uses an MPS feature for finalization.
+
+We tell MPS that we want to be called before an object is
+reclaimed. This is done by calling =maybe_finalize= when we allocate such
+an object. The function looks at the object's type and decides if we
+want to finalize it or not.
+
+When the time comes, MPS then sends us a finalization message which we
+receive in =igc_process_messages=. We call =finalize= on the object
+contained in the message, and =finalize= dispatches to various subroutines
+with the name prefix =finalize_= to do the finalization for different Lisp
+object types. Examples: =finalize_font=, =finalize_bignum=, and so on.
