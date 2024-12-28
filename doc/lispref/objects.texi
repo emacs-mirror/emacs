@@ -445,7 +445,7 @@ characters which resemble the previously mentioned @acronym{ASCII}
 ones, to avoid confusing people reading your code.  Emacs will
 highlight some non-escaped commonly confused characters such as
 @samp{‘} to encourage this.  You can also add a backslash before whitespace
-characters such as space, tab, newline and formfeed.  However, it is
+characters such as space and tab.  However, it is
 cleaner to use one of the easily readable escape sequences, such as
 @samp{\t} or @samp{\s}, instead of an actual whitespace character such
 as a tab or a space.  (If you do write backslash followed by a space,
