@@ -228,7 +228,8 @@ Return non-nil if all queries are valid, nil otherwise."
              treesit-font-lock-settings)))
         (all-queries-valid t))
     (dolist (setting settings)
-      (let* ((query (treesit-font-lock-setting-query setting))
+      ;; `treesit-font-lock-setting-query' isn't available in Emacs 30.
+      (let* ((query (car setting))
              (language (treesit-query-language query)))
         ;; Validate query.
         (when (and (eq lang language)
@@ -253,13 +254,20 @@ Return non-nil if all queries are valid, nil otherwise."
                      settings)))))
 
 (defun treesit-admin--find-latest-compatible-revision
-    (mode language source-alist grammar-dir)
+    (mode language source-alist grammar-dir &optional emacs-executable)
   "Find the latest revision for LANGUAGE that's compatible with MODE.
 
 MODE, LANGUAGE, SOURCE-ALIST, GRAMMAR-DIR are the same as in
 `treesit-admin--verify-major-mode-queries'.
 
-Return a plist (:version VERSION :head-version HEAD-VERSION).
+By default, use the Emacs executable that spawned the current Emacs
+session to validate grammars, but if EMACS-EXECUTABLE is non-nil, use it
+instead.
+
+Return a plist of the form
+
+    (:version VERSION :head-version HEAD-VERSION).
+
 HEAD-VERSION is the version of the HEAD, VERSION is the latest
 compatible version."
   (let ((treesit-extra-load-path (list grammar-dir))
@@ -268,7 +276,8 @@ compatible version."
         (recipe (alist-get language source-alist))
         (workdir (make-temp-file "treesit-validate-workdir" t))
         (emacs-executable
-         (expand-file-name invocation-name invocation-directory))
+         (or emacs-executable
+             (expand-file-name invocation-name invocation-directory)))
         head-version version exit-code)
     (pcase-let ((`(,url ,revision ,source-dir ,cc ,c++ ,commit)
                  recipe))
@@ -301,11 +310,12 @@ compatible version."
     (list :version version :head-version head-version)))
 
 (defun treesit-admin--last-compatible-grammar-for-modes
-    (modes source-alist grammar-dir)
-  "Generate an HTML page listing latest compatible grammar versions.
+    (modes source-alist grammar-dir &optional emacs-executable)
+  "Generate an alist listing latest compatible grammar versions.
 
 MODES, SOURCE-ALIST, GRAMMAR-DIR are the same as
-`treesit-admin--verify-major-mode-queries'.
+`treesit-admin--verify-major-mode-queries'.  If EMACS-EXECUTABLE is
+non-nil, use it for validating queries.
 
 Return an alist of an alist of a plist:
 
@@ -320,14 +330,53 @@ VERSION and HEAD-VERSION in the plist are the same as in
             (lambda (language)
               (cons language
                     (treesit-admin--find-latest-compatible-revision
-                     mode language source-alist grammar-dir)))
+                     mode language source-alist grammar-dir
+                     emacs-executable)))
             (treesit-admin--mode-languages mode))))
    modes))
 
-(defun treesit-admin-generate-compatibility-report ()
-  "Generate a language compatibility report."
+(defun treesit-admin--generate-compatibility-report
+    (modes out-file &optional emacs-executable)
+  "Generate a language compatibility report for MODES.
+
+If EMACS-EXECUTABLE is non-nil, use it for validating queries.  Write
+the report to OUT-FILE."
   (interactive)
-  )
+  (with-temp-buffer
+    (let ((table (treesit-admin--last-compatible-grammar-for-modes
+                  modes
+                  treesit-admin--builtin-language-sources
+                  "/tmp/treesit-grammar")))
+      (dolist (entry table)
+        (let ((mode (car entry)))
+          (dolist (entry (cdr entry))
+            (let* ((lang (car entry))
+                   (version (plist-get (cdr entry) :version))
+                   (head-version (plist-get (cdr entry) :head-version))
+                   (classname
+                    (if (equal version head-version) "head" "")))
+              (insert (format "<tr><td>%s</td><td>%s</td><td class=\"%s\">%s</td></tr>\n"
+                              mode lang classname version)))))))
+    (let ((time (current-time-string nil t))
+          (table-text (buffer-string))
+          (emacs-version
+           (if emacs-executable
+               (with-temp-buffer
+                 (call-process emacs-executable nil t nil
+                               "-Q" "--batch"
+                               "--eval" "(princ emacs-version)")
+                 (buffer-string))
+             emacs-version)))
+      (erase-buffer)
+      (insert-file-contents treesit-admin--compat-template-file-name)
+      (goto-char (point-min))
+      (search-forward "___REPLACE_EMACS_VERSION___")
+      (replace-match emacs-version t)
+      (search-forward "___REPLACE_TIME___")
+      (replace-match (format "%s UTC" time) t)
+      (search-forward "___REPLACE_TABLE___")
+      (replace-match table-text t)
+      (write-region (point-min) (point-max) out-file))))
 
 (provide 'treesit-admin)
 

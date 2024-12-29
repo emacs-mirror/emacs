@@ -3,21 +3,42 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Emacs tree-sitter language grammar version compatibility</title>
+    <title>Emacs tree-sitter grammar version compatibility report</title>
     <style>
       body {
           width: min(90vw, 40rem);
-          margin-left: auto;
+          margin: auto;
+          margin-top: 2rem;
+          font-family: ui-serif;
+      }
+      thead {
+          font-weight: bold;
+      }
+      table {
+          margin: auto;
+      }
+      table td {
+          padding: 0.5rem 1rem;
+      }
+      .head {
+          background: lightgreen;
       }
     </style>
   </head>
   <body>
+    <h1>Tree-sitter grammar compatibility for Emacs ___REPLACE_EMACS_VERSION___</h1>
+    <p>This is an auto-generated report of the latest compatible versions of tree-sitter grammars for each major mode.  A <span class="head">green background</span> on the version indicates that the major mode is compatible with the latest commit in the upstream grammar repo.</p>
+    <p>This report is generated on ___REPLACE_TIME___.</p>
     <table>
       <thead>
-        <tr><td>Language</td><td>Version</td></tr>
+        <tr>
+          <td>Major mode</td>
+          <td>Language</td>
+          <td>Latest compatible version</td>
+        </tr>
       </thead>
       <tbody>
-        REPLACE
+___REPLACE_TABLE___
       </tbody>
     </table>
   </body>
