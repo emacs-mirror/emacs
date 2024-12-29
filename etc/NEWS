@@ -970,7 +970,7 @@ authorize the invoked D-Bus method (for example via polkit).
 ** The customization group 'wp' has been removed.
 It has been obsolete since Emacs 26.1.  Use the group 'text' instead.
 
-** Tree-sitter changes
+** Changes in tree-sitter modes.
 
 +++
 *** Indirect buffers can have their own parser list.
@@ -1000,22 +1000,15 @@ Unlike the existing thing 'sexp' that defines both lists and atoms,
 'sexp-list' defines only lists to be navigated by 'forward-sexp'.
 The new function 'treesit-forward-sexp-list' uses 'sexp-list'
 to move across lists.  But to move across atoms inside the list
-it uses `forward-sexp-default-function'.
+it uses 'forward-sexp-default-function'.
 
-*** New function 'treesit-forward-list'.
-Tree-sitter conditionally sets 'forward-list-function' for major modes
-that have defined 'sexp-list' in 'treesit-thing-settings' to enable
-the 'forward-list' motion command.
-
-*** New function 'treesit-down-list'.
-Tree-sitter conditionally sets 'down-list-function' for major modes
-that have defined 'sexp-list' in 'treesit-thing-settings' to enable
-the 'down-list' motion command.
-
-*** New function 'treesit-up-list'.
-Tree-sitter conditionally sets 'up-list-function' for major modes
-that have defined 'sexp-list' in 'treesit-thing-settings' to enable
-the 'up-list' motion command.
+*** New tree-sitter based functions for moving by sexp-lists.
+If a major mode defines 'sexp-list' in 'treesit-thing-settings',
+tree-sitter setup for these modes sets 'forward-list-function' to
+'treesit-forward-list', 'up-list-function' to 'treesit-up-list', and
+'down-list-function' to 'treesit-down-list'.  This enables the
+'forward-list', 'up-list', and 'down-list' motion commands for those
+modes.
 
 *** Tree-sitter enabled modes now properly support 'show-paren-mode'.
 They do that by letting 'show-paren-mode' use the results of parsing by
