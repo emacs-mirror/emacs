@@ -3658,7 +3658,7 @@ This condition matches any element of Font Lock keywords that
 references the symbol.  This is usually a face, but can be any symbol
 referenced by an element of the @code{font-lock-keywords} list.  The
 symbol can contain wildcards: @code{*} matches any string in the
-symbol'ss name, @code{?} matches a single character, and
+symbol's name, @code{?} matches a single character, and
 @code{[@var{char-set}]}, where @var{char-set} is a string of one or
 more characters, matches a single character from the set.
 
