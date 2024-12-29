@@ -1018,6 +1018,10 @@ that have defined 'sexp-list' in 'treesit-thing-settings' to enable
 the 'up-list' motion command.
 
 *** Tree-sitter enabled modes now properly support 'show-paren-mode'.
+They do that by letting 'show-paren-mode' use the results of parsing by
+the tree-sitter library.  The new function 'treesit-show-paren-data' is
+used to communicate the tree-sitter parsing results to
+'show-paren-mode'.
 
 +++
 *** New function 'treesit-language-display-name'.
