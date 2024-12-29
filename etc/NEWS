@@ -1002,6 +1002,11 @@ The new function 'treesit-forward-sexp-list' uses 'sexp-list'
 to move across lists.  But to move across atoms inside the list
 it uses `forward-sexp-default-function'.
 
+*** New function 'treesit-forward-list'.
+Tree-sitter conditionally sets 'forward-list-function' for major modes
+that have defined 'sexp-list' in 'treesit-thing-settings' to enable
+the 'forward-list' motion command.
+
 +++
 *** New function 'treesit-language-display-name'.
 This new function returns the display name of a language given the

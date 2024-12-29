@@ -143,6 +143,14 @@ This command assumes point is not in a string or comment."
 	    (point))
 	  nil t))))
 
+(defun forward-list-default-function (&optional arg)
+  "Default function for `forward-list-function'."
+  (goto-char (or (scan-lists (point) arg 0) (buffer-end arg))))
+
+(defvar forward-list-function nil
+  "If non-nil, `forward-list' delegates to this function.
+Should take the same arguments and behave similarly to `forward-list'.")
+
 (defun forward-list (&optional arg interactive)
   "Move forward across one balanced group of parentheses.
 This command will also work on other parentheses-like expressions
@@ -150,6 +158,7 @@ defined by the current language mode.
 With ARG, do it that many times.
 Negative arg -N means move backward across N groups of parentheses.
 This command assumes point is not in a string or comment.
+Calls `forward-list-function' to do the work, if that is non-nil.
 If INTERACTIVE is non-nil, as it is interactively,
 report errors as appropriate for this kind of usage."
   (interactive "^p\nd")
@@ -160,7 +169,9 @@ report errors as appropriate for this kind of usage."
                                     "No next group"
                                   "No previous group"))))
     (or arg (setq arg 1))
-    (goto-char (or (scan-lists (point) arg 0) (buffer-end arg)))))
+    (if forward-list-function
+        (funcall forward-list-function arg)
+      (forward-list-default-function arg))))
 
 (defun backward-list (&optional arg interactive)
   "Move backward across one balanced group of parentheses.
@@ -169,6 +180,7 @@ defined by the current language mode.
 With ARG, do it that many times.
 Negative arg -N means move forward across N groups of parentheses.
 This command assumes point is not in a string or comment.
+Uses `forward-list' to do the work.
 If INTERACTIVE is non-nil, as it is interactively,
 report errors as appropriate for this kind of usage."
   (interactive "^p\nd")
