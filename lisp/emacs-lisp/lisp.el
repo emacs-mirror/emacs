@@ -239,6 +239,10 @@ On error, location of point is unspecified."
   (interactive "^p\nd\nd")
   (up-list (- (or arg 1)) escape-strings no-syntax-crossing))
 
+(defvar up-list-function nil
+  "If non-nil, `up-list' delegates to this function.
+Should take the same arguments and behave similarly to `up-list'.")
+
 (defun up-list (&optional arg escape-strings no-syntax-crossing)
   "Move forward out of one level of parentheses.
 This command will also work on other parentheses-like expressions
@@ -255,6 +259,12 @@ end of a list broken across multiple strings.
 
 On error, location of point is unspecified."
   (interactive "^p\nd\nd")
+  (if up-list-function
+      (funcall up-list-function arg escape-strings no-syntax-crossing)
+    (up-list-default-function arg escape-strings no-syntax-crossing)))
+
+(defun up-list-default-function (&optional arg escape-strings no-syntax-crossing)
+  "Default function for `up-list-function'."
   (or arg (setq arg 1))
   (let ((inc (if (> arg 0) 1 -1))
         (pos nil))

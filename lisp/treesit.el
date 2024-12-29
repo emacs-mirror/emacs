@@ -2571,6 +2571,33 @@ ARG is described in the docstring of `down-list'."
         (if pos (goto-char pos) (treesit--scan-error pred arg)))
       (setq arg (- arg inc)))))
 
+(defun treesit-up-list (&optional arg _escape-strings _no-syntax-crossing)
+  "Move forward out of one level of parentheses.
+What constitutes a level of parentheses is determined by
+`sexp-list' in `treesit-thing-settings' that usually defines
+parentheses-like expressions.
+
+This command is the tree-sitter variant of `up-list'
+redefined by the variable `up-list-function'.
+
+ARG is described in the docstring of `up-list'."
+  (interactive "^p")
+  (let* ((pred 'sexp-list)
+         (arg (or arg 1))
+         (inc (if (> arg 0) 1 -1)))
+    (while (/= arg 0)
+      (let ((node (treesit-thing-at (point) pred)))
+        (while (and node (eq (point) (if (> arg 0)
+                                         (treesit-node-end node)
+                                       (treesit-node-start node))))
+          (setq node (treesit-parent-until node pred)))
+        (if node
+            (goto-char (if (> arg 0)
+                           (treesit-node-end node)
+                         (treesit-node-start node)))
+          (user-error "At top level")))
+      (setq arg (- arg inc)))))
+
 (defun treesit-transpose-sexps (&optional arg)
   "Tree-sitter `transpose-sexps' function.
 ARG is the same as in `transpose-sexps'.
@@ -3497,7 +3524,8 @@ before calling this function."
   (when (treesit-thing-defined-p 'sexp-list nil)
     (setq-local forward-sexp-function #'treesit-forward-sexp-list)
     (setq-local forward-list-function #'treesit-forward-list)
-    (setq-local down-list-function #'treesit-down-list))
+    (setq-local down-list-function #'treesit-down-list)
+    (setq-local up-list-function #'treesit-up-list))
 
   (when (treesit-thing-defined-p 'sentence nil)
     (setq-local forward-sentence-function #'treesit-forward-sentence))
