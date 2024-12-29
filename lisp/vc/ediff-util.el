@@ -219,12 +219,11 @@ to invocation.")
   ;; where this hook could prevent kill-emacs from shutting down Emacs,
   ;; because user interaction is not possible (e.g., in a daemon), or
   ;; if deleting these files signals an error.
-  (ignore-errors
-    (let ((inhibit-interaction t))
-      (dolist (b (buffer-list))
+  (let ((inhibit-interaction t))
+    (dolist (b ediff-session-registry)
+      (ignore-errors
         (with-current-buffer b
-          (when (eq major-mode 'ediff-mode)
-            (ediff-delete-temp-files)))))))
+          (ediff-delete-temp-files))))))
 
 ;;; Setup functions
 
