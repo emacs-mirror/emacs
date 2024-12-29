@@ -1940,14 +1940,18 @@ Sets various variables using `font-lock-defaults' and
 	    (dolist (char (if (numberp (car selem))
 			      (list (car selem))
 			    (mapcar #'identity (car selem))))
-	      (unless (memq (car (aref font-lock-syntax-table char))
-	                    '(1 2 3))    ;"." "w" "_"
-	        (setq font-lock--syntax-table-affects-ppss t))
-	      (modify-syntax-entry char syntax font-lock-syntax-table)
-	      (unless (memq (car (aref font-lock-syntax-table char))
-	                    '(1 2 3))    ;"." "w" "_"
-	        (setq font-lock--syntax-table-affects-ppss t))
-	      ))))
+	      (let ((old-syntax (aref font-lock-syntax-table char)))
+	        (modify-syntax-entry char syntax font-lock-syntax-table)
+	        (let ((new-syntax (aref font-lock-syntax-table char)))
+	          (unless (and (equal (cdr old-syntax) (cdr new-syntax))
+	                       ;; Changes within the w/_/./' subset don't
+                               ;; affect `syntax-ppss'.
+	                       (memq (logand (car old-syntax) 255) '(1 2 3 6))
+	                       (memq (logand (car new-syntax) 255) '(1 2 3 6))
+	                       ;; Check changes to the syntax flags.
+	                       (equal (ash (car old-syntax) -8)
+	                              (ash (car new-syntax) -8)))
+	            (setq font-lock--syntax-table-affects-ppss t))))))))
       ;; (nth 4 defaults) used to hold `font-lock-beginning-of-syntax-function',
       ;; but that was removed in 25.1, so if it's a cons cell, we assume that
       ;; it's part of the variable alist.
