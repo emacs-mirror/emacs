@@ -82,9 +82,6 @@
 The source information are in the format of
 `treesit-language-source-alist'.  This is for development only.")
 
-(defvar treesit-admin-file-name (or load-file-name (buffer-file-name))
-  "Filename of the source file treesit-admin.el.")
-
 (defun treesit-admin--verify-major-mode-queries (modes langs source-alist grammar-dir)
   "Verify font-lock queries in MODES.
 
@@ -194,6 +191,17 @@ queries that has problems with latest grammar."
                           (nth 2 entry)))))
       (special-mode))))
 
+;;; Compatibility report
+
+(defvar treesit-admin-file-name (or load-file-name (buffer-file-name))
+  "Filename of the source file treesit-admin.el.")
+
+(defvar treesit-admin--compat-template-file-name
+  (expand-file-name "compat-template.html"
+                    (file-name-directory
+                     (or load-file-name (buffer-file-name))))
+  "Filename of the HTML template for the compatibility report.")
+
 (defun treesit-admin-verify-major-mode-queries ()
   "Varify font-lock queries in builtin major modes.
 
@@ -230,12 +238,30 @@ Return non-nil if all queries are valid, nil otherwise."
           (setq all-queries-valid nil))))
     all-queries-valid))
 
+(defun treesit-admin--mode-languages (mode)
+  "Return languages used by MODE in a list."
+  (let ((settings
+         (with-temp-buffer
+           (ignore-errors
+             (funcall mode)
+             (font-lock-mode -1)
+             treesit-font-lock-settings)))
+        (all-queries-valid t))
+    (cl-remove-duplicates
+     (mapcar #'treesit-query-language
+             (mapcar #'treesit-font-lock-setting-query
+                     settings)))))
+
 (defun treesit-admin--find-latest-compatible-revision
     (mode language source-alist grammar-dir)
   "Find the latest revision for LANGUAGE that's compatible with MODE.
 
 MODE, LANGUAGE, SOURCE-ALIST, GRAMMAR-DIR are the same as in
-`treesit-admin--verify-major-mode-queries'."
+`treesit-admin--verify-major-mode-queries'.
+
+Return a plist (:version VERSION :head-version HEAD-VERSION).
+HEAD-VERSION is the version of the HEAD, VERSION is the latest
+compatible version."
   (let ((treesit-extra-load-path (list grammar-dir))
         (treesit--install-language-grammar-full-clone t)
         (treesit--install-language-grammar-blobless t)
@@ -243,14 +269,14 @@ MODE, LANGUAGE, SOURCE-ALIST, GRAMMAR-DIR are the same as in
         (workdir (make-temp-file "treesit-validate-workdir" t))
         (emacs-executable
          (expand-file-name invocation-name invocation-directory))
-        version exit-code)
+        head-version version exit-code)
     (pcase-let ((`(,url ,revision ,source-dir ,cc ,c++ ,commit)
                  recipe))
       (with-temp-buffer
         (treesit--git-clone-repo url revision workdir)
         (when commit
           (treesit--git-checkout-branch workdir commit))
-
+        (setq head-version (treesit--language-git-revision workdir))
         (treesit--build-grammar
          workdir grammar-dir language source-dir cc c++)
         (while (not (eq exit-code 0))
@@ -272,7 +298,36 @@ MODE, LANGUAGE, SOURCE-ALIST, GRAMMAR-DIR are the same as in
                                    ',mode ',language)
                                   (kill-emacs 0)
                                 (kill-emacs -1)))))))))
-    version))
+    (list :version version :head-version head-version)))
+
+(defun treesit-admin--last-compatible-grammar-for-modes
+    (modes source-alist grammar-dir)
+  "Generate an HTML page listing latest compatible grammar versions.
+
+MODES, SOURCE-ALIST, GRAMMAR-DIR are the same as
+`treesit-admin--verify-major-mode-queries'.
+
+Return an alist of an alist of a plist:
+
+    ((MODE . ((LANG . (:version VERSION :head-VERSION HEAD-VERSION)) ...)) ...)
+
+VERSION and HEAD-VERSION in the plist are the same as in
+`treesit-admin--find-latest-compatible-revision'."
+  (mapcar
+   (lambda (mode)
+     (cons mode
+           (mapcar
+            (lambda (language)
+              (cons language
+                    (treesit-admin--find-latest-compatible-revision
+                     mode language source-alist grammar-dir)))
+            (treesit-admin--mode-languages mode))))
+   modes))
+
+(defun treesit-admin-generate-compatibility-report ()
+  "Generate a language compatibility report."
+  (interactive)
+  )
 
 (provide 'treesit-admin)
 
