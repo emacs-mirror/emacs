@@ -7203,8 +7203,6 @@ AC_SUBST([RALLOC_OBJ])
 
 if test "$opsys" = "cygwin"; then
   CYGWIN_OBJ="cygw32.o"
-elif test "$opsys" = "mingw32"; then
-  CYGWIN_OBJ=
 else
   CYGWIN_OBJ=
 fi
