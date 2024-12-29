@@ -82,6 +82,9 @@
 The source information are in the format of
 `treesit-language-source-alist'.  This is for development only.")
 
+(defvar treesit-admin-file-name (or load-file-name (buffer-file-name))
+  "Filename of the source file treesit-admin.el.")
+
 (defun treesit-admin--verify-major-mode-queries (modes langs source-alist grammar-dir)
   "Verify font-lock queries in MODES.
 
@@ -205,6 +208,71 @@ queries that has problems with latest grammar."
    treesit-admin--builtin-language-sources
    "/tmp/tree-sitter-grammars"))
 
+(defun treesit-admin--validate-mode-lang (mode lang)
+  "Validate queries for LANG in MODE.
+
+Return non-nil if all queries are valid, nil otherwise."
+  (let ((settings
+         (with-temp-buffer
+           (ignore-errors
+             (funcall mode)
+             (font-lock-mode -1)
+             treesit-font-lock-settings)))
+        (all-queries-valid t))
+    (dolist (setting settings)
+      (let* ((query (treesit-font-lock-setting-query setting))
+             (language (treesit-query-language query)))
+        ;; Validate query.
+        (when (and (eq lang language)
+                   (not (ignore-errors
+                          (treesit-query-compile language query t)
+                          t)))
+          (setq all-queries-valid nil))))
+    all-queries-valid))
+
+(defun treesit-admin--find-latest-compatible-revision
+    (mode language source-alist grammar-dir)
+  "Find the latest revision for LANGUAGE that's compatible with MODE.
+
+MODE, LANGUAGE, SOURCE-ALIST, GRAMMAR-DIR are the same as in
+`treesit-admin--verify-major-mode-queries'."
+  (let ((treesit-extra-load-path (list grammar-dir))
+        (treesit--install-language-grammar-full-clone t)
+        (treesit--install-language-grammar-blobless t)
+        (recipe (alist-get language source-alist))
+        (workdir (make-temp-file "treesit-validate-workdir" t))
+        (emacs-executable
+         (expand-file-name invocation-name invocation-directory))
+        version exit-code)
+    (pcase-let ((`(,url ,revision ,source-dir ,cc ,c++ ,commit)
+                 recipe))
+      (with-temp-buffer
+        (treesit--git-clone-repo url revision workdir)
+        (when commit
+          (treesit--git-checkout-branch workdir commit))
+
+        (treesit--build-grammar
+         workdir grammar-dir language source-dir cc c++)
+        (while (not (eq exit-code 0))
+          (unless (null exit-code)
+            (treesit--git-checkout-branch workdir "HEAD~")
+            (treesit--build-grammar
+             workdir grammar-dir language source-dir cc c++))
+          (setq version (treesit--language-git-revision workdir))
+          (message "Validateing version %s" version)
+          (setq exit-code
+                (call-process
+                 emacs-executable nil t nil
+                 "-Q" "--batch"
+                 "--eval" (prin1-to-string
+                           `(let ((treesit-extra-load-path
+                                   '(,grammar-dir)))
+                              (load ,treesit-admin-file-name)
+                              (if (treesit-admin--validate-mode-lang
+                                   ',mode ',language)
+                                  (kill-emacs 0)
+                                (kill-emacs -1)))))))))
+    version))
 
 (provide 'treesit-admin)
 
