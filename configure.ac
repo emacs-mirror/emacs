@@ -5622,6 +5622,7 @@ AC_SUBST([LIBGPM])
 HAVE_MPS=no
 LIBMPS=
 IGCOBJ=
+MPS_CFLAGS=
 if test "${with_mps}" != "no"; then
   AC_CHECK_HEADER([mps.h],
     [AC_CHECK_LIB([mps], [mps_arena_create], [HAVE_MPS=yes], [], [$LIB_PTHREAD])])
@@ -5635,12 +5636,15 @@ if test "${with_mps}" != "no"; then
     else
       LIBMPS="-lmps $LIB_PTHREAD"
     fi
+    # Force -fno-omit-frame-pointer to avoid register scanning bug:
+    # https://github.com/Ravenbrook/mps/pull/38
+    MPS_CFLAGS="-fno-omit-frame-pointer"
   else
     AC_MSG_ERROR([The MPS library libmps is missing]):
   fi
 fi
 
-MPS_CFLAGS=
+
 if test "$REALLY_ANDROID" = "yes" && test "$with_mps" != "no"; then
   HAVE_MPS=no
   ndk_SEARCH_MODULE([mps], [MPS], [HAVE_MPS=yes])
