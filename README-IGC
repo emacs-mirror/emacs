@@ -92,7 +92,7 @@ where you copied the MPS header files and library.)
 
 To build the debug version of MPS:
 
-$ gcc -O0 -g -DCONFIG_VAR_COOL -c mpc.c -o mps-debug.o
+$ gcc -O0 -g -DCONFIG_VAR_COOL -c mps.c -o mps-debug.o
 $ ar rvs libmps-debug.a mps-debug.o
 $ cp libmps-debug.a ~/mps-artifacts
 
