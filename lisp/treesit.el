@@ -3389,6 +3389,49 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
       (setq level (1+ level)))
     (if (zerop level) 1 level)))
 
+;;; Show paren mode
+
+(defun treesit-show-paren-data--categorize (pos &optional end-p)
+  (let* ((pred 'sexp-list)
+         (parent (treesit-node-parent (treesit-node-at (if end-p (1- pos) pos))))
+         (parent (when (treesit-node-match-p parent pred t) parent))
+         (first (when parent (treesit-node-child parent 0)))
+         (first-start (when first (treesit-node-start first)))
+         (first-end (when first (treesit-node-end first)))
+         (last (when parent (treesit-node-child parent -1)))
+         (last-start (when last (treesit-node-start last)))
+         (last-end (when last (treesit-node-end last)))
+         (dir (if show-paren-when-point-inside-paren
+                  (cond
+                   ((and first (<= first-start pos first-end)) 1)
+                   ((and last (<= last-start pos last-end)) -1))
+                (cond
+                 ((and first (= first-start pos)) 1)
+                 ((and last (= pos last-end)) -1)))))
+    (cond
+     ((eq dir 1) (list first-start first-end last-start last-end))
+     ((eq dir -1) (list last-start last-end first-start first-end)))))
+
+(defun treesit-show-paren-data ()
+  "A function suitable for `show-paren-data-function' (which see)."
+  (or (treesit-show-paren-data--categorize (point))
+      (unless (bobp) (treesit-show-paren-data--categorize (point) t))
+      (when show-paren-when-point-in-periphery
+        (let* ((ind-pos (save-excursion (back-to-indentation) (point)))
+	       (eol-pos
+	        (save-excursion
+	          (end-of-line) (skip-chars-backward " \t" ind-pos) (point))))
+          (cond
+           ((<= (point) ind-pos)
+            (or (treesit-show-paren-data--categorize ind-pos)
+	        (unless (bobp)
+                  (treesit-show-paren-data--categorize (1- eol-pos)))))
+           ((>= (point) eol-pos)
+            (unless (bobp)
+              (treesit-show-paren-data--categorize (1- eol-pos)))))))
+      ;; Fall back for parens in e.g. 'for_statement'
+      (show-paren--default)))
+
 ;;; Activating tree-sitter
 
 (defun treesit-ready-p (language &optional quiet)
@@ -3546,6 +3589,8 @@ before calling this function."
             #'treesit-outline-predicate--from-imenu))
     (setq-local outline-search-function #'treesit-outline-search
                 outline-level #'treesit-outline-level))
+
+  (setq-local show-paren-data-function 'treesit-show-paren-data)
 
   ;; Remove existing local parsers.
   (dolist (ov (overlays-in (point-min) (point-max)))

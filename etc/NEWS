@@ -1017,6 +1017,10 @@ Tree-sitter conditionally sets 'up-list-function' for major modes
 that have defined 'sexp-list' in 'treesit-thing-settings' to enable
 the 'up-list' motion command.
 
+*** New function 'treesit-show-paren-data'.
+Tree-sitter sets 'show-paren-data-function' to this function
+to support 'show-paren-mode'.
+
 +++
 *** New function 'treesit-language-display-name'.
 This new function returns the display name of a language given the
