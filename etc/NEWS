@@ -1007,6 +1007,11 @@ Tree-sitter conditionally sets 'forward-list-function' for major modes
 that have defined 'sexp-list' in 'treesit-thing-settings' to enable
 the 'forward-list' motion command.
 
+*** New function 'treesit-down-list'.
+Tree-sitter conditionally sets 'down-list-function' for major modes
+that have defined 'sexp-list' in 'treesit-thing-settings' to enable
+the 'down-list' motion command.
+
 +++
 *** New function 'treesit-language-display-name'.
 This new function returns the display name of a language given the

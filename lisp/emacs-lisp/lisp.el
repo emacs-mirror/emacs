@@ -187,6 +187,17 @@ report errors as appropriate for this kind of usage."
   (or arg (setq arg 1))
   (forward-list (- arg) interactive))
 
+(defun down-list-default-function (&optional arg)
+  "Default function for `down-list-function'."
+  (let ((inc (if (> arg 0) 1 -1)))
+    (while (/= arg 0)
+      (goto-char (or (scan-lists (point) inc -1) (buffer-end arg)))
+      (setq arg (- arg inc)))))
+
+(defvar down-list-function nil
+  "If non-nil, `down-list' delegates to this function.
+Should take the same arguments and behave similarly to `down-list'.")
+
 (defun down-list (&optional arg interactive)
   "Move forward down one level of parentheses.
 This command will also work on other parentheses-like expressions
@@ -194,20 +205,21 @@ defined by the current language mode.
 With ARG, do this that many times.
 A negative argument means move backward but still go down a level.
 This command assumes point is not in a string or comment.
+Calls `down-list-function' to do the work, if that is non-nil.
 If INTERACTIVE is non-nil, as it is interactively,
 report errors as appropriate for this kind of usage."
   (interactive "^p\nd")
-  (when (ppss-comment-or-string-start (syntax-ppss))
+  (when (and (null down-list-function)
+             (ppss-comment-or-string-start (syntax-ppss)))
     (user-error "This command doesn't work in strings or comments"))
   (if interactive
       (condition-case _
           (down-list arg nil)
         (scan-error (user-error "At bottom level")))
     (or arg (setq arg 1))
-    (let ((inc (if (> arg 0) 1 -1)))
-      (while (/= arg 0)
-        (goto-char (or (scan-lists (point) inc -1) (buffer-end arg)))
-        (setq arg (- arg inc))))))
+    (if down-list-function
+        (funcall down-list-function arg)
+      (down-list-default-function arg))))
 
 (defun backward-up-list (&optional arg escape-strings no-syntax-crossing)
   "Move backward out of one level of parentheses.

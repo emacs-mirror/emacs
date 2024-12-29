@@ -2420,6 +2420,13 @@ delimits medium sized statements in the source code.  It is,
 however, smaller in scope than sentences.  This is used by
 `treesit-forward-sexp' and friends.")
 
+(defun treesit--scan-error (pred arg)
+  (when-let* ((parent (treesit-thing-at (point) pred t))
+              (boundary (treesit-node-child parent (if (> arg 0) -1 0))))
+    (signal 'scan-error (list (format-message "No more %S to move across" pred)
+                              (treesit-node-start boundary)
+                              (treesit-node-end boundary)))))
+
 (defun treesit-forward-sexp (&optional arg)
   "Tree-sitter implementation for `forward-sexp-function'.
 
@@ -2460,13 +2467,7 @@ across atoms (such as symbols or words) inside the list."
         ;; the obstacle, like `forward-sexp' does.  If we couldn't
         ;; find a parent, we simply return nil without moving point,
         ;; then functions like `up-list' will signal "at top level".
-        (when-let* ((parent (treesit-thing-at (point) pred t))
-                    (boundary (if (> arg 0)
-                                  (treesit-node-child parent -1)
-                                (treesit-node-child parent 0))))
-          (signal 'scan-error (list "No more sexp to move across"
-                                    (treesit-node-start boundary)
-                                    (treesit-node-end boundary)))))))
+        (treesit--scan-error pred arg))))
 
 (defun treesit-forward-sexp-list (&optional arg)
   "Alternative tree-sitter implementation for `forward-sexp-function'.
@@ -2541,13 +2542,34 @@ ARG is described in the docstring of `forward-list'."
     (or (if (> arg 0)
             (treesit-end-of-thing pred (abs arg) 'restricted)
           (treesit-beginning-of-thing pred (abs arg) 'restricted))
-        (when-let* ((parent (treesit-thing-at (point) pred t))
-                    (boundary (if (> arg 0)
-                                  (treesit-node-child parent -1)
-                                (treesit-node-child parent 0))))
-          (signal 'scan-error (list "No more group to move across"
-                                    (treesit-node-start boundary)
-                                    (treesit-node-end boundary)))))))
+        (treesit--scan-error pred arg))))
+
+(defun treesit-down-list (&optional arg)
+  "Move forward down one level of parentheses.
+What constitutes a level of parentheses is determined by
+`sexp-list' in `treesit-thing-settings' that usually defines
+parentheses-like expressions.
+
+This command is the tree-sitter variant of `down-list'
+redefined by the variable `down-list-function'.
+
+ARG is described in the docstring of `down-list'."
+  (interactive "^p")
+  (let* ((pred 'sexp-list)
+         (arg (or arg 1))
+         (inc (if (> arg 0) 1 -1)))
+    (while (/= arg 0)
+      (let* ((node (if (> arg 0)
+                       (treesit-thing-next (point) pred)
+                     (treesit-thing-prev (point) pred)))
+             (child (when node
+                      (treesit-node-child node (if (> arg 0) 0 -1))))
+             (pos (when child
+                    (if (> arg 0)
+                        (treesit-node-end child)
+                      (treesit-node-start child)))))
+        (if pos (goto-char pos) (treesit--scan-error pred arg)))
+      (setq arg (- arg inc)))))
 
 (defun treesit-transpose-sexps (&optional arg)
   "Tree-sitter `transpose-sexps' function.
@@ -3474,7 +3496,8 @@ before calling this function."
 
   (when (treesit-thing-defined-p 'sexp-list nil)
     (setq-local forward-sexp-function #'treesit-forward-sexp-list)
-    (setq-local forward-list-function #'treesit-forward-list))
+    (setq-local forward-list-function #'treesit-forward-list)
+    (setq-local down-list-function #'treesit-down-list))
 
   (when (treesit-thing-defined-p 'sentence nil)
     (setq-local forward-sentence-function #'treesit-forward-sentence))
