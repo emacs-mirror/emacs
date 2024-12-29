@@ -1888,7 +1888,13 @@ See `tramp-dissect-file-name' for details."
 ;;;###tramp-autoload
 (defsubst tramp-string-empty-or-nil-p (string)
   "Check whether STRING is empty or nil."
+  ;; (declare (tramp-suppress-trace t))
   (or (null string) (string= string "")))
+
+;; We cannot use the `declare' form for `tramp-suppress-trace' in
+;; autoloaded functions, because the tramp-loaddefs.el generation
+;; would fail.
+(function-put #'tramp-string-empty-or-nil-p 'tramp-suppress-trace t)
 
 (defun tramp-buffer-name (vec)
   "A name for the connection buffer VEC."
@@ -3717,7 +3723,9 @@ on the same host.  Otherwise, TARGET is quoted."
 	 (setf ,target (tramp-file-local-name (expand-file-name ,target))))
        ;; There could be a cyclic link.
        (tramp-flush-file-properties
-	v (expand-file-name ,target (tramp-file-local-name default-directory))))
+	v (tramp-drop-volume-letter
+	   (expand-file-name
+	    ,target (tramp-file-local-name default-directory)))))
 
      ;; If TARGET is still remote, quote it.
      (if (tramp-tramp-file-p ,target)
