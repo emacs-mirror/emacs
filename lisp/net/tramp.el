@@ -5294,7 +5294,6 @@ should be set connection-local.")
       ;; so we reset it.
       (set-process-query-on-exit-flag p (null noquery))
       (process-put p 'remote-command orig-command)
-      (tramp-set-connection-property p "remote-command" orig-command)
       (when (bufferp stderr)
 	(tramp-taint-remote-process-buffer stderr))
 

@@ -1476,9 +1476,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		    (tramp-send-string v command)))
 		(setq p (tramp-get-connection-process v))
 		(when program
-		  (process-put p 'remote-command (cons program args))
-		  (tramp-set-connection-property
-		   p "remote-command" (cons program args)))
+		  (process-put p 'remote-command (cons program args)))
 		;; Return value.
 		p)))
 

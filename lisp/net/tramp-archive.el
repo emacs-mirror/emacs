@@ -585,7 +585,8 @@ offered."
 ;; This is used in GNU ELPA package tramp-locproc.el.
 (defun tramp-archive-local-file-name (filename)
   "Return local mount name of FILENAME."
-  (tramp-gvfs-local-file-name (tramp-archive-gvfs-file-name filename)))
+  (let ((tramp-methods (cons `(,tramp-archive-method) tramp-methods)))
+    (tramp-gvfs-local-file-name (tramp-archive-gvfs-file-name filename))))
 
 
 ;; File name primitives.
