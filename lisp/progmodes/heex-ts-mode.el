@@ -113,7 +113,7 @@
      `((special_attribute_name) @font-lock-keyword-face)
      :language 'heex
      :feature 'heex-string
-     `([(attribute_value) (quoted_attribute_value)] @font-lock-constant-face)
+     `([(attribute_value) (quoted_attribute_value)] @font-lock-string-face)
      :language 'heex
      :feature 'heex-component
      `([
