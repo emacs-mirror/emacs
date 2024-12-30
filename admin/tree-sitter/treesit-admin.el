@@ -190,13 +190,13 @@ queries that has problems with latest grammar."
           (delete-region beg (point))
           (insert ";;\n")
           (dolist (mode modes)
-            (insert (format ";; %s is known to work with the following languages and version:\n" mode))
+            (insert (format ";; %s has been tested with the following grammars and version:\n" mode))
             (dolist (lang (alist-get mode mode-language-alist))
               (insert (format ";; - tree-sitter-%s: %s\n" lang (alist-get lang version-alist))))
             (insert ";;\n"))
           (insert
            ";; We try our best to make builtin modes work with latest grammar
-;; versions, so a more recent grammar version has a good chance to work.
+;; versions, so a more recent grammar has a good chance to work too.
 ;; Send us a bug report if it doesn't.")
           (insert "\n\n")
           (write-file source-file))))
