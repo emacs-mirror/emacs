@@ -497,7 +497,7 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
     }
   else
     {
-      AUTO_STRING (format, "Ignoring DOC string on non-compiled"
+      AUTO_STRING (format, "Ignoring DOC string on non-compiled "
 		   "non-subr: %S");
       CALLN (Fmessage, format, obj);
     }
