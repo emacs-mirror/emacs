@@ -3657,7 +3657,8 @@ buffer_step (struct igc_buffer_it *it)
       buffer_it_next (it);
       struct buffer *b = XBUFFER (buf);
       compact_buffer (b);
-      b->text->intervals = balance_intervals (b->text->intervals);
+      if (igc__balance_intervals)
+	b->text->intervals = balance_intervals (b->text->intervals);
       return true;
     }
   return false;
@@ -5090,4 +5091,8 @@ be either an integer or a float.  The default value is 0 which means .
 don't do something when idle.  Negative values and values that are not numbers
 are handled as if they were the default value.  */);
   Vigc_step_interval = make_fixnum (0);
+
+  DEFVAR_BOOL ("igc--balance-intervals", igc__balance_intervals,
+     doc: /* Whether to balance buffer intervals when idle.  */);
+  igc__balance_intervals = false;
 }
