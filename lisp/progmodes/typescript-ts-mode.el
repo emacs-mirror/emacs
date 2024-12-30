@@ -22,6 +22,15 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Tree-sitter language versions
+;;
+;; typescript-ts-mode is known to work with the following languages and version:
+;; - tree-sitter-typescript: v0.23.2-2-g8e13e1d
+;;
+;; We try our best to make builtin modes work with latest grammar
+;; versions, so a more recent grammar version has a good chance to work.
+;; Send us a bug report if it doesn't.
+
 ;;; Commentary:
 ;;
 
@@ -192,32 +201,47 @@ Argument LANGUAGE is either `typescript' or `tsx'."
   ;; Warning: treesitter-query-capture says both node types are valid,
   ;; but then raises an error if the wrong node type is used. So it is
   ;; important to check with the new node type (member_expression)
+  ;;
+  ;; Later typescript grammar removed support for jsx, so the later
+  ;; grammar versions this function just return nil.
   (typescript-ts-mode--check-dialect language)
-  (condition-case nil
-      (progn (treesit-query-capture language '((jsx_opening_element (member_expression) @capture)))
-	     '((jsx_opening_element
-		[(member_expression (identifier)) (identifier)]
-		@typescript-ts-jsx-tag-face)
+  (let ((queries-a '((jsx_opening_element
+		      [(member_expression (identifier)) (identifier)]
+		      @typescript-ts-jsx-tag-face)
 
-	       (jsx_closing_element
-		[(member_expression (identifier)) (identifier)]
-		@typescript-ts-jsx-tag-face)
+	             (jsx_closing_element
+		      [(member_expression (identifier)) (identifier)]
+		      @typescript-ts-jsx-tag-face)
 
-	       (jsx_self_closing_element
-		[(member_expression (identifier)) (identifier)]
-		@typescript-ts-jsx-tag-face)))
-    (treesit-query-error
-           '((jsx_opening_element
-	      [(nested_identifier (identifier)) (identifier)]
-	      @typescript-ts-jsx-tag-face)
+	             (jsx_self_closing_element
+		      [(member_expression (identifier)) (identifier)]
+		      @typescript-ts-jsx-tag-face)
 
-	     (jsx_closing_element
-	      [(nested_identifier (identifier)) (identifier)]
-	      @typescript-ts-jsx-tag-face)
+                     (jsx_attribute (property_identifier)
+                                    @typescript-ts-jsx-attribute-face)))
+        (queries-b '((jsx_opening_element
+	              [(nested_identifier (identifier)) (identifier)]
+	              @typescript-ts-jsx-tag-face)
 
-	     (jsx_self_closing_element
-	      [(nested_identifier (identifier)) (identifier)]
-	      @typescript-ts-jsx-tag-face)))))
+                     (jsx_closing_element
+	              [(nested_identifier (identifier)) (identifier)]
+	              @typescript-ts-jsx-tag-face)
+
+                     (jsx_self_closing_element
+	              [(nested_identifier (identifier)) (identifier)]
+	              @typescript-ts-jsx-tag-face)
+
+                     (jsx_attribute (property_identifier)
+                                    @typescript-ts-jsx-attribute-face))))
+    (or (ignore-errors
+          (treesit-query-compile language queries-a t)
+          queries-a)
+        (ignore-errors
+          (treesit-query-compile language queries-b t)
+          queries-b)
+        ;; Return a dummy query that doens't do anything, if neither
+        ;; query works.
+        '("," @_ignore))))
 
 (defun tsx-ts-mode--font-lock-compatibility-function-expression (language)
   "Handle tree-sitter grammar breaking change for `function' expression.
@@ -386,8 +410,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 
      :language language
      :feature 'jsx
-     (append (tsx-ts-mode--font-lock-compatibility-bb1f97b language)
-             `((jsx_attribute (property_identifier) @typescript-ts-jsx-attribute-face)))
+     (tsx-ts-mode--font-lock-compatibility-bb1f97b language)
 
      :language language
      :feature 'number
