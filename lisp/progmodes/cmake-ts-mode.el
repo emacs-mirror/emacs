@@ -25,7 +25,7 @@
 ;;; Tree-sitter language versions
 ;;
 ;; cmake-ts-mode is known to work with the following languages and version:
-;; - tree-sitter-cmake: e409ae33f00e04cde30f2bcffb979caf1a33562a
+;; - tree-sitter-cmake: v0.5.0-5-ge409ae3
 ;;
 ;; We try our best to make builtin modes work with latest grammar
 ;; versions, so a more recent grammar version has a good chance to work.

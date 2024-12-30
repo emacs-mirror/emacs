@@ -25,7 +25,7 @@
 ;;; Tree-sitter language versions
 ;;
 ;; c-ts-mode is known to work with the following languages and version:
-;; - tree-sitter-c: v0.23.4
+;; - tree-sitter-c: v0.23.4-1-g3aa2995
 ;;
 ;; c++-ts-mode is known to work with the following languages and version:
 ;; - tree-sitter-cpp: v0.23.4-1-gf41b4f6

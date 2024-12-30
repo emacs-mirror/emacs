@@ -21,6 +21,16 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Tree-sitter language versions
+;;
+;; elixir-ts-mode is known to work with the following languages and version:
+;; - tree-sitter-heex: v0.7.0
+;; - tree-sitter-elixir: v0.3.3
+;;
+;; We try our best to make builtin modes work with latest grammar
+;; versions, so a more recent grammar version has a good chance to work.
+;; Send us a bug report if it doesn't.
+
 ;;; Commentary:
 ;;
 ;; This package provides `elixir-ts-mode' which is a major mode for editing

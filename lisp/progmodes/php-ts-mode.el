@@ -22,6 +22,20 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Tree-sitter language versions
+;;
+;; php-ts-mode is known to work with the following languages and version:
+;; - tree-sitter-phpdoc: fe3202e468bc17332bec8969f2b50ff1f1da3a46
+;; - tree-sitter-css: v0.23.1-1-g6a442a3
+;; - tree-sitter-jsdoc: v0.23.2
+;; - tree-sitter-javascript: v0.23.1-2-g108b2d4
+;; - tree-sitter-html: v0.23.2-1-gd9219ad
+;; - tree-sitter-php: v0.23.11
+;;
+;; We try our best to make builtin modes work with latest grammar
+;; versions, so a more recent grammar version has a good chance to work.
+;; Send us a bug report if it doesn't.
+
 ;;; Commentary:
 ;;
 ;; This package provides `php-ts-mode' which is a major mode
