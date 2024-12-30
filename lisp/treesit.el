@@ -3393,8 +3393,7 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
 
 (defun treesit-show-paren-data--categorize (pos &optional end-p)
   (let* ((pred 'sexp-list)
-         (parent (treesit-node-parent (treesit-node-at (if end-p (1- pos) pos))))
-         (parent (when (treesit-node-match-p parent pred t) parent))
+         (parent (treesit-parent-until (treesit-node-at (if end-p (1- pos) pos)) pred))
          (first (when parent (treesit-node-child parent 0)))
          (first-start (when first (treesit-node-start first)))
          (first-end (when first (treesit-node-end first)))
