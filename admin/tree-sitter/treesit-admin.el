@@ -77,16 +77,41 @@
     (cmake "https://github.com/uyha/tree-sitter-cmake")
     (dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile")
     (go "https://github.com/tree-sitter/tree-sitter-go")
-    (ruby "https://github.com/tree-sitter/tree-sitter-ruby"))
+    (ruby "https://github.com/tree-sitter/tree-sitter-ruby")
+    (javascript "https://github.com/tree-sitter/tree-sitter-javascript")
+    (typescript "https://github.com/tree-sitter/tree-sitter-typescript"
+                nil "typescript/src")
+    (tsx "https://github.com/tree-sitter/tree-sitter-typescript"
+         nil "tsx/src")
+    (json "https://github.com/tree-sitter/tree-sitter-json")
+    (rust "https://github.com/tree-sitter/tree-sitter-rust")
+    (php "https://github.com/tree-sitter/tree-sitter-php"
+         nil "php/src")
+    (css "https://github.com/tree-sitter/tree-sitter-css")
+    (phpdoc "https://github.com/claytonrcarter/tree-sitter-phpdoc")
+    (doxygen "https://github.com/tree-sitter-grammars/tree-sitter-doxygen")
+    (lua "https://github.com/tree-sitter-grammars/tree-sitter-lua")
+    (python "https://github.com/tree-sitter/tree-sitter-python")
+    (html "https://github.com/tree-sitter/tree-sitter-html")
+    (elixir "https://github.com/elixir-lang/tree-sitter-elixir")
+    (heex "https://github.com/phoenixframework/tree-sitter-heex")
+    (java "https://github.com/tree-sitter/tree-sitter-java")
+    (jsdoc "https://github.com/tree-sitter/tree-sitter-jsdoc"))
   "A list of sources for the builtin modes.
 The source information are in the format of
 `treesit-language-source-alist'.  This is for development only.")
 
-(defun treesit-admin--verify-major-mode-queries (modes langs source-alist grammar-dir)
+(defvar treesit-admin--builtin-modes
+  '( c-ts-mode c++-ts-mode cmake-ts-mode dockerfile-ts-mode
+     go-ts-mode ruby-ts-mode js-ts-mode typescript-ts-mode tsx-ts-mode
+     json-ts-mode rust-ts-mode php-ts-mode css-ts-mode lua-ts-mode
+     html-ts-mode elixir-ts-mode heex-ts-mode java-ts-mode)
+  "Builtin tree-sitter modes that we check.")
+
+(defun treesit-admin--verify-major-mode-queries (modes source-alist grammar-dir)
   "Verify font-lock queries in MODES.
 
-LANGS is a list of languages, it should cover all the languages used by
-major modes in MODES.  SOURCE-ALIST should have the same shape as
+SOURCE-ALIST should have the same shape as
 `treesit-language-source-alist'.  GRAMMAR-DIR is a temporary direction
 in which grammars are installed.
 
@@ -101,7 +126,9 @@ queries that has problems with latest grammar."
         (invalid-feature-list nil)
         (valid-modes nil)
         (mode-language-alist nil)
-        (file-modes-alist nil))
+        (file-modes-alist nil)
+        (langs (cl-remove-duplicates
+                (mapcan #'treesit-admin--mode-languages modes))))
     (dolist (lang langs)
       (let* ((recipe (assoc lang source-alist))
              (ver (apply #'treesit--install-language-grammar-1
@@ -191,6 +218,19 @@ queries that has problems with latest grammar."
                           (nth 2 entry)))))
       (special-mode))))
 
+(defun treesit-admin-verify-major-mode-queries ()
+  "Varify font-lock queries in builtin major modes.
+
+If the font-lock queries work fine with the latest grammar, insert some
+comments in the source file saying that the modes are known to work with
+that version of grammar.  At the end of the process, show a list of
+queries that has problems with latest grammar."
+  (interactive)
+  (treesit-admin--verify-major-mode-queries
+   treesit-admin--builtin-modes
+   treesit-admin--builtin-language-sources
+   "/tmp/tree-sitter-grammars"))
+
 ;;; Compatibility report
 
 (defvar treesit-admin-file-name (or load-file-name (buffer-file-name))
@@ -201,20 +241,6 @@ queries that has problems with latest grammar."
                     (file-name-directory
                      (or load-file-name (buffer-file-name))))
   "Filename of the HTML template for the compatibility report.")
-
-(defun treesit-admin-verify-major-mode-queries ()
-  "Varify font-lock queries in builtin major modes.
-
-If the font-lock queries work fine with the latest grammar, insert some
-comments in the source file saying that the modes are known to work with
-that version of grammar.  At the end of the process, show a list of
-queries that has problems with latest grammar."
-  (interactive)
-  (treesit-admin--verify-major-mode-queries
-   '(cmake-ts-mode dockerfile-ts-mode go-ts-mode ruby-ts-mode)
-   '(cmake dockerfile go ruby)
-   treesit-admin--builtin-language-sources
-   "/tmp/tree-sitter-grammars"))
 
 (defun treesit-admin--validate-mode-lang (mode lang)
   "Validate queries for LANG in MODE.
@@ -244,7 +270,11 @@ Return non-nil if all queries are valid, nil otherwise."
   (let ((settings
          (with-temp-buffer
            (ignore-errors
-             (funcall mode)
+             ;; TODO: A more generic way to find all queries.
+             (let ((c-ts-mode-enable-doxygen t)
+                   (c-ts-mode-enable-doxygen t)
+                   (java-ts-mode-enabel-doxygen t))
+               (funcall mode))
              (font-lock-mode -1)
              treesit-font-lock-settings)))
         (all-queries-valid t))
@@ -266,10 +296,11 @@ instead.
 
 Return a plist of the form
 
-    (:version VERSION :head-version HEAD-VERSION).
+    (:version VERSION :head-version HEAD-VERSION :timstamp TIMESTAMP).
 
 HEAD-VERSION is the version of the HEAD, VERSION is the latest
-compatible version."
+compatible version.  TIMESTAMP is the commit date of VERSION in UNIX
+epoch format."
   (let ((treesit-extra-load-path (list grammar-dir))
         (treesit--install-language-grammar-full-clone t)
         (treesit--install-language-grammar-blobless t)
@@ -278,7 +309,9 @@ compatible version."
         (emacs-executable
          (or emacs-executable
              (expand-file-name invocation-name invocation-directory)))
-        head-version version exit-code)
+        head-version version exit-code timestamp)
+    (when (not recipe)
+      (signal 'treesit-error `("Cannot find recipe" ,language)))
     (pcase-let ((`(,url ,revision ,source-dir ,cc ,c++ ,commit)
                  recipe))
       (with-temp-buffer
@@ -294,6 +327,7 @@ compatible version."
             (treesit--build-grammar
              workdir grammar-dir language source-dir cc c++))
           (setq version (treesit--language-git-revision workdir))
+          (setq timestamp (treesit--language-git-timestamp workdir))
           (message "Validateing version %s" version)
           (setq exit-code
                 (call-process
@@ -307,7 +341,7 @@ compatible version."
                                    ',mode ',language)
                                   (kill-emacs 0)
                                 (kill-emacs -1)))))))))
-    (list :version version :head-version head-version)))
+    (list :version version :head-version head-version :timestamp timestamp)))
 
 (defun treesit-admin--last-compatible-grammar-for-modes
     (modes source-alist grammar-dir &optional emacs-executable)
@@ -336,47 +370,83 @@ VERSION and HEAD-VERSION in the plist are the same as in
    modes))
 
 (defun treesit-admin--generate-compatibility-report
-    (modes out-file &optional emacs-executable)
-  "Generate a language compatibility report for MODES.
+    (emacs-executables modes out-file)
+  "Generate a table for language compatibiity for MODES.
 
-If EMACS-EXECUTABLE is non-nil, use it for validating queries.  Write
-the report to OUT-FILE."
-  (interactive)
-  (with-temp-buffer
-    (let ((table (treesit-admin--last-compatible-grammar-for-modes
-                  modes
-                  treesit-admin--builtin-language-sources
-                  "/tmp/treesit-grammar")))
-      (dolist (entry table)
-        (let ((mode (car entry)))
-          (dolist (entry (cdr entry))
-            (let* ((lang (car entry))
-                   (version (plist-get (cdr entry) :version))
-                   (head-version (plist-get (cdr entry) :head-version))
-                   (classname
-                    (if (equal version head-version) "head" "")))
-              (insert (format "<tr><td>%s</td><td>%s</td><td class=\"%s\">%s</td></tr>\n"
-                              mode lang classname version)))))))
-    (let ((time (current-time-string nil t))
-          (table-text (buffer-string))
-          (emacs-version
-           (if emacs-executable
-               (with-temp-buffer
-                 (call-process emacs-executable nil t nil
-                               "-Q" "--batch"
-                               "--eval" "(princ emacs-version)")
-                 (buffer-string))
-             emacs-version)))
-      (erase-buffer)
-      (insert-file-contents treesit-admin--compat-template-file-name)
-      (goto-char (point-min))
-      (search-forward "___REPLACE_EMACS_VERSION___")
-      (replace-match emacs-version t)
-      (search-forward "___REPLACE_TIME___")
-      (replace-match (format "%s UTC" time) t)
-      (search-forward "___REPLACE_TABLE___")
-      (replace-match table-text t)
-      (write-region (point-min) (point-max) out-file))))
+Note that this only works for Emacs 31 and later, because before Emacs
+31 we can't validate a compiled query (because there's a bug preventing
+us from eager compiling a compiled query that's already lazily
+compiled).
+
+EMACS-EXECUTABLES is a list of Emacs executbles to check for."
+  (let ((tables
+         (mapcar
+          (lambda (emacs)
+            (cons (with-temp-buffer
+                    (call-process emacs nil t nil
+                                  "-Q" "--batch"
+                                  "--eval" "(princ emacs-version)")
+                    (buffer-string))
+                  (treesit-admin--last-compatible-grammar-for-modes
+                   modes
+                   treesit-admin--builtin-language-sources
+                   "/tmp/treesit-grammar"
+                   emacs)))
+          emacs-executables))
+        (database (make-hash-table :test #'equal))
+        languages)
+    (dolist (table tables)
+      (dolist (mode-entry (cdr table))
+        (dolist (language-entry (cdr mode-entry))
+          (let* ((lang (car language-entry))
+                 (plist (cdr language-entry))
+                 ;; KEY = (LANG . EMACS-VERSION)
+                 (key (cons lang (car table)))
+                 (existing-plist (gethash key database)))
+            (push lang languages)
+            ;; If there are two major modes that uses LANG, and they
+            ;; have different compatible versions, use the older
+            ;; version.
+            (when (or (not existing-plist)
+                      (< (plist-get plist :timestamp)
+                         (plist-get existing-plist :timestamp)))
+              (puthash key plist database))))))
+    (setq languages (cl-sort (cl-remove-duplicates languages)
+                             (lambda (a b)
+                               (string< (symbol-name a) (symbol-name b)))))
+    ;; Compose HTML table.
+    (with-temp-buffer
+      (insert "<tr><th>Language</th>")
+      (dolist (emacs-version (mapcar #'car tables))
+        (insert (format "<th>%s</th>" emacs-version)))
+      (insert "</tr>\n")
+      (dolist (lang languages)
+        (insert "<tr>")
+        (insert (format "<td>%s</td>" lang))
+        (dolist (emacs-version (mapcar #'car tables))
+          (let* ((key (cons lang emacs-version))
+                 (plist (gethash key database))
+                 (version (plist-get plist :version))
+                 (head-version (plist-get plist :head-version))
+                 (classname
+                  (if (equal version head-version) "head" "")))
+            (if (not plist)
+                (insert "<td></td>")
+              (insert (format "<td class=\"%s\">%s</td>"
+                              classname version)))))
+        (insert "</tr>\n"))
+
+      ;; Compose table with template and write to out file.
+      (let ((time (current-time-string nil t))
+            (table-text (buffer-string)))
+        (erase-buffer)
+        (insert-file-contents treesit-admin--compat-template-file-name)
+        (goto-char (point-min))
+        (search-forward "___REPLACE_TIME___")
+        (replace-match (format "%s UTC" time) t)
+        (search-forward "___REPLACE_TABLE___")
+        (replace-match table-text t)
+        (write-region (point-min) (point-max) out-file)))))
 
 (provide 'treesit-admin)
 

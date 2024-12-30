@@ -9,6 +9,7 @@
           width: min(90vw, 40rem);
           margin: auto;
           margin-top: 2rem;
+          margin-bottom: 2rem;
           font-family: ui-serif;
       }
       thead {
@@ -19,6 +20,8 @@
       }
       table td {
           padding: 0.5rem 1rem;
+          width: 10rem;
+          word-break: break-all;
       }
       .head {
           background: lightgreen;
@@ -26,20 +29,11 @@
     </style>
   </head>
   <body>
-    <h1>Tree-sitter grammar compatibility for Emacs ___REPLACE_EMACS_VERSION___</h1>
-    <p>This is an auto-generated report of the latest compatible versions of tree-sitter grammars for each major mode.  A <span class="head">green background</span> on the version indicates that the major mode is compatible with the latest commit in the upstream grammar repo.</p>
+    <h1>Emacs tree-sitter grammar compatibility</h1>
+    <p>This is an auto-generated report of the last compatible version for each grammar in each Emacs version.  A <span class="head">green background</span> on the version indicates that the Emacs version is compatible with the latest commit in the upstream grammar repo.</p>
     <p>This report is generated on ___REPLACE_TIME___.</p>
     <table>
-      <thead>
-        <tr>
-          <td>Major mode</td>
-          <td>Language</td>
-          <td>Latest compatible version</td>
-        </tr>
-      </thead>
-      <tbody>
 ___REPLACE_TABLE___
-      </tbody>
     </table>
   </body>
 </html>

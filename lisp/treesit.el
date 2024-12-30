@@ -4239,6 +4239,16 @@ nil."
       (string-trim (buffer-string)))
      (t nil))))
 
+(defun treesit--language-git-timestamp (repo-dir)
+  "Return the commit date in REPO-DIR in UNIX epoch.
+
+Return nil if failed to run command."
+  (with-temp-buffer
+    (if (eq 0 (call-process
+               "git" nil t nil "-C" repo-dir "log" "-1" "--format=%ct"))
+        (string-to-number (string-trim (buffer-string)))
+      nil)))
+
 (defun treesit--call-process-signal (&rest args)
   "Run `call-process' with ARGS.
 If it returns anything but 0, signal an error.  Use the buffer
