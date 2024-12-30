@@ -3393,7 +3393,9 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
 
 (defun treesit-show-paren-data--categorize (pos &optional end-p)
   (let* ((pred 'sexp-list)
-         (parent (treesit-parent-until (treesit-node-at (if end-p (1- pos) pos)) pred))
+         (parent (treesit-node-at (if end-p (1- pos) pos)))
+         (_ (while (and parent (not (treesit-node-match-p parent pred t)))
+              (setq parent (treesit-node-parent parent))))
          (first (when parent (treesit-node-child parent 0)))
          (first-start (when first (treesit-node-start first)))
          (first-end (when first (treesit-node-end first)))
@@ -3417,13 +3419,13 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
       (unless (bobp) (treesit-show-paren-data--categorize (point) t))
       (when show-paren-when-point-in-periphery
         (let* ((ind-pos (save-excursion (back-to-indentation) (point)))
-	       (eol-pos
-	        (save-excursion
-	          (end-of-line) (skip-chars-backward " \t" ind-pos) (point))))
+               (eol-pos
+                (save-excursion
+                  (end-of-line) (skip-chars-backward " \t" ind-pos) (point))))
           (cond
            ((<= (point) ind-pos)
             (or (treesit-show-paren-data--categorize ind-pos)
-	        (unless (bobp)
+                (unless (bobp)
                   (treesit-show-paren-data--categorize (1- eol-pos)))))
            ((>= (point) eol-pos)
             (unless (bobp)
@@ -3567,7 +3569,8 @@ before calling this function."
     (setq-local forward-sexp-function #'treesit-forward-sexp-list)
     (setq-local forward-list-function #'treesit-forward-list)
     (setq-local down-list-function #'treesit-down-list)
-    (setq-local up-list-function #'treesit-up-list))
+    (setq-local up-list-function #'treesit-up-list)
+    (setq-local show-paren-data-function 'treesit-show-paren-data))
 
   (when (treesit-thing-defined-p 'sentence nil)
     (setq-local forward-sentence-function #'treesit-forward-sentence))
@@ -3588,8 +3591,6 @@ before calling this function."
             #'treesit-outline-predicate--from-imenu))
     (setq-local outline-search-function #'treesit-outline-search
                 outline-level #'treesit-outline-level))
-
-  (setq-local show-paren-data-function 'treesit-show-paren-data)
 
   ;; Remove existing local parsers.
   (dolist (ov (overlays-in (point-min) (point-max)))
