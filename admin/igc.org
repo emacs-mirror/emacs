@@ -14,10 +14,10 @@ A large number of GC algorithms and implementations exist which differ
 in various dimensions.  Emacs has two GC implementations which can be
 chosen at compile-time.  The traditional (old) GC, which was the only
 one until recently, is a so-called mark-sweep, non-copying collector.
-The new GC implementation in this file is an incremental, generational,
-concurrent (igc) collector based on the MPS library from Ravenbrook.  It
-is a so-called copying collector.  The terms used here will become
-clearer in the following.
+The new GC implementation in this file is an incremental, generational
+collector (igc) based on the MPS library from Ravenbrook.  It is a
+so-called copying collector.  The terms used here will become clearer in
+the following.
 
 Emacs' traditional mark-sweep GC works in two phases:
 
@@ -64,8 +64,6 @@ Emacs' traditional mark-sweep GC works in two phases:
 
 The traditional mark-sweep GC implementation is
 
-- Not concurrent.  Emacs calls GC explicitly in various places, and
-  proceeds only when the GC is done.
 - Not incremental.  The GC is not done in steps.
 - Not generational.  The GC doesn't take advantage of the so-called
   generational hypothesis, which says that most objects used by a
@@ -78,9 +76,6 @@ The traditional mark-sweep GC implementation is
 
 In contrast, the new igc collector, using MPS, is
 
-- Concurrent.  The GC runs in its own thread.  There are no explicit
-  calls to start GC, and Emacs doesn't have to wait for the GC to
-  complete.
 - Incremental.  The GC is done in steps.
 - Generational.  The GC takes advantage of the so-called
   generational hypothesis.
