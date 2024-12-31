@@ -545,7 +545,8 @@ Return t if there is work to do, nil otherwise."
 	      ((or (>= pos next-cache-point)
 		   (not continue))
 	       (setq next-cache-point (+ pos rng-state-cache-distance))
-	       (rng-clear-cached-state remove-start pos)
+	       (with-silent-modifications
+		 (rng-clear-cached-state remove-start pos))
 	       (when have-remaining-chars
 		 (rng-cache-state (1- pos)))
 	       (setq remove-start pos)
