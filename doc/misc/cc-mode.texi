@@ -6192,6 +6192,33 @@ to perform indentation.
 
 @comment ------------------------------------------------------------
 
+@defun c-lineup-item-after-paren-at-boi
+@findex lineup-item-after-paren-at-boi (c-)
+Line up under the first entry on the same line as an open parenthesis
+when that parenthesis is the lefmost non-space character in its line.
+For example:
+
+@example
+@group
+template <typename T>
+requires
+    ( requires (T t) @{ ++t; @}
+      && Baz<T>)      @hereFn{constraint-cont}
+int foo();
+@end group
+@end example
+
+
+This function is intended for use in a list.  If the construct being
+analyzed doesn't conform to the above description, the function
+returns nil.  Otherwise it returns a vector containing the indentation.
+
+@workswith{} @code{brace-list-intro}, @code{enum-intro},
+@code{constraint-cont}.
+@end defun
+
+@comment ------------------------------------------------------------
+
 @defun c-lineup-class-decl-init-+
 @findex lineup-class-decl-init-+ (c-)
 Line up the second entry of a class (etc.) initializer

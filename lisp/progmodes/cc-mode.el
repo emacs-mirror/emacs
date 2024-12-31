@@ -1008,6 +1008,15 @@ Note that the style variables are always made local to the buffer."
 	'(put-text-property remove-text-properties
 			    remove-list-of-text-properties)))
 
+(defun c-locate-first-punctuation-prop (beg)
+  ;; Scan the region (BEG (point)) for `syntax-table' punctuation text properties,
+  ;; returning the position of the first found, or nil.  Point is unchanged.
+  (let ((end (point)))
+    (goto-char beg)
+    (prog1 (if (c-search-forward-char-property 'syntax-table '(1) end)
+	       (match-beginning 0))
+      (goto-char end))))
+
 (defun c-depropertize-CPP (beg end)
   ;; Remove the punctuation syntax-table text property from the CPP parts of
   ;; (c-new-BEG c-new-END), and remove all syntax-table properties from any
@@ -1032,7 +1041,10 @@ Note that the style variables are always made local to the buffer."
 		      (search-forward-regexp c-anchored-cpp-prefix end 'bound)))
       (goto-char (match-beginning 1))
       (setq m-beg (point))
-      (c-end-of-macro))
+      (c-end-of-macro)
+      (c-truncate-lit-pos/state-cache
+       (or (c-locate-first-punctuation-prop m-beg) (point-max))))
+
     (when (and ss-found (> (point) end))
       (when c-ml-string-opener-re
 	(save-excursion (c-depropertize-ml-strings-in-region m-beg (point))))
@@ -1044,6 +1056,8 @@ Note that the style variables are always made local to the buffer."
       (goto-char (match-beginning 1))
       (setq m-beg (point))
       (c-end-of-macro)
+      (c-truncate-lit-pos/state-cache
+       (or (c-locate-first-punctuation-prop m-beg) (point-max)))
       (when c-ml-string-opener-re
 	(save-excursion (c-depropertize-ml-strings-in-region m-beg (point))))
       (c-clear-syntax-table-with-value-trim-caches m-beg (point) '(1)))))

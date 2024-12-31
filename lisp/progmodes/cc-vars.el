@@ -1291,7 +1291,7 @@ can always override the use of `c-default-style' by making calls to
        ;; Anchor pos: Bol at the last line of previous construct.
        (topmost-intro-cont    . c-lineup-topmost-intro-cont)
        ;;Anchor pos: Bol at the topmost annotation line
-       (constraint-cont  . +)
+       (constraint-cont       . (c-lineup-item-after-paren-at-boi +))
        ;; Anchor pos: Boi of the starting requires/concept line
        (annotation-top-cont   .   0)
        ;;Anchor pos: Bol at the topmost annotation line
@@ -1322,8 +1322,9 @@ can always override the use of `c-default-style' by making calls to
        ;; "typedef" token is ignored.
        (brace-list-close      . 0)
        ;; Anchor pos: At the brace list decl start(*).
-       (brace-list-intro      . +)
+       (brace-list-intro      . (c-lineup-item-after-paren-at-boi +))
        ;; Anchor pos: At the brace list decl start(*).
+       ;; 2nd pos: At the open brace.
        (brace-list-entry      . 0)
        ;; Anchor pos: At the first non-ws char after the open paren if
        ;; the first token is on the same line, otherwise boi at that
@@ -1335,9 +1336,10 @@ can always override the use of `c-default-style' by making calls to
        ;; enum construct.
        (enum-close            . 0)
        ;; Anchor pos: At the enum block open.
-       (enum-intro            . +)
+       (enum-intro            . (c-lineup-item-after-paren-at-boi +))
        ;; Anchor pos: The opening brace position when at boi, or boi
        ;; at the enum decl start(*).
+       ;; 2nd pos: At the open brace.
        (enum-entry            . 0)
        ;; Anchor pos: Normally, boi of the line containing the
        ;; previous token, but if that line also contains the opening
