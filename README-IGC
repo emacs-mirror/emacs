@@ -46,7 +46,7 @@ Install 'libmps' from Homebrew with
 
   brew install libmps
 
-Then add something like this to your environment (e.g., to ~/.profile):
+Then add something like this to your environment (e.g., to ~/.zprofile):
 
   export CFLAGS="$CFLAGS -I$(brew --prefix libmps)/include"
   export LDFLAGS="$LDFLAGS -L$(brew --prefix libmps)/lib"
