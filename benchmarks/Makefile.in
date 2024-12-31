@@ -1,0 +1,80 @@
+### @configure_input@
+
+# Copyright (C) 2010-2024 Free Software Foundation, Inc.
+
+# This file is part of GNU Emacs.
+
+# GNU Emacs is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+### Commentary:
+
+## Target:
+## elisp-benchmarks: run benchmarks with default settings
+
+### Code:
+
+SHELL = @SHELL@
+
+srcdir = @srcdir@
+abs_top_srcdir = @abs_top_srcdir@
+top_builddir = @top_builddir@
+VPATH = $(srcdir)
+
+FIND_DELETE = @FIND_DELETE@
+SEPCHAR = @SEPCHAR@
+
+-include ${top_builddir}/src/verbose.mk
+
+# We never change directory before running Emacs, so a relative file
+# name is fine, and makes life easier.  If we need to change
+# directory, we can use emacs --chdir.
+EMACS = ../src/emacs
+
+EMACS_EXTRAOPT =
+
+# Command line flags for Emacs.
+# Apparently MSYS bash would convert "-L :" to "-L ;" anyway,
+# but we might as well be explicit.
+EMACSOPT = --no-init-file --no-site-file --no-site-lisp -L "$(SEPCHAR)$(srcdir)" $(EMACS_EXTRAOPT)
+
+# Prevent any settings in the user environment causing problems.
+unexport EMACSDATA EMACSDOC EMACSLOADPATH EMACSPATH GREP_OPTIONS XDG_CONFIG_HOME
+
+# The actual Emacs command run in the targets below.
+# Prevent locales influencing the text of the errors we expect to receive.
+emacs = LANG=C \
+ $(GDB) "$(EMACS)" $(MODULES_EMACSOPT) $(EMACSOPT)
+
+.PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
+
+mostlyclean:
+	@true
+
+clean:
+	@true
+
+bootstrap-clean: clean
+	find $(srcdir) -name '*.elc' $(FIND_DELETE)
+
+distclean: clean
+	rm -f Makefile
+
+maintainer-clean: distclean bootstrap-clean
+
+.PHONY: elisp-benchmarks
+
+elisp-benchmarks:
+	$(emacs) --batch -l elisp-benchmarks.el -f elisp-benchmarks-run
+
+.PHONY: subdirs subdir-targets generate-test-jobs

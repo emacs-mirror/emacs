@@ -7652,6 +7652,14 @@ if test -f "$srcdir/$opt_makefile.in"; then
   ARCH_INDEPENDENT_CONFIG_FILES([test/infra/Makefile])
 fi
 
+opt_makefile=benchmarks/Makefile
+if test -f "$srcdir/$opt_makefile.in"; then
+  SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES $opt_makefile"
+  dnl Again, it's best not to use a variable.  Though you can add
+  dnl ", [], [opt_makefile='$opt_makefile']" and it should work.
+  ARCH_INDEPENDENT_CONFIG_FILES([benchmarks/Makefile])
+fi
+
 if test "$ANDROID" = "yes"; then
   SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES java/Makefile cross/Makefile"
 fi
