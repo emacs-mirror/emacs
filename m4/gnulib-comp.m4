@@ -51,6 +51,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module at-internal:
   # Code from module attribute:
   # Code from module binary-io:
+  # Code from module bool:
   # Code from module boot-time:
   # Code from module builtin-expect:
   # Code from module byteswap:
@@ -70,7 +71,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module crypto/sha512-buffer:
   # Code from module d-type:
   # Code from module diffseq:
-  # Code from module dirent:
+  # Code from module dirent-h:
   # Code from module dirfd:
   # Code from module double-slash-root:
   # Code from module dtoastr:
@@ -79,7 +80,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module eloop-threshold:
   # Code from module endian:
   # Code from module environ:
-  # Code from module errno:
+  # Code from module errno-h:
   # Code from module euidaccess:
   # Code from module execinfo:
   # Code from module extensions:
@@ -127,7 +128,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module ignore-value:
   # Code from module include_next:
   # Code from module intprops:
-  # Code from module inttypes-incomplete:
+  # Code from module inttypes-h-incomplete:
   # Code from module largefile:
   AC_REQUIRE([AC_SYS_LARGEFILE])
   # Code from module lchmod:
@@ -177,28 +178,27 @@ AC_DEFUN([gl_EARLY],
   # Code from module stat-time:
   # Code from module std-gnu11:
   # Code from module stdbit-h:
-  # Code from module stdbool:
   # Code from module stdc_bit_width:
   # Code from module stdc_count_ones:
   # Code from module stdc_leading_zeros:
   # Code from module stdc_trailing_zeros:
-  # Code from module stdckdint:
-  # Code from module stddef:
-  # Code from module stdint:
-  # Code from module stdio:
+  # Code from module stdckdint-h:
+  # Code from module stddef-h:
+  # Code from module stdint-h:
+  # Code from module stdio-h:
   gl_STDIO_H_EARLY
-  # Code from module stdlib:
+  # Code from module stdlib-h:
   # Code from module stpcpy:
-  # Code from module string:
+  # Code from module string-h:
   # Code from module strnlen:
   # Code from module strtoimax:
   # Code from module strtoll:
   # Code from module symlink:
-  # Code from module sys_random:
-  # Code from module sys_select:
-  # Code from module sys_stat:
-  # Code from module sys_time:
-  # Code from module sys_types:
+  # Code from module sys_random-h:
+  # Code from module sys_select-h:
+  # Code from module sys_stat-h:
+  # Code from module sys_time-h:
+  # Code from module sys_types-h:
   AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])
   # Code from module tempname:
   # Code from module time-h:
@@ -210,7 +210,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module timespec-add:
   # Code from module timespec-sub:
   # Code from module u64:
-  # Code from module unistd:
+  # Code from module unistd-h:
   # Code from module unlocked-io:
   # Code from module unlocked-io-internal:
   # Code from module update-copyright:
@@ -251,6 +251,7 @@ AC_DEFUN([gl_INIT],
   gl_ASSERT_H
   gl_CONDITIONAL_HEADER([assert.h])
   AC_PROG_MKDIR_P
+  gl_C_BOOL
   gl_PREREQ_READUTMP_H
   gl___BUILTIN_EXPECT
   gl_BYTESWAP
@@ -525,7 +526,6 @@ AC_DEFUN([gl_INIT],
   gl_STDBIT_H
   gl_CONDITIONAL_HEADER([stdbit.h])
   AC_PROG_MKDIR_P
-  gl_C_BOOL
   AC_REQUIRE([gl_STDBIT_H])
   GL_STDC_BIT_WIDTH=1
   AC_REQUIRE([gl_STDBIT_H])

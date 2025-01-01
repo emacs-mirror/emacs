@@ -55,6 +55,12 @@ static char const UNKNOWN_SECURITY_CONTEXT[] = "?";
 # include <arpa/inet.h>
 # include <sys/xattr.h>
 # include <linux/xattr.h>
+# ifndef XATTR_NAME_SMACK
+#  define XATTR_NAME_SMACK "security.SMACK64"
+# endif
+# ifndef XATTR_NAME_SELINUX
+#  define XATTR_NAME_SELINUX "security.selinux"
+# endif
 # ifndef XATTR_NAME_NFSV4_ACL
 #  define XATTR_NAME_NFSV4_ACL "system.nfs4_acl"
 # endif
