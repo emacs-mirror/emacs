@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2024.10.09.140346409
+;; Version: 2025.01.01.100165202
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2024-10-09-85d8429-vpo-GNU"
+(defconst verilog-mode-version "2025-01-01-5f86652-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -7251,7 +7251,7 @@ Only look at a few lines to determine indent level."
          (verilog-beg-of-statement-1)
          (let ((val
                 (if (and (< (point) here)
-                         (verilog-re-search-forward "=[ \t]*" here 'move)
+                         (verilog-re-search-forward "=[ \t]*\\(#[ \t]*[0-9]+[ \t]*\\)?" here 'move)
                          ;; not at a |=>, #=#, or [=n] operator
                          (not (string-match "\\[=.\\|#=#\\||=>"
                                              (or (buffer-substring
@@ -11389,6 +11389,9 @@ Presumes that any newlines end a list element."
     (when (and (not (save-excursion  ; Not beginning (, or existing ,
 		      (backward-char 1)
 		      (looking-at "[(,]")))
+               (not (save-excursion  ; Not attribute *)
+		      (backward-char 2)
+		      (looking-at "\\*)")))
                (not (save-excursion  ; Not `endif, or user define
 		      (backward-char 1)
 		      (skip-chars-backward "a-zA-Z0-9_`")
