@@ -1,6 +1,6 @@
 /* Display generation from window structure and buffer text.
 
-Copyright (C) 1985-2024 Free Software Foundation, Inc.
+Copyright (C) 1985-2025 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

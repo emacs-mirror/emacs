@@ -1,6 +1,6 @@
 ;;; url-tramp-tests.el --- Test suite for Tramp / URL conversion.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2025 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 

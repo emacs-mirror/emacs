@@ -1,6 +1,6 @@
 ;;; track-changes-tests.el --- tests for emacs-lisp/track-changes.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2024  Free Software Foundation, Inc.
+;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

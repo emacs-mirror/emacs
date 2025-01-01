@@ -1,6 +1,6 @@
 ;;; treesit-admin.el --- Tree-sitter related admin scripts  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2024 Free Software Foundation, Inc.
+;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
 
 ;; Maintainer: 付禹安 (Yuan Fu) <casouri@gmail.com>
 ;; Keywords: maint

@@ -1,5 +1,5 @@
 /* Declarations for `malloc' and friends.
-   Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013-2024 Free
+   Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013-2025 Free
    Software Foundation, Inc.
 		  Written May 1989 by Mike Haertel.
 
@@ -295,7 +295,8 @@ extern struct mstats mstats (void);
 #endif
 
 /* Memory allocator `malloc'.
-   Copyright 1990, 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013-2025 Free
+   Software Foundation, Inc.
 		  Written May 1989 by Mike Haertel.
 
 This library is free software; you can redistribute it and/or
@@ -945,7 +946,8 @@ _realloc (void *ptr, size_t size)
 
 #endif
 /* Free a block of memory allocated by `malloc'.
-   Copyright 1990, 1991, 1992, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013-2025 Free
+   Software Foundation, Inc.
 		  Written May 1989 by Mike Haertel.
 
 This library is free software; you can redistribute it and/or
@@ -1255,7 +1257,8 @@ cfree (void *ptr)
 #endif
 #endif
 /* Change the size of a block allocated by `malloc'.
-   Copyright 1990, 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013-2025 Free
+   Software Foundation, Inc.
 		     Written May 1989 by Mike Haertel.
 
 This library is free software; you can redistribute it and/or
@@ -1426,7 +1429,7 @@ realloc (void *ptr, size_t size)
   hook = grealloc_hook;
   return (hook ? hook : _realloc_internal) (ptr, size);
 }
-/* Copyright (C) 1991, 1992, 1994 Free Software Foundation, Inc.
+/* Copyright (C) 1991-1992, 1994, 2025 Free Software Foundation, Inc.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -1463,7 +1466,7 @@ calloc (size_t nmemb, size_t size)
     return memset (result, 0, bytes);
   return result;
 }
-/* Copyright (C) 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
+/* Copyright (C) 1991-1992, 1994, 2025 Free Software Foundation, Inc.
 This file is part of the GNU C Library.
 
 The GNU C Library is free software; you can redistribute it and/or modify
@@ -1512,7 +1515,7 @@ gdefault_morecore (ptrdiff_t increment)
 
 void *(*__morecore) (ptrdiff_t) = gdefault_morecore;
 
-/* Copyright (C) 1991, 92, 93, 94, 95, 96 Free Software Foundation, Inc.
+/* Copyright (C) 1991-1992, 1994, 2025 Free Software Foundation, Inc.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -1644,7 +1647,8 @@ posix_memalign (void **memptr, size_t alignment, size_t size)
 #endif
 
 /* Allocate memory on a page boundary.
-   Copyright (C) 1991, 92, 93, 94, 96 Free Software Foundation, Inc.
+   Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013-2025 Free
+   Software Foundation, Inc.
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -1838,7 +1842,8 @@ realloc (void *ptr, size_t size)
 #ifdef GC_MCHECK
 
 /* Standard debugging hooks for `malloc'.
-   Copyright 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013-2025 Free
+   Software Foundation, Inc.
    Written May 1989 by Mike Haertel.
 
 This library is free software; you can redistribute it and/or

@@ -1,6 +1,6 @@
 ;;; croatian.el --- Quail package for inputting Croatian  -*-coding: utf-8; lexical-binding:t -*-
 
-;; Copyright (C) 2003-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2025 Free Software Foundation, Inc.
 
 ;; Author: Hrvoje Nikšić <hrvoje.niksic@avl.com>
 ;; Keywords: i18n

@@ -1,6 +1,6 @@
 ;;; editorconfig.el --- EditorConfig Plugin  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2024  Free Software Foundation, Inc.
+;; Copyright (C) 2011-2025 Free Software Foundation, Inc.
 
 ;; Author: EditorConfig Team <editorconfig@googlegroups.com>
 ;; Version: 0.11.0

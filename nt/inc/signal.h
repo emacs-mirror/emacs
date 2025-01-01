@@ -3,7 +3,7 @@
    in signal.h, and Gnulib insists on assuming that, and the MinGW build
    cannot use Gnulib's signal.h.
 
-Copyright (C) 2024 Free Software Foundation, Inc.
+Copyright (C) 2024-2025 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

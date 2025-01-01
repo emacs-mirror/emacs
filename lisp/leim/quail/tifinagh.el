@@ -1,6 +1,6 @@
 ;;; tifinagh.el --- Quail package for inputting Tifinagh	-*- coding: utf-8; lexical-binding:t -*-
 
-;; Copyright (C) 2024 Free Software Foundation, Inc.
+;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
 
 ;; Author: Adam Oudad <adam.oudad@gmail.com>
 ;; Keywords: mule, input method, Tifinagh

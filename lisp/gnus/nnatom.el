@@ -1,6 +1,6 @@
 ;;; nnatom.el --- Atom backend for Gnus -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023 Free Software Foundation, Inc.
+;; Copyright (C) 2023, 2025 Free Software Foundation, Inc.
 ;; Author: Daniel Semyonov <daniel@dsemy.com>
 
 ;; This file is part of GNU Emacs.

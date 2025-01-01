@@ -1,6 +1,6 @@
 ;;; lisp-mnt.el --- utility functions for Emacs Lisp maintainers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2025 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@thyrsus.com>
 ;; Maintainer: emacs-devel@gnu.org

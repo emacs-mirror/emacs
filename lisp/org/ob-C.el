@@ -1,6 +1,6 @@
 ;;; ob-C.el --- Babel Functions for C and Similar Languages -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;;      Thierry Banel

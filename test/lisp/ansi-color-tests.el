@@ -1,6 +1,6 @@
 ;;; ansi-color-tests.el --- Test suite for ansi-color  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2025 Free Software Foundation, Inc.
 
 ;; Author: Pablo Barbáchano <pablob@amazon.com>
 

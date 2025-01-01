@@ -1,6 +1,6 @@
 ;;; java-ts-mode.el --- tree-sitter support for Java  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
 ;; Maintainer : Theodor Thornhill <theo@thornhill.no>

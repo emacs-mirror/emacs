@@ -1,6 +1,6 @@
 ;;; nroff-mode.el --- GNU Emacs major mode for editing nroff source  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2025 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: text

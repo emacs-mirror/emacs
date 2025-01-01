@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual., Abbrevs, This is part of the Emacs manual., Top
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2024 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2025 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Maintaining
@@ -2184,7 +2184,7 @@ between them.
 end of the change log file.  Here is an example:
 
 @smallexample
-Copyright 1997, 1998 Free Software Foundation, Inc.
+Copyright 1997--1998, 2025 Free Software Foundation, Inc.
 Copying and distribution of this file, with or without modification, are
 permitted provided the copyright notice and this notice are preserved.
 @end smallexample

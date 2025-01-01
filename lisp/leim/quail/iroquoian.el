@@ -1,6 +1,6 @@
 ;;; iroquoian.el --- Quail packages for inputting Iroquoian languages  -*- lexical-binding: t; coding: utf-8; -*-
 
-;; Copyright (C) 2024  Free Software Foundation, Inc.
+;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
 
 ;; Author: Kierin Bell <fernseed@fernseed.me>
 ;; Keywords: i18n

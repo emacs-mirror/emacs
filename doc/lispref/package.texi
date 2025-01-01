@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 2010--2024 Free Software Foundation, Inc.
+@c Copyright (C) 2010--2025 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Packaging
 @chapter Preparing Lisp code for distribution
@@ -155,7 +155,7 @@ the various headers, as illustrated by the following example:
 @group
 ;;; superfrobnicator.el --- Frobnicate and bifurcate flanges  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022, 2025 Free Software Foundation, Inc.
 @end group
 
 ;; Author: J. R. Hacker <jrh@@example.com>

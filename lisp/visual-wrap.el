@@ -1,6 +1,6 @@
 ;;; visual-wrap.el --- Smart line-wrapping with wrap-prefix -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2021, 2024 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2021, 2024-2025 Free Software Foundation, Inc.
 
 ;; Author: Stephen Berman <stephen.berman@gmx.net>
 ;;         Stefan Monnier <monnier@iro.umontreal.ca>

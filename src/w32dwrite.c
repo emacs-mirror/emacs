@@ -1,6 +1,6 @@
 /* Support for using DirectWrite on MS-Windows to draw text.  This
    allows for color fonts.
-   Copyright (C) 2024 Free Software Foundation, Inc.
+   Copyright (C) 2024-2025 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

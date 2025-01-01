@@ -1,6 +1,6 @@
 ;;; reftex.el --- minor mode for doing \label, \ref, \cite, \index in LaTeX  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2025 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org

@@ -1,6 +1,6 @@
 ;;; ob-exp.el --- Exportation of Babel Source Blocks -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;	Dan Davison
