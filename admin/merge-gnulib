@@ -26,7 +26,7 @@
 GNULIB_URL=https://git.savannah.gnu.org/git/gnulib.git
 
 GNULIB_MODULES='
-  alignasof alloca-opt binary-io boot-time builtin-expect byteswap
+  alignasof alloca-opt binary-io bool boot-time builtin-expect byteswap
   c-ctype c-strcase canonicalize-lgpl
   careadlinkat close-stream copy-file-range
   crypto/md5 crypto/md5-buffer
@@ -43,10 +43,10 @@ GNULIB_MODULES='
   nanosleep nproc nstrftime
   pathmax pipe2 pselect pthread_sigmask
   qcopy-acl readlink readlinkat regex
-  sig2str sigdescr_np socklen stat-time std-gnu11 stdbool
+  sig2str sigdescr_np socklen stat-time std-gnu11
   stdc_bit_width stdc_count_ones stdc_trailing_zeros
-  stdckdint stddef stdio
-  stpcpy strnlen strnlen strtoimax symlink sys_stat sys_time
+  stdckdint-h stddef-h stdio-h
+  stpcpy strnlen strnlen strtoimax symlink sys_stat-h sys_time-h
   tempname time-h time_r time_rz timegm timer-time timespec-add timespec-sub
   update-copyright unlocked-io utimensat
   vla warnings year2038
@@ -54,13 +54,13 @@ GNULIB_MODULES='
 
 AVOIDED_MODULES='
   access btowc chmod close crypto/af_alg dup fchdir fstat gnulib-i18n
-  iswblank iswctype iswdigit iswxdigit langinfo libgmp-mpq
+  iswblank iswctype iswdigit iswxdigit langinfo-h libgmp-mpq
   localename-unsafe-limited lock
   mbrtowc mbsinit memchr mkdir msvc-inval msvc-nothrow nl_langinfo
   openat-die opendir pthread-h raise
-  save-cwd select setenv sigprocmask stat stdarg
+  save-cwd select setenv sigprocmask stat stdarg-h
   threadlib tzset unsetenv utime utime-h
-  wchar wcrtomb wctype wctype-h
+  wchar-h wcrtomb wctype wctype-h
 '
 
 GNULIB_TOOL_FLAGS='
