@@ -1,6 +1,6 @@
 ;;; ox-md.el --- Markdown Backend for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2025 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou@gmail.com>
 ;; Keywords: org, text, markdown

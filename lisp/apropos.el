@@ -1,6 +1,6 @@
 ;;; apropos.el --- apropos commands for users and programmers  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1989-2025 Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
 ;;	Daniel Pfeiffer <occitan@esperanto.org> (rewrite)

@@ -1,6 +1,6 @@
 ;;; seq.el --- Sequence manipulation functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2025 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Maintainer: emacs-devel@gnu.org

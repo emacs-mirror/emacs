@@ -1,6 +1,6 @@
 ;;; xref-tests.el --- tests for xref  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2025 Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov <dgutov@yandex.ru>
 

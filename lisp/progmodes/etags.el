@@ -1,6 +1,6 @@
 ;;; etags.el --- etags facility for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2025 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org

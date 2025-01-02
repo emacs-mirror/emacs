@@ -1,6 +1,6 @@
 ;;; ansi-osc.el --- Support for OSC escape sequences      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
 
 ;; Author: Augusto Stoffel <arstoffel@gmail.com>
 ;;         Matthias Meulien <orontee@gmail.com>

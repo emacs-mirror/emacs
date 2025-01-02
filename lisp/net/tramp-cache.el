@@ -1,6 +1,6 @@
 ;;; tramp-cache.el --- file information caching for Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000, 2005-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2005-2025 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pittman <daniel@inanna.danann.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>

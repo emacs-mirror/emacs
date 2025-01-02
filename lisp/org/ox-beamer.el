@@ -1,6 +1,6 @@
 ;;; ox-beamer.el --- Beamer Backend for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2025 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik AT gmail DOT com>
 ;;         Nicolas Goaziou <n.goaziou AT gmail DOT com>

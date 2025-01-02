@@ -1,6 +1,6 @@
 ;;; ox-org.el --- Org Backend for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2025 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou@gmail.com>
 ;; Keywords: org, text

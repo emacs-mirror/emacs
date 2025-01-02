@@ -1,6 +1,6 @@
 ;;;  syncdoc-type-hierarchy.el--- -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
 
 ;; Author: Andrea Corallo <acorallo@gnu.org>
 ;; Keywords: documentation

@@ -1,6 +1,6 @@
 ;;; window-tool-bar.el --- Add tool bars inside windows -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
 
 ;; Author: Jared Finder <jared@finder.org>
 ;; Created: Nov 21, 2023

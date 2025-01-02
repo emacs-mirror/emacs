@@ -1,6 +1,6 @@
 ;;; org-fold-core.el --- Folding buffer text -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2025 Free Software Foundation, Inc.
 ;;
 ;; Author: Ihor Radchenko <yantar92 at posteo dot net>
 ;; Keywords: folding, invisible text

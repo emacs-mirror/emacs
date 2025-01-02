@@ -1,6 +1,6 @@
 ;;; editorconfig-conf-mode.el --- Major mode for editing .editorconfig files  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2024  Free Software Foundation, Inc.
+;; Copyright (C) 2011-2025 Free Software Foundation, Inc.
 
 ;; Author: EditorConfig Team <editorconfig@googlegroups.com>
 ;; Package: editorconfig

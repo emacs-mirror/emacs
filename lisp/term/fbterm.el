@@ -1,6 +1,6 @@
 ;;; fbterm.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
 
 ;; Note that, in some versions of fbterm, the TERM environment
 ;; variable is set to "linux".  When that's the case, the code below

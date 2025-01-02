@@ -1,6 +1,6 @@
 ;;; php-ts-mode.el --- Major mode for editing PHP files using tree-sitter -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2024 Free Software Foundation, Inc.
+;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
 
 ;; Author: Vincenzo Pupillo <v.pupillo@gmail.com>
 ;; Maintainer: Vincenzo Pupillo <v.pupillo@gmail.com>

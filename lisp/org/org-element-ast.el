@@ -1,6 +1,6 @@
 ;;; org-element-ast.el --- Abstract syntax tree for Org  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
 
 ;; Author: Ihor Radchenko <yantar92 at posteo dot net>
 ;; Keywords: data, lisp

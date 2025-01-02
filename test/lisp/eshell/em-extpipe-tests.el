@@ -1,6 +1,6 @@
 ;;; em-extpipe-tests.el --- em-extpipe test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
 
 ;; Author: Sean Whitton <spwhitton@spwhitton.name>
 

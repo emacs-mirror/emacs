@@ -1,6 +1,6 @@
 ;;; latexenc.el --- guess correct coding system in LaTeX files -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2025 Free Software Foundation, Inc.
 
 ;; Author: Arne Jørgensen <arne@arnested.dk>
 ;; Keywords: mule, coding system, latex

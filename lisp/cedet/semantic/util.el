@@ -1,6 +1,6 @@
 ;;; semantic/util.el --- Utilities for use with semantic tag tables  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax

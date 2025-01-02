@@ -1,6 +1,6 @@
 ;;; peg.el --- Parsing Expression Grammars in Emacs Lisp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2025 Free Software Foundation, Inc.
 ;;
 ;; Author: Helmut Eller <eller.helmut@gmail.com>
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
