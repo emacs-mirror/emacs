@@ -23,6 +23,9 @@
 
 # written by Paul Eggert
 
+# It is unclear whether module list sorting depends on locale; play it safe.
+export LC_ALL=C
+
 GNULIB_URL=https://git.savannah.gnu.org/git/gnulib.git
 
 GNULIB_MODULES='
@@ -92,22 +95,38 @@ case $src in
     exit 1 ;;
 esac
 
-test -x "$src"autogen.sh || {
+[ -x "$src"autogen.sh ] || {
   printf '%s\n' >&2 "$0: '${src:-.}' is not an Emacs source directory."
   exit 1
 }
 
-test -d "$gnulib_srcdir" ||
+[ -d "$gnulib_srcdir" ] ||
 git clone -- "$GNULIB_URL" "$gnulib_srcdir" ||
 exit
 
-test -x "$gnulib_srcdir"/gnulib-tool || {
+[ -x "$gnulib_srcdir"/gnulib-tool ] || {
   printf '%s\n' >&2 "$0: '$gnulib_srcdir' is not a Gnulib source directory."
   exit 1
 }
 
+autogen() {
+  if [ "$src" ]; then
+    printf "$0: entering $src ..." &&
+    (cd "$src" && ./autogen.sh) &&
+    printf "$0: leaving $src ..."
+  else
+    ./autogen.sh
+  fi
+}
+
 # gnulib-tool has problems with a bare checkout (Bug#32452#65).
-test -f configure || ./autogen.sh || exit
+# Also, we need gnulib.mk.in to get the old module list.
+[ -e "$src"lib/gnulib.mk.in ] || autogen || exit
+
+get_module_list() {
+  sed -n 's/## begin gnulib module //p' "$src"lib/gnulib.mk.in
+}
+old_modules=$(get_module_list) || exit
 
 avoided_flags=
 for module in $AVOIDED_MODULES; do
@@ -115,8 +134,8 @@ for module in $AVOIDED_MODULES; do
 done
 
 # Clean the lib directory as well.
-if [ -e "$src"/lib/Makefile ]; then
-   make -C "$src"/lib maintainer-clean
+if [ -e "$src"lib/Makefile ]; then
+   make -C "$src"lib maintainer-clean || exit
 fi
 
 "$gnulib_srcdir"/gnulib-tool --dir="$src" $GNULIB_TOOL_FLAGS \
@@ -140,5 +159,11 @@ cp -- "$gnulib_srcdir"/lib/af_alg.h \
    "$src"lib &&
 cp -- "$gnulib_srcdir"/m4/codeset.m4 \
    "$src"m4 &&
-{ test -z "$src" || cd "$src"; } &&
-./autogen.sh
+autogen &&
+new_modules=$(get_module_list) || exit
+
+test "$old_modules" = "$new_modules" ||
+  printf >&2 '%s\n' \
+    "$0: warning: module list changed; fix ../nt/gnulib-cfg.mk ..." \
+    "$0: warning: ... or notify emacs-devel for w32 adaption." \
+    "$0: warning: For more, run 'git diff ${src}lib/gnulib.mk.in'."
