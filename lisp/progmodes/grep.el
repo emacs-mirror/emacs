@@ -299,7 +299,7 @@ See `compilation-error-screen-columns'."
 
 (defvar-keymap grep-mode-map
   :doc "Keymap for grep buffers.
-`compilation-minor-mode-map' is a cdr of this."
+This keymap inherits from `compilation-minor-mode-map'."
   :parent compilation-minor-mode-map
   "SPC"       #'scroll-up-command
   "S-SPC"     #'scroll-down-command
