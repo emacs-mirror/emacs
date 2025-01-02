@@ -771,7 +771,8 @@ toggle.
 ** BibTeX mode
 
 ---
-*** New user variables 'bibtex-BibTeX-aux-entry-alist',
+*** New user variables facilitate customization.
+Mew user variables 'bibtex-BibTeX-aux-entry-alist',
 'bibtex-biblatex-aux-entry-alist', 'bibtex-BibTeX-aux-opt-alist',
 and 'bibtex-biblatex-aux-opt-alist' facilitate the customization of
 BibTeX and biblatex entries.  These variables now support the definition

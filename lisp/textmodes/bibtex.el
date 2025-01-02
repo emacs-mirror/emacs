@@ -448,11 +448,11 @@ If parsing fails, try to set this variable to nil."
       ("howpublished" "The way in which the work was published")
       ("month") ("year") ("note"))))
   "Alist of BibTeX entry types and their associated fields.
-Elements are lists (ENTRY DOC REQUIRED CROSSREF OPTIONAL)
+Elements are lists of the form (ENTRY DOC REQUIRED CROSSREF OPTIONAL)
 or (ENTRY DOC REF-ENTRY).
 
 ENTRY is the type of a BibTeX entry.
-DOC is a brief doc string used for documentation.  If nil ENTRY is used.
+DOC is a brief doc string used for documentation.  If nil, ENTRY is used.
 REF-ENTRY is another entry type, where ENTRY becomes an alias that inherits
 the definition of REF-ENTRY.
 
@@ -875,9 +875,9 @@ Use this, e.g., for custom fields, see Sec. 2.2.4 of the biblatex manual."
     ("crossref" "Reference key of the cross-referenced entry")
     ("key" "Used as label with certain BibTeX styles"))
     "Alist of BibTeX fields.
-Each element is a list (FIELD COMMENT).  COMMENT is a comment used with
-`bibtex-print-help-message' as a default if `bibtex-BibTeX-entry-alist'
-does not define a comment for FIELD."
+Each element is a list of the form (FIELD COMMENT).  COMMENT is
+a comment used with `bibtex-print-help-message' as a default
+if `bibtex-BibTeX-entry-alist' does not define a comment for FIELD."
   :group 'bibtex
   :version "31.1"
   :type 'bibtex-field-alist)
