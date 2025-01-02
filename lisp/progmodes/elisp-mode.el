@@ -1,6 +1,6 @@
 ;;; elisp-mode.el --- Emacs Lisp mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1999-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1999-2025 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: lisp, languages
@@ -2209,8 +2209,8 @@ current buffer state and calls REPORT-FN when done."
     ;; Flymake doesn't display the warning it puts into "*flmake log*".
     (message "Disabling elisp-flymake-byte-compile in %s (untrusted content)"
              (buffer-name))
-    (error "Disabling elisp-flymake-byte-compile in %s (untrusted content)"
-           (buffer-name)))
+    (user-error "Disabling elisp-flymake-byte-compile in %s (untrusted content)"
+                (buffer-name)))
   (when elisp-flymake--byte-compile-process
     (when (process-live-p elisp-flymake--byte-compile-process)
       (kill-process elisp-flymake--byte-compile-process)))
