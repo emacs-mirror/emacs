@@ -1445,21 +1445,29 @@ it is displayed along with the global value."
 			     (format-message "`%s'" rep)
 			   rep)))
                       (start (point)))
-		  (if (< (+ (length print-rep) (point) (- line-beg)) 68)
-		      (insert " " print-rep)
-		    (terpri)
-                    (let ((buf (current-buffer)))
-                      (with-temp-buffer
-                        (lisp-data-mode)
-                        (set-syntax-table emacs-lisp-mode-syntax-table)
-                        (insert print-rep)
-                        (pp-buffer)
-                        (font-lock-ensure)
-                        (let ((pp-buffer (current-buffer)))
-                          (with-current-buffer buf
-                            (insert-buffer-substring pp-buffer)))))
-                    ;; Remove trailing newline.
-                    (and (= (char-before) ?\n) (delete-char -1)))
+		 (let (beg)
+		   (if (< (+ (length print-rep) (point) (- line-beg)) 68)
+		       (progn
+		         (setq beg (1+ (point)))
+		         (insert " " print-rep))
+		     (terpri)
+                     (setq beg (point))
+                     (let ((buf (current-buffer)))
+                       (with-temp-buffer
+                         (lisp-data-mode)
+                         (insert print-rep)
+                         (pp-buffer)
+                         (font-lock-ensure)
+                         (let ((pp-buffer (current-buffer)))
+                           (with-current-buffer buf
+                             (insert-buffer-substring pp-buffer))))))
+                   ;; Remove trailing newline.
+                   (and (= (char-before) ?\n) (delete-char -1))
+                   ;; Put a `syntax-table' property on the data, as
+                   ;; a kind of poor man's multi-major-mode support here.
+                   (put-text-property beg (point)
+		                      'syntax-table
+		                      lisp-data-mode-syntax-table))
                   (help-fns--editable-variable start (point)
                                                variable val buffer)
 		  (let* ((sv (get variable 'standard-value))
@@ -1523,10 +1531,6 @@ it is displayed along with the global value."
 	    ;; If the value is large, move it to the end.
 	    (with-current-buffer standard-output
 	      (when (> (count-lines (point-min) (point-max)) 10)
-		;; Note that setting the syntax table like below
-		;; makes forward-sexp move over a `'s' at the end
-		;; of a symbol.
-		(set-syntax-table emacs-lisp-mode-syntax-table)
 		(goto-char val-start-pos)
 		(when (looking-at "value is") (replace-match ""))
 		(save-excursion
