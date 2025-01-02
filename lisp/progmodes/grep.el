@@ -297,24 +297,22 @@ See `compilation-error-screen-columns'."
   "List of hook functions run by `grep-process-setup' (see `run-hooks')."
   :type 'hook)
 
-(defvar grep-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map compilation-minor-mode-map)
-    (define-key map " " #'scroll-up-command)
-    (define-key map [?\S-\ ] #'scroll-down-command)
-    (define-key map "\^?" #'scroll-down-command)
-    (define-key map "\C-c\C-f" #'next-error-follow-minor-mode)
+(defvar-keymap grep-mode-map
+  :doc "Keymap for grep buffers.
+`compilation-minor-mode-map' is a cdr of this."
+  :parent compilation-minor-mode-map
+  "SPC"       #'scroll-up-command
+  "S-SPC"     #'scroll-down-command
+  "DEL"       #'scroll-down-command
+  "C-c C-f"   #'next-error-follow-minor-mode
 
-    (define-key map "\r" #'compile-goto-error)  ;; ?
-    (define-key map "{" #'compilation-previous-file)
-    (define-key map "}" #'compilation-next-file)
-    (define-key map "\t" #'compilation-next-error)
-    (define-key map [backtab] #'compilation-previous-error)
+  "RET"       #'compile-goto-error
+  "{"         #'compilation-previous-file
+  "}"         #'compilation-next-file
+  "TAB"       #'compilation-next-error
+  "<backtab>" #'compilation-previous-error
 
-    (define-key map "e" #'grep-change-to-grep-edit-mode)
-    map)
-  "Keymap for grep buffers.
-`compilation-minor-mode-map' is a cdr of this.")
+  "e"         #'grep-change-to-grep-edit-mode)
 
 (easy-menu-define grep-menu-map grep-mode-map
   "Menu for grep buffers."
@@ -1082,12 +1080,10 @@ list is empty)."
                                    (1+ (pos-eol)))
                                `(occur-target ((,m . ,m)))))))))
 
-(defvar grep-edit-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map text-mode-map)
-    (define-key map (kbd "C-c C-c") #'grep-edit-save-changes)
-    map)
-  "Keymap for `grep-edit-mode'.")
+(defvar-keymap grep-edit-mode-map
+  :doc "Keymap for `grep-edit-mode'."
+  :parent text-mode-map
+  "C-c C-c" #'grep-edit-save-changes)
 
 (defvar grep-edit-mode-hook nil
   "Hooks run when changing to Grep-Edit mode.")
