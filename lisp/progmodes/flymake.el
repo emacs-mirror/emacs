@@ -1236,7 +1236,7 @@ If MESSAGE-PREFIX, echo a message using that prefix."
 (defun flymake--disable-backend (backend &optional explanation)
   "Disable BACKEND because EXPLANATION.
 If it is running also stop it."
-  (flymake-log :warning "Disabling backend %s because %s" backend explanation)
+  (flymake-log :warning "Disabling backend %s because %S" backend explanation)
   (flymake--with-backend-state backend state
     (setf (flymake--state-running state) nil
           (flymake--state-disabled state) explanation

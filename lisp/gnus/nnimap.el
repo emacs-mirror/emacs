@@ -221,13 +221,13 @@ during splitting, which may be slow."
     (push "BODYSTRUCTURE" params)
     (push (format
 	   (if (nnimap-ver4-p)
-	       "BODY.PEEK[HEADER.FIELDS %s]"
-	     "RFC822.HEADER.LINES %s")
+	       "BODY.PEEK[HEADER.FIELDS %S]"
+	     "RFC822.HEADER.LINES %S")
 	   (append '(Subject From Date Message-Id
 			     References In-Reply-To Xref)
 		   nnmail-extra-headers))
 	  params)
-    (format "%s" (nreverse params))))
+    (format "(%s)" (mapconcat #'identity (nreverse params) " "))))
 
 (defvar nnimap--max-retrieve-headers 200)
 
@@ -386,7 +386,7 @@ during splitting, which may be slow."
 
 (defun nnimap-make-process-buffer (buffer)
   (with-current-buffer
-      (generate-new-buffer (format " *nnimap %s %s %s*"
+      (generate-new-buffer (format " *nnimap %s %s %S*"
 				   nnimap-address nnimap-server-port
                                    buffer))
     (mm-disable-multibyte)
