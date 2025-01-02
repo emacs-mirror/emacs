@@ -978,14 +978,15 @@ foo(sec)[, bar(sec) [, ...]] [other stuff] - description"
   ;; seems like the safest choice, but `man -k apropos' seems almost as safe
   ;; and usually returns a much shorter output.
   (with-temp-buffer
-    (with-demoted-errors "%S" (call-process "man" nil t nil "-k" "apropos"))
+    (with-demoted-errors "%S"
+      (call-process manual-program nil t nil "-k" "apropos"))
     (let ((lines (count-lines (point-min) (point-max)))
           (completions (Man-parse-man-k)))
       (if (>= (length completions) lines)
           '("-k") ;; "-k" seems to return sane results: look no further!
         (erase-buffer)
         ;; Try "-k -l" (bug#73656).
-        (with-demoted-errors "%S" (call-process "man" nil t nil
+        (with-demoted-errors "%S" (call-process manual-program nil t nil
                                                 "-k" "-l" "apropos"))
         (let ((lines (count-lines (point-min) (point-max)))
               (completions (Man-parse-man-k)))
