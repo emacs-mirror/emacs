@@ -94,7 +94,7 @@ ifeq ($(is_mips),yes)
 # Set up dependencies for config-mips.m4.
 
 config-mips.m4: config-mips.m4.in
-	cd $(srcdir) && ./config.status $@
+	cd $(builddir) && ./config.status $@
 $(LOADOBJS): config-mips.m4
 else
 .s.o:
