@@ -34,11 +34,15 @@ incorrectly in rare cases.
 
 * Startup Changes in Emacs 31.1
 
-** When run inside xterm, 'xterm-mouse-mode' is turned on by default.
-This means that the mouse will work by default inside xterm terminals.
-If your terminal does not behave properly with xterm mouse tracking
-enabled, you can disable mouse tracking by putting '(xterm-mouse-mode
--1)' in your init file.
+** In compatible terminals, 'xterm-mouse-mode' is turned on by default.
+For these terminals the mouse will work by default.  A compatible
+terminal is one that supports Emacs seting and getting the OS selection
+data (a.k.a. the clipboard) and mouse button and motion events.  With
+xterm-mouse-mode enabled, you must use Emacs keybindings to copy to the
+OS selection instead of terminal-specific keybindings.
+
+You can keep the old behavior by putting `(xterm-mouse-mode -1)' in your
+init file.
 
 
 * Changes in Emacs 31.1

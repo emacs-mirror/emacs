@@ -83,6 +83,39 @@ capabilities, and only when that terminal understands bracketed paste."
 (defconst xterm-paste-ending-sequence "\e[201~"
   "Characters sent by the terminal to end a bracketed paste.")
 
+(defconst xterm--auto-xt-mouse-allowed-names
+  (mapconcat (lambda (s) (concat "^" s "\\>"))
+             '("Konsole"
+               "WezTerm"
+               ;; "XTerm"   ;Disabled because OSC52 support is opt-in only.
+               "iTerm2"     ;OSC52 support has opt-in/out UI on first usage
+               "kitty")
+             "\\|")
+  "Regexp for terminals that automatically enable `xterm-mouse-mode' at startup.
+This will get matched against the terminal's XTVERSION string.
+
+It is expected that any matching terminal supports the following
+functionality:
+
+\"Set selection data\" (OSC52): Allows Emacs to set the OS clipboard.
+\"Get selection data\" (OSC52 or bracketed paste): Allows Emacs to get
+    the contents of the OS clipboard.
+\"Basic mouse mode\" (DECSET1000): Allows Emacs to get events on mouse
+    clicks.
+\"Mouse motion mode\" (DECSET1003): Allows Emacs to get event on mouse
+    motion.
+
+Also see `xterm--auto-xt-mouse-allowed-types' which mtches against the
+value of TERM instead.")
+
+(defconst xterm--auto-xt-mouse-allowed-types
+  (mapconcat (lambda (s) (concat "^" s "$"))
+             '("alacritty"
+               "contour")
+             "\\|")
+  "Like `xterm--auto-xt-mouse-allowed-names', but for the terminal's type.
+This will get matched against the environment variable \"TERM\".")
+
 (defun xterm--pasted-text ()
   "Handle the rest of a terminal paste operation.
 Return the pasted text as a string."
@@ -707,11 +740,8 @@ Return the pasted text as a string."
   "Names of 16 standard xterm/aixterm colors, their numbers, and RGB values.")
 
 (defun xterm--report-background-handler ()
-  (let ((str "")
-        chr)
-    ;; The reply should be: \e ] 11 ; rgb: NUMBER1 / NUMBER2 / NUMBER3 \e \\
-    (while (and (setq chr (xterm--read-event-for-query)) (not (equal chr ?\\)))
-      (setq str (concat str (string chr))))
+  ;; The reply should be: \e ] 11 ; rgb: NUMBER1 / NUMBER2 / NUMBER3 \e \\
+  (let ((str (xterm--read-string ?\e ?\\)))
     (when (string-match
            "rgb:\\([a-f0-9]+\\)/\\([a-f0-9]+\\)/\\([a-f0-9]+\\)" str)
       (let ((recompute-faces
@@ -730,16 +760,13 @@ Return the pasted text as a string."
           (tty-set-up-initial-frame-faces))))))
 
 (defun xterm--version-handler ()
-  (let ((str "")
-        chr)
-    ;; The reply should be: \e [ > NUMBER1 ; NUMBER2 ; NUMBER3 c
-    ;; If the timeout is completely removed for read-event, this
-    ;; might hang for terminals that pretend to be xterm, but don't
-    ;; respond to this escape sequence.  RMS' opinion was to remove
-    ;; it completely.  That might be right, but let's first try to
-    ;; see if by using a longer timeout we get rid of most issues.
-    (while (and (setq chr (xterm--read-event-for-query)) (not (equal chr ?c)))
-      (setq str (concat str (string chr))))
+  ;; The reply should be: \e [ > NUMBER1 ; NUMBER2 ; NUMBER3 c
+  ;; If the timeout is completely removed for read-event, this
+  ;; might hang for terminals that pretend to be xterm, but don't
+  ;; respond to this escape sequence.  RMS' opinion was to remove
+  ;; it completely.  That might be right, but let's first try to
+  ;; see if by using a longer timeout we get rid of most issues.
+  (let ((str (xterm--read-string ?c)))
     ;; Since xterm-280, the terminal type (NUMBER1) is now 41 instead of 0.
     (when (string-match "\\([0-9]+\\);\\([0-9]+\\);[01]" str)
       (let ((version (string-to-number (match-string 2 str))))
@@ -810,6 +837,21 @@ anyway if we've been waiting a little while."
 				  xterm-query-timeout
 				  (time-since start-time)))))))))
 
+(defun xterm--read-string (term1 &optional term2)
+  "Read a string with terminating characters.
+This uses `xterm--read-event-for-query' internally."
+  (let ((str "")
+        chr last)
+    (while (and (setq last chr
+                      chr (xterm--read-event-for-query))
+                (if term2
+                    (not (and (equal last term1) (equal chr term2)))
+                  (not (equal chr term1))))
+      (setq str (concat str (string chr))))
+    (if term2
+        (substring str 0 -1)
+      str)))
+
 (defun xterm--query (query handlers &optional no-async)
   "Send QUERY string to the terminal and watch for a response.
 HANDLERS is an alist with elements of the form (STRING . FUNCTION).
@@ -860,6 +902,20 @@ We run the first FUNCTION whose STRING matches the input events."
               (push (aref (car handler) (setq i (1- i)))
                     unread-command-events))))))))
 
+(defun xterm--query-name-and-version ()
+  "Get the terminal name and version string (XTVERSION)."
+  ;; Reduce query timeout time. The default value causes a noticeable
+  ;; startup delay on terminals that ignore the query.
+  (let ((xterm-query-timeout 0.1))
+    (catch 'result
+      (xterm--query
+       "\e[>0q"
+       '(("\eP>|" . (lambda ()
+                      ;; The reply should be: \e P > | STRING \e \\
+                      (let ((str (xterm--read-string ?\e ?\\)))
+                        (throw 'result str))))))
+      nil)))
+
 (defun xterm--push-map (map basemap)
   ;; Use inheritance to let the main keymaps override those defaults.
   ;; This way we don't override terminfo-derived settings or settings
@@ -907,7 +963,15 @@ We run the first FUNCTION whose STRING matches the input events."
 
   (when xterm-set-window-title
     (xterm--init-frame-title))
-  (when xterm-mouse-mode
+  (when (and (not xterm-mouse-mode-called)
+             ;; Only automatically enable xterm mouse on terminals
+             ;; confirmed to still support all critical editing
+             ;; workflows (bug#74833).
+             (or (string-match-p xterm--auto-xt-mouse-allowed-types
+                                 (tty-type (selected-frame)))
+                 (and-let* ((name-and-version (xterm--query-name-and-version)))
+                   (string-match-p xterm--auto-xt-mouse-allowed-names
+                                   name-and-version))))
     (xterm-mouse-mode 1))
   ;; Unconditionally enable bracketed paste mode: terminals that don't
   ;; support it just ignore the sequence.

@@ -363,18 +363,25 @@ which is the \"1006\" extension implemented in Xterm >= 277."
         (setq last-input-event event)))))
 
 ;;;###autoload
+(defvar xterm-mouse-mode-called nil
+  "If `xterm-mouse-mode' has been called already.
+This can be used to detect if xterm-mouse-mode was explicitly set.")
+
+;;;###autoload
 (define-minor-mode xterm-mouse-mode
   "Toggle XTerm mouse mode.
 
-Turn it on to use Emacs mouse commands, and off to use xterm mouse commands.
-This works in terminal emulators compatible with xterm.  It only
-works for simple uses of the mouse.  Basically, only non-modified
-single clicks are supported.  When turned on, the normal xterm
-mouse functionality for such clicks is still available by holding
-down the SHIFT key while pressing the mouse button."
+Turn it on to use Emacs mouse commands, and off to use xterm mouse
+commands.  This works in terminal emulators compatible with xterm.  When
+turned on, the normal xterm mouse functionality for such clicks is still
+available by holding down the SHIFT key while pressing the mouse button.
+
+On text terminals that Emacs knows are compatible with the mouse as well
+as other critical editing functionality, this is automatically turned on
+at startup.  See Info node `(elisp)Terminal-Specific' and `xterm--init'."
   :global t :group 'mouse
-  :init-value t
   :version "31.1"
+  (setq xterm-mouse-mode-called t)
   (funcall (if xterm-mouse-mode 'add-hook 'remove-hook)
            'terminal-init-xterm-hook
            'turn-on-xterm-mouse-tracking-on-terminal)
