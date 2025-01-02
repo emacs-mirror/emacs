@@ -771,20 +771,21 @@ toggle.
 ** BibTeX mode
 
 ---
-*** New user variables facilitate customization.
-Mew user variables 'bibtex-BibTeX-aux-entry-alist',
-'bibtex-biblatex-aux-entry-alist', 'bibtex-BibTeX-aux-opt-alist',
-and 'bibtex-biblatex-aux-opt-alist' facilitate the customization of
-BibTeX and biblatex entries.  These variables now support the definition
-of aliases that inherit the definition of another entry.
+*** New user options facilitate customization of BibTeX and biblatex entries.
+Entry definitions via the user options 'bibtex-BibTeX-aux-entry-alist',
+'bibtex-biblatex-aux-entry-alist', 'bibtex-BibTeX-aux-opt-alist', and
+'bibtex-biblatex-aux-opt-alist' take precedence over
+'bibtex-BibTeX-entry-alist' and 'bibtex-biblatex-entry-alist'.
+These user options now support the definition of aliases that inherit
+the definition of another entry.
 
 ---
-*** The user variable 'bibtex-user-optional-fields' has been renamed
-to 'bibtex-aux-opt-alist'.  The old name is an obsolete alias.
+*** 'bibtex-user-optional-fields' has been renamed to 'bibtex-aux-opt-alist'.
+The old name is an obsolete alias.
 
 ---
-*** The user variable 'bibtex-include-OPTkey' is now obsolete and
-its default is nil.  Use 'bibtex-aux-opt-alist' instead.
+*** 'bibtex-include-OPTkey' is now obsolete and its default is nil.
+Use 'bibtex-aux-opt-alist' instead.
 
 ---
 *** New user option 'bibtex-entry-ask-for-key'.
