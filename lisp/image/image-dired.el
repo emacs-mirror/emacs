@@ -630,7 +630,8 @@ never ask for confirmation."
   (interactive "DShow thumbnails for directory: ")
   (dired dir)
   (dired-mark-files-regexp (image-dired--file-name-regexp))
-  (let ((files (dired-get-marked-files nil nil nil t)))
+  (let ((files (dired-get-marked-files nil nil nil t))
+        (dired-default-directory default-directory))
     (cond ((and (null (cdr files)))
            (message "No image files in directory"))
           ((or (not image-dired-show-all-from-dir-max-files)
@@ -644,7 +645,7 @@ never ask for confirmation."
            (let ((inhibit-message t))
              (dired-unmark-all-marks))
            (pop-to-buffer image-dired-thumbnail-buffer)
-           (setq default-directory dir)
+           (setq default-directory dired-default-directory)
            (image-dired--update-header-line))
           (t (message "Image-Dired canceled")))))
 
