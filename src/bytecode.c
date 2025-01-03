@@ -784,7 +784,6 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 		  }
 	      }
 #endif
-	    maybe_quit ();
 
 	    if (++lisp_eval_depth > max_lisp_eval_depth)
 	      {
@@ -829,6 +828,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    else
 	      val = funcall_general (original_fun, call_nargs, call_args);
 
+	    maybe_quit ();
 	    lisp_eval_depth--;
 	    if (backtrace_debug_on_exit (specpdl_ptr - 1))
 	      val = call_debugger (list2 (Qexit, val));
