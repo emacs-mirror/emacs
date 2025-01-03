@@ -731,6 +731,13 @@ instead."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Browse current buffer
 
+(defmacro browse-url--temp-file-setup (&rest body)
+  (declare (indent defun))
+  `(progn
+     (add-hook 'kill-buffer-hook #'browse-url-delete-temp-file nil t)
+     (with-file-modes #o600
+       ,@body)))
+
 ;;;###autoload
 (defun browse-url-of-file (&optional file)
   "Use a web browser to display FILE.
@@ -750,8 +757,9 @@ interactively.  Turn the filename into a URL with function
 		(t (message "%s modified since last save" file))))))
   (when (and (file-remote-p file)
              (not browse-url-temp-file-name))
-    (setq browse-url-temp-file-name (file-local-copy file)
-          file browse-url-temp-file-name))
+    (browse-url--temp-file-setup
+      (setq browse-url-temp-file-name (file-local-copy file)
+            file browse-url-temp-file-name)))
   (browse-url (browse-url-file-url file))
   (run-hooks 'browse-url-of-file-hook))
 
@@ -812,24 +820,23 @@ narrowed."
                 ;; This can happen when we're looking at a file from a
                 ;; zip file buffer, for instance.
                 (not (file-exists-p file-name)))
-	(unless browse-url-temp-file-name
-	  (setq browse-url-temp-file-name
-		(convert-standard-filename
-		 (make-temp-file
-		  (expand-file-name "burl" browse-url-temp-dir)
-		  nil ".html"))))
-	(setq file-name browse-url-temp-file-name)
-	(write-region (point-min) (point-max) file-name nil 'no-message))
+        (browse-url--temp-file-setup
+          (unless browse-url-temp-file-name
+            (setq browse-url-temp-file-name
+                  (convert-standard-filename
+                   (make-temp-file
+                    (expand-file-name "burl" browse-url-temp-dir)
+                    nil ".html"))))
+          (setq file-name browse-url-temp-file-name)
+          (write-region (point-min) (point-max) file-name nil 'no-message)))
       (browse-url-of-file file-name))))
 
 (defun browse-url-delete-temp-file (&optional temp-file-name)
-  "Delete `browse-url-temp-file-name' from the file system.
-If optional arg TEMP-FILE-NAME is non-nil, delete it instead."
+  "Delete `browse-url-temp-file-name' from the file system."
+  (declare (advertised-calling-convention () "31.1"))
   (let ((file-name (or temp-file-name browse-url-temp-file-name)))
     (if (and file-name (file-exists-p file-name))
 	(delete-file file-name))))
-
-(add-hook 'kill-buffer-hook #'browse-url-delete-temp-file)
 
 (declare-function dired-get-filename "dired"
 		  (&optional localp no-error-if-not-filep))
