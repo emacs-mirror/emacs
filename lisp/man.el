@@ -135,6 +135,11 @@ the manpage buffer."
   "Non-nil means make up the manpage with fonts."
   :type 'boolean)
 
+(defvar Man-cache-completion-results-flag (eq system-type 'darwin)
+  "Non-nil means cache completion results for `man'.
+This is non-nil by default on macOS, because getting and filtering
+\"man -k ^\" results is slower there than on GNU/Linux.")
+
 (defvar Man-ansi-color-basic-faces-vector
   [nil Man-overstrike nil Man-underline Man-underline nil nil Man-reverse]
   "The value used here for `ansi-color-basic-faces-vector'.")
@@ -1120,13 +1125,17 @@ for the current invocation."
 		;; ("man -k" is case-insensitive similarly, so the
 		;; table has everything available to complete)
 		(completion-ignore-case t)
-		Man-completion-cache    ;Don't cache across calls.
-		(input (completing-read
-			(format-prompt "Manual entry"
-                                       (and (not (equal default-entry ""))
-                                            default-entry))
-                        'Man-completion-table
-			nil nil nil 'Man-topic-history default-entry)))
+		(input
+                 (cl-flet ((read ()
+                             (completing-read
+                              (format-prompt "Manual entry"
+                                             (and (not (equal default-entry ""))
+                                                  default-entry))
+                              #'Man-completion-table
+                              nil nil nil 'Man-topic-history default-entry)))
+                   (if Man-cache-completion-results-flag
+                       (read)
+                     (let ((Man-completion-cache)) (read))))))
 	   (if (string= input "")
 	       (error "No man args given")
 	     input))))
