@@ -1652,9 +1652,8 @@ commands from `Man-mode'.  Used by `woman'.
 (define-derived-mode Man-mode man-common "Man"
   "A mode for browsing Un*x manual pages.
 
-The following man commands are available in the buffer.  Try
-\"\\[describe-key] <key> RET\" for more information:
-
+The following man commands are available in the buffer:
+\\<Man-mode-map>
 \\[man]       Prompt to retrieve a new manpage.
 \\[Man-follow-manual-reference]       Retrieve reference in SEE ALSO section.
 \\[Man-next-manpage]     Jump to next manpage in circular list.
@@ -1662,13 +1661,12 @@ The following man commands are available in the buffer.  Try
 \\[Man-next-section]       Jump to next manpage section.
 \\[Man-previous-section]       Jump to previous manpage section.
 \\[Man-goto-section]       Go to a manpage section.
-\\[Man-goto-see-also-section]       Jumps to the SEE ALSO manpage section.
-\\[quit-window]       Deletes the manpage window, bury its buffer.
-\\[Man-kill]       Deletes the manpage window, kill its buffer.
-\\[describe-mode]       Prints this help text.
+\\[Man-goto-see-also-section]       Jump to the SEE ALSO manpage section.
+\\[quit-window]       Delete the manpage window, bury its buffer.
+\\[Man-kill]       Delete the manpage window, kill its buffer.
+\\[describe-mode]       Print this help text.
 
-The following variables may be of some use.  Try
-\"\\[describe-variable] <variable-name> RET\" for more information:
+The following variables may be of some use:
 
 `Man-notify-method'		What happens when manpage is ready to display.
 `Man-downcase-section-letters-flag' Force section letters to lower case.
