@@ -1276,22 +1276,22 @@ Return the buffer in which the manpage will appear."
 	(old-size (buffer-size))
 	(inhibit-read-only t)
 	(buffer-read-only nil))
-     (erase-buffer)
-     (Man-start-calling
-      (process-file
-       (Man-shell-file-name) nil (list (current-buffer) nil) nil
-       shell-command-switch
-       (format (Man-build-man-command) Man-arguments)))
-     (if Man-fontify-manpage-flag
-	 (Man-fontify-manpage)
-       (Man-cleanup-manpage))
-     (goto-char old-pos)
-     ;;restore the point, not strictly right.
-     (unless (or (eq text nil) (= old-size (buffer-size)))
-       (let ((case-fold-search nil))
-	 (if (> old-size (buffer-size))
-	     (search-backward text nil t))
-	 (search-forward text nil t)))))
+    (erase-buffer)
+    (Man-start-calling
+     (process-file
+      (Man-shell-file-name) nil (list (current-buffer) nil) nil
+      shell-command-switch
+      (format (Man-build-man-command) Man-arguments)))
+    (if Man-fontify-manpage-flag
+	(Man-fontify-manpage)
+      (Man-cleanup-manpage))
+    (goto-char old-pos)
+    ;;restore the point, not strictly right.
+    (unless (or (eq text nil) (= old-size (buffer-size)))
+      (let ((case-fold-search nil))
+	(if (> old-size (buffer-size))
+	    (search-backward text nil t))
+	(search-forward text nil t)))))
 
 (defvar Man--window-state-change-timer nil)
 
