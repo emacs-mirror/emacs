@@ -196,6 +196,13 @@ removed, as it was considered more dangerous than useful.  RFC 9110
 To send an email address in the header of individual HTTP requests,
 see the variable 'url-request-extra-headers'.
 
+---
+** 'pixel-scroll-precision-mode' sets 'make-cursor-line-fully-visible'.
+'pixel-scroll-precision-mode' sets 'make-cursor-line-fully-visible' to a
+nil value globally, since the usual requirement of the Emacs display to
+make the cursor line fully visible contradicts the smooth scrolling
+expectations.
+
 
 * Changes in Emacs 30.1
 
