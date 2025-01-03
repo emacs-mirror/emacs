@@ -544,17 +544,13 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	    args[i] = encode_coding_string (&argument_coding, args[i], 1);
 	}
       for (i = 4; i < nargs; i++)
-	{
-	  new_argv[i - 3] = xstrdup (SSDATA (args[i]));
-	  record_unwind_protect_ptr (xfree, new_argv[i - 3]);
-	}
+	new_argv[i - 3] = SSDATA (args[i]);
       new_argv[i - 3] = 0;
     }
   else
     new_argv[1] = 0;
   path = ENCODE_FILE (path);
-  new_argv[0] = xstrdup (SSDATA (path));
-  record_unwind_protect_ptr (xfree, new_argv[0]);
+  new_argv[0] = SSDATA (path);
 
   discard_output = FIXNUMP (buffer) || (NILP (buffer) && NILP (output_file));
 
@@ -1700,8 +1696,6 @@ getenv_internal_1 (const char *var, ptrdiff_t varlen, char **value,
 	{
 	  if (SBYTES (entry) > varlen && SREF (entry, varlen) == '=')
 	    {
-	      /* FIXME/igc: does this pointer ever leak to
-		 non-MPS-visible memory?  */
 	      *value = SSDATA (entry) + (varlen + 1);
 	      *valuelen = SBYTES (entry) - (varlen + 1);
 	      return 1;
@@ -1930,11 +1924,7 @@ make_environment_block (Lisp_Object current_dir)
     for (tem = Vprocess_environment;
 	 CONSP (tem) && STRINGP (XCAR (tem));
 	 tem = XCDR (tem))
-      {
-	char *safe_string = xstrdup (SSDATA (XCAR (tem)));
-	record_unwind_protect_ptr (xfree, safe_string);
-	new_env = add_env (env, new_env, safe_string);
-      }
+      new_env = add_env (env, new_env, SSDATA (XCAR (tem)));
 
     *new_env = 0;
 
