@@ -387,6 +387,9 @@ static enum profiler_cpu_running
 /* Hash-table log of CPU profiler.  */
 static struct profiler_log cpu;
 
+/* Number of unprocessed profiler signals. */
+static uintptr_t pending_profiler_signals;
+
 /* The current sampling interval in nanoseconds.  */
 static EMACS_INT current_sampling_interval;
 
@@ -402,7 +405,19 @@ handle_profiler_signal (int signal)
       count += overruns;
     }
 #endif
-  add_sample (&cpu, count);
+  pending_signals = true;
+  pending_profiler_signals += count;
+}
+
+void
+process_pending_profiler_signals (void)
+{
+  uintptr_t count = pending_profiler_signals;
+  if (count)
+    {
+      pending_profiler_signals = 0;
+      add_sample (&cpu, count);
+    }
 }
 
 static void
