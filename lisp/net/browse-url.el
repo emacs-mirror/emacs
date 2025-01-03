@@ -482,10 +482,14 @@ You might want to set this to somewhere with restricted read permissions
 for privacy's sake."
   :type 'string)
 
-(defcustom browse-url-text-browser "lynx"
+(defcustom browse-url-text-browser
+  (cond ((executable-find "lynx") "lynx")
+        ((executable-find "links") "links")
+        ((executable-find "elinks") "elinks")
+        ("lynx"))
   "The name of the text browser to invoke."
   :type 'string
-  :version "23.1")
+  :version "31.1")
 
 (defcustom browse-url-text-emacs-args (and (not window-system)
 					   '("-show_cursor"))
