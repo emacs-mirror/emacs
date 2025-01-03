@@ -559,7 +559,7 @@ AC_SUBST([FIND_DELETE])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile])
 AS_IF([test "x$is_mips" = xyes],
-  [AC_CONFIG_FILES ([config-mips.m4])])
+  [AC_CONFIG_FILES([config-mips.m4])])
 
 AC_SUBST([AUTO_DEPEND])
 AC_SUBST([LOADERFLAGS])
