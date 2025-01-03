@@ -1259,9 +1259,7 @@ Return the buffer in which the manpage will appear."
 			    (format "exited abnormally with code %d"
 				    exit-status)))
 		 (setq msg exit-status))
-	     (if Man-fontify-manpage-flag
-		 (Man-fontify-manpage)
-	       (Man-cleanup-manpage))
+	     (man--maybe-fontify-manpage)
 	     (Man-bgproc-sentinel bufname msg))))))
     buffer))
 
@@ -1282,9 +1280,7 @@ Return the buffer in which the manpage will appear."
       (Man-shell-file-name) nil (list (current-buffer) nil) nil
       shell-command-switch
       (format (Man-build-man-command) Man-arguments)))
-    (if Man-fontify-manpage-flag
-	(Man-fontify-manpage)
-      (Man-cleanup-manpage))
+    (man--maybe-fontify-manpage)
     (goto-char old-pos)
     ;;restore the point, not strictly right.
     (unless (or (eq text nil) (= old-size (buffer-size)))
@@ -1514,6 +1510,11 @@ script would have done them."
   (while (re-search-forward ".\b" nil t) (delete-char -2))
   (Man-softhyphen-to-minus))
 
+(defun man--maybe-fontify-manpage ()
+  (if Man-fontify-manpage-flag
+      (Man-fontify-manpage)
+    (Man-cleanup-manpage)))
+
 (defun Man-bgproc-filter (process string)
   "Manpage background process filter.
 When manpage command is run asynchronously, PROCESS is the process
@@ -1539,9 +1540,7 @@ command is run.  Second argument STRING is the entire string of output."
                    (Man-previous-section 1)
                    (point))
 		 (point))
-		(if Man-fontify-manpage-flag
-		    (Man-fontify-manpage)
-		  (Man-cleanup-manpage)))
+		(man--maybe-fontify-manpage))
 	      (set-marker (process-mark process) (point-max)))))))))
 
 (defun Man-bgproc-sentinel (process msg)
