@@ -467,17 +467,6 @@ This might, for instance, be a separate color version of xterm."
 These might set its size, for instance."
   :type '(repeat (string :tag "Argument")))
 
-(defcustom browse-url-gnudoit-program "gnudoit"
-  "The name of the `gnudoit' program used by `browse-url-w3-gnudoit'."
-  :type 'string)
-(make-obsolete-variable 'browse-url-gnudoit-program nil "29.1")
-
-(defcustom browse-url-gnudoit-args '("-q")
-  "A list of strings defining options for `browse-url-gnudoit-program'.
-These might set the port, for instance."
-  :type '(repeat (string :tag "Argument")))
-(make-obsolete-variable 'browse-url-gnudoit-args nil "29.1")
-
 (defcustom browse-url-generic-program nil
   "The name of the browser program used by `browse-url-generic'."
   :type '(choice string (const :tag "None" nil)))
@@ -1502,21 +1491,6 @@ used instead of `browse-url-new-window-flag'."
     (w3-fetch url)))
 
 (function-put 'browse-url-w3 'browse-url-browser-kind 'internal)
-
-;;;###autoload
-(defun browse-url-w3-gnudoit (url &optional _new-window)
-  "Ask another Emacs running emacsclient to load the URL using the W3 browser.
-The `browse-url-gnudoit-program' program is used with options given by
-`browse-url-gnudoit-args'.  Default to the URL around or before point."
-  (declare (obsolete nil "25.1"))
-  (interactive (browse-url-interactive-arg "W3 URL: "))
-  (apply #'start-process (concat "gnudoit:" url) nil
-	 browse-url-gnudoit-program
-	 (append browse-url-gnudoit-args
-		 (list (concat "(w3-fetch \"" url "\")")
-		       "(raise-frame)"))))
-
-(function-put 'browse-url-w3-gnudoit 'browse-url-browser-kind 'internal)
 
 ;; --- Lynx in an xterm ---
 
