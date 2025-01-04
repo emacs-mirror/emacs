@@ -2651,16 +2651,23 @@ argument, don't ask for confirmation to install packages."
 
 (defun package-isolate (packages &optional temp-init)
   "Start an uncustomized Emacs and only load a set of PACKAGES.
+Interactively, prompt for PACKAGES to load, which should be specified
+separated by commas.
+If called from Lisp, PACKAGES should be a list of packages to load.
 If TEMP-INIT is non-nil, or when invoked with a prefix argument,
-the Emacs user directory is set to a temporary directory."
+the Emacs user directory is set to a temporary directory.
+This command is intended for testing Emacs and/or the packages
+in a clean environment."
   (interactive
    (cl-loop for p in (cl-loop for p in (package--alist) append (cdr p))
 	    unless (package-built-in-p p)
 	    collect (cons (package-desc-full-name p) p) into table
 	    finally return
-	    (list (cl-loop for c in (completing-read-multiple
-                                     "Isolate packages: " table
-                                     nil t)
+	    (list
+             (cl-loop for c in
+                      (completing-read-multiple
+                       "Packages to isolate, as comma-separated list: " table
+                       nil t)
 		           collect (alist-get c table nil nil #'string=))
                   current-prefix-arg)))
   (let* ((name (concat "package-isolate-"
