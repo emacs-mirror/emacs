@@ -2624,32 +2624,33 @@ ARG is described in the docstring of `up-list'."
   "Tree-sitter `transpose-sexps' function.
 ARG is the same as in `transpose-sexps'.
 
-Locate the node closest to POINT, and transpose that node with
-its sibling node ARG nodes away.
+Locate the named node closest to POINT, and transpose that node with
+its named sibling node ARG nodes away.
 
 Return a pair of positions as described by
 `transpose-sexps-function' for use in `transpose-subr' and
 friends."
-  ;; First arrive at the right level at where the node at point is
-  ;; considered a sexp. If sexp isn't defined, or we can't find any
-  ;; node that's a sexp, use the node at point.
-  (let* ((node (or (treesit-thing-at-point 'sexp 'nested)
-                   (treesit-node-at (point))))
-         (parent (treesit-node-parent node))
-         (child (treesit-node-child parent 0 t)))
-    (named-let loop ((prev child)
-                     (next (treesit-node-next-sibling child t)))
-      (when (and prev next)
-        (if (< (point) (treesit-node-end next))
-            (if (= arg -1)
-                (cons (treesit-node-start prev)
-                      (treesit-node-end prev))
-              (when-let* ((n (treesit-node-child
-                              parent (+ arg (treesit-node-index prev t)) t)))
-                (cons (treesit-node-end n)
-                      (treesit-node-start n))))
-          (loop (treesit-node-next-sibling prev t)
-                (treesit-node-next-sibling next t)))))))
+  (let* ((pred #'treesit-node-named)
+         (arg (or arg 1))
+         (cnt arg)
+         (inc (if (> arg 0) 1 -1))
+         (pos (point))
+         first sibling)
+    (while (and pos (/= cnt 0))
+      (setq sibling (if (> arg 0)
+                        (treesit-thing-next pos pred)
+                      (treesit-thing-prev pos pred)))
+      (unless first
+        (setq first (if (> arg 0)
+                        (treesit-node-start sibling)
+                      (treesit-node-end sibling))))
+      (setq pos (when sibling
+                  (if (> arg 0)
+                      (treesit-node-end sibling)
+                    (treesit-node-start sibling))))
+      (setq cnt (- cnt inc)))
+    (or (and sibling (cons pos first))
+        (transpose-sexps-default-function arg))))
 
 ;;; Navigation, defun, things
 ;;
@@ -3619,6 +3620,12 @@ before calling this function."
     (when-let* ((parser (overlay-get ov 'treesit-parser)))
       (treesit-parser-delete parser)
       (delete-overlay ov))))
+
+;;; Helpers
+
+(defun treesit-node-named (node)
+  "Return non-nil if NODE has the property `named'."
+  (treesit-node-check node 'named))
 
 ;;; Debugging
 
