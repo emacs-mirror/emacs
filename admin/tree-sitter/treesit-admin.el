@@ -422,7 +422,7 @@ EMACS-EXECUTABLES is a list of Emacs executbles to check for."
       (insert "</tr>\n")
       (dolist (lang languages)
         (insert "<tr>")
-        (insert (format "<td>%s</td>" lang))
+        (insert (format "<th>%s</th>" lang))
         (dolist (emacs-version (mapcar #'car tables))
           (let* ((key (cons lang emacs-version))
                  (plist (gethash key database))
