@@ -778,6 +778,9 @@ It is the default value of the variable `top-level'."
       (unwind-protect
 	  (command-line)
 
+        (when (featurep 'native-compile)
+          (startup--update-eln-cache))
+
 	;; Do this again, in case .emacs defined more abbreviations.
 	(if default-directory
 	    (setq default-directory (abbreviate-file-name default-directory)))
