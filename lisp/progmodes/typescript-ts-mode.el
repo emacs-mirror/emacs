@@ -670,24 +670,29 @@ at least 3 (which is the default value)."
 
 (defun tsx-ts--syntax-propertize-captures (captures)
   (pcase-dolist (`(,name . ,node) captures)
-    (let* ((ns (treesit-node-start node))
-           (ne (treesit-node-end node))
-           (syntax (pcase-exhaustive name
-                     ('regexp
-                      (cl-decf ns)
-                      (cl-incf ne)
-                      (string-to-syntax "\"/"))
-                     ('jsx
-                      (string-to-syntax "|")))))
-      ;; The string syntax require at least two characters (one for
-      ;; opening fence and one for closing fence).  So if the string has
-      ;; only one character, we apply the whitespace syntax.  The string
-      ;; has to be in a non-code syntax, lest the string could contain
-      ;; parent or brackets and messes up syntax-ppss.
-      (if (eq ne (1+ ns))
-          (put-text-property ns ne 'syntax-table "-")
-        (put-text-property ns (1+ ns) 'syntax-table syntax)
-        (put-text-property (1- ne) ne 'syntax-table syntax)))))
+    (let ((ns (treesit-node-start node))
+          (ne (treesit-node-end node)))
+      (pcase-exhaustive name
+        ('regexp
+         (let ((syntax (string-to-syntax "\"/")))
+           (cl-decf ns)
+           (cl-incf ne)
+           (put-text-property ns (1+ ns) 'syntax-table syntax)
+           (put-text-property (1- ne) ne 'syntax-table syntax)))
+        ;; We put punctuation syntax on all the balanced pair
+        ;; characters so they don't mess up syntax-ppss.  We can't put
+        ;; string syntax on the whole thing because a) it doesn't work
+        ;; if the text is one character long, and b) it interferes
+        ;; forward/backward-sexp.
+        ('jsx
+         (save-excursion
+           (goto-char ns)
+           (while (re-search-forward (rx (or "{" "}" "[" "]"
+                                             "(" ")" "<" ">"))
+                                     ne t)
+             (put-text-property
+              (match-beginning 0) (match-end 0)
+              'syntax-table (string-to-syntax ".")))))))))
 
 (if (treesit-ready-p 'tsx)
     (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode)))
