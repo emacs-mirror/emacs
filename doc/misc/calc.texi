@@ -1272,7 +1272,7 @@ Press the number @kbd{1} now to enter the first section of the Tutorial.
 * Tutorial::
 @end menu
 
-@node Tutorial, Introduction, Interactive Tutorial, Top
+@node Tutorial, Introduction, Interactive Tutorial, Interactive Tutorial
 @end ifinfo
 @ifnotinfo
 @node Tutorial, Introduction, Getting Started, Top
@@ -32118,9 +32118,8 @@ in symbolic form without ever activating the @code{deriv} function.  Press
 @kbd{m D} to turn the default simplifications back on afterwards.
 
 @node Lisp Definitions
-@section Programming with Lisp
-
 @section Programming Calc, with Lisp
+
 @noindent
 The Calculator can be programmed quite extensively in Lisp.  All you
 do is write a normal Lisp function definition, but with @code{defmath}

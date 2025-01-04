@@ -2216,8 +2216,8 @@ current buffer state and calls REPORT-FN when done."
     ;; Flymake doesn't display the warning it puts into "*flmake log*".
     (message "Disabling elisp-flymake-byte-compile in %s (untrusted content)"
              (buffer-name))
-    (error "Disabling elisp-flymake-byte-compile in %s (untrusted content)"
-           (buffer-name)))
+    (user-error "Disabling elisp-flymake-byte-compile in %s (untrusted content)"
+                (buffer-name)))
   (when elisp-flymake--byte-compile-process
     (when (process-live-p elisp-flymake--byte-compile-process)
       (kill-process elisp-flymake--byte-compile-process)))

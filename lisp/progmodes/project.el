@@ -858,7 +858,9 @@ DIRS must contain directory names."
 (cl-defmethod project-buffers ((project (head vc)))
   (let* ((root (expand-file-name (file-name-as-directory (project-root project))))
          (modules (unless (or (project--vc-merge-submodules-p root)
-                              (project--submodule-p root))
+                              (condition-case nil
+                                  (project--submodule-p root)
+                                (file-missing nil)))
                     (mapcar
                      (lambda (m) (format "%s%s/" root m))
                      (project--git-submodules))))
