@@ -2394,8 +2394,41 @@ Return VALUE.  */)
 {
   register struct window *w = decode_any_window (window);
   Lisp_Object old_alist_elt;
+  struct frame* f;
 
   old_alist_elt = Fassq (parameter, w->window_parameters);
+
+  /* If this window parameter has been used in a face remapping filter
+     expression anywhere at any time and we changed its value, force a
+     from-scratch redisplay to make sure that everything that depends on
+     a face filtered on the window parameter value is up-to-date.
+
+     We compare with Qt here instead of using !NILP so that users can
+     set this property to a non-nil, non-t value to inhibit this
+     mechanism for a specific window parameter.
+
+     FIXME: instead of taking a sledgehammer to redisplay, we could be
+     more precise in tracking which display bits depend on which
+     remapped faces.  In particular, 1) if a window parameter named in a
+     face filter affects only faces used in drawing fringes, we don't
+     need to redraw TTY frames, but if the filter is ever used in a
+     non-fringe context (e.g. the 'face' text property), we need to
+     redraw TTY frames too.  2) In the fringe case, we should limit the
+     redraw damage to the fringes of the affected window and not the
+     whole frame containing the window.  Today, we seldom change window
+     parameters named in face filters.  We should implement the
+     optimizations above when this assumption no longer holds.  */
+  if (SYMBOLP (parameter)
+      && WINDOW_LIVE_P (window)
+      && EQ (Fget (parameter, QCfiltered), Qt)
+      && FRAME_WINDOW_P ((f = WINDOW_XFRAME (w)))
+      && !EQ (CDR_SAFE (old_alist_elt), value)
+      && window_auto_redraw_on_parameter_change)
+    {
+      f->face_change = 1;
+      fset_redisplay (f);
+    }
+
   if (NILP (old_alist_elt))
     wset_window_parameters
       (w, Fcons (Fcons (parameter, value), w->window_parameters));
@@ -9070,6 +9103,20 @@ This table is maintained by code in window.c and is made visible in
 Elisp for testing purposes only.  */);
   window_dead_windows_table
     = CALLN (Fmake_hash_table, QCweakness, Qt);
+
+  DEFVAR_BOOL ("window-auto-redraw-on-parameter-change",
+	       window_auto_redraw_on_parameter_change,
+	       doc: /* When non-nil, redraw based on face filters.
+When this variable is non-nil, force a potentially expensive redraw when
+a window parameter named in a `:window' expression for ':filtered'
+changes.  This redraw is necessary for correctness; this variable is an
+escape hatch to recover performance in the case that our assumption that
+these parameter changes are rare does not hold.
+
+You can also inhibit the automatic redraw for a specific window
+parameter by setting the `:filtered` symbol property of the parameter
+name to `'ignore'.  */);
+  window_auto_redraw_on_parameter_change = true;
 
   defsubr (&Sselected_window);
   defsubr (&Sold_selected_window);
