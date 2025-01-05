@@ -5633,6 +5633,7 @@ Nonexistent directories are removed from spec."
 ;;   - 8 KiB on HP-UX, Plan9.
 ;;   - 10 KiB on IRIX.
 ;;   - 32 KiB on AIX, Minix.
+;;   - `undefined' on QNX.
 ;; [1] https://pubs.opengroup.org/onlinepubs/9699919799/functions/write.html
 ;; [2] https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/limits.h.html
 ;; See Bug#65324.
@@ -5640,11 +5641,13 @@ Nonexistent directories are removed from spec."
 (defun tramp-get-remote-pipe-buf (vec)
   "Return PIPE_BUF config from the remote side."
   (with-tramp-connection-property vec "pipe-buf"
-    (tramp-send-command-and-read
-     vec
-     (format "getconf PIPE_BUF / 2>%s || echo 4096"
-             (tramp-get-remote-null-device vec))
-     'noerror)))
+    (if-let* ((result
+	       (tramp-send-command-and-read
+		vec (format "getconf PIPE_BUF / 2>%s"
+			    (tramp-get-remote-null-device vec))
+		'noerror))
+	      ((natnump result)))
+	result 4096)))
 
 (defun tramp-get-remote-locale (vec)
   "Determine remote locale, supporting UTF8 if possible."
