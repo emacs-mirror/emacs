@@ -35,6 +35,9 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "frame.h"
 #include "coding.h"
 
+#ifdef NS_IMPL_COCOA
+#include <CoreGraphics/CoreGraphics.h>
+#endif
 
 #if defined (NS_IMPL_GNUSTEP) || MAC_OS_X_VERSION_MAX_ALLOWED < 1070
 # define COLORSPACE_NAME NSCalibratedRGBColorSpace
@@ -289,7 +292,11 @@ ns_image_size_in_bytes (void *img)
 
 - (void)dealloc
 {
+#ifdef NS_IMPL_COCOA
+  CGImageRelease(stippleMask);
+#else
   [stippleMask release];
+#endif
   [bmRep release];
   [transform release];
   [super dealloc];
@@ -300,7 +307,11 @@ ns_image_size_in_bytes (void *img)
 {
   EmacsImage *copy = [super copyWithZone:zone];
 
+#ifdef NS_IMPL_COCOA
+  copy->stippleMask = CGImageCreateCopy(stippleMask);
+#else
   copy->stippleMask = [stippleMask copyWithZone:zone];
+#endif /* NS_IMPL_COCOA */
   copy->bmRep = [bmRep copyWithZone:zone];
   copy->transform = [transform copyWithZone:zone];
 
@@ -509,6 +520,25 @@ ns_image_size_in_bytes (void *img)
     }
 }
 
+#ifdef NS_IMPL_COCOA
+/* Returns a cached CGImageMask of the stipple pattern */
+- (CGImageRef)stippleMask
+{
+  if (stippleMask == nil)
+    {
+      CGDataProviderRef provider = CGDataProviderCreateWithData (NULL, [bmRep bitmapData],
+                                                               [self sizeInBytes], NULL);
+      CGImageRef mask = CGImageMaskCreate([self size].width,
+                                          [self size].height,
+                                          8, 8, [self size].width,
+                                          provider, NULL, 0);
+
+      CGDataProviderRelease(provider);
+      stippleMask = CGImageRetain(mask);
+    }
+  return stippleMask;
+}
+#else
 /* Returns a pattern color, which is cached here.  */
 - (NSColor *)stippleMask
 {
@@ -516,6 +546,7 @@ ns_image_size_in_bytes (void *img)
       stippleMask = [[NSColor colorWithPatternImage: self] retain];
   return stippleMask;
 }
+#endif /* NS_IMPL_COCOA */
 
 /* Find the first NSBitmapImageRep which has multiple frames.  */
 - (NSBitmapImageRep *)getAnimatedBitmapImageRep

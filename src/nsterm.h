@@ -671,7 +671,11 @@ enum ns_return_frame_mode
 {
   NSBitmapImageRep *bmRep; /* used for accessing pixel data */
   unsigned char *pixmapData[5]; /* shortcut to access pixel data */
+#ifdef NS_IMPL_COCOA
+  CGImageRef stippleMask;
+#else
   NSColor *stippleMask;
+#endif /* NS_IMPL_COCOA */
 @public
   NSAffineTransform *transform;
   BOOL smoothing;
@@ -688,7 +692,11 @@ enum ns_return_frame_mode
                green: (unsigned char)g blue: (unsigned char)b
               alpha:(unsigned char)a;
 - (void)setAlphaAtX: (int)x Y: (int)y to: (unsigned char)a;
+#ifdef NS_IMPL_COCOA
+- (CGImageRef)stippleMask;
+#else
 - (NSColor *)stippleMask;
+#endif /* NS_IMPL_COCOA */
 - (Lisp_Object)getMetadata;
 - (BOOL)setFrame: (unsigned int) index;
 - (void)setTransform: (double[3][3]) m;
