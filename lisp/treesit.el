@@ -2732,7 +2732,9 @@ If LANGUAGE is nil, return the first definition for THING in
                                   treesit-thing-settings)))))
 
 (defalias 'treesit-thing-defined-p #'treesit-thing-definition
-  "Return non-nil if THING is defined.")
+  "Return non-nil if THING is defined for LANGUAGE.
+
+\(fn THING LANGUAGE)")
 
 (defun treesit-beginning-of-thing (thing &optional arg tactic)
   "Like `beginning-of-defun', but generalized into things.
@@ -3416,9 +3418,10 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
 
 (defun treesit-show-paren-data--categorize (pos &optional end-p)
   (let* ((pred 'sexp-list)
-         (parent (treesit-node-at (if end-p (1- pos) pos)))
-         (_ (while (and parent (not (treesit-node-match-p parent pred t)))
-              (setq parent (treesit-node-parent parent))))
+         (parent (when (treesit-thing-defined-p
+                        'sexp-list (treesit-language-at pos))
+                   (treesit-parent-until
+                    (treesit-node-at (if end-p (1- pos) pos)) pred)))
          (first (when parent (treesit-node-child parent 0)))
          (first-start (when first (treesit-node-start first)))
          (first-end (when first (treesit-node-end first)))
