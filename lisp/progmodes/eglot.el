@@ -3426,7 +3426,7 @@ for which LSP on-type-formatting should be requested."
                                        'font-lock-function-name-face))))
       ;; Now to the parameters
       (cl-loop
-       with active-param = (or sig-active activeParameter)
+       with active-param = (or activeParameter sig-active)
        for i from 0 for parameter across parameters do
        (eglot--dbind ((ParameterInformation)
                       ((:label parlabel))
