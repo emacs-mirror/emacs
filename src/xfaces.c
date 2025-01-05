@@ -5146,10 +5146,19 @@ lookup_basic_face (struct window *w, struct frame *f, int face_id)
      for the very common no-remapping case.  */
   mapping = assq_no_quit (name, Vface_remapping_alist);
   if (NILP (mapping))
-    return face_id;		/* Give up.  */
+    {
+      Lisp_Object face_attrs[LFACE_VECTOR_SIZE];
 
-  /* If there is a remapping entry, lookup the face using NAME, which will
-     handle the remapping too.  */
+      /* If the face inherits from another, we need to realize it,
+         because the parent face could be remapped.  */
+      if (!get_lface_attributes (w, f, name, face_attrs, false, 0)
+	  || NILP (face_attrs[LFACE_INHERIT_INDEX])
+	  || UNSPECIFIEDP (face_attrs[LFACE_INHERIT_INDEX]))
+	return face_id;		/* Give up.  */
+    }
+
+  /* If there is a remapping entry, or the face inherits from another,
+     lookup the face using NAME, which will handle the remapping too.  */
   remapped_face_id = lookup_named_face (w, f, name, false);
   if (remapped_face_id < 0)
     return face_id;		/* Give up. */
@@ -5866,6 +5875,12 @@ realize_basic_faces (struct frame *f)
 
   if (realize_default_face (f))
     {
+      /* Basic faces must be realized disregarding face-remapping-alist,
+         since otherwise face-remapping might affect the basic faces in the
+         face cache, if this function happens to be invoked with current
+	 buffer set to a buffer with a non-nil face-remapping-alist.  */
+      specpdl_ref count = SPECPDL_INDEX ();
+      specbind (Qface_remapping_alist, Qnil);
       realize_named_face (f, Qmode_line_active, MODE_LINE_ACTIVE_FACE_ID);
       realize_named_face (f, Qmode_line_inactive, MODE_LINE_INACTIVE_FACE_ID);
       realize_named_face (f, Qtool_bar, TOOL_BAR_FACE_ID);
@@ -5887,6 +5902,7 @@ realize_basic_faces (struct frame *f)
       realize_named_face (f, Qchild_frame_border, CHILD_FRAME_BORDER_FACE_ID);
       realize_named_face (f, Qtab_bar, TAB_BAR_FACE_ID);
       realize_named_face (f, Qtab_line, TAB_LINE_FACE_ID);
+      unbind_to (count, Qnil);
 
       /* Reflect changes in the `menu' face in menu bars.  */
       if (FRAME_FACE_CACHE (f)->menu_face_changed_p)
