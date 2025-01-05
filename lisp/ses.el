@@ -2604,8 +2604,9 @@ Return nil if cell formula was unsafe and user declined confirmation."
                                  curval)))))))
   (when (ses-edit-cell row col newval)
     (ses-command-hook) ; Update cell widths before movement.
-    (dolist (x ses-after-entry-functions)
-      (funcall x 1))))
+    (cl-progv '(row col) (list row col) ; cl-progv to have dynamic binding
+      (dolist (x ses-after-entry-functions)
+        (funcall x 1)))))
 
 (defun ses-read-symbol (row col symb)
   "Self-insert for a symbol as a cell formula.
@@ -2624,8 +2625,9 @@ spreadsheet is available for completions."
 	     (list 'quote (intern newval))))))
   (when (ses-edit-cell row col symb)
     (ses-command-hook) ; Update cell widths before movement.
-    (dolist (x ses-after-entry-functions)
-      (funcall x 1))))
+    (cl-progv '(row col) (list row col) ; cl-progv to have dynamic binding
+      (dolist (x ses-after-entry-functions)
+        (funcall x 1)))))
 
 (defun ses-clear-cell-forward (count)
   "Delete formula and printer for current cell and then move to next cell.
