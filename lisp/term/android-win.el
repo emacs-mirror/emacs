@@ -42,6 +42,7 @@
 (add-to-list 'display-format-alist '(".*" . android))
 
 (declare-function android-get-connection "androidfns.c")
+(declare-function x-handle-args "common-win" (args))
 
 ;; Window system initialization.  This is extremely simple because all
 ;; initialization is done in android_term_init.

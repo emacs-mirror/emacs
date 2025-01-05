@@ -1422,6 +1422,7 @@ within text input fields."
 (declare-function imagep "image.c")
 (defvar text-scale-mode)
 (defvar text-scale-mode-amount)
+(defvar image-scaling-factor)
 (defun eww--rescale-images ()
   (let ((scaling (if text-scale-mode
                      (+ 1 (* text-scale-mode-amount 0.1))

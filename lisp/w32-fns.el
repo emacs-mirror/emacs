@@ -49,6 +49,8 @@
       (and (fboundp 'w32-using-nt) (w32-using-nt) "cmd.exe")
       "command.com"))
 
+(defvar w32-system-shells)       ;; defined in w32-vars.el
+(defvar w32-allow-system-shell)  ;; defined in w32-vars.el
 (defun w32-system-shell-p (shell-name)
   (and shell-name
        (member (downcase (file-name-nondirectory shell-name))

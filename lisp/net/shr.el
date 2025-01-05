@@ -1276,6 +1276,7 @@ not, `imagemagick' is preferred if it's present."
       nil
     'imagemagick))
 
+(defvar image-scaling-factor)
 (defun shr-rescale-image (data content-type width height
                                &optional max-width max-height)
   "Rescale DATA, if too big, to fit the current buffer.

@@ -158,6 +158,11 @@ or \"ffmpeg\") is installed."
   :type 'boolean
   :version "27.1")
 
+(defcustom image-recompute-map-p t
+  "Recompute image map when scaling, rotating, or flipping an image."
+  :type 'boolean
+  :version "30.1")
+
 (define-error 'unknown-image-type "Unknown image type")
 
 (defvar-keymap image-slice-map
@@ -608,6 +613,7 @@ properties specific to certain image types."
   (declare (gv-setter image--set-property))
   (plist-get (cdr image) property))
 
+(defvar image-scaling-factor)
 (defun image-compute-scaling-factor (&optional scaling)
   "Compute the scaling factor based on SCALING.
 If a number, use that.  If it's `auto', compute the factor.
@@ -1415,11 +1421,6 @@ is recomputed to fit the newly transformed image."
 (define-obsolete-function-alias 'image-refresh #'image-flush "29.1")
 
 ;;; Map transformation
-
-(defcustom image-recompute-map-p t
-  "Recompute image map when scaling, rotating, or flipping an image."
-  :type 'boolean
-  :version "30.1")
 
 (defsubst image--compute-rotation (image)
   "Return the current rotation of IMAGE, or 0 if no rotation.

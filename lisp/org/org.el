@@ -20917,6 +20917,8 @@ URLS is a list of file URL."
 
 (put 'org--dnd-multi-local-file-handler 'dnd-multiple-handler t)
 
+(declare-function dnd-open-local-file "dnd" (uri action))
+
 (defun org--dnd-local-file-handler (url action &optional separator)
   "Handle file URL as per ACTION.
 SEPARATOR is the string to insert after each link.  It may be nil
