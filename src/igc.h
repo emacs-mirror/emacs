@@ -85,6 +85,7 @@ void *igc_alloc_global_ref (void);
 struct Lisp_Buffer_Local_Value *igc_alloc_blv (void);
 void *igc_alloc_handler (void);
 void *igc_xzalloc_ambig (size_t size);
+void *igc_xnmalloc_ambig (ptrdiff_t nitems, ptrdiff_t item_size);
 void *igc_realloc_ambig (void *block, size_t size);
 void igc_xfree (void *p);
 Lisp_Object *igc_xalloc_lisp_objs_exact (size_t n);

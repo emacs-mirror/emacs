@@ -3099,6 +3099,12 @@ igc_xzalloc_ambig (size_t size)
 }
 
 void *
+igc_xnmalloc_ambig (ptrdiff_t nitems, ptrdiff_t item_size)
+{
+  return igc_xzalloc_ambig (nitems * item_size);
+}
+
+void *
 igc_realloc_ambig (void *block, size_t size)
 {
   struct igc *gc = global_igc;

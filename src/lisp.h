@@ -6124,6 +6124,23 @@ extern void *record_xmalloc (size_t)
    NITEMS items, each of the same type as *BUF.  MULTIPLIER must
    positive.  The code is tuned for MULTIPLIER being a constant.  */
 
+# ifdef HAVE_MPS
+void *igc_xnmalloc_ambig (ptrdiff_t nitems, ptrdiff_t item_size);
+void igc_xfree (void *p);
+
+#define SAFE_NALLOCA(buf, multiplier, nitems)				\
+  do {									\
+    if ((nitems) <= sa_avail / sizeof *(buf) / (multiplier))		\
+      (buf) = AVAIL_ALLOCA (sizeof *(buf) * (multiplier) * (nitems));	\
+    else								\
+      {									\
+	(buf) = igc_xnmalloc_ambig (nitems, sizeof *(buf) * (multiplier)); \
+	record_unwind_protect_ptr (igc_xfree, buf);			\
+      }									\
+  } while (false)
+
+#else
+
 #define SAFE_NALLOCA(buf, multiplier, nitems)			 \
   do {								 \
     if ((nitems) <= sa_avail / sizeof *(buf) / (multiplier))	 \
@@ -6134,6 +6151,8 @@ extern void *record_xmalloc (size_t)
 	record_unwind_protect_ptr (xfree, buf);			 \
       }								 \
   } while (false)
+
+#endif
 
 /* SAFE_ALLOCA_STRING allocates a C copy of a Lisp string.  */
 
