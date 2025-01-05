@@ -48,6 +48,7 @@
        (erc-spelling-init (current-buffer)))))
   ((remove-hook 'erc-connect-pre-hook #'erc-spelling-init)
    (dolist (buffer (erc-buffer-list))
+     (remove-hook 'flyspell-incorrect-hook #'erc-spelling--flyspell-check t)
      (with-current-buffer buffer (flyspell-mode 0)))))
 
 (defcustom erc-spelling-dictionaries nil
@@ -78,7 +79,7 @@ The current buffer is given by BUFFER."
               (if dicts
                   (cadr (car dicts))
                 (erc-with-server-buffer ispell-local-dictionary)))))
-    (setq flyspell-generic-check-word-predicate #'erc-spelling-flyspell-verify)
+    (add-hook 'flyspell-incorrect-hook #'erc-spelling--flyspell-check 20 t)
     (flyspell-mode 1)))
 
 (defun erc-spelling-unhighlight-word (word)
@@ -92,6 +93,7 @@ The cadr is the beginning and the caddr is the end."
 
 (defun erc-spelling-flyspell-verify ()
   "Flyspell only the input line, nothing else."
+  (declare (obsolete erc-spelling--flyspell-input-p "31.1"))
   ;; FIXME: Don't use `flyspell-word'!
   (let ((word-data (and (boundp 'flyspell-word)
                         flyspell-word)))
@@ -109,9 +111,28 @@ The cadr is the beginning and the caddr is the end."
              nil)
             (t t)))))
 
+;; Do this down here to avoid having to wrap the call sites above in
+;; `with-suppressed-warnings'.
+(make-obsolete 'erc-spelling-unhighlight-word
+               "value from `flyspell-get-word' now unused" "31.1")
+
+(defun erc-spelling--flyspell-check (beg end _)
+  "Return non-nil and remove overlay if text between BEG and END is correct."
+  (or (and erc-channel-users
+           (erc-get-channel-user (buffer-substring-no-properties beg end))
+           (always (flyspell-unhighlight-at beg)))
+      (and erc-input-marker (> beg erc-input-marker) (eq (char-before beg) ?/)
+           (or (= beg (1+ erc-input-marker)) ; allow /misspelled at prompt
+               (erc-command-symbol (buffer-substring-no-properties beg end)))
+           (always (flyspell-unhighlight-at beg)))))
+
+(defun erc-spelling--flyspell-input-p ()
+  "Return non-nil if Flyspell should check the prompt input at point."
+  (>= (point) erc-input-marker))
+
 (put 'erc-mode
      'flyspell-mode-predicate
-     #'erc-spelling-flyspell-verify)
+     #'erc-spelling--flyspell-input-p)
 
 (provide 'erc-spelling)
 
