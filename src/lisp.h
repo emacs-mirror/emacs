@@ -6114,7 +6114,8 @@ extern void *record_xmalloc (size_t)
 
 #define AVAIL_ALLOCA(size) (sa_avail -= (size), alloca (size))
 
-/* SAFE_ALLOCA allocates a simple buffer.  */
+/* SAFE_ALLOCA allocates a simple buffer.  This may never be used to
+   hold references to objects that are relevant to GC.  */
 
 #define SAFE_ALLOCA(size) ((size) <= sa_avail				\
 			   ? AVAIL_ALLOCA (size)			\
@@ -6218,32 +6219,22 @@ safe_free_unbind_to (specpdl_ref count, specpdl_ref sa_count, Lisp_Object val)
 # pragma GCC diagnostic ignored "-Wanalyzer-allocation-size"
 # endif
 
-/* Set BUF to point to an allocated array of NELT Lisp_Objects,
-   immediately followed by EXTRA spare bytes.  */
-
-#define SAFE_ALLOCA_LISP_EXTRA(buf, nelt, extra)	       \
-  do {							       \
-    ptrdiff_t alloca_nbytes;				       \
-    if (ckd_mul (&alloca_nbytes, nelt, word_size)	       \
-	|| ckd_add (&alloca_nbytes, alloca_nbytes, extra)      \
-	|| SIZE_MAX < alloca_nbytes)			       \
-      memory_full (SIZE_MAX);				       \
-    else if (alloca_nbytes <= sa_avail)			       \
-      (buf) = AVAIL_ALLOCA (alloca_nbytes);		       \
-    else						       \
-      {							       \
-	/* Although only the first nelt words need clearing,   \
-	   typically EXTRA is 0 or small so just use xzalloc;  \
-	   this is simpler and often faster.  */	       \
-        (buf) = SAFE_ALLOCA_XZALLOC (nelt, alloca_nbytes);     \
-        record_unwind_protect_array (buf, nelt);	       \
-      }							       \
-  } while (false)
-
 /* Set BUF to point to an allocated array of NELT Lisp_Objects.  */
 
-#define SAFE_ALLOCA_LISP(buf, nelt) SAFE_ALLOCA_LISP_EXTRA (buf, nelt, 0)
-
+#define SAFE_ALLOCA_LISP(buf, nelt)				\
+  do {								\
+    ptrdiff_t alloca_nbytes;					\
+    if (ckd_mul (&alloca_nbytes, nelt, word_size)		\
+	|| SIZE_MAX < alloca_nbytes)				\
+      memory_full (SIZE_MAX);					\
+    else if (alloca_nbytes <= sa_avail)				\
+      (buf) = AVAIL_ALLOCA (alloca_nbytes);			\
+    else							\
+      {								\
+        (buf) = SAFE_ALLOCA_XZALLOC (nelt, alloca_nbytes);	\
+        record_unwind_protect_array (buf, nelt);		\
+      }								\
+  } while (false)
 
 /* If USE_STACK_LISP_OBJECTS, define macros and functions that
    allocate some Lisp objects on the C stack.  As the storage is not
