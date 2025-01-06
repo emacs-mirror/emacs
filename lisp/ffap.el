@@ -831,22 +831,7 @@ to extract substrings.")
   (and (not (string-match "\\.el\\'" name))
        (ffap-locate-file name '(".el") load-path)))
 
-;; FIXME this duplicates the logic of Man-header-file-path.
-;; There should be a single central variable or function for this.
-;; See also (bug#10702):
-;; cc-search-directories, semantic-c-dependency-system-include-path,
-;; semantic-gcc-setup
-(defvar ffap-c-path
-  (let ((arch (with-temp-buffer
-                (when (eq 0 (ignore-errors
-                              (call-process "gcc" nil '(t nil) nil
-                                            "-print-multiarch")))
-                  (goto-char (point-min))
-                  (buffer-substring (point) (line-end-position)))))
-        (base '("/usr/include" "/usr/local/include")))
-    (if (zerop (length arch))
-        base
-      (append base (list (expand-file-name arch "/usr/include")))))
+(defvar ffap-c-path (internal--c-header-file-path)
   "List of directories to search for include files.")
 
 (defun ffap-c-mode (name)

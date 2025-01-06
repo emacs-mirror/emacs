@@ -7556,4 +7556,22 @@ and return the value found in PLACE instead."
                ,(funcall setter val)
                ,val)))))
 
+(defun internal--c-header-file-path ()
+  "Return search path for C header files (a list of strings)."
+  ;; FIXME: It's not clear that this is a good place to put this, or
+  ;; even that this should necessarily be internal.
+  ;; See also (Bug#10702):
+  ;; cc-search-directories, semantic-c-dependency-system-include-path,
+  ;; semantic-gcc-setup
+  (let ((arch (with-temp-buffer
+                (when (eq 0 (ignore-errors
+                              (call-process "gcc" nil '(t nil) nil
+                                            "-print-multiarch")))
+                  (goto-char (point-min))
+                  (buffer-substring (point) (line-end-position)))))
+        (base '("/usr/include" "/usr/local/include")))
+    (if (zerop (length arch))
+        base
+      (append base (list (expand-file-name arch "/usr/include"))))))
+
 ;;; subr.el ends here

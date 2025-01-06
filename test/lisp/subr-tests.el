@@ -27,6 +27,7 @@
 
 ;;; Code:
 (require 'ert)
+(require 'ert-x)
 (eval-when-compile (require 'cl-lib))
 
 (ert-deftest let-when-compile ()
@@ -1381,6 +1382,33 @@ final or penultimate step during initialization."))
                  (out (subst-char-in-string from to in))
                  (props-out (object-intervals out)))
             (should (equal props-out props-in))))))))
+
+(ert-deftest subr-tests-internal--c-header-file-path ()
+  (should (seq-every-p #'stringp (internal--c-header-file-path)))
+  (should (member "/usr/include" (internal--c-header-file-path)))
+  (should (equal (internal--c-header-file-path)
+                 (delete-dups (internal--c-header-file-path))))
+  ;; Return a meaningful result even if calling some compiler fails.
+  (cl-letf (((symbol-function 'call-process)
+             (lambda (_program &optional _infile _destination _display &rest _args) 1)))
+    (should (seq-every-p #'stringp (internal--c-header-file-path)))
+    (should (member "/usr/include" (internal--c-header-file-path)))
+    (should (equal (internal--c-header-file-path)
+                   (delete-dups (internal--c-header-file-path))))))
+
+(ert-deftest subr-tests-internal--c-header-file-path/gcc-mocked ()
+  ;; Handle empty values of "gcc -print-multiarch".
+  (cl-letf (((symbol-function 'call-process)
+             (lambda (_program &optional _infile _destination _display &rest args)
+               (when (equal (car args) "-print-multiarch")
+                 (insert "\n") 0))))
+    (should (member "/usr/include" (internal--c-header-file-path))))
+  ;; Handle single values of "gcc -print-multiarch".
+  (cl-letf (((symbol-function 'call-process)
+             (lambda (_program &optional _infile _destination _display &rest args)
+               (when (equal (car args) "-print-multiarch")
+                 (insert "x86_64-linux-gnu\n") 0))))
+    (should (member "/usr/include/x86_64-linux-gnu" (internal--c-header-file-path)))))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

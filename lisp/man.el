@@ -230,18 +230,7 @@ the associated section number."
   :type '(repeat (cons (string :tag "Bogus Section")
 		       (string :tag "Real Section"))))
 
-;; FIXME see comments at ffap-c-path.
-(defcustom Man-header-file-path
-  (let ((arch (with-temp-buffer
-                (when (eq 0 (ignore-errors
-                              (call-process "gcc" nil '(t nil) nil
-                                            "-print-multiarch")))
-                  (goto-char (point-min))
-                  (buffer-substring (point) (line-end-position)))))
-        (base '("/usr/include" "/usr/local/include")))
-    (if (zerop (length arch))
-        base
-      (append base (list (expand-file-name arch "/usr/include")))))
+(defcustom Man-header-file-path (internal--c-header-file-path)
   "C Header file search path used in Man."
   :version "24.1"                       ; add multiarch
   :type '(repeat string))
