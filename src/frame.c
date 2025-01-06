@@ -2497,7 +2497,9 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   delete_all_child_windows (f->root_window);
   fset_root_window (f, Qnil);
 
+  block_input ();
   Vframe_list = Fdelq (frame, Vframe_list);
+  unblock_input ();
   SET_FRAME_VISIBLE (f, false);
 
   /* Allow the vector of menu bar contents to be freed in the next
