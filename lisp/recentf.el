@@ -96,9 +96,10 @@ See the command `recentf-save-list'."
 
 (defcustom recentf-save-file-modes #o600
   "Mode bits of recentf save file, as an integer, or nil.
-If non-nil, after writing `recentf-save-file', set its mode bits to
-this value.  By default give R/W access only to the user who owns that
-file.  See also the function `set-file-modes'."
+If non-nil, after writing `recentf-save-file', set its mode bits to this
+value.  This is decimal, not octal.  The default is 384 (0600 in octal),
+which gives R/W access only to the user who owns that file.  See also
+the function `set-file-modes'."
   :group 'recentf
   :type '(choice (const :tag "Don't change" nil)
           integer))

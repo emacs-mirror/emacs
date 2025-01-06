@@ -246,8 +246,9 @@ If non-nil, this maildrop will be checked periodically for new mail."
   "Directory where incoming mail source files (if any) will be stored."
   :type 'directory)
 
-(defcustom mail-source-default-file-modes 384
-  "Set the mode bits of all new mail files to this integer."
+(defcustom mail-source-default-file-modes #o600
+  "Set the mode bits of all new mail files to this integer.
+This is decimal, not octal.  The default is 384 (0600 in octal)."
   :type 'integer)
 
 (defcustom mail-source-delete-incoming

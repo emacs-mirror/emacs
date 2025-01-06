@@ -64,11 +64,13 @@ Setting this to nil is offered as an aid to debugging only."
   :type 'boolean)
 
 (defcustom eshell-private-file-modes #o600 ; umask 177
-  "The file-modes value to use for creating \"private\" files."
+  "The file-modes value to use for creating \"private\" files.
+This is decimal, not octal.  The default is 384 (0600 in octal)."
   :type 'integer)
 
 (defcustom eshell-private-directory-modes #o700 ; umask 077
-  "The file-modes value to use for creating \"private\" directories."
+  "The file-modes value to use for creating \"private\" directories.
+This is decimal, not octal.  The default is 448 (0700 in octal)."
   :type 'integer)
 
 (defcustom eshell-tar-regexp

@@ -1751,7 +1751,7 @@ The variable `package-load-list' controls which packages to load."
   (setq file (expand-file-name file))
   (let ((context (epg-make-context 'OpenPGP)))
     (when package-gnupghome-dir
-      (with-file-modes 448
+      (with-file-modes #o700
         (make-directory package-gnupghome-dir t))
       (setf (epg-context-home-directory context) package-gnupghome-dir))
     (message "Importing %s..." (file-name-nondirectory file))

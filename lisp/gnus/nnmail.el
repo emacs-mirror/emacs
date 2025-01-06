@@ -152,8 +152,9 @@ If nil, groups like \"mail.misc\" will end up in directories like
   :group 'nnmail-files
   :type 'boolean)
 
-(defcustom nnmail-default-file-modes 384
-  "Set the mode bits of all new mail files to this integer."
+(defcustom nnmail-default-file-modes #o600
+  "Set the mode bits of all new mail files to this integer.
+This is decimal, not octal.  The default is 384 (0600 in octal)."
   :group 'nnmail-files
   :type 'integer)
 

@@ -670,7 +670,7 @@ callback data (if any)."
 			     :noquery t))
     (setf (epg-context-error-buffer context) (process-buffer error-process))
     (with-existing-directory
-      (with-file-modes 448
+      (with-file-modes #o700
         (setq process (make-process :name "epg"
 				    :buffer buffer
 				    :command (cons (epg-context-program context)
