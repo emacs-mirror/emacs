@@ -179,6 +179,15 @@ DESCRIPTION
                      "\"-k\" \"basename\""
                    "-k basename"))))
 
+(ert-deftest man-tests-find-header-file ()
+  ;; We should be able to find header files on any system with a C
+  ;; compiler, I think.
+  (skip-unless (or (executable-find "cc")
+                   (executable-find "gcc")
+                   (executable-find "clang")))
+  (should (file-exists-p (car (man--find-header-files "math.h"))))
+  (should-not (man--find-header-files "nonexistent-header-does-not-exist.h")))
+
 (provide 'man-tests)
 
 ;;; man-tests.el ends here
