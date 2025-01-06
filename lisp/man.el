@@ -1,7 +1,6 @@
 ;;; man.el --- browse UNIX manual pages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 1996-1997, 2001-2025 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1993-2025 Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -30,8 +29,21 @@
 ;; can continue to use your Emacs while processing is going on.
 ;;
 ;; The mode also supports hypertext-like following of manual page SEE
-;; ALSO references, and other features.  See below or do `?' in a
+;; ALSO references, and other features.  See below or type `?' in a
 ;; manual page buffer for details.
+
+;; ========== Features ==========
+;; + Runs "man" in the background and pipes the results through a
+;;   series of sed and awk scripts so that all retrieving and cleaning
+;;   is done in the background.  The cleaning commands are configurable.
+;; + Syntax is the same as Un*x man
+;; + Functionality is the same as Un*x man, including "man -k" and
+;;   "man <section>", etc.
+;; + Provides a manual browsing mode with keybindings for traversing
+;;   the sections of a manpage, following references in the SEE ALSO
+;;   section, and more.
+;; + Multiple manpages created with the same man command are put into
+;;   a narrowed buffer circular list.
 
 ;; ========== Credits and History ==========
 ;; In mid 1991, several people posted some interesting improvements to
@@ -58,19 +70,6 @@
 ;; Francesco Potortì <pot@cnuce.cnr.it> cleaned it up thoroughly,
 ;; making it faster, more robust and more tolerant of different
 ;; systems' man idiosyncrasies.
-
-;; ========== Features ==========
-;; + Runs "man" in the background and pipes the results through a
-;;   series of sed and awk scripts so that all retrieving and cleaning
-;;   is done in the background.  The cleaning commands are configurable.
-;; + Syntax is the same as Un*x man
-;; + Functionality is the same as Un*x man, including "man -k" and
-;;   "man <section>", etc.
-;; + Provides a manual browsing mode with keybindings for traversing
-;;   the sections of a manpage, following references in the SEE ALSO
-;;   section, and more.
-;; + Multiple manpages created with the same man command are put into
-;;   a narrowed buffer circular list.
 
 ;; ============= TODO ===========
 ;; - Add a command for printing.
