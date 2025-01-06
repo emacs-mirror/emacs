@@ -623,7 +623,7 @@ This is necessary if one wants to dump man.el with Emacs."
 
   (setq Man-filter-list
 	;; Avoid trailing nil which confuses customize.
-	(apply 'list
+        (apply #'list
 	 (cons
 	  Man-sed-command
 	  (if (eq system-type 'windows-nt)
@@ -754,7 +754,7 @@ and the `Man-section-translations-alist' variables)."
 	    section (match-string 1 ref))))
     (if (string= name "")
         ;; see Bug#66390
-	(mapconcat 'identity
+        (mapconcat #'identity
                    (mapcar #'shell-quote-argument
                            (split-string ref "\\s-+"))
                    " ")                 ; Return the reference as is
@@ -1434,13 +1434,13 @@ default type, `Man-xref-man-page' is used for the buttons."
   (if (string-match "-k " Man-arguments)
       (progn
 	(Man-highlight-references0 nil Man-reference-regexp 1
-				   'Man-default-man-entry
+                                   #'Man-default-man-entry
 				   (or xref-man-type 'Man-xref-man-page))
 	(Man-highlight-references0 nil Man-apropos-regexp 1
-				   'Man-default-man-entry
+                                   #'Man-default-man-entry
 				   (or xref-man-type 'Man-xref-man-page)))
     (Man-highlight-references0 Man-see-also-regexp Man-reference-regexp 1
-			       'Man-default-man-entry
+                               #'Man-default-man-entry
 			       (or xref-man-type 'Man-xref-man-page))
     (Man-highlight-references0 Man-synopsis-regexp Man-header-regexp 0 2
 			       'Man-xref-header-file)
@@ -1648,7 +1648,7 @@ manpage command."
 (defun Man-page-from-arguments (args)
   ;; Skip arguments and only print the page name.
   (mapconcat
-   'identity
+   #'identity
    (delete nil
 	   (mapcar
 	    (lambda (elem)
@@ -1970,7 +1970,7 @@ Specify which REFERENCE to use; default is based on word at point."
                            Man--last-refpage
                          (car Man--refpages))))
 	     (defaults
-	       (mapcar 'substring-no-properties
+              (mapcar #'substring-no-properties
                        (cons default Man--refpages)))
              (prompt (format-prompt "Refer to" default))
 	     (chosen (completing-read prompt Man--refpages
