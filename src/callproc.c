@@ -529,6 +529,9 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
   /* Remove "/:" from PATH.  */
   path = remove_slash_colon (path);
 
+  /* Do this early, so any GC inside ENCODE_FILE is done with.  */
+  path = ENCODE_FILE (path);
+
   SAFE_NALLOCA (new_argv, 1, nargs < 4 ? 2 : nargs - 2);
 
   if (nargs > 4)
@@ -549,7 +552,6 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
     }
   else
     new_argv[1] = 0;
-  path = ENCODE_FILE (path);
   new_argv[0] = SSDATA (path);
 
   discard_output = FIXNUMP (buffer) || (NILP (buffer) && NILP (output_file));
