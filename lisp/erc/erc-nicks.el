@@ -156,7 +156,7 @@ List of colors as strings (hex or named) or, alternatively, a
 single symbol representing a set of colors, like that produced by
 the function `defined-colors', which ERC associates with the
 symbol `defined'.  Similarly, `all' tells ERC to use any 24-bit
-color.  To change the value mid-session, try
+color.  After updating this option's value mid-session, try
 \\[erc-nicks-refresh]."
   :type `(choice (const :tag "All 24-bit colors" all)
                  (const :tag "Defined terminal colors" defined)
@@ -382,16 +382,13 @@ Return a hex string."
                      erc-nicks-color-adjustments
                      (if (stringp color) (color-name-to-rgb color) color))))
 
-(defvar erc-nicks--create-pool-function #'erc-nicks--create-coerced-pool
+(defvar erc-nicks--create-pool-function (if (display-graphic-p)
+                                            #'erc-nicks--create-culled-pool
+                                          #'erc-nicks--create-coerced-pool)
   "Filter function for initializing the pool of colors.
 Takes a list of adjustment functions, such as those named in
-`erc-nicks-color-adjustments', and a list of colors.  Returns
-another list whose members need not be among the original
-candidates.  Users should note that this variable, along with its
-predefined function values, `erc-nicks--create-coerced-pool' and
-`erc-nicks--create-culled-pool', can be made public in a future
-version of this module, perhaps as a single user option, given
-sufficient demand.")
+`erc-nicks-color-adjustments', and a list of colors.  Returns another
+list whose members need not be among the original candidates.")
 
 (defun erc-nicks--create-coerced-pool (adjustments colors)
   "Return COLORS that fall within parameters heeded by ADJUSTMENTS.
@@ -401,7 +398,8 @@ That is, accept the nearest initially found as \"close enough,\"
 knowing that values may fall outside desired parameters and thus
 yield a larger pool than simple culling might produce.  When
 debugging, add candidates to `erc-nicks--colors-rejects' that map
-to the same output color as some prior candidate."
+to the same output color as some prior candidate.  Only effective
+on non-graphical displays."
   (let* ((seen (make-hash-table :test #'equal))
          (erc-nicks-color-adjustments adjustments)
          pool)
@@ -675,10 +673,10 @@ Abandon search after examining LIMIT faces."
 
 (defun erc-nicks-refresh (debug)
   "Recompute faces for all nicks on current network.
-With DEBUG, review affected faces or colors.  Exactly which of
-the two depends on the value of `erc-nicks-colors'.  Note that
-the list of rejected faces may include duplicates of accepted
-ones."
+With DEBUG (\\[universal-argument]), review affected faces or colors,
+exactly which depends on the value of `erc-nicks-colors'.  Expect users
+to know that the list of rejected faces may include candidates that are
+effectively duplicates because they map to already admitted ones."
   (interactive "P")
   (unless (derived-mode-p 'erc-mode)
     (user-error "Not an ERC buffer"))

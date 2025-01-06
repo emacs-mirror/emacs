@@ -579,6 +579,7 @@
   (defvar erc-track--normal-faces)
 
   (erc-tests-common-make-server-buf)
+  (erc-track-mode +1)
   (erc-nicks-mode +1)
 
   (let ((erc-modules (cons 'nicks erc-modules))
