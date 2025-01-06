@@ -1325,16 +1325,19 @@ be guessed."
           (and base-prompt
                (cond (current-prefix-arg base-prompt)
                      ((null guess)
-                      (format "[eglot] Couldn't guess LSP server for `%s'\n%s"
-                              main-mode base-prompt))
+                      (eglot--format
+                       "[eglot] Couldn't guess LSP server for `%s'\n%s"
+                       main-mode base-prompt))
                      ((and program
                            (not (file-name-absolute-p program))
                            (not (compat-call executable-find program t)))
                       (if full-program-invocation
-                          (concat (format "[eglot] I guess you want to run `%s'"
-                                          full-program-invocation)
-                                  (format ", but I can't find `%s' in PATH!"
-                                          program)
+                          (concat (eglot--format
+                                   "[eglot] I guess you want to run `%s'"
+                                   full-program-invocation)
+                                  (eglot--format
+                                   ", but I can't find `%s' in PATH!"
+                                   program)
                                   "\n" base-prompt)
                         (eglot--error
                          (concat "`%s' not found in PATH, but can't form"
@@ -1702,19 +1705,23 @@ in project `%s'."
 
 ;;; Helpers (move these to API?)
 ;;;
+(defun eglot--format (format &rest args)
+  "Like `format`, but substitutes quotes."
+  (apply #'format (substitute-quotes format) args))
+
 (defun eglot--error (format &rest args)
   "Error out with FORMAT with ARGS."
-  (error "[eglot] %s" (apply #'format format args)))
+  (error "[eglot] %s" (apply #'eglot--format format args)))
 
 (defun eglot--message (format &rest args)
   "Message out with FORMAT with ARGS."
-  (message "[eglot] %s" (apply #'format format args)))
+  (message "[eglot] %s" (apply #'eglot--format format args)))
 
 (defun eglot--warn (format &rest args)
   "Warning message with FORMAT and ARGS."
   (apply #'eglot--message (concat "(warning) " format) args)
   (let ((warning-minimum-level :error))
-    (display-warning 'eglot (apply #'format format args) :warning)))
+    (display-warning 'eglot (apply #'eglot--format format args) :warning)))
 
 (defalias 'eglot--bol
   (if (fboundp 'pos-bol) #'pos-bol
@@ -3595,7 +3602,7 @@ If SILENT, don't echo progress in mode-line."
            (howmany (length edits))
            (reporter (unless silent
                        (make-progress-reporter
-                        (format "[eglot] applying %s edits to `%s'..."
+                        (eglot--format "[eglot] applying %s edits to `%s'..."
                                 howmany (current-buffer))
                         0 howmany)))
            (done 0))
@@ -3717,8 +3724,9 @@ edit proposed by the server."
   "Rename the current symbol to NEWNAME."
   (interactive
    (list (read-from-minibuffer
-          (format "Rename `%s' to: " (or (thing-at-point 'symbol t)
-                                         "unknown symbol"))
+          (eglot--format "Rename `%s' to: "
+                         (or (thing-at-point 'symbol t)
+                             "unknown symbol"))
           nil nil nil nil
           (symbol-name (symbol-at-point)))))
   (eglot-server-capable-or-lose :renameProvider)
