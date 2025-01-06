@@ -232,7 +232,7 @@ the associated section number."
 
 (defcustom Man-header-file-path (internal--c-header-file-path)
   "C Header file search path used in Man."
-  :version "24.1"                       ; add multiarch
+  :version "31.1"
   :type '(repeat string))
 
 (defcustom Man-name-local-regexp (concat "^" (regexp-opt '("NOM" "NAME")) "$")

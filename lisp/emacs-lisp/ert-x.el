@@ -526,11 +526,7 @@ The same keyword arguments are supported as in
 
 (defun ert-gcc-is-clang-p ()
   "Return non-nil if the `gcc' command actually runs the Clang compiler."
-  ;; Some macOS machines run llvm when you type gcc.  (!)
-  ;; We can't even check if it's a symlink; it's a binary placed in
-  ;; "/usr/bin/gcc".  So we need to check the output.
-  (string-match "Apple \\(LLVM\\|[Cc]lang\\)\\|Xcode\\.app"
-                (shell-command-to-string "gcc --version")))
+  (internal--gcc-is-clang-p))
 
 (defvar tramp-default-host-alist)
 (defvar tramp-methods)

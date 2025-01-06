@@ -7556,6 +7556,17 @@ and return the value found in PLACE instead."
                ,(funcall setter val)
                ,val)))))
 
+(defun internal--gcc-is-clang-p ()
+  "Return non-nil if the `gcc' command actually runs the Clang compiler."
+  ;; Recent macOS machines run llvm when you type gcc by default.  (!)
+  ;; We can't even check if it's a symlink; it's a binary placed in
+  ;; "/usr/bin/gcc".  So we need to check the output.
+  (when-let* ((out (ignore-errors
+                     (with-temp-buffer
+                       (call-process "gcc" nil t nil "--version")
+                       (buffer-string)))))
+    (string-match "Apple \\(LLVM\\|[Cc]lang\\)\\|Xcode\\.app" out)))
+
 (defun internal--c-header-file-path ()
   "Return search path for C header files (a list of strings)."
   ;; FIXME: It's not clear that this is a good place to put this, or
@@ -7563,15 +7574,41 @@ and return the value found in PLACE instead."
   ;; See also (Bug#10702):
   ;; cc-search-directories, semantic-c-dependency-system-include-path,
   ;; semantic-gcc-setup
-  (let ((arch (with-temp-buffer
-                (when (eq 0 (ignore-errors
-                              (call-process "gcc" nil '(t nil) nil
-                                            "-print-multiarch")))
-                  (goto-char (point-min))
-                  (buffer-substring (point) (line-end-position)))))
-        (base '("/usr/include" "/usr/local/include")))
-    (if (zerop (length arch))
-        base
-      (append base (list (expand-file-name arch "/usr/include"))))))
+  (delete-dups
+   (let ((base '("/usr/include" "/usr/local/include")))
+     (cond ((or (internal--gcc-is-clang-p)
+                (and (executable-find "clang")
+                     (not (executable-find "gcc"))))
+            ;; This is either macOS, or a system with clang only.
+            (with-temp-buffer
+              (ignore-errors
+                (call-process (if (internal--gcc-is-clang-p) "gcc" "clang")
+                              nil t nil
+                              "-v" "-E" "-"))
+              (goto-char (point-min))
+              (narrow-to-region
+               (save-excursion
+                 (re-search-forward
+                  "^#include <\\.\\.\\.> search starts here:\n" nil t)
+                 (point))
+               (save-excursion
+                 (re-search-forward "^End of search list.$" nil t)
+                 (pos-bol)))
+              (while (search-forward "(framework directory)" nil t)
+                (delete-line))
+              (append base
+                      (reverse
+                       (split-string (buffer-substring-no-properties
+                                      (point-min) (point-max)))))))
+           ;; Prefer GCC.
+           ((let ((arch (with-temp-buffer
+                          (when (eq 0 (ignore-errors
+                                        (call-process "gcc" nil '(t nil) nil
+                                                      "-print-multiarch")))
+                            (goto-char (point-min))
+                            (buffer-substring (point) (line-end-position))))))
+              (if (zerop (length arch))
+                  base
+                (append base (list (expand-file-name arch "/usr/include"))))))))))
 
 ;;; subr.el ends here
