@@ -950,6 +950,15 @@ You probably want to use this together with
 
 (defvar-keymap image-dired-thumbnail-mode-map
   :doc "Keymap for `image-dired-thumbnail-mode'."
+
+  ;; Regular navigation
+  "f"          #'image-dired-forward-image
+  "b"          #'image-dired-backward-image
+  "n"          #'image-dired-next-line
+  "p"          #'image-dired-previous-line
+  "a"          #'image-dired-move-beginning-of-line
+  "e"          #'image-dired-move-end-of-line
+
   "d"          #'image-dired-flag-thumb-original-file
   "<delete>"   #'image-dired-flag-thumb-original-file
   "m"          #'image-dired-mark-thumb-original-file

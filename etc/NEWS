@@ -430,6 +430,11 @@ default is nil, which retains the old format.
 This allows passing a string with wildcards, or a cons cell where the
 first element is a list and the rest is a list of files.
 
+*** Bound unused letters in 'image-dired-thumbnail-mode-map'
+For a more comfortable navigation experience (as in, no modifier keys),
+the keys "f", "b", "n", "p", "a" and "e" are now bound to the
+same functions as their C- counterparts.
+
 ** Browse URL
 
 *** New user option 'browse-url-transform-alist'.
