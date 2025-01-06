@@ -42,4 +42,4 @@
 	   for l = (copy-sequence elb-bubble-list)
 	   do (elb-bubble-no-cons l)))
 
-(provide 'elb-bubble)
+(provide 'elb-bubble-no-cons)
