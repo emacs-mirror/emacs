@@ -2469,6 +2469,47 @@ across atoms (such as symbols or words) inside the list."
         ;; then functions like `up-list' will signal "at top level".
         (treesit--scan-error pred arg))))
 
+(defun treesit--forward-list-with-default (arg default-function)
+  "Move forward across a list.
+Fall back to DEFAULT-FUNCTION as long as it doesn't cross
+the boundaries of the list.
+
+ARG is described in the docstring of `forward-list'."
+  (let* ((pred (or treesit-sexp-type-regexp 'sexp-list))
+         (arg (or arg 1))
+         (cnt arg)
+         (inc (if (> arg 0) 1 -1)))
+    (while (/= cnt 0)
+      (let* ((default-pos
+              (condition-case _
+                  (save-excursion
+                    (funcall default-function inc)
+                    (point))
+                (scan-error nil)))
+             (sibling (if (> arg 0)
+                          (treesit-thing-next (point) pred)
+                        (treesit-thing-prev (point) pred)))
+             (current (when default-pos
+                        (treesit-thing-at (point) pred t))))
+        ;; Use the default function only if it doesn't go
+        ;; over the sibling and doesn't go out of the current group.
+        (or (when (and default-pos
+                       (or (null sibling)
+                           (if (> arg 0)
+                               (<= default-pos (treesit-node-start sibling))
+                             (>= default-pos (treesit-node-end sibling))))
+                       (or (null current)
+                           (if (> arg 0)
+                               (<= default-pos (treesit-node-end current))
+                             (>= default-pos (treesit-node-start current)))))
+              (goto-char default-pos))
+            (when sibling
+              (goto-char (if (> arg 0)
+                             (treesit-node-end sibling)
+                           (treesit-node-start sibling))))
+            (treesit--scan-error pred arg)))
+      (setq cnt (- cnt inc)))))
+
 (defun treesit-forward-sexp-list (&optional arg)
   "Alternative tree-sitter implementation for `forward-sexp-function'.
 
@@ -2481,40 +2522,7 @@ outside of the boundaries of the current list.
 
 ARG is described in the docstring of `forward-sexp-function'."
   (interactive "^p")
-  (let* ((pred (or treesit-sexp-type-regexp 'sexp-list))
-         (arg (or arg 1))
-         (cnt arg)
-         (inc (if (> arg 0) 1 -1)))
-    (while (/= cnt 0)
-      (let* ((default-pos
-              (condition-case _
-                  (save-excursion
-                    (forward-sexp-default-function inc)
-                    (point))
-                (scan-error nil)))
-             (sibling (if (> arg 0)
-                          (treesit-thing-next (point) pred)
-                        (treesit-thing-prev (point) pred)))
-             (current (when default-pos
-                        (treesit-thing-at (point) pred t))))
-        ;; Use 'forward-sexp-default-function' only if it doesn't go
-        ;; over the sibling and doesn't go out of the current group.
-        (or (when (and default-pos
-                       (or (null sibling)
-                           (if (> arg 0)
-                               (<= default-pos (treesit-node-start sibling))
-                             (>= default-pos (treesit-node-end sibling))))
-                       (or (null current)
-                           (if (> arg 0)
-                               (< default-pos (treesit-node-end current))
-                             (> default-pos (treesit-node-start current)))))
-              (goto-char default-pos))
-            (when sibling
-              (goto-char (if (> arg 0)
-                             (treesit-node-end sibling)
-                           (treesit-node-start sibling))))
-            (treesit--scan-error pred arg)))
-      (setq cnt (- cnt inc)))))
+  (treesit--forward-list-with-default arg 'forward-sexp-default-function))
 
 (defun treesit-forward-list (&optional arg)
   "Move forward across a list.
@@ -2525,17 +2533,12 @@ parentheses-like expressions.
 Unlike `forward-sexp', this command moves only across a list,
 but not across atoms (such as symbols or words) inside the list.
 
-This command is the tree-sitter variant of `forward-list'
-redefined by the variable `forward-list-function'.
+It uses `forward-list-default-function' as long as it doesn't go
+outside of the boundaries of the current list.
 
-ARG is described in the docstring of `forward-list'."
+ARG is described in the docstring of `forward-list-function'."
   (interactive "^p")
-  (let ((arg (or arg 1))
-        (pred 'sexp-list))
-    (or (if (> arg 0)
-            (treesit-end-of-thing pred (abs arg) 'restricted)
-          (treesit-beginning-of-thing pred (abs arg) 'restricted))
-        (treesit--scan-error pred arg))))
+  (treesit--forward-list-with-default arg 'forward-list-default-function))
 
 (defun treesit-down-list (&optional arg)
   "Move forward down one level of parentheses.
