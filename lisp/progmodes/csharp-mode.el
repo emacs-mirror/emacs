@@ -748,6 +748,12 @@ compilation and evaluation time conflicts."
     (treesit-query-compile 'c-sharp "(type_of_expression)" t)
     t))
 
+(defun csharp-ts-mode--test-typeof-expression ()
+  "Return non-nil if (type_of_expression) is in the grammar."
+  (ignore-errors
+    (treesit-query-compile 'c-sharp "(typeof_expression)" t)
+    t))
+
 (defun csharp-ts-mode--test-name-equals ()
   "Return non-nil if (name_equals) is in the grammar."
   (ignore-errors
@@ -871,7 +877,9 @@ compilation and evaluation time conflicts."
            (type_parameter_constraint (type type: (generic_name (identifier) @font-lock-type-face)))))
 
      ,@(when (csharp-ts-mode--test-type-of-expression)
-         '((type_of_expression (identifier) @font-lock-type-face))
+         '((type_of_expression (identifier) @font-lock-type-face)))
+
+     ,@(when (csharp-ts-mode--test-typeof-expression)
          '((typeof_expression (identifier) @font-lock-type-face)))
 
      (object_creation_expression
