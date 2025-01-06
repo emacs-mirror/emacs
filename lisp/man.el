@@ -2038,7 +2038,7 @@ Specify which REFERENCE to use; default is based on word at point."
 
 (defun Man-view-header-file (file)
   "View a header file specified by FILE from `Man-header-file-path'."
-  (when-let ((match (man--find-header-files file)))
+  (when-let* ((match (man--find-header-files file)))
     (view-file (car match))
     (car match)))
 
