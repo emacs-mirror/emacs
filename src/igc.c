@@ -494,7 +494,7 @@ enum igc_tag
 /* After Pip Cet's header changes, Lisp objects include a gc_header
    union, which has an uint64_t member 'v'. struct igc_header then
    contained the same 'v', and not bitfields anymore. This makes things
-   inconvinient in LLDB.  */
+   inconvenient in LLDB.  */
 
 struct igc_header
 {
@@ -918,7 +918,7 @@ set_state (enum igc_state state)
 
 /* Register the root ROOT in registry GC with additional info.  START
    and END are the area of memory covered by the root.  END being NULL
-   means not known.  AMBIG true means the root is scanned ambigously, as
+   means not known.  AMBIG true means the root is scanned ambiguously, as
    opposed to being scanned exactly.
 
    LABEL is a name under which the root appears on the MPS telemetry
@@ -3677,9 +3677,9 @@ static bool
 arena_step (void)
 {
   /* mps_arena_step does not guarantee to return swiftly.  And it seems
-     that it sometimes does an opportunistic full collection alledging
+     that it sometimes does an opportunistic full collection alleging
      the client predicted lots of idle time.  But it doesn't tell how
-     it comes to that conclusioin.  */
+     it comes to that conclusion.  */
   if (!FIXNUMP (Vigc_step_interval)
       || XFIXNUM (Vigc_step_interval) != 0)
     {
@@ -3707,8 +3707,14 @@ buffer_step (struct igc_buffer_it *it)
       buffer_it_next (it);
       struct buffer *b = XBUFFER (buf);
       compact_buffer (b);
+
+      /* Balancing intervals during GC was originally introduced in the
+	 new redisplay because the interval tree was notorious for
+	 degenerating.  The interval tree should have been improved a in
+	 the 20 years since then.  */
       if (igc__balance_intervals)
 	b->text->intervals = balance_intervals (b->text->intervals);
+
       return true;
     }
   return false;
