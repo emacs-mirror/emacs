@@ -2354,7 +2354,8 @@ returned is (month year)."
                        (completion-table-with-metadata
                         (completion-table-case-fold
                          (append month-array nil))
-                        `((category . calendar-month)))
+                        `((category . calendar-month)
+                          (display-sort-function . identity)))
                        nil t nil nil defmon)
                       (calendar-make-alist month-array 1) t)))
          (defday (calendar-extract-day default-date))
