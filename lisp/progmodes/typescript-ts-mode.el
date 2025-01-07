@@ -564,7 +564,9 @@ at least 3 (which is the default value)."
                    (sentence ,(regexp-opt
                                (append typescript-ts-mode--sentence-nodes
                                        '("jsx_element"
-                                         "jsx_self_closing_element")))))))
+                                         "jsx_self_closing_element"))))
+                   (text ,(regexp-opt '("comment"
+                                        "template_string"))))))
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings
