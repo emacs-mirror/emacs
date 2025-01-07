@@ -298,7 +298,7 @@ which is the \"1006\" extension implemented in Xterm >= 277."
              ;; FIXME: The test for running in batch mode is here solely
              ;; for the sake of xt-mouse-tests where the only frame is
              ;; the initial frame.
-             (frame (unless noninteractive (frame-at x y)))
+             (frame (unless noninteractive (tty-frame-at x y)))
              ;;(_ (message (format "*** %S" frame)))
              (frame-pos (frame-position frame))
              ;;(_ (message (format "*** %S" frame-pos)))
