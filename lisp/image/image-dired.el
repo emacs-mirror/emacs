@@ -618,17 +618,22 @@ thumbnail buffer to be selected."
       (image-dired--update-header-line))))
 
 ;;;###autoload
-(defun image-dired-show-all-from-dir (dir)
-  "Make a thumbnail buffer for all images in DIR and display it.
-Any file matching `image-dired--file-name-regexp' is considered an
-image file.
+(defun image-dired-show-all-from-dir (dirname)
+  "Make a thumbnail buffer for all images in DIRNAME and display it.
+
+The DIRNAME argument is passed along to `dired', and can therefore be
+either a string with wildcards or a cons, as described in the
+documentation for that function.  Refer to it for more details.
 
 If the number of image files in DIR exceeds
 `image-dired-show-all-from-dir-max-files', ask for confirmation
 before creating the thumbnail buffer.  If that variable is nil,
-never ask for confirmation."
+never ask for confirmation.
+
+Any file matching `image-dired--file-name-regexp' is considered an
+image file."
   (interactive "DShow thumbnails for directory: ")
-  (dired dir)
+  (dired dirname)
   (dired-mark-files-regexp (image-dired--file-name-regexp))
   (let ((files (dired-get-marked-files nil nil nil t))
         (dired-default-directory default-directory))

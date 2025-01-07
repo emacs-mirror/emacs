@@ -318,6 +318,12 @@ modal editing packages.
 ** Smerge
 *** New command 'smerge-extend' extends a conflict over surrounding lines.
 
+** Image Dired
+
+*** 'image-dired-show-all-from-dir' takes the same first argument as 'dired'.
+This allows passing a string with wildcards, or a cons cell where the
+first element is a list and the rest is a list of files.
+
 ** Browse URL
 
 *** New user option 'browse-url-transform-alist'.
