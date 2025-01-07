@@ -393,7 +393,7 @@ To control which errors are matched, customize the variable
       (next-error-found buffer (current-buffer))
       (when (or next-error-verbose
                 (not (eq prev next-error-last-buffer)))
-        (message "Current locus from %S" next-error-last-buffer)))))
+        (message "Current locus from %s" next-error-last-buffer)))))
 
 (defun next-error-quit-window (from-buffer to-buffer)
   "Quit window of FROM-BUFFER when the prefix arg is 0.

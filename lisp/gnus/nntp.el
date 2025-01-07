@@ -1189,7 +1189,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
   "Create a new, fresh buffer usable for nntp process connections."
   (with-current-buffer
       (generate-new-buffer
-       (format " *server %s %s %S*"
+       (format " *server %s %s %s*"
                nntp-address nntp-port-number buffer))
     (gnus-add-buffer)
     (mm-disable-multibyte)
