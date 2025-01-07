@@ -2726,6 +2726,7 @@ function.  This allows function-level control of the safety level used
 for the code emitted for the function (@pxref{Native-Compilation
 Variables}).
 
+@cindex function type declaration
 @item (ftype @var{type} &optional @var{function})
 Declare @var{type} to be the type of this function.  This is used for
 documentation by @code{describe-function}.  Also it can be used by the

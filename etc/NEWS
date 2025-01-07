@@ -481,9 +481,13 @@ This user option controls outline visibility in the output buffer of
 'describe-bindings' when 'describe-bindings-outline' is non-nil.
 
 ---
-*** 'describe-function' shows the function inferred type when available.
+*** 'describe-function' shows the function's inferred type when available.
 For native compiled Lisp functions, 'describe-function' prints (after
-the signature) the automatically inferred function type as well.
+the signature) the automatically inferred function type as well.  If the
+function's type was explicitly declared (via the 'declare' form's
+'ftype' property), 'describe-function' shows the declared type.  This is
+controlled by the new user option 'help-display-function-type', which is
+by default t; customize to nil to disable function type display.
 
 ---
 *** 'describe-function' now shows the type of the function object.
