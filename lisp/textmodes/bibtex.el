@@ -1880,12 +1880,15 @@ BibTeX field as necessary."
 
 (defconst bibtex-braced-string-syntax-table
   (let ((st (make-syntax-table)))
+    ;; Give all parentheses the syntax punctuation so that we do not choke
+    ;; because of unbalanced parentheses other than braces (bug #68477).
+    (map-char-table
+     (lambda (key value)
+       (if (memq (car value) '(4 5)) ; 4 = open parenthesis, 5 = close
+           (modify-syntax-entry key "." st)))
+     st)
     (modify-syntax-entry ?\{ "(}" st)
     (modify-syntax-entry ?\} "){" st)
-    (modify-syntax-entry ?\[ "." st)
-    (modify-syntax-entry ?\] "." st)
-    (modify-syntax-entry ?\( "." st)
-    (modify-syntax-entry ?\) "." st)
     (modify-syntax-entry ?\\ "." st)
     (modify-syntax-entry ?\" "." st)
     st)
