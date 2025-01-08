@@ -1,7 +1,7 @@
 ;; -*- lexical-binding: t; symbol-packagaes: nil -*-
 ;;; memory-report.el --- Short function summaries  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2024 Free Software Foundation, Inc.
+;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
 
 ;; Keywords: lisp, help
 
