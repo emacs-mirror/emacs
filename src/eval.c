@@ -1992,6 +1992,9 @@ signal_error (const char *s, Lisp_Object arg)
   xsignal (Qerror, Fcons (build_string (s), arg));
 }
 
+/* Simplified version of 'define-error' that works with pure
+   objects.  */
+
 void
 define_error (Lisp_Object name, const char *message, Lisp_Object parent)
 {

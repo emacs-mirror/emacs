@@ -4867,6 +4867,7 @@ extern AVOID xsignal2 (Lisp_Object, Lisp_Object, Lisp_Object);
 extern AVOID xsignal3 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
 extern AVOID signal_error (const char *, Lisp_Object);
 extern AVOID overflow_error (void);
+extern void define_error (Lisp_Object name, const char *message, Lisp_Object parent);
 extern bool FUNCTIONP (Lisp_Object);
 extern Lisp_Object funcall_subr (struct Lisp_Subr *subr, ptrdiff_t numargs, Lisp_Object *arg_vector);
 extern Lisp_Object eval_sub (Lisp_Object form);
@@ -5974,11 +5975,6 @@ maybe_gc (void)
   if (consing_until_gc < 0)
     maybe_garbage_collect ();
 }
-
-/* Simplified version of 'define-error' that works with pure
-   objects.  */
-void
-define_error (Lisp_Object name, const char *message, Lisp_Object parent);
 
 INLINE_HEADER_END
 
