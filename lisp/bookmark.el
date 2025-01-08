@@ -1256,33 +1256,34 @@ Useful for example to unhide text in `outline-mode'.")
 
 (defun bookmark--jump-via (bookmark-name-or-record display-function)
   "Handle BOOKMARK-NAME-OR-RECORD, then call DISPLAY-FUNCTION.
-DISPLAY-FUNCTION is called with the current buffer as argument.
+DISPLAY-FUNCTION is called with the new buffer as argument.
 
 After calling DISPLAY-FUNCTION, set window point to the point specified
 by BOOKMARK-NAME-OR-RECORD, if necessary, run `bookmark-after-jump-hook',
 and then show any annotations for this bookmark."
-  (bookmark-handle-bookmark bookmark-name-or-record)
-  ;; Store `point' now, because `display-function' might change it.
-  (let ((point (point)))
-    (save-current-buffer
-      (funcall display-function (current-buffer)))
-    (let ((win (get-buffer-window (current-buffer) 0)))
-      (if win (set-window-point win point))))
-  ;; FIXME: we used to only run bookmark-after-jump-hook in
-  ;; `bookmark-jump' itself, but in none of the other commands.
-  (when bookmark-fringe-mark
-    (let ((overlays (overlays-in (pos-bol) (1+ (pos-bol))))
-          temp found)
-      (while (and (not found) (setq temp (pop overlays)))
-        (when (eq 'bookmark (overlay-get temp 'category))
-          (setq found t)))
-      (unless found
-        (bookmark--set-fringe-mark))))
-  (run-hooks 'bookmark-after-jump-hook)
-  (if bookmark-automatically-show-annotations
+  (let (buf point)
+    (save-window-excursion
+      (bookmark-handle-bookmark bookmark-name-or-record)
+      (setq buf (current-buffer)
+            point (point)))
+    (funcall display-function buf)
+    (when-let* ((win (get-buffer-window buf 0)))
+      (set-window-point win point))
+    (when bookmark-fringe-mark
+      (let ((overlays (overlays-in (pos-bol) (1+ (pos-bol))))
+            temp found)
+        (while (and (not found) (setq temp (pop overlays)))
+          (when (eq 'bookmark (overlay-get temp 'category))
+            (setq found t)))
+        (unless found
+          (bookmark--set-fringe-mark))))
+    ;; FIXME: we used to only run bookmark-after-jump-hook in
+    ;; `bookmark-jump' itself, but in none of the other commands.
+    (run-hooks 'bookmark-after-jump-hook)
+    (when bookmark-automatically-show-annotations
       ;; if there is an annotation for this bookmark,
       ;; show it in a buffer.
-      (bookmark-show-annotation bookmark-name-or-record)))
+      (bookmark-show-annotation bookmark-name-or-record))))
 
 
 ;;;###autoload
