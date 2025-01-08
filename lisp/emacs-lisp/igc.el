@@ -1,5 +1,4 @@
-;; -*- lexical-binding: t; symbol-packagaes: nil -*-
-;;; memory-report.el --- Short function summaries  -*- lexical-binding: t -*-
+;;; igc.el --- Short function summaries  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
 
@@ -278,3 +277,5 @@ the changes to snapshot A. See the modes's help."
   (setq igc--collect-timer (run-at-time nil secs #'igc--collect-stats)))
 
 (provide 'igc)
+
+;;; igc.el ends here.
