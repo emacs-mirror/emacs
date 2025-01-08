@@ -1120,8 +1120,8 @@ SYMBOLP (Lisp_Object x)
 INLINE struct Lisp_Symbol_With_Pos *
 XSYMBOL_WITH_POS (Lisp_Object a)
 {
-    eassert (SYMBOL_WITH_POS_P (a));
-    return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Symbol_With_Pos);
+  eassert (SYMBOL_WITH_POS_P (a));
+  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Symbol_With_Pos);
 }
 
 INLINE Lisp_Object
