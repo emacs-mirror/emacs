@@ -5488,7 +5488,10 @@ native_function_doc (Lisp_Object function)
   if (!VECTORP (cu->data_fdoc_v))
     xsignal2 (Qnative_lisp_file_inconsistent, cu->file,
 	      build_string ("missing documentation vector"));
-  return AREF (cu->data_fdoc_v, XSUBR (function)->doc);
+  EMACS_INT doc = XSUBR (function)->doc;
+  if (doc < 0)
+    return AREF (cu->data_fdoc_v, -doc - 1);
+  return make_fixnum (doc);
 }
 
 static Lisp_Object
@@ -5529,7 +5532,8 @@ make_subr (Lisp_Object symbol_name, Lisp_Object minarg, Lisp_Object maxarg,
   x->s.symbol_name = xstrdup (SSDATA (symbol_name));
   x->s.intspec.native = intspec;
   x->s.command_modes = command_modes;
-  x->s.doc = XFIXNUM (doc_idx);
+  x->s.doc = -XFIXNUM (doc_idx) - 1;
+  eassert (x->s.doc < 0);
 #ifdef HAVE_NATIVE_COMP
   x->s.native_comp_u = comp_u;
   x->s.native_c_name = xstrdup (SSDATA (c_name));
