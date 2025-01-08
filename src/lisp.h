@@ -2229,8 +2229,8 @@ struct Lisp_Subr
     } intspec;
     Lisp_Object command_modes;
     /* Positive values: offset into etc/DOC.  Negative values: one's
-       complement of index into the native comp unit's function's
-       documentation vector.  */
+       complement of index into the native comp unit's vector of
+       documentation strings.  */
     EMACS_INT doc;
 #ifdef HAVE_NATIVE_COMP
     Lisp_Object native_comp_u;
