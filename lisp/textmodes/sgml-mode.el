@@ -1,6 +1,6 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1995-1996, 1998, 2001-2024 Free Software
+;; Copyright (C) 1992, 1995-1996, 1998, 2001-2025 Free Software
 ;; Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
@@ -533,6 +533,7 @@ an optional alist of possible values."
   "Add \"face\" tags with `facemenu-keymap' commands."
   (let ((tag-face (ensure-list (cdr (assq face sgml-face-tag-alist)))))
     (cond (tag-face
+           (require 'skeleton)
 	   (setq tag-face (funcall skeleton-transformation-function tag-face))
            (setq facemenu-end-add-face
                  (mapconcat (lambda (f) (concat "</" f ">")) (reverse tag-face)))
@@ -851,6 +852,7 @@ If QUIET, do not print a message when there are no attributes for TAG."
             (setq alist (cons '("class") alist)))
           (unless (assoc-string "id" alist)
             (setq alist (cons '("id") alist))))
+        (require 'skeleton)
 	(if (stringp (car alist))
 	    (progn
 	      (insert (if (eq (preceding-char) ?\s) "" ?\s)
@@ -1203,7 +1205,7 @@ and move to the line in the SGML document that caused it."
 		      (or sgml-saved-validate-command
 			  (concat sgml-validate-command
 				  " "
-                                  (when-let ((name (buffer-file-name)))
+                                  (when-let* ((name (buffer-file-name)))
 				    (shell-quote-argument
 				     (file-name-nondirectory name))))))))
   (setq sgml-saved-validate-command command)
@@ -2434,14 +2436,14 @@ To work around that, do:
 (defun html-mode--complete-at-point ()
   ;; Complete a tag like <colg etc.
   (or
-   (when-let ((tag (save-excursion
-                     (and (looking-back "<\\([^ \t\n]*\\)"
-                                        (line-beginning-position))
-                          (match-string 1)))))
+   (when-let* ((tag (save-excursion
+                      (and (looking-back "<\\([^ \t\n]*\\)"
+                                         (line-beginning-position))
+                           (match-string 1)))))
      (list (match-beginning 1) (point)
            (mapcar #'car html-tag-alist)))
    ;; Complete params like <colgroup ali etc.
-   (when-let ((tag (save-excursion (sgml-beginning-of-tag)))
+   (when-let* ((tag (save-excursion (sgml-beginning-of-tag)))
               (params (seq-filter #'consp (cdr (assoc tag html-tag-alist))))
               (param (save-excursion
                        (and (looking-back "[ \t\n]\\([^= \t\n]*\\)"
@@ -2450,14 +2452,14 @@ To work around that, do:
      (list (match-beginning 1) (point)
            (mapcar #'car params)))
    ;; Complete param values like <colgroup align=mi etc.
-   (when-let ((tag (save-excursion (sgml-beginning-of-tag)))
-              (params (seq-filter #'consp (cdr (assoc tag html-tag-alist))))
-              (param (save-excursion
-                       (and (looking-back
-                             "[ \t\n]\\([^= \t\n]+\\)=\\([^= \t\n]*\\)"
-                             (line-beginning-position))
-                            (match-string 1))))
-              (values (cdr (assoc param params))))
+   (when-let* ((tag (save-excursion (sgml-beginning-of-tag)))
+               (params (seq-filter #'consp (cdr (assoc tag html-tag-alist))))
+               (param (save-excursion
+                        (and (looking-back
+                              "[ \t\n]\\([^= \t\n]+\\)=\\([^= \t\n]*\\)"
+                              (line-beginning-position))
+                             (match-string 1))))
+               (values (cdr (assoc param params))))
      (list (match-beginning 2) (point)
            (mapcar #'car values)))))
 
@@ -2474,10 +2476,9 @@ To work around that, do:
     (when (and (file-exists-p file)
                (not (yes-or-no-p (format "%s exists; overwrite?" file))))
       (user-error "%s exists" file))
-    (with-temp-buffer
-      (set-buffer-multibyte nil)
-      (insert image)
-      (write-region (point-min) (point-max) file))
+    (let ((coding-system-for-write 'emacs-internal))
+      (with-temp-file file
+        (insert image)))
     (insert (format "<img src=%S>\n" (file-relative-name file)))
     (insert-image
      (create-image file (mailcap-mime-type-to-extension type) nil

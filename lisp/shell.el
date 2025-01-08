@@ -1,6 +1,6 @@
 ;;; shell.el --- specialized comint.el for running the shell -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1993-1997, 2000-2024 Free Software Foundation,
+;; Copyright (C) 1988, 1993-1997, 2000-2025 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
@@ -953,8 +953,8 @@ Make the shell buffer the current buffer, and return it.
                  (current-buffer)))
   ;; The buffer's window must be correctly set when we call comint
   ;; (so that comint sets the COLUMNS env var properly).
-  (with-suppressed-warnings ((obsolete display-comint-buffer-action))
-    (pop-to-buffer buffer display-comint-buffer-action))
+  (pop-to-buffer buffer (append display-buffer--same-window-action
+                                '((category . comint))))
 
   (with-connection-local-variables
    (when file-name
@@ -1802,7 +1802,7 @@ works better if `comint-fontify-input-mode' is enabled."
       (progn
         (remove-hook 'comint-indirect-setup-hook shell--highlight-undef-indirect t)
         (setq shell--highlight-undef-indirect nil)
-        (when-let ((buf (comint-indirect-buffer t)))
+        (when-let* ((buf (comint-indirect-buffer t)))
           (with-current-buffer buf
             (font-lock-remove-keywords nil shell-highlight-undef-keywords))))
     (font-lock-remove-keywords nil shell-highlight-undef-keywords))
@@ -1842,7 +1842,7 @@ works better if `comint-fontify-input-mode' is enabled."
               (font-lock-add-keywords nil shell-highlight-undef-keywords t))))
       (cond (comint-fontify-input-mode
              (setq shell--highlight-undef-indirect setup)
-             (if-let ((buf (comint-indirect-buffer t)))
+             (if-let* ((buf (comint-indirect-buffer t)))
                  (with-current-buffer buf
                    (funcall setup))
                (add-hook 'comint-indirect-setup-hook setup nil t)))

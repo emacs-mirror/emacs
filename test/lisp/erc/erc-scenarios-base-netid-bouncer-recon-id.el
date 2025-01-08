@@ -1,6 +1,6 @@
 ;;; erc-scenarios-base-netid-bouncer-recon-id.el --- recon ID scenarios -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -26,11 +26,13 @@
 
 (ert-deftest erc-scenarios-base-netid-bouncer--reconnect-id-foo ()
   :tags '(:expensive-test)
-  (erc-scenarios-common--base-network-id-bouncer--reconnect 'foo-id nil))
+  (let ((erc-server-reconnect-function #'erc-server-delayed-reconnect))
+    (erc-scenarios-common--base-network-id-bouncer--reconnect 'foo-id nil)))
 
 (ert-deftest erc-scenarios-base-netid-bouncer--reconnect-id-bar ()
   :tags '(:expensive-test)
-  (erc-scenarios-common--base-network-id-bouncer--reconnect nil 'bar-id))
+  (let ((erc-server-reconnect-function #'erc-server-delayed-reconnect))
+    (erc-scenarios-common--base-network-id-bouncer--reconnect nil 'bar-id)))
 
 
 ;;; erc-scenarios-base-netid-bouncer-recon-id.el ends here

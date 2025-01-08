@@ -1,6 +1,6 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2025 Free Software Foundation, Inc.
 ;; Version: 0.11.1
 ;; Package-Requires: ((emacs "26.1") (xref "1.7.0"))
 
@@ -199,7 +199,9 @@ When it is non-nil, `project-current' will always skip prompting too.")
 
 (defcustom project-prompter #'project-prompt-project-dir
   "Function to call to prompt for a project.
-Called with no arguments and should return a project root dir."
+The function is either called with no arguments or with one argument,
+which is the prompt string to use.  It should return a project root
+directory."
   :type '(choice (const :tag "Prompt for a project directory"
                         project-prompt-project-dir)
                  (const :tag "Prompt for a project name"
@@ -546,61 +548,64 @@ project backend implementation of `project-external-roots'.")
 See `project-vc-extra-root-markers' for the marker value format.")
 
 (defun project-try-vc (dir)
-  ;; FIXME: Learn to invalidate when the value of
-  ;; `project-vc-merge-submodules' or `project-vc-extra-root-markers'
-  ;; changes.
+  ;; FIXME: Learn to invalidate when the value changes:
+  ;; `project-vc-merge-submodules' or `project-vc-extra-root-markers'.
   (or (vc-file-getprop dir 'project-vc)
-      (let* ((backend-markers
-              (delete
-               nil
-               (mapcar
-                (lambda (b) (assoc-default b project-vc-backend-markers-alist))
-                vc-handled-backends)))
-             (marker-re
-              (concat
-               "\\`"
-               (mapconcat
-                (lambda (m) (format "\\(%s\\)" (wildcard-to-regexp m)))
-                (append backend-markers
-                        (project--value-in-dir 'project-vc-extra-root-markers dir))
-                "\\|")
-               "\\'"))
-             (locate-dominating-stop-dir-regexp
-              (or vc-ignore-dir-regexp locate-dominating-stop-dir-regexp))
-             last-matches
-             (root
-              (locate-dominating-file
-               dir
-               (lambda (d)
-                 ;; Maybe limit count to 100 when we can drop Emacs < 28.
-                 (setq last-matches
-                       (condition-case nil
-                           (directory-files d nil marker-re t)
-                         (file-missing nil))))))
-             (backend
-              (cl-find-if
-               (lambda (b)
-                 (member (assoc-default b project-vc-backend-markers-alist)
-                         last-matches))
-               vc-handled-backends))
-             project)
-        (when (and
-               (eq backend 'Git)
-               (project--vc-merge-submodules-p root)
-               (project--submodule-p root))
-          (let* ((parent (file-name-directory (directory-file-name root))))
-            (setq root (vc-call-backend 'Git 'root parent))))
-        (when root
-          (when (not backend)
-            (let* ((project-vc-extra-root-markers nil)
-                   ;; Avoid submodules scan.
-                   (enable-dir-local-variables nil)
-                   (parent (project-try-vc root)))
-              (and parent (setq backend (nth 1 parent)))))
-          (setq project (list 'vc backend root))
-          ;; FIXME: Cache for a shorter time.
-          (vc-file-setprop dir 'project-vc project)
-          project))))
+      ;; FIXME: Cache for a shorter time.
+      (let ((res (project-try-vc--search dir)))
+        (and res (vc-file-setprop dir 'project-vc res))
+        res)))
+
+(defun project-try-vc--search (dir)
+  (let* ((backend-markers
+          (delete
+           nil
+           (mapcar
+            (lambda (b) (assoc-default b project-vc-backend-markers-alist))
+            vc-handled-backends)))
+         (marker-re
+          (concat
+           "\\`"
+           (mapconcat
+            (lambda (m) (format "\\(%s\\)" (wildcard-to-regexp m)))
+            (append backend-markers
+                    (project--value-in-dir 'project-vc-extra-root-markers dir))
+            "\\|")
+           "\\'"))
+         (locate-dominating-stop-dir-regexp
+          (or vc-ignore-dir-regexp locate-dominating-stop-dir-regexp))
+         last-matches
+         (root
+          (locate-dominating-file
+           dir
+           (lambda (d)
+             ;; Maybe limit count to 100 when we can drop Emacs < 28.
+             (setq last-matches
+                   (condition-case nil
+                       (directory-files d nil marker-re t)
+                     (file-missing nil))))))
+         (backend
+          (cl-find-if
+           (lambda (b)
+             (member (assoc-default b project-vc-backend-markers-alist)
+                     last-matches))
+           vc-handled-backends))
+         project)
+    (while (and
+            (eq backend 'Git)
+            (project--vc-merge-submodules-p root)
+            (project--submodule-p root))
+      (let* ((parent (file-name-directory (directory-file-name root))))
+        (setq root (vc-call-backend 'Git 'root parent))))
+    (when root
+      (when (not backend)
+        (let* ((project-vc-extra-root-markers nil)
+               ;; Avoid submodules scan.
+               (enable-dir-local-variables nil)
+               (parent (project-try-vc--search root)))
+          (and parent (setq backend (nth 1 parent)))))
+      (setq project (list 'vc backend root))
+      project)))
 
 (defun project--submodule-p (root)
   ;; XXX: We only support Git submodules for now.
@@ -853,7 +858,9 @@ DIRS must contain directory names."
 (cl-defmethod project-buffers ((project (head vc)))
   (let* ((root (expand-file-name (file-name-as-directory (project-root project))))
          (modules (unless (or (project--vc-merge-submodules-p root)
-                              (project--submodule-p root))
+                              (condition-case nil
+                                  (project--submodule-p root)
+                                (file-missing nil)))
                     (mapcar
                      (lambda (m) (format "%s%s/" root m))
                      (project--git-submodules))))
@@ -924,7 +931,7 @@ DIRS must contain directory names."
          (generic-cmd (lookup-key project-prefix-map key))
          (switch-to-buffer-obey-display-actions t)
          (display-buffer-overriding-action (unless place-cmd action)))
-    (if-let ((cmd (or place-cmd generic-cmd)))
+    (if-let* ((cmd (or place-cmd generic-cmd)))
         (call-interactively cmd)
       (user-error "%s is undefined" (key-description key)))))
 
@@ -1073,8 +1080,8 @@ relative to PROJECT instead.
 This supports using a relative file name from the current buffer
 when switching projects with `project-switch-project' and then
 using a command like `project-find-file'."
-  (if-let (filename-proj (and project-current-directory-override
-                            (project-current nil default-directory)))
+  (if-let* ((filename-proj (and project-current-directory-override
+                                (project-current nil default-directory))))
       ;; file-name-concat requires Emacs 28+
       (concat (file-name-as-directory (project-root project))
               (file-relative-name filename (project-root filename-proj)))
@@ -1141,9 +1148,9 @@ for VCS directories listed in `vc-directory-exclusion-list'."
 (defcustom project-read-file-name-function #'project--read-file-cpd-relative
   "Function to call to read a file name from a list.
 For the arguments list, see `project--read-file-cpd-relative'."
-  :type '(choice (const :tag "Read with completion from relative names"
+  :type '(choice (const :tag "Read with completion from relative file names"
                         project--read-file-cpd-relative)
-                 (const :tag "Read with completion from absolute names"
+                 (const :tag "Read with completion from file names"
                         project--read-file-absolute)
                  (function :tag "Custom function" nil))
   :group 'project
@@ -1165,7 +1172,7 @@ This has the effect of sharing more history between projects."
   :version "30.1")
 
 (defun project--transplant-file-name (filename project)
-  (when-let ((old-root (get-text-property 0 'project filename)))
+  (when-let* ((old-root (get-text-property 0 'project filename)))
     (expand-file-name
      (file-relative-name filename old-root)
      (project-root project))))
@@ -1193,53 +1200,34 @@ by the user at will."
                           (file-name-absolute-p (car all-files)))
                      prompt
                    (concat prompt (format " in %s" common-parent-directory))))
-         (included-cpd (when (member common-parent-directory all-files)
-                         (setq all-files
-                               (delete common-parent-directory all-files))
-                         t))
-         (mb-default (mapcar (lambda (mb-default)
-                               (if (and common-parent-directory
-                                        mb-default
-                                        (file-name-absolute-p mb-default))
-                                   (file-relative-name
-                                    mb-default common-parent-directory)
-                                 mb-default))
-                             (if (listp mb-default) mb-default (list mb-default))))
          (substrings (mapcar (lambda (s) (substring s cpd-length)) all-files))
-         (_ (when included-cpd
-              (setq substrings (cons "./" substrings))))
          (new-collection (project--file-completion-table substrings))
-         (abs-cpd (expand-file-name common-parent-directory))
-         (abs-cpd-length (length abs-cpd))
-         (relname (cl-letf* ((non-essential t) ;Avoid new Tramp connections.
-                             ((symbol-value hist)
-                              (mapcan
-                               (lambda (s)
-                                 (setq s (expand-file-name s))
-                                 (and (string-prefix-p abs-cpd s)
-                                      (not (eq abs-cpd-length (length s)))
-                                      (list (substring s abs-cpd-length))))
-                               (symbol-value hist))))
-                    (project--completing-read-strict prompt
-                                                     new-collection
-                                                     predicate
-                                                     hist mb-default)))
+         (relname (project--completing-read-strict prompt
+                                                   new-collection
+                                                   predicate
+                                                   hist mb-default
+                                                   (unless (equal common-parent-directory "")
+                                                     common-parent-directory)))
          (absname (expand-file-name relname common-parent-directory)))
     absname))
 
 (defun project--read-file-absolute (prompt
                                     all-files &optional predicate
                                     hist mb-default)
-  (let* ((new-prompt (if (file-name-absolute-p (car all-files))
+  (let* ((names-absolute (file-name-absolute-p (car all-files)))
+         (new-prompt (if names-absolute
                          prompt
                        (concat prompt " in " default-directory)))
-         ;; FIXME: Map relative names to absolute?
+         ;; TODO: The names are intentionally not absolute in many cases.
+         ;; Probably better to rename this function.
          (ct (project--file-completion-table all-files))
          (file
           (project--completing-read-strict new-prompt
                                            ct
                                            predicate
-                                           hist mb-default)))
+                                           hist mb-default
+                                           (unless names-absolute
+                                             default-directory))))
     (unless (file-name-absolute-p file)
       (setq file (expand-file-name file)))
     file))
@@ -1298,17 +1286,39 @@ directories listed in `vc-directory-exclusion-list'."
 
 (defun project--completing-read-strict (prompt
                                         collection &optional predicate
-                                        hist mb-default)
-  (minibuffer-with-setup-hook
-      (lambda ()
-        (setq-local minibuffer-default-add-function
-                    (lambda ()
-                      (let ((minibuffer-default mb-default))
-                        (minibuffer-default-add-completions)))))
-    (completing-read (format "%s: " prompt)
-                     collection predicate 'confirm
-                     nil
-                     hist)))
+                                        hist mb-default
+                                        common-parent-directory)
+  (cl-letf* ((mb-default (mapcar (lambda (mb-default)
+                                   (if (and common-parent-directory
+                                            mb-default
+                                            (file-name-absolute-p mb-default))
+                                       (file-relative-name
+                                        mb-default common-parent-directory)
+                                     mb-default))
+                                 (if (listp mb-default) mb-default (list mb-default))))
+             (abs-cpd (expand-file-name (or common-parent-directory "")))
+             (abs-cpd-length (length abs-cpd))
+             (non-essential t)          ;Avoid new Tramp connections.
+             ((symbol-value hist)
+              (if common-parent-directory
+                  (mapcan
+                   (lambda (s)
+                     (setq s (expand-file-name s))
+                     (and (string-prefix-p abs-cpd s)
+                          (not (eq abs-cpd-length (length s)))
+                          (list (substring s abs-cpd-length))))
+                   (symbol-value hist))
+                (symbol-value hist))))
+    (minibuffer-with-setup-hook
+        (lambda ()
+          (setq-local minibuffer-default-add-function
+                      (lambda ()
+                        (let ((minibuffer-default mb-default))
+                          (minibuffer-default-add-completions)))))
+      (completing-read (format "%s: " prompt)
+                       collection predicate 'confirm
+                       nil
+                       hist))))
 
 ;;;###autoload
 (defun project-find-dir ()
@@ -1318,6 +1328,7 @@ The current buffer's `default-directory' is available as part of
 \"future history\"."
   (interactive)
   (let* ((project (project-current t))
+         (project-files-relative-names t)
          (all-files (project-files project))
          (completion-ignore-case read-file-name-completion-ignore-case)
          ;; FIXME: This misses directories without any files directly
@@ -1325,11 +1336,15 @@ The current buffer's `default-directory' is available as part of
          ;; `project-files-filtered', and see
          ;; https://stackoverflow.com/a/50685235/615245 for possible
          ;; implementation.
-         (all-dirs (mapcar #'file-name-directory all-files))
+         (all-dirs (cons "./"
+                         (delq nil
+                               ;; Some completion UIs show duplicates.
+                               (delete-dups
+                                (mapcar #'file-name-directory all-files)))))
+         (default-directory (project-root project))
          (dir (project--read-file-name
                project "Dired"
-               ;; Some completion UIs show duplicates.
-               (delete-dups all-dirs)
+               all-dirs
                nil 'file-name-history
                (and default-directory
                     (project--find-default-from default-directory project)))))
@@ -1363,7 +1378,8 @@ if one already exists."
          (shell-buffer (get-buffer default-project-shell-name)))
     (if (and shell-buffer (not current-prefix-arg))
         (if (comint-check-proc shell-buffer)
-            (pop-to-buffer shell-buffer (bound-and-true-p display-comint-buffer-action))
+            (pop-to-buffer shell-buffer (append display-buffer--same-window-action
+                                                '((category . comint))))
           (shell shell-buffer))
       (shell (generate-new-buffer-name default-project-shell-name)))))
 
@@ -1380,7 +1396,8 @@ if one already exists."
          (eshell-buffer-name (project-prefixed-buffer-name "eshell"))
          (eshell-buffer (get-buffer eshell-buffer-name)))
     (if (and eshell-buffer (not current-prefix-arg))
-        (pop-to-buffer eshell-buffer (bound-and-true-p display-comint-buffer-action))
+        (pop-to-buffer eshell-buffer (append display-buffer--same-window-action
+                                             '((category . comint))))
       (eshell t))))
 
 ;;;###autoload
@@ -1441,7 +1458,7 @@ If you exit the `query-replace', you can later continue the
 
 (defun project-prefixed-buffer-name (mode)
   (concat "*"
-          (if-let ((proj (project-current nil)))
+          (if-let* ((proj (project-current nil)))
               (project-name proj)
             (file-name-nondirectory
              (directory-file-name default-directory)))
@@ -1471,15 +1488,14 @@ If non-nil, it overrides `compilation-buffer-name-function' for
              compilation-buffer-name-function)))
     (call-interactively #'compile)))
 
+;;;###autoload
 (defun project-recompile (&optional edit-command)
-  "Run `recompile' with appropriate buffer."
+  "Run `recompile' in the project root with an appropriate buffer."
   (declare (interactive-only recompile))
   (interactive "P")
-  (let ((compilation-buffer-name-function
+  (let ((default-directory (project-root (project-current t)))
+        (compilation-buffer-name-function
          (or project-compilation-buffer-name-function
-             ;; Should we error instead?  When there's no
-             ;; project-specific naming, there is no point in using
-             ;; this command.
              compilation-buffer-name-function)))
     (recompile edit-command)))
 
@@ -1868,7 +1884,7 @@ result in `project-list-file'.  Announce the project's removal
 from the list using REPORT-MESSAGE, which is a format string
 passed to `message' as its first argument."
   (project--ensure-read-project-list)
-  (when-let ((ent (assoc (abbreviate-file-name project-root) project--list)))
+  (when-let* ((ent (assoc (abbreviate-file-name project-root) project--list)))
     (setq project--list (delq ent project--list))
     (message report-message project-root)
     (project--write-project-list)))
@@ -1929,8 +1945,8 @@ When PROMPT is non-nil, use it as the prompt string."
             (dolist (dir (reverse (project-known-project-roots)))
               ;; We filter out directories that no longer map to a project,
               ;; since they don't have a clean project-name.
-              (when-let ((proj (project--find-in-directory dir))
-                         (name (project-name proj)))
+              (when-let* ((proj (project--find-in-directory dir))
+                          (name (project-name proj)))
                 (push name project--name-history)
                 (push (cons name proj) ret)))
             (reverse ret)))
@@ -2027,10 +2043,10 @@ projects."
     (dolist (project (mapcar #'car project--list))
       (puthash project t known))
     (dolist (subdir dirs)
-      (when-let (((file-directory-p subdir))
-                 (project (project--find-in-directory subdir))
-                 (project-root (project-root project))
-                 ((not (gethash project-root known))))
+      (when-let* (((file-directory-p subdir))
+                  (project (project--find-in-directory subdir))
+                  (project-root (project-root project))
+                  ((not (gethash project-root known))))
         (project-remember-project project t)
         (puthash project-root t known)
         (message "Found %s..." project-root)
@@ -2178,8 +2194,8 @@ Otherwise, use the face `help-key-binding' in the prompt."
           (let ((temp-map (make-sparse-keymap)))
             (set-keymap-parent temp-map project-prefix-map)
             (dolist (row commands-menu temp-map)
-              (when-let ((cmd (nth 0 row))
-                         (keychar (nth 2 row)))
+              (when-let* ((cmd (nth 0 row))
+                          (keychar (nth 2 row)))
                 (define-key temp-map (vector keychar) cmd)))))
          command
          choice)
@@ -2236,7 +2252,7 @@ If you set `uniquify-dirname-transform' to this function,
 slash-separated components from `project-name' will be appended to
 the buffer's directory name when buffers from two different projects
 would otherwise have the same name."
-  (if-let (proj (project-current nil dirname))
+  (if-let* ((proj (project-current nil dirname)))
       (let ((root (project-root proj)))
         (expand-file-name
          (file-name-concat
@@ -2271,7 +2287,7 @@ is part of the default mode line beginning with Emacs 30."
 
 (defun project-mode-line-format ()
   "Compose the project mode-line."
-  (when-let ((project (project-current)))
+  (when-let* ((project (project-current)))
     ;; Preserve the global value of 'last-coding-system-used'
     ;; that 'write-region' needs to set for 'basic-save-buffer',
     ;; but updating the mode line might occur at the same time

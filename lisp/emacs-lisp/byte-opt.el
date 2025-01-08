@@ -1,6 +1,6 @@
 ;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991, 1994, 2000-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2000-2025 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -483,7 +483,7 @@ There can be multiple entries for the same NAME if it has several aliases.")
          `(,fn ,name . ,optimized-rest)))
 
       ((guard (when for-effect
-		(if-let ((tmp (byte-opt--fget fn 'side-effect-free)))
+		(if-let* ((tmp (byte-opt--fget fn 'side-effect-free)))
 		    (or byte-compile-delete-errors
 		        (eq tmp 'error-free)))))
        (byte-compile-log "  %s called for effect; deleted" fn)
@@ -1789,6 +1789,8 @@ See Info node `(elisp) Integer Basics'."
          tool-bar-pixel-width window-system
          ;; fringe.c
          fringe-bitmaps-at-pos
+         ;; json.c
+         json-serialize json-parse-string
          ;; keyboard.c
          posn-at-point posn-at-x-y
          ;; keymap.c
@@ -1979,6 +1981,8 @@ See Info node `(elisp) Integer Basics'."
          length> member memq memql nth nthcdr proper-list-p rassoc rassq
          safe-length string-bytes string-distance string-equal string-lessp
          string-search string-version-lessp take value<
+         ;; json.c
+         json-serialize json-parse-string
          ;; search.c
          regexp-quote
          ;; syntax.c

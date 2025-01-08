@@ -45,7 +45,7 @@ This manual documents @RefTeX{} (version @value{VERSION}), a package
 to do labels, references, citations and indices for LaTeX documents
 with Emacs.
 
-Copyright @copyright{} 1997--2024 Free Software Foundation, Inc.
+Copyright @copyright{} 1997--2025 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -259,8 +259,8 @@ To turn @RefTeX{} Mode on and off in a particular buffer, use
 LaTeX files, add the following lines to your @file{.emacs} file:
 
 @example
-(add-hook 'LaTeX-mode-hook 'turn-on-reftex)   ; with AUCTeX LaTeX mode
-(add-hook 'latex-mode-hook 'turn-on-reftex)   ; with Emacs latex mode
+(add-hook 'LaTeX-mode-hook #'turn-on-reftex)  ; with AUCTeX LaTeX mode
+(add-hook 'latex-mode-hook #'turn-on-reftex)  ; with Emacs latex mode
 @end example
 
 That's all!
@@ -333,11 +333,11 @@ Which labels are created how is configurable with the variable
 @code{reftex-insert-label-flags}.
 
 @item
-@b{Referencing Labels}@* To make a reference, type @kbd{C-c )}
-(@code{reftex-reference}).  This shows an outline of the document with
-all labels of a certain type (figure, equation,...) and some label
-context.  Selecting a label inserts a @code{\ref@{@var{label}@}} macro
-into the original buffer.
+@b{Referencing Labels}@*
+To make a reference, type @kbd{C-c )} (@code{reftex-reference}).  This
+shows an outline of the document with all labels of a certain type
+(figure, equation,...) and some label context.  Selecting a label
+inserts a @code{\ref@{@var{label}@}} macro into the original buffer.
 @end itemize
 
 @item
@@ -352,12 +352,11 @@ different macros).
 
 @item
 @b{Index Support}@*
-@RefTeX{} helps to enter index entries.  It also compiles all
-entries into an alphabetically sorted @file{*Index*} buffer which you
-can use to check and edit the entries.  @RefTeX{} knows about the
-standard index macros and can be configured to recognize any additional
-macros you have defined (@code{reftex-index-macros}).  Multiple indices
-are supported.
+@RefTeX{} helps to enter index entries.  It also compiles all entries
+into an alphabetically sorted @file{*Index*} buffer which you can use to
+check and edit the entries.  @RefTeX{} knows about the standard index
+macros and can be configured to recognize any additional macros you have
+defined (@code{reftex-index-macros}).  Multiple indices are supported.
 
 @itemize @bullet
 @item
@@ -383,7 +382,8 @@ all entries.
 @end itemize
 
 @page
-@item @b{Viewing Cross-References}@*
+@item
+@b{Viewing Cross-References}@*
 When point is on the @var{key} argument of a cross-referencing macro
 (@code{\label}, @code{\ref}, @code{\cite}, @code{\bibitem},
 @code{\index}, and variations) or inside a @BibTeX{} database entry, you
@@ -403,20 +403,21 @@ all parts of the document, and across document borders
 (@file{xr.sty}).
 
 @item
-@b{Document Parsing}@* @RefTeX{} needs to parse the document in
-order to find labels and other information.  It does it automatically
-once and updates its list internally when @code{reftex-label} and
-@code{reftex-index} are used.  To enforce reparsing, call any of the
-commands described above with a raw @kbd{C-u} prefix, or press the
-@kbd{r} key in the label selection buffer, the table of contents
-buffer, or the index buffer.
+@b{Document Parsing}@*
+@RefTeX{} needs to parse the document in order to find labels and other
+information.  It does it automatically once and updates its list
+internally when @code{reftex-label} and @code{reftex-index} are used.
+To enforce reparsing, call any of the commands described above with a
+raw @kbd{C-u} prefix, or press the @kbd{r} key in the label selection
+buffer, the table of contents buffer, or the index buffer.
 
 @item
-@b{@AUCTeX{}} @* If your major @LaTeX{} mode is @AUCTeX{}, @RefTeX{} can
-cooperate with it (see variable @code{reftex-plug-into-AUCTeX}).  @AUCTeX{}
-contains style files which trigger appropriate settings in
-@RefTeX{}, so that for many of the popular @LaTeX{} packages no
-additional customizations will be necessary.
+@b{@AUCTeX{}}@*
+If your major @LaTeX{} mode is @AUCTeX{}, @RefTeX{} can cooperate with
+it (see variable @code{reftex-plug-into-AUCTeX}).  @AUCTeX{} contains
+style files which trigger appropriate settings in @RefTeX{}, so that for
+many of the popular @LaTeX{} packages no additional customizations will
+be necessary.
 
 @item
 @b{Useful Settings}@*
@@ -438,13 +439,14 @@ If you have a large number of macros defined, you may want to write
 an @AUCTeX{} style file to support them with both @AUCTeX{} and
 @RefTeX{}.
 
-@item @b{Where Next?}@* Go ahead and use @RefTeX{}.  Use its menus
-until you have picked up the key bindings.  For an overview of what you
-can do in each of the different special buffers, press @kbd{?}.  Read
-the manual if you get stuck, or if you are curious what else might be
-available.  The first part of the manual explains in
-a tutorial way how to use and customize @RefTeX{}.  The second
-part is a command and variable reference.
+@item
+@b{Where Next?}@*
+Go ahead and use @RefTeX{}.  Use its menus until you have picked up the
+key bindings.  For an overview of what you can do in each of the
+different special buffers, press @kbd{?}.  Read the manual if you get
+stuck, or if you are curious what else might be available.  The first
+part of the manual explains in a tutorial way how to use and customize
+@RefTeX{}.  The second part is a command and variable reference.
 @end enumerate
 
 @node Table of Contents
@@ -1066,20 +1068,35 @@ the @LaTeX{} core stuff)
 @code{alignat}, @code{xalignat}, @code{xxalignat}, @code{subequations}
 (from AMS-@LaTeX{}'s @file{amsmath.sty} package)
 @item
-@cindex @code{endnote}, LaTeX package
-@cindex LaTeX packages, @code{endnote}
-@cindex @code{\endnote}, LaTeX macro
-the @code{\endnote} macro (from @file{endnotes.sty})
-@item
 @cindex @code{fancybox}, LaTeX package
 @cindex LaTeX packages, @code{fancybox}
 @cindex @code{Beqnarray}, LaTeX environment
 @code{Beqnarray} (@file{fancybox.sty})
 @item
+@cindex @code{ctable}, LaTeX package
+@cindex LaTeX packages, @code{ctable}
+@cindex @code{\ctable}, LaTeX macro
+the @code{\ctable} macro (from @file{ctable.sty})
+@item
+@cindex @code{endnote}, LaTeX package
+@cindex LaTeX packages, @code{endnote}
+@cindex @code{\endnote}, LaTeX macro
+the @code{\endnote} macro (from @file{endnotes.sty})
+@item
 @cindex @code{floatfig}, LaTeX package
 @cindex LaTeX packages, @code{floatfig}
 @cindex @code{floatingfig}, LaTeX environment
 @code{floatingfig} (@file{floatfig.sty})
+@item
+@cindex @code{minted}, LaTeX package
+@cindex LaTeX packages, @code{minted}
+@cindex @code{listing}, LaTeX environment
+@code{listing} (@file{minted.sty})
+@item
+@cindex @code{listings}, LaTeX package
+@cindex LaTeX packages, @code{listings}
+@cindex @code{lstlisting}, LaTeX environment
+@code{lstlisting} (@file{listings.sty})
 @item
 @cindex @code{longtable}, LaTeX package
 @cindex LaTeX packages, @code{longtable}
@@ -1104,7 +1121,7 @@ the @code{\endnote} macro (from @file{endnotes.sty})
 @cindex @code{sidewaystable}, LaTeX environment
 @code{sidewaysfigure}, @code{sidewaystable} (@file{rotating.sty})
 @item
-@cindex @code{subfig}, LaTeX package
+@cindex @code{subfigure}, LaTeX package
 @cindex LaTeX packages, @code{subfigure}
 @cindex @code{subfigure}, LaTeX environment
 @cindex @code{subfigure*}, LaTeX environment
@@ -1210,10 +1227,10 @@ automatically create labels for the new environments.
 
 @lisp
 (add-hook 'LaTeX-mode-hook
-   (lambda ()
-     (LaTeX-add-environments
-       '("axiom" LaTeX-env-label)
-       '("theorem" LaTeX-env-label))))
+          (lambda ()
+            (LaTeX-add-environments
+             '("axiom" LaTeX-env-label)
+             '("theorem" LaTeX-env-label))))
 @end lisp
 
 
@@ -1599,12 +1616,15 @@ convenient way.
 
 @RefTeX{} comes equipped with a set of so-called reference styles where
 each relates to one or more reference macros.  The standard macros
-@samp{\ref} and @samp{\pageref} or provided by the ``Default'' style.
-The ``Varioref'' style offers macros for the @samp{varioref} @LaTeX{}
-package (@samp{\vref}, @samp{\Vref}, @samp{\Ref}, @samp{\vpageref}),
-``Fancyref'' for the @samp{fancyref} package (@samp{\fref},
-@samp{\Fref}) and ``Hyperref'' for the @samp{hyperref} package
-(@samp{\autoref}, @samp{\autopageref}).
+@samp{\ref}, @samp{\Ref}, @samp{\footref} and @samp{\pageref} are
+provided by the ``Default'' style.  The ``Varioref'' style offers macros
+for the @samp{varioref} @LaTeX{} package (@samp{\vref}, @samp{\Vref},
+and @samp{\vpageref}), ``Fancyref'' for the @samp{fancyref} package
+(@samp{\fref}, @samp{\Fref}), ``Hyperref'' for the @samp{hyperref}
+package (@samp{\autoref}, @samp{\autopageref}), ``Cleveref'' for the
+@samp{cleveref} package (@samp{\cref}, @samp{\Cref}, @samp{\cpageref}
+and @samp{\Cpageref}) and ``AMSmath'' for the @samp{amsmath} package
+(@samp{\eqref}).
 
 @vindex reftex-ref-style-default-list
 A style can be toggled by selecting the respective entry in the
@@ -1885,11 +1905,13 @@ buffers by adding the following expression to your init file:
 @node Citation Styles
 @section Citation Styles
 @cindex Citation styles
+@cindex Citation styles, @code{biblatex}
 @cindex Citation styles, @code{natbib}
 @cindex Citation styles, @code{harvard}
 @cindex Citation styles, @code{chicago}
 @cindex Citation styles, @code{jurabib}
 @cindex Citation styles, @ConTeXt{}
+@cindex @code{biblatex}, citation style
 @cindex @code{natbib}, citation style
 @cindex @code{harvard}, citation style
 @cindex @code{chicago}, citation style
@@ -1903,12 +1925,12 @@ citations as used in many natural sciences, a variety of packages has
 been developed which define derived forms of the @code{\cite} macro.
 @RefTeX{} can be configured to produce these citation macros as well by
 setting the variable @code{reftex-cite-format}.  For the most commonly
-used @LaTeX{} packages (@code{natbib}, @code{harvard}, @code{chicago},
-@code{jurabib}) and for @ConTeXt{} this may be done from the menu, under
-@code{Ref->Citation Styles}.  Since there are usually several macros to
-create the citations, executing @code{reftex-citation} (@kbd{C-c [})
-starts by prompting for the correct macro.  For the Natbib style, this
-looks like this:
+used @LaTeX{} packages (@code{biblatex}, @code{natbib}, @code{harvard},
+@code{chicago}, @code{jurabib}) and for @ConTeXt{} this may be done from
+the menu, under @code{Ref->Citation Styles}.  Since there are usually
+several macros to create the citations, executing @code{reftex-citation}
+(@kbd{C-c [}) starts by prompting for the correct macro.  For the Natbib
+style, this looks like this:
 
 @example
 SELECT A CITATION FORMAT
@@ -1923,6 +1945,31 @@ SELECT A CITATION FORMAT
 [a]    \citeauthor@{%l@}
 [A]    \citeauthor*@{%l@}
 [y]    \citeyear@{%l@}
+@end example
+
+@noindent
+And for the Biblatex style, it looks like this:
+
+@example
+SELECT A CITATION FORMAT
+
+[^M]   \cite[][]@{%l@}
+[C]    \cite*[][]@{%l@}
+[t]    \textcite[][]@{%l@}
+[T]    \textcite*[][]@{%l@}
+[p]    \parencite[][]@{%l@}
+[P]    \parencite*[][]@{%l@}
+[f]    \footcite[][]@{%l@}
+[s]    \smartcite[][]@{%l@}
+[u]    \autocite[][]@{%l@}
+[U]    \autocite*[][]@{%l@}
+[a]    \citeauthor@{%l@}
+[A]    \citeauthor*@{%l@}
+[i]    \citetitle@{%l@}
+[I]    \citetitle*@{%l@}
+[y]    \citeyear@{%l@}
+[Y]    \citeyear*@{%l@}
+[n]    \nocite@{%l@}
 @end example
 
 @vindex reftex-cite-prompt-optional-args
@@ -1940,6 +1987,13 @@ To make one of these styles the default, customize the variable
 
 @lisp
 (setq reftex-cite-format 'natbib)
+@end lisp
+
+@noindent
+Or this if you prefer the biblatex package:
+
+@lisp
+(setq reftex-cite-format 'biblatex)
 @end lisp
 
 You can also use @AUCTeX{} style files to automatically set the
@@ -2909,23 +2963,28 @@ settings work well for English.  If you are writing in a different
 language, the following hints may be useful:
 
 @itemize @bullet
-@item
 @vindex reftex-derive-label-parameters
 @vindex reftex-abbrev-parameters
+@item
 The mechanism to derive a label from context includes the abbreviation
 of words and omission of unimportant words.  These mechanisms may have
 to be changed for other languages.  See the variables
 @code{reftex-derive-label-parameters} and @code{reftex-abbrev-parameters}.
 
-@item
 @vindex reftex-translate-to-ascii-function
 @vindex reftex-label-illegal-re
-Also, when a label is derived from context, @RefTeX{} clears the
-context string from non-ASCII characters in order to make a valid label.
-If there should ever be a version of @TeX{} which allows extended
-characters @emph{in labels}, then we will have to look at the
-variables @code{reftex-translate-to-ascii-function} and
-@code{reftex-label-illegal-re}.
+@item
+Also, when a label is derived from context, @RefTeX{} clears the context
+string from non-ASCII characters in order to make a label.  Starting
+with @LaTeX{} release 2019-10-01, non-ASCII characters are allowed in
+@LaTeX{}'s @code{\label}/@code{\ref} mechanism.  If you want to change
+@RefTeX{}'s behavior and allow extended characters in labels, then take
+a look at the variables @code{reftex-translate-to-ascii-function} and
+@code{reftex-label-illegal-re}.  The following example allows any
+letters and digits (among other characters) in the label definition:
+@lisp
+(setq reftex-label-illegal-re "[^-[:alnum:]_+=:;,.]")
+@end lisp
 
 @item
 When a label is referenced, @RefTeX{} looks at the word before point
@@ -3025,7 +3084,7 @@ the new extension must also be known to @AUCTeX{} via the variable
 (setq reftex-file-extensions
       '(("nw" "tex" ".tex" ".ltx") ("bib" ".bib")))
 (setq TeX-file-extensions
-      '( "nw" "tex" "sty" "cls" "ltx" "texi" "texinfo"))
+      '("nw" "tex" "sty" "cls" "ltx" "texi" "texinfo"))
 @end lisp
 
 @node Optimizations
@@ -3289,11 +3348,11 @@ Labels}).
 Style files are Emacs Lisp files which are evaluated by @AUCTeX{} in
 association with the @code{\documentclass} and @code{\usepackage}
 commands of a document (@pxref{Style Files,,,auctex}).  Support for
-@RefTeX{} in such a style file is useful when the @LaTeX{} style
-defines macros or environments connected with labels, citations, or the
-index.  Many style files (e.g., @file{amsmath.el} or @file{natbib.el})
-distributed with @AUCTeX{} already support @RefTeX{} in this
-way.
+@RefTeX{} in such a style file is useful when the @LaTeX{} style defines
+macros or environments connected with labels, citations, or the index.
+Many style files (e.g., @file{amsmath.el}, @file{natbib.el} or
+@file{biblatex.el}) distributed with @AUCTeX{} already support @RefTeX{}
+in this way.
 
 Before calling a @RefTeX{} function, the style hook should always
 test for the availability of the function, so that the style file will
@@ -4125,6 +4184,23 @@ Any list entry may also be a symbol.  If that has an association in
 @code{reftex-label-alist-builtin}, the @code{cddr} of that association is
 spliced into the list.  However, builtin defaults should normally be set
 with the variable @code{reftex-default-label-alist-entries}.
+@end defopt
+
+@defopt reftex-label-regexps
+List of regular expressions matching @samp{\label} definitions.  The
+default value matches usual @samp{\label@{@dots{}@}} definitions and key
+value style @samp{[@dots{}, label = @{@dots{}@}, @dots{}]} label
+definitions.  The regular expression for key value style explicitly
+looks for environments provided by the packages @code{listings}
+(@code{lstlisting}), @code{beamer} (@code{frame}), @code{breqn}
+(@code{dmath}, @code{dseries}, @code{dgroup}, @code{darray}) and the
+macro @code{\ctable} provided by the package of the same name.
+
+It is assumed that the regexp group 1 matches the label text, so you
+have to define it using @samp{\(?1:...\)} when adding new regexps.
+
+When changed from Lisp, make sure to call
+@code{reftex-compile-variables} afterwards to make the change effective.
 @end defopt
 
 @defopt reftex-section-prefixes

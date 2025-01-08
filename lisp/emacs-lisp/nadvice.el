@@ -1,6 +1,6 @@
 ;;; nadvice.el --- Light-weight advice primitives for Elisp functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2025 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions, lisp, tools
@@ -584,7 +584,7 @@ of the piece of advice."
 ;;;###autoload
 (defmacro define-advice (symbol args &rest body)
   "Define an advice and add it to function named SYMBOL.
-See `advice-add' and `add-function' for explanation on the
+See `advice-add' and `add-function' for explanation of the
 arguments.  If NAME is non-nil, the advice is named `SYMBOL@NAME'
 and installed with the name NAME; otherwise, the advice is anonymous.
 

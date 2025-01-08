@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1992-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992-2025 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -713,6 +713,57 @@ buffer contents as untrusted.
 This variable might be subject to change without notice.")
 (put 'untrusted-content 'permanent-local t)
 
+(defcustom trusted-content nil
+  "List of files and directories whose content we trust.
+Be extra careful here since trusting means that Emacs might execute the
+code contained within those files and directories without an explicit
+request by the user.
+One important case when this might happen is when `flymake-mode' is
+enabled (for example, when it is added to a mode hook).
+Each element of the list should be a string:
+- If it ends in \"/\", it is considered as a directory name and means that
+  Emacs should trust all the files whose name has this directory as a prefix.
+- else it is considered as a file name.
+Use abbreviated file names.  For example, an entry \"~/mycode/\" means
+that Emacs will trust all the files in your directory \"mycode\".
+This variable can also be set to `:all', in which case Emacs will trust
+all files, which opens a gaping security hole."
+  :type '(choice (repeat :tag "List" file)
+                 (const :tag "Trust everything (DANGEROUS!)" :all))
+  :version "30.1")
+(put 'trusted-content 'risky-local-variable t)
+
+(defun trusted-content-p ()
+  "Return non-nil if we trust the contents of the current buffer.
+Here, \"trust\" means that we are willing to run code found inside of it.
+See also `trusted-content'."
+  ;; We compare with `buffer-file-truename' i.s.o `buffer-file-name'
+  ;; to try and avoid marking as trusted a file that's merely accessed
+  ;; via a symlink that happens to be inside a trusted dir.
+  (and (not untrusted-content)
+       (or
+        (eq trusted-content :all)
+        (and
+         buffer-file-truename
+         (with-demoted-errors "trusted-content-p: %S"
+           (let ((exists (file-exists-p buffer-file-truename)))
+             (or
+              ;; We can't avoid trusting the user's init file.
+              (if (and exists user-init-file)
+                  (file-equal-p buffer-file-truename user-init-file)
+                (equal buffer-file-truename user-init-file))
+              (let ((file (abbreviate-file-name buffer-file-truename))
+                    (trusted nil))
+                (dolist (tf trusted-content)
+                  (when (or (if exists (file-equal-p tf file) (equal tf file))
+                            ;; We don't use `file-in-directory-p' here, because
+                            ;; we want to err on the conservative side: "guilty
+                            ;; until proven innocent".
+                            (and (string-suffix-p "/" tf)
+                                 (string-prefix-p tf file)))
+                    (setq trusted t)))
+                trusted))))))))
+
 ;; This is an odd variable IMO.
 ;; You might wonder why it is needed, when we could just do:
 ;; (setq-local enable-local-variables nil)
@@ -1274,23 +1325,42 @@ NOERROR is equal to `reload'), or otherwise emit a warning."
         (res (require feature filename (if (eq noerror 'reload) nil noerror))))
     ;; If the `feature' was not yet provided, `require' just loaded the right
     ;; file, so we're done.
-    (when (eq lh load-history)
+    (when (and res (eq lh load-history))
       ;; If `require' did nothing, we need to make sure that was warranted.
-      (let ((fn (locate-file (or filename (symbol-name feature))
-                             load-path (get-load-suffixes))))
+      (let* ((fn (locate-file (or filename (symbol-name feature))
+                              load-path (get-load-suffixes) nil
+                              )) ;; load-prefer-newer
+             ;; We used to look for `fn' in `load-history' with `assoc'
+             ;; which works in most cases, but in some cases (e.g. when
+             ;; `load-prefer-newer' is set) `locate-file' can return a
+             ;; different file than the file that `require' would load,
+             ;; so the file won't be found in `load-history' even though
+             ;; we did load "it".  (bug#74040)
+             ;; So use a "permissive" search which doesn't pay attention to
+             ;; differences between file extensions.
+             (prefix (if (string-match
+                          (concat (regexp-opt (get-load-suffixes)) "\\'") fn)
+                         (concat (substring fn 0 (match-beginning 0)) ".")
+                       fn))
+             (lh load-history))
+        (while (and lh (let ((file (car-safe (car lh))))
+                         (not (and file (string-prefix-p prefix file)))))
+          (setq lh (cdr lh)))
         (cond
-         ((assoc fn load-history) nil)  ;We loaded the right file.
+         (lh nil)                       ;We loaded the right file.
          ((eq noerror 'reload) (load fn nil 'nomessage))
          ((and fn (memq feature features))
-          (funcall (if noerror #'warn #'error)
-                   "Feature `%S' is now provided by a different file %s"
-                   feature fn))
+          (let ((oldfile (symbol-file feature 'provide)))
+            (funcall (if noerror #'warn #'error)
+                     "Feature `%S' loaded from %S is now provided by %S"
+                     feature (if oldfile (abbreviate-file-name oldfile))
+                     (abbreviate-file-name fn))))
          (fn
           (funcall (if noerror #'warn #'error)
-                   "Could not load file %s" fn))
+                   "Could not load file: %s" fn))
          (t
           (funcall (if noerror #'warn #'error)
-                   "Could not locate file %s in load path"
+                   "Could not locate file in load path: %s"
                    (or filename (symbol-name feature)))))))
     res))
 
@@ -1338,7 +1408,7 @@ Tip: You can use this expansion of remote identifier components
      returns a remote file name for file \"/bin/sh\" that has the
      same remote identifier as FILE but expanded; a name such as
      \"/sudo:root@myhost:/bin/sh\"."
-  (when-let ((handler (find-file-name-handler file 'file-remote-p)))
+  (when-let* ((handler (find-file-name-handler file 'file-remote-p)))
     (funcall handler 'file-remote-p file identification connected)))
 
 ;; Probably this entire variable should be obsolete now, in favor of
@@ -2163,7 +2233,7 @@ this function prepends a \"|\" to the final result if necessary."
          (lastname (if (string= lastname "") ; FILENAME is a root directory
                        filename lastname))
          (lastname (cond
-                    ((not (and uniquify-trailing-separator-p
+                    ((not (and uniquify-trailing-separator-flag
                                (file-directory-p filename)))
                      lastname)
                     ((eq uniquify-buffer-name-style 'forward)
@@ -2194,7 +2264,7 @@ if you want to permanently change your home directory after having
 started Emacs, set `abbreviated-home-dir' to nil so it will be recalculated)."
   ;; Get rid of the prefixes added by the automounter.
   (save-match-data                      ;FIXME: Why?
-    (if-let ((handler (find-file-name-handler filename 'abbreviate-file-name)))
+    (if-let* ((handler (find-file-name-handler filename 'abbreviate-file-name)))
         (funcall handler 'abbreviate-file-name filename)
       ;; Avoid treating /home/foo as /home/Foo during `~' substitution.
       (let ((case-fold-search (file-name-case-insensitive-p filename)))
@@ -2959,7 +3029,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.for\\'" . fortran-mode)
      ("\\.p\\'" . pascal-mode)
      ("\\.pas\\'" . pascal-mode)
-     ("\\.\\(dpr\\|DPR\\)\\'" . delphi-mode)
+     ("\\.\\(dpr\\|DPR\\)\\'" . opascal-mode)
      ("\\.\\([pP]\\([Llm]\\|erl\\|od\\)\\|al\\)\\'" . perl-mode)
      ("Imakefile\\'" . makefile-imake-mode)
      ("Makeppfile\\(?:\\.mk\\)?\\'" . makefile-makepp-mode) ; Put this before .mk
@@ -2986,7 +3056,7 @@ since only a single case-insensitive search through the alist is made."
      ;; files, cross-debuggers can use something like
      ;; .PROCESSORNAME-gdbinit so that the host and target gdbinit files
      ;; don't interfere with each other.
-     ("/\\.[a-z0-9-]*gdbinit" . gdb-script-mode)
+     ("/[._]?[A-Za-z0-9-]*\\(?:gdbinit\\(?:\\.\\(?:ini?\\|loader\\)\\)?\\|gdb\\.ini\\)\\'" . gdb-script-mode)
      ;; GDB 7.5 introduced OBJFILE-gdb.gdb script files; e.g. a file
      ;; named 'emacs-gdb.gdb', if it exists, will be automatically
      ;; loaded when GDB reads an objfile called 'emacs'.
@@ -3033,8 +3103,6 @@ since only a single case-insensitive search through the alist is made."
      ;; Anyway, the following extensions are supported by gfortran.
      ("\\.f9[05]\\'" . f90-mode)
      ("\\.f0[38]\\'" . f90-mode)
-     ("\\.indent\\.pro\\'" . fundamental-mode) ; to avoid idlwave-mode
-     ("\\.\\(pro\\|PRO\\)\\'" . idlwave-mode)
      ("\\.srt\\'" . srecode-template-mode)
      ("\\.prolog\\'" . prolog-mode)
      ("\\.tar\\'" . tar-mode)
@@ -3153,6 +3221,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|CBR\\|7Z\\|SQUASHFS\\)\\'" .
      ("\\.cmyk\\'" . image-mode)
      ("\\.cmyka\\'" . image-mode)
      ("\\.crw\\'" . image-mode)
+     ("\\.dcm\\'" . image-mode)
      ("\\.dcr\\'" . image-mode)
      ("\\.dcx\\'" . image-mode)
      ("\\.dng\\'" . image-mode)
@@ -3182,6 +3251,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|CBR\\|7Z\\|SQUASHFS\\)\\'" .
      ("\\.pict\\'" . image-mode)
      ("\\.rgb\\'" . image-mode)
      ("\\.rgba\\'" . image-mode)
+     ("\\.six\\'" . image-mode)
      ("\\.tga\\'" . image-mode)
      ("\\.wbmp\\'" . image-mode)
      ("\\.webp\\'" . image-mode)
@@ -3387,6 +3457,35 @@ If FUNCTION is nil, then it is not called.")
   "Upper limit on `magic-mode-alist' regexp matches.
 Also applies to `magic-fallback-mode-alist'.")
 
+(defun set-auto-mode--find-matching-alist-entry (alist name case-insensitive)
+  "Find first matching entry in ALIST for file NAME.
+
+If CASE-INSENSITIVE, the file system of file NAME is case-insensitive."
+  (let (mode)
+    (while name
+      (setq mode
+            (if case-insensitive
+                ;; Filesystem is case-insensitive.
+                (let ((case-fold-search t))
+                  (assoc-default name alist 'string-match))
+              ;; Filesystem is case-sensitive.
+              (or
+               ;; First match case-sensitively.
+               (let ((case-fold-search nil))
+                 (assoc-default name alist 'string-match))
+               ;; Fallback to case-insensitive match.
+               (and auto-mode-case-fold
+                    (let ((case-fold-search t))
+                      (assoc-default name alist 'string-match))))))
+      (if (and mode
+               (not (functionp mode))
+               (consp mode)
+               (cadr mode))
+          (setq mode (car mode)
+                name (substring name 0 (match-beginning 0)))
+        (setq name nil)))
+    mode))
+
 (defun set-auto-mode--apply-alist (alist keep-mode-if-same dir-local)
   "Helper function for `set-auto-mode'.
 This function takes an alist of the same form as
@@ -3408,29 +3507,8 @@ extra checks should be done."
         (when (and (stringp remote-id)
                    (string-match (regexp-quote remote-id) name))
           (setq name (substring name (match-end 0))))
-        (while name
-          ;; Find first matching alist entry.
-          (setq mode
-                (if case-insensitive-p
-                    ;; Filesystem is case-insensitive.
-                    (let ((case-fold-search t))
-                      (assoc-default name alist 'string-match))
-                  ;; Filesystem is case-sensitive.
-                  (or
-                   ;; First match case-sensitively.
-                   (let ((case-fold-search nil))
-                     (assoc-default name alist 'string-match))
-                   ;; Fallback to case-insensitive match.
-                   (and auto-mode-case-fold
-                        (let ((case-fold-search t))
-                          (assoc-default name alist 'string-match))))))
-          (if (and mode
-                   (not (functionp mode))
-                   (consp mode)
-                   (cadr mode))
-              (setq mode (car mode)
-                    name (substring name 0 (match-beginning 0)))
-            (setq name nil)))
+        (setq mode (set-auto-mode--find-matching-alist-entry
+                    alist name case-insensitive-p))
         (when (and dir-local mode
                    (not (set-auto-mode--dir-local-valid-p mode)))
           (message "Ignoring invalid mode `%s'" mode)
@@ -3529,7 +3607,7 @@ we don't actually set it to the same mode the buffer already has."
      ;; If we didn't, look for an interpreter specified in the first line.
      ;; As a special case, allow for things like "#!/bin/env perl", which
      ;; finds the interpreter anywhere in $PATH.
-     (when-let
+     (when-let*
 	 ((interp (save-excursion
 		    (goto-char (point-min))
 		    (if (looking-at auto-mode-interpreter-regexp)
@@ -3604,7 +3682,10 @@ instead.
 FUNCTION is typically a major mode which \"does the same thing\" as
 MODE, but can also be nil to hide other entries (either in this var or
 in `major-mode-remap-defaults') and means that we should call MODE."
-  :type '(alist (symbol) (function)))
+  :type '(alist
+          :tag "Remappings"
+          :key-type (symbol :tag "From major mode")
+          :value-type (function :tag "To mode (or function)")))
 
 (defvar major-mode-remap-defaults nil
   "Alist mapping file-specified modes to alternative modes.
@@ -4158,7 +4239,7 @@ all the specified local variables, but ignores any settings of \"mode:\"."
           ;; Handle `lexical-binding' and other special local
           ;; variables.
           (dolist (variable permanently-enabled-local-variables)
-            (when-let ((elem (assq variable result)))
+            (when-let* ((elem (assq variable result)))
               (push elem file-local-variables-alist)))
           (hack-local-variables-apply))))))
 
@@ -4409,19 +4490,25 @@ It is dangerous if either of these conditions are met:
                      (substitute-command-keys instead)
                    (format-message "use `%s' instead" instead)))))))
 
+(defvar hack-local-variables--inhibit nil
+  "List of file/dir local variables to ignore.")
+
 (defun hack-one-local-variable (var val)
   "Set local variable VAR with value VAL.
 If VAR is `mode', call `VAL-mode' as a function unless it's
 already the major mode."
   (pcase var
+    ((guard (memq var hack-local-variables--inhibit)) nil)
     ('mode
      (let ((mode (intern (concat (downcase (symbol-name val))
-                          "-mode"))))
+                                 "-mode"))))
        (set-auto-mode-0 mode t)))
     ('eval
      (pcase val
        (`(add-hook ',hook . ,_) (hack-one-local-variable--obsolete hook)))
-     (save-excursion (eval val t)))
+     (let ((hack-local-variables--inhibit ;; FIXME: Should be buffer-local!
+            (cons 'eval hack-local-variables--inhibit)))
+       (save-excursion (eval val t))))
     (_
      (hack-one-local-variable--obsolete var)
      ;; Make sure the string has no text properties.
@@ -4467,6 +4554,21 @@ Returns the new list."
 	;; Need a new cons in case we setcdr later.
 	(push (cons variable value) variables)))))
 
+(defun dir-locals--load-mode-if-needed (key alist)
+  ;; If KEY is an extra parent it may remain not loaded
+  ;; (hence with some of its mode-specific vars missing their
+  ;; `safe-local-variable' property), leading to spurious
+  ;; prompts about unsafe vars (bug#68246).
+  (when (and (symbolp key) (autoloadp (indirect-function key)))
+    (let ((unsafe nil))
+      (pcase-dolist (`(,var . ,_val) alist)
+        (unless (or (memq var '(mode eval))
+                    (get var 'safe-local-variable))
+          (setq unsafe t)))
+      (when unsafe
+        (ignore-errors
+          (autoload-do-load (indirect-function key)))))))
+
 (defun dir-locals-collect-variables (class-variables root variables
                                                      &optional predicate)
   "Collect entries from CLASS-VARIABLES into VARIABLES.
@@ -4497,15 +4599,9 @@ to see whether it should be considered."
                   (funcall predicate key)
                 (or (not key)
                     (derived-mode-p key)))
-              ;; If KEY is an extra parent it may remain not loaded
-              ;; (hence with some of its mode-specific vars missing their
-              ;; `safe-local-variable' property), leading to spurious
-              ;; prompts about unsafe vars (bug#68246).
-              (if (and (symbolp key) (autoloadp (indirect-function key)))
-                  (ignore-errors (autoload-do-load (indirect-function key))))
               (let* ((alist (cdr entry))
                      (subdirs (assq 'subdirs alist)))
-                (if (or (not subdirs)
+                (when (or (not subdirs)
                         (progn
                           (setq alist (remq subdirs alist))
                           (cdr-safe subdirs))
@@ -4514,6 +4610,7 @@ to see whether it should be considered."
                         ;; variables apply to this directory and N levels
                         ;; below it (0 == nil).
                         (equal root (expand-file-name default-directory)))
+                  (dir-locals--load-mode-if-needed key alist)
                     (setq variables (dir-locals-collect-mode-variables
                                      alist variables))))))))
       (error
@@ -6936,8 +7033,8 @@ buffer read-only, or keeping minor modes, etc.")
 
 (defun revert-buffer-restore-read-only ()
   "Preserve read-only state for `revert-buffer'."
-  (when-let ((state (and (boundp 'read-only-mode--state)
-                         (list read-only-mode--state))))
+  (when-let* ((state (and (boundp 'read-only-mode--state)
+                          (list read-only-mode--state))))
     (lambda ()
       (setq buffer-read-only (car state))
       (setq-local read-only-mode--state (car state)))))
@@ -8488,7 +8585,8 @@ If RESTART, restart Emacs after killing the current Emacs process."
      ;; Query the user for other things, perhaps.
      (run-hook-with-args-until-failure 'kill-emacs-query-functions)
      (or (null confirm)
-         (funcall confirm "Really exit Emacs? "))
+         (funcall confirm (format "Really %s Emacs? "
+                                  (if restart "restart" "exit"))))
      (kill-emacs nil restart))))
 
 (defun save-buffers-kill-terminal (&optional arg)

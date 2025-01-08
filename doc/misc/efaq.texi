@@ -8,7 +8,7 @@
 @include emacsver.texi
 
 @copying
-Copyright @copyright{} 2001--2024 Free Software Foundation, Inc.@*
+Copyright @copyright{} 2001--2025 Free Software Foundation, Inc.@*
 Copyright @copyright{} 1994--2000 Reuven M. Lerner@*
 Copyright @copyright{} 1992--1993 Steven Byrnes@*
 Copyright @copyright{} 1990--1992 Joseph Brian Wells@*
@@ -941,6 +941,13 @@ many typical workloads.
 Emacs has been ported to the Android operating system.  See the file
 @file{java/INSTALL} in the Emacs source distribution for details on how
 to build it.
+
+@item
+New user option @code{trusted-contents} to allow potentially dangerous
+Emacs features which could execute arbitrary Lisp code.  Use this
+variable to list files and directories whose contents Emacs should
+trust, thus allowing those potentially dangerous features when those
+files are visited.
 
 @item
 Numerous performance improvements, for example in parsing JSON, reading
@@ -4065,6 +4072,7 @@ information is available from
 * Compose Character::
 * Binding combinations of modifiers and function keys::
 * Meta key does not work in xterm::
+* Some Ctrl-modified keys do not work on xterm::
 @end menu
 
 @node Binding keys to commands
@@ -4535,6 +4543,25 @@ XTerm.VT100.Translations: #override \
 You might have to replace @samp{Meta} with @samp{Alt}.
 
 @end itemize
+
+@node Some Ctrl-modified keys do not work on xterm
+@section Why don't some keys like @kbd{C-.} work on xterm?
+
+If your @code{xterm} version is 216 or newer, you should have keys like
+@kbd{C-.} and @kbd{C-,} if you add the following resource specification
+to your @file{~/.Xdefaults}:
+
+@example
+ XTerm.VT100.modifyOtherKeys: 1
+@end example
+
+@noindent
+If you want to use @code{uxterm}, also add the following:
+
+@example
+ UXTerm.VT100.modifyOtherKeys: 1
+@end example
+
 
 @c ------------------------------------------------------------
 @node Alternate character sets

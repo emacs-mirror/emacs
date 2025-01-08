@@ -1,6 +1,6 @@
 ;;; esh-var-tests.el --- esh-var test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -35,6 +35,8 @@
                                                     default-directory))))
 
 (defvar eshell-test-value nil)
+(defvar eshell-test-begin nil)
+(defvar eshell-test-end nil)
 
 ;;; Tests:
 
@@ -111,7 +113,11 @@ nil, use FUNCTION instead."
     (eshell-command-result-equal
      "echo $eshell-test-value[1..4 -2..]"
      (list (funcall range-function '("one" "two" "three"))
-           (funcall range-function '("three" "four"))))))
+           (funcall range-function '("three" "four"))))
+    (let ((eshell-test-begin 1) (eshell-test-end 4))
+      (eshell-command-result-equal
+       "echo $eshell-test-value[$eshell-test-begin..$eshell-test-end]"
+       (funcall range-function '("one" "two" "three"))))))
 
 (ert-deftest esh-var-test/interp-var-indices/list ()
   "Interpolate list variable with indices."
@@ -217,7 +223,8 @@ nil, use FUNCTION instead."
   "Splice-interpolate list variable."
   (let ((eshell-test-value '(1 2 3)))
     (eshell-command-result-equal "echo a $@eshell-test-value z"
-                                 '("a" 1 2 3 "z"))))
+                                 '("a" 1 2 3 "z"))
+    (should (equal eshell-test-value '(1 2 3)))))
 
 (ert-deftest esh-var-test/interp-var-splice-concat ()
   "Splice-interpolate and concat list variable."
@@ -231,7 +238,7 @@ nil, use FUNCTION instead."
     ;; into the first value of the non-spliced list.
     (eshell-command-result-equal
      "echo it is $@'eshell-test-value'$eshell-test-value"
-     '("it" "is" 1 2 (31 2 3)))))
+     '("it" "is" 1 2 ("31" 2 3)))))
 
 (ert-deftest esh-var-test/interp-lisp ()
   "Interpolate Lisp form evaluation."
@@ -280,12 +287,16 @@ nil, use FUNCTION instead."
   (eshell-command-result-equal "+ ${+ 1 2}3 3" 36)
   (eshell-command-result-equal "echo ${*echo \"foo\nbar\"}-baz"
                                '("foo" "bar-baz"))
-  ;; Concatenating to a number in a list should produce a number...
+  ;; Concatenating to a number in a list should produce a numeric value...
   (eshell-command-result-equal "echo ${*echo \"1\n2\"}3"
+                               '("1" "23"))
+  (eshell-command-result-equal "echo $@{*echo \"1\n2\"}3"
                                '(1 23))
   ;; ... but concatenating to a string that looks like a number in a list
   ;; should produce a string.
   (eshell-command-result-equal "echo ${*echo \"hi\n2\"}3"
+                               '("hi" "23"))
+  (eshell-command-result-equal "echo $@{*echo \"hi\n2\"}3"
                                '("hi" "23")))
 
 (ert-deftest esh-var-test/interp-concat-cmd2 ()
@@ -331,15 +342,10 @@ nil, use FUNCTION instead."
   (let ((eshell-test-value '("zero" "one" "two" "three" "four")))
     (eshell-command-result-equal "echo \"$eshell-test-value[0]\""
                                  "zero")
-    ;; FIXME: These tests would use the 0th index like the other tests
-    ;; here, but evaluating the command just above adds an `escaped'
-    ;; property to the string "zero".  This results in the output
-    ;; printing the string properties, which is probably the wrong
-    ;; behavior.  See bug#54486.
-    (eshell-command-result-equal "echo \"$eshell-test-value[1 2]\""
-                                 "(\"one\" \"two\")")
-    (eshell-command-result-equal "echo \"$eshell-test-value[1 2 4]\""
-                                 "(\"one\" \"two\" \"four\")")))
+    (eshell-command-result-equal "echo \"$eshell-test-value[0 2]\""
+                                 "(\"zero\" \"two\")")
+    (eshell-command-result-equal "echo \"$eshell-test-value[0 2 4]\""
+                                 "(\"zero\" \"two\" \"four\")")))
 
 (ert-deftest esh-var-test/quote-interp-var-indices-subcommand ()
   "Interpolate list variable with subcommand expansion for indices inside double-quotes."
@@ -348,11 +354,9 @@ nil, use FUNCTION instead."
     (eshell-command-result-equal
      "echo \"$eshell-test-value[${*echo 0}]\""
      "zero")
-    ;; FIXME: These tests would use the 0th index like the other tests
-    ;; here, but see above.
     (eshell-command-result-equal
-     "echo \"$eshell-test-value[${*echo 1} ${*echo 2}]\""
-     "(\"one\" \"two\")")))
+     "echo \"$eshell-test-value[${*echo 0} ${*echo 2}]\""
+     "(\"zero\" \"two\")")))
 
 (ert-deftest esh-var-test/quoted-interp-var-split-indices ()
   "Interpolate string variable with indices inside double-quotes."
@@ -424,7 +428,8 @@ nil, use FUNCTION instead."
   "Splice-interpolate list variable inside double-quotes."
   (let ((eshell-test-value '(1 2 3)))
     (eshell-command-result-equal "echo a \"$@eshell-test-value\" z"
-                                 '("a" "1 2 3" "z"))))
+                                 '("a" "1 2 3" "z"))
+    (should (equal eshell-test-value '(1 2 3)))))
 
 (ert-deftest esh-var-test/quoted-interp-var-splice-concat ()
   "Splice-interpolate and concat list variable inside double-quotes"
@@ -491,11 +496,16 @@ nil, use FUNCTION instead."
 
 (ert-deftest esh-var-test/interp-convert-var-split-indices ()
   "Interpolate and convert string variable with indices."
-  ;; Check that numeric forms are converted to numbers.
+  ;; Check that numeric forms are marked as numeric.
   (let ((eshell-test-value "000 010 020 030 040"))
+    ;; `eshell/echo' converts numeric strings to Lisp numbers...
     (eshell-command-result-equal "echo $eshell-test-value[0]"
                                  0)
+    ;; ... but not lists of numeric strings...
     (eshell-command-result-equal "echo $eshell-test-value[0 2]"
+                                 '("000" "020"))
+    ;; ... unless each element is a separate argument to `eshell/echo'.
+    (eshell-command-result-equal "echo $@eshell-test-value[0 2]"
                                  '(0 20)))
   ;; Check that multiline forms are preserved as-is.
   (let ((eshell-test-value "foo\nbar:baz\n"))
@@ -515,9 +525,14 @@ nil, use FUNCTION instead."
 (ert-deftest esh-var-test/interp-convert-quoted-var-split-indices ()
   "Interpolate and convert quoted string variable with indices."
   (let ((eshell-test-value "000 010 020 030 040"))
+    ;; `eshell/echo' converts numeric strings to Lisp numbers...
     (eshell-command-result-equal "echo $'eshell-test-value'[0]"
                                  0)
+    ;; ... but not lists of numeric strings...
     (eshell-command-result-equal "echo $'eshell-test-value'[0 2]"
+                                 '("000" "020"))
+    ;; ... unless each element is a separate argument to `eshell/echo'.
+    (eshell-command-result-equal "echo $@'eshell-test-value'[0 2]"
                                  '(0 20))))
 
 (ert-deftest esh-var-test/interp-convert-cmd-string-newline ()
@@ -530,9 +545,13 @@ nil, use FUNCTION instead."
                                '("foo" "bar"))
   ;; Numeric output should be converted to numbers...
   (eshell-command-result-equal "echo ${echo \"01\n02\n03\"}"
+                               '("01" "02" "03"))
+  (eshell-command-result-equal "echo $@{echo \"01\n02\n03\"}"
                                '(1 2 3))
   ;; ... but only if every line is numeric.
   (eshell-command-result-equal "echo ${echo \"01\n02\nhi\"}"
+                               '("01" "02" "hi"))
+  (eshell-command-result-equal "echo $@{echo \"01\n02\nhi\"}"
                                '("01" "02" "hi")))
 
 (ert-deftest esh-var-test/interp-convert-cmd-number ()
@@ -541,9 +560,14 @@ nil, use FUNCTION instead."
 
 (ert-deftest esh-var-test/interp-convert-cmd-split-indices ()
   "Interpolate command result with indices."
+  ;; `eshell/echo' converts numeric strings to Lisp numbers...
   (eshell-command-result-equal "echo ${echo \"000 010 020\"}[0]"
                                0)
+  ;; ... but not lists of numeric strings...
   (eshell-command-result-equal "echo ${echo \"000 010 020\"}[0 2]"
+                               '("000" "020"))
+  ;; ... unless each element is a separate argument to `eshell/echo'.
+  (eshell-command-result-equal "echo $@{echo \"000 010 020\"}[0 2]"
                                '(0 20)))
 
 (ert-deftest esh-var-test/quoted-interp-convert-var-number ()

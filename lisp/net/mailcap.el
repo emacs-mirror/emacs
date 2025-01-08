@@ -1,6 +1,6 @@
 ;;; mailcap.el --- MIME media types configuration -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2025 Free Software Foundation, Inc.
 
 ;; Author: William M. Perry <wmperry@aventail.com>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -856,10 +856,10 @@ If NO-DECODE is non-nil, don't decode STRING."
             ;; ~/.mailcap file, then we filter out the system entries
             ;; and see whether we have anything left.
             (when mailcap-prefer-mailcap-viewers
-              (when-let ((user-entries
-                          (seq-filter (lambda (elem)
-                                        (eq (cdr (assq 'source elem)) 'user))
-                                      passed)))
+              (when-let* ((user-entries
+                           (seq-filter (lambda (elem)
+                                         (eq (cdr (assq 'source elem)) 'user))
+                                       passed)))
                 (setq passed user-entries)))
             (setq viewer (car passed))))
         (when (and (stringp (cdr (assq 'viewer viewer)))
@@ -1084,10 +1084,17 @@ For instance, \"foo.png\" will result in \"image/png\"."
 (defun mailcap-mime-type-to-extension (mime-type)
   "Return a file name extension based on a MIME-TYPE.
 For instance, `image/png' will result in `png'."
-  (intern (cadr (split-string (if (symbolp mime-type)
-                                  (symbol-name mime-type)
-                                mime-type)
-                              "/"))))
+  (intern
+   (let ((e (cadr (split-string (if (symbolp mime-type)
+                                    (symbol-name mime-type)
+                                  mime-type)
+                                "/"))))
+     ;; Usually, the normal extension is the same as the MIME subtype.
+     ;; But for SVG files, the extension is "svg" and the MIME type is
+     ;; "svg+xml".
+     (if (string= e "svg+xml")
+         "svg"
+       e))))
 
 (defun mailcap-mime-types ()
   "Return a list of MIME media types."

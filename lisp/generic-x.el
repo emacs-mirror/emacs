@@ -1,6 +1,6 @@
 ;;; generic-x.el --- A collection of generic modes  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997-1998, 2001-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2025 Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Tue Oct 08 1996
@@ -702,9 +702,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
 			 "FILETYPE"
 			 "FILEVERSION"
 			 "PRODUCTVERSION") 'symbols)
-	   1 font-lock-type-face)
+           1 'font-lock-type-face)
      (list (regexp-opt '("BEGIN" "BLOCK" "END" "VALUE") 'symbols)
-	   1 font-lock-function-name-face)
+           1 'font-lock-function-name-face)
      '("^#[ \t]*include[ \t]+\\(<[^>\"\n]+>\\)" 1 font-lock-string-face)
      '("^#[ \t]*define[ \t]+\\(\\sw+\\)("       1 font-lock-function-name-face)
      '("^#[ \t]*\\(elif\\|if\\)\\>"
@@ -1323,22 +1323,22 @@ like an INI file.  You can add this hook to `find-file-hook'."
      (list (concat "[^_]"
 		   (regexp-opt installshield-system-variables-list 'symbols)
 		   "[^_]")
-	   1 font-lock-variable-name-face)
+           1 'font-lock-variable-name-face)
      ;; system functions
      (list (concat "[^_]"
 		   (regexp-opt installshield-system-functions-list 'symbols)
 		   "[^_]")
-	   1 font-lock-function-name-face)
+           1 'font-lock-function-name-face)
      ;; type keywords
      (list (concat "[^_]"
 		   (regexp-opt installshield-types-list 'symbols)
 		   "[^_]")
-	   1 font-lock-type-face)
+           1 'font-lock-type-face)
      ;; function argument constants
      (list (concat "[^_]"
 		   (regexp-opt installshield-funarg-constants-list 'symbols)
 		   "[^_]")
-	   1 font-lock-variable-name-face))) ; is this face the best choice?
+           1 'font-lock-variable-name-face))) ; is this face the best choice?
   '("\\.[rR][uU][lL]\\'")
   '(generic-rul-mode-setup-function)
   "Generic mode for InstallShield RUL files.")

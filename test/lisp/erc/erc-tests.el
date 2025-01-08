@@ -1,6 +1,6 @@
 ;;; erc-tests.el --- Tests for erc.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2025 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 
@@ -825,7 +825,10 @@
     (should (equal (erc-parse-modes "-o bob") '(nil nil (("o" off "bob")))))
     (should (equal (erc-parse-modes "+uo bob") '(("u") nil (("o" on "bob")))))
     (should (equal (erc-parse-modes "+o-u bob") '(nil ("u") (("o" on "bob")))))
+
     (should (equal (erc-parse-modes "+uo-tv bob alice")
+                   '(("u") ("t") (("o" on "bob") ("v" off "alice")))))
+    (should (equal (erc-parse-modes "+u-t+o-v bob alice")
                    '(("u") ("t") (("o" on "bob") ("v" off "alice")))))
 
     (ert-info ("Modes of type B are always grouped as unary")
@@ -2915,6 +2918,85 @@
     (should (equal (erc-tests--format-my-nick "oh my") expect))
     (should (equal (erc--format-speaker-input-message "oh my") expect))))
 
+(ert-deftest erc-update-undo-list ()
+  ;; Remove `stamp' so this can run in any locale.  Alternatively, we
+  ;; could explicitly enable it and bind its format options to strings
+  ;; that lack specifiers (perhaps in a separate test).
+  (let ((erc-modules (remq 'stamp erc-modules))
+        (erc-mode-hook erc-mode-hook)
+        (erc-insert-modify-hook erc-insert-modify-hook)
+        (erc-send-modify-hook erc-send-modify-hook)
+        (inhibit-message noninteractive)
+        marker)
+
+    (erc-stamp-mode -1)
+    (erc-tests-common-make-server-buf)
+    (setq erc-server-current-nick "tester")
+
+    (with-current-buffer (erc--open-target "#chan")
+      ;; Add some filler to simulate more realistic values.
+      (erc-tests-common-simulate-line
+       ":irc.foonet.org 353 tester = #chan :bob tester alice")
+      (erc-tests-common-simulate-line
+       ":irc.foonet.org 366 tester #chan :End of NAMES list")
+      (should (erc-get-server-user "bob"))
+
+      (goto-char (point-max))
+      (should (= (point) 45))
+
+      ;; Populate undo list with contrived values.
+      (let ((kill-ring (list "abc"))
+            interprogram-paste-function)
+        (yank))
+      (push nil buffer-undo-list)
+      (push (point-max) buffer-undo-list)
+      (setq marker (point-marker))
+      (put-text-property 46 47 'face 'warning)
+      (call-interactively #'delete-backward-char 1)
+      (push nil buffer-undo-list)
+      (should (= (point) 47))
+      (should (equal buffer-undo-list `(nil
+                                        ("c" . -47)
+                                        (,marker . -1)
+                                        (nil face nil 46 . 47)
+                                        48
+                                        nil
+                                        (45 . 48))))
+
+      ;; The first char after the prompt is at buffer pos 45.
+      (should (= 40 (- 45 (length (erc-prompt))) erc-insert-marker))
+
+      ;; A new message arrives, growing the buffer by 11 chars.
+      (erc-tests-common-simulate-privmsg "bob" "test")
+      (should (equal (buffer-substring 40 erc-insert-marker) "<bob> test\n"))
+      (should (= (point-max) 58))
+      (should (= 11 (length "<bob> test\n") (- (point) 47)))
+
+      ;; The list remains unchanged relative to the end of the buffer.
+      (should (equal buffer-undo-list `(nil
+                                        ("c" . -58)
+                                        (,marker . -1)
+                                        (nil face nil 57 . 58)
+                                        59
+                                        nil
+                                        (56 . 59))))
+
+      ;; Undo behavior works as expected.
+      (undo nil)
+      (should (erc-tests-common-equal-with-props
+               (buffer-substring erc-input-marker (point-max))
+               #("abc" 1 2 (face nil))))
+      (should (equal (take 4 buffer-undo-list)
+                     `((nil face warning 57 . 58)
+                       (58 . 59)
+                       nil
+                       ("c" . -58))))
+      (undo 2)
+      (should (string-empty-p (erc-user-input)))))
+
+  (when noninteractive
+    (erc-tests-common-kill-buffers)))
+
 (ert-deftest erc--route-insertion ()
   (erc-tests-common-prep-for-insertion)
   (erc-tests-common-init-server-proc "sleep" "1")
@@ -2977,6 +3059,22 @@
 
     (should-not (buffer-live-p spam-buffer))
     (kill-buffer chan-buffer)))
+
+(ert-deftest erc-normalize-port ()
+  ;; The empty string, nil, and unsupported types become nil.
+  (should-not (erc-normalize-port ""))
+  (should-not (erc-normalize-port nil))
+  (should-not (erc-normalize-port (current-buffer)))
+
+  ;; Unrecognized names are coerced to 0.
+  (should (equal 0 (erc-normalize-port "fake")))
+
+  ;; Numbers pass through, but numeric strings are coerced.
+  (should (equal 6667 (erc-normalize-port 6667)))
+  (should (equal 6697 (erc-normalize-port "6697")))
+
+  ;; Strange IANA mappings recognized.
+  (should (equal 6665 (erc-normalize-port "ircu"))))
 
 (defvar erc-tests--ipv6-examples
   '("1:2:3:4:5:6:7:8"
@@ -3444,8 +3542,8 @@
 (ert-deftest erc-modules--internal-property ()
   (let (ours)
     (mapatoms (lambda (s)
-                (when-let ((v (get s 'erc--module))
-                           ((eq v s)))
+                (when-let* ((v (get s 'erc--module))
+                            ((eq v s)))
                   (push s ours))))
     (should (equal (sort ours #'string-lessp) erc-tests--modules))))
 
@@ -3480,7 +3578,7 @@
       (setq mods (sort mods (lambda (a b) (if (zerop (random 2)) a b))))
       (dolist (mod mods)
         (unless (keywordp mod)
-          (push (if-let ((mode (erc--find-mode mod))) mod (list :missing mod))
+          (push (if-let* ((mode (erc--find-mode mod))) mod (list :missing mod))
                 moded)))
       (message "%S"
                (sort moded (lambda (a b)
@@ -3578,7 +3676,7 @@
     (cl-letf (((symbol-function 'require)
                (lambda (s &rest _)
                  ;; Simulate library being loaded, things defined.
-                 (when-let ((h (alist-get s on-load))) (funcall h))
+                 (when-let* ((h (alist-get s on-load))) (funcall h))
                  (push (cons 'req s) calls)))
 
               ;; Spoof global module detection.

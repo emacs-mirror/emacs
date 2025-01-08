@@ -1,6 +1,6 @@
 ;;; ibuffer-tests.el --- Test suite. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -132,7 +132,7 @@
           (ibuffer-switch-to-saved-filter-groups "saved-filters")
           (should (assoc "Elisp" (cdar ibuffer-saved-filter-groups))))
       (setq ibuffer-saved-filter-groups orig-filters)
-      (when-let ((it (get-buffer "*Ibuffer*")))
+      (when-let* ((it (get-buffer "*Ibuffer*")))
         (and (buffer-live-p it) (kill-buffer it))))))
 
 

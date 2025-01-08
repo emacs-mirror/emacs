@@ -1,6 +1,6 @@
 Emacs TODO List                                                   -*-outline-*-
 
-Copyright (C) 2001-2024 Free Software Foundation, Inc.
+Copyright (C) 2001-2025 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -34,6 +34,24 @@ difficult to fix.  Bugs with severity "minor" may be simpler, but this
 is not always true.
 
 * High Priority Items
+
+** Overhaul the customization groups.
+The goal is to present new Emacs users with a reasonable and useful
+hierarchy of customization groups, thus allowing them to easily find a
+customization options they are looking for, by going down this
+hierarchy.
+
+The current customization groups (see "M-x customize-group RET RET") and
+their hierarchy are sporadic and do not systematically cover all the
+areas and domains of Emacs features.  They need to be extensively
+re-thought and overhauled.  One idea is to take the top-level chapters
+of the Emacs user manual and use those as customization groups, then
+define sub-groups using the sections.  Sub-sections could then be used
+where a third level of groups makes sense.  The place to define this
+hierarchy is mainly in cus-edit.el.
+
+Once the two- or three-level hierarchy of defgroups is defined, all the
+defcustom's should be audited and their groups redefined if necessary.
 
 ** Things related to elpa.gnu.org.
 We need to figure out how to best include GNU ELPA packages in the
@@ -955,13 +973,13 @@ This sections contains features found in other official Emacs ports.
 Emacs 25 has support for xwidgets, a system to include WebKit widgets
 into an Emacs buffer.
 
-They work on NS, but not very well.  For example, trying to display a
-xwidget in the "killed" state will make Emacs crash.  This is because
-the NS code has not been updated to keep with recent changes to the
-X11 and GTK code.
+They work on NS, but not very well.  This is because the NS code has
+not been updated to keep with recent changes to the X11 and GTK code.
 
-Many features such as xwidget-webkit-edit-mode do not work correctly
-on NS either.
+Many features do not work correctly on NS, such as:
+ - xwidget-webkit-edit-mode
+ - xwidget-webkit-isearch-mode
+ - xwidget-webkit-browse-history.
 
 **** Respect 'frame-inhibit-implied-resize'
 When the variable 'frame-inhibit-implied-resize' is non-nil, frames

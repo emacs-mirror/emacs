@@ -1,6 +1,6 @@
 ;;; tutorial.el --- tutorial for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2025 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help, internal
@@ -650,7 +650,13 @@ with some explanatory links."
 	  (delete-region prop-start prop-end))))))
 
 (defvar tutorial--starting-point)
+
+;; For when the user saves the TUTORIAL to a file.
 (put 'tutorial--starting-point 'permanent-local t)
+(put 'tutorial--lang 'permanent-local t)
+(put 'tutorial--point-before-chkeys 'permanent-local t)
+(put 'tutorial--point-after-chkeys 'permanent-local t)
+
 (defun tutorial--save-on-kill ()
   "Query the user about saving the tutorial when killing Emacs."
   (when (buffer-live-p tutorial--buffer)

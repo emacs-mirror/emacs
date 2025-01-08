@@ -1,6 +1,6 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1999-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1999-2025 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: lisp, languages
@@ -308,7 +308,7 @@ This will generate compile-time constants from BINDINGS."
                                 (buffer-substring-no-properties
                                  beg0 end0)))))
                 (buffer-substring-no-properties (1+ beg0) end0))
-         `(face ,font-lock-warning-face
+         '(face font-lock-warning-face
                 help-echo "This \\ has no effect"))))
 
 (defun lisp--match-confusable-symbol-character  (limit)
@@ -490,14 +490,17 @@ This will generate compile-time constants from BINDINGS."
            (2 font-lock-constant-face nil t))
          ;; Words inside \\[], \\<>, \\{} or \\`' tend to be for
          ;; `substitute-command-keys'.
-         (,(rx "\\\\" (or (seq "[" (group-n 1 lisp-mode-symbol) "]")
+         (,(rx "\\\\" (or (seq "["
+                               (group-n 1 (seq lisp-mode-symbol (not "\\"))) "]")
                           (seq "`" (group-n 1
                                      ;; allow multiple words, e.g. "C-x a"
                                      lisp-mode-symbol (* " " lisp-mode-symbol))
                                "'")))
           (1 font-lock-constant-face prepend))
-         (,(rx "\\\\" (or (seq "<" (group-n 1 lisp-mode-symbol) ">")
-                          (seq "{" (group-n 1 lisp-mode-symbol) "}")))
+         (,(rx "\\\\" (or (seq "<"
+                               (group-n 1 (seq lisp-mode-symbol (not "\\"))) ">")
+                          (seq "{"
+                               (group-n 1 (seq lisp-mode-symbol (not "\\"))) "}")))
           (1 font-lock-variable-name-face prepend))
          ;; Ineffective backslashes (typically in need of doubling).
          ("\\(\\\\\\)\\([^\"\\]\\)"
@@ -657,9 +660,9 @@ Lisp font lock syntactic face function."
           (let ((listbeg (nth 1 state)))
             (if (or (lisp-string-in-doc-position-p listbeg startpos)
                     (lisp-string-after-doc-keyword-p listbeg startpos))
-                font-lock-doc-face
-              font-lock-string-face))))
-    font-lock-comment-face))
+                'font-lock-doc-face
+              'font-lock-string-face))))
+    'font-lock-comment-face))
 
 (defun lisp-adaptive-fill ()
   "Return fill prefix found at point.
@@ -1153,7 +1156,7 @@ is the buffer position of the start of the containing expression."
 (defun lisp--local-defform-body-p (state)
   "Return non-nil when at local definition body according to STATE.
 STATE is the `parse-partial-sexp' state for current position."
-  (when-let ((start-of-innermost-containing-list (nth 1 state)))
+  (when-let* ((start-of-innermost-containing-list (nth 1 state)))
     (let* ((parents (nth 9 state))
            (first-cons-after (cdr parents))
            (second-cons-after (cdr first-cons-after))
@@ -1171,11 +1174,11 @@ STATE is the `parse-partial-sexp' state for current position."
         (let (local-definitions-starting-point)
           (and (save-excursion
                  (goto-char (1+ second-order-parent))
-                 (when-let ((head (ignore-errors
-                                    ;; FIXME: This does not distinguish
-                                    ;; between reading nil and a read error.
-                                    ;; We don't care but still, better fix this.
-                                    (read (current-buffer)))))
+                 (when-let* ((head (ignore-errors
+                                     ;; FIXME: This does not distinguish
+                                     ;; between reading nil and a read error.
+                                     ;; We don't care but still, better fix this.
+                                     (read (current-buffer)))))
                    (when (memq head '( cl-flet cl-labels cl-macrolet cl-flet*
                                        cl-symbol-macrolet))
                      ;; In what follows, we rely on (point) returning non-nil.

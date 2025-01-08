@@ -1,6 +1,6 @@
 ;;; org-goto.el --- Fast navigation in an Org buffer  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2025 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, text
@@ -241,7 +241,7 @@ position or nil."
 	(message "Select location and press RET")
 	(use-local-map org-goto-map)
 	(unwind-protect (recursive-edit)
-          (when-let ((window (get-buffer-window "*Org Help*" t)))
+          (when-let* ((window (get-buffer-window "*Org Help*" t)))
             (quit-window 'kill window)))))
     (when (get-buffer "*org-goto*") (kill-buffer "*org-goto*"))
     (cons org-goto-selected-point org-goto-exit-command)))

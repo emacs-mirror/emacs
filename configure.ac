@@ -4,7 +4,7 @@ dnl	autoconf
 dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl Copyright (C) 1994-1996, 1999-2024 Free Software Foundation, Inc.
+dnl Copyright (C) 1994-1996, 1999-2025 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -578,7 +578,7 @@ OPTION_DEFAULT_OFF([w32], [use native MS Windows GUI in a Cygwin build])
 OPTION_DEFAULT_OFF([pgtk], [use GTK to support window systems other than X])
 
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
-OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
+OPTION_DEFAULT_IFAVAILABLE([dbus],[compile with D-Bus support])
 AC_ARG_WITH([gconf],[AS_HELP_STRING([--with-gconf],
 [compile with Gconf support (Gsettings replaces this)])],[],
 [if test $with_features = yes; then
@@ -1629,10 +1629,6 @@ ac_func_list=$funcs
 AC_DEFUN([gt_TYPE_WINT_T],
   [GNULIBHEADERS_OVERRIDE_WINT_T=0
    AC_SUBST([GNULIBHEADERS_OVERRIDE_WINT_T])])
-# Emacs does not need precise checks for the Solaris 10 MB_CUR_MAX bug.
-AC_DEFUN_ONCE([gl_STDLIB_H],
-  [AC_REQUIRE([gl_STDLIB_H_DEFAULTS])
-   gl_NEXT_HEADERS([stdlib.h])])
 # Emacs does not need to check for off64_t.
 AC_DEFUN([gl_TYPE_OFF64_T],
   [HAVE_OFF64_T=1
@@ -3186,7 +3182,7 @@ if test "${HAVE_W32}" = "yes"; then
   AC_CHECK_TOOL([WINDRES], [windres],
                 [AC_MSG_ERROR([No resource compiler found.])])
   W32_OBJ="w32fns.o w32menu.o w32reg.o w32font.o w32term.o"
-  W32_OBJ="$W32_OBJ w32xfns.o w32select.o w32uniscribe.o w32cygwinx.o"
+  W32_OBJ="$W32_OBJ w32xfns.o w32select.o w32uniscribe.o w32dwrite.o w32cygwinx.o"
   EMACSRES="emacs.res"
   case "$canonical" in
     x86_64-*-*) EMACS_MANIFEST="emacs-x64.manifest" ;;
@@ -3983,8 +3979,8 @@ dnl D-Bus has been tested under GNU/Linux only.  Must be adapted for
 dnl other platforms.
 HAVE_DBUS=no
 DBUS_OBJ=
-if test "${with_dbus}" = "yes"; then
-   EMACS_CHECK_MODULES([DBUS], [dbus-1 >= 1.0])
+if test "${with_dbus}" != "no" ; then
+   EMACS_CHECK_MODULES([DBUS], [dbus-1 >= 1.0], [HAVE_DBUS=yes], [HAVE_DBUS=no])
    if test "$HAVE_DBUS" = yes; then
      AC_DEFINE([HAVE_DBUS], [1], [Define to 1 if using D-Bus.])
      dnl dbus_watch_get_unix_fd has been introduced in D-Bus 1.1.1.
@@ -5578,6 +5574,11 @@ if test "${HAVE_X11}" = "yes"; then
        WITH_IFAVAILABLE="$WITH_IFAVAILABLE --with-tiff=ifavailable";;
   esac
 fi
+case $with_dbus,$HAVE_DBUS in
+  no,* | ifavailable,* | *,yes) ;;
+  *) MISSING="$MISSING dbus-1"
+     WITH_IFAVAILABLE="$WITH_IFAVAILABLE --with-dbus=ifavailable";;
+esac
 case $with_gnutls,$HAVE_GNUTLS in
   no,* | ifavailable,* | *,yes) ;;
   *) MISSING="$MISSING gnutls"
@@ -7179,6 +7180,9 @@ AC_CACHE_CHECK([for usable FIONREAD], [emacs_cv_usable_FIONREAD],
 			    #ifdef USG5_4
 			    # include <sys/filio.h>
 			    #endif
+			    #ifdef HAVE_UNISTD_H
+			    # include <unistd.h> /* defines ioctl() on Solaris */
+			    #endif
 			  ]],
 			  [[int foo = ioctl (0, FIONREAD, &foo);]])],
 	 [emacs_cv_usable_FIONREAD=yes],
@@ -7253,7 +7257,7 @@ fi
 
 version=$PACKAGE_VERSION
 
-copyright="Copyright (C) 2024 Free Software Foundation, Inc."
+copyright="Copyright (C) 2025 Free Software Foundation, Inc."
 AC_DEFINE_UNQUOTED([COPYRIGHT], ["$copyright"],
   [Short copyright string for this version of Emacs.])
 AC_SUBST([copyright])
@@ -7700,38 +7704,9 @@ fi
 
 AC_SUBST([WINDOW_SYSTEM_OBJ])
 
-# Some systems have MB_CUR_MAX defined to a call to
-# __ctype_get_mb_cur_max, but do not have __ctype_get_mb_cur_max in
-# libc.  Check for that situation and define MB_CUR_MAX to something
-# sane.
-
-AC_CHECK_FUNC([__ctype_get_mb_cur_max])
-
-AC_CACHE_CHECK([whether MB_CUR_MAX is defined to function that won't link],
-  [emacs_cv_broken_mb_cur_max],
-  [AC_EGREP_CPP(__ctype_get_mb_cur_max, [
-#include <stdlib.h>
-#ifndef MB_CUR_MAX
-#define MB_CUR_MAX -1
-#endif
-static int foo = MB_CUR_MAX;
-], [AS_IF([test "$ac_cv_func___ctype_get_mb_cur_max" = "yes"],
-     [emacs_cv_broken_mb_cur_max=no],
-     [emacs_cv_broken_mb_cur_max=yes])],
-  [emacs_cv_broken_mb_cur_max=no])])
-
-AS_IF([test "$emacs_cv_broken_mb_cur_max" = "yes"],
- # Define this to 4, which is right for Android.
- [AS_CASE([$opsys], [android],
-   [AC_DEFINE([REPLACEMENT_MB_CUR_MAX], [4],
-      [Define to MB_CUR_MAX if stdlib.h is broken.])],
-   [AC_MSG_ERROR([MB_CUR_MAX does not work on your system.
-Please modify configure.ac to set an appropriate value, then
-send your change to bug-gnu-emacs@gnu.org])])])
-
 AH_TOP([/* GNU Emacs site configuration template file.
 
-Copyright (C) 1988-2024 Free Software Foundation, Inc.
+Copyright (C) 1988-2025 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; typescript-ts-mode.el --- tree sitter support for TypeScript  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
 ;; Maintainer : Theodor Thornhill <theo@thornhill.no>
@@ -22,6 +22,15 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Tree-sitter language versions
+;;
+;; typescript-ts-mode is known to work with the following languages and version:
+;; - tree-sitter-typescript: v0.23.2-2-g8e13e1d
+;;
+;; We try our best to make builtin modes work with latest grammar
+;; versions, so a more recent grammar version has a good chance to work.
+;; Send us a bug report if it doesn't.
+
 ;;; Commentary:
 ;;
 
@@ -31,13 +40,7 @@
 (require 'js)
 (eval-when-compile (require 'rx))
 (require 'c-ts-common) ; For comment indent and filling.
-
-(declare-function treesit-node-child "treesit.c")
-(declare-function treesit-node-start "treesit.c")
-(declare-function treesit-node-end "treesit.c")
-(declare-function treesit-parser-create "treesit.c")
-(declare-function treesit-query-capture "treesit.c")
-(declare-function treesit-query-compile "treesit.c")
+(treesit-declare-unavailable-functions)
 
 (defcustom typescript-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `typescript-ts-mode'."
@@ -87,7 +90,7 @@
 (defun typescript-ts-mode--check-dialect (dialect)
   (unless (or (eq dialect 'typescript) (eq dialect 'tsx))
     (signal 'typescript-ts-mode-wrong-dialect-error
-            (list "Unsupported dialect for typescript-ts-mode suplied" dialect))))
+            (list "Unsupported dialect for typescript-ts-mode supplied" dialect))))
 
 (defun tsx-ts-mode--indent-compatibility-b893426 ()
   "Indent rules helper, to handle different releases of tree-sitter-tsx.
@@ -198,32 +201,47 @@ Argument LANGUAGE is either `typescript' or `tsx'."
   ;; Warning: treesitter-query-capture says both node types are valid,
   ;; but then raises an error if the wrong node type is used. So it is
   ;; important to check with the new node type (member_expression)
+  ;;
+  ;; Later typescript grammar removed support for jsx, so the later
+  ;; grammar versions this function just return nil.
   (typescript-ts-mode--check-dialect language)
-  (condition-case nil
-      (progn (treesit-query-capture language '((jsx_opening_element (member_expression) @capture)))
-	     '((jsx_opening_element
-		[(member_expression (identifier)) (identifier)]
-		@typescript-ts-jsx-tag-face)
+  (let ((queries-a '((jsx_opening_element
+		      [(member_expression (identifier)) (identifier)]
+		      @typescript-ts-jsx-tag-face)
 
-	       (jsx_closing_element
-		[(member_expression (identifier)) (identifier)]
-		@typescript-ts-jsx-tag-face)
+	             (jsx_closing_element
+		      [(member_expression (identifier)) (identifier)]
+		      @typescript-ts-jsx-tag-face)
 
-	       (jsx_self_closing_element
-		[(member_expression (identifier)) (identifier)]
-		@typescript-ts-jsx-tag-face)))
-    (treesit-query-error
-           '((jsx_opening_element
-	      [(nested_identifier (identifier)) (identifier)]
-	      @typescript-ts-jsx-tag-face)
+	             (jsx_self_closing_element
+		      [(member_expression (identifier)) (identifier)]
+		      @typescript-ts-jsx-tag-face)
 
-	     (jsx_closing_element
-	      [(nested_identifier (identifier)) (identifier)]
-	      @typescript-ts-jsx-tag-face)
+                     (jsx_attribute (property_identifier)
+                                    @typescript-ts-jsx-attribute-face)))
+        (queries-b '((jsx_opening_element
+	              [(nested_identifier (identifier)) (identifier)]
+	              @typescript-ts-jsx-tag-face)
 
-	     (jsx_self_closing_element
-	      [(nested_identifier (identifier)) (identifier)]
-	      @typescript-ts-jsx-tag-face)))))
+                     (jsx_closing_element
+	              [(nested_identifier (identifier)) (identifier)]
+	              @typescript-ts-jsx-tag-face)
+
+                     (jsx_self_closing_element
+	              [(nested_identifier (identifier)) (identifier)]
+	              @typescript-ts-jsx-tag-face)
+
+                     (jsx_attribute (property_identifier)
+                                    @typescript-ts-jsx-attribute-face))))
+    (or (ignore-errors
+          (treesit-query-compile language queries-a t)
+          queries-a)
+        (ignore-errors
+          (treesit-query-compile language queries-b t)
+          queries-b)
+        ;; Return a dummy query that doens't do anything, if neither
+        ;; query works.
+        '("," @_ignore))))
 
 (defun tsx-ts-mode--font-lock-compatibility-function-expression (language)
   "Handle tree-sitter grammar breaking change for `function' expression.
@@ -392,8 +410,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 
      :language language
      :feature 'jsx
-     (append (tsx-ts-mode--font-lock-compatibility-bb1f97b language)
-             `((jsx_attribute (property_identifier) @typescript-ts-jsx-attribute-face)))
+     (tsx-ts-mode--font-lock-compatibility-bb1f97b language)
 
      :language language
      :feature 'number
@@ -465,6 +482,33 @@ See `treesit-thing-settings' for more information.")
   "Nodes that designate sexps in TypeScript.
 See `treesit-thing-settings' for more information.")
 
+(defvar typescript-ts-mode--sexp-list-nodes
+  '("export_clause"
+    "named_imports"
+    "statement_block"
+    "_for_header"
+    "switch_body"
+    "parenthesized_expression"
+    "object"
+    "object_pattern"
+    "array"
+    "array_pattern"
+    "string"
+    "regex"
+    "arguments"
+    "class_body"
+    "formal_parameters"
+    "computed_property_name"
+    "decorator_parenthesized_expression"
+    "enum_body"
+    "parenthesized_type"
+    "type_arguments"
+    "object_type"
+    "type_parameters"
+    "tuple_type")
+  "Nodes that designate lists in TypeScript.
+See `treesit-thing-settings' for more information.")
+
 ;;;###autoload
 (define-derived-mode typescript-ts-base-mode prog-mode "TypeScript"
   "Generic major mode for editing TypeScript.
@@ -475,7 +519,6 @@ This mode is intended to be inherited by concrete major modes."
 
   ;; Comments.
   (c-ts-common-comment-setup)
-  (setq-local treesit-defun-prefer-top-level t)
 
   ;; Electric
   (setq-local electric-indent-chars
@@ -492,11 +535,14 @@ This mode is intended to be inherited by concrete major modes."
 
   (setq-local treesit-thing-settings
               `((typescript
-                 (sexp ,(regexp-opt typescript-ts-mode--sexp-nodes))
+                 (sexp ,(regexp-opt typescript-ts-mode--sexp-nodes 'symbols))
+                 (sexp-list ,(regexp-opt typescript-ts-mode--sexp-list-nodes
+                                         'symbols))
                  (sentence ,(regexp-opt
-                             typescript-ts-mode--sentence-nodes))
+                             typescript-ts-mode--sentence-nodes 'symbols))
                  (text ,(regexp-opt '("comment"
-                                      "template_string"))))))
+                                      "template_string")
+                                    'symbols)))))
 
   ;; Imenu (same as in `js-ts-mode').
   (setq-local treesit-simple-imenu-settings
@@ -575,10 +621,19 @@ at least 3 (which is the default value)."
                    (sexp ,(regexp-opt
                            (append typescript-ts-mode--sexp-nodes
                                    '("jsx"))))
+                   (sexp-list ,(concat "^"
+                                       (regexp-opt
+                                        (append typescript-ts-mode--sexp-list-nodes
+                                                '(
+                                                  "jsx_element"
+                                                  "jsx_self_closing_element"
+                                                  "jsx_expression")))
+                                       "$"))
                    (sentence ,(regexp-opt
                                (append typescript-ts-mode--sentence-nodes
                                        '("jsx_element"
-                                         "jsx_self_closing_element")))))))
+                                         "jsx_self_closing_element"))
+                               'symbols)))))
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings
@@ -603,11 +658,7 @@ at least 3 (which is the default value)."
   (when (treesit-available-p)
     (treesit-query-compile 'tsx
                            '(((regex pattern: (regex_pattern) @regexp))
-                             ((variable_declarator value: (jsx_element) @jsx))
-                             ((assignment_expression right: (jsx_element) @jsx))
-                             ((arguments (jsx_element) @jsx))
-                             ((parenthesized_expression (jsx_element) @jsx))
-                             ((return_statement (jsx_element) @jsx))))))
+                             ((jsx_text) @jsx)))))
 
 (defun typescript-ts--syntax-propertize (beg end)
   (let ((captures (treesit-query-capture 'typescript typescript-ts--s-p-query beg end)))
@@ -619,17 +670,29 @@ at least 3 (which is the default value)."
 
 (defun tsx-ts--syntax-propertize-captures (captures)
   (pcase-dolist (`(,name . ,node) captures)
-    (let* ((ns (treesit-node-start node))
-           (ne (treesit-node-end node))
-           (syntax (pcase-exhaustive name
-                     ('regexp
-                      (cl-decf ns)
-                      (cl-incf ne)
-                      (string-to-syntax "\"/"))
-                     ('jsx
-                      (string-to-syntax "|")))))
-      (put-text-property ns (1+ ns) 'syntax-table syntax)
-      (put-text-property (1- ne) ne 'syntax-table syntax))))
+    (let ((ns (treesit-node-start node))
+          (ne (treesit-node-end node)))
+      (pcase-exhaustive name
+        ('regexp
+         (let ((syntax (string-to-syntax "\"/")))
+           (cl-decf ns)
+           (cl-incf ne)
+           (put-text-property ns (1+ ns) 'syntax-table syntax)
+           (put-text-property (1- ne) ne 'syntax-table syntax)))
+        ;; We put punctuation syntax on all the balanced pair
+        ;; characters so they don't mess up syntax-ppss.  We can't put
+        ;; string syntax on the whole thing because a) it doesn't work
+        ;; if the text is one character long, and b) it interferes
+        ;; forward/backward-sexp.
+        ('jsx
+         (save-excursion
+           (goto-char ns)
+           (while (re-search-forward (rx (or "{" "}" "[" "]"
+                                             "(" ")" "<" ">"))
+                                     ne t)
+             (put-text-property
+              (match-beginning 0) (match-end 0)
+              'syntax-table (string-to-syntax ".")))))))))
 
 (if (treesit-ready-p 'tsx)
     (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode)))

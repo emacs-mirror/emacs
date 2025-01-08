@@ -1,6 +1,6 @@
 ;;; srecode/template.el --- SRecoder template language parser support.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005, 2007-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -53,6 +53,7 @@
    ;; Parsing
    ;; Environment
    semantic-imenu-summary-function #'semantic-format-tag-name
+   semantic--create-index-function-origin imenu-create-index-function
    imenu-create-index-function #'semantic-create-imenu-index
    semantic-command-separation-character "\n"
    semantic-lex-comment-regex ";;"

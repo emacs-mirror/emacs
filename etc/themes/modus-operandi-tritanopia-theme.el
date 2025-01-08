@@ -1,6 +1,6 @@
 ;;; modus-operandi-tritanopia-theme.el --- Tritanopia-optimized theme with a white background -*- lexical-binding:t -*-
 
-;; Copyright (C) 2019-2024  Free Software Foundation, Inc.
+;; Copyright (C) 2019-2025 Free Software Foundation, Inc.
 
 ;; Author: Protesilaos Stavrou <info@protesilaos.com>
 ;; Maintainer: Protesilaos Stavrou <info@protesilaos.com>
@@ -304,14 +304,16 @@ standard)."
 
       (date-common cyan-cooler)
       (date-deadline red)
+      (date-deadline-subtle red-faint)
       (date-event fg-alt)
       (date-holiday red)
       (date-holiday-other cyan)
       (date-now fg-main)
       (date-range fg-alt)
       (date-scheduled magenta)
+      (date-scheduled-subtle magenta-faint)
       (date-weekday cyan)
-      (date-weekend red-faint)
+      (date-weekend magenta-warmer)
 
 ;;;; Line number mappings
 

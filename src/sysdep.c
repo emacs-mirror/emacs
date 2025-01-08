@@ -1,5 +1,5 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985-1988, 1993-1995, 1999-2024 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1999-2025 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.

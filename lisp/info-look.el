@@ -1,6 +1,6 @@
 ;;; info-look.el --- major-mode-sensitive Info index lookup facility -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-1999, 2001-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1999, 2001-2025 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@ralph-schleicher.de>
 ;; Keywords: help languages
@@ -327,7 +327,7 @@ string of `info-lookup-alist'.
 If optional argument QUERY is non-nil, query for the help mode."
   (let* ((mode (cond (query
 		      (info-lookup-change-mode topic))
-		     ((when-let
+		     ((when-let*
                           ((info (info-lookup->mode-value
                                   topic (info-lookup-select-mode))))
                         (info-lookup--expand-info info))
@@ -791,7 +791,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 (defun info-complete (topic mode)
   "Try to complete a help item."
   (barf-if-buffer-read-only)
-  (when-let ((info (info-lookup->mode-value topic mode)))
+  (when-let* ((info (info-lookup->mode-value topic mode)))
     (info-lookup--expand-info info))
   (let ((data (info-lookup-completions-at-point topic mode)))
     (if (null data)
@@ -995,9 +995,11 @@ Return nil if there is nothing appropriate in the buffer near point."
  :mode 'latex-mode
  :regexp "\\\\\\([a-zA-Z]+\\|[^a-zA-Z]\\)"
  :doc-spec `((,(if (Info-find-file "latex2e" t)
-		   ;; From http://home.gna.org/latexrefman
-		   "(latex2e)Command Index"
-		 "(latex)Command Index")
+                   ;; From CTAN's https://ctan.org/pkg/latex2e-help-texinfo
+                   ;; and https://puszcza.gnu.org.ua/projects/latexrefman/
+		   "(latex2e)Index"
+                 ;; From https://savannah.nongnu.org/projects/latex-manual/
+		 "(latex-manual)Command Index")
 	      ;; \frac{NUM}{DEN} etc can have more than one {xx} argument.
 	      ;; \sqrt[ROOT]{num} and others can have square brackets.
 	      nil "[`'‘]" "\\({[^}]*}|\\[[^]]*\\]\\)*['’]")))
@@ -1226,7 +1228,7 @@ Return nil if there is nothing appropriate in the buffer near point."
  :ignore-case t
  :regexp "[^][()`'‘’,:\" \t\n]+"
  :parse-rule (lambda ()
-               (when-let ((symbol (get-text-property (point) 'custom-data)))
+               (when-let* ((symbol (get-text-property (point) 'custom-data)))
                  (symbol-name symbol)))
  :other-modes '(emacs-lisp-mode))
 

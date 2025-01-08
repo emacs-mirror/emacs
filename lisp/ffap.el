@@ -1,6 +1,6 @@
 ;;; ffap.el --- find file (or url) at point  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
 ;; Author: Michelangelo Grigni <mic@mathcs.emory.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -805,7 +805,7 @@ to extract substrings.")
 
 (declare-function project-root "project" (project))
 (defun ffap-in-project (name)
-  (when-let (project (project-current))
+  (when-let* ((project (project-current)))
     (file-name-concat (project-root project) name)))
 
 (defun ffap-home (name) (ffap-locate-file name t '("~")))
@@ -831,22 +831,7 @@ to extract substrings.")
   (and (not (string-match "\\.el\\'" name))
        (ffap-locate-file name '(".el") load-path)))
 
-;; FIXME this duplicates the logic of Man-header-file-path.
-;; There should be a single central variable or function for this.
-;; See also (bug#10702):
-;; cc-search-directories, semantic-c-dependency-system-include-path,
-;; semantic-gcc-setup
-(defvar ffap-c-path
-  (let ((arch (with-temp-buffer
-                (when (eq 0 (ignore-errors
-                              (call-process "gcc" nil '(t nil) nil
-                                            "-print-multiarch")))
-                  (goto-char (point-min))
-                  (buffer-substring (point) (line-end-position)))))
-        (base '("/usr/include" "/usr/local/include")))
-    (if (zerop (length arch))
-        base
-      (append base (list (expand-file-name arch "/usr/include")))))
+(defvar ffap-c-path (internal--c-header-file-path)
   "List of directories to search for include files.")
 
 (defun ffap-c-mode (name)
@@ -1512,6 +1497,7 @@ which may actually result in an URL rather than a filename."
       ;; We mainly just want to disable these bits:
       (substitute-in-file-name (car args))
       (expand-file-name (car args))
+      (unhandled-file-name-directory temporary-file-directory)
       (otherwise
        (apply operation args)))))
 
@@ -1738,14 +1724,15 @@ Function CONT is applied to the entry chosen by the user."
 				    alist))))))
      ;; minibuffer with completion buffer:
      (t
-      (let ((minibuffer-setup-hook 'minibuffer-completion-help))
-	;; Bug: prompting may assume unique strings, no "".
-	(setq choice
-	      (completing-read
-	       (format-prompt title (car (car alist)))
-	       alist nil t
-	       ;; (cons (car (car alist)) 0)
-	       nil)))
+      ;; Bug: prompting may assume unique strings, no "".
+      (setq choice
+	    (completing-read
+	     (format-prompt title (car (car alist)))
+             (completion-table-with-metadata
+	      alist '((category . ffap-menu) (eager-display . t)))
+             nil t
+	     ;; (cons (car (car alist)) 0)
+	     nil))
       (sit-for 0)			; redraw original screen
       ;; Convert string to its entry, or else the default:
       (setq choice (or (assoc choice alist) (car alist)))))

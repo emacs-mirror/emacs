@@ -1,9 +1,11 @@
 # fsusage.m4
 # serial 35
-dnl Copyright (C) 1997-1998, 2000-2001, 2003-2024 Free Software Foundation, Inc.
+dnl Copyright (C) 1997-1998, 2000-2001, 2003-2025 Free Software Foundation,
+dnl Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
+dnl This file is offered as-is, without any warranty.
 
 # Obtaining file system usage information.
 

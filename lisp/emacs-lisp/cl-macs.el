@@ -1,6 +1,6 @@
 ;;; cl-macs.el --- Common Lisp macros  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2025 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Old-Version: 2.02
@@ -2071,7 +2071,8 @@ Each definition can take the form (FUNC EXP) where
 FUNC is the function name, and EXP is an expression that returns the
 function value to which it should be bound, or it can take the more common
 form (FUNC ARGLIST BODY...) which is a shorthand
-for (FUNC (lambda ARGLIST BODY)).
+for (FUNC (lambda ARGLIST BODY)) where BODY is wrapped in
+a `cl-block' named FUNC.
 
 FUNC is defined only within FORM, not BODY, so you can't write
 recursive function definitions.  Use `cl-labels' for that.  See
@@ -2096,15 +2097,22 @@ info node `(cl) Function Bindings' for details.
                    cl-declarations body)))
   (let ((binds ()) (newenv macroexpand-all-environment))
     (dolist (binding bindings)
-      (let ((var (make-symbol (format "--cl-%s--" (car binding))))
-            (args-and-body (cdr binding)))
-        (if (and (= (length args-and-body) 1)
-                 (macroexp-copyable-p (car args-and-body)))
+      (let* ((var (make-symbol (format "--cl-%s--" (car binding))))
+             (args-and-body (cdr binding))
+             (args (car args-and-body))
+             (body (cdr args-and-body)))
+        (if (and (null body)
+                 (macroexp-copyable-p args))
             ;; Optimize (cl-flet ((fun var)) body).
-            (setq var (car args-and-body))
-          (push (list var (if (= (length args-and-body) 1)
-                              (car args-and-body)
-                            `(cl-function (lambda . ,args-and-body))))
+            (setq var args)
+          (push (list var (if (null body)
+                              args
+                            (let ((parsed-body (macroexp-parse-body body)))
+                              `(cl-function
+                                (lambda ,args
+                                  ,@(car parsed-body)
+                                  (cl-block ,(car binding)
+                                    ,@(cdr parsed-body)))))))
                 binds))
 	(push (cons (car binding)
                     (lambda (&rest args)
@@ -2247,22 +2255,43 @@ Like `cl-flet' but the definitions can refer to previous ones.
                       . ,optimized-body))
              ,retvar)))))))
 
+(defun cl--self-tco-on-form (var form)
+  ;; Apply self-tco to the function returned by FORM, assuming that
+  ;; it will be bound to VAR.
+  (pcase form
+    (`(function (lambda ,fargs . ,ebody)) form
+     (pcase-let* ((`(,decls . ,body) (macroexp-parse-body ebody))
+                  (`(,ofargs . ,obody) (cl--self-tco var fargs body)))
+       `(function (lambda ,ofargs ,@decls . ,obody))))
+    (`(let ,bindings ,form)
+     `(let ,bindings ,(cl--self-tco-on-form var form)))
+    (`(if ,cond ,exp1 ,exp2)
+     `(if ,cond ,(cl--self-tco-on-form var exp1)
+        ,(cl--self-tco-on-form var exp2)))
+    (`(oclosure--fix-type ,exp1 ,exp2)
+     `(oclosure--fix-type ,exp1 ,(cl--self-tco-on-form var exp2)))
+    (_ form)))
+
 ;;;###autoload
 (defmacro cl-labels (bindings &rest body)
   "Make local (recursive) function definitions.
-BINDINGS is a list of definitions of the form (FUNC ARGLIST BODY...) where
+BINDINGS is a list of definitions of the form either (FUNC EXP)
+where EXP is a form that should return the function to bind to the
+function name FUNC, or (FUNC ARGLIST BODY...) where
 FUNC is the function name, ARGLIST its arguments, and BODY the
-forms of the function body.  FUNC is defined in any BODY, as well
-as FORM, so you can write recursive and mutually recursive
-function definitions.  See info node `(cl) Function Bindings' for
-details.
+forms of the function body.  BODY is wrapped in a `cl-block' named FUNC.
+FUNC is in scope in any BODY or EXP, as well as in FORM, so you can write
+recursive and mutually recursive function definitions, with the caveat
+that EXPs are evaluated in sequence and you cannot call a FUNC before its
+EXP has been evaluated.
+See info node `(cl) Function Bindings' for details.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1) (debug cl-flet))
   (let ((binds ()) (newenv macroexpand-all-environment))
     (dolist (binding bindings)
       (let ((var (make-symbol (format "--cl-%s--" (car binding)))))
-	(push (cons var (cdr binding)) binds)
+	(push (cons var binding) binds)
 	(push (cons (car binding)
                     (lambda (&rest args)
                       (if (eq (car args) cl--labels-magic)
@@ -2273,18 +2302,22 @@ details.
     (unless (assq 'function newenv)
       (push (cons 'function #'cl--labels-convert) newenv))
     ;; Perform self-tail call elimination.
-    (setq binds (mapcar
-                 (lambda (bind)
-                   (pcase-let*
-                       ((`(,var ,sargs . ,sbody) bind)
-                        (`(function (lambda ,fargs . ,ebody))
-                         (macroexpand-all `(cl-function (lambda ,sargs . ,sbody))
-                                          newenv))
-                        (`(,ofargs . ,obody)
-                         (cl--self-tco var fargs ebody)))
-                     `(,var (function (lambda ,ofargs . ,obody)))))
-                 (nreverse binds)))
-    `(letrec ,binds
+    `(letrec ,(mapcar
+               (lambda (bind)
+                 (pcase-let* ((`(,var ,fun ,sargs . ,sbody) bind))
+                   `(,var ,(cl--self-tco-on-form
+                            var (macroexpand-all
+                                 (if (null sbody)
+                                     sargs ;A (FUNC EXP) definition.
+                                   (let ((parsed-body
+                                          (macroexp-parse-body sbody)))
+                                     `(cl-function
+                                       (lambda ,sargs
+                                         ,@(car parsed-body)
+                                         (cl-block ,fun
+                                           ,@(cdr parsed-body))))))
+                                 newenv)))))
+               (nreverse binds))
        . ,(macroexp-unprogn
            (macroexpand-all
             (macroexp-progn body)

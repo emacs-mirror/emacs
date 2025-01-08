@@ -1,6 +1,6 @@
 ;;; em-smart.el --- smart display of output  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -150,7 +150,7 @@ buffer using \\[end-of-buffer]."
   :group 'eshell-smart)
 
 (defcustom eshell-where-to-jump 'begin
-  "This variable indicates where point should jump to after a command.
+  "The location where point should jump to after a command.
 The options are `begin', `after' or `end'."
   :type '(radio (const :tag "Beginning of command" begin)
 		(const :tag "After command word" after)

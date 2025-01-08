@@ -1,6 +1,6 @@
 ;;; ruby-mode.el --- Major mode for editing Ruby files -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2025 Free Software Foundation, Inc.
 
 ;; Authors: Yukihiro Matsumoto
 ;;	Nobuyoshi Nakada
@@ -2584,6 +2584,7 @@ the gem \"rubocop\".  When t, it is used unconditionally."
   :type '(choice (const :tag "Always" t)
                  (const :tag "No" nil)
                  (const :tag "If rubocop is in Gemfile" check))
+  :version "30.1"
   :safe 'booleanp)
 
 (defun ruby-flymake-rubocop (report-fn &rest _args)
@@ -2747,6 +2748,10 @@ Currently there are `ruby-mode' and `ruby-ts-mode'."
 ;;;###autoload
 (dolist (name (list "ruby" "rbx" "jruby" "j?ruby\\(?:[0-9.]+\\)"))
   (add-to-list 'interpreter-mode-alist (cons (purecopy name) 'ruby-mode)))
+
+;; See ruby-ts-mode.el for why we do this.
+(setq major-mode-remap-defaults
+      (assq-delete-all 'ruby-mode major-mode-remap-defaults))
 
 (provide 'ruby-mode)
 

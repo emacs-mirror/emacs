@@ -1,6 +1,6 @@
 /* NeXT/Open/GNUstep / macOS communication module.      -*- coding: utf-8 -*-
 
-Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2024 Free Software
+Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2025 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1511,7 +1511,7 @@ ns_make_frame_visible (struct frame *f)
       EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
       EmacsWindow *window = (EmacsWindow *)[view window];
 
-      SET_FRAME_VISIBLE (f, 1);
+      SET_FRAME_VISIBLE (f, true);
       ns_raise_frame (f, ! FRAME_NO_FOCUS_ON_MAP (f));
 
       /* Making a new frame from a fullscreen frame will make the new frame
@@ -1556,7 +1556,7 @@ ns_make_frame_invisible (struct frame *f)
   check_window_system (f);
   view = FRAME_NS_VIEW (f);
   [[view window] orderOut: NSApp];
-  SET_FRAME_VISIBLE (f, 0);
+  SET_FRAME_VISIBLE (f, false);
   SET_FRAME_ICONIFIED (f, 0);
 }
 
@@ -1989,16 +1989,6 @@ ns_fullscreen_hook (struct frame *f)
 
   if (!FRAME_VISIBLE_P (f))
     return;
-
-   if (! [view fsIsNative] && f->want_fullscreen == FULLSCREEN_BOTH)
-    {
-      /* Old style fs don't initiate correctly if created from
-         init/default-frame alist, so use a timer (not nice...).  */
-      [NSTimer scheduledTimerWithTimeInterval: 0.5 target: view
-                                     selector: @selector (handleFS)
-                                     userInfo: nil repeats: NO];
-      return;
-    }
 
   block_input ();
   [view handleFS];
@@ -2967,24 +2957,28 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   NSTRACE_MSG ("which:%d cursor:%d overlay:%d width:%d height:%d period:%d",
                p->which, p->cursor_p, p->overlay_p, p->wd, p->h, p->dh);
 
-  /* Work out the rectangle we will need to clear.  */
-  clearRect = NSMakeRect (p->x, p->y, p->wd, p->h);
-
-  if (p->bx >= 0 && !p->overlay_p)
-    clearRect = NSUnionRect (clearRect, NSMakeRect (p->bx, p->by, p->nx, p->ny));
-
-  /* Handle partially visible rows.  */
-  clearRect = NSIntersectionRect (clearRect, rowRect);
-
-  /* The visible portion of imageRect will always be contained within
-     clearRect.  */
-  ns_focus (f, &clearRect, 1);
-  if (! NSIsEmptyRect (clearRect))
+  /* Clear screen unless overlay.  */
+  if (!p->overlay_p)
     {
-      NSTRACE_RECT ("clearRect", clearRect);
+      /* Work out the rectangle we will need to clear.  */
+      clearRect = NSMakeRect (p->x, p->y, p->wd, p->h);
 
-      [[NSColor colorWithUnsignedLong:face->background] set];
-      NSRectFill (clearRect);
+      if (p->bx >= 0)
+        clearRect = NSUnionRect (clearRect, NSMakeRect (p->bx, p->by, p->nx, p->ny));
+
+      /* Handle partially visible rows.  */
+      clearRect = NSIntersectionRect (clearRect, rowRect);
+
+      /* The visible portion of imageRect will always be contained
+	 within clearRect.  */
+      ns_focus (f, &clearRect, 1);
+      if (!NSIsEmptyRect (clearRect))
+        {
+          NSTRACE_RECT ("clearRect", clearRect);
+
+          [[NSColor colorWithUnsignedLong:face->background] set];
+          NSRectFill (clearRect);
+        }
     }
 
   NSBezierPath *bmp = [fringe_bmp objectForKey:[NSNumber numberWithInt:p->which]];
@@ -6974,8 +6968,12 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 
 #ifndef NS_IMPL_GNUSTEP
       if (NS_KEYLOG)
-        fprintf (stderr, "keyDown: code =%x\tfnKey =%x\tflags = %x\tmods = %x\n",
-                 (unsigned) code, fnKeysym, flags, emacs_event->modifiers);
+	fprintf (stderr,
+		 "keyDown: code = %x\tfnKey = %x\tflags = %x\tmods = "
+		 "%x\n",
+		 (unsigned int) code, (unsigned int) fnKeysym,
+		 (unsigned int) flags,
+		 (unsigned int) emacs_event->modifiers);
 #endif
 
       /* If it was a function key or had control-like modifiers, pass
@@ -7910,6 +7908,9 @@ ns_in_echo_area (void)
 
   NSTRACE_RETURN_SIZE (frameSize);
 
+  /* Trigger `move-frame-functions' (Bug#74074).  */
+  [self windowDidMove:(NSNotification *)sender];
+
   return frameSize;
 }
 
@@ -8548,6 +8549,11 @@ ns_in_echo_area (void)
    NSColor *col;
 
   NSTRACE ("[EmacsView toggleFullScreen:]");
+
+  /* Reset fs_is_native to value of ns-use-native-full-screen if not
+     fullscreen already */
+  if (fs_state != FULLSCREEN_BOTH)
+    fs_is_native = ns_use_native_fullscreen;
 
   if (fs_is_native)
     {
@@ -9386,7 +9392,10 @@ ns_in_echo_area (void)
 
 - (void)createToolbar: (struct frame *)f
 {
-  if (FRAME_UNDECORATED (f) || !FRAME_EXTERNAL_TOOL_BAR (f) || [self toolbar] != nil)
+  if (FRAME_UNDECORATED (f)
+      || [self styleMask] == NSWindowStyleMaskBorderless
+      || !FRAME_EXTERNAL_TOOL_BAR (f)
+      || [self toolbar] != nil)
     return;
 
   EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
@@ -10803,7 +10812,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 
       IOReturn lockStatus = IOSurfaceLock (surface, 0, nil);
       if (lockStatus != kIOReturnSuccess)
-        NSLog (@"Failed to lock surface: %x", (unsigned) lockStatus);
+        NSLog (@"Failed to lock surface: %x", (unsigned int)lockStatus);
 
       [self copyContentsTo:surface];
 
@@ -10850,7 +10859,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 
   IOReturn lockStatus = IOSurfaceUnlock (currentSurface, 0, nil);
   if (lockStatus != kIOReturnSuccess)
-    NSLog (@"Failed to unlock surface: %x", (unsigned) lockStatus);
+    NSLog (@"Failed to unlock surface: %x", (unsigned int)lockStatus);
 }
 
 
@@ -10891,7 +10900,8 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 
   lockStatus = IOSurfaceLock (source, kIOSurfaceLockReadOnly, nil);
   if (lockStatus != kIOReturnSuccess)
-    NSLog (@"Failed to lock source surface: %x", (unsigned) lockStatus);
+    NSLog (@"Failed to lock source surface: %x",
+	   (unsigned int) lockStatus);
 
   sourceData = IOSurfaceGetBaseAddress (source);
   destinationData = IOSurfaceGetBaseAddress (destination);
@@ -10903,7 +10913,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
 
   lockStatus = IOSurfaceUnlock (source, kIOSurfaceLockReadOnly, nil);
   if (lockStatus != kIOReturnSuccess)
-    NSLog (@"Failed to unlock source surface: %x", (unsigned) lockStatus);
+    NSLog (@"Failed to unlock source surface: %x", (unsigned int)lockStatus);
 }
 
 #undef CACHE_MAX_SIZE

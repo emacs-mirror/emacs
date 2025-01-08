@@ -1,6 +1,6 @@
 ;;; elixir-ts-mode.el --- Major mode for Elixir with tree-sitter support -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
 
 ;; Author: Wilhelm H Kirschbaum <wkirschbaum@gmail.com>
 ;; Created: November 2022
@@ -20,6 +20,16 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Tree-sitter language versions
+;;
+;; elixir-ts-mode is known to work with the following languages and version:
+;; - tree-sitter-heex: v0.7.0
+;; - tree-sitter-elixir: v0.3.3
+;;
+;; We try our best to make builtin modes work with latest grammar
+;; versions, so a more recent grammar version has a good chance to work.
+;; Send us a bug report if it doesn't.
 
 ;;; Commentary:
 ;;
@@ -45,22 +55,7 @@
 
 (require 'treesit)
 (eval-when-compile (require 'rx))
-
-(declare-function treesit-parser-create "treesit.c")
-(declare-function treesit-node-child "treesit.c")
-(declare-function treesit-node-type "treesit.c")
-(declare-function treesit-node-child-by-field-name "treesit.c")
-(declare-function treesit-parser-language "treesit.c")
-(declare-function treesit-parser-included-ranges "treesit.c")
-(declare-function treesit-parser-list "treesit.c")
-(declare-function treesit-node-p "treesit.c")
-(declare-function treesit-node-parent "treesit.c")
-(declare-function treesit-node-start "treesit.c")
-(declare-function treesit-node-end "treesit.c")
-(declare-function treesit-query-compile "treesit.c")
-(declare-function treesit-query-capture "treesit.c")
-(declare-function treesit-node-eq "treesit.c")
-(declare-function treesit-node-prev-sibling "treesit.c")
+(treesit-declare-unavailable-functions)
 
 (defgroup elixir-ts nil
   "Major mode for editing Elixir code."
@@ -402,11 +397,9 @@
              (binary_operator
               left: (call target: (identifier) @font-lock-function-name-face))))))
 
-   ;; A function definition like "def _foo" is valid, but we should
-   ;; not apply the comment-face unless its a non-function identifier, so
-   ;; the comment matches has to be after the function matches.
    :language 'elixir
    :feature 'elixir-comment
+   :override t
    '((comment) @font-lock-comment-face
      ((identifier) @font-lock-comment-face
       (:match "^_[a-z]\\|^_$" @font-lock-comment-face)))
@@ -490,7 +483,8 @@
 
    :language 'elixir
    :feature 'elixir-data-type
-   '([(atom) (alias)] @font-lock-type-face
+   '((alias) @font-lock-type-face
+     (atom) @elixir-ts-atom
      (keywords (pair key: (keyword) @elixir-ts-keyword-key))
      [(keyword) (quoted_keyword)] @elixir-ts-atom
      [(boolean) (nil)] @elixir-ts-atom
@@ -555,6 +549,10 @@
      (unary_operator operand: (identifier) @font-lock-variable-use-face)
      (interpolation (identifier) @font-lock-variable-use-face)
      (do_block (identifier) @font-lock-variable-use-face)
+     (rescue_block (identifier) @font-lock-variable-use-face)
+     (catch_block (identifier) @font-lock-variable-use-face)
+     (else_block (identifier) @font-lock-variable-use-face)
+     (after_block (identifier) @font-lock-variable-use-face)
      (access_call target: (identifier) @font-lock-variable-use-face)
      (access_call "[" key: (identifier) @font-lock-variable-use-face "]"))
 

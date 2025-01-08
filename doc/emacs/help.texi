@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2024 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2025 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Help
@@ -321,6 +321,15 @@ the function.  It also shows auxiliary information such as its type, the
 file where it was defined, whether it has been declared obsolete, and
 yet further information is often reachable by clicking or typing
 @key{RET} on emphasized parts of the text.
+
+@cindex function type specifier
+
+The function type, if known, is expressed with a @dfn{function type
+specifier} (@pxref{Type Specifiers,,,elisp, The Emacs Lisp Reference
+Manual}), it will be specified if the type was manually declared by a
+Lisp program or inferred by the compiler.  Note that function type
+inference works only when native compilation is enabled (@pxref{native
+compilation,,, elisp, The Emacs Lisp Reference Manual}).
 
 @vindex help-enable-symbol-autoload
   If you request help for an autoloaded function whose @code{autoload}

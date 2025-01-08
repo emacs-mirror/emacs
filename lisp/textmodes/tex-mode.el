@@ -1,6 +1,6 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2024 Free
+;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2025 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -199,17 +199,17 @@ use."
 
 ;;;###autoload
 (defcustom tex-dvi-view-command
-  `(cond
-    ((eq window-system 'x) ,(purecopy "xdvi"))
-    ((eq window-system 'w32) ,(purecopy "yap"))
-    (t ,(purecopy "dvi2tty * | cat -s")))
+  (cond ((eq window-system 'x) (purecopy "xdvi"))
+        ((eq window-system 'w32) (purecopy "yap"))
+        (t (purecopy "dvi2tty * | cat -s")))
   "Command used by \\[tex-view] to display a `.dvi' file.
-If it is a string, that specifies the command directly.
 If this string contains an asterisk (`*'), that is replaced by the file name;
 otherwise, the file name, preceded by a space, is added at the end.
 
-If the value is a form, it is evaluated to get the command to use."
-  :type '(choice (const nil) string sexp)
+For backwards-compatibility, the value can also be a form, in which case
+it is evaluated to get the command to use.  This is now obsolete, and
+will lead to a warning.  Set it to a string instead."
+  :type '(choice (const nil) string)
   :risky t
   :group 'tex-view)
 
@@ -310,7 +310,7 @@ Should be a simple file name with no extension or directory specification.")
 
 (defvar tex-print-file nil
   "File name that \\[tex-print] prints.
-Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
+Set by \\[tex-region], \\[tex-buffer], \\[tex-file] and \\[tex-compile].")
 
 (defvar tex-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -2092,8 +2092,9 @@ In the tex shell buffer this command behaves like `comint-send-input'."
 
 (defun tex-display-shell ()
   "Make the TeX shell buffer visible in a window."
-  (with-suppressed-warnings ((obsolete display-tex-shell-buffer-action))
-    (display-buffer (tex-shell-buf) display-tex-shell-buffer-action))
+  (display-buffer (tex-shell-buf) '(display-buffer-in-previous-window
+                                    (inhibit-same-window . t)
+                                    (category . tex-shell)))
   (tex-recenter-output-buffer nil))
 
 (defun tex-shell-sentinel (proc _msg)
@@ -2212,6 +2213,8 @@ If NOT-ALL is non-nil, save the `.dvi' file."
      t "%r.dvi")
     ("xdvi %r &" "%r.dvi")
     ("\\doc-view \"%r.pdf\"" "%r.pdf")
+    ("evince %r.pdf &" "%r.pdf")
+    ("mupdf %r.pdf &" "%r.pdf")
     ("xpdf %r.pdf &" "%r.pdf")
     ("gv %r.ps &" "%r.ps")
     ("yap %r &" "%r.dvi")
@@ -2530,6 +2533,7 @@ Only applies the FSPEC to the args part of FORMAT."
       (if (tex-shell-running)
           (tex-kill-job)
         (tex-start-shell))
+      (setq tex-print-file (expand-file-name (tex-main-file)))
       (tex-send-tex-command cmd dir))))
 
 (defun tex-start-tex (command file &optional dir)
@@ -2749,9 +2753,10 @@ line LINE of the window, or centered if LINE is nil."
   (let ((tex-shell (get-buffer "*tex-shell*")))
     (if (null tex-shell)
 	(message "No TeX output buffer")
-      (when-let ((window
-                  (with-suppressed-warnings ((obsolete display-tex-shell-buffer-action))
-                    (display-buffer tex-shell display-tex-shell-buffer-action))))
+      (when-let* ((window
+                   (display-buffer tex-shell '(display-buffer-in-previous-window
+                                               (inhibit-same-window . t)
+                                               (category . tex-shell)))))
         (with-selected-window window
 	  (bury-buffer tex-shell)
 	  (goto-char (point-max))
@@ -2799,6 +2804,7 @@ Runs the shell command defined by `tex-alt-dvi-print-command'."
   (interactive)
   (tex-print t))
 
+(defvar tex-view--warned-once nil)
 (defun tex-view ()
   "Preview the last `.dvi' file made by running TeX under Emacs.
 This means, made using \\[tex-region], \\[tex-buffer] or \\[tex-file].
@@ -2811,7 +2817,14 @@ because there is no standard value that would generally work."
   ;; Restart the TeX shell if necessary.
   (or (tex-shell-running)
       (tex-start-shell))
-  (let ((tex-dvi-print-command (eval tex-dvi-view-command t)))
+  (let ((tex-dvi-print-command
+         (if (stringp tex-dvi-view-command)
+             tex-dvi-view-command
+           (unless tex-view--warned-once
+             (warn (concat "Setting `tex-dvi-view-command' to an S-expression"
+                           " is obsolete since Emacs " "31.1"))
+             (setq tex-view--warned-once t))
+           (eval tex-dvi-view-command t))))
     (tex-print)))
 
 (defun tex-append (file-name suffix)
@@ -3057,7 +3070,7 @@ There might be text before point."
 		     '(?\n nil))))
       ;; Anything else is just as for LaTeX.
       (tex-font-lock-syntactic-face-function state)
-    font-lock-doc-face))
+    'font-lock-doc-face))
 
 (eval-when-compile
   (defconst doctex-syntax-propertize-rules
@@ -4003,12 +4016,12 @@ There might be text before point."
                            (seq-union amalist extlist #'string-match-p))))
         (setq tex--buffers-list bufs)
         (dolist (buf bufs)
-          (when-let ((fbuf (buffer-file-name buf))
-                     (ext (file-name-extension fbuf))
-                     (finext (concat "*." ext))
-                     ((not (seq-find (lambda (elt) (string-match-p elt finext))
-                                     extlist-new)))
-                     ((push finext extlist-new)))))
+          (when-let* ((fbuf (buffer-file-name buf))
+                      (ext (file-name-extension fbuf))
+                      (finext (concat "*." ext))
+                      ((not (seq-find (lambda (elt) (string-match-p elt finext))
+                                      extlist-new)))
+                      ((push finext extlist-new)))))
         (unless (seq-set-equal-p extlist-new extlist)
           (setf (alist-get mode semantic-symref-filepattern-alist)
                 extlist-new))))

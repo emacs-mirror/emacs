@@ -1,5 +1,5 @@
 /* Font backend for the Microsoft Windows API.
-   Copyright (C) 2007-2024 Free Software Foundation, Inc.
+   Copyright (C) 2007-2025 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -229,14 +229,6 @@ get_char_width_32_w (HDC hdc, UINT uFirstChar, UINT uLastChar, LPINT lpBuffer)
 
 #endif	/* Cygwin */
 
-static int
-memq_no_quit (Lisp_Object elt, Lisp_Object list)
-{
-  while (CONSP (list) && ! EQ (XCAR (list), elt))
-    list = XCDR (list);
-  return (CONSP (list));
-}
-
 Lisp_Object
 intern_font_name (char * string)
 {
@@ -398,7 +390,7 @@ w32font_has_char (Lisp_Object entity, int c)
      certain until we open it.  Also if the font claims support for the script
      the character is from, it may only have partial coverage, so we still
      can't be certain until we open the font.  */
-  if (NILP (script) || memq_no_quit (script, supported_scripts))
+  if (NILP (script) || !NILP (memq_no_quit (script, supported_scripts)))
     return -1;
 
   /* Font reports what scripts it supports, and none of them are the script
@@ -451,6 +443,10 @@ w32font_text_extents (struct font *font, const unsigned *code,
   struct w32font_info *w32_font = (struct w32font_info *) font;
 
   memset (metrics, 0, sizeof (struct font_metrics));
+
+  if (w32_use_direct_write (w32_font)
+      && w32_dwrite_text_extents (font, code, nglyphs, metrics))
+    return;
 
   for (i = 0, first = true; i < nglyphs; i++)
     {
@@ -706,22 +702,31 @@ w32font_draw (struct glyph_string *s, int from, int to,
       int i;
 
       for (i = 0; i < len; i++)
-	{
-	  WCHAR c = s->char2b[from + i] & 0xFFFF;
-	  ExtTextOutW (s->hdc, x + i, y, options, NULL, &c, 1, NULL);
-	}
+	if (!w32_use_direct_write (w32font)
+	    || !w32_dwrite_draw (s->hdc, x, y, s->char2b + from, 1,
+				 GetTextColor (s->hdc), s->font))
+	  {
+	    WCHAR c = s->char2b[from + i] & 0xFFFF;
+	    ExtTextOutW (s->hdc, x + i, y, options, NULL, &c, 1, NULL);
+	  }
     }
   else
     {
-      /* The number of glyphs in a glyph_string cannot be larger than
-	 the maximum value of the 'used' member of a glyph_row, so we
-	 are OK using alloca here.  */
-      eassert (len <= SHRT_MAX);
-      WCHAR *chars = alloca (len * sizeof (WCHAR));
-      int j;
-      for (j = 0; j < len; j++)
-	chars[j] = s->char2b[from + j] & 0xFFFF;
-      ExtTextOutW (s->hdc, x, y, options, NULL, chars, len, NULL);
+      if (!w32_use_direct_write (w32font)
+	  || !w32_dwrite_draw (s->hdc, x, y,
+			       s->char2b + from, len, GetTextColor (s->hdc),
+			       s->font))
+	{
+	  /* The number of glyphs in a glyph_string cannot be larger than
+	     the maximum value of the 'used' member of a glyph_row, so we
+	     are OK using alloca here.  */
+	  eassert (len <= SHRT_MAX);
+	  WCHAR *chars = alloca (len * sizeof (WCHAR));
+	  int j;
+	  for (j = 0; j < len; j++)
+	    chars[j] = s->char2b[from + j] & 0xFFFF;
+	  ExtTextOutW (s->hdc, x, y, options, NULL, chars, len, NULL);
+	}
     }
 
   /* Restore clip region.  */
@@ -879,7 +884,7 @@ w32font_otf_drive (struct font *font, Lisp_Object features,
    Windows fonts in Emacs's sources, this cannot be fixed in the the
    default fontset setup provided by Emacs: we cannot arrange for the
    "good" fonts to be used in all such cases, because that would mean
-   naming those fonts.  The solution for thes issues is to customize the
+   naming those fonts.  The solution for these issues is to customize the
    default fontset using set-fontset-font, to force Emacs to use a font
    known to support some characters.
 
@@ -1179,7 +1184,7 @@ add_font_name_to_list (ENUMLOGFONTEX *logical_font,
     return 1;
 
   family = intern_font_name (logical_font->elfLogFont.lfFaceName);
-  if (! memq_no_quit (family, *list))
+  if (NILP (memq_no_quit (family, *list)))
     *list = Fcons (family, *list);
 
   return 1;
@@ -1403,7 +1408,7 @@ font_matches_spec (DWORD type, NEWTEXTMETRICEX *font,
                 {
                   Lisp_Object support
                     = font_supported_scripts (&font->ntmFontSig);
-                  if (! memq_no_quit (val, support))
+                  if (NILP (memq_no_quit (val, support)))
                     return 0;
 
 		  /* Avoid using non-Japanese fonts for Japanese, even
@@ -1668,9 +1673,9 @@ add_font_entity_to_list (ENUMLOGFONTEX *logical_font,
 			      match_data->orig_font_spec, backend,
 			      &logical_font->elfLogFont)
 	   || (!NILP (match_data->known_fonts)
-	       && memq_no_quit
-	            (intern_font_name (logical_font->elfLogFont.lfFaceName),
-		     match_data->known_fonts)))
+	       && !NILP (memq_no_quit
+			   (intern_font_name (logical_font->elfLogFont.lfFaceName),
+			    match_data->known_fonts))))
       || !w32font_coverage_ok (&physical_font->ntmFontSig,
 			       match_data->pattern.lfCharSet))
     return 1;

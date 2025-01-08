@@ -1,6 +1,6 @@
 ;;; network-stream.el --- open network processes, possibly with encryption -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: network
@@ -117,15 +117,18 @@ values:
 used to decode and encode the data which the process reads and
 writes.  See `make-network-process' for details.
 
-:return-list specifies this function's return value.
-  If omitted or nil, return a process object.  A non-nil means to
-  return (PROC . PROPS), where PROC is a process object and PROPS
-  is a plist of connection properties, with these keywords:
+:return-list controls the form of the function's return value.
+  If omitted or nil, return a process object.  Anything else means to
+  return (PROC . PROPS), where PROC is a process object, and PROPS is a
+  plist of connection properties, which may include the following
+  keywords:
    :greeting -- the greeting returned by HOST (a string), or nil.
    :capabilities -- a string representing HOST's capabilities,
                     or nil if none could be found.
    :type -- the resulting connection type; `plain' (unencrypted)
             or `tls' (TLS-encrypted).
+   :error -- A string describing any error when attempting
+             to negotiate STARTTLS.
 
 :end-of-command specifies a regexp matching the end of a command.
 
@@ -164,8 +167,9 @@ writes.  See `make-network-process' for details.
 :use-starttls-if-possible is a boolean that says to do opportunistic
 STARTTLS upgrades even if Emacs doesn't have built-in TLS functionality.
 
-:warn-unless-encrypted is a boolean which, if :return-list is
-non-nil, is used warn the user if the connection isn't encrypted.
+:warn-unless-encrypted, if non-nil, warn the user if the connection
+isn't encrypted (i.e. STARTTLS failed).  Additionally, setting
+:return-list non-nil allows capturing any error response.
 
 :nogreeting is a boolean that can be used to inhibit waiting for
 a greeting from the server.

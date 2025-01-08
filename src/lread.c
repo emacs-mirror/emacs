@@ -1,6 +1,6 @@
 /* Lisp parsing and input streams.
 
-Copyright (C) 1985-1989, 1993-1995, 1997-2024 Free Software Foundation,
+Copyright (C) 1985-1989, 1993-1995, 1997-2025 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -963,7 +963,7 @@ floating-point value.
 
 If `inhibit-interaction' is non-nil, this function will signal an
 `inhibited-interaction' error.  */)
-(Lisp_Object prompt, Lisp_Object inherit_input_method, Lisp_Object seconds)
+  (Lisp_Object prompt, Lisp_Object inherit_input_method, Lisp_Object seconds)
 {
   Lisp_Object val;
 
@@ -2310,7 +2310,7 @@ build_load_history (Lisp_Object filename, bool entire)
   if (entire || !foundit)
     {
       Lisp_Object tem = Fnreverse (Vcurrent_load_list);
-      eassert (EQ (filename, Fcar (tem)));
+      eassert (!NILP (Fequal (filename, Fcar (tem))));
       Vload_history = Fcons (tem, Vload_history);
       /* FIXME: There should be an unbind_to right after calling us which
          should re-establish the previous value of Vcurrent_load_list.  */
@@ -3869,6 +3869,8 @@ read_stack_reset (intmax_t sp)
 
 #define READ_AND_BUFFER(c)			\
   c = READCHAR;					\
+  if (c < 0)					\
+    INVALID_SYNTAX_WITH_BUFFER ();		\
   if (multibyte)				\
     p += CHAR_STRING (c, (unsigned char *) p);	\
   else						\
@@ -5045,13 +5047,12 @@ it defaults to the value of `obarray'.  */)
     }
 }
 
-DEFUN ("unintern", Funintern, Sunintern, 1, 2, 0,
+DEFUN ("unintern", Funintern, Sunintern, 2, 2, 0,
        doc: /* Delete the symbol named NAME, if any, from OBARRAY.
 The value is t if a symbol was found and deleted, nil otherwise.
 NAME may be a string or a symbol.  If it is a symbol, that symbol
 is deleted, if it belongs to OBARRAY--no other symbol is deleted.
-OBARRAY, if nil, defaults to the value of the variable `obarray'.
-usage: (unintern NAME OBARRAY)  */)
+OBARRAY, if nil, defaults to the value of the variable `obarray'.  */)
   (Lisp_Object name, Lisp_Object obarray)
 {
   register Lisp_Object tem;

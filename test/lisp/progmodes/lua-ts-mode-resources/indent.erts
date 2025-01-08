@@ -360,6 +360,10 @@ multi-line
     ]]
   return true
 end
+
+  --[[
+Long comment.
+    ]]
 =-=
 --[[
       Multi-line
@@ -373,6 +377,44 @@ multi-line
     ]]
   return true
 end
+
+  --[[
+Long comment.
+    ]]
+=-=-=
+
+Name: Comment Indent
+
+=-=
+local fn1 = function (a, b)
+-- comment
+return a + b
+end
+
+local tb1 = {
+  first = 1,
+-- comment
+  second = 2,
+}
+
+local tb9 = { one = 1,
+-- comment
+   two = 2 }
+=-=
+local fn1 = function (a, b)
+  -- comment
+  return a + b
+end
+
+local tb1 = {
+  first = 1,
+  -- comment
+  second = 2,
+}
+
+local tb9 = { one = 1,
+	      -- comment
+	      two = 2 }
 =-=-=
 
 Name: Argument Indent

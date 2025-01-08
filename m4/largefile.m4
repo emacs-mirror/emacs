@@ -1,9 +1,10 @@
 # largefile.m4
 # serial 2
-dnl Copyright 1992-1996, 1998-2024 Free Software Foundation, Inc.
+dnl Copyright 1992-1996, 1998-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
+dnl This file is offered as-is, without any warranty.
 
 # Enable large files on systems where this is not the default.
 # Enable support for files on Linux file systems with 64-bit inode numbers.
@@ -294,7 +295,7 @@ AC_CONFIG_COMMANDS_PRE([_AC_SYS_YEAR2038_ENABLE])])
 # By default, many hosts won't let programs access large files;
 # one must use special compiler options to get large-file access to work.
 # For more details about this brain damage please see:
-# http://www.unix.org/version2/whatsnew/lfs20mar.html
+# https://www.unix.org/version2/whatsnew/lfs20mar.html
 # Additionally, on Linux file systems with 64-bit inodes a file that happens
 # to have a 64-bit inode number cannot be accessed by 32-bit applications on
 # Linux x86/x86_64.  This can occur with file systems such as XFS and NFS.

@@ -1,6 +1,6 @@
 ;;; ietf-drums.el --- Functions for parsing RFC 2822 headers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2025 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -275,11 +275,11 @@ a list of address strings."
            ((eq c ?:)
             (setq beg (1+ (point)))
             (skip-chars-forward "^;")
-            (when-let ((address
-                  (condition-case nil
-                      (ietf-drums-parse-addresses
-                       (buffer-substring beg (point)) rawp)
-                    (error nil))))
+            (when-let* ((address
+                         (condition-case nil
+                             (ietf-drums-parse-addresses
+                              (buffer-substring beg (point)) rawp)
+                           (error nil))))
               (if (listp address)
                   (setq pairs (append address pairs))
                 (push address pairs)))

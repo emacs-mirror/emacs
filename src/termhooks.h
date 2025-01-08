@@ -1,6 +1,6 @@
 /* Parameters and display hooks for terminal devices.
 
-Copyright (C) 1985-1986, 1993-1994, 2001-2024 Free Software Foundation,
+Copyright (C) 1985-1986, 1993-1994, 2001-2025 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -978,6 +978,9 @@ extern int cursorY (struct tty_display_info *);
 #define cursorX(t)  curX(t)
 #define cursorY(t)  curY(t)
 #endif
+
+void tty_hide_cursor (struct tty_display_info *tty);
+void tty_show_cursor (struct tty_display_info *tty);
 
 INLINE_HEADER_END
 

@@ -1,6 +1,6 @@
 ;;; dired-aux.el --- less commonly used parts of dired -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2025 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
 ;; Maintainer: emacs-devel@gnu.org
@@ -1440,7 +1440,7 @@ This excludes `dired-guess-shell-alist-user' and
    ((executable-find "run-mailcap")
     "run-mailcap"))
   "A shell command to open a file externally."
-  :type 'string
+  :type '(choice (const :tag "None" nil) string)
   :group 'dired
   :version "30.1")
 

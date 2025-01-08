@@ -1,6 +1,6 @@
 ;;; replace-tests.el --- tests for replace.el.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Richard <youngfrog@members.fsf.org>
 ;; Author: Juri Linkov <juri@jurta.org>
@@ -547,7 +547,7 @@ Return the last evalled form in BODY."
                            (delq nil
                                  (mapcar
                                   (lambda (chr)
-                                    (when-let (it (alist-get chr char-nums))
+                                    (when-let* ((it (alist-get chr char-nums)))
                                       (if (cdr it)
                                           `(,(cons 'or it) ,chr)
                                         `(,(car it) ,chr))))

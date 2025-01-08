@@ -1,6 +1,6 @@
 ;;; erc-services.el --- Identify to NickServ  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2004, 2006-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2025 Free Software Foundation, Inc.
 
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
 ;; URL: https://www.emacswiki.org/emacs/ErcNickserv
@@ -578,13 +578,13 @@ as needed."
   (letrec ((attempts 3)
            (on-notice
             (lambda (_proc parsed)
-              (when-let ((nick (erc-extract-nick
-                                (erc-response.sender parsed)))
-                         ((erc-nick-equal-p nick "nickserv"))
-                         (contents (erc-response.contents parsed))
-                         (case-fold-search t)
-                         ((string-match (rx (or "ghost" "is not online"))
-                                        contents)))
+              (when-let* ((nick (erc-extract-nick
+                                 (erc-response.sender parsed)))
+                          ((erc-nick-equal-p nick "nickserv"))
+                          (contents (erc-response.contents parsed))
+                          (case-fold-search t)
+                          ((string-match (rx (or "ghost" "is not online"))
+                                         contents)))
                 (setq attempts 1)
                 (erc-server-send (concat "NICK " want) 'force))
               (when (zerop (cl-decf attempts))

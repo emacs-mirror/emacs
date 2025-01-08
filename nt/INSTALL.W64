@@ -1,7 +1,7 @@
 	  Building and Installing Emacs on 64-bit MS-Windows
 		      using MSYS2 and MinGW-w64
 
-  Copyright (c) 2015-2024 Free Software Foundation, Inc.
+  Copyright (c) 2015-2025 Free Software Foundation, Inc.
   See the end of the file for license conditions.
 
 This document describes how to compile a 64-bit GNU Emacs using MSYS2
@@ -60,7 +60,7 @@ packages (you can copy and paste it into the shell with Shift + Insert):
   mingw-w64-x86_64-harfbuzz \
   mingw-w64-x86_64-libgccjit \
   mingw-w64-x86_64-sqlite3 \
-  mingw-w64-x86_64-tree-sitter
+  mingw-w64-x86_64-libtree-sitter (or mingw-w64-x86_64-tree-sitter)
 
 The packages include the base developer tools (autoconf, grep, make,
 etc.), the compiler toolchain (gcc, gdb, etc.), several image

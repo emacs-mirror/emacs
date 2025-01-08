@@ -1,5 +1,5 @@
 .\" See section COPYING for copyright and redistribution information.
-.TH ETAGS 1 "2024-10-06" "GNU Tools" "GNU"
+.TH ETAGS 1 "2024-12-21" "GNU Tools" "GNU"
 .de BP
 .sp
 .ti -.2i
@@ -187,10 +187,13 @@ useless characters.  If the match is such that more characters than
 needed are unavoidably matched by \fItagregexp\fP, it may be useful to
 add a \fInameregexp\fP, to narrow down the tag scope.  \fBctags\fP
 ignores regexps without a \fInameregexp\fP.  The syntax of regexps is
-the same as in emacs.  The following character escape sequences are
-supported: \\a, \\b, \\d, \\e, \\f, \\n, \\r, \\t, \\v, which
-respectively stand for the ASCII characters BEL, BS, DEL, ESC, FF, NL,
-CR, TAB, VT.
+the same as in Emacs, except that backslash escapes are the same
+as GNU grep (which means, for example, that shy groups are not supported),
+and \fB[:ascii:]\fP, \fB[:multibyte:]\fP, \fB[:nonascii:]\fP,
+\fB[:word:]\fP, and \fB[:unibyte:]\fP are not supported.
+The following character escape sequences are supported:
+\\a, \\b, \\d, \\e, \\f, \\n, \\r, \\t, \\v, which respectively
+stand for the ASCII characters BEL, BS, DEL, ESC, FF, NL, CR, TAB, VT.
 .br
 The \fImodifiers\fP are a sequence of 0 or more characters among
 \fIi\fP, which means to ignore case when matching; \fIm\fP, which means
@@ -306,7 +309,7 @@ Stallman.
 .BR vi ( 1 ).
 
 .SH COPYING
-Copyright 1992, 1999, 2001-2024 Free Software Foundation, Inc.
+Copyright 1992, 1999, 2001\(en2025 Free Software Foundation, Inc.
 .PP
 Permission is granted to make and distribute verbatim copies of this
 document provided the copyright notice and this permission notice are

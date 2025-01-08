@@ -1,6 +1,6 @@
 /* Lisp functions pertaining to editing.                 -*- coding: utf-8 -*-
 
-Copyright (C) 1985-2024 Free Software Foundation, Inc.
+Copyright (C) 1985-2025 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1363,8 +1363,8 @@ to unibyte for insertion (see `string-make-unibyte').
 
 When operating on binary data, it may be necessary to preserve the
 original bytes of a unibyte string when inserting it into a multibyte
-buffer; to accomplish this, apply `string-as-multibyte' to the string
-and insert the result.
+buffer; to accomplish this, apply `decode-coding-string' with the
+`no-conversion' coding system to the string and insert the result.
 
 usage: (insert &rest ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)

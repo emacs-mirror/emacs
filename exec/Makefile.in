@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 2023-2024 Free Software Foundation, Inc.
+# Copyright (C) 2023-2025 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -94,7 +94,7 @@ ifeq ($(is_mips),yes)
 # Set up dependencies for config-mips.m4.
 
 config-mips.m4: config-mips.m4.in
-	cd $(srcdir) && ./config.status $@
+	cd $(builddir) && ./config.status $@
 $(LOADOBJS): config-mips.m4
 else
 .s.o:

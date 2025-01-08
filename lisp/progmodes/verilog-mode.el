@@ -1,6 +1,6 @@
 ;;; verilog-mode.el --- major mode for editing verilog source in Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2025 Free Software Foundation, Inc.
 
 ;; Author: Michael McNamara <mac@verilog.com>
 ;;    Wilson Snyder <wsnyder@wsnyder.org>
@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2024.10.09.140346409
+;; Version: 2025.01.01.100165202
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2024-10-09-85d8429-vpo-GNU"
+(defconst verilog-mode-version "2025-01-01-5f86652-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -691,12 +691,14 @@ Set to 0 to have all directives start at the left side of the screen."
 (defcustom verilog-indent-ignore-multiline-defines t
   "Non-nil means ignore indentation on lines that are part of a multiline define."
   :group 'verilog-mode-indent
+  :version "30.1"
   :type 'boolean)
 (put 'verilog-indent-ignore-multiline-defines 'safe-local-variable #'verilog-booleanp)
 
 (defcustom verilog-indent-ignore-regexp nil
   "Regexp that matches lines that should be ignored for indentation."
   :group 'verilog-mode-indent
+  :version "30.1"
   :type 'boolean)
 (put 'verilog-indent-ignore-regexp 'safe-local-variable #'stringp)
 
@@ -748,6 +750,7 @@ Otherwise, line them up."
   "Non-nil means indent classes inside packages.
 Otherwise, classes have zero indentation."
   :group 'verilog-mode-indent
+  :version "30.1"
   :type 'boolean)
 (put 'verilog-indent-class-inside-pkg 'safe-local-variable #'verilog-booleanp)
 
@@ -761,6 +764,7 @@ Otherwise else is lined up with first character on line holding matching if."
 (defcustom verilog-align-decl-expr-comments t
   "Non-nil means align declaration and expressions comments."
   :group 'verilog-mode-indent
+  :version "30.1"
   :type 'boolean)
 (put 'verilog-align-decl-expr-comments 'safe-local-variable #'verilog-booleanp)
 
@@ -768,18 +772,21 @@ Otherwise else is lined up with first character on line holding matching if."
   "Distance (in spaces) between longest declaration/expression and comments.
 Only works if `verilog-align-decl-expr-comments' is non-nil."
   :group 'verilog-mode-indent
+  :version "30.1"
   :type 'integer)
 (put 'verilog-align-comment-distance 'safe-local-variable #'integerp)
 
 (defcustom verilog-align-assign-expr nil
   "Non-nil means align expressions of continuous assignments."
   :group 'verilog-mode-indent
+  :version "30.1"
   :type 'boolean)
 (put 'verilog-align-assign-expr 'safe-local-variable #'verilog-booleanp)
 
 (defcustom verilog-align-typedef-regexp nil
   "Regexp that matches user typedefs for declaration alignment."
   :group 'verilog-mode-indent
+  :version "30.1"
   :type '(choice (regexp :tag "Regexp")
                  (const :tag "None" nil)))
 (put 'verilog-align-typedef-regexp 'safe-local-variable #'stringp)
@@ -787,6 +794,7 @@ Only works if `verilog-align-decl-expr-comments' is non-nil."
 (defcustom verilog-align-typedef-words nil
   "List of words that match user typedefs for declaration alignment."
   :group 'verilog-mode-indent
+  :version "30.1"
   :type '(repeat string))
 (put 'verilog-align-typedef-words 'safe-local-variable #'listp)
 
@@ -939,6 +947,7 @@ always be saved."
 (defcustom verilog-fontify-variables t
   "Non-nil means fontify declaration variables."
   :group 'verilog-mode-actions
+  :version "30.1"
   :type 'boolean)
 (put 'verilog-fontify-variables 'safe-local-variable #'verilog-booleanp)
 
@@ -7242,7 +7251,7 @@ Only look at a few lines to determine indent level."
          (verilog-beg-of-statement-1)
          (let ((val
                 (if (and (< (point) here)
-                         (verilog-re-search-forward "=[ \t]*" here 'move)
+                         (verilog-re-search-forward "=[ \t]*\\(#[ \t]*[0-9]+[ \t]*\\)?" here 'move)
                          ;; not at a |=>, #=#, or [=n] operator
                          (not (string-match "\\[=.\\|#=#\\||=>"
                                              (or (buffer-substring
@@ -11380,6 +11389,9 @@ Presumes that any newlines end a list element."
     (when (and (not (save-excursion  ; Not beginning (, or existing ,
 		      (backward-char 1)
 		      (looking-at "[(,]")))
+               (not (save-excursion  ; Not attribute *)
+		      (backward-char 2)
+		      (looking-at "\\*)")))
                (not (save-excursion  ; Not `endif, or user define
 		      (backward-char 1)
 		      (skip-chars-backward "a-zA-Z0-9_`")

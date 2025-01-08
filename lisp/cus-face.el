@@ -1,6 +1,6 @@
 ;;; cus-face.el --- customization support for faces  -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 1996-1997, 1999-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2025 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
@@ -48,7 +48,8 @@
 (defconst custom-face-attributes
   `((:family
      (string :tag "Font Family"
-	     :help-echo "Font family or fontset alias name."))
+	     :completions custom-face--font-completion
+	     :help-echo "Font family or fontset alias name (with completion)."))
 
     (:foundry
      (string :tag "Font Foundry"

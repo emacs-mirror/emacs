@@ -1,6 +1,6 @@
 ;;; tabulated-list.el --- generic major mode for tabulated lists -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2025 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken.com>
 ;; Keywords: extensions, lisp
@@ -492,8 +492,8 @@ changing `tabulated-list-sort-key'."
     (if groups
         (dolist (group groups)
           (insert (car group) ?\n)
-          (when-let ((saved-pt-new (tabulated-list-print-entries
-                                    (cdr group) sorter update entry-id)))
+          (when-let* ((saved-pt-new (tabulated-list-print-entries
+                                     (cdr group) sorter update entry-id)))
             (setq saved-pt saved-pt-new)))
       (setq saved-pt (tabulated-list-print-entries
                       entries sorter update entry-id)))

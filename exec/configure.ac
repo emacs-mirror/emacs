@@ -4,7 +4,7 @@ dnl	autoconf
 dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl Copyright (C) 2023-2024 Free Software Foundation, Inc.
+dnl Copyright (C) 2023-2025 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -25,7 +25,7 @@ AC_PREREQ([2.65])
 AC_INIT([libexec], [31.0.50], [bug-gnu-emacs@gnu.org], [],
   [https://www.gnu.org/software/emacs/])
 
-AH_TOP([/* Copyright (C) 2024 Free Software Foundation, Inc.
+AH_TOP([/* Copyright (C) 2025 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -559,7 +559,7 @@ AC_SUBST([FIND_DELETE])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile])
 AS_IF([test "x$is_mips" = xyes],
-  [AC_CONFIG_FILES ([config-mips.m4])])
+  [AC_CONFIG_FILES([config-mips.m4])])
 
 AC_SUBST([AUTO_DEPEND])
 AC_SUBST([LOADERFLAGS])

@@ -1,6 +1,6 @@
 ;;; faces-tests.el --- Tests for faces.el            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2025 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 ;; Keywords:
@@ -58,6 +58,17 @@
   ""
   :group 'faces--test)
 
+(defmacro faces---with-tmp-face (face bg fg &rest body)
+  (declare (indent 3))
+  `(let ((old-fg (face-foreground ,face))
+         (old-bg (face-background ,face)))
+     (unwind-protect
+         (progn (set-face-foreground ,face ,fg)
+                (set-face-background ,face ,bg)
+                ,@body)
+       (set-face-foreground ,face old-fg)
+       (set-face-background ,face old-bg))))
+
 (ert-deftest faces--test-color-at-point ()
   (with-temp-buffer
     (insert (propertize "STRING" 'face '(faces--test2 faces--test1)))
@@ -71,16 +82,16 @@
     (should (equal (foreground-color-at-point) "black")))
   (with-temp-buffer
     (emacs-lisp-mode)
-    (setq-local font-lock-comment-face 'faces--test1)
-    (setq-local font-lock-constant-face 'faces--test2)
-    (insert ";; `symbol'")
-    (font-lock-fontify-region (point-min) (point-max))
-    (goto-char (point-min))
-    (should (equal (background-color-at-point) "black"))
-    (should (equal (foreground-color-at-point) "black"))
-    (goto-char 6)
-    (should (equal (background-color-at-point) "black"))
-    (should (equal (foreground-color-at-point) "black"))))
+    (faces---with-tmp-face 'font-lock-comment-face "black" "black"
+      (faces---with-tmp-face 'font-lock-constant-face "black" "black"
+        (insert ";; `symbol'")
+        (font-lock-fontify-region (point-min) (point-max))
+        (goto-char (point-min))
+        (should (equal (background-color-at-point) "black"))
+        (should (equal (foreground-color-at-point) "black"))
+        (goto-char 6)
+        (should (equal (background-color-at-point) "black"))
+        (should (equal (foreground-color-at-point) "black"))))))
 
 (ert-deftest faces--test-face-id ()
   ;; Face ID of 0 is the 'default' face; no face should have the same ID.

@@ -1,5 +1,5 @@
 /* Erase sensitive data from memory.
-   Copyright 2022-2024 Free Software Foundation, Inc.
+   Copyright 2022-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -27,7 +27,10 @@ memset_explicit (void *s, int c, size_t len)
 #if HAVE_EXPLICIT_MEMSET
   return explicit_memset (s, c, len);
 #elif HAVE_MEMSET_S
-  (void) memset_s (s, len, c, len);
+# if !HAVE_MEMSET_S_SUPPORTS_ZERO
+  if (len > 0)
+# endif
+    (void) memset_s (s, len, c, len);
   return s;
 #elif defined __GNUC__ && !defined __clang__
   memset (s, c, len);

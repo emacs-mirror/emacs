@@ -1,6 +1,6 @@
 /* Communication module for window systems using GTK.
 
-Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2024 Free Software
+Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2025 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -7654,7 +7654,6 @@ pgtk_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
   Lisp_Object acc = Qnil;
   specpdl_ref count = SPECPDL_INDEX ();
 
-  specbind (Qredisplay_dont_pause, Qt);
   redisplay_preserve_echo_area (31);
 
   f = XFRAME (XCAR (frames));

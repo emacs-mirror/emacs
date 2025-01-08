@@ -1,6 +1,6 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1987, 1993-1995, 1999-2024 Free Software Foundation,
+Copyright (C) 1985-1987, 1993-1995, 1999-2025 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -52,8 +52,6 @@ Lisp_Object Vsignaling_function;
 
 /* These would ordinarily be static, but they need to be visible to GDB.  */
 bool backtrace_p (union specbinding *) EXTERNALLY_VISIBLE;
-Lisp_Object *backtrace_args (union specbinding *) EXTERNALLY_VISIBLE;
-Lisp_Object backtrace_function (union specbinding *) EXTERNALLY_VISIBLE;
 union specbinding *backtrace_next (union specbinding *) EXTERNALLY_VISIBLE;
 union specbinding *backtrace_top (void) EXTERNALLY_VISIBLE;
 
@@ -112,12 +110,22 @@ specpdl_arg (union specbinding *pdl)
 }
 #endif
 
-Lisp_Object
-backtrace_function (union specbinding *pdl)
+/* To work around GDB bug 32313
+   <https://sourceware.org/bugzilla/show_bug.cgi?id=32313> make
+   backtrace_* functions visible-to-GDB pointers instead of merely
+   being an externally visible functions themselves.  Declare the
+   pointer first to pacify gcc -Wmissing-variable-declarations.  */
+#define GDB_FUNCPTR(func, resulttype, params) \
+  extern resulttype (*const func) params EXTERNALLY_VISIBLE; \
+  resulttype (*const func) params = func##_body
+
+static Lisp_Object
+backtrace_function_body (union specbinding *pdl)
 {
   eassert (pdl->kind == SPECPDL_BACKTRACE);
   return pdl->bt.function;
 }
+GDB_FUNCPTR (backtrace_function, Lisp_Object, (union specbinding *));
 
 static ptrdiff_t
 backtrace_nargs (union specbinding *pdl)
@@ -126,12 +134,13 @@ backtrace_nargs (union specbinding *pdl)
   return pdl->bt.nargs;
 }
 
-Lisp_Object *
-backtrace_args (union specbinding *pdl)
+static Lisp_Object *
+backtrace_args_body (union specbinding *pdl)
 {
   eassert (pdl->kind == SPECPDL_BACKTRACE);
   return pdl->bt.args;
 }
+GDB_FUNCPTR (backtrace_args, Lisp_Object *, (union specbinding *));
 
 /* Functions to modify slots of backtrace records.  */
 

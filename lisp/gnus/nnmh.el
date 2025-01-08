@@ -1,6 +1,6 @@
 ;;; nnmh.el --- mhspool access for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -554,10 +554,10 @@ as unread by Gnus.")
 		 (mapcar
 		  (lambda (art)
 		    (cons art
-			  (when-let ((modtime
-				      (file-attribute-modification-time
-				       (file-attributes
-					(concat dir (int-to-string art))))))
+			  (when-let* ((modtime
+				       (file-attribute-modification-time
+				        (file-attributes
+					 (concat dir (int-to-string art))))))
 			    (time-convert modtime 'list))))
 		  new)))
     ;; Make Gnus mark all new articles as unread.

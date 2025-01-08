@@ -1,6 +1,6 @@
 ;;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
-;; Copyright (C) 2014-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2025 Free Software Foundation, Inc.
 ;; Version: 1.7.0
 ;; Package-Requires: ((emacs "26.1"))
 
@@ -513,6 +513,9 @@ Erase the stack slots following this one."
 ;;;###autoload
 (define-obsolete-function-alias 'xref-pop-marker-stack #'xref-go-back "29.1")
 
+(defun xref--switch-to-buffer (buf)
+  (pop-to-buffer buf '((display-buffer-same-window) (category . xref-jump))))
+
 ;;;###autoload
 (defun xref-go-back ()
   "Go back to the previous position in xref history.
@@ -523,8 +526,8 @@ To undo, use \\[xref-go-forward]."
         (user-error "At start of xref history")
       (let ((marker (pop (car history))))
         (xref--push-forward (point-marker))
-        (switch-to-buffer (or (marker-buffer marker)
-                              (user-error "The marked buffer has been deleted")))
+        (xref--switch-to-buffer (or (marker-buffer marker)
+                                    (user-error "The marked buffer has been deleted")))
         (goto-char (marker-position marker))
         (set-marker marker nil nil)
         (run-hooks 'xref-after-return-hook)))))
@@ -538,8 +541,8 @@ To undo, use \\[xref-go-forward]."
         (user-error "At end of xref history")
       (let ((marker (pop (cdr history))))
         (xref--push-backward (point-marker))
-        (switch-to-buffer (or (marker-buffer marker)
-                              (user-error "The marked buffer has been deleted")))
+        (xref--switch-to-buffer (or (marker-buffer marker)
+                                    (user-error "The marked buffer has been deleted")))
         (goto-char (marker-position marker))
         (set-marker marker nil nil)
         (run-hooks 'xref-after-return-hook)))))
@@ -612,7 +615,7 @@ If SELECT is non-nil, select the target window."
                    (xref-location-marker (xref-item-location item))))
          (buf (marker-buffer marker)))
     (cl-ecase action
-      ((nil)  (switch-to-buffer buf))
+      ((nil)  (xref--switch-to-buffer buf))
       (window (pop-to-buffer buf t))
       (frame  (let ((pop-up-frames t)) (pop-to-buffer buf t))))
     (xref--goto-char marker))
@@ -688,7 +691,10 @@ and finally return the window."
                   (or (not (window-dedicated-p xref--original-window))
                       (eq (window-buffer xref--original-window) buf)))
                  `((xref--display-buffer-in-window)
-                   (window . ,xref--original-window))))))
+                   (category . xref-jump)
+                   (window . ,xref--original-window)))
+                (t
+                 '(nil (category . xref-jump))))))
     (with-selected-window (display-buffer buf action)
       (xref--goto-char pos)
       (run-hooks 'xref-after-jump-hook)
@@ -1050,7 +1056,7 @@ beginning of the line."
   "Return the string used to group a set of locations.
 This function is used as a value for `add-log-current-defun-function'."
   (xref--group-name-for-display
-   (if-let (item (xref--item-at-point))
+   (if-let* ((item (xref--item-at-point)))
        (xref-location-group (xref-match-item-location item))
      (xref--imenu-extract-index-name))
    (xref--project-root (project-current))))
@@ -1139,6 +1145,7 @@ XREF-ALIST is of the form ((GROUP . (XREF ...)) ...), where
 GROUP is a string for decoration purposes and XREF is an
 `xref-item' object."
   (require 'compile) ; For the compilation faces.
+  (setq xref-num-matches-found 0)
   (cl-loop for (group . xrefs) in xref-alist
            for max-line = (cl-loop for xref in xrefs
                                    maximize (xref-location-line
@@ -1158,6 +1165,7 @@ GROUP is a string for decoration purposes and XREF is an
            (xref--insert-propertized '(face xref-file-header xref-group t)
                                      group "\n")
            (dolist (xref xrefs)
+             (cl-incf xref-num-matches-found)
              (pcase-let (((cl-struct xref-item summary location) xref))
                (let* ((line (xref-location-line location))
                       (prefix
@@ -1247,7 +1255,6 @@ Return an alist of the form ((GROUP . (XREF ...)) ...)."
       (xref--ensure-default-directory dd (current-buffer))
       (xref--xref-buffer-mode)
       (xref--show-common-initialize xref-alist fetcher alist)
-      (setq xref-num-matches-found (length xrefs))
       (setq mode-line-process (list xref-mode-line-matches))
       (pop-to-buffer (current-buffer))
       (setq buf (current-buffer)))

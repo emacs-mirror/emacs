@@ -1,6 +1,6 @@
 /* Minibuffer input and completion.
 
-Copyright (C) 1985-1986, 1993-2024 Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993-2025 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -913,7 +913,11 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
       XWINDOW (minibuf_window)->cursor.hpos = 0;
       XWINDOW (minibuf_window)->cursor.x = 0;
       XWINDOW (minibuf_window)->must_be_updated_p = true;
-      update_frame (XFRAME (selected_frame), true, true);
+      struct frame *sf = XFRAME (selected_frame);
+      update_frame (sf, true);
+      if (is_tty_frame (sf))
+	combine_updates_for_frame (sf, true);
+
 #ifndef HAVE_NTGUI
       flush_frame (XFRAME (XWINDOW (minibuf_window)->frame));
 #else
@@ -1293,6 +1297,11 @@ barf_if_interaction_inhibited (void)
 DEFUN ("read-from-minibuffer", Fread_from_minibuffer,
        Sread_from_minibuffer, 1, 7, 0,
        doc: /* Read a string from the minibuffer, prompting with string PROMPT.
+While in the minibuffer, you can use \\<minibuffer-local-completion-map>\\[minibuffer-complete] and \\[minibuffer-complete-word] to complete your input.
+You can also use \\<minibuffer-local-map>\\[minibuffer-complete-history] to complete using history items in the
+input history HIST, and you can use \\[minibuffer-complete-defaults] to complete using
+the default items in DEFAULT-VALUE.
+
 The optional second arg INITIAL-CONTENTS is an obsolete alternative to
   DEFAULT-VALUE.  It normally should be nil in new code, except when
   HIST is a cons.  It is discussed in more detail below.
@@ -1826,7 +1835,7 @@ or from one of the possible completions.  */)
   return Fsubstring (bestmatch, zero, end);
 }
 
-DEFUN ("all-completions", Fall_completions, Sall_completions, 2, 4, 0,
+DEFUN ("all-completions", Fall_completions, Sall_completions, 2, 3, 0,
        doc: /* Search for partial matches of STRING in COLLECTION.
 
 Test each possible completion specified by COLLECTION
@@ -1859,12 +1868,8 @@ the string key and the associated value.
 
 To be acceptable, a possible completion must also match all the regexps
 in `completion-regexp-list' (unless COLLECTION is a function, in
-which case that function should itself handle `completion-regexp-list').
-
-An obsolete optional fourth argument HIDE-SPACES is still accepted for
-backward compatibility.  If non-nil, strings in COLLECTION that start
-with a space are ignored unless STRING itself starts with a space.  */)
-  (Lisp_Object string, Lisp_Object collection, Lisp_Object predicate, Lisp_Object hide_spaces)
+which case that function should itself handle `completion-regexp-list').  */)
+  (Lisp_Object string, Lisp_Object collection, Lisp_Object predicate)
 {
   Lisp_Object tail, elt, eltstring;
   Lisp_Object allmatches;
@@ -1932,12 +1937,6 @@ with a space are ignored unless STRING itself starts with a space.  */)
 
       if (STRINGP (eltstring)
 	  && SCHARS (string) <= SCHARS (eltstring)
-	  /* If HIDE_SPACES, reject alternatives that start with space
-	     unless the input starts with space.  */
-	  && (NILP (hide_spaces)
-	      || (SBYTES (string) > 0
-		  && SREF (string, 0) == ' ')
-	      || SREF (eltstring, 0) != ' ')
 	  && (tem = Fcompare_strings (eltstring, zero,
 				      make_fixnum (SCHARS (string)),
 				      string, zero,
@@ -2155,7 +2154,7 @@ If FLAG is nil, invoke `try-completion'; if it is t, invoke
     return Ftry_completion (string, Vbuffer_alist, predicate);
   else if (EQ (flag, Qt))
     {
-      Lisp_Object res = Fall_completions (string, Vbuffer_alist, predicate, Qnil);
+      Lisp_Object res = Fall_completions (string, Vbuffer_alist, predicate);
       if (SCHARS (string) > 0)
 	return res;
       else

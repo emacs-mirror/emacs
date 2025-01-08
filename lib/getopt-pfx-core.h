@@ -1,5 +1,5 @@
 /* getopt (basic, portable features) gnulib wrapper header.
-   Copyright (C) 1989-2024 Free Software Foundation, Inc.
+   Copyright (C) 1989-2025 Free Software Foundation, Inc.
    This file is part of gnulib.
    Unlike most of the getopt implementation, it is NOT shared
    with the GNU C Library.
@@ -31,6 +31,13 @@
    functions and variables.  Renaming avoids problems with some
    compilers and linkers.  */
 #ifdef __GETOPT_PREFIX
+
+/* Include platform-dependent header files that may declare getopt() and
+   friends.  */
+# if defined _AIX || defined __hpux || defined __sun || defined __QNX__
+#  include <stdio.h>
+# endif
+
 # ifndef __GETOPT_ID
 #  define __GETOPT_CONCAT(x, y) x ## y
 #  define __GETOPT_XCONCAT(x, y) __GETOPT_CONCAT (x, y)

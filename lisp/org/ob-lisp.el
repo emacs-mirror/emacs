@@ -1,6 +1,6 @@
 ;;; ob-lisp.el --- Babel Functions for Common Lisp   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
 ;; Authors: Joel Boehland
 ;;	 Eric Schulte

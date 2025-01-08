@@ -1,6 +1,6 @@
 ;;; touch-screen.el --- touch screen support for X and Android  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -1759,8 +1759,8 @@ functions undertaking event management themselves to call
       ;; The positions of tools currently pressed against the screen
       ;; have changed.  If there is a tool being tracked as part of a
       ;; gesture, look it up in the list of tools.
-      (if-let ((new-point (assq (car touch-screen-current-tool)
-                                (cadr event))))
+      (if-let* ((new-point (assq (car touch-screen-current-tool)
+                                 (cadr event))))
           (if touch-screen-aux-tool
               (touch-screen-handle-aux-point-update (cdr new-point)
                                                     (car new-point))

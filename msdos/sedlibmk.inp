@@ -2,7 +2,7 @@
 # Configuration script for lib/Makefile under DJGPP v2.x
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 2011-2024 Free Software Foundation, Inc.
+# Copyright (C) 2011-2025 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -278,6 +278,7 @@ s/@PACKAGE@/emacs/
 /^LDFLAGS *=/s/@[^@\n]*@//
 /^LD_FIRSTFLAG *=/s/@[^@\n]*@//
 /^LIB_PTHREAD *=/s/@[^@\n]*@//
+/^LIB_SELINUX *=/s/@[^@\n]*@//
 /^LIBS *=/s/@[^@\n]*@//
 /^MAKEINFO *=/s/@MAKEINFO@/makeinfo/
 # MKDIR_P lines are edited further below
@@ -367,6 +368,7 @@ s/@PACKAGE@/emacs/
 /^UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS *=/s/@[^@\n]*@/0/
 /^UNISTD_H_DEFINES_STRUCT_TIMESPEC *=/s/@[^@\n]*@/0/
 /^UNDEFINE_STRTOK_R *=/s/@UNDEFINE_STRTOK_R@/0/
+/^USE_SELINUX_SELINUX_H *=/s/@USE_SELINUX_SELINUX_H@/0/
 /^WCHAR_T_SUFFIX *=/s/@WCHAR_T_SUFFIX@/h/
 /^WINT_T_SUFFIX *=/s/@WINT_T_SUFFIX@//
 /^GNULIBHEADERS_OVERRIDE_WINT_T *=/s/@[^@\n]*@/0/
@@ -468,7 +470,7 @@ OMIT_GNULIB_MODULE_allocator = true\
 OMIT_GNULIB_MODULE_at-internal = true\
 OMIT_GNULIB_MODULE_careadlinkat = true\
 OMIT_GNULIB_MODULE_cloexec = true\
-OMIT_GNULIB_MODULE_dirent = true\
+OMIT_GNULIB_MODULE_dirent-h = true\
 OMIT_GNULIB_MODULE_dirfd = true\
 OMIT_GNULIB_MODULE_dup2 = true\
 OMIT_GNULIB_MODULE_errno = true\
@@ -484,7 +486,7 @@ OMIT_GNULIB_MODULE_getdtablesize = true\
 OMIT_GNULIB_MODULE_getgroups = true\
 OMIT_GNULIB_MODULE_gettimeofday = true\
 OMIT_GNULIB_MODULE_group-member = true\
-OMIT_GNULIB_MODULE_inttypes-incomplete = true\
+OMIT_GNULIB_MODULE_inttypes-h-incomplete = true\
 OMIT_GNULIB_MODULE_localtime-buffer = true\
 OMIT_GNULIB_MODULE_lstat = true\
 OMIT_GNULIB_MODULE_math = true\
@@ -500,8 +502,8 @@ OMIT_GNULIB_MODULE_stpcpy = true\
 OMIT_GNULIB_MODULE_strtoimax = true\
 OMIT_GNULIB_MODULE_strtoll = true\
 OMIT_GNULIB_MODULE_symlink = true\
-OMIT_GNULIB_MODULE_sys_select = true\
-OMIT_GNULIB_MODULE_sys_time = true\
+OMIT_GNULIB_MODULE_sys_select-h = true\
+OMIT_GNULIB_MODULE_sys_time-h = true\
 OMIT_GNULIB_MODULE_boot-time = true\
 OMIT_GNULIB_MODULE_crypto\/md5 = true
 /^arg-nonnull\.h:/,/^[ 	][ 	]*mv /c\

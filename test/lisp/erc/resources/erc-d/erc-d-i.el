@@ -1,6 +1,6 @@
 ;;; erc-d-i.el --- IRC helpers for ERC test server -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -102,15 +102,15 @@ With DECODE, decode as UTF-8 text."
     (setq s (decode-coding-string s 'utf-8 t)))
   (let ((mes (make-erc-d-i-message :unparsed s :compat (not decode)))
         tokens)
-    (when-let (((not (string-empty-p s)))
-               ((eq ?@ (aref s 0)))
-               (m (string-match " " s))
-               (u (substring s 1 m)))
+    (when-let* (((not (string-empty-p s)))
+                ((eq ?@ (aref s 0)))
+                (m (string-match " " s))
+                (u (substring s 1 m)))
       (setf (erc-d-i-message.tags mes) (erc-d-i--validate-tags u)
             s (substring s (1+ m))))
-    (if-let ((m (string-search " :" s))
-             (other-toks (split-string (substring s 0 m) " " t))
-             (rest (substring s (+ 2 m))))
+    (if-let* ((m (string-search " :" s))
+              (other-toks (split-string (substring s 0 m) " " t))
+              (rest (substring s (+ 2 m))))
         (setf (erc-d-i-message.contents mes) rest
               tokens (nconc other-toks (list rest)))
       (setf tokens (split-string s " " t " ")

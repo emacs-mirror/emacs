@@ -233,8 +233,9 @@ Do not start with `~/' or `~USERNAME/'."
 			"customize `temporary-file-directory' instead."
 			"24.4" 'set)
 
-(defcustom emerge-temp-file-mode 384	; u=rw only
-  "Mode for Emerge temporary files."
+(defcustom emerge-temp-file-mode #o600
+  "Mode for Emerge temporary files.
+This is decimal, not octal.  The default is 384 (0600 in octal)."
   :type 'integer)
 
 (make-obsolete-variable 'emerge-temp-file-mode

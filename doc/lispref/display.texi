@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--2024 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1995, 1998--2025 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Display
 @chapter Emacs Display
@@ -1825,8 +1825,8 @@ overlay properties and text properties for a given character.
 of them:
 
 @table @code
-@item priority
 @kindex priority @r{(overlay property)}
+@item priority
 This property's value determines the priority of the overlay.  If you
 want to specify a priority value, use either @code{nil} (or zero), or
 a positive integer, or a cons of two values.  Any other value triggers
@@ -1865,19 +1865,19 @@ Currently, all overlays take priority over text properties.
 If you need to put overlays in priority order, use the @var{sorted}
 argument of @code{overlays-at}.  @xref{Finding Overlays}.
 
-@item window
 @kindex window @r{(overlay property)}
+@item window
 If the @code{window} property is non-@code{nil}, then the overlay
 applies only on that window.
 
-@item category
 @kindex category @r{(overlay property)}
+@item category
 If an overlay has a @code{category} property, we call it the
 @dfn{category} of the overlay.  It should be a symbol.  The properties
 of the symbol serve as defaults for the properties of the overlay.
 
-@item face
 @kindex face @r{(overlay property)}
+@item face
 This property controls the appearance of the text (@pxref{Faces}).
 The value of the property can be the following:
 
@@ -1905,37 +1905,37 @@ form is supported for backward compatibility only, and should be
 avoided.
 @end itemize
 
-@item mouse-face
 @kindex mouse-face @r{(overlay property)}
+@item mouse-face
 This property is used instead of @code{face} when the mouse is within
 the range of the overlay.  However, Emacs ignores all face attributes
 from this property that alter the text size (e.g., @code{:height},
 @code{:weight}, and @code{:slant}); those attributes are always the
 same as in the unhighlighted text.
 
-@item display
 @kindex display @r{(overlay property)}
+@item display
 This property activates various features that change the
 way text is displayed.  For example, it can make text appear taller
 or shorter, higher or lower, wider or narrower, or replaced with an image.
 @xref{Display Property}.
 
-@item help-echo
 @kindex help-echo @r{(overlay property)}
+@item help-echo
 If an overlay has a @code{help-echo} property, then when you move the
 mouse onto the text in the overlay, Emacs displays a help string in
 the echo area, or as a tooltip.  For details see @ref{Text help-echo}.
 
-@item field
 @kindex field @r{(overlay property)}
+@item field
 @c Copied from Special Properties.
 Consecutive characters with the same @code{field} property constitute a
 @emph{field}.  Some motion functions including @code{forward-word} and
 @code{beginning-of-line} stop moving at a field boundary.
 @xref{Fields}.
 
-@item modification-hooks
 @kindex modification-hooks @r{(overlay property)}
+@item modification-hooks
 This property's value is a list of functions to be called if any
 character within the overlay is changed or if text is inserted strictly
 within the overlay.
@@ -1966,26 +1966,26 @@ prepare for that.  @xref{Change Hooks}.
 Text properties also support the @code{modification-hooks} property,
 but the details are somewhat different (@pxref{Special Properties}).
 
-@item insert-in-front-hooks
 @kindex insert-in-front-hooks @r{(overlay property)}
+@item insert-in-front-hooks
 This property's value is a list of functions to be called before and
 after inserting text right at the beginning of the overlay.  The calling
 conventions are the same as for the @code{modification-hooks} functions.
 
-@item insert-behind-hooks
 @kindex insert-behind-hooks @r{(overlay property)}
+@item insert-behind-hooks
 This property's value is a list of functions to be called before and
 after inserting text right at the end of the overlay.  The calling
 conventions are the same as for the @code{modification-hooks} functions.
 
-@item invisible
 @kindex invisible @r{(overlay property)}
+@item invisible
 The @code{invisible} property can make the text in the overlay
 invisible, which means that it does not appear on the screen.
 @xref{Invisible Text}, for details.
 
-@item intangible
 @kindex intangible @r{(overlay property)}
+@item intangible
 The @code{intangible} property on an overlay works just like the
 @code{intangible} text property.  It is obsolete.  @xref{Special
 Properties}, for details.
@@ -2000,15 +2000,15 @@ Text}.
 This property tells incremental search how to make an invisible overlay
 visible, temporarily, during the search.  @xref{Invisible Text}.
 
-@item before-string
 @kindex before-string @r{(overlay property)}
+@item before-string
 This property's value is a string to add to the display at the beginning
 of the overlay.  The string does not appear in the buffer in any
 sense---only on the screen.  Note that if the text at the beginning of
 the overlay is made invisible, the string will not be displayed.
 
-@item after-string
 @kindex after-string @r{(overlay property)}
+@item after-string
 This property's value is a string to add to the display at the end of
 the overlay.  The string does not appear in the buffer in any
 sense---only on the screen.  Note that if the text at the end of the
@@ -2022,8 +2022,8 @@ non-continuation line at display-time.  @xref{Truncation}.
 This property specifies a display spec to prepend to each continuation
 line at display-time.  @xref{Truncation}.
 
-@item evaporate
 @kindex evaporate @r{(overlay property)}
+@item evaporate
 If this property is non-@code{nil}, the overlay is deleted automatically
 if it becomes empty (i.e., if its length becomes zero).  If you give
 an empty overlay (@pxref{Managing Overlays, empty overlay}) a
@@ -2032,9 +2032,18 @@ Note that, unless an overlay has this property, it will not be deleted
 when the text between its starting and ending positions is deleted
 from the buffer.
 
-@item keymap
+@kindex display-line-numbers-disable @r{(overlay property)}
+@item display-line-numbers-disable
+This property prevents display of line numbers (@pxref{Display Custom,
+display-line-numbers,, emacs, The GNU Emacs Manual}) for the text which
+is within an overlay having this property.  One situation where using an
+overlay with this property is useful is an empty overlay at
+end-of-buffer, since otherwise there's no way of preventing the display
+of the line number there.
+
 @cindex keymap of character (and overlays)
 @kindex keymap @r{(overlay property)}
+@item keymap
 If this property is non-@code{nil}, it specifies a keymap for a
 portion of the text.  This keymap takes precedence over most other
 keymaps (@pxref{Active Keymaps}), and it is used when point is within
@@ -2042,8 +2051,8 @@ the overlay, where the front-
 and rear-advance properties define whether the boundaries are
 considered as being @emph{within} or not.
 
-@item local-map
 @kindex local-map @r{(overlay property)}
+@item local-map
 The @code{local-map} property is similar to @code{keymap} but replaces the
 buffer's local map rather than augmenting existing keymaps.  This also means it
 has lower precedence than minor mode keymaps.
@@ -2796,7 +2805,11 @@ being pressed.  If it is @code{pressed-button}, the box looks like a
 If you use the @code{:box} face attribute on strings displayed instead
 of buffer text via the @code{display} text property, special
 considerations might apply if the surrounding buffer text also has the
-@code{:box} face attribute.  @xref{Replacing Specs}.
+@code{:box} face attribute.  @xref{Replacing Specs}.  Also note that the
+vertical lines of the box are only drawn when @code{:box} attribute
+changes from @code{nil} to non-@code{nil} or vice versa; two consecutive
+face properties with a non-@code{nil} @code{:box} attribute will be
+displayed without the vertical line between them.
 
 @item :inverse-video
 Whether or not characters should be displayed in inverse video.  The
@@ -4027,11 +4040,13 @@ in the range @var{from} and @var{to} (inclusive).
 @var{characters} may be a charset symbol (@pxref{Character Sets}).  In
 that case, use @var{font-spec} for all the characters in the charset.
 
+@vindex use-default-font-for-symbols
 @var{characters} may be a script symbol (@pxref{Character Properties,
 char-script-table}).  In that case, use @var{font-spec} for all the
 characters belonging to the script.  See also
 @code{use-default-font-for-symbols}, which affects font selection
-when @var{fontset} is @code{symbol}.
+when @var{characters} specify or belong to the @code{symbol} script
+(which includes symbol and punctuation characters).
 
 @var{characters} may be @code{nil}, which means to use @var{font-spec}
 for any character in @var{fontset} for which no font-spec is
@@ -6022,8 +6037,9 @@ is platform dependent, but should be equivalent to bilinear
 filtering.  Disabling smoothing will use the nearest neighbor
 algorithm.
 
+@vindex image-transform-smoothing
 If this property is not specified, @code{create-image} will use the
-@code{image-transform-smoothing} user option to say whether scaling
+@code{image-transform-smoothing} user option to say whether smoothing
 should be done or not.  This option can be @code{nil} (no smoothing),
 @code{t} (use smoothing) or a predicate function that's called with
 the image object as the only parameter, and should return either
@@ -7024,12 +7040,13 @@ Here is an example of using @code{image-load-path-for-library}:
 @end example
 @end defun
 
-@vindex image-scaling-factor
+@vindex image-scaling-factor, and automatic image scaling
 Images are automatically scaled when created based on the
 @code{image-scaling-factor} variable.  The value is either a floating
 point number (where numbers higher than 1 means to increase the size
 and lower means to shrink the size), or the symbol @code{auto}, which
-will compute a scaling factor based on the font pixel size.
+will compute a scaling factor based on the font pixel size.  @xref{Image
+Descriptors}.
 
 @node Showing Images
 @subsection Showing Images

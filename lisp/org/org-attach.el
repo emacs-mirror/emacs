@@ -1,6 +1,6 @@
 ;;; org-attach.el --- Manage file attachments to Org outlines -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2025 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Keywords: org data attachment
@@ -357,7 +357,7 @@ Shows a list of commands and prompts for another key to execute a command."
 	          (while (and (setq c (read-char-exclusive))
                               (memq c '(?\C-n ?\C-p ?\C-v ?\M-v)))
 	            (org-scroll c t)))
-              (when-let ((window (get-buffer-window "*Org Attach*" t)))
+              (when-let* ((window (get-buffer-window "*Org Attach*" t)))
                 (quit-window 'kill window))
 	      (and (get-buffer "*Org Attach*") (kill-buffer "*Org Attach*")))))
         (let ((command (cl-some (lambda (entry)

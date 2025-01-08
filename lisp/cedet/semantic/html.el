@@ -1,6 +1,6 @@
 ;;; semantic/html.el --- Semantic details for html files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2005, 2007-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2005, 2007-2025 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -238,6 +238,7 @@ tag with greater section value than LEVEL is found."
   ;; This will use our parser.
   (setq semantic-parser-name "HTML"
         semantic--parse-table t
+        semantic--create-index-function-origin imenu-create-index-function
         imenu-create-index-function #'semantic-create-imenu-index
 	semantic-command-separation-character ">"
 	semantic-type-relation-separator-character '(":")

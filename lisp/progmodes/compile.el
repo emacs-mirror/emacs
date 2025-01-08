@@ -1,6 +1,6 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2024 Free Software
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2025 Free Software
 ;; Foundation, Inc.
 
 ;; Authors: Roland McGrath <roland@gnu.org>,
@@ -61,12 +61,28 @@ If nil, use Emacs default."
 
 (defcustom compilation-transform-file-match-alist
   '(("/bin/[a-z]*sh\\'" nil))
-  "Alist of regexp/replacements to alter file names in compilation errors.
-If the replacement is nil, the file will not be considered an
-error after all.  If not nil, it should be a regexp replacement
-string."
-  :type '(repeat (list regexp (choice (const :tag "No replacement" nil)
-                                      string)))
+  "Alist of regexp/replacements to alter file names in compiler messages.
+If the replacement is nil, the matching message will not be considered
+an error or warning.  If not nil, it should be a replacement string
+for the matched regexp.
+
+If a non-nil replacement is specified, the value of the matched file name
+used to locate the warning or error is modified using the replacement, but
+the compilation buffer still displays the original value.
+
+For example, to prepend a subdirectory \"bar/\" to all file names in
+compiler messages, add an entry matching \"\\\\=`\" and a replacement
+string of \"bar/\", i.e.:
+
+    (\"\\\\=`\" \"bar/\")
+
+Similarly, to remove a prefix \"bar/\", use:
+
+    (\"\\\\=`bar/\" \"\")"
+  :type '(repeat (list (regexp :tag "Filename that matches")
+                       (radio :tag "Action"
+                              (const :tag "Do not consider as error" nil)
+                              (string :tag "Replace matched filename with"))))
   :version "27.1")
 
 (defvar compilation-filter-hook nil
@@ -95,8 +111,8 @@ like.
 For instance, to hide the verbose output from recursive
 makefiles, you can say something like:
 
-  (setq compilation-hidden-output
-        \\='(\"^make[^\n]+\n\"))"
+  (setopt compilation-hidden-output
+          \\='(\"^make[^\\n]+\\n\"))"
   :type '(choice regexp
                  (repeat regexp))
   :version "29.1")
@@ -789,10 +805,10 @@ Alternatively, FACE can evaluate to a property list of the
 form (face FACE PROP1 VAL1 PROP2 VAL2 ...), in which case all the
 listed text properties PROP# are given values VAL# as well.
 
-After identifying errors and warnings determined by this
+After identifying compilation errors and warnings determined by this
 variable, the `compilation-transform-file-match-alist' variable
 is then consulted.  It allows further transformations of the
-matched file names, and weeding out false positives."
+matched file names, and ignoring false positives."
   :type '(repeat (choice (symbol :tag "Predefined symbol")
 			 (sexp :tag "Error specification")))
   :link `(file-link :tag "example file"
@@ -1405,12 +1421,12 @@ POS and RES.")
 		       2)))
     ;; Remove matches like /bin/sh and do other file name transforms.
     (save-match-data
-      (when-let ((file-name
-                  (and (consp file)
-                       (not (bufferp (car file)))
-                       (if (cdr file)
-                           (expand-file-name (car file) (cdr file))
-                         (car file)))))
+      (when-let* ((file-name
+                   (and (consp file)
+                        (not (bufferp (car file)))
+                        (if (cdr file)
+                            (expand-file-name (car file) (cdr file))
+                          (car file)))))
         (cl-loop for (regexp replacement)
                  in compilation-transform-file-match-alist
                  when (string-match regexp file-name)
@@ -3231,7 +3247,7 @@ we try to avoid if possible."
       (with-current-buffer (marker-buffer marker)
         (save-excursion
           (goto-char (marker-position marker))
-          (when-let ((prev (compilation--previous-directory (point))))
+          (when-let* ((prev (compilation--previous-directory (point))))
             (goto-char prev))
           (setq dirs (cdr (or (get-text-property
                                (1- (point)) 'compilation-directory)

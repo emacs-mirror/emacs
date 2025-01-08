@@ -1,6 +1,6 @@
 ;;; admin.el --- utilities for Emacs administration  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1169,12 +1169,12 @@ changes (in a non-trivial way).  This function does not check for that."
   (declare-function mail-position-on-field "sendmail" (field &optional soft))
   (declare-function mail-text "sendmail" ())
 
-  (when-let ((id (alist-get version debbugs-gnu-emacs-blocking-reports
-                            nil nil #'string-equal))
-             (status-id (debbugs-get-status id))
-             (blockedby-ids (debbugs-get-attribute (car status-id) 'blockedby))
-             (blockedby-status
-              (apply #'debbugs-get-status (sort blockedby-ids #'<))))
+  (when-let* ((id (alist-get version debbugs-gnu-emacs-blocking-reports
+                             nil nil #'string-equal))
+              (status-id (debbugs-get-status id))
+              (blockedby-ids (debbugs-get-attribute (car status-id) 'blockedby))
+              (blockedby-status
+               (apply #'debbugs-get-status (sort blockedby-ids #'<))))
 
     (reporter-submit-bug-report
      "<emacs-devel@gnu.org>" ; to-address

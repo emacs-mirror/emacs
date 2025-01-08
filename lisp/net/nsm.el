@@ -1,6 +1,6 @@
 ;;; nsm.el --- Network Security Manager  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2025 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: encryption, security, network
@@ -65,10 +65,10 @@ checked and warned against."
 
 The default suite of TLS checks in NSM is designed to follow the
 most current security best practices.  Under some situations,
-such as attempting to connect to an email server that do not
+such as attempting to connect to an email server that does not
 follow these practices inside a school or corporate network, NSM
 may produce warnings for such occasions.  Setting this option to
-a non-nil value, or a zero-argument function that returns non-nil
+a non-nil value, or a zero-argument function that returns non-nil,
 tells NSM to skip checking for potential TLS vulnerabilities when
 connecting to hosts on a local network.
 
@@ -154,17 +154,16 @@ If WARN-UNENCRYPTED, query the user if the connection is unencrypted."
     (dhe-kx                 high)
     (rsa-kx                 high)
     (cbc-cipher             high))
-  "This variable specifies what TLS connection checks to perform.
-It's an alist where the key is the name of the check, and the
-value is the minimum security level the check should begin.
+  "Alist of TLS connection checks to perform.
+The key is the name of the check, and the value is the minimum security
+level the check should begin.
 
-Each check function is called with the parameters HOST PORT
-STATUS SETTINGS.  HOST is the host domain, PORT is a TCP port
-number, STATUS is the peer status returned by
-`gnutls-peer-status', and SETTINGS is the persistent and session
-settings for the host HOST.  Please refer to the contents of
-`nsm-settings-file' for details.  If a problem is found, the check
-function is required to return an error message, and nil
+Each check function is called with the parameters HOST PORT STATUS
+SETTINGS.  HOST is the host domain, PORT is a TCP port number, STATUS is
+the peer status returned by `gnutls-peer-status', and SETTINGS is the
+persistent and session settings for the host HOST.  Please refer to the
+contents of `nsm-settings-file' for details.  If a problem is found, the
+check function is required to return an error message, and nil
 otherwise.
 
 See also: `nsm-check-tls-connection', `nsm-save-host-names',

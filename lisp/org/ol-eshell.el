@@ -1,6 +1,6 @@
 ;;; ol-eshell.el --- Links to Working Directories in Eshell  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2025 Free Software Foundation, Inc.
 
 ;; Author: Konrad Hinsen <konrad.hinsen AT fastmail.net>
 
@@ -51,9 +51,9 @@ followed by a colon."
     (if (get-buffer eshell-buffer-name)
         (pop-to-buffer
          eshell-buffer-name
-         (if (boundp 'display-comint-buffer-action) ; Emacs >= 29
+         (if (boundp 'display-comint-buffer-action) ; Emacs >= 29, <= 30
              display-comint-buffer-action
-           '(display-buffer-same-window (inhibit-same-window))))
+           '(display-buffer-same-window (inhibit-same-window) (category . comint))))
       (eshell))
     (goto-char (point-max))
     (eshell-kill-input)

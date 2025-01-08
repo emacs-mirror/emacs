@@ -1,6 +1,6 @@
 ;;; ob-core.el --- Working with Code Blocks          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;	Dan Davison
@@ -870,7 +870,7 @@ guess will be made."
 		 (default-directory
 		  (cond
 		   ((not dir) default-directory)
-                   ((when-let ((session (org-babel-session-buffer info)))
+                   ((when-let* ((session (org-babel-session-buffer info)))
                       (buffer-local-value 'default-directory (get-buffer session))))
 		   ((member mkdirp '("no" "nil" nil))
 		    (file-name-as-directory (expand-file-name dir)))

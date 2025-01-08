@@ -1146,7 +1146,7 @@ je šířena se svolením distribuovat kopie za jistých podmínek
 (pozn. překl. oficiální verze licence není v českém překladu k
 dispozici):
 
-  Copyright (C) 1985, 1996, 1998, 2001-2024 Free Software Foundation,
+  Copyright (C) 1985, 1996, 1998, 2001-2025 Free Software Foundation,
   Inc.
 
   This file is part of GNU Emacs.

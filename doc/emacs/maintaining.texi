@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual., Abbrevs, This is part of the Emacs manual., Top
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2024 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 1999--2025 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Maintaining
@@ -2184,7 +2184,7 @@ between them.
 end of the change log file.  Here is an example:
 
 @smallexample
-Copyright 1997, 1998 Free Software Foundation, Inc.
+Copyright 1997--1998, 2025 Free Software Foundation, Inc.
 Copying and distribution of this file, with or without modification, are
 permitted provided the copyright notice and this notice are preserved.
 @end smallexample
@@ -3138,7 +3138,12 @@ and all the C character escape sequences are supported: @samp{\a} for
 bell, @samp{\b} for back space, @samp{\e} for escape, @samp{\f} for
 formfeed, @samp{\n} for newline, @samp{\r} for carriage return,
 @samp{\t} for tab, and @samp{\v} for vertical tab.  In addition,
-@samp{\d} stands for the @code{DEL} character.
+@samp{\d} stands for the @code{DEL} character.  Otherwise,
+the regular expression syntax is the same as Emacs
+except that backslash escapes are the same
+as GNU grep (which means, for example, that shy groups are not supported),
+and @samp{[:ascii:]}, @samp{[:multibyte:]}, @samp{[:nonascii:]},
+@samp{[:word:]}, and @samp{[:unibyte:]} are not supported.
 
   Ideally, @var{tagregexp} should not match more characters than are
 needed to recognize what you want to tag.  If the syntax requires you

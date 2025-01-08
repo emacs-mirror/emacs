@@ -1,6 +1,6 @@
 ;;; visual-wrap.el --- Smart line-wrapping with wrap-prefix -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2021, 2024 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2021, 2024-2025 Free Software Foundation, Inc.
 
 ;; Author: Stephen Berman <stephen.berman@gmx.net>
 ;;         Stefan Monnier <monnier@iro.umontreal.ca>
@@ -117,9 +117,9 @@ extra indent = 2
   "Apply visual-wrapping properties to the logical line starting at POSITION."
   (save-excursion
     (goto-char position)
-    (when-let ((first-line-prefix (fill-match-adaptive-prefix))
-               (next-line-prefix (visual-wrap--content-prefix
-                                  first-line-prefix position)))
+    (when-let* ((first-line-prefix (fill-match-adaptive-prefix))
+                (next-line-prefix (visual-wrap--content-prefix
+                                   first-line-prefix position)))
       (when (numberp next-line-prefix)
         ;; Set a minimum width for the prefix so it lines up correctly
         ;; with subsequent lines.  Make sure not to do this past the end
@@ -165,9 +165,12 @@ PREFIX was empty."
     ;; first-line prefix.
     (let ((avg-space (propertize (buffer-substring position (1+ position))
                                  'display '(space :width 1))))
-        (max (string-width prefix)
-             (ceiling (string-pixel-width prefix (current-buffer))
-                      (string-pixel-width avg-space (current-buffer))))))))
+      ;; Remove any `min-width' display specs since we'll replace with
+      ;; our own later in `visual-wrap--apply-to-line' (bug#73882).
+      (add-display-text-property 0 (length prefix) 'min-width nil prefix)
+      (max (string-width prefix)
+           (ceiling (string-pixel-width prefix (current-buffer))
+                    (string-pixel-width avg-space (current-buffer))))))))
 
 (defun visual-wrap-fill-context-prefix (beg end)
   "Compute visual wrap prefix from text between BEG and END.

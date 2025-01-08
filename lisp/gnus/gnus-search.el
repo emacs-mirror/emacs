@@ -1,6 +1,6 @@
 ;;; gnus-search.el --- Search facilities for Gnus    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2025 Free Software Foundation, Inc.
 
 ;; Author: Eric Abrahamsen <eric@ericabrahamsen.net>
 
@@ -1012,7 +1012,7 @@ Responsible for handling and, or, and parenthetical expressions.")
   (let (clauses)
     (mapc
      (lambda (item)
-       (when-let ((expr (gnus-search-transform-expression engine item)))
+       (when-let* ((expr (gnus-search-transform-expression engine item)))
 	 (push expr clauses)))
      query)
     (mapconcat #'identity (reverse clauses) " ")))
@@ -1486,7 +1486,7 @@ Returns a list of [group article score] vectors."
 	    (push (list f-name article group score)
                   artlist)))))
     ;; Are we running an additional grep query?
-    (when-let ((grep-reg (alist-get 'grep query)))
+    (when-let* ((grep-reg (alist-get 'grep query)))
       (setq artlist (gnus-search-grep-search engine artlist grep-reg)))
 
     (when (>= gnus-verbose 7)
@@ -1591,8 +1591,7 @@ fudges a relevancy score of 100."
 ;; I can't tell if this is actually necessary.
 (cl-defmethod gnus-search-run-search :around ((_e gnus-search-namazu)
 					      _server _query _groups)
-  (let ((process-environment (copy-sequence process-environment)))
-    (setenv "LC_MESSAGES" "C")
+  (with-environment-variables (("LC_MESSAGES" "C"))
     (cl-call-next-method)))
 
 (cl-defmethod gnus-search-indexed-search-command ((engine gnus-search-namazu)
@@ -1717,9 +1716,9 @@ cross our fingers for the rest of it."
   (let (clauses)
     (mapc
      (lambda (item)
-       (when-let ((expr (if (consp (car-safe item))
-			    (gnus-search-transform engine item)
-			  (gnus-search-transform-expression engine item))))
+       (when-let* ((expr (if (consp (car-safe item))
+			     (gnus-search-transform engine item)
+			   (gnus-search-transform-expression engine item))))
 	 (push expr clauses)))
      query)
     (mapconcat #'identity (reverse clauses) " ")))
@@ -2141,8 +2140,8 @@ remaining string, then adds all that to the top-level spec."
 		      (assoc-string srv gnus-search-engine-instance-alist t))
 		     (nth 1 engine-config)
 		     (cdr-safe (assoc (car method) gnus-search-default-engines))
-		     (when-let ((old (assoc 'nnir-search-engine
-					    (cddr method))))
+		     (when-let* ((old (assoc 'nnir-search-engine
+					     (cddr method))))
 		       (nnheader-message
 			8 "\"nnir-search-engine\" is no longer a valid parameter")
 		       (nth 1 old))))

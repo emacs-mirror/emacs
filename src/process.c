@@ -1,6 +1,6 @@
 /* Asynchronous subprocess control for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2024 Free Software
+Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2025 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -39,6 +39,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <arpa/inet.h>
 
 #else
@@ -2862,6 +2863,9 @@ static const struct socket_options {
 #ifdef SO_REUSEADDR
     { ":reuseaddr", SOL_SOCKET, SO_REUSEADDR, SOPT_BOOL, OPIX_REUSEADDR },
 #endif
+#ifdef TCP_NODELAY
+    { ":nodelay", IPPROTO_TCP, TCP_NODELAY, SOPT_BOOL, OPIX_MISC },
+#endif
     { 0, 0, 0, SOPT_UNKNOWN, OPIX_NONE }
   };
 
@@ -3900,6 +3904,7 @@ The following network options can be specified for this connection:
 :broadcast BOOL    -- Allow send and receive of datagram broadcasts.
 :dontroute BOOL    -- Only send to directly connected hosts.
 :keepalive BOOL    -- Send keep-alive messages on network stream.
+:nodelay BOOL      -- Set TCP_NODELAY on the network socket.
 :linger BOOL or TIMEOUT -- Send queued messages before closing.
 :oobinline BOOL    -- Place out-of-band data in receive data stream.
 :priority INT      -- Set protocol defined priority for sent packets.
@@ -4347,6 +4352,10 @@ network_interface_list (bool full, unsigned short match)
 
       if (full)
         {
+	  /* Sometimes sa_family is only filled in correctly in the
+	     interface address, not the netmask, so copy it across
+	     (Bug#74907).  */
+	  it->ifa_netmask->sa_family = it->ifa_addr->sa_family;
           elt = Fcons (conv_sockaddr_to_lisp (it->ifa_netmask, len), elt);
           /* There is an it->ifa_broadaddr field, but its contents are
              unreliable, so always calculate the broadcast address from
@@ -4605,7 +4614,7 @@ network_interface_info (Lisp_Object ifname)
 DEFUN ("network-interface-list", Fnetwork_interface_list,
        Snetwork_interface_list, 0, 2, 0,
        doc: /* Return an alist of all network interfaces and their network address.
-Each element is cons of the form (IFNAME . IP) where IFNAME is a
+Each element is a cons of the form (IFNAME . IP) where IFNAME is a
 string containing the interface name, and IP is the network address in
 internal format; see the description of ADDRESS in
 `make-network-process'.  The interface name is not guaranteed to be
@@ -4656,7 +4665,8 @@ where ADDR is the layer 3 address, BCAST is the layer 3 broadcast address,
 NETMASK is the layer 3 network mask, HWADDR is the layer 2 address, and
 FLAGS is the current flags of the interface.
 
-Data that is unavailable is returned as nil.  */)
+Data that is unavailable is returned as nil.  Only returns IPv4 layer 3
+addresses, for IPv6 use `network-interface-list'.  */)
   (Lisp_Object ifname)
 {
 #if ((defined HAVE_NET_IF_H			       \
@@ -4760,13 +4770,17 @@ returned from the lookup.  */)
     {
       for (lres = res; lres; lres = lres->ai_next)
         {
-#ifndef AF_INET6
-          if (lres->ai_family != AF_INET)
-            continue;
+	  /* Avoid converting non-IP addresses (Bug#74907).  */
+	  if (lres->ai_family == AF_INET
+#ifdef AF_INET6
+	      || lres->ai_family == AF_INET6
 #endif
-          addresses = Fcons (conv_sockaddr_to_lisp (lres->ai_addr,
-                                                    lres->ai_addrlen),
-                             addresses);
+	      )
+	    addresses = Fcons (conv_sockaddr_to_lisp (lres->ai_addr,
+						      lres->ai_addrlen),
+			       addresses);
+	  else
+	    continue;
         }
       addresses = Fnreverse (addresses);
 

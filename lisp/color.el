@@ -1,6 +1,6 @@
 ;;; color.el --- Color manipulation library -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
 ;; Authors: Julien Danjou <julien@danjou.info>
 ;;          Drew Adams <drew.adams@oracle.com>
@@ -55,6 +55,7 @@ If FRAME cannot display COLOR, return nil."
   (let ((valmax (float (car (color-values "#ffffffffffff")))))
     (mapcar (lambda (x) (/ x valmax)) (color-values color frame))))
 
+;;;###autoload
 (defun color-rgb-to-hex  (red green blue &optional digits-per-component)
   "Return hexadecimal #RGB notation for the color specified by RED GREEN BLUE.
 RED, GREEN, and BLUE should be numbers between 0.0 and 1.0, inclusive.
@@ -74,6 +75,23 @@ components (e.g. \"#ffff1212ecec\")."
     (list (- 1.0 (nth 0 color))
           (- 1.0 (nth 1 color))
           (- 1.0 (nth 2 color)))))
+
+;;;###autoload
+(defun color-blend (a b &optional alpha)
+  "Blend the two colors A and B in linear space with ALPHA.
+A and B should be lists (RED GREEN BLUE), where each element is
+between 0.0 and 1.0, inclusive.  ALPHA controls the influence A
+has on the result and should be between 0.0 and 1.0, inclusive.
+
+For instance:
+
+   (color-blend \\='(1 0.5 1) \\='(0 0 0) 0.75)
+      => (0.75 0.375 0.75)"
+  (setq alpha (or alpha 0.5))
+  (let (blend)
+    (dotimes (i 3)
+      (push (+ (* (nth i a) alpha) (* (nth i b) (- 1 alpha))) blend))
+    (nreverse blend)))
 
 (defun color-gradient (start stop step-number)
   "Return a list with STEP-NUMBER colors from START to STOP.
@@ -446,7 +464,11 @@ See `color-desaturate-hsl'."
 Given a color defined in terms of hue, saturation, and luminance
 \(arguments H, S, and L), return a color that is PERCENT lighter.
 Returns a list (HUE SATURATION LUMINANCE)."
-  (list H S (color-clamp (+ L (* L (/ percent 100.0))))))
+  (let ((p (/ percent 100.0)))
+    (if (> p 0.0)
+        (setq L (* L (- 1.0 p)))
+      (setq p (- (* L (abs p)))))
+    (list H S (color-clamp (+ L p)))))
 
 (defun color-lighten-name (name percent)
   "Make a color with a specified NAME lighter by PERCENT.

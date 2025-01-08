@@ -1,6 +1,6 @@
 ;;; custom.el --- tools for declaring and initializing options  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 1996-1997, 1999, 2001-2024 Free Software Foundation,
+;; Copyright (C) 1996-1997, 1999, 2001-2025 Free Software Foundation,
 ;; Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
@@ -1362,7 +1362,7 @@ Return t if THEME was successfully loaded, nil otherwise."
                  t))))
           (t
            (error "Unable to load theme `%s'" theme))))
-  (when-let ((obs (get theme 'byte-obsolete-info)))
+  (when-let* ((obs (get theme 'byte-obsolete-info)))
     (display-warning 'initialization
                      (format "The `%s' theme is obsolete%s"
                              theme

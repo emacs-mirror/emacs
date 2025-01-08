@@ -1,9 +1,10 @@
 # extensions-aix.m4
 # serial 1
-dnl Copyright (C) 2024 Free Software Foundation, Inc.
+dnl Copyright (C) 2024-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
+dnl This file is offered as-is, without any warranty.
 
 # On AIX, most extensions are already enabled through the _ALL_SOURCE macro,
 # defined by gl_USE_SYSTEM_EXTENSIONS.  gl_USE_AIX_EXTENSIONS additionally

@@ -1,4 +1,4 @@
-Copyright (C) 2007-2024 Free Software Foundation, Inc.
+Copyright (C) 2007-2025 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -7,7 +7,7 @@ NOTES ON COPYRIGHTS AND LICENSES
 Some terminology:
 
 A "copyright notice" consists of one or a few lines of this format:
-"Copyright (C) 2006, 2007 Free Software Foundation, Inc."
+"Copyright (C) 2007-2025 Free Software Foundation, Inc."
 
 A "license notice" is a statement of permissions, and is usually much
 longer, eg the text "GNU Emacs is free software...".

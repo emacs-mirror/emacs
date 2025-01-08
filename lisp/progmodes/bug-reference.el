@@ -1,6 +1,6 @@
 ;;; bug-reference.el --- buttonize bug references  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2025 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Created: 21 Mar 2007
@@ -380,15 +380,15 @@ URL-REGEXP against the VCS URL and returns the value to be set as
 Test each configuration in `bug-reference-setup-from-vc-alist'
 and `bug-reference--setup-from-vc-alist' and apply it if
 applicable."
-  (when-let ((file-or-dir (or buffer-file-name
-                              ;; Catches modes such as vc-dir and Magit.
-                              default-directory))
-             (backend (vc-responsible-backend file-or-dir t))
-             (url (seq-some (lambda (remote)
-                              (ignore-errors
-                                (vc-call-backend backend 'repository-url
-                                                 file-or-dir remote)))
-                            '("upstream" nil))))
+  (when-let* ((file-or-dir (or buffer-file-name
+                               ;; Catches modes such as vc-dir and Magit.
+                               default-directory))
+              (backend (vc-responsible-backend file-or-dir t))
+              (url (seq-some (lambda (remote)
+                               (ignore-errors
+                                 (vc-call-backend backend 'repository-url
+                                                  file-or-dir remote)))
+                             '("upstream" nil))))
     (seq-some (lambda (config)
                 (apply #'bug-reference-maybe-setup-from-vc url config))
               (append bug-reference-setup-from-vc-alist

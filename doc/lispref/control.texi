@@ -1,7 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--2024 Free Software
-@c Foundation, Inc.
+@c Copyright (C) 1990--2025 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Control Structures
 @chapter Control Structures
@@ -313,28 +312,81 @@ to make this easier and more readable.  The above can be written the
 following way instead:
 
 @example
-(when-let ((result1 (do-computation))
-           (result2 (do-more result1)))
+(when-let* ((result1 (do-computation))
+            (result2 (do-more result1)))
   (do-something result2))
 @end example
 
 There's a number of variations on this theme, and they're briefly
 described below.
 
-@defmac if-let spec then-form else-forms...
-Evaluate each binding in @var{spec} in turn, like in @code{let*}
-(@pxref{Local Variables}), stopping if a binding value is @code{nil}.
-If all are non-@code{nil}, return the value of @var{then-form},
-otherwise the last form in @var{else-forms}.
+@defmac if-let* varlist then-form else-forms...
+Evaluate each binding in @var{varlist}, stopping if a binding value is
+@code{nil}.  If all are non-@code{nil}, return the value of
+@var{then-form}, otherwise the last form in @var{else-forms}.
+
+Each element of @code{varlist} has the form @w{@code{(@var{symbol}
+@var{value-form})}}: @var{value-form} is evaluated and @var{symbol} is
+locally bound to the result.  Bindings are sequential, as in @code{let*}
+(@pxref{Local Variables}).  As a special case, @var{symbol} can be
+omitted if only the test result of @var{value-form} is of interest:
+@var{value-form} is evaluated and checked for @code{nil}, but its value
+is not bound.
 @end defmac
 
-@defmac when-let spec then-forms...
-Like @code{if-let}, but without @var{else-forms}.
+@defmac when-let* varlist then-forms...
+Evaluate each binding in @var{varlist}, stopping if a binding value is
+@code{nil}.  If all are non-@code{nil}, return the value of the last
+form in @var{then-forms}.
+
+@var{varlist} has the same form as in @code{if-let*}: Each element of
+@code{varlist} has the form @w{@code{(@var{symbol} @var{value-form})}},
+in which @var{value-form} is evaluated and @var{symbol} is locally bound
+to the result.  Bindings are sequential, as in @code{let*} (@pxref{Local
+Variables}).  As a special case, @var{symbol} can be omitted if only the
+test result of @var{value-form} is of interest: @var{value-form} is
+evaluated and checked for @code{nil}, but its value is not bound.
 @end defmac
+
+@defmac and-let* varlist then-forms...
+Evaluate each binding in @var{varlist}, stopping if a binding value is
+@code{nil}.  If all are non-@code{nil}, return the value of the last
+form in @var{then-forms}, or, if there are no @var{then-forms}, return
+the value of the last binding.
+
+@var{varlist} has the same form as in @code{if-let*}: Each element of
+@code{varlist} has the form @w{@code{(@var{symbol} @var{value-form})}},
+in which @var{value-form} is evaluated and @var{symbol} is locally bound
+to the result.  Bindings are sequential, as in @code{let*} (@pxref{Local
+Variables}).  As a special case, @var{symbol} can be omitted if only the
+test result of @var{value-form} is of interest: @var{value-form} is
+evaluated and checked for @code{nil}, but its value is not bound.
+@end defmac
+
+Some Lisp programmers follow the convention that @code{and} and
+@code{and-let*} are for forms evaluated for return value, and
+@code{when} and @code{when-let*} are for forms evaluated for side-effect
+with returned values ignored.
+
+A similar macro exists to run a loop until one binding evaluates to
+@code{nil}:
 
 @defmac while-let spec then-forms...
-Like @code{when-let}, but repeat until a binding in @var{spec} is
-@code{nil}.  The return value is always @code{nil}.
+Evaluate each binding in @var{spec} in turn, stopping if a binding value
+is @code{nil}.  If all are non-@code{nil}, execute @var{then-forms},
+then repeat the loop.  Note that when the loop is repeated, the
+@var{value-forms} in @var{spec} are re-evaluated and the bindings are
+established anew.
+
+@var{varlist} has the same form as in @code{if-let*}: Each element of
+@code{varlist} has the form @w{@code{(@var{symbol} @var{value-form})}},
+in which @var{value-form} is evaluated and @var{symbol} is locally bound
+to the result.  Bindings are sequential, as in @code{let*} (@pxref{Local
+Variables}).  As a special case, @var{symbol} can be omitted if only the
+test result of @var{value-form} is of interest: @var{value-form} is
+evaluated and checked for @code{nil}, but its value is not bound.
+
+The return value of @code{while-let} is always @code{nil}.
 @end defmac
 
 @node Combining Conditions
@@ -1441,12 +1493,15 @@ of the clause.  As a condition, it counts as true if the first binding's
 value is non-@code{nil}.
 
 @findex match*
+@findex pcase*
 @code{(match* @var{pattern} @var{datum})} means to match @var{datum}
 against the specified @var{pattern}.  The condition counts as true if
 @var{pattern} matches @var{datum}.  The pattern can specify variables to
 bind to the parts of @var{datum} that they match.
+@code{(pcase* @var{pattern} @var{datum})} works in the same way except it
+uses the Pcase syntax for @var{pattern}.
 
-Both @code{bind*} and @code{match*} normally bind their bindings over
+@code{bind*}, @code{match*}, and @code{pcase*} normally bind their bindings over
 the execution of the whole containing clause.  However, if the clause is
 written to specify ``non-exit'', the clause's bindings cover the whole
 rest of the @code{cond*}.
@@ -1464,6 +1519,10 @@ next clause (if any).  The bindings made in @var{condition} for the
 @var{body} of the non-exit clause are passed along to the rest of the
 clauses in this @code{cond*} construct.
 
+Note: @code{pcase*} does not support @code{:non-exit}, and when used in
+a non-exit clause, it follows the semantics of @code{pcase-let}, see
+@ref{Destructuring with pcase Patterns}.
+
 @subheading Matching clauses
 
 A matching clause looks like @code{(match* @var{pattern} @var{datum})}.
@@ -1471,7 +1530,7 @@ It evaluates the expression @var{datum} and matches the pattern
 @var{pattern} (which is not evaluated) against it.
 
 @var{pattern} allows these kinds of patterns, and those that are lists
-often include other patters within them:
+often include other patterns within them:
 
 @table @code
 @item _

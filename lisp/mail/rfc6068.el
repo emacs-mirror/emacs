@@ -1,6 +1,6 @@
 ;;; rfc6068.el --- support for rfc6068  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
 
 ;; Keywords: mail
 
@@ -72,7 +72,7 @@ calling this function."
 	(when address
 	  (setq address (rfc6068-unhexify-string address))
 	  ;; Deal with multiple 'To' recipients.
-	  (if-let ((elem (assoc "To" headers-alist)))
+	  (if-let* ((elem (assoc "To" headers-alist)))
 	      (setcdr elem (concat address ", " (cdr elem)))
             (push (cons "To" address) headers-alist)))
 

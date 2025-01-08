@@ -1,6 +1,6 @@
 ;;; mode-local.el --- Support for mode local facilities  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2004-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2025 Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: 27 Apr 2004

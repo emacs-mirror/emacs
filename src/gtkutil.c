@@ -1,6 +1,6 @@
 /* Functions for creating and updating GTK widgets.
 
-Copyright (C) 2003-2024 Free Software Foundation, Inc.
+Copyright (C) 2003-2025 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -6193,12 +6193,12 @@ update_frame_tool_bar (struct frame *f)
         xg_pack_tool_bar (f, FRAME_TOOL_BAR_POSITION (f));
       gtk_widget_show_all (x->toolbar_widget);
       if (xg_update_tool_bar_sizes (f))
-	/* It's not entirely clear whether here we want a treatment
-	   similar to that for frames with internal tool bar.  */
-	adjust_frame_size (f, -1, -1, 2, 0, Qtool_bar_lines);
-
-      f->tool_bar_resized = f->tool_bar_redisplayed;
+	adjust_frame_size (f, -1, -1, 2, false, Qtool_bar_lines);
     }
+
+  /* Set this regardless of whether a tool bar was made or not.  It's
+     needed for 'frame-inhibit-implied-resize' to work on GTK.  */
+  f->tool_bar_resized = true;
 
   unblock_input ();
 }

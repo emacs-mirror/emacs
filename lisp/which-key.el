@@ -1,6 +1,6 @@
 ;;; which-key.el --- Display available keybindings in popup  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2024  Free Software Foundation, Inc.
+;; Copyright (C) 2017-2025 Free Software Foundation, Inc.
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; Maintainer: Justin Burkett <justin@burkett.cc>
@@ -255,11 +255,12 @@ face to apply)."
   :package-version '(which-key . "1.0") :version "30.1")
 
 (defcustom which-key-special-keys '()
-  "These keys will automatically be truncated to one character.
-They also have `which-key-special-key-face' applied to them.  This
-is disabled by default.  An example configuration is
+  "Keys which will be truncated to their first character.
+They also have `which-key-special-key-face' applied to them.  This is
+disabled by default.  Format is a list of strings, an example
+configuration is:
 
-\(setq which-key-special-keys \\='(\"SPC\" \"TAB\" \"RET\" \"ESC\" \"DEL\")\)"
+\(setopt which-key-special-keys \\='(\"SPC\" \"TAB\" \"RET\" \"ESC\" \"DEL\")\)"
   :type '(repeat string)
   :package-version '(which-key . "1.0") :version "30.1")
 
@@ -1219,7 +1220,7 @@ total height."
 ;;; Show/hide which-key buffer
 
 (defun which-key--hide-popup ()
-  "This function is called to hide the which-key buffer."
+  "Hide the which-key buffer."
   (unless (or which-key-persistent-popup
               (member real-this-command which-key--paging-functions))
     (setq which-key--last-try-2-loc nil)
@@ -2346,10 +2347,7 @@ enough space based on your settings and frame size." prefix-keys)
           (when (cdr page-echo) (funcall (cdr page-echo)))
           (which-key--show-popup (cons height width)))))
     ;; used for paging at top-level
-    (if (fboundp 'set-transient-map)
-        (set-transient-map (which-key--get-popup-map))
-      (with-no-warnings
-        (set-temporary-overlay-map (which-key--get-popup-map))))))
+    (set-transient-map (which-key--get-popup-map))))
 
 ;;; Paging functions
 

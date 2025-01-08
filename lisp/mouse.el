@@ -1,6 +1,6 @@
 ;;; mouse.el --- window system-independent mouse support  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2025 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: hardware, mouse
@@ -632,7 +632,9 @@ Some context functions add menu items below the separator."
     (with-current-buffer (window-buffer (posn-window (event-end click)))
       (when (let* ((pos (posn-point (event-end click)))
                    (char (when pos (char-after pos))))
-              (or (and char (eq (char-syntax char) ?\"))
+              (or (and char (eq (syntax-class-to-char
+                                 (syntax-class (syntax-after pos)))
+                                ?\"))
                   (nth 3 (save-excursion (syntax-ppss pos)))))
         (define-key-after submenu [mark-string]
           `(menu-item "String"
@@ -1890,7 +1892,8 @@ The region will be defined with mark and point."
 If `mouse-1-double-click-prefer-symbols' is non-nil, skip over symbol.
 If DIR is positive skip forward; if negative, skip backward."
   (let* ((char (following-char))
-	 (syntax (char-to-string (char-syntax char)))
+	 (syntax (char-to-string
+                  (syntax-class-to-char (syntax-class (syntax-after (point))))))
          sym)
     (cond ((and mouse-1-double-click-prefer-symbols
                 (setq sym (bounds-of-thing-at-point 'symbol)))
@@ -1938,34 +1941,31 @@ If MODE is 2 then do the same for lines."
         ((and (= mode 1)
               (= start end)
 	      (char-after start)
-              (= (char-syntax (char-after start)) ?\())
-         (if (/= (syntax-class (syntax-after start)) 4) ; raw syntax code for ?\(
-             ;; This happens in CC Mode when unbalanced parens in CPP
-             ;; constructs are given punctuation syntax with
-             ;; syntax-table text properties.  (2016-02-21).
-             (signal 'scan-error (list "Containing expression ends prematurely"
-                                       start start))
-           (list start
-                 (save-excursion
-                   (goto-char start)
-                   (forward-sexp 1)
-                   (point)))))
+              (= (syntax-class-to-char
+                  (syntax-class (syntax-after start)))
+                 ?\())
+         (list start
+               (save-excursion
+                 (goto-char start)
+                 (forward-sexp 1)
+                 (point))))
         ((and (= mode 1)
               (= start end)
 	      (char-after start)
-              (= (char-syntax (char-after start)) ?\)))
-         (if (/= (syntax-class (syntax-after start)) 5) ; raw syntax code for ?\)
-             ;; See above comment about CC Mode.
-             (signal 'scan-error (list "Unbalanced parentheses" start start))
-           (list (save-excursion
-                   (goto-char (1+ start))
-                   (backward-sexp 1)
-                   (point))
-                 (1+ start))))
+              (= (syntax-class-to-char
+                  (syntax-class (syntax-after start)))
+                 ?\)))
+         (list (save-excursion
+                 (goto-char (1+ start))
+                 (backward-sexp 1)
+                 (point))
+               (1+ start)))
 	((and (= mode 1)
               (= start end)
 	      (char-after start)
-              (= (char-syntax (char-after start)) ?\"))
+              (= (syntax-class-to-char
+                  (syntax-class (syntax-after start)))
+                 ?\"))
 	 (let ((open (or (eq start (point-min))
 			 (save-excursion
 			   (goto-char (- start 1))

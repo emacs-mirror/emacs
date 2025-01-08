@@ -1,6 +1,6 @@
 ;;; ert-tests.el --- ERT's self-tests  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2025 Free Software Foundation, Inc.
 
 ;; Author: Christian Ohler <ohler@gnu.org>
 

@@ -1,6 +1,6 @@
 ;;; erc-scenarios-keep-place-indicator.el --- erc-keep-place-indicator-mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -31,6 +31,7 @@
 ;; away, the indicator is updated if it's earlier in the buffer.
 (ert-deftest erc-scenarios-keep-place-indicator--follow ()
   :tags `(:expensive-test
+          ,@(and (getenv "EMACS_EMBA_CI") '(:unstable))
           ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
   (when (version< emacs-version "29") (ert-skip "Times out"))
   ;; XXX verify that this continues to be the case ^.

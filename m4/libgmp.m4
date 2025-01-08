@@ -1,10 +1,11 @@
 # libgmp.m4
 # serial 8
 # Configure the GMP library or a replacement.
-dnl Copyright 2020-2024 Free Software Foundation, Inc.
+dnl Copyright 2020-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
+dnl This file is offered as-is, without any warranty.
 
 dnl gl_LIBGMP
 dnl Search for an installed libgmp.

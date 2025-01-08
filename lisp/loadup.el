@@ -1,6 +1,6 @@
-;;; loadup.el --- load up standardly loaded Lisp files for Emacs  -*- lexical-binding: t; -*-
+;;; loadup.el --- load up always-loaded Lisp files for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994, 2001-2024 Free Software
+;; Copyright (C) 1985-1986, 1992, 1994, 2001-2025 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -41,7 +41,7 @@
 
 ;; These rules are so that src/Makefile can construct lisp.mk
 ;; automatically.  This ensures that the Lisp files are compiled (if
-;; necessary) before the emacs executable is dumped.
+;; necessary) before the "emacs" executable is dumped.
 
 ;;; Code:
 

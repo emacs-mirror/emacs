@@ -1,6 +1,6 @@
 ;;; descr-text.el --- describe text mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1996, 2001-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2025 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -673,10 +673,10 @@ The character information includes:
                       (if display
                           (format "terminal code %s" display)
                         "not encodable for terminal"))))))
-              ,@(when-let ((composition-name
-                            (and composition-string
-                                 (eq (aref char-script-table char) 'emoji)
-                                 (emoji-describe composition-string))))
+              ,@(when-let* ((composition-name
+                             (and composition-string
+                                  (eq (aref char-script-table char) 'emoji)
+                                  (emoji-describe composition-string))))
                   (list (list "composition name" composition-name)))
               ,@(let ((face
                        (if (not (or disp-vector composition))

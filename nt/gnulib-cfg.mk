@@ -1,6 +1,6 @@
 # Configurations for ../lib/gnulib.mk.
 #
-# Copyright 2017-2024 Free Software Foundation, Inc.
+# Copyright 2017-2025 Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ OMIT_GNULIB_MODULE_at-internal = true
 OMIT_GNULIB_MODULE_canonicalize-lgpl = true
 OMIT_GNULIB_MODULE_careadlinkat = true
 OMIT_GNULIB_MODULE_copy-file-range = true
-OMIT_GNULIB_MODULE_dirent = true
+OMIT_GNULIB_MODULE_dirent-h = true
 OMIT_GNULIB_MODULE_dirfd = true
 OMIT_GNULIB_MODULE_fchmodat = true
 OMIT_GNULIB_MODULE_fcntl = true
@@ -61,8 +61,9 @@ OMIT_GNULIB_MODULE_fsusage = true
 OMIT_GNULIB_MODULE_futimens = true
 OMIT_GNULIB_MODULE_getdelim = true
 OMIT_GNULIB_MODULE_getline = true
-OMIT_GNULIB_MODULE_inttypes-incomplete = true
+OMIT_GNULIB_MODULE_inttypes-h-incomplete = true
 OMIT_GNULIB_MODULE_lchmod = true
+OMIT_GNULIB_MODULE_malloc-gnu = true
 OMIT_GNULIB_MODULE_malloc-posix = true
 OMIT_GNULIB_MODULE_nanosleep = true
 OMIT_GNULIB_MODULE_nproc = true
@@ -74,14 +75,14 @@ OMIT_GNULIB_MODULE_secure_getenv = true
 OMIT_GNULIB_MODULE_signal-h = true
 OMIT_GNULIB_MODULE_signbit = true
 OMIT_GNULIB_MODULE_size_max = true
-OMIT_GNULIB_MODULE_stdio = true
-OMIT_GNULIB_MODULE_stdlib = true
+OMIT_GNULIB_MODULE_stdio-h = true
+OMIT_GNULIB_MODULE_stdlib-h = true
 OMIT_GNULIB_MODULE_stpncpy = true
-OMIT_GNULIB_MODULE_sys_select = true
-OMIT_GNULIB_MODULE_sys_stat = true
-OMIT_GNULIB_MODULE_sys_time = true
-OMIT_GNULIB_MODULE_sys_types = true
-OMIT_GNULIB_MODULE_unistd = true
+OMIT_GNULIB_MODULE_sys_select-h = true
+OMIT_GNULIB_MODULE_sys_stat-h = true
+OMIT_GNULIB_MODULE_sys_time-h = true
+OMIT_GNULIB_MODULE_sys_types-h = true
+OMIT_GNULIB_MODULE_unistd-h = true
 OMIT_GNULIB_MODULE_utimens = true
 OMIT_GNULIB_MODULE_utimensat = true
 OMIT_GNULIB_MODULE_xsize = true

@@ -1,6 +1,6 @@
 ;;; hangul.el --- Korean Hangul input method  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2025 Free Software Foundation, Inc.
 
 ;; Author: Jihyun Cho <jihyun.jo@gmail.com>
 ;; Keywords: multilingual, input method, Korean, Hangul
@@ -86,13 +86,11 @@
       65 83 90 109 115 87 116 122 113 118 121 21 66 4 69 99 73 9 1 101 17
       123 124 125 126])
 
-(defvar hangul-im-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\d" #'hangul-delete-backward-char)
-    (define-key map [f9] #'hangul-to-hanja-conversion)
-    (define-key map [Hangul_Hanja] #'hangul-to-hanja-conversion)
-    map)
-  "Keymap for Hangul method.  It is used by all Hangul input methods.")
+(defvar-keymap hangul-im-keymap
+  :doc "Keymap for Hangul method.  It is used by all Hangul input methods."
+  "DEL"            #'hangul-delete-backward-char
+  "<f9>"           #'hangul-to-hanja-conversion
+  "<Hangul_Hanja>" #'hangul-to-hanja-conversion)
 
 ;; Current input character buffer. Store separated hangul character.
 ;; The first and second are Choseong position.

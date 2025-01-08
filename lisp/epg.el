@@ -1,6 +1,6 @@
 ;;; epg.el --- the EasyPG Library -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2000, 2002-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2025 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -670,7 +670,7 @@ callback data (if any)."
 			     :noquery t))
     (setf (epg-context-error-buffer context) (process-buffer error-process))
     (with-existing-directory
-      (with-file-modes 448
+      (with-file-modes #o700
         (setq process (make-process :name "epg"
 				    :buffer buffer
 				    :command (cons (epg-context-program context)

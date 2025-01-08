@@ -1,6 +1,6 @@
 ;;; erc-nicks-tests.el --- Tests for erc-nicks  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -579,6 +579,7 @@
   (defvar erc-track--normal-faces)
 
   (erc-tests-common-make-server-buf)
+  (erc-track-mode +1)
   (erc-nicks-mode +1)
 
   (let ((erc-modules (cons 'nicks erc-modules))

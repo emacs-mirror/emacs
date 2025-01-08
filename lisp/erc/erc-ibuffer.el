@@ -1,6 +1,6 @@
 ;;; erc-ibuffer.el --- ibuffer integration with ERC  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002, 2004, 2006-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006-2025 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -121,10 +121,10 @@
 
 (define-ibuffer-column
  erc-members (:name "Users")
-  (if-let ((table (or erc-channel-users erc-server-users))
-           ((hash-table-p table))
-           (count (hash-table-count table))
-           ((> count 0)))
+  (if-let* ((table (or erc-channel-users erc-server-users))
+            ((hash-table-p table))
+            (count (hash-table-count table))
+            ((> count 0)))
       (number-to-string count)
     ""))
 

@@ -1,5 +1,5 @@
 /* A GNU-like <dirent.h>.
-   Copyright (C) 2006-2024 Free Software Foundation, Inc.
+   Copyright (C) 2006-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -46,18 +46,93 @@ struct dirent
   char d_type;
   char d_name[1];
 };
-/* Possible values for 'd_type'.  */
-#  define DT_UNKNOWN 0
-#  define DT_FIFO    1          /* FIFO */
-#  define DT_CHR     2          /* character device */
-#  define DT_DIR     4          /* directory */
-#  define DT_BLK     6          /* block device */
-#  define DT_REG     8          /* regular file */
-#  define DT_LNK    10          /* symbolic link */
-#  define DT_SOCK   12          /* socket */
-#  define DT_WHT    14          /* whiteout */
 #  define GNULIB_defined_struct_dirent 1
 # endif
+#endif
+
+/* 'd_type' macros specified in GNU, i.e., POSIX.1-2024 plus DT_WHT,
+   but not (yet) DT_MQ, DT_SEM, DT_SHM, DT_TMO.
+   These macros can be useful even on platforms that do not support
+   d_type or the corresponding file types.
+   The values of these macros are all in the 'unsigned char' range.
+   Default to the Linux values which are also popular elsewhere,
+   and check that all macros have distinct values.  */
+#ifndef DT_UNKNOWN
+# define DT_UNKNOWN 0
+#endif
+#ifndef DT_FIFO
+# define DT_FIFO  1 /* FIFO */
+#endif
+#ifndef DT_CHR
+# define DT_CHR   2 /* character device */
+#endif
+#ifndef DT_DIR
+# define DT_DIR   4 /* directory */
+#endif
+#ifndef DT_BLK
+# define DT_BLK   6 /* block device */
+#endif
+#ifndef DT_REG
+# define DT_REG   8 /* regular file */
+#endif
+#ifndef DT_LNK
+# define DT_LNK  10 /* symbolic link */
+#endif
+#ifndef DT_SOCK
+# define DT_SOCK 12 /* socket */
+#endif
+#ifndef DT_WHT
+# define DT_WHT  14 /* whiteout */
+#endif
+static_assert (DT_UNKNOWN != DT_FIFO && DT_UNKNOWN != DT_CHR
+               && DT_UNKNOWN != DT_BLK && DT_UNKNOWN != DT_REG
+               && DT_UNKNOWN != DT_LNK && DT_UNKNOWN != DT_SOCK
+               && DT_UNKNOWN != DT_WHT
+               && DT_FIFO != DT_CHR && DT_FIFO != DT_BLK && DT_FIFO != DT_REG
+               && DT_FIFO != DT_LNK && DT_FIFO != DT_SOCK && DT_FIFO != DT_WHT
+               && DT_CHR != DT_BLK && DT_CHR != DT_REG && DT_CHR != DT_LNK
+               && DT_CHR != DT_SOCK && DT_CHR != DT_WHT
+               && DT_BLK != DT_REG && DT_BLK != DT_LNK && DT_BLK != DT_SOCK
+               && DT_BLK != DT_WHT
+               && DT_REG != DT_LNK && DT_REG != DT_SOCK && DT_REG != DT_WHT
+               && DT_LNK != DT_SOCK && DT_LNK != DT_WHT
+               && DT_SOCK != DT_WHT);
+
+/* Other optional information about a directory entry.  */
+#define _GL_DT_NOTDIR 0x100   /* Not a directory */
+
+/* Conversion between S_IF* and DT_* file types.  */
+#if ! (defined IFTODT && defined DTTOIF)
+# include <sys/stat.h>
+# ifdef S_ISWHT
+#  define _GL_DIRENT_S_ISWHT(mode) S_ISWHT(mode)
+# else
+#  define _GL_DIRENT_S_ISWHT(mode) 0
+# endif
+# ifdef S_IFWHT
+#  define _GL_DIRENT_S_IFWHT S_IFWHT
+# else
+#  define _GL_DIRENT_S_IFWHT (DT_WHT << 12) /* just a guess */
+# endif
+#endif
+/* Conversion from a 'stat' mode to a DT_* value.  */
+#ifndef IFTODT
+# define IFTODT(mode) \
+   (S_ISREG (mode) ? DT_REG : S_ISDIR (mode) ? DT_DIR \
+    : S_ISLNK (mode) ? DT_LNK : S_ISBLK (mode) ? DT_BLK \
+    : S_ISCHR (mode) ? DT_CHR : S_ISFIFO (mode) ? DT_FIFO \
+    : S_ISSOCK (mode) ? DT_SOCK \
+    : _GL_DIRENT_S_ISWHT (mode) ? DT_WHT : DT_UNKNOWN)
+#endif
+/* Conversion from a DT_* value to a 'stat' mode.  */
+#ifndef DTTOIF
+# define DTTOIF(dirtype) \
+   ((dirtype) == DT_REG ? S_IFREG : (dirtype) == DT_DIR ? S_IFDIR \
+    : (dirtype) == DT_LNK ? S_IFLNK : (dirtype) == DT_BLK ? S_IFBLK \
+    : (dirtype) == DT_CHR ? S_IFCHR :  dirtype == DT_FIFO ? S_IFIFO \
+    : (dirtype) == DT_SOCK ? S_IFSOCK \
+    : (dirtype) == DT_WHT ? _GL_DIRENT_S_IFWHT \
+    : (dirtype) << 12 /* just a guess */)
 #endif
 
 #if !@DIR_HAS_FD_MEMBER@

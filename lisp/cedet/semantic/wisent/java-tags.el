@@ -1,6 +1,6 @@
 ;;; semantic/wisent/java-tags.el --- Java LALR parser for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2006, 2009-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2006, 2009-2025 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: 15 Dec 2001
@@ -113,6 +113,7 @@ Use the alternate LALR(1) parser."
    semantic-tag-expand-function #'semantic-java-expand-tag
    ;; Environment
    semantic-imenu-summary-function #'semantic-format-tag-prototype
+   semantic--create-index-function-origin imenu-create-index-function
    imenu-create-index-function #'semantic-create-imenu-index
    semantic-type-relation-separator-character '(".")
    semantic-command-separation-character ";"

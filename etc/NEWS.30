@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2022-2024 Free Software Foundation, Inc.
+Copyright (C) 2022-2025 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to 'bug-gnu-emacs@gnu.org'.
@@ -57,10 +57,10 @@ operating systems instead.
 
 ---
 ** New configuration option '--disable-gc-mark-trace'.
-This disables the GC mark trace buffer for about 5 % better garbage
+This disables the GC mark trace buffer for about 5% better garbage
 collection performance.  Doing so may make it more difficult for Emacs
 developers to help finding GC-related bugs that you run into, which is
-why it the mark trace buffer is enabled by default.
+why the mark trace buffer is enabled by default.
 
 
 * Startup Changes in Emacs 30.1
@@ -102,6 +102,36 @@ collections of snippets automatically apply to the new Tree-Sitter modes.
 
 Note that those modes still do not inherit from the non-TS mode, so
 configuration settings installed via mode hooks are not affected.
+
+Loading a Tree-Sitter mode (such as by using 'M-x load-library' or with
+'M-x load-file') by default causes the corresponding non-Tree-Sitter
+mode be remapped to the Tree-Sitter mode.  This remapping affects
+visiting files for which 'auto-mode-alist' specifies a non-Tree-Sitter
+mode, and also affects mode-specification cookies on the first line of a
+file and mode specifications in file- and directory-local variables.  To
+revert to using a non-Tree-Sitter mode, reload the corresponding mode
+file anew.  To prevent file loading from turning on Tree-Sitter mode
+when 'auto-mode-alist' or the file/directory-local variables specify a
+non-Tree-Sitter mode, customize the user option 'major-mode-remap-alist'
+to specify that a non-Tree-Sitter mode is "remapped" to itself.  For
+example:
+
+    (add-to-list 'major-mode-remap-alist '(c-mode))
+
+specifies that C Mode should not be remapped to 'c-ts-mode' even if and
+when 'c-ts-mode' is loaded.  Conversely,
+
+    (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
+
+tells Emacs to always invoke 'c-ts-mode' whenever 'c-mode' is
+requested, either by 'auto-mode-alist' or by file/directory-local
+variables.
+
+We recommend using 'major-mode-remap-alist' to express your preferences
+for using Tree-Sitter or non-Tree-Sitter modes for files for which both
+variants of major modes are available, because that variable overrides
+the remapping Emacs might decide to perform as result of loading Lisp
+files and features.
 
 ---
 ** Mouse wheel events should now always be 'wheel-up/down/left/right'.
@@ -166,8 +196,24 @@ removed, as it was considered more dangerous than useful.  RFC 9110
 To send an email address in the header of individual HTTP requests,
 see the variable 'url-request-extra-headers'.
 
+---
+** 'pixel-scroll-precision-mode' sets 'make-cursor-line-fully-visible'.
+'pixel-scroll-precision-mode' sets 'make-cursor-line-fully-visible' to a
+nil value globally, since the usual requirement of the Emacs display to
+make the cursor line fully visible contradicts the smooth scrolling
+expectations.
+
 
 * Changes in Emacs 30.1
+
++++
+** New user option 'trusted-content' to allow potentially dangerous features.
+This option lists those files and directories whose content Emacs should
+consider as sufficiently trusted to run any part of the code contained
+therein even without any explicit user request.
+For example, Flymake's backend for Emacs Lisp consults this option
+and disables itself with an "untrusted content" warning if the file
+is not listed.
 
 ---
 ** Emacs now supports Unicode Standard version 15.1.
@@ -1413,10 +1459,12 @@ method but "sudo" can be configured with user option
 +++
 *** Direct asynchronous processes are indicated by a connection-local variable.
 If direct asynchronous processes shall be used, set the connection-local
-variable 'tramp-direct-async-process' to a non-nil value.  This has been
-changed, in previous Emacs versions this was indicated by the now
-deprecated connection property "direct-async-process".  See the Tramp
-manual "(tramp) Improving performance of asynchronous remote processes".
+variable 'tramp-direct-async-process' to a non-nil value.  In previous
+Emacs versions this was indicated by the connection property
+"direct-async-process".  That connection property (though not connection
+properties and 'tramp-connection-properties' in general) is now
+deprecated.  See the Tramp manual "(tramp) Improving performance of
+asynchronous remote processes".
 
 ---
 *** Direct asynchronous processes use 'tramp-remote-path'.
@@ -1827,6 +1875,13 @@ In the past they included a terminating newline in most cases but not all.
 
 ** Emacs Lisp mode
 
++++
+*** 'elisp-flymake-byte-compile' is disabled for untrusted files.
+For security reasons, this backend can be used only in those files
+specified as trusted according to 'trusted-content' and emits an
+"untrusted content" warning otherwise.
+This fixes CVE-2024-53920.
+
 ---
 *** ',@' now has 'prefix' syntax.
 Previously, the '@' character, which normally has 'symbol' syntax,
@@ -1992,6 +2047,7 @@ By default it retains the previous behavior: read the contents of
 Gemfile and act accordingly.  But you can also set it to t or nil to
 skip checking the Gemfile.
 
+---
 *** New user option 'ruby-bracketed-args-indent'.
 When it is set to nil, multiple consecutive open braces/brackets/parens
 result in only one additional indentation level.  Default is t.
@@ -2100,6 +2156,9 @@ versions, and the latter is now an alias of the former.
 The command 'makefile-switch-to-browser' command is now obsolete,
 together with related commands used in the "*Macros and Targets*"
 buffer.  We recommend using an alternative like 'imenu' instead.
+
+---
+*** 'jsonrpc-default-request-timeout' is now a defcustom.
 
 
 * New Modes and Packages in Emacs 30.1
@@ -2336,6 +2395,7 @@ These hooks were named incorrectly, and so they never actually ran
 when unloading the corresponding feature.  Instead, you should use
 hooks named after the feature name, like 'esh-mode-unload-hook'.
 
+---
 ** User options 'eshell-process-wait-{seconds,milliseconds}' are now obsolete.
 Instead, use 'eshell-process-wait-time', which supports floating-point
 values.
@@ -2592,6 +2652,7 @@ The new function 'haiku-notifications-notify' provides a subset of the
 capabilities of the 'notifications-notify' function in a manner
 analogous to 'w32-notification-notify'.
 
+---
 ** New Haiku specific variable 'haiku-pass-control-tab-to-system'.
 This sets whether Emacs should pass 'C-TAB' on to the system instead of
 handling it, fixing a problem where window switching would not activate
@@ -3038,6 +3099,7 @@ inside 'treesit-language-source-alist', so that calling
 It may be useful, for example, for the purposes of bisecting a
 treesitter grammar.
 
++++
 ** New buffer-local variable 'tabulated-list-groups'.
 It controls display and separate sorting of groups of entries.  By
 default no grouping or sorting is done.
@@ -3073,6 +3135,7 @@ this case, would mean repeating the object in the argument list.)  When
 replacing an object with a different one, passing both the new and old
 objects is still necessary.
 
++++
 ** 'vtable-insert-object' can insert "before" or at an index.
 The signature of 'vtable-insert-object' has changed and is now:
 

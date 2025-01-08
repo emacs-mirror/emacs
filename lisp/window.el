@@ -1,6 +1,6 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2025 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -8094,7 +8094,7 @@ specified by the ACTION argument."
       (while (and functions (not window))
         (setq window (funcall (car functions) buffer alist)
               functions (cdr functions)))
-      (when-let ((select (assq 'post-command-select-window alist)))
+      (when-let* ((select (assq 'post-command-select-window alist)))
         (letrec ((old-selected-window (selected-window))
                  (postfun
                   (lambda ()
@@ -8187,10 +8187,10 @@ This is an action function for buffer display, see Info
 node `(elisp) Buffer Display Action Functions'.  It should be
 called only by `display-buffer' or a function directly or
 indirectly called by the latter."
-  (when-let ((window (or (display-buffer-reuse-window buffer alist)
-                         (display-buffer-same-window buffer alist)
-                         (display-buffer-pop-up-window buffer alist)
-                         (display-buffer-use-some-window buffer alist))))
+  (when-let* ((window (or (display-buffer-reuse-window buffer alist)
+                          (display-buffer-same-window buffer alist)
+                          (display-buffer-pop-up-window buffer alist)
+                          (display-buffer-use-some-window buffer alist))))
     (delete-other-windows window)
     window))
 
@@ -9115,35 +9115,6 @@ currently selected window; otherwise it will be displayed in
 another window."
   (pop-to-buffer buffer display-buffer--same-window-action norecord))
 
-(defcustom display-comint-buffer-action
-  (append display-buffer--same-window-action '((category . comint)))
-  "`display-buffer' action for displaying comint buffers."
-  :type display-buffer--action-custom-type
-  :risky t
-  :version "29.1"
-  :group 'windows
-  :group 'comint)
-
-(make-obsolete-variable
- 'display-comint-buffer-action
- "use a `(category . comint)' condition in `display-buffer-alist'."
- "30.1")
-
-(defcustom display-tex-shell-buffer-action '(display-buffer-in-previous-window
-                                             (inhibit-same-window . t)
-                                             (category . tex-shell))
-  "`display-buffer' action for displaying TeX shell buffers."
-  :type display-buffer--action-custom-type
-  :risky t
-  :version "29.1"
-  :group 'windows
-  :group 'tex-run)
-
-(make-obsolete-variable
- 'display-tex-shell-buffer-action
- "use a `(category . tex-shell)' condition in `display-buffer-alist'."
- "30.1")
-
 (defun read-buffer-to-switch (prompt)
   "Read the name of a buffer to switch to, prompting with PROMPT.
 Return the name of the buffer as a string.
@@ -9950,6 +9921,26 @@ for `fit-frame-to-buffer'."
             ;; Move frame down.
             (setq top top-margin)))))
       ;; Apply our changes.
+      (unless frame-resize-pixelwise
+	;; When 'frame-resize-pixelwise' is nil, a frame cannot be
+	;; necessarily fit completely even if the window's calculated
+	;; width and height are integral multiples of the frame's
+	;; character width and height.  The size hints Emacs produces
+	;; are inept to handle that when the combined sizes of the
+	;; frame's fringes, scroll bar and internal border are not an
+	;; integral multiple of the frame's character width (Bug#74866).
+	;; Consequently, the window manager will round sizes down and
+	;; this may cause lines getting wrapped.  To avoid that, round
+	;; sizes up here which will, however, leave a blank space at the
+	;; end of the longest line(s).
+	(setq text-minus-body-width
+	      (+ text-minus-body-width
+		 (- char-width
+		    (% text-minus-body-width char-width))))
+	(setq text-minus-body-height
+	      (+ text-minus-body-height
+		 (- char-height
+		    (% text-minus-body-height char-height)))))
       (setq text-width
             (if width
                 (+ width text-minus-body-width)
@@ -11071,10 +11062,10 @@ that can be later used as argument for `window-point-context-use-function'.
 Remember the returned context in the window parameter `context'."
   (walk-windows
    (lambda (w)
-     (when-let ((fn (buffer-local-value 'window-point-context-set-function
-                                        (window-buffer w)))
-                ((functionp fn))
-                (context (funcall fn w)))
+     (when-let* ((fn (buffer-local-value 'window-point-context-set-function
+                                         (window-buffer w)))
+                 ((functionp fn))
+                 (context (funcall fn w)))
        (set-window-parameter
         w 'context (cons (buffer-name (window-buffer w)) context))))
    'nomini))
@@ -11090,11 +11081,11 @@ The function called is supposed to set the window point to the location
 found by the provided context."
   (walk-windows
    (lambda (w)
-     (when-let ((fn (buffer-local-value 'window-point-context-use-function
-                                        (window-buffer w)))
-                ((functionp fn))
-                (context (window-parameter w 'context))
-                ((equal (buffer-name (window-buffer w)) (car context))))
+     (when-let* ((fn (buffer-local-value 'window-point-context-use-function
+                                         (window-buffer w)))
+                 ((functionp fn))
+                 (context (window-parameter w 'context))
+                 ((equal (buffer-name (window-buffer w)) (car context))))
        (funcall fn w (cdr context))
        (set-window-parameter w 'context nil)))
    'nomini))
@@ -11119,11 +11110,11 @@ found by the provided context."
     (let ((point (window-point w)))
       (save-excursion
         (goto-char point)
-        (when-let ((f (alist-get 'front-context-string context))
-                   ((search-forward f (point-max) t)))
+        (when-let* ((f (alist-get 'front-context-string context))
+                    ((search-forward f (point-max) t)))
           (goto-char (match-beginning 0))
-          (when-let ((r (alist-get 'rear-context-string context))
-                     ((search-backward r (point-min) t)))
+          (when-let* ((r (alist-get 'rear-context-string context))
+                      ((search-backward r (point-min) t)))
             (goto-char (match-end 0))
             (setq point (point)))))
       (set-window-point w point))))

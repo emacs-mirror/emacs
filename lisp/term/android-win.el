@@ -1,6 +1,6 @@
 ;;; android-win.el --- terminal set up for Android  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals, i18n, android
@@ -42,6 +42,7 @@
 (add-to-list 'display-format-alist '(".*" . android))
 
 (declare-function android-get-connection "androidfns.c")
+(declare-function x-handle-args "common-win" (args))
 
 ;; Window system initialization.  This is extremely simple because all
 ;; initialization is done in android_term_init.
@@ -159,7 +160,7 @@ two markers or an overlay.  Otherwise, it is nil."
 VALUE should be something suitable for passing to
 `gui-set-selection'."
   (unless (stringp value)
-    (when-let ((bounds (android-selection-bounds value)))
+    (when-let* ((bounds (android-selection-bounds value)))
       (setq value (ignore-errors
                     (with-current-buffer (nth 2 bounds)
                       (buffer-substring (nth 0 bounds)
@@ -204,7 +205,7 @@ VALUE should be something suitable for passing to
                                               &context (window-system android))
   ;; First, try to turn value into a string.
   ;; Don't set anything if that did not work.
-  (when-let ((string (android-encode-select-string value)))
+  (when-let* ((string (android-encode-select-string value)))
     (cond ((eq type 'CLIPBOARD)
            (android-set-clipboard string))
           ((eq type 'PRIMARY)

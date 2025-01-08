@@ -1,6 +1,6 @@
 /* Tree-sitter integration for GNU Emacs.
 
-Copyright (C) 2021-2024 Free Software Foundation, Inc.
+Copyright (C) 2021-2025 Free Software Foundation, Inc.
 
 Maintainer: Yuan Fu <casouri@gmail.com>
 
@@ -651,7 +651,7 @@ treesit_load_language (Lisp_Object language_symbol,
 
   /* Override the library name and C name, if appropriate.  */
   Lisp_Object override_name;
-  Lisp_Object override_c_name;
+  Lisp_Object override_c_name UNINIT;
   bool found_override = treesit_find_override_name (language_symbol,
 						    &override_name,
 						    &override_c_name);
@@ -1514,6 +1514,20 @@ treesit_ensure_query_compiled (Lisp_Object query, Lisp_Object *signal_symbol,
     }
   XTS_COMPILED_QUERY (query)->query = treesit_query;
   return treesit_query;
+}
+
+/* Bsically treesit_ensure_query_compiled but can signal.  */
+static
+void treesit_ensure_query_compiled_signal (Lisp_Object lisp_query)
+{
+  Lisp_Object signal_symbol = Qnil;
+  Lisp_Object signal_data = Qnil;
+  TSQuery *treesit_query = treesit_ensure_query_compiled (lisp_query,
+							  &signal_symbol,
+							  &signal_data);
+
+  if (treesit_query == NULL)
+    xsignal (signal_symbol, signal_data);
 }
 
 /* Resolve language symbol LANG according to
@@ -3051,6 +3065,8 @@ DEFUN ("treesit-query-compile",
        doc: /* Compile QUERY to a compiled query.
 
 Querying with a compiled query is much faster than an uncompiled one.
+So it's a good idea to use compiled query in tight loops, etc.
+
 LANGUAGE is the language this query is for.
 
 If EAGER is non-nil, immediately load LANGUAGE and compile the query.
@@ -3064,10 +3080,16 @@ You can use `treesit-query-validate' to validate and debug a query.  */)
   if (NILP (Ftreesit_query_p (query)))
     wrong_type_argument (Qtreesit_query_p, query);
   CHECK_SYMBOL (language);
-  if (TS_COMPILED_QUERY_P (query))
-    return query;
 
   treesit_initialize ();
+
+  if (TS_COMPILED_QUERY_P (query))
+    {
+      if (NILP (eager))
+	return query;
+      treesit_ensure_query_compiled_signal (query);
+      return query;
+    }
 
   Lisp_Object lisp_query = make_treesit_query (query, language);
 
@@ -3076,15 +3098,7 @@ You can use `treesit-query-validate' to validate and debug a query.  */)
     return lisp_query;
   else
     {
-      Lisp_Object signal_symbol = Qnil;
-      Lisp_Object signal_data = Qnil;
-      TSQuery *treesit_query = treesit_ensure_query_compiled (lisp_query,
-							      &signal_symbol,
-							      &signal_data);
-
-      if (treesit_query == NULL)
-	xsignal (signal_symbol, signal_data);
-
+      treesit_ensure_query_compiled_signal (lisp_query);
       return lisp_query;
     }
 }
@@ -4148,7 +4162,8 @@ PREDICATE can be a symbol representing a thing in
 `treesit-thing-settings', or a predicate, like regexp matching node
 type, etc.  See `treesit-thing-settings' for more details.
 
-Return non-nil if NODE matches PREDICATE, nil otherwise.
+Return non-nil if NODE matches PREDICATE, nil otherwise.  If NODE is
+nil, return nil.
 
 Signals `treesit-invalid-predicate' if there's no definition of THING
 in `treesit-thing-settings', or if PREDICATE is malformed.  If
@@ -4156,6 +4171,8 @@ IGNORE-MISSING is non-nil, don't signal an error for missing THING
 definition, but still signal for malformed PREDICATE.  */)
   (Lisp_Object node, Lisp_Object predicate, Lisp_Object ignore_missing)
 {
+  if (NILP (node)) return Qnil;
+
   CHECK_TS_NODE (node);
 
   Lisp_Object parser = XTS_NODE (node)->parser;
@@ -4516,4 +4533,15 @@ applies to LANGUAGE-A will be redirected to LANGUAGE-B instead.  */);
   defsubr (&Streesit_subtree_stat);
 #endif /* HAVE_TREE_SITTER */
   defsubr (&Streesit_available_p);
+#ifdef WINDOWSNT
+  DEFSYM (Qtree_sitter__library_abi, "tree-sitter--library-abi");
+  Fset (Qtree_sitter__library_abi,
+#if HAVE_TREE_SITTER
+	make_fixnum (TREE_SITTER_LANGUAGE_VERSION)
+#else
+	make_fixnum (-1)
+#endif
+	);
+#endif
+
 }

@@ -1,6 +1,6 @@
 ;;; ert-x.el --- Staging area for experimental extensions to ERT  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008, 2010-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2010-2025 Free Software Foundation, Inc.
 
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;;         Christian Ohler <ohler@gnu.org>
@@ -395,8 +395,8 @@ variable `ert-resource-directory-format'.  Before formatting, the
 file name will be trimmed using `string-trim' with arguments
 `ert-resource-directory-trim-left-regexp' and
 `ert-resource-directory-trim-right-regexp'."
-  `(when-let ((testfile ,(or (macroexp-file-name)
-                             buffer-file-name)))
+  `(when-let* ((testfile ,(or (macroexp-file-name)
+                              buffer-file-name)))
      (let ((default-directory (file-name-directory testfile)))
        (file-truename
         (if (file-accessible-directory-p "resources/")
@@ -526,11 +526,7 @@ The same keyword arguments are supported as in
 
 (defun ert-gcc-is-clang-p ()
   "Return non-nil if the `gcc' command actually runs the Clang compiler."
-  ;; Some macOS machines run llvm when you type gcc.  (!)
-  ;; We can't even check if it's a symlink; it's a binary placed in
-  ;; "/usr/bin/gcc".  So we need to check the output.
-  (string-match "Apple \\(LLVM\\|[Cc]lang\\)\\|Xcode\\.app"
-                (shell-command-to-string "gcc --version")))
+  (internal--gcc-is-clang-p))
 
 (defvar tramp-default-host-alist)
 (defvar tramp-methods)

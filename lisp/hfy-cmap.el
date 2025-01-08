@@ -1,6 +1,6 @@
 ;;; hfy-cmap.el --- Fallback color name -> rgb mapping for `htmlfontify'  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2025 Free Software Foundation, Inc.
 
 ;; Package: htmlfontify
 ;; Keywords: color, rgb
@@ -835,7 +835,7 @@ Loads the variable `hfy-rgb-txt-color-map', which is used by
     (when (and rgb-txt
                (file-readable-p rgb-txt))
       (setq rgb-buffer (find-file-noselect rgb-txt 'nowarn))
-      (when-let ((result (hfy-cmap--parse-buffer rgb-buffer)))
+      (when-let* ((result (hfy-cmap--parse-buffer rgb-buffer)))
         (setq hfy-rgb-txt-color-map result))
       (kill-buffer rgb-buffer))))
 

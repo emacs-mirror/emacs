@@ -1,6 +1,6 @@
 ;;; goto-addr.el --- click to browse URL or to send to e-mail address  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 2000-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2000-2025 Free Software Foundation, Inc.
 
 ;; Author: Eric Ding <ericding@alum.mit.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -79,10 +79,12 @@ But only if `goto-address-highlight-p' is also non-nil."
   "Non-nil means URLs and e-mail addresses in buffer are highlighted."
   :type 'boolean)
 
-(defcustom goto-address-fontify-maximum-size 30000
-  "Maximum size of file in which to fontify and/or highlight URLs.
+(defcustom goto-address-fontify-maximum-size (* 128 1024)
+  "Maximum size of file in which to fontify and/or highlight URLs (in bytes).
 A value of t means there is no limit--fontify regardless of the size."
-  :type '(choice (integer :tag "Maximum size") (const :tag "No limit" t)))
+  :type '(choice (integer :tag "Maximum size")
+                 (const :tag "No limit" t))
+  :version "31.1")
 
 (defvar goto-address-mail-regexp
   ;; Actually pretty much any char could appear in the username part.  -stef
@@ -117,12 +119,10 @@ will have no effect.")
           thing-at-point-url-path-regexp)
   "A regular expression probably matching a URL.")
 
-(defvar goto-address-highlight-keymap
-  (let ((m (make-sparse-keymap)))
-    (define-key m (kbd "<mouse-2>") #'goto-address-at-point)
-    (define-key m (kbd "C-c RET") #'goto-address-at-point)
-    m)
-  "Keymap to hold goto-addr's mouse key defs under highlighted URLs.")
+(defvar-keymap goto-address-highlight-keymap
+  :doc "Keymap to hold goto-addr's mouse key defs under highlighted URLs."
+  "<mouse-2>" #'goto-address-at-point
+  "C-c RET"   #'goto-address-at-point)
 
 (defun goto-address-context-menu (menu click)
   "Populate MENU with `goto-address' commands at CLICK."
@@ -241,7 +241,7 @@ using `browse-url-secondary-browser-function' instead."
                              (line-beginning-position)))
                  (not (looking-at goto-address-url-regexp))))
           (compose-mail address)
-        (if-let ((url (browse-url-url-at-point)))
+        (if-let* ((url (browse-url-url-at-point)))
             (browse-url-button-open-url url)
           (error "No e-mail address or URL found"))))))
 

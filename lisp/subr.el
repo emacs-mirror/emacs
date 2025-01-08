@@ -1,6 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2025 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -299,7 +299,7 @@ value of last one, or nil if there are none."
   (if body
       (list 'if cond (cons 'progn body))
     (macroexp-warn-and-return (format-message "`when' with empty body")
-                              cond '(empty-body when) t)))
+                              (list 'progn cond nil) '(empty-body when) t)))
 
 (defmacro unless (cond &rest body)
   "If COND yields nil, do BODY, else return nil.
@@ -309,7 +309,7 @@ value of last one, or nil if there are none."
   (if body
       (cons 'if (cons cond (cons nil body)))
     (macroexp-warn-and-return (format-message "`unless' with empty body")
-                              cond '(empty-body unless) t)))
+                              (list 'progn cond nil) '(empty-body unless) t)))
 
 (defsubst subr-primitive-p (object)
   "Return t if OBJECT is a built-in primitive written in C.
@@ -1973,9 +1973,6 @@ be a list of the form returned by `event-start' and `event-end'."
            (side-effect-free t) (obsolete log "24.4"))
   (log x 10))
 
-(set-advertised-calling-convention
- 'all-completions '(string collection &optional predicate) "23.1")
-(set-advertised-calling-convention 'unintern '(name obarray) "23.3")
 (set-advertised-calling-convention 'indirect-function '(object) "25.1")
 (set-advertised-calling-convention 'redirect-frame-focus '(frame focus-frame) "24.3")
 (set-advertised-calling-convention 'libxml-parse-xml-region '(&optional start end base-url) "27.1")
@@ -1990,7 +1987,6 @@ be a list of the form returned by `event-start' and `event-end'."
  ;; It's been announced as obsolete in NEWS and in the docstring since Emacs-25,
  ;; but it's only been marked for compilation warnings since Emacs-29.
  "25.1")
-(make-obsolete-variable 'redisplay-dont-pause nil "24.5")
 (make-obsolete-variable 'operating-system-release nil "28.1")
 (make-obsolete-variable 'inhibit-changing-match-data 'save-match-data "29.1")
 
@@ -2623,8 +2619,17 @@ Affects only hooks run in the current buffer."
 
 (defmacro if-let* (varlist then &rest else)
   "Bind variables according to VARLIST and evaluate THEN or ELSE.
-This is like `if-let' but doesn't handle a VARLIST of the form
-\(SYMBOL SOMETHING) specially."
+Evaluate each binding in turn, as in `let*', stopping if a
+binding value is nil.  If all are non-nil return the value of
+THEN, otherwise the value of the last form in ELSE, or nil if
+there are none.
+
+Each element of VARLIST is a list (SYMBOL VALUEFORM) that binds
+SYMBOL to the value of VALUEFORM.  An element can additionally be
+of the form (VALUEFORM), which is evaluated and checked for nil;
+i.e. SYMBOL can be omitted if only the test result is of
+interest.  It can also be of the form SYMBOL, then the binding of
+SYMBOL is checked for nil."
   (declare (indent 2)
            (debug ((&rest [&or symbolp (symbolp form) (form)])
                    body)))
@@ -2637,15 +2642,26 @@ This is like `if-let' but doesn't handle a VARLIST of the form
 
 (defmacro when-let* (varlist &rest body)
   "Bind variables according to VARLIST and conditionally evaluate BODY.
-This is like `when-let' but doesn't handle a VARLIST of the form
-\(SYMBOL SOMETHING) specially."
+Evaluate each binding in turn, stopping if a binding value is nil.
+If all are non-nil, return the value of the last form in BODY.
+
+The variable list VARLIST is the same as in `if-let*'.
+
+See also `and-let*'."
   (declare (indent 1) (debug if-let*))
   (list 'if-let* varlist (macroexp-progn body)))
 
 (defmacro and-let* (varlist &rest body)
   "Bind variables according to VARLIST and conditionally evaluate BODY.
 Like `when-let*', except if BODY is empty and all the bindings
-are non-nil, then the result is the value of the last binding."
+are non-nil, then the result is the value of the last binding.
+
+Some Lisp programmers follow the convention that `and' and `and-let*'
+are for forms evaluated for return value, and `when' and `when-let*' are
+for forms evaluated for side-effect with returned values ignored."
+  ;; ^ Document this convention here because it explains why we have
+  ;;   both `when-let*' and `and-let*' (in addition to the additional
+  ;;   feature of `and-let*' when BODY is empty).
   (declare (indent 1) (debug if-let*))
   (let (res)
     (if varlist
@@ -2656,25 +2672,15 @@ are non-nil, then the result is the value of the last binding."
 
 (defmacro if-let (spec then &rest else)
   "Bind variables according to SPEC and evaluate THEN or ELSE.
-Evaluate each binding in turn, as in `let*', stopping if a
-binding value is nil.  If all are non-nil return the value of
-THEN, otherwise the value of the last form in ELSE, or nil if
-there are none.
-
-Each element of SPEC is a list (SYMBOL VALUEFORM) that binds
-SYMBOL to the value of VALUEFORM.  An element can additionally be
-of the form (VALUEFORM), which is evaluated and checked for nil;
-i.e. SYMBOL can be omitted if only the test result is of
-interest.  It can also be of the form SYMBOL, then the binding of
-SYMBOL is checked for nil.
-
-As a special case, interprets a SPEC of the form \(SYMBOL SOMETHING)
-like \((SYMBOL SOMETHING)).  This exists for backward compatibility
-with an old syntax that accepted only one binding."
+This is like `if-let*' except, as a special case, interpret a SPEC of
+the form \(SYMBOL SOMETHING) like \((SYMBOL SOMETHING)).  This exists
+for backward compatibility with an old syntax that accepted only one
+binding."
   (declare (indent 2)
            (debug ([&or (symbolp form)  ; must be first, Bug#48489
                         (&rest [&or symbolp (symbolp form) (form)])]
-                   body)))
+                   body))
+           (obsolete if-let* "31.1"))
   (when (and (<= (length spec) 2)
              (not (listp (car spec))))
     ;; Adjust the single binding case
@@ -2687,8 +2693,16 @@ Evaluate each binding in turn, stopping if a binding value is nil.
 If all are non-nil, return the value of the last form in BODY.
 
 The variable list SPEC is the same as in `if-let'."
-  (declare (indent 1) (debug if-let))
-  (list 'if-let spec (macroexp-progn body)))
+  (declare (indent 1) (debug if-let)
+           (obsolete "use `when-let*' or `and-let*' instead." "31.1"))
+  ;; Previously we expanded to `if-let', and then required a
+  ;; `with-suppressed-warnings' to avoid doubling up the obsoletion
+  ;; warnings.  But that triggers a bytecompiler bug; see bug#74530.
+  ;; So for now we reimplement `if-let' here.
+  (when (and (<= (length spec) 2)
+             (not (listp (car spec))))
+    (setq spec (list spec)))
+  (list 'if-let* spec (macroexp-progn body)))
 
 (defmacro while-let (spec &rest body)
   "Bind variables according to SPEC and conditionally evaluate BODY.
@@ -3411,9 +3425,10 @@ with Emacs.  Do not call it directly in your own packages."
 (defun read-number (prompt &optional default hist)
   "Read a numeric value in the minibuffer, prompting with PROMPT.
 DEFAULT specifies a default value to return if the user just types RET.
-The value of DEFAULT is inserted into PROMPT.
-HIST specifies a history list variable.  See `read-from-minibuffer'
-for details of the HIST argument.
+For historical reasons, the value of DEFAULT is always inserted into
+PROMPT, so it's recommended to use `format' instead of `format-prompt'
+to generate PROMPT.  HIST specifies a history list variable.  See
+`read-from-minibuffer' for details of the HIST argument.
 
 This function is used by the `interactive' code letter \"n\"."
   (let ((n nil)
@@ -7438,9 +7453,10 @@ CONDITION is either:
   * `major-mode': the buffer matches if the buffer's major mode
     is eq to the cons-cell's cdr.  Prefer using `derived-mode'
     instead when both can work.
-  * `category': the buffer matches a category as a symbol if
-    the caller of `display-buffer' provides `(category . symbol)'
-    in its action argument.
+  * `category': when this function is called from `display-buffer',
+    the buffer matches if the caller of `display-buffer' provides
+    `(category . SYMBOL)' in its ACTION argument, and SYMBOL is `eq'
+    to the cons-cell's cdr.
   * `not': the cadr is interpreted as a negation of a condition.
   * `and': the cdr is a list of recursive conditions, that all have
     to be met.
@@ -7539,5 +7555,60 @@ and return the value found in PLACE instead."
             `(progn
                ,(funcall setter val)
                ,val)))))
+
+(defun internal--gcc-is-clang-p ()
+  "Return non-nil if the `gcc' command actually runs the Clang compiler."
+  ;; Recent macOS machines run llvm when you type gcc by default.  (!)
+  ;; We can't even check if it's a symlink; it's a binary placed in
+  ;; "/usr/bin/gcc".  So we need to check the output.
+  (when-let* ((out (ignore-errors
+                     (with-temp-buffer
+                       (call-process "gcc" nil t nil "--version")
+                       (buffer-string)))))
+    (string-match "Apple \\(LLVM\\|[Cc]lang\\)\\|Xcode\\.app" out)))
+
+(defun internal--c-header-file-path ()
+  "Return search path for C header files (a list of strings)."
+  ;; FIXME: It's not clear that this is a good place to put this, or
+  ;; even that this should necessarily be internal.
+  ;; See also (Bug#10702):
+  ;; cc-search-directories, semantic-c-dependency-system-include-path,
+  ;; semantic-gcc-setup
+  (delete-dups
+   (let ((base '("/usr/include" "/usr/local/include")))
+     (cond ((or (internal--gcc-is-clang-p)
+                (and (executable-find "clang")
+                     (not (executable-find "gcc"))))
+            ;; This is either macOS, or a system with clang only.
+            (with-temp-buffer
+              (ignore-errors
+                (call-process (if (internal--gcc-is-clang-p) "gcc" "clang")
+                              nil t nil
+                              "-v" "-E" "-"))
+              (goto-char (point-min))
+              (narrow-to-region
+               (save-excursion
+                 (re-search-forward
+                  "^#include <\\.\\.\\.> search starts here:\n" nil t)
+                 (point))
+               (save-excursion
+                 (re-search-forward "^End of search list.$" nil t)
+                 (pos-bol)))
+              (while (search-forward "(framework directory)" nil t)
+                (delete-line))
+              (append base
+                      (reverse
+                       (split-string (buffer-substring-no-properties
+                                      (point-min) (point-max)))))))
+           ;; Prefer GCC.
+           ((let ((arch (with-temp-buffer
+                          (when (eq 0 (ignore-errors
+                                        (call-process "gcc" nil '(t nil) nil
+                                                      "-print-multiarch")))
+                            (goto-char (point-min))
+                            (buffer-substring (point) (line-end-position))))))
+              (if (zerop (length arch))
+                  base
+                (append base (list (expand-file-name arch "/usr/include"))))))))))
 
 ;;; subr.el ends here

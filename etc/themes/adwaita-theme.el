@@ -1,6 +1,6 @@
 ;;; adwaita-theme.el --- Tango-based custom theme for faces  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2010-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
 ;; Author: William Stevenson <yhvh2000@gmail.com>
 
@@ -105,4 +105,4 @@ default look of the Gnome 3 desktop."
    `(diff-added ((,class (:bold t :foreground "#4E9A06"))))
    `(diff-removed ((,class (:bold t :foreground "#F5666D"))))))
 
-;;; adwaita-theme.el  ends here
+;;; adwaita-theme.el ends here

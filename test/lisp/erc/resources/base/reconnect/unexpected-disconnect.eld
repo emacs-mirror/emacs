@@ -1,7 +1,8 @@
 ;; -*- mode: lisp-data; -*-
 
 ((~eof 60 EOF))
-((~ping 60 "PING"))
+((~ping 60 "PING " (group (+ (in "0-9"))))
+ (0 "PONG " cookie))
 
 ((nick 10 "NICK tester"))
 ((user 10 "USER user 0 * :tester")

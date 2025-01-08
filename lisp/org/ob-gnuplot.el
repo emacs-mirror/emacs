@@ -1,6 +1,6 @@
 ;;; ob-gnuplot.el --- Babel Functions for Gnuplot    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Maintainer: Ihor Radchenko <yantar92 at posteo dot net>

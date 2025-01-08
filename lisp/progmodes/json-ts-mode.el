@@ -1,6 +1,6 @@
 ;;; json-ts-mode.el --- tree-sitter support for JSON  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
 ;; Maintainer : Theodor Thornhill <theo@thornhill.no>
@@ -22,6 +22,15 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Tree-sitter language versions
+;;
+;; json-ts-mode is known to work with the following languages and version:
+;; - tree-sitter-json: v0.24.8-1-g4d770d3
+;;
+;; We try our best to make builtin modes work with latest grammar
+;; versions, so a more recent grammar version has a good chance to work.
+;; Send us a bug report if it doesn't.
+
 ;;; Commentary:
 ;;
 
@@ -29,13 +38,7 @@
 
 (require 'treesit)
 (require 'rx)
-
-(declare-function treesit-parser-create "treesit.c")
-(declare-function treesit-induce-sparse-tree "treesit.c")
-(declare-function treesit-node-start "treesit.c")
-(declare-function treesit-node-type "treesit.c")
-(declare-function treesit-node-child-by-field-name "treesit.c")
-
+(treesit-declare-unavailable-functions)
 
 (defcustom json-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `json-ts-mode'."

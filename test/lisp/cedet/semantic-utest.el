@@ -1,6 +1,6 @@
 ;;; semantic-utest.el --- Tests for semantic's parsing system. -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2025 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

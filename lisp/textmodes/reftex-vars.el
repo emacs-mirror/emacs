@@ -1,6 +1,6 @@
 ;;; reftex-vars.el --- configuration variables for RefTeX  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-1999, 2001-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1999, 2001-2025 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -381,9 +381,6 @@ This feature can be turned on and off from the menu
 See also `reftex-toc-split-windows-horizontally'."
   :group 'reftex-table-of-contents-browser
   :type 'number)
-
-(defvar reftex-toc-split-windows-horizontally-fraction 0.5
-  "This variable is obsolete, use `reftex-toc-split-windows-fraction' instead.")
 
 (defcustom reftex-toc-keep-other-windows t
   "Non-nil means, split the selected window to display the *toc* buffer.
@@ -2112,6 +2109,9 @@ the following construct: \\bbb [xxx] {aaa}."
   :group 'reftex-miscellaneous-configurations
   :type 'hook)
 
+(defvar reftex-toc-split-windows-horizontally-fraction 0.5)
+(make-obsolete-variable 'reftex-toc-split-windows-horizontally-fraction
+                        'reftex-toc-split-windows-fraction "31.1")
 
 (provide 'reftex-vars)
 

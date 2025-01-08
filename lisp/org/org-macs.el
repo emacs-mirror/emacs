@@ -1,6 +1,6 @@
 ;;; org-macs.el --- Top-level Definitions for Org -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2025 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, text
@@ -573,7 +573,7 @@ is selected, only the bare key is returned."
 		   ((assoc current specials) (throw 'exit current))
 		   (t (error "No entry available")))))))
         (when buffer
-          (when-let ((window (get-buffer-window buffer t)))
+          (when-let* ((window (get-buffer-window buffer t)))
             (quit-window 'kill window))
           (kill-buffer buffer))))))
 

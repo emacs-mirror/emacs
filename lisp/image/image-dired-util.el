@@ -1,6 +1,6 @@
 ;;; image-dired-util.el --- util functions for Image-Dired  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2005-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2025 Free Software Foundation, Inc.
 
 ;; Author: Mathias Dahl <mathias.rem0veth1s.dahl@gmail.com>
 ;; Maintainer: Stefan Kangas <stefankangas@gmail.com>
@@ -125,7 +125,7 @@ See also `image-dired-thumbnail-storage' and
 
 (defun image-dired-file-name-at-point ()
   "Get abbreviated file name for thumbnail or display image at point."
-  (when-let ((f (image-dired-original-file-name)))
+  (when-let* ((f (image-dired-original-file-name)))
     (abbreviate-file-name f)))
 
 (defun image-dired-associated-dired-buffer ()

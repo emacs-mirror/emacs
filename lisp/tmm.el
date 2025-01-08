@@ -1,6 +1,6 @@
 ;;; tmm.el --- text mode access to menu-bar  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1996, 2000-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2000-2025 Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich <ilya@math.mps.ohio-state.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -82,15 +82,12 @@ or else the correct item might not be found in the `*Completions*' buffer."
   :type '(choice (const :tag "No shortcuts" nil)
                  string))
 
-(defvar tmm-mb-map nil
-  "A place to store minibuffer map.")
-
 (defcustom tmm-completion-prompt
-  "Press PageUp key to reach this buffer from the minibuffer.
-Alternatively, you can use Up/Down keys (or your History keys) to change
+  "Press M-v/PageUp key to reach this buffer from the minibuffer.
+Alternatively, You can use Up/Down keys (or your History keys) to change
 the item in the minibuffer, and press RET when you are done, or press
-the marked letters to pick up your choice.  Type ^ to go to the parent
-menu.  Type C-g or ESC ESC ESC to cancel.
+the %s to pick up your choice.
+Type ^ to go to the parent menu.  Type C-g or ESC ESC ESC to cancel.
 "
   "Help text to insert on the top of the completion buffer.
 To save space, you can set this to nil,
@@ -111,15 +108,16 @@ If you use only one of `downcase' or `upcase' for `tmm-shortcut-style',
 specify nil for this variable."
   :type '(choice integer (const nil)))
 
+(defcustom tmm-shortcut-inside-entry nil
+  "Highlight the shortcut character in the menu entry's string.
+When non-nil, the first menu-entry's character that acts as a shortcut
+is displayed with the `highlight' face to help identify it.  The
+`tmm-mid-prompt' string is not used then."
+  :type 'boolean)
+
 (defface tmm-inactive
   '((t :inherit shadow))
   "Face used for inactive menu items.")
-
-(defun tmm--completion-table (items)
-  (lambda (string pred action)
-    (if (eq action 'metadata)
-	'(metadata (display-sort-function . identity))
-      (complete-with-action action items string pred))))
 
 (defvar tmm--history nil)
 
@@ -201,7 +199,8 @@ is used to go back through those sub-menus."
 		     (setq tail (cdr tail)))))
              (let ((prompt
                     (concat "^"
-                            (if (stringp tmm-mid-prompt)
+                            (if (and (stringp tmm-mid-prompt)
+                                     (not tmm-shortcut-inside-entry))
                                 (concat "."
                                         (regexp-quote tmm-mid-prompt))))))
                (setq tmm--history
@@ -217,7 +216,9 @@ is used to go back through those sub-menus."
              (setq out
                    (if default-item
                        (car (nth index-of-default tmm-km-list))
-                     (minibuffer-with-setup-hook #'tmm-add-prompt
+                     (minibuffer-with-setup-hook
+                         (lambda ()
+                           (setq tmm-old-mb-map (tmm-define-keys t)))
                        ;; tmm-km-list is reversed, because history
                        ;; needs it in LIFO order.  But default list
                        ;; needs it in non-reverse order, so that the
@@ -228,7 +229,12 @@ is used to go back through those sub-menus."
                        (completing-read-default
                         (concat gl-str
                                 " (up/down to change, PgUp to menu): ")
-                        (tmm--completion-table tmm-km-list) nil t nil
+                        (completion-table-with-metadata
+                         tmm-km-list '((category . tmm)
+                                       (eager-display . tmm-add-prompt)
+                                       (display-sort-function . identity)
+                                       (cycle-sort-function . identity)))
+                        nil t nil
                         'tmm--history (reverse tmm--history)))))))
       (if (and (stringp out) (string= "^" out))
           ;; A fake choice to please the destructuring later.
@@ -286,7 +292,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
    (t
     (let* ((str (car elt))
            (paren (string-search "(" str))
-           (pos 0) (word 0) char)
+           (word 0) pos char)
       (catch 'done                             ; ??? is this slow?
         (while (and (or (not tmm-shortcut-words)   ; no limit on words
                         (< word tmm-shortcut-words)) ; try n words
@@ -302,17 +308,40 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
                 (if (not (memq char tmm-short-cuts)) (throw 'done char))))
           (setq word (1+ word))
           (setq pos (match-end 0)))
+        ;; A nil value for pos means that the shortcut is not inside the
+        ;; string of the menu entry.
+        (setq pos nil)
         (while (<= tmm-next-shortcut-digit ?9) ; no letter shortcut, pick a digit
           (setq char tmm-next-shortcut-digit)
           (setq tmm-next-shortcut-digit (1+ tmm-next-shortcut-digit))
           (if (not (memq char tmm-short-cuts)) (throw 'done char)))
         (setq char nil))
       (if char (setq tmm-short-cuts (cons char tmm-short-cuts)))
-      (cons (concat (if char (concat (char-to-string char) tmm-mid-prompt)
-                      ;; keep them lined up in columns
-                      (make-string (1+ (length tmm-mid-prompt)) ?\s))
-                    str)
-            (cdr elt))))))
+      (cons
+       (if tmm-shortcut-inside-entry
+           (if char
+               (if pos
+                   ;; A character inside the menu entry.
+                   (let ((res (copy-sequence str)))
+                     (aset res pos char)
+                     (add-text-properties pos (1+ pos) '(face highlight) res)
+                     res)
+                 ;; A fallback digit character: place it in front of the
+                 ;; menu entry.
+                 (concat (propertize (char-to-string char) 'face 'highlight)
+                         " " str))
+             (make-string 2 ?\s))
+         (concat (if char (concat (char-to-string char) tmm-mid-prompt)
+                   ;; Keep them lined up in columns.
+                   (make-string (1+ (length tmm-mid-prompt)) ?\s))
+                 str))
+       (cdr elt))))))
+
+(defun tmm-clear-self-insert-and-exit ()
+  "Clear the minibuffer contents then self insert and exit."
+  (interactive)
+  (delete-minibuffer-contents)
+  (self-insert-and-exit))
 
 ;; This returns the old map.
 (defun tmm-define-keys (minibuffer)
@@ -325,14 +354,14 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
         ;; downcase input to the same
         (define-key map (char-to-string (downcase c)) 'tmm-shortcut)
         (define-key map (char-to-string (upcase c)) 'tmm-shortcut)))
-    (if minibuffer
-	(progn
-          (define-key map [pageup] 'tmm-goto-completions)
-          (define-key map [prior] 'tmm-goto-completions)
-          (define-key map "\ev" 'tmm-goto-completions)
-          (define-key map "\C-n" 'next-history-element)
-          (define-key map "\C-p" 'previous-history-element)
-          (define-key map "^" 'self-insert-and-exit)))
+    (when minibuffer
+      (define-key map [pageup] 'tmm-goto-completions)
+      (define-key map [prior] 'tmm-goto-completions)
+      (define-key map "\ev" 'tmm-goto-completions)
+      (define-key map "\C-n" 'next-history-element)
+      (define-key map "\C-p" 'previous-history-element)
+      ;; Previous menu shortcut (see `tmm-prompt').
+      (define-key map "^" 'tmm-clear-self-insert-and-exit))
     (prog1 (current-local-map)
       (use-local-map (append map (current-local-map))))))
 
@@ -374,7 +403,6 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 (defun tmm-add-prompt ()
   (unless tmm-c-prompt
     (error "No active menu entries"))
-  (setq tmm-old-mb-map (tmm-define-keys t))
   (or tmm-completion-prompt
       (add-hook 'completion-setup-hook
                 #'tmm-completion-delete-prompt 'append))
@@ -387,7 +415,12 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
       (let ((inhibit-read-only t)
 	    (window (get-buffer-window "*Completions*")))
 	(goto-char (point-min))
-	(insert tmm-completion-prompt)
+	(insert
+         (if tmm-shortcut-inside-entry
+             (format tmm-completion-prompt
+                     (concat (propertize "highlighted" 'face 'highlight) " character"))
+           (format tmm-completion-prompt
+                   (concat "character right before '" tmm-mid-prompt "' "))))
 	(when window
 	  ;; Try to show everything just inserted and preserve height of
 	  ;; *Completions* window.  This should fix a behavior described
@@ -409,23 +442,27 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 	      (choose-completion))
 	  ;; In minibuffer
 	  (delete-region (minibuffer-prompt-end) (point-max))
-	  (dolist (elt tmm-km-list)
-            (if (string=
-                 (substring (car elt) 0
-                            (min (1+ (length tmm-mid-prompt))
-                                 (length (car elt))))
-                 (concat (char-to-string c) tmm-mid-prompt))
-                (setq s (car elt))))
+          (dolist (elt tmm-km-list)
+            (let ((str (car elt))
+                  (index 0))
+              (when tmm-shortcut-inside-entry
+                (if (get-char-property 0 'face str)
+                    (setq index 0)
+                  (let ((next (next-single-char-property-change 0 'face str)))
+                    (setq index (if (= (length str) next) 0 next)))))
+              (if (= (aref str index) c)
+                  (setq s str))))
 	  (insert s)
 	  (exit-minibuffer)))))
 
 (defun tmm-goto-completions ()
   "Jump to the completions buffer."
   (interactive)
-  (let ((prompt-end (minibuffer-prompt-end)))
-    (setq tmm-c-prompt (buffer-substring prompt-end (point-max)))
-    ;; FIXME: Why?
-    (delete-region prompt-end (point-max)))
+  (tmm-add-prompt)
+  (setq tmm-c-prompt (buffer-substring (minibuffer-prompt-end) (point-max)))
+  ;; Clear minibuffer old contents before using *Completions* buffer for
+  ;; selection.
+  (delete-minibuffer-contents)
   (switch-to-buffer-other-window "*Completions*")
   (search-forward tmm-c-prompt)
   (search-backward tmm-c-prompt))
@@ -487,13 +524,20 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
             (when binding
               (setq binding (key-description binding))
               ;; Try to align the keybindings.
-              (let ((colwidth (min 30 (- (/ (window-width) 2) 10))))
+              (let* ((window (get-buffer-window "*Completions*"))
+                     (colwidth (min 30 (- (/ (if window
+                                                 (window-width window)
+                                               (frame-width))
+                                             2)
+                                          10)))
+                     (nspaces (max 2 (- colwidth
+                                        (string-width str)
+                                        (string-width binding)))))
                 (setq str
                       (concat str
-                              (make-string (max 2 (- colwidth
-                                                     (string-width str)
-                                                     (string-width binding)))
-                                           ?\s)
+                              (propertize (make-string nspaces ?\s)
+                                          'display
+                                          (cons 'space (list :width nspaces)))
                               binding)))))))
       (and km (stringp km) (setq str km))
       ;; Verify that the command is enabled;

@@ -1,6 +1,6 @@
 ;;; em-pred-tests.el --- em-pred test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -416,12 +416,6 @@ PREDICATE is the predicate used to query that attribute."
   (should (equal (eshell-eval-predicate
                   '("/path/to/file.el" "/other/path/") ":r")
                  '("/path/to/file" "/other/path/"))))
-
-(ert-deftest em-pred-test/modifier-quote ()
-  "Test that \":q\" quotes arguments."
-  (should (equal-including-properties
-           (eshell-eval-predicate '("foo" "bar") ":q")
-           (list (eshell-escape-arg "foo") (eshell-escape-arg "bar")))))
 
 (ert-deftest em-pred-test/modifier-substitute ()
   "Test that \":s/PAT/REP/\" replaces PAT with REP once."

@@ -1,6 +1,6 @@
 ;;; tramp-cmds.el --- Interactive commands for Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2025 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -65,24 +65,24 @@ SYNTAX can be one of the symbols `default' (default),
      "method: "
      (tramp-compat-seq-keep
       (lambda (x)
-	(when-let ((name (symbol-name x))
-		   ;; It must match `tramp-enable-METHOD-method'.
-		   ((string-match
-		     (rx "tramp-enable-"
-			 (group (regexp tramp-method-regexp))
-			 "-method")
-		     name))
-		   (method (match-string 1 name))
-		   ;; It must not be enabled yet.
-		   ((not (assoc method tramp-methods))))
+	(when-let* ((name (symbol-name x))
+		    ;; It must match `tramp-enable-METHOD-method'.
+		    ((string-match
+		      (rx "tramp-enable-"
+			  (group (regexp tramp-method-regexp))
+			  "-method")
+		      name))
+		    (method (match-string 1 name))
+		    ;; It must not be enabled yet.
+		    ((not (assoc method tramp-methods))))
 	  method))
       ;; All method enabling functions.
       (mapcar
        #'intern (all-completions "tramp-enable-" obarray #'functionp))))))
 
-  (when-let (((not (assoc method tramp-methods)))
-	     (fn (intern (format "tramp-enable-%s-method" method)))
-	     ((functionp fn)))
+  (when-let* (((not (assoc method tramp-methods)))
+	      (fn (intern (format "tramp-enable-%s-method" method)))
+	      ((functionp fn)))
     (funcall fn)
     (message "Tramp method \"%s\" enabled" method)))
 
@@ -118,11 +118,11 @@ Each function is called with the current vector as argument.")
 (defun tramp-cleanup-connection
     (vec &optional keep-debug keep-password keep-processes)
   "Flush all connection related objects.
-This includes password cache, file cache, connection cache,
-buffers, processes.  KEEP-DEBUG non-nil preserves the debug
-buffer.  KEEP-PASSWORD non-nil preserves the password cache.
-KEEP-PROCESSES non-nil preserves the asynchronous processes.
-When called interactively, a Tramp connection has to be selected."
+This includes password cache, file cache, connection cache, buffers,
+processes.  KEEP-DEBUG non-nil preserves the debug and trace buffer.
+KEEP-PASSWORD non-nil preserves the password cache.  KEEP-PROCESSES
+non-nil preserves the asynchronous processes.  When called
+interactively, a Tramp connection has to be selected."
   (declare (completion tramp-active-command-completion-p))
   (interactive
    ;; When interactive, select the Tramp remote identification.
@@ -173,7 +173,7 @@ When called interactively, a Tramp connection has to be selected."
 		     (get-buffer (tramp-debug-buffer-name vec)))
 		   (unless keep-debug
 		     (get-buffer (tramp-trace-buffer-name vec)))
-		   (tramp-get-connection-property vec "process-buffer")))
+		   (tramp-get-connection-property vec " process-buffer")))
       (when (bufferp buf) (kill-buffer buf)))
 
     ;; Flush file cache.
@@ -368,7 +368,7 @@ function returns nil"
 	(when (string-match-p (or (eval (car item) t) "") string)
 	  (setq tdra nil
 		result
-		(format-spec
+		(tramp-format-spec
 		 (cdr item) (format-spec-make ?m method ?u user ?h host)))))
       result)))
 
@@ -672,7 +672,7 @@ This is needed if there are compatibility problems."
   (declare (completion tramp-recompile-elpa-command-completion-p))
   (interactive)
   ;; We expect just one Tramp package is installed.
-  (when-let
+  (when-let*
       ((dir (tramp-compat-funcall
 	     'package-desc-dir
 	     (car (alist-get 'tramp (bound-and-true-p package-alist))))))
@@ -763,8 +763,8 @@ buffer in your bug report.
 
 (defun tramp-reporter-dump-variable (varsym mailbuf)
   "Pretty-print the value of the variable in symbol VARSYM."
-  (when-let ((reporter-eval-buffer reporter-eval-buffer)
-	     (val (buffer-local-value varsym reporter-eval-buffer)))
+  (when-let* ((reporter-eval-buffer reporter-eval-buffer)
+	      (val (buffer-local-value varsym reporter-eval-buffer)))
 
     (if (hash-table-p val)
 	;; Pretty print the cache.

@@ -1,12 +1,13 @@
 # getline.m4
 # serial 33
 
-dnl Copyright (C) 1998-2003, 2005-2007, 2009-2024 Free Software Foundation,
+dnl Copyright (C) 1998-2003, 2005-2007, 2009-2025 Free Software Foundation,
 dnl Inc.
 dnl
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
+dnl This file is offered as-is, without any warranty.
 
 AC_PREREQ([2.59])
 

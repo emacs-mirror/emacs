@@ -1,6 +1,6 @@
 ;;; help-at-pt.el --- local help through the keyboard  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2025 Free Software Foundation, Inc.
 
 ;; Author: Luc Teirlinck <teirllm@auburn.edu>
 ;; Keywords: help
@@ -86,20 +86,20 @@ If this produces no string either, return nil."
 
 ;;;###autoload
 (defun display-local-help (&optional inhibit-warning describe-button)
-  "Display local help in the echo area.
-This command, by default, displays a short help message, namely
-the string produced by the `kbd-help' property at point.  If
-`kbd-help' does not produce a string, but the `help-echo'
-property does, then that string is printed instead.
+  "Display in the echo area `kbd-help' or `help-echo' text at point.
+This command displays the help message which is the string produced
+by the `kbd-help' property at point.  If `kbd-help' at point does not
+produce a string, but the `help-echo' property does, then that string
+is displayed instead.
 
 The string is passed through `substitute-command-keys' before it
 is displayed.
 
-If INHIBIT-WARNING is non-nil, this prevents display of a message
-in case there is no help.
+If INHIBIT-WARNING is non-nil, do not display a warning message when
+there is no help property at point.
 
 If DESCRIBE-BUTTON in non-nil (interactively, the prefix arg), and
-there's a button/widget at point, pop a buffer describing that
+there's a button/widget at point, pop up a buffer describing that
 button/widget instead."
   (interactive (list nil current-prefix-arg))
   (let ((help (help-at-pt-kbd-string)))

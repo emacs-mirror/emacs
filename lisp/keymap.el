@@ -1,6 +1,6 @@
 ;;; keymap.el --- Keymap functions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -528,7 +528,7 @@ If optional argument ACCEPT-DEFAULT is non-nil, recognize default
 bindings; see the description of `keymap-lookup' for more details
 about this."
   (declare (compiler-macro (lambda (form) (keymap--compile-check keys) form)))
-  (when-let ((map (current-local-map)))
+  (when-let* ((map (current-local-map)))
     (keymap-lookup map keys accept-default)))
 
 (defun keymap-global-lookup (keys &optional accept-default message)
@@ -687,6 +687,7 @@ value can also be a property list with properties `:enter',
 `:exit' and `:hints', for example:
 
      :repeat (:enter (commands ...) :exit (commands ...)
+              :continue (commands ...)
               :hints ((command . \"hint\") ...))
 
 `:enter' specifies the list of additional commands that only
@@ -701,6 +702,10 @@ list is empty, no commands in the map exit `repeat-mode'.
 Specifying a list of commands is useful when those commands exist
 in this specific map, but should not have the `repeat-map' symbol
 property.
+
+`:continue' specifies the list of commands that should not
+enter `repeat-mode'.  These command should only continue the
+already activated repeating sequence.
 
 `:hints' is a list of cons pairs where car is a command and
 cdr is a string that is displayed alongside of the repeatable key
@@ -740,6 +745,10 @@ in the echo area.
             def)
         (dolist (def (plist-get repeat :enter))
           (push `(put ',def 'repeat-map ',variable-name) props))
+        (dolist (def (plist-get repeat :continue))
+          (push `(put ',def 'repeat-continue
+                      (cons ',variable-name (get ',def 'repeat-continue)))
+                props))
         (while defs
           (pop defs)
           (setq def (pop defs))

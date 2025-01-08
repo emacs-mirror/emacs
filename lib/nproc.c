@@ -1,6 +1,6 @@
 /* Detect the number of processors.
 
-   Copyright (C) 2009-2024 Free Software Foundation, Inc.
+   Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -20,6 +20,7 @@
 #include <config.h>
 #include "nproc.h"
 
+#include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -125,6 +126,46 @@ num_processors_via_affinity_mask (void)
       }
   }
 #elif HAVE_SCHED_GETAFFINITY_LIKE_GLIBC /* glibc >= 2.3.4 */
+  /* There are two ways to use the sched_getaffinity() function:
+       - With a statically-sized cpu_set_t.
+       - With a dynamically-sized cpu_set_t.
+     Documentation:
+     <https://www.kernel.org/doc/man-pages/online/pages/man2/sched_getaffinity.2.html>
+     <https://www.kernel.org/doc/man-pages/online/pages/man3/CPU_SET.3.html>
+     The second way has the advantage that it works on systems with more than
+     1024 CPUs.  The first way has the advantage that it works also when memory
+     is tight.  */
+# if defined CPU_ALLOC_SIZE /* glibc >= 2.6 */
+  {
+    unsigned int alloc_count = 1024;
+    for (;;)
+      {
+        cpu_set_t *set = CPU_ALLOC (alloc_count);
+        if (set == NULL)
+          /* Out of memory.  */
+          break;
+        unsigned int size = CPU_ALLOC_SIZE (alloc_count);
+        if (sched_getaffinity (0, size, set) == 0)
+          {
+            unsigned int count = CPU_COUNT_S (size, set);
+            CPU_FREE (set);
+            return count;
+          }
+        if (errno != EINVAL)
+          {
+            /* Some other error.  */
+            CPU_FREE (set);
+            return 0;
+          }
+        CPU_FREE (set);
+        /* Retry with some larger cpu_set_t.  */
+        alloc_count *= 2;
+        if (alloc_count == 0)
+          /* Integer overflow.  Avoid an endless loop.  */
+          return 0;
+      }
+  }
+# endif
   {
     cpu_set_t set;
 

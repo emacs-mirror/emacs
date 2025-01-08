@@ -1,6 +1,6 @@
 ;;; find-dired.el --- run a `find' command and dired the output  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2025 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>,
 ;;	   Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -431,9 +431,9 @@ specifies what to use in place of \"-ls\" as the final argument."
   "Sort entries in *Find* buffer by file name lexicographically."
   (sort-subr nil 'forward-line 'end-of-line
              (lambda ()
-               (when-let ((start
-                           (next-single-property-change
-                            (point) 'dired-filename)))
+               (when-let* ((start
+                            (next-single-property-change
+                             (point) 'dired-filename)))
                (buffer-substring-no-properties start (line-end-position))))))
 
 

@@ -1,6 +1,6 @@
 ;;; desktop.el --- save partial status of Emacs when killed -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1995, 1997, 2000-2024 Free Software Foundation,
+;; Copyright (C) 1993-1995, 1997, 2000-2025 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
@@ -699,7 +699,7 @@ DIRNAME omitted or nil means use `desktop-dirname'."
 
 (defun desktop--emacs-pid-running-p (pid)
   "Return non-nil if an Emacs process whose ID is PID might still be running."
-  (when-let ((attr (process-attributes pid)))
+  (when-let* ((attr (process-attributes pid)))
     (let ((proc-cmd (alist-get 'comm attr))
           (my-cmd (file-name-nondirectory (car command-line-args)))
           (case-fold-search t))

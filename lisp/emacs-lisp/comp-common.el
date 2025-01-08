@@ -1,6 +1,6 @@
 ;;; comp-common.el --- common code -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
 
 ;; Author: Andrea Corallo <acorallo@gnu.org>
 ;; Keywords: lisp
@@ -510,13 +510,13 @@ comes from `comp-primitive-type-specifiers' or the function type declaration
 itself."
   (let ((kind 'declared)
         type-spec)
-    (when-let ((res (assoc function comp-primitive-type-specifiers)))
+    (when-let* ((res (assoc function comp-primitive-type-specifiers)))
       ;; Declared primitive
       (setf type-spec (cadr res)))
     (let ((f (and (symbolp function)
                   (symbol-function function))))
       (when (and f (null type-spec))
-        (if-let ((delc-type (function-get function 'function-type)))
+        (if-let* ((delc-type (function-get function 'function-type)))
             ;; Declared Lisp function
             (setf type-spec delc-type)
           (when (native-comp-function-p f)

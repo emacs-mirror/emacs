@@ -1,6 +1,6 @@
 ;;; ox-texinfo.el --- Texinfo Backend for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2025 Free Software Foundation, Inc.
 ;; Author: Jonathan Leech-Pepin <jonathan.leechpepin at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, text
 
@@ -826,9 +826,9 @@ holding export options."
               ;; `dn' is presumed to be just the DIRNAME part, so generate
               ;; either `* DIRNAME: (FILENAME).' or `* FILENAME.', whichever
               ;; is shortest.
-              ((and dn (not (equal dn file)))
+              (dn
                (format "* %s: (%s)." dn (or file dn)))
-              (t (format "* %s." file)))))
+              (t (format "* (%s)." file)))))
        (concat "@dircategory " dircat "\n"
 	       "@direntry\n"
 	       (let ((dirdesc

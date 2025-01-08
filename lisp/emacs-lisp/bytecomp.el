@@ -1,6 +1,6 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 1994, 1998, 2000-2024 Free Software
+;; Copyright (C) 1985-1987, 1992, 1994, 1998, 2000-2025 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
@@ -5471,9 +5471,9 @@ FORM is used to provide location, `bytecomp--cus-function' and
         (setq byte-compile-current-group name))
 
       ;; Check :local
-      (when-let ((val (and (eq fun 'custom-declare-variable)
-                           (plist-get keyword-args :local)))
-                 (_ (not (member val '(t 'permanent 'permanent-only)))))
+      (when-let* ((val (and (eq fun 'custom-declare-variable)
+                            (plist-get keyword-args :local)))
+                  (_ (not (member val '(t 'permanent 'permanent-only)))))
         (bytecomp--cus-warn form ":local keyword does not accept %S" val))))
 
   (byte-compile-normal-call form))
@@ -6050,8 +6050,8 @@ and corresponding effects."
             :buffer :host :service :type :family :local :remote :coding
             :nowait :noquery :stop :filter :filter-multibyte :sentinel
             :log :plist :tls-parameters :server :broadcast :dontroute
-            :keepalive :linger :oobinline :priority :reuseaddr :bindtodevice
-            :use-external-socket)
+            :keepalive :linger :oobinline :priority :reuseaddr :nodelay
+            :bindtodevice :use-external-socket)
           '(:name :service))))
 
 (provide 'byte-compile)

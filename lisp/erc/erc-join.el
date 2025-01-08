@@ -1,6 +1,6 @@
 ;;; erc-join.el --- autojoin channels on connect and reconnects  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2004, 2006-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2025 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -157,8 +157,8 @@ network or a network ID).  Return nil on failure."
 ;; encountering errors, like a 475 ERR_BADCHANNELKEY.
 (defun erc-join--remove-requested-channel (_ parsed)
   "Remove channel from `erc-join--requested-channels'."
-  (when-let ((channel (cadr (erc-response.command-args parsed)))
-             ((member channel erc-join--requested-channels)))
+  (when-let* ((channel (cadr (erc-response.command-args parsed)))
+              ((member channel erc-join--requested-channels)))
     (setq erc-join--requested-channels
           (delete channel erc-join--requested-channels)))
   nil)
@@ -175,7 +175,7 @@ network or a network ID).  Return nil on failure."
 (defun erc-autojoin--join ()
   ;; This is called in the server buffer
   (pcase-dolist (`(,name . ,channels) erc-autojoin-channels-alist)
-    (when-let ((match (erc-autojoin-server-match name)))
+    (when-let* ((match (erc-autojoin-server-match name)))
       (dolist (chan channels)
         (let ((buf (erc-get-buffer chan erc-server-process)))
           (unless (and buf (with-current-buffer buf

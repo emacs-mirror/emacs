@@ -1,6 +1,6 @@
 ;;; pulse.el --- Pulsing Overlays  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2025 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.0
@@ -167,7 +167,7 @@ Optional argument FACE specifies the face to do the highlighting."
 
 (defun pulse-tick (colors stop-time)
   (if (time-less-p nil stop-time)
-      (when-let (color (elt colors pulse-momentary-iteration))
+      (when-let* ((color (elt colors pulse-momentary-iteration)))
         (set-face-background 'pulse-highlight-face color)
         (setq pulse-momentary-iteration (1+ pulse-momentary-iteration)))
     (pulse-momentary-unhighlight)))

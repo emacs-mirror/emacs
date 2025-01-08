@@ -1,6 +1,6 @@
 ;;; w32-feature.el --- Check Availability of Emacs Features  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2025 Free Software Foundation, Inc.
 
 ;; Author: Phillip Lord <phillip.lord@russet.org.uk>
 
@@ -46,9 +46,7 @@
 
 (ert-deftest feature-harfbuzz ()
   (should
-   (eq
-    'harfbuzz
-    (car (frame-parameter nil 'font-backend)))))
+   (eq 'harfbuzz (get 'uniscribe 'font-driver-superseded-by))))
 
 (ert-deftest feature-gnutls ()
   (should (gnutls-available-p)))

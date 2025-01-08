@@ -1,6 +1,6 @@
 ;;; bibtex-tests.el --- Test suite for bibtex.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2025 Free Software Foundation, Inc.
 
 ;; Keywords: bibtex
 

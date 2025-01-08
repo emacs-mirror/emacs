@@ -1,6 +1,6 @@
 ;;; erc-imenu.el --- Imenu support for ERC  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2025 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -132,23 +132,36 @@ Don't rely on this function, read it first!"
 (defvar-local erc-imenu--create-index-function nil
   "Previous local value of `imenu-create-index-function', if any.")
 
-(defun erc-imenu-setup ()
-  "Wire up support for Imenu in an ERC buffer."
-  (when (and (local-variable-p 'imenu-create-index-function)
-             imenu-create-index-function)
-    (setq erc-imenu--create-index-function imenu-create-index-function))
-  (setq imenu-create-index-function #'erc-create-imenu-index))
-
 ;;;###autoload(autoload 'erc-imenu-mode "erc-imenu" nil t)
 (define-erc-module imenu nil
   "Simple Imenu integration for ERC."
   ((add-hook 'erc-mode-hook #'erc-imenu-setup)
+   (add-hook 'which-function-mode-hook #'erc-imenu--disable-which-func)
    (unless erc--updating-modules-p (erc-buffer-do #'erc-imenu-setup)))
   ((remove-hook 'erc-mode-hook #'erc-imenu-setup)
-   (erc-with-all-buffers-of-server nil nil
-     (when erc-imenu--create-index-function
-       (setq imenu-create-index-function erc-imenu--create-index-function)
-       (kill-local-variable 'erc-imenu--create-index-function)))))
+   (remove-hook 'which-function-mode-hook #'erc-imenu--disable-which-func)
+   (erc-buffer-do #'erc-imenu-setup)))
+
+(defun erc-imenu-setup ()
+  "Set up or tear down Imenu integration."
+  (if erc-imenu-mode
+      (progn
+        (when (and (local-variable-p 'imenu-create-index-function)
+                   imenu-create-index-function)
+          (setq erc-imenu--create-index-function imenu-create-index-function))
+        (setq imenu-create-index-function #'erc-create-imenu-index)
+        (when (boundp 'which-func-mode)
+          (setq which-func-mode nil)))
+    (when erc-imenu--create-index-function
+      (setq imenu-create-index-function erc-imenu--create-index-function))
+    (kill-local-variable 'erc-imenu--create-index-function)
+    (kill-local-variable 'which-func-mode)))
+
+(defun erc-imenu--disable-which-func ()
+  "Silence `which-function-mode' in ERC buffers."
+  (defvar which-func-mode)
+  (erc-with-all-buffers-of-server nil nil
+    (setq which-func-mode nil)))
 
 (provide 'erc-imenu)
 

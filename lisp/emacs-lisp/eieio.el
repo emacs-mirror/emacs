@@ -1,7 +1,7 @@
 ;;; eieio.el --- Enhanced Implementation of Emacs Interpreted Objects  -*- lexical-binding:t -*-
 ;;;              or maybe Eric's Implementation of Emacs Interpreted Objects
 
-;; Copyright (C) 1995-1996, 1998-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 1998-2025 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.4
@@ -769,10 +769,10 @@ dynamically set from ARGS."
       (let* ((slot (aref slots i))
              (slot-name (eieio-slot-descriptor-name slot))
              (initform (cl--slot-descriptor-initform slot)))
-        (unless (or (when-let ((initarg
-                                (car (rassq slot-name
-                                            (eieio--class-initarg-tuples
-                                             this-class)))))
+        (unless (or (when-let* ((initarg
+                                 (car (rassq slot-name
+                                             (eieio--class-initarg-tuples
+                                              this-class)))))
                       (plist-get initargs initarg))
                     ;; Those slots whose initform is constant already have
                     ;; the right value set in the default-object.

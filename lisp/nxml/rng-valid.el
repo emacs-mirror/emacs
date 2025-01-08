@@ -1,6 +1,6 @@
 ;;; rng-valid.el --- real-time validation of XML using RELAX NG  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2025 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: text, hypermedia, languages, XML, RelaxNG
@@ -545,7 +545,8 @@ Return t if there is work to do, nil otherwise."
 	      ((or (>= pos next-cache-point)
 		   (not continue))
 	       (setq next-cache-point (+ pos rng-state-cache-distance))
-	       (rng-clear-cached-state remove-start pos)
+	       (with-silent-modifications
+		 (rng-clear-cached-state remove-start pos))
 	       (when have-remaining-chars
 		 (rng-cache-state (1- pos)))
 	       (setq remove-start pos)

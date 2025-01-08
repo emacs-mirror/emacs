@@ -33,6 +33,7 @@
  (objc-mode . ((c-file-style . "GNU")
                (electric-quote-comment . nil)
                (electric-quote-string . nil)
+               (indent-tabs-mode . t)
 	       (mode . bug-reference-prog)))
  (c-ts-mode . ((c-ts-mode-indent-style . gnu))) ;Inherits `c-mode' settings.
  (log-edit-mode . ((log-edit-font-lock-gnu-style . t)

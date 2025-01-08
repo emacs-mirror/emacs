@@ -1,9 +1,10 @@
 # tm_gmtoff.m4
 # serial 5
-dnl Copyright (C) 2002, 2009-2024 Free Software Foundation, Inc.
+dnl Copyright (C) 2002, 2009-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
+dnl This file is offered as-is, without any warranty.
 
 dnl Check for tm_gmtoff and tm_zone in struct tm, and #define
 dnl HAVE_STRUCT_TM_TM_GMTOFF and HAVE_STRUCT_TM_TM_ZONE accordingly.

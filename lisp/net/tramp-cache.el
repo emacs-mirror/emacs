@@ -1,6 +1,6 @@
 ;;; tramp-cache.el --- file information caching for Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000, 2005-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2005-2025 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pittman <daniel@inanna.danann.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
@@ -68,7 +68,7 @@
 
 ;; Some properties are handled special:
 ;;
-;; - "process-name", "process-buffer" and "first-password-request" are
+;; - Properties which start with a space, like " process-name", are
 ;;   not saved in the file `tramp-persistency-file-name', although
 ;;   being connection properties related to a `tramp-file-name'
 ;;   structure.
@@ -243,8 +243,8 @@ Return VALUE."
   "Remove some properties of FILE's upper directory."
   (when (file-name-absolute-p file)
     ;; `file-name-directory' can return nil, for example for "~".
-    (when-let ((file (file-name-directory file))
-	       (file (directory-file-name file)))
+    (when-let* ((file (file-name-directory file))
+		(file (directory-file-name file)))
       (setq key (tramp-file-name-unify key file))
       (unless (eq key tramp-cache-undefined)
 	(dolist (property (hash-table-keys (tramp-get-hash-table key)))
@@ -396,7 +396,8 @@ the connection, return DEFAULT."
 	       (not (and (processp key) (not (process-live-p key)))))
       (setq value cached
 	    cache-used t))
-    (tramp-message key 7 "%s %s; cache used: %s" property value cache-used)
+    (unless (eq key tramp-cache-version)
+      (tramp-message key 7 "%s %s; cache used: %s" property value cache-used))
     value))
 
 ;;;###tramp-autoload
@@ -409,11 +410,12 @@ is `tramp-cache-undefined', nothing is set.
 PROPERTY is set persistent when KEY is a `tramp-file-name' structure.
 Return VALUE."
   (setq key (tramp-file-name-unify key))
-  (when-let ((hash (tramp-get-hash-table key)))
+  (when-let* ((hash (tramp-get-hash-table key)))
     (puthash property value hash))
   (setq tramp-cache-data-changed
 	(or tramp-cache-data-changed (tramp-file-name-p key)))
-  (tramp-message key 7 "%s %s" property value)
+  (unless (eq key tramp-cache-version)
+    (tramp-message key 7 "%s %s" property value))
   value)
 
 ;;;###tramp-autoload
@@ -433,7 +435,7 @@ KEY identifies the connection, it is either a process or a
 used to cache connection properties of the local machine.
 PROPERTY is set persistent when KEY is a `tramp-file-name' structure."
   (setq key (tramp-file-name-unify key))
-  (when-let ((hash (tramp-get-hash-table key)))
+  (when-let* ((hash (tramp-get-hash-table key)))
     (remhash property hash))
   (setq tramp-cache-data-changed
 	(or tramp-cache-data-changed (tramp-file-name-p key)))
@@ -448,7 +450,7 @@ used to cache connection properties of the local machine."
   (setq key (tramp-file-name-unify key))
   (tramp-message
    key 7 "%s %s" key
-   (when-let ((hash (gethash key tramp-cache-data)))
+   (when-let* ((hash (gethash key tramp-cache-data)))
      (hash-table-keys hash)))
   (setq tramp-cache-data-changed
 	(or tramp-cache-data-changed (tramp-file-name-p key)))
@@ -552,7 +554,7 @@ PROPERTIES is a list of file properties (strings)."
      (lambda (key)
        (and (tramp-file-name-p key)
 	    (null (tramp-file-name-localname key))
-	    (tramp-connection-property-p key "process-buffer")
+	    (tramp-connection-property-p key " process-buffer")
 	    key))
      (hash-table-keys tramp-cache-data))))
 
@@ -584,10 +586,9 @@ PROPERTIES is a list of file properties (strings)."
 		    (not (tramp-file-name-localname key))
 		    (not (gethash "login-as" value))
 		    (not (gethash "started" value)))
-	       (progn
-		 (remhash "process-name" value)
-		 (remhash "process-buffer" value)
-		 (remhash "first-password-request" value))
+	       (dolist (k (hash-table-keys value))
+		 (when (string-prefix-p " " k)
+		   (remhash k value)))
 	     (remhash key cache)))
 	 cache)
 	;; Dump it.

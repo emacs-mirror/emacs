@@ -1,6 +1,6 @@
 ;;; url-handlers.el --- file-name-handler stuff for URL loading  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-1999, 2004-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2025 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -124,13 +124,13 @@ that URL in a buffer."
 (defcustom url-handler-regexp
   "\\`\\(?:https?\\|ftp\\|file\\|nfs\\|ssh\\|scp\\|rsync\\|telnet\\)://"
   "Regular expression for URLs handled by `url-handler-mode'.
-When URL Handler mode is enabled, this regular expression is
-added to `file-name-handler-alist'.
+When URL Handler mode is enabled, this regular expression is added to
+`file-name-handler-alist'.
 
-Some valid URL protocols just do not make sense to visit
-interactively (about, data, info, irc, mailto, etc.).  This
-regular expression avoids conflicts with local files that look
-like URLs (Gnus is particularly bad at this)."
+Some valid URL protocols just do not make sense to visit interactively
+(data, info, irc, mailto, etc.).  This regular expression avoids
+conflicts with local files that look like URLs (Gnus is particularly bad
+at this)."
   :group 'url
   :type 'regexp
   :version "25.1"

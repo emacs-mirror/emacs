@@ -1,6 +1,6 @@
 ;;; esh-cmd.el --- command invocation  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -488,7 +488,7 @@ command hooks should be run before and after the command."
           (grouped-terms (eshell-prepare-splice terms)))
       (cond
        (grouped-terms
-        `(let ((new-terms (nconc ,@grouped-terms)))
+        `(let ((new-terms (append ,@grouped-terms)))
            (,sym (car new-terms) (cdr new-terms))))
        ;; If no terms are spliced, use a simpler command form.
        ((cdr terms)
@@ -526,6 +526,32 @@ the second is ignored."
 (defvar eshell--local-vars nil
   "List of locally bound vars that should take precedence over env-vars.")
 
+(iter-defun eshell-for-iterate (&rest args)
+  "Iterate over the elements of each sequence in ARGS.
+If ARGS is not a sequence, treat it as a list of one element."
+  (dolist (arg args)
+    (when (eshell--range-string-p arg)
+      (setq arg (eshell--string-to-range arg)))
+    (cond
+     ((eshell-range-p arg)
+      (let ((i (eshell-range-begin arg))
+            (end (eshell-range-end arg)))
+        ;; NOTE: We could support unbounded ranges here, but those
+        ;; aren't very easy to use in Eshell yet.  (We'd need something
+        ;; like the "break" statement for "for" loops.)
+        (cl-assert (and i end))
+        (while (< i end)
+          (iter-yield i)
+          (cl-incf i))))
+     ((stringp arg)
+      (iter-yield arg))
+     ((listp arg)
+      (dolist (i arg) (iter-yield i)))
+     ((arrayp arg)
+      (dotimes (i (length arg)) (iter-yield (aref arg i))))
+     (t
+      (iter-yield arg)))))
+
 (defun eshell-rewrite-for-command (terms)
   "Rewrite a `for' command into its equivalent Eshell command form.
 Because the implementation of `for' relies upon conditional evaluation
@@ -533,29 +559,21 @@ of its argument (i.e., use of a Lisp special form), it must be
 implemented via rewriting, rather than as a function."
   (if (and (equal (car terms) "for")
 	   (equal (nth 2 terms) "in"))
-      (let ((for-items (make-symbol "for-items"))
+      (let ((iter-symbol (intern (nth 1 terms)))
             (body (car (last terms))))
 	(setcdr (last terms 2) nil)
-        `(let ((,for-items
-                (append
-                 ,@(mapcar
-                    (lambda (elem)
-                      (if (listp elem)
-                          (eshell-term-as-value elem)
-                        `(list ,elem)))
-                    (nthcdr 3 terms)))))
-           (while ,for-items
-             (let ((,(intern (cadr terms)) (car ,for-items))
-		   (eshell--local-vars (cons ',(intern (cadr terms))
-                                             eshell--local-vars)))
-	       ,body)
-             (setq ,for-items (cdr ,for-items)))))))
+        `(let ((eshell--local-vars (cons ',iter-symbol eshell--local-vars)))
+           (iter-do (,iter-symbol (eshell-for-iterate
+                                   ,@(mapcar #'eshell-term-as-value
+                                             (nthcdr 3 terms))))
+             ,body)))))
 
 (defun eshell-structure-basic-command (func names keyword test &rest body)
   "With TERMS, KEYWORD, and two NAMES, structure a basic command.
 The first of NAMES should be the positive form, and the second the
 negative.  It's not likely that users should ever need to call this
 function."
+  (declare (obsolete nil "31.1"))
   (unless test
     (error "Missing test for `%s' command" keyword))
 
@@ -586,6 +604,12 @@ function."
   ;; Finally, create the form that represents this structured command.
   `(,func ,test ,@body))
 
+(defun eshell-silence-test-command (terms)
+  "If TERMS is a subcommand, wrap it in `eshell-commands' to silence output."
+  (if (memq (car-safe terms) '(eshell-as-subcommand eshell-lisp-command))
+      `(eshell-command-success (eshell-commands ,terms t))
+    terms))
+
 (defun eshell-rewrite-while-command (terms)
   "Rewrite a `while' command into its equivalent Eshell command form.
 Because the implementation of `while' relies upon conditional
@@ -593,10 +617,13 @@ evaluation of its argument (i.e., use of a Lisp special form), it
 must be implemented via rewriting, rather than as a function."
   (when (and (stringp (car terms))
              (member (car terms) '("while" "until")))
-    (eshell-structure-basic-command
-     'while '("while" "until") (car terms)
-     (cadr terms)
-     (caddr terms))))
+    (unless (cadr terms)
+      (error "Missing test for `while' command"))
+    (let ((condition (eshell-silence-test-command (cadr terms))))
+      (unless (string= (car terms) "while")
+        (setq condition `(not ,condition)))
+      `(while ,condition
+         ,(caddr terms)))))
 
 (defun eshell-rewrite-if-command (terms)
   "Rewrite an `if' command into its equivalent Eshell command form.
@@ -605,18 +632,21 @@ evaluation of its argument (i.e., use of a Lisp special form), it
 must be implemented via rewriting, rather than as a function."
   (when (and (stringp (car terms))
              (member (car terms) '("if" "unless")))
-    (eshell-structure-basic-command
-     'if '("if" "unless") (car terms)
-     (cadr terms)
-     (caddr terms)
-     (if (equal (nth 3 terms) "else")
-         ;; If there's an "else" keyword, allow chaining together
-         ;; multiple "if" forms...
-         (or (eshell-rewrite-if-command (nthcdr 4 terms))
-             (nth 4 terms))
-       ;; ... otherwise, only allow a single "else" block (without the
-       ;; keyword) as before for compatibility.
-       (nth 3 terms)))))
+    (unless (cadr terms)
+      (error "Missing test for `while' command"))
+    (let ((condition (eshell-silence-test-command (cadr terms)))
+          (then (caddr terms))
+          (else (if (equal (nth 3 terms) "else")
+                    ;; If there's an "else" keyword, allow chaining
+                    ;; together multiple "if" forms...
+                    (or (eshell-rewrite-if-command (nthcdr 4 terms))
+                        (nth 4 terms))
+                  ;; ... otherwise, only allow a single "else" block
+                  ;; (without the keyword) as before for compatibility.
+                  (nth 3 terms))))
+      (unless (string= (car terms) "if")
+        (setq condition `(not ,condition)))
+      `(if ,condition ,then ,else))))
 
 (defun eshell-set-exit-info (status &optional result)
   "Set the exit status and result for the last command.
@@ -665,9 +695,10 @@ This means an exit code of 0."
           sep-terms (nreverse sep-terms))
     (while results
       (cl-assert (car sep-terms))
-      (setq final (eshell-structure-basic-command
-                   'if (string= (pop sep-terms) "&&") "if"
-                   (pop results) final)))
+      (setq final `(,(if (string= (pop sep-terms) "&&") 'and 'or)
+                    (eshell-command-success
+                     (eshell-deferrable ,(pop results)))
+                    ,final)))
     final))
 
 (defun eshell-parse-subcommand-argument ()
@@ -751,12 +782,12 @@ if none)."
 ;; `eshell-do-eval' [Iterative evaluation]:
 ;;
 ;; @ Don't use special forms that conditionally evaluate their
-;;   arguments, such as `let*', unless Eshell explicitly supports
-;;   them.  Eshell supports the following special forms: `catch',
-;;   `condition-case', `if', `let', `prog1', `progn', `quote', `setq',
-;;   `unwind-protect', and `while'.
+;;   arguments, such as `let*', unless Eshell explicitly supports them.
+;;   Eshell supports the following special forms: `and', `catch',
+;;   `condition-case', `if', `let', `or', `prog1', `progn', `quote',
+;;   `setq', `unwind-protect', and `while'.
 ;;
-;; @ The two `special' variables are `eshell-current-handles' and
+;; @ The two "special" variables are `eshell-current-handles' and
 ;;   `eshell-current-subjob-p'.  Bind them locally with a `let' if you
 ;;   need to change them.  Change them directly only if your intention
 ;;   is to change the calling environment.
@@ -802,6 +833,10 @@ returning it as (:eshell-background . PROCESSES)."
   `(let (eshell-current-subjob-p)
      (eshell-with-handles (,(not silent) 'append)
        ,object)))
+
+(defmacro eshell-command-success (command)
+  "Return non-nil if COMMAND exits successfully."
+  `(progn ,command (eshell-exit-success-p)))
 
 (defvar eshell-this-command-hook nil)
 
@@ -1182,6 +1217,18 @@ have been replaced by constants."
             (setcar form (car new-form))
             (setcdr form (cdr new-form))))
         (eshell-do-eval form synchronous-p))
+       ((memq (car form) '(and or))
+        (eshell-manipulate form (format-message "evaluating %s form" (car form))
+          (let* ((result (eshell-do-eval (car args) synchronous-p))
+                 (value (cadr result)))
+            (if (or (null (cdr args))
+                    (if (eq (car form) 'or) value (not value)))
+                ;; If this is the last sub-form or we short-circuited,
+                ;; just return the result.
+                result
+              ;; Otherwise, remove this sub-form and re-evaluate.
+              (setcdr form (cdr args))
+              (eshell-do-eval form synchronous-p)))))
        ((eq (car form) 'setcar)
 	(setcar (cdr args) (eshell-do-eval (cadr args) synchronous-p))
 	(eval form))
@@ -1317,8 +1364,8 @@ have been replaced by constants."
 		    (setcar form (car new-form))
 		    (setcdr form (cdr new-form)))
 		  (eshell-do-eval form synchronous-p))
-              (if-let (((memq (car form) eshell-deferrable-commands))
-                       (procs (eshell-make-process-list result)))
+              (if-let* (((memq (car form) eshell-deferrable-commands))
+                        (procs (eshell-make-process-list result)))
                   (if synchronous-p
 		      (funcall #'eshell-wait-for-processes procs)
 		    (eshell-manipulate form "inserting ignore form"
@@ -1334,19 +1381,22 @@ have been replaced by constants."
 
 (defun eshell/which (command &rest names)
   "Identify the COMMAND, and where it is located."
-  (dolist (name (cons command names))
-    (condition-case error
-        (eshell-printn
-         (catch 'found
-           (run-hook-wrapped
-            'eshell-named-command-hook
-            (lambda (hook)
-              (when-let (((symbolp hook))
-                         (which-func (get hook 'eshell-which-function))
-                         (result (funcall which-func command)))
-                (throw 'found result))))
-           (eshell-plain-command--which name)))
-      (error (eshell-error (format "which: %s\n" (cadr error)))))))
+  (let (not-found)
+    (dolist (name (cons command names))
+      (condition-case error
+          (eshell-printn
+           (catch 'found
+             (run-hook-wrapped
+              'eshell-named-command-hook
+              (lambda (hook)
+                (when-let* (((symbolp hook))
+                            (which-func (get hook 'eshell-which-function))
+                            (result (funcall which-func command)))
+                  (throw 'found result))))
+             (eshell-plain-command--which name)))
+        (error (eshell-error (format "which: %s\n" (cadr error)))
+               (setq not-found t))))
+    (when not-found (eshell-set-exit-info 1))))
 
 (put 'eshell/which 'eshell-no-numeric-conversions t)
 
@@ -1407,7 +1457,7 @@ COMMAND may result in an alias being executed, or a plain command."
       sym)))
 
 (defun eshell-plain-command--which (command)
-  (if-let ((sym (eshell--find-plain-lisp-command command)))
+  (if-let* ((sym (eshell--find-plain-lisp-command command)))
       (or (with-output-to-string
             (require 'help-fns)
             (princ (format "%s is " sym))
@@ -1419,7 +1469,7 @@ COMMAND may result in an alias being executed, or a plain command."
   "Insert output from a plain COMMAND, using ARGS.
 COMMAND may result in either a Lisp function being executed by name,
 or an external command."
-  (if-let ((sym (eshell--find-plain-lisp-command command)))
+  (if-let* ((sym (eshell--find-plain-lisp-command command)))
       (eshell-lisp-command sym args)
     (eshell-external-command command args)))
 
@@ -1451,11 +1501,13 @@ case."
      (when (memq eshell-in-pipeline-p '(nil last))
        (eshell-set-exit-info 1))
      (let ((msg (error-message-string err)))
-       (if (and (not form-p)
-                (string-match "^Wrong number of arguments" msg)
-                (fboundp 'eldoc-get-fnsym-args-string))
-           (let ((func-doc (eldoc-get-fnsym-args-string func-or-form)))
-             (setq msg (format "usage: %s" func-doc))))
+       (unless form-p
+         (let ((prog-name (string-trim-left (symbol-name func-or-form)
+                                            "eshell/")))
+           (if (eq (car err) 'wrong-number-of-arguments)
+               (setq msg (format "%s usage: %s" prog-name
+                                 (elisp-get-fnsym-args-string func-or-form)))
+             (setq msg (format "%s: %s" prog-name msg)))))
        (funcall errprint msg))
      nil)))
 
@@ -1542,9 +1594,7 @@ a string naming a Lisp function."
                     (while args
                       (let ((arg (car args)))
                         (cond
-                         ((and numeric (stringp arg) (> (length arg) 0)
-                               (text-property-any 0 (length arg)
-                                                  'number t arg))
+                         ((and numeric (eshell--numeric-string-p arg))
                           ;; If any of the arguments are flagged as
                           ;; numbers waiting for conversion, convert
                           ;; them now.

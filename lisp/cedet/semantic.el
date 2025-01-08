@@ -1,6 +1,6 @@
 ;;; semantic.el --- Semantic buffer evaluator.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax tools
@@ -997,6 +997,9 @@ The following modes are more targeted at people who want to see
   :type `(set ,@(mapcar (lambda (c) (list 'const c))
 			semantic-submode-list)))
 
+(defvar-local semantic--create-index-function-origin nil
+  "The original `imenu-create-index-function' before semantic.")
+
 ;;;###autoload
 (define-minor-mode semantic-mode
   "Toggle parser features (Semantic mode).
@@ -1070,7 +1073,13 @@ Semantic mode.
     (setq semantic--buffer-cache nil)
     ;; Make sure we run the setup function if Semantic gets
     ;; re-activated.
-    (setq semantic-new-buffer-fcn-was-run nil)))
+    (setq semantic-new-buffer-fcn-was-run nil)
+    ;; restore the original `imenu-create-index-function'
+    (unless (eq semantic--create-index-function-origin
+                imenu-create-index-function)
+      (setq imenu-create-index-function
+            (or semantic--create-index-function-origin
+                (default-value 'imenu-create-index-function))))))
 
 ;;; Autoload some functions that are not in semantic/loaddefs
 

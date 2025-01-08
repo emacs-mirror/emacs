@@ -1,6 +1,6 @@
 ;;; thread.el --- Thread support in Emacs Lisp -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2025 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell <gazally@runbox.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -126,7 +126,7 @@ other describing THREAD's blocker, if any."
   (cond
    ((not (thread-live-p thread)) '("Finished" ""))
    ((eq thread (current-thread)) '("Running" ""))
-   (t (if-let ((blocker (thread--blocker thread)))
+   (t (if-let* ((blocker (thread--blocker thread)))
           `("Blocked" ,(prin1-to-string blocker))
         '("Yielded" "")))))
 

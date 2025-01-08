@@ -1,4 +1,4 @@
-/* Copyright (C) 2018-2024 Free Software Foundation, Inc.
+/* Copyright (C) 2018-2025 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2239,7 +2239,7 @@ dump_marker (struct dump_context *ctx, const struct Lisp_Marker *marker)
 static dump_off
 dump_interval_node (struct dump_context *ctx, struct itree_node *node)
 {
-#if CHECK_STRUCTS && !defined (HASH_itree_node_1A87DF0C78)
+#if CHECK_STRUCTS && !defined (HASH_itree_node_8AF9E94FBA)
 # error "itree_node changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct itree_node out;
@@ -5093,11 +5093,14 @@ struct dump_memory_map_heap_control_block
 static void
 dump_mm_heap_cb_release (struct dump_memory_map_heap_control_block *cb)
 {
-  eassert (cb->refcount > 0);
-  if (--cb->refcount == 0)
+  if (cb)
     {
-      free (cb->mem);
-      free (cb);
+      eassert (cb->refcount > 0);
+      if (--cb->refcount == 0)
+	{
+	  free (cb->mem);
+	  free (cb);
+	}
     }
 }
 

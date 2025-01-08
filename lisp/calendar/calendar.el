@@ -1,6 +1,6 @@
 ;;; calendar.el --- calendar functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1988-1995, 1997, 2000-2024 Free Software Foundation,
+;; Copyright (C) 1988-1995, 1997, 2000-2025 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -90,6 +90,19 @@
 ;; <https://doi.org/10.1002/spe.4380230404>
 ;; <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.42.6421&rep=rep1&type=pdf>
 
+;; A note on how dates are represented:
+
+;; The standard format for a (Gregorian) calendar date in this file is a
+;; list of integers (MONTH DAY YEAR) -- see the functions
+;; `calendar-extract-year', `calendar-extract-month', and
+;; `calendar-extract-day'.  Internally it also uses an "absolute" format
+;; which is an integer number of days since December 31, 1BC on the
+;; Gregorian calendar (see e.g. `calendar-absolute-from-gregorian'), and
+;; converts between different calendar scales by converting to and from
+;; the absolute format (see e.g. `calendar-iso-from-absolute' in
+;; cal-iso.el).  This representation is also useful for certain
+;; calculations; e.g. `calendar-day-of-week' is simply the absolute
+;; represention modulo 7, because December 31, 1BC is a Sunday.
 
 ;; A note on free variables:
 
@@ -2335,14 +2348,15 @@ returned is (month year)."
                                    defyear))
          (month-array calendar-month-name-array)
          (defmon (aref month-array (1- (calendar-extract-month default-date))))
-         (completion-ignore-case t)
          (month (cdr (assoc-string
-                      (let ((completion-extra-properties
-                             '(:category calendar-month)))
-                        (completing-read
-                         (format-prompt "Month name" defmon)
-                         (append month-array nil)
-                         nil t nil nil defmon))
+                      (completing-read
+                       (format-prompt "Month name" defmon)
+                       (completion-table-with-metadata
+                        (completion-table-case-fold
+                         (append month-array nil))
+                        `((category . calendar-month)
+                          (display-sort-function . identity)))
+                       nil t nil nil defmon)
                       (calendar-make-alist month-array 1) t)))
          (defday (calendar-extract-day default-date))
          (last (calendar-last-day-of-month month year)))
@@ -2459,19 +2473,22 @@ Returns the corresponding Gregorian date."
 
 (defun calendar-date-is-valid-p (date)
   "Return t if DATE is a valid date."
-  (let ((month (calendar-extract-month date))
-        (day (calendar-extract-day date))
-        (year (calendar-extract-year date)))
-    (and (<= 1 month) (<= month 12)
-         ;; (calendar-read-date t) used to return a date with day = nil.
-         ;; Should not be valid (?), since many funcs prob assume integer.
-         ;; (calendar-read-date 'noday) returns (month year), which
-         ;; currently results in calendar-extract-year returning nil.
-         day year (<= 1 day) (<= day (calendar-last-day-of-month month year))
-         ;; BC dates left as non-valid, to suppress errors from
-         ;; complex holiday algorithms not suitable for years BC.
-         ;; Note there are side effects on calendar navigation.
-         (<= 1 year))))
+  (when (and (listp date)
+             (length= date 3))
+    (let ((month (calendar-extract-month date))
+          (day (calendar-extract-day date))
+          (year (calendar-extract-year date)))
+      (and (integerp month) (integerp day) (integerp year)
+           (<= 1 month) (<= month 12)
+           ;; (calendar-read-date t) used to return a date with day = nil.
+           ;; Should not be valid (?), since many funcs prob assume integer.
+           ;; (calendar-read-date 'noday) returns (month year), which
+           ;; currently results in calendar-extract-year returning nil.
+           day year (<= 1 day) (<= day (calendar-last-day-of-month month year))
+           ;; BC dates left as non-valid, to suppress errors from
+           ;; complex holiday algorithms not suitable for years BC.
+           ;; Note there are side effects on calendar navigation.
+           (<= 1 year)))))
 
 (defun calendar-date-equal (date1 date2)
   "Return t if the DATE1 and DATE2 are the same."

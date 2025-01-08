@@ -1,6 +1,6 @@
 /* Graphical user interface functions for the Microsoft Windows API.
 
-Copyright (C) 1989, 1992-2024 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2025 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2479,9 +2479,22 @@ static Lisp_Object
 process_dropfiles (DROPFILES *files)
 {
   char *start_of_files = (char *) files + files->pFiles;
+#ifndef NTGUI_UNICODE
   char filename[MAX_UTF8_PATH];
+#endif
   Lisp_Object lisp_files = Qnil;
 
+#ifdef NTGUI_UNICODE
+  WCHAR *p = (WCHAR *) start_of_files;
+  for (; *p; p += wcslen (p) + 1)
+    {
+      Lisp_Object fn = from_unicode_buffer (p);
+#ifdef CYGWIN
+      fn = Fcygwin_convert_file_name_to_windows (fn, Qt);
+#endif
+      lisp_files = Fcons (fn, lisp_files);
+    }
+#else
   if (files->fWide)
     {
       WCHAR *p = (WCHAR *) start_of_files;
@@ -2502,9 +2515,9 @@ process_dropfiles (DROPFILES *files)
 			      lisp_files);
 	}
     }
+#endif
   return lisp_files;
 }
-
 
 /* This function can be called ONLY between calls to
    block_input/unblock_input.  It is used in w32_read_socket.  */
@@ -2549,6 +2562,7 @@ struct w32_drop_target {
   /* i_drop_target must be the first member.  */
   IDropTarget i_drop_target;
   HWND hwnd;
+  int ref_count;
 };
 
 static HRESULT STDMETHODCALLTYPE
@@ -2560,16 +2574,32 @@ w32_drop_target_QueryInterface (IDropTarget *t, REFIID ri, void **r)
 static ULONG STDMETHODCALLTYPE
 w32_drop_target_AddRef (IDropTarget *This)
 {
-  return 1;
+  struct w32_drop_target *target = (struct w32_drop_target *) This;
+  return ++target->ref_count;
 }
 
 static ULONG STDMETHODCALLTYPE
 w32_drop_target_Release (IDropTarget *This)
 {
   struct w32_drop_target *target = (struct w32_drop_target *) This;
+  if (--target->ref_count > 0)
+    return target->ref_count;
   free (target->i_drop_target.lpVtbl);
   free (target);
   return 0;
+}
+
+static void
+w32_handle_drag_movement (IDropTarget *This, POINTL pt)
+{
+  struct w32_drop_target *target = (struct w32_drop_target *)This;
+
+  W32Msg msg = {0};
+  msg.dwModifiers = w32_get_modifiers ();
+  msg.msg.time = GetMessageTime ();
+  msg.msg.pt.x = pt.x;
+  msg.msg.pt.y = pt.y;
+  my_post_msg (&msg, target->hwnd, WM_EMACS_DRAGOVER, 0, 0 );
 }
 
 static HRESULT STDMETHODCALLTYPE
@@ -2581,6 +2611,7 @@ w32_drop_target_DragEnter (IDropTarget *This, IDataObject *pDataObj,
      happen on drop.  We send COPY because our use cases don't modify
      or link to the original data.  */
   *pdwEffect = DROPEFFECT_COPY;
+  w32_handle_drag_movement (This, pt);
   return S_OK;
 }
 
@@ -2590,6 +2621,7 @@ w32_drop_target_DragOver (IDropTarget *This, DWORD grfKeyState, POINTL pt,
 {
   /* See comment in w32_drop_target_DragEnter.  */
   *pdwEffect = DROPEFFECT_COPY;
+  w32_handle_drag_movement (This, pt);
   return S_OK;
 }
 
@@ -2742,6 +2774,7 @@ w32_createwindow (struct frame *f, int *coords)
 	  if (vtbl != NULL)
 	    {
 	      drop_target->hwnd = hwnd;
+	      drop_target->ref_count = 0;
 	      drop_target->i_drop_target.lpVtbl = vtbl;
 	      vtbl->QueryInterface = w32_drop_target_QueryInterface;
 	      vtbl->AddRef = w32_drop_target_AddRef;
@@ -3607,6 +3640,7 @@ w32_name_of_message (UINT msg)
       M (WM_EMACS_PAINT),
       M (WM_EMACS_IME_STATUS),
       M (WM_CHAR),
+      M (WM_EMACS_DRAGOVER),
       M (WM_EMACS_DROP),
 #undef M
       { 0, 0 }

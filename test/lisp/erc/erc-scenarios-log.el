@@ -1,6 +1,6 @@
 ;;; erc-scenarios-log.el --- erc-log scenarios -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -267,7 +267,7 @@
         (should (string= (buffer-name) (format "127.0.0.1:%d" port)))
         (should-not (file-exists-p logserv))
         (should-not (file-exists-p logchan))
-        ;; Verify that truncation actally happens where it should.
+        ;; Verify that truncation actually happens where it should.
         (funcall assert-truncation expect)
         (should (file-exists-p logserv))))
 

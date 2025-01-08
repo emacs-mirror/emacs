@@ -1,6 +1,6 @@
 ;;; tramp-sudoedit.el --- Functions for accessing under root permissions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2018-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2025 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -161,15 +161,15 @@ See `tramp-actions-before-shell' for more info.")
 ;;;###tramp-autoload
 (defsubst tramp-sudoedit-file-name-p (vec-or-filename)
   "Check if it's a VEC-OR-FILENAME for SUDOEDIT."
-  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
-    (string= (tramp-file-name-method vec) tramp-sudoedit-method)))
+  (and-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename))
+	     ((string= (tramp-file-name-method vec) tramp-sudoedit-method)))))
 
 ;;;###tramp-autoload
 (defun tramp-sudoedit-file-name-handler (operation &rest args)
   "Invoke the SUDOEDIT handler for OPERATION and ARGS.
 First arg specifies the OPERATION, second arg is a list of
 arguments to pass to the OPERATION."
-  (if-let ((fn (assoc operation tramp-sudoedit-file-name-handler-alist)))
+  (if-let* ((fn (assoc operation tramp-sudoedit-file-name-handler-alist)))
       (prog1 (save-match-data (apply (cdr fn) args))
 	(setq tramp-debug-message-fnh-function (cdr fn)))
     (prog1 (tramp-run-real-handler operation args)
@@ -785,7 +785,7 @@ in case of error, t otherwise."
       ;; Avoid process status message in output buffer.
       (set-process-sentinel p #'ignore)
       (tramp-post-process-creation p vec)
-      (tramp-set-connection-property p "password-vector" tramp-sudoedit-null-hop)
+      (tramp-set-connection-property p "pw-vector" tramp-sudoedit-null-hop)
       (tramp-process-actions p vec nil tramp-sudoedit-sudo-actions)
       (tramp-message vec 6 "%s\n%s" (process-exit-status p) (buffer-string))
       (prog1

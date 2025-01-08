@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1993, 1999, 2001--2024 Free Software Foundation,
+@c Copyright (C) 1990--1993, 1999, 2001--2025 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Standard Keymaps
@@ -30,7 +30,7 @@ A sparse keymap for subcommands of the prefix @kbd{C-x a}.@*
 @xref{Defining Abbrevs,,, emacs, The GNU Emacs Manual}.
 
 @item button-buffer-map
-A sparse keymap useful for buffers containing buffers.@*
+A sparse keymap useful for buffers containing buttons.@*
 You may want to use this as a parent keymap.  @xref{Buttons}.
 
 @item button-map

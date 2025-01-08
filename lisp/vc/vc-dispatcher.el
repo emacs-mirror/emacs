@@ -1,6 +1,6 @@
 ;;; vc-dispatcher.el --- generic command-dispatcher facility.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2025 Free Software Foundation, Inc.
 
 ;; Author: FSF (see below for full credits)
 ;; Keywords: vc tools
@@ -460,7 +460,7 @@ Display the buffer in some window, but don't select it."
                   args))))
 	(setq proc (apply #'vc-do-command t 'async command nil args))))
     (unless vc--inhibit-async-window
-      (when-let ((window (display-buffer buffer)))
+      (when-let* ((window (display-buffer buffer)))
         (set-window-start window new-window-start)))
     proc))
 
@@ -685,10 +685,12 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 ;; Set up key bindings for use while editing log messages
 
 (declare-function log-edit-empty-buffer-p "log-edit" ())
+(declare-function log-edit-diff-fileset "log-edit" ())
+(declare-function log-edit-diff-patch "log-edit" ())
 
 (defvar vc-patch-string)
 
-(defun vc-log-edit (fileset mode backend)
+(defun vc-log-edit (fileset mode backend &optional diff-function)
   "Set up `log-edit' for use on FILE."
   (setq default-directory
 	(buffer-local-value 'default-directory vc-parent-buffer))
@@ -718,7 +720,9 @@ NOT-URGENT means it is ok to continue if the user says not to save."
                        (lambda (file) (file-relative-name file root))
                        fileset))))
 	      (log-edit-diff-function
-               . ,(if vc-patch-string 'log-edit-diff-patch 'log-edit-diff-fileset))
+               . ,(cond (diff-function)
+                        (vc-patch-string #'log-edit-diff-patch)
+                        (t #'log-edit-diff-fileset)))
 	      (log-edit-vc-backend . ,backend)
 	      (vc-log-fileset . ,fileset)
 	      (vc-patch-string . ,vc-patch-string))
@@ -727,7 +731,7 @@ NOT-URGENT means it is ok to continue if the user says not to save."
   (set-buffer-modified-p nil)
   (setq buffer-file-name nil))
 
-(defun vc-start-logentry (files comment initial-contents msg logbuf mode action &optional after-hook backend patch-string)
+(defun vc-start-logentry (files comment initial-contents msg logbuf mode action &optional after-hook backend patch-string diff-function)
   "Accept a comment for an operation on FILES.
 If COMMENT is nil, pop up a LOGBUF buffer, emit MSG, and set the
 action on close to ACTION.  If COMMENT is a string and
@@ -740,7 +744,8 @@ empty comment.  Remember the file's buffer in `vc-parent-buffer'
 MODE, defaulting to `log-edit-mode' if MODE is nil.
 AFTER-HOOK specifies the local value for `vc-log-after-operation-hook'.
 BACKEND, if non-nil, specifies a VC backend for the Log Edit buffer.
-PATCH-STRING is a patch to check in."
+PATCH-STRING is a patch to check in.
+DIFF-FUNCTION is `log-edit-diff-function' for the Log Edit buffer."
   (let ((parent (if (and (length= files 1)
                          (not (vc-dispatcher-browsing)))
                     (get-file-buffer (car files))
@@ -755,7 +760,7 @@ PATCH-STRING is a patch to check in."
                 (concat " from " (buffer-name vc-parent-buffer)))
     (when patch-string
       (setq-local vc-patch-string patch-string))
-    (vc-log-edit files mode backend)
+    (vc-log-edit files mode backend diff-function)
     (make-local-variable 'vc-log-after-operation-hook)
     (when after-hook
       (setq vc-log-after-operation-hook after-hook))

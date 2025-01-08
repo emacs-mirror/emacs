@@ -1,6 +1,6 @@
 ;;; uniquify.el --- unique buffer names dependent on file name -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1995-1997, 2001-2024 Free Software Foundation,
+;; Copyright (C) 1989, 1995-1997, 2001-2025 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Dick King <king@reasoning.com>
@@ -124,15 +124,18 @@ you can set, browse the `uniquify' custom group."
   :version "24.4"
   :require 'uniquify)
 
-(defcustom uniquify-after-kill-buffer-p t
+(define-obsolete-variable-alias 'uniquify-after-kill-buffer-p
+  'uniquify-after-kill-buffer-flag "31.1")
+(defcustom uniquify-after-kill-buffer-flag t
   "If non-nil, rerationalize buffer names after a buffer has been killed."
-  :type 'boolean)
+  :type 'boolean
+  :version "31.1")
 
 (defcustom uniquify-ignore-buffers-re nil
   "Regular expression matching buffer names that should not be uniquified.
-For instance, set this to \"^draft-[0-9]+$\" to avoid having uniquify rename
-draft buffers even if `uniquify-after-kill-buffer-p' is non-nil and the
-visited file name isn't the same as that of the buffer."
+For instance, set this to \"^draft-[0-9]+$\" to avoid having uniquify
+rename draft buffers even if `uniquify-after-kill-buffer-flag' is
+non-nil and the visited file name isn't the same as that of the buffer."
   :type '(choice (const :tag "Uniquify all buffers" nil) regexp))
 
 (defcustom uniquify-min-dir-content 0
@@ -147,12 +150,15 @@ When `uniquify-buffer-name-style' is `reverse', separates all
 file name components (default \"\\\")."
   :type '(choice (const nil) string))
 
-(defcustom uniquify-trailing-separator-p nil
-  "If non-nil, add a file name separator to Dired buffer names.
+(define-obsolete-variable-alias 'uniquify-trailing-separator-p
+  'uniquify-trailing-separator-flag "31.1")
+(defcustom uniquify-trailing-separator-flag nil
+  "Non-nil means add a file name separator to Dired buffer names.
 If `uniquify-buffer-name-style' is `forward', add the separator at the end;
 if it is `reverse', add the separator at the beginning; otherwise, this
 variable is ignored."
-  :type 'boolean)
+  :type 'boolean
+  :version "31.1")
 
 (defcustom uniquify-strip-common-suffix
   ;; Using it when uniquify-min-dir-content>0 doesn't make much sense.
@@ -466,7 +472,7 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 (defun uniquify-kill-buffer-function ()
   "Re-rationalize buffer names, ignoring current buffer.
 For use on `kill-buffer-hook'."
-  (and uniquify-after-kill-buffer-p
+  (and uniquify-after-kill-buffer-flag
        (uniquify-maybe-rerationalize-w/o-cb)))
 
 ;; Ideally we'd like to add it buffer-locally, but that doesn't work

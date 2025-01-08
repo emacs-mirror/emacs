@@ -1,6 +1,6 @@
 ;;; lua-ts-mode.el --- Major mode for editing Lua files -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
 
 ;; Author: John Muhl <jm@pub.pink>
 ;; Created: June 27, 2023
@@ -21,6 +21,15 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Tree-sitter language versions
+;;
+;; lua-ts-mode is known to work with the following languages and version:
+;; - tree-sitter-lua: v0.2.0-2-g34e60e7
+;;
+;; We try our best to make builtin modes work with latest grammar
+;; versions, so a more recent grammar version has a good chance to work.
+;; Send us a bug report if it doesn't.
+
 ;;; Commentary:
 
 ;; This package provides `lua-ts-mode' which is a major mode for Lua
@@ -33,22 +42,10 @@
 
 (require 'comint)
 (require 'treesit)
+(treesit-declare-unavailable-functions)
 
 (eval-when-compile
   (require 'rx))
-
-(declare-function treesit-induce-sparse-tree "treesit.c")
-(declare-function treesit-node-child-by-field-name "treesit.c")
-(declare-function treesit-node-child-count "treesit.c")
-(declare-function treesit-node-eq "treesit.c")
-(declare-function treesit-node-first-child-for-pos "treesit.c")
-(declare-function treesit-node-parent "treesit.c")
-(declare-function treesit-node-prev-sibling "treesit.c")
-(declare-function treesit-node-start "treesit.c")
-(declare-function treesit-node-end "treesit.c")
-(declare-function treesit-node-type "treesit.c")
-(declare-function treesit-parser-create "treesit.c")
-(declare-function treesit-search-subtree "treesit.c")
 
 (defgroup lua-ts nil
   "Major mode for editing Lua files."
@@ -72,7 +69,7 @@
 
 (defcustom lua-ts-luacheck-program "luacheck"
   "Location of the Luacheck program."
-  :type '(choice (const :tag "None" nil) string)
+  :type 'file
   :version "30.1")
 
 (defcustom lua-ts-inferior-buffer "*Lua*"
@@ -83,7 +80,7 @@
 
 (defcustom lua-ts-inferior-program "lua"
   "Program to run in the inferior Lua process."
-  :type '(choice (const :tag "None" nil) string)
+  :type 'file
   :version "30.1")
 
 (defcustom lua-ts-inferior-options '("-i")
@@ -165,11 +162,11 @@ values of OVERRIDE."
                (string-match "\\`--" node-text))
       (treesit-fontify-with-override node-start
                                      delimiter-end
-                                     font-lock-comment-delimiter-face
+                                     'font-lock-comment-delimiter-face
                                      override))
     (treesit-fontify-with-override (max delimiter-end start)
                                    (min node-end end)
-                                   font-lock-comment-face
+                                   'font-lock-comment-face
                                    override)))
 
 (defvar lua-ts--font-lock-settings
@@ -289,10 +286,11 @@ values of OVERRIDE."
 
 (defvar lua-ts--simple-indent-rules
   `((lua
-     ((or (node-is "comment")
+     ((or (and (node-is "comment") (parent-is "chunk"))
+          lua-ts--multi-line-comment-start
           (parent-is "comment_content")
           (parent-is "string_content")
-          (node-is "]]"))
+          (or (node-is "]]") (node-is "comment_end")))
       no-indent 0)
      ((and (n-p-gp "field" "table_constructor" "arguments")
            lua-ts--multi-arg-function-call-matcher
@@ -473,9 +471,10 @@ values of OVERRIDE."
     (= 1 (length (cadr sparse-tree)))))
 
 (defun lua-ts--comment-first-sibling-matcher (node &rest _)
-  "Matches if NODE if it's previous sibling is a comment."
+  "Matches NODE if its previous sibling is a comment."
   (let ((sibling (treesit-node-prev-sibling node)))
-    (equal "comment" (treesit-node-type sibling))))
+    (and (= 0 (treesit-node-index sibling t))
+         (equal "comment" (treesit-node-type sibling)))))
 
 (defun lua-ts--top-level-function-call-matcher (node &rest _)
   "Matches if NODE is within a top-level function call."
@@ -507,6 +506,15 @@ values of OVERRIDE."
     (when (looking-back (rx bol (* whitespace))
                         (line-beginning-position))
       (point))))
+
+(defun lua-ts--multi-line-comment-start (node &rest _)
+  "Matches if NODE is the beginning of a multi-line comment."
+  (and node
+       (equal "comment" (treesit-node-type node))
+       (save-excursion
+         (goto-char (treesit-node-start node))
+         (forward-char 2)               ; Skip the -- part.
+         (looking-at "\\[\\["))))
 
 (defvar lua-ts--syntax-table
   (let ((table (make-syntax-table)))
@@ -632,47 +640,49 @@ Calls REPORT-FN directly."
 (defun lua-ts-inferior-lua ()
   "Run a Lua interpreter in an inferior process."
   (interactive)
-  (unless (comint-check-proc lua-ts-inferior-buffer)
-    (apply #'make-comint-in-buffer
-           (string-replace "*" "" lua-ts-inferior-buffer)
-           lua-ts-inferior-buffer
-           lua-ts-inferior-program
-           lua-ts-inferior-startfile
-           lua-ts-inferior-options)
-    (when lua-ts-inferior-history
+  (if (not lua-ts-inferior-program)
+      (user-error "You must set `lua-ts-inferior-program' to use this command")
+    (unless (comint-check-proc lua-ts-inferior-buffer)
+      (apply #'make-comint-in-buffer
+             (string-replace "*" "" lua-ts-inferior-buffer)
+             lua-ts-inferior-buffer
+             lua-ts-inferior-program
+             lua-ts-inferior-startfile
+             lua-ts-inferior-options)
+      (when lua-ts-inferior-history
         (set-process-sentinel (get-buffer-process lua-ts-inferior-buffer)
                               'lua-ts-inferior--write-history))
-    (with-current-buffer lua-ts-inferior-buffer
-      (setq-local comint-input-ignoredups t
-                  comint-input-ring-file-name lua-ts-inferior-history
-                  comint-prompt-read-only t
-                  comint-prompt-regexp (rx-to-string `(: bol
-                                                         ,lua-ts-inferior-prompt
-                                                         (1+ space))))
-      (comint-read-input-ring t)
-      (add-hook 'comint-preoutput-filter-functions
-                (lambda (string)
-                  (if (equal string (concat lua-ts-inferior-prompt-continue " "))
-                      string
-                    (concat
-                     ;; Filter out the extra prompt characters that
-                     ;; accumulate in the output when sending regions
-                     ;; to the inferior process.
-                     (replace-regexp-in-string (rx-to-string
-                                                `(: bol
-                                                    (* ,lua-ts-inferior-prompt
-                                                       (? ,lua-ts-inferior-prompt)
-                                                       (1+ space))
-                                                    (group (* nonl))))
-                                               "\\1" string)
-                     ;; Re-add the prompt for the next line.
-                     lua-ts-inferior-prompt " ")))
-                nil t)))
-  (select-window (display-buffer lua-ts-inferior-buffer
-                                 '((display-buffer-reuse-window
-                                    display-buffer-pop-up-window)
-                                   (reusable-frames . t))))
-  (get-buffer-process (current-buffer)))
+      (with-current-buffer lua-ts-inferior-buffer
+        (setq-local comint-input-ignoredups t
+                    comint-input-ring-file-name lua-ts-inferior-history
+                    comint-prompt-read-only t
+                    comint-prompt-regexp (rx bol
+                                             (literal lua-ts-inferior-prompt)
+                                             (1+ space)))
+        (comint-read-input-ring t)
+        (add-hook 'comint-preoutput-filter-functions
+                  (lambda (string)
+                    (if (equal string (concat lua-ts-inferior-prompt-continue " "))
+                        string
+                      (concat
+                       ;; Filter out the extra prompt characters that
+                       ;; accumulate in the output when sending regions
+                       ;; to the inferior process.
+                       (replace-regexp-in-string
+                        (rx bol
+                            (* (literal lua-ts-inferior-prompt)
+                               (? (literal lua-ts-inferior-prompt))
+                               (1+ space))
+                            (group (* nonl)))
+                        "\\1" string)
+                       ;; Re-add the prompt for the next line.
+                       lua-ts-inferior-prompt " ")))
+                  nil t)))
+    (select-window (display-buffer lua-ts-inferior-buffer
+                                   '((display-buffer-reuse-window
+                                      display-buffer-pop-up-window)
+                                     (reusable-frames . t))))
+    (get-buffer-process (current-buffer))))
 
 (defun lua-ts-send-buffer ()
   "Send current buffer to the inferior Lua process."
@@ -681,7 +691,7 @@ Calls REPORT-FN directly."
 
 (defun lua-ts-send-file (file)
   "Send contents of FILE to the inferior Lua process."
-  (interactive "f" lua-ts-mode)
+  (interactive "f")
   (with-temp-buffer
     (insert-file-contents-literally file)
     (lua-ts-send-region (point-min) (point-max))))
@@ -838,7 +848,8 @@ Calls REPORT-FN directly."
 (derived-mode-add-parents 'lua-ts-mode '(lua-mode))
 
 (when (treesit-ready-p 'lua)
-  (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-ts-mode)))
+  (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-ts-mode))
+  (add-to-list 'interpreter-mode-alist '("\\<lua\\(?:jit\\)?" . lua-ts-mode)))
 
 (provide 'lua-ts-mode)
 

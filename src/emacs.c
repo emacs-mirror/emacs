@@ -1,6 +1,6 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2024 Free Software
+Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2025 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1264,12 +1264,12 @@ maybe_load_seccomp (int argc, char **argv)
 
 #endif  /* SECCOMP_USABLE */
 
-#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
-int
-android_emacs_init (int argc, char **argv, char *dump_file)
-#else
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
 int
 main (int argc, char **argv)
+#else
+int
+android_emacs_init (int argc, char **argv, char *dump_file)
 #endif
 {
   /* Variable near the bottom of the stack, and aligned appropriately
@@ -1433,7 +1433,18 @@ main (int argc, char **argv)
 
 #ifdef HAVE_PDUMPER
   if (attempt_load_pdump)
-    initial_emacs_executable = load_pdump (argc, argv, dump_file);
+    {
+      initial_emacs_executable = load_pdump (argc, argv, dump_file);
+#ifdef WINDOWSNT
+  /* Reinitialize the codepage for file names, needed to decode
+     non-ASCII file names during startup.  This is needed because
+     loading the pdumper file above assigns to those variables values
+     from the dump stage, which might be incorrect, if dumping was done
+     on a different system.  */
+      if (dumped_with_pdumper_p ())
+	w32_init_file_name_codepage ();
+#endif
+    }
 #else
   ptrdiff_t bufsize;
   initial_emacs_executable = find_emacs_executable (argv[0], &bufsize);
@@ -2486,6 +2497,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #ifdef HAVE_W32NOTIFY
       syms_of_w32notify ();
 #endif /* HAVE_W32NOTIFY */
+      syms_of_w32dwrite ();
 #endif /* WINDOWSNT */
 
       syms_of_xwidget ();

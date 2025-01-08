@@ -1,6 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1990, 1992-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1990, 1992-2025 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -404,7 +404,7 @@ This variable is buffer-local."
    (regexp-opt
     '("Enter" "enter" "Enter same" "enter same" "Enter the" "enter the"
       "Current"
-      "Enter Auth" "enter auth" "Old" "old" "New" "new" "'s" "login"
+      "Enter Auth" "enter auth" "Old" "old" "New" "new" "login"
       "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "PEM" "SUDO"
       "[sudo]" "doas" "Repeat" "Bad" "Retype" "Verify")
     t)
@@ -418,11 +418,13 @@ This variable is buffer-local."
    ;; The ccrypt encryption dialog doesn't end with a colon, so
    ;; treat it specially.
    "\\|^Enter encryption key: (repeat) *\\'"
+   ;; Default openssh format: "user@host's password:".
+   "\\|^[^@ \t\n]+@[^@ \t\n]+'s password: *\\'"
    ;; openssh-8.6p1 format: "(user@host) Password:".
    "\\|^([^)@ \t\n]+@[^)@ \t\n]+) Password: *\\'")
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
-  :version "29.1"
+  :version "31.1"
   :type 'regexp
   :group 'comint)
 
@@ -541,6 +543,7 @@ via PTYs.")
     (define-key map "\er" 	  'comint-history-isearch-backward-regexp)
     (define-key map [?\C-c ?\M-r] 'comint-previous-matching-input-from-input)
     (define-key map [?\C-c ?\M-s] 'comint-next-matching-input-from-input)
+    (define-key map [?\C-x up]    'comint-complete-input-ring)
     (define-key map "\e\C-l" 	  'comint-show-output)
     (define-key map "\C-m" 	  'comint-send-input)
     (define-key map "\C-d" 	  'comint-delchar-or-maybe-eof)
@@ -1178,6 +1181,24 @@ See also `comint-read-input-ring'."
 	    (set-window-configuration conf)
 	  (push ch unread-command-events))))))
 
+(defun comint-complete-input-ring ()
+  "Complete a list of recent inputs entered into the current buffer.
+Like `minibuffer-complete-history' but completes on comint inputs.
+This function makes `comint-dynamic-list-input-ring' obsolete."
+  (interactive)
+  (let ((completions
+         (if (and (ring-p comint-input-ring)
+                  (not (ring-empty-p comint-input-ring)))
+             (ring-elements comint-input-ring)
+           (user-error "No history available")))
+        (completion-in-region-mode-predicate
+         (lambda () (get-buffer-window "*Completions*" 0))))
+    (completion-in-region
+     (comint-line-beginning-position) (point-max)
+     (completion-table-with-metadata
+      completions '((category . comint-input)
+                    (display-sort-function . identity)
+                    (cycle-sort-function . identity))))))
 
 (defun comint-regexp-arg (prompt)
   "Return list of regexp and prefix arg using PROMPT."
@@ -1536,16 +1557,20 @@ If nil, Isearch operates on the whole comint buffer."
   :group 'comint
   :version "23.2")
 
+(defvar comint--force-history-isearch nil
+  "Non-nil means to force searching in input history.
+If nil, respect the option `comint-history-isearch'.")
+
 (defun comint-history-isearch-backward ()
   "Search for a string backward in input history using Isearch."
   (interactive nil comint-mode)
-  (setq comint-history-isearch t)
+  (setq comint--force-history-isearch t)
   (isearch-backward nil t))
 
 (defun comint-history-isearch-backward-regexp ()
   "Search for a regular expression backward in input history using Isearch."
   (interactive nil comint-mode)
-  (setq comint-history-isearch t)
+  (setq comint--force-history-isearch t)
   (isearch-backward-regexp nil t))
 
 (defvar-local comint-history-isearch-message-overlay nil)
@@ -1561,7 +1586,8 @@ Intended to be added to `isearch-mode-hook' in `comint-mode'."
 		    (forward-line 0)
 		    (point))
 		  (comint-line-beginning-position)))
-	 (or (eq comint-history-isearch t)
+	 (or comint--force-history-isearch
+             (eq comint-history-isearch t)
 	     (and (eq comint-history-isearch 'dwim)
 		  ;; Point is at command line.
 		  (comint-after-pmark-p))))
@@ -1591,7 +1617,7 @@ Intended to be added to `isearch-mode-hook' in `comint-mode'."
   (kill-local-variable 'isearch-lazy-count)
   (remove-hook 'isearch-mode-end-hook 'comint-history-isearch-end t)
   (unless isearch-suspended
-    (custom-reevaluate-setting 'comint-history-isearch)))
+    (setq comint--force-history-isearch nil)))
 
 (defun comint-goto-input (pos)
   "Put input history item of the absolute history position POS."
@@ -2569,11 +2595,12 @@ to detect the need to (prompt and) send a password.  Ignores any
 carriage returns (\\r) in STRING.
 
 This function could be in the list `comint-output-filter-functions'."
-  (let ((string (string-limit string comint-password-prompt-max-length t))
+  (let ((string (string-limit
+                 (string-replace "\r" "" string)
+                 comint-password-prompt-max-length t))
         prompt)
     (when (let ((case-fold-search t))
-            (string-match comint-password-prompt-regexp
-                          (string-replace "\r" "" string)))
+            (string-match comint-password-prompt-regexp string))
       (setq prompt (string-trim (match-string 0 string)
                                 "[ \n\r\t\v\f\b\a]+" "\n+"))
       ;; Use `run-at-time' in order not to pause execution of the
@@ -4111,7 +4138,7 @@ setting."
   (font-lock-flush))
 
 (defun comint--fontify-input-ppss-flush-indirect (beg &rest rest)
-  (when-let ((buf (comint-indirect-buffer t)))
+  (when-let* ((buf (comint-indirect-buffer t)))
     (with-current-buffer buf
       (when (memq #'syntax-ppss-flush-cache before-change-functions)
         (apply #'syntax-ppss-flush-cache beg rest)))))
@@ -4170,7 +4197,7 @@ function called, or nil, if no function was called (if BEG = END)."
                     (text-property-not-all beg1 end 'field 'output)
                   (text-property-any beg1 end 'field 'output))
                 end))
-      (when-let ((fun (if is-output fun-output fun-input)))
+      (when-let* ((fun (if is-output fun-output fun-input)))
         (save-restriction
           (let ((beg2 beg1)
                 (end2 end1))

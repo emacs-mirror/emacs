@@ -1,6 +1,6 @@
 ;;; help.el --- help commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2024 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2025 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -883,8 +883,8 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
       (let ((otherstring (help--key-description-fontified untranslated)))
 	(if (equal string otherstring)
 	    string
-          (if-let ((char-name (and (length= string 1)
-                                   (char-to-name (aref string 0)))))
+          (if-let* ((char-name (and (length= string 1)
+                                    (char-to-name (aref string 0)))))
               (format "%s '%s' (translated from %s)" string char-name otherstring)
             (format "%s (translated from %s)" string otherstring)))))))
 
@@ -1397,6 +1397,7 @@ Otherwise, return a new string."
     ;; itself.
     (let ((keymap overriding-local-map)
           (inhibit-modification-hooks t)
+          (inhibit-read-only t)
           (orig-buf (current-buffer)))
       (with-temp-buffer
         (insert string)
@@ -1668,7 +1669,7 @@ Return nil if the key sequence is too long."
   (cond ((or (stringp definition) (vectorp definition))
          (if translation
              (insert (concat (key-description definition nil)
-                             (when-let ((char-name (char-to-name (aref definition 0))))
+                             (when-let* ((char-name (char-to-name (aref definition 0))))
                                (format "\t%s" char-name))
                              "\n"))
            ;; These should be rare nowadays, replaced by `kmacro's.
@@ -1883,79 +1884,6 @@ in `help--describe-map-tree'."
       (insert-char ?\s (if (zerop tabs)
                            (- width (car elem))
                          (mod width tab-width))))))
-
-;;;; This Lisp version is 100 times slower than its C equivalent:
-;;
-;; (defun help--describe-vector
-;;     (vector prefix transl partial shadow entire-map mention-shadow)
-;;   "Insert in the current buffer a description of the contents of VECTOR.
-;;
-;; PREFIX a prefix key which leads to the keymap that this vector is
-;; in.
-;;
-;; If PARTIAL, it means do not mention suppressed commands
-;; (that assumes the vector is in a keymap).
-;;
-;; SHADOW is a list of keymaps that shadow this map.  If it is
-;; non-nil, look up the key in those maps and don't mention it if it
-;; is defined by any of them.
-;;
-;; ENTIRE-MAP is the vector in which this vector appears.
-;; If the definition in effect in the whole map does not match
-;; the one in this vector, we ignore this one."
-;;   ;; Converted from describe_vector in keymap.c.
-;;   (let* ((first t)
-;;          (idx 0))
-;;     (while (< idx (length vector))
-;;       (let* ((val (aref vector idx))
-;;              (definition (keymap--get-keyelt val nil))
-;;              (start-idx idx)
-;;              this-shadowed
-;;              found-range)
-;;         (when (and definition
-;;                    ;; Don't mention suppressed commands.
-;;                    (not (and partial
-;;                              (symbolp definition)
-;;                              (get definition 'suppress-keymap)))
-;;                    ;; If this binding is shadowed by some other map,
-;;                    ;; ignore it.
-;;                    (not (and shadow
-;;                              (help--shadow-lookup shadow (vector start-idx) t nil)
-;;                              (if mention-shadow
-;;                                  (prog1 nil (setq this-shadowed t))
-;;                                t)))
-;;                    ;; Ignore this definition if it is shadowed by an earlier
-;;                    ;; one in the same keymap.
-;;                    (not (and entire-map
-;;                              (not (eq (lookup-key entire-map (vector start-idx) t)
-;;                                       definition)))))
-;;           (when first
-;;             (insert "\n")
-;;             (setq first nil))
-;;           (when (and prefix (> (length prefix) 0))
-;;             (insert (format "%s" prefix)))
-;;           (insert (help--key-description-fontified (vector start-idx) prefix))
-;;           ;; Find all consecutive characters or rows that have the
-;;           ;; same definition.
-;;           (while (equal (keymap--get-keyelt (aref vector (1+ idx)) nil)
-;;                         definition)
-;;             (setq found-range t)
-;;             (setq idx (1+ idx)))
-;;           ;; If we have a range of more than one character,
-;;           ;; print where the range reaches to.
-;;           (when found-range
-;;             (insert " .. ")
-;;             (when (and prefix (> (length prefix) 0))
-;;               (insert (format "%s" prefix)))
-;;             (insert (help--key-description-fontified (vector idx) prefix)))
-;;           (if transl
-;;               (help--describe-translation definition)
-;;             (help--describe-command definition))
-;;           (when this-shadowed
-;;             (goto-char (1- (point)))
-;;             (insert "  (binding currently shadowed)")
-;;             (goto-char (1+ (point))))))
-;;       (setq idx (1+ idx)))))
 
 
 (declare-function x-display-pixel-height "xfns.c" (&optional terminal))

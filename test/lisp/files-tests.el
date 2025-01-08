@@ -1,6 +1,6 @@
 ;;; files-tests.el --- tests for files.el.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1658,6 +1658,27 @@ The door of all subtleties!
   (should (equal (file-name-base "/foo/bar") "bar"))
   (should (equal (file-name-base "foo") "foo"))
   (should (equal (file-name-base "foo/bar") "bar")))
+
+(defun files-tests--check-mode (filename)
+  "Return the major mode found in `auto-mode-alist' for FILENAME."
+  (set-auto-mode--find-matching-alist-entry
+   auto-mode-alist
+   (concat "/home/jrhacker/" filename)
+   nil))
+
+(ert-deftest files-tests-auto-mode-alist ()
+  (should (eq (files-tests--check-mode ".gdbinit.in") #'gdb-script-mode))
+  (should (eq (files-tests--check-mode ".gdbinit") #'gdb-script-mode))
+  (should (eq (files-tests--check-mode "_gdbinit") #'gdb-script-mode)) ; for MS-DOS
+  (should (eq (files-tests--check-mode "gdb.ini") #'gdb-script-mode)) ; likewise
+  (should (eq (files-tests--check-mode "gdbinit") #'gdb-script-mode))
+  (should (eq (files-tests--check-mode "gdbinit.in") #'gdb-script-mode))
+  (should (eq (files-tests--check-mode "SOMETHING-gdbinit") #'gdb-script-mode))
+  (should (eq (files-tests--check-mode ".gdbinit.loader") #'gdb-script-mode))
+  (should-not (eq (files-tests--check-mode "gdbinit-history.exp") #'gdb-script-mode))
+  (should-not (eq (files-tests--check-mode "gdbinit.c") #'gdb-script-mode))
+  (should-not (eq (files-tests--check-mode "gdbinit.5") #'gdb-script-mode))
+  (should-not (eq (files-tests--check-mode ".gdbinit.py.in") #'gdb-script-mode)))
 
 (defvar sh-shell)
 

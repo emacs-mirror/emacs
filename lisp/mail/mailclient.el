@@ -1,6 +1,6 @@
 ;;; mailclient.el --- mail sending via system's mail client.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2025 Free Software Foundation, Inc.
 
 ;; Author: David Reitter <david.reitter@gmail.com>
 ;; Keywords: mail
@@ -143,7 +143,7 @@ The mail client is taken to be the handler of mailto URLs."
 	    (narrow-to-region (point-min) delimline)
             ;; We can't send multipart/* messages (i. e. with
             ;; attachments or the like) via this method.
-            (when-let ((type (mail-fetch-field "content-type")))
+            (when-let* ((type (mail-fetch-field "content-type")))
               (when (and (string-match "multipart"
                                        (car (mail-header-parse-content-type
                                              type)))

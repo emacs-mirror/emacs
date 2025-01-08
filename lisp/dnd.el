@@ -1,6 +1,6 @@
 ;;; dnd.el --- drag and drop support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2025 Free Software Foundation, Inc.
 
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -270,8 +270,8 @@ for it will be modified."
       ;; assigned their own handlers.
       (dolist (leftover urls)
         (setq return-value 'private)
-        (if-let ((handler (browse-url-select-handler leftover
-                                                     'internal)))
+        (if-let* ((handler (browse-url-select-handler leftover
+                                                      'internal)))
             (funcall handler leftover action)
           (dnd-insert-text window action leftover)))
       (or return-value 'private))))

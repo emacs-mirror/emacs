@@ -1,6 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-2024 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1992, 1994-2025 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -778,6 +778,9 @@ It is the default value of the variable `top-level'."
       (unwind-protect
 	  (command-line)
 
+        (when (featurep 'native-compile)
+          (startup--update-eln-cache))
+
 	;; Do this again, in case .emacs defined more abbreviations.
 	(if default-directory
 	    (setq default-directory (abbreviate-file-name default-directory)))
@@ -1106,9 +1109,9 @@ init-file, or to a default value if loading is not possible."
                           ;; The next test is for builds without native
                           ;; compilation support or builds with unexec.
                           (boundp 'comp-eln-to-el-h))
-                 (if-let (source (gethash (file-name-nondirectory
-                                           user-init-file)
-                                          comp-eln-to-el-h))
+                 (if-let* ((source (gethash (file-name-nondirectory
+                                             user-init-file)
+                                            comp-eln-to-el-h)))
                      ;; source exists or the .eln file would not load
                      (setq user-init-file source)
                    (message "Warning: unknown source file for init file %S"

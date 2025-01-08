@@ -1,6 +1,6 @@
 ;;; tramp-ftp.el --- Tramp convenience functions for Ange-FTP  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2025 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -186,8 +186,8 @@ pass to the OPERATION."
 ;;;###tramp-autoload
 (defsubst tramp-ftp-file-name-p (vec-or-filename)
   "Check if it's a VEC-OR-FILENAME that should be forwarded to Ange-FTP."
-  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
-    (string= (tramp-file-name-method vec) tramp-ftp-method)))
+  (and-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename))
+	     ((string= (tramp-file-name-method vec) tramp-ftp-method)))))
 
 ;;;###tramp-autoload
 (tramp--with-startup

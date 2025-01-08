@@ -1,6 +1,6 @@
 ;;; dictionary.el --- Client for rfc2229 dictionary servers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
 
 ;; Author: Torsten Hilbrich <torsten.hilbrich@gmx.net>
 ;; Keywords: interface, dictionary
@@ -317,6 +317,7 @@ Otherwise, `dictionary-search' displays definitions in a *Dictionary* buffer."
                       dictionary-read-dictionary-function)
                      vals))
          (set-default-toplevel-value symbol value))
+  :initialize #'custom-initialize-changed
   :version "30.1")
 
 (defface dictionary-word-definition-face
@@ -1278,7 +1279,7 @@ prompt for DICTIONARY."
   (unless dictionary
     (setq dictionary dictionary-default-dictionary))
   (if dictionary-display-definition-function
-      (if-let ((definition (dictionary-define-word word dictionary)))
+      (if-let* ((definition (dictionary-define-word word dictionary)))
           (funcall dictionary-display-definition-function word dictionary definition)
         (user-error "No definition found for \"%s\"" word))
     ;; if called by pressing the button
@@ -1339,7 +1340,7 @@ prompt for DICTIONARY."
 			  dictionary-default-popup-strategy
 			  'dictionary-process-popup-replies))
 
-(defun dictionary-process-popup-replies (&ignore)
+(defun dictionary-process-popup-replies (_)
   (let ((list (dictionary-simple-split-string (dictionary-read-answer) "\n+")))
 
     (let ((result (mapcar (lambda (item)
@@ -1394,7 +1395,7 @@ via `dictionary-dictionaries'."
 	(dictionary-do-search word dictionary 'dictionary-read-definition t))
     nil))
 
-(defun dictionary-read-definition (&ignore)
+(defun dictionary-read-definition (_)
   (let ((list (dictionary-simple-split-string (dictionary-read-answer) "\n+")))
     (mapconcat #'identity (cdr list) "\n")))
 
@@ -1421,7 +1422,7 @@ via `dictionary-dictionaries'."
 (defvar dictionary-tooltip-mouse-event nil
   "Event that triggered the tooltip mode.")
 
-(defun dictionary-display-tooltip (&ignore)
+(defun dictionary-display-tooltip (_)
   "Search the current word in the `dictionary-tooltip-dictionary'."
   (interactive "e")
   (if (and dictionary-tooltip-mode dictionary-tooltip-dictionary)
@@ -1445,23 +1446,22 @@ via `dictionary-dictionaries'."
         nil)))
 
 (defun dictionary-tooltip-track-mouse (event)
-  "Called whenever a dictionary tooltip display is about to be triggered."
+  "Hide current tooltip and setup next tooltip in response to mouse movement EVENT."
   (interactive "e")
   (tooltip-hide)
   (when dictionary-tooltip-mode
     (setq dictionary-tooltip-mouse-event (copy-sequence event))
     (tooltip-start-delayed-tip)))
 
-(defun dictionary-switch-tooltip-mode (on)
-  "Turn off or on support for the dictionary tooltip mode.
+(defun dictionary-switch-tooltip-mode (state)
+  "Turn dictionary tooltip mode on or off depending on STATE.
 
-It is normally internally called with 1 to enable support for the
-tooltip mode.  The hook function will check the value of the
-variable `dictionary-tooltip-mode' to decide if some action must be
-taken.  When disabling the tooltip mode the value of this variable
-will be set to nil."
-  (tooltip-mode on)
-  (if on
+It is normally called internally with a non-nil value to enable the
+tooltip mode.  The hook function uses the value of the variable
+`dictionary-tooltip-mode' to decide if some action must be taken.
+When disabling the tooltip mode, that variable will be set to nil."
+  (tooltip-mode state)
+  (if state
       (add-hook 'tooltip-functions #'dictionary-display-tooltip)
     (remove-hook 'tooltip-functions #'dictionary-display-tooltip)))
 
@@ -1608,15 +1608,17 @@ which usually includes the languages it supports."
 (defun dictionary-completing-read-dictionary ()
   "Prompt for a dictionary the server supports."
   (let* ((dicts (dictionary-dictionaries))
-         (len (apply #'max (mapcar #'length (mapcar #'car dicts))))
-         (completion-extra-properties
-          (list :annotation-function
-                (lambda (key)
-                  (concat (make-string (1+ (- len (length key))) ?\s)
-                          (alist-get key dicts nil nil #'string=))))))
-    (completing-read (format-prompt "Select dictionary"
-                                    dictionary-default-dictionary)
-                     dicts nil t nil nil dictionary-default-dictionary)))
+         (len (apply #'max (mapcar #'length (mapcar #'car dicts)))))
+    (completing-read
+     (format-prompt "Select dictionary"
+                    dictionary-default-dictionary)
+     (completion-table-with-metadata
+      dicts
+      `((annotation-function
+         . ,(lambda (key)
+              (concat (make-string (1+ (- len (length key))) ?\s)
+                      (alist-get key dicts nil nil #'string=))))))
+     nil t nil nil dictionary-default-dictionary)))
 
 (define-button-type 'help-word
   :supertype 'help-xref

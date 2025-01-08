@@ -1,6 +1,6 @@
 ;;; url-ldap.el --- LDAP Uniform Resource Locator retrieval code  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2025 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 

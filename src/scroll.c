@@ -1,6 +1,6 @@
 /* Calculate what line insertion or deletion to do, and do it
 
-Copyright (C) 1985-1986, 1990, 1993-1994, 2001-2024 Free Software
+Copyright (C) 1985-1986, 1990, 1993-1994, 2001-2025 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -366,7 +366,7 @@ do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
     eassert (copy_from[k] >= 0 && copy_from[k] < window_size);
 
   /* Perform the row swizzling.  */
-  mirrored_line_dance (current_matrix, unchanged_at_top, window_size,
+  mirrored_line_dance (frame, unchanged_at_top, window_size,
 		       copy_from, retained_p);
 
   /* Some sanity checks if GLYPH_DEBUG is defined.  */
@@ -780,7 +780,7 @@ do_direct_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
      copy_from[i] gives the original line to copy to I, and
      retained_p[copy_from[i]] is zero if line I in the new display is
      empty.  */
-  mirrored_line_dance (current_matrix, unchanged_at_top, window_size,
+  mirrored_line_dance (frame, unchanged_at_top, window_size,
 		       copy_from, retained_p);
 
   if (terminal_window_p)

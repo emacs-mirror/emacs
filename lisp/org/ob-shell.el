@@ -1,6 +1,6 @@
 ;;; ob-shell.el --- Babel Functions for Shell Evaluation -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Maintainer: Matthew Trzcinski <matt@excalamus.com>

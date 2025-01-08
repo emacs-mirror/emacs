@@ -1,6 +1,6 @@
 ;;; pp.el --- pretty printer for Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1993, 2001-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993, 2001-2025 Free Software Foundation, Inc.
 
 ;; Author: Randal Schwartz <merlyn@stonehenge.com>
 ;; Keywords: lisp
@@ -491,8 +491,8 @@ the bounds of a region containing Lisp code to pretty-print."
     (cons (cond
            ((consp (cdr sexp))
             (let ((head (car sexp)))
-              (if-let (((null (cddr sexp)))
-                       (syntax-entry (assq head pp--quoting-syntaxes)))
+              (if-let* (((null (cddr sexp)))
+                        (syntax-entry (assq head pp--quoting-syntaxes)))
                   (progn
                     (insert (cdr syntax-entry))
                     (pp--insert-lisp (cadr sexp)))

@@ -1,6 +1,6 @@
 ;;; python.el --- Python's flying circus support for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2025 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/fgallina/python.el
@@ -259,32 +259,26 @@
 (require 'compat)
 (require 'project nil 'noerror)
 (require 'seq)
+(treesit-declare-unavailable-functions)
 
 ;; Avoid compiler warnings
 (defvar compilation-error-regexp-alist)
 (defvar outline-heading-end-regexp)
-
-(declare-function treesit-parser-create "treesit.c")
-(declare-function treesit-induce-sparse-tree "treesit.c")
-(declare-function treesit-node-child-by-field-name "treesit.c")
-(declare-function treesit-node-type "treesit.c")
-(declare-function treesit-node-start "treesit.c")
-(declare-function treesit-node-end "treesit.c")
-(declare-function treesit-node-parent "treesit.c")
-(declare-function treesit-node-prev-sibling "treesit.c")
 
 (autoload 'comint-mode "comint")
 (autoload 'help-function-arglist "help-fns")
 
 ;;;###autoload
 (defconst python--auto-mode-alist-regexp
-  (rx (or
-       (seq "." (or "py"
-                    "pth"               ; Python Path Configuration File
-                    "pyi"               ; Python Stub File (PEP 484)
-                    "pyw"))             ; MS-Windows specific extension
-       (seq "/" (or "SConstruct" "SConscript"))) ; SCons Build Files
-      eos))
+  ;; (rx (or
+  ;;      (seq "." (or "py"
+  ;;                   "pth"               ; Python Path Configuration File
+  ;;                   "pyi"               ; Python Stub File (PEP 484)
+  ;;                   "pyw"))             ; MS-Windows specific extension
+  ;;      (seq "/" (or "SConstruct" "SConscript"))) ; SCons Build Files
+  ;;     eos)
+  "\\(?:\\.\\(?:p\\(?:th\\|y[iw]?\\)\\)\\|/\\(?:SCons\\(?:\\(?:crip\\|truc\\)t\\)\\)\\)\\'"
+  )
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist (cons python--auto-mode-alist-regexp 'python-mode))
@@ -575,9 +569,9 @@ The type returned can be `comment', `string' or `paren'."
   "Return syntactic face given STATE."
   (if (nth 3 state)
       (if (python-info-docstring-p state)
-          font-lock-doc-face
-        font-lock-string-face)
-    font-lock-comment-face))
+          'font-lock-doc-face
+        'font-lock-string-face)
+    'font-lock-comment-face))
 
 (defconst python--f-string-start-regexp
   (rx bow
@@ -629,7 +623,10 @@ the {...} holes that appear within f-strings."
               (forward-char 1)          ;Just skip over {{
             (let ((beg (match-beginning 0))
                   (end (condition-case nil
-                           (progn (up-list 1) (min send (point)))
+                           (let ((forward-sexp-function)
+                                 (parse-sexp-ignore-comments))
+                             (up-list 1)
+                             (min send (point)))
                          (scan-error send))))
               (goto-char end)
               (put-text-property beg end 'face nil))))
@@ -718,10 +715,11 @@ class declarations.")
            "aiter" "anext" "ascii" "breakpoint" "bytearray" "bytes" "exec"
            ;; Special attributes:
            ;; https://docs.python.org/3/reference/datamodel.html
-           "__annotations__" "__closure__" "__code__"
-           "__defaults__" "__dict__" "__doc__" "__globals__"
-           "__kwdefaults__" "__name__" "__module__" "__package__"
-           "__qualname__"
+           "__annotations__" "__bases__" "__closure__" "__code__"
+           "__defaults__" "__dict__" "__doc__" "__firstlineno__"
+           "__globals__" "__kwdefaults__" "__name__" "__module__"
+           "__mro__" "__package__" "__qualname__"
+           "__static_attributes__" "__type_params__"
            ;; Extras:
            "__all__")
           symbol-end) . font-lock-builtin-face))
@@ -808,7 +806,7 @@ sign in chained assignment."
      (3 'font-lock-operator-face)
      (,(python-rx symbol-name)
       (progn
-        (when-let ((type-start (match-beginning 2)))
+        (when-let* ((type-start (match-beginning 2)))
           (goto-char type-start))
         (match-end 0))
       nil
@@ -1034,10 +1032,12 @@ It makes underscores and dots word constituent chars.")
     ">>" ">>=" "|" "|=" "~" "@" "@="))
 
 (defvar python--treesit-special-attributes
-  '("__annotations__" "__closure__" "__code__"
-    "__defaults__" "__dict__" "__doc__" "__globals__"
-    "__kwdefaults__" "__name__" "__module__" "__package__"
-    "__qualname__" "__all__"))
+  '("__annotations__" "__bases__" "__closure__" "__code__"
+    "__defaults__" "__dict__" "__doc__" "__firstlineno__"
+    "__globals__" "__kwdefaults__" "__name__" "__module__"
+    "__mro__" "__package__" "__qualname__"
+    "__static_attributes__" "__type_params__"
+    "__all__"))
 
 (defvar python--treesit-exceptions
   '(;; Python 2 and 3:
@@ -1108,7 +1108,8 @@ fontified."
          (ignore-interpolation (not
                                 (seq-some
                                  (lambda (feats) (memq 'string-interpolation feats))
-                                 (seq-take treesit-font-lock-feature-list treesit-font-lock-level))))
+                                 (seq-take treesit-font-lock-feature-list
+                                           (treesit--compute-font-lock-level treesit-font-lock-level)))))
          ;; If interpolation is enabled, highlight only
          ;; string_start/string_content/string_end children.  Do not
          ;; touch interpolation node that can occur inside of the
@@ -1153,7 +1154,7 @@ fontified."
         ((or "identifier" "none")
          (setq font-node child))
         ("attribute"
-         (when-let ((type-node (treesit-node-child-by-field-name child "attribute")))
+         (when-let* ((type-node (treesit-node-child-by-field-name child "attribute")))
            (setq font-node type-node)))
         ((or "binary_operator" "subscript")
          (python--treesit-fontify-union-types child override start end type-regex)))
@@ -3264,8 +3265,8 @@ name respectively the current project name."
   (pcase dedicated
     ('nil python-shell-buffer-name)
     ('project
-     (if-let ((proj (and (featurep 'project)
-                         (project-current))))
+     (if-let* ((proj (and (featurep 'project)
+                          (project-current))))
          (format "%s[%s]" python-shell-buffer-name (file-name-nondirectory
                                                     (directory-file-name
                                                      (project-root proj))))
@@ -3788,7 +3789,7 @@ non-nil, means also display the Python shell buffer."
                                                   dedicated))))
                     '(buffer project nil))
           (user-error "No Python shell"))
-    (when-let ((proc (get-buffer-process (current-buffer))))
+    (when-let* ((proc (get-buffer-process (current-buffer))))
       (kill-process proc)
       (while (accept-process-output proc)))
     (python-shell-make-comint (python-shell-calculate-command)
@@ -4845,9 +4846,9 @@ using that one instead of current buffer's process."
        ((stringp (car cands))
         (if no-delims
             ;; Reduce completion candidates due to long prefix.
-            (if-let ((Lp (length prefix))
-                     ((string-match "\\(\\sw\\|\\s_\\)+\\'" prefix))
-                     (L (match-beginning 0)))
+            (if-let* ((Lp (length prefix))
+                      ((string-match "\\(\\sw\\|\\s_\\)+\\'" prefix))
+                      (L (match-beginning 0)))
                 ;; If extra-offset is not zero:
                 ;;                  start              end
                 ;; o------------------o---------o-------o
@@ -5521,14 +5522,14 @@ def __FFAP_get_module_path(objstr):
 
 (defun python-ffap-module-path (module)
   "Function for `ffap-alist' to return path for MODULE."
-  (when-let ((process (python-shell-get-process))
-             (ready (python-shell-with-shell-buffer
+  (when-let* ((process (python-shell-get-process))
+              (ready (python-shell-with-shell-buffer
                       (python-util-comint-end-of-output-p)))
-             (module-file
-              (python-shell-send-string-no-output
-               (format "%s\nprint(__FFAP_get_module_path(%s))"
-                       python-ffap-setup-code
-                       (python-shell--encode-string module)))))
+              (module-file
+               (python-shell-send-string-no-output
+                (format "%s\nprint(__FFAP_get_module_path(%s))"
+                        python-ffap-setup-code
+                        (python-shell--encode-string module)))))
     (unless (string-empty-p module-file)
       (python-util-strip-string module-file))))
 
@@ -6537,7 +6538,7 @@ This is for compatibility with Emacs < 24.4."
 
 (defun python-util-comint-end-of-output-p ()
   "Return non-nil if the last prompt matches input prompt."
-  (when-let ((prompt (python-util-comint-last-prompt)))
+  (when-let* ((prompt (python-util-comint-last-prompt)))
     (python-shell-comint-end-of-output-p
      (buffer-substring-no-properties
       (car prompt) (cdr prompt)))))
@@ -6817,8 +6818,8 @@ for key in sorted(result):
 
 (defun python--import-sources ()
   "List files containing Python imports that may be useful in the current buffer."
-  (if-let (((featurep 'project))        ;For compatibility with Emacs < 26
-           (proj (project-current)))
+  (if-let* (((featurep 'project))        ;For compatibility with Emacs < 26
+            (proj (project-current)))
       (seq-filter (lambda (s) (string-match-p "\\.py[iwx]?\\'" s))
                   (project-files proj))
     (list default-directory)))
@@ -6930,9 +6931,9 @@ asking.
 When calling from Lisp, use a non-nil NAME to restrict the
 suggestions to imports defining NAME."
   (interactive (list (when current-prefix-arg (thing-at-point 'symbol))))
-  (when-let ((statement (python--query-import name
-                                              (python--import-sources)
-                                              "Add import: ")))
+  (when-let* ((statement (python--query-import name
+                                               (python--import-sources)
+                                               "Add import: ")))
     (if (python--do-isort "--add" statement)
         (message "Added `%s'" statement)
       (message "(No changes in Python imports needed)"))))
@@ -6955,8 +6956,8 @@ argument, restrict the suggestions to imports defining the symbol
 at point.  If there is only one such suggestion, act without
 asking."
   (interactive (list (when current-prefix-arg (thing-at-point 'symbol))))
-  (when-let ((statement (python--query-import name (current-buffer)
-                                              "Remove import: ")))
+  (when-let* ((statement (python--query-import name (current-buffer)
+                                               "Remove import: ")))
     (if (python--do-isort "--rm" statement)
         (message "Removed `%s'" statement)
       (message "(No changes in Python imports needed)"))))
@@ -6998,11 +6999,11 @@ asking."
 	  (forward-line 1))))
     ;; Compute imports to be added
     (dolist (name (seq-uniq undefined))
-      (when-let ((statement (python--query-import name
-                                                  (python--import-sources)
-                                                  (format "\
+      (when-let* ((statement (python--query-import name
+                                                   (python--import-sources)
+                                                   (format "\
 Add import for undefined name `%s' (empty to skip): "
-                                                          name))))
+                                                           name))))
         (push statement add)))
     ;; Compute imports to be removed
     (dolist (name (seq-uniq unused))
@@ -7073,11 +7074,10 @@ implementations: `python-mode' and `python-ts-mode'."
               `((?: . ,(lambda ()
                          (and (zerop (car (syntax-ppss)))
                               (python-info-statement-starts-block-p)
-                              ;; Heuristic: assume walrus operator :=
-                              ;; when colon is preceded by space.
+                              ;; Heuristic for walrus operator :=
                               (save-excursion
                                 (goto-char (- (point) 2))
-                                (looking-at (rx (not space) ":")))
+                                (looking-at (rx (not space) ":" eol)))
                               'after)))))
 
   ;; Add """ ... """ pairing to electric-pair-mode.
@@ -7144,7 +7144,8 @@ implementations: `python-mode' and `python-ts-mode'."
       (defvar grep-files-aliases)
       (defvar grep-find-ignored-directories)
       (cl-pushnew '("py" . "*.py") grep-files-aliases :test #'equal)
-      (dolist (dir '(".tox" ".venv" ".mypy_cache" ".ruff_cache"))
+      (dolist (dir '(".mypy_cache" ".pytest_cache" ".ropeproject"
+                     ".ruff_cache" ".tox" ".venv"))
         (cl-pushnew dir grep-find-ignored-directories))))
 
   (setq-local prettify-symbols-alist python-prettify-symbols-alist)

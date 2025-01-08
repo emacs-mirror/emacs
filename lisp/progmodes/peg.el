@@ -1,6 +1,6 @@
 ;;; peg.el --- Parsing Expression Grammars in Emacs Lisp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2024  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2025 Free Software Foundation, Inc.
 ;;
 ;; Author: Helmut Eller <eller.helmut@gmail.com>
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
@@ -412,6 +412,7 @@ sequencing `and' operator of PEG grammars."
              (full-rname (format "%s %s" name rname)))
         (push `(define-peg-rule ,full-rname . ,(cdr rule)) defs)
         (push `(,(peg--rule-id rname) #',(peg--rule-id full-rname)) aliases)))
+    (require 'cl-lib)
     `(cl-flet ,aliases
        ,@defs
        (eval-and-compile (put ',name 'peg--rules ',aliases)))))
@@ -432,18 +433,27 @@ rulesets defined previously with `define-peg-ruleset'."
                               (progn (push rule rulesets) nil)
                             (cons (car rule) (peg-normalize `(and . ,(cdr rule))))))
                         rules)))
-        (ctx (assq :peg-rules macroexpand-all-environment)))
+         (ctx (assq :peg-rules macroexpand-all-environment))
+         (body
     (macroexpand-all
      `(cl-labels
           ,(mapcar (lambda (rule)
-		     ;; FIXME: Use `peg--lambda' as well.
 		     `(,(peg--rule-id (car rule))
-		       ()
-		       ,(peg--translate-rule-body (car rule) (cdr rule))))
+		       (peg--lambda ',(cdr rule) ()
+		         ,(peg--translate-rule-body (car rule) (cdr rule)))))
 		   rules)
         ,@body)
      `((:peg-rules ,@(append rules (cdr ctx)))
        ,@macroexpand-all-environment))))
+    (if (null rulesets)
+        body
+      `(cl-flet ,(mapcan (lambda (ruleset)
+                           (let ((aliases (get ruleset 'peg--rules)))
+                             (unless aliases
+                               (message "Unknown PEG ruleset: %S" ruleset))
+                             (copy-sequence aliases)))
+                         rulesets)
+         ,body))))
 
 ;;;;; Old entry points
 
@@ -645,7 +655,7 @@ rulesets defined previously with `define-peg-ruleset'."
         (code (peg-translate-exp exp)))
     (cond
      ((null msg) code)
-     (t (macroexp-warn-and-return msg code)))))
+     (t (macroexp-warn-and-return msg code 'peg nil exp)))))
 
 ;; This is the main translation function.
 (defun peg-translate-exp (exp)

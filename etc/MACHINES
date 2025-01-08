@@ -1,7 +1,6 @@
 Emacs machines list
 
-Copyright (C) 1989-1990, 1992-1993, 1998, 2001-2024 Free Software
-Foundation, Inc.
+Copyright (C) 1989-2025 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 This is a list of the status of GNU Emacs on various machines and systems.
@@ -16,9 +15,6 @@ elsewhere (eg Makefiles).
 
 If you add support for a new configuration, add a section to this
 file, and edit the 'configure.ac' source as needed.
-
-Some obsolete platforms are unsupported beginning with Emacs 23.1.  See
-the list at the end of this file.
 
 
 * Here are notes about some of the systems supported:

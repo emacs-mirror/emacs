@@ -1,6 +1,6 @@
 ;;; color-tests.el --- Tests for color.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2025 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords:
@@ -61,6 +61,12 @@
   (should (equal (color-complement "white") '(0.0 0.0 0.0)))
   (should (equal (color-complement "#ffffffffffff") '(0.0 0.0 0.0)))
   (should (equal (color-complement "red") '(0.0 1.0 1.0))))
+
+(ert-deftest color-tests-blend ()
+  (should (equal (color-blend '(1.0 0.0 0.0) '(0.0 1.0 0.0)) '(0.5 0.5 0.0)))
+  (should (equal (color-blend '(1.0 1.0 1.0) '(0.0 1.0 0.0)) '(0.5 1.0 0.5)))
+  (should (equal (color-blend '(0.0 0.39215686274509803 0.0) '(0.9607843137254902 0.8705882352941177 0.7019607843137254))
+                 '(0.4803921568627451 0.6313725490196078 0.3509803921568627))))
 
 (ert-deftest color-tests-gradient ()
   (should-not (color-gradient '(0 0 0) '(255 255 255) 0))
@@ -222,14 +228,11 @@
   (should (equal (color-lighten-hsl 360 0.5 0.5 0) '(360 0.5 0.5)))
   (should (equal (color-lighten-hsl 360 0.5 0.5 -10) '(360 0.5 0.45)))
   (should (equal (color-lighten-hsl 360 0.5 0.5 -500) '(360 0.5 0.0)))
-  (should
-   (color-tests--approx-equal
-    (color-lighten-hsl 120 0.5 0.8 5) '(120 0.5 0.84)))
-  (should
-   (equal (color-lighten-hsl 120 0.5 0.8 500) '(120 0.5 1.0))))
+  (should (equal (color-lighten-hsl 120 0.5 0.8 5) '(120 0.5 0.81)))
+  (should (equal (color-lighten-hsl 120 0.5 0.8 500) '(120 0.5 1.0))))
 
 (ert-deftest color-tests-lighten-name ()
-  (should (equal (color-lighten-name "black" 100) "#000000000000"))
+  (should (equal (color-lighten-name "black" 100) "#ffffffffffff"))
   (should (equal (color-lighten-name "white" 100) "#ffffffffffff"))
   (should (equal (color-lighten-name "red" 0) "#ffff00000000"))
   (should (equal (color-lighten-name "red" 10) "#ffff19991999")))

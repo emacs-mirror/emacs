@@ -1,6 +1,6 @@
 ;;; newst-ticker.el --- mode line ticker for newsticker.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2025 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; URL:         https://www.nongnu.org/newsticker
@@ -96,6 +96,7 @@ retrieval interval (or the global `newsticker-retrieval-interval`) is
 recommended."
   :type 'number
   :set #'newsticker--set-customvar-ticker
+  :version "30.1"
   :group 'newsticker-ticker)
 
 (defcustom newsticker-scroll-smoothly

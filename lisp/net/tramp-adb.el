@@ -1,6 +1,6 @@
 ;;; tramp-adb.el --- Functions for calling Android Debug Bridge from Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2025 Free Software Foundation, Inc.
 
 ;; Author: Jürgen Hötzel <juergen@archlinux.org>
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
@@ -205,15 +205,15 @@ It is used for TCP/IP devices."
 ;;;###tramp-autoload
 (defsubst tramp-adb-file-name-p (vec-or-filename)
   "Check if it's a VEC-OR-FILENAME for ADB."
-  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
-    (string= (tramp-file-name-method vec) tramp-adb-method)))
+  (and-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename))
+	     ((string= (tramp-file-name-method vec) tramp-adb-method)))))
 
 ;;;###tramp-autoload
 (defun tramp-adb-file-name-handler (operation &rest args)
   "Invoke the ADB handler for OPERATION.
 First arg specifies the OPERATION, second arg is a list of
 arguments to pass to the OPERATION."
-  (if-let ((fn (assoc operation tramp-adb-file-name-handler-alist)))
+  (if-let* ((fn (assoc operation tramp-adb-file-name-handler-alist)))
       (prog1 (save-match-data (apply (cdr fn) args))
 	(setq tramp-debug-message-fnh-function (cdr fn)))
     (prog1 (tramp-run-real-handler operation args)
@@ -620,7 +620,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		      (tramp-shell-quote-argument l2))
 		   "Error copying %s to %s" filename newname))
 
-	      (if-let ((tmpfile (file-local-copy filename)))
+	      (if-let* ((tmpfile (file-local-copy filename)))
 		  ;; Remote filename.
 		  (condition-case err
 		      (rename-file tmpfile newname ok-if-already-exists)
@@ -811,10 +811,10 @@ will be used."
 	   v 'file-error "Cannot apply multibyte command `%s'" command))
 
 	(with-tramp-saved-connection-properties
-	    v '("process-name" "process-buffer")
+	    v '(" process-name" " process-buffer")
 	  ;; Set the new process properties.
-	  (tramp-set-connection-property v "process-name" name)
-	  (tramp-set-connection-property v "process-buffer" buffer)
+	  (tramp-set-connection-property v " process-name" name)
+	  (tramp-set-connection-property v " process-buffer" buffer)
 	  (with-current-buffer (tramp-get-connection-buffer v)
 	    (unwind-protect
 		;; We catch this event.  Otherwise, `make-process'
@@ -846,8 +846,6 @@ will be used."
 		      (when filter
 			(set-process-filter p filter))
 		      (process-put p 'remote-command orig-command)
-		      (tramp-set-connection-property
-		       p "remote-command" orig-command)
 		      ;; Set query flag and process marker for this
 		      ;; process.  We ignore errors, because the
 		      ;; process could have finished already.
@@ -857,8 +855,8 @@ will be used."
 			;; We must flush them here already;
 			;; otherwise `rename-file', `delete-file'
 			;; or `insert-file-contents' will fail.
-			(tramp-flush-connection-property v "process-name")
-			(tramp-flush-connection-property v "process-buffer")
+			(tramp-flush-connection-property v " process-name")
+			(tramp-flush-connection-property v " process-buffer")
 			;; Copy tmpstderr file.
 			(when (and (stringp stderr)
 				   (not (tramp-tramp-file-p stderr)))
@@ -1106,7 +1104,8 @@ connection if a previous connection has died for some reason."
       ;; Maybe we know already that "su" is not supported.  We cannot
       ;; use a connection property, because we have not checked yet
       ;; whether it is still the same device.
-      (when (and user (not (tramp-get-file-property vec "/" "su-command-p" t)))
+      (when
+	  (and user (not (tramp-get-connection-property vec " su-command-p" t)))
 	(tramp-error vec 'file-error "Cannot switch to user `%s'" user))
 
       (unless (process-live-p p)
@@ -1126,6 +1125,11 @@ connection if a previous connection has died for some reason."
 			 tramp-adb-program args)))
 		   (prompt (md5 (concat (prin1-to-string process-environment)
 					(current-time-string)))))
+
+	      ;; Set sentinel.  Initialize variables.
+	      (set-process-sentinel p #'tramp-process-sentinel)
+	      (tramp-post-process-creation p vec)
+
 	      ;; Wait for initial prompt.  On some devices, it needs
 	      ;; an initial RET, in order to get it.
               (sleep-for 0.1)
@@ -1133,10 +1137,6 @@ connection if a previous connection has died for some reason."
 	      (tramp-adb-wait-for-output p 30)
 	      (unless (process-live-p p)
 		(tramp-error vec 'file-error "Terminated!"))
-
-	      ;; Set sentinel.  Initialize variables.
-	      (set-process-sentinel p #'tramp-process-sentinel)
-	      (tramp-post-process-creation p vec)
 
 	      ;; Set connection-local variables.
 	      (tramp-set-connection-local-variables vec)
@@ -1190,7 +1190,7 @@ connection if a previous connection has died for some reason."
 		(unless (tramp-adb-send-command-and-check vec nil)
 		  (delete-process p)
 		  ;; Do not flush, we need the nil value.
-		  (tramp-set-file-property vec "/" "su-command-p" nil)
+		  (tramp-set-connection-property vec " su-command-p" nil)
 		  (tramp-error
 		   vec 'file-error "Cannot switch to user `%s'" user)))
 

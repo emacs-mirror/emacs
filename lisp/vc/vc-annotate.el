@@ -1,6 +1,6 @@
 ;;; vc-annotate.el --- VC Annotate Support  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997-1998, 2000-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2025 Free Software Foundation, Inc.
 
 ;; Author: Martin Lorentzson <emwson@emw.ericsson.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -165,6 +165,7 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
 (defcustom vc-annotate-use-short-revision t
   "If non-nil, \\[vc-annotate] will use short revisions in its buffer name."
   :type 'boolean
+  :version "30.1"
   :group 'vc)
 
 (defvar-keymap vc-annotate-mode-map

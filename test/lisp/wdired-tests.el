@@ -1,6 +1,6 @@
 ;;; wdired-tests.el --- tests for wdired.el          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -142,7 +142,8 @@ wdired-get-filename before and after editing."
   (ert-with-temp-directory test-dir
     (let* ((dired-listing-switches "-Fl")
            (dired-ls-F-marks-symlinks
-            (or (eq system-type 'darwin)
+            (or (and (memq system-type '(berkeley-unix darwin))
+		     (not (string= insert-directory-program "gls")))
                 (featurep 'ls-lisp)))
            (buf (find-file-noselect test-dir))
            proc)

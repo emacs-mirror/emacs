@@ -1,6 +1,6 @@
 ;;; ox-latex.el --- LaTeX Backend for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2025 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;; Maintainer: Daniel Fleischer <danflscr@gmail.com>
@@ -4097,7 +4097,7 @@ a communication channel."
           (unless (hash-table-p table-head-cache)
             (setq table-head-cache (make-hash-table :test #'eq))
             (plist-put info :org-latex-table-head-cache table-head-cache))
-          (if-let ((head-contents (gethash (org-element-parent table-row) table-head-cache)))
+          (if-let* ((head-contents (gethash (org-element-parent table-row) table-head-cache)))
               (puthash (org-element-parent table-row) (concat head-contents "\\\\\n" contents)
                        table-head-cache)
             (puthash (org-element-parent table-row) contents table-head-cache))))

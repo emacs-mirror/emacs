@@ -1,6 +1,6 @@
 ;;; xdg.el --- XDG specification and standard support -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2025 Free Software Foundation, Inc.
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Created: 27 January 2017
@@ -291,7 +291,7 @@ According to the XDG Desktop Entry Specification version 0.5:
     colon-separated list of strings ... $XDG_CURRENT_DESKTOP
     should have been set by the login manager, according to the
     value of the DesktopNames found in the session file."
-  (when-let ((ret (getenv "XDG_CURRENT_DESKTOP")))
+  (when-let* ((ret (getenv "XDG_CURRENT_DESKTOP")))
     (string-split ret ":")))
 
 

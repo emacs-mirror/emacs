@@ -1,6 +1,6 @@
 ;;; auth-source-pass.el --- Integrate auth-source with password-store -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015, 2017-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2015, 2017-2025 Free Software Foundation, Inc.
 
 ;; Author: Damien Cassou <damien@cassou.me>,
 ;;         Nicolas Petton <nicolas@petton.fr>
@@ -88,7 +88,7 @@ HOST, USER, PORT, REQUIRE, and MAX."
         (auth-source-pass-extra-query-keywords
          (auth-source-pass--build-result-many host port user require max))
         (t
-         (when-let ((result (auth-source-pass--build-result host port user)))
+         (when-let* ((result (auth-source-pass--build-result host port user)))
            (list result)))))
 
 (defun auth-source-pass--build-result (hosts port user)
@@ -195,10 +195,15 @@ See `auth-source-pass-get'."
 (defun auth-source-pass--read-entry (entry)
   "Return a string with the file content of ENTRY."
   (with-temp-buffer
-    (insert-file-contents (expand-file-name
-                           (format "%s.gpg" entry)
-                           auth-source-pass-filename))
-    (buffer-substring-no-properties (point-min) (point-max))))
+    ;; `file-name-handler-alist' could be nil, or miss the
+    ;; `epa-file-handler' entry.  We ensure, that it does exist.
+    ;; (Bug#67937)
+    (let ((file-name-handler-alist
+           (cons epa-file-handler file-name-handler-alist)))
+      (insert-file-contents (expand-file-name
+                             (format "%s.gpg" entry)
+                             auth-source-pass-filename))
+      (buffer-substring-no-properties (point-min) (point-max)))))
 
 (defun auth-source-pass-parse-entry (entry)
   "Return an alist of the data associated with ENTRY.
@@ -220,7 +225,7 @@ CONTENTS is the contents of a password-store formatted file."
   (let ((lines (cdr (split-string contents "\n" t "[ \t]+"))))
     (seq-remove #'null
                 (mapcar (lambda (line)
-                          (when-let ((pos (seq-position line ?:)))
+                          (when-let* ((pos (seq-position line ?:)))
                             (cons (string-trim (substring line 0 pos))
                                   (string-trim (substring line (1+ pos))))))
                         lines))))
@@ -291,7 +296,7 @@ HOSTS can be a string or a list of strings."
           (dolist (user (or users (list u)))
             (dolist (port (or ports (list p)))
               (dolist (e entries)
-                (when-let
+                (when-let*
                     ((m (or (gethash e seen) (auth-source-pass--retrieve-parsed
                                               seen e (integerp port))))
                      ((equal host (plist-get m :host)))

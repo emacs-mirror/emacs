@@ -1,6 +1,6 @@
 ;;; package.el --- Simple package system for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2025 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;         Daniel Hackney <dan@haxney.org>
@@ -858,22 +858,22 @@ byte-compilation of the new package to fail."
                             (cl-remove-if-not #'stringp
                                               (mapcar #'car load-history)))))
       (dolist (file files)
-        (when-let ((library (package--library-stem
-                             (file-relative-name file dir)))
-                   (canonical (locate-library library nil effective-path))
-                   (truename (file-truename canonical))
-                   ;; Normally, all files in a package are compiled by
-                   ;; now, but don't assume that.  E.g. different
-                   ;; versions can add or remove `no-byte-compile'.
-                   (altname (if (string-suffix-p ".el" truename)
-                                (replace-regexp-in-string
-                                 "\\.el\\'" ".elc" truename t)
-                              (replace-regexp-in-string
-                               "\\.elc\\'" ".el" truename t)))
-                   (found (or (member truename history)
-                              (and (not (string= altname truename))
-                                   (member altname history))))
-                   (recent-index (length found)))
+        (when-let* ((library (package--library-stem
+                              (file-relative-name file dir)))
+                    (canonical (locate-library library nil effective-path))
+                    (truename (file-truename canonical))
+                    ;; Normally, all files in a package are compiled by
+                    ;; now, but don't assume that.  E.g. different
+                    ;; versions can add or remove `no-byte-compile'.
+                    (altname (if (string-suffix-p ".el" truename)
+                                 (replace-regexp-in-string
+                                  "\\.el\\'" ".elc" truename t)
+                               (replace-regexp-in-string
+                                "\\.elc\\'" ".el" truename t)))
+                    (found (or (member truename history)
+                               (and (not (string= altname truename))
+                                    (member altname history))))
+                    (recent-index (length found)))
           (unless (equal (file-name-base library)
                          (format "%s-autoloads" (package-desc-name pkg-desc)))
             (push (cons (expand-file-name library dir) recent-index) result))))
@@ -1751,7 +1751,7 @@ The variable `package-load-list' controls which packages to load."
   (setq file (expand-file-name file))
   (let ((context (epg-make-context 'OpenPGP)))
     (when package-gnupghome-dir
-      (with-file-modes 448
+      (with-file-modes #o700
         (make-directory package-gnupghome-dir t))
       (setf (epg-context-home-directory context) package-gnupghome-dir))
     (message "Importing %s..." (file-name-nondirectory file))
@@ -1829,10 +1829,11 @@ Populate `package-archive-contents' with the result.
 If optional argument ASYNC is non-nil, perform the downloads
 asynchronously."
   (dolist (archive package-archives)
-    (condition-case-unless-debug nil
+    (condition-case-unless-debug err
         (package--download-one-archive archive "archive-contents" async)
-      (error (message "Failed to download `%s' archive."
-               (car archive))))))
+      (error (message "Failed to download `%s' archive: %s"
+                      (car archive)
+                      (error-message-string err))))))
 
 (defvar package-refresh-contents-hook (list #'package--download-and-read-archives)
   "List of functions to call to refresh the package archive.
@@ -1856,7 +1857,8 @@ downloads in the background."
     (when (and (package-check-signature) (file-exists-p default-keyring))
       (condition-case-unless-debug error
           (package-import-keyring default-keyring)
-        (error (message "Cannot import default keyring: %S" (cdr error))))))
+        (error (message "Cannot import default keyring: %s"
+                        (error-message-string error))))))
   (run-hook-with-args 'package-refresh-contents-hook async))
 
 
@@ -2438,9 +2440,10 @@ directory."
 (defun package-install-selected-packages (&optional noconfirm)
   "Ensure packages in `package-selected-packages' are installed.
 If some packages are not installed, propose to install them.
-If optional argument NOCONFIRM is non-nil, don't ask for
-confirmation to install packages."
-  (interactive)
+
+If optional argument NOCONFIRM is non-nil, or when invoked with a prefix
+argument, don't ask for confirmation to install packages."
+  (interactive "P")
   (package--archives-initialize)
   ;; We don't need to populate `package-selected-packages' before
   ;; using here, because the outcome is the same either way (nothing
@@ -2616,26 +2619,31 @@ are invalid due to changed byte-code, macros or the like."
       (package-recompile pkg-desc))))
 
 ;;;###autoload
-(defun package-autoremove ()
+(defun package-autoremove (&optional noconfirm)
   "Remove packages that are no longer needed.
 
 Packages that are no more needed by other packages in
 `package-selected-packages' and their dependencies
-will be deleted."
-  (interactive)
+will be deleted.
+
+If optional argument NOCONFIRM is non-nil, or when invoked with a prefix
+argument, don't ask for confirmation to install packages."
+  (interactive "P")
   ;; If `package-selected-packages' is nil, it would make no sense to
   ;; try to populate it here, because then `package-autoremove' will
   ;; do absolutely nothing.
-  (when (or package-selected-packages
+  (when (or noconfirm
+            package-selected-packages
             (yes-or-no-p
              (format-message
               "`package-selected-packages' is empty! Really remove ALL packages? ")))
     (let ((removable (package--removable-packages)))
       (if removable
-          (when (y-or-n-p
-                 (format "Packages to delete: %d (%s), proceed? "
-                   (length removable)
-                   (mapconcat #'symbol-name removable " ")))
+          (when (or noconfirm
+                    (y-or-n-p
+                     (format "Packages to delete: %d (%s), proceed? "
+                             (length removable)
+                             (mapconcat #'symbol-name removable " "))))
             (mapc (lambda (p)
                     (package-delete (cadr (assq p package-alist)) t))
                   removable))
@@ -2643,16 +2651,23 @@ will be deleted."
 
 (defun package-isolate (packages &optional temp-init)
   "Start an uncustomized Emacs and only load a set of PACKAGES.
+Interactively, prompt for PACKAGES to load, which should be specified
+separated by commas.
+If called from Lisp, PACKAGES should be a list of packages to load.
 If TEMP-INIT is non-nil, or when invoked with a prefix argument,
-the Emacs user directory is set to a temporary directory."
+the Emacs user directory is set to a temporary directory.
+This command is intended for testing Emacs and/or the packages
+in a clean environment."
   (interactive
    (cl-loop for p in (cl-loop for p in (package--alist) append (cdr p))
 	    unless (package-built-in-p p)
 	    collect (cons (package-desc-full-name p) p) into table
 	    finally return
-	    (list (cl-loop for c in (completing-read-multiple
-                                     "Isolate packages: " table
-                                     nil t)
+	    (list
+             (cl-loop for c in
+                      (completing-read-multiple
+                       "Packages to isolate, as comma-separated list: " table
+                       nil t)
 		           collect (alist-get c table nil nil #'string=))
                   current-prefix-arg)))
   (let* ((name (concat "package-isolate-"
@@ -2858,7 +2873,7 @@ Helper function for `describe-package'."
                                   'action #'package-delete-button-action
                                   'package-desc desc)))
           (incompatible-reason
-           (insert (propertize "Incompatible" 'font-lock-face font-lock-warning-face)
+           (insert (propertize "Incompatible" 'font-lock-face 'font-lock-warning-face)
                    " because it depends on ")
            (if (stringp incompatible-reason)
                (insert "Emacs " incompatible-reason ".")
@@ -3983,8 +3998,9 @@ Return nil if there were no errors; non-nil otherwise."
               (package-delete elt nil 'nosave))
           (error
            (push (package-desc-full-name elt) errors)
-           (message "Error trying to delete `%s': %S"
-                    (package-desc-full-name elt) err)))))
+           (message "Error trying to delete `%s': %s"
+                    (package-desc-full-name elt)
+                    (error-message-string err))))))
     errors))
 
 (defun package--update-selected-packages (add remove)

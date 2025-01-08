@@ -1,6 +1,6 @@
 ;;; sieve.el --- Utilities to manage sieve scripts  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2025 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -152,7 +152,7 @@ require \"fileinto\";
   (interactive)
   (sieve-manage-close sieve-manage-buffer)
   (kill-buffer sieve-manage-buffer)
-  (when-let ((buffer (get-buffer sieve-buffer)))
+  (when-let* ((buffer (get-buffer sieve-buffer)))
     (kill-buffer buffer)))
 
 (defun sieve-bury-buffer ()

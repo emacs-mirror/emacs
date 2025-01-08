@@ -1,6 +1,6 @@
 ;;; mml.el --- A package for parsing and validating MML documents  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2025 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -507,7 +507,7 @@ type detected."
       (when (and (consp (car cont))
 		 (= (length cont) 1)
 		 content-type)
-        (when-let ((spec (assq 'type (cdr (car cont)))))
+        (when-let* ((spec (assq 'type (cdr (car cont)))))
 	  (setcdr spec content-type)))
       (when (fboundp 'libxml-parse-html-region)
 	(setq cont (mapcar #'mml-expand-all-html-into-multipart-related cont)))
@@ -943,7 +943,7 @@ type detected."
       (when parameters
 	(let ((cont (copy-sequence cont)))
 	  ;; Set the file name to what's specified by the user.
-	  (when-let ((recipient-filename (cdr (assq 'recipient-filename cont))))
+	  (when-let* ((recipient-filename (cdr (assq 'recipient-filename cont))))
 	    (setcdr cont
 		    (cons (cons 'filename recipient-filename)
 			  (cdr cont))))
@@ -1039,6 +1039,7 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
     (message-remove-header "Content-Transfer-Encoding")))
 
 (autoload 'message-encode-message-body "message")
+(autoload 'message-narrow-to-headers-or-head "message")
 (declare-function message-narrow-to-headers-or-head "message" ())
 
 ;;;###autoload

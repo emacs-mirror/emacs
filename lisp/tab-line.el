@@ -1,6 +1,6 @@
 ;;; tab-line.el --- window-local tabs with window buffers -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2025 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@linkov.net>
 ;; Keywords: windows tabs
@@ -461,7 +461,7 @@ named the same as the mode.")
 (defun tab-line-tabs-buffer-group-by-project (&optional buffer)
   "Group tab buffers by project name."
   (with-current-buffer buffer
-    (if-let ((project (project-current)))
+    (if-let* ((project (project-current)))
         (project-name project)
       "No project")))
 
@@ -555,12 +555,15 @@ This means that switching to a buffer previously shown in the same
 window will keep the same order of tabs that was before switching.
 And newly displayed buffers are added to the end of the tab line."
   (let* ((old-buffers (window-parameter nil 'tab-line-buffers))
-         (buffer-positions (let ((index-table (make-hash-table :test 'eq)))
+         (buffer-positions (let ((index-table (make-hash-table
+                                               :size (length old-buffers)
+                                               :test #'eq)))
                              (seq-do-indexed
                               (lambda (buf idx) (puthash buf idx index-table))
                               old-buffers)
                              index-table))
          (new-buffers (sort (tab-line-tabs-window-buffers)
+                            :in-place t
                             :key (lambda (buffer)
                                    (gethash buffer buffer-positions
                                             most-positive-fixnum)))))

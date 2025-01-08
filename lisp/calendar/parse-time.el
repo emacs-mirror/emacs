@@ -1,6 +1,6 @@
 ;;; parse-time.el --- parsing time strings -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 2000-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000-2025 Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Keywords: util
@@ -214,7 +214,7 @@ This function is like `parse-time-string' except that it returns
 a Lisp timestamp when successful.
 
 See `decode-time' for the meaning of FORM."
-  (when-let ((time (parse-time-string date-string form)))
+  (when-let* ((time (parse-time-string date-string form)))
     (encode-time time)))
 
 (provide 'parse-time)

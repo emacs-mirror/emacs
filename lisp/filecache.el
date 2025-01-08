@@ -1,6 +1,6 @@
 ;;; filecache.el --- find files using a pre-loaded cache  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996, 2000-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000-2025 Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 10 1996
@@ -238,13 +238,11 @@ It is a list of entries of the form (FILENAME DIRNAME1 DIRNAME2 ...)
 where FILENAME is a file name component and the entry represents N
 files of names DIRNAME1/FILENAME, DIRNAME2/FILENAME, ...")
 
-(defvar file-cache-completions-keymap
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map completion-list-mode-map)
-    (define-key map [mouse-2] 'file-cache-choose-completion)
-    (define-key map "\C-m" 'file-cache-choose-completion)
-    map)
-  "Keymap for file cache completions buffer.")
+(defvar-keymap file-cache-completions-keymap
+  :doc "Keymap for file cache completions buffer."
+  :parent completion-list-mode-map
+  "<mouse-2>" #'file-cache-choose-completion
+  "RET"       #'file-cache-choose-completion)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions to add files to the cache

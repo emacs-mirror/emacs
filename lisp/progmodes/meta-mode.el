@@ -1,6 +1,6 @@
 ;;; meta-mode.el --- major mode for editing Metafont or MetaPost sources -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 2001-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2025 Free Software Foundation, Inc.
 
 ;; Author: Ulrik Vieth <vieth@thphy.uni-duesseldorf.de>
 ;; Version: 1.0
@@ -535,7 +535,7 @@ If the list was changed, sort the list and remove duplicates first."
 (defun meta-indent-in-string-p ()
   "Tell if the point is in a string."
   (or (nth 3 (syntax-ppss))
-      (eq (get-text-property (point) 'face) font-lock-string-face)))
+      (eq (get-text-property (point) 'face) 'font-lock-string-face)))
 
 (defun meta-indent-looking-at-code (regexp)
   "Same as `looking-at' but checks that the point is not in a string."

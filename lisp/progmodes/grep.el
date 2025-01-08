@@ -1,6 +1,6 @@
 ;;; grep.el --- run `grep' and display the results  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2024 Free Software
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2025 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -297,24 +297,22 @@ See `compilation-error-screen-columns'."
   "List of hook functions run by `grep-process-setup' (see `run-hooks')."
   :type 'hook)
 
-(defvar grep-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map compilation-minor-mode-map)
-    (define-key map " " #'scroll-up-command)
-    (define-key map [?\S-\ ] #'scroll-down-command)
-    (define-key map "\^?" #'scroll-down-command)
-    (define-key map "\C-c\C-f" #'next-error-follow-minor-mode)
+(defvar-keymap grep-mode-map
+  :doc "Keymap for grep buffers.
+This keymap inherits from `compilation-minor-mode-map'."
+  :parent compilation-minor-mode-map
+  "SPC"       #'scroll-up-command
+  "S-SPC"     #'scroll-down-command
+  "DEL"       #'scroll-down-command
+  "C-c C-f"   #'next-error-follow-minor-mode
 
-    (define-key map "\r" #'compile-goto-error)  ;; ?
-    (define-key map "{" #'compilation-previous-file)
-    (define-key map "}" #'compilation-next-file)
-    (define-key map "\t" #'compilation-next-error)
-    (define-key map [backtab] #'compilation-previous-error)
+  "RET"       #'compile-goto-error
+  "{"         #'compilation-previous-file
+  "}"         #'compilation-next-file
+  "TAB"       #'compilation-next-error
+  "<backtab>" #'compilation-previous-error
 
-    (define-key map "e" #'grep-change-to-grep-edit-mode)
-    map)
-  "Keymap for grep buffers.
-`compilation-minor-mode-map' is a cdr of this.")
+  "e"         #'grep-change-to-grep-edit-mode)
 
 (easy-menu-define grep-menu-map grep-mode-map
   "Menu for grep buffers."
@@ -1082,12 +1080,10 @@ list is empty)."
                                    (1+ (pos-eol)))
                                `(occur-target ((,m . ,m)))))))))
 
-(defvar grep-edit-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map text-mode-map)
-    (define-key map (kbd "C-c C-c") #'grep-edit-save-changes)
-    map)
-  "Keymap for `grep-edit-mode'.")
+(defvar-keymap grep-edit-mode-map
+  :doc "Keymap for `grep-edit-mode'."
+  :parent text-mode-map
+  "C-c C-c" #'grep-edit-save-changes)
 
 (defvar grep-edit-mode-hook nil
   "Hooks run when changing to Grep-Edit mode.")
@@ -1357,7 +1353,7 @@ command before it's run."
 		       regexp
 		       files
 		       nil
-                       (when-let ((ignores (grep-find-ignored-files dir)))
+                       (when-let* ((ignores (grep-find-ignored-files dir)))
 			 (concat " --exclude="
 				 (mapconcat
                                   (lambda (ignore)
@@ -1474,7 +1470,7 @@ to indicate whether the grep should be case sensitive or not."
   "Compute the command for \\[rgrep] to use by default."
   (require 'find-dired)                 ; for `find-name-arg'
   (let ((ignored-files-arg
-         (when-let ((ignored-files (grep-find-ignored-files dir)))
+         (when-let* ((ignored-files (grep-find-ignored-files dir)))
            (concat (shell-quote-argument "(" grep-quoting-style)
                    ;; we should use shell-quote-argument here
                    " -name "
@@ -1498,7 +1494,7 @@ to indicate whether the grep should be case sensitive or not."
                (concat " " (shell-quote-argument "!" grep-quoting-style) " " ignored-files-arg)))
      dir
      (concat
-      (when-let ((ignored-dirs (rgrep-find-ignored-directories dir)))
+      (when-let* ((ignored-dirs (rgrep-find-ignored-directories dir)))
         (concat "-type d "
                 (shell-quote-argument "(" grep-quoting-style)
                 ;; we should use shell-quote-argument here
@@ -1578,8 +1574,8 @@ command before it's run."
 (defun grep-file-at-point (point)
   "Return the name of the file at POINT a `grep-mode' buffer.
 The returned file name is relative."
-  (when-let ((msg (get-text-property point 'compilation-message))
-             (loc (compilation--message->loc msg)))
+  (when-let* ((msg (get-text-property point 'compilation-message))
+              (loc (compilation--message->loc msg)))
     (caar (compilation--loc->file-struct loc))))
 
 ;;;###autoload

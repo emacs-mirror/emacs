@@ -1,6 +1,6 @@
 ;;; csharp-mode.el --- Support for editing C#  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
 ;;              Jostein Kjønigsen <jostein@kjonigsen.net>
@@ -35,18 +35,11 @@
 (require 'cc-langs)
 (require 'treesit)
 (require 'c-ts-common) ; For comment indenting and filling.
+(treesit-declare-unavailable-functions)
 
 (eval-when-compile
   (require 'cc-fonts)
   (require 'rx))
-
-(declare-function treesit-parser-create "treesit.c")
-(declare-function treesit-induce-sparse-tree "treesit.c")
-(declare-function treesit-node-start "treesit.c")
-(declare-function treesit-node-type "treesit.c")
-(declare-function treesit-node-child-by-field-name "treesit.c")
-(declare-function treesit-query-capture "treesit.c")
-(declare-function treesit-query-compile "treesit.c")
 
 (defgroup csharp nil
   "Major mode for editing C# code."
@@ -342,7 +335,7 @@
            ;; Chained identifiers in using/namespace statements
            ,`(,(c-make-font-lock-search-function
                 csharp--regex-using-or-namespace
-                `((csharp--color-forwards font-lock-variable-name-face)
+                `((csharp--color-forwards 'font-lock-variable-name-face)
                   nil
                   (goto-char (match-end 0)))))
 
@@ -355,7 +348,7 @@
 
            ;; Single identifier in attribute
            (eval . (list (concat "\\[" csharp--regex-type-name-matcher "\\][^;]")
-                         1 font-lock-variable-name-face t))
+                         1 'font-lock-variable-name-face t))
 
            ;; Function names
            (eval . (list "\\([A-Za-z0-9_]+\\)\\(<[a-zA-Z0-9, ]+>\\)?("
@@ -368,7 +361,7 @@
            (eval . (list (concat "\\<nameof\\> *( *"
                                  csharp--regex-identifier-matcher
                                  " *) *")
-                         1 font-lock-variable-name-face))
+                         1 'font-lock-variable-name-face))
 
            ;; Catch statements with type only
            (eval . (list (concat "\\<catch\\> *( *"

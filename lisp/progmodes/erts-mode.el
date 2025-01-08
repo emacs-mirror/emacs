@@ -1,6 +1,6 @@
 ;;; erts-mode.el --- major mode to edit erts files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
 
 ;; Keywords: tools
 
@@ -209,8 +209,8 @@ expected results and the actual results in a separate buffer."
     (re-search-backward "^=-=\n" nil t)
     (let ((potential-start (match-end 0)))
       ;; See if we're in a two-clause ("before" and "after") test or not.
-      (if-let ((start (and (save-excursion (re-search-backward "^=-=\n" nil t))
-                           (match-end 0))))
+      (if-let* ((start (and (save-excursion (re-search-backward "^=-=\n" nil t))
+                            (match-end 0))))
           (let ((end (save-excursion (re-search-backward "^=-=-=\n" nil t))))
             (if (or (not end)
                     (> start end))

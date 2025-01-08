@@ -1,6 +1,6 @@
 ;;; erc-scenarios-base-local-modules.el --- Local-module tests for ERC -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -153,7 +153,7 @@
 
 (define-erc-module -phony-sblm- nil
   "Test module for `erc-scenarios-base-local-modules--var-persistence'."
-  ((when-let ((vars (or erc--server-reconnecting erc--target-priors)))
+  ((when-let* ((vars (or erc--server-reconnecting erc--target-priors)))
      (should (assq 'erc--phony-sblm--mode vars))
      (setq erc-scenarios-base-local-modules--local-var
            (alist-get 'erc-scenarios-base-local-modules--local-var vars)))

@@ -1,6 +1,6 @@
 ;;; cc-awk.el --- AWK specific code within cc-mode. -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1994, 1996, 2000-2024 Free Software Foundation,
+;; Copyright (C) 1988, 1994, 1996, 2000-2025 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Alan Mackenzie <acm@muc.de> (originally based on awk-mode.el)
@@ -754,15 +754,15 @@
   (if (eq (char-after beg) ?_) (setq beg (1+ beg)))
 
   ;; First put the properties on the delimiters.
-  (cond ((eq end (point-max))	        ; string/regexp terminated by EOB
-	 (c-put-string-fence beg))
+  (cond ((eq end (point-max))		; string/regexp terminated by EOB
+	 (c-put-string-fence-trim-caches beg))
 	((/= (char-after beg) (char-after end)) ; missing end delimiter
-	 (c-put-string-fence beg)
+	 (c-put-string-fence-trim-caches beg)
 	 (c-put-string-fence end))
 	((eq (char-after beg) ?/)	; Properly bracketed regexp
-	 (c-put-char-property beg 'syntax-table '(7)) ; (7) = "string"
-	 (c-put-syntax-table-trim-caches end '(7)))
-	(t))                       ; Properly bracketed string: Nothing to do.
+	 (c-put-syntax-table-trim-caches beg '(7)) ; (7) = "string"
+	 (c-put-char-property end 'syntax-table '(7)))
+	(t))			; Properly bracketed string: Nothing to do.
   ;; Now change the properties of any escaped "s in the string to punctuation.
   (save-excursion
     (goto-char (1+ beg))
@@ -966,11 +966,11 @@
      ;; Function declarations.
      `(,(c-make-font-lock-search-function
 	 "^\\s *\\(func\\(tion\\)?\\)\\s +\\(\\(\\sw+\\(::\\sw+\\)?\\)\\s *\\)?\\(([^()]*)\\)?"
-	 '(1 font-lock-keyword-face t)
+	 '(1 'font-lock-keyword-face t)
 	 ;; We can't use LAXMATCH in `c-make-font-lock-search-function', so....
 	 '((when (match-beginning 4)
 	     (c-put-font-lock-face
-	      (match-beginning 4) (match-end 4) font-lock-function-name-face)
+	      (match-beginning 4) (match-end 4) 'font-lock-function-name-face)
 	     nil))
 	 ;; Put warning face on any use of :: inside the parens.
 	 '((when (match-beginning 6)

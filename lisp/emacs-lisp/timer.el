@@ -1,6 +1,6 @@
 ;;; timer.el --- run a function with args at some time in future -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 2001-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2025 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -407,7 +407,7 @@ This function returns a timer object which you can use in
 
     ;; Handle relative times like "2 hours 35 minutes".
     (when (stringp time)
-      (when-let ((secs (timer-duration time)))
+      (when-let* ((secs (timer-duration time)))
 	(setq time (timer-relative-time nil secs))))
 
     ;; Handle "11:23pm" and the like.  Interpret it as meaning today

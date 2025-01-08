@@ -1,6 +1,6 @@
 ;;; ob-clojure.el --- Babel Functions for Clojure    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
 ;; Author: Joel Boehland, Eric Schulte, Oleh Krehel, Frederick Giasson
 ;; Maintainer: Daniel Kraus <daniel@kraus.my>
@@ -120,14 +120,14 @@
   :package-version '(Org . "9.6"))
 
 (defcustom ob-clojure-nbb-command (or (executable-find "nbb")
-                                      (when-let (npx (executable-find "npx"))
+                                      (when-let* ((npx (executable-find "npx")))
                                         (concat npx " nbb")))
   "Nbb command used by the ClojureScript `nbb' backend."
   :type '(choice string (const nil))
   :group 'org-babel
   :package-version '(Org . "9.7"))
 
-(defcustom ob-clojure-cli-command (when-let (cmd (executable-find "clojure"))
+(defcustom ob-clojure-cli-command (when-let* ((cmd (executable-find "clojure")))
                                     (concat cmd " -M"))
   "Clojure CLI command used by the Clojure `clojure-cli' backend."
   :type '(choice string (const nil))

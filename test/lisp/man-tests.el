@@ -1,6 +1,6 @@
 ;;; man-tests.el --- Test suite for man.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2025 Free Software Foundation, Inc.
 
 ;; Author: Wolfgang Jenkner <wjenkner@inode.at>
 ;; Keywords: help, internal, unix
@@ -178,6 +178,15 @@ DESCRIPTION
                  (if (memq system-type '(ms-dos windows-nt))
                      "\"-k\" \"basename\""
                    "-k basename"))))
+
+(ert-deftest man-tests-find-header-file ()
+  ;; We should be able to find header files on any system with a C
+  ;; compiler, I think.
+  (skip-unless (or (executable-find "cc")
+                   (executable-find "gcc")
+                   (executable-find "clang")))
+  (should (file-exists-p (car (man--find-header-files "math.h"))))
+  (should-not (man--find-header-files "nonexistent-header-does-not-exist.h")))
 
 (provide 'man-tests)
 

@@ -1,6 +1,6 @@
 ;;; erc-scenarios-base-auto-recon.el --- auto-recon scenarios -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -24,6 +24,10 @@
   (let ((load-path (cons (ert-resource-directory) load-path)))
     (require 'erc-scenarios-common)))
 
+;; This tests `erc-server-delayed-check-reconnect', which is called by
+;; `erc-server-prefer-check-reconnect' (the default value of
+;; `erc-server-reconnect-function' as of ERC 5.6.1).
+
 (defun erc-scenarios-base-auto-recon--get-unused-port ()
   (let ((server (make-network-process :name "*erc-scenarios-base-auto-recon*"
                                       :host "localhost"
@@ -42,7 +46,6 @@
        (port (erc-scenarios-base-auto-recon--get-unused-port))
        (erc--server-reconnect-timeout-scale-function (lambda (_) 1))
        (erc-server-auto-reconnect t)
-       (erc-server-reconnect-function #'erc-server-delayed-check-reconnect)
        (expect (erc-d-t-make-expecter))
        (erc-scenarios-common-dialog "base/reconnect")
        (dumb-server nil))
@@ -89,7 +92,7 @@
         (erc-cmd-RECONNECT "cancel")
         (funcall expect 10 "canceled")))))
 
-;; In this test, a listener accepts but doesn't respond to any messages.
+;; Here, a listener accepts but doesn't respond to any messages.
 
 (ert-deftest erc-scenarios-base-auto-recon-no-proto ()
   :tags '(:expensive-test)
@@ -97,12 +100,13 @@
       ((erc-server-flood-penalty 0.1)
        (erc-scenarios-common-dialog "base/reconnect")
        (erc-d-auto-pong nil)
+       (erc-d-tmpl-vars
+        `((cookie . ,(lambda (a) (funcall a :set (funcall a :match 1))))))
        (dumb-server (erc-d-run "localhost" t 'unexpected-disconnect))
        (port (process-contact dumb-server :service))
        (erc--server-reconnect-timeout-scale-function (lambda (_) 1))
        (erc--server-reconnect-timeout-check 0.5)
        (erc-server-auto-reconnect t)
-       (erc-server-reconnect-function #'erc-server-delayed-check-reconnect)
        (expect (erc-d-t-make-expecter)))
 
     (ert-info ("Session succeeds but cut short")
@@ -126,7 +130,6 @@
     (ert-info ("Service restored")
       (setq dumb-server (erc-d-run "localhost" port
                                    'just-ping
-                                   'ping-pong
                                    'unexpected-disconnect))
       (with-current-buffer "FooNet"
         (funcall expect 30 "server is in debug mode")))

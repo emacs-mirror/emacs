@@ -1,6 +1,6 @@
 ;;; erc-track-tests.el --- Tests for erc-track.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2025 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Author: Vivek Dasmohapatra <vivek@etla.org>
@@ -314,7 +314,7 @@
 
         (push (list (point)) bounds)
         (insert ; JOIN
-         ts "      " ; iniital `fill' indentation lacks properties
+         ts "      " ; initial `fill' indentation lacks properties
          #("*** You have joined channel #chan" 0 33
            (font-lock-face erc-notice-face))
          "\n")

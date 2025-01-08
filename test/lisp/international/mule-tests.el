@@ -1,6 +1,6 @@
 ;;; mule-tests.el --- unit tests for mule.el         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -67,7 +67,7 @@
 (ert-deftest mule-cmds-tests--ucs-names-missing-names ()
   (let (code-points)
     (dotimes (u (1+ (max-char 'ucs)))
-      (when-let ((name (get-char-code-property u 'name)))
+      (when-let* ((name (get-char-code-property u 'name)))
         (when (and (not (<= #xD800 u #xDFFF))
                    (not (<= #x18800 u #x18AFF))
                    (not (char-from-name name)))

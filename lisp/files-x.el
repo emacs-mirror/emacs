@@ -1,6 +1,6 @@
 ;;; files-x.el --- extended file handling commands  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2025 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@jurta.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -239,18 +239,23 @@ This command deletes all existing settings of VARIABLE (except `mode'
 and `eval') and adds a new file-local VARIABLE with VALUE to the
 Local Variables list.
 
-If there is no Local Variables list in the current file buffer
-then this function adds the first line containing the string
-`Local Variables:' and the last line containing the string `End:'."
+If there is no Local Variables list in the current file buffer,
+then this function adds it at the end of the file, with the first
+line containing the string `Local Variables:' and the last line
+containing the string `End:'.
+
+For adding local variables on the first line of a file, for example
+for settings like `lexical-binding, which must be specified there,
+use the `add-file-local-variable-prop-line' command instead."
   (interactive
    (let ((variable (read-file-local-variable "Add file-local variable")))
      ;; Error before reading value.
      (if (equal variable 'lexical-binding)
-	 (user-error "The `%s' variable must be set at the start of the file"
+	 (user-error "Use `add-file-local-variable-prop-line' to add the `%s' variable"
 		     variable))
      (list variable (read-file-local-variable-value variable) t)))
   (if (equal variable 'lexical-binding)
-      (user-error "The `%s' variable must be set at the start of the file"
+      (user-error "Use `add-file-local-variable-prop-line' to add the `%s' variable"
                   variable))
   (modify-file-local-variable variable value 'add-or-replace interactive))
 
@@ -394,10 +399,13 @@ from the -*- line ignoring the input argument VALUE."
 
 This command deletes all existing settings of VARIABLE (except `mode'
 and `eval') and adds a new file-local VARIABLE with VALUE to
-the -*- line.
+the -*- line at the beginning of the file.
 
 If there is no -*- line at the beginning of the current file buffer
-then this function adds it."
+then this function adds it.
+
+To add variables to the Local Variables list at the end of the file,
+use the `add-file-local-variable' command instead."
   (interactive
    (let ((variable (read-file-local-variable "Add -*- file-local variable")))
      (list variable (read-file-local-variable-value variable) t)))
@@ -552,7 +560,7 @@ Returns the filename, expanded."
      (read-file-name
       "File: "
       (cond (dir)
-            ((when-let ((proj (and (featurep 'project) (project-current))))
+            ((when-let* ((proj (and (featurep 'project) (project-current))))
                (project-root proj))))
       nil
       (lambda (fname)
@@ -784,8 +792,8 @@ whose elements are of the form (VAR . VALUE).
 Unlike `connection-local-set-profile-variables' (which see), this
 function preserves the values of any existing variable
 definitions that aren't listed in VARIABLES."
-  (when-let ((existing-variables
-              (nreverse (connection-local-get-profile-variables profile))))
+  (when-let* ((existing-variables
+               (nreverse (connection-local-get-profile-variables profile))))
     (dolist (var variables)
       (setf (alist-get (car var) existing-variables) (cdr var)))
     (setq variables (nreverse existing-variables)))
@@ -959,7 +967,7 @@ value is the default binding of the variable."
      (if (not criteria)
          ,variable
        (hack-connection-local-variables criteria)
-       (if-let ((result (assq ',variable connection-local-variables-alist)))
+       (if-let* ((result (assq ',variable connection-local-variables-alist)))
            (cdr result)
          ,variable))))
 

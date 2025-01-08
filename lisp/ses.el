@@ -1,6 +1,6 @@
 ;;; ses.el --- Simple Emacs Spreadsheet  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2025 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Maintainer: Vincent Belaïche <vincentb1@users.sourceforge.net>
@@ -203,10 +203,7 @@ Used for listing local printers or renamed cells.")
 		[C-S-mouse-3] ses-insert-ses-range-click
                 "\C-h\C-p"    ses-list-local-printers
                 "\C-h\C-n"    ses-list-named-cells
-		"\M-\C-i"     lisp-complete-symbol)) ; redefined
-                                                     ; dynamically in
-                                                     ; editing
-                                                     ; functions
+                "\M-\C-i"     completion-at-point))
 	(newmap (make-sparse-keymap)))
     (set-keymap-parent newmap minibuffer-local-map)
     (while keys

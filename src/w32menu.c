@@ -1,5 +1,5 @@
 /* Menu support for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2024 Free
+   Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2025 Free
    Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -186,6 +186,11 @@ task_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam,
 Lisp_Object
 w32_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
 {
+#ifdef NTGUI_UNICODE
+  typedef int (WINAPI *MultiByteToWideChar_Proc)(UINT,DWORD,LPCSTR,int,
+						 LPWSTR, int);
+  static MultiByteToWideChar_Proc pMultiByteToWideChar = MultiByteToWideChar;
+#endif /* NTGUI_UNICODE */
   check_window_system (f);
 
   if (task_dialog_indirect)

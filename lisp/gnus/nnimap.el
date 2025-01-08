@@ -1,6 +1,6 @@
 ;;; nnimap.el --- IMAP interface for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;         Simon Josefsson <simon@josefsson.org>
@@ -221,13 +221,13 @@ during splitting, which may be slow."
     (push "BODYSTRUCTURE" params)
     (push (format
 	   (if (nnimap-ver4-p)
-	       "BODY.PEEK[HEADER.FIELDS %s]"
-	     "RFC822.HEADER.LINES %s")
+	       "BODY.PEEK[HEADER.FIELDS %S]"
+	     "RFC822.HEADER.LINES %S")
 	   (append '(Subject From Date Message-Id
 			     References In-Reply-To Xref)
 		   nnmail-extra-headers))
 	  params)
-    (format "%s" (nreverse params))))
+    (format "(%s)" (mapconcat #'identity (nreverse params) " "))))
 
 (defvar nnimap--max-retrieve-headers 200)
 

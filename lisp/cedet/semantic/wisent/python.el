@@ -1,6 +1,6 @@
 ;;; wisent-python.el --- Semantic support for Python  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2025 Free Software Foundation, Inc.
 
 ;; Author: Richard Kim <emacs18@gmail.com>
 ;; Created: June 2002
@@ -514,6 +514,7 @@ Shortens `code' tags, but passes through for others."
    ;; Semantic to take over from the one provided by python.
    ;; The python one, if it uses the senator advice, will hang
    ;; Emacs unrecoverably.
+   semantic--create-index-function-origin imenu-create-index-function
    imenu-create-index-function #'semantic-create-imenu-index
 
    ;; I need a python guru to update this list:

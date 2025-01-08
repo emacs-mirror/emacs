@@ -1,6 +1,6 @@
 ;;; cc-align.el --- custom indentation functions for CC Mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1992-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2025 Free Software Foundation, Inc.
 
 ;; Authors:    2004- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -313,6 +313,30 @@ statement-block-intro, statement-case-intro, arglist-intro."
     (skip-chars-forward " \t" (c-point 'eol))
     (if (eolp) (skip-chars-backward " \t"))
     (vector (current-column))))
+
+(defun c-lineup-item-after-paren-at-boi (_langelem)
+  "Line up a *-cont line to just after the surrounding open paren at boi.
+\"paren\" here can also mean \"brace\", etc.  We line up under the first
+non-whitespace text after the paren.  If there is no such paren, or no
+such text, return nil, allowing another function to handle the
+construct.
+
+Works with: brace-list-intro, enum-intro, constraint-cont."
+  (save-excursion
+    (beginning-of-line)
+    (and
+     (if (c-langelem-2nd-pos c-syntactic-element)
+	 ;; brace-list-intro, enum-intro.
+	 (progn (goto-char (c-langelem-2nd-pos c-syntactic-element))
+		t)
+       ;; constraint-cont.
+       (c-go-up-list-backward nil (c-langelem-pos c-syntactic-element)))
+     (eq (point) (c-point 'boi))
+     (looking-at "\\s(")
+     (progn (forward-char)
+	    (c-forward-syntactic-ws (c-point 'eol))
+	    (unless (eolp)
+	      (vector (current-column)))))))
 
 (defun c-lineup-arglist-close-under-paren (langelem)
   "Line up a line under the enclosing open paren.

@@ -1,6 +1,6 @@
 ;;; newsticker.el --- A Newsticker for Emacs. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2025 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; URL:         https://www.nongnu.org/newsticker

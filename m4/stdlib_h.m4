@@ -1,9 +1,10 @@
 # stdlib_h.m4
-# serial 81
-dnl Copyright (C) 2007-2024 Free Software Foundation, Inc.
+# serial 84
+dnl Copyright (C) 2007-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
+dnl This file is offered as-is, without any warranty.
 
 AC_DEFUN_ONCE([gl_STDLIB_H],
 [
@@ -40,20 +41,21 @@ AC_DEFUN_ONCE([gl_STDLIB_H],
   AC_REQUIRE([gt_LOCALE_EN_UTF8])
   AC_CACHE_CHECK([whether MB_CUR_MAX is correct],
     [gl_cv_macro_MB_CUR_MAX_good],
-    [
-      dnl Initial guess, used when cross-compiling or when no suitable locale
-      dnl is present.
-changequote(,)dnl
-      case "$host_os" in
-                           # Guess no on Solaris and Haiku.
-        solaris* | haiku*) gl_cv_macro_MB_CUR_MAX_good="guessing no" ;;
-                           # Guess yes otherwise.
-        *)                 gl_cv_macro_MB_CUR_MAX_good="guessing yes" ;;
-      esac
-changequote([,])dnl
-      if test "$LOCALE_EN_UTF8" != none; then
-        AC_RUN_IFELSE(
-          [AC_LANG_SOURCE([[
+    [AC_LINK_IFELSE(
+       [AC_LANG_PROGRAM([[#include <stdlib.h>
+                        ]],
+                        [[return !!MB_CUR_MAX;]])
+       ],
+       [dnl Initial guess, used when cross-compiling or when no suitable locale
+        dnl is present.
+        # Guess no on Solaris and Haiku, yes otherwise.
+        AS_CASE([$host_os],
+          [solaris* | haiku*],
+            [gl_cv_macro_MB_CUR_MAX_good="guessing no"],
+            [gl_cv_macro_MB_CUR_MAX_good="guessing yes"])
+        if test "$LOCALE_EN_UTF8" != none; then
+          AC_RUN_IFELSE(
+            [AC_LANG_SOURCE([[
 #include <locale.h>
 #include <stdlib.h>
 int main ()
@@ -66,15 +68,21 @@ int main ()
     }
   return result;
 }]])],
-          [gl_cv_macro_MB_CUR_MAX_good=yes],
-          [gl_cv_macro_MB_CUR_MAX_good=no],
-          [:])
-      fi
+            [gl_cv_macro_MB_CUR_MAX_good=yes],
+            [gl_cv_macro_MB_CUR_MAX_good=no],
+            [:])
+        fi
+       ],
+       [gl_cv_macro_MB_CUR_MAX_good="link failed - so no"])
     ])
-  case "$gl_cv_macro_MB_CUR_MAX_good" in
-    *yes) ;;
-    *) REPLACE_MB_CUR_MAX=1 ;;
-  esac
+  AS_CASE([$gl_cv_macro_MB_CUR_MAX_good],
+    [*yes],
+      [],
+    ["link failed - so no"],
+      [# 4 suffices as a workaround in Android NDK 16,
+       # the only known platform with the bug.
+       REPLACE_MB_CUR_MAX=4],
+      [REPLACE_MB_CUR_MAX="(-1)"])
 
   AC_CHECK_DECLS_ONCE([ecvt])
   if test $ac_cv_have_decl_ecvt = no; then
@@ -140,7 +148,6 @@ AC_DEFUN([gl_STDLIB_H_REQUIRE_DEFAULTS],
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_RANDOM])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_RANDOM_R])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_REALLOCARRAY])
-    gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_REALLOC_GNU])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_REALLOC_POSIX])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_REALPATH])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_RPMATCH])
@@ -247,7 +254,6 @@ AC_DEFUN([gl_STDLIB_H_DEFAULTS],
   REPLACE_RAND=0;            AC_SUBST([REPLACE_RAND])
   REPLACE_RANDOM=0;          AC_SUBST([REPLACE_RANDOM])
   REPLACE_RANDOM_R=0;        AC_SUBST([REPLACE_RANDOM_R])
-  REPLACE_REALLOC_FOR_REALLOC_GNU=0;    AC_SUBST([REPLACE_REALLOC_FOR_REALLOC_GNU])
   REPLACE_REALLOC_FOR_REALLOC_POSIX=0;  AC_SUBST([REPLACE_REALLOC_FOR_REALLOC_POSIX])
   REPLACE_REALLOCARRAY=0;    AC_SUBST([REPLACE_REALLOCARRAY])
   REPLACE_REALPATH=0;        AC_SUBST([REPLACE_REALPATH])

@@ -1,5 +1,5 @@
 /* Substitute for and wrapper around <unistd.h>.
-   Copyright (C) 2003-2024 Free Software Foundation, Inc.
+   Copyright (C) 2003-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -180,6 +180,9 @@
 _GL_INLINE_HEADER_BEGIN
 #ifndef _GL_UNISTD_INLINE
 # define _GL_UNISTD_INLINE _GL_INLINE
+#endif
+#ifndef _GL_GETPAGESIZE_INLINE
+# define _GL_GETPAGESIZE_INLINE _GL_INLINE
 #endif
 
 /* Hide some function declarations from <winsock2.h>.  */
@@ -1478,7 +1481,7 @@ _GL_FUNCDECL_SYS (getpagesize, int, (void), );
 #     define getpagesize() _gl_getpagesize ()
 #    else
 #     if !GNULIB_defined_getpagesize_function
-_GL_UNISTD_INLINE int
+_GL_GETPAGESIZE_INLINE int
 getpagesize ()
 {
   return _gl_getpagesize ();

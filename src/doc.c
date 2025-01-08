@@ -1,6 +1,6 @@
 /* Record indices of function doc strings stored in a file. -*- coding: utf-8 -*-
 
-Copyright (C) 1985-1986, 1993-1995, 1997-2024 Free Software Foundation,
+Copyright (C) 1985-1986, 1993-1995, 1997-2025 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -497,7 +497,7 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
     }
   else
     {
-      AUTO_STRING (format, "Ignoring DOC string on non-compiled"
+      AUTO_STRING (format, "Ignoring DOC string on non-compiled "
 		   "non-subr: %S");
       CALLN (Fmessage, format, obj);
     }

@@ -1,6 +1,6 @@
 ;;; cl-macs-tests.el --- tests for emacs-lisp/cl-macs.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -666,7 +666,15 @@ collection clause."
          (len4 (xs n)
            (cond (xs (cond (nil 'nevertrue)
                            ((len4 (cdr xs) (1+ n)))))
-                 (t n))))
+                 (t n)))
+
+         ;; Tail calls through obstacles.
+         (len5
+           (if (not (fboundp 'oclosure-lambda))
+               #'ignore
+             (oclosure-lambda (accessor (type 'cl-macs-test) (slot 'length))
+                 (xs n)
+               (if xs (len5 (cdr xs) (1+ n)) n)))))
       (should (equal (len nil 0) 0))
       (should (equal (len2 nil 0) 0))
       (should (equal (len3 nil 0) 0))
@@ -675,11 +683,13 @@ collection clause."
       (should (equal (len2 list-42 0) 42))
       (should (equal (len3 list-42 0) 42))
       (should (equal (len4 list-42 0) 42))
+      (should (equal (len5 list-42 0) 42))
       ;; Should not bump into stack depth limits.
       (should (equal (len list-42k 0) 42000))
       (should (equal (len2 list-42k 0) 42000))
       (should (equal (len3 list-42k 0) 42000))
-      (should (equal (len4 list-42k 0) 42000))))
+      (should (equal (len4 list-42k 0) 42000))
+      (should (equal (len5 list-42k 0) 42000))))
 
   ;; Check that non-recursive functions are handled more efficiently.
   (should (pcase (macroexpand '(cl-labels ((f (x) (+ x 1))) (f 5)))
@@ -707,6 +717,16 @@ collection clause."
                          (let ((lex-var 'b))
                            (f lex-var)))))
       (should (equal (f nil) 'a)))))
+
+(ert-deftest cl-macs--test-flet-block ()
+  (should (equal (cl-block f1
+                   (cl-flet ((f1 (a) (cons (cl-return-from f1 a) 6)))
+                    (cons (f1 5) 6)))
+                 '(5 . 6)))
+  (should (equal (cl-block f1
+                   (cl-labels ((f1 (a) (cons (cl-return-from f1 a) 6)))
+                     (cons (f1 7) 8)))
+                 '(7 . 8))))
 
 (ert-deftest cl-flet/edebug ()
   "Check that we can instrument `cl-flet' forms (bug#65344)."

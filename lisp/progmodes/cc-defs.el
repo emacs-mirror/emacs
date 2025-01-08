@@ -1,6 +1,6 @@
 ;;; cc-defs.el --- compile time definitions for CC Mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1992-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2025 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -1267,6 +1267,14 @@ MODE is either a mode symbol or a list of mode symbols."
      (c-clear-char-property -pos- 'c-is-sws)
      (c-clear-char-property -pos- 'c-in-sws)))
 
+(defmacro c-put-string-fence-trim-caches (pos)
+  ;; Put the string-fence syntax-table text property at POS, and invalidate
+  ;; the four caches from position POS.
+  (declare (debug t))
+  `(let ((-pos- ,pos))
+     (c-put-string-fence -pos-)
+     (c-truncate-lit-pos/state-cache -pos-)))
+
 (eval-and-compile
   ;; Constant to decide at compilation time whether to use category
   ;; properties.  Currently (2010-03) they're available only on GNU
@@ -1569,7 +1577,7 @@ Return the position of the first removed property, or nil."
 
 (defmacro c-clear-syntax-table-with-value-trim-caches (from to value)
   "Remove all `syntax-table' text-properties with value VALUE from [FROM, TO)
-and invalidate the four caches from the first postion, if any, where a
+and invalidate the four caches from the first position, if any, where a
 property was removed.  Return the position of the first property removed,
 if any, else nil.  POINT and the match data remain unchanged."
   (declare (debug t))
@@ -1859,8 +1867,8 @@ from the first position, if any, where a property was put."
       `(c-put-char-property ,pos 'category 'c->-as-paren-syntax)
     `(c-put-char-property ,pos 'syntax-table c->-as-paren-syntax)))
 
-(defmacro c-unmark-<->-as-paren (pos)
-  ;; Unmark the "<" or "<" character at POS as an sexp list opener using the
+(defmacro c-unmark-<-or->-as-paren (pos)
+  ;; Unmark the "<" or ">" character at POS as an sexp list opener using the
   ;; `syntax-table' property either directly or indirectly through a
   ;; `category' text property.
   ;;

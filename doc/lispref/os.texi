@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2024 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2025 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node System Interface
@@ -2202,6 +2202,28 @@ February 2020 has 29 days.
 @defun date-ordinal-to-time year ordinal
 Return the date of @var{ordinal} in @var{year} as a decoded time
 structure.  For instance, the 120th day in 2004 is April 29th.
+@end defun
+
+@defun seconds-to-string delay &optional readable abbrev precision
+Return a string describing a given @var{delay} (in seconds).  By
+default, this function formats the returned string as a floating-point
+number in units selected according to the value of @var{delay}.  For
+example, a delay of 9861.5 seconds yields @samp{2.74h}, since the value
+of @var{delay} is longer than 1 hour, but shorter than 1 day.  The
+output formatting can be further controlled by the optional arguments,
+if optional argument @var{readable} is non-@code{nil}.  If
+@var{readable}'s value is @code{expanded}, the returned string will
+describe @var{delay} using two units; for example, a delay of 9861.5
+seconds with @var{readable} set to the symbol @code{expanded} returns
+@samp{2 hours 44 minutes}, but if @var{readable} is @code{t}, the
+function returns @samp{3 hours}.  Optional argument @var{abbrev}, if
+non-@code{nil}, means to abbreviate the units: use @samp{h} instead of
+@samp{hours}, @samp{m} instead of @samp{minutes}, etc.  If
+@var{precision} is a whole integer number, the function rounds the value
+of the smallest unit it produces to that many digits after the decimal
+point; thus, 9861.5 with @var{precision} set to 3 yields @samp{2.739
+hours}.  If @var{precision} is a non-negative float smaller than 1, the
+function rounds to that value.
 @end defun
 
 @node Timers

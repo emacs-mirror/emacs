@@ -1,6 +1,6 @@
 ;;; em-hist.el --- history list management  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -34,7 +34,6 @@
 ;; Also, most of `comint-mode's keybindings are accepted:
 ;;
 ;;   M-r     ; search backward for a previous command by regexp
-;;   M-s     ; search forward for a previous command by regexp
 ;;   M-p     ; access the last command entered, repeatable
 ;;   M-n     ; access the first command entered, repeatable
 ;;
@@ -132,6 +131,17 @@ whitespace."
                 (function :tag "Other function"))
   :risky t)
 
+(defcustom eshell-history-isearch nil
+  "If non-nil, Isearch searches in Eshell input history.
+If t, usual Isearch keys like \\[isearch-forward] in Eshell search only
+in the input history.  If `dwim', Isearch commands search in the input
+history when point is at the command line after the last prompt.  The
+value nil (the default) means to search in the current Eshell buffer."
+  :type '(choice (const :tag "Don't search in input history" nil)
+                 (const :tag "Search history when point is on command line" dwim)
+                 (const :tag "Always search in input history" t))
+  :version "31.1")
+
 (defun eshell-hist--update-keymap (symbol value)
   "Update `eshell-hist-mode-map' for `eshell-hist-match-partial'."
   ;; Don't try to set this before it is bound.  See below.
@@ -204,25 +214,20 @@ element, regardless of any text on the command line.  In that case,
 (defvar eshell-hist--new-items nil
   "The number of new history items that have not been written to
 file.  This variable is local in each eshell buffer.")
-
-(defvar-keymap eshell-isearch-map
-  :doc "Keymap used in isearch in Eshell."
-  :parent isearch-mode-map
-  "C-m"         #'eshell-isearch-return
-  "C-r"         #'eshell-isearch-repeat-backward
-  "C-s"         #'eshell-isearch-repeat-forward
-  "C-g"         #'eshell-isearch-abort
-  "<backspace>" #'eshell-isearch-delete-char
-  "<delete>"    #'eshell-isearch-delete-char
-  "C-c C-c"     #'eshell-isearch-cancel)
+(defvar-local eshell--history-isearch-message-overlay nil
+  "Overlay for Isearch message when searching through input history.")
+(defvar-local eshell--stored-incomplete-input nil
+  "Stored input for history cycling.")
+(defvar eshell--force-history-isearch nil
+  "Non-nil means to force searching in input history.
+If nil, respect the option `eshell-history-isearch'.")
 
 (defvar-keymap eshell-hist-mode-map
   "<up>"     #'eshell-previous-matching-input-from-input
   "<down>"   #'eshell-next-matching-input-from-input
   "C-<up>"   #'eshell-previous-input
   "C-<down>" #'eshell-next-input
-  "M-r"      #'eshell-previous-matching-input
-  "M-s"      #'eshell-next-matching-input
+  "M-r"      #'eshell-isearch-backward-regexp
   "C-c M-r"  #'eshell-previous-matching-input-from-input
   "C-c M-s"  #'eshell-next-matching-input-from-input
   "C-c C-l"  #'eshell-list-history
@@ -261,20 +266,9 @@ Returns nil if INPUT is prepended by blank space, otherwise non-nil."
 	   (not eshell-non-interactive-p))
       (let ((rebind-alist eshell-rebind-keys-alist))
         (setq-local eshell-rebind-keys-alist
-	      (append rebind-alist eshell-hist-rebind-keys-alist))
-        (setq-local search-invisible t)
-        (setq-local search-exit-option t)
-	(add-hook 'isearch-mode-hook
-                  (lambda ()
-                    (if (>= (point) eshell-last-output-end)
-                        (setq overriding-terminal-local-map
-                              eshell-isearch-map)))
-                  nil t)
-	(add-hook 'isearch-mode-end-hook
-                  (lambda ()
-                    (setq overriding-terminal-local-map nil))
-                  nil t))
+	            (append rebind-alist eshell-hist-rebind-keys-alist)))
     (eshell-hist-mode))
+  (add-hook 'isearch-mode-hook #'eshell--isearch-setup nil t)
 
   (make-local-variable 'eshell-history-size)
   (or eshell-history-size
@@ -383,6 +377,23 @@ unless a different file is specified on the command line.")
 (defun eshell-get-history (index &optional ring)
   "Get an input line from the history ring."
   (ring-ref (or ring eshell-history-ring) index))
+
+(defun eshell-goto-history (pos)
+  "Replace command line with the element at POS of history ring.
+Also update `eshell-history-index'.  As a special case, if POS is nil
+and `eshell--stored-incomplete-input' is a non-empty string, restore the
+saved input."
+  (when (null eshell-history-index)
+    (setq eshell--stored-incomplete-input
+          (buffer-substring-no-properties eshell-last-output-end
+                                          (point-max))))
+  (setq eshell-history-index pos)
+  ;; Can't use kill-region as it sets this-command
+  (delete-region eshell-last-output-end (point-max))
+  (if (and pos (not (ring-empty-p eshell-history-ring)))
+      (insert-and-inherit (eshell-get-history pos))
+    (when (> (length eshell--stored-incomplete-input) 0)
+      (insert-and-inherit eshell--stored-incomplete-input))))
 
 (defun eshell-add-input-to-history (input)
   "Add the string INPUT to the history ring.
@@ -897,12 +908,12 @@ If N is negative, find the next or Nth next match."
     ;; Has a match been found?
     (if (null pos)
 	(error "Not found")
-      (setq eshell-history-index pos)
-      (unless (minibuffer-window-active-p (selected-window))
-	(message "History item: %d" (- (ring-length eshell-history-ring) pos)))
-      ;; Can't use kill-region as it sets this-command
-      (delete-region eshell-last-output-end (point))
-      (insert-and-inherit (eshell-get-history pos)))))
+      (eshell-goto-history pos)
+      (unless (or (minibuffer-window-active-p (selected-window))
+                  ;; No messages for Isearch because it will show the
+                  ;; same messages (and more).
+                  isearch-mode)
+	(message "History item: %d" (- (ring-length eshell-history-ring) pos))))))
 
 (defun eshell-next-matching-input (regexp arg)
   "Search forwards through input history for match for REGEXP.
@@ -937,114 +948,161 @@ If N is negative, search backwards for the -Nth previous match."
   (interactive "p")
   (eshell-previous-matching-input-from-input (- arg)))
 
-(defun eshell-test-imatch ()
-  "If isearch match good, put point at the beginning and return non-nil."
-  (if (get-text-property (point) 'history)
-      (progn (beginning-of-line) t)
-    (let ((before (point)))
-      (beginning-of-line)
-      (if (and (not (bolp))
-	       (<= (point) before))
-	  t
-	(if isearch-forward
-	    (progn
-	      (end-of-line)
-	      (forward-char))
-	  (beginning-of-line)
-	  (backward-char))))))
+(defun eshell--isearch-setup ()
+  "Set up Isearch to search the input history.
+Intended to be added to `isearch-mode-hook' in an Eshell buffer."
+  (when (and
+         ;; Eshell is busy running a foreground process
+         (not eshell-foreground-command)
+         (or eshell--force-history-isearch
+             (eq eshell-history-isearch t)
+             (and (eq eshell-history-isearch 'dwim)
+                  (>= (point) eshell-last-output-end))))
+    (setq isearch-message-prefix-add "history ")
+    (setq-local isearch-lazy-count nil)
+    (setq-local isearch-search-fun-function #'eshell-history-isearch-search
+                isearch-message-function #'eshell-history-isearch-message
+                isearch-wrap-function #'eshell-history-isearch-wrap
+                isearch-push-state-function #'eshell-history-isearch-push-state)
+    (add-hook 'isearch-mode-end-hook #'eshell-history-isearch-end nil t)))
 
-(defun eshell-return-to-prompt ()
-  "Once a search string matches, insert it at the end and go there."
-  (setq isearch-other-end nil)
-  (let ((found (eshell-test-imatch)) before)
-    (while (and (not found)
-		(setq before
-		      (funcall (if isearch-forward
-				   're-search-forward
-				 're-search-backward)
-			       isearch-string nil t)))
-      (setq found (eshell-test-imatch)))
-    (if (not found)
-	(progn
-	  (goto-char eshell-last-output-end)
-	  (delete-region (point) (point-max)))
-      (setq before (point))
-      (let ((text (buffer-substring-no-properties
-		   (point) (line-end-position)))
-	    (orig (marker-position eshell-last-output-end)))
-	(goto-char eshell-last-output-end)
-	(delete-region (point) (point-max))
-	(when (and text (> (length text) 0))
-	  (insert text)
-	  (put-text-property (1- (point)) (point)
-			     'last-search-pos before)
-	  (set-marker eshell-last-output-end orig)
-	  (goto-char eshell-last-output-end))))))
+(defun eshell-history-isearch-end ()
+  "Clean up after terminating history Isearch."
+  (when (overlayp eshell--history-isearch-message-overlay)
+    (delete-overlay eshell--history-isearch-message-overlay))
+  (setq isearch-message-prefix-add nil)
+  (kill-local-variable 'isearch-lazy-count)
+  (setq-local isearch-search-fun-function #'isearch-search-fun-default
+              isearch-message-function nil
+              isearch-wrap-function nil
+              isearch-push-state-function nil)
+  (remove-hook 'isearch-mode-end-hook #'eshell-history-isearch-end t)
+  (setq isearch-opoint (point))
+  (unless isearch-suspended
+    (setq eshell--force-history-isearch nil)))
 
-(defun eshell-prepare-for-search ()
-  "Make sure the old history file is at the beginning of the buffer."
-  (unless (get-text-property (point-min) 'history)
-    (save-excursion
-      (goto-char (point-min))
-      (let ((end (copy-marker (point) t)))
-	(insert-file-contents eshell-history-file-name)
-	(set-text-properties (point-min) end
-			     '(history t invisible t))))))
+(defun eshell-history-isearch-search ()
+  "Return search function for Isearch in input history."
+  (lambda (string bound noerror)
+    (let ((search-fun (isearch-search-fun-default))
+          (found nil))
+      ;; Avoid highlighting matches in and before the last prompt
+      (when (and bound isearch-forward
+                 (< (point) eshell-last-output-end))
+        (goto-char eshell-last-output-end))
+      (or
+       ;; First search in the initial input
+       (funcall search-fun string
+                (if isearch-forward bound eshell-last-output-end)
+                noerror)
+       ;; Then search in the input history: put next/previous history
+       ;; element in the command line successively, then search the
+       ;; string in the command line.  Do this only when not
+       ;; lazy-highlighting (`bound' is nil).
+       (unless bound
+         (condition-case nil
+             (progn
+               (while (not found)
+                 (cond (isearch-forward
+                        ;; Signal an error explicitly to break
+                        (when (or (null eshell-history-index)
+                                  (eq eshell-history-index 0))
+                          (error "End of history; no next item"))
+                        (eshell-next-input 1)
+                        (goto-char eshell-last-output-end))
+                       (t
+                        ;; Signal an error explicitly to break
+                        (when (eq eshell-history-index
+                                  (1- (ring-length eshell-history-ring)))
+                          (error "Beginning of history; no preceding item"))
+                        (eshell-previous-input 1)
+                        (goto-char (point-max))))
+                 (setq isearch-barrier (point)
+                       isearch-opoint (point))
+                 ;; After putting an history element in the command
+                 ;; line, search the string in them.
+                 (setq found (funcall search-fun string
+                                      (unless isearch-forward
+                                        eshell-last-output-end)
+                                      noerror)))
+               (point))
+           ;; Return when no next/preceding element error signaled
+           (error nil)))))))
+
+(defun eshell-history-isearch-message (&optional c-q-hack ellipsis)
+  "Display the input history search prompt.
+If there are no search errors, this function displays an overlay with
+the Isearch prompt which replaces the original Eshell prompt.
+Otherwise, it displays the standard Isearch message returned from the
+function `isearch-message'."
+  (if (not (and isearch-success (not isearch-error)))
+      ;; Use standard message function (which displays a message in the
+      ;; echo area) when not in command line, or search fails or has
+      ;; errors (like incomplete regexp).
+      (isearch-message c-q-hack ellipsis)
+    ;; Otherwise, use an overlay over the Eshell prompt.
+    (if (overlayp eshell--history-isearch-message-overlay)
+        (move-overlay eshell--history-isearch-message-overlay
+                      (save-excursion
+                        (goto-char eshell-last-output-end)
+                        (forward-line 0)
+                        (point))
+                      eshell-last-output-end)
+      (setq eshell--history-isearch-message-overlay
+            (make-overlay (save-excursion
+                            (goto-char eshell-last-output-end)
+                            (forward-line 0)
+                            (point))
+                          eshell-last-output-end))
+      (overlay-put eshell--history-isearch-message-overlay 'evaporate t))
+    (overlay-put eshell--history-isearch-message-overlay
+                 'display (isearch-message-prefix ellipsis
+                                                  isearch-nonincremental))
+    (if (and eshell-history-index (not ellipsis))
+        (message "History item: %d" (- (ring-length eshell-history-ring)
+                                       eshell-history-index))
+      (message ""))))
+
+(defun eshell-history-isearch-wrap ()
+  "Wrap the input history search."
+  (if isearch-forward
+      (eshell-goto-history (1- (ring-length eshell-history-ring)))
+    (eshell-goto-history nil))
+  (goto-char (if isearch-forward eshell-last-output-end (point-max))))
+
+(defun eshell-history-isearch-push-state ()
+  "Save a function restoring the state of input history search.
+Save `eshell-history-index' to the additional state parameter in the
+search status stack."
+  (let ((index eshell-history-index))
+    (lambda (_cmd)
+      (eshell-goto-history index))))
 
 (defun eshell-isearch-backward (&optional invert)
-  "Do incremental regexp search backward through past commands."
-  (interactive)
-  (let ((inhibit-read-only t))
-    (eshell-prepare-for-search)
-    (goto-char (point-max))
-    (set-marker eshell-last-output-end (point))
-    (delete-region (point) (point-max)))
-  (isearch-mode invert t 'eshell-return-to-prompt))
-
-(defun eshell-isearch-repeat-backward (&optional invert)
-  "Do incremental regexp search backward through past commands."
-  (interactive)
-  (let ((old-pos (get-text-property (1- (point-max))
-				    'last-search-pos)))
-    (when old-pos
-      (goto-char old-pos)
-      (if invert
-	  (end-of-line)
-	(backward-char)))
-    (setq isearch-forward invert)
-    (isearch-search-and-update)))
+  "Do incremental search backward through past commands."
+  (interactive nil eshell-mode)
+  (setq eshell--force-history-isearch t)
+  (if invert
+      (isearch-forward nil t)
+    (isearch-backward nil t)))
 
 (defun eshell-isearch-forward ()
-  "Do incremental regexp search backward through past commands."
-  (interactive)
+  "Do incremental search forward through past commands."
+  (interactive nil eshell-mode)
   (eshell-isearch-backward t))
 
-(defun eshell-isearch-repeat-forward ()
+(defun eshell-isearch-backward-regexp (&optional invert)
   "Do incremental regexp search backward through past commands."
-  (interactive)
-  (eshell-isearch-repeat-backward t))
+  (interactive nil eshell-mode)
+  (setq eshell--force-history-isearch t)
+  (if invert
+      (isearch-forward-regexp nil t)
+    (isearch-backward-regexp nil t)))
 
-(defun eshell-isearch-cancel ()
-  (interactive)
-  (goto-char eshell-last-output-end)
-  (delete-region (point) (point-max))
-  (call-interactively 'isearch-cancel))
-
-(defun eshell-isearch-abort ()
-  (interactive)
-  (goto-char eshell-last-output-end)
-  (delete-region (point) (point-max))
-  (call-interactively 'isearch-abort))
-
-(defun eshell-isearch-delete-char ()
-  (interactive)
-  (save-excursion
-  (isearch-delete-char)))
-
-(defun eshell-isearch-return ()
-  (interactive)
-  (isearch-done)
-  (eshell-send-input))
+(defun eshell-isearch-forward-regexp ()
+  "Do incremental regexp search forward through past commands."
+  (interactive nil eshell-mode)
+  (eshell-isearch-backward-regexp t))
 
 (defun em-hist-unload-function ()
   (remove-hook 'kill-emacs-hook 'eshell-save-some-history))

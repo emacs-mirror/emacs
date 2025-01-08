@@ -1,6 +1,6 @@
 ;;; image-dired.el --- use dired to browse and manipulate your images -*- lexical-binding: t -*-
 
-;; Copyright (C) 2005-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2025 Free Software Foundation, Inc.
 
 ;; Author: Mathias Dahl <mathias.rem0veth1s.dahl@gmail.com>
 ;; Maintainer: Stefan Kangas <stefankangas@gmail.com>
@@ -618,19 +618,25 @@ thumbnail buffer to be selected."
       (image-dired--update-header-line))))
 
 ;;;###autoload
-(defun image-dired-show-all-from-dir (dir)
-  "Make a thumbnail buffer for all images in DIR and display it.
-Any file matching `image-dired--file-name-regexp' is considered an
-image file.
+(defun image-dired-show-all-from-dir (dirname)
+  "Make a thumbnail buffer for all images in DIRNAME and display it.
+
+The DIRNAME argument is passed along to `dired', and can therefore be
+either a string with wildcards or a cons, as described in the
+documentation for that function.  Refer to it for more details.
 
 If the number of image files in DIR exceeds
 `image-dired-show-all-from-dir-max-files', ask for confirmation
 before creating the thumbnail buffer.  If that variable is nil,
-never ask for confirmation."
+never ask for confirmation.
+
+Any file matching `image-dired--file-name-regexp' is considered an
+image file."
   (interactive "DShow thumbnails for directory: ")
-  (dired dir)
+  (dired dirname)
   (dired-mark-files-regexp (image-dired--file-name-regexp))
-  (let ((files (dired-get-marked-files nil nil nil t)))
+  (let ((files (dired-get-marked-files nil nil nil t))
+        (dired-default-directory default-directory))
     (cond ((and (null (cdr files)))
            (message "No image files in directory"))
           ((or (not image-dired-show-all-from-dir-max-files)
@@ -644,7 +650,7 @@ never ask for confirmation."
            (let ((inhibit-message t))
              (dired-unmark-all-marks))
            (pop-to-buffer image-dired-thumbnail-buffer)
-           (setq default-directory dir)
+           (setq default-directory dired-default-directory)
            (image-dired--update-header-line))
           (t (message "Image-Dired canceled")))))
 
@@ -663,7 +669,7 @@ only useful if `image-dired-track-movement' is nil."
     (image-dired--with-dired-buffer
       (if (not (dired-goto-file file-name))
           (message "Could not find image in Dired buffer for tracking")
-        (when-let (window (image-dired-get-buffer-window (current-buffer)))
+        (when-let* ((window (image-dired-get-buffer-window (current-buffer))))
           (set-window-point window (point)))))))
 
 (defun image-dired-toggle-movement-tracking ()
@@ -863,7 +869,7 @@ for.  The default is to look for `dired-marker-char'."
   "Run BODY in associated Dired buffer with point on current file's line.
 Should be called from commands in `image-dired-thumbnail-mode'."
   (declare (indent defun) (debug t))
-  `(if-let ((file-name (image-dired-original-file-name)))
+  `(if-let* ((file-name (image-dired-original-file-name)))
        (image-dired--with-dired-buffer
          (when (dired-goto-file file-name)
            ,@body))
@@ -871,9 +877,9 @@ Should be called from commands in `image-dired-thumbnail-mode'."
 
 (defmacro image-dired--with-thumbnail-buffer (&rest body)
   (declare (indent defun) (debug t))
-  `(if-let ((buf (get-buffer image-dired-thumbnail-buffer)))
+  `(if-let* ((buf (get-buffer image-dired-thumbnail-buffer)))
        (with-current-buffer buf
-         (if-let ((win (get-buffer-window buf)))
+         (if-let* ((win (get-buffer-window buf)))
              (with-selected-window win
                ,@body)
            ,@body))
@@ -932,7 +938,7 @@ You probably want to use this together with
 `image-dired-track-original-file'."
   (interactive nil image-dired-thumbnail-mode)
   (image-dired--with-dired-buffer
-    (if-let ((window (image-dired-get-buffer-window (current-buffer))))
+    (if-let* ((window (image-dired-get-buffer-window (current-buffer))))
         (progn
           (if (not (equal (selected-frame) (window-frame window)))
               (select-frame-set-input-focus (window-frame window)))
@@ -1090,7 +1096,7 @@ This is used by `image-dired-slideshow-start'."
 
 (defun image-dired--slideshow-step ()
   "Step to the next image in a slideshow."
-  (if-let ((buf (get-buffer image-dired-thumbnail-buffer)))
+  (if-let* ((buf (get-buffer image-dired-thumbnail-buffer)))
       (with-current-buffer buf
         (image-dired-display-next))
     (image-dired--slideshow-stop)))
@@ -1272,7 +1278,7 @@ which is based on `image-mode'."
         (cur-win (selected-window)))
     (when buf
       (kill-buffer buf))
-    (when-let ((buf (find-file-noselect file nil t)))
+    (when-let* ((buf (find-file-noselect file nil t)))
       (pop-to-buffer buf)
       (rename-buffer image-dired-display-image-buffer)
       (if (string-match (image-file-name-regexp) file)

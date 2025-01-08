@@ -1,6 +1,6 @@
 ;;; gnus.el --- a newsreader for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2024 Free Software
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2025 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -1402,9 +1402,14 @@ this variable.  I think."
 	    (string :tag "Address")
 	    (repeat :tag "Options"
 		    :inline t
-		    (list :format "%v"
-			  variable
-			  (sexp :tag "Value"))))))
+                    (radio
+		     (list :tag "Single var" :format "%v"
+			   variable
+			   (sexp :tag "Value"))
+                     (list :tag "Multiple var" :format "%v"
+			   variable
+                           variable
+			   (sexp :tag "Value")))))))
 
 (gnus-redefine-select-method-widget)
 
@@ -3119,9 +3124,9 @@ g -- Group name."
   "Check whether GROUP supports function FUNC.
 GROUP can either be a string (a group name) or a select method."
   (ignore-errors
-    (when-let ((method (if (stringp group)
-		           (car (gnus-find-method-for-group group))
-		         group)))
+    (when-let* ((method (if (stringp group)
+		            (car (gnus-find-method-for-group group))
+		          group)))
       (unless (featurep method)
 	(require method))
       (fboundp (intern (format "%s-%s" method func))))))

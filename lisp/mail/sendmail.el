@@ -1,6 +1,6 @@
 ;;; sendmail.el --- mail sending commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1992-1996, 1998, 2000-2024 Free Software
+;; Copyright (C) 1985-1986, 1992-1996, 1998, 2000-2025 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -258,7 +258,9 @@ regardless of what part of it (if any) is included in the cited text.")
 
 ;;;###autoload
 (defcustom mail-citation-prefix-regexp
-  (purecopy "\\([ \t]*\\(\\w\\|[_.]\\)+>+\\|[ \t]*[>|]\\)+")
+  ;; Use [[:word:]] rather than \w so we don't get tripped up if one
+  ;; of those chars has a weird `syntax-table' text property.
+  (purecopy "\\([ \t]*\\([[:word:]]\\|[_.]\\)+>+\\|[ \t]*[>|]\\)+")
   "Regular expression to match a citation prefix plus whitespace.
 It should match whatever sort of citation prefixes you want to handle,
 with whitespace before and after; it should also match just whitespace.

@@ -1,6 +1,6 @@
 ;;; flymake.el --- A universal on-the-fly syntax checker  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2025 Free Software Foundation, Inc.
 
 ;; Author: Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: Spencer Baugh <sbaugh@janestreet.com>
@@ -127,6 +127,11 @@
   :version "23.1"
   :link '(custom-manual "(flymake) Top")
   :group 'tools)
+
+(add-to-list 'customize-package-emacs-version-alist
+             '(Flymake ("1.3.4" . "30.1")
+                       ("1.3.5" . "30.1")
+                       ("1.3.6" . "30.1")))
 
 (defcustom flymake-error-bitmap '(flymake-double-exclamation-mark
                                   compilation-error)
@@ -845,7 +850,7 @@ Return to original margin width if ORIG-WIDTH is non-nil."
     (widen)
     (dolist (o (overlays-in (point-min) (point-max)))
       (when (overlay-get o 'flymake--eol-overlay)
-        (if-let ((src-ovs (overlay-get o 'flymake-eol-source-overlays)))
+        (if-let* ((src-ovs (overlay-get o 'flymake-eol-source-overlays)))
             (overlay-put o 'before-string (flymake--eol-overlay-summary src-ovs))
           (delete-overlay o))))))
 
@@ -1231,7 +1236,7 @@ If MESSAGE-PREFIX, echo a message using that prefix."
 (defun flymake--disable-backend (backend &optional explanation)
   "Disable BACKEND because EXPLANATION.
 If it is running also stop it."
-  (flymake-log :warning "Disabling backend %s because %s" backend explanation)
+  (flymake-log :warning "Disabling backend %s because %S" backend explanation)
   (flymake--with-backend-state backend state
     (setf (flymake--state-running state) nil
           (flymake--state-disabled state) explanation
@@ -1533,7 +1538,7 @@ START and STOP and LEN are as in `after-change-functions'."
 (defun flymake-eldoc-function (report-doc &rest _)
   "Document diagnostics at point.
 Intended for `eldoc-documentation-functions' (which see)."
-  (when-let ((diags (flymake-diagnostics (point))))
+  (when-let* ((diags (flymake-diagnostics (point))))
     (funcall report-doc
              (mapconcat #'flymake-diagnostic-text diags "\n")
              :echo (mapconcat #'flymake-diagnostic-oneliner

@@ -1,6 +1,6 @@
 /* xfaces.c -- "Face" primitives.
 
-Copyright (C) 1993-1994, 1998-2024 Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 1998-2025 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -692,7 +692,6 @@ void
 free_frame_faces (struct frame *f)
 {
   struct face_cache *face_cache = FRAME_FACE_CACHE (f);
-
   if (face_cache)
     {
       free_face_cache (face_cache);
@@ -2508,6 +2507,9 @@ evaluate_face_filter (Lisp_Object filter, struct window *w,
     filter = XCDR (filter);
     if (!NILP (filter))
       goto err;
+
+    if (NILP (Fget (parameter, QCfiltered)))
+      Fput (parameter, QCfiltered, Qt);
 
     bool match = false;
     if (w)
@@ -5146,7 +5148,8 @@ lookup_basic_face (struct window *w, struct frame *f, int face_id)
     case DEFAULT_FACE_ID:		name = Qdefault;		break;
     case MODE_LINE_ACTIVE_FACE_ID:	name = Qmode_line_active;      	break;
     case MODE_LINE_INACTIVE_FACE_ID:	name = Qmode_line_inactive;	break;
-    case HEADER_LINE_FACE_ID:		name = Qheader_line;		break;
+    case HEADER_LINE_ACTIVE_FACE_ID:	name = Qheader_line_active;	break;
+    case HEADER_LINE_INACTIVE_FACE_ID:	name = Qheader_line_inactive;	break;
     case TAB_LINE_FACE_ID:		name = Qtab_line;		break;
     case TAB_BAR_FACE_ID:		name = Qtab_bar;		break;
     case TOOL_BAR_FACE_ID:		name = Qtool_bar;		break;
@@ -5172,10 +5175,19 @@ lookup_basic_face (struct window *w, struct frame *f, int face_id)
      for the very common no-remapping case.  */
   mapping = assq_no_quit (name, Vface_remapping_alist);
   if (NILP (mapping))
-    return face_id;		/* Give up.  */
+    {
+      Lisp_Object face_attrs[LFACE_VECTOR_SIZE];
 
-  /* If there is a remapping entry, lookup the face using NAME, which will
-     handle the remapping too.  */
+      /* If the face inherits from another, we need to realize it,
+         because the parent face could be remapped.  */
+      if (!get_lface_attributes (w, f, name, face_attrs, false, 0)
+	  || NILP (face_attrs[LFACE_INHERIT_INDEX])
+	  || UNSPECIFIEDP (face_attrs[LFACE_INHERIT_INDEX]))
+	return face_id;		/* Give up.  */
+    }
+
+  /* If there is a remapping entry, or the face inherits from another,
+     lookup the face using NAME, which will handle the remapping too.  */
   remapped_face_id = lookup_named_face (w, f, name, false);
   if (remapped_face_id < 0)
     return face_id;		/* Give up. */
@@ -5892,11 +5904,18 @@ realize_basic_faces (struct frame *f)
 
   if (realize_default_face (f))
     {
+      /* Basic faces must be realized disregarding face-remapping-alist,
+         since otherwise face-remapping might affect the basic faces in the
+         face cache, if this function happens to be invoked with current
+	 buffer set to a buffer with a non-nil face-remapping-alist.  */
+      specpdl_ref count = SPECPDL_INDEX ();
+      specbind (Qface_remapping_alist, Qnil);
       realize_named_face (f, Qmode_line_active, MODE_LINE_ACTIVE_FACE_ID);
       realize_named_face (f, Qmode_line_inactive, MODE_LINE_INACTIVE_FACE_ID);
       realize_named_face (f, Qtool_bar, TOOL_BAR_FACE_ID);
       realize_named_face (f, Qfringe, FRINGE_FACE_ID);
-      realize_named_face (f, Qheader_line, HEADER_LINE_FACE_ID);
+      realize_named_face (f, Qheader_line_active, HEADER_LINE_ACTIVE_FACE_ID);
+      realize_named_face (f, Qheader_line_inactive, HEADER_LINE_INACTIVE_FACE_ID);
       realize_named_face (f, Qscroll_bar, SCROLL_BAR_FACE_ID);
       realize_named_face (f, Qborder, BORDER_FACE_ID);
       realize_named_face (f, Qcursor, CURSOR_FACE_ID);
@@ -5912,6 +5931,7 @@ realize_basic_faces (struct frame *f)
       realize_named_face (f, Qchild_frame_border, CHILD_FRAME_BORDER_FACE_ID);
       realize_named_face (f, Qtab_bar, TAB_BAR_FACE_ID);
       realize_named_face (f, Qtab_line, TAB_LINE_FACE_ID);
+      unbind_to (count, Qnil);
 
       /* Reflect changes in the `menu' face in menu bars.  */
       if (FRAME_FACE_CACHE (f)->menu_face_changed_p)
@@ -7475,6 +7495,8 @@ syms_of_xfaces (void)
   DEFSYM (Qfringe, "fringe");
   DEFSYM (Qtab_line, "tab-line");
   DEFSYM (Qheader_line, "header-line");
+  DEFSYM (Qheader_line_inactive, "header-line-inactive");
+  DEFSYM (Qheader_line_active, "header-line-active");
   DEFSYM (Qscroll_bar, "scroll-bar");
   DEFSYM (Qmenu, "menu");
   DEFSYM (Qcursor, "cursor");

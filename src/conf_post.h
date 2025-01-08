@@ -1,6 +1,6 @@
 /* conf_post.h --- configure.ac includes this via AH_BOTTOM
 
-Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2024 Free Software
+Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2025 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -92,55 +92,6 @@ typedef bool bool_bf;
 #else
 # define ADDRESS_SANITIZER false
 #endif
-
-#ifdef emacs
-/* We include stdlib.h here, because Gnulib's stdlib.h might redirect
-   'free' to its replacement, and we want to avoid that in unexec
-   builds.  Including it here will render its inclusion after config.h
-   a no-op.  */
-# if (defined DARWIN_OS && defined HAVE_UNEXEC) || defined HYBRID_MALLOC
-#  include <stdlib.h>
-# endif
-#endif
-
-#if defined DARWIN_OS && defined emacs && defined HAVE_UNEXEC
-# undef malloc
-# define malloc unexec_malloc
-# undef realloc
-# define realloc unexec_realloc
-# undef free
-# define free unexec_free
-
-extern void *unexec_malloc (size_t);
-extern void *unexec_realloc (void *, size_t);
-extern void unexec_free (void *);
-
-#endif
-
-/* If HYBRID_MALLOC is defined (e.g., on Cygwin), emacs will use
-   gmalloc before dumping and the system malloc after dumping.
-   hybrid_malloc and friends, defined in gmalloc.c, are wrappers that
-   accomplish this.  */
-#ifdef HYBRID_MALLOC
-#ifdef emacs
-#undef malloc
-#define malloc hybrid_malloc
-#undef realloc
-#define realloc hybrid_realloc
-#undef aligned_alloc
-#define aligned_alloc hybrid_aligned_alloc
-#undef calloc
-#define calloc hybrid_calloc
-#undef free
-#define free hybrid_free
-
-extern void *hybrid_malloc (size_t);
-extern void *hybrid_calloc (size_t, size_t);
-extern void hybrid_free (void *);
-extern void *hybrid_aligned_alloc (size_t, size_t);
-extern void *hybrid_realloc (void *, size_t);
-#endif	/* emacs */
-#endif	/* HYBRID_MALLOC */
 
 /* We have to go this route, rather than the old hpux9 approach of
    renaming the functions via macros.  The system's stdlib.h has fully
@@ -462,16 +413,18 @@ extern int emacs_setenv_TZ (char const *);
 # define UNINIT /* empty */
 #endif
 
-/* MB_CUR_MAX is often broken on systems which copy-paste LLVM
-   headers, so replace its definition with a working one if
-   necessary.  */
-
-#ifdef REPLACEMENT_MB_CUR_MAX
-#include <stdlib.h>
-#undef MB_CUR_MAX
-#define MB_CUR_MAX REPLACEMENT_MB_CUR_MAX
-#endif /* REPLACEMENT_MB_CUR_MAX */
-
 /* Emacs does not need glibc strftime behavior for AM and PM
    indicators.  */
 #define REQUIRE_GNUISH_STRFTIME_AM_PM false
+
+#ifdef MSDOS
+/* These are required by file-has-acl.c but defined in dirent.h and
+   errno.h, which are not generated on DOS.  */
+#define _GL_DT_NOTDIR 0x100   /* Not a directory */
+#define ENOTSUP ENOSYS
+# define IFTODT(mode) \
+   (S_ISREG (mode) ? DT_REG : S_ISDIR (mode) ? DT_DIR \
+    : S_ISLNK (mode) ? DT_LNK : S_ISBLK (mode) ? DT_BLK \
+    : S_ISCHR (mode) ? DT_CHR : S_ISFIFO (mode) ? DT_FIFO \
+    : S_ISSOCK (mode) ? DT_SOCK : DT_UNKNOWN)
+#endif /* MSDOS */

@@ -1,6 +1,6 @@
 ;;; em-cmpl.el --- completion using the TAB key  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -150,7 +150,8 @@ to writing a completion function."
 
 (defcustom eshell-cmpl-remote-file-ignore nil
   (eshell-cmpl--custom-variable-docstring 'pcomplete-remote-file-ignore)
-  :type (get 'pcomplete-remote-file-ignore 'custom-type))
+  :type (get 'pcomplete-remote-file-ignore 'custom-type)
+  :version "30.1")
 
 (defcustom eshell-cmpl-ignore-case (eshell-under-windows-p)
   (eshell-cmpl--custom-variable-docstring 'completion-ignore-case)
@@ -444,7 +445,7 @@ to writing a completion function."
                ('nil
                 (propertize "" 'pcomplete-arg-value arg))
                (_
-                (propertize (eshell-stringify arg)
+                (propertize (eshell-stringify arg t)
                             'pcomplete-arg-value arg))))
 	   args)
 	  posns)))

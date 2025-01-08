@@ -1,6 +1,6 @@
 ;;; semantic/sort.el --- Utilities for sorting and re-arranging tag tables.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax

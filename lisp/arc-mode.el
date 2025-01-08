@@ -1,6 +1,6 @@
 ;;; arc-mode.el --- simple editing of archives  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 1997-1998, 2001-2024 Free Software Foundation,
+;; Copyright (C) 1995, 1997-1998, 2001-2025 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
@@ -1075,7 +1075,7 @@ return nil.  Otherwise point is returned."
     (while (and (not found)
                 (not (eobp)))
       (forward-line 1)
-      (when-let ((descr (archive-get-descr t)))
+      (when-let* ((descr (archive-get-descr t)))
         (when (equal (archive--file-desc-ext-file-name descr) file)
           (setq found t))))
     (if (not found)
@@ -1097,7 +1097,7 @@ return nil.  Otherwise point is returned."
                          (beginning-of-line)
                          (bobp)))))
       (archive-next-line n)
-      (when-let ((descr (archive-get-descr t)))
+      (when-let* ((descr (archive-get-descr t)))
         (let ((candidate (archive--file-desc-ext-file-name descr))
               (buffer (current-buffer)))
           (when (and candidate

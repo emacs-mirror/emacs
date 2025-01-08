@@ -1,6 +1,6 @@
 ;;; misterioso-theme.el --- Custom face theme for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2025 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Hermida
 
@@ -134,4 +134,4 @@
 
 (provide-theme 'misterioso)
 
-;;; misterioso-theme.el  ends here
+;;; misterioso-theme.el ends here

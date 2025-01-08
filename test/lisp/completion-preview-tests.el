@@ -1,6 +1,6 @@
 ;;; completion-preview-tests.el --- tests for completion-preview.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -24,7 +24,7 @@
 
 (defun completion-preview-tests--capf (completions &rest props)
   (lambda ()
-    (when-let ((bounds (bounds-of-thing-at-point 'symbol)))
+    (when-let* ((bounds (bounds-of-thing-at-point 'symbol)))
       (append (list (car bounds) (cdr bounds) completions) props))))
 
 (defun completion-preview-tests--check-preview

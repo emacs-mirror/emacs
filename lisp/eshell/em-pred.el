@@ -1,6 +1,6 @@
 ;;; em-pred.el --- argument predicates and modifiers (ala zsh)  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -121,7 +121,7 @@ The format of each entry is
     (?r . (lambda (lst) (mapcar #'file-name-sans-extension lst)))
     (?e . (lambda (lst) (mapcar #'file-name-extension lst)))
     (?t . (lambda (lst) (mapcar #'file-name-nondirectory lst)))
-    (?q . (lambda (lst) (mapcar #'eshell-escape-arg lst)))
+    (?q . #'identity)                   ; Obsolete as of Emacs 31.1.
     (?u . (lambda (lst) (seq-uniq lst)))
     (?o . (lambda (lst) (sort lst #'string-lessp)))
     (?O . (lambda (lst) (sort lst #'string-greaterp)))
@@ -197,7 +197,6 @@ FOR SINGLE ARGUMENTS, or each argument of a list of strings:
   t  basename
   e  file extension
   r  strip file extension
-  q  escape special characters
 
   S       split string at any whitespace character
   S/PAT/  split string at each occurrence of PAT
@@ -261,8 +260,8 @@ respectively.")
 
 (defun eshell-pred-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the predicate/modifier code."
-  (add-hook 'eshell-parse-argument-hook
-	    #'eshell-parse-arg-modifier t t)
+  ;; Make sure this function runs before `eshell-parse-glob-chars'.
+  (add-hook 'eshell-parse-argument-hook #'eshell-parse-arg-modifier 50 t)
   (eshell-pred-mode))
 
 (defun eshell-apply-modifiers (lst predicates modifiers string-desc)
@@ -442,7 +441,7 @@ before the closing delimiter.  This allows modifiers like
       (error "Unknown %s name specified for modifier `%c'"
 	     mod-type mod-char))
     (lambda (file)
-      (when-let ((attrs (file-attributes file)))
+      (when-let* ((attrs (file-attributes file)))
 	(= (nth attr-index attrs) ugid)))))
 
 (defun eshell-pred-file-time (mod-char mod-type attr-index)
@@ -467,7 +466,7 @@ before the closing delimiter.  This allows modifiers like
                 (list #'time-less-p
                       (lambda (a b) (time-less-p b a))
                       #'time-equal-p)))
-    (if-let ((number (eshell-get-numeric-modifier-argument)))
+    (if-let* ((number (eshell-get-numeric-modifier-argument)))
         (setq when (time-since (* number quantum)))
       (let* ((file (or (eshell-get-delimited-modifier-argument)
                        (error "Malformed %s time modifier `%c'"
@@ -476,7 +475,7 @@ before the closing delimiter.  This allows modifiers like
                         (error "Cannot stat file `%s'" file))))
         (setq when (nth attr-index attrs))))
     (lambda (file)
-      (when-let ((attrs (file-attributes file)))
+      (when-let* ((attrs (file-attributes file)))
         (funcall qual when (nth attr-index attrs))))))
 
 (defun eshell-pred-file-type (type)
@@ -492,13 +491,13 @@ that `ls -l' will show in the first column of its display."
 		 '(?b ?c)
 	       (list type))))
     (lambda (file)
-      (when-let ((attrs (eshell-file-attributes (directory-file-name file))))
+      (when-let* ((attrs (eshell-file-attributes (directory-file-name file))))
 	(memq (aref (file-attribute-modes attrs) 0) set)))))
 
 (defsubst eshell-pred-file-mode (mode)
   "Return a test which tests that MODE pertains to the file."
   (lambda (file)
-    (when-let ((modes (file-modes file 'nofollow)))
+    (when-let* ((modes (file-modes file 'nofollow)))
       (not (zerop (logand mode modes))))))
 
 (defun eshell-pred-file-links ()
@@ -507,7 +506,7 @@ that `ls -l' will show in the first column of its display."
         (amount (or (eshell-get-numeric-modifier-argument)
                     (error "Invalid file link count modifier `l'"))))
     (lambda (file)
-      (when-let ((attrs (eshell-file-attributes file)))
+      (when-let* ((attrs (eshell-file-attributes file)))
 	  (funcall qual (file-attribute-link-number attrs) amount)))))
 
 (defun eshell-pred-file-size ()
@@ -528,7 +527,7 @@ that `ls -l' will show in the first column of its display."
                         (error "Invalid file size modifier `L'"))
                     quantum))
     (lambda (file)
-      (when-let ((attrs (eshell-file-attributes file)))
+      (when-let* ((attrs (eshell-file-attributes file)))
 	(funcall qual (file-attribute-size attrs) amount)))))
 
 (defun eshell-pred-substitute (&optional repeat)

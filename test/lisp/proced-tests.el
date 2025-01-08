@@ -1,6 +1,6 @@
 ;;; proced-tests.el --- Test suite for proced.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -35,6 +35,15 @@
            ,@body)
        (kill-buffer "*Proced*"))))
 
+(defun proced--cpu-at-point ()
+  "Return as an integer the current CPU value at point."
+  (if (string-suffix-p "nan" (thing-at-point 'sexp))
+      (let ((pid (proced-pid-at-point)))
+        (ert-skip
+         (format
+          "Found NaN value for %%CPU at point for process with PID %d" pid)))
+    (thing-at-point 'number)))
+
 (defun proced--assert-emacs-pid-in-buffer ()
   "Fail unless the process ID of the current Emacs process exists in buffer."
   (should (string-match-p
@@ -43,18 +52,38 @@
 
 (defun proced--move-to-column (attribute)
   "Move to the column under ATTRIBUTE in the current proced buffer."
-  (move-to-column (string-match attribute proced-header-line)))
+  (move-to-column (string-match attribute proced-header-line))
+  ;; Sometimes the column entry does not fill the whole column.
+  (while (= (char-after (point)) ?\s) (forward-char)))
 
-(defun proced--assert-process-valid-pid-refinement (pid)
-  "Fail unless the process at point could be present after a refinement using PID."
-  (proced--move-to-column "PID")
-  (let ((pid-equal (string= pid (word-at-point))))
-    (should
-     (or pid-equal
-         ;; Guard against the unlikely event a platform doesn't support PPID
-         (when (string-match "PPID" proced-header-line)
-           (proced--move-to-column "PPID")
-           (string= pid (word-at-point)))))))
+(defun proced--assert-process-valid-cpu-refinement (cpu)
+  "Fail unless the process at point could be present after a refinement using CPU."
+  (proced--move-to-column "%CPU")
+  (condition-case err
+      (>= (proced--cpu-at-point) cpu)
+    (error
+     (ert-fail
+      (list err (proced--assert-process-valid-cpu-refinement-explainer cpu))))))
+
+(defun proced--assert-process-valid-cpu-refinement-explainer (cpu)
+  "Explain the result of `proced--assert-process-valid-cpu-refinement'.
+
+CPU is as in `proced--assert-process-valid-cpu-refinement'."
+  `(unexpected-refinement
+    (header-line
+     ,(substring-no-properties
+       (string-replace "%%" "%" (cadr (proced-header-line)))))
+    (buffer-process-line ,(thing-at-point 'line t))
+    (process-attributes ,(format "%s" (process-attributes (proced-pid-at-point))))
+    (refined-value ,cpu)
+    (process-value
+     ,(save-excursion
+        (proced--move-to-column "%CPU")
+        (or (thing-at-point 'number)
+            (substring-no-properties (thing-at-point 'sexp)))))))
+
+(put #'proced--assert-process-valid-cpu-refinement 'ert-explainer
+     #'proced--assert-process-valid-cpu-refinement-explainer)
 
 (ert-deftest proced-format-test ()
   (dolist (format '(short medium long verbose))
@@ -85,26 +114,27 @@
      (proced--assert-emacs-pid-in-buffer))))
 
 (ert-deftest proced-refine-test ()
-  ;;(skip-unless (memq system-type '(gnu/linux gnu/kfreebsd darwin)))
+  ;; %CPU is not implemented on macOS
+  (skip-when (eq system-type 'darwin))
   (proced--within-buffer
    'verbose
    'user
-   ;; When refining on PID for process A, a process is kept if and only
-   ;; if its PID is the same as process A, or its parent process is
-   ;; process A.
-   (proced--move-to-column "PID")
-   (let ((pid (word-at-point)))
+   ;; When refining on %CPU for process A, a process is kept if and only
+   ;; if its %CPU is greater than or equal to that of process A.
+   (proced--move-to-column "%CPU")
+   (let ((cpu (proced--cpu-at-point)))
      (proced-refine)
      (while (not (eobp))
-       (proced--assert-process-valid-pid-refinement pid)
+       (should (proced--assert-process-valid-cpu-refinement cpu))
        (forward-line)))))
 
 (ert-deftest proced-refine-with-update-test ()
+  (skip-when (eq system-type 'darwin))
   (proced--within-buffer
    'verbose
    'user
-   (proced--move-to-column "PID")
-   (let ((pid (word-at-point)))
+   (proced--move-to-column "%CPU")
+   (let ((cpu (proced--cpu-at-point)))
      (proced-refine)
      ;; Don't use (proced-update t) since this will reset `proced-process-alist'
      ;; and it's possible the process refined on would have exited by that
@@ -112,10 +142,13 @@
      ;; processes again, causing the test to fail.
      (proced-update)
      (while (not (eobp))
-       (proced--assert-process-valid-pid-refinement pid)
+       (should (proced--assert-process-valid-cpu-refinement cpu))
        (forward-line)))))
 
 (ert-deftest proced-update-preserves-pid-at-point-test ()
+  ;; FIXME: Occasionally the cursor inexplicably changes to the first line which
+  ;; causes the test to fail when the line isn't the Emacs process.
+  :tags '(:unstable)
   (proced--within-buffer
    'medium
    'user
@@ -128,7 +161,7 @@
            (old-window (get-buffer-window)))
        (select-window new-window)
        (with-current-buffer "*Proced*"
-         (proced-update t t))
+         (proced-update))
        (select-window old-window)
        (should (= pid (proced-pid-at-point)))))))
 

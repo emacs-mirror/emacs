@@ -1,6 +1,6 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-2024 Free Software Foundation, Inc.
+Copyright (C) 1985-2025 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -7147,9 +7147,11 @@ mark_glyph_matrix (struct glyph_matrix *matrix)
 	    struct glyph *end_glyph = glyph + row->used[area];
 
 	    for (; glyph < end_glyph; ++glyph)
-	      if (STRINGP (glyph->object)
-		  && !string_marked_p (XSTRING (glyph->object)))
-		mark_object (glyph->object);
+	      {
+		if (STRINGP (glyph->object)
+		    && !string_marked_p (XSTRING (glyph->object)))
+		  mark_object (glyph->object);
+	      }
 	  }
       }
 }

@@ -1,6 +1,6 @@
 ;;; reveal.el --- Automatically reveal hidden text at point -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2025 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: outlines
@@ -145,7 +145,7 @@ Each element has the form (WINDOW . OVERLAY).")
                 (setq repeat t)
                 (condition-case err
                     (funcall open ol nil)
-                  (error (message "!!Reveal-show (funcall %s %s nil): %s !!"
+                  (error (message "!!Reveal-show (funcall %S %S nil): %S !!"
                                   open ol err)
                          ;; Let's default to a meaningful behavior to avoid
                          ;; getting stuck in an infinite loop.
@@ -189,7 +189,7 @@ Each element has the form (WINDOW . OVERLAY).")
                    open)
               (condition-case err
                   (funcall open ol t)
-                (error (message "!!Reveal-hide (funcall %s %s t): %s !!"
+                (error (message "!!Reveal-hide (funcall %S %S t): %S !!"
                                 open ol err)))
             (overlay-put ol 'invisible inv))
           ;; Remove the overlay from the list of open spots.

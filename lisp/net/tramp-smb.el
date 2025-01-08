@@ -1,6 +1,6 @@
 ;;; tramp-smb.el --- Tramp access functions for SMB servers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2025 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -340,15 +340,15 @@ This can be used to disable echo etc."
 ;;;###tramp-autoload
 (defsubst tramp-smb-file-name-p (vec-or-filename)
   "Check if it's a VEC-OR-FILENAME for SMB servers."
-  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
-    (string= (tramp-file-name-method vec) tramp-smb-method)))
+  (and-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename))
+	     ((string= (tramp-file-name-method vec) tramp-smb-method)))))
 
 ;;;###tramp-autoload
 (defun tramp-smb-file-name-handler (operation &rest args)
   "Invoke the SMB related OPERATION and ARGS.
 First arg specifies the OPERATION, second arg is a list of
 arguments to pass to the OPERATION."
-  (if-let ((fn (assoc operation tramp-smb-file-name-handler-alist)))
+  (if-let* ((fn (assoc operation tramp-smb-file-name-handler-alist)))
       (prog1 (save-match-data (apply (cdr fn) args))
 	(setq tramp-debug-message-fnh-function (cdr fn)))
     (prog1 (tramp-run-real-handler operation args)
@@ -526,13 +526,13 @@ arguments to pass to the OPERATION."
 
 		  (unwind-protect
 		      (with-tramp-saved-connection-properties
-			  v '("process-name" "process-buffer")
+			  v '(" process-name" " process-buffer")
 			(with-temp-buffer
 			  ;; Set the transfer process properties.
 			  (tramp-set-connection-property
-			   v "process-name" (buffer-name (current-buffer)))
+			   v " process-name" (buffer-name (current-buffer)))
 			  (tramp-set-connection-property
-			   v "process-buffer" (current-buffer))
+			   v " process-buffer" (current-buffer))
 
 			  (when t1
 			    ;; The smbclient tar command creates
@@ -613,8 +613,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       ;; `file-local-copy' returns a file name also for a local file
       ;; with `jka-compr-handler', so we cannot trust its result as
       ;; indication for a remote file name.
-      (if-let ((tmpfile
-		(and (tramp-tramp-file-p filename) (file-local-copy filename))))
+      (if-let* ((tmpfile
+		 (and (tramp-tramp-file-p filename) (file-local-copy filename))))
 	  ;; Remote filename.
 	  (condition-case err
 	      (rename-file tmpfile newname ok-if-already-exists)
@@ -765,7 +765,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	(forward-line)
 	(delete-region (point-min) (point)))
       (while (and (not (eobp)) (looking-at-p (rx bol (+ nonl) ":" (+ nonl))))
- 	(forward-line))
+	(forward-line))
       (delete-region (point) (point-max))
       (throw 'tramp-action 'ok))))
 
@@ -799,13 +799,13 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 				(concat "2>" (tramp-get-remote-null-device v)))))
 
 	    (with-tramp-saved-connection-properties
-		v '("process-name" "process-buffer")
+		v '(" process-name" " process-buffer")
 	      (with-temp-buffer
 		;; Set the transfer process properties.
 		(tramp-set-connection-property
-		 v "process-name" (buffer-name (current-buffer)))
+		 v " process-name" (buffer-name (current-buffer)))
 		(tramp-set-connection-property
-		 v "process-buffer" (current-buffer))
+		 v " process-buffer" (current-buffer))
 
 		;; Use an asynchronous process.  By this, password
 		;; can be handled.
@@ -860,7 +860,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   "Implement `file-attributes' for Tramp files using `stat' command."
   (tramp-message
    vec 5 "file attributes with stat: %s" (tramp-file-name-localname vec))
-  (let* (size id link uid gid atime mtime ctime mode inode)
+  (let (size id link uid gid atime mtime ctime mode inode)
     (when (tramp-smb-send-command
 	   vec (format "stat %s" (tramp-smb-shell-quote-localname vec)))
 
@@ -1247,11 +1247,11 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       ;; Call it.
       (condition-case nil
 	  (with-tramp-saved-connection-properties
-	      v '("process-name" "process-buffer")
+	      v '(" process-name" " process-buffer")
 	    ;; Set the new process properties.
-	    (tramp-set-connection-property v "process-name" name1)
+	    (tramp-set-connection-property v " process-name" name1)
 	    (tramp-set-connection-property
-	     v "process-buffer"
+	     v " process-buffer"
 	     (or outbuf (generate-new-buffer tramp-temp-buffer-name)))
 	    (with-current-buffer (tramp-get-connection-buffer v)
 	      ;; Preserve buffer contents.
@@ -1287,9 +1287,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       ;; Cleanup.  We remove all file cache values for the connection,
       ;; because the remote process could have changed them.
       (when tmpinput (delete-file tmpinput))
-      ;; FIXME: Does connection-property "process-buffer" still exist?
+      ;; FIXME: Does connection-property " process-buffer" still exist?
       (unless outbuf
-	(kill-buffer (tramp-get-connection-property v "process-buffer")))
+	(kill-buffer (tramp-get-connection-property v " process-buffer")))
       (when process-file-side-effects
 	(tramp-flush-directory-properties v "/"))
 
@@ -1388,13 +1388,13 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 			      "||" "echo" "tramp_exit_status" "1")))
 
 	  (with-tramp-saved-connection-properties
-	      v '("process-name" "process-buffer")
+	      v '(" process-name" " process-buffer")
 	    (with-temp-buffer
 	      ;; Set the transfer process properties.
 	      (tramp-set-connection-property
-	       v "process-name" (buffer-name (current-buffer)))
+	       v " process-name" (buffer-name (current-buffer)))
 	      (tramp-set-connection-property
-	       v "process-buffer" (current-buffer))
+	       v " process-buffer" (current-buffer))
 
 	      ;; Use an asynchronous process.  By this, password
 	      ;; can be handled.
@@ -1450,7 +1450,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	   p)
       (unwind-protect
 	  (with-tramp-saved-connection-properties
-	      v '("process-name" "process-buffer")
+	      v '(" process-name" " process-buffer")
 	    (save-excursion
 	      (save-restriction
 		(while (get-process name1)
@@ -1458,8 +1458,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		  (setq i (1+ i)
 			name1 (format "%s<%d>" name i)))
 		;; Set the new process properties.
-		(tramp-set-connection-property v "process-name" name1)
-		(tramp-set-connection-property v "process-buffer" buffer)
+		(tramp-set-connection-property v " process-name" name1)
+		(tramp-set-connection-property v " process-buffer" buffer)
 		;; Activate narrowing in order to save BUFFER contents.
 		(with-current-buffer (tramp-get-connection-buffer v)
 		  (let ((buffer-undo-list t))
@@ -1476,9 +1476,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		    (tramp-send-string v command)))
 		(setq p (tramp-get-connection-process v))
 		(when program
-		  (process-put p 'remote-command (cons program args))
-		  (tramp-set-connection-property
-		   p "remote-command" (cons program args)))
+		  (process-put p 'remote-command (cons program args)))
 		;; Return value.
 		p)))
 

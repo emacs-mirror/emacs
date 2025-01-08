@@ -1,6 +1,6 @@
 ;;; semantic/wisent/javascript.el --- javascript parser support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005, 2009-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2009-2025 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -135,6 +135,7 @@ This is currently needed for the mozrepl omniscient database."
    semantic-tag-expand-function #'wisent-javascript-jv-expand-tag
    ;; Environment
    semantic-imenu-summary-function #'semantic-format-tag-name
+   semantic--create-index-function-origin imenu-create-index-function
    imenu-create-index-function #'semantic-create-imenu-index
    semantic-command-separation-character ";"
    ))

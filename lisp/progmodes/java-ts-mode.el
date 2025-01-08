@@ -1,6 +1,6 @@
 ;;; java-ts-mode.el --- tree-sitter support for Java  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
 ;; Maintainer : Theodor Thornhill <theo@thornhill.no>
@@ -22,6 +22,15 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Tree-sitter language versions
+;;
+;; java-ts-mode is known to work with the following languages and version:
+;; - tree-sitter-java: v0.23.5
+;;
+;; We try our best to make builtin modes work with latest grammar
+;; versions, so a more recent grammar version has a good chance to work.
+;; Send us a bug report if it doesn't.
+
 ;;; Commentary:
 ;;
 ;; If the tree-sitter doxygen grammar is available, then the comment
@@ -32,14 +41,7 @@
 (require 'treesit)
 (eval-when-compile (require 'rx))
 (require 'c-ts-common) ; For comment indent and filling.
-
-(declare-function treesit-parser-create "treesit.c")
-(declare-function treesit-induce-sparse-tree "treesit.c")
-(declare-function treesit-node-start "treesit.c")
-(declare-function treesit-node-type "treesit.c")
-(declare-function treesit-node-child-by-field-name "treesit.c")
-(declare-function treesit-node-child-by-field-name "treesit.c")
-(declare-function treesit-query-capture "treesit.c")
+(treesit-declare-unavailable-functions)
 
 (defcustom java-ts-mode-indent-offset 4
   "Number of spaces for each indentation step in `java-ts-mode'."

@@ -1,6 +1,6 @@
 ;;; auth-source.el --- authentication sources for Gnus and Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2025 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news
@@ -2599,7 +2599,7 @@ by doing (clear-string STRING)."
               ;; Not sure why but it seems that there might be cases where the
               ;; minibuffer is not always properly reset later on, so undo
               ;; whatever we've done here (bug#11392).
-              (remove-hook 'after-change-functions
+              (remove-hook 'post-command-hook
                            #'read-passwd--hide-password 'local)
               (kill-local-variable 'post-self-insert-hook)
               ;; And of course, don't keep the sensitive data around.

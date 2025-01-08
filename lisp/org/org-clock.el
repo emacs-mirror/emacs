@@ -1,6 +1,6 @@
 ;;; org-clock.el --- The time clocking code for Org mode -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2025 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Keywords: outlines, hypermedia, calendar, text
@@ -698,7 +698,7 @@ there is no recent clock to choose from."
 	(fit-window-to-buffer nil nil (if (< chl 10) chl (+ 5 chl)))
 	(message (or prompt "Select task for clocking:"))
 	(unwind-protect (setq cursor-type nil rpl (read-char-exclusive))
-          (when-let ((window (get-buffer-window "*Clock Task Select*" t)))
+          (when-let* ((window (get-buffer-window "*Clock Task Select*" t)))
             (quit-window 'kill window))
 	  (when (get-buffer "*Clock Task Select*")
             (kill-buffer "*Clock Task Select*")))

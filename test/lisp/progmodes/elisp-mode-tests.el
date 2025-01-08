@@ -1,6 +1,6 @@
 ;;; elisp-mode-tests.el --- Tests for emacs-lisp-mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2025 Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov <dgutov@yandex.ru>
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
@@ -108,6 +108,14 @@
       (let ((comps (elisp--test-completions)))
         (should (member "backup-inhibited" comps))
         (should-not (member "backup-buffer" comps))))))
+
+(ert-deftest elisp-completes-functions-after-empty-let-bindings ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(let () (ba")
+    (let ((comps (elisp--test-completions)))
+      (should (member "backup-buffer" comps))
+      (should-not (member "backup-inhibited" comps)))))
 
 (ert-deftest elisp-completes-functions-after-let-bindings-2 ()
   (with-temp-buffer
@@ -1111,7 +1119,7 @@ evaluation of BODY."
     (should (intern-soft "f-test4---"))
     (should-not (intern-soft "elisp--foo-test4---"))
     (should (= 84 (funcall (intern-soft "f-test4---"))))
-    (should (unintern "f-test4---"))))
+    (should (unintern "f-test4---" obarray))))
 
 (ert-deftest elisp-dont-shadow-punctuation-only-symbols ()
   (let* ((shorthanded-form '(/= 42 (-foo 42)))

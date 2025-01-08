@@ -1,6 +1,6 @@
 ;;; project-tests.el --- tests for project.el -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
 
 ;; Keywords:
 
@@ -138,7 +138,11 @@ When `project-ignores' includes a name matching project dir."
          (project (project-current nil dir)))
     (should-not (null project))
     (should (nth 1 project))
-    (should (string-match-p "/test/lisp/\\'" (project-root project)))))
+    (should (string-match-p "/test/lisp/\\'" (project-root project)))
+    ;; bug#73801
+    (should (equal
+             project
+             (project-current nil (project-root project))))))
 
 (ert-deftest project-vc-supports-project-in-different-dir ()
   "Check that it picks up dir-locals settings from somewhere else."

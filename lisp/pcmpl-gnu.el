@@ -1,6 +1,6 @@
 ;;; pcmpl-gnu.el --- completions for GNU project tools -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
 
 ;; Package: pcomplete
 
@@ -354,7 +354,7 @@ Return the new list."
            (while (pcomplete-here
                    '("-amin" "-anewer" "-atime" "-cmin" "-cnewer" "-context"
                      "-ctime" "-daystart" "-delete" "-depth" "-empty" "-exec"
-                     "-execdir" "-executable" "-false" "-fls" "-follow"
+                     "-execdir" "-executable" "-false" "-files0-from" "-fls" "-follow"
                      "-fprint" "-fprint0" "-fprintf" "-fstype" "-gid" "-group"
                      "-help" "-ignore_readdir_race" "-ilname" "-iname"
                      "-inum" "-ipath" "-iregex" "-iwholename"

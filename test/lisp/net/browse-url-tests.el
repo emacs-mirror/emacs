@@ -1,6 +1,6 @@
 ;;; browse-url-tests.el --- Tests for browse-url.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2025 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords:
@@ -104,7 +104,8 @@
     (browse-url-delete-temp-file)
     (should-not (file-exists-p browse-url-temp-file-name)))
   (ert-with-temp-file file
-    (browse-url-delete-temp-file file)
+    (with-suppressed-warnings ((callargs browse-url-delete-temp-file))
+      (browse-url-delete-temp-file file))
     (should-not (file-exists-p file))))
 
 (ert-deftest browse-url-tests-add-buttons ()

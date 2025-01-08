@@ -1,6 +1,6 @@
 ;;; calc-ext.el --- various extension functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2025 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -1728,8 +1728,11 @@ calc-kill calc-kill-region calc-yank))))
   (interactive "P")
   (let* ((prompt (concat (calc-num-prefix-name n) "M-x "))
 	 (cmd (intern
-               (completing-read prompt obarray 'commandp t "calc-"
-                                'calc-extended-command-history))))
+               (let ((completion-extra-properties
+                      (list :affixation-function
+                            #'read-extended-command--affixation)))
+                 (completing-read prompt obarray 'commandp t "calc-"
+                                  'calc-extended-command-history)))))
     (setq prefix-arg n)
     (command-execute cmd)))
 

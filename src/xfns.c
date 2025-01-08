@@ -1,6 +1,6 @@
 /* Functions for the X Window System.
 
-Copyright (C) 1989, 1992-2024 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2025 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -9972,10 +9972,7 @@ Note: Text drawn with the `x' font backend is shown with hollow boxes.  */)
   frames = Fnreverse (tmp);
 
   /* Make sure the current matrices are up-to-date.  */
-  specpdl_ref count = SPECPDL_INDEX ();
-  specbind (Qredisplay_dont_pause, Qt);
   redisplay_preserve_echo_area (32);
-  unbind_to (count, Qnil);
 
   block_input ();
   xg_print_frames_dialog (frames);

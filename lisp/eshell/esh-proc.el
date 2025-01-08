@@ -1,6 +1,6 @@
 ;;; esh-proc.el --- process management  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -522,7 +522,7 @@ output."
                    ;; where this matters, using an external pipe
                    ;; operator (`*|') may work instead.
                    (cond
-                    ;; Delay signalling remote processes to prevent
+                    ;; Delay signaling remote processes to prevent
                     ;; "Forbidden reentrant call of Tramp".
                     ((process-get proc 'remote-pid)
                      (run-at-time 0 nil #'signal-process proc 'SIGPIPE))
@@ -595,7 +595,7 @@ PROC is the process that's exiting.  STRING is the exit message."
                             "buffer for external process `%s' already killed"
                             proc)))))
               (funcall finish-io)))
-        (when-let ((entry (assq proc eshell-process-list)))
+        (when-let* ((entry (assq proc eshell-process-list)))
           (eshell-remove-process-entry entry))))))
 
 (defun eshell-process-interact (func &optional all query)

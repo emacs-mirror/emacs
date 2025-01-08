@@ -1,6 +1,6 @@
 ;;; shr.el --- Simple HTML Renderer -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2025 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -751,7 +751,7 @@ full-buffer size."
              (funcall function dom))
             (t
              (shr-generic dom)))
-      (when-let ((id (dom-attr dom 'id)))
+      (when-let* ((id (dom-attr dom 'id)))
         (push (cons id (set-marker (make-marker) start)) shr--link-targets))
       ;; If style is set, then this node has set the color.
       (when style
@@ -940,7 +940,7 @@ When `shr-fill-text' is nil, only indent."
 
 (defun shr-adaptive-fill-function ()
   "Return a fill prefix for the paragraph at point."
-  (when-let ((prefix (get-text-property (point) 'shr-prefix-length)))
+  (when-let* ((prefix (get-text-property (point) 'shr-prefix-length)))
     (buffer-substring (point) (+ (point) prefix))))
 
 (defun shr-parse-base (url)
@@ -1276,6 +1276,7 @@ not, `imagemagick' is preferred if it's present."
       nil
     'imagemagick))
 
+(defvar image-scaling-factor)
 (defun shr-rescale-image (data content-type width height
                                &optional max-width max-height)
   "Rescale DATA, if too big, to fit the current buffer.
@@ -1615,7 +1616,7 @@ Based on https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-infore
 (defun shr-correct-dom-case (dom)
   "Correct the case for SVG segments."
   (dolist (attr (dom-attributes dom))
-    (when-let ((rep (assoc-default (car attr) shr-correct-attribute-case)))
+    (when-let* ((rep (assoc-default (car attr) shr-correct-attribute-case)))
       (setcar attr rep)))
   (dolist (child (dom-children dom))
     (when (consp child)
@@ -1756,13 +1757,13 @@ Based on https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-infore
                   (funcall shr-url-transformer (shr-expand-url url))
                   title)
       ;; Check whether the URL is suspicious.
-      (when-let ((warning (or (textsec-suspicious-p
-                               (shr-expand-url url) 'url)
-                              (textsec-suspicious-p
-                               (cons (shr-expand-url url)
-                                     (buffer-substring (or shr-start start)
-                                                       (point)))
-                               'link))))
+      (when-let* ((warning (or (textsec-suspicious-p
+                                (shr-expand-url url) 'url)
+                               (textsec-suspicious-p
+                                (cons (shr-expand-url url)
+                                      (buffer-substring (or shr-start start)
+                                                        (point)))
+                                'link))))
         (add-text-properties (or shr-start start) (point)
                              (list 'face '(shr-link textsec-suspicious)))
         (insert (propertize "⚠️" 'help-echo warning))))))
@@ -2263,6 +2264,18 @@ BASE is the URL of the HTML being rendered."
   (insert ?\N{FIRST STRONG ISOLATE})
   (shr-generic dom)
   (insert ?\N{POP DIRECTIONAL ISOLATE}))
+
+(defun shr-tag-math (dom)
+  ;; Sometimes a math element contains a plain text annotation
+  ;; (typically TeX notation) in addition to MathML markup.  If we pass
+  ;; that to `dom-generic', the formula is printed twice.  So we select
+  ;; only the annotation if available.
+  (shr-generic
+   (thread-first
+     dom
+     (dom-child-by-tag 'semantics)
+     (dom-child-by-tag 'annotation)
+     (or dom))))
 
 ;;; Outline Support
 (defun shr-outline-search (&optional bound move backward looking-at)

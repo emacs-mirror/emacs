@@ -1,6 +1,6 @@
 ;;; vc-hooks.el --- resident support for version-control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1996, 1998-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2025 Free Software Foundation, Inc.
 
 ;; Author: FSF (see vc.el for full credits)
 ;; Maintainer: emacs-devel@gnu.org
@@ -118,12 +118,12 @@ An empty list disables VC altogether."
   :version "25.1"
   :group 'vc)
 
-;; Note: we don't actually have a darcs back end yet.
-;; Also, Arch is unsupported, and the Meta-CVS back end has been removed.
+;; Note: we don't actually have a darcs back end yet.  Also, Arch and
+;; Repo are unsupported, and the Meta-CVS back end has been removed.
 ;; The Arch back end will be retrieved and fixed if it is ever required.
 (defcustom vc-directory-exclusion-list (purecopy '("SCCS" "RCS" "CVS" "MCVS"
 					 ".src" ".svn" ".git" ".hg" ".bzr"
-					 "_MTN" "_darcs" "{arch}"))
+                                         "_MTN" "_darcs" "{arch}" ".repo"))
   "List of directory names to be ignored when walking directory trees."
   :type '(repeat string)
   :group 'vc)

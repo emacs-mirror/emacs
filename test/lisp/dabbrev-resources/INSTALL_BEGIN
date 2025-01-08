@@ -1,0 +1,153 @@
+GNU Emacs Installation Guide
+Copyright (C) 1992, 1994, 1996-1997, 2000-2025 Free Software Foundation,
+Inc.
+See the end of the file for license conditions.
+
+
+This file contains general information on building GNU Emacs.  If you
+are building an Emacs release tarball on a Unix or a GNU system, the
+instructions in this file should be sufficient.  For other
+configurations, we have additional specialized files:
+
+  . INSTALL.REPO if you build from a Git checkout
+  . nt/INSTALL if you build for MS-Windows
+  . nextstep/INSTALL if you build for GNUstep/macOS
+  . java/INSTALL if you build for Android
+  . msdos/INSTALL if you build for MS-DOS
+
+
+BASIC INSTALLATION
+
+On most Unix systems, you build Emacs by first running the 'configure'
+shell script.  This attempts to deduce the correct values for
+various system-dependent variables and features, and find the
+directories where certain system headers and libraries are kept.
+In a few cases, you may need to explicitly tell configure where to
+find some things, or what options to use.
+
+'configure' creates a 'Makefile' in several subdirectories, and a
+'src/config.h' file containing system-dependent definitions.
+Running the 'make' utility then builds the package for your system.
+
+Building Emacs requires GNU make, <https://www.gnu.org/software/make/>.
+On most systems that Emacs supports, this is the default 'make' program.
+
+Here's the procedure to build Emacs using 'configure' on systems which
+are supported by it.  In some cases, if the simplified procedure fails,
+you might need to use various non-default options, and maybe perform
+some of the steps manually.  The more detailed description in the other
+sections of this guide will help you do that, so please refer to those
+sections if you need to.
+
+  1.  Obtain and unpack the Emacs release, with commands like this:
+
+		 wget https://ftp.gnu.org/gnu/emacs/emacs-VERSION.tar.xz
+		 tar -xf emacs-VERSION.tar.xz
+
+      where VERSION is the Emacs version number.
+
+  2a. 'cd' to the directory where you unpacked Emacs and invoke the
+      'configure' script:
+
+		 ./configure
+
+  2b. Alternatively, create a separate directory, outside the source
+      directory, where you want to build Emacs, and invoke 'configure'
+      from there:
+
+		 SOURCE-DIR/configure
+
+      where SOURCE-DIR is the top-level Emacs source directory.
+
+  2c. If you don't have write access to the default directory where
+      Emacs and its data files will be installed, specify an alternative
+      installation directory:
+
+		 ./configure --prefix=/SOME/OTHER/DIRECTORY
+
+      where /SOME/OTHER/DIRECTORY is a directory writable by your user,
+      for example, a subdirectory of your home directory.
+
+  3. When 'configure' finishes, it prints several lines of details
+     about the system configuration.  Read those details carefully
+     looking for anything suspicious, such as wrong CPU and operating
+     system names, wrong places for headers or libraries, missing
+     libraries that you know are installed on your system, etc.
+
+     If you find anything wrong, you may have to pass to 'configure'
+     one or more options specifying the explicit machine configuration
+     name, where to find various headers and libraries, etc.
+     Refer to the section DETAILED BUILDING AND INSTALLATION below.
+
+     If 'configure' didn't find some image support libraries, such as
+     Xpm and jpeg, refer to "Image support libraries" below.
+
+     If the details printed by 'configure' don't make any sense to
+     you, but there are no obvious errors, assume that 'configure' did
+     its job and proceed.
+
+  4. Invoke the 'make' program:
+
+		 make
+
+  5. If 'make' succeeds, it will build an executable program 'emacs'
+     in the 'src' directory.  You can try this program, to make sure
+     it works:
+
+		 src/emacs -Q
+
+     To test Emacs further (intended mostly to help developers):
+
+		 make check
+
+  6. Assuming that the program 'src/emacs' starts and displays its
+     opening screen, you can install the program and its auxiliary
+     files into their installation directories:
+
+		 make install
+
+  You are now ready to use Emacs.  If you wish to conserve space,
+  you may remove the program binaries and object files from the
+  directory where you built Emacs:
+
+		 make clean
+
+  You can delete the entire build directory if you do not plan to
+  build Emacs again, but it can be useful to keep for debugging.
+  If you want to build Emacs again with different configure options,
+  first clean the source directories:
+
+		make distclean
+
+  Note that the install automatically saves space by compressing
+  (provided you have the 'gzip' program) those installed Lisp source (.el)
+  files that have corresponding .elc versions, as well as the Info files.
+
+  You can read a brief summary about common make targets:
+
+                make help
+
+
+ADDITIONAL DISTRIBUTION FILES
+
+* Complex Text Layout support libraries
+
+On GNU and Unix systems, Emacs needs optional libraries to correctly
+display such complex scripts as Indic and Khmer, and also for scripts
+that require Arabic shaping support (Arabic and Farsi).  If the
+HarfBuzz library is installed, Emacs will build with it and use it for
+this purpose.  HarfBuzz is the preferred shaping engine, both on Posix
+hosts and on MS-Windows, so we recommend installing it before building
+Emacs.  The alternative for GNU/Linux and Posix systems is to use the
+"m17n-db", "libm17n-flt", and "libotf" libraries.  (On some systems,
+particularly GNU/Linux, these libraries may be already present or
+available as additional packages.)  Note that if there is a separate
+'dev' or 'devel' package, for use at compilation time rather than run
+time, you will need that as well as the corresponding run time
+package; typically the dev package will contain header files and a
+library archive.  On MS-Windows, if HarfBuzz is not available, Emacs
+will use the Uniscribe shaping engine that is part of the OS.
+
+Note that Emacs cannot support complex scripts on a TTY, unless the
+terminal includes such a support.  However, most modern terminal
+emulators, such as xterm, do support such scripts.

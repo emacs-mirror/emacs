@@ -1,6 +1,6 @@
 ;;; html-ts-mode.el --- tree-sitter support for HTML  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
 ;; Maintainer : Theodor Thornhill <theo@thornhill.no>
@@ -21,6 +21,15 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Tree-sitter language versions
+;;
+;; html-ts-mode is known to work with the following languages and version:
+;; - tree-sitter-html: v0.23.2-1-gd9219ad
+;;
+;; We try our best to make builtin modes work with latest grammar
+;; versions, so a more recent grammar version has a good chance to work.
+;; Send us a bug report if it doesn't.
 
 ;;; Commentary:
 ;;
@@ -108,6 +117,7 @@ Return nil if there is no name or if NODE is not a defun node."
                                       "text"
                                       "attribute"
                                       "value")))
+                 (sexp-list ,(regexp-opt '("element")) 'symbols)
                  (sentence "tag")
                  (text ,(regexp-opt '("comment" "text"))))))
 

@@ -1,6 +1,6 @@
 ;;; w32-fns.el --- Lisp routines for 32-bit Windows  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994, 2001-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2025 Free Software Foundation, Inc.
 
 ;; Author: Geoff Voelker <voelker@cs.washington.edu>
 ;; Keywords: internal
@@ -49,6 +49,8 @@
       (and (fboundp 'w32-using-nt) (w32-using-nt) "cmd.exe")
       "command.com"))
 
+(defvar w32-system-shells)       ;; defined in w32-vars.el
+(defvar w32-allow-system-shell)  ;; defined in w32-vars.el
 (defun w32-system-shell-p (shell-name)
   (and shell-name
        (member (downcase (file-name-nondirectory shell-name))

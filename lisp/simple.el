@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1993-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1993-2025 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -2033,6 +2033,7 @@ function `read-from-minibuffer'."
         (set-syntax-table emacs-lisp-mode-syntax-table)
         (add-hook 'completion-at-point-functions
                   #'elisp-completion-at-point nil t)
+        (setq-local trusted-content :all)
         (run-hooks 'eval-expression-minibuffer-setup-hook))
     (read-from-minibuffer prompt initial-contents
                           read--expression-map t
@@ -2399,7 +2400,7 @@ mode when reading the command name."
 (defun command-completion-using-modes-p (symbol buffer)
   "Say whether SYMBOL has been marked as a mode-specific command in BUFFER."
   ;; Check the modes.
-  (when-let ((modes (command-modes symbol)))
+  (when-let* ((modes (command-modes symbol)))
     ;; Common fast case: Just a single mode.
     (if (null (cdr modes))
         (or (provided-mode-derived-p
@@ -2801,10 +2802,10 @@ don't clear it."
          (t
           ;; Pass `cmd' rather than `final', for the backtrace's sake.
           (prog1 (call-interactively cmd record-flag keys)
-            (when-let ((info
-                        (and (symbolp cmd)
-                             (not (get cmd 'command-execute-obsolete-warned))
-                             (get cmd 'byte-obsolete-info))))
+            (when-let* ((info
+                         (and (symbolp cmd)
+                              (not (get cmd 'command-execute-obsolete-warned))
+                              (get cmd 'byte-obsolete-info))))
               (put cmd 'command-execute-obsolete-warned t)
               (message "%s" (macroexp--obsolete-warning
                              cmd info "command"
@@ -3993,6 +3994,9 @@ with < or <= based on USE-<."
 	    ((integerp (car undo-elt))
 	     ;; (BEGIN . END)
 	     (cons (car undo-elt) (- (car undo-elt) (cdr undo-elt))))
+	    ;; (apply DELTA BEG END FUNC . ARGS)
+	    ((and (eq (car undo-elt) 'apply) (integerp (nth 1 undo-elt)))
+	     (cons (nth 2 undo-elt) (nth 1 undo-elt)))
 	    (t
 	     '(0 . 0)))
     '(0 . 0)))
@@ -4779,7 +4783,7 @@ Names'.
 
 If a file name handler is unable to retrieve the effective uid,
 this function will instead return -1."
-  (if-let ((handler (find-file-name-handler default-directory 'file-user-uid)))
+  (if-let* ((handler (find-file-name-handler default-directory 'file-user-uid)))
       (funcall handler 'file-user-uid)
     (user-uid)))
 
@@ -4791,7 +4795,7 @@ Names'.
 
 If a file name handler is unable to retrieve the effective gid,
 this function will instead return -1."
-  (if-let ((handler (find-file-name-handler default-directory 'file-group-gid)))
+  (if-let* ((handler (find-file-name-handler default-directory 'file-group-gid)))
       (funcall handler 'file-group-gid)
     (group-gid)))
 
@@ -5820,7 +5824,7 @@ move the yanking point; just return the Nth kill forward."
 (defcustom kill-region-dwim nil
   "Behavior when `kill-region' is invoked without an active region.
 If set to nil (default), kill the region even if it is inactive,
-signalling an error if there is no region.
+signaling an error if there is no region.
 If set to `emacs-word', kill the last word as defined by the
 current major mode.
 If set to `unix-word', kill the last word in the style of a shell like
@@ -5860,7 +5864,7 @@ Supply two arguments, character positions BEG and END indicating the
  `region', the function ignores BEG and END, and kills the current
  region instead.  Interactively, REGION is always non-nil, and so
  this command always kills the current region.  It is possible to
- override this behavior by customising the user option
+ override this behavior by customizing the user option
  `kill-region-dwim'."
   ;; Pass mark first, then point, because the order matters when
   ;; calling `kill-append'.
@@ -6508,11 +6512,9 @@ PROMPT is a string to prompt with."
              map)))
       (completing-read
        prompt
-       (lambda (string pred action)
-         (if (eq action 'metadata)
-             ;; Keep sorted by recency
-             '(metadata (display-sort-function . identity))
-           (complete-with-action action completions string pred)))
+       ;; Keep sorted by recency
+       (completion-table-with-metadata
+        completions '((display-sort-function . identity)))
        nil nil nil
        (if history-pos
            (cons 'read-from-kill-ring-history
@@ -10054,7 +10056,7 @@ the completions is popped up and down."
         (let ((inhibit-read-only t))
           (add-text-properties (point) (min (1+ (point)) (point-max))
                                '(first-completion t))))
-    (when-let ((pos (next-single-property-change (point) 'mouse-face)))
+    (when-let* ((pos (next-single-property-change (point) 'mouse-face)))
       (goto-char pos))))
 
 (defun last-completion ()
@@ -10064,7 +10066,7 @@ the completions is popped up and down."
               (point-max) 'mouse-face nil (point-min)))
   ;; Move to the start of last one.
   (unless (get-text-property (point) 'mouse-face)
-    (when-let ((pos (previous-single-property-change (point) 'mouse-face)))
+    (when-let* ((pos (previous-single-property-change (point) 'mouse-face)))
       (goto-char pos))))
 
 (defun previous-completion (n)
@@ -10246,6 +10248,22 @@ Also see the `completion-auto-wrap' variable."
 
 This makes `completions--deselect' effective.")
 
+(defun completion-list-candidate-at-point (&optional pt)
+  "Candidate string and bounds at PT in completions buffer.
+The return value has the format (STR BEG END).
+The optional argument PT defaults to (point)."
+  (setq pt (or pt (point)))
+  (when (cond
+         ((and (/= pt (point-max))
+               (get-text-property pt 'completion--string))
+          (cl-incf pt))
+         ((and (/= pt (point-min))
+               (get-text-property (1- pt) 'completion--string))))
+    (setq pt (or (previous-single-property-change pt 'completion--string) pt))
+    (list (get-text-property pt 'completion--string) pt
+          (or (next-single-property-change pt 'completion--string)
+              (point-max)))))
+
 (defun choose-completion (&optional event no-exit no-quit)
   "Choose the completion at point.
 If EVENT, use EVENT's position to determine the starting position.
@@ -10269,21 +10287,9 @@ minibuffer, but don't quit the completions window."
                (or (get-text-property (posn-point (event-start event))
                                       'completion--string)
                    (error "No completion here"))
-           (save-excursion
-             (goto-char (posn-point (event-start event)))
-             (let (beg)
-               (cond
-                ((and (not (eobp))
-                      (get-text-property (point) 'completion--string))
-                 (setq beg (1+ (point))))
-                ((and (not (bobp))
-                      (get-text-property (1- (point)) 'completion--string))
-                 (setq beg (point)))
-                (t (error "No completion here")))
-               (setq beg (or (previous-single-property-change
-                              beg 'completion--string)
-                             beg))
-               (get-text-property beg 'completion--string))))))
+             (or (car (completion-list-candidate-at-point
+                       (posn-point (event-start event))))
+                 (error "No completion here")))))
 
       (unless (buffer-live-p buffer)
         (error "Destination buffer is dead"))
@@ -10451,6 +10457,8 @@ Called from `temp-buffer-show-hook'."
       (let ((base-position completion-base-position)
             (insert-fun completion-list-insert-choice-function))
         (completion-list-mode)
+        (when completions-highlight-face
+          (setq-local cursor-face-highlight-nonselected-window t))
         (setq-local completion-base-position base-position)
         (setq-local completion-list-insert-choice-function insert-fun))
       (setq-local completion-reference-buffer mainbuf)
@@ -10491,10 +10499,10 @@ to move point between completions.\n\n")))))))
 (defun switch-to-completions ()
   "Select the completion list window."
   (interactive)
-  (when-let ((window (or (get-buffer-window "*Completions*" 0)
-		         ;; Make sure we have a completions window.
-                         (progn (minibuffer-completion-help)
-                                (get-buffer-window "*Completions*" 0)))))
+  (when-let* ((window (or (get-buffer-window "*Completions*" 0)
+		          ;; Make sure we have a completions window.
+                          (progn (minibuffer-completion-help)
+                                 (get-buffer-window "*Completions*" 0)))))
     (select-window window)
     (when (bobp)
       (cond

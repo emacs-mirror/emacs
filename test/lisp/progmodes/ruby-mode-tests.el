@@ -1,6 +1,6 @@
 ;;; ruby-mode-tests.el --- Test suite for ruby-mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2012-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -87,14 +87,14 @@ VALUES-PLIST is a list with alternating index and value elements."
 
 (ert-deftest ruby-heredoc-font-lock ()
   (let ((s "foo <<eos.gsub('^ *', '')"))
-    (ruby-assert-face s 9 font-lock-string-face)
+    (ruby-assert-face s 9 'font-lock-string-face)
     (ruby-assert-face s 10 nil)))
 
 (ert-deftest ruby-singleton-class-no-heredoc-font-lock ()
   (ruby-assert-face "class<<a" 8 nil))
 
 (ert-deftest ruby-heredoc-highlights-interpolations ()
-  (ruby-assert-face "s = <<EOS\n  #{foo}\nEOS" 15 font-lock-variable-name-face))
+  (ruby-assert-face "s = <<EOS\n  #{foo}\nEOS" 15 'font-lock-variable-name-face))
 
 (ert-deftest ruby-no-heredoc-inside-quotes ()
   (ruby-assert-state "\"<<\", \"\",\nfoo" 3 nil))
@@ -109,7 +109,7 @@ VALUES-PLIST is a list with alternating index and value elements."
   (ruby-assert-state "class <<self\nend" 3 nil))
 
 (ert-deftest ruby-exit!-font-lock ()
-  (ruby-assert-face "exit!" 5 font-lock-builtin-face))
+  (ruby-assert-face "exit!" 5 'font-lock-builtin-face))
 
 (ert-deftest ruby-deep-indent ()
   (let ((ruby-deep-arglist nil)
@@ -137,7 +137,7 @@ VALUES-PLIST is a list with alternating index and value elements."
   (ruby-assert-state "'(/', /\d+/" 3 ?/ 8))
 
 (ert-deftest ruby-regexp-interpolation-is-highlighted ()
-  (ruby-assert-face "/#{foobs}/" 4 font-lock-variable-name-face))
+  (ruby-assert-face "/#{foobs}/" 4 'font-lock-variable-name-face))
 
 (ert-deftest ruby-regexp-skips-over-interpolation ()
   (ruby-assert-state "/#{foobs.join('/')}/" 3 nil))
@@ -427,32 +427,32 @@ VALUES-PLIST is a list with alternating index and value elements."
     (should (string= "foo {|b| b + 2 }" (buffer-string)))))
 
 (ert-deftest ruby-recognize-symbols-starting-with-at-character ()
-  (ruby-assert-face ":@abc" 3 font-lock-constant-face))
+  (ruby-assert-face ":@abc" 3 'font-lock-constant-face))
 
 (ert-deftest ruby-hash-character-not-interpolation ()
   (ruby-assert-face "\"This is #{interpolation}\"" 15
-                    font-lock-variable-name-face)
+                    'font-lock-variable-name-face)
   (ruby-assert-face "\"This is \\#{no interpolation} despite the #\""
-                    15 font-lock-string-face)
-  (ruby-assert-face "\n#@comment, not ruby code" 5 font-lock-comment-face)
+                    15 'font-lock-string-face)
+  (ruby-assert-face "\n#@comment, not ruby code" 5 'font-lock-comment-face)
   (ruby-assert-state "\n#@comment, not ruby code" 4 t)
   (ruby-assert-face "# A comment cannot have #{an interpolation} in it"
-                    30 font-lock-comment-face)
+                    30 'font-lock-comment-face)
   (ruby-assert-face "# #{comment}\n \"#{interpolation}\"" 16
-                    font-lock-variable-name-face))
+                    'font-lock-variable-name-face))
 
 (ert-deftest ruby-interpolation-suppresses-quotes-inside ()
   (let ((s "\"<ul><li>#{@files.join(\"</li><li>\")}</li></ul>\""))
     (ruby-assert-state s 8 nil)
-    (ruby-assert-face s 9 font-lock-string-face)
-    (ruby-assert-face s 10 font-lock-variable-name-face)
-    (ruby-assert-face s 41 font-lock-string-face)))
+    (ruby-assert-face s 9 'font-lock-string-face)
+    (ruby-assert-face s 10 'font-lock-variable-name-face)
+    (ruby-assert-face s 41 'font-lock-string-face)))
 
 (ert-deftest ruby-interpolation-suppresses-one-double-quote ()
   (let ((s "\"foo#{'\"'}\""))
     (ruby-assert-state s 8 nil)
-    (ruby-assert-face s 8 font-lock-variable-name-face)
-    (ruby-assert-face s 11 font-lock-string-face)))
+    (ruby-assert-face s 8 'font-lock-variable-name-face)
+    (ruby-assert-face s 11 'font-lock-string-face)))
 
 (ert-deftest ruby-interpolation-suppresses-one-backtick ()
   (let ((s "`as#{'`'}das`"))
@@ -469,39 +469,39 @@ VALUES-PLIST is a list with alternating index and value elements."
 
 (ert-deftest ruby-interpolation-inside-percent-literal ()
   (let ((s "%( #{boo} )"))
-    (ruby-assert-face s 1 font-lock-string-face)
-    (ruby-assert-face s 4 font-lock-variable-name-face)
-    (ruby-assert-face s 10 font-lock-string-face)
+    (ruby-assert-face s 1 'font-lock-string-face)
+    (ruby-assert-face s 4 'font-lock-variable-name-face)
+    (ruby-assert-face s 10 'font-lock-string-face)
     (ruby-assert-state s 8 nil)))
 
 (ert-deftest ruby-interpolation-inside-percent-literal-with-paren ()
   :expected-result :failed
   (let ((s "%(^#{\")\"}^)"))
-    (ruby-assert-face s 3 font-lock-string-face)
-    (ruby-assert-face s 4 font-lock-variable-name-face)
-    (ruby-assert-face s 10 font-lock-string-face)
+    (ruby-assert-face s 3 'font-lock-string-face)
+    (ruby-assert-face s 4 'font-lock-variable-name-face)
+    (ruby-assert-face s 10 'font-lock-string-face)
     ;; It's confused by the closing paren in the middle.
     (ruby-assert-state s 8 nil)))
 
 (ert-deftest ruby-interpolation-inside-another-interpolation ()
   :expected-result :failed
   (let ((s "\"#{[a, b, c].map { |v| \"#{v}\" }.join}\""))
-    (ruby-assert-face s 1 font-lock-string-face)
-    (ruby-assert-face s 2 font-lock-variable-name-face)
-    (ruby-assert-face s 38 font-lock-string-face)
+    (ruby-assert-face s 1 'font-lock-string-face)
+    (ruby-assert-face s 2 'font-lock-variable-name-face)
+    (ruby-assert-face s 38 'font-lock-string-face)
     (ruby-assert-state s 8 nil)))
 
 (ert-deftest ruby-interpolation-inside-double-quoted-percent-literals ()
-  (ruby-assert-face "%Q{foo #@bar}" 8 font-lock-variable-name-face)
-  (ruby-assert-face "%W{foo #@bar}" 8 font-lock-variable-name-face)
-  (ruby-assert-face "%r{foo #@bar}" 8 font-lock-variable-name-face)
-  (ruby-assert-face "%x{foo #@bar}" 8 font-lock-variable-name-face))
+  (ruby-assert-face "%Q{foo #@bar}" 8 'font-lock-variable-name-face)
+  (ruby-assert-face "%W{foo #@bar}" 8 'font-lock-variable-name-face)
+  (ruby-assert-face "%r{foo #@bar}" 8 'font-lock-variable-name-face)
+  (ruby-assert-face "%x{foo #@bar}" 8 'font-lock-variable-name-face))
 
 (ert-deftest ruby-no-interpolation-in-single-quoted-literals ()
-  (ruby-assert-face "'foo #@bar'" 7 font-lock-string-face)
-  (ruby-assert-face "%q{foo #@bar}" 8 font-lock-string-face)
-  (ruby-assert-face "%w{foo #@bar}" 8 font-lock-string-face)
-  (ruby-assert-face "%s{foo #@bar}" 8 font-lock-string-face))
+  (ruby-assert-face "'foo #@bar'" 7 'font-lock-string-face)
+  (ruby-assert-face "%q{foo #@bar}" 8 'font-lock-string-face)
+  (ruby-assert-face "%w{foo #@bar}" 8 'font-lock-string-face)
+  (ruby-assert-face "%s{foo #@bar}" 8 'font-lock-string-face))
 
 (ert-deftest ruby-interpolation-after-dollar-sign ()
   (ruby-assert-face "\"$#{balance}\"" 2 'font-lock-string-face)

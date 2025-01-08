@@ -1,5 +1,5 @@
 /* Extended regular expression matching and search library.
-   Copyright (C) 2002-2024 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Isamu Hasegawa <isamu@yamato.ibm.com>.
 
@@ -937,8 +937,7 @@ re_node_set_alloc (re_node_set *set, Idx size)
   set->alloc = size;
   set->nelem = 0;
   set->elems = re_malloc (Idx, size);
-  if (__glibc_unlikely (set->elems == NULL)
-      && (MALLOC_0_IS_NONNULL || size != 0))
+  if (__glibc_unlikely (set->elems == NULL))
     return REG_ESPACE;
   return REG_NOERROR;
 }

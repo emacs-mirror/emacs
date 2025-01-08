@@ -1,6 +1,6 @@
 ;;; erc-scenarios-base-reconnect.el --- Base-reconnect scenarios -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -37,6 +37,7 @@
        (dumb-server (erc-d-run "localhost" t 'timer 'timer 'timer-last))
        (port (process-contact dumb-server :service))
        (expect (erc-d-t-make-expecter))
+       (erc-server-reconnect-function #'erc-server-delayed-reconnect)
        (erc-server-auto-reconnect t)
        erc-autojoin-channels-alist
        erc-server-buffer)
@@ -144,6 +145,7 @@
        (dumb-server (erc-d-run "localhost" t 'timer 'timer 'timer-last))
        (port (process-contact dumb-server :service))
        (expect (erc-d-t-make-expecter))
+       (erc-server-reconnect-function #'erc-server-delayed-reconnect)
        (erc-server-auto-reconnect t)
        erc-autojoin-channels-alist
        erc-server-buffer)

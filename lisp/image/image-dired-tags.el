@@ -1,6 +1,6 @@
 ;;; image-dired-tags.el --- Tag support for Image-Dired  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2005-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2025 Free Software Foundation, Inc.
 
 ;; Author: Mathias Dahl <mathias.rem0veth1s.dahl@gmail.com>
 ;; Maintainer: Stefan Kangas <stefankangas@gmail.com>
@@ -79,7 +79,7 @@ FILE-TAGS is an alist in the following form:
         (setq file (car elt)
               tag (cdr elt))
         (goto-char (point-min))
-        (if (search-forward-regexp (format "^%s.*$" file) nil t)
+        (if (search-forward-regexp (format "^%s.*$" (regexp-quote file)) nil t)
             (progn
               (setq end (point))
               (beginning-of-line)
@@ -103,7 +103,7 @@ FILES can be a name of a single file (a string) or a list of file names."
           (error "Files must be a string or a list of strings!")))
       (dolist (file files)
         (goto-char (point-min))
-        (when (search-forward-regexp (format "^%s;" file) nil t)
+        (when (search-forward-regexp (format "^%s;" (regexp-quote file)) nil t)
           (end-of-line)
           (setq end (point))
           (beginning-of-line)
@@ -125,7 +125,7 @@ Value is a list of all tags for FILE."
   (image-dired-sane-db-file)
   (image-dired--with-db-file
     (let (end (tags ""))
-      (when (search-forward-regexp (format "^%s" file) nil t)
+      (when (search-forward-regexp (format "^%s" (regexp-quote file)) nil t)
         (end-of-line)
         (setq end (point))
         (beginning-of-line)
@@ -179,7 +179,7 @@ FILE-COMMENTS is an alist on the following form:
         (setq file (car elt)
               comment (cdr elt))
         (goto-char (point-min))
-        (if (search-forward-regexp (format "^%s.*$" file) nil t)
+        (if (search-forward-regexp (format "^%s.*$" (regexp-quote file)) nil t)
             (progn
               (setq end (point))
               (beginning-of-line)
@@ -236,7 +236,7 @@ Optionally use old comment from FILE as initial value."
   (image-dired-sane-db-file)
   (image-dired--with-db-file
     (let (end comment-beg-pos comment-end-pos comment)
-      (when (search-forward-regexp (format "^%s" file) nil t)
+      (when (search-forward-regexp (format "^%s" (regexp-quote file)) nil t)
         (end-of-line)
         (setq end (point))
         (beginning-of-line)

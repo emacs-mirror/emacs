@@ -115,7 +115,7 @@ Edition @value{edition-number}, @value{update-date}
 @sp 1
 Distributed with Emacs version @value{EMACSVER}.
 @sp 1
-Copyright @copyright{} 1990--1995, 1997, 2001--2024 Free Software
+Copyright @copyright{} 1990--1995, 1997, 2001--2025 Free Software
 Foundation, Inc.
 @sp 1
 
@@ -3774,7 +3774,7 @@ elisp, The Emacs Lisp Reference Manual}.
 
 @menu
 * Lexical & Dynamic Binding Differences::
-* Lexical vs. Dynamic Binding Example::
+* Lexical vs Dynamic Binding Example::
 @end menu
 
 @node Lexical & Dynamic Binding Differences
@@ -3811,7 +3811,7 @@ on the top of the stack, and then executes the @code{let} body.  Once
 the @code{let} body finishes, it takes that binding off of the stack,
 revealing the one it had (if any) before the @code{let} expression.
 
-@node Lexical vs. Dynamic Binding Example
+@node Lexical vs Dynamic Binding Example
 @unnumberedsubsubsec Example of Lexical vs. Dynamic Binding
 In some cases, both lexical and dynamic binding behave identically.
 However, in other cases, they can change the meaning of your program.
@@ -13810,7 +13810,7 @@ syntax table determines which characters these are."
 If you wish, you can also install this key binding by evaluating it:
 
 @smallexample
-(global-set-key "\C-c=" '@value{COUNT-WORDS})
+(keymap-global-set "C-c =" '@value{COUNT-WORDS})
 @end smallexample
 
 To conduct the first test, set mark and point to the beginning and end
@@ -14762,7 +14762,7 @@ almost the same code as for the recursive version of
 Let's reuse @kbd{C-c =} as a convenient key binding:
 
 @smallexample
-(global-set-key "\C-c=" 'count-words-defun)
+(keymap-global-set "C-c =" 'count-words-defun)
 @end smallexample
 
 Now we can try out @code{count-words-defun}: install both
@@ -17229,7 +17229,7 @@ Now for some personal key bindings:
 @smallexample
 @group
 ;;; Compare windows
-(global-set-key "\C-cw" 'compare-windows)
+(keymap-global-set "C-c w" 'compare-windows)
 @end group
 @end smallexample
 
@@ -17242,20 +17242,18 @@ each window as far as they match.  I use this command all the time.
 This also shows how to set a key globally, for all modes.
 
 @cindex Setting a key globally
-@cindex Global set key
+@cindex Keymap global set
 @cindex Key setting globally
-@findex global-set-key
-The command is @code{global-set-key}.  It is followed by the
-key binding.  In a @file{.emacs} file, the keybinding is written as
-shown: @code{\C-c} stands for Control-C, which means to press the
-control key and the @kbd{c} key at the same time.  The @code{w} means
-to press the @kbd{w} key.  The key binding is surrounded by double
-quotation marks.  In documentation, you would write this as
-@w{@kbd{C-c w}}.  (If you were binding a @key{META} key, such as
-@kbd{M-c}, rather than a @key{CTRL} key, you would write
-@w{@code{\M-c}} in your @file{.emacs} file.  @xref{Init Rebinding, ,
-Rebinding Keys in Your Init File, emacs, The GNU Emacs Manual}, for
-details.)
+@findex keymap-global-set
+The key setting command is @code{keymap-global-set}.  It is followed by
+the key binding.  In a @file{.emacs} file, the keybinding is written as
+shown: @code{C-c} stands for Control-C, which means to press the control
+key and the @kbd{c} key at the same time.  The @code{w} means to press
+the @kbd{w} key.  The key binding is surrounded by double quotation
+marks.  (If you were binding a @key{META} key, rather than a @key{CTRL}
+key, you would write @w{@code{M-c}} in your @file{.emacs} file.
+@xref{Init Rebinding, , Rebinding Keys in Your Init File, emacs, The GNU
+Emacs Manual}, for details.)
 
 The command invoked by the keys is @code{compare-windows}.  Note that
 @code{compare-windows} is preceded by a single-quote; otherwise, Emacs
@@ -17284,7 +17282,7 @@ Here is another key binding, with a comment:
 @group
 ;;; Key binding for 'occur'
 ; I use occur a lot, so let's bind it to a key:
-(global-set-key "\C-co" 'occur)
+(keymap-global-set "C-c o" 'occur)
 @end group
 @end smallexample
 
@@ -17296,7 +17294,7 @@ uses the entire buffer.
 Matching lines are shown in a buffer called @file{*Occur*}.
 That buffer serves as a menu to jump to occurrences.
 
-@findex global-unset-key
+@findex keymap-global-unset
 @cindex Unbinding key
 @cindex Key unbinding
 @need 1250
@@ -17306,7 +17304,7 @@ work:
 @smallexample
 @group
 ;;; Unbind 'C-x f'
-(global-unset-key "\C-xf")
+(keymap-global-unset "C-x f")
 @end group
 @end smallexample
 
@@ -17324,7 +17322,7 @@ The following rebinds an existing key:
 @smallexample
 @group
 ;;; Rebind 'C-x C-b' for 'buffer-menu'
-(global-set-key "\C-x\C-b" 'buffer-menu)
+(keymap-global-set "C-x C-b" 'buffer-menu)
 @end group
 @end smallexample
 
@@ -17336,33 +17334,80 @@ window, I prefer the  @code{buffer-menu}
 command, which not only lists the buffers,
 but moves point into that window.
 
+@subsection Legacy Global Key Binding Commands
+
+@findex global-set-key
+@cindex Global set key
+Historically, keys are bound globally using a lower-level function,
+@code{global-set-key}, which is now considered legacy.  While you are
+encouraged to use @code{keymap-global-set}, you likely would encounter
+@code{global-set-key} in various places.  The first example in this
+section can be rewritten using @code{global-set-key} as:
+
+@smallexample
+@group
+(global-set-key "\C-cw" 'compare-windows)
+@end group
+@end smallexample
+
+It is very similar to @code{keymap-global-set}, with the keybinding
+following a slightly different format.  Control-C is represented by
+@code{\C-c}, instead of @code{C-c}.  There is no space between key
+strokes, like @code{\C-c} and @code{w} in this example.  Despite the
+difference, in documentation, this is still written as @w{@kbd{C-c w}}
+for readability.
+
+@findex global-unset-key
+Historically, keys are unbound globally using a lower-function,
+@code{global-unset-key}, which is now considered legacy.  Its key
+binding format follows that of @code{global-set-key}.  The key unbinding
+example in this section can be rewritten as:
+
+@smallexample
+@group
+;;; Unbind 'C-x f'
+(global-unset-key "\C-xf")
+@end group
+@end smallexample
+
 @node Keymaps
 @section Keymaps
 @cindex Keymaps
 @cindex Rebinding keys
 
 Emacs uses @dfn{keymaps} to record which keys call which commands.
-When you use @code{global-set-key} to set the key binding for a single
-command in all parts of Emacs, you are specifying the key binding in
-@code{current-global-map}.
+When you use @code{keymap-global-set} to set the key binding for a
+single command in all parts of Emacs, you are specifying the key binding
+in @code{current-global-map}.
 
 Specific modes, such as C mode or Text mode, have their own keymaps;
 the mode-specific keymaps override the global map that is shared by
 all buffers.
 
-The @code{global-set-key} function binds, or rebinds, the global
+The @code{keymap-global-set} function binds, or rebinds, the global
 keymap.  For example, the following binds the key @kbd{C-x C-b} to the
 function @code{buffer-menu}:
 
 @smallexample
-(global-set-key "\C-x\C-b" 'buffer-menu)
+(keymap-global-set "C-x C-b" 'buffer-menu)
 @end smallexample
 
-Mode-specific keymaps are bound using the @code{define-key} function,
+Mode-specific keymaps are bound using the @code{keymap-set} function,
 which takes a specific keymap as an argument, as well as the key and
-the command.  For example, my @file{.emacs} file contains the
-following expression to bind the @code{texinfo-insert-@@group} command
-to @kbd{C-c C-c g}:
+the command.  For example, the following expression binds the
+@code{texinfo-insert-@@group} command to @kbd{C-c C-c g}:
+
+@smallexample
+@group
+(keymap-set texinfo-mode-map "C-c C-c g" 'texinfo-insert-@@group)
+@end group
+@end smallexample
+
+Historically, keymaps are bound using a lower-level function,
+@code{define-key}, which is now considered legacy.  While you are
+encouraged to use @code{keymap-set}, you likely would encounter
+@code{define-key} in various places.  The above key binding can be
+rewritten using @code{define-key} as:
 
 @smallexample
 @group
@@ -17396,9 +17441,9 @@ Here is the @code{texinfo-insert-@@group} function definition:
 write a function to insert a word; but I prefer key strokes consistent
 with other Texinfo mode key bindings.)
 
-You will see numerous @code{define-key} expressions in
-@file{loaddefs.el} as well as in the various mode libraries, such as
-@file{cc-mode.el} and @file{lisp-mode.el}.
+You will see numerous @code{keymap-set} and @code{define-key}
+expressions in @file{loaddefs.el} as well as in the various mode
+libraries, such as @file{cc-mode.el} and @file{lisp-mode.el}.
 
 @xref{Key Bindings, , Customizing Key Bindings, emacs, The GNU Emacs
 Manual}, and @ref{Keymaps, , Keymaps, elisp, The GNU Emacs Lisp
@@ -17440,13 +17485,12 @@ window.
 
 @need 1250
 To replace the key binding for the default
-@code{split-window-vertically}, you must also unset that key and bind
-the keys to @code{split-window-quietly}, like this:
+@code{split-window-vertically}, you must bind the keys to
+@code{split-window-quietly}, like this:
 
 @smallexample
 @group
-(global-unset-key "\C-x2")
-(global-set-key "\C-x2" 'split-window-quietly)
+(keymap-global-set "C-x 2" 'split-window-quietly)
 @end group
 @end smallexample
 
@@ -17608,7 +17652,7 @@ I bind @code{line-to-top-of-window} to my @key{F6} function key like
 this:
 
 @smallexample
-(global-set-key [f6] 'line-to-top-of-window)
+(keymap-global-set "<f6>" 'line-to-top-of-window)
 @end smallexample
 
 For more information, see @ref{Init Rebinding, , Rebinding Keys in
@@ -18791,7 +18835,7 @@ Here is the @code{the-the} function, as I include it in my
 
 @group
 ;; Bind 'the-the' to  C-c \
-(global-set-key "\C-c\\" 'the-the)
+(keymap-global-set "C-c \\" 'the-the)
 @end group
 @end smallexample
 

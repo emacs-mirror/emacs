@@ -1,6 +1,6 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986-1987, 1992, 1994-2024 Free Software Foundation,
+;; Copyright (C) 1986-1987, 1992, 1994-2025 Free Software Foundation,
 ;; Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
@@ -1904,7 +1904,7 @@ if there are no other active clients."
                    (length> server-clients 1)
                    (seq-some
                     (lambda (frame)
-                      (when-let ((p (frame-parameter frame 'client)))
+                      (when-let* ((p (frame-parameter frame 'client)))
                         (not (eq proc p))))
                     (frame-list)))
                ;; If `server-stop-automatically' is not enabled, there

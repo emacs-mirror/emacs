@@ -54,14 +54,27 @@ main (void)
 }
 =-=-=
 
+Name: Enum
+=-=
+enum
+week
+{
+  Mon, Tue, Wed,
+  Thur, Fri, Sat, Sun
+};
+=-=-=
+
+
 Name: For Loop with Multi-line Condition (GNU Style)
 
 =-=
 int main()
 {
-  for (int i = 0;
+  for (
+       int i = 0;
        i < b;
-       i++)
+       i++
+      )
     {
       return 0;
     }
@@ -125,6 +138,15 @@ int main() {
         puts ("Hello");
       }
 }
+=-=-=
+
+Name: Type and function name on separate line
+=-=
+struct
+aaa *
+fn()
+{
+};
 =-=-=
 
 Name: Multiline Parameter List (bug#60398)
@@ -208,7 +230,7 @@ int main()
 }
 =-=-=
 
-Name: Return Compund Literal
+Name: Return Compound Literal
 
 =-=
 struct pair { int fst, snd; };
@@ -221,6 +243,54 @@ make_pair(int long_identifier_a[], int long_identifier_b[],
                          long_identifier_b[base_offset + offset_b] };
 }
 
+=-=-=
+
+Name: Compound Statement after code (Bug#74507)
+
+=-=
+#define IOTA(var, n) for (int var = 0; var != (n); ++var)
+int main()
+{
+IOTA (v, 10) {
+printf("%d ", v);
+}
+
+for (int i = 0;
+i < 10;
+i++) {
+IOTA (v, 10) {
+printf("%d ", v);
+}
+}
+
+{
+IOTA (v, 10) {
+printf("%d ", v);
+}
+}
+}
+=-=
+#define IOTA(var, n) for (int var = 0; var != (n); ++var)
+int main()
+{
+  IOTA (v, 10) {
+    printf("%d ", v);
+  }
+
+  for (int i = 0;
+       i < 10;
+       i++) {
+    IOTA (v, 10) {
+      printf("%d ", v);
+    }
+  }
+
+  {
+    IOTA (v, 10) {
+      printf("%d ", v);
+    }
+  }
+}
 =-=-=
 
 Name: Switch-Case statement
@@ -473,6 +543,16 @@ namespace test {
 }
 =-=-=
 
+Name: Access specifier
+=-=
+class MyClass {
+public:    // Public access specifier
+  int x;   // Public attribute
+private:   // Private access specifier
+  int y;   // Private attribute
+};
+=-=-=
+
 Name: Namespace and template (bug#72263)
 
 =-=
@@ -480,11 +560,13 @@ namespace A {
 
 T myfunction1(const char *fname)
 {
+return a;
 }
 
 template <class T>
 T myfunction2(const char *fname)
 {
+return a;
 }
 }
 =-=
@@ -492,11 +574,13 @@ namespace A {
 
   T myfunction1(const char *fname)
   {
+    return a;
   }
 
   template <class T>
   T myfunction2(const char *fname)
   {
+    return a;
   }
 }
 =-=-=

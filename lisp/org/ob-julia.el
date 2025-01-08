@@ -1,6 +1,6 @@
 ;;; ob-julia.el --- org-babel functions for julia code evaluation  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2025 Free Software Foundation, Inc.
 ;; Authors: G. Jay Kerns
 ;; Maintainer: Pedro Bruel <pedro.bruel@gmail.com>
 ;; Keywords: literate programming, reproducible research, scientific computing
@@ -75,7 +75,7 @@
   "Associate R code buffer with an R session.
 Make SESSION be the inferior ESS process associated with the
 current code buffer."
-  (when-let ((process (get-buffer-process session)))
+  (when-let* ((process (get-buffer-process session)))
     (setq ess-local-process-name (process-name process))
     (ess-make-buffer-current))
   (setq-local ess-gen-proc-buffer-name-function (lambda (_) session)))

@@ -1,6 +1,6 @@
 ;;; rfc2231.el --- Functions for decoding rfc2231 headers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2025 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -193,7 +193,7 @@ must never cause a Lisp error."
 		     (push (list attribute value encoded) cparams))
 		    ;; Repetition of a part; do nothing.
 		    ((and elem
-			  (null number))
+			  (null part))
 		     )
 		    ;; Concatenate continuation parts.
 		    (t

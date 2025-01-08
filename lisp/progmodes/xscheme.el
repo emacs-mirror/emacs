@@ -1,6 +1,6 @@
 ;;; xscheme.el --- run MIT Scheme under Emacs        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1986-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1986-2025 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: languages, lisp
@@ -55,8 +55,8 @@
   "The tail of the Scheme expressions ring whose car is the last thing yanked.")
 
 (defvar-local xscheme-running-p nil
-  "This variable, if nil, indicates that the scheme process is
-waiting for input.  Otherwise, it is busy evaluating something.")
+  "If nil, the scheme process is waiting for input.
+Otherwise, it is busy evaluating something.")
 
 (defconst xscheme-control-g-synchronization-p t
   "If non-nil, insert markers in the scheme input stream to indicate when
@@ -64,8 +64,8 @@ control-g interrupts were signaled.  Do not allow more control-g's to be
 signaled until the scheme process acknowledges receipt.")
 
 (defvar-local xscheme-control-g-disabled-p nil
-  "This variable, if non-nil, indicates that a control-g is being processed
-by the scheme process, so additional control-g's are to be ignored.")
+  "If non-nil, a control-g is being processed by the scheme process, so
+additional control-g's are to be ignored.")
 
 (defvar xscheme-string-receiver nil
   "Procedure to send the string argument from the scheme process.")

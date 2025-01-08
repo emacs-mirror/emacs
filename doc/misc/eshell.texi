@@ -10,7 +10,7 @@
 @copying
 This manual is for Eshell, the Emacs shell.
 
-Copyright @copyright{} 1999--2024 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2025 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -432,16 +432,6 @@ This command writes a list of all files matching the glob pattern
 
 @node Arguments
 @section Arguments
-Ordinarily, Eshell parses arguments in command form as either strings
-or numbers, depending on what the parser thinks they look like.  To
-specify an argument of some other data type, you can use a Lisp form
-(@pxref{Invocation}):
-
-@example
-~ $ echo (list 1 2 3)
-(1 2 3)
-@end example
-
 When calling external commands (and many built-in Eshell commands,
 too) Eshell will flatten the arguments the command receives, so
 passing a list as an argument will ``spread'' the elements into
@@ -454,13 +444,15 @@ multiple arguments:
 3
 @end example
 
-@subsection Quoting and escaping
+@subsection Quoting and Escaping
 As with other shells, you can escape special characters and spaces by
 prefixing the character with a backslash (@samp{\}), or by surrounding
 the string with apostrophes (@samp{''}) or double quotes (@samp{""}).
 This is needed especially for file names with special characters like
 pipe (@samp{|}) or square brackets (@samp{[} or @samp{]}), which could
-be part of remote file names.
+be part of remote file names.  In addition, quoting or escaping an
+argument will prevent it from being converted to a number when passed to
+a Lisp function.
 
 When you escape a character with @samp{\} outside of any quotes, the
 result is the literal character immediately following it.  For
@@ -495,7 +487,46 @@ When using expansions (@pxref{Expansion}) in an Eshell command, the
 result may potentially be of any data type.  To ensure that the result
 is always a string, the expansion can be surrounded by double quotes.
 
-@subsection Special argument types
+@subsection Type Conversion
+When invoking a Lisp function via command form, Eshell automatically
+converts string arguments that look like numbers to actual Lisp
+numbers in order to make it easier to work with numeric values.  You can
+prevent this conversion on a case-by-case basis by quoting or escaping
+the argument:
+
+@example
+~ $ type-of 1
+integer
+~ $ type-of "1"
+string
+@end example
+
+When invoking a subcommand in command form, Eshell will split the output
+line-by-line into a list.  Additionally, if every line looks like a
+number, then Eshell will mark them as numeric so that passing them to a
+Lisp function will convert them to Lisp numbers:
+
+@example
+~ $ cat numbers.txt
+01
+02
+03
+~ $ + $@@@{cat numbers.txt@}
+6
+@end example
+
+If you find this behavior inconvenient for certain functions, you can
+tell Eshell not to perform this conversion for that function:
+
+@example
+(put \\='find-file \\='eshell-no-numeric-conversions t)
+@end example
+
+@vindex eshell-convert-numeric-arguments
+You can also disable this conversion behavior entirely by setting
+@code{eshell-convert-numeric-arguments} to @code{nil}.
+
+@subsection Special Argument Types
 In addition to strings and numbers, Eshell supports a number of
 special argument types.  These let you refer to various other Emacs
 Lisp data types, such as lists or buffers.
@@ -1730,11 +1761,15 @@ satisfied.
 Repeatedly evaluate @var{subcommand} until @var{conditional} is
 satisfied.
 
-@item for @var{var} in @var{list}@dots{} @var{subcommand}
-Iterate over each element of @var{list}, storing the element in
-@var{var} and evaluating @var{subcommand}.  If @var{list} is not a list,
-treat it as a list of one element.  If you specify multiple @var{lists},
-this will iterate over each of them in turn.
+@item for @var{var} in @var{sequence}@dots{} @var{subcommand}
+Iterate over each element of @var{sequence}, storing the element in
+@var{var} and evaluating @var{subcommand}.  If @var{sequence} is a
+range of the form @code{@var{begin}..@var{end}}, iterate over each
+integer between @var{begin} and @var{end}, not including @var{end}.  If
+@var{sequence} is not a sequence, treat it as a list of one element.
+
+If you specify multiple @var{sequences}, this will iterate over each of
+them in turn.
 
 @end table
 
@@ -1764,8 +1799,8 @@ behavior depends on the types of each value being concatenated:
 Concatenate both values together.
 
 @item one or both numbers
-Concatenate the string representation of each value, converting back to
-a number if possible.
+Concatenate the string representation of each value.  If either value is
+numeric, mark the concatenated value as numeric if possible.
 
 @item one or both (non-@code{nil}) lists
 Concatenate ``adjacent'' elements of each value (possibly converting
@@ -2220,11 +2255,6 @@ Treating the value as a file name, gets the file name excluding the
 final extension.  For example, @samp{foo/bar/baz.tar.gz(:r)} expands
 to @samp{foo/bar/baz.tar}.
 
-@item q
-Marks that the value should be interpreted by Eshell literally, so
-that any special characters like @samp{$} no longer have any special
-meaning.
-
 @item s/@var{pattern}/@var{replace}/
 Replaces the first instance of the regular expression @var{pattern}
 with @var{replace}.  Signals an error if no match is found.
@@ -2630,10 +2660,10 @@ navigation and searching are bound to different keys:
 
 @table @kbd
 @kindex M-r
-@kindex M-s
 @item M-r
-@itemx M-s
-History I-search.
+History I-search.  @kbd{M-r} starts an incremental search in input
+history.  While searching, type @kbd{C-r} to move to the previous match,
+and @kbd{C-s} to move to the next match in the input history.
 
 @kindex M-p
 @kindex M-n
@@ -2643,6 +2673,15 @@ Previous and next history line.  If there is anything on the input
 line when you run these commands, they will instead jump to the
 previous or next line that begins with that string.
 @end table
+
+@vindex eshell-history-isearch
+If you would like to use the default Isearch key-bindings to search
+through input history, you may customize @code{eshell-history-isearch}
+to @code{t}.  That makes, for example, @kbd{C-r} and @kbd{C-M-r} in an
+Eshell buffer search in input history only.  In addition, if the value
+of @code{eshell-history-isearch} is @code{dwim}, those commands search
+in the history when the point is after the last prompt, and search in
+the buffer when the point is before or within the last prompt.
 
 @node Extension modules
 @chapter Extension modules

@@ -1,6 +1,6 @@
 ;;; gnus-art.el --- article mode commands for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2025 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -512,7 +512,7 @@ might have."
   :type 'boolean)
 
 (defcustom gnus-prompt-before-saving 'always
-  "This variable says how much prompting is to be done when saving articles.
+  "How much prompting to do when saving articles.
 If it is nil, no prompting will be done, and the articles will be
 saved to the default files.  If this variable is `always', each and
 every article that is saved will be preceded by a prompt, even when
@@ -2419,8 +2419,8 @@ fill width."
 (defun article-emojize-symbols ()
   "Display symbols (that have an emoji version) as emojis."
   (interactive nil gnus-article-mode)
-  (when-let ((font (and (display-multi-font-p)
-                        (car (internal-char-font nil ?😀)))))
+  (when-let* ((font (and (display-multi-font-p)
+                         (car (internal-char-font nil ?😀)))))
     (save-excursion
       (let ((inhibit-read-only t))
         (goto-char (point-min))

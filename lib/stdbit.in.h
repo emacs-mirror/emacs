@@ -1,6 +1,6 @@
 /* stdbit.h - C23 bit and byte utilities for non-C23 platforms
 
-   Copyright 2024 Free Software Foundation, Inc.
+   Copyright 2024-2025 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -77,7 +77,8 @@ _GL_INLINE_HEADER_BEGIN
 #if ((defined __GNUC__ && 2 <= __GNUC__) \
      || (defined __clang_major__ && 4 <= __clang_major__) \
      || (defined __IBMC__ && 1210 <= __IBMC__ && defined __IBM__TYPEOF__) \
-     || (defined __SUNPRO_C && 0x5110 <= __SUNPRO_C && !__STDC__))
+     || (defined __SUNPRO_C && 0x5110 <= __SUNPRO_C && !__STDC__) \
+     || (defined _MSC_VER && 1939 <= _MSC_VER))
 # define _GL_STDBIT_TYPEOF_CAST(a, b) ((__typeof__ (a)) (b))
 #elif 202311 <= __STDC_VERSION__
 # define _GL_STDBIT_TYPEOF_CAST(a, b) ((typeof (a)) (b))

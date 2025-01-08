@@ -1,6 +1,6 @@
 ;;; esh-ext.el --- commands external to Eshell  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -171,6 +171,7 @@ These are commands with a full remote file name, such as
 commands on your local host by using the \"/local:\" prefix, like
 \"/local:whoami\"."
   :type 'boolean
+  :version "30.1"
   :group 'eshell-ext)
 
 ;;; Functions:

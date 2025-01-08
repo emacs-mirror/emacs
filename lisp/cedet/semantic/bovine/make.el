@@ -1,6 +1,6 @@
 ;;; semantic/bovine/make.el --- Makefile parsing rules.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2000-2004, 2008-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2004, 2008-2025 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -226,6 +226,7 @@ Uses default implementation, and also gets a list of filenames."
                                             (?+ ".")
                                             (?\\ ".")
                                             )
+        semantic--create-index-function-origin imenu-create-index-function
         imenu-create-index-function #'semantic-create-imenu-index
         )
   (setq semantic-lex-analyzer #'semantic-make-lexer)

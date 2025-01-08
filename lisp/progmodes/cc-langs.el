@@ -1,6 +1,6 @@
 ;;; cc-langs.el --- language specific settings for CC Mode -*- lexical-binding: t; coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1987, 1992-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2025 Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -451,7 +451,8 @@ so that all identifiers are recognized as words.")
 (c-lang-defconst c-get-state-before-change-functions
   ;; For documentation see the following c-lang-defvar of the same name.
   ;; The value here may be a list of functions or a single function.
-  t 'c-before-change-check-unbalanced-strings
+  t '(c-before-change-include-<>
+      c-before-change-check-unbalanced-strings)
   c++ '(c-extend-region-for-CPP
 	c-depropertize-CPP
 	c-before-change-check-ml-strings
@@ -463,6 +464,7 @@ so that all identifiers are recognized as words.")
 	c-parse-quotes-before-change
 	c-before-change-fix-comment-escapes)
   c '(c-extend-region-for-CPP
+      c-before-change-include-<>
       c-depropertize-CPP
       c-truncate-bs-cache
       c-before-change-check-unbalanced-strings
@@ -480,7 +482,8 @@ so that all identifiers are recognized as words.")
 	 c-unmark-<>-around-region
 	 c-before-change-check-unbalanced-strings
 	 c-before-change-check-<>-operators)
-  pike '(c-before-change-check-ml-strings
+  pike '(c-before-change-include-<>
+	 c-before-change-check-ml-strings
 	 c-before-change-check-unbalanced-strings)
   awk 'c-awk-record-region-clear-NL)
 (c-lang-defvar c-get-state-before-change-functions
@@ -511,6 +514,7 @@ parameters \(point-min) and \(point-max).")
   t '(c-depropertize-new-text
       c-after-change-escape-NL-in-string
       c-after-change-mark-abnormal-strings
+      c-after-change-include-<>
       c-change-expand-fl-region)
   c '(c-depropertize-new-text
       c-after-change-fix-comment-escapes
@@ -518,6 +522,7 @@ parameters \(point-min) and \(point-max).")
       c-parse-quotes-after-change
       c-after-change-mark-abnormal-strings
       c-extend-font-lock-region-for-macros
+      c-after-change-include-<>
       c-neutralize-syntax-in-CPP
       c-change-expand-fl-region)
   objc '(c-depropertize-new-text
@@ -553,6 +558,7 @@ parameters \(point-min) and \(point-max).")
 	 c-after-change-escape-NL-in-string
 	 c-after-change-unmark-ml-strings
 	 c-after-change-mark-abnormal-strings
+	 c-after-change-include-<>
 	 c-change-expand-fl-region)
   awk '(c-depropertize-new-text
 	c-awk-extend-and-syntax-tablify-region))
@@ -3245,7 +3251,7 @@ Such a keyword is a member of `c-paren-clause-kwds."
   c++    '("break" "continue" "goto" "return" "co_return")
   objc '("break" "continue" "goto" "return" "@throw")
   ;; Note: `goto' is not valid in Java, but the keyword is still reserved.
-  java '("break" "continue" "goto" "return" "throw")
+  java '("assert" "break" "continue" "goto" "return" "throw")
   idl  nil
   pike '("break" "continue" "return")
   awk  '(;; Not sure about "delete", "exit", "getline", etc. ; ACM 2002/5/30

@@ -1,6 +1,6 @@
 ;;; gnus-group.el --- group mode commands for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2025 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -3852,6 +3852,7 @@ If given numerical prefix, toggle the N next groups."
   (gnus-group-next-group 1))
 
 (defun gnus-group-toggle-subscription (group &optional silent)
+  "Prompt for group, and toggle its subscription."
   (interactive (list (gnus-group-completing-read
 		      nil nil (gnus-read-active-file-p)))
 	       gnus-group-mode)

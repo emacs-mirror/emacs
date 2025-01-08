@@ -1,6 +1,6 @@
 ;;; erc-networks.el --- IRC networks  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002, 2004-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004-2025 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@lexx.delysid.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -831,6 +831,10 @@ respectively.  The separator is given by `erc-networks--id-sep'."
   (len 0 :type integer
        :documentation "Length of active `parts' interval."))
 
+(define-inline erc-networks--id-string (id)
+  "Return the symbol for `erc-networks--id' ID as a string."
+  (inline-quote (symbol-name (erc-networks--id-symbol ,id))))
+
 ;; For now, please use this instead of `erc-networks--id-fixed-p'.
 (cl-defgeneric erc-networks--id-given (net-id)
   "Return the preassigned identifier for a network context, if any.
@@ -904,8 +908,8 @@ aside) that aren't also `eq'.")
 
 (defun erc-networks--id-qualifying-init-parts ()
   "Return opaque list of atoms to serve as canonical identifier."
-  (when-let ((network (erc-network))
-             (nick (erc-current-nick)))
+  (when-let* ((network (erc-network))
+              (nick (erc-current-nick)))
     (vector network (erc-downcase nick))))
 
 (defvar erc-networks--id-sep "/"
@@ -986,7 +990,7 @@ object."
   (erc-networks--rename-server-buffer (or proc erc-server-process) parsed)
   (erc-networks--shrink-ids-and-buffer-names-any)
   (erc-with-all-buffers-of-server erc-server-process #'erc-target
-    (when-let
+    (when-let*
         ((new-name (erc-networks--reconcile-buffer-names erc--target nid))
          ((not (equal (buffer-name) new-name))))
       (rename-buffer new-name 'unique))))
@@ -1002,7 +1006,7 @@ object."
   ((nid erc-networks--id-qualifying) (other erc-networks--id-qualifying))
   "Grow NID along with that of the current buffer.
 Rename the current buffer if its NID has grown."
-  (when-let ((n (erc-networks--id-qualifying-prefix-length other nid)))
+  (when-let* ((n (erc-networks--id-qualifying-prefix-length other nid)))
     (while (and (<= (erc-networks--id-qualifying-len nid) n)
                 (erc-networks--id-qualifying-grow-id nid)))
     ;; Grow and rename a visited buffer and all its targets
@@ -1159,10 +1163,10 @@ TARGET to be an `erc--target' object."
            ((not (with-suppressed-warnings ((obsolete erc-reuse-buffers))
                    erc-reuse-buffers))
             (cadr (split-string
-                   (symbol-name (erc-networks--id-symbol erc-networks--id))
+                   (erc-networks--id-string erc-networks--id)
                    "/")))
            ((erc--target-channel-local-p target) erc-server-announced-name)
-           (t (symbol-name (erc-networks--id-symbol erc-networks--id))))))
+           (t (erc-networks--id-string erc-networks--id)))))
 
 (defun erc-networks--ensure-unique-target-buffer-name ()
   (when-let* ((new-name (erc-networks--construct-target-buffer-name
@@ -1171,8 +1175,7 @@ TARGET to be an `erc--target' object."
     (rename-buffer new-name 'unique)))
 
 (defun erc-networks--ensure-unique-server-buffer-name ()
-  (when-let* ((new-name (symbol-name (erc-networks--id-symbol
-                                      erc-networks--id)))
+  (when-let* ((new-name (erc-networks--id-string erc-networks--id))
               ((not (equal (buffer-name) new-name))))
     (rename-buffer new-name 'unique)))
 
@@ -1387,9 +1390,9 @@ Expect ANNOUNCED to be the server's reported host name."
                     (string= erc-server-announced-name announced)))
        ;; If a target buffer exists for the current process, kill this
        ;; stale one after transplanting its content; else reinstate.
-       (if-let ((actual (erc-get-buffer (erc--target-string erc--target)
-                                        new-proc))
-                (erc-networks--target-transplant-in-progress-p t))
+       (if-let* ((actual (erc-get-buffer (erc--target-string erc--target)
+                                         new-proc))
+                 (erc-networks--target-transplant-in-progress-p t))
            (progn
              (funcall erc-networks--transplant-target-buffer-function
                       (current-buffer) actual)
@@ -1489,7 +1492,7 @@ to be a false alarm.  If `erc-reuse-buffers' is nil, let
   ;; buffer may have been deleted.
   (erc-networks--reclaim-orphaned-target-buffers new-proc erc-networks--id
                                                  erc-server-announced-name)
-  (let* ((name (symbol-name (erc-networks--id-symbol erc-networks--id)))
+  (let* ((name (erc-networks--id-string erc-networks--id))
          ;; When this ends up being the current buffer, either we have
          ;; a "given" ID or the buffer was reused on reconnecting.
          (existing (get-buffer name)))
@@ -1593,7 +1596,7 @@ return the host alone sans URL formatting (for compatibility)."
 					 erc-server-alist)))))
          (s-choose (lambda (entry)
                      (and (equal (nth 1 entry) net)
-                          (if-let ((b (string-search ": " (car entry))))
+                          (if-let* ((b (string-search ": " (car entry))))
                               (cons (format "%s (%s)" (nth 2 entry)
                                             (substring (car entry) (+ b 2)))
                                     (cdr entry))

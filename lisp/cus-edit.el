@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2025 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -1075,7 +1075,7 @@ even if it doesn't match the type.)
 (defun setopt--set (variable value)
   (custom-load-symbol variable)
   ;; Check that the type is correct.
-  (when-let ((type (get variable 'custom-type)))
+  (when-let* ((type (get variable 'custom-type)))
     (unless (widget-apply (widget-convert type) :match value)
       (warn "Value `%S' for variable `%s' does not match its type \"%s\""
             value variable type)))
@@ -3424,6 +3424,28 @@ to switch between two values."
   :group 'custom-faces)
 
 ;;; The `custom-face-edit' Widget.
+
+(defvar custom-face--font-cache-timeout 60
+  "Refresh the cache of font families after at most this many seconds.")
+
+(defalias 'custom-face--font-completion
+  (let ((lastlist nil)
+        (lasttime nil)
+        (lastframe nil))
+    (completion-table-case-fold
+     (completion-table-dynamic
+      (lambda (_string)
+        ;; Flush the cache timeout after a while.
+        (let ((time (float-time)))
+         (if (and lastlist (eq (selected-frame) lastframe)
+                  (> custom-face--font-cache-timeout (- time lasttime)))
+             lastlist
+           ;; (message "last list time: %s" (if lasttime (- time lasttime)))
+           (setq lasttime time)
+           (setq lastframe (selected-frame))
+           (setq lastlist
+                 (nconc (mapcar #'car face-font-family-alternatives)
+                        (font-family-list))))))))))
 
 (define-widget 'custom-face-edit 'checklist
   "Widget for editing face attributes.
@@ -5927,7 +5949,7 @@ The appropriate types are:
 
 (defun custom-dirlocals-maybe-update-cons ()
   "If focusing out from the first widget in a cons widget, update its value."
-  (when-let ((w (widget-at)))
+  (when-let* ((w (widget-at)))
     (when (widget-get w :custom-dirlocals-symbol)
       (widget-value-set (widget-get w :parent)
                         (cons (widget-value w) ""))
@@ -6018,7 +6040,7 @@ Moves point into the widget that holds the value."
 If at least an option doesn't validate, signals an error and moves point
 to the widget with the invalid value."
   (dolist (opt (custom-dirlocals-get-options))
-    (when-let ((w (widget-apply opt :validate)))
+    (when-let* ((w (widget-apply opt :validate)))
       (goto-char (widget-get w :from))
       (error "%s" (widget-get w :error))))
   t)

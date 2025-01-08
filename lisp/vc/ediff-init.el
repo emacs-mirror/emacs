@@ -1,6 +1,6 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2025 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -1218,8 +1218,9 @@ Instead, C-h would jump to previous difference."
 (define-obsolete-variable-alias 'ediff-temp-file-prefix
   'temporary-file-directory "28.1")
 
-(defcustom ediff-temp-file-mode 384	; u=rw only
-  "Mode for Ediff temporary files."
+(defcustom ediff-temp-file-mode #o0600
+  "Mode for Ediff temporary files.
+This is decimal, not octal.  The default is 384 (0600 in octal)."
   :type 'integer
   :group 'ediff)
 

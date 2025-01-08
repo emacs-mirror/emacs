@@ -1,6 +1,6 @@
 /* Basic character set support.
 
-Copyright (C) 2001-2024 Free Software Foundation, Inc.
+Copyright (C) 2001-2025 Free Software Foundation, Inc.
 
 Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
   2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -820,6 +820,7 @@ TO-CODE, which are CHARSET code points.  */)
     from = CHARSET_MIN_CODE (cs);
   else
     {
+      CHECK_FIXNAT (from_code);
       from = XFIXNUM (from_code);
       if (from < CHARSET_MIN_CODE (cs))
 	from = CHARSET_MIN_CODE (cs);
@@ -828,6 +829,7 @@ TO-CODE, which are CHARSET code points.  */)
     to = CHARSET_MAX_CODE (cs);
   else
     {
+      CHECK_FIXNAT (to_code);
       to = XFIXNUM (to_code);
       if (to > CHARSET_MAX_CODE (cs))
 	to = CHARSET_MAX_CODE (cs);
@@ -1008,7 +1010,8 @@ usage: (define-charset-internal ...)  */)
 
       i = CODE_POINT_TO_INDEX (&charset, charset.max_code);
       if (MAX_CHAR - charset.code_offset < i)
-	error ("Unsupported max char: %d", charset.max_char);
+	error ("Unsupported max char: %d + %ud > MAX_CHAR (%d)",
+	       i, charset.max_code, MAX_CHAR);
       charset.max_char = i + charset.code_offset;
       i = CODE_POINT_TO_INDEX (&charset, charset.min_code);
       charset.min_char = i + charset.code_offset;

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2024 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2025 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Frames
@@ -380,6 +380,9 @@ than one physical monitor.  You can use the functions
 @code{display-monitor-attributes-list} and @code{frame-monitor-attributes}
 to obtain information about such setups.
 
+@cindex display geometry
+@cindex monitor geometry
+@cindex geometry of display monitor
 @defun display-monitor-attributes-list &optional display
 This function returns a list of physical monitor attributes on
 @var{display}, which can be a display name (a string), a terminal, or
@@ -3393,8 +3396,8 @@ of its sibling child frames.
 
   By design, operations to make or modify child frames are implemented
 with the help of frame parameters (@pxref{Frame Parameters}) without any
-specialized functions or customizable variables.  Note that child frames
-are meaningful on graphical terminals only.
+specialized functions or customizable variables.  Child frames
+are meaningful on graphical and text terminals.
 
   To create a new child frame or to convert a normal frame into a child
 frame, set that frame's @code{parent-frame} parameter (@pxref{Frame
@@ -4757,15 +4760,16 @@ to encoding or decoding by any coding system.
 
 @node Yanking Media
 @section Yanking Media
+@cindex yank media from window-system selections
 
-  Data saved within window system selections is not restricted to
-plain text.  It is possible for selection data to encompass images or
-other binary data of the like, as well as rich text content instanced
-by HTML, and also PostScript.  Since the selection data types incident
-to this data are at variance with those for plain text, the insertion
-of such data is facilitated by a set of functions dubbed
-@dfn{yank-media handlers}, which are registered by each major mode
-undertaking its insertion and called where warranted upon the
+  Data saved within window system selections and the MS-Windows
+clipboard is not restricted to plain text.  It is possible for selection
+data to encompass images or other binary data of the like, as well as
+rich text content instanced by HTML, and also PostScript.  Since the
+selection data types incident to this data are at variance with those
+for plain text, the insertion of such data is facilitated by a set of
+functions dubbed @dfn{yank-media handlers}, which are registered by each
+major mode undertaking its insertion and called where warranted upon the
 execution of the @code{yank-media} command.
 
 @defun yank-media-handler types handler

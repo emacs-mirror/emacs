@@ -1,6 +1,6 @@
 ;;; two-column.el --- minor mode for editing of two-column text  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992-1995, 2001-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1995, 2001-2025 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Adapted-By: ESR, Daniel Pfeiffer
@@ -162,14 +162,12 @@ minus this value."
   :type 'boolean)
 
 
-(defvar 2C-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "2" #'2C-two-columns)
-    (define-key map [f2] #'2C-two-columns)
-    (define-key map "b" #'2C-associate-buffer)
-    (define-key map "s" #'2C-split)
-    map)
-  "Keymap for commands for setting up two-column mode.")
+(defvar-keymap 2C-mode-map
+  :doc "Keymap for commands for setting up two-column mode."
+  "2"    #'2C-two-columns
+  "<f2>" #'2C-two-columns
+  "b"    #'2C-associate-buffer
+  "s"    #'2C-split)
 
 ;;;###autoload (autoload '2C-command "two-column" () t 'keymap)
 (fset '2C-command 2C-mode-map)
@@ -177,21 +175,19 @@ minus this value."
 ;; This one is for historical reasons and simple keyboards, it is not
 ;; at all mnemonic.  All usual sequences containing 2 were used, and
 ;; f2 could not be set up in a standard way under Emacs 18.
-;;;###autoload (global-set-key "\C-x6" #'2C-command)
+;;;###autoload (keymap-global-set "C-x 6" #'2C-command)
 
-;;;###autoload (global-set-key [f2] #'2C-command)
+;;;###autoload (keymap-global-set "<f2>" #'2C-command)
 
-(defvar 2C-minor-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "1" #'2C-merge)
-    (define-key map "d" #'2C-dissociate)
-    (define-key map "o" #'2C-associated-buffer)
-    (define-key map "\^m" #'2C-newline)
-    (define-key map "|" #'2C-toggle-autoscroll)
-    (define-key map "{" #'2C-shrink-window-horizontally)
-    (define-key map "}" #'2C-enlarge-window-horizontally)
-    map)
-  "Keymap for commands for use in two-column mode.")
+(defvar-keymap 2C-minor-mode-map
+  :doc "Keymap for commands for use in two-column mode."
+  "1"   #'2C-merge
+  "d"   #'2C-dissociate
+  "o"   #'2C-associated-buffer
+  "RET" #'2C-newline
+  "|"   #'2C-toggle-autoscroll
+  "{"   #'2C-shrink-window-horizontally
+  "}"   #'2C-enlarge-window-horizontally)
 
 (setq minor-mode-map-alist
       (cons (cons '2C-mode

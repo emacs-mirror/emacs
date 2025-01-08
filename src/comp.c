@@ -1,5 +1,5 @@
 /* Compile Emacs Lisp into native code.
-   Copyright (C) 2019-2024 Free Software Foundation, Inc.
+   Copyright (C) 2019-2025 Free Software Foundation, Inc.
 
 Author: Andrea Corallo <acorallo@gnu.org>
 

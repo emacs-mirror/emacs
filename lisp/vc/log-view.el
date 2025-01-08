@@ -1,6 +1,6 @@
 ;;; log-view.el --- Major mode for browsing revision log histories -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: tools, vc
@@ -550,6 +550,21 @@ If called interactively, visit the version at point."
          (rev (log-view-current-tag))
          ;; `log-view-extract-comment' is the legacy code for this; the
          ;; `get-change-comment' backend action is the new way to do it.
+         ;;
+         ;; FIXME: Eventually the older backends should have
+         ;; implementations of `get-change-comment' because that ought
+         ;; to be more robust than the approach taken by
+         ;; `log-view-extract-comment'.  Then we can delete the latter.
+         ;; See discussion in bug#64055.  --spwhitton
+         ;;
+         ;; FIXME: We should implement backend actions
+         ;; `get-change-comment' and `modify-change-comment' for bzr and
+         ;; Hg, so that this command works for those backends.
+         ;; As discussed in bug#64055, `get-change-comment' is required,
+         ;; and parsing the old comment out of the Log View buffer will
+         ;; not do.  This is because for these backends there are
+         ;; `vc-*-log-switches' variables which can change what gets put
+         ;; in the Log View buffers and break any Lisp parsing attempt.
          (comment (condition-case _
                       (vc-call-backend log-view-vc-backend
                                        'get-change-comment files rev)

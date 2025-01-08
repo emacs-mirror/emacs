@@ -1,6 +1,6 @@
 ;;; inf-lisp.el --- an inferior-lisp mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1988-2025 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Keywords: processes, lisp
@@ -308,8 +308,8 @@ quoted using shell quote syntax.
 			   "inferior-lisp" (car cmdlist) nil (cdr cmdlist)))
 	(inferior-lisp-mode)))
   (setq inferior-lisp-buffer "*inferior-lisp*")
-  (with-suppressed-warnings ((obsolete display-comint-buffer-action))
-    (pop-to-buffer "*inferior-lisp*" display-comint-buffer-action)))
+  (pop-to-buffer "*inferior-lisp*" (append display-buffer--same-window-action
+                                           '((category . comint)))))
 
 ;;;###autoload
 (defalias 'run-lisp 'inferior-lisp)

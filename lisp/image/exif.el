@@ -1,6 +1,6 @@
 ;;; exif.el --- parsing Exif data in JPEG images -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2025 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: images
@@ -127,10 +127,10 @@ from the return value of this function."
               (encode-coding-region (point-min) (point-max)
                                     buffer-file-coding-system
                                     dest))
-            (when-let ((app1 (cdr (assq #xffe1 (exif--parse-jpeg)))))
+            (when-let* ((app1 (cdr (assq #xffe1 (exif--parse-jpeg)))))
               (exif--parse-exif-chunk app1))))
       (save-excursion
-        (when-let ((app1 (cdr (assq #xffe1 (exif--parse-jpeg)))))
+        (when-let* ((app1 (cdr (assq #xffe1 (exif--parse-jpeg)))))
           (exif--parse-exif-chunk app1))))))
 
 (defun exif-field (field data)

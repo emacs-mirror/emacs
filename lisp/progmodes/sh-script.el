@@ -1,6 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1997, 1999, 2001-2024 Free Software Foundation,
+;; Copyright (C) 1993-1997, 1999, 2001-2025 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
@@ -149,8 +149,7 @@
   (require 'subr-x))
 (require 'executable)
 (require 'treesit)
-
-(declare-function treesit-parser-create "treesit.c")
+(treesit-declare-unavailable-functions)
 
 (autoload 'comint-completion-at-point "comint")
 (autoload 'comint-filename-completion "comint")
@@ -300,6 +299,18 @@ naming the shell."
 	(nil
 	 "^\\s-*\\([[:alpha:]_][[:alnum:]_]*\\)\\s-*()"
 	 1)))
+    ;; The difference between the Bash regular expression and the sh regular
+    ;; expression is that Bash also allows hyphens (-) in function names.
+    (bash
+     . ((nil
+         ;; function FOO
+         ;; function FOO()
+         "^\\s-*function\\s-+\\([[:alpha:]_][[:alnum:]_-]*\\)\\s-*\\(?:()\\)?"
+         1)
+        ;; FOO()
+        (nil
+         "^\\s-*\\([[:alpha:]_][[:alnum:]_-]*\\)\\s-*()"
+         1)))
     (mksh
      . ((nil
          ;; function FOO
@@ -1117,9 +1128,9 @@ subshells can nest."
   (let ((q (nth 3 state)))
     (if q
         (if (characterp q)
-            (if (eq q ?\`) 'sh-quoted-exec font-lock-string-face)
+            (if (eq q ?\`) 'sh-quoted-exec 'font-lock-string-face)
           'sh-heredoc)
-      font-lock-comment-face)))
+      'font-lock-comment-face)))
 
 (defgroup sh-indentation nil
   "Variables controlling indentation in shell scripts.
@@ -1435,8 +1446,9 @@ If FORCE is non-nil and no process found, create one."
 (defun sh-show-shell ()
   "Pop the shell interaction buffer."
   (interactive)
-  (with-suppressed-warnings ((obsolete display-comint-buffer-action))
-    (pop-to-buffer (process-buffer (sh-shell-process t)) display-comint-buffer-action)))
+  (pop-to-buffer (process-buffer (sh-shell-process t))
+                 (append display-buffer--same-window-action
+                         '((category . comint)))))
 
 (defun sh-send-text (text)
   "Send TEXT to `sh-shell-process'."

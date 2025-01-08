@@ -1,6 +1,6 @@
 ;;; yank-media.el --- Yanking images and HTML  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: utility
@@ -67,7 +67,12 @@ all the different selection types."
    (lambda (type)
      (pcase-let ((`(,major ,minor) (split-string (symbol-name type) "/")))
        (if (and (equal major "image")
-                (not (image-type-available-p (intern minor))))
+                (not (image-type-available-p
+                      ;; Usually, MIME subtype is the same as Emacs'
+                      ;; identifier for an image type.  But for SVG, the
+                      ;; identifier is 'svg, while the MIME type is
+                      ;; image/svg+xml. So we make the exception here.
+                      (intern (if (string= minor "svg+xml") "svg" minor)))))
            ;; Just filter out all the image types that Emacs doesn't
            ;; support, because the clipboard is full of things like
            ;; `image/x-win-bitmap'.
@@ -81,7 +86,7 @@ all the different selection types."
    (gui-get-selection 'CLIPBOARD 'TARGETS)))
 
 (defun yank-media--get-selection (data-type)
-  (when-let ((data (gui-get-selection 'CLIPBOARD data-type)))
+  (when-let* ((data (gui-get-selection 'CLIPBOARD data-type)))
     (if (string-match-p "\\`text/" (symbol-name data-type))
         (yank-media-types--format data-type data)
       data)))
@@ -116,7 +121,7 @@ non-supported selection data types."
   (let ((elements nil))
     ;; First gather all the data.
     (dolist (type '(PRIMARY CLIPBOARD))
-      (when-let ((data-types (gui-get-selection type 'TARGETS)))
+      (when-let* ((data-types (gui-get-selection type 'TARGETS)))
         (when (vectorp data-types)
           (seq-do (lambda (data-type)
                     (unless (memq data-type '( TARGETS MULTIPLE

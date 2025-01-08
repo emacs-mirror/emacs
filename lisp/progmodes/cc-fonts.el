@@ -1,6 +1,6 @@
 ;; cc-fonts.el --- font lock support for CC Mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2025 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             2002- Martin Stjernholm
@@ -121,8 +121,6 @@
 	      (eq font-lock-reference-face 'font-lock-reference-face))
 	 'font-lock-reference-face)
 	(t 'font-lock-constant-face)))
-
-(cc-bytecomp-defvar font-lock-constant-face)
 
 (defconst c-label-face-name
   (cond ((c-face-name-p 'font-lock-label-face)
@@ -556,34 +554,23 @@ stuff.  Used on level 1 and higher."
 
 	      ;; Fontify filenames in #include <...> as strings.
 	      ,@(when (c-lang-const c-cpp-include-directives)
-		  (let* ((re (c-make-keywords-re nil
-			       (c-lang-const c-cpp-include-directives)))
-			 (re-depth (regexp-opt-depth re)))
-		    ;; We used to use a font-lock "anchored matcher" here for
-		    ;; the paren syntax.  This failed when the ">" was at EOL,
-		    ;; since `font-lock-fontify-anchored-keywords' terminated
-		    ;; its loop at EOL without executing our lambda form at
-		    ;; all.
-		    `((,(c-make-font-lock-search-function
-			 (concat noncontinued-line-end
-				 (c-lang-const c-opt-cpp-prefix)
-				 re
-				 (c-lang-const c-syntactic-ws)
-				 "\\(<\\([^>\n\r]*\\)>?\\)")
-			 `(,(+ ncle-depth re-depth sws-depth
-			       (if (featurep 'xemacs) 2 1)
-			       )
-			   font-lock-string-face t)
-			 `((let ((beg (match-beginning
-				       ,(+ ncle-depth re-depth sws-depth 1)))
-				 (end (1- (match-end ,(+ ncle-depth re-depth
-							 sws-depth 1)))))
-			     (if (eq (char-after end) ?>)
-				 (progn
-				   (c-mark-<-as-paren beg)
-				   (c-mark->-as-paren end))
-			       (c-unmark-<->-as-paren beg)))
-			   nil))))))
+		  ;; We used to use a font-lock "anchored matcher" here for
+		  ;; the paren syntax.  This failed when the ">" was at EOL,
+		  ;; since `font-lock-fontify-anchored-keywords' terminated
+		  ;; its loop at EOL without executing our lambda form at all.
+		  ;; (2024-10): The paren syntax is now handled in
+		  ;; before/after-change functions.
+		  `((,(concat noncontinued-line-end
+			      "\\("	; To make the next ^ special.
+			      (c-lang-const c-cpp-include-key)
+			      "\\)"
+			      (c-lang-const c-syntactic-ws)
+			      "\\(<\\([^>\n\r]*\\)>?\\)")
+		     ,(+ ncle-depth 1
+			 (regexp-opt-depth (c-lang-const c-cpp-include-key))
+			 sws-depth
+			 (if (featurep 'xemacs) 2 1))
+		     font-lock-string-face t)))
 
 	      ;; #define.
 	      ,@(when (c-lang-const c-opt-cpp-macro-define)
@@ -723,7 +710,7 @@ stuff.  Used on level 1 and higher."
 		    (< (point) end))
 	(if (and (equal (c-get-char-property (point) 'syntax-table) '(1))
 		 (not (c-get-char-property (point) 'c-digit-separator)))
-	    (c-put-font-lock-face (point) (1+ (point)) font-lock-warning-face))
+	    (c-put-font-lock-face (point) (1+ (point)) 'font-lock-warning-face))
 	(forward-char))
       (parse-partial-sexp end limit nil nil state 'syntax-table)))
     nil)
@@ -754,7 +741,7 @@ stuff.  Used on level 1 and higher."
 	;; Font lock the block comment ender with warning face.
 	(when (not (nth 4 s))
 	  (c-put-font-lock-face (- (point) (length c-block-comment-ender))
-				(point) font-lock-warning-face)))
+				(point) 'font-lock-warning-face)))
        (t ; In a line comment, or a "valid" block comment
 	(setq s (parse-partial-sexp (point) limit nil nil s 'syntax-table))))
 
@@ -771,14 +758,14 @@ stuff.  Used on level 1 and higher."
 	  (setq s (parse-partial-sexp (point) limit nil nil s 'syntax-table)))
 	 ((nth 4 s)			; In an invalid comment
 	 ;; Fontify the invalid comment opener.
-	  (c-put-font-lock-face (nth 8 s) (point) font-lock-warning-face)
+	  (c-put-font-lock-face (nth 8 s) (point) 'font-lock-warning-face)
 	  ;; Move to end of comment or LIMIT.
 	  (setq s (parse-partial-sexp (point) limit nil nil s 'syntax-table))
 	  ;; Fontify an invalid block comment ender, if that's what we have.
 	  (when (and (not c-block-comment-flag)
 		     (not (nth 4 s)))	; We're outside the comment
 	    (c-put-font-lock-face (- (point) (length c-block-comment-ender))
-				  (point) font-lock-warning-face)))))))
+				  (point) 'font-lock-warning-face)))))))
   nil)
 
 (c-lang-defconst c-basic-matchers-before
@@ -911,7 +898,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 			      (c-lang-const c-simple-ws) "*"
 			      "=\\(?:[^=]\\|$\\)")
 		      `((,(+ 1 (c-lang-const c-simple-ws-depth))
-			 font-lock-type-face t)))))))))
+			 'font-lock-type-face t)))))))))
 
       ;; Fontify the special declarations in Objective-C.
       ,@(when (c-major-mode-is 'objc-mode)
@@ -1184,7 +1171,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	       (c-put-font-lock-face
 		(point)
 		(progn (c-forward-over-token) (point))
-		font-lock-function-name-face)))))
+		'font-lock-function-name-face)))))
        (and template-class
 	    (eq init-char ?=)		; C++ "<class X = Y>"?
 	    (progn
@@ -2077,7 +2064,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 				       ((and capture-default
 					     (eq mode capture-default))
 					'font-lock-warning-face)
-				       ((eq mode ?=) font-lock-constant-face)
+				       ((eq mode ?=) 'font-lock-constant-face)
 				       (t 'font-lock-variable-name-face))))
 	    (c-syntactic-re-search-forward "," limit 'bound t))
 
@@ -2205,7 +2192,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 		    (c-put-font-lock-face
 		     (1+ beg) (if end (1- end) (point)) font-lock-string-face)
 		  (c-put-font-lock-face
-		   beg (or end (point)) font-lock-string-face))
+		   beg (or end (point)) 'font-lock-string-face))
 		(c-forward-syntactic-ws limit)
 		t)
 	       (t nil)))
@@ -2245,9 +2232,9 @@ casts and declarations are fontified.  Used on level 2 and higher."
 					c-reference-face-name)))
 	    ;; No semicolon, so put warning faces on any delimiters.
 	    (when beg
-	      (c-put-font-lock-face beg (1+ beg) font-lock-warning-face))
+	      (c-put-font-lock-face beg (1+ beg) 'font-lock-warning-face))
 	    (when end
-	      (c-put-font-lock-face (1- end) end font-lock-warning-face))))))))
+	      (c-put-font-lock-face (1- end) end 'font-lock-warning-face))))))))
 
 (c-lang-defconst c-simple-decl-matchers
   "Simple font lock matchers for types and declarations.  These are used

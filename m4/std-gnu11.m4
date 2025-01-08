@@ -16,7 +16,7 @@ m4_ifndef([_AC_C_C23_OPTIONS], [
 m4_version_prereq([2.70], [], [
 
 
-# Copyright (C) 2001-2024 Free Software Foundation, Inc.
+# Copyright (C) 2001-2025 Free Software Foundation, Inc.
 
 # This file is part of Autoconf.  This program is free
 # software; you can redistribute it and/or modify it under the

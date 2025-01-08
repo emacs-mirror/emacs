@@ -1,6 +1,6 @@
 ;;; c-ts-common.el --- Utilities for C like Languages  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
 
 ;; Maintainer : 付禹安 (Yuan Fu) <casouri@gmail.com>
 ;; Package    : emacs
@@ -46,12 +46,7 @@
 
 (require 'treesit)
 (eval-when-compile (require 'rx))
-
-(declare-function treesit-node-start "treesit.c")
-(declare-function treesit-node-end "treesit.c")
-(declare-function treesit-node-type "treesit.c")
-(declare-function treesit-node-parent "treesit.c")
-(declare-function treesit-node-prev-sibling "treesit.c")
+(treesit-declare-unavailable-functions)
 
 ;;; Comment indentation and filling
 
@@ -128,8 +123,8 @@ ARG is passed to `fill-paragraph'."
                   (looking-at "//"))
                 ;; In rust, NODE will be the body of a comment, and the
                 ;; parent will be the whole comment.
-                (if-let ((start (treesit-node-start
-                                 (treesit-node-parent node))))
+                (if-let* ((start (treesit-node-start
+                                  (treesit-node-parent node))))
                     (save-excursion
                       (goto-char start)
                       (looking-at "//"))))
@@ -254,9 +249,12 @@ This function should be called at BOL.  Used by
    ;; (3)
    ;; Current line: *, |, -
    ;; Prefix: same.
-   ;; This branch must return the same prefix as branch (1), as the
-   ;; second line in the paragraph; then the whole paragraph will use *
-   ;; as the prefix.
+   ;; Adaptive fill looks at the first and second line of a paragraph,
+   ;; only when both lines return the same prefix does it use that
+   ;; prefix for the following lines.  If the first lines matches branch
+   ;; (1) and returns * as prefix, and the second line matches this
+   ;; branch (3), and returns * as prefix, then the whole paragraph will
+   ;; use * as prefix.
    ((looking-at (rx (* (syntax whitespace))
                     (or "*" "|" "-")
                     (* (syntax whitespace))))
@@ -331,55 +329,61 @@ and /* */ comments.  SOFT works the same as in
   ;; is a // comment, insert a newline and a // prefix; if the current
   ;; line is in a /* comment, insert a newline and a * prefix.  No
   ;; auto-fill or other smart features.
-  (cond
-   ;; Line starts with //, or ///, or ////...
-   ;; Or //! (used in rust).
-   ((save-excursion
-      (beginning-of-line)
-      (re-search-forward
-       (rx "//" (group (* (any "/!")) (* " ")))
-       (line-end-position)
-       t nil))
-    (let ((offset (- (match-beginning 0) (line-beginning-position)))
-          (whitespaces (match-string 1)))
-      (if soft (insert-and-inherit ?\n) (newline 1))
-      (delete-region (line-beginning-position) (point))
-      (insert (make-string offset ?\s) "//" whitespaces)))
+  (let ((insert-line-break
+         (lambda ()
+	   (delete-horizontal-space)
+	   (if soft
+	       (insert-and-inherit ?\n)
+	     (newline  1)))))
+    (cond
+     ;; Line starts with //, or ///, or ////...
+     ;; Or //! (used in rust).
+     ((save-excursion
+        (beginning-of-line)
+        (re-search-forward
+         (rx "//" (group (* (any "/!")) (* " ")))
+         (line-end-position)
+         t nil))
+      (let ((offset (- (match-beginning 0) (line-beginning-position)))
+            (whitespaces (match-string 1)))
+        (funcall insert-line-break)
+        (delete-region (line-beginning-position) (point))
+        (insert (make-string offset ?\s) "//" whitespaces)))
 
-   ;; Line starts with /* or /**.
-   ((save-excursion
-      (beginning-of-line)
-      (re-search-forward
-       (rx "/*" (group (? "*") (* " ")))
-       (line-end-position)
-       t nil))
-    (let ((offset (- (match-beginning 0) (line-beginning-position)))
-          (whitespace-and-star-len (length (match-string 1))))
-      (if soft (insert-and-inherit ?\n) (newline 1))
-      (delete-region (line-beginning-position) (point))
-      (insert
-       (make-string offset ?\s)
-       " *"
-       (make-string whitespace-and-star-len ?\s))))
+     ;; Line starts with /* or /**.
+     ((save-excursion
+        (beginning-of-line)
+        (re-search-forward
+         (rx "/*" (group (? "*") (* " ")))
+         (line-end-position)
+         t nil))
+      (let ((offset (- (match-beginning 0) (line-beginning-position)))
+            (whitespace-and-star-len (length (match-string 1))))
+        (funcall insert-line-break)
+        (delete-region (line-beginning-position) (point))
+        (insert
+         (make-string offset ?\s)
+         " *"
+         (make-string whitespace-and-star-len ?\s))))
 
-   ;; Line starts with *.
-   ((save-excursion
-      (beginning-of-line)
-      (looking-at (rx (group (* " ") (any "*|") (* " ")))))
-    (let ((prefix (match-string 1)))
-      (if soft (insert-and-inherit ?\n) (newline 1))
-      (delete-region (line-beginning-position) (point))
-      (insert prefix)))
+     ;; Line starts with *.
+     ((save-excursion
+        (beginning-of-line)
+        (looking-at (rx (group (* " ") (any "*|") (* " ")))))
+      (let ((prefix (match-string 1)))
+        (funcall insert-line-break)
+        (delete-region (line-beginning-position) (point))
+        (insert prefix)))
 
-   ;; Line starts with whitespaces or no space.  This is basically the
-   ;; default case since (rx (* " ")) matches anything.
-   ((save-excursion
-      (beginning-of-line)
-      (looking-at (rx (* " "))))
-    (let ((whitespaces (match-string 0)))
-      (if soft (insert-and-inherit ?\n) (newline 1))
-      (delete-region (line-beginning-position) (point))
-      (insert whitespaces)))))
+     ;; Line starts with whitespaces or no space.  This is basically the
+     ;; default case since (rx (* " ")) matches anything.
+     ((save-excursion
+        (beginning-of-line)
+        (looking-at (rx (* " "))))
+      (let ((whitespaces (match-string 0)))
+        (funcall insert-line-break)
+        (delete-region (line-beginning-position) (point))
+        (insert whitespaces))))))
 
 ;; Font locking using doxygen parser
 (defvar c-ts-mode-doxygen-comment-font-lock-settings
@@ -393,7 +397,12 @@ and /* */ comments.  SOFT works the same as in
    :override t
    :feature 'keyword
    '((tag_name) @font-lock-constant-face
-     (storageclass) @font-lock-constant-face)
+     (type) @font-lock-type-face
+     (emphasis) @bold
+     ((tag_name) @bold (:match ".note" @bold))
+     ((tag_name) @warning (:match ".warning" @warning))
+     ((tag_name) @error (:match ".error" @error))
+     (storageclass) @font-lock-keyword-face)
 
    :language 'doxygen
    :override t
@@ -525,6 +534,169 @@ characters on the current line."
       ;; Go up the tree.
       (setq node (treesit-node-parent node)))
     (* level (symbol-value c-ts-common-indent-offset))))
+
+;;; Baseline indent rule
+
+(defvar c-ts-common-list-indent-style 'align
+  "Intructs `c-ts-common-baseline-indent-rule' how to indent lists.
+
+If the value is `align', indent lists like this:
+
+const a = [
+           1, 2, 3
+           4, 5, 6,
+          ];
+
+If the value is `simple', indent lists like this:
+
+const a = [
+  1, 2, 3,
+  4, 5, 6,
+];")
+
+(defun c-ts-common--standalone-parent (parent)
+  "Find the first parent that starts on a new line.
+Start searching from PARENT, so if PARENT satisfies the condition, it'll
+be returned.  Return the starting position of the parent, return nil if
+no parent satisfies the condition."
+  (save-excursion
+    (catch 'term
+      (while parent
+        (goto-char (treesit-node-start parent))
+        (when (looking-back (rx bol (* whitespace))
+                            (line-beginning-position))
+          (throw 'term (point)))
+        (setq parent (treesit-node-parent parent))))))
+
+(defun c-ts-common--prev-standalone-sibling (node)
+  "Return the previous sibling of NODE that starts on a new line.
+Return nil if no sibling satisfies the condition."
+  (save-excursion
+    (setq node (treesit-node-prev-sibling node 'named))
+    (goto-char (treesit-node-start node))
+    (while (and node
+                (goto-char (treesit-node-start node))
+                (not (looking-back (rx bol (* whitespace))
+                                   (pos-bol))))
+      (setq node (treesit-node-prev-sibling node 'named)))
+    node))
+
+(defun c-ts-common-parent-ignore-preproc (node)
+  "Return the parent of NODE, skipping preproc nodes."
+  (let ((parent (treesit-node-parent node))
+        (pred (if (treesit-thing-defined-p
+                   'preproc (or (and node (treesit-node-language node))
+                                (treesit-parser-language
+                                 treesit-primary-parser)))
+                  'preproc
+                "preproc")))
+    (while (and parent (treesit-node-match-p parent pred))
+      (setq parent (treesit-node-parent parent)))
+    parent))
+
+(defun c-ts-common-baseline-indent-rule (node parent bol &rest _)
+  "Baseline indent rule for C-like languages.
+
+NODE PARENT, BOL are like in other simple indent rules.
+
+This rule works as follows:
+
+Let PREV-NODE be the largest node that starts on previous line,
+basically the NODE we get if we were indenting previous line.
+
+0. Closing brace aligns with first parent that starts on a new line.
+
+1. If PREV-NODE and NODE are siblings, align this line to previous
+line (PREV-NODE as the anchor, and offset is 0).
+
+2. If PARENT is a list, ie, (...) [...], align with NODE's first
+sibling.  For the first sibling and the closing paren or bracket, indent
+according to `c-ts-common-list-indent-style'.  This rule also handles
+initializer lists like {...}, but initializer lists doesn't respect
+`c-ts-common-list-indent-style'--they always indent in the `simple'
+style.
+
+3. Otherwise, go up the parse tree from NODE and look for a parent that
+starts on a new line.  Use that parent as the anchor and indent one
+level.  But if the node is a top-level construct (ignoring preprocessor
+nodes), don't indent it.
+
+This rule works for a wide range of scenarios including complex
+situations.  Major modes should use this as the fallback rule, and add
+exception rules before it to cover the cases it doesn't apply.
+
+This rule tries to be smart and ignore proprocessor node in some
+situations.  By default, any node that has \"proproc\" in its type are
+considered a preprocessor node.  If that heuristic is inaccurate, define
+a `preproc' thing in `treesit-thing-settings', and this rule will use
+the thing definition instead."
+  (let ((prev-line-node (treesit--indent-prev-line-node bol))
+        (offset (symbol-value c-ts-common-indent-offset)))
+    (cond
+     ;; Condition 0.
+     ((and (treesit-node-match-p node "}")
+           (treesit-node-match-p (treesit-node-child parent 0) "{"))
+      (cons (c-ts-common--standalone-parent parent)
+            0))
+     ;; Condition 1.
+     ((and (treesit-node-eq (treesit-node-parent prev-line-node)
+                            parent)
+           (not (treesit-node-match-p node (rx (or ")" "]")))))
+      (cons (treesit-node-start prev-line-node)
+            0))
+     ;; Condition 2.
+     ((treesit-node-match-p (treesit-node-child parent 0)
+                            (rx (or "(" "[")))
+      (let ((first-sibling (treesit-node-child parent 0 'named)))
+        (cond
+         ;; Closing delimeters.
+         ((treesit-node-match-p node (rx (or ")" "]")))
+          (if (eq c-ts-common-list-indent-style 'align)
+              (cons (treesit-node-start (treesit-node-child parent 0))
+                    0)
+            (cons (c-ts-common--standalone-parent parent)
+                  0)))
+         ;; First sibling.
+         ((treesit-node-eq node first-sibling)
+          (if (eq c-ts-common-list-indent-style 'align)
+              (cons (treesit-node-start (treesit-node-child parent 0))
+                    1)
+            (cons (c-ts-common--standalone-parent parent)
+                  offset)))
+         ;; Not first sibling
+         (t (cons (treesit-node-start
+                   (or (c-ts-common--prev-standalone-sibling node)
+                       first-sibling))
+                  0)))))
+     ;; Condition 2 for initializer list, only apply to
+     ;; second line. Eg,
+     ;;
+     ;; return { 1, 2, 3,
+     ;;          4, 5, 6, --> Handled by this condition.
+     ;;          7, 8, 9 }; --> Handled by condition 1.
+     ((and (treesit-node-match-p (treesit-node-child parent 0) "{")
+           (treesit-node-prev-sibling node 'named))
+      ;; If first sibling is a comment, indent like code; otherwise
+      ;; align to first sibling.
+      (if (treesit-node-match-p
+           (treesit-node-child parent 0 'named)
+           c-ts-common--comment-regexp 'ignore-missing)
+          (cons (c-ts-common--standalone-parent parent)
+                offset)
+        (cons (treesit-node-start
+               (treesit-node-child parent 0 'named))
+              0)))
+     ;; Before we fallback to condition 3, make sure we don't indent
+     ;; top-level stuff.
+     ((treesit-node-eq (treesit-parser-root-node
+                        (treesit-node-parser parent))
+                       (c-ts-common-parent-ignore-preproc node))
+      (cons (pos-bol) 0))
+     ;; Condition 3.
+     (t (cons (c-ts-common--standalone-parent parent)
+              offset)))))
+
+
 
 (provide 'c-ts-common)
 

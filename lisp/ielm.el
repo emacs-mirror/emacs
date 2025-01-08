@@ -1,6 +1,6 @@
 ;;; ielm.el --- interaction mode for Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994, 2001-2024 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2025 Free Software Foundation, Inc.
 
 ;; Author: David Smith <maa036@lancaster.ac.uk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -580,6 +580,7 @@ Customized bindings may be defined in `ielm-map', which currently contains:
        ielm-fontify-input-enable
        (comint-fontify-input-mode))
 
+  (setq-local trusted-content :all)
   (setq comint-prompt-regexp (concat "^" (regexp-quote ielm-prompt)))
   (setq-local paragraph-separate "\\'")
   (setq-local paragraph-start comint-prompt-regexp)

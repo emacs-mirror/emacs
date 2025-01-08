@@ -122,8 +122,6 @@ the char-table has no extra slot.  */)
   else
     {
       CHECK_FIXNAT (n);
-      if (XFIXNUM (n) > 10)
-	args_out_of_range (n, Qnil);
       n_extras = XFIXNUM (n);
     }
 

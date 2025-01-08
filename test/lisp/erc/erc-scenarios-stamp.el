@@ -1,6 +1,6 @@
 ;;; erc-scenarios-stamp.el --- Misc `erc-stamp' scenarios -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -29,7 +29,7 @@
 (defvar erc-scenarios-stamp--user-marker nil)
 
 (defun erc-scenarios-stamp--on-post-modify ()
-  (when-let (((erc--check-msg-prop 'erc--cmd 4)))
+  (when-let* (((erc--check-msg-prop 'erc--cmd 4)))
     (set-marker erc-scenarios-stamp--user-marker (point-max))
     (ert-info ("User marker correctly placed at `erc-insert-marker'")
       (should (= ?\n (char-before erc-scenarios-stamp--user-marker)))
@@ -188,6 +188,7 @@
       ((erc-scenarios-common-dialog "base/reconnect")
        (erc-server-flood-penalty 0.1)
        (erc-stamp--tz t)
+       (erc-server-reconnect-function #'erc-server-delayed-reconnect)
        (erc-server-auto-reconnect t)
        ;; Start close to midnight: 2024-06-02T23:58:11.055Z
        (erc-stamp--current-time (if (< emacs-major-version 29)

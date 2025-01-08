@@ -1,6 +1,6 @@
 ;;; time.el --- display time, load and mail indicator in mode line of Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2024 Free Software
+;; Copyright (C) 1985-1987, 1993-1994, 1996, 2000-2025 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -548,7 +548,7 @@ If the value is t instead of an alist, use the value of
 (defun world-clock-copy-time-as-kill ()
   "Copy current line into the kill ring."
   (interactive nil world-clock-mode)
-  (when-let ((str (buffer-substring-no-properties (pos-bol) (pos-eol))))
+  (when-let* ((str (buffer-substring-no-properties (pos-bol) (pos-eol))))
     (kill-new str)
     (message str)))
 
@@ -598,7 +598,7 @@ See `world-clock'."
 The variable `world-clock-list' specifies which time zones to use.
 To turn off the world time display, go to the window and type \\[quit-window]."
   (interactive)
-  (if-let ((buffer (get-buffer world-clock-buffer-name)))
+  (if-let* ((buffer (get-buffer world-clock-buffer-name)))
       (pop-to-buffer buffer)
     (pop-to-buffer world-clock-buffer-name)
     (when world-clock-timer-enable

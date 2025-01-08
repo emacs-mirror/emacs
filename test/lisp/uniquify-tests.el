@@ -1,6 +1,6 @@
 ;;; uniquify-tests.el --- Tests for uniquify         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
 
 ;; Author: Spencer Baugh <sbaugh@janestreet.com>
 
@@ -66,7 +66,7 @@
       (make-directory b-path 'parents)
       (let ((uniquify-buffer-name-style 'forward)
             (uniquify-strip-common-suffix t)
-            (uniquify-trailing-separator-p nil))
+            (uniquify-trailing-separator-flag nil))
         (let ((bufs (list (find-file-noselect a-path)
                           (find-file-noselect b-path))))
           (should (equal (mapcar #'buffer-name bufs)
@@ -74,7 +74,7 @@
           (mapc #'kill-buffer bufs)))
       (let ((uniquify-buffer-name-style 'forward)
             (uniquify-strip-common-suffix nil)
-            (uniquify-trailing-separator-p t))
+            (uniquify-trailing-separator-flag t))
         (let ((bufs (list (find-file-noselect a-path)
                           (find-file-noselect b-path))))
           (should (equal (mapcar #'buffer-name bufs)
@@ -82,7 +82,7 @@
           (mapc #'kill-buffer bufs)))
       (let ((uniquify-buffer-name-style 'forward)
             (uniquify-strip-common-suffix t)
-            (uniquify-trailing-separator-p t))
+            (uniquify-trailing-separator-flag t))
         (let ((bufs (list (find-file-noselect a-path)
                           (find-file-noselect b-path))))
           (should (equal (mapcar #'buffer-name bufs)
@@ -92,7 +92,7 @@
 (ert-deftest uniquify-rename-to-dir ()
   "Giving a buffer a name which matches a directory doesn't rename the buffer"
   (let ((uniquify-buffer-name-style 'forward)
-        (uniquify-trailing-separator-p t))
+        (uniquify-trailing-separator-flag t))
       (save-excursion
         (find-file "../README")
         (rename-buffer "lisp" t)
@@ -101,7 +101,7 @@
 
 (ert-deftest uniquify-separator-style-reverse ()
   (let ((uniquify-buffer-name-style 'reverse)
-        (uniquify-trailing-separator-p t))
+        (uniquify-trailing-separator-flag t))
     (save-excursion
       (should (file-directory-p "../lib-src"))
       (find-file "../lib-src")
@@ -109,10 +109,10 @@
       (kill-buffer))))
 
 (ert-deftest uniquify-separator-ignored ()
-  "If uniquify-buffer-name-style isn't forward or reverse,
-uniquify-trailing-separator-p is ignored"
+  "If `uniquify-buffer-name-style' isn't forward or reverse,
+`uniquify-trailing-separator-flag' is ignored."
   (let ((uniquify-buffer-name-style 'post-forward-angle-brackets)
-        (uniquify-trailing-separator-p t))
+        (uniquify-trailing-separator-flag t))
     (save-excursion
       (should (file-directory-p "../lib-src"))
       (find-file "../lib-src")

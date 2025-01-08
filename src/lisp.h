@@ -1,7 +1,7 @@
 
 /* Fundamental definitions for GNU Emacs Lisp interpreter. -*- coding: utf-8 -*-
 
-Copyright (C) 1985-2024 Free Software Foundation, Inc.
+Copyright (C) 1985-2025 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1417,10 +1417,10 @@ INLINE bool
 INLINE bool
 EQ (Lisp_Object x, Lisp_Object y)
 {
-  return BASE_EQ ((symbols_with_pos_enabled && SYMBOL_WITH_POS_P (x)
-		   ? XSYMBOL_WITH_POS_SYM (x) : x),
-		  (symbols_with_pos_enabled && SYMBOL_WITH_POS_P (y)
-		   ? XSYMBOL_WITH_POS_SYM (y) : y));
+  return BASE_EQ ((__builtin_expect (symbols_with_pos_enabled, false)
+		   && SYMBOL_WITH_POS_P (x) ? XSYMBOL_WITH_POS_SYM (x) : x),
+		  (__builtin_expect (symbols_with_pos_enabled, false)
+		   && SYMBOL_WITH_POS_P (y) ? XSYMBOL_WITH_POS_SYM (y) : y));
 }
 
 INLINE intmax_t
@@ -4665,6 +4665,7 @@ extern Lisp_Object plist_put (Lisp_Object plist, Lisp_Object prop,
 extern Lisp_Object plist_member (Lisp_Object plist, Lisp_Object prop);
 extern void syms_of_fns (void);
 extern void mark_fns (void);
+Lisp_Object memq_no_quit (Lisp_Object elt, Lisp_Object list);
 
 /* Defined in sort.c  */
 extern void tim_sort (Lisp_Object, Lisp_Object, Lisp_Object *, const ptrdiff_t,
@@ -5325,10 +5326,45 @@ Lisp_Object funcall_general (Lisp_Object fun,
 
 /* Defined in unexmacosx.c.  */
 #if defined DARWIN_OS && defined HAVE_UNEXEC
+/* Redirect calls to malloc, realloc and free to a macOS zone memory allocator.
+   FIXME: Either also redirect unexec_aligned_alloc and unexec_calloc,
+   or fix this comment to explain why those two redirections are not needed.  */
 extern void unexec_init_emacs_zone (void);
 extern void *unexec_malloc (size_t);
 extern void *unexec_realloc (void *, size_t);
 extern void unexec_free (void *);
+# ifndef UNEXMACOSX_C
+#  include <stdlib.h>
+#  undef malloc
+#  undef realloc
+#  undef free
+#  define malloc unexec_malloc
+#  define realloc unexec_realloc
+#  define free unexec_free
+# endif
+#endif
+
+/* Defined in gmalloc.c.  */
+#ifdef HYBRID_MALLOC
+/* Redirect calls to malloc and friends to a hybrid allocator that
+   uses gmalloc before dumping and the system malloc after dumping.
+   This can be useful on Cygwin, for example.  */
+extern void *hybrid_aligned_alloc (size_t, size_t);
+extern void *hybrid_calloc (size_t, size_t);
+extern void *hybrid_malloc (size_t);
+extern void *hybrid_realloc (void *, size_t);
+extern void hybrid_free (void *);
+# include <stdlib.h>
+# undef aligned_alloc
+# undef calloc
+# undef malloc
+# undef realloc
+# undef free
+# define aligned_alloc hybrid_aligned_alloc
+# define calloc hybrid_calloc
+# define malloc hybrid_malloc
+# define realloc hybrid_realloc
+# define free hybrid_free
 #endif
 
 /* The definition of Lisp_Module_Function depends on emacs-module.h,

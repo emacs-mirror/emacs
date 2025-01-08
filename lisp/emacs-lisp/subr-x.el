@@ -1,6 +1,6 @@
 ;;; subr-x.el --- extra Lisp functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2025 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
@@ -357,7 +357,9 @@ automatically killed, which means that in a such case
         ;; Flush BUFFER before making it available again, i.e. clear
         ;; its contents, remove all overlays and buffer-local
         ;; variables.  Is it enough to safely reuse the buffer?
-        (let ((inhibit-read-only t))
+        (let ((inhibit-read-only t)
+              ;; Avoid deactivating the region as side effect.
+              deactivate-mark)
           (erase-buffer))
         (delete-all-overlays)
         (let (change-major-mode-hook)
@@ -398,22 +400,25 @@ substring that does not include newlines."
     ;; Keeping a work buffer around is more efficient than creating a
     ;; new temporary buffer.
     (with-work-buffer
-      ;; If `display-line-numbers' is enabled in internal
-      ;; buffers (e.g. globally), it breaks width calculation
-      ;; (bug#59311).  Disable `line-prefix' and `wrap-prefix',
-      ;; for the same reason.
-      (setq display-line-numbers nil
-            line-prefix nil wrap-prefix nil)
       (if buffer
           (setq-local face-remapping-alist
                       (with-current-buffer buffer
                         face-remapping-alist))
         (kill-local-variable 'face-remapping-alist))
-      (insert string)
+      ;; Avoid deactivating the region as side effect.
+      (let (deactivate-mark)
+        (insert string))
+      ;; If `display-line-numbers' is enabled in internal
+      ;; buffers (e.g. globally), it breaks width calculation
+      ;; (bug#59311).  Disable `line-prefix' and `wrap-prefix',
+      ;; for the same reason.
+      (add-text-properties
+       (point-min) (point-max) '(display-line-numbers-disable t))
       ;; Prefer `remove-text-properties' to `propertize' to avoid
       ;; creating a new string on each call.
       (remove-text-properties
        (point-min) (point-max) '(line-prefix nil wrap-prefix nil))
+      (setq line-prefix nil wrap-prefix nil)
       (car (buffer-text-pixel-size nil nil t)))))
 
 ;;;###autoload
@@ -475,7 +480,7 @@ this defaults to the current buffer."
                  (t
                   disp)))
           ;; Remove any old instances.
-          (when-let ((old (assoc prop disp)))
+          (when-let* ((old (assoc prop disp)))
             (setq disp (delete old disp)))
           (setq disp (cons (list prop value) disp))
           (when vector

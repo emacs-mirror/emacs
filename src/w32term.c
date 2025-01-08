@@ -1,6 +1,6 @@
 /* Implementation of GUI terminal on the Microsoft Windows API.
 
-Copyright (C) 1989, 1993-2024 Free Software Foundation, Inc.
+Copyright (C) 1989, 1993-2025 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,6 +24,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "w32term.h"
 #include "w32common.h"	/* for OS version info */
+#include <wtypes.h>
+#include <gdiplus.h>
+#include "w32gdiplus.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -2106,16 +2109,53 @@ w32_draw_image_foreground (struct glyph_string *s)
 		    compat_hdc, s->slice.x, s->slice.y, SRCCOPY);
 	  else
 	    {
-	      int pmode = 0;
-	      /* Windows 9X doesn't support HALFTONE.  */
-	      if (os_subtype == OS_SUBTYPE_NT
-		  && (pmode = SetStretchBltMode (s->hdc, HALFTONE)) != 0)
-		SetBrushOrgEx (s->hdc, 0, 0, NULL);
-	      StretchBlt (s->hdc, x, y, s->slice.width, s->slice.height,
-			  compat_hdc, orig_slice_x, orig_slice_y,
-			  orig_slice_width, orig_slice_height, SRCCOPY);
-	      if (pmode)
-		SetStretchBltMode (s->hdc, pmode);
+#ifdef HAVE_NATIVE_IMAGE_API
+	      if (s->img->smoothing && w32_gdiplus_startup ())
+		{
+		  GpGraphics *graphics;
+		  if (GdipCreateFromHDC (s->hdc, &graphics) == Ok)
+		    {
+		      GpBitmap *gp_bitmap;
+		      /* Can't create a GpBitmap from a HBITMAP that was
+			 ever selected into a DC, so we need to copy.  */
+		      HBITMAP copy
+			= CopyImage (GetCurrentObject (compat_hdc, OBJ_BITMAP),
+				     IMAGE_BITMAP, 0, 0, 0);
+		      if (GdipCreateBitmapFromHBITMAP (copy, NULL,
+						       &gp_bitmap) == Ok)
+			{
+			  GdipSetInterpolationMode (graphics,
+						    InterpolationModeHighQualityBilinear);
+			  GdipDrawImageRectRectI (graphics,
+						  gp_bitmap, x, y,
+						  s->slice.width,
+						  s->slice.height,
+						  orig_slice_x,
+						  orig_slice_y,
+						  orig_slice_width,
+						  orig_slice_height,
+						  UnitPixel,
+						  NULL, NULL, NULL);
+			  GdipDisposeImage (gp_bitmap);
+			}
+		      DeleteObject (copy);
+		      GdipDeleteGraphics (graphics);
+		    }
+		}
+	      else
+#endif
+		{
+		  int pmode = 0;
+		  /* Windows 9X doesn't support HALFTONE.  */
+		  if (os_subtype == OS_SUBTYPE_NT
+		      && (pmode = SetStretchBltMode (s->hdc, HALFTONE)) != 0)
+		    SetBrushOrgEx (s->hdc, 0, 0, NULL);
+		  StretchBlt (s->hdc, x, y, s->slice.width, s->slice.height,
+			      compat_hdc, orig_slice_x, orig_slice_y,
+			      orig_slice_width, orig_slice_height, SRCCOPY);
+		  if (pmode)
+		    SetStretchBltMode (s->hdc, pmode);
+		}
 	    }
 
 	  /* When the image has a mask, we can expect that at
@@ -5629,6 +5669,24 @@ w32_read_socket (struct terminal *terminal,
 	  }
 	  break;
 
+	case WM_EMACS_DRAGOVER:
+	  {
+	    f = w32_window_to_frame (dpyinfo, msg.msg.hwnd);
+	    if (!f)
+	      break;
+	    XSETFRAME (inev.frame_or_window, f);
+	    inev.kind = DRAG_N_DROP_EVENT;
+	    inev.code = 0;
+	    inev.timestamp = msg.msg.time;
+	    inev.modifiers = msg.dwModifiers;
+	    ScreenToClient (msg.msg.hwnd, &msg.msg.pt);
+	    XSETINT (inev.x, msg.msg.pt.x);
+	    XSETINT (inev.y, msg.msg.pt.y);
+	    /* This is a drag movement.  */
+	    inev.arg = Qnil;
+	    break;
+	  }
+
 	case WM_HSCROLL:
 	  {
 	    struct scroll_bar *bar =
@@ -6347,14 +6405,13 @@ w32_read_socket (struct terminal *terminal,
 	if (FRAME_TOOLTIP_P (f))
 	  continue;
 
-	/* Check "visible" frames and mark each as obscured or not.
+	/* Check "visible" frames and mark each as visible or not.
 	   Note that visible is nonzero for unobscured and obscured
 	   frames, but zero for hidden and iconified frames.  */
 	if (FRAME_W32_P (f) && FRAME_VISIBLE_P (f))
 	  {
 	    RECT clipbox;
 	    HDC  hdc;
-	    bool obscured;
 
 	    enter_crit ();
 	    /* Query clipping rectangle for the entire window area
@@ -6368,29 +6425,11 @@ w32_read_socket (struct terminal *terminal,
 	    ReleaseDC (FRAME_W32_WINDOW (f), hdc);
 	    leave_crit ();
 
-	    obscured = FRAME_OBSCURED_P (f);
-
-	    if (clipbox.right == clipbox.left || clipbox.bottom == clipbox.top)
-	      {
-		/* Frame has become completely obscured so mark as such (we
-		   do this by setting visible to 2 so that FRAME_VISIBLE_P
-		   is still true, but redisplay will skip it).  */
-		SET_FRAME_VISIBLE (f, 2);
-
-		if (!obscured)
-		  DebPrint (("frame %p (%s) obscured\n", f, SDATA (f->name)));
-	      }
-	    else
+	    if (!(clipbox.right == clipbox.left
+		  || clipbox.bottom == clipbox.top))
 	      {
 		/* Frame is not obscured, so mark it as such.  */
 		SET_FRAME_VISIBLE (f, 1);
-
-		if (obscured)
-		  {
-		    SET_FRAME_GARBAGED (f);
-		    DebPrint (("obscured frame %p (%s) found to be visible\n",
-			       f, SDATA (f->name)));
-		  }
 	      }
 	  }
       }

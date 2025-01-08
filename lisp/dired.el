@@ -1,6 +1,6 @@
 ;;; dired.el --- directory-browsing commands -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992-1997, 2000-2024 Free Software
+;; Copyright (C) 1985-1986, 1992-1997, 2000-2025 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -385,6 +385,12 @@ new Dired buffers."
   "Non-nil means `dired-hide-details-mode' hides all but header and file lines."
   :type 'boolean
   :version "24.4"
+  :group 'dired)
+
+(defcustom dired-hide-details-hide-absolute-location nil
+  "Non-nil means `dired-hide-details-mode' hides directory absolute location."
+  :type 'boolean
+  :version "31.1"
   :group 'dired)
 
 (defcustom dired-always-read-filesystem nil
@@ -855,7 +861,7 @@ Set it to nil for remote directories, which suffer from a slow connection."
                  (if (not (connection-local-value dired-check-symlinks))
                      (search-forward-regexp
                       "\\(.+-> ?\\)\\(.+\\)" end t)
-                   (when-let ((file (dired-file-name-at-point)))
+                   (when-let* ((file (dired-file-name-at-point)))
                      (let ((truename (ignore-errors (file-truename file))))
                        (and (or (not truename)
 		                (not (file-directory-p truename)))
@@ -1735,11 +1741,11 @@ see `dired-use-ls-dired' for more details.")
                             (executable-find "sh")))
                     (switch (if remotep "-c" shell-command-switch)))
                ;; Enable globstar
-               (when-let ((globstar dired-maybe-use-globstar)
-                          (enable-it
-                           (assoc-default
-                            (file-truename sh) dired-enable-globstar-in-shell
-                            (lambda (reg shell) (string-match reg shell)))))
+               (when-let* ((globstar dired-maybe-use-globstar)
+                           (enable-it
+                            (assoc-default
+                             (file-truename sh) dired-enable-globstar-in-shell
+                             (lambda (reg shell) (string-match reg shell)))))
                  (setq script (format "%s; %s" enable-it script)))
                (unless
                    (zerop
@@ -1816,12 +1822,25 @@ see `dired-use-ls-dired' for more details.")
 	  (when (and (or hdr wildcard)
 		     (not (and (looking-at "^  \\(.*\\):$")
 			       (file-name-absolute-p (match-string 1)))))
-	    ;; Note that dired-build-subdir-alist will replace the name
-	    ;; by its expansion, so it does not matter whether what we insert
-	    ;; here is fully expanded, but it should be absolute.
-	    (insert "  " (or (car-safe dir-wildcard)
-                             (directory-file-name (file-name-directory dir)))
-                    ":\n")
+            (let* ((dir-indent "  ")
+                   (dir-name (or (car-safe dir-wildcard)
+                                 (directory-file-name
+                                  (file-name-directory dir))))
+                   (dir-name-point (+ (point) (length dir-indent)))
+                   (hideable-location
+                    (and dired-hide-details-hide-absolute-location
+                         (not (string-empty-p (file-name-nondirectory
+                                               dir-name))))))
+	      ;; Inserted directory name must be absolute, but keep in
+              ;; mind it may be replaced in some instances like in
+              ;; `dired-build-subdir-alist'.
+              (insert dir-indent dir-name ":\n")
+              (when hideable-location
+                (put-text-property
+                 dir-name-point
+                 (+ dir-name-point
+                    (length (file-name-directory dir-name)))
+                 'invisible 'dired-hide-details-absolute-location)))
 	    (setq content-point (point)))
 	  (when wildcard
 	    ;; Insert "wildcard" line where "total" line would be for a full dir.
@@ -1844,7 +1863,7 @@ see `dired-use-ls-dired' for more details.")
         ;; Replace "total" with "total used in directory" to
         ;; avoid confusion.
         (replace-match "total used in directory" nil nil nil 1))
-      (if-let ((available (get-free-disk-space file)))
+      (if-let* ((available (get-free-disk-space file)))
         (cond
          ((eq dired-free-space 'separate)
 	  (end-of-line)
@@ -1943,13 +1962,12 @@ other marked file as well.  Otherwise, unmark all files."
                        ;; a remote file.
                        (user-error (cadr error)))))))))))
 
-(defvar dired-mouse-drag-files-map (let ((keymap (make-sparse-keymap)))
-                                     (define-key keymap [down-mouse-1] #'dired-mouse-drag)
-                                     (define-key keymap [C-down-mouse-1] #'dired-mouse-drag)
-                                     (define-key keymap [S-down-mouse-1] #'dired-mouse-drag)
-                                     (define-key keymap [M-down-mouse-1] #'dired-mouse-drag)
-                                     keymap)
-  "Keymap applied to file names when `dired-mouse-drag-files' is enabled.")
+(defvar-keymap dired-mouse-drag-files-map
+  :doc "Keymap applied to file names when `dired-mouse-drag-files' is enabled."
+  "<down-mouse-1>"   #'dired-mouse-drag
+  "C-<down-mouse-1>" #'dired-mouse-drag
+  "S-<down-mouse-1>" #'dired-mouse-drag
+  "M-<down-mouse-1>" #'dired-mouse-drag)
 
 (defvar dired-click-to-select-mode)
 (defvar dired-click-to-select-map)
@@ -2063,7 +2081,18 @@ mouse-2: visit this file in other window"
                           "<mouse-2>" click
                           "<follow-link>" 'mouse-face
                           "RET" click))))
-          (setq segment-start (point)))))))
+          (setq segment-start (point)))
+        (when (search-forward ":" bound t)
+          (add-text-properties
+           segment-start (1- (point))
+           `(mouse-face highlight
+             help-echo "mouse-1: re-read this buffer's directory"
+             keymap ,(define-keymap
+                       "<mouse-2>" (lambda ()
+                                     (interactive "@")
+                                     (revert-buffer))
+                       "<follow-link>" 'mouse-face
+                       "RET" #'revert-buffer))))))))
 
 (defun dired--get-ellipsis-length ()
   "Return length of ellipsis."
@@ -2784,7 +2813,7 @@ Keybindings:
                   (let ((point (window-point w)))
                     (save-excursion
                       (goto-char point)
-                      (if-let ((f (dired-get-filename nil t)))
+                      (if-let* ((f (dired-get-filename nil t)))
                           `((dired-filename . ,f))
                         `((position . ,(point)))))))))
   (setq-local window-point-context-use-function
@@ -2792,9 +2821,9 @@ Keybindings:
                 (with-current-buffer (window-buffer w)
                   (let ((point (window-point w)))
                     (save-excursion
-                      (if-let ((f (alist-get 'dired-filename context)))
+                      (if-let* ((f (alist-get 'dired-filename context)))
                           (dired-goto-file f)
-                        (when-let ((p (alist-get 'position context)))
+                        (when-let* ((p (alist-get 'position context)))
                           (goto-char p)))
                       (setq point (point)))
                     (set-window-point w point)))))
@@ -2819,7 +2848,9 @@ Keybindings:
   ;; FIXME this should check the key-bindings and use
   ;; substitute-command-keys if non-standard
   (message
-   "d-elete, u-ndelete, x-punge, f-ind, o-ther window, R-ename, C-opy, h-elp"))
+   (substitute-command-keys
+    (concat "\\`d'-elete, \\`u'-ndelete, \\`x'-punge, \\`f'-ind, "
+            "\\`o'-ther window, \\`R'-ename, \\`C'-opy, \\`h'-elp"))))
 
 (defun dired-undo ()
   "Undo in a Dired buffer.
@@ -3257,8 +3288,9 @@ unchanged."
 When this minor mode is enabled, details such as file ownership and
 permissions are hidden from view.
 
-See options: `dired-hide-details-hide-symlink-targets' and
-`dired-hide-details-hide-information-lines'."
+See options: `dired-hide-details-hide-symlink-targets',
+`dired-hide-details-hide-information-lines' and
+`dired-hide-details-hide-absolute-location'."
   :group 'dired
   (unless (derived-mode-p '(dired-mode wdired-mode))
     (error "Not a Dired buffer"))
@@ -3282,6 +3314,11 @@ See options: `dired-hide-details-hide-symlink-targets' and
 	       'add-to-invisibility-spec
 	     'remove-from-invisibility-spec)
 	   'dired-hide-details-information)
+  (funcall (if (and dired-hide-details-mode
+		    dired-hide-details-hide-absolute-location)
+	       #'add-to-invisibility-spec
+	     #'remove-from-invisibility-spec)
+	   'dired-hide-details-absolute-location)
   (funcall (if (and dired-hide-details-mode
 		    dired-hide-details-hide-symlink-targets
 		    (not (derived-mode-p 'wdired-mode)))
@@ -3688,7 +3725,18 @@ instead of `dired-actual-switches'."
 				(substring new-dir-name (match-end 0)))
 		      (expand-file-name new-dir-name))))
 	    (delete-region (point) (match-end 1))
-	    (insert new-dir-name))
+            (let ((new-dir-name-pos (point))
+                  (hideable-location
+                   (and dired-hide-details-hide-absolute-location
+                        (not (string-empty-p
+                              (file-name-nondirectory new-dir-name))))))
+              (insert new-dir-name)
+              (when hideable-location
+                (put-text-property
+                 new-dir-name-pos
+                 (+ new-dir-name-pos
+                    (length (file-name-directory new-dir-name)))
+		 'invisible 'dired-hide-details-absolute-location))))
 	  (setq count (1+ count))
 	  ;; Undo any escaping of newlines and \ by dired-insert-directory.
 	  ;; Convert "n" preceded by odd number of \ to newline, and \\ to \.
@@ -5220,6 +5268,7 @@ Interactively with prefix argument, read FILE-NAME."
 (declare-function Man-getpage-in-background "man" (topic))
 (defvar Man-support-remote-systems) ; from man.el
 (defvar manual-program) ; from man.el
+(declare-function tool-bar--image-expression "tool-bar" (icon))
 
 (defun dired-do-man ()
   "In Dired, run `man' on this file."
@@ -5245,8 +5294,8 @@ Interactively with prefix argument, read FILE-NAME."
 
 ;;; Click-To-Select mode
 
-(defvar dired-click-to-select-map (make-sparse-keymap)
-  "Keymap placed on files under `dired-click-to-select' mode.")
+(defvar-keymap dired-click-to-select-map
+  :doc "Keymap placed on files under `dired-click-to-select' mode.")
 
 (define-key dired-click-to-select-map [mouse-2]
             #'dired-mark-for-click)

@@ -1,6 +1,6 @@
 ;;; completion-preview.el --- Preview completion with inline overlay  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
 
 ;; Author: Eshel Yaron <me@eshelyaron.com>
 ;; Maintainer: Eshel Yaron <me@eshelyaron.com>
@@ -322,8 +322,15 @@ Completion Preview mode adds this function to
   "Mode for when the completion preview is shown."
   :interactive nil
   (if completion-preview-active-mode
-      (add-hook 'window-selection-change-functions
-                #'completion-preview--window-selection-change nil t)
+      (progn
+        (add-hook 'window-selection-change-functions
+                  #'completion-preview--window-selection-change nil t)
+        ;; Give keymap precedence over other minor mode maps.
+        ;; TODO: Use explicit minor mode precedence instead when
+        ;; implemented (bug#74492).
+        (setf (alist-get 'completion-preview-active-mode
+                         minor-mode-overriding-map-alist)
+              completion-preview-active-mode-map))
     (remove-hook 'window-selection-change-functions
                  #'completion-preview--window-selection-change t)
     (completion-preview-hide)))
@@ -380,11 +387,11 @@ candidates or if there are multiple matching completions and
          (prefix (substring string base)))
     (when last
       (setcdr last nil)
-      (when-let ((sorted (funcall sort-fn
-                                  (delete prefix (all-completions prefix all))))
-                 (common (try-completion prefix sorted))
-                 (lencom (length common))
-                 (suffixes sorted))
+      (when-let* ((sorted (funcall sort-fn
+                                   (delete prefix (all-completions prefix all))))
+                  (common (try-completion prefix sorted))
+                  (lencom (length common))
+                  (suffixes sorted))
         (unless (and (cdr suffixes) completion-preview-exact-match-only)
           ;; Remove the common prefix from each candidate.
           (while sorted
@@ -398,8 +405,8 @@ candidates or if there are multiple matching completions and
     (and (consp res)
          (not (functionp res))
          (seq-let (beg end table &rest plist) res
-           (or (when-let ((data (completion-preview--try-table
-                                 table beg end plist)))
+           (or (when-let* ((data (completion-preview--try-table
+                                  table beg end plist)))
                  `(,(+ beg (length (car data))) ,end ,plist ,@data))
                (unless (eq 'no (plist-get plist :exclusive))
                  ;; Return non-nil to exclude other capfs.
@@ -411,7 +418,7 @@ candidates or if there are multiple matching completions and
       (run-hook-wrapped
        'completion-at-point-functions
        #'completion-preview--capf-wrapper)
-    (when-let ((suffix (car suffixes)))
+    (when-let* ((suffix (car suffixes)))
       (set-text-properties 0 (length suffix)
                            (list 'face (if (cdr suffixes)
                                            'completion-preview

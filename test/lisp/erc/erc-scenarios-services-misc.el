@@ -1,6 +1,6 @@
 ;;; erc-scenarios-services-misc.el --- Services-misc scenarios -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -155,6 +155,7 @@
        (dumb-server (erc-d-run "localhost" t 'reconnect-retry
                                'reconnect-retry-again))
        (port (process-contact dumb-server :service))
+       (erc-server-reconnect-function #'erc-server-delayed-reconnect)
        (erc-server-auto-reconnect t)
        (erc-modules `(services-regain sasl ,@erc-modules))
        (erc-services-regain-alist

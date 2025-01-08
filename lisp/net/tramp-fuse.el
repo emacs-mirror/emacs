@@ -1,6 +1,6 @@
 ;;; tramp-fuse.el --- Tramp access functions for FUSE mounts  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2021-2024 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -128,8 +128,8 @@
 
 (defun tramp-fuse-mount-spec (vec)
   "Return local mount spec of VEC."
-  (if-let ((host (tramp-file-name-host vec))
-	   (user (tramp-file-name-user vec)))
+  (if-let* ((host (tramp-file-name-host vec))
+	    (user (tramp-file-name-user vec)))
       (format "%s@%s:/" user host)
     (format "%s:/" host)))
 
@@ -138,13 +138,17 @@
   "Time period to check whether the mount point still exists.
 It has the same meaning as `remote-file-name-inhibit-cache'.")
 
+;;;###tramp-autoload
+(defconst tramp-fuse-name-prefix "tramp-"
+  "Prefix to use for temporary FUSE mount points.")
+
 (defun tramp-fuse-mount-point (vec)
   "Return local mount point of VEC."
   (let ((remote-file-name-inhibit-cache tramp-fuse-mount-timeout))
     (or (tramp-get-file-property vec "/" "mount-point")
 	(expand-file-name
 	 (concat
-	  tramp-temp-name-prefix
+	  tramp-fuse-name-prefix
 	  (tramp-file-name-method vec) "."
 	  (when (tramp-file-name-user vec)
 	    (concat (tramp-file-name-user-domain vec) "@"))

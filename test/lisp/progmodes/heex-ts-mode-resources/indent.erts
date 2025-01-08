@@ -45,3 +45,19 @@ Name: Slots
   </:bar>
 </Foo>
 =-=-=
+
+Name: Expression
+
+=-=
+<div>
+{
+@bar
+}
+</div>
+=-=
+<div>
+  {
+    @bar
+  }
+</div>
+=-=-=
