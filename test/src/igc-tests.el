@@ -21,6 +21,9 @@
 
 (require 'ert)
 
+(declare-function igc--set-commit-limit "igc.c")
+(declare-function igc-info "igc.c")
+
 (ert-deftest set-commit-limit-test ()
   (should (equal (igc--set-commit-limit (ash 1 30)) nil))
   (should (equal (assoc-string "commit-limit" (igc-info))
