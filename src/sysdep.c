@@ -1737,8 +1737,6 @@ static pthread_t main_thread_id;
 void
 deliver_process_signal (int sig, signal_handler_t handler)
 {
-  if (!gc_signal_handler_can_run (sig))
-    return;
   /* Preserve errno, to avoid race conditions with signal handlers that
      might change errno.  Races can occur even in single-threaded hosts.  */
   int old_errno = errno;
@@ -1774,8 +1772,6 @@ static int thread_backtrace_npointers;
 static void
 deliver_thread_signal (int sig, signal_handler_t handler)
 {
-  if (!gc_signal_handler_can_run (sig))
-    return;
   int old_errno = errno;
 
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
