@@ -246,6 +246,7 @@ the changes to snapshot A. See the modes's help."
 (defvar igc--collect-timer nil)
 (defvar igc--collect-file nil)
 
+;;;###autoload
 (defun igc-stop-collecting-stats ()
   (interactive)
   (when igc--collect-timer
@@ -268,6 +269,7 @@ the changes to snapshot A. See the modes's help."
                                  time title n bytes))))
       (save-buffer))))
 
+;;;###autoload
 (defun igc-start-collecting-stats (file secs)
   "Start collecting statistics every SECS seconds."
   (interactive "FOutput file: \nnInterval (seconds): ")
