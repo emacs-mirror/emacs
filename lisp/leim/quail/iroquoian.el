@@ -28,7 +28,7 @@
 ;; languages:
 
 ;; - Mohawk (Kanien’kéha / Onkwehonwehnéha)
-;; - Oneida (Onʌyota:ká: / Ukwehuwehnéha)
+;; - Oneida (Onʌyote’a·ká· / Ukwehuwehnéha)
 ;; - Onondaga (Onųdaʔgegáʔ)
 ;; - Cayuga (Gayogo̱ho:nǫhnéha:ˀ)
 ;; - Seneca (Onödowá’ga:’)
@@ -229,7 +229,7 @@ Entries are as with rules in `quail-define-rules'.")
 
 (quail-define-package
  "oneida-postfix" "Oneida" "ONE<" t
- "Oneida (Onʌyota:ká:) input method with postfix modifiers
+ "Oneida (Onʌyote’a·ká·) input method with postfix modifiers
 
 Modifiers:
 
@@ -896,7 +896,7 @@ Entries are as with rules in `quail-define-rules'.")
 This input method can be used to enter the following languages:
 
 - Mohawk (Kanien’kéha / Onkwehonwehnéha)
-- Oneida (Onʌyota:ká: / Ukwehuwehnéha)
+- Oneida (Onʌyote’a·ká· / Ukwehuwehnéha)
 - Cayuga (Gayogo̱ho:nǫhnéha:ˀ)
 - Onondaga (Onųdaʔgegáʔ)
 - Seneca (Onödowá’ga:’)
@@ -942,10 +942,10 @@ Vowels:
 | -------------------------------------------------------------------- |
 | (Onondaga Nation, New York)                                          |
 | -------------------------------------------------------------------- |
-| en~  | eñ          | Mid front nasal vowel                           |
-| EN~  | EÑ          | Mid front nasal vowel (capital)                 |
-| on~  | oñ          | Back high nasal vowel                           |
-| ON~  | OÑ          | Back high nasal vowel (capital)                 |
+| en-  | eñ          | Mid front nasal vowel                           |
+| EN-  | EÑ          | Mid front nasal vowel (capital)                 |
+| on-  | oñ          | Back high nasal vowel                           |
+| ON-  | OÑ          | Back high nasal vowel (capital)                 |
 | a\"   | ä           | Low front rounded vowel                         |
 | A\"   | Ä           | Low front rounded vowel (capital)               |
 | -------------------------------------------------------------------- |
