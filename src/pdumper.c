@@ -633,6 +633,7 @@ static void dump_grow_buffer (struct dump_context *ctx)
 static dump_off dump_object (struct dump_context *ctx, Lisp_Object object);
 static dump_off dump_object_for_offset (struct dump_context *ctx,
 					Lisp_Object object);
+
 /* Like the Lisp function `push'.  Return NEWELT.  */
 static Lisp_Object
 dump_push (Lisp_Object *where, Lisp_Object newelt)
@@ -5318,7 +5319,7 @@ dump_mmap_contiguous_vm (struct dump_memory_map *maps, int nr_maps,
 	}
     }
   return ret;
- }
+}
 #endif
 
 /* Map a range of addresses into a chunk of contiguous memory.

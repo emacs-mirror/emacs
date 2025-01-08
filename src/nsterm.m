@@ -8546,7 +8546,7 @@ ns_in_echo_area (void)
   BOOL onFirstScreen;
   struct frame *f;
   NSRect r;
-   NSColor *col;
+  NSColor *col;
 
   NSTRACE ("[EmacsView toggleFullScreen:]");
 

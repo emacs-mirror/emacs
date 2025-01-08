@@ -1,4 +1,3 @@
-
 /* Fundamental definitions for GNU Emacs Lisp interpreter. -*- coding: utf-8 -*-
 
 Copyright (C) 1985-2025 Free Software Foundation, Inc.
@@ -1070,7 +1069,7 @@ DEFINE_GDB_SYMBOL_END (PSEUDOVECTOR_FLAG)
    with PVEC_TYPE_MASK to indicate the actual type.  */
 enum pvec_type
 {
-  PVEC_NORMAL_VECTOR, /* Should be first, for sxhash_obj.  */
+  PVEC_NORMAL_VECTOR,	/* Should be first, for sxhash_obj.  */
   PVEC_FREE,
   PVEC_BIGNUM,
   PVEC_MARKER,
@@ -6259,7 +6258,7 @@ safe_free_unbind_to (specpdl_ref count, specpdl_ref sa_count, Lisp_Object val)
 #endif
 #ifndef USE_STACK_LISP_OBJECTS
 # define USE_STACK_LISP_OBJECTS true
-# endif
+#endif
 
 # ifdef HAVE_MPS
 # undef USE_STACK_LISP_OBJECTS
