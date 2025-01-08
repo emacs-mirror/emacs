@@ -1,4 +1,4 @@
-/* Incremental, generational, concurrent GC using MPS.
+/* Incremental and generational GC using MPS.
    Copyright (C) 2024 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
