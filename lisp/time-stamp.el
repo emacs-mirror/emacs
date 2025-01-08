@@ -307,7 +307,7 @@ See also `time-stamp-count' and `time-stamp-inserts-lines'.")
 
 ;;;###autoload
 (defun time-stamp ()
-  "Update any time stamp string(s) in the buffer.
+  "Update any time stamp strings (timestamps) in the buffer.
 Look for a time stamp template and update it with the current date,
 time, and/or other info.
 
@@ -830,7 +830,7 @@ if they didn't read the documentation)."
             (standard-form
              (concat
               "Conversions that are changing are ambiguous and should be replaced by\n"
-              "stable conversions that makes your intention clear.\n")))
+              "stable conversions that make your intention clear.\n")))
            "\n"
            "The following obsolescent `time-stamp-format' conversion(s) were found:\n\n")))))
       (insert old-form " -- use " new-form)
