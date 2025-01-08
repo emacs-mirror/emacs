@@ -1128,11 +1128,6 @@ the @code{\endnote} macro (from @file{endnotes.sty})
 the @code{\subfigure} and @code{\subtable} macros (from
 @file{subfig.sty})
 @item
-@cindex @code{supertab}, LaTeX package
-@cindex LaTeX packages, @code{supertab}
-@cindex @code{supertabular}, LaTeX environment
-@code{supertabular} (@file{supertab.sty})
-@item
 @cindex @code{wrapfig}, LaTeX package
 @cindex LaTeX packages, @code{wrapfig}
 @cindex @code{wrapfigure}, LaTeX environment

@@ -91,9 +91,6 @@
       ("\\subtable[][]{}"  ?t "tab:" "~\\subref{%s}"
        "\\\\subtable\\(?:\\(?:\\[[^]]*\\]\\)?\\[\\|{\\)")))
 
-    (supertab    "Supertabular environment"
-     (("supertabular" ?t nil nil "\\tablecaption{")))
-
     (wrapfig     "The wrapfigure and wraptable environments"
      (("wrapfigure" ?f nil nil caption)
       ("wraptable"  ?t nil nil caption)))
@@ -462,7 +459,7 @@ If nil, `follow-mode' will be suspended for stuff in unvisited files."
 
 (defcustom reftex-default-label-alist-entries
   '( amsmath endnotes fancybox floatfig longtable picinpar
-     rotating sidecap subfig supertab wrapfig
+     rotating sidecap subfig wrapfig
      listings minted ctable LaTeX)
   "Default label alist specifications.  LaTeX should always be the last entry.
 The value of this variable is a list of symbols with associations in the
