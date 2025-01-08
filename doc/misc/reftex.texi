@@ -1121,12 +1121,12 @@ the @code{\endnote} macro (from @file{endnotes.sty})
 @cindex @code{sidewaystable}, LaTeX environment
 @code{sidewaysfigure}, @code{sidewaystable} (@file{rotating.sty})
 @item
-@cindex @code{subfigure}, LaTeX package
-@cindex LaTeX packages, @code{subfigure}
-@cindex @code{subfigure}, LaTeX environment
-@cindex @code{subfigure*}, LaTeX environment
-@code{subfigure}, @code{subfigure*}, the @code{\subfigure} macro
-(@file{subfigure.sty})
+@cindex @code{subfig}, LaTeX package
+@cindex LaTeX packages, @code{subfig}
+@cindex @code{\subfigure}, LaTeX macro
+@cindex @code{\subtable}, LaTeX macro
+the @code{\subfigure} and @code{\subtable} macros (from
+@file{subfig.sty})
 @item
 @cindex @code{supertab}, LaTeX package
 @cindex LaTeX packages, @code{supertab}
