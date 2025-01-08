@@ -5861,8 +5861,7 @@ maybe_gc (void)
     maybe_garbage_collect ();
 }
 
-/* Simplified version of 'define-error' that works with pure
-   objects.  */
+/* Simplified version of 'define-error'.  */
 void
 define_error (Lisp_Object name, const char *message, Lisp_Object parent);
 
