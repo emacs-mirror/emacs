@@ -2028,7 +2028,10 @@ If it appears in `%s', you should remove it."
   ;; Update to version 1.0 from earlier versions:
   (when (version< so-long-version "1.0")
     (remove-hook 'change-major-mode-hook 'so-long-change-major-mode)
-    (require 'advice) ;; It should already be loaded, but just in case.
+    (require 'advice)
+    ;; `ad-find-advice' is a macro in Emacs 26 and earlier.
+    (eval-when-compile (when (< emacs-major-version 27)
+                         (require 'advice)))
     (declare-function ad-find-advice "advice")
     (declare-function ad-remove-advice "advice")
     (declare-function ad-activate "advice")
