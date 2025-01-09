@@ -540,7 +540,10 @@ endif
 .PHONY: all
 
 dmpstruct_headers=$(srcdir)/lisp.h $(srcdir)/buffer.h $(srcdir)/itree.h \
-	$(srcdir)/intervals.h $(srcdir)/charset.h $(srcdir)/bignum.h
+	$(srcdir)/intervals.h $(srcdir)/charset.h $(srcdir)/bignum.h \
+	$(srcdir)/coding.h $(srcdir)/comp.h $(srcdir)/dispextern.h \
+	$(srcdir)/frame.h $(srcdir)/termhooks.h $(srcdir)/thread.h \
+	$(srcdir)/treesit.h $(srcdir)/window.h $(srcdir)/xwidget.h
 ifeq ($(CHECK_STRUCTS),true)
 pdumper.o: dmpstruct.h
 endif

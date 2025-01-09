@@ -111,6 +111,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_Buffer_Local_Value_B1EFDA61AE
 #  error "struct Lisp_Buffer_Local_Value changed"
 # endif
+# ifndef HASH_handler_18D8F45D0F
+#  error "struct handler changed"
+# endif
 # ifndef HASH_Lisp_Symbol_78773EECA2
 #  error "struct Lisp_Symbol changed"
 # endif
@@ -123,14 +126,56 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_Hash_Table_18BE341ECB
 #  error "struct Lisp_Hash_Table changed"
 # endif
+# ifndef HASH_Lisp_Weak_Hash_Table_7C5D3EDAD7
+#  error "struct Lisp_Weak_Hash_table changed"
+# endif
+# ifndef HASH_Lisp_Weak_Hash_Table_Strong_Part_E6E1344F69
+#  error "struct Lisp_Weak_Hash_Table_Strong_Part changed"
+# endif
+# ifndef HASH_Lisp_Weak_Hash_Table_Weak_Part_DA91AF2025
+#  error "struct Lisp_Weak_Hash_Table_Weak_Part changed"
+# endif
 # ifndef HASH_buffer_DF486266DF
 #  error "struct buffer changed"
+# endif
+# ifndef HASH_glyph_pool_FE89FC9050
+#  error "struct glyph_pool changed"
+# endif
+# ifndef HASH_glyph_matrix_559A8DDA89
+#  error "struct glyph_matrix changed"
+# endif
+# ifndef HASH_frame_BE1A77FEF4
+#  error "struct frame changed"
+# endif
+# ifndef HASH_window_AAD29CF361
+#  error "struct window changed"
 # endif
 # ifndef HASH_Lisp_Vector_64AF2E46CE
 #  error "struct Lisp_Vector changed"
 # endif
 # ifndef HASH_Lisp_Subr_6FC9E39686
 #  error "struct Lisp_Subr changed"
+# endif
+# ifndef HASH_Lisp_Misc_Ptr_369918BE47
+#  error "struct Lisp_Misc_Ptr changed"
+# endif
+# ifndef HASH_Lisp_User_Ptr_7DC5544B44
+#  error "struct Lisp_User_Ptr changed"
+# endif
+# ifndef HASH_thread_state_94925620A8
+#  error "struct thread_state changed"
+# endif
+# ifndef HASH_Lisp_Mutex_744F44A86D
+#  error "struct Lisp_Mutex changed"
+# endif
+# ifndef HASH_coding_system_77D58F21B9
+#  error "struct coding_system changed"
+# endif
+# ifndef HASH_terminal_4E8E555B40
+#  error "struct terminal changed"
+# endif
+# ifndef HASH_Lisp_Native_Comp_Unit_7DF63698B3
+#  error "struct Lisp_Native_Comp_Unit changed"
 # endif
 # ifndef HASH_pvec_type_1C9DBCD69F
 #  error "enum pvec_type changed"
@@ -144,9 +189,38 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_itree_tree_A8CE87B78A
 #  error "struct itree_tree changed"
 # endif
+# ifndef HASH_image_7243288625
+#  error "struct image changed"
+# endif
+# ifndef HASH_image_cache_3EC6F9D296
+#  error "struct image_cache changed"
+# endif
+# ifndef HASH_face_97AE235079
+#  error "struct face changed"
+# endif
+# ifndef HASH_face_cache_C289FB8D72
+#  error "struct face_cache changed"
+# endif
+# ifndef HASH_Lisp_Obarray_29CFFD1B74
+#  error "struct Lisp_Obarray changed"
+# endif
+# ifndef HASH_module_global_reference_85FFC23A88
+#  error "struct module_global_reference changed"
+# endif
+# ifndef HASH_Lisp_TS_Parser_5BA9C3BFF1
+#  error "struct Lisp_TS_Parser changed"
+# endif
+# ifndef HASH_Lisp_TS_Query_31B815035A
+#  error "struct Lisp_TS_Parser changed"
+# endif
+# ifndef HASH_xwidget_E5EDCB4855
+#  error "struct xwidget changed"
+# endif
+# ifndef HASH_xwidget_view_20FB8762B0
+#  error "struct xwidget_view changed"
+# endif
 
-/* Still missing; face, font, frame, thread, and probably a lot of
-   others.  */
+/* TODO: Check what is still missing here; font, and maybe others.  */
 #endif /* CHECK_STRUCTS */
 
 /* If igc can currently can be used.

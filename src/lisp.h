@@ -6414,7 +6414,8 @@ struct emacs_value_tag { Lisp_Object v; };
    PVEC_OTHER since these values are never printed and don't need to
    be special-cased for garbage collection.  */
 
-struct module_global_reference {
+struct module_global_reference
+{
   /* Pseudovector header, must come first. */
   struct vectorlike_header header;
 
