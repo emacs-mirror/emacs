@@ -998,7 +998,7 @@ fix_lisp_obj (mps_ss_t ss, Lisp_Object *pobj)
     mps_word_t *p = (mps_word_t *) pobj;
     mps_word_t word = *p;
 
-    /* Quickly rule out Qnil, and prevent subtraxting from a
+    /* Quickly rule out Qnil, and prevent subtracting from a
        null pointer.  */
     if (word == 0)
       return MPS_RES_OK;
