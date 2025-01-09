@@ -513,7 +513,7 @@ itree_size (struct itree_tree *tree)
 
 static void
 itree_rotate_left (struct itree_tree *tree,
-			   struct itree_node *node)
+		   struct itree_node *node)
 {
   eassert (node->right != NULL);
 
@@ -556,7 +556,7 @@ itree_rotate_left (struct itree_tree *tree,
 
 static void
 itree_rotate_right (struct itree_tree *tree,
-			    struct itree_node *node)
+		    struct itree_node *node)
 {
   eassert (tree && node && node->left != NULL);
 
@@ -595,7 +595,7 @@ itree_rotate_right (struct itree_tree *tree,
 
 static void
 itree_insert_fix (struct itree_tree *tree,
-			  struct itree_node *node)
+		  struct itree_node *node)
 {
   eassert (tree->root->red == false);
 
@@ -801,8 +801,8 @@ itree_subtree_min (uintmax_t otick, struct itree_node *node)
 
 static void
 itree_remove_fix (struct itree_tree *tree,
-			  struct itree_node *node,
-			  struct itree_node *parent)
+		  struct itree_node *node,
+		  struct itree_node *parent)
 {
   if (parent == NULL)
     eassert (node == tree->root);
@@ -917,8 +917,8 @@ itree_total_offset (struct itree_node *node)
    Requires both nodes to be using the same effective 'offset'.  */
 static void
 itree_replace_child (struct itree_tree *tree,
-			     struct itree_node *source,
-			     struct itree_node *dest)
+		     struct itree_node *source,
+		     struct itree_node *dest)
 {
   eassert (tree && dest != NULL);
   eassert (source == NULL
@@ -943,8 +943,8 @@ itree_replace_child (struct itree_tree *tree,
    effective 'offset'. */
 static void
 itree_transplant (struct itree_tree *tree,
-			  struct itree_node *source,
-			  struct itree_node *dest)
+		  struct itree_node *source,
+		  struct itree_node *dest)
 {
   itree_replace_child (tree, source, dest);
   source->left = dest->left;
@@ -1304,7 +1304,7 @@ itree_iter_next_in_subtree (struct itree_node *node,
                   return next;
                 }
             }
-          }
+	}
       return NULL;
 
     case ITREE_POST_ORDER:
