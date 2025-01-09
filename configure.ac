@@ -758,11 +758,12 @@ AS_IF([test "$with_android" = no || test -n "$XCONFIGURE"],[
   fi
   if $CHECK_STRUCTS; then
     AC_DEFINE([CHECK_STRUCTS], [1],
-      [Define this to check whether someone updated the portable dumper
-       code after changing the layout of a structure that it uses.
-       If you change one of these structures, check that the pdumper.c
-       code is still valid, and update the pertinent hash in pdumper.c
-       by manually copying the hash from the newly-generated dmpstruct.h.])
+      [Define this to check whether someone updated the portable dumper and
+       igc code after changing the layout of a structure or enum that they
+       use. If you change one of these structures or enums, check that the
+       pdumper.c and igc.c code is still valid, and update the pertinent
+       hashes by manually copying the hash from the newly-generated
+       dmpstruct.h.])
   fi
   AC_SUBST([CHECK_STRUCTS])
   if test x$ac_gc_check_stringbytes != x ; then
