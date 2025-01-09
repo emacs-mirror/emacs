@@ -5552,6 +5552,53 @@ its standard value."
   "A menu for `custom-icon' widgets.
 Used in `custom-icon-action' to show a menu to the user.")
 
+(defconst custom-icon--images-sub-type
+  '(list :format "%{%t%}:\n%v\n"
+         :tag "Images"
+         (const  :tag "" image)
+         (repeat :tag "Values"
+                 (string :tag "Image filename"))
+         (plist  :tag "Image attributes")))
+
+(defconst custom-icon--emojis-sub-type
+  '(list :format "%{%t%}:\n%v\n"
+         :tag "Colorful Emojis"
+         (const  :tag "" emoji)
+         (repeat :tag "Values"
+                 (string :tag "Emoji text"))
+         (plist  :tag "Emoji text properties")))
+
+(defconst custom-icon--symbols-sub-type
+  '(list :format "%{%t%}:\n%v\n"
+         :tag "Monochrome Symbols"
+         (const  :tag "" symbol)
+         (repeat :tag "Values"
+                 (string :tag "Symbol text"))
+         (plist  :tag "Symbol text properties")))
+
+(defconst custom-icon--texts-sub-type
+  '(list :format "%{%t%}:\n%v\n"
+         :tag "Texts Only"
+         (const  :tag "" text)
+         (repeat :tag "Values"
+                 (string :tag "Text"))
+         (plist  :tag "Text properties")))
+
+(defconst custom-icon--type
+  `(repeat :format ,(concat "%{%t%}"
+                            (propertize ":" 'display "")
+                            "\n\n%v%i\n")
+           :tag "Icon elements:
+- Only the first occurrence of a same element counts.
+- Missing elements will take their default value.
+- At least one element should be provided with a valid value."
+    (choice :void ,custom-icon--texts-sub-type
+            :extra-offset -3
+            ,custom-icon--images-sub-type
+            ,custom-icon--emojis-sub-type
+            ,custom-icon--symbols-sub-type
+            ,custom-icon--texts-sub-type)))
+
 (defun custom-icon-value-create (widget)
   "Here is where you edit the icon's specification."
   (custom-load-widget widget)
@@ -5562,13 +5609,7 @@ Used in `custom-icon-action' to show a menu to the user.")
 	 (form (widget-get widget :custom-form))
 	 (symbol (widget-get widget :value))
 	 (tag (widget-get widget :tag))
-	 (type '(repeat
-                 (list (choice (const :tag "Images" image)
-                               (const :tag "Colorful Emojis" emoji)
-                               (const :tag "Monochrome Symbols" symbol)
-                               (const :tag "Text Only" text))
-                       (repeat string)
-                       plist)))
+	 (type custom-icon--type)
 	 (prefix (widget-get widget :custom-prefix))
 	 (last (widget-get widget :custom-last))
 	 (style (widget-get widget :custom-style))
