@@ -15465,7 +15465,7 @@ xt_action_hook (Widget widget, XtPointer client_data, String action_name,
 
   if (scroll_bar_p
       && strcmp (action_name, end_action) == 0
-      && WINDOWP (window_being_scrolled))
+      && WINDOW_LIVE_P (window_being_scrolled))
     {
       struct window *w;
       struct scroll_bar *bar;
