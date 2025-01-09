@@ -89,6 +89,12 @@
 ;; when you pause typing for a short duration rather than after every
 ;; key.  Try setting it to 0.2 seconds and see how that works for you.
 ;;
+;; By default, Completion Preview mode automatically adapts the
+;; background color of the preview overlay to match the background color
+;; of the buffer text it's completing.  If you prefer a distinct
+;; background color for the preview, disable this feature by customizing
+;; `completion-preview-adapt-background-color' to nil.
+;;
 ;; Sometimes you may want to use Completion Preview mode alongside other
 ;; Emacs features that place an overlay after point, in a way that could
 ;; "compete" with the preview overlay.  In such cases, you should give
@@ -189,6 +195,26 @@ ignores such case differences, so the resulting string is \"fooBar\".
 
 See also `completion-ignore-case'."
   :type 'boolean
+  :version "31.1")
+
+(defcustom completion-preview-adapt-background-color 'completion-preview
+  "Control automatic adaptation of completion preview background color.
+
+This is either a face name or a (possibly empty) list of face names,
+which Completion Preview mode automatically remaps when showing the
+preview, such that the background color of the face(s) matches the
+background color at point.
+
+By default, this option specifies the `completion-preview' face (which
+also affects its descendent faces `completion-preview-common' and
+`completion-preview-exact') so the completion preview uses the
+background color at point.
+
+This is especially useful when there are other overlays at point that
+affect the background color, for example with `hl-line-mode'."
+  :type '(choice face
+                 (repeat :tag "List of faces" face)
+                 (const :tag "Disable" nil))
   :version "31.1")
 
 (defvar completion-preview-sort-function #'minibuffer--sort-by-length-alpha
@@ -293,6 +319,41 @@ Completion Preview mode avoids updating the preview after these commands.")
 (defvar completion-preview-overlay-priority nil
   "Value of the `priority' property for the completion preview overlay.")
 
+(defun completion-preview--bg-color (pos)
+  "Return background color at POS."
+  ;; This takes into account face remappings and multiple overlays that
+  ;; specify the `face' property, unlike `background-color-at-point'.
+  (catch 'found
+    (named-let rec ((spec (seq-keep (lambda (ov) (overlay-get ov 'face))
+                                    (overlays-at pos t)))
+                    (trace nil))
+      (dolist (face (if (face-list-p spec) spec (list spec)))
+        (let (cur)
+          (if (and (setq cur (alist-get face face-remapping-alist))
+                   (not (memq cur trace)))
+              (rec cur (cons face trace))
+            (cond ((and face (symbolp face))
+                   (let ((value (face-attribute face :background nil t)))
+                     (unless (member value '(nil "unspecified-bg" unspecified))
+                       (throw 'found value))))
+                  ((consp face)
+                   (when-let* ((value (or (cdr (memq 'background-color face))
+                                          (cadr (memq :background face)))))
+                     (throw 'found value)))))))
+      (unless trace
+        (save-excursion
+          (goto-char pos)
+          (font-lock-ensure (pos-bol) (pos-eol)))
+        (rec (or (and font-lock-mode
+                      (get-text-property pos 'font-lock-face))
+                 (get-text-property pos 'face))
+             '(nil))
+        (rec 'default '(nil))))))
+
+(defvar completion-preview--face-remap-cookie-jar nil)
+
+(declare-function face-remap-remove-relative "face-remap" (cookie))
+
 (defun completion-preview--make-overlay (pos string)
   "Make preview overlay showing STRING at POS, or move existing preview there."
   (if completion-preview--overlay
@@ -303,6 +364,13 @@ Completion Preview mode avoids updating the preview after these commands.")
     (overlay-put completion-preview--overlay 'window (selected-window)))
   (add-text-properties 0 1 '(cursor 1) string)
   (overlay-put completion-preview--overlay 'after-string string)
+  (mapc #'face-remap-remove-relative completion-preview--face-remap-cookie-jar)
+  (setq completion-preview--face-remap-cookie-jar
+        (when (and completion-preview-adapt-background-color (< (point-min) pos))
+          (mapcar (lambda (face)
+                    (face-remap-add-relative
+                     face `(:background ,(completion-preview--bg-color (1- pos)))))
+                  (ensure-list completion-preview-adapt-background-color))))
   completion-preview--overlay)
 
 (defsubst completion-preview--get (prop)
