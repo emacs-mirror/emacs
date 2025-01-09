@@ -83,77 +83,74 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
 /* If one of these fires, check what has changed, fix uses of the type
    in this file, and copy the new hash code from src/dmpstruct.h here.  */
-# ifndef HASH_Lisp_Cons_00EEE63F67
+# ifndef HASH_Lisp_Cons_8E09073155
 #  error "struct Lisp_Cons changed"
 # endif
-# ifndef HASH_interval_1B38941C37
+# ifndef HASH_interval_DE36B11AE7
 #  error "struct interval changed"
 # endif
-# ifndef HASH_Lisp_String_03B2DF1C8E
+# ifndef HASH_Lisp_String_39D7E563BF
 #  error "struct Lisp_String changed"
 # endif
-# ifndef HASH_Lisp_Marker_B6F52B2098
+# ifndef HASH_Lisp_Marker_D850433F19
 #  error "struct Lisp_Marker changed"
 # endif
-# ifndef HASH_itree_node_50DE304F13
+# ifndef HASH_itree_node_8AF9E94FBA
 #  error "struct itree_node changed"
 # endif
-# ifndef HASH_Lisp_Overlay_5F9D7E02FC
+# ifndef HASH_Lisp_Overlay_AF021DC256
 #  error "struct Lisp_Overlay changed"
 # endif
-# ifndef HASH_Lisp_Finalizer_D58E647CB8
+# ifndef HASH_Lisp_Finalizer_7DACDD23C5
 #  error "struct Lisp_Finalizer changed"
 # endif
-# ifndef HASH_Lisp_Bignum_661945DE2B
+# ifndef HASH_Lisp_Bignum_8732048B98
 #  error "struct Lisp_Bignum changed"
 # endif
-# ifndef HASH_Lisp_Float_9CA83A9083
+# ifndef HASH_Lisp_Float_4F10F019A4
 #  error "struct Lisp_Float changed"
 # endif
-# ifndef HASH_Lisp_Buffer_Local_Value_3C363FAC3C
+# ifndef HASH_Lisp_Buffer_Local_Value_B1EFDA61AE
 #  error "struct Lisp_Buffer_Local_Value changed"
 # endif
-# ifndef HASH_Lisp_Symbol_C3C2929454
+# ifndef HASH_Lisp_Symbol_78773EECA2
 #  error "struct Lisp_Symbol changed"
 # endif
 # ifndef HASH_symbol_redirect_EA72E4BFF5
 #  error "enum symbol_redirect changed"
 # endif
-# ifndef HASH_vectorlike_header_785E52047B
+# ifndef HASH_vectorlike_header_AF1B22D957
 #  error "struct vectorlike_header changed"
 # endif
-# ifndef HASH_Lisp_Hash_Table_AAA2B44B06
+# ifndef HASH_Lisp_Hash_Table_18BE341ECB
 #  error "struct Lisp_Hash_Table changed"
 # endif
-# ifndef HASH_buffer_B02F648B82
+# ifndef HASH_buffer_DF486266DF
 #  error "struct buffer changed"
 # endif
-# ifndef HASH_Lisp_Vector_3091289B35
+# ifndef HASH_Lisp_Vector_64AF2E46CE
 #  error "struct Lisp_Vector changed"
 # endif
-# ifndef HASH_Lisp_Subr_20B7443AD7
+# ifndef HASH_Lisp_Subr_6FC9E39686
 #  error "struct Lisp_Subr changed"
 # endif
-# ifndef HASH_pvec_type_6604A61AFB
+# ifndef HASH_pvec_type_1C9DBCD69F
 #  error "enum pvec_type changed"
 # endif
 # ifndef HASH_Lisp_Type_45F0582FD7
 #  error "enum Lisp_Type changed"
 # endif
-# ifndef HASH_charset_E31F4B5D96
+# ifndef HASH_charset_84DCEA663B
 #  error "struct charset changed"
 # endif
-# ifndef HASH_itree_tree_86CA0F8AEE
-#  error "struct itree_tree changed"
-# endif
-# ifndef HASH_itree_tree_86CA0F8AEE
+# ifndef HASH_itree_tree_A8CE87B78A
 #  error "struct itree_tree changed"
 # endif
 # endif // 0
 
 /* Still missing; face, font, frame, thread, and probably a lot of
    others.  */
-#endif	/* CHECK_STRUCTS */
+#endif /* CHECK_STRUCTS */
 
 /* If igc can currently can be used.
 
