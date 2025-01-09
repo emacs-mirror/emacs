@@ -31,7 +31,6 @@ Eli Zaretskii
 	    src/msdos.[ch]
 	    src/dosfns.[ch]
 	    src/w16select.c
-	    src/unexcoff.c
 	    lisp/term/internal.el
 	    lisp/term/pc-win.el
 	    lisp/dos-fns.el
@@ -272,7 +271,6 @@ Eli Zaretskii
 	src/frame.c
 	src/dired.c
 	src/fileio.c
-	src/unexw32.c
 	src/w32*.[ch]
 	src/window.c
 	src/indent.c

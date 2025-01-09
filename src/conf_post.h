@@ -155,7 +155,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 #define emacs_raise(sig) msdos_fatal_signal (sig)
 
-/* DATA_START is needed by vm-limit.c and unexcoff.c. */
+/* DATA_START is needed by vm-limit.c. */
 #define DATA_START (&etext + 1)
 #endif  /* MSDOS */
 
