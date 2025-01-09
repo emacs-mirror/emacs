@@ -5931,7 +5931,10 @@ DEFUN ("clrhash", Fclrhash, Sclrhash, 1, 1, 0,
 
 DEFUN ("gethash", Fgethash, Sgethash, 2, 3, 0,
        doc: /* Look up KEY in TABLE and return its associated value.
-If KEY is not found, return DFLT which defaults to nil.  */)
+If KEY is not found in table, return DEFAULT, or nil if DEFAULT is not
+provided.
+
+usage: (gethash KEY TABLE &optional DEFAULT)  */)
   (Lisp_Object key, Lisp_Object table, Lisp_Object dflt)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
