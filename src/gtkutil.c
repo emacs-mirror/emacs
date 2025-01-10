@@ -1914,7 +1914,13 @@ xg_free_frame_widgets (struct frame *f)
         = g_object_get_data (G_OBJECT (FRAME_GTK_OUTER_WIDGET (f)),
                              TB_INFO_KEY);
       if (tbinfo)
-        xfree (tbinfo);
+	{
+#ifdef HAVE_MPS
+	  igc_xfree (tbinfo);
+#else
+	  xfree (tbinfo);
+#endif
+	}
 
       /* x_free_frame_resources should have taken care of it */
 #ifndef HAVE_PGTK
