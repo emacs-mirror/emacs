@@ -6114,6 +6114,7 @@ extern void *record_xmalloc (size_t)
    positive.  The code is tuned for MULTIPLIER being a constant.  */
 
 # ifdef HAVE_MPS
+/* Defined in igc.c.  */
 void *igc_xnmalloc_ambig (ptrdiff_t nitems, ptrdiff_t item_size);
 void igc_xfree (void *p);
 
