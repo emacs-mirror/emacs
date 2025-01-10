@@ -6179,7 +6179,7 @@ safe_free (specpdl_ref sa_count)
 #else
 	  eassert (specpdl_ptr->unwind_ptr.func == xfree);
 #endif
-	  xfree (specpdl_ptr->unwind_ptr.arg);
+	  specpdl_ptr->unwind_ptr.func (specpdl_ptr->unwind_ptr.arg);
 	}
       else
 	{
