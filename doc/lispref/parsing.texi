@@ -1628,10 +1628,14 @@ exactly how C and C@t{++} modes define things.
 
 Emacs builtin functions already make use some thing definitions.
 Command @code{treesit-forward-sexp} uses the @code{sexp} definition if
-major mode defines it; @code{treesit-forward-sentence} uses the
-@code{sentence} definition.  Defun movement functions like
-@code{treesit-end-of-defun} uses the @code{defun} definition
-(@code{defun} definition is overridden by
+major mode defines it; @code{treesit-forward-list},
+@code{treesit-down-list}, @code{treesit-up-list},
+@code{treesit-show-paren-data} use the @code{list} definition (its
+symbol @code{list} has the symbol property @code{treesit-thing-symbol}
+to avoid ambiguity with the function that has the same name);
+@code{treesit-forward-sentence} uses the @code{sentence} definition.
+Defun movement functions like @code{treesit-end-of-defun} uses the
+@code{defun} definition (@code{defun} definition is overridden by
 @var{treesit-defun-type-regexp} for backward compatibility).  Major
 modes can also define @code{comment}, @code{string}, @code{text}
 (generally comments and strings).

@@ -3618,7 +3618,8 @@ treesit_traverse_validate_predicate (Lisp_Object pred,
     }
   if (STRINGP (pred))
     return true;
-  else if (FUNCTIONP (pred))
+  else if (FUNCTIONP (pred)
+	   && !(SYMBOLP (pred) && !NILP (Fget (pred, Qtreesit_thing_symbol))))
     return true;
   else if (SYMBOLP (pred))
     {
@@ -3722,7 +3723,8 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
       const char *type = ts_node_type (node);
       return fast_c_string_match (pred, type, strlen (type)) >= 0;
     }
-  else if (FUNCTIONP (pred))
+  else if (FUNCTIONP (pred)
+	   && !(SYMBOLP (pred) && !NILP (Fget (pred, Qtreesit_thing_symbol))))
     {
       Lisp_Object lisp_node = make_treesit_node (parser, node);
       return !NILP (CALLN (Ffuncall, pred, lisp_node));
@@ -4332,6 +4334,8 @@ syms_of_treesit (void)
   DEFSYM (Qtreesit_pattern_expand, "treesit-pattern-expand");
   DEFSYM (Qtreesit_invalid_predicate, "treesit-invalid-predicate");
   DEFSYM (Qtreesit_predicate_not_found, "treesit-predicate-not-found");
+
+  DEFSYM (Qtreesit_thing_symbol, "treesit-thing-symbol");
 
   DEFSYM (Qor, "or");
 
