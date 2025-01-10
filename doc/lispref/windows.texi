@@ -1427,7 +1427,7 @@ window.  If non-@code{nil}, @var{refer} can be either a window or a cons
 cell of two windows.
 
 If @var{refer} is a cons cell, its @sc{car} has to specify a deleted,
-former live window - a window that has shown a buffer before - on the
+former live window -- a window that has shown a buffer before -- on the
 same frame as @var{window}.  That buffer must be still live.  The
 @sc{cdr} has to specify a deleted window that was, before its deletion,
 a parent window on the same frame as @var{window}.  In this case, rather
@@ -1439,10 +1439,10 @@ immediately before @var{refer}'s @sc{car} was deleted the last time.
 Decorations and parameters remain unaltered from their values before
 @var{refer}'s @sc{car} and @sc{cdr} were deleted.
 
-Alternatively, @var{refer} may specify a deleted, former live window - a
-window that has shown a buffer before - on the same frame as
+Alternatively, @var{refer} may specify a deleted, former live window -- a
+window that has shown a buffer before -- on the same frame as
 @var{window}.  That buffer must be still live.  In this case, this
-function do not make a new window but rather makes @var{refer} live
+function does not make a new window but rather makes @var{refer} live
 again and inserts it into the window tree at the position and with the
 sizes the new window would have been given.  Buffer, start and point
 positions of @var{refer} are set to the values they had immediately
@@ -2108,7 +2108,8 @@ After a window has been deleted (@pxref{Deleting Windows}) it cannot be
 used any more by functions that require a valid window as their argument
 even if some Lisp variable still references that window.  When the last
 reference to a window has ceased to exist, the window's Lisp object will
-be eventually recycled by the garbage collector.
+be eventually recycled by the garbage collector (@pxref{Garbage
+Collection}).
 
 There are two ways to resurrect a deleted window whose object has not
 been yet recycled by the collector: The first is to keep a reference to
@@ -2189,7 +2190,7 @@ returned by @code{window-prev-sibling} and @code{window-next-sibling} of
 the window and its sibling.
 
 The following code passes both, the new window on the right and its
-parent, via the @var{refer} argument to @code{split-window}: instead.
+parent, via the @var{refer} argument to @code{split-window} instead.
 
 @example
 @group
