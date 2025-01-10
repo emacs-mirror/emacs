@@ -2099,7 +2099,7 @@ distribute its space proportionally among the two remaining live
 windows.
 
 
-@node Resurrecting windows
+@node Resurrecting Windows
 @section Resurrecting Windows
 @cindex resurrecting deleted windows
 @cindex restoring deleted windows
