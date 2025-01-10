@@ -548,15 +548,23 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	}
       for (i = 4; i < nargs; i++)
 	{
+#ifdef HAVE_MPS
 	  new_argv[i - 3] = xstrdup (SSDATA (args[i]));
 	  record_unwind_protect_ptr (xfree, new_argv[i - 3]);
+#else
+	  new_argv[i - 3] = SSDATA (args[i]);
+#endif
 	}
       new_argv[i - 3] = 0;
     }
   else
     new_argv[1] = 0;
+#ifdef HAVE_MPS
+  new_argv[0] = SSDATA (path);
+#else
   new_argv[0] = xstrdup (SSDATA (path));
   record_unwind_protect_ptr (xfree, new_argv[0]);
+#endif
 
   discard_output = FIXNUMP (buffer) || (NILP (buffer) && NILP (output_file));
 
@@ -1929,14 +1937,20 @@ make_environment_block (Lisp_Object current_dir)
 #endif /* !HAVE_ANDROID */
 
     /* Overrides.  */
-    for (tem = Vprocess_environment;
-	 CONSP (tem) && STRINGP (XCAR (tem));
-	 tem = XCDR (tem))
+#ifdef HAVE_MPS
+    tem = Vprocess_environment;
+    FOR_EACH_TAIL (tem)
       {
 	char *safe_string = xstrdup (SSDATA (XCAR (tem)));
 	record_unwind_protect_ptr (xfree, safe_string);
 	new_env = add_env (env, new_env, safe_string);
       }
+#else
+    for (tem = Vprocess_environment;
+	 CONSP (tem) && STRINGP (XCAR (tem));
+	 tem = XCDR (tem))
+	new_env = add_env (env, new_env, SSDATA (XCAR (tem)));
+#endif
 
     *new_env = 0;
 
