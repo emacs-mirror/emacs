@@ -165,6 +165,13 @@ This option has 'kill-buffer' call 'quit-restore-window' to handle the
 further destiny of any window showing the buffer to be killed.
 
 +++
+*** 'split-window' can optionally resurrect deleted windows.
+A new argument REFER of 'split-window' makes it possible to, instead of
+making a new window object, reuse an existing, deleted one.  This can be
+used to preserve the identity of windows when swapping or transposing
+them.
+
++++
 *** New window parameter 'quit-restore-prev'.
 This parameter is set up by 'display-buffer' when it detects that the
 window used already has a 'quit-restore' parameter.  Its presence gives

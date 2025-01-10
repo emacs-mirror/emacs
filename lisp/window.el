@@ -5511,7 +5511,7 @@ PARENT divided by their number plus 1."
       (setq sibling (window-next-sibling sibling)))
     (/ size (1+ number))))
 
-(defun split-window (&optional window size side pixelwise)
+(defun split-window (&optional window size side pixelwise refer)
   "Make a new window adjacent to WINDOW.
 WINDOW must be a valid window and defaults to the selected one.
 Return the new window which is always a live window.
@@ -5542,23 +5542,63 @@ For compatibility reasons, SIDE `up' and `down' are interpreted
 as `above' and `below'.  Any other non-nil value for SIDE is
 currently handled like t (or `right').
 
+As a rule, if WINDOW already forms a combination that matches the SIDE
+parameter and `window-combination-limit' is nil, reuse WINDOW's parent
+in the window tree as parent of the new window.  If WINDOW is in a
+combination that is orthogonal to the SIDE parameter or if
+`window-combination-limit' is non-nil, make a new parent window that
+replaces WINDOW in the window tree and make WINDOW and the new window
+its sole child windows.  This standard behavior can be overridden via
+the REFER argument.
+
 PIXELWISE, if non-nil, means to interpret SIZE pixelwise.
+
+If the optional fifth argument REFER is non-nil, it specifies a
+reference window used for setting up properties of the new window.
+REFER can be either a window or a cons cell of two windows.
+
+If REFER is a cons cell, its car has to specify a deleted, former live
+window - a window that has shown a buffer before - on the same frame as
+WINDOW.  That buffer must be still live.  The cdr has to specify a
+deleted window that was a parent window on the same frame as WINDOW
+before it was deleted.  In this case, rather then making new windows,
+replace WINDOW with the cdr of REFER in the window tree and make WINDOW
+and REFER's car its new child windows.  Buffer, start and point
+positions of REFER's car are set to the values they had immediately
+before REFER's car was deleted the last time.  Decorations and
+parameters remain unaltered from their values before REFER's car and cdr
+were deleted.
+
+Alternatively REFER may specify a deleted, former live window - a window
+that has shown a buffer before - on the same frame as WINDOW.  In this
+case do not make a new window but rather make REFER live again and
+insert it into the window tree at the position and with the sizes the
+new window would have been given.  Buffer, start and point positions of
+REFER are set to the values they had immediately before REFER was
+deleted the last time.  Decorations and parameters remain unaltered from
+their values before REFER was deleted.  Throw an error if REFER's buffer
+has been deleted after REFER itself was deleted.
+
+Otherwise REFER must specify a live window.  In this case, the new
+window will inherit properties like buffer, start and point position and
+some decorations from REFER.  If REFER is nil or omitted, then if WINDOW
+is live, any such properties are inherited from WINDOW.  If, however,
+WINDOW is an internal window, the new window will inherit these
+properties from the window selected on WINDOW's frame.
 
 If the variable `ignore-window-parameters' is non-nil or the
 `split-window' parameter of WINDOW equals t, do not process any
-parameters of WINDOW.  Otherwise, if the `split-window' parameter
-of WINDOW specifies a function, call that function with all three
-arguments and return the value returned by that function.
+parameters of WINDOW.  Otherwise, if the `split-window' parameter of
+WINDOW specifies a function, call that function with the three first
+arguments WINDOW, SIZE and SIDE and return the value returned by that
+function.
 
-Otherwise, if WINDOW is part of an atomic window, \"split\" the
-root of that atomic window.  The new window does not become a
-member of that atomic window.
+Otherwise, if WINDOW is part of an atomic window, \"split\" the root of
+that atomic window.  The new window does not become a member of that
+atomic window.
 
-If WINDOW is live, properties of the new window like margins and
-scrollbars are inherited from WINDOW.  If WINDOW is an internal
-window, these properties as well as the buffer displayed in the
-new window are inherited from the window selected on WINDOW's
-frame.  The selected window is not changed by this function."
+The selected window and the selected window on WINDOW's frame are not
+changed by this function."
   (setq window (window-normalize-window window))
   (let* ((side (cond
 		((not side) 'below)
@@ -5598,14 +5638,14 @@ frame.  The selected window is not changed by this function."
        ((and (window-parameter window 'window-atom)
 	     (setq atom-root (window-atom-root window))
 	     (not (eq atom-root window)))
-	(throw 'done (split-window atom-root size side pixelwise)))
+	(throw 'done (split-window atom-root size side pixelwise refer)))
        ;; If WINDOW's frame has a side window and WINDOW specifies the
        ;; frame's root window, split the frame's main window instead
        ;; (Bug#73627).
        ((and (eq window (frame-root-window frame))
 	     (window-with-parameter 'window-side nil frame))
 	(throw 'done (split-window (window-main-window frame)
-				   size side pixelwise)))
+				   size side pixelwise refer)))
        ;; If WINDOW is a side window or its first or last child is a
        ;; side window, throw an error unless `window-combination-resize'
        ;; equals 'side.
@@ -5644,8 +5684,8 @@ frame.  The selected window is not changed by this function."
 		   (window-combined-p window horizontal)))
 	     ;; 'old-pixel-size' is the current pixel size of WINDOW.
 	     (old-pixel-size (window-size window horizontal t))
-	     ;; 'new-size' is the specified or calculated size of the
-	     ;; new window.
+	     ;; 'new-pixel-size' is the specified or calculated size
+	     ;; of the new window.
 	     new-pixel-size new-parent new-normal)
 	(cond
 	 ((not pixel-size)
@@ -5766,8 +5806,9 @@ frame.  The selected window is not changed by this function."
 	   window (- (if new-parent 1.0 (window-normal-size window horizontal))
 		     new-normal)))
 
-	(let* ((new (split-window-internal window new-pixel-size side new-normal)))
-	  (window--pixel-to-total frame horizontal)
+	(let ((new (split-window-internal
+		    window new-pixel-size side new-normal refer)))
+          (window--pixel-to-total frame horizontal)
 	  ;; Assign window-side parameters, if any.
 	  (cond
 	   ((eq window-combination-resize 'side)
