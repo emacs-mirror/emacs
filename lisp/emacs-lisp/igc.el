@@ -1,8 +1,8 @@
-;;; igc.el --- Short function summaries  -*- lexical-binding: t -*-
+;;; igc.el --- Support functions for IGC  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
 
-;; Keywords: lisp, help
+;; Keywords: GC
 
 ;; This file is part of GNU Emacs.
 
@@ -20,10 +20,6 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; Todo (possibly): Font cache, regexp cache, bidi cache, various
-;; buffer caches (newline cache, free_region_cache, etc), composition
-;; cache, face cache.
 
 ;;; Code:
 
@@ -73,13 +69,13 @@
 
 ;;;###autoload
 (defun igc-collect ()
-  "GC, then set snapsort B to current `igc-info'."
+  "Perform a full GC."
   (interactive)
   (let ((garbage-collection-messages t))
     (igc--collect)))
 
 (defun igc-clear ()
-  "GC, then set snapsort B to current `igc-info'."
+  "Reset snapshots A and B."
   (interactive)
   (setq igc--a nil igc--b nil)
   (igc-stats))
@@ -109,10 +105,10 @@
 ;;;###autoload
 (defun igc-stats ()
   "Display memory statistics from `igc-info'.
-You can display two snapshots A nd B containing the info from `igc-info'
+You can display two snapshots A and B containing the info from `igc-info'
 at different times. These can be displayed either as-is, or the
-difference between them. To take a snapshot, display it then take
-a snapshort. By reverting the buffer, take snapshot A, and display
+difference between them. To take a snapshot for A or B, display it, then take
+the snapshot. By reverting the buffer, take snapshot B, and display
 the changes to snapshot A. See the modes's help."
   (interactive)
   (with-current-buffer (get-buffer-create "*igc*")
@@ -220,10 +216,10 @@ the changes to snapshot A. See the modes's help."
 ;;;###autoload
 (defun igc-roots-stats ()
   "Display root statistics from `igc--roots'.
-You can display two snapshots A nd B containing the info from `igc--roots'
-at different times. These can be displayed either as-is, or the
-difference between them. To take a snapshot, display it then take
-a snapshort. By reverting the buffer, take snapshot A, and display
+You can display two snapshots A and B containing the info from `igc--roots'
+at different times.  These can be displayed either as-is, or the
+difference between them.  To take a snapshot, display A or B then take
+a snapshot. By reverting the buffer, take snapshot B, and display
 the changes to snapshot A. See the modes's help."
   (interactive)
   (with-current-buffer (get-buffer-create "*igc roots*")
