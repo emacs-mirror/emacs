@@ -12706,7 +12706,7 @@ init_keyboard (void)
 {
 #ifdef HAVE_MPS
   igc_root_create_ambig (kbd_buffer, kbd_buffer + ARRAYELTS (kbd_buffer),
-			 "kdb-buffer");
+			 "kbd-buffer");
 #endif
   /* This is correct before outermost invocation of the editor loop.  */
   command_loop_level = -1;
