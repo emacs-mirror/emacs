@@ -3446,11 +3446,7 @@ syms_of_search (void)
       staticpro (&searchbufs[i].regexp);
       staticpro (&searchbufs[i].f_whitespace_regexp);
       staticpro (&searchbufs[i].syntax_table);
-#ifdef HAVE_MPS
-      /* Strictly speaking, this is also necessary for the old GC,
-	 unless one would prove it isn't.  Don't rock the boat.  */
       staticpro (&searchbufs[i].buf.translate);
-#endif
     }
 
   /* Error condition used for failing searches.  */
