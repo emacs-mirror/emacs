@@ -5175,11 +5175,11 @@ syms_of_igc (void)
   Fprovide (intern_c_string ("mps"), Qnil);
 
   DEFVAR_LISP ("igc-step-interval", Vigc_step_interval,
-    doc: /* How much time is MPS allowed to spend in GC when Emacs is idle.
-The value is in seconds, and should be a non-negative number.  It can
-be either an integer or a float.  The default value is 0 which means .
-don't do something when idle.  Negative values and values that are not numbers
-are handled as if they were the default value.  */);
+    doc: /* How much time MPS is allowed to spend in GC when Emacs is idle.
+The value is in seconds, and should be a non-negative integer or float.
+The default value is 0 which means not to do anything when idle.
+Negative values and values that are not numbers are handled as if they
+were the default value.  */);
   Vigc_step_interval = make_fixnum (0);
 
   DEFVAR_BOOL ("igc--balance-intervals", igc__balance_intervals,
