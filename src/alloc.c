@@ -843,6 +843,9 @@ xfree (void *block)
     return;
   if (pdumper_object_p (block))
     return;
+#if defined (ENABLE_CHECKING) && defined (HAVE_MPS)
+  igc_check_freeable (block);
+#endif
   MALLOC_BLOCK_INPUT;
   free (block);
   MALLOC_UNBLOCK_INPUT;

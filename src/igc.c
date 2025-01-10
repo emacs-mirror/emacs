@@ -2989,6 +2989,20 @@ root_find (void *start)
   return NULL;
 }
 
+#ifdef ENABLE_CHECKING
+void
+igc_check_freeable (void *start)
+{
+  if (start)
+    {
+      struct igc_root_list *r = root_find (start);
+      igc_assert (r == NULL);
+      if (r != NULL)
+	emacs_abort ();
+    }
+}
+#endif
+
 void
 igc_destroy_root_with_start (void *start)
 {
