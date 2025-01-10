@@ -153,6 +153,16 @@ the "*Completions*" buffer is hidden.
 
 ** Windows
 
+*** New functions to modify window layout.
+Several functions to modify the window layout have been added:
+'rotate-window-layout-clockwise'
+'rotate-window-layout-anticlockwise'
+'flip-window-layout-vertically'
+'flip-window-layout-horizontally'
+'transpose-window-layout'
+'rotate-windows'
+'rotate-windows-back'
+
 +++
 *** New hook 'window-deletable-functions'.
 This abnormal hook gives its client a way to save a window from getting
