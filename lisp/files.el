@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; Defines Emacs's basic file- and directory-handling functions,
-;; including basic file visiting, backup file generation and versioning,
+;; including file visiting, backup file generation and versioning,
 ;; link handling, load- and write-hook handling, and the like.
 
 ;;; Code:
