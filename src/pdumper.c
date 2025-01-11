@@ -918,8 +918,8 @@ dump_igc_start_obj (struct dump_context *ctx, enum igc_obj_type type,
        type == IGC_OBJ_DUMPED_CODE_SPACE_MASKS ||
        type == IGC_OBJ_DUMPED_BIGNUM_DATA))
     {
-      /* This saving of obj_offset is Because of an assertion in
-	 dump_write. */
+      /* This saving of obj_offset is because of an assertion in
+	 dump_write.  */
       dump_off obj_offset = ctx->obj_offset;
       ctx->obj_offset = 0;
       dump_write_zero (ctx, igc_header_size ());

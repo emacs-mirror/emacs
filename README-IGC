@@ -13,9 +13,9 @@ for more information.
 Building this branch
 ====================
 
-This branch can be built with and without the new GC (igc). If you want
-to build with igc, you will need to install the MPS library
-'libmps'.  How to install the library differs from system to system, see
+This branch can be built with and without the new GC (igc).  If you want
+to build with igc, you will need to install the MPS library 'libmps'.
+How to install the library differs from system to system, see
 'Installing libmps' below.
 
 How to build Emacs from a Git checkout is described in the file

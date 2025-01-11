@@ -225,12 +225,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 /* TODO: Check what is still missing here; font, and maybe others.  */
 #endif /* CHECK_STRUCTS */
 
-/* If igc can currently can be used.
+/* If igc can currently be used.
 
    Initial state is IGC_STATE_INITIAL, until everything needed has been
    successfully initialized.
 
-   State does from IGC_STATE_INITIAL to IGC_STATE_USABLE_PARKED where
+   State goes from IGC_STATE_INITIAL to IGC_STATE_USABLE_PARKED where
    everything is usable, but GC is not done.
 
    State then goes from there to IGC_STATE_USABLE when everything is
@@ -291,7 +291,7 @@ igc_assert_fail (const char *file, unsigned line, const char *msg)
 #define IGC_NOT_IMPLEMENTED() \
   igc_assert_fail (__FILE__, __LINE__, "not implemented")
 
-/* An enum for telemetry event categories seems to be missing from MOS.
+/* An enum for telemetry event categories seems to be missing from MPS.
    The docs only mention the bare numbers.  */
 
 enum igc_event_category
@@ -554,8 +554,8 @@ enum igc_tag
 #ifdef IN_MY_FORK
 
 /* After Pip Cet's header changes, Lisp objects include a gc_header
-   union, which has an uint64_t member 'v'. struct igc_header then
-   contained the same 'v', and not bitfields anymore. This makes things
+   union, which has an uint64_t member 'v'.  struct igc_header then
+   contained the same 'v', and not bitfields anymore.  This makes things
    inconvenient in LLDB.  */
 
 struct igc_header
@@ -1524,7 +1524,7 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
 
 	    // If I am not mistaken, the emacs_env in this binding
 	    // actually lives on the stack (see module-load e.g.).
-	    // So, we don't have to do something here for the Lisp
+	    // So, we don't have to do anything here for the Lisp
 	    // objects in emacs_env.
 	  case SPECPDL_MODULE_ENVIRONMENT:
 	    break;
@@ -4080,7 +4080,7 @@ igc_replace_char (Lisp_Object string, ptrdiff_t at_byte_pos,
 {
   struct Lisp_String *s = XSTRING (string);
 
-  // Replacing caaracters of the same length.
+  // Replacing characters of the same length.
   if (old_char_len == new_char_len)
     return s->u.s.data + at_byte_pos;
 

@@ -2905,7 +2905,7 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
   cons_cells_consed++;
 
   return val;
-#endif // !HAVE_MPS
+#endif // not HAVE_MPS
 }
 
 /* Make a list of 1, 2, 3, 4 or 5 specified objects.  */
@@ -3310,7 +3310,7 @@ allocate_vector_from_block (ptrdiff_t nbytes)
   ((char *) (vector) <= (block)->data		\
    + VECTOR_BLOCK_BYTES - VBLOCK_BYTES_MIN)
 
-#endif // nto HAVE_MPS
+#endif // not HAVE_MPS
 
 ptrdiff_t
 vectorlike_nbytes (const struct vectorlike_header *hdr)
@@ -6425,7 +6425,7 @@ compact_font_cache_entry (Lisp_Object entry)
 static void
 compact_font_caches (void)
 {
-  // Cannot be done with MfS, which doesn't seem to be tragic
+  // Cannot be done with MPS, which doesn't seem to be tragic
   // because there is an option to turn it off.
 # ifndef HAVE_MPS
 
