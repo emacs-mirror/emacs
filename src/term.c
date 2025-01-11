@@ -2597,7 +2597,8 @@ tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
 static Lisp_Object
 tty_frame_at (int x, int y)
 {
-  for (Lisp_Object frames = Ftty_frame_list_z_order (Qnil); frames != Qnil;
+  for (Lisp_Object frames = Ftty_frame_list_z_order (Qnil);
+       !NILP (frames);
        frames = Fcdr (frames))
     {
       Lisp_Object frame = Fcar (frames);
@@ -2670,10 +2671,13 @@ term_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 {
   /* If we've gotten no GPM mouse events yet, last_mouse_frame won't be
      set.  Perhaps `gpm-mouse-mode' was never active.  */
-  if (! FRAMEP (last_mouse_frame))
+  if (!FRAMEP (last_mouse_frame))
     return;
 
   *fp = XFRAME (last_mouse_frame);
+  if (!FRAME_LIVE_P (fp))
+    return;
+
   (*fp)->mouse_moved = 0;
 
   *bar_window = Qnil;
