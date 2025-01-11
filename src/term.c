@@ -2675,7 +2675,7 @@ term_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
     return;
 
   *fp = XFRAME (last_mouse_frame);
-  if (!FRAME_LIVE_P (fp))
+  if (!FRAME_LIVE_P (*fp))
     return;
 
   (*fp)->mouse_moved = 0;
