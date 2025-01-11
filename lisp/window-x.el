@@ -1,4 +1,4 @@
-;;; window-x.el --- extended window commands  -*- lexical-binding: t; -*-
+;;; window-x.el --- Extra window organization commands  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2025 Free Software Foundation, Inc.
 
@@ -25,19 +25,21 @@
 
 ;;; Commentary:
 
-;; This file defines additional infrequently used window commands that
-;; should not be in window.el to not make the dumped image bigger.
+;; This file defines less frequently used window organization commands.
 
 ;;; Code:
 
 (defun window-tree-normal-sizes (window &optional next)
   "Return normal sizes of all windows rooted at WINDOW.
-A list of the form (SPLIT-TYPE PARENT-WIN PARENT-WIN-HEIGHT
-PARENT-WIN-WIDTH W1 W2 ...) is returned.  SPLIT-TYPE is non-nil if
-PARENT-WIN is split horizontally.  PARENT-WIN is the internal window.
+
+The return value is a list of the form (SPLIT-TYPE PARENT-WIN
+PARENT-WIN-HEIGHT PARENT-WIN-WIDTH . WS), where SPLIT-TYPE is non-nil if
+PARENT-WIN is split horizontally; PARENT-WIN is the internal window;
 PARENT-WIN-HEIGHT and PARENT-WIN-WIDTH are the normal heights of
-PARENT-WIN.  Wn is a list of the form (WINDOW HEIGHT WIDTH) where HEIGHT
-and WIDTH are the normal height and width of the window."
+PARENT-WIN; and WS is a list of lists the form (WINDOW HEIGHT WIDTH)
+where HEIGHT and WIDTH are the normal height and width of the window.
+
+(fn WINDOW)"
   (let (list)
     (while window
       (setq list
@@ -62,192 +64,159 @@ and WIDTH are the normal height and width of the window."
       (setq window (when next (window-next-sibling window))))
     (nreverse list)))
 
-(defun window--window-to-transpose (frame-or-window)
-  "Return the window to be acted upon by `window--transpose'.
-If FRAME-OR-WINDOW is a window return FRAME-OR-WINDOW.  If
-FRAME-OR-WINDOW is a frame, return FRAME-OR-WINDOW's main window.  If
-FRAME-OR-WINDOW is nil, than the frames main window wil be returned.  If
-FRAME-OR-WINDOW is non-nil, and not a frame or a window or a number,
-than the return value will be the parent window of the selected window."
-  (cond
-   ((windowp frame-or-window)
-    frame-or-window)
-   ((or (framep frame-or-window) (not frame-or-window))
-    (window-main-window frame-or-window))
-   (frame-or-window
-    (window-parent))))
+(defsubst window--rotate-interactive-arg ()
+  "Return interative window argument for window rotation commands."
+  (if current-prefix-arg (window-parent) (window-main-window)))
 
-(defun rotate-window-layout-anticlockwise (&optional frame-or-window)
-  "Rotate windows of FRAME-OR-WINDOW anticlockwise by 90 degrees.
-Transform the layout of windows such that a window on top becomes a
-window on the right, a window on the right moves to the bottom, a window
-on the bottom moves to the left and a window on the left becomes one on
-the top.
+;;;###autoload
+(defun rotate-window-layout-counterclockwise (&optional window)
+  "Rotate windows under WINDOW counterclockwise by 90 degrees.
 
-If FRAME-OR-WINDOW is nil, rotate the main window of the selected
-frame.  If FRAME-OR-WINDOW specifies a live frame, rotate the main
-window of that frame.  If FRAME-OR-WINDOW specifies a parent window,
-rotate that window.  In any other case and interactively with a prefix
-argument rotate the parent window of the selected window."
-  (interactive "P")
-  (let ((window (window--window-to-transpose frame-or-window)))
-    (window--transpose window '(right . above) nil)))
+If WINDOW is nil, it defaults to the root window of the selected frame.
 
-(defun rotate-window-layout-clockwise (&optional frame-or-window)
-  "Rotate windows of FRAME-OR-WINDOW clockwise by 90 degrees.
-Transform the layout of windows such that a window on top becomes a
-window on the right, a window on the right moves to the bottom, a
-window on the bottom moves to the left and a window on the left becomes
-one on the top.
+Interactively, a prefix argument says to rotate the parent window of the
+selected window."
+  (interactive (list (window--rotate-interactive-arg)))
+  (window--transpose window '(right . above) nil))
 
-If FRAME-OR-WINDOW is nil, rotate the main window of the selected frame.
-If FRAME-OR-WINDOW specifies a live frame, rotate the main window of
-that frame.  If FRAME-OR-WINDOW specifies a parent window, rotate that
-window.  In any other case and interactively with a prefix argument
-rotate the parent window of the selected window."
-  (interactive "P")
-  (let ((window (window--window-to-transpose frame-or-window)))
-    (window--transpose window '(left . below) nil)))
+;;;###autoload
+(defun rotate-window-layout-clockwise (&optional window)
+  "Rotate windows under WINDOW clockwise by 90 degrees.
 
-(defun flip-window-layout-horizontally (&optional frame-or-window)
-  "Horizontally flip windows of FRAME-OR-WINDOW.
+If WINDOW is nil, it defaults to the root window of the selected frame.
+
+Interactively, a prefix argument says to rotate the parent window of the
+selected window."
+  (interactive (list (window--rotate-interactive-arg)))
+  (window--transpose window '(left . below) nil))
+
+;;;###autoload
+(defun flip-window-layout-horizontally (&optional window)
+  "Horizontally flip windows under WINDOW.
+
 Flip the window layout so that the window on the right becomes the
 window on the left, and vice-versa.
 
-If FRAME-OR-WINDOW is nil, flip the main window of the selected frame.
-If FRAME-OR-WINDOW specifies a live frame, rotate the main window of
-that frame.  If FRAME-OR-WINDOW specifies a parent window, rotate that
-window.  In any other case and interactively with a prefix argument
-rotate the parent window of the selected window."
-  (interactive "P")
-  (let ((window (window--window-to-transpose frame-or-window)))
-    (window--transpose window '(below . left) t)))
+If WINDOW is nil, it defaults to the root window of the selected frame.
 
-(defun flip-window-layout-vertically (&optional frame-or-window)
-  "Verticlly flip windows of FRAME-OR-WINDOW.
-Flip the window layout so that the top window becomes the bottom window
+Interactively, a prefix argument says to flip the parent window of the
+selected window."
+  (interactive (list (window--rotate-interactive-arg)))
+  (window--transpose window '(below . left) t))
+
+;;;###autoload
+(defun flip-window-layout-vertically (&optional window)
+  "Vertically flip windows under WINDOW.
+
+Flip the window layout so that the top window becomes the bottom window,
 and vice-versa.
 
-If FRAME-OR-WINDOW is nil, flip the main window of the selected frame.
-If FRAME-OR-WINDOW specifies a live frame, rotate the main window of
-that frame.  If FRAME-OR-WINDOW specifies a parent window, rotate that
-window.  In any other case and interactively with a prefix argument
-rotate the parent window of the selected window."
-  (interactive "P")
-  (let ((window (window--window-to-transpose frame-or-window)))
-    (window--transpose window '(above . right) t)))
+If WINDOW is nil, it defaults to the root window of the selected frame.
 
-(defun transpose-window-layout (&optional frame-or-window)
-  "Transpose windows of FRAME-OR-WINDOW.
-Make the windows on FRAME-OR-WINDOW so that every horizontal split
+Interactively, a prefix argument says to flip the parent window of the
+selected window."
+  (interactive (list (window--rotate-interactive-arg)))
+  (window--transpose window '(above . right) t))
+
+;;;###autoload
+(defun transpose-window-layout (&optional window)
+  "Transpose windows under WINDOW.
+
+Reorganize the windows under WINDOW so that every horizontal split
 becomes a vertical split, and vice versa.  This is equivalent to
 diagonally flipping.
 
-If FRAME-OR-WINDOW is nil, transpose the main window of the selected frame.
-If FRAME-OR-WINDOW specifies a live frame, rotate the main window of
-that frame.  If FRAME-OR-WINDOW specifies a parent window, rotate that
-window.  In any other case and interactively with a prefix argument
-rotate the parent window of the selected window."
-  (interactive "P")
-  (let ((window (window--window-to-transpose frame-or-window)))
-    (window--transpose window '(right . below) nil)))
+If WINDOW is nil, it defaults to the root window of the selected frame.
 
-(defun window--depmap(fun ls)
-  "Map FUN across all nodes of list LS."
-  (if (consp ls)
-      (cons
-       (if (consp (car ls))
-	  (window--depmap fun (car ls))
-	 (funcall fun (car ls)))
-       (window--depmap fun (cdr ls)))
-    (funcall fun ls)))
+Interactively, a prefix argument says to transpose the parent window of
+the selected window."
+  (interactive (list (window--rotate-interactive-arg)))
+  (window--transpose window '(right . below) nil))
 
-(defun rotate-windows-back(&optional frame-or-window)
-  "Move windows into locations of their predecessors in cyclic ordering.
+;;;###autoload
+(defun rotate-windows-back (&optional window)
+  "Rotate windows under WINDOW backward in cyclic ordering.
 
-If FRAME-OR-WINDOW is nil, rotate the main window of the selected frame.
-If FRAME-OR-WINDOW specifies a live frame, rotate the main window of
-that frame.  If FRAME-OR-WINDOW specifies a parent window, rotate that
-window.  In any other case and interactively with a prefix argument
-rotate the parent window of the selected window."
-  (interactive "P")
-  (rotate-windows frame-or-window t))
+If WINDOW is nil, it defaults to the root window of the selected frame.
 
-(defun rotate-windows (&optional frame-or-window reverse)
-  "Move windows into locations of their forerunners in cyclic ordering.
+Interactively, a prefix argument says to rotate the parent window of the
+selected window."
+  (interactive (list (window--rotate-interactive-arg)))
+  (rotate-windows window t))
 
-Else if FRAME-OR-WINDOW is nil, rotate the main window of the
-selected frame.  If FRAME-OR-WINDOW specifies a live frame, rotate the
-main window of that frame.  If FRAME-OR-WINDOW specifies a parent
-window, rotate that window.  In any other case and interactively with a
-prefix argument rotate the parent window of the selected window."
-  (interactive "P")
-  (let ((window (window--window-to-transpose frame-or-window)))
-    (if (or (not window)
-	    (window-live-p window))
-	(message "No windows to transpose")
-      (let* ((frame (window-frame window))
-	     (selected-window (frame-selected-window window))
-	     (win-tree (car (window-tree-normal-sizes window)))
-	     (winls (seq-filter 'window-live-p (flatten-list win-tree)))
-	     (rotated-ls (if reverse
-			     (append (cdr winls) (list (car winls)))
-			   (append (last winls) winls)))
-	     (other-window-arg (if reverse 1 -1))
-	     (first-window (car rotated-ls))
-	     (new-win-tree (window--depmap
-			    (lambda (x)
-			      (if (window-live-p x)
-				  (pop rotated-ls)
-				x))
-			    win-tree)))
-	(if (or (seq-some 'window-atom-root winls)
-		(seq-some 'window-fixed-size-p winls))
-	    (message "This does not work with fixed size or atom windows.")
-	    (progn
-	      ;; All child windows need to be recursively deleted.
-	      (delete-other-windows-internal first-window window)
-	      ;; (delete-dups atom-windows)
-	      (window--transpose-1 new-win-tree first-window '(below . right) t nil)
-	      (set-frame-selected-window frame selected-window)
-	      (other-window other-window-arg)
-	      (while (not (memq (selected-window) winls))
-		(other-window other-window-arg))))))))
+;;;###autoload
+(defun rotate-windows (&optional window reverse)
+  "Rotate windows under WINDOW in cyclic ordering.
+
+Optional argument REVERSE says to rotate windows backward, in reverse
+cyclic order.
+
+If WINDOW is nil, it defaults to the root window of the selected frame.
+
+Interactively, a prefix argument says to rotate the parent window of the
+selected window."
+  (interactive (list (window--rotate-interactive-arg)))
+  (when (or (not window) (window-live-p window))
+    (user-error "No windows to transpose"))
+  (let* ((frame (window-frame window))
+	 (selected-window (frame-selected-window window))
+	 (win-tree (car (window-tree-normal-sizes window)))
+	 (winls (seq-filter #'window-live-p (flatten-list win-tree)))
+	 (rotated-ls (if reverse
+			 (append (cdr winls) (list (car winls)))
+		       (append (last winls) winls)))
+	 (other-window-arg (if reverse 1 -1))
+	 (first-window (car rotated-ls))
+	 (new-win-tree
+          ;; Recursively process `win-tree' and construct a new tree
+          ;; with the same shape and rotated windows at the leaves.
+          (named-let rec ((tree win-tree))
+            (cond
+             ((consp tree) (cons (rec (car tree)) (rec (cdr tree))))
+             ((window-live-p tree) (pop rotated-ls))
+             (t tree)))))
+    (when (or (seq-some #'window-atom-root winls)
+	      (seq-some #'window-fixed-size-p winls))
+      (user-error "Cannot rotate windows due to fixed size or atom windows"))
+    ;; All child windows need to be recursively deleted.
+    (delete-other-windows-internal first-window window)
+    ;; (delete-dups atom-windows)
+    (window--transpose-1 new-win-tree first-window '(below . right) t nil)
+    (set-frame-selected-window frame selected-window)
+    (other-window other-window-arg)
+    (while (not (memq (selected-window) winls))
+      (other-window other-window-arg))))
 
 (defun window--transpose (window conf no-resize)
-  "Rearrange windows of WINDOW recursively.
-CONF should be a cons cell: (HORIZONTAL-SPLIT . VERTICAL-SPLIT) where
+  "Rearrange windows under WINDOW recursively.
+CONF should be a cons cell (HORIZONTAL-SPLIT . VERTICAL-SPLIT) where
 HORIZONTAL-SPLIT will be used as the third argument of `split-window'
 when splitting a window that was previously horizontally split, and
 VERTICAL-SPLIT as third argument of `split-window' for a window that was
 previously vertically split.  If NO-RESIZE is nil, the SIDE argument of
 the window-split is converted from vertical to horizontal or vice versa,
 with the same proportion of the total split."
-  (if (or (not window)
-	  (window-live-p window))
-      (message "No windows to transpose")
-    (let* ((frame (window-frame window))
-	   (first-window window)
-	   (selected-window (frame-selected-window window))
-	   (win-tree (car (window-tree-normal-sizes window)))
-	   (win-list (seq-filter 'window-live-p (flatten-list win-tree)))
-	   (atom-windows
-	    (remq nil (mapcar 'window-atom-root
-			      win-list))))
-      (if (and (not (eq (car atom-windows) window))
-	       (or no-resize
-		   (and (not atom-windows)
-			(not (seq-some 'window-fixed-size-p win-list)))))
-	  (progn
-	    (delete-dups atom-windows)
-	    (while (not (window-live-p first-window))
-	      (setq first-window (window-child first-window)))
-	    (delete-other-windows-internal first-window window)
-	    (window--transpose-1 win-tree first-window conf no-resize atom-windows)
-	    ;; Go back to previously selected window.
-	    (set-frame-selected-window frame selected-window)
-	    (mapc 'window-make-atom atom-windows))
-	(message "This does not work with fixed size or atom windows.")))))
+  (when (or (not window) (window-live-p window))
+    (user-error "No windows to transpose"))
+  (let* ((frame (window-frame window))
+	 (first-window window)
+	 (selected-window (frame-selected-window window))
+	 (win-tree (car (window-tree-normal-sizes window)))
+	 (win-list (seq-filter #'window-live-p (flatten-list win-tree)))
+	 (atom-windows (seq-keep #'window-atom-root win-list)))
+    (unless (and (not (eq (car atom-windows) window))
+	         (or no-resize
+		     (and (not atom-windows)
+		          (not (seq-some #'window-fixed-size-p win-list)))))
+      (user-error "Cannot rotate windows due to fixed size or atom windows"))
+    (delete-dups atom-windows)
+    (while (not (window-live-p first-window))
+      (setq first-window (window-child first-window)))
+    (delete-other-windows-internal first-window window)
+    (window--transpose-1 win-tree first-window conf no-resize atom-windows)
+    ;; Go back to previously selected window.
+    (set-frame-selected-window frame selected-window)
+    (mapc #'window-make-atom atom-windows)))
 
 (defun window--transpose-1 (subtree cwin conf no-resize atom-windows)
   "Subroutine of `window--transpose'.
@@ -259,8 +228,7 @@ ones in `window--transpose'."
   ;; `flen' is max size the window could be converted to the opposite
   ;; of the given split type.
   (let ((parent-window-is-set t)
-	(flen (if (funcall (if no-resize 'not 'identity)
-			   (car subtree))
+	(flen (if (xor no-resize (car subtree))
 		  (float (window-pixel-width cwin))
 		(float (window-pixel-height cwin)))))
     (mapc
@@ -268,7 +236,7 @@ ones in `window--transpose'."
        (prog1
 	   (let* ((split-size (- (round (* flen size))))
 		  (split-type
-		   (funcall (if (car subtree) 'car 'cdr) conf))
+		   (funcall (if (car subtree) #'car #'cdr) conf))
 		  (return-win
 		   (if (listp window)
 		       ;; `window' is a window subtree.
@@ -293,9 +261,7 @@ ones in `window--transpose'."
 			     (if window-combination-limit
 				 (cons (caar (cddddr first-child)) (cadr subtree))
 			       (caar (cddddr first-child)))))
-			  (if is-atom
-			      '(nil . t)
-			    conf)
+			  (if is-atom '(nil . t) conf)
 			  no-resize
 			  atom-windows))
 		     ;; `window' is a window.
@@ -323,14 +289,16 @@ ones in `window--transpose'."
 		(if (car subtree)
 		    (cadr window-size-info)
 		  (caddr window-size-info)))))
-      ;; We need to ingore first 5 elements of window list, we ignore
+      ;; We need to ignore first 5 elements of window list, we ignore
       ;; window split type, sizes and the first window (it's
       ;; implicitly created).  We just have a list of windows.
       (nreverse (cdr (cddddr subtree)))))
     ;; (caar (cddddr subtree)) is the first child window of subtree.
     (unless (windowp (caar (cddddr subtree)))
       (let ((is-atom (memq (cadr (cadr (cddddr subtree))) atom-windows)))
-	(window--transpose-1 (car (cddddr subtree)) cwin (if is-atom '(nil . t) conf)
+	(window--transpose-1 (car (cddddr subtree)) cwin
+                             (if is-atom '(nil . t) conf)
 			     no-resize atom-windows)))))
 
+(provide 'window-x)
 ;;; window-x.el ends here
