@@ -332,10 +332,11 @@ modal editing packages.
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
+---
 ** Ibuffer
-*** New 'recency' column.
+*** New column 'recency' in Ibuffer display.
 The variable 'ibuffer-formats' configures the Ibuffer formats.  Add
-'recency' to a format to display the column.
+'recency' to the format to display the column.
 
 ** Smerge
 *** New command 'smerge-extend' extends a conflict over surrounding lines.
