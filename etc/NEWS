@@ -277,12 +277,13 @@ The Tifinagh script is used to write the Berber languages.
 *** New input methods for Northern Iroquoian languages.
 Input methods are now implemented for Haudenosaunee languages in the
 Northern Iroquoian language family: 'mohawk-postfix' (Mohawk
-[Kanien’kéha / Onkwehonwehnéha]), 'oneida-postfix' (Oneida
-[Onʌyote’a·ká· / Ukwehuwehnéha]), 'cayuga-postfix' (Cayuga
-[Gayogo̱ho:nǫhnéha:ˀ]), 'onondaga-postfix' (Onondaga [Onųdaʔgegáʔ]), and
-'seneca-postfix' (Seneca [Onödowá’ga:’]).  Additionally, there is a
-general-purpose 'haudenosaunee-postfix' input method to facilitate
-writing in the orthographies of the five languages simultaneously.
+[Kanien’kéha / Kanyen’kéha / Onkwehonwehnéha]), 'oneida-postfix' (Oneida
+[Onʌyote’a·ká· / Onyota’a:ká: / Ukwehuwehnéha]), 'cayuga-postfix'
+(Cayuga [Gayogo̱ho:nǫhnéha:ˀ]), 'onondaga-postfix' (Onondaga
+[Onųdaʔgegáʔ]), and 'seneca-postfix' (Seneca [Onödowá’ga:’]).
+Additionally, there is a general-purpose 'haudenosaunee-postfix' input
+method to facilitate writing in the orthographies of the five languages
+simultaneously.
 
 ---
 ** 'visual-wrap-prefix-mode' now supports variable-pitch fonts.
