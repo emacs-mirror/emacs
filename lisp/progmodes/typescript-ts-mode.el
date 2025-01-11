@@ -660,7 +660,9 @@ at least 3 (which is the default value)."
   (when (treesit-available-p)
     (treesit-query-compile 'tsx
                            '(((regex pattern: (regex_pattern) @regexp))
-                             ((jsx_text) @jsx)))))
+                             ((jsx_text) @jsx)
+                             ((jsx_opening_element) @jsx)
+                             ((jsx_closing_element) @jsx)))))
 
 (defun typescript-ts--syntax-propertize (beg end)
   (let ((captures (treesit-query-capture 'typescript typescript-ts--s-p-query beg end)))
