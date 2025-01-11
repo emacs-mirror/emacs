@@ -283,6 +283,7 @@ If parsing fails, try to set this variable to nil."
 
 (define-widget 'bibtex-field-list 'lazy
   "Format of fields of entries in `bibtex-BibTeX-entry-alist' and friends."
+  :tag "Field list"
   :type '(group (string :tag "Field")
                 (option (choice :tag "Comment" :value nil
                                 (const nil) string))
@@ -293,7 +294,9 @@ If parsing fails, try to set this variable to nil."
 
 (define-widget 'bibtex-entry-alist 'lazy
   "Format of `bibtex-BibTeX-entry-alist' and friends."
+  :tag "Entry alist"
   :type '(repeat
+          :format "\n%v"
           (choice (group :tag "Alias"
                          (string :tag "Entry type")
                          (string :tag "Documentation")
@@ -860,8 +863,11 @@ Use this, e.g., for custom fields, see Sec. 2.2.4 of the biblatex manual."
 
 (define-widget 'bibtex-field-alist 'lazy
   "Format of `bibtex-BibTeX-field-alist' and friends."
-  :type '(repeat (group (string :tag "Field type")
-                        (string :tag "Comment"))))
+  :tag "Field alist"
+  :type '(repeat
+          :format "\n%v"
+          (group (string :tag "Field type")
+                 (string :tag "Comment"))))
 
 (defcustom bibtex-BibTeX-field-alist
   '(("author" "Author1 [and Author2 ...] [and others]")
