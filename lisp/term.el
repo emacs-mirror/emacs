@@ -3015,8 +3015,8 @@ See `term-prompt-regexp'."
 
 (defconst term-control-seq-regexp
   (concat
-   ;; A control character,
-   "\\(?:[\r\n\000\007\t\b\016\017]\\|"
+   ;; A control character not matched in a longer sequence below,
+   "\\(?:[\x00-\x19\x1C-\x1F\r\n\t\b]\\|"
    ;; some Emacs specific control sequences, implemented by
    ;; `term-command-hook',
    "\032[^\n]+\n\\|"
@@ -3271,8 +3271,9 @@ See `term-prompt-regexp'."
                      (?A ;; An \eAnSiT sequence (Emacs specific).
                       (term-handle-ansi-terminal-messages
                        (substring str i ctl-end)))))
-                  ;; Ignore NUL, Shift Out, Shift In.
-                  ((or ?\0 #xE #xF 'nil) nil))
+                  ;; Ignore any control character not already recognized.
+                  ((or 'nil
+                       (and (pred characterp) (pred (lambda (c) (<= c ?\x1F))))) nil))
                 ;; Leave line-wrapping state if point was moved.
                 (unless (eq term-do-line-wrapping (point))
                   (setq term-do-line-wrapping nil))
