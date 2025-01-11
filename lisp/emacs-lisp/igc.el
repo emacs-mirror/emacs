@@ -106,10 +106,13 @@
 (defun igc-stats ()
   "Display memory statistics from `igc-info'.
 You can display two snapshots A and B containing the info from `igc-info'
-at different times. These can be displayed either as-is, or the
-difference between them. To take a snapshot for A or B, display it, then take
-the snapshot. By reverting the buffer, take snapshot B, and display
-the changes to snapshot A. See the modes's help."
+at different times.  These can be displayed either as-is, or by showing the
+difference between them.  \\<igc-stats-mode-map>Type \\[igc-display-a] to switch to snapshot A and \\[igc-display-b] to switch to
+snapshot B.  To take a snapshot, type \\[igc-snapshot].
+To rset the current snapshot, type \\[igc-clear].
+To display the difference between A and B, type \\[igc-display-diff].
+\\<global-map>Type \\[revert-buffer] to refresh the the difference view.
+Type `?' to see the mode's help."
   (interactive)
   (with-current-buffer (get-buffer-create "*igc*")
     (igc-stats-mode)
@@ -133,7 +136,8 @@ the changes to snapshot A. See the modes's help."
 	(sort-lines nil (point-min) (point-max)))
       (goto-char (point-min))
       (forward-line (1- old-line))))
-  (display-buffer "*igc*"))
+  (display-buffer "*igc*")
+  (message "Type `C-h f igc-stats RET' for instructions"))
 
 (defun igc--roots-diff (i1 i2)
   (cl-loop for (t1 n1 s1) in i1
@@ -189,7 +193,7 @@ the changes to snapshot A. See the modes's help."
     (b igc--roots-b)))
 
 (defun igc-roots-clear ()
-  "GC, then set snapsort B to current `igc-info'."
+  "GC, then set snapshot B to current `igc-info'."
   (interactive)
   (setq igc--roots-a nil igc--roots-b nil)
   (igc-roots-stats))
@@ -217,10 +221,13 @@ the changes to snapshot A. See the modes's help."
 (defun igc-roots-stats ()
   "Display root statistics from `igc--roots'.
 You can display two snapshots A and B containing the info from `igc--roots'
-at different times.  These can be displayed either as-is, or the
-difference between them.  To take a snapshot, display A or B then take
-a snapshot. By reverting the buffer, take snapshot B, and display
-the changes to snapshot A. See the modes's help."
+at different times.  These can be displayed either as-is, or by showing the
+difference between them.  \\<igc-roots-mode-map>Type \\[igc-roots-display-a] to switch to snapshot A and \\[igc-roots-display-b] to switch to
+snapshot B.  To take a snapshot, type \\[igc--roots-snapshot].
+To rset the current snapshot, type \\[igc-roots-clear].
+To display the difference between A and B, type \\[igc-roots-display-diff].
+\\<global-map>Type \\[revert-buffer] to refresh the the difference view.
+Type `?' to see the mode's help."
   (interactive)
   (with-current-buffer (get-buffer-create "*igc roots*")
     (igc-roots-mode)
@@ -237,7 +244,8 @@ the changes to snapshot A. See the modes's help."
                                     label type n size)))
 	(sort-lines nil (point-min) (point-max)))
       (goto-char (point-min))))
-  (display-buffer "*igc roots*"))
+  (display-buffer "*igc roots*")
+  (message "Type `C-h f igc-roots-stats RET' for instructions"))
 
 (defvar igc--collect-timer nil)
 (defvar igc--collect-file nil)
