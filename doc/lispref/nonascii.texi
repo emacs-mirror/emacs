@@ -341,6 +341,9 @@ buffer.  An indirect buffer always inherits the representation of its
 base buffer.
 @end defun
 
+The following two functions are obsolete and will be removed in a future
+version of Emacs; use @code{encode-coding-string} instead.
+
 @defun string-as-unibyte string
 If @var{string} is already a unibyte string, this function returns
 @var{string} itself.  Otherwise, it returns a new string with the same
