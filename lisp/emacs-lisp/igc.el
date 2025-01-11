@@ -111,8 +111,8 @@ difference between them.  \\<igc-stats-mode-map>Type \\[igc-display-a] to switch
 snapshot B.  To take a snapshot, type \\[igc-snapshot].
 To rset the current snapshot, type \\[igc-clear].
 To display the difference between A and B, type \\[igc-display-diff].
-Type `g' to refresh the the difference view.
-Type `?' to see the mode's help."
+Type \\`g' to refresh the the difference view.
+Type \\`?' to see the mode's help."
   (interactive)
   (with-current-buffer (get-buffer-create "*igc*")
     (igc-stats-mode)
@@ -226,8 +226,8 @@ difference between them.  \\<igc-roots-mode-map>Type \\[igc-roots-display-a] to 
 snapshot B.  To take a snapshot, type \\[igc--roots-snapshot].
 To rset the current snapshot, type \\[igc-roots-clear].
 To display the difference between A and B, type \\[igc-roots-display-diff].
-Type `g' to refresh the the difference view.
-Type `?' to see the mode's help."
+Type \\`g' to refresh the the difference view.
+Type \\`?' to see the mode's help."
   (interactive)
   (with-current-buffer (get-buffer-create "*igc roots*")
     (igc-roots-mode)
