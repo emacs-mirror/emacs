@@ -354,6 +354,10 @@ You can now set `asm-comment-char' from 'asm-mode-hook' instead.
 The variable 'ibuffer-formats' configures the Ibuffer formats.  Add
 'recency' to the format to display the column.
 
+*** New value 'title' for the user option 'ibuffer-use-header-line'.
+Display column titles in the header line if 'ibuffer-use-header-line' is
+set to 'title'.
+
 *** New user option 'ibuffer-human-readable-size'.
 When non-nil, buffer sizes are shown in human readable format.
 
