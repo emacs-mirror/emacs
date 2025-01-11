@@ -2497,8 +2497,9 @@ compiled."
 (defun package-delete (pkg-desc &optional force nosave)
   "Delete package PKG-DESC.
 
-Argument PKG-DESC is a full description of package as vector.
-Interactively, prompt the user for the package name and version.
+Argument PKG-DESC is the full description of the package, for example as
+obtained by `package-get-descriptor'.  Interactively, prompt the user
+for the package name and version.
 
 When package is used elsewhere as dependency of another package,
 refuse deleting it and return an error.

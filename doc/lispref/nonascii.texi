@@ -341,6 +341,9 @@ buffer.  An indirect buffer always inherits the representation of its
 base buffer.
 @end defun
 
+The following two functions are obsolete and will be removed in a future
+version of Emacs; use @code{encode-coding-string} instead.
+
 @defun string-as-unibyte string
 If @var{string} is already a unibyte string, this function returns
 @var{string} itself.  Otherwise, it returns a new string with the same
@@ -1096,13 +1099,13 @@ that result from encoding unsupported characters.
 @cindex EOL conversion
 @cindex end-of-line conversion
 @cindex line end conversion
-  @dfn{End of line conversion} handles three different conventions
-used on various systems for representing end of line in files.  The
-Unix convention, used on GNU and Unix systems, is to use the linefeed
-character (also called newline).  The DOS convention, used on
+  @dfn{End of line conversion} handles three different conventions used
+on various systems for representing end of line in files.  The Unix
+convention, used on GNU and Unix systems, and macOS, is to use the
+linefeed character (also called newline).  The DOS convention, used on
 MS-Windows and MS-DOS systems, is to use a carriage return and a
-linefeed at the end of a line.  The Mac convention is to use just
-carriage return.  (This was the convention used in Classic Mac OS.)
+linefeed.  The Mac convention, used in Classic Mac OS and now rare
+outside of legacy software, is to use just carriage return.
 
 @cindex base coding system
 @cindex variant coding system

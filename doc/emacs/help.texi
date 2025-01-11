@@ -323,7 +323,8 @@ yet further information is often reachable by clicking or typing
 @key{RET} on emphasized parts of the text.
 
 @cindex function type specifier
-
+@cindex declared type of a function
+@cindex inferred type of a function
 The function type, if known, is expressed with a @dfn{function type
 specifier} (@pxref{Type Specifiers,,,elisp, The Emacs Lisp Reference
 Manual}), it will be specified if the type was manually declared by a

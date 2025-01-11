@@ -611,6 +611,9 @@ regular package listing.  If you just wish to clone the source of a
 package, without adding it to the package list, use
 @code{package-vc-checkout}.
 
+  Note that currently, built-in packages cannot be upgraded using
+@code{package-vc-install}.
+
 @findex package-report-bug
 @findex package-vc-prepare-patch
   With the source checkout, you might want to reproduce a bug against

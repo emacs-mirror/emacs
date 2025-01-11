@@ -832,7 +832,7 @@ format, which Emacs doesn't support directly.})
 @item @dots{}-mac
 Assume the file uses carriage return to separate lines, and do the
 appropriate conversion.  (This was the convention used in Classic Mac
-OS.)
+OS, but is now rare outside of legacy software.)
 @end table
 
   These variant coding systems are omitted from the

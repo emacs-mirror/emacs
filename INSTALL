@@ -667,6 +667,12 @@ for its Lisp files by giving values for 'make' variables as part of
 the command.  See the section below called 'MAKE VARIABLES' for more
 information on this.
 
+If the directories where 'make install' installs files are not writable
+by your user, you might prefer invoking 'make && sudo make install'
+instead.  This first invokes 'make' to make sure all the required files
+are rebuilt with your user's permissions and ownership, and then
+installs them using the permissions of root.
+
 7) Check the file 'dir' in your site's info directory (usually
 /usr/local/share/info) to make sure that it has a menu entry for the
 Emacs info files.
