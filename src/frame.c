@@ -1289,6 +1289,7 @@ make_terminal_frame (struct terminal *terminal, Lisp_Object parent,
     error ("Terminal is not live, can't create new frames on it");
 
   struct frame *f;
+
   if (NILP (parent))
     f = make_frame (true);
   else
@@ -1297,16 +1298,60 @@ make_terminal_frame (struct terminal *terminal, Lisp_Object parent,
 
       f = NULL;
       Lisp_Object mini = Fassq (Qminibuffer, params);
+
+      /* Handling the minibuffer parameter on a tty is different from
+	 its handling on a GUI.  On a GUI any "client frame" can have,
+	 in principle, its minibuffer window on any "minibuffer frame" -
+	 a frame that has a minibuffer window.  If necessary, Emacs
+	 tells the window manager to make the minibuffer frame visible,
+	 raise it and give it input focus.
+
+	 On a tty there's no window manager; so Emacs itself has to make
+	 such a minibuffer frame visible, raise and focus it.  Since a
+	 tty can show only one root frame (a frame that doesn't have a
+	 parent frame) at any time, any client frame shown on a tty must
+	 have a minibuffer frame whose root frame is the root frame of
+	 that client frame.  If that minibuffer frame is a child frame,
+	 Emacs will automatically make it visible, raise it and give it
+	 input focus, if necessary.
+
+	 Two trivial consequences of these observations for ttys are:
+
+	 - A root frame cannot be the minibuffer frame of another root
+	   frame.
+
+	 - Since a child frame cannot be created before its parent
+           frame, each root frame must have its own minibuffer window.
+
+         The situation may change as soon as we can delete and create
+         minibuffer windows on the fly.  */
       if (CONSP (mini))
 	{
 	  mini = Fcdr (mini);
-	  struct kboard *kb = FRAME_KBOARD (XFRAME (parent));
+
 	  if (EQ (mini, Qnone) || NILP (mini))
-	    f = make_frame_without_minibuffer (Qnil, kb, Qnil);
+	    {
+	      mini = root_frame (XFRAME (parent))->minibuffer_window;
+	      f = make_frame (false);
+	      fset_minibuffer_window (f, mini);
+	      store_frame_param (f, Qminibuffer, mini);
+	    }
 	  else if (EQ (mini, Qonly))
-	    error ("minibuffer-only child frames are not implemented");
+	    f = make_minibuffer_frame ();
 	  else if (WINDOWP (mini))
-	    f = make_frame_without_minibuffer (mini, kb, Qnil);
+	    {
+	      if (!WINDOW_LIVE_P (mini)
+		  || !MINI_WINDOW_P (XWINDOW (mini))
+		  || (root_frame (WINDOW_XFRAME (XWINDOW (mini)))
+		      != root_frame (XFRAME (parent))))
+		error ("The `minibuffer' parameter does not specify a valid minibuffer window");
+	      else
+		{
+		  f = make_frame (false);
+		  fset_minibuffer_window (f, mini);
+		  store_frame_param (f, Qminibuffer, mini);
+		}
+	    }
 	}
 
       if (f == NULL)
