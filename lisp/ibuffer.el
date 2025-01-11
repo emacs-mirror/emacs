@@ -186,6 +186,12 @@ recreate it for the change to take effect."
 		(sexp :tag "Test Form")
                 face)))
 
+(defcustom ibuffer-human-readable-size nil
+  "Show buffer sizes in human-readable format.
+Use the function `file-size-human-readable' for formatting."
+  :type 'boolean
+  :version "31.1")
+
 (defcustom ibuffer-use-other-window nil
   "If non-nil, display Ibuffer in another window by default."
   :type 'boolean)
@@ -1714,15 +1720,20 @@ If point is on a group name, this function operates on that group."
   (:inline t
    :header-mouse-map ibuffer-size-header-map
    :summarizer
-   (lambda (column-strings)
-     (let ((total 0))
-       (dolist (string column-strings)
-	 (setq total
-	       ;; like, ewww ...
-	       (+ (float (string-to-number string))
-		  total)))
-       (format "%.0f" total))))
-  (format "%s" (buffer-size)))
+   (lambda (strings)
+     (let ((total
+            (cl-loop
+             for s in strings
+             for i = (text-property-not-all 0 (length s) 'ibuffer-size nil s)
+             if i sum (get-text-property i 'ibuffer-size s))))
+       (if ibuffer-human-readable-size
+           (file-size-human-readable total)
+         (number-to-string total)))))
+  (let ((size (buffer-size)))
+    (propertize (if ibuffer-human-readable-size
+                    (file-size-human-readable size)
+                  (number-to-string size))
+                'ibuffer-size size)))
 
 (define-ibuffer-column recency
   (:inline t :summarizer ignore :header-mouse-map ibuffer-recency-header-map)

@@ -354,6 +354,9 @@ You can now set `asm-comment-char' from 'asm-mode-hook' instead.
 The variable 'ibuffer-formats' configures the Ibuffer formats.  Add
 'recency' to the format to display the column.
 
+*** New user option 'ibuffer-human-readable-size'.
+When non-nil, buffer sizes are shown in human readable format.
+
 ** Smerge
 *** New command 'smerge-extend' extends a conflict over surrounding lines.
 
