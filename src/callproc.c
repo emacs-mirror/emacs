@@ -560,10 +560,10 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
   else
     new_argv[1] = 0;
 #ifdef HAVE_MPS
-  new_argv[0] = SSDATA (path);
-#else
   new_argv[0] = xstrdup (SSDATA (path));
   record_unwind_protect_ptr (xfree, new_argv[0]);
+#else
+  new_argv[0] = SSDATA (path);
 #endif
 
   discard_output = FIXNUMP (buffer) || (NILP (buffer) && NILP (output_file));
