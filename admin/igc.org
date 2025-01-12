@@ -29,6 +29,7 @@ Emacs' traditional mark-sweep GC works in two phases:
    - the bytecode stacks
    - the specpdl (binding) stacks
    - Lisp variables defined in C with DEFVAR
+   - staticpro'd variables
    - the C stacks (aka control stacks)
    - ...
 
@@ -46,9 +47,9 @@ Emacs' traditional mark-sweep GC works in two phases:
    root is the C stack.  The C stack can contain integers that look like
    a Lisp_Object or pointer to a Lisp object, but actually are just
    random integers.  Ambiguous roots are said to be scanned
-   conservatively: we make the conservative assumption that we really
-   found a reference, so that we don't discard objects that are only
-   referenced from the C stack.
+   conservatively: we make the conservative assumption that anything
+   that /looks/ like a reference /is/ a reference, so that we don't discard
+   objects that are only referenced from the C stack.
 
    The mark phase of the traditional GC scans all roots, conservatively
    or exactly, and marks the Lisp objects found referenced in the roots
@@ -99,9 +100,10 @@ https://memory-pool-system.readthedocs.io.  The following can only be a
 rough and incomplete overview.  It is recommended to read at least the
 MPS Guide.
 
-MPS uses "arenas" which consist of "pools".  The pools represent memory
-to allocate objects from that are subject to GC.  Different types of
-pools implement different GC strategies.
+MPS uses "arenas", usually just one, which consist of one or more
+"pools".  The pools represent memory to allocate objects from that are
+subject to GC.  Different types of pools implement different GC
+strategies.
 
 Pools have "object formats" that an application must supply when it
 creates a pool.  The most important part of an object format are a
@@ -124,7 +126,7 @@ process is called "object forwarding".
 MPS makes sure that references to old objects are updated to refer to
 their new addresses.  Functions defined in the object format are used by
 MPS to perform the lowest-level tasks of object forwarding, so that MPS
-doesn't have to know application-specific details of how objects look
+doesn't have to know application-specific details of what objects look
 like.  This is also true for the actual updating of references to new
 addresses.  This is done by the scan function specified in the object
 format.  In the scan function the MPS_FIX1 and MPS_FIX2 macros are used
@@ -150,7 +152,7 @@ like and so on.  MPS has an internal model instead which describes
 these details.
 
 Emacs creates this model using the MPS API.  For example, MPS cannot
-know what Emacs' GC roots are.  We tell MPS about Emacs' roots by
+know what Emacs's GC roots are.  We tell MPS about Emacs's roots by
 calling an MPS API function creating an MPS-internal model for the root,
 and get back a handle that stands for the root.  This handle is later
 used to refer to the model object.  For example, if we want to delete a
@@ -165,7 +167,7 @@ MPS handles is found in the global variable =global_igc= and thus can be
 accessed from anywhere.
 
 The creation of MPS model objects and their registration are usually
-combined into a functions in igc.  For example, the call to create an MPS
+combined into functions in igc.  For example, the call to create an MPS
 root object, error checking, and putting the root handle into the
 registry is factored out into one function =root_create=.  Other functions
 like =root_create_ambig= and =root_create_exact= exist to create different
@@ -207,6 +209,8 @@ MPS needs to know, i.e we create an MPS-internal model of Emacs.  This
 is done at application startup, and all objects are added to the
 registry.
 
+- Arena.  We tell MPS to create the global arena that is used for all
+  objects.
 - Pools.  We tell MPS which pools we want to use, and what the object
   formats are, i.e. which callbacks in Emacs MPS can use.
 - Threads.  We define which threads Emacs has, and add their C stacks
@@ -215,11 +219,11 @@ registry.
   the byte code stack, staticpro, etc.
 - ...
 
-When we done all that, we tell MPS it can start doing its job.
+When we have done all that, we tell MPS that it can start doing its job.
 
 * Lisp Object Allocation
 
-All of Emacs' Lisp object allocation ultimately ends up being done in
+All of Emacs's Lisp object allocation ultimately ends up being done in
 igc's =alloc_impl= function.
 
 MPS allocation from pools is thread-specific, using so-called
@@ -259,7 +263,7 @@ HAVE_MPS=.  In general, it's an error to put references to Lisp objects in
 
 An example:
 
-Emacs' atimers are created with the function =start_atimer=, which takes
+Emacs's atimers are created with the function =start_atimer=, which takes
 as arguments, among others, a =callback= to call when the atimer fires,
 and =client_data= of type =void *= to pass to the callback.  The client data
 can be anything.  It can be a pointer to a C string, an integer cast to
@@ -313,7 +317,7 @@ Examples of objects requiring finalization are
 Finally, there are also finalizer objects that a user can create with
 =make-finalizer=.
 
-In Emacs' traditional GC, finalization is part of the sweep
+In Emacs's traditional GC, finalization is part of the sweep
 phase.  It just does what it needs to do when the time comes.
 
 Igc uses an MPS feature for finalization.
@@ -329,32 +333,31 @@ contained in the message, and =finalize= dispatches to various subroutines
 with the name prefix =finalize_= to do the finalization for different Lisp
 object types.  Examples: =finalize_font=, =finalize_bignum=, and so on.
 
-* Pdump
+* Portable dumper (pdumper)
 
-Emacs' portable dumper (pdumper) writes a large number of Lisp objects
+Emacs's portable dumper (pdumper) writes a large number of Lisp objects
 into a file when a dump is created, and it loads that file into memory
 when Emacs is initialized.
 
-in an Emacs using the traditional GC, once the pdump is loaded, we have
+In an Emacs using the traditional GC, once the pdump is loaded, we have
 the following situation:
 
-- The pdump creates in a number of memory regions containing Lisp
-  objects.
+- The pdump creates a number of memory regions containing Lisp objects.
 - These Lisp objects are used just like any other Lisp object by
-  Emacs.  They are not read-only, they can be modified.
+  Emacs.  They are not read-only, so they can be modified.
 - Since the objects are modifiable, the traditional GC has to scan
   them for references in its mark phase.
 - The GC doesn't sweep the objects from the pdump, of course.  It can't
-  because the objects were not not allocated normally, and there's no
+  because the objects were not not allocated normally, and there is no
   need to anyway.
 
 With igc, things are a bit different.
 
 We need to scan the objects in the pdump for the same reason the old GC
 has to.  To do the scanning, we could make the memory areas that the
-pdumper creates roots.  This is not a good solution because the pdump is
-big, and we want to keep the number and size of roots low because this
-has an impact on overall GC performance.
+pdumper creates into roots.  This is not a good solution because the
+pdump is big, and we want to keep the number and size of roots low
+to minimize impact on overall GC performance.
 
 What igc does instead is that it doesn't let the pdumper create memory
 areas as it does with the traditional GC.  It allocates memory from MPS
