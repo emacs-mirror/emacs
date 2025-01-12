@@ -3593,9 +3593,10 @@ before calling this function."
     (setq-local add-log-current-defun-function
                 #'treesit-add-log-current-defun))
 
+  (setq-local transpose-sexps-function #'treesit-transpose-sexps)
+
   (when (treesit-thing-defined-p 'sexp nil)
-    (setq-local forward-sexp-function #'treesit-forward-sexp)
-    (setq-local transpose-sexps-function #'treesit-transpose-sexps))
+    (setq-local forward-sexp-function #'treesit-forward-sexp))
 
   (when (treesit-thing-defined-p 'list nil)
     (setq-local forward-sexp-function #'treesit-forward-sexp-list)
