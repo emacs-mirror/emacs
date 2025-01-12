@@ -1950,7 +1950,7 @@ the data it can't find.  */)
 	  /* No local time zone name is available; use numeric zone instead.  */
 	  long int hour = offset / 3600;
 	  int min_sec = offset % 3600;
-	  int amin_sec = min_sec < 0 ? - min_sec : min_sec;
+	  int amin_sec = eabs (min_sec);
 	  int min = amin_sec / 60;
 	  int sec = amin_sec % 60;
 	  int min_prec = min_sec ? 2 : 0;
