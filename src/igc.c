@@ -1544,7 +1544,7 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
    references may be either tagged words or pointers.  This is used for
    blocks allocated with malloc and thread stacks.  */
 
-static mps_res_t
+static mps_res_t ATTRIBUTE_NO_SANITIZE_ADDRESS
 scan_ambig (mps_ss_t ss, void *start, void *end, void *closure)
 {
   MPS_SCAN_BEGIN (ss)
