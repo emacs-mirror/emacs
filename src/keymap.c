@@ -1740,7 +1740,6 @@ like in the respective argument of `key-binding'.  */)
 	  if (CONSP (string) && STRINGP (XCAR (string)))
 	    {
 	      Lisp_Object pos = XCDR (string);
-	      Lisp_Object pos_area = POSN_POSN (position);
 	      string = XCAR (string);
 	      if (FIXNUMP (pos)
 		  && XFIXNUM (pos) >= 0
@@ -1748,6 +1747,7 @@ like in the respective argument of `key-binding'.  */)
 		{
 		  Lisp_Object map = Fget_text_property (pos, Qlocal_map,
 							string);
+		  Lisp_Object pos_area = POSN_POSN (position);
 		  /* For clicks on mode line or header line, override
 		     the maps we found at POSITION unconditionally, even
 		     if the corresponding properties of the mode- or
