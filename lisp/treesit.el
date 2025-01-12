@@ -4045,11 +4045,6 @@ covers point.  PARSER-NAME are unique."
               res)))
     (nreverse res)))
 
-(define-derived-mode treesit--explorer-tree-mode special-mode
-  "TS Explorer"
-  "Mode for displaying syntax trees for `treesit-explore-mode'."
-  nil)
-
 (defvar-keymap treesit--explorer-tree-mode-map
   :doc "Keymap for the treesit tree explorer.
 
@@ -4059,6 +4054,11 @@ Navigates from button to button."
   "p" #'backward-button
   "TAB" #'forward-button
   "<backtab>" #'backward-button)
+
+(define-derived-mode treesit--explorer-tree-mode special-mode
+  "TS Explorer"
+  "Mode for displaying syntax trees for `treesit-explore-mode'."
+  nil)
 
 (defun treesit-explorer-switch-parser (parser)
   "Switch explorer to use PARSER."
