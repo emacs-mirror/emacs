@@ -4734,7 +4734,11 @@ hash_table_user_defined_call (ptrdiff_t nargs, Lisp_Object *args,
 {
   if (!h->mutable)
     return Ffuncall (nargs, args);
+#ifdef HAVE_MPS
+  specpdl_ref count = SPECPDL_INDEX ();
+#else
   specpdl_ref count = inhibit_garbage_collection ();
+#endif
   record_unwind_protect_ptr (restore_mutability, h);
   h->mutable = false;
   return unbind_to (count, Ffuncall (nargs, args));

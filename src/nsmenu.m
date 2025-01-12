@@ -915,8 +915,10 @@ ns_menu_show (struct frame *f, int x, int y, int menuflags,
 
   specpdl_count = SPECPDL_INDEX ();
 
+#ifndef HAVE_MPS
   /* Don't GC due to a mysterious bug.  */
   inhibit_garbage_collection ();
+#endif
 
   /* Loop over all panes and items, filling in the tree.  */
   i = 0;

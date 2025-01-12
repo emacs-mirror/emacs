@@ -6385,6 +6385,7 @@ staticpro (Lisp_Object const *varaddress)
 			  Protection from GC
  ***********************************************************************/
 
+#ifndef HAVE_MPS
 /* Temporarily prevent garbage collection.  Temporarily bump
    consing_until_gc to speed up maybe_gc when GC is inhibited.  */
 
@@ -6404,6 +6405,7 @@ inhibit_garbage_collection (void)
   consing_until_gc = HI_THRESHOLD;
   return count;
 }
+#endif
 
 /* Return the number of bytes in N objects each of size S, guarding
    against overflow if size_t is narrower than byte_ct.  */
@@ -7030,7 +7032,11 @@ garbage_collect (void)
 
   if (!NILP (Vpost_gc_hook))
     {
+#ifdef HAVE_MPS
+      specpdl_ref gc_count = SPECPDL_INDEX ();
+#else
       specpdl_ref gc_count = inhibit_garbage_collection ();
+#endif
       safe_run_hooks (Qpost_gc_hook);
       unbind_to (gc_count, Qnil);
     }

@@ -1805,7 +1805,11 @@ process_quit_flag (void)
 void
 probably_quit (void)
 {
+#ifdef HAVE_MPS
+  specpdl_ref gc_count = SPECPDL_INDEX ();
+#else
   specpdl_ref gc_count = inhibit_garbage_collection ();
+#endif
   if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))
     process_quit_flag ();
   else if (pending_signals)

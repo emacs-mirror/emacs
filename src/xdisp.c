@@ -12930,12 +12930,16 @@ display_echo_area (struct window *w)
 {
   bool no_message_p, window_height_changed_p;
 
+#ifdef HAVE_MPS
+  specpdl_ref count = SPECPDL_INDEX ();
+#else
   /* Temporarily disable garbage collections while displaying the echo
      area.  This is done because a GC can print a message itself.
      That message would modify the echo area buffer's contents while a
      redisplay of the buffer is going on, and seriously confuse
      redisplay.  */
   specpdl_ref count = inhibit_garbage_collection ();
+#endif
 
   /* If there is no message, we must call display_echo_area_1
      nevertheless because it resizes the window.  But we will have to
@@ -28995,7 +28999,11 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 
     case '@':
       {
+#ifdef HAVE_MPS
+	specpdl_ref count = SPECPDL_INDEX ();
+#else
 	specpdl_ref count = inhibit_garbage_collection ();
+#endif
 	Lisp_Object curdir = BVAR (current_buffer, directory);
 	Lisp_Object val = Qnil;
 
