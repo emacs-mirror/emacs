@@ -1,11 +1,11 @@
-;;; window-x.el --- Extra window organization commands  -*- lexical-binding: t; -*-
+;;; window-x.el --- Extra window related commands  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2025 Free Software Foundation, Inc.
 
 ;; Author: Pranshu Sharma <pranshu@bauherren.ovh>
 ;;         Martin Rudalics <rudalics@gmx.at>
 ;; Maintainer: emacs-devel@gnu.org
-;; Keywords: files
+;; Keywords: window, convenience
 ;; Package: emacs
 
 ;; This file is part of GNU Emacs.
@@ -28,6 +28,14 @@
 ;; This file defines less frequently used window organization commands.
 
 ;;; Code:
+
+(defcustom rotate-windows-change-selected t
+  "If nil the selected window will not change with `rotate-windows'.
+
+The selected window before and after the function call will stay
+unchanged if nil.  `rotate-windows-back' is also affected."
+  :type 'boolean
+  :group 'windows)
 
 (defun window-tree-normal-sizes (window &optional next)
   "Return normal sizes of all windows rooted at WINDOW.
@@ -70,7 +78,7 @@ where HEIGHT and WIDTH are the normal height and width of the window.
 
 ;;;###autoload
 (defun rotate-window-layout-counterclockwise (&optional window)
-  "Rotate windows under WINDOW counterclockwise by 90 degrees.
+  "Rotate window layout of WINDOW counterclockwise by 90 degrees.
 
 If WINDOW is nil, it defaults to the root window of the selected frame.
 
@@ -81,7 +89,7 @@ selected window."
 
 ;;;###autoload
 (defun rotate-window-layout-clockwise (&optional window)
-  "Rotate windows under WINDOW clockwise by 90 degrees.
+  "Rotate window layout under WINDOW clockwise by 90 degrees.
 
 If WINDOW is nil, it defaults to the root window of the selected frame.
 
@@ -178,14 +186,13 @@ selected window."
     (when (or (seq-some #'window-atom-root winls)
 	      (seq-some #'window-fixed-size-p winls))
       (user-error "Cannot rotate windows due to fixed size or atom windows"))
-    ;; All child windows need to be recursively deleted.
     (delete-other-windows-internal first-window window)
-    ;; (delete-dups atom-windows)
     (window--transpose-1 new-win-tree first-window '(below . right) t nil)
     (set-frame-selected-window frame selected-window)
-    (other-window other-window-arg)
-    (while (not (memq (selected-window) winls))
-      (other-window other-window-arg))))
+    (when rotate-windows-change-selected
+      (other-window other-window-arg)
+      (while (not (memq (selected-window) winls))
+        (other-window other-window-arg)))))
 
 (defun window--transpose (window conf no-resize)
   "Rearrange windows under WINDOW recursively.
