@@ -18,6 +18,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
 // clang-format on
 
+/* For an introduction, see the files README-IGC and admin/igc.org.  */
+
 #include <config.h>
 #include <limits.h>
 #include <signal.h>
