@@ -593,30 +593,76 @@ NODE, PARENT, BOL, ARGS are as usual."
     "#else" "#elif" "#endif" "#include")
   "C/C++ keywords for tree-sitter font-locking.")
 
+(defvar c-ts-mode--optional-c-keywords
+  ;; v0.20.4 actually contains all the new keywords I can find that
+  ;; aren't in c-ts-mode before.  The version doesn't really matter, we
+  ;; just want a rough grouping so that we can enable as much keywords
+  ;; as possible.
+  '(("v0.20.4" . ("_Generic"  "_Noreturn" "noreturn"
+                  "__attribute__" "__restrict__"
+                  "offsetof" "thread_local"))
+    ("v0.20.5" . ("__extension__" "__extension__"
+                  "__forceinline" "__inline" "__inline__"
+                  "__thread"
+                  "__alignof__" "__alignof" "alignof" "_Alignof"))
+    ("v0.20.7" . ("__try" "__except" "__finally" "__leave"))
+    ;; GitHub release jumped from v0.20.7 to v0.23.1.  There are
+    ;; intermediate git tags, but there aren't many keywords here, so I
+    ;; skipped intermediate versions too.
+    ("v0.23.1" ("_Nonnull" "__attribute"
+                "alignas" "_Alignas" "__asm" "__volatile__"))
+    ;; No changes to keywords in v0.23.2, v0.23.3, v0.23.4.
+    )
+  "Keywords added in each tree-sitter-c version.")
+
+(defvar c-ts-mode--ms-keywords
+  ;; For some reason, "__restrict" "__uptr" and "__sptr" are not
+  ;; recognized by the grammar, although being in grammar.js.
+  '("__declspec" "__based" "__cdecl" "__clrcall" "__stdcall"
+    "__fastcall" "__thiscall" "__vectorcall" "_unaligned" "__unaligned")
+  "MSVC keywords.")
+
+(defun c-ts-mode--compute-optional-keywords (mode)
+  "Return a list of keywords that are supported by the grammar.
+MODE should be either `c' or `cpp'."
+  (if (eq mode 'c)
+      (mapcan
+       (lambda (entry)
+         (let ((keywords (cdr entry)))
+           (if (ignore-errors
+                 (treesit-query-compile 'c `([,@keywords] @cap) t)
+                 t)
+               (copy-sequence keywords)
+             nil)))
+       c-ts-mode--optional-c-keywords)
+    ;; As for now, there aren't additional optional keywords for C++.
+    ()))
+
 (defun c-ts-mode--keywords (mode)
   "C/C++ keywords for tree-sitter font-locking.
 MODE is either `c' or `cpp'."
   (let ((c-keywords
-         '("_Atomic" "break" "case" "const" "continue"
+         `("_Atomic" "break" "case" "const" "continue"
            "default" "do" "else" "enum"
            "extern" "for" "goto" "if" "inline"
            "register" "restrict" "return"
            "sizeof" "static" "struct"
            "switch" "typedef" "union"
-           "volatile" "while")))
+           "volatile" "while"
+           ,@c-ts-mode--ms-keywords
+           ,@(c-ts-mode--compute-optional-keywords mode))))
     (if (eq mode 'cpp)
         (append c-keywords
-                '("and" "and_eq" "bitand" "bitor"
-                  "catch" "class" "co_await" "co_return"
-                  "co_yield" "compl" "concept" "consteval"
+                c-ts-mode--c++-operator-keywords
+                '("catch" "class" "co_await" "co_return"
+                  "co_yield" "concept" "consteval"
                   "constexpr" "constinit" "decltype" "delete"
                   "explicit" "final" "friend"
                   "mutable" "namespace" "new" "noexcept"
-                  "not" "not_eq" "operator" "or"
-                  "or_eq" "override" "private" "protected"
-                  "public" "requires" "template" "throw"
+                  "operator" "override" "private" "protected"
+                  "public" "requires" "static_assert" "template" "throw"
                   "try" "typename" "using"
-                  "xor" "xor_eq" "thread_local"))
+                  "thread_local"))
       (append '("auto") c-keywords))))
 
 (defvar c-ts-mode--type-keywords
@@ -628,6 +674,15 @@ MODE is either `c' or `cpp'."
     "." "<" "<=" ">=" ">" "==" "!=" "!" "&&" "||" "-="
     "+=" "*=" "/=" "%=" "|=" "&=" "^=" ">>=" "<<=" "--" "++")
   "C/C++ operators for tree-sitter font-locking.")
+
+(defvar c-ts-mode--c++-operators
+  '(".*" "->*" "<=>")
+  "C++ operators that aren't supported by C.")
+
+(defvar c-ts-mode--c++-operator-keywords
+  '("and" "and_eq" "bitand" "bitor" "compl" "not" "not_eq" "or" "or_eq"
+    "xor" "xor_eq")
+  "C++ operators that we fontify as keywords.")
 
 (defvar c-ts-mode--for-each-tail-regexp
   (rx "FOR_EACH_" (or "TAIL" "TAIL_SAFE" "ALIST_VALUE"
@@ -697,7 +752,9 @@ MODE is either `c' or `cpp'."
 
    :language mode
    :feature 'operator
-   `([,@c-ts-mode--operators] @font-lock-operator-face
+   `([,@c-ts-mode--operators
+      ,@(when (eq mode 'cpp) c-ts-mode--c++-operators)]
+     @font-lock-operator-face
      "!" @font-lock-negation-char-face)
 
    :language mode
