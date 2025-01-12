@@ -826,6 +826,11 @@ Use 'bibtex-aux-opt-alist' instead.
 *** New user option 'bibtex-entry-ask-for-key'.
 When enabled, 'bibtex-entry' asks for a key.
 
+---
+*** 'bibtex-string-file-path' and 'bibtex-file-path' are lists of directories.
+For backward compatibility, considered obsolete, these user options
+may still be strings with colon separated lists of directories.
+
 ** Midnight mode
 
 ---
