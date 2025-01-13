@@ -182,6 +182,12 @@
 
 ;;; User Variables:
 
+(defcustom remember-initial-major-mode 'text-mode
+  "Major mode to use in the `remember-buffer'."
+  :type '(choice (const    :tag "Use `initial-major-mode'" nil)
+		 (function :tag "Major mode" text-mode))
+  :version "31.0")
+
 (defcustom remember-mode-hook nil
   "Functions run upon entering `remember-mode'."
   :type 'hook
@@ -210,7 +216,8 @@ recorded somewhere by that function."
   :options '(remember-store-in-mailbox
              remember-append-to-file
              remember-store-in-files
-             remember-diary-extract-entries))
+             remember-diary-extract-entries
+             remember-append-in-data-directory))
 
 (defcustom remember-all-handler-functions nil
   "If non-nil every function in `remember-handler-functions' is called."
@@ -283,6 +290,8 @@ With a prefix or a visible region, use the region as INITIAL."
         (set-window-dedicated-p
          (get-buffer-window (current-buffer) (selected-frame)) t))
     (setq buffer-offer-save t)
+    (funcall (or remember-initial-major-mode
+                 initial-major-mode))
     (remember-mode)
     (when (= (point-max) (point-min))
       (when initial (insert initial))
@@ -450,7 +459,8 @@ If you want to remember a region, supply a universal prefix to
 
 (defcustom remember-data-directory "~/remember"
   "The directory in which to store remember data as files.
-Used by `remember-store-in-files'."
+Used by `remember-store-in-files' and
+`remember-append-in-data-directory'."
   :type 'directory
   :version "24.4")
 
@@ -471,6 +481,28 @@ The file is named by calling `format-time-string' using
       (insert text)
       (write-file (convert-standard-filename
                    (format "%s/%s" remember-data-directory name))))))
+
+(defcustom remember-data-files-regex nil
+  "Regular expression for specifying which files to append data.
+If non-nil, keep only files whose non-directory part match the regexp.
+Used by `remember-append-in-data-directory'."
+  :type '(choice (const :tag "Any file" nil) regexp)
+  :version "31.0")
+
+(defun remember-append-in-data-directory ()
+  "Append remember data to a file in `remember-data-directory'.
+The file name is read from minibuffer.
+
+If you want to filter proposed files, configure
+`remember-data-files-regex'."
+  (let* ((name
+        (completing-read "Remember in file: "
+                         (directory-files
+                          (expand-file-name remember-data-directory)
+                          nil
+                          remember-data-files-regex)))
+         (remember-data-file (expand-file-name name remember-data-directory)))
+    (remember-append-to-file)))
 
 ;;;###autoload
 (defun remember-clipboard ()
@@ -560,15 +592,20 @@ If this is nil, then `diary-file' will be used instead."
   "C-c C-c" #'remember-finalize
   "C-c C-k" #'remember-destroy)
 
-(define-derived-mode remember-mode text-mode "Remember"
-  "Major mode for output from \\[remember].
+(define-minor-mode remember-mode
+  "Minor mode for output from \\[remember].
 This buffer is used to collect data that you want to remember.
 \\<remember-mode-map>
 Just hit \\[remember-finalize] when you're done entering, and it will file
 the data away for latter retrieval, and possible indexing.
 
 \\{remember-mode-map}"
-  (set-keymap-parent remember-mode-map nil))
+  :lighter " Remember"
+  :keymap remember-mode-map
+  (setq header-line-format
+        (substitute-command-keys
+         "Edit, then exit with `\\[remember-finalize]' or abort with \
+  `\\[remember-destroy]'")))
 
 ;; Notes buffer showing the notes:
 
@@ -583,7 +620,9 @@ purpose of storing notes."
   "Major mode to use in the notes buffer when it's created.
 If this is nil, use `initial-major-mode'."
   :type '(choice (const    :tag "Use `initial-major-mode'" nil)
-		 (function :tag "Major mode" text-mode))
+                 (const    :tag "Use `remember-initial-major-mode'"
+                           remember-initial-major-mode)
+                 (function :tag "Major mode" text-mode))
   :version "24.4")
 
 (defcustom remember-notes-bury-on-kill t
@@ -597,8 +636,6 @@ If this is nil, use `initial-major-mode'."
   (when (buffer-modified-p)
     (save-buffer))
   (bury-buffer))
-
-
 
 (defvar-keymap remember-notes-mode-map
   :doc "Keymap used in `remember-notes-mode'."
@@ -669,6 +706,16 @@ is non-nil, bury it and return nil; otherwise return t."
         (bury-buffer)
         nil)
     t))
+
+;; Prefix map
+
+(define-prefix-command 'remember-prefix-map)
+;; Use with for example:
+;; (keymap-global-set "C-c r" 'remember-prefix-map)
+
+(keymap-set remember-prefix-map "r" 'remember)
+(keymap-set remember-prefix-map "c" 'remember-clipboard)
+(keymap-set remember-prefix-map "n" 'remember-notes)
 
 ;; Obsolete
 
