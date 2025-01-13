@@ -1565,7 +1565,8 @@ scan_ambig (mps_ss_t ss, void *start, void *end, void *closure)
 	if (res != MPS_RES_OK)
 	  return res;
 
-	switch (tag)
+	/* Cast for exhaustive switch check.  */
+	switch ((enum Lisp_Type) tag)
 	  {
 	  case Lisp_Int0:
 	  case Lisp_Int1:
@@ -1582,7 +1583,10 @@ scan_ambig (mps_ss_t ss, void *start, void *end, void *closure)
 	    }
 	    break;
 
-	  default:
+	  case Lisp_String:
+	  case Lisp_Vectorlike:
+	  case Lisp_Cons:
+	  case Lisp_Float:
 	    ref = (mps_addr_t) (word ^ tag);
 	    res = MPS_FIX12 (ss, &ref);
 	    if (res != MPS_RES_OK)
