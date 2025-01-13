@@ -635,6 +635,25 @@ NODE, PARENT, BOL, ARGS are as usual."
     "__fastcall" "__thiscall" "__vectorcall" "_unaligned" "__unaligned")
   "MSVC keywords.")
 
+(defvar c-ts-mode--type-keywords
+  '("long" "short" "signed" "unsigned")
+  "Keywords that should be considered as part of a type.")
+
+(defvar c-ts-mode--operators
+  '("=" "-" "*" "/" "+" "%" "~" "|" "&" "^" "<<" ">>" "->"
+    "." "<" "<=" ">=" ">" "==" "!=" "!" "&&" "||" "-="
+    "+=" "*=" "/=" "%=" "|=" "&=" "^=" ">>=" "<<=" "--" "++")
+  "C/C++ operators for tree-sitter font-locking.")
+
+(defvar c-ts-mode--c++-operators
+  '(".*" "->*" "<=>")
+  "C++ operators that aren't supported by C.")
+
+(defvar c-ts-mode--c++-operator-keywords
+  '("and" "and_eq" "bitand" "bitor" "compl" "not" "not_eq" "or" "or_eq"
+    "xor" "xor_eq")
+  "C++ operators that we fontify as keywords.")
+
 (defun c-ts-mode--compute-optional-keywords (mode)
   "Return a list of keywords that are supported by the grammar.
 MODE should be either `c' or `cpp'."
@@ -677,25 +696,6 @@ MODE is either `c' or `cpp'."
                   "try" "typename" "using"
                   "thread_local"))
       (append '("auto") c-keywords))))
-
-(defvar c-ts-mode--type-keywords
-  '("long" "short" "signed" "unsigned")
-  "Keywords that should be considered as part of a type.")
-
-(defvar c-ts-mode--operators
-  '("=" "-" "*" "/" "+" "%" "~" "|" "&" "^" "<<" ">>" "->"
-    "." "<" "<=" ">=" ">" "==" "!=" "!" "&&" "||" "-="
-    "+=" "*=" "/=" "%=" "|=" "&=" "^=" ">>=" "<<=" "--" "++")
-  "C/C++ operators for tree-sitter font-locking.")
-
-(defvar c-ts-mode--c++-operators
-  '(".*" "->*" "<=>")
-  "C++ operators that aren't supported by C.")
-
-(defvar c-ts-mode--c++-operator-keywords
-  '("and" "and_eq" "bitand" "bitor" "compl" "not" "not_eq" "or" "or_eq"
-    "xor" "xor_eq")
-  "C++ operators that we fontify as keywords.")
 
 (defvar c-ts-mode--for-each-tail-regexp
   (rx "FOR_EACH_" (or "TAIL" "TAIL_SAFE" "ALIST_VALUE"
