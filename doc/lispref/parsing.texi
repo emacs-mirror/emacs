@@ -1596,6 +1596,8 @@ the thing.
 
 @var{pred} can also be recursively defined.  It can be @w{@code{(or
 @var{pred}@dots{})}}, meaning that satisfying any one of the @var{pred}s
+qualifies the node as the thing.  It can be @w{@code{(and
+@var{pred}@dots{})}}, meaning that satisfying all of the @var{pred}s
 qualifies the node as the thing.  It can be @w{@code{(not @var{pred})}},
 meaning that not satisfying @var{pred} qualifies the node.
 
@@ -1603,6 +1605,10 @@ Finally, @var{pred} can refer to other @var{thing}s defined in this
 list.  For example, @w{@code{(or sexp sentence)}} defines something
 that's either a @code{sexp} thing or a @code{sentence} thing, as defined
 by some other rule in the alist.
+
+There are two pre-defined predicates: @code{named} and @code{anonymous},
+that qualifies named and anonymous nodes, respectively.  They can be
+combined with @code{and} to narrow down the match.
 
 Here's an example @code{treesit-thing-settings} for C and C++:
 
@@ -1662,7 +1668,6 @@ signals @code{treesit-invalid-predicate} error.  If @var{ignore-missing}
 is @code{t}, this function doesn't signal the error when @var{thing} is
 undefined and just returns @code{nil}; but it still signals the error if
 @var{thing} is a malformed predicate.
-
 @end defun
 
 @defun treesit-thing-prev position thing
@@ -2179,8 +2184,6 @@ navigation commands that move, respectively, by sexps and sentences by
 defining variables such as @code{forward-sexp-function} and
 @code{forward-sentence-function}.
 @end itemize
-
-@c TODO: Add treesit-thing-settings stuff once we finalize it.
 @end defun
 
 For more information on these built-in tree-sitter features,
