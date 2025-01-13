@@ -2300,7 +2300,7 @@ fix_weak_hash_table_strong_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Strong
 	  case Weak_Key_Or_Value:
 	    limit = 2 * XFIXNUM (t->table_size);
 	    break;
-	  default:
+	  case Weak_None:
 	    emacs_abort ();
 	  }
 	for (ssize_t i = 2 * XFIXNUM (t->table_size); i < limit; i++)
@@ -2340,7 +2340,7 @@ fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Par
 	  case Weak_Key_Or_Value:
 	    limit = 2 * XFIXNUM (t->table_size);
 	    break;
-	  default:
+	  case Weak_None:
 	    emacs_abort ();
 	  }
 
@@ -4304,7 +4304,7 @@ igc_alloc_weak_hash_table_strong_part (hash_table_weakness_t weak,
     case Weak_Key_Or_Value:
       total_size = 2 * size + ((ptrdiff_t)1 << index_bits);
       break;
-    default:
+    case Weak_None:
       emacs_abort ();
     }
   return alloc (sizeof (struct Lisp_Weak_Hash_Table_Strong_Part) +
@@ -4329,7 +4329,7 @@ igc_alloc_weak_hash_table_weak_part (hash_table_weakness_t weak,
     case Weak_Key_Or_Value:
       total_size = 2 * size;
       break;
-    default:
+    case Weak_None:
       emacs_abort ();
     }
   return alloc (sizeof (struct Lisp_Weak_Hash_Table_Weak_Part) +
