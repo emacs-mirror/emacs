@@ -474,7 +474,7 @@ MODE can be `c' or `cpp'.  STYLE can be `gnu', `k&r', `linux', `bsd'."
                                 "enum_specifier"
                                 "function_declarator"
                                 "template_declaration")))
-            parent 0)
+            standalone-parent 0)
            ;; This is for the trailing-star stype:  int *
            ;;                                       func()
            ((match "function_declarator" nil "declarator") parent-bol 0)
