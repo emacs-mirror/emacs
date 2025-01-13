@@ -445,6 +445,18 @@ NODE and PARENT are the same as other indent rules."
         (cons (funcall parent-bol)
               c-ts-mode-indent-offset))))))
 
+(defun c-ts-mode--emacs-macro-rules (_ parent &rest _)
+  "Rules for indenting macros in Emacs C source.
+
+PARENT is the same as other simple-indent rules."
+  (cond
+   ((and (treesit-node-match-p parent "function_definition")
+         (equal (treesit-node-text
+                 (treesit-node-child-by-field-name parent "type"))
+                "FOR_EACH_TAIL"))
+    (cons (treesit-node-start parent)
+          c-ts-mode-indent-offset))))
+
 (defun c-ts-mode--simple-indent-rules (mode style)
   "Return the indent rules for MODE and STYLE.
 
@@ -466,6 +478,7 @@ MODE can be `c' or `cpp'.  STYLE can be `gnu', `k&r', `linux', `bsd'."
            c-ts-mode--label-indent-rules
            ,@c-ts-mode--preproc-indent-rules
            c-ts-mode--macro-heuristic-rules
+           c-ts-mode--emacs-macro-rules
 
            ;; Make sure type and function definition components align and
            ;; don't indent. Also takes care of GNU style opening braces.
