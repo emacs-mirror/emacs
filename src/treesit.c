@@ -3730,7 +3730,7 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
 	   && !(SYMBOLP (pred) && !NILP (Fget (pred, Qtreesit_thing_symbol))))
     {
       Lisp_Object lisp_node = make_treesit_node (parser, node);
-      return !NILP (CALLN (Ffuncall, pred, lisp_node));
+      return !NILP (calln (pred, lisp_node));
     }
   else if (SYMBOLP (pred) && BASE_EQ (pred, Qnamed))
     {
@@ -3784,7 +3784,7 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
 	    return false;
 
 	  Lisp_Object lisp_node = make_treesit_node (parser, node);
-	  if (NILP (CALLN (Ffuncall, cdr, lisp_node)))
+	  if (NILP (calln (cdr, lisp_node)))
 	    return false;
 
 	  return true;
@@ -4053,7 +4053,7 @@ treesit_build_sparse_tree (TSTreeCursor *cursor, Lisp_Object parent,
       TSNode node = ts_tree_cursor_current_node (cursor);
       Lisp_Object lisp_node = make_treesit_node (parser, node);
       if (!NILP (process_fn))
-	lisp_node = CALLN (Ffuncall, process_fn, lisp_node);
+	lisp_node = calln (process_fn, lisp_node);
 
       Lisp_Object this = Fcons (lisp_node, Qnil);
       Fsetcdr (parent, Fcons (this, Fcdr (parent)));

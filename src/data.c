@@ -911,7 +911,7 @@ signal a `cyclic-function-indirection' error.  */)
   if (!NILP (Vnative_comp_enable_subr_trampolines)
       && SUBRP (function)
       && !NATIVE_COMP_FUNCTIONP (function))
-    CALLN (Ffuncall, Qcomp_subr_trampoline_install, symbol);
+    calln (Qcomp_subr_trampoline_install, symbol);
 #endif
 
   set_symbol_function (symbol, definition);
@@ -1910,7 +1910,7 @@ notify_variable_watchers (Lisp_Object symbol,
           funcall_subr (XSUBR (watcher), ARRAYELTS (args), args);
         }
       else
-        CALLN (Ffuncall, watcher, symbol, newval, operation, where);
+        calln (watcher, symbol, newval, operation, where);
     }
 
   unbind_to (count, Qnil);

@@ -4156,7 +4156,7 @@ types.  */)
     error ("No other Lisp threads can be running when this function is called");
 
 #ifdef HAVE_NATIVE_COMP
-  CALLN (Ffuncall, intern_c_string ("load--fixup-all-elns"));
+  calln (intern_c_string ("load--fixup-all-elns"));
 #endif
 
   check_pure_size ();

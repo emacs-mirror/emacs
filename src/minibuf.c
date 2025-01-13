@@ -1553,8 +1553,7 @@ function, instead of the usual behavior.  */)
 					      STRING_MULTIBYTE (prompt));
 	    }
 
-	  prompt = CALLN (Ffuncall, Qformat_prompt,
-			  prompt,
+	  prompt = calln (Qformat_prompt, prompt,
 			  CONSP (def) ? XCAR (def) : def);
 	}
 
@@ -2040,8 +2039,7 @@ Completion ignores case if the ambient value of
 See also `completing-read-function'.  */)
   (Lisp_Object prompt, Lisp_Object collection, Lisp_Object predicate, Lisp_Object require_match, Lisp_Object initial_input, Lisp_Object hist, Lisp_Object def, Lisp_Object inherit_input_method)
 {
-  return CALLN (Ffuncall,
-		Fsymbol_value (Qcompleting_read_function),
+  return calln (Fsymbol_value (Qcompleting_read_function),
 		prompt, collection, predicate, require_match, initial_input,
 		hist, def, inherit_input_method);
 }

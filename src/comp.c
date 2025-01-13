@@ -504,19 +504,19 @@ load_gccjit_if_necessary (bool mandatory)
 
 /* Like call0 but stringify and intern.  */
 #define CALL0I(fun)				\
-  CALLN (Ffuncall, intern_c_string (STR (fun)))
+  calln (intern_c_string (STR (fun)))
 
 /* Like call1 but stringify and intern.  */
 #define CALL1I(fun, arg)				\
-  CALLN (Ffuncall, intern_c_string (STR (fun)), arg)
+  calln (intern_c_string (STR (fun)), arg)
 
 /* Like call2 but stringify and intern.  */
 #define CALL2I(fun, arg1, arg2)				\
-  CALLN (Ffuncall, intern_c_string (STR (fun)), arg1, arg2)
+  calln (intern_c_string (STR (fun)), arg1, arg2)
 
 /* Like call4 but stringify and intern.  */
 #define CALL4I(fun, arg1, arg2, arg3, arg4)				\
-  CALLN (Ffuncall, intern_c_string (STR (fun)), arg1, arg2, arg3, arg4)
+  calln (intern_c_string (STR (fun)), arg1, arg2, arg3, arg4)
 
 #define DECL_BLOCK(name, func)				\
   gcc_jit_block *(name) =				\
@@ -1016,7 +1016,7 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
 
   /* String containing the function ptr name.  */
   Lisp_Object f_ptr_name =
-    CALLN (Ffuncall, intern_c_string ("comp-c-func-name"),
+    calln (intern_c_string ("comp-c-func-name"),
 	   subr_sym, make_string ("R", 1));
 
   gcc_jit_type *f_ptr_type =

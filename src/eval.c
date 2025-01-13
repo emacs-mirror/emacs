@@ -1169,7 +1169,7 @@ is not displayed.  */)
 				       xstrdup (SSDATA (message)));
   record_unwind_protect_ptr (with_delayed_message_cancel, timer);
 
-  Lisp_Object result = CALLN (Ffuncall, function);
+  Lisp_Object result = calln (function);
 
   return unbind_to (count, result);
 }

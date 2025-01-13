@@ -1680,8 +1680,7 @@ print_vectorlike_unreadable (Lisp_Object obj, Lisp_Object printcharfun,
 	  record_unwind_current_buffer ();
 	  set_buffer_internal (XBUFFER (Vprint__unreadable_callback_buffer));
 	}
-      Lisp_Object result = CALLN (Ffuncall, func, obj,
-				  escapeflag? Qt: Qnil);
+      Lisp_Object result = calln (func, obj, escapeflag? Qt: Qnil);
       unbind_to (count, Qnil);
 
       if (!NILP (result))
