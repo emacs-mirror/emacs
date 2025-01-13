@@ -1095,7 +1095,9 @@ to the directories specified in `bibtex-string-file-path'."
   :group 'bibtex
   :type '(repeat file))
 
-(defcustom bibtex-string-file-path (split-string (getenv "BIBINPUTS") ":+" t)
+(defcustom bibtex-string-file-path
+  (let ((bibinputs (getenv "BIBINPUTS")))
+    (if bibinputs (split-string bibinputs ":+" t)))
   "List of directories to search for `bibtex-string-files'.
 By default, initialized from the BIBINPUTS environment variable.
 For backward compatibility, considered obsolete, it may also be
@@ -1117,7 +1119,9 @@ See also `bibtex-search-entry-globally'."
   :type '(repeat (choice (const :tag "bibtex-file-path" bibtex-file-path)
                          directory file)))
 
-(defcustom bibtex-file-path (split-string (getenv "BIBINPUTS") ":+" t)
+(defcustom bibtex-file-path
+  (let ((bibinputs (getenv "BIBINPUTS")))
+    (if bibinputs (split-string bibinputs ":+" t)))
   "List of directories to search for `bibtex-files'.
 By default, initialized from the BIBINPUTS environment variable.
 For backward compatibility, considered obsolete, it may also be
