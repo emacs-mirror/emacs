@@ -183,6 +183,7 @@ adds @code{my-text-hook-function} to the hook called @code{text-mode-hook}.
 If @var{function} is already present in @var{hook} (comparing using
 @code{equal}), then @code{add-hook} does not add it a second time.
 
+@cindex @code{permanent-local-hook} (symbol property)
 If @var{function} has a non-@code{nil} property
 @code{permanent-local-hook}, then @code{kill-all-local-variables} (or
 changing major modes) won't delete it from the hook variable's local
@@ -565,6 +566,8 @@ If something special should be done if the user switches a buffer from
 this mode to any other major mode, this mode can set up a buffer-local
 value for @code{change-major-mode-hook} (@pxref{Creating Buffer-Local}).
 
+@cindex @code{mode-class} (symbol property)
+@cindex @code{special} modes
 @item
 If this mode is appropriate only for specially-prepared text produced by
 the mode itself (rather than by the user typing at the keyboard or by an
@@ -572,8 +575,6 @@ external file), then the major mode command symbol should have a
 property named @code{mode-class} with value @code{special}, put on as
 follows:
 
-@kindex mode-class @r{(property)}
-@cindex @code{special} modes
 @example
 (put 'funny-mode 'mode-class 'special)
 @end example

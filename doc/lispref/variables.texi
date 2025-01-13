@@ -1774,6 +1774,7 @@ subsequent major mode.  @xref{Hooks}.
 @end defvar
 
 @cindex permanent local variable
+@cindex @code{permanent-local} (symbol property)
 A buffer-local variable is @dfn{permanent} if the variable name (a
 symbol) has a @code{permanent-local} property that is non-@code{nil}.
 Such variables are unaffected by @code{kill-all-local-variables}, and
@@ -2051,7 +2052,7 @@ file-local variables stored in @code{file-local-variables-alist}.
 @end defvar
 
 @cindex safe local variable
-@cindex @code{safe-local-variable}, property of variable
+@cindex @code{safe-local-variable} (symbol property)
   You can specify safe values for a variable with a
 @code{safe-local-variable} property.  The property has to be a
 function of one argument; any value is safe if the function returns
@@ -2060,6 +2061,11 @@ variables have @code{safe-local-variable} properties; these include
 @code{fill-column}, @code{fill-prefix}, and @code{indent-tabs-mode}.
 For boolean-valued variables that are safe, use @code{booleanp} as the
 property value.
+
+  Since the value of @code{safe-local-variable} is consulted when
+loading files, the function should be efficient and should ideally not
+lead to loading any libraries to determine the safeness (e.g., it should
+not be an autoloaded function).
 
   If you want to define @code{safe-local-variable} properties for
 variables defined in C source code, add the names and the properties
@@ -2118,7 +2124,7 @@ This function returns non-@code{nil} if it is safe to give @var{sym}
 the value @var{val}, based on the above criteria.
 @end defun
 
-@c @cindex risky local variable   Duplicates risky-local-variable
+@cindex @code{risky-local-variable} (symbol property)
   Some variables are considered @dfn{risky}.  If a variable is risky,
 it is never entered automatically into
 @code{safe-local-variable-values}; Emacs always queries before setting
@@ -2167,6 +2173,7 @@ evaluate when found in the @samp{Eval:} ``variable'' in a file
 local variables list.
 @end defopt
 
+@cindex @code{safe-local-eval-function} (symbol property)
   If the expression is a function call and the function has a
 @code{safe-local-eval-function} property, the property value
 determines whether the expression is safe to evaluate.  The property

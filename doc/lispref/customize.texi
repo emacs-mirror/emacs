@@ -511,6 +511,10 @@ previously, Lisp programs can use this function to add values for user
 options not yet defined.
 @end defun
 
+@cindex @code{customized-value} (symbol property)
+@cindex @code{saved-value} (symbol property)
+@cindex @code{standard-value} (symbol property)
+@cindex @code{theme-value} (symbol property)
 Internally, @code{defcustom} uses the symbol property
 @code{standard-value} to record the expression for the standard value,
 @code{saved-value} to record the value saved by the user with the

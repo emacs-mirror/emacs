@@ -2473,6 +2473,7 @@ is on that item in the same way as @code{help-echo} text properties
   If @var{real-binding} is @code{nil}, then @var{item-string} appears in
 the menu but cannot be selected.
 
+@cindex @code{menu-enable} (symbol property)
   If @var{real-binding} is a symbol and has a non-@code{nil}
 @code{menu-enable} property, that property is an expression that
 controls whether the menu item is enabled.  Every time the keymap is
@@ -2716,6 +2717,7 @@ items.  Here's an example that makes two aliases for
 (put 'make-writable 'menu-enable 'buffer-read-only)
 @end example
 
+@cindex @code{menu-alias} (symbol property)
 When using aliases in menus, often it is useful to display the
 equivalent key bindings for the real command name, not the aliases
 (which typically don't have any key bindings except for the menu
