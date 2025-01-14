@@ -862,7 +862,7 @@ freloc_check_fill (void)
 static void
 bcall0 (Lisp_Object f)
 {
-  Ffuncall (1, &f);
+  calln (f);
 }
 
 static gcc_jit_block *

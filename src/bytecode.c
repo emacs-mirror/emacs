@@ -327,7 +327,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 static void
 bcall0 (Lisp_Object f)
 {
-  Ffuncall (1, &f);
+  calln (f);
 }
 
 /* The bytecode stack size in bytes.

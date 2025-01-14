@@ -3528,7 +3528,7 @@ enum maxargs
 INLINE Lisp_Object
 call0 (Lisp_Object fn)
 {
-  return Ffuncall (1, &fn);
+  return calln (fn);
 }
 
 extern void defvar_lisp (struct Lisp_Objfwd const *, char const *);

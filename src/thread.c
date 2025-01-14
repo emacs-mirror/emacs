@@ -741,7 +741,7 @@ invoke_thread_function (void)
 {
   specpdl_ref count = SPECPDL_INDEX ();
 
-  current_thread->result = Ffuncall (1, &current_thread->function);
+  current_thread->result = calln (current_thread->function);
   return unbind_to (count, Qnil);
 }
 
