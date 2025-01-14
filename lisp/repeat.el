@@ -566,8 +566,9 @@ This function can be used to force exit of repetition while it's active."
 (defun repeat-echo-message-string (keymap)
   "Return a string with the list of repeating keys in KEYMAP."
   (let (keys)
-    (map-keymap (lambda (key cmd) (and cmd (push (cons key cmd) keys)))
-                keymap)
+    (cl--map-keymap-recursively
+     (lambda (key cmd) (and cmd (push (cons (copy-sequence key) cmd) keys)))
+     keymap)
     (format-message
      "Repeat with %s%s"
      (mapconcat (lambda (key-cmd)
@@ -577,7 +578,7 @@ This function can be used to force exit of repetition while it's active."
                                          (get cmd 'repeat-hint))))
                         ;; Reuse `read-multiple-choice' formatting.
                         (cdr (rmc--add-key-description (list key hint)))
-                      (propertize (key-description (vector key))
+                      (propertize (key-description key)
                                   'face 'read-multiple-choice-face))))
                 keys ", ")
      (if repeat-exit-key
