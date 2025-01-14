@@ -399,10 +399,12 @@ error of type `jsonrpc-error'.
 
 DEFERRED and TIMEOUT as in `jsonrpc-async-request', which see.
 
-If CANCEL-ON-INPUT is non-nil and the user inputs something while
-the function is waiting, then it exits immediately, returning
-CANCEL-ON-INPUT-RETVAL.  Any future replies (normal or error) are
-ignored."
+If CANCEL-ON-INPUT is non-nil and the user inputs something while the
+function is waiting, then any future replies to the request by the
+remote endpoint (normal or error) are ignored and the function exits
+returning CANCEL-ON-INPUT-RETVAL.  If CANCEL-ON-INPUT is a function, it
+is invoked with one argument, an integer identifying the cancelled
+request as specified in the JSONRPC 2.0 spec."
   (let* ((tag (cl-gensym "jsonrpc-request-catch-tag")) id-and-timer
          canceled
          (throw-on-input nil)
@@ -435,6 +437,8 @@ ignored."
                        (unwind-protect
                            (let ((inhibit-quit t)) (while (sit-for 30)))
                          (setq canceled t))
+                       (when (functionp cancel-on-input)
+                         (funcall cancel-on-input (car id-and-timer)))
                        `(canceled ,cancel-on-input-retval))
                       (t (while t (accept-process-output nil 30)))))
             ;; In normal operation, continuations for error/success is

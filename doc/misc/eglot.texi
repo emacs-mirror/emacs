@@ -919,6 +919,13 @@ Set this variable to non-nil if you'd like progress notifications coming
 from the language server to be handled by Emacs's progress reporting
 facilities.  If the value is the symbol @code{messages} the message
 buffer is used, else the progress is reported in the mode line.
+
+@cindex request cancellation
+@item eglot-advertise-cancellation
+Setting this variable to true causes Eglot to send special cancellation
+notification for certain stale client request.  This may help some LSP
+servers avoid doing costly but ultimately useless work on behalf of the
+client, improving overall performance.
 @end vtable
 
 @node Other Variables

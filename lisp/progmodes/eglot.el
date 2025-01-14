@@ -571,6 +571,14 @@ under cursor."
           (const :tag "Execute custom commands" :executeCommandProvider)
           (const :tag "Inlay hints" :inlayHintProvider)))
 
+(defcustom eglot-advertise-cancellation nil
+  "If non-nil, Eglot attemps to inform server of cancelled requests.
+This is done by sending an additional '$/cancelRequest' notification
+every time Eglot decides to forget a request.  The effect of this
+notification is implementation defined, and is only useful for some
+servers."
+  :type 'boolean)
+
 (defvar eglot-withhold-process-id nil
   "If non-nil, Eglot will not send the Emacs process id to the language server.
 This can be useful when using docker to run a language server.")
@@ -1748,7 +1756,12 @@ Unless IMMEDIATE, send pending changes before making request."
   (unless immediate (eglot--signal-textDocument/didChange))
   (jsonrpc-request server method params
                    :timeout timeout
-                   :cancel-on-input cancel-on-input
+                   :cancel-on-input
+                   (cond ((and cancel-on-input
+                               eglot-advertise-cancellation)
+                          (lambda (id)
+                            (jsonrpc-notify server '$/cancelRequest `(:id ,id))))
+                         (cancel-on-input))
                    :cancel-on-input-retval cancel-on-input-retval))
 
 

@@ -20,6 +20,12 @@ https://github.com/joaotavora/eglot/issues/1234.
 
 * Changes in upcoming Eglot
 
+** New 'eglot-advertise-cancellation' variable
+
+Tweaking this variable may help some LSP servers avoid doing costly but
+ultimately useless work on behalf of the client, improving overall
+performance.
+
 
 * Changes in Eglot 1.18 (20/1/2025)
 
