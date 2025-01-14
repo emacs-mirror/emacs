@@ -3334,18 +3334,6 @@ frame_rect_abs (struct frame *f)
 
 #endif /* !HAVE_ANDROID */
 
-/* Return the root frame of frame F.  Follow the parent_frame chain
-   until we reach a frame that has no parent.  That is the root frame.
-   Note that the root of a root frame is itself. */
-
-struct frame *
-root_frame (struct frame *f)
-{
-  while (FRAME_PARENT_FRAME (f))
-    f = FRAME_PARENT_FRAME (f);
-  return f;
-}
-
 int
 max_child_z_order (struct frame *parent)
 {

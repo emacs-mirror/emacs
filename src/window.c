@@ -3097,6 +3097,38 @@ be listed first but no error is signaled.  */)
 {
   return window_list_1 (window, minibuf, all_frames);
 }
+
+/** Return most recently selected frame that has the same root as a
+    given frame.  It's defined here because the static window_list_1 is
+    here too but in fact it's only needed in the frame code.  */
+Lisp_Object
+mru_rooted_frame (struct frame *f)
+{
+  Lisp_Object windows = window_list_1 (FRAME_SELECTED_WINDOW (f), Qnil, Qt);
+  struct frame *r = root_frame (f);
+  struct window *b = NULL;
+
+  for (; CONSP (windows); windows = XCDR (windows))
+    {
+      struct window *w = XWINDOW (XCAR (windows));
+      struct frame *wf = WINDOW_XFRAME (w);
+
+      if (wf != f && root_frame (wf) == r && FRAME_VISIBLE_P (wf)
+	  && (!b || w->use_time > b->use_time))
+	b = w;
+    }
+
+  if (b)
+    return WINDOW_FRAME (b);
+  else
+    {
+      Lisp_Object root;
+
+      XSETFRAME (root, r);
+
+      return root;
+    }
+}
 
 /* Look at all windows, performing an operation specified by TYPE
    with argument OBJ.

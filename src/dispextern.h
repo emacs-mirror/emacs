@@ -3949,7 +3949,6 @@ extern void gui_redo_mouse_highlight (Display_Info *);
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
-struct frame *root_frame (struct frame *f);
 Lisp_Object frames_in_reverse_z_order (struct frame *f, bool visible);
 bool is_tty_frame (struct frame *f);
 bool is_tty_child_frame (struct frame *f);
