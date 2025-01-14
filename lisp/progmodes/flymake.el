@@ -1396,12 +1396,21 @@ special *Flymake log* buffer."  :group 'flymake :lighter
     ;; AutoResize margins.
     (flymake--resize-margins)
 
-    ;; If Flymake happened to be already ON, we must cleanup
-    ;; existing diagnostic overlays, lest we forget them by blindly
-    ;; reinitializing `flymake--state' in the next line.
-    ;; See https://github.com/joaotavora/eglot/issues/223.
+    ;; We can't just `clrhash' `flymake--state': there may be in
+    ;; in-transit requests from other backends if `flymake-mode' was
+    ;; already active.  I.e. `flymake-mode' function should be as
+    ;; idempotent as possible.  See bug#69809.
+    (unless flymake--state (setq flymake--state (make-hash-table)))
+
+    ;; On a related note to bug#69809, deleting all Flymake overlays is
+    ;; a violation of that idempotence.  This could be addressed in the
+    ;; future.  However, there is at least one known reason for doing so
+    ;; currently: since "foreign diagnostics" are created here, we opt
+    ;; to delete everything to avoid duplicating overlays.  In
+    ;; principle, the next `flymake-start' should re-synch everything
+    ;; (and with high likelyhood that is right around the corner if
+    ;; `flymake-start-on-flymake-mode' is t).
     (mapc #'flymake--delete-overlay (flymake--really-all-overlays))
-    (setq flymake--state (make-hash-table))
     (setq flymake--recent-changes nil)
 
     (when flymake-start-on-flymake-mode (flymake-start t))
@@ -1416,14 +1425,14 @@ special *Flymake log* buffer."  :group 'flymake :lighter
       ;; via the brand new `flymake-mode' setup.  For simplicity's
       ;; sake, we have opted to leave the backend for now.
       nil
-      ;; 2. other buffers where a backend has created "foreign"
-      ;; diagnostics and pointed them here.  We must highlight them in
+      ;; 2. other buffers where a backend has created "foreign
+      ;; diagnostics" and pointed them here.  We must highlight them in
       ;; this buffer, i.e. create overlays for them.  Those other
       ;; buffers and backends are still responsible for them, i.e. the
       ;; current buffer does not "own" these foreign diags.
       (dolist (buffer (buffer-list))
         (with-current-buffer buffer
-          (when (and flymake-mode flymake--state)
+          (when flymake-mode
             (maphash (lambda (_backend state)
                        (maphash (lambda (file diags)
                                   (when (or (eq file source)
@@ -1451,10 +1460,9 @@ special *Flymake log* buffer."  :group 'flymake :lighter
       (cancel-timer flymake-timer)
       (setq flymake-timer nil))
     (mapc #'flymake--delete-overlay (flymake--really-all-overlays))
-    (when flymake--state
-      (maphash (lambda (_backend state)
-                 (flymake--clear-foreign-diags state))
-               flymake--state))))
+    (maphash (lambda (_backend state)
+               (flymake--clear-foreign-diags state))
+             flymake--state)))
    ;; turning Flymake on or off has consequences for listings
    (flymake--update-diagnostics-listings (current-buffer)))
 
@@ -2045,7 +2053,7 @@ some of this variable's contents the diagnostic listings.")
     (cl-loop
      for buf in visited-buffers
      do (with-current-buffer buf
-          (when (and flymake-mode flymake--state)
+          (when flymake-mode
             (maphash
              (lambda (_backend state)
                (maphash
