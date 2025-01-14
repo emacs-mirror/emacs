@@ -1592,6 +1592,7 @@ and the slash, then we have a division."
 (ert-deftest cperl-test-bug-74245 ()
   "Verify that a bare \"$\" can appear at the end of a subroutine signature.
 It must not be mistaken for \"$)\"."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
   (cperl--run-test-cases
    (ert-resource-file "cperl-bug-74245.pl")
    (while (null (eobp))
