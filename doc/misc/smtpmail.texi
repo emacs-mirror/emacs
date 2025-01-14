@@ -225,7 +225,8 @@ send mail via a server and the SMTP server reports back that it
 requires authentication, Emacs (version 24.1 and later) prompts you
 for the user name and password to use, and then offers to save the
 information.  By default, Emacs stores authentication information in a
-file @file{~/.authinfo}.
+file @file{~/.authinfo}, but this can be changed by customizing
+@code{auth-sources} (@pxref{Authentication, Persisting Authinfo,,emacs}).
 
 @vindex smtpmail-servers-requiring-authorization
 Some SMTP servers may bandwidth-limit (or deny) requests from clients
