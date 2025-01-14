@@ -453,21 +453,25 @@ See `describe-repeat-maps' for a list of all repeatable commands."
       (and (symbolp real-this-command)
            (get real-this-command property))))
 
-(defun repeat-get-map (&optional rep-map)
-  "Return a transient map for keys repeatable after the current command."
+(defun repeat-get-map-sym ()
+  "Return a transient map possibly as a symbol."
   (when repeat-mode
-    (let ((rep-map (or rep-map repeat-map (repeat--command-property 'repeat-map)))
+    (let ((map-sym (or repeat-map (repeat--command-property 'repeat-map)))
           (continue (repeat--command-property 'repeat-continue)))
       (when continue
         (if repeat-in-progress
             (when (and (consp continue)
                        (memq repeat-in-progress continue))
-              (setq rep-map repeat-in-progress))
-          (setq rep-map nil)))
-      (when rep-map
-        (when (and (symbolp rep-map) (boundp rep-map))
-          (setq rep-map (symbol-value rep-map)))
-        rep-map))))
+              (setq map-sym repeat-in-progress))
+          (setq map-sym nil)))
+      map-sym)))
+
+(defun repeat-get-map (map)
+  "Return a transient map for keys repeatable after the current command."
+  (when map
+    (when (and (symbolp map) (boundp map))
+      (setq map (symbol-value map)))
+    map))
 
 (defun repeat-check-key (key map)
   "Check if the last KEY is suitable for activating the repeating MAP."
@@ -496,20 +500,21 @@ See `describe-repeat-maps' for a list of all repeatable commands."
   "Function run before commands to handle repeatable keys."
   (when (and repeat-mode repeat-keep-prefix repeat-in-progress
              (not prefix-arg) current-prefix-arg)
-    (let ((map (repeat-get-map)))
+    (let* ((map-sym (repeat-get-map-sym))
+           (map (repeat-get-map map-sym)))
       ;; Only when repeat-post-hook will activate the same map
       (when (repeat-check-map map)
         ;; Optimize to use less logic in the function `repeat-get-map'
         ;; for the next call: when called again from `repeat-post-hook'
         ;; it will use the variable `repeat-map'.
-        (setq repeat-map map)
+        (setq repeat-map map-sym)
         ;; Preserve universal argument
         (setq prefix-arg current-prefix-arg)))))
 
 (defun repeat-post-hook ()
   "Function run after commands to set transient keymap for repeatable keys."
   (let* ((was-in-progress repeat-in-progress)
-         (map-sym (or repeat-map (repeat--command-property 'repeat-map)))
+         (map-sym (repeat-get-map-sym))
          (map (repeat-get-map map-sym)))
     (setq repeat-in-progress nil)
     (when (repeat-check-map map)

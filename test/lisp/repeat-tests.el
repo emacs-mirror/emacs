@@ -233,8 +233,11 @@
        '((1 u)) "tz")
       ;; 'C-M-o' shared with another map should continue current map
       (repeat-tests--check
-       "C-M-s t C-M-o t C-M-o t z"
-       '((1 s) (1 t) (1 o) (1 t) (1 o) (1 t)) "z"))))
+       "C-M-s t C-M-o C-M-o t z"
+       '((1 s) (1 t) (1 o) (1 o) (1 t)) "z")
+      (repeat-tests--check
+       "C-M-a c C-M-o C-M-o c z"
+       '((1 a) (1 c) (1 o) (1 o) (1 c)) "z"))))
 
 
 (require 'use-package)
