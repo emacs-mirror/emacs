@@ -3733,13 +3733,9 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
       return !NILP (calln (pred, lisp_node));
     }
   else if (SYMBOLP (pred) && BASE_EQ (pred, Qnamed))
-    {
-      return ts_node_is_named (node);
-    }
+    return ts_node_is_named (node);
   else if (SYMBOLP (pred) && BASE_EQ (pred, Qanonymous))
-    {
-      return !ts_node_is_named (node);
-    }
+    return !ts_node_is_named (node);
   else if (SYMBOLP (pred))
     {
       Lisp_Object language = XTS_PARSER (parser)->language_symbol;

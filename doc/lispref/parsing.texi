@@ -1607,7 +1607,7 @@ that's either a @code{sexp} thing or a @code{sentence} thing, as defined
 by some other rule in the alist.
 
 There are two pre-defined predicates: @code{named} and @code{anonymous},
-that qualifies named and anonymous nodes, respectively.  They can be
+which qualify, respectively, named and anonymous nodes.  They can be
 combined with @code{and} to narrow down the match.
 
 Here's an example @code{treesit-thing-settings} for C and C++:
