@@ -69,41 +69,43 @@
      (("figwindow" ?f nil nil 1)
       ("tabwindow" ?f nil nil 1)))
 
-    (rotating    "Sidewaysfigure and table"
+    (rotating    "The sidewaysfigure and sidewaystable environments"
      (("sidewaysfigure"  ?f nil nil caption)
       ("sidewaysfigure*" ?f nil nil caption)
       ("sidewaystable"   ?t nil nil caption)
       ("sidewaystable*"  ?t nil nil caption)))
 
-    (sidecap      "SCfigure and SCtable"
+    (sidecap      "The SCfigure and SCtable environments"
      (("SCfigure"  ?f nil nil caption)
       ("SCfigure*" ?f nil nil caption)
       ("SCtable"   ?t nil nil caption)
       ("SCtable*"  ?t nil nil caption)))
 
-    (subfigure   "Subfigure environments/macro"
-     (("subfigure"   ?f nil nil caption)
-      ("subfigure*"  ?f nil nil caption)
-      ("\\subfigure[]{}" ?f nil nil 1)))
+    (subfig       "The \\subfigure and \\subtable macros"
+     ;; The main macro \subfloat is ambiguous, so we only support the
+     ;; compat macros for the old subfigure package.  The context regexp
+     ;; must match combinations of
+     ;; \subfigure[list-capt.][sub-capt.]{body}
+     (("\\subfigure[][]{}" ?f "fig:" "~\\subref{%s}"
+       "\\\\subfigure\\(?:\\(?:\\[[^]]*\\]\\)?\\[\\|{\\)")
+      ("\\subtable[][]{}"  ?t "tab:" "~\\subref{%s}"
+       "\\\\subtable\\(?:\\(?:\\[[^]]*\\]\\)?\\[\\|{\\)")))
 
-    (supertab    "Supertabular environment"
-     (("supertabular" ?t nil nil "\\tablecaption{")))
-
-    (wrapfig     "The wrapfig package"
+    (wrapfig     "The wrapfigure and wraptable environments"
      (("wrapfigure" ?f nil nil caption)
       ("wraptable"  ?t nil nil caption)))
 
-    (ctable	"The ctable package"
+    (ctable	"The \\ctable macro"
      (("\\ctable[]{}{}{}" ?t "tab:" "~\\ref{%s}" 1 ("table" "Tabelle"))))
 
-    (listings	"The listings package"
+    (listings	"The lstlisting environment"
      (("lstlisting" ?l "lst:" "~\\ref{%s}" nil (regexp "[Ll]isting"))))
 
-    (minted	"The minted package"
+    (minted	"The listing environment"
      (("listing" ?l "lst:" "~\\ref{%s}" nil (regexp "[Ll]isting"))))
 
     ;; The LaTeX core stuff
-    (LaTeX       "LaTeX default environments"
+    (LaTeX       "LaTeX default macros and environments"
      (("section"   ?s "%S" "~\\ref{%s}" (nil . t)
        (regexp "parts?" "chapters?" "chap\\." "sections?" "sect?\\."
                "paragraphs?" "par\\."
@@ -456,9 +458,9 @@ If nil, `follow-mode' will be suspended for stuff in unvisited files."
   :group 'reftex-label-support)
 
 (defcustom reftex-default-label-alist-entries
-  '(amsmath endnotes fancybox floatfig longtable picinpar
-            rotating sidecap subfigure supertab wrapfig
-	    listings minted ctable LaTeX)
+  '( amsmath endnotes fancybox floatfig longtable picinpar
+     rotating sidecap subfig wrapfig
+     listings minted ctable LaTeX)
   "Default label alist specifications.  LaTeX should always be the last entry.
 The value of this variable is a list of symbols with associations in the
 constant `reftex-label-alist-builtin'.  Check that constant for a full list
@@ -474,7 +476,8 @@ of options."
                (list 'const :tag (concat (symbol-name (nth 0 x))
                                          ": " (nth 1 x))
                      (nth 0 x)))
-             reftex-label-alist-builtin)))
+             reftex-label-alist-builtin))
+  :version "31.1")
 
 (defcustom reftex-label-alist nil
   "Alist with information on environments for \\label-\\ref use.

@@ -3048,7 +3048,7 @@ dump_bool_vector (struct dump_context *ctx, const struct Lisp_Vector *v)
 static dump_off
 dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Subr_6FC9E39686)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Subr_730FE7C038)
 # error "Lisp_Subr changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Subr out;
@@ -4339,7 +4339,7 @@ types.  */)
     error ("No other Lisp threads can be running when this function is called");
 
 #ifdef HAVE_NATIVE_COMP
-  CALLN (Ffuncall, intern_c_string ("load--fixup-all-elns"));
+  calln (intern_c_string ("load--fixup-all-elns"));
 #endif
 
 #ifndef HAVE_MPS

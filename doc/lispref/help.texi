@@ -60,7 +60,7 @@ Documentation}.  You can also put function documentation in the
 @code{function-documentation} property of a function name
 (@pxref{Accessing Documentation}).
 
-@cindex @code{variable-documentation} property
+@cindex @code{variable-documentation} (symbol property)
   In a variable definition (a @code{defvar} form), the documentation
 string is specified after the initial value.  @xref{Defining
 Variables}.  The string is stored in the variable's
@@ -388,6 +388,7 @@ argument @var{no-face} is non-@code{nil}, the function doesn't add
 this face to the produced string.
 
 @cindex advertised binding
+@cindex @code{:advertised-binding} (symbol property)
 If a command has multiple bindings, this function normally uses the
 first one it finds.  You can specify one particular key binding by
 assigning an @code{:advertised-binding} symbol property to the

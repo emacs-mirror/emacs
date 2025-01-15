@@ -341,7 +341,8 @@ automatically)."
     (sml-mode
      . ,(lambda (_interactive project)
           (list "millet-ls" (project-root project))))
-    ((blueprint-mode blueprint-ts-mode) . ("blueprint-compiler" "lsp")))
+    ((blueprint-mode blueprint-ts-mode) . ("blueprint-compiler" "lsp"))
+    ((odin-mode odin-ts-mode) . ("ols")))
   "How the command `eglot' guesses the server to start.
 An association list of (MAJOR-MODE . CONTACT) pairs.  MAJOR-MODE
 identifies the buffers that are to be managed by a specific

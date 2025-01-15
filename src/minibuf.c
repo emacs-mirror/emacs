@@ -1297,11 +1297,6 @@ barf_if_interaction_inhibited (void)
 DEFUN ("read-from-minibuffer", Fread_from_minibuffer,
        Sread_from_minibuffer, 1, 7, 0,
        doc: /* Read a string from the minibuffer, prompting with string PROMPT.
-While in the minibuffer, you can use \\<minibuffer-local-completion-map>\\[minibuffer-complete] and \\[minibuffer-complete-word] to complete your input.
-You can also use \\<minibuffer-local-map>\\[minibuffer-complete-history] to complete using history items in the
-input history HIST, and you can use \\[minibuffer-complete-defaults] to complete using
-the default items in DEFAULT-VALUE.
-
 The optional second arg INITIAL-CONTENTS is an obsolete alternative to
   DEFAULT-VALUE.  It normally should be nil in new code, except when
   HIST is a cons.  It is discussed in more detail below.
@@ -1558,8 +1553,7 @@ function, instead of the usual behavior.  */)
 					      STRING_MULTIBYTE (prompt));
 	    }
 
-	  prompt = CALLN (Ffuncall, Qformat_prompt,
-			  prompt,
+	  prompt = calln (Qformat_prompt, prompt,
 			  CONSP (def) ? XCAR (def) : def);
 	}
 
@@ -1977,6 +1971,11 @@ which case that function should itself handle `completion-regexp-list').  */)
 
 DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 8, 0,
        doc: /* Read a string in the minibuffer, with completion.
+While in the minibuffer, you can use \\<minibuffer-local-completion-map>\\[minibuffer-complete] and \\[minibuffer-complete-word] to complete your input.
+You can also use \\<minibuffer-local-map>\\[minibuffer-complete-history] to complete using history items in the
+input history HIST, and you can use \\[minibuffer-complete-defaults] to complete using
+the default items in DEFAULT-VALUE.
+
 PROMPT is a string to prompt with; normally it ends in a colon and a space.
 COLLECTION can be a list of strings, an alist, an obarray or a hash table.
 COLLECTION can also be a function to do the completion itself.
@@ -2040,8 +2039,7 @@ Completion ignores case if the ambient value of
 See also `completing-read-function'.  */)
   (Lisp_Object prompt, Lisp_Object collection, Lisp_Object predicate, Lisp_Object require_match, Lisp_Object initial_input, Lisp_Object hist, Lisp_Object def, Lisp_Object inherit_input_method)
 {
-  return CALLN (Ffuncall,
-		Fsymbol_value (Qcompleting_read_function),
+  return calln (Fsymbol_value (Qcompleting_read_function),
 		prompt, collection, predicate, require_match, initial_input,
 		hist, def, inherit_input_method);
 }

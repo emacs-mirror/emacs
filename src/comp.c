@@ -505,21 +505,9 @@ load_gccjit_if_necessary (bool mandatory)
 #define THIRD(x)				\
   XCAR (XCDR (XCDR (x)))
 
-/* Like call0 but stringify and intern.  */
-#define CALL0I(fun)				\
-  CALLN (Ffuncall, intern_c_string (STR (fun)))
-
-/* Like call1 but stringify and intern.  */
-#define CALL1I(fun, arg)				\
-  CALLN (Ffuncall, intern_c_string (STR (fun)), arg)
-
-/* Like call2 but stringify and intern.  */
-#define CALL2I(fun, arg1, arg2)				\
-  CALLN (Ffuncall, intern_c_string (STR (fun)), arg1, arg2)
-
-/* Like call4 but stringify and intern.  */
-#define CALL4I(fun, arg1, arg2, arg3, arg4)				\
-  CALLN (Ffuncall, intern_c_string (STR (fun)), arg1, arg2, arg3, arg4)
+/* Like calln but stringify and intern.  */
+#define CALLNI(fun, ...)				\
+  calln (intern_c_string (STR (fun)), __VA_ARGS__)
 
 #define DECL_BLOCK(name, func)				\
   gcc_jit_block *(name) =				\
@@ -887,7 +875,7 @@ freloc_check_fill (void)
 static void
 bcall0 (Lisp_Object f)
 {
-  Ffuncall (1, &f);
+  calln (f);
 }
 
 static gcc_jit_block *
@@ -917,7 +905,7 @@ declare_block (Lisp_Object block_name)
 static gcc_jit_lvalue *
 emit_mvar_lval (Lisp_Object mvar)
 {
-  Lisp_Object mvar_slot = CALL1I (comp-mvar-slot, mvar);
+  Lisp_Object mvar_slot = CALLNI (comp-mvar-slot, mvar);
 
   if (EQ (mvar_slot, Qscratch))
     {
@@ -1029,7 +1017,7 @@ declare_imported_func (Lisp_Object subr_sym, gcc_jit_type *ret_type,
 
   /* String containing the function ptr name.  */
   Lisp_Object f_ptr_name =
-    CALLN (Ffuncall, intern_c_string ("comp-c-func-name"),
+    calln (intern_c_string ("comp-c-func-name"),
 	   subr_sym, make_string ("R", 1));
 
   gcc_jit_type *f_ptr_type =
@@ -2035,22 +2023,22 @@ emit_PURE_P (gcc_jit_rvalue *ptr)
 static gcc_jit_rvalue *
 emit_mvar_rval (Lisp_Object mvar)
 {
-  Lisp_Object const_vld = CALL1I (comp-cstr-imm-vld-p, mvar);
+  Lisp_Object const_vld = CALLNI (comp-cstr-imm-vld-p, mvar);
 
   if (!NILP (const_vld))
     {
-      Lisp_Object value = CALL1I (comp-cstr-imm, mvar);
+      Lisp_Object value = CALLNI (comp-cstr-imm, mvar);
       if (comp.debug > 1)
 	{
 	  Lisp_Object func =
 	    Fgethash (value,
-		      CALL1I (comp-ctxt-byte-func-to-func-h, Vcomp_ctxt),
+		      CALLNI (comp-ctxt-byte-func-to-func-h, Vcomp_ctxt),
 		      Qnil);
 
 	  emit_comment (
 	    SSDATA (
 	      Fprin1_to_string (
-		NILP (func) ? value : CALL1I (comp-func-c-name, func),
+		NILP (func) ? value : CALLNI (comp-func-c-name, func),
 		Qnil, Qnil)));
 	}
       if (FIXNUMP (value))
@@ -2171,7 +2159,7 @@ emit_limple_call_ref (Lisp_Object insn, bool direct)
     {
       /* FIXME: See bug#42360.  */
       Lisp_Object first_arg = SECOND (insn);
-      EMACS_INT first_slot = XFIXNUM (CALL1I (comp-mvar-slot, first_arg));
+      EMACS_INT first_slot = XFIXNUM (CALLNI (comp-mvar-slot, first_arg));
       return emit_call_ref (callee, nargs, comp.frame[first_slot], direct);
     }
 
@@ -2323,10 +2311,10 @@ emit_limple_insn (Lisp_Object insn)
       gcc_jit_block *target1 = retrieve_block (arg[2]);
       gcc_jit_block *target2 = retrieve_block (arg[3]);
 
-      if ((!NILP (CALL1I (comp-cstr-imm-vld-p, arg[0]))
-	   && NILP (CALL1I (comp-cstr-imm, arg[0])))
-	  || (!NILP (CALL1I (comp-cstr-imm-vld-p, arg[1]))
-	      && NILP (CALL1I (comp-cstr-imm, arg[1]))))
+      if ((!NILP (CALLNI (comp-cstr-imm-vld-p, arg[0]))
+	   && NILP (CALLNI (comp-cstr-imm, arg[0])))
+	  || (!NILP (CALLNI (comp-cstr-imm-vld-p, arg[1]))
+	      && NILP (CALLNI (comp-cstr-imm, arg[1]))))
 	emit_cond_jump (emit_BASE_EQ (a, b), target1, target2);
       else
 	emit_cond_jump (emit_EQ (a, b), target1, target2);
@@ -2511,7 +2499,7 @@ emit_limple_insn (Lisp_Object insn)
         C: local[2] = list (nargs - 2, args);
       */
 
-      EMACS_INT slot_n = XFIXNUM (CALL1I (comp-mvar-slot, arg[0]));
+      EMACS_INT slot_n = XFIXNUM (CALLNI (comp-mvar-slot, arg[0]));
       eassert (slot_n < INT_MAX);
       gcc_jit_rvalue *n =
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
@@ -2602,7 +2590,7 @@ emit_call_with_type_hint (gcc_jit_function *func, Lisp_Object insn,
 {
   bool hint_match =
     !comp.func_safety
-    && !NILP (CALL2I (comp-mvar-type-hint-match-p, SECOND (insn), type));
+    && !NILP (CALLNI (comp-mvar-type-hint-match-p, SECOND (insn), type));
   gcc_jit_rvalue *args[] =
     { emit_mvar_rval (SECOND (insn)),
       gcc_jit_context_new_rvalue_from_int (comp.ctxt,
@@ -2619,7 +2607,7 @@ emit_call2_with_type_hint (gcc_jit_function *func, Lisp_Object insn,
 {
   bool hint_match =
     !comp.func_safety
-    && !NILP (CALL2I (comp-mvar-type-hint-match-p, SECOND (insn), type));
+    && !NILP (CALLNI (comp-mvar-type-hint-match-p, SECOND (insn), type));
   gcc_jit_rvalue *args[] =
     { emit_mvar_rval (SECOND (insn)),
       emit_mvar_rval (THIRD (insn)),
@@ -2909,9 +2897,9 @@ declare_imported_data_relocs (Lisp_Object container, const char *code_symbol,
   /* Imported objects.  */
   reloc_array_t res;
   res.len =
-    XFIXNUM (CALL1I (hash-table-count,
-		     CALL1I (comp-data-container-idx, container)));
-  Lisp_Object d_reloc = CALL1I (comp-data-container-l, container);
+    XFIXNUM (CALLNI (hash-table-count,
+		     CALLNI (comp-data-container-idx, container)));
+  Lisp_Object d_reloc = CALLNI (comp-data-container-l, container);
   d_reloc = Fvconcat (1, &d_reloc);
 
   res.r_val =
@@ -2936,15 +2924,15 @@ declare_imported_data (void)
 {
   /* Imported objects.  */
   comp.data_relocs =
-    declare_imported_data_relocs (CALL1I (comp-ctxt-d-default, Vcomp_ctxt),
+    declare_imported_data_relocs (CALLNI (comp-ctxt-d-default, Vcomp_ctxt),
 				  DATA_RELOC_SYM,
 				  TEXT_DATA_RELOC_SYM);
   comp.data_relocs_impure =
-    declare_imported_data_relocs (CALL1I (comp-ctxt-d-impure, Vcomp_ctxt),
+    declare_imported_data_relocs (CALLNI (comp-ctxt-d-impure, Vcomp_ctxt),
 				  DATA_RELOC_IMPURE_SYM,
 				  TEXT_DATA_RELOC_IMPURE_SYM);
   comp.data_relocs_ephemeral =
-    declare_imported_data_relocs (CALL1I (comp-ctxt-d-ephemeral, Vcomp_ctxt),
+    declare_imported_data_relocs (CALLNI (comp-ctxt-d-ephemeral, Vcomp_ctxt),
 				  DATA_RELOC_EPHEMERAL_SYM,
 				  TEXT_DATA_RELOC_EPHEMERAL_SYM);
 }
@@ -3033,7 +3021,7 @@ emit_ctxt_code (void)
   emit_static_object (TEXT_OPTIM_QLY_SYM, Flist (ARRAYELTS (opt_qly), opt_qly));
 
   emit_static_object (TEXT_FDOC_SYM,
-		      CALL1I (comp-ctxt-function-docs, Vcomp_ctxt));
+		      CALLNI (comp-ctxt-function-docs, Vcomp_ctxt));
 
   comp.current_thread_ref =
     gcc_jit_lvalue_as_rvalue (
@@ -4247,14 +4235,14 @@ static gcc_jit_function *
 declare_lex_function (Lisp_Object func)
 {
   gcc_jit_function *res;
-  Lisp_Object c_name = CALL1I (comp-func-c-name, func);
-  Lisp_Object args = CALL1I (comp-func-l-args, func);
-  bool nargs = !NILP (CALL1I (comp-nargs-p, args));
+  Lisp_Object c_name = CALLNI (comp-func-c-name, func);
+  Lisp_Object args = CALLNI (comp-func-l-args, func);
+  bool nargs = !NILP (CALLNI (comp-nargs-p, args));
   USE_SAFE_ALLOCA;
 
   if (!nargs)
     {
-      EMACS_INT max_args = XFIXNUM (CALL1I (comp-args-max, args));
+      EMACS_INT max_args = XFIXNUM (CALLNI (comp-args-max, args));
       eassert (max_args < INT_MAX);
       gcc_jit_type **type;
       SAFE_NALLOCA (type, 1, max_args);
@@ -4305,15 +4293,15 @@ static void
 declare_function (Lisp_Object func)
 {
   gcc_jit_function *gcc_func =
-    !NILP (CALL1I (comp-func-l-p, func))
+    !NILP (CALLNI (comp-func-l-p, func))
     ? declare_lex_function (func)
     : gcc_jit_context_new_function (comp.ctxt,
 				    NULL,
 				    GCC_JIT_FUNCTION_EXPORTED,
 				    comp.lisp_obj_type,
-				    SSDATA (CALL1I (comp-func-c-name, func)),
+				    SSDATA (CALLNI (comp-func-c-name, func)),
 				    0, NULL, 0);
-  Fputhash (CALL1I (comp-func-c-name, func),
+  Fputhash (CALLNI (comp-func-c-name, func),
 	    make_mint_ptr (gcc_func),
 	    comp.exported_funcs_h);
 }
@@ -4322,15 +4310,15 @@ static void
 compile_function (Lisp_Object func)
 {
   USE_SAFE_ALLOCA;
-  comp.frame_size = XFIXNUM (CALL1I (comp-func-frame-size, func));
+  comp.frame_size = XFIXNUM (CALLNI (comp-func-frame-size, func));
   eassert (comp.frame_size < INT_MAX);
 
-  comp.func = xmint_pointer (Fgethash (CALL1I (comp-func-c-name, func),
+  comp.func = xmint_pointer (Fgethash (CALLNI (comp-func-c-name, func),
 				       comp.exported_funcs_h, Qnil));
 
-  comp.func_has_non_local = !NILP (CALL1I (comp-func-has-non-local, func));
-  comp.func_speed = XFIXNUM (CALL1I (comp-func-speed, func));
-  comp.func_safety = XFIXNUM (CALL1I (comp-func-safety, func));
+  comp.func_has_non_local = !NILP (CALLNI (comp-func-has-non-local, func));
+  comp.func_speed = XFIXNUM (CALLNI (comp-func-speed, func));
+  comp.func_safety = XFIXNUM (CALLNI (comp-func-safety, func));
 
   comp.func_relocs_local =
     gcc_jit_function_new_local (comp.func,
@@ -4382,7 +4370,7 @@ compile_function (Lisp_Object func)
   /* Pre-declare all basic blocks to gcc.
      The "entry" block must be declared as first.  */
   declare_block (Qentry);
-  struct Lisp_Hash_Table *ht = XHASH_TABLE (CALL1I (comp-func-blocks, func));
+  struct Lisp_Hash_Table *ht = XHASH_TABLE (CALLNI (comp-func-blocks, func));
   DOHASH (ht, block_name, block)
     {
       if (!EQ (block_name, Qentry))
@@ -4397,7 +4385,7 @@ compile_function (Lisp_Object func)
 
   DOHASH (ht, block_name, block)
     {
-      Lisp_Object insns = CALL1I (comp-block-insns, block);
+      Lisp_Object insns = CALLNI (comp-block-insns, block);
       if (NILP (block) || NILP (insns))
 	xsignal1 (Qnative_ice,
 		  build_string ("basic block is missing or empty"));
@@ -4414,7 +4402,7 @@ compile_function (Lisp_Object func)
   if (err)
     xsignal3 (Qnative_ice,
 	      build_string ("failing to compile function"),
-	      CALL1I (comp-func-name, func),
+	      CALLNI (comp-func-name, func),
 	      build_string (err));
   SAFE_FREE ();
 }
@@ -4430,7 +4418,7 @@ static Lisp_Object loadsearch_re_list;
 static Lisp_Object
 make_directory_wrapper (Lisp_Object directory)
 {
-  CALL2I (make-directory, directory, Qt);
+  CALLNI (make-directory, directory, Qt);
   return Qnil;
 }
 
@@ -4598,9 +4586,9 @@ the latter is supposed to be used by the Emacs build procedure.  */)
   base_dir = Fexpand_file_name (Vcomp_native_version_dir, base_dir);
   if (comp_file_preloaded_p
       || (!NILP (lisp_preloaded)
-	  && !NILP (Fmember (CALL1I (file-name-base, source_filename),
+	  && !NILP (Fmember (CALLNI (file-name-base, source_filename),
 			     Fmapcar (intern_c_string ("file-name-base"),
-				      CALL1I (split-string, lisp_preloaded))))))
+				      CALLNI (split-string, lisp_preloaded))))))
     base_dir = Fexpand_file_name (build_string ("preloaded"), base_dir);
 
   return Fexpand_file_name (filename, base_dir);
@@ -4962,12 +4950,12 @@ DEFUN ("comp--compile-ctxt-to-file0", Fcomp__compile_ctxt_to_file0,
 				    "libgccjit-0.dll");
 #endif
 
-  comp.speed = XFIXNUM (CALL1I (comp-ctxt-speed, Vcomp_ctxt));
+  comp.speed = XFIXNUM (CALLNI (comp-ctxt-speed, Vcomp_ctxt));
   eassert (comp.speed < INT_MAX);
-  comp.debug = XFIXNUM (CALL1I (comp-ctxt-debug, Vcomp_ctxt));
+  comp.debug = XFIXNUM (CALLNI (comp-ctxt-debug, Vcomp_ctxt));
   eassert (comp.debug < INT_MAX);
-  comp.driver_options = CALL1I (comp-ctxt-driver-options, Vcomp_ctxt);
-  comp.compiler_options = CALL1I (comp-ctxt-compiler-options, Vcomp_ctxt);
+  comp.driver_options = CALLNI (comp-ctxt-driver-options, Vcomp_ctxt);
+  comp.compiler_options = CALLNI (comp-ctxt-compiler-options, Vcomp_ctxt);
 
   if (comp.debug)
       gcc_jit_context_set_bool_option (comp.ctxt,
@@ -5001,11 +4989,11 @@ DEFUN ("comp--compile-ctxt-to-file0", Fcomp__compile_ctxt_to_file0,
 #endif
 
   comp.d_default_idx =
-    CALL1I (comp-data-container-idx, CALL1I (comp-ctxt-d-default, Vcomp_ctxt));
+    CALLNI (comp-data-container-idx, CALLNI (comp-ctxt-d-default, Vcomp_ctxt));
   comp.d_impure_idx =
-    CALL1I (comp-data-container-idx, CALL1I (comp-ctxt-d-impure, Vcomp_ctxt));
+    CALLNI (comp-data-container-idx, CALLNI (comp-ctxt-d-impure, Vcomp_ctxt));
   comp.d_ephemeral_idx =
-    CALL1I (comp-data-container-idx, CALL1I (comp-ctxt-d-ephemeral, Vcomp_ctxt));
+    CALLNI (comp-data-container-idx, CALLNI (comp-ctxt-d-ephemeral, Vcomp_ctxt));
 
   emit_ctxt_code ();
 
@@ -5023,7 +5011,7 @@ DEFUN ("comp--compile-ctxt-to-file0", Fcomp__compile_ctxt_to_file0,
   define_maybe_gc_or_quit ();
 
   struct Lisp_Hash_Table *func_h =
-    XHASH_TABLE (CALL1I (comp-ctxt-funcs-h, Vcomp_ctxt));
+    XHASH_TABLE (CALLNI (comp-ctxt-funcs-h, Vcomp_ctxt));
   DOHASH (func_h, k, function)
     declare_function (function);
   /* Compile all functions. Can't be done before because the
@@ -5054,7 +5042,7 @@ DEFUN ("comp--compile-ctxt-to-file0", Fcomp__compile_ctxt_to_file0,
       format_string ("%s_libgccjit_repro.c", SSDATA (ebase_name)));
 
   Lisp_Object tmp_file =
-    CALL4I (make-temp-file, base_name, Qnil, build_string (".eln.tmp"), Qnil);
+    CALLNI (make-temp-file, base_name, Qnil, build_string (".eln.tmp"), Qnil);
 
   Lisp_Object encoded_tmp_file = ENCODE_FILE (tmp_file);
 #ifdef WINDOWSNT
@@ -5071,8 +5059,8 @@ DEFUN ("comp--compile-ctxt-to-file0", Fcomp__compile_ctxt_to_file0,
 	      filename,
 	      build_string (err));
 
-  CALL1I (comp-clean-up-stale-eln, filename);
-  CALL2I (comp-delete-or-replace-file, filename, tmp_file);
+  CALLNI (comp-clean-up-stale-eln, filename);
+  CALLNI (comp-delete-or-replace-file, filename, tmp_file);
 
   return filename;
 }
@@ -5149,12 +5137,12 @@ static Lisp_Object
 helper_sanitizer_assert (Lisp_Object val, Lisp_Object type)
 {
   if (!comp_sanitizer_active
-      || !NILP ((CALL2I (cl-typep, val, type))))
+      || !NILP ((CALLNI (cl-typep, val, type))))
     return Qnil;
 
   AUTO_STRING (format, "Comp sanitizer FAIL for %s with type %s");
   CALLN (Fmessage, format, val, type);
-  CALL0I (backtrace);
+  CALLNI (backtrace);
   xsignal2 (Qcomp_sanitizer_error, val, type);
 
   return Qnil;
@@ -5262,7 +5250,7 @@ maybe_defer_native_compilation (Lisp_Object function_name,
     return;
 
   Lisp_Object src =
-    concat2 (CALL1I (file-name-sans-extension, Vload_true_file_name),
+    concat2 (CALLNI (file-name-sans-extension, Vload_true_file_name),
 	     build_pure_c_string (".el"));
   if (NILP (Ffile_exists_p (src)))
     {
@@ -5577,7 +5565,10 @@ native_function_doc (Lisp_Object function)
   if (!VECTORP (cu->data_fdoc_v))
     xsignal2 (Qnative_lisp_file_inconsistent, cu->file,
 	      build_string ("missing documentation vector"));
-  return AREF (cu->data_fdoc_v, XSUBR (function)->doc);
+  EMACS_INT doc = XSUBR (function)->doc;
+  if (doc < 0)
+    return AREF (cu->data_fdoc_v, -doc - 1);
+  return make_fixnum (doc);
 }
 
 static Lisp_Object
@@ -5618,7 +5609,8 @@ make_subr (Lisp_Object symbol_name, Lisp_Object minarg, Lisp_Object maxarg,
   x->s.symbol_name = xstrdup (SSDATA (symbol_name));
   x->s.intspec.native = intspec;
   x->s.command_modes = command_modes;
-  x->s.doc = XFIXNUM (doc_idx);
+  x->s.doc = -XFIXNUM (doc_idx) - 1;
+  eassert (x->s.doc < 0);
 #ifdef HAVE_NATIVE_COMP
   x->s.native_comp_u = comp_u;
   x->s.native_c_name = xstrdup (SSDATA (c_name));

@@ -40,6 +40,7 @@
 
 (require 'cl-lib) ; for cl-assert
 
+;;;###autoload
 (defmacro cond* (&rest clauses)
   "Extended form of traditional Lisp `cond' construct.
 A `cond*' construct is a series of clauses, and a clause
@@ -68,10 +69,9 @@ in its body becomes the return value of the `cond*' construct.
 Non-exit clause:
 
 If a clause has only one element, or if its first element is
-t, or if it ends with the keyword :non-exit, then
-this clause never exits the `cond*' construct.  Instead,
-control falls through to the next clause (if any).
-The bindings made in CONDITION for the BODY of the non-exit clause
+a `bind*' clause, this clause never exits the `cond*' construct.
+Instead, control always falls through to the next clause (if any).
+All bindings made in CONDITION for the BODY of the non-exit clause
 are passed along to the rest of the clauses in this `cond*' construct.
 
 \\[match*\\] for documentation of the patterns for use in `match*'."

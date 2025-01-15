@@ -2838,7 +2838,7 @@ will be used.  See `mpc-format' for the definition of FORMAT-SPEC."
 
 (defcustom mpc-notifications-body
   '("%{Artist}" "%{AlbumArtist}" "Unknown Artist")
-  "List of FORMAT-SPEC used in the notification body.
+  "List of FORMAT-SPECs used in the notification body.
 
 The first element in the list that expands to a non-empty string
 will be used.  See `mpc-format' for the definition of FORMAT-SPEC."

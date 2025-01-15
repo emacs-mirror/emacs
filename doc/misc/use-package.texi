@@ -1660,7 +1660,8 @@ declaration.  The accepted property list is augmented by a @code{:rev}
 keyword, which has the same shape as the @code{REV} argument to
 @code{package-vc-install}.  Notably -- even when not specified --
 @code{:rev} defaults to checking out the last release of the package.
-You can use @code{:rev :newest} to check out the latest commit.
+You can use @code{:rev :newest} to check out the latest commit.  Note
+that currently, you cannot upgrade built-in packages using @code{:vc}.
 
 For example,
 

@@ -3876,7 +3876,7 @@ See `treesit-thing-settings' for more information.")
   "Nodes that designate sexps in JavaScript.
 See `treesit-thing-settings' for more information.")
 
-(defvar js--treesit-sexp-list-nodes
+(defvar js--treesit-list-nodes
   '("export_clause"
     "named_imports"
     "statement_block"
@@ -3941,7 +3941,7 @@ See `treesit-thing-settings' for more information.")
     (setq-local treesit-thing-settings
                 `((javascript
                    (sexp ,(js--regexp-opt-symbol js--treesit-sexp-nodes))
-                   (sexp-list ,(js--regexp-opt-symbol js--treesit-sexp-list-nodes))
+                   (list ,(js--regexp-opt-symbol js--treesit-list-nodes))
                    (sentence ,(js--regexp-opt-symbol js--treesit-sentence-nodes))
                    (text ,(js--regexp-opt-symbol '("comment"
                                                    "string_fragment"))))))

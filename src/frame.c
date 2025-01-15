@@ -1290,6 +1290,7 @@ make_terminal_frame (struct terminal *terminal, Lisp_Object parent,
     error ("Terminal is not live, can't create new frames on it");
 
   struct frame *f;
+
   if (NILP (parent))
     f = make_frame (true);
   else
@@ -1298,16 +1299,60 @@ make_terminal_frame (struct terminal *terminal, Lisp_Object parent,
 
       f = NULL;
       Lisp_Object mini = Fassq (Qminibuffer, params);
+
+      /* Handling the minibuffer parameter on a tty is different from
+	 its handling on a GUI.  On a GUI any "client frame" can have,
+	 in principle, its minibuffer window on any "minibuffer frame" -
+	 a frame that has a minibuffer window.  If necessary, Emacs
+	 tells the window manager to make the minibuffer frame visible,
+	 raise it and give it input focus.
+
+	 On a tty there's no window manager; so Emacs itself has to make
+	 such a minibuffer frame visible, raise and focus it.  Since a
+	 tty can show only one root frame (a frame that doesn't have a
+	 parent frame) at any time, any client frame shown on a tty must
+	 have a minibuffer frame whose root frame is the root frame of
+	 that client frame.  If that minibuffer frame is a child frame,
+	 Emacs will automatically make it visible, raise it and give it
+	 input focus, if necessary.
+
+	 Two trivial consequences of these observations for ttys are:
+
+	 - A root frame cannot be the minibuffer frame of another root
+	   frame.
+
+	 - Since a child frame cannot be created before its parent
+           frame, each root frame must have its own minibuffer window.
+
+         The situation may change as soon as we can delete and create
+         minibuffer windows on the fly.  */
       if (CONSP (mini))
 	{
 	  mini = Fcdr (mini);
-	  struct kboard *kb = FRAME_KBOARD (XFRAME (parent));
+
 	  if (EQ (mini, Qnone) || NILP (mini))
-	    f = make_frame_without_minibuffer (Qnil, kb, Qnil);
+	    {
+	      mini = root_frame (XFRAME (parent))->minibuffer_window;
+	      f = make_frame (false);
+	      fset_minibuffer_window (f, mini);
+	      store_frame_param (f, Qminibuffer, mini);
+	    }
 	  else if (EQ (mini, Qonly))
-	    error ("minibuffer-only child frames are not implemented");
+	    f = make_minibuffer_frame ();
 	  else if (WINDOWP (mini))
-	    f = make_frame_without_minibuffer (mini, kb, Qnil);
+	    {
+	      if (!WINDOW_LIVE_P (mini)
+		  || !MINI_WINDOW_P (XWINDOW (mini))
+		  || (root_frame (WINDOW_XFRAME (XWINDOW (mini)))
+		      != root_frame (XFRAME (parent))))
+		error ("The `minibuffer' parameter does not specify a valid minibuffer window");
+	      else
+		{
+		  f = make_frame (false);
+		  fset_minibuffer_window (f, mini);
+		  store_frame_param (f, Qminibuffer, mini);
+		}
+	    }
 	}
 
       if (f == NULL)
@@ -1731,7 +1776,7 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
 
       /* Don't mark the frame garbaged if we are switching to the frame
 	 that is already the top frame of that TTY.  */
-      if (!EQ (frame, top_frame))
+      if (!EQ (frame, top_frame) && root_frame (f) != XFRAME (top_frame))
 	{
 	  struct frame *new_root = root_frame (f);
 	  SET_FRAME_VISIBLE (new_root, true);
@@ -1976,6 +2021,39 @@ frame.  */)
   struct frame *df = decode_live_frame (descendant);
   return frame_ancestor_p (af, df) ? Qt : Qnil;
 }
+
+
+/* Return the root frame of frame F.  Follow the parent_frame chain
+   until we reach a frame that has no parent.  That is the root frame.
+   Note that the root of a root frame is itself. */
+
+struct frame *
+root_frame (struct frame *f)
+{
+  while (FRAME_PARENT_FRAME (f))
+    f = FRAME_PARENT_FRAME (f);
+  return f;
+}
+
+
+DEFUN ("frame-root-frame", Fframe_root_frame, Sframe_root_frame,
+       0, 1, 0,
+       doc: /* Return root frame of specified FRAME.
+FRAME must be a live frame and defaults to the selected one.  The root
+frame of FRAME is the frame obtained by following the chain of parent
+frames starting with FRAME until a frame is reached that has no parent.
+If FRAME has no parent, its root frame is FRAME.  */)
+     (Lisp_Object frame)
+{
+  struct frame *f = decode_live_frame (frame);
+  struct frame *r = root_frame (f);
+  Lisp_Object root;
+
+  XSETFRAME (root, r);
+
+  return root;
+}
+
 
 /* Return CANDIDATE if it can be used as 'other-than-FRAME' frame on the
    same tty (for tty frames) or among frames which uses FRAME's keyboard.
@@ -2389,61 +2467,68 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   /* Don't let the frame remain selected.  */
   if (f == sf)
     {
-      Lisp_Object tail;
-      Lisp_Object frame1 UNINIT;  /* This line works around GCC bug 85563.  */
-      eassume (CONSP (Vframe_list));
-
-      /* Look for another visible frame on the same terminal.
-	 Do not call next_frame here because it may loop forever.
-	 See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=15025.  */
-      FOR_EACH_FRAME (tail, frame1)
+      if (is_tty_child_frame (f))
+	/* If F is a child frame on a tty and is the selected frame, try
+	   to re-select the frame that was selected before F.  */
+	do_switch_frame (mru_rooted_frame (f), 0, 1, Qnil);
+      else
 	{
-	  struct frame *f1 = XFRAME (frame1);
+	  Lisp_Object tail;
+	  Lisp_Object frame1 UNINIT;  /* This line works around GCC bug 85563.  */
+	  eassume (CONSP (Vframe_list));
 
-	  if (!EQ (frame, frame1)
-	      && !FRAME_TOOLTIP_P (f1)
-	      && FRAME_TERMINAL (f) == FRAME_TERMINAL (f1)
-	      && FRAME_VISIBLE_P (f1))
-	    break;
-	}
-
-      /* If there is none, find *some* other frame.  */
-      if (NILP (frame1) || EQ (frame1, frame))
-	{
+	  /* Look for another visible frame on the same terminal.
+	     Do not call next_frame here because it may loop forever.
+	     See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=15025.  */
 	  FOR_EACH_FRAME (tail, frame1)
 	    {
 	      struct frame *f1 = XFRAME (frame1);
 
 	      if (!EQ (frame, frame1)
-		  && FRAME_LIVE_P (f1)
-		  && !FRAME_TOOLTIP_P (f1))
-		{
-		  if (FRAME_TERMCAP_P (f1) || FRAME_MSDOS_P (f1))
-		    {
-		      Lisp_Object top_frame = FRAME_TTY (f1)->top_frame;
+		  && !FRAME_TOOLTIP_P (f1)
+		  && FRAME_TERMINAL (f) == FRAME_TERMINAL (f1)
+		  && FRAME_VISIBLE_P (f1))
+		break;
+	    }
 
-		      if (!EQ (top_frame, frame))
-			frame1 = top_frame;
+	  /* If there is none, find *some* other frame.  */
+	  if (NILP (frame1) || EQ (frame1, frame))
+	    {
+	      FOR_EACH_FRAME (tail, frame1)
+		{
+		  struct frame *f1 = XFRAME (frame1);
+
+		  if (!EQ (frame, frame1)
+		      && FRAME_LIVE_P (f1)
+		      && !FRAME_TOOLTIP_P (f1))
+		    {
+		      if (FRAME_TERMCAP_P (f1) || FRAME_MSDOS_P (f1))
+			{
+			  Lisp_Object top_frame = FRAME_TTY (f1)->top_frame;
+
+			  if (!EQ (top_frame, frame))
+			    frame1 = top_frame;
+			}
+		      break;
 		    }
-		  break;
 		}
 	    }
-	}
 #ifdef NS_IMPL_COCOA
-      else
-	{
-	  /* Under NS, there is no system mechanism for choosing a new
-	     window to get focus -- it is left to application code.
-	     So the portion of THIS application interfacing with NS
-	     needs to make the frame we switch to the key window.  */
-	  struct frame *f1 = XFRAME (frame1);
-	  if (FRAME_NS_P (f1))
-	    ns_make_frame_key_window (f1);
-	}
+	  else
+	    {
+	      /* Under NS, there is no system mechanism for choosing a new
+		 window to get focus -- it is left to application code.
+		 So the portion of THIS application interfacing with NS
+		 needs to make the frame we switch to the key window.  */
+	      struct frame *f1 = XFRAME (frame1);
+	      if (FRAME_NS_P (f1))
+		ns_make_frame_key_window (f1);
+	    }
 #endif
 
-      do_switch_frame (frame1, 0, 1, Qnil);
-      sf = SELECTED_FRAME ();
+	  do_switch_frame (frame1, 0, 1, Qnil);
+	  sf = SELECTED_FRAME ();
+	}
     }
   else
     /* Ensure any minibuffers on FRAME are moved onto the selected
@@ -2498,7 +2583,9 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   delete_all_child_windows (f->root_window);
   fset_root_window (f, Qnil);
 
+  block_input ();
   Vframe_list = Fdelq (frame, Vframe_list);
+  unblock_input ();
   SET_FRAME_VISIBLE (f, false);
 
   /* Allow the vector of menu bar contents to be freed in the next
@@ -2537,11 +2624,11 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
     f->terminal = 0;             /* Now the frame is dead.  */
     unblock_input ();
 
-  /* Clear markers and overlays set by F on behalf of an input
-     method.  */
+    /* Clear markers and overlays set by F on behalf of an input
+       method.  */
 #ifdef HAVE_TEXT_CONVERSION
-  if (FRAME_WINDOW_P (f))
-    reset_frame_state (f);
+    if (FRAME_WINDOW_P (f))
+      reset_frame_state (f);
 #endif
 
     /* If needed, delete the terminal that this frame was on.
@@ -7108,6 +7195,7 @@ iconify the top level frame instead.  */);
   defsubr (&Sframe_list);
   defsubr (&Sframe_parent);
   defsubr (&Sframe_ancestor_p);
+  defsubr (&Sframe_root_frame);
   defsubr (&Snext_frame);
   defsubr (&Sprevious_frame);
   defsubr (&Slast_nonminibuf_frame);

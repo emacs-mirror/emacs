@@ -1227,6 +1227,7 @@ extern void wset_buffer (struct window *, Lisp_Object);
 extern bool window_outdated (struct window *);
 extern ptrdiff_t window_point (struct window *w);
 extern void window_discard_buffer_from_dead_windows (Lisp_Object);
+extern Lisp_Object mru_rooted_frame (struct frame *);
 extern void init_window_once (void);
 extern void init_window (void);
 extern void syms_of_window (void);

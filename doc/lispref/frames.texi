@@ -3579,7 +3579,7 @@ work on all window-systems.  Some will drop the object on the parent
 frame or on some ancestor instead.
 @end itemize
 
-  The following two functions can be useful when working with child and
+  The following three functions can be useful when working with child and
 parent frames:
 
 @defun frame-parent &optional frame
@@ -3591,12 +3591,23 @@ exists, @var{frame} is considered a child frame of that frame.
 This function returns @code{nil} if @var{frame} has no parent frame.
 @end defun
 
+@cindex ancestor frame
 @defun frame-ancestor-p ancestor descendant
 This functions returns non-@code{nil} if @var{ancestor} is an ancestor
 of @var{descendant}.  @var{ancestor} is an ancestor of @var{descendant}
 when it is either @var{descendant}'s parent frame or it is an ancestor
 of @var{descendant}'s parent frame.  Both, @var{ancestor} and
 @var{descendant} must specify live frames.
+@end defun
+
+@cindex root frame
+@defun frame-root-frame &optional frame
+This function returns the root frame of the specified @var{frame}.
+@var{frame} must be a live frame and defaults to the selected one.  The
+root frame of @var{frame} is the frame obtained by following the chain
+of parent frames starting with @var{frame} until a frame is reached that
+has no parent.  If @var{frame} has no parent, its root frame is
+@var{frame} itself.
 @end defun
 
 Note also the function @code{window-largest-empty-rectangle}

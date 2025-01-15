@@ -22,6 +22,7 @@ is displayed in windows.
 * Deleting Windows::        Removing a window from its frame.
 * Recombining Windows::     Preserving the frame layout when splitting and
                               deleting windows.
+* Resurrecting Windows::    Restoring deleted windows.
 * Cyclic Window Ordering::  Moving around the existing windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.
 * Switching Buffers::       Higher-level functions for switching to a buffer.
@@ -1357,7 +1358,7 @@ the sense that these functions may fail to split them as described here.
 Examples of such windows are side windows (@pxref{Side Windows}) and
 atomic windows (@pxref{Atomic Windows}).
 
-@defun split-window &optional window size side pixelwise
+@defun split-window &optional window size side pixelwise refer
 This function creates a new live window next to the window
 @var{window}.  If @var{window} is omitted or @code{nil}, it defaults
 to the selected window.  That window is split, and reduced in
@@ -1401,14 +1402,62 @@ the right of @var{window}.  If @var{side} is @code{left}, the new
 window is placed on the left of @var{window}.  In both these cases,
 @var{size} specifies a total window width, in columns.
 
+As a rule, if @var{window} already forms a combination (@pxref{Windows
+and Frames}) that matches @var{side} (a horizontal combination matches
+@var{side} if it is @code{left} or @code{right}, a vertical combination
+matches @var{side} if it is @code{above} or @code{below}) and
+@code{window-combination-limit} (@pxref{Recombining Windows}) is
+@code{nil}, this function reuses @var{window}'s parent in the window
+tree as parent of the new window.
+
+However, if @var{window} is in a combination that does not match
+@var{side} or if @code{window-combination-limit} is non-@code{nil}, this
+function makes a new parent window that replaces @var{window} in the
+window tree and makes @var{window} and the new window its sole child
+windows.  This standard behavior can be overridden via the @var{refer}
+argument.
+
 The optional fourth argument @var{pixelwise}, if non-@code{nil}, means
 to interpret @var{size} in units of pixels, instead of lines and
 columns.
 
-If @var{window} is a live window, the new window inherits various
-properties from it, including margins and scroll bars.  If
-@var{window} is an internal window, the new window inherits the
-properties of the window selected within @var{window}'s frame.
+If the optional fifth argument @var{refer} is non-@code{nil}, it
+specifies a reference window used for setting up properties of the new
+window.  If non-@code{nil}, @var{refer} can be either a window or a cons
+cell of two windows.
+
+If @var{refer} is a cons cell, its @sc{car} has to specify a deleted,
+former live window -- a window that has shown a buffer before -- on the
+same frame as @var{window}.  That buffer must be still live.  The
+@sc{cdr} has to specify a deleted window that was, before its deletion,
+a parent window on the same frame as @var{window}.  In this case, rather
+then making new windows, this function replaces @var{window} with the
+@sc{cdr} of @var{refer} in the window tree and makes @var{window} and
+@var{refer}'s @sc{car} its new child windows.  Buffer, start and point
+positions of @var{refer}'s @sc{car} are set to the values they had
+immediately before @var{refer}'s @sc{car} was deleted the last time.
+Decorations and parameters remain unaltered from their values before
+@var{refer}'s @sc{car} and @sc{cdr} were deleted.
+
+Alternatively, @var{refer} may specify a deleted, former live window -- a
+window that has shown a buffer before -- on the same frame as
+@var{window}.  That buffer must be still live.  In this case, this
+function does not make a new window but rather makes @var{refer} live
+again and inserts it into the window tree at the position and with the
+sizes the new window would have been given.  Buffer, start and point
+positions of @var{refer} are set to the values they had immediately
+before @var{refer} was deleted the last time.  Decorations and
+parameters remain unaltered from their values before @var{refer} was
+deleted.  The parent of @var{refer} is then determined as if it were a
+window created anew.
+
+In any other case, @var{refer} must specify a live window.  Then the new
+window will inherit properties like buffer, start and point positions
+and some decorations from @var{refer}.  If @var{refer} is @code{nil} or
+omitted, then if @var{window} is live, the new window inherits these
+properties from @var{window}.  If, however, @var{window} is an internal
+window, the new window will inherit these properties from the window
+selected on @var{window}'s frame.
 
 The behavior of this function may be altered by the window parameters
 of @var{window}, so long as the variable
@@ -2048,6 +2097,132 @@ height:
 Deleting any of the live windows @var{W2}, @var{W3} or @var{W4} will
 distribute its space proportionally among the two remaining live
 windows.
+
+
+@node Resurrecting Windows
+@section Resurrecting Windows
+@cindex resurrecting deleted windows
+@cindex restoring deleted windows
+
+After a window has been deleted (@pxref{Deleting Windows}) it cannot be
+used any more by functions that require a valid window as their argument
+even if some Lisp variable still references that window.  When the last
+reference to a window has ceased to exist, the window's Lisp object will
+be eventually recycled by the garbage collector (@pxref{Garbage
+Collection}).
+
+There are two ways to resurrect a deleted window whose object has not
+been yet recycled by the collector: The first is to keep a reference to
+that window in a saved window configuration (@pxref{Window
+Configurations}) and then call @code{set-window-configuration} with that
+configuration as argument.  The second one is to keep a reference to
+that window in a variable or let-bind it and then use that reference as
+@var{refer} argument in @code{split-window} (@pxref{Splitting Windows}).
+
+The major difference between these two is that
+@code{set-window-configuration} restores the frame layout as it existed
+before deleting the window.  The @code{split-window} approach, on the
+other hand, allows for arbitrary variations of the layout.
+
+Consider the following example starting with a frame containing a single
+window showing the buffer @file{*scratch*}:
+
+@example
+@group
+(let* ((old (selected-window))
+       (new (split-window old nil 'right))
+       overlay)
+  (with-current-buffer (get-buffer-create "*Messages*")
+    (set-window-buffer new (current-buffer))
+    (setq overlay (make-overlay (point-min) (point-max)))
+    (overlay-put overlay 'face 'highlight)
+    (overlay-put overlay 'window new)
+    (message "new %s parent %s" new (window-parent new))
+    (sit-for 3))
+  (delete-window new)
+  (setq new (split-window old nil 'left))
+  (set-window-buffer new (get-buffer-create "*Messages*"))
+  (format "new %s parent %s" new (window-parent new)))
+@end group
+@end example
+
+When you run that code in @file{*scratch*} it will first split the
+window showing @file{*scratch*} to display @file{*Messages*} in a new
+window on the right.  It also sets up an overlay with a window property
+to highlight the text of @file{*Messages*} in the new window and
+displays a message showing the new window and its parent in the window
+tree.  It then deletes the new window and resurrects it on the left of
+the @file{*scratch*} window again displaying a message showing the new
+window and its parent in the window tree.
+
+Note that both, new window and its parent have changed after moving the
+@file{*Messages*} window to the left.  Also, the highlighting disappears
+because any properties set up for the new window on the right are lost
+when the new window is re-created on the left.
+
+The following code uses the @var{refer} argument of @code{split-window}
+instead.
+
+@example
+@group
+(let* ((old (selected-window))
+       (new (split-window old nil 'right))
+       overlay)
+  (with-current-buffer (get-buffer-create "*Messages*")
+    (set-window-buffer new (current-buffer))
+    (setq overlay (make-overlay (point-min) (point-max)))
+    (overlay-put overlay 'face 'highlight)
+    (overlay-put overlay 'window new)
+    (message "new %s parent %s" new (window-parent new))
+    (sit-for 3))
+  (delete-window new)
+  (split-window old nil 'left nil new)
+  (format "new %s parent %s" new (window-parent new)))
+@end group
+@end example
+
+Note that all properties of the resurrected window like its decorations,
+parameters as well as any overlays with a window property are preserved
+as if that window had never been deleted.  The only things that changed
+are its position in the window tree and consequently the values returned
+by @code{window-left-child} of its parent window as well as the values
+returned by @code{window-prev-sibling} and @code{window-next-sibling} of
+the window and its sibling.
+
+The following code passes both, the new window on the right and its
+parent, via the @var{refer} argument to @code{split-window} instead.
+
+@example
+@group
+(let* ((old (selected-window))
+       (new (split-window old nil 'right))
+       (parent (window-parent new))
+       overlay)
+  (with-current-buffer (get-buffer-create "*Messages*")
+    (set-window-buffer new (current-buffer))
+    (setq overlay (make-overlay (point-min) (point-max)))
+    (overlay-put overlay 'face 'highlight)
+    (overlay-put overlay 'window new)
+    (message "new %s parent %s" new (window-parent new))
+    (sit-for 3))
+  (delete-window new)
+  (split-window old nil 'left nil (cons new parent))
+  (format "new %s parent %s" new (window-parent new)))
+@end group
+@end example
+
+Note that the parent window has been resurrected along with the new
+window.
+
+Resurrecting dead windows is useful to preserve the identity of windows
+in actions that are supposed to do that like moving windows around on a
+frame or hiding them temporarily.  Any properties of such a window like
+its decorations, the buffer it has shown previously, that buffer's start
+and point position in the window, the window's dedicated status or its
+cursor type are left untouched and there's no need to recreate them from
+scratch.  For internal windows, the value of that window's combination
+limit is preserved which means that the window can be recombined
+(@pxref{Recombining Windows}) as before.
 
 
 @node Cyclic Window Ordering
@@ -7135,13 +7310,16 @@ live window as single, optional argument, defaulting to the selected
 window.
 
 @defun window-old-buffer &optional window
-This function returns the buffer shown in @var{window} at the last
-time window change functions were run for @var{window}'s frame.  If it
-returns @code{nil}, @var{window} has been created after that.  If it
-returns @code{t}, @var{window} was not shown at that time but has been
-restored from a previously saved window configuration afterwards.
-Otherwise, the return value is the buffer shown by @var{window} at
-that time.
+This function returns the buffer shown in @var{window} at the last time
+window change functions were run for @var{window}'s frame.  If it
+returns @code{nil}, @var{window} is either an internal window or has
+been created after that.  If it returns @code{t}, @var{window} was not
+shown at that time but has been restored from a previously saved window
+configuration afterwards.  Otherwise, the return value is the buffer
+shown by @var{window} at that time.  As a special case, if @var{window}
+has been deleted, this function returns the last buffer @var{window} had
+shown at that time.  @var{window} can be any window and defaults to the
+selected one.
 @end defun
 
 @defun window-old-pixel-width &optional window

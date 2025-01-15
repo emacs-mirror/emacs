@@ -535,10 +535,19 @@ value, saved value, customized-but-unsaved value, and themed values.
 Do not set them directly; they are managed by @code{defcustom} and
 related functions.  @xref{Variable Definitions}.
 
+@cindex @code{definition-name} (symbol property)
+@cindex @code{definition-type} (symbol property)
 @item definition-name
-This property is used to find the definition of a symbol in the source
-code, when it might be hard to find the definition by textual search
-of the source file.  For example, a @code{define-derived-mode}
+@itemx definition-type
+These properties help find the definition of a symbol in the source
+code when it might be hard to find the definition by textual search
+of the source file.
+The Emacs Help commands such as @kbd{C-h f} (@pxref{Help,,,
+emacs, The GNU Emacs Manual}) use these properties to show the definition
+of a symbol via a button in the @file{*Help*} buffer where the
+symbol's documentation is shown.
+
+For example, a @code{define-derived-mode}
 (@pxref{Derived Modes}) might define a mode-specific function or a
 variable implicitly; or your Lisp program might generate a run-time
 call to @code{defun} to define a function (@pxref{Defining
@@ -547,10 +556,56 @@ property of the symbol should be another symbol whose definition can
 be found by textual search and whose code defines the original symbol.
 In the example with @code{define-derived-mode}, the value of this
 property of the functions and variables it defines should be the mode
-symbol.  The Emacs Help commands such as @kbd{C-h f} (@pxref{Help,,,
-emacs, The GNU Emacs Manual}) use this property to show the definition
-of a symbol via a button in the @file{*Help*} buffer where the
-symbol's documentation is shown.
+symbol.
+
+In some cases, the definition cannot be found by looking for the
+definition of another symbol.  For example, a test file might use a
+macro to generate calls to @code{ert-deftest}
+(@pxref{,,,ert, ERT: Emacs Lisp Regression Testing}) where the code
+is boiler plate and only varying data need to be passed in.
+In such cases, the @code{definition-type} property of the symbol can
+be a symbol that has an entry in @code{find-function-regexp-alist}
+telling how to find the definition of symbols of this type.
+
+In the example of a macro defining calls to @code{ert-deftest},
+the macro could put the property @code{definition-type} on each
+test defined.  The file defining the macro would also define a
+definition-finding function or regexp and add it to
+@code{find-function-regexp-alist} after that variable is loaded.
+Here is an example using a function to find the definition:
+
+@example
+@group
+(defmacro define-foo-test (data)
+  "Define a test of the foo system using DATA."
+  (declare (debug (&rest sexp)))
+  (let ((test-name (intern (concat ...))))
+    `(progn
+      (put ',test-name 'definition-type 'foo-test-type)
+      (ert-deftest ,test-name ()
+        ,(concat "Test foo with " ...)
+        ...))))
+@end group
+
+@group
+(defun foo-find-test-def-function (test-name)
+  "Search for the `define-foo-test' call defining TEST-NAME.
+Return non-nil if the definition is found."
+  (save-match-data
+    (let ((regexp ...))
+      (save-restriction
+        (widen)
+        (goto-char (point-min))
+        (re-search-forward regexp nil t)))))
+@end group
+
+@group
+(with-eval-after-load "find-func"
+  (add-to-list
+   'find-function-regexp-alist
+   '(foo-test-type . foo-find-test-def-function)))
+@end group
+@end example
 
 @item disabled
 If the value is non-@code{nil}, the named function is disabled as a
@@ -565,10 +620,27 @@ The value, if non-@code{nil}, specifies the maximum minibuffer history
 length for the named history list variable.  @xref{Minibuffer
 History}.
 
+@cindex @code{important-return-value} (symbol property)
+@item important-return-value
+A non-@code{nil} value makes the byte compiler warn about code that
+calls the named function without using its returned value.  This is
+useful for functions where doing so is likely to be a mistake.
+This property is normally added to a function with @code{declare}
+(@pxref{Declare Form}).
+
 @item interactive-form
 The value is an interactive form for the named function.  Normally,
 you should not set this directly; use the @code{interactive} special
-form instead.  @xref{Interactive Call}.
+form instead.  @xref{Using Interactive}.
+
+@item interactive-only
+If the value is non-@code{nil}, the named function should not be called
+from Lisp.  The value is an error string or the function to call
+instead.  @xref{Defining Commands}.
+
+@item menu-alias
+If non-nil, this symbol is an alias menu entry, and its own key binding
+should not be shown.  @xref{Alias Menu Items}.
 
 @item menu-enable
 The value is an expression for determining whether the named menu item
@@ -577,6 +649,11 @@ should be enabled in menus.  @xref{Simple Menu Items}.
 @item mode-class
 If the value is @code{special}, the named major mode is special.
 @xref{Major Mode Conventions}.
+
+@item ignored-mouse-command
+@itemx mouse-1-menu-command
+These properties affect how commands bound to @code{down-mouse-1} behave.
+@xref{Touchscreen Events}.
 
 @item permanent-local
 If the value is non-@code{nil}, the named variable is a buffer-local
@@ -588,18 +665,20 @@ If the value is non-@code{nil}, the named function should not be
 deleted from the local value of a hook variable when changing major
 modes.  @xref{Setting Hooks}.
 
+@cindex @code{pure} (symbol property)
 @item pure
-@cindex @code{pure} property
 If the value is non-@code{nil}, the named function is considered to be
 pure (@pxref{What Is a Function}).  Calls with constant arguments can
 be evaluated at compile time.  This may shift run time errors to
-compile time.  Not to be confused with pure storage (@pxref{Pure
-Storage}).
+compile time.  This property is normally added to a function with
+@code{declare} (@pxref{Declare Form}).  Not to be confused with pure
+storage (@pxref{Pure Storage}).
 
 @item risky-local-variable
 If the value is non-@code{nil}, the named variable is considered risky
 as a file-local variable.  @xref{File Local Variables}.
 
+@cindex @code{safe-function} (symbol property)
 @item safe-function
 If the value is non-@code{nil}, the named function is considered
 generally safe for evaluation.  @xref{Function Safety}.
@@ -610,25 +689,18 @@ file-local evaluation forms.  @xref{File Local Variables}.
 
 @item safe-local-variable
 The value specifies a function for determining safe file-local values
-for the named variable.  @xref{File Local Variables}.  Since this
-value is consulted when loading files, the function should be
-efficient and should ideally not lead to loading any libraries to
-determine the safeness (e.g., it should not be an autoloaded function).
+for the named variable.  @xref{File Local Variables}.
 
+@cindex @code{side-effect-free} (symbol property)
 @item side-effect-free
-@cindex @code{side-effect-free} property
 A non-@code{nil} value indicates that the named function is free of
 side effects (@pxref{What Is a Function}), so the byte compiler may
 ignore a call whose value is unused.  If the property's value is
 @code{error-free}, the byte compiler may even delete such unused
 calls.  In addition to byte compiler optimizations, this property is
 also used for determining function safety (@pxref{Function Safety}).
-
-@item important-return-value
-@cindex @code{important-return-value} property
-A non-@code{nil} value makes the byte compiler warn about code that
-calls the named function without using its returned value.  This is
-useful for functions where doing so is likely to be a mistake.
+This property is normally added to a function with
+@code{declare} (@pxref{Declare Form}).
 
 @item undo-inhibit-region
 If non-@code{nil}, the named function prevents the @code{undo} operation
@@ -638,7 +710,7 @@ immediately after the function.  @xref{Undo}.
 @item variable-documentation
 If non-@code{nil}, this specifies the named variable's documentation
 string.  This is set automatically by @code{defvar} and related
-functions.  @xref{Defining Faces}.
+functions.  @xref{Documentation Basics}.
 @end table
 
 @node Shorthands

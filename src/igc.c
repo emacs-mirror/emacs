@@ -155,7 +155,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_Vector_64AF2E46CE
 #  error "struct Lisp_Vector changed"
 # endif
-# ifndef HASH_Lisp_Subr_6FC9E39686
+# ifndef HASH_Lisp_Subr_730FE7C038
 #  error "struct Lisp_Subr changed"
 # endif
 # ifndef HASH_Lisp_Misc_Ptr_369918BE47

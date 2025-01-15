@@ -1,4 +1,4 @@
-;;; files.el --- file input and output commands for Emacs  -*- lexical-binding:t -*-
+;;; files.el --- file input and output commands  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1985-1987, 1992-2025 Free Software Foundation, Inc.
 
@@ -22,9 +22,9 @@
 
 ;;; Commentary:
 
-;; Defines most of Emacs's file- and directory-handling functions,
-;; including basic file visiting, backup generation, link handling,
-;; ITS-id version control, load- and write-hook handling, and the like.
+;; Defines Emacs's basic file- and directory-handling functions,
+;; including file visiting, backup file generation and versioning,
+;; link handling, load- and write-hook handling, and the like.
 
 ;;; Code:
 

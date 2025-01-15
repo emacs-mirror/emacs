@@ -1629,6 +1629,7 @@ as the subtype, and syntax tables are char-tables with
 @code{syntax-table} as the subtype.  The subtype can be queried using
 the function @code{char-table-subtype}, described below.
 
+@cindex @code{char-table-extra-slots} (symbol property)
 @item
 The subtype controls the number of @dfn{extra slots} in the
 char-table.  This number is specified by the subtype's

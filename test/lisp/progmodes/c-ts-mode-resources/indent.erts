@@ -149,6 +149,16 @@ fn()
 };
 =-=-=
 
+Name: typedef with struct definition (bug#75442)
+
+=-=
+typedef struct Point
+{
+  int x;
+  int y;
+} Point;
+=-=-=
+
 Name: Multiline Parameter List (bug#60398)
 
 =-=

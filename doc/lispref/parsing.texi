@@ -1596,6 +1596,8 @@ the thing.
 
 @var{pred} can also be recursively defined.  It can be @w{@code{(or
 @var{pred}@dots{})}}, meaning that satisfying any one of the @var{pred}s
+qualifies the node as the thing.  It can be @w{@code{(and
+@var{pred}@dots{})}}, meaning that satisfying all of the @var{pred}s
 qualifies the node as the thing.  It can be @w{@code{(not @var{pred})}},
 meaning that not satisfying @var{pred} qualifies the node.
 
@@ -1603,6 +1605,10 @@ Finally, @var{pred} can refer to other @var{thing}s defined in this
 list.  For example, @w{@code{(or sexp sentence)}} defines something
 that's either a @code{sexp} thing or a @code{sentence} thing, as defined
 by some other rule in the alist.
+
+There are two pre-defined predicates: @code{named} and @code{anonymous},
+which qualify, respectively, named and anonymous nodes.  They can be
+combined with @code{and} to narrow down the match.
 
 Here's an example @code{treesit-thing-settings} for C and C++:
 
@@ -1628,10 +1634,14 @@ exactly how C and C@t{++} modes define things.
 
 Emacs builtin functions already make use some thing definitions.
 Command @code{treesit-forward-sexp} uses the @code{sexp} definition if
-major mode defines it; @code{treesit-forward-sentence} uses the
-@code{sentence} definition.  Defun movement functions like
-@code{treesit-end-of-defun} uses the @code{defun} definition
-(@code{defun} definition is overridden by
+major mode defines it; @code{treesit-forward-list},
+@code{treesit-down-list}, @code{treesit-up-list},
+@code{treesit-show-paren-data} use the @code{list} definition (its
+symbol @code{list} has the symbol property @code{treesit-thing-symbol}
+to avoid ambiguity with the function that has the same name);
+@code{treesit-forward-sentence} uses the @code{sentence} definition.
+Defun movement functions like @code{treesit-end-of-defun} uses the
+@code{defun} definition (@code{defun} definition is overridden by
 @var{treesit-defun-type-regexp} for backward compatibility).  Major
 modes can also define @code{comment}, @code{string}, @code{text}
 (generally comments and strings).
@@ -1658,7 +1668,6 @@ signals @code{treesit-invalid-predicate} error.  If @var{ignore-missing}
 is @code{t}, this function doesn't signal the error when @var{thing} is
 undefined and just returns @code{nil}; but it still signals the error if
 @var{thing} is a malformed predicate.
-
 @end defun
 
 @defun treesit-thing-prev position thing
@@ -2175,8 +2184,6 @@ navigation commands that move, respectively, by sexps and sentences by
 defining variables such as @code{forward-sexp-function} and
 @code{forward-sentence-function}.
 @end itemize
-
-@c TODO: Add treesit-thing-settings stuff once we finalize it.
 @end defun
 
 For more information on these built-in tree-sitter features,

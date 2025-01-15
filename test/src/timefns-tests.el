@@ -261,4 +261,8 @@ a fixed place on the right and are padded on the left."
 	  (should (time-equal-p time- (time-convert time- form)))
 	  (should (time-equal-p time+ (time-convert time+ form))))))))
 
+(ert-deftest current-time-zone ()
+  (should (listp (current-time-zone)))
+  (should (= (length (current-time-zone)) 2)))
+
 ;;; timefns-tests.el ends here

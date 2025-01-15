@@ -479,7 +479,10 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
     fun = XCDR (fun);
   /* Lisp_Subrs have a slot for it.  */
   if (SUBRP (fun))
-    XSUBR (fun)->doc = offset;
+    {
+      XSUBR (fun)->doc = offset;
+      eassert (XSUBR (fun)->doc >= 0);
+    }
   else if (CLOSUREP (fun))
     {
       /* This bytecode object must have a slot for the docstring, since

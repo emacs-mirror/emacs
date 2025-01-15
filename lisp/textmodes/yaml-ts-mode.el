@@ -167,7 +167,22 @@ boundaries.  JUSTIFY is passed to `fill-paragraph'."
 
     (setq-local fill-paragraph-function #'yaml-ts-mode--fill-paragraph)
 
-    (treesit-major-mode-setup)))
+    ;; Navigation.
+    (setq-local treesit-thing-settings
+                `((yaml
+                   (list ,(regexp-opt '("block_mapping_pair"
+                                        "flow_sequence"))
+                         'symbols))))
+
+    (treesit-major-mode-setup)
+
+    ;; Use the `list' thing defined above to navigate only lists
+    ;; with `C-M-n', `C-M-p', `C-M-u', `C-M-d', but not sexps
+    ;; with `C-M-f', `C-M-b' neither adapt to 'show-paren-mode'
+    ;; that is problematic in languages without explicit
+    ;; opening/closing nodes.
+    (setq-local forward-sexp-function nil)
+    (setq-local show-paren-data-function 'show-paren--default)))
 
 (derived-mode-add-parents 'yaml-ts-mode '(yaml-mode))
 

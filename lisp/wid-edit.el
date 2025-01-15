@@ -459,17 +459,20 @@ the :notify function can't know the new value.")
   "Specify button for WIDGET between FROM and TO."
   (let ((overlay (make-overlay from to nil t nil))
 	(follow-link (widget-get widget :follow-link))
-	(help-echo (widget-get widget :help-echo)))
+	(help-echo (widget-get widget :help-echo))
+	(face (unless (widget-get widget :suppress-face)
+		(widget-apply widget :button-face-get))))
     (widget-put widget :button-overlay overlay)
     (when (functionp help-echo)
       (setq help-echo 'widget-mouse-help))
-    (overlay-put overlay 'before-string #(" " 0 1 (invisible t)))
+    (overlay-put overlay 'before-string
+                 (propertize " " 'invisible t 'face face))
     (overlay-put overlay 'button widget)
     (overlay-put overlay 'keymap (widget-get widget :keymap))
     (overlay-put overlay 'evaporate t)
     ;; We want to avoid the face with image buttons.
-    (unless (widget-get widget :suppress-face)
-      (overlay-put overlay 'face (widget-apply widget :button-face-get))
+    (when face
+      (overlay-put overlay 'face face)
       (overlay-put overlay 'mouse-face
 		   ;; Make new list structure for the mouse-face value
 		   ;; so that different widgets will have
@@ -2549,12 +2552,9 @@ If the item is checked, CHOSEN is a cons whose cdr is the value."
 			     (widget-create-child-value
 			      widget type (cdr chosen)))
 			    (t
-			     (widget-create-child-value
-			      widget type (car (cdr chosen)))
-                             ;; This somehow breaks :options and other
-                             ;; Custom features.
-                             ;; (widget-specify-selected child)
-                             ))))
+                             (widget-specify-selected child)
+                             (widget-create-child-value
+                              widget type (car (cdr chosen)))))))
 	       (t
 		(error "Unknown escape `%c'" escape)))))
      ;; Update properties.

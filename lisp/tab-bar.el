@@ -1662,7 +1662,11 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
           ;; `window-state-put' fails when called in the minibuffer
           (when (window-minibuffer-p)
             (select-window (get-mru-window)))
-          (window-state-put ws nil 'safe)))
+          (window-state-put ws nil 'safe)
+
+          (when tab-bar-history-mode
+            (puthash (selected-frame) nil tab-bar-history-back)
+            (puthash (selected-frame) nil tab-bar-history-forward))))
 
         (when tab-bar-select-restore-context
           (window-point-context-use))

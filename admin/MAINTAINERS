@@ -256,11 +256,6 @@ maintainership to someone listed above, but who want to continue to be
 CC'd as though they were still the primary maintainer, in the meantime.
 ==============================================================================
 
-Kelvin White
-       ERC
-           lisp/erc/*
-           doc/misc/erc.texi
-
 Eli Zaretskii
     	doc/*
 

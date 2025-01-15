@@ -226,6 +226,10 @@ The macro should receive the name to be
 defined as the first argument.  That will help various tools find the
 definition automatically.  Avoid constructing the names in the macro
 itself, since that would confuse these tools.
+If your macro cannot be written in this style, the macro can still
+help these tools find the defining call by putting the property
+@code{definition-name} or @code{definition-type} on the name.
+@xref{Standard Properties}.
 
 @item
 In some other systems there is a convention of choosing variable names

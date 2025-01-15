@@ -228,7 +228,7 @@ static Lisp_Object
 read_file_name (Lisp_Object default_filename, Lisp_Object mustmatch,
 		Lisp_Object initial, Lisp_Object predicate)
 {
-  return CALLN (Ffuncall, Qread_file_name,
+  return calln (Qread_file_name,
 		callint_message, Qnil, default_filename,
 		mustmatch, initial, predicate);
 }

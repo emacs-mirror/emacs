@@ -327,21 +327,26 @@ KEYS should be a string consisting of one or more key strokes,
 with a single space character separating one key stroke from another.
 
 Each key stroke is either a single character, or the name of an
-event, surrounded by angle brackets <like-this>.  In addition, any
-key stroke may be preceded by one or more modifier keys.  Finally,
-a limited number of characters have a special shorthand syntax.
+event, surrounded by angle brackets <like-this>.  An event may be
+pushing a key, clicking on a menu item, pressing a mouse button, etc.
+In addition, any key stroke may be preceded by one or more modifier
+keys.  Finally, a limited number of characters have a special shorthand
+syntax.
 
 Here are some example of valid key sequences.
 
   \"f\"           (the key `f')
+  \"<f6>\"        (the function key named \"F6\")
+  \"<mouse-1>\"   (the mouse button named \"mouse-1\", commonly referred to as
+                 the left button)
   \"S o m\"       (a three-key sequence of the keys `S', `o' and `m')
   \"C-c o\"       (a two-key sequence: the key `c' with the control modifier
                  followed by the key `o')
-  \"H-<left>\"    (the function key named \"left\" with the hyper modifier)
+  \"H-<left>\"    (the cursor control key named \"left\" with the hyper modifier)
   \"M-RET\"       (the \"return\" key with a meta modifier)
   \"C-M-<space>\" (the \"space\" key with both the control and meta modifiers)
 
-These are the characters that have special shorthand syntax:
+These characters have special shorthand syntax:
 NUL, RET, TAB, LFD, ESC, SPC, DEL.
 
 Modifiers have to be specified in this order:

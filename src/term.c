@@ -142,6 +142,7 @@ static int max_frame_cols;
 struct tty_display_info *gpm_tty = NULL;
 
 /* Last recorded mouse coordinates.  */
+static Lisp_Object last_mouse_frame;
 static int last_mouse_x, last_mouse_y;
 #endif /* HAVE_GPM */
 
@@ -2594,6 +2595,36 @@ tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
 
 #endif
 
+static Lisp_Object
+tty_frame_at (int x, int y)
+{
+  for (Lisp_Object frames = Ftty_frame_list_z_order (Qnil);
+       !NILP (frames);
+       frames = Fcdr (frames))
+    {
+      Lisp_Object frame = Fcar (frames);
+      struct frame *f = XFRAME (frame);
+
+      if (f->left_pos <= x && x < f->left_pos + f->pixel_width &&
+	  f->top_pos <= y && y < f->top_pos + f->pixel_height)
+	return frame;
+    }
+
+  return Qnil;
+}
+
+DEFUN ("tty-frame-at", Ftty_frame_at, Stty_frame_at,
+       2, 2, 0,
+       doc: /* Return tty frame containing pixel position X, Y.  */)
+  (Lisp_Object x, Lisp_Object y)
+{
+  if (! FIXNUMP (x) || ! FIXNUMP (y))
+    /* Coordinates this big can not correspond to any frame.  */
+    return Qnil;
+
+  return tty_frame_at (XFIXNUM (x), XFIXNUM (y));
+}
+
 #ifdef HAVE_GPM
 
 void
@@ -2639,7 +2670,15 @@ term_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		     enum scroll_bar_part *part, Lisp_Object *x,
 		     Lisp_Object *y, Time *timeptr)
 {
-  *fp = SELECTED_FRAME ();
+  /* If we've gotten no GPM mouse events yet, last_mouse_frame won't be
+     set.  Perhaps `gpm-mouse-mode' was never active.  */
+  if (!FRAMEP (last_mouse_frame))
+    return;
+
+  *fp = XFRAME (last_mouse_frame);
+  if (!FRAME_LIVE_P (*fp))
+    return;
+
   (*fp)->mouse_moved = 0;
 
   *bar_window = Qnil;
@@ -2714,9 +2753,14 @@ term_mouse_click (struct input_event *result, Gpm_Event *event,
 }
 
 int
-handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event)
+handle_one_term_event (struct tty_display_info *tty, const Gpm_Event *event_in)
 {
-  struct frame *f = XFRAME (tty->top_frame);
+  Lisp_Object frame = tty_frame_at (event_in->x, event_in->y);
+  struct frame *f = decode_live_frame (frame);
+  Gpm_Event event = *event_in;
+  event.x -= f->left_pos;
+  event.y -= f->top_pos;
+
   struct input_event ie;
   int count = 0;
 
@@ -2724,30 +2768,34 @@ handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event)
   ie.kind = NO_EVENT;
   ie.arg = Qnil;
 
-  if (event->type & (GPM_MOVE | GPM_DRAG))
+  if (event.type & (GPM_MOVE | GPM_DRAG))
     {
-      Gpm_DrawPointer (event->x, event->y, fileno (tty->output));
+      /* The pointer must be drawn using screen coordinates (x,y), not
+	 frame coordinates.  Use event_in which has an unmodified event
+	 directly from GPM.  */
+      Gpm_DrawPointer (event_in->x, event_in->y, fileno (tty->output));
 
       /* Has the mouse moved off the glyph it was on at the last
          sighting?  */
-      if (event->x != last_mouse_x || event->y != last_mouse_y)
+      if (event.x != last_mouse_x || event.y != last_mouse_y)
         {
-          /* FIXME: These three lines can not be moved into
+          /* FIXME: These four lines can not be moved into
              update_mouse_position unless xterm-mouse gets updated to
              generate mouse events via C code.  See
              https://lists.gnu.org/archive/html/emacs-devel/2020-11/msg00163.html */
-          last_mouse_x = event->x;
-          last_mouse_y = event->y;
+          last_mouse_frame = frame;
+          last_mouse_x = event.x;
+          last_mouse_y = event.y;
           f->mouse_moved = 1;
 
-          count += update_mouse_position (f, event->x, event->y);
+          count += update_mouse_position (f, event.x, event.y);
         }
     }
   else
     {
       f->mouse_moved = 0;
-      term_mouse_click (&ie, event, f);
-      ie.arg = tty_handle_tab_bar_click (f, event->x, event->y,
+      term_mouse_click (&ie, &event, f);
+      ie.arg = tty_handle_tab_bar_click (f, event.x, event.y,
 					 (ie.modifiers & down_modifier) != 0, &ie);
       kbd_buffer_store_event (&ie);
       count++;
@@ -4982,9 +5030,11 @@ trigger redisplay.  */);
   defsubr (&Stty__set_output_buffer_size);
   defsubr (&Stty__output_buffer_size);
 #endif /* !HAVE_ANDROID */
+  defsubr (&Stty_frame_at);
 #ifdef HAVE_GPM
   defsubr (&Sgpm_mouse_start);
   defsubr (&Sgpm_mouse_stop);
+  staticpro (&last_mouse_frame);
 #endif /* HAVE_GPM */
 
   defsubr (&Stty_frame_geometry);

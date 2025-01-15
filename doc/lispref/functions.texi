@@ -752,9 +752,9 @@ commands, such as @kbd{C-h f}, which present in the @file{*Help*}
 buffer a button to jump to the function's definition, might be unable
 to find the source code because generating a function dynamically
 usually looks very different from the usual static calls to
-@code{defun}.  You can make the job of finding the code which
+@code{defun}.  You can make the job of finding the code that
 generates such functions easier by using the @code{definition-name}
-property, @pxref{Standard Properties}.
+or @code{definition-type} property, @pxref{Standard Properties}.
 
 @cindex override existing functions
 @cindex redefine existing functions
@@ -2726,6 +2726,7 @@ function.  This allows function-level control of the safety level used
 for the code emitted for the function (@pxref{Native-Compilation
 Variables}).
 
+@cindex function type declaration
 @item (ftype @var{type} &optional @var{function})
 Declare @var{type} to be the type of this function.  This is used for
 documentation by @code{describe-function}.  Also it can be used by the

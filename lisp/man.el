@@ -1291,6 +1291,7 @@ Return the buffer in which the manpage will appear."
   (when (window-live-p window)
     (with-current-buffer (window-buffer window)
       (when (and (derived-mode-p 'Man-mode)
+                 Man-columns
                  (not (eq Man-columns (Man-columns))))
         (let ((proc (get-buffer-process (current-buffer))))
           (unless (and proc (not (eq (process-status proc) 'exit)))

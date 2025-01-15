@@ -106,6 +106,7 @@
      ((parent-is "type_spec") parent-bol go-ts-mode-indent-offset)
      ((parent-is "type_switch_statement") parent-bol 0)
      ((parent-is "var_declaration") parent-bol go-ts-mode-indent-offset)
+     ((parent-is "var_spec_list") parent-bol go-ts-mode-indent-offset)
      (no-node parent-bol 0)))
   "Tree-sitter indent rules for `go-ts-mode'.")
 

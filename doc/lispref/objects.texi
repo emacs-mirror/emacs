@@ -1545,6 +1545,7 @@ The @code{not} type specifier defines any type except the specified one.
 The @code{member} type specifier allows to specify a type that includes
 only the explicitly listed values.
 
+@cindex declared type of a function
 @item (function (@var{arg-1-type} @dots{} @var{arg-n-type}) @var{return-type})
 The @code{function} type specifier is used to describe the argument
 types and the return type of a function.  Argument types can be interleaved

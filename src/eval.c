@@ -1182,7 +1182,7 @@ is not displayed.  */)
 				       xstrdup (SSDATA (message)));
   record_unwind_protect_ptr (with_delayed_message_cancel, timer);
 
-  Lisp_Object result = CALLN (Ffuncall, function);
+  Lisp_Object result = calln (function);
 
   return unbind_to (count, result);
 }
@@ -2019,6 +2019,9 @@ signal_error (const char *s, Lisp_Object arg)
 
   xsignal (Qerror, Fcons (build_string (s), arg));
 }
+
+/* Simplified version of 'define-error' that works with pure
+   objects.  */
 
 void
 define_error (Lisp_Object name, const char *message, Lisp_Object parent)
@@ -2997,7 +3000,7 @@ run_hook_with_args_2 (Lisp_Object hook, Lisp_Object arg1, Lisp_Object arg2)
 Lisp_Object
 apply1 (Lisp_Object fn, Lisp_Object arg)
 {
-  return NILP (arg) ? Ffuncall (1, &fn) : CALLN (Fapply, fn, arg);
+  return NILP (arg) ? calln (fn) : CALLN (Fapply, fn, arg);
 }
 
 DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,

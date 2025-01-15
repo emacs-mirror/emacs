@@ -1745,12 +1745,22 @@ like in the respective argument of `key-binding'.  */)
 		  && XFIXNUM (pos) >= 0
 		  && XFIXNUM (pos) < SCHARS (string))
 		{
-		  Lisp_Object map = Fget_text_property (pos, Qlocal_map, string);
-		  if (!NILP (map))
+		  Lisp_Object map = Fget_text_property (pos, Qlocal_map,
+							string);
+		  Lisp_Object pos_area = POSN_POSN (position);
+		  /* For clicks on mode line or header line, override
+		     the maps we found at POSITION unconditionally, even
+		     if the corresponding properties of the mode- or
+		     header-line string are nil, because propertries at
+		     point are not relevant in that case.  */
+		  if (!NILP (map)
+		      || EQ (pos_area, Qmode_line)
+		      || EQ (pos_area, Qheader_line))
 		    local_map = map;
-
 		  map = Fget_text_property (pos, Qkeymap, string);
-		  if (!NILP (map))
+		  if (!NILP (map)
+		      || EQ (pos_area, Qmode_line)
+		      || EQ (pos_area, Qheader_line))
 		    keymap = map;
 		}
 	    }
@@ -2884,8 +2894,7 @@ You type        Translation\n\
   if (!NILP (Vkey_translation_map))
     {
       Lisp_Object msg = build_unibyte_string ("Key translations");
-      CALLN (Ffuncall,
-	     Qhelp__describe_map_tree,
+      calln (Qhelp__describe_map_tree,
 	     Vkey_translation_map, Qnil, Qnil, prefix,
 	     msg, nomenu, Qt, Qnil, Qnil, buffer);
     }
@@ -2898,8 +2907,7 @@ You type        Translation\n\
   if (!NILP (start1))
     {
       Lisp_Object msg = build_unibyte_string ("\f\nOverriding Bindings");
-      CALLN (Ffuncall,
-	     Qhelp__describe_map_tree,
+      calln (Qhelp__describe_map_tree,
 	     start1, Qt, shadow, prefix,
 	     msg, nomenu, Qnil, Qnil, Qnil, buffer);
       shadow = Fcons (start1, shadow);
@@ -2911,8 +2919,7 @@ You type        Translation\n\
   if (!NILP (start1))
     {
       Lisp_Object msg = build_unibyte_string ("\f\nOverriding Bindings");
-      CALLN (Ffuncall,
-	     Qhelp__describe_map_tree,
+      calln (Qhelp__describe_map_tree,
 	     start1, Qt, shadow, prefix,
 	     msg, nomenu, Qnil, Qnil, Qnil, buffer);
       shadow = Fcons (start1, shadow);
@@ -2934,8 +2941,7 @@ You type        Translation\n\
       if (!NILP (start1))
 	{
 	  Lisp_Object msg = build_unibyte_string ("\f\n`keymap' Property Bindings");
-	  CALLN (Ffuncall,
-		 Qhelp__describe_map_tree,
+	  calln (Qhelp__describe_map_tree,
 		 start1, Qt, shadow, prefix,
 		 msg, nomenu, Qnil, Qnil, Qnil, buffer);
 	  shadow = Fcons (start1, shadow);
@@ -2967,8 +2973,7 @@ You type        Translation\n\
 	  *p = 0;
 
 	  Lisp_Object msg = build_unibyte_string (title);
-	  CALLN (Ffuncall,
-		 Qhelp__describe_map_tree,
+	  calln (Qhelp__describe_map_tree,
 		 maps[i], Qt, shadow, prefix,
 		 msg, nomenu, Qnil, Qnil, Qnil, buffer);
 	  shadow = Fcons (maps[i], shadow);
@@ -2985,16 +2990,14 @@ You type        Translation\n\
 		CALLN (Fformat,
 		       build_unibyte_string ("\f\n`%s' Major Mode Bindings"),
 		       XBUFFER (buffer)->major_mode_);
-	      CALLN (Ffuncall,
-		     Qhelp__describe_map_tree,
+	      calln (Qhelp__describe_map_tree,
 		     start1, Qt, shadow, prefix,
 		     msg, nomenu, Qnil, Qnil, Qnil, buffer);
 	    }
 	  else
 	    {
 	      Lisp_Object msg = build_unibyte_string ("\f\n`local-map' Property Bindings");
-	      CALLN (Ffuncall,
-		     Qhelp__describe_map_tree,
+	      calln (Qhelp__describe_map_tree,
 		     start1, Qt, shadow, prefix,
 		     msg, nomenu, Qnil, Qnil, Qnil, buffer);
 	    }
@@ -3004,8 +3007,7 @@ You type        Translation\n\
     }
 
   Lisp_Object msg = build_unibyte_string ("\f\nGlobal Bindings");
-  CALLN (Ffuncall,
-	 Qhelp__describe_map_tree,
+  calln (Qhelp__describe_map_tree,
 	 current_global_map, Qt, shadow, prefix,
 	 msg, nomenu, Qnil, Qt, Qnil, buffer);
 
@@ -3013,8 +3015,7 @@ You type        Translation\n\
   if (!NILP (KVAR (current_kboard, Vlocal_function_key_map)))
     {
       Lisp_Object msg = build_unibyte_string ("\f\nFunction key map translations");
-      CALLN (Ffuncall,
-	     Qhelp__describe_map_tree,
+      calln (Qhelp__describe_map_tree,
 	     KVAR (current_kboard, Vlocal_function_key_map), Qnil, Qnil, prefix,
 	     msg, nomenu, Qt, Qnil, Qnil, buffer);
     }
@@ -3023,8 +3024,7 @@ You type        Translation\n\
   if (!NILP (KVAR (current_kboard, Vinput_decode_map)))
     {
       Lisp_Object msg = build_unibyte_string ("\f\nInput decoding map translations");
-      CALLN (Ffuncall,
-	     Qhelp__describe_map_tree,
+      calln (Qhelp__describe_map_tree,
 	     KVAR (current_kboard, Vinput_decode_map), Qnil, Qnil, prefix,
 	     msg, nomenu, Qt, Qnil, Qnil, buffer);
     }

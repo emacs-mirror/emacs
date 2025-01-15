@@ -390,3 +390,4 @@ exec/*.s.s
 
 # MPS telemetry output
 /src/mpsio.txt
+/compile_commands.events.json

@@ -671,6 +671,7 @@ function, this automatic addition is disabled, and you can also set
 this variable to your own function which adds only some candidates, or
 some other values, to the ``future history''.
 
+@cindex @code{history-length} (symbol property)
   Emacs functions that add a new element to a history list can also
 delete old elements if the list gets too long.  The variable
 @code{history-length} specifies the maximum length for most history

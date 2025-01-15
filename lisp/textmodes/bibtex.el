@@ -283,6 +283,7 @@ If parsing fails, try to set this variable to nil."
 
 (define-widget 'bibtex-field-list 'lazy
   "Format of fields of entries in `bibtex-BibTeX-entry-alist' and friends."
+  :tag "Field list"
   :type '(group (string :tag "Field")
                 (option (choice :tag "Comment" :value nil
                                 (const nil) string))
@@ -293,7 +294,9 @@ If parsing fails, try to set this variable to nil."
 
 (define-widget 'bibtex-entry-alist 'lazy
   "Format of `bibtex-BibTeX-entry-alist' and friends."
+  :tag "Entry alist"
   :type '(repeat
+          :format "\n%v"
           (choice (group :tag "Alias"
                          (string :tag "Entry type")
                          (string :tag "Documentation")
@@ -448,11 +451,11 @@ If parsing fails, try to set this variable to nil."
       ("howpublished" "The way in which the work was published")
       ("month") ("year") ("note"))))
   "Alist of BibTeX entry types and their associated fields.
-Elements are lists of the form (ENTRY DOC REQUIRED CROSSREF OPTIONAL)
+Elements are lists (ENTRY DOC REQUIRED CROSSREF OPTIONAL)
 or (ENTRY DOC REF-ENTRY).
 
 ENTRY is the type of a BibTeX entry.
-DOC is a brief doc string used for documentation.  If nil, ENTRY is used.
+DOC is a brief doc string used for documentation.  If nil use ENTRY.
 REF-ENTRY is another entry type, where ENTRY becomes an alias that inherits
 the definition of REF-ENTRY.
 
@@ -743,7 +746,7 @@ See also `bibtex-BibTeX-aux-entry-alist' which takes precedence."
     ("PhdThesis" "PhD Thesis"
      (("author")
       ("title" "Title of the PhD thesis")
-      ("institution")
+      ("institution" nil nil 6) ("school" nil nil -6)
       ("date" nil nil 1) ("year" nil nil -1))
      nil
      (("subtitle") ("titleaddon") ("language") ("note")
@@ -860,8 +863,11 @@ Use this, e.g., for custom fields, see Sec. 2.2.4 of the biblatex manual."
 
 (define-widget 'bibtex-field-alist 'lazy
   "Format of `bibtex-BibTeX-field-alist' and friends."
-  :type '(repeat (group (string :tag "Field type")
-                        (string :tag "Comment"))))
+  :tag "Field alist"
+  :type '(repeat
+          :format "\n%v"
+          (group (string :tag "Field type")
+                 (string :tag "Comment"))))
 
 (defcustom bibtex-BibTeX-field-alist
   '(("author" "Author1 [and Author2 ...] [and others]")
@@ -875,9 +881,9 @@ Use this, e.g., for custom fields, see Sec. 2.2.4 of the biblatex manual."
     ("crossref" "Reference key of the cross-referenced entry")
     ("key" "Used as label with certain BibTeX styles"))
     "Alist of BibTeX fields.
-Each element is a list of the form (FIELD COMMENT).  COMMENT is
-a comment used with `bibtex-print-help-message' as a default
-if `bibtex-BibTeX-entry-alist' does not define a comment for FIELD."
+Each element is a list (FIELD COMMENT).  COMMENT is a comment used with
+`bibtex-print-help-message' as a default if `bibtex-BibTeX-entry-alist'
+does not define a comment for FIELD."
   :group 'bibtex
   :version "31.1"
   :type 'bibtex-field-alist)
@@ -1089,13 +1095,18 @@ to the directories specified in `bibtex-string-file-path'."
   :group 'bibtex
   :type '(repeat file))
 
-(defcustom bibtex-string-file-path (getenv "BIBINPUTS")
-  "Colon-separated list of paths to search for `bibtex-string-files'.
-Initialized from the BIBINPUTS environment variable."
+(defcustom bibtex-string-file-path
+  (let ((bibinputs (getenv "BIBINPUTS")))
+    (if bibinputs (split-string bibinputs ":+" t)))
+  "List of directories to search for `bibtex-string-files'.
+By default, initialized from the BIBINPUTS environment variable.
+For backward compatibility, considered obsolete, it may also be
+a single string with a colon separated list of directories."
   :group 'bibtex
-  :version "27.1"
-  :type '(choice string
-                 (const :tag "Not Set" nil)))
+  :version "31.1"
+  :type '(choice (repeat directory)
+                 (string :tag "String (obsolete)")
+                 (const :tag "Not set" nil)))
 
 (defcustom bibtex-files nil
   "List of BibTeX files that are searched for entry keys.
@@ -1108,13 +1119,18 @@ See also `bibtex-search-entry-globally'."
   :type '(repeat (choice (const :tag "bibtex-file-path" bibtex-file-path)
                          directory file)))
 
-(defcustom bibtex-file-path (getenv "BIBINPUTS")
-  "Colon separated list of paths to search for `bibtex-files'.
-Initialized from the BIBINPUTS environment variable."
+(defcustom bibtex-file-path
+  (let ((bibinputs (getenv "BIBINPUTS")))
+    (if bibinputs (split-string bibinputs ":+" t)))
+  "List of directories to search for `bibtex-files'.
+By default, initialized from the BIBINPUTS environment variable.
+For backward compatibility, considered obsolete, it may also be
+a single string with a colon separated list of directories."
   :group 'bibtex
-  :version "27.1"
-  :type '(choice string
-                 (const :tag "Not Set" nil)))
+  :version "31.1"
+  :type '(choice (repeat directory)
+                 (string :tag "String (obsolete)")
+                 (const :tag "Not set" nil)))
 
 (defcustom bibtex-search-entry-globally nil
   "If non-nil, interactive calls of `bibtex-search-entry' search globally.
@@ -3189,30 +3205,35 @@ Return alist of strings if parsing was completed, `aborted' otherwise."
 
 (defun bibtex-string-files-init ()
   "Return initialization for `bibtex-strings'.
-Use `bibtex-predefined-strings' and BibTeX files `bibtex-string-files'."
-  (save-match-data
-    (let ((dirlist (split-string (or bibtex-string-file-path default-directory)
-                                 ":+"))
-          (case-fold-search)
-          string-files fullfilename compl bounds found)
-      ;; collect absolute file names of valid string files
-      (dolist (filename bibtex-string-files)
-        (unless (string-match "\\.bib\\'" filename)
-          (setq filename (concat filename ".bib")))
-        ;; test filenames
-        (if (file-name-absolute-p filename)
-            (if (file-readable-p filename)
-                (push filename string-files)
-              (user-error "BibTeX strings file %s not found" filename))
+Use `bibtex-predefined-strings' and BibTeX files `bibtex-string-files'
+with `bibtex-string-file-path'."
+  (let ((dirlist
+         (or (if (stringp bibtex-string-file-path) ; obsolete format
+                 (save-match-data
+                   (split-string bibtex-string-file-path ":+" t))
+               bibtex-string-file-path)
+             (list default-directory)))
+        string-files)
+    ;; collect absolute file names of valid string files
+    (dolist (filename bibtex-string-files)
+      (unless (string= "bib" (file-name-extension filename))
+        (setq filename (file-name-with-extension filename "bib")))
+      ;; test filenames
+      (if (file-name-absolute-p filename)
+          (if (file-readable-p filename)
+              (push filename string-files)
+            (user-error "BibTeX strings file %s not found" filename))
+        (let (found)
           (dolist (dir dirlist)
-            (when (file-readable-p
-                   (setq fullfilename (expand-file-name filename dir)))
-              (push fullfilename string-files)
-              (setq found t)))
+            ;; filename may exist in multiple directories
+            (let ((fullfilename (expand-file-name filename dir)))
+              (when (file-readable-p fullfilename)
+                (push fullfilename string-files)
+                (setq found t))))
           (unless found
-            (user-error "File %s not in paths defined via bibtex-string-file-path"
-                        filename))))
-      ;; parse string files
+            (user-error "File %s not in bibtex-string-file-path" filename)))))
+    ;; parse string files
+    (let (compl bounds)
       (dolist (filename string-files)
         (with-temp-buffer
           (insert-file-contents filename)
@@ -3264,9 +3285,20 @@ already set.  If SELECT is non-nil interactively select a BibTeX buffer.
 When called interactively, FORCE is t, CURRENT is t if current buffer
 visits a file using `bibtex-mode', and SELECT is t if current buffer
 does not use `bibtex-mode'."
-  (interactive (list (eq major-mode 'bibtex-mode) t
+  ;; Interactively, exclude current buffer if it does not visit a file
+  ;; using `bibtex-mode'.  This way, we exclude BibTeX buffers such as
+  ;; `bibtex-search-buffer' that are not visiting a BibTeX file.
+  ;; Also, calling `bibtex-initialize' gives meaningful results for any
+  ;; current buffer.
+  (interactive (list (eq major-mode 'bibtex-mode)
+                     (and buffer-file-name (eq major-mode 'bibtex-mode))
                      (not (eq major-mode 'bibtex-mode))))
-  (let ((file-path (split-string (or bibtex-file-path default-directory) ":+"))
+  (let ((file-path
+         (or (if (stringp bibtex-file-path) ; obsolete format
+                 (save-match-data
+                   (split-string bibtex-file-path ":+" t))
+               bibtex-file-path)
+             (list default-directory)))
         file-list dir-list buffer-list)
     ;; generate list of BibTeX files
     (dolist (file bibtex-files)
@@ -3274,20 +3306,20 @@ does not use `bibtex-mode'."
              (setq dir-list (append dir-list file-path)))
             ((file-accessible-directory-p file)
              (push file dir-list))
-            ((progn (unless (string-match "\\.bib\\'" file)
-                      (setq file (concat file ".bib")))
+            ((progn (unless (string= "bib" (file-name-extension file))
+                      (setq file (file-name-with-extension file "bib")))
                     (file-name-absolute-p file))
              (push file file-list))
             (t
              (let (expanded-file-name found)
                (dolist (dir file-path)
+                 ;; filename may exist in multiple directories
                  (when (file-readable-p
                         (setq expanded-file-name (expand-file-name file dir)))
                    (push expanded-file-name file-list)
                    (setq found t)))
                (unless found
-                 (user-error "File `%s' not in paths defined via bibtex-file-path"
-                             file))))))
+                 (user-error "File `%s' not in bibtex-file-path" file))))))
     (dolist (file file-list)
       (unless (file-readable-p file)
         (user-error "BibTeX file `%s' not found" file)))
@@ -3301,12 +3333,6 @@ does not use `bibtex-mode'."
       (if (file-readable-p file)
         (push (find-file-noselect file) buffer-list)))
     ;; Include current buffer iff we want it.
-    ;; Exclude current buffer if it does not visit a file using `bibtex-mode'.
-    ;; This way we exclude BibTeX buffers such as `bibtex-search-buffer'
-    ;; that are not visiting a BibTeX file.  Also, calling `bibtex-initialize'
-    ;; gives meaningful results for any current buffer.
-    (unless (and current (eq major-mode 'bibtex-mode) buffer-file-name)
-      (setq current nil))
     (cond ((and current (not (memq (current-buffer) buffer-list)))
            (push (current-buffer) buffer-list))
           ((and (not current) (memq (current-buffer) buffer-list))
@@ -3315,6 +3341,8 @@ does not use `bibtex-mode'."
     (let (string-init)
       (dolist (buffer buffer-list)
         (with-current-buffer buffer
+          ;; `bibtex-reference-keys' and `bibtex-strings' are buffer-local
+          ;; lazy completion tables.  So we only initiate them as needed.
           (if (or force (functionp bibtex-reference-keys))
               (bibtex-parse-keys))
           (when (or force (functionp bibtex-strings))

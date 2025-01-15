@@ -511,6 +511,10 @@ previously, Lisp programs can use this function to add values for user
 options not yet defined.
 @end defun
 
+@cindex @code{customized-value} (symbol property)
+@cindex @code{saved-value} (symbol property)
+@cindex @code{standard-value} (symbol property)
+@cindex @code{theme-value} (symbol property)
 Internally, @code{defcustom} uses the symbol property
 @code{standard-value} to record the expression for the standard value,
 @code{saved-value} to record the value saved by the user with the
@@ -1180,7 +1184,10 @@ The symbol's value is used.
 
 @item :tag @var{tag}
 Use @var{tag} (a string) as the tag for the value (or part of the value)
-that corresponds to this type.
+that corresponds to this type.  It's important to provide an informative
+tag for the customization interface, especially if you're using the
+@code{restricted-sexp} type or if you're defining a new type.
+@xref{Defining New Types}.
 
 @item :doc @var{doc}
 @kindex doc@r{, customization keyword}
@@ -1349,10 +1356,15 @@ with this widget.  Here a @code{binary-tree-of-string} is described as
 being either a string, or a cons-cell whose car and cdr are themselves
 both @code{binary-tree-of-string}.  Note the reference to the widget
 type we are currently in the process of defining.  The @code{:tag}
-attribute is a string to name the widget in the user interface, and the
-@code{:offset} argument is there to ensure that child nodes are
-indented four spaces relative to the parent node, making the tree
-structure apparent in the customization buffer.
+is another important keyword argument because we are using the
+@code{lazy} widget for our new widget.  By default, the @code{lazy}
+widget doesn't have a tag, and in its absence the customization buffer
+will show the entire widget's value (that is, the value of the user
+option being customized).  Since that's almost never a good idea, we
+provide a string to name the @code{binary-tree-or-string} widget.  The
+@code{:offset} argument is there to ensure that child nodes are indented
+four spaces relative to the parent node, making the tree structure
+apparent in the customization buffer.
 
 The @code{defcustom} shows how the new widget can be used as an ordinary
 customization type.

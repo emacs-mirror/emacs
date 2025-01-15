@@ -1132,7 +1132,7 @@ leading double colon is not added."
       (equal (treesit-node-type (treesit-node-child node 0))
              "(")))
 
-(defun ruby-ts--sexp-list-p (node)
+(defun ruby-ts--list-p (node)
   ;; Distinguish between the named `unless' node and the
   ;; node with the same value of type.
   (when (treesit-node-check node 'named)
@@ -1213,7 +1213,7 @@ leading double colon is not added."
                                 )
                                eol)
                               #'ruby-ts--sexp-p))
-                 (sexp-list
+                 (list
                   ,(cons (rx
                           bol
                           (or
@@ -1253,7 +1253,7 @@ leading double colon is not added."
                            "array"
                            "hash")
                           eol)
-                         #'ruby-ts--sexp-list-p))
+                         #'ruby-ts--list-p))
                  (text ,(lambda (node)
                           (or (member (treesit-node-type node)
                                       '("comment" "string_content" "heredoc_content"))
