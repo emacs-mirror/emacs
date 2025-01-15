@@ -3307,14 +3307,16 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
   return array;
 }
 
-DEFUN ("clear-string", Fclear_string, Sclear_string,
-       1, 1, 0,
+DEFUN ("clear-string", Fclear_string, Sclear_string, 1, 1, 0,
        doc: /* Clear the contents of STRING.
-This makes STRING unibyte and may change its length.  */)
+This makes STRING unibyte, clears its contents to null characters, and
+removes all text properties.  This may change its length.  */)
   (Lisp_Object string)
 {
   CHECK_STRING (string);
   ptrdiff_t len = SBYTES (string);
+  Fset_text_properties (make_fixnum (0), make_fixnum (SCHARS (string)),
+			Qnil, string);
   if (len != 0 || STRING_MULTIBYTE (string))
     {
       CHECK_IMPURE (string, XSTRING (string));

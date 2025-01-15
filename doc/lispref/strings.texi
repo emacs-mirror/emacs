@@ -478,8 +478,9 @@ a raw byte.
 @code{clear-string}:
 
 @defun clear-string string
-This makes @var{string} a unibyte string and clears its contents to
-null characters.  It may also change @var{string}'s length.
+This makes @var{string} a unibyte string, clears its contents to null
+characters, and removes all text properties.  It may also change
+@var{string}'s length.
 @end defun
 
 @need 2000
