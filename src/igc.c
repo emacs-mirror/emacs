@@ -786,7 +786,31 @@ void gc_init_header (union gc_header *header, enum igc_obj_type type)
       }
     case IGC_OBJ_DUMPED_CHARSET_TABLE:
       break;
-    default:
+    case IGC_OBJ_INVALID:
+    case IGC_OBJ_PAD:
+    case IGC_OBJ_FWD:
+    case IGC_OBJ_INTERVAL:
+    case IGC_OBJ_STRING_DATA:
+    case IGC_OBJ_MARKER_VECTOR:
+    case IGC_OBJ_ITREE_TREE:
+    case IGC_OBJ_ITREE_NODE:
+    case IGC_OBJ_IMAGE:
+    case IGC_OBJ_IMAGE_CACHE:
+    case IGC_OBJ_FACE:
+    case IGC_OBJ_FACE_CACHE:
+    case IGC_OBJ_BLV:
+    case IGC_OBJ_HANDLER:
+    case IGC_OBJ_BYTES:
+    case IGC_OBJ_BUILTIN_SYMBOL:
+    case IGC_OBJ_BUILTIN_THREAD:
+    case IGC_OBJ_BUILTIN_SUBR:
+    case IGC_OBJ_DUMPED_CODE_SPACE_MASKS:
+    case IGC_OBJ_DUMPED_BUFFER_TEXT:
+    case IGC_OBJ_DUMPED_BIGNUM_DATA:
+    case IGC_OBJ_DUMPED_BYTES:
+    case IGC_OBJ_WEAK_HASH_TABLE_WEAK_PART:
+    case IGC_OBJ_WEAK_HASH_TABLE_STRONG_PART:
+    case IGC_OBJ_NUM_TYPES:
       emacs_abort ();
     }
 }
