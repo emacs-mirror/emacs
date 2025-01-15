@@ -1539,22 +1539,35 @@ the specific error.  You can use @code{treesit-query-validate} to
 validate and debug the query.
 @end defun
 
-@defun treesit-query-language query
-This function returns the language of @var{query}.
-@end defun
+@findex treesit-query-language
+@findex treesit-query-expand
+@findex treesit-pattern-expand
+@findex treesit-query-valid-p
+There are some additional functions for queries:
+@code{treesit-query-language} returns the language of a query;
+@code{treesit-query-valid-p} checks whether a query is valid;
+@code{treesit-query-expand} converts a s-expression query into the
+string format; and @code{treesit-pattern-expand} converts a pattern.
 
-@defun treesit-query-expand query
-This function converts the s-expression @var{query} into the string
-format.
-@end defun
+@findex treesit-query-first-valid
+Tree-sitter grammars change overtime. To support multiple possible
+versions of a grammar, a Lisp program can use
+@code{treesit-query-first-valid} to pick the right query to use.  For
+example, if a grammar has a @code{(defun)} node in one version, and
+later renamed it to @code{(function_definition)}, a Lisp program can use
 
-@defun treesit-pattern-expand pattern
-This function converts the s-expression @var{pattern} into the string
-format.
-@end defun
+@example
+@group
+(treesit-query-first-valid 'lang
+  '((defun) @defun)
+  '((function_definition) @defun))
+@end group
+@end example
 
-For more details, read the tree-sitter project's documentation about
-pattern-matching, which can be found at
+to support both versions of the grammar.
+
+For more details, consider reading the tree-sitter project's
+documentation about pattern-matching. The documentation can be found at
 @uref{https://tree-sitter.github.io/tree-sitter/using-parsers#pattern-matching-with-queries}.
 
 @node User-defined Things

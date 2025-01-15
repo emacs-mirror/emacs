@@ -505,6 +505,23 @@ that starts with an underscore are ignored."
              collect (cons (+ (treesit-node-start node) offset-left)
                            (+ (treesit-node-end node) offset-right)))))
 
+(defun treesit-query-valid-p (language query)
+  "Return non-nil if QUERY is valid in LANGUAGE, nil otherwise."
+  (ignore-errors
+    (treesit-query-compile language query t)
+    t))
+
+(defun treesit-query-first-valid (language &rest queries)
+  "Return the first query in QUERIES that is valid in LANGUAGE.
+If none are valid, return nil."
+  (declare (indent 1))
+  (let (query)
+    (catch 'valid
+      (while (setq query (pop queries))
+        (ignore-errors
+          (treesit-query-compile language query t)
+          (throw 'valid query))))))
+
 ;;; Range API supplement
 
 (defvar-local treesit-range-settings nil
@@ -4636,6 +4653,8 @@ If anything goes wrong, this function signals an `treesit-error'."
   (treesit-query-language
    :no-eval (treesit-query-language compiled-query)
    :eg-result c)
+  (treesit-query-valid-p)
+  (treesit-query-first-valid)
   (treesit-query-expand
    :eval (treesit-query-expand '((identifier) @id "return" @ret)))
   (treesit-pattern-expand
