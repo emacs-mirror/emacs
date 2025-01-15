@@ -14,6 +14,7 @@
  ("26.1" fun and-let*)
  ("26.1" fun if-let*)
  ("24.4" fun set-transient-map)
+ ("22.1" fun clear-string)
  ("22.1" fun version=)
  ("22.1" fun version<)
  ("22.1" fun version<=)
