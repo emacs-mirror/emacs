@@ -383,6 +383,9 @@ Emacs 25.1), and gnudoit (obsolete since Emacs 25.1).
 *** 'cl-labels' now also accepts '(FUNC EXP)' bindings, like 'cl-flet'.
 Such bindings make it possible to compute which function to bind to FUNC.
 
+---
+*** 'cl-block' names are now lexically scoped, as documented.
+
 ** Whitespace
 
 ---
