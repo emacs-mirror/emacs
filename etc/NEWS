@@ -334,6 +334,11 @@ modal editing packages.
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
 ---
+** ASM mode
+*** 'asm-mode-set-comment-hook' is obsolete.
+You can now set `asm-comment-char' from 'asm-mode-hook' instead.
+
+---
 ** Ibuffer
 *** New column 'recency' in Ibuffer display.
 The variable 'ibuffer-formats' configures the Ibuffer formats.  Add
