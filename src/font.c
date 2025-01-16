@@ -5995,7 +5995,7 @@ This variable cannot be set; trying to do so will signal an error.  */);
 
   /* Because the above 3 variables are slots in the vector we create
      below, and because that vector is staticpro'd, we don't explicitly
-     staticpro the variables, to avoid wasting slots in ststicvec[].  */
+     staticpro the variables, to avoid wasting slots in staticvec[].  */
   staticpro (&font_style_table);
   font_style_table = CALLN (Fvector, Vfont_weight_table, Vfont_slant_table,
 			    Vfont_width_table);
