@@ -1175,11 +1175,14 @@ It offers a more concise way to create a completion table with metadata.
 ** 'all-completions' and 'unintern' no longer support old calling conventions.
 
 +++
-** New symbol property 'definition-type' used by 'find-function' and friends.
+** New symbol property 'find-function-type-alist' used by 'find-function' etc.
 Macros that define an object in a way that makes the object's name and
-the macro call site defining the object hard to associate can put the
-property 'definition-type' on the object's name to provide instructions
-for finding the definition.
+the macro call site defining the object hard to associate can add an
+entry to the property 'find-function-type-alist' on the object's name to
+provide instructions for finding the definition.
+
+New convenience function 'find-function-update-type-alist' offers a
+concise way to update a symbol's 'find-function-type-alist' property.
 
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems

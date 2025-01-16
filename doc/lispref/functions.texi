@@ -754,7 +754,7 @@ to find the source code because generating a function dynamically
 usually looks very different from the usual static calls to
 @code{defun}.  You can make the job of finding the code that
 generates such functions easier by using the @code{definition-name}
-or @code{definition-type} property, @pxref{Standard Properties}.
+or @code{find-function-type-alist} property, @pxref{Standard Properties}.
 
 @cindex override existing functions
 @cindex redefine existing functions
