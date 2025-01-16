@@ -1,5 +1,5 @@
 # assert_h.m4
-# serial 4
+# serial 5
 dnl Copyright (C) 2011-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -64,11 +64,13 @@ AC_DEFUN([gl_ASSERT_H],
 [#if (!(defined __clang__ \
        ? (defined __cplusplus \
           ? __cplusplus >= 201703L \
-          : __STDC_VERSION__ >= 202000L && __clang_major__ >= 16) \
+          : __STDC_VERSION__ >= 202000L && __clang_major__ >= 16 \
+            && !defined __sun) \
        : (defined __GNUC__ \
           ? (defined __cplusplus \
              ? __cplusplus >= 201103L && __GNUG__ >= 6 \
-             : __STDC_VERSION__ >= 202000L && __GNUC__ >= 13) \
+             : __STDC_VERSION__ >= 202000L && __GNUC__ >= 13 \
+               && !defined __sun) \
           : defined HAVE_C_STATIC_ASSERT)) \
      && !defined assert \
      && (!defined __cplusplus \

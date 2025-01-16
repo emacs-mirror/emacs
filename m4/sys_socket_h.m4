@@ -1,5 +1,5 @@
 # sys_socket_h.m4
-# serial 29
+# serial 31
 dnl Copyright (C) 2005-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -53,23 +53,9 @@ AC_DEFUN_ONCE([gl_SYS_SOCKET_H],
   fi
   # We need to check for ws2tcpip.h now.
   gl_PREREQ_SYS_H_SOCKET
-  AC_CHECK_TYPES([struct sockaddr_storage, sa_family_t],,,[
-  /* sys/types.h is not needed according to POSIX, but the
-     sys/socket.h in i386-unknown-freebsd4.10 and
-     powerpc-apple-darwin5.5 required it. */
-#include <sys/types.h>
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
-#ifdef HAVE_WS2TCPIP_H
-#include <ws2tcpip.h>
-#endif
-])
+  gl_PREREQ_SYS_SA_FAMILY
   if test $ac_cv_type_struct_sockaddr_storage = no; then
     HAVE_STRUCT_SOCKADDR_STORAGE=0
-  fi
-  if test $ac_cv_type_sa_family_t = no; then
-    HAVE_SA_FAMILY_T=0
   fi
   if test $ac_cv_type_struct_sockaddr_storage != no; then
     AC_CHECK_MEMBERS([struct sockaddr_storage.ss_family],
@@ -159,6 +145,32 @@ AC_DEFUN([gl_PREREQ_SYS_H_WS2TCPIP],
   AC_SUBST([HAVE_WS2TCPIP_H])
 ])
 
+# Common prerequisites of the <sys/socket.h> replacement and of the <sys/un.h>
+# replacement.
+# Sets and substitutes HAVE_SA_FAMILY_T.
+AC_DEFUN([gl_PREREQ_SYS_SA_FAMILY],
+[
+  AC_REQUIRE([gl_CHECK_SOCKET_HEADERS])
+  AC_CHECK_TYPES([struct sockaddr_storage, sa_family_t],,,[
+  /* sys/types.h is not needed according to POSIX, but the
+     sys/socket.h in i386-unknown-freebsd4.10 and
+     powerpc-apple-darwin5.5 required it. */
+#include <sys/types.h>
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_WS2TCPIP_H
+#include <ws2tcpip.h>
+#endif
+])
+  if test $ac_cv_type_sa_family_t = yes; then
+    HAVE_SA_FAMILY_T=1
+  else
+    HAVE_SA_FAMILY_T=0
+  fi
+  AC_SUBST([HAVE_SA_FAMILY_T])
+])
+
 # gl_SYS_SOCKET_MODULE_INDICATOR([modulename])
 # sets the shell variable that indicates the presence of the given module
 # to a C preprocessor expression that will evaluate to 1.
@@ -203,6 +215,5 @@ AC_DEFUN([gl_SYS_SOCKET_H_DEFAULTS],
   HAVE_STRUCT_SOCKADDR_STORAGE=1; AC_SUBST([HAVE_STRUCT_SOCKADDR_STORAGE])
   HAVE_STRUCT_SOCKADDR_STORAGE_SS_FAMILY=1;
                         AC_SUBST([HAVE_STRUCT_SOCKADDR_STORAGE_SS_FAMILY])
-  HAVE_SA_FAMILY_T=1;   AC_SUBST([HAVE_SA_FAMILY_T])
   HAVE_ACCEPT4=1;       AC_SUBST([HAVE_ACCEPT4])
 ])

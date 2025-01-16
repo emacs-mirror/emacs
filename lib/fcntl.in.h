@@ -369,8 +369,12 @@ _GL_WARN_ON_USE (openat, "openat is not portable - "
 # define O_RSYNC 0
 #endif
 
+#if defined O_SEARCH && defined O_PATH && O_SEARCH == O_PATH
+# undef O_SEARCH /* musl mistakenly #defines O_SEARCH to O_PATH.  */
+#endif
+
 #ifndef O_SEARCH
-# define O_SEARCH O_RDONLY /* This is often close enough in older systems.  */
+# define O_SEARCH O_RDONLY /* Often close enough in non-POSIX systems.  */
 #endif
 
 #ifndef O_SYNC

@@ -19,6 +19,9 @@
 
 #ifndef _LIBC
 # include <time.h>
+# define __libc_lock_lock(lock) ((void) 0)
+# define __libc_lock_unlock(lock) ((void) 0)
+# define __tzset_unlocked() tzset ()
 #endif
 
 /* mktime_offset_t is a signed type wide enough to hold a UTC offset
@@ -73,6 +76,8 @@ typedef int mktime_offset_t;
 /* Subroutine of mktime.  Return the time_t representation of TP and
    normalize TP, given that a struct tm * maps to a time_t.  If
    LOCAL, the mapping is performed by localtime_r, otherwise by gmtime_r.
-   Record next guess for localtime-gmtime offset in *OFFSET.  */
+   Record next guess for localtime-gmtime offset in *OFFSET.
+
+   If _LIBC, the caller must lock __tzset_lock.  */
 extern __time64_t __mktime_internal (struct tm *tp, bool local,
                                      mktime_offset_t *offset) attribute_hidden;
