@@ -2315,7 +2315,7 @@ fix_weak_hash_table_strong_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Strong
     if (t->weak && t->weak->strong == t)
       {
 	igc_assert (FIXNUMP (t->table_size));
-	ssize_t limit;
+	ssize_t limit UNINIT;
 	switch (t->weakness)
 	  {
 	  case Weak_Key:
@@ -2355,7 +2355,7 @@ fix_weak_hash_table_weak_part (mps_ss_t ss, struct Lisp_Weak_Hash_Table_Weak_Par
     if (t && t->weak == w)
       {
 	igc_assert (FIXNUMP (t->table_size));
-	ssize_t limit;
+	ssize_t limit UNINIT;
 	switch (t->weakness)
 	  {
 	  case Weak_Key:
@@ -4319,7 +4319,7 @@ struct Lisp_Weak_Hash_Table_Strong_Part *
 igc_alloc_weak_hash_table_strong_part (hash_table_weakness_t weak,
 				       size_t size, size_t index_bits)
 {
-  size_t total_size;
+  size_t total_size UNINIT;
   switch (weak)
     {
     case Weak_Key:
@@ -4344,7 +4344,7 @@ struct Lisp_Weak_Hash_Table_Weak_Part *
 igc_alloc_weak_hash_table_weak_part (hash_table_weakness_t weak,
 				     size_t size, size_t index_bits)
 {
-  size_t total_size;
+  size_t total_size UNINIT;
   switch (weak)
     {
     case Weak_Key:
