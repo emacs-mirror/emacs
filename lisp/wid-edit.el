@@ -1730,6 +1730,49 @@ The value of the :type attribute should be an unconverted widget type."
           (call-interactively
            (widget-get widget :complete-function))))))))
 
+(defun widget--prepare-markers-for-inside-insertion (widget)
+  "Prepare the WIDGET's parent for insertions inside it, if necessary.
+
+Usually, the :from marker has type t, while the :to marker has type nil.
+When recreating a child or a button inside a composite widget right at these
+markers, they have to be changed to nil and t respectively,
+so that the WIDGET's parent (if any), properly contains all of its
+recreated children and buttons.
+
+Prepares also the markers of the WIDGET's grandparent, if necessary.
+
+Returns a list of the markers that had its type changed, for later resetting."
+  (let* ((parent (widget-get widget :parent))
+         (parent-from-marker (and parent (widget-get parent :from)))
+         (parent-to-marker (and parent (widget-get parent :to)))
+         (lst nil)
+         (pos (point)))
+    (when (and parent-from-marker
+               (eq pos (marker-position parent-from-marker))
+               (marker-insertion-type parent-from-marker))
+      (set-marker-insertion-type parent-from-marker nil)
+      (push (cons parent-from-marker t) lst))
+    (when (and parent-to-marker
+               (eq pos (marker-position parent-to-marker))
+               (not (marker-insertion-type parent-to-marker)))
+      (set-marker-insertion-type parent-to-marker t)
+      (push (cons parent-to-marker nil) lst))
+    (when lst
+      (nconc lst (widget--prepare-markers-for-inside-insertion parent)))))
+
+(defun widget--revert-markers-for-outside-insertion (markers)
+  "Revert MARKERS for insertions that do not belong to a widget.
+
+MARKERS is a list of the form (MARKER . NEW-TYPE), as returned by
+`widget--prepare-markers-for-inside-insertion' and this function sets MARKER
+to NEW-TYPE.
+
+Coupled with `widget--prepare-parent-for-inside-insertion', this has the effect
+of setting markers back to the type needed for insertions that do not belong
+to a given widget."
+  (dolist (marker markers)
+    (set-marker-insertion-type (car marker) (cdr marker))))
+
 (defun widget-default-create (widget)
   "Create WIDGET at point in the current buffer."
   (widget-specify-insert
@@ -1737,7 +1780,8 @@ The value of the :type attribute should be an unconverted widget type."
 	 button-begin button-end
 	 sample-begin sample-end
 	 doc-begin doc-end
-	 value-pos)
+         value-pos
+         (markers (widget--prepare-markers-for-inside-insertion widget)))
      (insert (widget-get widget :format))
      (goto-char from)
      ;; Parse escapes in format.
@@ -1797,7 +1841,8 @@ The value of the :type attribute should be an unconverted widget type."
 	  (widget-specify-doc widget doc-begin doc-end))
      (when value-pos
        (goto-char value-pos)
-       (widget-apply widget :value-create)))
+       (widget-apply widget :value-create))
+     (widget--revert-markers-for-outside-insertion markers))
    (let ((from (point-min-marker))
 	 (to (point-max-marker)))
      (set-marker-insertion-type from t)
