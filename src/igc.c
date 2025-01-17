@@ -314,14 +314,6 @@ is_in_telemetry_filter (enum igc_event_category c)
   return (mps_telemetry_get () & (1 << c)) != 0;
 }
 
-#if 0	/* unused */
-#ifdef __cplusplus
-#define igc_const_cast(type, expr) const_cast<type>(expr))
-#else
-#define igc_const_cast(type, expr) ((type) (expr))
-#endif
-#endif	/* unused */
-
 enum
 {
   IGC_TAG_MASK = (~VALMASK),
