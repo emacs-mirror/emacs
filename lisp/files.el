@@ -4490,15 +4490,15 @@ It is dangerous if either of these conditions are met:
                      (substitute-command-keys instead)
                    (format-message "use `%s' instead" instead)))))))
 
-(defvar hack-local-variables--inhibit nil
-  "List of file/dir local variables to ignore.")
+(defvar hack-local-variables--inhibit-eval nil
+  "List of `eval' forms to ignore in file/dir local variables.")
 
 (defun hack-one-local-variable (var val)
   "Set local variable VAR with value VAL.
 If VAR is `mode', call `VAL-mode' as a function unless it's
 already the major mode."
   (pcase var
-    ((guard (memq var hack-local-variables--inhibit)) nil)
+    ((and 'eval (guard (member val hack-local-variables--inhibit-eval))) nil)
     ('mode
      (let ((mode (intern (concat (downcase (symbol-name val))
                                  "-mode"))))
@@ -4506,8 +4506,8 @@ already the major mode."
     ('eval
      (pcase val
        (`(add-hook ',hook . ,_) (hack-one-local-variable--obsolete hook)))
-     (let ((hack-local-variables--inhibit ;; FIXME: Should be buffer-local!
-            (cons 'eval hack-local-variables--inhibit)))
+     (let ((hack-local-variables--inhibit-eval ;; FIXME: Should be buffer-local!
+            (cons val hack-local-variables--inhibit-eval)))
        (save-excursion (eval val t))))
     (_
      (hack-one-local-variable--obsolete var)
