@@ -151,7 +151,7 @@ If WARN-UNENCRYPTED, query the user if the connection is unencrypted."
     ;; Deprecated by NIST from 2016/2023 (see also CVE-2016-2183).
     (3des-cipher            medium)
     ;; Towards TLS 1.3
-    (dhe-kx                 high)
+    (dhe-kx                 medium)
     (rsa-kx                 high)
     (cbc-cipher             high))
   "Alist of TLS connection checks to perform.
@@ -400,13 +400,17 @@ Diffie-Hellman Fails in Practice\", `https://weakdh.org/'
 (defun nsm-protocol-check--dhe-kx (_host _port status &optional _settings)
   "Check for existence of DH key exchange based on integer factorization.
 
-In the years since the discovery of Logjam, it was discovered
-that there were rampant use of small subgroup prime or composite
-number for DHE by many servers, and thus allowed themselves to be
-vulnerable to backdoors[1].  Given the difficulty in validating
-Diffie-Hellman parameters, major browser vendors had started to
-remove DHE since 2016[2].  Emacs stops short of banning DHE and
-terminating connection, but prompts the user instead.
+In the years since the discovery of Logjam, it was discovered that there
+were rampant use of small subgroup prime or composite number for DHE by
+many servers, and thus allowed themselves to be vulnerable to
+backdoors[1].  Given the difficulty in validating Diffie-Hellman
+parameters, major browser vendors had started to remove DHE since
+2016[2].  In 2020, the so-called Racoon Attack was discovered, a
+server-side vulnerability that exploits a side-channel to get the shared
+secret key[3].
+
+Emacs stops short of banning DHE and terminating the connection, but
+prompts the user instead.
 
 References:
 
@@ -414,7 +418,11 @@ References:
 Diffie-Hellman Backdoors in TLS.\",
 `https://eprint.iacr.org/2016/999.pdf'
 [2]: Chrome Platform Status (2017).  \"Remove DHE-based ciphers\",
-`https://www.chromestatus.com/feature/5128908798164992'"
+`https://www.chromestatus.com/feature/5128908798164992'
+[3]: Merget, Brinkmann, Aviram, Somorovsky, Mittmann, and
+Schwenk (2020).  \"Raccoon Attack: Finding and Exploiting
+Most-Significant-Bit-Oracles in TLS-DH(E)\"
+`https://raccoon-attack.com/RacoonAttack.pdf'"
   (let ((kx (plist-get status :key-exchange)))
     (when (string-match "^\\bDHE\\b" kx)
       (format-message
