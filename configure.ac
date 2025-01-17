@@ -5621,6 +5621,7 @@ fi
 AC_SUBST([LIBGPM])
 
 ### Use -lmps if available, unless '--with-mps=no'.
+AC_SUBST([HAVE_MPS])
 HAVE_MPS=no
 LIBMPS=
 IGCOBJ=

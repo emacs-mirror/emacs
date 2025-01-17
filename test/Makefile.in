@@ -48,6 +48,7 @@ SO = @MODULES_SUFFIX@
 SEPCHAR = @SEPCHAR@
 
 HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
+HAVE_MPS = @HAVE_MPS@
 
 -include ${top_builddir}/src/verbose.mk
 
@@ -130,20 +131,34 @@ all: check
 
 SYSTEM_TYPE = @SYSTEM_TYPE@
 TEST_NATIVE_COMP = $(HAVE_NATIVE_COMP)
+TEST_IGC = $(HAVE_MPS)
 # Avoid fork failures on Cygwin.  See bug#62450 and etc/PROBLEMS
 # ("Fork failures in a build with native compilation").
 ifeq ($(SYSTEM_TYPE),cygwin)
 TEST_NATIVE_COMP = no
 endif
+
 ifeq ($(TEST_NATIVE_COMP),yes)
-SELECTOR_DEFAULT = (not (or (tag :expensive-test) (tag :unstable)))
-SELECTOR_EXPENSIVE = (not (tag :unstable))
-SELECTOR_ALL = t
+SELECTOR_DEFAULT := (not (or (tag :expensive-test) (tag :unstable)))
+SELECTOR_EXPENSIVE := (not (tag :unstable))
+SELECTOR_ALL := t
 else
-SELECTOR_DEFAULT = (not (or (tag :expensive-test) (tag :unstable) (tag :nativecomp)))
-SELECTOR_EXPENSIVE = (not (or (tag :unstable) (tag :nativecomp)))
-SELECTOR_ALL = (not (tag :nativecomp))
+SELECTOR_DEFAULT := (not (or (tag :expensive-test) (tag :unstable) (tag :nativecomp)))
+SELECTOR_EXPENSIVE := (not (or (tag :unstable) (tag :nativecomp)))
+SELECTOR_ALL := (not (tag :nativecomp))
 endif
+
+# Add systems that don't support igc as needed.
+#ifeq ($(SYSTEM_TYPE),cygwin)
+#TEST_IGC = no
+#endif
+
+ifeq ($(TEST_IGC),no)
+SELECTOR_DEFAULT := (and (not (tag :igc)) $(SELECTOR_DEFAULT))
+SELECTOR_EXPENSIVE := (and (not (tag :igc)) $(SELECTOR_EXPENSIVE))
+SELECTOR_ALL := (and (not (tag :igc)) $(SELECTOR_ALL))
+endif
+
 ifdef SELECTOR
 SELECTOR_ACTUAL=$(SELECTOR)
 else ifndef MAKECMDGOALS
