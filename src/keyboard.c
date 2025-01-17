@@ -12824,6 +12824,7 @@ init_keyboard (void)
       {{{ GC_HEADER_INIT PSEUDOVECTOR_FLAG | (PVEC_SUBR << PSEUDOVECTOR_AREA_BITS) },
 	{ .a4 = watch_debug_on_event },
 	4, 4, "watch_debug_on_event", {0}, 0, 0 }};
+    gc_init_header (&Swatch_debug_on_event.s.header.gc_header, IGC_OBJ_VECTOR);
     XSETSUBR (watcher, &Swatch_debug_on_event);
     Fadd_variable_watcher (Qdebug_on_event, watcher);
     watch_debug_on_event (Qdebug_on_event, Vdebug_on_event, Qnil, Qnil);
