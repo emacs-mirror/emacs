@@ -343,6 +343,9 @@ Here are some example of valid key sequences.
   \"C-c o\"       (a two-key sequence: the key `c' with the control modifier
                  followed by the key `o')
   \"H-<left>\"    (the cursor control key named \"left\" with the hyper modifier)
+  \"RET\"         (the \"return\" key, also available as \"C-m\")
+  \"<return>\"    (the \"<return>\" function key, which can be bound separately
+                 from \"RET\" on some systems)
   \"M-RET\"       (the \"return\" key with a meta modifier)
   \"C-M-<space>\" (the \"space\" key with both the control and meta modifiers)
 
