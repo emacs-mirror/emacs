@@ -193,3 +193,16 @@ WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-native-compilation
 RUN make -j `nproc` bootstrap
+
+FROM emacs-base as emacs-igc
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
+      libmps-dev libmps3 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY . /checkout
+WORKDIR /checkout
+RUN ./autogen.sh autoconf
+RUN ./configure --with-mps
+RUN make -j `nproc` bootstrap

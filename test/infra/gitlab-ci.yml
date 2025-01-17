@@ -235,7 +235,7 @@ build-image-inotify:
   stage: build-images
   extends: [.job-template, .build-template]
   variables:
-    target: emacs-inotify
+    target: emacs-igc
 
 include: '/test/infra/test-jobs.yml'
 
@@ -251,7 +251,7 @@ test-all-inotify:
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
   variables:
-    target: emacs-inotify
+    target: emacs-igc
     make_params: check-expensive
 
 build-image-filenotify-gio:
