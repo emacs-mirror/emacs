@@ -8713,10 +8713,10 @@ parse_menu_item (Lisp_Object item, int inmenubar)
 
   /* Create item_properties vector if necessary.  */
   if (NILP (item_properties))
-    item_properties = make_nil_vector (ITEM_PROPERTY_ENABLE + 1);
+    item_properties = make_nil_vector (ITEM_PROPERTY_MAX + 1);
 
   /* Initialize optional entries.  */
-  for (i = ITEM_PROPERTY_DEF; i < ITEM_PROPERTY_ENABLE; i++)
+  for (i = ITEM_PROPERTY_DEF; i < ITEM_PROPERTY_MAX; i++)
     ASET (item_properties, i, Qnil);
   ASET (item_properties, ITEM_PROPERTY_ENABLE, Qt);
 
