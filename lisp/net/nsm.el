@@ -700,9 +700,10 @@ Security (DTLS)\", `https://tools.ietf.org/html/rfc7525'"
 (defun nsm-protocol-check--version (_host _port status &optional _settings)
   "Check for SSL/TLS protocol version.
 
-This function guards against the usage of SSL3.0, which has been
-deprecated by RFC7568[1], and TLS 1.0, which has been deprecated
-by PCI DSS[2].
+This function guards against the usage of SSL3.0, TLS 1.0, and TLS 1.1.
+- SSL 3.0 has been deprecated by RFC7568[1].
+- TLS 1.0 has been deprecated by PCI DSS[2], and later by RFC8996[3].
+- TLS 1.1 has been deprecated by RFC8996[3].
 
 References:
 
@@ -710,12 +711,15 @@ References:
 Sockets Layer Version 3.0\", `https://tools.ietf.org/html/rfc7568'
 [2]: PCI Security Standards Council (2016).  \"Migrating from SSL and
 Early TLS\"
-`https://www.pcisecuritystandards.org/documents/Migrating-from-SSL-Early-TLS-Info-Supp-v1_1.pdf'"
+`https://docs-prv.pcisecuritystandards.org/Guidance%20Document/SSL%20TLS/Migrating_from_SSL_and_Early_TLS_-v12.pdf'
+[3]: Moriarty, Farrell (2021).  \"Deprecating TLS 1.0 and TLS 1.1\"
+`https://tools.ietf.org/html/rfc7568'
+"
   (let ((protocol (plist-get status :protocol)))
     (and protocol
          (or (string-match "SSL" protocol)
              (and (string-match "TLS1.\\([0-9]+\\)" protocol)
-                  (< (string-to-number (match-string 1 protocol)) 1)))
+                  (< (string-to-number (match-string 1 protocol)) 2)))
          (format-message
           "%s protocol is deprecated by standard bodies"
           protocol))))

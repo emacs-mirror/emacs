@@ -90,7 +90,12 @@ If you have been using these variables in Lisp code (for example, in
 font-lock rules), simply quote the symbol, to use the face directly
 instead of its now-obsolete variable.
 
-** Network Security Manager now warns about DHE key exchange by default.
+** Network Security Manager (NSM) is now more strict.
+
+*** NSM warns about TLS 1.1 by default.
+It has been deprecated by RFC8996, published in 2021.
+
+*** NSM warns about DHE key exchange by default.
 Emacs now warns about ephemeral Diffie-Hellman key exchanges also when
 'network-security-level' is customized to its default 'medium' value.
 
