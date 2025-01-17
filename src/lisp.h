@@ -6390,11 +6390,6 @@ maybe_gc (void)
     maybe_garbage_collect ();
 }
 
-/* Simplified version of 'define-error' that works with pure
-   objects.  */
-void
-define_error (Lisp_Object name, const char *message, Lisp_Object parent);
-
 # ifdef HAVE_MODULES
 
 /* An `emacs_value' is just a pointer to a structure holding an
