@@ -101,14 +101,15 @@ enum {
 
 /* AI indicates XATTR may be present but wasn't accessible.
    This is the case when [l]listxattr failed with E2BIG,
-   or failed with EACCES which in Linux kernel 6.12 NFS can mean merely
-   that we lack read access.
+   or is not supported (!acl_errno_valid()), or failed with EACCES
+   which in Linux kernel 6.12 NFS can mean merely that we lack read access.
 */
 
 static bool
 aclinfo_may_indicate_xattr (struct aclinfo const *ai)
 {
-  return ai->size < 0 && (ai->u.err == EACCES || ai->u.err == E2BIG);
+  return ai->size < 0 && (!acl_errno_valid (ai->u.err)
+                          || ai->u.err == EACCES || ai->u.err == E2BIG);
 }
 
 /* Does NAME have XATTR?  */
