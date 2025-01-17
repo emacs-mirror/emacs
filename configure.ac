@@ -2004,6 +2004,8 @@ ARCH_INDEPENDENT_CONFIG_FILES([src/verbose.mk])
 
 dnl Some other nice autoconf tests.
 AC_PROG_INSTALL
+dnl use "gawk" where possible
+AC_PROG_AWK
 dnl These are commented out, since gl_EARLY and/or Autoconf already does them.
 dnl AC_PROG_MKDIR_P
 dnl if test "x$RANLIB" = x; then

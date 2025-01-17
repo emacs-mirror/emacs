@@ -79,7 +79,17 @@ dirent_namelen (struct dirent *dp)
 }
 
 #ifndef HAVE_STRUCT_DIRENT_D_TYPE
-enum { DT_UNKNOWN, DT_DIR, DT_LNK };
+#if !defined (DT_UNKNOWN) && !defined (DT_DIR) && !defined (DT_LNK)
+enum {
+  DT_UNKNOWN,
+  DT_DIR,
+  DT_LNK,
+};
+#elif defined (DT_UNKNOWN) && defined (DT_DIR) && defined (DT_LNK)
+/* Nothing to do here, all three are defined as macros.  */
+#elif defined (DT_UNKNOWN) || defined (DT_DIR) || defined (DT_LNK)
+#error "Cannot determine DT_UNKNOWN, DT_DIR, DT_LNK"
+#endif
 #endif
 
 /* Return the file type of DP.  */

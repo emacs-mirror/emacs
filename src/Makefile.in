@@ -60,6 +60,7 @@ LDFLAGS = @LDFLAGS@
 EXEEXT = @EXEEXT@
 version = @version@
 MKDIR_P = @MKDIR_P@
+AWK = @AWK@
 # Don't use LIBS.  configure puts stuff in it that either shouldn't be
 # linked with Emacs or is duplicated by the other stuff below.
 # LIBS = @LIBS@
@@ -543,7 +544,7 @@ pdumper.o: dmpstruct.h
 endif
 dmpstruct.h: $(srcdir)/dmpstruct.awk
 dmpstruct.h: $(libsrc)/make-fingerprint$(EXEEXT) $(dmpstruct_headers)
-	$(AM_V_GEN)POSIXLY_CORRECT=1 awk -f $(srcdir)/dmpstruct.awk \
+	$(AM_V_GEN)POSIXLY_CORRECT=1 $(AWK) -f $(srcdir)/dmpstruct.awk \
 		$(dmpstruct_headers) > $@
 
 AUTO_DEPEND = @AUTO_DEPEND@
