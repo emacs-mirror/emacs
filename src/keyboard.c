@@ -8305,15 +8305,40 @@ add_user_signal (int sig, const char *name)
   sigaction (sig, &action, 0);
 }
 
+#ifdef HAVE_MPS
+/* This is a C string, not a Lisp_Object, so it never ends up behind a
+   memory barrier (bug#75632).  */
+static char * volatile special_event_name;
+
+static Lisp_Object
+watch_debug_on_event (Lisp_Object symbol, Lisp_Object newval,
+		      Lisp_Object operation, Lisp_Object where)
+{
+  char *old_special_event_name = special_event_name;
+  if (SYMBOLP (newval))
+    {
+      char *new_special_event_name = xstrdup (SSDATA (SYMBOL_NAME (newval)));
+      special_event_name = new_special_event_name;
+    }
+  else
+    special_event_name = NULL;
+  xfree (old_special_event_name);
+
+  return Qnil;
+}
+#endif
+
 static void
 handle_user_signal (int sig)
 {
   struct user_signal_info *p;
+
+#ifndef HAVE_MPS
   const char *special_event_name = NULL;
 
   if (SYMBOLP (Vdebug_on_event))
     special_event_name = SSDATA (SYMBOL_NAME (Vdebug_on_event));
-
+#endif
   for (p = user_signals; p; p = p->next)
     if (p->sig == sig)
       {
@@ -8323,6 +8348,8 @@ handle_user_signal (int sig)
             /* Enter the debugger in many ways.  */
             debug_on_next_call = true;
             debug_on_quit = true;
+	    /* FIXME/igc: if we ever decide to protect Lisp variables,
+	       this may cause crashes such as bug#75632.  */
             Vquit_flag = Qt;
             Vinhibit_quit = Qnil;
 
@@ -12788,6 +12815,20 @@ init_keyboard (void)
   poll_suppress_count = 1;
   start_polling ();
 #endif
+
+#ifdef HAVE_MPS
+  {
+    Lisp_Object watcher;
+
+    static union Aligned_Lisp_Subr Swatch_debug_on_event =
+      {{{ GC_HEADER_INIT PSEUDOVECTOR_FLAG | (PVEC_SUBR << PSEUDOVECTOR_AREA_BITS) },
+	{ .a4 = watch_debug_on_event },
+	4, 4, "watch_debug_on_event", {0}, 0, 0 }};
+    XSETSUBR (watcher, &Swatch_debug_on_event);
+    Fadd_variable_watcher (Qdebug_on_event, watcher);
+    watch_debug_on_event (Qdebug_on_event, Vdebug_on_event, Qnil, Qnil);
+  }
+#endif
 }
 
 /* This type's only use is in syms_of_keyboard, to put properties on the
@@ -13882,6 +13923,9 @@ of processing the event normally through `special-event-map'.
 Currently, the only supported values for this
 variable are `sigusr1' and `sigusr2'.  */);
   Vdebug_on_event = Qsigusr2;
+#ifdef HAVE_MPS
+  DEFSYM (Qdebug_on_event, "debug-on-event");
+#endif
 
   DEFVAR_BOOL ("attempt-stack-overflow-recovery",
                attempt_stack_overflow_recovery,
