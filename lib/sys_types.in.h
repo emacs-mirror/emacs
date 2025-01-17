@@ -117,6 +117,22 @@ typedef unsigned long long int rpl_ino_t;
 # include <stddef.h>
 #endif
 
+/* Define blksize_t, required by POSIX:2024.  */
+#if !@HAVE_BLKSIZE_T@
+# if !defined GNULIB_defined_blksize_t
+typedef int blksize_t;
+#  define GNULIB_defined_blksize_t 1
+# endif
+#endif
+
+/* Define blkcnt_t, required by POSIX:2024.  */
+#if !@HAVE_BLKCNT_T@
+# if !defined GNULIB_defined_blkcnt_t
+typedef long long blkcnt_t;
+#  define GNULIB_defined_blkcnt_t 1
+# endif
+#endif
+
 #endif /* _@GUARD_PREFIX@_SYS_TYPES_H */
 #endif /* _@GUARD_PREFIX@_SYS_TYPES_H */
 #endif /* __need_XXX */

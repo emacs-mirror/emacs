@@ -1,5 +1,5 @@
 # sys_types_h.m4
-# serial 14
+# serial 15
 dnl Copyright (C) 2011-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -34,6 +34,14 @@ AC_DEFUN_ONCE([gl_SYS_TYPES_H],
     WINDOWS_STAT_INODES=0
   ])
   AC_SUBST([WINDOWS_STAT_INODES])
+
+  dnl Test whether the 'blksize_t' type is defined.
+  AC_CHECK_TYPE([blksize_t], [HAVE_BLKSIZE_T=1], [HAVE_BLKSIZE_T=0])
+  AC_SUBST([HAVE_BLKSIZE_T])
+
+  dnl Test whether the 'blkcnt_t' type is defined.
+  AC_CHECK_TYPE([blkcnt_t], [HAVE_BLKCNT_T=1], [HAVE_BLKCNT_T=0])
+  AC_SUBST([HAVE_BLKCNT_T])
 ])
 
 # Initializes the default values for AC_SUBSTed shell variables.
