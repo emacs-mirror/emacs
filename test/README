@@ -26,6 +26,9 @@ following tags are recognized:
   The test runs only if Emacs is configured with Lisp native compiler
   support.
 
+* :igc
+  Tests for the new garbage collector.
+
 * :unstable
   The test is under development.  It shall run on demand only.
 
