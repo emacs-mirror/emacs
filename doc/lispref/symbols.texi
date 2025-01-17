@@ -560,12 +560,12 @@ symbol.
 
 In some cases, the definition cannot be found by looking for the
 definition of another symbol.  For example, a test file might use a
-macro to generate calls to @code{ert-deftest}
-(@pxref{,,,ert, ERT: Emacs Lisp Regression Testing}) where the code
-is boiler plate and only varying data need to be passed in.
-In such cases, the @code{find-function-type-alist} property of the
-symbol can be an alist that augments @code{find-function-regexp-alist}
-telling how to find the definition of symbols of this type.
+macro to generate calls to @code{ert-deftest} (@pxref{How to Write
+Tests,,,ert, ERT: Emacs Lisp Regression Testing}) where the code is
+boiler plate and only varying data need to be passed in.  In such cases,
+the @code{find-function-type-alist} property of the symbol can be an
+alist that augments @code{find-function-regexp-alist} telling how to
+find the definition of symbols of this type.
 
 In the example of a macro defining calls to @code{ert-deftest},
 the macro could put the property @code{find-function-type-alist} on each
