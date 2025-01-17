@@ -1451,9 +1451,10 @@ special *Flymake log* buffer."  :group 'flymake :lighter
       (cancel-timer flymake-timer)
       (setq flymake-timer nil))
     (mapc #'flymake--delete-overlay (flymake--really-all-overlays))
-    (maphash (lambda (_backend state)
-               (flymake--clear-foreign-diags state))
-             flymake--state)))
+    (when flymake--state
+      (maphash (lambda (_backend state)
+                 (flymake--clear-foreign-diags state))
+               flymake--state))))
    ;; turning Flymake on or off has consequences for listings
    (flymake--update-diagnostics-listings (current-buffer)))
 
