@@ -101,6 +101,8 @@ static void set_window_cursor_after_update (struct window *);
 static void adjust_frame_glyphs_for_window_redisplay (struct frame *);
 static void adjust_frame_glyphs_for_frame_redisplay (struct frame *);
 static void set_window_update_flags (struct window *w, bool on_p);
+static struct glyph_pool *new_glyph_pool (void);
+static bool is_using_terminal_matrices (struct frame *root);
 
 #if 0 /* Please leave this in as a debugging aid.  */
 static void
@@ -380,6 +382,9 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
   bool header_line_p = 0;
   int left = -1, right = -1;
   int window_width = -1, window_height = -1;
+
+  if (matrix == NULL)
+    return;
 
   /* See if W had a header line that has disappeared now, or vice versa.
      Get W's size.  */
@@ -791,10 +796,17 @@ shift_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int start, in
    current matrix.  */
 
 void
-clear_current_matrices (register struct frame *f)
+clear_current_matrices (struct frame *f)
 {
   /* Clear frame current matrix, if we have one.  */
-  if (f->current_matrix)
+  if (is_tty_root_frame (f) && is_using_terminal_matrices (f))
+    {
+      if (f->terminal_current_matrix)
+	clear_glyph_matrix (f->terminal_current_matrix);
+      if (f->frame_current_matrix)
+	clear_glyph_matrix (f->frame_current_matrix);
+    }
+  else if (f->current_matrix)
     clear_glyph_matrix (f->current_matrix);
 
 #if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
@@ -828,7 +840,14 @@ clear_current_matrices (register struct frame *f)
 void
 clear_desired_matrices (register struct frame *f)
 {
-  if (f->desired_matrix)
+  if (is_tty_root_frame (f) && is_using_terminal_matrices (f))
+    {
+      if (f->terminal_desired_matrix)
+	clear_glyph_matrix (f->terminal_desired_matrix);
+      if (f->frame_desired_matrix)
+	clear_glyph_matrix (f->frame_desired_matrix);
+    }
+  else if (f->desired_matrix)
     clear_glyph_matrix (f->desired_matrix);
 
 #if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
@@ -1184,6 +1203,9 @@ line_hash_code (struct frame *f, struct glyph_row *row)
 	{
 	  int c = glyph->u.ch;
 	  unsigned int face_id = glyph->face_id;
+	  /* When using igc, face_cache is allocated from MPS'
+	     AMC default pool and so can change its address. */
+# ifndef HAVE_MPS
 	  /* A given row of a frame glyph matrix could have glyphs
 	     from more than one frame, if child frames are displayed.
 	     Since face_id of a face depends on the frame (it's an
@@ -1192,6 +1214,7 @@ line_hash_code (struct frame *f, struct glyph_row *row)
 	     use the frame cache's address for that purpose.  */
 	  if (glyph->frame && glyph->frame != f)
 	    face_id += (uintptr_t) glyph->frame->face_cache;
+# endif
 	  if (FRAME_MUST_WRITE_SPACES (f))
 	    c -= SPACEGLYPH;
 	  hash = (((hash << 4) + (hash >> 24)) & 0x0fffffff) + c;
@@ -2089,6 +2112,11 @@ adjust_frame_glyphs_for_frame_redisplay (struct frame *f)
   /* Enlarge pools as necessary.  */
   pool_changed_p = realloc_glyph_pool (f->desired_pool, matrix_dim);
   realloc_glyph_pool (f->current_pool, matrix_dim);
+  if (f->terminal_current_pool)
+    {
+      realloc_glyph_pool (f->terminal_current_pool, matrix_dim);
+      realloc_glyph_pool (f->terminal_desired_pool, matrix_dim);
+    }
 
   /* Set up glyph pointers within window matrices.  Do this only if
      absolutely necessary since it requires a frame redraw.  */
@@ -2142,6 +2170,8 @@ adjust_frame_glyphs_for_frame_redisplay (struct frame *f)
 	  struct glyph_matrix *copy = save_current_matrix (f);
 	  adjust_glyph_matrix (NULL, f->desired_matrix, 0, 0, matrix_dim);
 	  adjust_glyph_matrix (NULL, f->current_matrix, 0, 0, matrix_dim);
+	  adjust_glyph_matrix (NULL, f->terminal_current_matrix, 0, 0, matrix_dim);
+	  adjust_glyph_matrix (NULL, f->terminal_desired_matrix, 0, 0, matrix_dim);
 	  restore_current_matrix (f, copy);
 	  fake_current_matrices (FRAME_ROOT_WINDOW (f));
 	}
@@ -2149,6 +2179,8 @@ adjust_frame_glyphs_for_frame_redisplay (struct frame *f)
 	{
 	  adjust_glyph_matrix (NULL, f->desired_matrix, 0, 0, matrix_dim);
 	  adjust_glyph_matrix (NULL, f->current_matrix, 0, 0, matrix_dim);
+	  adjust_glyph_matrix (NULL, f->terminal_current_matrix, 0, 0, matrix_dim);
+	  adjust_glyph_matrix (NULL, f->terminal_desired_matrix, 0, 0, matrix_dim);
 	  SET_FRAME_GARBAGED (f);
 	}
     }
@@ -2383,7 +2415,10 @@ free_glyphs (struct frame *f)
 	{
 	  free_glyph_matrix (f->desired_matrix);
 	  free_glyph_matrix (f->current_matrix);
+	  free_glyph_matrix (f->terminal_desired_matrix);
+	  free_glyph_matrix (f->terminal_current_matrix);
 	  f->desired_matrix = f->current_matrix = NULL;
+	  f->terminal_desired_matrix = f->terminal_current_matrix = NULL;
 	}
 
       /* Release glyph pools.  */
@@ -2391,7 +2426,10 @@ free_glyphs (struct frame *f)
 	{
 	  free_glyph_pool (f->desired_pool);
 	  free_glyph_pool (f->current_pool);
+	  free_glyph_pool (f->terminal_current_pool);
+	  free_glyph_pool (f->terminal_desired_pool);
 	  f->desired_pool = f->current_pool = NULL;
+	  f->terminal_desired_pool = f->terminal_current_pool = NULL;
 	}
 
       unblock_input ();
@@ -3940,18 +3978,122 @@ terminal_cursor_magic (struct frame *root, struct frame *topmost_child)
     }
 }
 
-#endif /* !HAVE_ANDROID */
+static void
+copy_pool (struct glyph_pool *from, struct glyph_pool **to)
+{
+  if (*to == NULL)
+    *to = new_glyph_pool ();
+  struct glyph_pool *p = *to;
+  struct glyph *glyphs = p->glyphs;
+  *p = *from;
+  size_t nbytes = p->nglyphs * sizeof *glyphs;
+  p->glyphs = xrealloc (glyphs, nbytes);
+  memset (p->glyphs, 0, nbytes);
+}
+
+static void
+copy_row (struct glyph_matrix *from_matrix, struct glyph_matrix *to_matrix,
+	  int i)
+{
+  struct glyph_row *from = from_matrix->rows + i;
+  struct glyph_row *to = to_matrix->rows + i;
+  *to = *from;
+
+  struct glyph_pool *p = to_matrix->pool;
+  struct glyph *start = p->glyphs + i * p->ncolumns;
+  struct glyph *end = start + p->ncolumns;
+  to->glyphs[LEFT_MARGIN_AREA] = start;
+  to->glyphs[TEXT_AREA] = start;
+  to->glyphs[RIGHT_MARGIN_AREA] = end;
+  to->glyphs[LAST_AREA] = end;
+
+  memcpy (start, from->glyphs[0], p->ncolumns * sizeof *start);
+}
+
+static void
+copy_matrix (struct glyph_matrix *from, struct glyph_matrix **to,
+	     struct glyph_pool *pool)
+{
+  if (*to == NULL)
+    *to = new_glyph_matrix (pool);
+  struct glyph_matrix *m = *to;
+  struct glyph_row *rows = m->rows;
+  *m = *from;
+  m->pool = pool;
+  size_t nbytes = m->rows_allocated * sizeof *rows;
+  m->rows = xrealloc (rows, nbytes);
+  memset (m->rows, 0, nbytes);
+  for (int i = 0; i < m->rows_allocated; ++i)
+    copy_row (from, m, i);
+}
+
+static void
+copy_pool_and_matrix (struct glyph_matrix *from,
+		      struct glyph_pool **to_pool,
+		      struct glyph_matrix **to_matrix)
+{
+  copy_pool (from->pool, to_pool);
+  copy_matrix (from, to_matrix, *to_pool);
+}
+
+static void
+make_terminal_matrices (struct frame *root)
+{
+  copy_pool_and_matrix (root->current_matrix, &root->terminal_current_pool,
+			&root->terminal_current_matrix);
+  copy_pool_and_matrix (root->desired_matrix, &root->terminal_desired_pool,
+			&root->terminal_desired_matrix);
+}
+
+static bool
+is_using_terminal_matrices (struct frame *root)
+{
+  return root->frame_current_matrix != NULL;
+}
+
+static void
+unwind_restore_matrices (Lisp_Object root_frame)
+{
+  struct frame *root = XFRAME (root_frame);
+  if (is_using_terminal_matrices (root))
+    {
+      root->current_matrix = root->frame_current_matrix;
+      root->desired_matrix = root->frame_desired_matrix;
+      make_matrix_current (root);
+    }
+}
+
+static void
+choose_frame_or_terminal_matrices (struct frame *root, Lisp_Object z_order)
+{
+  /* Once we have used child frames once, we will likely again, so there
+     is no point in switching back to frame matrices. */
+  const bool visible_child = CONSP (XCDR (z_order));
+  if (visible_child && !is_using_terminal_matrices (root))
+    make_terminal_matrices (root);
+
+  if (is_using_terminal_matrices (root))
+    {
+      root->current_matrix = root->terminal_current_matrix;
+      root->desired_matrix = root->terminal_desired_matrix;
+      Lisp_Object root_frame;
+      XSETFRAME (root_frame, root);
+      record_unwind_protect (unwind_restore_matrices, root_frame);
+    }
+}
 
 void
 combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
 {
-#ifndef HAVE_ANDROID
   struct frame *root = root_frame (f);
   eassert (FRAME_VISIBLE_P (root));
 
+  specpdl_ref count = SPECPDL_INDEX ();
+  Lisp_Object z_order = frames_in_reverse_z_order (root, true);
+  choose_frame_or_terminal_matrices (root, z_order);
+
   /* Process child frames in reverse z-order, topmost last.  For each
      child, copy what we need to the root's desired matrix.  */
-  Lisp_Object z_order = frames_in_reverse_z_order (root, true);
   struct frame *topmost_child = NULL;
   for (Lisp_Object tail = XCDR (z_order); CONSP (tail); tail = XCDR (tail))
     {
@@ -3982,7 +4124,8 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
       add_frame_display_history (f, false);
 #endif
     }
-#endif /* HAVE_ANDROID */
+
+  unbind_to (count, Qnil);
 }
 
 /* Update on the screen all root frames ROOTS.  Called from
@@ -3997,6 +4140,15 @@ combine_updates (Lisp_Object roots)
       combine_updates_for_frame (root, false);
     }
 }
+
+#else /* HAVE_ANDROID */
+
+void
+combine_updates (Lisp_Object roots)
+{
+}
+
+#endif /* !HAVE_ANDROID */
 
 /* Update frame F based on the data in desired matrices.
    If INHIBIT_SCROLLING, don't try scrolling. */

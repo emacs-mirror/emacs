@@ -317,9 +317,19 @@ struct frame
 
   /* Glyph pool and matrix.  */
   struct glyph_pool *current_pool;
+  struct glyph_matrix *current_matrix;
   struct glyph_pool *desired_pool;
   struct glyph_matrix *desired_matrix;
-  struct glyph_matrix *current_matrix;
+
+  /* Used only on ttys.  Represent what is displayed and what should be
+     displayed on a terminal when child windows are present.  */
+  struct glyph_pool *terminal_current_pool;
+  struct glyph_matrix *terminal_current_matrix;
+  struct glyph_pool *terminal_desired_pool;
+  struct glyph_matrix *terminal_desired_matrix;
+
+  struct glyph_matrix *frame_current_matrix;
+  struct glyph_matrix *frame_desired_matrix;
 
   /* Bitfield area begins here.  Keep them together to avoid extra padding.  */
 
