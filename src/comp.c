@@ -468,7 +468,7 @@ load_gccjit_if_necessary (bool mandatory)
 
 
 /* Increase this number to force a new Vcomp_abi_hash to be generated.  */
-#define ABI_VERSION "9"
+#define ABI_VERSION "10"
 
 /* Length of the hashes used for eln file naming.  */
 #define HASH_LENGTH 8
@@ -2666,6 +2666,12 @@ emit_static_object (const char *name, Lisp_Object obj)
   specbind (intern_c_string ("print-quoted"), Qt);
   specbind (intern_c_string ("print-gensym"), Qt);
   specbind (intern_c_string ("print-circle"), Qt);
+  /* Bind print-number-table and print-continuous-numbering so comp--#$
+     prints as #$.  */
+  Lisp_Object print_number_table = CALLN (Fmake_hash_table, QCtest, Qeq);
+  Fputhash (Vcomp__hashdollar, build_string ("#$") , print_number_table);
+  specbind (intern_c_string ("print-number-table"), print_number_table);
+  specbind (intern_c_string ("print-continuous-numbering"), Qt);
   Lisp_Object str = Fprin1_to_string (obj, Qnil, Qnil);
   unbind_to (count, Qnil);
 
@@ -5129,18 +5135,25 @@ typedef char *(*comp_lit_str_func) (void);
 static Lisp_Object
 load_static_obj (struct Lisp_Native_Comp_Unit *comp_u, const char *name)
 {
+  specpdl_ref count = SPECPDL_INDEX ();
   static_obj_t *blob =
     dynlib_sym (comp_u->handle, format_string ("%s_blob", name));
+  /* Special value so we can recognize #$, which is used for entries in
+     the static vector that must be overwritten at load time.  This is a
+     specific string that contains "#$", which is not EQ to any
+     legitimate object returned by Fread.  */
+  specbind (intern_c_string ("load-file-name"),
+	    Vcomp__hashdollar);
   if (blob)
     /* New blob format.  */
-    return Fread (make_string (blob->data, blob->len));
+    return unbind_to (count, Fread (make_string (blob->data, blob->len)));
 
   static_obj_t *(*f)(void) = dynlib_sym (comp_u->handle, name);
   if (!f)
     xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
 
   blob = f ();
-  return Fread (make_string (blob->data, blob->len));
+  return unbind_to (count, Fread (make_string (blob->data, blob->len)));
 
 }
 
@@ -5157,7 +5170,7 @@ check_comp_unit_relocs (struct Lisp_Native_Comp_Unit *comp_u)
   for (ptrdiff_t i = 0; i < d_vec_len; i++)
     {
       Lisp_Object x = data_relocs[i];
-      if (EQ (x, Q__lambda_fixup))
+      if (EQ (x, Vcomp__hashdollar))
 	return false;
       else if (NATIVE_COMP_FUNCTIONP (x))
 	{
@@ -5610,7 +5623,6 @@ natively-compiled one.  */);
   DEFSYM (Qfixnum, "fixnum");
   DEFSYM (Qscratch, "scratch");
   DEFSYM (Qlate, "late");
-  DEFSYM (Q__lambda_fixup, "--lambda-fixup");
   DEFSYM (Qgccjit, "gccjit");
   DEFSYM (Qcomp_subr_trampoline_install, "comp-subr-trampoline-install");
   DEFSYM (Qnative_comp_warning_on_missing_source,
@@ -5791,6 +5803,10 @@ with `comp-sanitizer-emit' non-nil.
 This is intended to be used only for development and
 verification of the native compiler.  */);
   comp_sanitizer_active = false;
+
+  DEFVAR_LISP ("comp--#$", Vcomp__hashdollar,
+    doc: /* Special value which will print as "#$".  */);
+  Vcomp__hashdollar = build_string ("#$");
 
   Fprovide (intern_c_string ("native-compile"), Qnil);
 #endif /* #ifdef HAVE_NATIVE_COMP */
