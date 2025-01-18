@@ -4070,7 +4070,11 @@ choose_frame_or_terminal_matrices (struct frame *root, Lisp_Object z_order)
      is no point in switching back to frame matrices. */
   const bool visible_child = CONSP (XCDR (z_order));
   if (visible_child && !is_using_terminal_matrices (root))
-    make_terminal_matrices (root);
+    {
+      make_terminal_matrices (root);
+      root->frame_current_matrix = root->current_matrix;
+      root->frame_desired_matrix = root->desired_matrix;
+    }
 
   if (is_using_terminal_matrices (root))
     {
