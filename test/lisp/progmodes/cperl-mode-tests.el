@@ -622,10 +622,9 @@ Also includes valid cases with whitespace in strange places."
    "Test subroutine signatures."
    (skip-unless (eq cperl-test-mode #'cperl-mode))
    (let ((valid
-          '("()" "( )" "($self, %params)" "(@params)"))
+          '("()" "( )" "($self, %params)" "(@params)" "($first,$)"))
         (invalid
          '("$self"               ; missing paren
-           "($)"                 ; a subroutine signature
            "($!)"                ; globals not permitted in a signature
            "(@par,%options)"     ; two slurpy parameters
            "{$self}")))          ; wrong type of paren
@@ -1589,6 +1588,16 @@ and the slash, then we have a division."
   (let ((code "for (2../2/) { ...; }"))
     (should (equal (nth 8 (cperl-test-ppss code "/")) 9)))
   )
+
+(ert-deftest cperl-test-bug-74245 ()
+  "Verify that a bare \"$\" can appear at the end of a subroutine signature.
+It must not be mistaken for \"$)\"."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (cperl--run-test-cases
+   (ert-resource-file "cperl-bug-74245.pl")
+   (while (null (eobp))
+     (cperl-indent-command)
+     (forward-line 1))))
 
 (ert-deftest test-indentation ()
   (ert-test-erts-file (ert-resource-file "cperl-indents.erts")))
