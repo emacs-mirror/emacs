@@ -2826,7 +2826,7 @@ fill_up_frame_row_with_spaces (struct frame *f, struct glyph_row *row, int upto)
    operations in window matrices of frame_matrix_frame.  */
 
 static void
-make_current (struct frame *f, struct window *w, int row)
+make_current (struct frame *f, struct window *w, int row, bool mirror)
 {
   struct glyph_matrix *desired_matrix = f ? f->desired_matrix : w->desired_matrix;
   struct glyph_matrix *current_matrix = f ? f->current_matrix : w->current_matrix;
@@ -2856,7 +2856,7 @@ make_current (struct frame *f, struct window *w, int row)
 
   /* If we are called on frame matrices, perform analogous operations
      for window matrices.  */
-  if (f)
+  if (f && mirror)
     mirror_make_current (XWINDOW (f->root_window), row);
 }
 
@@ -3533,13 +3533,13 @@ first_enabled_row (struct glyph_matrix *matrix)
    to the terminal.  */
 
 static void
-make_matrix_current (struct frame *f)
+make_matrix_current (struct frame *f, bool mirror)
 {
   int first_row = first_enabled_row (f->desired_matrix);
   if (first_row >= 0)
     for (int i = first_row; i < f->desired_matrix->nrows; ++i)
       if (MATRIX_ROW_ENABLED_P (f->desired_matrix, i))
-	make_current (f, NULL, i);
+	make_current (f, NULL, i, mirror);
 }
 
 #ifndef HAVE_ANDROID
@@ -3722,7 +3722,7 @@ copy_child_glyphs (struct frame *root, struct frame *child)
     return;
 
   /* Build CHILD's current matrix which we need to copy from it.  */
-  make_matrix_current (child);
+  make_matrix_current (child, true);
 
   /* Draw borders around the child frame.  */
   if (!FRAME_UNDECORATED (child))
@@ -4059,7 +4059,7 @@ unwind_restore_matrices (Lisp_Object root_frame)
     {
       root->current_matrix = root->frame_current_matrix;
       root->desired_matrix = root->frame_desired_matrix;
-      make_matrix_current (root);
+      make_matrix_current (root, true);
     }
 }
 
@@ -4107,7 +4107,7 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
 
   update_begin (root);
   write_matrix (root, inhibit_scrolling, 1, false);
-  make_matrix_current (root);
+  make_matrix_current (root, !is_using_terminal_matrices (root));
   update_end (root);
 
   /* If a child is displayed, and the cursor is displayed in another
@@ -4116,6 +4116,9 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
   if (topmost_child)
     terminal_cursor_magic (root, topmost_child);
   flush_terminal (root);
+
+  /* Restore frame matrices, make frame current matrix current. */
+  unbind_to (count, Qnil);
 
   for (Lisp_Object tail = z_order; CONSP (tail); tail = XCDR (tail))
     {
@@ -4128,8 +4131,6 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
       add_frame_display_history (f, false);
 #endif
     }
-
-  unbind_to (count, Qnil);
 }
 
 /* Update on the screen all root frames ROOTS.  Called from
@@ -4192,7 +4193,7 @@ update_frame_with_menu (struct frame *f, int row, int col)
   /* Do not stop due to pending input, and do not try scrolling.  This
      means that write_glyphs will always return false.  */
   write_matrix (f, 1, cursor_at_point_p, true);
-  make_matrix_current (f);
+  make_matrix_current (f, true);
   clear_desired_matrices (f);
   /* ROW and COL tell us where in the menu to position the cursor, so
      that screen readers know the active region on the screen.  */
@@ -5081,7 +5082,7 @@ update_window_line (struct window *w, int vpos, bool *mouse_face_overwritten_p)
 
   /* Update current_row from desired_row.  */
   was_stipple = current_row->stipple_p;
-  make_current (NULL, w, vpos);
+  make_current (NULL, w, vpos, true);
 
   /* If only a partial update was performed, any stipple already
      displayed in MATRIX_ROW (w->current_matrix, vpos) might still be
