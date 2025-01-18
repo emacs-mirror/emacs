@@ -3333,7 +3333,9 @@ ENTRY.  MARKER marks the start of each tree-sitter node."
 
 ENTRIES is a list of (CATEGORY . SUB-ENTRIES...).  Merge them so there's
 no duplicate CATEGORY.  CATEGORY's are strings.  The merge is stable,
-meaning the order of elements are kept."
+meaning the order of elements are kept.
+
+This function is destructive, meaning ENTRIES will be modified."
   (let ((return-entries nil))
     (dolist (entry entries)
       (let* ((category (car entry))

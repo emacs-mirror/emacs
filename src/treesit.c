@@ -1946,7 +1946,10 @@ which the parser should operate.  Regions must not overlap, and the
 regions should come in order in the list.  Signal
 `treesit-set-range-error' if the argument is invalid, or something
 else went wrong.  If RANGES is nil, the PARSER is to parse the whole
-buffer.  */)
+buffer.
+
+DO NOT modify RANGES after passing it to this function, as RANGES is
+saved to PARSER internally.  */)
   (Lisp_Object parser, Lisp_Object ranges)
 {
   treesit_check_parser (parser);
