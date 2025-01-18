@@ -632,12 +632,7 @@ Optional argument PROPS specifies other text properties to apply."
   (let* ((w (ruler-mode-text-scaled-window-width))
          (m (window-margins))
          (f (window-fringes))
-         (i (if display-line-numbers
-                ;; FIXME: ruler-mode relies on I being an integer, so
-                ;; the column numbers might be slightly off if the
-                ;; line-number face is customized.
-                (round (line-number-display-width 'columns))
-              0))
+         (i 0)
          (j (ruler-mode-text-scaled-window-hscroll))
          ;; Setup the scrollbar, fringes, and margins areas.
          (lf (ruler-mode-space
@@ -744,6 +739,12 @@ Optional argument PROPS specifies other text properties to apply."
       (add-text-properties 0 len ruler-wide-props ruler-str)
       (dolist (p (nreverse props))
         (add-text-properties (nth 0 p) (nth 1 p) (nthcdr 2 p) ruler-str))
+
+      ;; Attach an alignment indent.
+      (if display-line-numbers
+          (setq ruler-str
+                (concat (ruler-mode-space `(,(line-number-display-width t)))
+                        ruler-str)))
 
       ;; Return the ruler propertized string.  Using list here,
       ;; instead of concat visually separate the different areas.
