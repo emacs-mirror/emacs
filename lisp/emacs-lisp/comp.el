@@ -42,6 +42,7 @@
 (defvar comp-subr-arities-h)
 (defvar native-comp-eln-load-path)
 (defvar native-comp-enable-subr-trampolines)
+(defvar comp--\#$)
 
 (declare-function comp--compile-ctxt-to-file0 "comp.c")
 (declare-function comp--init-ctxt "comp.c")
@@ -3254,10 +3255,9 @@ Set it into the `type' slot."
                  ;; from the corresponding m-var.
                  collect (if (gethash obj
                                       (comp-ctxt-byte-func-to-func-h comp-ctxt))
-                             ;; Hack not to have `--lambda-fixup' in
-                             ;; data relocations as it would trigger the
-                             ;; check in 'check_comp_unit_relocs'.
-                             (intern (concat (make-string 1 ?-) "-lambda-fixup"))
+                             ;; This prints as #$, so we can assert this
+                             ;; value does not remain in the data vector
+                             comp--\#$
                            obj))))
 
 (defun comp--finalize-relocs ()
