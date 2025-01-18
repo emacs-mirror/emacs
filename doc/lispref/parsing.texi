@@ -1559,8 +1559,8 @@ later renamed it to @code{(function_definition)}, a Lisp program can use
 @example
 @group
 (treesit-query-first-valid 'lang
-  '((defun) @defun)
-  '((function_definition) @defun))
+  '((defun) @@defun)
+  '((function_definition) @@defun))
 @end group
 @end example
 
