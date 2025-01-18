@@ -4028,6 +4028,37 @@ copy_matrix (struct glyph_matrix *from, struct glyph_matrix **to,
 }
 
 static void
+copy_desired_row (struct glyph_matrix *from_matrix,
+		  struct glyph_matrix *to_matrix, int i)
+{
+  struct glyph_row *from = from_matrix->rows + i;
+  struct glyph_row *to = to_matrix->rows + i;
+  copy_row_except_pointers (to, from);
+  for (int i = 0; i <= LAST_AREA; ++i)
+    to->used[i] = from->used[i];
+  memcpy (to->glyphs[0], from->glyphs[0],
+	  to_matrix->matrix_w * sizeof (struct glyph));
+}
+
+static void
+copy_frame_desired_matrix (struct frame *root)
+{
+  struct glyph_matrix *from = root->frame_desired_matrix;
+  struct glyph_matrix *to = root->terminal_desired_matrix;
+  eassert (to->rows_allocated == from->rows_allocated);
+
+  struct glyph_pool *pool = to->pool;
+  struct glyph_row *rows = to->rows;
+  *to = *from;
+  to->pool = pool;
+  to->rows = rows;
+
+  for (int i = 0; i < to->rows_allocated; ++i)
+    if (from->rows[i].enabled_p)
+      copy_desired_row (from, to, i);
+}
+
+static void
 copy_pool_and_matrix (struct glyph_matrix *from,
 		      struct glyph_pool **to_pool,
 		      struct glyph_matrix **to_matrix)
@@ -4095,6 +4126,15 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
   specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object z_order = frames_in_reverse_z_order (root, true);
   choose_frame_or_terminal_matrices (root, z_order);
+
+  /* FIXME: use frame_desired_matrix directly. Problem: making
+     make_matrix_current would make the terminal current matrix
+     have pointers to frame_desired_pool. Is this bad? */
+  if (is_using_terminal_matrices (root))
+    {
+      inhibit_scrolling = true;
+      copy_frame_desired_matrix (root);
+    }
 
   /* Process child frames in reverse z-order, topmost last.  For each
      child, copy what we need to the root's desired matrix.  */
