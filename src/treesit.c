@@ -3081,6 +3081,9 @@ You can use `treesit-query-validate' to validate and debug a query.  */)
     wrong_type_argument (Qtreesit_query_p, query);
   CHECK_SYMBOL (language);
 
+  Lisp_Object remapped_lang = resolve_language_symbol (language);
+  CHECK_SYMBOL (remapped_lang);
+
   treesit_initialize ();
 
   if (TS_COMPILED_QUERY_P (query))
@@ -3091,7 +3094,7 @@ You can use `treesit-query-validate' to validate and debug a query.  */)
       return query;
     }
 
-  Lisp_Object lisp_query = make_treesit_query (query, language);
+  Lisp_Object lisp_query = make_treesit_query (query, remapped_lang);
 
   /* Maybe actually compile.  */
   if (NILP (eager))
