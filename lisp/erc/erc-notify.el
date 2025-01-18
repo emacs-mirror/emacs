@@ -335,7 +335,7 @@ target buffer."
        (erc-querypoll-mode -1)))
    (kill-local-variable 'erc--querypoll-ring)
    (kill-local-variable 'erc--querypoll-timer))
-  'local)
+  localp)
 
 (cl-defmethod erc--queries-current-p (&context (erc-querypoll-mode (eql t))) t)
 

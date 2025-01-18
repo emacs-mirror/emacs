@@ -607,7 +607,7 @@ Abandon search after examining LIMIT faces."
          nil)
    (unless erc-button--nick-popup-alist
      (kill-local-variable 'erc-button--nick-popup-alist)))
-  'local)
+  localp)
 
 (defun erc-nicks-customize-face (nick)
   "Customize or create persistent face for NICK."

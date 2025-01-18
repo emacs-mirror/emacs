@@ -611,7 +611,7 @@ somewhat experimental, is likely only useful in conjunction with
 SASL authentication rather than the traditional approach provided
 by the `services' module it shares a library with (see Info
 node `(erc) SASL' for more)."
-  nil nil 'local)
+  nil nil localp)
 
 (cl-defmethod erc--nickname-in-use-make-request
   ((want string) temp &context (erc-server-connected null)

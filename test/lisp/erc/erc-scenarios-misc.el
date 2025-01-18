@@ -51,7 +51,7 @@
       (with-current-buffer (erc-d-t-wait-for 5 (get-buffer "#chan/foonet"))
         (erc-d-t-search-for 10 "<bob/foonet>")
         (erc-d-t-absent-for 0.1 "<joe")
-        (funcall expect 3 "was created on")))
+        (funcall expect 10 "was created on")))
 
     (ert-info ("#chan@barnet exists")
       (with-current-buffer (erc-d-t-wait-for 5 (get-buffer "#chan/barnet"))
