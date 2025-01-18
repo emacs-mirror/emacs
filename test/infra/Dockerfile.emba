@@ -196,13 +196,23 @@ RUN make -j `nproc` bootstrap
 
 FROM emacs-base as emacs-igc
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      libmps-dev libmps3 \
-    && rm -rf /var/lib/apt/lists/*
-
 COPY . /checkout
+
+# libmps on Debian is something else. So we build ourselves.
+ENV MPS_SRC=/tmp/mps-src
+ENV MPS_ARTIFACTS=/tmp/mps-artifacts
+RUN mkdir $MPS_SRC
+RUN mkdir $MPS_ARTIFACTS
+WORKDIR $MPS_SRC
+RUN git config --global http.sslverify "false"
+RUN git clone https://github.com/Ravenbrook/mps.git
+WORKDIR mps
+RUN autoconf
+RUN ./configure --prefix=$MPS_ARTIFACTS
+RUN make CC="gcc -Wno-dangling-pointer -Wno-maybe-uninitialized" EXTRA_TARGETS=
+RUN make install
+
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
-RUN ./configure --with-mps
+RUN ./configure CPPFLAGS=-I$MPS_ARTIFACTS/include LDFLAGS=-L$MPS_ARTIFACTS/lib --with-mps
 RUN make -j `nproc` bootstrap
