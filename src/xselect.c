@@ -396,7 +396,7 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
 	}
 
       if (!NILP (handler_fn))
-	value = call3 (handler_fn, selection_symbol,
+	value = calln (handler_fn, selection_symbol,
 		       ((local_request
 			 && NILP (Vx_treat_local_requests_remotely))
 			? Qnil

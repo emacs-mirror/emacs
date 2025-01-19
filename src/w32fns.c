@@ -7574,7 +7574,7 @@ w32_create_tip_frame (struct w32_display_info *dpyinfo, Lisp_Object parms)
     Lisp_Object fg = Fframe_parameter (frame, Qforeground_color);
     Lisp_Object colors = Qnil;
 
-    call2 (Qface_set_after_frame_default, frame, Qnil);
+    calln (Qface_set_after_frame_default, frame, Qnil);
 
     if (!EQ (bg, Fframe_parameter (frame, Qbackground_color)))
       colors = Fcons (Fcons (Qbackground_color, bg), colors);
@@ -7723,7 +7723,7 @@ w32_hide_tip (bool delete)
 {
   if (!NILP (tip_timer))
     {
-      call1 (Qcancel_timer, tip_timer);
+      calln (Qcancel_timer, tip_timer);
       tip_timer = Qnil;
     }
 
@@ -7816,7 +7816,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 	      Lisp_Object timer = tip_timer;
 
 	      tip_timer = Qnil;
-	      call1 (Qcancel_timer, timer);
+	      calln (Qcancel_timer, timer);
 	    }
 
 	  block_input ();
@@ -7867,11 +7867,11 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 		    }
 		  else
 		    tip_last_parms =
-		      call2 (Qassq_delete_all, parm, tip_last_parms);
+		      calln (Qassq_delete_all, parm, tip_last_parms);
 		}
 	      else
 		tip_last_parms =
-		  call2 (Qassq_delete_all, parm, tip_last_parms);
+		  calln (Qassq_delete_all, parm, tip_last_parms);
 	    }
 
 	  /* Now check if there's a parameter left in tip_last_parms with a
@@ -8053,8 +8053,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 
  start_timer:
   /* Let the tip disappear after timeout seconds.  */
-  tip_timer = call3 (Qrun_at_time, timeout, Qnil,
-		     Qx_hide_tip);
+  tip_timer = calln (Qrun_at_time, timeout, Qnil, Qx_hide_tip);
 
   return unbind_to (count, Qnil);
 }
@@ -8539,7 +8538,7 @@ DEFUN ("system-move-file-to-trash", Fsystem_move_file_to_trash,
 
   handler = Ffind_file_name_handler (filename, operation);
   if (!NILP (handler))
-    return call2 (handler, operation, filename);
+    return calln (handler, operation, filename);
   else
     {
       const char * path;
@@ -9727,7 +9726,7 @@ DEFUN ("file-system-info", Ffile_system_info, Sfile_system_info, 1, 1, 0,
   Lisp_Object handler = Ffind_file_name_handler (encoded, Qfile_system_info);
   if (!NILP (handler))
     {
-      value = call2 (handler, Qfile_system_info, encoded);
+      value = calln (handler, Qfile_system_info, encoded);
       if (CONSP (value) || NILP (value))
 	return value;
       error ("Invalid handler in `file-name-handler-alist'");

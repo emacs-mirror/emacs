@@ -166,8 +166,8 @@ zip_minibuffer_stacks (Lisp_Object dest_window, Lisp_Object source_window)
       return;
     }
 
-  call1 (Qrecord_window_buffer, dest_window);
-  call1 (Qrecord_window_buffer, source_window);
+  calln (Qrecord_window_buffer, dest_window);
+  calln (Qrecord_window_buffer, source_window);
 
   acc = merge_c (dw->prev_buffers, sw->prev_buffers, minibuffer_ent_greater);
 
@@ -494,7 +494,7 @@ confirm the aborting of the current minibuffer and all contained ones.  */)
 	     to abort any extra non-minibuffer recursive edits.  Thus,
 	     the number of recursive edits we have to abort equals the
 	     number of minibuffers we have to abort.  */
-	  call1 (Qminibuffer_quit_recursive_edit, array[1]);
+	  calln (Qminibuffer_quit_recursive_edit, array[1]);
 	}
     }
   else
@@ -689,7 +689,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
     }
   MB_frame = XWINDOW (XFRAME (selected_frame)->minibuffer_window)->frame;
 
-  call1 (Qrecord_window_buffer, minibuf_window);
+  calln (Qrecord_window_buffer, minibuf_window);
 
   record_unwind_protect_void (minibuffer_unwind);
   if (read_minibuffer_restore_windows)
@@ -895,7 +895,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 
   /* Turn on an input method stored in INPUT_METHOD if any.  */
   if (STRINGP (input_method) && !NILP (Ffboundp (Qactivate_input_method)))
-    call1 (Qactivate_input_method, input_method);
+    calln (Qactivate_input_method, input_method);
 
   run_hook (Qminibuffer_setup_hook);
 
@@ -964,13 +964,13 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 	      && !EQ (XWINDOW (XFRAME (calling_frame)->minibuffer_window)
 		      ->frame,
 		      calling_frame))))
-    call2 (Qselect_frame_set_input_focus, calling_frame, Qnil);
+    calln (Qselect_frame_set_input_focus, calling_frame, Qnil);
 
   /* Add the value to the appropriate history list, if any.  This is
      done after the previous buffer has been made current again, in
      case the history variable is buffer-local.  */
   if (! (NILP (Vhistory_add_new_input) || NILP (histstring)))
-    call2 (Qadd_to_history, histvar, histstring);
+    calln (Qadd_to_history, histvar, histstring);
 
   /* If Lisp form desired instead of string, parse it.  */
   if (expflag)
@@ -1565,8 +1565,8 @@ function, instead of the usual behavior.  */)
     result = (NILP (predicate)
 	      /* Partial backward compatibility for older read_buffer_functions
 		 which don't expect a `predicate' argument.  */
-	      ? call3 (Vread_buffer_function, prompt, def, require_match)
-	      : call4 (Vread_buffer_function, prompt, def, require_match,
+	      ? calln (Vread_buffer_function, prompt, def, require_match)
+	      : calln (Vread_buffer_function, prompt, def, require_match,
 		       predicate));
   return unbind_to (count, result);
 }
@@ -1656,7 +1656,7 @@ or from one of the possible completions.  */)
 
   CHECK_STRING (string);
   if (type == function_table)
-    return call3 (collection, string, predicate, Qnil);
+    return calln (collection, string, predicate, Qnil);
 
   bestmatch = bucket = Qnil;
   zero = make_fixnum (0);
@@ -1729,11 +1729,11 @@ or from one of the possible completions.  */)
 	      else
 		{
 		  if (type == hash_table)
-		    tem = call2 (predicate, elt,
+		    tem = calln (predicate, elt,
 				 HASH_VALUE (XHASH_TABLE (collection),
 					     idx - 1));
 		  else
-		    tem = call1 (predicate, elt);
+		    tem = calln (predicate, elt);
 		}
 	      if (NILP (tem)) continue;
 	    }
@@ -1880,7 +1880,7 @@ which case that function should itself handle `completion-regexp-list').  */)
 
   CHECK_STRING (string);
   if (type == 0)
-    return call3 (collection, string, predicate, Qt);
+    return calln (collection, string, predicate, Qt);
   allmatches = bucket = Qnil;
   zero = make_fixnum (0);
 
@@ -1953,11 +1953,11 @@ which case that function should itself handle `completion-regexp-list').  */)
 	      else
 		{
 		  if (type == 3)
-		    tem = call2 (predicate, elt,
+		    tem = calln (predicate, elt,
 				 HASH_VALUE (XHASH_TABLE (collection),
 					     idx - 1));
 		  else
-		    tem = call1 (predicate, elt);
+		    tem = calln (predicate, elt);
 		}
 	      if (NILP (tem)) continue;
 	    }
@@ -2121,7 +2121,7 @@ the values STRING, PREDICATE and `lambda'.  */)
     found_matching_key: ;
     }
   else
-    return call3 (collection, string, predicate, Qlambda);
+    return calln (collection, string, predicate, Qlambda);
 
   /* Reject this element if it fails to match all the regexps.  */
   if (!match_regexps (string, Vcompletion_regexp_list,
@@ -2132,8 +2132,8 @@ the values STRING, PREDICATE and `lambda'.  */)
   if (!NILP (predicate))
     {
       return HASH_TABLE_P (collection)
-	? call2 (predicate, tem, arg)
-	: call1 (predicate, tem);
+	? calln (predicate, tem, arg)
+	: calln (predicate, tem);
     }
   else
     return Qt;

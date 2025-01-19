@@ -982,7 +982,7 @@ defalias (Lisp_Object symbol, Lisp_Object definition)
   { /* Handle automatic advice activation.  */
     Lisp_Object hook = Fget (symbol, Qdefalias_fset_function);
     if (!NILP (hook))
-      call2 (hook, symbol, definition);
+      calln (hook, symbol, definition);
     else
       Ffset (symbol, definition);
   }
@@ -1203,7 +1203,7 @@ Value, if non-nil, is a list (interactive SPEC).  */)
   if (genfun
       /* Avoid burping during bootstrap.  */
       && !NILP (Fsymbol_function (Qoclosure_interactive_form)))
-    return call1 (Qoclosure_interactive_form, fun);
+    return calln (Qoclosure_interactive_form, fun);
   else
     return Qnil;
 }
@@ -1481,7 +1481,7 @@ store_symval_forwarding (lispfwd valcontents, Lisp_Object newval,
 		  }
 		else if (FUNCTIONP (predicate))
 		  {
-		    if (NILP (call1 (predicate, newval)))
+		    if (NILP (calln (predicate, newval)))
 		      wrong_type_argument (predicate, newval);
 		  }
 	      }

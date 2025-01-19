@@ -12660,7 +12660,7 @@ gs_load (struct frame *f, struct image *img)
   if (NILP (loader))
     loader = Qgs_load_image;
 
-  img->lisp_data = call6 (loader, frame, img->spec,
+  img->lisp_data = calln (loader, frame, img->spec,
 			  make_fixnum (img->width),
 			  make_fixnum (img->height),
 			  window_and_pixmap_id,

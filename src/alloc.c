@@ -669,7 +669,7 @@ malloc_warning (const char *str)
 void
 display_malloc_warning (void)
 {
-  call3 (Qdisplay_warning,
+  calln (Qdisplay_warning,
 	 Qalloc,
 	 build_string (pending_malloc_warning),
 	 QCemergency);
@@ -7794,7 +7794,7 @@ respective remote host.  */)
     = Ffind_file_name_handler (BVAR (current_buffer, directory),
 			       Qmemory_info);
   if (!NILP (handler))
-    return call1 (handler, Qmemory_info);
+    return calln (handler, Qmemory_info);
 
 #if defined HAVE_LINUX_SYSINFO
   struct sysinfo si;

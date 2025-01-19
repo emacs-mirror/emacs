@@ -8034,7 +8034,7 @@ decode_coding_gap (struct coding_system *coding, ptrdiff_t bytes)
 			     Fcons (undo_list, Fcurrent_buffer ()));
       bset_undo_list (current_buffer, Qt);
       TEMP_SET_PT_BOTH (coding->dst_pos, coding->dst_pos_byte);
-      val = call1 (CODING_ATTR_POST_READ (attrs),
+      val = calln (CODING_ATTR_POST_READ (attrs),
 		   make_fixnum (coding->produced_char));
       CHECK_FIXNAT (val);
       coding->produced_char += Z - prev_Z;
@@ -10871,10 +10871,10 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS...)  */)
 	    return Fcons (val, val);
 	  if (! NILP (Ffboundp (val)))
 	    {
-	      /* We use call1 rather than safe_call1
+	      /* We use calln rather than safe_calln
 		 so as to get bug reports about functions called here
 		 which don't handle the current interface.  */
-	      val = call1 (val, Flist (nargs, args));
+	      val = calln (val, Flist (nargs, args));
 	      if (CONSP (val))
 		return val;
 	      if (SYMBOLP (val) && ! NILP (Fcoding_system_p (val)))

@@ -306,7 +306,7 @@ static void
 printchar (unsigned int ch, Lisp_Object fun)
 {
   if (!NILP (fun) && !EQ (fun, Qt))
-    call1 (fun, make_fixnum (ch));
+    calln (fun, make_fixnum (ch));
   else
     {
       unsigned char str[MAX_MULTIBYTE_LENGTH];

@@ -555,7 +555,7 @@ make_lock_file_name (Lisp_Object fn)
   return Qnil;
 #endif /* defined HAVE_ANDROID && !defined ANDROID_STUBIFY */
 
-  lock_file_name = call1 (Qmake_lock_file_name, fn);
+  lock_file_name = calln (Qmake_lock_file_name, fn);
 
   return !NILP (lock_file_name) ? ENCODE_FILE (lock_file_name) : Qnil;
 }
@@ -605,7 +605,7 @@ lock_file (Lisp_Object fn)
       && NILP (Fverify_visited_file_modtime (subject_buf))
       && !NILP (Ffile_exists_p (fn))
       && !(!NILP (lfname) && current_lock_owner (NULL, lfname) == I_OWN_IT))
-    call1 (intern ("userlock--ask-user-about-supersession-threat"), fn);
+    calln (intern ("userlock--ask-user-about-supersession-threat"), fn);
 
   /* Don't do locking if the user has opted out.  */
   if (!NILP (lfname))
@@ -623,7 +623,7 @@ lock_file (Lisp_Object fn)
 	  memmove (dot + replacementlen, dot + 1, pidlen);
 	  strcpy (dot + replacementlen + pidlen, ")");
 	  memcpy (dot, replacement, replacementlen);
-	  attack = call2 (intern ("ask-user-about-lock"), fn,
+	  attack = calln (intern ("ask-user-about-lock"), fn,
 			  build_string (lock_info.user));
 	  /* Take the lock if the user said so.  */
 	  if (!NILP (attack))
@@ -653,7 +653,7 @@ unlock_file (Lisp_Object fn)
 static Lisp_Object
 unlock_file_handle_error (Lisp_Object err)
 {
-  call1 (intern ("userlock--handle-unlock-error"), err);
+  calln (intern ("userlock--handle-unlock-error"), err);
   return Qnil;
 }
 
@@ -690,7 +690,7 @@ whether to modify FILE.  */)
   Lisp_Object handler;
   handler = Ffind_file_name_handler (file, Qlock_file);
   if (!NILP (handler))
-    return call2 (handler, Qlock_file, file);
+    return calln (handler, Qlock_file, file);
 
   lock_file (file);
 #endif	/* MSDOS */
@@ -710,7 +710,7 @@ DEFUN ("unlock-file", Funlock_file, Sunlock_file, 1, 1, 0,
   handler = Ffind_file_name_handler (file, Qunlock_file);
   if (!NILP (handler))
     {
-      call2 (handler, Qunlock_file, file);
+      calln (handler, Qunlock_file, file);
       return Qnil;
     }
 
@@ -786,7 +786,7 @@ t if it is locked by you, else a string saying which user has locked it.  */)
   handler = Ffind_file_name_handler (filename, Qfile_locked_p);
   if (!NILP (handler))
     {
-      return call2 (handler, Qfile_locked_p, filename);
+      return calln (handler, Qfile_locked_p, filename);
     }
 
   Lisp_Object lfname = make_lock_file_name (filename);

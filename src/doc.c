@@ -358,7 +358,7 @@ string is passed through `substitute-command-keys'.  */)
     xsignal1 (Qvoid_function, function);
   if (CONSP (fun) && EQ (XCAR (fun), Qmacro))
     fun = XCDR (fun);
-  doc = call1 (Qfunction_documentation, fun);
+  doc = calln (Qfunction_documentation, fun);
 
   /* If DOC is 0, it's typically because of a dumped file missing
      from the DOC file (bug in src/Makefile.in).  */
@@ -383,7 +383,7 @@ string is passed through `substitute-command-keys'.  */)
     }
 
   if (NILP (raw))
-    doc = call1 (Qsubstitute_command_keys, doc);
+    doc = calln (Qsubstitute_command_keys, doc);
   return doc;
 }
 
@@ -459,7 +459,7 @@ aren't strings.  */)
     tem = Feval (tem, Qnil);
 
   if (NILP (raw) && STRINGP (tem))
-    tem = call1 (Qsubstitute_command_keys, tem);
+    tem = calln (Qsubstitute_command_keys, tem);
   return tem;
 }
 

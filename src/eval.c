@@ -613,7 +613,7 @@ usage: (function ARG)  */)
         return Fmake_interpreted_closure
             (args, cdr, Vinternal_interpreter_environment, docstring, iform);
       else
-        return call5 (Vinternal_make_interpreted_closure_function,
+        return calln (Vinternal_make_interpreted_closure_function,
                       args, cdr, Vinternal_interpreter_environment,
                       docstring, iform);
     }
@@ -690,7 +690,7 @@ signal a `cyclic-variable-indirection' error.  */)
 			      " to `%s'");
       formatted = CALLN (Fformat_message, message,
 			 new_alias, base_variable);
-      call2 (Qdisplay_warning,
+      calln (Qdisplay_warning,
 	     list3 (Qdefvaralias, Qlosing_value, new_alias),
 	     formatted);
     }
@@ -1860,7 +1860,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
       /* FIXME: 'handler-bind' makes `signal-hook-function' obsolete?  */
       /* FIXME: Here we still "split" the error object
          into its error-symbol and its error-data?  */
-      call2 (Vsignal_hook_function, error_symbol, data);
+      calln (Vsignal_hook_function, error_symbol, data);
       unbind_to (count, Qnil);
     }
 
@@ -1900,7 +1900,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
 	        max_ensure_room (20);
 	        push_handler (make_fixnum (skip + h->bytecode_dest),
 	                      SKIP_CONDITIONS);
-	        call1 (h->val, error);
+	        calln (h->val, error);
 	        unbind_to (count, Qnil);
 	        pop_handler ();
 	      }
@@ -2284,7 +2284,7 @@ then strings and vectors are not accepted.  */)
      a type-specific interactive-form.  */
   if (genfun)
     {
-      Lisp_Object iform = call1 (Qinteractive_form, fun);
+      Lisp_Object iform = calln (Qinteractive_form, fun);
       return NILP (iform) ? Qnil : Qt;
     }
   else
@@ -3890,11 +3890,11 @@ backtrace_frame_apply (Lisp_Object function, union specbinding *pdl)
     flags = list2 (QCdebug_on_exit, Qt);
 
   if (backtrace_nargs (pdl) == UNEVALLED)
-    return call4 (function, Qnil, backtrace_function (pdl), *backtrace_args (pdl), flags);
+    return calln (function, Qnil, backtrace_function (pdl), *backtrace_args (pdl), flags);
   else
     {
       Lisp_Object tem = Flist (backtrace_nargs (pdl), backtrace_args (pdl));
-      return call4 (function, Qt, backtrace_function (pdl), tem, flags);
+      return calln (function, Qt, backtrace_function (pdl), tem, flags);
     }
 }
 

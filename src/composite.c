@@ -475,7 +475,7 @@ run_composition_function (ptrdiff_t from, ptrdiff_t to, Lisp_Object prop)
       && !composition_valid_p (start, end, prop))
     to = end;
   if (!NILP (Ffboundp (func)))
-    call2 (func, make_fixnum (from), make_fixnum (to));
+    calln (func, make_fixnum (from), make_fixnum (to));
 }
 
 /* Make invalid compositions adjacent to or inside FROM and TO valid.

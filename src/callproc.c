@@ -914,7 +914,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
       /* If the caller required, let the buffer inherit the
 	 coding-system used to decode the process output.  */
       if (inherit_process_coding_system)
-	call1 (Qafter_insert_file_set_buffer_file_coding_system,
+	calln (Qafter_insert_file_set_buffer_file_coding_system,
 	       make_fixnum (total_read));
     }
 

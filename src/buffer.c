@@ -503,7 +503,7 @@ See also `find-buffer-visiting'.  */)
   handler = Ffind_file_name_handler (filename, Qget_file_buffer);
   if (!NILP (handler))
     {
-      Lisp_Object handled_buf = call2 (handler, Qget_file_buffer,
+      Lisp_Object handled_buf = calln (handler, Qget_file_buffer,
 				       filename);
       return BUFFERP (handled_buf) ? handled_buf : Qnil;
     }
@@ -558,7 +558,7 @@ run_buffer_list_update_hook (struct buffer *buf)
 {
   eassert (buf);
   if (! (NILP (Vrun_hooks) || buf->inhibit_buffer_hooks))
-    call1 (Vrun_hooks, Qbuffer_list_update_hook);
+    calln (Vrun_hooks, Qbuffer_list_update_hook);
 }
 
 DEFUN ("get-buffer-create", Fget_buffer_create, Sget_buffer_create, 1, 2, 0,
@@ -1707,8 +1707,7 @@ This does not change the name of the visited file (if any).  */)
 
   run_buffer_list_update_hook (current_buffer);
 
-  call2 (Quniquify__rename_buffer_advice,
-         requestedname, unique);
+  calln (Quniquify__rename_buffer_advice, requestedname, unique);
 
   /* Refetch since that last call may have done GC.  */
   return BVAR (current_buffer, name);
@@ -1748,7 +1747,7 @@ exists, return the buffer `*scratch*' (creating it if necessary).  */)
       if (candidate_buffer (buf, buffer)
 	  /* If the frame has a buffer_predicate, disregard buffers that
 	     don't fit the predicate.  */
-	  && (NILP (pred) || !NILP (call1 (pred, buf))))
+	  && (NILP (pred) || !NILP (calln (pred, buf))))
 	{
 	  if (!NILP (visible_ok)
 	      || NILP (Fget_buffer_window (buf, Qvisible)))
@@ -1764,7 +1763,7 @@ exists, return the buffer `*scratch*' (creating it if necessary).  */)
       if (candidate_buffer (buf, buffer)
 	  /* If the frame has a buffer_predicate, disregard buffers that
 	     don't fit the predicate.  */
-	  && (NILP (pred) || !NILP (call1 (pred, buf))))
+	  && (NILP (pred) || !NILP (calln (pred, buf))))
 	{
 	  if (!NILP (visible_ok)
 	      || NILP (Fget_buffer_window (buf, Qvisible)))
@@ -1935,7 +1934,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
       {
 	/* Ask whether to kill the buffer, and exit if the user says
 	   "no".  */
-	if (NILP (call1 (Qkill_buffer__possibly_save, buffer)))
+	if (NILP (calln (Qkill_buffer__possibly_save, buffer)))
 	  return unbind_to (count, Qnil);
 	/* Recheck modified.  */
 	modified = BUF_MODIFF (b) > BUF_SAVE_MODIFF (b);
@@ -4180,9 +4179,9 @@ call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay, bool after,
   while (CONSP (list))
     {
       if (NILP (arg3))
-	call4 (XCAR (list), overlay, after ? Qt : Qnil, arg1, arg2);
+	calln (XCAR (list), overlay, after ? Qt : Qnil, arg1, arg2);
       else
-	call5 (XCAR (list), overlay, after ? Qt : Qnil, arg1, arg2, arg3);
+	calln (XCAR (list), overlay, after ? Qt : Qnil, arg1, arg2, arg3);
       list = XCDR (list);
     }
 }

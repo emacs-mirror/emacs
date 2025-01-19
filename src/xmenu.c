@@ -1431,7 +1431,7 @@ menu_position_func (GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer
 #endif
   /* TODO: Get the monitor workarea directly without calculating other
      items in x-display-monitor-attributes-list. */
-  workarea = call3 (Qframe_monitor_workarea,
+  workarea = calln (Qframe_monitor_workarea,
                     Qnil,
                     make_fixnum (data->x),
                     make_fixnum (data->y));

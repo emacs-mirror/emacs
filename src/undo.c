@@ -358,7 +358,7 @@ truncate_undo_list (struct buffer *b)
       Lisp_Object tem;
 
       /* Normally the function this calls is undo-outer-limit-truncate.  */
-      tem = call1 (Vundo_outer_limit_function, make_int (size_so_far));
+      tem = calln (Vundo_outer_limit_function, make_int (size_so_far));
       if (! NILP (tem))
 	{
 	  /* The function is responsible for making

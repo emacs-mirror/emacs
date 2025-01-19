@@ -4850,7 +4850,7 @@ extern bool signal_quit_p (Lisp_Object);
    The calling convention:
 
    if (!NILP (Vrun_hooks))
-     call1 (Vrun_hooks, Qmy_funny_hook);
+     calln (Vrun_hooks, Qmy_funny_hook);
 
    should no longer be used.  */
 extern void run_hook (Lisp_Object);
