@@ -3670,7 +3670,7 @@ get_nearby_bol_pos (ptrdiff_t pos)
   for (dist = 500; dist <= 500000; dist *= 10)
     {
       pos_bytepos = pos == BEGV ? BEGV_BYTE : CHAR_TO_BYTE (pos);
-      start = pos - dist < BEGV ? BEGV : pos - dist;
+      start = max (pos - dist, BEGV);
       for (cur = start; cur < pos; cur = next)
 	{
 	  next = find_newline1 (cur, CHAR_TO_BYTE (cur),
@@ -3684,7 +3684,7 @@ get_nearby_bol_pos (ptrdiff_t pos)
       if (bol >= BEGV || start == BEGV)
 	break;
       else
-	pos = pos - dist < BEGV ? BEGV : pos - dist;
+	pos = max (pos - dist, BEGV);
     }
   eassert (bol <= init_pos);
   return bol;

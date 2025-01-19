@@ -1782,8 +1782,7 @@ Some window managers may refuse to restack windows.  */)
 #define PATH_FOR_CLASS_TYPE "/org/gnu/emacs/defaults-by-class/"
 #define PATH_PREFIX_FOR_NAME_TYPE "/org/gnu/emacs/defaults-by-name/"
 #define PATH_MAX_LEN \
-  (sizeof PATH_FOR_CLASS_TYPE > sizeof PATH_PREFIX_FOR_NAME_TYPE ? \
-   sizeof PATH_FOR_CLASS_TYPE : sizeof PATH_PREFIX_FOR_NAME_TYPE)
+  (max (sizeof PATH_FOR_CLASS_TYPE, sizeof PATH_PREFIX_FOR_NAME_TYPE))
 
 static inline int
 pgtk_is_lower_char (int c)
