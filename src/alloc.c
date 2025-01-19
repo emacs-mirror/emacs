@@ -8388,6 +8388,11 @@ syms_of_alloc (void)
 {
   DEFVAR_INT ("gc-cons-threshold", gc_cons_threshold,
 	      doc: /* Number of bytes of consing between garbage collections.
+
+If Emacs is built with the new MPS-based garbage collector, this
+variable has no effect.  With the traditional garbage collector, the
+effects of this variable are described below.
+
 Garbage collection can happen automatically once this many bytes have been
 allocated since the last garbage collection.  All data types count.
 
@@ -8402,6 +8407,11 @@ See also `gc-cons-percentage'.  */);
 
   DEFVAR_LISP ("gc-cons-percentage", Vgc_cons_percentage,
 	       doc: /* Portion of the heap used for allocation.
+
+If Emacs is built with the new MPS-based garbage collector, this
+variable has no effect.  With the traditional garbage collector, the
+effects of this variable are described below.
+
 Garbage collection can happen automatically once this portion of the heap
 has been allocated since the last garbage collection.
 
