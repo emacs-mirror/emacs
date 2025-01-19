@@ -5036,22 +5036,29 @@ AC_SUBST([LCMS2_LIBS])
 
 HAVE_ZLIB=no
 LIBZ=
-if test "${with_zlib}" != "no"; then
-  OLIBS=$LIBS
-  AC_SEARCH_LIBS([inflateEnd], [z], [HAVE_ZLIB=yes])
-  LIBS=$OLIBS
-  case $ac_cv_search_inflateEnd in
-    -*) LIBZ=$ac_cv_search_inflateEnd ;;
-  esac
-fi
-if test "${HAVE_ZLIB}" = "yes"; then
-  AC_DEFINE([HAVE_ZLIB], [1],
-    [Define to 1 if you have the zlib library (-lz).])
-  ### mingw32 doesn't use -lz, since it loads the library dynamically.
-  if test "${opsys}" = "mingw32"; then
-     LIBZ=
-  fi
-fi
+AS_IF([test "${with_zlib}" != "no"],
+  [AC_CACHE_CHECK([for library containing inflateEnd],
+     [emacs_cv_libz],
+     [AC_LANG_CONFTEST([AC_LANG_PROGRAM([[#include <zlib.h>
+					  z_stream stream;]],
+					[[return inflateEnd (&stream);]])])
+      OLIBS=$LIBS
+      for emacs_cv_libz in '' -lz no; do
+	test "$emacs_cv_libz" = no && break
+	LIBS="$emacs_cv_libz $OLIBS"
+	AC_LINK_IFELSE([], [break])
+      done
+      LIBS=$OLIBS])
+
+   AS_CASE([$emacs_cv_libz],
+     [-* | ''],
+       [# mingw32 doesn't use -lz, since it loads the library dynamically.
+	AS_CASE([$opsys],
+	  [mingw32], [LIBZ=],
+	  [LIBZ=$emacs_cv_libz])
+	HAVE_ZLIB=yes
+	AC_DEFINE([HAVE_ZLIB], [1],
+	  [Define to 1 if you have the zlib library (-lz).])])])
 AC_SUBST([LIBZ])
 
 ### Dynamic library support
