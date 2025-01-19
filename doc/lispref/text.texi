@@ -6020,7 +6020,7 @@ subclass, see @ref{Inheritance,Inheritance,,eieio}.).  Users of the
 application-building interface can then instantiate objects of this
 concrete class (using the @code{make-instance} function) and connect
 to JSONRPC endpoints using that strategy.  @xref{Process-based
-JSONRPC connections} for a built-in transport implementation.
+JSONRPC connections}, for a built-in transport implementation.
 
 This API has mandatory and optional parts.
 

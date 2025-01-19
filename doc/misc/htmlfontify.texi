@@ -828,7 +828,7 @@ If @var{class} is @code{nil}, then you just get whatever
 @code{face-attr-construct} returns; i.e., the current specification in
 effect for @var{face}.
 
-@xref{hfy-display-class} for details of valid values for @var{class}.
+@xref{hfy-display-class}, for details of valid values for @var{class}.
 
 @item hfy-face-at
 @findex hfy-face-at

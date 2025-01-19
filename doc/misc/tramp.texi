@@ -854,7 +854,7 @@ as the @option{rsh} method.
 Instead of connecting to a remote host, @command{su} program allows
 editing as another user.  The host can be either @samp{localhost} or
 the host returned by the function @command{(system-name)}.
-@xref{Multi-hops} for an exception to this behavior.
+@xref{Multi-hops}, for an exception to this behavior.
 
 @cindex method @option{androidsu}
 @cindex @option{androidsu} method
@@ -907,7 +907,7 @@ This is an optional method, @pxref{Optional methods}.
 The @command{sg} program allows editing as different group.  The host
 can be either @samp{localhost} or the host returned by the function
 @command{(system-name)}.  The user name must be specified, but it
-denotes a group name.  @xref{Multi-hops} for an exception to this
+denotes a group name.  @xref{Multi-hops}, for an exception to this
 behavior.
 
 @cindex method @option{sshx}
@@ -1566,7 +1566,7 @@ remote file name, it is ignored.
 
 Access via @option{rclone} is slow.  If you have an alternative method
 for accessing the system storage, you should use it.
-@xref{GVFS-based methods} for example, methods @option{gdrive} and
+For example, see @ref{GVFS-based methods}, methods @option{gdrive} and
 @option{nextcloud}.
 
 @cindex method @option{sshfs}
@@ -2536,7 +2536,7 @@ connection information}.  If you want, for example, use
 
 This works only for connection methods which allow overriding the
 remote login shell, like @option{sshx} or @option{plink}.
-@xref{Inline methods} and @ref{External methods} for connection methods
+@xref{Inline methods}, and @ref{External methods}, for connection methods
 which support this.
 
 @vindex tramp-sh-extra-args
@@ -5446,7 +5446,7 @@ another value for @env{TERM}, change @code{tramp-terminal-type} and
 this line accordingly.
 
 Alternatively, you can set the remote login shell explicitly.
-@xref{Remote shell setup} for discussion of this technique,
+@xref{Remote shell setup}, for discussion of this technique,
 
 When using fish shell on remote hosts, disable fancy formatting by
 adding the following to @file{~/.config/fish/config.fish}:

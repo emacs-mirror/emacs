@@ -30811,7 +30811,7 @@ embedded in a @TeX{} or @LaTeX{} document its plain version will be
 invisible in the final printed copy.  Certain major modes have different
 delimiters to ensure that the ``plain'' version will be
 in a comment for those modes, also.
-@xref{Customizing Embedded Mode} to see how to change the ``plain''
+@xref{Customizing Embedded Mode}, to see how to change the ``plain''
 formula delimiters.
 
 There are several notations which Calc's parser for ``big''
@@ -35323,8 +35323,8 @@ also be reset by putting the appropriate lines in your .emacs file;
 
 Some of the customizable variables are regular expressions.  A regular
 expression is basically a pattern that Calc can search for.
-@xref{Regexp Search,, Regular Expression Search, emacs, The GNU Emacs Manual}
-to see how regular expressions work.
+@xref{Regexp Search,, Regular Expression Search, emacs, The GNU Emacs
+Manual}, to see how regular expressions work.
 
 @defvar calc-settings-file
 The variable @code{calc-settings-file} holds the file name in

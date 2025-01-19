@@ -121,7 +121,7 @@ or add
 into a language hook function to force it on (which is the default) or
 pass in @code{-1} to force it off.
 
-@xref{SRecode Minor Mode} for more on using the minor mode.
+@xref{SRecode Minor Mode}, for more on using the minor mode.
 
 Use the menu to insert templates into the current file.
 
@@ -238,7 +238,7 @@ template such as a function to be made specific, such as a function
 named foo.  The value of a variable can be one of three things; a
 string, a list of more dictionaries, or a special
 @code{srecode-dictionary-compound-value} object subclass.
-@xref{Variables} for more.
+@xref{Variables}, for more about this.
 
 @section Template Insertion
 The template insertion layer involves extensions to the basic template
@@ -590,7 +590,7 @@ the variable is an @EIEIO{} object, which is a subclass of
 @code{srecode-dictionary-compound-value}.
 
 New compound variables can only be setup from Lisp code.
-@xref{Compound Dictionary Values} for details on setting up compound
+@xref{Compound Dictionary Values}, for details on setting up compound
 variables from Lisp.
 
 @node Templates
