@@ -554,7 +554,7 @@ PROPERTIES is a list of file properties (strings)."
      (lambda (key)
        (and (tramp-file-name-p key)
 	    (null (tramp-file-name-localname key))
-	    (tramp-connection-property-p key " process-buffer")
+	    (tramp-connection-property-p key " connected")
 	    key))
      (hash-table-keys tramp-cache-data))))
 
