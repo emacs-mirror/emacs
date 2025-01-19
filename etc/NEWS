@@ -95,9 +95,10 @@ instead of its now-obsolete variable.
 *** NSM warns about TLS 1.1 by default.
 It has been deprecated by RFC8996, published in 2021.
 
-*** NSM warns about DHE key exchange by default.
-Emacs now warns about ephemeral Diffie-Hellman key exchanges also when
-'network-security-level' is customized to its default 'medium' value.
+*** NSM warns about DHE and RSA key exchange by default.
+Emacs now warns about ephemeral Diffie-Hellman key exchange, and static
+RSA key exchange, also when 'network-security-level' is customized to
+its default 'medium' value.
 
 ** Etags
 
