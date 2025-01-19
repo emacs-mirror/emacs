@@ -3513,15 +3513,6 @@ enum maxargs
    'Finsert (1, &text);'.  */
 #define CALLN(f, ...) CALLMANY (f, ((Lisp_Object []) {__VA_ARGS__}))
 #define calln(...) CALLN (Ffuncall, __VA_ARGS__)
-/* Compatibility aliases.  */
-#define call1 calln
-#define call2 calln
-#define call3 calln
-#define call4 calln
-#define call5 calln
-#define call6 calln
-#define call7 calln
-#define call8 calln
 
 /* Define 'call0' as a function rather than a CPP macro because we
    sometimes want to pass it as a first class function.  */
