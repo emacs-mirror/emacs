@@ -2552,7 +2552,7 @@ struct Lisp_Hash_Table;
    It's unsigned and a subtype of EMACS_UINT.  */
 typedef unsigned int hash_hash_t;
 
-typedef enum {
+typedef enum hash_table_std_test_t {
   Test_eql,
   Test_eq,
   Test_equal,
@@ -2576,7 +2576,7 @@ struct hash_table_test
   Lisp_Object name;
 };
 
-typedef enum {
+typedef enum hash_table_weakness_t {
   Weak_None,		 /* No weak references.  */
   Weak_Key,		 /* Reference to key is weak.  */
   Weak_Value,		 /* Reference to value is weak.  */
