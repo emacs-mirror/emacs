@@ -1164,7 +1164,8 @@ functions.
 
   If you define a function which is side-effect free or pure, give it
 a non-@code{nil} @code{side-effect-free} or @code{pure} property,
-respectively (@pxref{Standard Properties}).
+respectively (@pxref{Standard Properties}).  See the lists defined in
+@samp{byte-opt.el}.
 
 @node Writing Dynamic Modules
 @section Writing Dynamically-Loaded Modules
