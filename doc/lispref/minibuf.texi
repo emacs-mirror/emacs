@@ -1890,7 +1890,7 @@ The function to add prefixes and suffixes to completions.
 @end table
 
 @noindent
-See @ref{Programmed Completion}, for a complete list of metadata entries.
+@xref{Programmed Completion}, for a complete list of metadata entries.
 @end defopt
 
 @defvar completion-extra-properties

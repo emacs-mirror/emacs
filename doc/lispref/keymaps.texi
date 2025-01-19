@@ -1046,8 +1046,8 @@ When more than one minor mode keymap is active, the earlier one in
 minor modes so that they don't interfere with each other.  If you do
 this properly, the order will not matter.
 
-See @ref{Keymaps and Minor Modes}, for more information about minor
-modes.  See also @code{minor-mode-key-binding} (@pxref{Functions for Key
+@xref{Keymaps and Minor Modes}, for more information about minor modes.
+See also @code{minor-mode-key-binding} (@pxref{Functions for Key
 Lookup}).
 @end defvar
 
@@ -1204,7 +1204,7 @@ and @var{command} is its binding.  @xref{What Is a Function}.
 @cindex string in keymap
 The array (either a string or a vector) is a keyboard macro.  The events
 used so far in the lookup form a complete key, and the array is its
-binding.  See @ref{Keyboard Macros}, for more information.
+binding.  @xref{Keyboard Macros}, for more information.
 
 @item @var{keymap}
 @cindex keymap in keymap
