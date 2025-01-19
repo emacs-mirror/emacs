@@ -4747,10 +4747,11 @@ by calling `format-decode', which see.  */)
       goto handled;
     }
 
-  if (seekable || !NILP (end))
+  /* Don't believe st.st_size if it is zero.  */
+  if ((regular && st.st_size > 0) || (!regular && seekable) || !NILP (end))
     total = end_offset - beg_offset;
   else
-    /* For a special file, all we can do is guess.  */
+    /* For a special file that is not seekable, all we can do is guess.  */
     total = READ_BUF_SIZE;
 
   if (NILP (visit) && total > 0)
