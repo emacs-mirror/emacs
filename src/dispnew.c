@@ -3533,8 +3533,14 @@ first_enabled_row (struct glyph_matrix *matrix)
    to the terminal.  */
 
 static void
-make_matrix_current (struct frame *f, bool mirror)
+make_matrix_current (struct frame *f)
 {
+  /* We don't want to mirror changes in window matrices
+     while terminal matrices are in use.  Doing so would
+     result in window matrices containing pointers to one
+     of the terminal glyph pools.  */
+  bool mirror = f->desired_matrix != f->terminal_desired_matrix;
+
   int first_row = first_enabled_row (f->desired_matrix);
   if (first_row >= 0)
     for (int i = first_row; i < f->desired_matrix->nrows; ++i)
@@ -3722,7 +3728,7 @@ copy_child_glyphs (struct frame *root, struct frame *child)
     return;
 
   /* Build CHILD's current matrix which we need to copy from it.  */
-  make_matrix_current (child, true);
+  make_matrix_current (child);
 
   /* Draw borders around the child frame.  */
   if (!FRAME_UNDECORATED (child))
@@ -4105,20 +4111,31 @@ unwind_restore_matrices (Lisp_Object root_frame)
     {
       root->current_matrix = root->frame_current_matrix;
       root->desired_matrix = root->frame_desired_matrix;
-      make_matrix_current (root, true);
+      make_matrix_current (root);
     }
 }
 
 /* Decide if we should switch to terminal matrices or not.  ROOT is the
-   frame, and Z_ORDER is the list of visible child frame on ROOT.  We
-   switch to terminal frames once a child frame has been used.  We never
-   switch back because once a child frame has been used, it will likely
-   happen again, so we avoid the additional complexity of implementing
-   the switching back to frame matrices.  */
+   frame, and Z_ORDER is a list of visible child frame on ROOT. If
+   Z_ORDER is nil, this function computes it.
 
-static void
-choose_frame_or_terminal_matrices (struct frame *root, Lisp_Object z_order)
+   We switch to terminal frames once a child frame has been used.  We
+   never switch back because once a child frame has been used, it will
+   likely happen again, so we avoid the additional complexity of
+   implementing the switching back to frame matrices.
+
+   Value is a specpdl_ref to which you have to unbind_to when you once
+   you are done working with current and/or desired matrices of ROOT. */
+
+specpdl_ref
+with_frame_or_terminal_matrices (struct frame *root, Lisp_Object z_order)
 {
+  eassert (is_tty_root_frame (root));
+  specpdl_ref count = SPECPDL_INDEX ();
+
+  if (NILP (z_order))
+    z_order = frames_in_reverse_z_order (root, true);
+
   const bool visible_child = CONSP (XCDR (z_order));
   if (visible_child && !is_using_terminal_matrices (root))
     {
@@ -4142,6 +4159,8 @@ choose_frame_or_terminal_matrices (struct frame *root, Lisp_Object z_order)
       XSETFRAME (root_frame, root);
       record_unwind_protect (unwind_restore_matrices, root_frame);
     }
+
+  return count;
 }
 
 /* Combine updates of all frames on the root frame of F.
@@ -4178,12 +4197,11 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
 {
   struct frame *root = root_frame (f);
   eassert (FRAME_VISIBLE_P (root));
-  specpdl_ref count = SPECPDL_INDEX ();
 
   /* Get the list of visible frames in reverse z-order, and
      decide if we need to switch to terminal frames.  */
   Lisp_Object z_order = frames_in_reverse_z_order (root, true);
-  choose_frame_or_terminal_matrices (root, z_order);
+  specpdl_ref count = with_frame_or_terminal_matrices (root, z_order);
 
   /* If using terminal matrices, copy the desired frame matrix
      to the desired terminal matrix because we will use that as
@@ -4202,7 +4220,7 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
 
   update_begin (root);
   write_matrix (root, inhibit_scrolling, 1, false);
-  make_matrix_current (root, !is_using_terminal_matrices (root));
+  make_matrix_current (root);
   update_end (root);
 
   /* If a child is displayed, and the cursor is displayed in another
@@ -4289,7 +4307,7 @@ update_frame_with_menu (struct frame *f, int row, int col)
   /* Do not stop due to pending input, and do not try scrolling.  This
      means that write_glyphs will always return false.  */
   write_matrix (f, 1, cursor_at_point_p, true);
-  make_matrix_current (f, true);
+  make_matrix_current (f);
   clear_desired_matrices (f);
   /* ROW and COL tell us where in the menu to position the cursor, so
      that screen readers know the active region on the screen.  */

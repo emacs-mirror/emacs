@@ -3957,6 +3957,9 @@ void combine_updates (Lisp_Object root_frames);
 void combine_updates_for_frame (struct frame *f, bool inhibit_id_p);
 void tty_raise_lower_frame (struct frame *f, bool raise);
 int max_child_z_order (struct frame *parent);
+specpdl_ref
+with_frame_or_terminal_matrices (struct frame *root,
+				   Lisp_Object z_order);
 
 INLINE_HEADER_END
 
