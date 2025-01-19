@@ -1735,7 +1735,6 @@ xg_create_frame_widgets (struct frame *f)
   g_signal_connect (wtop, "query-tooltip", G_CALLBACK (qttip_cb), f);
 
   imc = gtk_im_multicontext_new ();
-  g_object_ref (imc);
   gtk_im_context_set_use_preedit (imc, TRUE);
 
   g_signal_connect (G_OBJECT (imc), "commit",
