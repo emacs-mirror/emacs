@@ -2018,9 +2018,9 @@ GLYPH_CODE_P (Lisp_Object gc)
 	     && RANGED_FIXNUMP (0, XCDR (gc), MAX_FACE_ID))
 	  : (RANGED_FIXNUMP
 	     (0, gc,
-	      (MAX_FACE_ID < TYPE_MAXIMUM (EMACS_INT) >> CHARACTERBITS
+	      (MAX_FACE_ID < EMACS_INT_MAX >> CHARACTERBITS
 	       ? ((EMACS_INT) MAX_FACE_ID << CHARACTERBITS) | MAX_CHAR
-	       : TYPE_MAXIMUM (EMACS_INT)))));
+	       : EMACS_INT_MAX))));
 }
 
 /* True means face attributes have been changed since the last
