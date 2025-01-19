@@ -84,13 +84,13 @@ capabilities, and only when that terminal understands bracketed paste."
   "Characters sent by the terminal to end a bracketed paste.")
 
 (defconst xterm--auto-xt-mouse-allowed-names
-  (mapconcat (lambda (s) (concat "^" s "\\>"))
-             '("Konsole"
-               "WezTerm"
-               ;; "XTerm"   ;Disabled because OSC52 support is opt-in only.
-               "iTerm2"     ;OSC52 support has opt-in/out UI on first usage
-               "kitty")
-             "\\|")
+  (rx string-start
+      (or "Konsole"
+          "WezTerm"
+          ;; "XTerm"   ;Disabled because OSC52 support is opt-in only.
+          "iTerm2"     ;OSC52 support has opt-in/out UI on first usage
+          "kitty")
+      word-end)
   "Regexp for terminals that automatically enable `xterm-mouse-mode' at startup.
 This will get matched against the terminal's XTVERSION string.
 
@@ -105,14 +105,16 @@ functionality:
 \"Mouse motion mode\" (DECSET1003): Allows Emacs to get event on mouse
     motion.
 
-Also see `xterm--auto-xt-mouse-allowed-types' which mtches against the
-value of TERM instead.")
+Also see `xterm--auto-xt-mouse-allowed-types' which matches against the
+value of TERM instead.  If either `xterm--auto-xt-mouse-allowed-names'
+or `xterm--auto-xt-mouse-allowed-types' matches, then `xterm-mouse-mode'
+will get enabled automatically.")
 
 (defconst xterm--auto-xt-mouse-allowed-types
-  (mapconcat (lambda (s) (concat "^" s "$"))
-             '("alacritty"
-               "contour")
-             "\\|")
+  (rx string-start
+      (or "alacritty"
+          "contour")
+      string-end)
   "Like `xterm--auto-xt-mouse-allowed-names', but for the terminal's type.
 This will get matched against the environment variable \"TERM\".")
 
