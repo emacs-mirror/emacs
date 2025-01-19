@@ -1375,13 +1375,14 @@ prototypes from signatures.")
                (optional
                 (sequence
                  (0+ (sequence ,cperl--ws*-rx
-                               ,cperl--basic-scalar-rx
+                               (or ,cperl--basic-scalar-rx "$")
                                ,cperl--ws*-rx
                                ","))
                  ,cperl--ws*-rx
                  (or ,cperl--basic-scalar-rx
                      ,cperl--basic-array-rx
-                     ,cperl--basic-hash-rx)))
+                     ,cperl--basic-hash-rx
+                     "$" "%" "@")))
                (optional (sequence ,cperl--ws*-rx) "," )
                ,cperl--ws*-rx
                ")")
@@ -4416,8 +4417,8 @@ recursive calls in starting lines of here-documents."
                      (opt (group (eval cperl--normal-identifier-rx))) ; #13
                      (eval cperl--ws*-rx)
                      (group (or (group (eval cperl--prototype-rx))    ; #14,#15
-                                ;; (group (eval cperl--signature-rx))    ; #16
-                                (group unmatchable) ; #16
+                                (group (eval cperl--signature-rx))    ; #16
+                                ;; (group unmatchable) ; #16
                                 (group (or anything buffer-end)))))) ; #17
 		"\\|"
                 ;; -------- weird variables, capture group 18
@@ -5312,7 +5313,7 @@ recursive calls in starting lines of here-documents."
 		;; match-string 13: Name of the subroutine (optional)
                 ;; match-string 14: Indicator for proto/attr/signature
                 ;; match-string 15: Prototype
-                ;; match-string 16: unused
+                ;; match-string 16: Subroutine signature
                 ;; match-string 17: Distinguish declaration/definition
                 (setq b1 (match-beginning 13) e1 (match-end 13))
 		(if (memq (char-after (1- b))
@@ -5328,9 +5329,18 @@ recursive calls in starting lines of here-documents."
 			(forward-comment (buffer-size))
 			(cperl-find-sub-attrs st-l b1 e1 b))
 		    ;; treat attributes without prototype and incomplete stuff
-		    (goto-char (match-beginning 17))
-		    (cperl-find-sub-attrs st-l b1 e1 b))))
-	       ;; 1+6+2+1+1+6+1=18 extra () before this:
+                    (if (match-beginning 16) ; a complete subroutine signature
+                        ;; A signature ending in "$)" must not be
+                        ;; mistaken as the punctuation variable $) which
+                        ;; messes up balance of parens (Bug#74245).
+                        (progn
+                          (when (= (char-after (- (match-end 16) 2)) ?$)
+                            (put-text-property (- (match-end 16) 2) (1- (match-end 16))
+                                               'syntax-table cperl-st-punct))
+                          (goto-char (match-end 16)))
+		      (goto-char (match-beginning 17))
+		      (cperl-find-sub-attrs st-l b1 e1 b)))))
+	        ;; 1+6+2+1+1+6+1=18 extra () before this:
 	       ;;    "\\(\\<sub[ \t\n\f]+\\|[&*$@%]\\)[a-zA-Z0-9_]*'")
 	       ((match-beginning 19)	; old $abc'efg syntax
 		(setq bb (match-end 0))

@@ -2518,8 +2518,7 @@ idleness.  Here's an example:
 @cindex terminal input
 
   This section describes functions and variables for recording or
-manipulating terminal input.  See @ref{Display}, for related
-functions.
+manipulating terminal input.  @xref{Display}, for related functions.
 
 @menu
 * Input Modes::         Options for how input is processed.

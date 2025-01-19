@@ -402,7 +402,7 @@ frame_windows_min_size (Lisp_Object frame, Lisp_Object horizontal,
 			      : FRAME_COLUMN_WIDTH (f)));
     }
   else
-    retval = XFIXNUM (call4 (Qframe_windows_min_size, frame, horizontal,
+    retval = XFIXNUM (calln (Qframe_windows_min_size, frame, horizontal,
 			     ignore, pixelwise));
 
   /* Don't allow too small height of text-mode frames, or else cm.c
@@ -891,7 +891,7 @@ adjust_frame_size (struct frame *f, int new_text_width, int new_text_height,
 #endif
     }
   else if (new_text_cols != old_text_cols)
-    call2 (Qwindow__pixel_to_total, frame, Qt);
+    calln (Qwindow__pixel_to_total, frame, Qt);
 
   if (new_inner_height != old_inner_height
       /* When the top margin has changed we have to recalculate the top
@@ -908,7 +908,7 @@ adjust_frame_size (struct frame *f, int new_text_width, int new_text_height,
 	  FrameRows (FRAME_TTY (f)) = new_text_lines + FRAME_TOP_MARGIN (f);
     }
   else if (new_text_lines != old_text_lines)
-    call2 (Qwindow__pixel_to_total, frame, Qnil);
+    calln (Qwindow__pixel_to_total, frame, Qnil);
 
   /* Assign new sizes.  */
   FRAME_COLS (f) = new_text_cols;
@@ -1154,7 +1154,7 @@ make_frame_without_minibuffer (Lisp_Object mini_window, KBOARD *kb,
 	  Lisp_Object initial_frame;
 
 	  /* If there's no minibuffer frame to use, create one.  */
-	  initial_frame = call1 (Qmake_initial_minibuffer_frame,
+	  initial_frame = calln (Qmake_initial_minibuffer_frame,
 				 display);
 	  kset_default_minibuffer_frame (kb, initial_frame);
 	}
@@ -1819,7 +1819,7 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
 	 non-active minibuffer.  */
       && NILP (Fminibufferp (XWINDOW (f->minibuffer_window)->contents, Qt)))
     {
-      Lisp_Object w = call1 (Qget_mru_window, frame);
+      Lisp_Object w = calln (Qget_mru_window, frame);
       if (WINDOW_LIVE_P (w)) /* W can be nil in minibuffer-only frames.  */
         Fset_frame_selected_window (frame, w, Qnil);
     }
@@ -2981,7 +2981,7 @@ mouse_position (bool call_mouse_position_function)
     lispy_dummy = Qnil;
   retval = Fcons (lispy_dummy, Fcons (x, y));
   if (call_mouse_position_function && !NILP (Vmouse_position_function))
-    retval = call1 (Vmouse_position_function, retval);
+    retval = calln (Vmouse_position_function, retval);
   return retval;
 }
 
@@ -3023,7 +3023,7 @@ Y.  */)
 
   retval = Fcons (lispy_dummy, Fcons (x, y));
   if (!NILP (Vmouse_position_function))
-    retval = call1 (Vmouse_position_function, retval);
+    retval = calln (Vmouse_position_function, retval);
   return retval;
 }
 
@@ -4483,7 +4483,7 @@ frame_float (struct frame *f, Lisp_Object val, enum frame_float_type what,
 	      Lisp_Object frame;
 
 	      XSETFRAME (frame, f);
-	      monitor_attributes = call1 (Qframe_monitor_attributes, frame);
+	      monitor_attributes = calln (Qframe_monitor_attributes, frame);
 	      if (NILP (monitor_attributes))
 		{
 		  /* No monitor attributes available.  */
@@ -4528,7 +4528,7 @@ frame_float (struct frame *f, Lisp_Object val, enum frame_float_type what,
 	  Lisp_Object frame, outer_edges;
 
 	  XSETFRAME (frame, f);
-	  outer_edges = call2 (Qframe_edges, frame, Qouter_edges);
+	  outer_edges = calln (Qframe_edges, frame, Qouter_edges);
 
 	  if (!NILP (outer_edges))
 	    {
@@ -6128,7 +6128,7 @@ On Nextstep, this just calls `ns-parse-geometry'.  */)
 
 #ifdef HAVE_NS
   if (strchr (SSDATA (string), ' ') != NULL)
-    return call1 (Qns_parse_geometry, string);
+    return calln (Qns_parse_geometry, string);
 #endif
   int geometry = XParseGeometry (SSDATA (string),
 				 &x, &y, &width, &height);
@@ -6540,7 +6540,7 @@ have changed.  */)
 
   /* Now call this to apply the existing value(s) of the `default'
      face.  */
-  call2 (Qface_set_after_frame_default, frame, params);
+  calln (Qface_set_after_frame_default, frame, params);
 
   /* Restore the value of the `font-parameter' parameter, as
      `face-set-after-frame-default' will have changed it through its

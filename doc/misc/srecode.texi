@@ -121,7 +121,7 @@ or add
 into a language hook function to force it on (which is the default) or
 pass in @code{-1} to force it off.
 
-See @ref{SRecode Minor Mode} for more on using the minor mode.
+@xref{SRecode Minor Mode}, for more on using the minor mode.
 
 Use the menu to insert templates into the current file.
 
@@ -169,7 +169,7 @@ Each template file you write is dedicated to a single major mode.  In
 it, you can write templates within the same context and with the same
 name as core templates.  You can force your templates to override the
 core templates for a particular major mode by setting the
-priority.  See @ref{Special Variables}.
+priority.  @xref{Special Variables}.
 
 To get going quickly, open a new @file{.srt} file.  It will start in
 the @srecode{} template writing mode.  Use the @srecode{} minor mode
@@ -237,8 +237,8 @@ used in macros in a template.  Variables are what allows a generic
 template such as a function to be made specific, such as a function
 named foo.  The value of a variable can be one of three things; a
 string, a list of more dictionaries, or a special
-@code{srecode-dictionary-compound-value} object subclass.  See
-@ref{Variables} for more.
+@code{srecode-dictionary-compound-value} object subclass.
+@xref{Variables}, for more about this.
 
 @section Template Insertion
 The template insertion layer involves extensions to the basic template
@@ -589,8 +589,8 @@ A variable can also have a compound value.  This means the value of
 the variable is an @EIEIO{} object, which is a subclass of
 @code{srecode-dictionary-compound-value}.
 
-New compound variables can only be setup from Lisp code.  See
-@ref{Compound Dictionary Values} for details on setting up compound
+New compound variables can only be setup from Lisp code.
+@xref{Compound Dictionary Values}, for details on setting up compound
 variables from Lisp.
 
 @node Templates
@@ -707,7 +707,7 @@ major mode.
 
 Template macros occur in the template text.  The default escape
 characters are ``@{@{`` and ``@}@}'', though they can be changed
-in the top-level variables.  See @ref{Variables}.
+in the top-level variables.  @xref{Variables}.
 
 Thus, if you have the template code that looks like this:
 

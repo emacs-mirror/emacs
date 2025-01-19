@@ -2687,6 +2687,7 @@ image_get_dimension (struct image *img, Lisp_Object symbol)
     }
   return -1;
 }
+#endif
 
 /* Calculate the scale of the image.  IMG may be null as it is only
    required when creating an image, and this function is called from
@@ -2742,6 +2743,7 @@ image_compute_scale (struct frame *f, Lisp_Object spec, struct image *img)
   return scale;
 }
 
+#if defined HAVE_IMAGEMAGICK || defined HAVE_NATIVE_TRANSFORMS
 /* Compute the desired size of an image with native size WIDTH x HEIGHT,
    which is to be displayed on F.  Use IMG to deduce the size.  Store
    the desired size into *D_WIDTH x *D_HEIGHT.  Store -1 x -1 if the
@@ -12676,7 +12678,7 @@ gs_load (struct frame *f, struct image *img)
   if (NILP (loader))
     loader = Qgs_load_image;
 
-  img->lisp_data = call6 (loader, frame, img->spec,
+  img->lisp_data = calln (loader, frame, img->spec,
 			  make_fixnum (img->width),
 			  make_fixnum (img->height),
 			  window_and_pixmap_id,

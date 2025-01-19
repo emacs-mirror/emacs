@@ -390,11 +390,17 @@ This expects `auto-revert--messages' to be bound by
                (should auto-revert-mode)
                (should
                 (string-match name (substring-no-properties (buffer-string))))
+               ;; If we don't sleep for a while, this test fails on
+               ;; MS-Windows.
+               (if (eq system-type 'windows-nt)
+                   (sleep-for 0.5))
 
                (ert-with-message-capture auto-revert--messages
                  ;; Delete file.
                  (delete-file tmpfile)
                  (auto-revert--wait-for-revert buf))
+               (if (eq system-type 'windows-nt)
+                   (sleep-for 1))
                ;; Check, that the buffer has been reverted.
                (should-not
                 (string-match name (substring-no-properties (buffer-string))))

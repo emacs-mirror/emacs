@@ -132,6 +132,7 @@
 #  largefile \
 #  libgmp \
 #  lstat \
+#  malloc-gnu \
 #  manywarnings \
 #  memmem-simple \
 #  mempcpy \
@@ -150,6 +151,7 @@
 #  qcopy-acl \
 #  readlink \
 #  readlinkat \
+#  realloc-posix \
 #  regex \
 #  sig2str \
 #  sigdescr_np \
@@ -489,6 +491,8 @@ GL_GNULIB_MBSSPN = @GL_GNULIB_MBSSPN@
 GL_GNULIB_MBSSTR = @GL_GNULIB_MBSSTR@
 GL_GNULIB_MBSTOK_R = @GL_GNULIB_MBSTOK_R@
 GL_GNULIB_MBSTOWCS = @GL_GNULIB_MBSTOWCS@
+GL_GNULIB_MBS_ENDSWITH = @GL_GNULIB_MBS_ENDSWITH@
+GL_GNULIB_MBS_STARTSWITH = @GL_GNULIB_MBS_STARTSWITH@
 GL_GNULIB_MBTOWC = @GL_GNULIB_MBTOWC@
 GL_GNULIB_MDA_ACCESS = @GL_GNULIB_MDA_ACCESS@
 GL_GNULIB_MDA_CHDIR = @GL_GNULIB_MDA_CHDIR@
@@ -642,6 +646,8 @@ GL_GNULIB_STRTOUL = @GL_GNULIB_STRTOUL@
 GL_GNULIB_STRTOULL = @GL_GNULIB_STRTOULL@
 GL_GNULIB_STRTOUMAX = @GL_GNULIB_STRTOUMAX@
 GL_GNULIB_STRVERSCMP = @GL_GNULIB_STRVERSCMP@
+GL_GNULIB_STR_ENDSWITH = @GL_GNULIB_STR_ENDSWITH@
+GL_GNULIB_STR_STARTSWITH = @GL_GNULIB_STR_STARTSWITH@
 GL_GNULIB_SYMLINK = @GL_GNULIB_SYMLINK@
 GL_GNULIB_SYMLINKAT = @GL_GNULIB_SYMLINKAT@
 GL_GNULIB_SYSTEM_POSIX = @GL_GNULIB_SYSTEM_POSIX@
@@ -725,6 +731,8 @@ HAVE_ALLOCA_H = @HAVE_ALLOCA_H@
 HAVE_ALPHASORT = @HAVE_ALPHASORT@
 HAVE_ATOLL = @HAVE_ATOLL@
 HAVE_BE_APP = @HAVE_BE_APP@
+HAVE_BLKCNT_T = @HAVE_BLKCNT_T@
+HAVE_BLKSIZE_T = @HAVE_BLKSIZE_T@
 HAVE_C99_STDINT_H = @HAVE_C99_STDINT_H@
 HAVE_CANONICALIZE_FILE_NAME = @HAVE_CANONICALIZE_FILE_NAME@
 HAVE_CHOWN = @HAVE_CHOWN@
@@ -1472,14 +1480,12 @@ gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7_CONDITION = @gl_GNULIB_ENABLE
 gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b_CONDITION = @gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b_CONDITION@
 gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31_CONDITION = @gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31_CONDITION@
 gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c_CONDITION = @gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c_CONDITION@
-gl_GNULIB_ENABLED_61bcaca76b3e6f9ae55d57a1c3193bc4_CONDITION = @gl_GNULIB_ENABLED_61bcaca76b3e6f9ae55d57a1c3193bc4_CONDITION@
 gl_GNULIB_ENABLED_8444034ea779b88768865bb60b4fb8c9_CONDITION = @gl_GNULIB_ENABLED_8444034ea779b88768865bb60b4fb8c9_CONDITION@
 gl_GNULIB_ENABLED_925677f0343de64b89a9f0c790b4104c_CONDITION = @gl_GNULIB_ENABLED_925677f0343de64b89a9f0c790b4104c_CONDITION@
 gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1_CONDITION = @gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1_CONDITION@
 gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36_CONDITION = @gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36_CONDITION@
 gl_GNULIB_ENABLED_cloexec_CONDITION = @gl_GNULIB_ENABLED_cloexec_CONDITION@
 gl_GNULIB_ENABLED_dirfd_CONDITION = @gl_GNULIB_ENABLED_dirfd_CONDITION@
-gl_GNULIB_ENABLED_e80bf6f757095d2e5fc94dafb8f8fc8b_CONDITION = @gl_GNULIB_ENABLED_e80bf6f757095d2e5fc94dafb8f8fc8b_CONDITION@
 gl_GNULIB_ENABLED_endian_CONDITION = @gl_GNULIB_ENABLED_endian_CONDITION@
 gl_GNULIB_ENABLED_euidaccess_CONDITION = @gl_GNULIB_ENABLED_euidaccess_CONDITION@
 gl_GNULIB_ENABLED_fd38c7e463b54744b77b98aeafb4fa7c_CONDITION = @gl_GNULIB_ENABLED_fd38c7e463b54744b77b98aeafb4fa7c_CONDITION@
@@ -2612,17 +2618,17 @@ ifneq (,$(GL_GENERATE_GMP_H_CONDITION))
 ifneq (,$(GL_GENERATE_MINI_GMP_H_CONDITION))
 # Build gmp.h as a wrapper for mini-gmp.h when using mini-gmp.
 gmp.h: $(top_builddir)/config.status
-	echo '#include "mini-gmp.h"' > $@-t
-	echo '#if GNULIB_LIBGMP_MPQ' >> $@-t
-	echo '# include "mini-mpq.h"' >> $@-t
-	echo '#endif' >> $@-t
-	mv $@-t $@
+	$(gl_V_at)echo '#include "mini-gmp.h"' > $@-t
+	$(AM_V_at)echo '#if GNULIB_LIBGMP_MPQ' >> $@-t
+	$(AM_V_at)echo '# include "mini-mpq.h"' >> $@-t
+	$(AM_V_at)echo '#endif' >> $@-t
+	$(AM_V_at)mv $@-t $@
 endif
 ifneq (,$(GL_GENERATE_GMP_GMP_H_CONDITION))
 # Build gmp.h as a wrapper for gmp/gmp.h.
 gmp.h: $(top_builddir)/config.status
-	echo '#include <gmp/gmp.h>' > $@-t
-	mv $@-t $@
+	$(gl_V_at)echo '#include <gmp/gmp.h>' > $@-t
+	$(AM_V_at)mv $@-t $@
 endif
 else
 gmp.h: $(top_builddir)/config.status
@@ -2682,9 +2688,7 @@ endif
 ## begin gnulib module malloc-gnu
 ifeq (,$(OMIT_GNULIB_MODULE_malloc-gnu))
 
-ifneq (,$(gl_GNULIB_ENABLED_e80bf6f757095d2e5fc94dafb8f8fc8b_CONDITION))
 
-endif
 EXTRA_DIST += malloc.c
 
 EXTRA_libgnu_a_SOURCES += malloc.c
@@ -2927,12 +2931,10 @@ endif
 ## begin gnulib module realloc-posix
 ifeq (,$(OMIT_GNULIB_MODULE_realloc-posix))
 
-ifneq (,$(gl_GNULIB_ENABLED_61bcaca76b3e6f9ae55d57a1c3193bc4_CONDITION))
 ifneq (,$(GL_COND_OBJ_REALLOC_POSIX_CONDITION))
 libgnu_a_SOURCES += realloc.c
 endif
 
-endif
 endif
 ## end   gnulib module realloc-posix
 
@@ -3655,6 +3657,8 @@ string.h: string.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's/@''GNULIB_MBSSPN''@/$(GL_GNULIB_MBSSPN)/g' \
 	      -e 's/@''GNULIB_MBSSEP''@/$(GL_GNULIB_MBSSEP)/g' \
 	      -e 's/@''GNULIB_MBSTOK_R''@/$(GL_GNULIB_MBSTOK_R)/g' \
+	      -e 's/@''GNULIB_MBS_ENDSWITH''@/$(GL_GNULIB_MBS_ENDSWITH)/g' \
+	      -e 's/@''GNULIB_MBS_STARTSWITH''@/$(GL_GNULIB_MBS_STARTSWITH)/g' \
 	      -e 's/@''GNULIB_MEMCHR''@/$(GL_GNULIB_MEMCHR)/g' \
 	      -e 's/@''GNULIB_MEMMEM''@/$(GL_GNULIB_MEMMEM)/g' \
 	      -e 's/@''GNULIB_MEMPCPY''@/$(GL_GNULIB_MEMPCPY)/g' \
@@ -3673,6 +3677,8 @@ string.h: string.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's/@''GNULIB_STRSTR''@/$(GL_GNULIB_STRSTR)/g' \
 	      -e 's/@''GNULIB_STRCASESTR''@/$(GL_GNULIB_STRCASESTR)/g' \
 	      -e 's/@''GNULIB_STRTOK_R''@/$(GL_GNULIB_STRTOK_R)/g' \
+	      -e 's/@''GNULIB_STR_ENDSWITH''@/$(GL_GNULIB_STR_ENDSWITH)/g' \
+	      -e 's/@''GNULIB_STR_STARTSWITH''@/$(GL_GNULIB_STR_STARTSWITH)/g' \
 	      -e 's/@''GNULIB_STRERROR''@/$(GL_GNULIB_STRERROR)/g' \
 	      -e 's/@''GNULIB_STRERROR_R''@/$(GL_GNULIB_STRERROR_R)/g' \
 	      -e 's/@''GNULIB_STRERRORNAME_NP''@/$(GL_GNULIB_STRERRORNAME_NP)/g' \
@@ -3985,6 +3991,8 @@ sys/types.h: sys_types.in.h $(top_builddir)/config.status
 	      -e 's|@''WINDOWS_64_BIT_OFF_T''@|$(WINDOWS_64_BIT_OFF_T)|g' \
 	      -e 's|@''HAVE_OFF64_T''@|$(HAVE_OFF64_T)|g' \
 	      -e 's|@''WINDOWS_STAT_INODES''@|$(WINDOWS_STAT_INODES)|g' \
+	      -e 's|@''HAVE_BLKSIZE_T''@|$(HAVE_BLKSIZE_T)|g' \
+	      -e 's|@''HAVE_BLKCNT_T''@|$(HAVE_BLKCNT_T)|g' \
 	      $(srcdir)/sys_types.in.h > $@-t
 	$(AM_V_at)mv $@-t $@
 MOSTLYCLEANFILES += sys/types.h sys/types.h-t

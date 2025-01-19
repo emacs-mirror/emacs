@@ -786,7 +786,7 @@ the position of the last non-menu event instead.  */)
       popup_activated_p += 1;
     }
   else
-    return call2 (Qpopup_menu, call0 (Qmouse_menu_bar_map),
+    return calln (Qpopup_menu, calln (Qmouse_menu_bar_map),
 		  last_nonmenu_event);
 
   return Qnil;

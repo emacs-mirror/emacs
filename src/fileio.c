@@ -446,7 +446,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
   handler = Ffind_file_name_handler (filename, Qfile_name_directory);
   if (!NILP (handler))
     {
-      Lisp_Object handled_name = call2 (handler, Qfile_name_directory,
+      Lisp_Object handled_name = calln (handler, Qfile_name_directory,
 					filename);
       return STRINGP (handled_name) ? handled_name : Qnil;
     }
@@ -550,7 +550,7 @@ or the entire name if it contains no slash.  */)
   handler = Ffind_file_name_handler (filename, Qfile_name_nondirectory);
   if (!NILP (handler))
     {
-      Lisp_Object handled_name = call2 (handler, Qfile_name_nondirectory,
+      Lisp_Object handled_name = calln (handler, Qfile_name_nondirectory,
 					filename);
       if (STRINGP (handled_name))
 	return handled_name;
@@ -593,7 +593,7 @@ get a current directory to run processes in.  */)
   handler = Ffind_file_name_handler (filename, Qunhandled_file_name_directory);
   if (!NILP (handler))
     {
-      Lisp_Object handled_name = call2 (handler, Qunhandled_file_name_directory,
+      Lisp_Object handled_name = calln (handler, Qunhandled_file_name_directory,
 					filename);
       return STRINGP (handled_name) ? handled_name : Qnil;
     }
@@ -655,7 +655,7 @@ is already present.  */)
   handler = Ffind_file_name_handler (file, Qfile_name_as_directory);
   if (!NILP (handler))
     {
-      Lisp_Object handled_name = call2 (handler, Qfile_name_as_directory,
+      Lisp_Object handled_name = calln (handler, Qfile_name_as_directory,
 					file);
       if (STRINGP (handled_name))
 	return handled_name;
@@ -746,7 +746,7 @@ In Unix-syntax, this function just removes the final slash.  */)
   handler = Ffind_file_name_handler (directory, Qdirectory_file_name);
   if (!NILP (handler))
     {
-      Lisp_Object handled_name = call2 (handler, Qdirectory_file_name,
+      Lisp_Object handled_name = calln (handler, Qdirectory_file_name,
 					directory);
       if (STRINGP (handled_name))
 	return handled_name;
@@ -1048,7 +1048,7 @@ the root directory.  */)
   handler = Ffind_file_name_handler (name, Qexpand_file_name);
   if (!NILP (handler))
     {
-      handled_name = call3 (handler, Qexpand_file_name,
+      handled_name = calln (handler, Qexpand_file_name,
 			    name, default_directory);
       if (STRINGP (handled_name))
 	return handled_name;
@@ -1110,7 +1110,7 @@ the root directory.  */)
   handler = Ffind_file_name_handler (default_directory, Qexpand_file_name);
   if (!NILP (handler))
     {
-      handled_name = call3 (handler, Qexpand_file_name,
+      handled_name = calln (handler, Qexpand_file_name,
 			    name, default_directory);
       if (STRINGP (handled_name))
 	return handled_name;
@@ -1165,7 +1165,7 @@ the root directory.  */)
 					   Qexpand_file_name);
 	if (!NILP (handler))
 	  {
-	    handled_name = call3 (handler, Qexpand_file_name,
+	    handled_name = calln (handler, Qexpand_file_name,
 				  name, default_directory);
 	    if (STRINGP (handled_name))
 	      return handled_name;
@@ -1747,7 +1747,7 @@ the root directory.  */)
   handler = Ffind_file_name_handler (result, Qexpand_file_name);
   if (!NILP (handler))
     {
-      handled_name = call3 (handler, Qexpand_file_name,
+      handled_name = calln (handler, Qexpand_file_name,
 			    result, default_directory);
       if (! STRINGP (handled_name))
 	error ("Invalid handler in `file-name-handler-alist'");
@@ -2068,7 +2068,7 @@ those `/' is discarded.  */)
   handler = Ffind_file_name_handler (filename, Qsubstitute_in_file_name);
   if (!NILP (handler))
     {
-      Lisp_Object handled_name = call2 (handler, Qsubstitute_in_file_name,
+      Lisp_Object handled_name = calln (handler, Qsubstitute_in_file_name,
 					filename);
       if (STRINGP (handled_name))
 	return handled_name;
@@ -2108,7 +2108,7 @@ those `/' is discarded.  */)
       Lisp_Object name
 	= (!substituted ? filename
 	   : make_specified_string (nm, -1, endp - nm, multibyte));
-      Lisp_Object tmp = call1 (Qsubstitute_env_in_file_name, name);
+      Lisp_Object tmp = calln (Qsubstitute_env_in_file_name, name);
       CHECK_STRING (tmp);
       if (!EQ (tmp, name))
 	substituted = true;
@@ -2205,7 +2205,7 @@ barf_or_query_if_file_exists (Lisp_Object absname, bool known_to_exist,
       AUTO_STRING (format, "File %s already exists; %s anyway? ");
       tem = CALLN (Fformat, format, absname, build_string (querystring));
       if (quick)
-	tem = call1 (Qy_or_n_p, tem);
+	tem = calln (Qy_or_n_p, tem);
       else
 	tem = do_yes_or_no_p (tem);
       if (NILP (tem))
@@ -2288,7 +2288,7 @@ permissions.  */)
   if (NILP (handler))
     handler = Ffind_file_name_handler (newname, Qcopy_file);
   if (!NILP (handler))
-    return call7 (handler, Qcopy_file, file, newname,
+    return calln (handler, Qcopy_file, file, newname,
 		  ok_if_already_exists, keep_time, preserve_uid_gid,
 		  preserve_permissions);
 
@@ -2697,7 +2697,7 @@ is case-insensitive.  */)
      call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (filename, Qfile_name_case_insensitive_p);
   if (!NILP (handler))
-    return call2 (handler, Qfile_name_case_insensitive_p, filename);
+    return calln (handler, Qfile_name_case_insensitive_p, filename);
 
   /* If the file doesn't exist or there is trouble checking its
      filesystem, move up the filesystem tree until we reach an
@@ -2758,7 +2758,7 @@ This is what happens in interactive use with M-x.  */)
   if (NILP (handler))
     handler = Ffind_file_name_handler (newname, Qrename_file);
   if (!NILP (handler))
-    return call4 (handler, Qrename_file,
+    return calln (handler, Qrename_file,
 		  file, newname, ok_if_already_exists);
 
   encoded_file = ENCODE_FILE (file);
@@ -2819,7 +2819,7 @@ This is what happens in interactive use with M-x.  */)
       dirp = S_ISDIR (file_st.st_mode) != 0;
     }
   if (dirp)
-    call4 (Qcopy_directory, file, newname, Qt, Qnil);
+    calln (Qcopy_directory, file, newname, Qt, Qnil);
   else if (S_ISREG (file_st.st_mode))
     Fcopy_file (file, newname, ok_if_already_exists, Qt, Qt, Qt);
   else if (S_ISLNK (file_st.st_mode))
@@ -2837,9 +2837,9 @@ This is what happens in interactive use with M-x.  */)
   specpdl_ref count = SPECPDL_INDEX ();
   specbind (Qdelete_by_moving_to_trash, Qnil);
   if (dirp)
-    call2 (Qdelete_directory, file, Qt);
+    calln (Qdelete_directory, file, Qt);
   else
-    call2 (Qdelete_file, file, Qnil);
+    calln (Qdelete_file, file, Qnil);
   return unbind_to (count, Qnil);
 }
 
@@ -2865,14 +2865,14 @@ This is what happens in interactive use with M-x.  */)
      call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (file, Qadd_name_to_file);
   if (!NILP (handler))
-    return call4 (handler, Qadd_name_to_file, file,
+    return calln (handler, Qadd_name_to_file, file,
 		  newname, ok_if_already_exists);
 
   /* If the new name has special constructs in it,
      call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (newname, Qadd_name_to_file);
   if (!NILP (handler))
-    return call4 (handler, Qadd_name_to_file, file,
+    return calln (handler, Qadd_name_to_file, file,
 		  newname, ok_if_already_exists);
 
   encoded_file = ENCODE_FILE (file);
@@ -2929,7 +2929,7 @@ This happens for interactive use with M-x.  */)
      call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (linkname, Qmake_symbolic_link);
   if (!NILP (handler))
-    return call4 (handler, Qmake_symbolic_link, target,
+    return calln (handler, Qmake_symbolic_link, target,
 		  linkname, ok_if_already_exists);
 
   encoded_target = ENCODE_FILE (target);
@@ -2990,7 +2990,7 @@ check_file_access (Lisp_Object file, Lisp_Object operation, int amode)
   Lisp_Object handler = Ffind_file_name_handler (file, operation);
   if (!NILP (handler))
     {
-      Lisp_Object ok = call2 (handler, operation, file);
+      Lisp_Object ok = calln (handler, operation, file);
       /* This errno value is bogus.  Any caller that depends on errno
 	 should be rethought anyway, to avoid a race between testing a
 	 handled file's accessibility and using the file.  */
@@ -3045,7 +3045,7 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
      call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (absname, Qfile_writable_p);
   if (!NILP (handler))
-    return call2 (handler, Qfile_writable_p, absname);
+    return calln (handler, Qfile_writable_p, absname);
 
   encoded = ENCODE_FILE (absname);
   if (file_access_p (SSDATA (encoded), W_OK))
@@ -3087,7 +3087,7 @@ If there is no error, returns nil.  */)
      call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (absname, Qaccess_file);
   if (!NILP (handler))
-    return call3 (handler, Qaccess_file, absname, string);
+    return calln (handler, Qaccess_file, absname, string);
 
   encoded_filename = ENCODE_FILE (absname);
 
@@ -3172,7 +3172,7 @@ This function does not check whether the link target exists.  */)
      call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (filename, Qfile_symlink_p);
   if (!NILP (handler))
-    return call2 (handler, Qfile_symlink_p, filename);
+    return calln (handler, Qfile_symlink_p, filename);
 
   return emacs_readlinkat (AT_FDCWD, SSDATA (ENCODE_FILE (filename)));
 }
@@ -3196,7 +3196,7 @@ See `file-symlink-p' to distinguish symlinks.  */)
      call the corresponding file name handler.  */
   Lisp_Object handler = Ffind_file_name_handler (absname, Qfile_directory_p);
   if (!NILP (handler))
-    return call2 (handler, Qfile_directory_p, absname);
+    return calln (handler, Qfile_directory_p, absname);
 
   return file_directory_p (ENCODE_FILE (absname)) ? Qt : Qnil;
 }
@@ -3273,7 +3273,7 @@ predicate must return true.  */)
   handler = Ffind_file_name_handler (absname, Qfile_accessible_directory_p);
   if (!NILP (handler))
     {
-      Lisp_Object r = call2 (handler, Qfile_accessible_directory_p, absname);
+      Lisp_Object r = calln (handler, Qfile_accessible_directory_p, absname);
 
       /* Set errno in case the handler failed.  EACCES might be a lie
 	 (e.g., the directory might not exist, or be a regular file),
@@ -3367,7 +3367,7 @@ See `file-symlink-p' to distinguish symlinks.  */)
      call the corresponding file name handler.  */
   Lisp_Object handler = Ffind_file_name_handler (absname, Qfile_regular_p);
   if (!NILP (handler))
-    return call2 (handler, Qfile_regular_p, absname);
+    return calln (handler, Qfile_regular_p, absname);
 
 #ifdef WINDOWSNT
   /* Tell stat to use expensive method to get accurate info.  */
@@ -3406,7 +3406,7 @@ or if SELinux is disabled, or if Emacs lacks SELinux support.  */)
   Lisp_Object handler = Ffind_file_name_handler (absname,
 						 Qfile_selinux_context);
   if (!NILP (handler))
-    return call2 (handler, Qfile_selinux_context, absname);
+    return calln (handler, Qfile_selinux_context, absname);
 
 #ifdef HAVE_LIBSELINUX
   file = SSDATA (ENCODE_FILE (absname));
@@ -3471,7 +3471,7 @@ or if Emacs was not compiled with SELinux support.  */)
      call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (absname, Qset_file_selinux_context);
   if (!NILP (handler))
-    return call3 (handler, Qset_file_selinux_context, absname, context);
+    return calln (handler, Qset_file_selinux_context, absname, context);
 
 #if HAVE_LIBSELINUX
   encoded_absname = ENCODE_FILE (absname);
@@ -3542,7 +3542,7 @@ Return nil if file does not exist.  */)
      call the corresponding file name handler.  */
   Lisp_Object handler = Ffind_file_name_handler (absname, Qfile_acl);
   if (!NILP (handler))
-    return call2 (handler, Qfile_acl, absname);
+    return calln (handler, Qfile_acl, absname);
 
 # ifdef HAVE_ACL_SET_FILE
 #  ifndef HAVE_ACL_TYPE_EXTENDED
@@ -3599,7 +3599,7 @@ support.  */)
      call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (absname, Qset_file_acl);
   if (!NILP (handler))
-    return call3 (handler, Qset_file_acl, absname, acl_string);
+    return calln (handler, Qset_file_acl, absname, acl_string);
 
 # ifdef HAVE_ACL_SET_FILE
   if (STRINGP (acl_string))
@@ -3650,7 +3650,7 @@ do not follow FILENAME if it is a symbolic link.  */)
      call the corresponding file name handler.  */
   Lisp_Object handler = Ffind_file_name_handler (absname, Qfile_modes);
   if (!NILP (handler))
-    return call3 (handler, Qfile_modes, absname, flag);
+    return calln (handler, Qfile_modes, absname, flag);
 
   char *fname = SSDATA (ENCODE_FILE (absname));
   if (emacs_fstatat (AT_FDCWD, fname, &st, nofollow) != 0)
@@ -3681,7 +3681,7 @@ command from GNU Coreutils.  */)
      call the corresponding file name handler.  */
   Lisp_Object handler = Ffind_file_name_handler (absname, Qset_file_modes);
   if (!NILP (handler))
-    return call4 (handler, Qset_file_modes, absname, mode, flag);
+    return calln (handler, Qset_file_modes, absname, mode, flag);
 
   encoded = ENCODE_FILE (absname);
   char *fname = SSDATA (encoded);
@@ -3755,7 +3755,7 @@ TIMESTAMP is in the format of `current-time'. */)
     absname = Fexpand_file_name (filename, BVAR (current_buffer, directory)),
     handler = Ffind_file_name_handler (absname, Qset_file_times);
   if (!NILP (handler))
-    return call4 (handler, Qset_file_times, absname, timestamp, flag);
+    return calln (handler, Qset_file_times, absname, timestamp, flag);
 
   Lisp_Object encoded_absname = ENCODE_FILE (absname);
   check_vfs_filename (encoded_absname, "Trying to set access times of"
@@ -3808,7 +3808,7 @@ For existing files, this compares their last-modified times.  */)
   if (NILP (handler))
     handler = Ffind_file_name_handler (absname2, Qfile_newer_than_file_p);
   if (!NILP (handler))
-    return call3 (handler, Qfile_newer_than_file_p, absname1, absname2);
+    return calln (handler, Qfile_newer_than_file_p, absname1, absname2);
 
   encoded = ENCODE_FILE (absname1);
 
@@ -3971,7 +3971,7 @@ get_window_points_and_markers (void)
 {
   Lisp_Object pt_marker = Fpoint_marker ();
   Lisp_Object windows
-    = call3 (Qget_buffer_window_list, Fcurrent_buffer (), Qnil, Qt);
+    = calln (Qget_buffer_window_list, Fcurrent_buffer (), Qnil, Qt);
   Lisp_Object window_markers = windows;
   /* Window markers (and point) are handled specially: rather than move to
      just before or just after the modified text, we try to keep the
@@ -4130,7 +4130,7 @@ by calling `format-decode', which see.  */)
   handler = Ffind_file_name_handler (filename, Qinsert_file_contents);
   if (!NILP (handler))
     {
-      val = call6 (handler, Qinsert_file_contents, filename,
+      val = calln (handler, Qinsert_file_contents, filename,
 		   visit, beg, end, replace);
       if (CONSP (val) && CONSP (XCDR (val))
 	  && RANGED_FIXNUMP (0, XCAR (XCDR (val)), ZV - PT))
@@ -4333,7 +4333,7 @@ by calling `format-decode', which see.  */)
 
 		  insert_1_both ((char *) read_buf, nread, nread, 0, 0, 0);
 		  TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
-		  coding_system = call2 (Vset_auto_coding_function,
+		  coding_system = calln (Vset_auto_coding_function,
 					 filename, make_fixnum (nread));
 		  set_buffer_internal (prev);
 
@@ -4747,11 +4747,17 @@ by calling `format-decode', which see.  */)
       goto handled;
     }
 
-  if (seekable || !NILP (end))
+  /* Don't believe st.st_size if it is zero.  */
+  if ((regular && st.st_size > 0) || (!regular && seekable) || !NILP (end))
     total = end_offset - beg_offset;
   else
-    /* For a special file, all we can do is guess.  */
+    /* For a special file that is not seekable, all we can do is guess.  */
     total = READ_BUF_SIZE;
+
+  /* From here on, treat a file with zero size as not seekable.  This
+     causes us to read until we actually hit EOF.  */
+  if (regular && st.st_size == 0)
+    seekable = false;
 
   if (NILP (visit) && total > 0)
     {
@@ -4910,7 +4916,7 @@ by calling `format-decode', which see.  */)
 
 	  if (inserted > 0 && ! NILP (Vset_auto_coding_function))
 	    {
-	      coding_system = call2 (Vset_auto_coding_function,
+	      coding_system = calln (Vset_auto_coding_function,
 				     filename, make_fixnum (inserted));
 	    }
 
@@ -5041,7 +5047,7 @@ by calling `format-decode', which see.  */)
 
   if (! NILP (Ffboundp (Qafter_insert_file_set_coding)))
     {
-      insval = call2 (Qafter_insert_file_set_coding, make_fixnum (inserted),
+      insval = calln (Qafter_insert_file_set_coding, make_fixnum (inserted),
 		      visit);
       if (! NILP (insval))
 	{
@@ -5068,7 +5074,7 @@ by calling `format-decode', which see.  */)
 
       if (NILP (replace))
 	{
-	  insval = call3 (Qformat_decode,
+	  insval = calln (Qformat_decode,
 			  Qnil, make_fixnum (inserted), visit);
 	  if (! RANGED_FIXNUMP (0, insval, ZV - PT))
 	    wrong_type_argument (Qinserted_chars, insval);
@@ -5091,7 +5097,7 @@ by calling `format-decode', which see.  */)
 	  modiff_count ochars_modiff = CHARS_MODIFF;
 
 	  TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
-	  insval = call3 (Qformat_decode,
+	  insval = calln (Qformat_decode,
 			  Qnil, make_fixnum (oinserted), visit);
 	  if (! RANGED_FIXNUMP (0, insval, ZV - PT))
 	    wrong_type_argument (Qinserted_chars, insval);
@@ -5113,7 +5119,7 @@ by calling `format-decode', which see.  */)
 	{
 	  if (NILP (replace))
 	    {
-	      insval = call1 (XCAR (p), make_fixnum (inserted));
+	      insval = calln (XCAR (p), make_fixnum (inserted));
 	      if (!NILP (insval))
 		{
 		  if (! RANGED_FIXNUMP (0, insval, ZV - PT))
@@ -5131,7 +5137,7 @@ by calling `format-decode', which see.  */)
 	      modiff_count ochars_modiff = CHARS_MODIFF;
 
 	      TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
-	      insval = call1 (XCAR (p), make_fixnum (oinserted));
+	      insval = calln (XCAR (p), make_fixnum (oinserted));
 	      if (!NILP (insval))
 		{
 		  if (! RANGED_FIXNUMP (0, insval, ZV - PT))
@@ -5233,7 +5239,7 @@ choose_write_coding_system (Lisp_Object start, Lisp_Object end, Lisp_Object file
       if (coding_system_require_warning
 	  && !NILP (Ffboundp (Vselect_safe_coding_system_function)))
 	/* Confirm that VAL can surely encode the current region.  */
-	val = call5 (Vselect_safe_coding_system_function,
+	val = calln (Vselect_safe_coding_system_function,
 		     start, end, list2 (Qt, val),
 		     Qnil, filename);
     }
@@ -5293,7 +5299,7 @@ choose_write_coding_system (Lisp_Object start, Lisp_Object end, Lisp_Object file
 	  && !NILP (Ffboundp (Vselect_safe_coding_system_function)))
 	{
 	  /* Confirm that VAL can surely encode the current region.  */
-	  val = call5 (Vselect_safe_coding_system_function,
+	  val = calln (Vselect_safe_coding_system_function,
 		       start, end, val, Qnil, filename);
 	  /* As the function specified by select-safe-coding-system-function
 	     is out of our control, make sure we are not fed by bogus
@@ -5434,7 +5440,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
   if (!NILP (handler))
     {
       Lisp_Object val;
-      val = call8 (handler, Qwrite_region, start, end,
+      val = calln (handler, Qwrite_region, start, end,
 		   filename, append, visit, lockname, mustbenew);
 
       if (visiting)
@@ -5778,7 +5784,7 @@ build_annotations (Lisp_Object start, Lisp_Object end)
 	  goto loop_over_p;
 	}
       Vwrite_region_annotations_so_far = annotations;
-      res = call2 (XCAR (p), start, end);
+      res = calln (XCAR (p), start, end);
       /* If the function makes a different buffer current,
 	 assume that means this buffer contains altered text to be output.
 	 Reset START and END from the buffer bounds
@@ -5812,7 +5818,7 @@ build_annotations (Lisp_Object start, Lisp_Object end)
       /* Value is either a list of annotations or nil if the function
          has written annotations to a temporary buffer, which is now
          current.  */
-      res = call5 (Qformat_annotate_function, XCAR (p), start, end,
+      res = calln (Qformat_annotate_function, XCAR (p), start, end,
 		   original_buffer, make_fixnum (i++));
       if (current_buffer != given_buffer)
 	{
@@ -6008,7 +6014,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
   handler = Ffind_file_name_handler (BVAR (b, filename),
 				     Qverify_visited_file_modtime);
   if (!NILP (handler))
-    return call2 (handler, Qverify_visited_file_modtime, buf);
+    return calln (handler, Qverify_visited_file_modtime, buf);
 
   filename = ENCODE_FILE (BVAR (b, filename));
   mtime = (emacs_fstatat (AT_FDCWD, SSDATA (filename), &st, 0) == 0
@@ -6081,7 +6087,7 @@ in `current-time' or an integer flag as returned by `visited-file-modtime'.  */)
       handler = Ffind_file_name_handler (filename, Qset_visited_file_modtime);
       if (!NILP (handler))
 	/* The handler can find the file name the same way we did.  */
-	return call2 (handler, Qset_visited_file_modtime, Qnil);
+	return calln (handler, Qset_visited_file_modtime, Qnil);
 
       encoded = ENCODE_FILE (filename);
 
@@ -6108,8 +6114,7 @@ auto_save_error (Lisp_Object error_val)
   AUTO_STRING (format, "Auto-saving %s: %s");
   Lisp_Object msg = CALLN (Fformat, format, BVAR (current_buffer, name),
 			   Ferror_message_string (error_val));
-  call3 (Qdisplay_warning,
-         Qauto_save, msg, QCerror);
+  calln (Qdisplay_warning, Qauto_save, msg, QCerror);
 
   return Qnil;
 }
@@ -6169,7 +6174,7 @@ do_auto_save_make_dir (Lisp_Object dir)
   Lisp_Object result;
 
   auto_saving_dir_umask = 077;
-  result = call2 (Qmake_directory, dir, Qt);
+  result = calln (Qmake_directory, dir, Qt);
   auto_saving_dir_umask = 0;
   return result;
 }
@@ -6520,7 +6525,7 @@ If the underlying system call fails, value is nil.  */)
   Lisp_Object handler = Ffind_file_name_handler (filename, Qfile_system_info);
   if (!NILP (handler))
     {
-      Lisp_Object result = call2 (handler, Qfile_system_info, filename);
+      Lisp_Object result = calln (handler, Qfile_system_info, filename);
       if (CONSP (result) || NILP (result))
 	return result;
       error ("Invalid handler in `file-name-handler-alist'");

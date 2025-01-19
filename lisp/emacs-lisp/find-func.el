@@ -152,7 +152,11 @@ Each regexp variable's value should actually be a format string
 to be used to substitute the desired symbol name into the regexp.
 Instead of regexp variable, types can be mapped to functions as well,
 in which case the function is called with one argument (the object
-we're looking for) and it should search for it.")
+we're looking for) and it should search for it.
+
+Symbols can have their own version of this alist on
+the property `find-function-type-alist'.
+See the function `find-function-update-type-alist'.")
 (put 'find-function-regexp-alist 'risky-local-variable t)
 
 (define-obsolete-variable-alias 'find-function-source-path
@@ -402,9 +406,9 @@ or just (BUFFER . nil) if the definition can't be found in the file.
 
 If TYPE is nil, look for a function definition,
 otherwise, TYPE specifies the kind of definition.
-If SYMBOL has a property `definition-type',
-the property value is used instead of TYPE.
-TYPE is interpreted via `find-function-regexp-alist'.
+TYPE is looked up in SYMBOL's property `find-function-type-alist'
+(which can be maintained with `find-function-update-type-alist')
+or the variable `find-function-regexp-alist'.
 
 The search is done in the source for library LIBRARY."
   (if (null library)
@@ -413,8 +417,6 @@ The search is done in the source for library LIBRARY."
   ;; that defines something else.
   (while (and (symbolp symbol) (get symbol 'definition-name))
     (setq symbol (get symbol 'definition-name)))
-  (setq type (or (get symbol 'definition-type)
-                 type))
   (if (string-match "\\`src/\\(.*\\.\\(c\\|m\\)\\)\\'" library)
       (find-function-C-source symbol (match-string 1 library) type)
     (when (string-match "\\.el\\(c\\)\\'" library)
@@ -424,7 +426,10 @@ The search is done in the source for library LIBRARY."
     (when (string-match "\\.emacs\\(.el\\)\\'" library)
       (setq library (substring library 0 (match-beginning 1))))
     (let* ((filename (find-library-name library))
-	   (regexp-symbol (cdr (assq type find-function-regexp-alist))))
+	   (regexp-symbol
+            (or (and (symbolp symbol)
+                     (alist-get type (get symbol 'find-function-type-alist)))
+                (alist-get type find-function-regexp-alist))))
       (with-current-buffer (find-file-noselect filename)
 	(let ((regexp (if (functionp regexp-symbol) regexp-symbol
                         (format (symbol-value regexp-symbol)
@@ -465,6 +470,13 @@ The search is done in the source for library LIBRARY."
                 (cons (current-buffer)
                       (find-function--search-by-expanding-macros
                        (current-buffer) symbol type))))))))))
+
+;;;###autoload
+(defun find-function-update-type-alist (symbol type variable)
+  "Update SYMBOL property `find-function-type-alist' with (TYPE . VARIABLE).
+Property `find-function-type-alist' is a symbol-specific version
+of variable `find-function-regexp-alist' and has the same format."
+  (setf (alist-get type (get symbol 'find-function-type-alist)) variable))
 
 (defun find-function--try-macroexpand (form)
   "Try to macroexpand FORM in full or partially.

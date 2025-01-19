@@ -87,6 +87,8 @@
 
 ;;; Code:
 
+(require 'cl-extra)
+
 ;;;;; ************************* USER OPTIONS ************************** ;;;;;
 
 (defgroup repeat nil

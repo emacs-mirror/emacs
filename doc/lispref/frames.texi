@@ -774,8 +774,7 @@ As a rule, the inner frame is subdivided into the frame's root window
 rule: A @dfn{minibuffer-less frame} contains a root window only and does
 not contain a minibuffer window.  A @dfn{minibuffer-only frame} contains
 only a minibuffer window which also serves as that frame's root window.
-See @ref{Initial Parameters} for how to create such frame
-configurations.
+@xref{Initial Parameters}, for how to create such frame configurations.
 
 @item Text Area
 @cindex text area

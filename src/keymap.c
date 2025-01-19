@@ -579,7 +579,7 @@ map_keymap_internal (Lisp_Object map,
 static void
 map_keymap_call (Lisp_Object key, Lisp_Object val, Lisp_Object fun, void *dummy)
 {
-  call2 (fun, key, val);
+  calln (fun, key, val);
 }
 
 /* Same as map_keymap_internal, but traverses parent keymaps as well.
@@ -642,7 +642,7 @@ usage: (map-keymap FUNCTION KEYMAP)  */)
   (Lisp_Object function, Lisp_Object keymap, Lisp_Object sort_first)
 {
   if (! NILP (sort_first))
-    return call2 (Qmap_keymap_sorted, function, keymap);
+    return calln (Qmap_keymap_sorted, function, keymap);
 
   map_keymap (keymap, map_keymap_call, function, NULL, 1);
   return Qnil;
@@ -1069,9 +1069,9 @@ possibly_translate_key_sequence (Lisp_Object key, ptrdiff_t *length)
          This happens when menu items define as bindings strings that
          should be inserted into the buffer, not commands.  See
          bug#64927, for example.  */
-      if (NILP (call1 (Qkey_valid_p, AREF (key, 0))))
+      if (NILP (calln (Qkey_valid_p, AREF (key, 0))))
 	return key;
-      key = call1 (Qkey_parse, AREF (key, 0));
+      key = calln (Qkey_parse, AREF (key, 0));
       *length = CHECK_VECTOR_OR_STRING (key);
       if (*length == 0)
 	xsignal2 (Qerror, build_string ("Invalid `key-parse' syntax: %S"), key);
@@ -3035,14 +3035,14 @@ static void
 describe_vector_princ (Lisp_Object elt, Lisp_Object fun)
 {
   Findent_to (make_fixnum (16), make_fixnum (1));
-  call1 (fun, elt);
+  calln (fun, elt);
   Fterpri (Qnil, Qnil);
 }
 
 static void
 describe_vector_basic (Lisp_Object elt, Lisp_Object fun)
 {
-  call1 (fun, elt);
+  calln (fun, elt);
 }
 
 DEFUN ("describe-vector", Fdescribe_vector, Sdescribe_vector, 1, 2, 0,

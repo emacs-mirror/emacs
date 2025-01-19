@@ -557,7 +557,7 @@ init_cmdargs (int argc, char **argv, int skip_args, char const *original_pwd)
 	  if (NILP (Vpurify_flag))
 	    {
 	      if (!NILP (Ffboundp (Qfile_truename)))
-		dir = call1 (Qfile_truename, dir);
+		dir = calln (Qfile_truename, dir);
 	    }
 	  dir = Fexpand_file_name (build_string ("../.."), dir);
 	}
@@ -3017,7 +3017,7 @@ killed.  */
       if (noninteractive)
 	safe_run_hooks (Qkill_emacs_hook);
       else
-	call1 (Qrun_hook_query_error_with_timeout, Qkill_emacs_hook);
+	calln (Qrun_hook_query_error_with_timeout, Qkill_emacs_hook);
     }
 
 #ifdef HAVE_X_WINDOWS

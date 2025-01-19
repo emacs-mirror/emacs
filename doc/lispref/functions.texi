@@ -90,7 +90,7 @@ fundamental part of Lisp (e.g., @code{car}), or because it provides a
 low-level interface to operating system services, or because it needs
 to run fast.  Unlike functions defined in Lisp, primitives can be
 modified or added only by changing the C sources and recompiling
-Emacs.  See @ref{Writing Emacs Primitives}.
+Emacs.  @xref{Writing Emacs Primitives}.
 
 @item special form
 A primitive that is like a function but does not evaluate all of its
@@ -754,7 +754,7 @@ to find the source code because generating a function dynamically
 usually looks very different from the usual static calls to
 @code{defun}.  You can make the job of finding the code that
 generates such functions easier by using the @code{definition-name}
-or @code{definition-type} property, @pxref{Standard Properties}.
+or @code{find-function-type-alist} property, @pxref{Standard Properties}.
 
 @cindex override existing functions
 @cindex redefine existing functions
@@ -2976,56 +2976,56 @@ elsewhere, but we provide cross references here.
 
 @table @code
 @item apply
-See @ref{Calling Functions}.
+@xref{Calling Functions}.
 
 @item autoload
-See @ref{Autoload}.
+@xref{Autoload}.
 
 @item call-interactively
-See @ref{Interactive Call}.
+@xref{Interactive Call}.
 
 @item called-interactively-p
-See @ref{Distinguish Interactive}.
+@xref{Distinguish Interactive}.
 
 @item commandp
-See @ref{Interactive Call}.
+@xref{Interactive Call}.
 
 @item documentation
-See @ref{Accessing Documentation}.
+@xref{Accessing Documentation}.
 
 @item eval
-See @ref{Eval}.
+@xref{Eval}.
 
 @item funcall
-See @ref{Calling Functions}.
+@xref{Calling Functions}.
 
 @item function
-See @ref{Anonymous Functions}.
+@xref{Anonymous Functions}.
 
 @item ignore
-See @ref{Calling Functions}.
+@xref{Calling Functions}.
 
 @item indirect-function
-See @ref{Function Indirection}.
+@xref{Function Indirection}.
 
 @item interactive
-See @ref{Using Interactive}.
+@xref{Using Interactive}.
 
 @item interactive-p
-See @ref{Distinguish Interactive}.
+@xref{Distinguish Interactive}.
 
 @item mapatoms
-See @ref{Creating Symbols}.
+@xref{Creating Symbols}.
 
 @item mapcar
-See @ref{Mapping Functions}.
+@xref{Mapping Functions}.
 
 @item map-char-table
-See @ref{Char-Tables}.
+@xref{Char-Tables}.
 
 @item mapconcat
-See @ref{Mapping Functions}.
+@xref{Mapping Functions}.
 
 @item undefined
-See @ref{Functions for Key Lookup}.
+@xref{Functions for Key Lookup}.
 @end table

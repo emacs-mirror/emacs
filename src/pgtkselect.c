@@ -266,10 +266,8 @@ pgtk_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
 	}
 
       if (!NILP (handler_fn))
-	value = call3 (handler_fn, selection_symbol,
-		       (local_request
-			? Qnil
-			: target_type),
+	value = calln (handler_fn, selection_symbol,
+		       (local_request ? Qnil : target_type),
 		       tem);
       else
 	value = Qnil;

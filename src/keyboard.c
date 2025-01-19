@@ -1050,7 +1050,7 @@ cmd_error_internal (Lisp_Object data, const char *context)
 
   /* Use user's specified output function if any.  */
   if (!NILP (Vcommand_error_function))
-    call3 (Vcommand_error_function, data,
+    calln (Vcommand_error_function, data,
 	   context ? build_string (context) : empty_unibyte_string,
 	   Vsignaling_function);
 
@@ -1553,7 +1553,7 @@ command_loop_1 (void)
 	    update_redisplay_ticks (0, NULL);
 	    display_working_on_window_p = false;
 
-            call1 (Qcommand_execute, Vthis_command);
+            calln (Qcommand_execute, Vthis_command);
 	    display_working_on_window_p = false;
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -1642,11 +1642,11 @@ command_loop_1 (void)
 				  Vselection_inhibit_update_commands)))
 		{
 		  Lisp_Object txt
-		    = call1 (Vregion_extract_function, Qnil);
+		    = calln (Vregion_extract_function, Qnil);
 
 		  if (XFIXNUM (Flength (txt)) > 0)
 		    /* Don't set empty selections.  */
-		    call2 (Qgui_set_selection, QPRIMARY, txt);
+		    calln (Qgui_set_selection, QPRIMARY, txt);
 
 		  CALLN (Frun_hook_with_args, Qpost_select_region_hook, txt);
 		}
@@ -2216,7 +2216,7 @@ help_echo_substitute_command_keys (Lisp_Object help)
                                     help)))
     return help;
 
-  return call1 (Qsubstitute_command_keys, help);
+  return calln (Qsubstitute_command_keys, help);
 }
 
 /* Display the help-echo property of the character after the mouse pointer.
@@ -2270,7 +2270,7 @@ show_help_echo (Lisp_Object help, Lisp_Object window, Lisp_Object object,
 	 restore the mouse_moved flag.  */
       struct frame *f = some_mouse_moved ();
 
-      help = call1 (Qmouse_fixup_help_message, help);
+      help = calln (Qmouse_fixup_help_message, help);
       if (f)
 	f->mouse_moved = true;
     }
@@ -2278,7 +2278,7 @@ show_help_echo (Lisp_Object help, Lisp_Object window, Lisp_Object object,
   if (STRINGP (help) || NILP (help))
     {
       if (!NILP (Vshow_help_function))
-	call1 (Vshow_help_function, help_echo_substitute_command_keys (help));
+	calln (Vshow_help_function, help_echo_substitute_command_keys (help));
       help_echo_showing_p = STRINGP (help);
     }
 }
@@ -3083,7 +3083,7 @@ read_char (int commandflag, Lisp_Object map,
       struct buffer *prev_buffer = current_buffer;
       last_input_event = c;
 
-      call4 (Qcommand_execute, tem, Qnil, Fvector (1, &last_input_event), Qt);
+      calln (Qcommand_execute, tem, Qnil, Fvector (1, &last_input_event), Qt);
 
       if (CONSP (c) && !NILP (Fmemq (XCAR (c), Vwhile_no_input_ignore_events))
 	  && !end_time)
@@ -3269,7 +3269,7 @@ read_char (int commandflag, Lisp_Object map,
 	}
 
       /* Call the input method.  */
-      tem = call1 (Vinput_method_function, c);
+      tem = calln (Vinput_method_function, c);
 
       tem = unbind_to (count, tem);
 
@@ -4816,7 +4816,7 @@ timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
 
 	      specbind (Qinhibit_quit, Qt);
 
-	      call1 (Qtimer_event_handler, chosen_timer);
+	      calln (Qtimer_event_handler, chosen_timer);
 	      Vdeactivate_mark = old_deactivate_mark;
 	      timers_run++;
 	      unbind_to (count, Qnil);
@@ -6526,7 +6526,7 @@ make_lispy_event (struct input_event *event)
 		     being generated.  */
 		  {
 		    Lisp_Object edges
-		      = call4 (Qwindow_edges, Fcar (start_pos), Qt, Qnil, Qt);
+		      = calln (Qwindow_edges, Fcar (start_pos), Qt, Qnil, Qt);
 		    int new_x = XFIXNUM (Fcar (frame_relative_event_pos));
 		    int new_y = XFIXNUM (Fcdr (frame_relative_event_pos));
 
@@ -8757,10 +8757,10 @@ parse_menu_item (Lisp_Object item, int inmenubar)
 
   /* Create item_properties vector if necessary.  */
   if (NILP (item_properties))
-    item_properties = make_nil_vector (ITEM_PROPERTY_ENABLE + 1);
+    item_properties = make_nil_vector (ITEM_PROPERTY_MAX + 1);
 
   /* Initialize optional entries.  */
-  for (i = ITEM_PROPERTY_DEF; i < ITEM_PROPERTY_ENABLE; i++)
+  for (i = ITEM_PROPERTY_DEF; i <= ITEM_PROPERTY_MAX; i++)
     ASET (item_properties, i, Qnil);
   ASET (item_properties, ITEM_PROPERTY_ENABLE, Qt);
 
@@ -8946,7 +8946,7 @@ parse_menu_item (Lisp_Object item, int inmenubar)
     /* The previous code preferred :key-sequence to :keys, so we
        preserve this behavior.  */
     if (STRINGP (keyeq) && !CONSP (keyhint))
-      keyeq = concat2 (space_space, call1 (Qsubstitute_command_keys, keyeq));
+      keyeq = concat2 (space_space, calln (Qsubstitute_command_keys, keyeq));
     else
       {
 	Lisp_Object prefix = keyeq;
@@ -10305,7 +10305,7 @@ access_keymap_keyremap (Lisp_Object map, Lisp_Object key, Lisp_Object prompt,
 	 remapped.  */
       count = SPECPDL_INDEX ();
       specbind (Qcurrent_key_remap_sequence, remap);
-      next = unbind_to (count, call1 (next, prompt));
+      next = unbind_to (count, calln (next, prompt));
 
       /* If the function returned something invalid,
 	 barf--don't ignore it.  */
@@ -12864,10 +12864,10 @@ static const struct event_head head_table[] = {
 static Lisp_Object
 init_while_no_input_ignore_events (void)
 {
-  Lisp_Object events = listn (9, Qselect_window, Qhelp_echo, Qmove_frame,
-			      Qiconify_frame, Qmake_frame_visible,
-			      Qfocus_in, Qfocus_out, Qconfig_changed_event,
-			      Qselection_request);
+  Lisp_Object events = list (Qselect_window, Qhelp_echo, Qmove_frame,
+			     Qiconify_frame, Qmake_frame_visible,
+			     Qfocus_in, Qfocus_out, Qconfig_changed_event,
+			     Qselection_request);
 
 #ifdef HAVE_DBUS
   events = Fcons (Qdbus_event, events);

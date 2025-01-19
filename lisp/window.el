@@ -3828,7 +3828,8 @@ ABSOLUTE is non-nil, PIXELWISE is implicitly non-nil too."
 	 (top-body
 	  (when body
 	    (+ (window-pixel-top window) border-width
-	       (window-header-line-height window))))
+	       (window-header-line-height window)
+	       (window-tab-line-height window))))
 	 (right (+ left (if pixelwise
 			    (window-pixel-width window)
 			  (window-total-width window))))

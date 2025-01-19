@@ -4154,7 +4154,7 @@ deliver_wm_chars (int do_translate, HWND hwnd, UINT msg, UINT wParam,
       windows_msg.time = GetMessageTime ();
       TranslateMessage (&windows_msg);
     }
-  count = get_wm_chars (hwnd, buf, sizeof (buf)/sizeof (*buf), 1,
+  count = get_wm_chars (hwnd, buf, ARRAYELTS (buf), 1,
 			/* The message may have been synthesized by
 			   who knows what; be conservative.  */
 			modifier_set (VK_LCONTROL)
@@ -7574,7 +7574,7 @@ w32_create_tip_frame (struct w32_display_info *dpyinfo, Lisp_Object parms)
     Lisp_Object fg = Fframe_parameter (frame, Qforeground_color);
     Lisp_Object colors = Qnil;
 
-    call2 (Qface_set_after_frame_default, frame, Qnil);
+    calln (Qface_set_after_frame_default, frame, Qnil);
 
     if (!EQ (bg, Fframe_parameter (frame, Qbackground_color)))
       colors = Fcons (Fcons (Qbackground_color, bg), colors);
@@ -7723,7 +7723,7 @@ w32_hide_tip (bool delete)
 {
   if (!NILP (tip_timer))
     {
-      call1 (Qcancel_timer, tip_timer);
+      calln (Qcancel_timer, tip_timer);
       tip_timer = Qnil;
     }
 
@@ -7816,7 +7816,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 	      Lisp_Object timer = tip_timer;
 
 	      tip_timer = Qnil;
-	      call1 (Qcancel_timer, timer);
+	      calln (Qcancel_timer, timer);
 	    }
 
 	  block_input ();
@@ -7867,11 +7867,11 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 		    }
 		  else
 		    tip_last_parms =
-		      call2 (Qassq_delete_all, parm, tip_last_parms);
+		      calln (Qassq_delete_all, parm, tip_last_parms);
 		}
 	      else
 		tip_last_parms =
-		  call2 (Qassq_delete_all, parm, tip_last_parms);
+		  calln (Qassq_delete_all, parm, tip_last_parms);
 	    }
 
 	  /* Now check if there's a parameter left in tip_last_parms with a
@@ -8053,8 +8053,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 
  start_timer:
   /* Let the tip disappear after timeout seconds.  */
-  tip_timer = call3 (Qrun_at_time, timeout, Qnil,
-		     Qx_hide_tip);
+  tip_timer = calln (Qrun_at_time, timeout, Qnil, Qx_hide_tip);
 
   return unbind_to (count, Qnil);
 }
@@ -8379,8 +8378,7 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
 	  file_details_w->lStructSize = sizeof (*file_details_w);
 	/* Set up the inout parameter for the selected file name.  */
 	file_details_w->lpstrFile = filename_buf_w;
-	file_details_w->nMaxFile =
-	  sizeof (filename_buf_w) / sizeof (*filename_buf_w);
+	file_details_w->nMaxFile = ARRAYELTS (filename_buf_w);
 	file_details_w->hwndOwner = FRAME_W32_WINDOW (f);
 	/* Undocumented Bug in Common File Dialog:
 	   If a filter is not specified, shell links are not resolved.  */
@@ -8413,8 +8411,7 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
 	else
 	  file_details_a->lStructSize = sizeof (*file_details_a);
 	file_details_a->lpstrFile = filename_buf_a;
-	file_details_a->nMaxFile =
-	  sizeof (filename_buf_a) / sizeof (*filename_buf_a);
+	file_details_a->nMaxFile = ARRAYELTS (filename_buf_a);
 	file_details_a->hwndOwner = FRAME_W32_WINDOW (f);
 	file_details_a->lpstrFilter = filter_a;
 	file_details_a->lpstrInitialDir = dir_a;
@@ -8541,7 +8538,7 @@ DEFUN ("system-move-file-to-trash", Fsystem_move_file_to_trash,
 
   handler = Ffind_file_name_handler (filename, operation);
   if (!NILP (handler))
-    return call2 (handler, operation, filename);
+    return calln (handler, operation, filename);
   else
     {
       const char * path;
@@ -9729,7 +9726,7 @@ DEFUN ("file-system-info", Ffile_system_info, Sfile_system_info, 1, 1, 0,
   Lisp_Object handler = Ffind_file_name_handler (encoded, Qfile_system_info);
   if (!NILP (handler))
     {
-      value = call2 (handler, Qfile_system_info, encoded);
+      value = calln (handler, Qfile_system_info, encoded);
       if (CONSP (value) || NILP (value))
 	return value;
       error ("Invalid handler in `file-name-handler-alist'");

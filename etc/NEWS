@@ -90,6 +90,15 @@ If you have been using these variables in Lisp code (for example, in
 font-lock rules), simply quote the symbol, to use the face directly
 instead of its now-obsolete variable.
 
+** Network Security Manager (NSM) is now more strict.
+
+*** NSM warns about TLS 1.1 by default.
+It has been deprecated by RFC8996, published in 2021.
+
+*** NSM warns about DHE key exchange by default.
+Emacs now warns about ephemeral Diffie-Hellman key exchanges also when
+'network-security-level' is customized to its default 'medium' value.
+
 ** Etags
 
 +++
@@ -277,12 +286,13 @@ The Tifinagh script is used to write the Berber languages.
 *** New input methods for Northern Iroquoian languages.
 Input methods are now implemented for Haudenosaunee languages in the
 Northern Iroquoian language family: 'mohawk-postfix' (Mohawk
-[Kanien’kéha / Onkwehonwehnéha]), 'oneida-postfix' (Oneida
-[Onʌyote’a·ká· / Ukwehuwehnéha]), 'cayuga-postfix' (Cayuga
-[Gayogo̱ho:nǫhnéha:ˀ]), 'onondaga-postfix' (Onondaga [Onųdaʔgegáʔ]), and
-'seneca-postfix' (Seneca [Onödowá’ga:’]).  Additionally, there is a
-general-purpose 'haudenosaunee-postfix' input method to facilitate
-writing in the orthographies of the five languages simultaneously.
+[Kanien’kéha / Kanyen’kéha / Onkwehonwehnéha]), 'oneida-postfix' (Oneida
+[Onʌyote’a·ká· / Onyota’a:ká: / Ukwehuwehnéha]), 'cayuga-postfix'
+(Cayuga [Gayogo̱ho:nǫhnéha:ˀ]), 'onondaga-postfix' (Onondaga
+[Onųdaʔgegáʔ]), and 'seneca-postfix' (Seneca [Onödowá’ga:’]).
+Additionally, there is a general-purpose 'haudenosaunee-postfix' input
+method to facilitate writing in the orthographies of the five languages
+simultaneously.
 
 ---
 ** 'visual-wrap-prefix-mode' now supports variable-pitch fonts.
@@ -333,6 +343,11 @@ modal editing packages.
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
 ---
+** ASM mode
+*** 'asm-mode-set-comment-hook' is obsolete.
+You can now set `asm-comment-char' from 'asm-mode-hook' instead.
+
+---
 ** Ibuffer
 *** New column 'recency' in Ibuffer display.
 The variable 'ibuffer-formats' configures the Ibuffer formats.  Add
@@ -376,6 +391,9 @@ Emacs 25.1), and gnudoit (obsolete since Emacs 25.1).
 +++
 *** 'cl-labels' now also accepts '(FUNC EXP)' bindings, like 'cl-flet'.
 Such bindings make it possible to compute which function to bind to FUNC.
+
+---
+*** 'cl-block' names are now lexically scoped, as documented.
 
 ** Whitespace
 
@@ -1166,11 +1184,14 @@ It offers a more concise way to create a completion table with metadata.
 ** 'all-completions' and 'unintern' no longer support old calling conventions.
 
 +++
-** New symbol property 'definition-type' used by 'find-function' and friends.
+** New symbol property 'find-function-type-alist' used by 'find-function' etc.
 Macros that define an object in a way that makes the object's name and
-the macro call site defining the object hard to associate can put the
-property 'definition-type' on the object's name to provide instructions
-for finding the definition.
+the macro call site defining the object hard to associate can add an
+entry to the property 'find-function-type-alist' on the object's name to
+provide instructions for finding the definition.
+
+New convenience function 'find-function-update-type-alist' offers a
+concise way to update a symbol's 'find-function-type-alist' property.
 
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems

@@ -684,7 +684,7 @@ malloc_warning (const char *str)
 void
 display_malloc_warning (void)
 {
-  call3 (Qdisplay_warning,
+  calln (Qdisplay_warning,
 	 Qalloc,
 	 build_string (pending_malloc_warning),
 	 QCemergency);
@@ -719,21 +719,24 @@ buffer_memory_full (ptrdiff_t nbytes)
   ((a) % (b) == 0 ? (a) : (b) % (a) == 0 ? (b) : (a) * (b))
 
 /* Alignment needed for memory blocks that are allocated via malloc
-   and that contain Lisp objects.  On typical hosts malloc already
-   aligns sufficiently, but extra work is needed on oddball hosts
-   where Emacs would crash if malloc returned a non-GCALIGNED pointer.  */
+   and that contain Lisp objects.  */
 enum { LISP_ALIGNMENT = alignof (union { union emacs_align_type x;
 					 GCALIGNED_UNION_MEMBER }) };
 static_assert (LISP_ALIGNMENT % GCALIGNMENT == 0);
 
-/* True if malloc (N) is known to return storage suitably aligned for
-   Lisp objects whenever N is a multiple of LISP_ALIGNMENT.  In
-   practice this is true whenever alignof (max_align_t) is also a
+/* Verify Emacs's assumption that malloc (N) returns storage suitably
+   aligned for Lisp objects whenever N is a multiple of LISP_ALIGNMENT.
+   This assumption holds for current Emacs porting targets;
+   if the assumption fails on a new platform, this check should
+   cause compilation to fail and some porting work will need to be done.
+
+   In practice the assumption holds when alignof (max_align_t) is also a
    multiple of LISP_ALIGNMENT.  This works even for buggy platforms
    like MinGW circa 2020, where alignof (max_align_t) is 16 even though
    the malloc alignment is only 8, and where Emacs still works because
    it never does anything that requires an alignment of 16.  */
 enum { MALLOC_IS_LISP_ALIGNED = alignof (max_align_t) % LISP_ALIGNMENT == 0 };
+static_assert (MALLOC_IS_LISP_ALIGNED);
 
 /* If compiled with XMALLOC_BLOCK_INPUT_CHECK, define a symbol
    BLOCK_INPUT_IN_MEMORY_ALLOCATORS that is visible to the debugger.
@@ -774,9 +777,6 @@ malloc_unblock_input (void)
       malloc_probe (size);			\
   } while (0)
 
-static void *lmalloc (size_t, bool) ATTRIBUTE_MALLOC_SIZE ((1));
-static void *lrealloc (void *, size_t);
-
 /* Like malloc but check for no memory and block interrupt input.  */
 
 void *
@@ -785,7 +785,7 @@ xmalloc (size_t size)
   void *val;
 
   MALLOC_BLOCK_INPUT;
-  val = lmalloc (size, false);
+  val = malloc (size);
   MALLOC_UNBLOCK_INPUT;
 
   if (!val)
@@ -802,7 +802,7 @@ xzalloc (size_t size)
   void *val;
 
   MALLOC_BLOCK_INPUT;
-  val = lmalloc (size, true);
+  val = calloc (1, size);
   MALLOC_UNBLOCK_INPUT;
 
   if (!val)
@@ -819,12 +819,7 @@ xrealloc (void *block, size_t size)
   void *val;
 
   MALLOC_BLOCK_INPUT;
-  /* Call lmalloc when BLOCK is null, for the benefit of long-obsolete
-     platforms lacking support for realloc (NULL, size).  */
-  if (! block)
-    val = lmalloc (size, false);
-  else
-    val = lrealloc (block, size);
+  val = realloc (block, size);
   MALLOC_UNBLOCK_INPUT;
 
   if (!val)
@@ -1012,10 +1007,6 @@ record_xmalloc (size_t size)
 }
 
 
-/* Like malloc but used for allocating Lisp data.  NBYTES is the
-   number of bytes to allocate, TYPE describes the intended use of the
-   allocated memory block (for strings, for conses, ...).  */
-
 #if ! USE_LSB_TAG
 extern void *lisp_malloc_loser;
 void *lisp_malloc_loser EXTERNALLY_VISIBLE;
@@ -1033,7 +1024,7 @@ lisp_malloc (size_t nbytes, bool clearit, enum mem_type type)
   allocated_mem_type = type;
 #endif
 
-  val = lmalloc (nbytes, clearit);
+  val = clearit ? calloc (1, nbytes) : malloc (nbytes);
 
 #if ! USE_LSB_TAG
   /* If the memory just allocated cannot be addressed thru a Lisp
@@ -1119,11 +1110,7 @@ aligned_alloc (size_t alignment, size_t size)
      Verify this for all arguments this function is given.  */
   static_assert (BLOCK_ALIGN % sizeof (void *) == 0
 		 && POWER_OF_2 (BLOCK_ALIGN / sizeof (void *)));
-  static_assert (MALLOC_IS_LISP_ALIGNED
-		 || (LISP_ALIGNMENT % sizeof (void *) == 0
-		     && POWER_OF_2 (LISP_ALIGNMENT / sizeof (void *))));
-  eassert (alignment == BLOCK_ALIGN
-	   || (!MALLOC_IS_LISP_ALIGNED && alignment == LISP_ALIGNMENT));
+  eassert (alignment == BLOCK_ALIGN);
 
   void *p;
   return posix_memalign (&p, alignment, size) == 0 ? p : 0;
@@ -1373,81 +1360,6 @@ lisp_align_free (void *block)
 }
 
 #endif // not HAVE_MPS
-
-/* True if a malloc-returned pointer P is suitably aligned for SIZE,
-   where Lisp object alignment may be needed if SIZE is a multiple of
-   LISP_ALIGNMENT.  */
-
-static bool
-laligned (void *p, size_t size)
-{
-  return (MALLOC_IS_LISP_ALIGNED || (intptr_t) p % LISP_ALIGNMENT == 0
-	  || size % LISP_ALIGNMENT != 0);
-}
-
-/* Like malloc and realloc except return null only on failure,
-   the result is Lisp-aligned if SIZE is, and lrealloc's pointer
-   argument must be nonnull.  Code allocating C heap memory
-   for a Lisp object should use one of these functions to obtain a
-   pointer P; that way, if T is an enum Lisp_Type value and L ==
-   make_lisp_ptr (P, T), then XPNTR (L) == P and XTYPE (L) == T.
-
-   If CLEARIT, arrange for the allocated memory to be cleared.
-   This might use calloc, as calloc can be faster than malloc+memset.
-
-   On typical modern platforms these functions' loops do not iterate.
-   On now-rare (and perhaps nonexistent) platforms, the code can loop,
-   reallocating (typically with larger and larger sizes) until the
-   allocator returns a Lisp-aligned pointer.  This loop in
-   theory could repeat forever.  If an infinite loop is possible on a
-   platform, a build would surely loop and the builder can then send
-   us a bug report.  Adding a counter to try to detect any such loop
-   would complicate the code (and possibly introduce bugs, in code
-   that's never really exercised) for little benefit.  */
-
-static void *
-lmalloc (size_t size, bool clearit)
-{
-#ifdef USE_ALIGNED_ALLOC
-  if (! MALLOC_IS_LISP_ALIGNED && size % LISP_ALIGNMENT == 0)
-    {
-      void *p = aligned_alloc (LISP_ALIGNMENT, size);
-      if (p)
-	{
-	  if (clearit)
-	    memclear (p, size);
-	}
-      else if (! (MALLOC_0_IS_NONNULL || size))
-	return aligned_alloc (LISP_ALIGNMENT, LISP_ALIGNMENT);
-      return p;
-    }
-#endif
-
-  while (true)
-    {
-      void *p = clearit ? calloc (1, size) : malloc (size);
-      if (laligned (p, size) && (MALLOC_0_IS_NONNULL || size || p))
-	return p;
-      free (p);
-      size_t bigger;
-      if (!ckd_add (&bigger, size, LISP_ALIGNMENT))
-	size = bigger;
-    }
-}
-
-static void *
-lrealloc (void *p, size_t size)
-{
-  while (true)
-    {
-      p = realloc (p, size);
-      if (laligned (p, size) && (size || p))
-	return p;
-      size_t bigger;
-      if (!ckd_add (&bigger, size, LISP_ALIGNMENT))
-	size = bigger;
-    }
-}
 
 
 /***********************************************************************
@@ -8192,7 +8104,7 @@ respective remote host.  */)
     = Ffind_file_name_handler (BVAR (current_buffer, directory),
 			       Qmemory_info);
   if (!NILP (handler))
-    return call1 (handler, Qmemory_info);
+    return calln (handler, Qmemory_info);
 
 #if defined HAVE_LINUX_SYSINFO
   struct sysinfo si;

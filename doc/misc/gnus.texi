@@ -18252,7 +18252,8 @@ inherited.
 This section describes a special mail back end called @code{nndiary},
 and its companion library @code{gnus-diary}.  It is ``special'' in the
 sense that it is not meant to be one of the standard alternatives for
-reading mail with Gnus.  See @ref{Choosing a Mail Back End} for that.
+reading mail with Gnus.  (@xref{Choosing a Mail Back End}, for
+description of the standard mail back ends.)
 Instead, it is used to treat @emph{some} of your mails in a special way,
 namely, as event reminders.
 

@@ -1762,7 +1762,6 @@ xg_create_frame_widgets (struct frame *f)
 			 0);
 
   imc = gtk_im_multicontext_new ();
-  g_object_ref (imc);
   gtk_im_context_set_use_preedit (imc, TRUE);
 
   g_signal_connect_data (G_OBJECT (imc), "commit",
@@ -5624,7 +5623,7 @@ find_rtl_image (struct frame *f, Lisp_Object image, Lisp_Object rtl)
       Lisp_Object rtl_image = PROP (TOOL_BAR_ITEM_IMAGES);
       if (!NILP (file = file_for_image (rtl_image)))
         {
-          file = call1 (Qfile_name_sans_extension,
+          file = calln (Qfile_name_sans_extension,
 			Ffile_name_nondirectory (file));
           if (! NILP (Fequal (file, rtl_name)))
             {
@@ -6038,7 +6037,7 @@ update_frame_tool_bar (struct frame *f)
 
       specified_file = file_for_image (image);
       if (!NILP (specified_file) && !NILP (Ffboundp (Qx_gtk_map_stock)))
-        stock = call1 (Qx_gtk_map_stock, specified_file);
+        stock = calln (Qx_gtk_map_stock, specified_file);
 
       if (CONSP (stock))
         {

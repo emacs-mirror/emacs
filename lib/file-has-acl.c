@@ -99,6 +99,37 @@ enum {
   ACE4_IDENTIFIER_GROUP        = 0x00000040
 };
 
+/* AI indicates XATTR may be present but wasn't accessible.
+   This is the case when [l]listxattr failed with E2BIG,
+   or is not supported (!acl_errno_valid()), or failed with EACCES
+   which in Linux kernel 6.12 NFS can mean merely that we lack read access.
+*/
+
+static bool
+aclinfo_may_indicate_xattr (struct aclinfo const *ai)
+{
+  return ai->size < 0 && (!acl_errno_valid (ai->u.err)
+                          || ai->u.err == EACCES || ai->u.err == E2BIG);
+}
+
+/* Does NAME have XATTR?  */
+
+static bool
+has_xattr (char const *xattr, struct aclinfo const *ai,
+           MAYBE_UNUSED char const *restrict name, MAYBE_UNUSED int flags)
+{
+  if (ai && aclinfo_has_xattr (ai, xattr))
+    return true;
+  else if (!ai || aclinfo_may_indicate_xattr (ai))
+    {
+      int ret = ((flags & ACL_SYMLINK_FOLLOW ? getxattr : lgetxattr)
+                (name, xattr, NULL, 0));
+      if (0 <= ret || (errno == ERANGE || errno == E2BIG))
+        return true;
+    }
+  return false;
+}
+
 /* Does AI's xattr set contain XATTR?  */
 
 bool
@@ -176,11 +207,13 @@ get_aclinfo (char const *name, struct aclinfo *ai, int flags)
         }
     }
 
-  if (0 < ai->size && flags & ACL_GET_SCONTEXT)
+  /* A security context can exist only if extended attributes do.  */
+  if (flags & ACL_GET_SCONTEXT
+      && (0 < ai->size || aclinfo_may_indicate_xattr (ai)))
     {
       if (is_smack_enabled ())
         {
-          if (aclinfo_has_xattr (ai, XATTR_NAME_SMACK))
+          if (ai->size < 0 || aclinfo_has_xattr (ai, XATTR_NAME_SMACK))
             {
               ssize_t r = smack_new_label_from_path (name, "security.SMACK64",
                                                      flags & ACL_SYMLINK_FOLLOW,
@@ -191,7 +224,7 @@ get_aclinfo (char const *name, struct aclinfo *ai, int flags)
       else
         {
 # if USE_SELINUX_SELINUX_H
-          if (aclinfo_has_xattr (ai, XATTR_NAME_SELINUX))
+          if (ai->size < 0 || aclinfo_has_xattr (ai, XATTR_NAME_SELINUX))
             {
               ssize_t r =
                 ((flags & ACL_SYMLINK_FOLLOW ? getfilecon : lgetfilecon)
@@ -352,7 +385,7 @@ file_has_aclinfo (MAYBE_UNUSED char const *restrict name,
   int initial_errno = errno;
   get_aclinfo (name, ai, flags);
 
-  if (ai->size <= 0)
+  if (!aclinfo_may_indicate_xattr (ai) && ai->size <= 0)
     {
       errno = ai->size < 0 ? ai->u.err : initial_errno;
       return ai->size;
@@ -363,11 +396,11 @@ file_has_aclinfo (MAYBE_UNUSED char const *restrict name,
      In earlier Fedora the two types of ACLs were mutually exclusive.
      Attempt to work correctly on both kinds of systems.  */
 
-  if (!aclinfo_has_xattr (ai, XATTR_NAME_NFSV4_ACL))
+  if (!has_xattr (XATTR_NAME_NFSV4_ACL, ai, name, flags))
     return
-      (aclinfo_has_xattr (ai, XATTR_NAME_POSIX_ACL_ACCESS)
+      (has_xattr (XATTR_NAME_POSIX_ACL_ACCESS, ai, name, flags)
        || ((d_type == DT_DIR || d_type == DT_UNKNOWN)
-           && aclinfo_has_xattr (ai, XATTR_NAME_POSIX_ACL_DEFAULT)));
+           && has_xattr (XATTR_NAME_POSIX_ACL_DEFAULT, ai, name, flags)));
 
   /* A buffer large enough to hold any trivial NFSv4 ACL.
      The max length of a trivial NFSv4 ACL is 6 words for owner,

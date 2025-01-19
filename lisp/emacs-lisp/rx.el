@@ -1,4 +1,4 @@
-;;; rx.el --- S-exp notation for regexps           --*- lexical-binding: t -*-
+;;; rx.el --- S-exp notation for regexps            -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2001-2025 Free Software Foundation, Inc.
 

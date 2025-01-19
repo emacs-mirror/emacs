@@ -165,12 +165,18 @@
 
 #if @HAVE_WINSOCK2_H@
 
+/* Define type 'suseconds_t'.  */
+# if !GNULIB_defined_suseconds_t
+typedef int suseconds_t;
+#  define GNULIB_defined_suseconds_t 1
+# endif
+
 # if !GNULIB_defined_rpl_fd_isset
 
 /* Re-define FD_ISSET to avoid a WSA call while we are not using
    network sockets.  */
 static int
-rpl_fd_isset (SOCKET fd, fd_set * set)
+rpl_fd_isset (SOCKET fd, const fd_set * set)
 {
   u_int i;
   if (set == NULL)

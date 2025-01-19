@@ -184,7 +184,7 @@ occurs within the body, the form simply returns @code{nil} without
 even evaluating its argument.
 
 The @var{modes} list allows specifying which modes the command is
-meant to be used in.  See @ref{Command Modes} for more details about
+meant to be used in.  @xref{Command Modes}, for more details about
 the effect of specifying @var{modes}, and when to use it.
 
 By convention, you should put the @code{interactive} form in the

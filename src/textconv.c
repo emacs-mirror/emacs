@@ -1308,7 +1308,7 @@ really_set_point_and_mark (struct frame *f, ptrdiff_t point,
       && !NILP (BVAR (current_buffer, mark_active)))
     call0 (Qdeactivate_mark);
   else
-    call1 (Qpush_mark, make_fixnum (mark));
+    calln (Qpush_mark, make_fixnum (mark));
 
   /* Update the ephemeral last point.  */
   w = XWINDOW (selected_window);

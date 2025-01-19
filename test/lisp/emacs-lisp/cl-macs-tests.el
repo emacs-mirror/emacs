@@ -728,6 +728,15 @@ collection clause."
                      (cons (f1 7) 8)))
                  '(7 . 8))))
 
+(ert-deftest cl-macs--test-cl-block-lexbind-bug-75498 ()
+  (should (equal
+           (let ((ret (lambda (f)
+                        (cl-block a (funcall f) (cl-return-from a :ret)))))
+             (cl-block a
+               (list :oops
+                     (funcall ret (lambda () (cl-return-from a :clo))))))
+           :clo)))
+
 (ert-deftest cl-flet/edebug ()
   "Check that we can instrument `cl-flet' forms (bug#65344)."
   (with-temp-buffer

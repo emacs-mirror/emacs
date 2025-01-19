@@ -62,6 +62,9 @@
 # define NEED_MKTIME_WORKING 0
 #endif
 
+#ifdef _LIBC
+# include <tzset.h>
+#endif
 #include "mktime-internal.h"
 
 #if !defined _LIBC && (NEED_MKTIME_WORKING || NEED_MKTIME_WINDOWS)
@@ -98,8 +101,8 @@ my_tzset (void)
   tzset ();
 # endif
 }
-# undef __tzset
-# define __tzset() my_tzset ()
+# undef tzset
+# define tzset() my_tzset ()
 #endif
 
 #if defined _LIBC || NEED_MKTIME_WORKING || NEED_MKTIME_INTERNAL
@@ -250,6 +253,7 @@ tm_diff (long_int year, long_int yday, int hour, int min, int sec,
 		     tp->tm_hour, tp->tm_min, tp->tm_sec);
 }
 
+#ifndef _LIBC
 /* Convert T to a struct tm value in *TM.  Use localtime64_r if LOCAL,
    otherwise gmtime64_r.  T must be in range for __time64_t.  Return
    TM if successful, NULL (setting errno) on failure.  */
@@ -262,8 +266,8 @@ convert_time (long_int t, bool local, struct tm *tm)
   else
     return __gmtime64_r (&x, tm);
 }
-/* Call it __tzconvert to sync with other parts of glibc.  */
-#define __tz_convert convert_time
+# define __tz_convert convert_time
+#endif
 
 /* Convert *T to a broken down time in *TP (as if by localtime if
    LOCAL, otherwise as if by gmtime).  If *T is out of range for
@@ -320,7 +324,9 @@ ranged_convert (bool local, long_int *t, struct tm *tp)
    If *OFFSET's guess is correct, only one reverse mapping call is
    needed.  If successful, set *TP to the canonicalized struct tm;
    otherwise leave *TP alone, return ((time_t) -1) and set errno.
-   This function is external because it is used also by timegm.c.  */
+   This function is external because it is used also by timegm.c.
+
+   If _LIBC, the caller must lock __tzset_lock.  */
 __time64_t
 __mktime_internal (struct tm *tp, bool local, mktime_offset_t *offset)
 {
@@ -349,12 +355,10 @@ __mktime_internal (struct tm *tp, bool local, mktime_offset_t *offset)
   int mday = tp->tm_mday;
   int mon = tp->tm_mon;
   int year_requested = tp->tm_year;
+  int isdst = tp->tm_isdst;
 
-  /* Ignore any tm_isdst request for timegm.  */
-  int isdst = local ? tp->tm_isdst : 0;
-
-  /* 1 if the previous probe was DST.  */
-  int dst2 = 0;
+  /* True if the previous probe was DST.  */
+  bool dst2 = false;
 
   /* Ensure that mon is in range, and set year accordingly.  */
   int mon_remainder = mon % 12;
@@ -443,12 +447,9 @@ __mktime_internal (struct tm *tp, bool local, mktime_offset_t *offset)
 
 	 Heuristic: probe the adjacent timestamps in both directions,
 	 looking for the desired isdst.  If none is found within a
-	 reasonable duration bound, assume a one-hour DST difference.
+	 reasonable duration bound, ignore the disagreement.
 	 This should work for all real time zone histories in the tz
 	 database.  */
-
-      /* +1 if we wanted standard time but got DST, -1 if the reverse.  */
-      int dst_difference = (isdst == 0) - (tm.tm_isdst == 0);
 
       /* Distance between probes when looking for a DST boundary.  In
 	 tzdata2003a, the shortest period of DST is 601200 seconds
@@ -459,21 +460,17 @@ __mktime_internal (struct tm *tp, bool local, mktime_offset_t *offset)
 	 periods when probing.  */
       int stride = 601200;
 
-      /* In TZDB 2021e, the longest period of DST (or of non-DST), in
-	 which the DST (or adjacent DST) difference is not one hour,
-	 is 457243209 seconds: e.g., America/Cambridge_Bay with leap
-	 seconds, starting 1965-10-31 00:00 in a switch from
-	 double-daylight time (-05) to standard time (-07), and
-	 continuing to 1980-04-27 02:00 in a switch from standard time
-	 (-07) to daylight time (-06).  */
-      int duration_max = 457243209;
-
-      /* Search in both directions, so the maximum distance is half
-	 the duration; add the stride to avoid off-by-1 problems.  */
-      int delta_bound = duration_max / 2 + stride;
+      /* Do not probe too far away from the requested time,
+         by striding until at least a year has passed, but then giving up.
+         This helps avoid unexpected results in (for example) Asia/Kolkata,
+         for which today's users expect to see no DST even though it
+         did observe DST long ago.  */
+      int year_seconds_bound = 366 * 24 * 60 * 60 + 1;
+      int delta_bound = year_seconds_bound + stride;
 
       int delta, direction;
 
+      /* Search in both directions, closest first.  */
       for (delta = stride; delta < delta_bound; delta += stride)
 	for (direction = -1; direction <= 1; direction += 2)
 	  {
@@ -503,13 +500,8 @@ __mktime_internal (struct tm *tp, bool local, mktime_offset_t *offset)
 	      }
 	  }
 
-      /* No unusual DST offset was found nearby.  Assume one-hour DST.  */
-      t += 60 * 60 * dst_difference;
-      if (mktime_min <= t && t <= mktime_max && __tz_convert (t, local, &tm))
-	goto offset_found;
-
-      __set_errno (EOVERFLOW);
-      return -1;
+      /* No probe with the requested tm_isdst was found nearby.
+         Ignore the requested tm_isdst.  */
     }
 
  offset_found:
@@ -548,17 +540,19 @@ __mktime_internal (struct tm *tp, bool local, mktime_offset_t *offset)
 __time64_t
 __mktime64 (struct tm *tp)
 {
-  /* POSIX.1 requires mktime to set external variables like 'tzname'
-     as though tzset had been called.  */
-  __tzset ();
+  __libc_lock_lock (__tzset_lock);
+  __tzset_unlocked ();
 
 # if defined _LIBC || NEED_MKTIME_WORKING
   static mktime_offset_t localtime_offset;
-  return __mktime_internal (tp, true, &localtime_offset);
+  __time64_t result = __mktime_internal (tp, true, &localtime_offset);
 # else
 #  undef mktime
-  return mktime (tp);
+  __time64_t result = mktime (tp);
 # endif
+
+  __libc_lock_unlock (__tzset_lock);
+  return result;
 }
 #endif /* _LIBC || NEED_MKTIME_WORKING || NEED_MKTIME_WINDOWS */
 

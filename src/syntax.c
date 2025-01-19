@@ -585,7 +585,7 @@ find_defun_start (ptrdiff_t pos, ptrdiff_t pos_byte)
   if (!NILP (Vcomment_use_syntax_ppss))
     {
       modiff_count modiffs = CHARS_MODIFF;
-      Lisp_Object ppss = call1 (Qsyntax_ppss, make_fixnum (pos));
+      Lisp_Object ppss = calln (Qsyntax_ppss, make_fixnum (pos));
       if (modiffs != CHARS_MODIFF)
 	error ("syntax-ppss modified the buffer!");
       TEMP_SET_PT_BOTH (opoint, opoint_byte);
@@ -1430,7 +1430,7 @@ DEFUN ("internal-describe-syntax-value", Finternal_describe_syntax_value,
     {
       AUTO_STRING (prefixdoc,
 		   ",\n\t  is a prefix character for `backward-prefix-chars'");
-      insert1 (call1 (Qsubstitute_command_keys, prefixdoc));
+      insert1 (calln (Qsubstitute_command_keys, prefixdoc));
     }
 
   return syntax;
@@ -1474,7 +1474,7 @@ scan_words (ptrdiff_t from, EMACS_INT count)
       func = CHAR_TABLE_REF (Vfind_word_boundary_function_table, ch0);
       if (! NILP (Ffboundp (func)))
 	{
-	  pos = call2 (func, make_fixnum (from - 1), make_fixnum (end));
+	  pos = calln (func, make_fixnum (from - 1), make_fixnum (end));
 	  if (FIXNUMP (pos) && from < XFIXNUM (pos) && XFIXNUM (pos) <= ZV)
 	    {
 	      from = XFIXNUM (pos);
@@ -1523,7 +1523,7 @@ scan_words (ptrdiff_t from, EMACS_INT count)
       func = CHAR_TABLE_REF (Vfind_word_boundary_function_table, ch1);
       if (! NILP (Ffboundp (func)))
  	{
-	  pos = call2 (func, make_fixnum (from), make_fixnum (beg));
+	  pos = calln (func, make_fixnum (from), make_fixnum (beg));
 	  if (FIXNUMP (pos) && BEGV <= XFIXNUM (pos) && XFIXNUM (pos) < from)
 	    {
 	      from = XFIXNUM (pos);

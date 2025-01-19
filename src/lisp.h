@@ -2634,7 +2634,7 @@ struct hash_impl;
    It's unsigned and a subtype of EMACS_UINT.  */
 typedef unsigned int hash_hash_t;
 
-typedef enum {
+typedef enum hash_table_std_test_t {
   Test_eql,
   Test_eq,
   Test_equal,
@@ -2658,7 +2658,7 @@ struct hash_table_test
   Lisp_Object name;
 };
 
-typedef enum {
+typedef enum hash_table_weakness_t {
   Weak_None,		 /* No weak references.  */
   Weak_Key,		 /* Reference to key is weak.  */
   Weak_Value,		 /* Reference to value is weak.  */
@@ -2796,10 +2796,10 @@ struct Lisp_Hash_Table
   unsigned char index_bits;	/* log2 (size of the index vector).  */
 
   /* Weakness of the table.  */
-  hash_table_weakness_t weakness : 3;
+  ENUM_BF (hash_table_weakness_t) weakness : 3;
 
   /* Hash table test (only used when frozen in dump)  */
-  hash_table_std_test_t frozen_test : 2;
+  ENUM_BF (hash_table_std_test_t) frozen_test : 2;
 
   /* True if the table can be purecopied.  The table cannot be
      changed afterwards.  */
@@ -3770,15 +3770,6 @@ enum maxargs
    'Finsert (1, &text);'.  */
 #define CALLN(f, ...) CALLMANY (f, ((Lisp_Object []) {__VA_ARGS__}))
 #define calln(...) CALLN (Ffuncall, __VA_ARGS__)
-/* Compatibility aliases.  */
-#define call1 calln
-#define call2 calln
-#define call3 calln
-#define call4 calln
-#define call5 calln
-#define call6 calln
-#define call7 calln
-#define call8 calln
 
 /* Define 'call0' as a function rather than a CPP macro because we
    sometimes want to pass it as a first class function.  */
@@ -5218,7 +5209,7 @@ extern bool signal_quit_p (Lisp_Object);
    The calling convention:
 
    if (!NILP (Vrun_hooks))
-     call1 (Vrun_hooks, Qmy_funny_hook);
+     calln (Vrun_hooks, Qmy_funny_hook);
 
    should no longer be used.  */
 extern void run_hook (Lisp_Object);

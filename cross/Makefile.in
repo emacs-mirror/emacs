@@ -182,9 +182,7 @@ $(LIBSRC_BINARIES) &: src/verbose.mk $(top_builddir)/$@ lib/libgnu.a \
 
 .PHONY: clean maintainer-clean distclean
 clean:
-	for dir in $(CLEAN_SUBDIRS); do		\
-	  find $$dir -type f $(FIND_DELETE);	\
-	done
+	find $(CLEAN_SUBDIRS) -type f $(FIND_DELETE)
 	rm -rf lib/config.h lib-src/config.h
 # ndk-build won't have been generated in a non-Android build.
 	if test -f ndk-build/Makefile; then	\
@@ -193,8 +191,6 @@ clean:
 
 maintainer-clean distclean bootstrap-clean: clean
 # Remove links created by configure.
-	for dir in $(CLEAN_SUBDIRS); do		\
-	  find $$dir -type l $(FIND_DELETE);	\
-	done
+	find $(CLEAN_SUBDIRS) -type l $(FIND_DELETE)
 	rm -rf lib/Makefile lib/gnulib.mk ndk-build/Makefile
 	rm -rf ndk-build/ndk-build.mk Makefile

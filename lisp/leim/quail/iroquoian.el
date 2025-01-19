@@ -27,8 +27,8 @@
 ;; Input methods are implemented for all Five Nations Iroquois
 ;; languages:
 
-;; - Mohawk (Kanien’kéha / Onkwehonwehnéha)
-;; - Oneida (Onʌyote’a·ká· / Ukwehuwehnéha)
+;; - Mohawk (Kanien’kéha / Kanyen’kéha / Onkwehonwehnéha)
+;; - Oneida (Onʌyote’a·ká· / Onyota’a:ká: / Ukwehuwehnéha)
 ;; - Onondaga (Onųdaʔgegáʔ)
 ;; - Cayuga (Gayogo̱ho:nǫhnéha:ˀ)
 ;; - Seneca (Onödowá’ga:’)
@@ -123,7 +123,7 @@ Entries are as with rules in `quail-define-rules'.")
 
 (quail-define-package
  "mohawk-postfix" "Mohawk" "MOH<" t
- "Mohawk (Kanien’kéha) input method with postfix modifiers
+ "Mohawk (Kanien’kéha/Kanyen’kéha) input method with postfix modifiers
 
 Stress diacritics:
 
@@ -216,8 +216,8 @@ Entries are as with rules in `quail-define-rules'.")
 Entries are as with rules in `quail-define-rules'.")
 
 (defconst iroquoian-oneida-consonant-alist
-  '((";;" ?\N{MODIFIER LETTER GLOTTAL STOP})
-    (";'" ?\N{RIGHT SINGLE QUOTATION MARK}))
+  '((";;" ?\N{RIGHT SINGLE QUOTATION MARK})
+    (";'" ?\N{MODIFIER LETTER GLOTTAL STOP}))
   "Alist of rules for consonant letters in Oneida input methods.
 Entries are as with rules in `quail-define-rules'.")
 
@@ -229,7 +229,7 @@ Entries are as with rules in `quail-define-rules'.")
 
 (quail-define-package
  "oneida-postfix" "Oneida" "ONE<" t
- "Oneida (Onʌyote’a·ká·) input method with postfix modifiers
+ "Oneida (Onʌyote’a·ká·/Onyota’a:ká:) input method with postfix modifiers
 
 Modifiers:
 
@@ -258,8 +258,8 @@ Consonants:
 
 | Key | Translation | Description              |
 |-----+-------------+--------------------------|
-| ;;  | ˀ           | Glottal stop             |
-| ;\\='  | \\=’           | Glottal stop (alternate) |
+| ;;  | \\=’           | Glottal stop             |
+| ;\\='  | ˀ           | Glottal stop (alternate)  |
 
 h, k, l, n, s, t, w, and y are bound to a single key.
 
@@ -393,9 +393,11 @@ Entries are as with rules in `quail-define-rules'.")
 Entries are as with rules in `quail-define-rules'.")
 
 (defconst iroquoian-onondaga-nasal-alist
-  '(("n-" ?ñ)
+  '(("n~" ?ñ)
+    ("n-" ["ñ"])
     ("n--" ["n-"])
-    ("N-" ?Ñ)
+    ("N~" ?Ñ)
+    ("N-" ["Ñ"])
     ("N--" ["N-"]))
   "Alist of rules for nasal modifier letters in Onondaga input methods.
 Entries are as with rules in `quail-define-rules'.")
@@ -433,10 +435,14 @@ Vowels:
 |-----------------------------------------------------------|
 | Onondaga Nation, New York orthography                     |
 |-----------------------------------------------------------|
-| en- | eñ | Mid front nasal vowel                          |
-| EN- | EÑ | Mid front nasal vowel (capital)                |
-| on- | oñ | Back high nasal vowel                          |
-| ON- | OÑ | Back high nasal vowel (capital)                |
+| en~ | eñ | Mid front nasal vowel                          |
+| en- | eñ | (same as above)                                |
+| EN~ | EÑ | Mid front nasal vowel (capital)                |
+| EN- | EÑ | (same as above)                                |
+| on~ | oñ | Back high nasal vowel                          |
+| on- | oñ | (same as above)                                |
+| ON~ | OÑ | Back high nasal vowel (capital)                |
+| ON- | OÑ | (same as above)                                |
 | a\"  | ä  | Low front rounded vowel                        |
 | A\"  | Ä  | Low front rounded vowel (capital)              |
 |-----------------------------------------------------------|
@@ -895,8 +901,8 @@ Entries are as with rules in `quail-define-rules'.")
 
 This input method can be used to enter the following languages:
 
-- Mohawk (Kanien’kéha / Onkwehonwehnéha)
-- Oneida (Onʌyote’a·ká· / Ukwehuwehnéha)
+- Mohawk (Kanien’kéha / Kanyen’kéha / Onkwehonwehnéha)
+- Oneida (Onʌyote’a·ká· / Onyota’a:ká: / Ukwehuwehnéha)
 - Cayuga (Gayogo̱ho:nǫhnéha:ˀ)
 - Onondaga (Onųdaʔgegáʔ)
 - Seneca (Onödowá’ga:’)
@@ -942,10 +948,14 @@ Vowels:
 | -------------------------------------------------------------------- |
 | (Onondaga Nation, New York)                                          |
 | -------------------------------------------------------------------- |
-| en-  | eñ          | Mid front nasal vowel                           |
-| EN-  | EÑ          | Mid front nasal vowel (capital)                 |
-| on-  | oñ          | Back high nasal vowel                           |
-| ON-  | OÑ          | Back high nasal vowel (capital)                 |
+| en~  | eñ          | Mid front nasal vowel                           |
+| en-  | eñ          | (same as above)                                 |
+| EN~  | EÑ          | Mid front nasal vowel (capital)                 |
+| EN-  | EÑ          | (same as above)                                 |
+| on~  | oñ          | Back high nasal vowel                           |
+| on-  | oñ          | (same as above)                                 |
+| ON~  | OÑ          | Back high nasal vowel (capital)                 |
+| ON-  | OÑ          | (same as above)                                 |
 | a\"   | ä           | Low front rounded vowel                         |
 | A\"   | Ä           | Low front rounded vowel (capital)               |
 | -------------------------------------------------------------------- |
@@ -991,8 +1001,8 @@ Consonants:
 |----------------------------------------------------------------------|
 | Oneida                                                               |
 | -------------------------------------------------------------------- |
-| ;\\='    | ˀ           | Glottal stop                                   |
-| ;;    | \\=’           | Glottal stop (alternate)                       |
+| ;;    | \\=’           | Glottal stop                                   |
+| ;\\='    | ˀ           | Glottal stop (alternate)                        |
 | Single-key consonants: h k l n s t w y                               |
 |----------------------------------------------------------------------|
 | Onondaga                                                             |

@@ -2028,7 +2028,7 @@ TESTFN is called with 2 arguments: a car of an alist element and KEY.  */)
       if ((NILP (testfn)
 	   ? (EQ (XCAR (car), key) || !NILP (Fequal
 					     (XCAR (car), key)))
-	   : !NILP (call2 (testfn, XCAR (car), key))))
+	   : !NILP (calln (testfn, XCAR (car), key))))
 	return car;
     }
   CHECK_LIST_END (tail, alist);
@@ -2518,7 +2518,7 @@ merge (Lisp_Object org_l1, Lisp_Object org_l2, Lisp_Object pred)
 	}
 
       Lisp_Object tem;
-      if (!NILP (call2 (pred, Fcar (l1), Fcar (l2))))
+      if (!NILP (calln (pred, Fcar (l1), Fcar (l2))))
 	{
 	  tem = l1;
 	  l1 = Fcdr (l1);
@@ -2607,7 +2607,7 @@ This function doesn't signal an error if PLIST is invalid.  */)
     {
       if (! CONSP (XCDR (tail)))
 	break;
-      if (!NILP (call2 (predicate, XCAR (tail), prop)))
+      if (!NILP (calln (predicate, XCAR (tail), prop)))
 	return XCAR (XCDR (tail));
       tail = XCDR (tail);
     }
@@ -2666,7 +2666,7 @@ The PLIST is modified by side effects.  */)
       if (! CONSP (XCDR (tail)))
 	break;
 
-      if (!NILP (call2 (predicate, XCAR (tail), prop)))
+      if (!NILP (calln (predicate, XCAR (tail), prop)))
 	{
 	  Fsetcar (XCDR (tail), val);
 	  return plist;
@@ -2741,7 +2741,7 @@ The value is actually the tail of PLIST whose car is PROP.  */)
   Lisp_Object tail = plist;
   FOR_EACH_TAIL (tail)
     {
-      if (!NILP (call2 (predicate, XCAR (tail), prop)))
+      if (!NILP (calln (predicate, XCAR (tail), prop)))
 	return tail;
       tail = XCDR (tail);
       if (! CONSP (tail))
@@ -3310,14 +3310,16 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
   return array;
 }
 
-DEFUN ("clear-string", Fclear_string, Sclear_string,
-       1, 1, 0,
+DEFUN ("clear-string", Fclear_string, Sclear_string, 1, 1, 0,
        doc: /* Clear the contents of STRING.
-This makes STRING unibyte and may change its length.  */)
+This makes STRING unibyte, clears its contents to null characters, and
+removes all text properties.  This may change its length.  */)
   (Lisp_Object string)
 {
   CHECK_STRING (string);
   ptrdiff_t len = SBYTES (string);
+  Fset_text_properties (make_fixnum (0), make_fixnum (SCHARS (string)),
+			Qnil, string);
   if (len != 0 || STRING_MULTIBYTE (string))
     {
       CHECK_IMPURE (string, XSTRING (string));
@@ -3386,7 +3388,7 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
 	{
 	  if (! CONSP (tail))
 	    return i;
-	  Lisp_Object dummy = call1 (fn, XCAR (tail));
+	  Lisp_Object dummy = calln (fn, XCAR (tail));
 	  if (vals)
 	    vals[i] = dummy;
 	  tail = XCDR (tail);
@@ -3396,7 +3398,7 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
     {
       for (ptrdiff_t i = 0; i < leni; i++)
 	{
-	  Lisp_Object dummy = call1 (fn, AREF (seq, i));
+	  Lisp_Object dummy = calln (fn, AREF (seq, i));
 	  if (vals)
 	    vals[i] = dummy;
 	}
@@ -3409,7 +3411,7 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
 	{
 	  ptrdiff_t i_before = i;
 	  int c = fetch_string_char_advance (seq, &i, &i_byte);
-	  Lisp_Object dummy = call1 (fn, make_fixnum (c));
+	  Lisp_Object dummy = calln (fn, make_fixnum (c));
 	  if (vals)
 	    vals[i_before] = dummy;
 	}
@@ -3419,7 +3421,7 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
       eassert (BOOL_VECTOR_P (seq));
       for (EMACS_INT i = 0; i < leni; i++)
 	{
-	  Lisp_Object dummy = call1 (fn, bool_vector_ref (seq, i));
+	  Lisp_Object dummy = calln (fn, bool_vector_ref (seq, i));
 	  if (vals)
 	    vals[i] = dummy;
 	}
@@ -3552,7 +3554,7 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string. */)
 Lisp_Object
 do_yes_or_no_p (Lisp_Object prompt)
 {
-  return call1 (Qyes_or_no_p, prompt);
+  return calln (Qyes_or_no_p, prompt);
 }
 
 DEFUN ("yes-or-no-p", Fyes_or_no_p, Syes_or_no_p, 1, 1, 0,
@@ -3597,7 +3599,7 @@ by a mouse, or by some window-system gesture, or via a menu.  */)
     }
 
   if (use_short_answers)
-    return call1 (Qy_or_n_p, prompt);
+    return calln (Qy_or_n_p, prompt);
 
   ptrdiff_t promptlen = SCHARS (prompt);
   bool prompt_ends_in_nonspace
@@ -6645,7 +6647,7 @@ set a new value for KEY, or `remhash' to remove KEY.
      we shouldn't crash as a result (although the effects are
      unpredictable).  */
   DOHASH_SAFE (h, i)
-    call2 (function, HASH_KEY (h, i), HASH_VALUE (h, i));
+    calln (function, HASH_KEY (h, i), HASH_VALUE (h, i));
   return Qnil;
 }
 
@@ -6905,7 +6907,7 @@ extract_data_from_object (Lisp_Object spec,
 	      if (!force_raw_text
 		  && !NILP (Ffboundp (Vselect_safe_coding_system_function)))
 		/* Confirm that VAL can surely encode the current region.  */
-		coding_system = call4 (Vselect_safe_coding_system_function,
+		coding_system = calln (Vselect_safe_coding_system_function,
 				       make_fixnum (b), make_fixnum (e),
 				       coding_system, Qnil);
 

@@ -3160,7 +3160,7 @@ static const struct speed_struct speeds[] =
 static speed_t
 convert_speed (speed_t speed)
 {
-  for (size_t i = 0; i < sizeof speeds / sizeof speeds[0]; i++)
+  for (size_t i = 0; i < ARRAYELTS (speeds); i++)
     {
       if (speed == speeds[i].internal)
 	return speed;
@@ -3380,7 +3380,7 @@ list_system_processes (void)
   int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_PROC};
 #endif
   size_t len;
-  size_t mibsize = sizeof mib / sizeof mib[0];
+  size_t mibsize = ARRAYELTS (mib);
   struct kinfo_proc *procs;
   size_t i;
 

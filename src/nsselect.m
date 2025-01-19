@@ -439,7 +439,7 @@ anything that the functions on `selection-converter-alist' know about.  */)
     {
       /* FIXME: Use run-hook-with-args!  */
       for (rest = Vns_sent_selection_hooks; CONSP (rest); rest = Fcdr (rest))
-        call3 (Fcar (rest), selection, target_symbol, successful_p);
+        calln (Fcar (rest), selection, target_symbol, successful_p);
     }
 
   return value;

@@ -418,8 +418,24 @@ font_style_to_value (enum font_property_index prop, Lisp_Object val,
       eassert (len < 255);
       elt = make_vector (2, make_fixnum (100));
       ASET (elt, 1, val);
-      ASET (font_style_table, prop - FONT_WEIGHT_INDEX,
-	    CALLN (Fvconcat, table, make_vector (1, elt)));
+      Lisp_Object new_table = CALLN (Fvconcat, table, make_vector (1, elt));
+      /* Update the corresponding variable with the new value of the
+         modified slot of font_style_table.  */
+      switch (prop)
+	{
+	case FONT_WEIGHT_INDEX:
+	  Vfont_weight_table = new_table;
+	  break;
+	case FONT_SLANT_INDEX:
+	  Vfont_slant_table = new_table;
+	  break;
+	case FONT_WIDTH_INDEX:
+	  Vfont_width_table = new_table;
+	  break;
+	default:
+	  break;
+	}
+      ASET (font_style_table, prop - FONT_WEIGHT_INDEX, new_table);
       return (100 << 8) | (i << 4);
     }
   else
@@ -5977,6 +5993,9 @@ This variable cannot be set; trying to do so will signal an error.  */);
   Vfont_width_table = BUILD_STYLE_TABLE (width_table);
   make_symbol_constant (intern_c_string ("font-width-table"));
 
+  /* Because the above 3 variables are slots in the vector we create
+     below, and because that vector is staticpro'd, we don't explicitly
+     staticpro the variables, to avoid wasting slots in staticvec[].  */
   staticpro (&font_style_table);
   font_style_table = CALLN (Fvector, Vfont_weight_table, Vfont_slant_table,
 			    Vfont_width_table);

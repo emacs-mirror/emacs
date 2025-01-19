@@ -685,7 +685,7 @@ map_charset_for_dump (void (*c_function) (Lisp_Object, Lisp_Object),
 	  if (c_function)
 	    (*c_function) (arg, range);
 	  else
-	    call2 (function, range, arg);
+	    calln (function, range, arg);
 	  XSETCAR (range, Qnil);
 	}
       if (c == stop)
@@ -698,7 +698,7 @@ map_charset_for_dump (void (*c_function) (Lisp_Object, Lisp_Object),
 		  if (c_function)
 		    (*c_function) (arg, range);
 		  else
-		    call2 (function, range, arg);
+		    calln (function, range, arg);
 		}
 	      break;
 	    }
@@ -740,7 +740,7 @@ map_charset_chars (void (*c_function)(Lisp_Object, Lisp_Object), Lisp_Object fun
       if (NILP (function))
 	(*c_function) (arg, range);
       else
-	call2 (function, range, arg);
+	calln (function, range, arg);
     }
   else if (CHARSET_METHOD (charset) == CHARSET_METHOD_MAP)
     {

@@ -305,7 +305,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
   Lisp_Object up_event = Qnil;
 
   /* Set SPECS to the interactive form, or barf if not interactive.  */
-  Lisp_Object form = call1 (Qinteractive_form, function);
+  Lisp_Object form = calln (Qinteractive_form, function);
   if (! CONSP (form))
     wrong_type_argument (Qcommandp, function);
   Lisp_Object specs = Fcar (XCDR (form));
@@ -330,7 +330,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	     and turn them into things we can eval.  */
 	  Lisp_Object values = quotify_args (Fcopy_sequence (specs));
 	  fix_command (function, values);
-          call4 (Qadd_to_history, Qcommand_history,
+          calln (Qadd_to_history, Qcommand_history,
                  Fcons (function, values), Qnil, Qt);
 	}
 
@@ -638,7 +638,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	    goto have_prefix_arg;
 	  FALLTHROUGH;
 	case 'n':		/* Read number from minibuffer.  */
-	  args[i] = call1 (Qread_number, callint_message);
+	  args[i] = calln (Qread_number, callint_message);
 	  visargs[i] = Fnumber_to_string (args[i]);
 	  break;
 
@@ -687,12 +687,12 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	  break;
 
 	case 'x':		/* Lisp expression read but not evaluated.  */
-	  args[i] = call1 (Qread_minibuffer, callint_message);
+	  args[i] = calln (Qread_minibuffer, callint_message);
 	  visargs[i] = last_minibuf_string;
 	  break;
 
 	case 'X':		/* Lisp expression read and evaluated.  */
-	  args[i] = call1 (Qeval_minibuffer, callint_message);
+	  args[i] = calln (Qeval_minibuffer, callint_message);
 	  visargs[i] = last_minibuf_string;
  	  break;
 
@@ -766,7 +766,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	visargs[i] = (varies[i] > 0
 		      ? list1 (intern (callint_argfuns[varies[i]]))
 		      : quotify_arg (args[i]));
-      call4 (Qadd_to_history, Qcommand_history,
+      calln (Qadd_to_history, Qcommand_history,
              Flist (nargs - 1, visargs + 1), Qnil, Qt);
     }
 

@@ -536,9 +536,9 @@ Do not set them directly; they are managed by @code{defcustom} and
 related functions.  @xref{Variable Definitions}.
 
 @cindex @code{definition-name} (symbol property)
-@cindex @code{definition-type} (symbol property)
+@cindex @code{find-function-type-alist} (symbol property)
 @item definition-name
-@itemx definition-type
+@itemx find-function-type-alist
 These properties help find the definition of a symbol in the source
 code when it might be hard to find the definition by textual search
 of the source file.
@@ -560,19 +560,22 @@ symbol.
 
 In some cases, the definition cannot be found by looking for the
 definition of another symbol.  For example, a test file might use a
-macro to generate calls to @code{ert-deftest}
-(@pxref{,,,ert, ERT: Emacs Lisp Regression Testing}) where the code
-is boiler plate and only varying data need to be passed in.
-In such cases, the @code{definition-type} property of the symbol can
-be a symbol that has an entry in @code{find-function-regexp-alist}
-telling how to find the definition of symbols of this type.
+macro to generate calls to @code{ert-deftest} (@pxref{How to Write
+Tests,,,ert, ERT: Emacs Lisp Regression Testing}) where the code is
+boiler plate and only varying data need to be passed in.  In such cases,
+the @code{find-function-type-alist} property of the symbol can be an
+alist that augments @code{find-function-regexp-alist} telling how to
+find the definition of symbols of this type.
 
 In the example of a macro defining calls to @code{ert-deftest},
-the macro could put the property @code{definition-type} on each
-test defined.  The file defining the macro would also define a
-definition-finding function or regexp and add it to
-@code{find-function-regexp-alist} after that variable is loaded.
-Here is an example using a function to find the definition:
+the macro could put the property @code{find-function-type-alist} on each
+test defined, associating @code{ert--test} (the internal type of ERT
+tests) with the name of a regexp or function that can find the correct
+macro call.  The file defining the macro would also have to provide that
+definition-finding function or regexp.
+Here is an example using a function to find the definition.
+The example updates the property using convenience function
+@code{find-function-update-type-alist}.
 
 @example
 @group
@@ -581,29 +584,19 @@ Here is an example using a function to find the definition:
   (declare (debug (&rest sexp)))
   (let ((test-name (intern (concat ...))))
     `(progn
-      (put ',test-name 'definition-type 'foo-test-type)
-      (ert-deftest ,test-name ()
-        ,(concat "Test foo with " ...)
-        ...))))
+       (find-function-update-type-alist
+        ',test-name 'ert--test 'foo-find-test-def-function)
+       (ert-deftest ,test-name ()
+         ,(concat "Test foo with " ...)
+         ...))))
 @end group
 
 @group
 (defun foo-find-test-def-function (test-name)
   "Search for the `define-foo-test' call defining TEST-NAME.
 Return non-nil if the definition is found."
-  (save-match-data
-    (let ((regexp ...))
-      (save-restriction
-        (widen)
-        (goto-char (point-min))
-        (re-search-forward regexp nil t)))))
-@end group
-
-@group
-(with-eval-after-load "find-func"
-  (add-to-list
-   'find-function-regexp-alist
-   '(foo-test-type . foo-find-test-def-function)))
+  (let ((regexp ...))
+    (re-search-forward regexp nil t)))
 @end group
 @end example
 

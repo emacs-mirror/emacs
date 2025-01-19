@@ -29,6 +29,28 @@
 ;; exposed C API of tree-sitter.  It also contains frameworks for
 ;; integrating tree-sitter with font-lock, indentation, activating and
 ;; deactivating tree-sitter, debugging tree-sitter, etc.
+;;
+;; Some conventions:
+;;
+;; 1. Whenever it makes sense, a function that takes a tree-sitter node
+;; as an argument should also accept nil (and return nil in that case).
+;; This is to help with function chaining.
+;;
+;; 2. In most cases, a function shouldn't implicitly create a parser.
+;; All parsers should be created explicitly by user.  Use
+;;
+;;     (car (treesit-parser-list nil LANG))
+;;
+;; to get a parser for a certain language.
+;;
+;; Initially in Emacs 29, the world is simple and each language has one
+;; parser in the buffer.  So if we need a parser for a language, we can
+;; just create it if it doesn't exist.  But now we have local parsers,
+;; so there will be more than one parser for each language in a buffer.
+;; We can also have local parser of the same language as the host
+;; parser.  All of which means we can't equalize language and parser,
+;; and create paresr for a language willy-nilly anymore.  Major mode
+;; will manage their parsers.
 
 ;;; Code:
 
@@ -299,15 +321,14 @@ If INCLUDE-NODE is non-nil, return NODE if it satisfies PRED."
 
 Use the first parser in the parser list if LANGUAGE is omitted.
 
-If LANGUAGE is non-nil, use the first parser for LANGUAGE with
-TAG in the parser list, or create one if none exists.  TAG
-defaults to nil."
-  (if-let* ((parser
-             (if language
-                 (treesit-parser-create language nil nil tag)
-               (or (car (treesit-parser-list))
-                   (signal 'treesit-no-parser (list (current-buffer)))))))
-      (treesit-parser-root-node parser)))
+If LANGUAGE is non-nil, use the first parser for LANGUAGE with TAG in
+the parser list.  If there's no such parser, return nil.  TAG defaults
+to nil."
+  (let ((parser
+         (or (car (treesit-parser-list nil language tag))
+             (signal 'treesit-no-parser (list language)))))
+    (when parser
+      (treesit-parser-root-node parser))))
 
 (defun treesit-filter-child (node pred &optional named)
   "Return children of NODE that satisfies predicate PRED.
@@ -504,6 +525,23 @@ that starts with an underscore are ignored."
              if (not (string-prefix-p "_" (symbol-name name)))
              collect (cons (+ (treesit-node-start node) offset-left)
                            (+ (treesit-node-end node) offset-right)))))
+
+(defun treesit-query-valid-p (language query)
+  "Return non-nil if QUERY is valid in LANGUAGE, nil otherwise."
+  (ignore-errors
+    (treesit-query-compile language query t)
+    t))
+
+(defun treesit-query-first-valid (language &rest queries)
+  "Return the first query in QUERIES that is valid in LANGUAGE.
+If none are valid, return nil."
+  (declare (indent 1))
+  (let (query)
+    (catch 'valid
+      (while (setq query (pop queries))
+        (ignore-errors
+          (treesit-query-compile language query t)
+          (throw 'valid query))))))
 
 ;;; Range API supplement
 
@@ -746,7 +784,7 @@ MODIFIED-TICK.  This will help Emacs garbage-collect overlays that
 aren't in use anymore."
   ;; Update range.
   (let* ((host-lang (treesit-query-language query))
-         (host-parser (treesit-parser-create host-lang))
+         (host-parser (car (treesit-parser-list nil host-lang)))
          (ranges (treesit-query-range host-parser query beg end)))
     (pcase-dolist (`(,beg . ,end) ranges)
       (let ((has-parser nil))
@@ -801,7 +839,7 @@ region."
            query language modified-tick beg end))
          (t
           (let* ((host-lang (treesit-query-language query))
-                 (parser (treesit-parser-create language))
+                 (parser (car (treesit-parser-list nil language)))
                  (old-ranges (treesit-parser-included-ranges parser))
                  (new-ranges (treesit-query-range
                               host-lang query beg end offset))
@@ -1629,11 +1667,17 @@ parses the entire buffer (as opposed to embedded parsers which only
 parses part of the buffer).  This function tries to find and return that
 parser."
   (if treesit-range-settings
-      (let ((query (car (car treesit-range-settings))))
+      (let* ((query (caar treesit-range-settings))
+             (lang (treesit-query-language query)))
+        ;; Major mode end-user won't see this signal since major mode
+        ;; author surely will see it and correct it.  Also, multi-lang
+        ;; major mode's author should've seen the notice and set the
+        ;; primary parser themselves.
         (if (treesit-query-p query)
-            (treesit-parser-create
-             (treesit-query-language query))
-          (car (treesit-parser-list))))
+            (or (car (treesit-parser-list nil lang))
+                (signal 'treesit-no-parser (list lang)))
+          (or (car (treesit-parser-list))
+              (signal 'treesit-no-parser nil))))
     (car (treesit-parser-list))))
 
 (defun treesit--pre-redisplay (&rest _)
@@ -3289,7 +3333,9 @@ ENTRY.  MARKER marks the start of each tree-sitter node."
 
 ENTRIES is a list of (CATEGORY . SUB-ENTRIES...).  Merge them so there's
 no duplicate CATEGORY.  CATEGORY's are strings.  The merge is stable,
-meaning the order of elements are kept."
+meaning the order of elements are kept.
+
+This function is destructive, meaning ENTRIES will be modified."
   (let ((return-entries nil))
     (dolist (entry entries)
       (let* ((category (car entry))
@@ -4636,6 +4682,8 @@ If anything goes wrong, this function signals an `treesit-error'."
   (treesit-query-language
    :no-eval (treesit-query-language compiled-query)
    :eg-result c)
+  (treesit-query-valid-p)
+  (treesit-query-first-valid)
   (treesit-query-expand
    :eval (treesit-query-expand '((identifier) @id "return" @ret)))
   (treesit-pattern-expand

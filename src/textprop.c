@@ -2167,7 +2167,7 @@ call_mod_hooks (Lisp_Object list, Lisp_Object start, Lisp_Object end)
 {
   while (!NILP (list))
     {
-      call2 (Fcar (list), start, end);
+      calln (Fcar (list), start, end);
       list = Fcdr (list);
     }
 }

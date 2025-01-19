@@ -1117,7 +1117,7 @@ cell).
 will use dynamic binding, even for new bindings such as a @code{let}
 binding.  Depending on how the variable is declared, it can be
 special globally, for a single file, or for a portion of a file.
-@xref{Dynamic Binding} for details.
+@xref{Dynamic Binding}, for further details.
 
 @node Dynamic Binding
 @subsection Dynamic Binding

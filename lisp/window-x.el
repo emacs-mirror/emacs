@@ -165,11 +165,17 @@ Interactively, a prefix argument says to rotate the parent window of the
 selected window."
   (interactive (list (window--rotate-interactive-arg)))
   (when (or (not window) (window-live-p window))
-    (user-error "No windows to transpose"))
+    (user-error "No windows to rotate"))
   (let* ((frame (window-frame window))
 	 (selected-window (frame-selected-window window))
 	 (win-tree (car (window-tree-normal-sizes window)))
-	 (winls (seq-filter #'window-live-p (flatten-list win-tree)))
+	 (winls (or
+                 (seq-filter
+                  (lambda (win)
+                    (and (window-live-p win)
+                         (not (window-dedicated-p win))))
+                  (flatten-list win-tree))
+                 (user-error "All windows are dedicated")))
 	 (rotated-ls (if reverse
 			 (append (cdr winls) (list (car winls)))
 		       (append (last winls) winls)))
@@ -181,7 +187,9 @@ selected window."
           (named-let rec ((tree win-tree))
             (cond
              ((consp tree) (cons (rec (car tree)) (rec (cdr tree))))
-             ((window-live-p tree) (pop rotated-ls))
+             ((and (window-live-p tree)
+                   (not (window-dedicated-p tree)))
+              (pop rotated-ls))
              (t tree)))))
     (when (or (seq-some #'window-atom-root winls)
 	      (seq-some #'window-fixed-size-p winls))

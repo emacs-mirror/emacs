@@ -1946,7 +1946,10 @@ which the parser should operate.  Regions must not overlap, and the
 regions should come in order in the list.  Signal
 `treesit-set-range-error' if the argument is invalid, or something
 else went wrong.  If RANGES is nil, the PARSER is to parse the whole
-buffer.  */)
+buffer.
+
+DO NOT modify RANGES after passing it to this function, as RANGES is
+saved to PARSER internally.  */)
   (Lisp_Object parser, Lisp_Object ranges)
 {
   treesit_check_parser (parser);
@@ -3081,6 +3084,9 @@ You can use `treesit-query-validate' to validate and debug a query.  */)
     wrong_type_argument (Qtreesit_query_p, query);
   CHECK_SYMBOL (language);
 
+  Lisp_Object remapped_lang = resolve_language_symbol (language);
+  CHECK_SYMBOL (remapped_lang);
+
   treesit_initialize ();
 
   if (TS_COMPILED_QUERY_P (query))
@@ -3091,7 +3097,7 @@ You can use `treesit-query-validate' to validate and debug a query.  */)
       return query;
     }
 
-  Lisp_Object lisp_query = make_treesit_query (query, language);
+  Lisp_Object lisp_query = make_treesit_query (query, remapped_lang);
 
   /* Maybe actually compile.  */
   if (NILP (eager))

@@ -294,26 +294,31 @@ extern Lisp_Object item_properties;
 /* This describes the elements of item_properties.
    The first element is not a property, it is a pointer to the item properties
    that is saved for GC protection. */
-#define ITEM_PROPERTY_ITEM 0
-/* The item string.  */
-#define ITEM_PROPERTY_NAME 1
-/* Start of initialize to nil */
-/* The binding: nil, a command or a keymap.  */
-#define ITEM_PROPERTY_DEF 2
-/* The keymap if the binding is a keymap, otherwise nil.  */
-#define ITEM_PROPERTY_MAP 3
-/* Nil, :radio or :toggle.  */
-#define ITEM_PROPERTY_TYPE 4
-/* Nil or a string describing an equivalent key binding.  */
-#define ITEM_PROPERTY_KEYEQ 5
-/* Not nil if a selected toggle box or radio button, otherwise nil.  */
-#define ITEM_PROPERTY_SELECTED 6
-/* Place for a help string. Not yet used.  */
-#define ITEM_PROPERTY_HELP 7
-/* Start of initialize to t */
-/* Last property. */
-/* Not nil if item is enabled.  */
-#define ITEM_PROPERTY_ENABLE 8
+enum item_property_idx
+{
+  ITEM_PROPERTY_ITEM,
+  /* The item string.  */
+  ITEM_PROPERTY_NAME,
+  /* Start of initialize to nil */
+  /* The binding: nil, a command or a keymap.  */
+  ITEM_PROPERTY_DEF,
+  /* The keymap if the binding is a keymap, otherwise nil.  */
+  ITEM_PROPERTY_MAP,
+  /* Nil, :radio or :toggle.  */
+  ITEM_PROPERTY_TYPE,
+  /* Nil or a string describing an equivalent key binding.  */
+  ITEM_PROPERTY_KEYEQ,
+  /* Not nil if a selected toggle box or radio button, otherwise nil.  */
+  ITEM_PROPERTY_SELECTED,
+  /* Place for a help string. Not yet used.  */
+  ITEM_PROPERTY_HELP,
+  /* Start of initialize to t */
+  /* Last property. */
+  /* Not nil if item is enabled.  */
+  ITEM_PROPERTY_ENABLE,
+  /* Keep this equal to the highest member.  */
+  ITEM_PROPERTY_MAX = ITEM_PROPERTY_ENABLE
+};
 
 /* This holds a Lisp vector that holds the results of decoding
    the keymaps or alist-of-alists that specify a menu.
@@ -352,9 +357,12 @@ extern int menu_items_used;
    excluding those within submenus.  */
 extern int menu_items_n_panes;
 
-#define MENU_ITEMS_PANE_NAME 1
-#define MENU_ITEMS_PANE_PREFIX 2
-#define MENU_ITEMS_PANE_LENGTH 3
+enum menu_item_pane_idx
+{
+  MENU_ITEMS_PANE_NAME = 1,
+  MENU_ITEMS_PANE_PREFIX = 2,
+  MENU_ITEMS_PANE_LENGTH = 3,
+};
 
 enum menu_item_idx
 {
@@ -370,9 +378,9 @@ enum menu_item_idx
 };
 
 enum
-  {
-    KBD_BUFFER_SIZE = 4096
-  };
+{
+  KBD_BUFFER_SIZE = 4096
+};
 
 extern void unuse_menu_items (void);
 

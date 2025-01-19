@@ -79,7 +79,17 @@ dirent_namelen (struct dirent *dp)
 }
 
 #ifndef HAVE_STRUCT_DIRENT_D_TYPE
-enum { DT_UNKNOWN, DT_DIR, DT_LNK };
+#if !defined (DT_UNKNOWN) && !defined (DT_DIR) && !defined (DT_LNK)
+enum {
+  DT_UNKNOWN,
+  DT_DIR,
+  DT_LNK,
+};
+#elif defined (DT_UNKNOWN) && defined (DT_DIR) && defined (DT_LNK)
+/* Nothing to do here, all three are defined as macros.  */
+#elif defined (DT_UNKNOWN) || defined (DT_DIR) || defined (DT_LNK)
+#error "Cannot determine DT_UNKNOWN, DT_DIR, DT_LNK"
+#endif
 #endif
 
 /* Return the file type of DP.  */
@@ -387,7 +397,7 @@ If COUNT is non-nil and a natural number, the function will return
      call the corresponding file name handler.  */
   Lisp_Object handler = Ffind_file_name_handler (directory, Qdirectory_files);
   if (!NILP (handler))
-    return call6 (handler, Qdirectory_files, directory,
+    return calln (handler, Qdirectory_files, directory,
                   full, match, nosort, count);
 
   return directory_files_internal (directory, full, match, nosort,
@@ -427,7 +437,7 @@ which see.  */)
   Lisp_Object handler
     = Ffind_file_name_handler (directory, Qdirectory_files_and_attributes);
   if (!NILP (handler))
-    return call7 (handler, Qdirectory_files_and_attributes,
+    return calln (handler, Qdirectory_files_and_attributes,
                   directory, full, match, nosort, id_format, count);
 
   return directory_files_internal (directory, full, match, nosort,
@@ -462,13 +472,13 @@ is matched against file and directory names relative to DIRECTORY.  */)
      call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (directory, Qfile_name_completion);
   if (!NILP (handler))
-    return call4 (handler, Qfile_name_completion, file, directory, predicate);
+    return calln (handler, Qfile_name_completion, file, directory, predicate);
 
   /* If the file name has special constructs in it,
      call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (file, Qfile_name_completion);
   if (!NILP (handler))
-    return call4 (handler, Qfile_name_completion, file, directory, predicate);
+    return calln (handler, Qfile_name_completion, file, directory, predicate);
 
   return file_name_completion (file, directory, 0, predicate);
 }
@@ -490,13 +500,13 @@ is matched against file and directory names relative to DIRECTORY.  */)
      call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (directory, Qfile_name_all_completions);
   if (!NILP (handler))
-    return call3 (handler, Qfile_name_all_completions, file, directory);
+    return calln (handler, Qfile_name_all_completions, file, directory);
 
   /* If the file name has special constructs in it,
      call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (file, Qfile_name_all_completions);
   if (!NILP (handler))
-    return call3 (handler, Qfile_name_all_completions, file, directory);
+    return calln (handler, Qfile_name_all_completions, file, directory);
 
   return file_name_completion (file, directory, 1, Qnil);
 }
@@ -755,7 +765,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 	name = Ffile_name_as_directory (name);
 
       /* Test the predicate, if any.  */
-      if (!NILP (predicate) && NILP (call1 (predicate, name)))
+      if (!NILP (predicate) && NILP (calln (predicate, name)))
 	continue;
 
       /* Reject entries where the encoded strings match, but the
@@ -1003,9 +1013,9 @@ so last access time will always be midnight of that day.  */)
 	 compatibility with old file name handlers which do not
 	 implement the new arg.  --Stef */
       if (NILP (id_format))
-	return call2 (handler, Qfile_attributes, filename);
+	return calln (handler, Qfile_attributes, filename);
       else
-	return call3 (handler, Qfile_attributes, filename, id_format);
+	return calln (handler, Qfile_attributes, filename, id_format);
     }
 
   encoded = ENCODE_FILE (filename);

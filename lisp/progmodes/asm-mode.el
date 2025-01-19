@@ -40,10 +40,7 @@
 ;;
 ;; Code is indented to the first tab stop level.
 
-;; This mode runs two hooks:
-;;   1) `asm-mode-set-comment-hook' before the part of the initialization
-;;      depending on `asm-comment-char', and
-;;   2) `asm-mode-hook' at the end of initialization.
+;; This mode runs the hook `asm-mode-hook' at the end of initialization.
 
 ;;; Code:
 
@@ -105,6 +102,8 @@
    cpp-font-lock-keywords)
   "Additional expressions to highlight in Assembler mode.")
 
+(make-obsolete-variable 'asm-mode-set-comment-hook 'asm-mode-hook "31.0")
+
 ;;;###autoload
 (define-derived-mode asm-mode prog-mode "Assembler"
   "Major mode for editing typical assembler code.
@@ -117,9 +116,7 @@ Features a private abbrev table and the following bindings:
 
 The character used for making comments is set by the variable
 `asm-comment-char' (which defaults to `?\\;').
-
-Alternatively, you may set this variable in `asm-mode-set-comment-hook',
-which is called near the beginning of mode initialization.
+Alternatively, you may set this variable in `asm-mode-hook'.
 
 Turning on Asm mode runs the hook `asm-mode-hook' at the end of initialization.
 
@@ -127,21 +124,26 @@ Special commands:
 \\{asm-mode-map}"
   :after-hook
   (progn
-    (run-hooks 'asm-mode-set-comment-hook)
     ;; Make our own local child of `asm-mode-map'
     ;; so we can define our own comment character.
-    (use-local-map (make-composed-keymap nil asm-mode-map))
-    (local-set-key (vector asm-comment-char) #'asm-comment)
+    ;; FIXME: Use `post-self-insert-hook' instead and make it conditional
+    ;; on some "electricity" config var.
+    (unless (lookup-key asm-mode-map (vector asm-comment-char))
+      (use-local-map (make-composed-keymap nil asm-mode-map))
+      (local-set-key (vector asm-comment-char) #'asm-comment))
     (set-syntax-table (make-syntax-table asm-mode-syntax-table))
     (modify-syntax-entry	asm-comment-char "< b")
 
-    (setq-local comment-start (string asm-comment-char)))
+    (unless (local-variable-p 'comment-start)
+      (setq-local comment-start (string asm-comment-char))))
 
   (setq local-abbrev-table asm-mode-abbrev-table)
   (setq-local font-lock-defaults '(asm-font-lock-keywords))
   (setq-local indent-line-function #'asm-indent-line)
   ;; Stay closer to the old TAB behavior (was tab-to-tab-stop).
   (setq-local tab-always-indent nil)
+
+  (run-hooks 'asm-mode-set-comment-hook)
 
   (setq-local comment-add 1)
   (setq-local comment-start-skip "\\(?:\\s<+\\|/[/*]+\\)[ \t]*")

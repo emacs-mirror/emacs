@@ -2518,7 +2518,7 @@ DEFUN ("system-move-file-to-trash", Fsystem_move_file_to_trash,
 
   handler = Ffind_file_name_handler (filename, operation);
   if (!NILP (handler))
-    return call2 (handler, operation, filename);
+    return calln (handler, operation, filename);
   else
     {
       NSFileManager *fm = [NSFileManager defaultManager];
@@ -3145,7 +3145,7 @@ ns_create_tip_frame (struct ns_display_info *dpyinfo, Lisp_Object parms)
   {
     Lisp_Object bg = Fframe_parameter (frame, Qbackground_color);
 
-    call2 (Qface_set_after_frame_default, frame, Qnil);
+    calln (Qface_set_after_frame_default, frame, Qnil);
 
     if (!EQ (bg, Fframe_parameter (frame, Qbackground_color)))
       {
@@ -3184,7 +3184,7 @@ x_hide_tip (bool delete)
 {
   if (!NILP (tip_timer))
     {
-      call1 (Qcancel_timer, tip_timer);
+      calln (Qcancel_timer, tip_timer);
       tip_timer = Qnil;
     }
 
@@ -3335,7 +3335,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 	      tip_f = XFRAME (tip_frame);
 	      if (!NILP (tip_timer))
 		{
-		  call1 (Qcancel_timer, tip_timer);
+		  calln (Qcancel_timer, tip_timer);
 		  tip_timer = Qnil;
 		}
 
@@ -3383,11 +3383,11 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 			}
 		      else
 			tip_last_parms
-			  = call2 (Qassq_delete_all, parm, tip_last_parms);
+			  = calln (Qassq_delete_all, parm, tip_last_parms);
 		    }
 		  else
 		    tip_last_parms
-		      = call2 (Qassq_delete_all, parm, tip_last_parms);
+		      = calln (Qassq_delete_all, parm, tip_last_parms);
 		}
 
 	      /* Now check if every parameter in what is left of
@@ -3549,8 +3549,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 
     start_timer:
       /* Let the tip disappear after timeout seconds.  */
-      tip_timer = call3 (Qrun_at_time, timeout, Qnil,
-			 Qx_hide_tip);
+      tip_timer = calln (Qrun_at_time, timeout, Qnil, Qx_hide_tip);
     }
 
   return unbind_to (count, Qnil);
