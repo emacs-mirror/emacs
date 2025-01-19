@@ -2078,8 +2078,10 @@ AC_CACHE_CHECK([for 'find' args to delete a file],
   [emacs_cv_find_delete],
   [if touch conftest.tmp && find conftest.tmp -delete 2>/dev/null &&
       test ! -f conftest.tmp
-   then emacs_cv_find_delete="-delete"
-   else emacs_cv_find_delete="-exec rm -f {} +"
+   then emacs_cv_find_delete="-delete" # GNU 'find'
+   elif find . -prune -name x -exec echo {} + 2>/dev/null
+   then emacs_cv_find_delete="-exec rm -f {} +" # POSIX 'find'
+   else emacs_cv_find_delete="-exec rm -f {} + -o -exec true {} +" # AIX 7.3
    fi])
 FIND_DELETE=$emacs_cv_find_delete
 AC_SUBST([FIND_DELETE])
