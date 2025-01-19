@@ -1221,7 +1221,7 @@ the value is acceptable.
 Specify how to decide whether an inline value matches the type.  The
 corresponding value, @var{function}, should be a function that accepts
 two arguments, a widget and an inline value; it should return
-non-@code{nil} if the value is acceptable.  @xref{Splicing into
+non-@code{nil} if the value is acceptable.  See @ref{Splicing into
 Lists} for more information about inline values.
 
 @item :validate @var{function}

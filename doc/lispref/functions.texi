@@ -90,7 +90,7 @@ fundamental part of Lisp (e.g., @code{car}), or because it provides a
 low-level interface to operating system services, or because it needs
 to run fast.  Unlike functions defined in Lisp, primitives can be
 modified or added only by changing the C sources and recompiling
-Emacs.  @xref{Writing Emacs Primitives}.
+Emacs.  See @ref{Writing Emacs Primitives}.
 
 @item special form
 A primitive that is like a function but does not evaluate all of its
@@ -2976,56 +2976,56 @@ elsewhere, but we provide cross references here.
 
 @table @code
 @item apply
-@xref{Calling Functions}.
+See @ref{Calling Functions}.
 
 @item autoload
-@xref{Autoload}.
+See @ref{Autoload}.
 
 @item call-interactively
-@xref{Interactive Call}.
+See @ref{Interactive Call}.
 
 @item called-interactively-p
-@xref{Distinguish Interactive}.
+See @ref{Distinguish Interactive}.
 
 @item commandp
-@xref{Interactive Call}.
+See @ref{Interactive Call}.
 
 @item documentation
-@xref{Accessing Documentation}.
+See @ref{Accessing Documentation}.
 
 @item eval
-@xref{Eval}.
+See @ref{Eval}.
 
 @item funcall
-@xref{Calling Functions}.
+See @ref{Calling Functions}.
 
 @item function
-@xref{Anonymous Functions}.
+See @ref{Anonymous Functions}.
 
 @item ignore
-@xref{Calling Functions}.
+See @ref{Calling Functions}.
 
 @item indirect-function
-@xref{Function Indirection}.
+See @ref{Function Indirection}.
 
 @item interactive
-@xref{Using Interactive}.
+See @ref{Using Interactive}.
 
 @item interactive-p
-@xref{Distinguish Interactive}.
+See @ref{Distinguish Interactive}.
 
 @item mapatoms
-@xref{Creating Symbols}.
+See @ref{Creating Symbols}.
 
 @item mapcar
-@xref{Mapping Functions}.
+See @ref{Mapping Functions}.
 
 @item map-char-table
-@xref{Char-Tables}.
+See @ref{Char-Tables}.
 
 @item mapconcat
-@xref{Mapping Functions}.
+See @ref{Mapping Functions}.
 
 @item undefined
-@xref{Functions for Key Lookup}.
+See @ref{Functions for Key Lookup}.
 @end table
