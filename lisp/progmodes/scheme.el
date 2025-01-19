@@ -681,9 +681,14 @@ indentation."
 (put 'define-values 'scheme-indent-function 1)
 (put 'define-record-type 'scheme-indent-function 1) ;; is 1 correct?
 (put 'define-library 'scheme-indent-function 1)
+(put 'guard 'scheme-indent-function 1)
 
 ;; SRFI-8
 (put 'receive 'scheme-indent-function 2)
+
+;; SRFI 64
+(put 'test-group 'scheme-indent-function 1)
+(put 'test-group-with-cleanup 'scheme-indent-function 1)
 
 ;; SRFI-204 (withdrawn, but provided in many implementations, see the SRFI text)
 (put 'match 'scheme-indent-function 1)
