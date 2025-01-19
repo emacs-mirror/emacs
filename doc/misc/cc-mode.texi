@@ -4188,7 +4188,7 @@ position of a later line.  Instead, that anchor position is the latest
 line at the same level of nesting before the labeled line without a
 leading label or comment.  If there is no such line, the latest line
 containing an enclosing opening brace or parenthesis, which doesn't
-start with a label or comment, provides the anchor postion.  In this
+start with a label or comment, provides the anchor position.  In this
 case extra syntactic element(s) with syntactic symbol
 @code{defun-block-intro}, @code{statement-block-intro}, or some other
 ``-intro'' symbol are inserted into the syntactic context to allow the

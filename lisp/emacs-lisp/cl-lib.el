@@ -286,7 +286,7 @@ This function is considered deprecated in favor of the built-in function
   "Return t if INTEGER is odd.
 
 This function is considered deprecated in favor of the built-in function
-`evenp' that was added in Emacs 31.1.")
+`oddp' that was added in Emacs 31.1.")
 
 (defalias 'cl-evenp #'evenp
   "Return t if INTEGER is even.

@@ -342,7 +342,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
                  ;; the menu entry and the keybinding by two spaces
                  ;; because we added two characters at the front (one
                  ;; digit and one space) and this would cause a
-                 ;; misalignement otherwise.
+                 ;; misalignment otherwise.
                  (tmm--shorten-space-width
                   (concat (propertize (char-to-string char) 'face 'highlight)
                           " " str)))

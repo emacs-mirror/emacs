@@ -58,7 +58,7 @@ Non-nil if EWW should ask for confirmation before sending the
 selected region to the configured search engine.  This is the
 default to mitigate the risk of accidental data leak.  Set this
 variable to nil to send the region to the search engine
-straightaway."
+straight away."
   :version "31.1"
   :group 'eww
   :type 'boolean)

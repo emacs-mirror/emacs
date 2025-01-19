@@ -5568,7 +5568,7 @@ the end of the string.
 
 *** Function ~org-info-export~ changes.
 
-HTML links created from certain info links now point to =gnu.org= URL's rather
+HTML links created from certain info links now point to =gnu.org= URLs rather
 than just to local files. For example info links such as =info:emacs#List
 Buffers= used to be converted to HTML links like this:
 

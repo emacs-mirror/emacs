@@ -196,7 +196,7 @@ See `auth-source-pass-get'."
   "Return a string with the file content of ENTRY."
   (with-temp-buffer
     ;; `file-name-handler-alist' could be nil, or miss the
-    ;; `epa-file-handler' entry.  We ensure, that it does exist.
+    ;; `epa-file-handler' entry.  We ensure that it does exist.
     ;; (Bug#67937)
     (let ((file-name-handler-alist
            (cons epa-file-handler file-name-handler-alist)))

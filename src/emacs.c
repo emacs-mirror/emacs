@@ -166,7 +166,7 @@ char const EXTERNALLY_VISIBLE RCS_Id[]
   = "$Id" ": GNU Emacs " PACKAGE_VERSION
     " (" EMACS_CONFIGURATION " " EMACS_CONFIG_FEATURES ") $";
 
-/* Empty lisp strings.  To avoid having to build any others.  */
+/* Empty Lisp strings.  To avoid having to build any others.  */
 Lisp_Object empty_unibyte_string, empty_multibyte_string;
 
 #ifdef WINDOWSNT
@@ -3539,7 +3539,7 @@ Also note that this is not a generic facility for accessing external
 libraries; only those already known by Emacs will be loaded.  */);
 #ifdef WINDOWSNT
   /* FIXME: We may need to load libgccjit when dumping before
-     term/w32-win.el defines `dynamic-library-alist`. This will fail
+     term/w32-win.el defines `dynamic-library-alist`.  This will fail
      if that variable is empty, so add libgccjit-0.dll to it.  */
   if (will_dump_p ())
     Vdynamic_library_alist = list1 (list2 (Qgccjit,

@@ -73,7 +73,7 @@ where HEIGHT and WIDTH are the normal height and width of the window.
     (nreverse list)))
 
 (defsubst window--rotate-interactive-arg ()
-  "Return interative window argument for window rotation commands."
+  "Return interactive window argument for window rotation commands."
   (if current-prefix-arg (window-parent) (window-main-window)))
 
 ;;;###autoload

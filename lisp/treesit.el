@@ -49,7 +49,7 @@
 ;; so there will be more than one parser for each language in a buffer.
 ;; We can also have local parser of the same language as the host
 ;; parser.  All of which means we can't equalize language and parser,
-;; and create paresr for a language willy-nilly anymore.  Major mode
+;; and create parser for a language willy-nilly anymore.  Major mode
 ;; will manage their parsers.
 
 ;;; Code:
@@ -1843,7 +1843,7 @@ but not in this case:
     }
 
 The value of this variable affects the `standalone-parent' indent preset
-for treesit-simple-indent.  If the value is nil, the standlone condition
+for treesit-simple-indent.  If the value is nil, the standalone condition
 is as described.  Some major mode might want to relax the condition a
 little bit, so that it ignores some punctuation like \".\".  For
 example, a Javascript mode might want to consider the method call below
@@ -2516,7 +2516,7 @@ This function only affects `treesit-simple-indent-rules',
 
 WHERE can be either :before or :after, which means adding RULES before
 or after the existing rules in `treesit-simple-indent-rules'.  If
-ommited, default to adding the rules before (so it overrides existing
+omitted, default to adding the rules before (so it overrides existing
 rules).
 
 If ANCHOR is non-nil, add RULES before/after the rules in

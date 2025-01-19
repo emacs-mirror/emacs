@@ -219,7 +219,7 @@ queries that has problems with latest grammar."
       (special-mode))))
 
 (defun treesit-admin-verify-major-mode-queries ()
-  "Varify font-lock queries in builtin major modes.
+  "Verify font-lock queries in builtin major modes.
 
 If the font-lock queries work fine with the latest grammar, insert some
 comments in the source file saying that the modes are known to work with
@@ -296,7 +296,7 @@ instead.
 
 Return a plist of the form
 
-    (:version VERSION :head-version HEAD-VERSION :timstamp TIMESTAMP).
+    (:version VERSION :head-version HEAD-VERSION :timestamp TIMESTAMP).
 
 HEAD-VERSION is the version of the HEAD, VERSION is the latest
 compatible version.  TIMESTAMP is the commit date of VERSION in UNIX
@@ -371,14 +371,14 @@ VERSION and HEAD-VERSION in the plist are the same as in
 
 (defun treesit-admin--generate-compatibility-report
     (emacs-executables modes out-file)
-  "Generate a table for language compatibiity for MODES.
+  "Generate a table for language compatibility for MODES.
 
 Note that this only works for Emacs 31 and later, because before Emacs
 31 we can't validate a compiled query (because there's a bug preventing
 us from eager compiling a compiled query that's already lazily
 compiled).
 
-EMACS-EXECUTABLES is a list of Emacs executbles to check for."
+EMACS-EXECUTABLES is a list of Emacs executables to check for."
   (let ((tables
          (mapcar
           (lambda (emacs)

@@ -17466,7 +17466,7 @@ redisplay_internal (void)
 
 	  if (is_tty_frame (f))
 	    {
-	      /* Ignore all invisble tty frames, children or root.  */
+	      /* Ignore all invisible tty frames, children or root.  */
 	      if (!frame_redisplay_p (f))
 		continue;
 

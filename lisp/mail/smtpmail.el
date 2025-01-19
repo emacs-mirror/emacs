@@ -356,7 +356,7 @@ for `smtpmail-try-auth-method'.")
 		  (erase-buffer))))
 	  ;; Encode the header according to RFC2047.
 	  (mail-encode-header (point-min) delimline)
-	  ;; Get recipients' adresses
+	  ;; Get recipients' addresses
 	  (setq smtpmail-recipient-address-list
                 (smtpmail-deduce-address-list tembuf (point-min) delimline))
 

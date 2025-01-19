@@ -1357,7 +1357,7 @@ buffer_local_value (Lisp_Object variable, Lisp_Object buffer)
     case SYMBOL_LOCALIZED:
       { /* Look in local_var_alist.  */
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
-	XSETSYMBOL (variable, sym); /* Update In case of aliasing.  */
+	XSETSYMBOL (variable, sym); /* Update in case of aliasing.  */
 	result = assq_no_quit (variable, BVAR (buf, local_var_alist));
 	if (!NILP (result))
 	  {

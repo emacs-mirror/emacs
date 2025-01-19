@@ -7230,7 +7230,7 @@ implementations: `python-mode' and `python-ts-mode'."
     (when python-indent-guess-indent-offset
       (python-indent-guess-indent-offset))
 
-    (add-to-list 'auto-mode-alist (cons python--auto-mode-alist-regexp  'python-ts-mode))
+    (add-to-list 'auto-mode-alist (cons python--auto-mode-alist-regexp 'python-ts-mode))
     (add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-ts-mode))))
 
 (derived-mode-add-parents 'python-ts-mode '(python-mode))

@@ -403,7 +403,7 @@ If CANCEL-ON-INPUT is non-nil and the user inputs something while the
 function is waiting, then any future replies to the request by the
 remote endpoint (normal or error) are ignored and the function exits
 returning CANCEL-ON-INPUT-RETVAL.  If CANCEL-ON-INPUT is a function, it
-is invoked with one argument, an integer identifying the cancelled
+is invoked with one argument, an integer identifying the canceled
 request as specified in the JSONRPC 2.0 spec."
   (let* ((tag (cl-gensym "jsonrpc-request-catch-tag")) id-and-timer
          canceled
