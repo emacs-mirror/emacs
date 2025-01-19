@@ -2662,10 +2662,10 @@ struct Lisp_Hash_Table
   unsigned char index_bits;	/* log2 (size of the index vector).  */
 
   /* Weakness of the table.  */
-  hash_table_weakness_t weakness : 3;
+  ENUM_BF (hash_table_weakness_t) weakness : 3;
 
   /* Hash table test (only used when frozen in dump)  */
-  hash_table_std_test_t frozen_test : 2;
+  ENUM_BF (hash_table_std_test_t) frozen_test : 2;
 
   /* True if the table can be purecopied.  The table cannot be
      changed afterwards.  */
