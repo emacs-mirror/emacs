@@ -3219,14 +3219,14 @@ for more details about these values.  */)
   if (android_query_battery (&state))
     return Qnil;
 
-  return listn (8, make_int (state.capacity),
-		make_fixnum (state.charge_counter),
-		make_int (state.current_average),
-		make_int (state.current_now),
-		make_fixnum (state.status),
-		make_int (state.remaining),
-		make_fixnum (state.plugged),
-		make_fixnum (state.temperature));
+  return list (make_int (state.capacity),
+	       make_fixnum (state.charge_counter),
+	       make_int (state.current_average),
+	       make_int (state.current_now),
+	       make_fixnum (state.status),
+	       make_int (state.remaining),
+	       make_fixnum (state.plugged),
+	       make_fixnum (state.temperature));
 }
 
 

@@ -12789,10 +12789,10 @@ static const struct event_head head_table[] = {
 static Lisp_Object
 init_while_no_input_ignore_events (void)
 {
-  Lisp_Object events = listn (9, Qselect_window, Qhelp_echo, Qmove_frame,
-			      Qiconify_frame, Qmake_frame_visible,
-			      Qfocus_in, Qfocus_out, Qconfig_changed_event,
-			      Qselection_request);
+  Lisp_Object events = list (Qselect_window, Qhelp_echo, Qmove_frame,
+			     Qiconify_frame, Qmake_frame_visible,
+			     Qfocus_in, Qfocus_out, Qconfig_changed_event,
+			     Qselection_request);
 
 #ifdef HAVE_DBUS
   events = Fcons (Qdbus_event, events);

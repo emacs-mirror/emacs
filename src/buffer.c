@@ -5024,19 +5024,18 @@ defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, const char *namestring,
 static Lisp_Object
 make_lispy_itree_node (const struct itree_node *node)
 {
-  return listn (12,
-                intern (":begin"),
-                make_fixnum (node->begin),
-                intern (":end"),
-                make_fixnum (node->end),
-                intern (":limit"),
-                make_fixnum (node->limit),
-                intern (":offset"),
-                make_fixnum (node->offset),
-                intern (":rear-advance"),
-                node->rear_advance ? Qt : Qnil,
-                intern (":front-advance"),
-                node->front_advance ? Qt : Qnil);
+  return list (intern (":begin"),
+	       make_fixnum (node->begin),
+	       intern (":end"),
+	       make_fixnum (node->end),
+	       intern (":limit"),
+	       make_fixnum (node->limit),
+	       intern (":offset"),
+	       make_fixnum (node->offset),
+	       intern (":rear-advance"),
+	       node->rear_advance ? Qt : Qnil,
+	       intern (":front-advance"),
+	       node->front_advance ? Qt : Qnil);
 }
 
 static Lisp_Object

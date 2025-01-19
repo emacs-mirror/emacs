@@ -7664,10 +7664,10 @@ the return value is nil.  Otherwise the value is t.  */)
 	      w->start_at_line_beg = true;
 	      if (FUNCTIONP (window_restore_killed_buffer_windows)
 		  && !MINI_WINDOW_P (w))
-		kept_windows = Fcons (listn (6, window, p->buffer,
-					     Fmarker_last_position (p->start),
-					     Fmarker_last_position (p->pointm),
-					     p->dedicated, Qt),
+		kept_windows = Fcons (list (window, p->buffer,
+					    Fmarker_last_position (p->start),
+					    Fmarker_last_position (p->pointm),
+					    p->dedicated, Qt),
 				      kept_windows);
 	    }
 	  else if (!NILP (w->start))
@@ -7689,10 +7689,10 @@ the return value is nil.  Otherwise the value is t.  */)
 		{
 		  if (FUNCTIONP (window_restore_killed_buffer_windows))
 		    kept_windows
-		      = Fcons (listn (6, window, p->buffer,
-				      Fmarker_last_position (p->start),
-				      Fmarker_last_position (p->pointm),
-				      p->dedicated, Qnil),
+		      = Fcons (list (window, p->buffer,
+				     Fmarker_last_position (p->start),
+				     Fmarker_last_position (p->pointm),
+				     p->dedicated, Qnil),
 			       kept_windows);
 		  else if (EQ (window_restore_killed_buffer_windows, Qdelete)
 			   || (!NILP (p->dedicated)

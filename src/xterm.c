@@ -4121,10 +4121,10 @@ x_dnd_send_unsupported_drop (struct x_display_info *dpyinfo, Window target_windo
   x_dnd_unsupported_drop_time = before;
   x_dnd_unsupported_drop_window = target_window;
   x_dnd_unsupported_drop_data
-    = listn (5, assq_no_quit (QXdndSelection,
-			      dpyinfo->terminal->Vselection_alist),
-	     targets, arg, make_fixnum (root_x),
-	     make_fixnum (root_y));
+    = list (assq_no_quit (QXdndSelection,
+			  dpyinfo->terminal->Vselection_alist),
+	    targets, arg, make_fixnum (root_x),
+	    make_fixnum (root_y));
 
   x_dnd_waiting_for_finish = true;
   x_dnd_finish_display = dpyinfo->display;
