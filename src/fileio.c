@@ -4754,6 +4754,11 @@ by calling `format-decode', which see.  */)
     /* For a special file that is not seekable, all we can do is guess.  */
     total = READ_BUF_SIZE;
 
+  /* From here on, treat a file with zero size as not seekable.  This
+     causes us to read until we actually hit EOF.  */
+  if (regular && st.st_size == 0)
+    seekable = false;
+
   if (NILP (visit) && total > 0)
     {
       if (!NILP (BVAR (current_buffer, file_truename))
