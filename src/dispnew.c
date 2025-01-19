@@ -3978,27 +3978,27 @@ terminal_cursor_magic (struct frame *root, struct frame *topmost_child)
     }
 }
 
-static void
-copy_pool (struct glyph_pool *from, struct glyph_pool **to)
-{
-  if (*to == NULL)
-    *to = new_glyph_pool ();
-  struct glyph_pool *p = *to;
-  struct glyph *glyphs = p->glyphs;
-  *p = *from;
-  size_t nbytes = p->nglyphs * sizeof *glyphs;
-  p->glyphs = xrealloc (glyphs, nbytes);
-  memset (p->glyphs, 0, nbytes);
-}
+/* Make a copy of glyph pool FROM in *TO.  */
 
 static void
-copy_row (struct glyph_matrix *from_matrix, struct glyph_matrix *to_matrix,
-	  int i)
+copy_pool (struct glyph_pool **to, struct glyph_pool *from)
+{
+  eassert (*to == NULL);
+  struct glyph_pool *p = new_glyph_pool ();
+  *p = *from;
+  p->glyphs = xzalloc (p->nglyphs * sizeof *p->glyphs);
+  *to = p;
+}
+
+/* Copy glyph row with index I from FROM_MATRIX to TO_MATRIX.  */
+
+static void
+copy_row (struct glyph_matrix *to_matrix,
+	  struct glyph_matrix *from_matrix, int i)
 {
   struct glyph_row *from = from_matrix->rows + i;
   struct glyph_row *to = to_matrix->rows + i;
   *to = *from;
-
   struct glyph_pool *p = to_matrix->pool;
   struct glyph *start = p->glyphs + i * p->ncolumns;
   struct glyph *end = start + p->ncolumns;
@@ -4006,30 +4006,31 @@ copy_row (struct glyph_matrix *from_matrix, struct glyph_matrix *to_matrix,
   to->glyphs[TEXT_AREA] = start;
   to->glyphs[RIGHT_MARGIN_AREA] = end;
   to->glyphs[LAST_AREA] = end;
-
   memcpy (start, from->glyphs[0], p->ncolumns * sizeof *start);
 }
 
+/* Copy glyph matrix FROM to *TO and give *TO the pool POOL.  */
+
 static void
-copy_matrix (struct glyph_matrix *from, struct glyph_matrix **to,
+copy_matrix (struct glyph_matrix **to, struct glyph_matrix *from,
 	     struct glyph_pool *pool)
 {
-  if (*to == NULL)
-    *to = new_glyph_matrix (pool);
+  eassert (*to == NULL);
+  *to = new_glyph_matrix (pool);
   struct glyph_matrix *m = *to;
   struct glyph_row *rows = m->rows;
   *m = *from;
   m->pool = pool;
-  size_t nbytes = m->rows_allocated * sizeof *rows;
-  m->rows = xrealloc (rows, nbytes);
-  memset (m->rows, 0, nbytes);
+  m->rows = xzalloc (m->rows_allocated * sizeof *rows);
   for (int i = 0; i < m->rows_allocated; ++i)
-    copy_row (from, m, i);
+    copy_row (m, from, i);
 }
 
+/* Copy row I from desired matrix FROM_MATRIX to TO_MATRIX.  */
+
 static void
-copy_desired_row (struct glyph_matrix *from_matrix,
-		  struct glyph_matrix *to_matrix, int i)
+copy_desired_row (struct glyph_matrix *to_matrix,
+		  struct glyph_matrix *from_matrix, int i)
 {
   struct glyph_row *from = from_matrix->rows + i;
   struct glyph_row *to = to_matrix->rows + i;
@@ -4039,6 +4040,9 @@ copy_desired_row (struct glyph_matrix *from_matrix,
   memcpy (to->glyphs[0], from->glyphs[0],
 	  to_matrix->matrix_w * sizeof (struct glyph));
 }
+
+/* Copy the desired frame matrix of frame ROOT to its desired
+   terminal matrix.  */
 
 static void
 copy_frame_desired_matrix (struct frame *root)
@@ -4055,17 +4059,22 @@ copy_frame_desired_matrix (struct frame *root)
 
   for (int i = 0; i < to->rows_allocated; ++i)
     if (from->rows[i].enabled_p)
-      copy_desired_row (from, to, i);
+      copy_desired_row (to, from, i);
 }
+
+/* Copy a glyph matrix FROM.  */
 
 static void
 copy_pool_and_matrix (struct glyph_matrix *from,
 		      struct glyph_pool **to_pool,
 		      struct glyph_matrix **to_matrix)
 {
-  copy_pool (from->pool, to_pool);
-  copy_matrix (from, to_matrix, *to_pool);
+  copy_pool (to_pool, from->pool);
+  copy_matrix (to_matrix, from, *to_pool);
 }
+
+/* Create terminal matrices for frame ROOT on demand. This creates
+   terminal matrices and pools and copies frame matrices.  */
 
 static void
 make_terminal_matrices (struct frame *root)
@@ -4076,11 +4085,17 @@ make_terminal_matrices (struct frame *root)
 			&root->terminal_desired_matrix);
 }
 
+/* Value is true if ROOT uses terminal matrices.  */
+
 static bool
 is_using_terminal_matrices (struct frame *root)
 {
   return root->frame_current_matrix != NULL;
 }
+
+/* Restore ROOT_FRAME current and desired matrix pointers to frame
+   matrices as needed.  This function is registered to be called once we
+   unwind by choose_frame_or_terminal_matrices.  */
 
 static void
 unwind_restore_matrices (Lisp_Object root_frame)
@@ -4094,19 +4109,31 @@ unwind_restore_matrices (Lisp_Object root_frame)
     }
 }
 
+/* Decide if we should switch to terminal matrices or not.  ROOT is the
+   frame, and Z_ORDER is the list of visible child frame on ROOT.  We
+   switch to terminal frames once a child frame has been used.  We never
+   switch back because once a child frame has been used, it will likely
+   happen again, so we avoid the additional complexity of implementing
+   the switching back to frame matrices.  */
+
 static void
 choose_frame_or_terminal_matrices (struct frame *root, Lisp_Object z_order)
 {
-  /* Once we have used child frames once, we will likely again, so there
-     is no point in switching back to frame matrices. */
   const bool visible_child = CONSP (XCDR (z_order));
   if (visible_child && !is_using_terminal_matrices (root))
     {
+      /* Make terminal matrices on demand, the first time
+	 we switch to using terminal matrices.  */
       make_terminal_matrices (root);
+
+      /* Save away the frame matrices.  */
       root->frame_current_matrix = root->current_matrix;
       root->frame_desired_matrix = root->desired_matrix;
     }
 
+  /* If using terminal matrices, temporarily the current and desired
+     matrices of ROOT to them, and arrange for them to be set to
+     frame matrices again when we are done updating.  */
   if (is_using_terminal_matrices (root))
     {
       root->current_matrix = root->terminal_current_matrix;
@@ -4117,24 +4144,52 @@ choose_frame_or_terminal_matrices (struct frame *root, Lisp_Object z_order)
     }
 }
 
+/* Combine updates of all frames on the root frame of F.
+   INHIBT_SCROLLING true means don't try to use scrolling.
+
+   In a call tree containing combine_updates, everything above the call
+   to combine_updates and everything after it returns uses frame
+   matrices, as it always was.  All tty frames, roots or children, are
+   completely independent of each other, and know nothing about each
+   others display, whether they are partially obscured by other frames
+   or anything like that.  It is as if each of these frames was running
+   in a separate terminal. This is appealing because the complexity is
+   for the most part localized.
+
+   To achieve this, combine_updates creates a second pair of glyph
+   matrices in addition to the existing frame matrices, which are called
+   called terminal matrices. These terminal matrices are created the
+   first time combine_updates finds a visible child frame that must be
+   displayed,
+
+   From then on, terminal matrices are used for the update by setting
+   the frame's current and desired matrix to the terminal
+   matrices.  After the update things are restored to "normal".
+
+   What is displayed on the terminal in found in the terminal current
+   matrix, and what should be displayed is in the terminal desired
+   matrix.  The construction of the terminal
+   desired matrix requires copying the frame desired matrix to the
+   terminal desired matrix (the part that is enabled_p). That includes a
+   memcpy of the glyphs.  */
+
 void
 combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
 {
   struct frame *root = root_frame (f);
   eassert (FRAME_VISIBLE_P (root));
-
   specpdl_ref count = SPECPDL_INDEX ();
+
+  /* Get the list of visible frames in reverse z-order, and
+     decide if we need to switch to terminal frames.  */
   Lisp_Object z_order = frames_in_reverse_z_order (root, true);
   choose_frame_or_terminal_matrices (root, z_order);
 
-  /* FIXME: use frame_desired_matrix directly. Problem: making
-     make_matrix_current would make the terminal current matrix
-     have pointers to frame_desired_pool. Is this bad? */
+  /* If using terminal matrices, copy the desired frame matrix
+     to the desired terminal matrix because we will use that as
+     a basis for updating the display.  */
   if (is_using_terminal_matrices (root))
-    {
-      inhibit_scrolling = true;
-      copy_frame_desired_matrix (root);
-    }
+    copy_frame_desired_matrix (root);
 
   /* Process child frames in reverse z-order, topmost last.  For each
      child, copy what we need to the root's desired matrix.  */
@@ -4157,7 +4212,8 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
     terminal_cursor_magic (root, topmost_child);
   flush_terminal (root);
 
-  /* Restore frame matrices, make frame current matrix current. */
+  /* Restore current and desired matrix of the frame to use frame
+     matrices again, and make the desired frame current. */
   unbind_to (count, Qnil);
 
   for (Lisp_Object tail = z_order; CONSP (tail); tail = XCDR (tail))

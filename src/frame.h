@@ -315,19 +315,24 @@ struct frame
   char *shell_position;
 #endif
 
-  /* Glyph pool and matrix.  */
-  struct glyph_pool *current_pool;
+  /* Normally, the current and desired frame matrix.  On tty root
+     frames, these matrices can be temporarily set to terminal matrices
+     (see below) while updating the display. */
   struct glyph_matrix *current_matrix;
-  struct glyph_pool *desired_pool;
   struct glyph_matrix *desired_matrix;
+  struct glyph_pool *current_pool;
+  struct glyph_pool *desired_pool;
 
-  /* Used only on ttys.  Represent what is displayed and what should be
-     displayed on a terminal when child windows are present.  */
-  struct glyph_pool *terminal_current_pool;
+  /* Used only for ttys root frames.  Represent what is displayed and
+     what should be displayed on a terminal when child frames are
+     present.  */
   struct glyph_matrix *terminal_current_matrix;
-  struct glyph_pool *terminal_desired_pool;
   struct glyph_matrix *terminal_desired_matrix;
+  struct glyph_pool *terminal_current_pool;
+  struct glyph_pool *terminal_desired_pool;
 
+  /* When using the terminal matrices above, these are the corresponding
+     frame matrices.  NULL if not using terminal frames.  */
   struct glyph_matrix *frame_current_matrix;
   struct glyph_matrix *frame_desired_matrix;
 
