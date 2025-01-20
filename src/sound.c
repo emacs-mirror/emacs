@@ -359,9 +359,11 @@ sound_warning (const char *msg)
 static bool
 parse_sound (Lisp_Object sound, Lisp_Object *attrs)
 {
-  /* SOUND must be a list starting with the symbol `sound'.  */
+  /* SOUND must be a list starting with the symbol `sound' followed by a
+     number of keyword/value argument pairs.  */
   if (!CONSP (sound) || !EQ (XCAR (sound), Qsound))
     return 0;
+  CHECK_KEYWORD_ARGS (list_length (sound) - 1);
 
   sound = XCDR (sound);
   attrs[SOUND_FILE] = plist_get (sound, QCfile);

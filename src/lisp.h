@@ -4911,6 +4911,15 @@ extern Lisp_Object safe_funcall (ptrdiff_t, Lisp_Object*);
 #define safe_calln(...) \
   CALLMANY (safe_funcall, ((Lisp_Object []) {__VA_ARGS__}))
 
+INLINE void
+CHECK_KEYWORD_ARGS (ptrdiff_t nargs)
+{
+  /* Used to check if a list of keyword/value pairs is missing a
+     value.  */
+  if (nargs & 1)
+    xsignal0 (Qmalformed_keyword_arg_list);
+}
+
 extern void init_eval (void);
 extern void syms_of_eval (void);
 extern void prog_ignore (Lisp_Object);
