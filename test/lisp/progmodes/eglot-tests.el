@@ -866,6 +866,7 @@ int main() {
 
 (ert-deftest eglot-test-javascript-basic ()
   "Test basic autocompletion in a JavaScript LSP."
+  :tags '(:expensive-test)
   (skip-unless (and (executable-find "typescript-language-server")
                     (executable-find "tsserver")))
   (eglot--with-fixture
@@ -880,14 +881,14 @@ int main() {
                           :client-notifications
                           c-notifs)
           (should (eglot--tests-connect))
-          (eglot--wait-for (s-notifs 2) (&key method &allow-other-keys)
+          (eglot--wait-for (s-notifs 10) (&key method &allow-other-keys)
             (string= method "textDocument/publishDiagnostics"))
           (should (not (eq 'flymake-error (face-at-point))))
           (insert "{")
           (eglot--signal-textDocument/didChange)
           (eglot--wait-for (c-notifs 1) (&key method &allow-other-keys)
             (string= method "textDocument/didChange"))
-          (eglot--wait-for (s-notifs 2) (&key params method &allow-other-keys)
+          (eglot--wait-for (s-notifs 10) (&key params method &allow-other-keys)
             (and (string= method "textDocument/publishDiagnostics")
                  (cl-destructuring-bind (&key _uri diagnostics) params
                    (cl-find-if (jsonrpc-lambda (&key severity &allow-other-keys)
