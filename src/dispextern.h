@@ -3961,6 +3961,12 @@ specpdl_ref
 with_frame_or_terminal_matrices (struct frame *root,
 				   Lisp_Object z_order);
 
+# ifdef GLYPH_DEBUG
+void check_window_matrix_pointers_for_frame (struct frame *f);
+# else
+INLINE void check_window_matrix_pointers_for_frame (struct frame *f) {}
+# endif
+
 INLINE_HEADER_END
 
 #endif /* not DISPEXTERN_H_INCLUDED */

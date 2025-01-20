@@ -89,8 +89,8 @@ static int scrolling_window (struct window *, int);
 static bool update_window_line (struct window *, int, bool *);
 static void mirror_make_current (struct window *, int);
 #ifdef GLYPH_DEBUG
-static void check_matrix_pointers (struct glyph_matrix *,
-                                   struct glyph_matrix *);
+static void check_matrix_pointers (struct frame *f, struct glyph_matrix *wm,
+                                   struct glyph_matrix *fm);
 #endif
 static void mirror_line_dance (struct window *, int, int, int *, char *);
 static void update_window_tree (struct window *);
@@ -799,14 +799,12 @@ void
 clear_current_matrices (struct frame *f)
 {
   /* Clear frame current matrix, if we have one.  */
-  if (is_tty_root_frame (f) && is_using_terminal_matrices (f))
+  if (f->frame_current_matrix)
     {
-      if (f->terminal_current_matrix)
-	clear_glyph_matrix (f->terminal_current_matrix);
-      if (f->frame_current_matrix)
-	clear_glyph_matrix (f->frame_current_matrix);
+      clear_glyph_matrix (f->frame_current_matrix);
+      clear_glyph_matrix (f->terminal_current_matrix);
     }
-  else if (f->current_matrix)
+  else
     clear_glyph_matrix (f->current_matrix);
 
 #if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
@@ -840,14 +838,12 @@ clear_current_matrices (struct frame *f)
 void
 clear_desired_matrices (register struct frame *f)
 {
-  if (is_tty_root_frame (f) && is_using_terminal_matrices (f))
+  if (f->frame_desired_matrix)
     {
-      if (f->terminal_desired_matrix)
-	clear_glyph_matrix (f->terminal_desired_matrix);
-      if (f->frame_desired_matrix)
-	clear_glyph_matrix (f->frame_desired_matrix);
+      clear_glyph_matrix (f->frame_desired_matrix);
+      clear_glyph_matrix (f->terminal_desired_matrix);
     }
-  else if (f->desired_matrix)
+  else
     clear_glyph_matrix (f->desired_matrix);
 
 #if defined HAVE_WINDOW_SYSTEM && !defined HAVE_EXT_MENU_BAR
@@ -2924,6 +2920,11 @@ void
 mirrored_line_dance (struct frame *f, int unchanged_at_top, int nlines,
 		     int *copy_from, char *retained_p)
 {
+  /* We don't want to change windows when F is using terminal matrices.
+     Windows are using glyphs from the frame matrices.  */
+  if (is_using_terminal_matrices (f))
+    return;
+
   struct glyph_matrix *matrix = f->current_matrix;
 
   /* A copy of original rows.  */
@@ -3140,6 +3141,47 @@ mirror_line_dance (struct window *w, int unchanged_at_top, int nlines, int *copy
 
 #ifdef GLYPH_DEBUG
 
+static bool
+is_in_pool (struct glyph_pool *p, struct glyph *g)
+{
+  return g >= p->glyphs && g < p->glyphs + p->nglyphs;
+}
+
+/* Check that window rows are slices of frame rows.  WINDOW_MATRIX is
+   a window and FRAME_MATRIX is the corresponding frame matrix.  For
+   each row in WINDOW_MATRIX check that it's a slice of the
+   corresponding frame row.  If it isn't, abort.  */
+
+static void
+check_matrix_pointers (struct frame *f,
+		       struct glyph_matrix *window_matrix,
+		       struct glyph_matrix *frame_matrix)
+{
+  for (int i = 0; i < window_matrix->nrows; ++i)
+    {
+      struct glyph_row *window_row = window_matrix->rows + i;
+      int j = i + window_matrix->matrix_y;
+      struct glyph_row *frame_row = frame_matrix->rows + j;
+      if (!glyph_row_slice_p (window_row, frame_row))
+	{
+	  struct glyph *g = window_row->glyphs[0];
+	  fprintf (stderr, "Window row is not slice of frame row: %p is in ", g);
+	  if (is_in_pool (f->desired_pool, g))
+	    fprintf (stderr, "desired pool");
+	  else if (is_in_pool (f->current_pool, g))
+	    fprintf (stderr, "current pool");
+	  else if (is_in_pool (f->terminal_desired_pool, g))
+	    fprintf (stderr, "terminal desired pool");
+	  else if (is_in_pool (f->terminal_current_pool, g))
+	    fprintf (stderr, "terminal current pool");
+	  else
+	    fprintf (stderr, "no pool");
+	  fprintf (stderr, "\n");
+	  emacs_abort ();
+	}
+    }
+}
+
 /* Check that window and frame matrices agree about their
    understanding where glyphs of the rows are to find.  For each
    window in the window tree rooted at W, check that rows in the
@@ -3156,40 +3198,27 @@ check_window_matrix_pointers (struct window *w)
       else
 	{
 	  struct frame *f = XFRAME (w->frame);
-	  check_matrix_pointers (w->desired_matrix, f->desired_matrix);
-	  check_matrix_pointers (w->current_matrix, f->current_matrix);
+	  if (is_using_terminal_matrices (f))
+	    {
+	      /* Windows should never be using glyphs from terminal matrices.  */
+	      check_matrix_pointers (f, w->desired_matrix, f->frame_desired_matrix);
+	      check_matrix_pointers (f, w->current_matrix, f->frame_current_matrix);
+	    }
+	  else
+	    {
+	      check_matrix_pointers (f, w->desired_matrix, f->desired_matrix);
+	      check_matrix_pointers (f, w->current_matrix, f->current_matrix);
+	    }
 	}
 
       w = NILP (w->next) ? 0 : XWINDOW (w->next);
     }
 }
 
-
-/* Check that window rows are slices of frame rows.  WINDOW_MATRIX is
-   a window and FRAME_MATRIX is the corresponding frame matrix.  For
-   each row in WINDOW_MATRIX check that it's a slice of the
-   corresponding frame row.  If it isn't, abort.  */
-
-static void
-check_matrix_pointers (struct glyph_matrix *window_matrix,
-		       struct glyph_matrix *frame_matrix)
+void
+check_window_matrix_pointers_for_frame (struct frame *f)
 {
-  /* Row number in WINDOW_MATRIX.  */
-  int i = 0;
-
-  /* Row number corresponding to I in FRAME_MATRIX.  */
-  int j = window_matrix->matrix_y;
-
-  /* For all rows check that the row in the window matrix is a
-     slice of the row in the frame matrix.  If it isn't we didn't
-     mirror an operation on the frame matrix correctly.  */
-  while (i < window_matrix->nrows)
-    {
-      if (!glyph_row_slice_p (window_matrix->rows + i,
-			      frame_matrix->rows + j))
-        emacs_abort ();
-      ++i, ++j;
-    }
+  check_window_matrix_pointers (XWINDOW (f->root_window));
 }
 
 #endif /* GLYPH_DEBUG */
@@ -4091,12 +4120,13 @@ make_terminal_matrices (struct frame *root)
 			&root->terminal_desired_matrix);
 }
 
-/* Value is true if ROOT uses terminal matrices.  */
+/* Value is true if ROOT currently uses terminal matrices as desired and
+   current matrices.  */
 
 static bool
 is_using_terminal_matrices (struct frame *root)
 {
-  return root->frame_current_matrix != NULL;
+  return root->current_matrix == root->terminal_current_matrix;
 }
 
 /* Restore ROOT_FRAME current and desired matrix pointers to frame
@@ -4109,9 +4139,11 @@ unwind_restore_matrices (Lisp_Object root_frame)
   struct frame *root = XFRAME (root_frame);
   if (is_using_terminal_matrices (root))
     {
+      check_window_matrix_pointers_for_frame (root);
       root->current_matrix = root->frame_current_matrix;
       root->desired_matrix = root->frame_desired_matrix;
       make_matrix_current (root);
+      check_window_matrix_pointers_for_frame (root);
     }
 }
 
@@ -4130,28 +4162,28 @@ unwind_restore_matrices (Lisp_Object root_frame)
 specpdl_ref
 with_frame_or_terminal_matrices (struct frame *root, Lisp_Object z_order)
 {
+  check_window_matrix_pointers_for_frame (root);
+
   eassert (is_tty_root_frame (root));
-  specpdl_ref count = SPECPDL_INDEX ();
+  const specpdl_ref count = SPECPDL_INDEX ();
 
   if (NILP (z_order))
     z_order = frames_in_reverse_z_order (root, true);
 
   const bool visible_child = CONSP (XCDR (z_order));
-  if (visible_child && !is_using_terminal_matrices (root))
+  if (visible_child && root->terminal_current_matrix == NULL)
     {
       /* Make terminal matrices on demand, the first time
 	 we switch to using terminal matrices.  */
       make_terminal_matrices (root);
-
-      /* Save away the frame matrices.  */
       root->frame_current_matrix = root->current_matrix;
       root->frame_desired_matrix = root->desired_matrix;
     }
 
-  /* If using terminal matrices, temporarily the current and desired
-     matrices of ROOT to them, and arrange for them to be set to
+  /* If we have terminal matrices, temporarily set the current and
+     desired matrices of ROOT to them, and arrange for them to be set to
      frame matrices again when we are done updating.  */
-  if (is_using_terminal_matrices (root))
+  if (root->terminal_current_matrix)
     {
       root->current_matrix = root->terminal_current_matrix;
       root->desired_matrix = root->terminal_desired_matrix;
@@ -4219,7 +4251,7 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
     }
 
   update_begin (root);
-  write_matrix (root, inhibit_scrolling, 1, false);
+  write_matrix (root, inhibit_scrolling, true, false);
   make_matrix_current (root);
   update_end (root);
 
@@ -4241,7 +4273,7 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
       set_window_update_flags (root_window, false);
       clear_desired_matrices (f);
 #ifdef GLYPH_DEBUG
-      check_window_matrix_pointers (root_window);
+      check_window_matrix_pointers_for_frame (f);
       add_frame_display_history (f, false);
 #endif
     }
@@ -5896,12 +5928,12 @@ tty_set_cursor (void)
    SET_CURSOR_P false means do not set cursor at point in selected window.  */
 
 static void
-write_matrix (struct frame *f, bool inhibit_id_p,
+write_matrix (struct frame *f, bool inhibit_scrolling,
 	      bool set_cursor_p, bool updating_menu_p)
 {
   /* If we cannot insert/delete lines, it's no use trying it.  */
   if (!FRAME_LINE_INS_DEL_OK (f))
-    inhibit_id_p = true;
+    inhibit_scrolling = true;
 
   if (baud_rate != FRAME_COST_BAUD_RATE (f))
     calculate_costs (f);
@@ -5909,7 +5941,7 @@ write_matrix (struct frame *f, bool inhibit_id_p,
  /* See if any of the desired lines are enabled; don't compute for
      i/d line if just want cursor motion.  */
   int first_row = first_enabled_row (f->desired_matrix);
-  if (!inhibit_id_p && first_row >= 0)
+  if (!inhibit_scrolling && first_row >= 0)
     scrolling (f);
 
   /* Update the individual lines as needed.  Do bottom line first.  This
@@ -5937,31 +5969,27 @@ scrolling (struct frame *frame)
      Android.  */
 
 #ifndef HAVE_ANDROID
-  int unchanged_at_top, unchanged_at_bottom;
-  int window_size;
-  int changed_lines;
-  int i;
   int height = FRAME_TOTAL_LINES (frame);
-  int free_at_end_vpos = height;
   struct glyph_matrix *current_matrix = frame->current_matrix;
   struct glyph_matrix *desired_matrix = frame->desired_matrix;
-  static_assert (sizeof (int) <= sizeof (unsigned));
-  static_assert (alignof (unsigned) % alignof (int) == 0);
-  unsigned *old_hash;
+  eassert (current_matrix);
+
   USE_SAFE_ALLOCA;
+  unsigned *old_hash;
   SAFE_NALLOCA (old_hash, 4, height);
   unsigned *new_hash = old_hash + height;
+  static_assert (sizeof (int) <= sizeof (unsigned));
+  static_assert (alignof (unsigned) % alignof (int) == 0);
   int *draw_cost = (int *) (new_hash + height);
   int *old_draw_cost = draw_cost + height;
-  eassert (current_matrix);
 
   /* Compute hash codes of all the lines.  Also calculate number of
      changed lines, number of unchanged lines at the beginning, and
      number of unchanged lines at the end.  */
-  changed_lines = 0;
-  unchanged_at_top = 0;
-  unchanged_at_bottom = height;
-  for (i = 0; i < height; i++)
+  int changed_lines = 0;
+  int unchanged_at_top = 0;
+  int unchanged_at_bottom = height;
+  for (int i = 0; i < height; i++)
     {
       /* Give up on this scrolling if some old lines are not enabled.  */
       if (!MATRIX_ROW_ENABLED_P (current_matrix, i))
@@ -6001,9 +6029,9 @@ scrolling (struct frame *frame)
       return;
     }
 
-  window_size = (height - unchanged_at_top
-		 - unchanged_at_bottom);
+  int window_size = height - unchanged_at_top - unchanged_at_bottom;
 
+  int free_at_end_vpos = height;
   if (FRAME_SCROLL_REGION_OK (frame))
     free_at_end_vpos -= unchanged_at_bottom;
   else if (FRAME_MEMORY_BELOW_FRAME (frame))
