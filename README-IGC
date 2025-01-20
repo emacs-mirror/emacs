@@ -39,6 +39,11 @@ to enable igc-specific assertions.
 Installing 'libmps'
 ===================
 
+GNU/Linux and *BSD
+------------------
+
+See "Building MPS yourself" below.
+
 macOS with Homebrew
 -------------------
 
@@ -54,41 +59,61 @@ Then add something like this to your environment (e.g., to ~/.zprofile):
 MS-Windows
 ----------
 
-TDB
-
-Debian...
----------
-
 TBD
 
 Building MPS yourself
 ---------------------
 
-Clone the MPS repository:
-
-$ git clone https://github.com/Ravenbrook/mps.git
-
 See the file mps/INSTALL for instructions on how to build MPS.  But in
 short:
 
+$ # Change this to an empty directory of your choosing:
+$ MPS_ARTIFACTS=/path/to/mps_artifacts
+$ git clone https://github.com/Ravenbrook/mps.git
+$ cd mps
+$ autoconf
+$ ./configure --prefix="$MPS_ARTIFACTS"
+$ make CC="gcc -Wno-dangling-pointer -Wno-maybe-uninitialized" \
+       EXTRA_TARGETS=
+$ make install
+
+TODO: Instructions for building the debug version.  For now, see below
+for some ideas.
+
+Building MPS yourself (manually)
+--------------------------------
+
+If you have problems with the above, you can try this more manual
+installation procedure:
+
+$ git clone https://github.com/Ravenbrook/mps.git
 $ cd mps/code
 
 $ gcc -O2 -c mps.c
 $ ar rvs libmps.a mps.o
 
-Now copy the header files and libmps.a to a new empty directory of your
-choosing (~/mps-artifacts in what follows):
+Create a new empty directory of your choosing:
 
-$ mkdir ~/mps-artifacts
-$ cp mps*.h libmps.a ~/mps-artifacts
+$ # Change this to any new empty directory:
+$ MPS_ARTIFACTS="/path/to/mps-artifacts"
+$ mkdir $MPS_ARTIFACTS
+
+Now copy the header files and libmps.a there:
+
+$ cp mps*.h libmps.a $MPS_ARTIFACTS
+
+To copy a smaller set of headers (at the risk of needing to redo this in
+the future), you could do this instead:
+
+$ cp mps.h mpsavm.h mpscamc.h mpscams.h mpscawl.h \
+     mpslib.h libmps.a $MPS_ARTIFACTS
 
 Then you can proceed with building Emacs, telling the `configure` script
 where the mps header files and libmps.a are:
 
-$ configure CPPFLAGS=-I/path/to/mps-artifacts LDFLAGS=-L/path/to/mps-artifacts --with-mps=yes <... rest of options ...>
-
-(Replace /path/to/mps-artifacts with the full path to the directory
-where you copied the MPS header files and library.)
+$ ./configure CPPFLAGS=-I$MPS_ARTIFACTS \
+              LDFLAGS=-L$MPS_ARTIFACTS \
+              --with-mps=yes <... rest of options ...>
 
 To build the debug version of MPS:
 
@@ -100,6 +125,11 @@ Then pass --with-mps=debug instead --with-mps=yes to the Emacs configure
 script (it is recommended that you build Emacs in debug mode while
 debugging MPS problems, see the INSTALL in the root directory of the
 Emacs source tree.)
+
+To make it easier to rebuild in the future, you could add this to your
+~/.bashrc (or equivalent for other shells):
+
+    export MPS_ARTIFACTS="$HOME/mps-artifacts"
 
 
 Debugging the MPS build
@@ -113,8 +143,8 @@ like Emacs segfaulted.
 
 If you use GDB, it's recommended to use the .gdbinit file in the src/
 subdirectory, which configures GDB not to stop in this situation.
-Starting GDB from the src directory will cause it automatically load and
-read the file, subject to the "auto-load safe-path" setting;
+Starting GDB from the src directory will cause it to automatically load
+and read the file, subject to the "auto-load safe-path" setting;
 alternatively, you can force GDB to read that file manually, after
 starting the debugger:
 
