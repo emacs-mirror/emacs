@@ -101,7 +101,15 @@
         (,(concat "\\_<" (regexp-opt UNIX) "\\_>")
          . font-lock-warning-face)))))
 
-(defvar bat-menu
+(defvar-keymap bat-mode-map
+  "C-c C-/" #'bat-cmd-help ;FIXME: Why not C-c C-? ?
+  "C-c C-a" #'bat-run-args
+  "C-c C-c" #'bat-run
+  "C-c C-t" #'bat-template
+  "C-c C-v" #'bat-run)
+
+(easy-menu-define bat-menu bat-mode-map
+  "Menu used for `bat-mode'."
   '("Bat"
     ["Run" bat-run :help "Run script"]
     ["Run with Args" bat-run-args :help "Run script with args"]
@@ -111,16 +119,6 @@
     ["Template" bat-template :help "Insert template"]
     "--"
     ["Help (Command)" bat-cmd-help :help "Show help page for DOS command"]))
-
-(defvar bat-mode-map
-  (let ((map (make-sparse-keymap)))
-    (easy-menu-define nil map nil bat-menu)
-    (define-key map [?\C-c ?\C-/] 'bat-cmd-help) ;FIXME: Why not C-c C-? ?
-    (define-key map [?\C-c ?\C-a] 'bat-run-args)
-    (define-key map [?\C-c ?\C-c] 'bat-run)
-    (define-key map [?\C-c ?\C-t] 'bat-template)
-    (define-key map [?\C-c ?\C-v] 'bat-run)
-    map))
 
 (defvar bat-mode-syntax-table
   (let ((table (make-syntax-table)))
