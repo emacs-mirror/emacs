@@ -4138,6 +4138,8 @@ unwind_restore_matrices (Lisp_Object root_frame)
   if (is_using_terminal_matrices (root))
     {
       check_window_matrix_pointers_for_frame (root);
+      clear_glyph_matrix (root->desired_matrix);
+
       root->current_matrix = root->frame_current_matrix;
       root->desired_matrix = root->frame_desired_matrix;
       make_matrix_current (root);
