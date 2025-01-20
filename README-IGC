@@ -132,7 +132,10 @@ Emacs source tree.)
 To make it easier to rebuild in the future, you could add this to your
 ~/.bashrc (or equivalent for other shells):
 
-    export MPS_ARTIFACTS="$HOME/mps-artifacts"
+    export EMACS_MPS_ARTIFACTS="$HOME/mps-artifacts"
+
+And then build by switching in that variable (with the "EMACS_" prefix)
+into the commands you find above.
 
 
 Debugging the MPS build
