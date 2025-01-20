@@ -1,13 +1,12 @@
 This directory tree contains a version of Emacs master branch that
 implements a new garbage collector (GC) for Emacs that is based on
 Ravenbrook's Memory Pool System (MPS) library.  The new GC is
-concurrent, incremental, and generational.
+incremental and generational.
 
-The maintainers ask users to help the Emacs developers stabilize this
-branch, so that we can merge it into the Emacs master branch faster.
-That means building this branch, running it, and, crucially, reporting
-any bugs that you run into to bug-gnu-emacs@gnu.org.  See the BUGS file
-for more information.
+We ask users to help us stabilize this branch, so that we can merge it
+into the Emacs master branch faster.  That means building this branch,
+running it, and, crucially, reporting any bugs that you run into to
+bug-gnu-emacs@gnu.org.  See the BUGS file for more information.
 
 
 Building this branch
