@@ -56,6 +56,9 @@ Then add something like this to your environment (e.g., to ~/.zprofile):
   export CFLAGS="$CFLAGS -I$(brew --prefix libmps)/include"
   export LDFLAGS="$LDFLAGS -L$(brew --prefix libmps)/lib"
 
+Note that --with-mps=debug won't work with the Homebrew recipe.
+To get a debug build, see "Building MPS yourself" below.
+
 MS-Windows
 ----------
 
