@@ -3468,7 +3468,7 @@ for which LSP on-type-formatting should be requested."
                      ": " fpardoc)))))
       (buffer-string))))
 
-(defun eglot-signature-eldoc-function (cb)
+(defun eglot-signature-eldoc-function (cb &rest _ignored)
   "A member of `eldoc-documentation-functions', for signatures."
   (when (eglot-server-capable :signatureHelpProvider)
     (let ((buf (current-buffer)))
@@ -3492,7 +3492,7 @@ for which LSP on-type-formatting should be requested."
        :deferred :textDocument/signatureHelp))
     t))
 
-(defun eglot-hover-eldoc-function (cb)
+(defun eglot-hover-eldoc-function (cb &rest _ignored)
   "A member of `eldoc-documentation-functions', for hover."
   (when (eglot-server-capable :hoverProvider)
     (let ((buf (current-buffer)))
