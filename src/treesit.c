@@ -1657,8 +1657,8 @@ an indirect buffer.  */)
 
   treesit_check_buffer_size (buf);
 
-  language = resolve_language_symbol (language);
-  CHECK_SYMBOL (language);
+  Lisp_Object remapped_lang = resolve_language_symbol (language);
+  CHECK_SYMBOL (remapped_lang);
 
   /* See if we can reuse a parser.  */
   if (NILP (no_reuse))
@@ -1679,7 +1679,7 @@ an indirect buffer.  */)
   Lisp_Object signal_data = Qnil;
   TSParser *parser = ts_parser_new ();
   struct treesit_loaded_lang loaded_lang
-    = treesit_load_language (language, &signal_symbol, &signal_data);
+    = treesit_load_language (remapped_lang, &signal_symbol, &signal_data);
   TSLanguage *lang = loaded_lang.lang;
   if (lang == NULL)
     xsignal (signal_symbol, signal_data);
@@ -1687,7 +1687,10 @@ an indirect buffer.  */)
      always succeed.  */
   ts_parser_set_language (parser, lang);
 
-  /* Create parser.  */
+  /* Create parser.  Use the unmapped LANGUAGE symbol, so the nodes
+     created by this parser (and this parser) self identify as the
+     unmapped language.  This makes the grammar mapping completely
+     transparent.  */
   Lisp_Object lisp_parser = make_treesit_parser (buf_orig,
 						 parser, NULL,
 						 language, tag);
