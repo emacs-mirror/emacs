@@ -1688,9 +1688,9 @@ an indirect buffer.  */)
   ts_parser_set_language (parser, lang);
 
   /* Create parser.  Use the unmapped LANGUAGE symbol, so the nodes
-     created by this parser (and this parser) self identify as the
-     unmapped language.  This makes the grammar mapping completely
-     transparent.  */
+     created by this parser (and the parser itself) identify themselves
+     as the unmapped language.  This makes the grammar mapping
+     completely transparent.  */
   Lisp_Object lisp_parser = make_treesit_parser (buf_orig,
 						 parser, NULL,
 						 language, tag);
