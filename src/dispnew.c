@@ -4164,8 +4164,12 @@ with_frame_or_terminal_matrices (struct frame *root, Lisp_Object z_order)
 {
   check_window_matrix_pointers_for_frame (root);
 
-  eassert (is_tty_root_frame (root));
   const specpdl_ref count = SPECPDL_INDEX ();
+
+  /* We can be called for displaying a menu on a child frame.  Child
+     frames need no further action, they always use frame matrices.  */
+  if (is_tty_child_frame (root))
+    return count;
 
   if (NILP (z_order))
     z_order = frames_in_reverse_z_order (root, true);
