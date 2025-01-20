@@ -4425,7 +4425,8 @@ face_attr_equal_p (Lisp_Object v1, Lisp_Object v2)
 
       return memcmp (SDATA (v1), SDATA (v2), SBYTES (v1)) == 0;
 
-    case_Lisp_Int:
+    case Lisp_Int0:
+    case Lisp_Int1:
     case Lisp_Symbol:
       return false;
 

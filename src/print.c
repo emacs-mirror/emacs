@@ -2291,7 +2291,8 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 
   switch (XTYPE (obj))
     {
-    case_Lisp_Int:
+    case Lisp_Int0:
+    case Lisp_Int1:
       {
         EMACS_INT i = XFIXNUM (obj);
         char escaped_name;

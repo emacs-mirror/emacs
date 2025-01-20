@@ -209,7 +209,8 @@ a fixed set of types.  */)
 {
   switch (XTYPE (object))
     {
-    case_Lisp_Int:
+    case Lisp_Int0:
+    case Lisp_Int1:
       return Qfixnum;
 
     case Lisp_Symbol:

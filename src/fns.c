@@ -3069,7 +3069,8 @@ value_cmp (Lisp_Object a, Lisp_Object b, int maxdepth)
 
   switch (XTYPE (a))
     {
-    case_Lisp_Int:
+    case Lisp_Int0:
+    case Lisp_Int1:
       {
 	EMACS_INT ia = XFIXNUM (a);
 	if (FIXNUMP (b))
@@ -5522,7 +5523,8 @@ sxhash_obj (Lisp_Object obj, int depth)
 
   switch (XTYPE (obj))
     {
-    case_Lisp_Int:
+    case Lisp_Int0:
+    case Lisp_Int1:
       return XUFIXNUM (obj);
 
     case Lisp_Symbol:

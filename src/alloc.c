@@ -7383,7 +7383,8 @@ process_mark_stack (ptrdiff_t base_sp)
 	    break;
 	  }
 
-	case_Lisp_Int:
+	case Lisp_Int0:
+	case Lisp_Int1:
 	  break;
 
 	default:
@@ -7437,7 +7438,8 @@ survives_gc_p (Lisp_Object obj)
 
   switch (XTYPE (obj))
     {
-    case_Lisp_Int:
+    case Lisp_Int0:
+    case Lisp_Int1:
       survives_p = true;
       break;
 
