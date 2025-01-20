@@ -3716,9 +3716,18 @@ if test "${with_sqlite3}" != "no"; then
        CFLAGS="$SAVE_CFLAGS"
      fi
    else
-     AC_CHECK_LIB([sqlite3], [sqlite3_open_v2],
-       [HAVE_SQLITE3=yes],
-       [HAVE_SQLITE3=no])
+     AC_CACHE_CHECK([for sqlite3],
+       [emacs_cv_have_sqlite3],
+       [OLIBS=$LIBS
+	LIBS="-lsqlite3 $LIBS"
+	AC_LINK_IFELSE(
+	  [AC_LANG_PROGRAM([[#include <sqlite3.h>
+			     sqlite3 *handle;]],
+			   [[return sqlite3_open_v2 ("", &handle, 0, "");]])],
+	  [emacs_cv_have_sqlite3=yes],
+	  [emacs_cv_have_sqlite3=no])
+	LIBS=$OLIBS])
+     HAVE_SQLITE3=$emacs_cv_have_sqlite3
      if test "$HAVE_SQLITE3" = "yes"; then
        SQLITE3_LIBS=-lsqlite3
        LIBS="$SQLITE3_LIBS $LIBS"
