@@ -3592,15 +3592,18 @@ prepare_desired_root_row (struct frame *root, int y)
     return desired_row;
 
   /* If we have a current row that is up to date, copy that to the
-     desired row and use that.  */
-  /* Don't copy rows that aren't enabled, in particuler because they
-     might not have the 'frame' member of glyphs set.  */
+     desired row and use that.  Don't copy rows that are not enabled
+     because they might not have the 'frame' member of glyphs set.
+     Ensure that copied current rows are written thoroughly because
+     writing glyphs otherwise skips over parts of the desired row
+     that actually need to be written, like borders.  */
   struct glyph_row *current_row = MATRIX_ROW (root->current_matrix, y);
   if (current_row->enabled_p)
     {
       memcpy (desired_row->glyphs[0], current_row->glyphs[0],
 	      root->current_matrix->matrix_w * sizeof (struct glyph));
       desired_row->enabled_p = true;
+      current_row->enabled_p = false;
       return desired_row;
     }
 
@@ -3766,14 +3769,6 @@ copy_child_glyphs (struct frame *root, struct frame *child)
       if (r.y > 0)
 	produce_box_line (root, child, r.x, r.y - 1, r.w, true);
 
-      for (int y = r.y; y < r.y + r.h; ++y)
-	{
-	  struct glyph_row *root_row = prepare_desired_root_row (root, y);
-	  if (root_row)
-	    produce_box_sides (BOX_VERTICAL, BOX_VERTICAL, root_row, r.x, r.w,
-			       root, child);
-	}
-
       /* Horizontal line below.  */
       if (r.y + r.h < root->desired_matrix->matrix_h)
 	produce_box_line (root, child, r.x, r.y + r.h, r.w, false);
@@ -3799,6 +3794,9 @@ copy_child_glyphs (struct frame *root, struct frame *child)
 	  neutralize_wide_char (root, root_row, r.x - 1);
 	  neutralize_wide_char (root, root_row, r.x + r.w);
 	}
+      else
+	produce_box_sides (BOX_VERTICAL, BOX_VERTICAL, root_row, r.x, r.w,
+			   root, child);
 
       /* Copy what's visible from the child's current row.  If that row
 	 is not enabled_p, we can't copy anything that makes sense.  */
