@@ -14338,13 +14338,12 @@ update_tab_bar (struct frame *f, bool save_match_data)
 		       /* Since we only explicitly preserve selected_frame,
 			  check that selected_window would be redundant.  */
 		       XFRAME (selected_frame)->selected_window));
-#ifdef HAVE_WINDOW_SYSTEM
+
 	  Lisp_Object frame;
 	  record_unwind_protect (restore_selected_window, selected_window);
 	  XSETFRAME (frame, f);
 	  selected_frame = frame;
 	  selected_window = FRAME_SELECTED_WINDOW (f);
-#endif
 
 	  /* Build desired tab-bar items from keymaps.  */
           new_tab_bar
