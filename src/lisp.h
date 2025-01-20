@@ -1361,7 +1361,7 @@ EQ (Lisp_Object x, Lisp_Object y)
 INLINE intmax_t
 clip_to_bounds (intmax_t lower, intmax_t num, intmax_t upper)
 {
-  return num < lower ? lower : min (num, upper);
+  return max (lower, min (num, upper));
 }
 
 /* Construct a Lisp_Object from a value or address.  */
