@@ -314,7 +314,7 @@ automatically)."
     ((lua-mode lua-ts-mode) . ,(eglot-alternatives
                                 '("lua-language-server" "lua-lsp")))
     (yang-mode . ("yang-language-server"))
-    (zig-mode . ("zls"))
+    ((zig-mode zig-ts-mode) . ("zls"))
     ((css-mode css-ts-mode)
      . ,(eglot-alternatives '(("vscode-css-language-server" "--stdio")
                               ("css-languageserver" "--stdio"))))
@@ -658,6 +658,7 @@ This can be useful when using docker to run a language server.")
                       (:detail :deprecated :children))
       (TextDocumentEdit (:textDocument :edits) ())
       (TextEdit (:range :newText))
+      (InsertReplaceEdit (:newText :insert :replace))
       (VersionedTextDocumentIdentifier (:uri :version) ())
       (WorkDoneProgress (:kind) (:title :message :percentage :cancellable))
       (WorkspaceEdit () (:changes :documentChanges))
@@ -970,7 +971,8 @@ object."
                                                        ["documentation"
                                                         "details"
                                                         "additionalTextEdits"])
-                                      :tagSupport (:valueSet [1]))
+                                      :tagSupport (:valueSet [1])
+                                      :insertReplaceSupport t)
                                     :contextSupport t)
              :hover              (list :dynamicRegistration :json-false
                                        :contentFormat (eglot--accepted-formats))
@@ -3367,8 +3369,15 @@ for which LSP on-type-formatting should be requested."
                   ;; insertion to potentially cancel an essential
                   ;; resolution request (github#1474).
                   'dont-cancel-on-input)
-               (let ((snippet-fn (and (eql insertTextFormat 2)
-                                      (eglot--snippet-expansion-fn))))
+               (let* ((snippet-fn (and (eql insertTextFormat 2)
+                                       (eglot--snippet-expansion-fn)))
+                      (apply-edit
+                       (lambda (range text)
+                         (pcase-let ((`(,beg . ,end)
+                                      (eglot-range-region range)))
+                           (delete-region beg end)
+                           (goto-char beg)
+                           (funcall (or snippet-fn #'insert) text)))))
                  (cond (textEdit
                         ;; Revert buffer back to state when the edit
                         ;; was obtained from server. If a `proxy'
@@ -3377,12 +3386,11 @@ for which LSP on-type-formatting should be requested."
                         ;; state, _not_ the current "foo.bar".
                         (delete-region orig-pos (point))
                         (insert (substring bounds-string (- orig-pos (car bounds))))
-                        (eglot--dbind ((TextEdit) range newText) textEdit
-                          (pcase-let ((`(,beg . ,end)
-                                       (eglot-range-region range)))
-                            (delete-region beg end)
-                            (goto-char beg)
-                            (funcall (or snippet-fn #'insert) newText))))
+                        (eglot--dcase textEdit
+                          (((TextEdit) range newText)
+                           (funcall apply-edit range newText))
+                          (((InsertReplaceEdit) newText replace)
+                           (funcall apply-edit replace newText))))
                        (snippet-fn
                         ;; A snippet should be inserted, but using plain
                         ;; `insertText'.  This requires us to delete the
@@ -3611,8 +3619,12 @@ If SILENT, don't echo progress in mode-line."
                           (replace-buffer-contents temp)))
                       (when reporter
                         (eglot--reporter-update reporter (cl-incf done))))))))
-            (mapcar (eglot--lambda ((TextEdit) range newText)
-                      (cons newText (eglot-range-region range 'markers)))
+            (mapcar (lambda (edit)
+                      (eglot--dcase edit
+                        (((TextEdit) range newText)
+                         (cons newText (eglot-range-region range 'markers)))
+                        (((InsertReplaceEdit) newText replace)
+                         (cons newText (eglot-range-region replace 'markers)))))
                     (reverse edits)))
       (undo-amalgamate-change-group change-group)
       (when reporter

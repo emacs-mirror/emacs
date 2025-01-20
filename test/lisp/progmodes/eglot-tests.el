@@ -725,6 +725,21 @@ directory hierarchy."
           "fn test() -> i32 { let v: usize = 1; v.count_ones.1234567890;")
         (buffer-string))))))
 
+(ert-deftest eglot-test-zig-insert-replace-completion ()
+  "Test zls's use of 'InsertReplaceEdit'."
+  (skip-unless (functionp 'zig-ts-mode))
+  (eglot--with-fixture
+      `(("project" .
+         (("main.zig" .
+           ,(concat "const Foo = struct {correct_name: u32,\n};\n"
+                    "fn example(foo: Foo) u32 {return foo.correc_name; }")))))
+    (with-current-buffer
+        (eglot--find-file-noselect "project/main.zig")
+      (should (eglot--tests-connect))
+      (search-forward "foo.correc")
+      (completion-at-point)
+      (should (looking-back "correct_name")))))
+
 (ert-deftest eglot-test-basic-xref ()
   "Test basic xref functionality in a clangd LSP."
   (skip-unless (executable-find "clangd"))
