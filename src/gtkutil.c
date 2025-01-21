@@ -6116,8 +6116,7 @@ free_frame_tool_bar (struct frame *f)
       else
         gtk_widget_destroy (x->toolbar_widget);
 
-      x->toolbar_widget = 0;
-      x->toolbar_widget = 0;
+      x->toolbar_widget = NULL;
       x->toolbar_is_packed = false;
       FRAME_TOOLBAR_TOP_HEIGHT (f) = FRAME_TOOLBAR_BOTTOM_HEIGHT (f) = 0;
       FRAME_TOOLBAR_LEFT_WIDTH (f) = FRAME_TOOLBAR_RIGHT_WIDTH (f) = 0;
