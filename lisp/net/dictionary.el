@@ -348,7 +348,7 @@ Otherwise, `dictionary-search' displays definitions in a *Dictionary* buffer."
 
 (defface dictionary-button-face
   '((t
-     (:bold t)))
+     (:weight bold)))
   "The face that is used for displaying buttons."
   :group 'dictionary
   :version "28.1")

@@ -453,7 +453,7 @@ and the latter avoids underlining any whitespace at all."
   :group 'gnus-article-emphasis
   :type 'regexp)
 
-(defface gnus-emphasis-bold '((t (:bold t)))
+(defface gnus-emphasis-bold '((t (:weight bold)))
   "Face used for displaying strong emphasized text (*word*)."
   :group 'gnus-article-emphasis)
 
@@ -465,7 +465,7 @@ and the latter avoids underlining any whitespace at all."
   "Face used for displaying underlined emphasized text (_word_)."
   :group 'gnus-article-emphasis)
 
-(defface gnus-emphasis-underline-bold '((t (:bold t :underline t)))
+(defface gnus-emphasis-underline-bold '((t (:weight bold :underline t)))
   "Face used for displaying underlined bold emphasized text (_*word*_)."
   :group 'gnus-article-emphasis)
 
@@ -473,12 +473,12 @@ and the latter avoids underlining any whitespace at all."
   "Face used for displaying underlined italic emphasized text (_/word/_)."
   :group 'gnus-article-emphasis)
 
-(defface gnus-emphasis-bold-italic '((t (:bold t :italic t)))
+(defface gnus-emphasis-bold-italic '((t (:weight bold :italic t)))
   "Face used for displaying bold italic emphasized text (/*word*/)."
   :group 'gnus-article-emphasis)
 
 (defface gnus-emphasis-underline-bold-italic
-  '((t (:bold t :italic t :underline t)))
+  '((t (:weight bold :italic t :underline t)))
   "Face used for displaying underlined bold italic emphasized text.
 Example: (_/*word*/_)."
   :group 'gnus-article-emphasis)
@@ -797,7 +797,7 @@ All the other `gnus-header-' faces inherit from this face."
       (background light))
      (:foreground "red4" :inherit gnus-header))
     (t
-     (:bold t :italic t :inherit gnus-header)))
+     (:weight bold :italic t :inherit gnus-header)))
   "Face used for displaying subject headers."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
@@ -825,7 +825,7 @@ articles."
       (background light))
      (:foreground "maroon" :inherit gnus-header))
     (t
-     (:bold t :inherit gnus-header)))
+     (:weight bold :inherit gnus-header)))
   "Face used for displaying header names."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)

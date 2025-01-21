@@ -2812,7 +2812,7 @@ FG and BG are the main colors."
     `(jabber-activity-face ((,c :foreground ,modeline-info)))
     `(jabber-roster-user-away ((,c :foreground ,red-faint)))
     `(jabber-roster-user-xa ((,c :foreground ,magenta :italic t)))
-    `(jabber-roster-user-dnd ((,c :foreground ,red :bold t)))
+    `(jabber-roster-user-dnd ((,c :foreground ,red :weight bold)))
     `(jabber-roster-user-chatty ((,c :foreground ,cyan-intense)))
     `(jabber-roster-user-error ((,c :inherit error)))
     `(jabber-roster-user-offline ((,c :foreground ,fg-dim :italic t)))

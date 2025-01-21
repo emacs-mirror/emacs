@@ -2625,9 +2625,9 @@ unwanted effects."
 
 (defface line-number-major-tick
   '((((class color grayscale) (background light))
-     :background "grey85" :bold t)
+     :background "grey85" :weight bold)
     (((class color grayscale) (background dark))
-     :background "grey75" :bold t)
+     :background "grey75" :weight bold)
     (t :inherit line-number))
   "Face for highlighting \"major ticks\" (as in a ruler).
 When `display-line-numbers-major-tick' is positive, highlight
@@ -2646,9 +2646,9 @@ unwanted effects."
 
 (defface line-number-minor-tick
   '((((class color grayscale) (background light))
-     :background "grey95" :bold t)
+     :background "grey95" :weight bold)
     (((class color grayscale) (background dark))
-     :background "grey55" :bold t)
+     :background "grey55" :weight bold)
     (t :inherit line-number))
   "Face for highlighting \"minor ticks\" (as in a ruler).
 When `display-line-numbers-minor-tick' is positive, highlight
