@@ -9572,6 +9572,8 @@ SOFTP, only do so when defined as a variable."
    (ignore-list . "%-8p %s")
    (reconnecting . "Reconnecting in %ms: attempt %i/%n ...")
    (reconnect-canceled . "Canceled %u reconnect timer with %cs to go...")
+   (recon-probe-hung-up . "Server answered but hung up. Delaying by %ts...")
+   (recon-probe-nobody-home . "Nobody home...")
    (finished . "\n\n*** ERC finished ***\n")
    (terminated . "\n\n*** ERC terminated: %e\n")
    (login . "Logging in as `%n'...")
