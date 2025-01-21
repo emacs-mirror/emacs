@@ -1774,14 +1774,17 @@ or a regular expression.")
 	       'editable-field
 	       :size 40 :help-echo echo
 	       :action (lambda (widget &optional _event)
-                         (customize-apropos (split-string (widget-value widget)))))))
+                         (let ((value (widget-value widget)))
+                           (if (string= value "")
+                               (message "Empty search field")
+                             (customize-apropos (split-string value))))))))
 	(widget-insert " ")
 	(widget-create-child-and-convert
 	 search-widget 'push-button
 	 :tag " Search "
 	 :help-echo echo :action
 	 (lambda (widget &optional _event)
-	   (customize-apropos (split-string (widget-value (widget-get widget :parent))))))
+           (widget-apply (widget-get widget :parent) :action)))
 	(widget-insert "\n")))
 
     ;; The custom command buttons are also in the toolbar, so for a
