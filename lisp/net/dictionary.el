@@ -337,7 +337,7 @@ Otherwise, `dictionary-search' displays definitions in a *Dictionary* buffer."
 
 (defface dictionary-word-entry-face
   '((((type x))
-     (:italic t))
+     (:slant italic))
     (((type tty) (class color))
      (:foreground "green"))
     (t

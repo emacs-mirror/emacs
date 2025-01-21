@@ -457,7 +457,7 @@ It is a list of lists (KEY PREDICATE REVERSE).")
 
 (defface proced-interruptible-sleep-status-code
   '((((class color) (min-colors 88)) (:foreground "DimGrey"))
-    (t (:italic t)))
+    (t (:slant italic)))
   "Face used in Proced buffers for interruptible sleep status code character \"S\"."
   :version "29.1")
 

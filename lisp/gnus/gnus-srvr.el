@@ -196,9 +196,9 @@ If nil, a faster, but more primitive, buffer is used instead."
   :group 'gnus-server-visual)
 
 (defface gnus-server-cloud-host
-  '((((class color) (background light)) (:foreground "ForestGreen" :inverse-video t :italic t))
-    (((class color) (background dark)) (:foreground "PaleGreen" :inverse-video t :italic t))
-    (t (:inverse-video t :italic t)))
+  '((((class color) (background light)) (:foreground "ForestGreen" :inverse-video t :slant italic))
+    (((class color) (background dark)) (:foreground "PaleGreen" :inverse-video t :slant italic))
+    (t (:inverse-video t :slant italic)))
   "Face used for displaying the Cloud Host."
   :group 'gnus-server-visual)
 
@@ -210,10 +210,10 @@ If nil, a faster, but more primitive, buffer is used instead."
   :group 'gnus-server-visual)
 
 (defface gnus-server-closed
-  '((((class color) (background light)) (:foreground "Steel Blue" :italic t))
+  '((((class color) (background light)) (:foreground "Steel Blue" :slant italic))
     (((class color) (background dark))
-     (:foreground "LightBlue" :italic t))
-    (t (:italic t)))
+     (:foreground "LightBlue" :slant italic))
+    (t (:slant italic)))
   "Face used for displaying CLOSED servers."
   :group 'gnus-server-visual)
 

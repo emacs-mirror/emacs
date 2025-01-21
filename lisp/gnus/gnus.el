@@ -483,7 +483,7 @@ If nil, there will be no Gnus logo in the mode-line."
       (background light))
      (:foreground "DeepPink3"))
     (t
-     (:italic t)))
+     (:slant italic)))
   "Level 1 empty mailgroup face."
   :group 'gnus-group)
 
@@ -500,7 +500,7 @@ If nil, there will be no Gnus logo in the mode-line."
       (background light))
      (:foreground "HotPink3"))
     (t
-     (:italic t)))
+     (:slant italic)))
   "Level 2 empty mailgroup face."
   :group 'gnus-group)
 
@@ -574,7 +574,7 @@ If nil, there will be no Gnus logo in the mode-line."
   :group 'gnus-summary)
 
 (defface gnus-summary-low-ticked
-  '((t (:inherit gnus-summary-normal-ticked :italic t)))
+  '((t (:inherit gnus-summary-normal-ticked :slant italic)))
   "Face used for low interest ticked articles."
   :group 'gnus-summary)
 
@@ -596,7 +596,7 @@ If nil, there will be no Gnus logo in the mode-line."
   :group 'gnus-summary)
 
 (defface gnus-summary-low-ancient
-  '((t (:inherit gnus-summary-normal-ancient :italic t)))
+  '((t (:inherit gnus-summary-normal-ancient :slant italic)))
   "Face used for low interest ancient articles."
   :group 'gnus-summary)
 
@@ -616,7 +616,7 @@ If nil, there will be no Gnus logo in the mode-line."
   :group 'gnus-summary)
 
 (defface gnus-summary-low-undownloaded
-  '((t (:inherit gnus-summary-normal-undownloaded :italic t)))
+  '((t (:inherit gnus-summary-normal-undownloaded :slant italic)))
   "Face used for low interest uncached articles."
   :group 'gnus-summary)
 
@@ -632,7 +632,7 @@ If nil, there will be no Gnus logo in the mode-line."
   :group 'gnus-summary)
 
 (defface gnus-summary-low-unread
-  '((t (:inherit gnus-summary-normal-unread :italic t)))
+  '((t (:inherit gnus-summary-normal-unread :slant italic)))
   "Face used for low interest unread articles."
   :group 'gnus-summary)
 
@@ -654,7 +654,7 @@ If nil, there will be no Gnus logo in the mode-line."
   :group 'gnus-summary)
 
 (defface gnus-summary-low-read
-  '((t (:inherit gnus-summary-normal-read :italic t)))
+  '((t (:inherit gnus-summary-normal-read :slant italic)))
   "Face used for low interest read articles."
   :group 'gnus-summary)
 

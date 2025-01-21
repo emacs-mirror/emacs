@@ -1525,7 +1525,7 @@ starting with `not' and followed by regexps."
       (background light))
      :foreground "MidnightBlue" :weight bold)
     (t
-     :weight bold :italic t))
+     :weight bold :slant italic))
   "Face used for displaying To headers."
   :group 'message-faces)
 
@@ -1556,12 +1556,12 @@ starting with `not' and followed by regexps."
 (defface message-header-newsgroups
   '((((class color)
       (background dark))
-     :foreground "yellow" :weight bold :italic t)
+     :foreground "yellow" :weight bold :slant italic)
     (((class color)
       (background light))
-     :foreground "blue4" :weight bold :italic t)
+     :foreground "blue4" :weight bold :slant italic)
     (t
-     :weight bold :italic t))
+     :weight bold :slant italic))
   "Face used for displaying Newsgroups headers."
   :group 'message-faces)
 
@@ -1573,7 +1573,7 @@ starting with `not' and followed by regexps."
       (background light))
      :foreground "steel blue")
     (t
-     :weight bold :italic t))
+     :weight bold :slant italic))
   "Face used for displaying other headers."
   :group 'message-faces)
 

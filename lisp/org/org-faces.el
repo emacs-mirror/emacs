@@ -404,7 +404,7 @@ changes."
     (((class color) (min-colors 88) (background dark)) (:foreground "chocolate1"))
     (((class color) (min-colors 8)  (background light)) (:foreground "red"))
     (((class color) (min-colors 8)  (background dark)) (:foreground "red"))
-    (t (:weight bold :italic t)))
+    (t (:weight bold :slant italic)))
   "Face for formulas."
   :group 'org-faces)
 
@@ -529,7 +529,7 @@ it (e.g. if that is assigned a different font height or family)."
   :group 'org-faces)
 
 (defface org-agenda-date-today
-  '((t (:inherit org-agenda-date :weight bold :italic t)))
+  '((t (:inherit org-agenda-date :weight bold :slant italic)))
   "Face used in agenda for today."
   :group 'org-faces)
 
@@ -552,7 +552,7 @@ which days belong to the weekend."
   '((((class color) (min-colors 88) (background light)) (:foreground "DarkGreen"))
     (((class color) (min-colors 88) (background dark)) (:foreground "PaleGreen"))
     (((class color) (min-colors 8)) (:foreground "green"))
-    (t (:weight bold :italic t)))
+    (t (:weight bold :slant italic)))
   "Face for items scheduled for a certain day."
   :group 'org-faces)
 
@@ -560,7 +560,7 @@ which days belong to the weekend."
   '((((class color) (min-colors 88) (background light)) (:foreground "DarkGreen"))
     (((class color) (min-colors 88) (background dark)) (:foreground "PaleGreen"))
     (((class color) (min-colors 8)) (:foreground "green"))
-    (t (:weight bold :italic t)))
+    (t (:weight bold :slant italic)))
   "Face for items scheduled for a certain day."
   :group 'org-faces)
 

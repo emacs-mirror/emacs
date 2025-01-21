@@ -13595,28 +13595,28 @@ This does background highlighting of translate-off regions.")
 (defface vhdl-font-lock-attribute-face
   '((((class color) (background light)) (:foreground "Orchid"))
     (((class color) (background dark)) (:foreground "LightSteelBlue"))
-    (t (:italic t :weight bold)))
+    (t (:slant italic :weight bold)))
   "Font lock mode face used to highlight standardized attributes."
   :group 'vhdl-highlight-faces)
 
 (defface vhdl-font-lock-enumvalue-face
   '((((class color) (background light)) (:foreground "SaddleBrown"))
     (((class color) (background dark)) (:foreground "BurlyWood"))
-    (t (:italic t :weight bold)))
+    (t (:slant italic :weight bold)))
   "Font lock mode face used to highlight standardized enumeration values."
   :group 'vhdl-highlight-faces)
 
 (defface vhdl-font-lock-function-face
   '((((class color) (background light)) (:foreground "Cyan4"))
     (((class color) (background dark)) (:foreground "Orchid1"))
-    (t (:italic t :weight bold)))
+    (t (:slant italic :weight bold)))
   "Font lock mode face used to highlight standardized functions and packages."
   :group 'vhdl-highlight-faces)
 
 (defface vhdl-font-lock-directive-face
   '((((class color) (background light)) (:foreground "CadetBlue"))
     (((class color) (background dark)) (:foreground "Aquamarine"))
-    (t (:italic t :weight bold)))
+    (t (:slant italic :weight bold)))
   "Font lock mode face used to highlight directives."
   :group 'vhdl-highlight-faces)
 

@@ -78,7 +78,7 @@ jarring angry fruit salad look to reduce eye fatigue."
  ;; Font lock faces
  '(font-lock-builtin-face       ((t (:foreground "LightSteelBlue"))))
  '(font-lock-constant-face      ((t (:foreground "LightSlateBlue" :weight bold))))
- '(font-lock-preprocessor-face  ((t (:foreground "CornFlowerBlue" :italic t))))
+ '(font-lock-preprocessor-face  ((t (:foreground "CornFlowerBlue" :slant italic))))
  '(font-lock-keyword-face       ((t (:foreground "cyan1"))))
  '(font-lock-type-face          ((t (:foreground "SteelBlue1"))))
  '(font-lock-regexp-grouping-backslash ((t (:weight bold))))
@@ -87,17 +87,17 @@ jarring angry fruit salad look to reduce eye fatigue."
  '(font-lock-function-name-face ((t ( :foreground "mediumspringgreen"
                                       :weight bold))))
  '(font-lock-string-face        ((t (:foreground "RosyBrown1"))))
- '(font-lock-comment-face       ((t (:italic t :slant oblique :foreground "chocolate1"))))
+ '(font-lock-comment-face       ((t (:slant italic :slant oblique :foreground "chocolate1"))))
  '(font-lock-comment-delimiter-face ((t (:foreground "Salmon"))))
- '(font-lock-doc-face           ((t (:italic t :slant oblique :foreground "LightCoral"))))
+ '(font-lock-doc-face           ((t (:slant italic :slant oblique :foreground "LightCoral"))))
  '(font-lock-warning-face ((t (:foreground "Pink" :weight bold))))
 
  '(cperl-array-face ((t (:foreground "LawnGreen" :background "Black" :weight bold))))
- '(cperl-hash-face ((t (:foreground "SpringGreen" :background "Black" :weight bold :italic t))))
+ '(cperl-hash-face ((t (:foreground "SpringGreen" :background "Black" :weight bold :slant italic))))
  '(cperl-nonoverridable-face ((t (:foreground "chartreuse3"))))
 
  '(gnus-button ((t (:weight bold :background "#191932" :box (:line-width 2 :style released-button)))))
- '(gnus-cite-attribution-face ((t (:italic t))))
+ '(gnus-cite-attribution-face ((t (:slant italic))))
  '(gnus-cite-face-1  ((t (:foreground "CornflowerBlue"))))
  '(gnus-cite-face-2  ((t (:foreground "PaleGreen"))))
  '(gnus-cite-face-3  ((t (:foreground "LightGoldenrod"))))
@@ -383,9 +383,9 @@ jarring angry fruit salad look to reduce eye fatigue."
                 :foreground "black" :background "grey"
                 :weight bold ))))
  '(calendar-today-face ((t (:underline t :weight bold :foreground "cornsilk"))))
- '(change-log-acknowledgment ((t (:italic t :slant oblique :foreground "AntiqueWhite3"))))
+ '(change-log-acknowledgment ((t (:slant italic :slant oblique :foreground "AntiqueWhite3"))))
  '(change-log-conditionals-face ((t (:foreground "Aquamarine"))))
- '(change-log-date-face ((t (:italic t :slant oblique :foreground "BurlyWood"))))
+ '(change-log-date-face ((t (:slant italic :slant oblique :foreground "BurlyWood"))))
  '(change-log-email-face ((t (:foreground "Aquamarine"))))
  '(change-log-file-face ((t (:weight bold :foreground "LightSkyBlue" :height 0.9))))
  '(change-log-function-face ((t (:foreground "Aquamarine"))))
@@ -505,7 +505,7 @@ jarring angry fruit salad look to reduce eye fatigue."
  '(eshell-test-failed-face ((t (:foreground "OrangeRed" :weight bold))))
  '(eshell-test-ok-face ((t (:foreground "Green" :weight bold))))
 
- '(excerpt ((t (:italic t))))
+ '(excerpt ((t (:slant italic))))
  '(file-name-shadow ((t (:foreground "grey70"))))
  '(fixed ((t (:weight bold))))
  '(flyspell-duplicate-face ((t (:foreground "IndianRed" :weight bold :underline t))))
@@ -533,7 +533,7 @@ jarring angry fruit salad look to reduce eye fatigue."
  '(holiday-face ((t (:background "chocolate4"))))
 
  '(ibuffer-dired-buffer-face ((t (:foreground "mediumspringgreen" :weight bold :height 1.1))))
- '(ibuffer-help-buffer-face  ((t (:italic t :slant oblique :foreground "chocolate1"))))
+ '(ibuffer-help-buffer-face  ((t (:slant italic :slant oblique :foreground "chocolate1"))))
  '(ibuffer-hidden-buffer-face  ((t (:foreground "Pink" :weight bold))))
  '(ibuffer-occur-match-face ((t (:foreground "Pink" :weight bold))))
  '(ibuffer-read-only-buffer-face ((t (:foreground "SteelBlue1"))))
@@ -545,7 +545,7 @@ jarring angry fruit salad look to reduce eye fatigue."
  '(ido-only-match ((t (:foreground "ForestGreen"))))
  '(ido-subdir ((t (:foreground "red1"))))
  '(info-menu-header ((t (:weight bold))))
- '(info-node ((t (:weight bold :italic t :foreground "yellow"))))
+ '(info-node ((t (:weight bold :slant italic :foreground "yellow"))))
  '(info-node ((t (:foreground "white" :slant italic :weight bold))))
  '(info-xref ((t (:weight bold :foreground "DodgerBlue1"))))
  '(info-xref ((t (:foreground "cyan" :weight bold))))
@@ -553,7 +553,7 @@ jarring angry fruit salad look to reduce eye fatigue."
  '(isearch-fail ((t (:background "red4"))))
  '(isearch-lazy-highlight-face ((t (:background "paleturquoise4"))))
  '(isearch-secondary ((t (:foreground "red3"))))
- '(italic ((t (:italic t))))
+ '(italic ((t (:slant italic))))
 
  '(js2-builtin-face ((t (:foreground "sandy brown"))))
  '(js2-comment-face ((t (:foreground "dark orchid"))))

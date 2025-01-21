@@ -3336,11 +3336,11 @@ sequence."
       (((class color))
        (:foreground "yellow" :weight light))
       (((class grayscale) (background light))
-       (:foreground "Gray90" :weight bold :italic t))
+       (:foreground "Gray90" :weight bold :slant italic))
       (((class grayscale) (background dark))
-       (:foreground "DimGray" :weight bold :italic t))
+       (:foreground "DimGray" :weight bold :slant italic))
       (t
-       (:weight bold :italic t))))
+       (:weight bold :slant italic))))
     (mh-folder-subject
      ((((class color) (background light))
        (:foreground "blue4"))
@@ -3363,11 +3363,11 @@ sequence."
       (((class color))
        (:foreground "green"))
       (((class grayscale) (background light))
-       (:foreground "DimGray" :italic t))
+       (:foreground "DimGray" :slant italic))
       (((class grayscale) (background dark))
-       (:foreground "LightGray" :italic t))
+       (:foreground "LightGray" :slant italic))
       (t
-       (:italic t))))
+       (:slant italic))))
     (mh-letter-header-field
      ((((class color) (background light))
        (:background "gray90"))
@@ -3390,11 +3390,11 @@ sequence."
       (((class color))
        (:foreground "yellow" :weight light))
       (((class grayscale) (background light))
-       (:foreground "Gray90" :weight bold :italic t))
+       (:foreground "Gray90" :weight bold :slant italic))
       (((class grayscale) (background dark))
-       (:foreground "DimGray" :weight bold :italic t))
+       (:foreground "DimGray" :weight bold :slant italic))
       (t
-       (:weight bold :italic t))))
+       (:weight bold :slant italic))))
     (mh-show-date
      ((((class color) (min-colors 64) (background light))
        (:foreground "ForestGreen"))
@@ -3423,15 +3423,15 @@ sequence."
       (((class color))
        (:foreground "green"))
       (((class grayscale) (background light))
-       (:foreground "DimGray" :italic t))
+       (:foreground "DimGray" :slant italic))
       (((class grayscale) (background dark))
-       (:foreground "LightGray" :italic t))
+       (:foreground "LightGray" :slant italic))
       (t
-       (:italic t))))
+       (:slant italic))))
     (mh-show-pgg-bad ((t (:weight bold :foreground "DeepPink1"))))
     (mh-show-pgg-good ((t (:weight bold :foreground "LimeGreen"))))
     (mh-show-pgg-unknown ((t (:weight bold :foreground "DarkGoldenrod2"))))
-    (mh-show-signature ((t (:italic t))))
+    (mh-show-signature ((t (:slant italic))))
     (mh-show-to
      ((((class color) (background light))
        (:foreground "SaddleBrown"))
@@ -3501,7 +3501,7 @@ not added to the returned spec."
                 '((((class color))
                    (:inherit mh-folder-msg-number))
                   (t
-                   (:inherit mh-folder-msg-number :italic t))))
+                   (:inherit mh-folder-msg-number :slant italic))))
   "Body text face."
   :group 'mh-faces
   :group 'mh-folder

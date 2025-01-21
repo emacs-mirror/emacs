@@ -66,7 +66,7 @@
       (background light))
      (:foreground "red3"))
     (t
-     (:italic t)))
+     (:slant italic)))
   "Face used for displaying output from commands."
   :group 'mime-display)
 

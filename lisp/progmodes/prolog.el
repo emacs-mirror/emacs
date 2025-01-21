@@ -1868,9 +1868,9 @@ Argument BOUND is a buffer position limiting searching."
 
   ;; Define Prolog faces
   (defface prolog-redo-face
-    '((((class grayscale)) (:italic t))
+    '((((class grayscale)) (:slant italic))
       (((class color)) (:foreground "darkorchid"))
-      (t (:italic t)))
+      (t (:slant italic)))
     "Prolog mode face for highlighting redo trace lines."
     :group 'prolog-faces)
   (defface prolog-exit-face
@@ -1881,9 +1881,9 @@ Argument BOUND is a buffer position limiting searching."
     "Prolog mode face for highlighting exit trace lines."
     :group 'prolog-faces)
   (defface prolog-exception-face
-    '((((class grayscale)) (:weight bold :italic t :underline t))
+    '((((class grayscale)) (:weight bold :slant italic :underline t))
       (((class color)) (:weight bold :foreground "black" :background "Khaki"))
-      (t (:weight bold :italic t :underline t)))
+      (t (:weight bold :slant italic :underline t)))
     "Prolog mode face for highlighting exception trace lines."
     :group 'prolog-faces)
   (defface prolog-warning-face
