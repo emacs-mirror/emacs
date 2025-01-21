@@ -7659,7 +7659,7 @@ w32_memory_info (unsigned long long *totalram, unsigned long long *freeram,
 {
   MEMORYSTATUS memst;
   MEMORY_STATUS_EX memstex;
-  memstex.dwLength = sizeof(memstex);
+  memstex.dwLength = sizeof (memstex);
   /* Use GlobalMemoryStatusEx if available, as it can report more than
      2GB of memory.  */
   if (global_memory_status_ex (&memstex))
@@ -7671,7 +7671,7 @@ w32_memory_info (unsigned long long *totalram, unsigned long long *freeram,
       return 0;
     }
 
-  memst.dwLength = sizeof(memst);
+  memst.dwLength = sizeof (memst);
   if (global_memory_status (&memst))
     {
       *totalram = memst.dwTotalPhys;
