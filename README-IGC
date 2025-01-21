@@ -75,12 +75,8 @@ $ git clone https://github.com/Ravenbrook/mps.git
 $ cd mps
 $ autoconf
 $ ./configure --prefix="$MPS_ARTIFACTS"
-$ make CC="gcc -Wno-dangling-pointer -Wno-maybe-uninitialized" \
-       EXTRA_TARGETS=
+$ make CFLAGSCOMPILERSTRICT="-Wno-error"
 $ make install
-
-TODO: Instructions for building the debug version.  For now, see below
-for some ideas.
 
 Building MPS yourself (manually)
 --------------------------------
