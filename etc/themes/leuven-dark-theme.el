@@ -278,7 +278,7 @@ more..."
    `(gnus-picon-xbm ((,class (:foreground "#0601ff" :background "#25202a"))))
    `(gnus-server-closed ((,class (:slant italic :foreground "#ffff0b" :background "#25202a"))))
    `(gnus-server-denied ((,class (:weight bold :foreground "#06ffff" :background "#25202a"))))
-   `(gnus-server-opened ((,class (:family "Sans Serif" :foreground "#25202a" :foreground "#bd9432"))))
+   `(gnus-server-opened ((,class (:family "Sans Serif" :foreground "#bd9432"))))
    `(gnus-signature ((,class (:slant italic :foreground "#787279"))))
    `(gnus-splash ((,class (:foreground "#0673ff"))))
    `(gnus-summary-cancelled ((,class ,cancel)))
