@@ -252,13 +252,40 @@ enum igc_state
 static enum igc_state igc_state = IGC_STATE_INITIAL;
 static void set_state (enum igc_state state);
 
+static const char *
+result_string (mps_res_t res)
+{
+  switch (res)
+    {
+    case MPS_RES_OK:
+      return "operation succeeded";
+    case MPS_RES_FAIL:
+      return "operation failed";
+    case MPS_RES_IO:
+      return "an I/O error occurred in the telemetry system";
+    case MPS_RES_LIMIT:
+      return "an internal limitation was exceeded";
+    case MPS_RES_MEMORY:
+      return "out of memory";
+    case MPS_RES_RESOURCE:
+      return "a needed resource could not be obtained";
+    case MPS_RES_UNIMPL:
+      return "operation is not implemented (this is probably a bug)";
+    case MPS_RES_COMMIT_LIMIT:
+      return "the arena's commit limit would be exceeded";
+    case MPS_RES_PARAM:
+      return "an invalid parameter was passed (this is probably a bug)";
+    }
+  return "unknown error";
+}
+
 static void
 check_res (const char *file, unsigned line, mps_res_t res)
 {
   if (res != MPS_RES_OK)
     {
-      fprintf (stderr, "\r\n%s:%u: Emacs fatal error: MPS error code %d\r\n",
-	       file, line, res);
+      fprintf (stderr, "\r\n%s:%u: Emacs fatal error: MPS error %d: %s\r\n",
+	       file, line, res, result_string (res));
       set_state (IGC_STATE_DEAD);
     }
 }
