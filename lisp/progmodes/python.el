@@ -440,10 +440,17 @@ This variant of `rx' supports common Python named REGEXPS."
             (dedenter          (seq symbol-start
                                     (or "elif" "else" "except" "finally" "case")
                                     symbol-end))
-            (block-ender       (seq symbol-start
-                                    (or
-                                     "break" "continue" "pass" "raise" "return")
-                                    symbol-end))
+            (block-ender       (seq
+                                symbol-start
+                                (or
+                                 (seq (or
+                                       "break" "continue" "pass" "raise" "return")
+                                  symbol-end)
+                                 (seq
+                                  (or
+                                   (seq (? (or (seq "os." (? ?_)) "sys.")) "exit")
+                                   "quit")
+                                  (* space) "("))))
             (decorator         (seq line-start (* space) ?@ (any letter ?_)
                                     (* (any word ?_))))
             (defun             (seq symbol-start
