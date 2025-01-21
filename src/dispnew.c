@@ -2665,7 +2665,7 @@ build_frame_matrix_from_leaf_window (struct glyph_matrix *frame_matrix, struct w
 	{
 	  /* If the desired glyphs for this row haven't been built,
 	     copy from the corresponding current row, but only if it
-	     is enabled, because ottherwise its contents are invalid.  */
+	     is enabled, because otherwise its contents are invalid.  */
 	  struct glyph *to = frame_row->glyphs[TEXT_AREA] + window_matrix->matrix_x;
 	  struct glyph *from = window_row->glyphs[0];
 	  for (int i = 0; i < window_matrix->matrix_w; ++i)
@@ -2687,18 +2687,6 @@ build_frame_matrix_from_leaf_window (struct glyph_matrix *frame_matrix, struct w
 	     the corresponding frame row to be updated.  */
 	  frame_row->enabled_p = true;
 
-	  /* Maybe insert a vertical border between horizontally adjacent
-	     windows.  */
-	  if (GLYPH_CHAR (right_border_glyph) != 0)
-	    {
-	      struct glyph *border = window_row->glyphs[LAST_AREA] - 1;
-	      /* It's a subtle bug if we are overwriting some non-char
-		 glyph with the vertical border glyph.  */
-	      eassert (border->type == CHAR_GLYPH);
-	      border->type = CHAR_GLYPH;
-	      SET_CHAR_GLYPH_FROM_GLYPH (f, *border, right_border_glyph);
-	    }
-
 #ifdef GLYPH_DEBUG
 	  /* Window row window_y must be a slice of frame row
 	     frame_y.  */
@@ -2711,6 +2699,19 @@ build_frame_matrix_from_leaf_window (struct glyph_matrix *frame_matrix, struct w
 	  strcpy (w->current_matrix->method, w->desired_matrix->method);
 	  add_window_display_history (w, w->current_matrix->method);
 #endif
+	}
+
+      /* Maybe insert a vertical border between horizontally adjacent
+	 windows.  This must also be done when copying from a current
+	 row because we filled the frame row with spaces above.  */
+      if (GLYPH_CHAR (right_border_glyph) != 0)
+	{
+	  struct glyph *border = window_row->glyphs[LAST_AREA] - 1;
+	  /* It's a subtle bug if we are overwriting some non-char
+	     glyph with the vertical border glyph.  */
+	  eassert (border->type == CHAR_GLYPH);
+	  border->type = CHAR_GLYPH;
+	  SET_CHAR_GLYPH_FROM_GLYPH (f, *border, right_border_glyph);
 	}
 
       /* Set number of used glyphs in the frame matrix.  Since we fill
