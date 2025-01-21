@@ -1431,6 +1431,19 @@ Any non-integer value means do not use a different value of
   :group 'lisp
   :version "30.1")
 
+(defvar lisp-fill-paragraph-as-displayed nil
+  "Modify the behavior of `lisp-fill-paragraph'.
+The default behavior of `lisp-fill-paragraph' is tuned for filling Emacs
+Lisp doc strings, with their special treatment for the first line.
+Particularly, strings are filled in a narrowed context to avoid filling
+surrounding code, which means any leading indent is disregarded, which
+can cause the filled string to extend passed the configured
+`fill-column' variable value.  If you would rather fill the string in
+its original context and ensure the `fill-column' value is more strictly
+respected, set this variable to true.  Doing so makes
+`lisp-fill-paragraph' behave as it used to in Emacs 27 and prior
+versions.")
+
 (defun lisp-fill-paragraph (&optional justify)
   "Like \\[fill-paragraph], but handle Emacs Lisp comments and docstrings.
 If any of the current line is a comment, fill the comment or the
@@ -1480,42 +1493,44 @@ and initial semicolons."
                                   (derived-mode-p 'emacs-lisp-mode))
                              emacs-lisp-docstring-fill-column
                            fill-column)))
-        (let ((ppss (syntax-ppss))
-              (start (point))
-              ;; Avoid recursion if we're being called directly with
-              ;; `M-x lisp-fill-paragraph' in an `emacs-lisp-mode' buffer.
-              (fill-paragraph-function t))
+        (let* ((ppss (syntax-ppss))
+               (start (point))
+               ;; Avoid recursion if we're being called directly with
+               ;; `M-x lisp-fill-paragraph' in an `emacs-lisp-mode' buffer.
+               (fill-paragraph-function t)
+               (string-start (ppss-comment-or-string-start ppss)))
           (save-excursion
             (save-restriction
               ;; If we're not inside a string, then do very basic
               ;; filling.  This avoids corrupting embedded strings in
               ;; code.
-              (if (not (ppss-comment-or-string-start ppss))
+              (if (not string-start)
                   (lisp--fill-line-simple)
-                ;; If we're in a string, then narrow (roughly) to that
-                ;; string before filling.  This avoids filling Lisp
-                ;; statements that follow the string.
-                (when (ppss-string-terminator ppss)
-                  (goto-char (ppss-comment-or-string-start ppss))
-                  ;; The string may be unterminated -- in that case, don't
-                  ;; narrow.
-                  (when (ignore-errors
-                          (progn
-                            (forward-sexp 1)
-                            t))
-                    (narrow-to-region (1+ (ppss-comment-or-string-start ppss))
-                                      (1- (point)))))
-                ;; Move back to where we were.
-                (goto-char start)
-                ;; We should fill the first line of a string
-                ;; separately (since it's usually a doc string).
-                (if (= (line-number-at-pos) 1)
-                    (narrow-to-region (line-beginning-position)
-                                      (line-beginning-position 2))
-                  (save-excursion
-                    (goto-char (point-min))
-                    (forward-line 1)
-                    (narrow-to-region (point) (point-max))))
+                (unless lisp-fill-paragraph-as-displayed
+                  ;; If we're in a string, then narrow (roughly) to that
+                  ;; string before filling.  This avoids filling Lisp
+                  ;; statements that follow the string.
+                  (when (ppss-string-terminator ppss)
+                    (goto-char string-start)
+                    ;; The string may be unterminated -- in that case, don't
+                    ;; narrow.
+                    (when (ignore-errors
+                            (progn
+                              (forward-sexp 1)
+                              t))
+                      (narrow-to-region (1+ string-start)
+                                        (1- (point)))))
+                  ;; Move back to where we were.
+                  (goto-char start)
+                  ;; We should fill the first line of a string
+                  ;; separately (since it's usually a doc string).
+                  (if (= (line-number-at-pos) 1)
+                      (narrow-to-region (line-beginning-position)
+                                        (line-beginning-position 2))
+                    (save-excursion
+                      (goto-char (point-min))
+                      (forward-line 1)
+                      (narrow-to-region (point) (point-max)))))
 	        (fill-paragraph justify)))))))
   ;; Never return nil.
   t)

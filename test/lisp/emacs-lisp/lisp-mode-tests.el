@@ -309,6 +309,53 @@ Expected initialization file: `%s'\"
       (should (equal (buffer-string) orig)))))
 
 
+;;; Filling
+
+(ert-deftest lisp-fill-paragraph-docstring-boundaries ()
+  "Test bug#28937, ensuring filling the docstring filled is properly
+bounded."
+  (with-temp-buffer
+    (insert "\
+(defun test ()
+  \"This is a test docstring.
+Here is some more text.\"
+  1
+  2
+  3
+  4
+  5)")
+    (let ((correct (buffer-string)))
+      (emacs-lisp-mode)
+      (search-backward "This is a test docstring")
+      (fill-paragraph)                  ;function under test
+      (should (equal (buffer-string) correct)))))
+
+(ert-deftest lisp-fill-paragraph-as-displayed ()
+  "Test bug#56197 -- more specifically, validate that a leading indentation
+for a string is preserved in the filled string."
+  (let ((lisp-fill-paragraph-as-displayed t) ;variable under test
+        ;; The following is a contrived example that demonstrates the
+        ;; fill-column problem when the string to fill is indented.
+        (source "\
+'(description \"This is a very long string which is indented by a considerable value, causing it to
+protrude from the configured `fill-column' since
+lisp-fill-paragraph was refactored in version 28.\")"))
+    (with-temp-buffer
+      (insert source)
+      (emacs-lisp-mode)
+      (search-backward "This is a very long string")
+      (fill-paragraph)                  ;function under test
+      (goto-char (point-min))
+      (message "%s" (buffer-substring-no-properties (point-min) (point-max)))
+      (let ((i 1)
+            (lines-count (count-lines (point-min) (point-max))))
+        (while (< i lines-count)
+          (beginning-of-line i)
+          (end-of-line)
+          (should (<= (current-column) fill-column))
+          (setq i (1+ i)))))))
+
+
 ;;; Fontification
 
 (ert-deftest lisp-fontify-confusables ()
