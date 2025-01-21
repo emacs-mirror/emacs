@@ -213,9 +213,11 @@ language and doesn't match the language of the local parser."
                                  (car (treesit-local-parsers-at
                                        pos parser-or-lang))))
                        (treesit-parser-root-node parser))
-                     (treesit-buffer-root-node
-                      (or parser-or-lang
-                          (treesit-language-at pos))))))
+                     (condition-case nil
+                         (treesit-buffer-root-node
+                          (or parser-or-lang
+                              (treesit-language-at pos)))
+                       (treesit-no-parser nil)))))
          (node root)
          (node-before root)
          (pos-1 (max (1- pos) (point-min)))
