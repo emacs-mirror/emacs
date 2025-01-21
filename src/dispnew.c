@@ -4017,61 +4017,25 @@ static void
 copy_pool (struct glyph_pool **to, struct glyph_pool *from)
 {
   eassert (*to == NULL);
-  struct glyph_pool *p = new_glyph_pool ();
-  *p = *from;
-  p->glyphs = xzalloc (p->nglyphs * sizeof *p->glyphs);
-  *to = p;
-}
-
-/* Copy glyph row with index I from FROM_MATRIX to TO_MATRIX.  */
-
-static void
-copy_row (struct glyph_matrix *to_matrix,
-	  struct glyph_matrix *from_matrix, int i)
-{
-  struct glyph_row *from = from_matrix->rows + i;
-  struct glyph_row *to = to_matrix->rows + i;
-  *to = *from;
-  struct glyph_pool *p = to_matrix->pool;
-  struct glyph *start = p->glyphs + i * p->ncolumns;
-  struct glyph *end = start + p->ncolumns;
-  to->glyphs[LEFT_MARGIN_AREA] = start;
-  to->glyphs[TEXT_AREA] = start;
-  to->glyphs[RIGHT_MARGIN_AREA] = end;
-  to->glyphs[LAST_AREA] = end;
-  memcpy (start, from->glyphs[0], p->ncolumns * sizeof *start);
+  *to = new_glyph_pool ();
+  **to = *from;
+  (*to)->glyphs = xzalloc (from->nglyphs * sizeof *from->glyphs);
 }
 
 /* Copy glyph matrix FROM to *TO and give *TO the pool POOL.  */
 
 static void
-copy_matrix (struct glyph_matrix **to, struct glyph_matrix *from,
-	     struct glyph_pool *pool)
+copy_matrix (struct frame *root, struct glyph_matrix **to,
+	     struct glyph_matrix *from, struct glyph_pool *pool)
 {
   eassert (*to == NULL);
   *to = new_glyph_matrix (pool);
-  struct glyph_matrix *m = *to;
-  struct glyph_row *rows = m->rows;
-  *m = *from;
-  m->pool = pool;
-  m->rows = xzalloc (m->rows_allocated * sizeof *rows);
-  for (int i = 0; i < m->rows_allocated; ++i)
-    copy_row (m, from, i);
-}
-
-/* Copy row I from desired matrix FROM_MATRIX to TO_MATRIX.  */
-
-static void
-copy_desired_row (struct glyph_matrix *to_matrix,
-		  struct glyph_matrix *from_matrix, int i)
-{
-  struct glyph_row *from = from_matrix->rows + i;
-  struct glyph_row *to = to_matrix->rows + i;
-  copy_row_except_pointers (to, from);
-  for (int i = 0; i <= LAST_AREA; ++i)
-    to->used[i] = from->used[i];
-  memcpy (to->glyphs[0], from->glyphs[0],
-	  to_matrix->matrix_w * sizeof (struct glyph));
+  adjust_glyph_matrix (NULL, *to, 0, 0,
+		       (struct dim) {
+			 .width = from->matrix_w,
+			 .height = from->matrix_h });
+  for (int i = 0; i < from->nrows; ++i)
+    deep_copy_glyph_row (root, (*to)->rows + i, from->rows + i);
 }
 
 /* Copy the desired frame matrix of frame ROOT to its desired
@@ -4082,28 +4046,27 @@ copy_frame_desired_matrix (struct frame *root)
 {
   struct glyph_matrix *from = root->frame_desired_matrix;
   struct glyph_matrix *to = root->terminal_desired_matrix;
-  eassert (to->rows_allocated == from->rows_allocated);
+  eassert (to->nrows == from->nrows);
 
-  struct glyph_pool *pool = to->pool;
-  struct glyph_row *rows = to->rows;
-  *to = *from;
-  to->pool = pool;
-  to->rows = rows;
-
-  for (int i = 0; i < to->rows_allocated; ++i)
-    if (from->rows[i].enabled_p)
-      copy_desired_row (to, from, i);
+  for (int i = 0; i < to->nrows; ++i)
+    {
+      if (from->rows[i].enabled_p)
+	deep_copy_glyph_row (root, to->rows + i, from->rows + i);
+      else
+	to->rows[i].enabled_p = false;
+    }
 }
 
 /* Copy a glyph matrix FROM.  */
 
 static void
-copy_pool_and_matrix (struct glyph_matrix *from,
+copy_pool_and_matrix (struct frame *root,
+		      struct glyph_matrix *from,
 		      struct glyph_pool **to_pool,
 		      struct glyph_matrix **to_matrix)
 {
   copy_pool (to_pool, from->pool);
-  copy_matrix (to_matrix, from, *to_pool);
+  copy_matrix (root, to_matrix, from, *to_pool);
 }
 
 /* Create terminal matrices for frame ROOT on demand. This creates
@@ -4112,9 +4075,9 @@ copy_pool_and_matrix (struct glyph_matrix *from,
 static void
 make_terminal_matrices (struct frame *root)
 {
-  copy_pool_and_matrix (root->current_matrix, &root->terminal_current_pool,
+  copy_pool_and_matrix (root, root->current_matrix, &root->terminal_current_pool,
 			&root->terminal_current_matrix);
-  copy_pool_and_matrix (root->desired_matrix, &root->terminal_desired_pool,
+  copy_pool_and_matrix (root, root->desired_matrix, &root->terminal_desired_pool,
 			&root->terminal_desired_matrix);
 }
 

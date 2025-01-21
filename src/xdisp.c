@@ -27220,7 +27220,7 @@ display_menu_bar (struct window *w)
 #ifndef HAVE_ANDROID
 
 /* Deep copy of a glyph row, including the glyphs.  */
-static void
+void
 deep_copy_glyph_row (struct frame *f, struct glyph_row *to, struct glyph_row *from)
 {
   struct glyph *pointers[1 + LAST_AREA];
