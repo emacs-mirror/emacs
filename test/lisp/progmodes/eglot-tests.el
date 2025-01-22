@@ -442,7 +442,7 @@ directory hierarchy."
   "Test basic symlink support."
   (skip-unless (executable-find "clangd"))
   ;; MS-Windows either fails symlink creation or pops up UAC prompts.
-  (skip-when (eq system-type 'windows-nt))
+  (skip-unless (not (eq system-type 'windows-nt)))
   (eglot--with-fixture
       `(("symlink-project" .
          (("main.cpp" . "#include\"foo.h\"\nint main() { return foo(); }")
