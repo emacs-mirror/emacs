@@ -3263,7 +3263,9 @@ for which LSP on-type-formatting should be requested."
              (dolist (c comps) (eglot--dumb-flex pattern c completion-ignore-case))
              (all-completions
               ""
-              comps
+              ;; copy strings, as some older emacs
+              ;; versions will destroy properties.
+              (mapcar #'substring comps)
               (lambda (proxy)
                 (let* ((item (get-text-property 0 'eglot--lsp-item proxy))
                        (filterText (plist-get item :filterText)))
