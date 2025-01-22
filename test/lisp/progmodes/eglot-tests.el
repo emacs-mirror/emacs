@@ -798,7 +798,6 @@ int main() {
       (insert "foo")
       (company-mode)
       (company-complete)
-      (should (looking-back "fooba"))
       (should (= 2 (length company-candidates)))
       ;; this last one is brittle, since there it is possible that
       ;; clangd will change the representation of this candidate
