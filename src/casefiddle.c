@@ -583,7 +583,7 @@ casify_pnc_region (enum case_action flag, Lisp_Object beg, Lisp_Object end,
 {
   if (!NILP (region_noncontiguous_p))
     {
-      Lisp_Object bounds = call1 (Vregion_extract_function, Qbounds);
+      Lisp_Object bounds = calln (Vregion_extract_function, Qbounds);
       FOR_EACH_TAIL (bounds)
 	{
 	  CHECK_CONS (XCAR (bounds));

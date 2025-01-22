@@ -2672,6 +2672,7 @@ image_get_dimension (struct image *img, Lisp_Object symbol)
     }
   return -1;
 }
+#endif
 
 /* Calculate the scale of the image.  IMG may be null as it is only
    required when creating an image, and this function is called from
@@ -2727,6 +2728,7 @@ image_compute_scale (struct frame *f, Lisp_Object spec, struct image *img)
   return scale;
 }
 
+#if defined HAVE_IMAGEMAGICK || defined HAVE_NATIVE_TRANSFORMS
 /* Compute the desired size of an image with native size WIDTH x HEIGHT,
    which is to be displayed on F.  Use IMG to deduce the size.  Store
    the desired size into *D_WIDTH x *D_HEIGHT.  Store -1 x -1 if the
@@ -11963,34 +11965,27 @@ svg_css_length_to_pixels (RsvgLength length, double dpi, int font_size)
     {
     case RSVG_UNIT_PX:
       /* Already a pixel value.  */
-      break;
+      return value;
     case RSVG_UNIT_CM:
       /* 2.54 cm in an inch.  */
-      value = dpi * value / 2.54;
-      break;
+      return dpi * value / 2.54;
     case RSVG_UNIT_MM:
       /* 25.4 mm in an inch.  */
-      value = dpi * value / 25.4;
-      break;
+      return dpi * value / 25.4;
     case RSVG_UNIT_PT:
       /* 72 points in an inch.  */
-      value = dpi * value / 72;
-      break;
+      return dpi * value / 72;
     case RSVG_UNIT_PC:
       /* 6 picas in an inch.  */
-      value = dpi * value / 6;
-      break;
+      return dpi * value / 6;
     case RSVG_UNIT_IN:
-      value *= dpi;
-      break;
+      return value * dpi;
     case RSVG_UNIT_EM:
-      value *= font_size;
-      break;
+      return value * font_size;
     case RSVG_UNIT_EX:
       /* librsvg uses an ex height of half the em height, so we match
 	 that here.  */
-      value = value * font_size / 2.0;
-      break;
+      return value * font_size / 2.0;
     case RSVG_UNIT_PERCENT:
       /* Percent is a ratio of the containing "viewport".  We don't
 	 have a viewport, as such, as we try to draw the image to it's
@@ -12004,14 +11999,27 @@ svg_css_length_to_pixels (RsvgLength length, double dpi, int font_size)
 	 spec, this will work out correctly as librsvg will still
 	 honor the percentage sizes in its final rendering no matter
 	 what size we make the image.  */
-      value = 0;
-      break;
-    default:
-      /* We should never reach this.  */
-      value = 0;
+      return 0;
+#if LIBRSVG_CHECK_VERSION (2, 58, 0)
+    case RSVG_UNIT_CH:
+      /* FIXME: With CSS 3, "the ch unit falls back to 0.5em in the
+	 general case, and to 1em when it would be typeset upright".
+	 However, I could not find a way to easily get the relevant CSS
+	 attributes using librsvg.  Thus, we simply wrongly assume the
+	 general case is always true here.  See Bug#75712.  */
+      return value * font_size / 2.0;
+#endif
     }
 
-  return value;
+  /* The rsvg header files say that more values may be added to this
+     enum, but there doesn't appear to be a way to get a string
+     representation of the new enum value.  The unfortunate
+     consequence is that the only thing we can do is to report the
+     numeric value.  */
+  image_error ("Unknown RSVG unit, code: %s", make_fixnum ((int) length.unit));
+  /* Return 0; this special value indicates that another method of
+     obtaining the image size must be used.  */
+  return 0;
 }
 #endif
 
@@ -12658,7 +12666,7 @@ gs_load (struct frame *f, struct image *img)
   if (NILP (loader))
     loader = Qgs_load_image;
 
-  img->lisp_data = call6 (loader, frame, img->spec,
+  img->lisp_data = calln (loader, frame, img->spec,
 			  make_fixnum (img->width),
 			  make_fixnum (img->height),
 			  window_and_pixmap_id,

@@ -468,7 +468,6 @@ typedef EMACS_INT Lisp_Word;
 /* Fixnums use 2 tags, to give them one extra bit, thus
    extending their range from, e.g., -2^28..2^28-1 to -2^29..2^29-1.  */
 #define INTMASK (EMACS_INT_MAX >> (INTTYPEBITS - 1))
-#define case_Lisp_Int case Lisp_Int0: case Lisp_Int1
 
 /* Idea stolen from GDB.  Pedantic GCC complains about enum bitfields,
    and xlc and Oracle Studio c99 complain vociferously about them.  */
@@ -1362,7 +1361,7 @@ EQ (Lisp_Object x, Lisp_Object y)
 INLINE intmax_t
 clip_to_bounds (intmax_t lower, intmax_t num, intmax_t upper)
 {
-  return num < lower ? lower : num <= upper ? num : upper;
+  return max (lower, min (num, upper));
 }
 
 /* Construct a Lisp_Object from a value or address.  */
@@ -2552,7 +2551,7 @@ struct Lisp_Hash_Table;
    It's unsigned and a subtype of EMACS_UINT.  */
 typedef unsigned int hash_hash_t;
 
-typedef enum {
+typedef enum hash_table_std_test_t {
   Test_eql,
   Test_eq,
   Test_equal,
@@ -2576,7 +2575,7 @@ struct hash_table_test
   Lisp_Object name;
 };
 
-typedef enum {
+typedef enum hash_table_weakness_t {
   Weak_None,		 /* No weak references.  */
   Weak_Key,		 /* Reference to key is weak.  */
   Weak_Value,		 /* Reference to value is weak.  */
@@ -2662,10 +2661,10 @@ struct Lisp_Hash_Table
   unsigned char index_bits;	/* log2 (size of the index vector).  */
 
   /* Weakness of the table.  */
-  hash_table_weakness_t weakness : 3;
+  ENUM_BF (hash_table_weakness_t) weakness : 3;
 
   /* Hash table test (only used when frozen in dump)  */
-  hash_table_std_test_t frozen_test : 2;
+  ENUM_BF (hash_table_std_test_t) frozen_test : 2;
 
   /* True if the table can be purecopied.  The table cannot be
      changed afterwards.  */
@@ -3513,15 +3512,6 @@ enum maxargs
    'Finsert (1, &text);'.  */
 #define CALLN(f, ...) CALLMANY (f, ((Lisp_Object []) {__VA_ARGS__}))
 #define calln(...) CALLN (Ffuncall, __VA_ARGS__)
-/* Compatibility aliases.  */
-#define call1 calln
-#define call2 calln
-#define call3 calln
-#define call4 calln
-#define call5 calln
-#define call6 calln
-#define call7 calln
-#define call8 calln
 
 /* Define 'call0' as a function rather than a CPP macro because we
    sometimes want to pass it as a first class function.  */
@@ -4850,7 +4840,7 @@ extern bool signal_quit_p (Lisp_Object);
    The calling convention:
 
    if (!NILP (Vrun_hooks))
-     call1 (Vrun_hooks, Qmy_funny_hook);
+     calln (Vrun_hooks, Qmy_funny_hook);
 
    should no longer be used.  */
 extern void run_hook (Lisp_Object);
@@ -4920,6 +4910,15 @@ extern void init_eval_once (void);
 extern Lisp_Object safe_funcall (ptrdiff_t, Lisp_Object*);
 #define safe_calln(...) \
   CALLMANY (safe_funcall, ((Lisp_Object []) {__VA_ARGS__}))
+
+INLINE void
+CHECK_KEYWORD_ARGS (ptrdiff_t nargs)
+{
+  /* Used to check if a list of keyword/value pairs is missing a
+     value.  */
+  if (nargs & 1)
+    xsignal0 (Qmalformed_keyword_arg_list);
+}
 
 extern void init_eval (void);
 extern void syms_of_eval (void);

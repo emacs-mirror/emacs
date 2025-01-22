@@ -38,7 +38,7 @@
       (background light))
      :foreground "cornflower blue")
     (t
-     :bold t))
+     :weight bold))
   "Face used for displaying specification names."
   :group 'erts-mode)
 
@@ -50,7 +50,7 @@
       (background light))
      :foreground "blue")
     (t
-     :bold t))
+     :weight bold))
   "Face used for displaying specification values."
   :group 'erts-mode)
 

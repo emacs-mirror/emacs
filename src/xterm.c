@@ -4121,10 +4121,10 @@ x_dnd_send_unsupported_drop (struct x_display_info *dpyinfo, Window target_windo
   x_dnd_unsupported_drop_time = before;
   x_dnd_unsupported_drop_window = target_window;
   x_dnd_unsupported_drop_data
-    = listn (5, assq_no_quit (QXdndSelection,
-			      dpyinfo->terminal->Vselection_alist),
-	     targets, arg, make_fixnum (root_x),
-	     make_fixnum (root_y));
+    = list (assq_no_quit (QXdndSelection,
+			  dpyinfo->terminal->Vselection_alist),
+	    targets, arg, make_fixnum (root_x),
+	    make_fixnum (root_y));
 
   x_dnd_waiting_for_finish = true;
   x_dnd_finish_display = dpyinfo->display;
@@ -13095,7 +13095,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
 		  ref = SPECPDL_INDEX ();
 		  record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
-		  call2 (Vx_dnd_movement_function, frame_object,
+		  calln (Vx_dnd_movement_function, frame_object,
 			 Fposn_at_x_y (x, y, frame_object, Qnil));
 		  x_dnd_unwind_flag = false;
 		  unbind_to (ref, Qnil);
@@ -13129,7 +13129,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 
 		  ref = SPECPDL_INDEX ();
 		  record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
-		  call4 (Vx_dnd_wheel_function,
+		  calln (Vx_dnd_wheel_function,
 			 Fposn_at_x_y (x, y, frame_object, Qnil),
 			 make_fixnum (x_dnd_wheel_button),
 			 make_uint (x_dnd_wheel_state),
@@ -13198,7 +13198,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
 
 	      if (!NILP (Vx_dnd_unsupported_drop_function))
-		val = call8 (Vx_dnd_unsupported_drop_function,
+		val = calln (Vx_dnd_unsupported_drop_function,
 			     XCAR (XCDR (x_dnd_unsupported_drop_data)),
 			     Fnth (make_fixnum (3), x_dnd_unsupported_drop_data),
 			     Fnth (make_fixnum (4), x_dnd_unsupported_drop_data),

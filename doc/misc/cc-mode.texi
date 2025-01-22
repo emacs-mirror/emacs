@@ -925,7 +925,7 @@ behavior prior to version 5.32.}, set @code{c-defun-tactic} to
 These functions are analogous to the Emacs built-in commands
 @code{beginning-of-defun} and @code{end-of-defun}, except they
 eliminate the constraint that the top-level opening brace of the defun
-must be in column zero.  See @ref{Defuns,,,@emacsman{},
+must be in column zero.  @xref{Defuns,,,@emacsman{},
 @emacsmantitle{}}, for more information.
 
 @item @kbd{C-M-a} (AWK Mode) (@code{c-awk-beginning-of-defun})
@@ -1485,8 +1485,8 @@ Sometimes @ccmode{} inserts an auto-newline where you don't want one,
 such as after a @samp{@}} when you're about to type a @samp{;}.
 Hungry deletion can help here (@pxref{Hungry WS Deletion}), or you can
 activate an appropriate @dfn{clean-up}, which will remove the excess
-whitespace after you've typed the @samp{;}.  See @ref{Clean-ups} for a
-full description.  See also @ref{Electric Keys} for a summary of
+whitespace after you've typed the @samp{;}.  @xref{Clean-ups}, for a
+full description.  See also @ref{Electric Keys}, for a summary of
 clean-ups listed by key.
 
 
@@ -2420,7 +2420,7 @@ Mode and Java Mode buffers, you could do it like this:
 @end group
 @end example
 
-See @ref{CC Hooks} for more details on the use of @ccmode{} hooks.
+@xref{CC Hooks}, for more details on the use of @ccmode{} hooks.
 
 @item Styles
 A @ccmode{} @dfn{style} is a coherent collection of customizations
@@ -2438,7 +2438,7 @@ in your @file{.emacs} file:
                         (other . "free-group-style")))
 @end example
 
-See @ref{Styles} for fuller details on using @ccmode{} styles and how
+@xref{Styles}, for fuller details on using @ccmode{} styles and how
 to create them.
 
 @item File Local Variable setting
@@ -3312,7 +3312,7 @@ different ways, depending on the character just typed:
 an alist.  This element specifies where to put newlines: this is any
 combination of before and after the brace or colon.  If no alist
 element is found, newlines are inserted both before and after a brace,
-but none are inserted around a colon.  See @ref{Hanging Braces} and
+but none are inserted around a colon.  @xref{Hanging Braces}, and
 @ref{Hanging Colons}.
 
 @item Semicolons and Commas

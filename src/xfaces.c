@@ -1087,7 +1087,7 @@ tty_lookup_color (struct frame *f, Lisp_Object color, Emacs_Color *tty_color,
 
   XSETFRAME (frame, f);
 
-  color_desc = call2 (Qtty_color_desc, color, frame);
+  color_desc = calln (Qtty_color_desc, color, frame);
   if (CONSP (color_desc) && CONSP (XCDR (color_desc)))
     {
       Lisp_Object rgb;
@@ -1116,7 +1116,7 @@ tty_lookup_color (struct frame *f, Lisp_Object color, Emacs_Color *tty_color,
 	      && !NILP (Ffboundp (Qtty_color_standard_values)))
 	    {
 	      /* Look up STD_COLOR separately.  */
-	      rgb = call1 (Qtty_color_standard_values, color);
+	      rgb = calln (Qtty_color_standard_values, color);
 	      if (! parse_rgb_list (rgb, std_color))
 		return false;
 	    }
@@ -1178,7 +1178,7 @@ tty_color_name (struct frame *f, int idx)
       Lisp_Object coldesc;
 
       XSETFRAME (frame, f);
-      coldesc = call2 (Qtty_color_by_index, make_fixnum (idx), frame);
+      coldesc = calln (Qtty_color_by_index, make_fixnum (idx), frame);
 
       if (!NILP (coldesc))
 	return XCAR (coldesc);
@@ -3827,7 +3827,7 @@ update_face_from_frame_parameter (struct frame *f, Lisp_Object param,
 	 mode, so that we have to load new defface specs.
 	 Call frame-set-background-mode to do that.  */
       XSETFRAME (frame, f);
-      call1 (Qframe_set_background_mode, frame);
+      calln (Qframe_set_background_mode, frame);
 
       face = Qdefault;
       lface = lface_from_face_name (f, face, true);
@@ -4425,7 +4425,8 @@ face_attr_equal_p (Lisp_Object v1, Lisp_Object v2)
 
       return memcmp (SDATA (v1), SDATA (v2), SBYTES (v1)) == 0;
 
-    case_Lisp_Int:
+    case Lisp_Int0:
+    case Lisp_Int1:
     case Lisp_Symbol:
       return false;
 
@@ -4750,7 +4751,7 @@ the triangle inequality.  */)
   if (NILP (metric))
     return make_fixnum (color_distance (&cdef1, &cdef2));
   else
-    return call2 (metric,
+    return calln (metric,
 		  list3i (cdef1.red, cdef1.green, cdef1.blue),
 		  list3i (cdef2.red, cdef2.green, cdef2.blue));
 }
@@ -6561,7 +6562,7 @@ map_tty_color (struct frame *f, struct face *face, Lisp_Object color,
   if (STRINGP (color)
       && SCHARS (color)
       && CONSP (Vtty_defined_color_alist)
-      && (def = assoc_no_quit (color, call1 (Qtty_color_alist, frame)),
+      && (def = assoc_no_quit (color, calln (Qtty_color_alist, frame)),
 	  CONSP (def)))
     {
       /* Associations in tty-defined-color-alist are of the form

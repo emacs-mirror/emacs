@@ -7911,7 +7911,7 @@ files will be removed.  */)
 
   file = ENCODE_FILE (Fexpand_file_name (file, Qnil));
 
-  if (!NILP (call1 (Qfile_remote_p, file)))
+  if (!NILP (calln (Qfile_remote_p, file)))
     signal_error ("Cannot relinquish access to remote file", file);
 
   vp = android_name_file (SSDATA (file));

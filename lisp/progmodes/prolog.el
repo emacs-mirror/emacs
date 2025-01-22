@@ -1868,9 +1868,9 @@ Argument BOUND is a buffer position limiting searching."
 
   ;; Define Prolog faces
   (defface prolog-redo-face
-    '((((class grayscale)) (:italic t))
+    '((((class grayscale)) (:slant italic))
       (((class color)) (:foreground "darkorchid"))
-      (t (:italic t)))
+      (t (:slant italic)))
     "Prolog mode face for highlighting redo trace lines."
     :group 'prolog-faces)
   (defface prolog-exit-face
@@ -1881,9 +1881,9 @@ Argument BOUND is a buffer position limiting searching."
     "Prolog mode face for highlighting exit trace lines."
     :group 'prolog-faces)
   (defface prolog-exception-face
-    '((((class grayscale)) (:bold t :italic t :underline t))
-      (((class color)) (:bold t :foreground "black" :background "Khaki"))
-      (t (:bold t :italic t :underline t)))
+    '((((class grayscale)) (:weight bold :slant italic :underline t))
+      (((class color)) (:weight bold :foreground "black" :background "Khaki"))
+      (t (:weight bold :slant italic :underline t)))
     "Prolog mode face for highlighting exception trace lines."
     :group 'prolog-faces)
   (defface prolog-warning-face
@@ -1899,9 +1899,9 @@ Argument BOUND is a buffer position limiting searching."
     '((((class color) (background light)) (:foreground "Purple"))
       (((class color) (background dark)) (:foreground "Cyan"))
       (((class grayscale) (background light))
-       :foreground "LightGray" :bold t)
-      (((class grayscale) (background dark)) (:foreground "DimGray" :bold t))
-      (t (:bold t)))
+       :foreground "LightGray" :weight bold)
+      (((class grayscale) (background dark)) (:foreground "DimGray" :weight bold))
+      (t (:weight bold)))
     "Face name to use for compiler warnings."
     :group 'prolog-faces)
   (define-obsolete-face-alias 'prolog-builtin-face

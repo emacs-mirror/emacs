@@ -1154,9 +1154,9 @@ one-dimensional array containing their values.  The first Lisp-level
 argument is the Lisp function to call, and the rest are the arguments to
 pass to it.
 
-  The C functions @code{call0}, @code{call1}, @code{call2}, and so on,
-provide handy ways to call a Lisp function conveniently with a fixed
-number of arguments.  They work by calling @code{Ffuncall}.
+  The C macro @code{calln} is a convenient way to call a Lisp function
+without having to specify the number of arguments.  It works by calling
+@code{Ffuncall}.
 
   @file{eval.c} is a very good file to look through for examples;
 @file{lisp.h} contains the definitions for some important macros and

@@ -226,6 +226,8 @@ enum
    EMACS_RELOC_LENGTH_BITS = DUMP_OFF_WIDTH - EMACS_RELOC_TYPE_BITS
   };
 
+static_assert (RELOC_EMACS_EMACS_LV <= (1 << EMACS_RELOC_TYPE_BITS));
+
 struct emacs_reloc
 {
   ENUM_BF (emacs_reloc_type) type : EMACS_RELOC_TYPE_BITS;
@@ -3238,7 +3240,8 @@ dump_object (struct dump_context *ctx, Lisp_Object object)
     case Lisp_Float:
       offset = dump_float (ctx, XFLOAT (object));
       break;
-    case_Lisp_Int:
+    case Lisp_Int0:
+    case Lisp_Int1:
       eassert ("should not be dumping int: is self-representing" && 0);
       abort ();
     default:

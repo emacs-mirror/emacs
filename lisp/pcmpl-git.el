@@ -82,8 +82,18 @@ Files listed by `git ls-files ARGS' satisfy the predicate."
                   (pcomplete-from-help `(,vc-git-program "help" ,subcmd)
                                        :argument
                                        "-+\\(?:\\[no-\\]\\)?[a-z-]+=?"))))
+               ;; Complete modified tracked files and untracked files and
+               ;; ignored files if -f or --force is specified.
+               ("add"
+                (pcomplete-here
+                 (pcomplete-entries
+                  nil
+                  (let ((flags (list "-o" "-m")))
+                    (unless (or (member "-f" pcomplete-args) (member "--force" pcomplete-args))
+                      (push "--exclude-standard" flags))
+                    (apply #'pcmpl-git--tracked-file-predicate flags)))))
                ;; Complete modified tracked files
-               ((or "add" "commit" "restore")
+               ((or "commit" "restore")
                 (pcomplete-here
                  (pcomplete-entries
                   nil (pcmpl-git--tracked-file-predicate "-m"))))

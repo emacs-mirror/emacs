@@ -255,7 +255,7 @@ because it respects values of `delete-active-region' and `overwrite-mode'.  */)
     }
   else
     {
-      call1 (Qkill_forward_chars, n);
+      calln (Qkill_forward_chars, n);
     }
   return Qnil;
 }

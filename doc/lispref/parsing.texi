@@ -570,10 +570,27 @@ The value of this variable should be an alist of
 in the alist, creating a parser for @var{language-a} actually creates a
 parser for @var{language-b}.  By extension, anything that creates a node
 or makes a query of @var{language-a} will be redirected to use
-@var{language-b} instead.
+@var{language-b} instead.  This mapping is completely transparent, the
+created parser will reported to use @var{language-b}, and the same goes for
+nodes created by this parser.
 
-Note that calling @code{treesit-parser-language} on a parser for
-@var{language-a} still returns @var{language-a}.
+Specifically, the parser created by @code{treesit-parser-create} will
+report to use whatever @var{language} was given to it.  For example,
+if language @code{cpp} is mapped to @code{cuda}:
+
+@example
+@group
+(setq treesit-language-remap-alist '((cpp . cuda)))
+
+(treesit-parser-language (treesit-parser-create 'cpp))
+  @result{} 'cpp
+
+(treesit-parser-language (treesit-parser-create 'cuda))
+  @result{} 'cuda
+@end group
+@end example
+
+Even though both parser are actually @code{cuda} parser.
 @end defvar
 
 @node Retrieving Nodes
@@ -1550,7 +1567,7 @@ There are some additional functions for queries:
 string format; and @code{treesit-pattern-expand} converts a pattern.
 
 @findex treesit-query-first-valid
-Tree-sitter grammars change overtime. To support multiple possible
+Tree-sitter grammars change overtime.  To support multiple possible
 versions of a grammar, a Lisp program can use
 @code{treesit-query-first-valid} to pick the right query to use.  For
 example, if a grammar has a @code{(defun)} node in one version, and
@@ -1559,15 +1576,15 @@ later renamed it to @code{(function_definition)}, a Lisp program can use
 @example
 @group
 (treesit-query-first-valid 'lang
-  '((defun) @defun)
-  '((function_definition) @defun))
+  '((defun) @@defun)
+  '((function_definition) @@defun))
 @end group
 @end example
 
 to support both versions of the grammar.
 
 For more details, consider reading the tree-sitter project's
-documentation about pattern-matching. The documentation can be found at
+documentation about pattern-matching.  The documentation can be found at
 @uref{https://tree-sitter.github.io/tree-sitter/using-parsers#pattern-matching-with-queries}.
 
 @node User-defined Things

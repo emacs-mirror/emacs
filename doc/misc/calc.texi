@@ -30811,7 +30811,7 @@ embedded in a @TeX{} or @LaTeX{} document its plain version will be
 invisible in the final printed copy.  Certain major modes have different
 delimiters to ensure that the ``plain'' version will be
 in a comment for those modes, also.
-See @ref{Customizing Embedded Mode} to see how to change the ``plain''
+@xref{Customizing Embedded Mode}, to see how to change the ``plain''
 formula delimiters.
 
 There are several notations which Calc's parser for ``big''
@@ -35323,8 +35323,8 @@ also be reset by putting the appropriate lines in your .emacs file;
 
 Some of the customizable variables are regular expressions.  A regular
 expression is basically a pattern that Calc can search for.
-See @ref{Regexp Search,, Regular Expression Search, emacs, The GNU Emacs Manual}
-to see how regular expressions work.
+@xref{Regexp Search,, Regular Expression Search, emacs, The GNU Emacs
+Manual}, to see how regular expressions work.
 
 @defvar calc-settings-file
 The variable @code{calc-settings-file} holds the file name in
@@ -35341,7 +35341,7 @@ value will be @code{"~/.calc.el"}.
 @end defvar
 
 @defvar calc-gnuplot-name
-See @ref{Graphics}.@*
+@xref{Graphics}.@*
 The variable @code{calc-gnuplot-name} should be the name of the
 GNUPLOT program (a string).  If you have GNUPLOT installed on your
 system but Calc is unable to find it, you may need to set this
@@ -35352,7 +35352,7 @@ The default value of @code{calc-gnuplot-name} is @code{"gnuplot"}.
 
 @defvar  calc-gnuplot-plot-command
 @defvarx calc-gnuplot-print-command
-See @ref{Devices, ,Graphical Devices}.@*
+@xref{Devices, ,Graphical Devices}.@*
 The variables @code{calc-gnuplot-plot-command} and
 @code{calc-gnuplot-print-command} represent system commands to
 display and print the output of GNUPLOT, respectively.  These may be
@@ -35367,7 +35367,7 @@ and the default value of @code{calc-gnuplot-print-command} is
 @end defvar
 
 @defvar calc-language-alist
-See @ref{Basic Embedded Mode}.@*
+@xref{Basic Embedded Mode}.@*
 The variable @code{calc-language-alist} controls the languages that
 Calc will associate with major modes.  When Calc embedded mode is
 enabled, it will try to use the current major mode to
@@ -35396,7 +35396,7 @@ The default value of @code{calc-language-alist} is
 
 @defvar calc-embedded-announce-formula
 @defvarx calc-embedded-announce-formula-alist
-See @ref{Customizing Embedded Mode}.@*
+@xref{Customizing Embedded Mode}.@*
 The variable @code{calc-embedded-announce-formula} helps determine
 what formulas @kbd{C-x * a} will activate in a buffer.  It is a
 regular expression, and when activating embedded formulas with
@@ -35434,7 +35434,7 @@ and @code{calc-embedded-open-close-mode-alist}.
 @defvar  calc-embedded-open-formula
 @defvarx calc-embedded-close-formula
 @defvarx calc-embedded-open-close-formula-alist
-See @ref{Customizing Embedded Mode}.@*
+@xref{Customizing Embedded Mode}.@*
 The variables @code{calc-embedded-open-formula} and
 @code{calc-embedded-close-formula} control the region that Calc will
 activate as a formula when Embedded mode is entered with @kbd{C-x * e}.
@@ -35471,7 +35471,7 @@ It consists of a list of lists of the form
 
 @defvar  calc-embedded-word-regexp
 @defvarx calc-embedded-word-regexp-alist
-See @ref{Customizing Embedded Mode}.@*
+@xref{Customizing Embedded Mode}.@*
 The variable @code{calc-embedded-word-regexp} determines the expression
 that Calc will activate when Embedded mode is entered with @kbd{C-x *
 w}.  It is a regular expressions.
@@ -35490,7 +35490,7 @@ It consists of a list of lists of the form
 @defvar  calc-embedded-open-plain
 @defvarx calc-embedded-close-plain
 @defvarx calc-embedded-open-close-plain-alist
-See @ref{Customizing Embedded Mode}.@*
+@xref{Customizing Embedded Mode}.@*
 The variables @code{calc-embedded-open-plain} and
 @code{calc-embedded-open-plain} are used to delimit ``plain''
 formulas.  Note that these are actual strings, not regular
@@ -35531,7 +35531,7 @@ and @code{calc-embedded-open-close-mode-alist}.
 @defvar  calc-embedded-open-new-formula
 @defvarx calc-embedded-close-new-formula
 @defvarx calc-embedded-open-close-new-formula-alist
-See @ref{Customizing Embedded Mode}.@*
+@xref{Customizing Embedded Mode}.@*
 The variables @code{calc-embedded-open-new-formula} and
 @code{calc-embedded-close-new-formula} are strings which are
 inserted before and after a new formula when you type @kbd{C-x * f}.
@@ -35559,7 +35559,7 @@ It consists of a list of lists of the form
 @defvar  calc-embedded-open-mode
 @defvarx calc-embedded-close-mode
 @defvarx calc-embedded-open-close-mode-alist
-See @ref{Customizing Embedded Mode}.@*
+@xref{Customizing Embedded Mode}.@*
 The variables @code{calc-embedded-open-mode} and
 @code{calc-embedded-close-mode} are strings which Calc will place before
 and after any mode annotations that it inserts.  Calc never scans for
@@ -35600,7 +35600,7 @@ and @code{calc-embedded-open-close-plain-alist}.
 
 @defvar  calc-lu-power-reference
 @defvarx calc-lu-field-reference
-See @ref{Logarithmic Units}.@*
+@xref{Logarithmic Units}.@*
 The variables @code{calc-lu-power-reference} and
 @code{calc-lu-field-reference} are unit expressions (written as
 strings) which Calc will use as reference quantities for logarithmic
@@ -35612,7 +35612,7 @@ and the default value of @code{calc-lu-field-reference} is
 @end defvar
 
 @defvar calc-note-threshold
-See @ref{Musical Notes}.@*
+@xref{Musical Notes}.@*
 The variable @code{calc-note-threshold} is a number (written as a
 string) which determines how close (in cents) a frequency needs to be
 to a note to be recognized as that note.
@@ -35623,7 +35623,7 @@ The default value of @code{calc-note-threshold} is 1.
 @defvar calc-highlight-selections-with-faces
 @defvarx calc-selected-face
 @defvarx calc-nonselected-face
-See @ref{Displaying Selections}.@*
+@xref{Displaying Selections}.@*
 The variable @code{calc-highlight-selections-with-faces}
 determines how selected sub-formulas are distinguished.
 If @code{calc-highlight-selections-with-faces} is @code{nil}, then
@@ -35671,7 +35671,7 @@ be preserved.  The default value of @code{calc-undo-length} is @expr{100}.
 @end defvar
 
 @defvar calc-gregorian-switch
-See @ref{Date Forms}.@*
+@xref{Date Forms}.@*
 The variable @code{calc-gregorian-switch} is either a list of integers
 @code{(@var{YEAR} @var{MONTH} @var{DAY})} or @code{nil}.
 If it is @code{nil}, then Calc's date forms always represent Gregorian dates.

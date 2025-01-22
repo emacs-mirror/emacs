@@ -446,8 +446,8 @@ matching the empty string, for which the default action is to return
 @section Example
 
 @cindex grammar example
-Here is an example to parse simple infix arithmetic expressions.  See
-@ref{Infix Calc, , , bison}, in the Bison manual for details.
+Here is an example to parse simple infix arithmetic expressions.
+@xref{Infix Calc, , , bison}, in the Bison manual for details.
 
 @lisp
 @group
@@ -570,7 +570,7 @@ must be @dfn{LALR(1)}.
 @cindex look-ahead token
 A grammar is @acronym{LALR(1)} if it is possible to tell how to parse
 any portion of an input string with just a single token of look-ahead:
-the @dfn{look-ahead token}.  See @ref{Language and Grammar, , ,
+the @dfn{look-ahead token}.  @xref{Language and Grammar, , ,
 bison}, in the Bison manual for more information.
 
 @cindex grammar compilation
@@ -643,7 +643,7 @@ When either a shift or a reduction would be valid at the same state.
 
 Such conflicts are resolved by choosing to shift, unless otherwise
 directed by operator precedence declarations.
-See @ref{Shift/Reduce , , , bison}, in the Bison manual for more
+@xref{Shift/Reduce , , , bison}, in the Bison manual for more
 information.
 
 @cindex reduce/reduce conflicts
@@ -654,8 +654,8 @@ grammar.
 
 Such conflicts are resolved by choosing to use the rule that appears
 first in the grammar, but it is very risky to rely on this.  Every
-reduce/reduce conflict must be studied and usually eliminated.  See
-@ref{Reduce/Reduce , , , bison}, in the Bison manual for more
+reduce/reduce conflict must be studied and usually eliminated.
+@xref{Reduce/Reduce , , , bison}, in the Bison manual for more
 information.
 @end table
 
@@ -701,7 +701,7 @@ reports are separated from each other by a line like this:
 @end example
 
 where @var{source-file} is the name of the Emacs Lisp file from which
-the grammar was read.  See @ref{Understanding the automaton}, for
+the grammar was read.  @xref{Understanding the automaton}, for
 details on the verbose report.
 
 @table @strong
@@ -1312,7 +1312,7 @@ value of the variable @code{wisent-recovering} is non-@code{nil}.
 
 @cindex error recovery
 The error recovery mechanism of the Wisent's parser conforms to the
-one Bison uses.  See @ref{Error Recovery, , , bison}, in the Bison
+one Bison uses.  @xref{Error Recovery, , , bison}, in the Bison
 manual for details.
 
 @cindex error token

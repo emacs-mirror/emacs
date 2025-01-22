@@ -1520,24 +1520,24 @@ starting with `not' and followed by regexps."
 (defface message-header-to
   '((((class color)
       (background dark))
-     :foreground "DarkOliveGreen1" :bold t)
+     :foreground "DarkOliveGreen1" :weight bold)
     (((class color)
       (background light))
-     :foreground "MidnightBlue" :bold t)
+     :foreground "MidnightBlue" :weight bold)
     (t
-     :bold t :italic t))
+     :weight bold :slant italic))
   "Face used for displaying To headers."
   :group 'message-faces)
 
 (defface message-header-cc
   '((((class color)
       (background dark))
-     :foreground "chartreuse1" :bold t)
+     :foreground "chartreuse1" :weight bold)
     (((class color)
       (background light))
      :foreground "MidnightBlue")
     (t
-     :bold t))
+     :weight bold))
   "Face used for displaying Cc headers."
   :group 'message-faces)
 
@@ -1547,21 +1547,21 @@ starting with `not' and followed by regexps."
      :foreground "OliveDrab1")
     (((class color)
       (background light))
-     :foreground "navy blue" :bold t)
+     :foreground "navy blue" :weight bold)
     (t
-     :bold t))
+     :weight bold))
   "Face used for displaying Subject headers."
   :group 'message-faces)
 
 (defface message-header-newsgroups
   '((((class color)
       (background dark))
-     :foreground "yellow" :bold t :italic t)
+     :foreground "yellow" :weight bold :slant italic)
     (((class color)
       (background light))
-     :foreground "blue4" :bold t :italic t)
+     :foreground "blue4" :weight bold :slant italic)
     (t
-     :bold t :italic t))
+     :weight bold :slant italic))
   "Face used for displaying Newsgroups headers."
   :group 'message-faces)
 
@@ -1573,7 +1573,7 @@ starting with `not' and followed by regexps."
       (background light))
      :foreground "steel blue")
     (t
-     :bold t :italic t))
+     :weight bold :slant italic))
   "Face used for displaying other headers."
   :group 'message-faces)
 
@@ -1585,7 +1585,7 @@ starting with `not' and followed by regexps."
       (background light))
      :foreground "cornflower blue")
     (t
-     :bold t))
+     :weight bold))
   "Face used for displaying header names."
   :group 'message-faces)
 
@@ -1597,7 +1597,7 @@ starting with `not' and followed by regexps."
       (background light))
      :foreground "blue")
     (t
-     :bold t))
+     :weight bold))
   "Face used for displaying X-Header headers."
   :group 'message-faces)
 
@@ -1609,7 +1609,7 @@ starting with `not' and followed by regexps."
       (background light))
      :foreground "brown")
     (t
-     :bold t))
+     :weight bold))
   "Face used for displaying the separator."
   :group 'message-faces)
 
@@ -1621,7 +1621,7 @@ starting with `not' and followed by regexps."
       (background light))
      (:foreground "red1"))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Face used for displaying 1st-level cited text."
   :group 'message-faces)
 
@@ -1633,7 +1633,7 @@ starting with `not' and followed by regexps."
       (background light))
      (:foreground "red4"))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Face used for displaying 2nd-level cited text."
   :group 'message-faces)
 
@@ -1645,7 +1645,7 @@ starting with `not' and followed by regexps."
       (background light))
      (:foreground "OliveDrab4"))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Face used for displaying 3rd-level cited text."
   :group 'message-faces)
 
@@ -1657,7 +1657,7 @@ starting with `not' and followed by regexps."
       (background light))
      (:foreground "SteelBlue4"))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Face used for displaying 4th-level cited text."
   :group 'message-faces)
 
@@ -1673,11 +1673,11 @@ starting with `not' and followed by regexps."
       (background light))
      :foreground "ForestGreen")
     (t
-     :bold t))
+     :weight bold))
   "Face used for displaying MML."
   :group 'message-faces)
 
-(defface message-signature-separator '((t :bold t))
+(defface message-signature-separator '((t :weight bold))
   "Face used for displaying the signature separator."
   :group 'message-faces
   :version "28.1")

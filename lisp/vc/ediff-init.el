@@ -958,7 +958,7 @@ this variable represents.")
     (((class color))
      (:foreground "red3" :background "light grey"
 		  :weight bold :extend t))
-    (t (:italic t :stipple ,stipple-pixmap :extend t)))
+    (t (:slant italic :stipple ,stipple-pixmap :extend t)))
   "Face for highlighting even-numbered non-current differences in buffer A."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -978,7 +978,7 @@ this variable represents.")
      (:foreground "White" :background "Grey" :extend t))
     (((class color))
      (:foreground "blue3" :background "Grey" :weight bold :extend t))
-    (t (:italic t :stipple ,stipple-pixmap :extend t)))
+    (t (:slant italic :stipple ,stipple-pixmap :extend t)))
   "Face for highlighting even-numbered non-current differences in buffer B."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -1001,7 +1001,7 @@ this variable represents.")
     (((class color))
      (:foreground "yellow3" :background "light grey"
 		  :weight bold :extend t))
-    (t (:italic t :stipple ,stipple-pixmap :extend t)))
+    (t (:slant italic :stipple ,stipple-pixmap :extend t)))
   "Face for highlighting even-numbered non-current differences in buffer C."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -1024,7 +1024,7 @@ this variable represents.")
     (((class color))
      (:foreground "cyan3" :background "light grey"
 		  :weight bold :extend t))
-    (t (:italic t :stipple ,stipple-pixmap :extend t)))
+    (t (:slant italic :stipple ,stipple-pixmap :extend t)))
   "Face for highlighting even-numbered non-current differences in ancestor buffer."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -1053,7 +1053,7 @@ this variable represents.")
      (:foreground "White" :background "Grey" :extend t))
     (((class color))
      (:foreground "red3" :background "black" :weight bold :extend t))
-    (t (:italic t :stipple "gray1" :extend t)))
+    (t (:slant italic :stipple "gray1" :extend t)))
   "Face for highlighting odd-numbered non-current differences in buffer A."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -1075,7 +1075,7 @@ this variable represents.")
      (:foreground "Black" :background "light grey" :extend t))
     (((class color))
      (:foreground "cyan3" :background "black" :weight bold :extend t))
-    (t (:italic t :stipple "gray1" :extend t)))
+    (t (:slant italic :stipple "gray1" :extend t)))
   "Face for highlighting odd-numbered non-current differences in buffer B."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -1097,7 +1097,7 @@ this variable represents.")
      (:foreground "White" :background "Grey" :extend t))
     (((class color))
      (:foreground "yellow3" :background "black" :weight bold :extend t))
-    (t (:italic t :stipple "gray1" :extend t)))
+    (t (:slant italic :stipple "gray1" :extend t)))
   "Face for highlighting odd-numbered non-current differences in buffer C."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
@@ -1115,7 +1115,7 @@ this variable represents.")
      (:foreground "cyan3" :background "gray40" :extend t))
     (((class color))
      (:foreground "green3" :background "black" :weight bold :extend t))
-    (t (:italic t :stipple "gray1" :extend t)))
+    (t (:slant italic :stipple "gray1" :extend t)))
   "Face for highlighting odd-numbered non-current differences in ancestor buffer."
   :group 'ediff-highlighting)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,

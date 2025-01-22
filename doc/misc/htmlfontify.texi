@@ -141,7 +141,7 @@ and hyperlinks as appropriate.
 (htmlfontify-run-etags @var{srcdir})
 @end lisp
 
-Load the etags cache for @var{srcdir}.  See @ref{hfy-load-tags-cache}.
+Load the etags cache for @var{srcdir}.  @xref{hfy-load-tags-cache}.
 
 @item htmlfontify-copy-and-link-dir
 @findex htmlfontify-copy-and-link-dir
@@ -828,7 +828,7 @@ If @var{class} is @code{nil}, then you just get whatever
 @code{face-attr-construct} returns; i.e., the current specification in
 effect for @var{face}.
 
-See @ref{hfy-display-class} for details of valid values for @var{class}.
+@xref{hfy-display-class}, for details of valid values for @var{class}.
 
 @item hfy-face-at
 @findex hfy-face-at
@@ -1069,7 +1069,7 @@ Each tag hash entry then contains entries of the form:
 
 i.e., an alist mapping (relative) file paths to line and character offsets.
 
-See @ref{hfy-load-tags-cache}.
+@xref{hfy-load-tags-cache}.
 
 @item hfy-tags-rmap
 @vindex hfy-tags-rmap

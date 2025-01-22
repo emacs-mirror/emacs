@@ -2661,22 +2661,27 @@ build_frame_matrix_from_leaf_window (struct glyph_matrix *frame_matrix, struct w
 	  current_row_p = 1;
 	}
 
+      /* If someone asks why we are copying current glyphs here, and
+	 maybe never enable the desired frame row we copy to:
+
+	 - there might be a window to the right of this one that has a
+	   corresponding desired window row.
+	 - we need the complete frame row for scrolling.  */
       if (current_row_p)
 	{
-	  /* If the desired glyphs for this row haven't been built,
-	     copy from the corresponding current row, but only if it
-	     is enabled, because otherwise its contents are invalid.  */
+	  /* If the desired glyphs for this row haven't been built, copy
+	     from the corresponding current row. If that row is not
+	     enabled, its contents might be invalid.  Make sure that
+	     glyphs have valid frames set in that case.  This is closer
+	     to what we did before child frames were added, and seems to
+	     be something tty redisplay implicitly relies on.  */
 	  struct glyph *to = frame_row->glyphs[TEXT_AREA] + window_matrix->matrix_x;
 	  struct glyph *from = window_row->glyphs[0];
 	  for (int i = 0; i < window_matrix->matrix_w; ++i)
 	    {
-	      if (window_row->enabled_p)
-		to[i] = from[i];
-	      else
-		{
-		  to[i] = space_glyph;
-		  to[i].frame = f;
-		}
+	      to[i] = from[i];
+	      if (!window_row->enabled_p)
+		to[i].frame = f;
 	    }
 	}
       else
@@ -3545,6 +3550,18 @@ bool
 is_tty_root_frame (struct frame *f)
 {
   return !FRAME_PARENT_FRAME (f) && is_tty_frame (f);
+}
+
+/* Return true if frame F is a tty root frame that has a visible child
+   frame..  */
+
+bool
+is_tty_root_frame_with_visible_child (struct frame *f)
+{
+  if (!is_tty_root_frame (f))
+    return false;
+  Lisp_Object z_order = frames_in_reverse_z_order (f, true);
+  return CONSP (XCDR (z_order));
 }
 
 /* Return the index of the first enabled row in MATRIX, or -1 if there

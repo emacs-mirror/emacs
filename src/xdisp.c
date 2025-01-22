@@ -3670,7 +3670,7 @@ get_nearby_bol_pos (ptrdiff_t pos)
   for (dist = 500; dist <= 500000; dist *= 10)
     {
       pos_bytepos = pos == BEGV ? BEGV_BYTE : CHAR_TO_BYTE (pos);
-      start = pos - dist < BEGV ? BEGV : pos - dist;
+      start = max (pos - dist, BEGV);
       for (cur = start; cur < pos; cur = next)
 	{
 	  next = find_newline1 (cur, CHAR_TO_BYTE (cur),
@@ -3684,7 +3684,7 @@ get_nearby_bol_pos (ptrdiff_t pos)
       if (bol >= BEGV || start == BEGV)
 	break;
       else
-	pos = pos - dist < BEGV ? BEGV : pos - dist;
+	pos = max (pos - dist, BEGV);
     }
   eassert (bol <= init_pos);
   return bol;
@@ -17279,7 +17279,11 @@ redisplay_internal (void)
 		 line and this line is the current one, because
 		 display_line above is not informed about the
 		 current-line's vpos, and cannot DTRT in that case.  */
-	      && !hscrolling_current_line_p (w))
+	      && !hscrolling_current_line_p (w)
+	      /* A root frame may have visible children displayed in its
+		 current matrix, so that we can't do the below with its
+		 current matrix.  */
+	      && !is_tty_root_frame_with_visible_child (it.f))
 	    {
  	      /* If this is not the window's last line, we must adjust
  		 the charstarts of the lines below.  */

@@ -669,7 +669,7 @@ malloc_warning (const char *str)
 void
 display_malloc_warning (void)
 {
-  call3 (Qdisplay_warning,
+  calln (Qdisplay_warning,
 	 Qalloc,
 	 build_string (pending_malloc_warning),
 	 QCemergency);
@@ -7383,7 +7383,8 @@ process_mark_stack (ptrdiff_t base_sp)
 	    break;
 	  }
 
-	case_Lisp_Int:
+	case Lisp_Int0:
+	case Lisp_Int1:
 	  break;
 
 	default:
@@ -7437,7 +7438,8 @@ survives_gc_p (Lisp_Object obj)
 
   switch (XTYPE (obj))
     {
-    case_Lisp_Int:
+    case Lisp_Int0:
+    case Lisp_Int1:
       survives_p = true;
       break;
 
@@ -7794,7 +7796,7 @@ respective remote host.  */)
     = Ffind_file_name_handler (BVAR (current_buffer, directory),
 			       Qmemory_info);
   if (!NILP (handler))
-    return call1 (handler, Qmemory_info);
+    return calln (handler, Qmemory_info);
 
 #if defined HAVE_LINUX_SYSINFO
   struct sysinfo si;

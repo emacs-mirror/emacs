@@ -453,11 +453,11 @@ and the latter avoids underlining any whitespace at all."
   :group 'gnus-article-emphasis
   :type 'regexp)
 
-(defface gnus-emphasis-bold '((t (:bold t)))
+(defface gnus-emphasis-bold '((t (:weight bold)))
   "Face used for displaying strong emphasized text (*word*)."
   :group 'gnus-article-emphasis)
 
-(defface gnus-emphasis-italic '((t (:italic t)))
+(defface gnus-emphasis-italic '((t (:slant italic)))
   "Face used for displaying italic emphasized text (/word/)."
   :group 'gnus-article-emphasis)
 
@@ -465,20 +465,20 @@ and the latter avoids underlining any whitespace at all."
   "Face used for displaying underlined emphasized text (_word_)."
   :group 'gnus-article-emphasis)
 
-(defface gnus-emphasis-underline-bold '((t (:bold t :underline t)))
+(defface gnus-emphasis-underline-bold '((t (:weight bold :underline t)))
   "Face used for displaying underlined bold emphasized text (_*word*_)."
   :group 'gnus-article-emphasis)
 
-(defface gnus-emphasis-underline-italic '((t (:italic t :underline t)))
+(defface gnus-emphasis-underline-italic '((t (:slant italic :underline t)))
   "Face used for displaying underlined italic emphasized text (_/word/_)."
   :group 'gnus-article-emphasis)
 
-(defface gnus-emphasis-bold-italic '((t (:bold t :italic t)))
+(defface gnus-emphasis-bold-italic '((t (:weight bold :slant italic)))
   "Face used for displaying bold italic emphasized text (/*word*/)."
   :group 'gnus-article-emphasis)
 
 (defface gnus-emphasis-underline-bold-italic
-  '((t (:bold t :italic t :underline t)))
+  '((t (:weight bold :slant italic :underline t)))
   "Face used for displaying underlined bold italic emphasized text.
 Example: (_/*word*/_)."
   :group 'gnus-article-emphasis)
@@ -762,7 +762,7 @@ Obsolete; use the face `gnus-signature' for customizations instead."
 
 (defface gnus-signature
   '((t
-     (:italic t)))
+     (:slant italic)))
   "Face used for highlighting a signature in the article buffer."
   :group 'gnus-article-highlight
   :group 'gnus-article-signature)
@@ -783,7 +783,7 @@ All the other `gnus-header-' faces inherit from this face."
       (background light))
      (:foreground "red3" :inherit gnus-header))
     (t
-     (:italic t :inherit gnus-header)))
+     (:slant italic :inherit gnus-header)))
   "Face used for displaying from headers."
   :version "29.1"
   :group 'gnus-article-headers
@@ -797,7 +797,7 @@ All the other `gnus-header-' faces inherit from this face."
       (background light))
      (:foreground "red4" :inherit gnus-header))
     (t
-     (:bold t :italic t :inherit gnus-header)))
+     (:weight bold :slant italic :inherit gnus-header)))
   "Face used for displaying subject headers."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
@@ -805,12 +805,12 @@ All the other `gnus-header-' faces inherit from this face."
 (defface gnus-header-newsgroups
   '((((class color)
       (background dark))
-     (:foreground "yellow" :italic t :inherit gnus-header))
+     (:foreground "yellow" :slant italic :inherit gnus-header))
     (((class color)
       (background light))
-     (:foreground "MidnightBlue" :italic t))
+     (:foreground "MidnightBlue" :slant italic))
     (t
-     (:italic t)))
+     (:slant italic)))
   "Face used for displaying newsgroups headers.
 In the default setup this face is only used for crossposted
 articles."
@@ -825,7 +825,7 @@ articles."
       (background light))
      (:foreground "maroon" :inherit gnus-header))
     (t
-     (:bold t :inherit gnus-header)))
+     (:weight bold :inherit gnus-header)))
   "Face used for displaying header names."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
@@ -833,12 +833,12 @@ articles."
 (defface gnus-header-content
   '((((class color)
       (background dark))
-     (:foreground "SpringGreen1" :italic t :inherit gnus-header))
+     (:foreground "SpringGreen1" :slant italic :inherit gnus-header))
     (((class color)
       (background light))
-     (:foreground "indianred4" :italic t :inherit gnus-header))
+     (:foreground "indianred4" :slant italic :inherit gnus-header))
     (t
-     (:italic t :inherit gnus-header)))
+     (:slant italic :inherit gnus-header)))
   "Face used for displaying header content."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)

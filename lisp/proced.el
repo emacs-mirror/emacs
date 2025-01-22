@@ -457,13 +457,13 @@ It is a list of lists (KEY PREDICATE REVERSE).")
 
 (defface proced-interruptible-sleep-status-code
   '((((class color) (min-colors 88)) (:foreground "DimGrey"))
-    (t (:italic t)))
+    (t (:slant italic)))
   "Face used in Proced buffers for interruptible sleep status code character \"S\"."
   :version "29.1")
 
 (defface proced-uninterruptible-sleep-status-code
   '((((class color)) (:foreground "red"))
-    (t (:bold t)))
+    (t (:weight bold)))
   "Face used in Proced buffers for uninterruptible sleep status code character \"D\"."
   :version "29.1")
 
@@ -471,7 +471,7 @@ It is a list of lists (KEY PREDICATE REVERSE).")
   '((((class color) (min-colors 88) (background dark)) (:foreground "DeepSkyBlue"))
     (((class color) (background dark)) (:foreground "cyan"))
     (((class color) (background light)) (:foreground "blue"))
-    (t (:bold t)))
+    (t (:weight bold)))
   "Face used in Proced buffers for executable names.
 The first word in the process arguments attribute is assumed to
 be the executable that runs in the process."
@@ -536,8 +536,8 @@ be the executable that runs in the process."
   :version "29.1")
 
 (defface proced-cpu
-  '((((class color) (min-colors 88)) (:foreground "#6d5cc3" :bold t))
-    (t (:bold t)))
+  '((((class color) (min-colors 88)) (:foreground "#6d5cc3" :weight bold))
+    (t (:weight bold)))
   "Face used in Proced buffers for process CPU utilization."
   :version "29.1")
 
@@ -548,13 +548,13 @@ be the executable that runs in the process."
   :version "29.1")
 
 (defface proced-user
-  '((t (:bold t)))
+  '((t (:weight bold)))
   "Face used in Proced buffers for the user owning the process."
   :version "29.1")
 
 (defface proced-time-colon
   '((((class color) (min-colors 88)) (:foreground "DarkMagenta"))
-    (t (:bold t)))
+    (t (:weight bold)))
   "Face used in Proced buffers for the colon in time strings."
   :version "29.1")
 

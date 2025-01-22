@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2018-2025 Free Software Foundation, Inc.
 
-;; Version: 1.17
+;; Version: 1.18
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
@@ -314,7 +314,7 @@ automatically)."
     ((lua-mode lua-ts-mode) . ,(eglot-alternatives
                                 '("lua-language-server" "lua-lsp")))
     (yang-mode . ("yang-language-server"))
-    (zig-mode . ("zls"))
+    ((zig-mode zig-ts-mode) . ("zls"))
     ((css-mode css-ts-mode)
      . ,(eglot-alternatives '(("vscode-css-language-server" "--stdio")
                               ("css-languageserver" "--stdio"))))
@@ -658,6 +658,7 @@ This can be useful when using docker to run a language server.")
                       (:detail :deprecated :children))
       (TextDocumentEdit (:textDocument :edits) ())
       (TextEdit (:range :newText))
+      (InsertReplaceEdit (:newText :insert :replace))
       (VersionedTextDocumentIdentifier (:uri :version) ())
       (WorkDoneProgress (:kind) (:title :message :percentage :cancellable))
       (WorkspaceEdit () (:changes :documentChanges))
@@ -970,7 +971,8 @@ object."
                                                        ["documentation"
                                                         "details"
                                                         "additionalTextEdits"])
-                                      :tagSupport (:valueSet [1]))
+                                      :tagSupport (:valueSet [1])
+                                      :insertReplaceSupport t)
                                     :contextSupport t)
              :hover              (list :dynamicRegistration :json-false
                                        :contentFormat (eglot--accepted-formats))
@@ -3162,22 +3164,14 @@ for which LSP on-type-formatting should be requested."
                                       nil comp)
            finally (cl-return comp)))
 
-(defun eglot--dumb-allc (pat table pred _point) (funcall table pat pred t))
+(defun eglot--dumb-allc (pat table pred point)
+  (funcall table (substring pat 0 point) pred t))
+
 (defun eglot--dumb-tryc (pat table pred point)
-  (let ((probe (funcall table pat pred nil)))
-    (cond ((eq probe t) t)
-          (probe
-           (if (and (not (equal probe pat))
-                    (cl-every
-                     (lambda (s) (string-prefix-p probe s completion-ignore-case))
-                     (funcall table pat pred t)))
-               (cons probe (length probe))
-             (cons pat point)))
-          (t
-           ;; Match ignoring suffix: if there are any completions for
-           ;; the current prefix at least, keep the current input.
-           (and (funcall table (substring pat 0 point) pred t)
-                (cons pat point))))))
+  (let* ((probe (funcall table (substring pat 0 point) pred t)))
+    (cond ((and probe (null (cdr probe)))
+           (cons (car probe) (length (car probe))))
+          (t (cons pat point)))))
 
 (add-to-list 'completion-category-defaults '(eglot-capf (styles eglot--dumb-flex)))
 (add-to-list 'completion-styles-alist '(eglot--dumb-flex eglot--dumb-tryc eglot--dumb-allc))
@@ -3375,8 +3369,15 @@ for which LSP on-type-formatting should be requested."
                   ;; insertion to potentially cancel an essential
                   ;; resolution request (github#1474).
                   'dont-cancel-on-input)
-               (let ((snippet-fn (and (eql insertTextFormat 2)
-                                      (eglot--snippet-expansion-fn))))
+               (let* ((snippet-fn (and (eql insertTextFormat 2)
+                                       (eglot--snippet-expansion-fn)))
+                      (apply-edit
+                       (lambda (range text)
+                         (pcase-let ((`(,beg . ,end)
+                                      (eglot-range-region range)))
+                           (delete-region beg end)
+                           (goto-char beg)
+                           (funcall (or snippet-fn #'insert) text)))))
                  (cond (textEdit
                         ;; Revert buffer back to state when the edit
                         ;; was obtained from server. If a `proxy'
@@ -3385,12 +3386,11 @@ for which LSP on-type-formatting should be requested."
                         ;; state, _not_ the current "foo.bar".
                         (delete-region orig-pos (point))
                         (insert (substring bounds-string (- orig-pos (car bounds))))
-                        (eglot--dbind ((TextEdit) range newText) textEdit
-                          (pcase-let ((`(,beg . ,end)
-                                       (eglot-range-region range)))
-                            (delete-region beg end)
-                            (goto-char beg)
-                            (funcall (or snippet-fn #'insert) newText))))
+                        (eglot--dcase textEdit
+                          (((TextEdit) range newText)
+                           (funcall apply-edit range newText))
+                          (((InsertReplaceEdit) newText replace)
+                           (funcall apply-edit replace newText))))
                        (snippet-fn
                         ;; A snippet should be inserted, but using plain
                         ;; `insertText'.  This requires us to delete the
@@ -3468,7 +3468,7 @@ for which LSP on-type-formatting should be requested."
                      ": " fpardoc)))))
       (buffer-string))))
 
-(defun eglot-signature-eldoc-function (cb)
+(defun eglot-signature-eldoc-function (cb &rest _ignored)
   "A member of `eldoc-documentation-functions', for signatures."
   (when (eglot-server-capable :signatureHelpProvider)
     (let ((buf (current-buffer)))
@@ -3492,7 +3492,7 @@ for which LSP on-type-formatting should be requested."
        :deferred :textDocument/signatureHelp))
     t))
 
-(defun eglot-hover-eldoc-function (cb)
+(defun eglot-hover-eldoc-function (cb &rest _ignored)
   "A member of `eldoc-documentation-functions', for hover."
   (when (eglot-server-capable :hoverProvider)
     (let ((buf (current-buffer)))
@@ -3619,8 +3619,12 @@ If SILENT, don't echo progress in mode-line."
                           (replace-buffer-contents temp)))
                       (when reporter
                         (eglot--reporter-update reporter (cl-incf done))))))))
-            (mapcar (eglot--lambda ((TextEdit) range newText)
-                      (cons newText (eglot-range-region range 'markers)))
+            (mapcar (lambda (edit)
+                      (eglot--dcase edit
+                        (((TextEdit) range newText)
+                         (cons newText (eglot-range-region range 'markers)))
+                        (((InsertReplaceEdit) newText replace)
+                         (cons newText (eglot-range-region replace 'markers)))))
                     (reverse edits)))
       (undo-amalgamate-change-group change-group)
       (when reporter

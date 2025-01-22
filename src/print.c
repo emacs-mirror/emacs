@@ -306,7 +306,7 @@ static void
 printchar (unsigned int ch, Lisp_Object fun)
 {
   if (!NILP (fun) && !EQ (fun, Qt))
-    call1 (fun, make_fixnum (ch));
+    calln (fun, make_fixnum (ch));
   else
     {
       unsigned char str[MAX_MULTIBYTE_LENGTH];
@@ -2291,7 +2291,8 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 
   switch (XTYPE (obj))
     {
-    case_Lisp_Int:
+    case Lisp_Int0:
+    case Lisp_Int1:
       {
         EMACS_INT i = XFIXNUM (obj);
         char escaped_name;

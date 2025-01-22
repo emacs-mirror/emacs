@@ -20,11 +20,16 @@ https://github.com/joaotavora/eglot/issues/1234.
 
 * Changes in upcoming Eglot
 
-** Disable workDoneProgress if eglot-report-progress is nil
+
+* Changes in Eglot 1.18 (20/1/2025)
 
-Eglot will now try to not register $/progress messages from the server
-when the defcustom is set to nil.  This requires a restart of the server
-for the change to take effect.
+** 'eglot-managed-mode-hook' now run when turning off Eglot (bug#70958)
+
+** Better handling of 'eglot-report-progress'
+
+Eglot no longer advertises the 'workDoneProgress' capability when this
+customization variable is set to nil.  This requires a restart of the
+server for the change to take effect.
 
 ** LSP MarkedString interface is now supported (bug#71353)
 
@@ -38,15 +43,33 @@ C-M-i).
 
 ** More strict completion expansion (bug#72705).
 
-It ensures that "expand common" commands (such as C-M-i or TAB in
+Ensures that "expand common" commands (such as C-M-i or TAB in
 third-party frontends) don't result in fewer completions than before
 they are called.
+
+** More robust completion results when typing quickly (github#1474, bug#73279)
+
+** Support for 'InsertReplaceEdit' objects (bug#73857)
+
+This allows servers such as Zig's 'zls' to behave better when completion
+starts from the middle of an incomplete symbol.
 
 ** Experimental support for Eglot-only subprojects (github#1337)
 
 Useful for complex projects with subprojects needing different language
 servers.  See associated github issue
 https://github.com/joaotavora/eglot/discussions/1337 for examples.
+
+** Support nested {} in server-provided globs (github#1403)
+
+In short, play nice with 'tailwindcss-language-server' which seems to
+use this.
+
+** Eglot commands have a 'command-modes' property (bug#70554)
+
+** Fix to function signature display (bug#74914)
+
+** Fix command execution (bug#71642)
 
 ** New servers have been added to 'eglot-server-programs'.
 
@@ -55,6 +78,12 @@ https://github.com/joaotavora/eglot/discussions/1337 for examples.
 - move-analyzer (bug#69796)
 - millet
 - nushell (bug#68823)
+
+** Eglot uses an internal 'track-changes.el' library (bug#70077)
+
+This should in theory help smoothen the Eglot's handling of events that
+change the buffer.  The library has been problematic in the past, let's
+hope we're past that phase.
 
 
 * Changes in Eglot 1.17 (25/1/2024)

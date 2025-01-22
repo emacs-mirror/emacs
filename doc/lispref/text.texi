@@ -6019,8 +6019,8 @@ a different underlying transport strategy (for details on how to
 subclass, see @ref{Inheritance,Inheritance,,eieio}.).  Users of the
 application-building interface can then instantiate objects of this
 concrete class (using the @code{make-instance} function) and connect
-to JSONRPC endpoints using that strategy.  See @ref{Process-based
-JSONRPC connections} for a built-in transport implementation.
+to JSONRPC endpoints using that strategy.  @xref{Process-based
+JSONRPC connections}, for a built-in transport implementation.
 
 This API has mandatory and optional parts.
 

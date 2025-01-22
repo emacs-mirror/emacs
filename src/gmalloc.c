@@ -1277,10 +1277,6 @@ License along with this library.  If not, see <https://www.gnu.org/licenses/>.
    The author may be reached (Email) at the address mike@ai.mit.edu,
    or (US mail) as Mike Haertel c/o Free Software Foundation.  */
 
-#ifndef min
-#define min(a, b) ((a) < (b) ? (a) : (b))
-#endif
-
 /* Debugging hook for realloc.  */
 static void *(*grealloc_hook) (void *, size_t);
 

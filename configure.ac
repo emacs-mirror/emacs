@@ -2078,8 +2078,10 @@ AC_CACHE_CHECK([for 'find' args to delete a file],
   [emacs_cv_find_delete],
   [if touch conftest.tmp && find conftest.tmp -delete 2>/dev/null &&
       test ! -f conftest.tmp
-   then emacs_cv_find_delete="-delete"
-   else emacs_cv_find_delete="-exec rm -f {} +"
+   then emacs_cv_find_delete="-delete" # GNU 'find'
+   elif find . -prune -name x -exec echo {} + 2>/dev/null
+   then emacs_cv_find_delete="-exec rm -f {} +" # POSIX 'find'
+   else emacs_cv_find_delete="-exec rm -f {} + -o -exec true {} +" # AIX 7.3
    fi])
 FIND_DELETE=$emacs_cv_find_delete
 AC_SUBST([FIND_DELETE])
@@ -3714,9 +3716,18 @@ if test "${with_sqlite3}" != "no"; then
        CFLAGS="$SAVE_CFLAGS"
      fi
    else
-     AC_CHECK_LIB([sqlite3], [sqlite3_open_v2],
-       [HAVE_SQLITE3=yes],
-       [HAVE_SQLITE3=no])
+     AC_CACHE_CHECK([for sqlite3],
+       [emacs_cv_have_sqlite3],
+       [OLIBS=$LIBS
+	LIBS="-lsqlite3 $LIBS"
+	AC_LINK_IFELSE(
+	  [AC_LANG_PROGRAM([[#include <sqlite3.h>
+			     sqlite3 *handle;]],
+			   [[return sqlite3_open_v2 ("", &handle, 0, "");]])],
+	  [emacs_cv_have_sqlite3=yes],
+	  [emacs_cv_have_sqlite3=no])
+	LIBS=$OLIBS])
+     HAVE_SQLITE3=$emacs_cv_have_sqlite3
      if test "$HAVE_SQLITE3" = "yes"; then
        SQLITE3_LIBS=-lsqlite3
        LIBS="$SQLITE3_LIBS $LIBS"
@@ -5034,22 +5045,29 @@ AC_SUBST([LCMS2_LIBS])
 
 HAVE_ZLIB=no
 LIBZ=
-if test "${with_zlib}" != "no"; then
-  OLIBS=$LIBS
-  AC_SEARCH_LIBS([inflateEnd], [z], [HAVE_ZLIB=yes])
-  LIBS=$OLIBS
-  case $ac_cv_search_inflateEnd in
-    -*) LIBZ=$ac_cv_search_inflateEnd ;;
-  esac
-fi
-if test "${HAVE_ZLIB}" = "yes"; then
-  AC_DEFINE([HAVE_ZLIB], [1],
-    [Define to 1 if you have the zlib library (-lz).])
-  ### mingw32 doesn't use -lz, since it loads the library dynamically.
-  if test "${opsys}" = "mingw32"; then
-     LIBZ=
-  fi
-fi
+AS_IF([test "${with_zlib}" != "no"],
+  [AC_CACHE_CHECK([for library containing inflateEnd],
+     [emacs_cv_libz],
+     [AC_LANG_CONFTEST([AC_LANG_PROGRAM([[#include <zlib.h>
+					  z_stream stream;]],
+					[[return inflateEnd (&stream);]])])
+      OLIBS=$LIBS
+      for emacs_cv_libz in '' -lz no; do
+	test "$emacs_cv_libz" = no && break
+	LIBS="$emacs_cv_libz $OLIBS"
+	AC_LINK_IFELSE([], [break])
+      done
+      LIBS=$OLIBS])
+
+   AS_CASE([$emacs_cv_libz],
+     [-* | ''],
+       [# mingw32 doesn't use -lz, since it loads the library dynamically.
+	AS_CASE([$opsys],
+	  [mingw32], [LIBZ=],
+	  [LIBZ=$emacs_cv_libz])
+	HAVE_ZLIB=yes
+	AC_DEFINE([HAVE_ZLIB], [1],
+	  [Define to 1 if you have the zlib library (-lz).])])])
 AC_SUBST([LIBZ])
 
 ### Dynamic library support

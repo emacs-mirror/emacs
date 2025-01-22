@@ -1822,6 +1822,7 @@ usage: (make-process &rest ARGS)  */)
 
   if (nargs == 0)
     return Qnil;
+  CHECK_KEYWORD_ARGS (nargs);
 
   /* Save arguments for process-contact and clone-process.  */
   contact = Flist (nargs, args);
@@ -2431,6 +2432,7 @@ usage:  (make-pipe-process &rest ARGS)  */)
 
   if (nargs == 0)
     return Qnil;
+  CHECK_KEYWORD_ARGS (nargs);
 
   contact = Flist (nargs, args);
 
@@ -3066,6 +3068,8 @@ usage: (serial-process-configure &rest ARGS)  */)
   Lisp_Object contact = Qnil;
   Lisp_Object proc = Qnil;
 
+  CHECK_KEYWORD_ARGS (nargs);
+
   contact = Flist (nargs, args);
 
   proc = plist_get (contact, QCprocess);
@@ -3170,6 +3174,7 @@ usage:  (make-serial-process &rest ARGS)  */)
 
   if (nargs == 0)
     return Qnil;
+  CHECK_KEYWORD_ARGS (nargs);
 
   contact = Flist (nargs, args);
 
@@ -3367,7 +3372,7 @@ finish_after_tls_connection (Lisp_Object proc)
   Lisp_Object result = Qt;
 
   if (!NILP (Ffboundp (Qnsm_verify_connection)))
-    result = call3 (Qnsm_verify_connection,
+    result = calln (Qnsm_verify_connection,
 		    proc,
 		    plist_get (contact, QChost),
 		    plist_get (contact, QCservice));
@@ -3971,6 +3976,7 @@ usage: (make-network-process &rest ARGS)  */)
 
   if (nargs == 0)
     return Qnil;
+  CHECK_KEYWORD_ARGS (nargs);
 
   /* Save arguments for process-contact and clone-process.  */
   contact = Flist (nargs, args);
@@ -4963,7 +4969,7 @@ server_accept_connection (Lisp_Object server, int channel)
     {
       int code = errno;
       if (!would_block (code) && !NILP (ps->log))
-	call3 (ps->log, server, Qnil,
+	calln (ps->log, server, Qnil,
 	       concat3 (build_string ("accept failed with code"),
 			Fnumber_to_string (make_fixnum (code)),
 			build_string ("\n")));
@@ -5125,7 +5131,7 @@ server_accept_connection (Lisp_Object server, int channel)
   if (!NILP (ps->log))
     {
       AUTO_STRING (accept_from, "accept from ");
-      call3 (ps->log, server, proc, concat3 (accept_from, host_string, nl));
+      calln (ps->log, server, proc, concat3 (accept_from, host_string, nl));
     }
 
   AUTO_STRING (open_from, "open from ");
@@ -8462,7 +8468,7 @@ See `process-attributes' for getting attributes of a process given its ID.  */)
     = Ffind_file_name_handler (BVAR (current_buffer, directory),
 			       Qlist_system_processes);
   if (!NILP (handler))
-    return call1 (handler, Qlist_system_processes);
+    return calln (handler, Qlist_system_processes);
 
   return list_system_processes ();
 }
@@ -8526,7 +8532,7 @@ integer or floating point values.
     = Ffind_file_name_handler (BVAR (current_buffer, directory),
 			       Qprocess_attributes);
   if (!NILP (handler))
-    return call2 (handler, Qprocess_attributes, pid);
+    return calln (handler, Qprocess_attributes, pid);
 
   return system_process_attributes (pid);
 }

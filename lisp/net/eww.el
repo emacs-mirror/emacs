@@ -2237,8 +2237,16 @@ Differences in #targets are ignored."
   (kill-new (plist-get eww-data :url)))
 
 (defun eww-download ()
-  "Download URL to `eww-download-directory'.
-Use link at point if there is one, else the current page's URL."
+  "Download a Web page to `eww-download-directory'.
+Use link at point if there is one, else the current page's URL.
+This command downloads the page to the download directory, under
+a file name generated from the last portion of the page's URL,
+after the last slash.  (If URL ends in a slash, the page will be
+saved under the name \"!\".)
+If there's already a file by that name in the download directory,
+this command will modify the name to make it unique.
+The command shows in the echo-area the actual file name where the
+page was saved."
   (interactive nil eww-mode)
   (let ((dir (if (stringp eww-download-directory)
                  eww-download-directory

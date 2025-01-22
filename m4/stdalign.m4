@@ -1,5 +1,5 @@
 # stdalign.m4
-# serial 1
+# serial 3
 dnl Copyright 2011-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -104,11 +104,13 @@ AC_DEFUN([gl_ALIGNASOF],
 
 /* GCC releases before GCC 4.9 had a bug in _Alignof.  See GCC bug 52023
    <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52023>.
-   clang versions < 8.0.0 have the same bug.  */
+   clang versions < 8.0.0 have the same bug.
+   IBM XL C V16.1.0 cc (non-clang) has the same bug.  */
 #  if (!defined __STDC_VERSION__ || __STDC_VERSION__ < 201112 \
        || (defined __GNUC__ && __GNUC__ < 4 + (__GNUC_MINOR__ < 9) \
            && !defined __clang__) \
-       || (defined __clang__ && __clang_major__ < 8))
+       || (defined __clang__ && __clang_major__ < 8) \
+       || defined __xlC__)
 #   undef/**/_Alignof
 #   ifdef __cplusplus
 #    if (201103 <= __cplusplus || defined _MSC_VER)
@@ -179,7 +181,8 @@ AC_DEFUN([gl_ALIGNASOF],
 #  if ((defined _Alignas \
         && !(defined __cplusplus \
              && (201103 <= __cplusplus || defined _MSC_VER))) \
-       || (defined __STDC_VERSION__ && 201112 <= __STDC_VERSION__))
+       || (defined __STDC_VERSION__ && 201112 <= __STDC_VERSION__ \
+           && !defined __xlC__))
 #   define alignas _Alignas
 #  endif
 # endif

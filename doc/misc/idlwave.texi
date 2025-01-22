@@ -2546,8 +2546,8 @@ commands:
 In addition to these standard @file{comint} commands,
 @code{idlwave-shell-mode} provides many of the same commands which
 simplify writing IDL code available in IDLWAVE buffers.  This includes
-abbreviations, online help, and completion.  See @ref{Routine Info} and
-@ref{Online Help} and @ref{Completion} for more information on these
+abbreviations, online help, and completion.  @xref{Routine Info}, and
+@ref{Online Help}, and @ref{Completion}, for more information on these
 commands.
 
 @cindex Completion, in the shell
