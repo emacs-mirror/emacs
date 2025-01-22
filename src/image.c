@@ -4140,10 +4140,8 @@ image_create_x_image_and_pixmap_1 (struct frame *f, int width, int height, int d
   if (*pixmap == NULL)
     {
       DWORD err = GetLastError ();
-      Lisp_Object errcode;
       /* All system errors are < 10000, so the following is safe.  */
-      XSETINT (errcode, err);
-      image_error ("Unable to create bitmap, error code %d", errcode);
+      image_error ("Unable to create bitmap, error code %d", make_fixnum (err));
       image_destroy_x_image (*pimg);
       *pimg = NULL;
       return 0;
@@ -9400,8 +9398,8 @@ tiff_handler (const char *log_format, const char *title,
      log entry, it's OK to truncate it.  */
   char buf[4000];
   int len = vsnprintf (buf, sizeof buf, format, ap);
-  add_to_log (log_format, build_string (title),
-	      make_string (buf, max (0, min (len, sizeof buf - 1))));
+  image_error (log_format, build_string (title),
+	       make_string (buf, max (0, min (len, sizeof buf - 1))));
 }
 # undef MINGW_STATIC
 
