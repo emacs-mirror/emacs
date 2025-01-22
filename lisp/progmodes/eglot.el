@@ -794,7 +794,7 @@ compile time if an undeclared LSP interface is used."))
   "Destructure OBJECT, binding VARS in BODY.
 VARS is ([(INTERFACE)] SYMS...)
 Honor `eglot-strict-mode'."
-  (declare (indent 2) (debug (sexp sexp &rest form)))
+  (declare (indent 2) (debug (sexp form &rest form)))
   (let ((interface-name (if (consp (car vars))
                             (car (pop vars))))
         (object-once (make-symbol "object-once"))
