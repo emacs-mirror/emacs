@@ -7386,8 +7386,9 @@ image_build_heuristic_mask (struct frame *f, struct image *img,
 	{
 #ifndef USE_CAIRO
 	  char color_name[30];
-	  snprintf (color_name, sizeof color_name, "#%04x%04x%04x",
-		    rgb[0] + 0u, rgb[1] + 0u, rgb[2] + 0u);
+	  int len = snprintf (color_name, sizeof color_name, "#%04x%04x%04x",
+			      rgb[0] + 0u, rgb[1] + 0u, rgb[2] + 0u);
+	  eassert (len < sizeof color_name);
 	  bg = (
 #ifdef HAVE_NTGUI
 		0x00ffffff & /* Filter out palette info.  */
@@ -8537,8 +8538,9 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
 	  img->background = lookup_rgb_color (f, bg->red, bg->green, bg->blue);
 #else  /* USE_CAIRO */
 	  char color_name[30];
-	  snprintf (color_name, sizeof color_name, "#%04x%04x%04x",
-		    bg->red, bg->green, bg->blue);
+	  int len = snprintf (color_name, sizeof color_name, "#%04x%04x%04x",
+			      bg->red, bg->green, bg->blue);
+	  eassert (len < sizeof color_name);
 	  img->background
 	    = image_alloc_image_color (f, img, build_string (color_name), 0);
 #endif /* USE_CAIRO */
