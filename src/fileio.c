@@ -4271,24 +4271,21 @@ by calling `format-decode', which see.  */)
 	    {
 	      /* Find a coding system specified in the heading two
 		 lines or in the tailing several lines of the file.
-		 We assume that the 1K-byte and 3K-byte for heading
+		 Assume that the 1 KiB and 3 KiB for heading
 		 and tailing respectively are sufficient for this
-		 purpose.  */
-	      int nread;
-
-	      if (st.st_size <= (1024 * 4))
-		nread = emacs_fd_read (fd, read_buf, 1024 * 4);
-	      else
+		 purpose.  Because the file may be in /proc,
+		 do not use st_size or report any SEEK_END failure.  */
+	      ptrdiff_t nread = emacs_fd_read (fd, read_buf, 4 * 1024);
+	      if (nread == 4 * 1024)
 		{
-		  nread = emacs_fd_read (fd, read_buf, 1024);
-		  if (nread == 1024)
+		  off_t tailoff = emacs_fd_lseek (fd, - 3 * 1024, SEEK_END);
+		  if (tailoff < 0)
+		    seekable = false;
+		  else if (1024 < tailoff)
 		    {
-		      int ntail;
-		      if (emacs_fd_lseek (fd, st.st_size - 1024 * 3, SEEK_CUR) < 0)
-			report_file_error ("Setting file position",
-					   orig_filename);
-		      ntail = emacs_fd_read (fd, read_buf + nread, 1024 * 3);
-		      nread = ntail < 0 ? ntail : nread + ntail;
+		      ptrdiff_t ntail = emacs_fd_read (fd, read_buf + 1024,
+						       3 * 1024);
+		      nread = ntail < 0 ? ntail : 1024 + ntail;
 		    }
 		}
 
