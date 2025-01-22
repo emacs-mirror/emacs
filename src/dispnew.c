@@ -3552,18 +3552,6 @@ is_tty_root_frame (struct frame *f)
   return !FRAME_PARENT_FRAME (f) && is_tty_frame (f);
 }
 
-/* Return true if frame F is a tty root frame that has a visible child
-   frame..  */
-
-bool
-is_tty_root_frame_with_visible_child (struct frame *f)
-{
-  if (!is_tty_root_frame (f))
-    return false;
-  Lisp_Object z_order = frames_in_reverse_z_order (f, true);
-  return CONSP (XCDR (z_order));
-}
-
 /* Return the index of the first enabled row in MATRIX, or -1 if there
    is none.  */
 
