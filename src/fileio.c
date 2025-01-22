@@ -2369,14 +2369,12 @@ permissions.  */)
 	barf_or_query_if_file_exists (newname, true, "copy to it",
 				      FIXNUMP (ok_if_already_exists), false);
       already_exists = true;
-      ofd = emacs_open (SSDATA (encoded_newname), O_WRONLY, 0);
+      ofd = emacs_open (SSDATA (encoded_newname), O_WRONLY | O_TRUNC, 0);
     }
   if (ofd < 0)
     report_file_error ("Opening output file", newname);
 
   record_unwind_protect_int (close_file_unwind, ofd);
-
-  off_t oldsize = 0, newsize;
 
   if (already_exists)
     {
@@ -2386,36 +2384,26 @@ permissions.  */)
       if (st.st_dev == out_st.st_dev && st.st_ino == out_st.st_ino)
 	report_file_errno ("Input and output files are the same",
 			   list2 (file, newname), 0);
-      if (S_ISREG (out_st.st_mode))
-	oldsize = out_st.st_size;
     }
 
   maybe_quit ();
 
-  if (emacs_fd_to_int (ifd) != -1
-      && clone_file (ofd, emacs_fd_to_int (ifd)))
-    newsize = st.st_size;
-  else
+  if (emacs_fd_to_int (ifd) == -1
+      || !clone_file (ofd, emacs_fd_to_int (ifd)))
     {
-      off_t insize = st.st_size;
-      ssize_t copied;
+      off_t newsize = 0;
 
 #ifndef MSDOS
-      newsize = 0;
-
       if (emacs_fd_to_int (ifd) != -1)
 	{
-	  for (; newsize < insize; newsize += copied)
+	  for (ssize_t copied; ; newsize += copied)
 	    {
 	      /* Copy at most COPY_MAX bytes at a time; this is min
-		 (PTRDIFF_MAX, SIZE_MAX) truncated to a value that is
+		 (SSIZE_MAX, SIZE_MAX) truncated to a value that is
 		 surely aligned well.  */
-	      ssize_t ssize_max = TYPE_MAXIMUM (ssize_t);
-	      ptrdiff_t copy_max = min (ssize_max, SIZE_MAX) >> 30 << 30;
-	      off_t intail = insize - newsize;
-	      ptrdiff_t len = min (intail, copy_max);
+	      ssize_t copy_max = min (SSIZE_MAX, SIZE_MAX) >> 30 << 30;
 	      copied = copy_file_range (emacs_fd_to_int (ifd), NULL,
-					ofd, NULL, len, 0);
+					ofd, NULL, copy_max, 0);
 	      if (copied <= 0)
 		break;
 	      maybe_quit ();
@@ -2423,31 +2411,23 @@ permissions.  */)
 	}
 #endif /* MSDOS */
 
-      /* Fall back on read+write if copy_file_range failed, or if the
-	 input is empty and so could be a /proc file, or if ifd is an
-	 invention of android.c.  read+write will either succeed, or
-	 report an error more precisely than copy_file_range
-	 would.  */
-      if (newsize != insize || insize == 0)
-	{
-	  char buf[MAX_ALLOCA];
+      /* Follow up with read+write regardless of any copy_file_range failure.
+	 Many copy_file_range implementations fail for no good reason,
+	 or "succeed" even when they did nothing (e.g., in /proc files).
+	 Also, if read+write fails it will report an error more
+	 precisely than copy_file_range would.  */
+      char buf[MAX_ALLOCA];
 
-	  for (; (copied = emacs_fd_read (ifd, buf, sizeof buf));
-	       newsize += copied)
-	    {
-	      if (copied < 0)
-		report_file_error ("Read error", file);
-	      if (emacs_write_quit (ofd, buf, copied) != copied)
-		report_file_error ("Write error", newname);
-	    }
+      for (ptrdiff_t copied;
+	   (copied = emacs_fd_read (ifd, buf, sizeof buf));
+	   newsize += copied)
+	{
+	  if (copied < 0)
+	    report_file_error ("Read error", file);
+	  if (emacs_write_quit (ofd, buf, copied) != copied)
+	    report_file_error ("Write error", newname);
 	}
     }
-
-  /* Truncate any existing output file after writing the data.  This
-     is more likely to work than truncation before writing, if the
-     file system is out of space or the user is over disk quota.  */
-  if (newsize < oldsize && ftruncate (ofd, newsize) != 0)
-    report_file_error ("Truncating output file", newname);
 
 #ifndef MSDOS
   /* Preserve the original file permissions, and if requested, also its
