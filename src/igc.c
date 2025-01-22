@@ -252,10 +252,28 @@ enum igc_state
 static enum igc_state igc_state = IGC_STATE_INITIAL;
 static void set_state (enum igc_state state);
 
-static const char *
-result_string (mps_res_t res)
+/* Define a named enumeration containing all cases that the integer type
+   mps_res_t is known to cover.  */
+
+#define RES_CASE(prefix, id, doc)                                            \
+  id,
+
+enum mps_res_enum
 {
-  switch (res)
+  _mps_RES_ENUM (RES_CASE, MPS_RES_)
+};
+#undef RES_CASE
+
+/* Convert an mps result code into a result string.  This shouldn't
+   allocate memory because it's called when a fatal memory management
+   error occurs. */
+
+static const char *
+mps_res_to_string (mps_res_t res)
+{
+  /* mps_res_t is typedef'd to int, we want an enum so GCC warns about
+     new cases.  */
+  switch ((enum mps_res_enum) res)
     {
     case MPS_RES_OK:
       return "operation succeeded";
@@ -285,7 +303,7 @@ check_res (const char *file, unsigned line, mps_res_t res)
   if (res != MPS_RES_OK)
     {
       fprintf (stderr, "\r\n%s:%u: Emacs fatal error: MPS error %d: %s\r\n",
-	       file, line, res, result_string (res));
+	       file, line, res, mps_res_to_string (res));
       set_state (IGC_STATE_DEAD);
     }
 }
@@ -4648,21 +4666,6 @@ igc_external_header (struct igc_header *h)
     }
 
   return header_exthdr (h);
-}
-
-static const char *
-mps_res_to_string (mps_res_t res)
-{
-  switch (res)
-    {
-#define RES_CASE(prefix, id, doc)                                            \
-  case prefix##id:                                                           \
-    return #prefix #id " " doc;
-      _mps_RES_ENUM (RES_CASE, MPS_RES_);
-#undef RES_CASE
-    default:
-      return NULL;
-    }
 }
 
 DEFUN ("igc--set-commit-limit", Figc__set_commit_limit,
