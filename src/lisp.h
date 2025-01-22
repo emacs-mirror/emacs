@@ -6122,6 +6122,17 @@ void igc_xfree (void *p);
       }								 \
   } while (false)
 
+/* Temporarily avoid bug#75754.  The code above is painstakingly written
+   to avoid statement expressions; no easy way to do that in this case,
+   unfortunately.
+
+   FIXME/igc: find a permanent fix for these bugs.  */
+#undef SAFE_ALLOCA
+#define SAFE_ALLOCA(size)				\
+  ({ void *buf;						\
+     SAFE_NALLOCA (buf, size, 1);			\
+     buf; })
+
 #endif
 
 /* SAFE_ALLOCA_STRING allocates a C copy of a Lisp string.  */
