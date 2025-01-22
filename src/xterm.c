@@ -27123,11 +27123,13 @@ x_error_quitter (Display *display, XErrorEvent *event)
 static int NO_INLINE
 x_io_error_quitter (Display *display)
 {
-  char buf[256];
-
-  snprintf (buf, sizeof buf, "Connection lost to X server '%s'",
-	    DisplayString (display));
+  char const *server = DisplayString (display);
+  static char const fmt[] = "Connection lost to X server '%s'";
+  USE_SAFE_ALLOCA;
+  char *buf = SAFE_ALLOCA (sizeof fmt - sizeof "%s" + strlen (server) + 1);
+  sprintf (buf, fmt, server);
   x_connection_closed (display, buf, true);
+  SAFE_FREE ();
 
   return 0;
 }
