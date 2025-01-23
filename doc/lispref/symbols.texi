@@ -535,70 +535,12 @@ value, saved value, customized-but-unsaved value, and themed values.
 Do not set them directly; they are managed by @code{defcustom} and
 related functions.  @xref{Variable Definitions}.
 
-@cindex @code{definition-name} (symbol property)
-@cindex @code{find-function-type-alist} (symbol property)
 @item definition-name
 @itemx find-function-type-alist
 These properties help find the definition of a symbol in the source
 code when it might be hard to find the definition by textual search
-of the source file.
-The Emacs Help commands such as @kbd{C-h f} (@pxref{Help,,,
-emacs, The GNU Emacs Manual}) use these properties to show the definition
-of a symbol via a button in the @file{*Help*} buffer where the
-symbol's documentation is shown.
-
-For example, a @code{define-derived-mode}
-(@pxref{Derived Modes}) might define a mode-specific function or a
-variable implicitly; or your Lisp program might generate a run-time
-call to @code{defun} to define a function (@pxref{Defining
-Functions}).  In these and similar cases, the @code{definition-name}
-property of the symbol should be another symbol whose definition can
-be found by textual search and whose code defines the original symbol.
-In the example with @code{define-derived-mode}, the value of this
-property of the functions and variables it defines should be the mode
-symbol.
-
-In some cases, the definition cannot be found by looking for the
-definition of another symbol.  For example, a test file might use a
-macro to generate calls to @code{ert-deftest} (@pxref{How to Write
-Tests,,,ert, ERT: Emacs Lisp Regression Testing}) where the code is
-boiler plate and only varying data need to be passed in.  In such cases,
-the @code{find-function-type-alist} property of the symbol can be an
-alist that augments @code{find-function-regexp-alist} telling how to
-find the definition of symbols of this type.
-
-In the example of a macro defining calls to @code{ert-deftest},
-the macro could put the property @code{find-function-type-alist} on each
-test defined, associating @code{ert--test} (the internal type of ERT
-tests) with the name of a regexp or function that can find the correct
-macro call.  The file defining the macro would also have to provide that
-definition-finding function or regexp.
-Here is an example using a function to find the definition.
-The example updates the property using convenience function
-@code{find-function-update-type-alist}.
-
-@example
-@group
-(defmacro define-foo-test (data)
-  "Define a test of the foo system using DATA."
-  (declare (debug (&rest sexp)))
-  (let ((test-name (intern (concat ...))))
-    `(progn
-       (find-function-update-type-alist
-        ',test-name 'ert--test 'foo-find-test-def-function)
-       (ert-deftest ,test-name ()
-         ,(concat "Test foo with " ...)
-         ...))))
-@end group
-
-@group
-(defun foo-find-test-def-function (test-name)
-  "Search for the `define-foo-test' call defining TEST-NAME.
-Return non-nil if the definition is found."
-  (let ((regexp ...))
-    (re-search-forward regexp nil t)))
-@end group
-@end example
+of the source file, as when the symbol is defined by a macro.
+@xref{Finding Definitions}.
 
 @item disabled
 If the value is non-@code{nil}, the named function is disabled as a
