@@ -240,10 +240,10 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (map-keys #s(hash-table data (bar 1 foo 2 baz 3))))
   (map-values
    :args (map)
-   :eval (map-keys (list 'bar 1 'foo 2 'baz 3))
-   :eval (map-keys (list '(bar . 1) '(foo . 2) '(baz . 3)))
-   :eval (map-keys [bar foo baz])
-   :eval (map-keys #s(hash-table data (bar 1 foo 2 baz 3))))
+   :eval (map-values (list 'bar 1 'foo 2 'baz 3))
+   :eval (map-values (list '(bar . 1) '(foo . 2) '(baz . 3)))
+   :eval (map-values [bar foo baz])
+   :eval (map-values #s(hash-table data (bar 1 foo 2 baz 3))))
   (map-pairs
    :eval (map-pairs (list 'bar 1 'foo 2 'baz 3))
    :eval (map-pairs (list '(bar . 1) '(foo . 2) '(baz . 3)))
