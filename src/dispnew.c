@@ -3964,11 +3964,20 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
 {
 #ifndef HAVE_ANDROID
   struct frame *root = root_frame (f);
-  eassert (FRAME_VISIBLE_P (root));
+
+  /* Determine visible frames on the root frame, including the root
+     frame itself.  Note that there are cases, see bug#75056, where we
+     can be called for invisible frames. */
+  Lisp_Object z_order = frames_in_reverse_z_order (root, true);
+  if (NILP (z_order))
+    {
+      Lisp_Object root_frame;
+      XSETFRAME (root_frame, root);
+      z_order = Fcons (root_frame, Qnil);
+    }
 
   /* Process child frames in reverse z-order, topmost last.  For each
      child, copy what we need to the root's desired matrix.  */
-  Lisp_Object z_order = frames_in_reverse_z_order (root, true);
   struct frame *topmost_child = NULL;
   for (Lisp_Object tail = XCDR (z_order); CONSP (tail); tail = XCDR (tail))
     {
