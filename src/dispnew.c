@@ -3315,7 +3315,7 @@ rect_intersect (struct rect *r, struct rect r1, struct rect r2)
 
 /* Return the absolute position of frame F in *X and *Y.  */
 
-static void
+void
 frame_pos_abs (struct frame *f, int *x, int *y)
 {
   *x = *y = 0;
@@ -3355,7 +3355,7 @@ max_child_z_order (struct frame *parent)
 
 /* Return true if F1 is an ancestor of F2.  */
 
-static bool
+bool
 is_frame_ancestor (struct frame *f1, struct frame *f2)
 {
   for (struct frame *f = FRAME_PARENT_FRAME (f2); f; f = FRAME_PARENT_FRAME (f))

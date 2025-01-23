@@ -2990,19 +2990,16 @@ tty_menu_calc_size (tty_menu *menu, int *width, int *height)
 static void
 mouse_get_xy (int *x, int *y)
 {
-  Lisp_Object lmx = Qnil, lmy = Qnil;
   Lisp_Object mouse = mouse_position (tty_menu_calls_mouse_position_function);
 
-  if (EQ (selected_frame, XCAR (mouse)))
+  struct frame *f = XFRAME (XCAR (mouse));
+  struct frame *sf = SELECTED_FRAME ();
+  if (f == sf || is_frame_ancestor (sf, f))
     {
-      lmx = XCAR (XCDR (mouse));
-      lmy = XCDR (XCDR (mouse));
-    }
-
-  if (!NILP (lmx))
-    {
-      *x = XFIXNUM (lmx);
-      *y = XFIXNUM (lmy);
+      int fx, fy;
+      frame_pos_abs (f, &fx, &fy);
+      *x = fx + XFIXNUM (XCAR (XCDR (mouse)));
+      *y = fy + XFIXNUM (XCDR (XCDR (mouse)));
     }
 }
 
