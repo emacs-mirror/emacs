@@ -1566,7 +1566,7 @@ working due to this change."
 
 (defun c-make-font-lock-extra-types-blurb (mode1 mode2 example)
   (concat "\
-*List of extra types (aside from the type keywords) to recognize in "
+List of extra types (aside from the type keywords) to recognize in "
 mode1 " mode.
 Each list item should be a regexp matching a single identifier.
 " example "
