@@ -174,6 +174,137 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
                 (if (eq .rose 'red)
                     .lily)))))
 
+(define-short-documentation-group map
+  "Map Basics"
+  (mapp
+   :eval (mapp (list 'bar 1 'foo 2 'baz 3))
+   :eval (mapp (list '(bar . 1) '(foo . 2) '(baz . 3)))
+   :eval (mapp [bar foo baz])
+   :eval (mapp "this is a string")
+   :eval (mapp #s(hash-table data (bar 1 foo 2 baz 3)))
+   :eval (mapp '())
+   :eval (mapp nil)
+   :eval (mapp (make-char-table 'shortdoc-test)))
+  (map-empty-p
+   :args (map)
+   :eval (map-empty-p nil)
+   :eval (map-empty-p [])
+   :eval (map-empty-p '()))
+  (map-elt
+   :args (map key)
+   :eval (map-elt (list 'bar 1 'foo 2 'baz 3) 'foo)
+   :eval (map-elt (list '(bar . 1) '(foo . 2) '(baz . 3)) 'foo)
+   :eval (map-elt [bar foo baz] 1)
+   :eval (map-elt #s(hash-table data (bar 1 foo 2 baz 3)) 'foo))
+  (map-contains-key
+   :args (map key)
+   :eval (map-contains-key (list 'bar 1 'foo 2 'baz 3) 'foo)
+   :eval (map-contains-key (list '(bar . 1) '(foo . 2) '(baz . 3)) 'foo)
+   :eval (map-contains-key [bar foo baz] 1)
+   :eval (map-contains-key #s(hash-table data (bar 1 foo 2 baz 3)) 'foo))
+  (map-put!
+   (map key value)
+   :eval
+"(let ((map (list 'bar 1 'baz 3)))
+    (map-put! map 'foo 2)
+    map)"
+;; This signals map-not-inplace when used in shortdoc.el :-(
+;;    :eval
+;; "(let ((map (list '(bar . 1) '(baz . 3))))
+;;     (map-put! map 'foo 2)
+;;     map)"
+    :eval
+"(let ((map [bar bot baz]))
+    (map-put! map 1 'foo)
+    map)"
+   :eval
+"(let ((map #s(hash-table data (bar 1 baz 3))))
+    (map-put! map 'foo 2)
+    map)")
+  (map-insert
+   :args (map key value)
+   :eval (map-insert (list 'bar 1 'baz 3 'foo 7) 'foo 2)
+   :eval (map-insert (list '(bar . 1) '(baz . 3) '(foo . 7)) 'foo 2)
+   :eval (map-insert [bar bot baz] 1 'foo)
+   :eval (map-insert #s(hash-table data (bar 1 baz 3 foo 7)) 'foo 2))
+  (map-delete
+   :args (map key)
+   :eval (map-delete (list 'bar 1 'foo 2 'baz 3) 'foo)
+   :eval (map-delete (list '(bar . 1) '(foo . 2) '(baz . 3)) 'foo)
+   :eval (map-delete [bar foo baz] 1)
+   :eval (map-delete #s(hash-table data (bar 1 foo 2 baz 3)) 'foo))
+  (map-keys
+   :eval (map-keys (list 'bar 1 'foo 2 'baz 3))
+   :eval (map-keys (list '(bar . 1) '(foo . 2) '(baz . 3)))
+   :eval (map-keys [bar foo baz])
+   :eval (map-keys #s(hash-table data (bar 1 foo 2 baz 3))))
+  (map-values
+   :args (map)
+   :eval (map-values (list 'bar 1 'foo 2 'baz 3))
+   :eval (map-values (list '(bar . 1) '(foo . 2) '(baz . 3)))
+   :eval (map-values [bar foo baz])
+   :eval (map-values #s(hash-table data (bar 1 foo 2 baz 3))))
+  (map-pairs
+   :eval (map-pairs (list 'bar 1 'foo 2 'baz 3))
+   :eval (map-pairs (list '(bar . 1) '(foo . 2) '(baz . 3)))
+   :eval (map-pairs [bar foo baz])
+   :eval (map-pairs #s(hash-table data (bar 1 foo 2 baz 3))))
+  (map-length
+   :args (map)
+   :eval (map-length (list 'bar 1 'foo 2 'baz 3))
+   :eval (map-length (list '(bar . 1) '(foo . 2) '(baz . 3)))
+   :eval (map-length [bar foo baz])
+   :eval (map-length #s(hash-table data (bar 1 foo 2 baz 3))))
+  (map-copy
+   :args (map)
+   :eval (map-copy (list 'bar 1 'foo 2 'baz 3))
+   :eval (map-copy (list '(bar . 1) '(foo . 2) '(baz . 3)))
+   :eval (map-copy [bar foo baz])
+   :eval (map-copy #s(hash-table data (bar 1 foo 2 baz 3))))
+  "Doing things to maps and their contents"
+  (map-apply
+   :args (function map)
+   :eval (map-apply #'+ (list '(1 . 2)  '(3 . 4))))
+  (map-do
+   :args (function map)
+   :eval
+"(let ((map (list '(1 . 1) '(2 . 3)))
+      acc)
+  (map-do (lambda (k v) (push (+ k v) acc)) map)
+  (nreverse acc))")
+  (map-keys-apply
+   :eval (map-keys-apply #'1+ (list '(1 . 2)  '(3 . 4))))
+  (map-values-apply
+   :args (function map)
+   :eval (map-values-apply #'1+ (list '(1 . 2)  '(3 . 4))))
+  (map-filter
+   :eval (map-filter (lambda (k _) (cl-oddp k)) (list '(1 . 2) '(4 . 6)))
+   :eval (map-filter (lambda (k v) (cl-evenp (+ k v))) (list '(1 . 2) '(4 . 6))))
+  (map-remove
+   :eval (map-remove (lambda (k _) (cl-oddp k)) (list '(1 . 2) '(4 . 6)))
+   :eval (map-remove (lambda (k v) (cl-evenp (+ k v))) (list '(1 . 2) '(4 . 6))))
+  (map-some
+   :eval (map-some (lambda (k _) (cl-oddp k)) (list '(1 . 2) '(4 . 6)))
+   :eval (map-some (lambda (k v) (cl-evenp (+ k v))) (list '(1 . 2) '(4 . 6))))
+  (map-every-p
+   :eval (map-every-p (lambda (k _) (cl-oddp k)) (list '(1 . 2) '(4 . 6)))
+   :eval (map-every-p (lambda (k v) (cl-evenp (+ k v))) (list '(1 . 3) '(4 . 6))))
+  "Combining and changing maps"
+  (map-merge
+   :eval (map-merge 'alist '(1 2 3 4) #s(hash-table data (5 6 7 8)))
+   :eval (map-merge 'list '(1 2 3 4) #s(hash-table data (5 6 7 8)))
+   :eval (map-merge 'plist '(1 2 3 4) #s(hash-table data (5 6 7 8)))
+   :eval (map-merge 'hash-table '(1 2 3 4) #s(hash-table data (5 6 7 8))))
+  (map-merge-with
+   :eval (map-merge-with 'alist #'max '(1 2 3 4) #s(hash-table data (1 1 3 5)))
+   :eval (map-merge-with 'alist #'min '(1 2 3 4) #s(hash-table data (1 1 3 5)))
+   :eval (map-merge-with 'hash-table #'min '(1 2 3 4) #s(hash-table data (1 1 3 5))))
+  (map-into
+   :args (map type)
+   :eval (map-into #s(hash-table data '(5 6 7 8)) 'list)
+   :eval (map-into '((5 . 6) (7 . 8)) 'plist)
+   :eval (map-into '((5 . 6) (7 . 8)) 'hash-table)))
+
 (define-short-documentation-group string
   "Making Strings"
   (make-string

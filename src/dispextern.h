@@ -3967,6 +3967,8 @@ void check_window_matrix_pointers_for_frame (struct frame *f);
 # else
 INLINE void check_window_matrix_pointers_for_frame (struct frame *f) {}
 # endif
+void frame_pos_abs (struct frame *f, int *x, int *y);
+bool is_frame_ancestor (struct frame *f1, struct frame *f2);
 
 INLINE_HEADER_END
 
