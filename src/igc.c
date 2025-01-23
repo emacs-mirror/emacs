@@ -252,18 +252,6 @@ enum igc_state
 static enum igc_state igc_state = IGC_STATE_INITIAL;
 static void set_state (enum igc_state state);
 
-/* Define a named enumeration containing all cases that the integer type
-   mps_res_t is known to cover.  */
-
-#define RES_CASE(prefix, id, doc)                                            \
-  id,
-
-enum mps_res_enum
-{
-  _mps_RES_ENUM (RES_CASE, MPS_RES_)
-};
-#undef RES_CASE
-
 /* Convert an mps result code into a result string.  This shouldn't
    allocate memory because it's called when a fatal memory management
    error occurs. */
@@ -271,9 +259,7 @@ enum mps_res_enum
 static const char *
 mps_res_to_string (mps_res_t res)
 {
-  /* mps_res_t is typedef'd to int, we want an enum so GCC warns about
-     new cases.  */
-  switch ((enum mps_res_enum) res)
+  switch (res)
     {
     case MPS_RES_OK:
       return "operation succeeded";
