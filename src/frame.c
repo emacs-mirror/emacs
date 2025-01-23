@@ -1773,15 +1773,19 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
       struct tty_display_info *tty = FRAME_TTY (f);
       Lisp_Object top_frame = tty->top_frame;
 
-      /* Don't mark the frame garbaged if we are switching to the frame
-	 that is already the top frame of that TTY.  */
-      if (!EQ (frame, top_frame) && root_frame (f) != XFRAME (top_frame))
+      /* Switching to a frame on a different root frame is special.  The
+	 old root frame has to be marked invisible, and the new root
+	 frame has to be made visible.  */
+      if (!EQ (frame, top_frame)
+	  && (!FRAMEP (top_frame)
+	      || root_frame (f) != root_frame (XFRAME (top_frame))))
 	{
 	  struct frame *new_root = root_frame (f);
 	  SET_FRAME_VISIBLE (new_root, true);
 	  SET_FRAME_VISIBLE (f, true);
 
-	  /* Mark previously displayed frame as no longer visible.  */
+	  /* Mark previously displayed root frame as no longer
+	     visible.  */
 	  if (FRAMEP (top_frame))
 	    {
 	      struct frame *top = XFRAME (top_frame);
@@ -1792,7 +1796,7 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
 
 	  tty->top_frame = frame;
 
-	  /* FIXME: Why is it correct to set FrameCols/Rows?  */
+	  /* FIXME: Why is it correct to set FrameCols/Rows here?  */
 	  if (!FRAME_PARENT_FRAME (f))
 	    {
 	      /* If the new TTY frame changed dimensions, we need to
