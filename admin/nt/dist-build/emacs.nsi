@@ -92,7 +92,7 @@ Section "Uninstall"
   # remove All Users shortcuts only
   # SetShellVarContext all
 
-  # retreive/recalculate uninstaller location
+  # retrieve/recalculate uninstaller location
   StrCpy $UninstallerPath "$INSTDIR\Uninstall-${VERSION_BRANCH}.exe"
 
   # remove registry key
@@ -101,7 +101,7 @@ Section "Uninstall"
   # delete uninstaller
   Delete "$INSTDIR\Uninstall-${VERSION_BRANCH}.exe"
 
-  # retreive/reclculate startmenu shortcuts location
+  # retrieve/recalculate startmenu shortcuts location
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
   StrCpy $StartMenuFolder "$SMPROGRAMS\$StartMenuFolder"
 
@@ -120,7 +120,7 @@ Section "Uninstall"
   # we're basically using GOTO, above, so we should get here..
   startMenuDeleteLoopDone:
 
-  # next we remove stuff from program-files/instalation path
+  # next we remove stuff from program-files/installation path
   # start with recursive delete of the Emacs we installed
   RMDir /r "$INSTDIR\emacs-${VERSION_BRANCH}"
 

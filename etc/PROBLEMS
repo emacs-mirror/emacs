@@ -1600,7 +1600,7 @@ https://lists.gnu.org/r/emacs-devel/2016-07/msg00154.html.
 
 *** In Emacs built with GTK+ toolkit, menu-bar background becomes transparent.
 
-This happens when 'alpha-background' is less than 100.  This is due a
+This happens when 'alpha-background' is less than 100.  This is due to a
 GTK limitation, for which no workaround is currently known,
 unfortunately.
 
@@ -1622,7 +1622,7 @@ after switching back from another virtual desktop.  Setting the variable
 
 *** Gnome desktop does not respect frame size specified in .Xresources
 
-This has been obeserved when running a GTK+ build of Emacs 29 from the
+This has been observed when running a GTK+ build of Emacs 29 from the
 launch pad on Ubuntu 24.04 with mutter as window manager.  The problem
 can be resolved by running Emacs from the command line instead.
 

@@ -116,8 +116,8 @@ then there is no minimum threshold; as soon as the scheduled time has
 elapsed, the user will always be queried.
 
 The second number is the maximum number of keystrokes that can be entered
-before a typing break is requested immediately, pre-empting the originally
-scheduled break.  If this second value is nil, then no pre-emptive breaks
+before a typing break is requested immediately, preempting the originally
+scheduled break.  If this second value is nil, then no preemptive breaks
 will occur; only scheduled ones will.
 
 Keys with bucky bits (shift, control, meta, etc) are counted as only one

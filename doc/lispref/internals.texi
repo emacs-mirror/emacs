@@ -2745,7 +2745,7 @@ The window-relative vertical position of the line containing
 @item window_end_valid
 This field is set to a non-zero value if @code{window_end_pos} and
 @code{window_end_vpos} are truly valid.  This is zero if nontrivial
-redisplay is pre-empted, since in that case the display that
+redisplay is preempted, since in that case the display that
 @code{window_end_pos} was computed for did not get onto the screen.
 
 @item cursor
