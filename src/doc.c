@@ -127,7 +127,10 @@ get_doc_string (Lisp_Object filepos, bool unibyte)
   else
     return Qnil;
 
-  EMACS_INT position = XFIXNUM (pos);
+  /* We used to emit negative positions for 'user variables' (whose doc
+     strings started with an asterisk); take the absolute value for
+     compatibility with bytecode from Emacs <29.  */
+  EMACS_INT position = eabs (XFIXNUM (pos));
 
   if (!STRINGP (dir))
     return Qnil;
