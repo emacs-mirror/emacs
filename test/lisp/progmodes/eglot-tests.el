@@ -1421,6 +1421,8 @@ GUESSED-MAJOR-MODES-SYM are bound to the useful return values of
 
 (defvar tramp-histfile-override)
 (defun eglot--call-with-tramp-test (fn)
+  (unless (>= emacs-major-version 28)
+    (ert-skip "Tramp tests only work reliably on Emacs 28+"))
   ;; Set up a Tramp method that’s just a shell so the remote host is
   ;; really just the local host.
   (let* ((tramp-remote-path (cons 'tramp-own-remote-path
