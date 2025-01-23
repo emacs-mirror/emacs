@@ -307,15 +307,13 @@ Invalid data in documentation file -- %c followed by code %03o",
     }
 }
 
-static bool
+static void
 reread_doc_file (Lisp_Object file)
 {
   if (NILP (file))
     Fsnarf_documentation (Vdoc_file_name);
   else
     save_match_data_load (file, Qt, Qt, Qt, Qnil);
-
-  return 1;
 }
 
 DEFUN ("documentation-stringp", Fdocumentation_stringp, Sdocumentation_stringp,
@@ -341,7 +339,7 @@ string is passed through `substitute-command-keys'.  */)
   Lisp_Object doc;
   bool try_reload = true;
 
- documentation:
+ retry:
 
   doc = Qnil;
 
@@ -366,20 +364,15 @@ string is passed through `substitute-command-keys'.  */)
     doc = Qnil;
   if (FIXNUMP (doc) || CONSP (doc))
     {
-      Lisp_Object tem;
-      tem = get_doc_string (doc, 0);
+      Lisp_Object tem = get_doc_string (doc, 0);
       if (NILP (tem) && try_reload)
 	{
 	  /* The file is newer, we need to reset the pointers.  */
-	  try_reload = reread_doc_file (Fcar_safe (doc));
-	  if (try_reload)
-	    {
-	      try_reload = false;
-	      goto documentation;
-	    }
+	  reread_doc_file (Fcar_safe (doc));
+	  try_reload = false;
+	  goto retry;
 	}
-      else
-	doc = tem;
+      doc = tem;
     }
 
   if (NILP (raw))
@@ -420,7 +413,7 @@ aren't strings.  */)
   bool try_reload = true;
   Lisp_Object tem;
 
- documentation_property:
+ retry:
 
   tem = Fget (symbol, prop);
 
@@ -446,12 +439,9 @@ aren't strings.  */)
       if (NILP (tem) && try_reload)
 	{
 	  /* The file is newer, we need to reset the pointers.  */
-	  try_reload = reread_doc_file (Fcar_safe (doc));
-	  if (try_reload)
-	    {
-	      try_reload = false;
-	      goto documentation_property;
-	    }
+	  reread_doc_file (Fcar_safe (doc));
+	  try_reload = false;
+	  goto retry;
 	}
     }
   else if (!STRINGP (tem))
