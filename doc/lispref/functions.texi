@@ -15,7 +15,6 @@ define them.
 * Lambda Expressions::          How functions are expressed as Lisp objects.
 * Function Names::              A symbol can serve as the name of a function.
 * Defining Functions::          Lisp expressions for defining functions.
-* Finding Definitions::         Finding function definitions created by macros.
 * Calling Functions::           How to use an existing function.
 * Mapping Functions::           Applying a function to each element of a list, etc.
 * Anonymous Functions::         Lambda expressions are functions with no names.
