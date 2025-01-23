@@ -337,7 +337,7 @@ This doesn't solicit or validate a suite of supported mechanisms."
        (setf (erc-sasl--state-client erc-sasl--state) client))))
   ((kill-local-variable 'erc-sasl--state)
    (kill-local-variable 'erc-sasl--options))
-  'local)
+  localp)
 
 (define-erc-response-handler (AUTHENTICATE)
   "Begin or resume an SASL session." nil

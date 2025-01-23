@@ -229,7 +229,7 @@ itself, since that would confuse these tools.
 If your macro cannot be written in this style, the macro can still
 help these tools find the defining call by putting the property
 @code{definition-name} or @code{find-function-type-alist} on the name.
-@xref{Standard Properties}.
+@xref{Finding Definitions}.
 
 @item
 In some other systems there is a convention of choosing variable names

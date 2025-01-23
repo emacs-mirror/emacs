@@ -183,9 +183,10 @@ pgtk_enumerate_devices (struct pgtk_display_info *dpyinfo,
 	  rec->seat = g_object_ref (seat);
 	  rec->device = GDK_DEVICE (t1->data);
 
-	  snprintf (printbuf, 1026, "%u:%s",
-		    gdk_device_get_source (rec->device),
-		    gdk_device_get_name (rec->device));
+	  int len = snprintf (printbuf, sizeof printbuf, "%u:%s",
+			      gdk_device_get_source (rec->device),
+			      gdk_device_get_name (rec->device));
+	  eassert (len < sizeof printbuf);
 
 	  rec->name = build_string (printbuf);
 	  rec->next = dpyinfo->devices;

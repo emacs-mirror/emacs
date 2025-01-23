@@ -567,7 +567,7 @@ via `erc-fill-wrap-mode-hook'."
                 #'erc-fill--wrap-merged-button-p t)
    (remove-hook 'erc-stamp--insert-date-hook
                 #'erc-fill--wrap-unmerge-on-date-stamp t))
-  'local)
+  localp)
 
 (defvar-local erc-fill--wrap-length-function nil
   "Function to determine length of overhanging characters.

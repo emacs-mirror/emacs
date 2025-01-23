@@ -677,8 +677,8 @@ static Lisp_Object
 dump_ptr_referrer (const char *label, void const *address)
 {
   char buf[128];
-  buf[0] = '\0';
-  sprintf (buf, "%s @ %p", label, address);
+  if (sizeof buf <= snprintf (buf, sizeof buf, "%s @ %p", label, address))
+    strcpy (buf + sizeof buf - 4, "...");
   return build_string (buf);
 }
 
@@ -2736,7 +2736,7 @@ dump_hash_table_contents (struct dump_context *ctx, struct Lisp_Hash_Table *h)
 static dump_off
 dump_hash_table (struct dump_context *ctx, Lisp_Object object)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_0360833954
+#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_267C58D687
 # error "Lisp_Hash_Table changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Hash_Table *hash_in = XHASH_TABLE (object);
@@ -3145,8 +3145,10 @@ dump_vectorlike (struct dump_context *ctx,
     case PVEC_TS_NODE:
       break;
     }
-  char msg[60];
-  snprintf (msg, sizeof msg, "pseudovector type %d", (int) ptype);
+  int iptype = ptype;
+  static char const fmt[] = "pseudovector type %d";
+  char msg[sizeof fmt - sizeof "%d" + INT_STRLEN_BOUND (iptype) + 1];
+  sprintf (msg, fmt, iptype);
   error_unsupported_dump_object (ctx, lv, msg);
 }
 

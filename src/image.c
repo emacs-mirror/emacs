@@ -1995,10 +1995,10 @@ image_background (struct image *img, struct frame *f, Emacs_Pix_Context pimg)
 #ifdef USE_CAIRO
       {
 	char color_name[30];
-	sprintf (color_name, "#%04x%04x%04x",
-		 (unsigned int) RED16_FROM_ULONG (bg),
-		 (unsigned int) GREEN16_FROM_ULONG (bg),
-		 (unsigned int) BLUE16_FROM_ULONG (bg));
+	snprintf (color_name, sizeof color_name, "#%04x%04x%04x",
+		  (unsigned int) RED16_FROM_ULONG (bg),
+		  (unsigned int) GREEN16_FROM_ULONG (bg),
+		  (unsigned int) BLUE16_FROM_ULONG (bg));
 	bg = image_alloc_image_color (f, img, build_string (color_name), 0);
       }
 #endif
@@ -4140,10 +4140,8 @@ image_create_x_image_and_pixmap_1 (struct frame *f, int width, int height, int d
   if (*pixmap == NULL)
     {
       DWORD err = GetLastError ();
-      Lisp_Object errcode;
       /* All system errors are < 10000, so the following is safe.  */
-      XSETINT (errcode, err);
-      image_error ("Unable to create bitmap, error code %d", errcode);
+      image_error ("Unable to create bitmap, error code %d", make_fixnum (err));
       image_destroy_x_image (*pimg);
       *pimg = NULL;
       return 0;
@@ -7386,8 +7384,9 @@ image_build_heuristic_mask (struct frame *f, struct image *img,
 	{
 #ifndef USE_CAIRO
 	  char color_name[30];
-	  sprintf (color_name, "#%04x%04x%04x",
-		   rgb[0] + 0u, rgb[1] + 0u, rgb[2] + 0u);
+	  int len = snprintf (color_name, sizeof color_name, "#%04x%04x%04x",
+			      rgb[0] + 0u, rgb[1] + 0u, rgb[2] + 0u);
+	  eassert (len < sizeof color_name);
 	  bg = (
 #ifdef HAVE_NTGUI
 		0x00ffffff & /* Filter out palette info.  */
@@ -8537,7 +8536,9 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
 	  img->background = lookup_rgb_color (f, bg->red, bg->green, bg->blue);
 #else  /* USE_CAIRO */
 	  char color_name[30];
-	  sprintf (color_name, "#%04x%04x%04x", bg->red, bg->green, bg->blue);
+	  int len = snprintf (color_name, sizeof color_name, "#%04x%04x%04x",
+			      bg->red, bg->green, bg->blue);
+	  eassert (len < sizeof color_name);
 	  img->background
 	    = image_alloc_image_color (f, img, build_string (color_name), 0);
 #endif /* USE_CAIRO */
@@ -9397,8 +9398,8 @@ tiff_handler (const char *log_format, const char *title,
      log entry, it's OK to truncate it.  */
   char buf[4000];
   int len = vsnprintf (buf, sizeof buf, format, ap);
-  add_to_log (log_format, build_string (title),
-	      make_string (buf, max (0, min (len, sizeof buf - 1))));
+  image_error (log_format, build_string (title),
+	       make_string (buf, max (0, min (len, sizeof buf - 1))));
 }
 # undef MINGW_STATIC
 

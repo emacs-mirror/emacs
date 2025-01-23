@@ -285,7 +285,7 @@ more..."
    `(gnus-picon-xbm ((,class (:foreground "yellow" :background "white"))))
    `(gnus-server-closed ((,class (:slant italic :foreground "blue" :background "white"))))
    `(gnus-server-denied ((,class (:weight bold :foreground "red" :background "white"))))
-   `(gnus-server-opened ((,class (:family "Sans Serif" :foreground "white" :foreground "#466BD7"))))
+   `(gnus-server-opened ((,class (:family "Sans Serif" :foreground "#466BD7"))))
    `(gnus-signature ((,class (:slant italic :foreground "#8B8D8E"))))
    `(gnus-splash ((,class (:foreground "#FF8C00"))))
    `(gnus-summary-cancelled ((,class ,cancel)))

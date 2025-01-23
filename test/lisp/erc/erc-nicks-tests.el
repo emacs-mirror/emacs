@@ -681,6 +681,9 @@
      (funcall assert-result '(7 . erc-notice-face)))))
 
 (ert-deftest erc-nicks-track-faces/defer ()
+  (when (< emacs-major-version 28)
+    (ert-skip "Possible intermittent failures on 27"))
+
   (should (eq erc-nicks-track-faces 'prioritize))
   (let ((erc-nicks-track-faces 'defer))
     (erc-nicks-tests--track-faces

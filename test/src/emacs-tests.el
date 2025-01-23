@@ -183,7 +183,13 @@
     (skip-unless bash)
     (skip-unless bwrap)
     (skip-unless (file-executable-p emacs))
-    (skip-unless (file-readable-p filter))
+    (skip-unless
+     (let ((command
+            (concat
+             (shell-quote-argument (file-name-unquote bwrap))
+             " --ro-bind / / --seccomp 20 -- echo Hi 20< "
+             (shell-quote-argument (file-name-unquote filter)))))
+       (zerop (call-process bash nil nil nil "-c" command))))
     (should-not (file-remote-p bwrap))
     (should-not (file-remote-p emacs))
     (should-not (file-remote-p filter))
