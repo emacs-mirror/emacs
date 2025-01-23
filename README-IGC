@@ -46,7 +46,7 @@ See "Building MPS yourself" below.
 macOS with Homebrew
 -------------------
 
-Install 'libmps' from Homebrew with
+With macOS 13 or later, you can install 'libmps' from Homebrew with:
 
   brew install libmps
 
@@ -54,6 +54,8 @@ Then add something like this to your environment (e.g., to ~/.zprofile):
 
   export CFLAGS="$CFLAGS -I$(brew --prefix libmps)/include"
   export LDFLAGS="$LDFLAGS -L$(brew --prefix libmps)/lib"
+
+If you are using macOS 12 or earlier, see "Building MPS yourself" below.
 
 Note that --with-mps=debug won't work with the Homebrew recipe, see:
 https://lists.gnu.org/r/emacs-devel/2025-01/msg00886.html
