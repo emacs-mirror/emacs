@@ -1808,6 +1808,11 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
 		FrameRows (tty) = FRAME_TOTAL_LINES (f);
 	    }
 	}
+      else
+	{
+	  SET_FRAME_VISIBLE (f, true);
+	  tty->top_frame = frame;
+	}
     }
 
   sf->select_mini_window_flag = MINI_WINDOW_P (XWINDOW (sf->selected_window));
