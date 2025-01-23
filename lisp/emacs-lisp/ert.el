@@ -1355,7 +1355,7 @@ RESULT must be an `ert-test-result-with-condition'."
   (when-let* ((loc
                (ignore-errors
                  (find-function-search-for-symbol
-                  (ert-test-name test) 'ert-deftest (ert-test-file-name test)))))
+                  (ert-test-name test) 'ert--test (ert-test-file-name test)))))
     (let* ((buffer (car loc))
            (point (cdr loc))
            (file (file-relative-name (buffer-file-name buffer)))
@@ -2467,7 +2467,9 @@ To be used in the ERT results buffer."
 
 (defun ert--test-name-button-action (button)
   "Find the definition of the test BUTTON belongs to, in another window."
-  (let ((name (button-get button 'ert-test-name)))
+  ;; work with either ert-insert-test-name-button or help-xref-button
+  (let ((name (or (button-get button 'ert-test-name)
+                  (car (button-get button 'help-args)))))
     (ert-find-test-other-window name)))
 
 (defun ert--ewoc-position (ewoc node)
@@ -2814,7 +2816,8 @@ To be used in the ERT results buffer."
                                       (file-name-nondirectory file-name)))
               (save-excursion
                 (re-search-backward (substitute-command-keys "`\\([^`']+\\)'"))
-                (help-xref-button 1 'help-function-def test-name file-name)))
+                (help-xref-button 1 'ert--test-name-button
+                                  test-name file-name)))
             (insert ".")
             (fill-region-as-paragraph (point-min) (point))
             (insert "\n\n")
@@ -2855,7 +2858,7 @@ To be used in the ERT results buffer."
 
 (defun ert--unload-function ()
   "Unload function to undo the side-effects of loading ert.el."
-  (ert--remove-from-list 'find-function-regexp-alist 'ert-deftest :key #'car)
+  (ert--remove-from-list 'find-function-regexp-alist 'ert--test :key #'car)
   (ert--remove-from-list 'minor-mode-alist 'ert--current-run-stats :key #'car)
   (ert--remove-from-list 'emacs-lisp-mode-hook
                          'ert--activate-font-lock-keywords)
