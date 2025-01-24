@@ -222,6 +222,13 @@ https://publicsuffix.org/list/public_suffix_list.dat
 - leim/SKK-DIC/SKK-JISYO.L
 https://raw.githubusercontent.com/skk-dev/dict/master/SKK-JISYO.L
 
+** Check for mistakes in man pages.
+
+The below script checks for any mistakes in the source text of
+manual pages.  Fix any errors and re-run the script to verify.
+
+  ./admin/check-man-pages
+
 * BUGS
 
 ** Check for modes which bind M-s that conflicts with a new global binding M-s
