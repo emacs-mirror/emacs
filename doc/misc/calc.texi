@@ -234,7 +234,7 @@ series of calculators, its many features include:
 @itemize @bullet
 @item
 Choice of algebraic or Reverse Polish notation (RPN),
-i.e. stack-based, entry of calculations.
+i.e.@: stack-based, entry of calculations.
 
 @item
 Arbitrary precision integers and floating-point numbers.
@@ -2630,8 +2630,8 @@ elements.)  Calculations involving fractions will always
 produce exact fractional results; Fraction mode only says
 what to do when dividing two integers.
 
-@cindex Fractions vs. floats
-@cindex Floats vs. fractions
+@cindex Fractions vs.@: floats
+@cindex Floats vs.@: fractions
 (@bullet{}) @strong{Exercise 4.}  If fractional arithmetic is exact,
 why would you ever use floating-point numbers instead?
 @xref{Modes Answer 4, 4}. (@bullet{})

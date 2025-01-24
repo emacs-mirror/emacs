@@ -459,9 +459,9 @@ Here's an example:
 @kindex :repeat
 @kindex repeat-mode
 @cindex repeatable key bindings
-Each command in the keymap can be marked as `repeatable', i.e. usable
+Each command in the keymap can be marked as `repeatable', i.e.@: usable
 in @code{repeat-mode}, by putting a @code{repeat-map} property on it,
-e.g.
+for example:
 
 @lisp
 (put 'undo 'repeat-map 'undo-repeat-map)

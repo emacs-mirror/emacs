@@ -126,7 +126,7 @@ It uses a fast but not so space-efficient encoding for the parse
 tables, described in Corbett's PhD thesis from Berkeley:
 @quotation
 @cite{Static Semantics in Compiler Error Recovery}@*
-June 1985, Report No. UCB/CSD 85/251.
+June 1985, Report No.@: UCB/CSD 85/251.
 @end quotation
 
 @item

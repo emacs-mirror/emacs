@@ -1233,7 +1233,7 @@ or bottom of the window during drag.
   Emacs can also optionally drag the region with the mouse into
 another portion of this or another buffer.  To enable that, customize
 the variable @code{mouse-drag-and-drop-region} to a non-@code{nil}
-value.  Normally, the text is moved, i.e. cut and pasted, when the
+value.  Normally, the text is moved, i.e.@: cut and pasted, when the
 destination is the same buffer as the origin; dropping the region on
 another buffer copies the text instead.  If the value of this variable
 names a modifier key, such as @samp{shift}, @samp{control} or

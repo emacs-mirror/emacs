@@ -1333,7 +1333,7 @@ corresponding help (@pxref{Routine Info}).
 When using completion and Emacs pops up a @file{*Completions*} buffer
 with possible completions, clicking with @kbd{mouse-3} on a completion
 item invokes help on that item (@pxref{Completion}).  Items for which
-help is available in the online system documentation (vs. just the
+help is available in the online system documentation (vs.@: just the
 program source itself) will be emphasized (e.g., colored blue).
 @end itemize
 @noindent
@@ -3495,7 +3495,7 @@ Controls under what circumstances routine info is updated automatically.
 
 @emph{Catalogs} are files containing scanned information on individual
 routines, including arguments and keywords, calling sequence, file path,
-class and procedure vs. function type, etc.  They represent a way of
+class and procedure vs.@: function type, etc.  They represent a way of
 extending the internal built-in information available for IDL system
 routines (@pxref{Routine Info}) to other source collections.
 

@@ -851,7 +851,7 @@ Examples of use:
 
 In the case of @code{:client-certificate t}, you will need to add a
 line like the following to your authinfo file
-(e.g. @file{~/.authinfo.gpg}):
+(for example, @file{~/.authinfo.gpg}):
 
 @example
 machine irc.libera.chat key /home/bandali/my-cert.key cert /home/bandali/my-cert.crt

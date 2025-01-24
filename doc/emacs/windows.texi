@@ -713,7 +713,7 @@ you customize the value of @code{tab-line-format} in Lisp to add
   The command @code{global-window-tool-bar-mode} toggles the display of
 a tool bar at the top of each window.  When enabled, multiple windows
 can display their own tool bar simultaneously.  To conserve space, a
-window tool bar is hidden if there are no buttons to show, i.e. if
+window tool bar is hidden if there are no buttons to show, i.e.@: if
 @code{tool-bar-map} is @code{nil}.
 
 @findex window-tool-bar-mode

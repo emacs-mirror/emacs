@@ -582,7 +582,7 @@ function was called for the buffer.  If the list is empty, this
 indicates that no changes have been recorded.  If it is the first time
 that this backend function is called for this activation of
 @code{flymake-mode}, then this argument isn't provided at all
-(i.e. it's not merely nil).
+(in other words, it's not merely nil).
 
 Each element is in the form (@var{beg} @var{end} @var{text}) where
 @var{beg} and @var{end} are buffer positions, and @var{text} is a
