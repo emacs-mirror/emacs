@@ -17214,7 +17214,11 @@ redisplay_internal (void)
       /* All text outside that line, including its final newline,
 	 must be unchanged.  */
       && text_outside_line_unchanged_p (w, CHARPOS (tlbufpos),
-					CHARPOS (tlendpos)))
+					CHARPOS (tlendpos))
+      /* If this is a window on a tty root frame displaying a child frame,
+	 the current matrix of W may contain glyphs of that child frame.
+	 Don't try shortcuts that might use the current matrix in this case.  */
+      && !is_tty_root_frame_with_visible_child (XFRAME (w->frame)))
     {
       if (CHARPOS (tlbufpos) > BEGV
 	  && FETCH_BYTE (BYTEPOS (tlbufpos) - 1) != '\n'
@@ -17279,11 +17283,7 @@ redisplay_internal (void)
 		 line and this line is the current one, because
 		 display_line above is not informed about the
 		 current-line's vpos, and cannot DTRT in that case.  */
-	      && !hscrolling_current_line_p (w)
-	      /* A root frame may have visible children displayed in its
-		 current matrix, so that we can't do the below with its
-		 current matrix.  */
-	      && !is_tty_root_frame_with_visible_child (it.f))
+	      && !hscrolling_current_line_p (w))
 	    {
  	      /* If this is not the window's last line, we must adjust
  		 the charstarts of the lines below.  */
@@ -19430,6 +19430,13 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
   struct frame *f = XFRAME (w->frame);
   int rc = CURSOR_MOVEMENT_CANNOT_BE_USED;
 
+
+  /* If this is a window on a tty root frame displaying a child frame,
+     the current matrix of W may contain glyphs of that child frame,
+     so this method is not safe to use.  */
+  if (is_tty_root_frame_with_visible_child (f))
+    return rc;
+
 #ifdef GLYPH_DEBUG
   if (inhibit_try_cursor_movement)
     return rc;
@@ -21333,6 +21340,13 @@ static bool
 try_window_reusing_current_matrix (struct window *w)
 {
   struct frame *f = XFRAME (w->frame);
+
+  /* If this is a window on a tty root frame displaying a child frame,
+     the current matrix of W may contain glyphs of that child frame,
+     so this method is not safe to use.  */
+  if (is_tty_root_frame_with_visible_child (f))
+    return false;
+
   struct glyph_row *bottom_row;
   struct it it;
   struct run run;
@@ -22120,6 +22134,13 @@ static int
 try_window_id (struct window *w)
 {
   struct frame *f = XFRAME (w->frame);
+
+  /* If this is a window on a tty root frame displaying a child frame,
+     the current matrix of W may contain glyphs of that child frame,
+     so this method is not safe to use.  */
+  if (is_tty_root_frame_with_visible_child (f))
+    return 0;
+
   struct glyph_matrix *current_matrix = w->current_matrix;
   struct glyph_matrix *desired_matrix = w->desired_matrix;
   struct glyph_row *last_unchanged_at_beg_row;
