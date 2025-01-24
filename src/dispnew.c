@@ -3967,7 +3967,7 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
 
   /* Determine visible frames on the root frame, including the root
      frame itself.  Note that there are cases, see bug#75056, where we
-     can be called for invisible frames. */
+     can be called for invisible frames.  */
   Lisp_Object z_order = frames_in_reverse_z_order (root, true);
   if (NILP (z_order))
     {
