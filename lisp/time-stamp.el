@@ -532,7 +532,7 @@ and all `time-stamp-format' compatibility."
 	  (let ((prev-char nil)
 		(field-width "")
 		field-result
-		(alt-form 0)
+                (colon-cnt 0)
 		(change-case nil)
                 (title-case nil)
 		(upcase nil)
@@ -579,7 +579,7 @@ and all `time-stamp-format' compatibility."
 	      (setq prev-char cur-char)
 	      ;; some characters we actually use
 	      (cond ((eq cur-char ?:)
-		     (setq alt-form (1+ alt-form)))
+                     (setq colon-cnt (1+ colon-cnt)))
 		    ((eq cur-char ?#)
 		     (setq change-case t))
 		    ((eq cur-char ?^)
@@ -601,67 +601,67 @@ and all `time-stamp-format' compatibility."
 	           ((eq cur-char ?a)    ;day of week
                     (time-stamp-do-letter-case
                      nil upcase title-case change-case
-                     (if (> alt-form 0)
+                     (if (> colon-cnt 0)
                          (if (string-equal field-width "")
                              (time-stamp--format "%A" time)
                            "")           ;discourage "%:3a"
                        (time-stamp--format "%a" time))))
 	           ((eq cur-char ?A)
-                    (if (and (>= (string-to-number field-width) 1)
-                             (<= (string-to-number field-width) 3)
-                             (not flag-minimize)
-                             (not flag-pad-with-spaces))
-                        (progn
-		          (time-stamp-conv-warn "%3A" "%#a")
-		          (time-stamp--format "%#a" time))
-                      (if (or (> alt-form 0)
-                              change-case upcase title-case
-                              flag-minimize flag-pad-with-spaces
-                              (string-equal field-width ""))
-                          (time-stamp-do-letter-case
-                           nil upcase title-case change-case
-                           (time-stamp--format "%A" time))
-                        (time-stamp-conv-warn (format "%%%sA" field-width)
+                    (cond
+                     ((and (>= (string-to-number field-width) 1)
+                           (<= (string-to-number field-width) 3)
+                           (not flag-minimize)
+                           (not flag-pad-with-spaces))
+                      (time-stamp-conv-warn "%3A" "%#a")
+                      (time-stamp--format "%#a" time))
+                     ((or (> colon-cnt 0)
+                          change-case upcase title-case
+                          flag-minimize flag-pad-with-spaces
+                          (string-equal field-width ""))
+                      (time-stamp-do-letter-case
+                       nil upcase title-case change-case
+                       (time-stamp--format "%A" time)))
+                     (t (time-stamp-conv-warn (format "%%%sA" field-width)
                                               (format "%%#%sA" field-width)
                                               (format "%%:%sA" field-width))
                         (time-stamp--format "%#A" time))))
 	           ((eq cur-char ?b)    ;month name
                     (time-stamp-do-letter-case
                      nil upcase title-case change-case
-                     (if (> alt-form 0)
+                     (if (> colon-cnt 0)
                          (if (string-equal field-width "")
                              (time-stamp--format "%B" time)
                            "")           ;discourage "%:3b"
                        (time-stamp--format "%b" time))))
 		   ((eq cur-char ?B)
-                    (if (and (>= (string-to-number field-width) 1)
-                             (<= (string-to-number field-width) 3)
-                             (not flag-minimize)
-                             (not flag-pad-with-spaces))
-                        (progn
-		          (time-stamp-conv-warn "%3B" "%#b")
-			  (time-stamp--format "%#b" time))
-                      (if (or (> alt-form 0)
-                              change-case upcase title-case
-                              flag-minimize flag-pad-with-spaces
-                              (string-equal field-width ""))
-                          (time-stamp-do-letter-case
-                           nil upcase title-case change-case
-                           (time-stamp--format "%B" time))
-                        (time-stamp-conv-warn (format "%%%sB" field-width)
+                    (cond
+                     ((and (>= (string-to-number field-width) 1)
+                           (<= (string-to-number field-width) 3)
+                           (not flag-minimize)
+                           (not flag-pad-with-spaces))
+                      (time-stamp-conv-warn "%3B" "%#b")
+                      (time-stamp--format "%#b" time))
+                     ((or (> colon-cnt 0)
+                          change-case upcase title-case
+                          flag-minimize flag-pad-with-spaces
+                          (string-equal field-width ""))
+                      (time-stamp-do-letter-case
+                       nil upcase title-case change-case
+                       (time-stamp--format "%B" time)))
+                     (t (time-stamp-conv-warn (format "%%%sB" field-width)
                                               (format "%%#%sB" field-width)
                                               (format "%%:%sB" field-width))
                         (time-stamp--format "%#B" time))))
 	           ((eq cur-char ?d)    ;day of month, 1-31
-	            (time-stamp-do-number cur-char alt-form field-width time))
+                    (time-stamp-do-number cur-char colon-cnt field-width time))
 	           ((eq cur-char ?H)    ;hour, 0-23
-	            (time-stamp-do-number cur-char alt-form field-width time))
+                    (time-stamp-do-number cur-char colon-cnt field-width time))
 	           ((eq cur-char ?I)    ;hour, 1-12
-	            (time-stamp-do-number cur-char alt-form field-width time))
+                    (time-stamp-do-number cur-char colon-cnt field-width time))
 	           ((eq cur-char ?m)    ;month number, 1-12
-	            (time-stamp-do-number cur-char alt-form field-width time))
+                    (time-stamp-do-number cur-char colon-cnt field-width time))
 	           ((eq cur-char ?M)    ;minute, 0-59
-	            (time-stamp-do-number cur-char alt-form field-width time))
+                    (time-stamp-do-number cur-char colon-cnt field-width time))
 	           ((eq cur-char ?p)    ;AM or PM
                     (time-stamp-do-letter-case
                      t upcase title-case change-case
@@ -673,11 +673,11 @@ and all `time-stamp-format' compatibility."
                        t upcase title-case change-case
                        (time-stamp--format "%p" time))))
 	           ((eq cur-char ?S)    ;seconds, 00-60
-	            (time-stamp-do-number cur-char alt-form field-width time))
+                    (time-stamp-do-number cur-char colon-cnt field-width time))
 	           ((eq cur-char ?w)    ;weekday number, Sunday is 0
 	            (time-stamp--format "%w" time))
 	           ((eq cur-char ?y)    ;year
-                    (if (= alt-form 0)
+                    (if (= colon-cnt 0)
                         (if (or (string-equal field-width "")
                                 (<= (string-to-number field-width) 2))
                             (string-to-number (time-stamp--format "%y" time))
@@ -706,7 +706,7 @@ and all `time-stamp-format' compatibility."
 	              (setq field-width "")
 	              (cond (change-case
 		             "")        ;discourage %z variations
-		            ((and (= alt-form 0)
+                            ((and (= colon-cnt 0)
 			          (not flag-minimize)
 			          (not flag-pad-with-spaces)
 			          (not flag-pad-with-zeros)
@@ -717,7 +717,7 @@ and all `time-stamp-format' compatibility."
 				flag-minimize
 				flag-pad-with-spaces
 				flag-pad-with-zeros
-				alt-form
+                                colon-cnt
 				field-width-num
 				offset-secs)))))
 	           ((eq cur-char ?Z)    ;time zone name
@@ -757,7 +757,7 @@ and all `time-stamp-format' compatibility."
 	            (system-name))
 	           ))
             (and (numberp field-result)
-                 (= alt-form 0)
+                 (= colon-cnt 0)
                  (or (string-equal field-width "")
                      (string-equal field-width "0"))
                  ;; no width provided; set width for default
@@ -793,13 +793,13 @@ This is an internal helper for `time-stamp-string-preprocess'."
         (t
          text)))
 
-(defun time-stamp-do-number (format-char alt-form field-width time)
+(defun time-stamp-do-number (format-char colon-count field-width time)
   "Handle compatible FORMAT-CHAR where only default width/padding will change.
-ALT-FORM is non-0 if \":\" was specified.  FIELD-WIDTH is the string
+COLON-COUNT is non-0 if \":\" was specified.  FIELD-WIDTH is the string
 width specification or \"\".  TIME is the time to convert.
 This is an internal helper for `time-stamp-string-preprocess'."
   (let ((format-string (concat "%" (char-to-string format-char))))
-    (if (and (> alt-form 0) (not (string-equal field-width "")))
+    (if (and (> colon-count 0) (not (string-equal field-width "")))
 	""				;discourage "%:2d" and the like
       (string-to-number (time-stamp--format format-string time)))))
 
