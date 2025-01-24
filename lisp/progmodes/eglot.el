@@ -2047,6 +2047,8 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
                 nil t)
       (add-hook 'eldoc-documentation-functions #'eglot-signature-eldoc-function
                 nil t)
+      (add-hook 'eldoc-documentation-functions #'eglot-highlight-eldoc-function
+                nil t)
       (eldoc-mode 1))
     (cl-pushnew (current-buffer) (eglot--managed-buffers (eglot-current-server))))
    (t
@@ -2067,6 +2069,7 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
     (remove-hook 'pre-command-hook #'eglot--pre-command-hook t)
     (remove-hook 'eldoc-documentation-functions #'eglot-hover-eldoc-function t)
     (remove-hook 'eldoc-documentation-functions #'eglot-signature-eldoc-function t)
+    (remove-hook 'eldoc-documentation-functions #'eglot-highlight-eldoc-function t)
     (cl-loop for (var . saved-binding) in eglot--saved-bindings
              do (set (make-local-variable var) saved-binding))
     (remove-function (local 'imenu-create-index-function) #'eglot-imenu)
@@ -3495,17 +3498,17 @@ for which LSP on-type-formatting should be requested."
                          (funcall cb info
                                   :echo (and info (string-match "\n" info))))))
        :deferred :textDocument/hover))
-    (eglot--highlight-piggyback cb)
     t))
 
 (defvar eglot--highlights nil "Overlays for textDocument/documentHighlight.")
 
-(defun eglot--highlight-piggyback (_cb)
-  "Request and handle `:textDocument/documentHighlight'."
-  ;; FIXME: Obviously, this is just piggy backing on eldoc's calls for
-  ;; convenience, as shown by the fact that we just ignore cb.
-  (let ((buf (current-buffer)))
-    (when (eglot-server-capable :documentHighlightProvider)
+(defun eglot-highlight-eldoc-function (_cb &rest _ignored)
+  "A member of `eldoc-documentation-functions', for highlighting symbols'."
+  ;; Obviously, we're not using ElDoc for documentation, but merely its
+  ;; at-point calling convention, as shown by the fact that we just
+  ;; ignore cb and return nil to say "no doc".
+  (when (eglot-server-capable :documentHighlightProvider)
+    (let ((buf (current-buffer)))
       (jsonrpc-async-request
        (eglot--current-server-or-lose)
        :textDocument/documentHighlight (eglot--TextDocumentPositionParams)
