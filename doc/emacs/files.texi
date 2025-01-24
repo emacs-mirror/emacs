@@ -995,8 +995,7 @@ File Shadowing is not available on MS Windows.
 
 @node Time Stamps
 @subsection Updating Time Stamps Automatically
-@cindex time stamps
-@cindex timestamps
+@cindex time stamps, automatic file timestamps
 @cindex modification dates
 @cindex last modified time
 
