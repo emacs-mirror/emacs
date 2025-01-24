@@ -488,10 +488,15 @@ Internal helper used by `time-stamp-string-preprocess'."
   (format-time-string format time time-stamp-time-zone))
 
 (defun time-stamp-string (&optional ts-format time)
-  "Generate the new string to be inserted by \\[time-stamp].
-Optionally use format TS-FORMAT instead of `time-stamp-format' to
-format the string.  Optional second argument TIME is only for testing;
-normally the current time is used."
+  "Return the current time and other info formatted for \\[time-stamp].
+Optional first argument TS-FORMAT gives the format to use; it defaults
+to the value of `time-stamp-format'.  Thus, with no arguments,
+this function returns the string `time-stamp' would use to update
+its template in the buffer.  The format accepted is similar to the
+format used by `format-time-string' with some extensions; see the
+documentation of `time-stamp-format' for details.
+Optional second argument TIME is only for testing; normally the current
+time is used.  The time zone is determined by `time-stamp-time-zone'."
   (if (stringp (or ts-format (setq ts-format time-stamp-format)))
       (time-stamp-string-preprocess ts-format time)))
 
@@ -790,7 +795,7 @@ This is an internal helper for `time-stamp-string-preprocess'."
 
 (defun time-stamp-do-number (format-char alt-form field-width time)
   "Handle compatible FORMAT-CHAR where only default width/padding will change.
-ALT-FORM is whether `#' was specified.  FIELD-WIDTH is the string
+ALT-FORM is non-0 if \":\" was specified.  FIELD-WIDTH is the string
 width specification or \"\".  TIME is the time to convert.
 This is an internal helper for `time-stamp-string-preprocess'."
   (let ((format-string (concat "%" (char-to-string format-char))))
