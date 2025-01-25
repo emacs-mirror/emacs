@@ -3328,6 +3328,17 @@ root_xy (struct frame *f, int x, int y, int *rx, int *ry)
     }
 }
 
+/* Translate absolute coordinates (X, Y) to coordinates relative to F's origin.  */
+
+void
+child_xy (struct frame *f, int x, int y, int *cx, int *cy)
+{
+  int rx, ry;
+  root_xy (f, 0, 0, &rx, &ry);
+  *cx = x - rx;
+  *cy = y - ry;
+}
+
 /* Return the rectangle frame F occupies.  X and Y are in absolute
    coordinates.  */
 
