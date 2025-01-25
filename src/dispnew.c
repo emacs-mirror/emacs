@@ -3366,17 +3366,6 @@ max_child_z_order (struct frame *parent)
   return z_order;
 }
 
-/* Return true if F1 is an ancestor of F2.  */
-
-bool
-is_frame_ancestor (struct frame *f1, struct frame *f2)
-{
-  for (struct frame *f = FRAME_PARENT_FRAME (f2); f; f = FRAME_PARENT_FRAME (f))
-    if (f == f1)
-      return true;
-  return false;
-}
-
 /* Return a list of all frames having root frame ROOT.
    If VISIBLE_ONLY is true, return only visible frames.  */
 
@@ -3420,9 +3409,9 @@ frame_z_order_cmp (struct frame *f1, struct frame *f2)
 {
   if (f1 == f2)
     return 0;
-  if (is_frame_ancestor (f1, f2))
+  if (frame_ancestor_p (f1, f2))
     return -1;
-  if (is_frame_ancestor (f2, f1))
+  if (frame_ancestor_p (f2, f1))
     return 1;
   return f1->z_order - f2->z_order;
 }
@@ -3704,7 +3693,7 @@ static void
 copy_child_glyphs (struct frame *root, struct frame *child)
 {
   eassert (!FRAME_PARENT_FRAME (root));
-  eassert (is_frame_ancestor (root, child));
+  eassert (frame_ancestor_p (root, child));
 
   /* Determine the intersection of the child frame rectangle with the
      root frame.  This is basically clipping the child frame to the

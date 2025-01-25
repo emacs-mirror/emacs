@@ -3004,7 +3004,7 @@ mouse_get_xy (int *x, int *y)
 
   struct frame *f = XFRAME (XCAR (mouse));
   struct frame *sf = SELECTED_FRAME ();
-  if (f == sf || is_frame_ancestor (sf, f))
+  if (f == sf || frame_ancestor_p (sf, f))
     {
       int mx = XFIXNUM (XCAR (XCDR (mouse)));
       int my = XFIXNUM (XCDR (XCDR (mouse)));
