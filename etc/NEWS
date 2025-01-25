@@ -1099,6 +1099,10 @@ the tree-sitter library.  The new function 'treesit-show-paren-data' is
 used to communicate the tree-sitter parsing results to
 'show-paren-mode'.
 
+*** New treesit thing 'comment'.
+The new variable 'forward-comment-function' is set to the new function
+'treesit-forward-comment' if a major mode defines the thing 'comment'.
+
 +++
 *** New function 'treesit-language-display-name'.
 This new function returns the display name of a language given the

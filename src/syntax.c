@@ -2434,6 +2434,9 @@ between them, return t; otherwise return nil.  */)
   int dummy2;
   unsigned short int quit_count = 0;
 
+  if (!NILP (Vforward_comment_function))
+    return calln (Vforward_comment_function, count);
+
   CHECK_FIXNUM (count);
   count1 = XFIXNUM (count);
   stop = count1 > 0 ? ZV : BEGV;
@@ -3795,6 +3798,11 @@ In both cases, LIMIT bounds the search. */);
   comment_end_can_be_escaped = false;
   DEFSYM (Qcomment_end_can_be_escaped, "comment-end-can-be-escaped");
   Fmake_variable_buffer_local (Qcomment_end_can_be_escaped);
+
+  DEFVAR_LISP ("forward-comment-function", Vforward_comment_function,
+	       doc: /* If non-nil, `forward-comment' delegates to this function.
+Should take the same arguments and behave similarly to `forward-comment'.  */);
+  Vforward_comment_function = Qnil;
 
   defsubr (&Ssyntax_table_p);
   defsubr (&Ssyntax_table);

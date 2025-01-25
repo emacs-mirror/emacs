@@ -2945,6 +2945,29 @@ by `text' and `sentence' in `treesit-thing-settings'."
      (if (> arg 0) #'treesit-end-of-thing #'treesit-beginning-of-thing)
      'sentence (abs arg))))
 
+(defun treesit-forward-comment (&optional count)
+  "Tree-sitter `forward-comment-function' implementation.
+
+COUNT is the same as in `forward-comment'."
+  (let ((res t) thing)
+    (while (> count 0)
+      (skip-chars-forward " \t\n")
+      (setq thing (treesit-thing-at (point) 'comment))
+      (if (and thing (eq (point) (treesit-node-start thing)))
+          (progn
+            (goto-char (min (1+ (treesit-node-end thing)) (point-max)))
+            (setq count (1- count)))
+        (setq count 0 res nil)))
+    (while (< count 0)
+      (skip-chars-backward " \t\n")
+      (setq thing (treesit-thing-at (max (1- (point)) (point-min)) 'comment))
+      (if (and thing (eq (point) (treesit-node-end thing)))
+          (progn
+            (goto-char (treesit-node-start thing))
+            (setq count (1+ count)))
+        (setq count 0 res nil)))
+    res))
+
 (defun treesit-default-defun-skipper ()
   "Skips spaces after navigating a defun.
 This function tries to move to the beginning of a line, either by
@@ -3649,10 +3672,13 @@ before calling this function."
     (setq-local forward-list-function #'treesit-forward-list)
     (setq-local down-list-function #'treesit-down-list)
     (setq-local up-list-function #'treesit-up-list)
-    (setq-local show-paren-data-function 'treesit-show-paren-data))
+    (setq-local show-paren-data-function #'treesit-show-paren-data))
 
   (when (treesit-thing-defined-p 'sentence nil)
     (setq-local forward-sentence-function #'treesit-forward-sentence))
+
+  (when (treesit-thing-defined-p 'comment nil)
+    (setq-local forward-comment-function #'treesit-forward-comment))
 
   ;; Imenu.
   (when (or treesit-aggregated-simple-imenu-settings
