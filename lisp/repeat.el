@@ -87,7 +87,7 @@
 
 ;;; Code:
 
-(require 'cl-extra)
+(require 'cl-lib)
 
 ;;;;; ************************* USER OPTIONS ************************** ;;;;;
 
