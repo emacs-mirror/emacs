@@ -3293,11 +3293,7 @@ DEFUN ("frame-visible-p", Fframe_visible_p, Sframe_visible_p,
 Return the symbol `icon' if FRAME is iconified or \"minimized\".
 Return nil if FRAME was made invisible, via `make-frame-invisible'.
 On graphical displays, invisible frames are not updated and are
-usually not displayed at all, even in a window system's \"taskbar\".
-
-If FRAME is a text terminal frame, this always returns t.
-Such frames are always considered visible, whether or not they are
-currently being displayed on the terminal.  */)
+usually not displayed at all, even in a window system's \"taskbar\".  */)
   (Lisp_Object frame)
 {
   CHECK_LIVE_FRAME (frame);
