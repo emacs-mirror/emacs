@@ -4122,7 +4122,8 @@ Navigates from button to button."
     (user-error "Not in `treesit-explore-mode'"))
   (setq-local treesit--explorer-parser parser)
   (display-buffer treesit--explorer-buffer
-                  (cons nil '((inhibit-same-window . t))))
+                  '(display-buffer-below-selected
+                    (inhibit-same-window . t)))
   (setq-local treesit--explorer-last-node nil)
   (treesit--explorer-refresh))
 
@@ -4176,7 +4177,9 @@ window."
   (interactive)
   (if (and treesit-explore-mode
            (buffer-live-p treesit--explorer-buffer))
-      (display-buffer treesit--explorer-buffer '(nil (inhibit-same-window . t)))
+      (display-buffer treesit--explorer-buffer
+                      '(display-buffer-below-selected
+                        (inhibit-same-window . t)))
     (treesit-explore-mode)))
 
 ;;; Install & build language grammar
