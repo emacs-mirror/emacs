@@ -3313,18 +3313,16 @@ rect_intersect (struct rect *r, struct rect r1, struct rect r2)
   return true;
 }
 
-/* Translate (X, Y) relative to frame F to absolute coordinates
-   in (*X, *Y).  */
+/* Return the absolute position of frame F in *X and *Y.  */
 
 void
-root_xy (struct frame *f, int x, int y, int *rx, int *ry)
+frame_pos_abs (struct frame *f, int *x, int *y)
 {
-  *rx = x;
-  *ry = y;
+  *x = *y = 0;
   for (; f; f = FRAME_PARENT_FRAME (f))
     {
-      *rx += f->left_pos;
-      *ry += f->top_pos;
+      *x += f->left_pos;
+      *y += f->top_pos;
     }
 }
 
@@ -3335,7 +3333,7 @@ static struct rect
 frame_rect_abs (struct frame *f)
 {
   int x, y;
-  root_xy (f, 0, 0, &x, &y);
+  frame_pos_abs (f, &x, &y);
   return (struct rect) { x, y, f->total_cols, f->total_lines };
 }
 
@@ -3877,7 +3875,10 @@ abs_cursor_pos (struct frame *f, int *x, int *y)
 
       wx += max (0, w->left_margin_cols);
 
-      root_xy (f, wx, wy, x, y);
+      int fx, fy;
+      frame_pos_abs (f, &fx, &fy);
+      *x = fx + wx;
+      *y = fy + wy;
       return true;
     }
 

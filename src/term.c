@@ -2996,9 +2996,10 @@ mouse_get_xy (int *x, int *y)
   struct frame *sf = SELECTED_FRAME ();
   if (f == sf || is_frame_ancestor (sf, f))
     {
-      int mx = XFIXNUM (XCAR (XCDR (mouse)));
-      int my = XFIXNUM (XCDR (XCDR (mouse)));
-      root_xy (f, mx, my, x, y);
+      int fx, fy;
+      frame_pos_abs (f, &fx, &fy);
+      *x = fx + XFIXNUM (XCAR (XCDR (mouse)));
+      *y = fy + XFIXNUM (XCDR (XCDR (mouse)));
     }
 }
 
