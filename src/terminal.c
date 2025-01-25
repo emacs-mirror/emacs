@@ -128,7 +128,7 @@ raw_cursor_to (struct frame *f, int row, int col)
   if (term->raw_cursor_to_hook)
     {
       int x, y;
-      root_xy (f, row, col, &x, &y);
+      root_xy (f, col, row, &x, &y);
       term->raw_cursor_to_hook (f, y, x);
     }
 }
