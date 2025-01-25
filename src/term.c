@@ -2603,9 +2603,11 @@ tty_frame_at (int x, int y)
     {
       Lisp_Object frame = Fcar (frames);
       struct frame *f = XFRAME (frame);
+      int fx, fy;
+      root_xy (f, 0, 0, &fx, &fy);
 
-      if (f->left_pos <= x && x < f->left_pos + f->pixel_width &&
-	  f->top_pos <= y && y < f->top_pos + f->pixel_height)
+      if (fx <= x && x < fx + f->pixel_width
+	  && fy <= y && y < fy + f->pixel_height)
 	return frame;
     }
 
