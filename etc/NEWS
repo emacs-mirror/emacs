@@ -465,6 +465,25 @@ This user option controls the width of the type column on the bookmark
 menu 'bookmark-bmenu-list'.  The default value is 8 which is backwards
 compatible.
 
+** Saveplace
+
+---
+*** You can now regularly auto-save places.
+Customize 'save-place-autosave-interval' to the number of seconds
+between auto saving places.  For example, to save places every 5
+minutes:
+
+  M-x customize-option RET save-place-autosave-interval RET and set to
+  300 seconds.
+
+Or in elisp:
+
+  (setopt save-place-autosave-interval (* 60 5))
+
+If 'save-place-autosave-interval' is nil, auto saving is disabled; this
+is the default.  As before, saved places are scheduled to be saved at
+Emacs exit.
+
 ** Gnus
 
 ---

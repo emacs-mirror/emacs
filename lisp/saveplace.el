@@ -208,6 +208,45 @@ disabled, i.e., no files are excluded."
 
 (declare-function dired-current-directory "dired" (&optional localp))
 
+(defvar save-place--autosave-timer nil)
+
+(defun save-place--cancel-timer ()
+  "Cancel `save-place-autosave' timer, if set."
+  (when (timerp save-place--autosave-timer)
+    (cancel-timer save-place--autosave-timer))
+  (setq save-place--autosave-timer nil))
+
+(defvar save-place-autosave-interval)
+
+(defun save-place--manage-timer ()
+  "Set or cancel an invocation of `save-place--autosave' on a timer.
+If `save-place-mode' is enabled, set the timer, otherwise cancel the timer."
+  (if (and save-place-mode
+           save-place-autosave-interval
+           (null save-place--autosave-timer))
+      (setq save-place--autosave-timer
+	    (run-with-timer
+             save-place-autosave-interval
+	     save-place-autosave-interval #'save-place--autosave))
+    (save-place--cancel-timer)))
+
+(defcustom save-place-autosave-interval nil
+  "The interval between auto saves of buffer places.
+If set to nil, disables timer-based auto saving.
+Use `setopt' or Customize commands to set this option."
+  :type '(choice (const :tag "Disabled" nil)
+                 (integer :tag "Seconds"))
+  :version "31.1"
+  :set (lambda (sym val)
+         (set-default sym val)
+         (save-place--cancel-timer)
+         (save-place--manage-timer)))
+
+(defun save-place--autosave ()
+  "Called by `save-place--autosave-timer'."
+  (save-places-to-alist)
+  (save-place-alist-to-file))
+
 (defun save-place--setup-hooks (add)
   (cond
    (add
@@ -235,7 +274,8 @@ This means when you visit a file, point goes to the last place
 where it was when you previously visited the same file."
   :global t
   :group 'save-place
-  (save-place--setup-hooks save-place-mode))
+  (save-place--setup-hooks save-place-mode)
+  (save-place--manage-timer))
 
 (make-variable-buffer-local 'save-place-mode)
 
@@ -258,7 +298,8 @@ file:
 				     dired-subdir-alist
 				     (dired-current-directory))))
       (message "Buffer `%s' not visiting a file or directory" (buffer-name))
-    (save-place--setup-hooks save-place-mode)))
+    (save-place--setup-hooks save-place-mode)
+    (save-place--manage-timer)))
 
 (declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))
 
