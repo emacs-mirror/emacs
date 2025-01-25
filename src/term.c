@@ -2766,7 +2766,8 @@ int
 handle_one_term_event (struct tty_display_info *tty, const Gpm_Event *event_in)
 {
   Gpm_Event event = *event_in;
-  Lisp_Object frame = tty_frame_at (event_in->x, event_in->y, &event.x, &event.y);
+  int gpm_x = event.x, gpm_y = event.y;
+  Lisp_Object frame = tty_frame_at (event_in->x, event_in->y, &gpm_x, &gpm_y);
   struct frame *f = decode_live_frame (frame);
 
   struct input_event ie;
