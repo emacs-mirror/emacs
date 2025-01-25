@@ -3800,7 +3800,14 @@ extern void defvar_kboard (struct Lisp_Fwd const *, char const *);
       #define cons_cells_consed globals.f_cons_cells_consed
 
    All C code uses the `cons_cells_consed' name.  This is all done
-   this way to support indirection for multi-threaded Emacs.  */
+   this way to support indirection for multi-threaded Emacs.
+
+   DEFVAR_LISP staticpro's the variable; DEFVAR_LISP_NOPRO does not, and
+   is used for variables that are protected in other ways (e.g., because
+   they can be accessed from another variable, which is itself
+   protected, see font_style_table on font.c as an example).  This is
+   not used in the HAVE_MPS build, where DEFVAR_LISP_NOPRO is equivalent
+   to DEFVAR_LISP.  */
 
 #define DEFVAR_LISP(lname, vname, doc)			\
   do {							\
