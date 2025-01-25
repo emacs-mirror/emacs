@@ -23,7 +23,7 @@ words as you type (@pxref{Auto Fill}).  Minor modes are independent of
 one another, and of the selected major mode.
 
 @menu
-* Major Modes::         Text mode vs. Lisp mode vs. C mode...
+* Major Modes::         Text mode vs.@: Lisp mode vs.@: C mode...
 * Minor Modes::         Each minor mode is a feature you can turn on
                           independently of any others.
 * Choosing Modes::      How modes are chosen when visiting files.

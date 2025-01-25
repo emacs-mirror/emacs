@@ -1749,3 +1749,16 @@ All the characters whose Unicode general-category is Nd now have the
         (skipp (or (erc--memq-msg-prop 'erc--skip 'stamp)
     (when (and fullp culled (not skipp) (< 1 beg 3 end))
                 ((not skipp))
+	(elisp--safe-macroexpand-all): Make the warning more discrete.
+|PACK|UNPK|INDX|BLD |LEN |... |
+@key{INDX} removes an integer @var{n}, then builds a vector of
+integers from 1 to @var{n}.  @kbd{INV INDX} takes three numbers
+(sref STRING INDX) returns the character in STRING at INDEX.  INDEX
+;; |PACK|UNPK|INDX|BLD |LEN |... |
+       ( "INDX"  (progn calc-num-prefix calc-index) "\C-u\excalc-index\r" )
+       (calc-enter-result 3 "indx" (cons 'calcFunc-index (calc-top-list-n 3)))
+     (calc-enter-result 0 "indx" (list 'calcFunc-index
+	(elisp--safe-macroexpand-all): Make the warning more discreet.
+	dee6b36286 If use-package-verbose is t, show loading times when :afte...
+	267fc6d00c4 ruby-smie-rules: Fix misindentation of a method call afte...
+	b0181dafb9e Improve documentation of 'enable-local-variables' in Emac...

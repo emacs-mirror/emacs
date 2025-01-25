@@ -4759,7 +4759,7 @@ and secondary selections by saving the value supplied into a variable
 subsequent calls to @code{gui-get-selection} return.
 
   From the clipboard, @code{gui-get-selection} is capable of returning
-UTF-8 string data of the type @code{STRING}, the @code{TAREGTS} data
+UTF-8 string data of the type @code{STRING}, the @code{TARGETS} data
 type, or image and application data of any MIME type.
 @code{gui-set-selection} sets only string data, much as under
 MS-Windows, although this data is not affected by the value of

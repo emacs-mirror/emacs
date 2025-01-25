@@ -560,7 +560,7 @@ Multisession Variables
 
 Functions
 
-* What Is a Function::      Lisp functions vs. primitives; terminology.
+* What Is a Function::      Lisp functions vs.@: primitives; terminology.
 * Lambda Expressions::      How functions are expressed as Lisp objects.
 * Function Names::          A symbol can serve as the name of a function.
 * Defining Functions::      Lisp expressions for defining functions.

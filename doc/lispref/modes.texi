@@ -2609,7 +2609,7 @@ The value of @code{global-mode-string} (which is part of
 
 @item %o
 The degree of @dfn{travel} of the window through (the visible portion
-of) the buffer, i.e. the size of the text above the top of the window
+of) the buffer, i.e.@: the size of the text above the top of the window
 expressed as a percentage of all the text outside the window, or
 @samp{Top}, @samp{Bottom} or @samp{All}.
 

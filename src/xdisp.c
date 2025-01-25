@@ -6194,7 +6194,9 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	    {
 	      struct face *face = FACE_FROM_ID (it->f, it->face_id);
 	      it->voffset = - (XFLOATINT (value)
-			       * (normal_char_height (face->font, -1)));
+			       * (face->font
+				  ? normal_char_height (face->font, -1)
+				  : FRAME_LINE_HEIGHT (it->f)));
 	    }
 #endif /* HAVE_WINDOW_SYSTEM */
 	}
@@ -32168,7 +32170,8 @@ produce_stretch_glyph (struct it *it)
   /* Compute height.  */
   if (FRAME_WINDOW_P (it->f))
     {
-      int default_height = normal_char_height (font, ' ');
+      int default_height =
+	font ? normal_char_height (font, ' ') : FRAME_LINE_HEIGHT (it->f);
 
       if ((prop = plist_get (plist, QCheight), !NILP (prop))
 	  && calc_pixel_width_or_height (&tem, it, prop, font, false, NULL))

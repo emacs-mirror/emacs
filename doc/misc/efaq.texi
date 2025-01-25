@@ -1889,8 +1889,8 @@ capabilities.
 
 If by contrast you wish to @emph{disable} tty color support, either
 start emacs with the @samp{--color=no} command-line option, or ensure
-that the frame parameter @code{tty-color-mode} is @code{no}, e.g. by
-putting the following in your init file:
+that the frame parameter @code{tty-color-mode} is @code{no}, for example
+by putting the following in your init file:
 
 @lisp
 (push '(tty-color-mode . no) default-frame-alist)
@@ -3686,9 +3686,9 @@ You can tell Emacs the shell's current directory with the command
 @item
 Third party packages.
 
-Any package you install into Emacs can run arbitrary code with the
-same privileges as the Emacs process itself.  Be aware of this when
-you use the package system (e.g. @code{M-x list-packages}) with third
+Any package you install into Emacs can run arbitrary code with the same
+privileges as the Emacs process itself.  Be aware of this when you use
+the package system (for example, @code{M-x list-packages}) with third
 party archives.  Use only third parties that you can trust!
 
 @item

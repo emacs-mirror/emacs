@@ -872,7 +872,7 @@ If this is non-@code{nil}, and @kbd{M-.}
 (@code{xref-find-definitions}) lands you in a file outside of your
 project, such as a system-installed library or header file,
 transiently consider that file as managed by the same language server.
-That file is still outside your project (i.e. @code{project-find-file}
+That file is still outside your project (i.e., @code{project-find-file}
 won't find it), but Eglot and the server will consider it to be part
 of the workspace.  The default is @code{nil}.
 

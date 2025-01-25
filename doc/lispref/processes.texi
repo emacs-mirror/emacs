@@ -3166,7 +3166,7 @@ machine you are using.  The value is an alist whose elements have the
 form @code{(@var{ifname} . @var{address})}.  @var{ifname} is a string
 naming the interface, @var{address} has the same form as the
 @var{local-address} and @var{remote-address} arguments to
-@code{make-network-process}, i.e. a vector of integers.  By default
+@code{make-network-process}, i.e.@: a vector of integers.  By default
 both IPv4 and IPv6 addresses are returned if possible.
 
 Optional argument @var{full} non-@code{nil} means to instead return a

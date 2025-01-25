@@ -371,7 +371,7 @@ Accept the incorrect word---treat it as correct, but only in this
 editing session and for this buffer.
 
 @item i
-Insert this word in your private dictionary file so that it will be
+Insert this word in your personal dictionary file so that it will be
 considered correct from now on, even in future sessions.
 
 @item m
@@ -379,7 +379,7 @@ Like @kbd{i}, but you can also specify dictionary completion
 information.
 
 @item u
-Insert the lower-case version of this word in your private dictionary
+Insert the lower-case version of this word in your personal dictionary
 file.
 
 @item l @var{word} @key{RET}

@@ -198,7 +198,7 @@
   ;;
   ;; The expected syntax of an item is either "word" or "symbol",
   ;; possibly ending with optional whitespace.  Everything following
-  ;; the item (but belonging to it) is expected to by skipable by
+  ;; the item (but belonging to it) is expected to by skippable by
   ;; `forward-sexp'.  The list of items is expected to be separated
   ;; by commas and terminated by semicolons or equals signs.
   ;;

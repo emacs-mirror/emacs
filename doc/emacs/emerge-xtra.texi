@@ -23,7 +23,7 @@ and @ref{Top,, Ediff, ediff, The Ediff Manual}.
 
 @menu
 * Overview of Emerge::     How to start Emerge.  Basic concepts.
-* Submodes of Emerge::     Fast mode vs. Edit mode.
+* Submodes of Emerge::     Fast mode vs.@: Edit mode.
                              Skip Prefers mode and Auto Advance mode.
 * State of Difference::    You do the merge by specifying state A or B
                              for each difference.

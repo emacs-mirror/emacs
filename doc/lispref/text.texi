@@ -1696,7 +1696,7 @@ The @code{pixel-fill-width} helper function can be used to compute the
 pixel width to use.  If given no arguments, it'll return a value
 slightly less than the width of the current window.  The first
 optional value, @var{columns}, specifies the number of columns using
-the standard, monospaced fonts, e.g. @code{fill-column}.  The second
+the standard, monospaced fonts, for example @code{fill-column}.  The second
 optional value is the window to use.  You'd typically use it like
 this:
 
@@ -4971,7 +4971,7 @@ network.  MD5 and SHA-1 are not collision resistant (i.e., it is
 possible to deliberately design different pieces of data which have
 the same MD5 or SHA-1 hash), so you should not use them for anything
 security-related.  For security-related applications you should use
-the other hash types, such as SHA-2 (e.g. @code{sha256} or
+the other hash types, such as SHA-2 (e.g., @code{sha256} or
 @code{sha512}).
 
 @defun secure-hash-algorithms
@@ -6137,7 +6137,7 @@ communicating endpoints is a matter of correctly designing the RPC
 application: when synchronization is needed, requests (which are
 blocking) should be used; when it isn't, notifications should suffice.
 However, when Emacs acts as one of these endpoints, asynchronous
-events (e.g. timer- or process-related) may be triggered while there
+events (e.g., timer- or process-related) may be triggered while there
 is still uncertainty about the state of the remote endpoint.
 Furthermore, acting on these events may only sometimes demand
 synchronization, depending on the event's specific nature.

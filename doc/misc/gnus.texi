@@ -18612,7 +18612,7 @@ sending the diary message to them as well.
 @cindex Gnus agent
 @cindex Gnus unplugged
 
-In olden times (ca. February '88), people used to run their newsreaders
+In olden times (ca.@: February '88), people used to run their newsreaders
 on big machines with permanent connections to the net.  News transport
 was dealt with by news servers, and all the newsreaders had to do was to
 read news.  Believe it or not.
@@ -23349,7 +23349,7 @@ windows resized.
 Lastly, it's possible to make Gnus window layouts ``atomic''
 (@pxref{Atomic Windows, , Atomic Windows, elisp, The GNU Emacs Lisp
 Reference Manual}) by setting @code{gnus-use-atomic-windows} to
-@code{t}.  This will ensure that pop-up buffers (e.g. help or
+@code{t}.  This will ensure that pop-up buffers (e.g., help or
 completion buffers), will appear below or to the side of the entire
 Gnus window layout and not, for example, squashed between the summary
 and article buffers.
@@ -24859,7 +24859,7 @@ particular spam group.  You don't have to throw all mail into all the
 spam tests.  Another reason why this is nice is that messages to
 mailing lists you have rules for don't have to have resource-intensive
 blackhole checks performed on them.  You could also specify different
-spam checks for your nnmail split vs. your nnimap split.  Go crazy.
+spam checks for your nnmail split vs.@: your nnimap split.  Go crazy.
 
 You should set the @code{spam-use-*} variables for whatever spam back
 ends you intend to use.  The reason is that when loading
@@ -26980,7 +26980,7 @@ appropriate name, don't you think?)
 In any case, after spending all that energy on coming up with a new and
 spunky name, we decided that the name was @emph{too} spunky, so we
 renamed it back again to ``Gnus''.  But in mixed case.  ``Gnus'' vs.
-``@sc{gnus}''.  New vs. old.
+``@sc{gnus}''.  New vs.@: old.
 
 @menu
 * Gnus Versions::               What Gnus versions have been released.

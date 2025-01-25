@@ -11,7 +11,7 @@ explains what functions are, how they accept arguments, and how to
 define them.
 
 @menu
-* What Is a Function::          Lisp functions vs. primitives; terminology.
+* What Is a Function::          Lisp functions vs.@: primitives; terminology.
 * Lambda Expressions::          How functions are expressed as Lisp objects.
 * Function Names::              A symbol can serve as the name of a function.
 * Defining Functions::          Lisp expressions for defining functions.
@@ -1469,7 +1469,7 @@ that don't require them.
 The type specializer, @code{(@var{arg} @var{type})}, can specify one
 of the @dfn{system types} in the following list.  When a parent type
 is specified, an argument whose type is any of its more specific child
-types, as well as grand-children, grand-grand-children, etc. will also
+types, as well as grand-children, grand-grand-children, etc.@: will also
 be compatible.
 
 @table @code
