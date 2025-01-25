@@ -96,11 +96,37 @@ the user's privacy."
   :type '(choice (natnum :tag "Specify")
                  (const :tag "Use default" :value nil)))
 
+(defvar savehist-timer nil)
+
+(defun savehist--cancel-timer ()
+  "Cancel `savehist-autosave' timer, if set."
+  (when (timerp savehist-timer)
+    (cancel-timer savehist-timer))
+  (setq savehist-timer nil))
+
+(defun savehist--manage-timer ()
+  "Set or cancel an invocation of `savehist-autosave' on a timer.
+If `savehist-mode' is enabled, set the timer, otherwise cancel the timer.
+This should not cause noticeable delays for users -- `savehist-autosave'
+executes in under 5 ms on my system."
+  (if (and savehist-mode
+           savehist-autosave-interval
+           (null savehist-timer))
+      (setq savehist-timer
+	    (run-with-timer savehist-autosave-interval
+			    savehist-autosave-interval #'savehist-autosave))
+    (savehist--cancel-timer)))
+
 (defcustom savehist-autosave-interval (* 5 60)
   "The interval between autosaves of minibuffer history.
-If set to nil, disables timer-based autosaving."
+If set to nil, disables timer-based autosaving.
+Use `setopt' or Customize commands to set this option."
   :type '(choice (const :tag "Disabled" nil)
-                 (integer :tag "Seconds")))
+                 (integer :tag "Seconds"))
+  :set (lambda (sym val)
+         (set-default sym val)
+         (savehist--cancel-timer)
+         (savehist--manage-timer)))
 
 (defcustom savehist-mode-hook nil
   "Hook called when Savehist mode is turned on."
@@ -121,8 +147,6 @@ Changing this value while Emacs is running is supported, but considered
 unwise, unless you know what you are doing.")
 
 ;; Internal variables.
-
-(defvar savehist-timer nil)
 
 (defvar savehist-last-checksum nil)
 
@@ -197,23 +221,14 @@ Installs `savehist-autosave' in `kill-emacs-hook' and on a timer.
 To undo this, call `savehist-uninstall'."
   (add-hook 'minibuffer-setup-hook #'savehist-minibuffer-hook)
   (add-hook 'kill-emacs-hook #'savehist-autosave)
-  ;; Install an invocation of savehist-autosave on a timer.  This
-  ;; should not cause noticeable delays for users -- savehist-autosave
-  ;; executes in under 5 ms on my system.
-  (when (and savehist-autosave-interval
-	     (null savehist-timer))
-    (setq savehist-timer
-	  (run-with-timer savehist-autosave-interval
-			  savehist-autosave-interval #'savehist-autosave))))
+  (savehist--manage-timer))
 
 (defun savehist-uninstall ()
   "Undo installing savehist.
 Normally invoked by calling `savehist-mode' to unset the minor mode."
   (remove-hook 'minibuffer-setup-hook #'savehist-minibuffer-hook)
   (remove-hook 'kill-emacs-hook #'savehist-autosave)
-  (when savehist-timer
-    (cancel-timer savehist-timer)
-    (setq savehist-timer nil)))
+  (savehist--manage-timer))
 
 (defvar savehist--has-given-file-warning nil)
 (defun savehist-save (&optional auto-save)
