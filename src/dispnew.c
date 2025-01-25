@@ -3906,44 +3906,26 @@ is_in_matrix (struct frame *f, int x, int y)
   return true;
 }
 
-/* Return the frame of the selected window of frame F.
-   Value is NULL if we can't tell.  */
-
-static struct frame *
-frame_selected_window_frame (struct frame *f)
-{
-  /* Paranoia.  It should not happen that window or frame not valid.  */
-  Lisp_Object frame;
-  if (WINDOWP (f->selected_window)
-      && (frame = XWINDOW (f->selected_window)->frame,
-	  FRAMEP (frame)))
-    return XFRAME (frame);
-  return NULL;
-}
-
-/* Is the terminal cursor of ROOT obscured by a child frame?  */
+/* Is the terminal cursor of the selected frame obscured by a child
+   frame?  */
 
 static bool
-is_cursor_obscured (struct frame *root)
+is_cursor_obscured (void)
 {
-  /* Determine in which frame on ROOT the cursor could be.  */
-  struct frame *sf = frame_selected_window_frame (root);
-  if (sf == NULL)
-    return false;
-
   /* Give up if we can't tell where the cursor currently is.  */
   int x, y;
-  if (!abs_cursor_pos (sf, &x, &y))
+  if (!abs_cursor_pos (SELECTED_FRAME (), &x, &y))
     return false;
 
   /* (x, y) may be outside of the root frame in case the selected frame is a
      child frame which is clipped.  */
+  struct frame *root = root_frame (SELECTED_FRAME ());
   if (!is_in_matrix (root, x, y))
     return true;
 
   struct glyph_row *cursor_row = MATRIX_ROW (root->current_matrix, y);
   struct glyph *cursor_glyph = cursor_row->glyphs[0] + x;
-  return cursor_glyph->frame != sf;
+  return cursor_glyph->frame != SELECTED_FRAME ();
 }
 
 /* Decide where to show the cursor, and whether to hide it.
@@ -3957,7 +3939,7 @@ static void
 terminal_cursor_magic (struct frame *root, struct frame *topmost_child)
 {
   /* By default, prevent the cursor "shining through" child frames.  */
-  if (is_cursor_obscured (root))
+  if (is_cursor_obscured ())
     tty_hide_cursor (FRAME_TTY (root));
 
   /* If the terminal cursor is not in the topmost child, the topmost
@@ -3965,8 +3947,7 @@ terminal_cursor_magic (struct frame *root, struct frame *topmost_child)
      non-nil, display the cursor in this "non-selected" topmost child
      frame to compensate for the fact that we can't display a
      non-selected cursor like on a window system frame.  */
-  struct frame *sf = frame_selected_window_frame (root);
-  if (sf && topmost_child != sf)
+  if (topmost_child != SELECTED_FRAME ())
     {
       Lisp_Object frame;
       XSETFRAME (frame, topmost_child);
@@ -3978,23 +3959,25 @@ terminal_cursor_magic (struct frame *root, struct frame *topmost_child)
 	  if (is_in_matrix (root, x, y))
 	    {
 	      cursor_to (root, y, x);
-	      tty_show_cursor (FRAME_TTY (root));
+	      tty_show_cursor (FRAME_TTY (topmost_child));
 	    }
 	  else
 	    tty_hide_cursor (FRAME_TTY (root));
-	}
+      }
     }
 }
+
+#endif /* !HAVE_ANDROID */
 
 void
 combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
 {
+#ifndef HAVE_ANDROID
   struct frame *root = root_frame (f);
 
   /* Determine visible frames on the root frame, including the root
      frame itself.  Note that there are cases, see bug#75056, where we
-     can be called for invisible frames.  This looks like a bug with
-     multi-tty, but the old update code didn't check visibility either.  */
+     can be called for invisible frames.  */
   Lisp_Object z_order = frames_in_reverse_z_order (root, true);
   if (NILP (z_order))
     {
@@ -4035,14 +4018,8 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
       add_frame_display_history (f, false);
 #endif
     }
-}
-
-#else /* HAVE_ANDROID */
-void
-combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
-{
-}
 #endif /* HAVE_ANDROID */
+}
 
 /* Update on the screen all root frames ROOTS.  Called from
    redisplay_internal as the last step of redisplaying.  */
