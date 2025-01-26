@@ -22380,6 +22380,7 @@ First of: you really need a patched mairix binary for using the marks
 propagation feature efficiently.  Otherwise, you would have to update
 the mairix database all the time.  You can get the patch at
 
+@c FIXME: This link is broken as of 2025-01-26.
 @uref{http://www.randomsample.de/mairix-maildir-patch.tar}
 
 You need the mairix v0.21 source code for this patch; everything else
@@ -26049,7 +26050,7 @@ never install such a back end.
 @cindex spam filtering, naive Bayesian
 
 Paul Graham has written an excellent essay about spam filtering using
-statistics: @uref{http://www.paulgraham.com/spam.html,A Plan for
+statistics: @uref{https://www.paulgraham.com/spam.html,A Plan for
 Spam}.  In it he describes the inherent deficiency of rule-based
 filtering as used by SpamAssassin, for example: Somebody has to write
 the rules, and everybody else has to install these rules.  You are

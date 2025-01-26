@@ -3189,7 +3189,7 @@ margins of the texts kept intact:
 @cindex Filladapt mode
 It's also possible to use other adaptive filling packages, notably Kyle
 E. Jones' Filladapt package@footnote{It's available from
-@uref{http://www.wonderworks.com/}.  As of version 2.12, it does however
+@uref{https://elpa.gnu.org/packages/filladapt.html}.  As of version 2.12, it does however
 lack a feature that makes it work suboptimally when
 @code{c-comment-prefix-regexp} matches the empty string (which it does
 by default).  A patch for that is available from

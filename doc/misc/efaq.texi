@@ -481,7 +481,7 @@ Emacs help works best if it is invoked by a single key whose value
 should be stored in the variable @code{help-char}.
 
 Some Emacs slides and tutorials can be found at
-@uref{http://web.psung.name/emacs/}.
+@uref{https://web.psung.name/emacs/}.
 
 @node Learning how to do something
 @section How do I find out how to do something in Emacs?
