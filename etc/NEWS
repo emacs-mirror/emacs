@@ -1335,6 +1335,12 @@ the directory into which the repository was cloned.
 *** 'C-x v u' ('vc-revert') now works on directories listed in VC Directory.
 Reverting a directory means reverting changes to all files inside it.
 
+*** New function 'log-edit-done-strip-cvs-lines'.
+This function strips all lines beginning with "CVS:" from the buffer.
+It is intended to be added to the 'log-edit-done-hook' so that
+'vc-cvs-checkin' behaves like invoking "cvs commit [files...]" from the
+command line.
+
 ** Package
 
 +++
