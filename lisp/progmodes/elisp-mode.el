@@ -1337,8 +1337,7 @@ Semicolons start comments.
 
 \\{lisp-interaction-mode-map}"
   :abbrev-table nil
-  (setq-local lexical-binding t)
-  (setq-local trusted-content :all))
+  (setq-local lexical-binding t))
 
 ;;; Emacs Lisp Byte-Code mode
 

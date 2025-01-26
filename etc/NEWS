@@ -193,6 +193,9 @@ For example, Flymake's backend for Emacs Lisp consults this option
 and disables itself with an "untrusted content" warning if the file
 is not listed.
 
+Emacs Lisp authors should note that a major or minor mode must never set
+this variable to the ':all' value.
+
 This option is used to fix CVE-2024-53920.  See below for details.
 
 ** Emacs now supports Unicode Standard version 15.1.
