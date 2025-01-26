@@ -188,9 +188,12 @@ expectations.
 This option lists those files and directories whose content Emacs should
 consider as sufficiently trusted to run any part of the code contained
 therein even without any explicit user request.
+
 For example, Flymake's backend for Emacs Lisp consults this option
 and disables itself with an "untrusted content" warning if the file
 is not listed.
+
+This option is used to fix CVE-2024-53920.  See below for details.
 
 ** Emacs now supports Unicode Standard version 15.1.
 
