@@ -4089,13 +4089,12 @@ non-empty directories is allowed."
 	    (while l
 	      (goto-char (marker-position (cdr (car l))))
               (dired-move-to-filename)
-	      (let ((inhibit-read-only t))
+	      (let ((inhibit-read-only t)
+                    ;; Temporarily prevent auto-revert while deleting
+                    ;; entry in the dired buffer (bug#71264).
+                    (dired--inhibit-auto-revert t))
 		(condition-case err
-		    (let ((fn (car (car l)))
-                          ;; Temporarily prevent auto-revert while
-                          ;; deleting entry in the dired buffer
-                          ;; (bug#71264).
-                          (auto-revert-mode nil))
+		    (let ((fn (car (car l))))
 		      (dired-delete-file fn dired-recursive-deletes trash)
 		      ;; if we get here, removing worked
 		      (setq succ (1+ succ))
