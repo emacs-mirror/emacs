@@ -655,6 +655,7 @@ When visiting a script that invokes 'env -S INTERPRETER ARGS...' in
 its shebang line, Emacs will now skip over 'env -S' and deduce the
 major mode based on the interpreter after 'env -S'.
 
++++
 *** 'insert-directory-program' is now a user option.
 On *BSD and macOS systems, this user option now defaults to the "gls"
 executable, if it exists.  This should remove the need to change its
