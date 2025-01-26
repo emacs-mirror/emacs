@@ -26,6 +26,14 @@ Tweaking this variable may help some LSP servers avoid doing costly but
 ultimately useless work on behalf of the client, improving overall
 performance.
 
+** Suggests code actions at point
+
+A commonly requested feature, Eglot will use ElDoc to ask the server for
+code actions available at point, indicating to the user, who may use
+execute them quickly via the usual 'eglot-code-actions' command.
+Customize with 'eglot-code-action-indications' and
+'eglot-code-action-indicator'.
+
 
 * Changes in Eglot 1.18 (20/1/2025)
 

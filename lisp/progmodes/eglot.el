@@ -579,6 +579,45 @@ notification is implementation defined, and is only useful for some
 servers."
   :type 'boolean)
 
+(defface eglot-code-action-indicator-face
+  '((t (:inherit font-lock-escape-face :weight bold)))
+  "Face used for code action suggestions.")
+
+(defcustom eglot-code-action-indications
+  '(eldoc-hint mode-line margin)
+  "How Eglot indicates there's are code actions available at point.
+Value is a list of symbols, more than one can be specified:
+
+- `eldoc-hint': ElDoc is used to hint about at-point actions.
+- `margin': A special indicator appears in the margin.
+- `nearby': A special indicator appears near point.
+- `mode-line': A special indicator appears in the mode-line.
+
+`margin' and `nearby' are incompatible.  `margin's indicator is not
+interactive.  If the list is empty, Eglot will not hint about code
+actions at point."
+  :type '(set
+          :tag "Tick the ones you're interested in"
+          (const :tag "ElDoc textual hint" eldoc-hint)
+          (const :tag "Right besides point" nearby)
+          (const :tag "In mode line" mode-line)
+          (const :tag "In margin" margin))
+  :package-version '(Eglot . "1.19"))
+
+(defcustom eglot-code-action-indicator
+  (cl-loop for c in '(? ?⚡?✓ ?α ??)
+           when (char-displayable-p c)
+           return (make-string 1 c))
+  "Indicator string for code action suggestions."
+  :type (let ((basic-choices
+               (cl-loop for c in '(? ?⚡?✓ ?α ??)
+                        when (char-displayable-p c)
+                        collect `(const :tag ,(format "Use `%c'" c)
+                                        ,(make-string 1 c)))))
+          `(choice ,@basic-choices
+                   (string :tag "Specify your own")))
+  :package-version '(Eglot . "1.19"))
+
 (defvar eglot-withhold-process-id nil
   "If non-nil, Eglot will not send the Emacs process id to the language server.
 This can be useful when using docker to run a language server.")
@@ -2015,6 +2054,11 @@ For example, to keep your Company customization, add the symbol
   "A hook run by Eglot after it started/stopped managing a buffer.
 Use `eglot-managed-p' to determine if current buffer is managed.")
 
+(defvar eglot--highlights nil "Overlays for `eglot-highlight-eldoc-function'.")
+
+(defvar-local eglot--suggestion-overlay (make-overlay 0 0)
+  "Overlay for `eglot-code-action-suggestion'.")
+
 (define-minor-mode eglot--managed-mode
   "Mode for source buffers managed by some Eglot project."
   :init-value nil :lighter nil :keymap eglot-mode-map :interactive nil
@@ -2056,15 +2100,16 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
                     #'eglot-imenu))
     (unless (eglot--stay-out-of-p 'flymake) (flymake-mode 1))
     (unless (eglot--stay-out-of-p 'eldoc)
-      (add-hook 'eldoc-documentation-functions #'eglot-hover-eldoc-function
-                nil t)
-      (add-hook 'eldoc-documentation-functions #'eglot-signature-eldoc-function
-                nil t)
-      (add-hook 'eldoc-documentation-functions #'eglot-highlight-eldoc-function
-                nil t)
+      (dolist (f (list #'eglot-signature-eldoc-function
+                       #'eglot-hover-eldoc-function
+                       #'eglot-highlight-eldoc-function
+                       #'eglot-code-action-suggestion))
+        (add-hook 'eldoc-documentation-functions f t t))
       (eldoc-mode 1))
     (cl-pushnew (current-buffer) (eglot--managed-buffers (eglot-current-server))))
    (t
+    (mapc #'delete-overlay eglot--highlights)
+    (delete-overlay eglot--suggestion-overlay)
     (remove-hook 'after-change-functions #'eglot--after-change t)
     (remove-hook 'before-change-functions #'eglot--before-change t)
     (remove-hook 'kill-buffer-hook #'eglot--managed-mode-off t)
@@ -2080,9 +2125,11 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
     (remove-hook 'change-major-mode-hook #'eglot--managed-mode-off t)
     (remove-hook 'post-self-insert-hook #'eglot--post-self-insert-hook t)
     (remove-hook 'pre-command-hook #'eglot--pre-command-hook t)
-    (remove-hook 'eldoc-documentation-functions #'eglot-hover-eldoc-function t)
-    (remove-hook 'eldoc-documentation-functions #'eglot-signature-eldoc-function t)
-    (remove-hook 'eldoc-documentation-functions #'eglot-highlight-eldoc-function t)
+    (dolist (f (list #'eglot-hover-eldoc-function
+                     #'eglot-signature-eldoc-function
+                     #'eglot-highlight-eldoc-function
+                     #'eglot-code-action-suggestion))
+        (remove-hook 'eldoc-documentation-functions f t))
     (cl-loop for (var . saved-binding) in eglot--saved-bindings
              do (set (make-local-variable var) saved-binding))
     (remove-function (local 'imenu-create-index-function) #'eglot-imenu)
@@ -2265,6 +2312,16 @@ Uses THING, FACE, DEFS and PREPEND."
                                          keymap ,map help-echo ,(concat prepend blurb)
                                          mouse-face mode-line-highlight))))
 
+(defconst eglot--main-menu-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line down-mouse-1] eglot-menu)
+    map))
+
+(defconst eglot--server-menu-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line down-mouse-1] eglot-server-menu)
+    map))
+
 (defun eglot--mode-line-format ()
   "Compose Eglot's mode-line."
   (let* ((server (eglot-current-server))
@@ -2277,9 +2334,7 @@ Uses THING, FACE, DEFS and PREPEND."
          'face 'eglot-mode-line
          'mouse-face 'mode-line-highlight
          'help-echo "Eglot: Emacs LSP client\nmouse-1: Display minor mode menu"
-         'keymap (let ((map (make-sparse-keymap)))
-                   (define-key map [mode-line down-mouse-1] eglot-menu)
-                   map)))
+         'keymap eglot--main-menu-map))
      (when nick
        `(":"
          ,(propertize
@@ -2287,9 +2342,7 @@ Uses THING, FACE, DEFS and PREPEND."
            'face 'eglot-mode-line
            'mouse-face 'mode-line-highlight
            'help-echo (format "Project '%s'\nmouse-1: LSP server control menu" nick)
-           'keymap (let ((map (make-sparse-keymap)))
-                     (define-key map [mode-line down-mouse-1] eglot-server-menu)
-                     map))
+           'keymap eglot--server-menu-map)
          ,@(when last-error
              `("/" ,(eglot--mode-line-props
                      "error" 'compilation-mode-line-fail
@@ -2310,7 +2363,11 @@ still unanswered LSP requests to the server\n")))
                                    'eglot-mode-line
                                    nil
                                    (format "(%s) %s %s" (nth 1 pr)
-                                           (nth 2 pr) (nth 3 pr))))))))))
+                                           (nth 2 pr) (nth 3 pr)))))
+         ,@(when (and
+                  (memq 'mode-line eglot-code-action-indications)
+                  (overlay-buffer eglot--suggestion-overlay))
+             `("/" ,(overlay-get eglot--suggestion-overlay 'eglot--suggestion-tooltip))))))))
 
 (add-to-list 'mode-line-misc-info
              `(eglot--managed-mode (" [" eglot--mode-line-format "] ")))
@@ -3513,8 +3570,6 @@ for which LSP on-type-formatting should be requested."
        :deferred :textDocument/hover))
     t))
 
-(defvar eglot--highlights nil "Overlays for textDocument/documentHighlight.")
-
 (defun eglot-highlight-eldoc-function (_cb &rest _ignored)
   "A member of `eldoc-documentation-functions', for highlighting symbols'."
   ;; Obviously, we're not using ElDoc for documentation, but merely its
@@ -3760,6 +3815,20 @@ edit proposed by the server."
           (t
            (list (point) (point))))))
 
+(cl-defun eglot--code-action-params (&key (beg (point)) (end beg)
+                                          only triggerKind)
+  (list :textDocument (eglot--TextDocumentIdentifier)
+        :range (list :start (eglot--pos-to-lsp-position beg)
+                     :end (eglot--pos-to-lsp-position end))
+        :context
+        `(:diagnostics
+          [,@(cl-loop for diag in (flymake-diagnostics beg end)
+                      when (cdr (assoc 'eglot-lsp-diag
+                                       (eglot--diag-data diag)))
+                      collect it)]
+          ,@(when only `(:only [,only]))
+          ,@(when triggerKind `(:triggerKind ,triggerKind)))))
+
 (defun eglot-code-actions (beg &optional end action-kind interactive)
   "Find LSP code actions of type ACTION-KIND between BEG and END.
 Interactively, offer to execute them.
@@ -3776,29 +3845,31 @@ at point.  With prefix argument, prompt for ACTION-KIND."
      t))
   (eglot-server-capable-or-lose :codeActionProvider)
   (let* ((server (eglot--current-server-or-lose))
+         (shortcut (and interactive
+                        (not (listp last-nonmenu-event)) ;; not run by mouse
+                        (overlayp eglot--suggestion-overlay)
+                        (overlay-buffer eglot--suggestion-overlay)
+                        (= beg (overlay-start eglot--suggestion-overlay))
+                        (= end (overlay-end eglot--suggestion-overlay))))
          (actions
-          (eglot--request
-           server
-           :textDocument/codeAction
-           (list :textDocument (eglot--TextDocumentIdentifier)
-                 :range (list :start (eglot--pos-to-lsp-position beg)
-                              :end (eglot--pos-to-lsp-position end))
-                 :context
-                 `(:diagnostics
-                   [,@(cl-loop for diag in (flymake-diagnostics beg end)
-                               when (cdr (assoc 'eglot-lsp-diag
-                                                (eglot--diag-data diag)))
-                               collect it)]
-                   ,@(when action-kind `(:only [,action-kind]))))))
+          (if shortcut
+              (overlay-get eglot--suggestion-overlay 'eglot--actions)
+            (eglot--request
+             server
+             :textDocument/codeAction
+             (eglot--code-action-params :beg beg :end end :only action-kind))))
          ;; Redo filtering, in case the `:only' didn't go through.
          (actions (cl-loop for a across actions
                            when (or (not action-kind)
                                     ;; github#847
                                     (string-prefix-p action-kind (plist-get a :kind)))
                            collect a)))
-    (if interactive
-        (eglot--read-execute-code-action actions server action-kind)
-      actions)))
+    (cond
+     ((and shortcut actions (null (cdr actions)))
+      (eglot-execute server (car actions)))
+     (interactive
+      (eglot--read-execute-code-action actions server action-kind))
+     (t actions))))
 
 (defalias 'eglot-code-actions-at-mouse (eglot--mouse-call 'eglot-code-actions)
   "Like `eglot-code-actions', but intended for mouse events.")
@@ -3826,7 +3897,8 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                                           default-action)
                                   menu-items nil t nil nil default-action)
                                  menu-items))))))
-    (eglot-execute server chosen)))
+    (when chosen
+      (eglot-execute server chosen))))
 
 (defmacro eglot--code-action (name kind)
   "Define NAME to execute KIND code action."
@@ -3840,6 +3912,57 @@ at point.  With prefix argument, prompt for ACTION-KIND."
 (eglot--code-action eglot-code-action-inline "refactor.inline")
 (eglot--code-action eglot-code-action-rewrite "refactor.rewrite")
 (eglot--code-action eglot-code-action-quickfix "quickfix")
+
+(defun eglot-code-action-suggestion (cb &rest _ignored)
+  "A member of `eldoc-documentation-functions', for suggesting actions."
+  (when (and (eglot-server-capable :codeActionProvider)
+             eglot-code-action-indications)
+    (let ((buf (current-buffer))
+          (bounds (eglot--code-action-bounds))
+          (use-text-p (memq 'eldoc-hint eglot-code-action-indications))
+          tooltip blurb)
+      (jsonrpc-async-request
+       (eglot--current-server-or-lose)
+       :textDocument/codeAction
+       (eglot--code-action-params :beg (car bounds) :end (cadr bounds)
+                                  :triggerKind 2)
+       :success-fn
+       (lambda (actions)
+         (eglot--when-buffer-window buf
+           (delete-overlay eglot--suggestion-overlay)
+           (when (cl-plusp (length actions))
+             (setq blurb
+                   (substitute-command-keys
+                    (eglot--format "\\[eglot-code-actions]: %s"
+                                   (plist-get (aref actions 0) :title))))
+             (if (>= (length actions) 2)
+                 (setq blurb (concat blurb (format " (and %s more actions)"
+                                                   (1- (length actions))))))
+             (setq tooltip
+                   (propertize eglot-code-action-indicator
+                               'face 'eglot-code-action-indicator-face
+                               'help-echo blurb
+                               'mouse-face 'highlight
+                               'keymap eglot-diagnostics-map))
+             (save-excursion
+               (goto-char (car bounds))
+               (let ((ov (make-overlay (car bounds) (cadr bounds))))
+                 (overlay-put ov 'eglot--actions actions)
+                 (overlay-put ov 'eglot--suggestion-tooltip tooltip)
+                 (overlay-put
+                  ov
+                  'before-string
+                  (cond ((memq 'nearby eglot-code-action-indications)
+                         tooltip)
+                        ((memq 'margin eglot-code-action-indications)
+                         (propertize "⚡"
+                                     'display
+                                     `((margin left-margin)
+                                       ,tooltip)))))
+                 (setq eglot--suggestion-overlay ov)))))
+         (when use-text-p (funcall cb blurb)))
+       :deferred :textDocument/codeAction)
+      (and use-text-p t))))
 
 
 ;;; Dynamic registration

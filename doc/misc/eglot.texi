@@ -439,6 +439,13 @@ command (@pxref{Symbol Completion,,, emacs, GNU Emacs Manual}).  This
 uses the language-server's parser data for the completion candidates.
 
 @item
+Server-suggested code refactorings.  The ElDoc package is also leveraged
+to retrieve so-called @dfn{code actions} nearby point.  When such
+suggestions are available they are annotated with a special indication
+and can be easily invoked by the user with the @code{eglot-code-action}
+command (@pxref{Eglot Commands}).
+
+@item
 On-the-fly succinct informative annotations, so-called @dfn{inlay
 hints}.  Eglot adds special intangible text nearby certain identifiers,
 be it the type of a variable, or the name of a formal parameter in a
@@ -926,6 +933,31 @@ Setting this variable to true causes Eglot to send special cancellation
 notification for certain stale client request.  This may help some LSP
 servers avoid doing costly but ultimately useless work on behalf of the
 client, improving overall performance.
+
+@item eglot-code-action-indications
+This variable controls the indication of code actions available at
+point.  Value is a list of symbols, more than one can be specified:
+
+@itemize @minus
+@item
+@code{eldoc-hint}: ElDoc is used to hint about at-point actions.
+@item
+@code{margin}: A special indicator appears in the margin of the line
+that point is currently on.  This indicator is not interactive (you
+cannot click on it with the mouse).
+@item
+@code{nearby}: An interactive special indicator appears near point.
+@item
+@code{mode-line}: An interactive special indicator appears in the mode
+line.
+@end itemize
+
+@code{margin} and @code{nearby} are incompatible.  If the list is empty,
+ElDoc will not hint about at-point actions.
+
+@item eglot-code-action-indicator
+This variable is a string determining what the special indicator looks
+like.
 @end vtable
 
 @node Other Variables
@@ -1004,6 +1036,8 @@ about an identifier.
 signature information.
 @item @code{eglot-highlight-eldoc-function}, to highlight nearby
 manifestations of an identifier.
+@item @code{eglot-code-action-suggestion}, to retrieve relevant code
+actions at point.
 @end itemize
 
 A simple tweak to remove at-point identifier information for
