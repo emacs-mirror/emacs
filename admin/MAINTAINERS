@@ -386,25 +386,6 @@ Spencer Baugh
 3. Externally maintained packages.
 ==============================================================================
 
-Tramp
-	Maintainer: Michael Albinus
-	Repository: https://git.savannah.gnu.org/git/tramp.git
-	Mailing List: tramp-devel@gnu.org
-	Bug Reports: M-x tramp-bug
-	Notes: For backward compatibility requirements, see
-	  lisp/net/trampver.el.
-
-        lisp/net/tramp*.el
-        doc/misc/tramp*.texi
-        test/lisp/net/tramp*-tests.el
-
-Transient
-        Maintainer: Jonas Bernoulli
-        Repository: https://github.com/magit/transient
-
-	lisp/transient.el
-	doc/misc/transient.texi
-
 Modus themes
         Maintainer: Protesilaos Stavrou
         Repository:  https://github.com/protesilaos/modus-themes
@@ -428,6 +409,25 @@ Org Mode
 	etc/refcards/orgcard.tex
 	doc/misc/org.org
 	doc/misc/org-setup.org
+
+Tramp
+	Maintainer: Michael Albinus
+	Repository: https://git.savannah.gnu.org/git/tramp.git
+	Mailing List: tramp-devel@gnu.org
+	Bug Reports: M-x tramp-bug
+	Notes: For backward compatibility requirements, see
+	  lisp/net/trampver.el.
+
+        lisp/net/tramp*.el
+        doc/misc/tramp*.texi
+        test/lisp/net/tramp*-tests.el
+
+Transient
+        Maintainer: Jonas Bernoulli
+        Repository: https://github.com/magit/transient
+
+	lisp/transient.el
+	doc/misc/transient.texi
 
 
 ;;; Local Variables:
