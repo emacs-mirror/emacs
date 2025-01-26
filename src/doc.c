@@ -362,7 +362,7 @@ string is passed through `substitute-command-keys'.  */)
      from the DOC file (bug in src/Makefile.in).  */
   if (BASE_EQ (doc, make_fixnum (0)))
     doc = Qnil;
-  if (FIXNUMP (doc) || CONSP (doc))
+  if (FIXNUMP (doc) || (CONSP (doc) && FIXNUMP (XCDR (doc))))
     {
       Lisp_Object tem = get_doc_string (doc, 0);
       if (NILP (tem) && try_reload)
