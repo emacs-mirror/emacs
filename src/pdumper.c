@@ -2390,8 +2390,6 @@ dump_fwd (struct dump_context *ctx, lispfwd fwd)
     case Lisp_Fwd_Kboard_Obj:
       offset = dump_fwd_kboard_obj (ctx, p);
       break;
-    default:
-      emacs_abort ();
     }
 
   return offset;
@@ -2523,8 +2521,6 @@ dump_symbol (struct dump_context *ctx,
     case SYMBOL_FORWARDED:
       dump_field_fixup_later (ctx, &out, symbol, &symbol->u.s.val.fwd);
       break;
-    default:
-      emacs_abort ();
     }
   dump_field_lv (ctx, &out, symbol, &symbol->u.s.function, WEIGHT_NORMAL);
   dump_field_lv (ctx, &out, symbol, &symbol->u.s.plist, WEIGHT_NORMAL);
@@ -3603,8 +3599,6 @@ dump_drain_cold_data (struct dump_context *ctx)
 	  dump_cold_native_subr (ctx, data);
 	  break;
 #endif
-        default:
-          emacs_abort ();
         }
     }
 
@@ -4069,8 +4063,6 @@ dump_do_fixup (struct dump_context *ctx,
         do_write = false;
         break;
       }
-    default:
-      emacs_abort ();
     }
   if (do_write)
     dump_write (ctx, &dump_value, sizeof (dump_value));
@@ -4529,8 +4521,6 @@ dump_anonymous_allocate_w32 (void *base,
       mem_type = MEM_COMMIT;
       mem_prot = PAGE_READWRITE;
       break;
-    default:
-      emacs_abort ();
     }
 
   ret = VirtualAlloc (base, size, mem_type, mem_prot);
@@ -4569,8 +4559,6 @@ dump_anonymous_allocate_posix (void *base,
     case DUMP_MEMORY_ACCESS_READWRITE:
       mem_prot = PROT_READ | PROT_WRITE;
       break;
-    default:
-      emacs_abort ();
     }
 
   int mem_flags = MAP_PRIVATE | MAP_ANONYMOUS;
@@ -4663,7 +4651,6 @@ dump_map_file_w32 (void *base, int fd, off_t offset, size_t size,
     case DUMP_MEMORY_ACCESS_READWRITE:
       protect = PAGE_WRITECOPY;	/* for Windows 9X */
       break;
-    default:
     case DUMP_MEMORY_ACCESS_NONE:
     case DUMP_MEMORY_ACCESS_READ:
       protect = PAGE_READONLY;
@@ -4691,8 +4678,6 @@ dump_map_file_w32 (void *base, int fd, off_t offset, size_t size,
     case DUMP_MEMORY_ACCESS_READWRITE:
       map_access = FILE_MAP_COPY;
       break;
-    default:
-      emacs_abort ();
     }
 
   ret = MapViewOfFileEx (section,
@@ -4735,8 +4720,6 @@ dump_map_file_posix (void *base, int fd, off_t offset, size_t size,
       mem_prot = PROT_READ | PROT_WRITE;
       mem_flags = MAP_PRIVATE;
       break;
-    default:
-      emacs_abort ();
     }
 
   if (base)
@@ -5603,8 +5586,6 @@ dump_do_emacs_relocation (const uintptr_t dump_base,
         memcpy (emacs_ptr_at (reloc.emacs_offset), &lv, sizeof (lv));
         break;
       }
-    default:
-      fatal ("unrecognied relocation type %d", (int) reloc.type);
     }
 }
 
