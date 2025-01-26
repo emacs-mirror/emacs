@@ -446,7 +446,9 @@ enum cold_op
     COLD_OP_CHARSET,
     COLD_OP_BUFFER,
     COLD_OP_BIGNUM,
+#ifdef HAVE_NATIVE_COMP
     COLD_OP_NATIVE_SUBR,
+#endif
   };
 
 /* This structure controls what operations we perform inside
@@ -2972,15 +2974,14 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
   DUMP_FIELD_COPY (&out, subr, header.size);
 #ifdef HAVE_NATIVE_COMP
   bool non_primitive = !NILP (subr->native_comp_u);
-#else
-  bool non_primitive = false;
-#endif
   if (non_primitive)
     out.function.a0 = NULL;
   else
+#endif
     dump_field_emacs_ptr (ctx, &out, subr, &subr->function.a0);
   DUMP_FIELD_COPY (&out, subr, min_args);
   DUMP_FIELD_COPY (&out, subr, max_args);
+#ifdef HAVE_NATIVE_COMP
   if (non_primitive)
     {
       dump_field_fixup_later (ctx, &out, subr, &subr->symbol_name);
@@ -2991,6 +2992,7 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
       dump_field_lv (ctx, &out, subr, &subr->command_modes, WEIGHT_NORMAL);
     }
   else
+#endif
     {
       dump_field_emacs_ptr (ctx, &out, subr, &subr->symbol_name);
       dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec.string);
@@ -3006,12 +3008,14 @@ dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
   dump_field_lv (ctx, &out, subr, &subr->type, WEIGHT_NORMAL);
 #endif
   dump_off subr_off = dump_object_finish (ctx, &out, sizeof (out));
+#ifdef HAVE_NATIVE_COMP
   if (non_primitive && ctx->flags.dump_object_contents)
     /* We'll do the final addr relocation during VERY_LATE_RELOCS time
        after the compilation units has been loaded. */
     dump_push (&ctx->dump_relocs[VERY_LATE_RELOCS],
 	       list2 (make_fixnum (RELOC_NATIVE_SUBR),
 		      dump_off_to_lisp (subr_off)));
+#endif
   return subr_off;
 }
 
