@@ -386,6 +386,14 @@ Spencer Baugh
 3. Externally maintained packages.
 ==============================================================================
 
+CC Mode
+	Maintainer: Alan Mackenzie
+	Website: https://www.nongnu.org/cc-mode
+	Repository: https://hg.savannah.nongnu.org/hgweb/cc-mode/
+	Bug reports: bug-cc-mode@gnu.org
+
+	lisp/progmodes/cc-*.el
+
 Modus themes
         Maintainer: Protesilaos Stavrou
         Repository:  https://github.com/protesilaos/modus-themes
