@@ -593,6 +593,7 @@ Use 'TAB' in the minibuffer to show or hide the password.
 Alternatively, click the new show-password icon on the mode-line with
 'mouse-1' to toggle the visibility of the password.
 
++++
 *** 'advice-remove' is now an interactive command.
 When called interactively, 'advice-remove' now prompts for an advised
 function to the advice to remove.
@@ -1785,6 +1786,7 @@ feeds, as inheriting backends of 'nnfeed'.
 This allow users to add Atom Syndication Format feeds to Gnus as
 servers.
 
+---
 *** The 'nnweb-type' option 'gmane' has been removed.
 The gmane.org website is, sadly, down since a number of years with no
 prospect of it coming back.  Therefore, it is no longer valid to set
