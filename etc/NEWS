@@ -47,7 +47,18 @@ init file.
 
 * Changes in Emacs 31.1
 
----
++++
+** standard-display-table now has more extra slots
+
+standard-display-table has been extended to allow specifying glyphs that
+are used for borders around child frames and menu separators on TTY
+frames.
+
+Call function standard-display-unicode-special-glyphs to set up the
+standard-display-table's extra slots with Unicode characters.  Please
+see the documentation of that function to see which slots of the display
+table it changes.
+
 ** Child frames are now supported on TTY frames.
 This supports use-cases like Posframe, Corfu, and child frames acting
 like tooltips.  Other use-cases of child frames are not supported yet.

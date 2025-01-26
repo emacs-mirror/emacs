@@ -28,7 +28,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    && EQ (XCHAR_TABLE (obj)->purpose, Qdisplay_table)			    \
    && CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (obj)) == DISP_TABLE_EXTRA_SLOTS)
 
-#define DISP_TABLE_EXTRA_SLOTS 12
 #define DISP_TRUNC_GLYPH(dp) ((dp)->extras[0])
 #define DISP_CONTINUE_GLYPH(dp) ((dp)->extras[1])
 #define DISP_ESCAPE_GLYPH(dp) ((dp)->extras[2])
@@ -43,7 +42,14 @@ enum box
   BOX_DOWN_RIGHT,
   BOX_DOWN_LEFT,
   BOX_UP_RIGHT,
-  BOX_UP_LEFT
+  BOX_UP_LEFT,
+  BOX_DOUBLE_VERTICAL,
+  BOX_DOUBLE_HORIZONTAL,
+  BOX_DOUBLE_DOWN_RIGHT,
+  BOX_DOUBLE_DOWN_LEFT,
+  BOX_DOUBLE_UP_RIGHT,
+  BOX_DOUBLE_UP_LEFT
+#define DISP_TABLE_EXTRA_SLOTS (BOX_DOUBLE_UP_LEFT + 1)
 };
 
 extern Lisp_Object disp_char_vector (struct Lisp_Char_Table *, int);

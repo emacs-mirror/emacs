@@ -27272,33 +27272,42 @@ deep_copy_glyph_row (struct frame *f, struct glyph_row *to, struct glyph_row *fr
     fill_up_frame_row_with_spaces (f, to, to_used);
 }
 
+/* Return the character to be used for displaying a tty menu separator.
+   C is the character to be used by default.  BOX is the display table
+   entry for the character to be used instead.  It is looked up in
+   standard-display-table.  Value is the character to use.  */
+
+static int
+display_tty_menu_separator_char (int c, enum box box)
+{
+  if (DISP_TABLE_P (Vstandard_display_table))
+    {
+      struct Lisp_Char_Table *dp = XCHAR_TABLE (Vstandard_display_table);
+      Lisp_Object gc = dp->extras[box];
+      if (GLYPH_CODE_P (gc))
+	c = GLYPH_CODE_CHAR (gc);
+    }
+  return c;
+}
+
 /* Produce glyphs for a menu separator on a tty.
 
    FIXME: This is only a "good enough for now" implementation of menu
    separators as described in the Elisp info manual.  We should probably
-   ignore menu separators when computing the width of a menu.  Secondly,
-   optionally using Unicode characters via display table entries would
-   be nice.  Patches very welcome.  */
+   ignore menu separators when computing the width of a menu.  */
 
 static void
 display_tty_menu_separator (struct it *it, const char *label, int width)
 {
-  USE_SAFE_ALLOCA;
-  char c;
+  int c;
   if (strcmp (label, "--space") == 0)
     c = ' ';
   else if (strcmp (label, "--double-line") == 0)
-    c = '=';
+    c = display_tty_menu_separator_char ('=', BOX_DOUBLE_HORIZONTAL);
   else
-    c = '-';
-  char *sep = SAFE_ALLOCA (width);
-  memset (sep, c, width - 1);
-  sep[width -  1] = 0;
-  display_string (sep, Qnil, Qnil, 0, 0, it, width - 1, width - 1,
-		  FRAME_COLS (it->f) - 1, -1);
-  display_string (" ", Qnil, Qnil, 0, 0, it, 1, 0,
-		  FRAME_COLS (it->f) - 1, -1);
-  SAFE_FREE ();
+    c = display_tty_menu_separator_char ('-', BOX_HORIZONTAL);
+  Lisp_Object sep = Fmake_string (make_fixnum (width - 1), make_fixnum (c), Qt);
+  display_string ((char *) SDATA (sep), Qnil, Qnil, 0, 0, it, width, -1, -1, 1);
 }
 
 /* Display one menu item on a TTY, by overwriting the glyphs in the

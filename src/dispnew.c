@@ -3614,6 +3614,13 @@ produce_box_glyphs (enum box box, struct glyph_row *row, int x, int n,
     case BOX_UP_LEFT:
       dflt = '+';
       break;
+    case BOX_DOUBLE_VERTICAL:
+    case BOX_DOUBLE_HORIZONTAL:
+    case BOX_DOUBLE_DOWN_RIGHT:
+    case BOX_DOUBLE_DOWN_LEFT:
+    case BOX_DOUBLE_UP_RIGHT:
+    case BOX_DOUBLE_UP_LEFT:
+      emacs_abort ();
     }
 
   /* FIXME/tty: some face for the border.  */
