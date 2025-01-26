@@ -70,7 +70,7 @@ Valid symbols are `truncation', `wrap', `escape', `control',
 `box-horizontal', `box-down-right', `box-down-left', `box-up-right',
 `box-up-left',`box-double-vertical', `box-double-horizontal',
 `box-double-down-right', `box-double-down-left',
-`box-double-up-left', `box-double-up-left',"
+`box-double-up-right', `box-double-up-left',"
   (let ((slot-number
 	 (if (numberp slot) slot
 	   (or (get slot 'display-table-slot)
@@ -86,7 +86,7 @@ Valid symbols are `truncation', `wrap', `escape', `control',
 `box-horizontal', `box-down-right', `box-down-left', `box-up-right',
 `box-up-left',`box-double-vertical', `box-double-horizontal',
 `box-double-down-right', `box-double-down-left',
-`box-double-up-left', `box-double-up-left',"
+`box-double-up-right', `box-double-up-left',"
   (let ((slot-number
 	 (if (numberp slot) slot
 	   (or (get slot 'display-table-slot)

@@ -8727,7 +8727,7 @@ the single-line tty menu separator.
 
 The glyphs for a double-line border, in the order of vertical,
 horizontal, down-right edge, down-left edge, up-right, and up-left edge
-glyphs. The horizontal glyph is also used for the single-line tty menu
+glyphs.  The horizontal glyph is also used for the single-line TTY menu
 separator, the other glyphs are not yet used.
 @end table
 
@@ -8766,7 +8766,7 @@ Valid slot name symbols are @code{truncation}, @code{wrap},
 @code{box-down-right}, @code{box-down-left}, @code{box-up-right},
 @code{box-up-left}, @code{box-double-vertical},
 @code{box-double-horizontal}, @code{box-double-down-right},
-@code{box-double-down-left}, @code{box-double-down-left},
+@code{box-double-down-left}, @code{box-double-up-right},
 @code{box-double-up-left}.
 
 @defun describe-display-table display-table
