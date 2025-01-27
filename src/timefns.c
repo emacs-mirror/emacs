@@ -1950,15 +1950,24 @@ the data it can't find.  */)
 	  /* No local time zone name is available; use numeric zone instead.  */
 	  long int hour = offset / 3600;
 	  int min_sec = offset % 3600;
-	  int amin_sec = eabs (min_sec);
-	  int min = amin_sec / 60;
-	  int sec = amin_sec % 60;
-	  int min_prec = min_sec ? 2 : 0;
-	  int sec_prec = sec ? 2 : 0;
-	  char buf[sizeof "+0000" + INT_STRLEN_BOUND (long int)];
-	  zone_name = make_formatted_string (buf, "%c%.2ld%.*d%.*d",
-					     (offset < 0 ? '-' : '+'),
-					     hour, min_prec, min, sec_prec, sec);
+	  char buf[INT_STRLEN_BOUND (long int) + sizeof "5959"];
+	  int buflen = 0;
+	  buf[buflen++] = offset < 0 ? '-' : '+';
+	  buflen += sprintf (buf + buflen, "%.2ld", eabs (hour));
+	  if (min_sec)
+	    {
+	      int amin_sec = eabs (min_sec);
+	      int min = amin_sec / 60;
+	      int sec = amin_sec % 60;
+	      buf[buflen++] = '0' + min / 10;
+	      buf[buflen++] = '0' + min % 10;
+	      if (sec)
+		{
+		  buf[buflen++] = '0' + sec / 10;
+		  buf[buflen++] = '0' + sec % 10;
+		}
+	    }
+	  zone_name = make_string (buf, buflen);
 	}
     }
 
