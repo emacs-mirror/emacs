@@ -12601,7 +12601,6 @@ static bool
 gs_load (struct frame *f, struct image *img)
 {
   uintmax_t printnum1, printnum2;
-  char buffer[sizeof " " + 2 * INT_STRLEN_BOUND (intmax_t)];
   Lisp_Object window_and_pixmap_id = Qnil, loader, pt_height, pt_width;
   Lisp_Object frame;
   double in_width, in_height;
@@ -12653,13 +12652,13 @@ gs_load (struct frame *f, struct image *img)
   printnum1 = FRAME_X_DRAWABLE (f);
   printnum2 = img->pixmap;
   window_and_pixmap_id
-    = make_formatted_string (buffer, "%"PRIuMAX" %"PRIuMAX,
+    = make_formatted_string ("%"PRIuMAX" %"PRIuMAX,
 			     printnum1, printnum2);
 
   printnum1 = FRAME_FOREGROUND_PIXEL (f);
   printnum2 = FRAME_BACKGROUND_PIXEL (f);
   pixel_colors
-    = make_formatted_string (buffer, "%"PRIuMAX" %"PRIuMAX,
+    = make_formatted_string ("%"PRIuMAX" %"PRIuMAX,
 			     printnum1, printnum2);
 
   XSETFRAME (frame, f);

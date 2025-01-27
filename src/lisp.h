@@ -4592,8 +4592,8 @@ extern Lisp_Object make_uninit_bool_vector (EMACS_INT);
 extern Lisp_Object bool_vector_fill (Lisp_Object, Lisp_Object);
 extern AVOID string_overflow (void);
 extern Lisp_Object make_string (const char *, ptrdiff_t);
-extern Lisp_Object make_formatted_string (char *, const char *, ...)
-  ATTRIBUTE_FORMAT_PRINTF (2, 3);
+extern Lisp_Object make_formatted_string (const char *, ...)
+  ATTRIBUTE_FORMAT_PRINTF (1, 2);
 extern Lisp_Object make_unibyte_string (const char *, ptrdiff_t);
 extern ptrdiff_t vectorlike_nbytes (const union vectorlike_header *hdr);
 

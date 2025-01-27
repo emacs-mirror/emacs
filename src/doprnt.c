@@ -23,7 +23,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    supports the following Emacs-specific features:
 
    . For %c conversions, it produces a string with the multibyte representation
-     of the (`int') argument, suitable for display in an Emacs buffer.
+     of the ('int') argument, suitable for display in an Emacs buffer.
 
    . For %s and %c, when field width is specified (e.g., %25s), it accounts for
      the display width of each character, according to char-width-table.  That
@@ -42,8 +42,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
      overflow ptrdiff_t or size_t, to avoid producing strings longer than what
      Emacs can handle.
 
-   OTOH, this function supports only a small subset of the standard C formatted
-   output facilities.  E.g., %u is not supported, precision is ignored
+   On the other hand, this function supports only a small subset of the
+   standard C formatted output facilities.  E.g., precision is ignored
    in %s and %c conversions, and %lld does not necessarily work and
    code should use something like %"pM"d with intmax_t instead.
    (See below for the detailed documentation of what is supported.)
@@ -57,16 +57,17 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    also supports the following %-sequences:
 
    %s means print a string argument.
-   %S is treated as %s, for loose compatibility with `Fformat_message'.
-   %d means print a `signed int' argument in decimal.
-   %o means print an `unsigned int' argument in octal.
-   %x means print an `unsigned int' argument in hex.
-   %e means print a `double' argument in exponential notation.
-   %f means print a `double' argument in decimal-point notation.
-   %g means print a `double' argument in exponential notation
+   %S is treated as %s, for loose compatibility with 'Fformat_message'.
+   %d means print a 'signed int' argument in decimal.
+   %o means print an 'unsigned int' argument in octal.
+   %u means print an 'unsigned int' argument in decimal.
+   %x means print an 'unsigned int' argument in hex.
+   %e means print a 'double' argument in exponential notation.
+   %f means print a 'double' argument in decimal-point notation.
+   %g means print a 'double' argument in exponential notation
       or in decimal-point notation, depending on the value;
       this is often (though not always) the shorter of the two notations.
-   %c means print a `signed int' argument as a single character.
+   %c means print a 'signed int' argument as a single character.
    %% means produce a literal % character.
 
    A %-sequence other than %% may contain optional flags, width, precision,
@@ -82,18 +83,18 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    The + flag character inserts a + before any positive number, while a space
    inserts a space before any positive number; these flags only affect %d, %o,
    %x, %e, %f, and %g sequences.  The - and 0 flags affect the width specifier,
-   as described below.  For signed numerical arguments only, the ` ' (space)
+   as described below.  For signed numerical arguments only, the ' ' (space)
    flag causes the result to be prefixed with a space character if it does not
    start with a sign (+ or -).
 
-   The l (lower-case letter ell) length modifier is a `long' data type
+   The l (lower-case letter ell) length modifier is a 'long' data type
    modifier: it is supported for %d, %o, and %x conversions of integral
    arguments, must immediately precede the conversion specifier, and means that
-   the respective argument is to be treated as `long int' or `unsigned long
+   the respective argument is to be treated as 'long int' or 'unsigned long
    int'.  Similarly, the value of the pD macro means to use ptrdiff_t,
    the value of the pI macro means to use EMACS_INT or EMACS_UINT, the
    value of the PRIdMAX etc. macros means to use intmax_t or uintmax_t,
-   and the empty length modifier means `int' or `unsigned int'.
+   and the empty length modifier means 'int' or 'unsigned int'.
 
    The width specifier supplies a lower limit for the length of the printed
    representation.  The padding, if any, normally goes on the left, but it goes
@@ -162,16 +163,15 @@ doprnt_non_null_end (char *buffer, ptrdiff_t bufsize, char const *format,
   return nbytes;
 }
 
-/* Generate output from a format-spec FORMAT,
+/* Format to BUFFER (of positive size BUFSIZE) data formated by FORMAT,
    terminated at either the first NUL or (if FORMAT_END is non-null
    and there are no NUL bytes between FORMAT and FORMAT_END)
-   terminated at position FORMAT_END.
+   terminated at position FORMAT_END.  AP specifies format arguments.
    (*FORMAT_END is not part of the format, but must exist and be readable.)
-   Output goes in BUFFER, which has room for BUFSIZE chars.
-   BUFSIZE must be positive.  If the output does not fit, truncate it
-   to fit and return BUFSIZE - 1; if this truncates a multibyte
-   sequence, store '\0' into the sequence's first byte.
-   Returns the number of bytes stored into BUFFER, excluding
+   If the output does not fit, truncate it to fit and return BUFSIZE - 1;
+   if this truncates a multibyte sequence,
+   store '\0' into the sequence's first byte.
+   Return the number of bytes stored into BUFFER, excluding
    the terminating null byte.  Output is always null-terminated.
    String arguments are passed as C strings.
    Integers are passed as C integers.
@@ -349,6 +349,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	      goto doit;
 
 	    case 'o':
+	    case 'u':
 	    case 'x':
 	      switch (length_modifier)
 		{

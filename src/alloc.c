@@ -2542,19 +2542,23 @@ make_uninit_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes)
   return make_clear_multibyte_string (nchars, nbytes, false);
 }
 
-/* Print arguments to BUF according to a FORMAT, then return
-   a Lisp_String initialized with the data from BUF.  */
+/* Return a Lisp_String according to a doprnt-style FORMAT and args.  */
 
 Lisp_Object
-make_formatted_string (char *buf, const char *format, ...)
+make_formatted_string (const char *format, ...)
 {
+  char buf[64];
+  char *cstr = buf;
+  ptrdiff_t bufsize = sizeof buf;
   va_list ap;
-  int length;
 
   va_start (ap, format);
-  length = vsprintf (buf, format, ap);
+  ptrdiff_t length = evxprintf (&cstr, &bufsize, buf, -1, format, ap);
   va_end (ap);
-  return make_string (buf, length);
+  Lisp_Object ret = make_string (cstr, length);
+  if (cstr != buf)
+    xfree (cstr);
+  return ret;
 }
 
 /* Pin a unibyte string in place so that it won't move during GC.  */

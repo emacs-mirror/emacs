@@ -927,17 +927,6 @@ apply_xft_settings (Display_Info *dpyinfo,
       static char const format[] =
 	"Antialias: %d, Hinting: %d, RGBA: %d, LCDFilter: %d, "
 	"Hintstyle: %d, DPI: %f";
-      enum
-      {
-	d_formats = 5,
-	d_growth = INT_BUFSIZE_BOUND (int) - sizeof "%d",
-	lf_formats = 1,
-	max_f_integer_digits = DBL_MAX_10_EXP + 1,
-	f_precision = 6,
-	lf_growth = (sizeof "-." + max_f_integer_digits + f_precision
-		     - sizeof "%f")
-      };
-      char buf[sizeof format + d_formats * d_growth + lf_formats * lf_growth];
 #ifdef HAVE_XFT
       XftDefaultSet (dpyinfo->display, pat);
 #else
@@ -946,7 +935,7 @@ apply_xft_settings (Display_Info *dpyinfo,
       store_config_changed_event (Qfont_render,
 				  XCAR (dpyinfo->name_list_element));
       Vxft_settings
-	= make_formatted_string (buf, format,
+	= make_formatted_string (format,
 				 oldsettings.aa, oldsettings.hinting,
 				 oldsettings.rgba, oldsettings.lcdfilter,
 				 oldsettings.hintstyle, oldsettings.dpi);
