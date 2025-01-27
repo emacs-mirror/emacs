@@ -447,7 +447,8 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 		  while (tem != 0);
 
 		  memcpy (bufptr, string, tem);
-		  bufptr[tem] = 0;
+		  while (tem < bufsize)
+		    bufptr[tem++] = 0;
 		  /* Trigger exit from the loop, but make sure we
 		     return to the caller a value which will indicate
 		     that the buffer was too small.  */
@@ -499,6 +500,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	    fmtchar = '\'';
 
 	  *bufptr++ = fmtchar;
+	  bufsize--;
 	  continue;
 	}
       else
@@ -524,7 +526,10 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
       else
 	{
 	  do
-	    *bufptr++ = *src++;
+	    {
+	      *bufptr++ = *src++;
+	      bufsize--;
+	    }
 	  while (--srclen != 0);
 	}
     }
