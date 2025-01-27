@@ -1971,6 +1971,12 @@ four_corners_best (Emacs_Pix_Context pimg, int *corners,
   return best;
 }
 
+static Lisp_Object
+make_color_name (unsigned int red, unsigned int green, unsigned int blue)
+{
+  return make_formatted_string ("#%04x%04x%04x", red, green, blue);
+}
+
 /* Return the `background' field of IMG.  If IMG doesn't have one yet,
    it is guessed heuristically.  If non-zero, XIMG is an existing
    Emacs_Pix_Context object (device context with the image selected on
@@ -1993,14 +1999,10 @@ image_background (struct image *img, struct frame *f, Emacs_Pix_Context pimg)
       RGB_PIXEL_COLOR bg
 	= four_corners_best (pimg, img->corners, img->width, img->height);
 #ifdef USE_CAIRO
-      {
-	char color_name[30];
-	snprintf (color_name, sizeof color_name, "#%04x%04x%04x",
-		  (unsigned int) RED16_FROM_ULONG (bg),
-		  (unsigned int) GREEN16_FROM_ULONG (bg),
-		  (unsigned int) BLUE16_FROM_ULONG (bg));
-	bg = image_alloc_image_color (f, img, build_string (color_name), 0);
-      }
+      Lisp_Object color_name = make_color_name (RED16_FROM_ULONG (bg),
+						GREEN16_FROM_ULONG (bg),
+						BLUE16_FROM_ULONG (bg));
+      bg = image_alloc_image_color (f, img, color_name, 0);
 #endif
       img->background = bg;
 
@@ -7383,15 +7385,11 @@ image_build_heuristic_mask (struct frame *f, struct image *img,
       if (i == 3 && NILP (how))
 	{
 #ifndef USE_CAIRO
-	  char color_name[30];
-	  int len = snprintf (color_name, sizeof color_name, "#%04x%04x%04x",
-			      rgb[0] + 0u, rgb[1] + 0u, rgb[2] + 0u);
-	  eassert (len < sizeof color_name);
-	  bg = (
-#ifdef HAVE_NTGUI
-		0x00ffffff & /* Filter out palette info.  */
-#endif /* HAVE_NTGUI */
-		image_alloc_image_color (f, img, build_string (color_name), 0));
+	  Lisp_Object color_name = make_color_name (rgb[0], rgb[1], rgb[2]);
+	  bg = image_alloc_image_color (f, img, color_name, 0);
+# ifdef HAVE_NTGUI
+	  bg &= 0x00ffffff; /* Filter out palette info.  */
+# endif
 #else  /* USE_CAIRO */
 	  bg = lookup_rgb_color (f, rgb[0], rgb[1], rgb[2]);
 #endif	/* USE_CAIRO */
@@ -8535,12 +8533,9 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
 #ifndef USE_CAIRO
 	  img->background = lookup_rgb_color (f, bg->red, bg->green, bg->blue);
 #else  /* USE_CAIRO */
-	  char color_name[30];
-	  int len = snprintf (color_name, sizeof color_name, "#%04x%04x%04x",
-			      bg->red, bg->green, bg->blue);
-	  eassert (len < sizeof color_name);
-	  img->background
-	    = image_alloc_image_color (f, img, build_string (color_name), 0);
+	  Lisp_Object color_name
+	    = make_color_name (bg->red, bg->green, bg->blue);
+	  img->background = image_alloc_image_color (f, img, color_name, 0);
 #endif /* USE_CAIRO */
 	  img->background_valid = 1;
 	}
