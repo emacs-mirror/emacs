@@ -30382,7 +30382,7 @@ static bool x_timeout_atimer_activated_flag;
 
 #endif /* USE_X_TOOLKIT */
 
-static int x_initialized;
+static bool x_initialized;
 
 /* Test whether two display-name strings agree up to the dot that separates
    the screen number from the server number.  */
@@ -30594,10 +30594,11 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   block_input ();
 
+  bool was_initialized = x_initialized;
   if (!x_initialized)
     {
       x_initialize ();
-      ++x_initialized;
+      x_initialized = true;
     }
 
 #if defined USE_X_TOOLKIT || defined USE_GTK
@@ -30615,7 +30616,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     char **argv2 = argv;
     guint id;
 
-    if (x_initialized++ > 1)
+    if (was_initialized)
       {
         xg_display_open (SSDATA (display_name), &dpy);
       }

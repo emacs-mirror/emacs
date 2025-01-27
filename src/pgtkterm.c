@@ -7004,7 +7004,7 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
   GdkDisplay *dpy;
   struct terminal *terminal;
   struct pgtk_display_info *dpyinfo;
-  static int x_initialized = 0;
+  static bool x_initialized;
   static unsigned x_display_id = 0;
   static char *initial_display = NULL;
   char *dpy_name;
@@ -7015,6 +7015,7 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
 
   block_input ();
 
+  bool was_initialized = x_initialized;
   if (!x_initialized)
     {
       any_help_event_p = false;
@@ -7025,8 +7026,7 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
 #ifdef USE_CAIRO
       gui_init_fringe (&pgtk_redisplay_interface);
 #endif
-
-      ++x_initialized;
+      x_initialized = true;
     }
 
   dpy_name = SSDATA (display_name);
@@ -7041,7 +7041,7 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
     char **argv2 = argv;
     guint id;
 
-    if (x_initialized++ > 1)
+    if (was_initialized)
       {
 	xg_display_open (dpy_name, &dpy);
       }
