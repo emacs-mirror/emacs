@@ -29,7 +29,7 @@
   (declare (indent 0) (debug t))
   `(let ((user-login-name "test-logname")
          (user-full-name "100%d Tester") ;verify "%" passed unchanged
-         (buffer-file-name "/emacs/test/time-stamped-file")
+         (buffer-file-name "/emacs/test/0-9AZaz (time)_stamped.file$+^")
          (mail-host-address "test-mail-host-name")
          (ref-time1 '(17337 16613))    ;Monday, Jan 2, 2006, 3:04:05 PM
          (ref-time2 '(22574 61591))    ;Friday, Nov 18, 2016, 12:14:15 PM
@@ -285,6 +285,24 @@
           (setq time-stamp-line-limit 2)
           (time-stamp)
           (should (equal (buffer-string) buffer-expected-2)))))))
+
+(ert-deftest time-stamp-custom-file-name ()
+  "Test that `time-stamp' isn't confused by a newline in the file name."
+  (with-time-stamp-test-env
+    (let ((time-stamp-format "1 %f")     ;changed later in the test
+          (buffer-original-contents "Time-stamp: <>")
+          (expected-1 "Time-stamp: <1 Embedded?Newline>")
+          (expected-2 "Time-stamp: <2 Embedded?Newline>"))
+      (with-temp-buffer
+        (let ((buffer-file-name "Embedded\nNewline"))
+          (insert buffer-original-contents)
+          (time-stamp)
+          (should (equal (buffer-string) expected-1))
+          ;; If the first time-stamp inserted an unexpected newline, the
+          ;; next time-stamp would be unable to find the end pattern.
+          (setq time-stamp-format "2 %f")
+          (time-stamp)
+          (should (equal (buffer-string) expected-2)))))))
 
 ;;; Tests of time-stamp-string formatting
 
@@ -690,9 +708,10 @@
       ;; implemented and recommended since 1995
       (should (equal (time-stamp-string "%%" ref-time1) "%")) ;% last char
       (should (equal (time-stamp-string "%%P" ref-time1) "%P")) ;% not last char
-      (should (equal (time-stamp-string "%f" ref-time1) "time-stamped-file"))
+      (should (equal (time-stamp-string "%f" ref-time1)
+                     "0-9AZaz (time)_stamped.file$+^"))
       (should (equal (time-stamp-string "%F" ref-time1)
-                     "/emacs/test/time-stamped-file"))
+                     "/emacs/test/0-9AZaz (time)_stamped.file$+^"))
       (with-temp-buffer
         (should (equal (time-stamp-string "%f" ref-time1) "(no file)"))
         (should (equal (time-stamp-string "%F" ref-time1) "(no file)")))

@@ -726,11 +726,12 @@ and all `time-stamp-format' compatibility."
                      (time-stamp--format "%Z" time)))
 	           ((eq cur-char ?f)    ;buffer-file-name, base name only
 	            (if buffer-file-name
-	                (file-name-nondirectory buffer-file-name)
+                        (time-stamp-filtered-buffer-file-name :nondirectory)
 	              time-stamp-no-file))
 	           ((eq cur-char ?F)    ;buffer-file-name, absolute name
-	            (or buffer-file-name
-	                time-stamp-no-file))
+                    (if buffer-file-name
+                        (time-stamp-filtered-buffer-file-name :absolute)
+                      time-stamp-no-file))
 	           ((eq cur-char ?s)    ;system name, legacy
 		    (time-stamp-conv-warn "%s" "%Q")
 	            (system-name))
@@ -802,6 +803,26 @@ This is an internal helper for `time-stamp-string-preprocess'."
     (if (and (> colon-count 0) (not (string-equal field-width "")))
 	""				;discourage "%:2d" and the like
       (string-to-number (time-stamp--format format-string time)))))
+
+(defun time-stamp-filtered-buffer-file-name (type)
+  "Return the buffer file name, but with non-graphic characters replaced by ?.
+TYPE is :absolute for the full name or :nondirectory for base name only."
+  (declare (ftype (function ((member :absolute :nondirectory)) string)))
+  (let ((file-name buffer-file-name)
+        (safe-character-filter
+         (lambda (chr)
+           (let ((category (get-char-code-property chr 'general-category)))
+             (if (or
+                  ;; Letter, Mark, Number, Punctuation, or Symbol
+                  (member (aref (symbol-name category) 0) '(?L ?M ?N ?P ?S))
+                  ;; spaces of various widths, but not ctrl chars like CR or LF
+                  (eq category 'Zs))
+                 chr
+               ;; substitute "?" for format or control character
+               ??)))))
+    (when (eq type :nondirectory)
+      (setq file-name (file-name-nondirectory file-name)))
+    (apply #'string (mapcar safe-character-filter file-name))))
 
 
 (defvar time-stamp-conversion-warn t
