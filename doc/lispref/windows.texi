@@ -23,6 +23,7 @@ is displayed in windows.
 * Recombining Windows::     Preserving the frame layout when splitting and
                               deleting windows.
 * Resurrecting Windows::    Restoring deleted windows.
+* Changing Window Layouts::  Transposing windows in an orderly manner.
 * Cyclic Window Ordering::  Moving around the existing windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.
 * Switching Buffers::       Higher-level functions for switching to a buffer.
@@ -2223,6 +2224,205 @@ cursor type are left untouched and there's no need to recreate them from
 scratch.  For internal windows, the value of that window's combination
 limit is preserved which means that the window can be recombined
 (@pxref{Recombining Windows}) as before.
+
+
+@node Changing Window Layouts
+@section Changing Window Layouts
+
+Sometimes it can be useful to change the layout of windows such that two
+or more windows occupy the locations of each other.  The commands
+described in this section do that in an orderly manner.  Conceptually,
+these commands affect a rectangular subset of the windows on a frame.
+As a rule, they neither affect the location of a frame's minibuffer
+window nor of any of its side windows (@pxref{Side Windows}).
+
+   Common to all these commands is that they preserve the identity of
+windows by deleting them first and resurrecting them
+(@pxref{Resurrecting Windows}) in their new locations afterwards.  No
+window gets lost and no window is added or duplicated.  Where possible,
+these commands try to preserve the relative size of windows as well as
+all other non-geometric properties including parameters.
+
+   The @var{window} argument of all functions described in this section
+must specify a valid parent window (@pxref{Windows and Frames}).  If it
+is @code{nil}, it stands for the main window (@pxref{Side Windows}) of
+the selected frame.  Interactively, a prefix argument means to operate
+on the parent window of the selected window.  In the examples given
+below, we shall always assume that the windows displayed constitute
+their frame's main window and the @var{window} argument is @code{nil}
+unless stated otherwise.
+
+   The first two commands rotate a window layout either clockwise or
+counterclockwise.
+@cindex rotate window layout
+
+@deffn Command rotate-window-layout-clockwise &optional window
+This command rotates the window layout clockwise by 90 degrees.  Imagine
+a layout with three live windows @var{A}, @var{B} and @var{C} as
+depicted on the left below.  Then this command will produce the layout
+on the right.
+
+@smallexample
+@group
+     ___________       ___________
+    |           |     |     |     |
+    |     A     |     |  B  |     |
+    |___________| --> |_____|  A  |
+    |     |     |     |     |     |
+    |  B  |  C  |     |  C  |     |
+    |_____|_____|     |_____|_____|
+
+@end group
+@end smallexample
+
+With a prefix argument and window @var{B} selected, window @var{A} would
+have remained unaffected and the layout would have changed as follows:
+
+@smallexample
+@group
+     ___________       ___________
+    |           |     |           |
+    |     A     |     |     A     |
+    |___________| --> |___________|
+    |     |     |     |     |     |
+    |  B  |  C  |     |  C  |  B  |
+    |_____|_____|     |_____|_____|
+
+@end group
+@end smallexample
+@end deffn
+
+@deffn Command rotate-window-layout-counterclockwise &optional window
+This is like @code{rotate-window-layout-clockwise} but rotates the
+layout in the opposite direction as demonstrated in the example below.
+
+@smallexample
+@group
+     ___________       ___________
+    |           |     |     |     |
+    |     A     |     |     |  C  |
+    |___________| --> |  A  |_____|
+    |     |     |     |     |     |
+    |  B  |  C  |     |     |  B  |
+    |_____|_____|     |_____|_____|
+
+@end group
+@end smallexample
+@end deffn
+
+The next two commands @sc{flip} the window layout---rotate it around an
+imaginary horizontal or vertical axis.
+@cindex flip window layout
+
+@deffn Command flip-window-layout-vertically &optional window
+This command flips windows such that windows on the bottom become
+windows on the top and vice-versa as in the example below.
+
+@smallexample
+@group
+     ___________       ___________
+    |           |     |     |     |
+    |     A     |     |  B  |  C  |
+    |___________| --> |_____|_____|
+    |     |     |     |           |
+    |  B  |  C  |     |     A     |
+    |_____|_____|     |___________|
+
+@end group
+@end smallexample
+@end deffn
+
+@deffn Command flip-window-layout-horizontally &optional window
+This command rearranges window in a way that the windows on the right
+become the window on the left, and vice-versa.
+
+@smallexample
+@group
+     ___________        ___________
+    |           |     |           |
+    |     A     |     |     A     |
+    |___________| --> |___________|
+    |     |     |     |     |     |
+    |  B  |  C  |     |  C  |  B  |
+    |_____|_____|     |_____|_____|
+
+@end group
+@end smallexample
+@end deffn
+
+The next command can be used for @sc{transposing} windows---changing
+horizontal splits to vertical ones and vice-versa.
+@cindex transposing windows
+
+@deffn Command transpose-window-layout &optional window
+This command reorganizes windows such that every horizontal split
+becomes a vertical split and vice versa.
+
+@smallexample
+@group
+     ___________       ___________
+    |           |     |     |     |
+    |     A     |     |     |  B  |
+    |___________| --> |  A  |_____|
+    |     |     |     |     |     |
+    |  B  |  C  |     |     |  C  |
+    |_____|_____|     |_____|_____|
+
+@end group
+@end smallexample
+@end deffn
+
+The final two commands can be used to rotate windows within the existing
+layout.  They are like the commands that rotate the layout but leave the
+underlying structure of the layout unchanged.  What actually changes are
+the positions of windows within the existing layout.
+@cindex rotating windows
+
+@deffn Command rotate-windows &optional window reverse
+This rotate windows under @var{window} in cyclic ordering.  The optional
+argument @var{reverse} means to rotate windows backward, in reverse
+cyclic order.
+
+@smallexample
+@group
+ ___________        ___________
+|           |      |           |
+|     A     |      |     B     |
+|___________| -->  |___________|
+|     |     |      |     |     |
+|  B  |  C  |      |  C  |  A  |
+|_____|_____|      |_____|_____|
+
+@end group
+@end smallexample
+@end deffn
+
+@deffn Command rotate-windows-back &optional window
+This command rotates windows under @var{window} backward in cyclic
+ordering.
+
+@smallexample
+@group
+ ___________        ___________
+|           |      |           |
+|     A     |      |     C     |
+|___________| -->  |___________|
+|     |     |      |     |     |
+|  B  |  C  |      |  A  |  B  |
+|_____|_____|      |_____|_____|
+
+@end group
+@end smallexample
+@end deffn
+
+The last two commands are subject to the following option.
+
+@defopt rotate-windows-change-selected
+If this is @code{nil}, the selected window will remain unaffected by
+@code{rotate-windows} and @code{rotate-windows-back}.  Otherwise, the
+selected window will change to the window that appears at the location
+of the selected window before any of these commands were invoked.
+@end defopt
 
 
 @node Cyclic Window Ordering

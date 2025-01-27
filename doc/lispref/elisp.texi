@@ -1080,6 +1080,7 @@ Windows
 * Recombining Windows::     Preserving the frame layout when splitting and
                               deleting windows.
 * Resurrecting Windows::    Restoring deleted windows.
+* Changing Window Layouts::  Transposing windows in an orderly manner.
 * Cyclic Window Ordering::  Moving around the existing windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.
 * Switching Buffers::       Higher-level functions for switching to a buffer.

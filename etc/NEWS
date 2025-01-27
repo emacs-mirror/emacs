@@ -173,6 +173,7 @@ the "*Completions*" buffer is hidden.
 
 ** Windows
 
++++
 *** New functions to modify window layout.
 Several functions to modify the window layout have been added:
 'rotate-window-layout-clockwise'
