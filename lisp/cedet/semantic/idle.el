@@ -820,12 +820,12 @@ visible, then highlight it."
 		      (point) (get-buffer-window (current-buffer) 'visible))
                  (if (< (overlay-end region) (line-end-position))
 		     (pulse-momentary-highlight-overlay
-		      region semantic-idle-symbol-highlight)
+		      region 'semantic-idle-symbol-highlight)
 		   ;; Not the same
 		   (pulse-momentary-highlight-region
 		    (overlay-start region)
                     (line-end-position)
-		    semantic-idle-symbol-highlight))))))
+		    'semantic-idle-symbol-highlight))))))
 	  ((vectorp region)
 	   (let ((start (aref region 0))
 		 (end (aref region 1)))
@@ -844,7 +844,7 @@ visible, then highlight it."
 		   (pulse-momentary-highlight-region
                     start (if (<= end (line-end-position)) end
                             (line-end-position))
-		    semantic-idle-symbol-highlight)))))))
+		    'semantic-idle-symbol-highlight)))))))
     nil))
 
 (define-semantic-idle-service semantic-idle-local-symbol-highlight
@@ -874,7 +874,7 @@ Call `semantic-symref-hits-in-region' to identify local references."
            target (lambda (start end _prefix)
 		    (when (/= start (car Hbounds))
 		      (pulse-momentary-highlight-region
-		       start end semantic-idle-symbol-highlight))
+		       start end 'semantic-idle-symbol-highlight))
 		    (semantic-throw-on-input 'symref-highlight))
 	   (semantic-tag-start tag)
 	   (semantic-tag-end tag)))))))

@@ -2544,7 +2544,7 @@ purposes)."
 		(or (eq (aref vec i) ?\n)
 		    (aset vec i
 			  (make-glyph-code (aref vec i)
-					   whitespace-newline)))))
+					   'whitespace-newline)))))
 	    ;; Display mapping
 	    (aset buffer-display-table (cadr entry) vec)))))))
 
