@@ -402,6 +402,12 @@ set to 'title'.
 *** New user option 'ibuffer-human-readable-size'.
 When non-nil, buffer sizes are shown in human readable format.
 
+---
+** Buffer Menu
+*** New user option 'Buffer-menu-human-readable-sizes'.
+When non-nil, buffer sizes are shown in human readable format.  The
+default is nil, which retains the old format.
+
 ** Smerge
 *** New command 'smerge-extend' extends a conflict over surrounding lines.
 
