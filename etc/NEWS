@@ -451,6 +451,14 @@ Such bindings make it possible to compute which function to bind to FUNC.
 If 'whitespace-style' includes 'missing-newline-at-eof' (which is the
 default), the 'whitespace-cleanup' function will now add the newline.
 
+** Bookmark
+
+---
+*** New user option 'bookmark-bmenu-type-column-width'.
+This user option controls the width of the type column on the bookmark
+menu 'bookmark-bmenu-list'. The default value is 8 which is backwards
+compatible.
+
 ** Gnus
 
 ---

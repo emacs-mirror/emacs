@@ -165,6 +165,10 @@ This includes the annotations column.")
 You can toggle whether files are shown with \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-toggle-filenames]."
   :type 'natnum)
 
+(defcustom bookmark-bmenu-type-column-width 8
+  "Column width for bookmark type in a buffer listing bookmarks."
+  :type 'natnum
+  :version "31.1")
 
 (defcustom bookmark-bmenu-toggle-filenames t
   "Non-nil means show filenames when listing bookmarks.
@@ -2061,7 +2065,7 @@ At any time you may use \\[revert-buffer] to go back to sorting by creation orde
         `[("" 1) ;; Space to add "*" for bookmark with annotation
           ("Bookmark Name"
            ,bookmark-bmenu-file-column bookmark-bmenu--name-predicate)
-          ("Type" 8 bookmark-bmenu--type-predicate)
+          ("Type" ,bookmark-bmenu-type-column-width bookmark-bmenu--type-predicate)
           ,@(if bookmark-bmenu-toggle-filenames
                 '(("File" 0 bookmark-bmenu--file-predicate)))])
   (setq tabulated-list-padding bookmark-bmenu-marks-width)
