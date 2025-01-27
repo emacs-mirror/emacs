@@ -720,11 +720,7 @@ format_string (const char *format, ...)
   va_start (va, format);
   int res = vsnprintf (scratch_area, sizeof (scratch_area), format, va);
   if (res >= sizeof (scratch_area))
-    {
-      scratch_area[sizeof (scratch_area) - 4] = '.';
-      scratch_area[sizeof (scratch_area) - 3] = '.';
-      scratch_area[sizeof (scratch_area) - 2] = '.';
-    }
+    strcpy (scratch_area + sizeof scratch_area - 4, "...");
   va_end (va);
   return scratch_area;
 }
