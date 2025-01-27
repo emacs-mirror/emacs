@@ -7080,7 +7080,7 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
 
         dpy = DEFAULT_GDK_DISPLAY ();
 
-	initial_display = g_strdup (gdk_display_get_name (dpy));
+	initial_display = xstrdup (gdk_display_get_name (dpy));
 	dpy_name = initial_display;
 	lisp_dpy_name = build_string (dpy_name);
       }
