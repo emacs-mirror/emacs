@@ -2783,7 +2783,7 @@ and @code{special} declarations are redundant in a fully
 dynamically-scoped Lisp.
 @end ignore
 A few declarations are meaningful when byte compiler optimizations
-are enabled, as they are by the default.  Otherwise these
+are enabled, as they are by default.  Otherwise these
 declarations will effectively be ignored.
 
 @defun cl-proclaim decl-spec

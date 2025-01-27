@@ -523,9 +523,9 @@ See also the command `recentf-open-most-recent-file'."
 
 (defvar recentf-menu-items-for-commands
   (list
-   ["Cleanup list"
+   ["Clean up list"
     recentf-cleanup
-    :help "Remove duplicates, and obsoletes files from the recent list"
+    :help "Remove duplicates, and obsolete files from the recent list"
     :active t]
    ["Edit list..."
     recentf-edit-list
