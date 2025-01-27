@@ -3109,9 +3109,9 @@ digit_to_number (int character, int base)
 static void
 invalid_radix_integer (EMACS_INT radix, Lisp_Object readcharfun)
 {
-  char buf[64];
-  int n = snprintf (buf, sizeof buf, "integer, radix %"pI"d", radix);
-  eassert (n < sizeof buf);
+  static char const format[] = "integer, radix %"pI"d";
+  char buf[sizeof format - sizeof "%"pI"d" + INT_BUFSIZE_BOUND (radix)];
+  sprintf (buf, format, radix);
   invalid_syntax (buf, readcharfun);
 }
 
