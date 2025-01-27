@@ -2597,6 +2597,7 @@ tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
 static Lisp_Object
 tty_frame_at (int x, int y, int *cx, int *cy)
 {
+#ifndef HAVE_ANDROID
   for (Lisp_Object frames = Ftty_frame_list_z_order (Qnil);
        !NILP (frames);
        frames = Fcdr (frames))
@@ -2613,6 +2614,7 @@ tty_frame_at (int x, int y, int *cx, int *cy)
 	  return frame;
 	}
     }
+#endif /* !HAVE_ANDROID */
 
   return Qnil;
 }
