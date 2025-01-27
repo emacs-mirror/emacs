@@ -12587,10 +12587,19 @@ vmessage (const char *m, va_list ap)
 	      ptrdiff_t len;
 	      ptrdiff_t maxsize = FRAME_MESSAGE_BUF_SIZE (f);
 	      USE_SAFE_ALLOCA;
-	      char *message_buf = SAFE_ALLOCA (maxsize + 1);
+	      char *message_buf = SAFE_ALLOCA (maxsize + MAX_MULTIBYTE_LENGTH);
 
-	      len = doprnt (message_buf, maxsize, m, 0, ap);
-
+	      len = doprnt (message_buf, maxsize + MAX_MULTIBYTE_LENGTH, m, 0, ap);
+	      /* doprnt returns the buffer size minus one when it
+		 truncated a multibyte sequence.  Work around that by
+		 truncating to the last valid multibyte head.  */
+	      if (len >= maxsize)
+		{
+		  len = maxsize - 1;
+		  while (!CHAR_HEAD_P (message_buf[len]))
+		    len--;
+		  message_buf[len] = 0;
+		}
 	      message3 (make_string (message_buf, len));
 	      SAFE_FREE ();
 	    }
