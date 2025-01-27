@@ -2905,8 +2905,8 @@ compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx,
 
   /* Move the tooltip window where the mouse pointer is.  Resize and
      show it.  */
-  if ((!INTEGERP (left) && !INTEGERP (right))
-      || (!INTEGERP (top) && !INTEGERP (bottom)))
+  if ((!FIXNUMP (left) && !FIXNUMP (right))
+      || (!FIXNUMP (top) && !FIXNUMP (bottom)))
     {
       Lisp_Object frame, attributes, monitor, geometry;
       GdkSeat *seat =
@@ -2955,9 +2955,9 @@ compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx,
       max_y = pgtk_display_pixel_height (FRAME_DISPLAY_INFO (f));
     }
 
-  if (INTEGERP (top))
+  if (FIXNUMP (top))
     *root_y = XFIXNUM (top);
-  else if (INTEGERP (bottom))
+  else if (FIXNUMP (bottom))
     *root_y = XFIXNUM (bottom) - height;
   else if (*root_y + XFIXNUM (dy) <= min_y)
     *root_y = min_y;		/* Can happen for negative dy */
@@ -2971,9 +2971,9 @@ compute_tip_xy (struct frame *f, Lisp_Object parms, Lisp_Object dx,
     /* Put it on the top.  */
     *root_y = min_y;
 
-  if (INTEGERP (left))
+  if (FIXNUMP (left))
     *root_x = XFIXNUM (left);
-  else if (INTEGERP (right))
+  else if (FIXNUMP (right))
     *root_x = XFIXNUM (right) - width;
   else if (*root_x + XFIXNUM (dx) <= min_x)
     *root_x = 0;		/* Can happen for negative dx */
