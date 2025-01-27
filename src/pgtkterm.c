@@ -7070,13 +7070,10 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
 	id = g_log_set_handler ("GLib", G_LOG_LEVEL_WARNING | G_LOG_FLAG_FATAL
 				| G_LOG_FLAG_RECURSION, my_log_handler, NULL);
 
-	/* gtk_init does set_locale.  Fix locale before and after.  */
-	fixup_locale ();
+	gtk_disable_setlocale ();
 	unrequest_sigio ();	/* See comment in x_display_ok.  */
 	gtk_init (&argc, &argv2);
 	request_sigio ();
-	fixup_locale ();
-
 
         g_log_remove_handler ("GLib", id);
 

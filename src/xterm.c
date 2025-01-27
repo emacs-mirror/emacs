@@ -30651,8 +30651,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
            Call before gtk_init so Gtk+ event filters comes after our.  */
         gdk_window_add_filter (NULL, event_handler_gdk, NULL);
 
-        /* gtk_init does set_locale.  Fix locale before and after.  */
-        fixup_locale ();
+        gtk_disable_setlocale ();
         unrequest_sigio (); /* See comment in x_display_ok.  */
         gtk_init (&argc, &argv2);
         request_sigio ();
@@ -30661,8 +30660,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
         xg_initialize ();
 
-	/* Do this after the call to xg_initialize, because when
-	   Fontconfig is used, xg_initialize calls its initialization
+	/* When Fontconfig is used, xg_initialize calls its initialization
 	   function which in some versions of Fontconfig calls setlocale.  */
 	fixup_locale ();
 
