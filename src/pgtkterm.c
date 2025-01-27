@@ -22,6 +22,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    interpretation of even the system includes. */
 #include <config.h>
 
+/* Work around GCC bug 102671.  */
+#if 10 <= __GNUC__
+# pragma GCC diagnostic ignored "-Wanalyzer-null-dereference"
+#endif
+
 #include <cairo.h>
 #include <fcntl.h>
 #include <math.h>
