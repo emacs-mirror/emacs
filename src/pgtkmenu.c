@@ -725,7 +725,7 @@ pgtk_menu_show (struct frame *f, int x, int y, int menuflags,
 				  STRINGP (help) ? help : Qnil);
 	  if (prev_wv)
 	    prev_wv->next = wv;
-	  else
+	  else if (save_wv)
 	    save_wv->contents = wv;
 	  if (!NILP (descrip))
 	    wv->key = SSDATA (descrip);
