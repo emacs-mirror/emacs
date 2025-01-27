@@ -1,0 +1,12 @@
+; This file contains an Android version code
+; (https://developer.android.com/studio/publish/versioning#versioningsettings)
+; corresponding to the current Emacs version.
+;
+; The version code in AndroidManifest.xml.in is hard-coded to a fixed
+; value, to make package downgrades possible.  Where an incrementing
+; version code is required (for example, for automated F-Droid package
+; builds (https://f-droid.org/packages/org.gnu.emacs/)), the version
+; code in this file should be referred to and patched in to
+; AndroidManifest.xml.
+
+300093000

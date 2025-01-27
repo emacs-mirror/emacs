@@ -122,6 +122,13 @@ Root must be the root of an Emacs source tree."
 		       (rx (and "AC_INIT" (1+ (not (in ?,)))
                                 ?, (0+ space) ?\[
                                 (submatch (1+ (in "0-9."))))))
+  (set-version-in-file root "java/incrementing-version-code"
+                       (apply #'format "%02d%02d%02d000"
+                              (mapcar #'string-to-number
+                                      (split-string version "\\.")))
+                       (rx (and line-start
+                                (submatch (1+ (in digit)))
+                                line-end)))
   (set-version-in-file root "nt/README.W32" version
 		       (rx (and "version" (1+ space)
 				(submatch (1+ (in "0-9."))))))
