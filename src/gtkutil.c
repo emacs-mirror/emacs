@@ -1424,13 +1424,9 @@ xg_set_widget_bg (struct frame *f, GtkWidget *w, unsigned long pixel)
   xbg.blue |= xbg.blue << 8;
 #endif
     {
-      const char format[] = "* { background-color: #%02x%02x%02x; }";
-      /* The format is always longer than the resulting string.  */
-      char buffer[sizeof format];
-      int n = snprintf(buffer, sizeof buffer, format,
-                       xbg.red >> 8, xbg.green >> 8, xbg.blue >> 8);
-      eassert (n > 0);
-      eassert (n < sizeof buffer);
+      static char const format[] = "* { background-color: #%02x%02x%02x; }";
+      char buffer[sizeof format + 3 * INT_STRLEN_BOUND (xbg.red)];
+      sprintf (buffer, format, xbg.red >> 8, xbg.green >> 8, xbg.blue >> 8);
       GtkCssProvider *provider = gtk_css_provider_new ();
       gtk_css_provider_load_from_data (provider, buffer, -1, NULL);
       gtk_style_context_add_provider (gtk_widget_get_style_context(w),
