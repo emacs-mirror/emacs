@@ -1179,7 +1179,6 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	      && (f == XFRAME (selected_frame)
 		  || !NILP (focus_follows_mouse)))
 	    {
-	      static Lisp_Object last_mouse_window;
 	      Lisp_Object window
 		= window_from_coordinates (f, event->xmotion.x,
 					   event->xmotion.y, 0,

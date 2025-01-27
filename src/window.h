@@ -1116,6 +1116,10 @@ extern Lisp_Object minibuf_window;
 
 extern Lisp_Object minibuf_selected_window;
 
+/* Non-nil means it is the window containing the last mouse movement.  */
+
+extern Lisp_Object last_mouse_window;
+
 extern Lisp_Object make_window (void);
 extern Lisp_Object window_from_coordinates (struct frame *, int, int,
                                             enum window_part *, bool, bool, bool);

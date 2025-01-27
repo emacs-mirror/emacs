@@ -467,7 +467,6 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
 		struct input_event *emacs_ev)
 {
   static DWORD button_state = 0;
-  static Lisp_Object last_mouse_window;
   DWORD but_change, mask, flags = event->dwEventFlags;
   int i;
 

@@ -21291,8 +21291,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		&& (f == XFRAME (selected_frame)
 		    || !NILP (focus_follows_mouse)))
 	      {
-		static Lisp_Object last_mouse_window;
-
 		if (xmotion.window != FRAME_X_WINDOW (f))
 		  {
 		    x_translate_coordinates (f, xmotion.x_root, xmotion.y_root,
@@ -23231,7 +23229,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      && (f == XFRAME (selected_frame)
 			  || !NILP (focus_follows_mouse)))
 		    {
-		      static Lisp_Object last_mouse_window;
 		      Lisp_Object window = window_from_coordinates (f, ev.x, ev.y, 0, false, false,
 								    false);
 

@@ -2677,8 +2677,6 @@ dos_rawgetc (void)
 	  /* Generate SELECT_WINDOW_EVENTs when needed.  */
 	  if (!NILP (Vmouse_autoselect_window))
 	    {
-	      static Lisp_Object last_mouse_window;
-
 	      mouse_window = window_from_coordinates
 		(SELECTED_FRAME (), mouse_last_x, mouse_last_y, 0, 0, 0, 0);
 	      /* A window will be selected only when it is not

@@ -5938,7 +5938,6 @@ motion_notify_event (GtkWidget *widget, GdkEvent *event,
 	     also when the target window is on another frame.  */
 	  && (f == XFRAME (selected_frame) || !NILP (focus_follows_mouse)))
 	{
-	  static Lisp_Object last_mouse_window;
 	  Lisp_Object window = window_from_coordinates
 	    (f, event->motion.x, event->motion.y, 0, false, false, false);
 
