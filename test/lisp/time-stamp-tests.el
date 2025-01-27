@@ -1067,41 +1067,63 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ;; We will modify this list, so start with a list consed at runtime.
   (let ((ert-test-list (list 'progn))
         (common-description
-         (concat "\nThis test expands from a call to"
-                 " the macro `define-formatz-tests'.\n"
-                 "To find the specific call, search the source file for \"")))
+         (concat "\nThis test is defined by a call to"
+                 " the macro `define-formatz-tests'.")))
     (dolist (form-string form-strings ert-test-list)
-      (nconc
-       ert-test-list
-       (list
-        `(ert-deftest ,(intern (concat "formatz-" form-string "-hhmm")) ()
-           ,(concat "Test `time-stamp' format " form-string
-                    " with whole hours and whole minutes.\n"
-                    common-description form-string "\".")
-           (should (equal (formatz ,form-string (fz-make+zone 0))
-                          ,(car hour-mod)))
-           (formatz-hours-exact-helper ,form-string ',(cdr hour-mod))
-           (should (equal (formatz ,form-string (fz-make+zone 0 30))
-                          ,(car mins-mod)))
-           (formatz-nonzero-minutes-helper ,form-string ',(cdr mins-mod)))
-        `(ert-deftest ,(intern (concat "formatz-" form-string "-seconds")) ()
-           ,(concat "Test `time-stamp' format " form-string
-                    " with offsets that have non-zero seconds.\n"
-                    common-description form-string "\".")
-           (should (equal (formatz ,form-string (fz-make+zone 0 0 30))
-                          ,(car secs-mod)))
-           (formatz-nonzero-seconds-helper ,form-string ',(cdr secs-mod)))
-        `(ert-deftest ,(intern (concat "formatz-" form-string "-threedigit")) ()
-           ,(concat "Test `time-stamp' format " form-string
-                    " with offsets of 100 hours or greater.\n"
-                    common-description form-string "\".")
-           (should (equal (formatz ,form-string (fz-make+zone 100))
-                          ,(car big-mod)))
-           (formatz-hours-big-helper ,form-string ',(cdr big-mod))
-           (should (equal (formatz ,form-string (fz-make+zone 100 0 30))
-                          ,(car secbig-mod)))
-           (formatz-seconds-big-helper ,form-string ',(cdr secbig-mod)))
-        )))))
+      (let ((test-name-hhmm
+             (intern (concat "formatz-" form-string "-hhmm")))
+            (test-name-seconds
+             (intern (concat "formatz-" form-string "-seconds")))
+            (test-name-threedigit
+             (intern (concat "formatz-" form-string "-threedigit"))))
+        (nconc
+         ert-test-list
+         (list
+          `(find-function-update-type-alist
+            ',test-name-hhmm 'ert--test 'formatz-find-test-def-function)
+          `(ert-deftest ,test-name-hhmm ()
+             ,(concat "Test `time-stamp' format " form-string
+                      " with whole hours and whole minutes.\n"
+                      common-description)
+             (should (equal (formatz ,form-string (fz-make+zone 0))
+                            ,(car hour-mod)))
+             (formatz-hours-exact-helper ,form-string ',(cdr hour-mod))
+             (should (equal (formatz ,form-string (fz-make+zone 0 30))
+                            ,(car mins-mod)))
+             (formatz-nonzero-minutes-helper ,form-string ',(cdr mins-mod)))
+          `(find-function-update-type-alist
+            ',test-name-seconds 'ert--test 'formatz-find-test-def-function)
+          `(ert-deftest ,test-name-seconds ()
+             ,(concat "Test `time-stamp' format " form-string
+                      " with offsets that have non-zero seconds.\n"
+                      common-description)
+             (should (equal (formatz ,form-string (fz-make+zone 0 0 30))
+                            ,(car secs-mod)))
+             (formatz-nonzero-seconds-helper ,form-string ',(cdr secs-mod)))
+          `(find-function-update-type-alist
+            ',test-name-threedigit 'ert--test 'formatz-find-test-def-function)
+          `(ert-deftest ,test-name-threedigit ()
+             ,(concat "Test `time-stamp' format " form-string
+                      " with offsets of 100 hours or greater.\n"
+                      common-description)
+             (should (equal (formatz ,form-string (fz-make+zone 100))
+                            ,(car big-mod)))
+             (formatz-hours-big-helper ,form-string ',(cdr big-mod))
+             (should (equal (formatz ,form-string (fz-make+zone 100 0 30))
+                            ,(car secbig-mod)))
+             (formatz-seconds-big-helper ,form-string ',(cdr secbig-mod)))
+          ))))))
+
+(defun formatz-find-test-def-function (test-name)
+  "Search for the `define-formatz-tests' call defining test TEST-NAME.
+Return non-nil if the definition is found."
+  (let* ((z-format (replace-regexp-in-string "\\`formatz-\\([^z]+z\\)-.*\\'"
+                                             "\\1"
+                                             (symbol-name test-name)))
+         (regexp (concat "^(define-formatz-tests ("
+                         "\\(?:[^)]\\|;.*\n\\)*"
+                         "\"" (regexp-quote z-format) "\"")))
+    (re-search-forward regexp nil t)))
 
 ;;;; The actual test cases for %z
 
