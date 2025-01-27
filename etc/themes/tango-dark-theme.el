@@ -135,7 +135,7 @@ Semantic, and Ansi-Color faces are included."
    `(message-cited-text ((,class (:foreground ,cham-1))))
    `(message-separator ((,class (:foreground ,plum-1))))
    ;; SMerge faces
-   `(smerge-refined-change ((,class (:background ,blue-3))))
+   `(smerge-refined-changed ((,class (:background ,blue-3))))
    ;; Ediff faces
    `(ediff-current-diff-A ((,class (:background ,alum-5))))
    `(ediff-fine-diff-A ((,class (:background ,blue-3))))

@@ -639,7 +639,7 @@ jarring angry fruit salad look to reduce eye fatigue."
  '(smerge-markers ((t (:background "grey30"))))
  '(smerge-mine ((t (:foreground "cyan"))))
  '(smerge-other ((t (:foreground "lightgreen"))))
- '(smerge-refined-change ((t (:background "blue4"))))
+ '(smerge-refined-changed ((t (:background "blue4"))))
  '(speedbar-button-face ((t (:foreground "green3"))))
  '(speedbar-directory-face ((t (:foreground "light blue"))))
  '(speedbar-file-face ((t (:foreground "cyan"))))

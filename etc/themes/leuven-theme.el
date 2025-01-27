@@ -359,7 +359,7 @@ more..."
    `(smerge-other ((,class ,diff-added)))
    `(smerge-base ((,class ,diff-removed)))
    `(smerge-markers ((,class (:background "#FFE5CC"))))
-   `(smerge-refined-change ((,class (:background "#AAAAFF"))))
+   `(smerge-refined-changed ((,class (:background "#AAAAFF"))))
 
    ;; Ediff.
    `(ediff-current-diff-A ((,class (:background "#FFDDDD"))))
