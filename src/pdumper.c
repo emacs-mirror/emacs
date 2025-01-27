@@ -2292,11 +2292,12 @@ dump_float (struct dump_context *ctx, const struct Lisp_Float *lfloat)
 }
 
 static dump_off
-dump_fwd_int (struct dump_context *ctx, const struct Lisp_Intfwd *intfwd)
+dump_fwd_int (struct dump_context *ctx, void const *fwdptr)
 {
 #if CHECK_STRUCTS && !defined HASH_Lisp_Intfwd_4D887A7387
 # error "Lisp_Intfwd changed. See CHECK_STRUCTS comment in config.h."
 #endif
+  struct Lisp_Intfwd const *intfwd = fwdptr;
   dump_emacs_reloc_immediate_intmax_t (ctx, intfwd->intvar, *intfwd->intvar);
   struct Lisp_Intfwd out;
   dump_object_start (ctx, &out, sizeof (out));
@@ -2306,11 +2307,12 @@ dump_fwd_int (struct dump_context *ctx, const struct Lisp_Intfwd *intfwd)
 }
 
 static dump_off
-dump_fwd_bool (struct dump_context *ctx, const struct Lisp_Boolfwd *boolfwd)
+dump_fwd_bool (struct dump_context *ctx, void const *fwdptr)
 {
 #if CHECK_STRUCTS && !defined (HASH_Lisp_Boolfwd_0EA1C7ADCC)
 # error "Lisp_Boolfwd changed. See CHECK_STRUCTS comment in config.h."
 #endif
+  struct Lisp_Boolfwd const *boolfwd = fwdptr;
   dump_emacs_reloc_immediate_bool (ctx, boolfwd->boolvar, *boolfwd->boolvar);
   struct Lisp_Boolfwd out;
   dump_object_start (ctx, &out, sizeof (out));
@@ -2320,11 +2322,12 @@ dump_fwd_bool (struct dump_context *ctx, const struct Lisp_Boolfwd *boolfwd)
 }
 
 static dump_off
-dump_fwd_obj (struct dump_context *ctx, const struct Lisp_Objfwd *objfwd)
+dump_fwd_obj (struct dump_context *ctx, void const *fwdptr)
 {
 #if CHECK_STRUCTS && !defined (HASH_Lisp_Objfwd_45D3E513DC)
 # error "Lisp_Objfwd changed. See CHECK_STRUCTS comment in config.h."
 #endif
+  struct Lisp_Objfwd const *objfwd = fwdptr;
   if (NILP (Fgethash (dump_off_to_lisp (emacs_offset (objfwd->objvar)),
                       ctx->staticpro_table,
                       Qnil)))
@@ -2337,12 +2340,12 @@ dump_fwd_obj (struct dump_context *ctx, const struct Lisp_Objfwd *objfwd)
 }
 
 static dump_off
-dump_fwd_buffer_obj (struct dump_context *ctx,
-                     const struct Lisp_Buffer_Objfwd *buffer_objfwd)
+dump_fwd_buffer_obj (struct dump_context *ctx, void const *fwdptr)
 {
 #if CHECK_STRUCTS && !defined (HASH_Lisp_Buffer_Objfwd_611EBD13FF)
 # error "Lisp_Buffer_Objfwd changed. See CHECK_STRUCTS comment in config.h."
 #endif
+  struct Lisp_Buffer_Objfwd const *buffer_objfwd = fwdptr;
   struct Lisp_Buffer_Objfwd out;
   dump_object_start (ctx, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, buffer_objfwd, type);
@@ -2353,12 +2356,12 @@ dump_fwd_buffer_obj (struct dump_context *ctx,
 }
 
 static dump_off
-dump_fwd_kboard_obj (struct dump_context *ctx,
-                     const struct Lisp_Kboard_Objfwd *kboard_objfwd)
+dump_fwd_kboard_obj (struct dump_context *ctx, void const *fwdptr)
 {
 #if CHECK_STRUCTS && !defined (HASH_Lisp_Kboard_Objfwd_CAA7E71069)
 # error "Lisp_Intfwd changed. See CHECK_STRUCTS comment in config.h."
 #endif
+  struct Lisp_Kboard_Objfwd const *kboard_objfwd = fwdptr;
   struct Lisp_Kboard_Objfwd out;
   dump_object_start (ctx, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, kboard_objfwd, type);
@@ -2372,29 +2375,16 @@ dump_fwd (struct dump_context *ctx, lispfwd fwd)
 #if CHECK_STRUCTS && !defined (HASH_Lisp_Fwd_Type_9CBA6EE55E)
 # error "Lisp_Fwd_Type changed. See CHECK_STRUCTS comment in config.h."
 #endif
-  void const *p = fwd.fwdptr;
-  dump_off offset;
+  typedef dump_off (*dump_fwd_fnptr) (struct dump_context *, void const *);
+  static dump_fwd_fnptr const dump_fwd_table[] = {
+    [Lisp_Fwd_Int] = dump_fwd_int,
+    [Lisp_Fwd_Bool] = dump_fwd_bool,
+    [Lisp_Fwd_Obj] = dump_fwd_obj,
+    [Lisp_Fwd_Buffer_Obj] = dump_fwd_buffer_obj,
+    [Lisp_Fwd_Kboard_Obj] = dump_fwd_kboard_obj,
+  };
 
-  switch (XFWDTYPE (fwd))
-    {
-    case Lisp_Fwd_Int:
-      offset = dump_fwd_int (ctx, p);
-      break;
-    case Lisp_Fwd_Bool:
-      offset = dump_fwd_bool (ctx, p);
-      break;
-    case Lisp_Fwd_Obj:
-      offset = dump_fwd_obj (ctx, p);
-      break;
-    case Lisp_Fwd_Buffer_Obj:
-      offset = dump_fwd_buffer_obj (ctx, p);
-      break;
-    case Lisp_Fwd_Kboard_Obj:
-      offset = dump_fwd_kboard_obj (ctx, p);
-      break;
-    }
-
-  return offset;
+  return dump_fwd_table[XFWDTYPE (fwd)] (ctx, fwd.fwdptr);
 }
 
 static dump_off
@@ -4544,26 +4534,19 @@ dump_anonymous_allocate_w32 (void *base,
 #  define MAP_ANONYMOUS MAP_ANON
 # endif
 
+static int const mem_prot_posix_table[] = {
+  [DUMP_MEMORY_ACCESS_NONE] = PROT_NONE,
+  [DUMP_MEMORY_ACCESS_READ] = PROT_READ,
+  [DUMP_MEMORY_ACCESS_READWRITE] = PROT_READ | PROT_WRITE,
+};
+
 static void *
 dump_anonymous_allocate_posix (void *base,
                                size_t size,
                                enum dump_memory_protection protection)
 {
   void *ret;
-  int mem_prot;
-
-  switch (protection)
-    {
-    case DUMP_MEMORY_ACCESS_NONE:
-      mem_prot = PROT_NONE;
-      break;
-    case DUMP_MEMORY_ACCESS_READ:
-      mem_prot = PROT_READ;
-      break;
-    case DUMP_MEMORY_ACCESS_READWRITE:
-      mem_prot = PROT_READ | PROT_WRITE;
-      break;
-    }
+  int mem_prot = mem_prot_posix_table[protection];
 
   int mem_flags = MAP_PRIVATE | MAP_ANONYMOUS;
   if (mem_prot != PROT_NONE)
@@ -4707,25 +4690,9 @@ dump_map_file_posix (void *base, int fd, off_t offset, size_t size,
 		     enum dump_memory_protection protection)
 {
   void *ret;
-  int mem_prot;
-  int mem_flags;
-
-  switch (protection)
-    {
-    case DUMP_MEMORY_ACCESS_NONE:
-      mem_prot = PROT_NONE;
-      mem_flags = MAP_SHARED;
-      break;
-    case DUMP_MEMORY_ACCESS_READ:
-      mem_prot = PROT_READ;
-      mem_flags = MAP_SHARED;
-      break;
-    case DUMP_MEMORY_ACCESS_READWRITE:
-      mem_prot = PROT_READ | PROT_WRITE;
-      mem_flags = MAP_PRIVATE;
-      break;
-    }
-
+  int mem_prot = mem_prot_posix_table[protection];
+  int mem_flags = (protection == DUMP_MEMORY_ACCESS_READWRITE
+		   ? MAP_PRIVATE : MAP_SHARED);
   if (base)
     mem_flags |= MAP_FIXED;
 
