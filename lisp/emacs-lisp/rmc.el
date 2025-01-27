@@ -216,8 +216,14 @@ Usage example:
                                     (car elem)))
                             prompt-choices)))
                   (condition-case nil
-                      (let ((cursor-in-echo-area t))
-                        (read-event))
+                      (let ((cursor-in-echo-area t)
+                            ;; Do NOT use read-event here.  That
+                            ;; function does not consult
+                            ;; input-decode-map (bug#75886).
+                            (key (read-key)))
+                        (when (eq key ?\C-g)
+                          (signal 'quit nil))
+                        key)
                     (error nil))))
           (if (memq (car-safe tchar) '(touchscreen-begin
                                        touchscreen-end
