@@ -525,10 +525,6 @@ ACTION is the default value for commands not in the alist."
   :type 'boolean
   :package-version '(Eglot . "1.17.30"))
 
-(defcustom eglot-menu-string "eglot"
-  "String displayed in mode line when Eglot is active."
-  :type 'string)
-
 (defcustom eglot-report-progress t
   "If non-nil, show progress of long running LSP server work.
 If set to `messages', use *Messages* buffer, else use Eglot's
@@ -584,18 +580,24 @@ servers."
   "Face used for code action suggestions.")
 
 (defcustom eglot-code-action-indications
-  '(eldoc-hint mode-line margin)
+  '(eldoc-hint margin)
   "How Eglot indicates there's are code actions available at point.
 Value is a list of symbols, more than one can be specified:
 
-- `eldoc-hint': ElDoc is used to hint about at-point actions.
-- `margin': A special indicator appears in the margin.
-- `nearby': A special indicator appears near point.
+- `eldoc-hint': ElDoc is used to hint about at-point actions;
+- `margin': A special indicator appears in the margin;
+- `nearby': A special indicator appears near point;
 - `mode-line': A special indicator appears in the mode-line.
 
-`margin' and `nearby' are incompatible.  `margin's indicator is not
-interactive.  If the list is empty, Eglot will not hint about code
-actions at point."
+If the list is empty, Eglot will not hint about code actions at point.
+
+Note additionally:
+
+- `margin' and `nearby' are incompatible.  If both are specified,
+  the latter takes priority;
+- `margin's indicator is not interactive;
+- `mode-line' only works if `eglot-mode-line-action-suggestion' exists in
+  `eglot-mode-line-format' (which see)."
   :type '(set
           :tag "Tick the ones you're interested in"
           (const :tag "ElDoc textual hint" eldoc-hint)
@@ -2204,12 +2206,8 @@ If it is activated, also signal textDocument/didOpen."
   (setf (jsonrpc-last-error server) nil))
 
 
-;;; Mode-line, menu and other sugar
+;;; Menu and other sugar
 ;;;
-(defvar eglot--mode-line-format `(:eval (eglot--mode-line-format)))
-
-(put 'eglot--mode-line-format 'risky-local-variable t)
-
 (defun eglot--mouse-call (what &optional update-mode-line)
   "Make an interactive lambda for calling WHAT with the mouse."
   (lambda (event)
@@ -2298,6 +2296,44 @@ If it is activated, also signal textDocument/didOpen."
        (interactive)
        (customize-variable 'eglot-events-buffer-size))]))
 
+
+;;; Mode-line
+;;;
+(defcustom eglot-mode-line-format
+  '(eglot-mode-line-menu
+    eglot-mode-line-session
+    eglot-mode-line-error
+    eglot-mode-line-pending-requests
+    eglot-mode-line-progress
+    eglot-mode-line-action-suggestion)
+  "Mode line construct for customizing Eglot information.
+Meaningful symbols in this construct include:
+
+- `eglot-mode-line-menu': access Eglot's main menu.  See also
+`eglot-menu-string';
+
+- `eglot-mode-line-session': indicate current project and access current
+ session's menu;
+
+- `eglot-mode-line-error': an indication of recent LSP errors;
+
+- `eglot-mode-line-pending-requests': number of pending LSP requests;
+
+- `eglot-mode-line-progress': progress reporter widgets;
+
+- `eglot-mode-line-action-suggestion': LSP code action at point.
+"
+  :type '(repeat (choice string symbol))
+  :package-version '(Eglot . "1.19"))
+
+(put 'eglot-mode-line-format 'risky-local-variable t)
+(put 'eglot-mode-line-menu 'risky-local-variable t)
+(put 'eglot-mode-line-session 'risky-local-variable t)
+(put 'eglot-mode-line-error 'risky-local-variable t)
+(put 'eglot-mode-line-pending-requests 'risky-local-variable t)
+(put 'eglot-mode-line-progress 'risky-local-variable t)
+(put 'eglot-mode-line-action-suggestion 'risky-local-variable t)
+
 (defun eglot--mode-line-props (thing face defs &optional prepend)
   "Helper for function `eglot--mode-line-format'.
 Uses THING, FACE, DEFS and PREPEND."
@@ -2307,10 +2343,11 @@ Uses THING, FACE, DEFS and PREPEND."
            do (define-key map `[mode-line ,key] (eglot--mouse-call def t))
            concat (format "%s: %s" key help) into blurb
            when rest concat "\n" into blurb
-           finally (return `(:propertize ,thing
-                                         face ,face
-                                         keymap ,map help-echo ,(concat prepend blurb)
-                                         mouse-face mode-line-highlight))))
+           finally (return (propertize
+                            thing
+                            'face face
+                            'keymap map 'help-echo (concat prepend blurb)
+                            'mouse-face 'mode-line-highlight))))
 
 (defconst eglot--main-menu-map
   (let ((map (make-sparse-keymap)))
@@ -2322,55 +2359,92 @@ Uses THING, FACE, DEFS and PREPEND."
     (define-key map [mode-line down-mouse-1] eglot-server-menu)
     map))
 
-(defun eglot--mode-line-format ()
-  "Compose Eglot's mode-line."
-  (let* ((server (eglot-current-server))
-         (nick (and server (eglot-project-nickname server)))
-         (pending (and server (jsonrpc-continuation-count server)))
-         (last-error (and server (jsonrpc-last-error server))))
-    (append
-     `(,(propertize
-         eglot-menu-string
-         'face 'eglot-mode-line
-         'mouse-face 'mode-line-highlight
-         'help-echo "Eglot: Emacs LSP client\nmouse-1: Display minor mode menu"
-         'keymap eglot--main-menu-map))
-     (when nick
-       `(":"
-         ,(propertize
-           nick
-           'face 'eglot-mode-line
-           'mouse-face 'mode-line-highlight
-           'help-echo (format "Project '%s'\nmouse-1: LSP server control menu" nick)
-           'keymap eglot--server-menu-map)
-         ,@(when last-error
-             `("/" ,(eglot--mode-line-props
-                     "error" 'compilation-mode-line-fail
-                     '((mouse-3 eglot-clear-status  "Clear this status"))
-                     (format "An error occurred: %s\n" (plist-get last-error
-                                                                  :message)))))
-         ,@(when (cl-plusp pending)
-             `("/" ,(eglot--mode-line-props
-                     (format "%d" pending) 'warning
-                     '((mouse-3 eglot-forget-pending-continuations
-                                "Forget pending continuations"))
-                     "Number of outgoing, \
-still unanswered LSP requests to the server\n")))
-         ,@(cl-loop for pr hash-values of (eglot--progress-reporters server)
-                    when (eq (car pr)  'eglot--mode-line-reporter)
-                    append `("/" ,(eglot--mode-line-props
-                                   (format "%s%%%%" (or (nth 4 pr) "?"))
-                                   'eglot-mode-line
-                                   nil
-                                   (format "(%s) %s %s" (nth 1 pr)
-                                           (nth 2 pr) (nth 3 pr)))))
-         ,@(when (and
-                  (memq 'mode-line eglot-code-action-indications)
-                  (overlay-buffer eglot--suggestion-overlay))
-             `("/" ,(overlay-get eglot--suggestion-overlay 'eglot--suggestion-tooltip))))))))
+(defcustom eglot-menu-string "eglot"
+  "String displayed in mode line when Eglot is active."
+  :type 'string)
 
-(add-to-list 'mode-line-misc-info
-             `(eglot--managed-mode (" [" eglot--mode-line-format "] ")))
+(defconst eglot-mode-line-menu
+  (propertize
+   eglot-menu-string
+   'face 'eglot-mode-line
+   'mouse-face 'mode-line-highlight
+   'help-echo "Eglot: Emacs LSP client\nmouse-1: Display minor mode menu"
+   'keymap eglot--main-menu-map)
+  "Eglot mode line construct for Eglot's main menu.")
+
+(defconst  eglot-mode-line-session
+  '(:eval (when-let* ((server (eglot-current-server))
+                      (nick (eglot-project-nickname server)))
+            (propertize
+             nick
+             'face 'eglot-mode-line
+             'mouse-face 'mode-line-highlight
+             'help-echo (format "Project '%s'\nmouse-1: LSP server control menu" nick)
+             'keymap eglot--server-menu-map)))
+  "Eglot mode line construct for project/LSP session.")
+
+(defconst eglot-mode-line-error
+  '(:eval (when-let* ((server (eglot-current-server))
+                      (last-error (and server (jsonrpc-last-error server))))
+            (eglot--mode-line-props
+             "error" 'compilation-mode-line-fail
+             '((mouse-3 eglot-clear-status  "Clear this status"))
+             (format "An error occurred: %s\n" (plist-get last-error
+                                                          :message)))))
+  "Eglot mode line construct for LSP errors.")
+
+(defconst eglot-mode-line-pending-requests
+  '(:eval (when-let* ((server (eglot-current-server))
+                      (pending (jsonrpc-continuation-count server)))
+            (when (cl-plusp pending)
+              (eglot--mode-line-props
+               (format "%d" pending) 'warning
+               '((mouse-3 eglot-forget-pending-continuations
+                          "Forget pending continuations"))
+               "Number of outgoing, \
+still unanswered LSP requests to the server\n"))))
+  "Eglot mode line construct for number of pending LSP requests.")
+
+(defconst eglot-mode-line-progress
+  '(:eval
+    (when-let ((server (eglot-current-server)))
+      (cl-loop
+       for pr hash-values of (eglot--progress-reporters server)
+       when (eq (car pr) 'eglot--mode-line-reporter)
+       collect (eglot--mode-line-props
+                (format "%s%%%%" (or (nth 4 pr) "?"))
+                'eglot-mode-line
+                nil
+                (format "(%s) %s %s" (nth 1 pr)
+                        (nth 2 pr) (nth 3 pr)))
+       into reports
+       finally (return (mapconcat #'identity reports " /")))))
+  "Eglot mode line construct for LSP progress reports.")
+
+(defconst eglot-mode-line-action-suggestion
+  '(:eval
+    (when (and (memq 'mode-line eglot-code-action-indications)
+               (overlay-buffer eglot--suggestion-overlay))
+      (overlay-get eglot--suggestion-overlay 'eglot--suggestion-tooltip)))
+  "Eglot mode line construct for at-point code actions.")
+
+(add-to-list
+ 'mode-line-misc-info
+ `(eglot--managed-mode
+   (" ["
+    (:eval
+     (cl-loop for e in eglot-mode-line-format
+              for render = (format-mode-line e)
+              unless (eq render "")
+              collect (cons render
+                            (eq e 'eglot-mode-line-menu))
+              into rendered
+              finally
+              (return (cl-loop for (rspec . rest) on rendered
+                               for (r . titlep) = rspec
+                               concat r
+                               when rest concat (if titlep ":" "/")))))
+    "] ")))
 
 
 ;;; Flymake customization

@@ -576,7 +576,7 @@ buffer, where @var{server} is the name of the server and @var{project}
 identifies the project by its root directory.  Clicking the mouse on the
 Eglot mode-line indication activates a menu with server-specific items.
 The layout of the Eglot mode-line can be changed by customizing
-@code{eglot-mode-line-format} (@pxref{Customizing Eglot}).
+@code{eglot-mode-line-format} (@pxref{Customization Variables}).
 
 @item
 For each buffer in which Eglot is active, it notifies the language
@@ -958,6 +958,28 @@ ElDoc will not hint about at-point actions.
 @item eglot-code-action-indicator
 This variable is a string determining what the special indicator looks
 like.
+
+@item eglot-mode-line-format
+This variables controls the shape and look of Eglot's mode line.  Its
+value is a mode line ``construct'', generally a list of symbols and
+strings.  The following symbols are meaningful and useful for Eglot's
+mode line:
+@itemize @minus
+@item
+@code{eglot-mode-line-menu}: access Eglot's main menu.  See also
+@code{eglot-menu-string};
+@item
+@code{eglot-mode-line-session}: indicate current project and access
+current session's menu;
+@item
+@code{eglot-mode-line-error}: an indication of recent LSP errors;
+@item
+@code{eglot-mode-line-pending-requests}: number of pending LSP requests;
+@item
+@code{eglot-mode-line-progress}: progress reporter widgets;
+@item
+@code{eglot-mode-line-action-suggestion}: LSP code actions at point.
+@end itemize
 @end vtable
 
 @node Other Variables
