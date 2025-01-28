@@ -2547,7 +2547,7 @@ make_uninit_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes)
 Lisp_Object
 make_formatted_string (const char *format, ...)
 {
-  char buf[64];
+  char buf[MAX_ALLOCA];
   char *cstr = buf;
   ptrdiff_t bufsize = sizeof buf;
   va_list ap;
