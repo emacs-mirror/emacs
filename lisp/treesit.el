@@ -3489,6 +3489,81 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
       (setq level (1+ level)))
     (if (zerop level) 1 level)))
 
+;;; Hideshow mode
+
+(defun treesit-hs-block-end ()
+  "Tree-sitter implementation of `hs-block-end-regexp'."
+  (let* ((pred 'list)
+         (thing (treesit-thing-at
+                 (if (bobp) (point) (1- (point))) pred))
+         (end (when thing (treesit-node-end thing)))
+         (last (when thing (treesit-node-child thing -1)))
+         (beg (if last (treesit-node-start last)
+                (if (bobp) (point) (1- (point))))))
+    (when (and thing (eq (point) end))
+      (set-match-data (list beg end))
+      t)))
+
+(defun treesit-hs-find-block-beginning ()
+  "Tree-sitter implementation of `hs-find-block-beginning-func'."
+  (let* ((pred 'list)
+         (thing (treesit-thing-at (point) pred))
+         (beg (when thing (treesit-node-start thing)))
+         (end (when beg (min (1+ beg) (point-max)))))
+    (when thing
+      (goto-char beg)
+      (set-match-data (list beg end))
+      t)))
+
+(defun treesit-hs-find-next-block (_regexp maxp comments)
+  "Tree-sitter implementation of `hs-find-next-block-func'."
+  (when (not comments)
+    (forward-comment (point-max)))
+  (let* ((comment-pred
+          (when comments
+            (if (treesit-thing-defined-p 'comment (treesit-language-at (point)))
+                'comment "comment")))
+         (pred (if comment-pred (append '(or list) (list comment-pred)) 'list))
+         ;; `treesit-navigate-thing' can't find a thing at bobp,
+         ;; so use `treesit-thing-at' to match at bobp.
+         (current (treesit-thing-at (point) pred))
+         (beg (or (and current (eq (point) (treesit-node-start current)) (point))
+                  (treesit-navigate-thing (point) 1 'beg pred)))
+         ;; Check if we found a list or a comment
+         (list-thing (when beg (treesit-thing-at beg 'list)))
+         (comment-thing (when beg (treesit-thing-at beg comment-pred)))
+         (comment-p (and comment-thing (eq beg (treesit-node-start comment-thing))))
+         (thing (if comment-p comment-thing list-thing))
+         (end (if thing (min (1+ (treesit-node-start thing)) (point-max)))))
+    (when (and end (< end maxp))
+      (goto-char end)
+      (set-match-data
+       (if (and comments comment-p)
+           (list beg end nil nil beg end)
+         (list beg end beg end)))
+      t)))
+
+(defun treesit-hs-looking-at-block-start-p ()
+  "Tree-sitter implementation of `hs-looking-at-block-start-p-func'."
+  (let* ((pred 'list)
+         (thing (treesit-thing-at (point) pred))
+         (beg (when thing (treesit-node-start thing)))
+         (end (min (1+ (point)) (point-max))))
+    (when (and thing (eq (point) beg))
+      (set-match-data (list beg end))
+      t)))
+
+(defun treesit-hs-inside-comment-p ()
+  "Tree-sitter implementation of `hs-inside-comment-p-func'."
+  (let* ((comment-pred
+          (if (treesit-thing-defined-p 'comment (treesit-language-at (point)))
+              'comment "comment"))
+         (thing (or (treesit-thing-at (point) comment-pred)
+                    (unless (bobp)
+                      (treesit-thing-at (1- (point)) comment-pred)))))
+    (when thing
+      (list (treesit-node-start thing) (treesit-node-end thing)))))
+
 ;;; Show paren mode
 
 (defun treesit-show-paren-data--categorize (pos &optional end-p)
@@ -3672,7 +3747,17 @@ before calling this function."
     (setq-local forward-list-function #'treesit-forward-list)
     (setq-local down-list-function #'treesit-down-list)
     (setq-local up-list-function #'treesit-up-list)
-    (setq-local show-paren-data-function #'treesit-show-paren-data))
+    (setq-local show-paren-data-function #'treesit-show-paren-data)
+    (setq-local hs-c-start-regexp nil
+                hs-block-start-regexp nil
+                hs-block-start-mdata-select 0
+                hs-block-end-regexp #'treesit-hs-block-end
+                hs-forward-sexp-func #'forward-list
+                hs-adjust-block-beginning nil
+                hs-find-block-beginning-func #'treesit-hs-find-block-beginning
+                hs-find-next-block-func #'treesit-hs-find-next-block
+                hs-looking-at-block-start-p-func #'treesit-hs-looking-at-block-start-p
+                hs-inside-comment-p-func #'treesit-hs-inside-comment-p))
 
   (when (treesit-thing-defined-p 'sentence nil)
     (setq-local forward-sentence-function #'treesit-forward-sentence))

@@ -95,7 +95,7 @@
 ;; nested level in addition to the top-level:
 ;;
 ;;     (defun ttn-hs-hide-level-1 ()
-;;       (when (hs-looking-at-block-start-p)
+;;       (when (funcall hs-looking-at-block-start-p-func)
 ;;         (hs-hide-level 1))
 ;;       (forward-sexp 1))
 ;;     (setq hs-hide-all-non-comment-function 'ttn-hs-hide-level-1)
@@ -481,6 +481,9 @@ Specifying this function is necessary for languages such as
 Python, where `looking-at' and `syntax-ppss' check is not enough
 to check if the point is at the block start.")
 
+(defvar-local hs-inside-comment-p-func nil
+  "Function used to check if point is inside a comment.")
+
 (defvar hs-headline nil
   "Text of the line where a hidden block begins, set during isearch.
 You can display this in the mode line by adding the symbol `hs-headline'
@@ -625,9 +628,13 @@ and then further adjusted to be at the end of the line."
 	  (setq p (line-end-position)))
 	;; `q' is the point at the end of the block
 	(hs-forward-sexp mdata 1)
-	(setq q (if (looking-back hs-block-end-regexp nil)
-		    (match-beginning 0)
-		  (point)))
+	(setq q (cond ((and (stringp hs-block-end-regexp)
+                            (looking-back hs-block-end-regexp nil))
+		       (match-beginning 0))
+                      ((functionp hs-block-end-regexp)
+                       (funcall hs-block-end-regexp)
+                       (match-beginning 0))
+		      (t (point))))
         (when (and (< p q) (> (count-lines p q) 1))
           (cond ((and hs-allow-nesting (setq ov (hs-overlay-at p)))
                  (delete-overlay ov))
@@ -644,6 +651,11 @@ its starting line there is only whitespace preceding the actual comment
 beginning.  If we are inside of a comment but this condition is not met,
 we return a list having a nil as its car and the end of comment position
 as cdr."
+  (if (functionp hs-inside-comment-p-func)
+      (funcall hs-inside-comment-p-func)
+    (hs-inside-comment-p--default)))
+
+(defun hs-inside-comment-p--default ()
   (save-excursion
     ;; the idea is to look backwards for a comment start regexp, do a
     ;; forward comment, and see if we are inside, then extend
@@ -850,14 +862,16 @@ If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
      (syntax-propertize (point-max))
      (let ((spew (make-progress-reporter "Hiding all blocks..."
                                          (point-min) (point-max)))
-           (re (concat "\\("
-                       hs-block-start-regexp
-                       "\\)"
-                       (if hs-hide-comments-when-hiding-all
-                           (concat "\\|\\("
-                                   hs-c-start-regexp
-                                   "\\)")
-                         ""))))
+           (re (when (stringp hs-block-start-regexp)
+                 (concat "\\("
+                         hs-block-start-regexp
+                         "\\)"
+                         (if (and hs-hide-comments-when-hiding-all
+                                  (stringp hs-c-start-regexp))
+                             (concat "\\|\\("
+                                     hs-c-start-regexp
+                                     "\\)")
+                           "")))))
        (while (funcall hs-find-next-block-func re (point-max)
                        hs-hide-comments-when-hiding-all)
          (if (match-beginning 1)
@@ -869,7 +883,9 @@ If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
 			 (hs-hide-block-at-point t))
 		 ;; Go to end of matched data to prevent from getting stuck
 		 ;; with an endless loop.
-                 (when (looking-at hs-block-start-regexp)
+                 (when (if (stringp hs-block-start-regexp)
+                           (looking-at hs-block-start-regexp)
+                         (eq (point) (match-beginning 0)))
 		   (goto-char (match-end 0)))))
            ;; found a comment, probably
            (let ((c-reg (hs-inside-comment-p)))
@@ -1008,7 +1024,10 @@ Key bindings:
   (setq hs-headline nil)
   (if hs-minor-mode
       (progn
-        (hs-grok-mode-type)
+        ;; Use such heuristics that if one buffer-local variable
+        ;; is already defined, don't overwrite other variables too.
+        (unless (buffer-local-value 'hs-inside-comment-p-func (current-buffer))
+          (hs-grok-mode-type))
         ;; Turn off this mode if we change major modes.
         (add-hook 'change-major-mode-hook
                   #'turn-off-hideshow
