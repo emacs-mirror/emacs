@@ -2274,22 +2274,6 @@ on the right.
 
 @end group
 @end smallexample
-
-With a prefix argument and window @var{B} selected, window @var{A} would
-have remained unaffected and the layout would have changed as follows:
-
-@smallexample
-@group
-     ___________       ___________
-    |           |     |           |
-    |     A     |     |     A     |
-    |___________| --> |___________|
-    |     |     |     |     |     |
-    |  B  |  C  |     |  C  |  B  |
-    |_____|_____|     |_____|_____|
-
-@end group
-@end smallexample
 @end deffn
 
 @deffn Command rotate-window-layout-counterclockwise &optional window
@@ -2385,13 +2369,13 @@ cyclic order.
 
 @smallexample
 @group
- ___________        ___________
-|           |      |           |
-|     A     |      |     B     |
-|___________| -->  |___________|
-|     |     |      |     |     |
-|  B  |  C  |      |  C  |  A  |
-|_____|_____|      |_____|_____|
+     ___________        ___________
+    |           |      |           |
+    |     A     |      |     B     |
+    |___________| -->  |___________|
+    |     |     |      |     |     |
+    |  B  |  C  |      |  C  |  A  |
+    |_____|_____|      |_____|_____|
 
 @end group
 @end smallexample
@@ -2403,13 +2387,13 @@ ordering.
 
 @smallexample
 @group
- ___________        ___________
-|           |      |           |
-|     A     |      |     C     |
-|___________| -->  |___________|
-|     |     |      |     |     |
-|  B  |  C  |      |  A  |  B  |
-|_____|_____|      |_____|_____|
+     ___________        ___________
+    |           |      |           |
+    |     A     |      |     C     |
+    |___________| -->  |___________|
+    |     |     |      |     |     |
+    |  B  |  C  |      |  A  |  B  |
+    |_____|_____|      |_____|_____|
 
 @end group
 @end smallexample
