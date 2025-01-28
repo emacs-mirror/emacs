@@ -1094,8 +1094,9 @@ make_frame (bool mini_p)
   {
     Lisp_Object buf = Fcurrent_buffer ();
 
-    /* If current buffer is hidden, try to find another one.  */
-    if (BUFFER_HIDDEN_P (XBUFFER (buf)))
+    /* If the current buffer is hidden and shall not be exposed, try to find
+       another one.  */
+    if (BUFFER_HIDDEN_P (XBUFFER (buf)) && NILP (expose_hidden_buffer))
       buf = other_buffer_safely (buf);
 
     /* Use set_window_buffer, not Fset_window_buffer, and don't let
@@ -7163,6 +7164,20 @@ attempt is not honored by all window managers and may even lead to
 making the child frame unresponsive to user actions, the default is to
 iconify the top level frame instead.  */);
   iconify_child_frame = Qiconify_top_level;
+
+  DEFVAR_LISP ("expose-hidden-buffer", expose_hidden_buffer,
+	       doc: /* Non-nil means to make a hidden buffer more visible.
+A buffer is considered "hidden" if its name starts with a space.  By
+default, many functions disregard hidden buffers.  In particular,
+`make-frame' does not show the current buffer in the new frame's
+selected window if that buffer is hidden.  Rather, `make-frame' will
+show a buffer that is not hidden instead.
+
+If this variable is non-nil, it will override the default behavior and
+allow `make-frame' to show the current buffer even if its hidden.  */);
+  expose_hidden_buffer = Qnil;
+  DEFSYM (Qexpose_hidden_buffer, "expose-hidden-buffer");
+  Fmake_variable_buffer_local (Qexpose_hidden_buffer);
 
   DEFVAR_LISP ("frame-internal-parameters", frame_internal_parameters,
 	       doc: /* Frame parameters specific to every frame.  */);
