@@ -3299,8 +3299,6 @@ usually not displayed at all, even in a window system's \"taskbar\".  */)
 
   if (FRAME_VISIBLE_P (f))
     return Qt;
-  else if (is_tty_root_frame (f))
-    return Qt;
   if (FRAME_ICONIFIED_P (f))
     return Qicon;
   return Qnil;
