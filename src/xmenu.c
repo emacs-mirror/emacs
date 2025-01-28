@@ -2168,10 +2168,11 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
 static void
 dialog_selection_callback (GtkWidget *widget, gpointer client_data)
 {
+  Lisp_Object *selection_pointer = get_glib_user_data (client_data);
   /* Treat the pointer as an integer.  There's no problem
      as long as pointers have enough bits to hold small integers.  */
   if ((intptr_t) client_data != -1)
-    menu_item_selection = client_data;
+    menu_item_selection = selection_pointer;
 
   popup_activated_flag = 0;
 }
