@@ -175,6 +175,19 @@ tests via
 
     make && make -C test xt-mouse-tests
 
+Changes in code that implements infrastructure capabilities might affect
+many tests in the test suite, not just the tests for the source files
+you changed.  For such changes, we recommend running unit tests that
+invoke the functions you have changed.  You can search for the tests
+that might be affected using tools like Grep.  For example, suppose you
+make a change in the 'rename-file' primitive.  Then
+
+  grep -Rl rename-file test --include="*.el"
+
+will show all the unit tests which invoke rename-file; run them all to
+be sure your changes didn't break the test suite.  If in doubt, run the
+entire suite.
+
 ** Commit messages
 
 Ordinarily, a changeset you commit should contain a description of the
