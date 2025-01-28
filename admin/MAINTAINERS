@@ -52,11 +52,6 @@ Stefan Monnier
 	minibuffer completion
 	lisp/outline.el
 
-Bastien Guerry
-        Org
-            lisp/org/*
-	    doc/misc/org.texi
-
 Artur Malabarba
 	lisp/emacs-lisp/let-alist.el
 
