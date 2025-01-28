@@ -114,7 +114,10 @@ Files listed by `git ls-files ARGS' satisfy the predicate."
                ;; Complete remotes and their revisions
                ((or "fetch" "pull" "push")
                 (pcomplete-here (process-lines vc-git-program "remote"))
-                (pcomplete-here (pcmpl-git--remote-refs (pcomplete-arg 1)))))))))
+                (pcomplete-here (pcmpl-git--remote-refs (pcomplete-arg 1))))
+               ;; Complete all files
+               ((or "apply" "am")
+                (pcomplete-here (pcomplete-entries))))))))
 
 (provide 'pcmpl-git)
 ;;; pcmpl-git.el ends here
