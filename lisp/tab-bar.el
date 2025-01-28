@@ -2185,6 +2185,13 @@ happens interactively)."
       (unless tab-bar-mode
         (message "Deleted all other tabs")))))
 
+(defcustom tab-bar-post-undo-close-tab-functions nil
+  "List of functions to call after a closed tab is restored.
+Each function is called with one argument: the tab that has been restored."
+  :type '(repeat function)
+  :group 'tab-bar
+  :version "31.1")
+
 (defun tab-bar-undo-close-tab ()
   "Restore the most recently closed tab."
   (interactive)
@@ -2208,6 +2215,8 @@ happens interactively)."
             ;; `pushnew' handles the head of tabs but not frame-parameter
             (tab-bar-tabs-set tabs))
           (tab-bar-select-tab (1+ index)))
+        (run-hook-with-args 'tab-bar-post-undo-close-tab-functions
+                            tab)
         (tab-bar--update-tab-bar-lines))
 
     (message "No more closed tabs to undo")))

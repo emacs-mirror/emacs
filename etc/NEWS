@@ -238,6 +238,13 @@ latter throws an error when the argument FRAME cannot be deleted.
 *** New abnormal hook 'tab-bar-auto-width-functions'.
 This hook allows you to control which tab-bar tabs are auto-resized.
 
+---
+*** New abnormal hook 'tab-bar-post-undo-close-tab-functions'.
+This hook allows you to operate on a reopened tab.
+
+This is useful when you define custom tab parameters that may need
+adjustment when a tab is restored, and avoids advice.
+
 ** Project
 
 ---
