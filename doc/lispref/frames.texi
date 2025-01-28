@@ -165,8 +165,8 @@ new frame for its own reasons.
 
 By default this function does not display the current buffer in the new
 frame if the buffer is hidden, that is, if its name starts with a space.
-In this case it will show another buffer - one that could be returned by
-the function @code{other-buffer} (@pxref{Buffer List}) - instead.
+In this case it will show another buffer---one that could be returned by
+the function @code{other-buffer} (@pxref{Buffer List})---instead.
 However, if the variable @code{expose-hidden-buffer} is non-@code{nil},
 this function will display the current buffer even if it is hidden.
 @end deffn

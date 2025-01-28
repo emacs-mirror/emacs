@@ -953,7 +953,7 @@ the new frame according to its own rules.
 
 By default do not display the current buffer in the new frame if the
 buffer is hidden, that is, if the buffer's name starts with a space.
-Display another buffer - one that could be returned by `other-buffer' -
+Display another buffer, one that could be returned by `other-buffer',
 instead.  However, if `expose-hidden-buffer' is non-nil, display the
 current buffer even if it is hidden."
   (interactive)
