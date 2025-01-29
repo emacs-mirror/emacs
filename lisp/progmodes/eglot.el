@@ -595,7 +595,6 @@ Note additionally:
 
 - `margin' and `nearby' are incompatible.  If both are specified,
   the latter takes priority;
-- `margin's indicator is not interactive;
 - `mode-line' only works if `eglot-mode-line-action-suggestion' exists in
   `eglot-mode-line-format' (which see)."
   :type '(set
@@ -2214,8 +2213,8 @@ If it is activated, also signal textDocument/didOpen."
     (interactive "e")
     (let ((start (event-start event))) (with-selected-window (posn-window start)
                                          (save-excursion
-                                           (goto-char (or (posn-point start)
-                                                          (point)))
+                                           (unless (posn-area start)
+                                             (goto-char (posn-point start)))
                                            (call-interactively what)
                                            (when update-mode-line
                                              (force-mode-line-update t)))))))
@@ -2459,6 +2458,7 @@ still unanswered LSP requests to the server\n"))))
 (defvar eglot-diagnostics-map
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-2] #'eglot-code-actions-at-mouse)
+    (define-key map [left-margin mouse-2] #'eglot-code-actions-at-mouse)
     map)
   "Keymap active in Eglot-backed Flymake diagnostic overlays.")
 
