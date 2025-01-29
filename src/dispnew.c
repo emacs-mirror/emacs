@@ -139,11 +139,6 @@ static int glyph_pool_count;
 
 #ifdef GLYPH_DEBUG
 
-static int window_to_frame_vpos (struct window *, int);
-static int window_to_frame_hpos (struct window *, int);
-#define WINDOW_TO_FRAME_VPOS(W, VPOS) window_to_frame_vpos (W, VPOS)
-#define WINDOW_TO_FRAME_HPOS(W, HPOS) window_to_frame_hpos (W, HPOS)
-
 /* One element of the ring buffer containing redisplay history
    information.  */
 
@@ -234,11 +229,6 @@ DEFUN ("dump-redisplay-history", Fdump_redisplay_history,
   return Qnil;
 }
 
-
-#else /* not GLYPH_DEBUG */
-
-#define WINDOW_TO_FRAME_VPOS(W, VPOS) ((VPOS) + WINDOW_TOP_EDGE_LINE (W))
-#define WINDOW_TO_FRAME_HPOS(W, HPOS) ((HPOS) + WINDOW_LEFT_EDGE_COL (W))
 
 #endif /* GLYPH_DEBUG */
 
@@ -3167,8 +3157,6 @@ check_matrix_pointers (struct glyph_matrix *window_matrix,
 		      VPOS and HPOS translations
  **********************************************************************/
 
-#ifdef GLYPH_DEBUG
-
 /* Translate vertical position VPOS which is relative to window W to a
    vertical position relative to W's frame.  */
 
@@ -3194,9 +3182,6 @@ window_to_frame_hpos (struct window *w, int hpos)
   hpos += WINDOW_LEFT_EDGE_COL (w);
   return hpos;
 }
-
-#endif /* GLYPH_DEBUG */
-
 
 
 /**********************************************************************
@@ -3879,8 +3864,8 @@ abs_cursor_pos (struct frame *f, int *x, int *y)
 	 a new cursor position has been computed.  */
       && w->cursor.vpos < WINDOW_TOTAL_LINES (w))
     {
-      int wx = WINDOW_TO_FRAME_HPOS (w, w->cursor.hpos);
-      int wy = WINDOW_TO_FRAME_VPOS (w, w->cursor.vpos);
+      int wx = window_to_frame_hpos (w, w->cursor.hpos);
+      int wy = window_to_frame_vpos (w, w->cursor.vpos);
 
       wx += max (0, w->left_margin_cols);
 
@@ -5664,8 +5649,8 @@ tty_set_cursor (struct frame *f)
 	     a new cursor position has been computed.  */
 	  && w->cursor.vpos < WINDOW_TOTAL_LINES (w))
 	{
-	  int x = WINDOW_TO_FRAME_HPOS (w, w->cursor.hpos);
-	  int y = WINDOW_TO_FRAME_VPOS (w, w->cursor.vpos);
+	  int x = window_to_frame_hpos (w, w->cursor.hpos);
+	  int y = window_to_frame_vpos (w, w->cursor.vpos);
 
 	  x += max (0, w->left_margin_cols);
 	  cursor_to (f, y, x);
