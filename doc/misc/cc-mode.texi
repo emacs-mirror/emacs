@@ -7531,7 +7531,7 @@ caches syntactic information much better, so that the delay caused by
 searching for such a brace when it's not in column 0 is minimal,
 except perhaps when you've just moved a long way inside the file.
 
-@findex defun-prompt-regexp
+@vindex defun-prompt-regexp
 @vindex c-Java-defun-prompt-regexp
 @vindex Java-defun-prompt-regexp @r{(c-)}
 A special note about @code{defun-prompt-regexp} in Java mode: The common

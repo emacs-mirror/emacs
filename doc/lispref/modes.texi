@@ -3420,7 +3420,7 @@ However, @var{facespec} can also evaluate to a list of this form:
 
 @example
 (@var{subexp}
-(face @var{face} @var{prop1} @var{val1} @var{prop2} @var{val2}@dots{}))
+ (face @var{face} @var{prop1} @var{val1} @var{prop2} @var{val2}@dots{}))
 @end example
 
 @noindent
