@@ -2855,6 +2855,7 @@ not set, Emacs also looks for definition of defun in
   (let ((orig-point (point))
         (success nil)
         (pred (or treesit-defun-type-regexp 'defun)))
+    (unless arg (setq arg 1))
     (catch 'done
       (dotimes (_ 2)
 
@@ -2874,8 +2875,8 @@ not set, Emacs also looks for definition of defun in
 (defun treesit-end-of-defun (&optional arg _)
   "Move forward to next end of defun.
 
-With argument ARG, do it that many times.
-Negative argument -N means move back to Nth preceding end of defun.
+With argument ARG, do it that many times.  Negative ARG means
+move back to the ARGth preceding end of defun.
 
 This is a tree-sitter equivalent of `end-of-defun'.  Behavior of
 this function depends on `treesit-defun-type-regexp' and
