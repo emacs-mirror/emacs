@@ -5591,10 +5591,8 @@ scrolling_window (struct window *w, int tab_line_p)
  ************************************************************************/
 
 static void
-tty_set_cursor (void)
+tty_set_cursor (struct frame *f)
 {
-  struct frame *f = SELECTED_FRAME ();
-
   if ((cursor_in_echo_area
        /* If we are showing a message instead of the mini-buffer,
 	  show the cursor for the message instead of for the
@@ -5656,7 +5654,7 @@ tty_set_cursor (void)
   else
     {
       /* We have only one cursor on terminal frames.  Use it to
-	 display the cursor of the selected window.  */
+	 display the cursor of the selected window of the frame.  */
       struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (f));
       if (w->cursor.vpos >= 0
 	  /* The cursor vpos may be temporarily out of bounds
@@ -5709,7 +5707,7 @@ write_matrix (struct frame *f, bool inhibit_id_p,
 
   /* Now just clean up termcap drivers and set cursor, etc.  */
   if (set_cursor_p)
-    tty_set_cursor ();
+    tty_set_cursor (f);
 }
 
 /* Do line insertions/deletions on frame F for frame-based redisplay.  */
