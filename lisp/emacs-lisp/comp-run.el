@@ -161,9 +161,6 @@ LOAD and SELECTOR work as described in `native--compile-async'."
 (defvar comp-files-queue ()
   "List of Emacs Lisp files to be compiled.")
 
-(defvar comp-async-compilations (make-hash-table :test #'equal)
-  "Hash table file-name -> async compilation process.")
-
 (defun comp--async-runnings ()
   "Return the number of async compilations currently running.
 This function has the side effect of cleaning-up finished
