@@ -86,6 +86,35 @@
   :group 'tab-bar-faces)
 
 
+
+(defvar tab-bar-mode-map (make-sparse-keymap)
+  "Tab Bar mode map.")
+
+(defcustom tab-bar-define-keys t
+  "Define specified tab-bar key bindings.
+If t, the default, all key mappings are defined.
+
+If \\='numeric, define only numeric select-tab key mappings, and in
+conjunction with `tab-bar-select-tab-modifiers', which see.
+
+If \\='tab, define only TAB and SHIFT-TAB tab-selection key mappings.
+
+If nil, do not define any key mappings.
+
+Customize this option, or use `setopt' to ensure it will take effect."
+  :type '(choice (const :tag "All keys" t)
+                 (const :tag "Numeric tab selection keys" numeric)
+                 (const :tag "TAB and SHIFT-TAB selection keys" tab)
+                 (const :tag "None" nil))
+  :initialize #'custom-initialize-default
+  :set (lambda (sym val)
+         (tab-bar--undefine-keys)
+         (set-default sym val)
+         ;; Enable the new keybindings
+         (tab-bar--define-keys))
+  :group 'tab-bar
+  :version "31.1")
+
 (defcustom tab-bar-select-tab-modifiers '()
   "List of modifier keys for selecting tab-bar tabs by their numbers.
 Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
@@ -104,18 +133,17 @@ For easier selection of tabs by their numbers, consider customizing
               (const alt))
   :initialize #'custom-initialize-default
   :set (lambda (sym val)
-         (when tab-bar-mode
-           (tab-bar--undefine-keys))
+         (tab-bar--undefine-keys)
          (set-default sym val)
-         ;; Reenable the tab-bar with new keybindings
-         (when tab-bar-mode
-           (tab-bar--define-keys)))
+         ;; Enable the new keybindings
+         (tab-bar--define-keys))
   :group 'tab-bar
   :version "27.1")
 
 (defun tab-bar--define-keys ()
   "Install key bindings to switch between tabs if so configured."
-  (when tab-bar-select-tab-modifiers
+  (when (and (memq tab-bar-define-keys '(t numeric))
+             tab-bar-select-tab-modifiers)
     (define-key tab-bar-mode-map
                 (vector (append tab-bar-select-tab-modifiers (list ?0)))
                 #'tab-recent)
@@ -127,6 +155,14 @@ For easier selection of tabs by their numbers, consider customizing
     (define-key tab-bar-mode-map
                 (vector (append tab-bar-select-tab-modifiers (list ?9)))
                 #'tab-last))
+
+  (when (memq tab-bar-define-keys '(t tab))
+    (unless (global-key-binding [(control tab)])
+      (define-key tab-bar-mode-map [(control tab)] #'tab-next))
+    (unless (global-key-binding [(control shift tab)])
+      (define-key tab-bar-mode-map [(control shift tab)] #'tab-previous))
+    (unless (global-key-binding [(control shift iso-lefttab)])
+      (define-key tab-bar-mode-map [(control shift iso-lefttab)] #'tab-previous)))
 
   ;; Replace default value with a condition that supports displaying
   ;; global-mode-string in the tab bar instead of the mode line.
@@ -152,7 +188,11 @@ For easier selection of tabs by their numbers, consider customizing
                   nil t))
     (define-key tab-bar-mode-map
                 (vector (append tab-bar-select-tab-modifiers (list ?9)))
-                nil t)))
+                nil t))
+
+  (define-key tab-bar-mode-map [(control tab)] nil t)
+  (define-key tab-bar-mode-map [(control shift tab)] nil t)
+  (define-key tab-bar-mode-map [(control shift iso-lefttab)] nil t))
 
 (defun tab-bar--load-buttons ()
   "Load the icons for the tab buttons."
@@ -241,20 +281,6 @@ a list of frames to update."
           (cons (cons 'tab-bar-lines
                       (if (and tab-bar-mode (eq tab-bar-show t)) 1 0))
                 (assq-delete-all 'tab-bar-lines default-frame-alist)))))
-
-(defun tab-bar-mode--tab-key-bind (map key binding)
-  ;; Don't override user customized global key bindings
-  (define-key map key
-    `(menu-item "" ,binding
-      :filter ,(lambda (cmd) (unless (global-key-binding key) cmd)))))
-
-(defvar tab-bar-mode-map
-  (let ((map (make-sparse-keymap)))
-    (tab-bar-mode--tab-key-bind map [(control tab)] #'tab-next)
-    (tab-bar-mode--tab-key-bind map [(control shift tab)] #'tab-previous)
-    (tab-bar-mode--tab-key-bind map [(control shift iso-lefttab)] #'tab-previous)
-    map)
-  "Tab Bar mode map.")
 
 (define-minor-mode tab-bar-mode
   "Toggle the tab bar in all graphical frames (Tab Bar mode).
