@@ -2144,7 +2144,9 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
         (setf (eglot--managed-buffers server)
               (delq (current-buffer) (eglot--managed-buffers server)))
         (when (and eglot-autoshutdown
-                   (null (eglot--managed-buffers server)))
+                   (null (eglot--managed-buffers server))
+                   ;; Don't shutdown if up again soon.
+                   (not revert-buffer-in-progress-p))
           (eglot-shutdown server)))))))
 
 (defun eglot--managed-mode-off ()
