@@ -3529,13 +3529,15 @@ causes it to evaluate `help-form' and display the result."
     char))
 
 (defun sit-for (seconds &optional nodisp)
-  "Redisplay, then wait for SECONDS seconds.  Stop when input is available.
+  "Redisplay, then wait for SECONDS seconds; stop when input is available.
 SECONDS may be a floating-point value.
 \(On operating systems that do not support waiting for fractions of a
 second, floating-point values are rounded down to the nearest integer.)
 
-If optional arg NODISP is t, don't redisplay, just wait for input.
-Redisplay does not happen if input is available before it starts.
+If there's pending input, return nil immediately without redisplaying
+and without waiting.
+If optional arg NODISP is t, don't redisplay, just wait for input (but
+still return nil immediately if there's pending input).
 
 Value is t if waited the full time with no input arriving, and nil otherwise."
   ;; This used to be implemented in C until the following discussion:
