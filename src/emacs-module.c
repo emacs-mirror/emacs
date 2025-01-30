@@ -167,7 +167,7 @@ struct emacs_env_private
   /* Dedicated storage for non-local exit symbol and data so that
      storage is always available for them, even in an out-of-memory
      situation.  */
-  struct emacs_value_tag non_local_exit_symbol, non_local_exit_data;
+  Lisp_Object non_local_exit_symbol, non_local_exit_data;
 
   struct emacs_value_storage storage;
 };
@@ -500,6 +500,9 @@ module_non_local_exit_clear (emacs_env *env)
   env->private_members->pending_non_local_exit = emacs_funcall_exit_return;
 }
 
+static struct emacs_value_tag module_out_of_memory_symbol;
+static struct emacs_value_tag module_out_of_memory_data;
+
 static enum emacs_funcall_exit
 module_non_local_exit_get (emacs_env *env,
                            emacs_value *symbol, emacs_value *data)
@@ -507,12 +510,23 @@ module_non_local_exit_get (emacs_env *env,
   module_assert_thread ();
   module_assert_env (env);
   struct emacs_env_private *p = env->private_members;
-  if (p->pending_non_local_exit != emacs_funcall_exit_return)
+  enum emacs_funcall_exit ret = p->pending_non_local_exit;
+  if (ret != emacs_funcall_exit_return)
     {
-      *symbol = &p->non_local_exit_symbol;
-      *data = &p->non_local_exit_data;
+      emacs_value sym
+	= allocate_emacs_value (env, p->non_local_exit_symbol);
+      emacs_value dat
+	= allocate_emacs_value (env, p->non_local_exit_data);
+      if (sym == NULL || dat == NULL)
+	{
+	  sym = &module_out_of_memory_symbol;
+	  dat = &module_out_of_memory_data;
+	  ret = emacs_funcall_exit_signal;
+	}
+      *symbol = sym;
+      *data = dat;
     }
-  return p->pending_non_local_exit;
+  return ret;
 }
 
 /* Like for `signal', DATA must be a list.  */
@@ -1185,11 +1199,11 @@ module_signal_or_throw (struct emacs_env_private *env)
     case emacs_funcall_exit_return:
       return;
     case emacs_funcall_exit_signal:
-      xsignal (value_to_lisp (&env->non_local_exit_symbol),
-               value_to_lisp (&env->non_local_exit_data));
+      xsignal (env->non_local_exit_symbol,
+	       env->non_local_exit_data);
     case emacs_funcall_exit_throw:
-      Fthrow (value_to_lisp (&env->non_local_exit_symbol),
-              value_to_lisp (&env->non_local_exit_data));
+      Fthrow (env->non_local_exit_symbol,
+	      env->non_local_exit_data);
     default:
       eassume (false);
     }
@@ -1389,8 +1403,8 @@ module_non_local_exit_signal_1 (emacs_env *env, Lisp_Object sym,
   if (p->pending_non_local_exit == emacs_funcall_exit_return)
     {
       p->pending_non_local_exit = emacs_funcall_exit_signal;
-      p->non_local_exit_symbol.v = sym;
-      p->non_local_exit_data.v = data;
+      p->non_local_exit_symbol = sym;
+      p->non_local_exit_data = data;
     }
 }
 
@@ -1402,8 +1416,8 @@ module_non_local_exit_throw_1 (emacs_env *env, Lisp_Object tag,
   if (p->pending_non_local_exit == emacs_funcall_exit_return)
     {
       p->pending_non_local_exit = emacs_funcall_exit_throw;
-      p->non_local_exit_symbol.v = tag;
-      p->non_local_exit_data.v = value;
+      p->non_local_exit_symbol = tag;
+      p->non_local_exit_data = value;
     }
 }
 
@@ -1439,13 +1453,6 @@ value_to_lisp (emacs_value v)
           {
             const emacs_env *env = pdl->unwind_ptr.arg;
             struct emacs_env_private *priv = env->private_members;
-            /* The value might be one of the nonlocal exit values.  Note
-               that we don't check whether a nonlocal exit is currently
-               pending, because the module might have cleared the flag
-               in the meantime.  */
-            if (&priv->non_local_exit_symbol == v
-                || &priv->non_local_exit_data == v)
-              goto ok;
             if (value_storage_contains_p (&priv->storage, v, &num_values))
               goto ok;
             ++num_environments;
@@ -1536,6 +1543,8 @@ mark_module_environment (void *ptr)
 {
   emacs_env *env = ptr;
   struct emacs_env_private *priv = env->private_members;
+  mark_object (priv->non_local_exit_symbol);
+  mark_object (priv->non_local_exit_data);
   for (struct emacs_value_frame *frame = &priv->storage.initial; frame != NULL;
        frame = frame->next)
     for (int i = 0; i < frame->offset; ++i)
@@ -1561,6 +1570,8 @@ initialize_environment (emacs_env *env, struct emacs_env_private *priv)
     }
 
   priv->pending_non_local_exit = emacs_funcall_exit_return;
+  priv->non_local_exit_symbol = Qnil;
+  priv->non_local_exit_data = Qnil;
   initialize_storage (&priv->storage);
   env->size = sizeof *env;
   env->private_members = priv;
@@ -1710,6 +1721,18 @@ syms_of_module (void)
   staticpro (&Vmodule_refs_hash);
   Vmodule_refs_hash
     = make_hash_table (&hashtest_eq, DEFAULT_HASH_SIZE, Weak_None);
+
+  DEFSYM (Qmodule_out_of_memory, "module-out-of-memory");
+  Fput (Qmodule_out_of_memory, Qerror_conditions,
+	list2 (Qmodule_out_of_memory, Qerror));
+  Fput (Qmodule_out_of_memory, Qerror_message,
+	build_unibyte_string ("Module out of memory"));
+
+  staticpro (&module_out_of_memory_symbol.v);
+  module_out_of_memory_symbol.v = Qmodule_out_of_memory;
+
+  staticpro (&module_out_of_memory_data.v);
+  module_out_of_memory_data.v = Qnil;
 
   DEFSYM (Qmodule_load_failed, "module-load-failed");
   Fput (Qmodule_load_failed, Qerror_conditions,

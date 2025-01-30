@@ -2076,7 +2076,11 @@ error symbol in @code{*@var{symbol}} and the error data in
 tag symbol in @code{*@var{symbol}} and the @code{throw} value in
 @code{*@var{data}}.  The function doesn't store anything in memory
 pointed by these arguments when the return value is
-@code{emacs_funcall_exit_return}.
+@code{emacs_funcall_exit_return}.  If the function fails to allocate
+storage for @var{symbol} or @var{data}, it stores a value representing
+the symbol @code{module-out-of-memory} in @code{*@var{symbol}}, stores a
+value representing @code{nil} in @code{*@var{data}}, and returns
+@code{emacs_funcall_exit_signal}.
 @end deftypefn
 
 You should check nonlocal exit conditions where it matters: before you
