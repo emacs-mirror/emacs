@@ -563,6 +563,17 @@ treesit_symbol_to_c_name (char *symbol_name)
     }
 }
 
+/* Resolve language symbol LANG according to
+   treesit-language-remap-alist.  */
+static
+Lisp_Object resolve_language_symbol (Lisp_Object lang)
+{
+  Lisp_Object res = Fassoc (lang, Vtreesit_language_remap_alist, Qeq);
+  if (NILP (res))
+    return lang;
+  return Fcdr (res);
+}
+
 /* Find the override name for LANGUAGE_SYMBOL in
    treesit-load-name-override-list.  Set NAME and C_SYMBOL to the
    override name, and return true if there exists one, otherwise
@@ -1489,10 +1500,20 @@ treesit_ensure_query_compiled (Lisp_Object query, Lisp_Object *signal_symbol,
   /* Get query source and TSLanguage ready.  */
   Lisp_Object source = XTS_COMPILED_QUERY (query)->source;
   Lisp_Object language = XTS_COMPILED_QUERY (query)->language;
+
+  Lisp_Object remapped_lang = resolve_language_symbol (language);
+  if (!SYMBOLP (remapped_lang))
+    {
+      *signal_symbol = Qtreesit_query_error;
+      *signal_data = list2 (build_string ("Invalid language symbol"),
+			    remapped_lang);
+      return NULL;
+    }
+
   /* This is the main reason why we compile query lazily: to avoid
      loading languages early.  */
   struct treesit_loaded_lang lang
-    = treesit_load_language (language, signal_symbol, signal_data);
+    = treesit_load_language (remapped_lang, signal_symbol, signal_data);
   TSLanguage *treesit_lang = lang.lang;
   if (treesit_lang == NULL)
     return NULL;
@@ -1528,17 +1549,6 @@ void treesit_ensure_query_compiled_signal (Lisp_Object lisp_query)
 
   if (treesit_query == NULL)
     xsignal (signal_symbol, signal_data);
-}
-
-/* Resolve language symbol LANG according to
-   treesit-language-remap-alist.  */
-static
-Lisp_Object resolve_language_symbol (Lisp_Object lang)
-{
-  Lisp_Object res = Fassoc (lang, Vtreesit_language_remap_alist, Qeq);
-  if (NILP (res))
-    return lang;
-  return Fcdr (res);
 }
 
 
@@ -1753,8 +1763,6 @@ tag.  */)
 
   if (buf->base_buffer)
     buf = buf->base_buffer;
-
-  language = resolve_language_symbol (language);
 
   /* Return a fresh list so messing with that list doesn't affect our
      internal data.  */
@@ -3087,9 +3095,6 @@ You can use `treesit-query-validate' to validate and debug a query.  */)
     wrong_type_argument (Qtreesit_query_p, query);
   CHECK_SYMBOL (language);
 
-  Lisp_Object remapped_lang = resolve_language_symbol (language);
-  CHECK_SYMBOL (remapped_lang);
-
   treesit_initialize ();
 
   if (TS_COMPILED_QUERY_P (query))
@@ -3100,7 +3105,10 @@ You can use `treesit-query-validate' to validate and debug a query.  */)
       return query;
     }
 
-  Lisp_Object lisp_query = make_treesit_query (query, remapped_lang);
+  /* We don't map language here, instead, we remap language when
+     actually compiling the query.  This way the query appears to have
+     the unmapped language to the Lisp world.  */
+  Lisp_Object lisp_query = make_treesit_query (query, language);
 
   /* Maybe actually compile.  */
   if (NILP (eager))
