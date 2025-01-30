@@ -992,6 +992,17 @@ You can hide these buttons by customizing `tab-bar-format' and removing
        menu-item ,tab-bar-forward-button tab-bar-history-forward
        :help "Click to go forward in tab history"))))
 
+(defun tab-bar-format-tab-help-text-default (tab _i)
+  (alist-get 'name tab))
+
+(defvar tab-bar-format-tab-help-text-function #'tab-bar-format-tab-help-text-default
+  "Function to produce help text for tabs displayed in the tab bar.
+This function should accept two arguments: the tab, and the one-based
+tab's number.
+
+The function should produce a string, which may be propertized.  By
+default, use function `tab-bar-format-tab-help-text-default.")
+
 (defun tab-bar--format-tab (tab i)
   "Format TAB using its index I and return the result as a keymap."
   (append
@@ -1002,13 +1013,13 @@ You can hide these buttons by customizing `tab-bar-format' and removing
         menu-item
         ,(funcall tab-bar-tab-name-format-function tab i)
         ignore
-        :help ,(alist-get 'name tab))))
+        :help ,(funcall tab-bar-format-tab-help-text-function tab i))))
     (t
      `((,(intern (format "tab-%i" i))
         menu-item
         ,(funcall tab-bar-tab-name-format-function tab i)
         ,(alist-get 'binding tab)
-        :help ,(alist-get 'name tab)))))
+        :help ,(funcall tab-bar-format-tab-help-text-function tab i)))))
    (when (alist-get 'close-binding tab)
      `((,(if (eq (car tab) 'current-tab) 'C-current-tab
            (intern (format "C-tab-%i" i)))

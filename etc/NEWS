@@ -256,6 +256,13 @@ This is useful to avoid key binding conflicts, such as when folding in
 outline mode using TAB keys, or when a user wants to define her own
 tab-bar keys without first having to remove the defaults.
 
+---
+*** New variable 'tab-bar-format-tab-help-text-function'.
+This variable may be overridden with a user-provided function to
+customize help text for tabs displayed on the tab-bar.  Help text is
+normally shown in the echo area or via tooltips.  See the variable's
+docstring for arguments passed to a help-text function.
+
 ** Project
 
 ---
