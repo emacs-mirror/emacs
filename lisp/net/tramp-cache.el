@@ -68,10 +68,10 @@
 
 ;; Some properties are handled special:
 ;;
-;; - Properties which start with a space, like " process-name", are
-;;   not saved in the file `tramp-persistency-file-name', although
-;;   being connection properties related to a `tramp-file-name'
-;;   structure.
+;; - Ephemeral properties which start with a space, like
+;;   " process-name", are not saved in the file
+;;   `tramp-persistency-file-name', although being connection
+;;   properties related to a `tramp-file-name' structure.
 ;;
 ;; - Reusable properties, which should not be saved, are kept in the
 ;;   process key retrieved by `tramp-get-process' (the main connection
@@ -79,6 +79,7 @@
 ;;   recomputation when a new asynchronous process is created by
 ;;   `make-process'.  Examples are "unsafe-temporary-file",
 ;;   "remote-path", "device" (tramp-adb.el) or "share" (tramp-gvfs.el).
+;;   FIXME: Shall they be converted to ephemeral connection properties?
 
 ;;; Code:
 
