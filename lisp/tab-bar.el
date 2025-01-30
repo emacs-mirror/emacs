@@ -1669,8 +1669,8 @@ Negative TAB-NUMBER counts tabs from the end of the tab bar."
                        (marker-buffer wc-point))
               (goto-char wc-point))
 
-            (when wc-bl  (set-frame-parameter nil 'buffer-list wc-bl))
-            (when wc-bbl (set-frame-parameter nil 'buried-buffer-list wc-bbl))
+            (set-frame-parameter nil 'buffer-list wc-bl)
+            (set-frame-parameter nil 'buried-buffer-list wc-bbl)
 
             (when tab-bar-history-mode
               (puthash (selected-frame)
