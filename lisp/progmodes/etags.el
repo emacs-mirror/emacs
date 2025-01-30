@@ -445,6 +445,9 @@ Returns non-nil if it is a valid table."
 	(set-buffer (get-file-buffer file))
         (or verify-tags-table-function (tags-table-mode))
 	(unless (or (verify-visited-file-modtime (current-buffer))
+                    ;; Avoid an infinte loop of questions about
+                    ;; re-reading content if file was removed.
+                    (not (file-exists-p file))
 		    ;; Decide whether to revert the file.
 		    ;; revert-without-query can say to revert
 		    ;; or the user can say to revert.
