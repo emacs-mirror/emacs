@@ -3990,7 +3990,7 @@ dump_do_fixup (struct dump_context *ctx,
   Lisp_Object arg = dump_pop (&fixup);
   eassert (NILP (fixup));
   dump_seek (ctx, dump_fixup_offset);
-  intptr_t dump_value;
+  intptr_t dump_value UNINIT;
   bool do_write = true;
   switch (type)
     {
