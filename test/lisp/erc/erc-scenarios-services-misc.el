@@ -223,6 +223,31 @@
       ;; Works with "given" `:id'.
       (should (and (erc-network) (not (eq (erc-network) 'ExampleNet)))))))
 
+(ert-deftest erc-scenarios-services-misc--regain-command/oftc ()
+  :tags '(:expensive-test)
+  (erc-scenarios-common-with-cleanup
+      ((erc-server-flood-penalty 0.1)
+       (erc-scenarios-common-dialog "services/regain")
+       (dumb-server (erc-d-run "localhost" t 'taken-regain-oftc))
+       (port (process-contact dumb-server :service))
+       (erc-modules `(services-regain ,@erc-modules))
+       (erc-services-regain-timeout-seconds 1)
+       (use-id-p (cl-evenp (truncate (float-time))))
+       (erc-services-regain-alist (list (cons (if use-id-p 'oftc 'OFTC)
+                                              #'erc-services-issue-regain)))
+       (expect (erc-d-t-make-expecter)))
+
+    (with-current-buffer (erc :server "127.0.0.1"
+                              :port port
+                              :nick "dummy"
+                              :user "tester"
+                              :full-name "tester"
+                              :id (and use-id-p 'oftc))
+      (funcall expect 10 "Nickname dummy is already in use, trying dummy`")
+      (funcall expect 10 "-NickServ- REGAIN succeed on nickname")
+      (funcall expect 10 "*** Your new nickname is dummy")
+      (funcall expect 10 "*** dummy has changed mode for dummy to +R"))))
+
 (ert-deftest erc-scenarios-services-misc--ghost-and-retry-nick ()
   :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
