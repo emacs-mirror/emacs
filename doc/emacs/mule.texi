@@ -516,8 +516,9 @@ do the highlighting in the buffer showing the possible characters,
 rather than in the echo area.
 
   To enter characters according to the @dfn{p@=iny@=in} transliteration
-method instead, use the @code{chinese-sisheng} input method.  This is
-a composition based method, where e.g. @kbd{pi1} results in @samp{p@=i}.
+method instead, use the @code{chinese-sisheng} input method.  This is a
+composition based method, where, for example, @kbd{pi1} results in
+@samp{p@=i}.
 
   In Japanese input methods, first you input a whole word using
 phonetic spelling; then, after the word is in the buffer, Emacs

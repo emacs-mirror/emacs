@@ -117,9 +117,17 @@ set_terminal_window (struct frame *f, int size)
 void
 cursor_to (struct frame *f, int vpos, int hpos)
 {
-  if (FRAME_TERMINAL (f)->cursor_to_hook)
-    (*FRAME_TERMINAL (f)->cursor_to_hook) (f, vpos + f->top_pos,
-					   hpos + f->left_pos);
+  struct terminal *term = FRAME_TERMINAL (f);
+  if (term->cursor_to_hook)
+    {
+      int x, y;
+#ifndef HAVE_ANDROID
+      root_xy (f, hpos, vpos, &x, &y);
+#else /* HAVE_ANDROID */
+      x = hpos, y = vpos;
+#endif /* !HAVE_ANDROID */
+      term->cursor_to_hook (f, y, x);
+    }
 }
 
 /* Similar but don't take any account of the wasted characters.  */
@@ -127,9 +135,17 @@ cursor_to (struct frame *f, int vpos, int hpos)
 void
 raw_cursor_to (struct frame *f, int row, int col)
 {
-  if (FRAME_TERMINAL (f)->raw_cursor_to_hook)
-    (*FRAME_TERMINAL (f)->raw_cursor_to_hook) (f, row + f->top_pos,
-					       col + f->left_pos);
+  struct terminal *term = FRAME_TERMINAL (f);
+  if (term->raw_cursor_to_hook)
+    {
+      int x, y;
+#ifndef HAVE_ANDROID
+      root_xy (f, col, row, &x, &y);
+#else /* HAVE_ANDROID */
+      x = col, y = row;
+#endif /* !HAVE_ANDROID */
+      term->raw_cursor_to_hook (f, y, x);
+    }
 }
 
 /* Erase operations.  */

@@ -3562,7 +3562,6 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 
 		if (!NILP (Vmouse_autoselect_window))
 		  {
-		    static Lisp_Object last_mouse_window;
 		    Lisp_Object window = window_from_coordinates (f, b->x, b->y, 0, 0, 0, 0);
 
 		    if (WINDOWP (window)

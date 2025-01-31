@@ -14,7 +14,7 @@ OpenStep and then Rhapsody, which became Mac OS X.  In 2004 it was
 adapted to GNUstep, a free OpenStep implementation, and in 2008 it was
 merged to the GNU Emacs trunk and released with Emacs 23.  Around the
 same time a separate Mac-only port using the Carbon APIs and
-descending from a 2001 Mac OS 8/9 port of Emacs 21 was removed. (It
+descending from a 2001 Mac OS 8/9 port of Emacs 21 was removed.  (It
 remains available externally under the name "mac".)
 
 
@@ -48,12 +48,12 @@ Classes are declared like the following:
 
   GUIDELINES
 
-* Adhere the to the FSF philosophy that a feature in GNU software
-  should not only be available on non-free systems.
+* Adhere to the FSF philosophy that a feature in GNU software should not
+  only be available on non-free systems.
 
 * People with varying Cocoa and Objective-C skills will read and
   modify the NS code over a long period of time.  Keep the code simple
-  and avoid language constructs that makes the code hard to maintain.
+  and avoid language constructs that make the code hard to maintain.
 
 * Don't use macros and types intended for the XCode Interface Builder,
   like 'IBAction'.
@@ -81,7 +81,7 @@ GNUstep.  Even though they are less frequently used, this is important
 for a number of reasons:
 
 * It supports the GNUstep project and provides an Emacs with the same
-  look-and-feel as the rest of the system.
+  look and feel as the rest of the system.
 
 * This allows other Emacs developers to test their changes on the NS
   interface without having access to a macOS machine.
@@ -93,7 +93,7 @@ for a number of reasons:
 
   SEE ALSO
 
-The src/ns... files contains the C and Objective-C parts.
+The src/ns... files contain the C and Objective-C parts.
 
 The lisp/term/ns-win.el file contains the lisp part of the NS
 interface.

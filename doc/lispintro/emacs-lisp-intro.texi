@@ -3812,7 +3812,7 @@ the @code{let} body finishes, it takes that binding off of the stack,
 revealing the one it had (if any) before the @code{let} expression.
 
 @node Lexical vs Dynamic Binding Example
-@unnumberedsubsubsec Example of Lexical vs. Dynamic Binding
+@unnumberedsubsubsec Example of Lexical vs.@: Dynamic Binding
 In some cases, both lexical and dynamic binding behave identically.
 However, in other cases, they can change the meaning of your program.
 For example, see what happens in this code under lexical binding:

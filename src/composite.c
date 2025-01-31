@@ -1683,7 +1683,7 @@ find_automatic_composition (ptrdiff_t pos, ptrdiff_t limit, ptrdiff_t backlim,
     }
   else
     {
-      head = backlim < 0 ? 0 : backlim, tail = SCHARS (string), stop = -1;
+      head = max (backlim, 0), tail = SCHARS (string), stop = -1;
       cur.pos_byte = string_char_to_byte (string, cur.pos);
       cur.p = SDATA (string) + cur.pos_byte;
     }

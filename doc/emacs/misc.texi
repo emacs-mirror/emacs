@@ -3011,7 +3011,7 @@ URLs and other types of links occurring in Emacs buffer text.
 * Embedded WebKit Widgets::     Embedding browser widgets in Emacs buffers.
 * Browse-URL::                  Following URLs.
 * Goto Address mode::           Activating URLs.
-* FFAP::                        Finding files etc. at point.
+* FFAP::                        Finding files etc.@: at point.
 @end menu
 
 @node EWW

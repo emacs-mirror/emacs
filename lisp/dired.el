@@ -944,6 +944,9 @@ Return value is the number of files marked, or nil if none were marked."
                           ""))))
     (and (> count 0) count)))
 
+(defvar-local dired--inhibit-auto-revert nil
+  "A non-nil value prevents `auto-revert-mode' from reverting the buffer.")
+
 (defmacro dired-map-over-marks (body arg &optional show-progress
 				     distinguish-one-marked)
   "Eval BODY with point on each marked line.  Return a list of BODY's results.
@@ -980,7 +983,9 @@ marked file, return (t FILENAME) instead of (FILENAME)."
   ;;endless loop.
   ;;This warning should not apply any longer, sk  2-Sep-1991 14:10.
   `(prog1
-       (let ((inhibit-read-only t) case-fold-search found results)
+       (let ((dired--inhibit-auto-revert t)
+             (inhibit-read-only t)
+             case-fold-search found results)
 	 (if (and ,arg (not (eq ,arg 'marked)))
 	     (if (integerp ,arg)
 		 (progn	;; no save-excursion, want to move point.
@@ -1289,6 +1294,12 @@ This feature is used by Auto Revert mode."
 	 ;; Do not auto-revert when the dired buffer can be currently
 	 ;; written by the user as in `wdired-mode'.
 	 buffer-read-only
+         ;; When a dired operation using dired-map-over-marks is in
+         ;; progress, dired--inhibit-auto-revert is bound to some
+         ;; non-nil value and we must not auto-revert because that could
+         ;; change the order of files leading to skipping or
+         ;; double-processing (see bug#75626).
+         (not dired--inhibit-auto-revert)
 	 (dired-directory-changed-p dirname))))
 
 (defcustom dired-auto-revert-buffer nil
@@ -4078,13 +4089,12 @@ non-empty directories is allowed."
 	    (while l
 	      (goto-char (marker-position (cdr (car l))))
               (dired-move-to-filename)
-	      (let ((inhibit-read-only t))
+	      (let ((inhibit-read-only t)
+                    ;; Temporarily prevent auto-revert while deleting
+                    ;; entry in the dired buffer (bug#71264).
+                    (dired--inhibit-auto-revert t))
 		(condition-case err
-		    (let ((fn (car (car l)))
-                          ;; Temporarily prevent auto-revert while
-                          ;; deleting entry in the dired buffer
-                          ;; (bug#71264).
-                          (auto-revert-mode nil))
+		    (let ((fn (car (car l))))
 		      (dired-delete-file fn dired-recursive-deletes trash)
 		      ;; if we get here, removing worked
 		      (setq succ (1+ succ))

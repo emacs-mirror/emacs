@@ -1676,7 +1676,8 @@ for a file, defaulting to the file defined by variable
 	;; Rather than a single call to `pp' we make one per bookmark.
 	;; Apparently `pp' has a poor algorithmic complexity, so this
 	;; scales a lot better.  bug#4485.
-	(dolist (i bookmark-alist) (pp i (current-buffer)))
+	(let ((pp-default-function #'pp-28))
+	  (dolist (i bookmark-alist) (pp i (current-buffer))))
 	(insert ")\n")
 	;; Make sure the specified encoding can safely encode the
 	;; bookmarks.  If it cannot, suggest utf-8-emacs as default.

@@ -131,6 +131,11 @@ Root must be the root of an Emacs source tree."
       (set-version-in-file root "etc/refcards/ru-refcard.tex" newmajor
                            "\\\\newcommand{\\\\versionemacs}\\[0\\]\
 {\\([0-9]\\{2,\\}\\)}.+%.+version of Emacs")))
+  ;; Note: There's also the "android:versionCode=" property in
+  ;; java/AndroidManifest.xml, whose value is the major Emacs version,
+  ;; but if we increase it, upgraded installation will be unable to be
+  ;; downgraded to previous Emacs releases.  (The corresponding
+  ;; "android:versionName=" value there is updated by configure.)
   (let* ((oldversion
           (with-temp-buffer
             (insert-file-contents (expand-file-name "README" root))

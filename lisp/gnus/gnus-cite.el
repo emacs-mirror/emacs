@@ -119,7 +119,7 @@ the envelope From line."
   :version "22.1"
   :type 'boolean)
 
-(defface gnus-cite-attribution '((t (:italic t)))
+(defface gnus-cite-attribution '((t (:slant italic)))
   "Face used for attribution lines.")
 
 (defcustom gnus-cite-attribution-face 'gnus-cite-attribution
@@ -135,7 +135,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			 (background light))
 			(:foreground "MidnightBlue"))
 		       (t
-			(:italic t)))
+			(:slant italic)))
   "Citation face.")
 
 (defface gnus-cite-2 '((((class color)
@@ -145,7 +145,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			 (background light))
 			(:foreground "firebrick"))
 		       (t
-			(:italic t)))
+			(:slant italic)))
   "Citation face.")
 
 (defface gnus-cite-3 '((((class color)
@@ -155,7 +155,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			 (background light))
 			(:foreground "dark green"))
 		       (t
-			(:italic t)))
+			(:slant italic)))
   "Citation face.")
 
 (defface gnus-cite-4 '((((class color)
@@ -165,7 +165,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			 (background light))
 			(:foreground "OrangeRed"))
 		       (t
-			(:italic t)))
+			(:slant italic)))
   "Citation face.")
 
 (defface gnus-cite-5 '((((class color)
@@ -175,7 +175,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			 (background light))
 			(:foreground "dark khaki"))
 		       (t
-			(:italic t)))
+			(:slant italic)))
   "Citation face.")
 
 (defface gnus-cite-6 '((((class color)
@@ -185,7 +185,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			 (background light))
 			(:foreground "dark violet"))
 		       (t
-			(:italic t)))
+			(:slant italic)))
   "Citation face.")
 
 (defface gnus-cite-7 '((((class color)
@@ -195,7 +195,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			 (background light))
 			(:foreground "SteelBlue4"))
 		       (t
-			(:italic t)))
+			(:slant italic)))
   "Citation face.")
 
 (defface gnus-cite-8 '((((class color)
@@ -205,7 +205,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			 (background light))
 			(:foreground "magenta"))
 		       (t
-			(:italic t)))
+			(:slant italic)))
   "Citation face.")
 
 (defface gnus-cite-9 '((((class color)
@@ -215,7 +215,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			 (background light))
 			(:foreground "violet"))
 		       (t
-			(:italic t)))
+			(:slant italic)))
   "Citation face.")
 
 (defface gnus-cite-10 '((((class color)
@@ -225,7 +225,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			  (background light))
 			 (:foreground "medium purple"))
 			(t
-			 (:italic t)))
+			 (:slant italic)))
   "Citation face.")
 
 (defface gnus-cite-11 '((((class color)
@@ -235,7 +235,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			  (background light))
 			 (:foreground "turquoise"))
 			(t
-			 (:italic t)))
+			 (:slant italic)))
   "Citation face.")
 
 (defcustom gnus-cite-face-list

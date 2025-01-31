@@ -644,7 +644,7 @@ be consulted instead.
 Corresponds to Unicode language- and context-independent special
 lower-casing rules.  The value of this property is a string (which may
 be empty).  For example for U+0130 @sc{latin capital letter i
-with dot above} the value is @code{"i\u0307"} (i.e. a 2-character string
+with dot above} the value is @code{"i\u0307"} (i.e., a 2-character string
 consisting of @sc{latin small letter i} followed by U+0307
 @sc{combining dot above}).  This mapping overrides the @code{lowercase}
 property, and thus the current case table.  For characters with no
@@ -741,7 +741,7 @@ belongs, according to the Unicode Standard classification of the
 Unicode code space into script-specific blocks.  This char-table has a
 single extra slot whose value is the list of all script symbols.  Note
 that Emacs's classification of characters into scripts is not a 1-for-1
-reflection of the Unicode standard, e.g. there is no @samp{symbol}
+reflection of the Unicode standard, for example there is no @samp{symbol}
 script in Unicode.
 @end defvar
 

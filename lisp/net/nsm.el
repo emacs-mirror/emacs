@@ -152,7 +152,7 @@ If WARN-UNENCRYPTED, query the user if the connection is unencrypted."
     (3des-cipher            medium)
     ;; Towards TLS 1.3
     (dhe-kx                 medium)
-    (rsa-kx                 high)
+    (rsa-kx                 medium)
     (cbc-cipher             high))
   "Alist of TLS connection checks to perform.
 The key is the name of the check, and the value is the minimum security
@@ -174,7 +174,7 @@ See also: `nsm-check-tls-connection', `nsm-save-host-names',
                                (const :tag "Low" low)
                                (const :tag "Medium" medium)
                                (const :tag "High" high))))
-  :version "30.1")
+  :version "31.1")
 
 (defun nsm-save-fingerprint-maybe (host port status &rest _)
   "Save the certificate's fingerprint.
@@ -349,18 +349,30 @@ private key had been compromised, the attacker will be able to
 decrypt any past TLS session recorded, as opposed to just one TLS
 session if the key exchange was conducted via a key exchange
 method that offers perfect forward secrecy, such as ephemeral
-Diffie-Hellman key exchange.
+Diffie-Hellman key exchange[1].
 
-By default, this check is only enabled when
-`network-security-level' is set to `high' for compatibility
-reasons.
+There is a long history of attacks against static RSA key exchange in
+TLS, dating back to Bleichenbacher's attack in 1998, and mitigations
+that have subsequently themselves been broken.  In 2017, it was
+discovered that an attacker can decrypt ciphertexts or sign messages
+with the server's private key[2].  The poor security of this key
+exchange protocol was confirmed by new attacks discovered in 2018[3].
+RSA key exchange has been removed in TLS 1.3 (RFC 8446)[4].
 
 Reference:
 
-Sheffer, Holz, Saint-Andre (May 2015).  \"Recommendations for Secure
-Use of Transport Layer Security (TLS) and Datagram Transport Layer
-Security (DTLS)\", \"(4.1.  General Guidelines)\"
-`https://tools.ietf.org/html/rfc7525#section-4.1'"
+[1]: Sheffer, Holz, Saint-Andre (May 2015).  \"Recommendations for
+Secure Use of Transport Layer Security (TLS) and Datagram Transport
+Layer Security (DTLS)\", \"(4.1.  General Guidelines)\"
+`https://tools.ietf.org/html/rfc7525#section-4.1'
+[2]: Böck, Somorovsky, Young (August 2018).  \"Return Of
+Bleichenbacher’s Oracle Threat (ROBOT)\",
+`https://www.usenix.org/system/files/conference/usenixsecurity18/sec18-bock.pdf'
+[3]: Ronen, Gillham, Genkin, Shamir, Wong, and Yarom (2018).  \"The 9
+Lives of Bleichenbacher’s CAT: New Cache ATtacks on TLS
+Implementations.\", `https://eprint.iacr.org/2018/1173.pdf'
+[4]: Rescorla (2018).  \"The Transport Layer Security (TLS) Protocol
+Version 1.3\", `https://tools.ietf.org/html/rfc8446'"
   (let ((kx (plist-get status :key-exchange)))
     (and (string-match "^\\bRSA\\b" kx)
          (format-message

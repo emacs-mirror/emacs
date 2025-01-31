@@ -56,7 +56,7 @@
 ;; Commands in ispell-region:
 ;; Character replacement: Replace word with choice.  May query-replace.
 ;; ` ': Accept word this time.
-;; `i': Accept word and insert into private dictionary.
+;; `i': Accept word and insert into personal dictionary.
 ;; `a': Accept word for this session.
 ;; `A': Accept word and place in buffer-local dictionary.
 ;; `r': Replace word with typed-in value.  Rechecked.
@@ -2193,7 +2193,7 @@ Global `ispell-quit' is set to start location to continue spell session."
 	      (insert (car guess) "    ")
 	      (setq guess (cdr guess)))
 	    (insert (substitute-command-keys
-		     "\nUse option `i' to accept this spelling and put it in your private dictionary.\n"))))
+		     "\nUse option `i' to accept this spelling and put it in your personal dictionary.\n"))))
       (while choices
 	(when (> (+ 7 (current-column)
 		    (length (car choices))
@@ -2448,7 +2448,7 @@ Selections are:
 
 \\`0'..\\`9'  Replace the word with a digit offered in the *Choices* buffer.
 \\`SPC' Accept word this time.
-\\`i'   Accept word and insert into private dictionary.
+\\`i'   Accept word and insert into personal dictionary.
 \\`a'   Accept word for this session.
 \\`A'   Accept word and place in `buffer-local dictionary'.
 \\`r'   Replace word with typed-in value.  Rechecked.
@@ -2482,7 +2482,7 @@ Selections are:
 
 \\`0'..\\`9'  Replace the word with a digit offered in the *Choices* buffer.
 \\`SPC'   Accept word this time.
-\\`i'     Accept word and insert into private dictionary.
+\\`i'     Accept word and insert into personal dictionary.
 \\`a'     Accept word for this session.
 \\`A'     Accept word and place in `buffer-local dictionary'.
 \\`r'     Replace word with typed-in value.  Rechecked.
@@ -2502,7 +2502,7 @@ Selections are:
 
 
     (let ((help-1 (concat "[r/R]eplace word; [a/A]ccept for this session; "
-			  "[i]nsert into private dictionary"))
+			  "[i]nsert into personal dictionary"))
 	  (help-2 (concat "[l]ook a word up in alternate dictionary;  "
 			  "e[x/X]it;  [q]uit session"))
 	  (help-3 (concat "[u]ncapitalized insert into dict.  "

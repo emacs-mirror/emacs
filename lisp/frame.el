@@ -949,7 +949,13 @@ guess the window-system from the display.
 
 On graphical displays, this function does not itself make the new
 frame the selected frame.  However, the window system may select
-the new frame according to its own rules."
+the new frame according to its own rules.
+
+By default do not display the current buffer in the new frame if the
+buffer is hidden, that is, if the buffer's name starts with a space.
+Display another buffer, one that could be returned by `other-buffer',
+instead.  However, if `expose-hidden-buffer' is non-nil, display the
+current buffer even if it is hidden."
   (interactive)
   (let* ((display (cdr (assq 'display parameters)))
          (w (cond

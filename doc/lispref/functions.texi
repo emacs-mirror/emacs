@@ -11,7 +11,7 @@ explains what functions are, how they accept arguments, and how to
 define them.
 
 @menu
-* What Is a Function::          Lisp functions vs. primitives; terminology.
+* What Is a Function::          Lisp functions vs.@: primitives; terminology.
 * Lambda Expressions::          How functions are expressed as Lisp objects.
 * Function Names::              A symbol can serve as the name of a function.
 * Defining Functions::          Lisp expressions for defining functions.
@@ -832,6 +832,97 @@ and tells the Lisp compiler to perform inline expansion on it.
   To undefine a function name, use @code{fmakunbound}.
 @xref{Function Cells}.
 
+@menu
+* Finding Definitions::         Finding function definitions created by macros.
+@end menu
+
+@node Finding Definitions
+@subsection Finding Definitions
+
+Tools such as Emacs's built-in help command @kbd{C-h f} (@pxref{Help,,,
+emacs, The GNU Emacs Manual}) can find the definition site of functions
+and other Lisp objects in the source code.  To do this, they use the
+variable @code{find-function-regexp-alist}.
+
+@vindex @code{find-function-regexp-alist}
+The alist @code{find-function-regexp-alist} associates object types with
+a regexp or function that finds the definition of that object in its
+source file.  Each element's car is a symbol the describes the type of
+object, or @code{nil} to identify functions defined with @code{defun}.
+Each element's cdr is a symbol: either the value of that symbol is a
+string interpreted as a regexp, or that symbol names a function that can
+find the definition.
+
+A regexp string is actually a format string, and @code{%s} will be
+substituted with the name of the symbol we are looking for.
+
+A function will be called with one argument, the (symbol for) the object
+we are searching for.
+
+@cindex @code{definition-name} (symbol property)
+If the function to be found is defined by a macro, it may be hard for
+Emacs to find the definition site in the source code.  A macro call may
+have an unexpected look to it, and @code{find-function-regexp-alist}
+will fail to identify the definition.
+
+For example, a @code{define-derived-mode} (@pxref{Derived Modes}) might
+define a mode-specific function or a variable implicitly; or your Lisp
+program might generate a run-time call to @code{defun} to define a
+function.  In these and similar cases, the @code{definition-name}
+property of the symbol should be another symbol whose definition can be
+found by textual search and whose code defines the original symbol.  In
+the example with @code{define-derived-mode}, the value of this property
+of the functions and variables it defines should be the mode symbol.
+
+@cindex @code{find-function-type-alist} (symbol property)
+In some cases, the definition cannot be found by looking for the
+definition of another symbol.  For example, a test file might use a
+macro to generate calls to @code{ert-deftest} (@pxref{How to Write
+Tests,,,ert, ERT: Emacs Lisp Regression Testing}) where the code is
+boiler plate and only varying data need to be passed in.  In such cases,
+the @code{find-function-type-alist} property of the symbol can be an
+alist that augments @code{find-function-regexp-alist} telling how to
+find the definition of symbols of this type.
+
+The @code{find-function-regexp-alist} property is most easily maintained
+with the convenience function @code{find-function-update-type-alist}.
+
+@defun find-function-update-type-alist symbol type variable
+Update property @code{find-function-type-alist} of @var{symbol} with
+a new element containing key @var{type} and value @var{variable}.
+@end defun
+
+In the example of a macro defining calls to @code{ert-deftest},
+the macro could put the property @code{find-function-type-alist} on each
+test defined, associating @code{ert--test} (the internal type of ERT
+tests) with the name of a regexp or function that can find the correct
+macro call.  The file defining the macro would also have to provide that
+definition-finding function or regexp.
+Here is an example using a function to find the definition:
+
+@example
+@group
+(defmacro define-foo-test (data)
+  "Define a test of the foo system using DATA."
+  (declare (debug (&rest sexp)))
+  (let ((test-name (intern (concat ...))))
+    `(progn
+       (find-function-update-type-alist
+        ',test-name 'ert--test 'foo-find-test-def-function)
+       (ert-deftest ,test-name ()
+         ,(concat "Test foo with " ...)
+         ...))))
+@end group
+
+@group
+(defun foo-find-test-def-function (test-name)
+  "Search for the `define-foo-test' call defining TEST-NAME.
+Return non-nil if the definition is found."
+  (let ((regexp ...))
+    (re-search-forward regexp nil t)))
+@end group
+@end example
+
 @node Calling Functions
 @section Calling Functions
 @cindex function invocation
@@ -1378,7 +1469,7 @@ that don't require them.
 The type specializer, @code{(@var{arg} @var{type})}, can specify one
 of the @dfn{system types} in the following list.  When a parent type
 is specified, an argument whose type is any of its more specific child
-types, as well as grand-children, grand-grand-children, etc. will also
+types, as well as grand-children, grand-grand-children, etc.@: will also
 be compatible.
 
 @table @code

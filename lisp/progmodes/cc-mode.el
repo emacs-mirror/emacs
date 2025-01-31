@@ -1033,8 +1033,8 @@ Note that the style variables are always made local to the buffer."
       (setq m-beg (point))
       (c-end-of-macro)
       (when c-ml-string-opener-re
-	(save-excursion (c-depropertize-ml-strings-in-region m-beg (point)))
-	(c-clear-syntax-table-with-value-trim-caches m-beg (point) '(1))))
+	(save-excursion (c-depropertize-ml-strings-in-region m-beg (point))))
+      (c-clear-syntax-table-with-value-trim-caches m-beg (point) '(1)))
 
     (while (and (< (point) end)
 		(setq ss-found

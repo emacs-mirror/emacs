@@ -22,6 +22,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    interpretation of even the system includes. */
 #include <config.h>
 
+/* Work around GCC bug 102671.  */
+#if 10 <= __GNUC__
+# pragma GCC diagnostic ignored "-Wanalyzer-null-dereference"
+#endif
+
 #include <cairo.h>
 #include <fcntl.h>
 #include <math.h>
@@ -157,8 +162,6 @@ pgtk_enumerate_devices (struct pgtk_display_info *dpyinfo,
   struct pgtk_device_t *rec;
   GList *all_seats, *devices_on_seat, *tem, *t1;
   GdkSeat *seat;
-  char printbuf[1026]; /* Believe it or not, some device names are
-			  actually almost this long.  */
 
   block_input ();
   all_seats = gdk_display_list_seats (dpyinfo->gdpy);
@@ -186,12 +189,10 @@ pgtk_enumerate_devices (struct pgtk_display_info *dpyinfo,
 	  rec = xmalloc (sizeof *rec);
 	  rec->seat = g_object_ref (seat);
 	  rec->device = GDK_DEVICE (t1->data);
-
-	  snprintf (printbuf, 1026, "%u:%s",
-		    gdk_device_get_source (rec->device),
-		    gdk_device_get_name (rec->device));
-
-	  rec->name = build_string (printbuf);
+	  rec->name = (make_formatted_string
+		       ("%u:%s",
+			gdk_device_get_source (rec->device),
+			gdk_device_get_name (rec->device)));
 	  rec->next = dpyinfo->devices;
 	  dpyinfo->devices = rec;
 	}
@@ -5953,7 +5954,6 @@ motion_notify_event (GtkWidget *widget, GdkEvent *event,
 	     also when the target window is on another frame.  */
 	  && (f == XFRAME (selected_frame) || !NILP (focus_follows_mouse)))
 	{
-	  static Lisp_Object last_mouse_window;
 	  Lisp_Object window = window_from_coordinates
 	    (f, event->motion.x, event->motion.y, 0, false, false, false);
 
@@ -7019,7 +7019,7 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
   GdkDisplay *dpy;
   struct terminal *terminal;
   struct pgtk_display_info *dpyinfo;
-  static int x_initialized = 0;
+  static bool x_initialized;
   static unsigned x_display_id = 0;
   static char *initial_display = NULL;
   char *dpy_name;
@@ -7030,6 +7030,7 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
 
   block_input ();
 
+  bool was_initialized = x_initialized;
   if (!x_initialized)
     {
       any_help_event_p = false;
@@ -7040,8 +7041,7 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
 #ifdef USE_CAIRO
       gui_init_fringe (&pgtk_redisplay_interface);
 #endif
-
-      ++x_initialized;
+      x_initialized = true;
     }
 
   dpy_name = SSDATA (display_name);
@@ -7056,7 +7056,7 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
     char **argv2 = argv;
     guint id;
 
-    if (x_initialized++ > 1)
+    if (was_initialized)
       {
 	xg_display_open (dpy_name, &dpy);
       }
@@ -7085,13 +7085,10 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
 	id = g_log_set_handler ("GLib", G_LOG_LEVEL_WARNING | G_LOG_FLAG_FATAL
 				| G_LOG_FLAG_RECURSION, my_log_handler, NULL);
 
-	/* gtk_init does set_locale.  Fix locale before and after.  */
-	fixup_locale ();
+	gtk_disable_setlocale ();
 	unrequest_sigio ();	/* See comment in x_display_ok.  */
 	gtk_init (&argc, &argv2);
 	request_sigio ();
-	fixup_locale ();
-
 
         g_log_remove_handler ("GLib", id);
 
@@ -7099,7 +7096,7 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
 
         dpy = DEFAULT_GDK_DISPLAY ();
 
-	initial_display = g_strdup (gdk_display_get_name (dpy));
+	initial_display = xstrdup (gdk_display_get_name (dpy));
 	dpy_name = initial_display;
 	lisp_dpy_name = build_string (dpy_name);
       }

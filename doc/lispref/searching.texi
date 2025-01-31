@@ -1835,7 +1835,7 @@ The optional argument @var{paren} can be any of the following:
 @table @asis
 @item a string
 The resulting regexp is preceded by @var{paren} and followed by
-@samp{\)}, e.g. use @samp{"\\(?1:"} to produce an explicitly
+@samp{\)}.  For example, use @samp{"\\(?1:"} to produce an explicitly
 numbered group.
 
 @item @code{words}

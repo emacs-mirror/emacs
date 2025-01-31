@@ -1642,7 +1642,7 @@ edited aliases.
 
 Note that unlike aliases in Bash, arguments must be handled
 explicitly.  Within aliases, you can use the special variables
-@samp{$*}, @samp{$0}, @samp{$1}, @samp{$2}, etc. to refer to the
+@samp{$*}, @samp{$0}, @samp{$1}, @samp{$2}, etc.@: to refer to the
 arguments passed to the alias.
 
 @table @code
@@ -2600,8 +2600,8 @@ glob patterns, the pattern will be removed from the input line, and
 replaced by the completion.
 
 @kindex M-?
-If you want to see the entire list of possible completions (e.g. when it's
-below the @code{completion-cycle-threshold}), press @kbd{M-?}.
+If you want to see the entire list of possible completions (e.g., when
+it's below the @code{completion-cycle-threshold}), press @kbd{M-?}.
 
 @subsection pcomplete
 Pcomplete, short for programmable completion, is the completion

@@ -2209,14 +2209,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_ntproc (will_dump_p ()); /* must precede init_editfns.  */
 #endif
 
-  /* AIX crashes are reported in system versions 3.2.3 and 3.2.4
-     if this is not done.  Do it after set_global_environment so that we
-     don't pollute Vglobal_environment.  */
-  /* Setting LANG here will defeat the startup locale processing...  */
-#ifdef AIX
-  xputenv ("LANG=C");
-#endif
-
   /* Init buffer storage and default directory of main buffer.  */
   init_buffer ();
 

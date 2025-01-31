@@ -433,10 +433,10 @@ This will generate compile-time constants from BINDINGS."
                   "\\(([ \t']*\\)?" ;; An opening paren.
                   "\\(\\(setf\\)[ \t]+" (rx lisp-mode-symbol)
                   "\\|" (rx lisp-mode-symbol) "\\)?")
-          (1 font-lock-keyword-face)
+          (1 'font-lock-keyword-face)
           (3 (let ((type (get (intern-soft (match-string 1)) 'lisp-define-type)))
-               (cond ((eq type 'var) font-lock-variable-name-face)
-                     ((eq type 'type) font-lock-type-face)
+               (cond ((eq type 'var) 'font-lock-variable-name-face)
+                     ((eq type 'type) 'font-lock-type-face)
                      ;; If match-string 2 is non-nil, we encountered a
                      ;; form like (defalias (intern (concat s "-p"))),
                      ;; unless match-string 4 is also there.  Then its a
@@ -444,12 +444,12 @@ This will generate compile-time constants from BINDINGS."
                      ((or (not (match-string 2)) ;; Normal defun.
                           (and (match-string 2)  ;; Setf method.
                                (match-string 4)))
-                      font-lock-function-name-face)))
+                      'font-lock-function-name-face)))
              nil t))
         ;; Emacs Lisp autoload cookies.  Supports the slightly different
         ;; forms used by mh-e, calendar, etc.
-        (,lisp-mode-autoload-regexp (3 font-lock-warning-face prepend)
-                                    (2 font-lock-function-name-face prepend t)))
+        (,lisp-mode-autoload-regexp (3 'font-lock-warning-face prepend)
+                                    (2 'font-lock-function-name-face prepend t)))
       "Subdued level highlighting for Emacs Lisp mode.")
 
     (defconst lisp-cl-font-lock-keywords-1
@@ -460,14 +460,14 @@ This will generate compile-time constants from BINDINGS."
                   "\\(([ \t']*\\)?" ;; An opening paren.
                   "\\(\\(setf\\)[ \t]+" (rx lisp-mode-symbol)
                   "\\|" (rx lisp-mode-symbol) "\\)?")
-          (1 font-lock-keyword-face)
+          (1 'font-lock-keyword-face)
           (3 (let ((type (get (intern-soft (match-string 1)) 'lisp-define-type)))
-               (cond ((eq type 'var) font-lock-variable-name-face)
-                     ((eq type 'type) font-lock-type-face)
+               (cond ((eq type 'var) 'font-lock-variable-name-face)
+                     ((eq type 'type) 'font-lock-type-face)
                      ((or (not (match-string 2)) ;; Normal defun.
                           (and (match-string 2)  ;; Setf function.
                                (match-string 4)))
-                      font-lock-function-name-face)))
+                      'font-lock-function-name-face)))
              nil t)))
       "Subdued level highlighting for Lisp modes.")
 
@@ -477,17 +477,17 @@ This will generate compile-time constants from BINDINGS."
       (append
        lisp-el-font-lock-keywords-1
        `( ;; Regexp negated char group.
-         ("\\[\\(\\^\\)" 1 font-lock-negation-char-face prepend)
+         ("\\[\\(\\^\\)" 1 'font-lock-negation-char-face prepend)
          ;; Erroneous structures.
          (,(concat "(" el-errs-re "\\_>")
-          (1 font-lock-warning-face))
+          (1 'font-lock-warning-face))
          ;; Control structures.  Common Lisp forms.
          (lisp--el-match-keyword . 1)
          ;; Exit/Feature symbols as constants.
          (,(concat "(\\(catch\\|throw\\|featurep\\|provide\\|require\\)\\_>"
                    "[ \t']*\\(" (rx lisp-mode-symbol) "\\)?")
-           (1 font-lock-keyword-face)
-           (2 font-lock-constant-face nil t))
+           (1 'font-lock-keyword-face)
+           (2 'font-lock-constant-face nil t))
          ;; Words inside \\[], \\<>, \\{} or \\`' tend to be for
          ;; `substitute-command-keys'.
          (,(rx "\\\\" (or (seq "["
@@ -496,27 +496,27 @@ This will generate compile-time constants from BINDINGS."
                                      ;; allow multiple words, e.g. "C-x a"
                                      lisp-mode-symbol (* " " lisp-mode-symbol))
                                "'")))
-          (1 font-lock-constant-face prepend))
+          (1 'font-lock-constant-face prepend))
          (,(rx "\\\\" (or (seq "<"
                                (group-n 1 (seq lisp-mode-symbol (not "\\"))) ">")
                           (seq "{"
                                (group-n 1 (seq lisp-mode-symbol (not "\\"))) "}")))
-          (1 font-lock-variable-name-face prepend))
+          (1 'font-lock-variable-name-face prepend))
          ;; Ineffective backslashes (typically in need of doubling).
          ("\\(\\\\\\)\\([^\"\\]\\)"
           (1 (elisp--font-lock-backslash) prepend))
          ;; Words inside ‘’, '' and `' tend to be symbol names.
          (,(concat "[`‘']\\(" (rx lisp-mode-symbol) "\\)['’]")
-          (1 font-lock-constant-face prepend))
+          (1 'font-lock-constant-face prepend))
          ;; \\= tends to be an escape in doc strings.
          (,(rx "\\\\=")
-          (0 font-lock-builtin-face prepend))
+          (0 'font-lock-builtin-face prepend))
          ;; Constant values.
          (,(lambda (bound) (lisp-mode--search-key ":" bound))
-          (0 font-lock-builtin-face))
+          (0 'font-lock-builtin-face))
          ;; ELisp and CLisp `&' keywords as types.
          (,(lambda (bound) (lisp-mode--search-key "&" bound))
-          (0 font-lock-type-face))
+          (0 'font-lock-type-face))
          ;; ELisp regexp grouping constructs
          (,(lambda (bound)
              (catch 'found
@@ -534,11 +534,11 @@ This will generate compile-time constants from BINDINGS."
            (1 'font-lock-regexp-grouping-backslash prepend)
            (3 'font-lock-regexp-grouping-construct prepend))
          (lisp--match-hidden-arg
-          (0 '(face font-lock-warning-face
+          (0 '(face 'font-lock-warning-face
                help-echo "Easy to misread; consider moving the element to the next line")
              prepend))
          (lisp--match-confusable-symbol-character
-          0 '(face font-lock-warning-face
+          0 '(face 'font-lock-warning-face
                     help-echo "Confusable character"))
          ))
       "Gaudy level highlighting for Emacs Lisp mode.")
@@ -547,29 +547,29 @@ This will generate compile-time constants from BINDINGS."
       (append
        lisp-cl-font-lock-keywords-1
        `( ;; Regexp negated char group.
-         ("\\[\\(\\^\\)" 1 font-lock-negation-char-face prepend)
+         ("\\[\\(\\^\\)" 1 'font-lock-negation-char-face prepend)
          ;; Control structures.  Common Lisp forms.
          (,(concat "(" cl-kws-re "\\_>") . 1)
          ;; Exit/Feature symbols as constants.
          (,(concat "(\\(catch\\|throw\\|provide\\|require\\)\\_>"
                    "[ \t']*\\(" (rx lisp-mode-symbol) "\\)?")
-           (1 font-lock-keyword-face)
-           (2 font-lock-constant-face nil t))
+           (1 'font-lock-keyword-face)
+           (2 'font-lock-constant-face nil t))
          ;; Erroneous structures.
          (,(concat "(" cl-errs-re "\\_>")
-           (1 font-lock-warning-face))
+           (1 'font-lock-warning-face))
          ;; Words inside ‘’ and `' tend to be symbol names.
          (,(concat "[`‘]\\(" (rx lisp-mode-symbol) "\\)['’]")
-          (1 font-lock-constant-face prepend))
+          (1 'font-lock-constant-face prepend))
          ;; Uninterned symbols, e.g., (defpackage #:my-package ...)
          ;; must come before keywords below to have effect
-         (,(concat "#:" (rx lisp-mode-symbol) "") 0 font-lock-builtin-face)
+         (,(concat "#:" (rx lisp-mode-symbol) "") 0 'font-lock-builtin-face)
          ;; Constant values.
          (,(lambda (bound) (lisp-mode--search-key ":" bound))
-          (0 font-lock-builtin-face))
+          (0 'font-lock-builtin-face))
          ;; ELisp and CLisp `&' keywords as types.
          (,(lambda (bound) (lisp-mode--search-key "&" bound))
-          (0 font-lock-type-face))
+          (0 'font-lock-type-face))
          ;; ELisp regexp grouping constructs
          ;; This is too general -- rms.
          ;; A user complained that he has functions whose names start with `do'
@@ -577,9 +577,9 @@ This will generate compile-time constants from BINDINGS."
          ;; That user has violated the https://www.cliki.net/Naming+conventions:
          ;; CL (but not EL!) `with-' (context) and `do-' (iteration)
          (,(concat "(\\(\\(do-\\|with-\\)" (rx lisp-mode-symbol) "\\)")
-           (1 font-lock-keyword-face))
+           (1 'font-lock-keyword-face))
          (lisp--match-hidden-arg
-          (0 '(face font-lock-warning-face
+          (0 '(face 'font-lock-warning-face
                help-echo "Easy to misread; consider moving the element to the next line")
              prepend))
          ))
@@ -1431,6 +1431,19 @@ Any non-integer value means do not use a different value of
   :group 'lisp
   :version "30.1")
 
+(defvar lisp-fill-paragraph-as-displayed nil
+  "Modify the behavior of `lisp-fill-paragraph'.
+The default behavior of `lisp-fill-paragraph' is tuned for filling Emacs
+Lisp doc strings, with their special treatment for the first line.
+Particularly, strings are filled in a narrowed context to avoid filling
+surrounding code, which means any leading indent is disregarded, which
+can cause the filled string to extend passed the configured
+`fill-column' variable value.  If you would rather fill the string in
+its original context and ensure the `fill-column' value is more strictly
+respected, set this variable to true.  Doing so makes
+`lisp-fill-paragraph' behave as it used to in Emacs 27 and prior
+versions.")
+
 (defun lisp-fill-paragraph (&optional justify)
   "Like \\[fill-paragraph], but handle Emacs Lisp comments and docstrings.
 If any of the current line is a comment, fill the comment or the
@@ -1480,42 +1493,44 @@ and initial semicolons."
                                   (derived-mode-p 'emacs-lisp-mode))
                              emacs-lisp-docstring-fill-column
                            fill-column)))
-        (let ((ppss (syntax-ppss))
-              (start (point))
-              ;; Avoid recursion if we're being called directly with
-              ;; `M-x lisp-fill-paragraph' in an `emacs-lisp-mode' buffer.
-              (fill-paragraph-function t))
+        (let* ((ppss (syntax-ppss))
+               (start (point))
+               ;; Avoid recursion if we're being called directly with
+               ;; `M-x lisp-fill-paragraph' in an `emacs-lisp-mode' buffer.
+               (fill-paragraph-function t)
+               (string-start (ppss-comment-or-string-start ppss)))
           (save-excursion
             (save-restriction
               ;; If we're not inside a string, then do very basic
               ;; filling.  This avoids corrupting embedded strings in
               ;; code.
-              (if (not (ppss-comment-or-string-start ppss))
+              (if (not string-start)
                   (lisp--fill-line-simple)
-                ;; If we're in a string, then narrow (roughly) to that
-                ;; string before filling.  This avoids filling Lisp
-                ;; statements that follow the string.
-                (when (ppss-string-terminator ppss)
-                  (goto-char (ppss-comment-or-string-start ppss))
-                  ;; The string may be unterminated -- in that case, don't
-                  ;; narrow.
-                  (when (ignore-errors
-                          (progn
-                            (forward-sexp 1)
-                            t))
-                    (narrow-to-region (1+ (ppss-comment-or-string-start ppss))
-                                      (1- (point)))))
-                ;; Move back to where we were.
-                (goto-char start)
-                ;; We should fill the first line of a string
-                ;; separately (since it's usually a doc string).
-                (if (= (line-number-at-pos) 1)
-                    (narrow-to-region (line-beginning-position)
-                                      (line-beginning-position 2))
-                  (save-excursion
-                    (goto-char (point-min))
-                    (forward-line 1)
-                    (narrow-to-region (point) (point-max))))
+                (unless lisp-fill-paragraph-as-displayed
+                  ;; If we're in a string, then narrow (roughly) to that
+                  ;; string before filling.  This avoids filling Lisp
+                  ;; statements that follow the string.
+                  (when (ppss-string-terminator ppss)
+                    (goto-char string-start)
+                    ;; The string may be unterminated -- in that case, don't
+                    ;; narrow.
+                    (when (ignore-errors
+                            (progn
+                              (forward-sexp 1)
+                              t))
+                      (narrow-to-region (1+ string-start)
+                                        (1- (point)))))
+                  ;; Move back to where we were.
+                  (goto-char start)
+                  ;; We should fill the first line of a string
+                  ;; separately (since it's usually a doc string).
+                  (if (= (line-number-at-pos) 1)
+                      (narrow-to-region (line-beginning-position)
+                                        (line-beginning-position 2))
+                    (save-excursion
+                      (goto-char (point-min))
+                      (forward-line 1)
+                      (narrow-to-region (point) (point-max)))))
 	        (fill-paragraph justify)))))))
   ;; Never return nil.
   t)

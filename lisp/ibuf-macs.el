@@ -146,7 +146,7 @@ value if and only if `a' is \"less than\" `b'.
   `(progn
      (defun ,(intern (concat "ibuffer-do-sort-by-" (symbol-name name))) ()
        ,(or documentation "No :documentation specified for this sorting method.")
-       (interactive)
+       (interactive "@")
        (setq ibuffer-sorting-mode ',name)
        (when (eq ibuffer-sorting-mode ibuffer-last-sorting-mode)
 	 (setq ibuffer-sorting-reversep (not ibuffer-sorting-reversep)))

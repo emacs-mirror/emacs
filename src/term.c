@@ -2596,33 +2596,46 @@ tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
 #endif
 
 static Lisp_Object
-tty_frame_at (int x, int y)
+tty_frame_at (int x, int y, int *cx, int *cy)
 {
+#ifndef HAVE_ANDROID
   for (Lisp_Object frames = Ftty_frame_list_z_order (Qnil);
        !NILP (frames);
        frames = Fcdr (frames))
     {
       Lisp_Object frame = Fcar (frames);
       struct frame *f = XFRAME (frame);
+      int fx, fy;
+      root_xy (f, 0, 0, &fx, &fy);
 
-      if (f->left_pos <= x && x < f->left_pos + f->pixel_width &&
-	  f->top_pos <= y && y < f->top_pos + f->pixel_height)
-	return frame;
+      if ((fx <= x && x < fx + f->pixel_width)
+	  && (fy <= y && y < fy + f->pixel_height))
+	{
+	  child_xy (XFRAME (frame), x, y, cx, cy);
+	  return frame;
+	}
     }
+#endif /* !HAVE_ANDROID */
 
   return Qnil;
 }
 
-DEFUN ("tty-frame-at", Ftty_frame_at, Stty_frame_at,
-       2, 2, 0,
-       doc: /* Return tty frame containing pixel position X, Y.  */)
+DEFUN ("tty-frame-at", Ftty_frame_at, Stty_frame_at, 2, 2, 0,
+       doc : /* Return tty frame containing absolute pixel position (X, Y).
+Value is nil if no frame found.  Otherwise it is a list (FRAME CX CY),
+where FRAME is the frame containing (X, Y) and CX and CY are X and Y
+relative to FRAME.  */)
   (Lisp_Object x, Lisp_Object y)
 {
   if (! FIXNUMP (x) || ! FIXNUMP (y))
     /* Coordinates this big can not correspond to any frame.  */
     return Qnil;
 
-  return tty_frame_at (XFIXNUM (x), XFIXNUM (y));
+  int cx, cy;
+  Lisp_Object frame = tty_frame_at (XFIXNUM (x), XFIXNUM (y), &cx, &cy);
+  if (NILP (frame))
+    return Qnil;
+  return list3 (frame, make_fixnum (cx), make_fixnum (cy));
 }
 
 #ifdef HAVE_GPM
@@ -2755,11 +2768,12 @@ term_mouse_click (struct input_event *result, Gpm_Event *event,
 int
 handle_one_term_event (struct tty_display_info *tty, const Gpm_Event *event_in)
 {
-  Lisp_Object frame = tty_frame_at (event_in->x, event_in->y);
-  struct frame *f = decode_live_frame (frame);
+  int child_x, child_y;
+  Lisp_Object frame = tty_frame_at (event_in->x, event_in->y, &child_x, &child_y);
   Gpm_Event event = *event_in;
-  event.x -= f->left_pos;
-  event.y -= f->top_pos;
+  event.x = child_x;
+  event.y = child_y;
+  struct frame *f = decode_live_frame (frame);
 
   struct input_event ie;
   int count = 0;
@@ -2997,19 +3011,15 @@ tty_menu_calc_size (tty_menu *menu, int *width, int *height)
 static void
 mouse_get_xy (int *x, int *y)
 {
-  Lisp_Object lmx = Qnil, lmy = Qnil;
   Lisp_Object mouse = mouse_position (tty_menu_calls_mouse_position_function);
 
-  if (EQ (selected_frame, XCAR (mouse)))
+  struct frame *f = XFRAME (XCAR (mouse));
+  struct frame *sf = SELECTED_FRAME ();
+  if (f == sf || frame_ancestor_p (sf, f))
     {
-      lmx = XCAR (XCDR (mouse));
-      lmy = XCDR (XCDR (mouse));
-    }
-
-  if (!NILP (lmx))
-    {
-      *x = XFIXNUM (lmx);
-      *y = XFIXNUM (lmy);
+      int mx = XFIXNUM (XCAR (XCDR (mouse)));
+      int my = XFIXNUM (XCDR (XCDR (mouse)));
+      root_xy (f, mx, my, x, y);
     }
 }
 

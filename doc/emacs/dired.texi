@@ -749,7 +749,7 @@ window with a Dired buffer, or the most recently used window with
 a Dired buffer, or to use any other function.  When the value is
 a function, it will be called with no arguments and is expected to
 return a list of directories which will be used as defaults
-(i.e. default target and ``future history'').
+(i.e., default target and ``future history'').
 
   Here are the file-manipulating Dired commands that operate on files.
 

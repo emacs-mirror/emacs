@@ -2650,7 +2650,9 @@ The variable list VARLIST is the same as in `if-let*'.
 
 See also `and-let*'."
   (declare (indent 1) (debug if-let*))
-  (list 'if-let* varlist (macroexp-progn body)))
+  (let ((res (list 'if-let* varlist (macroexp-progn body))))
+    (if body res
+      (macroexp-warn-and-return "Empty body" res 'empty-body))))
 
 (defmacro and-let* (varlist &rest body)
   "Bind variables according to VARLIST and conditionally evaluate BODY.

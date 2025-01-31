@@ -3326,7 +3326,8 @@ dump_object (struct dump_context *ctx, Lisp_Object object)
     case Lisp_Float:
       offset = dump_float (ctx, XFLOAT (object));
       break;
-    case_Lisp_Int:
+    case Lisp_Int0:
+    case Lisp_Int1:
       eassert ("should not be dumping int: is self-representing" && 0);
       abort ();
     default:

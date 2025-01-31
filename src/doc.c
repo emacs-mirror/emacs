@@ -96,9 +96,6 @@ close_file_unwind_android_fd (void *ptr)
    If it is an integer, use that position in the standard DOC file.
    If it is (FILE . INTEGER), use FILE as the file name
    and INTEGER as the position in that file.
-   But if INTEGER is negative, make it positive.
-   (A negative integer is used for user variables, so we can distinguish
-   them without actually fetching the doc string.)
 
    If the location does not point to the beginning of a docstring
    (e.g. because the file has been modified and the location is stale),
@@ -130,6 +127,9 @@ get_doc_string (Lisp_Object filepos, bool unibyte)
   else
     return Qnil;
 
+  /* We used to emit negative positions for 'user variables' (whose doc
+     strings started with an asterisk); take the absolute value for
+     compatibility with bytecode from Emacs <29.  */
   EMACS_INT position = eabs (XFIXNUM (pos));
 
   if (!STRINGP (dir))
@@ -192,7 +192,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte)
      P points beyond the data just read.  */
 
   p = get_doc_string_buffer;
-  while (1)
+  while (true)
     {
       ptrdiff_t space_left = (get_doc_string_buffer_size - 1
 			      - (p - get_doc_string_buffer));
@@ -307,15 +307,13 @@ Invalid data in documentation file -- %c followed by code %03o",
     }
 }
 
-static bool
+static void
 reread_doc_file (Lisp_Object file)
 {
   if (NILP (file))
     Fsnarf_documentation (Vdoc_file_name);
   else
     save_match_data_load (file, Qt, Qt, Qt, Qnil);
-
-  return 1;
 }
 
 DEFUN ("documentation-stringp", Fdocumentation_stringp, Sdocumentation_stringp,
@@ -341,7 +339,7 @@ string is passed through `substitute-command-keys'.  */)
   Lisp_Object doc;
   bool try_reload = true;
 
- documentation:
+ retry:
 
   doc = Qnil;
 
@@ -364,22 +362,17 @@ string is passed through `substitute-command-keys'.  */)
      from the DOC file (bug in src/Makefile.in).  */
   if (BASE_EQ (doc, make_fixnum (0)))
     doc = Qnil;
-  if (FIXNUMP (doc) || CONSP (doc))
+  if (FIXNUMP (doc) || (CONSP (doc) && FIXNUMP (XCDR (doc))))
     {
-      Lisp_Object tem;
-      tem = get_doc_string (doc, 0);
+      Lisp_Object tem = get_doc_string (doc, 0);
       if (NILP (tem) && try_reload)
 	{
 	  /* The file is newer, we need to reset the pointers.  */
-	  try_reload = reread_doc_file (Fcar_safe (doc));
-	  if (try_reload)
-	    {
-	      try_reload = false;
-	      goto documentation;
-	    }
+	  reread_doc_file (Fcar_safe (doc));
+	  try_reload = false;
+	  goto retry;
 	}
-      else
-	doc = tem;
+      doc = tem;
     }
 
   if (NILP (raw))
@@ -420,7 +413,7 @@ aren't strings.  */)
   bool try_reload = true;
   Lisp_Object tem;
 
- documentation_property:
+ retry:
 
   tem = Fget (symbol, prop);
 
@@ -446,12 +439,9 @@ aren't strings.  */)
       if (NILP (tem) && try_reload)
 	{
 	  /* The file is newer, we need to reset the pointers.  */
-	  try_reload = reread_doc_file (Fcar_safe (doc));
-	  if (try_reload)
-	    {
-	      try_reload = false;
-	      goto documentation_property;
-	    }
+	  reread_doc_file (Fcar_safe (doc));
+	  try_reload = false;
+	  goto retry;
 	}
     }
   else if (!STRINGP (tem))
@@ -518,10 +508,7 @@ That file is found in `../etc' now; later, when the dumped Emacs is run,
 the same file name is found in the `doc-directory'.  */)
   (Lisp_Object filename)
 {
-  doc_fd fd;
   char buf[1024 + 1];
-  int filled;
-  EMACS_INT pos;
   Lisp_Object sym;
   char *p, *name;
   char const *dirname;
@@ -565,7 +552,7 @@ the same file name is found in the `doc-directory'.  */)
       Vbuild_files = Fpurecopy (Vbuild_files);
     }
 
-  fd = doc_open (name, O_RDONLY, 0);
+  doc_fd fd = doc_open (name, O_RDONLY, 0);
   if (!doc_fd_p (fd))
     {
       int open_errno = errno;
@@ -578,8 +565,8 @@ the same file name is found in the `doc-directory'.  */)
   record_unwind_protect_ptr (close_file_unwind_android_fd, &fd);
 #endif /* !USE_ANDROID_ASSETS */
   Vdoc_file_name = filename;
-  filled = 0;
-  pos = 0;
+  int filled = 0;
+  EMACS_INT pos = 0;
   while (true)
     {
       if (filled < 512)
@@ -619,15 +606,13 @@ the same file name is found in the `doc-directory'.  */)
 	      /* Attach a docstring to a variable?  */
 	      if (p[1] == 'V')
 		{
-		  /* Install file-position as variable-documentation property
-		     and make it negative for a user-variable
-		     (doc starts with a `*').  */
+		  /* Install file-position as variable-documentation
+		     property.  */
                   if ((!NILP (Fboundp (sym))
                       || !NILP (Fmemq (sym, delayed_init)))
                       && strncmp (end, "\nSKIP", 5))
                     Fput (sym, Qvariable_documentation,
-                          make_fixnum ((pos + end + 1 - buf)
-                                       * (end[1] == '*' ? -1 : 1)));
+                          make_fixnum (pos + end + 1 - buf));
 		}
 
 	      /* Attach a docstring to a function?  */

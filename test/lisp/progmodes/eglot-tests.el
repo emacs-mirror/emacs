@@ -442,7 +442,7 @@ directory hierarchy."
   "Test basic symlink support."
   (skip-unless (executable-find "clangd"))
   ;; MS-Windows either fails symlink creation or pops up UAC prompts.
-  (skip-when (eq system-type 'windows-nt))
+  (skip-unless (not (eq system-type 'windows-nt)))
   (eglot--with-fixture
       `(("symlink-project" .
          (("main.cpp" . "#include\"foo.h\"\nint main() { return foo(); }")
@@ -595,11 +595,12 @@ directory hierarchy."
     (eglot--wait-for (s-notifs 20) (&key method params &allow-other-keys)
       (and
        (string= method "$/progress")
-       "rustAnalyzer/Indexing"
-       (equal params
-              '(:token "rustAnalyzer/Indexing" :value
-                       ;; Could wait for :kind "end" instead, but it's 2 more seconds.
-                       (:kind "begin" :title "Indexing" :cancellable :json-false :percentage 0)))))))
+       (equal (plist-get params :token) "rustAnalyzer/Roots Scanned")
+       (equal (plist-get (plist-get params :value) :kind) "end")))
+    ;; Annoyingly, waiting for that special progress report is still not
+    ;; enough to make sure the server is ready to provide completions,
+    ;; so here's two extra seconds.
+    (sit-for 2)))
 
 (ert-deftest eglot-test-basic-completions ()
   "Test basic autocompletion in a clangd LSP."
@@ -613,20 +614,6 @@ directory hierarchy."
       (completion-at-point)
       (message (buffer-string))
       (should (looking-back "fprintf.?")))))
-
-(ert-deftest eglot-test-common-prefix-completion ()
-  "Test completion appending the common prefix."
-  (skip-unless (executable-find "clangd"))
-  (eglot--with-fixture
-      `(("project" . (("coiso.c" .
-                       ,(concat "int foo_bar; int foo_bar_baz;"
-                                "int main() {foo")))))
-    (with-current-buffer
-        (eglot--find-file-noselect "project/coiso.c")
-      (eglot--wait-for-clangd)
-      (goto-char (point-max))
-      (completion-at-point)
-      (should (looking-back "{foo_bar")))))
 
 (ert-deftest eglot-test-non-unique-completions ()
   "Test completion resulting in 'Complete, but not unique'."
@@ -661,6 +648,10 @@ directory hierarchy."
       (completion-at-point)
       (should (looking-back "foo")))))
 
+(defun eglot--kill-completions-buffer ()
+  (when (buffer-live-p (get-buffer "*Completions*"))
+        (kill-buffer "*Completions*")))
+
 (ert-deftest eglot-test-try-completion-nomatch ()
   "Test completion table with non-matching input, returning nil."
   (skip-unless (executable-find "clangd"))
@@ -670,14 +661,32 @@ directory hierarchy."
     (with-current-buffer
         (eglot--find-file-noselect "project/coiso.c")
       (eglot--wait-for-clangd)
+      (eglot--kill-completions-buffer)
       (goto-char (point-max))
-      (should
-       (null
-        (completion-try-completion
-         "abc"
-         (nth 2 (eglot-completion-at-point)) nil 3))))))
+      (completion-at-point)
+      (should (looking-back "abc"))
+      (should-not (get-buffer "*Completions*")))))
 
 (ert-deftest eglot-test-try-completion-inside-symbol ()
+  "Test completion table inside symbol, with only prefix matching."
+  (skip-unless (executable-find "clangd"))
+  (eglot--with-fixture
+      `(("project" . (("coiso.c" .
+                       ,(concat
+                         "int foobar;"
+                         "int foobarbaz;"
+                         "int main() {foo123")))))
+    (with-current-buffer
+        (eglot--find-file-noselect "project/coiso.c")
+      (eglot--wait-for-clangd)
+      (goto-char (- (point-max) 3))
+      (eglot--kill-completions-buffer)
+      (completion-at-point)
+      (should (looking-back "foo"))
+      (should (looking-at "123"))
+      (should (get-buffer "*Completions*")))))
+
+(ert-deftest eglot-test-try-completion-inside-symbol-2 ()
   "Test completion table inside symbol, with only prefix matching."
   (skip-unless (executable-find "clangd"))
   (eglot--with-fixture
@@ -689,16 +698,14 @@ directory hierarchy."
         (eglot--find-file-noselect "project/coiso.c")
       (eglot--wait-for-clangd)
       (goto-char (- (point-max) 3))
-      (when (buffer-live-p "*Completions*")
-        (kill-buffer "*Completions*"))
       (completion-at-point)
-      (should (looking-back "foo"))
-      (should (looking-at "123"))
-      (should (get-buffer "*Completions*"))
-      )))
+      (should (looking-back "foobar"))
+      (should (looking-at "123")))))
 
 (ert-deftest eglot-test-rust-completion-exit-function ()
-  "Ensure that the rust-analyzer exit function creates the expected contents."
+  "Ensure rust-analyzer exit function creates the expected contents."
+  :tags '(:expensive-test)
+  ;; This originally appeared in github#1339
   (skip-unless (executable-find "rust-analyzer"))
   (skip-unless (executable-find "cargo"))
   (eglot--with-fixture
@@ -708,26 +715,30 @@ directory hierarchy."
     (with-current-buffer
         (eglot--find-file-noselect "cmpl-project/main.rs")
       (should (zerop (shell-command "cargo init")))
-      (eglot--tests-connect)
-      (goto-char (point-min))
       (search-forward "v.count_on")
-      (let ((minibuffer-message-timeout 0)
-            ;; Fail at (ding) if completion fails.
-            (executing-kbd-macro t))
-        (when (buffer-live-p "*Completions*")
-          (kill-buffer "*Completions*"))
-        ;; The design is pretty brittle, we'll need to monitor the
-        ;; language server for changes in behavior.
-        (eglot--wait-for-rust-analyzer)
-        (completion-at-point)
-        (should (looking-back "\\.count_on"))
-        (should (get-buffer "*Completions*"))
-        (minibuffer-next-completion 1)
-        (minibuffer-choose-completion t))
+      (eglot--wait-for-rust-analyzer)
+      (completion-at-point)
       (should
        (equal
-        "fn test() -> i32 { let v: usize = 1; v.count_ones.1234567890;"
+        (if (bound-and-true-p yas-minor-mode)
+            "fn test() -> i32 { let v: usize = 1; v.count_ones().1234567890;"
+          "fn test() -> i32 { let v: usize = 1; v.count_ones.1234567890;")
         (buffer-string))))))
+
+(ert-deftest eglot-test-zig-insert-replace-completion ()
+  "Test zls's use of 'InsertReplaceEdit'."
+  (skip-unless (functionp 'zig-ts-mode))
+  (eglot--with-fixture
+      `(("project" .
+         (("main.zig" .
+           ,(concat "const Foo = struct {correct_name: u32,\n};\n"
+                    "fn example(foo: Foo) u32 {return foo.correc_name; }")))))
+    (with-current-buffer
+        (eglot--find-file-noselect "project/main.zig")
+      (should (eglot--tests-connect))
+      (search-forward "foo.correc")
+      (completion-at-point)
+      (should (looking-back "correct_name")))))
 
 (ert-deftest eglot-test-basic-xref ()
   "Test basic xref functionality in a clangd LSP."
@@ -787,7 +798,6 @@ int main() {
       (insert "foo")
       (company-mode)
       (company-complete)
-      (should (looking-back "fooba"))
       (should (= 2 (length company-candidates)))
       ;; this last one is brittle, since there it is possible that
       ;; clangd will change the representation of this candidate
@@ -870,6 +880,7 @@ int main() {
 
 (ert-deftest eglot-test-javascript-basic ()
   "Test basic autocompletion in a JavaScript LSP."
+  :tags '(:expensive-test)
   (skip-unless (and (executable-find "typescript-language-server")
                     (executable-find "tsserver")))
   (eglot--with-fixture
@@ -884,14 +895,14 @@ int main() {
                           :client-notifications
                           c-notifs)
           (should (eglot--tests-connect))
-          (eglot--wait-for (s-notifs 2) (&key method &allow-other-keys)
+          (eglot--wait-for (s-notifs 10) (&key method &allow-other-keys)
             (string= method "textDocument/publishDiagnostics"))
           (should (not (eq 'flymake-error (face-at-point))))
           (insert "{")
           (eglot--signal-textDocument/didChange)
           (eglot--wait-for (c-notifs 1) (&key method &allow-other-keys)
             (string= method "textDocument/didChange"))
-          (eglot--wait-for (s-notifs 2) (&key params method &allow-other-keys)
+          (eglot--wait-for (s-notifs 10) (&key params method &allow-other-keys)
             (and (string= method "textDocument/publishDiagnostics")
                  (cl-destructuring-bind (&key _uri diagnostics) params
                    (cl-find-if (jsonrpc-lambda (&key severity &allow-other-keys)
@@ -1410,6 +1421,8 @@ GUESSED-MAJOR-MODES-SYM are bound to the useful return values of
 
 (defvar tramp-histfile-override)
 (defun eglot--call-with-tramp-test (fn)
+  (unless (>= emacs-major-version 28)
+    (ert-skip "Tramp tests only work reliably on Emacs 28+"))
   ;; Set up a Tramp method that’s just a shell so the remote host is
   ;; really just the local host.
   (let* ((tramp-remote-path (cons 'tramp-own-remote-path

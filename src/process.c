@@ -1823,6 +1823,7 @@ usage: (make-process &rest ARGS)  */)
 
   if (nargs == 0)
     return Qnil;
+  CHECK_KEYWORD_ARGS (nargs);
 
   /* Save arguments for process-contact and clone-process.  */
   contact = Flist (nargs, args);
@@ -2432,6 +2433,7 @@ usage:  (make-pipe-process &rest ARGS)  */)
 
   if (nargs == 0)
     return Qnil;
+  CHECK_KEYWORD_ARGS (nargs);
 
   contact = Flist (nargs, args);
 
@@ -3067,6 +3069,8 @@ usage: (serial-process-configure &rest ARGS)  */)
   Lisp_Object contact = Qnil;
   Lisp_Object proc = Qnil;
 
+  CHECK_KEYWORD_ARGS (nargs);
+
   contact = Flist (nargs, args);
 
   proc = plist_get (contact, QCprocess);
@@ -3171,6 +3175,7 @@ usage:  (make-serial-process &rest ARGS)  */)
 
   if (nargs == 0)
     return Qnil;
+  CHECK_KEYWORD_ARGS (nargs);
 
   contact = Flist (nargs, args);
 
@@ -3972,6 +3977,7 @@ usage: (make-network-process &rest ARGS)  */)
 
   if (nargs == 0)
     return Qnil;
+  CHECK_KEYWORD_ARGS (nargs);
 
   /* Save arguments for process-contact and clone-process.  */
   contact = Flist (nargs, args);

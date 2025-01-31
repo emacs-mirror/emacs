@@ -5224,7 +5224,12 @@ buffer by itself."
 	(cond
 	 ((window-minibuffer-p window))
 	 (kill-buffer-quit-windows
-	  (quit-restore-window window 'killing))
+	  ;; Try to preserve the current buffer set up by 'kill-buffer'
+	  ;; before running the hooks on 'kill-buffer-hook' (Bug#75949).
+	  (let ((current-buffer (current-buffer)))
+	    (quit-restore-window window 'killing)
+	    (when (buffer-live-p current-buffer)
+	      (set-buffer current-buffer))))
 	 (t
 	  (let ((dedicated-side (eq (window-dedicated-p window) 'side)))
             (when (or dedicated-side (not (window--delete window t 'kill)))

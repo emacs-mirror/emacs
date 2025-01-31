@@ -1757,6 +1757,13 @@ should take the same argument as MATCHER or ANCHOR.  If it matches,
 return a cons (ANCHOR-POS . OFFSET), where ANCHOR-POS is a position and
 OFFSET is the indent offset; if it doesn't match, return nil.")
 
+(defvar-local treesit-simple-indent-override-rules nil
+  "Extra simple indent rules for customizing indentation.
+
+This variable should take the same form as
+`treesit-simple-indent-rules'.  Rules in this variable take precedence
+over `treesit-simple-indent-rules'.")
+
 (defun treesit--indent-prev-line-node (pos)
   "Return the largest node on the previous line of POS."
   (save-excursion
@@ -2303,35 +2310,39 @@ OFFSET."
                (message "PARENT is nil, not indenting"))
              (cons nil nil))
     (let* ((language (treesit-node-language parent))
-           (rules (alist-get language
-                             treesit-simple-indent-rules)))
+           (rules-list (list
+                        (alist-get language
+                                   treesit-simple-indent-override-rules)
+                        (alist-get language
+                                   treesit-simple-indent-rules))))
       (catch 'match
-        (dolist (rule rules)
-          (if (functionp rule)
-              (let ((result (funcall rule node parent bol)))
-                (when result
+        (dolist (rules rules-list)
+          (dolist (rule rules)
+            (if (functionp rule)
+                (let ((result (funcall rule node parent bol)))
+                  (when result
+                    (when treesit--indent-verbose
+                      (message "Matched rule: %S" rule))
+                    (throw 'match result)))
+              (let ((pred (nth 0 rule))
+                    (anchor (nth 1 rule))
+                    (offset (nth 2 rule)))
+                ;; Found a match.
+                (when (treesit--simple-indent-eval
+                       (list pred node parent bol))
                   (when treesit--indent-verbose
                     (message "Matched rule: %S" rule))
-                  (throw 'match result)))
-            (let ((pred (nth 0 rule))
-                  (anchor (nth 1 rule))
-                  (offset (nth 2 rule)))
-              ;; Found a match.
-              (when (treesit--simple-indent-eval
-                     (list pred node parent bol))
-                (when treesit--indent-verbose
-                  (message "Matched rule: %S" rule))
-                (let ((anchor-pos
-                       (treesit--simple-indent-eval
-                        (list anchor node parent bol)))
-                      (offset-val
-                       (cond ((numberp offset) offset)
-                             ((and (symbolp offset)
-                                   (boundp offset))
-                              (symbol-value offset))
-                             (t (treesit--simple-indent-eval
-                                 (list offset node parent bol))))))
-                  (throw 'match (cons anchor-pos offset-val)))))))
+                  (let ((anchor-pos
+                         (treesit--simple-indent-eval
+                          (list anchor node parent bol)))
+                        (offset-val
+                         (cond ((numberp offset) offset)
+                               ((and (symbolp offset)
+                                     (boundp offset))
+                                (symbol-value offset))
+                               (t (treesit--simple-indent-eval
+                                   (list offset node parent bol))))))
+                    (throw 'match (cons anchor-pos offset-val))))))))
         ;; Didn't find any match.
         (when treesit--indent-verbose
           (message "No matched rule"))
@@ -2400,6 +2411,38 @@ RULES."
                             (optimize-func anchor)
                             offset)))))
              (cons lang (mapcar #'optimize-rule indent-rules)))))
+
+(defun treesit-add-simple-indent-rules (language rules &optional where anchor)
+  "Add simple indent RULES for LANGUAGE.
+
+This function only affects `treesit-simple-indent-rules',
+`treesit-simple-indent-override-rules' is not affected.
+
+WHERE can be either :before or :after, which means adding RULES before
+or after the existing rules in `treesit-simple-indent-rules'.  If
+ommited, default to adding the rules before (so it overrides existing
+rules).
+
+If ANCHOR is non-nil, add RULES before/after the rules in
+`treesit-simple-indent-rules' that's `equal' to ANCHOR.  If ANCHOR is
+omitted or no existing rules matches it, add RULES at the beginning or
+end of existing rules."
+  (when (not (memq where '(nil :before :after)))
+    (error "WHERE must be either :before, :after, or nil"))
+  (let* ((existing-rules (alist-get language treesit-simple-indent-rules))
+         (anchor-idx (and anchor (seq-position existing-rules anchor)))
+         (new-rules
+          (if anchor-idx
+              (let* ((pivot (if (eq where :after)
+                                (1+ anchor-idx)
+                              anchor-idx))
+                     (first-half (seq-subseq existing-rules 0 pivot))
+                     (second-half (seq-subseq existing-rules pivot)))
+                (append first-half rules second-half))
+            (if (eq where :after)
+                (append existing-rules rules)
+              (append rules existing-rules)))))
+    (setf (alist-get language treesit-simple-indent-rules) new-rules)))
 
 ;;; Search
 
@@ -2855,6 +2898,7 @@ not set, Emacs also looks for definition of defun in
   (let ((orig-point (point))
         (success nil)
         (pred (or treesit-defun-type-regexp 'defun)))
+    (unless arg (setq arg 1))
     (catch 'done
       (dotimes (_ 2)
 
@@ -2874,8 +2918,8 @@ not set, Emacs also looks for definition of defun in
 (defun treesit-end-of-defun (&optional arg _)
   "Move forward to next end of defun.
 
-With argument ARG, do it that many times.
-Negative argument -N means move back to Nth preceding end of defun.
+With argument ARG, do it that many times.  Negative ARG means
+move back to the ARGth preceding end of defun.
 
 This is a tree-sitter equivalent of `end-of-defun'.  Behavior of
 this function depends on `treesit-defun-type-regexp' and
@@ -2944,6 +2988,29 @@ by `text' and `sentence' in `treesit-thing-settings'."
     (funcall
      (if (> arg 0) #'treesit-end-of-thing #'treesit-beginning-of-thing)
      'sentence (abs arg))))
+
+(defun treesit-forward-comment (&optional count)
+  "Tree-sitter `forward-comment-function' implementation.
+
+COUNT is the same as in `forward-comment'."
+  (let ((res t) thing)
+    (while (> count 0)
+      (skip-chars-forward " \t\n")
+      (setq thing (treesit-thing-at (point) 'comment))
+      (if (and thing (eq (point) (treesit-node-start thing)))
+          (progn
+            (goto-char (min (1+ (treesit-node-end thing)) (point-max)))
+            (setq count (1- count)))
+        (setq count 0 res nil)))
+    (while (< count 0)
+      (skip-chars-backward " \t\n")
+      (setq thing (treesit-thing-at (max (1- (point)) (point-min)) 'comment))
+      (if (and thing (eq (point) (treesit-node-end thing)))
+          (progn
+            (goto-char (treesit-node-start thing))
+            (setq count (1+ count)))
+        (setq count 0 res nil)))
+    res))
 
 (defun treesit-default-defun-skipper ()
   "Skips spaces after navigating a defun.
@@ -3466,6 +3533,81 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
       (setq level (1+ level)))
     (if (zerop level) 1 level)))
 
+;;; Hideshow mode
+
+(defun treesit-hs-block-end ()
+  "Tree-sitter implementation of `hs-block-end-regexp'."
+  (let* ((pred 'list)
+         (thing (treesit-thing-at
+                 (if (bobp) (point) (1- (point))) pred))
+         (end (when thing (treesit-node-end thing)))
+         (last (when thing (treesit-node-child thing -1)))
+         (beg (if last (treesit-node-start last)
+                (if (bobp) (point) (1- (point))))))
+    (when (and thing (eq (point) end))
+      (set-match-data (list beg end))
+      t)))
+
+(defun treesit-hs-find-block-beginning ()
+  "Tree-sitter implementation of `hs-find-block-beginning-func'."
+  (let* ((pred 'list)
+         (thing (treesit-thing-at (point) pred))
+         (beg (when thing (treesit-node-start thing)))
+         (end (when beg (min (1+ beg) (point-max)))))
+    (when thing
+      (goto-char beg)
+      (set-match-data (list beg end))
+      t)))
+
+(defun treesit-hs-find-next-block (_regexp maxp comments)
+  "Tree-sitter implementation of `hs-find-next-block-func'."
+  (when (not comments)
+    (forward-comment (point-max)))
+  (let* ((comment-pred
+          (when comments
+            (if (treesit-thing-defined-p 'comment (treesit-language-at (point)))
+                'comment "comment")))
+         (pred (if comment-pred (append '(or list) (list comment-pred)) 'list))
+         ;; `treesit-navigate-thing' can't find a thing at bobp,
+         ;; so use `treesit-thing-at' to match at bobp.
+         (current (treesit-thing-at (point) pred))
+         (beg (or (and current (eq (point) (treesit-node-start current)) (point))
+                  (treesit-navigate-thing (point) 1 'beg pred)))
+         ;; Check if we found a list or a comment
+         (list-thing (when beg (treesit-thing-at beg 'list)))
+         (comment-thing (when beg (treesit-thing-at beg comment-pred)))
+         (comment-p (and comment-thing (eq beg (treesit-node-start comment-thing))))
+         (thing (if comment-p comment-thing list-thing))
+         (end (if thing (min (1+ (treesit-node-start thing)) (point-max)))))
+    (when (and end (< end maxp))
+      (goto-char end)
+      (set-match-data
+       (if (and comments comment-p)
+           (list beg end nil nil beg end)
+         (list beg end beg end)))
+      t)))
+
+(defun treesit-hs-looking-at-block-start-p ()
+  "Tree-sitter implementation of `hs-looking-at-block-start-p-func'."
+  (let* ((pred 'list)
+         (thing (treesit-thing-at (point) pred))
+         (beg (when thing (treesit-node-start thing)))
+         (end (min (1+ (point)) (point-max))))
+    (when (and thing (eq (point) beg))
+      (set-match-data (list beg end))
+      t)))
+
+(defun treesit-hs-inside-comment-p ()
+  "Tree-sitter implementation of `hs-inside-comment-p-func'."
+  (let* ((comment-pred
+          (if (treesit-thing-defined-p 'comment (treesit-language-at (point)))
+              'comment "comment"))
+         (thing (or (treesit-thing-at (point) comment-pred)
+                    (unless (bobp)
+                      (treesit-thing-at (1- (point)) comment-pred)))))
+    (when thing
+      (list (treesit-node-start thing) (treesit-node-end thing)))))
+
 ;;; Show paren mode
 
 (defun treesit-show-paren-data--categorize (pos &optional end-p)
@@ -3649,10 +3791,23 @@ before calling this function."
     (setq-local forward-list-function #'treesit-forward-list)
     (setq-local down-list-function #'treesit-down-list)
     (setq-local up-list-function #'treesit-up-list)
-    (setq-local show-paren-data-function 'treesit-show-paren-data))
+    (setq-local show-paren-data-function #'treesit-show-paren-data)
+    (setq-local hs-c-start-regexp nil
+                hs-block-start-regexp nil
+                hs-block-start-mdata-select 0
+                hs-block-end-regexp #'treesit-hs-block-end
+                hs-forward-sexp-func #'forward-list
+                hs-adjust-block-beginning nil
+                hs-find-block-beginning-func #'treesit-hs-find-block-beginning
+                hs-find-next-block-func #'treesit-hs-find-next-block
+                hs-looking-at-block-start-p-func #'treesit-hs-looking-at-block-start-p
+                hs-inside-comment-p-func #'treesit-hs-inside-comment-p))
 
   (when (treesit-thing-defined-p 'sentence nil)
     (setq-local forward-sentence-function #'treesit-forward-sentence))
+
+  (when (treesit-thing-defined-p 'comment nil)
+    (setq-local forward-comment-function #'treesit-forward-comment))
 
   ;; Imenu.
   (when (or treesit-aggregated-simple-imenu-settings

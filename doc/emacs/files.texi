@@ -34,7 +34,7 @@ on file directories.
 * Copying and Naming::  Copying, naming and renaming files.
 * Misc File Ops::       Other things you can do on files.
 * Compressed Files::    Accessing compressed files.
-* File Archives::       Operating on tar, zip, jar etc. archive files.
+* File Archives::       Operating on tar, zip, jar etc.@: archive files.
 * Remote Files::        Accessing files on other machines.
 * Quoted File Names::   Quoting special characters in file names.
 * File Name Cache::     Completion against a list of files you often use.
@@ -995,8 +995,7 @@ File Shadowing is not available on MS Windows.
 
 @node Time Stamps
 @subsection Updating Time Stamps Automatically
-@cindex time stamps
-@cindex timestamps
+@cindex time stamps, automatic file timestamps
 @cindex modification dates
 @cindex last modified time
 

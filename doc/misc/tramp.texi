@@ -2388,9 +2388,9 @@ to a remote home directory, like @option{adb}, @option{rclone} and
 @item @t{"tmpdir"}
 
 The temporary directory on the remote host.  If not specified, the
-default value is @t{"/data/local/tmp"} for the @option{adb} method,
-@t{"/C$/Temp"} for the @option{smb} method, and @t{"/tmp"} otherwise.
-@xref{Temporary directory}.
+default value is @t{"/data/local/tmp"} for the @option{adb} and
+@option{androidsu} methods, @t{"/C$/Temp"} for the @option{smb}
+method, and @t{"/tmp"} otherwise.  @xref{Temporary directory}.
 
 @item @t{"posix"}
 
@@ -4690,7 +4690,9 @@ It cannot be killed via @code{interrupt-process}.
 It does not report the remote terminal name via @code{process-tty-name}.
 
 @item
-It does not set process property @code{remote-pid}.
+It does not set process property @code{remote-pid}.  Consequently,
+signals cannot be sent to that remote process; they are sent to the
+local process instead, which establishes the connection.
 
 @item
 It fails, when the command is too long.  This can happen on
@@ -4711,6 +4713,15 @@ connection sharing}.
 by the connection property @t{"direct-async-process"}.  This is still
 supported but deprecated, and it will be removed in a future
 @value{tramp} version.
+
+@strong{Note}: For the @option{ssh} and @option{scp} methods,
+@value{tramp} does not faithfully pass binary sequences on to the
+process.  You can change this by changing the respective connection
+argument (@pxref{Predefined connection information}) via
+
+@lisp
+(add-to-list 'tramp-connection-properties (list "/ssh:" "direct-async" t))
+@end lisp
 
 
 @node Cleanup remote connections

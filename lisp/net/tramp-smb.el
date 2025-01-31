@@ -737,7 +737,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	(tramp-error v 'file-error "Cannot expand tilde in file `%s'" name))
       (unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
 	(setq localname (concat "/" localname)))
-     ;; Do not keep "/..".
+      ;; Do not keep "/..".
       (when (string-match-p (rx bos "/" (** 1 2 ".") eos) localname)
 	(setq localname "/"))
       ;; Do normal `expand-file-name' (this does "/./" and "/../"),

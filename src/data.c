@@ -210,7 +210,8 @@ a fixed set of types.  */)
 {
   switch (XTYPE (object))
     {
-    case_Lisp_Int:
+    case Lisp_Int0:
+    case Lisp_Int1:
       return Qfixnum;
 
     case Lisp_Symbol:
@@ -4064,6 +4065,7 @@ syms_of_data (void)
 
   DEFSYM (Qinvalid_function, "invalid-function");
   DEFSYM (Qwrong_number_of_arguments, "wrong-number-of-arguments");
+  DEFSYM (Qmalformed_keyword_arg_list, "malformed-keyword-arg-list");
   DEFSYM (Qno_catch, "no-catch");
   DEFSYM (Qend_of_file, "end-of-file");
   DEFSYM (Qarith_error, "arith-error");
@@ -4163,6 +4165,8 @@ syms_of_data (void)
   PUT_ERROR (Qinvalid_function, error_tail, "Invalid function");
   PUT_ERROR (Qwrong_number_of_arguments, error_tail,
 	     "Wrong number of arguments");
+  PUT_ERROR (Qmalformed_keyword_arg_list, error_tail,
+	     "Keyword lacks a corresponding value");
   PUT_ERROR (Qno_catch, error_tail, "No catch for tag");
   PUT_ERROR (Qend_of_file, error_tail, "End of file during parsing");
 

@@ -96,12 +96,14 @@ static void check_matrix_pointers (struct glyph_matrix *,
 static void mirror_line_dance (struct window *, int, int, int *, char *);
 static void update_window_tree (struct window *);
 static void update_window (struct window *);
-static void write_matrix (struct frame *, bool, bool, bool);
+static void write_matrix (struct frame *, bool, bool);
 static void scrolling (struct frame *);
 static void set_window_cursor_after_update (struct window *);
 static void adjust_frame_glyphs_for_window_redisplay (struct frame *);
 static void adjust_frame_glyphs_for_frame_redisplay (struct frame *);
 static void set_window_update_flags (struct window *w, bool on_p);
+static void tty_set_cursor (struct frame *f);
+
 
 #if 0 /* Please leave this in as a debugging aid.  */
 static void
@@ -139,11 +141,6 @@ static int glyph_pool_count;
    This may only be used for terminal frames.  */
 
 #ifdef GLYPH_DEBUG
-
-static int window_to_frame_vpos (struct window *, int);
-static int window_to_frame_hpos (struct window *, int);
-#define WINDOW_TO_FRAME_VPOS(W, VPOS) window_to_frame_vpos (W, VPOS)
-#define WINDOW_TO_FRAME_HPOS(W, HPOS) window_to_frame_hpos (W, HPOS)
 
 /* One element of the ring buffer containing redisplay history
    information.  */
@@ -235,11 +232,6 @@ DEFUN ("dump-redisplay-history", Fdump_redisplay_history,
   return Qnil;
 }
 
-
-#else /* not GLYPH_DEBUG */
-
-#define WINDOW_TO_FRAME_VPOS(W, VPOS) ((VPOS) + WINDOW_TOP_EDGE_LINE (W))
-#define WINDOW_TO_FRAME_HPOS(W, HPOS) ((HPOS) + WINDOW_LEFT_EDGE_COL (W))
 
 #endif /* GLYPH_DEBUG */
 
@@ -2654,22 +2646,27 @@ build_frame_matrix_from_leaf_window (struct glyph_matrix *frame_matrix, struct w
 	  current_row_p = 1;
 	}
 
+      /* If someone asks why we are copying current glyphs here, and
+	 maybe never enable the desired frame row we copy to:
+
+	 - there might be a window to the right of this one that has a
+	   corresponding desired window row.
+	 - we need the complete frame row for scrolling.  */
       if (current_row_p)
 	{
-	  /* If the desired glyphs for this row haven't been built,
-	     copy from the corresponding current row, but only if it
-	     is enabled, because ottherwise its contents are invalid.  */
+	  /* If the desired glyphs for this row haven't been built, copy
+	     from the corresponding current row. If that row is not
+	     enabled, its contents might be invalid.  Make sure that
+	     glyphs have valid frames set in that case.  This is closer
+	     to what we did before child frames were added, and seems to
+	     be something tty redisplay implicitly relies on.  */
 	  struct glyph *to = frame_row->glyphs[TEXT_AREA] + window_matrix->matrix_x;
 	  struct glyph *from = window_row->glyphs[0];
 	  for (int i = 0; i < window_matrix->matrix_w; ++i)
 	    {
-	      if (window_row->enabled_p)
-		to[i] = from[i];
-	      else
-		{
-		  to[i] = space_glyph;
-		  to[i].frame = f;
-		}
+	      to[i] = from[i];
+	      if (!window_row->enabled_p)
+		to[i].frame = f;
 	    }
 	}
       else
@@ -3189,8 +3186,6 @@ check_matrix_pointers (struct glyph_matrix *window_matrix,
 		      VPOS and HPOS translations
  **********************************************************************/
 
-#ifdef GLYPH_DEBUG
-
 /* Translate vertical position VPOS which is relative to window W to a
    vertical position relative to W's frame.  */
 
@@ -3216,9 +3211,6 @@ window_to_frame_hpos (struct window *w, int hpos)
   hpos += WINDOW_LEFT_EDGE_COL (w);
   return hpos;
 }
-
-#endif /* GLYPH_DEBUG */
-
 
 
 /**********************************************************************
@@ -3335,17 +3327,30 @@ rect_intersect (struct rect *r, struct rect r1, struct rect r2)
   return true;
 }
 
-/* Return the absolute position of frame F in *X and *Y.  */
+/* Translate (X, Y) relative to frame F to absolute coordinates
+   in (*X, *Y).  */
 
-static void
-frame_pos_abs (struct frame *f, int *x, int *y)
+void
+root_xy (struct frame *f, int x, int y, int *rx, int *ry)
 {
-  *x = *y = 0;
+  *rx = x;
+  *ry = y;
   for (; f; f = FRAME_PARENT_FRAME (f))
     {
-      *x += f->left_pos;
-      *y += f->top_pos;
+      *rx += f->left_pos;
+      *ry += f->top_pos;
     }
+}
+
+/* Translate absolute coordinates (X, Y) to coordinates relative to F's origin.  */
+
+void
+child_xy (struct frame *f, int x, int y, int *cx, int *cy)
+{
+  int rx, ry;
+  root_xy (f, 0, 0, &rx, &ry);
+  *cx = x - rx;
+  *cy = y - ry;
 }
 
 /* Return the rectangle frame F occupies.  X and Y are in absolute
@@ -3355,7 +3360,7 @@ static struct rect
 frame_rect_abs (struct frame *f)
 {
   int x, y;
-  frame_pos_abs (f, &x, &y);
+  root_xy (f, 0, 0, &x, &y);
   return (struct rect) { x, y, f->total_cols, f->total_lines };
 }
 
@@ -3373,17 +3378,6 @@ max_child_z_order (struct frame *parent)
 	z_order = max (z_order, f->z_order);
     }
   return z_order;
-}
-
-/* Return true if F1 is an ancestor of F2.  */
-
-static bool
-is_frame_ancestor (struct frame *f1, struct frame *f2)
-{
-  for (struct frame *f = FRAME_PARENT_FRAME (f2); f; f = FRAME_PARENT_FRAME (f))
-    if (f == f1)
-      return true;
-  return false;
 }
 
 /* Return a list of all frames having root frame ROOT.
@@ -3429,9 +3423,9 @@ frame_z_order_cmp (struct frame *f1, struct frame *f2)
 {
   if (f1 == f2)
     return 0;
-  if (is_frame_ancestor (f1, f2))
+  if (frame_ancestor_p (f1, f2))
     return -1;
-  if (is_frame_ancestor (f2, f1))
+  if (frame_ancestor_p (f2, f1))
     return 1;
   return f1->z_order - f2->z_order;
 }
@@ -3504,6 +3498,18 @@ bool
 is_tty_root_frame (struct frame *f)
 {
   return !FRAME_PARENT_FRAME (f) && is_tty_frame (f);
+}
+
+/* Return true if frame F is a tty root frame that has a visible child
+   frame..  */
+
+bool
+is_tty_root_frame_with_visible_child (struct frame *f)
+{
+  if (!is_tty_root_frame (f))
+    return false;
+  Lisp_Object z_order = frames_in_reverse_z_order (f, true);
+  return CONSP (XCDR (z_order));
 }
 
 /* Return the index of the first enabled row in MATRIX, or -1 if there
@@ -3622,6 +3628,13 @@ produce_box_glyphs (enum box box, struct glyph_row *row, int x, int n,
     case BOX_UP_LEFT:
       dflt = '+';
       break;
+    case BOX_DOUBLE_VERTICAL:
+    case BOX_DOUBLE_HORIZONTAL:
+    case BOX_DOUBLE_DOWN_RIGHT:
+    case BOX_DOUBLE_DOWN_LEFT:
+    case BOX_DOUBLE_UP_RIGHT:
+    case BOX_DOUBLE_UP_LEFT:
+      emacs_abort ();
     }
 
   /* FIXME/tty: some face for the border.  */
@@ -3701,7 +3714,7 @@ static void
 copy_child_glyphs (struct frame *root, struct frame *child)
 {
   eassert (!FRAME_PARENT_FRAME (root));
-  eassert (is_frame_ancestor (root, child));
+  eassert (frame_ancestor_p (root, child));
 
   /* Determine the intersection of the child frame rectangle with the
      root frame.  This is basically clipping the child frame to the
@@ -3880,15 +3893,12 @@ abs_cursor_pos (struct frame *f, int *x, int *y)
 	 a new cursor position has been computed.  */
       && w->cursor.vpos < WINDOW_TOTAL_LINES (w))
     {
-      int wx = WINDOW_TO_FRAME_HPOS (w, w->cursor.hpos);
-      int wy = WINDOW_TO_FRAME_VPOS (w, w->cursor.vpos);
+      int wx = window_to_frame_hpos (w, w->cursor.hpos);
+      int wy = window_to_frame_vpos (w, w->cursor.vpos);
 
       wx += max (0, w->left_margin_cols);
 
-      int fx, fy;
-      frame_pos_abs (f, &fx, &fy);
-      *x = fx + wx;
-      *y = fy + wy;
+      root_xy (f, wx, wy, x, y);
       return true;
     }
 
@@ -3906,26 +3916,44 @@ is_in_matrix (struct frame *f, int x, int y)
   return true;
 }
 
-/* Is the terminal cursor of the selected frame obscured by a child
-   frame?  */
+/* Return the frame of the selected window of frame F.
+   Value is NULL if we can't tell.  */
+
+static struct frame *
+frame_selected_window_frame (struct frame *f)
+{
+  /* Paranoia.  It should not happen that window or frame not valid.  */
+  Lisp_Object frame;
+  if (WINDOWP (f->selected_window)
+      && (frame = XWINDOW (f->selected_window)->frame,
+	  FRAMEP (frame)))
+    return XFRAME (frame);
+  return NULL;
+}
+
+/* Is the terminal cursor of ROOT obscured by a child frame?  */
 
 static bool
-is_cursor_obscured (void)
+is_cursor_obscured (struct frame *root)
 {
+  /* Determine in which frame on ROOT the cursor could be.  */
+  struct frame *sf = frame_selected_window_frame (root);
+  if (sf == NULL)
+    return false;
+
   /* Give up if we can't tell where the cursor currently is.  */
   int x, y;
-  if (!abs_cursor_pos (SELECTED_FRAME (), &x, &y))
+  if (!abs_cursor_pos (sf, &x, &y))
     return false;
 
   /* (x, y) may be outside of the root frame in case the selected frame is a
      child frame which is clipped.  */
-  struct frame *root = root_frame (SELECTED_FRAME ());
   if (!is_in_matrix (root, x, y))
     return true;
 
   struct glyph_row *cursor_row = MATRIX_ROW (root->current_matrix, y);
   struct glyph *cursor_glyph = cursor_row->glyphs[0] + x;
-  return cursor_glyph->frame != SELECTED_FRAME ();
+  return cursor_glyph->frame != sf;
 }
 
 /* Decide where to show the cursor, and whether to hide it.
@@ -3939,7 +3967,7 @@ static void
 terminal_cursor_magic (struct frame *root, struct frame *topmost_child)
 {
   /* By default, prevent the cursor "shining through" child frames.  */
-  if (is_cursor_obscured ())
+  if (is_cursor_obscured (root))
     tty_hide_cursor (FRAME_TTY (root));
 
   /* If the terminal cursor is not in the topmost child, the topmost
@@ -3947,7 +3975,8 @@ terminal_cursor_magic (struct frame *root, struct frame *topmost_child)
      non-nil, display the cursor in this "non-selected" topmost child
      frame to compensate for the fact that we can't display a
      non-selected cursor like on a window system frame.  */
-  if (topmost_child != SELECTED_FRAME ())
+  struct frame *sf = frame_selected_window_frame (root);
+  if (sf && topmost_child != sf)
     {
       Lisp_Object frame;
       XSETFRAME (frame, topmost_child);
@@ -3959,26 +3988,33 @@ terminal_cursor_magic (struct frame *root, struct frame *topmost_child)
 	  if (is_in_matrix (root, x, y))
 	    {
 	      cursor_to (root, y, x);
-	      tty_show_cursor (FRAME_TTY (topmost_child));
+	      tty_show_cursor (FRAME_TTY (root));
 	    }
 	  else
 	    tty_hide_cursor (FRAME_TTY (root));
-      }
+	}
     }
 }
-
-#endif /* !HAVE_ANDROID */
 
 void
 combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
 {
-#ifndef HAVE_ANDROID
   struct frame *root = root_frame (f);
-  eassert (FRAME_VISIBLE_P (root));
+
+  /* Determine visible frames on the root frame, including the root
+     frame itself.  Note that there are cases, see bug#75056, where we
+     can be called for invisible frames.  This looks like a bug with
+     multi-tty, but the old update code didn't check visibility either.  */
+  Lisp_Object z_order = frames_in_reverse_z_order (root, true);
+  if (NILP (z_order))
+    {
+      Lisp_Object root_frame;
+      XSETFRAME (root_frame, root);
+      z_order = Fcons (root_frame, Qnil);
+    }
 
   /* Process child frames in reverse z-order, topmost last.  For each
      child, copy what we need to the root's desired matrix.  */
-  Lisp_Object z_order = frames_in_reverse_z_order (root, true);
   struct frame *topmost_child = NULL;
   for (Lisp_Object tail = XCDR (z_order); CONSP (tail); tail = XCDR (tail))
     {
@@ -3987,9 +4023,18 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
     }
 
   update_begin (root);
-  write_matrix (root, inhibit_scrolling, 1, false);
+  write_matrix (root, inhibit_scrolling, false);
   make_matrix_current (root);
   update_end (root);
+
+  /* The selected frame determines where the cursor on ttys goes, except
+     when it is a frame that is completely unrelated to the frame being
+     displayed.  This can happen with multi-tty, when the selected frame
+     can be a window-system frame.  */
+  if (frame_ancestor_p (root, SELECTED_FRAME ()))
+    tty_set_cursor (SELECTED_FRAME ());
+  else
+    tty_set_cursor (root);
 
   /* If a child is displayed, and the cursor is displayed in another
      frame, the child might lay above the cursor, so that it appears to
@@ -4009,8 +4054,14 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
       add_frame_display_history (f, false);
 #endif
     }
-#endif /* HAVE_ANDROID */
 }
+
+#else /* HAVE_ANDROID */
+void
+combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
+{
+}
+#endif /* HAVE_ANDROID */
 
 /* Update on the screen all root frames ROOTS.  Called from
    redisplay_internal as the last step of redisplaying.  */
@@ -4053,22 +4104,20 @@ void
 update_frame_with_menu (struct frame *f, int row, int col)
 {
   struct window *root_window = XWINDOW (f->root_window);
-  bool cursor_at_point_p;
 
   eassert (FRAME_TERMCAP_P (f));
 
   /* Update the display.  */
   update_begin (f);
-  cursor_at_point_p = !(row >= 0 && col >= 0);
-  /* Do not stop due to pending input, and do not try scrolling.  This
-     means that write_glyphs will always return false.  */
-  write_matrix (f, 1, cursor_at_point_p, true);
+  write_matrix (f, true, true);
   make_matrix_current (f);
   clear_desired_matrices (f);
   /* ROW and COL tell us where in the menu to position the cursor, so
      that screen readers know the active region on the screen.  */
-  if (!cursor_at_point_p)
+  if (row >= 0 && col >= 0)
     cursor_to (f, row, col);
+  else
+    tty_set_cursor (f);
   update_end (f);
   flush_terminal (f);
 
@@ -5563,10 +5612,8 @@ scrolling_window (struct window *w, int tab_line_p)
  ************************************************************************/
 
 static void
-tty_set_cursor (void)
+tty_set_cursor (struct frame *f)
 {
-  struct frame *f = SELECTED_FRAME ();
-
   if ((cursor_in_echo_area
        /* If we are showing a message instead of the mini-buffer,
 	  show the cursor for the message instead of for the
@@ -5628,7 +5675,7 @@ tty_set_cursor (void)
   else
     {
       /* We have only one cursor on terminal frames.  Use it to
-	 display the cursor of the selected window.  */
+	 display the cursor of the selected window of the frame.  */
       struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (f));
       if (w->cursor.vpos >= 0
 	  /* The cursor vpos may be temporarily out of bounds
@@ -5638,8 +5685,8 @@ tty_set_cursor (void)
 	     a new cursor position has been computed.  */
 	  && w->cursor.vpos < WINDOW_TOTAL_LINES (w))
 	{
-	  int x = WINDOW_TO_FRAME_HPOS (w, w->cursor.hpos);
-	  int y = WINDOW_TO_FRAME_VPOS (w, w->cursor.vpos);
+	  int x = window_to_frame_hpos (w, w->cursor.hpos);
+	  int y = window_to_frame_vpos (w, w->cursor.vpos);
 
 	  x += max (0, w->left_margin_cols);
 	  cursor_to (f, y, x);
@@ -5647,13 +5694,12 @@ tty_set_cursor (void)
     }
 }
 
-/* Write desired matix of tty frame F and make it current.
+/* Write desired matrix of tty frame F and make it current.
    INHIBIT_ID_P means that scrolling by insert/delete should not be tried.
-   SET_CURSOR_P false means do not set cursor at point in selected window.  */
+   UPDATING_MENU_P true means we are called for updating a tty menu.  */
 
 static void
-write_matrix (struct frame *f, bool inhibit_id_p,
-	      bool set_cursor_p, bool updating_menu_p)
+write_matrix (struct frame *f, bool inhibit_id_p, bool updating_menu_p)
 {
   /* If we cannot insert/delete lines, it's no use trying it.  */
   if (!FRAME_LINE_INS_DEL_OK (f))
@@ -5678,10 +5724,6 @@ write_matrix (struct frame *f, bool inhibit_id_p,
     for (int i = first_row; i < last_row; ++i)
       if (MATRIX_ROW_ENABLED_P (f->desired_matrix, i))
 	write_row (f, i, updating_menu_p);
-
-  /* Now just clean up termcap drivers and set cursor, etc.  */
-  if (set_cursor_p)
-    tty_set_cursor ();
 }
 
 /* Do line insertions/deletions on frame F for frame-based redisplay.  */

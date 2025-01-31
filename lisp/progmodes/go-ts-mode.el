@@ -103,6 +103,7 @@
      ((parent-is "parameter_list") parent-bol go-ts-mode-indent-offset)
      ((parent-is "select_statement") parent-bol 0)
      ((parent-is "type_case") parent-bol go-ts-mode-indent-offset)
+     ((parent-is "type_declaration") parent-bol go-ts-mode-indent-offset)
      ((parent-is "type_spec") parent-bol go-ts-mode-indent-offset)
      ((parent-is "type_switch_statement") parent-bol 0)
      ((parent-is "var_declaration") parent-bol go-ts-mode-indent-offset)

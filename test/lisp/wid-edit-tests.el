@@ -414,4 +414,20 @@ return nil, even with a non-nil bubblep argument."
       (delete-char 1)
       (should (string= (widget-value w) "")))))
 
+(ert-deftest widget-test-delete-field-overlays ()
+  "Test that we delete all the field's overlays when deleting it."
+  (with-temp-buffer
+    (let ((field (widget-create 'editable-field
+                                :format "%t: %v "
+                                :tag "Delete me"))
+          field-overlay field-end-overlay)
+      (widget-insert "\n")
+      (widget-setup)
+      (widget-backward 1)
+      (setq field-overlay (widget-get field :field-overlay))
+      (setq field-end-overlay (car (overlays-at (point))))
+      (widget-delete field)
+      (should-not (overlay-buffer field-overlay))
+      (should-not (overlay-buffer field-end-overlay)))))
+
 ;;; wid-edit-tests.el ends here

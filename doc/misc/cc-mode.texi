@@ -6164,7 +6164,7 @@ Line up the second entry of a brace block under the first, when the
 first line is also contained in an arglist or an enclosing brace
 @emph{on that line}.
 
-I.e. handle something like the following:
+In other words, handle something like the following:
 
 @example
 @group
@@ -6225,7 +6225,7 @@ Line up the second entry of a class (etc.) initializer
 @code{c-basic-offset} characters in from the identifier when:
 @enumerate
 @item
-The type is a class, struct, union, etc. (but not an enum);
+The type is a class, struct, union, etc.@: (but not an enum);
 @item
 There is a brace block in the type declaration, specifying it; and
 @item
@@ -6233,7 +6233,7 @@ The first element of the initializer is on the same line as its
 opening brace.
 @end enumerate
 
-I.e. we have a construct like this:
+In other words, we have a construct like this:
 
 @example
 @group
@@ -6267,7 +6267,7 @@ Line up the second entry of a class (etc.) initializer after its
 opening brace when:
 @enumerate
 @item
-The type is a class, struct, union, etc. (but not an enum);
+The type is a class, struct, union, etc.@: (but not an enum);
 @item
 There is a brace block in the type declaration, specifying it; and
 @item
@@ -6275,7 +6275,7 @@ The first element of the initializer is on the same line as its
 opening brace.
 @end enumerate
 
-I.e. we have a construct like this:
+In other words, we have a construct like this:
 
 @example
 @group
@@ -6589,7 +6589,7 @@ function is the same as specifying a list @code{(c-lineup-assignments
 @defun c-lineup-ternary-bodies
 @findex lineup-ternary-bodies @r{(c-)}
 Line up true and false branches of a ternary operator
-(i.e. @code{?:}).  More precisely, if the line starts with a colon
+(i.e., @code{?:}).  More precisely, if the line starts with a colon
 which is a part of a said operator, align it with corresponding
 question mark.  For example:
 
@@ -7162,7 +7162,7 @@ is @code{nil}, all lines inside macro definitions are analyzed as
 @end defopt
 
 Sometimes you may want to indent particular directives
-(e.g. @code{#pragma}) as though they were statements.  To do this, see
+(e.g., @code{#pragma}) as though they were statements.  To do this, see
 @ref{Indenting Directives}.
 
 Because a macro can expand into anything at all, near where one is
@@ -7354,7 +7354,7 @@ after the mode hooks have run.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 Sometimes you may want to indent particular preprocessor directives
-(e.g. @code{#pragma}) as though they were statements.  To do this,
+(e.g., @code{#pragma}) as though they were statements.  To do this,
 first set up @code{c-cpp-indent-to-body-directives} to include the
 directive name(s), then enable the ``indent to body'' feature with
 @code{c-toggle-cpp-indent-to-body}.

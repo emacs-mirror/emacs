@@ -14,12 +14,6 @@ GNU Emacs since Emacs version 22.1.
 
 * Changes in ERC 5.6.1
 
-** Reliable library access for ban lists.
-Say goodbye to continually running "/BANLIST" for programmatic
-purposes.  Modules can instead use the function 'erc-sync-banlist' to
-guarantee that the variable 'erc-channel-banlist' remains synced for
-the remainder of an IRC session.
-
 ** Option 'erc-truncate-padding-size' controls truncation frequency.
 In fast-moving channels and in queries with long-winded bots, the
 'truncate' module has historically been asked to work overtime, mostly
@@ -33,14 +27,14 @@ first having to load the package.  Unfortunately, this also had the side
 effect of arranging for ERC to load on startup whenever someone
 customized the variable.
 
+** New option determines 'keep-place-indicator's influence on 'truncate'.
+Option 'erc-keep-place-indicator-truncation' manages the tension between
+truncation and place keeping, prioritizing one or the other.
+
 ** Stray key binding removed from 'erc-fill-wrap-mode-map'.
 The command 'erc-fill-wrap-cycle-visual-movement' was mistakenly given
 the key binding "C-c a" in an inadvertent holdover from development.  It
 has been removed.
-
-** New option determines 'keep-place-indicator's influence on 'truncate'.
-Option 'erc-keep-place-indicator-truncation' manages the tension between
-truncation and place keeping, prioritizing one or the other.
 
 ** Updated defaults for the 'track' module's face-list options.
 The default values of options 'erc-track-faces-priority-list' and
@@ -49,7 +43,9 @@ speaker names, with the latter option also gaining 'erc-notice-face'.
 This was done to provide a more frequent and practical indication of
 channel activity in keeping with the module's original design.
 
-** Command 'erc-track-clear' clears the mode-line activity indicator.
+** Command 'erc-track-clear' resets the mode-line activity indicator.
+Clear ERC's mode-line area with a single stroke, effectively marking all
+ERC buffers as having been read.
 
 ** An arguably less distracting 'erc-nicks-track-faces' variant.
 Setting this option to t tells the 'track' module to have the mode-line
@@ -77,6 +73,12 @@ from Lisp code without a ':port' keyword, 'erc-tls' once again respects
 the option.
 
 ** Changes in the library API.
+
+*** Reliable library access for ban lists.
+Say goodbye to continually running "/BANLIST" for programmatic
+purposes.  Modules can instead use the function 'erc-sync-banlist' to
+guarantee that the variable 'erc-channel-banlist' remains synced for
+the remainder of an IRC session.
 
 *** Function 'erc-normalize-port' may return 0 instead of nil.
 When given a nonempty, non-numeric string, this function now returns 0.

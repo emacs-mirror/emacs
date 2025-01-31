@@ -10655,6 +10655,7 @@ usage: (w32-notification-notify &rest PARAMS)  */)
 
   if (nargs == 0 || !pfnShell_NotifyIconW)
     return Qnil;
+  CHECK_KEYWORD_ARGS (nargs);
 
   arg_plist = Flist (nargs, args);
 

@@ -90,7 +90,8 @@ documentation (or decide no updates are necessary) for those that aren't.
 
 ** Try to reorder NEWS: most important things first, related items together.
 
-** For a major release, add a "New in Emacs XX" section to faq.texi.
+** For a major release, add a "New in Emacs XX" section to efaq.texi.
+This should highlight some of the more significant changes.
 
 ** cusver-check from admin.el can help find new defcustoms missing
 :version tags.  This asks for new and old Lisp directories; use the one
@@ -113,14 +114,14 @@ Check for node names using problematic characters:
 Sadly makeinfo does not warn about such characters.
 
 Check for major new features added since the last release (e.g. new
-lisp files), and add the relevant authors to the Acknowledgments in
+Lisp files), and add the relevant authors to the Acknowledgments in
 doc/emacs/ack.texi and emacs.texi.  To find new files, you could run a
 command such as this:
 
-  $ diff -rq emacs-NN.MM emacs-XX.YY | grep "^Only in emacs-XX"
+  $ git diff --name-status emacs-NN emacs-XX | grep -E "^A"
 
-where NN.MM is the previous Emacs version, and XX.YY is the new version.
-This assumes you have the source trees of both versions available.
+where emacs-NN is the previous Emacs release branch, and emacs-XX is the
+new one.
 
 For major releases, rewrite the "Antinews" appendix of the User Manual
 (doc/emacs/anti.texi) to describe features lost by downgrading to the
@@ -128,10 +129,6 @@ previous version.  The way to do that is read NEWS, pick up the more
 significant changes and new features in the upcoming release, then
 describe the "benefits" from losing those features.  Be funny, use
 humor.  The text written for the previous releases can serve as an example.
-
-The Emacs FAQ (doc/misc/efaq.texi) also has a "What's new" section;
-for major releases a new section should be added listing the
-significant changes.
 
 Check cross-references between the manuals (e.g. from emacs to elisp)
 are correct.  You can use something like the following in the info
@@ -224,6 +221,13 @@ https://publicsuffix.org/list/public_suffix_list.dat
 
 - leim/SKK-DIC/SKK-JISYO.L
 https://raw.githubusercontent.com/skk-dev/dict/master/SKK-JISYO.L
+
+** Check for mistakes in man pages.
+
+The below script checks for any mistakes in the source text of
+manual pages.  Fix any errors and re-run the script to verify.
+
+  ./admin/check-man-pages
 
 * BUGS
 

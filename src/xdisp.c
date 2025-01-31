@@ -3673,7 +3673,7 @@ get_nearby_bol_pos (ptrdiff_t pos)
   for (dist = 500; dist <= 500000; dist *= 10)
     {
       pos_bytepos = pos == BEGV ? BEGV_BYTE : CHAR_TO_BYTE (pos);
-      start = pos - dist < BEGV ? BEGV : pos - dist;
+      start = max (pos - dist, BEGV);
       for (cur = start; cur < pos; cur = next)
 	{
 	  next = find_newline1 (cur, CHAR_TO_BYTE (cur),
@@ -3687,7 +3687,7 @@ get_nearby_bol_pos (ptrdiff_t pos)
       if (bol >= BEGV || start == BEGV)
 	break;
       else
-	pos = pos - dist < BEGV ? BEGV : pos - dist;
+	pos = max (pos - dist, BEGV);
     }
   eassert (bol <= init_pos);
   return bol;
@@ -6197,7 +6197,9 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	    {
 	      struct face *face = FACE_FROM_ID (it->f, it->face_id);
 	      it->voffset = - (XFLOATINT (value)
-			       * (normal_char_height (face->font, -1)));
+			       * (face->font
+				  ? normal_char_height (face->font, -1)
+				  : FRAME_LINE_HEIGHT (it->f)));
 	    }
 #endif /* HAVE_WINDOW_SYSTEM */
 	}
@@ -12587,11 +12589,21 @@ vmessage (const char *m, va_list ap)
 	    {
 	      ptrdiff_t len;
 	      ptrdiff_t maxsize = FRAME_MESSAGE_BUF_SIZE (f);
+	      ptrdiff_t message_bufsize = maxsize + MAX_MULTIBYTE_LENGTH;
 	      USE_SAFE_ALLOCA;
-	      char *message_buf = SAFE_ALLOCA (maxsize + 1);
+	      char *message_buf = SAFE_ALLOCA (message_bufsize);
 
-	      len = doprnt (message_buf, maxsize, m, 0, ap);
-
+	      len = doprnt (message_buf, message_bufsize, m, 0, ap);
+	      /* doprnt returns the buffer size minus one when it
+		 truncated a multibyte sequence.  Work around that by
+		 truncating to the last valid multibyte head.  */
+	      if (0 < maxsize && maxsize <= len)
+		{
+		  len = maxsize - 1;
+		  while (0 < len && !CHAR_HEAD_P (message_buf[len]))
+		    len--;
+		  message_buf[len] = 0;
+		}
 	      message3 (make_string (message_buf, len));
 	      SAFE_FREE ();
 	    }
@@ -14345,13 +14357,12 @@ update_tab_bar (struct frame *f, bool save_match_data)
 		       /* Since we only explicitly preserve selected_frame,
 			  check that selected_window would be redundant.  */
 		       XFRAME (selected_frame)->selected_window));
-#ifdef HAVE_WINDOW_SYSTEM
+
 	  Lisp_Object frame;
 	  record_unwind_protect (restore_selected_window, selected_window);
 	  XSETFRAME (frame, f);
 	  selected_frame = frame;
 	  selected_window = FRAME_SELECTED_WINDOW (f);
-#endif
 
 	  /* Build desired tab-bar items from keymaps.  */
           new_tab_bar
@@ -17222,7 +17233,11 @@ redisplay_internal (void)
       /* All text outside that line, including its final newline,
 	 must be unchanged.  */
       && text_outside_line_unchanged_p (w, CHARPOS (tlbufpos),
-					CHARPOS (tlendpos)))
+					CHARPOS (tlendpos))
+      /* If this is a window on a tty root frame displaying a child frame,
+	 the current matrix of W may contain glyphs of that child frame.
+	 Don't try shortcuts that might use the current matrix in this case.  */
+      && !is_tty_root_frame_with_visible_child (XFRAME (w->frame)))
     {
       if (CHARPOS (tlbufpos) > BEGV
 	  && FETCH_BYTE (BYTEPOS (tlbufpos) - 1) != '\n'
@@ -19434,6 +19449,13 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
   struct frame *f = XFRAME (w->frame);
   int rc = CURSOR_MOVEMENT_CANNOT_BE_USED;
 
+
+  /* If this is a window on a tty root frame displaying a child frame,
+     the current matrix of W may contain glyphs of that child frame,
+     so this method is not safe to use.  */
+  if (is_tty_root_frame_with_visible_child (f))
+    return rc;
+
 #ifdef GLYPH_DEBUG
   if (inhibit_try_cursor_movement)
     return rc;
@@ -21337,6 +21359,13 @@ static bool
 try_window_reusing_current_matrix (struct window *w)
 {
   struct frame *f = XFRAME (w->frame);
+
+  /* If this is a window on a tty root frame displaying a child frame,
+     the current matrix of W may contain glyphs of that child frame,
+     so this method is not safe to use.  */
+  if (is_tty_root_frame_with_visible_child (f))
+    return false;
+
   struct glyph_row *bottom_row;
   struct it it;
   struct run run;
@@ -22124,6 +22153,13 @@ static int
 try_window_id (struct window *w)
 {
   struct frame *f = XFRAME (w->frame);
+
+  /* If this is a window on a tty root frame displaying a child frame,
+     the current matrix of W may contain glyphs of that child frame,
+     so this method is not safe to use.  */
+  if (is_tty_root_frame_with_visible_child (f))
+    return 0;
+
   struct glyph_matrix *current_matrix = w->current_matrix;
   struct glyph_matrix *desired_matrix = w->desired_matrix;
   struct glyph_row *last_unchanged_at_beg_row;
@@ -27253,33 +27289,42 @@ deep_copy_glyph_row (struct frame *f, struct glyph_row *to, struct glyph_row *fr
     fill_up_frame_row_with_spaces (f, to, to_used);
 }
 
+/* Return the character to be used for displaying a tty menu separator.
+   C is the character to be used by default.  BOX is the display table
+   entry for the character to be used instead.  It is looked up in
+   standard-display-table.  Value is the character to use.  */
+
+static int
+display_tty_menu_separator_char (int c, enum box box)
+{
+  if (DISP_TABLE_P (Vstandard_display_table))
+    {
+      struct Lisp_Char_Table *dp = XCHAR_TABLE (Vstandard_display_table);
+      Lisp_Object gc = dp->extras[box];
+      if (GLYPH_CODE_P (gc))
+	c = GLYPH_CODE_CHAR (gc);
+    }
+  return c;
+}
+
 /* Produce glyphs for a menu separator on a tty.
 
    FIXME: This is only a "good enough for now" implementation of menu
    separators as described in the Elisp info manual.  We should probably
-   ignore menu separators when computing the width of a menu.  Secondly,
-   optionally using Unicode characters via display table entries would
-   be nice.  Patches very welcome.  */
+   ignore menu separators when computing the width of a menu.  */
 
 static void
 display_tty_menu_separator (struct it *it, const char *label, int width)
 {
-  USE_SAFE_ALLOCA;
-  char c;
+  int c;
   if (strcmp (label, "--space") == 0)
     c = ' ';
   else if (strcmp (label, "--double-line") == 0)
-    c = '=';
+    c = display_tty_menu_separator_char ('=', BOX_DOUBLE_HORIZONTAL);
   else
-    c = '-';
-  char *sep = SAFE_ALLOCA (width);
-  memset (sep, c, width - 1);
-  sep[width -  1] = 0;
-  display_string (sep, Qnil, Qnil, 0, 0, it, width - 1, width - 1,
-		  FRAME_COLS (it->f) - 1, -1);
-  display_string (" ", Qnil, Qnil, 0, 0, it, 1, 0,
-		  FRAME_COLS (it->f) - 1, -1);
-  SAFE_FREE ();
+    c = display_tty_menu_separator_char ('-', BOX_HORIZONTAL);
+  Lisp_Object sep = Fmake_string (make_fixnum (width - 1), make_fixnum (c), Qt);
+  display_string ((char *) SDATA (sep), Qnil, Qnil, 0, 0, it, width, -1, -1, 1);
 }
 
 /* Display one menu item on a TTY, by overwriting the glyphs in the
@@ -32155,7 +32200,8 @@ produce_stretch_glyph (struct it *it)
   /* Compute height.  */
   if (FRAME_WINDOW_P (it->f))
     {
-      int default_height = normal_char_height (font, ' ');
+      int default_height =
+	font ? normal_char_height (font, ' ') : FRAME_LINE_HEIGHT (it->f);
 
       if ((prop = plist_get (plist, QCheight), !NILP (prop))
 	  && calc_pixel_width_or_height (&tem, it, prop, font, false, NULL))

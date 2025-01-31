@@ -502,7 +502,7 @@ give you as many additional suffixes as you hoped.)"
   "Face used for suffixes unreachable from the current prefix sequence."
   :group 'transient-faces)
 
-(defface transient-inapt-suffix '((t :inherit shadow :italic t))
+(defface transient-inapt-suffix '((t :inherit shadow :slant italic))
   "Face used for suffixes that are inapt at this time."
   :group 'transient-faces)
 

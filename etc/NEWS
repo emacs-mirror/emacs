@@ -47,7 +47,17 @@ init file.
 
 * Changes in Emacs 31.1
 
----
++++
+** 'standard-display-table' now has more extra slots.
+'standard-display-table' has been extended to allow specifying glyphs
+that are used for borders around child frames and menu separators on TTY
+frames.
+
+Call the function 'standard-display-unicode-special-glyphs' to set up
+the 'standard-display-table's extra slots with Unicode characters.
+Please see the documentation of that function to see which slots of the
+display table it changes.
+
 ** Child frames are now supported on TTY frames.
 This supports use-cases like Posframe, Corfu, and child frames acting
 like tooltips.  Other use-cases of child frames are not supported yet.
@@ -95,9 +105,10 @@ instead of its now-obsolete variable.
 *** NSM warns about TLS 1.1 by default.
 It has been deprecated by RFC8996, published in 2021.
 
-*** NSM warns about DHE key exchange by default.
-Emacs now warns about ephemeral Diffie-Hellman key exchanges also when
-'network-security-level' is customized to its default 'medium' value.
+*** NSM warns about DHE and RSA key exchange by default.
+Emacs now warns about ephemeral Diffie-Hellman key exchange, and static
+RSA key exchange, also when 'network-security-level' is customized to
+its default 'medium' value.
 
 ** Etags
 
@@ -162,6 +173,7 @@ the "*Completions*" buffer is hidden.
 
 ** Windows
 
++++
 *** New functions to modify window layout.
 Several functions to modify the window layout have been added:
 'rotate-window-layout-clockwise'
@@ -225,6 +237,31 @@ latter throws an error when the argument FRAME cannot be deleted.
 ---
 *** New abnormal hook 'tab-bar-auto-width-functions'.
 This hook allows you to control which tab-bar tabs are auto-resized.
+
+---
+*** New abnormal hook 'tab-bar-post-undo-close-tab-functions'.
+This hook allows you to operate on a reopened tab.
+
+This is useful when you define custom tab parameters that may need
+adjustment when a tab is restored, and avoids advice.
+
+---
+*** New user option 'tab-bar-define-keys'.
+This controls which key bindings tab-bar creates.  Values are t, the
+default, which defines all keys and is backwards compatible, 'numeric'
+(tab number selection only), 'tab' (TAB and SHIFT-TAB keys only), nil
+(which defines none).
+
+This is useful to avoid key binding conflicts, such as when folding in
+outline mode using TAB keys, or when a user wants to define her own
+tab-bar keys without first having to remove the defaults.
+
+---
+*** New variable 'tab-bar-format-tab-help-text-function'.
+This variable may be overridden with a user-provided function to
+customize help text for tabs displayed on the tab-bar.  Help text is
+normally shown in the echo area or via tooltips.  See the variable's
+docstring for arguments passed to a help-text function.
 
 ** Project
 
@@ -352,6 +389,13 @@ You can now set `asm-comment-char' from 'asm-mode-hook' instead.
 *** New column 'recency' in Ibuffer display.
 The variable 'ibuffer-formats' configures the Ibuffer formats.  Add
 'recency' to the format to display the column.
+
+*** New value 'title' for the user option 'ibuffer-use-header-line'.
+Display column titles in the header line if 'ibuffer-use-header-line' is
+set to 'title'.
+
+*** New user option 'ibuffer-human-readable-size'.
+When non-nil, buffer sizes are shown in human readable format.
 
 ** Smerge
 *** New command 'smerge-extend' extends a conflict over surrounding lines.
@@ -1091,6 +1135,14 @@ the tree-sitter library.  The new function 'treesit-show-paren-data' is
 used to communicate the tree-sitter parsing results to
 'show-paren-mode'.
 
+*** Tree-sitter enabled modes now properly support 'hs-minor-mode'.
+All commands from hideshow.el can selectively display blocks
+defined by the new treesit thing 'list'.
+
+*** New treesit thing 'comment'.
+The new variable 'forward-comment-function' is set to the new function
+'treesit-forward-comment' if a major mode defines the thing 'comment'.
+
 +++
 *** New function 'treesit-language-display-name'.
 This new function returns the display name of a language given the
@@ -1113,6 +1165,14 @@ at point to explore.
 +++
 *** New variable 'treesit-aggregated-simple-imenu-settings'
 This variable allows major modes to setup Imenu for multiple languages.
+
+*** New function 'treesit-add-simple-indent-rules'
+This new function makes it easier to customize indent rules for
+tree-sitter modes.
+
+*** New variable 'treesit-simple-indent-override-rules'
+Users can customize this variable to add simple custom indentation rules
+for tree-sitter major modes.
 
 +++
 ** New optional BUFFER argument for 'string-pixel-width'.

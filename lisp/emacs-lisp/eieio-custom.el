@@ -75,7 +75,7 @@ of these.")
 				      (((class color)
 					(background light))
 				       (:foreground "blue"))
-				      (t (:italic t)))
+				      (t (:slant italic)))
   "Face used for unpushable variable tags."
   :group 'custom-faces)
 

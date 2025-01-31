@@ -1978,6 +1978,12 @@ four_corners_best (Emacs_Pix_Context pimg, int *corners,
   return best;
 }
 
+static Lisp_Object
+make_color_name (unsigned int red, unsigned int green, unsigned int blue)
+{
+  return make_formatted_string ("#%04x%04x%04x", red, green, blue);
+}
+
 /* Return the `background' field of IMG.  If IMG doesn't have one yet,
    it is guessed heuristically.  If non-zero, XIMG is an existing
    Emacs_Pix_Context object (device context with the image selected on
@@ -2000,14 +2006,10 @@ image_background (struct image *img, struct frame *f, Emacs_Pix_Context pimg)
       RGB_PIXEL_COLOR bg
 	= four_corners_best (pimg, img->corners, img->width, img->height);
 #ifdef USE_CAIRO
-      {
-	char color_name[30];
-	sprintf (color_name, "#%04x%04x%04x",
-		 (unsigned int) RED16_FROM_ULONG (bg),
-		 (unsigned int) GREEN16_FROM_ULONG (bg),
-		 (unsigned int) BLUE16_FROM_ULONG (bg));
-	bg = image_alloc_image_color (f, img, build_string (color_name), 0);
-      }
+      Lisp_Object color_name = make_color_name (RED16_FROM_ULONG (bg),
+						GREEN16_FROM_ULONG (bg),
+						BLUE16_FROM_ULONG (bg));
+      bg = image_alloc_image_color (f, img, color_name, 0);
 #endif
       img->background = bg;
 
@@ -4158,10 +4160,8 @@ image_create_x_image_and_pixmap_1 (struct frame *f, int width, int height, int d
   if (*pixmap == NULL)
     {
       DWORD err = GetLastError ();
-      Lisp_Object errcode;
       /* All system errors are < 10000, so the following is safe.  */
-      XSETINT (errcode, err);
-      image_error ("Unable to create bitmap, error code %d", errcode);
+      image_error ("Unable to create bitmap, error code %d", make_fixnum (err));
       image_destroy_x_image (*pimg);
       *pimg = NULL;
       return 0;
@@ -7403,14 +7403,11 @@ image_build_heuristic_mask (struct frame *f, struct image *img,
       if (i == 3 && NILP (how))
 	{
 #ifndef USE_CAIRO
-	  char color_name[30];
-	  sprintf (color_name, "#%04x%04x%04x",
-		   rgb[0] + 0u, rgb[1] + 0u, rgb[2] + 0u);
-	  bg = (
-#ifdef HAVE_NTGUI
-		0x00ffffff & /* Filter out palette info.  */
-#endif /* HAVE_NTGUI */
-		image_alloc_image_color (f, img, build_string (color_name), 0));
+	  Lisp_Object color_name = make_color_name (rgb[0], rgb[1], rgb[2]);
+	  bg = image_alloc_image_color (f, img, color_name, 0);
+# ifdef HAVE_NTGUI
+	  bg &= 0x00ffffff; /* Filter out palette info.  */
+# endif
 #else  /* USE_CAIRO */
 	  bg = lookup_rgb_color (f, rgb[0], rgb[1], rgb[2]);
 #endif	/* USE_CAIRO */
@@ -8554,10 +8551,9 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
 #ifndef USE_CAIRO
 	  img->background = lookup_rgb_color (f, bg->red, bg->green, bg->blue);
 #else  /* USE_CAIRO */
-	  char color_name[30];
-	  sprintf (color_name, "#%04x%04x%04x", bg->red, bg->green, bg->blue);
-	  img->background
-	    = image_alloc_image_color (f, img, build_string (color_name), 0);
+	  Lisp_Object color_name
+	    = make_color_name (bg->red, bg->green, bg->blue);
+	  img->background = image_alloc_image_color (f, img, color_name, 0);
 #endif /* USE_CAIRO */
 	  img->background_valid = 1;
 	}
@@ -9415,8 +9411,8 @@ tiff_handler (const char *log_format, const char *title,
      log entry, it's OK to truncate it.  */
   char buf[4000];
   int len = vsnprintf (buf, sizeof buf, format, ap);
-  add_to_log (log_format, build_string (title),
-	      make_string (buf, max (0, min (len, sizeof buf - 1))));
+  image_error (log_format, build_string (title),
+	       make_string (buf, max (0, min (len, sizeof buf - 1))));
 }
 # undef MINGW_STATIC
 
@@ -11983,34 +11979,27 @@ svg_css_length_to_pixels (RsvgLength length, double dpi, int font_size)
     {
     case RSVG_UNIT_PX:
       /* Already a pixel value.  */
-      break;
+      return value;
     case RSVG_UNIT_CM:
       /* 2.54 cm in an inch.  */
-      value = dpi * value / 2.54;
-      break;
+      return dpi * value / 2.54;
     case RSVG_UNIT_MM:
       /* 25.4 mm in an inch.  */
-      value = dpi * value / 25.4;
-      break;
+      return dpi * value / 25.4;
     case RSVG_UNIT_PT:
       /* 72 points in an inch.  */
-      value = dpi * value / 72;
-      break;
+      return dpi * value / 72;
     case RSVG_UNIT_PC:
       /* 6 picas in an inch.  */
-      value = dpi * value / 6;
-      break;
+      return dpi * value / 6;
     case RSVG_UNIT_IN:
-      value *= dpi;
-      break;
+      return value * dpi;
     case RSVG_UNIT_EM:
-      value *= font_size;
-      break;
+      return value * font_size;
     case RSVG_UNIT_EX:
       /* librsvg uses an ex height of half the em height, so we match
 	 that here.  */
-      value = value * font_size / 2.0;
-      break;
+      return value * font_size / 2.0;
     case RSVG_UNIT_PERCENT:
       /* Percent is a ratio of the containing "viewport".  We don't
 	 have a viewport, as such, as we try to draw the image to it's
@@ -12024,14 +12013,27 @@ svg_css_length_to_pixels (RsvgLength length, double dpi, int font_size)
 	 spec, this will work out correctly as librsvg will still
 	 honor the percentage sizes in its final rendering no matter
 	 what size we make the image.  */
-      value = 0;
-      break;
-    default:
-      /* We should never reach this.  */
-      value = 0;
+      return 0;
+#if LIBRSVG_CHECK_VERSION (2, 58, 0)
+    case RSVG_UNIT_CH:
+      /* FIXME: With CSS 3, "the ch unit falls back to 0.5em in the
+	 general case, and to 1em when it would be typeset upright".
+	 However, I could not find a way to easily get the relevant CSS
+	 attributes using librsvg.  Thus, we simply wrongly assume the
+	 general case is always true here.  See Bug#75712.  */
+      return value * font_size / 2.0;
+#endif
     }
 
-  return value;
+  /* The rsvg header files say that more values may be added to this
+     enum, but there doesn't appear to be a way to get a string
+     representation of the new enum value.  The unfortunate
+     consequence is that the only thing we can do is to report the
+     numeric value.  */
+  image_error ("Unknown RSVG unit, code: %s", make_fixnum ((int) length.unit));
+  /* Return 0; this special value indicates that another method of
+     obtaining the image size must be used.  */
+  return 0;
 }
 #endif
 
@@ -12064,16 +12066,10 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   int height;
   const guint8 *pixels;
   int rowstride;
-  char *wrapped_contents = NULL;
-  ptrdiff_t wrapped_size;
-
+  Lisp_Object wrapped_contents;
   bool empty_errmsg = true;
   const char *errmsg = "";
   ptrdiff_t errlen = 0;
-
-#if LIBRSVG_CHECK_VERSION (2, 48, 0)
-  char *css = NULL;
-#endif
 
 #if ! GLIB_CHECK_VERSION (2, 36, 0)
   /* g_type_init is a glib function that must be called prior to
@@ -12112,23 +12108,11 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
          SVG supports, however it's only available in librsvg 2.48 and
          above so some things we could set here are handled in the
          wrapper below.  */
-      /* FIXME: The below calculations leave enough space for a font
-	 size up to 9999, if it overflows we just throw an error but
-	 should probably increase the buffer size.  */
-      const char *css_spec = "svg{font-family:\"%s\";font-size:%dpx}";
-      int css_len = strlen (css_spec) + strlen (img->face_font_family) + 1;
-      css = xmalloc (css_len);
-      if (css_len <= snprintf (css, css_len, css_spec,
-			       img->face_font_family, img->face_font_size))
-	goto rsvg_error;
-
-      rsvg_handle_set_stylesheet (rsvg_handle, (guint8 *)css, strlen (css), NULL);
-    }
-  else
-    {
-      css = xmalloc (SBYTES (lcss) + 1);
-      strncpy (css, SSDATA (lcss), SBYTES (lcss));
-      *(css + SBYTES (lcss) + 1) = 0;
+      lcss = make_formatted_string ("svg{font-family:\"%s\";font-size:%dpx}",
+				    img->face_font_family,
+				    img->face_font_size);
+      rsvg_handle_set_stylesheet (rsvg_handle, (guint8 *) SDATA (lcss),
+				  SBYTES (lcss), NULL);
     }
 #endif
 
@@ -12296,7 +12280,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
        background color, before including the original image.  This
        acts to set the background color, instead of leaving it
        transparent.  */
-    const char *wrapper =
+    static char const wrapper[] =
       "<svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" "
       "xmlns:xi=\"http://www.w3.org/2001/XInclude\" "
       "style=\"color: #%06X; fill: currentColor;\" "
@@ -12305,10 +12289,6 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
       "<rect width=\"100%%\" height=\"100%%\" fill=\"#%06X\"/>"
       "<xi:include href=\"data:image/svg+xml;base64,%s\"></xi:include>"
       "</svg>";
-
-    /* FIXME: I've added 64 in the hope it will cover the size of the
-       width and height strings and things.  */
-    int buffer_size = SBYTES (encoded_contents) + strlen (wrapper) + 64;
 
     value = image_spec_value (img->spec, QCforeground, NULL);
     if (!NILP (value))
@@ -12333,22 +12313,18 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
       | (background & 0x00FF00);
 #endif
 
-    wrapped_contents = xmalloc (buffer_size);
-
-    if (buffer_size <= snprintf (wrapped_contents, buffer_size, wrapper,
-				 foreground & 0xFFFFFF, width, height,
-				 viewbox_width, viewbox_height,
-				 background & 0xFFFFFF,
-				 SSDATA (encoded_contents)))
-      goto rsvg_error;
-
-    wrapped_size = strlen (wrapped_contents);
+    unsigned int color = foreground & 0xFFFFFF, fill = background & 0xFFFFFF;
+    wrapped_contents
+      = make_formatted_string (wrapper, color, width, height,
+			       viewbox_width, viewbox_height,
+			       fill, SSDATA (encoded_contents));
   }
 
   /* Now we parse the wrapped version.  */
 
 #if LIBRSVG_CHECK_VERSION (2, 32, 0)
-  input_stream = g_memory_input_stream_new_from_data (wrapped_contents, wrapped_size, NULL);
+  input_stream = g_memory_input_stream_new_from_data
+    (SDATA (wrapped_contents), SBYTES (wrapped_contents), NULL);
   base_file = filename ? g_file_new_for_path (filename) : NULL;
   rsvg_handle = rsvg_handle_new_from_stream_sync (input_stream, base_file,
 						  RSVG_HANDLE_FLAGS_NONE,
@@ -12367,7 +12343,8 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 #if LIBRSVG_CHECK_VERSION (2, 48, 0)
   /* Set the CSS for the wrapped SVG.  See the comment above the
      previous use of 'css'.  */
-  rsvg_handle_set_stylesheet (rsvg_handle, (guint8 *)css, strlen (css), NULL);
+  rsvg_handle_set_stylesheet (rsvg_handle, (guint8 *) SDATA (lcss),
+			      SBYTES (lcss), NULL);
 #endif
 #else
   /* Make a handle to a new rsvg object.  */
@@ -12385,7 +12362,8 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
     rsvg_handle_set_base_uri (rsvg_handle, filename);
 
   /* Parse the contents argument and fill in the rsvg_handle.  */
-  rsvg_handle_write (rsvg_handle, (unsigned char *) wrapped_contents, wrapped_size, &err);
+  rsvg_handle_write (rsvg_handle, SDATA (wrapped_contents),
+		     SBYTES (wrapped_contents), &err);
   if (err) goto rsvg_error;
 
   /* The parsing is complete, rsvg_handle is ready to used, close it
@@ -12405,12 +12383,6 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   if (!pixbuf) goto rsvg_error;
 #endif
   g_object_unref (rsvg_handle);
-  xfree (wrapped_contents);
-
-#if LIBRSVG_CHECK_VERSION (2, 48, 0)
-  if (!STRINGP (lcss))
-    xfree (css);
-#endif
 
   /* Extract some meta data from the svg handle.  */
   width     = gdk_pixbuf_get_width (pixbuf);
@@ -12501,12 +12473,6 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
  done_error:
   if (rsvg_handle)
     g_object_unref (rsvg_handle);
-  if (wrapped_contents)
-    xfree (wrapped_contents);
-#if LIBRSVG_CHECK_VERSION (2, 48, 0)
-  if (css && !STRINGP (lcss))
-    xfree (css);
-#endif
   return false;
 }
 
@@ -12612,7 +12578,6 @@ static bool
 gs_load (struct frame *f, struct image *img)
 {
   uintmax_t printnum1, printnum2;
-  char buffer[sizeof " " + 2 * INT_STRLEN_BOUND (intmax_t)];
   Lisp_Object window_and_pixmap_id = Qnil, loader, pt_height, pt_width;
   Lisp_Object frame;
   double in_width, in_height;
@@ -12664,13 +12629,13 @@ gs_load (struct frame *f, struct image *img)
   printnum1 = FRAME_X_DRAWABLE (f);
   printnum2 = img->pixmap;
   window_and_pixmap_id
-    = make_formatted_string (buffer, "%"PRIuMAX" %"PRIuMAX,
+    = make_formatted_string ("%"PRIuMAX" %"PRIuMAX,
 			     printnum1, printnum2);
 
   printnum1 = FRAME_FOREGROUND_PIXEL (f);
   printnum2 = FRAME_BACKGROUND_PIXEL (f);
   pixel_colors
-    = make_formatted_string (buffer, "%"PRIuMAX" %"PRIuMAX,
+    = make_formatted_string ("%"PRIuMAX" %"PRIuMAX,
 			     printnum1, printnum2);
 
   XSETFRAME (frame, f);

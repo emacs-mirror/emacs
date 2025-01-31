@@ -1450,7 +1450,7 @@ the root directory.  */)
       char *adir = NULL;
       if (!IS_DIRECTORY_SEP (nm[0]))
 	{
-	  adir = alloca (MAXPATHLEN + 1);
+	  adir = SAFE_ALLOCA (MAXPATHLEN + 1);
 	  if (!getdefdir (c_toupper (drive) - 'A' + 1, adir))
 	    adir = NULL;
 	  else if (multibyte)
@@ -1467,7 +1467,7 @@ the root directory.  */)
       if (!adir)
 	{
 	  /* Either nm starts with /, or drive isn't mounted.  */
-	  adir = alloca (4);
+	  adir = SAFE_ALLOCA (4);
 	  adir[0] = DRIVE_LETTER (drive);
 	  adir[1] = ':';
 	  adir[2] = '/';
@@ -1540,7 +1540,7 @@ the root directory.  */)
 	    {
 	      ptrdiff_t nmlen = nmlim - nm;
 	      ptrdiff_t newdirlen = newdirlim - newdir;
-	      char *tmp = alloca (newdirlen + file_name_as_directory_slop
+	      char *tmp = SAFE_ALLOCA (newdirlen + file_name_as_directory_slop
 				  + nmlen + 1);
 	      ptrdiff_t dlen = file_name_as_directory (tmp, newdir, newdirlen,
 						       multibyte);
@@ -1548,7 +1548,7 @@ the root directory.  */)
 	      nm = tmp;
 	      nmlim = nm + dlen + nmlen;
 	    }
-	  adir = alloca (adir_size);
+	  adir = SAFE_ALLOCA (adir_size);
 	  if (drive)
 	    {
 	      if (!getdefdir (c_toupper (drive) - 'A' + 1, adir))
@@ -1584,7 +1584,7 @@ the root directory.  */)
 	  if (IS_DIRECTORY_SEP (newdir[0]) && IS_DIRECTORY_SEP (newdir[1])
 	      && !IS_DIRECTORY_SEP (newdir[2]))
 	    {
-	      char *adir = strcpy (alloca (newdirlim - newdir + 1), newdir);
+	      char *adir = strcpy (SAFE_ALLOCA (newdirlim - newdir + 1), newdir);
 	      char *p = adir + 2;
 	      while (*p && !IS_DIRECTORY_SEP (*p)) p++;
 	      p++;
@@ -1614,7 +1614,7 @@ the root directory.  */)
   /* Reserve space for drive specifier and escape prefix, since either
      or both may need to be inserted.  (The Microsoft x86 compiler
      produces incorrect code if the following two lines are combined.)  */
-  target = alloca (tlen + 4);
+  target = SAFE_ALLOCA (tlen + 4);
   target += 4;
 #else  /* not DOS_NT */
   target = SAFE_ALLOCA (tlen);

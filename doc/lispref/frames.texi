@@ -162,6 +162,13 @@ This function itself does not make the new frame the selected frame.
 @xref{Input Focus}.  The previously selected frame remains selected.
 On graphical terminals, however, the window system may select the
 new frame for its own reasons.
+
+By default this function does not display the current buffer in the new
+frame if the buffer is hidden, that is, if its name starts with a space.
+In this case it will show another buffer---one that could be returned by
+the function @code{other-buffer} (@pxref{Buffer List})---instead.
+However, if the variable @code{expose-hidden-buffer} is non-@code{nil},
+this function will display the current buffer even if it is hidden.
 @end deffn
 
 @defvar before-make-frame-hook
@@ -4759,7 +4766,7 @@ and secondary selections by saving the value supplied into a variable
 subsequent calls to @code{gui-get-selection} return.
 
   From the clipboard, @code{gui-get-selection} is capable of returning
-UTF-8 string data of the type @code{STRING}, the @code{TAREGTS} data
+UTF-8 string data of the type @code{STRING}, the @code{TARGETS} data
 type, or image and application data of any MIME type.
 @code{gui-set-selection} sets only string data, much as under
 MS-Windows, although this data is not affected by the value of

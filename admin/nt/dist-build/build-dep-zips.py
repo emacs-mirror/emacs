@@ -30,7 +30,7 @@ EMACS_MAJOR_VERSION= os.getenv('EMACS_MAJOR_VERSION') or "30"
 # Base URI for the package sources mapped in PKG_REQ
 SRC_REPO="https://repo.msys2.org/mingw/sources"
 
-# Map items in `dynamic-library-alist' to source pakages
+# Map items in `dynamic-library-alist' to source packages
 PKG_REQ='''mingw-w64-x86_64-giflib
 mingw-w64-x86_64-gnutls
 mingw-w64-x86_64-harfbuzz
@@ -47,7 +47,7 @@ mingw-w64-x86_64-xpm-nox
 mingw-w64-x86_64-tree-sitter
 mingw-w64-x86_64-sqlite3'''.split()
 
-# Emacs style path to dependancy DLLs on build system
+# Emacs style path to dependency DLLs on build system
 DLL_SRC="c:/msys64/mingw64/bin"
 
 # libraries we never include
@@ -110,7 +110,7 @@ def gather_deps():
     print("Deps updated in", os.getcwd(), "as", zipfile)
     os.chdir("../")
 
-# Return dependancies listed in Emacs
+# Return dependencies listed in Emacs
 def init_deps():
     return '''libXpm-nox4.dll
 libpng16-16.dll
@@ -382,7 +382,7 @@ parser.add_argument("-d", help="dry run",
 parser.add_argument("-l", help="list dependencies",
                     action="store_true")
 
-parser.add_argument("-e", help="extract direct dependancies",
+parser.add_argument("-e", help="extract direct dependencies",
                     action="store_true")
 
 args = parser.parse_args()

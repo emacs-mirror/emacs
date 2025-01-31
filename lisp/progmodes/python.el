@@ -259,7 +259,15 @@
 (require 'compat)
 (require 'project nil 'noerror)
 (require 'seq)
-(treesit-declare-unavailable-functions)
+
+(declare-function treesit-parser-create "treesit.c")
+(declare-function treesit-induce-sparse-tree "treesit.c")
+(declare-function treesit-node-child-by-field-name "treesit.c")
+(declare-function treesit-node-type "treesit.c")
+(declare-function treesit-node-start "treesit.c")
+(declare-function treesit-node-end "treesit.c")
+(declare-function treesit-node-parent "treesit.c")
+(declare-function treesit-node-prev-sibling "treesit.c")
 
 ;; Avoid compiler warnings
 (defvar compilation-error-regexp-alist)
@@ -440,10 +448,17 @@ This variant of `rx' supports common Python named REGEXPS."
             (dedenter          (seq symbol-start
                                     (or "elif" "else" "except" "finally" "case")
                                     symbol-end))
-            (block-ender       (seq symbol-start
-                                    (or
-                                     "break" "continue" "pass" "raise" "return")
-                                    symbol-end))
+            (block-ender       (seq
+                                symbol-start
+                                (or
+                                 (seq (or
+                                       "break" "continue" "pass" "raise" "return")
+                                  symbol-end)
+                                 (seq
+                                  (or
+                                   (seq (? (or (seq "os." (? ?_)) "sys.")) "exit")
+                                   "quit")
+                                  (* space) "("))))
             (decorator         (seq line-start (* space) ?@ (any letter ?_)
                                     (* (any word ?_))))
             (defun             (seq symbol-start

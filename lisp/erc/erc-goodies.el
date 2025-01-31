@@ -424,7 +424,7 @@ and `keep-place-indicator' in different buffers."
    (remove-hook 'erc-keep-place-mode-hook
                 #'erc--keep-place-indicator-on-global-module t)
    (kill-local-variable 'erc--keep-place-indicator-overlay))
-  'local)
+  localp)
 
 (defun erc--keep-place-indicator-on-global-module ()
   "Ensure `keep-place-indicator' survives toggling `erc-keep-place-mode'.
@@ -596,7 +596,7 @@ reveal echoed command lines after they've been inserted."
   ((remove-hook 'erc--input-review-functions
                 #'erc--command-indicator-permit-insertion t)
    (erc-command-indicator-toggle-hidden +1))
-  'local)
+  localp)
 
 (defun erc-command-indicator ()
   "Return the command-indicator prompt as a string.

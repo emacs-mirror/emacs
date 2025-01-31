@@ -1733,7 +1733,8 @@ Buffers not visible in windows are preferred to visible buffers, unless
 optional second argument VISIBLE-OK is non-nil.  Ignore the argument
 BUFFER unless it denotes a live buffer.  If the optional third argument
 FRAME specifies a live frame, then use that frame's buffer list instead
-of the selected frame's buffer list.
+of the selected frame's buffer list.  Do not return a hidden buffer --
+a buffer whose name starts with a space.
 
 The buffer is found by scanning the selected or specified frame's buffer
 list first, followed by the list of all buffers.  If no other buffer

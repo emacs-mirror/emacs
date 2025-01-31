@@ -297,17 +297,13 @@ which is the \"1006\" extension implemented in Xterm >= 277."
 					     1000))))
              ;; FIXME: The test for running in batch mode is here solely
              ;; for the sake of xt-mouse-tests where the only frame is
-             ;; the initial frame.
-             (frame (unless noninteractive (tty-frame-at x y)))
-             ;;(_ (message (format "*** %S" frame)))
-             (frame-pos (frame-position frame))
-             ;;(_ (message (format "*** %S" frame-pos)))
-             (x (- x (car frame-pos)))
-             (y (- y (cdr frame-pos)))
-             ;;(_ (message (format "*** %S %S" x y)))
+             ;; the initial frame.  The same goes for the computation of
+             ;; x and y.
+             (frame-and-xy (unless noninteractive (tty-frame-at x y)))
+             (frame (nth 0 frame-and-xy))
+             (x (or (nth 1 frame-and-xy) x))
+             (y (or (nth 2 frame-and-xy) y))
              (w (window-at x y frame))
-             ;;(_ (message (format "*** %S" w)))
-
              (ltrb (window-edges w))
              (left (nth 0 ltrb))
              (top (nth 1 ltrb))

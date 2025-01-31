@@ -250,7 +250,7 @@ unexec_write_zero (off_t dest, size_t count)
 
   while (count > 0)
     {
-      bytes = count > UNEXEC_COPY_BUFSZ ? UNEXEC_COPY_BUFSZ : count;
+      bytes = min (count, UNEXEC_COPY_BUFSZ);
       if (write (outfd, buf, bytes) != bytes)
 	return 0;
       count -= bytes;
@@ -278,7 +278,7 @@ unexec_copy (off_t dest, off_t src, ssize_t count)
 
   while (count > 0)
     {
-      bytes_to_read = count > UNEXEC_COPY_BUFSZ ? UNEXEC_COPY_BUFSZ : count;
+      bytes_to_read = min (count, UNEXEC_COPY_BUFSZ);
       bytes_read = read (infd, buf, bytes_to_read);
       if (bytes_read <= 0)
 	return 0;
@@ -1355,7 +1355,7 @@ unexec_realloc (void *old_ptr, size_t new_size)
       if (ptr_in_unexec_regions (old_ptr))
 	{
 	  size_t old_size = ((unexec_malloc_header_t *) old_ptr)[-1].u.size;
-	  size_t size = new_size > old_size ? old_size : new_size;
+	  size_t size = min (new_size, old_size);
 
 	  p = malloc (new_size);
 	  if (size)

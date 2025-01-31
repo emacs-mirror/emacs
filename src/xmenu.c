@@ -1898,14 +1898,10 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   widget_value **submenu_stack;
   Lisp_Object *subprefix_stack;
   int submenu_depth = 0;
-  specpdl_ref specpdl_count;
-
   USE_SAFE_ALLOCA;
-
   SAFE_NALLOCA (submenu_stack, 1, menu_items_used);
   SAFE_NALLOCA (subprefix_stack, 1, menu_items_used);
-
-  specpdl_count = SPECPDL_INDEX ();
+  specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   eassert (FRAME_X_P (f));
 

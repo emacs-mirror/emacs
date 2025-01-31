@@ -570,10 +570,27 @@ The value of this variable should be an alist of
 in the alist, creating a parser for @var{language-a} actually creates a
 parser for @var{language-b}.  By extension, anything that creates a node
 or makes a query of @var{language-a} will be redirected to use
-@var{language-b} instead.
+@var{language-b} instead.  This mapping is completely transparent, the
+created parser will reported to use @var{language-b}, and the same goes for
+nodes created by this parser.
 
-Note that calling @code{treesit-parser-language} on a parser for
-@var{language-a} still returns @var{language-a}.
+Specifically, the parser created by @code{treesit-parser-create} will
+report to use whatever @var{language} was given to it.  For example,
+if language @code{cpp} is mapped to @code{cuda}:
+
+@example
+@group
+(setq treesit-language-remap-alist '((cpp . cuda)))
+
+(treesit-parser-language (treesit-parser-create 'cpp))
+  @result{} 'cpp
+
+(treesit-parser-language (treesit-parser-create 'cuda))
+  @result{} 'cuda
+@end group
+@end example
+
+Even though both parser are actually @code{cuda} parser.
 @end defvar
 
 @node Retrieving Nodes

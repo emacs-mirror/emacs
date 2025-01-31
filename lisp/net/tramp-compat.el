@@ -79,7 +79,7 @@
    (if-let* ((xdg (xdg-cache-home))
 	     ((file-directory-p xdg))
 	     ((file-writable-p xdg)))
-       (prog1 (setq xdg (file-name-concat xdg "emacs"))
+       (prog1 (setq xdg (expand-file-name "emacs" xdg))
 	 (make-directory xdg t))
      (eval (car (get 'temporary-file-directory 'standard-value)) t)))
   "The default value of `temporary-file-directory' for Tramp.")
@@ -242,6 +242,8 @@ value is the default binding of the variable."
 ;;   `outline-minor-mode' has still problems with this.  Since there
 ;;   are developers using `outline-minor-mode' in Lisp files, we still
 ;;   keep this quoting.
+;;
+;; * Use `with-environment-variables'.
 ;;
 ;; * Starting with Emacs 29.1, use `buffer-match-p'.
 ;;

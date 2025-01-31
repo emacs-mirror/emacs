@@ -5444,7 +5444,6 @@ w32_read_socket (struct terminal *terminal,
 		      || (!NILP (focus_follows_mouse)
 			  && !FRAME_NO_ACCEPT_FOCUS (f))))
 		{
-		  static Lisp_Object last_mouse_window;
 		  Lisp_Object window = window_from_coordinates
 		    (f, LOWORD (msg.msg.lParam), HIWORD (msg.msg.lParam), 0, 0, 0, 0);
 

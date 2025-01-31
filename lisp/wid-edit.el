@@ -416,6 +416,9 @@ the :notify function can't know the new value.")
       ;; character (so we don't do this for the character widget),
       ;; or if the size of the editable field isn't specified.
       (let ((overlay (make-overlay (1- to) to nil t nil)))
+        ;; Save it so that we can easily delete it in
+        ;; `widget-field-value-delete'.  (Bug#75646)
+        (widget-put widget :field-end-overlay overlay)
 	(overlay-put overlay 'field 'boundary)
         ;; We need the real field for tabbing.
 	(overlay-put overlay 'real-field widget)
@@ -2223,11 +2226,16 @@ the earlier input."
     (set-marker-insertion-type (car overlay) t)))
 
 (defun widget-field-value-delete (widget)
-  "Remove the widget from the list of active editing fields."
+  "Remove the field WIDGET from the list of active editing fields.
+
+Delete its overlays as well."
   (setq widget-field-list (delq widget widget-field-list))
   (setq widget-field-new (delq widget widget-field-new))
   ;; These are nil if the :format string doesn't contain `%v'.
   (let ((overlay (widget-get widget :field-overlay)))
+    (when (overlayp overlay)
+      (delete-overlay overlay)))
+  (let ((overlay (widget-get widget :field-end-overlay)))
     (when (overlayp overlay)
       (delete-overlay overlay))))
 

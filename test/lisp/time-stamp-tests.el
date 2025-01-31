@@ -29,7 +29,7 @@
   (declare (indent 0) (debug t))
   `(let ((user-login-name "test-logname")
          (user-full-name "100%d Tester") ;verify "%" passed unchanged
-         (buffer-file-name "/emacs/test/time-stamped-file")
+         (buffer-file-name "/emacs/test/0-9AZaz (time)_stamped.file$+^")
          (mail-host-address "test-mail-host-name")
          (ref-time1 '(17337 16613))    ;Monday, Jan 2, 2006, 3:04:05 PM
          (ref-time2 '(22574 61591))    ;Friday, Nov 18, 2016, 12:14:15 PM
@@ -69,8 +69,8 @@
                 (lambda (_old _new &optional _newer)
                   (setq warning-count (1+ warning-count)))))
        (should ,form)
-       (if (not (= warning-count 1))
-           (ert-fail (format "Should have warned about format: %S" ',form))))))
+       (unless (= warning-count 1)
+         (ert-fail (format "Should have warned about format: %S" ',form))))))
 
 ;;; Tests:
 
@@ -104,16 +104,16 @@
                            (nth cur-index part-list)
                          (nth 0 part-list))))))
           ;; Don't repeat the default pattern.
-          (if (or (= cur 0) (> cur-index 0))
-              ;; The whole format must start with %, so not all
-              ;; generated combinations are valid
-              (if (or (not (equal (extract-part 2) ""))
+          (when (or (= cur 0) (> cur-index 0))
+            ;; The whole format must start with %, so not all
+            ;; generated combinations are valid
+            (when (or (not (equal (extract-part 2) ""))
                       (equal (extract-part 3) ""))
-                  (iter-yield (list (extract-part 0)
-                                    (extract-part 1)
-                                    (apply #'concat
-                                           (mapcar #'extract-part '(2 3 4)))
-                                    (extract-part 5))))))))))
+              (iter-yield (list (extract-part 0)
+                                (extract-part 1)
+                                (apply #'concat
+                                       (mapcar #'extract-part '(2 3 4)))
+                                (extract-part 5))))))))))
 
 (iter-defun time-stamp-test-pattern-multiply ()
   "Iterate through every combination of parts of `time-stamp-pattern'."
@@ -130,9 +130,9 @@
             ;; so not all generated combinations are valid.
             ;; (This is why the format can be supplied as "%%" to
             ;; preserve the default format.)
-            (if (or (not (equal format ""))
-                    (equal end ""))
-                (iter-yield (list line-limit start format end)))))))))
+            (when (or (not (equal format ""))
+                      (equal end ""))
+              (iter-yield (list line-limit start format end)))))))))
 
 (iter-defun time-stamp-test-pattern-all ()
   (iter-yield-from (time-stamp-test-pattern-sequential))
@@ -285,6 +285,24 @@
           (setq time-stamp-line-limit 2)
           (time-stamp)
           (should (equal (buffer-string) buffer-expected-2)))))))
+
+(ert-deftest time-stamp-custom-file-name ()
+  "Test that `time-stamp' isn't confused by a newline in the file name."
+  (with-time-stamp-test-env
+    (let ((time-stamp-format "1 %f")     ;changed later in the test
+          (buffer-original-contents "Time-stamp: <>")
+          (expected-1 "Time-stamp: <1 Embedded?Newline>")
+          (expected-2 "Time-stamp: <2 Embedded?Newline>"))
+      (with-temp-buffer
+        (let ((buffer-file-name "Embedded\nNewline"))
+          (insert buffer-original-contents)
+          (time-stamp)
+          (should (equal (buffer-string) expected-1))
+          ;; If the first time-stamp inserted an unexpected newline, the
+          ;; next time-stamp would be unable to find the end pattern.
+          (setq time-stamp-format "2 %f")
+          (time-stamp)
+          (should (equal (buffer-string) expected-2)))))))
 
 ;;; Tests of time-stamp-string formatting
 
@@ -690,9 +708,10 @@
       ;; implemented and recommended since 1995
       (should (equal (time-stamp-string "%%" ref-time1) "%")) ;% last char
       (should (equal (time-stamp-string "%%P" ref-time1) "%P")) ;% not last char
-      (should (equal (time-stamp-string "%f" ref-time1) "time-stamped-file"))
+      (should (equal (time-stamp-string "%f" ref-time1)
+                     "0-9AZaz (time)_stamped.file$+^"))
       (should (equal (time-stamp-string "%F" ref-time1)
-                     "/emacs/test/time-stamped-file"))
+                     "/emacs/test/0-9AZaz (time)_stamped.file$+^"))
       (with-temp-buffer
         (should (equal (time-stamp-string "%f" ref-time1) "(no file)"))
         (should (equal (time-stamp-string "%F" ref-time1) "(no file)")))
@@ -1035,7 +1054,7 @@ The functions in `pattern-mod' are composed left to right."
 
 ;; Convenience macro for generating groups of test cases.
 
-(defmacro formatz-generate-tests
+(defmacro define-formatz-tests
     (form-strings hour-mod mins-mod secs-mod big-mod secbig-mod)
   "Define tests for time formats FORM-STRINGS.
 FORM-STRINGS is a list of formats, each \"%z\" or some variation thereof.
@@ -1065,50 +1084,72 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ;; Generate a form to create a list of tests to define.  When this
   ;; macro is called, the form is evaluated, thus defining the tests.
   ;; We will modify this list, so start with a list consed at runtime.
-  (let ((ert-test-list (list 'list))
+  (let ((ert-test-list (list 'progn))
         (common-description
-         (concat "\nThis test expands from a call to"
-                 " the macro `formatz-generate-tests'.\n"
-                 "To find the specific call, search the source file for \"")))
+         (concat "\nThis test is defined by a call to"
+                 " the macro `define-formatz-tests'.")))
     (dolist (form-string form-strings ert-test-list)
-      (nconc
-       ert-test-list
-       (list
-        `(ert-deftest ,(intern (concat "formatz-" form-string "-hhmm")) ()
-           ,(concat "Test `time-stamp' format " form-string
-                    " with whole hours and whole minutes.\n"
-                    common-description form-string "\".")
-           (should (equal (formatz ,form-string (fz-make+zone 0))
-                          ,(car hour-mod)))
-           (formatz-hours-exact-helper ,form-string ',(cdr hour-mod))
-           (should (equal (formatz ,form-string (fz-make+zone 0 30))
-                          ,(car mins-mod)))
-           (formatz-nonzero-minutes-helper ,form-string ',(cdr mins-mod)))
-        `(ert-deftest ,(intern (concat "formatz-" form-string "-seconds")) ()
-           ,(concat "Test `time-stamp' format " form-string
-                    " with offsets that have non-zero seconds.\n"
-                    common-description form-string "\".")
-           (should (equal (formatz ,form-string (fz-make+zone 0 0 30))
-                          ,(car secs-mod)))
-           (formatz-nonzero-seconds-helper ,form-string ',(cdr secs-mod)))
-        `(ert-deftest ,(intern (concat "formatz-" form-string "-threedigit")) ()
-           ,(concat "Test `time-stamp' format " form-string
-                    " with offsets of 100 hours or greater.\n"
-                    common-description form-string "\".")
-           (should (equal (formatz ,form-string (fz-make+zone 100))
-                          ,(car big-mod)))
-           (formatz-hours-big-helper ,form-string ',(cdr big-mod))
-           (should (equal (formatz ,form-string (fz-make+zone 100 0 30))
-                          ,(car secbig-mod)))
-           (formatz-seconds-big-helper ,form-string ',(cdr secbig-mod)))
-        )))))
+      (let ((test-name-hhmm
+             (intern (concat "formatz-" form-string "-hhmm")))
+            (test-name-seconds
+             (intern (concat "formatz-" form-string "-seconds")))
+            (test-name-threedigit
+             (intern (concat "formatz-" form-string "-threedigit"))))
+        (nconc
+         ert-test-list
+         (list
+          `(find-function-update-type-alist
+            ',test-name-hhmm 'ert--test 'formatz-find-test-def-function)
+          `(ert-deftest ,test-name-hhmm ()
+             ,(concat "Test `time-stamp' format " form-string
+                      " with whole hours and whole minutes.\n"
+                      common-description)
+             (should (equal (formatz ,form-string (fz-make+zone 0))
+                            ,(car hour-mod)))
+             (formatz-hours-exact-helper ,form-string ',(cdr hour-mod))
+             (should (equal (formatz ,form-string (fz-make+zone 0 30))
+                            ,(car mins-mod)))
+             (formatz-nonzero-minutes-helper ,form-string ',(cdr mins-mod)))
+          `(find-function-update-type-alist
+            ',test-name-seconds 'ert--test 'formatz-find-test-def-function)
+          `(ert-deftest ,test-name-seconds ()
+             ,(concat "Test `time-stamp' format " form-string
+                      " with offsets that have non-zero seconds.\n"
+                      common-description)
+             (should (equal (formatz ,form-string (fz-make+zone 0 0 30))
+                            ,(car secs-mod)))
+             (formatz-nonzero-seconds-helper ,form-string ',(cdr secs-mod)))
+          `(find-function-update-type-alist
+            ',test-name-threedigit 'ert--test 'formatz-find-test-def-function)
+          `(ert-deftest ,test-name-threedigit ()
+             ,(concat "Test `time-stamp' format " form-string
+                      " with offsets of 100 hours or greater.\n"
+                      common-description)
+             (should (equal (formatz ,form-string (fz-make+zone 100))
+                            ,(car big-mod)))
+             (formatz-hours-big-helper ,form-string ',(cdr big-mod))
+             (should (equal (formatz ,form-string (fz-make+zone 100 0 30))
+                            ,(car secbig-mod)))
+             (formatz-seconds-big-helper ,form-string ',(cdr secbig-mod)))
+          ))))))
+
+(defun formatz-find-test-def-function (test-name)
+  "Search for the `define-formatz-tests' call defining test TEST-NAME.
+Return non-nil if the definition is found."
+  (let* ((z-format (replace-regexp-in-string "\\`formatz-\\([^z]+z\\)-.*\\'"
+                                             "\\1"
+                                             (symbol-name test-name)))
+         (regexp (concat "^(define-formatz-tests ("
+                         "\\(?:[^)]\\|;.*\n\\)*"
+                         "\"" (regexp-quote z-format) "\"")))
+    (re-search-forward regexp nil t)))
 
 ;;;; The actual test cases for %z
 
 ;;; Test %z formats without colons.
 
 ;; Option character "-" (minus) minimizes; it removes "00" minutes.
-(formatz-generate-tests ("%-z" "%-3z")
+(define-formatz-tests ("%-z" "%-3z")
   ("+00")
   ("+0030" formatz-mod-del-colons)
   ("+000030" formatz-mod-del-colons)
@@ -1116,7 +1157,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00:30"))
 
 ;; Minus with padding pads with spaces.
-(formatz-generate-tests ("%-12z")
+(define-formatz-tests ("%-12z")
   ("+00         " formatz-mod-pad-r12)
   ("+0030       " formatz-mod-del-colons formatz-mod-pad-r12)
   ("+000030     " formatz-mod-del-colons formatz-mod-pad-r12)
@@ -1124,7 +1165,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00:30  " formatz-mod-pad-r12))
 
 ;; 0 after other digits becomes padding of ten, not zero flag.
-(formatz-generate-tests ("%-10z")
+(define-formatz-tests ("%-10z")
   ("+00       " formatz-mod-pad-r10)
   ("+0030     " formatz-mod-del-colons formatz-mod-pad-r10)
   ("+000030   " formatz-mod-del-colons formatz-mod-pad-r10)
@@ -1146,7 +1187,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
 
 ;; Basic %z outputs 4 digits.
 ;; Small padding values do not extend the result.
-(formatz-generate-tests (;; We don't check %z here because time-stamp
+(define-formatz-tests (;; We don't check %z here because time-stamp
                          ;; has a legacy behavior for it.
                          ;;"%z"
                          "%5z" "%0z" "%05z")
@@ -1157,7 +1198,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00:30"))
 
 ;; Padding adds spaces.
-(formatz-generate-tests ("%12z")
+(define-formatz-tests ("%12z")
   ("+0000       " formatz-mod-add-00 formatz-mod-pad-r12)
   ("+0030       " formatz-mod-del-colons formatz-mod-pad-r12)
   ("+000030     " formatz-mod-del-colons formatz-mod-pad-r12)
@@ -1165,7 +1206,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00:30  " formatz-mod-pad-r12))
 
 ;; Requiring 0-padding to 6 adds seconds (only) as needed.
-(formatz-generate-tests ("%06z")
+(define-formatz-tests ("%06z")
   ("+000000" formatz-mod-add-00 formatz-mod-add-00)
   ("+003000" formatz-mod-del-colons formatz-mod-add-00)
   ("+000030" formatz-mod-del-colons)
@@ -1173,7 +1214,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00:30"))
 
 ;; Option character "_" always adds seconds.
-(formatz-generate-tests ("%_z" "%_7z")
+(define-formatz-tests ("%_z" "%_7z")
   ("+000000" formatz-mod-add-00 formatz-mod-add-00)
   ("+003000" formatz-mod-del-colons formatz-mod-add-00)
   ("+000030" formatz-mod-del-colons)
@@ -1181,7 +1222,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00:30"))
 
 ;; Enough 0-padding adds seconds, then adds spaces.
-(formatz-generate-tests ("%012z" "%_12z")
+(define-formatz-tests ("%012z" "%_12z")
   ("+000000     " formatz-mod-add-00 formatz-mod-add-00 formatz-mod-pad-r12)
   ("+003000     " formatz-mod-del-colons formatz-mod-add-00 formatz-mod-pad-r12)
   ("+000030     " formatz-mod-del-colons formatz-mod-pad-r12)
@@ -1192,7 +1233,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
 
 ;; Three colons can output hours only,
 ;; like %-z, but uses colons with non-zero minutes and seconds.
-(formatz-generate-tests ("%:::z" "%0:::z"
+(define-formatz-tests ("%:::z" "%0:::z"
                          "%3:::z" "%03:::z")
   ("+00")
   ("+00:30")
@@ -1201,7 +1242,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00:30"))
 
 ;; Padding with three colons adds spaces.
-(formatz-generate-tests ("%12:::z")
+(define-formatz-tests ("%12:::z")
   ("+00         " formatz-mod-pad-r12)
   ("+00:30      " formatz-mod-pad-r12)
   ("+00:00:30   " formatz-mod-pad-r12)
@@ -1209,7 +1250,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00:30  " formatz-mod-pad-r12))
 
 ;; 0 after other digits becomes padding of ten, not zero flag.
-(formatz-generate-tests ("%10:::z")
+(define-formatz-tests ("%10:::z")
   ("+00       " formatz-mod-pad-r10)
   ("+00:30    " formatz-mod-pad-r10)
   ("+00:00:30 " formatz-mod-pad-r10)
@@ -1217,7 +1258,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00:30"))
 
 ;; One colon outputs minutes, like %z but with colon.
-(formatz-generate-tests ("%:z" "%6:z" "%0:z" "%06:z" "%06:::z")
+(define-formatz-tests ("%:z" "%6:z" "%0:z" "%06:z" "%06:::z")
   ("+00:00" formatz-mod-add-colon00)
   ("+00:30")
   ("+00:00:30")
@@ -1225,7 +1266,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00:30"))
 
 ;; Padding with one colon adds spaces.
-(formatz-generate-tests ("%12:z")
+(define-formatz-tests ("%12:z")
   ("+00:00      " formatz-mod-add-colon00 formatz-mod-pad-r12)
   ("+00:30      " formatz-mod-pad-r12)
   ("+00:00:30   " formatz-mod-pad-r12)
@@ -1233,7 +1274,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00:30  " formatz-mod-pad-r12))
 
 ;; Requiring 0-padding to 7 adds seconds (only) as needed.
-(formatz-generate-tests ("%07:z" "%07:::z")
+(define-formatz-tests ("%07:z" "%07:::z")
   ("+00:00:00" formatz-mod-add-colon00 formatz-mod-add-colon00)
   ("+00:30:00" formatz-mod-add-colon00)
   ("+00:00:30")
@@ -1241,7 +1282,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00:30"))
 
 ;; Two colons outputs HH:MM:SS, like %_z but with colons.
-(formatz-generate-tests ("%::z" "%9::z" "%0::z" "%09::z")
+(define-formatz-tests ("%::z" "%9::z" "%0::z" "%09::z")
   ("+00:00:00" formatz-mod-add-colon00 formatz-mod-add-colon00)
   ("+00:30:00" formatz-mod-add-colon00)
   ("+00:00:30")
@@ -1249,7 +1290,7 @@ the other expected results for hours greater than 99 with non-zero seconds."
   ("+100:00:30"))
 
 ;; Enough padding adds minutes and seconds, then adds spaces.
-(formatz-generate-tests ("%012:z" "%012::z" "%12::z" "%012:::z")
+(define-formatz-tests ("%012:z" "%012::z" "%12::z" "%012:::z")
   ("+00:00:00   " formatz-mod-add-colon00 formatz-mod-add-colon00
                   formatz-mod-pad-r12)
   ("+00:30:00   " formatz-mod-add-colon00 formatz-mod-pad-r12)

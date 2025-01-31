@@ -8715,6 +8715,20 @@ scroll bars are supported and in use, a scroll bar separates the two
 windows, and if there are no vertical scroll bars and no dividers
 (@pxref{Window Dividers}), Emacs uses a thin line to indicate the
 border.
+
+@item 6 to 11
+
+The glyphs for a single-line border around child frames on a terminal,
+in the order of vertical, horizontal, down-right edge, down-left edge,
+up-right, and up-left edge glyphs.  The horizontal glyph is also used for
+the single-line tty menu separator.
+
+@item 12 to 17
+
+The glyphs for a double-line border, in the order of vertical,
+horizontal, down-right edge, down-left edge, up-right, and up-left edge
+glyphs.  The horizontal glyph is also used for the single-line TTY menu
+separator, the other glyphs are not yet used.
 @end table
 
   For example, here is how to construct a display table that mimics
@@ -8737,22 +8751,32 @@ the effect of setting @code{ctl-arrow} to a non-@code{nil} value
 @defun display-table-slot display-table slot
 This function returns the value of the extra slot @var{slot} of
 @var{display-table}.  The argument @var{slot} may be a number from 0 to
-5 inclusive, or a slot name (symbol).  Valid symbols are
-@code{truncation}, @code{wrap}, @code{escape}, @code{control},
-@code{selective-display}, and @code{vertical-border}.
+17 inclusive, or a slot name, a symbol.
 @end defun
 
 @defun set-display-table-slot display-table slot value
 This function stores @var{value} in the extra slot @var{slot} of
 @var{display-table}.  The argument @var{slot} may be a number from 0 to
-5 inclusive, or a slot name (symbol).  Valid symbols are
-@code{truncation}, @code{wrap}, @code{escape}, @code{control},
-@code{selective-display}, and @code{vertical-border}.
+17 inclusive, or a slot name, a symbol.
 @end defun
+
+Valid slot name symbols are @code{truncation}, @code{wrap},
+@code{escape}, @code{control}, @code{selective-display},
+@code{vertical-border}, @code{box-vertical}, @code{box-horizontal},
+@code{box-down-right}, @code{box-down-left}, @code{box-up-right},
+@code{box-up-left}, @code{box-double-vertical},
+@code{box-double-horizontal}, @code{box-double-down-right},
+@code{box-double-down-left}, @code{box-double-up-right},
+@code{box-double-up-left}.
 
 @defun describe-display-table display-table
 This function displays a description of the display table
 @var{display-table} in a help buffer.
+@end defun
+
+@defun standard-display-unicode-special-glyphs
+This function sets the extra slots of @var{standard-display-table} with
+suitable Unicode characters.
 @end defun
 
 @deffn Command describe-current-display-table

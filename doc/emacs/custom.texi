@@ -2043,7 +2043,7 @@ sequences.  For example, to bind @kbd{C-c h} to the string
 @end example
 
   Non-@acronym{ASCII} characters can be specified directly in the
-string.  To bind to e.g. @samp{ol@'a}, use:
+string.  To bind to, for example, @samp{ol@'a}, use:
 
 @example
 (keymap-global-set "C-c h" (key-description "ol@'a"))

@@ -76,7 +76,7 @@
     (erase-buffer)
     (dolist (table (sqlite-select db "select name from sqlite_master where type = 'table' and name not like 'sqlite_%' order by name"))
       (push (list (car table)
-                  (caar (sqlite-select db (format "select count(*) from %s"
+                  (caar (sqlite-select db (format "select count(*) from \"%s\""
                                                   (car table)))))
             entries))
     (sqlite-mode--tablify '("Table Name" "Number of Rows")
@@ -137,7 +137,7 @@
 
 (defun sqlite-mode--column-names (table)
   "Return a list of the column names for TABLE."
-  (mapcar (lambda (row) (nth 1 row)) (sqlite-select sqlite--db (format "pragma table_info(%s)" table))))
+  (mapcar (lambda (row) (nth 1 row)) (sqlite-select sqlite--db (format "pragma table_info(\"%s\")" table))))
 
 (defun sqlite-mode-list-data ()
   "List the data from the table under point."
@@ -171,7 +171,7 @@
           (setq stmt
                 (sqlite-select
                  sqlite--db
-                 (format "select rowid, * from %s where rowid >= ?" table)
+                 (format "select rowid, * from \"%s\" where rowid >= ?" table)
                  (list rowid)
                  'set))
           (sqlite-mode--tablify (sqlite-columns stmt)
@@ -201,11 +201,11 @@
       (user-error "Not deleting"))
     (sqlite-execute
      sqlite--db
-     (format "delete from %s where %s"
+     (format "delete from \"%s\" where %s"
              (cdr table)
              (string-join
               (mapcar (lambda (column)
-                        (format "%s = ?" (car (split-string column " "))))
+                        (format "\"%s\" = ?" (car (split-string column " "))))
                       (cons "rowid" (sqlite-mode--column-names (cdr table))))
               " and "))
      row)

@@ -531,7 +531,6 @@ vga_installed (void)
 void
 dos_set_window_size (int *rows, int *cols)
 {
-  char video_name[30];
   union REGS regs;
   Lisp_Object video_mode;
   int video_mode_value, have_vga = 0;
@@ -547,7 +546,7 @@ dos_set_window_size (int *rows, int *cols)
      use that mode.  */
   video_mode
     = Fsymbol_value (Fintern_soft (make_formatted_string
-				   (video_name, "screen-dimensions-%dx%d",
+				   ("screen-dimensions-%dx%d",
 				    *rows, *cols), Qnil));
 
   if (FIXNUMP (video_mode)
@@ -2678,8 +2677,6 @@ dos_rawgetc (void)
 	  /* Generate SELECT_WINDOW_EVENTs when needed.  */
 	  if (!NILP (Vmouse_autoselect_window))
 	    {
-	      static Lisp_Object last_mouse_window;
-
 	      mouse_window = window_from_coordinates
 		(SELECTED_FRAME (), mouse_last_x, mouse_last_y, 0, 0, 0, 0);
 	      /* A window will be selected only when it is not

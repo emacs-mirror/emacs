@@ -291,10 +291,10 @@ the same integer.
 @end defun
 
 @defun sxhash-eql obj
-This function returns a hash code for Lisp object @var{obj} suitable
-for @code{eql} comparison.  I.e. it reflects identity of @var{obj}
-except for the case where the object is a bignum or a float number,
-in which case a hash code is generated for the value.
+This function returns a hash code for Lisp object @var{obj} suitable for
+@code{eql} comparison.  In other words, it reflects identity of
+@var{obj} except for the case where the object is a bignum or a float
+number, in which case a hash code is generated for the value.
 
 If two objects @var{obj1} and @var{obj2} are @code{eql}, then
 @code{(sxhash-eql @var{obj1})} and @code{(sxhash-eql @var{obj2})} are

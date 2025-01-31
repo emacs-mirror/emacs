@@ -21319,8 +21319,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		&& (f == XFRAME (selected_frame)
 		    || !NILP (focus_follows_mouse)))
 	      {
-		static Lisp_Object last_mouse_window;
-
 		if (xmotion.window != FRAME_X_WINDOW (f))
 		  {
 		    x_translate_coordinates (f, xmotion.x_root, xmotion.y_root,
@@ -23259,7 +23257,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		      && (f == XFRAME (selected_frame)
 			  || !NILP (focus_follows_mouse)))
 		    {
-		      static Lisp_Object last_mouse_window;
 		      Lisp_Object window = window_from_coordinates (f, ev.x, ev.y, 0, false, false,
 								    false);
 
@@ -27156,11 +27153,13 @@ x_error_quitter (Display *display, XErrorEvent *event)
 static int NO_INLINE
 x_io_error_quitter (Display *display)
 {
-  char buf[256];
-
-  snprintf (buf, sizeof buf, "Connection lost to X server '%s'",
-	    DisplayString (display));
+  char const *server = DisplayString (display);
+  static char const fmt[] = "Connection lost to X server '%s'";
+  USE_SAFE_ALLOCA;
+  char *buf = SAFE_ALLOCA (sizeof fmt - sizeof "%s" + strlen (server) + 1);
+  sprintf (buf, fmt, server);
   x_connection_closed (display, buf, true);
+  SAFE_FREE ();
 
   return 0;
 }
@@ -30413,7 +30412,7 @@ static bool x_timeout_atimer_activated_flag;
 
 #endif /* USE_X_TOOLKIT */
 
-static int x_initialized;
+static bool x_initialized;
 
 /* Test whether two display-name strings agree up to the dot that separates
    the screen number from the server number.  */
@@ -30625,10 +30624,11 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   block_input ();
 
+  bool was_initialized = x_initialized;
   if (!x_initialized)
     {
       x_initialize ();
-      ++x_initialized;
+      x_initialized = true;
     }
 
 #if defined USE_X_TOOLKIT || defined USE_GTK
@@ -30646,7 +30646,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     char **argv2 = argv;
     guint id;
 
-    if (x_initialized++ > 1)
+    if (was_initialized)
       {
         xg_display_open (SSDATA (display_name), &dpy);
       }
@@ -30681,8 +30681,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
            Call before gtk_init so Gtk+ event filters comes after our.  */
         gdk_window_add_filter (NULL, event_handler_gdk, NULL);
 
-        /* gtk_init does set_locale.  Fix locale before and after.  */
-        fixup_locale ();
+        gtk_disable_setlocale ();
         unrequest_sigio (); /* See comment in x_display_ok.  */
         gtk_init (&argc, &argv2);
         request_sigio ();
@@ -30691,8 +30690,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
         xg_initialize ();
 
-	/* Do this after the call to xg_initialize, because when
-	   Fontconfig is used, xg_initialize calls its initialization
+	/* When Fontconfig is used, xg_initialize calls its initialization
 	   function which in some versions of Fontconfig calls setlocale.  */
 	fixup_locale ();
 

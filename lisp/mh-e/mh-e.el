@@ -3318,7 +3318,7 @@ sequence."
       (((class color) (background dark))
        (:foreground "LightGoldenRod"))
       (t
-       (:bold t))))
+       (:weight bold))))
     (mh-folder-msg-number
      ((((class color) (min-colors 64) (background light))
        (:foreground "snow4"))
@@ -3336,18 +3336,18 @@ sequence."
       (((class color))
        (:foreground "yellow" :weight light))
       (((class grayscale) (background light))
-       (:foreground "Gray90" :bold t :italic t))
+       (:foreground "Gray90" :weight bold :slant italic))
       (((class grayscale) (background dark))
-       (:foreground "DimGray" :bold t :italic t))
+       (:foreground "DimGray" :weight bold :slant italic))
       (t
-       (:bold t :italic t))))
+       (:weight bold :slant italic))))
     (mh-folder-subject
      ((((class color) (background light))
        (:foreground "blue4"))
       (((class color) (background dark))
        (:foreground "yellow"))
       (t
-       (:bold t))))
+       (:weight bold))))
     (mh-folder-tick
      ((((class color) (background light))
        (:background "#dddf7e"))
@@ -3363,25 +3363,25 @@ sequence."
       (((class color))
        (:foreground "green"))
       (((class grayscale) (background light))
-       (:foreground "DimGray" :italic t))
+       (:foreground "DimGray" :slant italic))
       (((class grayscale) (background dark))
-       (:foreground "LightGray" :italic t))
+       (:foreground "LightGray" :slant italic))
       (t
-       (:italic t))))
+       (:slant italic))))
     (mh-letter-header-field
      ((((class color) (background light))
        (:background "gray90"))
       (((class color) (background dark))
        (:background "gray10"))
       (t
-       (:bold t))))
+       (:weight bold))))
     (mh-search-folder
      ((((class color) (background light))
-       (:foreground "dark green" :bold t))
+       (:foreground "dark green" :weight bold))
       (((class color) (background dark))
-       (:foreground "indian red" :bold t))
+       (:foreground "indian red" :weight bold))
       (t
-       (:bold t))))
+       (:weight bold))))
     (mh-show-cc
      ((((class color) (min-colors 64) (background light))
        (:foreground "DarkGoldenrod"))
@@ -3390,11 +3390,11 @@ sequence."
       (((class color))
        (:foreground "yellow" :weight light))
       (((class grayscale) (background light))
-       (:foreground "Gray90" :bold t :italic t))
+       (:foreground "Gray90" :weight bold :slant italic))
       (((class grayscale) (background dark))
-       (:foreground "DimGray" :bold t :italic t))
+       (:foreground "DimGray" :weight bold :slant italic))
       (t
-       (:bold t :italic t))))
+       (:weight bold :slant italic))))
     (mh-show-date
      ((((class color) (min-colors 64) (background light))
        (:foreground "ForestGreen"))
@@ -3403,18 +3403,18 @@ sequence."
       (((class color))
        (:foreground "green"))
       (((class grayscale) (background light))
-       (:foreground "Gray90" :bold t))
+       (:foreground "Gray90" :weight bold))
       (((class grayscale) (background dark))
-       (:foreground "DimGray" :bold t))
+       (:foreground "DimGray" :weight bold))
       (t
-       (:bold t :underline t))))
+       (:weight bold :underline t))))
     (mh-show-from
      ((((class color) (background light))
        (:foreground "red3"))
       (((class color) (background dark))
        (:foreground "cyan"))
       (t
-       (:bold t))))
+       (:weight bold))))
     (mh-show-header
      ((((class color) (min-colors 64) (background light))
        (:foreground "RosyBrown"))
@@ -3423,15 +3423,15 @@ sequence."
       (((class color))
        (:foreground "green"))
       (((class grayscale) (background light))
-       (:foreground "DimGray" :italic t))
+       (:foreground "DimGray" :slant italic))
       (((class grayscale) (background dark))
-       (:foreground "LightGray" :italic t))
+       (:foreground "LightGray" :slant italic))
       (t
-       (:italic t))))
-    (mh-show-pgg-bad ((t (:bold t :foreground "DeepPink1"))))
-    (mh-show-pgg-good ((t (:bold t :foreground "LimeGreen"))))
-    (mh-show-pgg-unknown ((t (:bold t :foreground "DarkGoldenrod2"))))
-    (mh-show-signature ((t (:italic t))))
+       (:slant italic))))
+    (mh-show-pgg-bad ((t (:weight bold :foreground "DeepPink1"))))
+    (mh-show-pgg-good ((t (:weight bold :foreground "LimeGreen"))))
+    (mh-show-pgg-unknown ((t (:weight bold :foreground "DarkGoldenrod2"))))
+    (mh-show-signature ((t (:slant italic))))
     (mh-show-to
      ((((class color) (background light))
        (:foreground "SaddleBrown"))
@@ -3501,7 +3501,7 @@ not added to the returned spec."
                 '((((class color))
                    (:inherit mh-folder-msg-number))
                   (t
-                   (:inherit mh-folder-msg-number :italic t))))
+                   (:inherit mh-folder-msg-number :slant italic))))
   "Body text face."
   :group 'mh-faces
   :group 'mh-folder
@@ -3509,7 +3509,7 @@ not added to the returned spec."
 
 (defface mh-folder-cur-msg-number
   (mh-face-data 'mh-folder-msg-number
-                '((t (:inherit mh-folder-msg-number :bold t))))
+                '((t (:inherit mh-folder-msg-number :weight bold))))
   "Current message number face."
   :group 'mh-faces
   :group 'mh-folder
@@ -3681,7 +3681,7 @@ The background and foreground are used in the image."
 
 (defface mh-speedbar-folder-with-unseen-messages
   (mh-face-data 'mh-speedbar-folder
-                '((t (:inherit mh-speedbar-folder :bold t))))
+                '((t (:inherit mh-speedbar-folder :weight bold))))
   "Folder face when folder contains unread messages."
   :group 'mh-faces
   :group 'mh-speedbar
@@ -3696,7 +3696,7 @@ The background and foreground are used in the image."
 
 (defface mh-speedbar-selected-folder-with-unseen-messages
   (mh-face-data 'mh-speedbar-selected-folder
-                '((t (:inherit mh-speedbar-selected-folder :bold t))))
+                '((t (:inherit mh-speedbar-selected-folder :weight bold))))
   "Selected folder face when folder contains unread messages."
   :group 'mh-faces
   :group 'mh-speedbar
