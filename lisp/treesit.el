@@ -2401,6 +2401,35 @@ RULES."
                             offset)))))
              (cons lang (mapcar #'optimize-rule indent-rules)))))
 
+(defun treesit-add-simple-indent-rules (language rules &optional where anchor)
+  "Add simple indent RULES for LANGUAGE.
+
+WHERE can be either :before or :after, which means adding RULES before
+or after the existing rules in `treesit-simple-indent-rules'.  If
+ommited, default to adding the rules before (so it overrides existing
+rules).
+
+If ANCHOR is non-nil, add RULES before/after the rules in
+`treesit-simple-indent-rules' that's `equal' to ANCHOR.  If ANCHOR is
+omitted or no existing rules matches it, add RULES at the beginning or
+end of existing rules."
+  (when (not (memq where '(nil :before :after)))
+    (error "WHERE must be either :before, :after, or nil"))
+  (let* ((existing-rules (alist-get language treesit-simple-indent-rules))
+         (anchor-idx (and anchor (seq-position existing-rules anchor)))
+         (new-rules
+          (if anchor-idx
+              (let* ((pivot (if (eq where :after)
+                                (1+ anchor-idx)
+                              anchor-idx))
+                     (first-half (seq-subseq existing-rules 0 pivot))
+                     (second-half (seq-subseq existing-rules pivot)))
+                (append first-half rules second-half))
+            (if (eq where :after)
+                (append existing-rules rules)
+              (append rules existing-rules)))))
+    (setf (alist-get language treesit-simple-indent-rules) new-rules)))
+
 ;;; Search
 
 (defun treesit-search-forward-goto

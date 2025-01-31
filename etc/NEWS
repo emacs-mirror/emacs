@@ -1159,6 +1159,10 @@ at point to explore.
 *** New variable 'treesit-aggregated-simple-imenu-settings'
 This variable allows major modes to setup Imenu for multiple languages.
 
+*** New function 'treesit-add-simple-indent-rules'
+This new function makes it easier to customize indent rules for
+tree-sitter modes.
+
 +++
 ** New optional BUFFER argument for 'string-pixel-width'.
 If supplied, 'string-pixel-width' will use any face remappings from
