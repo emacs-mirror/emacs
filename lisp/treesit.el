@@ -1757,6 +1757,13 @@ should take the same argument as MATCHER or ANCHOR.  If it matches,
 return a cons (ANCHOR-POS . OFFSET), where ANCHOR-POS is a position and
 OFFSET is the indent offset; if it doesn't match, return nil.")
 
+(defvar-local treesit-simple-indent-override-rules nil
+  "Extra simple indent rules for customizing indentation.
+
+This variable should take the same form as
+`treesit-simple-indent-rules'.  Rules in this variable take precedence
+over `treesit-simple-indent-rules'.")
+
 (defun treesit--indent-prev-line-node (pos)
   "Return the largest node on the previous line of POS."
   (save-excursion
@@ -2303,35 +2310,39 @@ OFFSET."
                (message "PARENT is nil, not indenting"))
              (cons nil nil))
     (let* ((language (treesit-node-language parent))
-           (rules (alist-get language
-                             treesit-simple-indent-rules)))
+           (rules-list (list
+                        (alist-get language
+                                   treesit-simple-indent-override-rules)
+                        (alist-get language
+                                   treesit-simple-indent-rules))))
       (catch 'match
-        (dolist (rule rules)
-          (if (functionp rule)
-              (let ((result (funcall rule node parent bol)))
-                (when result
+        (dolist (rules rules-list)
+          (dolist (rule rules)
+            (if (functionp rule)
+                (let ((result (funcall rule node parent bol)))
+                  (when result
+                    (when treesit--indent-verbose
+                      (message "Matched rule: %S" rule))
+                    (throw 'match result)))
+              (let ((pred (nth 0 rule))
+                    (anchor (nth 1 rule))
+                    (offset (nth 2 rule)))
+                ;; Found a match.
+                (when (treesit--simple-indent-eval
+                       (list pred node parent bol))
                   (when treesit--indent-verbose
                     (message "Matched rule: %S" rule))
-                  (throw 'match result)))
-            (let ((pred (nth 0 rule))
-                  (anchor (nth 1 rule))
-                  (offset (nth 2 rule)))
-              ;; Found a match.
-              (when (treesit--simple-indent-eval
-                     (list pred node parent bol))
-                (when treesit--indent-verbose
-                  (message "Matched rule: %S" rule))
-                (let ((anchor-pos
-                       (treesit--simple-indent-eval
-                        (list anchor node parent bol)))
-                      (offset-val
-                       (cond ((numberp offset) offset)
-                             ((and (symbolp offset)
-                                   (boundp offset))
-                              (symbol-value offset))
-                             (t (treesit--simple-indent-eval
-                                 (list offset node parent bol))))))
-                  (throw 'match (cons anchor-pos offset-val)))))))
+                  (let ((anchor-pos
+                         (treesit--simple-indent-eval
+                          (list anchor node parent bol)))
+                        (offset-val
+                         (cond ((numberp offset) offset)
+                               ((and (symbolp offset)
+                                     (boundp offset))
+                                (symbol-value offset))
+                               (t (treesit--simple-indent-eval
+                                   (list offset node parent bol))))))
+                    (throw 'match (cons anchor-pos offset-val))))))))
         ;; Didn't find any match.
         (when treesit--indent-verbose
           (message "No matched rule"))
@@ -2403,6 +2414,9 @@ RULES."
 
 (defun treesit-add-simple-indent-rules (language rules &optional where anchor)
   "Add simple indent RULES for LANGUAGE.
+
+This function only affects `treesit-simple-indent-rules',
+`treesit-simple-indent-override-rules' is not affected.
 
 WHERE can be either :before or :after, which means adding RULES before
 or after the existing rules in `treesit-simple-indent-rules'.  If
