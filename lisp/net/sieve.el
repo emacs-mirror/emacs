@@ -161,6 +161,7 @@ require \"fileinto\";
   (bury-buffer))
 
 (defun sieve-activate (&optional _pos)
+  "Activate script at point."
   (interactive)
   (let ((name (sieve-script-at-point)) err)
     (when (or (null name) (string-equal name sieve-new-script))
@@ -173,6 +174,7 @@ require \"fileinto\";
       (message "Activating script %s...failed: %s" name (nth 2 err)))))
 
 (defun sieve-deactivate-all (&optional _pos)
+  "Deactivate all currently active scripts."
   (interactive)
   (message "Deactivating scripts...")
   (let (;; (name (sieve-script-at-point))
@@ -185,6 +187,7 @@ require \"fileinto\";
 (defalias 'sieve-deactivate #'sieve-deactivate-all)
 
 (defun sieve-remove (&optional _pos)
+  "Remove script at point."
   (interactive)
   (let ((name (sieve-script-at-point)) err)
     (when (or (null name) (string-equal name sieve-new-script))
@@ -197,6 +200,7 @@ require \"fileinto\";
     (message "Removing sieve script %s...done" name)))
 
 (defun sieve-edit-script (&optional _pos)
+  "Edit script at point."
   (interactive)
   (let ((name (sieve-script-at-point)))
     (unless name
@@ -310,6 +314,7 @@ Used to bracket operations which move point in the sieve-buffer."
     (sieve-manage-authenticate)))
 
 (defun sieve-refresh-scriptlist ()
+  "Refresh list of scripts found the currently opened server."
   (interactive)
   (with-current-buffer sieve-buffer
     (setq buffer-read-only nil)
@@ -357,6 +362,9 @@ specified, fall back to `sieve-manage-default-port'."
 
 ;;;###autoload
 (defun sieve-upload (&optional name)
+  "Upload script NAME to currently opened server.
+If NAME is nil, detect it from script buffer name.
+If no open sieve buffer exists, call `sieve-manage' first."
   (interactive)
   (when (or (get-buffer sieve-buffer)
             (save-current-buffer (call-interactively 'sieve-manage)))
@@ -375,12 +383,14 @@ specified, fall back to `sieve-manage-default-port'."
 
 ;;;###autoload
 (defun sieve-upload-and-bury (&optional name)
+  "Upload script NAME and bury the current buffer."
   (interactive)
   (sieve-upload name)
   (bury-buffer))
 
 ;;;###autoload
 (defun sieve-upload-and-kill (&optional name)
+  "Upload script NAME and kill the current buffer."
   (interactive)
   (sieve-upload name)
   (kill-buffer))
