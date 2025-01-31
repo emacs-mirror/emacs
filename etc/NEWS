@@ -545,6 +545,13 @@ When called with a prefix argument, accepting, declining, or tentatively
 accepting an icalendar event will prompt for a comment to add to the
 response.
 
+** Sieve
+
++++
+*** New keybinding to refresh buffer in 'sieve-manage-mode'.
+'sieve-refresh-scriptlist' is now bound to 'g' to refresh the contents
+of the current sieve buffer.
+
 ** Button
 
 +++

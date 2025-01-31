@@ -111,6 +111,7 @@ require \"fileinto\";
   ;; various
   "?"      #'sieve-help
   "h"      #'sieve-help
+  "g"      #'sieve-refresh-scriptlist
   ;; activating
   "m"      #'sieve-activate
   "u"      #'sieve-deactivate
@@ -314,7 +315,8 @@ Used to bracket operations which move point in the sieve-buffer."
     (sieve-manage-authenticate)))
 
 (defun sieve-refresh-scriptlist ()
-  "Refresh list of scripts found the currently opened server."
+  "Refresh list of scripts found on the currently opened server.
+Update contents of the current sieve buffer."
   (interactive)
   (with-current-buffer sieve-buffer
     (setq buffer-read-only nil)

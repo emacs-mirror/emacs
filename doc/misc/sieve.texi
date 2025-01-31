@@ -213,6 +213,12 @@ Bury the Manage Sieve buffer without closing the connection.
 @findex sieve-help
 Displays help in the minibuffer.
 
+@item g
+@kindex g
+@findex sieve-refresh-scriptlist
+Refresh list of scripts found on the currently opened server.
+Update contents of the current sieve buffer.
+
 @item Q
 @kindex Q
 @findex sieve-manage-quit
