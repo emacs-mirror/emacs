@@ -1858,8 +1858,11 @@ For each archive configured in the variable `package-archives',
 inform Emacs about the latest versions of all packages it offers,
 and make them available for download.
 Optional argument ASYNC specifies whether to perform the
-downloads in the background."
-  (interactive)
+downloads in the background.  This is always the case when the command
+is invoked interactively."
+  (interactive (list t))
+  (when async
+    (message "Refreshing package contents..."))
   (unless (file-exists-p package-user-dir)
     (make-directory package-user-dir t))
   (let ((default-keyring (expand-file-name "package-keyring.gpg"
