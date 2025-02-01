@@ -314,7 +314,8 @@
 
     ;; Logarithmic units
     ( Np      nil    "*Neper")
-    ( dB      "(ln(10)/20) Np" "decibel"))
+    ( dB      "(ln10/20) Np" "Decibel" nil
+              "(ln(10)/20) Np"))
   "List of predefined units for Calc.
 
 Each element is (NAME DEF DESC TEMP-UNIT HUMAN-DEF), where:
@@ -948,10 +949,9 @@ If COMP or STD is non-nil, put that in the units table instead."
 	  ((eq (car expr) '+)
 	   (math-find-base-units-rec (nth 1 expr) pow))
 	  ((eq (car expr) 'var)
-	   (or (eq (nth 1 expr) 'pi)
+	   (or (memq (nth 1 expr) '(pi ln10))
 	       (error "Unknown name %s in defining expression for unit %s"
 		      (nth 1 expr) (car math-fbu-entry))))
-          ((equal expr '(calcFunc-ln 10)))
 	  (t (error "Malformed defining expression for unit %s"
                     (car math-fbu-entry))))))
 
@@ -1055,9 +1055,9 @@ If COMP or STD is non-nil, put that in the units table instead."
 						math-unit-prefixes))
 				   expr)))
 	      expr)
-	  (if (eq base 'pi)
-	      (math-pi)
-	    expr)))
+	  (cond ((eq base 'pi) (math-pi))
+		((eq base 'ln10) (math-ln-10))
+		(t expr))))
     (if (or
          (Math-primp expr)
          (and (eq (car-safe expr) 'calcFunc-subscr)
