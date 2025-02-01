@@ -1861,7 +1861,7 @@ See Info node `(elisp) Integer Basics'."
       (side-effect-and-error-free-fns
        '(
          ;; alloc.c
-         bool-vector cons list make-marker purecopy record vector
+         bool-vector cons list make-marker record vector
          ;; buffer.c
          buffer-list buffer-live-p current-buffer overlay-lists overlayp
          ;; casetab.c

@@ -59,7 +59,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 #include "termhooks.h"
 #include "thread.h"
 #include "treesit.h"
-#include "puresize.h"
 #include "termchar.h"
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
@@ -356,11 +355,7 @@ enum
 static bool
 is_pure (const mps_addr_t addr)
 {
-#ifdef IN_MY_FORK
   return false;
-#else
-  return PURE_P (addr);
-#endif
 }
 
 static enum pvec_type
@@ -1645,22 +1640,6 @@ scan_ambig (mps_ss_t ss, void *start, void *end, void *closure)
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
 }
-
-#ifndef IN_MY_FORK
-static mps_res_t
-scan_pure (mps_ss_t ss, void *start, void *end, void *closure)
-{
-  MPS_SCAN_BEGIN (ss)
-  {
-    igc_assert (start == (void *) pure);
-    end = (char *) pure + pure_bytes_used_lisp;
-    if (end > start)
-      IGC_FIX_CALL (ss, scan_ambig (ss, start, end, NULL));
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-#endif
 
 static mps_res_t
 scan_bc (mps_ss_t ss, void *start, void *end, void *closure)
@@ -2979,17 +2958,6 @@ root_create_charset_table (struct igc *gc)
 		     "charset-table");
 }
 
-#ifndef IN_MY_FORK
-static void
-root_create_pure (struct igc *gc)
-{
-  void *start = &pure[0];
-  void *end = &pure[pure_dim];
-  root_create (gc, start, end, mps_rank_ambig (), scan_pure, NULL, true,
-	       "pure");
-}
-#endif
-
 static void
 root_create_thread (struct igc_thread_list *t)
 {
@@ -3419,7 +3387,6 @@ finalize_comp_unit (struct Lisp_Native_Comp_Unit *u)
 {
   unload_comp_unit (u);
   u->data_eph_relocs = NULL;
-  u->data_imp_relocs = NULL;
   u->data_relocs = NULL;
   u->comp_unit = NULL;
 }
@@ -4783,9 +4750,6 @@ make_igc (void)
   gc->immovable_fmt = make_dflt_fmt (gc);
   gc->immovable_pool = make_pool_ams (gc, gc->immovable_fmt);
 
-#ifndef IN_MY_FORK
-  root_create_pure (gc);
-#endif
   root_create_charset_table (gc);
   root_create_buffer (gc, &buffer_defaults);
   root_create_buffer (gc, &buffer_local_symbols);

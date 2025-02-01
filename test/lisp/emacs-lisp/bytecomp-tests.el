@@ -1736,6 +1736,12 @@ mountpoint (Bug#44631)."
               (set-file-modes input-file #o400)
               (set-file-modes output-file #o200)
               (set-file-modes directory #o500)
+              (skip-unless
+               (zerop (call-process
+                       bwrap nil nil nil
+                       "--ro-bind" "/" "/"
+                       "--bind" unquoted-file unquoted-file
+                       "true")))
               (with-temp-buffer
                 (let ((status (call-process
                                bwrap nil t nil

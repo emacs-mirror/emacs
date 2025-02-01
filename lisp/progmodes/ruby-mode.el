@@ -2734,20 +2734,20 @@ Currently there are `ruby-mode' and `ruby-ts-mode'."
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist
-             (cons (purecopy (concat "\\(?:\\.\\(?:"
-                                     "rbw?\\|ru\\|rake\\|thor\\|axlsx"
-                                     "\\|jbuilder\\|rabl\\|gemspec\\|podspec"
-                                     "\\)"
-                                     "\\|/"
-                                     "\\(?:Gem\\|Rake\\|Cap\\|Thor"
-                                     "\\|Puppet\\|Berks\\|Brew\\|Fast"
-                                     "\\|Vagrant\\|Guard\\|Pod\\)file"
-                                     "\\)\\'"))
+             (cons (concat "\\(?:\\.\\(?:"
+                           "rbw?\\|ru\\|rake\\|thor\\|axlsx"
+                           "\\|jbuilder\\|rabl\\|gemspec\\|podspec"
+                           "\\)"
+                           "\\|/"
+                           "\\(?:Gem\\|Rake\\|Cap\\|Thor"
+                           "\\|Puppet\\|Berks\\|Brew\\|Fast"
+                           "\\|Vagrant\\|Guard\\|Pod\\)file"
+                           "\\)\\'")
                    'ruby-mode))
 
 ;;;###autoload
 (dolist (name (list "ruby" "rbx" "jruby" "j?ruby\\(?:[0-9.]+\\)"))
-  (add-to-list 'interpreter-mode-alist (cons (purecopy name) 'ruby-mode)))
+  (add-to-list 'interpreter-mode-alist (cons name 'ruby-mode)))
 
 ;; See ruby-ts-mode.el for why we do this.
 (setq major-mode-remap-defaults

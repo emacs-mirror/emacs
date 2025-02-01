@@ -681,20 +681,12 @@ extern struct gflags
      dump.  */
   bool dumped_with_pdumper_ : 1;
 #endif
-#ifdef HAVE_UNEXEC
-  bool will_dump_with_unexec_ : 1;
-  /* Set in an Emacs process that has been restored from an unexec
-     dump.  */
-  bool dumped_with_unexec_ : 1;
-  /* We promise not to unexec: useful for hybrid malloc.  */
-  bool will_not_unexec_ : 1;
-#endif
 } gflags;
 
 INLINE bool
 will_dump_p (void)
 {
-#if HAVE_PDUMPER || defined HAVE_UNEXEC
+#if HAVE_PDUMPER
   return gflags.will_dump_;
 #else
   return false;
@@ -704,7 +696,7 @@ will_dump_p (void)
 INLINE bool
 will_bootstrap_p (void)
 {
-#if HAVE_PDUMPER || defined HAVE_UNEXEC
+#if HAVE_PDUMPER
   return gflags.will_bootstrap_;
 #else
   return false;
@@ -728,39 +720,6 @@ dumped_with_pdumper_p (void)
   return gflags.dumped_with_pdumper_;
 #else
   return false;
-#endif
-}
-
-INLINE bool
-will_dump_with_unexec_p (void)
-{
-#ifdef HAVE_UNEXEC
-  return gflags.will_dump_with_unexec_;
-#else
-  return false;
-#endif
-}
-
-INLINE bool
-dumped_with_unexec_p (void)
-{
-#ifdef HAVE_UNEXEC
-  return gflags.dumped_with_unexec_;
-#else
-  return false;
-#endif
-}
-
-/* This function is the opposite of will_dump_with_unexec_p(), except
-   that it returns false before main runs.  It's important to use
-   gmalloc for any pre-main allocations if we're going to unexec.  */
-INLINE bool
-definitely_will_not_unexec_p (void)
-{
-#ifdef HAVE_UNEXEC
-  return gflags.will_not_unexec_;
-#else
-  return true;
 #endif
 }
 
@@ -879,9 +838,6 @@ struct Lisp_Symbol
       /* True means that this variable has been explicitly declared
 	 special (with `defvar' etc), and shouldn't be lexically bound.  */
       bool_bf declared_special : 1;
-
-      /* True if pointed to from purespace and hence can't be GC'd.  */
-      bool_bf pinned : 1;
 
       /* The symbol's name, as a Lisp string.  */
       Lisp_Object name;
@@ -2800,13 +2756,9 @@ struct Lisp_Hash_Table
   /* Hash table test (only used when frozen in dump)  */
   ENUM_BF (hash_table_std_test_t) frozen_test : 2;
 
-  /* True if the table can be purecopied.  The table cannot be
-     changed afterwards.  */
-  bool_bf purecopy : 1;
-
   /* True if the table is mutable.  Ordinarily tables are mutable, but
-     pure tables are not, and while a table is being mutated it is
-     immutable for recursive attempts to mutate it.  */
+     some tables are not: while a table is being mutated it is immutable
+     for recursive attempts to mutate it.  */
   bool_bf mutable : 1;
 
   /* Next weak hash table if this is a weak hash table.  The head of
@@ -3691,14 +3643,10 @@ CHECK_SUBR (Lisp_Object x)
 /* If we're not dumping using the legacy dumper and we might be using
    the portable dumper, try to bunch all the subr structures together
    for more efficient dump loading.  */
-#ifndef HAVE_UNEXEC
-# ifdef DARWIN_OS
-#  define SUBR_SECTION_ATTRIBUTE ATTRIBUTE_SECTION ("__DATA,subrs")
-# else
-#  define SUBR_SECTION_ATTRIBUTE ATTRIBUTE_SECTION (".subrs")
-# endif
+#ifdef DARWIN_OS
+# define SUBR_SECTION_ATTRIBUTE ATTRIBUTE_SECTION ("__DATA,subrs")
 #else
-# define SUBR_SECTION_ATTRIBUTE
+# define SUBR_SECTION_ATTRIBUTE ATTRIBUTE_SECTION (".subrs")
 #endif
 
 /* Define a built-in function for calling from Lisp.
@@ -4590,7 +4538,7 @@ extern char *extract_data_from_object (Lisp_Object, ptrdiff_t *, ptrdiff_t *);
 EMACS_UINT hash_string (char const *, ptrdiff_t);
 EMACS_UINT sxhash (Lisp_Object);
 Lisp_Object make_hash_table (const struct hash_table_test *, EMACS_INT,
-                             hash_table_weakness_t, bool);
+                             hash_table_weakness_t);
 Lisp_Object hash_table_weakness_symbol (hash_table_weakness_t weak);
 ptrdiff_t hash_lookup (struct Lisp_Hash_Table *, Lisp_Object);
 ptrdiff_t hash_lookup_get_hash (struct Lisp_Hash_Table *h, Lisp_Object key,
@@ -4779,8 +4727,6 @@ extern ptrdiff_t pure_bytes_used_lisp;
 struct Lisp_Vector *allocate_vectorlike (ptrdiff_t len, bool clearit);
 extern void run_finalizer_function (Lisp_Object function);
 extern intptr_t garbage_collection_inhibited;
-extern void *my_heap_start (void);
-extern void check_pure_size (void);
 unsigned char *resize_string_data (Lisp_Object, ptrdiff_t, int, int);
 extern void malloc_warning (const char *);
 extern AVOID memory_full (size_t);
@@ -4788,11 +4734,9 @@ extern AVOID buffer_memory_full (ptrdiff_t);
 extern bool survives_gc_p (Lisp_Object);
 extern void mark_object (Lisp_Object);
 extern void mark_objects (Lisp_Object *, ptrdiff_t);
-#if defined REL_ALLOC && !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
+#if defined REL_ALLOC && !defined SYSTEM_MALLOC
 extern void refill_memory_reserve (void);
 #endif
-extern void alloc_unexec_pre (void);
-extern void alloc_unexec_post (void);
 extern void mark_c_stack (char const *, char const *);
 extern void flush_stack_call_func1 (void (*func) (void *arg), void *arg);
 extern void mark_memory (void const *start, void const *end);
@@ -4845,11 +4789,8 @@ extern Lisp_Object list4 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
 extern Lisp_Object list5 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object,
 			  Lisp_Object);
 extern Lisp_Object listn (ptrdiff_t, Lisp_Object, ...);
-extern Lisp_Object pure_listn (ptrdiff_t, Lisp_Object, ...);
 #define list(...) \
   listn (ARRAYELTS (((Lisp_Object []) {__VA_ARGS__})), __VA_ARGS__)
-#define pure_list(...) \
-  pure_listn (ARRAYELTS (((Lisp_Object []) {__VA_ARGS__})), __VA_ARGS__)
 
 enum gc_root_type
 {
@@ -4923,17 +4864,7 @@ extern Lisp_Object make_uninit_multibyte_string (EMACS_INT, EMACS_INT);
 extern Lisp_Object make_string_from_bytes (const char *, ptrdiff_t, ptrdiff_t);
 extern Lisp_Object make_specified_string (const char *,
 					  ptrdiff_t, ptrdiff_t, bool);
-extern Lisp_Object make_pure_string (const char *, ptrdiff_t, ptrdiff_t, bool);
-extern Lisp_Object make_pure_c_string (const char *, ptrdiff_t);
 extern void pin_string (Lisp_Object string);
-
-/* Make a string allocated in pure space, use STR as string data.  */
-
-INLINE Lisp_Object
-build_pure_c_string (const char *str)
-{
-  return make_pure_c_string (str, strlen (str));
-}
 
 /* Make a string from the data at STR, treating it as multibyte if the
    data warrants.  */
@@ -4944,7 +4875,6 @@ build_string (const char *str)
   return make_string (str, strlen (str));
 }
 
-extern Lisp_Object pure_cons (Lisp_Object, Lisp_Object);
 extern Lisp_Object make_vector (ptrdiff_t, Lisp_Object);
 extern struct Lisp_Vector *allocate_nil_vector (ptrdiff_t)
   ATTRIBUTE_RETURNS_NONNULL;
@@ -5039,7 +4969,7 @@ Lisp_Object *hash_table_alloc_kv (void *h, ptrdiff_t nobjs);
 void hash_table_free_kv (void *h, Lisp_Object *p);
 
 /* Defined in gmalloc.c.  */
-#if !defined DOUG_LEA_MALLOC && !defined HYBRID_MALLOC && !defined SYSTEM_MALLOC
+#if !defined DOUG_LEA_MALLOC && !defined SYSTEM_MALLOC
 extern size_t __malloc_extra_blocks;
 #endif
 #if !HAVE_DECL_ALIGNED_ALLOC
@@ -5305,49 +5235,6 @@ extern bool let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol);
 void do_debug_on_call (Lisp_Object code, specpdl_ref count);
 Lisp_Object funcall_general (Lisp_Object fun,
 			     ptrdiff_t numargs, Lisp_Object *args);
-
-/* Defined in unexmacosx.c.  */
-#if defined DARWIN_OS && defined HAVE_UNEXEC
-/* Redirect calls to malloc, realloc and free to a macOS zone memory allocator.
-   FIXME: Either also redirect unexec_aligned_alloc and unexec_calloc,
-   or fix this comment to explain why those two redirections are not needed.  */
-extern void unexec_init_emacs_zone (void);
-extern void *unexec_malloc (size_t);
-extern void *unexec_realloc (void *, size_t);
-extern void unexec_free (void *);
-# ifndef UNEXMACOSX_C
-#  include <stdlib.h>
-#  undef malloc
-#  undef realloc
-#  undef free
-#  define malloc unexec_malloc
-#  define realloc unexec_realloc
-#  define free unexec_free
-# endif
-#endif
-
-/* Defined in gmalloc.c.  */
-#ifdef HYBRID_MALLOC
-/* Redirect calls to malloc and friends to a hybrid allocator that
-   uses gmalloc before dumping and the system malloc after dumping.
-   This can be useful on Cygwin, for example.  */
-extern void *hybrid_aligned_alloc (size_t, size_t);
-extern void *hybrid_calloc (size_t, size_t);
-extern void *hybrid_malloc (size_t);
-extern void *hybrid_realloc (void *, size_t);
-extern void hybrid_free (void *);
-# include <stdlib.h>
-# undef aligned_alloc
-# undef calloc
-# undef malloc
-# undef realloc
-# undef free
-# define aligned_alloc hybrid_aligned_alloc
-# define calloc hybrid_calloc
-# define malloc hybrid_malloc
-# define realloc hybrid_realloc
-# define free hybrid_free
-#endif
 
 /* The definition of Lisp_Module_Function depends on emacs-module.h,
    so we don't define it here.  It's defined in emacs-module.c.  */
@@ -5999,7 +5886,7 @@ INLINE struct Lisp_Native_Comp_Unit *
 allocate_native_comp_unit (void)
 {
   return ALLOCATE_ZEROED_PSEUDOVECTOR (struct Lisp_Native_Comp_Unit,
-				       data_impure_vec, PVEC_NATIVE_COMP_UNIT);
+				       data_vec, PVEC_NATIVE_COMP_UNIT);
 }
 #else
 INLINE bool

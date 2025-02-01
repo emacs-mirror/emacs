@@ -41,7 +41,7 @@
 
 ;; The `assert' macro from the cl package signals
 ;; `cl-assertion-failed' at runtime so always define it.
-(define-error 'cl-assertion-failed (purecopy "Assertion failed"))
+(define-error 'cl-assertion-failed "Assertion failed")
 
 (defun cl--assertion-failed (form &optional string sargs args)
   (if debug-on-error
@@ -183,20 +183,7 @@
     (add-to-list 'current-load-list `(define-type . ,name))
     (cl--struct-register-child parent-class tag)
     (unless (or (eq named t) (eq tag name))
-      ;; We used to use `defconst' instead of `set' but that
-      ;; has a side-effect of purecopying during the dump, so that the
-      ;; class object stored in the tag ends up being a *copy* of the
-      ;; one stored in the `cl--class' property!  We could have fixed
-      ;; this needless duplication by using the purecopied object, but
-      ;; that then breaks down a bit later when we modify the
-      ;; cl-structure-class class object to close the recursion
-      ;; between cl-structure-object and cl-structure-class (because
-      ;; modifying purecopied objects is not allowed.  Since this is
-      ;; done during dumping, we could relax this rule and allow the
-      ;; modification, but it's cumbersome).
-      ;; So in the end, it's easier to just avoid the duplication by
-      ;; avoiding the use of the purespace here.
-      (set tag class)
+      (eval `(defconst ,tag ',class) t)
       ;; In the cl-generic support, we need to be able to check
       ;; if a vector is a cl-struct object, without knowing its particular type.
       ;; So we use the (otherwise) unused function slots of the tag symbol

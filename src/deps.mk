@@ -92,7 +92,7 @@ editfns.o: editfns.c window.h buffer.h systime.h $(INTERVALS_H) character.h \
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
    termhooks.h buffer.h atimer.h systime.h $(INTERVALS_H) lisp.h $(config_h) \
    globals.h ../lib/unistd.h window.h dispextern.h keyboard.h keymap.h \
-   frame.h coding.h gnutls.h msdos.h dosfns.h unexec.h
+   frame.h coding.h gnutls.h msdos.h dosfns.h
 fileio.o: fileio.c window.h buffer.h systime.h $(INTERVALS_H) character.h \
    coding.h msdos.h blockinput.h atimer.h lisp.h $(config_h) frame.h \
    commands.h globals.h ../lib/unistd.h
@@ -132,12 +132,11 @@ insdel.o: insdel.c window.h buffer.h $(INTERVALS_H) blockinput.h character.h \
 keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h character.h \
    commands.h frame.h window.h macros.h disptab.h keyboard.h syssignal.h \
    systime.h syntax.h $(INTERVALS_H) blockinput.h atimer.h composite.h \
-   xterm.h puresize.h msdos.h keymap.h w32term.h nsterm.h nsgui.h coding.h \
+   xterm.h msdos.h keymap.h w32term.h nsterm.h nsgui.h coding.h \
    process.h ../lib/unistd.h gnutls.h lisp.h globals.h $(config_h)
 keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
-   atimer.h systime.h puresize.h character.h charset.h $(INTERVALS_H) \
+   atimer.h systime.h character.h charset.h $(INTERVALS_H) \
    keymap.h window.h coding.h frame.h lisp.h globals.h $(config_h)
-lastfile.o: lastfile.c $(config_h)
 macros.o: macros.c window.h buffer.h commands.h macros.h keyboard.h msdos.h \
    dispextern.h lisp.h globals.h $(config_h) systime.h coding.h composite.h
 gmalloc.o: gmalloc.c $(config_h)
@@ -202,14 +201,6 @@ terminfo.o: terminfo.c tparam.h lisp.h globals.h $(config_h)
 tparam.o: tparam.c tparam.h lisp.h $(config_h)
 undo.o: undo.c buffer.h commands.h window.h dispextern.h msdos.h \
    lisp.h globals.h $(config_h)
-unexaix.o: unexaix.c lisp.h unexec.h $(config_h)
-unexcw.o: unexcw.c lisp.h unexec.h $(config_h)
-unexcoff.o: unexcoff.c lisp.h unexec.h $(config_h)
-unexelf.o: unexelf.c unexec.h ../lib/unistd.h $(config_h)
-unexhp9k800.o: unexhp9k800.c unexec.h $(config_h)
-unexmacosx.o: unexmacosx.c unexec.h $(config_h)
-unexsol.o: unexsol.c lisp.h unexec.h $(config_h)
-unexw32.o: unexw32.c unexec.h $(config_h)
 w16select.o: w16select.c dispextern.h frame.h blockinput.h atimer.h systime.h \
    msdos.h buffer.h charset.h coding.h composite.h lisp.h $(config_h)
 widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h \
@@ -267,12 +258,12 @@ xsettings.o: xterm.h xsettings.h lisp.h frame.h termhooks.h $(config_h) \
    atimer.h termopts.h globals.h
 
 ## The files of Lisp proper.
-alloc.o: alloc.c process.h frame.h window.h buffer.h  puresize.h syssignal.h \
+alloc.o: alloc.c process.h frame.h window.h buffer.h syssignal.h \
    keyboard.h blockinput.h atimer.h systime.h character.h lisp.h $(config_h) \
    $(INTERVALS_H) termhooks.h gnutls.h coding.h ../lib/unistd.h globals.h
 bytecode.o: bytecode.c buffer.h syntax.h character.h window.h dispextern.h \
   lisp.h globals.h $(config_h) msdos.h
-data.o: data.c buffer.h puresize.h character.h syssignal.h keyboard.h frame.h \
+data.o: data.c buffer.h character.h syssignal.h keyboard.h frame.h \
    termhooks.h systime.h coding.h composite.h dispextern.h font.h ccl.h \
    lisp.h globals.h $(config_h) msdos.h
 eval.o: eval.c commands.h keyboard.h blockinput.h atimer.h systime.h frame.h \
@@ -295,7 +286,7 @@ lread.o: lread.c commands.h keyboard.h buffer.h epaths.h character.h \
 composite.o: composite.c composite.h buffer.h character.h coding.h font.h \
    ccl.h frame.h termhooks.h $(INTERVALS_H) window.h \
    lisp.h globals.h $(config_h)
-intervals.o: intervals.c buffer.h $(INTERVALS_H) keyboard.h puresize.h \
+intervals.o: intervals.c buffer.h $(INTERVALS_H) keyboard.h \
    keymap.h lisp.h globals.h $(config_h) systime.h coding.h
 textprop.o: textprop.c buffer.h window.h $(INTERVALS_H) \
    lisp.h globals.h $(config_h)

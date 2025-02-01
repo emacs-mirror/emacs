@@ -503,11 +503,7 @@ use of `macroexpand-all' as a way to find the \"underlying raw code\".")
                              var))
                       vars))))))
 
-(defvar elisp--local-variables-completion-table
-  ;; Use `defvar' rather than `defconst' since defconst would purecopy this
-  ;; value, which would doubly fail: it would fail because purecopy can't
-  ;; handle the recursive bytecode object, and it would fail because it would
-  ;; move `lastpos' and `lastvars' to pure space where they'd be immutable!
+(defconst elisp--local-variables-completion-table
   (let ((lastpos nil) (lastvars nil))
     (letrec ((hookfun (lambda ()
                         (setq lastpos nil)

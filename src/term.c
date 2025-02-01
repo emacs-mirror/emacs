@@ -2768,8 +2768,8 @@ term_mouse_click (struct input_event *result, Gpm_Event *event,
 int
 handle_one_term_event (struct tty_display_info *tty, const Gpm_Event *event_in)
 {
-  int child_x, child_y;
-  Lisp_Object frame = tty_frame_at (event_in->x, event_in->y, &child_x, &child_y);
+  int child_x = event_in->x, child_y = event_in->y;
+  Lisp_Object frame = tty_frame_at (child_x, child_y, &child_x, &child_y);
   Gpm_Event event = *event_in;
   event.x = child_x;
   event.y = child_y;

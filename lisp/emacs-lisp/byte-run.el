@@ -543,7 +543,7 @@ was first made obsolete, for example a date or a release number."
   (put obsolete-name 'byte-obsolete-info
        ;; The second entry used to hold the `byte-compile' handler, but
        ;; is not used any more nowadays.
-       (purecopy (list current-name nil when)))
+       (list current-name nil when))
   obsolete-name)
 
 (defmacro define-obsolete-function-alias ( obsolete-name current-name when
@@ -579,7 +579,7 @@ ACCESS-TYPE if non-nil should specify the kind of access that will trigger
   obsolescence warnings; it can be either `get' or `set'."
   (byte-run--constant-obsolete-warning obsolete-name)
   (put obsolete-name 'byte-obsolete-variable
-       (purecopy (list current-name access-type when)))
+       (list current-name access-type when))
   obsolete-name)
 
 (defmacro define-obsolete-variable-alias ( obsolete-name current-name when
@@ -634,7 +634,7 @@ obsolete, for example a date or a release number."
   `(progn
      (put ,obsolete-face 'face-alias ,current-face)
      ;; Used by M-x describe-face.
-     (put ,obsolete-face 'obsolete-face (or (purecopy ,when) t))))
+     (put ,obsolete-face 'obsolete-face (or ,when t))))
 
 (defmacro dont-compile (&rest body)
   "Like `progn', but the body always runs interpreted (not compiled).

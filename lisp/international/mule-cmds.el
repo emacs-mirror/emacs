@@ -59,97 +59,97 @@
 
 (defvar describe-language-environment-map
   (let ((map (make-sparse-keymap "Describe Language Environment")))
-    (bindings--define-key map
+    (define-key map
       [Default] '(menu-item "Default" describe-specified-language-support))
     map))
 
 (defvar setup-language-environment-map
   (let ((map (make-sparse-keymap "Set Language Environment")))
-    (bindings--define-key map
+    (define-key map
       [Default] '(menu-item "Default" setup-specified-language-environment))
     map))
 
 (defvar set-coding-system-map
   (let ((map (make-sparse-keymap "Set Coding System")))
-    (bindings--define-key map [set-buffer-process-coding-system]
+    (define-key map [set-buffer-process-coding-system]
       '(menu-item "For I/O with Subprocess" set-buffer-process-coding-system
         :visible (fboundp 'make-process)
         :enable (get-buffer-process (current-buffer))
         :help "How to en/decode I/O from/to subprocess connected to this buffer"))
-    (bindings--define-key map [set-next-selection-coding-system]
+    (define-key map [set-next-selection-coding-system]
       '(menu-item "For Next X Selection" set-next-selection-coding-system
         :visible (display-selections-p)
         :help "How to en/decode next selection/clipboard operation"))
-    (bindings--define-key map [set-selection-coding-system]
+    (define-key map [set-selection-coding-system]
       '(menu-item "For X Selections/Clipboard" set-selection-coding-system
         :visible (display-selections-p)
         :help "How to en/decode data to/from selection/clipboard"))
 
-    (bindings--define-key map [separator-3] menu-bar-separator)
-    (bindings--define-key map [set-terminal-coding-system]
+    (define-key map [separator-3] menu-bar-separator)
+    (define-key map [set-terminal-coding-system]
       '(menu-item "For Terminal" set-terminal-coding-system
         :enable (null (memq initial-window-system '(x w32 ns haiku pgtk
 						    android)))
         :help "How to encode terminal output"))
-    (bindings--define-key map [set-keyboard-coding-system]
+    (define-key map [set-keyboard-coding-system]
       '(menu-item "For Keyboard" set-keyboard-coding-system
         :help "How to decode keyboard input"))
 
-    (bindings--define-key map [separator-2] menu-bar-separator)
-    (bindings--define-key map [set-file-name-coding-system]
+    (define-key map [separator-2] menu-bar-separator)
+    (define-key map [set-file-name-coding-system]
       '(menu-item "For File Name" set-file-name-coding-system
         :help "How to decode/encode file names"))
-    (bindings--define-key map [revert-buffer-with-coding-system]
+    (define-key map [revert-buffer-with-coding-system]
       '(menu-item "For Reverting This File Now"
         revert-buffer-with-coding-system
         :enable buffer-file-name
         :help "Revisit this file immediately using specified coding system"))
-    (bindings--define-key map [set-buffer-file-coding-system]
+    (define-key map [set-buffer-file-coding-system]
       '(menu-item "For Saving This Buffer" set-buffer-file-coding-system
         :help "How to encode this buffer when saved"))
-    (bindings--define-key map [separator-1] menu-bar-separator)
-    (bindings--define-key map [universal-coding-system-argument]
+    (define-key map [separator-1] menu-bar-separator)
+    (define-key map [universal-coding-system-argument]
       '(menu-item "For Next Command" universal-coding-system-argument
         :help "Coding system to be used by next command"))
     map))
 
 (defvar mule-menu-keymap
   (let ((map (make-sparse-keymap "Mule (Multilingual Environment)")))
-    (bindings--define-key map [mule-diag]
+    (define-key map [mule-diag]
       '(menu-item "Show All Multilingual Settings" mule-diag
         :help "Display multilingual environment settings"))
-    (bindings--define-key map [list-character-sets]
+    (define-key map [list-character-sets]
       '(menu-item "List Character Sets" list-character-sets
         :help "Show table of available character sets"))
-    (bindings--define-key map [describe-coding-system]
+    (define-key map [describe-coding-system]
       '(menu-item "Describe Coding System..." describe-coding-system))
-    (bindings--define-key map [describe-input-method]
+    (define-key map [describe-input-method]
       '(menu-item "Describe Input Method..." describe-input-method
         :help "Keyboard layout for a specific input method"))
-    (bindings--define-key map [describe-language-environment]
+    (define-key map [describe-language-environment]
       `(menu-item "Describe Language Environment"
             ,describe-language-environment-map
             :help "Show multilingual settings for a specific language"))
 
-    (bindings--define-key map [separator-coding-system] menu-bar-separator)
-    (bindings--define-key map [view-hello-file]
+    (define-key map [separator-coding-system] menu-bar-separator)
+    (define-key map [view-hello-file]
       '(menu-item "Show Multilingual Sample Text" view-hello-file
         :enable (file-readable-p
                  (expand-file-name "HELLO" data-directory))
         :help "Demonstrate various character sets"))
-    (bindings--define-key map [set-various-coding-system]
+    (define-key map [set-various-coding-system]
       `(menu-item "Set Coding Systems" ,set-coding-system-map))
 
-    (bindings--define-key map [separator-input-method] menu-bar-separator)
-    (bindings--define-key map [activate-transient-input-method]
+    (define-key map [separator-input-method] menu-bar-separator)
+    (define-key map [activate-transient-input-method]
       '(menu-item "Transient Input Method" activate-transient-input-method))
-    (bindings--define-key map [set-input-method]
+    (define-key map [set-input-method]
       '(menu-item "Select Input Method..." set-input-method))
-    (bindings--define-key map [toggle-input-method]
+    (define-key map [toggle-input-method]
       '(menu-item "Toggle Input Method" toggle-input-method))
 
-    (bindings--define-key map [separator-mule] menu-bar-separator)
-    (bindings--define-key map [set-language-environment]
+    (define-key map [separator-mule] menu-bar-separator)
+    (define-key map [set-language-environment]
       `(menu-item  "Set Language Environment" ,setup-language-environment-map))
     map)
   "Keymap for Mule (Multilingual environment) menu specific commands.")
@@ -169,14 +169,14 @@
 
 ;;; Mule related hyperlinks.
 (defconst help-xref-mule-regexp-template
-  (purecopy (concat "\\(\\<\\("
-		    "\\(coding system\\)\\|"
-		    "\\(input method\\)\\|"
-		    "\\(character set\\)\\|"
-		    "\\(charset\\)"
-		    "\\)\\s-+\\)?"
-		    ;; Note starting with word-syntax character:
-		    "['`‘]\\(\\sw\\(\\sw\\|\\s_\\)+\\)['’]")))
+  (concat "\\(\\<\\("
+          "\\(coding system\\)\\|"
+          "\\(input method\\)\\|"
+          "\\(character set\\)\\|"
+          "\\(charset\\)"
+          "\\)\\s-+\\)?"
+          ;; Note starting with word-syntax character:
+          "['`‘]\\(\\sw\\(\\sw\\|\\s_\\)+\\)['’]"))
 
 (defun coding-system-change-eol-conversion (coding-system eol-type)
   "Return a coding system which differs from CODING-SYSTEM in EOL conversion.
@@ -1201,7 +1201,7 @@ Arguments are the same as `set-language-info'."
 	(progn
 	  (setq key-slot (list key))
 	  (setcdr lang-slot (cons key-slot (cdr lang-slot)))))
-    (setcdr key-slot (purecopy info))
+    (setcdr key-slot info)
     ;; Update the custom-type of `current-language-environment'.
     (put 'current-language-environment 'custom-type
 	 (cons 'choice (mapcar
@@ -1229,10 +1229,8 @@ where to put this language environment in the
 Describe Language Environment and Set Language Environment menus.
 For example, (\"European\") means to put this language environment
 in the European submenu in each of those two menus."
-  (cond ((symbolp lang-env)
-	 (setq lang-env (symbol-name lang-env)))
-	((stringp lang-env)
-	 (setq lang-env (purecopy lang-env))))
+  (when (symbolp lang-env)
+    (setq lang-env (symbol-name lang-env)))
   (if parents
       (while parents
 	(let (describe-map setup-map parent-symbol parent prompt)
@@ -1439,13 +1437,11 @@ The commands `describe-input-method' and `list-input-methods' need
 these duplicated values to show some information about input methods
 without loading the relevant Quail packages.
 \n(fn INPUT-METHOD LANG-ENV ACTIVATE-FUNC TITLE DESCRIPTION &rest ARGS)"
-  (setq lang-env (if (symbolp lang-env)
-                     (symbol-name lang-env)
-                   (purecopy lang-env)))
-  (setq input-method (if (symbolp input-method)
-                         (symbol-name input-method)
-                       (purecopy input-method)))
-  (setq args (mapcar #'purecopy args))
+
+  (when (symbolp lang-env)
+    (setq lang-env (symbol-name lang-env)))
+  (when (symbolp input-method)
+    (setq input-method (symbol-name input-method)))
   (let ((info (cons lang-env args))
 	(slot (assoc input-method input-method-alist)))
     (if slot
@@ -2252,12 +2248,8 @@ See `set-language-info-alist' for use in programs."
 (defvar locale-translation-file-name nil
   "File name for the system's file of locale-name aliases, or nil if none.")
 
-;; The following definitions might as well be marked as constants and
-;; purecopied, since they're normally used on startup, and probably
-;; should reflect the facilities of the base Emacs.
 (defconst locale-language-names
-  (purecopy
-   '(
+  '(
      ;; Locale names of the form LANGUAGE[_TERRITORY][.CODESET][@MODIFIER]
      ;; as specified in the Single Unix Spec, Version 2.
      ;; LANGUAGE is a language code taken from ISO 639:1988 (E/F)
@@ -2515,7 +2507,7 @@ See `set-language-info-alist' for use in programs."
     ; mwk  MS-Windows Mohawk (Canada)
     ("uig" . "UTF-8") ; MS-Windows Uighur
     ("kin" . "UTF-8") ;  MS-Windows Kinyarwanda
-    ))
+    )
   "Alist of locale regexps vs the corresponding languages and coding systems.
 Each element has this form:
   (LOCALE-REGEXP LANG-ENV CODING-SYSTEM)
@@ -2528,18 +2520,17 @@ In this case, LANG-ENV is one of generic language environments for an
 specific encoding such as \"Latin-1\" and \"UTF-8\".")
 
 (defconst locale-charset-language-names
-  (purecopy
-   '((".*8859[-_]?1\\>" . "Latin-1")
-     (".*8859[-_]?2\\>" . "Latin-2")
-     (".*8859[-_]?3\\>" . "Latin-3")
-     (".*8859[-_]?4\\>" . "Latin-4")
-     (".*8859[-_]?9\\>" . "Latin-5")
-     (".*8859[-_]?14\\>" . "Latin-8")
-     (".*8859[-_]?15\\>" . "Latin-9")
-     (".*utf\\(?:-?8\\)?\\>" . "UTF-8")
-     ;; utf-8@euro exists, so put this last.  (@euro really specifies
-     ;; the currency, rather than the charset.)
-     (".*@euro\\>" . "Latin-9")))
+  '((".*8859[-_]?1\\>" . "Latin-1")
+    (".*8859[-_]?2\\>" . "Latin-2")
+    (".*8859[-_]?3\\>" . "Latin-3")
+    (".*8859[-_]?4\\>" . "Latin-4")
+    (".*8859[-_]?9\\>" . "Latin-5")
+    (".*8859[-_]?14\\>" . "Latin-8")
+    (".*8859[-_]?15\\>" . "Latin-9")
+    (".*utf\\(?:-?8\\)?\\>" . "UTF-8")
+    ;; utf-8@euro exists, so put this last.  (@euro really specifies
+    ;; the currency, rather than the charset.)
+    (".*@euro\\>" . "Latin-9"))
   "List of pairs of locale regexps and charset language names.
 The first element whose locale regexp matches the start of a downcased locale
 specifies the language name whose charset corresponds to that locale.
@@ -2547,34 +2538,33 @@ This language name is used if the locale is not listed in
 `locale-language-names'.")
 
 (defconst locale-preferred-coding-systems
-  (purecopy
-   '((".*8859[-_]?1\\>" . iso-8859-1)
-     (".*8859[-_]?2\\>" . iso-8859-2)
-     (".*8859[-_]?3\\>" . iso-8859-3)
-     (".*8859[-_]?4\\>" . iso-8859-4)
-     (".*8859[-_]?9\\>" . iso-8859-9)
-     (".*8859[-_]?14\\>" . iso-8859-14)
-     (".*8859[-_]?15\\>" . iso-8859-15)
-     (".*utf\\(?:-?8\\)?" . utf-8)
-     ;; utf-8@euro exists, so put this after utf-8.  (@euro really
-     ;; specifies the currency, rather than the charset.)
-     (".*@euro" . iso-8859-15)
-     ("koi8-?r" . koi8-r)
-     ("koi8-?u" . koi8-u)
-     ("tcvn" . tcvn)
-     ("big5[-_]?hkscs" . big5-hkscs)
-     ("big5" . big5)
-     ("euc-?tw" . euc-tw)
-     ("euc-?cn" . euc-cn)
-     ("gb2312" . gb2312)
-     ("gbk" . gbk)
-     ("gb18030" . gb18030)
-     ("ja.*[._]euc" . japanese-iso-8bit)
-     ("ja.*[._]jis7" . iso-2022-jp)
-     ("ja.*[._]pck" . japanese-shift-jis)
-     ("ja.*[._]sjis" . japanese-shift-jis)
-     ("jpn" . japanese-shift-jis)   ; MS-Windows uses this.
-     ))
+  '((".*8859[-_]?1\\>" . iso-8859-1)
+    (".*8859[-_]?2\\>" . iso-8859-2)
+    (".*8859[-_]?3\\>" . iso-8859-3)
+    (".*8859[-_]?4\\>" . iso-8859-4)
+    (".*8859[-_]?9\\>" . iso-8859-9)
+    (".*8859[-_]?14\\>" . iso-8859-14)
+    (".*8859[-_]?15\\>" . iso-8859-15)
+    (".*utf\\(?:-?8\\)?" . utf-8)
+    ;; utf-8@euro exists, so put this after utf-8.  (@euro really
+    ;; specifies the currency, rather than the charset.)
+    (".*@euro" . iso-8859-15)
+    ("koi8-?r" . koi8-r)
+    ("koi8-?u" . koi8-u)
+    ("tcvn" . tcvn)
+    ("big5[-_]?hkscs" . big5-hkscs)
+    ("big5" . big5)
+    ("euc-?tw" . euc-tw)
+    ("euc-?cn" . euc-cn)
+    ("gb2312" . gb2312)
+    ("gbk" . gbk)
+    ("gb18030" . gb18030)
+    ("ja.*[._]euc" . japanese-iso-8bit)
+    ("ja.*[._]jis7" . iso-2022-jp)
+    ("ja.*[._]pck" . japanese-shift-jis)
+    ("ja.*[._]sjis" . japanese-shift-jis)
+    ("jpn" . japanese-shift-jis)   ; MS-Windows uses this.
+    )
   "List of pairs of locale regexps and preferred coding systems.
 The first element whose locale regexp matches the start of a downcased locale
 specifies the coding system to prefer when using that locale.
@@ -2965,7 +2955,6 @@ See also the documentation of `get-char-code-property' and
 	  (error "Invalid char-table: %s" table))
     (or (stringp table)
 	(error "Not a char-table nor a file name: %s" table)))
-  (if (stringp table) (setq table (purecopy table)))
   (if (and (stringp table)
            (char-table-p (alist-get name char-code-property-alist)))
       ;; The table is already setup and we're apparently trying to
@@ -2973,7 +2962,7 @@ See also the documentation of `get-char-code-property' and
       ;; Just skip it, in order to work around a recursive load (bug#52945).
       nil
     (setf (alist-get name char-code-property-alist) table)
-    (put name 'char-code-property-documentation (purecopy docstring))))
+    (put name 'char-code-property-documentation docstring)))
 
 (defvar char-code-property-table
   (make-char-table 'char-code-property-table)

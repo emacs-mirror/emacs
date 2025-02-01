@@ -377,7 +377,6 @@ If REALNAME is nil, ignore that author.")
     "nnmaildir\\.el"
     "nnil\\.el"
     "b2m\\.c"
-    "unexhp9k800\\.c"
     "emacsclient\\.1"
     "check-doc-strings")
   "List of regexps matching files for which the FSF doesn't need papers.")

@@ -115,7 +115,7 @@ is called to let you enter the search string, and RET terminates editing
 and does a nonincremental search.)"
   :type 'boolean)
 
-(defcustom search-whitespace-regexp (purecopy "[ \t]+")
+(defcustom search-whitespace-regexp "[ \t]+"
   "If non-nil, regular expression to match a sequence of whitespace chars.
 When you enter a space or spaces in the incremental search, it
 will match any sequence matched by this regexp.  As an exception,
@@ -497,7 +497,7 @@ this variable is nil.")
 (eval-when-compile (require 'help-macro))
 
 (make-help-screen isearch-help-for-help-internal
-  (purecopy "Type a help option: [bkm] or ?")
+  "Type a help option: [bkm] or ?"
   "You have typed %THIS-KEY%, the help character.  Type a Help option:
 \(Type \\<isearch-help-map>\\[help-quit] to exit the Help command.)
 

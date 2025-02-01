@@ -2494,7 +2494,7 @@ dump_symbol (struct dump_context *ctx,
              Lisp_Object object,
              dump_off offset)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Symbol_78773EECA2
+#if CHECK_STRUCTS && !defined HASH_Lisp_Symbol_E0ADAF2F24
 # error "Lisp_Symbol changed. See CHECK_STRUCTS comment in config.h."
 #endif
 #if CHECK_STRUCTS && !defined (HASH_symbol_redirect_EA72E4BFF5)
@@ -2533,7 +2533,6 @@ dump_symbol (struct dump_context *ctx,
   DUMP_FIELD_COPY (&out, symbol, u.s.trapped_write);
   DUMP_FIELD_COPY (&out, symbol, u.s.interned);
   DUMP_FIELD_COPY (&out, symbol, u.s.declared_special);
-  DUMP_FIELD_COPY (&out, symbol, u.s.pinned);
   dump_field_lv (ctx, &out, symbol, &symbol->u.s.name, WEIGHT_STRONG);
   switch (symbol->u.s.redirect)
     {
@@ -2806,7 +2805,6 @@ dump_hash_table (struct dump_context *ctx, Lisp_Object object)
   dump_pseudovector_lisp_fields (ctx, &out->header, &hash->header);
   DUMP_FIELD_COPY (out, hash, count);
   DUMP_FIELD_COPY (out, hash, weakness);
-  DUMP_FIELD_COPY (out, hash, purecopy);
   DUMP_FIELD_COPY (out, hash, mutable);
   DUMP_FIELD_COPY (out, hash, frozen_test);
   if (hash->key)
@@ -4327,12 +4325,6 @@ types.  */)
            "contributing a patch to Emacs.");
 #endif
 
-  if (will_dump_with_unexec_p ())
-    error ("This Emacs instance was started under the assumption "
-           "that it would be dumped with unexec, not the portable "
-           "dumper.  Dumping with the portable dumper may produce "
-           "unexpected results.");
-
   if (!main_thread_p (current_thread))
     error ("This function can be called only in the main thread");
 
@@ -4342,10 +4334,6 @@ types.  */)
 #ifdef HAVE_NATIVE_COMP
   calln (intern_c_string ("load--fixup-all-elns"));
 #endif
-
-#ifndef HAVE_MPS
-  check_pure_size ();
-# endif
 
 # ifndef HAVE_MPS
   /* I don't think this can be guaranteed to work with MPS.
@@ -5832,13 +5820,13 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	if (!NILP (lambda_data_idx))
 	  {
 	    /* This is an anonymous lambda.
-	       We must fixup d_reloc_imp so the lambda can be referenced
+	       We must fixup d_reloc so the lambda can be referenced
 	       by code.  */
 	    Lisp_Object tem;
 	    XSETSUBR (tem, subr);
 	    Lisp_Object *fixup =
-	      &(comp_u->data_imp_relocs[XFIXNUM (lambda_data_idx)]);
-	    eassert (EQ (*fixup, Qlambda_fixup));
+	      &(comp_u->data_relocs[XFIXNUM (lambda_data_idx)]);
+	    eassert (EQ (*fixup, Q__lambda_fixup));
 	    *fixup = tem;
 	    Fputhash (tem, Qt, comp_u->lambda_gc_guard_h);
 	  }

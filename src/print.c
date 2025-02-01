@@ -2759,9 +2759,6 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 			      printcharfun, escapeflag);
 	      }
 
-	    if (h->purecopy)
-	      print_c_string (" purecopy t", printcharfun);
-
 	  hash_table_data:
 	    if (h->count > 0)
 	      {

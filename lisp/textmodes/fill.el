@@ -103,7 +103,7 @@ reinserts the fill prefix in each resulting line."
   ;; Added `%' for TeX comments.
   ;; RMS: deleted the code to match `1.' and `(1)'.
   ;; Update mail-mode's paragraph-separate if you change this.
-  (purecopy "[-–!|#%;>*·•‣⁃◦ \t]*")
+  "[-–!|#%;>*·•‣⁃◦ \t]*"
   "Regexp to match text at start of line that constitutes indentation.
 If Adaptive Fill mode is enabled, a prefix matching this pattern
 on the first and second lines of a paragraph is used as the
@@ -114,7 +114,7 @@ line, but in that case `adaptive-fill-first-line-regexp' also plays
 a role."
   :type 'regexp)
 
-(defcustom adaptive-fill-first-line-regexp (purecopy "\\`[ \t]*\\'")
+(defcustom adaptive-fill-first-line-regexp "\\`[ \t]*\\'"
   "Regexp specifying whether to set fill prefix from a one-line paragraph.
 When a paragraph has just one line, then after `adaptive-fill-regexp'
 finds the prefix at the beginning of the line, if it doesn't

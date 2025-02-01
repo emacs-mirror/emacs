@@ -1315,7 +1315,7 @@ a previously found match."
     (define-key map "r" 'occur-rename-buffer)
     (define-key map "c" 'clone-buffer)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
-    (bindings--define-key map [menu-bar occur] (cons "Occur" occur-menu-map))
+    (define-key map [menu-bar occur] (cons "Occur" occur-menu-map))
     map)
   "Keymap for `occur-mode'.")
 
@@ -1368,7 +1368,7 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
     (define-key map "\C-c\C-c" 'occur-cease-edit)
     (define-key map "\C-o" 'occur-mode-display-occurrence)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
-    (bindings--define-key map [menu-bar occur] (cons "Occur" occur-menu-map))
+    (define-key map [menu-bar occur] (cons "Occur" occur-menu-map))
     map)
   "Keymap for `occur-edit-mode'.")
 

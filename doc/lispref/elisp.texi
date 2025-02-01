@@ -1657,7 +1657,6 @@ Tips and Conventions
 GNU Emacs Internals
 
 * Building Emacs::          How the dumped Emacs is made.
-* Pure Storage::            Kludge to make preloaded Lisp functions shareable.
 * Garbage Collection::      Reclaiming space for Lisp objects no longer used.
 * Stack-allocated Objects:: Temporary conses and strings on C stack.
 * Memory Usage::            Info about total size of Lisp objects made so far.

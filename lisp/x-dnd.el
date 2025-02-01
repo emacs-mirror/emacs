@@ -58,21 +58,21 @@ The default value for this variable is `x-dnd-default-test-function'."
   :group 'x)
 
 (defcustom x-dnd-types-alist
-  `((,(purecopy "text/uri-list") . x-dnd-handle-uri-list)
-    (,(purecopy "text/x-moz-url") . x-dnd-handle-moz-url)
-    (,(purecopy "_NETSCAPE_URL") . x-dnd-handle-uri-list)
-    (,(purecopy "FILE_NAME") . x-dnd-handle-file-name)
-    (,(purecopy "UTF8_STRING") . x-dnd-insert-utf8-text)
-    (,(purecopy "text/plain;charset=UTF-8") . x-dnd-insert-utf8-text)
-    (,(purecopy "text/plain;charset=utf-8") . x-dnd-insert-utf8-text)
-    (,(purecopy "text/unicode") . x-dnd-insert-utf16-text)
-    (,(purecopy "text/plain") . dnd-insert-text)
-    (,(purecopy "COMPOUND_TEXT") . x-dnd-insert-ctext)
-    (,(purecopy "STRING") . dnd-insert-text)
-    (,(purecopy "TEXT")   . dnd-insert-text)
-    (,(purecopy "DndTypeFile") . x-dnd-handle-offix-file)
-    (,(purecopy "DndTypeFiles") . x-dnd-handle-offix-files)
-    (,(purecopy "DndTypeText") . dnd-insert-text))
+  '(("text/uri-list" . x-dnd-handle-uri-list)
+    ("text/x-moz-url" . x-dnd-handle-moz-url)
+    ("_NETSCAPE_URL" . x-dnd-handle-uri-list)
+    ("FILE_NAME" . x-dnd-handle-file-name)
+    ("UTF8_STRING" . x-dnd-insert-utf8-text)
+    ("text/plain;charset=UTF-8" . x-dnd-insert-utf8-text)
+    ("text/plain;charset=utf-8" . x-dnd-insert-utf8-text)
+    ("text/unicode" . x-dnd-insert-utf16-text)
+    ("text/plain" . dnd-insert-text)
+    ("COMPOUND_TEXT" . x-dnd-insert-ctext)
+    ("STRING" . dnd-insert-text)
+    ("TEXT"   . dnd-insert-text)
+    ("DndTypeFile" . x-dnd-handle-offix-file)
+    ("DndTypeFiles" . x-dnd-handle-offix-files)
+    ("DndTypeText" . dnd-insert-text))
   "Functions to call to handle drag-and-drop of known types.
 If the type of the drop is not present in the alist, or the
 function corresponding to the type is nil, the drop of that
@@ -90,22 +90,21 @@ excluding `ask') if drop is successful, nil if not."
   :group 'x)
 
 (defcustom x-dnd-known-types
-  (mapcar 'purecopy
-          '("XdndDirectSave0"
-            "text/uri-list"
-            "text/x-moz-url"
-            "_NETSCAPE_URL"
-            "FILE_NAME"
-            "UTF8_STRING"
-            "text/plain;charset=UTF-8"
-            "text/plain;charset=utf-8"
-            "text/unicode"
-            "text/plain"
-            "COMPOUND_TEXT"
-            "STRING"
-            "TEXT"
-            "DndTypeFile"
-            "DndTypeText"))
+  '("XdndDirectSave0"
+    "text/uri-list"
+    "text/x-moz-url"
+    "_NETSCAPE_URL"
+    "FILE_NAME"
+    "UTF8_STRING"
+    "text/plain;charset=UTF-8"
+    "text/plain;charset=utf-8"
+    "text/unicode"
+    "text/plain"
+    "COMPOUND_TEXT"
+    "STRING"
+    "TEXT"
+    "DndTypeFile"
+    "DndTypeText")
   "The types accepted by default for dropped data.
 The types are chosen in the order they appear in the list."
   :version "22.1"

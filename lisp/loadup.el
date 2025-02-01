@@ -57,7 +57,7 @@
 ;; Add subdirectories to the load-path for files that might get
 ;; autoloaded when bootstrapping or running Emacs normally.
 ;; This is because PATH_DUMPLOADSEARCH is just "../lisp".
-(if (or (member dump-mode '("bootstrap" "pbootstrap"))
+(if (or (member dump-mode '("pbootstrap"))
 	;; FIXME this is irritatingly fragile.
         (and (stringp (nth 4 command-line-args))
              (string-match "^unidata-gen\\(\\.elc?\\)?$"
@@ -104,10 +104,6 @@
       ;; when compiling itself, which uses a lot more stack
       ;; than usual.
       (setq max-lisp-eval-depth (max max-lisp-eval-depth 3400))))
-
-(if (eq t purify-flag)
-    ;; Hash consing saved around 11% of pure space in my tests.
-    (setq purify-flag (make-hash-table :test #'equal :size 80000)))
 
 (message "Using load-path %s" load-path)
 
@@ -183,12 +179,6 @@
     (load "loaddefs")
   (file-error
    (load "ldefs-boot.el")))
-
-(let ((new (make-hash-table :test #'equal)))
-  ;; Now that loaddefs has populated definition-prefixes, purify its contents.
-  (maphash (lambda (k v) (puthash (purecopy k) (purecopy v) new))
-           definition-prefixes)
-  (setq definition-prefixes new))
 
 (load "button")                  ;After loaddefs, because of define-minor-mode!
 
@@ -503,11 +493,6 @@ lost after dumping")))
 ;; Avoid storing references to build directory in the binary.
 (setq custom-current-group-alist nil)
 
-;; We keep the load-history data in PURE space.
-;; Make sure that the spine of the list is not in pure space because it can
-;; be destructively mutated in lread.c:build_load_history.
-(setq load-history (mapcar #'purecopy load-history))
-
 (set-buffer-modified-p nil)
 
 (remove-hook 'after-load-functions (lambda (_) (garbage-collect)))
@@ -576,29 +561,9 @@ directory got moved.  This is set to be a pair in the form of:
   ;; file-local variables.
   (defvar comp--no-native-compile (make-hash-table :test #'equal)))
 
-(when (hash-table-p purify-flag)
-  (let ((strings 0)
-        (vectors 0)
-        (bytecodes 0)
-        (conses 0)
-        (others 0))
-    (maphash (lambda (k v)
-               (cond
-                ((stringp k) (setq strings (1+ strings)))
-                ((vectorp k) (setq vectors (1+ vectors)))
-                ((consp k)   (setq conses  (1+ conses)))
-                ((byte-code-function-p v) (setq bytecodes (1+ bytecodes)))
-                (t           (setq others  (1+ others)))))
-             purify-flag)
-    (message "Pure-hashed: %d strings, %d vectors, %d conses, %d bytecodes, %d others"
-             strings vectors conses bytecodes others)))
 
-;; Avoid error if user loads some more libraries now and make sure the
-;; hash-consing hash table is GC'd.
+;; Avoid error if user loads some more libraries now.
 (setq purify-flag nil)
-
-(if (null (garbage-collect))
-    (setq pure-space-overflow t))
 
 ;; Make sure we will attempt bidi reordering henceforth.
 (setq redisplay--inhibit-bidi nil)
@@ -635,8 +600,6 @@ directory got moved.  This is set to be a pair in the form of:
               (error nil))))))
   (if dump-mode
       (let ((output (cond ((equal dump-mode "pdump") "emacs.pdmp")
-                          ((equal dump-mode "dump") "emacs")
-                          ((equal dump-mode "bootstrap") "emacs")
                           ((equal dump-mode "pbootstrap") "bootstrap-emacs.pdmp")
                           (t (error "Unrecognized dump mode %s" dump-mode)))))
         (when (and (featurep 'native-compile)
@@ -661,8 +624,7 @@ directory got moved.  This is set to be a pair in the form of:
                     (dump-emacs-portable (expand-file-name output invocation-directory))
                   (dump-emacs output (if (eq system-type 'ms-dos)
                                          "temacs.exe"
-                                       "temacs"))
-                  (message "%d pure bytes used" pure-bytes-used))
+                                       "temacs")))
                 (setq success t))
             (unless success
               (ignore-errors
@@ -680,7 +642,7 @@ directory got moved.  This is set to be a pair in the form of:
                          (eq system-type 'android))
                      ;; Don't bother adding another name if we're just
                      ;; building bootstrap-emacs.
-                     (member dump-mode '("pbootstrap" "bootstrap"))))
+                     (member dump-mode '("pbootstrap"))))
             (let ((name (format "emacs-%s.%d" emacs-version emacs-build-number))
                   (exe (if (eq system-type 'windows-nt) ".exe" "")))
               (while (string-match "[^-+_.a-zA-Z0-9]+" name)

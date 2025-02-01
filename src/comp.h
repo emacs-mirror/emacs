@@ -40,20 +40,16 @@ struct Lisp_Native_Comp_Unit
   /* Guard anonymous lambdas against Garbage Collection and serve
      sanity checks.  */
   Lisp_Object lambda_gc_guard_h;
-  /* Hash c_name -> d_reloc_imp index.  */
+  /* Hash c_name -> d_reloc index.  */
   Lisp_Object lambda_c_name_idx_h;
   /* Hash doc-idx -> function documentation.  */
   Lisp_Object data_fdoc_v;
-  /* Analogous to the constant vector but per compilation unit.  */
+  /* Analogous to the constant vector but per compilation unit.  Must be
+     last.  */
   Lisp_Object data_vec;
-  /* 'data_impure_vec' must be last (see allocate_native_comp_unit).
-     Same as data_vec but for data that cannot be moved to pure space.  */
-  Lisp_Object data_impure_vec;
   /* STUFFS WE DO NOT DUMP!!  */
-  Lisp_Object *data_imp_relocs;
 # ifdef HAVE_MPS
   size_t n_data_imp_relocs;
-  Lisp_Object *data_relocs;
   size_t n_data_relocs;
   Lisp_Object *data_eph_relocs;
   size_t n_data_eph_relocs;
@@ -63,6 +59,7 @@ struct Lisp_Native_Comp_Unit
   struct igc_root_list *data_eph_relocs_root;
   struct igc_root_list *comp_unit_root;
 # endif
+  Lisp_Object *data_relocs;
   bool loaded_once;
   bool load_ongoing;
   dynlib_handle_ptr handle;

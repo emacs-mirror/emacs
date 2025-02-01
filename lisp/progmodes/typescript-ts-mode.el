@@ -188,7 +188,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 
 (defvar typescript-ts-mode--operators
   '("=" "+=" "-=" "*=" "/=" "%=" "**=" "<<=" ">>=" ">>>=" "&=" "^="
-    "|=" "&&=" "||=" "??=" "==" "!=" "===" "!==" ">" ">=" "<" "<=" "+"
+    "|=" "&&=" "||=" "??" "??=" "==" "!=" "===" "!==" ">" ">=" "<" "<=" "+"
     "-" "*" "/" "%" "++" "--" "**" "&" "|" "^" "~" "<<" ">>" ">>>"
     "&&" "||" "!" "?.")
   "TypeScript operators for tree-sitter font-locking.")
@@ -271,7 +271,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      :feature 'constant
      `(((identifier) @font-lock-constant-face
         (:match "\\`[A-Z_][0-9A-Z_]*\\'" @font-lock-constant-face))
-       [(true) (false) (null)] @font-lock-constant-face)
+       [(true) (false) (null) (undefined)] @font-lock-constant-face)
 
      :language language
      :feature 'keyword

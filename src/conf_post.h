@@ -155,42 +155,9 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 #define emacs_raise(sig) msdos_fatal_signal (sig)
 
-/* DATA_START is needed by vm-limit.c and unexcoff.c. */
+/* DATA_START is needed by vm-limit.c. */
 #define DATA_START (&etext + 1)
-
-/* Define one of these for easier conditionals.  */
-#ifdef HAVE_X_WINDOWS
-/* We need a little extra space, see ../../lisp/loadup.el and the
-   commentary below, in the non-X branch.  The 140KB number was
-   measured on GNU/Linux and on MS-Windows.  */
-#define SYSTEM_PURESIZE_EXTRA (-170000+140000)
-#else
-/* We need a little extra space, see ../../lisp/loadup.el.
-   As of 20091024, DOS-specific files use up 62KB of pure space.  But
-   overall, we end up wasting 130KB of pure space, because
-   BASE_PURESIZE starts at 1.47MB, while we need only 1.3MB (including
-   non-DOS specific files and load history; the latter is about 55K,
-   but depends on the depth of the top-level Emacs directory in the
-   directory tree).  Given the unknown policy of different DPMI
-   hosts regarding loading of untouched pages, I'm not going to risk
-   enlarging Emacs footprint by another 100+ KBytes.  */
-#define SYSTEM_PURESIZE_EXTRA (-170000+90000)
-#endif
 #endif  /* MSDOS */
-
-/* macOS / GNUstep need a bit more pure memory.  Of the existing knobs,
-   SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
-#ifdef HAVE_NS
-#if defined NS_IMPL_GNUSTEP
-#  define SYSTEM_PURESIZE_EXTRA 30000
-#elif defined DARWIN_OS
-#  define SYSTEM_PURESIZE_EXTRA 200000
-#endif
-#endif
-
-#ifdef CYGWIN
-#define SYSTEM_PURESIZE_EXTRA 50000
-#endif
 
 #if defined HAVE_NTGUI && !defined DebPrint
 # ifdef EMACSDEBUG

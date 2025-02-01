@@ -34,7 +34,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <libgccjit.h>
 #include <epaths.h>
 
-#include "puresize.h"
 #include "window.h"
 #include "dynlib.h"
 #include "buffer.h"
@@ -472,7 +471,7 @@ load_gccjit_if_necessary (bool mandatory)
 
 
 /* Increase this number to force a new Vcomp_abi_hash to be generated.  */
-#define ABI_VERSION "7"
+#define ABI_VERSION "11"
 
 /* Length of the hashes used for eln file naming.  */
 #define HASH_LENGTH 8
@@ -480,16 +479,13 @@ load_gccjit_if_necessary (bool mandatory)
 /* C symbols emitted for the load relocation mechanism.  */
 #define CURRENT_THREAD_RELOC_SYM "current_thread_reloc"
 #define F_SYMBOLS_WITH_POS_ENABLED_RELOC_SYM "f_symbols_with_pos_enabled_reloc"
-#define PURE_RELOC_SYM "pure_reloc"
 #define DATA_RELOC_SYM "d_reloc"
-#define DATA_RELOC_IMPURE_SYM "d_reloc_imp"
 #define DATA_RELOC_EPHEMERAL_SYM "d_reloc_eph"
 
 #define FUNC_LINK_TABLE_SYM "freloc_link_table"
 #define LINK_TABLE_HASH_SYM "freloc_hash"
 #define COMP_UNIT_SYM "comp_unit"
 #define TEXT_DATA_RELOC_SYM "text_data_reloc"
-#define TEXT_DATA_RELOC_IMPURE_SYM "text_data_reloc_imp"
 #define TEXT_DATA_RELOC_EPHEMERAL_SYM "text_data_reloc_eph"
 
 #define TEXT_OPTIM_QLY_SYM "text_optim_qly"
@@ -621,7 +617,6 @@ typedef struct {
   gcc_jit_type *thread_state_ptr_type;
   gcc_jit_rvalue *current_thread_ref;
   /* Other globals.  */
-  gcc_jit_rvalue *pure_ptr;
 #ifndef LIBGCCJIT_HAVE_gcc_jit_context_new_bitcast
   /* This version of libgccjit has really limited support for casting
      therefore this union will be used for the scope.  */
@@ -653,7 +648,6 @@ typedef struct {
   gcc_jit_function *setcar;
   gcc_jit_function *setcdr;
   gcc_jit_function *check_type;
-  gcc_jit_function *check_impure;
   gcc_jit_function *maybe_gc_or_quit;
   Lisp_Object func_blocks_h; /* blk_name -> gcc_block.  */
   Lisp_Object exported_funcs_h; /* c-func-name -> gcc_jit_function *.  */
@@ -661,8 +655,6 @@ typedef struct {
   Lisp_Object emitter_dispatcher;
   /* Synthesized struct holding data relocs.  */
   reloc_array_t data_relocs;
-  /* Same as before but can't go in pure space. */
-  reloc_array_t data_relocs_impure;
   /* Same as before but content does not survive load phase. */
   reloc_array_t data_relocs_ephemeral;
   /* Global structure holding function relocations.  */
@@ -672,7 +664,6 @@ typedef struct {
   gcc_jit_lvalue *func_relocs_local;
   gcc_jit_function *memcpy;
   Lisp_Object d_default_idx;
-  Lisp_Object d_impure_idx;
   Lisp_Object d_ephemeral_idx;
 } comp_t;
 
@@ -710,7 +701,6 @@ helper_sanitizer_assert (Lisp_Object, Lisp_Object);
 static void *helper_link_table[] =
   { wrong_type_argument,
     helper_PSEUDOVECTOR_TYPEP_XUNTAG,
-    pure_write_error,
     push_handler,
     record_unwind_protect_excursion,
     helper_unbind_n,
@@ -936,13 +926,6 @@ obj_to_reloc (Lisp_Object obj)
       reloc.array = comp.data_relocs;
       goto found;
   }
-
-  idx = Fgethash (obj, comp.d_impure_idx, Qnil);
-  if (!NILP (idx))
-    {
-      reloc.array = comp.data_relocs_impure;
-      goto found;
-    }
 
   idx = Fgethash (obj, comp.d_ephemeral_idx, Qnil);
   if (!NILP (idx))
@@ -1985,28 +1968,6 @@ emit_XSETCDR (gcc_jit_rvalue *c, gcc_jit_rvalue *n)
       NULL),
     n);
 }
-
-static gcc_jit_rvalue *
-emit_PURE_P (gcc_jit_rvalue *ptr)
-{
-
-  emit_comment ("PURE_P");
-
-  return
-    gcc_jit_context_new_comparison (
-      comp.ctxt,
-      NULL,
-      GCC_JIT_COMPARISON_LE,
-      emit_binary_op (
-	GCC_JIT_BINARY_OP_MINUS,
-	comp.uintptr_type,
-	ptr,
-        comp.pure_ptr),
-      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					   comp.uintptr_type,
-					   PURESIZE));
-}
-
 
 /*************************************/
 /* Code emitted by LIMPLE statemes.  */
@@ -2923,10 +2884,6 @@ declare_imported_data (void)
     declare_imported_data_relocs (CALLNI (comp-ctxt-d-default, Vcomp_ctxt),
 				  DATA_RELOC_SYM,
 				  TEXT_DATA_RELOC_SYM);
-  comp.data_relocs_impure =
-    declare_imported_data_relocs (CALLNI (comp-ctxt-d-impure, Vcomp_ctxt),
-				  DATA_RELOC_IMPURE_SYM,
-				  TEXT_DATA_RELOC_IMPURE_SYM);
   comp.data_relocs_ephemeral =
     declare_imported_data_relocs (CALLNI (comp-ctxt-d-ephemeral, Vcomp_ctxt),
 				  DATA_RELOC_EPHEMERAL_SYM,
@@ -2959,8 +2916,6 @@ declare_runtime_imported_funcs (void)
   args[0] = comp.lisp_obj_type;
   args[1] = comp.int_type;
   ADD_IMPORTED (helper_PSEUDOVECTOR_TYPEP_XUNTAG, comp.bool_type, 2, args);
-
-  ADD_IMPORTED (pure_write_error, comp.void_type, 1, NULL);
 
   args[0] = comp.lisp_obj_type;
   args[1] = comp.int_type;
@@ -3036,15 +2991,6 @@ emit_ctxt_code (void)
 	GCC_JIT_GLOBAL_EXPORTED,
 	comp.bool_ptr_type,
 	F_SYMBOLS_WITH_POS_ENABLED_RELOC_SYM));
-
-  comp.pure_ptr =
-    gcc_jit_lvalue_as_rvalue (
-      gcc_jit_context_new_global (
-	comp.ctxt,
-	NULL,
-	GCC_JIT_GLOBAL_EXPORTED,
-        comp.void_ptr_type,
-	PURE_RELOC_SYM));
 
   gcc_jit_context_new_global (
 	comp.ctxt,
@@ -3736,19 +3682,6 @@ define_setcar_setcdr (void)
       /* CHECK_CONS (cell);  */
       emit_CHECK_CONS (gcc_jit_param_as_rvalue (cell));
 
-      /* CHECK_IMPURE (cell, XCONS (cell));  */
-      gcc_jit_rvalue *args[] =
-	{ gcc_jit_param_as_rvalue (cell),
-	  emit_XCONS (gcc_jit_param_as_rvalue (cell)) };
-
-      gcc_jit_block_add_eval (entry_block,
-			      NULL,
-			      gcc_jit_context_new_call (comp.ctxt,
-							NULL,
-							comp.check_impure,
-							2,
-							args));
-
       /* XSETCDR (cell, newel);  */
       if (!i)
 	emit_XSETCAR (gcc_jit_param_as_rvalue (cell),
@@ -4050,52 +3983,6 @@ static void define_SYMBOL_WITH_POS_SYM (void)
 				   tmpr,
 				   NULL,
 				   comp.lisp_symbol_with_position_sym));
-}
-
-static void
-define_CHECK_IMPURE (void)
-{
-  gcc_jit_param *param[] =
-    { gcc_jit_context_new_param (comp.ctxt,
-				 NULL,
-				 comp.lisp_obj_type,
-				 "obj"),
-      gcc_jit_context_new_param (comp.ctxt,
-				 NULL,
-				 comp.void_ptr_type,
-				 "ptr") };
-  comp.check_impure =
-    gcc_jit_context_new_function (comp.ctxt, NULL,
-				  GCC_JIT_FUNCTION_INTERNAL,
-				  comp.void_type,
-				  "CHECK_IMPURE",
-				  2,
-				  param,
-				  0);
-
-    DECL_BLOCK (entry_block, comp.check_impure);
-    DECL_BLOCK (err_block, comp.check_impure);
-    DECL_BLOCK (ok_block, comp.check_impure);
-
-    comp.block = entry_block;
-    comp.func = comp.check_impure;
-
-    emit_cond_jump (emit_PURE_P (gcc_jit_param_as_rvalue (param[0])), /* FIXME */
-		    err_block,
-		    ok_block);
-    gcc_jit_block_end_with_void_return (ok_block, NULL);
-
-    gcc_jit_rvalue *pure_write_error_arg =
-      gcc_jit_param_as_rvalue (param[0]);
-
-    comp.block = err_block;
-    gcc_jit_block_add_eval (comp.block,
-			    NULL,
-			    emit_call (intern_c_string ("pure_write_error"),
-				       comp.void_type, 1,&pure_write_error_arg,
-				       false));
-
-    gcc_jit_block_end_with_void_return (err_block, NULL);
 }
 
 static void
@@ -4986,8 +4873,6 @@ DEFUN ("comp--compile-ctxt-to-file0", Fcomp__compile_ctxt_to_file0,
 
   comp.d_default_idx =
     CALLNI (comp-data-container-idx, CALLNI (comp-ctxt-d-default, Vcomp_ctxt));
-  comp.d_impure_idx =
-    CALLNI (comp-data-container-idx, CALLNI (comp-ctxt-d-impure, Vcomp_ctxt));
   comp.d_ephemeral_idx =
     CALLNI (comp-data-container-idx, CALLNI (comp-ctxt-d-ephemeral, Vcomp_ctxt));
 
@@ -4999,7 +4884,6 @@ DEFUN ("comp--compile-ctxt-to-file0", Fcomp__compile_ctxt_to_file0,
   define_GET_SYMBOL_WITH_POSITION ();
   define_CHECK_TYPE ();
   define_SYMBOL_WITH_POS_SYM ();
-  define_CHECK_IMPURE ();
   define_bool_to_lisp_obj ();
   define_setcar_setcdr ();
   define_add1_sub1 ();
@@ -5247,10 +5131,10 @@ maybe_defer_native_compilation (Lisp_Object function_name,
 
   Lisp_Object src =
     concat2 (CALLNI (file-name-sans-extension, Vload_true_file_name),
-	     build_pure_c_string (".el"));
+	     build_string (".el"));
   if (NILP (Ffile_exists_p (src)))
     {
-      src = concat2 (src, build_pure_c_string (".gz"));
+      src = concat2 (src, build_string (".gz"));
       if (NILP (Ffile_exists_p (src)))
 	return;
     }
@@ -5320,25 +5204,20 @@ check_comp_unit_relocs (struct Lisp_Native_Comp_Unit *comp_u)
 {
   dynlib_handle_ptr handle = comp_u->handle;
   Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
-  Lisp_Object *data_imp_relocs = dynlib_sym (handle, DATA_RELOC_IMPURE_SYM);
 
   EMACS_INT d_vec_len = XFIXNUM (Flength (comp_u->data_vec));
-  for (ptrdiff_t i = 0; i < d_vec_len; i++)
-    if (!EQ (data_relocs[i],  AREF (comp_u->data_vec, i)))
-      return false;
 
-  d_vec_len = XFIXNUM (Flength (comp_u->data_impure_vec));
   for (ptrdiff_t i = 0; i < d_vec_len; i++)
     {
-      Lisp_Object x = data_imp_relocs[i];
-      if (EQ (x, Qlambda_fixup))
+      Lisp_Object x = data_relocs[i];
+      if (EQ (x, Q__lambda_fixup))
 	return false;
       else if (NATIVE_COMP_FUNCTIONP (x))
 	{
 	  if (NILP (Fgethash (x, comp_u->lambda_gc_guard_h, Qnil)))
 	    return false;
 	}
-      else if (!EQ (x, AREF (comp_u->data_impure_vec, i)))
+      else if (!EQ (x, AREF (comp_u->data_vec, i)))
 	return false;
     }
   return true;
@@ -5402,7 +5281,6 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 
   /* Always set data_imp_relocs pointer in the compilation unit (in can be
      used in 'dump_do_dump_relocation').  */
-  comp_u->data_imp_relocs = dynlib_sym (handle, DATA_RELOC_IMPURE_SYM);
 #ifdef HAVE_MPS
   comp_u->data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
   comp_u->comp_unit = dynlib_sym (handle, COMP_UNIT_SYM);
@@ -5415,16 +5293,12 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	dynlib_sym (handle, CURRENT_THREAD_RELOC_SYM);
       bool **f_symbols_with_pos_enabled_reloc =
 	dynlib_sym (handle, F_SYMBOLS_WITH_POS_ENABLED_RELOC_SYM);
-      void **pure_reloc = dynlib_sym (handle, PURE_RELOC_SYM);
-      Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
-      Lisp_Object *data_imp_relocs = comp_u->data_imp_relocs;
+      Lisp_Object *data_relocs = comp_u->data_relocs;
       void **freloc_link_table = dynlib_sym (handle, FUNC_LINK_TABLE_SYM);
 
       if (!(current_thread_reloc
 	    && f_symbols_with_pos_enabled_reloc
-	    && pure_reloc
 	    && data_relocs
-	    && data_imp_relocs
 	    && data_eph_relocs
 	    && freloc_link_table
 	    && top_level_run)
@@ -5434,7 +5308,6 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 
       *current_thread_reloc = &current_thread;
       *f_symbols_with_pos_enabled_reloc = &symbols_with_pos_enabled;
-      *pure_reloc = pure;
 
       /* Imported functions.  */
       *freloc_link_table = freloc.link_table;
@@ -5445,12 +5318,6 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	  comp_u->optimize_qualities =
 	    load_static_obj (comp_u, TEXT_OPTIM_QLY_SYM);
 	  comp_u->data_vec = load_static_obj (comp_u, TEXT_DATA_RELOC_SYM);
-	  comp_u->data_impure_vec =
-	    load_static_obj (comp_u, TEXT_DATA_RELOC_IMPURE_SYM);
-
-	  if (!NILP (Vpurify_flag))
-	    /* Non impure can be copied into pure space.  */
-	    comp_u->data_vec = Fpurecopy (comp_u->data_vec);
 	}
 
       EMACS_INT d_vec_len = XFIXNUM (Flength (comp_u->data_vec));
@@ -5461,16 +5328,6 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 #endif
       for (EMACS_INT i = 0; i < d_vec_len; i++)
 	data_relocs[i] = AREF (comp_u->data_vec, i);
-
-      d_vec_len = XFIXNUM (Flength (comp_u->data_impure_vec));
-#ifdef HAVE_MPS
-      comp_u->n_data_imp_relocs = d_vec_len;
-      if (d_vec_len > 0)
-	comp_u->data_imp_relocs_root
-	  = igc_root_create_n (data_imp_relocs, d_vec_len);
-#endif
-      for (EMACS_INT i = 0; i < d_vec_len; i++)
-	data_imp_relocs[i] = AREF (comp_u->data_impure_vec, i);
     }
 
   if (!loading_dump)
@@ -5646,7 +5503,7 @@ This gets called by top_level_run during the load phase.  */)
   eassert (NILP (Fgethash (c_name, cu->lambda_c_name_idx_h, Qnil)));
   Fputhash (c_name, reloc_idx, cu->lambda_c_name_idx_h);
   /* Do the real relocation fixup.  */
-  cu->data_imp_relocs[XFIXNUM (reloc_idx)] = tem;
+  cu->data_relocs[XFIXNUM (reloc_idx)] = tem;
 
   return tem;
 }
@@ -5828,7 +5685,6 @@ natively-compiled one.  */);
 
   /* Allocation classes. */
   DEFSYM (Qd_default, "d-default");
-  DEFSYM (Qd_impure, "d-impure");
   DEFSYM (Qd_ephemeral, "d-ephemeral");
 
   /* Others.  */
@@ -5836,7 +5692,7 @@ natively-compiled one.  */);
   DEFSYM (Qfixnum, "fixnum");
   DEFSYM (Qscratch, "scratch");
   DEFSYM (Qlate, "late");
-  DEFSYM (Qlambda_fixup, "lambda-fixup");
+  DEFSYM (Q__lambda_fixup, "--lambda-fixup");
   DEFSYM (Qgccjit, "gccjit");
   DEFSYM (Qcomp_subr_trampoline_install, "comp-subr-trampoline-install");
   DEFSYM (Qnative_comp_warning_on_missing_source,
@@ -5845,48 +5701,48 @@ natively-compiled one.  */);
   /* To be signaled by the compiler.  */
   DEFSYM (Qnative_compiler_error, "native-compiler-error");
   Fput (Qnative_compiler_error, Qerror_conditions,
-	pure_list (Qnative_compiler_error, Qerror));
+	list (Qnative_compiler_error, Qerror));
   Fput (Qnative_compiler_error, Qerror_message,
-        build_pure_c_string ("Native compiler error"));
+        build_string ("Native compiler error"));
 
   DEFSYM (Qnative_ice, "native-ice");
   Fput (Qnative_ice, Qerror_conditions,
-	pure_list (Qnative_ice, Qnative_compiler_error, Qerror));
+	list (Qnative_ice, Qnative_compiler_error, Qerror));
   Fput (Qnative_ice, Qerror_message,
-        build_pure_c_string ("Internal native compiler error"));
+        build_string ("Internal native compiler error"));
 
   /* By the load machinery.  */
   DEFSYM (Qnative_lisp_load_failed, "native-lisp-load-failed");
   Fput (Qnative_lisp_load_failed, Qerror_conditions,
-	pure_list (Qnative_lisp_load_failed, Qerror));
+	list (Qnative_lisp_load_failed, Qerror));
   Fput (Qnative_lisp_load_failed, Qerror_message,
-        build_pure_c_string ("Native elisp load failed"));
+        build_string ("Native elisp load failed"));
 
   DEFSYM (Qnative_lisp_wrong_reloc, "native-lisp-wrong-reloc");
   Fput (Qnative_lisp_wrong_reloc, Qerror_conditions,
-	pure_list (Qnative_lisp_wrong_reloc, Qnative_lisp_load_failed, Qerror));
+	list (Qnative_lisp_wrong_reloc, Qnative_lisp_load_failed, Qerror));
   Fput (Qnative_lisp_wrong_reloc, Qerror_message,
-        build_pure_c_string ("Primitive redefined or wrong relocation"));
+        build_string ("Primitive redefined or wrong relocation"));
 
   DEFSYM (Qwrong_register_subr_call, "wrong-register-subr-call");
   Fput (Qwrong_register_subr_call, Qerror_conditions,
-	pure_list (Qwrong_register_subr_call, Qnative_lisp_load_failed, Qerror));
+	list (Qwrong_register_subr_call, Qnative_lisp_load_failed, Qerror));
   Fput (Qwrong_register_subr_call, Qerror_message,
-        build_pure_c_string ("comp--register-subr can only be called during "
-			    "native lisp load phase."));
+        build_string ("comp--register-subr can only be called during "
+		      "native lisp load phase."));
 
   DEFSYM (Qnative_lisp_file_inconsistent, "native-lisp-file-inconsistent");
   Fput (Qnative_lisp_file_inconsistent, Qerror_conditions,
-	pure_list (Qnative_lisp_file_inconsistent, Qnative_lisp_load_failed, Qerror));
+	list (Qnative_lisp_file_inconsistent, Qnative_lisp_load_failed, Qerror));
   Fput (Qnative_lisp_file_inconsistent, Qerror_message,
-        build_pure_c_string ("eln file inconsistent with current runtime "
-			     "configuration, please recompile"));
+        build_string ("eln file inconsistent with current runtime "
+		      "configuration, please recompile"));
 
   DEFSYM (Qcomp_sanitizer_error, "comp-sanitizer-error");
   Fput (Qcomp_sanitizer_error, Qerror_conditions,
-	pure_list (Qcomp_sanitizer_error, Qerror));
+	list (Qcomp_sanitizer_error, Qerror));
   Fput (Qcomp_sanitizer_error, Qerror_message,
-        build_pure_c_string ("Native code sanitizer runtime error"));
+        build_string ("Native code sanitizer runtime error"));
 
   DEFSYM (Qnative__compile_async, "native--compile-async");
 
@@ -5918,8 +5774,6 @@ natively-compiled one.  */);
   comp.driver_options = Qnil;
   staticpro (&comp.d_default_idx);
   comp.d_default_idx = Qnil;
-  staticpro (&comp.d_impure_idx);
-  comp.d_impure_idx = Qnil;
   staticpro (&comp.d_ephemeral_idx);
   comp.d_ephemeral_idx = Qnil;
 

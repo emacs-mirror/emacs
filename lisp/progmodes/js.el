@@ -4062,7 +4062,7 @@ one of the aforementioned options instead of using this mode."
 
 ;;;###autoload
 (dolist (name (list "node" "nodejs" "gjs" "rhino"))
-  (add-to-list 'interpreter-mode-alist (cons (purecopy name) 'js-mode)))
+  (add-to-list 'interpreter-mode-alist (cons name 'js-mode)))
 
 (provide 'js)
 

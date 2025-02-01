@@ -39,7 +39,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "intervals.h"
 #include "pdumper.h"
 #include "window.h"
-#include "puresize.h"
 #include "gnutls.h"
 
 #ifdef HAVE_TREE_SITTER
@@ -3280,7 +3279,6 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
       size = SCHARS (array);
       if (size != 0)
 	{
-	  CHECK_IMPURE (array, XSTRING (array));
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  int len;
 	  if (STRING_MULTIBYTE (array))
@@ -3323,7 +3321,6 @@ removes all text properties.  This may change its length.  */)
 			Qnil, string);
   if (len != 0 || STRING_MULTIBYTE (string))
     {
-      CHECK_IMPURE (string, XSTRING (string));
       memset (SDATA (string), 0, len);
       STRING_SET_CHARS (string, len);
       STRING_SET_UNIBYTE (string);
@@ -4870,7 +4867,7 @@ static struct Lisp_Weak_Hash_Table *allocate_weak_hash_table
 
 static Lisp_Object make_weak_hash_table
 (const struct hash_table_test *test, EMACS_INT size,
- hash_table_weakness_t weak, bool purecopy);
+ hash_table_weakness_t weak);
 #endif
 
 /* Create and initialize a new hash table.
@@ -4882,15 +4879,11 @@ static Lisp_Object make_weak_hash_table
 
    Give the table initial capacity SIZE, 0 <= SIZE <= MOST_POSITIVE_FIXNUM.
 
-   WEAK specifies the weakness of the table.
-
-   If PURECOPY is non-nil, the table can be copied to pure storage via
-   `purecopy' when Emacs is being dumped. Such tables can no longer be
-   changed after purecopy.  */
+   WEAK specifies the weakness of the table.  */
 
 Lisp_Object
 make_hash_table (const struct hash_table_test *test, EMACS_INT size,
-		 hash_table_weakness_t weak, bool purecopy)
+		 hash_table_weakness_t weak)
 {
   eassert (SYMBOLP (test->name));
   eassert (0 <= size && size <= min (MOST_POSITIVE_FIXNUM, PTRDIFF_MAX));
@@ -4898,7 +4891,7 @@ make_hash_table (const struct hash_table_test *test, EMACS_INT size,
 #ifdef HAVE_MPS
   if (weak != Weak_None)
     {
-      return make_weak_hash_table (test, size, weak, purecopy);
+      return make_weak_hash_table (test, size, weak);
     }
 #endif
   struct Lisp_Hash_Table *h = allocate_hash_table ();
@@ -4950,7 +4943,6 @@ make_hash_table (const struct hash_table_test *test, EMACS_INT size,
     }
 
   h->next_weak = NULL;
-  h->purecopy = purecopy;
   h->mutable = true;
   return make_lisp_hash_table (h);
 }
@@ -5073,11 +5065,6 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 	  set_hash_next_slot (h, i, HASH_INDEX (h, start_of_bucket));
 	  set_hash_index_slot (h, start_of_bucket, i);
 	}
-
-#ifdef ENABLE_CHECKING
-      if (HASH_TABLE_P (Vpurify_flag) && XHASH_TABLE (Vpurify_flag) == h)
-	message ("Growing hash table to: %"pD"d", new_size);
-#endif
     }
 }
 
@@ -5158,8 +5145,7 @@ weak_hash_table_thaw (Lisp_Object weak_hash_table)
     XWEAK_HASH_TABLE (make_weak_hash_table
 		      (strong_hash_table->test,
 		       HASH_TABLE_SIZE (strong_hash_table),
-		       strong_hash_table->weakness,
-		       false));
+		       strong_hash_table->weakness));
 
   XWEAK_HASH_TABLE (weak_hash_table)->strong = new_table->strong;
   XWEAK_HASH_TABLE (weak_hash_table)->weak = new_table->weak;
@@ -5259,7 +5245,6 @@ check_mutable_hash_table (Lisp_Object obj, struct Lisp_Hash_Table *h)
 {
   if (!h->mutable)
     signal_error ("hash table test modifies table", obj);
-  eassert (!PURE_P (h));
 }
 
 /* Put an entry into hash table H that associates KEY with VALUE.
@@ -5549,7 +5534,7 @@ allocate_weak_hash_table (hash_table_weakness_t weak, ssize_t size, ssize_t inde
 Lisp_Object
 strengthen_hash_table (Lisp_Object weak)
 {
-  Lisp_Object ret = make_hash_table (XWEAK_HASH_TABLE (weak)->strong->test, 0, Weak_None, 0);
+  Lisp_Object ret = make_hash_table (XWEAK_HASH_TABLE (weak)->strong->test, 0, Weak_None);
 
   Lisp_Object k, v;
   DOHASH_WEAK (XWEAK_HASH_TABLE (weak), k, v)
@@ -5590,9 +5575,8 @@ strengthen_hash_table_for_dump (struct Lisp_Weak_Hash_Table *weak)
 
 static Lisp_Object
 make_weak_hash_table (const struct hash_table_test *test, EMACS_INT size,
-		      hash_table_weakness_t weak, bool purecopy)
+		      hash_table_weakness_t weak)
 {
-  eassert (!purecopy);
   eassert (SYMBOLP (test->name));
   eassert (0 <= size && size <= min (MOST_POSITIVE_FIXNUM, PTRDIFF_MAX));
 
@@ -5633,7 +5617,6 @@ make_weak_hash_table (const struct hash_table_test *test, EMACS_INT size,
       h->strong->next_free = make_fixnum (0);
     }
 
-  h->strong->purecopy = purecopy;
   h->strong->mutable = true;
   /* Finally, mark the new hash table as scannable. */
   h->strong->weak = h->weak;
@@ -6319,13 +6302,8 @@ key, value, one of key or value, or both key and value, depending on
 WEAK.  WEAK t is equivalent to `key-and-value'.  Default value of WEAK
 is nil.
 
-:purecopy PURECOPY -- If PURECOPY is non-nil, the table can be copied
-to pure storage when Emacs is being dumped, making the contents of the
-table read only. Any further changes to purified tables will result
-in an error.
-
-The keywords arguments :rehash-threshold and :rehash-size are obsolete
-and ignored.
+The keywords arguments :rehash-threshold, :rehash-size, and :purecopy
+are obsolete and ignored.
 
 usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
@@ -6333,7 +6311,6 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   Lisp_Object test_arg = Qnil;
   Lisp_Object weakness_arg = Qnil;
   Lisp_Object size_arg = Qnil;
-  Lisp_Object purecopy_arg = Qnil;
 
   if (nargs & 1)
     error ("Odd number of arguments");
@@ -6347,9 +6324,8 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
 	weakness_arg = arg;
       else if (BASE_EQ (kw, QCsize))
 	size_arg = arg;
-      else if (BASE_EQ (kw, QCpurecopy))
-	purecopy_arg = arg;
-      else if (BASE_EQ (kw, QCrehash_threshold) || BASE_EQ (kw, QCrehash_size))
+      else if (BASE_EQ (kw, QCrehash_threshold) || BASE_EQ (kw, QCrehash_size)
+	       || BASE_EQ (kw, QCpurecopy))
 	;  /* ignore obsolete keyword arguments */
       else
 	signal_error ("Invalid keyword argument", kw);
@@ -6364,8 +6340,6 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
     test = &hashtest_equal;
   else
     test = get_hash_table_user_test (test_arg);
-
-  bool purecopy = !NILP (purecopy_arg);
 
   EMACS_INT size;
   if (NILP (size_arg))
@@ -6389,7 +6363,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   else
     signal_error ("Invalid hash table weakness", weakness_arg);
 
-  return make_hash_table (test, size, weak, purecopy);
+  return make_hash_table (test, size, weak);
 }
 
 

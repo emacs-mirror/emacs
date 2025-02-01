@@ -60,7 +60,7 @@
   :group 'dired)
 
 ;;;###autoload
-(defcustom dired-listing-switches (purecopy "-al")
+(defcustom dired-listing-switches "-al"
   "Switches passed to `ls' for Dired.  MUST contain the `l' option.
 May contain all other options that don't contradict `-l';
 may contain even `F', `b', `i' and `s'.  See also the variable

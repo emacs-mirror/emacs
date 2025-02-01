@@ -60,7 +60,7 @@ Each entry has the form (FUNCTION . FUNCTIONS-IT-CALLS).")
     "indent.c" "search.c" "regex-emacs.c" "undo.c"
     "alloc.c" "data.c" "doc.c" "editfns.c"
     "callint.c" "eval.c" "fns.c" "print.c" "lread.c"
-    "syntax.c" "unexcoff.c"
+    "syntax.c"
     "bytecode.c" "process.c" "callproc.c" "doprnt.c"
     "xterm.c" "xfns.c"))
 

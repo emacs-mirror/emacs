@@ -2560,37 +2560,37 @@ strings returned are not."
 ;;;###autoload
 (defvar menu-bar-bookmark-map
   (let ((map (make-sparse-keymap "Bookmark functions")))
-    (bindings--define-key map [load]
+    (define-key map [load]
       '(menu-item "Load a Bookmark File..." bookmark-load
 		  :help "Load bookmarks from a bookmark file)"))
-    (bindings--define-key map [write]
+    (define-key map [write]
       '(menu-item "Save Bookmarks As..." bookmark-write
 		  :help "Write bookmarks to a file (reading the file name with the minibuffer)"))
-    (bindings--define-key map [save]
+    (define-key map [save]
       '(menu-item "Save Bookmarks" bookmark-save
 		  :help "Save currently defined bookmarks"))
-    (bindings--define-key map [edit]
+    (define-key map [edit]
       '(menu-item "Edit Bookmark List" bookmark-bmenu-list
 		  :help "Display a list of existing bookmarks"))
-    (bindings--define-key map [delete]
+    (define-key map [delete]
       '(menu-item "Delete Bookmark..." bookmark-delete
 		  :help "Delete a bookmark from the bookmark list"))
-    (bindings--define-key map [delete-all]
+    (define-key map [delete-all]
       '(menu-item "Delete all Bookmarks..." bookmark-delete-all
 		  :help "Delete all bookmarks from the bookmark list"))
-    (bindings--define-key map [rename]
+    (define-key map [rename]
       '(menu-item "Rename Bookmark..." bookmark-rename
 		  :help "Change the name of a bookmark"))
-    (bindings--define-key map [locate]
+    (define-key map [locate]
       '(menu-item "Insert Location..." bookmark-locate
 		  :help "Insert the name of the file associated with a bookmark"))
-    (bindings--define-key map [insert]
+    (define-key map [insert]
       '(menu-item "Insert Contents..." bookmark-insert
 		  :help "Insert the text of the file pointed to by a bookmark"))
-    (bindings--define-key map [set]
+    (define-key map [set]
       '(menu-item "Set Bookmark..." bookmark-set
 		  :help "Set a bookmark named inside a file."))
-    (bindings--define-key map [jump]
+    (define-key map [jump]
       '(menu-item "Jump to Bookmark..." bookmark-jump
 		  :help "Jump to a bookmark (a point in some file)"))
     map))

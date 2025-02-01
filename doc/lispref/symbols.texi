@@ -606,8 +606,7 @@ If the value is non-@code{nil}, the named function is considered to be
 pure (@pxref{What Is a Function}).  Calls with constant arguments can
 be evaluated at compile time.  This may shift run time errors to
 compile time.  This property is normally added to a function with
-@code{declare} (@pxref{Declare Form}).  Not to be confused with pure
-storage (@pxref{Pure Storage}).
+@code{declare} (@pxref{Declare Form}).
 
 @item risky-local-variable
 If the value is non-@code{nil}, the named variable is considered risky

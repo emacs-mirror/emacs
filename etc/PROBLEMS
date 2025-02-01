@@ -2952,20 +2952,6 @@ This was observed for Emacs 28.1 on Solaris 10 32-bit sparc, with
 Oracle Developer Studio 12.6 (Sun C 5.15).  The failure was intermittent,
 and running GNU Make a second time would typically finish the build.
 
-*** On Solaris 10, Emacs crashes during the build process.
-(This applies only with './configure --with-unexec=yes', which is rare.)
-This was reported for Emacs 25.2 on i386-pc-solaris2.10 with Sun
-Studio 12 (Sun C 5.9) and with Oracle Developer Studio 12.6 (Sun C
-5.15), and intermittently for sparc-sun-solaris2.10 with Oracle
-Developer Studio 12.5 (Sun C 5.14).  Disabling compiler optimization
-seems to fix the bug, as does upgrading the Solaris 10 operating
-system to Update 11.  The cause of the bug is unknown: it may be that
-Emacs's archaic memory-allocation scheme is not compatible with
-slightly-older versions of Solaris and/or Oracle Studio, or it may be
-something else.  Since the cause is not known, possibly the bug is
-still present in newer versions of Emacs, Oracle Studio, and/or
-Solaris.  See Bug#26638.
-
 *** On Solaris, C-x doesn't get through to Emacs when you use the console.
 
 This is a Solaris feature (at least on Intel x86 cpus).  Type C-r
@@ -4096,96 +4082,6 @@ minimum supported Windows version is 8.1, and the computer hardware
 (CPU, memory, disk) should also match the minimum Windows 8.1
 requirements.
 
-*** Segfault during 'make'
-
-If Emacs segfaults when 'make' executes one of these commands:
-
-  LC_ALL=C ./temacs -batch -l loadup bootstrap
-  LC_ALL=C ./temacs -batch -l loadup dump
-
-the problem may be due to inadequate workarounds for address space
-layout randomization (ASLR), an operating system feature that
-randomizes the virtual address space of a process.  ASLR is commonly
-enabled in Linux and NetBSD kernels, and is intended to deter exploits
-of pointer-related bugs in applications.  If ASLR is enabled, the
-command:
-
-   cat /proc/sys/kernel/randomize_va_space  # GNU/Linux
-   sysctl security.pax.aslr.global          # NetBSD
-
-outputs a nonzero value.
-
-These segfaults should not occur on most modern systems, because the
-Emacs build procedure uses the command 'setfattr' or 'paxctl' to mark
-the Emacs executable as requiring non-randomized address space, and
-Emacs uses the 'personality' system call to disable address space
-randomization when dumping.  However, older kernels may not support
-'setfattr', 'paxctl', or 'personality', and newer Linux kernels have a
-secure computing mode (seccomp) that can be configured to disable the
-'personality' call.
-
-It may be possible to work around the 'personality' problem in a newer
-Linux kernel by configuring seccomp to allow the 'personality' call.
-For example, if you are building Emacs under Docker, you can run the
-Docker container with a security profile that allows 'personality' by
-using Docker's --security-opt option with an appropriate profile; see
-<https://docs.docker.com/engine/security/seccomp/>.
-
-To work around the ASLR problem in either an older or a newer kernel,
-you can temporarily disable the feature while building Emacs.  On
-GNU/Linux you can do so using the following command (as root).
-
-    echo 0 > /proc/sys/kernel/randomize_va_space
-
-You can re-enable the feature when you are done, by echoing the
-original value back to the file.  NetBSD uses a different command,
-e.g., 'sysctl -w security.pax.aslr.global=0'.
-
-Alternatively, you can try using the 'setarch' command when building
-temacs like this, where -R disables address space randomization:
-
-    setarch $(uname -m) -R make
-
-ASLR is not the only problem that can break Emacs dumping.  Another
-issue is that in Red Hat Linux kernels, Exec-shield is enabled by
-default, and this creates a different memory layout.  Emacs should
-handle this at build time, but if this fails the following
-instructions may be useful.  Exec-shield is enabled on your system if
-
-    cat /proc/sys/kernel/exec-shield
-
-prints a nonzero value.  You can temporarily disable it as follows:
-
-    echo 0 > /proc/sys/kernel/exec-shield
-
-As with randomize_va_space, you can re-enable Exec-shield when you are
-done, by echoing the original value back to the file.
-
-*** temacs prints "Pure Lisp storage exhausted".
-
-This means that the Lisp code loaded from the .elc and .el files during
-'temacs --batch --load loadup dump' took up more space than was allocated.
-
-This could be caused by
- 1) adding code to the preloaded Lisp files
- 2) adding more preloaded files in loadup.el
- 3) having a site-init.el or site-load.el which loads files.
-   Note that ANY site-init.el or site-load.el is nonstandard;
-   if you have received Emacs from some other site and it contains a
-   site-init.el or site-load.el file, consider deleting that file.
- 4) getting the wrong .el or .elc files
-   (not from the directory you expected).
- 5) deleting some .elc files that are supposed to exist.
-   This would cause the source files (.el files) to be
-   loaded instead.  They take up more room, so you lose.
- 6) a bug in the Emacs distribution which underestimates the space required.
-
-If the need for more space is legitimate, change the definition
-of PURESIZE in puresize.h.
-
-But in some of the cases listed above, this problem is a consequence
-of something else that is wrong.  Be sure to check and fix the real problem.
-
 *** openSUSE 10.3: Segfault in bcopy during dumping.
 
 This is due to a bug in the bcopy implementation in openSUSE 10.3.
@@ -4204,13 +4100,6 @@ binary null characters, and the 'file' utility says:
 
 We don't know what exactly causes this failure.  A work-around is to
 build Emacs in a directory on a local disk.
-
-*** The dumped Emacs crashes when run, trying to write pure data.
-
-On a system where getpagesize is not a system call, it is defined
-as a macro.  If the definition (in both unex*.c and malloc.c) is wrong,
-it can cause problems like this.  You might be able to find the correct
-value in the man page for a.out(5).
 
 * Problems on legacy systems
 
@@ -4339,17 +4228,6 @@ should do.
 
 pen@lysator.liu.se says (Feb 1998) that the Compose key does work
 if you link with the MIT X11 libraries instead of the Solaris X11 libraries.
-
-** OpenBSD
-
-*** OpenBSD 4.0 macppc: Segfault during dumping.
-
-The build aborts with signal 11 when the command './temacs --batch
---load loadup bootstrap' tries to load files.el.  A workaround seems
-to be to reduce the level of compiler optimization used during the
-build (from -O2 to -O1).  It is possible this is an OpenBSD
-GCC problem specific to the macppc architecture, possibly only
-occurring with older versions of GCC (e.g. 3.3.5).
 
 ** AIX
 

@@ -292,17 +292,17 @@ It is expected to call the function.")
 (defvar cvs-global-menu
   (let ((m (make-sparse-keymap "PCL-CVS")))
     (define-key m [status]
-      `(menu-item ,(purecopy "Directory Status") cvs-status
-		  :help ,(purecopy "A more verbose status of a workarea")))
+      '(menu-item "Directory Status" cvs-status
+                  :help "A more verbose status of a workarea"))
     (define-key m [checkout]
-      `(menu-item ,(purecopy "Checkout Module") cvs-checkout
-		  :help ,(purecopy "Check out a module from the repository")))
+      '(menu-item "Checkout Module" cvs-checkout
+                  :help "Check out a module from the repository"))
     (define-key m [update]
-      `(menu-item ,(purecopy "Update Directory") cvs-update
-		  :help ,(purecopy "Fetch updates from the repository")))
+      '(menu-item "Update Directory" cvs-update
+                  :help "Fetch updates from the repository"))
     (define-key m [examine]
-      `(menu-item ,(purecopy "Examine Directory") cvs-examine
-		  :help ,(purecopy "Examine the current state of a workarea")))
+      '(menu-item "Examine Directory" cvs-examine
+                  :help "Examine the current state of a workarea"))
     (fset 'cvs-global-menu m))
   "Global menu used by PCL-CVS.")
 

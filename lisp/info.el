@@ -830,7 +830,7 @@ Select the window used, if it has been made."
       (select-window window))))
 
 
-;;;###autoload (put 'info 'info-file (purecopy "emacs"))
+;;;###autoload (put 'info 'info-file "emacs")
 ;;;###autoload
 (defun info (&optional file-or-node buffer)
   "Enter Info, the documentation browser.
@@ -4755,7 +4755,7 @@ in the first element of the returned list (which is treated specially in
 	      (cdr where))
       where)))
 
-;;;###autoload (put 'Info-goto-emacs-command-node 'info-file (purecopy "emacs"))
+;;;###autoload (put 'Info-goto-emacs-command-node 'info-file "emacs")
 ;;;###autoload
 (defun Info-goto-emacs-command-node (command)
   "Go to the Info node in the Emacs manual for command COMMAND.
@@ -4797,7 +4797,7 @@ COMMAND must be a symbol or string."
 			 (if (> num-matches 2) "them" "it")))))
       (error "Couldn't find documentation for %s" command))))
 
-;;;###autoload (put 'Info-goto-emacs-key-command-node 'info-file (purecopy "emacs"))
+;;;###autoload (put 'Info-goto-emacs-key-command-node 'info-file "emacs")
 ;;;###autoload
 (defun Info-goto-emacs-key-command-node (key)
   "Go to the node in the Emacs manual which describes the command bound to KEY.

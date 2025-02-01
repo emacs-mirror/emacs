@@ -2038,6 +2038,10 @@ instead; it will indirectly limit the specpdl stack size as well.")
 
 (define-obsolete-function-alias 'fetch-bytecode #'ignore "30.1")
 
+(define-obsolete-function-alias 'purecopy #'identity "31.1")
+
+(make-obsolete-variable 'pure-bytes-used "no longer used." "31.1")
+
 
 ;;;; Alternate names for functions - these are not being phased out.
 
@@ -5969,7 +5973,7 @@ See also `with-eval-after-load'."
   ;; evaluating it now).
   (let* ((regexp-or-feature
 	  (if (stringp file)
-              (setq file (purecopy (load-history-regexp file)))
+              (setq file (load-history-regexp file))
             file))
 	 (elt (assoc regexp-or-feature after-load-alist))
          (func
@@ -7135,7 +7139,7 @@ Also, \"-GIT\", \"-CVS\" and \"-NNN\" are treated as snapshot versions."
 
 (defvar package--builtin-versions
   ;; Mostly populated by loaddefs.el.
-  (purecopy `((emacs . ,(version-to-list emacs-version))))
+  `((emacs . ,(version-to-list emacs-version)))
   "Alist giving the version of each versioned builtin package.
 I.e. each element of the list is of the form (NAME . VERSION) where
 NAME is the package name as a symbol, and VERSION is its version
