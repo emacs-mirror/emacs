@@ -110,11 +110,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "dispextern.h"
 #include "regex-emacs.h"
-#include "sheap.h"
 #include "syntax.h"
 #include "sysselect.h"
 #include "systime.h"
-#include "puresize.h"
 
 #include "getpagesize.h"
 #include "gnutls.h"
@@ -194,11 +192,6 @@ bool running_asynch_code;
 #if defined (HAVE_X_WINDOWS) || defined (HAVE_PGTK) || defined (HAVE_NS)
 /* If true, -d was specified, meaning we're using some window system.  */
 bool display_arg;
-#endif
-
-#if defined GNU_LINUX && defined HAVE_UNEXEC
-/* The gap between BSS end and heap start as far as we can tell.  */
-static uintmax_t heap_bss_diff;
 #endif
 
 /* To run as a background daemon under Cocoa or Windows,
@@ -912,14 +905,6 @@ load_pdump (int argc, char **argv, char *dump_file)
 #endif
     ;
 
-  /* TODO: maybe more thoroughly scrub process environment in order to
-     make this use case (loading a dump file in an unexeced emacs)
-     possible?  Right now, we assume that things we don't touch are
-     zero-initialized, and in an unexeced Emacs, this assumption
-     doesn't hold.  */
-  if (initialized)
-    fatal ("cannot load dump file in unexeced Emacs");
-
   /* Look for an explicitly-specified dump file.  */
   const char *path_exec = PATH_EXEC;
   dump_file = NULL;
@@ -1318,75 +1303,37 @@ android_emacs_init (int argc, char **argv, char *dump_file)
 #endif
 
   /* Look for this argument first, before any heap allocation, so we
-     can set heap flags properly if we're going to unexec.  */
+     can set heap flags properly if we're going to dump.  */
   if (!initialized && temacs)
     {
-#ifdef HAVE_UNEXEC
-      if (strcmp (temacs, "dump") == 0 ||
-          strcmp (temacs, "bootstrap") == 0)
-        gflags.will_dump_with_unexec_ = true;
-#endif
 #ifdef HAVE_PDUMPER
       if (strcmp (temacs, "pdump") == 0 ||
           strcmp (temacs, "pbootstrap") == 0)
         gflags.will_dump_with_pdumper_ = true;
-#endif
-#if defined HAVE_PDUMPER || defined HAVE_UNEXEC
-      if (strcmp (temacs, "bootstrap") == 0 ||
-          strcmp (temacs, "pbootstrap") == 0)
+      if (strcmp (temacs, "pbootstrap") == 0)
         gflags.will_bootstrap_ = true;
       gflags.will_dump_ =
-        will_dump_with_pdumper_p () ||
-        will_dump_with_unexec_p ();
+        will_dump_with_pdumper_p ();
       if (will_dump_p ())
         dump_mode = temacs;
 #endif
       if (!dump_mode)
         fatal ("Invalid temacs mode '%s'", temacs);
     }
-  else if (temacs)
-    {
-      fatal ("--temacs not supported for unexeced emacs");
-    }
   else
     {
       eassert (!temacs);
-#ifndef HAVE_UNEXEC
       eassert (!initialized);
-#endif
 #ifdef HAVE_PDUMPER
       if (!initialized)
 	attempt_load_pdump = true;
 #endif
     }
 
-#ifdef HAVE_UNEXEC
-  if (!will_dump_with_unexec_p ())
-    gflags.will_not_unexec_ = true;
-#endif
-
 #ifdef WINDOWSNT
   /* Grab our malloc arena space now, before anything important
-     happens.  This relies on the static heap being needed only in
-     temacs and only if we are going to dump with unexec.  */
-  bool use_dynamic_heap = true;
-  if (temacs)
-    {
-      char *temacs_str = NULL, *p;
-      for (p = argv[0]; (p = strstr (p, "temacs")) != NULL; p++)
-	temacs_str = p;
-      if (temacs_str != NULL
-	  && (temacs_str == argv[0] || IS_DIRECTORY_SEP (temacs_str[-1])))
-	{
-	  /* Note that gflags are set at this point only if we have been
-	     called with the --temacs=METHOD option.  We assume here that
-	     temacs is always called that way, otherwise the functions
-	     that rely on gflags, like will_dump_with_pdumper_p below,
-	     will not do their job.  */
-	  use_dynamic_heap = will_dump_with_pdumper_p ();
-	}
-    }
-  init_heap (use_dynamic_heap);
+     happens.  */
+  init_heap ();
   initial_cmdline = GetCommandLine ();
 #endif
 #if defined WINDOWSNT || defined HAVE_NTGUI
@@ -1438,23 +1385,10 @@ android_emacs_init (int argc, char **argv, char *dump_file)
 
   argc = maybe_disable_address_randomization (argc, argv);
 
-#if defined GNU_LINUX && defined HAVE_UNEXEC
-  if (!initialized)
-    {
-      char *heap_start = my_heap_start ();
-      heap_bss_diff = heap_start - max (my_endbss, my_endbss_static);
-    }
-#endif
 
 #ifdef RUN_TIME_REMAP
   if (initialized)
     run_time_remap (argv[0]);
-#endif
-
-/* If using unexmacosx.c (set by s/darwin.h), we must do this. */
-#if defined DARWIN_OS && defined HAVE_UNEXEC
-  if (!initialized)
-    unexec_init_emacs_zone ();
 #endif
 
   init_standard_fds ();
@@ -1621,7 +1555,7 @@ android_emacs_init (int argc, char **argv, char *dump_file)
 
   emacs_backtrace (-1);
 
-#if !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC
+#if !defined SYSTEM_MALLOC
   /* Arrange to get warning messages as memory fills up.  */
   memory_warnings (0, malloc_warning);
 
@@ -1629,7 +1563,7 @@ android_emacs_init (int argc, char **argv, char *dump_file)
      Also call realloc and free for consistency.  */
   free (realloc (malloc (4), 4));
 
-#endif	/* not SYSTEM_MALLOC and not HYBRID_MALLOC */
+#endif	/* not SYSTEM_MALLOC */
 
 #ifdef MSDOS
   set_binary_mode (STDIN_FILENO, O_BINARY);
@@ -1638,10 +1572,7 @@ android_emacs_init (int argc, char **argv, char *dump_file)
 #endif /* MSDOS */
 
   /* Set locale, so that initial error messages are localized properly.
-     However, skip this if LC_ALL is "C", as it's not needed in that case.
-     Skipping helps if dumping with unexec, to ensure that the dumped
-     Emacs does not have its system locale tables initialized, as that
-     might cause screwups when the dumped Emacs starts up.  */
+     However, skip this if LC_ALL is "C", as it's not needed in that case.  */
   char *lc_all = getenv ("LC_ALL");
   if (! (lc_all && strcmp (lc_all, "C") == 0))
     {
@@ -1938,11 +1869,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     }
 
 #if defined HAVE_PTHREAD && !defined SYSTEM_MALLOC \
-  && !defined DOUG_LEA_MALLOC && !defined HYBRID_MALLOC
+  && !defined DOUG_LEA_MALLOC
   /* Do not make gmalloc thread-safe when creating bootstrap-emacs, as
      that causes an infinite recursive loop with FreeBSD.  See
-     Bug#14569.  The part of this bug involving Cygwin is no longer
-     relevant, now that Cygwin defines HYBRID_MALLOC.  */
+     Bug#14569.  */
   if (!noninteractive || !will_dump_p ())
     malloc_enable_thread ();
 #endif
@@ -3159,117 +3089,6 @@ shut_down_emacs (int sig, Lisp_Object stuff)
 
 
 
-#ifdef HAVE_UNEXEC
-
-#include "unexec.h"
-
-DEFUN ("dump-emacs", Fdump_emacs, Sdump_emacs, 2, 2, 0,
-       doc: /* Dump current state of Emacs into executable file FILENAME.
-Take symbols from SYMFILE (presumably the file you executed to run Emacs).
-This is used in the file `loadup.el' when building Emacs.
-
-You must run Emacs in batch mode in order to dump it.  */)
-  (Lisp_Object filename, Lisp_Object symfile)
-{
-  Lisp_Object tem;
-  Lisp_Object symbol;
-  specpdl_ref count = SPECPDL_INDEX ();
-
-  check_pure_size ();
-
-  if (! noninteractive)
-    error ("Dumping Emacs works only in batch mode");
-
-  if (dumped_with_unexec_p ())
-    error ("Emacs can be dumped using unexec only once");
-
-  if (definitely_will_not_unexec_p ())
-    error ("This Emacs instance was not started in temacs mode");
-
-# if defined GNU_LINUX && defined HAVE_UNEXEC
-
-  /* Warn if the gap between BSS end and heap start is larger than this.  */
-#  define MAX_HEAP_BSS_DIFF (1024 * 1024)
-
-  if (heap_bss_diff > MAX_HEAP_BSS_DIFF)
-    fprintf (stderr,
-	     ("**************************************************\n"
-	      "Warning: Your system has a gap between BSS and the\n"
-	      "heap (%"PRIuMAX" bytes). This usually means that exec-shield\n"
-	      "or something similar is in effect.  The dump may\n"
-	      "fail because of this.  See the section about\n"
-	      "exec-shield in etc/PROBLEMS for more information.\n"
-	      "**************************************************\n"),
-	     heap_bss_diff);
-# endif
-
-  /* Bind `command-line-processed' to nil before dumping,
-     so that the dumped Emacs will process its command line
-     and set up to work with X windows if appropriate.  */
-  symbol = Qcommand_line_processed;
-  specbind (symbol, Qnil);
-
-  CHECK_STRING (filename);
-  filename = Fexpand_file_name (filename, Qnil);
-  filename = ENCODE_FILE (filename);
-  if (!NILP (symfile))
-    {
-      CHECK_STRING (symfile);
-      if (SCHARS (symfile))
-	{
-	  symfile = Fexpand_file_name (symfile, Qnil);
-	  symfile = ENCODE_FILE (symfile);
-	}
-    }
-
-  tem = Vpurify_flag;
-  Vpurify_flag = Qnil;
-
-# ifdef HYBRID_MALLOC
-  {
-    static char const fmt[] = "%d of %d static heap bytes used";
-    char buf[sizeof fmt + 2 * (INT_STRLEN_BOUND (int) - 2)];
-    int max_usage = max_bss_sbrk_ptr - bss_sbrk_buffer;
-    sprintf (buf, fmt, max_usage, STATIC_HEAP_SIZE);
-    /* Don't log messages, because at this point buffers cannot be created.  */
-    message1_nolog (buf);
-  }
-# endif
-
-  fflush (stdout);
-  /* Tell malloc where start of impure now is.  */
-  /* Also arrange for warnings when nearly out of space.  */
-# if !defined SYSTEM_MALLOC && !defined HYBRID_MALLOC && !defined WINDOWSNT
-  /* On Windows, this was done before dumping, and that once suffices.
-     Meanwhile, my_edata is not valid on Windows.  */
-  memory_warnings (my_edata, malloc_warning);
-# endif
-
-  struct gflags old_gflags = gflags;
-  gflags.will_dump_ = false;
-  gflags.will_dump_with_unexec_ = false;
-  gflags.dumped_with_unexec_ = true;
-
-  alloc_unexec_pre ();
-
-  unexec (SSDATA (filename), !NILP (symfile) ? SSDATA (symfile) : 0);
-
-  alloc_unexec_post ();
-
-  gflags = old_gflags;
-
-# ifdef WINDOWSNT
-  Vlibrary_cache = Qnil;
-# endif
-
-  Vpurify_flag = tem;
-
-  return unbind_to (count, Qnil);
-}
-
-#endif
-
-
 /* Recover from setlocale (LC_ALL, "").  */
 void
 fixup_locale (void)
@@ -3567,10 +3386,6 @@ syms_of_emacs (void)
   DEFSYM (Qfile_truename, "file-truename");
   DEFSYM (Qcommand_line_processed, "command-line-processed");
   DEFSYM (Qsafe_magic, "safe-magic");
-
-#ifdef HAVE_UNEXEC
-  defsubr (&Sdump_emacs);
-#endif
 
   defsubr (&Skill_emacs);
 

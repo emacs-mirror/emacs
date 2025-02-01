@@ -595,9 +595,6 @@ typedef unsigned int EMACS_UINT;
 # endif
 #endif
 
-/* We need a little extra space, see ../../lisp/loadup.el.  */
-#define SYSTEM_PURESIZE_EXTRA 50000
-
 #define DATA_START 	get_data_start ()
 
 /* For unexec to work on Alpha systems, we need to put Emacs'

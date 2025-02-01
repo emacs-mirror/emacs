@@ -4640,13 +4640,12 @@ Return (TAIL VAR TEST CASES), where:
                                       cases))))
       (setq jump-table (make-hash-table
 			:test test
-			:purecopy t
 			:size nvalues)))
     (setq default-tag (byte-compile-make-tag))
     ;; The structure of byte-switch code:
     ;;
     ;; varref var
-    ;; constant #s(hash-table purecopy t data (val1 (TAG1) val2 (TAG2)))
+    ;; constant #s(hash-table data (val1 (TAG1) val2 (TAG2)))
     ;; switch
     ;; goto DEFAULT-TAG
     ;; TAG1

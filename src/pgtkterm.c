@@ -7419,7 +7419,7 @@ syms_of_pgtkterm (void)
   DEFSYM (Qlatin_1, "latin-1");
 
   xg_default_icon_file
-    = build_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");
+    = build_string ("icons/hicolor/scalable/apps/emacs.svg");
   staticpro (&xg_default_icon_file);
 
   DEFSYM (Qx_gtk_map_stock, "x-gtk-map-stock");
@@ -7482,7 +7482,7 @@ If set to a non-float value, there will be no wait at all.  */);
 
   DEFVAR_LISP ("pgtk-keysym-table", Vpgtk_keysym_table,
     doc: /* Hash table of character codes indexed by X keysym codes.  */);
-  Vpgtk_keysym_table = make_hash_table (&hashtest_eql, 900, Weak_None, false);
+  Vpgtk_keysym_table = make_hash_table (&hashtest_eql, 900, Weak_None);
 
   window_being_scrolled = Qnil;
   staticpro (&window_being_scrolled);

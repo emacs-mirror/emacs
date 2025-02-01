@@ -8640,50 +8640,39 @@ init_process_emacs (int sockfd)
 
   inhibit_sentinels = 0;
 
-#ifdef HAVE_UNEXEC
-  /* Clear child_signal_read_fd and child_signal_write_fd after dumping,
-     lest wait_reading_process_output should select on nonexistent file
-     descriptors which existed in the build process.  */
-  child_signal_read_fd = -1;
-  child_signal_write_fd = -1;
-#endif /* HAVE_UNEXEC */
-
-  if (!will_dump_with_unexec_p ())
-    {
 #if defined HAVE_GLIB && !defined WINDOWSNT
-      /* Tickle Glib's child-handling code.  Ask Glib to install a
-	 watch source for Emacs itself which will initialize glib's
-	 private SIGCHLD handler, allowing catch_child_signal to copy
-	 it into lib_child_handler.  This is a hacky workaround to get
-	 glib's g_unix_signal_handler into lib_child_handler.
+  /* Tickle Glib's child-handling code.  Ask Glib to install a
+     watch source for Emacs itself which will initialize glib's
+     private SIGCHLD handler, allowing catch_child_signal to copy
+     it into lib_child_handler.  This is a hacky workaround to get
+     glib's g_unix_signal_handler into lib_child_handler.
 
-	 In Glib 2.37.5 (2013), commit 2e471acf changed Glib to
-         always install a signal handler when g_child_watch_source_new
-	 is called and not just the first time it's called, and to
-	 reset signal handlers to SIG_DFL when it no longer has a
-	 watcher on that signal.  Arrange for Emacs's signal handler
-	 to be reinstalled even if this happens.
+     In Glib 2.37.5 (2013), commit 2e471acf changed Glib to
+     always install a signal handler when g_child_watch_source_new
+     is called and not just the first time it's called, and to
+     reset signal handlers to SIG_DFL when it no longer has a
+     watcher on that signal.  Arrange for Emacs's signal handler
+     to be reinstalled even if this happens.
 
-	 In Glib 2.73.2 (2022), commit f615eef4 changed Glib again,
-	 to not install a signal handler if the system supports
-	 pidfd_open and waitid (as in Linux kernel 5.3+).  The hacky
-	 workaround is not needed in this case.  */
-      GSource *source = g_child_watch_source_new (getpid ());
+     In Glib 2.73.2 (2022), commit f615eef4 changed Glib again,
+     to not install a signal handler if the system supports
+     pidfd_open and waitid (as in Linux kernel 5.3+).  The hacky
+     workaround is not needed in this case.  */
+  GSource *source = g_child_watch_source_new (getpid ());
+  catch_child_signal ();
+  g_source_unref (source);
+
+  if (lib_child_handler != dummy_handler)
+    {
+      /* The hacky workaround is needed on this platform.  */
+      signal_handler_t lib_child_handler_glib = lib_child_handler;
       catch_child_signal ();
-      g_source_unref (source);
-
-      if (lib_child_handler != dummy_handler)
-	{
-	  /* The hacky workaround is needed on this platform.  */
-	  signal_handler_t lib_child_handler_glib = lib_child_handler;
-	  catch_child_signal ();
-	  eassert (lib_child_handler == dummy_handler);
-	  lib_child_handler = lib_child_handler_glib;
-	}
-#else
-      catch_child_signal ();
-#endif
+      eassert (lib_child_handler == dummy_handler);
+      lib_child_handler = lib_child_handler_glib;
     }
+#else
+  catch_child_signal ();
+#endif
 
 #ifdef HAVE_SETRLIMIT
   /* Don't allocate more than FD_SETSIZE file descriptors for Emacs itself.  */
@@ -9018,7 +9007,7 @@ sentinel or a process filter function has an error.  */);
    const struct socket_options *sopt;
 
 #define ADD_SUBFEATURE(key, val) \
-  subfeatures = pure_cons (pure_cons (key, pure_cons (val, Qnil)), subfeatures)
+  subfeatures = Fcons (Fcons (key, Fcons (val, Qnil)), subfeatures)
 
    ADD_SUBFEATURE (QCnowait, Qt);
 #ifdef DATAGRAM_SOCKETS
@@ -9040,7 +9029,7 @@ sentinel or a process filter function has an error.  */);
    ADD_SUBFEATURE (QCserver, Qt);
 
    for (sopt = socket_options; sopt->name; sopt++)
-     subfeatures = pure_cons (intern_c_string (sopt->name), subfeatures);
+     subfeatures = Fcons (intern_c_string (sopt->name), subfeatures);
 
    Fprovide (intern_c_string ("make-network-process"), subfeatures);
  }

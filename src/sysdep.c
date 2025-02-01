@@ -165,9 +165,7 @@ maybe_disable_address_randomization (int argc, char **argv)
 
   if (argc < 2 || strcmp (argv[1], aslr_disabled_option) != 0)
     {
-      /* If dumping via unexec, ASLR must be disabled, as otherwise
-	 data may be scattered and undumpable as a simple executable.
-	 If pdumping, disabling ASLR lessens differences in the .pdmp file.  */
+      /* If pdumping, disabling ASLR lessens differences in the .pdmp file.  */
       bool disable_aslr = will_dump_p ();
 # ifdef __PPC64__
       disable_aslr = true;
@@ -289,11 +287,7 @@ get_current_dir_name_or_unreachable (void)
 #endif
 
 # if HAVE_GET_CURRENT_DIR_NAME && !BROKEN_GET_CURRENT_DIR_NAME
-#  ifdef HYBRID_MALLOC
-  bool use_libc = will_dump_with_unexec_p ();
-#  else
   bool use_libc = true;
-#  endif
   if (use_libc)
     {
       /* For an unreachable directory, this returns a string that starts
@@ -2035,12 +2029,6 @@ init_signals (void)
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
   main_thread_id = pthread_self ();
 #endif
-
-  /* Don't alter signal handlers if dumping with unexec.  On some
-     machines, changing signal handlers sets static data that would make
-     signals fail to work right when the dumped Emacs is run.  */
-  if (will_dump_with_unexec_p ())
-    return;
 
   sigfillset (&process_fatal_action.sa_mask);
   process_fatal_action.sa_handler = deliver_fatal_signal;

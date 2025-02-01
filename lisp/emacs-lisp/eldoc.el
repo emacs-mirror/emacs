@@ -78,7 +78,7 @@ If nil, truncated messages will just have \"...\" to indicate truncation."
   :version "28.1")
 
 ;;;###autoload
-(defcustom eldoc-minor-mode-string (purecopy " ElDoc")
+(defcustom eldoc-minor-mode-string " ElDoc"
   "String to display in mode line when ElDoc Mode is enabled; nil for none."
   :type '(choice string (const :tag "None" nil)))
 
@@ -154,7 +154,6 @@ this file since the obarray is initialized at load time.
 Remember to keep it a prime number to improve hash performance.")
 
 (defvar eldoc-message-commands
-  ;; Don't define as `defconst' since it would then go to (read-only) purespace.
   (obarray-make eldoc-message-commands-table-size)
   "Commands after which it is appropriate to print in the echo area.
 ElDoc does not try to print function arglists, etc., after just any command,
@@ -166,7 +165,6 @@ directly.  Instead, use `eldoc-add-command' and `eldoc-remove-command'.")
 
 ;; Not a constant.
 (defvar eldoc-last-data (make-vector 3 nil)
-  ;; Don't define as `defconst' since it would then go to (read-only) purespace.
   "Bookkeeping; elements are as follows:
   0 - contains the last symbol read from the buffer.
   1 - contains the string last displayed in the echo area for variables,

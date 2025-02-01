@@ -44,7 +44,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
-#include "puresize.h"
 #include "keymap.h"
 
 /* Test for membership, allowing for t (actually any non-cons) to mean the
@@ -101,7 +100,6 @@ create_root_interval (Lisp_Object parent)
     }
   else
     {
-      CHECK_IMPURE (parent, XSTRING (parent));
       new->total_length = SCHARS (parent);
       eassert (TOTAL_LENGTH (new) >= 0);
       set_string_intervals (parent, new);

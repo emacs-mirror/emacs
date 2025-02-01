@@ -11064,9 +11064,9 @@ syms_of_w32fns (void)
   DEFSYM (Qjson, "json");
 
   Fput (Qundefined_color, Qerror_conditions,
-	pure_list (Qundefined_color, Qerror));
+	list (Qundefined_color, Qerror));
   Fput (Qundefined_color, Qerror_message,
-	build_pure_c_string ("Undefined color"));
+	build_string ("Undefined color"));
 
   staticpro (&w32_grabbed_keys);
   w32_grabbed_keys = Qnil;

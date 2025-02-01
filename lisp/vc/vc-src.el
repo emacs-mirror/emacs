@@ -116,7 +116,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 ;; for a registered backend without loading every backend.
 ;;;###autoload
 (defcustom vc-src-master-templates
-  (purecopy '("%s.src/%s,v"))
+  '("%s.src/%s,v")
   "Where to look for SRC master files.
 For a description of possible values, see `vc-check-master-templates'."
   :type '(choice (const :tag "Use standard SRC file names"

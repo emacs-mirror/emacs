@@ -186,8 +186,6 @@ EVENT is a `preedit-text' event."
 (add-hook 'after-init-hook #'pgtk-use-im-context-handler)
 
 (defcustom x-gtk-stock-map
-  (mapcar (lambda (arg)
-	    (cons (purecopy (car arg)) (purecopy (cdr arg))))
   '(
     ("etc/images/new" . ("document-new" "gtk-new"))
     ("etc/images/open" . ("document-open" "gtk-open"))
@@ -253,7 +251,7 @@ EVENT is a `preedit-text' event."
     ;; No themed versions available:
     ;; mail/preview (combining stock_mail and stock_zoom)
     ;; mail/save    (combining stock_mail, stock_save and stock_convert)
-    ))
+    )
   "How icons for tool bars are mapped to Gtk+ stock items.
 Emacs must be compiled with the Gtk+ toolkit for this to have any effect.
 A value that begins with n: denotes a named icon instead of a stock icon."

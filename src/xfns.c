@@ -10253,9 +10253,9 @@ syms_of_xfns (void)
   DEFSYM (QXdndActionPrivate, "XdndActionPrivate");
 
   Fput (Qundefined_color, Qerror_conditions,
-	pure_list (Qundefined_color, Qerror));
+	list (Qundefined_color, Qerror));
   Fput (Qundefined_color, Qerror_message,
-	build_pure_c_string ("Undefined color"));
+	build_string ("Undefined color"));
 
   DEFVAR_LISP ("x-pointer-shape", Vx_pointer_shape,
     doc: /* The shape of the pointer when over text.
@@ -10482,7 +10482,7 @@ eliminated in future versions of Emacs.  */);
     char gtk_version[sizeof ".." + 3 * INT_STRLEN_BOUND (int)];
     int len = sprintf (gtk_version, "%d.%d.%d",
 		       GTK_MAJOR_VERSION, GTK_MINOR_VERSION, GTK_MICRO_VERSION);
-    Vgtk_version_string = make_pure_string (gtk_version, len, len, false);
+    Vgtk_version_string = make_specified_string (gtk_version, len, len, false);
   }
 #endif /* USE_GTK */
 
@@ -10496,7 +10496,8 @@ eliminated in future versions of Emacs.  */);
     int len = sprintf (cairo_version, "%d.%d.%d",
 		       CAIRO_VERSION_MAJOR, CAIRO_VERSION_MINOR,
                        CAIRO_VERSION_MICRO);
-    Vcairo_version_string = make_pure_string (cairo_version, len, len, false);
+    Vcairo_version_string = make_specified_string (cairo_version, len, len,
+						   false);
   }
 #endif
 

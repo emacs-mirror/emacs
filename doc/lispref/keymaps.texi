@@ -3058,7 +3058,7 @@ By default, the global map binds @code{[tool-bar]} as follows:
 
 @example
 (keymap-global-set "<tool-bar>"
-                   `(menu-item ,(purecopy "tool bar") ignore
+                   '(menu-item "tool bar" ignore
                                :filter tool-bar-make-keymap))
 @end example
 

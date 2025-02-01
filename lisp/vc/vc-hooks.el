@@ -121,9 +121,9 @@ An empty list disables VC altogether."
 ;; Note: we don't actually have a darcs back end yet.  Also, Arch and
 ;; Repo are unsupported, and the Meta-CVS back end has been removed.
 ;; The Arch back end will be retrieved and fixed if it is ever required.
-(defcustom vc-directory-exclusion-list (purecopy '("SCCS" "RCS" "CVS" "MCVS"
+(defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS"
 					 ".src" ".svn" ".git" ".hg" ".bzr"
-                                         "_MTN" "_darcs" "{arch}" ".repo"))
+                                         "_MTN" "_darcs" "{arch}" ".repo")
   "List of directory names to be ignored when walking directory trees."
   :type '(repeat string)
   :group 'vc)
@@ -683,7 +683,7 @@ Before doing that, check if there are any old backups and get rid of them."
       (vc-dir-resynch-file file))))
 
 (defvar vc-menu-entry
-  `(menu-item ,(purecopy "Version Control") vc-menu-map
+  '(menu-item "Version Control" vc-menu-map
     :filter vc-menu-map-filter))
 
 (when (boundp 'menu-bar-tools-menu)
@@ -940,76 +940,76 @@ In the latter case, VC mode is deactivated for this buffer."
   (let ((map (make-sparse-keymap "Version Control")))
     ;;(define-key map [show-files]
     ;;  '("Show Files under VC" . (vc-directory t)))
-    (bindings--define-key map [vc-retrieve-tag]
+    (define-key map [vc-retrieve-tag]
       '(menu-item "Retrieve Tag" vc-retrieve-tag
 		  :help "Retrieve tagged version or branch"))
-    (bindings--define-key map [vc-create-tag]
+    (define-key map [vc-create-tag]
       '(menu-item "Create Tag" vc-create-tag
 		  :help "Create version tag"))
-    (bindings--define-key map [vc-print-branch-log]
+    (define-key map [vc-print-branch-log]
       '(menu-item "Show Branch History..." vc-print-branch-log
 		  :help "List the change log for another branch"))
-    (bindings--define-key map [vc-switch-branch]
+    (define-key map [vc-switch-branch]
       '(menu-item "Switch Branch..." vc-switch-branch
 		  :help "Switch to another branch"))
-    (bindings--define-key map [vc-create-branch]
+    (define-key map [vc-create-branch]
       '(menu-item "Create Branch..." vc-create-branch
 		  :help "Make a new branch"))
-    (bindings--define-key map [separator1] menu-bar-separator)
-    (bindings--define-key map [vc-annotate]
+    (define-key map [separator1] menu-bar-separator)
+    (define-key map [vc-annotate]
       '(menu-item "Annotate" vc-annotate
 		  :help "Display the edit history of the current file using colors"))
-    (bindings--define-key map [vc-rename-file]
+    (define-key map [vc-rename-file]
       '(menu-item "Rename File" vc-rename-file
 		  :help "Rename file"))
-    (bindings--define-key map [vc-revision-other-window]
+    (define-key map [vc-revision-other-window]
       '(menu-item "Show Other Version" vc-revision-other-window
 		  :help "Visit another version of the current file in another window"))
-    (bindings--define-key map [vc-diff]
+    (define-key map [vc-diff]
       '(menu-item "Compare with Base Version" vc-diff
 		  :help "Compare file set with the base version"))
-    (bindings--define-key map [vc-root-diff]
+    (define-key map [vc-root-diff]
       '(menu-item "Compare Tree with Base Version" vc-root-diff
 		  :help "Compare current tree with the base version"))
-    (bindings--define-key map [vc-update-change-log]
+    (define-key map [vc-update-change-log]
       '(menu-item "Update ChangeLog" vc-update-change-log
 		  :help "Find change log file and add entries from recent version control logs"))
-    (bindings--define-key map [vc-log-out]
+    (define-key map [vc-log-out]
       '(menu-item "Show Outgoing Log" vc-log-outgoing
 		  :help "Show a log of changes that will be sent with a push operation"))
-    (bindings--define-key map [vc-log-in]
+    (define-key map [vc-log-in]
       '(menu-item "Show Incoming Log" vc-log-incoming
 		  :help "Show a log of changes that will be received with a pull operation"))
-    (bindings--define-key map [vc-print-log]
+    (define-key map [vc-print-log]
       '(menu-item "Show History" vc-print-log
 		  :help "List the change log of the current file set in a window"))
-    (bindings--define-key map [vc-print-root-log]
+    (define-key map [vc-print-root-log]
       '(menu-item "Show Top of the Tree History " vc-print-root-log
 		  :help "List the change log for the current tree in a window"))
-    (bindings--define-key map [separator2] menu-bar-separator)
-    (bindings--define-key map [vc-insert-header]
+    (define-key map [separator2] menu-bar-separator)
+    (define-key map [vc-insert-header]
       '(menu-item "Insert Header" vc-insert-headers
 		  :help "Insert headers into a file for use with a version control system."))
-    (bindings--define-key map [vc-revert]
+    (define-key map [vc-revert]
       '(menu-item "Revert to Base Version" vc-revert
 		  :help "Revert working copies of the selected file set to their repository contents"))
     ;; TODO Only :enable if (vc-find-backend-function backend 'push)
-    (bindings--define-key map [vc-push]
+    (define-key map [vc-push]
       '(menu-item "Push Changes" vc-push
 		  :help "Push the current branch's changes"))
-    (bindings--define-key map [vc-update]
+    (define-key map [vc-update]
       '(menu-item "Update to Latest Version" vc-update
 		  :help "Update the current fileset's files to their tip revisions"))
-    (bindings--define-key map [vc-next-action]
+    (define-key map [vc-next-action]
       '(menu-item "Check In/Out" vc-next-action
 		  :help "Do the next logical version control operation on the current fileset"))
-    (bindings--define-key map [vc-register]
+    (define-key map [vc-register]
       '(menu-item "Register" vc-register
 		  :help "Register file set into a version control system"))
-    (bindings--define-key map [vc-ignore]
+    (define-key map [vc-ignore]
       '(menu-item "Ignore File..." vc-ignore
 		  :help "Ignore a file under current version control system"))
-    (bindings--define-key map [vc-dir-root]
+    (define-key map [vc-dir-root]
       '(menu-item "VC Dir"  vc-dir-root
                   :help "Show the VC status of the repository"))
     map))

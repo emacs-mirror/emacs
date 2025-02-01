@@ -54,7 +54,7 @@ The third argument DOC is a documentation string for the widget."
   (unless (or (null doc) (stringp doc))
     (error "Widget documentation must be nil or a string"))
   (put name 'widget-type (cons class args))
-  (put name 'widget-documentation (purecopy doc))
+  (put name 'widget-documentation doc)
   name)
 
 (define-obsolete-function-alias 'widget-plist-member #'plist-member "26.1")

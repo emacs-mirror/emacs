@@ -666,7 +666,7 @@ Some context functions add menu items below the separator."
   menu)
 
 (defvar context-menu-entry
-  `(menu-item ,(purecopy "Context Menu") ,(make-sparse-keymap)
+  `(menu-item "Context Menu" ,(make-sparse-keymap)
               :filter ,(lambda (_) (context-menu-map)))
   "Menu item that creates the context menu and can be bound to a mouse key.")
 
@@ -2676,7 +2676,6 @@ a large number if you prefer a mixed multitude.  The default is 4."
   :version "20.3")
 
 (defvar mouse-buffer-menu-mode-groups
-  (mapcar (lambda (arg) (cons  (purecopy (car arg)) (purecopy (cdr arg))))
   '(("Info\\|Help\\|Apropos\\|Man" . "Help")
     ("\\bVM\\b\\|\\bMH\\b\\|Message\\b\\|Mail\\|Group\\|Score\\|Summary\\|Article"
      . "Mail/News")
@@ -2688,7 +2687,7 @@ a large number if you prefer a mixed multitude.  The default is 4."
     ("\\blog\\b\\|diff\\|\\bvc\\b\\|cvs\\|Git\\|Annotate" . "Version Control")
     ("Threads\\|Memory\\|Disassembly\\|Breakpoints\\|Frames\\|Locals\\|Registers\\|Inferior I/O\\|Debugger"
      . "GDB")
-    ("Lisp" . "Lisp")))
+    ("Lisp" . "Lisp"))
   "How to group various major modes together in \\[mouse-buffer-menu].
 Each element has the form (REGEXP . GROUPNAME).
 If the major mode's name string matches REGEXP, use GROUPNAME instead.")
@@ -2853,81 +2852,77 @@ and selects that window."
 
 (defvar x-fixed-font-alist
   (list
-   (purecopy "Font Menu")
+   "Font Menu"
    (cons
-    (purecopy "Misc")
-    (mapcar
-     (lambda (arg) (cons  (purecopy (car arg)) (purecopy (cdr arg))))
-     ;; For these, we specify the pixel height and width.
+    "Misc"
+    ;; For these, we specify the pixel height and width.
     '(("fixed" "fixed")
-     ("6x10" "-misc-fixed-medium-r-normal--10-*-*-*-c-60-iso8859-1" "6x10")
-     ("6x12"
-      "-misc-fixed-medium-r-semicondensed--12-*-*-*-c-60-iso8859-1" "6x12")
-     ("6x13"
-      "-misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1" "6x13")
-     ("7x13" "-misc-fixed-medium-r-normal--13-*-*-*-c-70-iso8859-1" "7x13")
-     ("7x14" "-misc-fixed-medium-r-normal--14-*-*-*-c-70-iso8859-1" "7x14")
-     ("8x13" "-misc-fixed-medium-r-normal--13-*-*-*-c-80-iso8859-1" "8x13")
-     ("9x15" "-misc-fixed-medium-r-normal--15-*-*-*-c-90-iso8859-1" "9x15")
-     ("10x20" "-misc-fixed-medium-r-normal--20-*-*-*-c-100-iso8859-1" "10x20")
-     ("11x18" "-misc-fixed-medium-r-normal--18-*-*-*-c-110-iso8859-1" "11x18")
-     ("12x24" "-misc-fixed-medium-r-normal--24-*-*-*-c-120-iso8859-1" "12x24")
-     ("")
-     ("clean 5x8"
-      "-schumacher-clean-medium-r-normal--8-*-*-*-c-50-iso8859-1")
-     ("clean 6x8"
-      "-schumacher-clean-medium-r-normal--8-*-*-*-c-60-iso8859-1")
-     ("clean 8x8"
-      "-schumacher-clean-medium-r-normal--8-*-*-*-c-80-iso8859-1")
-     ("clean 8x10"
-      "-schumacher-clean-medium-r-normal--10-*-*-*-c-80-iso8859-1")
-     ("clean 8x14"
-      "-schumacher-clean-medium-r-normal--14-*-*-*-c-80-iso8859-1")
-     ("clean 8x16"
-      "-schumacher-clean-medium-r-normal--16-*-*-*-c-80-iso8859-1")
-     ("")
-     ("sony 8x16" "-sony-fixed-medium-r-normal--16-*-*-*-c-80-iso8859-1")
-     ;; We don't seem to have these; who knows what they are.
-     ;; ("fg-18" "fg-18")
-     ;; ("fg-25" "fg-25")
-     ("lucidasanstypewriter-12" "-b&h-lucidatypewriter-medium-r-normal-sans-*-120-*-*-*-*-iso8859-1")
-     ("lucidasanstypewriter-bold-14" "-b&h-lucidatypewriter-bold-r-normal-sans-*-140-*-*-*-*-iso8859-1")
-     ("lucidasanstypewriter-bold-24"
-      "-b&h-lucidatypewriter-bold-r-normal-sans-*-240-*-*-*-*-iso8859-1")
-     ;; ("lucidatypewriter-bold-r-24" "-b&h-lucidatypewriter-bold-r-normal-sans-24-240-75-75-m-140-iso8859-1")
-     ;; ("fixed-medium-20" "-misc-fixed-medium-*-*-*-20-*-*-*-*-*-*-*")
-     )))
+      ("6x10" "-misc-fixed-medium-r-normal--10-*-*-*-c-60-iso8859-1" "6x10")
+      ("6x12"
+       "-misc-fixed-medium-r-semicondensed--12-*-*-*-c-60-iso8859-1" "6x12")
+      ("6x13"
+       "-misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1" "6x13")
+      ("7x13" "-misc-fixed-medium-r-normal--13-*-*-*-c-70-iso8859-1" "7x13")
+      ("7x14" "-misc-fixed-medium-r-normal--14-*-*-*-c-70-iso8859-1" "7x14")
+      ("8x13" "-misc-fixed-medium-r-normal--13-*-*-*-c-80-iso8859-1" "8x13")
+      ("9x15" "-misc-fixed-medium-r-normal--15-*-*-*-c-90-iso8859-1" "9x15")
+      ("10x20" "-misc-fixed-medium-r-normal--20-*-*-*-c-100-iso8859-1" "10x20")
+      ("11x18" "-misc-fixed-medium-r-normal--18-*-*-*-c-110-iso8859-1" "11x18")
+      ("12x24" "-misc-fixed-medium-r-normal--24-*-*-*-c-120-iso8859-1" "12x24")
+      ("")
+      ("clean 5x8"
+       "-schumacher-clean-medium-r-normal--8-*-*-*-c-50-iso8859-1")
+      ("clean 6x8"
+       "-schumacher-clean-medium-r-normal--8-*-*-*-c-60-iso8859-1")
+      ("clean 8x8"
+       "-schumacher-clean-medium-r-normal--8-*-*-*-c-80-iso8859-1")
+      ("clean 8x10"
+       "-schumacher-clean-medium-r-normal--10-*-*-*-c-80-iso8859-1")
+      ("clean 8x14"
+       "-schumacher-clean-medium-r-normal--14-*-*-*-c-80-iso8859-1")
+      ("clean 8x16"
+       "-schumacher-clean-medium-r-normal--16-*-*-*-c-80-iso8859-1")
+      ("")
+      ("sony 8x16" "-sony-fixed-medium-r-normal--16-*-*-*-c-80-iso8859-1")
+      ;; We don't seem to have these; who knows what they are.
+      ;; ("fg-18" "fg-18")
+      ;; ("fg-25" "fg-25")
+      ("lucidasanstypewriter-12" "-b&h-lucidatypewriter-medium-r-normal-sans-*-120-*-*-*-*-iso8859-1")
+      ("lucidasanstypewriter-bold-14" "-b&h-lucidatypewriter-bold-r-normal-sans-*-140-*-*-*-*-iso8859-1")
+      ("lucidasanstypewriter-bold-24"
+       "-b&h-lucidatypewriter-bold-r-normal-sans-*-240-*-*-*-*-iso8859-1")
+      ;; ("lucidatypewriter-bold-r-24" "-b&h-lucidatypewriter-bold-r-normal-sans-24-240-75-75-m-140-iso8859-1")
+      ;; ("fixed-medium-20" "-misc-fixed-medium-*-*-*-20-*-*-*-*-*-*-*")
+      ))
 
    (cons
-    (purecopy "Courier")
-    (mapcar
-     (lambda (arg) (cons  (purecopy (car arg)) (purecopy (cdr arg))))
-     ;; For these, we specify the point height.
-     '(("8" "-adobe-courier-medium-r-normal--*-80-*-*-m-*-iso8859-1")
-     ("10" "-adobe-courier-medium-r-normal--*-100-*-*-m-*-iso8859-1")
-     ("12" "-adobe-courier-medium-r-normal--*-120-*-*-m-*-iso8859-1")
-     ("14" "-adobe-courier-medium-r-normal--*-140-*-*-m-*-iso8859-1")
-     ("18" "-adobe-courier-medium-r-normal--*-180-*-*-m-*-iso8859-1")
-     ("24" "-adobe-courier-medium-r-normal--*-240-*-*-m-*-iso8859-1")
-     ("8 bold" "-adobe-courier-bold-r-normal--*-80-*-*-m-*-iso8859-1")
-     ("10 bold" "-adobe-courier-bold-r-normal--*-100-*-*-m-*-iso8859-1")
-     ("12 bold" "-adobe-courier-bold-r-normal--*-120-*-*-m-*-iso8859-1")
-     ("14 bold" "-adobe-courier-bold-r-normal--*-140-*-*-m-*-iso8859-1")
-     ("18 bold" "-adobe-courier-bold-r-normal--*-180-*-*-m-*-iso8859-1")
-     ("24 bold" "-adobe-courier-bold-r-normal--*-240-*-*-m-*-iso8859-1")
-     ("8 slant" "-adobe-courier-medium-o-normal--*-80-*-*-m-*-iso8859-1")
-     ("10 slant" "-adobe-courier-medium-o-normal--*-100-*-*-m-*-iso8859-1")
-     ("12 slant" "-adobe-courier-medium-o-normal--*-120-*-*-m-*-iso8859-1")
-     ("14 slant" "-adobe-courier-medium-o-normal--*-140-*-*-m-*-iso8859-1")
-     ("18 slant" "-adobe-courier-medium-o-normal--*-180-*-*-m-*-iso8859-1")
-     ("24 slant" "-adobe-courier-medium-o-normal--*-240-*-*-m-*-iso8859-1")
-     ("8 bold slant" "-adobe-courier-bold-o-normal--*-80-*-*-m-*-iso8859-1")
-     ("10 bold slant" "-adobe-courier-bold-o-normal--*-100-*-*-m-*-iso8859-1")
-     ("12 bold slant" "-adobe-courier-bold-o-normal--*-120-*-*-m-*-iso8859-1")
-     ("14 bold slant" "-adobe-courier-bold-o-normal--*-140-*-*-m-*-iso8859-1")
-     ("18 bold slant" "-adobe-courier-bold-o-normal--*-180-*-*-m-*-iso8859-1")
-     ("24 bold slant" "-adobe-courier-bold-o-normal--*-240-*-*-m-*-iso8859-1")
-    ))))
+    "Courier"
+    ;; For these, we specify the point height.
+    '(("8" "-adobe-courier-medium-r-normal--*-80-*-*-m-*-iso8859-1")
+      ("10" "-adobe-courier-medium-r-normal--*-100-*-*-m-*-iso8859-1")
+      ("12" "-adobe-courier-medium-r-normal--*-120-*-*-m-*-iso8859-1")
+      ("14" "-adobe-courier-medium-r-normal--*-140-*-*-m-*-iso8859-1")
+      ("18" "-adobe-courier-medium-r-normal--*-180-*-*-m-*-iso8859-1")
+      ("24" "-adobe-courier-medium-r-normal--*-240-*-*-m-*-iso8859-1")
+      ("8 bold" "-adobe-courier-bold-r-normal--*-80-*-*-m-*-iso8859-1")
+      ("10 bold" "-adobe-courier-bold-r-normal--*-100-*-*-m-*-iso8859-1")
+      ("12 bold" "-adobe-courier-bold-r-normal--*-120-*-*-m-*-iso8859-1")
+      ("14 bold" "-adobe-courier-bold-r-normal--*-140-*-*-m-*-iso8859-1")
+      ("18 bold" "-adobe-courier-bold-r-normal--*-180-*-*-m-*-iso8859-1")
+      ("24 bold" "-adobe-courier-bold-r-normal--*-240-*-*-m-*-iso8859-1")
+      ("8 slant" "-adobe-courier-medium-o-normal--*-80-*-*-m-*-iso8859-1")
+      ("10 slant" "-adobe-courier-medium-o-normal--*-100-*-*-m-*-iso8859-1")
+      ("12 slant" "-adobe-courier-medium-o-normal--*-120-*-*-m-*-iso8859-1")
+      ("14 slant" "-adobe-courier-medium-o-normal--*-140-*-*-m-*-iso8859-1")
+      ("18 slant" "-adobe-courier-medium-o-normal--*-180-*-*-m-*-iso8859-1")
+      ("24 slant" "-adobe-courier-medium-o-normal--*-240-*-*-m-*-iso8859-1")
+      ("8 bold slant" "-adobe-courier-bold-o-normal--*-80-*-*-m-*-iso8859-1")
+      ("10 bold slant" "-adobe-courier-bold-o-normal--*-100-*-*-m-*-iso8859-1")
+      ("12 bold slant" "-adobe-courier-bold-o-normal--*-120-*-*-m-*-iso8859-1")
+      ("14 bold slant" "-adobe-courier-bold-o-normal--*-140-*-*-m-*-iso8859-1")
+      ("18 bold slant" "-adobe-courier-bold-o-normal--*-180-*-*-m-*-iso8859-1")
+      ("24 bold slant" "-adobe-courier-bold-o-normal--*-240-*-*-m-*-iso8859-1")
+      )))
   "X fonts suitable for use in Emacs.")
 
 (declare-function generate-fontset-menu "fontset" ())
@@ -3653,7 +3648,7 @@ is copied instead of being cut."
     (global-set-key [S-down-mouse-1] #'mouse-appearance-menu))
 ;; C-down-mouse-2 is bound in facemenu.el.
 (global-set-key [C-down-mouse-3]
-  `(menu-item ,(purecopy "Menu Bar") ignore
+  `(menu-item "Menu Bar" ignore
     :filter ,(lambda (_)
                (if (zerop (or (frame-parameter nil 'menu-bar-lines) 0))
                    (mouse-menu-bar-map)

@@ -12840,14 +12840,14 @@ syms_of_keyboard (void)
   pending_funcalls = Qnil;
   staticpro (&pending_funcalls);
 
-  Vlispy_mouse_stem = build_pure_c_string ("mouse");
+  Vlispy_mouse_stem = build_string ("mouse");
   staticpro (&Vlispy_mouse_stem);
 
-  regular_top_level_message = build_pure_c_string ("Back to top level");
+  regular_top_level_message = build_string ("Back to top level");
   staticpro (&regular_top_level_message);
 #ifdef HAVE_STACK_OVERFLOW_HANDLING
   recover_top_level_message
-    = build_pure_c_string ("Re-entering top level after C stack overflow");
+    = build_string ("Re-entering top level after C stack overflow");
   staticpro (&recover_top_level_message);
 #endif
   DEFVAR_LISP ("internal--top-level-message", Vinternal__top_level_message,

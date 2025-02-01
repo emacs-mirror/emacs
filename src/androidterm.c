@@ -6631,7 +6631,7 @@ android_term_init (void)
   x_display_list = dpyinfo;
 
   dpyinfo->name_list_element
-    = Fcons (build_pure_c_string ("android"), Qnil);
+    = Fcons (build_string ("android"), Qnil);
 
   color_file = Fexpand_file_name (build_string ("rgb.txt"),
 				  Vdata_directory);

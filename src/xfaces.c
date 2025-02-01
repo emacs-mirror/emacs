@@ -7537,14 +7537,14 @@ only for this purpose.  */);
     doc: /* Hash table of global face definitions (for internal use only.)  */);
   Vface_new_frame_defaults =
     /* 33 entries is enough to fit all basic faces */
-    make_hash_table (&hashtest_eq, 33, Weak_None, false);
+    make_hash_table (&hashtest_eq, 33, Weak_None);
 
   DEFVAR_LISP ("face-default-stipple", Vface_default_stipple,
     doc: /* Default stipple pattern used on monochrome displays.
 This stipple pattern is used on monochrome displays
 instead of shades of gray for a face background color.
 See `set-face-stipple' for possible values for this variable.  */);
-  Vface_default_stipple = build_pure_c_string ("gray3");
+  Vface_default_stipple = build_string ("gray3");
 
   DEFVAR_LISP ("tty-defined-color-alist", Vtty_defined_color_alist,
    doc: /* An alist of defined terminal colors and their RGB values.

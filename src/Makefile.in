@@ -127,16 +127,6 @@ LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
 ## Flags to pass to ld only for temacs.
 TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_TEMACS)
 
-## If needed, the names of the paxctl and setfattr programs.
-## On grsecurity/PaX systems, unexec will fail due to a gap between
-## the bss section and the heap.  Older versions need paxctl to work
-## around this, newer ones setfattr.  See Bug#11398 and Bug#16343.
-PAXCTL = @PAXCTL@
-SETFATTR = @SETFATTR@
-## Commands to set PaX flags on dumped and not-dumped instances of Emacs.
-PAXCTL_dumped = @PAXCTL_dumped@
-PAXCTL_notdumped = @PAXCTL_notdumped@
-
 ## Some systems define this to request special libraries.
 LIBS_SYSTEM=@LIBS_SYSTEM@
 
@@ -307,8 +297,6 @@ XSHAPE_CFLAGS = @XSHAPE_CFLAGS@
 ## widget.o if USE_X_TOOLKIT, otherwise empty.
 WIDGET_OBJ=@WIDGET_OBJ@
 
-HYBRID_MALLOC = @HYBRID_MALLOC@
-
 ## cygw32.o if CYGWIN, otherwise empty.
 CYGWIN_OBJ=@CYGWIN_OBJ@
 
@@ -387,8 +375,6 @@ RUN_TEMACS = ./temacs
 # Whether builds should contain details. '--no-build-details' or empty.
 BUILD_DETAILS = @BUILD_DETAILS@
 
-UNEXEC_OBJ = @UNEXEC_OBJ@
-
 HAIKU_OBJ = @HAIKU_OBJ@
 HAIKU_CXX_OBJ = @HAIKU_CXX_OBJ@
 HAIKU_LIBS = @HAIKU_LIBS@
@@ -461,8 +447,6 @@ ALL_CXX_CFLAGS = $(EMACS_CFLAGS) \
 .cc.o:
 	$(AM_V_CXX)$(CXX) -c $(CPPFLAGS) $(ALL_CXX_CFLAGS) $(PROFILING_CFLAGS) $<
 
-## lastfile must follow all files whose initialized data areas should
-## be dumped as pure by dump-emacs.
 base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o     \
 	charset.o coding.o category.o ccl.o character.o chartab.o bidi.o       \
 	$(CM_OBJ) term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ) $(DBUS_OBJ)    \
@@ -472,15 +456,14 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o     \
 	cmds.o casetab.o casefiddle.o indent.o search.o regex-emacs.o undo.o   \
 	alloc.o pdumper.o data.o doc.o editfns.o callint.o 		       \
 	eval.o floatfns.o fns.o sort.o font.o print.o lread.o $(MODULES_OBJ)   \
-	syntax.o $(UNEXEC_OBJ) bytecode.o comp.o $(DYNLIB_OBJ) 		       \
-	process.o gnutls.o callproc.o 					       \
-	region-cache.o sound.o timefns.o atimer.o 			       \
+	syntax.o bytecode.o comp.o $(DYNLIB_OBJ)			       \
+	process.o gnutls.o callproc.o					       \
+	region-cache.o sound.o timefns.o atimer.o			       \
 	doprnt.o intervals.o textprop.o composite.o xml.o lcms.o $(NOTIFY_OBJ) \
 	$(XWIDGETS_OBJ) 						       \
 	profiler.o decompress.o 					       \
 	thread.o systhread.o sqlite.o  treesit.o			       \
 	itree.o json.o 							       \
-	$(if $(HYBRID_MALLOC),sheap.o) 					       \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ)        \
 	$(W32_OBJ) $(WINDOW_SYSTEM_OBJ) $(XGSELOBJ)			       \
 	$(HAIKU_OBJ) $(PGTK_OBJ) $(ANDROID_OBJ)
@@ -512,19 +495,11 @@ VMLIMIT_OBJ=@VMLIMIT_OBJ@
 ## ralloc.o if !SYSTEM_MALLOC && REL_ALLOC, else empty.
 RALLOC_OBJ=@RALLOC_OBJ@
 
-## Empty on Cygwin and MinGW, lastfile.o elsewhere.
-PRE_ALLOC_OBJ=@PRE_ALLOC_OBJ@
-## lastfile.o on Cygwin and MinGW, empty elsewhere.
-POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
-
 ## List of object files that make-docfile should not be told about.
-otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
-  $(POST_ALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
+otherobj= $(TERMCAP_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
 ## All object files linked into temacs.  $(VMLIMIT_OBJ) should be first.
-## (On MinGW, firstfile.o should be before vm-limit.o.)
-FIRSTFILE_OBJ=@FIRSTFILE_OBJ@
-ALLOBJS = $(FIRSTFILE_OBJ) $(VMLIMIT_OBJ) $(obj) $(otherobj)
+ALLOBJS = $(VMLIMIT_OBJ) $(obj) $(otherobj)
 
 # Must be first, before dep inclusion!
 ifneq ($(HAVE_BE_APP),yes)
@@ -658,15 +633,7 @@ emacs$(EXEEXT): temacs$(EXEEXT) \
 ifeq ($(SYSTEM_TYPE),cygwin)
 	find ${top_builddir} -name '*.eln' | rebase -v -O -T -
 endif
-ifeq ($(DUMPING),unexec)
-	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=dump
-  ifneq ($(PAXCTL_dumped),)
-	      $(PAXCTL_dumped) emacs$(EXEEXT)
-  endif
-	cp -f $@ bootstrap-emacs$(EXEEXT)
-else
 	rm -f $@ && cp -f temacs$(EXEEXT) $@
-endif
 
 ## On Haiku, also produce a binary named Emacs with the appropriate
 ## icon set.
@@ -721,7 +688,7 @@ globals.h: gl-stamp; @true
 
 $(ALLOBJS): globals.h
 
-LIBEGNU_ARCHIVE = $(lib)/lib$(if $(HYBRID_MALLOC),e)gnu.a
+LIBEGNU_ARCHIVE = $(lib)/libgnu.a
 
 $(LIBEGNU_ARCHIVE): $(config_h)
 	$(MAKE) -C $(dir $@) all
@@ -755,11 +722,6 @@ endif
 endif
 	$(AM_V_at)mv $@.tmp $@
 	$(MKDIR_P) $(etc)
-ifeq ($(DUMPING),unexec)
-  ifneq ($(PAXCTL_notdumped),)
-	$(PAXCTL_notdumped) $@
-  endif
-endif
 
 ifeq ($(XCONFIGURE),android)
 ## The Android package internally links to a shared library named
@@ -995,20 +957,10 @@ endif
 
 bootstrap-emacs$(EXEEXT): temacs$(EXEEXT)
 	$(MAKE) -C ../lisp update-subdirs
-ifeq ($(DUMPING),unexec)
-	$(RUN_TEMACS) --batch $(BUILD_DETAILS) -l loadup --temacs=bootstrap
-  ifneq ($(PAXCTL_dumped),)
-	$(PAXCTL_dumped) emacs$(EXEEXT)
-  endif
-	mv -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT)
-	@: Compile some files earlier to speed up further compilation.
-	$(MAKE) -C ../lisp compile-first EMACS="$(bootstrap_exe)"
-else
 	@: In the pdumper case, make compile-first after the dump
 	cp -f temacs$(EXEEXT) bootstrap-emacs$(EXEEXT)
 ifeq ($(DO_CODESIGN),yes)
 	codesign -s - -f bootstrap-emacs$(EXEEXT)
-endif
 endif
 
 ifeq ($(DUMPING),pdumper)

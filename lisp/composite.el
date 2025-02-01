@@ -755,7 +755,7 @@ All non-spacing characters have this function in
 
 ;; Allow for bootstrapping without uni-*.el.
 (when unicode-category-table
-  (let ((elt `([,(purecopy "\\c.\\c^+") 1 compose-gstring-for-graphic]
+  (let ((elt `(["\\c.\\c^+" 1 compose-gstring-for-graphic]
 	       [nil 0 compose-gstring-for-graphic])))
     (map-char-table
      #'(lambda (key val)
@@ -764,7 +764,7 @@ All non-spacing characters have this function in
      unicode-category-table))
   ;; for dotted-circle
   (aset composition-function-table #x25CC
-	`([,(purecopy ".\\c^") 0 compose-gstring-for-dotted-circle]))
+        `([".\\c^" 0 compose-gstring-for-dotted-circle]))
   ;; For prettier display of fractions
   (set-char-table-range
    composition-function-table
@@ -772,10 +772,10 @@ All non-spacing characters have this function in
    ;; We use font-shape-gstring so that if the font doesn't support
    ;; fractional display, the characters are shown separately, not as
    ;; a composed cluster.
-   (list (vector (purecopy "[1-9][0-9][0-9]\u2044[0-9]+")
+   (list (vector "[1-9][0-9][0-9]\u2044[0-9]+"
                  3 'font-shape-gstring)
-         (vector (purecopy "[1-9][0-9]\u2044[0-9]+") 2 'font-shape-gstring)
-         (vector (purecopy "[1-9]\u2044[0-9]+") 1 'font-shape-gstring))))
+         (vector "[1-9][0-9]\u2044[0-9]+" 2 'font-shape-gstring)
+         (vector "[1-9]\u2044[0-9]+" 1 'font-shape-gstring))))
 
 (defun compose-gstring-for-terminal (gstring _direction)
   "Compose glyph-string GSTRING for terminal display.

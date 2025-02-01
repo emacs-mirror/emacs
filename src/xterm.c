@@ -32587,7 +32587,7 @@ syms_of_xterm (void)
   DEFSYM (Qwheel_right, "wheel-right");
 
 #ifdef USE_GTK
-  xg_default_icon_file = build_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");
+  xg_default_icon_file = build_string ("icons/hicolor/scalable/apps/emacs.svg");
   staticpro (&xg_default_icon_file);
 
   DEFSYM (Qx_gtk_map_stock, "x-gtk-map-stock");
@@ -32736,7 +32736,7 @@ If set to a non-float value, there will be no wait at all.  */);
 
   DEFVAR_LISP ("x-keysym-table", Vx_keysym_table,
     doc: /* Hash table of character codes indexed by X keysym codes.  */);
-  Vx_keysym_table = make_hash_table (&hashtest_eql, 900, Weak_None, false);
+  Vx_keysym_table = make_hash_table (&hashtest_eql, 900, Weak_None);
 
   DEFVAR_BOOL ("x-frame-normalize-before-maximize",
 	       x_frame_normalize_before_maximize,

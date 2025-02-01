@@ -4788,8 +4788,8 @@ init_buffer_once (void)
   set_buffer_intervals (&buffer_defaults, NULL);
   set_buffer_intervals (&buffer_local_symbols, NULL);
   /* This is not strictly necessary, but let's make them initialized.  */
-  bset_name (&buffer_defaults, build_pure_c_string (" *buffer-defaults*"));
-  bset_name (&buffer_local_symbols, build_pure_c_string (" *buffer-local-symbols*"));
+  bset_name (&buffer_defaults, build_string (" *buffer-defaults*"));
+  bset_name (&buffer_local_symbols, build_string (" *buffer-local-symbols*"));
   BUFFER_PVEC_INIT (&buffer_defaults);
   BUFFER_PVEC_INIT (&buffer_local_symbols);
 
@@ -4797,7 +4797,7 @@ init_buffer_once (void)
   /* Must do these before making the first buffer! */
 
   /* real setup is done in bindings.el */
-  bset_mode_line_format (&buffer_defaults, build_pure_c_string ("%-"));
+  bset_mode_line_format (&buffer_defaults, build_string ("%-"));
   bset_header_line_format (&buffer_defaults, Qnil);
   bset_tab_line_format (&buffer_defaults, Qnil);
   bset_abbrev_mode (&buffer_defaults, Qnil);
@@ -4865,7 +4865,7 @@ init_buffer_once (void)
   current_buffer = 0;
   pdumper_remember_lv_ptr_raw (&current_buffer, Lisp_Vectorlike);
 
-  QSFundamental = build_pure_c_string ("Fundamental");
+  QSFundamental = build_string ("Fundamental");
 
   DEFSYM (Qfundamental_mode, "fundamental-mode");
   bset_major_mode (&buffer_defaults, Qfundamental_mode);
@@ -4879,10 +4879,10 @@ init_buffer_once (void)
 
   /* Super-magic invisible buffer.  */
   Vprin1_to_string_buffer =
-    Fget_buffer_create (build_pure_c_string (" prin1"), Qt);
+    Fget_buffer_create (build_string (" prin1"), Qt);
   Vbuffer_alist = Qnil;
 
-  Fset_buffer (Fget_buffer_create (build_pure_c_string ("*scratch*"), Qnil));
+  Fset_buffer (Fget_buffer_create (build_string ("*scratch*"), Qnil));
 
   inhibit_modification_hooks = 0;
 }
@@ -4891,47 +4891,6 @@ void
 init_buffer (void)
 {
   Lisp_Object temp;
-
-#ifdef USE_MMAP_FOR_BUFFERS
-  if (dumped_with_unexec_p ())
-    {
-      Lisp_Object tail, buffer;
-
-#ifndef WINDOWSNT
-      /* These must be reset in the dumped Emacs, to avoid stale
-	 references to mmap'ed memory from before the dump.
-
-	 WINDOWSNT doesn't need this because it doesn't track mmap'ed
-	 regions by hand (see w32heap.c, which uses system APIs for
-	 that purpose), and thus doesn't use mmap_regions.  */
-      mmap_regions = NULL;
-      mmap_fd = -1;
-#endif
-
-      /* The dumped buffers reference addresses of buffer text
-	 recorded by temacs, that cannot be used by the dumped Emacs.
-	 We map new memory for their text here.
-
-	 Implementation notes: the buffers we carry from temacs are:
-	 " prin1", "*scratch*", " *Minibuf-0*", "*Messages*", and
-	 " *code-conversion-work*".  They are created by
-	 init_buffer_once and init_window_once (which are not called
-	 in the dumped Emacs), and by the first call to coding.c
-	 routines.  Since FOR_EACH_LIVE_BUFFER only walks the buffers
-	 in Vbuffer_alist, any buffer we carry from temacs that is
-	 not in the alist (a.k.a. "magic invisible buffers") should
-	 be handled here explicitly.  */
-      FOR_EACH_LIVE_BUFFER (tail, buffer)
-        {
-	  struct buffer *b = XBUFFER (buffer);
-	  b->text->beg = NULL;
-	  enlarge_buffer_text (b, 0);
-	}
-      /* The " prin1" buffer is not in Vbuffer_alist.  */
-      XBUFFER (Vprin1_to_string_buffer)->text->beg = NULL;
-      enlarge_buffer_text (XBUFFER (Vprin1_to_string_buffer), 0);
-    }
-#endif /* USE_MMAP_FOR_BUFFERS */
 
   AUTO_STRING (scratch, "*scratch*");
   Fset_buffer (Fget_buffer_create (scratch, Qnil));
@@ -5106,9 +5065,9 @@ syms_of_buffer (void)
 	       Qoverwrite_mode_binary));
 
   Fput (Qprotected_field, Qerror_conditions,
-	pure_list (Qprotected_field, Qerror));
+	list (Qprotected_field, Qerror));
   Fput (Qprotected_field, Qerror_message,
-	build_pure_c_string ("Attempt to modify a protected field"));
+	build_string ("Attempt to modify a protected field"));
 
   DEFSYM (Qclone_indirect_buffer_hook, "clone-indirect-buffer-hook");
 

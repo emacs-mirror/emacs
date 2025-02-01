@@ -55,15 +55,15 @@ The default value for this variable is `pgtk-dnd-default-test-function'."
   :group 'pgtk)
 
 (defcustom pgtk-dnd-types-alist
-  `((,(purecopy "text/uri-list") . pgtk-dnd-handle-uri-list)
-    (,(purecopy "FILE_NAME") . pgtk-dnd-handle-file-name)
-    (,(purecopy "UTF8_STRING") . pgtk-dnd-insert-utf8-text)
-    (,(purecopy "text/plain;charset=UTF-8") . pgtk-dnd-insert-utf8-text)
-    (,(purecopy "text/plain;charset=utf-8") . pgtk-dnd-insert-utf8-text)
-    (,(purecopy "text/plain") . dnd-insert-text)
-    (,(purecopy "COMPOUND_TEXT") . pgtk-dnd-insert-ctext)
-    (,(purecopy "STRING") . dnd-insert-text)
-    (,(purecopy "TEXT")   . dnd-insert-text))
+  `(("text/uri-list" . pgtk-dnd-handle-uri-list)
+    ("FILE_NAME" . pgtk-dnd-handle-file-name)
+    ("UTF8_STRING" . pgtk-dnd-insert-utf8-text)
+    ("text/plain;charset=UTF-8" . pgtk-dnd-insert-utf8-text)
+    ("text/plain;charset=utf-8" . pgtk-dnd-insert-utf8-text)
+    ("text/plain" . dnd-insert-text)
+    ("COMPOUND_TEXT" . pgtk-dnd-insert-ctext)
+    ("STRING" . dnd-insert-text)
+    ("TEXT"   . dnd-insert-text))
   "Which function to call to handle a drop of that type.
 If the type for the drop is not present, or the function is nil,
 the drop is rejected.  The function takes three arguments, WINDOW, ACTION
@@ -77,15 +77,15 @@ if drop is successful, nil if not."
   :group 'pgtk)
 
 (defcustom pgtk-dnd-known-types
-  (mapcar 'purecopy '("text/uri-list"
-                      "FILE_NAME"
-                      "UTF8_STRING"
-                      "text/plain;charset=UTF-8"
-                      "text/plain;charset=utf-8"
-                      "text/plain"
-                      "COMPOUND_TEXT"
-                      "STRING"
-                      "TEXT"))
+  '("text/uri-list"
+    "FILE_NAME"
+    "UTF8_STRING"
+    "text/plain;charset=UTF-8"
+    "text/plain;charset=utf-8"
+    "text/plain"
+    "COMPOUND_TEXT"
+    "STRING"
+    "TEXT")
   "The types accepted by default for dropped data.
 The types are chosen in the order they appear in the list."
   :version "22.1"

@@ -67,7 +67,7 @@ corresponding to the mode line clicked."
 	(interactive "e")
 	(with-selected-window (posn-window (event-start e))
 	  (describe-current-input-method))))
-    (purecopy map)))
+    map))
 
 (defvar mode-line-coding-system-map
   (let ((map (make-sparse-keymap)))
@@ -83,7 +83,7 @@ corresponding to the mode line clicked."
 	(interactive "e")
 	(with-selected-window (posn-window (event-start e))
 	  (call-interactively 'set-buffer-file-coding-system))))
-    (purecopy map))
+    map)
   "Local keymap for the coding-system part of the mode line.")
 
 (defun mode-line-change-eol (event)
@@ -203,11 +203,11 @@ mouse-3: Set coding system"
     (current-input-method
      (:propertize ("" current-input-method-title)
 		  help-echo (concat
-			     ,(purecopy "Current input method: ")
+                             "Current input method: "
 			     current-input-method
-			     ,(purecopy "\n\
+                             "\n\
 mouse-2: Disable input method\n\
-mouse-3: Describe current input method"))
+mouse-3: Describe current input method")
 		  local-map ,mode-line-input-method-map
 		  mouse-face mode-line-highlight))
     ,(propertize
@@ -228,7 +228,7 @@ mnemonics of the following coding systems:
 (defvar mode-line-client
   `(:eval
     (if (frame-parameter nil 'client)
-	,(propertize "@" 'help-echo (purecopy "emacsclient frame"))))
+        ,(propertize "@" 'help-echo "emacsclient frame")))
   "Mode line construct for identifying emacsclient frames.")
 ;; Autoload if this file no longer dumped.
 ;;;###autoload
@@ -250,15 +250,15 @@ mnemonics of the following coding systems:
   (list (propertize
 	 "%1*"
 	 'help-echo 'mode-line-read-only-help-echo
-	 'local-map (purecopy (make-mode-line-mouse-map
-			       'mouse-1
-			       #'mode-line-toggle-read-only))
+         'local-map (make-mode-line-mouse-map
+                     'mouse-1
+                     #'mode-line-toggle-read-only)
 	 'mouse-face 'mode-line-highlight)
 	(propertize
 	 "%1+"
 	 'help-echo 'mode-line-modified-help-echo
-	 'local-map (purecopy (make-mode-line-mouse-map
-			       'mouse-1 #'mode-line-toggle-modified))
+         'local-map (make-mode-line-mouse-map
+                     'mouse-1 #'mode-line-toggle-modified)
 	 'mouse-face 'mode-line-highlight))
   "Mode line construct for displaying whether current buffer is modified.")
 ;;;###autoload
@@ -268,16 +268,16 @@ mnemonics of the following coding systems:
   (list (propertize
 	 "%1@"
 	 'mouse-face 'mode-line-highlight
-	 'help-echo (purecopy (lambda (window _object _point)
- 				(format "%s"
-					(with-selected-window window
-					  (if (stringp default-directory)
-					      (concat
-					       (if (file-remote-p default-directory)
-						   "Current directory is remote: "
-						 "Current directory is local: ")
-					       default-directory)
-					    "Current directory is nil")))))))
+         'help-echo (lambda (window _object _point)
+                      (format "%s"
+                              (with-selected-window window
+                                (if (stringp default-directory)
+                                    (concat
+                                     (if (file-remote-p default-directory)
+                                         "Current directory is remote: "
+                                       "Current directory is local: ")
+                                     default-directory)
+                                  "Current directory is nil"))))))
   "Mode line construct to indicate a remote buffer.")
 ;;;###autoload
 (put 'mode-line-remote 'risky-local-variable t)
@@ -301,8 +301,8 @@ Value is used for `mode-line-frame-identification', which see."
 (defvar mode-line-window-dedicated-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map [mode-line mouse-1] #'toggle-window-dedicated)
-    (purecopy map)) "\
-Keymap for what is displayed by `mode-line-window-dedicated'.")
+    map)
+  "Keymap for what is displayed by `mode-line-window-dedicated'.")
 
 (defun mode-line-window-control ()
   "Compute mode line construct for window dedicated state.
@@ -400,29 +400,6 @@ the symbol `mode-line-format-right-align' is processed by
 ;;;###autoload
 (put 'mode-line-format-right-align 'risky-local-variable t)
 
-(defun bindings--define-key (map key item)
-  "Define KEY in keymap MAP according to ITEM from a menu.
-This is like `define-key', but it takes the definition from the
-specified menu item, and makes pure copies of as much as possible
-of the menu's data."
-  (declare (indent 2))
-  (define-key map key
-    (cond
-     ((not (consp item)) item)     ;Not sure that could be other than a symbol.
-     ;; Keymaps can't be made pure otherwise users can't remove/add elements
-     ;; from/to them any more.
-     ((keymapp item) item)
-     ((stringp (car item))
-      (if (keymapp (cdr item))
-          (cons (purecopy (car item)) (cdr item))
-        (purecopy item)))
-     ((eq 'menu-item (car item))
-      (if (keymapp (nth 2 item))
-          `(menu-item ,(purecopy (nth 1 item)) ,(nth 2 item)
-                      ,@(purecopy (nthcdr 3 item)))
-        (purecopy item)))
-     (t (message "non-menu-item: %S" item) item))))
-
 (defvar mode-line-mode-menu (make-sparse-keymap "Minor Modes") "\
 Menu of mode operations in the mode line.")
 
@@ -454,11 +431,11 @@ a menu, so this function is not useful for non-menu keymaps."
 
 (defvar mode-line-major-mode-keymap
   (let ((map (make-sparse-keymap)))
-    (bindings--define-key map [mode-line down-mouse-1]
+    (define-key map [mode-line down-mouse-1]
       `(menu-item "Menu Bar" ignore
         :filter ,(lambda (_) (mouse-menu-major-mode-map))))
     (define-key map [mode-line mouse-2] 'describe-mode)
-    (bindings--define-key map [mode-line down-mouse-3]
+    (define-key map [mode-line down-mouse-3]
       `(menu-item "Minor Modes" ,mode-line-mode-menu
         :filter bindings--sort-menu-keymap))
     map) "\
@@ -509,15 +486,15 @@ mouse-3: Toggle minor modes"
 (defvar mode-line-column-line-number-mode-map
   (let ((map (make-sparse-keymap))
 	(menu-map (make-sparse-keymap "Toggle Line and Column Number Display")))
-    (bindings--define-key menu-map [size-indication-mode]
+    (define-key menu-map [size-indication-mode]
       '(menu-item "Display Size Indication" size-indication-mode
 		  :help "Toggle displaying a size indication in the mode-line"
 		  :button (:toggle . size-indication-mode)))
-    (bindings--define-key menu-map [line-number-mode]
+    (define-key menu-map [line-number-mode]
       '(menu-item "Display Line Numbers" line-number-mode
 		  :help "Toggle displaying line numbers in the mode-line"
 		  :button (:toggle . line-number-mode)))
-    (bindings--define-key menu-map [column-number-mode]
+    (define-key menu-map [column-number-mode]
       '(menu-item "Display Column Numbers" column-number-mode
 		  :help "Toggle displaying column numbers in the mode-line"
 		  :button (:toggle . column-number-mode)))
@@ -671,8 +648,8 @@ text properties for face, help-echo, and local-map to it."
   (list (propertize fmt
 		    'face 'mode-line-buffer-id
 		    'help-echo
-		    (purecopy "Buffer name
-mouse-1: Previous buffer\nmouse-3: Next buffer")
+                    "Buffer name
+mouse-1: Previous buffer\nmouse-3: Next buffer"
 		    'mouse-face 'mode-line-highlight
 		    'local-map mode-line-buffer-identification-keymap)))
 
@@ -774,54 +751,54 @@ meaningful if it refers to a lexically bound variable."
 
 ;; Use mode-line-mode-menu for local minor-modes only.
 ;; Global ones can go on the menubar (Options --> Show/Hide).
-(bindings--define-key mode-line-mode-menu [overwrite-mode]
+(define-key mode-line-mode-menu [overwrite-mode]
   '(menu-item "Overwrite (Ovwrt)" overwrite-mode
 	      :help "Overwrite mode: typed characters replace existing text"
 	      :button (:toggle . overwrite-mode)))
-(bindings--define-key mode-line-mode-menu [outline-minor-mode]
+(define-key mode-line-mode-menu [outline-minor-mode]
   '(menu-item "Outline (Outl)" outline-minor-mode
 	      ;; XXX: This needs a good, brief description.
 	      :help ""
 	      :button (:toggle . (bound-and-true-p outline-minor-mode))))
-(bindings--define-key mode-line-mode-menu [highlight-changes-mode]
+(define-key mode-line-mode-menu [highlight-changes-mode]
   '(menu-item "Highlight changes (Chg)" highlight-changes-mode
 	      :help "Show changes in the buffer in a distinctive color"
 	      :button (:toggle . (bound-and-true-p highlight-changes-mode))))
-(bindings--define-key mode-line-mode-menu [hide-ifdef-mode]
+(define-key mode-line-mode-menu [hide-ifdef-mode]
   '(menu-item "Hide ifdef (Ifdef)" hide-ifdef-mode
 	      :help "Show/Hide code within #ifdef constructs"
 	      :button (:toggle . (bound-and-true-p hide-ifdef-mode))))
-(bindings--define-key mode-line-mode-menu [glasses-mode]
+(define-key mode-line-mode-menu [glasses-mode]
   '(menu-item "Glasses (o^o)" glasses-mode
 	      :help "Insert virtual separators to make long identifiers easy to read"
 	      :button (:toggle . (bound-and-true-p glasses-mode))))
-(bindings--define-key mode-line-mode-menu [font-lock-mode]
+(define-key mode-line-mode-menu [font-lock-mode]
   '(menu-item "Font Lock" font-lock-mode
 	      :help "Syntax coloring"
 	      :button (:toggle . font-lock-mode)))
-(bindings--define-key mode-line-mode-menu [flyspell-mode]
+(define-key mode-line-mode-menu [flyspell-mode]
   '(menu-item "Flyspell (Fly)" flyspell-mode
 	      :help "Spell checking on the fly"
 	      :button (:toggle . (bound-and-true-p flyspell-mode))))
-(bindings--define-key mode-line-mode-menu [completion-preview-mode]
+(define-key mode-line-mode-menu [completion-preview-mode]
   '(menu-item "Completion Preview (CP)" completion-preview-mode
               :help "Show preview of completion suggestions as you type"
               :enable completion-at-point-functions
               :button (:toggle . (bound-and-true-p completion-preview-mode))))
-(bindings--define-key mode-line-mode-menu [auto-revert-tail-mode]
+(define-key mode-line-mode-menu [auto-revert-tail-mode]
   '(menu-item "Auto revert tail (Tail)" auto-revert-tail-mode
 	      :help "Revert the tail of the buffer when the file on disk grows"
 	      :enable (buffer-file-name)
 	      :button (:toggle . (bound-and-true-p auto-revert-tail-mode))))
-(bindings--define-key mode-line-mode-menu [auto-revert-mode]
+(define-key mode-line-mode-menu [auto-revert-mode]
   '(menu-item "Auto revert (ARev)" auto-revert-mode
 	      :help "Revert the buffer when the file on disk changes"
 	      :button (:toggle . (bound-and-true-p auto-revert-mode))))
-(bindings--define-key mode-line-mode-menu [auto-fill-mode]
+(define-key mode-line-mode-menu [auto-fill-mode]
   '(menu-item "Auto fill (Fill)" auto-fill-mode
 	      :help "Automatically insert new lines"
 	      :button (:toggle . auto-fill-function)))
-(bindings--define-key mode-line-mode-menu [abbrev-mode]
+(define-key mode-line-mode-menu [abbrev-mode]
   '(menu-item "Abbrev (Abbrev)" abbrev-mode
 	      :help "Automatically expand abbreviations"
 	      :button (:toggle . abbrev-mode)))
@@ -846,8 +823,7 @@ Actually, STRING need not be a string; any mode-line construct is
 okay.  See `mode-line-format'.")
 ;;;###autoload
 (put 'minor-mode-alist 'risky-local-variable t)
-;; Don't use purecopy here--some people want to change these strings,
-;; also string properties are lost when put into pure space.
+
 (setq minor-mode-alist
       '((abbrev-mode " Abbrev")
         (overwrite-mode overwrite-mode)
@@ -865,14 +841,11 @@ okay.  See `mode-line-format'.")
 (setq completion-ignored-extensions
       (append
        (cond ((memq system-type '(ms-dos windows-nt))
-	      (mapcar 'purecopy
-	      '(".o" "~" ".bin" ".bak" ".obj" ".map" ".ico" ".pif" ".lnk"
-		".a" ".ln" ".blg" ".bbl" ".dll" ".drv" ".vxd" ".386")))
+              '(".o" "~" ".bin" ".bak" ".obj" ".map" ".ico" ".pif" ".lnk"
+                ".a" ".ln" ".blg" ".bbl" ".dll" ".drv" ".vxd" ".386"))
 	     (t
-	      (mapcar 'purecopy
-	      '(".o" "~" ".bin" ".lbin" ".so"
-		".a" ".ln" ".blg" ".bbl"))))
-       (mapcar 'purecopy
+              '(".o" "~" ".bin" ".lbin" ".so"
+                ".a" ".ln" ".blg" ".bbl")))
        '(".elc" ".lof"
 	 ".glo" ".idx" ".lot"
 	 ;; VCS metadata directories
@@ -902,7 +875,7 @@ okay.  See `mode-line-format'.")
 	 ".cp" ".fn" ".ky" ".pg" ".tp" ".vr"
 	 ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs"
 	 ;; Python byte-compiled
-	 ".pyc" ".pyo"))))
+         ".pyc" ".pyo")))
 
 ;; Suffixes used for executables.
 (setq exec-suffixes
@@ -1647,6 +1620,8 @@ if `inhibit-field-text-motion' is non-nil."
 
 ;; Text conversion
 (define-key global-map [text-conversion] 'analyze-text-conversion)
+
+(define-obsolete-function-alias 'bindings--define-key #'define-key "31.1")
 
 ;; Don't look for autoload cookies in this file.
 ;; Local Variables:

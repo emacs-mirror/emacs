@@ -1078,7 +1078,7 @@ make_frame (bool mini_p)
   rw->pixel_height = rw->total_lines * FRAME_LINE_HEIGHT (f);
 
   fset_face_hash_table
-    (f, make_hash_table (&hashtest_eq, DEFAULT_HASH_SIZE, Weak_None, false));
+    (f, make_hash_table (&hashtest_eq, DEFAULT_HASH_SIZE, Weak_None));
 
   if (mini_p)
     {
@@ -1242,7 +1242,7 @@ make_initial_frame (void)
   Vframe_list = Fcons (frame, Vframe_list);
 
   tty_frame_count = 1;
-  fset_name (f, build_pure_c_string ("F1"));
+  fset_name (f, build_string ("F1"));
 
   SET_FRAME_VISIBLE (f, true);
 

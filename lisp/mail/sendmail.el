@@ -160,7 +160,7 @@ This is used by the default mail-sending commands.  See also
   :version "24.1")
 
 ;;;###autoload
-(defcustom mail-header-separator (purecopy "--text follows this line--")
+(defcustom mail-header-separator "--text follows this line--"
   "Line used to separate headers from text in messages being composed."
   :type 'string)
 
@@ -201,7 +201,7 @@ The default file is defined in sendmail's configuration file, e.g.
   :type '(choice (const :tag "Sendmail default" nil) file))
 
 ;;;###autoload
-(defcustom mail-personal-alias-file (purecopy "~/.mailrc")
+(defcustom mail-personal-alias-file "~/.mailrc"
   "If non-nil, the name of the user's personal mail alias file.
 This file typically should be in same format as the `.mailrc' file used by
 the `Mail' or `mailx' program.
@@ -260,7 +260,7 @@ regardless of what part of it (if any) is included in the cited text.")
 (defcustom mail-citation-prefix-regexp
   ;; Use [[:word:]] rather than \w so we don't get tripped up if one
   ;; of those chars has a weird `syntax-table' text property.
-  (purecopy "\\([ \t]*\\([[:word:]]\\|[_.]\\)+>+\\|[ \t]*[>|]\\)+")
+  "\\([ \t]*\\([[:word:]]\\|[_.]\\)+>+\\|[ \t]*[>|]\\)+"
   "Regular expression to match a citation prefix plus whitespace.
 It should match whatever sort of citation prefixes you want to handle,
 with whitespace before and after; it should also match just whitespace.
@@ -379,12 +379,12 @@ and should insert whatever you want to insert."
   :risky t)
 
 ;;;###autoload
-(defcustom mail-signature-file (purecopy "~/.signature")
+(defcustom mail-signature-file "~/.signature"
   "File containing the text inserted at end of mail buffer."
   :type 'file)
 
 ;;;###autoload
-(defcustom mail-default-directory (purecopy "~/")
+(defcustom mail-default-directory "~/"
   "Value of `default-directory' for Mail mode buffers.
 This directory is used for auto-save files of Mail mode buffers.
 

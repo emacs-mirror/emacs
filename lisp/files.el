@@ -231,7 +231,7 @@ have fast storage with limited space, such as a RAM disk."
   :type '(choice (const nil) directory))
 
 ;; The system null device. (Should reference NULL_DEVICE from C.)
-(defvar null-device (purecopy "/dev/null") "The system null device.")
+(defvar null-device "/dev/null" "The system null device.")
 
 (declare-function msdos-long-file-names "msdos.c")
 (declare-function w32-long-file-name "w32proc.c")
@@ -243,17 +243,15 @@ have fast storage with limited space, such as a RAM disk."
 
 (defvar file-name-invalid-regexp
   (cond ((and (eq system-type 'ms-dos) (not (msdos-long-file-names)))
-	 (purecopy
 	 (concat "^\\([^A-Z[-`a-z]\\|..+\\)?:\\|" ; colon except after drive
 		 "[+, ;=|<>\"?*]\\|\\[\\|\\]\\|"  ; invalid characters
 		 "[\000-\037]\\|"		  ; control characters
 		 "\\(/\\.\\.?[^/]\\)\\|"	  ; leading dots
-		 "\\(/[^/.]+\\.[^/.]*\\.\\)")))	  ; more than a single dot
+                 "\\(/[^/.]+\\.[^/.]*\\.\\)"))	  ; more than a single dot
 	((memq system-type '(ms-dos windows-nt cygwin))
-	 (purecopy
-	 (concat "^\\([^A-Z[-`a-z]\\|..+\\)?:\\|" ; colon except after drive
-		 "[|<>\"?*\000-\037]")))		  ; invalid characters
-	(t (purecopy "[\000]")))
+         (concat "^\\([^A-Z[-`a-z]\\|..+\\)?:\\|" ; colon except after drive
+                 "[|<>\"?*\000-\037]"))		  ; invalid characters
+        (t "[\000]"))
   "Regexp recognizing file names that aren't allowed by the filesystem.")
 
 (defcustom file-precious-flag nil
@@ -1175,7 +1173,7 @@ one or more of those symbols."
        string-dir names string-file pred action)))))
 
 (defvar locate-dominating-stop-dir-regexp
-  (purecopy "\\`\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)\\'")
+  "\\`\\(?:[\\/][\\/][^\\/]+[\\/]\\|/\\(?:net\\|afs\\|\\.\\.\\.\\)/\\)\\'"
   "Regexp of directory names that stop the search in `locate-dominating-file'.
 Any directory whose name matches this regexp will be treated like
 a kind of root directory by `locate-dominating-file', which will stop its
@@ -2988,279 +2986,276 @@ since only a single case-insensitive search through the alist is made."
   ;; Note: The entries for the modes defined in cc-mode.el (c-mode,
   ;; c++-mode, java-mode and more) are added through autoload
   ;; directives in that file.
-  (mapcar
-   (lambda (elt)
-     (cons (purecopy (car elt)) (cdr elt)))
-   `(;; do this first, so that .html.pl is Polish html, not Perl
-     ("\\.[sx]?html?\\(\\.[a-zA-Z_]+\\)?\\'" . mhtml-mode)
-     ("\\.svgz?\\'" . image-mode)
-     ("\\.svgz?\\'" . xml-mode)
-     ("\\.x[bp]m\\'" . image-mode)
-     ("\\.x[bp]m\\'" . c-mode)
-     ("\\.p[bpgn]m\\'" . image-mode)
-     ("\\.tiff?\\'" . image-mode)
-     ("\\.gif\\'" . image-mode)
-     ("\\.png\\'" . image-mode)
-     ("\\.jpe?g\\'" . image-mode)
-     ("\\.webp\\'" . image-mode)
-     ("\\.te?xt\\'" . text-mode)
-     ("\\.[tT]e[xX]\\'" . tex-mode)
-     ("\\.ins\\'" . tex-mode)		;Installation files for TeX packages.
-     ("\\.ltx\\'" . latex-mode)
-     ("\\.dtx\\'" . doctex-mode)
-     ("\\.org\\'" . org-mode)
-     ;; .dir-locals.el is not really Elisp.  Could use the
-     ;; `dir-locals-file' constant if it weren't defined below.
-     ("\\.dir-locals\\(?:-2\\)?\\.el\\'" . lisp-data-mode)
-     ("\\.eld\\'" . lisp-data-mode)
-     ;; FIXME: The lisp-data-mode files below should use the `.eld' extension
-     ;; (or a -*- mode cookie) so we don't need ad-hoc entries here.
-     ("eww-bookmarks\\'" . lisp-data-mode)
-     ("tramp\\'" . lisp-data-mode)
-     ("/archive-contents\\'" . lisp-data-mode)
-     ("places\\'" . lisp-data-mode)
-     ("\\.emacs-places\\'" . lisp-data-mode)
-     ("\\.el\\'" . emacs-lisp-mode)
-     ("Project\\.ede\\'" . emacs-lisp-mode)
-     ("\\(?:\\.\\(?:scm\\|sls\\|sld\\|stk\\|ss\\|sch\\)\\|/\\.guile\\)\\'" . scheme-mode)
-     ("\\.l\\'" . lisp-mode)
-     ("\\.li?sp\\'" . lisp-mode)
-     ("\\.[fF]\\'" . fortran-mode)
-     ("\\.for\\'" . fortran-mode)
-     ("\\.p\\'" . pascal-mode)
-     ("\\.pas\\'" . pascal-mode)
-     ("\\.\\(dpr\\|DPR\\)\\'" . opascal-mode)
-     ("\\.\\([pP]\\([Llm]\\|erl\\|od\\)\\|al\\)\\'" . perl-mode)
-     ("Imakefile\\'" . makefile-imake-mode)
-     ("Makeppfile\\(?:\\.mk\\)?\\'" . makefile-makepp-mode) ; Put this before .mk
-     ("\\.makepp\\'" . makefile-makepp-mode)
-     ,@(if (memq system-type '(berkeley-unix darwin))
-	   '(("\\.mk\\'" . makefile-bsdmake-mode)
-	     ("\\.make\\'" . makefile-bsdmake-mode)
-	     ("GNUmakefile\\'" . makefile-gmake-mode)
-	     ("[Mm]akefile\\'" . makefile-bsdmake-mode))
-	 '(("\\.mk\\'" . makefile-gmake-mode)	; Might be any make, give GNU the host advantage
-	   ("\\.make\\'" . makefile-gmake-mode)
-	   ("[Mm]akefile\\'" . makefile-gmake-mode)))
-     ("\\.am\\'" . makefile-automake-mode)
-     ;; Less common extensions come here
-     ;; so more common ones above are found faster.
-     ("\\.texinfo\\'" . texinfo-mode)
-     ("\\.te?xi\\'" . texinfo-mode)
-     ("\\.[sS]\\'" . asm-mode)
-     ("\\.asm\\'" . asm-mode)
-     ("\\.css\\'" . css-mode)
-     ("\\.mixal\\'" . mixal-mode)
-     ("\\.gcov\\'" . compilation-mode)
-     ;; Besides .gdbinit, gdb documents other names to be usable for init
-     ;; files, cross-debuggers can use something like
-     ;; .PROCESSORNAME-gdbinit so that the host and target gdbinit files
-     ;; don't interfere with each other.
-     ("/[._]?[A-Za-z0-9-]*\\(?:gdbinit\\(?:\\.\\(?:ini?\\|loader\\)\\)?\\|gdb\\.ini\\)\\'" . gdb-script-mode)
-     ;; GDB 7.5 introduced OBJFILE-gdb.gdb script files; e.g. a file
-     ;; named 'emacs-gdb.gdb', if it exists, will be automatically
-     ;; loaded when GDB reads an objfile called 'emacs'.
-     ("-gdb\\.gdb" . gdb-script-mode)
-     ("[cC]hange\\.?[lL]og?\\'" . change-log-mode)
-     ("[cC]hange[lL]og[-.][0-9]+\\'" . change-log-mode)
-     ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
-     ("\\.scm\\.[0-9]*\\'" . scheme-mode)
-     ("\\.[ckz]?sh\\'\\|\\.shar\\'\\|/\\.z?profile\\'" . sh-mode)
-     ("\\.bash\\'" . sh-mode)
-     ;; Bash builtin 'fc' creates a temp file named "bash-fc.XXXXXX"
-     ;; to edit shell commands from its history list.
-     ("/bash-fc\\.[0-9A-Za-z]\\{6\\}\\'" . sh-mode)
-     ("/PKGBUILD\\'" . sh-mode)
-     ("\\(/\\|\\`\\)\\.\\(bash_\\(profile\\|history\\|log\\(in\\|out\\)\\)\\|z?log\\(in\\|out\\)\\)\\'" . sh-mode)
-     ("\\(/\\|\\`\\)\\.\\(shrc\\|zshrc\\|m?kshrc\\|bashrc\\|t?cshrc\\|esrc\\)\\'" . sh-mode)
-     ("\\(/\\|\\`\\)\\.\\([kz]shenv\\|xinitrc\\|startxrc\\|xsession\\)\\'" . sh-mode)
-     ("\\.m?spec\\'" . sh-mode)
-     ("\\.m[mes]\\'" . nroff-mode)
-     ("\\.man\\'" . nroff-mode)
-     ("\\.sty\\'" . latex-mode)
-     ("\\.cl[so]\\'" . latex-mode)		;LaTeX 2e class option
-     ("\\.bbl\\'" . latex-mode)
-     ("\\.bib\\'" . bibtex-mode)
-     ("\\.bst\\'" . bibtex-style-mode)
-     ("\\.sql\\'" . sql-mode)
-     ;; These .m4 files are Autoconf files.
-     ("\\(acinclude\\|aclocal\\|acsite\\)\\.m4\\'" . autoconf-mode)
-     ("\\.m[4c]\\'" . m4-mode)
-     ("\\.mf\\'" . metafont-mode)
-     ("\\.mp\\'" . metapost-mode)
-     ("\\.vhdl?\\'" . vhdl-mode)
-     ("\\.article\\'" . text-mode)
-     ("\\.letter\\'" . text-mode)
-     ("\\.i?tcl\\'" . tcl-mode)
-     ("\\.exp\\'" . tcl-mode)
-     ("\\.itk\\'" . tcl-mode)
-     ("\\.icn\\'" . icon-mode)
-     ("\\.sim\\'" . simula-mode)
-     ("\\.mss\\'" . scribe-mode)
-     ;; The Fortran standard does not say anything about file extensions.
-     ;; .f90 was widely used for F90, now we seem to be trapped into
-     ;; using a different extension for each language revision.
-     ;; Anyway, the following extensions are supported by gfortran.
-     ("\\.f9[05]\\'" . f90-mode)
-     ("\\.f0[38]\\'" . f90-mode)
-     ("\\.srt\\'" . srecode-template-mode)
-     ("\\.prolog\\'" . prolog-mode)
-     ("\\.tar\\'" . tar-mode)
-     ;; The list of archive file extensions should be in sync with
-     ;; `auto-coding-alist' with `no-conversion' coding system.
-     ("\\.\\(\
+  `(;; do this first, so that .html.pl is Polish html, not Perl
+    ("\\.[sx]?html?\\(\\.[a-zA-Z_]+\\)?\\'" . mhtml-mode)
+    ("\\.svgz?\\'" . image-mode)
+    ("\\.svgz?\\'" . xml-mode)
+    ("\\.x[bp]m\\'" . image-mode)
+    ("\\.x[bp]m\\'" . c-mode)
+    ("\\.p[bpgn]m\\'" . image-mode)
+    ("\\.tiff?\\'" . image-mode)
+    ("\\.gif\\'" . image-mode)
+    ("\\.png\\'" . image-mode)
+    ("\\.jpe?g\\'" . image-mode)
+    ("\\.webp\\'" . image-mode)
+    ("\\.te?xt\\'" . text-mode)
+    ("\\.[tT]e[xX]\\'" . tex-mode)
+    ("\\.ins\\'" . tex-mode)		;Installation files for TeX packages.
+    ("\\.ltx\\'" . latex-mode)
+    ("\\.dtx\\'" . doctex-mode)
+    ("\\.org\\'" . org-mode)
+    ;; .dir-locals.el is not really Elisp.  Could use the
+    ;; `dir-locals-file' constant if it weren't defined below.
+    ("\\.dir-locals\\(?:-2\\)?\\.el\\'" . lisp-data-mode)
+    ("\\.eld\\'" . lisp-data-mode)
+    ;; FIXME: The lisp-data-mode files below should use the `.eld' extension
+    ;; (or a -*- mode cookie) so we don't need ad-hoc entries here.
+    ("eww-bookmarks\\'" . lisp-data-mode)
+    ("tramp\\'" . lisp-data-mode)
+    ("/archive-contents\\'" . lisp-data-mode)
+    ("places\\'" . lisp-data-mode)
+    ("\\.emacs-places\\'" . lisp-data-mode)
+    ("\\.el\\'" . emacs-lisp-mode)
+    ("Project\\.ede\\'" . emacs-lisp-mode)
+    ("\\(?:\\.\\(?:scm\\|sls\\|sld\\|stk\\|ss\\|sch\\)\\|/\\.guile\\)\\'" . scheme-mode)
+    ("\\.l\\'" . lisp-mode)
+    ("\\.li?sp\\'" . lisp-mode)
+    ("\\.[fF]\\'" . fortran-mode)
+    ("\\.for\\'" . fortran-mode)
+    ("\\.p\\'" . pascal-mode)
+    ("\\.pas\\'" . pascal-mode)
+    ("\\.\\(dpr\\|DPR\\)\\'" . opascal-mode)
+    ("\\.\\([pP]\\([Llm]\\|erl\\|od\\)\\|al\\)\\'" . perl-mode)
+    ("Imakefile\\'" . makefile-imake-mode)
+    ("Makeppfile\\(?:\\.mk\\)?\\'" . makefile-makepp-mode) ; Put this before .mk
+    ("\\.makepp\\'" . makefile-makepp-mode)
+    ,@(if (memq system-type '(berkeley-unix darwin))
+	  '(("\\.mk\\'" . makefile-bsdmake-mode)
+	    ("\\.make\\'" . makefile-bsdmake-mode)
+	    ("GNUmakefile\\'" . makefile-gmake-mode)
+	    ("[Mm]akefile\\'" . makefile-bsdmake-mode))
+	'(("\\.mk\\'" . makefile-gmake-mode)	; Might be any make, give GNU the host advantage
+	  ("\\.make\\'" . makefile-gmake-mode)
+	  ("[Mm]akefile\\'" . makefile-gmake-mode)))
+    ("\\.am\\'" . makefile-automake-mode)
+    ;; Less common extensions come here
+    ;; so more common ones above are found faster.
+    ("\\.texinfo\\'" . texinfo-mode)
+    ("\\.te?xi\\'" . texinfo-mode)
+    ("\\.[sS]\\'" . asm-mode)
+    ("\\.asm\\'" . asm-mode)
+    ("\\.css\\'" . css-mode)
+    ("\\.mixal\\'" . mixal-mode)
+    ("\\.gcov\\'" . compilation-mode)
+    ;; Besides .gdbinit, gdb documents other names to be usable for init
+    ;; files, cross-debuggers can use something like
+    ;; .PROCESSORNAME-gdbinit so that the host and target gdbinit files
+    ;; don't interfere with each other.
+    ("/[._]?[A-Za-z0-9-]*\\(?:gdbinit\\(?:\\.\\(?:ini?\\|loader\\)\\)?\\|gdb\\.ini\\)\\'" . gdb-script-mode)
+    ;; GDB 7.5 introduced OBJFILE-gdb.gdb script files; e.g. a file
+    ;; named 'emacs-gdb.gdb', if it exists, will be automatically
+    ;; loaded when GDB reads an objfile called 'emacs'.
+    ("-gdb\\.gdb" . gdb-script-mode)
+    ("[cC]hange\\.?[lL]og?\\'" . change-log-mode)
+    ("[cC]hange[lL]og[-.][0-9]+\\'" . change-log-mode)
+    ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
+    ("\\.scm\\.[0-9]*\\'" . scheme-mode)
+    ("\\.[ckz]?sh\\'\\|\\.shar\\'\\|/\\.z?profile\\'" . sh-mode)
+    ("\\.bash\\'" . sh-mode)
+    ;; Bash builtin 'fc' creates a temp file named "bash-fc.XXXXXX"
+    ;; to edit shell commands from its history list.
+    ("/bash-fc\\.[0-9A-Za-z]\\{6\\}\\'" . sh-mode)
+    ("/PKGBUILD\\'" . sh-mode)
+    ("\\(/\\|\\`\\)\\.\\(bash_\\(profile\\|history\\|log\\(in\\|out\\)\\)\\|z?log\\(in\\|out\\)\\)\\'" . sh-mode)
+    ("\\(/\\|\\`\\)\\.\\(shrc\\|zshrc\\|m?kshrc\\|bashrc\\|t?cshrc\\|esrc\\)\\'" . sh-mode)
+    ("\\(/\\|\\`\\)\\.\\([kz]shenv\\|xinitrc\\|startxrc\\|xsession\\)\\'" . sh-mode)
+    ("\\.m?spec\\'" . sh-mode)
+    ("\\.m[mes]\\'" . nroff-mode)
+    ("\\.man\\'" . nroff-mode)
+    ("\\.sty\\'" . latex-mode)
+    ("\\.cl[so]\\'" . latex-mode)		;LaTeX 2e class option
+    ("\\.bbl\\'" . latex-mode)
+    ("\\.bib\\'" . bibtex-mode)
+    ("\\.bst\\'" . bibtex-style-mode)
+    ("\\.sql\\'" . sql-mode)
+    ;; These .m4 files are Autoconf files.
+    ("\\(acinclude\\|aclocal\\|acsite\\)\\.m4\\'" . autoconf-mode)
+    ("\\.m[4c]\\'" . m4-mode)
+    ("\\.mf\\'" . metafont-mode)
+    ("\\.mp\\'" . metapost-mode)
+    ("\\.vhdl?\\'" . vhdl-mode)
+    ("\\.article\\'" . text-mode)
+    ("\\.letter\\'" . text-mode)
+    ("\\.i?tcl\\'" . tcl-mode)
+    ("\\.exp\\'" . tcl-mode)
+    ("\\.itk\\'" . tcl-mode)
+    ("\\.icn\\'" . icon-mode)
+    ("\\.sim\\'" . simula-mode)
+    ("\\.mss\\'" . scribe-mode)
+    ;; The Fortran standard does not say anything about file extensions.
+    ;; .f90 was widely used for F90, now we seem to be trapped into
+    ;; using a different extension for each language revision.
+    ;; Anyway, the following extensions are supported by gfortran.
+    ("\\.f9[05]\\'" . f90-mode)
+    ("\\.f0[38]\\'" . f90-mode)
+    ("\\.srt\\'" . srecode-template-mode)
+    ("\\.prolog\\'" . prolog-mode)
+    ("\\.tar\\'" . tar-mode)
+    ;; The list of archive file extensions should be in sync with
+    ;; `auto-coding-alist' with `no-conversion' coding system.
+    ("\\.\\(\
 arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\|rar\\|cbr\\|7z\\|squashfs\\|\
 ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|CBR\\|7Z\\|SQUASHFS\\)\\'" . archive-mode)
-     ("\\.oxt\\'" . archive-mode) ;(Open|Libre)Office extensions.
-     ("\\.\\(deb\\|[oi]pk\\)\\'" . archive-mode) ; Debian/Opkg packages.
-     ;; Mailer puts message to be edited in
-     ;; /tmp/Re.... or Message
-     ("\\`/tmp/Re" . text-mode)
-     ("/Message[0-9]*\\'" . text-mode)
-     ;; some news reader is reported to use this
-     ("\\`/tmp/fol/" . text-mode)
-     ("\\.oak\\'" . scheme-mode)
-     ("\\.sgml?\\'" . sgml-mode)
-     ("\\.x[ms]l\\'" . xml-mode)
-     ("\\.dbk\\'" . xml-mode)
-     ("\\.dtd\\'" . sgml-mode)
-     ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
-     ("\\.js[mx]?\\'" . javascript-mode)
-     ;; https://en.wikipedia.org/wiki/.har
-     ("\\.har\\'" . javascript-mode)
-     ("\\.json\\'" . js-json-mode)
-     ("\\.[ds]?va?h?\\'" . verilog-mode)
-     ("\\.by\\'" . bovine-grammar-mode)
-     ("\\.wy\\'" . wisent-grammar-mode)
-     ("\\.erts\\'" . erts-mode)
-     ;; .emacs or .gnus or .viper following a directory delimiter in
-     ;; Unix or MS-DOS syntax.
-     ("[:/\\]\\..*\\(emacs\\|gnus\\|viper\\)\\'" . emacs-lisp-mode)
-     ("\\`\\..*emacs\\'" . emacs-lisp-mode)
-     ;; _emacs following a directory delimiter in MS-DOS syntax
-     ("[:/]_emacs\\'" . emacs-lisp-mode)
-     ("/crontab\\.X*[0-9]+\\'" . shell-script-mode)
-     ("\\.ml\\'" . lisp-mode)
-     ;; Linux-2.6.9 uses some different suffix for linker scripts:
-     ;; "ld", "lds", "lds.S", "lds.in", "ld.script", and "ld.script.balo".
-     ;; eCos uses "ld" and "ldi".  Netbsd uses "ldscript.*".
-     ("\\.ld[si]?\\'" . ld-script-mode)
-     ("ld\\.?script\\'" . ld-script-mode)
-     ;; .xs is also used for ld scripts, but seems to be more commonly
-     ;; associated with Perl .xs files (C with Perl bindings).  (Bug#7071)
-     ("\\.xs\\'" . c-mode)
-     ;; Explained in binutils ld/genscripts.sh.  Eg:
-     ;; A .x script file is the default script.
-     ;; A .xr script is for linking without relocation (-r flag).  Etc.
-     ("\\.x[abdsru]?[cnw]?\\'" . ld-script-mode)
-     ("\\.zone\\'" . dns-mode)
-     ("\\.soa\\'" . dns-mode)
-     ;; Common Lisp ASDF package system.
-     ("\\.asd\\'" . lisp-mode)
-     ("\\.\\(asn\\|mib\\|smi\\)\\'" . snmp-mode)
-     ("\\.\\(as\\|mi\\|sm\\)2\\'" . snmpv2-mode)
-     ("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)
-     ("\\.\\(dif\\|pat\\)\\'" . diff-mode) ; for MS-DOS
-     ("\\.[eE]?[pP][sS]\\'" . ps-mode)
-     ("\\.\\(?:PDF\\|EPUB\\|CBZ\\|FB2\\|O?XPS\\|DVI\\|OD[FGPST]\\|DOCX\\|XLSX?\\|PPTX?\\|pdf\\|epub\\|cbz\\|fb2\\|o?xps\\|djvu\\|dvi\\|od[fgpst]\\|docx\\|xlsx?\\|pptx?\\)\\'" . doc-view-mode-maybe)
-     ("configure\\.\\(ac\\|in\\)\\'" . autoconf-mode)
-     ("\\.s\\(v\\|iv\\|ieve\\)\\'" . sieve-mode)
-     ("BROWSE\\'" . ebrowse-tree-mode)
-     ("\\.ebrowse\\'" . ebrowse-tree-mode)
-     ("#\\*mail\\*" . mail-mode)
-     ("\\.g\\'" . antlr-mode)
-     ("\\.mod\\'" . m2-mode)
-     ("\\.ses\\'" . ses-mode)
-     ("\\.docbook\\'" . sgml-mode)
-     ("\\.com\\'" . dcl-mode)
-     ("/config\\.\\(?:bat\\|log\\)\\'" . fundamental-mode)
-     ("/\\.?\\(authinfo\\|netrc\\)\\'" . authinfo-mode)
-     ;; Windows candidates may be opened case sensitively on Unix
-     ("\\.\\(?:[iI][nN][iI]\\|[lL][sS][tT]\\|[rR][eE][gG]\\|[sS][yY][sS]\\)\\'" . conf-mode)
-     ("\\.la\\'" . conf-unix-mode)
-     ("\\.ppd\\'" . conf-ppd-mode)
-     ("java.+\\.conf\\'" . conf-javaprop-mode)
-     ("\\.properties\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-javaprop-mode)
-     ("\\.toml\\'" . conf-toml-mode)
-     ("\\.desktop\\'" . conf-desktop-mode)
-     ("/\\.redshift\\.conf\\'" . conf-windows-mode)
-     ("\\`/etc/\\(?:DIR_COLORS\\|ethers\\|.?fstab\\|.*hosts\\|lesskey\\|login\\.?de\\(?:fs\\|vperm\\)\\|magic\\|mtab\\|pam\\.d/.*\\|permissions\\(?:\\.d/.+\\)?\\|protocols\\|rpc\\|services\\)\\'" . conf-space-mode)
-     ("\\`/etc/\\(?:acpid?/.+\\|aliases\\(?:\\.d/.+\\)?\\|default/.+\\|group-?\\|hosts\\..+\\|inittab\\|ksysguarddrc\\|opera6rc\\|passwd-?\\|shadow-?\\|sysconfig/.+\\)\\'" . conf-mode)
-     ;; ChangeLog.old etc.  Other change-log-mode entries are above;
-     ;; this has lower priority to avoid matching changelog.sgml etc.
-     ("[cC]hange[lL]og[-.][-0-9a-z]+\\'" . change-log-mode)
-     ;; either user's dot-files or under /etc or some such
-     ("/\\.?\\(?:gitconfig\\|gnokiirc\\|hgrc\\|kde.*rc\\|mime\\.types\\|wgetrc\\)\\'" . conf-mode)
-     ("/\\.mailmap\\'" . conf-unix-mode)
-     ;; alas not all ~/.*rc files are like this
-     ("/\\.\\(?:asound\\|enigma\\|fetchmail\\|gltron\\|gtk\\|hxplayer\\|mairix\\|mbsync\\|msmtp\\|net\\|neverball\\|nvidia-settings-\\|offlineimap\\|qt/.+\\|realplayer\\|reportbug\\|rtorrent\\.\\|screen\\|scummvm\\|sversion\\|sylpheed/.+\\|xmp\\)rc\\'" . conf-mode)
-     ("/\\.\\(?:gdbtkinit\\|grip\\|mpdconf\\|notmuch-config\\|orbital/.+txt\\|rhosts\\|tuxracer/options\\)\\'" . conf-mode)
-     ("/\\.?X\\(?:default\\|resource\\|re\\)s\\>" . conf-xdefaults-mode)
-     ("/X11.+app-defaults/\\|\\.ad\\'" . conf-xdefaults-mode)
-     ("/X11.+locale/.+/Compose\\'" . conf-colon-mode)
-     ;; this contains everything twice, with space and with colon :-(
-     ("/X11.+locale/compose\\.dir\\'" . conf-javaprop-mode)
-     ;; Get rid of any trailing .n.m and try again.
-     ;; This is for files saved by cvs-merge that look like .#<file>.<rev>
-     ;; or .#<file>.<rev>-<rev> or VC's <file>.~<rev>~.
-     ;; Using mode nil rather than `ignore' would let the search continue
-     ;; through this list (with the shortened name) rather than start over.
-     ("\\.~?[0-9]+\\.[0-9][-.0-9]*~?\\'" nil t)
-     ("\\.\\(?:orig\\|in\\|[bB][aA][kK]\\)\\'" nil t)
-     ;; This should come after "in" stripping (e.g. config.h.in).
-     ;; *.cf, *.cfg, *.conf, *.config[.local|.de_DE.UTF8|...], */config
-     ("[/.]c\\(?:on\\)?f\\(?:i?g\\)?\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-mode-maybe)
-     ;; The following should come after the ChangeLog pattern
-     ;; for the sake of ChangeLog.1, etc.
-     ;; and after the .scm.[0-9] and CVS' <file>.<rev> patterns too.
-     ("\\.[1-9]\\'" . nroff-mode)
-     ;; Image file types probably supported by `image-convert'.
-     ("\\.art\\'" . image-mode)
-     ("\\.avs\\'" . image-mode)
-     ("\\.bmp\\'" . image-mode)
-     ("\\.cmyk\\'" . image-mode)
-     ("\\.cmyka\\'" . image-mode)
-     ("\\.crw\\'" . image-mode)
-     ("\\.dcm\\'" . image-mode)
-     ("\\.dcr\\'" . image-mode)
-     ("\\.dcx\\'" . image-mode)
-     ("\\.dng\\'" . image-mode)
-     ("\\.dpx\\'" . image-mode)
-     ("\\.fax\\'" . image-mode)
-     ("\\.heic\\'" . image-mode)
-     ("\\.hrz\\'" . image-mode)
-     ("\\.icb\\'" . image-mode)
-     ("\\.icc\\'" . image-mode)
-     ("\\.icm\\'" . image-mode)
-     ("\\.ico\\'" . image-mode)
-     ("\\.icon\\'" . image-mode)
-     ("\\.jbg\\'" . image-mode)
-     ("\\.jbig\\'" . image-mode)
-     ("\\.jng\\'" . image-mode)
-     ("\\.jnx\\'" . image-mode)
-     ("\\.miff\\'" . image-mode)
-     ("\\.mng\\'" . image-mode)
-     ("\\.mvg\\'" . image-mode)
-     ("\\.otb\\'" . image-mode)
-     ("\\.p7\\'" . image-mode)
-     ("\\.pcx\\'" . image-mode)
-     ("\\.pdb\\'" . image-mode)
-     ("\\.pfa\\'" . image-mode)
-     ("\\.pfb\\'" . image-mode)
-     ("\\.picon\\'" . image-mode)
-     ("\\.pict\\'" . image-mode)
-     ("\\.rgb\\'" . image-mode)
-     ("\\.rgba\\'" . image-mode)
-     ("\\.six\\'" . image-mode)
-     ("\\.tga\\'" . image-mode)
-     ("\\.wbmp\\'" . image-mode)
-     ("\\.webp\\'" . image-mode)
-     ("\\.wmf\\'" . image-mode)
-     ("\\.wpg\\'" . image-mode)
-     ("\\.xcf\\'" . image-mode)
-     ("\\.xmp\\'" . image-mode)
-     ("\\.xwd\\'" . image-mode)
-     ("\\.yuv\\'" . image-mode)))
+    ("\\.oxt\\'" . archive-mode) ;(Open|Libre)Office extensions.
+    ("\\.\\(deb\\|[oi]pk\\)\\'" . archive-mode) ; Debian/Opkg packages.
+    ;; Mailer puts message to be edited in
+    ;; /tmp/Re.... or Message
+    ("\\`/tmp/Re" . text-mode)
+    ("/Message[0-9]*\\'" . text-mode)
+    ;; some news reader is reported to use this
+    ("\\`/tmp/fol/" . text-mode)
+    ("\\.oak\\'" . scheme-mode)
+    ("\\.sgml?\\'" . sgml-mode)
+    ("\\.x[ms]l\\'" . xml-mode)
+    ("\\.dbk\\'" . xml-mode)
+    ("\\.dtd\\'" . sgml-mode)
+    ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
+    ("\\.js[mx]?\\'" . javascript-mode)
+    ;; https://en.wikipedia.org/wiki/.har
+    ("\\.har\\'" . javascript-mode)
+    ("\\.json\\'" . js-json-mode)
+    ("\\.[ds]?va?h?\\'" . verilog-mode)
+    ("\\.by\\'" . bovine-grammar-mode)
+    ("\\.wy\\'" . wisent-grammar-mode)
+    ("\\.erts\\'" . erts-mode)
+    ;; .emacs or .gnus or .viper following a directory delimiter in
+    ;; Unix or MS-DOS syntax.
+    ("[:/\\]\\..*\\(emacs\\|gnus\\|viper\\)\\'" . emacs-lisp-mode)
+    ("\\`\\..*emacs\\'" . emacs-lisp-mode)
+    ;; _emacs following a directory delimiter in MS-DOS syntax
+    ("[:/]_emacs\\'" . emacs-lisp-mode)
+    ("/crontab\\.X*[0-9]+\\'" . shell-script-mode)
+    ("\\.ml\\'" . lisp-mode)
+    ;; Linux-2.6.9 uses some different suffix for linker scripts:
+    ;; "ld", "lds", "lds.S", "lds.in", "ld.script", and "ld.script.balo".
+    ;; eCos uses "ld" and "ldi".  Netbsd uses "ldscript.*".
+    ("\\.ld[si]?\\'" . ld-script-mode)
+    ("ld\\.?script\\'" . ld-script-mode)
+    ;; .xs is also used for ld scripts, but seems to be more commonly
+    ;; associated with Perl .xs files (C with Perl bindings).  (Bug#7071)
+    ("\\.xs\\'" . c-mode)
+    ;; Explained in binutils ld/genscripts.sh.  Eg:
+    ;; A .x script file is the default script.
+    ;; A .xr script is for linking without relocation (-r flag).  Etc.
+    ("\\.x[abdsru]?[cnw]?\\'" . ld-script-mode)
+    ("\\.zone\\'" . dns-mode)
+    ("\\.soa\\'" . dns-mode)
+    ;; Common Lisp ASDF package system.
+    ("\\.asd\\'" . lisp-mode)
+    ("\\.\\(asn\\|mib\\|smi\\)\\'" . snmp-mode)
+    ("\\.\\(as\\|mi\\|sm\\)2\\'" . snmpv2-mode)
+    ("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)
+    ("\\.\\(dif\\|pat\\)\\'" . diff-mode) ; for MS-DOS
+    ("\\.[eE]?[pP][sS]\\'" . ps-mode)
+    ("\\.\\(?:PDF\\|EPUB\\|CBZ\\|FB2\\|O?XPS\\|DVI\\|OD[FGPST]\\|DOCX\\|XLSX?\\|PPTX?\\|pdf\\|epub\\|cbz\\|fb2\\|o?xps\\|djvu\\|dvi\\|od[fgpst]\\|docx\\|xlsx?\\|pptx?\\)\\'" . doc-view-mode-maybe)
+    ("configure\\.\\(ac\\|in\\)\\'" . autoconf-mode)
+    ("\\.s\\(v\\|iv\\|ieve\\)\\'" . sieve-mode)
+    ("BROWSE\\'" . ebrowse-tree-mode)
+    ("\\.ebrowse\\'" . ebrowse-tree-mode)
+    ("#\\*mail\\*" . mail-mode)
+    ("\\.g\\'" . antlr-mode)
+    ("\\.mod\\'" . m2-mode)
+    ("\\.ses\\'" . ses-mode)
+    ("\\.docbook\\'" . sgml-mode)
+    ("\\.com\\'" . dcl-mode)
+    ("/config\\.\\(?:bat\\|log\\)\\'" . fundamental-mode)
+    ("/\\.?\\(authinfo\\|netrc\\)\\'" . authinfo-mode)
+    ;; Windows candidates may be opened case sensitively on Unix
+    ("\\.\\(?:[iI][nN][iI]\\|[lL][sS][tT]\\|[rR][eE][gG]\\|[sS][yY][sS]\\)\\'" . conf-mode)
+    ("\\.la\\'" . conf-unix-mode)
+    ("\\.ppd\\'" . conf-ppd-mode)
+    ("java.+\\.conf\\'" . conf-javaprop-mode)
+    ("\\.properties\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-javaprop-mode)
+    ("\\.toml\\'" . conf-toml-mode)
+    ("\\.desktop\\'" . conf-desktop-mode)
+    ("/\\.redshift\\.conf\\'" . conf-windows-mode)
+    ("\\`/etc/\\(?:DIR_COLORS\\|ethers\\|.?fstab\\|.*hosts\\|lesskey\\|login\\.?de\\(?:fs\\|vperm\\)\\|magic\\|mtab\\|pam\\.d/.*\\|permissions\\(?:\\.d/.+\\)?\\|protocols\\|rpc\\|services\\)\\'" . conf-space-mode)
+    ("\\`/etc/\\(?:acpid?/.+\\|aliases\\(?:\\.d/.+\\)?\\|default/.+\\|group-?\\|hosts\\..+\\|inittab\\|ksysguarddrc\\|opera6rc\\|passwd-?\\|shadow-?\\|sysconfig/.+\\)\\'" . conf-mode)
+    ;; ChangeLog.old etc.  Other change-log-mode entries are above;
+    ;; this has lower priority to avoid matching changelog.sgml etc.
+    ("[cC]hange[lL]og[-.][-0-9a-z]+\\'" . change-log-mode)
+    ;; either user's dot-files or under /etc or some such
+    ("/\\.?\\(?:gitconfig\\|gnokiirc\\|hgrc\\|kde.*rc\\|mime\\.types\\|wgetrc\\)\\'" . conf-mode)
+    ("/\\.mailmap\\'" . conf-unix-mode)
+    ;; alas not all ~/.*rc files are like this
+    ("/\\.\\(?:asound\\|enigma\\|fetchmail\\|gltron\\|gtk\\|hxplayer\\|mairix\\|mbsync\\|msmtp\\|net\\|neverball\\|nvidia-settings-\\|offlineimap\\|qt/.+\\|realplayer\\|reportbug\\|rtorrent\\.\\|screen\\|scummvm\\|sversion\\|sylpheed/.+\\|xmp\\)rc\\'" . conf-mode)
+    ("/\\.\\(?:gdbtkinit\\|grip\\|mpdconf\\|notmuch-config\\|orbital/.+txt\\|rhosts\\|tuxracer/options\\)\\'" . conf-mode)
+    ("/\\.?X\\(?:default\\|resource\\|re\\)s\\>" . conf-xdefaults-mode)
+    ("/X11.+app-defaults/\\|\\.ad\\'" . conf-xdefaults-mode)
+    ("/X11.+locale/.+/Compose\\'" . conf-colon-mode)
+    ;; this contains everything twice, with space and with colon :-(
+    ("/X11.+locale/compose\\.dir\\'" . conf-javaprop-mode)
+    ;; Get rid of any trailing .n.m and try again.
+    ;; This is for files saved by cvs-merge that look like .#<file>.<rev>
+    ;; or .#<file>.<rev>-<rev> or VC's <file>.~<rev>~.
+    ;; Using mode nil rather than `ignore' would let the search continue
+    ;; through this list (with the shortened name) rather than start over.
+    ("\\.~?[0-9]+\\.[0-9][-.0-9]*~?\\'" nil t)
+    ("\\.\\(?:orig\\|in\\|[bB][aA][kK]\\)\\'" nil t)
+    ;; This should come after "in" stripping (e.g. config.h.in).
+    ;; *.cf, *.cfg, *.conf, *.config[.local|.de_DE.UTF8|...], */config
+    ("[/.]c\\(?:on\\)?f\\(?:i?g\\)?\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-mode-maybe)
+    ;; The following should come after the ChangeLog pattern
+    ;; for the sake of ChangeLog.1, etc.
+    ;; and after the .scm.[0-9] and CVS' <file>.<rev> patterns too.
+    ("\\.[1-9]\\'" . nroff-mode)
+    ;; Image file types probably supported by `image-convert'.
+    ("\\.art\\'" . image-mode)
+    ("\\.avs\\'" . image-mode)
+    ("\\.bmp\\'" . image-mode)
+    ("\\.cmyk\\'" . image-mode)
+    ("\\.cmyka\\'" . image-mode)
+    ("\\.crw\\'" . image-mode)
+    ("\\.dcm\\'" . image-mode)
+    ("\\.dcr\\'" . image-mode)
+    ("\\.dcx\\'" . image-mode)
+    ("\\.dng\\'" . image-mode)
+    ("\\.dpx\\'" . image-mode)
+    ("\\.fax\\'" . image-mode)
+    ("\\.heic\\'" . image-mode)
+    ("\\.hrz\\'" . image-mode)
+    ("\\.icb\\'" . image-mode)
+    ("\\.icc\\'" . image-mode)
+    ("\\.icm\\'" . image-mode)
+    ("\\.ico\\'" . image-mode)
+    ("\\.icon\\'" . image-mode)
+    ("\\.jbg\\'" . image-mode)
+    ("\\.jbig\\'" . image-mode)
+    ("\\.jng\\'" . image-mode)
+    ("\\.jnx\\'" . image-mode)
+    ("\\.miff\\'" . image-mode)
+    ("\\.mng\\'" . image-mode)
+    ("\\.mvg\\'" . image-mode)
+    ("\\.otb\\'" . image-mode)
+    ("\\.p7\\'" . image-mode)
+    ("\\.pcx\\'" . image-mode)
+    ("\\.pdb\\'" . image-mode)
+    ("\\.pfa\\'" . image-mode)
+    ("\\.pfb\\'" . image-mode)
+    ("\\.picon\\'" . image-mode)
+    ("\\.pict\\'" . image-mode)
+    ("\\.rgb\\'" . image-mode)
+    ("\\.rgba\\'" . image-mode)
+    ("\\.six\\'" . image-mode)
+    ("\\.tga\\'" . image-mode)
+    ("\\.wbmp\\'" . image-mode)
+    ("\\.webp\\'" . image-mode)
+    ("\\.wmf\\'" . image-mode)
+    ("\\.wpg\\'" . image-mode)
+    ("\\.xcf\\'" . image-mode)
+    ("\\.xmp\\'" . image-mode)
+    ("\\.xwd\\'" . image-mode)
+    ("\\.yuv\\'" . image-mode))
   "Alist of file name patterns vs corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION NON-NIL).
 \(NON-NIL stands for anything that is not nil; the value does not matter.)
@@ -3293,34 +3288,31 @@ and `magic-mode-alist', which determines modes based on file contents.")
   ;; Note: The entries for the modes defined in cc-mode.el (awk-mode
   ;; and pike-mode) are added through autoload directives in that
   ;; file.
-  (mapcar
-   (lambda (l)
-     (cons (purecopy (car l)) (cdr l)))
-   '(("\\(mini\\)?perl5?" . perl-mode)
-     ("wishx?" . tcl-mode)
-     ("tcl\\(sh\\)?" . tcl-mode)
-     ("expect" . tcl-mode)
-     ("octave" . octave-mode)
-     ("scm" . scheme-mode)
-     ("[acjkwz]sh" . sh-mode)
-     ("r?bash2?" . sh-mode)
-     ("dash" . sh-mode)
-     ("mksh" . sh-mode)
-     ("\\(dt\\|pd\\|w\\)ksh" . sh-mode)
-     ("es" . sh-mode)
-     ("i?tcsh" . sh-mode)
-     ("oash" . sh-mode)
-     ("rc" . sh-mode)
-     ("rpm" . sh-mode)
-     ("sh5?" . sh-mode)
-     ("tail" . text-mode)
-     ("more" . text-mode)
-     ("less" . text-mode)
-     ("pg" . text-mode)
-     ("make" . makefile-gmake-mode)		; Debian uses this
-     ("guile" . scheme-mode)
-     ("clisp" . lisp-mode)
-     ("emacs" . emacs-lisp-mode)))
+  '(("\\(mini\\)?perl5?" . perl-mode)
+    ("wishx?" . tcl-mode)
+    ("tcl\\(sh\\)?" . tcl-mode)
+    ("expect" . tcl-mode)
+    ("octave" . octave-mode)
+    ("scm" . scheme-mode)
+    ("[acjkwz]sh" . sh-mode)
+    ("r?bash2?" . sh-mode)
+    ("dash" . sh-mode)
+    ("mksh" . sh-mode)
+    ("\\(dt\\|pd\\|w\\)ksh" . sh-mode)
+    ("es" . sh-mode)
+    ("i?tcsh" . sh-mode)
+    ("oash" . sh-mode)
+    ("rc" . sh-mode)
+    ("rpm" . sh-mode)
+    ("sh5?" . sh-mode)
+    ("tail" . text-mode)
+    ("more" . text-mode)
+    ("less" . text-mode)
+    ("pg" . text-mode)
+    ("make" . makefile-gmake-mode)		; Debian uses this
+    ("guile" . scheme-mode)
+    ("clisp" . lisp-mode)
+    ("emacs" . emacs-lisp-mode))
   "Alist mapping interpreter names to major modes.
 This is used for files whose first lines match `auto-mode-interpreter-regexp'.
 Each element looks like (REGEXP . MODE).
@@ -3334,13 +3326,13 @@ See also `auto-mode-alist'.")
 ;; because we are duplicating info from auto-mode-alist.
 ;; TODO many elements of this list are also in auto-coding-alist.
 (defvar inhibit-local-variables-regexps
-  (mapcar 'purecopy '("\\.tar\\'" "\\.t[bg]z\\'"
-		      "\\.arc\\'" "\\.zip\\'" "\\.lzh\\'" "\\.lha\\'"
-		      "\\.zoo\\'" "\\.[jew]ar\\'" "\\.xpi\\'" "\\.rar\\'"
-		      "\\.7z\\'"
-		      "\\.sx[dmicw]\\'" "\\.odt\\'"
-		      "\\.diff\\'" "\\.patch\\'"
-		      "\\.tiff?\\'" "\\.gif\\'" "\\.png\\'" "\\.jpe?g\\'"))
+  '("\\.tar\\'" "\\.t[bg]z\\'"
+    "\\.arc\\'" "\\.zip\\'" "\\.lzh\\'" "\\.lha\\'"
+    "\\.zoo\\'" "\\.[jew]ar\\'" "\\.xpi\\'" "\\.rar\\'"
+    "\\.7z\\'"
+    "\\.sx[dmicw]\\'" "\\.odt\\'"
+    "\\.diff\\'" "\\.patch\\'"
+    "\\.tiff?\\'" "\\.gif\\'" "\\.png\\'" "\\.jpe?g\\'")
   "List of regexps matching file names in which to ignore local variables.
 This includes `-*-' lines as well as trailing \"Local Variables\" sections.
 Files matching this list are typically binary file formats.
@@ -3381,25 +3373,24 @@ and `inhibit-local-variables-suffixes'.  If
     temp))
 
 (defvar auto-mode-interpreter-regexp
-  (purecopy
-   (concat
-    "#![ \t]*"
-    ;; Optional group 1: env(1) invocation.
-    "\\("
-    "[^ \t\n]*/bin/env[ \t]*"
-    ;; Within group 1: possible -S/--split-string and environment
-    ;; adjustments.
-    "\\(?:"
-    ;; -S/--split-string
-    "\\(?:-[0a-z]*S[ \t]*\\|--split-string=\\)"
-    ;; More env arguments.
-    "\\(?:-[^ \t\n]+[ \t]+\\)*"
-    ;; Interpreter environment modifications.
-    "\\(?:[^ \t\n]+=[^ \t\n]*[ \t]+\\)*"
-    "\\)?"
-    "\\)?"
-    ;; Group 2: interpreter.
-    "\\([^ \t\n]+\\)"))
+  (concat
+   "#![ \t]*"
+   ;; Optional group 1: env(1) invocation.
+   "\\("
+   "[^ \t\n]*/bin/env[ \t]*"
+   ;; Within group 1: possible -S/--split-string and environment
+   ;; adjustments.
+   "\\(?:"
+   ;; -S/--split-string
+   "\\(?:-[0a-z]*S[ \t]*\\|--split-string=\\)"
+   ;; More env arguments.
+   "\\(?:-[^ \t\n]+[ \t]+\\)*"
+   ;; Interpreter environment modifications.
+   "\\(?:[^ \t\n]+=[^ \t\n]*[ \t]+\\)*"
+   "\\)?"
+   "\\)?"
+   ;; Group 2: interpreter.
+   "\\([^ \t\n]+\\)")
   "Regexp matching interpreters, for file mode determination.
 This regular expression is matched against the first line of a file
 to determine the file's mode in `set-auto-mode'.  If it matches, the file
@@ -3420,7 +3411,6 @@ If FUNCTION is nil, then it is not called.  (That is a way of saying
 (put 'magic-mode-alist 'risky-local-variable t)
 
 (defvar magic-fallback-mode-alist
-  (purecopy
   `((image-type-auto-detected-p . image-mode)
     ("\\(PK00\\)?[P]K\003\004" . archive-mode) ; zip
     ;; The < comes before the groups (but the first) to reduce backtracking.
@@ -3442,7 +3432,7 @@ If FUNCTION is nil, then it is not called.  (That is a way of saying
      . sgml-mode)
     ("\320\317\021\340\241\261\032\341" . doc-view-mode-maybe) ; Word documents 1997-2004
     ("%!PS" . ps-mode)
-    ("# xmcd " . conf-unix-mode)))
+    ("# xmcd " . conf-unix-mode))
   "Like `magic-mode-alist' but has lower priority than `auto-mode-alist'.
 Each element looks like (REGEXP . FUNCTION) or (MATCH-FUNCTION . FUNCTION).
 After visiting a file, if REGEXP matches the text at the beginning of the
@@ -6251,7 +6241,7 @@ Before and after saving the buffer, this function runs
                 (set-buffer-modified-p nil))
               ;; Return t so we don't ask about BUF again.
               t)
-           ,(purecopy "skip this buffer and mark it unmodified"))
+           "skip this buffer and mark it unmodified")
     (?\C-r
      ,(lambda (buf)
         (if (not enable-recursive-minibuffers)
@@ -6261,12 +6251,12 @@ Before and after saving the buffer, this function runs
           (recursive-edit))
         ;; Return nil to ask about BUF again.
         nil)
-     ,(purecopy "view this buffer"))
+     "view this buffer")
     (?\C-f
      ,(lambda (buf)
         (funcall save-some-buffers--switch-window-callback buf)
         (setq quit-flag t))
-     ,(purecopy "view this buffer and quit"))
+     "view this buffer and quit")
     (?d ,(lambda (buf)
            (if (null (buffer-file-name buf))
                (message "Not applicable: no file")
@@ -6280,7 +6270,7 @@ Before and after saving the buffer, this function runs
                  (recursive-edit))))
            ;; Return nil to ask about BUF again.
            nil)
-	,(purecopy "view changes in this buffer")))
+        "view changes in this buffer"))
   "ACTION-ALIST argument used in call to `map-y-or-n-p'.")
 (put 'save-some-buffers-action-alist 'risky-local-variable t)
 
@@ -7776,14 +7766,12 @@ by `sh' are supported."
     ;; not its part.  Make the regexp say so.
     (concat "\\`" result "\\'")))
 
-(defcustom list-directory-brief-switches
-  (purecopy "-CF")
+(defcustom list-directory-brief-switches "-CF"
   "Switches for `list-directory' to pass to `ls' for brief listing."
   :type 'string
   :group 'dired)
 
-(defcustom list-directory-verbose-switches
-    (purecopy "-l")
+(defcustom list-directory-verbose-switches "-l"
   "Switches for `list-directory' to pass to `ls' for verbose listing."
   :type 'string
   :group 'dired)
@@ -8038,8 +8026,8 @@ need to be passed verbatim to shell commands."
 (defcustom insert-directory-program
   (if (and (memq system-type '(berkeley-unix darwin))
            (executable-find "gls"))
-      (purecopy "gls")
-    (purecopy "ls"))
+      "gls"
+    "ls")
   "Absolute or relative name of the `ls'-like program.
 This is used by `insert-directory' and `dired-insert-directory'
 \(thus, also by `dired').  For Dired, this should ideally point to
@@ -8068,7 +8056,7 @@ Return nil if we should prefer `ls-lisp' instead."
          t)
        insert-directory-program))
 
-(defcustom directory-free-space-program (purecopy "df")
+(defcustom directory-free-space-program "df"
   "Program to get the amount of free space on a file system.
 We assume the output has the format of `df'.
 The value of this variable must be just a command name or file name;
@@ -8082,7 +8070,7 @@ A value of nil disables this feature."
 			"27.1")
 
 (defcustom directory-free-space-args
-  (purecopy (if (eq system-type 'darwin) "-k" "-Pk"))
+  (if (eq system-type 'darwin) "-k" "-Pk")
   "Options to use when running `directory-free-space-program'."
   :type 'string
   :group 'dired)
@@ -8147,11 +8135,11 @@ If DIR's free space cannot be obtained, this function returns nil."
          ;; parentheses:
          ;; -rw-r--r-- (modified) 2005-10-22 21:25 files.el
          ;; This is not supported yet.
-    (purecopy (concat "\\([0-9][BkKMGTPEZYRQ]? " iso
-		      "\\|.*[0-9][BkKMGTPEZYRQ]? "
-	              "\\(" western "\\|" western-comma
-                      "\\|" DD-MMM-YYYY "\\|" east-asian "\\)"
-		      "\\) +")))
+    (concat "\\([0-9][BkKMGTPEZYRQ]? " iso
+            "\\|.*[0-9][BkKMGTPEZYRQ]? "
+            "\\(" western "\\|" western-comma
+            "\\|" DD-MMM-YYYY "\\|" east-asian "\\)"
+            "\\) +"))
   "Regular expression to match up to the file name in a directory listing.
 The default value is designed to recognize dates and times
 regardless of the language.")
@@ -8617,7 +8605,7 @@ arguments as the running Emacs)."
 ;; so that magic file name handlers will not apply to it.
 
 (setq file-name-handler-alist
-      (cons (cons (purecopy "\\`/:") 'file-name-non-special)
+      (cons '("\\`/:" . file-name-non-special)
 	    file-name-handler-alist))
 
 ;; We depend on being the last handler on the list,

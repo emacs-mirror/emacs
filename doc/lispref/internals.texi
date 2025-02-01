@@ -12,7 +12,6 @@ internal aspects of GNU Emacs that may be of interest to C programmers.
 
 @menu
 * Building Emacs::      How the dumped Emacs is made.
-* Pure Storage::        Kludge to make preloaded Lisp functions shareable.
 * Garbage Collection::  Reclaiming space for Lisp objects no longer used.
 * Stack-allocated Objects::    Temporary conses and strings on C stack.
 * Memory Usage::        Info about total size of Lisp objects made so far.
@@ -77,23 +76,6 @@ Like @samp{pdump}, but used while @dfn{bootstrapping} Emacs, when no
 previous Emacs binary and no @file{*.elc} byte-compiled Lisp files are
 available.  The produced dump file is usually named
 @file{bootstrap-emacs.pdmp} in this case.
-
-@item dump
-@cindex unexec
-This method causes @command{temacs} to dump out an executable program,
-called @file{emacs}, which has all the standard Lisp files already
-preloaded into it.  (The @samp{-batch} argument prevents
-@command{temacs} from trying to initialize any of its data on the
-terminal, so that the tables of terminal information are empty in the
-dumped Emacs.)  This method is also known as @dfn{unexec}, because it
-produces a program file from a running process, and thus is in some
-sense the opposite of executing a program to start a process.
-Although this method was the way that Emacs traditionally saved its
-state, it is now deprecated.
-
-@item bootstrap
-Like @samp{dump}, but used when bootstrapping Emacs with the
-@code{unexec} method.
 @end table
 
 @cindex preloaded Lisp files
@@ -120,19 +102,9 @@ Emacs.
 
 @cindex @file{site-load.el}
   You can specify additional files to preload by writing a library named
-@file{site-load.el} that loads them.  You may need to rebuild Emacs
-with an added definition
-
-@example
-#define SITELOAD_PURESIZE_EXTRA @var{n}
-@end example
-
-@noindent
-to make @var{n} added bytes of pure space to hold the additional files;
-see @file{src/puresize.h}.
-(Try adding increments of 20000 until it is big enough.)  However, the
-advantage of preloading additional files decreases as machines get
-faster.  On modern machines, it is usually not advisable.
+@file{site-load.el} that loads them.  However, the advantage of
+preloading additional files decreases as machines get faster.  On modern
+machines, it is usually not advisable.
 
   After @file{loadup.el} reads @file{site-load.el}, it finds the
 documentation strings for primitive and preloaded functions (and
@@ -228,17 +200,6 @@ that problem, you can put functions on the
 Emacs.
 @end defun
 
-@defun dump-emacs to-file from-file
-@cindex unexec
-This function dumps the current state of Emacs into an executable file
-@var{to-file}, using the @code{unexec} method.  It takes symbols from
-@var{from-file} (this is normally the executable file @file{temacs}).
-
-This function cannot be used in an Emacs that was already dumped.
-This function is deprecated, and by default Emacs is built without
-@code{unexec} support so this function is not available.
-@end defun
-
 @defun pdumper-stats
 If the current Emacs session restored its state from a dump
 file, this function returns information about the dump file and the
@@ -250,71 +211,6 @@ time in seconds it took to restore the state from the dump file.
 If the current session was not restored from a dump file, the
 value is @code{nil}.
 @end defun
-
-@node Pure Storage
-@section Pure Storage
-@cindex pure storage
-
-  Emacs Lisp uses two kinds of storage for user-created Lisp objects:
-@dfn{normal storage} and @dfn{pure storage}.  Normal storage is where
-all the new data created during an Emacs session are kept
-(@pxref{Garbage Collection}).  Pure storage is used for certain data
-in the preloaded standard Lisp files---data that should never change
-during actual use of Emacs.
-
-  Pure storage is allocated only while @command{temacs} is loading the
-standard preloaded Lisp libraries.  In the file @file{emacs}, it is
-marked as read-only (on operating systems that permit this), so that
-the memory space can be shared by all the Emacs jobs running on the
-machine at once.  Pure storage is not expandable; a fixed amount is
-allocated when Emacs is compiled, and if that is not sufficient for
-the preloaded libraries, @file{temacs} allocates dynamic memory for
-the part that didn't fit.  If Emacs will be dumped using the
-@code{pdump} method (@pxref{Building Emacs}), the pure-space overflow
-is of no special importance (it just means some of the preloaded stuff
-cannot be shared with other Emacs jobs).  However, if Emacs will be
-dumped using the now obsolete @code{unexec} method, the resulting
-image will work, but garbage collection (@pxref{Garbage Collection})
-is disabled in this situation, causing a memory leak.  Such an
-overflow normally won't happen unless you try to preload additional
-libraries or add features to the standard ones.  Emacs will display a
-warning about the overflow when it starts, if it was dumped using
-@code{unexec}.  If this happens, you should increase the compilation
-parameter @code{SYSTEM_PURESIZE_EXTRA} in the file
-@file{src/puresize.h} and rebuild Emacs.
-
-@defun purecopy object
-This function makes a copy in pure storage of @var{object}, and returns
-it.  It copies a string by simply making a new string with the same
-characters, but without text properties, in pure storage.  It
-recursively copies the contents of vectors and cons cells.  It does
-not make copies of other objects such as symbols, but just returns
-them unchanged.  It signals an error if asked to copy markers.
-
-This function is a no-op except while Emacs is being built and dumped;
-it is usually called only in preloaded Lisp files.
-@end defun
-
-@defvar pure-bytes-used
-The value of this variable is the number of bytes of pure storage
-allocated so far.  Typically, in a dumped Emacs, this number is very
-close to the total amount of pure storage available---if it were not,
-we would preallocate less.
-@end defvar
-
-@defvar purify-flag
-This variable determines whether @code{defun} should make a copy of the
-function definition in pure storage.  If it is non-@code{nil}, then the
-function definition is copied into pure storage.
-
-This flag is @code{t} while loading all of the basic functions for
-building Emacs initially (allowing those functions to be shareable and
-non-collectible).  Dumping Emacs as an executable always writes
-@code{nil} in this variable, regardless of the value it actually has
-before and after dumping.
-
-You should not change this flag in a running Emacs.
-@end defvar
 
 @node Garbage Collection
 @section Garbage Collection
@@ -526,12 +422,6 @@ Total heap size, in @var{unit-size} units.
 @item free-size
 Heap space which is not currently used, in @var{unit-size} units.
 @end table
-
-If there was overflow in pure space (@pxref{Pure Storage}), and Emacs
-was dumped using the (now obsolete) @code{unexec} method
-(@pxref{Building Emacs}), then @code{garbage-collect} returns
-@code{nil}, because a real garbage collection cannot be done in that
-case.
 @end deffn
 
 @defopt garbage-collection-messages
@@ -967,7 +857,6 @@ improves user experience.
 the variables are never written once Emacs is dumped.  These variables
 with initializers are allocated in an area of memory that becomes
 read-only (on certain operating systems) as a result of dumping Emacs.
-@xref{Pure Storage}.
 
 @cindex @code{defsubr}, Lisp symbol for a primitive
   Defining the C function is not enough to make a Lisp primitive
