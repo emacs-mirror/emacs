@@ -733,6 +733,13 @@ the 'mutool' program after their initial conversion to PDF format.  The
 name of the 'djvused' program can be customized by changing the user
 option 'doc-view-djvused-program'.
 
+** Ispell
+
+---
+*** The default value of 'ispell-help-timeout' has changed.
+The default value is now 30 seconds, as the old value was too short to
+allow reading the help text.
+
 ** Flyspell
 
 ---
