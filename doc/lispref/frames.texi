@@ -4276,7 +4276,7 @@ selection targets that the owner supports, and @code{MULTIPLE}, used
 for internal purposes by X clients.  A selection owner may support any
 number of other targets, some of which may be standardized by the X
 Consortium's
-@url{http://x.org/releases/X11R7.6/doc/xorg-docs/specs/ICCCM/icccm.html,
+@url{https://x.org/releases/X11R7.6/doc/xorg-docs/specs/ICCCM/icccm.html,
 Inter-Client Communication Conventions Manual}, while others, such as
 @code{UTF8_STRING}, were meant to be standardized by the XFree86
 Project, but their standardization was never completed.

@@ -3227,11 +3227,11 @@ for the sake of dired.  However, the normally equivalent short
 as any other option.
 @end defun
 
-@defvar insert-directory-program
-This variable's value is the program to run to generate a directory listing
-for the function @code{insert-directory}.  It is ignored on systems
-which generate the listing with Lisp code.
-@end defvar
+@defopt insert-directory-program
+This user option specifies the program to run to generate a directory
+listing for the function @code{insert-directory}.  It is ignored on
+systems that generate the listing with Lisp code.
+@end defopt
 
 @node Create/Delete Dirs
 @section Creating, Copying and Deleting Directories

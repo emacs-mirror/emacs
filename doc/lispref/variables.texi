@@ -2212,8 +2212,9 @@ If some of the subdirectories have their own @file{.dir-locals.el}
 files, Emacs uses the settings from the deepest file it finds starting
 from the file's directory and moving up the directory tree.  This
 constant is also used to derive the name of a second dir-locals file
-@file{.dir-locals-2.el}.  If this second dir-locals file is present,
-then that is loaded in addition to @file{.dir-locals.el}.  This is useful
+@file{.dir-locals-2.el}.  If this second dir-locals file is present in
+the same directory as @file{.dir-locals.el}, then it will be loaded in
+addition to @file{.dir-locals.el}.  This is useful
 when @file{.dir-locals.el} is under version control in a shared
 repository and cannot be used for personal customizations.  The file
 specifies local variables as a specially formatted list; see

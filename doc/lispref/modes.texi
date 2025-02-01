@@ -4128,7 +4128,7 @@ This variable is normally set through the ``other'' elements in
 @lisp
 (setq-local font-lock-defaults
             `(,python-font-lock-keywords
-              nil nil nil nil
+              nil nil nil
               (font-lock-syntactic-face-function
                . python-font-lock-syntactic-face-function)))
 @end lisp

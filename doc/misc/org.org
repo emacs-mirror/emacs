@@ -3403,7 +3403,7 @@ options:
 
 | Link Type  | Example                                                            |
 |------------+--------------------------------------------------------------------|
-| http       | =http://staff.science.uva.nl/c.dominik/=                           |
+| http       | =https://staff.science.uva.nl/c.dominik/=                          |
 | https      | =https://orgmode.org/=                                             |
 | doi        | =doi:10.1000/182=                                                  |
 | file       | =file:/home/dominik/images/jupiter.jpg=                            |
@@ -13633,7 +13633,7 @@ backend by default in-lines that image.  For example:
 ~org-html-inline-images~.
 
 On the other hand, if the description part of the Org link is itself
-another link, such as =file:= or =http:= URL pointing to an image, the
+another link, such as =file:= or =https:= URL pointing to an image, the
 HTML export backend in-lines this image and links to the main image.
 This Org syntax enables the backend to link low-resolution thumbnail
 to the high-resolution version of the image, as shown in this example:
@@ -13938,7 +13938,7 @@ terminology.  You may refer to https://tug.org/begin.html to get
 familiar with LaTeX basics.  Users with LaTeX installed may also run
 =texdoc latex= from terminal to open LaTeX introduction [fn:: The
 command will open a PDF file, which is also available for download
-from http://mirrors.ctan.org/info/latex-doc-ptr/latex-doc-ptr.pdf]
+from https://mirrors.ctan.org/info/latex-doc-ptr/latex-doc-ptr.pdf]
 
 *** LaTeX/PDF export commands
 :PROPERTIES:
@@ -15220,7 +15220,7 @@ document in one of the following ways:
   ~org-latex-to-mathml-jar-file~.
 
   If you prefer to use MathToWeb[fn:: See
-  [[http://www.mathtoweb.com/cgi-bin/mathtoweb_home.pl][MathToWeb]].]
+  [[https://mathtoweb.sourceforge.io/][MathToWeb]].]
   as your converter, you can configure the above variables as shown
   below.
 
