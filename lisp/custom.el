@@ -306,7 +306,8 @@ The following keywords are meaningful:
 The following common keywords are also meaningful.
 
 :group  VALUE should be a customization group.
-        Add SYMBOL (or FACE with `defface') to that group.
+        Add SYMBOL (or FACE with `defface') to that group instead of
+        the default group.  Can be repeated.
 :link LINK-DATA
         Include an external link after the documentation string for this
         item.  This is a sentence containing an active field which
