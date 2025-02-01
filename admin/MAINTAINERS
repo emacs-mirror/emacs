@@ -406,8 +406,8 @@ Modus themes
         etc/themes/modus*.el
 
 Org Mode
-	Home Page: https://orgmode.org/
 	Maintainer: Org Mode developers
+	Website: https://orgmode.org/
 	Repository: https://git.savannah.gnu.org/git/emacs/org-mode.git
 	Mailing list: emacs-orgmode@gnu.org
 	Bug Reports: M-x org-submit-bug-report
