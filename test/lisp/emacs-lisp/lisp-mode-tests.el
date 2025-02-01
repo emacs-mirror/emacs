@@ -333,7 +333,7 @@ Here is some more text.\"
 (ert-deftest lisp-fill-paragraph-as-displayed ()
   "Test bug#56197 -- more specifically, validate that a leading indentation
 for a string is preserved in the filled string."
-  (let ((lisp-fill-paragraph-as-displayed t) ;variable under test
+  (let ((lisp-fill-paragraphs-as-doc-string nil) ;variable under test
         ;; The following is a contrived example that demonstrates the
         ;; fill-column problem when the string to fill is indented.
         (source "\

@@ -1431,16 +1431,17 @@ Any non-integer value means do not use a different value of
   :group 'lisp
   :version "30.1")
 
-(defvar lisp-fill-paragraph-as-displayed nil
-  "Modify the behavior of `lisp-fill-paragraph'.
+(defvar lisp-fill-paragraphs-as-doc-string t
+  "Whether `lisp-fill-paragraph' should fill strings as ELisp doc strings.
 The default behavior of `lisp-fill-paragraph' is tuned for filling Emacs
 Lisp doc strings, with their special treatment for the first line.
-Particularly, strings are filled in a narrowed context to avoid filling
+Specifically, strings are filled in a narrowed context to avoid filling
 surrounding code, which means any leading indent is disregarded, which
 can cause the filled string to extend passed the configured
 `fill-column' variable value.  If you would rather fill the string in
-its original context and ensure the `fill-column' value is more strictly
-respected, set this variable to true.  Doing so makes
+its original context, disregarding the special conventions of ELisp doc
+strings, and want to ensure the `fill-column' value is more strictly
+respected, set this variable to nil.  Doing so makes
 `lisp-fill-paragraph' behave as it used to in Emacs 27 and prior
 versions.")
 
@@ -1506,7 +1507,7 @@ and initial semicolons."
               ;; code.
               (if (not string-start)
                   (lisp--fill-line-simple)
-                (unless lisp-fill-paragraph-as-displayed
+                (when lisp-fill-paragraphs-as-doc-string
                   ;; If we're in a string, then narrow (roughly) to that
                   ;; string before filling.  This avoids filling Lisp
                   ;; statements that follow the string.
