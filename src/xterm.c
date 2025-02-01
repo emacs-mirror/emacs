@@ -5414,7 +5414,11 @@ x_free_xi_devices (struct x_display_info *dpyinfo)
 #endif /* HAVE_XINPUT2_2 */
 	}
 
+#ifdef HAVE_MPS
+      igc_xfree (dpyinfo->devices);
+#else
       xfree (dpyinfo->devices);
+#endif
       dpyinfo->devices = NULL;
       dpyinfo->num_devices = 0;
     }
@@ -13967,7 +13971,11 @@ xi_disable_devices (struct x_display_info *dpyinfo,
     }
 
   /* Free the old devices array and replace it with ndevices.  */
+#ifdef HAVE_MPS
+  igc_xfree (dpyinfo->devices);
+#else
   xfree (dpyinfo->devices);
+#endif
 
   dpyinfo->devices = devices;
   dpyinfo->num_devices = ndevices;
