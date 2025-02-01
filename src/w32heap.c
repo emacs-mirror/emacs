@@ -89,51 +89,6 @@ typedef struct _RTL_HEAP_PARAMETERS {
 /* Info for keeping track of our dynamic heap used after dumping. */
 unsigned char *data_region_base = NULL;
 unsigned char *data_region_end = NULL;
-static DWORD_PTR committed = 0;
-
-/* The maximum block size that can be handled by a non-growable w32
-   heap is limited by the MaxBlockSize value below.
-
-   This point deserves an explanation.
-
-   The W32 heap allocator can be used for a growable heap or a
-   non-growable one.
-
-   A growable heap is not compatible with a fixed base address for the
-   heap.  Only a non-growable one is.  One drawback of non-growable
-   heaps is that they can hold only objects smaller than a certain
-   size (the one defined below).  Most of the larger blocks are GC'ed
-   before dumping.  In any case, and to be safe, we implement a simple
-   first-fit allocation algorithm starting at the end of the
-   dumped_data[] array as depicted below:
-
-  ----------------------------------------------
-  |               |              |             |
-  | Private heap  |->          <-|  Big chunks |
-  |               |              |             |
-  ----------------------------------------------
-  ^               ^              ^
-  dumped_data     dumped_data    bc_limit
-                  + committed
-
-*/
-
-/* Info for managing our preload heap, which is essentially a fixed size
-   data area in the executable. */
-#define PAGE_SIZE 0x1000
-#define MaxBlockSize (0x80000 - PAGE_SIZE)
-
-#define MAX_BLOCKS 0x40
-
-static struct
-{
-  unsigned char *address;
-  size_t size;
-  DWORD occupied;
-} blocks[MAX_BLOCKS];
-
-static DWORD          blocks_number = 0;
-static unsigned char *bc_limit;
 
 /* Handle for the private heap:
     - inside the dumped_data[] array before dump with unexec,
