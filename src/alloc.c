@@ -517,12 +517,14 @@ int staticidx;
 
 /* Return PTR rounded up to the next multiple of ALIGNMENT.  */
 
+#ifndef HAVE_MPS
 #ifndef HAVE_ALIGNED_ALLOC
 static void *
 pointer_align (void *ptr, int alignment)
 {
   return (void *) ROUNDUP ((uintptr_t) ptr, alignment);
 }
+#endif
 #endif
 
 /* Extract the pointer hidden within O.  */
@@ -535,11 +537,13 @@ XPNTR (Lisp_Object a)
 	  : (char *) XLP (a) - (XLI (a) & ~VALMASK));
 }
 
+#ifndef HAVE_MPS
 static void
 XFLOAT_INIT (Lisp_Object f, double n)
 {
   XFLOAT (f)->u.data = n;
 }
+#endif
 
 /* Account for allocation of NBYTES in the heap.  This is a separate
    function to avoid hassles with implementation-defined conversion
