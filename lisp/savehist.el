@@ -104,6 +104,8 @@ the user's privacy."
     (cancel-timer savehist-timer))
   (setq savehist-timer nil))
 
+(defvar savehist-autosave-interval)
+
 (defun savehist--manage-timer ()
   "Set or cancel an invocation of `savehist-autosave' on a timer.
 If `savehist-mode' is enabled, set the timer, otherwise cancel the timer.
