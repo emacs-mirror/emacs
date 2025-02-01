@@ -106,11 +106,11 @@ reference any object.  (This is not the same thing as holding the symbol
 a value cell that is void results in an error, such as @samp{Symbol's
 value as variable is void}.
 
-  Because each symbol has separate value and function cells, variables
-names and function names do not conflict.  For example, the symbol
-@code{buffer-file-name} has a value (the name of the file being
-visited in the current buffer) as well as a function definition (a
-primitive function that returns the name of the file):
+  Because each symbol has separate value and function cells, the names
+of variables and functions do not conflict.  For example, the symbol
+@code{buffer-file-name} has a value (the name of the file being visited
+in the current buffer) as well as a function definition (a primitive
+function that returns the name of the file):
 
 @example
 buffer-file-name
