@@ -5826,7 +5826,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	    XSETSUBR (tem, subr);
 	    Lisp_Object *fixup =
 	      &(comp_u->data_relocs[XFIXNUM (lambda_data_idx)]);
-	    eassert (EQ (*fixup, Q__lambda_fixup));
+	    eassert (EQ (*fixup, Vcomp__hashdollar));
 	    *fixup = tem;
 	    Fputhash (tem, Qt, comp_u->lambda_gc_guard_h);
 	  }
