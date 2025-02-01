@@ -325,6 +325,7 @@ automatically)."
     ((csharp-mode csharp-ts-mode)
      . ,(eglot-alternatives
          '(("omnisharp" "-lsp")
+           ("OmniSharp" "-lsp")
            ("csharp-ls"))))
     (purescript-mode . ("purescript-language-server" "--stdio"))
     ((perl-mode cperl-mode)

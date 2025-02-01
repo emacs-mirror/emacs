@@ -17204,7 +17204,7 @@ filename is unrelated to the article number in Gnus. @code{nnmaildir}
 also stores the equivalent of @code{nnml}'s overview files in one file
 per article, so it uses about twice as many inodes as @code{nnml}.
 (Use @code{df -i} to see how plentiful your inode supply is.)  If this
-slows you down or takes up very much space, a non-block-structured
+slows you down or takes up very much space, use a non-block-structured
 file system.
 
 Since maildirs don't require locking for delivery, the maildirs you use

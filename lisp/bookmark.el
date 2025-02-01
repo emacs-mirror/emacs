@@ -1586,6 +1586,8 @@ confirmation."
   (when (or no-confirm
             (yes-or-no-p "Permanently delete all bookmarks? "))
     (bookmark-maybe-load-default-file)
+    (dolist (bm bookmark-alist)
+      (bookmark--remove-fringe-mark bm))
     (setq bookmark-alist-modification-count
           (+ bookmark-alist-modification-count (length bookmark-alist)))
     (setq bookmark-alist nil)

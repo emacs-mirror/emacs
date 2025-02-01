@@ -11249,7 +11249,9 @@ too short to have a dst element.
           (when initial-scratch-message
             (insert (substitute-command-keys initial-scratch-message))
             (set-buffer-modified-p nil))
-          (funcall initial-major-mode))
+          (funcall initial-major-mode)
+          (when (eq initial-major-mode 'lisp-interaction-mode)
+            (setq-local trusted-content :all)))
         scratch)))
 
 (defun scratch-buffer ()
