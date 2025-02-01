@@ -736,6 +736,12 @@ compilation and evaluation time conflicts."
     (treesit-query-compile 'c-sharp "(interpolated_string_text)" t)
     t))
 
+(defun csharp-ts-mode--test-string-content ()
+  "Return non-nil if (interpolated_string_text) is in the grammar."
+  (ignore-errors
+    (treesit-query-compile 'c-sharp "(string_content)" t)
+    t))
+
 (defun csharp-ts-mode--test-type-constraint ()
   "Return non-nil if (type_constraint) is in the grammar."
   (ignore-errors
@@ -830,10 +836,12 @@ compilation and evaluation time conflicts."
      (boolean_literal) @font-lock-constant-face)
 
    :language 'c-sharp
-   :override t
    :feature 'string
    `([(string_literal)
       (verbatim_string_literal)
+      ,@ (when (csharp-ts-mode--test-string-content)
+           '((string_content)
+             "\""))
       ,@(if (csharp-ts-mode--test-interpolated-string-text)
             '((interpolated_string_text)
               (interpolated_verbatim_string_text)
