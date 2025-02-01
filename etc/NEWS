@@ -456,7 +456,7 @@ default), the 'whitespace-cleanup' function will now add the newline.
 ---
 *** New user option 'bookmark-bmenu-type-column-width'.
 This user option controls the width of the type column on the bookmark
-menu 'bookmark-bmenu-list'. The default value is 8 which is backwards
+menu 'bookmark-bmenu-list'.  The default value is 8 which is backwards
 compatible.
 
 ** Gnus
