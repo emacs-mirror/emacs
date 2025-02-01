@@ -3727,7 +3727,6 @@ call0 (Lisp_Object fn)
 }
 
 extern void defvar_lisp (struct Lisp_Fwd const *, char const *);
-extern void defvar_lisp_nopro (struct Lisp_Fwd const *, char const *);
 extern void defvar_bool (struct Lisp_Fwd const *, char const *);
 extern void defvar_int (struct Lisp_Fwd const *, char const *);
 extern void defvar_kboard (struct Lisp_Fwd const *, char const *);
@@ -3749,12 +3748,7 @@ extern void defvar_kboard (struct Lisp_Fwd const *, char const *);
    All C code uses the `cons_cells_consed' name.  This is all done
    this way to support indirection for multi-threaded Emacs.
 
-   DEFVAR_LISP staticpro's the variable; DEFVAR_LISP_NOPRO does not, and
-   is used for variables that are protected in other ways (e.g., because
-   they can be accessed from another variable, which is itself
-   protected, see font_style_table on font.c as an example).  This is
-   not used in the HAVE_MPS build, where DEFVAR_LISP_NOPRO is equivalent
-   to DEFVAR_LISP.  */
+   DEFVAR_LISP staticpro's the variable.  */
 
 #define DEFVAR_LISP(lname, vname, doc)			\
   do {							\
@@ -3762,16 +3756,6 @@ extern void defvar_kboard (struct Lisp_Fwd const *, char const *);
       = {Lisp_Fwd_Obj, .u.objvar = &globals.f_##vname};	\
     defvar_lisp (&o_fwd, lname);			\
   } while (false)
-#ifdef HAVE_MPS
-#define DEFVAR_LISP_NOPRO DEFVAR_LISP
-#else
-#define DEFVAR_LISP_NOPRO(lname, vname, doc)		\
-  do {							\
-    static struct Lisp_Fwd const o_fwd			\
-      = {Lisp_Fwd_Obj, .u.objvar = &globals.f_##vname};	\
-    defvar_lisp_nopro (&o_fwd, lname);			\
-  } while (false)
-#endif
 #define DEFVAR_BOOL(lname, vname, doc)				\
   do {								\
     static struct Lisp_Fwd const b_fwd				\

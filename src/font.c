@@ -5970,7 +5970,7 @@ gets the repertory information by an opened font and ENCODING.  */);
      table used by the font display code.  So we make them read-only,
      to avoid this confusing situation.  */
 
-  DEFVAR_LISP_NOPRO ("font-weight-table", Vfont_weight_table,
+  DEFVAR_LISP ("font-weight-table", Vfont_weight_table,
 	       doc: /*  Vector of valid font weight values.
 Each element has the form:
     [NUMERIC-VALUE SYMBOLIC-NAME ALIAS-NAME ...]
@@ -5979,23 +5979,20 @@ This variable cannot be set; trying to do so will signal an error.  */);
   Vfont_weight_table = BUILD_STYLE_TABLE (weight_table);
   make_symbol_constant (intern_c_string ("font-weight-table"));
 
-  DEFVAR_LISP_NOPRO ("font-slant-table", Vfont_slant_table,
+  DEFVAR_LISP ("font-slant-table", Vfont_slant_table,
 	       doc: /*  Vector of font slant symbols vs the corresponding numeric values.
 See `font-weight-table' for the format of the vector.
 This variable cannot be set; trying to do so will signal an error.  */);
   Vfont_slant_table = BUILD_STYLE_TABLE (slant_table);
   make_symbol_constant (intern_c_string ("font-slant-table"));
 
-  DEFVAR_LISP_NOPRO ("font-width-table", Vfont_width_table,
+  DEFVAR_LISP ("font-width-table", Vfont_width_table,
 	       doc: /*  Alist of font width symbols vs the corresponding numeric values.
 See `font-weight-table' for the format of the vector.
 This variable cannot be set; trying to do so will signal an error.  */);
   Vfont_width_table = BUILD_STYLE_TABLE (width_table);
   make_symbol_constant (intern_c_string ("font-width-table"));
 
-  /* Because the above 3 variables are slots in the vector we create
-     below, and because that vector is staticpro'd, we don't explicitly
-     staticpro the variables, to avoid wasting slots in staticvec[].  */
   staticpro (&font_style_table);
   font_style_table = CALLN (Fvector, Vfont_weight_table, Vfont_slant_table,
 			    Vfont_width_table);
