@@ -607,8 +607,7 @@ keybindings will not do anything useful."
      ;; enable the tracking keybindings
      (add-hook 'erc-connect-pre-hook #'erc-track-minor-mode-maybe)
      (erc-track-minor-mode-maybe))
-   (add-hook 'erc-mode-hook #'erc-track--setup)
-   (unless erc--updating-modules-p (erc-buffer-do #'erc-track--setup))
+   (erc-with-initialized-session (erc-track--setup))
    (add-hook 'erc-networks--copy-server-buffer-functions
              #'erc-track--replace-killed-buffer))
   ;; Disable:
@@ -630,7 +629,6 @@ keybindings will not do anything useful."
      (remove-hook 'erc-connect-pre-hook #'erc-track-minor-mode-maybe)
      (when erc-track-minor-mode
        (erc-track-minor-mode -1)))
-   (remove-hook 'erc-mode-hook #'erc-track--setup)
    (erc-buffer-do #'erc-track--setup)
    (remove-hook 'erc-networks--copy-server-buffer-functions
                 #'erc-track--replace-killed-buffer)))

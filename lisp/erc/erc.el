@@ -2497,6 +2497,11 @@ realizes it's missing some required module \"foo\", it can
 confidently call (erc-foo-mode 1) without having to learn
 anything about the dependency's implementation.")
 
+(defvar erc--set-modules-functions nil
+  "Abnormal hook run before updating modules on major-mode init.
+Calls members with ID and TARGET parameters of `erc-open', both possibly
+nil, along with a non-nil TARGET's server buffer when applicable.")
+
 (defvar erc--setup-buffer-hook '(erc--warn-about-aberrant-modules)
   "Internal hook for module setup involving windows and frames.")
 
@@ -2652,14 +2657,15 @@ side effect of setting the current buffer to the one it returns.  Use
     (when connect (run-hook-with-args 'erc-before-connect server port nick))
     (set-buffer buffer)
     (setq old-point (point))
+    (delay-mode-hooks (erc-mode))
+    (run-hook-with-args 'erc--set-modules-functions id channel
+                        (and channel old-buffer))
     (setq delayed-modules
           (erc--merge-local-modes (let ((erc--updating-modules-p t))
                                     (erc--update-modules
                                      (erc--sort-modules erc-modules)))
                                   (or erc--server-reconnecting
                                       erc--target-priors)))
-
-    (delay-mode-hooks (erc-mode))
 
     (setq erc-server-reconnect-count old-recon-count)
 

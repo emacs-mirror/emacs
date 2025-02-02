@@ -54,13 +54,11 @@
   "This mode buttonizes all messages according to `erc-button-alist'."
   ((add-hook 'erc-insert-modify-hook #'erc-button-add-buttons 30)
    (add-hook 'erc-send-modify-hook #'erc-button-add-buttons 30)
-   (add-hook 'erc-mode-hook #'erc-button-setup 91)
-   (unless erc--updating-modules-p (erc-buffer-do #'erc-button-setup))
+   (erc-with-initialized-session (erc-button-setup))
    (add-hook 'erc--tab-functions #'erc-button-next)
    (erc--modify-local-map t "<backtab>" #'erc-button-previous))
   ((remove-hook 'erc-insert-modify-hook #'erc-button-add-buttons)
    (remove-hook 'erc-send-modify-hook #'erc-button-add-buttons)
-   (remove-hook 'erc-mode-hook #'erc-button-setup)
    (remove-hook 'erc--tab-functions #'erc-button-next)
    (erc--modify-local-map nil "<backtab>" #'erc-button-previous)))
 

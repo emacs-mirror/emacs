@@ -51,6 +51,16 @@ were simply reversed as given.  Now, just like with global modules, ERC
 preserves the preferred order when activating local modules for new
 sessions.
 
+*** Major-mode setup runs before global-module setup in 'erc-open'.
+The "enable" body of a global module's minor-mode command will now see
+'erc-mode' as the 'major-mode'.  Although ERC still delays its
+major-mode hook until after it has initialized its main session
+variables, a module can also now set any of its own variables that don't
+depend on such initialization immediately and without fear of their
+being killed.  For modules still needing to run delayed, session-aware
+code, a new convenience macro called 'erc-with-initialized-session' is
+now available to automate any 'erc-mode-hook' wrangling for you.
+
 
 * Changes in ERC 5.6.2
 

@@ -67,12 +67,10 @@ for other purposes should customize either `erc-enable-logging' or
   ;;enable
   ((add-hook 'erc-insert-done-hook #'erc-truncate-buffer)
    (add-hook 'erc-connect-pre-hook #'erc-truncate--warn-about-logging)
-   (add-hook 'erc-mode-hook #'erc-truncate--setup)
-   (unless erc--updating-modules-p (erc-buffer-do #'erc-truncate--setup)))
+   (erc-with-initialized-session (erc-truncate--setup)))
   ;; disable
   ((remove-hook 'erc-insert-done-hook #'erc-truncate-buffer)
    (remove-hook 'erc-connect-pre-hook #'erc-truncate--warn-about-logging)
-   (remove-hook 'erc-mode-hook #'erc-truncate--setup)
    (erc-buffer-do #'erc-truncate--setup)))
 
 (defvar-local erc-truncate--buffer-size nil

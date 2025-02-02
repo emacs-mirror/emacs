@@ -135,11 +135,9 @@ Don't rely on this function, read it first!"
 ;;;###autoload(autoload 'erc-imenu-mode "erc-imenu" nil t)
 (define-erc-module imenu nil
   "Simple Imenu integration for ERC."
-  ((add-hook 'erc-mode-hook #'erc-imenu-setup)
-   (add-hook 'which-function-mode-hook #'erc-imenu--disable-which-func)
-   (unless erc--updating-modules-p (erc-buffer-do #'erc-imenu-setup)))
-  ((remove-hook 'erc-mode-hook #'erc-imenu-setup)
-   (remove-hook 'which-function-mode-hook #'erc-imenu--disable-which-func)
+  ((add-hook 'which-function-mode-hook #'erc-imenu--disable-which-func)
+   (erc-with-initialized-session (erc-imenu-setup)))
+  ((remove-hook 'which-function-mode-hook #'erc-imenu--disable-which-func)
    (erc-buffer-do #'erc-imenu-setup)))
 
 (defun erc-imenu-setup ()
