@@ -220,8 +220,8 @@
   (should (equal (cl-isqrt 0) 0))
   (should (equal (cl-isqrt 3) 1))
   (should (equal (cl-isqrt 10) 3))
-  (should-error (cl-isqrt -4))
-  (should-error (cl-isqrt 2.5)))
+  (should-error (cl-isqrt -4) :type 'arith-error)
+  (should-error (cl-isqrt 2.5) :type 'arith-error))
 
 (ert-deftest cl-extra-test-floor ()
   (should (equal (cl-floor 4.5) '(4 0.5)))
@@ -282,13 +282,13 @@
   (should (equal (cl-revappend '(1 2 3) '(4 5 6)) '(3 2 1 4 5 6))))
 
 (ert-deftest cl-extra-test-nreconc ()
-  (should (equal (cl-nreconc '(1 2 3) '(4 5 6)) '(3 2 1 4 5 6))))
+  (should (equal (cl-nreconc (list 1 2 3) '(4 5 6)) '(3 2 1 4 5 6))))
 
 (ert-deftest cl-extra-test-list-length ()
   (should (equal (cl-list-length '(1 2 3)) 3))
   (should (equal (cl-list-length '()) 0))
   (let ((xl (number-sequence 1 100)))
-    (setcdr (nthcdr 99 xl) xl)
+    (nconc xl xl)
     (should (equal (cl-list-length xl) nil))))
 
 (ert-deftest cl-extra-test-tailp ()
