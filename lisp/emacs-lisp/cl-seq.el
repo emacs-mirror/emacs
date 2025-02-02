@@ -864,8 +864,8 @@ to avoid corrupting the original LIST1 and LIST2.
 (defun cl-nintersection (cl-list1 cl-list2 &rest cl-keys)
   "Combine LIST1 and LIST2 using a set-intersection operation.
 The resulting list contains all items that appear in both LIST1 and LIST2.
-This is a destructive function; it reuses the storage of LIST1 and LIST2
-whenever possible.
+This is a destructive function; it reuses the storage of LIST1 (but not
+LIST2) whenever possible.
 \nKeywords supported:  :test :test-not :key
 \n(fn LIST1 LIST2 [KEYWORD VALUE]...)"
   (and cl-list1 cl-list2 (apply 'cl-intersection cl-list1 cl-list2 cl-keys)))
@@ -894,8 +894,8 @@ to avoid corrupting the original LIST1 and LIST2.
 (defun cl-nset-difference (cl-list1 cl-list2 &rest cl-keys)
   "Combine LIST1 and LIST2 using a set-difference operation.
 The resulting list contains all items that appear in LIST1 but not LIST2.
-This is a destructive function; it reuses the storage of LIST1 and LIST2
-whenever possible.
+This is a destructive function; it reuses the storage of LIST1 (but not
+LIST2) whenever possible.
 \nKeywords supported:  :test :test-not :key
 \n(fn LIST1 LIST2 [KEYWORD VALUE]...)"
   (if (or (null cl-list1) (null cl-list2)) cl-list1
