@@ -22,11 +22,9 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'cl-macs)
 (require 'edebug)
 (require 'ert)
 (require 'ert-x)
-(require 'pcase)
 
 
 ;;;; cl-loop tests -- many adapted from Steele's CLtL2
@@ -518,6 +516,45 @@ collection clause."
                             collect (list k x))))))
 
 
+(cl-defstruct (mystruct
+               (:constructor cl-lib--con-1 (&aux (abc 1)))
+               (:constructor cl-lib--con-2 (&optional def) "Constructor docstring."))
+  "General docstring."
+  (abc 5 :readonly t) (def nil))
+
+(ert-deftest cl-lib-struct-accessors ()
+  (let ((x (make-mystruct :abc 1 :def 2)))
+    (should (eql (cl-struct-slot-value 'mystruct 'abc x) 1))
+    (should (eql (cl-struct-slot-value 'mystruct 'def x) 2))
+    (setf (cl-struct-slot-value 'mystruct 'def x) -1)
+    (should (eql (cl-struct-slot-value 'mystruct 'def x) -1))
+    (should (eql (cl-struct-slot-offset 'mystruct 'abc) 1))
+    (should-error (cl-struct-slot-offset 'mystruct 'marypoppins))
+    (should (pcase (cl-struct-slot-info 'mystruct)
+              (`((cl-tag-slot) (abc 5 :readonly t)
+                 (def . ,(or 'nil '(nil))))
+               t)))))
+
+(ert-deftest cl-lib-struct-constructors ()
+  (should (string-match "\\`Constructor docstring."
+                        (documentation 'cl-lib--con-2 t)))
+  (should (mystruct-p (cl-lib--con-1)))
+  (should (mystruct-p (cl-lib--con-2))))
+
+(ert-deftest cl-lib-arglist-performance ()
+  ;; An `&aux' should not cause lambda's arglist to be turned into an &rest
+  ;; that's parsed by hand.
+  (should (equal () (help-function-arglist 'cl-lib--con-1)))
+  (should (pcase (help-function-arglist 'cl-lib--con-2)
+            (`(&optional ,_) t))))
+
+(ert-deftest cl-lib-defstruct-record ()
+  (cl-defstruct foo x)
+  (let ((x (make-foo :x 42)))
+    (should (recordp x))
+    (should (eq (type-of x) 'foo))
+    (should (eql (foo-x x) 42))))
+
 (ert-deftest cl-defstruct/builtin-type ()
   (should-error
    (macroexpand '(cl-defstruct hash-table))
@@ -562,6 +599,41 @@ collection clause."
                      (cl-letf ((m 5)) m)
                      m)))
            '(42 5 42))))
+
+(ert-deftest cl-lib-symbol-macrolet ()
+  ;; bug#26325
+  (should (equal (cl-flet ((f (x) (+ x 5)))
+                   (let ((x 5))
+                     (f (+ x 6))))
+                 ;; Go through `eval', otherwise the macro-expansion
+                 ;; error prevents running the whole test suite :-(
+                 (eval '(cl-symbol-macrolet ((f (+ x 6)))
+                          (cl-flet ((f (x) (+ x 5)))
+                            (let ((x 5))
+                              (f f))))
+                       t))))
+
+(defmacro cl-lib-symbol-macrolet-4+5 ()
+  ;; bug#26068
+  (let* ((sname "x")
+         (s1 (make-symbol sname))
+         (s2 (make-symbol sname)))
+    `(cl-symbol-macrolet ((,s1 4)
+                          (,s2 5))
+       (+ ,s1 ,s2))))
+
+(ert-deftest cl-lib-symbol-macrolet-2 ()
+  (should (equal (cl-lib-symbol-macrolet-4+5) (+ 4 5))))
+
+(ert-deftest cl-lib-symbol-macrolet-hide ()
+  ;; bug#26325, bug#26073
+  (should (equal (let ((y 5))
+                   (cl-symbol-macrolet ((x y))
+                     (list x
+                           (let ((x 6)) (list x y))
+                           (cl-letf ((x 6)) (list x y))
+                           (apply (lambda (x) (+ x 1)) (list 8)))))
+                 '(5 (6 5) (6 6) 9))))
 
 (ert-deftest cl-macs-loop-conditional-step-clauses ()
   "These tests failed under the initial fixes in #bug#29799."
@@ -718,6 +790,9 @@ collection clause."
                            (f lex-var)))))
       (should (equal (f nil) 'a)))))
 
+(ert-deftest cl-flet-test ()
+  (should (equal (cl-flet ((f1 (x) x)) (let ((x #'f1)) (funcall x 5))) 5)))
+
 (ert-deftest cl-macs--test-flet-block ()
   (should (equal (cl-block f1
                    (cl-flet ((f1 (a) (cons (cl-return-from f1 a) 6)))
@@ -803,9 +878,9 @@ collection clause."
                     (cl-ecase val (t 1) (123 2))
                     (cl-ecase val (123 2) (t 1))))
       (ert-info ((prin1-to-string form) :prefix "Form: ")
-                (let ((error (should-error (macroexpand form))))
-                  (should (equal (cdr error)
-                                 '("Misplaced t or `otherwise' clause"))))))))
+        (let ((error (should-error (macroexpand form))))
+          (should (equal (cdr error)
+                         '("Misplaced t or `otherwise' clause"))))))))
 
 (ert-deftest cl-case-warning ()
   "Test that `cl-case' and `cl-ecase' warn about suspicious
@@ -833,10 +908,10 @@ constructs."
       (dolist (macro '(cl-case cl-ecase))
         (let ((form `(,macro val (,case 1))))
           (ert-info ((prin1-to-string form) :prefix "Form: ")
-                    (ert-with-message-capture messages
-                                              (macroexpand form)
-                                              (should (equal messages
-                                                             (concat "Warning: " message "\n"))))))))))
+            (ert-with-message-capture messages
+              (macroexpand form)
+              (should (equal messages
+                             (concat "Warning: " message "\n"))))))))))
 
 (ert-deftest cl-case-no-warning ()
   "Test that `cl-case' and `cl-ecase' don't warn in some valid cases.
@@ -874,5 +949,46 @@ See Bug#57915."
       (should (cl--test-s-p x))
       (should (equal (cl--test-s-cl--test-a x) 4))
       (should (equal (cl--test-s-b x) 'dyn)))))
+
+(ert-deftest cl-lib-keyword-names-versus-values ()
+  (should (equal
+           (funcall (cl-function (lambda (&key a b) (list a b)))
+                    :b :a :a 42)
+           '(42 :a))))
+
+(ert-deftest cl-lib-empty-keyargs ()
+  (should-error (funcall (cl-function (lambda (&key) 1))
+                         :b 1)))
+
+(ert-deftest cl-lib-test-gensym ()
+  ;; Since the expansion of `should' calls `cl-gensym' and thus has a
+  ;; side-effect on `cl--gensym-counter', we have to make sure all
+  ;; macros in our test body are expanded before we rebind
+  ;; `cl--gensym-counter' and run the body.  Otherwise, the test would
+  ;; fail if run interpreted.
+  (let ((body (byte-compile
+               '(lambda ()
+                  (should (equal (symbol-name (cl-gensym)) "G0"))
+                  (should (equal (symbol-name (cl-gensym)) "G1"))
+                  (should (equal (symbol-name (cl-gensym)) "G2"))
+                  (should (equal (symbol-name (cl-gensym "foo")) "foo3"))
+                  (should (equal (symbol-name (cl-gensym "bar")) "bar4"))
+                  (should (equal cl--gensym-counter 5))))))
+    (let ((cl--gensym-counter 0))
+      (funcall body))))
+
+(ert-deftest cl-the ()
+  (should (eql (cl-the integer 42) 42))
+  (should-error (cl-the integer "abc"))
+  (let ((side-effect 0))
+    (should (= (cl-the integer (cl-incf side-effect)) 1))
+    (should (= side-effect 1))))
+
+(ert-deftest cl-lib-test-typep ()
+  (cl-deftype cl-lib-test-type (&optional x) `(member ,x))
+  ;; Make sure we correctly implement the rule that deftype's optional args
+  ;; default to `*' rather than to nil.
+  (should (cl-typep '* 'cl-lib-test-type))
+  (should-not (cl-typep 1 'cl-lib-test-type)))
 
 ;;; cl-macs-tests.el ends here

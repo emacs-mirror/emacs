@@ -22,7 +22,7 @@
 ;;; Code:
 
 (require 'ert)
-(require 'cl-seq)
+(require 'cl-lib)
 
 (ert-deftest cl-union-test-00 ()
   "Test for bug#22729."
@@ -54,8 +54,10 @@ Additionally register an `ert-info' to help identify test failures."
 
 (ert-deftest cl-seq-endp-test ()
   (should (cl-endp '()))
-  (should (not (cl-endp '(1 2 3))))
-  (should-error (cl-endp 42) :type 'wrong-type-argument))
+  (should-not (cl-endp '(1)))
+  (should-not (cl-endp '(1 2 3)))
+  (should-error (cl-endp 1) :type 'wrong-type-argument)
+  (should-error (cl-endp [1]) :type 'wrong-type-argument))
 
 (ert-deftest cl-seq-reduce-test ()
   (should (equal 6 (cl-reduce #'+ '(1 2 3))))
@@ -97,6 +99,37 @@ Additionally register an `ert-info' to help identify test failures."
     (should (equal '(1 2 a a 5 2 6) (cl-replace l1 l2 :start1 2 :end1 4)))
     (should (equal '(a a 3 4 5 2 6) (cl-replace l1 l2 :start2 2 :end2 4)))))
 
+(ert-deftest cl-lib-test-remove ()
+  (let ((list (list 'a 'b 'c 'd))
+        (key-index 0)
+        (test-index 0))
+    (let ((result
+           (cl-remove 'foo list
+                      :key (lambda (x)
+                             (should (eql x (nth key-index list)))
+                             (prog1
+                                 (list key-index x)
+                               (cl-incf key-index)))
+                      :test
+                      (lambda (a b)
+                        (should (eql a 'foo))
+                        (should (equal b (list test-index
+                                               (nth test-index list))))
+                        (cl-incf test-index)
+                        (member test-index '(2 3))))))
+      (should (equal key-index 4))
+      (should (equal test-index 4))
+      (should (equal result '(a d)))
+      (should (equal list '(a b c d)))))
+  (let ((x (cons nil nil))
+        (y (cons nil nil)))
+    (should (equal (cl-remove x (list x y))
+                   ;; or (list x), since we use `equal' -- the
+                   ;; important thing is that only one element got
+                   ;; removed, this proves that the default test is
+                   ;; `eql', not `equal'
+                   (list y)))))
+
 ;; keywords supported:  :test :test-not :key :count :start :end :from-end
 (ert-deftest cl-seq-remove-test ()
   (let ((list '(1 2 3 4 5 2 6)))
@@ -121,6 +154,20 @@ Additionally register an `ert-info' to help identify test failures."
   (should (equal '(2 4) (cl-remove-if #'cl-oddp '(1 2 3 4))))
   (should (equal '() (cl-remove-if #'cl-evenp '())))
   (should (equal '() (cl-remove-if #'cl-evenp '(2)))))
+
+(ert-deftest cl-lib-test-remove-if-not ()
+  (let ((list (list 'a 'b 'c 'd))
+        (i 0))
+    (let ((result (cl-remove-if-not (lambda (x)
+                                      (should (eql x (nth i list)))
+                                      (cl-incf i)
+                                      (member i '(2 3)))
+                                    list)))
+      (should (equal i 4))
+      (should (equal result '(b c)))
+      (should (equal list '(a b c d)))))
+  (should (equal '()
+                 (cl-remove-if-not (lambda (_x) (should nil)) '()))))
 
 (ert-deftest cl-remove-if-not-test ()
   (should (equal '(2 4) (cl-remove-if-not #'cl-evenp '(1 2 3 4))))
@@ -309,6 +356,14 @@ Additionally register an `ert-info' to help identify test failures."
     (let ((pred (lambda (x) (> (cl-position x orig :from-end t) 1))))
       (should (equal '(b 2 3 4 5 2 6) (cl-nsubstitute 'b nil l :if-not pred))))))
 
+(ert-deftest cl-lib-test-string-position ()
+  (should (eql (cl-position ?x "") nil))
+  (should (eql (cl-position ?a "abc") 0))
+  (should (eql (cl-position ?b "abc") 1))
+  (should (eql (cl-position ?c "abc") 2))
+  (should (eql (cl-position ?d "abc") nil))
+  (should (eql (cl-position ?A "abc") nil)))
+
 ;; keywords supported:  :test :test-not :key :start :end :from-end
 (ert-deftest cl-seq-position-test ()
   (let ((list '(1 2 3 4 5 2 6)))
@@ -400,6 +455,14 @@ Additionally register an `ert-info' to help identify test failures."
   (let ((result (cl-count-if-not (lambda (x) (and (numberp x) (> x 2)))
                                  '(1 2 3 4 5 6))))
     (should (equal result 2))))
+
+(ert-deftest cl-lib-test-mismatch ()
+  (should (eql (cl-mismatch "" "") nil))
+  (should (eql (cl-mismatch "" "a") 0))
+  (should (eql (cl-mismatch "a" "a") nil))
+  (should (eql (cl-mismatch "ab" "a") 1))
+  (should (eql (cl-mismatch "Aa" "aA") 0))
+  (should (eql (cl-mismatch '(a b c) '(a b d)) 2)))
 
 ;; keywords supported:  :test :test-not :key :start1 :end1 :start2 :end2 :from-end
 (ert-deftest cl-seq-mismatch-test ()
@@ -776,6 +839,57 @@ Additionally register an `ert-info' to help identify test failures."
                                   '(((1 2) . 1) ((3 4) . 2) ((5) . 2)))))
     (should (equal result '((1 2) . 1)))))
 
+(ert-deftest cl-lib-test-set-functions ()
+  (let ((c1 (cons nil nil))
+        (c2 (cons nil nil))
+        (sym (make-symbol "a")))
+    (let ((e '())
+          (a (list 'a 'b sym nil "" "x" c1 c2))
+          (b (list c1 'y 'b sym 'x)))
+      (should (equal (cl-set-difference e e) e))
+      (should (equal (cl-set-difference a e) a))
+      (should (equal (cl-set-difference e a) e))
+      (should (equal (cl-set-difference a a) e))
+      (should (equal (cl-set-difference b e) b))
+      (should (equal (cl-set-difference e b) e))
+      (should (equal (cl-set-difference b b) e))
+      ;; Note: this test (and others) is sensitive to the order of the
+      ;; result, which is not documented.
+      (should (equal (cl-set-difference a b) (list 'a  nil "" "x" c2)))
+      (should (equal (cl-set-difference b a) (list 'y 'x)))
+
+      ;; We aren't testing whether this is really using `eq' rather than `eql'.
+      (should (equal (cl-set-difference e e :test 'eq) e))
+      (should (equal (cl-set-difference a e :test 'eq) a))
+      (should (equal (cl-set-difference e a :test 'eq) e))
+      (should (equal (cl-set-difference a a :test 'eq) e))
+      (should (equal (cl-set-difference b e :test 'eq) b))
+      (should (equal (cl-set-difference e b :test 'eq) e))
+      (should (equal (cl-set-difference b b :test 'eq) e))
+      (should (equal (cl-set-difference a b :test 'eq) (list 'a  nil "" "x" c2)))
+      (should (equal (cl-set-difference b a :test 'eq) (list 'y 'x)))
+
+      (should (equal (cl-union e e) e))
+      (should (equal (cl-union a e) a))
+      (should (equal (cl-union e a) a))
+      (should (equal (cl-union a a) a))
+      (should (equal (cl-union b e) b))
+      (should (equal (cl-union e b) b))
+      (should (equal (cl-union b b) b))
+      (should (equal (cl-union a b) (list 'x 'y 'a 'b sym nil "" "x" c1 c2)))
+
+      (should (equal (cl-union b a) (list 'x 'y 'a 'b sym nil "" "x" c1 c2)))
+
+      (should (equal (cl-intersection e e) e))
+      (should (equal (cl-intersection a e) e))
+      (should (equal (cl-intersection e a) e))
+      (should (equal (cl-intersection a a) a))
+      (should (equal (cl-intersection b e) e))
+      (should (equal (cl-intersection e b) e))
+      (should (equal (cl-intersection b b) b))
+      (should (equal (cl-intersection a b) (list sym 'b c1)))
+      (should (equal (cl-intersection b a) (list sym 'b c1))))))
+
 (ert-deftest cl-intersection-test ()
   (let ((result (cl-intersection '(1 2 3 4) '(3 4 5 6))))
     (should (equal result '(4 3))))
@@ -815,8 +929,10 @@ Additionally register an `ert-info' to help identify test failures."
                  '(1 2 3))))
 
 (ert-deftest cl-set-difference-test ()
-  (let ((result (cl-set-difference '(1 2 3 4) '(3 4 5 6))))
-    (should (equal result '(1 2))))
+  ;; Our set-difference preserves order, though it is not required to
+  ;; by CL standards.  Nevertheless better keep that invariant.
+  (should (equal (cl-set-difference '(1 2 3 4) '(3 4 5 6))
+                 '(1 2)))
   (let ((result (cl-set-difference '(1 2 3) '())))
     (should (equal result '(1 2 3))))
   (let ((result (cl-set-difference '(1 2 3) '(1 2 3))))
@@ -842,6 +958,33 @@ Additionally register an `ert-info' to help identify test failures."
     (should (equal (cl-set-difference list1 list2) '(1)))
     (should (equal list1 '(1 2 3)))
     (should (equal list2 '(2 3 4)))))
+
+(ert-deftest cl-nset-difference ()
+  ;; Our nset-difference doesn't preserve order.
+  (let* ((l1 (list 1 2 3 4)) (l2 '(3 4 5 6))
+         (diff (cl-nset-difference l1 l2)))
+    (should (memq 1 diff))
+    (should (memq 2 diff))
+    (should (= (length diff) 2))
+    (should (equal l2 '(3 4 5 6))))
+  (let* ((l1 (list "1" "2" "3" "4")) (l2 '("3" "4" "5" "6"))
+         (diff (cl-nset-difference l1 l2 :test #'equal)))
+    (should (member "1" diff))
+    (should (member "2" diff))
+    (should (= (length diff) 2))
+    (should (equal l2 '("3" "4" "5" "6"))))
+  (let* ((l1 (list '(a . 1) '(b . 2) '(c . 3) '(d . 4)))
+         (l2 (list '(c . 3) '(d . 4) '(e . 5) '(f . 6)))
+         (diff (cl-nset-difference l1 l2 :key #'car)))
+    (should (member '(a . 1) diff))
+    (should (member '(b . 2) diff))
+    (should (= (length diff) 2)))
+  (let* ((l1 (list '("a" . 1) '("b" . 2) '("c" . 3) '("d" . 4)))
+         (l2 (list '("c" . 3) '("d" . 4) '("e" . 5) '("f" . 6)))
+         (diff (cl-nset-difference l1 l2 :key #'car :test #'string=)))
+    (should (member '("a" . 1) diff))
+    (should (member '("b" . 2) diff))
+    (should (= (length diff) 2))))
 
 (ert-deftest cl-nset-difference-test ()
   (should-not (cl-nset-difference () ()))
