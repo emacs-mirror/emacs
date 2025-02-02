@@ -608,23 +608,28 @@ buffer_memory_full (ptrdiff_t nbytes)
 #define COMMON_MULTIPLE(a, b) \
   ((a) % (b) == 0 ? (a) : (b) % (a) == 0 ? (b) : (a) * (b))
 
-/* Alignment needed for memory blocks that are allocated via malloc
-   and that contain Lisp objects.  */
+/* Alignment needed for memory blocks managed by the garbage collector.  */
 enum { LISP_ALIGNMENT = alignof (union { union emacs_align_type x;
 					 GCALIGNED_UNION_MEMBER }) };
 static_assert (LISP_ALIGNMENT % GCALIGNMENT == 0);
 
-/* Verify Emacs's assumption that malloc (N) returns storage suitably
-   aligned for Lisp objects whenever N is a multiple of LISP_ALIGNMENT.
-   This assumption holds for current Emacs porting targets;
-   if the assumption fails on a new platform, this check should
-   cause compilation to fail and some porting work will need to be done.
+/* Emacs assumes that malloc (N) returns storage suitably aligned for
+   any Lisp object whenever N is a multiple of LISP_ALIGNMENT.
+   This Emacs assumption holds for current Emacs porting targets.
 
-   In practice the assumption holds when alignof (max_align_t) is also a
-   multiple of LISP_ALIGNMENT.  This works even for buggy platforms
-   like MinGW circa 2020, where alignof (max_align_t) is 16 even though
-   the malloc alignment is only 8, and where Emacs still works because
-   it never does anything that requires an alignment of 16.  */
+   On all current Emacs porting targets, it also happens that
+   alignof (max_align_t) is a multiple of LISP_ALIGNMENT.
+   Check this with a static_assert.  If the static_assert fails on an
+   unusual platform, Emacs may well not work, so inspect this module's
+   source code carefully with the unusual platform's quirks in mind.
+
+   In practice the static_assert works even for buggy platforms where
+   malloc can yield an unaligned address if given a large but unaligned
+   size; Emacs avoids the bug because it aligns the size before calling
+   malloc.  The static_assert also works for MinGW circa 2020, where
+   alignof (max_align_t) is 16 even though the malloc alignment is only 8;
+   Emacs avoids the bug because on this platform it never does anything
+   that requires an alignment of 16.  */
 enum { MALLOC_IS_LISP_ALIGNED = alignof (max_align_t) % LISP_ALIGNMENT == 0 };
 static_assert (MALLOC_IS_LISP_ALIGNED);
 
@@ -900,7 +905,8 @@ void *lisp_malloc_loser EXTERNALLY_VISIBLE;
 #endif
 
 /* Allocate memory for Lisp data.
-   NBYTES is the number of bytes to allocate; it must be Lisp-aligned.
+   NBYTES is the number of bytes to allocate;
+   it must be a multiple of LISP_ALIGNMENT.
    If CLEARIT, arrange for the allocated memory to be cleared
    by using calloc, which can be faster than malloc+memset.
    TYPE describes the intended use of the allocated memory block

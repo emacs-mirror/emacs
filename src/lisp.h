@@ -257,7 +257,7 @@ DEFINE_GDB_SYMBOL_END (VALMASK)
 # define alignas(a)
 #endif
 
-/* Minimum alignment requirement for Lisp objects, imposed by the
+/* The minimum alignment requirement for Lisp objects that is imposed by the
    internal representation of tagged pointers.  It is 2**GCTYPEBITS if
    USE_LSB_TAG, 1 otherwise.  It must be a literal integer constant,
    for older versions of GCC (through at least 4.9).  */
