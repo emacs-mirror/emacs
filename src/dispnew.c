@@ -3909,10 +3909,12 @@ frame_selected_window_frame (struct frame *f)
 static bool
 is_cursor_obscured (struct frame *root)
 {
-  /* Determine in which frame on ROOT the cursor could be.  */
-  struct frame *sf = frame_selected_window_frame (root);
-  if (sf == NULL)
-    return false;
+  /* Which frame contains the cursor?  If the selected frame is in
+     root's z-order, it's the selected frame.  Otherwise fall back to
+     the root itself.  */
+  struct frame *sf = (frame_ancestor_p (root, SELECTED_FRAME ())
+		      ? SELECTED_FRAME ()
+		      : root);
 
   /* Give up if we can't tell where the cursor currently is.  */
   int x, y;
