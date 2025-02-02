@@ -2054,8 +2054,9 @@ projects."
     (if (zerop count)
         (message "No projects were found")
       (project--write-project-list)
-      (message "%d project%s were found"
-               count (if (= count 1) "" "s")))
+      (message (ngettext "%d project was found"
+                         "%d projects were found"
+                         count) count))
     count))
 
 (defun project-forget-zombie-projects ()
@@ -2085,8 +2086,9 @@ forgotten projects."
     (if (zerop count)
         (message "No projects were forgotten")
       (project--write-project-list)
-      (message "%d project%s were forgotten"
-               count (if (= count 1) "" "s")))
+      (message (ngettext "%d project was forgotten"
+                         "%d projects were forgotten"
+                         count) count))
     count))
 
 
