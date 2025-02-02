@@ -1272,10 +1272,11 @@ particular sessions and/or `let'-bound for spells."
   :group 'erc)
 
 (defcustom erc-mode-hook nil
-  "Hook run after `erc-mode' setup is finished."
+  "Hook run after `erc-mode' setup is finished.
+Members should be robust enough to run in any order and not depend on
+hook depth."
   :group 'erc-hooks
-  :type 'hook
-  :options '(erc-add-scroll-to-bottom))
+  :type 'hook)
 
 (defcustom erc-timer-hook nil
   "Abnormal hook run after each response handler.
