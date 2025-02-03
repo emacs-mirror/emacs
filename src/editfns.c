@@ -3442,9 +3442,10 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
   } *info;
 
   CHECK_STRING (args[0]);
-  char *format_start = SSDATA (args[0]);
   bool multibyte_format = STRING_MULTIBYTE (args[0]);
   ptrdiff_t formatlen = SBYTES (args[0]);
+  char *format_start = SAFE_ALLOCA (formatlen + 1);
+  memcpy (format_start, SSDATA (args[0]), formatlen + 1);
   bool fmt_props = !!string_intervals (args[0]);
 
   /* Upper bound on number of format specs.  Each uses at least 2 chars.  */
