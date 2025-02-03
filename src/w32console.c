@@ -167,7 +167,7 @@ w32con_clear_end_of_line (struct frame *f, int end)
       for (i = 0; i < glyphs_len; i++)
         {
 	  memcpy (&glyphs[i], &space_glyph, sizeof (struct glyph));
-	  glyphs[i].frame = f;
+	  glyphs[i].frame = NULL;
         }
       ceol_initialized = TRUE;
     }
@@ -339,8 +339,10 @@ w32con_write_glyphs (struct frame *f, register struct glyph *string,
 	      && string[n].frame == face_id_frame))
 	  break;
 
+      /* w32con_clear_end_of_line sets frame of glyphs to NULL.  */
+      struct frame *attr_frame = face_id_frame ? face_id_frame : f;
       /* Turn appearance modes of the face of the run on.  */
-      char_attr = w32_face_attributes (face_id_frame, face_id);
+      char_attr = w32_face_attributes (attr_frame, face_id);
 
       if (n == len)
 	/* This is the last run.  */
@@ -425,34 +427,88 @@ w32con_write_glyphs_with_face (struct frame *f, register int x, register int y,
 
 /* Implementation of draw_row_with_mouse_face for W32 console.  */
 void
-tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
-			      int start_hpos, int end_hpos,
+tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *window_row,
+			      int window_start_x, int window_end_x,
 			      enum draw_glyphs_face draw)
 {
-  int nglyphs = end_hpos - start_hpos;
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  struct tty_display_info *tty = FRAME_TTY (f);
-  int face_id = tty->mouse_highlight.mouse_face_face_id;
-  int pos_x, pos_y;
+  struct frame *root = root_frame (f);
 
-  if (end_hpos >= row->used[TEXT_AREA])
-    nglyphs = row->used[TEXT_AREA] - start_hpos;
+  /* Window coordinates are relative to the text area.  Make
+     them relative to the window's left edge,  */
+  window_end_x = min (window_end_x, window_row->used[TEXT_AREA]);
+  window_start_x += window_row->used[LEFT_MARGIN_AREA];
+  window_end_x += window_row->used[LEFT_MARGIN_AREA];
 
-  pos_y = row->y + WINDOW_TOP_EDGE_Y (w);
-  pos_x = row->used[LEFT_MARGIN_AREA] + start_hpos + WINDOW_LEFT_EDGE_X (w);
+  /* Translate from window to window's frame.  */
+  int frame_start_x = WINDOW_LEFT_EDGE_X (w) + window_start_x;
+  int frame_end_x = WINDOW_LEFT_EDGE_X (w) + window_end_x;
+  int frame_y = window_row->y + WINDOW_TOP_EDGE_Y (w);
 
-  if (draw == DRAW_MOUSE_FACE)
-    w32con_write_glyphs_with_face (f, pos_x, pos_y,
-				   row->glyphs[TEXT_AREA] + start_hpos,
-				   nglyphs, face_id);
-  else if (draw == DRAW_NORMAL_TEXT)
+  /* Translate from (possible) child frame to root frame.  */
+  int root_start_x, root_end_x, root_y;
+  root_xy (f, frame_start_x, frame_y, &root_start_x, &root_y);
+  root_xy (f, frame_end_x, frame_y, &root_end_x, &root_y);
+  struct glyph_row *root_row = MATRIX_ROW (root->current_matrix, root_y);
+
+  /* Remember current cursor coordinates so that we can restore
+     them at the end.  */
+  COORD save_coords = cursor_coords;
+
+  /* If the root frame displays child frames, we cannot naively
+     write to the terminal what the window thinks should be drawn.
+     Instead, write only those parts that are not obscured by
+     other frames.  */
+  for (int root_x = root_start_x; root_x < root_end_x; )
     {
-      COORD save_coords = cursor_coords;
+      /* Find the start of a run of glyphs from frame F.  */
+      struct glyph *root_start = root_row->glyphs[TEXT_AREA] + root_x;
+      while (root_x < root_end_x && root_start->frame != f)
+	++root_x, ++root_start;
 
-      w32con_move_cursor (f, pos_y, pos_x);
-      write_glyphs (f, row->glyphs[TEXT_AREA] + start_hpos, nglyphs);
-      w32con_move_cursor (f, save_coords.Y, save_coords.X);
+      /* If start of a run of glyphs from F found.  */
+      int root_run_start_x = root_x;
+      if (root_run_start_x < root_end_x)
+	{
+	  /* Find the end of the run of glyphs from frame F.  */
+	  struct glyph *root_end = root_start;
+	  while (root_x < root_end_x && root_end->frame == f)
+	    ++root_x, ++root_end;
+
+	  /* If we have a run glyphs to output, do it.  */
+	  if (root_end > root_start)
+	    {
+	      w32con_move_cursor (root, root_y, root_run_start_x);
+
+	      ptrdiff_t nglyphs = root_end - root_start;
+	      switch (draw)
+		{
+		case DRAW_NORMAL_TEXT:
+		  write_glyphs (f, root_start, nglyphs);
+		  break;
+
+		case DRAW_MOUSE_FACE:
+		  {
+		    struct tty_display_info *tty = FRAME_TTY (f);
+		    int face_id = tty->mouse_highlight.mouse_face_face_id;
+		    w32con_write_glyphs_with_face (f, root_run_start_x, root_y,
+						   root_start, nglyphs,
+						   face_id);
+		  }
+		  break;
+
+		case DRAW_INVERSE_VIDEO:
+		case DRAW_CURSOR:
+		case DRAW_IMAGE_RAISED:
+		case DRAW_IMAGE_SUNKEN:
+		  emacs_abort ();
+		}
+	    }
+	}
     }
+
+  /* Restore cursor where it was before.  */
+  w32con_move_cursor (f, save_coords.Y, save_coords.X);
 }
 
 static void
