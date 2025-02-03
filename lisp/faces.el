@@ -1137,19 +1137,30 @@ returned.  Otherwise, DEFAULT is returned verbatim."
     (let ((prompt (if default
                       (format-prompt prompt default)
                     (format "%s: " prompt)))
-          aliasfaces nonaliasfaces faces)
+          aliasfaces nonaliasfaces table)
       ;; Build up the completion tables.
       (mapatoms (lambda (s)
                   (if (facep s)
                       (if (get s 'face-alias)
                           (push (symbol-name s) aliasfaces)
                         (push (symbol-name s) nonaliasfaces)))))
+      (setq table
+            (completion-table-with-metadata
+             (completion-table-in-turn nonaliasfaces aliasfaces)
+             `((affixation-function
+                . ,(lambda (faces)
+                     (mapcar
+                      (lambda (face)
+                        (list face
+                              (concat (propertize read-face-name-sample-text
+                                                  'face face)
+                                      "\t")
+                              ""))
+                      faces))))))
       (if multiple
-          (progn
-            (dolist (face (completing-read-multiple
-                           prompt
-                           (completion-table-in-turn nonaliasfaces aliasfaces)
-                           nil t nil 'face-name-history default))
+          (let (faces)
+            (dolist (face (completing-read-multiple prompt table nil t nil
+                                                    'face-name-history default))
               ;; Ignore elements that are not faces
               ;; (for example, because DEFAULT was "all faces")
               (if (facep face) (push (if (stringp face)
@@ -1157,21 +1168,8 @@ returned.  Otherwise, DEFAULT is returned verbatim."
                                        face)
                                      faces)))
             (nreverse faces))
-        (let ((face (completing-read
-                     prompt
-                     (completion-table-with-metadata
-                      (completion-table-in-turn nonaliasfaces aliasfaces)
-                      `((affixation-function
-                        . ,(lambda (faces)
-                             (mapcar
-                              (lambda (face)
-                                (list face
-                                      (concat (propertize read-face-name-sample-text
-                                                          'face face)
-                                              "\t")
-                                      ""))
-                              faces)))))
-                     nil t nil 'face-name-history defaults)))
+        (let ((face (completing-read prompt table nil t nil
+                                     'face-name-history defaults)))
           (when (facep face) (if (stringp face)
                                  (intern face)
                                face)))))))
