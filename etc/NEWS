@@ -176,6 +176,14 @@ will still be on that candidate after "*Completions*" is updated with a
 new list of completions.  The candidate is automatically deselected when
 the "*Completions*" buffer is hidden.
 
+---
+*** New user option 'crm-prompt' for 'completing-read-multiple'.
+This option configures the prompt format of 'completing-read-multiple'.
+By default the prompt indicates to the user that the completion command
+accepts a comma-separated list.  The prompt format can include the
+separator description and the separator string, which are both stored as
+text properties of the 'crm-separator' regular expression.
+
 ** Windows
 
 +++
