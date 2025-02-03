@@ -3490,7 +3490,10 @@ Check if a node type is available, then return the right indent rules."
        ((match "/" "jsx_self_closing_element") parent 0)
        ((parent-is "jsx_self_closing_element") parent js-indent-level)
        ;; FIXME(Theo): This no-node catch-all should be removed.  When is it needed?
-       (no-node parent-bol 0)))))
+       (no-node parent-bol 0))
+      (jsdoc
+       ((and (parent-is "document") c-ts-common-looking-at-star)
+        c-ts-common-comment-start-after-first-star -1)))))
 
 (defvar js--treesit-keywords
   '("as" "async" "await" "break" "case" "catch" "class" "const" "continue"
@@ -3718,6 +3721,22 @@ Return nil if there is no name or if NODE is not a defun node."
     ("lexical_declaration" (treesit-node-top-level node))
     (_ t)))
 
+(defun js--treesit-language-at-point (point)
+  "Return the language at POINT."
+  (let* ((node (treesit-node-at point 'javascript))
+         (node-type (treesit-node-type node))
+         (node-start (treesit-node-start node))
+         (node-end (treesit-node-end node)))
+    (if (not (treesit-ready-p 'jsdoc t))
+        'javascript
+      (if (equal node-type "comment")
+          (save-excursion
+            (goto-char node-start)
+            (if (search-forward "/**" node-end t)
+                'jsdoc
+              'javascript))
+        'javascript))))
+
 ;;; Main Function
 
 ;;;###autoload
@@ -3927,6 +3946,7 @@ See `treesit-thing-settings' for more information.")
 
     ;; Tree-sitter setup.
     (setq-local treesit-primary-parser (treesit-parser-create 'javascript))
+    (setq-local treesit-language-at-point-function #'js--treesit-language-at-point)
 
     ;; Indent.
     (setq-local treesit-simple-indent-rules js--treesit-indent-rules)
