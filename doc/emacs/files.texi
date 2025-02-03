@@ -1072,6 +1072,22 @@ identify and update that custom template:
 @end group
 @end example
 
+Here is another example, with the time stamp inserted into the last
+paragraph of an HTML document.  The @code{%%} in the pattern asks for
+the default format.
+
+@example
+@r{@dots{}}
+<p>Last modified: </p>
+</body>
+</html>
+<!--
+Local variables:
+time-stamp-pattern: "-10/Last modified: %%</p>$"
+End:
+-->
+@end example
+
 @vindex time-stamp-format
 By default the time stamp is
 formatted according to your locale setting (@pxref{Environment}) and

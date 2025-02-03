@@ -901,6 +901,30 @@ the 'grep' results editable.  The edits will be reflected in the buffer
 visiting the originating file.  Typing 'C-c C-c' will leave the Grep
 Edit mode.
 
+** time-stamp
+
+---
+*** 'time-stamp' can up-case, capitalize and down-case date words.
+This control can be useful in languages in which days of the week and/or
+month names are capitalized only at the beginning of a sentence.  For
+details, see the built-in documentation for variable 'time-stamp-format'.
+
+Because this feature is new in Emacs 31.1, do not use it in the local
+variables section of any file that might be edited by an older version
+of Emacs.
+
+---
+*** Some historical 'time-stamp' conversions now warn.
+'time-stamp-pattern' and 'time-stamp-format' had quietly
+accepted several 'time-stamp' conversions (e.g., "%:y") that
+have been deprecated since Emacs 27.1 (released in 2020).
+These now generate a warning with a suggested migration.
+
+Merely having "(add-hook 'before-save-hook 'time-stamp)"
+in your Emacs init file does not expose you to this change.
+However, if you set 'time-stamp-format' or 'time-stamp-pattern'
+with a file-local variable, you may be asked to update the value.
+
 ** TeX modes
 
 +++
