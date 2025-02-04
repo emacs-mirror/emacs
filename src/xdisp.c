@@ -5646,7 +5646,7 @@ get_display_property (ptrdiff_t charpos, Lisp_Object prop, Lisp_Object object)
 
 /* Handle 'display' property '(min-width (WIDTH))' at CHARPOS in OBJECT.
    OBJECT can be a buffer (or nil, which means the current buffer) or a
-   string.  MIN_WIDTH is the value of min-width spec that we expect to
+   string.  WIDTH_SPEC is the value of min-width spec that we expect to
    process.  */
 static void
 display_min_width (struct it *it, ptrdiff_t charpos,
@@ -5692,8 +5692,9 @@ display_min_width (struct it *it, ptrdiff_t charpos,
                  a stretch that ends beyond the visible portion of the
                  window if we are truncating screen lines.  If we are
                  requested to do that, some Lisp program went awry.  */
-	      if (!(it->line_wrap == TRUNCATE
-		    && it->current_x + width > it->last_visible_x))
+	      if (width > 0
+		  && !(it->line_wrap == TRUNCATE
+		       && it->current_x + width > it->last_visible_x))
 		w = list1 (make_int (width));
 	    }
 	  else
@@ -5704,8 +5705,9 @@ display_min_width (struct it *it, ptrdiff_t charpos,
 					  NULL, true, NULL);
 	      width -= (it->current_x - it->min_width_start) /
 		FRAME_COLUMN_WIDTH (it->f);
-	      if (!(it->line_wrap == TRUNCATE
-		    && it->current_x + width > it->last_visible_x))
+	      if (width > 0
+		  && !(it->line_wrap == TRUNCATE
+		       && it->current_x + width > it->last_visible_x))
 		w = make_int (width);
 	    }
 
