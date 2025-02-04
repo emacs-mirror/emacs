@@ -2662,7 +2662,9 @@ side effect of setting the current buffer to the one it returns.  Use
     (erc--initialize-markers old-point continued-session)
     (erc-determine-parameters server port nick full-name user passwd)
     (save-excursion (run-mode-hooks)
-                    (dolist (mod (car delayed-modules)) (funcall mod +1))
+                    (dolist (mod (car delayed-modules))
+                      (unless (and (boundp mod) (symbol-value mod))
+                        (funcall mod +1)))
                     (dolist (var (cdr delayed-modules)) (set var nil)))
 
     ;; Saving log file on exit

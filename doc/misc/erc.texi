@@ -452,7 +452,7 @@ Buttonize URLs, nicknames, and other text
 Mark unidentified users on freenode and other servers supporting CAPAB.
 
 @cindex modules, command-indicator
-@item command-indicator
+@item command-indicator (local)
 Echo command lines for ``slash commands'', like @kbd{/JOIN #erc} and
 @kbd{/HELP join}
 
@@ -494,7 +494,7 @@ Display a menu in ERC buffers
 Detect netsplits
 
 @cindex modules, nicks
-@item nicks
+@item nicks (local)
 Automatically colorize nicks
 
 @cindex modules, nickbar
@@ -519,10 +519,6 @@ or your nickname is mentioned
 @item page
 Process CTCP PAGE requests from IRC
 
-@cindex modules, querypoll
-@item querypoll
-Update query participant data by continually polling the server
-
 @cindex modules, readonly
 @item readonly
 Make displayed lines read-only
@@ -536,7 +532,7 @@ Replace text in messages
 Enable an input history
 
 @cindex modules, sasl
-@item sasl
+@item sasl (local)
 Enable SASL authentication
 
 @cindex modules, scrolltobottom
@@ -583,22 +579,26 @@ Translate morse code in messages
 
 For various reasons, the following modules aren't currently listed in
 the Custom interface for @code{erc-modules}, but feel free to add them
-explicitly.  They may be managed by another module or considered more
-useful when toggled interactively or just deemed experimental.
+explicitly.  They may be managed by another module or just deemed too
+niche or experimental.
 
 @table @code
 
 @cindex modules, fill-wrap
-@item fill-wrap
+@item fill-wrap (local)
 Wrap long lines using @code{visual-line-mode}
 
 @cindex modules, keep-place-indicator
-@item keep-place-indicator
+@item keep-place-indicator (local)
 Remember your place in buffers with a visible reminder; activated
 interactively or via something like @code{erc-join-hook}
 
+@cindex modules, querypoll
+@item querypoll (local)
+Update query participant data by continually polling the server
+
 @cindex modules, services-regain
-@item services-regain
+@item services-regain (local)
 Automatically ask NickServ to reclaim your nick when reconnecting;
 experimental as of ERC 5.6
 
@@ -618,51 +618,84 @@ always loads anyway.
 @subheading Local Modules
 @cindex local modules
 
-All modules operate as minor modes under the hood, and some newer ones
-may be defined as buffer-local.  These so-called ``local modules'' are
-a work in progress and their behavior and interface are subject to
-change.  As of ERC 5.5, the only practical differences are as follows:
+@c Earlier language in code comments, commit messages, and tracker
+@c discussions used to describe a local module as being "active" in a
+@c buffer if it had a local binding but "disabled" if that binding's
+@c value was nil.  For better or worse, ERC has since abandoned that
+@c distinction and now considers "active" to be synonymous with
+@c "enabled".
+
+All modules operate as minor modes under the hood, and newer ones are
+mostly defined as buffer-local.  These so-called @dfn{local modules} are
+a work in progress, and their behavior and interface are subject to
+change.  As of ERC 5.6, the only practical differences are as follows:
 
 @enumerate
 @item
-``Control variables,'' like @code{erc-sasl-mode}, retain their values
-across IRC sessions and override @code{erc-module} membership when
-influencing module activation.
+@dfn{Mode variables}, a.k.a. @dfn{control variables}, like
+@code{erc-sasl-mode}, retain their values across IRC sessions.
 @item
 Removing a local module from @code{erc-modules} via Customize not only
-disables its mode but also kills its control variable in all ERC
-buffers.
+disables its mode but also kills its mode variable in all ERC buffers.
 @item
-``Mode toggles,'' like @code{erc-sasl-mode} and the complementary
-@code{erc-sasl-enable}/@code{erc-sasl-disable} pairing, behave
-differently than their global counterparts.
+@dfn{Mode commands}, like @code{erc-sasl-mode} and its one-way variants
+@code{erc-sasl-enable} and @code{erc-sasl-disable}, behave differently
+than their global counterparts.
 @end enumerate
 
-In target buffers, a local module's activation state survives
-``reassociation'' by default, but modules themselves always have the
-final say.  For example, a module may reset all instances of itself in
-its network context upon reconnecting.  Moreover, the value of a mode
-variable may be meaningless in buffers that its module has no interest
-in.  For example, the value of @code{erc-sasl-mode} doesn't matter in
-target buffers and may even remain non-@code{nil} after SASL has been
-disabled for the current connection (and vice versa).
+To detect whether a module is local, examine its mode variable.  For
+example, if you run @kbd{C-h v erc-sasl-mode @key{RET}}, you'll notice
+it says ``Automatically becomes buffer-local when set''.  You can do the
+same in Lisp code with @code{(local-variable-if-set-p 'erc-sasl-mode)}.
 
-When it comes to server buffers, a module's activation state only
-persists for sessions revived via the automatic reconnection mechanism
-or a manual @samp{/reconnect} issued at the prompt.  In other words,
-this doesn't apply to sessions revived by an entry-point command, such
-as @code{erc-tls}, because such commands always ensure a clean slate
-by looking only to @code{erc-modules}.  Although a session revived in
-this manner may indeed harvest other information from a previous
-server buffer, it simply doesn't care which modules might have been
-active during that connection.
+In an ERC buffer, a local module is either enabled or disabled if its
+mode variable has a local binding.  This @dfn{activation state} may
+contradict a module's presence in @code{erc-modules}, namely, in buffers
+where it isn't applicable or has otherwise been disabled.  In fact, a
+local module's membership in @code{erc-modules} does nothing more than
+guarantee
 
-Lastly, a local mode's toggle command, like @code{erc-sasl-mode}, only
-affects the current buffer, but its ``non-mode'' cousins, like
+@enumerate
+@item
+its setup code runs in @emph{new} buffers
+@item
+its mode variable has a local binding in all affected buffers
+@end enumerate
+
+In keeping with this, all built-in local modules disable themselves in
+nonapplicable buffers rather than remain no-ops.  Some also take strides
+to enable themselves elsewhere when needed or at least emit a helpful
+error.  For example, the @samp{nicks} module does both in server
+buffers, where it shares resources among the target buffers it primarily
+services.  ERC expects third-party local modules to mimic this pattern
+and to document what buffer types they operate in: server, query, or
+channel.  (In the case of @samp{nicks}, it would be all three: it's
+@dfn{session-local}.)
+
+In ERC, you can think of an IRC session as a group of buffers sharing
+the same connection to a server.  After a connection ends, this
+association endures so that ERC can revive the session when
+reconnecting.  As it does with connection parameters, ERC therefore
+persists a local module's activation state through reconnections,
+reenabling modules that were previously active while ensuring others are
+disabled.  A couple related things to note here are
+
+@enumerate
+@item
+each module must manage its own application data and restore or reset
+its environment accordingly
+@item
+session persistence is less predictable if a user changes the makeup of
+@code{erc-modules} between sessions
+@end enumerate
+
+When it comes to a local module's various activation commands, the
+primary mode command, like @code{erc-sasl-mode}, for example, only
+affects the current buffer, but its unidirectional cousins, like
 @code{erc-sasl-enable} and @code{erc-sasl-disable}, operate on all
-buffers belonging to their connection (when called interactively).
-And unlike global toggles, none of these ever mutates
-@code{erc-modules}.
+buffers belonging to their connection (when called interactively).  And
+unlike global toggles, none of these ever mutates @code{erc-modules}.
+
 
 @c FIXME add section to Advanced chapter for creating modules, and
 @c move this there.

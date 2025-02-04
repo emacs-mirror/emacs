@@ -34,13 +34,6 @@
 ;;
 ;; - Implement a proxy mechanism that chooses the strongest available
 ;;   mechanism for you.  Requires CAP 3.2 (see bug#49860).
-;;
-;; - Integrate with whatever solution ERC eventually settles on to
-;;   handle user options for different network contexts.  At the
-;;   moment, this does its own thing for stashing and restoring
-;;   session options, but ERC should make abstractions available for
-;;   all local modules to use, possibly based on connection-local
-;;   variables.
 
 ;;; Code:
 (require 'erc)
@@ -315,9 +308,10 @@ If necessary, pass PROMPT to `read-passwd'."
 
 (define-erc-module sasl nil
   "Non-IRCv3 SASL support for ERC.
-This doesn't solicit or validate a suite of supported mechanisms."
-  ;; See bug#49860 for a CAP 3.2-aware WIP implementation.
-  ((unless erc--target
+This local module only enables its minor mode in server buffers, and it
+doesn't currently solicit or validate supported mechanisms."
+  ((if erc--target
+       (erc-sasl-mode -1)
      (setq erc-sasl--state (make-erc-sasl--state))
      ;; If the previous attempt failed during registration, this may be
      ;; non-nil and contain erroneous values, but how can we detect that?

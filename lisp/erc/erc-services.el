@@ -613,8 +613,10 @@ In practical terms, this means that this module, which is still
 somewhat experimental, is likely only useful in conjunction with
 SASL authentication or CertFP rather than the traditional approach
 provided by the `services' module it shares a library with (see Info
-node `(erc) SASL' for more)."
-  nil nil localp)
+node `(erc) SASL' for more).
+
+This local module's minor mode is only active in server buffers."
+  ((when erc--target (erc-services-regain-mode -1))) nil localp)
 
 (cl-defmethod erc--nickname-in-use-make-request
   ((want string) temp &context (erc-server-connected null)
