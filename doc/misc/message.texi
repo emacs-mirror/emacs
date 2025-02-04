@@ -1791,6 +1791,12 @@ member list with elements @code{CC} and @code{To}, then
 @code{message-carefully-insert-headers} will not insert a @code{To}
 header when the message is already @code{CC}ed to the recipient.
 
+@item message-header-use-obsolete-in-reply-to
+@vindex message-header-use-obsolete-in-reply-to
+When non-@code{nil}, use an obsolete form of the @code{In-Reply-To}
+header that includes a parenthetical phrase with details of the
+originating email following the message id.  The default is @code{nil}.
+
 @item message-syntax-checks
 @vindex message-syntax-checks
 Controls what syntax checks should not be performed on outgoing posts.

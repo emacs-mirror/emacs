@@ -113,6 +113,13 @@
   :group 'message
   :group 'faces)
 
+(defcustom message-header-use-obsolete-in-reply-to nil
+  "Include extra information in the In-Reply-To header.
+This form has been obsolete since RFC 2822."
+  :group 'message-headers
+  :version "31.1"
+  :type 'boolean)
+
 (defcustom message-directory "~/Mail/"
   "Directory from which all other mail file variables are derived."
   :group 'message-various
@@ -5993,35 +6000,38 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
   "Return the In-Reply-To header for this message."
   (when message-reply-headers
     (let ((from (mail-header-from message-reply-headers))
-	  (date (mail-header-date message-reply-headers))
-	  (msg-id (mail-header-id message-reply-headers)))
+          (date (mail-header-date message-reply-headers))
+          (msg-id (mail-header-id message-reply-headers)))
       (when from
-	(let ((name (mail-extract-address-components from)))
-	  (concat
-	   msg-id (if msg-id " (")
-	   (if (car name)
-	       (if (string-match "[^[:ascii:]]" (car name))
-		   ;; Quote a string containing non-ASCII characters.
-		   ;; It will make the RFC2047 encoder cause an error
-		   ;; if there are special characters.
-                   (mm-with-multibyte-buffer
-                     (insert (car name))
-                     (goto-char (point-min))
-                     (while (search-forward "\"" nil t)
-                       (when (prog2
-                                 (backward-char)
-                                 (zerop (% (skip-chars-backward "\\\\") 2))
-                               (goto-char (match-beginning 0)))
-                         (insert "\\"))
-                       (forward-char))
-                     ;; Those quotes will be removed by the RFC2047 encoder.
-                     (concat "\"" (buffer-string) "\""))
-		 (car name))
-	     (nth 1 name))
-	   "'s message of \""
-	   (if (or (not date) (string= date ""))
-	       "(unknown date)" date)
-	   "\"" (if msg-id ")")))))))
+        (let ((name (mail-extract-address-components from)))
+          (concat
+           msg-id
+           (when message-header-use-obsolete-in-reply-to
+             (concat
+              (if msg-id " (")
+              (if (car name)
+                  (if (string-match "[^[:ascii:]]" (car name))
+                      ;; Quote a string containing non-ASCII characters.
+                      ;; It will make the RFC2047 encoder cause an error
+                      ;; if there are special characters.
+                      (mm-with-multibyte-buffer
+                        (insert (car name))
+                        (goto-char (point-min))
+                        (while (search-forward "\"" nil t)
+                          (when (prog2
+                                    (backward-char)
+                                    (zerop (% (skip-chars-backward "\\\\") 2))
+                                  (goto-char (match-beginning 0)))
+                            (insert "\\"))
+                          (forward-char))
+                        ;; Those quotes will be removed by the RFC2047 encoder.
+                        (concat "\"" (buffer-string) "\""))
+                    (car name))
+                (nth 1 name))
+              "'s message of \""
+              (if (or (not date) (string= date ""))
+                  "(unknown date)" date)
+              "\"" (if msg-id ")")))))))))
 
 (defun message-make-distribution ()
   "Make a Distribution header."

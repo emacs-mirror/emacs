@@ -483,6 +483,16 @@ If 'save-place-autosave-interval' is nil, auto saving is disabled; this
 is the default.  As before, saved places are scheduled to be saved at
 Emacs exit.
 
+** Message
+
+---
+*** In-Reply-To header contains only a message id.
+The In-Reply-To header created when replying to a message now contains
+only the originating message's id, conforming to RFC5322.  The previous
+behavior included additional information about the originating message.
+The new variable 'message-header-use-obsolete-in-reply-to', nil by
+default, can be set to a non-nil value to restore the previous behavior.
+
 ** Gnus
 
 ---
