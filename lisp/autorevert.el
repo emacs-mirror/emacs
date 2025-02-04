@@ -772,11 +772,37 @@ If the buffer needs to be reverted, do it now."
       (when auto-revert-notify-modified-p
         (auto-revert-handler)))))
 
+;;;###autoload
+(progn
+  (defvar inhibit-auto-revert-buffers nil
+    "A list of buffers with suppressed auto-revert.")
+
+  (defmacro inhibit-auto-revert (&rest body)
+    "Deactivate auto-reverting of current buffer temporarily.
+Run BODY."
+    (declare (indent 0) (debug ((form body) body)))
+    `(progn
+       ;; Cleanup.
+       (dolist (buf inhibit-auto-revert-buffers)
+         (unless (buffer-live-p buf)
+           (setq inhibit-auto-revert-buffers
+                 (delq buf inhibit-auto-revert-buffers))))
+       (let ((buf (and (not (memq (current-buffer) inhibit-auto-revert-buffers))
+                       (current-buffer))))
+         (unwind-protect
+             (progn
+               (when buf (add-to-list 'inhibit-auto-revert-buffers buf))
+               ,@body)
+           (when buf
+             (setq inhibit-auto-revert-buffers
+                   (delq buf inhibit-auto-revert-buffers))))))))
+
 (defun auto-revert-active-p ()
   "Check if auto-revert is active in current buffer."
-  (or auto-revert-mode
-      auto-revert-tail-mode
-      auto-revert--global-mode))
+  (and (or auto-revert-mode
+           auto-revert-tail-mode
+           auto-revert--global-mode)
+       (not (memq (current-buffer) inhibit-auto-revert-buffers))))
 
 (defun auto-revert-handler ()
   "Revert current buffer, if appropriate.
@@ -798,14 +824,17 @@ This is an internal function used by Auto-Revert Mode."
                                 (setq size
                                       (file-attribute-size
                                        (file-attributes buffer-file-name)))))
-                     (funcall (or buffer-stale-function
-                                  #'buffer-stale--default-function)
-                              t)))
+                     (and (not (memq (current-buffer)
+                                     inhibit-auto-revert-buffers))
+                          (funcall (or buffer-stale-function
+                                       #'buffer-stale--default-function)
+                                   t))))
             (and (or auto-revert-mode
                      global-auto-revert-non-file-buffers)
-                 (funcall (or buffer-stale-function
-                              #'buffer-stale--default-function)
-                          t))))
+                 (and (not (memq (current-buffer) inhibit-auto-revert-buffers))
+                      (funcall (or buffer-stale-function
+                                   #'buffer-stale--default-function)
+                               t)))))
          eob eoblist)
     (setq auto-revert-notify-modified-p nil
           auto-revert--last-time (current-time))

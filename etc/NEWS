@@ -41,12 +41,12 @@ incorrectly in rare cases.
 
 ** In compatible terminals, 'xterm-mouse-mode' is turned on by default.
 For these terminals the mouse will work by default.  A compatible
-terminal is one that supports Emacs seting and getting the OS selection
+terminal is one that supports Emacs setting and getting the OS selection
 data (a.k.a. the clipboard) and mouse button and motion events.  With
-xterm-mouse-mode enabled, you must use Emacs keybindings to copy to the
+'xterm-mouse-mode' enabled, you must use Emacs keybindings to copy to the
 OS selection instead of terminal-specific keybindings.
 
-You can keep the old behavior by putting `(xterm-mouse-mode -1)' in your
+You can keep the old behavior by putting '(xterm-mouse-mode -1)' in your
 init file.
 
 
@@ -75,7 +75,7 @@ In particular:
 To enable tooltips on TTY frames, call 'tty-tip-mode'.
 
 The presence of child frame support on TTY frames can be checked with
-`(featurep 'tty-child-frames)'.
+'(featurep 'tty-child-frames)'.
 
 Recent versions of Posframe and Corfu are known to use child frames on
 TTYs if they are supported.
@@ -108,7 +108,7 @@ instead of its now-obsolete variable.
 ** Network Security Manager (NSM) is now more strict.
 
 *** NSM warns about TLS 1.1 by default.
-It has been deprecated by RFC8996, published in 2021.
+It has been deprecated by RFC 8996, published in 2021.
 
 *** NSM warns about DHE and RSA key exchange by default.
 Emacs now warns about ephemeral Diffie-Hellman key exchange, and static
@@ -181,13 +181,9 @@ the "*Completions*" buffer is hidden.
 +++
 *** New functions to modify window layout.
 Several functions to modify the window layout have been added:
-'rotate-window-layout-clockwise'
-'rotate-window-layout-anticlockwise'
-'flip-window-layout-vertically'
-'flip-window-layout-horizontally'
-'transpose-window-layout'
-'rotate-windows'
-'rotate-windows-back'
+'rotate-window-layout-clockwise', 'rotate-window-layout-anticlockwise',
+'flip-window-layout-vertically', 'flip-window-layout-horizontally',
+'transpose-window-layout', 'rotate-windows', and 'rotate-windows-back'.
 
 +++
 *** New hook 'window-deletable-functions'.
@@ -254,11 +250,11 @@ adjustment when a tab is restored, and avoids advice.
 *** New user option 'tab-bar-define-keys'.
 This controls which key bindings tab-bar creates.  Values are t, the
 default, which defines all keys and is backwards compatible, 'numeric'
-(tab number selection only), 'tab' (TAB and SHIFT-TAB keys only), nil
+(tab number selection only), 'tab' ('TAB' and 'S-TAB' keys only), nil
 (which defines none).
 
 This is useful to avoid key binding conflicts, such as when folding in
-outline mode using TAB keys, or when a user wants to define her own
+outline mode using 'TAB' keys, or when a user wants to define her own
 tab-bar keys without first having to remove the defaults.
 
 ---
@@ -386,13 +382,15 @@ modal editing packages.
 
 ---
 ** ASM mode
+
 *** 'asm-mode-set-comment-hook' is obsolete.
 You can now set `asm-comment-char' from 'asm-mode-hook' instead.
 
 ---
 ** Ibuffer
+
 *** New column 'recency' in Ibuffer display.
-The variable 'ibuffer-formats' configures the Ibuffer formats.  Add
+The user option 'ibuffer-formats' configures the Ibuffer formats.  Add
 'recency' to the format to display the column.
 
 *** New value 'title' for the user option 'ibuffer-use-header-line'.
@@ -404,11 +402,13 @@ When non-nil, buffer sizes are shown in human readable format.
 
 ---
 ** Buffer Menu
+
 *** New user option 'Buffer-menu-human-readable-sizes'.
 When non-nil, buffer sizes are shown in human readable format.  The
 default is nil, which retains the old format.
 
 ** Smerge
+
 *** New command 'smerge-extend' extends a conflict over surrounding lines.
 
 ** Image Dired
@@ -430,7 +430,7 @@ a web browser to load them.  For example, it could be used like this:
 For better integration with the Qutebrowser, set
 'browse-url(-secondary)-browser-function' to 'browse-url-qutebrowser'.
 
-*** New GTK-native launch mode
+*** New GTK-native launch mode.
 For better Wayland support, the pgtk toolkit exposes a new
 'x-gtk-launch-uri' browse-url handler and uses it by default when URLs
 are browsed from a PGTK frame.  For other frames, we fall back to the
@@ -469,16 +469,15 @@ compatible.
 
 ---
 *** You can now regularly auto-save places.
-Customize 'save-place-autosave-interval' to the number of seconds
-between auto saving places.  For example, to save places every 5
+Customize user option 'save-place-autosave-interval' to the number of
+seconds between auto saving places.  For example, to save places every 5
 minutes:
 
-  M-x customize-option RET save-place-autosave-interval RET and set to
-  300 seconds.
+    M-x customize-option RET save-place-autosave-interval RET 300
 
-Or in elisp:
+Or in Elisp:
 
-  (setopt save-place-autosave-interval (* 60 5))
+    (setopt save-place-autosave-interval (* 60 5))
 
 If 'save-place-autosave-interval' is nil, auto saving is disabled; this
 is the default.  As before, saved places are scheduled to be saved at
@@ -679,7 +678,6 @@ build tags for the test commands.
 
 The 'go-ts-mode-test-flags' user option is available to set a list of
 additional flags to pass to the go test command line.
-
 
 ** C-ts mode
 
@@ -901,13 +899,13 @@ the 'grep' results editable.  The edits will be reflected in the buffer
 visiting the originating file.  Typing 'C-c C-c' will leave the Grep
 Edit mode.
 
-** time-stamp
+** Time Stamp
 
 ---
 *** 'time-stamp' can up-case, capitalize and down-case date words.
 This control can be useful in languages in which days of the week and/or
 month names are capitalized only at the beginning of a sentence.  For
-details, see the built-in documentation for variable 'time-stamp-format'.
+details, see the built-in documentation for user option 'time-stamp-format'.
 
 Because this feature is new in Emacs 31.1, do not use it in the local
 variables section of any file that might be edited by an older version
@@ -915,12 +913,12 @@ of Emacs.
 
 ---
 *** Some historical 'time-stamp' conversions now warn.
-'time-stamp-pattern' and 'time-stamp-format' had quietly
-accepted several 'time-stamp' conversions (e.g., "%:y") that
-have been deprecated since Emacs 27.1 (released in 2020).
-These now generate a warning with a suggested migration.
+'time-stamp-pattern' and 'time-stamp-format' had quietly accepted
+several 'time-stamp' conversions (e.g., "%:y") that have been deprecated
+since Emacs 27.1.  These now generate a warning with a suggested
+migration.
 
-Merely having "(add-hook 'before-save-hook 'time-stamp)"
+Merely having '(add-hook 'before-save-hook 'time-stamp)'
 in your Emacs init file does not expose you to this change.
 However, if you set 'time-stamp-format' or 'time-stamp-pattern'
 with a file-local variable, you may be asked to update the value.
@@ -1076,6 +1074,19 @@ destination window is chosen using 'display-buffer-alist'.  Example:
                                    display-buffer-use-some-window)
                                   (some-window . mru))))
 
+** Autorevert
+
++++
+*** New variable 'inhibit-auto-revert-buffers'.
+While a buffer is member of this variable, a list of buffers,
+auto-reverting of this buffer is suppressed.
+
++++
+*** New macro 'inhibit-auto-revert'.
+This macro adds the current buffer to 'inhibit-auto-revert-buffers',
+runs its body, and removes the current buffer from
+'inhibit-auto-revert-buffers' afterwards.
+
 
 * New Modes and Packages in Emacs 31.1
 
@@ -1085,7 +1096,7 @@ destination window is chosen using 'display-buffer-alist'.  Example:
 ** Nested backquotes are not supported any more in Pcase patterns.
 
 ---
-** The obsolete variable `redisplay-dont-pause' has been removed.
+** The obsolete variable 'redisplay-dont-pause' has been removed.
 
 ** The 'rx' category name 'chinese-two-byte' must now be spelled correctly.
 An old alternative name (without the first 'e') has been removed.
@@ -1161,7 +1172,7 @@ authorize the invoked D-Bus method (for example via polkit).
 ** The customization group 'wp' has been removed.
 It has been obsolete since Emacs 26.1.  Use the group 'text' instead.
 
-** Changes in tree-sitter modes.
+** Changes in tree-sitter modes
 
 +++
 *** Indirect buffers can have their own parser list.
@@ -1186,7 +1197,7 @@ override flag by 'treesit-font-lock-setting-query',
 'treesit-font-lock-setting-feature', 'treesit-font-lock-setting-enable',
 and 'treesit-font-lock-setting-override'.
 
-*** New treesit thing 'list'.
+*** New tree-sitter thing 'list'.
 Unlike the existing thing 'sexp' that defines both lists and atoms,
 'list' defines only lists to be navigated by 'forward-sexp'.
 The new function 'treesit-forward-sexp-list' uses 'list'
@@ -1209,9 +1220,9 @@ used to communicate the tree-sitter parsing results to
 
 *** Tree-sitter enabled modes now properly support 'hs-minor-mode'.
 All commands from hideshow.el can selectively display blocks
-defined by the new treesit thing 'list'.
+defined by the new tree-sitter thing 'list'.
 
-*** New treesit thing 'comment'.
+*** New tree-sitter thing 'comment'.
 The new variable 'forward-comment-function' is set to the new function
 'treesit-forward-comment' if a major mode defines the thing 'comment'.
 
@@ -1223,26 +1234,26 @@ variable 'treesit-language-display-name-alist' holds the translations of
 language symbols where that translation is not trivial.
 
 +++
-*** New command 'treesit-explore'
+*** New command 'treesit-explore'.
 This command replaces 'treesit-explore-mode'.  It turns on
 'treesit-explore-mode' if it’s not on, and pops up the explorer buffer
 if it’s already on.
 
 +++
-*** 'treesit-explore-mode' now supports local parsers
+*** 'treesit-explore-mode' now supports local parsers.
 Now 'treesit-explore-mode' (or 'treesit-explore') prompts for a parser
 rather than a language, and it’s now possible to select a local parser
 at point to explore.
 
 +++
-*** New variable 'treesit-aggregated-simple-imenu-settings'
+*** New variable 'treesit-aggregated-simple-imenu-settings'.
 This variable allows major modes to setup Imenu for multiple languages.
 
-*** New function 'treesit-add-simple-indent-rules'
+*** New function 'treesit-add-simple-indent-rules'.
 This new function makes it easier to customize indent rules for
 tree-sitter modes.
 
-*** New variable 'treesit-simple-indent-override-rules'
+*** New variable 'treesit-simple-indent-override-rules'.
 Users can customize this variable to add simple custom indentation rules
 for tree-sitter major modes.
 
