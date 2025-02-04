@@ -989,6 +989,14 @@ customize these variables to "python3" if you want to use Python 3
 instead.
 
 ---
+*** Python 2 support is now optional and disabled by default.
+Since Python 2 EOL was over 5 years ago, this release removes Python
+2-only builtins such as "file" from the default highlighting in
+'python-mode' and 'python-ts-mode'.  If you would like them highlighted,
+customize the new user option `python-2-support' to a non-nil value and
+restart Emacs.
+
+---
 *** Support of 'electric-layout-mode' added.
 
 ** Tmm Menubar

@@ -316,6 +316,16 @@ To customize the Python interpreter for interactive use, modify
   :version "30.1"
   :type 'string)
 
+(defcustom python-2-support nil
+  "If non-nil, enable Python 2 support.
+Currently only affects highlighting.
+
+After customizing this variable, you must restart Emacs for it to take
+effect."
+  :version "31.1"
+  :type 'boolean
+  :safe 'booleanp)
+
 
 ;;; Bindings
 
@@ -689,6 +699,40 @@ the {...} holes that appear within f-strings."
 This is the minimum decoration level, including function and
 class declarations.")
 
+(defvar python-font-lock-builtin-types
+  '("bool" "bytearray" "bytes" "complex" "dict" "float" "frozenset"
+    "int" "list" "memoryview" "range" "set" "str" "tuple"))
+
+(defvar python-font-lock-builtins-python3
+  '("abs" "aiter" "all" "anext" "any" "ascii" "bin" "breakpoint"
+    "callable" "chr" "classmethod" "compile" "delattr" "dir" "divmod"
+    "enumerate" "eval" "exec" "filter" "format" "getattr" "globals"
+    "hasattr" "hash" "help" "hex" "id" "input" "isinstance"
+    "issubclass" "iter" "len" "locals" "map" "max" "min" "next"
+    "object" "oct" "open" "ord" "pow" "print" "property" "repr"
+    "reversed" "round" "setattr" "slice" "sorted" "staticmethod" "sum"
+    "super" "type" "vars" "zip" "__import__"))
+
+(defvar python-font-lock-builtins-python2
+  '("basestring" "cmp" "execfile" "file" "long" "raw_input" "reduce"
+    "reload" "unichr" "unicode" "xrange" "apply" "buffer" "coerce"
+    "intern"))
+
+(defvar python-font-lock-builtins
+  (append python-font-lock-builtins-python3
+          (when python-2-support
+            python-font-lock-builtins-python2)))
+
+(defvar python-font-lock-special-attributes
+  '(;; https://docs.python.org/3/reference/datamodel.html
+    "__annotations__" "__bases__" "__closure__" "__code__"
+    "__defaults__" "__dict__" "__doc__" "__firstlineno__"
+    "__globals__" "__kwdefaults__" "__name__" "__module__"
+    "__mro__" "__package__" "__qualname__"
+    "__static_attributes__" "__type_params__"
+    ;; Extras:
+    "__all__"))
+
 (defvar python-font-lock-keywords-level-2
   `(,@python-font-lock-keywords-level-1
     ,(rx symbol-start
@@ -711,33 +755,11 @@ class declarations.")
           "self")
          symbol-end)
     ;; Builtins
-    (,(rx symbol-start
-          (or
-           "abs" "all" "any" "bin" "bool" "callable" "chr" "classmethod"
-           "compile" "complex" "delattr" "dict" "dir" "divmod" "enumerate"
-           "eval" "filter" "float" "format" "frozenset" "getattr" "globals"
-           "hasattr" "hash" "help" "hex" "id" "input" "int" "isinstance"
-           "issubclass" "iter" "len" "list" "locals" "map" "max" "memoryview"
-           "min" "next" "object" "oct" "open" "ord" "pow" "print" "property"
-           "range" "repr" "reversed" "round" "set" "setattr" "slice" "sorted"
-           "staticmethod" "str" "sum" "super" "tuple" "type" "vars" "zip"
-           "__import__"
-           ;; Python 2:
-           "basestring" "cmp" "execfile" "file" "long" "raw_input" "reduce"
-           "reload" "unichr" "unicode" "xrange" "apply" "buffer" "coerce"
-           "intern"
-           ;; Python 3:
-           "aiter" "anext" "ascii" "breakpoint" "bytearray" "bytes" "exec"
-           ;; Special attributes:
-           ;; https://docs.python.org/3/reference/datamodel.html
-           "__annotations__" "__bases__" "__closure__" "__code__"
-           "__defaults__" "__dict__" "__doc__" "__firstlineno__"
-           "__globals__" "__kwdefaults__" "__name__" "__module__"
-           "__mro__" "__package__" "__qualname__"
-           "__static_attributes__" "__type_params__"
-           ;; Extras:
-           "__all__")
-          symbol-end) . font-lock-builtin-face))
+    (,(rx-to-string `(seq symbol-start
+                          (or ,@(append python-font-lock-builtin-types
+                                        python-font-lock-builtins
+                                        python-font-lock-special-attributes))
+                          symbol-end)) . font-lock-builtin-face))
   "Font lock keywords to use in `python-mode' for level 2 decoration.
 
 This is the medium decoration level, including everything in
@@ -759,6 +781,41 @@ sign in chained assignment."
                         (equal (char-after) ?=))
                return (progn (backward-char) t))))
 
+(defvar python-font-lock-builtin-exceptions-python3
+  '(;; Python 2 and 3:
+    "ArithmeticError" "AssertionError" "AttributeError" "BaseException"
+    "BufferError" "BytesWarning" "DeprecationWarning" "EOFError"
+    "EnvironmentError" "Exception" "FloatingPointError" "FutureWarning"
+    "GeneratorExit" "IOError" "ImportError" "ImportWarning"
+    "IndentationError" "IndexError" "KeyError" "KeyboardInterrupt"
+    "LookupError" "MemoryError" "NameError" "NotImplementedError"
+    "OSError" "OverflowError" "PendingDeprecationWarning"
+    "ReferenceError" "RuntimeError" "RuntimeWarning" "StopIteration"
+    "SyntaxError" "SyntaxWarning" "SystemError" "SystemExit" "TabError"
+    "TypeError" "UnboundLocalError" "UnicodeDecodeError"
+    "UnicodeEncodeError" "UnicodeError" "UnicodeTranslateError"
+    "UnicodeWarning" "UserWarning" "ValueError" "Warning"
+    "ZeroDivisionError"
+    ;; Python 3:
+    "BlockingIOError" "BrokenPipeError" "ChildProcessError"
+    "ConnectionAbortedError" "ConnectionError" "ConnectionRefusedError"
+    "ConnectionResetError" "EncodingWarning" "FileExistsError"
+    "FileNotFoundError" "InterruptedError" "IsADirectoryError"
+    "NotADirectoryError" "ModuleNotFoundError" "PermissionError"
+    "ProcessLookupError" "PythonFinalizationError" "RecursionError"
+    "ResourceWarning" "StopAsyncIteration" "TimeoutError"
+    "BaseExceptionGroup" "ExceptionGroup"
+    ;; OS specific
+    "VMSError" "WindowsError"))
+
+(defvar python-font-lock-builtin-exceptions-python2
+  '("StandardError"))
+
+(defvar python-font-lock-builtin-exceptions
+  (append python-font-lock-builtin-exceptions-python3
+          (when python-2-support
+            python-font-lock-builtin-exceptions-python2)))
+
 (defvar python-font-lock-keywords-maximum-decoration
   `((python--font-lock-f-strings)
     ,@python-font-lock-keywords-level-2
@@ -776,38 +833,9 @@ sign in chained assignment."
                                             (0+ "." (1+ (or word ?_)))))
      (1 font-lock-type-face))
     ;; Builtin Exceptions
-    (,(rx symbol-start
-          (or
-           ;; Python 2 and 3:
-           "ArithmeticError" "AssertionError" "AttributeError" "BaseException"
-           "BufferError" "BytesWarning" "DeprecationWarning" "EOFError"
-           "EnvironmentError" "Exception" "FloatingPointError" "FutureWarning"
-           "GeneratorExit" "IOError" "ImportError" "ImportWarning"
-           "IndentationError" "IndexError" "KeyError" "KeyboardInterrupt"
-           "LookupError" "MemoryError" "NameError" "NotImplementedError"
-           "OSError" "OverflowError" "PendingDeprecationWarning"
-           "ReferenceError" "RuntimeError" "RuntimeWarning" "StopIteration"
-           "SyntaxError" "SyntaxWarning" "SystemError" "SystemExit" "TabError"
-           "TypeError" "UnboundLocalError" "UnicodeDecodeError"
-           "UnicodeEncodeError" "UnicodeError" "UnicodeTranslateError"
-           "UnicodeWarning" "UserWarning" "ValueError" "Warning"
-           "ZeroDivisionError"
-           ;; Python 2:
-           "StandardError"
-           ;; Python 3:
-           "BlockingIOError" "BrokenPipeError" "ChildProcessError"
-           "ConnectionAbortedError" "ConnectionError" "ConnectionRefusedError"
-           "ConnectionResetError" "EncodingWarning" "FileExistsError"
-           "FileNotFoundError" "InterruptedError" "IsADirectoryError"
-           "NotADirectoryError" "ModuleNotFoundError" "PermissionError"
-           "ProcessLookupError" "PythonFinalizationError" "RecursionError"
-           "ResourceWarning" "StopAsyncIteration" "TimeoutError"
-           "BaseExceptionGroup" "ExceptionGroup"
-           ;; OS specific
-           "VMSError" "WindowsError"
-           )
-          symbol-end)
-     . font-lock-type-face)
+    (,(rx-to-string `(seq symbol-start
+                          (or ,@python-font-lock-builtin-exceptions)
+                          symbol-end)) . font-lock-type-face)
     ;; single assignment with/without type hints, e.g.
     ;;   a: int = 5
     ;;   b: Tuple[Optional[int], Union[Sequence[str], str]] = (None, 'foo')
@@ -1015,8 +1043,7 @@ It makes underscores and dots word constituent chars.")
     "and" "in" "is" "not" "or" "not in" "is not"))
 
 (defvar python--treesit-builtin-types
-  '("int" "float" "complex" "bool" "list" "tuple" "range" "str"
-    "bytes" "bytearray" "memoryview" "set" "frozenset" "dict"))
+  python-font-lock-builtin-types)
 
 (defvar python--treesit-type-regex
   (rx-to-string `(seq bol (or
@@ -1025,17 +1052,7 @@ It makes underscores and dots word constituent chars.")
                   eol)))
 
 (defvar python--treesit-builtins
-  (append python--treesit-builtin-types
-          '("abs" "aiter" "all" "anext" "any" "ascii" "bin" "breakpoint"
-            "callable" "chr" "classmethod" "compile"
-            "delattr" "dir" "divmod" "enumerate" "eval" "exec"
-            "filter" "format" "getattr" "globals"
-            "hasattr" "hash" "help" "hex" "id" "input" "isinstance"
-            "issubclass" "iter" "len" "locals" "map" "max"
-            "min" "next" "object" "oct" "open" "ord" "pow"
-            "print" "property" "repr" "reversed" "round"
-            "setattr" "slice" "sorted" "staticmethod" "sum" "super"
-            "type" "vars" "zip" "__import__")))
+  python-font-lock-builtins)
 
 (defvar python--treesit-constants
   '("Ellipsis" "False" "None" "NotImplemented" "True" "__debug__"
@@ -1047,42 +1064,10 @@ It makes underscores and dots word constituent chars.")
     ">>" ">>=" "|" "|=" "~" "@" "@="))
 
 (defvar python--treesit-special-attributes
-  '("__annotations__" "__bases__" "__closure__" "__code__"
-    "__defaults__" "__dict__" "__doc__" "__firstlineno__"
-    "__globals__" "__kwdefaults__" "__name__" "__module__"
-    "__mro__" "__package__" "__qualname__"
-    "__static_attributes__" "__type_params__"
-    "__all__"))
+  python-font-lock-special-attributes)
 
 (defvar python--treesit-exceptions
-  '(;; Python 2 and 3:
-    "ArithmeticError" "AssertionError" "AttributeError" "BaseException"
-    "BufferError" "BytesWarning" "DeprecationWarning" "EOFError"
-    "EnvironmentError" "Exception" "FloatingPointError" "FutureWarning"
-    "GeneratorExit" "IOError" "ImportError" "ImportWarning"
-    "IndentationError" "IndexError" "KeyError" "KeyboardInterrupt"
-    "LookupError" "MemoryError" "NameError" "NotImplementedError"
-    "OSError" "OverflowError" "PendingDeprecationWarning"
-    "ReferenceError" "RuntimeError" "RuntimeWarning" "StopIteration"
-    "SyntaxError" "SyntaxWarning" "SystemError" "SystemExit" "TabError"
-    "TypeError" "UnboundLocalError" "UnicodeDecodeError"
-    "UnicodeEncodeError" "UnicodeError" "UnicodeTranslateError"
-    "UnicodeWarning" "UserWarning" "ValueError" "Warning"
-    "ZeroDivisionError"
-    ;; Python 2:
-    "StandardError"
-    ;; Python 3:
-    "BlockingIOError" "BrokenPipeError" "ChildProcessError"
-    "ConnectionAbortedError" "ConnectionError" "ConnectionRefusedError"
-    "ConnectionResetError" "EncodingWarning" "FileExistsError"
-    "FileNotFoundError" "InterruptedError" "IsADirectoryError"
-    "NotADirectoryError" "ModuleNotFoundError" "PermissionError"
-    "ProcessLookupError" "PythonFinalizationError" "RecursionError"
-    "ResourceWarning" "StopAsyncIteration" "TimeoutError"
-    "BaseExceptionGroup" "ExceptionGroup"
-    ;; OS specific
-    "VMSError" "WindowsError"
-    ))
+  python-font-lock-builtin-exceptions)
 
 (defun python--treesit-fontify-string (node override start end &rest _)
   "Fontify string.
