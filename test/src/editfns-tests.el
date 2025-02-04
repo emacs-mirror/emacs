@@ -536,7 +536,6 @@
 
 (ert-deftest editfns-tests-styled-print ()
   "Test bug#75754."
-  :expected-result :failed
    (let* ((print-unreadable-function
           (lambda (&rest _args)
              (garbage-collect)
