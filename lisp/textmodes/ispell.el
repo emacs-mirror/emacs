@@ -2512,7 +2512,7 @@ Selections are:
 	      (with-current-buffer buffer
 		(insert (concat help-1 "\n" help-2 "\n" help-3)))
 	      (ispell-display-buffer buffer)
-	      (sit-for ispell-help-timeout)
+	      (sit-for (max 0.5 ispell-help-timeout))
 	      (kill-buffer "*Ispell Help*"))
 	  (unwind-protect
 	      (let ((resize-mini-windows 'grow-only))
@@ -2522,7 +2522,7 @@ Selections are:
 		;;(set-minibuffer-window (selected-window))
 		(enlarge-window 2)
 		(insert (concat help-1 "\n" help-2 "\n" help-3))
-		(sit-for ispell-help-timeout))
+		(sit-for (max 0.5 ispell-help-timeout)))
 	    (erase-buffer)))))))
 
 (define-obsolete-function-alias 'lookup-words 'ispell-lookup-words "24.4")
