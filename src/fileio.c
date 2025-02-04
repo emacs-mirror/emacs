@@ -2050,7 +2050,9 @@ the value of this function.
 
 If `/~' appears, all of FILENAME through that `/' is discarded.
 If `//' appears, everything up to and including the first of
-those `/' is discarded.  */)
+those `/' is discarded.  More generally, if a variable substitution
+produces an absolute file name, everything before that file name
+is discarded.  */)
   (Lisp_Object filename)
 {
   char *nm, *p, *x, *endp;
