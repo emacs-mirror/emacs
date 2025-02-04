@@ -205,9 +205,16 @@ store_kbd_macro_char (Lisp_Object c)
 	{
 	  ptrdiff_t ptr_offset = kb->kbd_macro_ptr - kb->kbd_macro_buffer;
 	  ptrdiff_t end_offset = kb->kbd_macro_end - kb->kbd_macro_buffer;
+#ifdef HAVE_MPS
+	  kb->kbd_macro_buffer =
+	    igc_xpalloc_ambig (kb->kbd_macro_buffer,
+			       &kb->kbd_macro_bufsize,
+			       1, -1, sizeof *kb->kbd_macro_buffer);
+#else
 	  kb->kbd_macro_buffer = xpalloc (kb->kbd_macro_buffer,
 					  &kb->kbd_macro_bufsize,
 					  1, -1, sizeof *kb->kbd_macro_buffer);
+#endif
 	  kb->kbd_macro_ptr = kb->kbd_macro_buffer + ptr_offset;
 	  kb->kbd_macro_end = kb->kbd_macro_buffer + end_offset;
 	}
