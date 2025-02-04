@@ -818,23 +818,22 @@ This is an internal function used by Auto-Revert Mode."
                        (not (file-remote-p buffer-file-name)))
                    (or (not auto-revert-notify-watch-descriptor)
                        auto-revert-notify-modified-p)
+                   (not (memq (current-buffer) inhibit-auto-revert-buffers))
                    (if auto-revert-tail-mode
                        (and (file-readable-p buffer-file-name)
                             (/= auto-revert-tail-pos
                                 (setq size
                                       (file-attribute-size
                                        (file-attributes buffer-file-name)))))
-                     (and (not (memq (current-buffer)
-                                     inhibit-auto-revert-buffers))
-                          (funcall (or buffer-stale-function
-                                       #'buffer-stale--default-function)
-                                   t))))
+                     (funcall (or buffer-stale-function
+                                  #'buffer-stale--default-function)
+                              t)))
             (and (or auto-revert-mode
                      global-auto-revert-non-file-buffers)
-                 (and (not (memq (current-buffer) inhibit-auto-revert-buffers))
-                      (funcall (or buffer-stale-function
-                                   #'buffer-stale--default-function)
-                               t)))))
+                 (not (memq (current-buffer) inhibit-auto-revert-buffers))
+                 (funcall (or buffer-stale-function
+                              #'buffer-stale--default-function)
+                          t))))
          eob eoblist)
     (setq auto-revert-notify-modified-p nil
           auto-revert--last-time (current-time))
@@ -869,7 +868,7 @@ This is an internal function used by Auto-Revert Mode."
           (set-window-point window (point-max)))))
     ;; `preserve-modes' avoids changing the (minor) modes.  But we do
     ;; want to reset the mode for VC, so we do it manually.
-    (when (or revert auto-revert-check-vc-info)
+    (when (and (not auto-revert-tail-mode) (or revert auto-revert-check-vc-info))
       (let ((revert-buffer-in-progress-p t))
         (vc-refresh-state)))))
 
