@@ -2481,7 +2481,6 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
       else
 	{
 	  Lisp_Object tail;
-	  Lisp_Object frame1 UNINIT;  /* This line works around GCC bug 85563.  */
 	  eassume (CONSP (Vframe_list));
 
 	  /* Look for another visible frame on the same terminal.
