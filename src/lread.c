@@ -5294,7 +5294,7 @@ grow_obarray (struct Lisp_Obarray *o)
 	}
     }
 
-  hash_table_free_kv (o, old_buckets);
+  hash_table_free_kv (o, old_buckets, old_size);
 }
 
 DEFUN ("obarray-make", Fobarray_make, Sobarray_make, 0, 1, 0,
@@ -5345,7 +5345,7 @@ DEFUN ("obarray-clear", Fobarray_clear, Sobarray_clear, 1, 1, 0,
     new_buckets[i] = make_fixnum (0);
 
 #ifdef HAVE_MPS
-  hash_table_free_kv (o, o->buckets);
+  hash_table_free_kv (o, o->buckets, -1 /* ignored */);
 #else
   int old_size = obarray_size (o);
   hash_table_free_bytes (o->buckets, old_size * sizeof *o->buckets);

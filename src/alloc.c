@@ -5687,14 +5687,15 @@ hash_table_alloc_kv (void *h, ptrdiff_t nobjs)
 #ifdef HAVE_MPS
   return igc_make_hash_table_vec (nobjs);
 #else
-   return xmalloc (nobjs * sizeof (Lisp_Object));
+  return hash_table_alloc_bytes (nobjs * sizeof (Lisp_Object));
 #endif
 }
 
 void
-hash_table_free_kv (void *h, Lisp_Object *p)
+hash_table_free_kv (void *h, Lisp_Object *p, ptrdiff_t nobjs)
 {
 #ifndef HAVE_MPS
+  tally_consing (-nobjs * sizeof *p);
   xfree (p);
 #endif
 }
