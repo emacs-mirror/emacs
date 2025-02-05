@@ -282,6 +282,12 @@ bidi_get_type (int ch, bidi_dir_t override)
     emacs_abort ();
 
   default_type = (bidi_type_t) XFIXNUM (CHAR_TABLE_REF (bidi_type_table, ch));
+  /* Every valid character code, even those that are unassigned by the
+     UCD, have some bidi-class property, according to
+     DerivedBidiClass.txt file.  Therefore, if we ever get UNKNOWN_BT
+     (= zero) code from CHAR_TABLE_REF, that's a bug.  */
+  if (default_type == UNKNOWN_BT)
+    emacs_abort ();
 
   switch (default_type)
     {
@@ -297,26 +303,13 @@ bidi_get_type (int ch, bidi_dir_t override)
       case FSI:
       case PDI:
 	return default_type;
-
-      case STRONG_L: case STRONG_R:
-      case WEAK_EN: case WEAK_AN:
-      case STRONG_AL:
-      case WEAK_ES: case WEAK_ET: case WEAK_CS: case WEAK_NSM:
-      case NEUTRAL_S: case NEUTRAL_WS: case NEUTRAL_ON:
+      default:
 	if (override == L2R)
 	  return STRONG_L;
 	else if (override == R2L)
 	  return STRONG_R;
 	else
 	  return default_type;
-
-      case UNKNOWN_BT:
-      default:
-	/* Every valid character code, even those unassigned by the UCD,
-	   have some bidi-class property, according to DerivedBidiClass.txt.
-	   Therefore, if we ever get UNKNOWN_BT (= zero) or some unknown
-	   code from CHAR_TABLE_REF, that's a bug.  */
-	emacs_abort ();
     }
 }
 
