@@ -780,7 +780,7 @@ If the buffer needs to be reverted, do it now."
   (defmacro inhibit-auto-revert (&rest body)
     "Deactivate auto-reverting of current buffer temporarily.
 Run BODY."
-    (declare (indent 0) (debug ((form body) body)))
+    (declare (indent 0) (debug (body)))
     `(progn
        ;; Cleanup.
        (dolist (buf inhibit-auto-revert-buffers)
