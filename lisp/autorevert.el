@@ -781,22 +781,23 @@ If the buffer needs to be reverted, do it now."
     "Deactivate auto-reverting of current buffer temporarily.
 Run BODY."
     (declare (indent 0) (debug (body)))
-    `(progn
-       ;; Cleanup.
-       (dolist (buf inhibit-auto-revert-buffers)
-         (unless (buffer-live-p buf)
-           (setq inhibit-auto-revert-buffers
-                 (delq buf inhibit-auto-revert-buffers))))
-       (let ((iar-buf
-              (and (not (memq (current-buffer) inhibit-auto-revert-buffers))
-                   (current-buffer))))
-         (unwind-protect
-             (progn
-               (when iar-buf (add-to-list 'inhibit-auto-revert-buffers iar-buf))
-               ,@body)
-           (when iar-buf
+    (let ((buf (make-symbol "buf")))
+      `(progn
+         ;; Cleanup.
+         (dolist (,buf inhibit-auto-revert-buffers)
+           (unless (buffer-live-p ,buf)
              (setq inhibit-auto-revert-buffers
-                   (delq iar-buf inhibit-auto-revert-buffers))))))))
+                   (delq ,buf inhibit-auto-revert-buffers))))
+         (let ((,buf
+                (and (not (memq (current-buffer) inhibit-auto-revert-buffers))
+                     (current-buffer))))
+           (unwind-protect
+               (progn
+                 (when ,buf (add-to-list 'inhibit-auto-revert-buffers ,buf))
+                 ,@body)
+             (when ,buf
+               (setq inhibit-auto-revert-buffers
+                     (delq ,buf inhibit-auto-revert-buffers)))))))))
 
 (defun auto-revert-active-p ()
   "Check if auto-revert is active in current buffer."
