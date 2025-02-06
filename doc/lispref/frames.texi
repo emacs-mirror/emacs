@@ -427,7 +427,12 @@ Name of the physical monitor as @var{string}.
 
 @item source
 Source of the multi-monitor information as @var{string};
-e.g., @samp{XRandR 1.5}, @samp{XRandr} or @samp{Xinerama}.
+on X, it could be @samp{XRandR 1.5}, @samp{XRandr}, @samp{Xinerama},
+@samp{Gdk}, or @samp{fallback}.  The last value of @samp{source} means
+that Emacs was built without GTK and without XRandR or Xinerama
+extensions, in which case the information about multiple physical
+monitors will be provided as if they all as a whole formed a single
+monitor.
 @end table
 
 @var{x}, @var{y}, @var{width}, and @var{height} are integers.
