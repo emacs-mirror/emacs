@@ -5976,7 +5976,7 @@ extern void *record_xmalloc (size_t)
 			   : record_xmalloc (size))
 
 /* SAFE_NALLOCA sets BUF to a newly allocated array of MULTIPLIER *
-   NITEMS items, each of the same type as *BUF.  MULTIPLIER must
+   NITEMS items, each of the same type as *BUF.  MULTIPLIER must be
    positive.  The code is tuned for MULTIPLIER being a constant.  */
 
 # ifdef HAVE_MPS
@@ -6018,8 +6018,9 @@ void igc_xfree (void *p);
    FIXME/igc: find a permanent fix for these bugs.  */
 #undef SAFE_ALLOCA
 #define SAFE_ALLOCA(size)				\
-  ({ char *buf;						\
-     SAFE_NALLOCA (buf, size, 1);			\
+  ({ char *buf = (void *)"";				\
+     if ((size) != 0)					\
+       SAFE_NALLOCA (buf, size, 1);			\
      (void *)buf; })
 #endif
 
