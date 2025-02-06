@@ -698,9 +698,9 @@ since it could result in memory overflow and make Emacs crash."
 	      frames (choice
 		      (const :tag "Images" :value image)
 		      (const :tag "Text" :value text)
-		      (const :tag "Both" :value both)
-		      (const :tag "Both-horiz" :value both-horiz)
-		      (const :tag "Text-image-horiz" :value text-image-horiz)
+		      (const :tag "Both, text below image" :value both)
+		      (const :tag "Both, text to right of image" :value both-horiz)
+		      (const :tag "Both, text to left of image" :value text-image-horiz)
 		      (const :tag "System default" :value nil)) "24.1")
              (tool-bar-max-label-size frames integer "24.1")
              (tab-bar-position
