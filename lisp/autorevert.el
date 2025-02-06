@@ -787,15 +787,16 @@ Run BODY."
          (unless (buffer-live-p buf)
            (setq inhibit-auto-revert-buffers
                  (delq buf inhibit-auto-revert-buffers))))
-       (let ((buf (and (not (memq (current-buffer) inhibit-auto-revert-buffers))
-                       (current-buffer))))
+       (let ((iar-buf
+              (and (not (memq (current-buffer) inhibit-auto-revert-buffers))
+                   (current-buffer))))
          (unwind-protect
              (progn
-               (when buf (add-to-list 'inhibit-auto-revert-buffers buf))
+               (when iar-buf (add-to-list 'inhibit-auto-revert-buffers iar-buf))
                ,@body)
-           (when buf
+           (when iar-buf
              (setq inhibit-auto-revert-buffers
-                   (delq buf inhibit-auto-revert-buffers))))))))
+                   (delq iar-buf inhibit-auto-revert-buffers))))))))
 
 (defun auto-revert-active-p ()
   "Check if auto-revert is active in current buffer."
