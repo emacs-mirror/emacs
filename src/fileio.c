@@ -847,6 +847,10 @@ Each element in COMPONENTS must be a string or nil.
 DIRECTORY or the non-final elements in COMPONENTS may or may not end
 with a slash -- if they don't end with a slash, a slash will be
 inserted before concatenating.
+In most cases, one or more calls to `expand-file-name' are better
+suited for the job than this function.  Use this function only if
+some of the special expansions done by `expand-file-name' get in
+the way of what your program needs to do.
 usage: (file-name-concat DIRECTORY &rest COMPONENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {

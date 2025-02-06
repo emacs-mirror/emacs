@@ -2459,6 +2459,14 @@ results in any way.
 This is almost the same as using @code{concat}, but @var{dirname} (and
 the non-final components) may or may not end with slash characters,
 and this function will not double those characters.
+
+In most cases, one or more calls to @code{expand-file-name} (@pxref{File
+Name Expansion} are better suited for the job of generating file names
+with leading directories than this function.  Use this function only if
+some of the special features of @code{expand-file-name} get in the way
+of what your program needs to do.  For example, the special handling by
+@code{expand-file-name} of @file{~}, @file{~@var{user}}, and @code{nil},
+or the removal of @file{.} and @file{..} might not be what you want.
 @end defun
 
   To convert a directory name to its abbreviation, use this
