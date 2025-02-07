@@ -31922,7 +31922,11 @@ x_delete_display (struct x_display_info *dpyinfo)
   if (dpyinfo->supports_xi2)
     x_free_xi_devices (dpyinfo);
 #endif
+#ifdef HAVE_MPS
+  igc_xfree (dpyinfo);
+#else
   xfree (dpyinfo);
+#endif
 }
 
 #ifdef USE_X_TOOLKIT
