@@ -1072,7 +1072,7 @@ Return (REGEXP . PRECEDENCE)."
   "Expand `eval' arguments.  Return a new rx form."
   (unless (and body (null (cdr body)))
     (error "rx `eval' form takes exactly one argument"))
-  (eval (car body)))
+  (eval (car body) lexical-binding))
 
 (defun rx--translate-eval (body)
   "Translate the `eval' form.  Return (REGEXP . PRECEDENCE)."

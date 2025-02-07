@@ -1280,6 +1280,10 @@ name.  Previously, Eshell only did this for MS-Windows systems. To
 restore the old behavior, you can set 'eshell-pwd-convert-function' to
 'identity'.
 
+---
+** The rx 'eval' form now uses the current elisp dialect for evaluation.
+Previously, its argument was always evaluated using dynamic binding.
+
 
 * Lisp Changes in Emacs 31.1
 
