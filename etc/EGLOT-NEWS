@@ -20,6 +20,13 @@ https://github.com/joaotavora/eglot/issues/1234.
 
 * Changes in upcoming Eglot
 
+** Support for call and type hierarchies
+
+The new commands 'eglot-show-type-hierarchy' and
+'eglot-show-call-hierarchy', when invoked on a symbol, pop up a special
+buffer showing an interactive tree which represents a hierarchy of sub-
+and super-types or callers and callees for that symbol.
+
 ** New 'eglot-advertise-cancellation' variable
 
 Tweaking this variable may help some LSP servers avoid doing costly but

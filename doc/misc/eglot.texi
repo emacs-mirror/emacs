@@ -453,6 +453,11 @@ function call.  @xref{Eglot Commands} and the
 @code{eglot-inlay-hints-mode} minor mode.
 
 @item
+Display of function call and type hierarchies via the
+@code{eglot-show-call-hierarchy} and @code{eglot-show-type-hierarchy}
+commands (@pxref{Eglot Commands}).
+
+@item
 Code reformatting via the @code{eglot-format} and related commands
 (@pxref{Eglot Commands}).  Automatic reformatting of source code is also
 supported and is activated automatically as you type.
@@ -738,6 +743,16 @@ instead of indicating problems.  For example, a C++ language server can
 serve hints about positional parameter names in function calls and a
 variable's automatically deduced type.  Inlay hints help the user not
 have to remember these things by heart.
+
+@cindex type hierarchy
+@item M-x eglot-show-type-hierarchy
+Pop up a special buffer showing a interactive tree which represents a
+hierarchy of subtypes and supertypes for the symbol at point.
+
+@cindex call hierarchy
+@item M-x eglot-call-type-hierarchy
+Pop up a special buffer showing a interactive tree which represents a
+hierarchy of callers and callee for the symbol at point.
 @end ftable
 
 The following Eglot commands are used less commonly, mostly for
