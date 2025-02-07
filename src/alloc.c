@@ -801,32 +801,25 @@ xnrealloc (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
 }
 
 
-/* Grow PA, which points to an array of *NITEMS items, and return the
-   location of the reallocated array, updating *NITEMS to reflect its
-   new size.  The new array will contain at least NITEMS_INCR_MIN more
-   items, but will not contain more than NITEMS_MAX items total.
-   ITEM_SIZE is the size of each item, in bytes.
+/* Calculate the new allocation size for xpalloc, for growing PA, which
+   points to an array of *NITEMS items, and return the size of the new
+   allocation, updating *NITEMS to reflect this new size.  This new array
+   would contain at least NITEMS_INCR_MIN more items, but will not
+   contain more than NITEMS_MAX items total.  ITEM_SIZE is the size of
+   each item, in bytes.
 
    ITEM_SIZE and NITEMS_INCR_MIN must be positive.  *NITEMS must be
    nonnegative.  If NITEMS_MAX is -1, it is treated as if it were
    infinity.
 
-   If PA is null, then allocate a new array instead of reallocating
-   the old one.
+   If PA is null, then calculate the size of a new array.
 
-   Block interrupt input as needed.  If memory exhaustion occurs, set
-   *NITEMS to zero if PA is null, and signal an error (i.e., do not
-   return).
+   If memory exhaustion is certain to occur, set *NITEMS to zero if PA
+   is null, and signal an error (i.e., do not return).  */
 
-   Thus, to grow an array A without saving its old contents, do
-   { xfree (A); A = NULL; A = xpalloc (NULL, &AITEMS, ...); }.
-   The A = NULL avoids a dangling pointer if xpalloc exhausts memory
-   and signals an error, and later this code is reexecuted and
-   attempts to free A.  */
-
-void *
-xpalloc (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
-	 ptrdiff_t nitems_max, ptrdiff_t item_size)
+ptrdiff_t
+xpalloc_nbytes (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
+		ptrdiff_t nitems_max, ptrdiff_t item_size)
 {
   ptrdiff_t n0 = *nitems;
   eassume (0 < item_size && 0 < nitems_incr_min && 0 <= n0 && -1 <= nitems_max);
@@ -864,8 +857,42 @@ xpalloc (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
 	  || (0 <= nitems_max && nitems_max < n)
 	  || ckd_mul (&nbytes, n, item_size)))
     memory_full (SIZE_MAX);
-  pa = xrealloc (pa, nbytes);
   *nitems = n;
+  return nbytes;
+}
+
+/* Grow PA, which points to an array of *NITEMS items, and return the
+   location of the reallocated array, updating *NITEMS to reflect its
+   new size.  The new array will contain at least NITEMS_INCR_MIN more
+   items, but will not contain more than NITEMS_MAX items total.
+   ITEM_SIZE is the size of each item, in bytes.
+
+   ITEM_SIZE and NITEMS_INCR_MIN must be positive.  *NITEMS must be
+   nonnegative.  If NITEMS_MAX is -1, it is treated as if it were
+   infinity.
+
+   If PA is null, then allocate a new array instead of reallocating
+   the old one.
+
+   Block interrupt input as needed.  If memory exhaustion occurs, set
+   *NITEMS to zero if PA is null, and signal an error (i.e., do not
+   return).
+
+   Thus, to grow an array A without saving its old contents, do
+   { xfree (A); A = NULL; A = xpalloc (NULL, &AITEMS, ...); }.
+   The A = NULL avoids a dangling pointer if xpalloc exhausts memory
+   and signals an error, and later this code is reexecuted and
+   attempts to free A.  */
+
+void *
+xpalloc (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
+	 ptrdiff_t nitems_max, ptrdiff_t item_size)
+{
+  ptrdiff_t nitems_new = *nitems;
+  ptrdiff_t nbytes = xpalloc_nbytes (pa, &nitems_new, nitems_incr_min,
+				     nitems_max, item_size);
+  pa = xrealloc (pa, nbytes);
+  *nitems = nitems_new;
   return pa;
 }
 

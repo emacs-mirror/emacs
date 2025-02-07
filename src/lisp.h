@@ -5903,6 +5903,7 @@ extern void *xnmalloc (ptrdiff_t, ptrdiff_t)
   ATTRIBUTE_MALLOC_SIZE ((1,2)) ATTRIBUTE_RETURNS_NONNULL;
 extern void *xnrealloc (void *, ptrdiff_t, ptrdiff_t)
   ATTRIBUTE_ALLOC_SIZE ((2,3)) ATTRIBUTE_RETURNS_NONNULL;
+extern ptrdiff_t xpalloc_nbytes (void *, ptrdiff_t *, ptrdiff_t, ptrdiff_t, ptrdiff_t);
 extern void *xpalloc (void *, ptrdiff_t *, ptrdiff_t, ptrdiff_t, ptrdiff_t)
   ATTRIBUTE_RETURNS_NONNULL;
 
