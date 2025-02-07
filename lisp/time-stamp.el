@@ -114,7 +114,7 @@ limit yourself to the formats recommended by that older version."
 
 
 (defcustom time-stamp-active t
-  "Non-nil to enable time-stamping of buffers by \\[time-stamp].
+  "Non-nil enables time-stamping of buffers by \\[time-stamp].
 Can be toggled by \\[time-stamp-toggle-active].
 
 This option does not affect when `time-stamp' is run, only what it
@@ -257,7 +257,7 @@ then instead of changing this variable, include a newline (written as
 `time-stamp-count' is best changed with a file-local variable.
 If you were to change it in your init file, you would be incompatible
 with other people's files.")
-;;;###autoload(put 'time-stamp-count 'safe-local-variable 'integerp)
+;;;###autoload(put 'time-stamp-count 'safe-local-variable (lambda (c) (and (integerp c) (< c 100))))
 
 
 (defvar time-stamp-pattern nil		;Do not change!
@@ -342,12 +342,11 @@ To enable automatic time-stamping for only a specific file, add
 this line to a local variables list near the end of the file:
     eval: (add-hook \\='before-save-hook \\='time-stamp nil t)
 
-If the file has no time stamp template, this function does nothing.
+If the file has no time stamp template or if `time-stamp-active' is nil,
+this function does nothing.
 
 You can set `time-stamp-pattern' in a file's local variables list
-to customize the information in the time stamp and where it is written.
-
-The time stamp is updated only if `time-stamp-active' is non-nil."
+to customize the information in the time stamp and where it is written."
   (interactive)
   (let ((line-limit time-stamp-line-limit)
 	(ts-start time-stamp-start)
@@ -421,6 +420,7 @@ The time stamp is updated only if `time-stamp-active' is non-nil."
 Returns the end point, which is where `time-stamp' begins the next search."
   (let ((case-fold-search nil)
 	(end nil)
+        (advance-nudge 0)
 	end-search-start
 	(end-length nil))
     (save-excursion
@@ -430,6 +430,9 @@ Returns the end point, which is where `time-stamp' begins the next search."
 	(while (and (< (goto-char start) search-limit)
 		    (not end)
 		    (re-search-forward ts-start search-limit 'move))
+          ;; Whether or not we find a template, we must
+          ;; advance through the buffer.
+          (setq advance-nudge (if (> (point) start) 0 1))
 	  (setq start (point))
 	  (if (not time-stamp-inserts-lines)
 	      (forward-line format-lines))
@@ -444,7 +447,8 @@ Returns the end point, which is where `time-stamp' begins the next search."
 		      (if (re-search-forward ts-end line-end t)
 			  (progn
 			    (setq end (match-beginning 0))
-			    (setq end-length (- (match-end 0) end))))))))))))
+                            (setq end-length (- (match-end 0) end)))
+                        (setq start (+ start advance-nudge)))))))))))
     (if end
 	(progn
 	  ;; do all warnings outside save-excursion
@@ -478,7 +482,7 @@ Returns the end point, which is where `time-stamp' begins the next search."
 			    (setq end (point))))))))))))
     ;; return the location after this time stamp, if there was one
     (and end end-length
-	 (+ end end-length))))
+         (+ end (max advance-nudge end-length)))))
 
 
 ;;;###autoload

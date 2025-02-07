@@ -138,6 +138,31 @@
   (iter-yield-from (time-stamp-test-pattern-sequential))
   (iter-yield-from (time-stamp-test-pattern-multiply)))
 
+(ert-deftest time-stamp-custom-start ()
+  "Test that `time-stamp' isn't stuck by a start matching 0 characters."
+  (with-time-stamp-test-env
+    (with-time-stamp-test-time ref-time1
+      (let ((time-stamp-pattern "^%Y-%m-%d<-TS")) ;start matches 0 chars
+        (with-temp-buffer
+          (insert "\n<-TS\n")
+          ;; we should advance to line 2 and find the template
+          (time-stamp)
+          (should (equal (buffer-string) "\n2006-01-02<-TS\n"))))
+      (let ((time-stamp-pattern "\\b%Y-%m-%d\\b") ;start and end match 0 chars
+            (time-stamp-count 2))
+        (with-temp-buffer
+          (insert "..")
+          ;; the two time stamps should be in different places
+          (time-stamp)
+          (should (equal (buffer-string) "2006-01-02..2006-01-02"))))
+      (let ((time-stamp-pattern "::%S\\_>") ;end matches 0 chars
+            (time-stamp-count 2))
+        (with-temp-buffer
+          (insert "::0::0")
+          ;; the second template should be found immediately after the first
+          (time-stamp)
+          (should (equal (buffer-string) "::05::05")))))))
+
 (ert-deftest time-stamp-custom-pattern ()
   "Test that `time-stamp-pattern' is parsed correctly."
   (iter-do (pattern-parts (time-stamp-test-pattern-all))
@@ -246,17 +271,17 @@
     (let ((time-stamp-start "TS: <")
           (time-stamp-format "%Y-%m-%d")
           (time-stamp-count 0)          ;changed later in the test
-          (buffer-expected-once "TS: <2006-01-02>\nTS: <>")
-          (buffer-expected-twice "TS: <2006-01-02>\nTS: <2006-01-02>"))
+          (buffer-expected-once "TS: <2006-01-02>TS: <>")
+          (buffer-expected-twice "TS: <2006-01-02>TS: <2006-01-02>"))
       (with-time-stamp-test-time ref-time1
         (with-temp-buffer
-          (insert "TS: <>\nTS: <>")
+          (insert "TS: <>TS: <>")
           (time-stamp)
           ;; even with count = 0, expect one time stamp
           (should (equal (buffer-string) buffer-expected-once)))
         (with-temp-buffer
           (setq time-stamp-count 1)
-          (insert "TS: <>\nTS: <>")
+          (insert "TS: <>TS: <>")
           (time-stamp)
           (should (equal (buffer-string) buffer-expected-once))
 
@@ -698,7 +723,7 @@
     (should (equal (time-stamp-string "%5z" ref-time1) "+0000"))
     (let ((time-stamp-time-zone "PST8"))
       (should (equal (time-stamp-string "%5z" ref-time1) "-0800")))
-    (let ((time-stamp-time-zone "HST10"))
+    (let ((time-stamp-time-zone '(-36000 "HST")))
       (should (equal (time-stamp-string "%5z" ref-time1) "-1000")))
     (let ((time-stamp-time-zone "CET-1"))
       (should (equal (time-stamp-string "%5z" ref-time1) "+0100")))
@@ -887,6 +912,7 @@
   (should (safe-local-variable-p 'time-stamp-inserts-lines t))
   (should-not (safe-local-variable-p 'time-stamp-inserts-lines 17))
   (should (safe-local-variable-p 'time-stamp-count 2))
+  (should-not (safe-local-variable-p 'time-stamp-count 100))
   (should-not (safe-local-variable-p 'time-stamp-count t))
   (should (safe-local-variable-p 'time-stamp-pattern "a string"))
   (should-not (safe-local-variable-p 'time-stamp-pattern 17)))
