@@ -491,6 +491,15 @@ If 'save-place-autosave-interval' is nil, auto saving is disabled; this
 is the default.  As before, saved places are scheduled to be saved at
 Emacs exit.
 
+** Savehist
+
+---
+*** Savehist now saves variables only once.
+If you configured 'savehist-additional-variables' with variables that
+were also dynamically accumulated during minibuffer use, they were saved
+twice in the file indicated by 'savehist-file'.  These will no longer be
+saved twice.
+
 ** Message
 
 ---
