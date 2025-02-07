@@ -115,7 +115,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_handler_18D8F45D0F
 #  error "struct handler changed"
 # endif
-# ifndef HASH_Lisp_Symbol_78773EECA2
+# ifndef HASH_Lisp_Symbol_F1A9EDB01E
 #  error "struct Lisp_Symbol changed"
 # endif
 # ifndef HASH_symbol_redirect_EA72E4BFF5
@@ -124,7 +124,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_vectorlike_header_AF1B22D957
 #  error "struct vectorlike_header changed"
 # endif
-# ifndef HASH_Lisp_Hash_Table_C3E7F39721
+# ifndef HASH_Lisp_Hash_Table_DC3E781B68
 #  error "struct Lisp_Hash_Table changed"
 # endif
 # ifndef HASH_Lisp_Weak_Hash_Table_7C5D3EDAD7
@@ -175,7 +175,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_terminal_4E8E555B40
 #  error "struct terminal changed"
 # endif
-# ifndef HASH_Lisp_Native_Comp_Unit_7DF63698B3
+# ifndef HASH_Lisp_Native_Comp_Unit_B0ECD25036
 #  error "struct Lisp_Native_Comp_Unit changed"
 # endif
 # ifndef HASH_pvec_type_1C9DBCD69F
