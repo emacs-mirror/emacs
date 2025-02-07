@@ -291,6 +291,9 @@ enum event_kind
   , FILE_NOTIFY_EVENT
 #endif
 
+  /* Sleep/wake event.  */
+  , SLEEP_EVENT
+
   /* Pre-edit text was changed. */
   , PREEDIT_TEXT_EVENT
 

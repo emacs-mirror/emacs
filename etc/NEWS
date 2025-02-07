@@ -486,9 +486,9 @@ Emacs exit.
 ** Message
 
 ---
-*** In-Reply-To header contains only a message id.
-The In-Reply-To header created when replying to a message now contains
-only the originating message's id, conforming to RFC5322.  The previous
+*** "In-Reply-To" header contains only a message id.
+The "In-Reply-To" header created when replying to a message now contains
+only the originating message's id, conforming to RFC 5322.  The previous
 behavior included additional information about the originating message.
 The new variable 'message-header-use-obsolete-in-reply-to', nil by
 default, can be set to a non-nil value to restore the previous behavior.
@@ -993,7 +993,7 @@ instead.
 Since Python 2 EOL was over 5 years ago, this release removes Python
 2-only builtins such as "file" from the default highlighting in
 'python-mode' and 'python-ts-mode'.  If you would like them highlighted,
-customize the new user option `python-2-support' to a non-nil value and
+customize the new user option 'python-2-support' to a non-nil value and
 restart Emacs.
 
 ---
@@ -1353,6 +1353,17 @@ provide instructions for finding the definition.
 
 New convenience function 'find-function-update-type-alist' offers a
 concise way to update a symbol's 'find-function-type-alist' property.
+
+** Special Events
+
++++
+*** New primitive 'insert-special-event'.
+This function inserts the special EVENT into the input event queue.
+
++++
+*** New event type 'sleep-event'.
+This event is sent when the device running Emacs enters or leaves the
+sleep state.
 
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems

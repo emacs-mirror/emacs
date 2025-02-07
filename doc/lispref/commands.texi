@@ -2756,6 +2756,14 @@ To test the signal handler, you can make Emacs send a signal to itself:
 (signal-process (emacs-pid) 'sigusr1)
 @end smallexample
 
+@cindex @code{sleep-event} event
+@item (sleep-event @var{sleep-wake})
+This event is injected when the device Emacs is running on enters or
+leaves the sleep state.  A non-@code{nil} @var{sleep-wake} indicates
+entering the sleep state.
+
+This is implemented only on GNU/Linux.
+
 @cindex @code{language-change} event
 @item language-change
 This kind of event is generated on MS-Windows when the input language
@@ -4028,6 +4036,30 @@ user signals like @code{sigusr1} are normally handled in this way.
 The keymap which defines how to handle special events---and which
 events are special---is in the variable @code{special-event-map}
 (@pxref{Controlling Active Maps}).
+
+@defun insert-special-event
+@cindex inserting special events
+This function inserts a special event into the input event queue.  Only
+event types which are contained in the @code{special-event-map} keymap
+are accepted.  As a result, the handler specified in the keymap is
+invoked.
+
+The function returns @code{nil}.  Example:
+
+@example
+(defun my-event-handler (event)
+  (interactive "e")
+  (message "Event arrived: %S" event))
+@result{} my-event-handler
+
+(keymap-set special-event-map "<sleep-event>" #'my-event-handler)
+@result{} my-event-handler
+
+(insert-special-event '(sleep-event t))
+@result{} nil
+@result{} "Event arrived: (sleep-event t)"
+@end example
+@end defun
 
 @node Waiting
 @section Waiting for Elapsed Time or Input
