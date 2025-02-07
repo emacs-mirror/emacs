@@ -1973,7 +1973,7 @@ FN-TEST is the function to test: either `save-some-buffers' or
 `save-some-buffers-default-predicate' let-bound to a value
 specified inside ARGS-RESULTS.
 
-During the call to FN-TEST,`read-event' is overridden with a function that
+During the call to FN-TEST,`read-key' is overridden with a function that
 just returns `n' and `kill-emacs' is overridden to do nothing.
 
 ARGS-RESULTS is a list of elements (FN-ARGS CALLERS-DIR EXPECTED), where
@@ -2004,7 +2004,7 @@ CALLERS-DIR specifies the value to let-bind
             (setq nb-saved-buffers 0)
             (with-current-buffer (car buffers)
               (cl-letf
-                  (((symbol-function 'read-event)
+                  (((symbol-function 'read-key)
                     ;; Increase counter and answer 'n' when prompted
                     ;; to save a buffer.
                     (lambda (&rest _) (cl-incf nb-saved-buffers) ?n))
