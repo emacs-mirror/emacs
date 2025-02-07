@@ -5695,8 +5695,7 @@ void
 hash_table_free_kv (void *h, Lisp_Object *p, ptrdiff_t nobjs)
 {
 #ifndef HAVE_MPS
-  tally_consing (-nobjs * sizeof *p);
-  xfree (p);
+  hash_table_free_bytes (p, nobjs * sizeof *p);
 #endif
 }
 
