@@ -1569,11 +1569,15 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	(when (and (member action '(moved deleted))
 		   (string-equal file (process-get proc 'tramp-watch-name)))
 	  (delete-process proc))
-	;; Usually, we would add an Emacs event now.  Unfortunately,
-	;; `unread-command-events' does not accept several events at
-	;; once.  Therefore, we apply the callback directly.
+        ;; Add an Emacs event now.
+	;; `insert-special-event' exists since Emacs 31.
 	(when (member action events)
-	  (file-notify-callback (list proc action file file1)))))
+	  (tramp-compat-funcall
+              (if (fboundp 'insert-special-event)
+                  'insert-special-event
+	        (lookup-key special-event-map [file-notify]))
+	    `(file-notify
+              ,(list proc action file file1) file-notify-callback)))))
 
     ;; Save rest of the string.
     (when (string-empty-p string) (setq string nil))

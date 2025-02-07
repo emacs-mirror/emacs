@@ -3898,13 +3898,14 @@ Fall back to normal file name handler if no Tramp handler exists."
 	         (concat remote-prefix file)
 	         (when file1 (concat remote-prefix file1)))))
 	  (setq string (replace-match "" nil nil string))
-	  ;; Usually, we would add an Emacs event now.  Unfortunately,
-	  ;; `unread-command-events' does not accept several events at
-	  ;; once.  Therefore, we apply the handler directly.
+          ;; Add an Emacs event now.
+	  ;; `insert-special-event' exists since Emacs 31.
 	  (when (member (cl-caadr object) events)
 	    (tramp-compat-funcall
-	     (lookup-key special-event-map [file-notify])
-	     `(file-notify ,object file-notify-callback))))))
+                (if (fboundp 'insert-special-event)
+                    'insert-special-event
+	          (lookup-key special-event-map [file-notify]))
+	      `(file-notify ,object file-notify-callback))))))
 
     ;; Save rest of the string.
     (while (string-match (rx bol "\n") string)
@@ -3934,13 +3935,14 @@ Fall back to normal file name handler if no Tramp handler exists."
 	      (or (match-string 2 line)
 		  (file-name-nondirectory
 		   (process-get proc 'tramp-watch-name))))))
-	;; Usually, we would add an Emacs event now.  Unfortunately,
-	;; `unread-command-events' does not accept several events at
-	;; once.  Therefore, we apply the handler directly.
+        ;; Add an Emacs event now.
+	;; `insert-special-event' exists since Emacs 31.
 	(when (member (cl-caadr object) events)
 	  (tramp-compat-funcall
-	   (lookup-key special-event-map [file-notify])
-	   `(file-notify ,object file-notify-callback)))))))
+              (if (fboundp 'insert-special-event)
+                  'insert-special-event
+	        (lookup-key special-event-map [file-notify]))
+	    `(file-notify ,object file-notify-callback)))))))
 
 (defun tramp-sh-handle-file-system-info (filename)
   "Like `file-system-info' for Tramp files."
