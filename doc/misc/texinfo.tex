@@ -3,9 +3,9 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2024-11-04.20}
+\def\texinfoversion{2025-01-31.21}
 %
-% Copyright 1985, 1986, 1988, 1990-2024 Free Software Foundation, Inc.
+% Copyright 1985, 1986, 1988, 1990-2025 Free Software Foundation, Inc.
 %
 % This texinfo.tex file is free software: you can redistribute it and/or
 % modify it under the terms of the GNU General Public License as
@@ -156,8 +156,9 @@
 % Give the space character the catcode for a space.
 \def\spaceisspace{\catcode`\ =10\relax}
 
-% Likewise for ^^M, the end of line character.
-\def\endlineisspace{\catcode13=10\relax}
+% Used to ignore an active newline that may appear immediately after
+% a macro name.
+{\catcode13=\active \gdef\ignoreactivenewline{\let^^M\empty}}
 
 \chardef\dashChar  = `\-
 \chardef\slashChar = `\/
@@ -957,6 +958,10 @@ where each line of input produces a line of output.}
   \ifx\byeerror\relax\else\errmessage{\byeerror}\fi
   \tracingstats=1\ptexend}
 
+% set in \donoderef below, but we need to define this here so that
+% conditionals balance inside the large \ifpdf ... \fi blocks below.
+\newif\ifnodeseen
+\nodeseenfalse
 
 \message{pdf,}
 % adobe `portable' document format
@@ -975,6 +980,11 @@ where each line of input produces a line of output.}
 \newif\ifpdf
 \newif\ifpdfmakepagedest
 
+\newif\ifluatex
+\ifx\luatexversion\thisisundefined\else
+  \luatextrue
+\fi
+
 %
 % For LuaTeX
 %
@@ -982,8 +992,7 @@ where each line of input produces a line of output.}
 \newif\iftxiuseunicodedestname
 \txiuseunicodedestnamefalse % For pdfTeX etc.
 
-\ifx\luatexversion\thisisundefined
-\else
+\ifluatex
   % Use Unicode destination names
   \txiuseunicodedestnametrue
   % Escape PDF strings with converting UTF-16 from UTF-8
@@ -1072,12 +1081,17 @@ where each line of input produces a line of output.}
   \fi
 \fi
 
+\newif\ifxetex
+\ifx\XeTeXrevision\thisisundefined\else
+  \xetextrue
+\fi
+
 \newif\ifpdforxetex
 \pdforxetexfalse
 \ifpdf
   \pdforxetextrue
 \fi
-\ifx\XeTeXrevision\thisisundefined\else
+\ifxetex
   \pdforxetextrue
 \fi
 
@@ -1167,58 +1181,90 @@ with PDF output, and none of those formats could be found.  (.eps cannot
 be supported due to the design of the PDF format; use regular TeX (DVI
 output) for that.)}
 
+% definitions for pdftex or luatex with pdf output
 \ifpdf
+  % Strings in PDF outlines can either be ASCII, or encoded in UTF-16BE
+  % with BOM.  Unfortunately there is no simple way with pdftex to output
+  % UTF-16, so we have to do some quite convoluted expansion games if we
+  % find the string contains a non-ASCII codepoint if we want these to
+  % display correctly.  We generated the UTF-16 sequences in
+  % \DeclareUnicodeCharacter and we access them here.
   %
-  % Color manipulation macros using ideas from pdfcolor.tex,
-  % except using rgb instead of cmyk; the latter is said to render as a
-  % very dark gray on-screen and a very dark halftone in print, instead
-  % of actual black. The dark red here is dark enough to print on paper as
-  % nearly black, but still distinguishable for online viewing.  We use
-  % black by default, though.
-  \def\rgbDarkRed{0.50 0.09 0.12}
-  \def\rgbBlack{0 0 0}
+  \def\defpdfoutlinetextunicode#1{%
+    \def\pdfoutlinetext{#1}%
+    %
+    % Make UTF-8 sequences expand to UTF-16 definitions.
+    \passthroughcharsfalse \utfbytespdftrue
+    \utfviiidefinedwarningfalse
+    %
+    % Completely expand, eliminating any control sequences such as \code,
+    % leaving only possibly \utfbytes.
+    \let\utfbytes\relax
+    \pdfaccentliterals
+    \xdef\pdfoutlinetextchecked{#1}%
+    \checkutfbytes
+  }%
+  % Check if \utfbytes occurs in expansion.
+  \def\checkutfbytes{%
+    \expandafter\checkutfbytesz\pdfoutlinetextchecked\utfbytes\finish
+  }%
+  \def\checkutfbytesz#1\utfbytes#2\finish{%
+    \def\after{#2}%
+    \ifx\after\empty
+      % No further action needed.  Output ASCII string as-is, as converting
+      % to UTF-16 is somewhat slow (and uses more space).
+      \global\let\pdfoutlinetext\pdfoutlinetextchecked
+    \else
+      \passthroughcharstrue % pass UTF-8 sequences unaltered
+      \xdef\pdfoutlinetext{\pdfoutlinetext}%
+      \expandafter\expandutfsixteen\expandafter{\pdfoutlinetext}\pdfoutlinetext
+    \fi
+  }%
+  %
+  \catcode2=1 % begin-group character
+  \catcode3=2 % end-group character
+  %
+  % argument should be pure UTF-8 with no control sequences.  convert to
+  % UTF-16BE by inserting null bytes before bytes < 128 and expanding
+  % UTF-8 multibyte sequences to saved UTF-16BE sequences.
+  \def\expandutfsixteen#1#2{%
+    \bgroup \asciitounicode
+    \passthroughcharsfalse
+    \let\utfbytes\asis
+    %
+    % for Byte Order Mark (BOM)
+    \catcode"FE=12
+    \catcode"FF=12
+    %
+    % we want to treat { and } in #1 as any other ASCII bytes.  however,
+    % we need grouping characters for \scantokens and definitions/assignments,
+    % so define alternative grouping characters using control characters
+    % that are unlikely to occur.
+    % this does not affect 0x02 or 0x03 bytes arising from expansion as
+    % these are tokens with different catcodes.
+    \catcode"02=1 % begin-group character
+    \catcode"03=2 % end-group character
+    %
+    \expandafter\xdef\expandafter#2\scantokens{%
+      ^^02^^fe^^ff#1^^03}%
+    % NB we need \scantokens to provide both the open and close group tokens
+    % for \xdef otherwise there is an e-TeX error "File ended while
+    % scanning definition of..."
+    % NB \scantokens is a e-TeX command which is assumed to be provided by
+    % pdfTeX.
+    %
+    \egroup
+  }%
+  %
+  \catcode2=12 \catcode3=12 % defaults
+  %
+  % Color support
   %
   % rg sets the color for filling (usual text, etc.);
   % RG sets the color for stroking (thin rules, e.g., normal _'s).
   \def\pdfsetcolor#1{\pdfliteral{#1 rg  #1 RG}}
   %
-  % Set color, and create a mark which defines \thiscolor accordingly,
-  % so that \makeheadline knows which color to restore.
-  \def\curcolor{0 0 0}%
-  \def\setcolor#1{%
-    \ifx#1\curcolor\else
-      \xdef\currentcolordefs{\gdef\noexpand\thiscolor{#1}}%
-      \domark
-      \pdfsetcolor{#1}%
-      \xdef\curcolor{#1}%
-    \fi
-  }
-  %
-  \let\maincolor\rgbBlack
-  \pdfsetcolor{\maincolor}
-  \edef\thiscolor{\maincolor}
-  \def\currentcolordefs{}
-  %
-  \def\makefootline{%
-    \baselineskip24pt
-    \line{\pdfsetcolor{\maincolor}\the\footline}%
-  }
-  %
-  \def\makeheadline{%
-    \vbox to 0pt{%
-      \vskip-22.5pt
-      \line{%
-        \vbox to8.5pt{}%
-        % Extract \thiscolor definition from the marks.
-        \getcolormarks
-        % Typeset the headline with \maincolor, then restore the color.
-        \pdfsetcolor{\maincolor}\the\headline\pdfsetcolor{\thiscolor}%
-      }%
-      \vss
-    }%
-    \nointerlineskip
-  }
-  %
+  % PDF outline support
   %
   \pdfcatalog{/PageMode /UseOutlines}
   %
@@ -1315,18 +1361,15 @@ output) for that.)}
       \def\pdfoutlinetext{#1}%
     \else
       \ifx \declaredencoding \utfeight
-        \ifx\luatexversion\thisisundefined
-          % For pdfTeX  with UTF-8.
-          % TODO: the PDF format can use UTF-16 in bookmark strings,
-          % but the code for this isn't done yet.
-          % Use ASCII approximations.
-          \passthroughcharsfalse
-          \def\pdfoutlinetext{#1}%
-        \else
+        \ifluatex
           % For LuaTeX with UTF-8.
           % Pass through Unicode characters for title texts.
           \passthroughcharstrue
-          \def\pdfoutlinetext{#1}%
+          \pdfaccentliterals
+          \xdef\pdfoutlinetext{#1}%
+        \else
+          % For pdfTeX with UTF-8.
+          \defpdfoutlinetextunicode{#1}%
         \fi
       \else
         % For non-Latin-1 or non-UTF-8 encodings.
@@ -1347,11 +1390,6 @@ output) for that.)}
   %
   % used to mark target names; must be expandable.
   \def\pdfmkpgn#1{#1}
-  %
-  % by default, use black for everything.
-  \def\urlcolor{\rgbBlack}
-  \let\linkcolor\rgbBlack
-  \def\endlink{\setcolor{\maincolor}\pdfendlink}
   %
   % Adding outlines to PDF; macros for calculating structure of outlines
   % come from Petr Olsak
@@ -1416,6 +1454,10 @@ output) for that.)}
       \def\unnsecentry{\numsecentry}%
       \def\unnsubsecentry{\numsubsecentry}%
       \def\unnsubsubsecentry{\numsubsubsecentry}%
+      %
+      % Treat index initials like @section.  Note that this is the wrong
+      % level if the index is not at the level of @appendix or @chapter.
+      \def\idxinitialentry{\numsecentry}%
       \readdatafile{toc}%
       %
       % Read toc second time, this time actually producing the outlines.
@@ -1437,6 +1479,8 @@ output) for that.)}
         \dopdfoutline{##1}{count-\expnumber{subsec##2}}{##3}{##4}}%
       \def\numsubsubsecentry##1##2##3##4{% count is always zero
         \dopdfoutline{##1}{}{##3}{##4}}%
+      \def\idxinitialentry##1##2##3##4{%
+        \dopdfoutline{##1}{}{idx.##1.##2}{##4}}%
       %
       % PDF outlines are displayed using system fonts, instead of
       % document fonts.  Therefore we cannot use special characters,
@@ -1450,6 +1494,7 @@ output) for that.)}
       % we use for the index sort strings.
       %
       \indexnofonts
+      \ifnodeseen\else \dopdfoutlinecontents \fi % for @contents at beginning
       \setupdatafile
       % We can have normal brace characters in the PDF outlines, unlike
       % Texinfo index files.  So set that up.
@@ -1458,6 +1503,10 @@ output) for that.)}
       \catcode`\\=\active \otherbackslash
       \input \tocreadfilename
     \endgroup
+    \ifnodeseen \dopdfoutlinecontents \fi % for @contents at end
+  }
+  \def\dopdfoutlinecontents{%
+    \expandafter\dopdfoutline\expandafter{\putwordTOC}{}{txi.CONTENTS}{}%
   }
   {\catcode`[=1 \catcode`]=2
    \catcode`{=\other \catcode`}=\other
@@ -1484,55 +1533,16 @@ output) for that.)}
   \else
     \let \startlink \pdfstartlink
   \fi
-  % make a live url in pdf output.
-  \def\pdfurl#1{%
-    \begingroup
-      % it seems we really need yet another set of dummies; have not
-      % tried to figure out what each command should do in the context
-      % of @url.  for now, just make @/ a no-op, that's the only one
-      % people have actually reported a problem with.
-      %
-      \normalturnoffactive
-      \def\@{@}%
-      \let\/=\empty
-      \makevalueexpandable
-      % do we want to go so far as to use \indexnofonts instead of just
-      % special-casing \var here?
-      \def\var##1{##1}%
-      %
-      \leavevmode\setcolor{\urlcolor}%
-      \startlink attr{/Border [0 0 0]}%
-        user{/Subtype /Link /A << /S /URI /URI (#1) >>}%
-    \endgroup}
-  % \pdfgettoks - Surround page numbers in #1 with @pdflink.  #1 may
-  % be a simple number, or a list of numbers in the case of an index
-  % entry.
-  \def\pdfgettoks#1.{\setbox\boxA=\hbox{\toksA={#1.}\toksB={}\maketoks}}
-  \def\addtokens#1#2{\edef\addtoks{\noexpand#1={\the#1#2}}\addtoks}
-  \def\adn#1{\addtokens{\toksC}{#1}\global\countA=1\let\next=\maketoks}
-  \def\poptoks#1#2|ENDTOKS|{\let\first=#1\toksD={#1}\toksA={#2}}
-  \def\maketoks{%
-    \expandafter\poptoks\the\toksA|ENDTOKS|\relax
-    \ifx\first0\adn0
-    \else\ifx\first1\adn1 \else\ifx\first2\adn2 \else\ifx\first3\adn3
-    \else\ifx\first4\adn4 \else\ifx\first5\adn5 \else\ifx\first6\adn6
-    \else\ifx\first7\adn7 \else\ifx\first8\adn8 \else\ifx\first9\adn9
-    \else
-      \ifnum0=\countA\else\makelink\fi
-      \ifx\first.\let\next=\done\else
-        \let\next=\maketoks
-        \addtokens{\toksB}{\the\toksD}
-        \ifx\first,\addtokens{\toksB}{\space}\fi
-      \fi
-    \fi\fi\fi\fi\fi\fi\fi\fi\fi\fi
-    \next}
-  \def\makelink{\addtokens{\toksB}%
-    {\noexpand\pdflink{\the\toksC}}\toksC={}\global\countA=0}
+  \def\pdfmakeurl#1{%
+    \startlink attr{/Border [0 0 0]}%
+      user{/Subtype /Link /A << /S /URI /URI (#1) >>}%
+  }%
+  \def\endlink{\setcolor{\maincolor}\pdfendlink}
+  %
   \def\pdflink#1{\pdflinkpage{#1}{#1}}%
   \def\pdflinkpage#1#2{%
     \startlink attr{/Border [0 0 0]} goto name{\pdfmkpgn{#1}}
     \setcolor{\linkcolor}#2\endlink}
-  \def\done{\edef\st{\global\noexpand\toksA={\the\toksB}}\st}
 \else
   % non-pdf mode
   \let\pdfmkdest = \gobble
@@ -1541,13 +1551,12 @@ output) for that.)}
   \let\setcolor = \gobble
   \let\pdfsetcolor = \gobble
   \let\pdfmakeoutlines = \relax
-\fi  % \ifx\pdfoutput
+\fi
 
 %
 % For XeTeX
 %
-\ifx\XeTeXrevision\thisisundefined
-\else
+\ifxetex
   %
   % XeTeX version check
   %
@@ -1573,44 +1582,7 @@ output) for that.)}
   \fi
   %
   % Color support
-  %
-  \def\rgbDarkRed{0.50 0.09 0.12}
-  \def\rgbBlack{0 0 0}
-  %
   \def\pdfsetcolor#1{\special{pdf:scolor [#1]}}
-  %
-  % Set color, and create a mark which defines \thiscolor accordingly,
-  % so that \makeheadline knows which color to restore.
-  \def\setcolor#1{%
-    \xdef\currentcolordefs{\gdef\noexpand\thiscolor{#1}}%
-    \domark
-    \pdfsetcolor{#1}%
-  }
-  %
-  \def\maincolor{\rgbBlack}
-  \pdfsetcolor{\maincolor}
-  \edef\thiscolor{\maincolor}
-  \def\currentcolordefs{}
-  %
-  \def\makefootline{%
-    \baselineskip24pt
-    \line{\pdfsetcolor{\maincolor}\the\footline}%
-  }
-  %
-  \def\makeheadline{%
-    \vbox to 0pt{%
-      \vskip-22.5pt
-      \line{%
-        \vbox to8.5pt{}%
-        % Extract \thiscolor definition from the marks.
-        \getcolormarks
-        % Typeset the headline with \maincolor, then restore the color.
-        \pdfsetcolor{\maincolor}\the\headline\pdfsetcolor{\thiscolor}%
-      }%
-      \vss
-    }%
-    \nointerlineskip
-  }
   %
   % PDF outline support
   %
@@ -1649,11 +1621,6 @@ output) for that.)}
     \safewhatsit{\pdfdest name{\pdfdestname} xyz}%
   }
   %
-  % by default, use black for everything.
-  \def\urlcolor{\rgbBlack}
-  \def\linkcolor{\rgbBlack}
-  \def\endlink{\setcolor{\maincolor}\pdfendlink}
-  %
   \def\dopdfoutline#1#2#3#4{%
     \setpdfoutlinetext{#1}
     \setpdfdestname{#3}
@@ -1667,7 +1634,6 @@ output) for that.)}
   %
   \def\pdfmakeoutlines{%
     \begingroup
-      %
       % For XeTeX, counts of subentries are not necessary.
       % Therefore, we read toc only once.
       %
@@ -1686,6 +1652,11 @@ output) for that.)}
       \def\numsubsubsecentry##1##2##3##4{%
         \dopdfoutline{##1}{4}{##3}{##4}}%
       %
+      % Note this is at the wrong level unless the index is in an @appendix
+      % or @chapter.
+      \def\idxinitialentry##1##2##3##4{%
+         \dopdfoutline{##1}{2}{idx.##1.##2}{##4}}%
+      %
       \let\appentry\numchapentry%
       \let\appsecentry\numsecentry%
       \let\appsubsecentry\numsubsecentry%
@@ -1700,14 +1671,22 @@ output) for that.)}
       % Therefore, the encoding and the language may not be considered.
       %
       \indexnofonts
+      \pdfaccentliterals
+      \ifnodeseen\else \dopdfoutlinecontents \fi % for @contents at beginning
+      %
       \setupdatafile
       % We can have normal brace characters in the PDF outlines, unlike
       % Texinfo index files.  So set that up.
       \def\{{\lbracecharliteral}%
       \def\}{\rbracecharliteral}%
       \catcode`\\=\active \otherbackslash
-      \input \tocreadfilename
+      \input \tocreadfilename\relax
+      \ifnodeseen \dopdfoutlinecontents \fi % for @contents at end
     \endgroup
+  }
+  \def\dopdfoutlinecontents{%
+    \expandafter\dopdfoutline\expandafter
+      {\putwordTOC}{1}{txi.CONTENTS}{txi.CONTENTS}%
   }
   {\catcode`[=1 \catcode`]=2
    \catcode`{=\other \catcode`}=\other
@@ -1721,7 +1700,7 @@ output) for that.)}
   % However, due to a UTF-16 conversion issue of xdvipdfmx 20150315,
   % ``\special{pdf:dest ...}'' cannot handle non-ASCII strings.
   % It is fixed by xdvipdfmx 20160106 (TeX Live SVN r39753).
-%
+  %
   \def\skipspaces#1{\def\PP{#1}\def\D{|}%
     \ifx\PP\D\let\nextsp\relax
     \else\let\nextsp\skipspaces
@@ -1736,55 +1715,17 @@ output) for that.)}
     \edef\temp{#1}%
     \expandafter\skipspaces\temp|\relax
   }
-  % make a live url in pdf output.
-  \def\pdfurl#1{%
-    \begingroup
-      % it seems we really need yet another set of dummies; have not
-      % tried to figure out what each command should do in the context
-      % of @url.  for now, just make @/ a no-op, that's the only one
-      % people have actually reported a problem with.
-      %
-      \normalturnoffactive
-      \def\@{@}%
-      \let\/=\empty
-      \makevalueexpandable
-      % do we want to go so far as to use \indexnofonts instead of just
-      % special-casing \var here?
-      \def\var##1{##1}%
-      %
-      \leavevmode\setcolor{\urlcolor}%
-      \special{pdf:bann << /Border [0 0 0]
-        /Subtype /Link /A << /S /URI /URI (#1) >> >>}%
-    \endgroup}
+  \def\pdfmakeurl#1{%
+    \special{pdf:bann << /Border [0 0 0]
+      /Subtype /Link /A << /S /URI /URI (#1) >> >>}%
+  }
   \def\endlink{\setcolor{\maincolor}\special{pdf:eann}}
-  \def\pdfgettoks#1.{\setbox\boxA=\hbox{\toksA={#1.}\toksB={}\maketoks}}
-  \def\addtokens#1#2{\edef\addtoks{\noexpand#1={\the#1#2}}\addtoks}
-  \def\adn#1{\addtokens{\toksC}{#1}\global\countA=1\let\next=\maketoks}
-  \def\poptoks#1#2|ENDTOKS|{\let\first=#1\toksD={#1}\toksA={#2}}
-  \def\maketoks{%
-    \expandafter\poptoks\the\toksA|ENDTOKS|\relax
-    \ifx\first0\adn0
-    \else\ifx\first1\adn1 \else\ifx\first2\adn2 \else\ifx\first3\adn3
-    \else\ifx\first4\adn4 \else\ifx\first5\adn5 \else\ifx\first6\adn6
-    \else\ifx\first7\adn7 \else\ifx\first8\adn8 \else\ifx\first9\adn9
-    \else
-      \ifnum0=\countA\else\makelink\fi
-      \ifx\first.\let\next=\done\else
-        \let\next=\maketoks
-        \addtokens{\toksB}{\the\toksD}
-        \ifx\first,\addtokens{\toksB}{\space}\fi
-      \fi
-    \fi\fi\fi\fi\fi\fi\fi\fi\fi\fi
-    \next}
-  \def\makelink{\addtokens{\toksB}%
-    {\noexpand\pdflink{\the\toksC}}\toksC={}\global\countA=0}
   \def\pdflink#1{\pdflinkpage{#1}{#1}}%
   \def\pdflinkpage#1#2{%
     \special{pdf:bann << /Border [0 0 0]
       /Type /Annot /Subtype /Link /A << /S /GoTo /D (#1) >> >>}%
     \setcolor{\linkcolor}#2\endlink}
-  \def\done{\edef\st{\global\noexpand\toksA={\the\toksB}}\st}
-%
+  %
   %
   % @image support
   %
@@ -1841,6 +1782,164 @@ output) for that.)}
   }
 \fi
 
+% common definitions and code for pdftex, luatex and xetex
+\ifpdforxetex
+  % The dark red here is dark enough to print on paper as
+  % nearly black, but still distinguishable for online viewing.  We use
+  % black by default, though.
+  \def\rgbDarkRed{0.50 0.09 0.12}
+  \def\rgbBlack{0 0 0}
+  %
+  % Set color, and create a mark which defines \thiscolor accordingly,
+  % so that \makeheadline knows which color to restore.
+  \def\curcolor{0 0 0}%
+  \def\setcolor#1{%
+    \ifx#1\curcolor\else
+      \xdef\currentcolordefs{\gdef\noexpand\thiscolor{#1}}%
+      \domark
+      \pdfsetcolor{#1}%
+      \xdef\curcolor{#1}%
+    \fi
+  }
+  %
+  \let\maincolor\rgbBlack
+  \pdfsetcolor{\maincolor}
+  \edef\thiscolor{\maincolor}
+  \def\currentcolordefs{}
+  %
+  \def\makefootline{%
+    \baselineskip24pt
+    \line{\pdfsetcolor{\maincolor}\the\footline}%
+  }
+  %
+  \def\makeheadline{%
+    \vbox to 0pt{%
+      \vskip-22.5pt
+      \line{%
+        \vbox to8.5pt{}%
+        % Extract \thiscolor definition from the marks.
+        \getcolormarks
+        % Typeset the headline with \maincolor, then restore the color.
+        \pdfsetcolor{\maincolor}\the\headline\pdfsetcolor{\thiscolor}%
+      }%
+      \vss
+    }%
+    \nointerlineskip
+  }
+  %
+  % by default, use black for everything.
+  \def\urlcolor{\rgbBlack}
+  \let\linkcolor\rgbBlack
+  %
+  % make a live url in pdf output.
+  \def\pdfurl#1{%
+    \begingroup
+      % it seems we really need yet another set of dummies; have not
+      % tried to figure out what each command should do in the context
+      % of @url.  for now, just make @/ a no-op, that's the only one
+      % people have actually reported a problem with.
+      %
+      \normalturnoffactive
+      \def\@{@}%
+      \let\/=\empty
+      \makevalueexpandable
+      % do we want to go so far as to use \indexnofonts instead of just
+      % special-casing \var here?
+      \def\var##1{##1}%
+      %
+      \leavevmode\setcolor{\urlcolor}%
+      \pdfmakeurl{#1}%
+    \endgroup}
+  %
+  % \pdfgettoks - Surround page numbers in #1 with @pdflink.  #1 may
+  % be a simple number, or a list of numbers in the case of an index
+  % entry.
+  \def\pdfgettoks#1.{\setbox\boxA=\hbox{\toksA={#1.}\toksB={}\maketoks}}
+  \def\addtokens#1#2{\edef\addtoks{\noexpand#1={\the#1#2}}\addtoks}
+  \def\adn#1{\addtokens{\toksC}{#1}\global\countA=1\let\next=\maketoks}
+  \def\poptoks#1#2|ENDTOKS|{\let\first=#1\toksD={#1}\toksA={#2}}
+  \def\maketoks{%
+    \expandafter\poptoks\the\toksA|ENDTOKS|\relax
+    \ifx\first0\adn0
+    \else\ifx\first1\adn1 \else\ifx\first2\adn2 \else\ifx\first3\adn3
+    \else\ifx\first4\adn4 \else\ifx\first5\adn5 \else\ifx\first6\adn6
+    \else\ifx\first7\adn7 \else\ifx\first8\adn8 \else\ifx\first9\adn9
+    \else
+      \ifnum0=\countA\else\makelink\fi
+      \ifx\first.\let\next=\done\else
+        \let\next=\maketoks
+        \addtokens{\toksB}{\the\toksD}
+        \ifx\first,\addtokens{\toksB}{\space}\fi
+      \fi
+    \fi\fi\fi\fi\fi\fi\fi\fi\fi\fi
+    \next}
+  \def\makelink{\addtokens{\toksB}%
+    {\noexpand\pdflink{\the\toksC}}\toksC={}\global\countA=0}
+  \def\done{\edef\st{\global\noexpand\toksA={\the\toksB}}\st}
+\fi
+
+\ifpdforxetex
+  % for pdftex.
+  {\catcode`^^cc=13
+  \gdef\pdfaccentliteralsutfviii{%
+    % For PDF outline only.  Unicode combining accents follow the
+    % character they modify.  Note we need at least the first byte
+    % of the UTF-8 sequences to have an active catcode to allow the
+    % definitions to do their magic.
+    \def\"##1{##1^^cc^^88}%           U+0308
+    \def\'##1{##1^^cc^^81}%           U+0301
+    \def\,##1{##1^^cc^^a7}%           U+0327
+    \def\=##1{##1^^cc^^85}%           U+0305
+    \def\^##1{##1^^cc^^82}%           U+0302
+    \def\`##1{##1^^cc^^80}%           U+0300
+    \def\~##1{##1^^cc^^83}%           U+0303
+    \def\dotaccent##1{##1^^cc^^87}%   U+0307
+    \def\H##1{##1^^cc^^8b}%           U+030B
+    \def\ogonek##1{##1^^cc^^a8}%      U+0328
+    \def\ringaccent##1{##1^^cc^^8a}%  U+030A
+    \def\u##1{##1^^cc^^8c}%           U+0306
+    \def\ubaraccent##1{##1^^cc^^b1}%  U+0331
+    \def\udotaccent##1{##1^^cc^^a3}%  U+0323
+    \def\v##1{##1^^cc^^8c}%           U+030C
+    % this definition of @tieaccent will only work with exactly two characters
+    % in argument as we need to insert the combining character between them.
+    \def\tieaccent##1{\tieaccentz##1}%
+    \def\tieaccentz##1##2{##1^^cd^^a1##2} % U+0361
+  }}%
+  %
+  % for xetex and luatex, which both support extended ^^^^ escapes and
+  % process the Unicode codepoint as a single token.
+  \gdef\pdfaccentliteralsnative{%
+    \def\"##1{##1^^^^0308}%
+    \def\'##1{##1^^^^0301}%
+    \def\,##1{##1^^^^0327}%
+    \def\=##1{##1^^^^0305}%
+    \def\^##1{##1^^^^0302}%
+    \def\`##1{##1^^^^0300}%
+    \def\~##1{##1^^^^0303}%
+    \def\dotaccent##1{##1^^^^0307}%
+    \def\H##1{##1^^^^030b}%
+    \def\ogonek##1{##1^^^^0328}%
+    \def\ringaccent##1{##1^^^^030a}%
+    \def\u##1{##1^^^^0306}%
+    \def\ubaraccent##1{##1^^^^0331}%
+    \def\udotaccent##1{##1^^^^0323}%
+    \def\v##1{##1^^^^030c}%
+    \def\tieaccent##1{\tieaccentz##1}%
+    \def\tieaccentz##1##2{##1^^^^0361##2} % U+0361
+  }%
+  %
+  % use the appropriate definition
+  \ifluatex
+    \let\pdfaccentliterals\pdfaccentliteralsnative
+  \else
+    \ifxetex
+      \let\pdfaccentliterals\pdfaccentliteralsnative
+    \else
+      \let\pdfaccentliterals\pdfaccentliteralsutfviii
+    \fi
+  \fi
+\fi
 
 %
 \message{fonts,}
@@ -2772,15 +2871,15 @@ end
 % @cite unconditionally uses \sl with \smartitaliccorrection.
 \def\cite#1{{\sl #1}\smartitaliccorrection}
 
-% @var unconditionally uses \sl.  This gives consistency for
-% parameter names whether they are in @def, @table @code or a
-% regular paragraph.
-%  To get ttsl font for @var when used in code context, @set txicodevaristt.
-% The \null is to reset \spacefactor.
+% By default, use ttsl font for @var when used in code context.
+% To unconditionally use \sl for @var, @clear txicodevaristt.  This
+% gives consistency for parameter names whether they are in @def,
+% @table @code or a regular paragraph.
 \def\aftersmartic{}
 \def\var#1{%
   \let\saveaftersmartic = \aftersmartic
   \def\aftersmartic{\null\let\aftersmartic=\saveaftersmartic}%
+  % The \null is to reset \spacefactor.
   %
   \ifflagclear{txicodevaristt}%
     {\def\varnext{{{\sl #1}}\smartitaliccorrection}}%
@@ -2788,7 +2887,6 @@ end
   \varnext
 }
 
-% To be removed after next release
 \def\SETtxicodevaristt{}% @set txicodevaristt
 
 \let\i=\smartitalic
@@ -2808,7 +2906,7 @@ end
 \def\ii#1{{\it #1}}             % italic font
 
 % @b, explicit bold.  Also @strong.
-\def\b#1{{\bf #1}}
+\def\b#1{{\bf \defcharsdefault #1}}
 \let\strong=\b
 
 % @sansserif, explicit sans.
@@ -3039,9 +3137,7 @@ end
           \unhbox0\ (\urefcode{#1})%
         \fi
       \else
-        \ifx\XeTeXrevision\thisisundefined
-          \unhbox0\ (\urefcode{#1})% DVI, always show arg and url
-        \else
+        \ifxetex
           % For XeTeX
           \ifurefurlonlylink
             % PDF plus option to not display url, show just arg
@@ -3051,6 +3147,8 @@ end
             % visibility, if the pdf is eventually used to print, etc.
             \unhbox0\ (\urefcode{#1})%
           \fi
+        \else
+          \unhbox0\ (\urefcode{#1})% DVI, always show arg and url
         \fi
       \fi
     \else
@@ -3670,13 +3768,22 @@ $$%
      {\font\thisecfont = #1ctt\ecsize \space at \nominalsize}%
   % else
      {\ifx\curfontstyle\bfstylename
-        % bold:
-        \font\thisecfont = #1cb\ifusingit{i}{x}\ecsize \space at \nominalsize
+        \etcfontbold{#1}%
       \else
-        % regular:
-        \font\thisecfont = #1c\ifusingit{ti}{rm}\ecsize \space at \nominalsize
+        \ifrmisbold
+          \etcfontbold{#1}%
+        \else
+          % regular:
+          \font\thisecfont = #1c\ifusingit{ti}{rm}\ecsize \space
+            at \nominalsize
+        \fi
       \fi}%
   \thisecfont
+}
+
+\def\etcfontbold#1{%
+  % bold:
+  \font\thisecfont = #1cb\ifusingit{i}{x}\ecsize \space at \nominalsize
 }
 
 % @registeredsymbol - R in a circle.  The font for the R should really
@@ -5528,7 +5635,6 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 
 \def\initial{%
   \bgroup
-  \initialglyphs
   \initialx
 }
 
@@ -5551,7 +5657,10 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   %
   % No shrink because it confuses \balancecolumns.
   \vskip 1.67\baselineskip plus 1\baselineskip
-  \leftline{\secfonts \kern-0.05em \secbf #1}%
+  \doindexinitialentry{#1}%
+  \initialglyphs
+  \leftline{%
+    \secfonts \kern-0.05em \secbf #1}%
   % \secfonts is inside the argument of \leftline so that the change of
   % \baselineskip will not affect any glue inserted before the vbox that
   % \leftline creates.
@@ -5560,6 +5669,32 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \vskip .33\baselineskip plus .1\baselineskip
   \egroup % \initialglyphs
 }
+
+\def\doindexinitialentry#1{%
+  \ifpdforxetex
+    \global\advance\idxinitialno by 1
+    \def\indexlbrace{\{}
+    \def\indexrbrace{\}}
+    \def\indexbackslash{\realbackslash}
+    \def\indexatchar{\@}
+    \writetocentry{idxinitial}{\asis #1}{IDX\the\idxinitialno}%
+    % The @asis removes a pair of braces around e.g. {@indexatchar} that
+    % are output by texindex.
+    %
+    \vbox to 0pt{}%
+    % This vbox fixes the \pdfdest location for double column formatting.
+    % Without it, the \pdfdest is output above topskip glue at the top
+    % of a column as this glue is not added until the first box.
+    \pdfmkdest{idx.\asis #1.IDX\the\idxinitialno}%
+  \fi
+}
+
+% No listing in TOC
+\def\idxinitialentry#1#2#3#4{}
+
+% For index initials.
+\newcount\idxinitialno \idxinitialno=1
+
 
 \newdimen\entryrightmargin
 \entryrightmargin=0pt
@@ -6782,12 +6917,13 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 
 % Prepare to read what we've written to \tocfile.
 %
-\def\startcontents#1{%
+\def\startcontents#1#2{%
   % If @setchapternewpage on, and @headings double, the contents should
   % start on an odd page, unlike chapters.
   \contentsalignmacro
   \immediate\closeout\tocfile
   %
+  #2%
   % Don't need to put `Contents' or `Short Contents' in the headline.
   % It is abundantly clear what they are.
   \chapmacro{#1}{Yomitfromtoc}{}%
@@ -6818,7 +6954,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % Normal (long) toc.
 %
 \def\contents{%
-  \startcontents{\putwordTOC}%
+  \startcontents{\putwordTOC}{\contentsmkdest}%
     \openin 1 \tocreadfilename\space
     \ifeof 1 \else
       \findsecnowidths
@@ -6834,9 +6970,13 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \contentsendroman
 }
 
+\def\contentsmkdest{%
+  \pdfmkdest{txi.CONTENTS}%
+}
+
 % And just the chapters.
 \def\summarycontents{%
-  \startcontents{\putwordShortTOC}%
+  \startcontents{\putwordShortTOC}{}%
     %
     \let\partentry = \shortpartentry
     \let\numchapentry = \shortchapentry
@@ -7925,7 +8065,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     {\rm\enskip}% hskip 0.5 em of \rmfont
   }{}%
   %
-  \boldbrax
+  \parenbrackglyphs
   % arguments will be output next, if any.
 }
 
@@ -7935,7 +8075,10 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \def\^^M{}% for line continuation
     \df \ifdoingtypefn \tt \else \sl \fi
     \ifflagclear{txicodevaristt}{}%
-       {\def\var##1{{\setregularquotes \ttsl ##1}}}%
+       % use \ttsl for @var in both @def* and @deftype*.
+       % the kern prevents an italic correction at end, which appears
+       % too much for ttsl.
+       {\def\var##1{{\setregularquotes \ttsl ##1\kern 0pt }}}%
     #1%
   \egroup
 }
@@ -7952,8 +8095,9 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \let\lparen = ( \let\rparen = )
 
 % Be sure that we always have a definition for `(', etc.  For example,
-% if the fn name has parens in it, \boldbrax will not be in effect yet,
-% so TeX would otherwise complain about undefined control sequence.
+% if the fn name has parens in it, \parenbrackglyphs will not be in
+% effect yet, so TeX would otherwise complain about undefined control
+% sequence.
 {
   \activeparens
   \gdef\defcharsdefault{%
@@ -7963,49 +8107,28 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   }
   \globaldefs=1 \defcharsdefault
 
-  \gdef\boldbrax{\let(=\opnr\let)=\clnr\let[=\lbrb\let]=\rbrb}
+  \gdef\parenbrackglyphs{\let(=\opnr\let)=\cpnr\let[=\lbrb\let]=\rbrb}
   \gdef\magicamp{\let&=\amprm}
 }
 \let\ampchar\&
 
+\def\amprm#1 {{\rm\&#1 }}
+
 \newcount\parencount
-
-% If we encounter &foo, then turn on ()-hacking afterwards
-\newif\ifampseen
-\def\amprm#1 {\ampseentrue{\rm\&#1 }}
-
-\def\parenfont{%
-  \ifampseen
-    % At the first level, print parens in roman,
-    % otherwise use the default font.
-    \ifnum \parencount=1 \rm \fi
-  \else
-    % The \sf parens (in \boldbrax) actually are a little bolder than
-    % the contained text.  This is especially needed for [ and ] .
-    \sf
-  \fi
-}
-\def\infirstlevel#1{%
-  \ifampseen
-    \ifnum\parencount=1
-      #1%
-    \fi
-  \fi
-}
-\def\bfafterword#1 {#1 \bf}
-
+% opening and closing parentheses in roman font
 \def\opnr{%
+  \ptexslash % italic correction
   \global\advance\parencount by 1
-  {\parenfont(}%
-  \infirstlevel \bfafterword
+  {\sf(}%
 }
-\def\clnr{%
-  {\parenfont)}%
-  \infirstlevel \sl
+\def\cpnr{%
+  \ptexslash % italic correction
+  {\sf)}%
   \global\advance\parencount by -1
 }
 
 \newcount\brackcount
+% left and right square brackets in bold font
 \def\lbrb{%
   \global\advance\brackcount by 1
   {\bf[}%
@@ -8535,7 +8658,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \expandafter\xdef\csname\the\macname\endcsname{%
       \begingroup
         \noexpand\spaceisspace
-        \noexpand\endlineisspace
+        \noexpand\ignoreactivenewline
         \noexpand\expandafter % skip any whitespace after the macro name.
         \expandafter\noexpand\csname\the\macname @@@\endcsname}%
     \expandafter\xdef\csname\the\macname @@@\endcsname{%
@@ -8836,7 +8959,12 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \ifx\lastnode\empty\else
     \setref{\lastnode}{#1}%
     \global\let\lastnode=\empty
+    \setnodeseenonce
   \fi
+}
+\def\setnodeseenonce{
+  \global\nodeseentrue
+  \let\setnodeseenonce\relax
 }
 
 % @nodedescription, @nodedescriptionblock - do nothing for TeX
@@ -9575,7 +9703,9 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     % For pdfTeX and LuaTeX <= 0.80
     \dopdfimage{#1}{#2}{#3}%
   \else
-    \ifx\XeTeXrevision\thisisundefined
+    \ifxetex
+      \doxeteximage{#1}{#2}{#3}%
+    \else
       % For epsf.tex
       % \epsfbox itself resets \epsf?size at each figure.
       \setbox0 = \hbox{\ignorespaces #2}%
@@ -9583,9 +9713,6 @@ might help (with 'rm \jobname.?? \jobname.??s')%
       \setbox0 = \hbox{\ignorespaces #3}%
         \ifdim\wd0 > 0pt \epsfysize=#3\relax \fi
       \epsfbox{#1.eps}%
-    \else
-      % For XeTeX
-      \doxeteximage{#1}{#2}{#3}%
     \fi
   \fi
   %
@@ -9931,25 +10058,24 @@ directory should work if nowhere else does.}
 \newif\iftxinativeunicodecapable
 \newif\iftxiusebytewiseio
 
-\ifx\XeTeXrevision\thisisundefined
-  \ifx\luatexversion\thisisundefined
-    \txinativeunicodecapablefalse
-    \txiusebytewiseiotrue
-  \else
-    \txinativeunicodecapabletrue
-    \txiusebytewiseiofalse
-  \fi
-\else
+\ifxetex
   \txinativeunicodecapabletrue
   \txiusebytewiseiofalse
+\else
+  \ifluatex
+    \txinativeunicodecapabletrue
+    \txiusebytewiseiofalse
+  \else
+    \txinativeunicodecapablefalse
+    \txiusebytewiseiotrue
+  \fi
 \fi
 
 % Set I/O by bytes instead of UTF-8 sequence for XeTeX and LuaTex
 % for non-UTF-8 (byte-wise) encodings.
 %
 \def\setbytewiseio{%
-  \ifx\XeTeXrevision\thisisundefined
-  \else
+  \ifxetex
     \XeTeXdefaultencoding "bytes"  % For subsequent files to be read
     \XeTeXinputencoding "bytes"  % For document root file
     % Unfortunately, there seems to be no corresponding XeTeX command for
@@ -9958,8 +10084,7 @@ directory should work if nowhere else does.}
     % place of non-ASCII characters.
   \fi
 
-  \ifx\luatexversion\thisisundefined
-  \else
+  \ifluatex
     \directlua{
     local utf8_char, byte, gsub = unicode.utf8.char, string.byte, string.gsub
     local function convert_char (char)
@@ -10068,8 +10193,7 @@ directory should work if nowhere else does.}
   \fi % lattwo
   \fi % ascii
   %
-  \ifx\XeTeXrevision\thisisundefined
-  \else
+  \ifxetex
     \ifx \declaredencoding \utfeight
     \else
       \ifx \declaredencoding \ascii
@@ -10352,11 +10476,15 @@ directory should work if nowhere else does.}
 
 \gdef\UTFviiiDefined#1{%
   \ifx #1\relax
-    \message{\linenumber Unicode char \string #1 not defined for Texinfo}%
+    \ifutfviiidefinedwarning
+      \message{\linenumber Unicode char \string #1 not defined for Texinfo}%
+    \fi
   \else
     \expandafter #1%
   \fi
 }
+\newif\ifutfviiidefinedwarning
+\utfviiidefinedwarningtrue
 
 % Give non-ASCII bytes the active definitions for processing UTF-8 sequences
 \begingroup
@@ -10366,8 +10494,8 @@ directory should work if nowhere else does.}
 
   % Loop from \countUTFx to \countUTFy, performing \UTFviiiTmp
   % substituting ~ and $ with a character token of that value.
-  \def\UTFviiiLoop{%
-    \global\catcode\countUTFx\active
+  \gdef\UTFviiiLoop{%
+    \catcode\countUTFx\active
     \uccode`\~\countUTFx
     \uccode`\$\countUTFx
     \uppercase\expandafter{\UTFviiiTmp}%
@@ -10375,7 +10503,7 @@ directory should work if nowhere else does.}
     \ifnum\countUTFx < \countUTFy
       \expandafter\UTFviiiLoop
     \fi}
-
+  %
   % For bytes other than the first in a UTF-8 sequence.  Not expected to
   % be expanded except when writing to auxiliary files.
   \countUTFx = "80
@@ -10409,6 +10537,16 @@ directory should work if nowhere else does.}
         \else\expandafter\UTFviiiFourOctets\expandafter$\fi
         }}%
   \UTFviiiLoop
+  %
+  % for pdftex only, used to expand ASCII to UTF-16BE.
+  \gdef\asciitounicode{%
+    \countUTFx = "20
+    \countUTFy = "80
+    \def\UTFviiiTmp{%
+      \def~{\nullbyte $}}%
+    \UTFviiiLoop
+  }
+  {\catcode0=11 \gdef\nullbyte{^^00}}%
 \endgroup
 
 \def\globallet{\global\let} % save some \expandafter's below
@@ -10433,14 +10571,43 @@ directory should work if nowhere else does.}
   \fi
 }
 
-% These macros are used here to construct the name of a control
-% sequence to be defined.
+% These macros are used here to construct the names of macros
+% that expand to the definitions for UTF-8 sequences.
 \def\UTFviiiTwoOctetsName#1#2{%
   \csname u8:#1\string #2\endcsname}%
 \def\UTFviiiThreeOctetsName#1#2#3{%
   \csname u8:#1\string #2\string #3\endcsname}%
 \def\UTFviiiFourOctetsName#1#2#3#4{%
   \csname u8:#1\string #2\string #3\string #4\endcsname}%
+
+% generate UTF-16 from codepoint
+\def\utfsixteentotoks#1#2{%
+  \countUTFz = "#2\relax
+  \ifnum \countUTFz > 65535
+    % doesn't work for codepoints > U+FFFF
+    % we don't define glyphs for any of these anyway, so it doesn't matter
+    #1={U+#2}%
+  \else
+    \countUTFx = \countUTFz
+    \divide\countUTFx by 256
+    \countUTFy = \countUTFx
+    \multiply\countUTFx by 256
+    \advance\countUTFz by -\countUTFx
+    \uccode`,=\countUTFy
+    \uccode`;=\countUTFz
+    \ifnum\countUTFy = 0
+      \uppercase{#1={\nullbyte\string;}}%
+    \else\ifnum\countUTFz = 0
+      \uppercase{#1={\string,\nullbyte}}%
+    \else
+      \uppercase{#1={\string,\string;}}%
+    \fi\fi
+    % NB \uppercase cannot insert a null byte
+  \fi
+}
+
+\newif\ifutfbytespdf
+\utfbytespdffalse
 
 % For UTF-8 byte sequences (TeX, e-TeX and pdfTeX),
 % provide a definition macro to replace a Unicode character;
@@ -10458,18 +10625,22 @@ directory should work if nowhere else does.}
     \countUTFz = "#1\relax
     \begingroup
       \parseXMLCharref
-
-      % Give \u8:... its definition.  The sequence of seven \expandafter's
-      % expands after the \gdef three times, e.g.
       %
+      % Completely expand \UTFviiiTmp, which looks like:
       % 1.  \UTFviiTwoOctetsName B1 B2
       % 2.  \csname u8:B1 \string B2 \endcsname
       % 3.  \u8: B1 B2  (a single control sequence token)
+      \xdef\UTFviiiTmp{\UTFviiiTmp}%
       %
-      \expandafter\expandafter
-      \expandafter\expandafter
-      \expandafter\expandafter
-      \expandafter\gdef       \UTFviiiTmp{#2}%
+      \ifpdf
+        \toksA={#2}%
+        \utfsixteentotoks\toksB{#1}%
+        \expandafter\xdef\UTFviiiTmp{%
+          \noexpand\ifutfbytespdf\noexpand\utfbytes{\the\toksB}%
+          \noexpand\else\the\toksA\noexpand\fi}%
+      \else
+        \expandafter\gdef\UTFviiiTmp{#2}%
+      \fi
       %
       \expandafter\ifx\csname uni:#1\endcsname \relax \else
        \message{Internal error, already defined: #1}%
@@ -10479,8 +10650,9 @@ directory should work if nowhere else does.}
       \expandafter\globallet\csname uni:#1\endcsname \UTFviiiTmp
     \endgroup}
   %
-  % Given the value in \countUTFz as a Unicode code point, set \UTFviiiTmp
-  % to the corresponding UTF-8 sequence.
+  % Given the value in \countUTFz as a Unicode code point, set
+  % \UTFviiiTmp to one of the \UTVviii*OctetsName macros followed by
+  % the corresponding UTF-8 sequence.
   \gdef\parseXMLCharref{%
     \ifnum\countUTFz < "20\relax
       \errhelp = \EMsimple
@@ -10540,7 +10712,7 @@ directory should work if nowhere else does.}
 }
 
 % Suppress ligature creation from adjacent characters.
-\ifx\luatexversion\thisisundefined
+\ifluatex
   \def\nolig{{}}
 \else
   % Braces do not suppress ligature creation in LuaTeX, e.g. in of{}fice
@@ -11325,6 +11497,25 @@ directory should work if nowhere else does.}
   %
   \global\mathchardef\checkmark="1370% actually the square root sign
   \DeclareUnicodeCharacter{2713}{\ensuremath\checkmark}%
+  %
+  % These are all the combining accents.  We need these empty definitions
+  % at present for the sake of PDF outlines.
+  \DeclareUnicodeCharacter{0300}{}%
+  \DeclareUnicodeCharacter{0301}{}%
+  \DeclareUnicodeCharacter{0302}{}%
+  \DeclareUnicodeCharacter{0303}{}%
+  \DeclareUnicodeCharacter{0305}{}%
+  \DeclareUnicodeCharacter{0306}{}%
+  \DeclareUnicodeCharacter{0307}{}%
+  \DeclareUnicodeCharacter{0308}{}%
+  \DeclareUnicodeCharacter{030A}{}%
+  \DeclareUnicodeCharacter{030B}{}%
+  \DeclareUnicodeCharacter{030C}{}%
+  \DeclareUnicodeCharacter{0323}{}%
+  \DeclareUnicodeCharacter{0327}{}%
+  \DeclareUnicodeCharacter{0328}{}%
+  \DeclareUnicodeCharacter{0331}{}%
+  \DeclareUnicodeCharacter{0361}{}%
 }% end of \unicodechardefs
 
 % UTF-8 byte sequence (pdfTeX) definitions (replacing and @U command)
@@ -11463,12 +11654,12 @@ directory should work if nowhere else does.}
     \pdfhorigin = 1 true in
     \pdfvorigin = 1 true in
   \else
-    \ifx\XeTeXrevision\thisisundefined
-      \special{papersize=#8,#7}%
-    \else
+    \ifxetex
       \pdfpageheight #7\relax
       \pdfpagewidth #8\relax
       % XeTeX does not have \pdfhorigin and \pdfvorigin.
+    \else
+      \special{papersize=#8,#7}%
     \fi
   \fi
   %
@@ -11668,21 +11859,21 @@ directory should work if nowhere else does.}
   #1#2#3=\countB\relax
 }
 
-\ifx\XeTeXrevision\thisisundefined
-  \ifx\luatexversion\thisisundefined
+\ifxetex % XeTeX
+  \mtsetprotcode\textrm
+  \def\mtfontexpand#1{}
+\else
+  \ifluatex % LuaTeX
+    \mtsetprotcode\textrm
+    \def\mtfontexpand#1{\expandglyphsinfont#1 20 20 1\relax}
+  \else
     \ifpdf % pdfTeX
       \mtsetprotcode\textrm
       \def\mtfontexpand#1{\pdffontexpand#1 20 20 1 autoexpand\relax}
     \else % TeX
       \def\mtfontexpand#1{}
     \fi
-  \else % LuaTeX
-    \mtsetprotcode\textrm
-    \def\mtfontexpand#1{\expandglyphsinfont#1 20 20 1\relax}
   \fi
-\else % XeTeX
-  \mtsetprotcode\textrm
-  \def\mtfontexpand#1{}
 \fi
 
 
@@ -11691,18 +11882,18 @@ directory should work if nowhere else does.}
 \def\microtypeON{%
   \microtypetrue
   %
-  \ifx\XeTeXrevision\thisisundefined
-    \ifx\luatexversion\thisisundefined
+  \ifxetex % XeTeX
+    \XeTeXprotrudechars=2
+  \else
+    \ifluatex % LuaTeX
+      \adjustspacing=2
+      \protrudechars=2
+    \else
       \ifpdf % pdfTeX
         \pdfadjustspacing=2
         \pdfprotrudechars=2
       \fi
-    \else % LuaTeX
-      \adjustspacing=2
-      \protrudechars=2
     \fi
-  \else % XeTeX
-    \XeTeXprotrudechars=2
   \fi
   %
   \mtfontexpand\textrm
@@ -11713,18 +11904,18 @@ directory should work if nowhere else does.}
 \def\microtypeOFF{%
   \microtypefalse
   %
-  \ifx\XeTeXrevision\thisisundefined
-    \ifx\luatexversion\thisisundefined
+  \ifxetex % XeTeX
+    \XeTeXprotrudechars=0
+  \else
+    \ifluatex % LuaTeX
+      \adjustspacing=0
+      \protrudechars=0
+    \else
       \ifpdf % pdfTeX
         \pdfadjustspacing=0
         \pdfprotrudechars=0
       \fi
-    \else % LuaTeX
-      \adjustspacing=0
-      \protrudechars=0
     \fi
-  \else % XeTeX
-    \XeTeXprotrudechars=0
   \fi
 }
 
