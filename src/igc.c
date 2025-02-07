@@ -3228,20 +3228,14 @@ igc_xalloc_raw_exact (size_t n)
 void *
 igc_xzalloc_ambig (size_t size)
 {
-  /* Not sure if xzalloc can ever return NULL here, depending on all the
-     config options involved.  Also not sure when it returns non-null for
-     size 0.  It does for me on macOS.  */
+  /* Can't make a root that has zero length.  Want one to be able to
+     detect calling igc_free on something not having a root.  */
+  if (size == 0)
+    size = IGC_ALIGN_DFLT;
   while (size % IGC_ALIGN_DFLT)
     size++;
   void *p = xzalloc (size);
-  if (p == NULL)
-    return NULL;
-
-  /* Can't make a root that has zero length.  Want one to be able to
-     detect calling igc_free on something not having a root.  */
   void *end = (char *) p + size;
-  if (end == p)
-    end = (char *) p + IGC_ALIGN_DFLT;
   root_create_ambig (global_igc, p, end, "xzalloc-ambig");
   return p;
 }
