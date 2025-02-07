@@ -225,7 +225,7 @@ static void
 init_eval_once_for_pdumper (void)
 {
   enum { size = 50 };
-  union specbinding *pdlvec = malloc ((size + 1) * sizeof *specpdl);
+  union specbinding *pdlvec = xzalloc ((size + 1) * sizeof *specpdl);
   specpdl = specpdl_ptr = pdlvec + 1;
   specpdl_end = specpdl + size;
 #ifdef HAVE_MPS
