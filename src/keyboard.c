@@ -13965,7 +13965,10 @@ function is called to remap that sequence.  */);
   pdumper_do_now_and_after_load (syms_of_keyboard_for_pdumper);
 
   DEFSYM (Qactivate_mark_hook, "activate-mark-hook");
+#ifdef HAVE_NS
+  DEFSYM (Qns_put_working_text, "ns-put-working-text");
   DEFSYM (Qns_unput_working_text, "ns-unput-working-text");
+#endif
   DEFSYM (Qinternal_timer_start_idle, "internal-timer-start-idle");
   DEFSYM (Qconcat, "concat");
   DEFSYM (Qsuspend_hook, "suspend-hook");
