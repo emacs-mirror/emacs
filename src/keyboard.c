@@ -11663,7 +11663,7 @@ Only 'input_event' slots KIND and ARG are set.  */)
 #endif
      : EQ (XCAR (event), Qiconify_frame) ? ICONIFY_EVENT
      : EQ (XCAR (event), Qmake_frame_visible) ? DEICONIFY_EVENT
-     // : EQ (XCAR (event), Qselect_window) ? SELECT_WINDOW_EVENT
+  /* : EQ (XCAR (event), Qselect_window) ? SELECT_WINDOW_EVENT */
      : EQ (XCAR (event), Qsave_session) ? SAVE_SESSION_EVENT
 #ifdef HAVE_DBUS
      : EQ (XCAR (event), Qdbus_event) ? DBUS_EVENT
