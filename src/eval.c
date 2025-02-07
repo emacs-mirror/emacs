@@ -230,7 +230,10 @@ init_eval_once_for_pdumper (void)
   specpdl_end = specpdl + size;
 #ifdef HAVE_MPS
   for (int i = 0; i < size; ++i)
-    specpdl[i].kind = SPECPDL_FREE;
+    {
+      specpdl[i].kind = SPECPDL_FREE;
+      memset (&specpdl[i], 0, sizeof specpdl[i]);
+    }
   igc_on_alloc_main_thread_specpdl ();
 #endif
 }
@@ -3847,6 +3850,7 @@ unbind_to (specpdl_ref count, Lisp_Object value)
       this_binding = *--specpdl_ptr;
 #ifdef HAVE_MPS
       specpdl_ptr->kind = SPECPDL_FREE;
+      memset (specpdl_ptr, 0, sizeof *specpdl_ptr);
 #endif
       do_one_unbind (&this_binding, true, SET_INTERNAL_UNBIND);
     }

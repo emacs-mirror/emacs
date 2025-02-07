@@ -3799,7 +3799,8 @@ extern void defvar_kboard (struct Lisp_Fwd const *, char const *);
 enum specbind_tag
 {
 # ifdef HAVE_MPS
-  SPECPDL_FREE,
+  SPECPDL_FREE = 0,		/* Must be zero so xzalloc'd memory
+				   scans without crashing.  */
 # endif
   SPECPDL_UNWIND,		/* An unwind_protect function on Lisp_Object.  */
   SPECPDL_UNWIND_ARRAY,		/* Likewise, on an array that needs freeing.

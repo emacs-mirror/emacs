@@ -1314,7 +1314,7 @@ print (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 struct print_pp_entry {
   ptrdiff_t n;			/* number of values, or 0 if a single value */
 #ifdef HAVE_MPS
-  bool is_free;
+  bool is_in_use;
   ptrdiff_t start;
 #endif
   union {
@@ -1344,7 +1344,7 @@ scan_ppstack (struct igc_ss *ss, void *start, void *end, void *closure)
   eassert (closure == NULL);
   for (struct print_pp_entry *p = start; (void *) p < end; ++p)
     {
-      if (p->is_free)
+      if (!p->is_in_use)
 	break;
       igc_scan_result_t err = 0;
       if (p->n == 0)
@@ -1373,7 +1373,7 @@ grow_pp_stack (void)
   igc_xpalloc_exact ((void **) &ppstack.stack, &ps->size, 1, -1,
 		     sizeof *ps->stack, scan_ppstack, NULL);
   for (ptrdiff_t i = old_size; i < ps->size; ++i)
-    ppstack.stack[i].is_free = true;
+    ppstack.stack[i].is_in_use = false;
 #else
   ps->stack = xpalloc (ps->stack, &ps->size, 1, -1, sizeof *ps->stack);
 #endif
@@ -1385,11 +1385,16 @@ pp_stack_push_value (Lisp_Object value)
 {
   if (ppstack.sp >= ppstack.size)
     grow_pp_stack ();
-  ppstack.stack[ppstack.sp++]
-    = (struct print_pp_entry){ .n = 0, .u.value = value };
+  volatile struct print_pp_entry entry =
+    {
+      .n = 0,
+      .u.value = value,
 #ifdef HAVE_MPS
-  ppstack.stack[ppstack.sp - 1].is_free = false;
+      .is_in_use = true,
 #endif
+    };
+  ppstack.stack[ppstack.sp++] = entry;
+  eassert (memcmp ((void *)&entry, (void *)&ppstack.stack[ppstack.sp - 1], sizeof entry) == 0);
 }
 
 #ifdef HAVE_MPS
@@ -1402,12 +1407,15 @@ pp_stack_push_values (Lisp_Object vectorlike, ptrdiff_t start, ptrdiff_t n)
     return;
   if (ppstack.sp >= ppstack.size)
     grow_pp_stack ();
-  ppstack.stack[ppstack.sp++]
-    = (struct print_pp_entry){.start = start,
-			      .n = n,
-			      .u.vectorlike = vectorlike
-			     };
-  ppstack.stack[ppstack.sp - 1].is_free = false;
+  volatile struct print_pp_entry entry =
+    {
+      .start = start,
+      .n = n,
+      .u.vectorlike = vectorlike,
+      .is_in_use = true,
+    };
+  ppstack.stack[ppstack.sp++] = entry;
+  eassert (memcmp ((void *)&entry, (void *)&ppstack.stack[ppstack.sp - 1], sizeof entry) == 0);
 }
 #else
 static inline void
@@ -1433,30 +1441,31 @@ static inline Lisp_Object
 pp_stack_pop (void)
 {
   eassume (!pp_stack_empty_p ());
-  struct print_pp_entry *e = &ppstack.stack[ppstack.sp - 1];
-  if (e->n == 0)		/* single value */
+  struct print_pp_entry *ep = &ppstack.stack[ppstack.sp - 1];
+  volatile struct print_pp_entry e = *ep;
+  if (e.n == 0)			/* single value */
     {
       --ppstack.sp;
 #ifdef HAVE_MPS
-      e->is_free = true;
+      ep->is_in_use = false;
 #endif
-      return e->u.value;
+      return e.u.value;
     }
   /* Array of values: pop them left to right, which seems to be slightly
      faster than right to left.  */
-  e->n--;
+  ep->n--;
   Lisp_Object result;
 #ifdef HAVE_MPS
-  result = AREF (e->u.vectorlike, e->start);
-  e->start++;
+  result = AREF (e.u.vectorlike, e.start);
+  ep->start++;
 #else
-  result = (++e->u.values)[-1];
+  result = (++e.u.values)[-1];
 #endif
-  if (e->n == 0)
+  if (ep->n == 0)
     {
       --ppstack.sp;
 #ifdef HAVE_MPS
-      e->is_free = true;
+      ep->is_in_use = false;
 #endif
     }
   return result;
@@ -2222,7 +2231,8 @@ named_escape (int i)
 enum print_entry_type
 {
 #ifdef HAVE_MPS
-  PE_free,
+  PE_free = 0,			/* must be zero so xzalloc'd memory
+				   scans without crashing */
 #endif
   PE_list,			/* print rest of list */
   PE_rbrac,			/* print ")" */
