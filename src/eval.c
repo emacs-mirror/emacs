@@ -2482,15 +2482,23 @@ grow_specpdl_allocation (void)
   ptrdiff_t size = specpdl_end - specpdl;
   ptrdiff_t pdlvecsize = size + 1;
   eassert (max_size > size);
+
+#ifdef HAVE_MPS
+  ptrdiff_t old_pdlvecsize = pdlvecsize;
+  ptrdiff_t nbytes = xpalloc_nbytes (pdlvec, &pdlvecsize, 1, max_size + 1,
+				     sizeof *specpdl);
+  union specbinding *new_pdlvec = xzalloc (nbytes);
+  igc_replace_specpdl (pdlvec, old_pdlvecsize,
+		       new_pdlvec, pdlvecsize);
+  union specbinding *old_pdlvec = pdlvec;
+  pdlvec = new_pdlvec;
+  xfree (old_pdlvec);
+#else
   pdlvec = xpalloc (pdlvec, &pdlvecsize, 1, max_size + 1, sizeof *specpdl);
+#endif
   specpdl = pdlvec + 1;
   specpdl_end = specpdl + pdlvecsize - 1;
   specpdl_ptr = specpdl_ref_to_ptr (count);
-#ifdef HAVE_MPS
-  for (int i = size; i < pdlvecsize - 1; ++i)
-    specpdl[i].kind = SPECPDL_FREE;
-  igc_on_grow_specpdl ();
-#endif
 }
 
 /* Eval a sub-expression of the current expression (i.e. in the same

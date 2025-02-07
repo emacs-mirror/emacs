@@ -140,7 +140,8 @@ unsigned char *igc_replace_char (Lisp_Object string, ptrdiff_t at_byte_pos,
 size_t igc_hash (Lisp_Object key);
 specpdl_ref igc_park_arena (void);
 void igc_postmortem (void);
-void igc_on_grow_specpdl (void);
+void igc_replace_specpdl (volatile union specbinding *old_specpdl, ptrdiff_t old_nitems,
+			  volatile union specbinding *new_specpdl, ptrdiff_t new_nitems);
 void igc_on_alloc_main_thread_specpdl (void);
 void igc_on_alloc_main_thread_bc (void);
 void igc_on_staticpros_complete (void);

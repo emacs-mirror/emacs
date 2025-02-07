@@ -2972,18 +2972,57 @@ root_create_thread (struct igc_thread_list *t)
 }
 
 void
-igc_on_grow_specpdl (void)
+igc_replace_specpdl (volatile union specbinding *old_pdlvec, ptrdiff_t old_entries,
+		     volatile union specbinding *new_pdlvec, ptrdiff_t new_entries)
 {
-  /* Note that no two roots may overlap, so we have to temporarily
-     stop the collector while replacing one root with another (xpalloc
-     may realloc).  Alternatives: (1) don't realloc, (2) alloc specpdl
-     from MPS pool that is scanned.  */
+  struct igc *gc = global_igc;
+  mps_root_t root;
+  for (ptrdiff_t i = 0; i < new_entries; i++)
+    new_pdlvec[i].kind = SPECPDL_FREE;
+
+  volatile union specbinding *new_specpdl = new_pdlvec + 1;
   struct igc_thread_list *t = current_thread->gc_info;
-  IGC_WITH_PARKED (t->d.gc)
-  {
-    destroy_root (&t->d.specpdl_root);
-    root_create_specpdl (t);
-  }
+  mps_res_t res
+    = mps_root_create_area (&root, gc->arena, mps_rank_exact (), 0,
+			    (void *)new_specpdl,
+			    (void *)(new_pdlvec + new_entries),
+			    scan_specpdl, t);
+  IGC_CHECK_RES (res);
+  struct igc_root_list *old_root = t->d.specpdl_root;
+  t->d.specpdl_root
+    = register_root (gc, root, (void *)new_specpdl,
+		     (void *)(new_pdlvec + new_entries),
+		     false, "specpdl");
+
+  /* This is volatile so it's on the stack, where MPS sees it and it
+     pins its references.  Omitting the "volatile" would mean the
+     compiler might optimize it away, keeping only the heap copy.  */
+  volatile union specbinding orig;
+
+  for (ptrdiff_t i = 0; i < old_entries; i++)
+    {
+    try_again:;
+      orig = old_pdlvec[i];
+      if (memcmp ((void *)&orig, (void *)(&old_pdlvec[i]), sizeof orig))
+	{
+	  /* We tried to create a snapshot of old_pdlvec[i] on the
+	     stack, which would pin all pointers in old_pdlvec[i].  But
+	     we failed, because a pointer in old_pdlvec[i] was updated
+	     by GC while we were creating the copy.  Try again.  */
+	  goto try_again;
+	}
+      volatile union specbinding temp = orig;
+      temp.kind = SPECPDL_FREE;
+      new_pdlvec[i] = temp;
+      new_pdlvec[i].kind = orig.kind;
+      eassert (memcmp ((void *)(&new_pdlvec[i]), (void *)(&old_pdlvec[i]),
+		       sizeof orig) == 0);
+    }
+
+  eassert (memcmp ((void *)new_pdlvec, (void *)old_pdlvec,
+		   old_entries * sizeof (old_pdlvec[0])) == 0);
+
+  igc_destroy_root_with_start (old_root->d.start);
 }
 
 static igc_root_list *
@@ -3193,16 +3232,40 @@ void
 igc_grow_rdstack (struct read_stack *rs)
 {
   struct igc *gc = global_igc;
-  IGC_WITH_PARKED (gc)
-  {
-    igc_destroy_root_with_start (rs->stack);
-    ptrdiff_t old_nitems = rs->size;
-    rs->stack = xpalloc (rs->stack, &rs->size, 1, -1, sizeof *rs->stack);
-    for (ptrdiff_t i = old_nitems; i < rs->size; ++i)
-      rs->stack[i].type = RE_free;
-    root_create_exact (gc, rs->stack, rs->stack + rs->size, scan_rdstack,
-		       "rdstack");
-  }
+  ptrdiff_t old_nitems = rs->size;
+  ptrdiff_t nbytes = xpalloc_nbytes (rs->stack, &rs->size, 1, -1, sizeof *rs->stack);
+  struct read_stack_entry *new_stack = xzalloc (nbytes);
+  for (ptrdiff_t i = 0; i < rs->size; i++)
+    new_stack[i].type = RE_free;
+
+  /* This is volatile so it's on the stack, where MPS sees it and it
+     pins its references.  Omitting the "volatile" would mean the
+     compiler might optimize it away, keeping only the heap copy.  */
+  volatile struct read_stack_entry orig;
+  struct read_stack *old_stack = rs;
+  root_create_exact (gc, new_stack, (char *)new_stack + nbytes, scan_rdstack,
+		     "rdstack");
+  for (ptrdiff_t i = 0; i < old_nitems; i++)
+    {
+    try_again:;
+      orig = old_stack->stack[i];
+      if (memcmp ((void *)&orig, (void *)(&old_stack->stack[i]), sizeof orig))
+	{
+	  /* We tried to create a snapshot of old_stack[i] on the
+	     stack, which would pin all pointers in old_stack[i].  But
+	     we failed, because a pointer in old_stack[i] was updated
+	     by GC while we were creating the copy.  Try again.  */
+	  goto try_again;
+	}
+      volatile struct read_stack_entry temp = orig;
+      temp.type = RE_free;
+      new_stack[i] = temp;
+      new_stack[i].type = orig.type;
+      eassert (memcmp ((void *)(&new_stack[i]), (void *)(&old_stack->stack[i]), sizeof orig) == 0);
+    }
+
+  igc_xfree (rs->stack);
+  rs->stack = new_stack;
 }
 
 Lisp_Object *
@@ -3243,24 +3306,35 @@ igc_xzalloc_ambig (size_t size)
 void *
 igc_xnmalloc_ambig (ptrdiff_t nitems, ptrdiff_t item_size)
 {
-  return igc_xzalloc_ambig (nitems * item_size);
+  ptrdiff_t nbytes;
+  if (ckd_mul (&nbytes, nitems, item_size) || SIZE_MAX < nbytes)
+    memory_full (SIZE_MAX);
+  return igc_xzalloc_ambig (nbytes);
 }
 
 void *
 igc_realloc_ambig (void *block, size_t size)
 {
   struct igc *gc = global_igc;
-  void *p;
-  IGC_WITH_PARKED (gc)
-  {
-    igc_destroy_root_with_start (block);
-    /* Can't make a root that has zero length.  Want one to be able to
-       detect calling igc_free on something not having a root.  */
-    size_t new_size = (size == 0 ? IGC_ALIGN_DFLT : size);
-    p = xrealloc (block, new_size);
-    void *end = (char *)p + new_size;
-    root_create_ambig (global_igc, p, end, "realloc-ambig");
-  }
+  void *p = xzalloc (size);
+  struct igc_root_list *r = root_find (block);
+  ptrdiff_t old_size = (char *)r->d.end - (char *)r->d.start;
+  ptrdiff_t min_size = min (old_size, size);
+  root_create_ambig (gc, p, (char *)p + size, "realloc-ambig");
+  mps_word_t *old_pw = block;
+  mps_word_t *new_pw = p;
+  for (ptrdiff_t i = 0; i < min_size / sizeof (mps_word_t); i++)
+    {
+      /* This is volatile so it's on the stack, where MPS sees it and it
+	 pins its references.  Omitting the "volatile" would mean the
+	 compiler might optimize it away, keeping only the heap copy.  */
+      volatile mps_word_t word = old_pw[i];
+      eassert (memcmp ((void *)&word, old_pw + i, sizeof word) == 0);
+      new_pw[i] = word;
+    }
+  memcpy (new_pw + (min_size / sizeof (mps_word_t)), old_pw + (min_size / sizeof (mps_word_t)),
+	  min_size % sizeof (mps_word_t));
+  igc_xfree (block);
   return p;
 }
 
@@ -3278,17 +3352,23 @@ igc_xfree (void *p)
 }
 
 void *
-igc_xpalloc_ambig (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
+igc_xpalloc_ambig (void *old_pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
 		   ptrdiff_t nitems_max, ptrdiff_t item_size)
 {
-  IGC_WITH_PARKED (global_igc)
-  {
-    igc_destroy_root_with_start (pa);
-    pa = xpalloc (pa, nitems, nitems_incr_min, nitems_max, item_size);
-    char *end = (char *) pa + *nitems * item_size;
-    root_create_ambig (global_igc, pa, end, "xpalloc-ambig");
-  }
-  return pa;
+  ptrdiff_t old_nitems = *nitems;
+  ptrdiff_t new_nitems = *nitems;
+  ptrdiff_t nbytes = xpalloc_nbytes (old_pa, &new_nitems, nitems_incr_min,
+				     nitems_max, item_size);
+  void *new_pa = xzalloc (nbytes);
+  char *end = (char *)new_pa + nbytes;
+  root_create_ambig (global_igc, new_pa, end, "xpalloc-ambig");
+  mps_word_t *old_word = old_pa;
+  mps_word_t *new_word = new_pa;
+  for (ptrdiff_t i = 0; i < (old_nitems * item_size) / sizeof (mps_word_t); i++)
+    new_word[i] = old_word[i];
+  *nitems = new_nitems;
+  igc_xfree (old_pa);
+  return new_pa;
 }
 
 void
@@ -3297,29 +3377,50 @@ igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
 		   ptrdiff_t item_size, igc_scan_area_t scan_area,
 		   void *closure)
 {
-  IGC_WITH_PARKED (global_igc)
-  {
-    void *pa = *pa_cell;
-    igc_destroy_root_with_start (pa);
-    pa = xpalloc (pa, nitems, nitems_incr_min, nitems_max, item_size);
-    char *end = (char *)pa + *nitems * item_size;
-    root_create (global_igc, pa, end, mps_rank_exact (), (mps_area_scan_t) scan_area,
-		 closure, false, "xpalloc-exact");
-    *pa_cell = pa;
-  }
+  void *old_pa = *pa_cell;
+  ptrdiff_t old_nitems = *nitems;
+  ptrdiff_t new_nitems = *nitems;
+  ptrdiff_t nbytes = xpalloc_nbytes (old_pa, &new_nitems, nitems_incr_min,
+				     nitems_max, item_size);
+  void *new_pa = xzalloc (nbytes);
+  char *end = (char *)new_pa + nbytes;
+  root_create (global_igc, new_pa, end, mps_rank_exact (), (mps_area_scan_t) scan_area,
+	       closure, false, "xpalloc-exact");
+  for (ptrdiff_t i = 0; i < (old_nitems); i++)
+    {
+      /* This is volatile so it's on the stack, where MPS sees it and it
+	 pins its references.  Omitting the "volatile" would mean the
+	 compiler might optimize it away, keeping only the heap copy.  */
+      volatile mps_word_t area[(item_size + (sizeof (mps_word_t) - 1))
+			       / (sizeof (mps_word_t))];
+      memcpy ((void *)area, (char *)old_pa + item_size * i, item_size);
+      eassert (memcmp ((void *)area, (char *)old_pa + item_size * i,
+		       item_size) == 0);
+      memcpy ((char *)new_pa + item_size * i, (void *)area, item_size);
+    }
+  eassert (memcmp (old_pa, new_pa, old_nitems * item_size) == 0);
+  eassert ((item_size) % sizeof (mps_word_t) == 0);
+  *pa_cell = new_pa;
+  *nitems = new_nitems;
+  igc_xfree (old_pa);
 }
 
 void *
-igc_xnrealloc_ambig (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
+igc_xnrealloc_ambig (void *old_pa, ptrdiff_t nitems, ptrdiff_t item_size)
 {
-  IGC_WITH_PARKED (global_igc)
-  {
-    igc_destroy_root_with_start (pa);
-    pa = xnrealloc (pa, nitems, item_size);
-    char *end = (char *) pa + nitems * item_size;
-    root_create_ambig (global_igc, pa, end, "xnrealloc-ambig");
-  }
-  return pa;
+  struct igc_root_list *r = root_find (old_pa);
+  ptrdiff_t old_nbytes = (char *)r->d.end - (char *)r->d.start;
+  ptrdiff_t nbytes;
+  if (ckd_mul (&nbytes, nitems, item_size) || SIZE_MAX < nbytes)
+    memory_full (SIZE_MAX);
+  void *new_pa = xzalloc (nbytes);
+  char *end = (char *) new_pa + nbytes;
+  root_create_ambig (global_igc, new_pa, end, "xnrealloc-ambig");
+  memcpy (new_pa, old_pa, old_nbytes);
+  eassert (memcmp (new_pa, old_pa, old_nbytes) == 0);
+  igc_xfree (old_pa);
+
+  return new_pa;
 }
 
 static void
