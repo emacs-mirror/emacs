@@ -499,33 +499,37 @@ initializes it only if it is originally void.
 Definitions}.
 
 @defspec defvar symbol [value [doc-string]]
-This special form defines @var{symbol} as a variable.  Note that
-@var{symbol} is not evaluated; the symbol to be defined should appear
-explicitly in the @code{defvar} form.  The variable is marked as
-@dfn{special}, meaning that it should always be dynamically bound
+This special form defines @var{symbol} as a variable and optionally
+initializes and documents it.  Note that it doesn't evaluate
+@var{symbol}; the symbol to be defined should appear explicitly in the
+@code{defvar} form.  @code{defvar} also marks @var{symbol} as
+@dfn{special}, meaning that its bindings should always be dynamic
 (@pxref{Variable Scoping}).
 
 If @var{value} is specified, and @var{symbol} is void (i.e., it has no
-dynamically bound value; @pxref{Void Variables}), then @var{value} is
-evaluated and @var{symbol} is set to the result.  But if @var{symbol}
-is not void, @var{value} is not evaluated, and @var{symbol}'s value is
-left unchanged.  If @var{value} is omitted, the value of @var{symbol}
-is not changed in any case.
+dynamically bound value; @pxref{Void Variables}), then @code{defvar}
+evaluates @var{value}, and initializes @var{symbol} by setting it to the
+result of the evaluation.  But if @var{symbol} is not void,
+@code{defvar} does not evaluate @var{value}, and leaves @var{symbol}'s
+value unchanged.  If @var{value} is omitted, @code{defvar} doesn't
+change the value of @var{symbol} in any case.
 
 Note that specifying a value, even @code{nil}, marks the variable as
-special permanently.  Whereas if @var{value} is omitted then the
-variable is only marked special locally (i.e.@: within the current
-lexical scope, or file if at the top-level).  This can be useful for
-suppressing byte compilation warnings, see @ref{Compiler Errors}.
+special permanently.  Whereas if @var{value} is omitted, then
+@code{defvar} marks the variable special only locally (i.e.@: within the
+current lexical scope, or within the current file, if @code{defvar} is
+at the top-level).  This can be useful for suppressing byte compilation
+warnings, see @ref{Compiler Errors}.
 
-If @var{symbol} has a buffer-local binding in the current buffer,
-@code{defvar} acts on the default value, which is buffer-independent,
-rather than the buffer-local binding.  It sets the default value if
-the default value is void.  @xref{Buffer-Local Variables}.
+If @var{symbol} has a buffer-local binding in the current buffer, and
+@var{value} is specified, @code{defvar} modifies the default value of
+@var{symbol}, which is buffer-independent, rather than the buffer-local
+binding.  It sets the default value if the default value is void.
+@xref{Buffer-Local Variables}.
 
-If @var{symbol} is already let bound (e.g., if the @code{defvar}
-form occurs in a @code{let} form), then @code{defvar} sets the toplevel
-default value, like @code{set-default-toplevel-value}.
+If @var{symbol} is already let bound (e.g., if the @code{defvar} form
+occurs in a @code{let} form), then @code{defvar} sets the toplevel
+default value of @var{symbol}, like @code{set-default-toplevel-value}.
 The let binding remains in effect until its binding construct exits.
 @xref{Variable Scoping}.
 
