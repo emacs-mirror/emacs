@@ -603,7 +603,7 @@ from other commands that pass in the bookmark name, so
 `completing-read' never gets a chance to set `bookmark-history'."
   `(or
     (called-interactively-p 'interactive)
-    (setq bookmark-history (cons ,string bookmark-history))))
+    (add-to-history 'bookmark-history ,string)))
 
 (defvar bookmark-make-record-function 'bookmark-make-record-default
   "A function that should be called to create a bookmark record.

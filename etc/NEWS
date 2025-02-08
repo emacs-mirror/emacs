@@ -473,6 +473,13 @@ default), the 'whitespace-cleanup' function will now add the newline.
 ** Bookmark
 
 ---
+*** Bookmark history now saves each bookmark only once.
+Previously, the variable 'bookmark-history' accumulated duplicate
+bookmark names when bookmark features were used interactively.  This
+made their history larger than necessary for frequent bookmark users.
+Bookmark names are now saved uniquely.
+
+---
 *** New user option 'bookmark-bmenu-type-column-width'.
 This user option controls the width of the type column on the bookmark
 menu 'bookmark-bmenu-list'.  The default value is 8 which is backwards
