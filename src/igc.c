@@ -3315,8 +3315,11 @@ igc_xnmalloc_ambig (ptrdiff_t nitems, ptrdiff_t item_size)
 void *
 igc_realloc_ambig (void *block, size_t size)
 {
-  struct igc *gc = global_igc;
+  if (block == NULL)
+    return igc_xzalloc_ambig (size);
+
   void *p = xzalloc (size);
+  struct igc *gc = global_igc;
   struct igc_root_list *r = root_find (block);
   ptrdiff_t old_size = (char *)r->d.end - (char *)r->d.start;
   ptrdiff_t min_size = min (old_size, size);
