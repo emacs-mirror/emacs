@@ -2311,8 +2311,10 @@ If it is activated, also signal textDocument/didOpen."
     ["Quickfix" eglot-code-action-quickfix
      :visible (eglot-server-capable :codeActionProvider)]
     "--"
-    ["Show type hierarchy" eglot-show-type-hierarchy]
-    ["Show call hierarchy" eglot-show-call-hierarchy]
+    ["Show type hierarchy" eglot-show-type-hierarchy
+     :active (eglot-server-capable :typeHierarchyProvider)]
+    ["Show call hierarchy" eglot-show-call-hierarchy
+     :active (eglot-server-capable :callHierarchyProvider)]
     "--"))
 
 (easy-menu-define eglot-server-menu nil "Manage server communication"
