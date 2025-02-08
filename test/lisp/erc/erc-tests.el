@@ -3558,12 +3558,23 @@
   (should (eq (erc--normalize-module-symbol 'nickserv) 'services)))
 
 (defun erc-tests--assert-printed-in-subprocess (code expected)
-  (let ((proc (erc-tests-common-create-subprocess code '("-batch") nil)))
-    (while (accept-process-output proc 10))
-    (goto-char (point-min))
-    (unless (equal (read (current-buffer)) expected)
-      (message "Expected: %S\nGot: %s" expected (buffer-string))
-      (ert-fail "Mismatch"))))
+  "Assert result emitted to standard output from CODE matches EXPECTED.
+Expect CODE to print result using `prin1' as a list beginning with the
+keyword :result."
+  (with-current-buffer
+      (get-buffer-create
+       (concat "*" (symbol-name (ert-test-name (ert-running-test))) "*"))
+    (unwind-protect
+        (let ((proc (erc-tests-common-create-subprocess code '("-batch") nil)))
+          (while (accept-process-output proc 10))
+          (goto-char (point-min))
+          (search-forward "(:result " nil t)
+          (unless (equal (ignore-errors (read (current-buffer))) expected)
+            (ert-fail (list "Mismatch"
+                            :expected expected
+                            :buffer-string (buffer-string)))))
+      (when noninteractive
+        (kill-buffer)))))
 
 ;; Worrying about which library a module comes from is mostly not
 ;; worth the hassle so long as ERC can find its minor mode.  However,
@@ -3573,25 +3584,25 @@
 
 (ert-deftest erc--find-mode ()
   (erc-tests--assert-printed-in-subprocess
-   `(let ((mods (mapcar #'cadddr (cdddr (get 'erc-modules 'custom-type))))
+   '(let ((mods (mapcar #'cadddr (cdddr (get 'erc-modules 'custom-type))))
           moded)
       (setq mods (sort mods (lambda (a b) (if (zerop (random 2)) a b))))
       (dolist (mod mods)
         (unless (keywordp mod)
           (push (if-let* ((mode (erc--find-mode mod))) mod (list :missing mod))
                 moded)))
-      (message "%S"
-               (sort moded (lambda (a b)
-                             (string< (symbol-name a) (symbol-name b))))))
+      (prin1 (list :result
+                   (sort moded (lambda (a b)
+                                 (string< (symbol-name a) (symbol-name b)))))))
    erc-tests--modules))
 
 (ert-deftest erc--essential-hook-ordering ()
   (erc-tests--assert-printed-in-subprocess
    '(progn
       (erc-update-modules)
-      (message "%S"
-               (list :erc-insert-modify-hook erc-insert-modify-hook
-                     :erc-send-modify-hook erc-send-modify-hook)))
+      (prin1 (list :result
+                   (list :erc-insert-modify-hook erc-insert-modify-hook
+                         :erc-send-modify-hook erc-send-modify-hook))))
 
    '( :erc-insert-modify-hook (erc-controls-highlight ; 0
                                erc-button-add-buttons ; 30
