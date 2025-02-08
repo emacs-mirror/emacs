@@ -3321,6 +3321,7 @@ igc_realloc_ambig (void *block, size_t size)
   void *p = xzalloc (size);
   struct igc *gc = global_igc;
   struct igc_root_list *r = root_find (block);
+  igc_assert (r);
   ptrdiff_t old_size = (char *)r->d.end - (char *)r->d.start;
   ptrdiff_t min_size = min (old_size, size);
   root_create_ambig (gc, p, (char *)p + size, "realloc-ambig");
@@ -3391,6 +3392,7 @@ igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
 	       closure, false, "xpalloc-exact");
   for (ptrdiff_t i = 0; i < (old_nitems); i++)
     {
+      igc_assert (item_size < MAX_ALLOCA);
       /* This is volatile so it's on the stack, where MPS sees it and it
 	 pins its references.  Omitting the "volatile" would mean the
 	 compiler might optimize it away, keeping only the heap copy.  */
@@ -3412,6 +3414,7 @@ void *
 igc_xnrealloc_ambig (void *old_pa, ptrdiff_t nitems, ptrdiff_t item_size)
 {
   struct igc_root_list *r = root_find (old_pa);
+  igc_assert (r);
   ptrdiff_t old_nbytes = (char *)r->d.end - (char *)r->d.start;
   ptrdiff_t nbytes;
   if (ckd_mul (&nbytes, nitems, item_size) || SIZE_MAX < nbytes)
