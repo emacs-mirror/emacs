@@ -1892,8 +1892,14 @@ The region will be defined with mark and point."
 If `mouse-1-double-click-prefer-symbols' is non-nil, skip over symbol.
 If DIR is positive skip forward; if negative, skip backward."
   (let* ((char (following-char))
+         (syntax-after-pt (syntax-class (syntax-after (point))))
 	 (syntax (char-to-string
-                  (syntax-class-to-char (syntax-class (syntax-after (point))))))
+                  (if syntax-after-pt
+                      (syntax-class-to-char syntax-after-pt)
+                    ;; Zero is what 'following-char' returns at EOB, so
+                    ;; we feed that to 'char-syntax' when 'syntax-class'
+                    ;; returns nil, which means we are at EOB.
+                    (char-syntax ?\0))))
          sym)
     (cond ((and mouse-1-double-click-prefer-symbols
                 (setq sym (bounds-of-thing-at-point 'symbol)))
