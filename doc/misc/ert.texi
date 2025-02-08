@@ -535,6 +535,7 @@ help ERT find the defining call to the macro by putting the property
 * Useful Techniques::           Some examples.
 * erts files::                  Files containing many buffer tests.
 * Syntax Highlighting Tests::   Tests for face assignment.
+* Helper Functions::            Various helper functions.
 @end menu
 
 
@@ -950,6 +951,7 @@ non-@code{nil} value, the test will be skipped.
 If you need to use the literal line single line @samp{=-=} in a test
 section, you can quote it with a @samp{\} character.
 
+
 @node Syntax Highlighting Tests
 @section Syntax Highlighting Tests
 
@@ -1081,6 +1083,304 @@ file:
 The @code{ert-font-lock-deftest} and @code{ert-font-lock-deftest-file}
 macros accept the same keyword parameters as @code{ert-deftest} i.e.,
 @code{:tag} and @code{:expected-result}.
+
+
+@node Helper Functions
+@section Various Helper Functions
+
+The package @file{ert-x.el} contains some macros and functions useful
+for writing tests.
+
+@subsection Test Buffers
+
+@defmac ert-with-test-buffer ((&key ((:name name-form))) &body body)
+This macro creates a test buffer and runs @var{body} in that buffer.  If
+@var{body} finishes successfully, the test buffer is killed; if there is
+an error, the test buffer is kept around for further inspection.
+
+The test buffer name is derived from the name of the ERT test and the
+result of @var{NAME-FORM}.  Example:
+
+@lisp
+(ert-deftest backtrace-tests--variables ()
+  (ert-with-test-buffer (:name "variables")
+    @dots{}))
+@end lisp
+
+This uses the test buffer @t{"*Test buffer (backtrace-tests--variables):
+variables*"}.
+@end defmac
+
+@defmac ert-with-buffer-selected (buffer &body body)
+The macro display a buffer in a temporary selected window and runs
+@var{body}. If @var{buffer} is @code{nil}, the current buffer is used.
+
+The buffer is made the current buffer, and the temporary window
+becomes the @code{selected-window}, before @var{body} is evaluated.  The
+modification hooks @code{before-change-functions} and
+@code{after-change-functions} are not inhibited during the evaluation
+of @var{body}, which makes it easier to use @code{execute-kbd-macro} to
+simulate user interaction.  The window configuration is restored
+before returning, even if @var{body} exits nonlocally.  The return
+value is the last form in @var{body}.  Example:
+
+@lisp
+(with-temp-buffer
+  (ert-with-buffer-selected nil
+    @dots{}))
+@end lisp
+
+This displays a temporary buffer @t{" *temp*-739785"*}.
+@end defmac
+
+@defmac ert-with-test-buffer-selected ((&key name) &body body)
+This creates a test buffer, switches to it, and runs @var{body}.
+
+It combines @code{ert-with-test-buffer} and
+@code{ert-with-buffer-selected}.  The return value is the last form in
+@var{body}.  Example:
+
+@lisp
+(ert-deftest whitespace-tests--global ()
+  (ert-with-test-buffer-selected (:name "global")
+    @dots{}))
+@end lisp
+
+This displays the test buffer @t{"*Test buffer
+(whitespace-tests--global): global*"}.
+@end defmac
+
+@defun ert-kill-all-test-buffers ()
+It kills all test buffers that are still live.
+@end defun
+
+@defmac ert-with-buffer-renamed ((buffer-name-form) &body body)
+This macro protects the buffer @var{buffer-name} from side-effects and
+runs @var{body}.  It renames the buffer @var{buffer-name} to a new
+temporary name, creates a new buffer named @var{buffer-name}, executes
+@var{body}, kills the new buffer, and renames the original buffer back
+to @var{buffer-name}.
+
+This is useful if @var{body} has undesirable side-effects on an Emacs
+buffer with a fixed name such as @t{"*Messages*"}.  Example:
+
+@lisp
+(ert-with-buffer-renamed ("*Messages*") @dots{})
+@end lisp
+@end defmac
+
+@defmac ert-with-message-capture (var &rest body)
+This macro executes @var{body} while collecting messages in @var{var}.
+It captures messages issued by Lisp code and concatenates them separated
+by newlines into one string.  This includes messages written by
+@code{message} as well as objects printed by @code{print}, @code{prin1}
+and @code{princ} to the echo area.  Messages issued from C code using
+the above mentioned functions will not be captured.
+
+This is useful for separating the issuance of messages by the code under
+test from the behavior of the @t{"*Messages*"} buffer.  Example:
+
+@lisp
+(ert-with-message-capture captured-messages @dots{})
+@end lisp
+@end defmac
+
+@subsection Test Directories and Files
+
+@defmac ert-resource-directory ()
+It returns the absolute file name of the resource (test data) directory.
+The path to the resource directory is the @file{resources} directory in
+the same directory as the test file this is called from.
+
+If that directory doesn't exist, find a directory based on the test file
+name.  If the file is named @file{foo-tests.el}, it returns the absolute
+file name for @file{foo-resources}.  Example:
+
+@lisp
+(let ((dir (ert-resource-directory)))
+  @dots{})
+@end lisp
+
+In order to use a different resource directory naming scheme, the
+variable @code{ert-resource-directory-format} can be changed.  Before
+formatting, the file name will be trimmed using @code{string-trim} with
+arguments @code{ert-resource-directory-trim-left-regexp} and
+@code{ert-resource-directory-trim-right-regexp}.  Example:
+
+@lisp
+(let* ((ert-resource-directory-format "test-resources-%s/")
+       (ert-resource-directory-trim-left-regexp ".*/")
+       (dir (ert-resource-directory)))
+  @dots{})
+@end lisp
+
+uses the absolute file name for @file{test-resources-foo}.
+@end defmac
+
+@defmac ert-resource-file (file)
+It returns the absolute file name of resource (test data) file named
+@var{file}, which should be a relative file name.  A resource file is
+defined as any file placed in the resource directory as returned by
+@code{ert-resource-directory}.  Example:
+
+@lisp
+(let ((file (ert-resource-file "bar/baz")))
+  @dots{})
+@end lisp
+
+It returns the absolute file name for @file{foo-resources/bar/baz} when
+called in file @file{foo-tests.el}.
+@end defmac
+
+@defmac ert-with-temp-file (name &rest body)
+This macro binds @var{name} to the name of a new temporary file and evaluates @var{body}.
+It deletes the temporary file after @var{body} exits normally or
+non-locally.  @var{name} will be bound to the file name of the temporary
+file.
+
+The following keyword arguments are supported:
+
+@table @code
+@item :prefix @var{string}
+If non-nil, pass @var{string} to @code{make-temp-file} as
+the @var{prefix} argument.  Otherwise, use the value of
+@code{ert-temp-file-prefix}.
+
+@item :suffix @var{string}
+If non-nil, pass @var{string} to @code{make-temp-file} as the
+@var{suffix} argument.  Otherwise, use the value of
+@code{ert-temp-file-suffix}; if the value of that variable is nil,
+generate a suffix based on the name of the file that
+@code{ert-with-temp-file} is called from.
+
+@item :text @var{string}
+If non-nil, pass @var{string} to @code{make-temp-file} as the @var{text} argument.
+
+@item :buffer @var{symbol}
+Open the temporary file using @code{find-file-noselect} and bind
+@var{symbol} to the buffer.  Kill the buffer after @var{body} exits
+normally or non-locally.
+
+@item :coding @var{coding}
+If non-nil, bind @code{coding-system-for-write} to @var{coding} when
+executing @var{body}.  This is handy when @var{string} includes
+non-ASCII characters or the temporary file must have a specific encoding
+or end-of-line format.
+@end table
+
+Example:
+
+@lisp
+(ert-with-temp-file temp-file
+  :prefix "foo"
+  :suffix "bar"
+  :text "foobar3"
+  @dots{})
+@end lisp
+@end defmac
+
+@defmac ert-with-temp-directory (name &rest body)
+This macro binds @var{name} to the name of a new temporary directory and
+evaluates @var{body}.  It deletes the temporary directory after
+@var{body} exits normally or non-locally.
+
+@var{name} is bound to the directory name, not the directory file name.
+(In other words, it will end with the directory delimiter; on Unix-like
+systems, it will end with @t{"/"}.)
+
+The same keyword arguments are supported as in
+@code{ert-with-temp-file}, except for @code{:text}.  Example:
+
+@lisp
+(ert-with-temp-directory temp-dir
+  :prefix "foo"
+  :suffix "bar"
+  @dots{})
+@end lisp
+@end defmac
+
+@defvar ert-remote-temporary-file-directory
+This variable provides the name of a temporary directory for remote file
+tests.  Per default, a mock-up connection method is used (this might not
+be possible when running on MS Windows).  The default value is
+@t{"/mock::/tmp/"}.
+
+If a real remote connection shall be used for testing, this can be
+overwritten by the environment variable
+@env{REMOTE_TEMPORARY_FILE_DIRECTORY}.  Example
+
+@example
+# env REMOTE_TEMPORARY_FILE_DIRECTORY=/ssh:host:/tmp make @dots{}
+@end example
+@end defvar
+
+@subsection Miscellaneous Utilities
+
+@defun ert-simulate-command (command)
+Simulate calling @var{command} the way the Emacs command loop would call
+it.  It runs hooks like @code{pre-command-hook} and
+@code{post-command-hook}, and sets variables like @code{this-command}
+and @code{last-command}.
+
+@var{command} should be a list where the @code{car} is the command
+symbol and the rest are arguments to the command.  Example:
+
+@lisp
+(ert-simulate-command '(find-file "project/foo.c"))
+@end lisp
+
+@strong{Note}: Since the command is not called by
+@code{call-interactively}, a test for @code{(called-interactively-p 'interactive)}
+in the command will fail.
+@end defun
+
+@defmac ert-simulate-keys (keys &rest body)
+This executes @var{body} with @var{keys} as pseudo-interactive input.
+@var{keys} is either a string, a list of characters, or a character
+vector.  Examples:
+
+@lisp
+(ert-simulate-keys '(?n ?\C-m) @dots{})
+(ert-simulate-keys "\r\r\r\ry\r" @dots{})
+(ert-simulate-keys (kbd "#fake C-m C-a C-k C-m") @dots{})
+(ert-simulate-keys [?b ?2 return] @dots{})
+@end lisp
+@end defmac
+
+@defun ert-filter-string (s &rest regexps)
+This function returns a copy of string @var{s} with all matches of
+@var{regexps} removed.  Elements of @var{regexps} may also be
+two-element lists @code{(@var{regexp} @var{subexp})}, where @var{subexp}
+is the number of a subexpression in @var{regexp}.  In that case, only
+that subexpression will be removed rather than the entire match.
+Example:
+
+@lisp
+(with-current-buffer @dots{}
+ (ert-filter-string (buffer-string)
+  '("Started at:\\(.*\\)$" 1)
+  '("Finished at:\\(.*\\)$" 1))
+ @dots{})
+@end lisp
+@end defun
+
+@defun ert-propertized-string (&rest args)
+This function returns a string with properties as specified by @var{args}.
+
+@var{args} is a list of strings and plists.  The strings in @var{args}
+are concatenated to produce an output string.  In the output string,
+each string from @var{args} will be have the preceding plist as its
+property list, or no properties if there is no plist before it.
+Example:
+
+@lisp
+(ert-propertized-string "foo " '(face italic) "bar" " baz" nil " quux")
+@end lisp
+
+This returns the string @t{"foo @i{bar baz} quux"} where the substring
+@t{"@i{bar baz}"} has a @code{face} property with the value @code{italic}.
+@end defun
+
 
 @node How to Debug Tests
 @chapter How to Debug Tests
