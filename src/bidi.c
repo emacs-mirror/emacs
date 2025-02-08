@@ -289,7 +289,7 @@ bidi_get_type (int ch, bidi_dir_t override)
   if (default_type == UNKNOWN_BT)
     emacs_abort ();
 
-  switch (default_type)
+  switch (INT_PROMOTE (default_type))
     {
       case WEAK_BN:
       case NEUTRAL_B:
@@ -2010,7 +2010,7 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
 	 embedding level of the _following_ characters, so we must
 	 first look at the type of the previous character to support
 	 that.  */
-      switch (prev_type)
+      switch (INT_PROMOTE (prev_type))
 	{
 	case RLI:	/* X5a */
 	  if (current_level < BIDI_MAXDEPTH
@@ -2074,7 +2074,7 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
 
   bidi_it->type_after_wn = UNKNOWN_BT;
 
-  switch (type)
+  switch (INT_PROMOTE (type))
     {
     case RLE:	/* X2 */
     case RLO:	/* X4 */
@@ -2707,7 +2707,7 @@ bidi_find_bracket_pairs (struct bidi_it *bidi_it)
 
 	      /* Whenever we see a strong type, update the flags of
 		 all the slots on the stack.  */
-	      switch (bidi_it->type)
+	      switch (INT_PROMOTE (bidi_it->type))
 		{
 		case STRONG_L:
 		  flag = ((embedding_level & 1) == 0
@@ -2979,7 +2979,7 @@ bidi_resolve_brackets (struct bidi_it *bidi_it)
 
 	  if (prev_type_for_neutral == UNKNOWN_BT)
 	    prev_type_for_neutral = embedding_type;
-	  switch (prev_type_for_neutral)
+	  switch (INT_PROMOTE (prev_type_for_neutral))
 	    {
 	    case STRONG_R:
 	    case WEAK_EN:
@@ -3175,7 +3175,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	    }
 	  else
 	    {
-	      switch (type)
+	      switch (INT_PROMOTE (type))
 		{
 		case STRONG_L:
 		case STRONG_R:
