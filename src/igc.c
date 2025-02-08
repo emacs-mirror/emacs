@@ -3413,9 +3413,13 @@ igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
 void *
 igc_xnrealloc_ambig (void *old_pa, ptrdiff_t nitems, ptrdiff_t item_size)
 {
-  struct igc_root_list *r = root_find (old_pa);
-  igc_assert (r);
-  ptrdiff_t old_nbytes = (char *)r->d.end - (char *)r->d.start;
+  ptrdiff_t old_nbytes = 0;
+  if (old_pa != NULL)
+    {
+      struct igc_root_list *r = root_find (old_pa);
+      igc_assert (r);
+      old_nbytes = (char *)r->d.end - (char *)r->d.start;
+    }
   ptrdiff_t nbytes;
   if (ckd_mul (&nbytes, nitems, item_size) || SIZE_MAX < nbytes)
     memory_full (SIZE_MAX);
