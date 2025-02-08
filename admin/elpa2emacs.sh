@@ -53,7 +53,7 @@
 # arguments
 OLDDIR="$PWD"
 TMPDIR=`mktemp -d`
-BRANCH="$1" # a branch name in the ELPA repo
+BRANCH="$1" # a branch name or commit in the ELPA repo
 shift
 PATHS="$@" # paths of files or directories to be matched.
 
@@ -73,11 +73,10 @@ NONCE=nonce"$(date +'%s')"
 pushd "$TMPDIR"
 # clone repos
 if [ -r "$OLDDIR"/elpa/.git ]; then
-    git clone -b "$BRANCH" "$OLDDIR"/elpa "$TMPDIR"/elpa
+    git clone "$OLDDIR"/elpa "$TMPDIR"/elpa
 else
-    git clone -b "$BRANCH" https://git.savannah.gnu.org/git/emacs/elpa.git "$TMPDIR"/elpa
+    git clone https://git.savannah.gnu.org/git/emacs/elpa.git "$TMPDIR"/elpa
 fi
-
 # filter elpa to keep only the appropriate files.  This destroys the
 # newly-created copy of the elpa repo.
 
