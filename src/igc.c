@@ -1057,6 +1057,7 @@ static mps_root_t
 deregister_root (struct igc_root_list *r)
 {
   struct igc_root root;
+  eassume (r != NULL);
   igc_root_list_remove (&root, &r->d.gc->roots, r);
   return root.root;
 }
@@ -3070,6 +3071,7 @@ igc_destroy_root_with_start (void *start)
     {
       struct igc_root_list *r = root_find (start);
       igc_assert (r != NULL);
+      eassume (r != NULL);
       destroy_root (&r);
     }
 }
@@ -3322,6 +3324,7 @@ igc_realloc_ambig (void *block, size_t size)
   struct igc *gc = global_igc;
   struct igc_root_list *r = root_find (block);
   igc_assert (r);
+  eassume (r != NULL);
   ptrdiff_t old_size = (char *)r->d.end - (char *)r->d.start;
   ptrdiff_t min_size = min (old_size, size);
   root_create_ambig (gc, p, (char *)p + size, "realloc-ambig");
@@ -3418,6 +3421,7 @@ igc_xnrealloc_ambig (void *old_pa, ptrdiff_t nitems, ptrdiff_t item_size)
     {
       struct igc_root_list *r = root_find (old_pa);
       igc_assert (r);
+      eassume (r != NULL);
       old_nbytes = (char *)r->d.end - (char *)r->d.start;
     }
   ptrdiff_t nbytes;
