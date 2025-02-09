@@ -1097,8 +1097,9 @@ When invoked with a prefix argument, 'package-install-selected-packages'
 will not prompt the user for confirmation before installing packages.
 
 ---
-*** 'package-refresh-contents' runs asynchronously
-Refreshing the package index will not block when invoked interactively.
+*** 'package-refresh-contents' runs asynchronously.
+Refreshing the package index will no longer block when invoked
+interactively.
 
 ** Xref
 
