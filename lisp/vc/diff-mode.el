@@ -1550,6 +1550,7 @@ else cover the whole buffer."
 (defvar whitespace-style)
 (defvar whitespace-trailing-regexp)
 
+(put 'diff-mode 'mode-class 'special)
 ;;;###autoload
 (define-derived-mode diff-mode fundamental-mode "Diff"
   "Major mode for viewing/editing context diffs.
