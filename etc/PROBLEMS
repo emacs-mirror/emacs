@@ -2815,7 +2815,7 @@ set the 'visible-cursor' variable to nil in your ~/.emacs:
 Still other way is to change the "cvvis" capability to send the
 "\E[?25h\E[?0c" command.
 
-*** GNU/Linux: GPM mouse does not display but still otherwise works.
+*** GNU/Linux: GPM mouse does not display pointer, but otherwise works.
 
 This happens on Linux kernel versions from 6.7 to 6.13.  On these
 versions, the Linux kernel does not allow programs to draw the mouse
@@ -2825,7 +2825,7 @@ programs such as your shell and many ncurses based programs, but not
 for Emacs.
 
 To solve this, you need to change your kernel to a version with this bug
-fixed, such as 6.14.  See associated Linux kernel fix:
+fixed, such as 6.14 or later.  See associated Linux kernel fix:
 https://lore.kernel.org/regressions/20250110142122.1013222-1-gnoack@google.com/
 
 ** FreeBSD
