@@ -2864,6 +2864,8 @@ To be used in the ERT results buffer."
                          'ert--activate-font-lock-keywords)
   nil)
 
+;;; erts files.
+
 (defun ert-test-erts-file (file &optional transform)
   "Parse FILE as a file containing before/after parts (an erts file).
 
