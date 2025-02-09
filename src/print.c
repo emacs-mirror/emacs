@@ -1459,7 +1459,7 @@ pp_stack_pop (void)
   result = AREF (e.u.vectorlike, e.start);
   ep->start++;
 #else
-  result = (++e.u.values)[-1];
+  result = (++ep->u.values)[-1];
 #endif
   if (ep->n == 0)
     {
