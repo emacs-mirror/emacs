@@ -643,15 +643,17 @@ COUNT defaults to 5"
   (add-hook 'gnus-select-article-hook
 	    #'spam-stat-store-gnus-article-buffer))
 
-(defun spam-stat-unload-hook ()
+(defun spam-stat-unload-function ()
   "Uninstall the spam-stat function hooks."
   (interactive)
   (remove-hook 'nnmail-prepare-incoming-message-hook
 	       #'spam-stat-store-current-buffer)
   (remove-hook 'gnus-select-article-hook
-	       #'spam-stat-store-gnus-article-buffer))
+	       #'spam-stat-store-gnus-article-buffer)
+  nil)
 
-(add-hook 'spam-stat-unload-hook #'spam-stat-unload-hook)
+(define-obsolete-function-alias 'spam-stat-unload-hook
+  #'spam-stat-unload-function "31.1")
 
 (provide 'spam-stat)
 
