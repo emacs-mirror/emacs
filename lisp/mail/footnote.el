@@ -894,6 +894,10 @@ play around with the following keys:
     (make-local-variable 'footnote-start-tag)
     (make-local-variable 'footnote-end-tag)
     (make-local-variable 'adaptive-fill-function)
+    (setq-local sentence-end-base
+                (rx (or (regexp sentence-end-base)
+                        (seq (regexp sentence-end-base)
+                             "[" (+ digit) "]"))))
 
     ;; Filladapt is a GNU ELPA package.
     (when (boundp 'filladapt-token-table)
