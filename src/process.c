@@ -8878,7 +8878,7 @@ allow them to produce more output before Emacs tries to read it.
 If the value is t, the delay is reset after each write to the process; any other
 non-nil value means that the delay is not reset on write.
 The variable takes effect when `start-process' is called.  */);
-  Vprocess_adaptive_read_buffering = Qt;
+  Vprocess_adaptive_read_buffering = Qnil;
 
   DEFVAR_BOOL ("process-prioritize-lower-fds", process_prioritize_lower_fds,
 	       doc: /* Whether to start checking for subprocess output from first file descriptor.

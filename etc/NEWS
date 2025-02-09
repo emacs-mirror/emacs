@@ -305,6 +305,11 @@ on the header lines are now these two: the selected window uses
 
 ** In 'customize-face', the "Font family" attribute now supports completion.
 
+** 'process-adaptive-read-buffering' is now nil by default.
+Setting this variable to a non-nil value reduces performance and leads
+to wrong results in some cases.  We believe that it is no longer useful;
+please contact us if you still need it for some reason.
+
 
 * Editing Changes in Emacs 31.1
 
