@@ -7,7 +7,7 @@ management which frees the memory of Lisp objects like conses, strings
 etc. when they are no longer in use.  The automatic memory management
 used for Lisp is called garbage collection (GC), which is performed by a
 garbage collector.  Objects that are no longer used are called garbage
-or dead, objects that are in use or called live objects.  The process of
+or dead, objects that are in use are called live objects.  The process of
 getting rid of garbage is called the GC.
 
 A large number of GC algorithms and implementations exist which differ
