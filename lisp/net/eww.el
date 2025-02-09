@@ -2476,7 +2476,7 @@ in of `eww-bookmark-mode'.  Order stars counting from 1."
     (setq eww-bookmarks (delq bookmark-at-point eww-bookmarks))
     (eww-write-bookmarks)
     (when (= (point) (point-max))
-      (previous-line)) ; don't go outside the vtable, or reverting fails
+      (forward-line -1)) ; don't go outside the vtable, or reverting fails
     (vtable-revert-command)
     (goto-char position)))
 
