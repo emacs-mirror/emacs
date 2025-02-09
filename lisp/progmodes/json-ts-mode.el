@@ -152,6 +152,7 @@ Return nil if there is no name or if NODE is not a defun node."
 
   (setq-local treesit-thing-settings
               `((json
+                 (list ,(rx (or "object" "array")))
                  (sentence "pair"))))
 
   ;; Font-lock.
@@ -165,7 +166,12 @@ Return nil if there is no name or if NODE is not a defun node."
   (setq-local treesit-simple-imenu-settings
               '((nil "\\`pair\\'" nil nil)))
 
-  (treesit-major-mode-setup))
+  (treesit-major-mode-setup)
+
+  ;; Disable outlines since they are created for 'pair' from
+  ;; 'treesit-simple-imenu-settings' almost on every line:
+  (kill-local-variable 'outline-search-function)
+  (kill-local-variable 'outline-level))
 
 (derived-mode-add-parents 'json-ts-mode '(json-mode))
 

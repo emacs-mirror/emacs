@@ -141,6 +141,19 @@ boundaries.  JUSTIFY is passed to `fill-paragraph'."
           (fill-region start-marker end justify))
         t))))
 
+(defun yaml-ts-mode--defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
+  (when (equal (treesit-node-type node) "block_mapping_pair")
+    (treesit-node-text (treesit-node-child-by-field-name
+                        node "key")
+                       t)))
+
+(defun yaml-ts-mode--outline-predicate (node)
+  "Limit outlines to top-level mappings."
+  (when (equal (treesit-node-type node) "block_mapping_pair")
+    (not (treesit-parent-until node treesit-outline-predicate))))
+
 ;;;###autoload
 (define-derived-mode yaml-ts-mode text-mode "YAML"
   "Major mode for editing YAML, powered by tree-sitter."
@@ -168,11 +181,21 @@ boundaries.  JUSTIFY is passed to `fill-paragraph'."
     (setq-local fill-paragraph-function #'yaml-ts-mode--fill-paragraph)
 
     ;; Navigation.
+    (setq-local treesit-defun-type-regexp "block_mapping_pair")
+    (setq-local treesit-defun-name-function #'yaml-ts-mode--defun-name)
+    (setq-local treesit-defun-tactic 'top-level)
+
     (setq-local treesit-thing-settings
                 `((yaml
-                   (list ,(regexp-opt '("block_mapping_pair"
-                                        "flow_sequence"))
-                         'symbols))))
+                   (list ,(rx (or "block_mapping_pair" "flow_sequence")))
+                   (sentence ,"block_mapping_pair"))))
+
+    ;; Imenu.
+    (setq-local treesit-simple-imenu-settings
+                '((nil "\\`block_mapping_pair\\'" nil nil)))
+
+    ;; Outline minor mode.
+    (setq-local treesit-outline-predicate #'yaml-ts-mode--outline-predicate)
 
     (treesit-major-mode-setup)
 
@@ -181,8 +204,8 @@ boundaries.  JUSTIFY is passed to `fill-paragraph'."
     ;; with `C-M-f', `C-M-b' neither adapt to 'show-paren-mode'
     ;; that is problematic in languages without explicit
     ;; opening/closing nodes.
-    (setq-local forward-sexp-function nil)
-    (setq-local show-paren-data-function 'show-paren--default)))
+    (kill-local-variable 'forward-sexp-function)
+    (kill-local-variable 'show-paren-data-function)))
 
 (derived-mode-add-parents 'yaml-ts-mode '(yaml-mode))
 

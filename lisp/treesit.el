@@ -3512,7 +3512,7 @@ when a major mode sets it.")
 For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
 `outline-search-function'."
   (if looking-at
-      (when-let* ((node (or (treesit-thing-at (pos-eol) treesit-outline-predicate)
+      (when-let* ((node (or (treesit-thing-at (1- (pos-eol)) treesit-outline-predicate)
                             (treesit-thing-at (pos-bol) treesit-outline-predicate)))
                   (start (treesit-node-start node)))
         (eq (pos-bol) (save-excursion (goto-char start) (pos-bol))))
@@ -3586,7 +3586,7 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
   (let* ((comment-pred
           (when comments
             (if (treesit-thing-defined-p 'comment (treesit-language-at (point)))
-                'comment "comment")))
+                'comment "\\`comment\\'")))
          (pred (if comment-pred (append '(or list) (list comment-pred)) 'list))
          ;; `treesit-navigate-thing' can't find a thing at bobp,
          ;; so use `treesit-thing-at' to match at bobp.
@@ -3621,7 +3621,7 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
   "Tree-sitter implementation of `hs-inside-comment-p-func'."
   (let* ((comment-pred
           (if (treesit-thing-defined-p 'comment (treesit-language-at (point)))
-              'comment "comment"))
+              'comment "\\`comment\\'"))
          (thing (or (treesit-thing-at (point) comment-pred)
                     (unless (bobp)
                       (treesit-thing-at (1- (point)) comment-pred)))))
