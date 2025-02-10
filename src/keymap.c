@@ -2866,7 +2866,7 @@ You type        Translation\n\
 	    if (alternate_heading)
 	      {
 		insert_string (alternate_heading);
-		alternate_heading = 0;
+		alternate_heading = NULL;
 	      }
 
 	    bufend = push_key_description (translate[c], buf);
@@ -2893,9 +2893,7 @@ You type        Translation\n\
     }
 
   /* Print the (major mode) local map.  */
-  Lisp_Object start1 = Qnil;
-  if (!NILP (KVAR (current_kboard, Voverriding_terminal_local_map)))
-    start1 = KVAR (current_kboard, Voverriding_terminal_local_map);
+  Lisp_Object start1 = KVAR (current_kboard, Voverriding_terminal_local_map);
 
   if (!NILP (start1))
     {
