@@ -2972,33 +2972,38 @@ Consider adding this function to `message-header-setup-hook'"
 
   "M-n" #'message-display-abbrev)
 
-(easy-menu-define
-  message-mode-menu message-mode-map "Message Menu."
+(easy-menu-define message-mode-menu message-mode-map
+  "Message Menu."
   '("Message"
-    ["Yank Original" message-yank-original message-reply-buffer]
-    ["Fill Yanked Message" message-fill-yanked-message t]
-    ["Insert Signature" message-insert-signature t]
-    ["Caesar (rot13) Message" message-caesar-buffer-body t]
-    ["Caesar (rot13) Region" message-caesar-region mark-active]
+    ["Yank Original" message-yank-original
+     :active message-reply-buffer]
+    ["Fill Yanked Message" message-fill-yanked-message]
+    ["Insert Signature" message-insert-signature]
+    ["Caesar (rot13) Message" message-caesar-buffer-body]
+    ["Caesar (rot13) Region" message-caesar-region
+     :active mark-active]
     ["Elide Region" message-elide-region
      :active mark-active
      :help "Replace text in region with an ellipsis"]
     ["Delete Outside Region" message-delete-not-region
      :active mark-active
      :help "Delete all quoted text outside region"]
-    ["Kill To Signature" message-kill-to-signature t]
-    ["Newline and Reformat" message-newline-and-reformat t]
-    ["Rename buffer" message-rename-buffer t]
-    ["Spellcheck" ispell-message :help "Spellcheck this message"]
+    ["Kill To Signature" message-kill-to-signature]
+    ["Newline and Reformat" message-newline-and-reformat]
+    ["Rename buffer" message-rename-buffer]
+    ["Spellcheck" ispell-message
+     :help "Spellcheck this message"]
     "----"
     ["Insert Region Marked" message-mark-inserted-region
-     :active mark-active :help "Mark region with enclosing tags"]
+     :active mark-active
+     :help "Mark region with enclosing tags"]
     ["Insert File Marked..." message-mark-insert-file
      :help "Insert file at point marked with enclosing tags"]
-    ["Attach File..." mml-attach-file t]
-    ["Insert Screenshot" message-insert-screenshot t]
+    ["Attach File..." mml-attach-file]
+    ["Insert Screenshot" message-insert-screenshot]
     "----"
-    ["Send Message" message-send-and-exit :help "Send this message"]
+    ["Send Message" message-send-and-exit
+     :help "Send this message"]
     ["Postpone Message" message-dont-send
      :help "File this draft message and exit"]
     ["Send at Specific Time..." gnus-delay-article
@@ -3006,38 +3011,37 @@ Consider adding this function to `message-header-setup-hook'"
     ["Kill Message" message-kill-buffer
      :help "Delete this message without sending"]
     "----"
-    ["Message manual" message-info :help "Display the Message manual"]))
+    ["Message manual" message-info
+     :help "Display the Message manual"]))
 
-(easy-menu-define
-  message-mode-field-menu message-mode-map ""
+(easy-menu-define message-mode-field-menu message-mode-map
+  "Field Menu."
   '("Field"
-    ["To" message-goto-to t]
-    ["From" message-goto-from t]
-    ["Subject" message-goto-subject t]
-    ["Change subject..." message-change-subject t]
-    ["Cc" message-goto-cc t]
-    ["Bcc" message-goto-bcc t]
-    ["Fcc" message-goto-fcc t]
-    ["Reply-To" message-goto-reply-to t]
+    ["To" message-goto-to]
+    ["From" message-goto-from]
+    ["Subject" message-goto-subject]
+    ["Change subject..." message-change-subject]
+    ["Cc" message-goto-cc]
+    ["Bcc" message-goto-bcc]
+    ["Fcc" message-goto-fcc]
+    ["Reply-To" message-goto-reply-to]
     ["Flag As Important" message-insert-importance-high
      :help "Mark this message as important"]
     ["Flag As Unimportant" message-insert-importance-low
      :help "Mark this message as unimportant"]
-    ["Request Receipt"
-     message-insert-disposition-notification-to
+    ["Request Receipt" message-insert-disposition-notification-to
      :help "Request a receipt notification"]
     "----"
     ;; (typical) news stuff
-    ["Summary" message-goto-summary t]
-    ["Keywords" message-goto-keywords t]
-    ["Newsgroups" message-goto-newsgroups t]
-    ["Fetch Newsgroups" message-insert-newsgroups t]
-    ["Followup-To" message-goto-followup-to t]
-    ;; ["Followup-To (with note in body)" message-cross-post-followup-to t]
-    ["Crosspost / Followup-To..." message-cross-post-followup-to t]
-    ["Distribution" message-goto-distribution t]
-    ["Expires" message-insert-expires t ]
-    ["X-No-Archive" message-add-archive-header t ]
+    ["Summary" message-goto-summary]
+    ["Keywords" message-goto-keywords]
+    ["Newsgroups" message-goto-newsgroups]
+    ["Fetch Newsgroups" message-insert-newsgroups]
+    ["Followup-To" message-goto-followup-to]
+    ["Crosspost / Followup-To..." message-cross-post-followup-to]
+    ["Distribution" message-goto-distribution]
+    ["Expires" message-insert-expires]
+    ["X-No-Archive" message-add-archive-header]
     "----"
     ;; (typical) mailing-lists stuff
     ["Fetch To" message-insert-to
@@ -3045,18 +3049,18 @@ Consider adding this function to `message-header-setup-hook'"
     ["Fetch To and Cc" message-insert-wide-reply
      :help "Insert To and Cc headers as if you were doing a wide reply."]
     "----"
-    ["Send to list only" message-to-list-only t]
-    ["Mail-Followup-To" message-goto-mail-followup-to t]
+    ["Send to list only" message-to-list-only]
+    ["Mail-Followup-To" message-goto-mail-followup-to]
     ["Unsubscribed list post" message-generate-unsubscribed-mail-followup-to
      :help "Insert a reasonable `Mail-Followup-To:' header."]
-    ["Reduce To: to Cc:" message-reduce-to-to-cc t]
+    ["Reduce To: to Cc:" message-reduce-to-to-cc]
     "----"
-    ["Sort Headers" message-sort-headers t]
-    ["Encode non-ASCII domain names" message-idna-to-ascii-rhs t]
+    ["Sort Headers" message-sort-headers]
+    ["Encode non-ASCII domain names" message-idna-to-ascii-rhs]
     ;; We hide `message-hidden-headers' by narrowing the buffer.
-    ["Show Hidden Headers" message-widen-and-recenter t]
-    ["Goto Body" message-goto-body t]
-    ["Goto Signature" message-goto-signature t]))
+    ["Show Hidden Headers" message-widen-and-recenter]
+    ["Goto Body" message-goto-body]
+    ["Goto Signature" message-goto-signature]))
 
 (defvar message-tool-bar-map nil)
 
