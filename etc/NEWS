@@ -534,10 +534,10 @@ It removes all the buttons in the specified region.
 but completes on comint inputs.
 
 ---
-*** ansi-osc-directory-tracker now respects remote files.
-Remote file forms are now retained when changes to 'default-directory'
-are detected by this filter.  For example, /ssh:hostname:/home/username
-would have been stripped to just /home/username.
+*** 'ansi-osc-directory-tracker' now respects remote directories.
+Remote directories are now retained when changes to 'default-directory'
+are detected by this filter.  For example, "/ssh:hostname:/home/username"
+would have been stripped to just "/home/username" before.
 
 ** Eshell
 
