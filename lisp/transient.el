@@ -1564,7 +1564,7 @@ level of such a binding.
 The default level can only be set for commands that were defined
 using `transient-define-suffix', `transient-define-infix' or
 `transient-define-argument'."
-  (if-let ((proto (transient--suffix-prototype command)))
+  (if-let* ((proto (transient--suffix-prototype command)))
       (oset proto level level)
     (user-error "Cannot set level for `%s'; no prototype object exists"
                 command)))
@@ -3891,13 +3891,13 @@ If no prefix matches, return nil."
   (if (or prefixes classes)
       (let ((prefixes (ensure-list prefixes))
             (type (if (symbolp classes) classes (cons 'or classes))))
-        (if-let ((obj (cl-flet ((match (obj)
-                                  (and obj
-                                       (or (memq (oref obj command) prefixes)
-                                           (cl-typep obj type))
-                                       obj)))
-                        (or (match transient-current-prefix)
-                            (match transient--prefix)))))
+        (if-let* ((obj (cl-flet ((match (obj)
+                                   (and obj
+                                        (or (memq (oref obj command) prefixes)
+                                            (cl-typep obj type))
+                                        obj)))
+                         (or (match transient-current-prefix)
+                             (match transient--prefix)))))
             (oref obj scope)
           (and (get (car prefixes) 'transient--prefix)
                (oref (transient--init-prefix (car prefixes)) scope))))
