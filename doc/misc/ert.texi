@@ -1107,8 +1107,8 @@ result of @var{NAME-FORM}.  Example:
     @dots{}))
 @end lisp
 
-This uses the test buffer @t{"*Test buffer (backtrace-tests--variables):
-variables*"}.
+This uses the test buffer @file{*Test buffer
+(backtrace-tests--variables): variables*}.
 @end defmac
 
 @defmac ert-with-buffer-selected (buffer &body body)
@@ -1130,7 +1130,7 @@ value is the last form in @var{body}.  Example:
     @dots{}))
 @end lisp
 
-This displays a temporary buffer @t{" *temp*-739785"*}.
+This displays a temporary buffer like @file{ *temp*-739785*}.
 @end defmac
 
 @defmac ert-with-test-buffer-selected ((&key name) &body body)
@@ -1146,8 +1146,8 @@ It combines @code{ert-with-test-buffer} and
     @dots{}))
 @end lisp
 
-This displays the test buffer @t{"*Test buffer
-(whitespace-tests--global): global*"}.
+This displays the test buffer @file{*Test buffer
+(whitespace-tests--global): global*}.
 @end defmac
 
 @defun ert-kill-all-test-buffers ()
@@ -1162,7 +1162,7 @@ temporary name, creates a new buffer named @var{buffer-name}, executes
 to @var{buffer-name}.
 
 This is useful if @var{body} has undesirable side-effects on an Emacs
-buffer with a fixed name such as @t{"*Messages*"}.  Example:
+buffer with a fixed name such as @file{*Messages*}.  Example:
 
 @lisp
 (ert-with-buffer-renamed ("*Messages*") @dots{})
@@ -1178,7 +1178,7 @@ and @code{princ} to the echo area.  Messages issued from C code using
 the above mentioned functions will not be captured.
 
 This is useful for separating the issuance of messages by the code under
-test from the behavior of the @t{"*Messages*"} buffer.  Example:
+test from the behavior of the @file{*Messages*} buffer.  Example:
 
 @lisp
 (ert-with-message-capture captured-messages @dots{})
@@ -1193,14 +1193,17 @@ The path to the resource directory is the @file{resources} directory in
 the same directory as the test file this is called from.
 
 If that directory doesn't exist, find a directory based on the test file
-name.  If the file is named @file{foo-tests.el}, it returns the absolute
-file name for @file{foo-resources}.  Example:
+name.  If the test file is named @file{foo-tests.el}, it returns the
+absolute file name for @file{foo-resources}.  Example:
 
 @lisp
 (let ((dir (ert-resource-directory)))
   @dots{})
 @end lisp
 
+@vindex ert-resource-directory-format
+@vindex ert-resource-directory-trim-left-regexp
+@vindex ert-resource-directory-trim-right-regexp
 In order to use a different resource directory naming scheme, the
 variable @code{ert-resource-directory-format} can be changed.  Before
 formatting, the file name will be trimmed using @code{string-trim} with
@@ -1229,23 +1232,25 @@ defined as any file placed in the resource directory as returned by
 @end lisp
 
 It returns the absolute file name for @file{foo-resources/bar/baz} when
-called in file @file{foo-tests.el}.
+called in test file @file{foo-tests.el}.
 @end defmac
 
 @defmac ert-with-temp-file (name &rest body)
-This macro binds @var{name} to the name of a new temporary file and evaluates @var{body}.
-It deletes the temporary file after @var{body} exits normally or
-non-locally.  @var{name} will be bound to the file name of the temporary
-file.
+This macro binds @var{name} to the name of a new temporary file and
+evaluates @var{body}.  It deletes the temporary file after @var{body}
+exits normally or non-locally.  @var{name} will be bound to the file
+name of the temporary file.
 
 The following keyword arguments are supported:
 
 @table @code
+@vindex ert-temp-file-prefix
 @item :prefix @var{string}
 If non-nil, pass @var{string} to @code{make-temp-file} as
 the @var{prefix} argument.  Otherwise, use the value of
 @code{ert-temp-file-prefix}.
 
+@vindex ert-temp-file-suffix
 @item :suffix @var{string}
 If non-nil, pass @var{string} to @code{make-temp-file} as the
 @var{suffix} argument.  Otherwise, use the value of
@@ -1254,7 +1259,8 @@ generate a suffix based on the name of the file that
 @code{ert-with-temp-file} is called from.
 
 @item :text @var{string}
-If non-nil, pass @var{string} to @code{make-temp-file} as the @var{text} argument.
+If non-nil, pass @var{string} to @code{make-temp-file} as the @var{text}
+argument.
 
 @item :buffer @var{symbol}
 Open the temporary file using @code{find-file-noselect} and bind
@@ -1307,7 +1313,7 @@ be possible when running on MS Windows).  The default value is
 
 If a real remote connection shall be used for testing, this can be
 overwritten by the environment variable
-@env{REMOTE_TEMPORARY_FILE_DIRECTORY}.  Example
+@env{REMOTE_TEMPORARY_FILE_DIRECTORY}.  Example:
 
 @example
 # env REMOTE_TEMPORARY_FILE_DIRECTORY=/ssh:host:/tmp make @dots{}
@@ -1330,8 +1336,8 @@ symbol and the rest are arguments to the command.  Example:
 @end lisp
 
 @strong{Note}: Since the command is not called by
-@code{call-interactively}, a test for @code{(called-interactively-p 'interactive)}
-in the command will fail.
+@code{call-interactively}, a test for @code{(called-interactively-p
+'interactive)} in the command will fail.
 @end defun
 
 @defmac ert-simulate-keys (keys &rest body)
@@ -1365,11 +1371,12 @@ Example:
 @end defun
 
 @defun ert-propertized-string (&rest args)
-This function returns a string with properties as specified by @var{args}.
+This function returns a string with properties as specified by
+@var{args}.
 
 @var{args} is a list of strings and plists.  The strings in @var{args}
 are concatenated to produce an output string.  In the output string,
-each string from @var{args} will be have the preceding plist as its
+each string from @var{args} will have the preceding plist as its
 property list, or no properties if there is no plist before it.
 Example:
 
