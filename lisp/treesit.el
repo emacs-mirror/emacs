@@ -3507,15 +3507,26 @@ when a major mode sets it.")
               (funcall (nth 2 setting) node))))
    treesit-simple-imenu-settings))
 
+(defun treesit-outline--at-point ()
+  "Return the outline heading at the current line."
+  (let* ((pred treesit-outline-predicate)
+         (bol (pos-bol))
+         (eol (pos-eol))
+         (current (treesit-thing-at (point) pred))
+         (current-valid (when current
+                          (<= bol (treesit-node-start current) eol)))
+         (next (unless current-valid
+                 (treesit-navigate-thing (point) 1 'beg pred)))
+         (next-valid (when next (<= bol next eol))))
+    (or (and current-valid current)
+        (and next-valid (treesit-thing-at next pred)))))
+
 (defun treesit-outline-search (&optional bound move backward looking-at)
   "Search for the next outline heading in the syntax tree.
 For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
 `outline-search-function'."
   (if looking-at
-      (when-let* ((node (or (treesit-thing-at (1- (pos-eol)) treesit-outline-predicate)
-                            (treesit-thing-at (pos-bol) treesit-outline-predicate)))
-                  (start (treesit-node-start node)))
-        (eq (pos-bol) (save-excursion (goto-char start) (pos-bol))))
+      (when (treesit-outline--at-point) (pos-bol))
 
     (let* ((bob-pos
             ;; `treesit-navigate-thing' can't find a thing at bobp,
@@ -3546,7 +3557,7 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
 
 (defun treesit-outline-level ()
   "Return the depth of the current outline heading."
-  (let* ((node (treesit-node-at (point) nil t))
+  (let* ((node (treesit-outline--at-point))
          (level (if (treesit-node-match-p node treesit-outline-predicate)
                     1 0)))
     (while (setq node (treesit-parent-until node treesit-outline-predicate))
