@@ -1111,6 +1111,12 @@ into menu items.  */)
 Lisp_Object
 x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 {
+  if (!NILP (Vx_popup_menu_function))
+    return run_hook_with_args (3, ((Lisp_Object[]) {
+				    Qx_popup_menu_function, position,
+				    menu}),
+			       Ffuncall);
+
   Lisp_Object keymap, tem, tem2 = Qnil;
   int xpos = 0, ypos = 0;
   Lisp_Object title;
@@ -1614,6 +1620,7 @@ syms_of_menu (void)
 
   DEFSYM (Qhide, "hide");
   DEFSYM (Qx_pre_popup_menu_hook, "x-pre-popup-menu-hook");
+  DEFSYM (Qx_popup_menu_function, "x-popup-menu-function");
 
   DEFVAR_LISP ("x-pre-popup-menu-hook", Vx_pre_popup_menu_hook,
 	       doc: /* Hook run before `x-popup-menu' displays a popup menu.
@@ -1621,6 +1628,11 @@ It is only run before the menu is really going to be displayed.  It
 won't be run if `x-popup-menu' fails or returns for some other reason
 (such as the keymap is invalid).  */);
   Vx_pre_popup_menu_hook = Qnil;
+
+  DEFVAR_LISP ("x-popup-menu-function", Vx_popup_menu_function,
+	       doc: /* Function to call to pop up a menu.
+The function is called like `x-popup-menu'.  */);
+  Vx_popup_menu_function = Qnil;
 
   defsubr (&Sx_popup_menu);
   defsubr (&Sx_popup_dialog);
