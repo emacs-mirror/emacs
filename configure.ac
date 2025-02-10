@@ -2953,6 +2953,17 @@ if test "${opsys}" = "haiku" && test "${with_be_app}" = "yes"; then
                    [AC_MSG_ERROR([The Application Kit headers required for building
 with the Application Kit were not found or cannot be compiled. Either fix this, or
 re-configure with the option '--without-be-app'.])])
+   AC_CACHE_CHECK([whether BObjectList accepts ownership as a template parameter],
+     [emacs_cv_bobjectlist_ownership_is_template_parameter],
+     [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+			   #include <support/ObjectList.h>
+			   #include <interface/StringItem.h>
+			   static BObjectList<BStringItem, true> test;]], [])],
+        [emacs_cv_bobjectlist_ownership_is_template_parameter=yes],
+	[emacs_cv_bobjectlist_ownership_is_template_parameter=no])])
+   AS_IF([test "x$emacs_cv_bobjectlist_ownership_is_template_parameter"],
+     [AC_DEFINE([BOBJECTLIST_OWNERSHIP_IS_TEMPLATE_PARAMETER], [1],
+       [Define to 1 if BObjectList ownership is defined as a template parameter.])])
    AC_LANG_POP([C++])
 fi
 
