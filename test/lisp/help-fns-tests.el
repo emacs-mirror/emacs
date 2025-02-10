@@ -85,6 +85,10 @@ Return first line of the output of (describe-function-1 FUNC)."
         (result (help-fns-tests--describe-function 'search-forward-regexp)))
     (should (string-match regexp result))))
 
+(ert-deftest help-fns-test-bug76172 ()
+  "No error when describing `menu-bar-open-mouse'."
+  (should (stringp (help-fns-tests--describe-function 'menu-bar-open-mouse))))
+
 (ert-deftest help-fns-test-dangling-alias ()
   "Make sure we don't burp on bogus aliases."
   (let ((f (make-symbol "bogus-alias")))
