@@ -844,7 +844,7 @@ must be one of the symbols `header', `mode', or `vertical'."
     ;; Decide on whether we are allowed to track at all and whose
     ;; window's edge we drag.
     (cond
-     ((eq line 'header)
+     ((memq line '(header tab))
       ;; Drag bottom edge of window above the header line.
       (setq window (window-in-direction 'above window t)))
      ((eq line 'mode))
@@ -903,10 +903,13 @@ must be one of the symbols `header', `mode', or `vertical'."
 		(when (window-live-p posn-window)
 		  ;; Add top edge of `posn-window' to `position'.
 		  (setq position (+ (window-pixel-top posn-window) position))
-		  ;; If necessary, add height of header line to `position'
+		  ;; If necessary, add height of header and tab line to
+		  ;; `position'.
 		  (when (memq (posn-area start)
 			      '(nil left-fringe right-fringe left-margin right-margin))
-		    (setq position (+ (window-header-line-height posn-window) position))))
+		    (setq position (+ (window-header-line-height posn-window)
+				      (window-tab-line-height posn-window)
+				      position))))
 		;; When the cursor overshoots after shrinking a window to its
 		;; minimum size and the dragging direction changes, have the
 		;; cursor first catch up with the window edge.
@@ -947,6 +950,7 @@ must be one of the symbols `header', `mode', or `vertical'."
 	       ;; with a mode-line, header-line or vertical-line prefix ...
 	       (define-key map [mode-line] map)
 	       (define-key map [header-line] map)
+	       (define-key map [tab-line] map)
 	       (define-key map [vertical-line] map)
 	       ;; ... and some maybe even with a right- or bottom-divider
 	       ;; or left- or right-margin prefix ...
@@ -1035,8 +1039,9 @@ START-EVENT is the starting mouse event of the drag action."
   (interactive "e")
   (let* ((start (event-start start-event))
 	 (window (posn-window start)))
-    (when (and (window-live-p window)
-               (window-at-side-p window 'top))
+    (if (and (window-live-p window)
+             (not (window-at-side-p window 'top)))
+        (mouse-drag-line start-event 'tab)
       (let ((frame (window-frame window)))
         (when (frame-parameter frame 'drag-with-tab-line)
           (mouse-drag-frame-move start-event))))))
