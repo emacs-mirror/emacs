@@ -116,6 +116,8 @@ such as with the following command:
 
     printf \"\\e]7;file://%s%s\\e\\\\\" \"$HOSTNAME\" \"$PWD\"
 
+`default-directory' remote file name forms are maintained.
+
 This functionality serves as an alternative to `dirtrack-mode'
 and `shell-dirtrack-mode'."
   (let ((url (url-generic-parse-url text)))
@@ -124,7 +126,9 @@ and `shell-dirtrack-mode'."
                    ;; Use `downcase' to match `url-generic-parse-url' behavior
                    (string= (url-host url) (downcase (system-name)))))
       (ignore-errors
-        (cd-absolute (url-unhex-string (url-filename url)))))))
+        (cd-absolute
+         (concat (file-remote-p default-directory
+                                (url-unhex-string (url-filename url)))))))))
 
 ;; Hyperlink handling (OSC 8)
 

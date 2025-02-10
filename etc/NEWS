@@ -533,6 +533,12 @@ It removes all the buttons in the specified region.
 'comint-complete-input-ring' ('C-x <up>') is like 'minibuffer-complete-history'
 but completes on comint inputs.
 
+---
+*** ansi-osc-directory-tracker now respects remote files.
+Remote file forms are now retained when changes to 'default-directory'
+are detected by this filter.  For example, /ssh:hostname:/home/username
+would have been stripped to just /home/username.
+
 ** Eshell
 
 ---
