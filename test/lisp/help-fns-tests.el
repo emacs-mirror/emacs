@@ -89,11 +89,6 @@ Return first line of the output of (describe-function-1 FUNC)."
   "No error when describing `menu-bar-open-mouse'."
   (should (stringp (help-fns-tests--describe-function 'menu-bar-open-mouse))))
 
-(ert-deftest help-fns-test-dangling-alias ()
-  "Make sure we don't burp on bogus aliases."
-  (let ((f (make-symbol "bogus-alias")))
-    (define-obsolete-function-alias f 'help-fns-test--undefined-function "past")
-    (describe-symbol f)))
 
 ;;; Test describe-function over functions with funny names
 (defun abc\\\[universal-argument\]b\`c\'d\\e\"f (x)
@@ -131,11 +126,17 @@ Return first line of the output of (describe-function-1 FUNC)."
     (goto-char (point-min))
     (should (looking-at "^font-lock-comment-face is "))))
 
-(defvar foo-test-map)
-(defvar help-fns-test--describe-keymap-foo)
+(ert-deftest help-fns-test-dangling-alias ()
+  "Make sure we don't burp on bogus aliases."
+  (let ((f (make-symbol "bogus-alias")))
+    (define-obsolete-function-alias f 'help-fns-test--undefined-function "past")
+    (describe-symbol f)))
 
 
 ;;; Tests for describe-keymap
+
+(defvar foo-test-map)
+(defvar help-fns-test--describe-keymap-foo)
 
 (defvar-keymap help-fns-test-map
   "a" 'test-cmd-a
