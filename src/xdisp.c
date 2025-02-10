@@ -13453,7 +13453,7 @@ clear_garbaged_frames (void)
 	{
 	  struct frame *f = XFRAME (frame);
 
-	  if (FRAME_REDISPLAY_P (f) && FRAME_GARBAGED_P (f))
+	  if (frame_redisplay_p (f) && FRAME_GARBAGED_P (f))
 	    {
 	      if (f->resized_p
 		  /* It makes no sense to redraw a non-selected TTY
@@ -13507,7 +13507,7 @@ echo_area_display (bool update_frame_p)
 
   /* Don't display if frame is invisible or not yet initialized or
      if redisplay is inhibited.  */
-  if (!FRAME_REDISPLAY_P (f) || !f->glyphs_initialized_p
+  if (!frame_redisplay_p (f) || !f->glyphs_initialized_p
       || !NILP (Vinhibit_redisplay))
     return;
 
@@ -14048,7 +14048,7 @@ prepare_menu_bars (void)
 		     TTY frames to be completely redrawn, when there
 		     are more than one of them, even though nothing
 		     should be changed on display.  */
-		  || (FRAME_REDISPLAY_P (f) && FRAME_WINDOW_P (f))))
+		  || (frame_redisplay_p (f) && FRAME_WINDOW_P (f))))
 	    gui_consider_frame_title (frame);
 	}
     }
@@ -17062,8 +17062,8 @@ redisplay_internal (void)
     {
       struct frame *f = XFRAME (frame);
 
-      /* FRAME_REDISPLAY_P true basically means the frame is visible. */
-      if (FRAME_REDISPLAY_P (f))
+      /* frame_redisplay_p true basically means the frame is visible. */
+      if (frame_redisplay_p (f))
 	{
 	  ++number_of_visible_frames;
 	  /* Adjust matrices for visible frames only.  */
@@ -17206,7 +17206,7 @@ redisplay_internal (void)
       && !w->update_mode_line
       && !current_buffer->clip_changed
       && !current_buffer->prevent_redisplay_optimizations_p
-      && FRAME_REDISPLAY_P (XFRAME (w->frame))
+      && frame_redisplay_p (XFRAME (w->frame))
       && !XFRAME (w->frame)->cursor_type_changed
       && !XFRAME (w->frame)->face_change
       /* Make sure recorded data applies to current buffer, etc.  */
@@ -17467,7 +17467,7 @@ redisplay_internal (void)
 	  if (is_tty_frame (f))
 	    {
 	      /* Ignore all invisble tty frames, children or root.  */
-	      if (!FRAME_VISIBLE_P (root_frame (f)))
+	      if (!frame_redisplay_p (f))
 		continue;
 
 	      /* Remember tty root frames which we've seen.  */
@@ -17498,7 +17498,7 @@ redisplay_internal (void)
 	      if (gcscrollbars && FRAME_TERMINAL (f)->condemn_scroll_bars_hook)
 		FRAME_TERMINAL (f)->condemn_scroll_bars_hook (f);
 
-	      if (FRAME_REDISPLAY_P (f))
+	      if (frame_redisplay_p (f))
 		{
 		  /* Don't allow freeing images and faces for this
 		     frame as long as the frame's update wasn't
@@ -17524,7 +17524,7 @@ redisplay_internal (void)
 	      if (gcscrollbars && FRAME_TERMINAL (f)->judge_scroll_bars_hook)
 		FRAME_TERMINAL (f)->judge_scroll_bars_hook (f);
 
-	      if (FRAME_REDISPLAY_P (f))
+	      if (frame_redisplay_p (f))
 		{
 		  /* If fonts changed on visible frame, display again.  */
 		  if (f->fonts_changed)
@@ -17630,7 +17630,7 @@ redisplay_internal (void)
             }
 	}
     }
-  else if (FRAME_REDISPLAY_P (sf))
+  else if (frame_redisplay_p (sf))
     {
       sf->inhibit_clear_image_cache = true;
       displayed_buffer = XBUFFER (XWINDOW (selected_window)->contents);
@@ -17681,7 +17681,7 @@ redisplay_internal (void)
 	unrequest_sigio ();
       STOP_POLLING;
 
-      if (FRAME_REDISPLAY_P (sf))
+      if (frame_redisplay_p (sf))
 	{
           if (hscroll_retries <= MAX_HSCROLL_RETRIES
               && hscroll_windows (selected_window))
@@ -17763,7 +17763,7 @@ redisplay_internal (void)
 
   FOR_EACH_FRAME (tail, frame)
     {
-      if (FRAME_REDISPLAY_P (XFRAME (frame)))
+      if (frame_redisplay_p (XFRAME (frame)))
 	new_count++;
     }
 
@@ -34268,7 +34268,7 @@ display_and_set_cursor (struct window *w, bool on,
      windows and frames; in the latter case, the frame or window may
      be in the midst of changing its size, and x and y may be off the
      window.  */
-  if (! FRAME_REDISPLAY_P (f)
+  if (! frame_redisplay_p (f)
       || vpos >= w->current_matrix->nrows
       || hpos >= w->current_matrix->matrix_w)
     return;
@@ -34436,7 +34436,7 @@ gui_update_cursor (struct frame *f, bool on_p)
 void
 gui_clear_cursor (struct window *w)
 {
-  if (FRAME_REDISPLAY_P (XFRAME (w->frame)) && w->phys_cursor_on_p)
+  if (frame_redisplay_p (XFRAME (w->frame)) && w->phys_cursor_on_p)
     update_window_cursor (w, false);
 }
 

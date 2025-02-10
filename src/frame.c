@@ -338,6 +338,51 @@ predicates which report frame's specific UI-related capabilities.  */)
     return type;
 }
 
+/** Return true if F can be redisplayed, that is if F is visible and, if
+    F is a tty frame, all its ancestors are visible too.  */
+bool
+frame_redisplay_p (struct frame *f)
+{
+  if (is_tty_frame (f))
+    {
+      struct frame *p = FRAME_PARENT_FRAME (f);
+      struct frame *q = NULL;
+
+      while (p)
+	{
+	  if (!p->visible)
+	    /* A tty child frame cannot be redisplayed if one of its
+	       ancestors is invisible.  */
+	    return false;
+	  else
+	    {
+	      q = p;
+	      p = FRAME_PARENT_FRAME (p);
+	    }
+	}
+
+      struct tty_display_info *tty = FRAME_TTY (f);
+      struct frame *r = XFRAME (tty->top_frame);
+
+      /* A tty child frame can be redisplayed iff its root is the top
+	 frame of its terminal.  Any other tty frame can be redisplayed
+	 iff it is the top frame of its terminal itself which must be
+	 always visible.  */
+      return (q ? q == r : f == r);
+    }
+  else
+#ifndef HAVE_X_WINDOWS
+    return FRAME_VISIBLE_P (f);
+#else
+  /* Under X, frames can continue to be displayed to the user by the
+     compositing manager even if they are invisible, so this also
+     checks whether or not the frame is reported visible by the X
+     server.  */
+  return (FRAME_VISIBLE_P (f)
+	  || (FRAME_X_P (f) && FRAME_X_VISIBLE (f)));
+#endif
+}
+
 /* Placeholder used by temacs -nw before window.el is loaded.  */
 DEFUN ("frame-windows-min-size", Fframe_windows_min_size,
        Sframe_windows_min_size, 4, 4, 0,
@@ -1407,18 +1452,6 @@ make_terminal_frame (struct terminal *terminal, Lisp_Object parent,
   FRAME_TEXT_HEIGHT (f) = FRAME_TEXT_HEIGHT (f) - FRAME_MENU_BAR_HEIGHT (f)
     - FRAME_TAB_BAR_HEIGHT (f);
 
-  /* Mark current topmost frame obscured if we make a new root frame.
-     Child frames don't completely obscure other frames.  */
-  if (NILP (parent) && FRAMEP (FRAME_TTY (f)->top_frame))
-    {
-      struct frame *top = XFRAME (FRAME_TTY (f)->top_frame);
-      struct frame *root = root_frame (top);
-      if (FRAME_LIVE_P (root))
-	SET_FRAME_VISIBLE (root, false);
-    }
-
-  /* Set the top frame to the newly created frame.  */
-  FRAME_TTY (f)->top_frame = frame;
   return f;
 }
 
@@ -1772,28 +1805,27 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
       struct tty_display_info *tty = FRAME_TTY (f);
       Lisp_Object top_frame = tty->top_frame;
 
-      /* Switching to a frame on a different root frame is special.  The
-	 old root frame has to be marked invisible, and the new root
-	 frame has to be made visible.  */
-      if (!EQ (frame, top_frame)
-	  && (!FRAMEP (top_frame)
-	      || root_frame (f) != root_frame (XFRAME (top_frame))))
+      /* When FRAME's root frame is not its terminal's top frame, make
+	 that root frame the new top frame of FRAME's terminal.  */
+      if (root_frame (f) != XFRAME (top_frame))
 	{
-	  struct frame *new_root = root_frame (f);
-	  SET_FRAME_VISIBLE (new_root, true);
-	  SET_FRAME_VISIBLE (f, true);
+	  struct frame *p = FRAME_PARENT_FRAME (f);
 
-	  /* Mark previously displayed root frame as no longer
-	     visible.  */
-	  if (FRAMEP (top_frame))
+	  XSETFRAME (top_frame, root_frame (f));
+	  tty->top_frame = top_frame;
+
+	  while (p)
 	    {
-	      struct frame *top = XFRAME (top_frame);
-	      struct frame *old_root = root_frame (top);
-	      if (old_root != new_root)
-		SET_FRAME_VISIBLE (old_root, false);
+	      /* If FRAME is a child frame, make its ancsetors visible
+		 and garbage them ...  */
+	      SET_FRAME_VISIBLE (p, true);
+	      SET_FRAME_GARBAGED (p);
+	      p = FRAME_PARENT_FRAME (p);
 	    }
 
-	  tty->top_frame = frame;
+	  /* ... and FRAME itself too.  */
+	  SET_FRAME_VISIBLE (f, true);
+	  SET_FRAME_GARBAGED (f);
 
 	  /* FIXME: Why is it correct to set FrameCols/Rows here?  */
 	  if (!FRAME_PARENT_FRAME (f))
@@ -1808,10 +1840,8 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
 	    }
 	}
       else
-	{
-	  SET_FRAME_VISIBLE (f, true);
-	  tty->top_frame = frame;
-	}
+	/* Should be covered by the condition above.  */
+	SET_FRAME_VISIBLE (f, true);
     }
 
   sf->select_mini_window_flag = MINI_WINDOW_P (XWINDOW (sf->selected_window));
@@ -2229,8 +2259,8 @@ DEFUN ("last-nonminibuffer-frame", Flast_nonminibuf_frame,
  * other_frames:
  *
  * Return true if there exists at least one visible or iconified frame
- * but F.  Tooltip frames do not qualify as candidates.  Return false
- * if no such frame exists.
+ * but F.  Tooltip and child frames do not qualify as candidates.
+ * Return false if no such frame exists.
  *
  * INVISIBLE true means we are called from make_frame_invisible where
  * such a frame must be visible or iconified.  INVISIBLE nil means we
@@ -2322,7 +2352,6 @@ other_frames (struct frame *f, bool invisible, bool force)
 	      /* For invisibility and normal deletions, at least one
 		 visible or iconified frame must remain (Bug#26682).  */
 	      && (FRAME_VISIBLE_P (f1)
-		  || is_tty_frame (f1)
 		  || FRAME_ICONIFIED_P (f1)
 		  || (!invisible
 		      && (force
@@ -3234,11 +3263,18 @@ displayed in the terminal.  */)
   if (FRAME_WINDOW_P (f) && FRAME_TERMINAL (f)->frame_visible_invisible_hook)
     FRAME_TERMINAL (f)->frame_visible_invisible_hook (f, false);
 
-  /* The ELisp manual says that this "usually" makes child frames
-     invisible, too, but without saying when not.  Since users can't
-     rely on this, it's not implemented.  */
-  if (is_tty_frame (f))
-    SET_FRAME_VISIBLE (f, false);
+  if (is_tty_frame (f) && EQ (frame, selected_frame))
+  /* On a tty if FRAME is the selected frame, we have to select another
+    frame instead.  If FRAME is a child frame, use the first visible
+    ancestor as returned by 'mru_rooted_frame'.  If FRAME is a root
+    frame, use the frame returned by 'next-frame' which must exist since
+    otherwise other_frames above would have lied.  */
+    Fselect_frame (FRAME_PARENT_FRAME (f)
+		   ? mru_rooted_frame (f)
+		   : next_frame (frame, make_fixnum (0)),
+		   Qnil);
+
+  SET_FRAME_VISIBLE (f, false);
 
   /* Make menu bar update for the Buffers and Frames menus.  */
   windows_or_buffers_changed = 16;
