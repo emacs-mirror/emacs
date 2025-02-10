@@ -89,6 +89,11 @@ Return first line of the output of (describe-function-1 FUNC)."
   "No error when describing `menu-bar-open-mouse'."
   (should (stringp (help-fns-tests--describe-function 'menu-bar-open-mouse))))
 
+(ert-deftest help-fns-test-bug76179 ()
+  "No error when describing `bindat--type'."
+  (require 'bindat)
+  (should (stringp (help-fns-tests--describe-function 'bindat--type))))
+
 
 ;;; Test describe-function over functions with funny names
 (defun abc\\\[universal-argument\]b\`c\'d\\e\"f (x)
