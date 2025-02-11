@@ -4532,6 +4532,7 @@ If NOERROR, return predicate, else erroring function."
                  server
                  preparer
                  (eglot--TextDocumentPositionParams))))
+    (unless roots (eglot--error "No hierarchy information here"))
     (with-current-buffer (get-buffer-create name)
       (eglot-hierarchy-mode)
       (setq-local
