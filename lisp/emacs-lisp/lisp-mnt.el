@@ -668,8 +668,6 @@ which do not include a recognizable synopsis."
               (lm-summary))
           (when must-kill (kill-buffer (current-buffer))))))))
 
-(defvar report-emacs-bug-address)
-
 (defun lm-report-bug (topic)
   "Report a bug in the package currently being visited to its maintainer.
 Prompts for bug subject TOPIC.  Leaves you in a mail buffer."
