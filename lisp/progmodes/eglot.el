@@ -269,6 +269,7 @@ automatically)."
      . ,(eglot-alternatives
          '("clangd" "ccls")))
     (((caml-mode :language-id "ocaml")
+      (ocaml-ts-mode :language-id "ocaml")
       (tuareg-mode :language-id "ocaml") reason-mode)
      . ("ocamllsp"))
     ((ruby-mode ruby-ts-mode)
