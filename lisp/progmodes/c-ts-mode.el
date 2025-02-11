@@ -1041,14 +1041,11 @@ Return nil if NODE is not a defun node or doesn't have a name."
 
 (defun c-ts-mode--outline-predicate (node)
   "Match outlines on lines with function names."
-  (or (when-let* ((decl (treesit-node-child-by-field-name
-                         (treesit-node-parent node) "declarator"))
-                  (node-pos (treesit-node-start node))
-                  (decl-pos (treesit-node-start decl))
-                  (eol (save-excursion (goto-char node-pos) (line-end-position))))
-        (and (equal (treesit-node-type decl) "function_declarator")
-             (<= node-pos decl-pos)
-             (< decl-pos eol)))
+  (or (and (equal (treesit-node-type node) "function_declarator")
+           ;; Handle the case when "function_definition" is
+           ;; not an immediate parent of "function_declarator"
+           ;; but there is e.g. "pointer_declarator" between them.
+           (treesit-parent-until node "function_definition"))
       ;; DEFUNs in Emacs sources.
       (and c-ts-mode-emacs-sources-support
            (c-ts-mode--emacs-defun-p node))))

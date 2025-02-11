@@ -151,8 +151,9 @@ Return nil if there is no name or if NODE is not a defun node."
 
 (defun yaml-ts-mode--outline-predicate (node)
   "Limit outlines to top-level mappings."
-  (when (equal (treesit-node-type node) "block_mapping_pair")
-    (not (treesit-parent-until node treesit-outline-predicate))))
+  (let ((regexp (rx (or "block_mapping_pair" "block_sequence_item"))))
+    (when (string-match-p regexp (treesit-node-type node))
+      (not (treesit-parent-until node regexp)))))
 
 ;;;###autoload
 (define-derived-mode yaml-ts-mode text-mode "YAML"
