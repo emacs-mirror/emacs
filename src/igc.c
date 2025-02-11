@@ -975,6 +975,9 @@ static bool process_one_message (struct igc *gc);
 
 static struct igc *global_igc;
 
+/* Put GC->arena in parked state, which means objects do not move
+   and their references do not change, and also no garbage collection
+   is possible.  */
 static void
 arena_park (struct igc *gc)
 {
@@ -983,6 +986,9 @@ arena_park (struct igc *gc)
   ++gc->park_count;
 }
 
+/* Put GC->arena into the unclamped state.
+   While an arena is unclamped, garbage collection, object motion,
+   and other background activity can take place.  */
 static void
 arena_release (struct igc *gc)
 {
