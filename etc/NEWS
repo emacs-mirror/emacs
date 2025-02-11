@@ -1095,6 +1095,12 @@ the directory into which the repository was cloned.
 
 ** Package
 
++++
+*** No longer warn if a package has no footer line.
+package.el no longer warns for packages without a "footer line", which
+is the line that usually appears at the very end of an Emacs Lisp file:
+;;; FILENAME ends here
+
 ---
 *** New optional argument to 'package-autoremove'.
 An optional argument NOCONFIRM has been added to 'package-autoremove'.
