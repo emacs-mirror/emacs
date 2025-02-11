@@ -2792,9 +2792,6 @@ friends."
 ;;
 ;; TODO: Integration with thing-at-point: once our thing interface is
 ;; stable.
-;;
-;; TODO: Integration with hideshow: I tried and failed, we need
-;; SomeOne that understands hideshow to look at it.
 
 (defvar-local treesit-defun-type-regexp nil
   "A regexp that matches the node type of defun nodes.
