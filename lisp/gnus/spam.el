@@ -4,7 +4,7 @@
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Maintainer: Ted Zlatanov <tzz@lifelogs.com>
-;; Keywords: network, spam, mail, bogofilter, BBDB, dspam, dig, whitelist, blacklist, gmane, hashcash, spamassassin, bsfilter, ifile, stat, crm114, spamoracle
+;; Keywords: network, spam, mail, bogofilter, BBDB, dspam, dig, whitelist, blacklist, gmane, spamassassin, bsfilter, ifile, stat, crm114, spamoracle
 
 ;; This file is part of GNU Emacs.
 
@@ -46,8 +46,7 @@
 (require 'dig)
 
 (eval-when-compile
-  (require 'cl-lib)
-  (require 'hashcash))
+  (require 'cl-lib))
 
 ;; autoload spam-report
 (autoload 'spam-report-gmane "spam-report")
@@ -205,6 +204,7 @@ are considered spam."
   "Whether hashcash payments should be detected by `spam-split'."
   :type 'boolean
   :group 'spam)
+(make-obsolete-variable 'spam-use-hashcash "it does nothing." "31.1")
 
 (defcustom spam-use-regex-headers nil
   "Whether a header regular expression match should be used by `spam-split'.
@@ -294,7 +294,6 @@ them."
                                spam-use-whitelist
                                spam-use-whitelist-exclusive
                                spam-use-blackholes
-                               spam-use-hashcash
                                spam-use-regex-headers
                                spam-use-regex-body
                                spam-use-bogofilter
@@ -1013,9 +1012,6 @@ backends)."
 ;;{{{ backend installations
 (spam-install-checkonly-backend 'spam-use-blackholes
                                 #'spam-check-blackholes)
-
-(spam-install-checkonly-backend 'spam-use-hashcash
-                                #'spam-check-hashcash)
 
 (spam-install-checkonly-backend 'spam-use-spamassassin-headers
                                 #'spam-check-spamassassin-headers)
@@ -2022,8 +2018,11 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 
 ;;{{{ Hashcash.
 
+(declare-function mail-check-payment "hashcash")
 (defun spam-check-hashcash ()
   "Check the headers for hashcash payments."
+  (declare (obsolete nil "31.1"))
+  (require 'hashcash)
   (ignore-errors (mail-check-payment)))  ;mail-check-payment returns a boolean
 
 ;;}}}

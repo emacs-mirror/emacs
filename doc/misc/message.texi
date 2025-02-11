@@ -1908,13 +1908,6 @@ Regexp of headers to be removed before mailing.  The default is@*
 This string is inserted at the end of the headers in all message
 buffers that are initialized as mail.
 
-@item message-generate-hashcash
-@vindex message-generate-hashcash
-Variable that indicates whether @samp{X-Hashcash} headers
-should be computed for the message.  @xref{Hashcash, ,Hashcash,gnus,
-The Gnus Manual}.  If @code{opportunistic}, only generate the headers
-when it doesn't lead to the user having to wait.
-
 @end table
 
 

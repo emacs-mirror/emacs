@@ -606,6 +606,11 @@ behavior included additional information about the originating message.
 The new variable 'message-header-use-obsolete-in-reply-to', nil by
 default, can be set to a non-nil value to restore the previous behavior.
 
++++
+*** Hashcash support has been removed.
+It is believed to no longer be useful as a method to fight spam.  The
+'message-generate-hashcash' option is now obsolete and has no effect.
+
 ** Gnus
 
 ---
@@ -613,6 +618,11 @@ default, can be set to a non-nil value to restore the previous behavior.
 When called with a prefix argument, accepting, declining, or tentatively
 accepting an icalendar event will prompt for a comment to add to the
 response.
+
++++
+*** Hashcash support has been removed.
+It is believed to no longer be useful as a method to fight spam.  The
+'spam-use-hashcash' hook is now obsolete and has no effect.
 
 ** Sieve
 

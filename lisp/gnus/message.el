@@ -1945,7 +1945,7 @@ no, only reply back to the author."
 		 (const :tag "Never" nil)
 		 (const :tag "Always" t)))
 
-(defcustom message-generate-hashcash (if (executable-find "hashcash") 'opportunistic)
+(defcustom message-generate-hashcash nil
   "Whether to generate X-Hashcash: headers.
 If t, always generate hashcash headers.  If `opportunistic',
 only generate hashcash headers if it can be done without the user
@@ -1959,6 +1959,7 @@ You must have the \"hashcash\" binary installed, see `hashcash-program'."
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Never" nil)
 		 (const :tag "Opportunistic" opportunistic)))
+(make-obsolete-variable 'message-generate-hashcash "it does nothing." "31.1")
 
 ;;; Internal variables.
 
@@ -4834,8 +4835,6 @@ Valid types are `send', `return', `exit', `kill' and `postpone'."
 	    (erase-buffer)))
       (kill-buffer tembuf))))
 
-(declare-function hashcash-wait-async "hashcash" (&optional buffer))
-
 (defun message--check-continuation-headers ()
   (message-check 'continuation-headers
     (goto-char (point-min))
@@ -4905,16 +4904,6 @@ If you always want Gnus to send messages in one piece, set
 	    message-posting-charset))
 	 (headers message-required-mail-headers)
 	 options)
-    (when (and message-generate-hashcash
-	       (not (eq message-generate-hashcash 'opportunistic)))
-      (message "Generating hashcash...")
-      (require 'hashcash)
-      ;; Wait for calculations already started to finish...
-      (hashcash-wait-async)
-      ;; ...and do calculations not already done.  mail-add-payment
-      ;; will leave existing X-Hashcash headers alone.
-      (mail-add-payment)
-      (message "Generating hashcash...done"))
     (save-restriction
       (message-narrow-to-headers)
       ;; Generate the Mail-Followup-To header if the header is not there...
@@ -6967,9 +6956,6 @@ are not included."
     (message-narrow-to-headers)
     (run-hooks 'message-header-setup-hook))
   (setq buffer-undo-list nil)
-  (when message-generate-hashcash
-    ;; Generate hashcash headers for recipients already known
-    (mail-add-payment-async))
   ;; Gnus posting styles are applied via buffer-local `message-setup-hook'
   ;; values.
   (run-hooks 'message-setup-hook)
@@ -8023,7 +8009,6 @@ is for the internal use."
 	(let ((inhibit-read-only t))
 	  (erase-buffer)))
       (let ((message-this-is-mail t)
-	    message-generate-hashcash
 	    message-setup-hook)
 	(message-setup `((To . ,address))))
       ;; Insert our usual headers.
@@ -8072,7 +8057,6 @@ is for the internal use."
 	    (sendmail-coding-system 'raw-text)
 	    (select-safe-coding-system-function nil)
 	    message-required-mail-headers
-	    message-generate-hashcash
 	    rfc2047-encode-encoded-words
             ;; If `message-sendmail-envelope-from' is `header' then
             ;; the envelope-from will be the original sender's
