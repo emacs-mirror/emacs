@@ -1956,32 +1956,34 @@ Doubles as an indicator of snippet support."
            (unless (bound-and-true-p yas-minor-mode) (yas-minor-mode 1))
            (apply #'yas-expand-snippet args)))))
 
- (defun eglot--format-markup (markup)
+ (defun eglot--format-markup (markup &optional mode)
   "Format MARKUP according to LSP's spec.
 MARKUP is either an LSP MarkedString or MarkupContent object."
-  (let (string mode language)
+  (let (string render-mode language)
     (cond ((stringp markup)
            (setq string markup
-                 mode 'gfm-view-mode))
+                 render-mode (or mode 'gfm-view-mode)))
           ((setq language (plist-get markup :language))
            ;; Deprecated MarkedString
            (setq string (concat "```" language "\n"
                                 (plist-get markup :value) "\n```")
-                 mode 'gfm-view-mode))
+                 render-mode (or mode 'gfm-view-mode)))
           (t
            ;; MarkupContent
            (setq string (plist-get markup :value)
-                 mode (pcase (plist-get markup :kind)
-                        ("markdown" 'gfm-view-mode)
-                        ("plaintext" 'text-mode)
-                        (_ major-mode)))))
+                 render-mode
+                 (or mode
+                     (pcase (plist-get markup :kind)
+                       ("markdown" 'gfm-view-mode)
+                       ("plaintext" 'text-mode)
+                       (_ major-mode))))))
     (with-temp-buffer
       (setq-local markdown-fontify-code-blocks-natively t)
       (insert string)
       (let ((inhibit-message t)
             (message-log-max nil)
             match)
-        (ignore-errors (delay-mode-hooks (funcall mode)))
+        (ignore-errors (delay-mode-hooks (funcall render-mode)))
         (font-lock-ensure)
         (goto-char (point-min))
         (let ((inhibit-read-only t))
@@ -3488,8 +3490,7 @@ for which LSP on-type-formatting should be requested."
                         (ensure-resolved (get-text-property 0 'eglot--lsp-item proxy))
                         :detail)))
            (when (and (stringp detail) (not (string= detail "")))
-             ;; Forces major-mode based fontification
-             (eglot--format-markup (list :value detail)))))
+             (eglot--format-markup detail major-mode))))
        :company-doc-buffer
        (lambda (proxy)
          (let* ((resolved
@@ -4457,6 +4458,7 @@ If NOERROR, return predicate, else erroring function."
 
 (defvar-local eglot--hierarchy-roots nil)
 (defvar-local eglot--hierarchy-specs nil)
+(defvar-local eglot--hierarchy-source-major-mode nil)
 
 (defun eglot--hierarchy-children (node)
   (cl-flet ((get-them (method node)
@@ -4528,6 +4530,7 @@ If NOERROR, return predicate, else erroring function."
 (defun eglot--hierarchy-1 (name provider preparer specs)
   (eglot-server-capable-or-lose provider)
   (let* ((server (eglot-current-server))
+         (mode major-mode)
          (roots (jsonrpc-request
                  server
                  preparer
@@ -4540,6 +4543,7 @@ If NOERROR, return predicate, else erroring function."
        eglot--hierarchy-roots roots
        eglot--hierarchy-specs specs
        eglot--cached-server server
+       eglot--hierarchy-source-major-mode mode
        buffer-read-only t
        revert-buffer-function
        (lambda (&rest _ignore)
@@ -4577,15 +4581,39 @@ If NOERROR, return predicate, else erroring function."
 (define-derived-mode eglot-hierarchy-mode special-mode
   "Eglot special" "Eglot mode for viewing hierarchies.
 \\{eglot-hierarchy-mode-map}"
-  :interactive nil)
+  :interactive nil
+  (setq eldoc-documentation-strategy
+        #'eldoc-documentation-compose)
+  (add-hook 'eldoc-documentation-functions
+            #'eglot-hierarchy-detail-eldoc-function
+            nil t)
+  (add-hook 'eldoc-documentation-functions
+            #'eglot-hierarchy-locus-eldoc-function
+            t t))
 
 (defun eglot-hierarchy-center-on-node ()
   "Refresh hierarchy, centering on node at point."
   (interactive)
   (setq-local eglot--hierarchy-roots
               (list (get-text-property (point)
-                                 'eglot--hierarchy-node)))
+                                       'eglot--hierarchy-node)))
   (eglot--hierarchy-2))
+
+(defun eglot-hierarchy-detail-eldoc-function (_cb &rest _ignored)
+  (when-let* ((detail
+               (plist-get (get-text-property (point) 'eglot--hierarchy-node)
+                          :detail)))
+    (eglot--format-markup detail eglot--hierarchy-source-major-mode)))
+
+(defun eglot-hierarchy-locus-eldoc-function (_cb &rest _ignored)
+  (let* ((node (get-text-property (point) 'eglot--hierarchy-node))
+         (uri (plist-get node :uri))
+         (loc (plist-get (plist-get node :range) :start)))
+    (and uri loc
+         ;; maybe use `file-relative-name'?
+         (format "%s:%s:%s" (eglot-uri-to-path uri)
+                 (1+ (plist-get loc :line))
+                 (plist-get loc :character)))))
 
 
 ;;; Hacks
