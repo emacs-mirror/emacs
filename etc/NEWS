@@ -1321,6 +1321,10 @@ change the selection rules.
 Use 'shell-command' and 'shell-command-on-region' instead.
 
 ---
+*** hashcash.el is now obsolete.
+It is believed to no longer be useful as a method to fight spam.
+
+---
 *** kermit.el is now obsolete.
 
 

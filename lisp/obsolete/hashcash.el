@@ -5,6 +5,7 @@
 ;; Written by: Paul Foley <mycroft@actrix.gen.nz> (1997-2002)
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail, hashcash
+;; Obsolete-since: 31.1
 
 ;; This file is part of GNU Emacs.
 
