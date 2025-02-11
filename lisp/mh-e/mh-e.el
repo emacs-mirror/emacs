@@ -878,7 +878,7 @@ finally GNU mailutils MH."
     (sit-for 5)
     (setq variant (concat "gnu-mh" (substring variant (match-end 0)))))
 
-  (let ((valid-list (mapcar (lambda (x) (car x)) (mh-variants))))
+  (let ((valid-list (mapcar #'car (mh-variants))))
     (cond
      ((eq variant 'none))
      ((eq variant 'autodetect)

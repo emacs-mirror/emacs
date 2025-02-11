@@ -191,7 +191,7 @@ Usage example:
           (format
            "%s (%s): "
            prompt
-           (mapconcat (lambda (e) (cdr e)) altered-names ", ")))
+           (mapconcat #'cdr altered-names ", ")))
          tchar buf wrong-char answer command)
     (save-window-excursion
       (save-excursion

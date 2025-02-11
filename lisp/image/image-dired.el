@@ -2084,7 +2084,7 @@ when using per-directory thumbnail file storage"))
 ;;            ;; Sort function.  Compare time between two files.
 ;;            (lambda (l1 l2)
 ;;               (time-less-p (car l1) (car l2)))))
-;;          (dirsize (apply '+ (mapcar (lambda (x) (cadr x)) files))))
+;;          (dirsize (apply #'+ (mapcar #'cadr files))))
 ;;     (while (> dirsize image-dired-dir-max-size)
 ;;       (y-or-n-p
 ;;        (format "Size of thumbnail directory: %d, delete old file %s? "

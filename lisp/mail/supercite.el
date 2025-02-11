@@ -596,7 +596,7 @@ selected letter is returned, or nil if the question was not answered.
 Note that WORD is a string and LETTER is a character.  All LETTERs in
 the list should be unique."
   (let* ((prompt (concat
-		  (mapconcat (lambda (elt) (car elt)) alist ", ")
+                  (mapconcat #'car alist ", ")
 		  "? ("
 		  (mapconcat
 		   (lambda (elt) (char-to-string (cdr elt))) alist "/")

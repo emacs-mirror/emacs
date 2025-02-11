@@ -6309,8 +6309,7 @@ specific buffers."
             ,@(when next-buffers
                 `((next-buffers
                    . ,(if writable
-                          (mapcar (lambda (buffer) (buffer-name buffer))
-                                  next-buffers)
+                          (mapcar #'buffer-name next-buffers)
                         next-buffers))))
             ,@(when prev-buffers
                 `((prev-buffers

@@ -4011,7 +4011,7 @@ Use `math-format-value' as a printer for Calc objects."
     (unless reorient-x
       (setq result (mapcar #'nreverse result)))
     (when transpose
-      (let ((ret (mapcar (lambda (x) (list x)) (pop result))) iter)
+      (let ((ret (mapcar #'list (pop result))) iter)
 	(while result
 	  (setq iter ret)
 	  (dolist (elt (pop result))

@@ -1600,7 +1600,7 @@ FINAL-SEPARATOR is non-nil."
   (or separator (setq separator "\\\\"))
   (let (result)
     (setq result
-          (mapconcat (lambda (x) (cal-tex-LaTeXify-string x))
+          (mapconcat #'cal-tex-LaTeXify-string
                      (dolist (d date-list (reverse result))
                        (and (car d)
                             (calendar-date-equal date (car d))

@@ -2272,8 +2272,7 @@ PROCESS is the process object for the current connection."
   "Return list of channels for NICK.
 PROCESS is the process object for the current connection."
   (with-rcirc-process-buffer process
-    (mapcar (lambda (x) (car x))
-            (gethash nick rcirc-nick-table))))
+    (mapcar #'car (gethash nick rcirc-nick-table))))
 
 (defun rcirc-put-nick-channel (process nick channel &optional line)
   "Add CHANNEL to list associated with NICK.
@@ -2327,7 +2326,7 @@ PROCESS is the process object for the current connection."
                    (if record
                        (setq nicks (cons (cons k (cdr record)) nicks)))))
                rcirc-nick-table)
-              (mapcar (lambda (x) (car x))
+              (mapcar #'car
                       (sort (nconc pseudo-nicks nicks)
                             (lambda (x y)
                               (let ((lx (or (cdr x) 0))
@@ -3004,8 +3003,8 @@ If ARG is given, opens the URL in a new browser window."
          (filtered (seq-filter
                     (lambda (x) (>= point (cdr x)))
                     rcirc-urls))
-         (completions (mapcar (lambda (x) (car x)) filtered))
-         (defaults (mapcar (lambda (x) (car x)) filtered)))
+         (completions (mapcar #'car filtered))
+         (defaults (mapcar #'car filtered)))
     (browse-url (completing-read "Rcirc browse-url: "
                                  completions nil nil (car defaults) nil defaults)
                 arg)))

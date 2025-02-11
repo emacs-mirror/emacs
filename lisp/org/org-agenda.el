@@ -8186,7 +8186,7 @@ FLAG specifies the type of completion operation to perform.  This
 function is passed as a collection function to `completing-read',
 which see."
   (let ((completion-ignore-case t)	;tags are case-sensitive
-	(confirm (lambda (x) (stringp x)))
+        (confirm #'stringp)
 	(prefix "")
 	(operator "")
 	table

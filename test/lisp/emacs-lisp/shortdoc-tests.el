@@ -56,7 +56,7 @@
 
 (ert-deftest shortdoc-all-groups-work ()
   "Test that all defined shortdoc groups display correctly."
-  (dolist (group (mapcar (lambda (x) (car x)) shortdoc--groups))
+  (dolist (group (mapcar #'car shortdoc--groups))
     (let ((buf-name (format "*Shortdoc %s*" group)) buf)
       (unwind-protect
           (progn

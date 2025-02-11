@@ -3310,9 +3310,7 @@ otherwise, the current line is skipped."
 Generated from `ispell-tex-skip-alists'."
   (concat
    ;; raw tex keys
-   (mapconcat (lambda (lst) (car lst))
-	      (car ispell-tex-skip-alists)
-	      "\\|")
+   (mapconcat #'car (car ispell-tex-skip-alists) "\\|")
    "\\|"
    ;; keys wrapped in begin{}
    (mapconcat (lambda (lst)

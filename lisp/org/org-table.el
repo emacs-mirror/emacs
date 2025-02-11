@@ -2539,8 +2539,7 @@ location of point."
 	;; replace fields with duration values if relevant
 	(if duration
 	    (setq fields
-		  (mapcar (lambda (x) (org-table-time-string-to-seconds x))
-			  fields)))
+                  (mapcar #'org-table-time-string-to-seconds fields)))
 	(if (eq numbers t)
 	    (setq fields (mapcar
 			  (lambda (x)

@@ -3230,7 +3230,7 @@ See more for options in `search-exit-option'."
       (setq isearch-pre-move-point (point)))
      ;; Append control characters to the search string
      ((eq search-exit-option 'append)
-      (unless (memq nil (mapcar (lambda (k) (characterp k)) key))
+      (unless (memq nil (mapcar #'characterp key))
         (isearch-process-search-string key key))
       (setq this-command 'ignore))
      ;; Other characters terminate the search and are then executed normally.
@@ -4654,8 +4654,7 @@ defaults to the value of `isearch-search-fun-default' when nil."
                                          (match-data)))))
             (when found (goto-char found))
             (when match-data (set-match-data
-                              (mapcar (lambda (m) (copy-marker m))
-                                      match-data))))
+                              (mapcar #'copy-marker match-data))))
         (setq found (funcall
                      (or search-fun (isearch-search-fun-default))
                      string (if bound (if isearch-forward

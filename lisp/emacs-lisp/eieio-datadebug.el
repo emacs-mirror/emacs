@@ -111,7 +111,7 @@ PREBUTTONTEXT is some text between PREFIX and the object button."
               )))))))
 
 ;;; Augment the Data debug thing display list.
-(data-debug-add-specialized-thing (lambda (thing) (eieio-object-p thing))
+(data-debug-add-specialized-thing #'eieio-object-p
 				  #'data-debug-insert-object-button)
 
 ;;; DEBUG METHODS

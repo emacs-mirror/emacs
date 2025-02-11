@@ -1872,8 +1872,7 @@ Otherwise buffers whose name matches an element of
 (defun ibuffer-mark-modified-buffers ()
   "Mark all modified buffers."
   (interactive)
-  (ibuffer-mark-on-buffer
-   (lambda (buf) (buffer-modified-p buf))))
+  (ibuffer-mark-on-buffer #'buffer-modified-p))
 
 ;;;###autoload
 (defun ibuffer-mark-unsaved-buffers ()

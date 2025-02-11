@@ -385,7 +385,7 @@ Optional argument POINT is where to look for the environment."
     ))
 
 (defvar semantic-texi-command-completion-list
-  (append (mapcar (lambda (a) (car a)) texinfo-section-list)
+  (append (mapcar #'car texinfo-section-list)
 	  texinfo-environments
 	  ;; Is there a better list somewhere?  Here are few
 	  ;; of the top of my head.

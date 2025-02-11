@@ -204,7 +204,7 @@ reached."
 		    ,f)))
 	      (directory-files (thumbs-thumbsdir) t (image-file-name-regexp)))
 	     (lambda (l1 l2) (time-less-p (car l1) (car l2)))))
-           (dirsize (apply #'+ (mapcar (lambda (x) (cadr x)) files-list))))
+           (dirsize (apply #'+ (mapcar #'cadr files-list))))
       (while (> dirsize thumbs-thumbsdir-max-size)
         (progn
 	  (message "Deleting file %s" (cadr (cdar files-list))))

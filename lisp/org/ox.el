@@ -1552,7 +1552,7 @@ Assume buffer is in Org mode.  Narrowing, if any, is ignored."
 		      (newline
 		       (mapconcat #'identity values "\n"))
 		      (split
-		       (cl-mapcan (lambda (v) (split-string v)) values))
+                       (cl-mapcan #'split-string values))
 		      ((t)
 		       (org-last values))
 		      (otherwise
