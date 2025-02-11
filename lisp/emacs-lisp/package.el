@@ -1168,6 +1168,7 @@ Signal an error if the entire string was not used."
 
 (declare-function lm-header "lisp-mnt" (header))
 (declare-function lm-package-requires "lisp-mnt" (&optional file))
+(declare-function lm-package-version "lisp-mnt" (&optional file))
 (declare-function lm-website "lisp-mnt" (&optional file))
 (declare-function lm-keywords-list "lisp-mnt" (&optional file))
 (declare-function lm-maintainers "lisp-mnt" (&optional file))
@@ -1185,11 +1186,7 @@ boundaries."
   (let ((file-name (match-string-no-properties 1))
         (desc      (match-string-no-properties 2)))
     (require 'lisp-mnt)
-    ;; Use some headers we've invented to drive the process.
-    (let* (;; Prefer Package-Version; if defined, the package author
-           ;; probably wants us to use it.  Otherwise try Version.
-           (version-info
-            (or (lm-header "package-version") (lm-header "version")))
+    (let* ((version-info (lm-package-version))
            (pkg-version (package-strip-rcs-id version-info))
            (keywords (lm-keywords-list))
            (website (lm-website)))
@@ -4549,10 +4546,7 @@ the `Version:' header."
         (unless (file-readable-p mainfile) (setq mainfile file))
         (when (file-readable-p mainfile)
           (require 'lisp-mnt)
-          (with-temp-buffer
-            (insert-file-contents mainfile)
-            (or (lm-header "package-version")
-                (lm-header "version")))))))))
+          (lm-package-version mainfile)))))))
 
 
 ;;;; Quickstart: precompute activation actions for faster start up.
