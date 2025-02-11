@@ -3483,12 +3483,13 @@ for which LSP on-type-formatting should be requested."
                                1)
                (eq t (plist-get lsp-item :deprecated)))))
        :company-docsig
-       ;; FIXME: autoImportText is specific to the pyright language server
        (lambda (proxy)
-         (when-let* ((lsp-comp (get-text-property 0 'eglot--lsp-item proxy))
-                     (data (plist-get (ensure-resolved lsp-comp) :data))
-                     (import-text (plist-get data :autoImportText)))
-           import-text))
+         (let ((detail (plist-get
+                        (ensure-resolved (get-text-property 0 'eglot--lsp-item proxy))
+                        :detail)))
+           (when (and (stringp detail) (not (string= detail "")))
+             ;; Forces major-mode based fontification
+             (eglot--format-markup (list :value detail)))))
        :company-doc-buffer
        (lambda (proxy)
          (let* ((resolved
