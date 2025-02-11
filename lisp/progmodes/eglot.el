@@ -3343,81 +3343,79 @@ for which LSP on-type-formatting should be requested."
 (add-to-list 'completion-category-defaults '(eglot-capf (styles eglot--dumb-flex)))
 (add-to-list 'completion-styles-alist '(eglot--dumb-flex eglot--dumb-tryc eglot--dumb-allc))
 
-(defun eglot-completion-at-point ()
+(cl-defun eglot-completion-at-point (&aux completion-capability)
   "Eglot's `completion-at-point' function."
   ;; Commit logs for this function help understand what's going on.
-  (when-let* ((completion-capability (eglot-server-capable :completionProvider)))
-    (let* ((server (eglot--current-server-or-lose))
-           (bounds (or (bounds-of-thing-at-point 'symbol)
-                       (cons (point) (point))))
-           (bounds-string (buffer-substring (car bounds) (cdr bounds)))
-           (sort-completions
-            (lambda (completions)
-              (cl-sort completions
-                       #'string-lessp
-                       :key (lambda (c)
-                              (plist-get
-                               (get-text-property 0 'eglot--lsp-item c)
-                               :sortText)))))
-           (metadata `(metadata (category . eglot-capf)
-                                (display-sort-function . ,sort-completions)))
-           (local-cache :none)
-           (orig-pos (point))
-           (resolved (make-hash-table))
-           (proxies
-            (lambda ()
-              (if (listp local-cache) local-cache
-                (let* ((resp (eglot--request server
-                                             :textDocument/completion
-                                             (eglot--CompletionParams)
-                                             :cancel-on-input t))
-                       (items (append
-                               (if (vectorp resp) resp (plist-get resp :items))
-                               nil))
-                       (cachep (and (listp resp) items
-                                    eglot-cache-session-completions
-                                    (eq (plist-get resp :isIncomplete) :json-false)))
-                       (retval
-                        (mapcar
-                         (jsonrpc-lambda
-                             (&rest item &key label insertText insertTextFormat
-                                    textEdit &allow-other-keys)
-                           (let ((proxy
-                                  ;; Snippet or textEdit, it's safe to
-                                  ;; display/insert the label since
-                                  ;; it'll be adjusted.  If no usable
-                                  ;; insertText at all, label is best,
-                                  ;; too.
-                                  (cond ((or (eql insertTextFormat 2)
-                                             textEdit
-                                             (null insertText)
-                                             (string-empty-p insertText))
-                                         (string-trim-left label))
-                                        (t insertText))))
-                             (unless (zerop (length proxy))
-                               (put-text-property 0 1 'eglot--lsp-item item proxy))
-                             proxy))
-                         items)))
-                  ;; (trace-values "Requested" (length proxies) cachep bounds)
-                  (setq eglot--capf-session
-                        (if cachep (list bounds retval resolved orig-pos
-                                         bounds-string) :none))
-                  (setq local-cache retval)))))
-           (resolve-maybe
-            ;; Maybe completion/resolve JSON object `lsp-comp' into
-            ;; another JSON object, if at all possible.  Otherwise,
-            ;; just return lsp-comp.
-            (lambda (lsp-comp &optional dont-cancel-on-input)
-              (or (gethash lsp-comp resolved)
-                  (setf (gethash lsp-comp resolved)
-                        (if (and (eglot-server-capable :completionProvider
-                                                        :resolveProvider)
-                                 (plist-get lsp-comp :data))
-                            (eglot--request server :completionItem/resolve
-                                            lsp-comp :cancel-on-input
-                                            (not dont-cancel-on-input)
-                                            :immediate t)
-                          lsp-comp))))))
+  (setq completion-capability (eglot-server-capable :completionProvider))
+  (unless completion-capability (cl-return-from eglot-completion-at-point))
+  (let* ((server (eglot--current-server-or-lose))
+         (bounds (or (bounds-of-thing-at-point 'symbol)
+                     (cons (point) (point))))
+         (bounds-string (buffer-substring (car bounds) (cdr bounds)))
+         (local-cache :none)
+         (orig-pos (point))
+         (resolved (make-hash-table)))
+    (cl-labels
+        ((sort-completions (completions)
+           (cl-sort completions
+                    #'string-lessp
+                    :key (lambda (c)
+                           (plist-get
+                            (get-text-property 0 'eglot--lsp-item c)
+                            :sortText))))
+         (proxies ()
+           (if (listp local-cache) local-cache
+             (let* ((resp (eglot--request server
+                                          :textDocument/completion
+                                          (eglot--CompletionParams)
+                                          :cancel-on-input t))
+                    (items (append
+                            (if (vectorp resp) resp (plist-get resp :items))
+                            nil))
+                    (cachep (and (listp resp) items
+                                 eglot-cache-session-completions
+                                 (eq (plist-get resp :isIncomplete) :json-false)))
+                    (retval
+                     (mapcar
+                      (jsonrpc-lambda
+                          (&rest item &key label insertText insertTextFormat
+                                 textEdit &allow-other-keys)
+                        (let ((proxy
+                               ;; Snippet or textEdit, it's safe to
+                               ;; display/insert the label since
+                               ;; it'll be adjusted.  If no usable
+                               ;; insertText at all, label is best,
+                               ;; too.
+                               (cond ((or (eql insertTextFormat 2)
+                                          textEdit
+                                          (null insertText)
+                                          (string-empty-p insertText))
+                                      (string-trim-left label))
+                                     (t insertText))))
+                          (unless (zerop (length proxy))
+                            (put-text-property 0 1 'eglot--lsp-item item proxy))
+                          proxy))
+                      items)))
+               ;; (trace-values "Requested" (length proxies) cachep bounds)
+               (setq eglot--capf-session
+                     (if cachep (list bounds retval resolved orig-pos
+                                      bounds-string)
+                       :none))
+               (setq local-cache retval))))
+         (ensure-resolved (lsp-comp &optional dont-cancel-on-input)
+           ;; Maybe completion/resolve JSON object `lsp-comp' into
+           ;; another JSON object, if at all possible.  Otherwise,
+           ;; just return lsp-comp.
+           (or (gethash lsp-comp resolved)
+               (setf (gethash lsp-comp resolved)
+                     (if (and (eglot-server-capable :completionProvider
+                                                    :resolveProvider)
+                              (plist-get lsp-comp :data))
+                         (eglot--request server :completionItem/resolve
+                                         lsp-comp :cancel-on-input
+                                         (not dont-cancel-on-input)
+                                         :immediate t)
+                       lsp-comp)))))
       (when (and (consp eglot--capf-session)
                  (= (car bounds) (car (nth 0 eglot--capf-session)))
                  (>= (cdr bounds) (cdr (nth 0 eglot--capf-session))))
@@ -3432,14 +3430,16 @@ for which LSP on-type-formatting should be requested."
        (cdr bounds)
        (lambda (pattern pred action)
          (cond
-          ((eq action 'metadata) metadata)               ; metadata
+          ((eq action 'metadata)                         ; metadata
+           `(metadata (category . eglot-capf)
+                      (display-sort-function . ,#'sort-completions)))
           ((eq action 'lambda)                           ; test-completion
-           (test-completion pattern (funcall proxies)))
+           (test-completion pattern (proxies)))
           ((eq (car-safe action) 'boundaries) nil)       ; boundaries
           ((null action)                                 ; try-completion
-           (try-completion pattern (funcall proxies)))
+           (try-completion pattern (proxies)))
           ((eq action t)                                 ; all-completions
-           (let ((comps (funcall proxies)))
+           (let ((comps (proxies)))
              (dolist (c comps) (eglot--dumb-flex pattern c completion-ignore-case))
              (all-completions
               ""
@@ -3486,14 +3486,15 @@ for which LSP on-type-formatting should be requested."
        ;; FIXME: autoImportText is specific to the pyright language server
        (lambda (proxy)
          (when-let* ((lsp-comp (get-text-property 0 'eglot--lsp-item proxy))
-                     (data (plist-get (funcall resolve-maybe lsp-comp) :data))
+                     (data (plist-get (ensure-resolved lsp-comp) :data))
                      (import-text (plist-get data :autoImportText)))
            import-text))
        :company-doc-buffer
        (lambda (proxy)
-         (let* ((documentation
-                 (let ((lsp-comp (get-text-property 0 'eglot--lsp-item proxy)))
-                   (plist-get (funcall resolve-maybe lsp-comp) :documentation)))
+         (let* ((resolved
+                 (ensure-resolved (get-text-property 0 'eglot--lsp-item proxy)))
+                (documentation
+                 (plist-get resolved :documentation))
                 (formatted (and documentation
                                 (eglot--format-markup documentation))))
            (when formatted
@@ -3524,15 +3525,14 @@ for which LSP on-type-formatting should be requested."
                                   (current-buffer))
              (eglot--dbind ((CompletionItem) insertTextFormat
                             insertText textEdit additionalTextEdits label)
-                 (funcall
-                  resolve-maybe
+                 (ensure-resolved
                   (or (get-text-property 0 'eglot--lsp-item proxy)
                       ;; When selecting from the *Completions*
                       ;; buffer, `proxy' won't have any properties.
                       ;; A lookup should fix that (github#148)
                       (get-text-property
                        0 'eglot--lsp-item
-                       (cl-find proxy (funcall proxies) :test #'string=)))
+                       (cl-find proxy (proxies) :test #'string=)))
                   ;; Be sure to pass non-nil here since we don't want
                   ;; any quick typing after the soon-to-be-undone
                   ;; insertion to potentially cancel an essential
