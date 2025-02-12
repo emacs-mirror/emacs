@@ -4603,10 +4603,10 @@ START-DAY is an absolute time value."
 	((eq span 'fortnight) 14)
 	((eq span 'month)
 	 (let ((date (calendar-gregorian-from-absolute start-day)))
-	   (calendar-last-day-of-month (car date) (cl-caddr date))))
+           (calendar-last-day-of-month (car date) (caddr date))))
 	((eq span 'year)
 	 (let ((date (calendar-gregorian-from-absolute start-day)))
-	   (if (calendar-leap-year-p (cl-caddr date)) 366 365)))))
+           (if (calendar-leap-year-p (caddr date)) 366 365)))))
 
 (defun org-agenda-span-name (span)
   "Return a SPAN name."

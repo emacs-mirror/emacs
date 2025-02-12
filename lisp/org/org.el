@@ -12800,7 +12800,7 @@ variables is set."
 	  (cond
 	   (increment
 	    (unless allowed (user-error "Allowed effort values are not set"))
-	    (or (cl-caadr (member (list current) allowed))
+            (or (caadr (member (list current) allowed))
 		(user-error "Unknown value %S among allowed values" current)))
 	   (value
 	    (if (stringp value) value

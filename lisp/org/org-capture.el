@@ -1100,7 +1100,7 @@ Store them in the capture property list."
                     (org-encode-time
                      (apply #'list
                             0 0 org-extend-today-until
-                            (cl-cdddr (decode-time prompt-time))))))
+                            (cdddr (decode-time prompt-time))))))
 		 (time-to-days prompt-time)))
 	      (t
 	       ;; Current date, possibly corrected for late night
