@@ -280,10 +280,12 @@ so that they are registered at compile-time as well as run-time."
 
 (defun cl-oddp (integer)
   "Return t if INTEGER is odd."
+  (declare (compiler-macro (lambda (_) `(eq (logand ,integer 1) 1))))
   (eq (logand integer 1) 1))
 
 (defun cl-evenp (integer)
   "Return t if INTEGER is even."
+  (declare (compiler-macro (lambda (_) `(eq (logand ,integer 1) 0))))
   (eq (logand integer 1) 0))
 
 (defconst cl-digit-char-table
