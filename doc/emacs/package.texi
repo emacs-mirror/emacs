@@ -35,10 +35,20 @@ install or uninstall packages via this buffer.  @xref{Package Menu}.
 name of a package, and displays a help buffer describing the
 attributes of the package and the features that it implements.
 
-  By default, Emacs downloads packages from a package archive
-maintained by the Emacs developers and hosted by the GNU project.
-Optionally, you can also download packages from archives maintained by
-third parties.  @xref{Package Installation}.
+@cindex GNU ELPA
+@cindex NonGNU ELPA
+  By default, Emacs downloads packages from two archives:
+@url{https://elpa.gnu.org/, GNU ELPA} and @url{https://elpa.nongnu.org/,
+NonGNU ELPA}. These are maintained by the Emacs developers and hosted by
+the GNU project.  @dfn{GNU ELPA} contains GNU packages that we consider
+part of GNU Emacs, but are distributed separately from the core Emacs.
+@dfn{NonGNU ELPA} contains third-party packages whose copyright has not
+been assigned to the Free Software Foundation.@footnote{For more
+information about copyright assignments, see
+@url{https://www.gnu.org/licenses/why-assign.html, Why the FSF Gets
+Copyright Assignments from Contributors}.}  Optionally, you can also
+download packages from third-party archives.  @xref{Package
+Installation}.
 
   For information about turning an Emacs Lisp program into an
 installable package, @xref{Packaging,,,elisp, The Emacs Lisp Reference
