@@ -147,10 +147,10 @@ This function takes no arguments and is expected to return a list of
 indent RULEs as described in `treesit-simple-indent-rules'.  Note that
 the list of RULEs doesn't need to contain the language symbol."
   :version "29.1"
-  :type '(choice (symbol :tag "Gnu" gnu)
-                 (symbol :tag "K&R" k&r)
-                 (symbol :tag "Linux" linux)
-                 (symbol :tag "BSD" bsd)
+  :type '(choice (const :tag "Gnu" gnu)
+                 (const :tag "K&R" k&r)
+                 (const :tag "Linux" linux)
+                 (const :tag "BSD" bsd)
                  (function :tag "A function for user customized style" ignore))
   :set #'c-ts-mode--indent-style-setter
   :safe 'c-ts-indent-style-safep
