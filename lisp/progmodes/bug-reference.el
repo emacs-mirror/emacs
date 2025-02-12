@@ -225,10 +225,14 @@ subexpression 10."
   (when (string-match url-rx url)
     (setq-local bug-reference-bug-regexp bug-rx)
     (setq-local bug-reference-url-format
-                (let (groups)
-                  (dotimes (i (/ (length (match-data)) 2))
-                    (push (match-string i url) groups))
-                  (funcall bug-url-fmt (nreverse groups))))))
+                (if (functionp bug-url-fmt)
+                    ;; Collect the regex matches in a list and call
+                    ;; bug-url-fmt with it.
+                    (let (groups)
+                      (dotimes (i (/ (length (match-data)) 2))
+                        (push (match-string i url) groups))
+                      (funcall bug-url-fmt (nreverse groups)))
+                  bug-url-fmt))))
 
 (defvar bug-reference--setup-from-vc-alist nil
   "An alist for setting up `bug-reference-mode' based on VC URL.
@@ -366,13 +370,14 @@ generated from `bug-reference-forge-alist'."
 (defvar bug-reference-setup-from-vc-alist nil
   "An alist for setting up `bug-reference-mode' based on VC URL.
 
-Each element has the form (URL-REGEXP BUG-REGEXP URL-FORMAT-FN).
+Each element has the form (URL-REGEXP BUG-REGEXP URL-FORMAT).
 
-URL-REGEXP is matched against the version control URL of the
-current buffer's file.  If it matches, BUG-REGEXP is set as
-`bug-reference-bug-regexp'.  URL-FORMAT-FN is a function of one
-argument that receives a list of the groups 0 to N of matching
-URL-REGEXP against the VCS URL and returns the value to be set as
+URL-REGEXP is matched against the version control URL of the current
+buffer's file.  If it matches, BUG-REGEXP is set as
+`bug-reference-bug-regexp'.  URL-FORMAT is either a string, the
+`bug-reference-url-format' to be used, or a function of one argument
+that receives a list of the groups 0 to N of matching URL-REGEXP against
+the VCS URL and returns the value to be set as
 `bug-reference-url-format'.")
 
 (defun bug-reference-try-setup-from-vc ()
