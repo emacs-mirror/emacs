@@ -3501,7 +3501,7 @@ when a major mode sets it.")
    treesit-simple-imenu-settings))
 
 (defun treesit-outline--at-point ()
-  "Return the outline heading at the current line."
+  "Return the outline heading node at the current line."
   (let* ((pred treesit-outline-predicate)
          (bol (pos-bol))
          (eol (pos-eol))
@@ -3551,8 +3551,7 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
 (defun treesit-outline-level ()
   "Return the depth of the current outline heading."
   (let* ((node (treesit-outline--at-point))
-         (level (if (treesit-node-match-p node treesit-outline-predicate)
-                    1 0)))
+         (level 1))
     (while (setq node (treesit-parent-until node treesit-outline-predicate))
       (setq level (1+ level)))
     (if (zerop level) 1 level)))

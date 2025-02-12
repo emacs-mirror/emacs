@@ -1168,7 +1168,7 @@ leading double colon is not added."
   (setq-local treesit-thing-settings
               `((ruby
                  (sexp ,(cons (rx
-                               bol
+                               bos
                                (or
                                 "class"
                                 "singleton_class"
@@ -1211,49 +1211,48 @@ leading double colon is not added."
                                 "instance_variable"
                                 "global_variable"
                                 )
-                               eol)
+                               eos)
                               #'ruby-ts--sexp-p))
-                 (list
-                  ,(cons (rx
-                          bol
-                          (or
-                           "begin_block"
-                           "end_block"
-                           "method"
-                           "singleton_method"
-                           "method_parameters"
-                           "parameters"
-                           "block_parameters"
-                           "class"
-                           "singleton_class"
-                           "module"
-                           "do"
-                           "case"
-                           "case_match"
-                           "array_pattern"
-                           "find_pattern"
-                           "hash_pattern"
-                           "parenthesized_pattern"
-                           "expression_reference_pattern"
-                           "if"
-                           "unless"
-                           "begin"
-                           "parenthesized_statements"
-                           "argument_list"
-                           "do_block"
-                           "block"
-                           "destructured_left_assignment"
-                           "interpolation"
-                           "string"
-                           "string_array"
-                           "symbol_array"
-                           "delimited_symbol"
-                           "regex"
-                           "heredoc_body"
-                           "array"
-                           "hash")
-                          eol)
-                         #'ruby-ts--list-p))
+                 (list ,(cons (rx
+                               bos
+                               (or
+                                "begin_block"
+                                "end_block"
+                                "method"
+                                "singleton_method"
+                                "method_parameters"
+                                "parameters"
+                                "block_parameters"
+                                "class"
+                                "singleton_class"
+                                "module"
+                                "do"
+                                "case"
+                                "case_match"
+                                "array_pattern"
+                                "find_pattern"
+                                "hash_pattern"
+                                "parenthesized_pattern"
+                                "expression_reference_pattern"
+                                "if"
+                                "unless"
+                                "begin"
+                                "parenthesized_statements"
+                                "argument_list"
+                                "do_block"
+                                "block"
+                                "destructured_left_assignment"
+                                "interpolation"
+                                "string"
+                                "string_array"
+                                "symbol_array"
+                                "delimited_symbol"
+                                "regex"
+                                "heredoc_body"
+                                "array"
+                                "hash")
+                               eos)
+                              #'ruby-ts--list-p))
                  (text ,(lambda (node)
                           (or (member (treesit-node-type node)
                                       '("comment" "string_content" "heredoc_content"))
@@ -1275,12 +1274,14 @@ leading double colon is not added."
 
   ;; Outline minor mode.
   (setq-local treesit-outline-predicate
-              (rx bos (or "singleton_method"
-                          "method"
-                          "alias"
-                          "class"
-                          "module")
-                  eos))
+              `(and ,(rx bos (or "singleton_method"
+                                 "method"
+                                 "alias"
+                                 "singleton_class"
+                                 "class"
+                                 "module")
+                         eos)
+                    named))
   ;; Restore default values of outline variables
   ;; to use `treesit-outline-predicate'.
   (kill-local-variable 'outline-regexp)
