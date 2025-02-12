@@ -279,7 +279,7 @@ files.")
     ("Thomas Dye" "Tom Dye")
     ("Thomas Horsley" "Tom Horsley")	; FIXME ?
     ("Thomas Wurgler" "Tom Wurgler")
-    ("Umut Thuna Akgul" "thuna\\.cing@gmail\\.com")
+    ("Umut Tuna Akgül" "thuna\\.cing@gmail\\.com")
     ("Toby Cubitt" "Toby S\\. Cubitt")
     ("Tomohiko Morioka" "MORIOKA Tomohiko")
     ("Torbjörn Axelsson" "Torbjvrn Axelsson")
