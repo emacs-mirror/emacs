@@ -2634,13 +2634,18 @@ side effect of setting the current buffer to the one it returns.  Use
          (old-recon-count erc-server-reconnect-count)
          (old-point nil)
          (delayed-modules nil)
-         (continued-session (or erc--server-reconnecting
-                                erc--target-priors
-                                (and-let* (((not target))
-                                           (m (buffer-local-value
-                                               'erc-input-marker buffer))
-                                           ((marker-position m)))
-                                  (buffer-local-variables buffer)))))
+         (erc--server-reconnecting
+          (or erc--server-reconnecting
+              ;; Interpret an entry-point invocation reassociated with
+              ;; an existing session via explicit ID as an "implied"
+              ;; reconnection, but only if it at least tried to connect.
+              (and-let* ((id) (connect) ; `target' must be null
+                         (m (buffer-local-value 'erc-input-marker buffer))
+                         ((marker-position m))
+                         ((buffer-local-value 'erc-server-process buffer))
+                         (netid (buffer-local-value 'erc-networks--id buffer)))
+                (cl-assert (string-equal (erc-networks--id-given netid) id))
+                (buffer-local-variables buffer)))))
     (when connect (run-hook-with-args 'erc-before-connect server port nick))
     (set-buffer buffer)
     (setq old-point (point))
@@ -2705,7 +2710,8 @@ side effect of setting the current buffer to the one it returns.  Use
           (when erc-log-p
             (get-buffer-create (concat "*ERC-DEBUG: " server "*"))))
 
-    (erc--initialize-markers old-point continued-session)
+    (erc--initialize-markers old-point (or erc--server-reconnecting
+                                           erc--target-priors))
     (erc-determine-parameters server port nick full-name user passwd)
     (save-excursion (run-mode-hooks)
                     (dolist (mod (car delayed-modules))
