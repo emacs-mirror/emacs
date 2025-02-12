@@ -590,9 +590,6 @@ treatment of negative COUNT provided by this function."
 
 ;;;; List functions.
 
-;; Note: `internal--compiler-macro-cXXr' was copied from
-;; `cl--compiler-macro-cXXr' in cl-macs.el.  If you amend either one,
-;; you may want to amend the other, too.
 (defun internal--compiler-macro-cXXr (form x)
   (let* ((head (car form))
          (n (symbol-name head))
