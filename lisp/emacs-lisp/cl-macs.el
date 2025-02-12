@@ -3731,15 +3731,7 @@ macro that returns its `&whole' argument."
 (dolist (y '(cl-first cl-second cl-third cl-fourth
              cl-fifth cl-sixth cl-seventh
              cl-eighth cl-ninth cl-tenth
-             cl-rest cl-endp cl-plusp cl-minusp
-             cl-caaar cl-caadr cl-cadar
-             cl-caddr cl-cdaar cl-cdadr
-             cl-cddar cl-cdddr cl-caaaar
-             cl-caaadr cl-caadar cl-caaddr
-             cl-cadaar cl-cadadr cl-caddar
-             cl-cadddr cl-cdaaar cl-cdaadr
-             cl-cdadar cl-cdaddr cl-cddaar
-             cl-cddadr cl-cdddar cl-cddddr))
+             cl-rest cl-endp cl-plusp cl-minusp))
   (put y 'side-effect-free t))
 
 ;;; Things that are inline.

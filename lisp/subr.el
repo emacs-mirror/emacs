@@ -609,142 +609,170 @@ treatment of negative COUNT provided by this function."
 
 (defun caar (x)
   "Return the car of the car of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (car x)))
 
 (defun cadr (x)
   "Return the car of the cdr of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (cdr x)))
 
 (defun cdar (x)
   "Return the cdr of the car of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (car x)))
 
 (defun cddr (x)
   "Return the cdr of the cdr of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (cdr x)))
 
 (defun caaar (x)
   "Return the `car' of the `car' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (car (car x))))
 
 (defun caadr (x)
   "Return the `car' of the `car' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (car (cdr x))))
 
 (defun cadar (x)
   "Return the `car' of the `cdr' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (cdr (car x))))
 
 (defun caddr (x)
   "Return the `car' of the `cdr' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (cdr (cdr x))))
 
 (defun cdaar (x)
   "Return the `cdr' of the `car' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (car (car x))))
 
 (defun cdadr (x)
   "Return the `cdr' of the `car' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (car (cdr x))))
 
 (defun cddar (x)
   "Return the `cdr' of the `cdr' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (cdr (car x))))
 
 (defun cdddr (x)
   "Return the `cdr' of the `cdr' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (cdr (cdr x))))
 
 (defun caaaar (x)
   "Return the `car' of the `car' of the `car' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (car (car (car x)))))
 
 (defun caaadr (x)
   "Return the `car' of the `car' of the `car' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (car (car (cdr x)))))
 
 (defun caadar (x)
   "Return the `car' of the `car' of the `cdr' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (car (cdr (car x)))))
 
 (defun caaddr (x)
   "Return the `car' of the `car' of the `cdr' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (car (cdr (cdr x)))))
 
 (defun cadaar (x)
   "Return the `car' of the `cdr' of the `car' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (cdr (car (car x)))))
 
 (defun cadadr (x)
   "Return the `car' of the `cdr' of the `car' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (cdr (car (cdr x)))))
 
 (defun caddar (x)
   "Return the `car' of the `cdr' of the `cdr' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (cdr (cdr (car x)))))
 
 (defun cadddr (x)
   "Return the `car' of the `cdr' of the `cdr' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (cdr (cdr (cdr x)))))
 
 (defun cdaaar (x)
   "Return the `cdr' of the `car' of the `car' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (car (car (car x)))))
 
 (defun cdaadr (x)
   "Return the `cdr' of the `car' of the `car' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (car (car (cdr x)))))
 
 (defun cdadar (x)
   "Return the `cdr' of the `car' of the `cdr' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (car (cdr (car x)))))
 
 (defun cdaddr (x)
   "Return the `cdr' of the `car' of the `cdr' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (car (cdr (cdr x)))))
 
 (defun cddaar (x)
   "Return the `cdr' of the `cdr' of the `car' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (cdr (car (car x)))))
 
 (defun cddadr (x)
   "Return the `cdr' of the `cdr' of the `car' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (cdr (car (cdr x)))))
 
 (defun cdddar (x)
   "Return the `cdr' of the `cdr' of the `cdr' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (cdr (cdr (car x)))))
 
 (defun cddddr (x)
   "Return the `cdr' of the `cdr' of the `cdr' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (cdr (cdr (cdr x)))))
 
 (defun last (list &optional n)
