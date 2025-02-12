@@ -1824,7 +1824,8 @@ With some possible metadata (to be decided).")
                (lambda (elem)
                  (let ((name (car elem)))
                    (list (if (file-remote-p name) name
-                           (abbreviate-file-name name)))))
+                           (file-name-as-directory
+                            (abbreviate-file-name name))))))
                (condition-case nil
                    (read (current-buffer))
                  (end-of-file
