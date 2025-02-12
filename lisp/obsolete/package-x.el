@@ -6,6 +6,7 @@
 ;; Created: 10 Mar 2007
 ;; Keywords: tools
 ;; Package: package
+;; Obsolete-since: 31.1
 
 ;; This file is part of GNU Emacs.
 

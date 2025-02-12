@@ -1130,6 +1130,9 @@ will not prompt the user for confirmation before installing packages.
 Refreshing the package index will no longer block when invoked
 interactively.
 
++++
+*** package-x.el is now obsolete.
+
 ** Xref
 
 ---
