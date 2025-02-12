@@ -8492,6 +8492,8 @@ indirectly called by the latter."
                  (cond ((memq major-mode allowed-modes) 'same)
                        ((derived-mode-p allowed-modes)  'derived)))))
           (when (and mode?
+                     (or (not (window-dedicated-p window))
+                         (eq buffer (window-buffer window)))
                      (not (and inhibit-same-window-p
                                (eq window curwin))))
             (push window (if (eq curframe (window-frame window))
