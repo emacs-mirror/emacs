@@ -2211,7 +2211,7 @@ Otherwise, use the face `help-key-binding' in the prompt."
    project-switch-commands
    "  "))
 
-(defun project--switch-project-command ()
+(defun project--switch-project-command (&optional dir)
   (let* ((commands-menu
           (mapcar
            (lambda (row)
@@ -2241,7 +2241,14 @@ Otherwise, use the face `help-key-binding' in the prompt."
                                        (propertize "Unrecognized input"
                                                    'face 'warning)
                                        (help-key-description choice nil)))))
-        (setq choice (read-key-sequence (concat "Choose: " prompt)))
+        (setq choice (read-key-sequence (concat
+                                         (if dir
+                                             (format-message "Command in `%s': "
+                                                             (propertize
+                                                              dir 'face
+                                                              'font-lock-string-face))
+                                           "Command: ")
+                                         prompt)))
         (when (setq command (lookup-key commands-map choice))
           (when (numberp command) (setq command nil))
           (unless (or project-switch-use-entire-map
@@ -2266,7 +2273,7 @@ to directory DIR."
   (project--remember-dir dir)
   (let ((command (if (symbolp project-switch-commands)
                      project-switch-commands
-                   (project--switch-project-command)))
+                   (project--switch-project-command dir)))
         (buffer (current-buffer)))
     (unwind-protect
         (progn
