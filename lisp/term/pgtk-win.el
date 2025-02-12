@@ -251,11 +251,19 @@ EVENT is a `preedit-text' event."
     ;; No themed versions available:
     ;; mail/preview (combining stock_mail and stock_zoom)
     ;; mail/save    (combining stock_mail, stock_save and stock_convert)
+    ("images/mpc/prev" . "media-skip-backward")
+    ("images/mpc/rewind" . "media-seek-backward")
+    ("images/mpc/pause" . "media-playback-pause")
+    ("images/mpc/play" . "media-playback-start")
+    ("images/mpc/ffwd" . "media-seek-forward")
+    ("images/mpc/next" . "media-skip-forward")
+    ("images/mpc/stop" . "media-playback-stop")
+    ("images/mpc/add" . "list-add")
     )
   "How icons for tool bars are mapped to Gtk+ stock items.
 Emacs must be compiled with the Gtk+ toolkit for this to have any effect.
 A value that begins with n: denotes a named icon instead of a stock icon."
-  :version "22.2"
+  :version "31.1"
   :type '(choice (repeat
 		  (choice symbol
 			  (cons (string :tag "Emacs icon")
