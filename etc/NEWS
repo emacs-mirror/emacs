@@ -284,6 +284,12 @@ When such value is used, the 'project-prompter' is called with it as the
 first argument.  This is a way for the callers to indicate, for example,
 the reason or the context why the project is asked for.
 
+---
+*** New command 'project-find-matching-file'
+It can be used when switching between projects with similar file trees
+(such as Git worktrees of the same repository).  It supports being
+invoked standalone or from the 'project-switch-commands' dispatch menu.
+
 ** Registers
 
 *** New functions 'buffer-to-register' and 'file-to-register'.

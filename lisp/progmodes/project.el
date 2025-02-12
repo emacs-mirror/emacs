@@ -1284,6 +1284,34 @@ directories listed in `vc-directory-exclusion-list'."
         (user-error "You didn't specify the file")
       (find-file file))))
 
+;;;###autoload
+(defun project-find-matching-file ()
+  "Visit the file that matches the current one, in another project.
+It will skip to the same line number as well.
+A matching file has the same file name relative to the project root.
+When called during switching to another project, this command will
+detect it and use the override.  Otherwise, it prompts for the project
+to use from the known list."
+  (interactive)
+  (let* ((pr (project-current))
+         (line (line-number-at-pos nil t))
+         relative-name mirror-name)
+    (if project-current-directory-override
+        (let* (project-current-directory-override
+               (real-project (project-current t)))
+          (setq relative-name (file-relative-name buffer-file-name
+                                                  (project-root real-project))))
+      (setq relative-name (file-relative-name buffer-file-name (project-root pr)))
+      (setq pr (project-read-project)))
+    (setq mirror-name (expand-file-name relative-name (project-root pr)))
+    (if (not (file-exists-p mirror-name))
+        (user-error "File `%s' not found in `%s'" relative-name (project-root pr))
+      (find-file mirror-name)
+      (save-restriction
+        (widen)
+        (goto-char (point-min))
+        (forward-line (1- line))))))
+
 (defun project--completing-read-strict (prompt
                                         collection &optional predicate
                                         hist mb-default
