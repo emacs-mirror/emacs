@@ -703,21 +703,25 @@ Repeating prefix key when region is active works as a single prefix key."
 ;; correct keys when generating menus.  Also, when cua--prefix-override-handler
 ;; is nil, allow C-x C-c to cut/copy immediately without waiting for
 ;; cua--prefix-override-timer to expire.
-(defun cua-cut-handler ()
-  (interactive)
+(declare-function cua-cut-to-global-mark "cua-gmrk")
+(declare-function cua-copy-to-global-mark "cua-gmrk")
+(defun cua--copy-or-cut-handler (&optional cut)
   (if (or (not (numberp cua-prefix-override-inhibit-delay))
           (<= cua-prefix-override-inhibit-delay 0))
-      (cond (cua--global-mark-active (cua-cut-to-global-mark))
-            (t (call-interactively 'kill-region)))
+      (cond ((and (bound-and-true-p cua--global-mark-active))
+             (funcall (if cut #'cua-cut-to-global-mark
+                        #'cua-copy-to-global-mark)))
+            (t (call-interactively (if cut #'kill-region
+                                     #'copy-region-as-kill))))
     (cua--prefix-override-handler)))
+
+(defun cua-cut-handler ()
+  (interactive)
+  (cua--copy-or-cut-handler t))
 
 (defun cua-copy-handler ()
   (interactive)
-  (if (or (not (numberp cua-prefix-override-inhibit-delay))
-          (<= cua-prefix-override-inhibit-delay 0))
-      (cond (cua--global-mark-active (cua-copy-to-global-mark))
-            (t (call-interactively 'copy-region-as-kill)))
-    (cua--prefix-override-handler)))
+  (cua--copy-or-cut-handler))
 
 (defun cua--prefix-repeat-handler ()
   "Repeating prefix key when region is active works as a single prefix key."
