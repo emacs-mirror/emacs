@@ -27512,7 +27512,7 @@ x_calc_absolute_position (struct frame *f)
 
   /* Treat negative positions as relative to the leftmost bottommost
      position that fits on the screen.  */
-  if ((flags & XNegative) && (f->left_pos <= 0))
+  if (flags & XNegative)
     {
       int width = FRAME_PIXEL_WIDTH (f);
 
@@ -27539,7 +27539,7 @@ x_calc_absolute_position (struct frame *f)
 
     }
 
-  if ((flags & YNegative) && (f->top_pos <= 0))
+  if (flags & YNegative)
     {
       int height = FRAME_PIXEL_HEIGHT (f);
 
