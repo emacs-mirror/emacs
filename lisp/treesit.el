@@ -2789,9 +2789,6 @@ friends."
 ;;
 ;; There are also some defun-specific functions, like
 ;; treesit-defun-name, treesit-add-log-current-defun.
-;;
-;; TODO: Integration with thing-at-point: once our thing interface is
-;; stable.
 
 (defvar-local treesit-defun-type-regexp nil
   "A regexp that matches the node type of defun nodes.
@@ -3258,7 +3255,6 @@ function is called recursively."
     ;; Counter equal to 0 means we successfully stepped ARG steps.
     (if (eq counter 0) pos nil)))
 
-;; TODO: In corporate into thing-at-point.
 (defun treesit-thing-at-point (thing tactic)
   "Return the THING at point, or nil if none is found.
 
