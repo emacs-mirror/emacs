@@ -36,7 +36,7 @@
 
 ;; go-mod-ts-mode
 
-(ert-deftest go-work-ts-mode-test-indentation ()
+(ert-deftest go-mod-ts-mode-test-indentation ()
   (skip-unless (treesit-ready-p 'gomod))
   (ert-test-erts-file (ert-resource-file "indent-mod.erts")))
 
