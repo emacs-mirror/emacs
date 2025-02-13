@@ -39,16 +39,9 @@ attributes of the package and the features that it implements.
 @cindex NonGNU ELPA
   By default, Emacs downloads packages from two archives:
 @url{https://elpa.gnu.org/, GNU ELPA} and @url{https://elpa.nongnu.org/,
-NonGNU ELPA}. These are maintained by the Emacs developers and hosted by
-the GNU project.  @dfn{GNU ELPA} contains GNU packages that we consider
-part of GNU Emacs, but are distributed separately from the core Emacs.
-@dfn{NonGNU ELPA} contains third-party packages whose copyright has not
-been assigned to the Free Software Foundation.@footnote{For more
-information about copyright assignments, see
-@url{https://www.gnu.org/licenses/why-assign.html, Why the FSF Gets
-Copyright Assignments from Contributors}.}  Optionally, you can also
-download packages from third-party archives.  @xref{Package
-Installation}.
+NonGNU ELPA}.  These are maintained by the Emacs developers and hosted
+by the GNU project.  Optionally, you can also download packages from
+third-party archives.  @xref{Package Installation}.
 
   For information about turning an Emacs Lisp program into an
 installable package, @xref{Packaging,,,elisp, The Emacs Lisp Reference
@@ -407,12 +400,22 @@ package is somehow unavailable, Emacs signals an error and stops
 installation.)  A package's requirements list is shown in its help
 buffer.
 
-  By default, packages are downloaded from a single package archive
-maintained by the Emacs developers.  This is controlled by the
-variable @code{package-archives}, whose value is a list of package
-archives known to Emacs.  Each list element must have the form
-@code{(@var{id} . @var{location})}, where @var{id} is the name of a
-package archive and @var{location} is the @acronym{URL} or
+  By default, Emacs downloads packages from two archives:
+@url{https://elpa.gnu.org/, GNU ELPA} and @url{https://elpa.nongnu.org/,
+NonGNU ELPA}.  These are maintained by the Emacs developers and hosted
+by the GNU project.  @dfn{GNU ELPA} contains GNU packages that we
+consider part of GNU Emacs, but are distributed separately from the core
+Emacs.  @dfn{NonGNU ELPA} contains third-party packages whose copyright
+has not been assigned to the Free Software Foundation.@footnote{For more
+information about copyright assignments, see
+@url{https://www.gnu.org/licenses/why-assign.html, Why the FSF Gets
+Copyright Assignments from Contributors}.}
+
+@noindent
+This is controlled by the variable @code{package-archives}, whose value
+is a list of package archives known to Emacs.  Each list element must
+have the form @code{(@var{id} . @var{location})}, where @var{id} is the
+name of a package archive and @var{location} is the @acronym{URL} or
 name of the package archive directory.  You can alter this list if you
 wish to use third party package archives---but do so at your own risk,
 and use only third parties that you think you can trust!
