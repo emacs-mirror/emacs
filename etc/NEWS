@@ -531,6 +531,13 @@ This user option controls the width of the type column on the bookmark
 menu 'bookmark-bmenu-list'.  The default value is 8 which is backwards
 compatible.
 
+** Recentf
+
+---
+*** New user option 'recentf-show-messages'.
+'recentf-save-list' can print a message when saving the recentf list.
+The new option, if set to nil, suppresses this message.
+
 ** Saveplace
 
 ---
