@@ -76,6 +76,13 @@ Getting Started
 * Sample Session::              Example of connecting to the @samp{#emacs} channel
 * Special Features::            Differences from standalone IRC clients
 
+Advanced Module Topics
+
+* Scope: Module Scope.          Differences between module types.
+* Loading: Module Loading.      How ERC loads modules.
+* Example: Module Example.      An example module.
+* Usage: Module Usage.          How to use specific modules.
+
 Advanced Usage
 
 * Connecting::                  Ways of connecting to an IRC server.
@@ -615,9 +622,19 @@ so demands special precautions to avoid degrading the user experience.
 At present, the only such module is @code{networks}, whose library ERC
 always loads anyway.
 
+@c Advanced module topics and individual module usage.
+@menu
+* Scope: Module Scope.          Differences between module types.
+* Loading: Module Loading.      How ERC loads modules.
+* Example: Module Example.      An example module.
+* Usage: Module Usage.          How to use specific modules.
+@end menu
+
 @anchor{Local Modules}
-@subheading Local Modules
+@node Module Scope
+@section Scope
 @cindex local modules
+@cindex module scope
 
 @c Earlier language in code comments, commit messages, and tracker
 @c discussions used to describe a local module as being "active" in a
@@ -698,10 +715,8 @@ buffers belonging to their connection (when called interactively).  And
 unlike global toggles, none of these ever mutates @code{erc-modules}.
 
 
-@c FIXME add section to Advanced chapter for creating modules, and
-@c move this there.
-@anchor{Module Loading}
-@subheading Loading
+@node Module Loading
+@section Loading
 @cindex module loading
 
 ERC loads internal modules in alphabetical order and third-party
@@ -754,6 +769,245 @@ loading @code{erc}, possibly by way of an autoload.  Doing this tricks
 Customize into displaying the widget for @code{erc-modules}
 incorrectly, with built-in modules moved from the predefined checklist
 to the user-provided free-form area.
+
+@node Module Example
+@section Example
+@cindex module example
+
+This is a walkthrough of a working module, presented in sections.
+If you'd prefer to view it as a whole, you can install it as a
+third-party package through ERC's devel archive:
+@uref{https://emacs-erc.gitlab.io/bugs/archive/erc-view.html}.
+
+@lisp
+;;; erc-view.el -- Automatic view-mode for ERC -*- lexical-binding: t; -*-
+
+;; Maintainer: The ERC Maintainers <emacs-erc@@gnu.org>
+;; Keywords: convenience
+;; Version: 0.1
+;; Package-Requires: ((emacs "30.1"))
+;; URL: https://gitlab.com/emacs-erc/erc-view
+
+;;; Commentary:
+
+;; This is a demo local module for ERC.  It automatically enables
+;; `view-mode' when leaving the prompt area and disables it when
+;; reentering.  It also ensures `view-mode' stays enabled or disabled
+;; when reconnecting.
+
+;;; Code:
+@end lisp
+
+@noindent
+You need to import ERC's main library somehow.  The easiest way is
+directly, via a simple @code{(require 'erc)}, although this module does
+so indirectly because it also uses definitions from @file{erc-goodies}:
+
+@lisp
+(require 'erc-goodies)
+(require 'view)
+@end lisp
+
+@noindent
+Avoid headaches by aligning the name of your module with its containing
+library and Custom group: one group and module per library.
+
+@lisp
+(defgroup erc-view nil
+  "Automatically enter and exit `view-mode' in ERC."
+  :version "0.1"
+  :group 'erc)
+
+(defcustom erc-view-enable-when-exiting-prompt t
+  "Whether to enable `view-mode' when exiting the prompt area."
+  :type 'boolean)
+
+(defcustom erc-view-disable-when-entering-prompt t
+  "Whether to disable `view-mode' when entering the prompt area."
+  :type 'boolean)
+
+(defcustom erc-view-backspace-at-prompt-scrolls-down t
+  "Whether a \\`<backspace>' at the prompt scrolls down to enter `view-mode'."
+  :type 'boolean)
+
+(defvar-local erc-view--enabled-p nil
+  "Current reconnect-aware activation state of `view-mode'.")
+@end lisp
+
+@noindent
+In some cases, you may need a variable's value to survive the
+reinitialization of ERC's @code{major-mode} performed in each buffer
+upon reconnecting.  Do this by leveraging the @code{permanent-local}
+symbol property.  (@pxref{Creating Buffer-Local,,,elisp,}.)  Also see
+the mini-section after this example for a few caveats regarding the
+durability of permanent values like this.
+
+@lisp
+(put 'erc-view--enabled-p 'permanent-local t)
+@end lisp
+
+Moving on, if your module needs to bind keys, define its keymap
+@emph{before} the module itself, and use the standard minor-mode naming
+convention of @code{erc-my-module-mode-map}.
+
+@lisp
+(defvar-keymap erc-view-mode-map
+  :doc "Keymap for `view-mode' in ERC."
+  "<remap> <delete-backward-char>" #'erc-view--enable-on-backspace)
+
+(defvar-keymap erc-view-mode-overriding-map
+  :parent view-mode-map
+  :doc "Overriding keymap for `view-mode' when `erc-view-mode' is active.
+Hitting \\`<RET>' atop a button prompts for an action by default.  Use
+\\`C-j' or \\`j' for scrolling up by a line."
+  "C" nil ; View-kill-and-leave
+  "E" #'erc-view--exit-to-bottom ; View-exit-and-edit
+  "Q" nil ; View-quit-all
+  "k" #'View-scroll-line-backward ; Vi backwards line
+  "j" #'View-scroll-line-forward ; Vi forwards line
+  "S-<return>" #'View-scroll-line-backward)
+@end lisp
+
+You'll almost always want to define your module as buffer-local.  Do
+this by including a @code{localp} flag as the final parameter to
+@code{define-erc-module}, after the @dfn{disable body}.  If your module
+only operates in one kind of buffer, disable it elsewhere in the
+@dfn{enable body}.  For example, if it should only run in server
+buffers, disable it in target buffers by doing something like @code{(if
+(erc-target) (erc-my-module-mode -1) (erc-my-module--setup))}.  And in
+all cases, do mention the module's intended @dfn{scope} in the doc
+string.  Some informal adjectives that may help with that are:
+
+@itemize
+@item query-local
+@item channel-local
+@item target-local (query or channel)
+@item server-local
+@item session-local (server and target)
+@item buffer-local (server or target)
+@end itemize
+
+@noindent
+You may also wish to mention this in the Custom group's doc string.
+
+@lisp
+(define-erc-module view nil
+  "Use `view-mode' for reading and navigating \"scrollback\".
+If enabling, restore `view-mode' activation state.
+
+Note that if paired with the `scrolltobottom' module, the option
+`erc-scrolltobottom-all' should probably be enabled.  This module is
+buffer-local."
+  ((add-hook 'view-mode-hook #'erc-view--remember 0 t)
+   (add-hook 'post-command-hook #'erc-view--enforce-prompt-boundary 0 t)
+   (setf (alist-get 'view-mode minor-mode-overriding-map-alist)
+         erc-view-mode-overriding-map)
+   (unless (local-variable-p 'erc-view--enabled-p)
+     (setq-local erc-view--enabled-p nil))
+   (view-mode (if erc-view--enabled-p +1 -1)))
+  ((kill-local-variable 'erc-view--enabled-p)
+   (remove-hook 'post-command-hook #'erc-view--enforce-prompt-boundary t)
+   (remove-hook 'view-mode-hook #'erc-view--remember t)
+   (setf (alist-get 'view-mode minor-mode-overriding-map-alist nil 'remove)
+         nil))
+  localp)
+@end lisp
+
+Always define your module early, before any code that refers to its mode
+command or minor-mode variable.
+
+@lisp
+(defun erc-view--enable-on-backspace (lines)
+  "Enable `view-mode' at the prompt by hitting \\`<backspace>'."
+  (interactive "P")
+  (if (and erc-view-backspace-at-prompt-scrolls-down (not view-mode)
+           (= (point) erc-input-marker))
+      (progn
+        (view-mode +1)
+        (View-scroll-page-backward lines))
+    (call-interactively #'delete-backward-char)))
+
+(defun erc-view--enforce-prompt-boundary ()
+  "Enable or disable `view-mode' when crossing prompt boundary."
+  (when-let*
+      ((new (if (>= (point) erc-input-marker)
+                (and view-mode erc-view-disable-when-entering-prompt -1)
+              (and (not view-mode) erc-view-enable-when-exiting-prompt +1))))
+    (run-at-time 0 nil (lambda (buffer new)
+                         (with-current-buffer buffer (view-mode new)))
+                 (current-buffer) new)))
+
+(defun erc-view--exit-to-bottom ()
+  "Scroll to prompt, exit `view-mode', and move to EOB."
+  (interactive)
+  (let (view-no-disable-on-exit)
+    (View-scroll-to-buffer-end)
+    (View-exit)
+    (goto-char (point-max))))
+
+(defun erc-view--remember ()
+  "Remember the value of `view-mode'.
+Disable `erc-move-to-prompt-setup' locally when `view-mode' is enabled."
+  (setq erc-view--enabled-p view-mode)
+  (when erc-move-to-prompt-mode
+    (if view-mode
+        (remove-hook 'pre-command-hook #'erc-move-to-prompt t)
+      (erc-move-to-prompt-setup))))
+@end lisp
+
+Don't forget to @code{provide} your module so that
+@code{erc-update-modules} can find it.
+
+@lisp
+(provide 'erc-view)
+
+;;; erc-view.el ends here
+
+@end lisp
+Mimicking the above should just about cover most use cases.  If your
+module isn't loading correctly, it's likely a naming, layout, or
+packaging issue.  If you @emph{must} defy the convention recommended
+earlier regarding a library-group-module correspondence or if you've
+designed your module mainly to be toggled interactively rather than
+added to @code{erc-modules}, try placing a line like the following above
+the module's definition.
+
+@lisp
+;;;###autoload(autoload 'erc-my-module-mode "erc-my-module" nil t)
+@end lisp
+
+@noindent
+Just remember, doing so means you'll need to (re)generate the autoload
+file when hacking locally (@pxref{Fetching Package Sources,,, emacs,}).
+
+@subsection Nuances Regarding Local Module State
+By convention, disabling a module's minor mode kills local bindings.
+Mode commands, like @code{erc-view-mode}, do so in the current buffer
+only, while unidirectional ones, like @code{erc-view-mode-disable}, do
+so connection-wide if given a prefix argument.
+
+There are also occasions in which the persistence of a buffer-local
+variable is undefined, most notably during a @dfn{transplant}, when
+copying an old buffer's contents into its replacement buffer.  This
+crude merge operation can occur, for example, in server buffers upon
+@dfn{logical connection} (at @samp{MOTD}'s end) if a user reconnects
+with a new invocation of an entry-point command, like @code{erc-tls},
+instead of via the auto-reconnect facility or by issuing a
+@samp{/reconnect} at the prompt.  (Unaffected are entry-point
+invocations that include an @code{:id} keyword because reassociation
+happens immediately in such cases, before ERC even initializes any
+modules.)
+
+Transplants can also happen in target buffers, most often after a user
+reconnects under a new nick and conducts business in the same channel
+and query buffers, only to renick @emph{back} to the previous nick via a
+@samp{/nick oldme} or similar.  As of version 5.7, ERC retains the
+current buffer's permanent value in all such situations, meaning ERC
+ignores permanent values from previous buffers and retains default ones
+assigned during module initialization.  Package authors needing access
+to these internal transplant junctures should make a case on the mailing
+list or the bug tracker.
+
 
 @c PRE5_4: Document every option of every module in its own subnode
 
