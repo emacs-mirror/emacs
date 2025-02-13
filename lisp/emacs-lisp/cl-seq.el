@@ -115,6 +115,7 @@
 (defun cl-endp (x)
   "Return true if X is the empty list; false if it is a cons.
 Signal an error if X is not a list."
+  (declare (side-effect-free t))
   (cl-check-type x list)
   (null x))
 

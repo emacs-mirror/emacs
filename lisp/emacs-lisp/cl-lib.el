@@ -272,20 +272,24 @@ so that they are registered at compile-time as well as run-time."
 
 (defsubst cl-plusp (number)
   "Return t if NUMBER is positive."
+  (declare (side-effect-free t))
   (> number 0))
 
 (defsubst cl-minusp (number)
   "Return t if NUMBER is negative."
+  (declare (side-effect-free t))
   (< number 0))
 
 (defun cl-oddp (integer)
   "Return t if INTEGER is odd."
-  (declare (compiler-macro (lambda (_) `(eq (logand ,integer 1) 1))))
+  (declare (side-effect-free t)
+           (compiler-macro (lambda (_) `(eq (logand ,integer 1) 1))))
   (eq (logand integer 1) 1))
 
 (defun cl-evenp (integer)
   "Return t if INTEGER is even."
-  (declare (compiler-macro (lambda (_) `(eq (logand ,integer 1) 0))))
+  (declare (side-effect-free t)
+           (compiler-macro (lambda (_) `(eq (logand ,integer 1) 0))))
   (eq (logand integer 1) 0))
 
 (defconst cl-digit-char-table
@@ -387,32 +391,38 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 
 (defsubst cl-fifth (x)
   "Return the fifth element of the list X."
-  (declare (gv-setter (lambda (store) `(setcar (nthcdr 4 ,x) ,store))))
+  (declare (side-effect-free t)
+           (gv-setter (lambda (store) `(setcar (nthcdr 4 ,x) ,store))))
   (nth 4 x))
 
 (defsubst cl-sixth (x)
   "Return the sixth element of the list X."
-  (declare (gv-setter (lambda (store) `(setcar (nthcdr 5 ,x) ,store))))
+  (declare (side-effect-free t)
+           (gv-setter (lambda (store) `(setcar (nthcdr 5 ,x) ,store))))
   (nth 5 x))
 
 (defsubst cl-seventh (x)
   "Return the seventh element of the list X."
-  (declare (gv-setter (lambda (store) `(setcar (nthcdr 6 ,x) ,store))))
+  (declare (side-effect-free t)
+           (gv-setter (lambda (store) `(setcar (nthcdr 6 ,x) ,store))))
   (nth 6 x))
 
 (defsubst cl-eighth (x)
   "Return the eighth element of the list X."
-  (declare (gv-setter (lambda (store) `(setcar (nthcdr 7 ,x) ,store))))
+  (declare (side-effect-free t)
+           (gv-setter (lambda (store) `(setcar (nthcdr 7 ,x) ,store))))
   (nth 7 x))
 
 (defsubst cl-ninth (x)
   "Return the ninth element of the list X."
-  (declare (gv-setter (lambda (store) `(setcar (nthcdr 8 ,x) ,store))))
+  (declare (side-effect-free t)
+           (gv-setter (lambda (store) `(setcar (nthcdr 8 ,x) ,store))))
   (nth 8 x))
 
 (defsubst cl-tenth (x)
   "Return the tenth element of the list X."
-  (declare (gv-setter (lambda (store) `(setcar (nthcdr 9 ,x) ,store))))
+  (declare (side-effect-free t)
+           (gv-setter (lambda (store) `(setcar (nthcdr 9 ,x) ,store))))
   (nth 9 x))
 
 (defalias 'cl-caaar #'caaar)
@@ -456,7 +466,8 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 Thus, `(cl-list* A B C D)' is equivalent to `(nconc (list A B C) D)', or to
 `(cons A (cons B (cons C D)))'.
 \n(fn ARG...)"
-  (declare (compiler-macro cl--compiler-macro-list*))
+  (declare (side-effect-free error-free)
+           (compiler-macro cl--compiler-macro-list*))
   (cond ((not rest) arg)
 	((not (cdr rest)) (cons arg (car rest)))
 	(t (let* ((n (length rest))
@@ -467,6 +478,7 @@ Thus, `(cl-list* A B C D)' is equivalent to `(nconc (list A B C) D)', or to
 
 (defun cl-ldiff (list sublist)
   "Return a copy of LIST with the tail SUBLIST removed."
+  (declare (side-effect-free t))
   (let ((res nil))
     (while (and (consp list) (not (eq list sublist)))
       (push (pop list) res))
@@ -523,6 +535,7 @@ Return a copy of TREE with all elements `eql' to OLD replaced by NEW.
 (defun cl-acons (key value alist)
   "Add KEY and VALUE to ALIST.
 Return a new list with (cons KEY VALUE) as car and ALIST as cdr."
+  (declare (side-effect-free error-free))
   (cons (cons key value) alist))
 
 (defun cl-pairlis (keys values &optional alist)
@@ -530,6 +543,7 @@ Return a new list with (cons KEY VALUE) as car and ALIST as cdr."
 Return a new alist composed by associating KEYS to corresponding VALUES;
 the process stops as soon as KEYS or VALUES run out.
 If ALIST is non-nil, the new pairs are prepended to it."
+  (declare (side-effect-free t))
   (nconc (cl-mapcar 'cons keys values) alist))
 
 ;;; Miscellaneous.

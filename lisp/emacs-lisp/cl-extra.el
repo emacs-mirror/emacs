@@ -69,6 +69,7 @@ TYPE is a Common Lisp type specifier.
 This is like `equal', except that it accepts numerically equal
 numbers of different types (float vs. integer), and also compares
 strings case-insensitively."
+  (declare (side-effect-free error-free))
   (cond ((eq x y) t)
 	((stringp x)
 	 (and (stringp y) (string-equal-ignore-case x y)))
@@ -317,6 +318,7 @@ non-nil value.
 ;;;###autoload
 (defun cl-gcd (&rest args)
   "Return the greatest common divisor of the arguments."
+  (declare (side-effect-free t))
   (let ((a (or (pop args) 0)))
     (dolist (b args)
       (while (/= b 0)
@@ -326,6 +328,7 @@ non-nil value.
 ;;;###autoload
 (defun cl-lcm (&rest args)
   "Return the least common multiple of the arguments."
+  (declare (side-effect-free t))
   (if (memq 0 args)
       0
     (let ((a (or (pop args) 1)))
@@ -336,6 +339,7 @@ non-nil value.
 ;;;###autoload
 (defun cl-isqrt (x)
   "Return the integer square root of the (integer) argument X."
+  (declare (side-effect-free t))
   (if (and (integerp x) (> x 0))
       (let ((g (ash 2 (/ (logb x) 2)))
 	    g2)
@@ -348,6 +352,7 @@ non-nil value.
 (defun cl-floor (x &optional y)
   "Return a list of the floor of X and the fractional part of X.
 With two arguments, return floor and remainder of their quotient."
+  (declare (side-effect-free t))
   (let ((q (floor x y)))
     (list q (- x (if y (* y q) q)))))
 
@@ -355,6 +360,7 @@ With two arguments, return floor and remainder of their quotient."
 (defun cl-ceiling (x &optional y)
   "Return a list of the ceiling of X and the fractional part of X.
 With two arguments, return ceiling and remainder of their quotient."
+  (declare (side-effect-free t))
   (let ((res (cl-floor x y)))
     (if (= (car (cdr res)) 0) res
       (list (1+ (car res)) (- (car (cdr res)) (or y 1))))))
@@ -363,6 +369,7 @@ With two arguments, return ceiling and remainder of their quotient."
 (defun cl-truncate (x &optional y)
   "Return a list of the integer part of X and the fractional part of X.
 With two arguments, return truncation and remainder of their quotient."
+  (declare (side-effect-free t))
   (if (eq (>= x 0) (or (null y) (>= y 0)))
       (cl-floor x y) (cl-ceiling x y)))
 
@@ -370,6 +377,7 @@ With two arguments, return truncation and remainder of their quotient."
 (defun cl-round (x &optional y)
   "Return a list of X rounded to the nearest integer and the remainder.
 With two arguments, return rounding and remainder of their quotient."
+  (declare (side-effect-free t))
   (if y
       (if (and (integerp x) (integerp y))
 	  (let* ((hy (/ y 2))
@@ -388,16 +396,19 @@ With two arguments, return rounding and remainder of their quotient."
 ;;;###autoload
 (defun cl-mod (x y)
   "The remainder of X divided by Y, with the same sign as Y."
+  (declare (side-effect-free t))
   (nth 1 (cl-floor x y)))
 
 ;;;###autoload
 (defun cl-rem (x y)
   "The remainder of X divided by Y, with the same sign as X."
+  (declare (side-effect-free t))
   (nth 1 (cl-truncate x y)))
 
 ;;;###autoload
 (defun cl-signum (x)
   "Return 1 if X is positive, -1 if negative, 0 if zero."
+  (declare (side-effect-free t))
   (cond ((> x 0) 1) ((< x 0) -1) (t 0)))
 
 ;;;###autoload
@@ -441,12 +452,13 @@ as an integer unless JUNK-ALLOWED is non-nil."
 ;; Random numbers.
 
 (defun cl--random-time ()
-    "Return high-precision timestamp from `time-convert'.
+  "Return high-precision timestamp from `time-convert'.
 
 For example, suitable for use as seed by `cl-make-random-state'."
-    (car (time-convert nil t)))
+  (car (time-convert nil t)))
 
 ;;;###autoload (autoload 'cl-random-state-p "cl-extra")
+;;;###autoload (function-put 'cl-random-state-p 'side-effect-free 'error-free)
 (cl-defstruct (cl--random-state
                (:copier nil)
                (:predicate cl-random-state-p)
@@ -549,6 +561,7 @@ If END is omitted, it defaults to the length of the sequence.
 If START or END is negative, it counts from the end.
 Signal an error if START or END are outside of the sequence (i.e
 too large if positive or too small if negative)."
+  (declare (side-effect-free t))
   (declare (gv-setter
             (lambda (new)
               (macroexp-let2 nil new new
@@ -581,6 +594,7 @@ too large if positive or too small if negative)."
 ;;;###autoload
 (defun cl-list-length (x)
   "Return the length of list X.  Return nil if list is circular."
+  (declare (side-effect-free t))
   (cl-check-type x list)
   (condition-case nil
       (length x)
@@ -599,7 +613,8 @@ too large if positive or too small if negative)."
 (defun cl-get (sym tag &optional def)
   "Return the value of SYMBOL's PROPNAME property, or DEFAULT if none.
 \n(fn SYMBOL PROPNAME &optional DEFAULT)"
-  (declare (compiler-macro cl--compiler-macro-get)
+  (declare (side-effect-free t)
+           (compiler-macro cl--compiler-macro-get)
            (gv-setter (lambda (store) (ignore def) `(put ,sym ,tag ,store))))
   (cl-getf (symbol-plist sym) tag def))
 (autoload 'cl--compiler-macro-get "cl-macs")
@@ -609,7 +624,8 @@ too large if positive or too small if negative)."
   "Search PROPLIST for property PROPNAME; return its value or DEFAULT.
 PROPLIST is a list of the sort returned by `symbol-plist'.
 \n(fn PROPLIST PROPNAME &optional DEFAULT)"
-  (declare (gv-expander
+  (declare (side-effect-free t)
+           (gv-expander
             (lambda (do)
               (gv-letplace (getter setter) plist
                 (macroexp-let2* nil ((k tag) (d def))

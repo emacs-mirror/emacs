@@ -3729,20 +3729,6 @@ macro that returns its `&whole' argument."
 (cl-proclaim '(inline cl-acons cl-map cl-notany cl-notevery cl-revappend
                cl-nreconc))
 
-;;; Things that are side-effect-free.
-(mapc (lambda (x) (function-put x 'side-effect-free t))
-      '(cl-first cl-second cl-third cl-fourth
-        cl-fifth cl-sixth cl-seventh
-        cl-eighth cl-ninth cl-tenth
-        cl-rest cl-endp cl-plusp cl-minusp
-        cl-oddp cl-evenp cl-signum cl-ldiff cl-pairlis cl-gcd
-        cl-lcm cl-isqrt cl-floor cl-ceiling cl-truncate cl-round cl-mod cl-rem
-        cl-subseq cl-list-length cl-get cl-getf))
-
-;;; Things that are side-effect-and-error-free.
-(mapc (lambda (x) (function-put x 'side-effect-free 'error-free))
-      '(cl-list* cl-acons cl-equalp
-        cl-random-state-p copy-tree))
 
 ;;; Things whose return value should probably be used.
 (mapc (lambda (x) (function-put x 'important-return-value t))
