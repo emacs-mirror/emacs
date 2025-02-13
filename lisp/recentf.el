@@ -73,13 +73,14 @@
 You should define the options of your own filters in this group."
   :group 'recentf)
 
-(defcustom recentf-max-saved-items 20
+(defcustom recentf-max-saved-items 25
   "Maximum number of items of the recent list that will be saved.
 A nil value means to save the whole list.
 See the command `recentf-save-list'."
   :group 'recentf
-  :type '(choice (integer :tag "Entries" :value 1)
-		 (const :tag "No Limit" nil)))
+  :type '(choice (natnum :tag "Entries")
+		 (const :tag "No Limit" nil))
+  :version "31.1")
 
 (defcustom recentf-save-file (locate-user-emacs-file "recentf" ".recentf")
   "File to save the recent list into."
