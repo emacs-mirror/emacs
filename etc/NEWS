@@ -1252,6 +1252,14 @@ connected, to facilitate enabling 'strokes-mode' in sessions where the
 availability of a mouse device varies during execution (as is frequently
 observed on Android).
 
+** Yank media
+
++++
+*** 'yank-media' now auto-selects the most preferred MIME type.
+Major-mode authors can customise the variables
+'yank-media-autoselect-function' and/or 'yank-media-preferred-types' to
+change the selection rules.
+
 
 * New Modes and Packages in Emacs 31.1
 

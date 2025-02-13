@@ -29,19 +29,67 @@
 
 (defvar yank-media--registered-handlers nil)
 
+(defvar yank-media-autoselect-function #'yank-media-autoselect-function
+  "Function to auto select the best MIME types when many are available.
+The function is called with a list of MIME types that have handler in
+the current buffer, and should return the list of MIME types to use in
+order of their priority.  When `yank-media' auto-selects the MIME type,
+it will always choose the first one of the returned list.
+Major-mode authors can change this variable to influence the selection
+process.")
+
+(defvar yank-media-preferred-types
+  `(;; Check first since LibreOffice also puts a PNG image in the
+    ;; clipboard when a table cell is copied.
+    application/x-libreoffice-tsvc
+    ;; Give PNG more priority.
+    image/png
+    image/jpeg
+    ;; These are files copied/cut to the clipboard from a file manager
+    ;; in a GNU/Linux and/or BSD environment.
+    ,@(when (memq window-system '(x pgtk))
+        (list (lambda (mimetypes)
+                (ensure-list
+                 (seq-find (lambda (type)
+                             (string-match-p "x-special/\\(gnome\\|KDE\\|mate\\)-copied-files"
+                                             (symbol-name type)))
+                           mimetypes)))))
+    ;; FIXME: We should have a way to handle text/rtf.
+    text/html)
+  "List of MIME types in the order of preference.
+Each element in the list should be a symbol to choose that MIME type
+exclusively, or a function of one argument and should return the list of
+MIME types to use in order of their priority or nil if no preferred type
+is found.
+Major-mode authors can change this variable to influence the selection
+process, or by directly changing the variable
+`yank-media-autoselect-function'.")
+
+(defun yank-media-autoselect-function (mimetypes)
+  (catch 'preferred
+    (dolist (typ yank-media-preferred-types)
+      (let ((ret (if (functionp typ)
+                     (funcall typ mimetypes)
+                   (and (memq typ mimetypes) (list typ)))))
+        (when ret (throw 'preferred ret))))))
+
 ;;;###autoload
-(defun yank-media ()
+(defun yank-media (&optional noselect)
   "Yank media (images, HTML and the like) from the clipboard.
 This command depends on the current major mode having support for
 accepting the media type.  The mode has to register itself using
 the `yank-media-handler' mechanism.
+Optional argument NOSELECT non-nil (interactively, with a prefix
+argument) means to skip auto-selecting the best MIME type and ask for
+the MIME type to use.
 
 Also see `yank-media-types' for a command that lets you explore
 all the different selection types."
-  (interactive)
+  (interactive "P")
   (unless yank-media--registered-handlers
     (user-error "The `%s' mode hasn't registered any handlers" major-mode))
-  (let ((all-types nil))
+  (let ((all-types nil)
+        pref-type)
     (pcase-dolist (`(,handled-type . ,handler)
                    yank-media--registered-handlers)
       (dolist (type (yank-media--find-matching-media handled-type))
@@ -49,18 +97,35 @@ all the different selection types."
     (unless all-types
       (user-error
        "No handler in the current buffer for anything on the clipboard"))
-    ;; We have a handler in the current buffer; if there's just
-    ;; matching type, just call the handler.
-    (if (length= all-types 1)
+    (setq pref-type (and (null noselect)
+                         (funcall yank-media-autoselect-function
+                                  (mapcar #'car all-types))))
+    (cond
+     ;; We are asked to autoselect and have a preferred MIME type.
+     ((and (null noselect) pref-type)
+      (funcall (cdr (assq (car pref-type) all-types))
+               (car pref-type)
+               (yank-media--get-selection (car pref-type))))
+     ;; We are asked to autoselect and no preferred MIME type.
+     ((and (null noselect) (null pref-type))
+      (message
+       (substitute-command-keys
+        "No preferred MIME type to yank, try \\[universal-argument] \\[yank-media]")))
+     ;; No autoselection and there's only one media type available.
+     ((and noselect (length= all-types 1))
+      (when (y-or-n-p (format "Yank the `%s' clipboard item?"
+                              (caar all-types)))
         (funcall (cdar all-types) (caar all-types)
-                 (yank-media--get-selection (caar all-types)))
-      ;; More than one type the user for what type to insert.
+                 (yank-media--get-selection (caar all-types)))))
+     ;; No autoselection and multiple media types available.
+     ((and noselect (length> all-types 1))
       (let ((type
              (intern
               (completing-read "Several types available, choose one: "
-                               (mapcar #'car all-types) nil t))))
+                               (or pref-type (mapcar #'car all-types))
+                               nil t))))
         (funcall (alist-get type all-types)
-                 type (yank-media--get-selection type))))))
+                 type (yank-media--get-selection type)))))))
 
 (defun yank-media--find-matching-media (handled-type)
   (seq-filter

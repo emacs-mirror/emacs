@@ -4812,6 +4812,30 @@ designating the matching selection data type, and the data returned by
 @code{gui-get-selection}.
 @end defun
 
+The @code{yank-media} command auto selects the preferred @sc{mime} type
+by default.  The rules used for the selection can be controlled through
+the variables @code{yank-media-autoselect-function} and
+@code{yank-media-preferred-types}.
+
+@defvar yank-media-autoselect-function
+This variable should specify a function that will be called with the
+list of @sc{mime} types available for the current major mode, and should
+return a list of preferred @sc{mime} types to use.  The first @sc{mime}
+type in the list will always be used by the @code{yank-media} command
+when auto selection is requested.
+@end defvar
+
+@defvar yank-media-preferred-types
+This variable changes the default selection process of
+@code{yank-media-autoselect-function}.  It is a list that should contain
+the sole @sc{mime} type to choose in the order of their preference.  It
+can also contain a function in which case it is called with the list of
+available @sc{mime} types and must return a list of preferred @sc{mime}
+types in order of their preference.  This list is passed onto the
+@code{yank-media} command so the first element of the returned list is
+chosen when auto selection is requested.
+@end defvar
+
 The @code{yank-media-types} command presents a list of selection data
 types that are currently available, which is useful when implementing
 yank-media handlers; for programs generally offer an eclectic and
