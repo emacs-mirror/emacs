@@ -760,7 +760,8 @@ be used directly.")
 (defcustom gnus-logo-colors nil
   "Colors used for the Gnus logo."
   :set-after '(gnus-logo-color-style)
-  :type '(list color color)
+  :type '(choice (const :tag "Use default" nil)
+                 (list color color))
   :group 'gnus-xmas)
 
 (defcustom gnus-logo-color-style 'ma
