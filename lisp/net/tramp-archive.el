@@ -209,7 +209,7 @@ It must be supported by libarchive(3).")
 
 (defconst tramp-archive-all-gvfs-methods
   (cons tramp-archive-method
-	(let ((values (cdr (cadr (get 'tramp-gvfs-methods 'custom-type)))))
+	(let ((values (cdadr (get 'tramp-gvfs-methods 'custom-type))))
 	  (setq values (mapcar #'last values)
 		values (mapcar #'car values))))
   "List of all methods `tramp-gvfs-methods' offers.")
