@@ -2056,11 +2056,13 @@ bindings from `project-prefix-map'."
   (project-any-command project-prefix-map "[execute in %s]:"))
 
 (defun project-remember-projects-under (dir &optional recursive)
-  "Index all projects below a directory DIR.
-If RECURSIVE is non-nil, recurse into all subdirectories to find
-more projects.  After finishing, a message is printed summarizing
-the progress.  The function returns the number of detected
-projects."
+  "Remember projects below a directory DIR.
+Interactively, prompt for DIR.
+Optional argument RECURSIVE, if non-nil (interactively, the prefix
+argument) means recurse into subdirectories of DIR to find more
+projects.
+Display a message at the end summarizing what was found.
+Return the number of detected projects."
   (interactive "DDirectory: \nP")
   (project--ensure-read-project-list)
   (let ((dirs (if recursive
@@ -2097,10 +2099,12 @@ projects."
 
 (defun project-forget-projects-under (dir &optional recursive)
   "Forget all known projects below a directory DIR.
-If RECURSIVE is non-nil, recurse into all subdirectories to
-remove all known projects.  After finishing, a message is printed
-summarizing the progress.  The function returns the number of
-forgotten projects."
+Interactively, prompt for DIR.
+Optional argument RECURSIVE, if non-nil (interactively, the prefix
+argument), means recurse into subdirectories under DIR
+to remove those projects from the index.
+Display a message at the end summarizing what was forgotten.
+Return the number of forgotten projects."
   (interactive "DDirectory: \nP")
   (let ((count 0))
     (if recursive
