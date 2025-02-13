@@ -561,8 +561,8 @@ If END is omitted, it defaults to the length of the sequence.
 If START or END is negative, it counts from the end.
 Signal an error if START or END are outside of the sequence (i.e
 too large if positive or too small if negative)."
-  (declare (side-effect-free t))
-  (declare (gv-setter
+  (declare (side-effect-free t)
+           (gv-setter
             (lambda (new)
               (macroexp-let2 nil new new
 		`(progn (cl-replace ,seq ,new :start1 ,start :end1 ,end)
