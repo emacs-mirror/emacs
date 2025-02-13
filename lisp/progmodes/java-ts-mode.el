@@ -50,6 +50,13 @@
   :safe 'integerp
   :group 'java)
 
+(defcustom java-ts-mode-method-chaining-indent-offset 8
+  "Indent offset for method chaining in `java-ts-mode'."
+  :version "31.1"
+  :type 'integer
+  :safe 'integerp
+  :group 'java)
+
 (defcustom java-ts-mode-enable-doxygen nil
   "Enable doxygen syntax highlighting.
 If Non-nil, enable doxygen based font lock for comment blocks.
@@ -121,7 +128,7 @@ again."
      ((parent-is "variable_declarator") parent-bol java-ts-mode-indent-offset)
      ((match ">" "type_arguments") parent-bol 0)
      ((parent-is "type_arguments") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "method_invocation") parent-bol java-ts-mode-indent-offset)
+     ((parent-is "method_invocation") parent-bol java-ts-mode-method-chaining-indent-offset)
      ((parent-is "switch_rule") parent-bol java-ts-mode-indent-offset)
      ((parent-is "switch_label") parent-bol java-ts-mode-indent-offset)
      ((parent-is "ternary_expression") parent-bol java-ts-mode-indent-offset)
