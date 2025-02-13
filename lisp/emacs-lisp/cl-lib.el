@@ -185,8 +185,8 @@ to an element already in the list stored in PLACE.
 
 ;;; Blocks and exits.
 
-(defalias 'cl--block-wrapper 'identity)
-(defalias 'cl--block-throw 'throw)
+(defalias 'cl--block-wrapper #'identity)
+(defalias 'cl--block-throw #'throw)
 
 
 ;;; Multiple values.
@@ -232,7 +232,7 @@ right when EXPRESSION calls an ordinary Emacs Lisp function that returns just
 one value."
   (apply function expression))
 
-(defalias 'cl-multiple-value-call 'apply
+(defalias 'cl-multiple-value-call #'apply
   "Apply FUNCTION to ARGUMENTS, taking multiple values into account.
 This implementation only handles the case where there is only one argument.")
 
@@ -354,7 +354,7 @@ Call `cl-float-limits' to set this.")
 
 ;;; Sequence functions.
 
-(cl--defalias 'cl-copy-seq 'copy-sequence)
+(cl--defalias 'cl-copy-seq #'copy-sequence)
 
 (declare-function cl--mapcar-many "cl-extra" (cl-func cl-seqs &optional acc))
 
@@ -374,13 +374,13 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 	  (nreverse cl-res)))
     (mapcar cl-func cl-x)))
 
-(cl--defalias 'cl-svref 'aref)
+(cl--defalias 'cl-svref #'aref)
 
 ;;; List functions.
 
-(cl--defalias 'cl-first 'car)
-(cl--defalias 'cl-second 'cadr)
-(cl--defalias 'cl-rest 'cdr)
+(cl--defalias 'cl-first #'car)
+(cl--defalias 'cl-second #'cadr)
+(cl--defalias 'cl-rest #'cdr)
 
 (cl--defalias 'cl-third #'caddr "Return the third element of the list X.")
 (cl--defalias 'cl-fourth #'cadddr "Return the fourth element of the list X.")
@@ -415,30 +415,30 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
   (declare (gv-setter (lambda (store) `(setcar (nthcdr 9 ,x) ,store))))
   (nth 9 x))
 
-(defalias 'cl-caaar 'caaar)
-(defalias 'cl-caadr 'caadr)
-(defalias 'cl-cadar 'cadar)
-(defalias 'cl-caddr 'caddr)
-(defalias 'cl-cdaar 'cdaar)
-(defalias 'cl-cdadr 'cdadr)
-(defalias 'cl-cddar 'cddar)
-(defalias 'cl-cdddr 'cdddr)
-(defalias 'cl-caaaar 'caaaar)
-(defalias 'cl-caaadr 'caaadr)
-(defalias 'cl-caadar 'caadar)
-(defalias 'cl-caaddr 'caaddr)
-(defalias 'cl-cadaar 'cadaar)
-(defalias 'cl-cadadr 'cadadr)
-(defalias 'cl-caddar 'caddar)
-(defalias 'cl-cadddr 'cadddr)
-(defalias 'cl-cdaaar 'cdaaar)
-(defalias 'cl-cdaadr 'cdaadr)
-(defalias 'cl-cdadar 'cdadar)
-(defalias 'cl-cdaddr 'cdaddr)
-(defalias 'cl-cddaar 'cddaar)
-(defalias 'cl-cddadr 'cddadr)
-(defalias 'cl-cdddar 'cdddar)
-(defalias 'cl-cddddr 'cddddr)
+(defalias 'cl-caaar #'caaar)
+(defalias 'cl-caadr #'caadr)
+(defalias 'cl-cadar #'cadar)
+(defalias 'cl-caddr #'caddr)
+(defalias 'cl-cdaar #'cdaar)
+(defalias 'cl-cdadr #'cdadr)
+(defalias 'cl-cddar #'cddar)
+(defalias 'cl-cdddr #'cdddr)
+(defalias 'cl-caaaar #'caaaar)
+(defalias 'cl-caaadr #'caaadr)
+(defalias 'cl-caadar #'caadar)
+(defalias 'cl-caaddr #'caaddr)
+(defalias 'cl-cadaar #'cadaar)
+(defalias 'cl-cadadr #'cadadr)
+(defalias 'cl-caddar #'caddar)
+(defalias 'cl-cadddr #'cadddr)
+(defalias 'cl-cdaaar #'cdaaar)
+(defalias 'cl-cdaadr #'cdaadr)
+(defalias 'cl-cdadar #'cdadar)
+(defalias 'cl-cdaddr #'cdaddr)
+(defalias 'cl-cddaar #'cddaar)
+(defalias 'cl-cddadr #'cddadr)
+(defalias 'cl-cdddar #'cdddar)
+(defalias 'cl-cddddr #'cddddr)
 
 ;;(defun last* (x &optional n)
 ;;  "Returns the last link in the list LIST.
