@@ -3900,7 +3900,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 	  (setq string (replace-match "" nil nil string))
           ;; Add an Emacs event now.
 	  ;; `insert-special-event' exists since Emacs 31.
-	  (when (member (cl-caadr object) events)
+	  (when (member (caadr object) events)
 	    (tramp-compat-funcall
                 (if (fboundp 'insert-special-event)
                     'insert-special-event
@@ -3937,7 +3937,7 @@ Fall back to normal file name handler if no Tramp handler exists."
 		   (process-get proc 'tramp-watch-name))))))
         ;; Add an Emacs event now.
 	;; `insert-special-event' exists since Emacs 31.
-	(when (member (cl-caadr object) events)
+	(when (member (caadr object) events)
 	  (tramp-compat-funcall
               (if (fboundp 'insert-special-event)
                   'insert-special-event

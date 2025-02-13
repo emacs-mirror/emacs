@@ -1891,7 +1891,7 @@ a downcased host name only."
 
 	;; When the choice is "no", we set a dummy fuse-mountpoint in
 	;; order to leave the timeout.
-	(unless (zerop (cl-caddr result))
+	(unless (zerop (caddr result))
 	  (tramp-set-file-property v "/" "fuse-mountpoint" "/"))
 
 	result))))
@@ -1908,10 +1908,10 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
       ;; elements.
       (while (stringp (car elt)) (setq elt (cdr elt)))
       (let* ((fuse-mountpoint (tramp-gvfs-dbus-byte-array-to-string (cadr elt)))
-	     (mount-spec (cl-caddr elt))
+	     (mount-spec (caddr elt))
 	     (prefix (tramp-gvfs-dbus-byte-array-to-string (car mount-spec)))
 	     (default-location (tramp-gvfs-dbus-byte-array-to-string
-				(cl-cadddr elt)))
+				(cadddr elt)))
 	     (method (tramp-gvfs-dbus-byte-array-to-string
 		      (cadr (assoc "type" (cadr mount-spec)))))
 	     (user (tramp-gvfs-dbus-byte-array-to-string
@@ -2004,10 +2004,10 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
        (while (stringp (car elt)) (setq elt (cdr elt)))
        (let* ((fuse-mountpoint (tramp-gvfs-dbus-byte-array-to-string
 				(cadr elt)))
-	      (mount-spec (cl-caddr elt))
+	      (mount-spec (caddr elt))
 	      (prefix (tramp-gvfs-dbus-byte-array-to-string (car mount-spec)))
 	      (default-location (tramp-gvfs-dbus-byte-array-to-string
-				 (cl-cadddr elt)))
+				 (cadddr elt)))
 	      (method (tramp-gvfs-dbus-byte-array-to-string
 		       (cadr (assoc "type" (cadr mount-spec)))))
 	      (user (tramp-gvfs-dbus-byte-array-to-string
