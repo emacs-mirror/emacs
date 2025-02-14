@@ -3725,10 +3725,6 @@ macro that returns its `&whole' argument."
       `(cl-getf (symbol-plist ,sym) ,prop ,def)
     `(get ,sym ,prop)))
 
-;;; Things that are inline.
-(cl-proclaim '(inline cl-acons cl-map cl-notany cl-notevery cl-revappend
-               cl-nreconc))
-
 ;;; Types and assertions.
 
 ;;;###autoload

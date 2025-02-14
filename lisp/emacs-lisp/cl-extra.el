@@ -127,7 +127,7 @@ strings case-insensitively."
 	(and acc (nreverse cl-res)))))
 
 ;;;###autoload
-(defun cl-map (cl-type cl-func cl-seq &rest cl-rest)
+(defsubst cl-map (cl-type cl-func cl-seq &rest cl-rest)
   "Map a FUNCTION across one or more SEQUENCEs, returning a sequence.
 TYPE is the sequence type to return.
 \n(fn TYPE FUNCTION SEQUENCE...)"
@@ -239,14 +239,14 @@ non-nil value.
     (null cl-seq)))
 
 ;;;###autoload
-(defun cl-notany (cl-pred cl-seq &rest cl-rest)
+(defsubst cl-notany (cl-pred cl-seq &rest cl-rest)
   "Return true if PREDICATE is false of every element of SEQ or SEQs.
 \n(fn PREDICATE SEQ...)"
   (declare (important-return-value t))
   (not (apply #'cl-some cl-pred cl-seq cl-rest)))
 
 ;;;###autoload
-(defun cl-notevery (cl-pred cl-seq &rest cl-rest)
+(defsubst cl-notevery (cl-pred cl-seq &rest cl-rest)
   "Return true if PREDICATE is false of some element of SEQ or SEQs.
 \n(fn PREDICATE SEQ...)"
   (declare (important-return-value t))
@@ -589,13 +589,13 @@ too large if positive or too small if negative)."
 ;;; List functions.
 
 ;;;###autoload
-(defun cl-revappend (x y)
+(defsubst cl-revappend (x y)
   "Equivalent to (append (reverse X) Y)."
   (declare (side-effect-free t))
   (nconc (reverse x) y))
 
 ;;;###autoload
-(defun cl-nreconc (x y)
+(defsubst cl-nreconc (x y)
   "Equivalent to (nconc (nreverse X) Y)."
   (declare (important-return-value t))
   (nconc (nreverse x) y))

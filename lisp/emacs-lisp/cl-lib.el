@@ -535,7 +535,7 @@ Return a copy of TREE with all elements `eql' to OLD replaced by NEW.
 	       cl-tree (cons a d))))
 	(t cl-tree)))
 
-(defun cl-acons (key value alist)
+(defsubst cl-acons (key value alist)
   "Add KEY and VALUE to ALIST.
 Return a new list with (cons KEY VALUE) as car and ALIST as cdr."
   (declare (side-effect-free error-free))
