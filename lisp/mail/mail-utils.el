@@ -63,7 +63,7 @@ also the To field, unless this would leave an empty To field."
   '("RE" "R\u00c9\\.?" "FWD?" "رد" "回复" "回覆" "SV" "Antw\\.?"
   "VS" "REF" "AW" "ΑΠ" "ΣΧΕΤ" "השב" "Vá" "R" "RIF" "BLS" "RES"
   "Odp" "YNT" "ATB")
-  "List of localized \"Re:\" abbreviations in various languages.
+  "List of localized \"Re\" abbreviations in various languages.
 Each component can be a regular expression or a simple string.  Matching
 is done case-insensitively.  Used to initialize the legacy
 `rmail-re-abbrevs' and `message-subject-re-regexp' user options."

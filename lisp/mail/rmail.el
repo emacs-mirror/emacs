@@ -537,7 +537,7 @@ Examples:
   (concat "\\("
           (string-join mail-re-regexps "\\|")
           "\\)")
-  "Regexp with localized \"Re:\" abbreviations in various languages.
+  "Regexp with localized \"Re\" abbreviations in various languages.
 Matching is done case-insensitively.
 Initialized from `mail-re-regexps', which is easier to customize."
   :set-after '(mail-re-regexps)
