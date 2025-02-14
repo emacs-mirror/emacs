@@ -1550,6 +1550,9 @@ else cover the whole buffer."
 (defvar whitespace-style)
 (defvar whitespace-trailing-regexp)
 
+;; Prevent applying `view-read-only' to diff-mode buffers (bug#75993).
+;; We don't derive from `special-mode' because that would inhibit the
+;; `self-insert-command' binding of normal keys.
 (put 'diff-mode 'mode-class 'special)
 ;;;###autoload
 (define-derived-mode diff-mode fundamental-mode "Diff"

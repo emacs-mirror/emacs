@@ -2970,13 +2970,13 @@ the local variables spec."
   (let ((enable-local-variables (or (not find-file) enable-local-variables)))
     ;; FIXME this is less efficient than it could be, since both
     ;; s-a-m and h-l-v may parse the same regions, looking for "mode:".
-    (with-demoted-errors "File mode specification error: %s"
+    (with-demoted-errors "File mode specification error: %S"
       (set-auto-mode))
     ;; `delay-mode-hooks' being non-nil will have prevented the major
     ;; mode's call to `run-mode-hooks' from calling
     ;; `hack-local-variables'.  In that case, call it now.
     (when delay-mode-hooks
-      (with-demoted-errors "File local-variables error: %s"
+      (with-demoted-errors "File local-variables error: %S"
         (hack-local-variables 'no-mode))))
   ;; Turn font lock off and on, to make sure it takes account of
   ;; whatever file local variables are relevant to it.
@@ -3517,7 +3517,7 @@ extra checks should be done."
                     alist name case-insensitive-p))
         (when (and dir-local mode
                    (not (set-auto-mode--dir-local-valid-p mode)))
-          (message "Ignoring invalid mode `%s'" mode)
+          (message "Ignoring invalid mode `%S'" mode)
           (setq mode nil))
         (when mode
           (set-auto-mode-0 mode keep-mode-if-same)

@@ -2004,7 +2004,7 @@ Return the server's response to the SELECT or EXAMINE command."
 	(cons t response)
       (nnheader-report 'nnimap "%s"
 		       (mapconcat (lambda (a)
-				    (format "%s" a))
+				    (format "%S" a))
 				  (car response) " "))
       nil)))
 
