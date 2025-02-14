@@ -52,8 +52,10 @@ also the To field, unless this would leave an empty To field."
           re
           ; Re(1) or Re[1] or Re^1
           "\\(([0-9]+)\\|\\[[0-9]+\\]\\|\\^[0-9]+\\)?"
-          ; SPC/NBSP followed by colon and TAB/SPC
-          " ?\u00a0*[:：][ \t]*"
+          ; SPC/NBSP followed by various colon variants and TAB/SPC
+          " ?\u00a0*"
+          "[" password-colon-equivalents "]"
+          "[ \t]*"
           ; Handle repetition, eg "Re[1]: Re[2]:"
           "\\)*"
           "[ \t]*"))
