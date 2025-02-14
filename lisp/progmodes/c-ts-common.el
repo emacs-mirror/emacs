@@ -554,6 +554,32 @@ const a = [
   4, 5, 6,
 ];")
 
+(defun c-ts-common--standalone-predicate (node)
+  "Return an anchor if NODE is on the start of a line.
+
+Return nil if not.  Handles method chaining.  Caller needs to cal
+`save-excursion'."
+  (goto-char (treesit-node-start node))
+  (or (and (looking-back (rx bol (* whitespace) (? "."))
+                         (line-beginning-position))
+           (point))
+      ;; The above check is not enough, because often in a method
+      ;; chaining, the method name is part of a node, and the arg list
+      ;; is another node:
+      ;;
+      ;;     func       ---> func.method is one node.
+      ;;     .method({
+      ;;       return 1;     ({ return 1; }) is another node
+      ;;     })
+      ;;
+      ;; So when we go up the parse tree, we go through the block
+      ;; ({...}), then the next parent is already the whole call
+      ;; expression, and we never stops at the beginning of "method".
+      ;; Therefore we need this heuristic.
+      (and (progn (back-to-indentation)
+                  (eq (char-after) ?.))
+           (point))))
+
 (defun c-ts-common--standalone-parent (parent)
   "Find the first parent that starts on a new line.
 Start searching from PARENT, so if PARENT satisfies the condition, it'll
@@ -574,12 +600,11 @@ for determining standlone line."
       (catch 'term
         (while parent
           (goto-char (treesit-node-start parent))
-          (when (if treesit-simple-indent-standalone-predicate
-                    (setq anchor
+          (when (setq anchor
+                      (if treesit-simple-indent-standalone-predicate
                           (funcall treesit-simple-indent-standalone-predicate
-                                   parent))
-                  (looking-back (rx bol (* whitespace) (? "."))
-                                (line-beginning-position)))
+                                   parent)
+                        (c-ts-common--standalone-predicate parent)))
             (throw 'term (if (numberp anchor) anchor (point))))
           (setq parent (treesit-node-parent parent)))))))
 
@@ -602,13 +627,12 @@ for determining standlone line."
     (let (anchor)
       (while (and node
                   (goto-char (treesit-node-start node))
-                  (not (if treesit-simple-indent-standalone-predicate
-                           (setq anchor
+                  (not (setq anchor
+                             (if treesit-simple-indent-standalone-predicate
                                  (funcall
                                   treesit-simple-indent-standalone-predicate
-                                  node))
-                         (looking-back (rx bol (* whitespace) (? "."))
-                                       (pos-bol)))))
+                                  parent)
+                               (c-ts-common--standalone-predicate parent)))))
         (setq node (treesit-node-prev-sibling node 'named))))
     (if (numberp anchor) anchor (treesit-node-start node))))
 
