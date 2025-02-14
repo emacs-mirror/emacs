@@ -1695,7 +1695,7 @@ result is inserted.
 Responses to messages have subjects that start with @samp{Re: }.  This
 is @emph{not} an abbreviation of the English word ``response'', but it
 comes from the Latin ``res'', and means ``in the matter of''.  Some
-standards-challenged companies have failed to grasp this fact, and have
+companies, seemingly allergic to standards, have failed to grasp this fact, and have
 ``internationalized'' their software to use abominations like
 @samp{Aw: } (``antwort'') or @samp{Sv: } (``svar'') instead, which is
 meaningless and evil.  However, you may have to deal with users that
