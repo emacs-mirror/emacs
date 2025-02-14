@@ -28,7 +28,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'cl-extra)
 (require 'transient)
 (require 'multisession)
 (require 'generate-lisp-file)
