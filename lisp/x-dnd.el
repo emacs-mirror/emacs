@@ -1544,41 +1544,39 @@ was taken, or the direct save failed."
         (x-dnd-use-offix-drop nil)
         (x-dnd-use-unsupported-drop nil)
         (prop-deleted nil)
-        (action nil)
         encoded-name)
     (unwind-protect
-        (setq action
-              (progn
-                (when (file-remote-p file)
-                  (setq file-name (file-local-copy file))
-                  (setq dnd-last-dragged-remote-file file-name)
-                  (add-hook 'kill-emacs-hook
-                            #'dnd-remove-last-dragged-remote-file))
-                (setq encoded-name
-                      (encode-coding-string name
-                                            (or file-name-coding-system
-                                                default-file-name-coding-system)))
-                (setq x-dnd-xds-current-file file-name)
-                (x-change-window-property "XdndDirectSave0" encoded-name
-                                          frame "text/plain" 8 nil)
-                (gui-set-selection 'XdndSelection (concat "file://" file-name))
-                ;; FIXME: this does not work with GTK file managers,
-                ;; since they always reach for `text/uri-list' first,
-                ;; contrary to the spec.
-                (let ((action (x-begin-drag '("XdndDirectSave0" "text/uri-list"
-                                              "application/octet-stream")
-                                            'XdndActionDirectSave
-                                            frame nil allow-same-frame)))
-                  (if (not x-dnd-xds-performed)
-                      action
-                    (let ((property (x-window-property "XdndDirectSave0" frame
-                                                       "AnyPropertyType" nil t)))
-                      (setq prop-deleted t)
-                      ;; "System-G" deletes the property upon success.
-                      (and (or (null property)
-                               (and (stringp property)
-                                    (not (equal property ""))))
-                           action))))))
+        (progn
+          (when (file-remote-p file)
+            (setq file-name (file-local-copy file))
+            (setq dnd-last-dragged-remote-file file-name)
+            (add-hook 'kill-emacs-hook
+                      #'dnd-remove-last-dragged-remote-file))
+          (setq encoded-name
+                (encode-coding-string name
+                                      (or file-name-coding-system
+                                          default-file-name-coding-system)))
+          (setq x-dnd-xds-current-file file-name)
+          (x-change-window-property "XdndDirectSave0" encoded-name
+                                    frame "text/plain" 8 nil)
+          (gui-set-selection 'XdndSelection (concat "file://" file-name))
+          ;; FIXME: this does not work with GTK file managers,
+          ;; since they always reach for `text/uri-list' first,
+          ;; contrary to the spec.
+          (let ((action (x-begin-drag '("XdndDirectSave0" "text/uri-list"
+                                        "application/octet-stream")
+                                      'XdndActionDirectSave
+                                      frame nil allow-same-frame)))
+            (if (not x-dnd-xds-performed)
+                action
+              (let ((property (x-window-property "XdndDirectSave0" frame
+                                                 "AnyPropertyType" nil t)))
+                (setq prop-deleted t)
+                ;; "System-G" deletes the property upon success.
+                (and (or (null property)
+                         (and (stringp property)
+                              (not (equal property ""))))
+                     action)))))
       (unless prop-deleted
         (x-delete-window-property "XdndDirectSave0" frame))
       ;; Delete any remote copy that was made.
