@@ -569,20 +569,22 @@ chaining like
 
 But ff `treesit-simple-indent-standalone-predicate' is non-nil, use that
 for determining standlone line."
-  (save-excursion
-    (catch 'term
-      (while parent
-        (goto-char (treesit-node-start parent))
-        (when (if treesit-simple-indent-standalone-predicate
-                  (funcall treesit-simple-indent-standalone-predicate
-                           parent)
-                (looking-back (rx bol (* whitespace) (? "."))
-                              (line-beginning-position)))
-          (throw 'term (point)))
-        (setq parent (treesit-node-parent parent))))))
+  (let (anchor)
+    (save-excursion
+      (catch 'term
+        (while parent
+          (goto-char (treesit-node-start parent))
+          (when (if treesit-simple-indent-standalone-predicate
+                    (setq anchor
+                          (funcall treesit-simple-indent-standalone-predicate
+                                   parent))
+                  (looking-back (rx bol (* whitespace) (? "."))
+                                (line-beginning-position)))
+            (throw 'term (if (numberp anchor) anchor (point))))
+          (setq parent (treesit-node-parent parent)))))))
 
 (defun c-ts-common--prev-standalone-sibling (node)
-  "Return the previous sibling of NODE that starts on a new line.
+  "Return the start of the previous sibling of NODE that starts on a new line.
 Return nil if no sibling satisfies the condition.
 
 Unlike simple-indent's standalone preset, this function handles method
@@ -597,15 +599,18 @@ for determining standlone line."
   (save-excursion
     (setq node (treesit-node-prev-sibling node 'named))
     (goto-char (treesit-node-start node))
-    (while (and node
-                (goto-char (treesit-node-start node))
-                (not (if treesit-simple-indent-standalone-predicate
-                         (funcall treesit-simple-indent-standalone-predicate
-                                  node)
-                       (looking-back (rx bol (* whitespace) (? "."))
-                                     (pos-bol)))))
-      (setq node (treesit-node-prev-sibling node 'named)))
-    node))
+    (let (anchor)
+      (while (and node
+                  (goto-char (treesit-node-start node))
+                  (not (if treesit-simple-indent-standalone-predicate
+                           (setq anchor
+                                 (funcall
+                                  treesit-simple-indent-standalone-predicate
+                                  node))
+                         (looking-back (rx bol (* whitespace) (? "."))
+                                       (pos-bol)))))
+        (setq node (treesit-node-prev-sibling node 'named))))
+    (if (numberp anchor) anchor (treesit-node-start node))))
 
 (defun c-ts-common-parent-ignore-preproc (node)
   "Return the parent of NODE, skipping preproc nodes."
@@ -696,9 +701,8 @@ The rule also handles method chaining like
             (cons (c-ts-common--standalone-parent parent)
                   offset)))
          ;; Not first sibling
-         (t (cons (treesit-node-start
-                   (or (c-ts-common--prev-standalone-sibling node)
-                       first-sibling))
+         (t (cons (or (c-ts-common--prev-standalone-sibling node)
+                      (treesit-node-start first-sibling))
                   0)))))
      ;; Condition 2 for initializer list, only apply to
      ;; second line. Eg,

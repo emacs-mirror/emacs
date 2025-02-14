@@ -1821,7 +1821,8 @@ to be standalone too:
     });
 
 The value should be a function that takes a node, and return t if it's
-standalone.")
+standalone.  If the function returns a position, that position is used
+as the anchor.")
 
 (defvar treesit-simple-indent-presets
   (list (cons 'match
@@ -1956,20 +1957,23 @@ standalone.")
                               (goto-char (treesit-node-start parent))
                               (back-to-indentation)
                               (point))))
-        (cons 'standalone-parent
-              (lambda (_n parent &rest _)
-                (save-excursion
-                  (catch 'term
-                    (while parent
-                      (goto-char (treesit-node-start parent))
-                      (when
-                          (if (null treesit-simple-indent-standalone-predicate)
-                              (looking-back (rx bol (* whitespace))
-                                            (line-beginning-position))
-                            (funcall treesit-simple-indent-standalone-predicate
-                                     parent))
-                        (throw 'term (point)))
-                      (setq parent (treesit-node-parent parent)))))))
+        (cons
+         'standalone-parent
+         (lambda (_n parent &rest _)
+           (save-excursion
+             (let (anchor)
+               (catch 'term
+                 (while parent
+                   (goto-char (treesit-node-start parent))
+                   (when (if (null treesit-simple-indent-standalone-predicate)
+                             (looking-back (rx bol (* whitespace))
+                                           (line-beginning-position))
+                           (setq anchor
+                                 (funcall
+                                  treesit-simple-indent-standalone-predicate
+                                  parent)))
+                     (throw 'term (if (numberp anchor) anchor (point))))
+                   (setq parent (treesit-node-parent parent))))))))
         (cons 'prev-sibling (lambda (node parent bol &rest _)
                               (treesit-node-start
                                (or (treesit-node-prev-sibling node t)
