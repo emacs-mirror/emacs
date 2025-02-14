@@ -955,9 +955,10 @@ This is another method from the Kerberos suite.  It behaves like
 @cindex @option{plink} method
 @item @option{plink}
 
-@option{plink} method is for MS Windows users with the PuTTY
-implementation of SSH@.  It uses @samp{plink -ssh} to log in to the
-remote host.  It supports changing the remote login shell @command{/bin/sh}.
+@option{plink} method is for MS Windows users with the
+PuTTY@footnote{It requires at least PuTTY 0.82.} implementation of
+SSH@.  It uses @samp{plink -ssh} to log in to the remote host.  It
+supports changing the remote login shell @command{/bin/sh}.
 
 Check the @samp{Share SSH connections if possible} control for that
 session.
@@ -1190,7 +1191,8 @@ This method supports the @samp{-p} argument.
 These methods are similar to @option{scp} or @option{sftp}, but they
 use the @command{plink} command to connect to the remote host, and
 they use @command{pscp} or @command{psftp} for transferring the files.
-These programs are part of PuTTY, an SSH implementation for MS Windows.
+These programs are part of PuTTY@footnote{It requires at least PuTTY
+0.82.}, an SSH implementation for MS Windows.
 
 They support changing the remote login shell @command{/bin/sh}.
 
