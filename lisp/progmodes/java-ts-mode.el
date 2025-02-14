@@ -91,7 +91,18 @@ again."
     table)
   "Syntax table for `java-ts-mode'.")
 
-(defun java-ts-mode--first-line-on-multi-line-string (_node parent bol &rest _)
+(defun java-ts-mode--standalone-predicate (node)
+  "Java's standalone predicate.
+Return t if NODE is on the start of a line."
+  (save-excursion
+    (goto-char (treesit-node-start node))
+    (if (looking-back (rx bol (* whitespace) (? ".")) (pos-bol))
+        t
+      (back-to-indentation)
+      (when (eq (char-after) ?.)
+        (point)))))
+
+(defun java-ts-mode--first-line-on-multi-line-string (_node parent _bol &rest _)
   "Simple-indent matcher for the first line in a multi-line string block.
 PARENT and BOL are the as in other matchers."
   (and (treesit-node-match-p parent "multiline_string_fragment")
@@ -154,8 +165,8 @@ PARENT and BOL are the as in other matchers."
      ((parent-is "argument_list") parent-bol java-ts-mode-indent-offset)
      ((parent-is "annotation_argument_list") parent-bol java-ts-mode-indent-offset)
      ((parent-is "modifiers") parent-bol 0)
-     ((parent-is "formal_parameters") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "formal_parameter") parent-bol 0)
+     ;; ((parent-is "formal_parameters") parent-bol java-ts-mode-indent-offset)
+     ;; ((parent-is "formal_parameter") parent-bol 0)
      ((parent-is "init_declarator") parent-bol java-ts-mode-indent-offset)
      ((parent-is "if_statement") parent-bol java-ts-mode-indent-offset)
      ((parent-is "for_statement") parent-bol java-ts-mode-indent-offset)
@@ -164,7 +175,8 @@ PARENT and BOL are the as in other matchers."
      ((parent-is "case_statement") parent-bol java-ts-mode-indent-offset)
      ((parent-is "labeled_statement") parent-bol java-ts-mode-indent-offset)
      ((parent-is "do_statement") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "block") standalone-parent java-ts-mode-indent-offset)))
+     ;; ((parent-is "block") standalone-parent java-ts-mode-indent-offset)
+     c-ts-common-baseline-indent-rule))
   "Tree-sitter indent rules.")
 
 (defvar java-ts-mode--keywords
@@ -401,6 +413,9 @@ Return nil if there is no name or if NODE is not a defun node."
                   (do . "do_statement")))
     (setq-local c-ts-common-indent-offset 'java-ts-mode-indent-offset)
     (setq-local treesit-simple-indent-rules java-ts-mode--indent-rules)
+    (setq-local treesit-simple-indent-standalone-predicate
+                #'java-ts-mode--standalone-predicate)
+    (setq-local c-ts-common-list-indent-style 'simple)
 
     ;; Electric
     (setq-local electric-indent-chars

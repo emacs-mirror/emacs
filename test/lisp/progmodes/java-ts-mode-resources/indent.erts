@@ -141,3 +141,31 @@ public class Java {
     }
 }
 =-=-=
+
+Name: Method chaining
+
+=-=
+public class FloodFill {
+public static void main(String[] args) {
+List<Foo> stream = students.stream(MAX_VALUE)
+.filter(item -> {
+return item.getValue() > 100 &&
+item.isActive();
+})
+.map()
+.collect();
+}
+}
+=-=
+public class FloodFill {
+    public static void main(String[] args) {
+        List<Foo> stream = students.stream(MAX_VALUE)
+                .filter(item -> {
+                    return item.getValue() > 100 &&
+                           item.isActive();
+                })
+                .map()
+                .collect();
+    }
+}
+=-=-=
