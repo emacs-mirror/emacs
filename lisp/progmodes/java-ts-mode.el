@@ -91,6 +91,14 @@ again."
     table)
   "Syntax table for `java-ts-mode'.")
 
+(defun java-ts-mode--first-line-on-multi-line-string (_node parent bol &rest _)
+  "Simple-indent matcher for the first line in a multi-line string block.
+PARENT and BOL are the as in other matchers."
+  (and (treesit-node-match-p parent "multiline_string_fragment")
+       (save-excursion
+         ;; Less than 2 newlines between point and string start.
+         (not (search-backward "\n" (treesit-node-start parent) t 2)))))
+
 (defvar java-ts-mode--indent-rules
   `((java
      ((parent-is "program") column-0 0)
@@ -108,6 +116,10 @@ again."
      ((and (parent-is "comment") c-ts-common-looking-at-star)
       c-ts-common-comment-start-after-first-star -1)
      ((parent-is "comment") prev-adaptive-prefix 0)
+     (java-ts-mode--first-line-on-multi-line-string parent-bol
+                                                    java-ts-mode-indent-offset)
+     ((parent-is "multiline_string_fragment") prev-adaptive-prefix 0)
+     ((match "\"\"\"" "string_literal" nil 1) prev-adaptive-prefix 0)
      ((parent-is "text_block") no-indent)
      ((parent-is "class_body") column-0 c-ts-common-statement-offset)
      ((parent-is "array_initializer") parent-bol java-ts-mode-indent-offset)
