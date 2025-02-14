@@ -1317,6 +1317,40 @@ and leave settings for other languages unchanged."
                        ((memq feature remove-list) nil)
                        (t current-value))))))
 
+(defun treesit-merge-font-lock-feature-list (features-list-1 features-list-2)
+  "Merge two tree-sitter font lock feature lists.
+Returns a new font lock feature list with no duplicates in the same level.
+It can be used to merge font lock feature lists in a multi-language major mode.
+FEATURES-LIST-1 and FEATURES-LIST-2 are list of lists of feature symbols."
+    (let ((result nil)
+	(features-1 (car features-list-1))
+	(features-2 (car features-list-2)))
+    (while (or features-1 features-2)
+      (cond
+       ((and features-1 (not features-2)) (push features-1 result))
+       ((and (not features-1) features-2) (push features-2 result))
+       ((and features-1 features-2) (push (cl-union features-1 features-2) result)))
+      (setq features-list-1 (cdr features-list-1)
+	    features-list-2 (cdr features-list-2)
+	    features-1 (car features-list-1)
+            features-2 (car features-list-2)))
+    (nreverse result)))
+
+(defun treesit-replace-font-lock-feature-settings (new-settings settings)
+  "Replaces :feature in SETTINGS with :feature from NEW-SETTINGS.
+Both SETTINGS and NEW-SETTINGS must be a value suitable for
+`treesit-font-lock-settings'.
+Return a value suitable for `treesit-font-lock-settings'"
+  (let ((result nil))
+    (dolist (new-setting new-settings)
+      (let ((new-feature (treesit-font-lock-setting-feature new-setting)))
+	(dolist (setting settings)
+	  (let ((feature (treesit-font-lock-setting-feature setting)))
+	    (if (eq new-feature feature)
+		(push new-setting result)
+	      (push setting result))))))
+    (nreverse result)))
+
 (defun treesit-add-font-lock-rules (rules &optional how feature)
   "Add font-lock RULES to the current buffer.
 
@@ -2505,6 +2539,40 @@ end of existing rules."
                 (append existing-rules rules)
               (append rules existing-rules)))))
     (setf (alist-get language treesit-simple-indent-rules) new-rules)))
+
+(defun treesit-modify-indent-rules (lang new-rules rules &optional how)
+  "Modify a copy of RULES using NEW-RULES.
+As default replace rules with the same anchor.
+When HOW is :prepend NEW-RULES are prepend to RULES, when
+:append NEW-RULES are appended to RULES, when :replace (the default)
+NEW-RULES replace rule in RULES which the same anchor."
+  (cond
+   ((not (alist-get lang rules))
+    (error "No rules for language %s in RULES" lang))
+   ((not (alist-get lang new-rules))
+    (error "No rules for language %s in NEW-RULES" lang))
+   (t (let* ((copy-of-rules (copy-tree js--treesit-indent-rules))
+	     (lang-rules (alist-get lang copy-of-rules))
+	     (lang-new-rules (alist-get lang new-rules)))
+	(cond
+	 ((eq how :prepend)
+	  (setf (alist-get lang copy-of-rules)
+		(append lang-new-rules lang-rules)))
+	 ((eq how :append)
+	  (setf (alist-get lang copy-of-rules)
+		(append lang-rules lang-new-rules)))
+	 ((or (eq how :replace) t)
+	  (let ((tail-new-rules lang-new-rules)
+		(tail-rules lang-rules)
+		(new-rule nil)
+		(rule nil))
+	    (while (setq new-rule (car tail-new-rules))
+	      (while (setq rule (car tail-rules))
+		(when (equal (nth 0 new-rule) (nth 0 rule))
+		  (setf (car tail-rules) new-rule))
+		(setq tail-rules (cdr tail-rules)))
+	      (setq tail-new-rules (cdr tail-new-rules))))))
+	copy-of-rules))))
 
 ;;; Search
 

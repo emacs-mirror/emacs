@@ -1217,6 +1217,12 @@ runs its body, and removes the current buffer from
 
 
 * New Modes and Packages in Emacs 31.1
+** New major modes based on the tree-sitter library
+
+*** New major mode 'mhtml-ts-mode'.
+An optional major mode based on the tree-sitter library for editing html
+files. This mode handles indentation, fontification, and commenting for
+embedded JavaScript and CSS.
 
 
 * Incompatible Lisp Changes in Emacs 31.1
@@ -1369,6 +1375,29 @@ This new function returns the display name of a language given the
 language symbol.  For example, 'cpp' is translated to "C++".  A new
 variable 'treesit-language-display-name-alist' holds the translations of
 language symbols where that translation is not trivial.
+
++++
+++++
+*** New function 'treesit-merge-font-lock-feature-list'.
+This function the merge two tree-sitter font lock feature lists.
+Returns a new font lock feature list with no duplicates in the same level.
+It can be used to merge font lock feature lists in a multi-language major mode.
+
++++
+*** New function 'treesit-replace-font-lock-feature-settings'.
+Given two treesit-font-lock-settings replaces the feature in the second
+font-lock-settings with the same feature in the first
+font-lock-settings. In a multi-linguage major mode it is sometimes
+necessary to replace features from one of the major modes, with others
+that are better suited to the new multilingual context.
+
++++
+*** New function 'treesit-modify-indent-rules'.
+Given two treesit ident rules, it replaces, adds, or prepends the new
+rules to the old ones, then returns a new treesit indent rules.
+In a multi-linguage major mode it is sometimes necessary to modify rules
+from one of the major modes, with others that are better suited to the
+new multilingual context.
 
 +++
 *** New command 'treesit-explore'.
