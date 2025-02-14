@@ -398,7 +398,7 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
 
   tem = call0 (readcharfun);
 
-  if (NILP (tem))
+  if (!FIXNUMP (tem))
     return -1;
   return XFIXNUM (tem);
 
@@ -816,7 +816,7 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
 	      tem1 = Fget (Fcar (tem), Qascii_character);
 	      /* Merge this symbol's modifier bits
 		 with the ASCII equivalent of its basic code.  */
-	      if (!NILP (tem1))
+	      if (FIXNUMP (tem1) && FIXNUMP (Fcar (Fcdr (tem))))
 		XSETFASTINT (val, XFIXNUM (tem1) | XFIXNUM (Fcar (Fcdr (tem))));
 	    }
 	}
@@ -898,7 +898,7 @@ If `inhibit-interaction' is non-nil, this function will signal an
     }
   val = read_filtered_event (1, 1, 1, ! NILP (inherit_input_method), seconds);
 
-  return (NILP (val) ? Qnil
+  return (!FIXNUMP (val) ? Qnil
 	  : make_fixnum (char_resolve_modifier_mask (XFIXNUM (val))));
 }
 
@@ -976,7 +976,7 @@ If `inhibit-interaction' is non-nil, this function will signal an
 
   val = read_filtered_event (1, 1, 0, ! NILP (inherit_input_method), seconds);
 
-  return (NILP (val) ? Qnil
+  return (!FIXNUMP (val) ? Qnil
 	  : make_fixnum (char_resolve_modifier_mask (XFIXNUM (val))));
 }
 
@@ -2820,7 +2820,7 @@ character_name_to_code (char const *name, ptrdiff_t name_len,
       invalid_syntax_lisp (CALLN (Fformat, format, namestr), readcharfun);
     }
 
-  return XFIXNUM (code);
+  return FIXNUMP (code) ? XFIXNUM (code) : -1;
 }
 
 /* Bound on the length of a Unicode character name.  As of
@@ -3059,6 +3059,8 @@ read_char_escape (Lisp_Object readcharfun, int next_char)
       break;
     }
   eassert (chr >= 0 && chr < (1 << CHARACTERBITS));
+  if (chr < 0 || chr >= (1 << CHARACTERBITS))
+    invalid_syntax ("Invalid character", readcharfun);
 
   /* Apply Control modifiers, using the rules:
      \C-X = ascii_ctrl(nomod(X)) | mods(X)  if nomod(X) is one of:
