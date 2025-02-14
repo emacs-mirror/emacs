@@ -1962,10 +1962,12 @@ standalone.")
                   (catch 'term
                     (while parent
                       (goto-char (treesit-node-start parent))
-                      (when (if (null treesit-simple-indent-standalone-predicate)
-                                (looking-back (rx bol (* whitespace))
-                                              (line-beginning-position))
-                              (funcall parent))
+                      (when
+                          (if (null treesit-simple-indent-standalone-predicate)
+                              (looking-back (rx bol (* whitespace))
+                                            (line-beginning-position))
+                            (funcall treesit-simple-indent-standalone-predicate
+                                     parent))
                         (throw 'term (point)))
                       (setq parent (treesit-node-parent parent)))))))
         (cons 'prev-sibling (lambda (node parent bol &rest _)
