@@ -131,6 +131,7 @@ strings case-insensitively."
   "Map a FUNCTION across one or more SEQUENCEs, returning a sequence.
 TYPE is the sequence type to return.
 \n(fn TYPE FUNCTION SEQUENCE...)"
+  (declare (important-return-value t))
   (let ((cl-res (apply #'cl-mapcar cl-func cl-seq cl-rest)))
     (and cl-type (cl-coerce cl-res cl-type))))
 
@@ -140,6 +141,7 @@ TYPE is the sequence type to return.
 Like `cl-mapcar', except applies to lists and their cdr's rather than to
 the elements themselves.
 \n(fn FUNCTION LIST...)"
+  (declare (important-return-value t))
   (if cl-rest
       (let ((cl-res nil)
 	    (cl-args (cons cl-list (copy-sequence cl-rest)))
@@ -189,6 +191,7 @@ the elements themselves.
 (defun cl-mapcan (cl-func cl-seq &rest cl-rest)
   "Like `cl-mapcar', but nconc's together the values returned by the function.
 \n(fn FUNCTION SEQUENCE...)"
+  (declare (important-return-value t))
   (if cl-rest
       (apply #'nconc (apply #'cl-mapcar cl-func cl-seq cl-rest))
     (mapcan cl-func cl-seq)))
@@ -197,6 +200,7 @@ the elements themselves.
 (defun cl-mapcon (cl-func cl-list &rest cl-rest)
   "Like `cl-maplist', but nconc's together the values returned by the function.
 \n(fn FUNCTION LIST...)"
+  (declare (important-return-value t))
   (apply #'nconc (apply #'cl-maplist cl-func cl-list cl-rest)))
 
 ;;;###autoload
@@ -207,6 +211,7 @@ same as the first return value of PREDICATE where PREDICATE has a
 non-nil value.
 
 \n(fn PREDICATE SEQ...)"
+  (declare (important-return-value t))
   (if (or cl-rest (nlistp cl-seq))
       (catch 'cl-some
         (apply #'cl-map nil
@@ -222,6 +227,7 @@ non-nil value.
 (defun cl-every (cl-pred cl-seq &rest cl-rest)
   "Return true if PREDICATE is true of every element of SEQ or SEQs.
 \n(fn PREDICATE SEQ...)"
+  (declare (important-return-value t))
   (if (or cl-rest (nlistp cl-seq))
       (catch 'cl-every
         (apply #'cl-map nil
@@ -236,12 +242,14 @@ non-nil value.
 (defun cl-notany (cl-pred cl-seq &rest cl-rest)
   "Return true if PREDICATE is false of every element of SEQ or SEQs.
 \n(fn PREDICATE SEQ...)"
+  (declare (important-return-value t))
   (not (apply #'cl-some cl-pred cl-seq cl-rest)))
 
 ;;;###autoload
 (defun cl-notevery (cl-pred cl-seq &rest cl-rest)
   "Return true if PREDICATE is false of some element of SEQ or SEQs.
 \n(fn PREDICATE SEQ...)"
+  (declare (important-return-value t))
   (not (apply #'cl-every cl-pred cl-seq cl-rest)))
 
 ;;;###autoload
@@ -589,6 +597,7 @@ too large if positive or too small if negative)."
 ;;;###autoload
 (defun cl-nreconc (x y)
   "Equivalent to (nconc (nreverse X) Y)."
+  (declare (important-return-value t))
   (nconc (nreverse x) y))
 
 ;;;###autoload

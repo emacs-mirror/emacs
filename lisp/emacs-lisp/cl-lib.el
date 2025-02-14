@@ -369,6 +369,7 @@ and mapping stops as soon as the shortest list runs out.  With just one
 SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 `mapcar' function extended to arbitrary sequence types.
 \n(fn FUNCTION SEQ...)"
+  (declare (important-return-value t))
   (if cl-rest
       (if (or (cdr cl-rest) (nlistp cl-x) (nlistp (car cl-rest)))
 	  (cl--mapcar-many cl-func (cons cl-x cl-rest) 'accumulate)
@@ -506,7 +507,8 @@ The elements of LIST are not copied, just the list structure itself."
 Otherwise, return LIST unmodified.
 \nKeywords supported:  :test :test-not :key
 \n(fn ITEM LIST [KEYWORD VALUE]...)"
-  (declare (compiler-macro cl--compiler-macro-adjoin))
+  (declare (important-return-value t)
+           (compiler-macro cl--compiler-macro-adjoin))
   (cond ((or (equal cl-keys '(:test eq))
 	     (and (null cl-keys) (not (numberp cl-item))))
 	 (if (memq cl-item cl-list) cl-list (cons cl-item cl-list)))
@@ -519,6 +521,7 @@ Otherwise, return LIST unmodified.
 Return a copy of TREE with all elements `eql' to OLD replaced by NEW.
 \nKeywords supported:  :test :test-not :key
 \n(fn NEW OLD TREE [KEYWORD VALUE]...)"
+  (declare (important-return-value t))
   (if (or cl-keys (and (numberp cl-old) (not (integerp cl-old))))
       (apply 'cl-sublis (list (cons cl-old cl-new)) cl-tree cl-keys)
     (cl--do-subst cl-new cl-old cl-tree)))
