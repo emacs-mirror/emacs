@@ -632,7 +632,7 @@ for determining standlone line."
                                  (funcall
                                   treesit-simple-indent-standalone-predicate
                                   node)
-                               (c-ts-common--standalone-predicate parent)))))
+                               (c-ts-common--standalone-predicate node)))))
         (setq node (treesit-node-prev-sibling node 'named)))
       (if (numberp anchor) anchor (treesit-node-start node)))))
 
