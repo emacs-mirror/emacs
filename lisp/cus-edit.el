@@ -3054,11 +3054,18 @@ To check for other states, call `custom-variable-state'."
     (let* ((form (widget-get widget :custom-form))
            (symbol (widget-get widget :value))
            (get (or (get symbol 'custom-get) 'default-value))
-           (value (if (default-boundp symbol)
-                      (condition-case nil
-                          (funcall get symbol)
-                        (error (throw 'get-error t)))
-                    (symbol-value symbol)))
+           (value-widget (car (widget-get widget :children)))
+           ;; Round-trip the value, for the sake of widgets that accept
+           ;; values of different types (e.g., the obsolete key-sequence widget
+           ;; which takes either strings or vectors.  (Bug#76156)
+           (value
+            (widget-apply value-widget :value-to-external
+                          (widget-apply value-widget :value-to-internal
+                                        (if (default-boundp symbol)
+                                            (condition-case nil
+                                                (funcall get symbol)
+                                              (error (throw 'get-error t)))
+                                          (symbol-value symbol)))))
            (orig-value (widget-value (car (widget-get widget :children)))))
       (not (equal (if (memq form '(lisp mismatch))
                       ;; Mimic `custom-variable-value-create'.
