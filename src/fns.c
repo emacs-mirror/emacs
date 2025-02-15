@@ -3437,7 +3437,8 @@ characters; nil stands for the empty string.
 
 FUNCTION must be a function of one argument, and must return a value
   that is a sequence of characters: either a string, or a vector or
-  list of numbers that are valid character codepoints.  */)
+  list of numbers that are valid character codepoints; nil is treated
+  as an empty string.  */)
   (Lisp_Object function, Lisp_Object sequence, Lisp_Object separator)
 {
   USE_SAFE_ALLOCA;

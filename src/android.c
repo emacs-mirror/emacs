@@ -2530,6 +2530,11 @@ NATIVE_NAME (sendDndUri) (JNIEnv *env, jobject object,
 
   length = (*env)->GetStringLength (env, string);
   buffer = malloc (length * sizeof *buffer);
+
+  /* Out of memory.  */
+  if (!buffer)
+    return 0;
+
   characters = (*env)->GetStringChars (env, string, NULL);
 
   if (!characters)
@@ -2567,6 +2572,11 @@ NATIVE_NAME (sendDndText) (JNIEnv *env, jobject object,
 
   length = (*env)->GetStringLength (env, string);
   buffer = malloc (length * sizeof *buffer);
+
+  /* Out of memory.  */
+  if (!buffer)
+    return 0;
+
   characters = (*env)->GetStringChars (env, string, NULL);
 
   if (!characters)

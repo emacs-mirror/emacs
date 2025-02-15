@@ -3555,7 +3555,8 @@ like the `beginning-of-buffer' command."
 
 (defun read-file-name (prompt &optional dir default-filename mustmatch initial predicate)
   "Read file name, prompting with PROMPT and completing in directory DIR.
-The return value is not expanded---you must call `expand-file-name' yourself.
+The return value is not expanded---you must call `expand-file-name'
+yourself.
 
 DIR is the directory to use for completing relative file names.
 It should be an absolute directory name, or nil (which means the
@@ -3589,8 +3590,8 @@ Fourth arg MUSTMATCH can take the following values:
   input unquoted by `substitute-in-file-name', which see.  If the
   function returns a non-nil value, the minibuffer is exited with
   that argument as the value.
-- anything else behaves like t except that typing RET does not exit if it
-  does non-null completion.
+- anything else behaves like t except that typing RET does not exit if
+  it does non-null completion.
 
 Fifth arg INITIAL specifies text to start with.  It will be
 interpreted as the trailing part of DEFAULT-FILENAME, so using a

@@ -42,6 +42,7 @@
 ;;; Code:
 
 (require 'treesit)
+(require 'c-ts-common)
 (eval-when-compile (require 'rx))
 (treesit-declare-unavailable-functions)
 
@@ -279,9 +280,7 @@
     (setq treesit-primary-parser (treesit-parser-create 'go))
 
     ;; Comments.
-    (setq-local comment-start "// ")
-    (setq-local comment-end "")
-    (setq-local comment-start-skip (rx "//" (* (syntax whitespace))))
+    (c-ts-common-comment-setup)
 
     ;; Navigation.
     (setq-local treesit-defun-type-regexp
@@ -564,9 +563,7 @@ what the parent of the node would be if it were a node."
     (setq treesit-primary-parser (treesit-parser-create 'gomod))
 
     ;; Comments.
-    (setq-local comment-start "// ")
-    (setq-local comment-end "")
-    (setq-local comment-start-skip (rx "//" (* (syntax whitespace))))
+    (c-ts-common-comment-setup)
 
     ;; Indent.
     (setq-local indent-tabs-mode t
