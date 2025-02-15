@@ -502,7 +502,9 @@ PROPERTIES is a list of file properties (strings)."
 	   (mapcar
 	    (lambda (property)
 	      (cons property (gethash property hash tramp-cache-undefined)))
-	    ,properties)))
+	    ,properties))
+	  ;; Avoid superfluous debug buffers during host name completion.
+	  (tramp-verbose (if minibuffer-completing-file-name 0 tramp-verbose)))
      (tramp-message key 7 "Saved %s" values)
      (unwind-protect (progn ,@body)
        ;; Reset PROPERTIES.  Recompute hash, it could have been flushed.
