@@ -420,6 +420,7 @@ name of the package archive directory.  You can alter this list if you
 wish to use third party package archives---but do so at your own risk,
 and use only third parties that you think you can trust!
 
+@cindex base location, package archive
 @defopt package-archives
 The value of this variable is an alist of package archives recognized
 by the Emacs package manager.
