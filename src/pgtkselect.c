@@ -211,13 +211,18 @@ pgtk_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
 	{
 	  if (SYMBOLP (AREF (targets, i)))
 	    gtargets[ntargets++].target
-	      = SSDATA (SYMBOL_NAME (AREF (targets, i)));
+	      = xstrdup (SSDATA (SYMBOL_NAME (AREF (targets, i))));
 	}
 
       gtk_selection_add_targets (FRAME_GTK_WIDGET (f),
 				 selection_atom, gtargets,
 				 ntargets);
 
+      for (ptrdiff_t i = 0; i < ntargets; i++)
+	{
+	  if (gtargets[i].target)
+	    xfree (gtargets[i].target);
+	}
       xfree (gtargets);
     }
   unblock_input ();
@@ -1382,8 +1387,8 @@ lisp_data_to_selection_data (struct pgtk_display_info *dpyinfo,
 	type = QSTRING;
       cs->format = 8;
       cs->size = SBYTES (obj);
-      cs->data = SDATA (obj);
-      cs->nofree = true;
+      cs->data = xmalloc (SBYTES (obj) + 1);
+      memcpy (cs->data, SDATA (obj), SBYTES (obj) + 1);
     }
   else if (SYMBOLP (obj))
     {

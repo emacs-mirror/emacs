@@ -186,7 +186,11 @@ pgtk_enumerate_devices (struct pgtk_display_info *dpyinfo,
 
       for (t1 = devices_on_seat; t1; t1 = t1->next)
 	{
+#ifdef HAVE_MPS
+	  rec = igc_xzalloc_ambig (sizeof *rec);
+#else
 	  rec = xmalloc (sizeof *rec);
+#endif
 	  rec->seat = g_object_ref (seat);
 	  rec->device = GDK_DEVICE (t1->data);
 	  rec->name = (make_formatted_string
@@ -216,7 +220,11 @@ pgtk_free_devices (struct pgtk_display_info *dpyinfo)
       tem = tem->next;
 
       g_object_unref (last->seat);
+#ifdef HAVE_MPS
+      igc_xfree (last);
+#else
       xfree (last);
+#endif
     }
 
   dpyinfo->devices = NULL;
@@ -282,13 +290,21 @@ evq_enqueue (union buffered_input_event *ev)
   if (evq->cap == 0)
     {
       evq->cap = 4;
+#ifdef HAVE_MPS
+      evq->q = igc_xzalloc_ambig (sizeof *evq->q * evq->cap);
+#else
       evq->q = xmalloc (sizeof *evq->q * evq->cap);
+#endif
     }
 
   if (evq->nr >= evq->cap)
     {
       evq->cap += evq->cap / 2;
+#ifdef HAVE_MPS
+      evq->q = igc_realloc_ambig (evq->q, sizeof *evq->q * evq->cap);
+#else
       evq->q = xrealloc (evq->q, sizeof *evq->q * evq->cap);
+#endif
     }
 
   evq->q[evq->nr++] = *ev;
@@ -527,7 +543,11 @@ pgtk_free_frame_resources (struct frame *f)
       FRAME_X_OUTPUT (f)->atimer_visible_bell = NULL;
     }
 
+#ifdef HAVE_MPS
+  igc_xfree (f->output_data.pgtk);
+#else
   xfree (f->output_data.pgtk);
+#endif
   f->output_data.pgtk = NULL;
 
   unblock_input ();
@@ -5073,7 +5093,7 @@ size_allocate (GtkWidget *widget, GtkAllocation *alloc,
   struct frame *f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
 
   if (!f)
-    f = user_data;
+    f = get_glib_user_data (user_data);
 
   if (f)
     {
@@ -6548,7 +6568,11 @@ pgtk_link_touch_point (struct pgtk_display_info *dpyinfo,
   if (FIXNUM_OVERFLOW_P (local_detail))
     local_detail = 0;
 
+#ifdef HAVE_MPS
+  touchpoint = igc_xzalloc_ambig (sizeof *touchpoint);
+#else
   touchpoint = xmalloc (sizeof *touchpoint);
+#endif
   touchpoint->next = dpyinfo->touchpoints;
   touchpoint->x = lrint (x);
   touchpoint->y = lrint (y);
@@ -6585,7 +6609,11 @@ pgtk_unlink_touch_point (GdkEventSequence *detail,
 	    last->next = tem->next;
 
 	  *local_detail = tem->local_detail;
+#ifdef HAVE_MPS
+	  igc_xfree (tem);
+#else
 	  xfree (tem);
+#endif
 
 	  return 1;
 	}
@@ -6612,7 +6640,11 @@ pgtk_unlink_touch_points (struct frame *f)
       if (last->frame == f)
 	{
 	  *next = last->next;
+#ifdef HAVE_MPS
+	  igc_xfree (last);
+#else
 	  xfree (last);
+#endif
 	}
       else
 	next = &last->next;
@@ -6803,8 +6835,9 @@ pgtk_set_event_handler (struct frame *f)
 
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "map-event",
 		    G_CALLBACK (map_event), NULL);
-  g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "size-allocate",
-		    G_CALLBACK (size_allocate), f);
+  g_signal_connect_data (G_OBJECT (FRAME_GTK_WIDGET (f)), "size-allocate",
+			 G_CALLBACK (size_allocate), glib_user_data (f),
+			 free_glib_user_data, 0);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "key-press-event",
 		    G_CALLBACK (key_press_event), NULL);
   g_signal_connect (G_OBJECT (FRAME_GTK_WIDGET (f)), "key-release-event",
@@ -7295,11 +7328,19 @@ pgtk_delete_display (struct pgtk_display_info *dpyinfo)
     {
       last = tem;
       tem = tem->next;
+#ifdef HAVE_MPS
+      igc_xfree (last);
+#else
       xfree (last);
+#endif
     }
 
   pgtk_free_devices (dpyinfo);
+#ifdef HAVE_MPS
+  igc_xfree (dpyinfo);
+#else
   xfree (dpyinfo);
+#endif
 }
 
 char *

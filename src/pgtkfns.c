@@ -1293,7 +1293,11 @@ This function is an internal primitive--use `make-frame' instead.  */ )
   f->terminal = dpyinfo->terminal;
 
   f->output_method = output_pgtk;
+#ifdef HAVE_MPS
+  FRAME_X_OUTPUT (f) = igc_xzalloc_ambig (sizeof *FRAME_X_OUTPUT (f));
+#else
   FRAME_X_OUTPUT (f) = xzalloc (sizeof *FRAME_X_OUTPUT (f));
+#endif
   FRAME_FONTSET (f) = -1;
   FRAME_X_OUTPUT (f)->white_relief.pixel = -1;
   FRAME_X_OUTPUT (f)->black_relief.pixel = -1;
@@ -2680,7 +2684,11 @@ x_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, struct
      from this point on, x_destroy_window might screw up reference
      counts etc.  */
   f->output_method = output_pgtk;
+#ifdef HAVE_MPS
+  f->output_data.pgtk = igc_xzalloc_ambig (sizeof *f->output_data.pgtk);
+#else
   f->output_data.pgtk = xzalloc (sizeof *f->output_data.pgtk);
+#endif
   FRAME_FONTSET (f) = -1;
   f->output_data.pgtk->white_relief.pixel = -1;
   f->output_data.pgtk->black_relief.pixel = -1;

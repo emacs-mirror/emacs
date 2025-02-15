@@ -612,7 +612,7 @@ pgtk_menu_show (struct frame *f, int x, int y, int menuflags,
 
   USE_SAFE_ALLOCA;
   SAFE_NALLOCA (submenu_stack, 1, menu_items_used);
-  SAFE_NALLOCA (subprefix_stack, 1, menu_items_used);
+  SAFE_ALLOCA_LISP (subprefix_stack, menu_items_used);
   specpdl_ref specpdl_count = SPECPDL_INDEX ();
 
   block_input ();
