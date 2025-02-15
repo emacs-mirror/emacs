@@ -41,6 +41,7 @@
 
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-node-type "treesit.c")
+(declare-function treesit-search-subtree "treesit.c")
 
 (defcustom html-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `html-ts-mode'."
