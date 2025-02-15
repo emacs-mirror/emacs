@@ -1116,6 +1116,29 @@ used to replace chars to try and eliminate some spurious differences."
          (file2 (make-temp-file "diff2"))
          (smerge--refine-long-words
           (if smerge-refine-weight-hack (make-hash-table :test #'equal))))
+
+    ;; Cover the two regions with one `smerge--refine-region' overlay each.
+    (let ((ol1 (make-overlay beg1 end1 nil
+                             ;; Make it shrink rather than spread when editing.
+                             'front-advance nil))
+          (ol2 (make-overlay beg2 end2 nil
+                             ;; Make it shrink rather than spread when editing.
+                             'front-advance nil))
+         (common-props '((evaporate . t) (smerge--refine-region . t))))
+      (dolist (prop (or props-a props-c))
+        (when (and (not (memq (car prop) '(face font-lock-face)))
+                   (member prop (or props-r props-c))
+                   (or (not (and props-c props-a props-r))
+                       (member prop props-c)))
+          ;; This PROP is shared among all those overlays.
+          ;; Better keep it also for the `smerge--refine-region' overlays,
+          ;; so the client package recognizes them as being part of the
+          ;; refinement (e.g. it will hopefully delete them like the others).
+          (push prop common-props)))
+      (dolist (prop common-props)
+        (overlay-put ol1 (car prop) (cdr prop))
+        (overlay-put ol2 (car prop) (cdr prop))))
+
     (unless (markerp beg1) (setq beg1 (copy-marker beg1)))
     (unless (markerp beg2) (setq beg2 (copy-marker beg2)))
     (let ((write-region-inhibit-fsync t)) ; Don't fsync temp files (Bug#12747).
@@ -1245,27 +1268,30 @@ repeating the command will highlight other two parts."
 (defun smerge-refine-exchange-point ()
   "Go to the matching position in the other chunk."
   (interactive)
-  ;; FIXME: Chunks aren't marked in the same way for all users of
-  ;; `smerge-refine-regions' :-(
-  ;; (unless (get-char-property (point) 'smerge)
-  ;;   (error "Not inside a refined chunk"))
-  (let* ((ref-pos
+  (let* ((covering-ol
+          (let ((ols (overlays-at (point))))
+            (while (and ols (not (overlay-get (car ols)
+                                              'smerge--refine-region)))
+              (pop ols))
+            (or (car ols)
+                (user-error "Not inside a refined region"))))
+         (ref-pos
           (if (or (get-char-property (point) 'smerge--refine-other)
                   (get-char-property (1- (point)) 'smerge--refine-other))
               (point)
-            ;; FIXME: Bound the search to the current chunk!
             (let ((next (next-single-char-property-change
-                         (point) 'smerge--refine-other))
+                         (point) 'smerge--refine-other nil
+                         (overlay-end covering-ol)))
                   (prev (previous-single-char-property-change
-                         (point) 'smerge--refine-other)))
+                         (point) 'smerge--refine-other nil
+                         (overlay-start covering-ol))))
               (cond
-               ((and prev
-                     (or (null next)
+               ((and (> prev (overlay-start covering-ol))
+                     (or (>= next (overlay-end covering-ol))
                          (> (- next (point)) (- (point) prev))))
                 prev)
-               (t (or next
-                      ;; FIXME: default to the bounds!
-                      (user-error "No \"other\" position info found")))))))
+               ((< next (overlay-end covering-ol)) next)
+               (t (user-error "No \"other\" position info found"))))))
          (boundary
           (cond
            ((< ref-pos (point))
