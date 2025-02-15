@@ -434,6 +434,11 @@ default is nil, which retains the old format.
 
 *** New command 'smerge-extend' extends a conflict over surrounding lines.
 
+*** New command 'smerge-refine-exchange-point' to jump to the other side.
+When used inside a refined chunk, it jumps to the matching position in
+the "other" side of the refinement: if you're in the new text, it jumps
+to the corresponding position in the old text and vice versa.
+
 ** Image Dired
 
 *** 'image-dired-show-all-from-dir' takes the same first argument as 'dired'.
