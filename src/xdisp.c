@@ -25008,7 +25008,6 @@ maybe_produce_line_number (struct it *it)
 
   /* Produce the glyphs for the line number.  */
   struct it tem_it;
-  char lnum_buf[INT_STRLEN_BOUND (ptrdiff_t) + 1];
   bool beyond_zv = IT_BYTEPOS (*it) >= ZV_BYTE;
   ptrdiff_t lnum_offset = -1; /* to produce 1-based line numbers */
   int lnum_face_id = merge_faces (it->w, Qline_number, 0, DEFAULT_FACE_ID);
@@ -25037,7 +25036,17 @@ maybe_produce_line_number (struct it *it)
   if (!it->lnum_width)
     {
       if (FIXNATP (Vdisplay_line_numbers_width))
-	it->lnum_width = XFIXNAT (Vdisplay_line_numbers_width);
+	{
+	  EMACS_INT lnum_width = XFIXNAT (Vdisplay_line_numbers_width);
+	  /* Limit the width to show at least 1 text character.  */
+	  int lnum_width_limit
+	    = (it->last_visible_x - it->first_visible_x)
+	      / FRAME_COLUMN_WIDTH (it->f)
+	      - 5	/* leave space for a few characters */
+	      - 2;	/* two spaces around the number */
+	  it->lnum_width
+	    = clip_to_bounds (1, lnum_width, lnum_width_limit);
+	}
 
       /* Max line number to be displayed cannot be more than the one
 	 corresponding to the last row of the desired matrix.  */
@@ -25057,6 +25066,8 @@ maybe_produce_line_number (struct it *it)
       it->lnum_width = max (it->lnum_width, log10 (max_lnum) + 1);
       eassert (it->lnum_width > 0);
     }
+  /* Extra +2 for the two blanks we add before and after the number.  */
+  char *lnum_buf = alloca (it->lnum_width + 2 + 1);
   if (EQ (Vdisplay_line_numbers, Qrelative))
     lnum_offset = it->pt_lnum;
   else if (EQ (Vdisplay_line_numbers, Qvisual))
