@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "pdumper.h"
 #include "process.h"
+#include "igc.h"
 
 #ifndef DBUS_NUM_MESSAGE_TYPES
 #define DBUS_NUM_MESSAGE_TYPES 5
@@ -1009,7 +1010,14 @@ xd_get_connection_references (DBusConnection *connection)
 static DBusConnection *
 xd_lisp_dbus_to_dbus (Lisp_Object bus)
 {
-  return xmint_pointer (bus);
+  return xmint_pointer (Fcar (bus));
+}
+
+/* Convert a Lisp D-Bus object to a pointer.  */
+static Lisp_Object *
+xd_lisp_dbus_to_pin (Lisp_Object bus)
+{
+  return xmint_pointer (Fcdr (bus));
 }
 
 /* Return D-Bus connection address.
@@ -1136,6 +1144,7 @@ xd_close_bus (Lisp_Object bus)
 
   /* Retrieve bus address.  */
   connection = xd_lisp_dbus_to_dbus (busobj);
+  Lisp_Object *pin = xd_lisp_dbus_to_pin (busobj);
 
   if (xd_get_connection_references (connection) == 1)
     {
@@ -1145,6 +1154,9 @@ xd_close_bus (Lisp_Object bus)
       dbus_connection_close (connection);
 
       xd_registered_buses = Fdelete (val, xd_registered_buses);
+#ifdef HAVE_MPS
+      igc_xfree (pin);
+#endif
     }
 
   else
@@ -1253,6 +1265,13 @@ this connection to those buses.  */)
 
       /* Add the watch functions.  We pass also the bus as data, in
 	 order to distinguish between the buses in xd_remove_watch.  */
+#ifdef HAVE_MPS
+      Lisp_Object* pin = igc_xzalloc_ambig (sizeof *pin);
+      *pin = bus;
+#else
+      Lisp_Object* pin = NULL;
+#endif
+
       if (!dbus_connection_set_watch_functions (connection,
 						xd_add_watch,
 						xd_remove_watch,
@@ -1264,7 +1283,7 @@ this connection to those buses.  */)
 	XD_SIGNAL1 (build_string ("Cannot add watch functions"));
 
       /* Add bus to list of registered buses.  */
-      val = make_mint_ptr (connection);
+      val = Fcons (make_mint_ptr (connection), make_mint_ptr (pin));
       xd_registered_buses = Fcons (Fcons (bus, val), xd_registered_buses);
 
       /* Cleanup.  */
