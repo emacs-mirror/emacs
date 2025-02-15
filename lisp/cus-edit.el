@@ -5351,10 +5351,13 @@ The format is suitable for use with `easy-menu-define'."
 To see what function the widget will call, use the
 `widget-describe' command."
   (interactive "@d")
-  (let ((button (get-char-property pos 'button)))
-    ;; If there is no button at point, then use the one at the start
-    ;; of the line, if it is a custom-group-link (bug#2298).
+  (let ((button (or (get-char-property pos 'button)
+                    ;; Maybe we are just past a button, and it's quite handy
+                    ;; to action it as well.  (Bug#72341)
+                    (get-char-property (1- pos) 'button))))
     (or button
+        ;; If there is no button at point, then use the one at the start
+        ;; of the line, if it is a custom-group-link (bug#2298).
 	(if (setq button (get-char-property (line-beginning-position) 'button))
 	    (or (eq (widget-type button) 'custom-group-link)
 		(setq button nil))))
