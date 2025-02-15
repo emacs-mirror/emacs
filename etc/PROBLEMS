@@ -3823,6 +3823,16 @@ devices manufactured by OnePlus and possibly others.  Sadly, to the best
 of our knowledge such events cannot be distinguished from legitimate
 keypresses.
 
+** Emacs crashes or is not acknowledged by the OS when requesting storage permissions.
+
+This is only possible on Wear OS (an Android distribution), where the
+system component that provides confirmation dialogs for this type of
+permission is unavailable.  You may circumvent this component by
+connecting to your device over ADB as in the preceding entries and
+executing:
+
+  $ adb shell appops set --uid org.gnu.emacs MANAGE_EXTERNAL_STORAGE allow
+
 * Build-time problems
 
 ** Configuration
