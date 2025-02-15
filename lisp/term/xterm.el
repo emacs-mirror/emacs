@@ -912,10 +912,10 @@ We run the first FUNCTION whose STRING matches the input events."
     (catch 'result
       (xterm--query
        "\e[>0q"
-       '(("\eP>|" . (lambda ()
-                      ;; The reply should be: \e P > | STRING \e \\
-                      (let ((str (xterm--read-string ?\e ?\\)))
-                        (throw 'result str))))))
+       `(("\eP>|" . ,(lambda ()
+                       ;; The reply should be: \e P > | STRING \e \\
+                       (let ((str (xterm--read-string ?\e ?\\)))
+                         (throw 'result str))))))
       nil)))
 
 (defun xterm--push-map (map basemap)
