@@ -97,6 +97,7 @@ files.")
     ("Earl Hyatt" "Earl" "ej32u@protonmail\\.com")
     ("Ed L. Cashin" "Ed L Cashin")
     ("Edward M. Reingold" "Ed\\(ward\\( M\\)?\\)? Reingold" "Reingold Edward M")
+    ("Elías Gabriel Pérez" "eg642616@gmail\\.com") ; bug#76319
     ("Emilio C. Lopes" "Emilio Lopes")
     ("Eric M. Ludlam" "Eric Ludlam")
     ("Eric S. Raymond" "Eric Raymond")
