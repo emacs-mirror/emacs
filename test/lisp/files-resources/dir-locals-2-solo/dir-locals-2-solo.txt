@@ -1,0 +1,3 @@
+# Used by files-test.el.
+# Due to solo .dir-locals-2.el, the local variable `dir-locals-2-loaded'
+# should be undefined.
