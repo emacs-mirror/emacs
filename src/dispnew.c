@@ -3969,6 +3969,14 @@ terminal_cursor_magic (struct frame *root, struct frame *topmost_child)
 	    tty_hide_cursor (FRAME_TTY (root));
 	}
     }
+
+  /* Hide cursor if selected frame has (cursor-type . nil).  */
+  {
+    struct frame *sf = SELECTED_FRAME ();
+    Lisp_Object cursor = assq_no_quit (Qcursor_type, sf->param_alist);
+    if (CONSP (cursor) && NILP (XCDR (cursor)))
+      tty_hide_cursor (FRAME_TTY (root));
+  }
 }
 
 void
