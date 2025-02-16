@@ -85,6 +85,9 @@ HOST, USER, PORT, REQUIRE, and MAX."
         ((null host)
          ;; Do not build a result, as none will match when HOST is nil
          nil)
+        ((not (file-directory-p (expand-file-name auth-source-pass-filename)))
+         ;; Do nothing if the password-store folder doesn't exist.
+         nil)
         (auth-source-pass-extra-query-keywords
          (auth-source-pass--build-result-many host port user require max))
         (t
