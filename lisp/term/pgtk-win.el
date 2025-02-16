@@ -194,6 +194,7 @@ EVENT is a `preedit-text' event."
     ("etc/images/save" . ("document-save" "gtk-save"))
     ("etc/images/saveas" . ("document-save-as" "gtk-save-as"))
     ("etc/images/undo" . ("edit-undo" "gtk-undo"))
+    ("etc/images/redo" . ("edit-redo" "gtk-redo"))
     ("etc/images/cut" . ("edit-cut" "gtk-cut"))
     ("etc/images/copy" . ("edit-copy" "gtk-copy"))
     ("etc/images/paste" . ("edit-paste" "gtk-paste"))
