@@ -377,9 +377,9 @@ never be sent at all, in case it is overridden in the meantime by
 a new request with identical DEFERRED and for the same buffer.
 However, in that situation, the original timeout is kept.
 
-Returns nil."
-  (apply #'jsonrpc--async-request-1 connection method params args)
-  nil)
+Returns a list whose first element is an integer identifying the request
+as specified in the JSONRPC 2.0 spec."
+  (apply #'jsonrpc--async-request-1 connection method params args))
 
 (cl-defun jsonrpc-request (connection
                            method params &key
