@@ -2559,7 +2559,7 @@ usage:  (make-pipe-process &rest ARGS)  */)
   eassert (p->decoding_carryover == 0);
   pset_encoding_buf (p, empty_unibyte_string);
 
-  specpdl_ptr = specpdl_ref_to_ptr (specpdl_count);
+  unbind_discard_to (specpdl_count);
 
   return proc;
 }
@@ -3272,7 +3272,7 @@ usage:  (make-serial-process &rest ARGS)  */)
 
   Fserial_process_configure (nargs, args);
 
-  specpdl_ptr = specpdl_ref_to_ptr (specpdl_count);
+  unbind_discard_to (specpdl_count);
 
   return proc;
 }
@@ -3621,7 +3621,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
 #endif /* !WINDOWSNT */
 
       /* Discard the unwind protect closing S.  */
-      specpdl_ptr = specpdl_ref_to_ptr (count1);
+      unbind_discard_to (count1);
       emacs_close (s);
       s = -1;
       if (0 <= socket_to_use)
@@ -3714,7 +3714,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
   p->outfd = outch;
 
   /* Discard the unwind protect for closing S, if any.  */
-  specpdl_ptr = specpdl_ref_to_ptr (count1);
+  unbind_discard_to (count1);
 
   if (p->is_server && p->socktype != SOCK_DGRAM)
     pset_status (p, Qlisten);
@@ -4302,7 +4302,7 @@ usage: (make-network-process &rest ARGS)  */)
   if (! postpone_connection)
     connect_network_socket (proc, addrinfos, use_external_socket_p);
 
-  specpdl_ptr = specpdl_ref_to_ptr (count);
+  unbind_discard_to (count);
   return proc;
 }
 
@@ -5096,7 +5096,7 @@ server_accept_connection (Lisp_Object server, int channel)
   eassert (p->pid == 0);
 
   /* Discard the unwind protect for closing S.  */
-  specpdl_ptr = specpdl_ref_to_ptr (count);
+  unbind_discard_to (count);
 
   p->open_fd[SUBPROCESS_STDIN] = s;
   p->infd  = s;

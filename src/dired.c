@@ -362,7 +362,7 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 #endif
 
   /* Discard the unwind protect.  */
-  specpdl_ptr = specpdl_ref_to_ptr (count);
+  unbind_discard_to (count);
 
   if (NILP (nosort))
     {

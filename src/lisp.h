@@ -3986,6 +3986,13 @@ SPECPDL_INDEX (void)
   return wrap_specpdl_ref ((char *)specpdl_ptr - (char *)specpdl);
 }
 
+/* Return the second most recent specpdl entry.  */
+INLINE specpdl_ref
+SPECPDL_INDEX_PREV (void)
+{
+  return wrap_specpdl_ref ((char *)(specpdl_ptr - 1) - (char *)specpdl);
+}
+
 INLINE bool
 backtrace_debug_on_exit (union specbinding *pdl)
 {
@@ -5186,6 +5193,7 @@ extern void set_unwind_protect (specpdl_ref, void (*) (Lisp_Object),
 				Lisp_Object);
 extern void set_unwind_protect_ptr (specpdl_ref, void (*) (void *), void *);
 extern Lisp_Object unbind_to (specpdl_ref, Lisp_Object);
+extern Lisp_Object unbind_discard_to (specpdl_ref);
 void specpdl_unrewind (union specbinding *pdl, int distance, bool vars_only);
 extern AVOID error (const char *, ...) ATTRIBUTE_FORMAT_PRINTF (1, 2);
 extern AVOID verror (const char *, va_list)
@@ -6052,21 +6060,22 @@ safe_free (specpdl_ref sa_count)
 {
   while (specpdl_ptr != specpdl_ref_to_ptr (sa_count))
     {
-      specpdl_ptr--;
-      if (specpdl_ptr->kind == SPECPDL_UNWIND_PTR)
+      union specbinding binding = specpdl_ptr[-1];
+      unbind_discard_to (SPECPDL_INDEX_PREV ());
+      if (binding.kind == SPECPDL_UNWIND_PTR)
 	{
 #ifdef HAVE_MPS
-	  eassert (specpdl_ptr->unwind_ptr.func == xfree
-		   || specpdl_ptr->unwind_ptr.func == igc_xfree);
+	  eassert (binding.unwind_ptr.func == xfree
+		   || binding.unwind_ptr.func == igc_xfree);
 #else
-	  eassert (specpdl_ptr->unwind_ptr.func == xfree);
+	  eassert (binding.unwind_ptr.func == xfree);
 #endif
-	  specpdl_ptr->unwind_ptr.func (specpdl_ptr->unwind_ptr.arg);
+	  binding.unwind_ptr.func (binding.unwind_ptr.arg);
 	}
       else
 	{
-	  eassert (specpdl_ptr->kind == SPECPDL_UNWIND_ARRAY);
-	  SAFE_ALLOCA_XFREE (specpdl_ptr->unwind_array.array);
+	  eassert (binding.kind == SPECPDL_UNWIND_ARRAY);
+	  SAFE_ALLOCA_XFREE (binding.unwind_array.array);
 	}
     }
 }

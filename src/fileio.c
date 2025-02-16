@@ -802,14 +802,13 @@ This function does not grok magic file names.  */)
   bool failed = fd < 0;
   if (!failed)
     {
-      specpdl_ref count = SPECPDL_INDEX ();
       record_unwind_protect_int (close_file_unwind, fd);
       val = DECODE_FILE (val);
       if (STRINGP (text) && SBYTES (text) != 0)
 	write_region (text, Qnil, val, Qnil, Qnil, Qnil, Qnil, fd);
       failed = NILP (dir_flag) && emacs_close (fd) != 0;
       /* Discard the unwind protect.  */
-      specpdl_ptr = specpdl_ref_to_ptr (count);
+      unbind_discard_to (SPECPDL_INDEX_PREV ());
     }
   if (failed)
     {
@@ -2549,7 +2548,7 @@ permissions.  */)
 #endif /* not WINDOWSNT */
 
   /* Discard the unwind protects.  */
-  specpdl_ptr = specpdl_ref_to_ptr (count);
+  unbind_discard_to (count);
 
   return Qnil;
 }
@@ -4314,6 +4313,7 @@ by calling `format-decode', which see.  */)
 		  struct buffer *prev = current_buffer;
 		  Lisp_Object workbuf;
 		  struct buffer *buf;
+		  specpdl_ref count = SPECPDL_INDEX ();
 
 		  record_unwind_current_buffer ();
 
@@ -4339,7 +4339,7 @@ by calling `format-decode', which see.  */)
 
 		  /* Discard the unwind protect for recovering the
                      current buffer.  */
-		  specpdl_ptr--;
+		  unbind_discard_to (count);
 
 		  /* Rewind the file for the actual read done later.  */
 		  if (emacs_fd_lseek (fd, 0, SEEK_SET) < 0)
@@ -5605,7 +5605,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
 	ok = 0, save_errno = errno;
 
       /* Discard the unwind protect for close_file_unwind.  */
-      specpdl_ptr = specpdl_ref_to_ptr (count1);
+      unbind_discard_to (count1);
     }
 
   /* Some file systems have a bug where st_mtime is not updated

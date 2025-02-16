@@ -833,7 +833,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    lisp_eval_depth--;
 	    if (backtrace_debug_on_exit (specpdl_ptr - 1))
 	      val = call_debugger (list2 (Qexit, val));
-	    specpdl_ptr--;
+	    unbind_discard_to (SPECPDL_INDEX_PREV ());
 
 	    TOP = val;
 	    NEXT;
@@ -906,7 +906,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 		lisp_eval_depth--;
 		if (backtrace_debug_on_exit (specpdl_ptr - 1))
 		  val = call_debugger (list2 (Qexit, val));
-		specpdl_ptr--;
+		unbind_discard_to (SPECPDL_INDEX_PREV ());
 
 		top = saved_top;
 		pc = bc->fp->saved_pc;

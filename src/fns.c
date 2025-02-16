@@ -6906,7 +6906,7 @@ extract_data_from_object (Lisp_Object spec,
       set_buffer_internal (prev);
       /* Discard the unwind protect for recovering the current
 	 buffer.  */
-      specpdl_ptr--;
+      unbind_discard_to (SPECPDL_INDEX_PREV ());
 
       if (STRING_MULTIBYTE (object))
 	object = code_convert_string (object, coding_system,
