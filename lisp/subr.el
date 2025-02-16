@@ -550,6 +550,20 @@ was called."
            (compiler-macro (lambda (_) `(= 0 ,number))))
   (= 0 number))
 
+(defun oddp (integer)
+  "Return t if INTEGER is odd."
+  (declare (ftype (function (integer) boolean))
+           (side-effect-free t)
+           (compiler-macro (lambda (_) `(eq (logand ,integer 1) 1))))
+  (eq (logand integer 1) 1))
+
+(defun evenp (integer)
+  "Return t if INTEGER is even."
+  (declare (ftype (function (integer) boolean))
+           (side-effect-free t)
+           (compiler-macro (lambda (_) `(eq (logand ,integer 1) 0))))
+  (eq (logand integer 1) 0))
+
 (defun fixnump (object)
   "Return t if OBJECT is a fixnum."
   (declare (ftype (function (t) boolean))

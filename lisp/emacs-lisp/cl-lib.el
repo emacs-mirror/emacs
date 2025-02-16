@@ -280,17 +280,17 @@ so that they are registered at compile-time as well as run-time."
   (declare (side-effect-free t))
   (< number 0))
 
-(defun cl-oddp (integer)
-  "Return t if INTEGER is odd."
-  (declare (side-effect-free t)
-           (compiler-macro (lambda (_) `(eq (logand ,integer 1) 1))))
-  (eq (logand integer 1) 1))
+(defalias 'cl-oddp #'oddp
+  "Return t if INTEGER is odd.
 
-(defun cl-evenp (integer)
-  "Return t if INTEGER is even."
-  (declare (side-effect-free t)
-           (compiler-macro (lambda (_) `(eq (logand ,integer 1) 0))))
-  (eq (logand integer 1) 0))
+This function is considered deprecated in favor of the built-in function
+`evenp' that was added in Emacs 31.1.")
+
+(defalias 'cl-evenp #'evenp
+  "Return t if INTEGER is even.
+
+This function is considered deprecated in favor of the built-in function
+`evenp' that was added in Emacs 31.1.")
 
 (defconst cl-digit-char-table
   (let* ((digits (make-vector 256 nil))

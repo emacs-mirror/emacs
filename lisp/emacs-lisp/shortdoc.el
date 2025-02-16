@@ -278,17 +278,17 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :args (function map)
    :eval (map-values-apply #'1+ (list '(1 . 2)  '(3 . 4))))
   (map-filter
-   :eval (map-filter (lambda (k _) (cl-oddp k)) (list '(1 . 2) '(4 . 6)))
-   :eval (map-filter (lambda (k v) (cl-evenp (+ k v))) (list '(1 . 2) '(4 . 6))))
+   :eval (map-filter (lambda (k _) (oddp k)) (list '(1 . 2) '(4 . 6)))
+   :eval (map-filter (lambda (k v) (evenp (+ k v))) (list '(1 . 2) '(4 . 6))))
   (map-remove
-   :eval (map-remove (lambda (k _) (cl-oddp k)) (list '(1 . 2) '(4 . 6)))
-   :eval (map-remove (lambda (k v) (cl-evenp (+ k v))) (list '(1 . 2) '(4 . 6))))
+   :eval (map-remove (lambda (k _) (oddp k)) (list '(1 . 2) '(4 . 6)))
+   :eval (map-remove (lambda (k v) (evenp (+ k v))) (list '(1 . 2) '(4 . 6))))
   (map-some
-   :eval (map-some (lambda (k _) (cl-oddp k)) (list '(1 . 2) '(4 . 6)))
-   :eval (map-some (lambda (k v) (cl-evenp (+ k v))) (list '(1 . 2) '(4 . 6))))
+   :eval (map-some (lambda (k _) (oddp k)) (list '(1 . 2) '(4 . 6)))
+   :eval (map-some (lambda (k v) (evenp (+ k v))) (list '(1 . 2) '(4 . 6))))
   (map-every-p
-   :eval (map-every-p (lambda (k _) (cl-oddp k)) (list '(1 . 2) '(4 . 6)))
-   :eval (map-every-p (lambda (k v) (cl-evenp (+ k v))) (list '(1 . 3) '(4 . 6))))
+   :eval (map-every-p (lambda (k _) (oddp k)) (list '(1 . 2) '(4 . 6)))
+   :eval (map-every-p (lambda (k v) (evenp (+ k v))) (list '(1 . 3) '(4 . 6))))
   "Combining and changing maps"
   (map-merge
    :eval (map-merge 'alist '(1 2 3 4) #s(hash-table data (5 6 7 8)))
@@ -1418,10 +1418,10 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   (cl-minusp
    :eval (cl-minusp 0)
    :eval (cl-minusp -1))
-  (cl-oddp
-   :eval (cl-oddp 3))
-  (cl-evenp
-   :eval (cl-evenp 6))
+  (oddp
+   :eval (oddp 3))
+  (evenp
+   :eval (evenp 6))
   (bignump
    :eval (bignump 4)
    :eval (bignump (expt 2 90)))

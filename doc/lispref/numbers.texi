@@ -409,6 +409,16 @@ if so, @code{nil} otherwise.  The argument must be a number.
 @code{(zerop x)} is equivalent to @code{(= x 0)}.
 @end defun
 
+@defun oddp integer
+This predicate tests whether its argument is an odd number, and returns
+@code{t} if so, @code{nil} otherwise.  The argument must be an integer.
+@end defun
+
+@defun evenp integer
+This predicate tests whether its argument is an even number, and returns
+@code{t} if so, @code{nil} otherwise.  The argument must be an integer.
+@end defun
+
 @node Comparison of Numbers
 @section Comparison of Numbers
 @cindex number comparison

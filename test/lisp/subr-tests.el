@@ -45,6 +45,26 @@
   (should-not (zerop (1- most-negative-fixnum)))
   (should-error (zerop "-5") :type 'wrong-type-argument))
 
+(ert-deftest subr-test-oddp ()
+  (should (oddp -3))
+  (should (oddp 3))
+  (should-not (oddp -2))
+  (should-not (oddp 0))
+  (should-not (oddp 2))
+  (should-error (oddp 3.0e+NaN) :type 'wrong-type-argument)
+  (should-error (oddp 3.0) :type 'wrong-type-argument)
+  (should-error (oddp "3") :type 'wrong-type-argument))
+
+(ert-deftest subr-test-evenp ()
+  (should (evenp -2))
+  (should (evenp 0))
+  (should (evenp 2))
+  (should-not (evenp -3))
+  (should-not (evenp 3))
+  (should-error (evenp 2.0e+NaN) :type 'wrong-type-argument)
+  (should-error (evenp 2.0) :type 'wrong-type-argument)
+  (should-error (evenp "2") :type 'wrong-type-argument))
+
 (ert-deftest let-when-compile ()
   ;; good case
   (should (equal (macroexpand '(let-when-compile ((foo (+ 2 3)))

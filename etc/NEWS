@@ -1265,6 +1265,12 @@ restore the old behavior, you can set 'eshell-pwd-convert-function' to
 
 * Lisp Changes in Emacs 31.1
 
++++
+** New functions 'oddp' and 'evenp'.
+They return non-nil if an integer is odd or even, respectively, and
+signal an error if they are given a non-integer.  The 'cl-lib' functions
+'cl-oddp' and 'cl-evenp' are now aliases for 'oddp' and 'evenp'.
+
 ** Time & Date
 
 +++

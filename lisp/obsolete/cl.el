@@ -272,8 +272,6 @@
                first
                svref
                copy-seq
-               evenp
-               oddp
                minusp
                plusp
                floatp-safe

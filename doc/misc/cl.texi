@@ -2450,7 +2450,7 @@ by the name @code{it} in the ``then'' part.  For example:
 (setq funny-numbers '(6 13 -1))
      @result{} (6 13 -1)
 (cl-loop for x below 10
-         if (cl-oddp x)
+         if (oddp x)
            collect x into odds
            and if (memq x funny-numbers) return (cdr it) end
          else
@@ -3055,7 +3055,7 @@ This section defines a few simple Common Lisp operations on numbers
 that were left out of Emacs Lisp.
 
 @menu
-* Predicates on Numbers::       @code{cl-plusp}, @code{cl-oddp}, etc.
+* Predicates on Numbers::       @code{cl-plusp}, @code{cl-minusp}, etc.
 * Numerical Functions::         @code{cl-floor}, @code{cl-ceiling}, etc.
 * Random Numbers::              @code{cl-random}, @code{cl-make-random-state}.
 * Implementation Parameters::   @code{cl-most-positive-float}, etc.
@@ -3076,16 +3076,6 @@ error if the argument is not a number.
 @defun cl-minusp number
 This predicate tests whether @var{number} is negative.  It is an
 error if the argument is not a number.
-@end defun
-
-@defun cl-oddp integer
-This predicate tests whether @var{integer} is odd.  It is an
-error if the argument is not an integer.
-@end defun
-
-@defun cl-evenp integer
-This predicate tests whether @var{integer} is even.  It is an
-error if the argument is not an integer.
 @end defun
 
 @defun cl-digit-char-p char radix
