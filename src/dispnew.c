@@ -3288,15 +3288,15 @@ struct rect
 static bool
 rect_intersect (struct rect *r, struct rect r1, struct rect r2)
 {
-  int x1 = max (r1.x, r2.x);
-  int x2 = min (r1.x + r1.w, r2.x + r2.w);
-  if (x2 < x1)
+  int x = max (r1.x, r2.x);
+  int y = max (r1.y, r2.y);
+  int w = min (r1.x + r1.w, r2.x + r2.w) - x;
+  int h = min (r1.y + r1.h, r2.y + r2.h) - y;
+
+  if (w == 0 || h == 0)
     return false;
-  int y1 = max (r1.y, r2.y);
-  int y2 = min (r1.y + r1.h, r2.y + r2.h);
-  if (y2 < y1)
-    return false;
-  *r = (struct rect) { .x = x1, .y = y1, .w = x2 - x1, .h = y2 - y1 };
+
+  *r = (struct rect) { .x = x, .y = y, .w = w, .h = h };
   return true;
 }
 
@@ -3720,8 +3720,8 @@ copy_child_glyphs (struct frame *root, struct frame *child)
     }
 
   /* First visible row/col, relative to the child frame.  */
-  int child_x = child->left_pos < 0 ? - child->left_pos : 0;
-  int child_y = child->top_pos < 0 ? - child->top_pos : 0;
+  int child_x, child_y;
+  child_xy (child, r.x, r.y, &child_x, &child_y);
 
   /* For all rows in the intersection, copy glyphs from the child's
      current matrix to the root's desired matrix, enabling those rows
