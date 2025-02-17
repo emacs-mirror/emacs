@@ -553,12 +553,12 @@ pgtk_calc_absolute_position (struct frame *f)
 
   /* We have nothing to do if the current position
      is already for the top-left corner.  */
-  if (! ((flags & XNegative) || (flags & YNegative)))
+  if (!((flags & XNegative) || (flags & YNegative)))
     return;
 
   /* Treat negative positions as relative to the leftmost bottommost
      position that fits on the screen.  */
-  if ((flags & XNegative) && (f->left_pos <= 0))
+  if (flags & XNegative)
     {
       int width = FRAME_PIXEL_WIDTH (f);
 
@@ -585,7 +585,7 @@ pgtk_calc_absolute_position (struct frame *f)
 
     }
 
-  if ((flags & YNegative) && (f->top_pos <= 0))
+  if (flags & YNegative)
     {
       int height = FRAME_PIXEL_HEIGHT (f);
 
