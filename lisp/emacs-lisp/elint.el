@@ -833,7 +833,7 @@ CODE can be a lambda expression, a macro, or byte-compiled code."
   "Lint the defcustom FORM in ENV."
   (if (and (> (length form) 3)
 	   ;; even no. of keyword/value args ?
-	   (zerop (logand (length form) 1)))
+	   (evenp (length form)))
       (elint-env-add-global-var (elint-form (nth 2 form) env)
 				(car (cdr form)))
     (elint-error "Malformed variable declaration: %s" form)

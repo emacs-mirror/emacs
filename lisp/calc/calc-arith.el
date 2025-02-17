@@ -874,7 +874,7 @@
 (defun calcFunc-dint (expr)
   (let ((types (math-possible-types expr)))
     (if (= types 1) 1
-      (if (= (logand types 1) 0) 0
+      (if (evenp types) 0
 	(math-reject-arg expr 'integerp 'quiet)))))
 
 (defun calcFunc-dnumint (expr)
