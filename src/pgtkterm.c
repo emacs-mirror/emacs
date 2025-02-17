@@ -184,11 +184,30 @@ pgtk_enumerate_devices (struct pgtk_display_info *dpyinfo,
 	{
 	  rec = xmalloc (sizeof *rec);
 	  rec->seat = g_object_ref (seat);
-	  rec->device = GDK_DEVICE (t1->data);
-	  rec->name = (make_formatted_string
-		       ("%u:%s",
-			gdk_device_get_source (rec->device),
-			gdk_device_get_name (rec->device)));
+
+	  if (t1->data)
+	    {
+	      GdkInputSource source;
+	      const char *name;
+
+	      rec->device = GDK_DEVICE (t1->data);
+	      source = gdk_device_get_source (rec->device);
+	      name = gdk_device_get_name (rec->device);
+	      rec->name = (make_formatted_string ("%u:%s", source, name);
+
+	      rec->name = build_string (printbuf);
+	    }
+	  else
+	    {
+	      /* GTK bug 7737 results in GDK seats being initialized
+		 with NULL devices in some cirumstances.  As events will
+		 presumably also be delivered with their device fields
+		 set to NULL, insert a ersatz device record associated
+		 with NULL.  (bug#76239) */
+	      rec->device = NULL;
+	      rec->name = build_string ("0:unknown device");
+	    }
+
 	  rec->next = dpyinfo->devices;
 	  dpyinfo->devices = rec;
 	}
