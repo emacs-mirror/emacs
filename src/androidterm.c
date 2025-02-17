@@ -2383,7 +2383,8 @@ android_set_offset (struct frame *f, int xoff, int yoff,
     }
 
   android_calc_absolute_position (f);
-  android_move_window (FRAME_ANDROID_WINDOW (f), xoff, yoff);
+  android_move_window (FRAME_ANDROID_WINDOW (f), f->left_pos,
+		       f->top_pos);
 }
 
 static void
