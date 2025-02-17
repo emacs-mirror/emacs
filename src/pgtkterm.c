@@ -193,9 +193,7 @@ pgtk_enumerate_devices (struct pgtk_display_info *dpyinfo,
 	      rec->device = GDK_DEVICE (t1->data);
 	      source = gdk_device_get_source (rec->device);
 	      name = gdk_device_get_name (rec->device);
-	      rec->name = (make_formatted_string ("%u:%s", source, name);
-
-	      rec->name = build_string (printbuf);
+	      rec->name = make_formatted_string ("%u:%s", source, name);
 	    }
 	  else
 	    {
