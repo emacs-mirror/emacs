@@ -233,32 +233,6 @@ cl-callf           cl-callf2          cl-defsubst
 cl-letf            cl-letf*
 @end example
 
-@c This is not uninteresting I suppose, but is of zero practical relevance
-@c to the user, and seems like a hostage to changing implementation details.
-The following simple functions and macros are defined in @file{cl-lib.el};
-they do not cause other components like @file{cl-extra} to be loaded.
-
-@example
-cl-evenp           cl-oddp            cl-minusp
-cl-plusp           cl-endp            cl-subst
-cl-copy-list       cl-list*           cl-ldiff
-cl-rest            cl-decf [1]        cl-incf [1]
-cl-acons           cl-adjoin [2]      cl-pairlis
-cl-pushnew [1,2]   cl-declaim         cl-proclaim
-cl-caaar@dots{}cl-cddddr                  cl-first@dots{}cl-tenth
-cl-mapcar [3]
-@end example
-
-@noindent
-[1] Only when @var{place} is a plain variable name.
-
-@noindent
-[2] Only if @code{:test} is @code{eq}, @code{equal}, or unspecified,
-and @code{:key} is not used.
-
-@noindent
-[3] Only for one sequence argument or two list arguments.
-
 @node Printing
 @chapter Printing
 
