@@ -10473,10 +10473,12 @@ Called from `temp-buffer-show-hook'."
                 (buffer-substring (minibuffer-prompt-end) (point)))))))
     (with-current-buffer standard-output
       (let ((base-position completion-base-position)
-            (insert-fun completion-list-insert-choice-function))
+            (insert-fun completion-list-insert-choice-function)
+            (lazy-button completions--lazy-insert-button))
         (completion-list-mode)
         (when completions-highlight-face
           (setq-local cursor-face-highlight-nonselected-window t))
+        (setq-local completions--lazy-insert-button lazy-button)
         (setq-local completion-base-position base-position)
         (setq-local completion-list-insert-choice-function insert-fun))
       (setq-local completion-reference-buffer mainbuf)
@@ -10522,6 +10524,7 @@ to move point between completions.\n\n")))))))
                           (progn (minibuffer-completion-help)
                                  (get-buffer-window "*Completions*" 0)))))
     (select-window window)
+    (completion--lazy-insert-strings)
     (when (bobp)
       (cond
        ((and (memq this-command '(completion-at-point minibuffer-complete))

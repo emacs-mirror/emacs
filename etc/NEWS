@@ -186,6 +186,16 @@ new list of completions.  The candidate is automatically deselected when
 the "*Completions*" buffer is hidden.
 
 ---
+*** "*Completions*" is displayed faster with many completion candidates.
+As always, if there are more completion candidates than can be displayed
+in the current frame, only a subset of the candidates is displayed.
+This process is now faster: only that subset of the candidates is
+actually inserted into "*Completions*" until you run a command which
+interacts with the text of the "*Completions*" buffer.  This
+optimization only applies when 'completions-format' is 'horizontal' or
+'one-column'.
+
+---
 *** New user option 'crm-prompt' for 'completing-read-multiple'.
 This option configures the prompt format of 'completing-read-multiple'.
 By default, the prompt indicates to the user that the completion command
