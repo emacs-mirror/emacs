@@ -30,6 +30,21 @@
 (require 'ert-x)
 (eval-when-compile (require 'cl-lib))
 
+(ert-deftest subr-test-zerop ()
+  (should (zerop 0))
+  (should (zerop 0.0))
+  (should (zerop -0))
+  (should (zerop -0.0))
+  (should-not (zerop -0.0e+NaN))
+  (should-not (zerop 0.0e+NaN))
+  (should-not (zerop float-pi))
+  (should-not (zerop 1.0e+INF))
+  (should-not (zerop (random most-positive-fixnum)))
+  (should-not (zerop (- (random (- most-negative-fixnum)))))
+  (should-not (zerop (1+ most-positive-fixnum)))
+  (should-not (zerop (1- most-negative-fixnum)))
+  (should-error (zerop "-5") :type 'wrong-type-argument))
+
 (ert-deftest let-when-compile ()
   ;; good case
   (should (equal (macroexpand '(let-when-compile ((foo (+ 2 3)))
