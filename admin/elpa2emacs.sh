@@ -42,18 +42,19 @@
 #  João Távora <joaotavora@gmail.com>
 #  Pip Cet <pipcet@protonmail.com>
 
-# The ELPA repo will be cloned, unless a copy is provided in the "elpa"
-# subdirectory of the emacs repository.  You should not use a worktree!
+# The ELPA repo will be cloned into the "elpa" subdirectory of the emacs
+# repository, unless it's already there.  Don't use a worktree for that,
+# though!
 #
 # Run like this:
 #
-#   bash -ex ./admin/elpa2emacs.sh externals/elisp-benchmarks "benchmarks==>benchmarks/benchmarks" "resources==>benchmarks/resources" "elisp-benchmarks.el==>benchmarks/elisp-benchmarks.el"
+#   bash -ex ./admin/elpa2emacs.sh 03e668caf878c9b9780356e447e3fd85e0696f77 "benchmarks==>benchmarks/benchmarks" "resources==>benchmarks/resources" "elisp-benchmarks.el==>benchmarks/elisp-benchmarks.el"
 #
 
 # arguments
 OLDDIR="$PWD"
 TMPDIR=`mktemp -d`
-BRANCH="$1" # a branch name or commit in the ELPA repo
+COMMIT="$1" # a commit in the ELPA repo
 shift
 PATHS="$@" # paths of files or directories to be matched.
 
@@ -72,16 +73,17 @@ NONCE=nonce"$(date +'%s')"
 
 pushd "$TMPDIR"
 # clone repos
-if [ -r "$OLDDIR"/elpa/.git ]; then
-    git clone "$OLDDIR"/elpa "$TMPDIR"/elpa
-else
-    git clone https://git.savannah.gnu.org/git/emacs/elpa.git "$TMPDIR"/elpa
+if ! [ -r "$OLDDIR"/elpa/.git ]; then
+    git clone https://git.savannah.gnu.org/git/emacs/elpa.git "$OLDDIR"/elpa
 fi
+git clone "$OLDDIR"/elpa "$TMPDIR"/elpa
+COMMIT="$(cd "$TMPDIR/elpa"; git rev-parse "$COMMIT")"
+
 # filter elpa to keep only the appropriate files.  This destroys the
 # newly-created copy of the elpa repo.
 
 pushd elpa
-git checkout "$BRANCH"
+git checkout "$COMMIT"
 git checkout -b "$NONCE"
 
 > tmp-list
@@ -106,3 +108,5 @@ git remote remove elpa2emacs-filtered-elpa-$NONCE
 
 rm -rf "$TMPDIR"
 echo "You can now commit the merge by running: git commit -n"
+echo
+echo "After that, you can delete the elpa/ directory in the emacs repository."
