@@ -3259,7 +3259,7 @@ To see the documentation for a defined struct type, use
                        (declare (side-effect-free t))
                        ,access-body)
                     forms)
-              (when (cl-oddp (length desc))
+              (when (oddp (length desc))
                 (push
                  (macroexp-warn-and-return
                   (format-message

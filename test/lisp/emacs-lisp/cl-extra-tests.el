@@ -228,14 +228,14 @@
                  nil)))
 
 (ert-deftest cl-extra-test-notany ()
-  (should (equal (cl-notany #'cl-oddp '(1 3 5)) nil))
-  (should (equal (cl-notany #'cl-oddp '(2 4 6)) t))
-  (should (equal (cl-notany #'cl-oddp '(1 2 3 4 5)) nil)))
+  (should (equal (cl-notany #'oddp '(1 3 5)) nil))
+  (should (equal (cl-notany #'oddp '(2 4 6)) t))
+  (should (equal (cl-notany #'oddp '(1 2 3 4 5)) nil)))
 
 (ert-deftest cl-extra-test-notevery ()
-  (should (equal (cl-notevery #'cl-oddp '(1 3 5)) nil))
-  (should (equal (cl-notevery #'cl-oddp '(2 4 6)) t))
-  (should (equal (cl-notevery #'cl-oddp '(1 2 3 4 5)) t)))
+  (should (equal (cl-notevery #'oddp '(1 3 5)) nil))
+  (should (equal (cl-notevery #'oddp '(2 4 6)) t))
+  (should (equal (cl-notevery #'oddp '(1 2 3 4 5)) t)))
 
 (ert-deftest cl-extra-test-gcd ()
   (should (equal (cl-gcd 4) 4))

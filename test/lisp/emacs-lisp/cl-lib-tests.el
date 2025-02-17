@@ -288,8 +288,8 @@
     ;;(should-error (cl-adjoin 3 nums :test 'myfn-p :test-not myfn-p))
 
     ;; own :key fn
-    (should (eq nums (cl-adjoin 3 nums :key (lambda (x) (if (cl-evenp x) (1+ x) x)))))
-    (should (equal '(3 1 2) (cl-adjoin 3 nums :key (lambda (x) (if (cl-evenp x) (+ 2 x) x)))))
+    (should (eq nums (cl-adjoin 3 nums :key (lambda (x) (if (evenp x) (1+ x) x)))))
+    (should (equal '(3 1 2) (cl-adjoin 3 nums :key (lambda (x) (if (evenp x) (+ 2 x) x)))))
 
     ;; convert using :key, then compare with :test
     (should (eq nums (cl-adjoin 1 nums :key 'int-to-string :test 'string=)))

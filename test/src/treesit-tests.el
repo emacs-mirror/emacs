@@ -380,7 +380,7 @@ BODY is the test body."
    (let ((is-odd (lambda (node)
                    (let ((string (treesit-node-text node)))
                      (and (eq 1 (length string))
-                          (cl-oddp (string-to-number string)))))))
+                          (oddp (string-to-number string)))))))
      (cl-loop for cursor = (treesit-node-child array 0)
               then (treesit-search-forward cursor `("number" . ,is-odd)
                                            nil t)

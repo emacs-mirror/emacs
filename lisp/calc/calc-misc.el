@@ -27,7 +27,6 @@
 
 (require 'calc)
 (require 'calc-macs)
-(require 'cl-lib)
 
 ;; Declare functions which are defined elsewhere.
 (declare-function calc-do-keypad "calc-keypd" (&optional full-display interactive))
@@ -736,7 +735,7 @@ loaded and the keystroke automatically re-typed."
 ;; True if A is an even integer.  [P R R] [Public]
 ;;;###autoload
 (defun math-evenp (a)
-  (and (integerp a) (cl-evenp a)))
+  (and (integerp a) (evenp a)))
 
 ;; Compute A / 2, for small or big integer A.  [I i]
 ;; If A is negative, type of truncation is undefined.

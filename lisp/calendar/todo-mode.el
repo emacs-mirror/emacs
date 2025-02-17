@@ -55,7 +55,7 @@
 ;;; Code:
 
 (require 'diary-lib)
-(require 'cl-lib)			; For cl-oddp and cl-assert.
+(require 'cl-lib)
 
 ;; -----------------------------------------------------------------------------
 ;;; Setting up todo files, categories, and items
@@ -3742,7 +3742,7 @@ Categories mode."
 	 (longest (todo-longest-category-name-length categories))
 	 (catlablen (length todo-categories-category-label))
 	 (lc-diff (- longest catlablen)))
-    (if (and (natnump lc-diff) (cl-oddp lc-diff))
+    (if (and (natnump lc-diff) (oddp lc-diff))
 	(1+ longest)
       (max longest catlablen))))
 
@@ -3870,7 +3870,7 @@ which is the value of the user option
 			   (make-string (1+ (/ (length (car elt)) 2)) 32) ; label
 			   (format "%3d" (todo-get-count (cdr elt) cat)) ; count
 			   ;; Add an extra space if label length is odd.
-			   (when (cl-oddp (length (car elt))) " ")))
+			   (when (oddp (length (car elt))) " ")))
 			(if archive
 			    (list (cons todo-categories-done-label 'done))
 			  (list (cons todo-categories-todo-label 'todo)
@@ -3979,7 +3979,7 @@ which is the value of the user option
 		(make-string (1+ (/ (length (car elt)) 2)) 32)
 		(format "%3d" (nth (cdr elt) (todo-total-item-counts)))
 		;; Add an extra space if label length is odd.
-		(when (cl-oddp (length (car elt))) " ")))
+		(when (oddp (length (car elt))) " ")))
 	     (if archive
 		 (list (cons todo-categories-done-label 2))
 	       (list (cons todo-categories-todo-label 0)
