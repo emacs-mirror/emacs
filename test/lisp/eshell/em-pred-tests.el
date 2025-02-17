@@ -142,7 +142,7 @@ behavior for real files.
            (let ((attrs (eshell-parse-file-name-attributes file)))
              ;; For simplicity, just return whether the file is
              ;; world-executable.
-             (= (logand (or (alist-get 'modes attrs) 0) 1) 1)))))
+             (oddp (or (alist-get 'modes attrs) 0))))))
      ,@body))
 
 ;;; Tests:
