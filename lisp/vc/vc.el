@@ -3381,14 +3381,19 @@ its name; otherwise return nil."
 	  backup-file)))))
 
 (defun vc-revert-file (file)
-  "Revert FILE back to the repository working revision it was based on."
+  "Revert FILE back to the repository working revision it was based on.
+If FILE is a directory, revert all files inside that directory."
   (with-vc-properties
    (list file)
-   (let ((backup-file (vc-version-backup-file file)))
+   (let* ((dir (file-directory-p file))
+          (backup-file (and (not dir) (vc-version-backup-file file))))
      (when backup-file
        (copy-file backup-file file 'ok-if-already-exists)
        (vc-delete-automatic-version-backups file))
-     (vc-call revert file backup-file))
+     (vc-call-backend (if dir
+                          (vc-responsible-backend file)
+                        (vc-backend file))
+                      'revert file backup-file))
    `((vc-state . up-to-date)
      (vc-checkout-time . ,(file-attribute-modification-time
 			   (file-attributes file)))))
@@ -3542,6 +3547,15 @@ buffer's file name if it's under version control."
   "Rename file OLD to NEW in both work area and repository.
 If called interactively, read OLD and NEW, defaulting OLD to the
 current buffer's file name if it's under version control."
+  ;; FIXME: Support renaming whole directories.
+  ;; The use of `vc-call' will need to change to something like
+  ;;
+  ;;     (vc-call-backend (if dir
+  ;;                          (vc-responsible-backend file)
+  ;;                        (vc-backend file))
+  ;;                      'rename-file old new)
+  ;;
+  ;; as was done in `vc-revert-file'; see bug#43464.  --spwhitton
   (interactive (list (read-file-name "VC rename file: " nil
                                      (when (vc-backend buffer-file-name)
                                        buffer-file-name) t)

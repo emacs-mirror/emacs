@@ -1161,6 +1161,10 @@ cloning, or prompts for that, too.
 When the argument is non-nil, the function switches to a buffer visiting
 the directory into which the repository was cloned.
 
+---
+*** C-x v u ('vc-revert') now works on directories listed in VC-Dir.
+Reverting a directory means reverting changes to all files inside it.
+
 ** Package
 
 +++
