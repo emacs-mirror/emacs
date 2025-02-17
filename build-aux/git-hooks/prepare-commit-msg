@@ -33,17 +33,21 @@ else
   awk="awk"
 fi
 
-exec $awk '
+exec $awk "
   # Catch the case when someone ran git-commit with -s option,
   # which automatically adds Signed-off-by.
   /^Signed-off-by: / {
-    print "'\''Signed-off-by:'\'' in commit message"
+    print \"'Signed-off-by:' in commit message\"
+    status = 1
+  }
+  /(^|[^\\\\])\`[^'\`]+\`/ {
+    print \"Markdown-style quotes in commit message\"
     status = 1
   }
   END {
     if (status != 0) {
-      print "Commit aborted; please see the file 'CONTRIBUTE'"
+      print \"Commit aborted; please see the file 'CONTRIBUTE'\"
     }
     exit status
   }
-' <"$COMMIT_MSG_FILE"
+" <"$COMMIT_MSG_FILE"
