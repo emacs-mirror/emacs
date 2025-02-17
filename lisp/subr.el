@@ -590,9 +590,6 @@ treatment of negative COUNT provided by this function."
 
 ;;;; List functions.
 
-;; Note: `internal--compiler-macro-cXXr' was copied from
-;; `cl--compiler-macro-cXXr' in cl-macs.el.  If you amend either one,
-;; you may want to amend the other, too.
 (defun internal--compiler-macro-cXXr (form x)
   (let* ((head (car form))
          (n (symbol-name head))
@@ -609,142 +606,170 @@ treatment of negative COUNT provided by this function."
 
 (defun caar (x)
   "Return the car of the car of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (car x)))
 
 (defun cadr (x)
   "Return the car of the cdr of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (cdr x)))
 
 (defun cdar (x)
   "Return the cdr of the car of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (car x)))
 
 (defun cddr (x)
   "Return the cdr of the cdr of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (cdr x)))
 
 (defun caaar (x)
   "Return the `car' of the `car' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (car (car x))))
 
 (defun caadr (x)
   "Return the `car' of the `car' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (car (cdr x))))
 
 (defun cadar (x)
   "Return the `car' of the `cdr' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (cdr (car x))))
 
 (defun caddr (x)
   "Return the `car' of the `cdr' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (cdr (cdr x))))
 
 (defun cdaar (x)
   "Return the `cdr' of the `car' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (car (car x))))
 
 (defun cdadr (x)
   "Return the `cdr' of the `car' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (car (cdr x))))
 
 (defun cddar (x)
   "Return the `cdr' of the `cdr' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (cdr (car x))))
 
 (defun cdddr (x)
   "Return the `cdr' of the `cdr' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (cdr (cdr x))))
 
 (defun caaaar (x)
   "Return the `car' of the `car' of the `car' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (car (car (car x)))))
 
 (defun caaadr (x)
   "Return the `car' of the `car' of the `car' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (car (car (cdr x)))))
 
 (defun caadar (x)
   "Return the `car' of the `car' of the `cdr' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (car (cdr (car x)))))
 
 (defun caaddr (x)
   "Return the `car' of the `car' of the `cdr' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (car (cdr (cdr x)))))
 
 (defun cadaar (x)
   "Return the `car' of the `cdr' of the `car' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (cdr (car (car x)))))
 
 (defun cadadr (x)
   "Return the `car' of the `cdr' of the `car' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (cdr (car (cdr x)))))
 
 (defun caddar (x)
   "Return the `car' of the `cdr' of the `cdr' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (cdr (cdr (car x)))))
 
 (defun cadddr (x)
   "Return the `car' of the `cdr' of the `cdr' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (car (cdr (cdr (cdr x)))))
 
 (defun cdaaar (x)
   "Return the `cdr' of the `car' of the `car' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (car (car (car x)))))
 
 (defun cdaadr (x)
   "Return the `cdr' of the `car' of the `car' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (car (car (cdr x)))))
 
 (defun cdadar (x)
   "Return the `cdr' of the `car' of the `cdr' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (car (cdr (car x)))))
 
 (defun cdaddr (x)
   "Return the `cdr' of the `car' of the `cdr' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (car (cdr (cdr x)))))
 
 (defun cddaar (x)
   "Return the `cdr' of the `cdr' of the `car' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (cdr (car (car x)))))
 
 (defun cddadr (x)
   "Return the `cdr' of the `cdr' of the `car' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (cdr (car (cdr x)))))
 
 (defun cdddar (x)
   "Return the `cdr' of the `cdr' of the `cdr' of the `car' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (cdr (cdr (car x)))))
 
 (defun cddddr (x)
   "Return the `cdr' of the `cdr' of the `cdr' of the `cdr' of X."
-  (declare (compiler-macro internal--compiler-macro-cXXr))
+  (declare (side-effect-free t)
+           (compiler-macro internal--compiler-macro-cXXr))
   (cdr (cdr (cdr (cdr x)))))
 
 (defun last (list &optional n)
@@ -3547,13 +3572,15 @@ causes it to evaluate `help-form' and display the result."
     char))
 
 (defun sit-for (seconds &optional nodisp)
-  "Redisplay, then wait for SECONDS seconds.  Stop when input is available.
+  "Redisplay, then wait for SECONDS seconds; stop when input is available.
 SECONDS may be a floating-point value.
 \(On operating systems that do not support waiting for fractions of a
 second, floating-point values are rounded down to the nearest integer.)
 
-If optional arg NODISP is t, don't redisplay, just wait for input.
-Redisplay does not happen if input is available before it starts.
+If there's pending input, return nil immediately without redisplaying
+and without waiting.
+If optional arg NODISP is t, don't redisplay, just wait for input (but
+still return nil immediately if there's pending input).
 
 Value is t if waited the full time with no input arriving, and nil otherwise."
   ;; This used to be implemented in C until the following discussion:

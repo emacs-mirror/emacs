@@ -541,7 +541,9 @@ Abandon search after examining LIMIT faces."
   nick-object)
 
 (define-erc-module nicks nil
-  "Uniquely colorize nicknames in target buffers."
+  "Uniquely colorize nicknames in target buffers.
+
+This module is local per connection."
   ((if erc--target
        (progn
          (erc-with-server-buffer

@@ -1261,42 +1261,16 @@ containing the executable being debugged."
 
     output))
 
-;; The dbx in IRIX is a pain.  It doesn't print the file name when
-;; stopping at a breakpoint (but you do get it from the `up' and
-;; `down' commands...).  The only way to extract the information seems
-;; to be with a `file' command, although the current line number is
-;; available in $curline.  Thus we have to look for output which
-;; appears to indicate a breakpoint.  Then we prod the dbx sub-process
-;; to output the information we want with a combination of the
-;; `printf' and `file' commands as a pseudo marker which we can
-;; recognize next time through the marker-filter.  This would be like
-;; the gdb marker but you can't get the file name without a newline...
-;; Note that gud-remove won't work since Irix dbx expects a breakpoint
-;; number rather than a line number etc.  Maybe this could be made to
-;; work by listing all the breakpoints and picking the one(s) with the
-;; correct line number, but life's too short.
-;;   d.love@dl.ac.uk (Dave Love) can be blamed for this
-
 (defvar gud-irix-p nil
   "Non-nil to assume the interface appropriate for IRIX dbx.
 This works in IRIX 4, 5 and 6, but `gud-dbx-use-stopformat-p' provides
 a better solution in 6.1 upwards.")
+(make-obsolete-variable 'gud-irix-p nil "31.1")
 (defvar gud-dbx-use-stopformat-p nil
   "Non-nil to use the dbx feature present at least from Irix 6.1
 whereby $stopformat=1 produces an output format compatible with
 `gud-dbx-marker-filter'.")
-;; [Irix dbx seemed to be a moving target.  The dbx output changed
-;; subtly sometime between OS v4.0.5 and v5.2 so that, for instance,
-;; the output from `up' is no longer spotted by gud (and it's probably
-;; not distinctive enough to try to match it -- use C-<, C->
-;; exclusively) .  For 5.3 and 6.0, the $curline variable changed to
-;; `long long'(why?!), so the printf stuff needed changing.  The line
-;; number was cast to `long' as a compromise between the new `long
-;; long' and the original `int'.  This was reported not to work in 6.2,
-;; so it's changed back to int -- don't make your sources too long.
-;; From Irix6.1 (but not 6.0?) dbx supported an undocumented feature
-;; whereby `set $stopformat=1' reportedly produces output compatible
-;; with `gud-dbx-marker-filter', which we prefer.
+(make-obsolete-variable 'gud-dbx-use-stopformat-p nil "31.1")
 
 (defvar-keymap gud-dbx-repeat-map
   :doc "Keymap to repeat `dbx' stepping instructions \\`C-x C-a C-n n n'.
@@ -1313,13 +1287,8 @@ Used in `repeat-mode'."
           gud-irix-p)
   (keymap-set gud-dbx-repeat-map "f" #'gud-finish))
 
-
-;; The process filter is also somewhat
-;; unreliable, sometimes not spotting the markers; I don't know
-;; whether there's anything that can be done about that.]
-
-;; this filter is influenced by the xdb one rather than the gdb one
 (defun gud-irixdbx-marker-filter (string)
+  (declare (obsolete nil "31.1"))
   (let (result (case-fold-search nil))
     (if (or (string-match comint-prompt-regexp string)
 	    (string-match ".*\012" string))
@@ -1417,8 +1386,9 @@ and source-file directory for your debugger."
    (gud-mips-p
     (gud-common-init command-line nil 'gud-mipsdbx-marker-filter))
    (gud-irix-p
-    (gud-common-init command-line 'gud-dbx-massage-args
-		     'gud-irixdbx-marker-filter))
+    (with-suppressed-warnings ((obsolete gud-irixdbx-marker-filter))
+      (gud-common-init command-line 'gud-dbx-massage-args
+		       #'gud-irixdbx-marker-filter)))
    (t
     (gud-common-init command-line 'gud-dbx-massage-args
 		     'gud-dbx-marker-filter)))

@@ -260,7 +260,7 @@ untagged NEWS entry."
         (while (re-search-forward "\"\\(([a-z0-9-]+)[ \n][^\"]\\{1,80\\}\\)\""
                                   nil t)
           (buttonize-region (match-beginning 1) (match-end 1)
-                            (lambda (node) (info node))
+                            #'info
                             (match-string 1)))))))
 
 (defun emacs-news--sections (regexp)

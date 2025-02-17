@@ -54,6 +54,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 
+import android.content.ActivityNotFoundException;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.ContentResolver;
@@ -2092,7 +2093,15 @@ public final class EmacsService extends Service
 
 	  /* Now request these permissions.  */
 
-	  activity.startActivity (intent);
+	  try
+	    {
+	      activity.startActivity (intent);
+	    }
+	  catch (ActivityNotFoundException exception)
+	    {
+	      Log.w (TAG, "Failed to request storage access permissions: ");
+	      exception.printStackTrace ();
+	    }
 	}
       };
 

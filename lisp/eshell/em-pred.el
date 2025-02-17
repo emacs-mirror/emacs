@@ -122,7 +122,7 @@ The format of each entry is
     (?e . (lambda (lst) (mapcar #'file-name-extension lst)))
     (?t . (lambda (lst) (mapcar #'file-name-nondirectory lst)))
     (?q . #'identity)                   ; Obsolete as of Emacs 31.1.
-    (?u . (lambda (lst) (seq-uniq lst)))
+    (?u . #'seq-uniq)
     (?o . (lambda (lst) (sort lst #'string-lessp)))
     (?O . (lambda (lst) (sort lst #'string-greaterp)))
     (?j . (eshell-join-members))

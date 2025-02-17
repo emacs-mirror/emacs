@@ -721,11 +721,12 @@ enabled (for example, when it is added to a mode hook).
 Each element of the list should be a string:
 - If it ends in \"/\", it is considered as a directory name and means that
   Emacs should trust all the files whose name has this directory as a prefix.
-- else it is considered as a file name.
+- Otherwise, it is considered a file name.
 Use abbreviated file names.  For example, an entry \"~/mycode/\" means
 that Emacs will trust all the files in your directory \"mycode\".
 This variable can also be set to `:all', in which case Emacs will trust
-all files, which opens a gaping security hole."
+all files, which opens a gaping security hole.  Emacs Lisp authors
+should note that this value must never be set by a major or minor mode."
   :type '(choice (repeat :tag "List" file)
                  (const :tag "Trust everything (DANGEROUS!)" :all))
   :version "30.1")
@@ -874,28 +875,43 @@ See Info node `(elisp)Standard File Names' for more details."
     (dos-convert-standard-filename filename))
    (t filename)))
 
-(defun read-directory-name (prompt &optional dir default-dirname mustmatch initial)
+(defun read-directory-name (prompt &optional dir default-dirname mustmatch initial predicate)
   "Read directory name, prompting with PROMPT and completing in directory DIR.
-Value is not expanded---you must call `expand-file-name' yourself.
-Default name to DEFAULT-DIRNAME if user exits with the same
-non-empty string that was inserted by this function.
+The return value is not expanded---you must call `expand-file-name'
+yourself.
+
+DIR is the directory to use for completing relative file names.
+It should be an absolute directory name, or nil (which means the
+current buffer's value of `default-directory').
+
+DEFAULT-DIRNAME specifies the default directory name to return if user
+exits with the same non-empty string that was inserted by this function.
  (If DEFAULT-DIRNAME is omitted, DIR combined with INITIAL is used,
   or just DIR if INITIAL is nil.)
-If the user exits with an empty minibuffer, this function returns
-an empty string.  (This can happen only if the user erased the
-pre-inserted contents or if `insert-default-directory' is nil.)
-Fourth arg MUSTMATCH non-nil means require existing directory's name.
- Non-nil and non-t means also require confirmation after completion.
+
+If the user exits with an empty minibuffer, return an empty
+string.  (This can happen only if the user erased the pre-inserted
+contents or if `insert-default-directory' is nil.)
+
+Fourth arg MUSTMATCH, is like for `read-file-name', which see.
+
 Fifth arg INITIAL specifies text to start with.
-DIR should be an absolute directory name.  It defaults to
-the value of `default-directory'."
+
+Sixth arg PREDICATE, if non-nil, should be a function of one
+argument; then a directory is considered an acceptable completion
+alternative only if PREDICATE returns non-nil with the file name
+as its argument."
   (unless dir
     (setq dir default-directory))
   (read-file-name prompt dir (or default-dirname
 				 (if initial (expand-file-name initial dir)
 				   dir))
 		  mustmatch initial
-		  'file-directory-p))
+                  (if predicate
+                      (lambda (filename)
+                        (and (file-directory-p filename)
+                             (funcall predicate filename)))
+                    #'file-directory-p)))
 
 
 (defun pwd (&optional insert)
@@ -2954,13 +2970,13 @@ the local variables spec."
   (let ((enable-local-variables (or (not find-file) enable-local-variables)))
     ;; FIXME this is less efficient than it could be, since both
     ;; s-a-m and h-l-v may parse the same regions, looking for "mode:".
-    (with-demoted-errors "File mode specification error: %s"
+    (with-demoted-errors "File mode specification error: %S"
       (set-auto-mode))
     ;; `delay-mode-hooks' being non-nil will have prevented the major
     ;; mode's call to `run-mode-hooks' from calling
     ;; `hack-local-variables'.  In that case, call it now.
     (when delay-mode-hooks
-      (with-demoted-errors "File local-variables error: %s"
+      (with-demoted-errors "File local-variables error: %S"
         (hack-local-variables 'no-mode))))
   ;; Turn font lock off and on, to make sure it takes account of
   ;; whatever file local variables are relevant to it.
@@ -3453,27 +3469,37 @@ Also applies to `magic-fallback-mode-alist'.")
 If CASE-INSENSITIVE, the file system of file NAME is case-insensitive."
   (let (mode)
     (while name
-      (setq mode
-            (if case-insensitive
-                ;; Filesystem is case-insensitive.
-                (let ((case-fold-search t))
+      (let ((newmode
+             (if case-insensitive
+                 ;; Filesystem is case-insensitive.
+                 (let ((case-fold-search t))
+                   (assoc-default name alist 'string-match))
+               ;; Filesystem is case-sensitive.
+               (or
+                ;; First match case-sensitively.
+                (let ((case-fold-search nil))
                   (assoc-default name alist 'string-match))
-              ;; Filesystem is case-sensitive.
-              (or
-               ;; First match case-sensitively.
-               (let ((case-fold-search nil))
-                 (assoc-default name alist 'string-match))
-               ;; Fallback to case-insensitive match.
-               (and auto-mode-case-fold
-                    (let ((case-fold-search t))
-                      (assoc-default name alist 'string-match))))))
-      (if (and mode
-               (not (functionp mode))
-               (consp mode)
-               (cadr mode))
-          (setq mode (car mode)
-                name (substring name 0 (match-beginning 0)))
-        (setq name nil)))
+                ;; Fallback to case-insensitive match.
+                (and auto-mode-case-fold
+                     (let ((case-fold-search t))
+                       (assoc-default name alist 'string-match)))))))
+        (when newmode
+          (when mode
+            ;; We had already found a mode but in a (REGEXP MODE t)
+            ;; entry, so we still have to run MODE.  Let's do it now.
+            ;; FIXME: It's kind of ugly to run the function here.
+            ;; An alternative could be to return a list of functions and
+            ;; callers.
+            (set-auto-mode-0 mode t))
+          (setq mode newmode))
+        (if (and newmode
+                 (not (functionp newmode))
+                 (consp newmode)
+                 (cadr newmode))
+            ;; It's a (REGEXP MODE t): Keep looking but remember the MODE.
+            (setq mode (car newmode)
+                  name (substring name 0 (match-beginning 0)))
+          (setq name nil))))
     mode))
 
 (defun set-auto-mode--apply-alist (alist keep-mode-if-same dir-local)
@@ -3501,7 +3527,7 @@ extra checks should be done."
                     alist name case-insensitive-p))
         (when (and dir-local mode
                    (not (set-auto-mode--dir-local-valid-p mode)))
-          (message "Ignoring invalid mode `%s'" mode)
+          (message "Ignoring invalid mode `%S'" mode)
           (setq mode nil))
         (when mode
           (set-auto-mode-0 mode keep-mode-if-same)

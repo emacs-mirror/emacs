@@ -368,7 +368,7 @@ The format is (FUNCTION ARGS...).")
 
 (define-button-type 'help-package-def
   :supertype 'help-xref
-  'help-function (lambda (file) (dired file))
+  'help-function #'dired
   'help-echo "mouse-2, RET: visit package directory")
 
 (define-button-type 'help-theme-def

@@ -58,6 +58,7 @@
 
 ;;; Defining a new class
 ;;
+;;;###autoload
 (defmacro defclass (name superclasses slots &rest options-and-doc)
   "Define NAME as a new class derived from SUPERCLASS with SLOTS.
 OPTIONS-AND-DOC is used as the class' options and base documentation.

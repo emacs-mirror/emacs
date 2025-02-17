@@ -511,6 +511,7 @@ selected frame, and display the buffer in that new window.
 
 @vindex split-height-threshold
 @vindex split-width-threshold
+@vindex split-window-preferred-direction
 The split can be either vertical or horizontal, depending on the
 variables @code{split-height-threshold} and
 @code{split-width-threshold}.  These variables should have integer
@@ -519,7 +520,9 @@ window's height, the split puts the new window below.  Otherwise, if
 @code{split-width-threshold} is smaller than the window's width, the
 split puts the new window on the right.  If neither condition holds,
 Emacs tries to split so that the new window is below---but only if the
-window was not split before (to avoid excessive splitting).
+window was not split before (to avoid excessive splitting).  Whether
+Emacs tries first to split vertically or horizontally, is
+determined by the value of @code{split-window-preferred-direction}.
 
 @item
 Otherwise, display the buffer in a window previously showing it.
@@ -727,6 +730,16 @@ a custom tool bar, you could add the following code to your init file
 @example
 (add-hook 'special-mode-hook 'window-tool-bar-mode)
 @end example
+
+@vindex window-tool-bar-style
+@cindex window tool bar style
+On graphical displays the window tool bar can be displayed in several
+different styles.  By default, the window tool bar displays items as
+just images.  To impose a specific style, customize the variable
+@code{window-tool-bar-style}.
+
+On text-only displays the window tool bar only shows text for each
+button even if another style is specified.
 
 Emacs can also display a single tool bar at the top of frames
 (@pxref{Tool Bars}).

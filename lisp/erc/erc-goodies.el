@@ -372,7 +372,9 @@ than the indicator's position."
   "Buffer-local `keep-place' with fringe arrow and/or highlighted face.
 Play nice with global module `keep-place' but don't depend on it.
 Expect that users may want different combinations of `keep-place'
-and `keep-place-indicator' in different buffers."
+and `keep-place-indicator' in different buffers.
+
+This module is local to individual buffers."
   ((cond (erc-keep-place-mode)
          ((memq 'keep-place erc-modules)
           (erc-keep-place-mode +1))
@@ -589,7 +591,9 @@ message's speaker."
 Skip those appearing in `erc-noncommands-list'.
 
 Users can run \\[erc-command-indicator-toggle-hidden] to hide and
-reveal echoed command lines after they've been inserted."
+reveal echoed command lines after they've been inserted.
+
+This module is local to individual buffers."
   ((add-hook 'erc--input-review-functions
              #'erc--command-indicator-permit-insertion 80 t)
    (erc-command-indicator-toggle-hidden -1))

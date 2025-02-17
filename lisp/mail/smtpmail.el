@@ -182,7 +182,6 @@ These will then be used when sending the queue."
 
 ;;; Variables
 
-(defvar smtpmail-address-buffer)
 (defvar smtpmail-recipient-address-list nil)
 (defvar smtpmail--stored-queue-variables
   '(smtpmail-smtp-server
@@ -357,11 +356,9 @@ for `smtpmail-try-auth-method'.")
 		  (erase-buffer))))
 	  ;; Encode the header according to RFC2047.
 	  (mail-encode-header (point-min) delimline)
-	  ;;
-	  (setq smtpmail-address-buffer (generate-new-buffer "*smtp-mail*"))
+	  ;; Get recipients' adresses
 	  (setq smtpmail-recipient-address-list
                 (smtpmail-deduce-address-list tembuf (point-min) delimline))
-	  (kill-buffer smtpmail-address-buffer)
 
 	  (smtpmail-do-bcc delimline)
           ;; Send or queue
@@ -602,6 +599,8 @@ USER and PASSWORD should be non-nil."
     (when (eq (car ret) 334)
       (let* ((challenge (substring (cadr ret) 4))
 	     (decoded (base64-decode-string challenge))
+	     (password (encode-coding-string password 'utf-8))
+	     (user (encode-coding-string user 'utf-8))
 	     (hash (rfc2104-hash 'md5 64 16 password decoded))
 	     (response (concat user " " hash))
 	     ;; Osamu Yamane <yamane@green.ocn.ne.jp>:
@@ -621,8 +620,10 @@ USER and PASSWORD should be non-nil."
 (cl-defmethod smtpmail-try-auth-method
   (process (_mech (eql 'login)) user password)
   (smtpmail-command-or-throw process "AUTH LOGIN")
-  (smtpmail-command-or-throw process (base64-encode-string user t))
-  (smtpmail-command-or-throw process (base64-encode-string password t)))
+  (let ((password (encode-coding-string password 'utf-8))
+        (user (encode-coding-string user 'utf-8)))
+    (smtpmail-command-or-throw process (base64-encode-string user t))
+    (smtpmail-command-or-throw process (base64-encode-string password t))))
 
 (cl-defmethod smtpmail-try-auth-method
   (process (_mech (eql 'plain)) user password)
@@ -631,11 +632,13 @@ USER and PASSWORD should be non-nil."
   ;; violate a SHOULD in RFC 2222 paragraph 5.1.  Note that this
   ;; is not sent if the server did not advertise AUTH PLAIN in
   ;; the EHLO response.  See RFC 2554 for more info.
-  (smtpmail-command-or-throw
-   process
-   (concat "AUTH PLAIN "
-	   (base64-encode-string (concat "\0" user "\0" password) t))
-   235))
+  (let ((password (encode-coding-string password 'utf-8))
+        (user (encode-coding-string user 'utf-8)))
+    (smtpmail-command-or-throw
+     process
+     (concat "AUTH PLAIN "
+             (base64-encode-string (concat "\0" user "\0" password) t))
+     235)))
 
 (cl-defmethod smtpmail-try-auth-method
   (process (_mech (eql 'xoauth2)) user password)
@@ -1064,8 +1067,7 @@ Returns an error if the server cannot be contacted."
 
 (defun smtpmail-deduce-address-list (smtpmail-text-buffer header-start header-end)
   "Get address list suitable for smtp RCPT TO: <address>."
-  (with-current-buffer smtpmail-address-buffer
-    (erase-buffer)
+  (with-temp-buffer
     (let ((case-fold-search t)
           (simple-address-list "")
           this-line
@@ -1108,7 +1110,7 @@ Returns an error if the server cannot be contacted."
 	  (backward-char 1)
 	  (setq recipient-address-list (cons (buffer-substring (match-beginning 1) (match-end 1))
 					     recipient-address-list)))
-	(setq smtpmail-recipient-address-list recipient-address-list)))))
+        recipient-address-list))))
 
 (defun smtpmail-do-bcc (header-end)
   "Delete [Resent-]Bcc: and their continuation lines from the header area.

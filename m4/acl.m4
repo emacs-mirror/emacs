@@ -1,5 +1,5 @@
 # acl.m4
-# serial 34
+# serial 35
 dnl Copyright (C) 2002, 2004-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -18,7 +18,7 @@ AC_DEFUN([gl_FUNC_ACL_ARG],
     , [enable_acl=auto])
   AC_ARG_WITH([libsmack],
     [AS_HELP_STRING([--without-libsmack],
-       [do not use libsmack, even on systems that have it])]
+       [do not use libsmack, even on systems that have it])],
     [], [with_libsmack=maybe])
 ])
 

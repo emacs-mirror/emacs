@@ -427,7 +427,12 @@ Name of the physical monitor as @var{string}.
 
 @item source
 Source of the multi-monitor information as @var{string};
-e.g., @samp{XRandR 1.5}, @samp{XRandr} or @samp{Xinerama}.
+on X, it could be @samp{XRandR 1.5}, @samp{XRandr}, @samp{Xinerama},
+@samp{Gdk}, or @samp{fallback}.  The last value of @samp{source} means
+that Emacs was built without GTK and without XRandR or Xinerama
+extensions, in which case the information about multiple physical
+monitors will be provided as if they all as a whole formed a single
+monitor.
 @end table
 
 @var{x}, @var{y}, @var{width}, and @var{height} are integers.
@@ -4276,7 +4281,7 @@ selection targets that the owner supports, and @code{MULTIPLE}, used
 for internal purposes by X clients.  A selection owner may support any
 number of other targets, some of which may be standardized by the X
 Consortium's
-@url{http://x.org/releases/X11R7.6/doc/xorg-docs/specs/ICCCM/icccm.html,
+@url{https://x.org/releases/X11R7.6/doc/xorg-docs/specs/ICCCM/icccm.html,
 Inter-Client Communication Conventions Manual}, while others, such as
 @code{UTF8_STRING}, were meant to be standardized by the XFree86
 Project, but their standardization was never completed.

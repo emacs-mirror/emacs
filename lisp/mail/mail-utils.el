@@ -46,6 +46,37 @@ also the To field, unless this would leave an empty To field."
   :type '(choice regexp (const :tag "Your Name" nil))
   :group 'mail)
 
+(defun mail--wrap-re-regexp (re)
+  (concat "\\`[ \t]*"
+          "\\("
+          re
+          ; Re(1) or Re[1] or Re^1
+          "\\(([0-9]+)\\|\\[[0-9]+\\]\\|\\^[0-9]+\\)?"
+          ; SPC/NBSP followed by colon and TAB/SPC
+          " ?\u00a0*[:：][ \t]*"
+          ; Handle repetition, eg "Re[1]: Re[2]:"
+          "\\)*"
+          "[ \t]*"))
+
+;;;###autoload
+(defcustom mail-re-regexps
+  '("RE" "R\u00c9\\.?" "FWD?" "رد" "回复" "回覆" "SV" "Antw\\.?"
+  "VS" "REF" "AW" "ΑΠ" "ΣΧΕΤ" "השב" "Vá" "R" "RIF" "BLS" "RES"
+  "Odp" "YNT" "ATB")
+  "List of localized \"Re\" abbreviations in various languages.
+Each component can be a regular expression or a simple string.  Matching
+is done case-insensitively.  Used to initialize the legacy
+`rmail-re-abbrevs' and `message-subject-re-regexp' user options."
+  :type '(repeat regexp)
+  :set (lambda (sym val)
+         (custom-set-default sym val)
+         (dolist (sym '(rmail-re-abbrevs
+                        message-subject-re-regexp))
+           (when (get sym 'standard-value)
+             (custom-reevaluate-setting sym))))
+  :group 'mail
+  :version "31.1")
+
 (defvar epa-inhibit)
 ;; Returns t if file FILE is an Rmail file.
 ;;;###autoload

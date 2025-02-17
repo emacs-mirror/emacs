@@ -17204,7 +17204,7 @@ filename is unrelated to the article number in Gnus. @code{nnmaildir}
 also stores the equivalent of @code{nnml}'s overview files in one file
 per article, so it uses about twice as many inodes as @code{nnml}.
 (Use @code{df -i} to see how plentiful your inode supply is.)  If this
-slows you down or takes up very much space, a non-block-structured
+slows you down or takes up very much space, use a non-block-structured
 file system.
 
 Since maildirs don't require locking for delivery, the maildirs you use
@@ -22381,6 +22381,7 @@ First of: you really need a patched mairix binary for using the marks
 propagation feature efficiently.  Otherwise, you would have to update
 the mairix database all the time.  You can get the patch at
 
+@c FIXME: This link is broken as of 2025-01-26.
 @uref{http://www.randomsample.de/mairix-maildir-patch.tar}
 
 You need the mairix v0.21 source code for this patch; everything else
@@ -26050,7 +26051,7 @@ never install such a back end.
 @cindex spam filtering, naive Bayesian
 
 Paul Graham has written an excellent essay about spam filtering using
-statistics: @uref{http://www.paulgraham.com/spam.html,A Plan for
+statistics: @uref{https://www.paulgraham.com/spam.html,A Plan for
 Spam}.  In it he describes the inherent deficiency of rule-based
 filtering as used by SpamAssassin, for example: Somebody has to write
 the rules, and everybody else has to install these rules.  You are

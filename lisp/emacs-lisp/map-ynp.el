@@ -185,7 +185,12 @@ The function's value is the number of actions taken."
                            (let ((overriding-text-conversion-style nil))
                              (when (fboundp 'set-text-conversion-style)
                                (set-text-conversion-style text-conversion-style))
-		             (setq char (read-event)))
+                             ;; Do NOT use read-event here.  That
+                             ;; function does not consult
+                             ;; input-decode-map (bug#75886).
+		             (setq char (read-key))
+                             (when (eq char ?\C-g)
+                               (signal 'quit nil)))
                          (when (fboundp 'set-text-conversion-style)
                            (set-text-conversion-style text-conversion-style)))
 		       ;; Show the answer to the question.

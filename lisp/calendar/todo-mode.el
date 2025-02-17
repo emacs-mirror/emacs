@@ -3772,7 +3772,7 @@ option `todo-categories-align'."
   "Return a copy of LIST, possibly sorted according to KEY."
   (let* ((l (copy-sequence list))
 	 (fn (if (eq key 'alpha)
-		   (lambda (x) (upcase x)) ; Alphabetize case insensitively.
+                   #'upcase ; Alphabetize case insensitively.
 		 (lambda (x) (todo-get-count key x))))
 	 ;; Keep track of whether the last sort by key was descending or
 	 ;; ascending.

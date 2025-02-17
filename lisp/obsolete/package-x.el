@@ -6,6 +6,7 @@
 ;; Created: 10 Mar 2007
 ;; Keywords: tools
 ;; Package: package
+;; Obsolete-since: 31.1
 
 ;; This file is part of GNU Emacs.
 
@@ -245,9 +246,9 @@ if it exists."
 	    ;; If there is a commentary section, write it.
 	    (when commentary
 	      (write-region commentary nil
-	        	    (expand-file-name
-	        	     (concat (symbol-name pkg-name) "-readme.txt")
-	        	     package-archive-upload-base)))
+                            (expand-file-name
+                             (concat (symbol-name pkg-name) "-readme.txt")
+                             package-archive-upload-base)))
 
 	    (set-buffer (if (eq file-type 'tar) tar-data-buffer pkg-buffer))
 	    (write-region (point-min) (point-max)

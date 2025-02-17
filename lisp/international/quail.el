@@ -772,8 +772,7 @@ you type is correctly handled."
 
 (defun quail-keyseq-translate (keyseq)
   (apply 'string
-         (mapcar (lambda (x) (quail-keyboard-translate x))
-		 keyseq)))
+         (mapcar #'quail-keyboard-translate keyseq)))
 
 (defun quail-insert-kbd-layout (kbd-layout)
   "Insert the visual keyboard layout table according to KBD-LAYOUT.
@@ -2144,9 +2143,7 @@ minibuffer and the selected frame has no other windows)."
 	  (setq str
 		(format "%s[%s]"
 			str
-                        (concat (sort (mapcar (lambda (x) (car x))
-					      (cdr map))
-				      '<)))))
+                        (concat (sort (mapcar #'car (cdr map)) #'<)))))
       ;; Show list of translations.
       (if (and quail-current-translations
 	       (not (quail-deterministic)))

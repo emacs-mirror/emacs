@@ -548,6 +548,9 @@ for details and use cases."
                         (function-item erc-services-issue-ghost-and-retry-nick)
                         function)))
 
+(defvar erc-services-regain-timeout-seconds 5
+  "Seconds after which to run callbacks if necessary.")
+
 (defun erc-services-retry-nick-on-connect (want)
   "Try at most once to grab nickname WANT after reconnecting.
 Expect to be used when automatically reconnecting to servers
@@ -608,10 +611,12 @@ consider its main option, `erc-services-regain-alist':
 
 In practical terms, this means that this module, which is still
 somewhat experimental, is likely only useful in conjunction with
-SASL authentication rather than the traditional approach provided
-by the `services' module it shares a library with (see Info
-node `(erc) SASL' for more)."
-  nil nil localp)
+SASL authentication or CertFP rather than the traditional approach
+provided by the `services' module it shares a library with (see Info
+node `(erc) SASL' for more).
+
+This local module's minor mode is only active in server buffers."
+  ((when erc--target (erc-services-regain-mode -1))) nil localp)
 
 (cl-defmethod erc--nickname-in-use-make-request
   ((want string) temp &context (erc-server-connected null)
@@ -632,11 +637,21 @@ one."
             (funcall found want))))
        (on-900
         (lambda (_ parsed)
+          (cancel-timer timer)
           (remove-hook 'erc-server-900-functions on-900 t)
-          (unless erc-server-connected
-            (when (equal (car (erc-response.command-args parsed)) temp)
-              (add-hook 'erc-after-connect after-connect nil t)))
-          nil)))
+          (unless (equal want (erc-current-nick))
+            (if erc-server-connected
+                (funcall after-connect nil temp)
+              (when (or (eq parsed 'forcep)
+                        (equal (car (erc-response.command-args parsed)) temp))
+                (add-hook 'erc-after-connect after-connect nil t))))
+          nil))
+       (timer (run-at-time erc-services-regain-timeout-seconds
+                           nil (lambda (buffer)
+                                 (when (buffer-live-p buffer)
+                                   (with-current-buffer buffer
+                                     (funcall on-900 nil 'forcep))))
+                           (current-buffer))))
     (add-hook 'erc-server-900-functions on-900 nil t))
   (cl-call-next-method))
 

@@ -4,8 +4,9 @@
 
 ;; Author: Jared Finder <jared@finder.org>
 ;; Created: Nov 21, 2023
-;; Version: 0.2.1
+;; Version: 0.3
 ;; Keywords: mouse
+;; URL: http://github.com/chaosemer/window-tool-bar
 ;; Package-Requires: ((emacs "27.1") (compat "29.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid adding functionality that
@@ -54,44 +55,27 @@
 
 ;;; Known issues:
 ;;
-;; On GNU Emacs 29.1, terminals dragging to resize windows will error
-;; with message "<tab-line> <mouse-movement> is undefined".  This is a
-;; bug in GNU Emacs,
+;; On GNU Emacs 29.1 and earlier, terminals dragging to resize windows
+;; will error with message "<tab-line> <mouse-movement> is undefined".
+;; This is a bug in GNU Emacs,
 ;; <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=67457>.
 ;;
-;; On GNU Emacs 29, performance in terminals is lower than on
-;; graphical frames.  This is due to a workaround, see "Workaround for
-;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=68334", below.
+;; On GNU Emacs 29 and earlier, performance in terminals is lower than
+;; on graphical frames.  This is due to a workaround, see "Workaround
+;; for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=68334", below.
 
 ;;; Todo:
 ;;
 ;; Not all features planned are implemented yet.  Eventually I would
 ;; like to also generally make tool bars better.
 ;;
-;; Targeting 0.3:
-;; * Properly support remaining less frequently used tool bar item specs.  From
-;;   `parse_tool_bar_item':
-;;     * :visible
-;;     * :filter
-;;     * :button
-;;     * :wrap
-;; * Add display customization similar to `tool-bar-style'.
-;;
-;; Targeting 1.0:
+;; Post 1.0 work:
 ;;
 ;; * Clean up Emacs tool bars
 ;;     * Default: Remove default tool-bar entirely
 ;;     * grep, vc: Remove default tool-bar inherited
 ;;     * info: Remove Next / Prev / Up, which is already in the header
 ;;     * smerge: Add tool bar for next/prev
-;;
-;; Post 1.0 work:
-;;
-;; * Show keyboard shortcut on help text.
-;;
-;; * Add a bit more documentation.
-;; * Add customization option: ignore-default-tool-bar-map
-;; * Make tab-line dragging resize the window
 
 ;;; Code:
 
@@ -99,6 +83,11 @@
 (require 'mwheel)
 (require 'tab-line)
 (require 'tool-bar)
+
+(add-to-list 'customize-package-emacs-version-alist
+             '(window-tool-bar ("0.1" . "30.1")
+                               ("0.2" . "30.1")
+                               ("0.3" . "31.1")))
 
 ;;; Benchmarking code
 ;;
@@ -227,7 +216,7 @@ AVG-MEMORY-USE is a list of averages, with the same meaning as
 (defun window-tool-bar-string ()
   "Return a (propertized) string for the tool bar.
 
-This is for when you want more customizations than
+This is for when you want more customizations than the command
 `window-tool-bar-mode' provides.  Commonly added to the variable
 `tab-line-format', `header-line-format', or `mode-line-format'"
   (if (or (null window-tool-bar-string--cache)
@@ -235,13 +224,14 @@ This is for when you want more customizations than
       (let* ((mem0 (memory-use-counts))
              (toolbar-menu (window-tool-bar--get-keymap))
              (mem1 (memory-use-counts))
-             (result (mapconcat #'window-tool-bar--keymap-entry-to-string
-                                (cdr toolbar-menu) ;Skip 'keymap
+             (strs (mapcar #'window-tool-bar--keymap-entry-to-string
+                           (cdr toolbar-menu))) ;Skip 'keymap
+             (result (mapconcat #'identity
+                                (delete nil strs)
                                 ;; Without spaces between the text, hovering
                                 ;; highlights all adjacent buttons.
-                                (if (window-tool-bar--use-images)
-                                    (propertize " " 'invisible t)
-                                  " ")))
+                                (if (eq 'text (window-tool-bar--style)) " "
+                                  (propertize " " 'invisible t))))
              (mem2 (memory-use-counts)))
         (cl-mapl (lambda (l-init l0 l1)
                    (cl-incf (car l-init) (- (car l1) (car l0))))
@@ -281,45 +271,101 @@ MENU-ITEM is a menu item to convert.  See info node `(elisp)Tool Bar'."
     ((or `(,_ "--")
          `(,_ menu-item ,(and (pred stringp)
                               (pred (string-prefix-p "--")))))
-     (if (window-tool-bar--use-images)
-         window-tool-bar--graphical-separator
-       "|"))
+     (if (eq 'text (window-tool-bar--style)) "|"
+       window-tool-bar--graphical-separator))
 
     ;; Menu item, turn into propertized string button
     (`(,key menu-item ,name-expr ,binding . ,plist)
-     (when binding      ; If no binding exists, then button is hidden.
-       (let* ((name (eval name-expr))
-              (str (upcase-initials (or (plist-get plist :label)
-                                        (string-trim-right name "\\.+"))))
-              (len (length str))
-              (enable-form (plist-get plist :enable))
-              (enabled (or (not enable-form)
-                           (eval enable-form))))
-         (if enabled
+     (let* ((visible-entry (plist-member plist :visible))
+            (visible (or (null visible-entry) ;Default is visible
+                         (eval (cadr visible-entry))))
+            (wrap (plist-get plist :wrap))
+            (filter (plist-get plist :filter)))
+       (when filter
+         (setf binding
+               ;; You would expect this to use `funcall', but existing
+               ;; code in `parse_tool_bar_item' uses `eval'.
+               (eval `(,filter ',binding))))
+       (when (and binding
+                  visible
+                  (null wrap))
+         (let* ((name (eval name-expr))
+                (str (upcase-initials (or (plist-get plist :label)
+                                          (string-trim-right name "\\.+"))))
+                (len (length str))
+                (enable-form (plist-get plist :enable))
+                (enabled (or (not enable-form)
+                             (eval enable-form)))
+                (button-spec (plist-get plist :button))
+                (button-selected (eval (cdr-safe button-spec)))
+                (vert-only (plist-get plist :vert-only))
+                image-start
+                image-end)
+           ;; Depending on style, Images can be displayed to the
+           ;; left, to the right, or in place of the text
+           (pcase-exhaustive (window-tool-bar--style)
+             ('image
+              (setf image-start 0
+                    image-end len))
+             ('text
+              ;; Images shouldn't be available
+              )
+             ((or 'both 'both-horiz)
+              (if vert-only
+                  (setf image-start 0 image-end len)
+                (setf str (concat " " str)
+                      image-start 0
+                      image-end 1
+                      len (1+ len))))
+             ('text-image-horiz
+              (if vert-only
+                  (setf image-start 0 image-end len)
+                (setf str (concat str " ")
+                      image-start len
+                      image-end (1+ len)
+                      len (1+ len)))))
+
+           (cond
+            ((and enabled button-selected)
+             (add-text-properties 0 len
+                                  '(mouse-face
+                                    window-tool-bar-button-checked-hover
+                                    keymap window-tool-bar--button-keymap
+                                    face window-tool-bar-button-checked)
+                                  str))
+            (enabled
              (add-text-properties 0 len
                                   '(mouse-face window-tool-bar-button-hover
                                     keymap window-tool-bar--button-keymap
                                     face window-tool-bar-button)
-                                  str)
-           (put-text-property 0 len
-                              'face
-                              'window-tool-bar-button-disabled
-                              str))
-         (when-let* ((spec (and (window-tool-bar--use-images)
-                                (plist-get menu-item :image))))
-           (put-text-property 0 len
-                              'display
-                              (append spec
-                                      (if enabled '(:margin 2 :ascent center)
-                                        '(:margin 2 :ascent center
-                                          :conversion disabled)))
-                              str))
-         (put-text-property 0 len
-                            'help-echo
-                            (or (plist-get plist :help) name)
-                            str)
-         (put-text-property 0 len 'tool-bar-key key str)
-         str)))))
+                                  str))
+            (t
+             (put-text-property 0 len
+                                'face
+                                'window-tool-bar-button-disabled
+                                str)))
+           (when-let* ((spec (and image-start image-end
+                                  (plist-get menu-item :image))))
+             (put-text-property image-start image-end
+                                'display
+                                (append spec
+                                        (if enabled '(:margin 2 :ascent center)
+                                          '(:margin 2 :ascent center
+                                                    :conversion disabled)))
+                                str))
+           (let ((help-text (or (plist-get plist :help) name))
+                 (keys (where-is-internal binding nil t)))
+             (put-text-property 0 len
+                                'help-echo
+                                (if keys
+                                    (concat help-text
+                                            "  ("
+                                            (key-description keys)
+                                            ")")
+                                  help-text)
+                                str))
+           (put-text-property 0 len 'tool-bar-key key str)
+           str))))))
 
 (defun window-tool-bar--call-button ()
   "Call the button that was clicked on in the tab line."
@@ -378,8 +424,8 @@ enclosed in a `progn' form.  ELSE-FORMS may be empty."
      ;; interactions that can alter the tool bar.  Specifically, this
      ;; excludes mouse movement, mouse wheel scroll, and pinch.
      (not (member type window-tool-bar--ignored-event-types))
-     ;; Assume that any command that triggers shift select can't alter
-     ;; the tool bar.  This excludes pure navigation commands.
+     ;; Assume that any command that triggers shift select cannot
+     ;; alter the tool bar.  This excludes pure navigation commands.
      (not (window-tool-bar--command-triggers-shift-select-p last-command))
      ;; Assume that self-insert-command won't alter the tool bar.
      ;; This is the most commonly executed command.
@@ -415,20 +461,53 @@ enclosed in a `progn' form.  ELSE-FORMS may be empty."
 (define-globalized-minor-mode global-window-tool-bar-mode
   window-tool-bar-mode window-tool-bar--turn-on
   :group 'window-tool-bar
+  :package-version '(window-tool-bar . "0.1")
   (add-hook 'isearch-mode-hook #'window-tool-bar--turn-on)
   (add-hook 'isearch-mode-end-hook #'window-tool-bar--turn-on))
 
-(defvar window-tool-bar--allow-images t
-  "Internal debug flag to force text mode.")
-
-(defun window-tool-bar--use-images ()
-  "Internal function.
-Respects `window-tool-bar--allow-images' as well as frame
-capabilities."
-  (and window-tool-bar--allow-images
-       (display-images-p)))
+(defun window-tool-bar--turn-on ()
+  "Internal function called by the command `global-window-tool-bar-mode'."
+  (when global-window-tool-bar-mode
+    (window-tool-bar-mode 1)))
 
 ;;; Display styling:
+(defcustom window-tool-bar-style 'image
+  "Tool bar style to use for window tool bars.
+The meaning is the same as for `tool-bar-style', which see.  If
+set to the symbol `tool-bar-style', then use the value of
+`tool-bar-style' instead.
+
+When images cannot be displayed (see `display-images-p'), the value set
+here is ignored and the window tool bar displays text."
+  :type '(choice
+          (const :tag "Images" :value image)
+          (const :tag "Text" :value text)
+          ;; This option would require multiple tool bar lines.
+          ;;(const :tag "Both, text below image" :value both)
+          (const :tag "Both, text to right of image" :value both-horiz)
+          (const :tag "Both, text to left of image" :value text-image-horiz)
+          (const :tag "Inherit tool-bar-style" :value tool-bar-style)
+          (const :tag "System default" :value nil))
+  :group 'window-tool-bar
+  :package-version '(window-tool-bar . "0.3"))
+
+(defun window-tool-bar--style ()
+  "Return the effective style based on `window-tool-bar-style'.
+
+This also takes into account frame capabilities.  If the current
+frame cannot display images (see `display-images-p'), then this
+will always return the symbol text."
+  (if (not (display-images-p))
+      'text
+    (let ((style window-tool-bar-style))
+      (when (eq style 'tool-bar-style)
+        (setf style tool-bar-style))
+      (unless (memq style '(image text both both-horiz text-image-horiz))
+        (setf style (if (fboundp 'tool-bar-get-system-style)
+                        (tool-bar-get-system-style)
+                      'image)))
+      style)))
+
 (defface window-tool-bar-button
   '((default
      :inherit tab-line)
@@ -441,7 +520,8 @@ capabilities."
     (t
      :inverse-video t))
   "Face used for buttons when the mouse is not hovering over the button."
-  :group 'window-tool-bar)
+  :group 'window-tool-bar
+  :package-version '(window-tool-bar . "0.2"))
 
 (defface window-tool-bar-button-hover
   '((default
@@ -452,7 +532,8 @@ capabilities."
     (t
      :inverse-video t))
   "Face used for buttons when the mouse is hovering over the button."
-  :group 'window-tool-bar)
+  :group 'window-tool-bar
+  :package-version '(window-tool-bar . "0.2"))
 
 (defface window-tool-bar-button-disabled
   '((default
@@ -465,7 +546,38 @@ capabilities."
      :inverse-video t
      :background "brightblack"))
   "Face used for buttons when the button is disabled."
-  :group 'window-tool-bar)
+  :group 'window-tool-bar
+  :package-version '(window-tool-bar . "0.2"))
+
+(defface window-tool-bar-button-checked
+  '((default
+     :inherit tab-line)
+    (((supports :box t))
+     :box (:line-width -1 :style pressed-button)
+     :background "grey85")
+    (((class color))
+     :background "blue"
+     :foreground "white")
+    (t
+     :inverse-video t))
+  "Face used for buttons when they are toggled."
+  :group 'window-tool-bar
+  :package-version '(window-tool-bar . "0.3"))
+
+(defface window-tool-bar-button-checked-hover
+  '((default
+     :inherit tab-line)
+    (((class color) (min-colors 88) (supports :box t))
+     :box (:line-width -1 :style pressed-button)
+     :background "grey95")
+    (((class color))
+     :background "brightblue"
+     :foreground "white")
+    (t
+     :inverse-video t))
+  "Face used for buttons when the mouse is hovering over the button."
+  :group 'window-tool-bar
+  :package-version '(window-tool-bar . "0.3"))
 
 ;;; Workaround for https://debbugs.gnu.org/cgi/bugreport.cgi?bug=68334.
 
@@ -476,10 +588,10 @@ capabilities."
   "Return the tool bar keymap."
   (let ((tool-bar-always-show-default nil))
     (if (and (version< emacs-version "30")
-             (not (window-tool-bar--use-images)))
-        ;; This code path is a less efficient workaround.
-        (window-tool-bar--make-keymap-1)
-      (keymap-global-lookup "<tool-bar>"))))
+             (eq 'text (window-tool-bar--style)))
+      ;; This code path is a less efficient workaround.
+      (window-tool-bar--make-keymap-1)
+    (keymap-global-lookup "<tool-bar>"))))
 
 (declare-function image-mask-p "image.c" (spec &optional frame))
 
@@ -506,12 +618,7 @@ capabilities."
                   (plist-put plist :image image)))
               bind))
           tool-bar-map))
-
-(defun window-tool-bar--turn-on ()
-  "Internal function called by `global-window-tool-bar-mode'."
-  (when global-window-tool-bar-mode
-    (window-tool-bar-mode 1)))
-
+
 (provide 'window-tool-bar)
 
 ;;; window-tool-bar.el ends here

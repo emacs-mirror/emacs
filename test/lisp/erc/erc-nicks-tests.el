@@ -615,6 +615,8 @@
   (erc-tests-common-kill-buffers))
 
 (ert-deftest erc-nicks-track-faces/prioritize ()
+  :tags (and (null (getenv "CI")) '(:unstable))
+
   (should (eq erc-nicks-track-faces 'prioritize))
   (erc-nicks-tests--track-faces
    (lambda (set-faces assert-result add-face bob-face alice-face)

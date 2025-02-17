@@ -2543,6 +2543,10 @@ details depend on the platform and environment.
 The `source' attribute describes the source from which the
 information was obtained.  On X, this may be one of: \"Gdk\",
 \"XRandR 1.5\", \"XRandr\", \"Xinerama\", or \"fallback\".
+If it is \"fallback\", it means Emacs was built without GTK
+and without XrandR or Xinerama extensions, in which case the
+information about multiple physical monitors will be provided
+as if they all as a whole formed a single monitor.
 
 A frame is dominated by a physical monitor when either the
 largest area of the frame resides in the monitor, or the monitor

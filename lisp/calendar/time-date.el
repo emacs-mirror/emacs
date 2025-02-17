@@ -305,7 +305,7 @@ right of \"%x\", trailing zero units are not output."
                  ("x")))
         (case-fold-search t)
         spec match usedunits zeroflag larger prev name unit num
-        leading-zeropos trailing-zeropos fraction
+	leading-zeropos trailing-zeropos fraction minus
         chop-leading chop-trailing)
     (while (string-match "%\\.?[0-9]*\\(,[0-9]\\)?\\(.\\)" string start)
       (setq start (match-end 0)
@@ -327,8 +327,11 @@ right of \"%x\", trailing zero units are not output."
       (error "Units are not in decreasing order of size"))
     (unless (numberp seconds)
       (setq seconds (float-time seconds)))
-    (setq fraction (mod seconds 1)
-          seconds (round seconds))
+    (setq minus (when (< seconds 0) "-") ; Treat -0.0 like 0.0.
+	  seconds (abs seconds)
+	  seconds (let ((s (floor seconds)))
+		    (setq fraction (- seconds s))
+		    s))
     (dolist (u units)
       (setq spec (car u)
             name (cadr u)
@@ -392,8 +395,8 @@ right of \"%x\", trailing zero units are not output."
       ;; string in full.
       (when (equal string "")
         (setq string pre)))
-    (setq string (replace-regexp-in-string "%[zx]" "" string)))
-  (string-trim (string-replace "%%" "%" string)))
+    (setq string (replace-regexp-in-string "%[zx]" "" string))
+    (concat minus (string-trim (string-replace "%%" "%" string)))))
 
 (defvar seconds-to-string
   (list (list 1 "ms" 0.001)

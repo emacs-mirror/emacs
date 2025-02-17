@@ -119,11 +119,11 @@ the `a' symbolic prefix to the score commands will always use
 		(function-item gnus-score-find-hierarchical)
 		(function-item gnus-score-find-bnews)
 		(repeat :tag "List of functions"
-			(choice (function :tag "Other" :value 'ignore)
+                        (choice (function :tag "Other" :value ignore)
 				(function-item gnus-score-find-single)
 				(function-item gnus-score-find-hierarchical)
 				(function-item gnus-score-find-bnews)))
-		(function :tag "Other" :value 'ignore)))
+                (function :tag "Other" :value ignore)))
 
 (defcustom gnus-score-interactive-default-score 1000
   "Scoring commands will raise/lower the score with this number as the default."

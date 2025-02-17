@@ -4678,7 +4678,6 @@ Advanced commands:
     ("java" . "ccmode") ("idl" . "ccmode") ("pike" . "ccmode")
     ("skeleton" . "autotype") ("auto-insert" . "autotype")
     ("copyright" . "autotype") ("executable" . "autotype")
-    ("time-stamp" . "autotype")
     ("tempo" . "autotype") ("hippie-expand" . "autotype")
     ("cvs" . "pcl-cvs") ("ada" . "ada-mode") "calc"
     ("calcAlg" . "calc") ("calcDigit" . "calc") ("calcVar" . "calc")

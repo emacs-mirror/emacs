@@ -28,11 +28,12 @@
 #include <stddef.h>
 
 /* Nonzero multiple of alignment of TYPE, suitable for FLEXSIZEOF below.
-   On older platforms without _Alignof, use a pessimistic bound that is
+   If _Alignof might not exist or might not work correctly on
+   structs with flexible array members, use a pessimistic bound that is
    safe in practice even if FLEXIBLE_ARRAY_MEMBER is 1.
-   On newer platforms, use _Alignof to get a tighter bound.  */
+   Otherwise, use _Alignof to get a tighter bound.  */
 
-#if !defined __STDC_VERSION__ || __STDC_VERSION__ < 201112
+#if !defined __STDC_VERSION__ || __STDC_VERSION__ < 201112 || defined _Alignof
 # define FLEXALIGNOF(type) (sizeof (type) & ~ (sizeof (type) - 1))
 #else
 # define FLEXALIGNOF(type) _Alignof (type)

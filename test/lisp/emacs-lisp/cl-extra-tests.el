@@ -22,12 +22,55 @@
 (require 'cl-lib)
 (require 'ert)
 
+(ert-deftest cl-lib-test-remprop ()
+  (let ((x (cl-gensym)))
+    (should (equal (symbol-plist x) '()))
+    ;; Remove nonexistent property on empty plist.
+    (cl-remprop x 'b)
+    (should (equal (symbol-plist x) '()))
+    (put x 'a 1)
+    (should (equal (symbol-plist x) '(a 1)))
+    ;; Remove nonexistent property on nonempty plist.
+    (cl-remprop x 'b)
+    (should (equal (symbol-plist x) '(a 1)))
+    (put x 'b 2)
+    (put x 'c 3)
+    (put x 'd 4)
+    (should (equal (symbol-plist x) '(a 1 b 2 c 3 d 4)))
+    ;; Remove property that is neither first nor last.
+    (cl-remprop x 'c)
+    (should (equal (symbol-plist x) '(a 1 b 2 d 4)))
+    ;; Remove last property from a plist of length >1.
+    (cl-remprop x 'd)
+    (should (equal (symbol-plist x) '(a 1 b 2)))
+    ;; Remove first property from a plist of length >1.
+    (cl-remprop x 'a)
+    (should (equal (symbol-plist x) '(b 2)))
+    ;; Remove property when there is only one.
+    (cl-remprop x 'b)
+    (should (equal (symbol-plist x) '()))))
+
 (ert-deftest cl-get ()
   (put 'cl-get-test 'x 1)
   (put 'cl-get-test 'y nil)
   (should (eq (cl-get 'cl-get-test 'x) 1))
   (should (eq (cl-get 'cl-get-test 'y :none) nil))
-  (should (eq (cl-get 'cl-get-test 'z :none) :none)))
+  (should (eq (cl-get 'cl-get-test 'z :none) :none))
+  (let ((sym (make-symbol "test")))
+    (put sym 'foo 'bar)
+    (should (equal (cl-get sym 'foo) 'bar))
+    (cl-remprop sym 'foo)
+    (should (equal (cl-get sym 'foo 'default) 'default))))
+
+(ert-deftest cl-lib-test-coerce-to-vector ()
+  (let* ((a (vector))
+         (b (vector 1 a 3))
+         (c (list))
+         (d (list b a)))
+    (should (eql (cl-coerce a 'vector) a))
+    (should (eql (cl-coerce b 'vector) b))
+    (should (equal (cl-coerce c 'vector) (vector)))
+    (should (equal (cl-coerce d 'vector) (vector b a)))))
 
 (ert-deftest cl-extra-test-coerce ()
   (should (equal (cl-coerce "abc" 'list) '(?a ?b ?c)))
@@ -152,7 +195,8 @@
   (should (equal (cl-concatenate 'vector [1 2 3] [4 5 6])
                  [1 2 3 4 5 6]))
   (should (equal (cl-concatenate 'string "123" "456")
-                 "123456")))
+                 "123456"))
+  (should (equal (cl-concatenate 'list '(1 2) '(3 4) '(5 6)) '(1 2 3 4 5 6))))
 
 (ert-deftest cl-extra-test-mapcan ()
   (should (equal (cl-mapcan #'list '(1 2 3)) '(1 2 3)))
@@ -220,8 +264,8 @@
   (should (equal (cl-isqrt 0) 0))
   (should (equal (cl-isqrt 3) 1))
   (should (equal (cl-isqrt 10) 3))
-  (should-error (cl-isqrt -4))
-  (should-error (cl-isqrt 2.5)))
+  (should-error (cl-isqrt -4) :type 'arith-error)
+  (should-error (cl-isqrt 2.5) :type 'arith-error))
 
 (ert-deftest cl-extra-test-floor ()
   (should (equal (cl-floor 4.5) '(4 0.5)))
@@ -258,6 +302,17 @@
   (should (equal (cl-signum -10) -1))
   (should (equal (cl-signum 0) 0)))
 
+(ert-deftest cl-parse-integer ()
+  (should-error (cl-parse-integer "abc"))
+  (should (null (cl-parse-integer "abc" :junk-allowed t)))
+  (should (null (cl-parse-integer "" :junk-allowed t)))
+  (should (= 342391 (cl-parse-integer "0123456789" :radix 8 :junk-allowed t)))
+  (should-error (cl-parse-integer "0123456789" :radix 8))
+  (should (= -239 (cl-parse-integer "-efz" :radix 16 :junk-allowed t)))
+  (should-error (cl-parse-integer "efz" :radix 16))
+  (should (= 239 (cl-parse-integer "zzef" :radix 16 :start 2)))
+  (should (= -123 (cl-parse-integer "	-123  "))))
+
 (ert-deftest cl-extra-test-parse-integer ()
   (should (equal (cl-parse-integer "10") 10))
   (should (equal (cl-parse-integer "-10") -10))
@@ -274,21 +329,17 @@
   (should (equal (cl-subseq '(1 2 3 4 5) 2) '(3 4 5)))
   (should (equal (cl-subseq '(1 2 3 4 5) 1 3) '(2 3))))
 
-(ert-deftest cl-extra-test-concatenate ()
-  (should (equal (cl-concatenate 'string "hello " "world") "hello world"))
-  (should (equal (cl-concatenate 'list '(1 2) '(3 4) '(5 6)) '(1 2 3 4 5 6))))
-
 (ert-deftest cl-extra-test-revappend ()
   (should (equal (cl-revappend '(1 2 3) '(4 5 6)) '(3 2 1 4 5 6))))
 
 (ert-deftest cl-extra-test-nreconc ()
-  (should (equal (cl-nreconc '(1 2 3) '(4 5 6)) '(3 2 1 4 5 6))))
+  (should (equal (cl-nreconc (list 1 2 3) '(4 5 6)) '(3 2 1 4 5 6))))
 
 (ert-deftest cl-extra-test-list-length ()
   (should (equal (cl-list-length '(1 2 3)) 3))
   (should (equal (cl-list-length '()) 0))
   (let ((xl (number-sequence 1 100)))
-    (setcdr (nthcdr 99 xl) xl)
+    (nconc xl xl)
     (should (equal (cl-list-length xl) nil))))
 
 (ert-deftest cl-extra-test-tailp ()
@@ -296,12 +347,5 @@
     (should (cl-tailp (nthcdr 2 l) l))
     (should (cl-tailp l l))
     (should (not (cl-tailp '(4 5) l)))))
-
-(ert-deftest cl-extra-test-remprop ()
-  (let ((sym (make-symbol "test")))
-    (put sym 'foo 'bar)
-    (should (equal (cl-get sym 'foo) 'bar))
-    (cl-remprop sym 'foo)
-    (should (equal (cl-get sym 'foo 'default) 'default))))
 
 ;;; cl-extra-tests.el ends here

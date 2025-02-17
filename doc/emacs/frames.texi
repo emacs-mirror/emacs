@@ -1296,7 +1296,7 @@ menus' visual appearance.
 @section Tool Bars
 @cindex tool bar mode
 @cindex tool bar, attached to frame
-@cindex mode, Tool Bar
+@cindex mode, tool bar
 @cindex icons, toolbar
 
   On graphical displays, Emacs puts a @dfn{tool bar} at the top of each
@@ -1320,14 +1320,14 @@ control the use of tool bars at startup, customize the variable
 @code{tool-bar-mode}.
 
 @vindex tool-bar-style
-@cindex Tool Bar style
+@cindex tool bar style
   When Emacs is compiled with GTK+ support, each tool bar item can
 consist of an image, or a text label, or both.  By default, Emacs
 follows the Gnome desktop's tool bar style setting; if none is
 defined, it displays tool bar items as just images.  To impose a
 specific tool bar style, customize the variable @code{tool-bar-style}.
 
-@cindex Tool Bar position
+@cindex tool bar position
   You can also control the placement of the tool bar for the GTK+ tool
 bar with the frame parameter @code{tool-bar-position}.  @xref{Frame
 Parameters,,, elisp, The Emacs Lisp Reference Manual}.

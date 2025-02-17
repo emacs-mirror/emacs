@@ -47,6 +47,9 @@
 (deffoo nnregistry-open-server (_server &optional _defs)
   gnus-registry-db)
 
+(deffoo nnregistry-request-group (_group &optional _server _dont-check _info)
+  t)
+
 (defvar nnregistry-within-nnregistry nil)
 
 (deffoo nnregistry-request-article (id &optional _group _server buffer)

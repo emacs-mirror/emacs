@@ -1232,7 +1232,7 @@ static void get_cursor_offset_for_mouse_face (struct window *w,
 
 static void produce_special_glyphs (struct it *, enum display_element_type);
 static void pad_mode_line (struct it *, bool);
-static void show_mouse_face (Mouse_HLInfo *, enum draw_glyphs_face);
+static void show_mouse_face (Mouse_HLInfo *, enum draw_glyphs_face, bool);
 static bool coords_in_mouse_face_p (struct window *, int, int);
 static void reset_box_start_end_flags (struct it *);
 
@@ -5649,7 +5649,7 @@ get_display_property (ptrdiff_t charpos, Lisp_Object prop, Lisp_Object object)
 
 /* Handle 'display' property '(min-width (WIDTH))' at CHARPOS in OBJECT.
    OBJECT can be a buffer (or nil, which means the current buffer) or a
-   string.  MIN_WIDTH is the value of min-width spec that we expect to
+   string.  WIDTH_SPEC is the value of min-width spec that we expect to
    process.  */
 static void
 display_min_width (struct it *it, ptrdiff_t charpos,
@@ -5695,8 +5695,9 @@ display_min_width (struct it *it, ptrdiff_t charpos,
                  a stretch that ends beyond the visible portion of the
                  window if we are truncating screen lines.  If we are
                  requested to do that, some Lisp program went awry.  */
-	      if (!(it->line_wrap == TRUNCATE
-		    && it->current_x + width > it->last_visible_x))
+	      if (width > 0
+		  && !(it->line_wrap == TRUNCATE
+		       && it->current_x + width > it->last_visible_x))
 		w = list1 (make_int (width));
 	    }
 	  else
@@ -5707,8 +5708,9 @@ display_min_width (struct it *it, ptrdiff_t charpos,
 					  NULL, true, NULL);
 	      width -= (it->current_x - it->min_width_start) /
 		FRAME_COLUMN_WIDTH (it->f);
-	      if (!(it->line_wrap == TRUNCATE
-		    && it->current_x + width > it->last_visible_x))
+	      if (width > 0
+		  && !(it->line_wrap == TRUNCATE
+		       && it->current_x + width > it->last_visible_x))
 		w = make_int (width);
 	    }
 
@@ -13458,7 +13460,7 @@ clear_garbaged_frames (void)
 	{
 	  struct frame *f = XFRAME (frame);
 
-	  if (FRAME_REDISPLAY_P (f) && FRAME_GARBAGED_P (f))
+	  if (frame_redisplay_p (f) && FRAME_GARBAGED_P (f))
 	    {
 	      if (f->resized_p
 		  /* It makes no sense to redraw a non-selected TTY
@@ -13512,7 +13514,7 @@ echo_area_display (bool update_frame_p)
 
   /* Don't display if frame is invisible or not yet initialized or
      if redisplay is inhibited.  */
-  if (!FRAME_REDISPLAY_P (f) || !f->glyphs_initialized_p
+  if (!frame_redisplay_p (f) || !f->glyphs_initialized_p
       || !NILP (Vinhibit_redisplay))
     return;
 
@@ -14053,7 +14055,7 @@ prepare_menu_bars (void)
 		     TTY frames to be completely redrawn, when there
 		     are more than one of them, even though nothing
 		     should be changed on display.  */
-		  || (FRAME_REDISPLAY_P (f) && FRAME_WINDOW_P (f))))
+		  || (frame_redisplay_p (f) && FRAME_WINDOW_P (f))))
 	    gui_consider_frame_title (frame);
 	}
     }
@@ -15059,14 +15061,14 @@ handle_tab_bar_click (struct frame *f, int x, int y, bool down_p,
     {
       /* Show the clicked button in pressed state.  */
       if (!NILP (Vmouse_highlight))
-	show_mouse_face (hlinfo, DRAW_IMAGE_SUNKEN);
+	show_mouse_face (hlinfo, DRAW_IMAGE_SUNKEN, true);
       f->last_tab_bar_item = prop_idx; /* record the pressed tab */
     }
   else
     {
       /* Show item in released state.  */
       if (!NILP (Vmouse_highlight))
-	show_mouse_face (hlinfo, DRAW_IMAGE_RAISED);
+	show_mouse_face (hlinfo, DRAW_IMAGE_RAISED, true);
       f->last_tab_bar_item = -1;
     }
 
@@ -15164,7 +15166,7 @@ note_tab_bar_highlight (struct frame *f, int x, int y)
       hlinfo->mouse_face_face_id = TAB_BAR_FACE_ID;
 
       /* Display it as active.  */
-      show_mouse_face (hlinfo, draw);
+      show_mouse_face (hlinfo, draw, true);
     }
 
  set_help_echo:
@@ -16081,7 +16083,7 @@ handle_tool_bar_click_with_device (struct frame *f, int x, int y, bool down_p,
     {
       /* Show item in pressed state.  */
       if (!NILP (Vmouse_highlight))
-	show_mouse_face (hlinfo, DRAW_IMAGE_SUNKEN);
+	show_mouse_face (hlinfo, DRAW_IMAGE_SUNKEN, true);
       f->last_tool_bar_item = prop_idx;
     }
   else
@@ -16092,7 +16094,7 @@ handle_tool_bar_click_with_device (struct frame *f, int x, int y, bool down_p,
 
       /* Show item in released state.  */
       if (!NILP (Vmouse_highlight))
-	show_mouse_face (hlinfo, DRAW_IMAGE_RAISED);
+	show_mouse_face (hlinfo, DRAW_IMAGE_RAISED, true);
 
       key = AREF (f->tool_bar_items, prop_idx + TOOL_BAR_ITEM_KEY);
 
@@ -16188,7 +16190,7 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
       hlinfo->mouse_face_face_id = TOOL_BAR_FACE_ID;
 
       /* Display it as active.  */
-      show_mouse_face (hlinfo, draw);
+      show_mouse_face (hlinfo, draw, true);
     }
 
  set_help_echo:
@@ -17067,8 +17069,8 @@ redisplay_internal (void)
     {
       struct frame *f = XFRAME (frame);
 
-      /* FRAME_REDISPLAY_P true basically means the frame is visible. */
-      if (FRAME_REDISPLAY_P (f))
+      /* frame_redisplay_p true basically means the frame is visible. */
+      if (frame_redisplay_p (f))
 	{
 	  ++number_of_visible_frames;
 	  /* Adjust matrices for visible frames only.  */
@@ -17211,7 +17213,7 @@ redisplay_internal (void)
       && !w->update_mode_line
       && !current_buffer->clip_changed
       && !current_buffer->prevent_redisplay_optimizations_p
-      && FRAME_REDISPLAY_P (XFRAME (w->frame))
+      && frame_redisplay_p (XFRAME (w->frame))
       && !XFRAME (w->frame)->cursor_type_changed
       && !XFRAME (w->frame)->face_change
       /* Make sure recorded data applies to current buffer, etc.  */
@@ -17472,7 +17474,7 @@ redisplay_internal (void)
 	  if (is_tty_frame (f))
 	    {
 	      /* Ignore all invisble tty frames, children or root.  */
-	      if (!FRAME_VISIBLE_P (root_frame (f)))
+	      if (!frame_redisplay_p (f))
 		continue;
 
 	      /* Remember tty root frames which we've seen.  */
@@ -17503,7 +17505,7 @@ redisplay_internal (void)
 	      if (gcscrollbars && FRAME_TERMINAL (f)->condemn_scroll_bars_hook)
 		FRAME_TERMINAL (f)->condemn_scroll_bars_hook (f);
 
-	      if (FRAME_REDISPLAY_P (f))
+	      if (frame_redisplay_p (f))
 		{
 		  /* Don't allow freeing images and faces for this
 		     frame as long as the frame's update wasn't
@@ -17529,7 +17531,7 @@ redisplay_internal (void)
 	      if (gcscrollbars && FRAME_TERMINAL (f)->judge_scroll_bars_hook)
 		FRAME_TERMINAL (f)->judge_scroll_bars_hook (f);
 
-	      if (FRAME_REDISPLAY_P (f))
+	      if (frame_redisplay_p (f))
 		{
 		  /* If fonts changed on visible frame, display again.  */
 		  if (f->fonts_changed)
@@ -17635,7 +17637,7 @@ redisplay_internal (void)
             }
 	}
     }
-  else if (FRAME_REDISPLAY_P (sf))
+  else if (frame_redisplay_p (sf))
     {
       sf->inhibit_clear_image_cache = true;
       displayed_buffer = XBUFFER (XWINDOW (selected_window)->contents);
@@ -17686,7 +17688,7 @@ redisplay_internal (void)
 	unrequest_sigio ();
       STOP_POLLING;
 
-      if (FRAME_REDISPLAY_P (sf))
+      if (frame_redisplay_p (sf))
 	{
           if (hscroll_retries <= MAX_HSCROLL_RETRIES
               && hscroll_windows (selected_window))
@@ -17768,7 +17770,7 @@ redisplay_internal (void)
 
   FOR_EACH_FRAME (tail, frame)
     {
-      if (FRAME_REDISPLAY_P (XFRAME (frame)))
+      if (frame_redisplay_p (XFRAME (frame)))
 	new_count++;
     }
 
@@ -25013,7 +25015,6 @@ maybe_produce_line_number (struct it *it)
 
   /* Produce the glyphs for the line number.  */
   struct it tem_it;
-  char lnum_buf[INT_STRLEN_BOUND (ptrdiff_t) + 1];
   bool beyond_zv = IT_BYTEPOS (*it) >= ZV_BYTE;
   ptrdiff_t lnum_offset = -1; /* to produce 1-based line numbers */
   int lnum_face_id = merge_faces (it->w, Qline_number, 0, DEFAULT_FACE_ID);
@@ -25042,7 +25043,17 @@ maybe_produce_line_number (struct it *it)
   if (!it->lnum_width)
     {
       if (FIXNATP (Vdisplay_line_numbers_width))
-	it->lnum_width = XFIXNAT (Vdisplay_line_numbers_width);
+	{
+	  EMACS_INT lnum_width = XFIXNAT (Vdisplay_line_numbers_width);
+	  /* Limit the width to show at least 1 text character.  */
+	  int lnum_width_limit
+	    = (it->last_visible_x - it->first_visible_x)
+	      / FRAME_COLUMN_WIDTH (it->f)
+	      - 5	/* leave space for a few characters */
+	      - 2;	/* two spaces around the number */
+	  it->lnum_width
+	    = clip_to_bounds (1, lnum_width, lnum_width_limit);
+	}
 
       /* Max line number to be displayed cannot be more than the one
 	 corresponding to the last row of the desired matrix.  */
@@ -25062,6 +25073,8 @@ maybe_produce_line_number (struct it *it)
       it->lnum_width = max (it->lnum_width, log10 (max_lnum) + 1);
       eassert (it->lnum_width > 0);
     }
+  /* Extra +2 for the two blanks we add before and after the number.  */
+  char *lnum_buf = alloca (it->lnum_width + 2 + 1);
   if (EQ (Vdisplay_line_numbers, Qrelative))
     lnum_offset = it->pt_lnum;
   else if (EQ (Vdisplay_line_numbers, Qvisual))
@@ -34207,12 +34220,13 @@ erase_phys_cursor (struct window *w)
   /* Since erasing the phys cursor will probably lead to corruption of
      the mouse face display if the glyph's pixel_width is not kept up
      to date with the :box property of the mouse face, just redraw the
-     mouse face.  */
+     mouse face, but leave the mouse cursor as it was.  */
   if (FRAME_WINDOW_P (WINDOW_XFRAME (w)) && mouse_face_here_p)
     {
       w->phys_cursor_on_p = false;
       w->phys_cursor_type = NO_CURSOR;
-      show_mouse_face (MOUSE_HL_INFO (WINDOW_XFRAME (w)), DRAW_MOUSE_FACE);
+      show_mouse_face (MOUSE_HL_INFO (WINDOW_XFRAME (w)), DRAW_MOUSE_FACE,
+		       false);
       return;
     }
 #endif
@@ -34276,7 +34290,7 @@ display_and_set_cursor (struct window *w, bool on,
      windows and frames; in the latter case, the frame or window may
      be in the midst of changing its size, and x and y may be off the
      window.  */
-  if (! FRAME_REDISPLAY_P (f)
+  if (! frame_redisplay_p (f)
       || vpos >= w->current_matrix->nrows
       || hpos >= w->current_matrix->matrix_w)
     return;
@@ -34444,7 +34458,7 @@ gui_update_cursor (struct frame *f, bool on_p)
 void
 gui_clear_cursor (struct window *w)
 {
-  if (FRAME_REDISPLAY_P (XFRAME (w->frame)) && w->phys_cursor_on_p)
+  if (frame_redisplay_p (XFRAME (w->frame)) && w->phys_cursor_on_p)
     update_window_cursor (w, false);
 }
 
@@ -34473,7 +34487,8 @@ draw_row_with_mouse_face (struct window *w, int start_x, struct glyph_row *row,
 /* Display the active region described by mouse_face_* according to DRAW.  */
 
 static void
-show_mouse_face (Mouse_HLInfo *hlinfo, enum draw_glyphs_face draw)
+show_mouse_face (Mouse_HLInfo *hlinfo, enum draw_glyphs_face draw,
+		 bool define_mouse_cursor)
 {
   /* Don't bother doing anything if the mouse-face window is not set
      up.  */
@@ -34615,7 +34630,7 @@ show_mouse_face (Mouse_HLInfo *hlinfo, enum draw_glyphs_face draw)
 
 #ifdef HAVE_WINDOW_SYSTEM
   /* Change the mouse cursor.  */
-  if (FRAME_WINDOW_P (f) && NILP (track_mouse))
+  if (FRAME_WINDOW_P (f) && NILP (track_mouse) && define_mouse_cursor)
     {
       if (draw == DRAW_NORMAL_TEXT
 #ifndef HAVE_EXT_TOOL_BAR
@@ -34623,8 +34638,7 @@ show_mouse_face (Mouse_HLInfo *hlinfo, enum draw_glyphs_face draw)
 #endif
 	  && !EQ (hlinfo->mouse_face_window, f->tab_bar_window))
 	FRAME_RIF (f)->define_frame_cursor (f, FRAME_OUTPUT_DATA (f)->text_cursor);
-      else
-      if (draw == DRAW_MOUSE_FACE)
+      else if (draw == DRAW_MOUSE_FACE)
 	FRAME_RIF (f)->define_frame_cursor (f, FRAME_OUTPUT_DATA (f)->hand_cursor);
       else
 	FRAME_RIF (f)->define_frame_cursor (f, FRAME_OUTPUT_DATA (f)->nontext_cursor);
@@ -34643,7 +34657,7 @@ clear_mouse_face (Mouse_HLInfo *hlinfo)
   bool cleared
     = !hlinfo->mouse_face_hidden && !NILP (hlinfo->mouse_face_window);
   if (cleared)
-    show_mouse_face (hlinfo, DRAW_NORMAL_TEXT);
+    show_mouse_face (hlinfo, DRAW_NORMAL_TEXT, true);
   hlinfo->mouse_face_beg_row = hlinfo->mouse_face_beg_col = -1;
   hlinfo->mouse_face_end_row = hlinfo->mouse_face_end_col = -1;
   hlinfo->mouse_face_window = Qnil;
@@ -35210,7 +35224,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
     = face_at_buffer_position (w, mouse_charpos, &ignore,
 			       mouse_charpos + 1,
                                !hlinfo->mouse_face_hidden, -1, 0);
-  show_mouse_face (hlinfo, DRAW_MOUSE_FACE);
+  show_mouse_face (hlinfo, DRAW_MOUSE_FACE, true);
 }
 
 /* The following function is not used anymore (replaced with
@@ -35920,7 +35934,7 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 	    face_at_string_position (w, string, charpos, 0, &ignore,
 	                             glyph->face_id, true, 0);
 
-	  show_mouse_face (hlinfo, DRAW_MOUSE_FACE);
+	  show_mouse_face (hlinfo, DRAW_MOUSE_FACE, true);
 	  mouse_face_shown = true;
 
 	  if (NILP (pointer))
@@ -36459,7 +36473,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
 	      hlinfo->mouse_face_face_id
 		= face_at_string_position (w, object, pos, 0, &ignore,
 		                           glyph->face_id, true, 0);
-	      show_mouse_face (hlinfo, DRAW_MOUSE_FACE);
+	      show_mouse_face (hlinfo, DRAW_MOUSE_FACE, true);
 	      cursor = No_Cursor;
 	    }
 	  else

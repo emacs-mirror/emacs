@@ -39,6 +39,11 @@ case "${lang}" in
         lang="gomod"
         org="camdencheek"
         ;;
+    "go-work")
+        # The parser is called "gowork".
+        lang="gowork"
+        org="omertuc"
+        ;;
     "heex")
         org="phoenixframework"
         ;;

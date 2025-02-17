@@ -826,7 +826,8 @@ but with a different end of line convention (bug#48137)."
 
 ;;; Tests for package-x features.
 
-(require 'package-x)
+(with-suppressed-warnings ((obsolete package-x))
+  (require 'package-x))
 
 (defvar package-x-test--single-archive-entry-1-3
   (cons 'simple-single

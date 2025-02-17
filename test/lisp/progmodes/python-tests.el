@@ -3204,6 +3204,30 @@ d = '''d'''
                 (python-tests-look-at "c'")
                 (pos-eol))))))
 
+(ert-deftest python-nav-end-of-statement-5 ()
+  "Test long multi-line string (Bug#75387)."
+  (let* ((line (format "%s\n" (make-string 80 ?a)))
+         (lines (apply #'concat (make-list 50 line))))
+    (python-tests-with-temp-buffer
+     (concat
+      "
+s = '''
+"
+      lines
+      "\\'''"
+      lines
+      "'''
+a = 1
+")
+     (python-tests-look-at "s = '''")
+     (should (= (save-excursion
+                  (python-nav-end-of-statement)
+                  (point))
+                (save-excursion
+                  (python-tests-look-at "a = 1")
+                  (forward-line -1)
+                  (pos-eol)))))))
+
 (ert-deftest python-nav-forward-statement-1 ()
   (python-tests-with-temp-buffer
    "

@@ -1501,7 +1501,7 @@ Lisp_Object
 internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
 			      Lisp_Object handlers)
 {
-  struct handler *volatile oldhandlerlist = handlerlist;
+  struct handler *oldhandlerlist = handlerlist;
 
   /* The number of non-success handlers, plus 1 for a sentinel.  */
   ptrdiff_t clausenb = 1;
@@ -1566,12 +1566,11 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
       if (!CONSP (condition))
 	condition = list1 (condition);
       struct handler *c = push_handler (condition, CONDITION_CASE);
-      Lisp_Object volatile *clauses_volatile = clauses;
       if (sys_setjmp (c->jmp))
 	{
 	  var = var_volatile;
 	  val = handlerlist->val;
-	  Lisp_Object volatile *chosen_clause = clauses_volatile;
+	  Lisp_Object volatile *chosen_clause = clauses;
 	  struct handler *oldh = oldhandlerlist;
 	  for (struct handler *h = handlerlist->next; h != oldh; h = h->next)
 	    chosen_clause++;

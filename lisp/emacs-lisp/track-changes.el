@@ -372,7 +372,9 @@ and re-enable the TRACKER corresponding to ID."
                              track-changes--state))
               ;; Nothing to do.
               nil)
-          (cl-assert (not (memq id track-changes--clean-trackers)))
+          ;; ID may still be in `track-changes--clean-trackers' if
+          ;; `after-change-functions' was skipped.
+          ;;(cl-assert (not (memq id track-changes--clean-trackers)))
           (cl-assert (<= (point-min) beg end (point-max)))
           ;; Update the tracker's state *before* running `func' so we don't risk
           ;; mistakenly replaying the changes in case `func' exits non-locally.

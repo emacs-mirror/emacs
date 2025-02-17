@@ -4284,6 +4284,7 @@ kbd_buffer_get_event (KBOARD **kbp,
       case CONFIG_CHANGED_EVENT:
       case FOCUS_OUT_EVENT:
       case SELECT_WINDOW_EVENT:
+      case SLEEP_EVENT:
         {
           obj = make_lispy_event (&event->ie);
           kbd_fetch_ptr = next_kbd_event (event);
@@ -7125,6 +7126,9 @@ make_lispy_event (struct input_event *event)
 #endif
 #endif /* USE_FILE_NOTIFY */
 
+    case SLEEP_EVENT:
+      return Fcons (Qsleep_event, event->arg);
+
     case CONFIG_CHANGED_EVENT:
 	return list3 (Qconfig_changed_event,
 		      event->arg, event->frame_or_window);
@@ -8144,8 +8148,15 @@ tty_read_avail_input (struct terminal *terminal,
       buf.code = cbuf[i];
       /* Set the frame corresponding to the active tty.  Note that the
          value of selected_frame is not reliable here, redisplay tends
-         to temporarily change it.  */
-      buf.frame_or_window = tty->top_frame;
+         to temporarily change it.  However, if the selected frame is a
+         child frame, don't do that since it will cause switch frame
+         events to switch to the root frame instead.  */
+      if (FRAME_PARENT_FRAME (XFRAME (selected_frame))
+	  && (root_frame (XFRAME (selected_frame))
+	      == XFRAME (tty->top_frame)))
+	buf.frame_or_window = selected_frame;
+      else
+	buf.frame_or_window = tty->top_frame;
       buf.arg = Qnil;
 
       kbd_buffer_store_event (&buf);
@@ -11675,6 +11686,63 @@ If CHECK-TIMERS is non-nil, timers that are ready to run will do so.  */)
 	  ? Qt : Qnil);
 }
 
+DEFUN ("insert-special-event", Finsert_special_event, Sinsert_special_event,
+       1, 1, 0,
+       doc: /* Insert the special EVENT into the input event queue.
+Only 'input_event' slots KIND and ARG are set.  */)
+  (Lisp_Object event)
+{
+  /* Check, that it is a special event.  */
+  CHECK_CONS (event);
+  if (NILP (access_keymap
+	    (get_keymap (Vspecial_event_map, 0, 1), event, 0, 0, 1)))
+    signal_error ("Invalid event kind", XCAR (event));
+
+  /* Construct an input event.  */
+  struct input_event ie;
+  EVENT_INIT (ie);
+  ie.kind =
+    (EQ (XCAR (event), Qdelete_frame) ? DELETE_WINDOW_EVENT
+#ifdef HAVE_NTGUI
+     : EQ (XCAR (event), Qend_session) ? END_SESSION_EVENT
+#endif
+#ifdef HAVE_NS
+     : EQ (XCAR (event), Qns_put_working_text) ? KEY_NS_PUT_WORKING_TEXT
+#endif
+#ifdef HAVE_NS
+     : EQ (XCAR (event), Qns_unput_working_text) ? KEY_NS_UNPUT_WORKING_TEXT
+#endif
+     : EQ (XCAR (event), Qiconify_frame) ? ICONIFY_EVENT
+     : EQ (XCAR (event), Qmake_frame_visible) ? DEICONIFY_EVENT
+  /* : EQ (XCAR (event), Qselect_window) ? SELECT_WINDOW_EVENT */
+     : EQ (XCAR (event), Qsave_session) ? SAVE_SESSION_EVENT
+#ifdef HAVE_DBUS
+     : EQ (XCAR (event), Qdbus_event) ? DBUS_EVENT
+#endif
+#ifdef THREADS_ENABLED
+     : EQ (XCAR (event), Qthread_event) ? THREAD_EVENT
+#endif
+#ifdef USE_FILE_NOTIFY
+     : EQ (XCAR (event), Qfile_notify) ? FILE_NOTIFY_EVENT
+#endif /* USE_FILE_NOTIFY */
+     : EQ (XCAR (event), Qconfig_changed_event) ? CONFIG_CHANGED_EVENT
+#if defined (WINDOWSNT)
+     : EQ (XCAR (event), Qlanguage_change) ? LANGUAGE_CHANGE_EVENT
+#endif
+     : EQ (XCAR (event), Qfocus_in) ? FOCUS_IN_EVENT
+     : EQ (XCAR (event), Qfocus_out) ? FOCUS_OUT_EVENT
+     : EQ (XCAR (event), Qmove_frame) ? MOVE_FRAME_EVENT
+     : EQ (XCAR (event), Qsleep_event) ? SLEEP_EVENT
+     : NO_EVENT);
+  ie.frame_or_window = Qnil;
+  ie.arg = CDR (event);
+
+  /* Store it into the input event queue.  */
+  kbd_buffer_store_event (&ie);
+
+  return (Qnil);
+}
+
 /* Reallocate recent_keys copying the recorded keystrokes
    in the right order.  */
 static void
@@ -12878,6 +12946,7 @@ init_while_no_input_ignore_events (void)
 #ifdef THREADS_ENABLED
   events = Fcons (Qthread_event, events);
 #endif
+  events = Fcons (Qsleep_event, events);
 
   return events;
 }
@@ -12901,6 +12970,7 @@ is_ignored_event (union buffered_input_event *event)
 #ifdef HAVE_DBUS
     case DBUS_EVENT: ignore_event = Qdbus_event; break;
 #endif
+    case SLEEP_EVENT: ignore_event = Qsleep_event; break;
     default: ignore_event = Qnil; break;
     }
 
@@ -13058,6 +13128,7 @@ syms_of_keyboard (void)
 #endif /* USE_FILE_NOTIFY */
 
   DEFSYM (Qtouch_end, "touch-end");
+  DEFSYM (Qsleep_event, "sleep-event");
 
   /* Menu and tool bar item parts.  */
   DEFSYM (QCenable, ":enable");
@@ -13271,6 +13342,7 @@ syms_of_keyboard (void)
   defsubr (&Srecursive_edit);
   defsubr (&Sinternal_track_mouse);
   defsubr (&Sinput_pending_p);
+  defsubr (&Sinsert_special_event);
   defsubr (&Slossage_size);
   defsubr (&Srecent_keys);
   defsubr (&Sthis_command_keys);
@@ -14030,7 +14102,10 @@ function is called to remap that sequence.  */);
   pdumper_do_now_and_after_load (syms_of_keyboard_for_pdumper);
 
   DEFSYM (Qactivate_mark_hook, "activate-mark-hook");
+#ifdef HAVE_NS
+  DEFSYM (Qns_put_working_text, "ns-put-working-text");
   DEFSYM (Qns_unput_working_text, "ns-unput-working-text");
+#endif
   DEFSYM (Qinternal_timer_start_idle, "internal-timer-start-idle");
   DEFSYM (Qconcat, "concat");
   DEFSYM (Qsuspend_hook, "suspend-hook");
@@ -14079,10 +14154,12 @@ keys_of_keyboard (void)
   initial_define_lispy_key (Vspecial_event_map, "end-session",
 			    "kill-emacs");
 #endif
+#ifdef HAVE_NS
   initial_define_lispy_key (Vspecial_event_map, "ns-put-working-text",
 			    "ns-put-working-text");
   initial_define_lispy_key (Vspecial_event_map, "ns-unput-working-text",
 			    "ns-unput-working-text");
+#endif
   /* Here we used to use `ignore-event' which would simple set prefix-arg to
      current-prefix-arg, as is done in `handle-switch-frame'.
      But `handle-switch-frame is not run from the special-map.
@@ -14147,6 +14224,8 @@ keys_of_keyboard (void)
 			    "handle-focus-out");
   initial_define_lispy_key (Vspecial_event_map, "move-frame",
 			    "handle-move-frame");
+  initial_define_lispy_key (Vspecial_event_map, "sleep-event",
+			    "ignore");
 }
 
 #ifndef HAVE_MPS

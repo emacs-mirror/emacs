@@ -1052,15 +1052,15 @@ When `shr-fill-text' is nil, only indent."
           (insert-char ?\s shr-indentation)
         (insert ?\s)
         ;; Set the specified space width in units of the average-width
-        ;; of the current font, like (N . width).  That way, the
+        ;; of the current face, like (N . width).  That way, the
         ;; indentation is calculated correctly when using
         ;; `text-scale-adjust'.
         (let ((avg-space (propertize (buffer-substring (1- (point)) (point))
-                                     'display '(space :width 1))))
+                                     'display '(space :width (1 . width)))))
           (put-text-property
            (1- (point)) (point) 'display
            `(space :width (,(/ (float shr-indentation)
-                               (string-pixel-width avg-space (current-buffer)))
+                               (string-pixel-width avg-space))
                            . width)))))
       (put-text-property start (+ (point) prefix)
                          'shr-prefix-length (+ prefix (- (point) start))))))

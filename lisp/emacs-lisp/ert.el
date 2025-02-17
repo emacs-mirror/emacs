@@ -2856,13 +2856,15 @@ To be used in the ERT results buffer."
                                   (ert--tests-running-mode-line-indicator))))
 (add-hook 'emacs-lisp-mode-hook #'ert--activate-font-lock-keywords)
 
-(defun ert--unload-function ()
+(defun ert-unload-function ()
   "Unload function to undo the side-effects of loading ert.el."
   (ert--remove-from-list 'find-function-regexp-alist 'ert--test :key #'car)
   (ert--remove-from-list 'minor-mode-alist 'ert--current-run-stats :key #'car)
   (ert--remove-from-list 'emacs-lisp-mode-hook
                          'ert--activate-font-lock-keywords)
   nil)
+
+;;; erts files.
 
 (defun ert-test-erts-file (file &optional transform)
   "Parse FILE as a file containing before/after parts (an erts file).
@@ -2990,15 +2992,14 @@ write erts files."
           (forward-line 1)))
       (nreverse specs))))
 
-(defvar ert-unload-hook ())
-(add-hook 'ert-unload-hook #'ert--unload-function)
-
 ;;; Obsolete
 
 (define-obsolete-function-alias 'ert-equal-including-properties
   #'equal-including-properties "29.1")
 (put 'ert-equal-including-properties 'ert-explainer
      'ert--explain-equal-including-properties)
+
+(define-obsolete-function-alias 'ert--unload-function 'ert-unload-function "31.1")
 
 (provide 'ert)
 

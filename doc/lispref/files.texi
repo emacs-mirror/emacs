@@ -2459,6 +2459,14 @@ results in any way.
 This is almost the same as using @code{concat}, but @var{dirname} (and
 the non-final components) may or may not end with slash characters,
 and this function will not double those characters.
+
+In most cases, one or more calls to @code{expand-file-name} (@pxref{File
+Name Expansion} are better suited for the job of generating file names
+with leading directories than this function.  Use this function only if
+some of the special features of @code{expand-file-name} get in the way
+of what your program needs to do.  For example, the special handling by
+@code{expand-file-name} of @file{~}, @file{~@var{user}}, and @code{nil},
+or the removal of @file{.} and @file{..} might not be what you want.
 @end defun
 
   To convert a directory name to its abbreviation, use this
@@ -3227,11 +3235,11 @@ for the sake of dired.  However, the normally equivalent short
 as any other option.
 @end defun
 
-@defvar insert-directory-program
-This variable's value is the program to run to generate a directory listing
-for the function @code{insert-directory}.  It is ignored on systems
-which generate the listing with Lisp code.
-@end defvar
+@defopt insert-directory-program
+This user option specifies the program to run to generate a directory
+listing for the function @code{insert-directory}.  It is ignored on
+systems that generate the listing with Lisp code.
+@end defopt
 
 @node Create/Delete Dirs
 @section Creating, Copying and Deleting Directories

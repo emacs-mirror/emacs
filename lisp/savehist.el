@@ -96,11 +96,39 @@ the user's privacy."
   :type '(choice (natnum :tag "Specify")
                  (const :tag "Use default" :value nil)))
 
+(defvar savehist-timer nil)
+
+(defun savehist--cancel-timer ()
+  "Cancel `savehist-autosave' timer, if set."
+  (when (timerp savehist-timer)
+    (cancel-timer savehist-timer))
+  (setq savehist-timer nil))
+
+(defvar savehist-autosave-interval)
+
+(defun savehist--manage-timer ()
+  "Set or cancel an invocation of `savehist-autosave' on a timer.
+If `savehist-mode' is enabled, set the timer, otherwise cancel the timer.
+This should not cause noticeable delays for users -- `savehist-autosave'
+executes in under 5 ms on my system."
+  (if (and savehist-mode
+           savehist-autosave-interval
+           (null savehist-timer))
+      (setq savehist-timer
+	    (run-with-timer savehist-autosave-interval
+			    savehist-autosave-interval #'savehist-autosave))
+    (savehist--cancel-timer)))
+
 (defcustom savehist-autosave-interval (* 5 60)
   "The interval between autosaves of minibuffer history.
-If set to nil, disables timer-based autosaving."
+If set to nil, disables timer-based autosaving.
+Use `setopt' or Customize commands to set this option."
   :type '(choice (const :tag "Disabled" nil)
-                 (integer :tag "Seconds")))
+                 (integer :tag "Seconds"))
+  :set (lambda (sym val)
+         (set-default sym val)
+         (savehist--cancel-timer)
+         (savehist--manage-timer)))
 
 (defcustom savehist-mode-hook nil
   "Hook called when Savehist mode is turned on."
@@ -121,8 +149,6 @@ Changing this value while Emacs is running is supported, but considered
 unwise, unless you know what you are doing.")
 
 ;; Internal variables.
-
-(defvar savehist-timer nil)
 
 (defvar savehist-last-checksum nil)
 
@@ -197,23 +223,14 @@ Installs `savehist-autosave' in `kill-emacs-hook' and on a timer.
 To undo this, call `savehist-uninstall'."
   (add-hook 'minibuffer-setup-hook #'savehist-minibuffer-hook)
   (add-hook 'kill-emacs-hook #'savehist-autosave)
-  ;; Install an invocation of savehist-autosave on a timer.  This
-  ;; should not cause noticeable delays for users -- savehist-autosave
-  ;; executes in under 5 ms on my system.
-  (when (and savehist-autosave-interval
-	     (null savehist-timer))
-    (setq savehist-timer
-	  (run-with-timer savehist-autosave-interval
-			  savehist-autosave-interval #'savehist-autosave))))
+  (savehist--manage-timer))
 
 (defun savehist-uninstall ()
   "Undo installing savehist.
 Normally invoked by calling `savehist-mode' to unset the minor mode."
   (remove-hook 'minibuffer-setup-hook #'savehist-minibuffer-hook)
   (remove-hook 'kill-emacs-hook #'savehist-autosave)
-  (when savehist-timer
-    (cancel-timer savehist-timer)
-    (setq savehist-timer nil)))
+  (savehist--manage-timer))
 
 (defvar savehist--has-given-file-warning nil)
 (defun savehist-save (&optional auto-save)
@@ -282,20 +299,21 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 		(insert "))\n"))))))
       ;; Save the additional variables.
       (dolist (elem savehist-additional-variables)
-        (let ((symbol (if (consp elem)
-                          (car elem)
-                        elem)))
-	  (when (boundp symbol)
-	    (let ((value (symbol-value symbol)))
-	      (when (savehist-printable value)
-                ;; When we have a max-size, chop off the last elements.
-                (when (and (consp elem)
-                           (listp value)
-                           (length> value (cdr elem)))
-                  (setq value (copy-sequence value))
-                  (setcdr (nthcdr (cdr elem) value) nil))
-	        (prin1 `(setq ,symbol ',value) (current-buffer))
-	        (insert ?\n)))))))
+        (when (not (memq elem savehist-minibuffer-history-variables))
+          (let ((symbol (if (consp elem)
+                            (car elem)
+                          elem)))
+	    (when (boundp symbol)
+	      (let ((value (symbol-value symbol)))
+	        (when (savehist-printable value)
+                  ;; When we have a max-size, chop off the last elements.
+                  (when (and (consp elem)
+                             (listp value)
+                             (length> value (cdr elem)))
+                    (setq value (copy-sequence value))
+                    (setcdr (nthcdr (cdr elem) value) nil))
+	          (prin1 `(setq ,symbol ',value) (current-buffer))
+	          (insert ?\n))))))))
     ;; If autosaving, avoid writing if nothing has changed since the
     ;; last write.
     (let ((checksum (md5 (current-buffer) nil nil savehist-coding-system)))

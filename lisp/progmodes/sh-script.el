@@ -1646,10 +1646,45 @@ not written in Bash or sh."
                 sh-mode--treesit-settings)
     (setq-local treesit-thing-settings
                 `((bash
-                   (sentence ,(regexp-opt '("comment"
-                                            "heredoc_start"
-                                            "heredoc_body"))))))
+                   (list
+                    ,(rx bos (or "do_group"
+                                 "if_statement"
+                                 "case_statement"
+                                 "compound_statement"
+                                 "subshell"
+                                 "test_command"
+                                 "parenthesized_expression"
+                                 "arithmetic_expansion"
+                                 "brace_expression"
+                                 "string"
+                                 "array"
+                                 "expansion" ;; but not "simple_expansion"
+                                 "command_substitution"
+                                 "process_substitution")
+                         eos))
+                   (sentence
+                    ,(rx bos (or "redirected_statement"
+                                 "declaration_command"
+                                 "unset_command"
+                                 "command"
+                                 "variable_assignment")
+                         eos))
+                   (text
+                    ,(rx bos (or "comment"
+                                 "heredoc_body")
+                         eos)))))
     (setq-local treesit-defun-type-regexp "function_definition")
+    (setq-local treesit-defun-name-function
+                (lambda (node)
+                  (treesit-node-text
+                   (treesit-node-child-by-field-name node "name")
+                   t)))
+    (setq-local treesit-simple-imenu-settings
+                '((nil "\\`function_definition\\'" nil nil)))
+    ;; Override regexp-based outline variable from `sh-base-mode'
+    ;; to use `treesit-simple-imenu-settings' for outlines:
+    (kill-local-variable 'outline-regexp)
+
     (treesit-major-mode-setup)))
 
 (derived-mode-add-parents 'bash-ts-mode '(sh-mode))

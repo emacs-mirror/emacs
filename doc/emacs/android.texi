@@ -1179,7 +1179,7 @@ from improved reproductions of Unix command-line utilities to package
 repositories providing extensive collections of free GNU and Unix
 software.
 
-  @uref{http://busybox.net, Busybox} provides Unix utilities and
+  @uref{https://busybox.net, Busybox} provides Unix utilities and
 limited replicas of certain popular GNU programs such as
 @command{wget} in a single statically-linked Linux binary, which is
 capable of running under Android.

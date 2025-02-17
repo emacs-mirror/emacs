@@ -981,11 +981,11 @@ be controlled by `gnus-treat-body-boundary'."
 				  "/usr/share/picons")
   "Defines the location of the faces database.
 For information on obtaining this database of pretty pictures, please
-see http://www.cs.indiana.edu/picons/ftp/index.html"
+see https://kinzler.com/ftp/faces/picons/"
   :version "22.1"
   :type '(repeat directory)
   :link '(url-link :tag "download"
-                   "http://www.cs.indiana.edu/picons/ftp/index.html")
+                   "https://kinzler.com/ftp/faces/picons/")
   :link '(custom-manual "(gnus)Picons")
   :group 'gnus-picon)
 

@@ -147,10 +147,10 @@ This function takes no arguments and is expected to return a list of
 indent RULEs as described in `treesit-simple-indent-rules'.  Note that
 the list of RULEs doesn't need to contain the language symbol."
   :version "29.1"
-  :type '(choice (symbol :tag "Gnu" gnu)
-                 (symbol :tag "K&R" k&r)
-                 (symbol :tag "Linux" linux)
-                 (symbol :tag "BSD" bsd)
+  :type '(choice (const :tag "Gnu" gnu)
+                 (const :tag "K&R" k&r)
+                 (const :tag "Linux" linux)
+                 (const :tag "BSD" bsd)
                  (function :tag "A function for user customized style" ignore))
   :set #'c-ts-mode--indent-style-setter
   :safe 'c-ts-indent-style-safep
@@ -1041,14 +1041,11 @@ Return nil if NODE is not a defun node or doesn't have a name."
 
 (defun c-ts-mode--outline-predicate (node)
   "Match outlines on lines with function names."
-  (or (when-let* ((decl (treesit-node-child-by-field-name
-                         (treesit-node-parent node) "declarator"))
-                  (node-pos (treesit-node-start node))
-                  (decl-pos (treesit-node-start decl))
-                  (eol (save-excursion (goto-char node-pos) (line-end-position))))
-        (and (equal (treesit-node-type decl) "function_declarator")
-             (<= node-pos decl-pos)
-             (< decl-pos eol)))
+  (or (and (equal (treesit-node-type node) "function_declarator")
+           ;; Handle the case when "function_definition" is
+           ;; not an immediate parent of "function_declarator"
+           ;; but there is e.g. "pointer_declarator" between them.
+           (treesit-parent-until node "function_definition"))
       ;; DEFUNs in Emacs sources.
       (and c-ts-mode-emacs-sources-support
            (c-ts-mode--emacs-defun-p node))))

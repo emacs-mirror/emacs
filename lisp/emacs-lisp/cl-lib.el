@@ -185,8 +185,8 @@ to an element already in the list stored in PLACE.
 
 ;;; Blocks and exits.
 
-(defalias 'cl--block-wrapper 'identity)
-(defalias 'cl--block-throw 'throw)
+(defalias 'cl--block-wrapper #'identity)
+(defalias 'cl--block-throw #'throw)
 
 
 ;;; Multiple values.
@@ -232,7 +232,7 @@ right when EXPRESSION calls an ordinary Emacs Lisp function that returns just
 one value."
   (apply function expression))
 
-(defalias 'cl-multiple-value-call 'apply
+(defalias 'cl-multiple-value-call #'apply
   "Apply FUNCTION to ARGUMENTS, taking multiple values into account.
 This implementation only handles the case where there is only one argument.")
 
@@ -272,18 +272,24 @@ so that they are registered at compile-time as well as run-time."
 
 (defsubst cl-plusp (number)
   "Return t if NUMBER is positive."
+  (declare (side-effect-free t))
   (> number 0))
 
 (defsubst cl-minusp (number)
   "Return t if NUMBER is negative."
+  (declare (side-effect-free t))
   (< number 0))
 
 (defun cl-oddp (integer)
   "Return t if INTEGER is odd."
+  (declare (side-effect-free t)
+           (compiler-macro (lambda (_) `(eq (logand ,integer 1) 1))))
   (eq (logand integer 1) 1))
 
 (defun cl-evenp (integer)
   "Return t if INTEGER is even."
+  (declare (side-effect-free t)
+           (compiler-macro (lambda (_) `(eq (logand ,integer 1) 0))))
   (eq (logand integer 1) 0))
 
 (defconst cl-digit-char-table
@@ -352,7 +358,7 @@ Call `cl-float-limits' to set this.")
 
 ;;; Sequence functions.
 
-(cl--defalias 'cl-copy-seq 'copy-sequence)
+(cl--defalias 'cl-copy-seq #'copy-sequence)
 
 (declare-function cl--mapcar-many "cl-extra" (cl-func cl-seqs &optional acc))
 
@@ -363,6 +369,7 @@ and mapping stops as soon as the shortest list runs out.  With just one
 SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 `mapcar' function extended to arbitrary sequence types.
 \n(fn FUNCTION SEQ...)"
+  (declare (important-return-value t))
   (if cl-rest
       (if (or (cdr cl-rest) (nlistp cl-x) (nlistp (car cl-rest)))
 	  (cl--mapcar-many cl-func (cons cl-x cl-rest) 'accumulate)
@@ -372,71 +379,77 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 	  (nreverse cl-res)))
     (mapcar cl-func cl-x)))
 
-(cl--defalias 'cl-svref 'aref)
+(cl--defalias 'cl-svref #'aref)
 
 ;;; List functions.
 
-(cl--defalias 'cl-first 'car)
-(cl--defalias 'cl-second 'cadr)
-(cl--defalias 'cl-rest 'cdr)
+(cl--defalias 'cl-first #'car)
+(cl--defalias 'cl-second #'cadr)
+(cl--defalias 'cl-rest #'cdr)
 
 (cl--defalias 'cl-third #'caddr "Return the third element of the list X.")
 (cl--defalias 'cl-fourth #'cadddr "Return the fourth element of the list X.")
 
 (defsubst cl-fifth (x)
   "Return the fifth element of the list X."
-  (declare (gv-setter (lambda (store) `(setcar (nthcdr 4 ,x) ,store))))
+  (declare (side-effect-free t)
+           (gv-setter (lambda (store) `(setcar (nthcdr 4 ,x) ,store))))
   (nth 4 x))
 
 (defsubst cl-sixth (x)
   "Return the sixth element of the list X."
-  (declare (gv-setter (lambda (store) `(setcar (nthcdr 5 ,x) ,store))))
+  (declare (side-effect-free t)
+           (gv-setter (lambda (store) `(setcar (nthcdr 5 ,x) ,store))))
   (nth 5 x))
 
 (defsubst cl-seventh (x)
   "Return the seventh element of the list X."
-  (declare (gv-setter (lambda (store) `(setcar (nthcdr 6 ,x) ,store))))
+  (declare (side-effect-free t)
+           (gv-setter (lambda (store) `(setcar (nthcdr 6 ,x) ,store))))
   (nth 6 x))
 
 (defsubst cl-eighth (x)
   "Return the eighth element of the list X."
-  (declare (gv-setter (lambda (store) `(setcar (nthcdr 7 ,x) ,store))))
+  (declare (side-effect-free t)
+           (gv-setter (lambda (store) `(setcar (nthcdr 7 ,x) ,store))))
   (nth 7 x))
 
 (defsubst cl-ninth (x)
   "Return the ninth element of the list X."
-  (declare (gv-setter (lambda (store) `(setcar (nthcdr 8 ,x) ,store))))
+  (declare (side-effect-free t)
+           (gv-setter (lambda (store) `(setcar (nthcdr 8 ,x) ,store))))
   (nth 8 x))
 
 (defsubst cl-tenth (x)
   "Return the tenth element of the list X."
-  (declare (gv-setter (lambda (store) `(setcar (nthcdr 9 ,x) ,store))))
+  (declare (side-effect-free t)
+           (gv-setter (lambda (store) `(setcar (nthcdr 9 ,x) ,store))))
   (nth 9 x))
 
-(defalias 'cl-caaar 'caaar)
-(defalias 'cl-caadr 'caadr)
-(defalias 'cl-cadar 'cadar)
-(defalias 'cl-caddr 'caddr)
-(defalias 'cl-cdaar 'cdaar)
-(defalias 'cl-cdadr 'cdadr)
-(defalias 'cl-cddar 'cddar)
-(defalias 'cl-cdddr 'cdddr)
-(defalias 'cl-caaaar 'caaaar)
-(defalias 'cl-caaadr 'caaadr)
-(defalias 'cl-caadar 'caadar)
-(defalias 'cl-caaddr 'caaddr)
-(defalias 'cl-cadaar 'cadaar)
-(defalias 'cl-cadadr 'cadadr)
-(defalias 'cl-caddar 'caddar)
-(defalias 'cl-cadddr 'cadddr)
-(defalias 'cl-cdaaar 'cdaaar)
-(defalias 'cl-cdaadr 'cdaadr)
-(defalias 'cl-cdadar 'cdadar)
-(defalias 'cl-cdaddr 'cdaddr)
-(defalias 'cl-cddaar 'cddaar)
-(defalias 'cl-cddadr 'cddadr)
-(defalias 'cl-cdddar 'cdddar)
-(defalias 'cl-cddddr 'cddddr)
+(defalias 'cl-caaar #'caaar)
+(defalias 'cl-caadr #'caadr)
+(defalias 'cl-cadar #'cadar)
+(defalias 'cl-caddr #'caddr)
+(defalias 'cl-cdaar #'cdaar)
+(defalias 'cl-cdadr #'cdadr)
+(defalias 'cl-cddar #'cddar)
+(defalias 'cl-cdddr #'cdddr)
+(defalias 'cl-caaaar #'caaaar)
+(defalias 'cl-caaadr #'caaadr)
+(defalias 'cl-caadar #'caadar)
+(defalias 'cl-caaddr #'caaddr)
+(defalias 'cl-cadaar #'cadaar)
+(defalias 'cl-cadadr #'cadadr)
+(defalias 'cl-caddar #'caddar)
+(defalias 'cl-cadddr #'cadddr)
+(defalias 'cl-cdaaar #'cdaaar)
+(defalias 'cl-cdaadr #'cdaadr)
+(defalias 'cl-cdadar #'cdadar)
+(defalias 'cl-cdaddr #'cdaddr)
+(defalias 'cl-cddaar #'cddaar)
+(defalias 'cl-cddadr #'cddadr)
+(defalias 'cl-cdddar #'cdddar)
+(defalias 'cl-cddddr #'cddddr)
 
 ;;(defun last* (x &optional n)
 ;;  "Returns the last link in the list LIST.
@@ -454,7 +467,8 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 Thus, `(cl-list* A B C D)' is equivalent to `(nconc (list A B C) D)', or to
 `(cons A (cons B (cons C D)))'.
 \n(fn ARG...)"
-  (declare (compiler-macro cl--compiler-macro-list*))
+  (declare (side-effect-free error-free)
+           (compiler-macro cl--compiler-macro-list*))
   (cond ((not rest) arg)
 	((not (cdr rest)) (cons arg (car rest)))
 	(t (let* ((n (length rest))
@@ -465,6 +479,7 @@ Thus, `(cl-list* A B C D)' is equivalent to `(nconc (list A B C) D)', or to
 
 (defun cl-ldiff (list sublist)
   "Return a copy of LIST with the tail SUBLIST removed."
+  (declare (side-effect-free t))
   (let ((res nil))
     (while (and (consp list) (not (eq list sublist)))
       (push (pop list) res))
@@ -492,7 +507,8 @@ The elements of LIST are not copied, just the list structure itself."
 Otherwise, return LIST unmodified.
 \nKeywords supported:  :test :test-not :key
 \n(fn ITEM LIST [KEYWORD VALUE]...)"
-  (declare (compiler-macro cl--compiler-macro-adjoin))
+  (declare (important-return-value t)
+           (compiler-macro cl--compiler-macro-adjoin))
   (cond ((or (equal cl-keys '(:test eq))
 	     (and (null cl-keys) (not (numberp cl-item))))
 	 (if (memq cl-item cl-list) cl-list (cons cl-item cl-list)))
@@ -505,6 +521,7 @@ Otherwise, return LIST unmodified.
 Return a copy of TREE with all elements `eql' to OLD replaced by NEW.
 \nKeywords supported:  :test :test-not :key
 \n(fn NEW OLD TREE [KEYWORD VALUE]...)"
+  (declare (important-return-value t))
   (if (or cl-keys (and (numberp cl-old) (not (integerp cl-old))))
       (apply 'cl-sublis (list (cons cl-old cl-new)) cl-tree cl-keys)
     (cl--do-subst cl-new cl-old cl-tree)))
@@ -518,9 +535,10 @@ Return a copy of TREE with all elements `eql' to OLD replaced by NEW.
 	       cl-tree (cons a d))))
 	(t cl-tree)))
 
-(defun cl-acons (key value alist)
+(defsubst cl-acons (key value alist)
   "Add KEY and VALUE to ALIST.
 Return a new list with (cons KEY VALUE) as car and ALIST as cdr."
+  (declare (side-effect-free error-free))
   (cons (cons key value) alist))
 
 (defun cl-pairlis (keys values &optional alist)
@@ -528,6 +546,7 @@ Return a new list with (cons KEY VALUE) as car and ALIST as cdr."
 Return a new alist composed by associating KEYS to corresponding VALUES;
 the process stops as soon as KEYS or VALUES run out.
 If ALIST is non-nil, the new pairs are prepended to it."
+  (declare (side-effect-free t))
   (nconc (cl-mapcar 'cons keys values) alist))
 
 ;;; Miscellaneous.

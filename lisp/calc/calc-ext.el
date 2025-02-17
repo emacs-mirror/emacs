@@ -877,7 +877,7 @@ calcFunc-tanh math-arccos-raw math-arcsin-raw math-arctan-raw
 math-arctan2-raw math-cos-raw math-cot-raw math-csc-raw
 math-exp-minus-1-raw math-exp-raw
 math-from-radians math-from-radians-2 math-hypot math-infinite-dir
-math-ln-raw math-nearly-equal math-nearly-equal-float
+math-ln-10 math-ln-raw math-nearly-equal math-nearly-equal-float
 math-nearly-zerop math-nearly-zerop-float math-nth-root
 math-sin-cos-raw math-sin-raw math-sqrt math-sqrt-float math-sqrt-raw
 math-tan-raw math-to-radians math-to-radians-2)

@@ -269,6 +269,7 @@ automatically)."
      . ,(eglot-alternatives
          '("clangd" "ccls")))
     (((caml-mode :language-id "ocaml")
+      (ocaml-ts-mode :language-id "ocaml")
       (tuareg-mode :language-id "ocaml") reason-mode)
      . ("ocamllsp"))
     ((ruby-mode ruby-ts-mode)
@@ -278,11 +279,12 @@ automatically)."
     (elm-mode . ("elm-language-server"))
     (mint-mode . ("mint" "ls"))
     ((kotlin-mode kotlin-ts-mode) . ("kotlin-language-server"))
-    ((go-mode go-dot-mod-mode go-dot-work-mode go-ts-mode go-mod-ts-mode)
+    ((go-mode go-dot-mod-mode go-dot-work-mode go-ts-mode go-mod-ts-mode go-work-ts-mode)
      . ("gopls"))
     ((R-mode ess-r-mode) . ("R" "--slave" "-e"
                             "languageserver::run()"))
-    ((java-mode java-ts-mode) . ("jdtls"))
+    ((java-mode java-ts-mode)
+     . ,(eglot-alternatives '("jdtls" "java-language-server")))
     ((dart-mode dart-ts-mode)
      . ("dart" "language-server"
         "--client-id" "emacs.eglot-dart"))
@@ -325,6 +327,7 @@ automatically)."
     ((csharp-mode csharp-ts-mode)
      . ,(eglot-alternatives
          '(("omnisharp" "-lsp")
+           ("OmniSharp" "-lsp")
            ("csharp-ls"))))
     (purescript-mode . ("purescript-language-server" "--stdio"))
     ((perl-mode cperl-mode)
@@ -565,7 +568,9 @@ under cursor."
           (const :tag "Decorate color references" :colorProvider)
           (const :tag "Fold regions of buffer" :foldingRangeProvider)
           (const :tag "Execute custom commands" :executeCommandProvider)
-          (const :tag "Inlay hints" :inlayHintProvider)))
+          (const :tag "Inlay hints" :inlayHintProvider)
+          (const :tag "Type hierarchies" :typeHierarchyProvider)
+          (const :tag "Call hierarchies" :callHierarchyProvider)))
 
 (defcustom eglot-advertise-cancellation nil
   "If non-nil, Eglot attemps to inform server of cancelled requests.
@@ -716,7 +721,13 @@ This can be useful when using docker to run a language server.")
       (WorkspaceSymbol (:name :kind) (:containerName :location :data))
       (InlayHint (:position :label) (:kind :textEdits :tooltip :paddingLeft
                                            :paddingRight :data))
-      (InlayHintLabelPart (:value) (:tooltip :location :command)))
+      (InlayHintLabelPart (:value) (:tooltip :location :command))
+      ;; HACK! 'HierarchyItem' doesn't exist, only `CallHierarchyItem'
+      ;; and `TypeHierarchyItem'.  But they're the same, so no bother.
+      (HierarchyItem (:name :kind)
+                     (:tags :detail :uri :range :selectionRange :data))
+      (CallHierarchyIncomingCall (:from :fromRanges) ())
+      (CallHierarchyOutgoingCall (:to :fromRanges) ()))
     "Alist (INTERFACE-NAME . INTERFACE) of known external LSP interfaces.
 
 INTERFACE-NAME is a symbol designated by the spec as
@@ -1065,6 +1076,8 @@ object."
              :rangeFormatting    `(:dynamicRegistration :json-false)
              :rename             `(:dynamicRegistration :json-false)
              :inlayHint          `(:dynamicRegistration :json-false)
+             :callHierarchy      `(:dynamicRegistration :json-false)
+             :typeHierarchy      `(:dynamicRegistration :json-false)
              :publishDiagnostics (list :relatedInformation :json-false
                                        ;; TODO: We can support :codeDescription after
                                        ;; adding an appropriate UI to
@@ -1245,8 +1258,8 @@ SERVER."
   (unwind-protect
       (progn
         (setf (eglot--shutdown-requested server) t)
-        (eglot--request server :shutdown nil :timeout (or timeout 1.5))
-        (jsonrpc-notify server :exit nil))
+        (eglot--request server :shutdown eglot--{} :timeout (or timeout 1.5))
+        (jsonrpc-notify server :exit eglot--{}))
     ;; Now ask jsonrpc.el to shut down the server.
     (jsonrpc-shutdown server (not preserve-buffers))
     (unless preserve-buffers (kill-buffer (jsonrpc-events-buffer server)))))
@@ -1311,22 +1324,28 @@ in `eglot-server-programs' (which see).
 CONTACT-PROXY is the value of the corresponding
 `eglot-server-programs' entry."
   (cl-loop
+   with lang-from-sym = (lambda (sym &optional language-id)
+                          (cons sym
+                                (or language-id
+                                    (or (get sym 'eglot-language-id)
+                                        (replace-regexp-in-string
+                                         "\\(?:-ts\\)?-mode$" ""
+                                         (symbol-name sym))))))
    for (modes . contact) in eglot-server-programs
    for llists = (mapcar #'eglot--ensure-list
-                           (if (or (symbolp modes) (keywordp (cadr modes)))
-                               (list modes) modes))
+                        (if (or (symbolp modes) (keywordp (cadr modes)))
+                            (list modes) modes))
    for normalized = (mapcar (jsonrpc-lambda (sym &key language-id &allow-other-keys)
-                              (cons sym
-                                    (or language-id
-                                        (or (get sym 'eglot-language-id)
-                                            (replace-regexp-in-string
-                                             "\\(?:-ts\\)?-mode$" ""
-                                             (symbol-name sym))))))
+                              (funcall lang-from-sym sym language-id))
                             llists)
    when (cl-some (lambda (cell)
                    (provided-mode-derived-p mode (car cell)))
                  normalized)
-   return (cons normalized contact)))
+   return (cons normalized contact)
+   ;; If lookup fails at least return some suitable LANGUAGES.
+   finally (cl-return
+            (cons (list (funcall lang-from-sym major-mode))
+                  nil))))
 
 (defun eglot--guess-contact (&optional interactive)
   "Helper for `eglot'.
@@ -1781,6 +1800,15 @@ in project `%s'."
   (let ((warning-minimum-level :error))
     (display-warning 'eglot (apply #'eglot--format format args) :warning)))
 
+(defun eglot--goto (range)
+  "Goto and momentarily highlight RANGE in current buffer."
+  (pcase-let ((`(,beg . ,end) (eglot-range-region range)))
+    ;; FIXME: it is very naughty to use someone else's `--'
+    ;; function, but `xref--goto-char' happens to have
+    ;; exactly the semantics we want vis-a-vis widening.
+    (xref--goto-char beg)
+    (pulse-momentary-highlight-region beg end 'highlight)))
+
 (defalias 'eglot--bol
   (if (fboundp 'pos-bol) #'pos-bol
     (lambda (&optional n) (let ((inhibit-field-text-motion t))
@@ -1929,32 +1957,34 @@ Doubles as an indicator of snippet support."
            (unless (bound-and-true-p yas-minor-mode) (yas-minor-mode 1))
            (apply #'yas-expand-snippet args)))))
 
- (defun eglot--format-markup (markup)
+ (defun eglot--format-markup (markup &optional mode)
   "Format MARKUP according to LSP's spec.
 MARKUP is either an LSP MarkedString or MarkupContent object."
-  (let (string mode language)
+  (let (string render-mode language)
     (cond ((stringp markup)
            (setq string markup
-                 mode 'gfm-view-mode))
+                 render-mode (or mode 'gfm-view-mode)))
           ((setq language (plist-get markup :language))
            ;; Deprecated MarkedString
            (setq string (concat "```" language "\n"
                                 (plist-get markup :value) "\n```")
-                 mode 'gfm-view-mode))
+                 render-mode (or mode 'gfm-view-mode)))
           (t
            ;; MarkupContent
            (setq string (plist-get markup :value)
-                 mode (pcase (plist-get markup :kind)
-                        ("markdown" 'gfm-view-mode)
-                        ("plaintext" 'text-mode)
-                        (_ major-mode)))))
+                 render-mode
+                 (or mode
+                     (pcase (plist-get markup :kind)
+                       ("markdown" 'gfm-view-mode)
+                       ("plaintext" 'text-mode)
+                       (_ major-mode))))))
     (with-temp-buffer
       (setq-local markdown-fontify-code-blocks-natively t)
       (insert string)
       (let ((inhibit-message t)
             (message-log-max nil)
             match)
-        (ignore-errors (delay-mode-hooks (funcall mode)))
+        (ignore-errors (delay-mode-hooks (funcall render-mode)))
         (font-lock-ensure)
         (goto-char (point-min))
         (let ((inhibit-read-only t))
@@ -2284,6 +2314,11 @@ If it is activated, also signal textDocument/didOpen."
      :visible (eglot-server-capable :codeActionProvider)]
     ["Quickfix" eglot-code-action-quickfix
      :visible (eglot-server-capable :codeActionProvider)]
+    "--"
+    ["Show type hierarchy" eglot-show-type-hierarchy
+     :active (eglot-server-capable :typeHierarchyProvider)]
+    ["Show call hierarchy" eglot-show-call-hierarchy
+     :active (eglot-server-capable :callHierarchyProvider)]
     "--"))
 
 (easy-menu-define eglot-server-menu nil "Manage server communication"
@@ -2698,12 +2733,7 @@ THINGS are either registrations or unregisterations (sic)."
                   (select-frame-set-input-focus (selected-frame)))
                  ((display-buffer (current-buffer))))
            (when selection
-             (pcase-let ((`(,beg . ,end) (eglot-range-region selection)))
-               ;; FIXME: it is very naughty to use someone else's `--'
-               ;; function, but `xref--goto-char' happens to have
-               ;; exactly the semantics we want vis-a-vis widening.
-               (xref--goto-char beg)
-               (pulse-momentary-highlight-region beg end 'highlight)))))))
+             (eglot--goto selection))))))
      (t (setq success :json-false)))
     `(:success ,success)))
 
@@ -3316,81 +3346,79 @@ for which LSP on-type-formatting should be requested."
 (add-to-list 'completion-category-defaults '(eglot-capf (styles eglot--dumb-flex)))
 (add-to-list 'completion-styles-alist '(eglot--dumb-flex eglot--dumb-tryc eglot--dumb-allc))
 
-(defun eglot-completion-at-point ()
+(cl-defun eglot-completion-at-point (&aux completion-capability)
   "Eglot's `completion-at-point' function."
   ;; Commit logs for this function help understand what's going on.
-  (when-let* ((completion-capability (eglot-server-capable :completionProvider)))
-    (let* ((server (eglot--current-server-or-lose))
-           (bounds (or (bounds-of-thing-at-point 'symbol)
-                       (cons (point) (point))))
-           (bounds-string (buffer-substring (car bounds) (cdr bounds)))
-           (sort-completions
-            (lambda (completions)
-              (cl-sort completions
-                       #'string-lessp
-                       :key (lambda (c)
-                              (plist-get
-                               (get-text-property 0 'eglot--lsp-item c)
-                               :sortText)))))
-           (metadata `(metadata (category . eglot-capf)
-                                (display-sort-function . ,sort-completions)))
-           (local-cache :none)
-           (orig-pos (point))
-           (resolved (make-hash-table))
-           (proxies
-            (lambda ()
-              (if (listp local-cache) local-cache
-                (let* ((resp (eglot--request server
-                                             :textDocument/completion
-                                             (eglot--CompletionParams)
-                                             :cancel-on-input t))
-                       (items (append
-                               (if (vectorp resp) resp (plist-get resp :items))
-                               nil))
-                       (cachep (and (listp resp) items
-                                    eglot-cache-session-completions
-                                    (eq (plist-get resp :isIncomplete) :json-false)))
-                       (retval
-                        (mapcar
-                         (jsonrpc-lambda
-                             (&rest item &key label insertText insertTextFormat
-                                    textEdit &allow-other-keys)
-                           (let ((proxy
-                                  ;; Snippet or textEdit, it's safe to
-                                  ;; display/insert the label since
-                                  ;; it'll be adjusted.  If no usable
-                                  ;; insertText at all, label is best,
-                                  ;; too.
-                                  (cond ((or (eql insertTextFormat 2)
-                                             textEdit
-                                             (null insertText)
-                                             (string-empty-p insertText))
-                                         (string-trim-left label))
-                                        (t insertText))))
-                             (unless (zerop (length proxy))
-                               (put-text-property 0 1 'eglot--lsp-item item proxy))
-                             proxy))
-                         items)))
-                  ;; (trace-values "Requested" (length proxies) cachep bounds)
-                  (setq eglot--capf-session
-                        (if cachep (list bounds retval resolved orig-pos
-                                         bounds-string) :none))
-                  (setq local-cache retval)))))
-           (resolve-maybe
-            ;; Maybe completion/resolve JSON object `lsp-comp' into
-            ;; another JSON object, if at all possible.  Otherwise,
-            ;; just return lsp-comp.
-            (lambda (lsp-comp &optional dont-cancel-on-input)
-              (or (gethash lsp-comp resolved)
-                  (setf (gethash lsp-comp resolved)
-                        (if (and (eglot-server-capable :completionProvider
-                                                        :resolveProvider)
-                                 (plist-get lsp-comp :data))
-                            (eglot--request server :completionItem/resolve
-                                            lsp-comp :cancel-on-input
-                                            (not dont-cancel-on-input)
-                                            :immediate t)
-                          lsp-comp))))))
+  (setq completion-capability (eglot-server-capable :completionProvider))
+  (unless completion-capability (cl-return-from eglot-completion-at-point))
+  (let* ((server (eglot--current-server-or-lose))
+         (bounds (or (bounds-of-thing-at-point 'symbol)
+                     (cons (point) (point))))
+         (bounds-string (buffer-substring (car bounds) (cdr bounds)))
+         (local-cache :none)
+         (orig-pos (point))
+         (resolved (make-hash-table)))
+    (cl-labels
+        ((sort-completions (completions)
+           (cl-sort completions
+                    #'string-lessp
+                    :key (lambda (c)
+                           (plist-get
+                            (get-text-property 0 'eglot--lsp-item c)
+                            :sortText))))
+         (proxies ()
+           (if (listp local-cache) local-cache
+             (let* ((resp (eglot--request server
+                                          :textDocument/completion
+                                          (eglot--CompletionParams)
+                                          :cancel-on-input t))
+                    (items (append
+                            (if (vectorp resp) resp (plist-get resp :items))
+                            nil))
+                    (cachep (and (listp resp) items
+                                 eglot-cache-session-completions
+                                 (eq (plist-get resp :isIncomplete) :json-false)))
+                    (retval
+                     (mapcar
+                      (jsonrpc-lambda
+                          (&rest item &key label insertText insertTextFormat
+                                 textEdit &allow-other-keys)
+                        (let ((proxy
+                               ;; Snippet or textEdit, it's safe to
+                               ;; display/insert the label since
+                               ;; it'll be adjusted.  If no usable
+                               ;; insertText at all, label is best,
+                               ;; too.
+                               (cond ((or (eql insertTextFormat 2)
+                                          textEdit
+                                          (null insertText)
+                                          (string-empty-p insertText))
+                                      (string-trim-left label))
+                                     (t insertText))))
+                          (unless (zerop (length proxy))
+                            (put-text-property 0 1 'eglot--lsp-item item proxy))
+                          proxy))
+                      items)))
+               ;; (trace-values "Requested" (length proxies) cachep bounds)
+               (setq eglot--capf-session
+                     (if cachep (list bounds retval resolved orig-pos
+                                      bounds-string)
+                       :none))
+               (setq local-cache retval))))
+         (ensure-resolved (lsp-comp &optional dont-cancel-on-input)
+           ;; Maybe completion/resolve JSON object `lsp-comp' into
+           ;; another JSON object, if at all possible.  Otherwise,
+           ;; just return lsp-comp.
+           (or (gethash lsp-comp resolved)
+               (setf (gethash lsp-comp resolved)
+                     (if (and (eglot-server-capable :completionProvider
+                                                    :resolveProvider)
+                              (plist-get lsp-comp :data))
+                         (eglot--request server :completionItem/resolve
+                                         lsp-comp :cancel-on-input
+                                         (not dont-cancel-on-input)
+                                         :immediate t)
+                       lsp-comp)))))
       (when (and (consp eglot--capf-session)
                  (= (car bounds) (car (nth 0 eglot--capf-session)))
                  (>= (cdr bounds) (cdr (nth 0 eglot--capf-session))))
@@ -3405,14 +3433,16 @@ for which LSP on-type-formatting should be requested."
        (cdr bounds)
        (lambda (pattern pred action)
          (cond
-          ((eq action 'metadata) metadata)               ; metadata
+          ((eq action 'metadata)                         ; metadata
+           `(metadata (category . eglot-capf)
+                      (display-sort-function . ,#'sort-completions)))
           ((eq action 'lambda)                           ; test-completion
-           (test-completion pattern (funcall proxies)))
+           (test-completion pattern (proxies)))
           ((eq (car-safe action) 'boundaries) nil)       ; boundaries
           ((null action)                                 ; try-completion
-           (try-completion pattern (funcall proxies)))
+           (try-completion pattern (proxies)))
           ((eq action t)                                 ; all-completions
-           (let ((comps (funcall proxies)))
+           (let ((comps (proxies)))
              (dolist (c comps) (eglot--dumb-flex pattern c completion-ignore-case))
              (all-completions
               ""
@@ -3456,17 +3486,18 @@ for which LSP on-type-formatting should be requested."
                                1)
                (eq t (plist-get lsp-item :deprecated)))))
        :company-docsig
-       ;; FIXME: autoImportText is specific to the pyright language server
        (lambda (proxy)
-         (when-let* ((lsp-comp (get-text-property 0 'eglot--lsp-item proxy))
-                     (data (plist-get (funcall resolve-maybe lsp-comp) :data))
-                     (import-text (plist-get data :autoImportText)))
-           import-text))
+         (let ((detail (plist-get
+                        (ensure-resolved (get-text-property 0 'eglot--lsp-item proxy))
+                        :detail)))
+           (when (and (stringp detail) (not (string= detail "")))
+             (eglot--format-markup detail major-mode))))
        :company-doc-buffer
        (lambda (proxy)
-         (let* ((documentation
-                 (let ((lsp-comp (get-text-property 0 'eglot--lsp-item proxy)))
-                   (plist-get (funcall resolve-maybe lsp-comp) :documentation)))
+         (let* ((resolved
+                 (ensure-resolved (get-text-property 0 'eglot--lsp-item proxy)))
+                (documentation
+                 (plist-get resolved :documentation))
                 (formatted (and documentation
                                 (eglot--format-markup documentation))))
            (when formatted
@@ -3497,15 +3528,14 @@ for which LSP on-type-formatting should be requested."
                                   (current-buffer))
              (eglot--dbind ((CompletionItem) insertTextFormat
                             insertText textEdit additionalTextEdits label)
-                 (funcall
-                  resolve-maybe
+                 (ensure-resolved
                   (or (get-text-property 0 'eglot--lsp-item proxy)
                       ;; When selecting from the *Completions*
                       ;; buffer, `proxy' won't have any properties.
                       ;; A lookup should fix that (github#148)
                       (get-text-property
                        0 'eglot--lsp-item
-                       (cl-find proxy (funcall proxies) :test #'string=)))
+                       (cl-find proxy (proxies) :test #'string=)))
                   ;; Be sure to pass non-nil here since we don't want
                   ;; any quick typing after the soon-to-be-undone
                   ;; insertion to potentially cancel an essential
@@ -4246,47 +4276,47 @@ If NOERROR, return predicate, else erroring function."
 (defvar-local eglot--outstanding-inlay-regions-timer nil
   "Helper timer for `eglot--update-hints'.")
 
-(defun eglot--update-hints (from to)
+(cl-defun eglot--update-hints (from to)
   "Jit-lock function for Eglot inlay hints."
+  ;; XXX: We're relying on knowledge of jit-lock internals here.
+  ;; Comparing `jit-lock-context-unfontify-pos' (if non-nil) to
+  ;; `point-max' tells us whether this call to `jit-lock-functions'
+  ;; happens after `jit-lock-context-timer' has just run.
+  (when (and jit-lock-context-unfontify-pos
+             (/= jit-lock-context-unfontify-pos (point-max)))
+    (cl-return-from eglot--update-hints))
   (cl-symbol-macrolet ((region eglot--outstanding-inlay-hints-region)
                        (last-region eglot--outstanding-inlay-hints-last-region)
                        (timer eglot--outstanding-inlay-regions-timer))
     (setcar region (min (or (car region) (point-max)) from))
     (setcdr region (max (or (cdr region) (point-min)) to))
-    ;; HACK: We're relying on knowledge of jit-lock internals here.  The
-    ;; condition comparing `jit-lock-context-unfontify-pos' to
-    ;; `point-max' is a heuristic for telling whether this call to
-    ;; `jit-lock-functions' happens after `jit-lock-context-timer' has
-    ;; just run.  Only after this delay should we start the smoothing
-    ;; timer that will eventually call `eglot--update-hints-1' with the
-    ;; coalesced region.  I wish we didn't need the timer, but sometimes
-    ;; a lot of "non-contextual" calls come in all at once and do verify
-    ;; the condition.  Notice it is a 0 second timer though, so we're
-    ;; not introducing any more delay over jit-lock's timers.
-    (when (= jit-lock-context-unfontify-pos (point-max))
-      (if timer (cancel-timer timer))
-      (let ((buf (current-buffer)))
-        (setq timer (run-at-time
-                     0 nil
-                     (lambda ()
-                       (eglot--when-live-buffer buf
-                         ;; HACK: In some pathological situations
-                         ;; (Emacs's own coding.c, for example),
-                         ;; jit-lock is calling `eglot--update-hints'
-                         ;; repeatedly with same sequence of
-                         ;; arguments, which leads to
-                         ;; `eglot--update-hints-1' being called with
-                         ;; the same region repeatedly.  This happens
-                         ;; even if the hint-painting code does
-                         ;; nothing else other than widen, narrow,
-                         ;; move point then restore these things.
-                         ;; Possible Emacs bug, but this fixes it.
-                         (unless (equal last-region region)
-                           (eglot--update-hints-1 (max (car region) (point-min))
-                                                  (min (cdr region) (point-max)))
-                           (setq last-region region))
-                         (setq region (cons nil nil)
-                               timer nil)))))))))
+    ;; XXX: Then there is a smoothing timer.  I wish we didn't need it,
+    ;; but sometimes a lot of calls come in all at once and do make it
+    ;; past the check above.  Notice it is a 0 second timer though, so
+    ;; we're not introducing any more delay over jit-lock's timers.
+    (when timer (cancel-timer timer))
+    (setq timer (run-at-time
+                 0 nil
+                 (lambda (buf)
+                   (eglot--when-live-buffer buf
+                     ;; HACK: In some pathological situations
+                     ;; (Emacs's own coding.c, for example),
+                     ;; jit-lock is calling `eglot--update-hints'
+                     ;; repeatedly with same sequence of
+                     ;; arguments, which leads to
+                     ;; `eglot--update-hints-1' being called with
+                     ;; the same region repeatedly.  This happens
+                     ;; even if the hint-painting code does
+                     ;; nothing else other than widen, narrow,
+                     ;; move point then restore these things.
+                     ;; Possible Emacs bug, but this fixes it.
+                     (unless (equal last-region region)
+                       (eglot--update-hints-1 (max (car region) (point-min))
+                                              (min (cdr region) (point-max)))
+                       (setq last-region region))
+                     (setq region (cons nil nil)
+                           timer nil)))
+                 (current-buffer)))))
 
 (defun eglot--update-hints-1 (from to)
   "Do most work for `eglot--update-hints', including LSP request."
@@ -4367,6 +4397,224 @@ If NOERROR, return predicate, else erroring function."
         (t
          (jit-lock-unregister #'eglot--update-hints)
          (remove-overlays nil nil 'eglot--inlay-hint t))))
+
+
+;;; Call and type hierarchies
+(require 'button)
+(require 'tree-widget)
+
+(define-button-type 'eglot--hierarchy-item
+  'follow-link t
+  'face 'font-lock-function-name-face)
+
+(defun eglot--hierarchy-interactive (specs)
+  (let ((ans
+         (completing-read "[eglot] Direction (default both)?"
+                   (cons "both" (mapcar #'cl-fourth specs))
+                   nil t nil nil "both")))
+    (list
+     (cond ((equal ans "both") t)
+           (t (cl-third (cl-find ans specs :key #'cl-fourth :test #'equal)))))))
+
+(defmacro eglot--define-hierarchy-command
+    (name kind feature preparer specs)
+  `(defun ,name (direction)
+     ,(concat
+       "Show " kind " hierarchy for symbol at point.\n"
+       "DIRECTION can be:\n"
+       (cl-loop for (_ _ d e) in specs
+                concat (format "  - `%s' for %s;\n" d e))
+       "or t, the default, to consider both.\n"
+       "Interactively with a prefix argument, prompt for DIRECTION.")
+     (interactive (if current-prefix-arg
+                      (eglot--hierarchy-interactive ',specs)
+                    (list t)))
+     (let* ((specs ',specs)
+            (specs (if (eq t direction) specs
+                     (list
+                      (cl-find direction specs :key #'cl-third)))))
+       (eglot--hierarchy-1
+        (format "*EGLOT %s hierarchy for %s*"
+                ,kind
+                (eglot-project-nickname (eglot--current-server-or-lose)))
+        ,feature ,preparer specs))))
+
+(eglot--define-hierarchy-command
+ eglot-show-type-hierarchy
+ "type"
+ :typeHierarchyProvider
+ :textDocument/prepareTypeHierarchy
+ ((:typeHierarchy/supertypes " ↑ " derived "supertypes" "derives from")
+  (:typeHierarchy/subtypes " ↓ " base "subtypes" "base of")))
+
+(eglot--define-hierarchy-command
+ eglot-show-call-hierarchy
+ "call"
+ :callHierarchyProvider
+ :textDocument/prepareCallHierarchy
+ ((:callHierarchy/incomingCalls " ← " incoming "incoming calls" "called by"
+                                :from :fromRanges)
+  (:callHierarchy/outgoingCalls " → " base "outgoing calls" "calls"
+                                :to :fromRanges)))
+
+(defvar-local eglot--hierarchy-roots nil)
+(defvar-local eglot--hierarchy-specs nil)
+(defvar-local eglot--hierarchy-source-major-mode nil)
+
+(defun eglot--hierarchy-children (node)
+  (cl-flet ((get-them (method node)
+              (eglot--dbind ((HierarchyItem) name) node
+                (let* ((sym (intern (format "eglot--%s" method)))
+                       (plist (text-properties-at 0 name))
+                       (probe (cl-getf plist sym :none)))
+                  (cond ((eq probe :none)
+                         (let ((v (ignore-errors (jsonrpc-request
+                                                  (eglot--current-server-or-lose) method
+                                                  `(:item ,node)))))
+                           (put-text-property 0 1 sym v name)
+                           v))
+                        (t probe))))))
+    (cl-loop
+     with specs = eglot--hierarchy-specs
+     for (method bullet _ _ hint key ranges) in specs
+     for resp = (get-them method node)
+     for items =
+     (cl-loop for r across resp
+              for item = (if key (plist-get r key) r)
+              collect item
+              do (eglot--dbind ((HierarchyItem) name) item
+                   (put-text-property 0 1 'eglot--hierarchy-method
+                                      method name)
+                   (put-text-property 0 1 'eglot--hierarchy-bullet
+                                      (propertize bullet
+                                                  'help-echo hint)
+                                      name)
+                   (when ranges
+                     (put-text-property 0 1 'eglot--hierarchy-call-sites
+                                        (plist-get r ranges)
+                                        name))))
+     append items)))
+
+(defvar eglot-hierarchy-label-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map button-map)
+    (define-key map [mouse-3] (eglot--mouse-call
+                               #'eglot-hierarchy-center-on-node))
+    map)
+  "Keymap active in labels Eglot hierarchy buffers.")
+
+(defun eglot--hierarchy-label (node)
+  (eglot--dbind ((HierarchyItem) name uri _detail ((:range item-range))) node
+    (with-temp-buffer
+      (insert (propertize
+               (or (get-text-property
+                    0 'eglot--hierarchy-bullet name)
+                   " ∘ ")
+               'face 'shadow))
+      (insert-text-button
+       name
+       :type 'eglot--hierarchy-item
+       'eglot--hierarchy-node node
+       'help-echo "mouse-1, RET: goto definition, mouse-3: center on node"
+       'keymap eglot-hierarchy-label-map
+       'action
+       (lambda (_btn)
+         (pop-to-buffer (find-file-noselect (eglot-uri-to-path uri)))
+         (eglot--goto
+          (or
+           (elt
+            (get-text-property 0 'eglot--hierarchy-call-sites name)
+            0)
+           item-range))))
+      (buffer-string))))
+
+(defun eglot--hierarchy-1 (name provider preparer specs)
+  (eglot-server-capable-or-lose provider)
+  (let* ((server (eglot-current-server))
+         (mode major-mode)
+         (roots (jsonrpc-request
+                 server
+                 preparer
+                 (eglot--TextDocumentPositionParams))))
+    (unless (cl-plusp (length roots))
+      (eglot--error "No hierarchy information here"))
+    (with-current-buffer (get-buffer-create name)
+      (eglot-hierarchy-mode)
+      (setq-local
+       eglot--hierarchy-roots roots
+       eglot--hierarchy-specs specs
+       eglot--cached-server server
+       eglot--hierarchy-source-major-mode mode
+       buffer-read-only t
+       revert-buffer-function
+       (lambda (&rest _ignore)
+         ;; flush cache, would defeat purpose of a revert
+         (mapc (lambda (r)
+                 (eglot--dbind ((HierarchyItem) name) r
+                   (set-text-properties 0 1 nil name)))
+               eglot--hierarchy-roots)
+         (eglot--hierarchy-2)))
+      (eglot--hierarchy-2))))
+
+(defun eglot--hierarchy-2 ()
+  (cl-labels ((expander-for (node)
+                (lambda (_widget)
+                  (mapcar
+                   #'convert
+                   (eglot--hierarchy-children node))))
+              (convert (node)
+                (let ((w (widget-convert
+                          'tree-widget
+                          :tag (eglot--hierarchy-label node)
+                          :expander (expander-for node))))
+                  (widget-put w :empty-icon
+                              (widget-get w :leaf-icon))
+                  w)))
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (mapc (lambda (r)
+              (let ((w (widget-create (convert r))))
+                (widget-apply-action w)))
+            eglot--hierarchy-roots)
+      (goto-char (point-min))))
+    (pop-to-buffer (current-buffer)))
+
+(define-derived-mode eglot-hierarchy-mode special-mode
+  "Eglot special" "Eglot mode for viewing hierarchies.
+\\{eglot-hierarchy-mode-map}"
+  :interactive nil
+  (setq eldoc-documentation-strategy
+        #'eldoc-documentation-compose)
+  (add-hook 'eldoc-documentation-functions
+            #'eglot-hierarchy-detail-eldoc-function
+            nil t)
+  (add-hook 'eldoc-documentation-functions
+            #'eglot-hierarchy-locus-eldoc-function
+            t t))
+
+(defun eglot-hierarchy-center-on-node ()
+  "Refresh hierarchy, centering on node at point."
+  (interactive)
+  (setq-local eglot--hierarchy-roots
+              (list (get-text-property (point)
+                                       'eglot--hierarchy-node)))
+  (eglot--hierarchy-2))
+
+(defun eglot-hierarchy-detail-eldoc-function (_cb &rest _ignored)
+  (when-let* ((detail
+               (plist-get (get-text-property (point) 'eglot--hierarchy-node)
+                          :detail)))
+    (eglot--format-markup detail eglot--hierarchy-source-major-mode)))
+
+(defun eglot-hierarchy-locus-eldoc-function (_cb &rest _ignored)
+  (let* ((node (get-text-property (point) 'eglot--hierarchy-node))
+         (uri (plist-get node :uri))
+         (loc (plist-get (plist-get node :range) :start)))
+    (and uri loc
+         ;; maybe use `file-relative-name'?
+         (format "%s:%s:%s" (eglot-uri-to-path uri)
+                 (1+ (plist-get loc :line))
+                 (plist-get loc :character)))))
 
 
 ;;; Hacks

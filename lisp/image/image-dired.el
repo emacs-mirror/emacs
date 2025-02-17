@@ -950,6 +950,15 @@ You probably want to use this together with
 
 (defvar-keymap image-dired-thumbnail-mode-map
   :doc "Keymap for `image-dired-thumbnail-mode'."
+
+  ;; Regular navigation
+  "f"          #'image-dired-forward-image
+  "b"          #'image-dired-backward-image
+  "n"          #'image-dired-next-line
+  "p"          #'image-dired-previous-line
+  "a"          #'image-dired-move-beginning-of-line
+  "e"          #'image-dired-move-end-of-line
+
   "d"          #'image-dired-flag-thumb-original-file
   "<delete>"   #'image-dired-flag-thumb-original-file
   "m"          #'image-dired-mark-thumb-original-file
@@ -2084,7 +2093,7 @@ when using per-directory thumbnail file storage"))
 ;;            ;; Sort function.  Compare time between two files.
 ;;            (lambda (l1 l2)
 ;;               (time-less-p (car l1) (car l2)))))
-;;          (dirsize (apply '+ (mapcar (lambda (x) (cadr x)) files))))
+;;          (dirsize (apply #'+ (mapcar #'cadr files))))
 ;;     (while (> dirsize image-dired-dir-max-size)
 ;;       (y-or-n-p
 ;;        (format "Size of thumbnail directory: %d, delete old file %s? "

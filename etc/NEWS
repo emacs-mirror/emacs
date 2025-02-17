@@ -41,12 +41,12 @@ incorrectly in rare cases.
 
 ** In compatible terminals, 'xterm-mouse-mode' is turned on by default.
 For these terminals the mouse will work by default.  A compatible
-terminal is one that supports Emacs seting and getting the OS selection
+terminal is one that supports Emacs setting and getting the OS selection
 data (a.k.a. the clipboard) and mouse button and motion events.  With
-xterm-mouse-mode enabled, you must use Emacs keybindings to copy to the
+'xterm-mouse-mode' enabled, you must use Emacs keybindings to copy to the
 OS selection instead of terminal-specific keybindings.
 
-You can keep the old behavior by putting `(xterm-mouse-mode -1)' in your
+You can keep the old behavior by putting '(xterm-mouse-mode -1)' in your
 init file.
 
 
@@ -75,7 +75,7 @@ In particular:
 To enable tooltips on TTY frames, call 'tty-tip-mode'.
 
 The presence of child frame support on TTY frames can be checked with
-`(featurep 'tty-child-frames)'.
+'(featurep 'tty-child-frames)'.
 
 Recent versions of Posframe and Corfu are known to use child frames on
 TTYs if they are supported.
@@ -108,7 +108,7 @@ instead of its now-obsolete variable.
 ** Network Security Manager (NSM) is now more strict.
 
 *** NSM warns about TLS 1.1 by default.
-It has been deprecated by RFC8996, published in 2021.
+It has been deprecated by RFC 8996, published in 2021.
 
 *** NSM warns about DHE and RSA key exchange by default.
 Emacs now warns about ephemeral Diffie-Hellman key exchange, and static
@@ -176,18 +176,22 @@ will still be on that candidate after "*Completions*" is updated with a
 new list of completions.  The candidate is automatically deselected when
 the "*Completions*" buffer is hidden.
 
+---
+*** New user option 'crm-prompt' for 'completing-read-multiple'.
+This option configures the prompt format of 'completing-read-multiple'.
+By default the prompt indicates to the user that the completion command
+accepts a comma-separated list.  The prompt format can include the
+separator description and the separator string, which are both stored as
+text properties of the 'crm-separator' regular expression.
+
 ** Windows
 
 +++
 *** New functions to modify window layout.
 Several functions to modify the window layout have been added:
-'rotate-window-layout-clockwise'
-'rotate-window-layout-anticlockwise'
-'flip-window-layout-vertically'
-'flip-window-layout-horizontally'
-'transpose-window-layout'
-'rotate-windows'
-'rotate-windows-back'
+'rotate-window-layout-clockwise', 'rotate-window-layout-anticlockwise',
+'flip-window-layout-vertically', 'flip-window-layout-horizontally',
+'transpose-window-layout', 'rotate-windows', and 'rotate-windows-back'.
 
 +++
 *** New hook 'window-deletable-functions'.
@@ -230,6 +234,14 @@ It has been obsolete since Emacs 30.1.  Use '(category . comint)' instead.
 Another user option 'display-tex-shell-buffer-action' has been removed too
 for which you can use '(category . tex-shell)'.
 
++++
+*** New user option 'split-window-preferred-direction'.
+Users can now choose in which direction Emacs tries to split first:
+vertical or horizontal.  With this new setting, when the frame is in
+landscape shape for instance, Emacs could split horizontally before
+splitting vertically.  The default setting preserves Emacs historical
+behavior to try to split vertically first.
+
 ** Frames
 
 +++
@@ -254,11 +266,11 @@ adjustment when a tab is restored, and avoids advice.
 *** New user option 'tab-bar-define-keys'.
 This controls which key bindings tab-bar creates.  Values are t, the
 default, which defines all keys and is backwards compatible, 'numeric'
-(tab number selection only), 'tab' (TAB and SHIFT-TAB keys only), nil
+(tab number selection only), 'tab' ('TAB' and 'S-TAB' keys only), nil
 (which defines none).
 
 This is useful to avoid key binding conflicts, such as when folding in
-outline mode using TAB keys, or when a user wants to define her own
+outline mode using 'TAB' keys, or when a user wants to define her own
 tab-bar keys without first having to remove the defaults.
 
 ---
@@ -275,10 +287,20 @@ docstring for arguments passed to a help-text function.
 It is equivalent to running ‘project-any-command’ with ‘find-file’.
 
 ---
+*** Improved prompt for 'project-switch-project'.
+The prompt now displays the chosen project on which to invoke a command.
+
+---
 *** The MAYBE-PROMPT argument of 'project-current' can be a string.
 When such value is used, the 'project-prompter' is called with it as the
 first argument.  This is a way for the callers to indicate, for example,
 the reason or the context why the project is asked for.
+
+---
+*** New command 'project-find-matching-file'
+It can be used when switching between projects with similar file trees
+(such as Git worktrees of the same repository).  It supports being
+invoked standalone or from the 'project-switch-commands' dispatch menu.
 
 ** Registers
 
@@ -300,6 +322,11 @@ on the header lines are now these two: the selected window uses
 'header-line-active', non-selected windows use 'header-line-inactive'.
 
 ** In 'customize-face', the "Font family" attribute now supports completion.
+
+** 'process-adaptive-read-buffering' is now nil by default.
+Setting this variable to a non-nil value reduces performance and leads
+to wrong results in some cases.  We believe that it is no longer useful;
+please contact us if you still need it for some reason.
 
 
 * Editing Changes in Emacs 31.1
@@ -386,13 +413,15 @@ modal editing packages.
 
 ---
 ** ASM mode
+
 *** 'asm-mode-set-comment-hook' is obsolete.
 You can now set `asm-comment-char' from 'asm-mode-hook' instead.
 
 ---
 ** Ibuffer
+
 *** New column 'recency' in Ibuffer display.
-The variable 'ibuffer-formats' configures the Ibuffer formats.  Add
+The user option 'ibuffer-formats' configures the Ibuffer formats.  Add
 'recency' to the format to display the column.
 
 *** New value 'title' for the user option 'ibuffer-use-header-line'.
@@ -402,14 +431,32 @@ set to 'title'.
 *** New user option 'ibuffer-human-readable-size'.
 When non-nil, buffer sizes are shown in human readable format.
 
+---
+** Buffer Menu
+
+*** New user option 'Buffer-menu-human-readable-sizes'.
+When non-nil, buffer sizes are shown in human readable format.  The
+default is nil, which retains the old format.
+
 ** Smerge
+
 *** New command 'smerge-extend' extends a conflict over surrounding lines.
+
+*** New command 'smerge-refine-exchange-point' to jump to the other side.
+When used inside a refined chunk, it jumps to the matching position in
+the "other" side of the refinement: if you're in the new text, it jumps
+to the corresponding position in the old text and vice versa.
 
 ** Image Dired
 
 *** 'image-dired-show-all-from-dir' takes the same first argument as 'dired'.
 This allows passing a string with wildcards, or a cons cell where the
 first element is a list and the rest is a list of files.
+
+*** Bound unused letters in 'image-dired-thumbnail-mode-map'
+For a more comfortable navigation experience (as in, no modifier keys),
+the keys "f", "b", "n", "p", "a" and "e" are now bound to the
+same functions as their C- counterparts.
 
 ** Browse URL
 
@@ -424,7 +471,7 @@ a web browser to load them.  For example, it could be used like this:
 For better integration with the Qutebrowser, set
 'browse-url(-secondary)-browser-function' to 'browse-url-qutebrowser'.
 
-*** New GTK-native launch mode
+*** New GTK-native launch mode.
 For better Wayland support, the pgtk toolkit exposes a new
 'x-gtk-launch-uri' browse-url handler and uses it by default when URLs
 are browsed from a PGTK frame.  For other frames, we fall back to the
@@ -451,6 +498,58 @@ Such bindings make it possible to compute which function to bind to FUNC.
 If 'whitespace-style' includes 'missing-newline-at-eof' (which is the
 default), the 'whitespace-cleanup' function will now add the newline.
 
+** Bookmark
+
+---
+*** Bookmark history now saves each bookmark only once.
+Previously, the variable 'bookmark-history' accumulated duplicate
+bookmark names when bookmark features were used interactively.  This
+made their history larger than necessary for frequent bookmark users.
+Bookmark names are now saved uniquely.
+
+---
+*** New user option 'bookmark-bmenu-type-column-width'.
+This user option controls the width of the type column on the bookmark
+menu 'bookmark-bmenu-list'.  The default value is 8 which is backwards
+compatible.
+
+** Saveplace
+
+---
+*** You can now regularly auto-save places.
+Customize user option 'save-place-autosave-interval' to the number of
+seconds between auto saving places.  For example, to save places every 5
+minutes:
+
+    M-x customize-option RET save-place-autosave-interval RET 300
+
+Or in Elisp:
+
+    (setopt save-place-autosave-interval (* 60 5))
+
+If 'save-place-autosave-interval' is nil, auto saving is disabled; this
+is the default.  As before, saved places are scheduled to be saved at
+Emacs exit.
+
+** Savehist
+
+---
+*** Savehist no longer saves additional variables more than once.
+If you configured 'savehist-additional-variables' with variables that
+were also dynamically accumulated in minibuffer history during
+minibuffer use, they are now saved only once in the file specified by
+'savehist-file'.  Previously, they were saved twice.
+
+** Message
+
+---
+*** "In-Reply-To" header contains only a message id.
+The "In-Reply-To" header created when replying to a message now contains
+only the originating message's id, conforming to RFC 5322.  The previous
+behavior included additional information about the originating message.
+The new variable 'message-header-use-obsolete-in-reply-to', nil by
+default, can be set to a non-nil value to restore the previous behavior.
+
 ** Gnus
 
 ---
@@ -458,6 +557,13 @@ default), the 'whitespace-cleanup' function will now add the newline.
 When called with a prefix argument, accepting, declining, or tentatively
 accepting an icalendar event will prompt for a comment to add to the
 response.
+
+** Sieve
+
++++
+*** New keybinding to refresh buffer in 'sieve-manage-mode'.
+'sieve-refresh-scriptlist' is now bound to 'g' to refresh the contents
+of the current sieve buffer.
 
 ** Button
 
@@ -473,6 +579,12 @@ It removes all the buttons in the specified region.
 *** New command to complete the shell history.
 'comint-complete-input-ring' ('C-x <up>') is like 'minibuffer-complete-history'
 but completes on comint inputs.
+
+---
+*** 'ansi-osc-directory-tracker' now respects remote directories.
+Remote directories are now retained when changes to 'default-directory'
+are detected by this filter.  For example, "/ssh:hostname:/home/username"
+would have been stripped to just "/home/username" before.
 
 ** Eshell
 
@@ -561,6 +673,32 @@ only search in input history.  If you customize it to the symbol 'dwim',
 those commands search in input history only when the point is after the
 last prompt.
 
++++
+** Mail-util
+
+*** New user option 'mail-re-regexps'.
+This contains the list of regular expressions used to match "Re:" and
+international variants of it when modifying the Subject field in
+replies.
+
++++
+** Rmail
+
+*** 'rmail-re-abbrevs' default value is now derived from 'mail-re-regexps'.
+'mail-re-regexps' is a new user option that is easier to customize than
+'rmail-re-abbrevs'.  'rmail-re-abbrevs' is still honored if it was
+already set.
+
++++
+** Message
+
+*** 'message-subject-re-regexp' default value is now derived from 'mail-re-regexps'.
+'mail-re-regexps' is a new user option that is easier to customize than
+'message-subject-re-regexp'.  'message-subject-re-regexp' is still
+honored if it was already set.
+
+*** 'message-strip-subject-re' now matches case-insensitively.
+
 ** SHR
 
 +++
@@ -647,7 +785,6 @@ build tags for the test commands.
 The 'go-ts-mode-test-flags' user option is available to set a list of
 additional flags to pass to the go test command line.
 
-
 ** C-ts mode
 
 +++
@@ -718,6 +855,13 @@ index for DjVu files from its outline.  Indices for Open Document Format
 the 'mutool' program after their initial conversion to PDF format.  The
 name of the 'djvused' program can be customized by changing the user
 option 'doc-view-djvused-program'.
+
+** Ispell
+
+---
+*** The default value of 'ispell-help-timeout' has changed.
+The default value is now 30 seconds, as the old value was too short to
+allow reading the help text.
 
 ** Flyspell
 
@@ -861,6 +1005,30 @@ the 'grep' results editable.  The edits will be reflected in the buffer
 visiting the originating file.  Typing 'C-c C-c' will leave the Grep
 Edit mode.
 
+** Time Stamp
+
+---
+*** 'time-stamp' can up-case, capitalize and down-case date words.
+This control can be useful in languages in which days of the week and/or
+month names are capitalized only at the beginning of a sentence.  For
+details, see the built-in documentation for user option 'time-stamp-format'.
+
+Because this feature is new in Emacs 31.1, do not use it in the local
+variables section of any file that might be edited by an older version
+of Emacs.
+
+---
+*** Some historical 'time-stamp' conversions now warn.
+'time-stamp-pattern' and 'time-stamp-format' had quietly accepted
+several 'time-stamp' conversions (e.g., "%:y") that have been deprecated
+since Emacs 27.1.  These now generate a warning with a suggested
+migration.
+
+Merely having '(add-hook 'before-save-hook 'time-stamp)'
+in your Emacs init file does not expose you to this change.
+However, if you set 'time-stamp-format' or 'time-stamp-pattern'
+with a file-local variable, you may be asked to update the value.
+
 ** TeX modes
 
 +++
@@ -915,6 +1083,14 @@ default to using "python", falling back to "python3" if it does not
 exist.  If "python" points to Python 2 on your system, you now have to
 customize these variables to "python3" if you want to use Python 3
 instead.
+
+---
+*** Python 2 support is now optional and disabled by default.
+Since Python 2 EOL was over 5 years ago, this release removes Python
+2-only builtins such as "file" from the default highlighting in
+'python-mode' and 'python-ts-mode'.  If you would like them highlighted,
+customize the new user option 'python-2-support' to a non-nil value and
+restart Emacs.
 
 ---
 *** Support of 'electric-layout-mode' added.
@@ -987,6 +1163,12 @@ the directory into which the repository was cloned.
 
 ** Package
 
++++
+*** No longer warn if a package has no footer line.
+package.el no longer warns for packages without a "footer line", which
+is the line that usually appears at the very end of an Emacs Lisp file:
+;;; FILENAME ends here
+
 ---
 *** New optional argument to 'package-autoremove'.
 An optional argument NOCONFIRM has been added to 'package-autoremove'.
@@ -998,6 +1180,14 @@ removing packages.
 *** New prefix argument for 'package-install-selected-packages'.
 When invoked with a prefix argument, 'package-install-selected-packages'
 will not prompt the user for confirmation before installing packages.
+
+---
+*** 'package-refresh-contents' runs asynchronously.
+Refreshing the package index will no longer block when invoked
+interactively.
+
++++
+*** package-x.el is now obsolete.
 
 ** Xref
 
@@ -1012,6 +1202,19 @@ destination window is chosen using 'display-buffer-alist'.  Example:
                                    display-buffer-use-some-window)
                                   (some-window . mru))))
 
+** Autorevert
+
++++
+*** New variable 'inhibit-auto-revert-buffers'.
+While a buffer is member of this variable, a list of buffers,
+auto-reverting of this buffer is suppressed.
+
++++
+*** New macro 'inhibit-auto-revert'.
+This macro adds the current buffer to 'inhibit-auto-revert-buffers',
+runs its body, and removes the current buffer from
+'inhibit-auto-revert-buffers' afterwards.
+
 
 * New Modes and Packages in Emacs 31.1
 
@@ -1021,10 +1224,13 @@ destination window is chosen using 'display-buffer-alist'.  Example:
 ** Nested backquotes are not supported any more in Pcase patterns.
 
 ---
-** The obsolete variable `redisplay-dont-pause' has been removed.
+** The obsolete variable 'redisplay-dont-pause' has been removed.
 
 ** The 'rx' category name 'chinese-two-byte' must now be spelled correctly.
 An old alternative name (without the first 'e') has been removed.
+
++++
+** 'read-directory-name' now accepts an optional PREDICATE argument.
 
 ---
 ** All the digit characters now have the 'digit' category.
@@ -1097,7 +1303,7 @@ authorize the invoked D-Bus method (for example via polkit).
 ** The customization group 'wp' has been removed.
 It has been obsolete since Emacs 26.1.  Use the group 'text' instead.
 
-** Changes in tree-sitter modes.
+** Changes in tree-sitter modes
 
 +++
 *** Indirect buffers can have their own parser list.
@@ -1122,7 +1328,7 @@ override flag by 'treesit-font-lock-setting-query',
 'treesit-font-lock-setting-feature', 'treesit-font-lock-setting-enable',
 and 'treesit-font-lock-setting-override'.
 
-*** New treesit thing 'list'.
+*** New tree-sitter thing 'list'.
 Unlike the existing thing 'sexp' that defines both lists and atoms,
 'list' defines only lists to be navigated by 'forward-sexp'.
 The new function 'treesit-forward-sexp-list' uses 'list'
@@ -1145,9 +1351,9 @@ used to communicate the tree-sitter parsing results to
 
 *** Tree-sitter enabled modes now properly support 'hs-minor-mode'.
 All commands from hideshow.el can selectively display blocks
-defined by the new treesit thing 'list'.
+defined by the new tree-sitter thing 'list'.
 
-*** New treesit thing 'comment'.
+*** New tree-sitter thing 'comment'.
 The new variable 'forward-comment-function' is set to the new function
 'treesit-forward-comment' if a major mode defines the thing 'comment'.
 
@@ -1159,26 +1365,26 @@ variable 'treesit-language-display-name-alist' holds the translations of
 language symbols where that translation is not trivial.
 
 +++
-*** New command 'treesit-explore'
+*** New command 'treesit-explore'.
 This command replaces 'treesit-explore-mode'.  It turns on
 'treesit-explore-mode' if it’s not on, and pops up the explorer buffer
 if it’s already on.
 
 +++
-*** 'treesit-explore-mode' now supports local parsers
+*** 'treesit-explore-mode' now supports local parsers.
 Now 'treesit-explore-mode' (or 'treesit-explore') prompts for a parser
 rather than a language, and it’s now possible to select a local parser
 at point to explore.
 
 +++
-*** New variable 'treesit-aggregated-simple-imenu-settings'
+*** New variable 'treesit-aggregated-simple-imenu-settings'.
 This variable allows major modes to setup Imenu for multiple languages.
 
-*** New function 'treesit-add-simple-indent-rules'
+*** New function 'treesit-add-simple-indent-rules'.
 This new function makes it easier to customize indent rules for
 tree-sitter modes.
 
-*** New variable 'treesit-simple-indent-override-rules'
+*** New variable 'treesit-simple-indent-override-rules'.
 Users can customize this variable to add simple custom indentation rules
 for tree-sitter major modes.
 
@@ -1261,6 +1467,17 @@ provide instructions for finding the definition.
 New convenience function 'find-function-update-type-alist' offers a
 concise way to update a symbol's 'find-function-type-alist' property.
 
+** Special Events
+
++++
+*** New primitive 'insert-special-event'.
+This function inserts the special EVENT into the input event queue.
+
++++
+*** New event type 'sleep-event'.
+This event is sent when the device running Emacs enters or leaves the
+sleep state.
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 
@@ -1318,6 +1535,12 @@ means of the GDI+ library.
 ** Emacs on MS-Windows now supports the ':data' keyword for 'play-sound'.
 In addition to ':file FILE' for playing a sound from a file, ':data
 DATA' can now be used to play a sound from memory.
+
+---
+** New major mode 'go-work-ts-mode'.
+A major mode based on the tree-sitter library for editing "go.work"
+files.  If tree-sitter is properly set-up by the user, it can be
+enabled for files named "go.work".
 
 
 ----------------------------------------------------------------------

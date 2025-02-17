@@ -95,6 +95,14 @@ modify things in their .emacs.
 
 ** See if other files can use generated-autoload-file (see e.g. ps-print)
 
+** Come up with better set of keywords for 'finder-known-keywords'.
+Eli writes: "The keywords we use today are IMO not rational and mostly
+not useful.  On the one hand, we have specific keywords like 'abbrevs',
+OTOH we have general and vague keywords like 'convenience' and 'tools'
+...  I'd very much appreciate if someone will volunteer to rethink our
+keywords and come up with a useful list (which probably will be
+longer)."
+
 ** Do interactive mode tagging for commands
 Change "(interactive)" to "(interactive nil foo-mode)" for command
 completion purposes.  Pick a major mode or ELisp library, and check

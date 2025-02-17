@@ -1420,10 +1420,11 @@ this search is skipped for remote files.  If needed, the search can be
 extended for remote files by setting the variable
 @code{enable-remote-dir-locals} to @code{t}.
 
-  You can also use @file{.dir-locals-2.el}; if found, Emacs loads it
-in addition to @file{.dir-locals.el}.  This is useful when
-@file{.dir-locals.el} is under version control in a shared repository
-and can't be used for personal customizations.
+  You can also use @file{.dir-locals-2.el}; if found in the same
+directory as @file{.dir-locals.el}, Emacs loads it in addition to
+@file{.dir-locals.el}.  This is useful when @file{.dir-locals.el} is
+under version control in a shared repository and can't be used for
+personal customizations.
 
   The @file{.dir-locals.el} file should hold a specially-constructed
 list, which maps major mode names (symbols) to alists

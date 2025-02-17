@@ -289,12 +289,7 @@ supersede the message in the current buffer.
 
 @vindex message-ignored-supersedes-headers
 Headers matching the @code{message-ignored-supersedes-headers} are
-removed before popping up the new message buffer.  The default is@*
-@samp{^Path:\\|^Date\\|^NNTP-Posting-Host:\\|^Xref:\\|^Lines:\\|@*
-^Received:\\|^X-From-Line:\\|^X-Trace:\\|^X-Complaints-To:\\|@*
-Return-Path:\\|^Supersedes:\\|^NNTP-Posting-Date:\\|^X-Trace:\\|@*
-^X-Complaints-To:\\|^Cancel-Lock:\\|^Cancel-Key:\\|^X-Hashcash:\\|@*
-^X-Payment:\\|^Approved:}.
+removed before popping up the new message buffer.
 
 
 
@@ -1693,13 +1688,14 @@ result is inserted.
 
 @item message-subject-re-regexp
 @vindex message-subject-re-regexp
+@vindex mail-re-regexps
 @cindex Aw
 @cindex Sv
 @cindex Re
 Responses to messages have subjects that start with @samp{Re: }.  This
 is @emph{not} an abbreviation of the English word ``response'', but it
 comes from the Latin ``res'', and means ``in the matter of''.  Some
-illiterate nincompoops have failed to grasp this fact, and have
+companies, seemingly allergic to standards, have failed to grasp this fact, and have
 ``internationalized'' their software to use abominations like
 @samp{Aw: } (``antwort'') or @samp{Sv: } (``svar'') instead, which is
 meaningless and evil.  However, you may have to deal with users that
@@ -1730,6 +1726,16 @@ responding to a message:
        "*[ \t]*"
        ))
 @end lisp
+
+You shouldn't need to do this, since the default value of
+@code{message-subject-re-regexp} is initialized based on
+@code{mail-re-regexps}, which covers most known cases of such
+internationalization, and is a lot easier to customize.  Customizing
+@code{mail-re-regexps} updates @code{message-subject-re-regexp} to
+match.
+
+Note that the regexp is matched case-insensitively against the
+@samp{Subject} header contents.
 
 @item message-subject-trailing-was-query
 @vindex message-subject-trailing-was-query
@@ -1790,6 +1796,12 @@ A list of lists of header synonyms.  E.g., if this list contains a
 member list with elements @code{CC} and @code{To}, then
 @code{message-carefully-insert-headers} will not insert a @code{To}
 header when the message is already @code{CC}ed to the recipient.
+
+@item message-header-use-obsolete-in-reply-to
+@vindex message-header-use-obsolete-in-reply-to
+When non-@code{nil}, use an obsolete form of the @code{In-Reply-To}
+header that includes a parenthetical phrase with details of the
+originating email following the message id.  The default is @code{nil}.
 
 @item message-syntax-checks
 @vindex message-syntax-checks

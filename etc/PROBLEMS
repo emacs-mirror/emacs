@@ -2815,6 +2815,19 @@ set the 'visible-cursor' variable to nil in your ~/.emacs:
 Still other way is to change the "cvvis" capability to send the
 "\E[?25h\E[?0c" command.
 
+*** GNU/Linux: GPM mouse does not display pointer, but otherwise works.
+
+This happens on Linux kernel versions from 6.7 to 6.13.  On these
+versions, the Linux kernel does not allow programs to draw the mouse
+pointer unless they have superuser permissions.  The GPM daemon
+normally has such permissions and it draws the mouse pointer for other
+programs such as your shell and many ncurses based programs, but not
+for Emacs.
+
+To solve this, you need to change your kernel to a version with this bug
+fixed, such as 6.14 or later.  See associated Linux kernel fix:
+https://lore.kernel.org/regressions/20250110142122.1013222-1-gnoack@google.com/
+
 ** FreeBSD
 
 *** FreeBSD: Getting a Meta key on the console.
@@ -3790,6 +3803,16 @@ the back-facing fingerprint sensor, which generates F3 key events on
 devices manufactured by OnePlus and possibly others.  Sadly, to the best
 of our knowledge such events cannot be distinguished from legitimate
 keypresses.
+
+** Emacs crashes or is not acknowledged by the OS when requesting storage permissions.
+
+This is only possible on Wear OS (an Android distribution), where the
+system component that provides confirmation dialogs for this type of
+permission is unavailable.  You may circumvent this component by
+connecting to your device over ADB as in the preceding entries and
+executing:
+
+  $ adb shell appops set --uid org.gnu.emacs MANAGE_EXTERNAL_STORAGE allow
 
 * Build-time problems
 

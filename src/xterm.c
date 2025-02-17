@@ -27553,7 +27553,7 @@ x_calc_absolute_position (struct frame *f)
 
   /* Treat negative positions as relative to the leftmost bottommost
      position that fits on the screen.  */
-  if ((flags & XNegative) && (f->left_pos <= 0))
+  if (flags & XNegative)
     {
       int width = FRAME_PIXEL_WIDTH (f);
 
@@ -27580,7 +27580,7 @@ x_calc_absolute_position (struct frame *f)
 
     }
 
-  if ((flags & YNegative) && (f->top_pos <= 0))
+  if (flags & YNegative)
     {
       int height = FRAME_PIXEL_HEIGHT (f);
 
@@ -30632,7 +30632,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   block_input ();
 
+#ifdef USE_GTK
   bool was_initialized = x_initialized;
+#endif /* USE_GTK */
   if (!x_initialized)
     {
       x_initialize ();

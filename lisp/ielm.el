@@ -580,7 +580,6 @@ Customized bindings may be defined in `ielm-map', which currently contains:
        ielm-fontify-input-enable
        (comint-fontify-input-mode))
 
-  (setq-local trusted-content :all)
   (setq comint-prompt-regexp (concat "^" (regexp-quote ielm-prompt)))
   (setq-local paragraph-separate "\\'")
   (setq-local paragraph-start comint-prompt-regexp)
@@ -684,7 +683,8 @@ See `inferior-emacs-lisp-mode' for details."
     (unless (comint-check-proc buf-name)
       (with-current-buffer (get-buffer-create buf-name)
         (unless (zerop (buffer-size)) (setq old-point (point)))
-        (inferior-emacs-lisp-mode)))
+        (inferior-emacs-lisp-mode)
+        (setq-local trusted-content :all)))
     (pop-to-buffer-same-window buf-name)
     (when old-point (push-mark old-point))))
 

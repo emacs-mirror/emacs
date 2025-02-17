@@ -2854,7 +2854,7 @@ installed through `spam-necessary-extra-headers'."
     ;; Don't install things more than once.
     (setq spam-install-hooks nil)))
 
-(defun spam-unload-hook ()
+(defun spam-unload-function ()
   "Uninstall the spam.el hooks."
   (interactive)
   (spam-teardown-widening)
@@ -2864,11 +2864,12 @@ installed through `spam-necessary-extra-headers'."
   (remove-hook 'gnus-summary-prepare-exit-hook #'spam-summary-prepare-exit)
   (remove-hook 'gnus-summary-prepare-hook #'spam-summary-prepare)
   (remove-hook 'gnus-get-new-news-hook #'spam-setup-widening)
-  (remove-hook 'gnus-summary-prepare-hook #'spam-find-spam))
-
-(add-hook 'spam-unload-hook #'spam-unload-hook)
+  (remove-hook 'gnus-summary-prepare-hook #'spam-find-spam)
+  nil)
 
 ;;}}}
+
+(define-obsolete-function-alias 'spam-unload-hook #'spam-unload-function "31.1")
 
 (provide 'spam)
 

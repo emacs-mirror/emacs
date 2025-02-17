@@ -534,4 +534,14 @@
                             'utf-8 nil (current-buffer))
       (should (null (sanity-check-change-functions-errors))))))
 
+(ert-deftest editfns-tests-styled-print ()
+  "Test bug#75754."
+   (let* ((print-unreadable-function
+          (lambda (&rest _args)
+             (garbage-collect)
+             (make-string 100 ?Ā t)))
+          (str "\"[1] ĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀĀ\""))
+     (should (string= (format "%S" (format "%S %S" [1] (symbol-function '+)))
+                      str))))
+
 ;;; editfns-tests.el ends here

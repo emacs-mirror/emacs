@@ -101,47 +101,44 @@ this happens automatically before saving `save-place-alist' to
   :type 'boolean)
 
 (defun save-place-load-alist-from-file ()
-  (if (not save-place-loaded)
-      (progn
-        (setq save-place-loaded t)
-        (let ((file (expand-file-name save-place-file)))
-          ;; make sure that the alist does not get overwritten, and then
-          ;; load it if it exists:
-          (if (file-readable-p file)
-              ;; don't want to use find-file because we have been
-              ;; adding hooks to it.
-              (with-current-buffer (get-buffer-create " *Saved Places*")
-                (delete-region (point-min) (point-max))
-                ;; Make sure our 'coding:' cookie in the save-place
-                ;; file will take effect, in case the caller binds
-                ;; coding-system-for-read.
-                (let (coding-system-for-read)
-                  (insert-file-contents file))
-                (goto-char (point-min))
-                (setq save-place-alist
-                      (with-demoted-errors "Error reading save-place-file: %S"
-                        (car (read-from-string
-                              (buffer-substring (point-min) (point-max))))))
+  (unless save-place-loaded
+    (setq save-place-loaded t)
+    ;; FIXME: Obey `save-place-abbreviate-file-names'?
+    (let ((file (expand-file-name save-place-file)))
+      ;; make sure that the alist does not get overwritten, and then
+      ;; load it if it exists:
+      (when (file-readable-p file)
+        ;; don't want to use find-file because we have been
+        ;; adding hooks to it.
+        (with-temp-buffer
+          ;; Make sure our 'coding:' cookie in the save-place
+          ;; file will take effect, in case the caller binds
+          ;; coding-system-for-read.
+          (let (coding-system-for-read)
+            (insert-file-contents file))
+          (goto-char (point-min))
+          (setq save-place-alist
+                (with-demoted-errors "Error reading save-place-file: %S"
+                  (car (read-from-string
+                        (buffer-substring (point-min) (point-max))))))
 
-                ;; If there is a limit, and we're over it, then we'll
-                ;; have to truncate the end of the list:
-                (if save-place-limit
-                    (if (<= save-place-limit 0)
-                        ;; Zero gets special cased.  I'm not thrilled
-                        ;; with this, but the loop for >= 1 is tight.
-                        (setq save-place-alist nil)
-                      ;; Else the limit is >= 1, so enforce it by
-                      ;; counting and then `setcdr'ing.
-                      (let ((s save-place-alist)
-                            (count 1))
-                        (while s
-                          (if (>= count save-place-limit)
-                              (setcdr s nil)
-                            (setq count (1+ count)))
-                          (setq s (cdr s))))))
-
-                (kill-buffer (current-buffer))))
-          nil))))
+          ;; If there is a limit, and we're over it, then we'll
+          ;; have to truncate the end of the list:
+          (if save-place-limit
+              (if (<= save-place-limit 0)
+                  ;; Zero gets special cased.  I'm not thrilled
+                  ;; with this, but the loop for >= 1 is tight.
+                  (setq save-place-alist nil)
+                ;; Else the limit is >= 1, so enforce it by
+                ;; counting and then `setcdr'ing.
+                (let ((s save-place-alist)
+                      (count 1))
+                  (while s
+                    (if (>= count save-place-limit)
+                        (setcdr s nil)
+                      (setq count (1+ count)))
+                    (setq s (cdr s))))))))
+      (save-place--normalize-alist))))
 
 (defcustom save-place-abbreviate-file-names nil
   "If non-nil, abbreviate file names before saving them.
@@ -154,26 +151,31 @@ just using `setq' may cause out-of-sync problems.  You should use
 either `setopt' or \\[customize-variable] to set this option."
   :type 'boolean
   :set (lambda (sym val)
-         (set-default sym val)
-         (or save-place-loaded (save-place-load-alist-from-file))
-         (let ((fun (if val #'abbreviate-file-name #'expand-file-name))
-               ;; Don't expand file names for non-existing remote connections.
-               (non-essential t))
-           (setq save-place-alist
-                 (cl-delete-duplicates
-                  (cl-loop for (k . v) in save-place-alist
-                           collect
-                           (cons (funcall fun k)
-                                 (if (listp v)
-                                     (cl-loop for (k1 . v1) in v
-                                              collect
-                                              (cons k1 (funcall fun v1)))
-                                   v)))
-                  :key #'car
-                  :from-end t
-                  :test #'equal)))
-         val)
+         (let ((old (if (default-boundp sym) (default-value sym))))
+           (set-default sym val)
+           (if (or (equal old val) (not save-place-loaded))
+               nil                      ;Nothing to do.
+             (save-place--normalize-alist))))
   :version "28.1")
+
+(defun save-place--normalize-alist ()
+  (let ((fun (if save-place-abbreviate-file-names
+                 #'abbreviate-file-name #'expand-file-name))
+        ;; Don't expand file names for non-existing remote connections.
+        (non-essential t))
+    (setq save-place-alist
+          (cl-delete-duplicates
+           (cl-loop for (k . v) in save-place-alist
+                    collect
+                    (cons (funcall fun k)
+                          (if (listp v)
+                              (cl-loop for (k1 . v1) in v
+                                       collect
+                                       (cons k1 (funcall fun v1)))
+                            v)))
+           :key #'car
+           :from-end t
+           :test #'equal))))
 
 (defcustom save-place-save-skipped t
   "If non-nil, remember files matching `save-place-skip-check-regexp'.
@@ -208,6 +210,45 @@ disabled, i.e., no files are excluded."
 
 (declare-function dired-current-directory "dired" (&optional localp))
 
+(defvar save-place--autosave-timer nil)
+
+(defun save-place--cancel-timer ()
+  "Cancel `save-place-autosave' timer, if set."
+  (when (timerp save-place--autosave-timer)
+    (cancel-timer save-place--autosave-timer))
+  (setq save-place--autosave-timer nil))
+
+(defvar save-place-autosave-interval)
+
+(defun save-place--manage-timer ()
+  "Set or cancel an invocation of `save-place--autosave' on a timer.
+If `save-place-mode' is enabled, set the timer, otherwise cancel the timer."
+  (if (and save-place-mode
+           save-place-autosave-interval
+           (null save-place--autosave-timer))
+      (setq save-place--autosave-timer
+	    (run-with-timer
+             save-place-autosave-interval
+	     save-place-autosave-interval #'save-place--autosave))
+    (save-place--cancel-timer)))
+
+(defcustom save-place-autosave-interval nil
+  "The interval between auto saves of buffer places.
+If set to nil, disables timer-based auto saving.
+Use `setopt' or Customize commands to set this option."
+  :type '(choice (const :tag "Disabled" nil)
+                 (integer :tag "Seconds"))
+  :version "31.1"
+  :set (lambda (sym val)
+         (set-default sym val)
+         (save-place--cancel-timer)
+         (save-place--manage-timer)))
+
+(defun save-place--autosave ()
+  "Called by `save-place--autosave-timer'."
+  (save-places-to-alist)
+  (save-place-alist-to-file))
+
 (defun save-place--setup-hooks (add)
   (cond
    (add
@@ -234,8 +275,8 @@ disabled, i.e., no files are excluded."
 This means when you visit a file, point goes to the last place
 where it was when you previously visited the same file."
   :global t
-  :group 'save-place
-  (save-place--setup-hooks save-place-mode))
+  (save-place--setup-hooks save-place-mode)
+  (save-place--manage-timer))
 
 (make-variable-buffer-local 'save-place-mode)
 
@@ -258,7 +299,8 @@ file:
 				     dired-subdir-alist
 				     (dired-current-directory))))
       (message "Buffer `%s' not visiting a file or directory" (buffer-name))
-    (save-place--setup-hooks save-place-mode)))
+    (save-place--setup-hooks save-place-mode)
+    (save-place--manage-timer)))
 
 (declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))
 
@@ -342,8 +384,7 @@ may have changed) back to `save-place-alist'."
 (defun save-place-alist-to-file ()
   (let ((file (expand-file-name save-place-file))
         (coding-system-for-write 'utf-8))
-    (with-current-buffer (get-buffer-create " *Saved Places*")
-      (delete-region (point-min) (point-max))
+    (with-temp-buffer
       (when save-place-forget-unreadable-files
 	(save-place-forget-unreadable-files))
       (insert (format ";;; -*- coding: %s; mode: lisp-data -*-\n"
@@ -361,8 +402,7 @@ may have changed) back to `save-place-alist'."
 	(condition-case nil
 	    ;; Don't use write-file; we don't want this buffer to visit it.
             (write-region (point-min) (point-max) file)
-	  (file-error (message "Saving places: can't write %s" file)))
-        (kill-buffer (current-buffer))))))
+	  (file-error (message "Saving places: can't write %s" file)))))))
 
 (defun save-places-to-alist ()
   ;; go through buffer-list, saving places to alist if save-place-mode

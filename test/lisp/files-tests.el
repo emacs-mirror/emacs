@@ -1680,6 +1680,22 @@ The door of all subtleties!
   (should-not (eq (files-tests--check-mode "gdbinit.5") #'gdb-script-mode))
   (should-not (eq (files-tests--check-mode ".gdbinit.py.in") #'gdb-script-mode)))
 
+(ert-deftest files-tests--bug75961 ()
+  (let* ((auto-mode-alist (cons '("\\.text\\'" text-mode t) auto-mode-alist))
+         (called-fun nil)
+         (fun (lambda () (setq called-fun t))))
+    (with-temp-buffer
+     (setq buffer-file-name "foo.text")
+     (normal-mode)
+     (should (derived-mode-p 'text-mode))
+     (add-hook 'text-mode-hook fun)
+     (setq buffer-file-name "foo.html.text")
+     (should (not called-fun))
+     (normal-mode)
+     (remove-hook 'text-mode-hook fun)
+     (should called-fun)
+     (should (derived-mode-p 'html-mode)))))
+
 (defvar sh-shell)
 
 (defun files-tests--check-shebang (shebang expected-mode &optional expected-dialect)
@@ -1973,7 +1989,7 @@ FN-TEST is the function to test: either `save-some-buffers' or
 `save-some-buffers-default-predicate' let-bound to a value
 specified inside ARGS-RESULTS.
 
-During the call to FN-TEST,`read-event' is overridden with a function that
+During the call to FN-TEST,`read-key' is overridden with a function that
 just returns `n' and `kill-emacs' is overridden to do nothing.
 
 ARGS-RESULTS is a list of elements (FN-ARGS CALLERS-DIR EXPECTED), where
@@ -2004,7 +2020,7 @@ CALLERS-DIR specifies the value to let-bind
             (setq nb-saved-buffers 0)
             (with-current-buffer (car buffers)
               (cl-letf
-                  (((symbol-function 'read-event)
+                  (((symbol-function 'read-key)
                     ;; Increase counter and answer 'n' when prompted
                     ;; to save a buffer.
                     (lambda (&rest _) (cl-incf nb-saved-buffers) ?n))

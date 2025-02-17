@@ -852,6 +852,30 @@ It is important to assure that point does not continuously jump around
 as a consequence of auto-reverting.  Of course, moving point might be
 inevitable if the buffer radically changes.
 
+@defvar inhibit-auto-revert-buffers
+When the current buffer is member of this variable (a list of buffers),
+auto-reverting is suppressed for that buffer.  This is useful if serious
+changes are applied to that buffer which would be poisoned by an
+unexpected auto-revert.  After the change is finished, the buffer shall
+be removed from @code{inhibit-auto-revert-buffers}.
+
+The check of membership in @code{inhibit-auto-revert-buffers} is applied
+prior to the call of @code{buffer-stale-function}; any heavy check in
+that function is avoided, therefore.
+
+If auto-reverting is triggered by file notification while
+@code{inhibit-auto-revert-buffers} prevents this, auto-revert will
+happen next time the buffer is polled for changes, unless
+@code{auto-revert-avoid-polling} is non-@code{nil}.  @pxref{(emacs) Auto
+Revert}.
+@end defvar
+
+@defmac inhibit-auto-revert &rest body
+This macro adds the current buffer to
+@code{inhibit-auto-revert-buffers}, runs @var{body}, and removes the
+current buffer from @code{inhibit-auto-revert-buffers} afterwards.
+@end defmac
+
 You should make sure that the @code{revert-buffer-function} does not
 print messages that unnecessarily duplicate Auto Revert's own messages,
 displayed if @code{auto-revert-verbose} is @code{t}, and effectively

@@ -2560,36 +2560,89 @@ A value of zero means TTY uses the system's default value.  */)
 #if !defined DOS_NT && !defined HAVE_ANDROID
 
 /* Implementation of draw_row_with_mouse_face for TTY/GPM and macOS.  */
+
 void
-tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
-			      int start_hpos, int end_hpos,
+tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *window_row,
+			      int window_start_x,
+			      int window_end_x,
 			      enum draw_glyphs_face draw)
 {
-  int nglyphs = end_hpos - start_hpos;
-  struct frame *f = XFRAME (WINDOW_FRAME (w));
-  struct tty_display_info *tty = FRAME_TTY (f);
-  int face_id = tty->mouse_highlight.mouse_face_face_id;
+  struct frame *f = XFRAME (w->frame);
+  struct frame *root = root_frame (f);
 
-  if (end_hpos >= row->used[TEXT_AREA])
-    nglyphs = row->used[TEXT_AREA] - start_hpos;
+  /* Window coordinates are relative to the text area.  Make
+     them relative to the window's left edge,  */
+  window_end_x = min (window_end_x, window_row->used[TEXT_AREA]);
+  window_start_x += window_row->used[LEFT_MARGIN_AREA];
+  window_end_x += window_row->used[LEFT_MARGIN_AREA];
 
-  int pos_y = row->y + WINDOW_TOP_EDGE_Y (w);
-  int pos_x = row->used[LEFT_MARGIN_AREA] + start_hpos + WINDOW_LEFT_EDGE_X (w);
+  /* Translate from window to window's frame.  */
+  int frame_start_x = WINDOW_LEFT_EDGE_X (w) + window_start_x;
+  int frame_end_x = WINDOW_LEFT_EDGE_X (w) + window_end_x;
+  int frame_y = window_row->y + WINDOW_TOP_EDGE_Y (w);
 
-  /* Save current cursor coordinates.  */
-  int save_y = curY (tty);
+  /* Translate from (possible) child frame to root frame.  */
+  int root_start_x, root_end_x, root_y;
+  root_xy (f, frame_start_x, frame_y, &root_start_x, &root_y);
+  root_xy (f, frame_end_x, frame_y, &root_end_x, &root_y);
+  struct glyph_row *root_row = MATRIX_ROW (root->current_matrix, root_y);
+
+  /* Remember current cursor coordinates so that we can restore
+     them at the end.  */
+  struct tty_display_info *tty = FRAME_TTY (root);
   int save_x = curX (tty);
-  cursor_to (f, pos_y, pos_x);
+  int save_y = curY (tty);
 
-  if (draw == DRAW_MOUSE_FACE)
+  /* If the root frame displays child frames, we cannot naively
+     write to the terminal what the window thinks should be drawn.
+     Instead, write only those parts that are not obscured by
+     other frames.  */
+  for (int root_x = root_start_x; root_x < root_end_x; )
     {
-      struct glyph *glyph = row->glyphs[TEXT_AREA] + start_hpos;
-      struct face *face = FACE_FROM_ID (f, face_id);
-      tty_write_glyphs_with_face (f, glyph, nglyphs, face);
-    }
-  else if (draw == DRAW_NORMAL_TEXT)
-    write_glyphs (f, row->glyphs[TEXT_AREA] + start_hpos, nglyphs);
+      /* Find the start of a run of glyphs from frame F.  */
+      struct glyph *root_start = root_row->glyphs[TEXT_AREA] + root_x;
+      while (root_x < root_end_x && root_start->frame != f)
+	++root_x, ++root_start;
 
+      /* If start of a run of glyphs from F found.  */
+      int root_run_start_x = root_x;
+      if (root_run_start_x < root_end_x)
+	{
+	  /* Find the end of the run of glyphs from frame F.  */
+	  struct glyph *root_end = root_start;
+	  while (root_x < root_end_x && root_end->frame == f)
+	    ++root_x, ++root_end;
+
+	  /* If we have a run glyphs to output, do it.  */
+	  if (root_end > root_start)
+	    {
+	      cursor_to (root, root_y, root_run_start_x);
+	      ptrdiff_t n = root_end - root_start;
+	      switch (draw)
+		{
+		case DRAW_NORMAL_TEXT:
+		  write_glyphs (f, root_start, n);
+		  break;
+
+		case DRAW_MOUSE_FACE:
+		  {
+		    int face_id = tty->mouse_highlight.mouse_face_face_id;
+		    struct face *face = FACE_FROM_ID (f, face_id);
+		    tty_write_glyphs_with_face (f, root_start, n, face);
+		  }
+		  break;
+
+		case DRAW_INVERSE_VIDEO:
+		case DRAW_CURSOR:
+		case DRAW_IMAGE_RAISED:
+		case DRAW_IMAGE_SUNKEN:
+		  emacs_abort ();
+		}
+	    }
+	}
+    }
+
+  /* Restore cursor where it was before.  */
   cursor_to (f, save_y, save_x);
 }
 

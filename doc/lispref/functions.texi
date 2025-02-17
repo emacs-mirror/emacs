@@ -2998,7 +2998,7 @@ known cases where @code{unsafep} returns @code{nil} for an unsafe
 expression.  However, a safe Lisp expression can return a string
 with a @code{display} property, containing an associated Lisp
 expression to be executed after the string is inserted into a buffer.
-This associated expression can be a virus.  In order to be safe, you
+This associated expression can be malicious.  In order to be safe, you
 must delete properties from all strings calculated by user code before
 inserting them into buffers.
 

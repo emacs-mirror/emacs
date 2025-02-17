@@ -357,7 +357,7 @@ The string is used in `tramp-methods'.")
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))
                 (tramp-copy-program         "pscp")
-                (tramp-copy-args            (("-l" "%u") ("-P" "%p") ("-scp")
+                (tramp-copy-args            (("-l" "%u") ("-P" "%p") ("-scp") ("%c")
 					     ("-p" "%k") ("-q") ("-r")))
                 (tramp-copy-keep-date       t)
                 (tramp-copy-recursive       t)))
@@ -375,7 +375,7 @@ The string is used in `tramp-methods'.")
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))
                 (tramp-copy-program         "pscp")
-                (tramp-copy-args            (("-l" "%u") ("-P" "%p") ("-sftp")
+                (tramp-copy-args            (("-l" "%u") ("-P" "%p") ("-sftp") ("%c")
 					     ("-p" "%k")))
                 (tramp-copy-keep-date       t)))
 
@@ -2485,7 +2485,7 @@ The method used must be an out-of-band method."
       ;; Compose copy command.
       (setq options
 	    (format-spec
-	     (tramp-ssh-controlmaster-options v)
+	     (tramp-ssh-or-plink-options v)
 	     (format-spec-make
 	      ?t (tramp-get-connection-property
 		  (tramp-get-connection-process v) "temp-file" "")))
@@ -3898,13 +3898,14 @@ Fall back to normal file name handler if no Tramp handler exists."
 	         (concat remote-prefix file)
 	         (when file1 (concat remote-prefix file1)))))
 	  (setq string (replace-match "" nil nil string))
-	  ;; Usually, we would add an Emacs event now.  Unfortunately,
-	  ;; `unread-command-events' does not accept several events at
-	  ;; once.  Therefore, we apply the handler directly.
-	  (when (member (cl-caadr object) events)
+          ;; Add an Emacs event now.
+	  ;; `insert-special-event' exists since Emacs 31.
+	  (when (member (caadr object) events)
 	    (tramp-compat-funcall
-	     (lookup-key special-event-map [file-notify])
-	     `(file-notify ,object file-notify-callback))))))
+                (if (fboundp 'insert-special-event)
+                    'insert-special-event
+	          (lookup-key special-event-map [file-notify]))
+	      `(file-notify ,object file-notify-callback))))))
 
     ;; Save rest of the string.
     (while (string-match (rx bol "\n") string)
@@ -3934,13 +3935,14 @@ Fall back to normal file name handler if no Tramp handler exists."
 	      (or (match-string 2 line)
 		  (file-name-nondirectory
 		   (process-get proc 'tramp-watch-name))))))
-	;; Usually, we would add an Emacs event now.  Unfortunately,
-	;; `unread-command-events' does not accept several events at
-	;; once.  Therefore, we apply the handler directly.
-	(when (member (cl-caadr object) events)
+        ;; Add an Emacs event now.
+	;; `insert-special-event' exists since Emacs 31.
+	(when (member (caadr object) events)
 	  (tramp-compat-funcall
-	   (lookup-key special-event-map [file-notify])
-	   `(file-notify ,object file-notify-callback)))))))
+              (if (fboundp 'insert-special-event)
+                  'insert-special-event
+	        (lookup-key special-event-map [file-notify]))
+	    `(file-notify ,object file-notify-callback)))))))
 
 (defun tramp-sh-handle-file-system-info (filename)
   "Like `file-system-info' for Tramp files."
@@ -4895,41 +4897,60 @@ Goes through the list `tramp-inline-compress-commands'."
     (zerop
      (tramp-call-process vec "ssh" nil nil nil "-G" "-o" option "0.0.0.1"))))
 
-(defun tramp-ssh-controlmaster-options (vec)
-  "Return the Control* arguments of the local ssh."
+(defun tramp-plink-option-exists-p (vec option)
+  "Check, whether local plink OPTION is applicable."
+  ;; We don't want to cache it persistently.
+  (with-tramp-connection-property nil option
+    ;; "plink" with valid options returns "plink: no valid host name
+    ;; provided".  We xcheck for this error message."
+    (with-temp-buffer
+      (tramp-call-process vec "plink" nil t nil option)
+      (not
+       (string-match-p
+	(rx (| (: "plink: unknown option \"" (literal option) "\"" )
+	       (: "plink: option \"" (literal option)
+		  "\" not available in this tool" )))
+	(buffer-string))))))
+
+(defun tramp-ssh-or-plink-options (vec)
+  "Return additional arguments of the local ssh or plink."
   (cond
    ;; No options to be computed.
-   ((or (null tramp-use-connection-share)
-	(null (assoc "%c" (tramp-get-method-parameter vec 'tramp-login-args))))
-    "")
+   ((null (assoc "%c" (tramp-get-method-parameter vec 'tramp-login-args))) "")
 
-   ;; Use plink option.
+   ;; Use plink options.
    ((string-match-p
      (rx "plink" (? ".exe") eol)
      (tramp-get-method-parameter vec 'tramp-login-program))
-    (if (eq tramp-use-connection-share 'suppress)
-	"-noshare" "-share"))
+    (concat
+     (if (eq tramp-use-connection-share 'suppress)
+	 "-noshare" "-share")
+     ;; Since PuTTY 0.82.
+     (when (tramp-plink-option-exists-p vec "-legacy-stdio-prompts")
+       " -legacy-stdio-prompts")))
 
    ;; There is already a value to be used.
    ((and (eq tramp-use-connection-share t)
          (stringp tramp-ssh-controlmaster-options))
     tramp-ssh-controlmaster-options)
 
-   ;; We can't auto-compute the options.
-   ((ignore-errors
-      (not (tramp-ssh-option-exists-p vec "ControlMaster=auto")))
-    "")
+   ;; Use ssh options.
+   (tramp-use-connection-share
+    ;; We can't auto-compute the options.
+    (if (ignore-errors
+	  (not (tramp-ssh-option-exists-p vec "ControlMaster=auto")))
+	""
 
-   ;; Determine the options.
-   (t (ignore-errors
-        ;; ControlMaster and ControlPath options are introduced in OpenSSH 3.9.
-        (concat
-         "-o ControlMaster="
-         (if (eq tramp-use-connection-share 'suppress)
+      ;; Determine the options.
+      (ignore-errors
+	;; ControlMaster and ControlPath options are introduced in OpenSSH 3.9.
+	(concat
+	 "-o ControlMaster="
+	 (if (eq tramp-use-connection-share 'suppress)
              "no" "auto")
 
-         " -o ControlPath="
-         (if (eq tramp-use-connection-share 'suppress)
+	 " -o ControlPath="
+	 (if (eq tramp-use-connection-share 'suppress)
              "none"
            ;; Hashed tokens are introduced in OpenSSH 6.7.  On macOS
            ;; we cannot use an absolute file name, it is too long.
@@ -4943,10 +4964,10 @@ Goes through the list `tramp-inline-compress-commands'."
 	      (or small-temporary-file-directory
 		  tramp-compat-temporary-file-directory))))
 
-         ;; ControlPersist option is introduced in OpenSSH 5.6.
+	 ;; ControlPersist option is introduced in OpenSSH 5.6.
 	 (when (and (not (eq tramp-use-connection-share 'suppress))
                     (tramp-ssh-option-exists-p vec "ControlPersist=no"))
-	   " -o ControlPersist=no"))))))
+	   " -o ControlPersist=no")))))))
 
 (defun tramp-scp-strict-file-name-checking (vec)
   "Return the strict file name checking argument of the local scp."
@@ -5162,9 +5183,9 @@ connection if a previous connection has died for some reason."
 	      (let* ((current-host tramp-system-name)
 		     (target-alist (tramp-compute-multi-hops vec))
 		     (previous-hop tramp-null-hop)
-		     ;; We will apply `tramp-ssh-controlmaster-options'
+		     ;; We will apply `tramp-ssh-or-plink-options'
 		     ;; only for the first hop.
-		     (options (tramp-ssh-controlmaster-options vec))
+		     (options (tramp-ssh-or-plink-options vec))
 		     (process-connection-type tramp-process-connection-type)
 		     (process-adaptive-read-buffering nil)
 		     ;; There are unfortunate settings for "cmdproxy"

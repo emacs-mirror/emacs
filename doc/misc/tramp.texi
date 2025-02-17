@@ -1154,7 +1154,8 @@ command to transfer is similar to the @option{scp} method.
 
 @command{rsync} performs much better than @command{scp} when
 transferring files that exist on both hosts.  However, this advantage
-is lost if the file exists only on one side of the connection.
+is lost if the file exists only on one side of the connection, during
+the first file transfer.
 
 This method supports the @samp{-p} argument.
 

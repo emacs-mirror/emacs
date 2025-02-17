@@ -34,6 +34,14 @@
    signed or floating type.  Do not evaluate E.  */
 #define EXPR_SIGNED(e) _GL_EXPR_SIGNED (e)
 
+/* The same value as as the arithmetic expression E, but with E's type
+   after integer promotions.  For example, if E is of type 'enum {A, B}'
+   then 'switch (INT_PROMOTE (E))' pacifies gcc -Wswitch-enum if some
+   enum values are deliberately omitted from the switch's cases.
+   Here, unary + is safer than a cast or inline function, as unary +
+   does only integer promotions.  */
+#define INT_PROMOTE(e) (+ (e))
+
 
 /* Minimum and maximum values for integer types and expressions.  */
 

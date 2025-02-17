@@ -45,6 +45,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_SYS_UIO_H
 #include <sys/uio.h> /* for process_vm_readv */
+#ifndef HAVE_PROCESS_VM
+#include <dlfcn.h>
+#endif /* !HAVE_PROCESS_VM */
 #endif /* HAVE_SYS_UIO_H */
 
 #ifndef SYS_SECCOMP
@@ -79,6 +82,22 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Number of tracees children are allowed to create.  */
 #define MAX_TRACEES 4096
+
+#if defined HAVE_SYS_UIO_H && !defined HAVE_PROCESS_VM
+
+/* Load have_process_vm dynamically if possible to avoid PTRACE_PEEKDATA
+   restrictions on Android 15 QPR2+.  */
+
+static ssize_t (*process_vm_readv) (pid_t, const struct iovec *,
+				    unsigned long,
+				    const struct iovec *,
+				    unsigned long, unsigned long);
+static ssize_t (*process_vm_writev) (pid_t, const struct iovec *,
+				     unsigned long,
+				     const struct iovec *,
+				     unsigned long, unsigned long);
+
+#endif /* HAVE_SYS_UIO_H && !HAVE_PROCESS_VM */
 
 #ifdef HAVE_SECCOMP
 
@@ -156,7 +175,7 @@ static struct exec_tracee *tracing_processes;
    ADDRESS.  Return its contents in BUFFER.
 
    If there are unreadable pages within ADDRESS + N, the contents of
-   BUFFER after the first such page becomes undefined.  */
+   BUFFER after the first such page become undefined.  */
 
 static void
 read_memory (struct exec_tracee *tracee, char *buffer,
@@ -164,7 +183,7 @@ read_memory (struct exec_tracee *tracee, char *buffer,
 {
   USER_WORD word, n_words, n_bytes, i;
   long rc;
-#ifdef HAVE_PROCESS_VM
+#ifdef HAVE_SYS_UIO_H
   struct iovec iov, remote;
 
   /* If `process_vm_readv' is available, use it instead.  */
@@ -178,11 +197,14 @@ read_memory (struct exec_tracee *tracee, char *buffer,
      read, consider the read to have been a success.  */
 
   if (n <= SSIZE_MAX
-      && ((size_t) process_vm_readv (tracee->pid, &iov, 1,
-				     &remote, 1, 0) != -1))
+#ifndef HAVE_PROCESS_VM
+      && process_vm_readv
+#endif /* !HAVE_PROCESS_VM */
+      && (process_vm_readv (tracee->pid, &iov, 1,
+			    &remote, 1, 0) != -1))
     return;
 
-#endif /* HAVE_PROCESS_VM */
+#endif /* !HAVE_SYS_UIO_H */
 
   /* First, read entire words from the tracee.  */
   n_words = n & ~(sizeof (USER_WORD) - 1);
@@ -301,7 +323,7 @@ user_copy (struct exec_tracee *tracee, const unsigned char *buffer,
 {
   USER_WORD start, end, word;
   unsigned char *bytes;
-#ifdef HAVE_PROCESS_VM
+#ifdef HAVE_SYS_UIO_H
   struct iovec iov, remote;
 
   /* Try to use `process_vm_writev' if possible, but fall back to
@@ -313,10 +335,13 @@ user_copy (struct exec_tracee *tracee, const unsigned char *buffer,
   remote.iov_len = n;
 
   if (n <= SSIZE_MAX
-      && ((size_t) process_vm_writev (tracee->pid, &iov, 1,
-				      &remote, 1, 0) == n))
+#ifndef HAVE_PROCESS_VM
+      && process_vm_writev
+#endif /* !HAVE_PROCESS_VM */
+      && (process_vm_writev (tracee->pid, &iov, 1,
+			     &remote, 1, 0) == n))
     return 0;
-#endif /* HAVE_PROCESS_VM */
+#endif /* HAVE_SYS_UIO_H */
 
   /* Calculate the start and end positions for the write.  */
 
@@ -1129,10 +1154,7 @@ handle_openat (USER_WORD callno, USER_REGS_STRUCT *regs,
     return 0;
 
   /* Now check if the caller is looking for /proc/self/exe or its
-     equivalent with the PID made explicit.
-
-     dirfd can be ignored, as for now only absolute file names are
-     handled.  FIXME.  */
+     equivalent with the PID made explicit.  */
 
   p = stpcpy (proc_pid_exe, "/proc/");
   p = format_pid (p, tracee->pid);
@@ -1153,7 +1175,7 @@ handle_openat (USER_WORD callno, USER_REGS_STRUCT *regs,
 
   if (!address
       || user_copy (tracee, (unsigned char *) tracee->exec_file,
-		    address, length))
+		    address, length + 1))
     goto fail;
 
   /* Replace the file name buffer with ADDRESS.  */
@@ -2203,4 +2225,12 @@ exec_init (const char *loader)
 	}
     }
 #endif /* HAVE_SECCOMP */
+#if defined HAVE_SYS_UIO_H && !defined HAVE_PROCESS_VM
+  {
+    *(void **) (&process_vm_readv)
+      = dlsym (RTLD_DEFAULT, "process_vm_readv");
+    *(void **) (&process_vm_writev)
+      = dlsym (RTLD_DEFAULT, "process_vm_writev");
+  }
+#endif /* HAVE_SYS_UIO_H && !HAVE_PROCESS_VM */
 }

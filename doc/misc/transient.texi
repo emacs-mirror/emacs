@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Transient User and Developer Manual
-@subtitle for version 0.8.3
+@subtitle for version 0.8.4
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -53,7 +53,7 @@ resource to get over that hurdle is Psionic K's interactive tutorial,
 available at @uref{https://github.com/positron-solutions/transient-showcase}.
 
 @noindent
-This manual is for Transient version 0.8.3.
+This manual is for Transient version 0.8.4.
 
 @insertcopying
 @end ifnottex
@@ -93,6 +93,7 @@ Defining New Commands
 * Binding Suffix and Infix Commands::
 * Defining Suffix and Infix Commands::
 * Using Infix Arguments::
+* Using Prefix Scope::
 * Current Suffix Command::
 * Current Prefix Command::
 * Transient State::
@@ -552,6 +553,48 @@ This command toggle whether suffixes that are on levels higher than
 the level specified by @code{transient-default-level} are temporarily
 available anyway.
 @end table
+
+@defun transient-set-default-level suffix level
+This function sets the default level of the suffix COMMAND to LEVEL@.
+
+If a suffix command appears in multiple menus, it may make sense to
+consistently change its level in all those menus at once.  For
+example, the @code{--gpg-sign} argument (which is implemented using the
+command @code{magit:--gpg-sign}), is bound in all of Magit's menu which
+create commits.  Users who sometimes sign their commits would want
+that argument to be available in all of these menus, while for users
+who never sign it is just unnecessary noise in any menus.
+
+To always make @code{--gpg-sign} available, use:
+
+@lisp
+(transient-set-default-level 'magit:--gpg-sign 1)
+@end lisp
+
+To never make @code{--gpg-sign} available, use:
+
+@lisp
+(transient-set-default-level 'magit:--gpg-sign 0)
+@end lisp
+
+This sets the level in the suffix prototype object for this command.
+Commands only have a suffix prototype if they were defined using one
+of @code{transient-define-argument}, @code{transient-define-infix} and
+@code{transient-define-suffix}.  For all other commands this would signal
+an error.  (This is one of the reasons why package authors should
+use one of these functions to define shared suffix commands, and
+especially shared arguments.)
+
+If the user changes the level of a suffix in a particular menu,
+using @kbd{C-x l} as shown above, then that obviously shadows the default.
+
+It is also possible to set the level of a suffix binding in a
+particular menu, either when defining the menu using
+@code{transient-define-prefix,} or later using @code{transient-insert-suffix}.  If
+such bindings specify a level, then that also overrides the default.
+(Per-suffix default levels is a new feature, so you might encounter
+this quite often.)
+@end defun
 
 @node Other Commands
 @section Other Commands
@@ -1017,6 +1060,7 @@ signal an error.
 * Binding Suffix and Infix Commands::
 * Defining Suffix and Infix Commands::
 * Using Infix Arguments::
+* Using Prefix Scope::
 * Current Suffix Command::
 * Current Prefix Command::
 * Transient State::
@@ -1323,6 +1367,13 @@ be replaced with an error.
 The boolean @code{:pad-keys} argument controls whether keys of all suffixes
 contained in a group are right padded, effectively aligning the
 descriptions.
+
+@item
+If a keyword argument accepts a function as value, you an use a
+@code{lambda} expression.  As a special case, the @code{##} macro (which returns a
+@code{lambda} expression and is implemented in the @code{llama} package) is also
+supported.  Inside group specifications, the use of @code{##} is not
+supported anywhere but directly following a keyword symbol.
 @end itemize
 
 The @var{ELEMENT}s are either all subgroups, or all suffixes and strings.
@@ -1446,6 +1497,12 @@ Finally, details can be specified using optional @var{KEYWORD}-@var{VALUE} pairs
 Each keyword has to be a keyword symbol, either @code{:class} or a keyword
 argument supported by the constructor of that class.  @xref{Suffix Slots}.
 
+If a keyword argument accepts a function as value, you an use a @code{lambda}
+expression.  As a special case, the @code{##} macro (which returns a @code{lambda}
+expression and is implemented in the @code{llama} package) is also supported.
+Inside suffix bindings, the use of @code{##} is not supported anywhere but
+directly following a keyword symbol.
+
 @node Defining Suffix and Infix Commands
 @section Defining Suffix and Infix Commands
 
@@ -1566,6 +1623,55 @@ This function returns the suffixes of the transient prefix command
 @var{PREFIX}.  This is a list of objects.  This function should only be
 used if you need the objects (as opposed to just their values) and
 if the current command is not being invoked from @var{PREFIX}.
+@end defun
+
+@node Using Prefix Scope
+@section Using Prefix Scope
+
+Some transients have a sort of secondary value, called a scope.  A
+prefix's scope can be accessed using @code{transient-scope}; similar to how
+its value can be accessed using @code{transient-args}.
+
+@defun transient-scope prefixes classes
+This function returns the scope of the active or current transient
+prefix command.
+
+If optional PREFIXES and CLASSES are both nil, return the scope of
+the prefix currently being setup, making this variation useful, e.g.,
+in @code{:if*} predicates.  If no prefix is being setup, but the current
+command was invoked from some prefix, then return the scope of that.
+
+If PREFIXES is non-nil, it must be a prefix command or a list of such
+commands.  If CLASSES is non-nil, it must be a prefix class or a list
+of such classes.  When this function is called from the body or the
+@code{interactive} form of a suffix command, PREFIXES and/or CLASSES should
+be non-nil.  If either is non-nil, try the following in order:
+
+@itemize
+@item
+If the current suffix command was invoked from a prefix, which
+appears in PREFIXES, return the scope of that prefix.
+
+@item
+If the current suffix command was invoked from a prefix, and its
+class derives from one of the CLASSES, return the scope of that
+prefix.
+
+@item
+If a prefix is being setup and it appears in PREFIXES, return its
+scope.
+
+@item
+If a prefix is being setup and its class derives from one of the
+CLASSES, return its scope.
+
+@item
+Finally try to return the default scope of the first command in
+PREFIXES@.  This only works if that slot is set in the respective
+class definition or using its `transient-init-scope' method.
+@end itemize
+
+If no prefix matches, return nil.
 @end defun
 
 @node Current Suffix Command
@@ -2458,8 +2564,9 @@ being initialized.  This slot is still experimental.
 @code{transient-mode-line-format}.  It should have the same type.
 
 @item
-@code{column-width} is only respected inside @code{transient-columns} groups and
-allows aligning columns across separate instances of that.
+@code{column-widths} is only respected inside @code{transient-columns} groups and
+allows aligning columns across separate instances of that.  A list
+of integers.
 
 @item
 @code{variable-pitch} controls whether alignment is done pixel-wise to
@@ -2535,8 +2642,9 @@ Also see @ref{Suffix Classes}.
 @subheading Slots of @code{transient-child}
 
 This is the abstract superclass of @code{transient-suffix} and @code{transient-group}.
-This is where the shared @code{if*} and @code{inapt-if*} slots (see @ref{Predicate Slots})
-and the @code{level} slot (see @ref{Enabling and Disabling Suffixes}) are defined.
+This is where the shared @code{if*} and @code{inapt-if*} slots (see @ref{Predicate Slots}),
+the @code{level} slot (see @ref{Enabling and Disabling Suffixes}), and the @code{advice}
+and @code{advice*} slots (see @ref{Slots of @code{transient-suffix}}) are defined.
 
 @itemize
 @item
@@ -2593,6 +2701,24 @@ for details.
 @item
 @code{definition} A command, which is used if the body is omitted when
 defining a command using @code{transient-define-suffix}.
+@end itemize
+
+The following two slots are experimental.  They can also be set for a
+group, in which case they apply to all suffixes in that group, except
+for suffixes that set the same slot to a non-nil value.
+
+@itemize
+@item
+@code{advice} A function used to advise the command.  The advise is called
+using @code{(apply advice command args)}, i.e., it behaves like an "around"
+advice.
+
+@item
+@code{advice*} A function used to advise the command.  Unlike @code{advice}, this
+advises not only the command body but also its @code{interactive} spec.  If
+both slots are non-nil, @code{advice} is used for the body and @code{advice*} is
+used for the @code{interactive} form.  When advising the @code{interactive} spec,
+called using @code{(funcall advice #'advice-eval-interactive-spec spec)}.
 @end itemize
 
 @anchor{Slots of @code{transient-infix}}

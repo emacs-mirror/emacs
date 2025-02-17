@@ -402,10 +402,10 @@ re-start Emacs."
  			       (const :tag "default" nil))
                        (coding-system :tag "Coding System"))))
 
-(defcustom ispell-help-timeout 5
+(defcustom ispell-help-timeout 30
   "The number of seconds to display the help text."
   :type 'number
-  :version "28.1")
+  :version "31.1")
 
 (defvar ispell-dictionary-base-alist
   '((nil                                ; default
@@ -2512,7 +2512,7 @@ Selections are:
 	      (with-current-buffer buffer
 		(insert (concat help-1 "\n" help-2 "\n" help-3)))
 	      (ispell-display-buffer buffer)
-	      (sit-for ispell-help-timeout)
+	      (sit-for (max 0.5 ispell-help-timeout))
 	      (kill-buffer "*Ispell Help*"))
 	  (unwind-protect
 	      (let ((resize-mini-windows 'grow-only))
@@ -2522,7 +2522,7 @@ Selections are:
 		;;(set-minibuffer-window (selected-window))
 		(enlarge-window 2)
 		(insert (concat help-1 "\n" help-2 "\n" help-3))
-		(sit-for ispell-help-timeout))
+		(sit-for (max 0.5 ispell-help-timeout)))
 	    (erase-buffer)))))))
 
 (define-obsolete-function-alias 'lookup-words 'ispell-lookup-words "24.4")
@@ -3310,9 +3310,7 @@ otherwise, the current line is skipped."
 Generated from `ispell-tex-skip-alists'."
   (concat
    ;; raw tex keys
-   (mapconcat (lambda (lst) (car lst))
-	      (car ispell-tex-skip-alists)
-	      "\\|")
+   (mapconcat #'car (car ispell-tex-skip-alists) "\\|")
    "\\|"
    ;; keys wrapped in begin{}
    (mapconcat (lambda (lst)

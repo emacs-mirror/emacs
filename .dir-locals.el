@@ -18,6 +18,7 @@
          (vc-default-patch-addressee . "bug-gnu-emacs@gnu.org")))
  (c-mode . ((c-file-style . "GNU")
             (c-noise-macro-names . ("INLINE" "NO_INLINE" "ATTRIBUTE_NO_SANITIZE_UNDEFINED"
+                                    "ATTRIBUTE_NO_SANITIZE_ADDRESS"
                                     "UNINIT" "CALLBACK" "ALIGN_STACK" "ATTRIBUTE_MALLOC"
                                     "ATTRIBUTE_DEALLOC_FREE" "ANDROID_EXPORT" "TEST_STATIC"
                                     "INLINE_HEADER_BEGIN" "INLINE_HEADER_END"))
