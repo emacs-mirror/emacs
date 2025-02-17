@@ -1288,6 +1288,13 @@ Previously, its argument was always evaluated using dynamic binding.
 * Lisp Changes in Emacs 31.1
 
 +++
+** New functions 'plusp' and 'minusp'.
+They return non-nil if a number is positive or negative, respectively,
+and signal an error if they are given a non-number.  The 'cl-lib'
+functions 'cl-plusp' and 'cl-minusp' are now aliases for 'plusp' and
+'minusp'.
+
++++
 ** New functions 'oddp' and 'evenp'.
 They return non-nil if an integer is odd or even, respectively, and
 signal an error if they are given a non-integer.  The 'cl-lib' functions

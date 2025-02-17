@@ -1412,12 +1412,12 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (natnump -1)
    :eval (natnump 0)
    :eval (natnump 23))
-  (cl-plusp
-   :eval (cl-plusp 0)
-   :eval (cl-plusp 1))
-  (cl-minusp
-   :eval (cl-minusp 0)
-   :eval (cl-minusp -1))
+  (plusp
+   :eval (plusp 0)
+   :eval (plusp 1))
+  (minusp
+   :eval (minusp 0)
+   :eval (minusp -1))
   (oddp
    :eval (oddp 3))
   (evenp

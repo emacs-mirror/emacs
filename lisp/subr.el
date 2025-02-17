@@ -550,6 +550,20 @@ was called."
            (compiler-macro (lambda (_) `(= 0 ,number))))
   (= 0 number))
 
+(defun plusp (number)
+  "Return t if NUMBER is positive."
+  (declare (ftype (function (number) boolean))
+           (side-effect-free t)
+           (compiler-macro (lambda (_) `(> ,number 0))))
+  (> number 0))
+
+(defun minusp (number)
+  "Return t if NUMBER is negative."
+  (declare (ftype (function (number) boolean))
+           (side-effect-free t)
+           (compiler-macro (lambda (_) `(< ,number 0))))
+  (< number 0))
+
 (defun oddp (integer)
   "Return t if INTEGER is odd."
   (declare (ftype (function (integer) boolean))

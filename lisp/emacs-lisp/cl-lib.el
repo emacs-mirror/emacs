@@ -270,15 +270,17 @@ so that they are registered at compile-time as well as run-time."
 
 (define-obsolete-function-alias 'cl-floatp-safe 'floatp "24.4")
 
-(defsubst cl-plusp (number)
-  "Return t if NUMBER is positive."
-  (declare (side-effect-free t))
-  (> number 0))
+(defalias 'cl-plusp #'plusp
+  "Return t if NUMBER is positive.
 
-(defsubst cl-minusp (number)
-  "Return t if NUMBER is negative."
-  (declare (side-effect-free t))
-  (< number 0))
+This function is considered deprecated in favor of the built-in function
+`plusp' that was added in Emacs 31.1.")
+
+(defalias 'cl-minusp #'minusp
+  "Return t if NUMBER is negative.
+
+This function is considered deprecated in favor of the built-in function
+`minusp' that was added in Emacs 31.1.")
 
 (defalias 'cl-oddp #'oddp
   "Return t if INTEGER is odd.

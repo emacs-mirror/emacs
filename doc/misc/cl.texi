@@ -3055,7 +3055,7 @@ This section defines a few simple Common Lisp operations on numbers
 that were left out of Emacs Lisp.
 
 @menu
-* Predicates on Numbers::       @code{cl-plusp}, @code{cl-minusp}, etc.
+* Predicates on Numbers::       @code{cl-digit-char-p}, etc.
 * Numerical Functions::         @code{cl-floor}, @code{cl-ceiling}, etc.
 * Random Numbers::              @code{cl-random}, @code{cl-make-random-state}.
 * Implementation Parameters::   @code{cl-most-positive-float}, etc.
@@ -3067,16 +3067,6 @@ that were left out of Emacs Lisp.
 @noindent
 These functions return @code{t} if the specified condition is
 true of the numerical argument, or @code{nil} otherwise.
-
-@defun cl-plusp number
-This predicate tests whether @var{number} is positive.  It is an
-error if the argument is not a number.
-@end defun
-
-@defun cl-minusp number
-This predicate tests whether @var{number} is negative.  It is an
-error if the argument is not a number.
-@end defun
 
 @defun cl-digit-char-p char radix
 Test if @var{char} is a digit in the specified @var{radix} (default is

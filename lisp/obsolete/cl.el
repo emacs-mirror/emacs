@@ -272,8 +272,6 @@
                first
                svref
                copy-seq
-               minusp
-               plusp
                floatp-safe
                declaim
                proclaim
