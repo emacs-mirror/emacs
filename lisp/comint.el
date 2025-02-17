@@ -1756,7 +1756,7 @@ Go to the history element by the absolute history position HIST-POS."
 Quotes are single and double."
   (let ((countsq (comint-how-many-region "\\(^\\|[^\\]\\)'" beg end))
 	(countdq (comint-how-many-region "\\(^\\|[^\\]\\)\"" beg end)))
-    (or (= (mod countsq 2) 1) (= (mod countdq 2) 1))))
+    (or (oddp countsq) (oddp countdq))))
 
 (defun comint-how-many-region (regexp beg end)
   "Return number of matches for REGEXP from BEG to END."

@@ -765,7 +765,7 @@ In Emacs Lisp this is easily defined by parenthesis bounding."
 		  (forward-comment 1)
 		  (setq start (point))
 		  (forward-sexp 1)
-		  (if (= (% count 2) 1)
+		  (if (oddp count)
 		      (setq lastodd
 			    (buffer-substring-no-properties start (point))))
 		  )

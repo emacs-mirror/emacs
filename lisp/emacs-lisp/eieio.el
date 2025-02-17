@@ -118,7 +118,7 @@ and reference them using the function `class-option'."
               (/= 1 (% (length options-and-doc) 2)))
          (error "Too many arguments to `defclass'"))
         ((and (symbolp (car options-and-doc))
-              (/= 0 (% (length options-and-doc) 2)))
+              (oddp (length options-and-doc)))
          (error "Too many arguments to `defclass'")))
 
   (if (stringp (car options-and-doc))

@@ -6462,7 +6462,7 @@ If FACE is not a valid face name, use default face."
 	    (replace-match (format "/Lines %d def\n/PageCount %d def"
 				   total-lines total-pages) t)))))
     ;; Set dummy page
-    (and ps-spool-duplex (= (mod ps-page-order 2) 1)
+    (and ps-spool-duplex (oddp ps-page-order)
 	 (let ((ps-n-up-printing 0))
 	   (ps-header-sheet)
 	   (ps-output "/PrintHeader false def\n/ColumnIndex 0 def\n"

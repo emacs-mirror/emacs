@@ -552,7 +552,7 @@ an optional argument, then use it."
 	  ((and (integerp arg) (eq 0 (mod arg 2)))
 	   (setq patch-buf (ediff-prompt-for-patch-buffer)))
 	  ;; odd prefix arg: get patch from a file
-	  ((and (integerp arg) (eq 1 (mod arg 2)))
+	  ((and (integerp arg) (oddp arg))
 	   (setq patch-buf (ediff-prompt-for-patch-file)))
 	  (t (setq patch-buf
 		   (if (y-or-n-p "Is the patch already in a buffer? ")
