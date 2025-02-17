@@ -1920,7 +1920,7 @@ placeholder to check."
     (goto-char (match-beginning 0))
     (let ((n (abs (skip-chars-backward "\\\\"))))
       (delete-char (/ (1+ n) 2))
-      (= (% n 2) 1))))
+      (cl-oddp n))))
 
 (defun org-capture-expand-embedded-elisp (&optional mark)
   "Evaluate embedded elisp %(sexp) and replace with the result.

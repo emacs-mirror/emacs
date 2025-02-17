@@ -329,7 +329,7 @@ Return a list of arguments, as strings.  This is the opposite of
     (lambda (str)
       (let ((len (length (match-string 1 str))))
 	(concat (make-string (/ len 2) ?\\)
-		(if (zerop (mod len 2)) "\000" ","))))
+		(if (cl-evenp len) "\000" ","))))
     s nil t)
    "\000"))
 

@@ -3825,7 +3825,7 @@ modify syntax-type text property if the situation is too hard."
 		     (char-after (- (point) 2)))
 		 (save-excursion
 		   (forward-char -2)
-		   (= 0 (% (skip-chars-backward "\\\\") 2)))
+		   (cl-evenp (skip-chars-backward "\\\\")))
 		 (forward-char -1)))
 	  ;; Now we are after the first part.
 	  (and is-2arg			; Have trailing part
@@ -5164,7 +5164,7 @@ recursive calls in starting lines of here-documents."
 				       (or ; Should work with delim = \
 					(not (eq (preceding-char) ?\\ ))
 					;; XXXX Double \\ is needed with 19.33
-					(= (% (skip-chars-backward "\\\\") 2) 0))
+					(cl-evenp (skip-chars-backward "\\\\")))
 				       (looking-at
 					(cond
 					 ((eq (char-after b) ?\] )

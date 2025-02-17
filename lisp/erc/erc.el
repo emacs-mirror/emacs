@@ -9735,7 +9735,7 @@ if yet untried."
   "Format MSG according to ARGS.
 
 See also `format-spec'."
-  (when (eq (logand (length args) 1) 1) ; oddp
+  (unless (cl-evenp (length args))
     (error "Obscure usage of this function appeared"))
   (let ((entry (erc-retrieve-catalog-entry msg)))
     (when (not entry)

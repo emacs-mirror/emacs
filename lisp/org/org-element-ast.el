@@ -734,7 +734,7 @@ string.  Alternatively, TYPE can be a string.  When TYPE is nil or
   (cl-assert
    ;; FIXME: Just use `plistp' from Emacs 29 when available.
    (let ((len (proper-list-p props)))
-     (and len (zerop (% len 2)))))
+     (and len (cl-evenp len))))
   ;; Assign parray.
   (when (and props (not (stringp type)) (not (eq type 'plain-text)))
     (let ((node (list 'dummy props)))
