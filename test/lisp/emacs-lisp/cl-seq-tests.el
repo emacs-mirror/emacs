@@ -645,7 +645,7 @@ Additionally register an `ert-info' to help identify test failures."
     (should (equal result '(a a a a))))
   (let ((result (cl-member-if #'evenp '())))
     (should (equal result nil)))
-  (let ((result (cl-member-if #'cl-minusp '(1 2 3 4 5))))
+  (let ((result (cl-member-if #'minusp '(1 2 3 4 5))))
     (should (equal result nil)))
   (let ((result (cl-member-if (lambda (x) (and (numberp x) (<= x 2)))
                               '(1 "two" 3 0))))
@@ -672,7 +672,7 @@ Additionally register an `ert-info' to help identify test failures."
     (should (equal result nil)))
   (let ((result (cl-member-if-not (lambda (x) (eq x 'a)) '(a a a a))))
     (should (equal result nil)))
-  (let ((result (cl-member-if-not #'cl-minusp '(1 2 3 4 5))))
+  (let ((result (cl-member-if-not #'minusp '(1 2 3 4 5))))
     (should (equal result '(1 2 3 4 5))))
   (let ((result (cl-member-if-not
                  (lambda (x) (or (numberp x) (stringp x) (eq x 'b)))
@@ -734,7 +734,7 @@ Additionally register an `ert-info' to help identify test failures."
   (let* ((alist '((1 . "odd") (2 . "even") (3 . "odd") (4 . "even")))
          (result (cl-assoc-if-not #'evenp alist)))
     (should (equal result '(1 . "odd"))))
-  (let ((result (cl-assoc-if-not #'cl-plusp
+  (let ((result (cl-assoc-if-not #'plusp
                                  '((1 . "one") (2 . "two") (3 . "three")))))
     (should (equal result nil)))
   (let ((result (cl-assoc-if-not (lambda (x) (< x 5))
@@ -798,7 +798,7 @@ Additionally register an `ert-info' to help identify test failures."
     (should (equal result '("one" . 1))))
   (let ((result (cl-rassoc-if #'evenp '())))
     (should (equal result nil)))
-  (let ((result (cl-rassoc-if #'cl-plusp
+  (let ((result (cl-rassoc-if #'plusp
                               '(("first" . 1) ("second" . 2) ("third" . 3)))))
     (should (equal result '("first" . 1))))
   (let ((result (cl-rassoc-if (lambda (x) (string= (number-to-string x) "two"))
@@ -812,7 +812,7 @@ Additionally register an `ert-info' to help identify test failures."
   (let ((result (cl-rassoc-if-not #'evenp
                                   '(("one" . 1) ("two" . 2) ("three" . 3)))))
     (should (equal result '("one" . 1))))
-  (let ((result (cl-rassoc-if-not #'cl-plusp
+  (let ((result (cl-rassoc-if-not #'plusp
                                   '(("one" . 1) ("two" . 2) ("three" . 3)))))
     (should (equal result nil)))
   (let ((result (cl-rassoc-if-not (lambda (x) (< x 5))

@@ -1419,7 +1419,7 @@ Returns the stats object."
                          (message "%9s  %S%s"
                                   (ert-string-for-test-result result nil)
                                   (ert-test-name test)
-                                  (if (cl-plusp
+                                  (if (plusp
                                        (length (getenv "EMACS_TEST_VERBOSE")))
                                       (ert-reason-for-test-result result)
                                     ""))))
@@ -1432,7 +1432,7 @@ Returns the stats object."
                          (message "%9s  %S%s"
                                   (ert-string-for-test-result result nil)
                                   (ert-test-name test)
-                                  (if (cl-plusp
+                                  (if (plusp
                                        (length (getenv "EMACS_TEST_VERBOSE")))
                                       (ert-reason-for-test-result result)
                                     ""))))
@@ -2123,7 +2123,7 @@ non-nil, returns the face for expected results.."
 (defun ert-face-for-stats (stats)
   "Return a face that represents STATS."
   (cond ((ert--stats-aborted-p stats) 'nil)
-        ((cl-plusp (ert-stats-completed-unexpected stats))
+        ((plusp (ert-stats-completed-unexpected stats))
          (ert-face-for-test-result nil))
         ((eql (ert-stats-completed-expected stats) (ert-stats-total stats))
          (ert-face-for-test-result t))
