@@ -1426,7 +1426,7 @@ at point to explore.
 *** New variable 'treesit-aggregated-simple-imenu-settings'.
 This variable allows major modes to setup Imenu for multiple languages.
 
-*** New function 'treesit-add-simple-indent-rules'.
+*** New function 'treesit-simple-indent-add-rules'.
 This new function makes it easier to customize indent rules for
 tree-sitter modes.
 

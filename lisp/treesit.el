@@ -2508,7 +2508,7 @@ RULES."
                             offset)))))
              (cons lang (mapcar #'optimize-rule indent-rules)))))
 
-(defun treesit-add-simple-indent-rules (language rules &optional where anchor)
+(defun treesit-simple-indent-add-rules (language rules &optional where anchor)
   "Add simple indent RULES for LANGUAGE.
 
 This function only affects `treesit-simple-indent-rules',
