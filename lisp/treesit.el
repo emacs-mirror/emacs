@@ -2540,12 +2540,18 @@ end of existing rules."
               (append rules existing-rules)))))
     (setf (alist-get language treesit-simple-indent-rules) new-rules)))
 
-(defun treesit-modify-indent-rules (lang new-rules rules &optional how)
-  "Modify a copy of RULES using NEW-RULES.
-As default replace rules with the same anchor.
-When HOW is :prepend NEW-RULES are prepend to RULES, when
-:append NEW-RULES are appended to RULES, when :replace (the default)
-NEW-RULES replace rule in RULES which the same anchor."
+(defun treesit-simple-indent-modify-rules (lang new-rules rules &optional how)
+  "Pick out rules for LANG in RULES, and modify it according to NEW_RULES.
+
+RULES should have the same form as `treesit-simple-indent-rules', i.e, a
+list of (LANG RULES...).  Return a new modified rules in the form
+of (LANG RULES...).
+
+If HOW is omitted or :replace, for each rule in NEW-RULES, find the old
+rule that has the same matcher, and replace it.
+
+If HOW is :prepend, just prepend NEW-RULES to the old rules; if HOW is
+:append, append NEW-RULES."
   (cond
    ((not (alist-get lang rules))
     (error "No rules for language %s in RULES" lang))

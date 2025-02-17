@@ -1404,12 +1404,11 @@ settings.  In a multi-language major mode it is sometimes necessary to
 replace features from one of the major modes, with others that are
 better suited to the new multilingual context.
 
-*** New function 'treesit-modify-indent-rules'.
-Given two tree-sitter indent rules, it replaces, adds, or prepends the
-new rules to the old ones, then returns the new tree-sitter indent
-rules.  In a multi-language major mode it is sometimes necessary to
-modify rules from one of the major modes, with others that are better
-suited to the new multilingual context.
+*** New function 'treesit-simple-indent-modify-rules'.
+Given two tree-sitter indent rules, it replaces, adds, or prepends rules
+in the old rules with new ones, then returns the modified rules.  In a
+multi-language major mode it is sometimes necessary to modify rules from
+one of the major modes to better suit the new multilingual context.
 
 +++
 *** New command 'treesit-explore'.

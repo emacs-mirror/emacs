@@ -324,14 +324,14 @@ NODE and PARENT are ignored."
            ;; Extended rules for js and css, to
            ;; indent appropriately when injected
            ;; into html
-           (treesit-modify-indent-rules
+           (treesit-simple-indent-modify-rules
             'javascript
             `((javascript ((parent-is "program")
                            mhtml-ts-mode--js-css-tag-bol
                            mhtml-ts-mode--js-css-indent-offset)))
             js--treesit-indent-rules
             :replace)
-           (treesit-modify-indent-rules
+           (treesit-simple-indent-modify-rules
             'css
             `((css ((parent-is "stylesheet")
                     mhtml-ts-mode--js-css-tag-bol
