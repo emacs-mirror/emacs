@@ -271,19 +271,25 @@ public final class EmacsWindow extends EmacsHandleObject
 	  }
       }
 
-    EmacsActivity.invalidateFocus (4);
-
+    /* This is just a sanity test and is not reliable since `children'
+       may be modified between isEmpty and handle destruction.  */
     if (!children.isEmpty ())
       throw new IllegalStateException ("Trying to destroy window with "
 				       + "children!");
 
     /* Remove the view from its parent and make it invisible.  */
     EmacsService.SERVICE.runOnUiThread (new Runnable () {
+	@Override
 	public void
 	run ()
 	{
 	  ViewManager parent;
 	  EmacsWindowManager manager;
+
+	  /* Invalidate the focus; this should transfer the input focus
+	     to the next eligible window as this window is no longer
+	     present in parent.children.  */
+	  EmacsActivity.invalidateFocus (4);
 
 	  if (EmacsActivity.focusedWindow == EmacsWindow.this)
 	    EmacsActivity.focusedWindow = null;

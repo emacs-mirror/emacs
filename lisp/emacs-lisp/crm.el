@@ -79,9 +79,25 @@
 
 (define-obsolete-variable-alias 'crm-default-separator 'crm-separator "29.1")
 
-(defvar crm-separator "[ \t]*,[ \t]*"
+(defvar crm-separator
+  (propertize "[ \t]*,[ \t]*" 'separator "," 'description "comma-separated list")
   "Separator regexp used for separating strings in `completing-read-multiple'.
-It should be a regexp that does not match the list of completion candidates.")
+It should be a regexp that does not match the list of completion
+candidates.  The regexp string can carry the text properties `separator'
+and `description', which if present `completing-read-multiple' will show
+as part of the prompt.  See the user option `crm-prompt'.")
+
+(defcustom crm-prompt "[%d] %p"
+  "Prompt format for `completing-read-multiple'.
+The prompt is formatted by `format-spec' with the keys %d, %s and %p
+standing for the separator description, the separator itself and the
+original prompt respectively."
+  :type '(choice (const :tag "Original prompt" "%p")
+                 (const :tag "Description and prompt" "[%d] %p")
+                 (const :tag "Short CRM indication" "[CRM%s] %p")
+                 (string :tag "Custom string"))
+  :group 'minibuffer
+  :version "31.1")
 
 (defvar-keymap crm-local-completion-map
   :doc "Local keymap for minibuffer multiple input with completion.
@@ -266,8 +282,14 @@ with empty strings removed."
                       (unless (eq require-match t) require-match))
           (setq-local crm-completion-table table))
       (setq input (read-from-minibuffer
-                   prompt initial-input map
-                   nil hist def inherit-input-method)))
+                   (format-spec
+                    crm-prompt
+                    (let* ((sep (or (get-text-property 0 'separator crm-separator)
+                                    (string-replace "[ \t]*" "" crm-separator)))
+                           (desc (or (get-text-property 0 'description crm-separator)
+                                     (concat "list separated by " sep))))
+                      `((?s . ,sep) (?d . ,desc) (?p . ,prompt))))
+                   initial-input map nil hist def inherit-input-method)))
     ;; If the user enters empty input, `read-from-minibuffer'
     ;; returns the empty string, not DEF.
     (when (and def (string-equal input ""))

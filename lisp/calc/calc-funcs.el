@@ -867,7 +867,7 @@
     (nreverse coefs)))
 
 (defun math-bernoulli-number (n)
-  (if (= (% n 2) 1)
+  (if (oddp n)
       (if (= n 1)
 	  '(frac -1 2)
 	0)

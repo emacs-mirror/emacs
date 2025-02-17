@@ -270,27 +270,29 @@ so that they are registered at compile-time as well as run-time."
 
 (define-obsolete-function-alias 'cl-floatp-safe 'floatp "24.4")
 
-(defsubst cl-plusp (number)
-  "Return t if NUMBER is positive."
-  (declare (side-effect-free t))
-  (> number 0))
+(defalias 'cl-plusp #'plusp
+  "Return t if NUMBER is positive.
 
-(defsubst cl-minusp (number)
-  "Return t if NUMBER is negative."
-  (declare (side-effect-free t))
-  (< number 0))
+This function is considered deprecated in favor of the built-in function
+`plusp' that was added in Emacs 31.1.")
 
-(defun cl-oddp (integer)
-  "Return t if INTEGER is odd."
-  (declare (side-effect-free t)
-           (compiler-macro (lambda (_) `(eq (logand ,integer 1) 1))))
-  (eq (logand integer 1) 1))
+(defalias 'cl-minusp #'minusp
+  "Return t if NUMBER is negative.
 
-(defun cl-evenp (integer)
-  "Return t if INTEGER is even."
-  (declare (side-effect-free t)
-           (compiler-macro (lambda (_) `(eq (logand ,integer 1) 0))))
-  (eq (logand integer 1) 0))
+This function is considered deprecated in favor of the built-in function
+`minusp' that was added in Emacs 31.1.")
+
+(defalias 'cl-oddp #'oddp
+  "Return t if INTEGER is odd.
+
+This function is considered deprecated in favor of the built-in function
+`evenp' that was added in Emacs 31.1.")
+
+(defalias 'cl-evenp #'evenp
+  "Return t if INTEGER is even.
+
+This function is considered deprecated in favor of the built-in function
+`evenp' that was added in Emacs 31.1.")
 
 (defconst cl-digit-char-table
   (let* ((digits (make-vector 256 nil))

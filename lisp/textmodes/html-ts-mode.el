@@ -41,6 +41,7 @@
 
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-node-type "treesit.c")
+(declare-function treesit-search-subtree "treesit.c")
 
 (defcustom html-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `html-ts-mode'."
@@ -87,6 +88,35 @@
    `((attribute_name) @font-lock-variable-name-face))
   "Tree-sitter font-lock settings for `html-ts-mode'.")
 
+(defvar html-ts-mode--treesit-things-settings
+  `((html
+     (sexp ,(regexp-opt '("element"
+                          "text"
+                          "attribute"
+                          "value")))
+     (list ,(rx (or
+                 ;; Also match script_element and style_element
+                 "element"
+                 ;; HTML comments have the element syntax
+                 "comment")))
+     (sentence ,(rx (and bos (or "tag_name" "attribute") eos)))
+     (text ,(regexp-opt '("comment" "text")))))
+  "Settings for `treesit-thing-settings'.")
+
+(defvar html-ts-mode--treesit-font-lock-feature-list
+  '((comment keyword definition)
+    (property string)
+    () ())
+  "Settings for `treesit-font-lock-feature-list'.")
+
+(defvar html-ts-mode--treesit-simple-imenu-settings
+  '((nil "element" nil nil))
+  "Settings for `treesit-simple-imenu'.")
+
+(defvar html-ts-mode--treesit-defun-type-regexp
+  "element"
+  "Settings for `treesit-defun-type-regexp'.")
+
 (defun html-ts-mode--defun-name (node)
   "Return the defun name of NODE.
 Return nil if there is no name or if NODE is not a defun node."
@@ -119,33 +149,18 @@ Return nil if there is no name or if NODE is not a defun node."
   (setq-local treesit-simple-indent-rules html-ts-mode--indent-rules)
 
   ;; Navigation.
-  (setq-local treesit-defun-type-regexp "element")
+  (setq-local treesit-defun-type-regexp html-ts-mode--treesit-defun-type-regexp)
+
   (setq-local treesit-defun-name-function #'html-ts-mode--defun-name)
 
-  (setq-local treesit-thing-settings
-              `((html
-                 (sexp ,(regexp-opt '("element"
-                                      "text"
-                                      "attribute"
-                                      "value")))
-                 (list ,(rx (or
-                             ;; Also match script_element and style_element
-                             "element"
-                             ;; HTML comments have the element syntax
-                             "comment")))
-                 (sentence ,(rx (and bos (or "tag_name" "attribute") eos)))
-                 (text ,(regexp-opt '("comment" "text"))))))
+  (setq-local treesit-thing-settings html-ts-mode--treesit-things-settings)
 
   ;; Font-lock.
   (setq-local treesit-font-lock-settings html-ts-mode--font-lock-settings)
-  (setq-local treesit-font-lock-feature-list
-              '((comment keyword definition)
-                (property string)
-                () ()))
+  (setq-local treesit-font-lock-feature-list html-ts-mode--treesit-font-lock-feature-list)
 
   ;; Imenu.
-  (setq-local treesit-simple-imenu-settings
-              '((nil "element" nil nil)))
+  (setq-local treesit-simple-imenu-settings html-ts-mode--treesit-simple-imenu-settings)
 
   ;; Outline minor mode.
   (setq-local treesit-outline-predicate #'html-ts-mode--outline-predicate)

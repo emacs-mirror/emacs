@@ -2291,6 +2291,81 @@ android_set_window_size (struct frame *f, bool change_gravity,
   do_pending_window_change (false);
 }
 
+/* Calculate the absolute position in frame F
+   from its current recorded position values and gravity.  */
+
+static void
+android_calc_absolute_position (struct frame *f)
+{
+  int flags = f->size_hint_flags;
+  struct frame *p = FRAME_PARENT_FRAME (f);
+
+  /* We have nothing to do if the current position
+     is already for the top-left corner.  */
+  if (!((flags & XNegative) || (flags & YNegative)))
+    return;
+
+  /* Treat negative positions as relative to the leftmost bottommost
+     position that fits on the screen.  */
+  if (flags & XNegative)
+    {
+      int width = FRAME_PIXEL_WIDTH (f);
+
+      /* A frame that has been visible at least once should have outer
+	 edges.  */
+      if (f->output_data.android->has_been_visible && !p)
+	{
+	  Lisp_Object frame;
+	  Lisp_Object edges = Qnil;
+
+	  XSETFRAME (frame, f);
+	  edges = Fandroid_frame_edges (frame, Qouter_edges);
+	  if (!NILP (edges))
+	    width = (XFIXNUM (Fnth (make_fixnum (2), edges))
+		     - XFIXNUM (Fnth (make_fixnum (0), edges)));
+	}
+
+      if (p)
+	f->left_pos = (FRAME_PIXEL_WIDTH (p) - width - 2 * f->border_width
+		       + f->left_pos);
+      else
+	/* Not that this is of much significance, for Android programs
+	   cannot position their windows at absolute positions in the
+	   screen.  */
+	f->left_pos = (android_get_screen_width () - width + f->left_pos);
+
+    }
+
+  if (flags & YNegative)
+    {
+      int height = FRAME_PIXEL_HEIGHT (f);
+
+      if (f->output_data.android->has_been_visible && !p)
+	{
+	  Lisp_Object frame;
+	  Lisp_Object edges = Qnil;
+
+	  XSETFRAME (frame, f);
+	  if (NILP (edges))
+	    edges = Fandroid_frame_edges (frame, Qouter_edges);
+	  if (!NILP (edges))
+	    height = (XFIXNUM (Fnth (make_fixnum (3), edges))
+		      - XFIXNUM (Fnth (make_fixnum (1), edges)));
+	}
+
+      if (p)
+	f->top_pos = (FRAME_PIXEL_HEIGHT (p) - height - 2 * f->border_width
+		       + f->top_pos);
+      else
+	f->top_pos = (android_get_screen_height () - height + f->top_pos);
+  }
+
+  /* The left_pos and top_pos
+     are now relative to the top and left screen edges,
+     so the flags should correspond.  */
+  f->size_hint_flags &= ~(XNegative | YNegative);
+}
+
 static void
 android_set_offset (struct frame *f, int xoff, int yoff,
 		    int change_gravity)
@@ -2307,7 +2382,9 @@ android_set_offset (struct frame *f, int xoff, int yoff,
       f->win_gravity = NorthWestGravity;
     }
 
-  android_move_window (FRAME_ANDROID_WINDOW (f), xoff, yoff);
+  android_calc_absolute_position (f);
+  android_move_window (FRAME_ANDROID_WINDOW (f), f->left_pos,
+		       f->top_pos);
 }
 
 static void

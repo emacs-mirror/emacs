@@ -258,31 +258,41 @@ white-space."
 	      (insert ")")
 	    (insert "\n" (make-string (1+ column) ?\s))))))))
 
+(define-inline dom--html-boolean-attribute-p (attr)
+  "Return non-nil if ATTR is an HTML boolean attribute."
+  (inline-quote
+   (memq ,attr
+         ;; Extracted from the HTML Living Standard list of attributes
+         ;; at <https://html.spec.whatwg.org/#attributes-3>.
+         '( allowfullscreen alpha async autofocus autoplay checked
+            controls default defer disabled formnovalidate inert ismap
+            itemscope loop multiple muted nomodule novalidate open
+            playsinline readonly required reversed selected
+            shadowrootclonable shadowrootdelegatesfocus
+            shadowrootserializable))))
+
 (defun dom-print (dom &optional pretty xml)
   "Print DOM at point as HTML/XML.
 If PRETTY, indent the HTML/XML logically.
 If XML, generate XML instead of HTML."
-  (let ((column (current-column)))
+  (let ((column (current-column))
+        (indent-tabs-mode nil)) ;; Indent with spaces
     (insert (format "<%s" (dom-tag dom)))
-    (let ((attr (dom-attributes dom)))
-      (dolist (elem attr)
-	;; In HTML, these are boolean attributes that should not have
-	;; an = value.
-	(insert (if (and (memq (car elem)
-			       '(async autofocus autoplay checked
-			         contenteditable controls default
-			         defer disabled formNoValidate frameborder
-			         hidden ismap itemscope loop
-			         multiple muted nomodule novalidate open
-			         readonly required reversed
-			         scoped selected typemustmatch))
-			 (cdr elem)
-			 (not xml))
-		    (format " %s" (car elem))
-		  (format " %s=\"%s\"" (car elem)
-	                  (url-insert-entities-in-string (cdr elem)))))))
+    (pcase-dolist (`(,attr . ,value) (dom-attributes dom))
+      ;; Don't print attributes without a value.
+      (when value
+        (insert
+         ;; HTML boolean attributes should not have an = value.  The
+         ;; presence of a boolean attribute on an element represents
+         ;; the true value, and the absence of the attribute
+         ;; represents the false value.
+         (if (and (not xml) (dom--html-boolean-attribute-p attr))
+             (format " %s" attr)
+           (format " %s=%S" attr (url-insert-entities-in-string
+                                  (format "%s" value)))))))
     (let* ((children (dom-children dom))
-	   (non-text nil))
+	   (non-text nil)
+           (indent (+ column 2)))
       (if (null children)
 	  (insert " />")
 	(insert ">")
@@ -291,16 +301,14 @@ If XML, generate XML instead of HTML."
 	      (insert (url-insert-entities-in-string child))
 	    (setq non-text t)
 	    (when pretty
-              (insert "\n" (make-string (+ column 2) ?\s)))
+              (insert "\n")
+              (indent-line-to indent))
 	    (dom-print child pretty xml)))
 	;; If we inserted non-text child nodes, or a text node that
 	;; ends with a newline, then we indent the end tag.
-        (when (and pretty
-		   (or (bolp)
-		       non-text))
-	  (unless (bolp)
-            (insert "\n"))
-	  (insert (make-string column ?\s)))
+        (when (and pretty (or (bolp) non-text))
+	  (or (bolp) (insert "\n"))
+	  (indent-line-to column))
         (insert (format "</%s>" (dom-tag dom)))))))
 
 (provide 'dom)

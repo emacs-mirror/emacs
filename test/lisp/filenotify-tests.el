@@ -1241,7 +1241,7 @@ delivered."
 	  ;; It matters which direction we rename, at least for
 	  ;; kqueue.  This backend parses directories in alphabetic
 	  ;; order (x%d before y%d).  So we rename into both directions.
-	  (if (zerop (mod i 2))
+	  (if (evenp i)
 	      (progn
 		(push (expand-file-name (format "x%d" i)) source-file-list)
 		(push (expand-file-name (format "y%d" i)) target-file-list))
@@ -1469,7 +1469,7 @@ the file watch."
                 (make-list (/ n 2) 'created)))
             (dotimes (i n)
               (file-notify--test-wait-event)
-              (if (zerop (mod i 2))
+              (if (evenp i)
                   (write-region
                    "any text" nil file-notify--test-tmpfile1 t 'no-message)
                 (let ((file-notify--test-tmpdir file-notify--test-tmpfile))

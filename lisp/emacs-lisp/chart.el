@@ -347,7 +347,7 @@ of the drawing."
 	 (odd nil)
 	 p1)
     (while s
-      (setq odd (= (% (length s) 2) 1))
+      (setq odd (oddp (length s)))
       (setq r (chart-translate-namezone (oref a chart) i))
       (if (eq dir 'vertical)
 	  (setq p (/ (+ (car r) (cdr r)) 2))

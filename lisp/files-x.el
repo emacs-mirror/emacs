@@ -914,7 +914,7 @@ earlier in the `setq-connection-local'.  The return value of the
 
 \(fn [VARIABLE VALUE]...)"
   (declare (debug setq))
-  (unless (zerop (mod (length pairs) 2))
+  (unless (evenp (length pairs))
     (error "PAIRS must have an even number of variable/value members"))
   (let ((set-expr nil)
         (profile-vars nil))

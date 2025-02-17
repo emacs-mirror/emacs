@@ -212,7 +212,7 @@
                           when (symbolp i) collect i)
                  '(bird turtle horse cat)))
   (should (equal (cl-loop for i from 1 to 10
-                          if (cl-oddp i) collect i)
+                          if (oddp i) collect i)
                  '(1 3 5 7 9)))
   (should (equal (cl-loop for i in '(a b c d e f g) by #'cddr
                           collect i into my-list
@@ -225,7 +225,7 @@
                  '(a b (c))))
   (should (equal (cl-loop for i upfrom 0
                           as x in '(a b (c))
-                          nconc (if (cl-evenp i) (list x) nil))
+                          nconc (if (evenp i) (list x) nil))
                  '(a (c)))))
 
 (ert-deftest cl-macs-loop-count ()
@@ -346,7 +346,7 @@ collection clause."
 
   (should (equal (cl-loop for elt in '(1 a 2 "a" (3 4) 5 6)
                           when (numberp elt)
-                            when (cl-evenp elt) collect elt into even
+                            when (evenp elt) collect elt into even
                             else collect elt into odd
                           else
                             when (symbolp elt) collect elt into syms
@@ -356,7 +356,7 @@ collection clause."
 
 (ert-deftest cl-macs-loop-if ()
   (should (equal (cl-loop for i to 5
-                          if (cl-evenp i)
+                          if (evenp i)
                             collect i
                             and when (and (= i 2) 'two)
                               collect it
@@ -364,7 +364,7 @@ collection clause."
                                 collect "low")
                  '(0 2 two "low" 4)))
   (should (equal (cl-loop for i to 5
-                          if (cl-evenp i)
+                          if (evenp i)
                             collect i
                             and when (and (= i 2) 'two)
                               collect it
@@ -374,7 +374,7 @@ collection clause."
                  '(0 "low" 2 two "low" 4)))
   (should (equal (cl-loop with funny-numbers = '(6 13 -1)
                           for x below 10
-                          if (cl-evenp x)
+                          if (evenp x)
                             collect x into evens
                           else
                             collect x into odds

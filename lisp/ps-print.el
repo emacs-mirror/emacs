@@ -4605,21 +4605,19 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 		   (t
 		    nil))
 	     (cond ((eq ps-even-or-odd-pages 'even-page)
-		    (= (logand ps-page-postscript 1) 0))
+		    (evenp ps-page-postscript))
 		   ((eq ps-even-or-odd-pages 'odd-page)
-		    (= (logand ps-page-postscript 1) 1))
-		   (t)
-		   ))))
+		    (oddp ps-page-postscript))
+		   (t)))))
 
 
 (defsubst ps-print-sheet-p ()
   (setq ps-print-page-p
 	(cond ((eq ps-even-or-odd-pages 'even-sheet)
-	       (= (logand ps-page-sheet 1) 0))
+	       (evenp ps-page-sheet))
 	      ((eq ps-even-or-odd-pages 'odd-sheet)
-	       (= (logand ps-page-sheet 1) 1))
-	      (t)
-	      )))
+	       (oddp ps-page-sheet))
+	      (t))))
 
 
 (defun ps-output (&rest args)
@@ -6462,7 +6460,7 @@ If FACE is not a valid face name, use default face."
 	    (replace-match (format "/Lines %d def\n/PageCount %d def"
 				   total-lines total-pages) t)))))
     ;; Set dummy page
-    (and ps-spool-duplex (= (mod ps-page-order 2) 1)
+    (and ps-spool-duplex (oddp ps-page-order)
 	 (let ((ps-n-up-printing 0))
 	   (ps-header-sheet)
 	   (ps-output "/PrintHeader false def\n/ColumnIndex 0 def\n"

@@ -27,6 +27,7 @@
 ;;; Code:
 
 (require 'dom)
+(require 'svg)
 (require 'ert)
 
 ;; `defsubst's are not inlined inside `ert-deftest' (see Bug#24402),
@@ -218,6 +219,59 @@ child results in an error."
              (concat "<samp class=\"samp\">"
                      "&lt;div class=&quot;default&quot;&gt; &lt;/div&gt;"
                      "</samp>")))))
+
+(ert-deftest dom-tests-print-svg ()
+  "Test that `dom-print' correctly print a SVG DOM."
+  (let ((svg (svg-create 100 100)))
+    (svg-rectangle svg 0 0 "100%" "100%" :fill "blue")
+    (svg-text svg "A text" :x 0 :y 55 :stroke "yellow" :fill "yellow")
+    (with-temp-buffer
+      (dom-print svg t t)
+      (should
+       (equal
+        (buffer-string)
+        (concat
+         "<svg width=\"100\" height=\"100\" version=\"1.1\" "
+         "xmlns=\"http://www.w3.org/2000/svg\" "
+         "xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n"
+         "  <rect width=\"100%\" height=\"100%\" x=\"0\" y=\"0\" fill=\"blue\" />\n"
+         "  <text fill=\"yellow\" stroke=\"yellow\" y=\"55\" x=\"0\">A text</text>\n"
+         "</svg>"))))))
+
+(ert-deftest dom-tests-print-html-boolean ()
+  "Test that `dom-print' correctly print HTML boolean attributes."
+  (let ((dom (dom-node
+              "html" nil
+              (dom-node "head" nil
+                        (dom-node "title" nil
+                                  "Test boolean attributes"))
+              (dom-node "body" nil
+                        ;; The following checkboxes are checked
+                        (dom-node "input" '((type . "checkbox")
+                                            (checked . "")))
+                        (dom-node "input" '((type . "checkbox")
+                                            (checked . "checked")))
+                        (dom-node "input" '((type . "checkbox")
+                                            (checked . "true")))
+                        (dom-node "input" '((type . "checkbox")
+                                            (checked . "false")))
+                        ;; The following checkbox is not checked
+                        (dom-node "input" '((type . "checkbox")
+                                            (checked)))
+                        ))))
+    (with-temp-buffer
+      (dom-print dom)
+      (should
+       (equal
+        (buffer-string)
+        (concat
+         "<html><head><title>Test boolean attributes</title></head><body>"
+         "<input type=\"checkbox\" checked />"
+         "<input type=\"checkbox\" checked />"
+         "<input type=\"checkbox\" checked />"
+         "<input type=\"checkbox\" checked />"
+         "<input type=\"checkbox\" />"
+         "</body></html>"))))))
 
 (ert-deftest dom-test-search ()
   (let ((dom '(a nil (b nil (c nil)))))

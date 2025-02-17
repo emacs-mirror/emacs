@@ -205,7 +205,7 @@ static unsigned char gamegrid_bits[] = {
                                       (make-list (/ center-pixel-count 2) "01")
                                       (list right-border)))))
         (dotimes (row center-pixel-count)
-          (gamegrid-insert-xbm-bits (if (eq (logand row 1) 1) odd-line even-line))
+          (gamegrid-insert-xbm-bits (if (oddp row) odd-line even-line))
           (insert ", \n")))
 
       (dotimes (row border-pixel-count)

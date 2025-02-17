@@ -731,10 +731,10 @@ a newly created one.
 When TYPE is `plain-text', CHILDREN must contain a single node -
 string.  Alternatively, TYPE can be a string.  When TYPE is nil or
 `anonymous', PROPS must be nil."
-  (cl-assert
-   ;; FIXME: Just use `plistp' from Emacs 29 when available.
-   (let ((len (proper-list-p props)))
-     (and len (zerop (% len 2)))))
+  (cl-assert (if (fboundp 'plistp) ; Emacs 29.1
+                 (plistp props)
+               (let ((len (proper-list-p props)))
+                 (and len (cl-evenp len)))))
   ;; Assign parray.
   (when (and props (not (stringp type)) (not (eq type 'plain-text)))
     (let ((node (list 'dummy props)))

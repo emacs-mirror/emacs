@@ -3016,7 +3016,7 @@ See `term-prompt-regexp'."
 (defconst term-control-seq-regexp
   (concat
    ;; A control character not matched in a longer sequence below,
-   "\\(?:[\x00-\x19\x1C-\x1F\r\n\t\b]\\|"
+   "\\(?:[\x00-\x19\x1C-\x1F]\\|"
    ;; some Emacs specific control sequences, implemented by
    ;; `term-command-hook',
    "\032[^\n]+\n\\|"

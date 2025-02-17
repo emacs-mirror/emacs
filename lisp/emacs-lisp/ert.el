@@ -576,7 +576,7 @@ Return nil if they are."
 
 (defun ert--significant-plist-keys (plist)
   "Return the keys of PLIST that have non-null values, in order."
-  (cl-assert (zerop (mod (length plist) 2)) t)
+  (cl-assert (evenp (length plist)) t)
   (cl-loop for (key value . rest) on plist by #'cddr
            unless (or (null value) (memq key accu)) collect key into accu
            finally (cl-return accu)))
@@ -587,8 +587,8 @@ Return nil if they are."
 Returns nil if they are equivalent, i.e., have the same value for
 each key, where absent values are treated as nil.  The order of
 key/value pairs in each list does not matter."
-  (cl-assert (zerop (mod (length a) 2)) t)
-  (cl-assert (zerop (mod (length b) 2)) t)
+  (cl-assert (evenp (length a)) t)
+  (cl-assert (evenp (length b)) t)
   ;; Normalizing the plists would be another way to do this but it
   ;; requires a total ordering on all lisp objects (since any object
   ;; is valid as a text property key).  Perhaps defining such an
@@ -1419,7 +1419,7 @@ Returns the stats object."
                          (message "%9s  %S%s"
                                   (ert-string-for-test-result result nil)
                                   (ert-test-name test)
-                                  (if (cl-plusp
+                                  (if (plusp
                                        (length (getenv "EMACS_TEST_VERBOSE")))
                                       (ert-reason-for-test-result result)
                                     ""))))
@@ -1432,7 +1432,7 @@ Returns the stats object."
                          (message "%9s  %S%s"
                                   (ert-string-for-test-result result nil)
                                   (ert-test-name test)
-                                  (if (cl-plusp
+                                  (if (plusp
                                        (length (getenv "EMACS_TEST_VERBOSE")))
                                       (ert-reason-for-test-result result)
                                     ""))))
@@ -2123,7 +2123,7 @@ non-nil, returns the face for expected results.."
 (defun ert-face-for-stats (stats)
   "Return a face that represents STATS."
   (cond ((ert--stats-aborted-p stats) 'nil)
-        ((cl-plusp (ert-stats-completed-unexpected stats))
+        ((plusp (ert-stats-completed-unexpected stats))
          (ert-face-for-test-result nil))
         ((eql (ert-stats-completed-expected stats) (ert-stats-total stats))
          (ert-face-for-test-result t))

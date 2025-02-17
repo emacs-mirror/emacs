@@ -380,7 +380,7 @@ BODY is the test body."
    (let ((is-odd (lambda (node)
                    (let ((string (treesit-node-text node)))
                      (and (eq 1 (length string))
-                          (cl-oddp (string-to-number string)))))))
+                          (oddp (string-to-number string)))))))
      (cl-loop for cursor = (treesit-node-child array 0)
               then (treesit-search-forward cursor `("number" . ,is-odd)
                                            nil t)
@@ -413,21 +413,21 @@ BODY is the test body."
 
 ;;; Indent
 
-(ert-deftest treesit-test-add-simple-indent-rules ()
+(ert-deftest treesit-test-simple-indent-add-rules ()
   "Test `treesit-add-simple-indent-rules'."
   (let ((treesit-simple-indent-rules
          (copy-tree '((c (a a a) (b b b) (c c c))))))
-    (treesit-add-simple-indent-rules 'c '((d d d)))
+    (treesit-simple-indent-add-rules 'c '((d d d)))
     (should (equal treesit-simple-indent-rules
                    '((c (d d d) (a a a) (b b b) (c c c)))))
-    (treesit-add-simple-indent-rules 'c '((e e e)) :after)
+    (treesit-simple-indent-add-rules 'c '((e e e)) :after)
     (should (equal treesit-simple-indent-rules
                    '((c (d d d) (a a a) (b b b) (c c c) (e e e)))))
-    (treesit-add-simple-indent-rules 'c '((f f f)) :after '(b b b))
+    (treesit-simple-indent-add-rules 'c '((f f f)) :after '(b b b))
     (should (equal treesit-simple-indent-rules
                    '((c (d d d) (a a a) (b b b) (f f f)
                         (c c c) (e e e)))))
-    (treesit-add-simple-indent-rules 'c '((g g g)) :before '(b b b))
+    (treesit-simple-indent-add-rules 'c '((g g g)) :before '(b b b))
     (should (equal treesit-simple-indent-rules
                    '((c (d d d) (a a a) (g g g)
                         (b b b) (f f f) (c c c) (e e e)))))))

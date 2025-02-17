@@ -1259,7 +1259,7 @@ SERVER."
       (progn
         (setf (eglot--shutdown-requested server) t)
         (eglot--request server :shutdown eglot--{} :timeout (or timeout 1.5))
-        (jsonrpc-notify server :exit nil))
+        (jsonrpc-notify server :exit eglot--{}))
     ;; Now ask jsonrpc.el to shut down the server.
     (jsonrpc-shutdown server (not preserve-buffers))
     (unless preserve-buffers (kill-buffer (jsonrpc-events-buffer server)))))

@@ -392,7 +392,7 @@ With two arguments, return rounding and remainder of their quotient."
 		 (res (cl-floor (+ x hy) y)))
 	    (if (and (= (car (cdr res)) 0)
 		     (= (+ hy hy) y)
-		     (/= (% (car res) 2) 0))
+		     (oddp (car res)))
 		(list (1- (car res)) hy)
 	      (list (car res) (- (car (cdr res)) hy))))
 	(let ((q (round (/ x y))))

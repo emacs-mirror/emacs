@@ -184,11 +184,28 @@ pgtk_enumerate_devices (struct pgtk_display_info *dpyinfo,
 	{
 	  rec = xmalloc (sizeof *rec);
 	  rec->seat = g_object_ref (seat);
-	  rec->device = GDK_DEVICE (t1->data);
-	  rec->name = (make_formatted_string
-		       ("%u:%s",
-			gdk_device_get_source (rec->device),
-			gdk_device_get_name (rec->device)));
+
+	  if (t1->data)
+	    {
+	      GdkInputSource source;
+	      const char *name;
+
+	      rec->device = GDK_DEVICE (t1->data);
+	      source = gdk_device_get_source (rec->device);
+	      name = gdk_device_get_name (rec->device);
+	      rec->name = make_formatted_string ("%u:%s", source, name);
+	    }
+	  else
+	    {
+	      /* GTK bug 7737 results in GDK seats being initialized
+		 with NULL devices in some cirumstances.  As events will
+		 presumably also be delivered with their device fields
+		 set to NULL, insert a ersatz device record associated
+		 with NULL.  (bug#76239) */
+	      rec->device = NULL;
+	      rec->name = build_string ("0:unknown device");
+	    }
+
 	  rec->next = dpyinfo->devices;
 	  dpyinfo->devices = rec;
 	}
@@ -553,12 +570,12 @@ pgtk_calc_absolute_position (struct frame *f)
 
   /* We have nothing to do if the current position
      is already for the top-left corner.  */
-  if (! ((flags & XNegative) || (flags & YNegative)))
+  if (!((flags & XNegative) || (flags & YNegative)))
     return;
 
   /* Treat negative positions as relative to the leftmost bottommost
      position that fits on the screen.  */
-  if ((flags & XNegative) && (f->left_pos <= 0))
+  if (flags & XNegative)
     {
       int width = FRAME_PIXEL_WIDTH (f);
 
@@ -585,7 +602,7 @@ pgtk_calc_absolute_position (struct frame *f)
 
     }
 
-  if ((flags & YNegative) && (f->top_pos <= 0))
+  if (flags & YNegative)
     {
       int height = FRAME_PIXEL_HEIGHT (f);
 

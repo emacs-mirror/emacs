@@ -2328,8 +2328,11 @@ of the statement."
                            (setq
                             last-string-end
                             (or (if (eq t (nth 3 (syntax-ppss)))
-                                    (re-search-forward
-                                     (rx (syntax string-delimiter)) nil t)
+                                    (cl-loop
+                                     while (re-search-forward
+                                            (rx (or "\"\"\"" "'''")) nil t)
+                                     unless (python-syntax-context 'string)
+                                     return (point))
                                   (ignore-error scan-error
                                     (goto-char string-start)
                                     (python-nav--lisp-forward-sexp)

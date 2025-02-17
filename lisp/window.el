@@ -1003,6 +1003,7 @@ and may be called only if no window on SIDE exists yet."
 	 ;; window and not make a new parent window unless needed.
 	 (window-combination-resize 'side)
 	 (window-combination-limit nil)
+	 (ignore-window-parameters t)
 	 (window (split-window-no-error next-to nil on-side))
          (alist (if (assq 'dedicated alist)
                     alist
@@ -5649,6 +5650,7 @@ changed by this function."
        ;; frame's root window, split the frame's main window instead
        ;; (Bug#73627).
        ((and (eq window (frame-root-window frame))
+	     (not ignore-window-parameters)
 	     (window-with-parameter 'window-side nil frame))
 	(throw 'done (split-window (window-main-window frame)
 				   size side pixelwise refer)))

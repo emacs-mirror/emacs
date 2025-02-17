@@ -92,6 +92,11 @@ exec $awk \
     status = 1
   }
 
+  /(^|[^\\])`[^'\''`]+`/ {
+    print "Markdown-style quotes in commit message"
+    status = 1
+  }
+
   nlines == 0 && $0 !~ non_space { next }
 
   { nlines++ }

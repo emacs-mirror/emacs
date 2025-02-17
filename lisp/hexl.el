@@ -1011,7 +1011,7 @@ Embedded whitespace, dashes, and periods in the string are ignored."
   (let ((chars '()))
     (let ((len (length str))
 	  (idx 0))
-      (if (eq (logand len 1) 1)
+      (if (oddp len)
 	  (let ((num (hexl-hex-string-to-integer (substring str 0 1))))
 	    (setq chars (cons num chars))
 	    (setq idx 1)))

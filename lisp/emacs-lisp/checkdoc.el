@@ -2109,7 +2109,7 @@ The text checked is between START and LIMIT."
 	(goto-char start)
 	(while (and (< (point) p) (re-search-forward "\\\\\"" limit t))
 	  (setq c (1+ c)))
-	(and (< 0 c) (= (% c 2) 0))))))
+	(and (< 0 c) (evenp c))))))
 
 (defun checkdoc-in-abbreviation-p (begin)
   "Return non-nil if point is at an abbreviation.

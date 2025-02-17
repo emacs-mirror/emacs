@@ -558,7 +558,7 @@ The decision is taken by order of preference:
         ;; Backslash-escaped: no pairing, no skipping.
         ((save-excursion
            (goto-char beg)
-           (not (zerop (% (skip-syntax-backward "\\") 2))))
+           (not (evenp (skip-syntax-backward "\\"))))
          (let ((current-prefix-arg (1- num)))
            (electric-pair-post-self-insert-function)))
         ;; Skip self.

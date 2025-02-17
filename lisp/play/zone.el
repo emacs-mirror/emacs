@@ -454,7 +454,7 @@ run a specific program.  The program must be a member of
     (dotimes (i 20)
       (goto-char pos)
       (delete-char 1)
-      (insert (if (= 0 (% i 2)) hmm c-string))
+      (insert (if (evenp i) hmm c-string))
       (zone-park/sit-for wbeg (setq wait (* wait 0.8))))
     (delete-char -1) (insert c-string)))
 

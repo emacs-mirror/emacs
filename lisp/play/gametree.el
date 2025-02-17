@@ -347,7 +347,7 @@ Subnodes which have been manually scored are honored."
         ;; be either a leaf child, or a subheading.
         (let ((running gametree-default-score)
               (minmax
-               (if (= 0 (mod (gametree-current-branch-ply) 2))
+               (if (evenp (gametree-current-branch-ply))
                    'max 'min)))
           (while (and (not (eobp))
                       (= 0 (gametree-current-branch-depth))) ;handle leaves
@@ -395,7 +395,7 @@ depth AT-DEPTH or smaller is found."
                              (gametree-current-branch-ply)))))
       (goto-char (1- (point)))
       (insert "\n")
-      (insert (format (if (= 0 (mod starting-plies 2))
+      (insert (format (if (evenp starting-plies)
                           gametree-full-ply-format
                         gametree-half-ply-format)
                       (/ starting-plies 2))))))
@@ -450,7 +450,7 @@ only work of Black's moves are explicitly numbered, for instance
                                    gametree-full-ply-regexp "\\|"
                                    gametree-half-ply-regexp "\\)")))
           (progn
-            (insert (format (if (= 0 (mod (gametree-looking-at-ply) 2))
+            (insert (format (if (evenp (gametree-looking-at-ply))
                                 gametree-full-ply-format
                               gametree-half-ply-format)
                             (/ (gametree-looking-at-ply) 2)))

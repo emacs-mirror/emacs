@@ -27,7 +27,6 @@
 
 (require 'calc)
 (require 'calc-macs)
-(require 'cl-lib)
 
 ;; Declare functions which are defined elsewhere.
 (declare-function calc-do-keypad "calc-keypd" (&optional full-display interactive))
@@ -736,7 +735,7 @@ loaded and the keystroke automatically re-typed."
 ;; True if A is an even integer.  [P R R] [Public]
 ;;;###autoload
 (defun math-evenp (a)
-  (and (integerp a) (cl-evenp a)))
+  (and (integerp a) (evenp a)))
 
 ;; Compute A / 2, for small or big integer A.  [I i]
 ;; If A is negative, type of truncation is undefined.
@@ -899,7 +898,7 @@ loaded and the keystroke automatically re-typed."
 (defun math-iipow (a n)   ; [O O S]
   (cond ((= n 0) 1)
 	((= n 1) a)
-	((= (% n 2) 0) (math-iipow (math-mul a a) (/ n 2)))
+	((evenp n) (math-iipow (math-mul a a) (/ n 2)))
 	(t (math-mul a (math-iipow (math-mul a a) (/ n 2))))))
 
 (defun math-iipow-show (a n)   ; [O O S]
@@ -907,7 +906,7 @@ loaded and the keystroke automatically re-typed."
   (let ((val (cond
 	      ((= n 0) 1)
 	      ((= n 1) a)
-	      ((= (% n 2) 0) (math-iipow-show (math-mul a a) (/ n 2)))
+	      ((evenp n) (math-iipow-show (math-mul a a) (/ n 2)))
 	      (t (math-mul a (math-iipow-show (math-mul a a) (/ n 2)))))))
     (math-working "pow" val)
     val))

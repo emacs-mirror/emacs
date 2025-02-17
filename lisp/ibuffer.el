@@ -1504,7 +1504,7 @@ If point is on a group name, this function operates on that group."
 		(max (nth 2 form))
 		(align (nth 3 form))
 		(elide (nth 4 form)))
-	   (let* ((from-end-p (when (cl-minusp min)
+	   (let* ((from-end-p (when (minusp min)
 				(setq min (- min))
 				t))
 		  (letbindings nil)
@@ -2055,7 +2055,7 @@ the value of point at the beginning of the line for that buffer."
       element
     (pcase-let ((`(,sym ,min ,_max ,align) element))
       ;; Ignore negative MIN, since the titles are left-aligned.
-      (when (cl-minusp min)
+      (when (minusp min)
 	(setq min (- min)))
       (let* ((name (or (get sym 'ibuffer-column-name)
 		       (error "Unknown column %s in ibuffer-formats" sym)))
@@ -2080,7 +2080,7 @@ the value of point at the beginning of the line for that buffer."
       (make-string (length element) ?\s)
     (pcase-let ((`(,sym ,min ,_max ,align) element))
       ;; Ignore negative MIN, since the summaries are left-aligned.
-      (when (cl-minusp min)
+      (when (minusp min)
         (setq min (- min)))
       (let* ((summary
               (if (get sym 'ibuffer-column-summarizer)

@@ -176,6 +176,14 @@ will still be on that candidate after "*Completions*" is updated with a
 new list of completions.  The candidate is automatically deselected when
 the "*Completions*" buffer is hidden.
 
+---
+*** New user option 'crm-prompt' for 'completing-read-multiple'.
+This option configures the prompt format of 'completing-read-multiple'.
+By default, the prompt indicates to the user that the completion command
+accepts a comma-separated list.  The prompt format can include the
+separator description and the separator string, which are both stored as
+text properties of the 'crm-separator' regular expression.
+
 ** Windows
 
 +++
@@ -289,7 +297,7 @@ first argument.  This is a way for the callers to indicate, for example,
 the reason or the context why the project is asked for.
 
 ---
-*** New command 'project-find-matching-file'
+*** New command 'project-find-matching-file'.
 It can be used when switching between projects with similar file trees
 (such as Git worktrees of the same repository).  It supports being
 invoked standalone or from the 'project-switch-commands' dispatch menu.
@@ -445,10 +453,10 @@ to the corresponding position in the old text and vice versa.
 This allows passing a string with wildcards, or a cons cell where the
 first element is a list and the rest is a list of files.
 
-*** Bound unused letters in 'image-dired-thumbnail-mode-map'
+*** Bound unused letters in 'image-dired-thumbnail-mode-map'.
 For a more comfortable navigation experience (as in, no modifier keys),
-the keys "f", "b", "n", "p", "a" and "e" are now bound to the
-same functions as their C- counterparts.
+the keys 'f', 'b', 'n', 'p', 'a' and 'e' are now bound to the
+same functions as their 'C-' counterparts.
 
 ** Browse URL
 
@@ -666,7 +674,7 @@ those commands search in input history only when the point is after the
 last prompt.
 
 +++
-** Mail-util
+** Mail Utils
 
 *** New user option 'mail-re-regexps'.
 This contains the list of regular expressions used to match "Re:" and
@@ -1153,13 +1161,18 @@ cloning, or prompts for that, too.
 When the argument is non-nil, the function switches to a buffer visiting
 the directory into which the repository was cloned.
 
+---
+*** 'C-x v u' ('vc-revert') now works on directories listed in VC Directory.
+Reverting a directory means reverting changes to all files inside it.
+
 ** Package
 
 +++
 *** No longer warn if a package has no footer line.
 package.el no longer warns for packages without a "footer line", which
 is the line that usually appears at the very end of an Emacs Lisp file:
-;;; FILENAME ends here
+
+    ;;; FILENAME ends here
 
 ---
 *** New optional argument to 'package-autoremove'.
@@ -1210,6 +1223,19 @@ runs its body, and removes the current buffer from
 
 * New Modes and Packages in Emacs 31.1
 
+** New major modes based on the tree-sitter library
+
+*** New major mode 'mhtml-ts-mode'.
+An optional major mode based on the tree-sitter library for editing HTML
+files.  This mode handles indentation, fontification, and commenting for
+embedded JavaScript and CSS.
+
+---
+*** New major mode 'go-work-ts-mode'.
+A major mode based on the tree-sitter library for editing "go.work"
+files.  If tree-sitter is properly set-up by the user, it can be
+enabled for files named "go.work".
+
 
 * Incompatible Lisp Changes in Emacs 31.1
 
@@ -1254,8 +1280,25 @@ name.  Previously, Eshell only did this for MS-Windows systems. To
 restore the old behavior, you can set 'eshell-pwd-convert-function' to
 'identity'.
 
+---
+** The rx 'eval' form now uses the current elisp dialect for evaluation.
+Previously, its argument was always evaluated using dynamic binding.
+
 
 * Lisp Changes in Emacs 31.1
+
++++
+** New functions 'plusp' and 'minusp'.
+They return non-nil if a number is positive or negative, respectively,
+and signal an error if they are given a non-number.  The 'cl-lib'
+functions 'cl-plusp' and 'cl-minusp' are now aliases for 'plusp' and
+'minusp'.
+
++++
+** New functions 'oddp' and 'evenp'.
+They return non-nil if an integer is odd or even, respectively, and
+signal an error if they are given a non-integer.  The 'cl-lib' functions
+'cl-oddp' and 'cl-evenp' are now aliases for 'oddp' and 'evenp'.
 
 ** Time & Date
 
@@ -1356,6 +1399,24 @@ language symbol.  For example, 'cpp' is translated to "C++".  A new
 variable 'treesit-language-display-name-alist' holds the translations of
 language symbols where that translation is not trivial.
 
+*** New function 'treesit-merge-font-lock-feature-list'.
+This function merges two tree-sitter font-lock feature lists.  Returns a
+new font-lock feature list with no duplicates in the same level.  It can
+be used to merge font-lock feature lists in a multi-language major mode.
+
+*** New function 'treesit-replace-font-lock-feature-settings'.
+Given two tree-sitter font-lock settings, it replaces the feature in the
+second font-lock settings with the same feature in the first font-lock
+settings.  In a multi-language major mode it is sometimes necessary to
+replace features from one of the major modes, with others that are
+better suited to the new multilingual context.
+
+*** New function 'treesit-simple-indent-modify-rules'.
+Given two tree-sitter indent rules, it replaces, adds, or prepends rules
+in the old rules with new ones, then returns the modified rules.  In a
+multi-language major mode it is sometimes necessary to modify rules from
+one of the major modes to better suit the new multilingual context.
+
 +++
 *** New command 'treesit-explore'.
 This command replaces 'treesit-explore-mode'.  It turns on
@@ -1372,7 +1433,7 @@ at point to explore.
 *** New variable 'treesit-aggregated-simple-imenu-settings'.
 This variable allows major modes to setup Imenu for multiple languages.
 
-*** New function 'treesit-add-simple-indent-rules'.
+*** New function 'treesit-simple-indent-add-rules'.
 This new function makes it easier to customize indent rules for
 tree-sitter modes.
 
@@ -1527,12 +1588,6 @@ means of the GDI+ library.
 ** Emacs on MS-Windows now supports the ':data' keyword for 'play-sound'.
 In addition to ':file FILE' for playing a sound from a file, ':data
 DATA' can now be used to play a sound from memory.
-
----
-** New major mode 'go-work-ts-mode'.
-A major mode based on the tree-sitter library for editing "go.work"
-files.  If tree-sitter is properly set-up by the user, it can be
-enabled for files named "go.work".
 
 
 ----------------------------------------------------------------------

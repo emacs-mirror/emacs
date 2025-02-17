@@ -3469,27 +3469,37 @@ Also applies to `magic-fallback-mode-alist'.")
 If CASE-INSENSITIVE, the file system of file NAME is case-insensitive."
   (let (mode)
     (while name
-      (setq mode
-            (if case-insensitive
-                ;; Filesystem is case-insensitive.
-                (let ((case-fold-search t))
+      (let ((newmode
+             (if case-insensitive
+                 ;; Filesystem is case-insensitive.
+                 (let ((case-fold-search t))
+                   (assoc-default name alist 'string-match))
+               ;; Filesystem is case-sensitive.
+               (or
+                ;; First match case-sensitively.
+                (let ((case-fold-search nil))
                   (assoc-default name alist 'string-match))
-              ;; Filesystem is case-sensitive.
-              (or
-               ;; First match case-sensitively.
-               (let ((case-fold-search nil))
-                 (assoc-default name alist 'string-match))
-               ;; Fallback to case-insensitive match.
-               (and auto-mode-case-fold
-                    (let ((case-fold-search t))
-                      (assoc-default name alist 'string-match))))))
-      (if (and mode
-               (not (functionp mode))
-               (consp mode)
-               (cadr mode))
-          (setq mode (car mode)
-                name (substring name 0 (match-beginning 0)))
-        (setq name nil)))
+                ;; Fallback to case-insensitive match.
+                (and auto-mode-case-fold
+                     (let ((case-fold-search t))
+                       (assoc-default name alist 'string-match)))))))
+        (when newmode
+          (when mode
+            ;; We had already found a mode but in a (REGEXP MODE t)
+            ;; entry, so we still have to run MODE.  Let's do it now.
+            ;; FIXME: It's kind of ugly to run the function here.
+            ;; An alternative could be to return a list of functions and
+            ;; callers.
+            (set-auto-mode-0 mode t))
+          (setq mode newmode))
+        (if (and newmode
+                 (not (functionp newmode))
+                 (consp newmode)
+                 (cadr newmode))
+            ;; It's a (REGEXP MODE t): Keep looking but remember the MODE.
+            (setq mode (car newmode)
+                  name (substring name 0 (match-beginning 0)))
+          (setq name nil))))
     mode))
 
 (defun set-auto-mode--apply-alist (alist keep-mode-if-same dir-local)

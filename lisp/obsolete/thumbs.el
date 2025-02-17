@@ -628,7 +628,7 @@ ACTION and ARG should be a valid convert command."
 (defun thumbs-emboss-image (emboss)
   "Emboss the image with value EMBOSS."
   (interactive "nEmboss value: ")
-  (if (or (< emboss 3) (> emboss 31) (zerop (% emboss 2)))
+  (if (or (< emboss 3) (> emboss 31) (cl-evenp emboss))
       (error "Arg must be an odd number between 3 and 31"))
   (thumbs-modify-image "emboss" (number-to-string emboss)))
 

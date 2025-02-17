@@ -468,7 +468,7 @@ machine c1 port c2 user c3 password c4\n"
                  ;; Arguments must be all strings.
                  (should (cl-every #'stringp args))
                  ;; Argument number should be even.
-                 (should (cl-evenp (length args)))
+                 (should (evenp (length args)))
                  (should
                   (cond
                    ((string= (car args) "find-internet-password")

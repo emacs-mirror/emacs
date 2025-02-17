@@ -558,9 +558,9 @@ Otherwise, the value is whatever the function
 
 (defun Man-shell-file-name ()
   "Return a proper shell file name, respecting remote directories."
-  (or ; This works also in the local case.
+  (if (connection-local-p shell-file-name)
       (connection-local-value shell-file-name)
-      "/bin/sh"))
+    "/bin/sh"))
 
 (defun Man-header-file-path ()
   "Return the C header file search path that Man should use.

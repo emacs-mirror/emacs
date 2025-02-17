@@ -3772,7 +3772,7 @@ This assumes the function has the `important-return-value' property."
         ;; Add missing &optional (or &rest) arguments.
         (dotimes (_ (- (/ (1+ fmax2) 2) alen))
           (byte-compile-push-constant nil)))
-       ((zerop (logand fmax2 1))
+       ((evenp fmax2)
         (byte-compile-report-error
          (format "Too many arguments for inlined function %S" form))
         (byte-compile-discard (- alen (/ fmax2 2))))

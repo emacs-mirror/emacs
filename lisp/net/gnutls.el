@@ -188,7 +188,7 @@ trust and key files, and priority string."
   (let* ((parameters
           (cond ((symbolp parameters)
                  (list :nowait parameters))
-                ((not (cl-evenp (length parameters)))
+                ((not (evenp (length parameters)))
                  (error "Malformed keyword list"))
                 ((consp parameters)
                  parameters)

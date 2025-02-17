@@ -4640,6 +4640,83 @@ haiku_scroll_bar_remove (struct scroll_bar *bar)
   unblock_input ();
 };
 
+
+
+/* Calculate the absolute position in frame F
+   from its current recorded position values and gravity.  */
+
+static void
+haiku_calc_absolute_position (struct frame *f)
+{
+  int flags = f->size_hint_flags;
+  struct frame *p = FRAME_PARENT_FRAME (f);
+  int screen_width, screen_height;
+
+  /* We have nothing to do if the current position
+     is already for the top-left corner.  */
+  if (!((flags & XNegative) || (flags & YNegative)))
+    return;
+
+  be_get_screen_dimensions (&screen_width, &screen_height);
+
+  /* Treat negative positions as relative to the leftmost bottommost
+     position that fits on the screen.  */
+  if (flags & XNegative)
+    {
+      int width = FRAME_PIXEL_WIDTH (f);
+
+      /* A frame that has been visible at least once should have outer
+	 edges.  */
+      if (!p)
+	{
+	  Lisp_Object frame;
+	  Lisp_Object edges = Qnil;
+
+	  XSETFRAME (frame, f);
+	  edges = Fhaiku_frame_edges (frame, Qouter_edges);
+	  if (!NILP (edges))
+	    width = (XFIXNUM (Fnth (make_fixnum (2), edges))
+		     - XFIXNUM (Fnth (make_fixnum (0), edges)));
+	}
+
+      if (p)
+	f->left_pos = (FRAME_PIXEL_WIDTH (p) - width - 2 * f->border_width
+		       + f->left_pos);
+      else
+	f->left_pos = (screen_width - width + f->left_pos);
+
+    }
+
+  if (flags & YNegative)
+    {
+      int height = FRAME_PIXEL_HEIGHT (f);
+
+      if (!p)
+	{
+	  Lisp_Object frame;
+	  Lisp_Object edges = Qnil;
+
+	  XSETFRAME (frame, f);
+	  if (NILP (edges))
+	    edges = Fhaiku_frame_edges (frame, Qouter_edges);
+	  if (!NILP (edges))
+	    height = (XFIXNUM (Fnth (make_fixnum (3), edges))
+		      - XFIXNUM (Fnth (make_fixnum (1), edges)));
+	}
+
+      if (p)
+	f->top_pos = (FRAME_PIXEL_HEIGHT (p) - height - 2 * f->border_width
+		       + f->top_pos);
+      else
+	f->top_pos = (screen_height - height + f->top_pos);
+  }
+
+  /* The left_pos and top_pos
+     are now relative to the top and left screen edges,
+     so the flags should correspond.  */
+  f->size_hint_flags &= ~(XNegative | YNegative);
+}
+
 void
 haiku_set_offset (struct frame *frame, int x, int y,
 		  int change_gravity)
@@ -4673,10 +4750,12 @@ haiku_set_offset (struct frame *frame, int x, int y,
     }
 
   haiku_update_size_hints (frame);
+  haiku_calc_absolute_position (frame);
 
   block_input ();
   if (change_gravity)
-    BWindow_set_offset (FRAME_HAIKU_WINDOW (frame), x, y);
+    BWindow_set_offset (FRAME_HAIKU_WINDOW (frame), frame->left_pos,
+			frame->top_pos);
   unblock_input ();
 }
 

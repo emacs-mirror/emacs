@@ -120,7 +120,7 @@
                    -2 -1 0 1 2))
     (should (or (<= n 0) (= (expt 0 n) 0)))
     (should (= (expt 1 n) 1))
-    (should (or (< n 0) (= (expt -1 n) (if (zerop (logand n 1)) 1 -1))))
+    (should (or (< n 0) (= (expt -1 n) (if (evenp n) 1 -1))))
     (should (= (expt n 0) 1))
     (should (= (expt n 1) n))
     (should (= (expt n 2) (* n n)))
@@ -167,7 +167,7 @@
             (should (if (zerop r)
                         (= 0 cdelta fdelta rdelta)
                       (or (/= cdelta fdelta)
-                          (zerop (% (round n d) 2)))))))))))
+                          (evenp (round n d)))))))))))
 
 (ert-deftest special-round ()
   (dolist (f '(ceiling floor round truncate))

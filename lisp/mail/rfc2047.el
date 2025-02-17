@@ -1076,7 +1076,7 @@ other than `\"' and `\\' in quoted strings."
 		(while (search-forward "\"" end t)
 		  (when (prog2
 			    (backward-char)
-			    (zerop (% (skip-chars-backward "\\\\") 2))
+			    (evenp (skip-chars-backward "\\\\"))
 			  (goto-char (match-beginning 0)))
 		    (insert "\\"))
 		  (forward-char))
