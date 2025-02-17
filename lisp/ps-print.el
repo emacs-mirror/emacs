@@ -4607,9 +4607,8 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 	     (cond ((eq ps-even-or-odd-pages 'even-page)
 		    (evenp ps-page-postscript))
 		   ((eq ps-even-or-odd-pages 'odd-page)
-		    (= (logand ps-page-postscript 1) 1))
-		   (t)
-		   ))))
+		    (oddp ps-page-postscript))
+		   (t)))))
 
 
 (defsubst ps-print-sheet-p ()
@@ -4617,9 +4616,8 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 	(cond ((eq ps-even-or-odd-pages 'even-sheet)
 	       (evenp ps-page-sheet))
 	      ((eq ps-even-or-odd-pages 'odd-sheet)
-	       (= (logand ps-page-sheet 1) 1))
-	      (t)
-	      )))
+	       (oddp ps-page-sheet))
+	      (t))))
 
 
 (defun ps-output (&rest args)

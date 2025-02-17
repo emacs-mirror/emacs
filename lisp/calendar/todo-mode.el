@@ -3752,7 +3752,7 @@ The placement of the padding is determined by the value of user
 option `todo-categories-align'."
   (let* ((len (todo-adjusted-category-label-length))
 	 (strlen (length str))
-	 (strlen-odd (eq (logand strlen 1) 1))
+	 (strlen-odd (oddp strlen))
 	 (padding (max 0 (/ (- len strlen) 2)))
 	 (padding-left (cond ((eq todo-categories-align 'left) 0)
 			     ((eq todo-categories-align 'center) padding)

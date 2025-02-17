@@ -266,7 +266,7 @@ BITS must be of length nrings.  Start at START-TIME."
                                  (make-string (1- radius) (if vert ?\- ?\|))
                                  (if vert ">" "v"))
                for face =
-               (if (eq (logand n 1) 1)  ; oddp would require cl at runtime
+               (if (oddp n)
                    hanoi-odd-ring-face hanoi-even-ring-face)
                do (hanoi-put-face 0 (length str) face str)
                collect (cons str diameter)))
