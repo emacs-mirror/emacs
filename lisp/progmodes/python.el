@@ -5547,9 +5547,8 @@ def __FFAP_get_module_path(objstr):
 (defvar ffap-alist)
 
 (eval-after-load "ffap"
-  '(progn
-     (push '(python-mode . python-ffap-module-path) ffap-alist)
-     (push '(inferior-python-mode . python-ffap-module-path) ffap-alist)))
+  '(dolist (mode '(python-mode python-ts-mode inferior-python-mode))
+     (add-to-list 'ffap-alist `(,mode . python-ffap-module-path))))
 
 
 ;;; Code check
