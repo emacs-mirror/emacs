@@ -898,7 +898,7 @@ loaded and the keystroke automatically re-typed."
 (defun math-iipow (a n)   ; [O O S]
   (cond ((= n 0) 1)
 	((= n 1) a)
-	((= (% n 2) 0) (math-iipow (math-mul a a) (/ n 2)))
+	((evenp n) (math-iipow (math-mul a a) (/ n 2)))
 	(t (math-mul a (math-iipow (math-mul a a) (/ n 2))))))
 
 (defun math-iipow-show (a n)   ; [O O S]
@@ -906,7 +906,7 @@ loaded and the keystroke automatically re-typed."
   (let ((val (cond
 	      ((= n 0) 1)
 	      ((= n 1) a)
-	      ((= (% n 2) 0) (math-iipow-show (math-mul a a) (/ n 2)))
+	      ((evenp n) (math-iipow-show (math-mul a a) (/ n 2)))
 	      (t (math-mul a (math-iipow-show (math-mul a a) (/ n 2)))))))
     (math-working "pow" val)
     val))

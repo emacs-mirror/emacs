@@ -260,7 +260,7 @@ structure with the plists in ARGS."
                (string (let ((begin (point)))
                          (insert x)
                          (set-text-properties begin (point) current-plist)))
-               (list (unless (zerop (mod (length x) 2))
+               (list (unless (evenp (length x))
                        (error "Odd number of args in plist: %S" x))
                      (setq current-plist x))))
     (buffer-string)))

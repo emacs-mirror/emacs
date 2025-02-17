@@ -411,7 +411,7 @@
     (if invhyp (calc-wrapper))  ; clear Inv and Hyp flags
     (unwind-protect
 	(cond ((or (null cmd)
-		   (= (% row 2) 0))
+		   (evenp row))
 	       (beep))
 	      ((and (> (minibuffer-depth) 0))
 	       (cond (isstring

@@ -1295,7 +1295,7 @@ Optional EVENT indicates a buffer position to use instead of point."
     (cal-tex-b-document)
     (cal-tex-cmd "\\pagestyle" "empty")
     (dotimes (i n)
-      (if (zerop (mod i 2))
+      (if (evenp i)
           (insert "\\righthead")
         (insert "\\lefthead"))
       (cal-tex-arg
@@ -1318,7 +1318,7 @@ Optional EVENT indicates a buffer position to use instead of point."
                       (calendar-extract-year d))))))
       (insert "%\n")
       (dotimes (_jdummy 7)
-        (if (zerop (mod i 2))
+        (if (evenp i)
             (insert "\\rightday")
           (insert "\\leftday"))
         (cal-tex-arg (cal-tex-LaTeXify-string (calendar-day-name date)))
@@ -1388,7 +1388,7 @@ Optional EVENT indicates a buffer position to use instead of point."
     (cal-tex-cmd "\\pagestyle" "empty")
     (dotimes (i n)
       (dotimes (j 4)
-        (let ((even (zerop (% j 2))))
+        (let ((even (evenp j)))
           (insert (if even
                       "\\righthead"
                     "\\lefthead"))

@@ -402,7 +402,7 @@ If this can't be done, return NIL."
 			       (math-div (math-float num-sqrt) den-sqrt))))))
    (and (eq (car-safe a) 'float)
 	(if calc-symbolic-mode
-	    (if (= (% (nth 2 a) 2) 0)
+	    (if (evenp (nth 2 a))
 		(let ((res (cl-isqrt (nth 1 a))))
 		  (if (= (* res res) (nth 1 a))
 		      (math-make-float res (/ (nth 2 a) 2))
@@ -468,7 +468,7 @@ If this can't be done, return NIL."
      (t
       (if (null guess)
           (let ((ldiff (- (math-numdigs (nth 1 a)) 6)))
-            (or (= (% (+ (nth 2 a) ldiff) 2) 0) (setq ldiff (1+ ldiff)))
+            (or (evenp (+ (nth 2 a) ldiff)) (setq ldiff (1+ ldiff)))
             (setq guess (math-make-float (cl-isqrt
                                           (math-scale-int (nth 1 a) (- ldiff)))
                                          (/ (+ (nth 2 a) ldiff) 2)))))

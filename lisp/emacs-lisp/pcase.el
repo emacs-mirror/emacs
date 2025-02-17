@@ -370,7 +370,7 @@ undetected, binding variables to arbitrary values, such as nil.
   (cond
    (args
     (let ((arg-length (length args)))
-      (unless (= 0 (mod arg-length 2))
+      (unless (evenp arg-length)
         (signal 'wrong-number-of-arguments
                 (list 'pcase-setq (+ 2 arg-length)))))
     (let ((result))

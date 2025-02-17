@@ -2098,7 +2098,7 @@ If no file has been included, the user will be asked for a file."
 		 (make-string minlen ?-)
 		 file-name i parts
 		 (make-string
-		  (if (= 0 (% whole-len 2)) (1- minlen) minlen) ?-)))
+		  (if (evenp whole-len) (1- minlen) minlen) ?-)))
 
 	(goto-char (point-min))
 	(when (re-search-forward "^Subject: " nil t)

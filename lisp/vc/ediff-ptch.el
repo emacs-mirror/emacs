@@ -549,7 +549,7 @@ an optional argument, then use it."
 
     (cond ((ediff-buffer-live-p patch-buf))
 	  ;; even prefix arg: patch in buffer
-	  ((and (integerp arg) (eq 0 (mod arg 2)))
+	  ((and (integerp arg) (evenp arg))
 	   (setq patch-buf (ediff-prompt-for-patch-buffer)))
 	  ;; odd prefix arg: get patch from a file
 	  ((and (integerp arg) (oddp arg))

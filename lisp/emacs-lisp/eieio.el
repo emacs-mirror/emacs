@@ -115,7 +115,7 @@ and reference them using the function `class-option'."
   (cl-check-type superclasses list)
 
   (cond ((and (stringp (car options-and-doc))
-              (/= 1 (% (length options-and-doc) 2)))
+              (evenp (length options-and-doc)))
          (error "Too many arguments to `defclass'"))
         ((and (symbolp (car options-and-doc))
               (oddp (length options-and-doc)))
