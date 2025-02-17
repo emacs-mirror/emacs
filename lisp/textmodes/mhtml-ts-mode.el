@@ -315,8 +315,10 @@ NODE and PARENT are ignored."
      (defun ,(regexp-opt (list css--treesit-defun-type-regexp)))))
   "Settings for `treesit-thing-settings'.")
 
-;; We use a function instead of a variable, because doesn't exist when
-;; at compile time (unless we `eval-when-compile').
+;; We use a function instead of a variable, because
+;; `js--treesit-indent-rules' and `css--treesit-indent-rules' doesn't
+;; exist when at compile time (unless we `eval-when-compile', but that
+;; doesn't feel like the right solution to me).
 (defun mhtml-ts-mode--treesit-indent-rules ()
   "Return intent rules for `mhtml-ts-mode'."
   (treesit--indent-rules-optimize
