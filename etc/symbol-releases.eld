@@ -9,6 +9,7 @@
 ;; TYPE being `fun' or `var'.
 
 (
+ ("29.1" fun plistp)
  ("28.1" fun always)
  ("26.1" fun when-let*)
  ("26.1" fun and-let*)
