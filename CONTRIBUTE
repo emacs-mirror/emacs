@@ -279,9 +279,8 @@ formatting them:
   'info "(standards)Change Logs"'.  One exception is that commits still
   sometimes quote `like-this' (as the standards used to recommend)
   rather than 'like-this' or ‘like this’ (as they do now), as `...' is
-  so widely used elsewhere in Emacs.  Please do not adopt the ugly
-  Markdown convention where quoting is performed with pairs of backticks
-  in any circumstances.  That is to say, never quote `like this`.
+  so widely used elsewhere in Emacs.  (Please do not use the Markdown
+  convention of quoting `like this`.)
 
 - Some commenting rules in the GNU coding standards also apply
   to ChangeLog entries: they must be in English, and be complete
