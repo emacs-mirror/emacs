@@ -1,6 +1,6 @@
 ;;; mhtml-ts-mode.el --- Major mode for HTML using tree-sitter -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2024 Free Software Foundation, Inc.
+;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
 
 ;; Author: Vincenzo Pupillo <v.pupillo@gmail.com>
 ;; Maintainer: Vincenzo Pupillo <v.pupillo@gmail.com>
@@ -248,7 +248,7 @@ For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
      'font-lock-variable-name-face
      override start end)))
 
-;; Embedded languages ​​should be indented according to the language
+;; Embedded languages should be indented according to the language
 ;; that embeds them.
 ;; This function signature complies with `treesit-simple-indent-rules'
 ;; ANCHOR.
@@ -440,6 +440,7 @@ Calls REPORT-FN directly.  Requires tidy."
         (process-send-region mhtml-ts-mode--flymake-process (point-min) (point-max))
         (process-send-eof mhtml-ts-mode--flymake-process)))))
 
+;;;###autoload
 (define-derived-mode mhtml-ts-mode html-ts-mode
   '("HTML+" (:eval (let ((lang (mhtml-ts-mode--language-at-point (point))))
                      (cond ((eq lang 'html) "")

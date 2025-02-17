@@ -1322,7 +1322,7 @@ and leave settings for other languages unchanged."
 Returns a new font lock feature list with no duplicates in the same level.
 It can be used to merge font lock feature lists in a multi-language major mode.
 FEATURES-LIST-1 and FEATURES-LIST-2 are list of lists of feature symbols."
-    (let ((result nil)
+  (let ((result nil)
 	(features-1 (car features-list-1))
 	(features-2 (car features-list-2)))
     (while (or features-1 features-2)
@@ -2551,7 +2551,7 @@ NEW-RULES replace rule in RULES which the same anchor."
     (error "No rules for language %s in RULES" lang))
    ((not (alist-get lang new-rules))
     (error "No rules for language %s in NEW-RULES" lang))
-   (t (let* ((copy-of-rules (copy-tree js--treesit-indent-rules))
+   (t (let* ((copy-of-rules (copy-tree rules))
 	     (lang-rules (alist-get lang copy-of-rules))
 	     (lang-new-rules (alist-get lang new-rules)))
 	(cond

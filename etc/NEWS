@@ -1392,14 +1392,11 @@ language symbol.  For example, 'cpp' is translated to "C++".  A new
 variable 'treesit-language-display-name-alist' holds the translations of
 language symbols where that translation is not trivial.
 
-+++
-++++
 *** New function 'treesit-merge-font-lock-feature-list'.
 This function merges two tree-sitter font-lock feature lists.  Returns a
 new font-lock feature list with no duplicates in the same level.  It can
 be used to merge font-lock feature lists in a multi-language major mode.
 
-+++
 *** New function 'treesit-replace-font-lock-feature-settings'.
 Given two tree-sitter font-lock settings, it replaces the feature in the
 second font-lock settings with the same feature in the first font-lock
@@ -1407,7 +1404,6 @@ settings.  In a multi-language major mode it is sometimes necessary to
 replace features from one of the major modes, with others that are
 better suited to the new multilingual context.
 
-+++
 *** New function 'treesit-modify-indent-rules'.
 Given two tree-sitter indent rules, it replaces, adds, or prepends the
 new rules to the old ones, then returns the new tree-sitter indent
