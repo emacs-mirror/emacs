@@ -144,6 +144,8 @@ instead."
 	  (end (progn (forward-sexp 1) (point))))
       (indent-region start end nil))))
 
+(declare-function treesit-node-at "treesit.c")
+
 (defun prog-fill-reindent-defun (&optional argument)
   "Refill or reindent the paragraph or defun that contains point.
 
