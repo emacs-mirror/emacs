@@ -176,7 +176,7 @@ pair.
 
 \(fn [VARIABLE VALUE]...)"
   (declare (debug setq))
-  (unless (zerop (mod (length pairs) 2))
+  (unless (evenp (length pairs))
     (error "PAIRS must have an even number of variable/value members"))
   (let ((expr nil))
     (while pairs
@@ -217,7 +217,7 @@ in order to restore the state of the local variables set via this macro.
 
 \(fn [VARIABLE VALUE]...)"
   (declare (debug setq))
-  (unless (zerop (mod (length pairs) 2))
+  (unless (evenp (length pairs))
     (error "PAIRS must have an even number of variable/value members"))
   `(prog1
        (buffer-local-set-state--get ',pairs)

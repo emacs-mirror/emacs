@@ -2181,7 +2181,7 @@ A useful command to bind to SPC.  See `term-replace-by-expanded-history'."
 Quotes are single and double."
   (let ((countsq (term-how-many-region "\\(^\\|[^\\]\\)'" beg end))
 	(countdq (term-how-many-region "\\(^\\|[^\\]\\)\"" beg end)))
-    (or (= (mod countsq 2) 1) (= (mod countdq 2) 1))))
+    (or (oddp countsq) (oddp countdq))))
 
 (defun term-how-many-region (regexp beg end)
   "Return number of matches for REGEXP from BEG to END."

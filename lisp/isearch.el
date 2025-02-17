@@ -2893,7 +2893,7 @@ The command accepts Unicode names like \"smiling face\" or
 
 (defun isearch-backslash (str)
   "Return t if STR ends in an odd number of backslashes."
-  (= (mod (- (length str) (string-match "\\\\*\\'" str)) 2) 1))
+  (oddp (- (length str) (string-match "\\\\*\\'" str))))
 
 (defun isearch-fallback (want-backslash &optional allow-invalid to-barrier)
   "Return point to previous successful match to allow regexp liberalization.

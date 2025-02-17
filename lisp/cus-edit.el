@@ -1060,7 +1060,7 @@ even if it doesn't match the type.)
 
 \(fn [VARIABLE VALUE]...)"
   (declare (debug setq))
-  (unless (zerop (mod (length pairs) 2))
+  (unless (evenp (length pairs))
     (error "PAIRS must have an even number of variable/value members"))
   (let ((expr nil))
     (while pairs

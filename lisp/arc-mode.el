@@ -2090,8 +2090,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			    ((memq creator '(0 5 6 7 10 11 15)) ; Dos etc.
 			     (logior ?\444
 				     (if isdir (logior 16384 ?\111) 0)
-				     (if (zerop
-					  (logand 1 (get-byte (+ p 38))))
+				     (if (evenp (get-byte (+ p 38)))
 					 ?\222 0)))
 			    (t nil)))
 	     (fiddle  (and archive-zip-case-fiddle

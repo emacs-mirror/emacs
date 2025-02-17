@@ -184,7 +184,7 @@ this is exactly representable and is greater than
     (let ((i 0))
       (dolist (n (nreverse nibbles))
         (dotimes (_ 4)
-          (aset bv i (> (logand 1 n) 0))
+          (aset bv i (oddp n))
           (cl-incf i)
           (setf n (ash n -1)))))
     bv))
