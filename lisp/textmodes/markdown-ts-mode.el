@@ -1,6 +1,6 @@
 ;;; markdown-ts-mode.el --- tree sitter support for Markdown  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2024 Free Software Foundation, Inc.
+;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
 
 ;; Author     : Rahul Martim Juliato <rahul.juliato@gmail.com>
 ;; Maintainer : Rahul Martim Juliato <rahul.juliato@gmail.com>
