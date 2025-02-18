@@ -2230,11 +2230,6 @@ Both characters must have the same length of multi-byte form.  */)
   unsigned char fromstr[MAX_MULTIBYTE_LENGTH], tostr[MAX_MULTIBYTE_LENGTH];
   unsigned char *p;
   specpdl_ref count = SPECPDL_INDEX ();
-#define COMBINING_NO	 0
-#define COMBINING_BEFORE 1
-#define COMBINING_AFTER  2
-#define COMBINING_BOTH (COMBINING_BEFORE | COMBINING_AFTER)
-  int maybe_byte_combining = COMBINING_NO;
   ptrdiff_t last_changed = 0;
   bool multibyte_p
     = !NILP (BVAR (current_buffer, enable_multibyte_characters));
@@ -2253,17 +2248,6 @@ Both characters must have the same length of multi-byte form.  */)
       len = CHAR_STRING (fromc, fromstr);
       if (CHAR_STRING (toc, tostr) != len)
 	error ("Characters in `subst-char-in-region' have different byte-lengths");
-      if (!ASCII_CHAR_P (*tostr))
-	{
-	  /* If *TOSTR is in the range 0x80..0x9F and TOCHAR is not a
-	     complete multibyte character, it may be combined with the
-	     after bytes.  If it is in the range 0xA0..0xFF, it may be
-	     combined with the before and after bytes.  */
-	  if (!CHAR_HEAD_P (*tostr))
-	    maybe_byte_combining = COMBINING_BOTH;
-	  else if (BYTES_BY_CHAR_HEAD (*tostr) > len)
-	    maybe_byte_combining = COMBINING_AFTER;
-	}
     }
   else
     {
@@ -2338,53 +2322,14 @@ Both characters must have the same length of multi-byte form.  */)
 	      goto restart;
 	    }
 
-	  /* Take care of the case where the new character
-	     combines with neighboring bytes.  */
-	  if (maybe_byte_combining
-	      && (maybe_byte_combining == COMBINING_AFTER
-		  ? (pos_byte_next < Z_BYTE
-		     && ! CHAR_HEAD_P (FETCH_BYTE (pos_byte_next)))
-		  : ((pos_byte_next < Z_BYTE
-		      && ! CHAR_HEAD_P (FETCH_BYTE (pos_byte_next)))
-		     || (pos_byte > BEG_BYTE
-			 && ! ASCII_CHAR_P (FETCH_BYTE (pos_byte - 1))))))
-	    {
-	      Lisp_Object tem, string;
-
-	      tem = BVAR (current_buffer, undo_list);
-
-	      /* Make a multibyte string containing this single character.  */
-	      string = make_multibyte_string ((char *) tostr, 1, len);
-	      /* replace_range is less efficient, because it moves the gap,
-		 but it handles combining correctly.  */
-	      replace_range (pos, pos + 1, string,
-			     false, false, true, false, false);
-	      pos_byte_next = CHAR_TO_BYTE (pos);
-	      if (pos_byte_next > pos_byte)
-		/* Before combining happened.  We should not increment
-		   POS.  So, to cancel the later increment of POS,
-		   decrease it now.  */
-		pos--;
-	      else
-		pos_byte_next += next_char_len (pos_byte_next);
-
-	      if (! NILP (noundo))
-		bset_undo_list (current_buffer, tem);
-	    }
-	  else
-	    {
-	      if (NILP (noundo))
-		record_change (pos, 1);
-	      for (i = 0; i < len; i++) *p++ = tostr[i];
+	  if (NILP (noundo))
+	    record_change (pos, 1);
+	  for (i = 0; i < len; i++) *p++ = tostr[i];
 
 #ifdef HAVE_TREE_SITTER
-	      /* In the previous branch, replace_range() notifies
-                 changes to tree-sitter, but in this branch, we
-                 modified buffer content manually, so we need to
-                 notify tree-sitter manually.  */
-	      treesit_record_change (pos_byte, pos_byte + len, pos_byte + len);
+	  /* FIXME: Why not do it when we `signal_after_change`?  */
+	  treesit_record_change (pos_byte, pos_byte + len, pos_byte + len);
 #endif
-	    }
 	  last_changed =  pos + 1;
 	}
       pos_byte = pos_byte_next;
