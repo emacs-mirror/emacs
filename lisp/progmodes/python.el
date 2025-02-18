@@ -2930,6 +2930,7 @@ virtualenv related vars."
   (let* ((virtualenv (when python-shell-virtualenv-root
                        (directory-file-name python-shell-virtualenv-root)))
          (res python-shell-process-environment))
+    (push "PYTHON_BASIC_REPL=1" res)
     (when python-shell-unbuffered
       (push "PYTHONUNBUFFERED=1" res))
     (when python-shell-extra-pythonpaths
