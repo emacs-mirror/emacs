@@ -2761,8 +2761,7 @@ since only regular expressions have distinguished subexpressions.  */)
   newpoint = sub_start + SCHARS (newtext);
 
   /* Replace the old text with the new in the cleanest possible way.  */
-  replace_range (sub_start, sub_end, newtext, 1, 0, 1, true, true);
-  signal_after_change (sub_start, sub_end - sub_start, SCHARS (newtext));
+  replace_range (sub_start, sub_end, newtext, 1, 0, 1, true, false);
 
   if (case_action == all_caps)
     Fupcase_region (make_fixnum (search_regs.start[sub]),
