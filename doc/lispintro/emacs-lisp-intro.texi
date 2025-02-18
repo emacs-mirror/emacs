@@ -3845,7 +3845,9 @@ well.  When executing @code{getx}, the current global value of
 If we use dynamic binding instead, the behavior is different:
 
 @example
-;;; -*- lexical-binding: nil -*-
+;;; -*- lexical-binding: t -*-
+
+(defvar x) ;; Use dynamic binding for 'x'.
 
 (setq x 0)
 
@@ -3867,8 +3869,9 @@ binding.  This time, @code{getx} doesn't see the global value for
 @code{x}, since its binding is below the one from our @code{let}
 expression in the stack of bindings.
 
-(Some variables are also ``special'', and they are always dynamically
-bound even when @code{lexical-binding} is @code{t}.  @xref{defvar, ,
+(The @code{defvar} declaration above is said to make the variable
+``special'', which causes it to obey the dynamic binding rules instead of
+the default binding rules.  @xref{defvar, ,
 Initializing a Variable with @code{defvar}}.)
 
 @node if

@@ -1293,6 +1293,14 @@ Previously, its argument was always evaluated using dynamic binding.
 
 * Lisp Changes in Emacs 31.1
 
+---
+** You can change the default value of 'lexical-binding'.
+While the default is still the use dynamic binding dialect of ELisp
+in those places that don't explicitly set 'lexical-binding' you can
+change it globally with:
+
+    (set-default-toplevel-value 'lexical-binding t)
+
 +++
 ** New functions 'plusp' and 'minusp'.
 They return non-nil if a number is positive or negative, respectively,
