@@ -69,7 +69,7 @@ like tooltips.  Other use-cases of child frames are not supported yet.
 In particular:
 
 - trying to create minibuffer-only child frames on a TTY frame will
-  signal an error.
+  signal an error; and
 - a TTY child frame cannot be converted to a root frame or vice-versa.
 
 To enable tooltips on TTY frames, call 'tty-tip-mode'.

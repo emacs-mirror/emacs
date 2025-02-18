@@ -1112,10 +1112,7 @@ Lisp_Object
 x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 {
   if (!NILP (Vx_popup_menu_function))
-    {
-      Lisp_Object args[] = { Qx_popup_menu_function, position, menu, };
-      return run_hook_with_args (3, args, Ffuncall);
-    }
+    return calln (Vx_popup_menu_function, position, menu);
 
   Lisp_Object keymap, tem, tem2 = Qnil;
   int xpos = 0, ypos = 0;
