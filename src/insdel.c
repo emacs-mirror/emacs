@@ -1425,8 +1425,8 @@ adjust_after_insert (ptrdiff_t from, ptrdiff_t from_byte,
 
 void
 replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
-               bool prepare, bool inherit, bool markers,
-               bool adjust_match_data, bool inhibit_mod_hooks)
+               bool run_mod_hooks, bool inherit, bool markers,
+               bool adjust_match_data)
 {
   ptrdiff_t inschars = SCHARS (new);
   ptrdiff_t insbytes = SBYTES (new);
@@ -1440,7 +1440,7 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
 
   deletion = Qnil;
 
-  if (prepare)
+  if (run_mod_hooks)
     {
       ptrdiff_t range_length = to - from;
       prepare_to_modify_buffer (from, to, &from);
@@ -1584,7 +1584,7 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
   if (adjust_match_data)
     update_search_regs (from, to, from + SCHARS (new));
 
-  if (!inhibit_mod_hooks)
+  if (run_mod_hooks)
     {
       signal_after_change (from, nchars_del, GPT - from);
       update_compositions (from, GPT, CHECK_BORDER);
