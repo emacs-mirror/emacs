@@ -2786,10 +2786,6 @@ etc.  Currently the only declaration understood by @code{cl-declare}
 is @code{special}.
 @end defmac
 
-@defmac cl-locally declarations@dots{} forms@dots{}
-In this package, @code{cl-locally} is no different from @code{progn}.
-@end defmac
-
 @defmac cl-the type form
 @code{cl-the} returns the value of @code{form}, first checking (if
 optimization settings permit) that it is of type @code{type}.  Future

@@ -2624,10 +2624,8 @@ values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
 ;;; Declarations.
 
 ;;;###autoload
-(defmacro cl-locally (&rest body)
-  "Equivalent to `progn'."
-  (declare (debug t))
-  (cons 'progn body))
+(define-obsolete-function-alias 'cl-locally #'progn "31.1")
+
 ;;;###autoload
 (defmacro cl-the (type form)
   "Return FORM.  If type-checking is enabled, assert that it is of TYPE."

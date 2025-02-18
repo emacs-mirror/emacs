@@ -491,6 +491,10 @@ Such bindings make it possible to compute which function to bind to FUNC.
 ---
 *** 'cl-block' names are now lexically scoped, as documented.
 
++++
+*** 'cl-locally' is now obsolete.
+It is an alias for the 'progn' special-form.
+
 ** Whitespace
 
 ---
