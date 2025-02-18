@@ -485,6 +485,14 @@ Emacs 25.1), and gnudoit (obsolete since Emacs 25.1).
 ** CL-Lib
 
 +++
+*** Some cl-lib functions are now built-in.
+The functions 'cl-plusp', 'cl-minusp', 'cl-oddp', and 'cl-evenp', have
+been added to Emacs Lisp, and are thus now aliases for the built-in
+functions 'plusp', 'minusp', 'oddp' and 'evenp'.  The old names are
+considered deprecated, and will be marked as obsolete in some future
+release.
+
++++
 *** 'cl-labels' now also accepts '(FUNC EXP)' bindings, like 'cl-flet'.
 Such bindings make it possible to compute which function to bind to FUNC.
 
@@ -1311,15 +1319,12 @@ change it globally with:
 +++
 ** New functions 'plusp' and 'minusp'.
 They return non-nil if a number is positive or negative, respectively,
-and signal an error if they are given a non-number.  The 'cl-lib'
-functions 'cl-plusp' and 'cl-minusp' are now aliases for 'plusp' and
-'minusp'.
+and signal an error if they are given a non-number.
 
 +++
 ** New functions 'oddp' and 'evenp'.
 They return non-nil if an integer is odd or even, respectively, and
-signal an error if they are given a non-integer.  The 'cl-lib' functions
-'cl-oddp' and 'cl-evenp' are now aliases for 'oddp' and 'evenp'.
+signal an error if they are given a non-integer.
 
 ** Time & Date
 
