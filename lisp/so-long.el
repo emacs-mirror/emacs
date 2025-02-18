@@ -1716,7 +1716,8 @@ major mode is a member (or derivative of a member) of `so-long-target-modes'.
        (not so-long--inhibited)
        (not so-long--calling)
        (or (eq so-long-target-modes t)
-           (derived-mode-p so-long-target-modes))
+           ;; Maintain `derived-mode-p' compatibility with Emacs < 30.
+           (apply #'derived-mode-p so-long-target-modes))
        (setq so-long-detected-p (funcall so-long-predicate))
        ;; `so-long' should be called; but only if and when the buffer is
        ;; displayed in a window.  Long lines in invisible buffers are generally
