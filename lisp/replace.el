@@ -2880,7 +2880,8 @@ characters."
          (region-filter nil)
 
          ;; Disable text conversion during the replacement operation.
-         (old-text-conversion-style overriding-text-conversion-style)
+         (old-text-conversion-style (and (boundp 'overriding-text-conversion-style)
+                                         overriding-text-conversion-style))
          overriding-text-conversion-style
 
          ;; Data for the next match.  If a cons, it has the same format as
@@ -2940,10 +2941,9 @@ characters."
 
     (push-mark)
     (undo-boundary)
-    (when query-flag
+    (when (and query-flag (fboundp 'set-text-conversion-style))
       (setq overriding-text-conversion-style nil)
-      (when (fboundp 'set-text-conversion-style)
-        (set-text-conversion-style text-conversion-style)))
+      (set-text-conversion-style text-conversion-style))
     (unwind-protect
 	;; Loop finding occurrences that perhaps should be replaced.
 	(while (and keep-going
@@ -3362,12 +3362,11 @@ characters."
       (replace-dehighlight)
       (when region-filter
         (remove-function isearch-filter-predicate region-filter))
-      (when query-flag
+      (when (and query-flag (fboundp 'set-text-conversion-style))
         ;; Resume text conversion.
         (setq overriding-text-conversion-style
               old-text-conversion-style)
-        (when (fboundp 'set-text-conversion-style)
-          (set-text-conversion-style text-conversion-style))))
+        (set-text-conversion-style text-conversion-style)))
     (or unread-command-events
 	(message (ngettext "Replaced %d occurrence%s"
 			   "Replaced %d occurrences%s"
