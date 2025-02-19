@@ -567,16 +567,16 @@ was called."
 (defun oddp (integer)
   "Return t if INTEGER is odd."
   (declare (ftype (function (integer) boolean))
-           (side-effect-free t)
-           (compiler-macro (lambda (_) `(eq (logand ,integer 1) 1))))
-  (eq (logand integer 1) 1))
+           (pure t) (side-effect-free t)
+           (compiler-macro (lambda (_) `(not (eq (% ,integer 2) 0)))))
+  (not (eq (% integer 2) 0)))
 
 (defun evenp (integer)
   "Return t if INTEGER is even."
   (declare (ftype (function (integer) boolean))
-           (side-effect-free t)
-           (compiler-macro (lambda (_) `(eq (logand ,integer 1) 0))))
-  (eq (logand integer 1) 0))
+           (pure t) (side-effect-free t)
+           (compiler-macro (lambda (_) `(eq (% ,integer 2) 0))))
+  (eq (% integer 2) 0))
 
 (defun fixnump (object)
   "Return t if OBJECT is a fixnum."
