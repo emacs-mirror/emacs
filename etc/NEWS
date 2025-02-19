@@ -1238,6 +1238,15 @@ This macro adds the current buffer to 'inhibit-auto-revert-buffers',
 runs its body, and removes the current buffer from
 'inhibit-auto-revert-buffers' afterwards.
 
+** Strokes
+
+--
+** 'strokes-mode' no longer demands the presence of a mouse.
+'strokes-mode' now permits itself to be enabled if no mouse is
+connected, to facilitate enabling 'strokes-mode' in sessions where the
+availability of a mouse device varies during execution (as is frequently
+observed on Android).
+
 
 * New Modes and Packages in Emacs 31.1
 
