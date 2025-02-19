@@ -2941,7 +2941,7 @@ Reload the theme for changes to take effect.
 :CUSTOM_ID: h:a5140c9c-18b2-45db-8021-38d0b5074116
 :END:
 
-By the default, the background of the ~region~ face extends from the
+By default, the background of the ~region~ face extends from the
 end of the line to the edge of the window.  To limit it to the end of
 the line, we need to override the face's =:extend= attribute.  Adding
 this to the Emacs configuration file will suffice:

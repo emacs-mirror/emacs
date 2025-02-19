@@ -656,6 +656,7 @@ Changes to files matching one of the regexps in this list are not listed.")
     "if-11.cc"
     "if-11.res"
     "java/org/gnu/emacs/EmacsWindowAttachmentManager.java"
+    "lisp/gnus/gnus-nocem.el"
     "lisp/gnus/legacy-gnus-agent.el"
     "legacy-gnus-agent.el"
     "admin/coccinelle/xsave.cocci"
