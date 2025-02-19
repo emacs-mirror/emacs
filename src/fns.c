@@ -3450,7 +3450,7 @@ FUNCTION must be a function of one argument, and must return a value
     return empty_unibyte_string;
   Lisp_Object *args;
   SAFE_ALLOCA_LISP (args, args_alloc);
-  if (EQ (function, Qidentity))
+  if (BASE_EQ (function, Qidentity))
     {
       /* Fast path when no function call is necessary.  */
       if (CONSP (sequence))
