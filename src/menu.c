@@ -1111,9 +1111,6 @@ into menu items.  */)
 Lisp_Object
 x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 {
-  if (!NILP (Vx_popup_menu_function))
-    return calln (Vx_popup_menu_function, position, menu);
-
   Lisp_Object keymap, tem, tem2 = Qnil;
   int xpos = 0, ypos = 0;
   Lisp_Object title;
@@ -1411,8 +1408,13 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
      doesn't have its hooks set (e.g., in a batch session), because
      such a frame cannot display menus.  */
   if (!FRAME_INITIAL_P (f))
-    selection = FRAME_TERMINAL (f)->menu_show_hook (f, xpos, ypos, menuflags,
-						    title, &error_name);
+    {
+      if (FRAME_TERMCAP_P (f) && !NILP (Vx_popup_menu_function))
+	selection  = calln (Vx_popup_menu_function, position, menu);
+      else
+	selection = FRAME_TERMINAL (f)->menu_show_hook (f, xpos, ypos, menuflags,
+							title, &error_name);
+    }
 
   unbind_to (specpdl_count, Qnil);
 
@@ -1617,7 +1619,6 @@ syms_of_menu (void)
 
   DEFSYM (Qhide, "hide");
   DEFSYM (Qx_pre_popup_menu_hook, "x-pre-popup-menu-hook");
-  DEFSYM (Qx_popup_menu_function, "x-popup-menu-function");
 
   DEFVAR_LISP ("x-pre-popup-menu-hook", Vx_pre_popup_menu_hook,
 	       doc: /* Hook run before `x-popup-menu' displays a popup menu.
@@ -1627,8 +1628,9 @@ won't be run if `x-popup-menu' fails or returns for some other reason
   Vx_pre_popup_menu_hook = Qnil;
 
   DEFVAR_LISP ("x-popup-menu-function", Vx_popup_menu_function,
-	       doc: /* Function to call to pop up a menu.
-The function is called like `x-popup-menu'.  */);
+	       doc : /* Function to call to pop up a menu.
+ The function is called like `x-popup-menu'.  This is currently only
+ used for frames on text terminals.  */);
   Vx_popup_menu_function = Qnil;
 
   defsubr (&Sx_popup_menu);
