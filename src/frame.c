@@ -1807,7 +1807,7 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
 
       /* When FRAME's root frame is not its terminal's top frame, make
 	 that root frame the new top frame of FRAME's terminal.  */
-      if (root_frame (f) != XFRAME (top_frame))
+      if (NILP (top_frame) || root_frame (f) != XFRAME (top_frame))
 	{
 	  struct frame *p = FRAME_PARENT_FRAME (f);
 
