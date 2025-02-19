@@ -3377,7 +3377,7 @@ only unbound fallback disabled is downcasing of the last event."
                                                              nil nil t)))
                  (key (aref keys 0)))
             (if (and (> (length keys) 1)
-                     (memq key '(mode-line header-line
+                     (memq key '(mode-line header-line tab-line
                                  left-fringe right-fringe)))
                 (aref keys 1)
               key)))
