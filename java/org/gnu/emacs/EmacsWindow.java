@@ -365,8 +365,17 @@ public final class EmacsWindow extends EmacsHandleObject
 	run ()
 	{
 	  if (overrideRedirect)
-	    /* Set the layout parameters again.  */
-	    view.setLayoutParams (getWindowLayoutParams ());
+	    {
+	      WindowManager.LayoutParams params;
+
+	      /* Set the layout parameters again.  */
+	      params = getWindowLayoutParams ();
+	      view.setLayoutParams (params);
+
+	      /* Announce this update to the window server.  */
+	      if (windowManager != null)
+		windowManager.updateViewLayout (view, params);
+	    }
 
 	  view.mustReportLayout = true;
 	  view.requestLayout ();
