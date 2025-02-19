@@ -588,34 +588,35 @@ escape hatch for inhibiting their transmission.")
     (when (consp coding)
       (setq coding (car coding)))
     (setq coding (coding-system-change-eol-conversion coding 'unix))
-    (unwind-protect
-        (with-temp-buffer
-          (set-window-buffer (selected-window) (current-buffer))
-          (insert longline)
-          (goto-char (point-min))
-          (while (not (eobp))
-            (let ((upper (filepos-to-bufferpos erc-split-line-length
-                                               'exact coding)))
-              (goto-char (or upper (point-max)))
-              (unless (eobp)
-                (skip-chars-backward "^ \t"))
-              (when (bobp)
-                (when erc--reject-unbreakable-lines
-                  (user-error
-                   (substitute-command-keys
-                    (concat "Unbreakable line encountered "
-                            "(Recover input with \\[erc-previous-command])"))))
-                (goto-char upper))
-              (when-let* ((cmp (find-composition (point) (1+ (point)))))
-                (if (= (car cmp) (point-min))
-                    (goto-char (nth 1 cmp))
-                  (goto-char (car cmp)))))
-            (when (= (point-min) (point))
-              (goto-char (point-max)))
-            (push (buffer-substring-no-properties (point-min) (point)) out)
-            (delete-region (point-min) (point)))
-          (or (nreverse out) (list "")))
-      (set-window-buffer (selected-window) original-window-buf))))
+    (with-temp-buffer
+      (unwind-protect
+          (progn
+            (set-window-buffer (selected-window) (current-buffer))
+            (insert longline)
+            (goto-char (point-min))
+            (while (not (eobp))
+              (let ((upper (filepos-to-bufferpos erc-split-line-length
+                                                 'exact coding)))
+                (goto-char (or upper (point-max)))
+                (unless (eobp)
+                  (skip-chars-backward "^ \t"))
+                (when (bobp)
+                  (when erc--reject-unbreakable-lines
+                    (user-error
+                     (substitute-command-keys
+                      (concat "Unbreakable line encountered (Recover input"
+                              " with \\[erc-previous-command])"))))
+                  (goto-char upper))
+                (when-let* ((cmp (find-composition (point) (1+ (point)))))
+                  (if (= (car cmp) (point-min))
+                      (goto-char (nth 1 cmp))
+                    (goto-char (car cmp)))))
+              (when (= (point-min) (point))
+                (goto-char (point-max)))
+              (push (buffer-substring-no-properties (point-min) (point)) out)
+              (delete-region (point-min) (point)))
+            (or (nreverse out) (list "")))
+        (set-window-buffer (selected-window) original-window-buf)))))
 
 ;; From Circe
 (defun erc-split-line (longline)
