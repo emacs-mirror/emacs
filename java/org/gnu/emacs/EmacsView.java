@@ -296,6 +296,9 @@ public final class EmacsView extends ViewGroup
 	     && height > MeasureSpec.getSize (heightMeasureSpec))
       height = MeasureSpec.getSize (heightMeasureSpec);
 
+    /* This is strictly necessary to propagate layout requests to
+       children.  */
+    this.measureChildren (widthMeasureSpec, heightMeasureSpec);
     super.setMeasuredDimension (width, height);
   }
 
@@ -467,9 +470,6 @@ public final class EmacsView extends ViewGroup
       }
   }
 
-  /* This method is called from both the UI thread and the Emacs
-     thread.  */
-
   public void
   swapBuffers ()
   {
@@ -620,8 +620,7 @@ public final class EmacsView extends ViewGroup
 	detachViewFromParent (index);
 
 	/* The view at 0 is the surface view.  */
-	attachViewToParent (child, 1,
-			    child.getLayoutParams ());
+	attachViewToParent (child, 1, child.getLayoutParams ());
       }
   }
 

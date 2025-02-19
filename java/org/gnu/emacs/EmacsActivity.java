@@ -179,6 +179,8 @@ public class EmacsActivity extends Activity
   public final void
   attachWindow (EmacsWindow child)
   {
+    FrameLayout.LayoutParams defaultParams;
+
     if (window != null)
       throw new IllegalStateException ("trying to attach window when one"
 				       + " already exists");
@@ -187,8 +189,15 @@ public class EmacsActivity extends Activity
 
     /* Record and attach the view.  */
 
+    /* Reset residual LayoutParams that might remain in effect on this
+       window, or some distributions of Android (e.g. Huawei HarmonyOS
+       4.2) will retain the size of this window as a child frame.  */
+    defaultParams
+      = new FrameLayout.LayoutParams (FrameLayout.LayoutParams.MATCH_PARENT,
+				      FrameLayout.LayoutParams.MATCH_PARENT);
+    syncFullscreenWith (child);
     window = child;
-    layout.addView (window.view);
+    layout.addView (window.view, defaultParams);
     child.setConsumer (this);
 
     /* If the window isn't no-focus-on-map, focus its view.  */
