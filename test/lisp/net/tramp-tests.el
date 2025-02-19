@@ -282,8 +282,7 @@ being the result.")
 		(delete-directory file 'recursive)
 	      (delete-file file))))))
     ;; Cleanup connection.
-    (ignore-errors
-      (tramp-cleanup-connection tramp-test-vec nil 'keep-password)))
+    (tramp-cleanup-connection tramp-test-vec nil 'keep-password))
 
   ;; Return result.
   (cdr tramp--test-enabled-checked))
@@ -2175,8 +2174,7 @@ being the result.")
   (dolist (m '("su" "sg" "sudo" "doas" "ksu"))
     (when (assoc m tramp-methods)
       (let (tramp-connection-properties tramp-default-proxies-alist)
-	(ignore-errors
-	  (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password))
+	(tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
 	;; Single hop.  The host name must match `tramp-local-host-regexp'.
 	(should-error
 	 (find-file (format "/%s:foo:" m))

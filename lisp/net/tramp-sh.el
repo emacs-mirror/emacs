@@ -4092,44 +4092,23 @@ Returns the absolute file name of PROGNAME, if found, and nil otherwise.
 
 This function expects to be in the right *tramp* buffer."
   (with-current-buffer (tramp-get-connection-buffer vec)
-    (let (result)
-      ;; Check whether the executable is in $PATH.  "which(1)" does not
-      ;; report always a correct error code; therefore we check the
-      ;; number of words it returns.  "SunOS 5.10" (and maybe "SunOS
-      ;; 5.11") have problems with this command, we disable the call
-      ;; therefore.
-      (unless (or ignore-path (tramp-check-remote-uname vec tramp-sunos-unames))
-	(tramp-send-command vec (format "which \\%s | wc -w" progname))
-	(goto-char (point-min))
-	(if (looking-at-p (rx bol (* blank) "1" eol))
-	    (setq result (concat "\\" progname))))
-      (unless result
-	(when ignore-tilde
-	  ;; Remove all ~/foo directories from dirlist.
-	  (let (newdl d)
-	    (while dirlist
-	      (setq d (car dirlist)
-		    dirlist (cdr dirlist))
-	      (unless (char-equal ?~ (aref d 0))
-		(setq newdl (cons d newdl))))
-	    (setq dirlist (nreverse newdl))))
-	(tramp-send-command
-	 vec
-	 (format (concat "while read d; "
-			 "do if test -x $d/%s && test -f $d/%s; "
-			 "then echo tramp_executable $d/%s; "
-			 "break; fi; done <<'%s'\n"
-			 "%s\n%s")
-		 progname progname progname
-		 tramp-end-of-heredoc
-		 (string-join dirlist "\n")
-		 tramp-end-of-heredoc))
-	(goto-char (point-max))
-	(when (search-backward "tramp_executable " nil t)
-	  (skip-chars-forward "^ ")
-	  (skip-chars-forward " ")
-	  (setq result (buffer-substring (point) (line-end-position)))))
-    result)))
+    (unless ignore-path
+      (setq dirlist (cons "$PATH" dirlist)))
+    (when ignore-tilde
+      ;; Remove all ~/foo directories from dirlist.
+      (let (newdl d)
+	(while dirlist
+	  (setq d (car dirlist)
+		dirlist (cdr dirlist))
+	  (unless (char-equal ?~ (aref d 0))
+	    (setq newdl (cons d newdl))))
+	(setq dirlist (nreverse newdl))))
+    (tramp-send-command
+     vec (format "%s type -P %s 2>%s"
+		 (if dirlist (concat "PATH=" (string-join dirlist ":")) "")
+		 progname (tramp-get-remote-null-device vec)))
+    (unless (zerop (buffer-size))
+      (string-trim (buffer-string)))))
 
 ;; On hydra.nixos.org, the $PATH environment variable is too long to
 ;; send it.  This is likely not due to PATH_MAX, but PIPE_BUF.  We
@@ -4151,18 +4130,24 @@ variable PATH."
       ;; Use a temporary file.  We cannot use `write-region' because
       ;; setting the remote path happens in the early connection
       ;; handshake, and not all external tools are determined yet.
-      (setq command (concat command "\n")
-	    tmpfile (tramp-make-tramp-temp-file vec))
-      (while (not (string-empty-p command))
-	(setq chunksize (min (length command) (/ pipe-buf 2))
-	      chunk (substring command 0 chunksize)
-	      command (substring command chunksize))
-	(tramp-send-command vec (format
-				 "printf \"%%b\" \"$*\" %s >>%s"
-				 (tramp-shell-quote-argument chunk)
-				 (tramp-shell-quote-argument tmpfile))))
-      (tramp-send-command vec (format ". %s" tmpfile))
-      (tramp-send-command vec (format "rm -f %s" tmpfile)))))
+      ;; Furthermore, we know that the COMMAND is too long, due to a
+      ;; very long remote-path.  Set it temporarily to something
+      ;; short.
+      (with-tramp-saved-connection-property (tramp-get-process vec) "remote-path"
+	(tramp-set-connection-property
+	 (tramp-get-process vec) "remote-path" '("/bin" "/usr/bin"))
+	(setq command (concat command "\n")
+	      tmpfile (tramp-make-tramp-temp-file vec))
+	(while (not (string-empty-p command))
+	  (setq chunksize (min (length command) (/ pipe-buf 2))
+		chunk (substring command 0 chunksize)
+		command (substring command chunksize))
+	  (tramp-send-command vec (format
+				   "printf \"%%b\" \"$*\" %s >>%s"
+				   (tramp-shell-quote-argument chunk)
+				   (tramp-shell-quote-argument tmpfile))))
+	(tramp-send-command vec (format ". %s" tmpfile))
+	(tramp-send-command vec (format "rm -f %s" tmpfile))))))
 
 ;; ------------------------------------------------------------
 ;; -- Communication with external shell --
@@ -5569,50 +5554,48 @@ Nonexistent directories are removed from spec."
   (with-current-buffer (tramp-get-connection-buffer vec)
     ;; Expand connection-local variables.
     (tramp-set-connection-local-variables vec)
-    (with-tramp-connection-property
-	;; When `tramp-own-remote-path' is in `tramp-remote-path', we
-	;; cache the result for the session only.  Otherwise, the
-	;; result is cached persistently.
-	(if (memq 'tramp-own-remote-path tramp-remote-path)
-	    (tramp-get-process vec) vec)
-	"remote-path"
+    (with-tramp-connection-property (tramp-get-process vec) "remote-path"
       (let* ((remote-path (copy-tree tramp-remote-path))
 	     (elt1 (memq 'tramp-default-remote-path remote-path))
 	     (elt2 (memq 'tramp-own-remote-path remote-path))
 	     (default-remote-path
-	       (when elt1
-		 (or
-		  (tramp-send-command-and-read
-		   vec
-                   (format
-                    "echo \\\"`getconf PATH 2>%s`\\\""
-                    (tramp-get-remote-null-device vec))
-                   'noerror)
-		  ;; Default if "getconf" is not available.
-		  (progn
-		    (tramp-message
-		     vec 3
-		     "`getconf PATH' not successful, using default value \"%s\"."
-		     "/bin:/usr/bin")
-		    "/bin:/usr/bin"))))
+	      (when elt1
+		(or
+		 (with-tramp-connection-property
+		     (tramp-get-process vec) "default-remote-path"
+		   (tramp-send-command-and-read
+		    vec
+                    (format
+                     "echo \\\"`getconf PATH 2>%s`\\\""
+                     (tramp-get-remote-null-device vec))
+                    'noerror))
+		 ;; Default if "getconf" is not available.
+		 (progn
+		   (tramp-message
+		    vec 3
+		    "`getconf PATH' not successful, using default value \"%s\"."
+		    "/bin:/usr/bin")
+		   "/bin:/usr/bin"))))
 	     (own-remote-path
 	      ;; The login shell could return more than just the $PATH
 	      ;; string.  So we use `tramp-end-of-heredoc' as marker.
 	      (when elt2
 		(or
-		 (tramp-send-command-and-read
-		  vec
-		  (format
-		   "%s %s %s 'echo %s \\\"$PATH\\\"'"
-		   (tramp-get-method-parameter vec 'tramp-remote-shell)
-		   (string-join
-		    (tramp-get-method-parameter vec 'tramp-remote-shell-login)
-		    " ")
-		   (string-join
-		    (tramp-get-method-parameter vec 'tramp-remote-shell-args)
-		    " ")
-		   (tramp-shell-quote-argument tramp-end-of-heredoc))
-		  'noerror (rx (literal tramp-end-of-heredoc)))
+		 (with-tramp-connection-property
+		     (tramp-get-process vec) "own-remote-path"
+		   (tramp-send-command-and-read
+		    vec
+		    (format
+		     "%s %s %s 'echo %s \\\"$PATH\\\"'"
+		     (tramp-get-method-parameter vec 'tramp-remote-shell)
+		     (string-join
+		      (tramp-get-method-parameter vec 'tramp-remote-shell-login)
+		      " ")
+		     (string-join
+		      (tramp-get-method-parameter vec 'tramp-remote-shell-args)
+		      " ")
+		     (tramp-shell-quote-argument tramp-end-of-heredoc))
+		    'noerror (rx (literal tramp-end-of-heredoc))))
 		 (progn
 		   (tramp-warning
 		    vec "Could not retrieve `tramp-own-remote-path'")
