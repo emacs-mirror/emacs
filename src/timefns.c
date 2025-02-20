@@ -2057,7 +2057,7 @@ emacs_setenv_TZ (const char *tzstring)
   /* Happily, there are no threads on MS-DOS that might be contending
      with Emacs for access to TZ.  Call putenv to modify TZ: the code
      above is not only unnecessary but results in modifications being
-     ommitted in consequence of an internal environment counter
+     omitted in consequence of an internal environment counter
      remaining unchanged despite DJGPP being all too ready to reuse
      preexisting environment storage.  */
   USE_SAFE_ALLOCA;
