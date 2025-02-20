@@ -392,8 +392,8 @@
   (setq internal-make-interpreted-closure-function
         #'cconv-make-interpreted-closure))
 (load "cus-start") ;Late to reduce customize-rogue (needs loaddefs.el anyway)
-(if (not (eq system-type 'ms-dos))
-    (load "tooltip"))
+;; tooltip.el is now required even on DOS to compile certain Lisp files.
+(load "tooltip")
 (load "international/iso-transl") ; Binds Alt-[ and friends.
 
 ;; Used by `kill-buffer', for instance.
