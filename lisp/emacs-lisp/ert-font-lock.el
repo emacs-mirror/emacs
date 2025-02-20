@@ -37,8 +37,6 @@
 
 (require 'ert)
 (require 'ert-x)
-(require 'newcomment)
-(require 'pcase)
 
 (defconst ert-font-lock--face-symbol-re
   (rx (+ (or alphanumeric "-" "_" "." "/")))
@@ -100,25 +98,24 @@ Argument TEST-NAME - name of the currently running ert test."
 
 (defun ert-font-lock--parse-macro-args (doc-keys-mode-arg)
   "Parse DOC-KEYS-MODE-ARG macro argument list."
-  (let (doc doc-p mode arg)
+  (let (doc mode arg)
 
     (when (stringp (car doc-keys-mode-arg))
-      (setq doc (pop doc-keys-mode-arg)
-            doc-p t))
+      (setq doc (pop doc-keys-mode-arg)))
 
     (pcase-let
         ((`(,keys ,mode-arg)
           (ert--parse-keys-and-body doc-keys-mode-arg)))
 
       (unless (symbolp (car mode-arg))
-        (error "A major mode symbol expected: %S" (car mode-arg)))
+        (error "Expected a major mode symbol: %S" (car mode-arg)))
       (setq mode (pop mode-arg))
 
       (unless (stringp (car mode-arg))
-        (error "A string or file with assertions expected: %S" (car mode-arg)))
+        (error "Expected a string or file with assertions: %S" (car mode-arg)))
       (setq arg (pop mode-arg))
 
-      (list doc doc-p keys mode arg))))
+      (list doc keys mode arg))))
 
 ;;;###autoload
 (defmacro ert-font-lock-deftest (name &rest docstring-keys-mode-and-str)
@@ -139,22 +136,20 @@ used through `ert'.
                            stringp))
            (doc-string 2)
            (indent 1))
-  (pcase-let ((`(,documentation
-                 ,documentation-supplied-p
-                 ,keys ,mode ,arg)
+  (pcase-let ((`(,documentation ,keys ,mode ,arg)
                (ert-font-lock--parse-macro-args docstring-keys-mode-and-str)))
 
     `(ert-set-test ',name
                    (make-ert-test
                     :name ',name
-                    ,@(when documentation-supplied-p
+                    ,@(when documentation
                         `(:documentation ,documentation))
                     ,@(when (map-contains-key keys :expected-result)
                         `(:expected-result-type ,(map-elt keys :expected-result)))
                     ,@(when (map-contains-key keys :tags)
                         `(:tags ,(map-elt keys :tags)))
-                    :body (lambda () (ert-font-lock--test-body-str ',mode ,arg ',name))
-
+                    :body (lambda ()
+                            (ert-font-lock--test-body-str ',mode ,arg ',name))
                     :file-name ,(or (macroexp-file-name) buffer-file-name)))))
 
 ;;;###autoload
@@ -178,23 +173,20 @@ through `ert'.
                            stringp))
            (doc-string 2)
            (indent 1))
-
-  (pcase-let ((`(,documentation
-                 ,documentation-supplied-p
-                 ,keys ,mode ,arg)
+  (pcase-let ((`(,documentation ,keys ,mode ,arg)
                (ert-font-lock--parse-macro-args docstring-keys-mode-and-file)))
 
     `(ert-set-test ',name
                    (make-ert-test
                     :name ',name
-                    ,@(when documentation-supplied-p
+                    ,@(when documentation
                         `(:documentation ,documentation))
                     ,@(when (map-contains-key keys :expected-result)
                         `(:expected-result-type ,(map-elt keys :expected-result)))
                     ,@(when (map-contains-key keys :tags)
                         `(:tags ,(map-elt keys :tags)))
                     :body (lambda () (ert-font-lock--test-body-file
-                                 ',mode (ert-resource-file ,arg) ',name))
+                                      ',mode (ert-resource-file ,arg) ',name))
                     :file-name ,(or (macroexp-file-name) buffer-file-name)))))
 
 (defun ert-font-lock--in-comment-p ()
@@ -357,10 +349,8 @@ The function is meant to be run from within an ERT test."
 
       ;; normalize both expected and resulting face - these can be
       ;; either symbols, nils or lists of symbols
-      (when (not (listp actual-face))
-        (setq actual-face (list actual-face)))
-      (when (not (listp expected-face))
-        (setq expected-face (list expected-face)))
+      (setq actual-face (ensure-list actual-face))
+      (setq expected-face (ensure-list expected-face))
 
       ;; fail when lists are not 'equal and the assertion is *not negated*
       (when (and (not negation) (not (equal actual-face expected-face)))
