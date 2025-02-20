@@ -4257,7 +4257,7 @@ types.  */)
 	strcpy (filename_1 + len - 5, ".dmp");
 	filename = DECODE_FILE (build_unibyte_string (filename_1));
       }
-#endif /* !MSDOS */
+#endif /* MSDOS */
     ctx->fd = emacs_open (filename_1, O_RDWR | O_TRUNC | O_CREAT, 0666);
     SAFE_FREE ();
   }
