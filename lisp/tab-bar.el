@@ -291,7 +291,12 @@ to switch the frame between different window configurations.
 See `current-window-configuration' for more about window configurations.
 To add a button (which can then record one more window configuration),
 click on the \"+\" button.  Clicking on the \"x\" icon of a button
-deletes the button."
+deletes the button.
+
+If you intend to use `tab-bar-mode' with `winner-mode', we recommend
+using `tab-bar-history-mode' instead, since it provides tab-specific
+window configuration history, and is better behaved when `tab-bar-mode'
+is turned on."
   :global t
   ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.
   :variable tab-bar-mode
