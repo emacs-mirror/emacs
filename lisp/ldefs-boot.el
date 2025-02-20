@@ -19016,7 +19016,7 @@ Selections are:
 
 \\`0'..\\`9'  Replace the word with a digit offered in the *Choices* buffer.
 \\`SPC' Accept word this time.
-\\`i'   Accept word and insert into private dictionary.
+\\`i'   Accept word and insert into personal dictionary.
 \\`a'   Accept word for this session.
 \\`A'   Accept word and place in `buffer-local dictionary'.
 \\`r'   Replace word with typed-in value.  Rechecked.
@@ -19730,6 +19730,12 @@ If you nest `let-alist' invocations, the inner one can't access
 the variables of the outer one.  You can, however, access alists
 inside the original alist by using dots inside the symbol, as
 displayed in the example above.
+
+To refer to a non-`let-alist' variable starting with a dot in BODY, use
+two dots instead of one.  For example, in the following form `..foo'
+refers to the variable `.foo' bound outside of the `let-alist':
+
+    (let ((.foo 42)) (let-alist \\='((foo . nil)) ..foo))
 
 Note that there is no way to differentiate the case where a key
 is missing from when it is present, but its value is nil.  Thus,
