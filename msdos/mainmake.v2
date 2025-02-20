@@ -136,6 +136,7 @@ install: all
 	cd ..
 	cd src
 	mv -f emacs.exe ../bin/
+	mv -f emacs.dmp ../bin/
 	cd ..
 	djecho -s "(if (fboundp 'normal-top-level-add-subdirs-to-load-path)" \
 	          "    (normal-top-level-add-subdirs-to-load-path))" \

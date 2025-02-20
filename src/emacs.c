@@ -885,7 +885,11 @@ load_pdump (int argc, char **argv, char *dump_file)
   return argv[0];
 #else
 
+#ifdef MSDOS
+  const char *const suffix = ".dmp";
+#else /* !MSDOS */
   const char *const suffix = ".pdmp";
+#endif /* !MSDOS */
   int result;
   char *emacs_executable = argv[0];
   ptrdiff_t hexbuf_size;

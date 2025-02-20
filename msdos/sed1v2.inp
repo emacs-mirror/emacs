@@ -22,11 +22,11 @@ s/\.h\.in/.h-in/
 /^srcdir *=/s/@[^@\n]*@/./
 /^top_srcdir *=/s/@[^@\n]*@/../
 /^CC *=/s/@[^@\n]*@/gcc -std=gnu99/
-/^CFLAGS *=/s/@[^@\n]*@/-O2 -gcoff/
+/^CFLAGS *=/s/@[^@\n]*@/-O2 -g3/
 /^ALL_CFLAGS *=/s/@[^@\n]*@//g
 /^ALL_CFLAGS *=/s/ -I\.//g
 /^CPPFLAGS *=/s|@[^@\n]*@|-I../msdos|
-/^LDFLAGS *=/s/@[^@\n]*@//
+/^LDFLAGS *=/s/@[^@\n]*@/-T ..\/msdos\/emacs.djl/
 /^LIBOBJS *=/s/@[^@\n]*@//
 /^C_SWITCH_MACHINE *=/s/@C_SWITCH_MACHINE@//
 /^C_SWITCH_SYSTEM *=/s/@C_SWITCH_SYSTEM@//
@@ -60,7 +60,7 @@ s/ *@WEBP_LIBS@//
 /^JPEG_CFLAGS *=/s/@JPEG_CFLAGS@//
 /^TIFF_CFLAGS *=/s/@TIFF_CFLAGS@//
 /^HAVE_NATIVE_COMP *=/s/@HAVE_NATIVE_COMP@/no/
-/^HAVE_PDUMPER *=/s/@HAVE_PDUMPER@/no/
+/^HAVE_PDUMPER *=/s/@HAVE_PDUMPER@/yes/
 /^HAVE_BE_APP *=/s/@HAVE_BE_APP@/no/
 /^CHECK_STRUCTS *=/s/@CHECK_STRUCTS@//
 /^RUN_TEMACS \=/s/temacs/temacs.exe/
@@ -166,7 +166,6 @@ s/ *@WEBP_LIBS@//
 /^GMALLOC_OBJ *=/s/@GMALLOC_OBJ@/gmalloc.o/
 /^VMLIMIT_OBJ *=/s/@VMLIMIT_OBJ@/vm-limit.o/
 /^RALLOC_OBJ *=/s/@RALLOC_OBJ@/ralloc.o/
-/^UNEXEC_OBJ *=/s/@UNEXEC_OBJ@/unexcoff.o/
 /^BUILD_DETAILS *=/s/@BUILD_DETAILS@//
 /^CANNOT_DUMP *=/s/@CANNOT_DUMP@/no/
 /^W32_OBJ *=/s/@W32_OBJ@//
@@ -194,9 +193,7 @@ s/ *@WEBP_LIBS@//
 /^[Aa][Mm]_/s/@AM_V@/$(V)/
 /^[Aa][Mm]_/s/@AM_DEFAULT_V@/$(AM_DEFAULT_VERBOSITY)/
 /^AUTO_DEPEND *=/s/@AUTO_DEPEND@/yes/
-/^PAXCTL_dumped *=/s/=.*$/=/
-/^PAXCTL_notdumped *=/s/=.*$/=/
-/^DUMPING *=/s/@DUMPING@/unexec/
+/^DUMPING *=/s/@DUMPING@/pdumper/
 /^ANDROID_OBJ *=/s/@ANDROID_OBJ@//
 /^ANDROID_LIBS *=/s/@ANDROID_LIBS@//
 /^ANDROID_LDFLAGS *=/s/@ANDROID_LDFLAGS@//
@@ -205,8 +202,6 @@ s/ *@WEBP_LIBS@//
 /^SQLITE3_CFLAGS *=/s/@SQLITE3_CFLAGS@//
 /^LIBSELINUX_CFLAGS *=/s/@LIBSELINUX_CFLAGS@//
 /^XCONFIGURE *=/s/@XCONFIGURE@//
-/^[ \t]*MAKE_PDUMPER_FINGERPRINT = *$/c\
-MAKE_PDUMPER_FINGERPRINT =
 # While this variable is named abs_top_builddir, the distinction is
 # only relevant when Emacs is undergoing cross-compilation.
 /^abs_top_builddir =*/s/@abs_top_builddir@/../
@@ -237,14 +232,8 @@ lisp.mk: $(lispsource)/loadup.el\
 /^	 *ln /s/ln /cp /
 /^	fi/d
 /ifeq (\$(HAVE_NATIVE_COMP):\$(NATIVE_DISABLED),yes:)/,/endif/d
-/^	 *\$(RUN_TEMACS) /i\
-	stubedit temacs.exe minstack=1024k
-/^	 *LC_ALL=C \$(RUN_TEMACS)/i\
-	stubedit temacs.exe minstack=1024k
 /^	 *LC_ALL=C.*\$(RUN_TEMACS)/s/LC_ALL=C/set &;/
-/-batch .* -l loadup/a\
-	stubify emacs\
-	stubedit emacs.exe minstack=3072k
+/^	ANCIENT=yes \$(MAKE) -C ..\/lisp compile-first EMACS="\$(bootstrap_exe)"/d
 s/ @true *$/ @rem/
 s/^	[^ 	]*move-if-change /	update /
 /^	[^ 	]*echo[ 	][ 	]*timestamp/s/echo /djecho /
@@ -271,6 +260,8 @@ s/echo.*buildobj.lst/dj&/
   /^	 *\$(AM_V_GEN)for /,/mv \$@.tmp \$@/c\
 	djecho "$(ALLOBJS)" | sed -e 's/^ */"/' -e 's/ *$$/"/' -e 's/  */", "/g' >>$@
 }
+/^	.*\$(MAKE_PDUMPER_FINGERPRINT) \$@\.tmp/s/\.tmp//
+/^	rm -f \$@ && cp -f temacs\$(EXEEXT) \$@/s/rm -f \$@ && //
 # Remove or replace dependencies we cannot have
 /^\.PRECIOUS: /s!\.\./config.status !!
 /^\.\.\/config.status: /,/^	/d
@@ -293,3 +284,4 @@ s| -I\. -I\$(srcdir)| -I.|
 /\$(CC) -o \$@.tmp/s/\$@.tmp/\$@/
 /mv \$@.tmp \$@/d
 /^top_builddir =*/s/@top_builddir@/../
+s/\.pdmp/\.dmp/

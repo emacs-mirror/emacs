@@ -4243,8 +4243,24 @@ types.  */)
   ctx->old_process_environment = Vprocess_environment;
   Vprocess_environment = Qnil;
 
-  ctx->fd = emacs_open (SSDATA (filename),
-                        O_RDWR | O_TRUNC | O_CREAT, 0666);
+  {
+    USE_SAFE_ALLOCA;
+
+    char *filename_1;
+    SAFE_ALLOCA_STRING (filename_1, filename);
+#ifdef MSDOS
+    /* Rewrite references to .pdmp to refer to .dmp files on DOS.  */
+    size_t len = strlen (filename_1);
+    if (len >= 5
+	&& !strcmp (filename_1 + len - 5, ".pdmp"))
+      {
+	strcpy (filename_1 + len - 5, ".dmp");
+	filename = DECODE_FILE (build_unibyte_string (filename_1));
+      }
+#endif /* !MSDOS */
+    ctx->fd = emacs_open (filename_1, O_RDWR | O_TRUNC | O_CREAT, 0666);
+    SAFE_FREE ();
+  }
   if (ctx->fd < 0)
     report_file_error ("Opening dump output", filename);
   static_assert (sizeof (ctx->header.magic) == sizeof (dump_magic));
