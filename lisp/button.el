@@ -652,15 +652,19 @@ Also see `buttonize-region'."
     string))
 
 (defun button--properties (callback data help-echo)
-  (list 'font-lock-face 'button
-        'mouse-face 'highlight
-        'help-echo help-echo
-        'button t
-        'follow-link t
-        'category t
-        'button-data data
-        'keymap button-map
-        'action callback))
+  (append
+   (list 'font-lock-face 'button
+         'mouse-face 'highlight
+         'button t
+         'follow-link t
+         'category t
+         'button-data data
+         'keymap button-map
+         'action callback)
+   (and help-echo
+        (list 'help-echo help-echo
+              ;; Record that button.el is responsible for this property.
+              'help-echo-button t))))
 
 (defun buttonize-region (start end callback &optional data help-echo)
   "Make the region between START and END into a button.
@@ -681,8 +685,14 @@ This removes both text-property and overlay based buttons."
     (when (overlay-get o 'button)
       (delete-overlay o)))
   (with-silent-modifications
-    (remove-text-properties start end
-                            (button--properties nil nil nil))
+    (remove-text-properties
+     start end
+     (append
+      (button--properties nil nil nil)
+      ;; Only remove help-echo if it was added by button.el.
+      (and (get-text-property start 'help-echo-button)
+           (list 'help-echo nil
+                 'help-echo-button nil))))
     (add-face-text-property start end
                             'button nil)))
 
