@@ -28,12 +28,19 @@
 
 (defvar add-log-time-format)		; in add-log
 
+(defun admin--read-root-directory ()
+  (read-directory-name "Emacs root directory: "
+                       source-directory nil t))
+
+(defun admin--read-version ()
+  (read-string "Version number: " emacs-version))
+
 (defun add-release-logs (root version &optional date)
   "Add \"Version VERSION released.\" change log entries in ROOT.
 Also update the etc/HISTORY file.
 Root must be the root of an Emacs source tree.
 Optional argument DATE is the release date, default today."
-  (interactive (list (read-directory-name "Emacs root directory: ")
+  (interactive (list (admin--read-root-directory)
 		     (read-string "Version number: "
 				  (format "%s.%s" emacs-major-version
 					  emacs-minor-version))
@@ -94,9 +101,8 @@ Optional argument DATE is the release date, default today."
 (defun set-version (root version)
   "Set Emacs version to VERSION in relevant files under ROOT.
 Root must be the root of an Emacs source tree."
-  (interactive (list
-		(read-directory-name "Emacs root directory: " source-directory)
-		(read-string "Version number: " emacs-version)))
+  (interactive (list (admin--read-root-directory)
+		     (admin--read-version)))
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
     (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
   (unless admin-git-command
@@ -213,9 +219,9 @@ Documentation changes might not have been completed!"))))
         (dolist (s '("Installation Changes" "Startup Changes" "Changes"
                      "Editing Changes"
                      "Changes in Specialized Modes and Packages"
-                          "New Modes and Packages"
-                          "Incompatible Lisp Changes"
-                          "Lisp Changes"))
+                     "New Modes and Packages"
+                     "Incompatible Lisp Changes"
+                     "Lisp Changes"))
           (insert (format "\n\n* %s in Emacs %s\n" s newshort)))
         (insert (format "\n\n* Changes in Emacs %s on \
 Non-Free Operating Systems\n" newshort)))
@@ -230,7 +236,7 @@ Non-Free Operating Systems\n" newshort)))
   "Set Emacs short copyright to COPYRIGHT in relevant files under ROOT.
 Root must be the root of an Emacs source tree."
   (interactive (list
-                (read-directory-name "Emacs root directory: " nil nil t)
+                (admin--read-root-directory)
                 (read-string
                  "Short copyright string: "
                  (format "Copyright (C) %s Free Software Foundation, Inc."
@@ -289,8 +295,7 @@ Optional argument TYPE is type of output (nil means all)."
                       (if noninteractive
                           (or (pop command-line-args-left)
                               default-directory)
-                        (read-directory-name "Emacs root directory: "
-                                             source-directory nil t))))
+                        (admin--read-root-directory))))
 		 (list root
 		       (if current-prefix-arg
 			   (completing-read
@@ -772,8 +777,7 @@ Optional argument TYPE is type of output (nil means all)."
                       (if noninteractive
                           (or (pop command-line-args-left)
                               default-directory)
-                        (read-directory-name "Emacs root directory: "
-                                             source-directory nil t))))
+                        (admin--read-root-directory))))
 		 (list root
 		       (if current-prefix-arg
 			   (completing-read
@@ -861,8 +865,7 @@ $Date: %s $
                       (if noninteractive
                           (or (pop command-line-args-left)
                               default-directory)
-                        (read-directory-name "Emacs root directory: "
-                                             source-directory nil t))))
+                        (admin--read-root-directory))))
                  (list root
                        (read-string "Major version number: "
                                     (number-to-string emacs-major-version)))))
