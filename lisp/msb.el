@@ -1113,10 +1113,8 @@ variable `msb-menu-cond'."
 
 ;; Snarf current bindings of `mouse-buffer-menu' (normally
 ;; C-down-mouse-1).
-(defvar msb-mode-map
-  (let ((map (make-sparse-keymap "Msb")))
-    (define-key map [remap mouse-buffer-menu] #'msb)
-    map))
+(defvar-keymap msb-mode-map
+  "<remap> <mouse-buffer-menu>" #'msb)
 
 ;;;###autoload
 (define-minor-mode msb-mode
