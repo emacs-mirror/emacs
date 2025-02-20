@@ -5423,6 +5423,13 @@ Erase customizations; set options
 Entry to this mode calls the value of `Custom-mode-hook'
 if that value is non-nil."
   (use-local-map custom-mode-map)
+  (when (not (boundp 'tool-bar-map))
+    ;; setq-local will render tool-bar-map buffer local before the form
+    ;; is evaluated, but if tool-bar.el remains unloaded this blv will
+    ;; be unbound and consequently once tool-bar-local-item-from-menu is
+    ;; called and autoloads tool-bar.el, no binding will be created,
+    ;; causing it to signal.
+    (setq tool-bar-map (make-sparse-keymap)))
   (setq-local tool-bar-map
 	      (or custom-tool-bar-map
 		  ;; Set up `custom-tool-bar-map'.
