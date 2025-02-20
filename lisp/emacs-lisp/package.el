@@ -2665,7 +2665,7 @@ in a clean environment."
 	    (list
              (cl-loop for c in
                       (completing-read-multiple
-                       "Packages to isolate, as comma-separated list: " table
+                       "Packages to isolate: " table
                        nil t)
 		           collect (alist-get c table nil nil #'string=))
                   current-prefix-arg)))
@@ -4289,7 +4289,7 @@ string, show all packages.
 When called interactively, prompt for ARCHIVE.  To specify
 several archives, type their names separated by commas."
   (interactive (list (completing-read-multiple
-                      "Filter by archive (comma separated): "
+                      "Filter by archive: "
                       (mapcar #'car package-archives)))
                package-menu-mode)
   (package--ensure-package-menu-mode)
@@ -4333,7 +4333,7 @@ or \"built-in\" or \"obsolete\".
 When called interactively, prompt for KEYWORD.  To specify several
 keywords, type them separated by commas."
   (interactive (list (completing-read-multiple
-                      "Keywords (comma separated): "
+                      "Keywords: "
                       (package-all-keywords)))
                package-menu-mode)
   (package--ensure-package-menu-mode)
