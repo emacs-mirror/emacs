@@ -985,6 +985,17 @@ emacs_gnutls_deinit (Lisp_Object proc)
   if (XPROCESS (proc)->gnutls_certificates)
     gnutls_deinit_certificates (XPROCESS (proc));
 
+  struct Lisp_Process *p = XPROCESS (proc);
+  if (p->gnutls_pproc)
+    {
+#ifdef HAVE_MPS
+      igc_xfree (p->gnutls_pproc);
+#else
+      xfree (p->gnutls_pproc);
+#endif
+      p->gnutls_pproc = NULL;
+    }
+
   XPROCESS (proc)->gnutls_p = false;
   return Qt;
 }

@@ -3450,12 +3450,6 @@ cleanup_vector (struct Lisp_Vector *vector)
 	hash_table_allocated_bytes -= bytes;
       }
       break;
-    case PVEC_PROCESS:
-      {
-	struct Lisp_Process *p = PSEUDOVEC_STRUCT (vector, Lisp_Process);
-	xfree (p->gnutls_pproc);
-      }
-      break;
     /* Keep the switch exhaustive.  */
     case PVEC_NORMAL_VECTOR:
     case PVEC_FREE:
@@ -3465,6 +3459,7 @@ cleanup_vector (struct Lisp_Vector *vector)
     case PVEC_WINDOW:
     case PVEC_BOOL_VECTOR:
     case PVEC_BUFFER:
+    case PVEC_PROCESS:
     case PVEC_TERMINAL:
     case PVEC_WINDOW_CONFIGURATION:
     case PVEC_OTHER:
