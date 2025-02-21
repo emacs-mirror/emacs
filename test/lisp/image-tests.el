@@ -88,6 +88,9 @@
   (should-not (image-supported-file-p "foo.some-unsupported-format")))
 
 (ert-deftest image-type-from-file-name ()
+  (skip-unless (and (image-type-available-p 'jpeg)
+                    (image-type-available-p 'png)
+                    (image-type-available-p 'webp)))
   (with-suppressed-warnings ((obsolete image-type-from-file-name))
     (should (eq (image-type-from-file-name "foo.jpg") 'jpeg))
     (should (eq (image-type-from-file-name "foo.png") 'png))
