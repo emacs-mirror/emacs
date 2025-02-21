@@ -80,9 +80,12 @@
   (should (eq (image-supported-file-p "foo.pbm") 'pbm)))
 
 (ert-deftest image-supported-file-p/optional ()
-  (if (image-type-available-p 'jpeg)
-      (should (eq (image-supported-file-p "foo.jpg") 'jpeg))
-    (should-not (image-supported-file-p "foo.jpg"))))
+  (cond ((image-type-available-p 'jpeg)
+         (should (eq (image-supported-file-p "foo.jpg") 'jpeg)))
+        ((fboundp 'imagemagick-types)
+         (should (eq (image-supported-file-p "foo.jpg") 'imagemagick)))
+        (nil
+         (should-not (image-supported-file-p "foo.jpg")))))
 
 (ert-deftest image-supported-file-p/unsupported-returns-nil ()
   (should-not (image-supported-file-p "foo.some-unsupported-format")))
