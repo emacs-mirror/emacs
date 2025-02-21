@@ -841,6 +841,11 @@ This affects calls to 'warn', 'lwarn', 'display-warning', and
 'message-box'.
 
 ---
+*** New user option 'checkdoc-allow-quoting-nil-and-t'.
+Customizing this option to a non-nil value stops checkdoc from warning
+for docstrings where symbols 'nil' and 't' are in quotes.
+
+---
 *** The default of 'checkdoc-verb-check-experimental-flag' is now nil.
 In most cases, having it enabled leads to a large amount of false
 positives.

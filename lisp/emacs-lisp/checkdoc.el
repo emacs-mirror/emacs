@@ -322,6 +322,14 @@ variable `checkdoc-common-verbs-wrong-voice' if you wish to add your own."
 Do not set this by hand, use a function like `checkdoc-current-buffer'
 with a universal argument.")
 
+(defcustom checkdoc-allow-quoting-nil-and-t nil
+  "If non-nil, don't warn when the symbols nil and t are quoted.
+
+In other words, it allows writing them like this: \\=`nil\\=', \\=`t\\='."
+  :type 'boolean
+  :version "31.1")
+;;;###autoload(put 'checkdoc-allow-quoting-nil-and-t 'safe-local-variable #'booleanp)
+
 (defcustom checkdoc-symbol-words
   '("beginning-of-buffer" "beginning-of-line" "byte-code"
     "byte-compile" "command-line" "end-of-buffer" "end-of-line"
@@ -1956,17 +1964,18 @@ Replace with \"%s\"?" original replace)
 				       (length ms)))
 	   nil)))
      ;; t and nil case
-     (save-excursion
-       (if (re-search-forward "\\([`‘]\\(t\\|nil\\)['’]\\)" e t)
-	   (if (checkdoc-autofix-ask-replace
-		(match-beginning 1) (match-end 1)
-                (format "%s should not appear in quotes.  Remove?"
-			(match-string 2))
-		(match-string 2) t)
-	       nil
-	     (checkdoc-create-error
-	      "Symbols t and nil should not appear in single quotes"
-	      (match-beginning 1) (match-end 1)))))
+     (unless checkdoc-allow-quoting-nil-and-t
+       (save-excursion
+         (if (re-search-forward "\\([`‘]\\(t\\|nil\\)['’]\\)" e t)
+             (if (checkdoc-autofix-ask-replace
+                  (match-beginning 1) (match-end 1)
+                  (format "%s should not appear in quotes.  Remove?"
+                          (match-string 2))
+                  (match-string 2) t)
+                 nil
+               (checkdoc-create-error
+                "Symbols t and nil should not appear in single quotes"
+                (match-beginning 1) (match-end 1))))))
      ;; Here is some basic sentence formatting
      (checkdoc-sentencespace-region-engine (point) e)
      ;; Here are common proper nouns that should always appear capitalized.
