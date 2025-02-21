@@ -97,7 +97,9 @@ continuation to the previous entry."
 
    :language 'dockerfile
    :feature 'image-spec
-   '((image_spec) @font-lock-constant-face)
+   '((image_name)  @font-lock-function-name-face
+     (image_tag)   @font-lock-function-name-face
+     (image_alias) @font-lock-function-name-face)
 
    :language 'dockerfile
    :feature 'keyword
@@ -113,7 +115,29 @@ continuation to the previous entry."
 
    :language 'dockerfile
    :feature 'string
-   '((double_quoted_string) @font-lock-string-face)
+   '((single_quoted_string) @font-lock-string-face
+     (double_quoted_string) @font-lock-string-face
+     (json_string) @font-lock-string-face
+     (path) @font-lock-string-face
+     (arg_instruction
+      default: (unquoted_string) @font-lock-string-face)
+     (env_pair
+      value: (unquoted_string) @font-lock-string-face))
+
+   :language 'dockerfile
+   :feature 'string-expansion
+   :override t
+   '((expansion
+      (["$" "{" "}"] @font-lock-variable-name-face))
+     (expansion
+      (variable) @font-lock-variable-name-face))
+
+   :language 'dockerfile
+   :feature 'identifiers
+   '((arg_instruction
+      name: (unquoted_string) @font-lock-variable-name-face)
+     (env_pair
+      name: (unquoted_string) @font-lock-variable-name-face))
 
    :language 'dockerfile
    :feature 'error
@@ -164,7 +188,7 @@ Return nil if there is no name or if NODE is not a stage node."
                 dockerfile-ts-mode--font-lock-settings)
     (setq-local treesit-font-lock-feature-list
                 '((comment)
-                  (keyword string)
+                  (keyword string string-expansion identifiers)
                   (image-spec number)
                   (bracket delimiter error operator)))
 
