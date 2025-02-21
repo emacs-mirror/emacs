@@ -2961,7 +2961,7 @@ re-configure with the option '--without-be-app'.])])
 			   static BObjectList<BStringItem, true> test;]], [])],
         [emacs_cv_bobjectlist_ownership_is_template_parameter=yes],
 	[emacs_cv_bobjectlist_ownership_is_template_parameter=no])])
-   AS_IF([test "x$emacs_cv_bobjectlist_ownership_is_template_parameter"],
+   AS_IF([test "x$emacs_cv_bobjectlist_ownership_is_template_parameter" = "xyes"],
      [AC_DEFINE([BOBJECTLIST_OWNERSHIP_IS_TEMPLATE_PARAMETER], [1],
        [Define to 1 if BObjectList ownership is defined as a template parameter.])])
    AC_LANG_POP([C++])
