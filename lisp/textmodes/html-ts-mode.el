@@ -126,14 +126,15 @@ Return nil if there is no name or if NODE is not a defun node."
      t)))
 
 (defun html-ts-mode--outline-predicate (node)
-  "Limit outlines to a few most meaningful elements."
-  (let ((name (html-ts-mode--defun-name node)))
-    (and name (string-match-p
-               (rx bos (or "html" "head" "script" "style"
-                           "body" (and "h" (any "1-6"))
-                           "ol" "ul" "table")
-                   eos)
-               name))))
+  "Limit outlines to multi-line elements."
+  (when (string-match-p "element" (treesit-node-type node))
+    (< (save-excursion
+         (goto-char (treesit-node-start node))
+         (pos-bol))
+       (save-excursion
+         (goto-char (treesit-node-end node))
+         (skip-chars-backward " \t\n")
+         (pos-bol)))))
 
 ;;;###autoload
 (define-derived-mode html-ts-mode html-mode "HTML"

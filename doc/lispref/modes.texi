@@ -3175,6 +3175,16 @@ This variable instructs Emacs how to find lines with outline headings.
 It should be a predicate that matches the node on the heading line.
 @end defvar
 
+@defvar treesit-aggregated-outline-predicate
+This variable allows major modes to configure outlines for multiple
+languages.  Its value is an alist mapping language symbols to outline
+headings of the form described above for the value of
+@code{treesit-outline-predicate}.
+
+If this variable is non-@code{nil}, it overrides
+@code{treesit-outline-predicate} for setting up outline headings.
+@end defvar
+
 @node Font Lock Mode
 @section Font Lock Mode
 @cindex Font Lock mode

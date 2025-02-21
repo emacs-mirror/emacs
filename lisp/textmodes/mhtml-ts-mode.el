@@ -580,7 +580,11 @@ Powered by tree-sitter."
     (setq-local treesit-aggregated-simple-imenu-settings
                 mhtml-ts-mode--treesit-aggregated-simple-imenu-settings)
 
-    ;; (setq-local treesit-outline-predicate nil)
+    (setq-local treesit-aggregated-outline-predicate
+                `((html . ,#'html-ts-mode--outline-predicate)
+                  ;; TODO: add a predicate like for html above
+                  (javascript . "\\`function_declaration\\'")
+                  (css . "\\`rule_set\\'")))
 
     (treesit-major-mode-setup)
 
