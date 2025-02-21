@@ -711,7 +711,9 @@ compilation and evaluation time conflicts."
      ((parent-is "object_type") parent-bol csharp-ts-mode-indent-offset)
      ((parent-is "enum_body") parent-bol csharp-ts-mode-indent-offset)
      ((parent-is "arrow_function") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "parenthesized_expression") parent-bol csharp-ts-mode-indent-offset))))
+     ((parent-is "parenthesized_expression") parent-bol csharp-ts-mode-indent-offset)
+     ((parent-is "using_statement") parent-bol 0)
+     ((parent-is "lambda_expression") parent-bol 0))))
 
 (defvar csharp-ts-mode--keywords
   '("using" "namespace" "class" "if" "else" "throw" "new" "for"
