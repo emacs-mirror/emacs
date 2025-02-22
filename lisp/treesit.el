@@ -2838,6 +2838,15 @@ ARG is described in the docstring of `up-list'."
                                            (treesit-node-end parent)
                                          (treesit-node-start parent))))
           (setq parent (treesit-parent-until parent pred)))
+
+        (when-let* ((_ (null parent))
+                    (parser (treesit-node-parser (treesit-node-at (point))))
+                    (_ (not (eq parser treesit-primary-parser)))
+                    (guest-root-node (treesit-parser-root-node parser)))
+          ;; Continue from the host node that contains the guest parser.
+          (setq parent (treesit-thing-at
+                        (- (treesit-node-start guest-root-node) 2) pred)))
+
         (or (when (and default-pos
                        (or (null parent)
                            (if (> arg 0)
@@ -3716,7 +3725,7 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
   "Return the depth of the current outline heading."
   (let* ((node (treesit-outline--at-point))
          (level 1)
-         (parser (when treesit-aggregated-outline-predicate
+         (parser (when (and treesit-aggregated-outline-predicate node)
                    (treesit-node-parser node)))
          (pred (if treesit-aggregated-outline-predicate
                    (alist-get (treesit-language-at (point))
@@ -3724,13 +3733,12 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
                  treesit-outline-predicate)))
     (while (setq node (treesit-parent-until node pred))
       (setq level (1+ level)))
-    (when-let* ((_ parser)
+    (when-let* ((_ (and parser (not (eq parser treesit-primary-parser))))
+                (guest-root-node (treesit-parser-root-node parser))
                 (host-lang (treesit-parser-language treesit-primary-parser))
-                (_ (not (eq (treesit-language-at (point)) host-lang)))
                 (host-pred (alist-get host-lang treesit-aggregated-outline-predicate)))
-      ;; Now need to break out of embedded confinement
-      ;; and get the host node that contains the guest ranges
-      (setq node (treesit-parser-root-node parser))
+      ;; Continue from the host node that contains the guest parser.
+      (setq node (treesit-node-at (- (treesit-node-start guest-root-node) 2)))
       (while (setq node (treesit-parent-until node host-pred))
         (setq level (1+ level))))
     level))
