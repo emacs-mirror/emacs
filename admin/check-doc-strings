@@ -5,6 +5,18 @@ eval 'exec perl -S $0 "$@"' # Portability kludge
 # Author: Martin Buchholz
 # This program is in the public domain.
 
+# NOTE ADDED 2025-02-22:
+#
+# This is an old script that doesn't necessarily work very well with
+# today's sources.  If anyone wants to fix it up, it might be worth the
+# effort, as it could help catch some mistakes that we have overlooked.
+#
+# If you want to work on this, consider fundamentally rethinking the
+# approach.  Instead of flagging anything that *might* be an error,
+# maybe it should flag only things that we are *sure* are an error.
+# That would make it possible to run this as a matter of routine, just
+# as we already do with codespell (see "admin/run-codespell").
+
 use strict;
 use warnings;
 use POSIX;
