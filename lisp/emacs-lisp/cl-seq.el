@@ -439,7 +439,7 @@ to avoid corrupting the original SEQ.
 	  (setq cl-seq (copy-sequence cl-seq))
 	  (unless cl-from-end
 	    (setf (elt cl-seq cl-i) cl-new)
-	    (cl-incf cl-i)
+            (incf cl-i)
 	    (decf cl-count))
 	  (apply 'cl-nsubstitute cl-new cl-old cl-seq :count cl-count
 		 :start cl-i cl-keys))))))

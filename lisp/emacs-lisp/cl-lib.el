@@ -162,9 +162,9 @@ to an element already in the list stored in PLACE.
 		  val))
 
 (defun cl--set-substring (str start end val)
-  (if end (if (< end 0) (cl-incf end (length str)))
+  (if end (if (< end 0) (incf end (length str)))
     (setq end (length str)))
-  (if (< start 0) (cl-incf start (length str)))
+  (if (< start 0) (incf start (length str)))
   (concat (and (> start 0) (substring str 0 start))
 	  val
 	  (and (< end (length str)) (substring str end))))
@@ -456,7 +456,7 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 ;;With optional argument N, returns Nth-to-last link (default 1)."
 ;;  (if n
 ;;      (let ((m 0) (p x))
-;;	(while (consp p) (cl-incf m) (pop p))
+;;      (while (consp p) (incf m) (pop p))
 ;;	(if (<= n 0) p
 ;;	  (if (< n m) (nthcdr (- m n) x) x)))
 ;;    (while (consp (cdr x)) (pop x))

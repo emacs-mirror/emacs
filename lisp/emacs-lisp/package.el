@@ -3982,7 +3982,7 @@ Return nil if there were no errors; non-nil otherwise."
               (package-menu--transaction-status))
           (dolist (pkg install-list)
             (setq package-menu--transaction-status
-                  (format status-format (cl-incf i)))
+                  (format status-format (incf i)))
             (force-mode-line-update)
             (redisplay 'force)
             ;; Don't mark as selected, `package-menu-execute' already

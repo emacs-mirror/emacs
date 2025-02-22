@@ -903,7 +903,7 @@ the docstrings eventually produced, using
            interactive))
          (make-callback
           (method origin)
-          (let ((pos (prog1 howmany (cl-incf howmany))))
+          (let ((pos (prog1 howmany (incf howmany))))
             (cl-ecase method
               (:enthusiast
                (lambda (string &rest plist)
@@ -920,7 +920,7 @@ the docstrings eventually produced, using
                                     nil #'display-doc))
                  t))
               (:patient
-               (cl-incf want)
+               (incf want)
                (lambda (string &rest plist)
                  (register-doc pos string plist origin)
                  (when (zerop (decf want)) (display-doc))

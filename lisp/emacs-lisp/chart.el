@@ -633,7 +633,7 @@ argument to `chart-sort' to sort the lists if desired."
 	     (m (member s extlst)))
 	(unless (null s)
 	  (if m
-              (cl-incf (car (nthcdr (- (length extlst) (length m)) cntlst)))
+              (incf (car (nthcdr (- (length extlst) (length m)) cntlst)))
 	    (setq extlst (cons s extlst)
                   cntlst (cons 1 cntlst))))))
     ;; Let's create the chart!

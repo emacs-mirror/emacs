@@ -140,7 +140,7 @@ BODY."
     (maphash (lambda (buffer _dummy)
 	       (when (or (not (buffer-live-p buffer))
 			 (kill-buffer buffer))
-		 (cl-incf count)))
+                 (incf count)))
 	     ert--test-buffers)
     (message "%s out of %s test buffers killed"
 	     count (hash-table-count ert--test-buffers)))

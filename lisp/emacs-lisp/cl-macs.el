@@ -1598,12 +1598,12 @@ For more details, see Info node `(cl)Loop Facility'.
      ((memq word '(sum summing))
       (let ((what (pop cl--loop-args))
 	    (var (cl--loop-handle-accum 0)))
-	(push `(progn (cl-incf ,var ,what) t) cl--loop-body)))
+        (push `(progn (incf ,var ,what) t) cl--loop-body)))
 
      ((memq word '(count counting))
       (let ((what (pop cl--loop-args))
 	    (var (cl--loop-handle-accum 0)))
-	(push `(progn (if ,what (cl-incf ,var)) t) cl--loop-body)))
+        (push `(progn (if ,what (incf ,var)) t) cl--loop-body)))
 
      ((memq word '(minimize minimizing maximize maximizing))
       (push `(progn ,(macroexp-let2 macroexp-copyable-p temp

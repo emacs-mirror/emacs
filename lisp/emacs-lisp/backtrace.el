@@ -750,7 +750,7 @@ Format it according to VIEW."
       (let ((fun-and-args (cons fun args)))
         (insert (backtrace--print-to-string fun-and-args)))
       ;; Skip the open-paren.
-      (cl-incf fun-beg)))
+      (incf fun-beg)))
     (when fun-file
       (make-text-button fun-beg
                         (or fun-end

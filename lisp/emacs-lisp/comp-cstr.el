@@ -448,7 +448,7 @@ Return them as multiple value."
    do
    (when (zerop nest)
      (setf low i))
-   (cl-incf nest)
+   (incf nest)
    else
    do
    (when (= nest 1)
@@ -477,7 +477,7 @@ Return them as multiple value."
                (cl-return '()))
    if (eq x 'l)
    do
-   (cl-incf nest)
+   (incf nest)
    (when (= nest n-ranges)
      (setf low i))
    else

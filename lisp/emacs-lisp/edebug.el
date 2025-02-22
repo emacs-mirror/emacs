@@ -4594,8 +4594,8 @@ With prefix argument, make it a temporary breakpoint."
     (let ((s 1))
       (while (memq (nth 1 (backtrace-frame i 'called-interactively-p))
                    '(edebug-enter edebug-default-enter))
-        (cl-incf s)
-        (cl-incf i))
+        (incf s)
+        (incf i))
       s)))
 
 ;; Finally, hook edebug into the rest of Emacs.

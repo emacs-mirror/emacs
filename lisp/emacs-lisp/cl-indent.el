@@ -179,13 +179,13 @@ the standard Lisp indent package."
     (when (and (eq lisp-indent-backquote-substitution-mode 'corrected))
       (save-excursion
         (goto-char (elt state 1))
-        (cl-incf loop-indentation
-                 (cond ((eq (char-before) ?,) -1)
-                       ((and (eq (char-before) ?@)
-                             (progn (backward-char)
-                                    (eq (char-before) ?,)))
-                        -2)
-                       (t 0)))))
+        (incf loop-indentation
+              (cond ((eq (char-before) ?,) -1)
+                    ((and (eq (char-before) ?@)
+                          (progn (backward-char)
+                                 (eq (char-before) ?,)))
+                     -2)
+                    (t 0)))))
 
     (goto-char indent-point)
     (beginning-of-line)
@@ -400,9 +400,9 @@ instead."
                      ;; ",(...)" or ",@(...)"
                      (when (eq lisp-indent-backquote-substitution-mode
                                'corrected)
-                       (cl-incf sexp-column -1)
+                       (incf sexp-column -1)
                        (when (eq (char-after (1- containing-sexp)) ?\@)
-                         (cl-incf sexp-column -1)))
+                         (incf sexp-column -1)))
                      (cond (lisp-indent-backquote-substitution-mode
                             (setf tentative-calculated normal-indent)
                             (setq depth lisp-indent-maximum-backtracking)
@@ -706,7 +706,7 @@ optional\\|rest\\|key\\|allow-other-keys\\|aux\\|whole\\|body\\|environment\
 		(forward-sexp 2)
 		(skip-chars-forward " \t\n")
 		(while (looking-at "\\sw\\|\\s_")
-		  (cl-incf nqual)
+                  (incf nqual)
 		  (forward-sexp)
 		  (skip-chars-forward " \t\n"))
 		(> nqual 0)))

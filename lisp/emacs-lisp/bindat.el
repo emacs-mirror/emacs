@@ -682,7 +682,7 @@ is the name of a variable that will hold the value we need to pack.")
 (cl-defmethod bindat--type (op (_ (eql 'byte)))
   (bindat--pcase op
     ('unpack `(bindat--unpack-u8))
-    (`(length . ,_) `(cl-incf bindat-idx 1))
+    (`(length . ,_) `(incf bindat-idx 1))
     (`(pack . ,args) `(bindat--pack-u8 . ,args))))
 
 (cl-defmethod bindat--type (op (_ (eql 'uint))  n &optional le)
@@ -690,7 +690,7 @@ is the name of a variable that will hold the value we need to pack.")
     (bindat--pcase op
       ('unpack
        `(if ,le (bindat--unpack-uintr ,n) (bindat--unpack-uint ,n)))
-      (`(length . ,_) `(cl-incf bindat-idx (/ ,n 8)))
+      (`(length . ,_) `(incf bindat-idx (/ ,n 8)))
       (`(pack . ,args)
        `(if ,le (bindat--pack-uintr ,n . ,args)
           (bindat--pack-uint ,n . ,args))))))
@@ -698,14 +698,14 @@ is the name of a variable that will hold the value we need to pack.")
 (cl-defmethod bindat--type (op (_ (eql 'str))   len)
   (bindat--pcase op
     ('unpack `(bindat--unpack-str ,len))
-    (`(length . ,_) `(cl-incf bindat-idx ,len))
+    (`(length . ,_) `(incf bindat-idx ,len))
     (`(pack . ,args) `(bindat--pack-str ,len . ,args))))
 
 (cl-defmethod bindat--type (op (_ (eql 'strz))  &optional len)
   (bindat--pcase op
     ('unpack `(bindat--unpack-strz ,len))
     (`(length ,val)
-     `(cl-incf bindat-idx ,(cond
+     `(incf bindat-idx ,(cond
                             ;; Optimizations if len is a literal number or nil.
                             ((null len) `(1+ (length ,val)))
                             ((numberp len) len)
@@ -716,11 +716,11 @@ is the name of a variable that will hold the value we need to pack.")
 (cl-defmethod bindat--type (op (_ (eql 'bits))  len)
   (bindat--pcase op
     ('unpack `(bindat--unpack-bits ,len))
-    (`(length . ,_) `(cl-incf bindat-idx ,len))
+    (`(length . ,_) `(incf bindat-idx ,len))
     (`(pack . ,args) `(bindat--pack-bits ,len . ,args))))
 
 (cl-defmethod bindat--type (_op (_ (eql 'fill))  len)
-  `(progn (cl-incf bindat-idx ,len) nil))
+  `(progn (incf bindat-idx ,len) nil))
 
 (cl-defmethod bindat--type (_op (_ (eql 'align)) len)
   `(progn (cl-callf bindat--align bindat-idx ,len) nil))
@@ -747,7 +747,7 @@ is the name of a variable that will hold the value we need to pack.")
             (let `#'(lambda (,val) (setq bindat-idx (+ bindat-idx ,len))) fun)
             (guard (not (macroexp--fgrep `((,val)) len))))
        ;; Optimize the case where the size of each element is constant.
-       `(cl-incf bindat-idx (* ,count ,len)))
+       `(incf bindat-idx (* ,count ,len)))
       ;; FIXME: It's tempting to use `(mapc (lambda (,val) ,exp) ,val)'
       ;; which would be more efficient when `val' is a list,
       ;; but that's only right if length of `val' is indeed `count'.
