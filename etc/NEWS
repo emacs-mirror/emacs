@@ -432,9 +432,9 @@ set to 'title'.
 When non-nil, buffer sizes are shown in human readable format.
 
 ---
-*** define-ibuffer-op prompts can now be functions.
-The prompts opstring and active-opstring can now either be strings or
-functions.  This is useful when your prompts can benefit from dynamic
+*** 'define-ibuffer-op' prompts can now be functions.
+The prompts 'opstring' and 'active-opstring' can now either be strings
+or functions.  This is useful when your prompts can benefit from dynamic
 content.
 
 ---
