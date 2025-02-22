@@ -1069,38 +1069,6 @@ A macro call, in which case the macro is expanded and @code{setf}
 is applied to the resulting form.
 @end itemize
 
-@c FIXME should this be in lispref?  It seems self-evident.
-@c Contrast with the cl-incf example later on.
-@c Here it really only serves as a contrast to wrong-order.
-The @code{setf} macro takes care to evaluate all subforms in
-the proper left-to-right order; for example,
-
-@example
-(setf (aref vec (cl-incf i)) i)
-@end example
-
-@noindent
-looks like it will evaluate @code{(cl-incf i)} exactly once, before the
-following access to @code{i}; the @code{setf} expander will insert
-temporary variables as necessary to ensure that it does in fact work
-this way no matter what setf-method is defined for @code{aref}.
-(In this case, @code{aset} would be used and no such steps would
-be necessary since @code{aset} takes its arguments in a convenient
-order.)
-
-However, if the @var{place} form is a macro which explicitly
-evaluates its arguments in an unusual order, this unusual order
-will be preserved.  Adapting an example from Steele, given
-
-@example
-(defmacro wrong-order (x y) (list 'aref y x))
-@end example
-
-@noindent
-the form @code{(setf (wrong-order @var{a} @var{b}) 17)} will
-evaluate @var{b} first, then @var{a}, just as in an actual call
-to @code{wrong-order}.
-
 @node Modify Macros
 @subsection Modify Macros
 
