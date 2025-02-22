@@ -15,6 +15,11 @@ example:
 
   $ make configure="--prefix=/opt/emacs CFLAGS='-O0 -g3'"
 
+(We recommend the above CFLAGS if you want to build Emacs that will
+be easy to debug.  In addition, including --enable-checking=all in
+the value of 'configure' above will turn on many run-time checks
+that will identify problematic code sooner rather than later.)
+
 If the above doesn't work, or if you have special build requirements,
 the following information may be helpful.
 
@@ -25,8 +30,9 @@ autoconf  - at least the version specified near the start of
   configure.ac (in the AC_PREREQ command).
 git - at least Git 1.7.1.  If your repository was created by an older
   Git version, you may need to reclone it.
-makeinfo  - not strictly necessary, but highly recommended, so that
-  you can build the manuals.  GNU Texinfo 4.13 or later should work.
+makeinfo  - required to build the manuals (whose Info files are not
+  in the repository).  Installing GNU Texinfo 4.13 or later should
+  work.
 
 To use the autotools, run the following shell command to generate the
 'configure' script and some related files, and to set up your git
@@ -96,6 +102,9 @@ problem is known about and is just waiting for someone to fix it.
 This is especially true for Lisp compilation errors, which are almost
 never platform-specific.
 
+If you need to debug Emacs, the instructions in 'etc/DEBUG' will help.
+You can display that file in Emacs with 'C-h C-d', or just read it with
+any program that can display text files, such as Less.
 
 
 Copyright (C) 2002-2025 Free Software Foundation, Inc.
