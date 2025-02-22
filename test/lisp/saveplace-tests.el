@@ -86,9 +86,17 @@
         (save-place-alist nil))
     (save-place-load-alist-from-file)
     (should (equal save-place-alist
-                   '(("/home/skangas/.emacs.d/cache/recentf" . 1306)
-                     ("/home/skangas/wip/emacs/"
-                      (dired-filename . "/home/skangas/wip/emacs/COPYING")))))))
+                   (list
+                    (cons
+                     ;; We use expand-file-name here because on
+                     ;; MS-Windows an absolute file name should have a
+                     ;; drive letter.
+                     (expand-file-name "/home/skangas/.emacs.d/cache/recentf")
+                     1306)
+                    (list
+                     (expand-file-name "/home/skangas/wip/emacs/")
+                      (cons 'dired-filename
+                            (expand-file-name "/home/skangas/wip/emacs/COPYING"))))))))
 
 (provide 'saveplace-tests)
 ;;; saveplace-tests.el ends here
