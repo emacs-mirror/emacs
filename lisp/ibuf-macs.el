@@ -256,11 +256,13 @@ buffer object.
                                 ())
                               (and after `(,after)) ; post-operation form.
                               `((ibuffer-redisplay t)
-                                (message (concat "Operation finished; " (if (functionp ,opstring-sym)
-                                                                            (funcall ,opstring-sym)
-                                                                          ,opstring-sym)
+                                (message (concat "Operation finished; "
+                                                 (if (functionp ,opstring-sym)
+                                                     (funcall ,opstring-sym)
+                                                   ,opstring-sym)
                                                  " %s %s")
-                                         count (ngettext "buffer" "buffers" count)))))
+                                         count (ngettext "buffer" "buffers"
+                                                         count)))))
                      (inner-body (if complex
                                      `(progn ,@body)
                                    `(progn
@@ -285,14 +287,16 @@ buffer object.
                                               (prog1 ,inner-body
                                                 (when (not (eq ibuffer-tmp-previous-buffer-modification
                                                                (buffer-modified-p buf)))
-                                                  (setq ibuffer-did-modification t))))
+                                                  (setq
+                                                   ibuffer-did-modification t))))
                                          inner-body)))))
                               ,finish)))
                 (if dangerous
-                    `(when (ibuffer-confirm-operation-on (if (functionp ,active-opstring-sym)
-                                                             (funcall ,active-opstring-sym)
-                                                           ,active-opstring-sym)
-                                                         marked-names)
+                    `(when (ibuffer-confirm-operation-on
+                            (if (functionp ,active-opstring-sym)
+                                (funcall ,active-opstring-sym)
+                              ,active-opstring-sym)
+                            marked-names)
                        ,body)
                   body))))
          :autoload-end))))
