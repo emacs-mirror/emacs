@@ -3071,10 +3071,9 @@ Save CHILD into the :last-deleted list, so it can be inserted later."
         (onext 0) (next 0)
 	child delete insert)
     (widget-specify-insert
-     (save-excursion
-       (and (widget--should-indent-p)
-            (widget-get widget :indent)
-            (insert-char ?\s (widget-get widget :indent))))
+     (and (widget--should-indent-p)
+          (widget-get widget :indent)
+          (insert-char ?\s (widget-get widget :indent)))
      ;; Parse % escapes in format.
      (while (string-match "%\\(.\\)" str next)
        (setq next (match-end 1))
