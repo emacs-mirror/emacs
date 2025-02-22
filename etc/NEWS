@@ -1306,6 +1306,11 @@ An old alternative name (without the first 'e') has been removed.
 +++
 ** 'read-directory-name' now accepts an optional PREDICATE argument.
 
++++
+** 'text-property-default-nonsticky' is now buffer-local.
+This variable now becomes buffer-local when set.  Use 'setq-default' in
+(the unlikely) case you want to change the global value.
+
 ---
 ** All the digit characters now have the 'digit' category.
 All the characters whose Unicode general-category is Nd now have the

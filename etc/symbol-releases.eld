@@ -44,6 +44,7 @@
  ("22.1" fun version<)
  ("22.1" fun version<=)
  ("22.1" fun read-number)
+ ("21.1" var text-property-default-nonsticky)
 
 ;; Since much of early Emacs source history is lost, these versions are
 ;; conservative estimates: the actual version of first appearance may very

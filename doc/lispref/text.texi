@@ -4135,10 +4135,10 @@ list, properties are rear-sticky @emph{unless} their names are in the
 list.
 
 @defvar text-property-default-nonsticky
-This variable holds an alist which defines the default rear-stickiness
-of various text properties.  Each element has the form
-@code{(@var{property} . @var{nonstickiness})}, and it defines the
-stickiness of a particular text property, @var{property}.
+This buffer-local variable holds an alist which defines the default
+rear-stickiness of various text properties in the buffer.  Each element
+has the form @code{(@var{property} . @var{nonstickiness})}, and it
+defines the stickiness of a particular text property, @var{property}.
 
 If @var{nonstickiness} is non-@code{nil}, this means that the property
 @var{property} is rear-nonsticky by default.  Since all properties are
