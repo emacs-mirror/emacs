@@ -290,6 +290,12 @@ specified by external means.
 This hook allows you to control which tab-bar tabs are auto-resized.
 
 ---
+*** 'mouse-face' properties are now supported on the 'tab-bar'.
+'tab-bar' tab "buttons" are now highlighted when the mouse pointer
+hovers over them.  You can customize the new face
+'tab-bar-tab-highlight'.
+
+---
 *** New abnormal hook 'tab-bar-post-undo-close-tab-functions'.
 This hook allows you to operate on a reopened tab.
 

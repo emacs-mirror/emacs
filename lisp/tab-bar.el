@@ -85,6 +85,16 @@
   :version "28.1"
   :group 'tab-bar-faces)
 
+(defface tab-bar-tab-highlight
+  '((((class color) (min-colors 88))
+     :box (:line-width 1 :style released-button)
+     :background "grey85"
+     :foreground "black")
+    (t :inverse-video nil))
+  "Tab bar face for highlighting."
+  :version "31.1"
+  :group 'tab-bar-faces)
+
 
 
 (defvar tab-bar-mode-map (make-sparse-keymap)
@@ -886,10 +896,15 @@ It uses the function `tab-bar-tab-face-function'."
    0 (length name) (funcall tab-bar-tab-face-function tab) t name)
   name)
 
+(defun tab-bar-tab-name-format-mouse-face (name _tab _i)
+  "Apply the `mouse-face' `tab-bar-tab-highlight' to the tab name."
+  (propertize name 'mouse-face 'tab-bar-tab-highlight))
+
 (defcustom tab-bar-tab-name-format-functions
   '(tab-bar-tab-name-format-hints
     tab-bar-tab-name-format-close-button
-    tab-bar-tab-name-format-face)
+    tab-bar-tab-name-format-face
+    tab-bar-tab-name-format-mouse-face)
   "Functions called to modify the tab name.
 Each function is called with three arguments: the name returned
 by the previously called modifier, the tab and its number.
@@ -899,6 +914,7 @@ It should return the formatted tab name to display in the tab bar."
                   (function-item tab-bar-tab-name-format-hints)
                   (function-item tab-bar-tab-name-format-close-button)
                   (function-item tab-bar-tab-name-format-face)
+                  (function-item tab-bar-tab-name-format-mouse-face)
                   (function :tag "Custom function")))
   :group 'tab-bar
   :version "30.1")
