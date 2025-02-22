@@ -1753,7 +1753,7 @@ quae ab illo inventore veritatis et quasi architecto beatae vitae
 dicta sunt, explicabo.  "))
 
       (while (< iteration-count iteration-target)
-        (cl-incf iteration-count)
+        (incf iteration-count)
 
         ;; Toggle GROWING if we've reached a size boundary.  The idea
         ;; is to initially steadily increase the overlay count, then
@@ -1780,7 +1780,7 @@ dicta sunt, explicabo.  "))
                    (ov (make-overlay begin end nil
                                      (= 0 (random 2)) (= 0 (random 2)))))
               (aset overlays overlay-count ov)
-              (cl-incf overlay-count)))
+              (incf overlay-count)))
            ((and (not create-overlay) (> overlay-count 0))
 
             ;; Possibly delete a random overlay.

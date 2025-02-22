@@ -329,7 +329,7 @@ evaluate to \"symbol\", \"symbol-1\", \"symbol-2\", etc."
            (progn
              (push (cons ,g-name 0) ,names-and-numbers)
              ,g-name)
-         (cl-incf (cdr ,g-duplicate))
+         (incf (cdr ,g-duplicate))
          (format "%s-%s" ,g-name (cdr ,g-duplicate))))))
 
 (defun edebug-tests-setup-code-file (tmpfile)

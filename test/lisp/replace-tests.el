@@ -541,7 +541,7 @@ Return the last evalled form in BODY."
          ;; bind `read-string' as well.
          (cl-letf (((symbol-function 'read-event)
                     (lambda (&rest _args)
-                      (cl-incf ,count)
+                      (incf ,count)
                       (pcase ,count ; Build the clauses from CHAR-NUMS
                         ,@(append
                            (delq nil

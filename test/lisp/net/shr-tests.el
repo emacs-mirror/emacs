@@ -154,7 +154,7 @@ settings, then once more for each (OPTION . VALUE) pair.")
                      (put-image-calls 0)
                      (shr-put-image-function
                       (lambda (&rest args)
-                        (cl-incf put-image-calls)
+                        (incf put-image-calls)
                         (apply #'shr-put-image args)))
                      (shr-width 80)
                      (shr-use-fonts nil)

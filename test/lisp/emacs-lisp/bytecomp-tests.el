@@ -1812,7 +1812,7 @@ compiled correctly."
   (cl-letf ((lexical-binding t)
             ((symbol-function 'counter) nil))
     (let ((x 0))
-      (defun counter () (cl-incf x))
+      (defun counter () (incf x))
       (should (equal (counter) 1))
       (should (equal (counter) 2))
       ;; byte compiling should not cause counter to always return the

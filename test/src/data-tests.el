@@ -185,7 +185,7 @@ this is exactly representable and is greater than
       (dolist (n (nreverse nibbles))
         (dotimes (_ 4)
           (aset bv i (oddp n))
-          (cl-incf i)
+          (incf i)
           (setf n (ash n -1)))))
     bv))
 

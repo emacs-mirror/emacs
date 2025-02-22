@@ -352,7 +352,7 @@ works as expected if a file name handler is found."
                (should (equal args '(make-process :name "name"
                                                   :command ("/some/binary")
                                                   :file-handler t)))
-               (cl-incf file-handler-calls)
+               (incf file-handler-calls)
                'fake-process))
       (let ((file-name-handler-alist (list (cons (rx bos "test-handler:")
                                                  #'file-handler)))

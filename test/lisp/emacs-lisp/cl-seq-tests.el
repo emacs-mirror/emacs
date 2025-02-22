@@ -109,13 +109,13 @@ Additionally register an `ert-info' to help identify test failures."
                              (should (eql x (nth key-index list)))
                              (prog1
                                  (list key-index x)
-                               (cl-incf key-index)))
+                               (incf key-index)))
                       :test
                       (lambda (a b)
                         (should (eql a 'foo))
                         (should (equal b (list test-index
                                                (nth test-index list))))
-                        (cl-incf test-index)
+                        (incf test-index)
                         (member test-index '(2 3))))))
       (should (equal key-index 4))
       (should (equal test-index 4))
@@ -160,7 +160,7 @@ Additionally register an `ert-info' to help identify test failures."
         (i 0))
     (let ((result (cl-remove-if-not (lambda (x)
                                       (should (eql x (nth i list)))
-                                      (cl-incf i)
+                                      (incf i)
                                       (member i '(2 3)))
                                     list)))
       (should (equal i 4))

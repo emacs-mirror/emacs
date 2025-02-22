@@ -73,8 +73,8 @@
                              (should (eq before3
                                          (if (symbolp before)
                                              before (length before)))))))
-                    (cl-incf (aref sync-counts (1- n)))
-                    (cl-incf (aref char-counts (1- n)) (- end beg))
+                    (incf (aref sync-counts (1- n)))
+                    (incf (aref char-counts (1- n)) (- end beg))
                     (let ((after (buffer-substring beg end)))
                       (track-changes-tests--message
                        "Sync:\n    %S\n=>  %S\nat %d .. %d"

@@ -345,7 +345,7 @@
          (counter 0)
          (my-counter (lambda ()
                        (if (< counter 500)
-                           (cl-incf counter)
+                           (incf counter)
                          (setq counter 0)
                          (garbage-collect))))
          (rand 1)
