@@ -668,8 +668,8 @@ foo
      @result{} 4
 @end example
 
-If you want to increment the variable, you must use @code{setq},
-like this:
+If you want to increment the variable, you must use @code{setq} (or
+@code{incf}), like this:
 
 @example
 (setq foo (1+ foo))
@@ -680,6 +680,21 @@ like this:
 @defun 1- number-or-marker
 This function returns @var{number-or-marker} minus 1.
 @end defun
+
+@defmac incf place &optional delta
+This macro increments the number stored in @var{place} by one, or
+by @var{delta} if specified.  The incremented value is returned.
+
+@var{place} can be a symbol or a generalized variable, @xref{Generalized
+Variables}.  For example, @code{(incf i)} is equivalent to
+@code{(setq i (1+ i))}, and @code{(incf (car x) 2)} is equivalent to
+@code{(setcar x (+ (car x) 2))}.
+@end defmac
+
+@defmac decf place &optional delta
+This macro decrements the number stored in @var{place} by one, or
+by @var{delta} if specified.  The decremented value is returned.
+@end defmac
 
 @defun + &rest numbers-or-markers
 This function adds its arguments together.  When given no arguments,

@@ -1375,9 +1375,17 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (mod 10 6)
    :eval (mod 10.5 6))
   (1+
-   :eval (1+ 2))
+   :eval (1+ 2)
+   :eval (let ((x 2)) (1+ x) x))
   (1-
-   :eval (1- 4))
+   :eval (1- 4)
+   :eval (let ((x 4)) (1- x) x))
+  (incf
+   :eval (let ((x 2)) (incf x) x)
+   :eval (let ((x 2)) (incf x 2) x))
+  (decf
+   :eval (let ((x 4)) (decf x) x)
+   :eval (let ((x 4)) (decf x 2)) x)
   "Predicates"
   (=
    :args (number &rest numbers)

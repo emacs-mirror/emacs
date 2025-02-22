@@ -105,29 +105,27 @@ a future Emacs interpreter will be able to use it.")
 ;; can safely be used in init files.
 
 ;;;###autoload
-(defmacro cl-incf (place &optional x)
+(defalias 'cl-incf #'incf
   "Increment PLACE by X (1 by default).
 PLACE may be a symbol, or any generalized variable allowed by `setf'.
 The return value is the incremented value of PLACE.
 
 If X is specified, it should be an expression that should
-evaluate to a number."
-  (declare (debug (place &optional form)))
-  (if (symbolp place)
-      (list 'setq place (if x (list '+ place x) (list '1+ place)))
-    (list 'cl-callf '+ place (or x 1))))
+evaluate to a number.
 
-(defmacro cl-decf (place &optional x)
+This macro is considered deprecated in favor of the built-in macro
+`incf' that was added in Emacs 31.1.")
+
+(defalias 'cl-decf #'decf
   "Decrement PLACE by X (1 by default).
 PLACE may be a symbol, or any generalized variable allowed by `setf'.
 The return value is the decremented value of PLACE.
 
 If X is specified, it should be an expression that should
-evaluate to a number."
-  (declare (debug cl-incf))
-  (if (symbolp place)
-      (list 'setq place (if x (list '- place x) (list '1- place)))
-    (list 'cl-callf '- place (or x 1))))
+evaluate to a number.
+
+This macro is considered deprecated in favor of the built-in macro
+`decf' that was added in Emacs 31.1.")
 
 (defmacro cl-pushnew (x place &rest keys)
   "Add X to the list stored in PLACE unless X is already in the list.

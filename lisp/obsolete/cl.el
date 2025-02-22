@@ -282,8 +282,6 @@
                values-list
                values
                pushnew
-               decf
-               incf
                ))
   (let ((new (if (consp fun) (prog1 (cdr fun) (setq fun (car fun)))
                (intern (format "cl-%s" fun)))))

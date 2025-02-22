@@ -491,12 +491,18 @@ Emacs 25.1), and gnudoit (obsolete since Emacs 25.1).
 ** CL-Lib
 
 +++
-*** Some cl-lib functions are now built-in.
-The functions 'cl-plusp', 'cl-minusp', 'cl-oddp', and 'cl-evenp', have
-been added to Emacs Lisp, and are thus now aliases for the built-in
-functions 'plusp', 'minusp', 'oddp' and 'evenp'.  The old names are
-considered deprecated, and will be marked as obsolete in some future
-release.
+*** Some cl-lib functions and macros are now built-in.
+These functions or macros have been added to Emacs Lisp, and the old
+names are now aliases for the built-in equivalents:
+ - 'cl-incf'   renamed to 'incf'
+ - 'cl-decf'   renamed to 'decf'
+ - 'cl-oddp'   renamed to 'oddp'
+ - 'cl-evenp'  renamed to 'evenp'
+ - 'cl-plusp'  renamed to 'plusp'
+ - 'cl-minusp' renamed to 'minusp'
+
+The old names are considered deprecated, and will be marked as obsolete
+in some future release.
 
 +++
 *** 'cl-labels' now also accepts '(FUNC EXP)' bindings, like 'cl-flet'.
@@ -1355,6 +1361,11 @@ in those places that don't explicitly set 'lexical-binding' you can
 change it globally with:
 
     (set-default-toplevel-value 'lexical-binding t)
+
++++
+*** New functions 'incf' and 'decf'.
+They increment or decrement the value stored in a variable (a symbol),
+or in a generalized variable.
 
 +++
 ** New functions 'plusp' and 'minusp'.

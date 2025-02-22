@@ -168,9 +168,6 @@ and information about the package.  This file is relatively compact.
 
 @item cl-extra.el
 This file contains the larger, more complex or unusual functions.
-It is kept separate so that packages which only want to use Common
-Lisp fundamentals like the @code{cl-incf} function won't need to pay
-the overhead of loading the more advanced functions.
 
 @item cl-seq.el
 This file contains most of the advanced functions for operating
@@ -197,8 +194,8 @@ this package prior to Emacs 24.3.  Nowadays, it is replaced by
 but use different function names (in fact, @file{cl.el} mainly just
 defines aliases to the @file{cl-lib.el} definitions).  Where
 @file{cl-lib.el} defines a function called, for example,
-@code{cl-incf}, @file{cl.el} uses the same name but without the
-@samp{cl-} prefix, e.g., @code{incf} in this example.  There are a few
+@code{cl-first}, @file{cl.el} uses the same name but without the
+@samp{cl-} prefix, e.g., @code{first} in this example.  There are a few
 exceptions to this.  First, functions such as @code{cl-defun} where
 the unprefixed version was already used for a standard Emacs Lisp
 function.  In such cases, the @file{cl.el} version adds a @samp{*}
@@ -1028,7 +1025,7 @@ generalized variables.
 
 @menu
 * Setf Extensions::    Additional @code{setf} places.
-* Modify Macros::      @code{cl-incf}, @code{cl-rotatef}, @code{cl-letf}, @code{cl-callf}, etc.
+* Modify Macros::      @code{cl-rotatef}, @code{cl-letf}, @code{cl-callf}, etc.
 @end menu
 
 @node Setf Extensions
@@ -1083,52 +1080,6 @@ When several @var{place}s and @var{form}s are involved, the
 assignments take place in parallel rather than sequentially.
 Specifically, all subforms are evaluated from left to right, then
 all the assignments are done (in an undefined order).
-@end defmac
-
-@defmac cl-incf place &optional x
-This macro increments the number stored in @var{place} by one, or
-by @var{x} if specified.  The incremented value is returned.  For
-example, @code{(cl-incf i)} is equivalent to @code{(setq i (1+ i))}, and
-@code{(cl-incf (car x) 2)} is equivalent to @code{(setcar x (+ (car x) 2))}.
-
-As with @code{setf}, care is taken to preserve the ``apparent'' order
-of evaluation.  For example,
-
-@example
-(cl-incf (aref vec (cl-incf i)))
-@end example
-
-@noindent
-appears to increment @code{i} once, then increment the element of
-@code{vec} addressed by @code{i}; this is indeed exactly what it
-does, which means the above form is @emph{not} equivalent to the
-``obvious'' expansion,
-
-@example
-(setf (aref vec (cl-incf i))
-      (1+ (aref vec (cl-incf i))))   ; wrong!
-@end example
-
-@noindent
-but rather to something more like
-
-@example
-(let ((temp (cl-incf i)))
-  (setf (aref vec temp) (1+ (aref vec temp))))
-@end example
-
-@noindent
-Again, all of this is taken care of automatically by @code{cl-incf} and
-the other generalized-variable macros.
-
-As a more Emacs-specific example of @code{cl-incf}, the expression
-@code{(cl-incf (point) @var{n})} is essentially equivalent to
-@code{(forward-char @var{n})}.
-@end defmac
-
-@defmac cl-decf place &optional x
-This macro decrements the number stored in @var{place} by one, or
-by @var{x} if specified.
 @end defmac
 
 @defmac cl-pushnew x place @t{&key :test :test-not :key}
@@ -1243,8 +1194,8 @@ It does the bindings in sequential rather than parallel order.
 This is the ``generic'' modify macro.  It calls @var{function},
 which should be an unquoted function name, macro name, or lambda.
 It passes @var{place} and @var{args} as arguments, and assigns the
-result back to @var{place}.  For example, @code{(cl-incf @var{place}
-@var{n})} is the same as @code{(cl-callf + @var{place} @var{n})}.
+result back to @var{place}.  For example, @code{(incf @var{place}
+@var{n})} could be implemented as @code{(cl-callf + @var{place} @var{n})}.
 Some more examples:
 
 @example
@@ -1264,7 +1215,7 @@ equivalent to @code{(cl-callf2 cons @var{x} @var{place})}.
 @end defmac
 
 The @code{cl-callf} and @code{cl-callf2} macros serve as building
-blocks for other macros like @code{cl-incf}, and @code{cl-pushnew}.
+blocks for other macros like @code{cl-pushnew}.
 The @code{cl-letf} and @code{cl-letf*} macros are used in the processing
 of symbol macros; @pxref{Macro Bindings}.
 
@@ -1401,7 +1352,7 @@ replaced by @var{expansion}.
 @example
 (setq bar '(5 . 9))
 (cl-symbol-macrolet ((foo (car bar)))
-  (cl-incf foo))
+  (incf foo))
 bar
      @result{} (6 . 9)
 @end example
@@ -1426,7 +1377,7 @@ expansion of another macro:
                     body))))
 
 (setq mylist '(1 2 3 4))
-(my-dolist (x mylist) (cl-incf x))
+(my-dolist (x mylist) (incf x))
 mylist
      @result{} (2 3 4 5)
 @end example
@@ -1440,14 +1391,14 @@ shown here expands to
 @example
 (cl-loop for G1234 on mylist do
       (cl-symbol-macrolet ((x (car G1234)))
-        (cl-incf x)))
+        (incf x)))
 @end example
 
 @noindent
 which in turn expands to
 
 @example
-(cl-loop for G1234 on mylist do (cl-incf (car G1234)))
+(cl-loop for G1234 on mylist do (incf (car G1234)))
 @end example
 
 @xref{Loop Facility}, for a description of the @code{cl-loop} macro.
@@ -1999,7 +1950,7 @@ a @code{setf}-able ``reference'' onto the elements of the list
 rather than just a temporary variable.  For example,
 
 @example
-(cl-loop for x in-ref my-list do (cl-incf x))
+(cl-loop for x in-ref my-list do (incf x))
 @end example
 
 @noindent
@@ -2940,7 +2891,7 @@ The @code{get} and @code{cl-get} functions are also @code{setf}-able.
 The fact that @code{default} is ignored can sometimes be useful:
 
 @example
-(cl-incf (cl-get 'foo 'usage-count 0))
+(incf (cl-get 'foo 'usage-count 0))
 @end example
 
 Here, symbol @code{foo}'s @code{usage-count} property is incremented
@@ -4051,7 +4002,7 @@ calling @code{(person-first-name @var{p})}, @code{(person-age
 slots by using @code{setf} on any of these place forms, for example:
 
 @example
-(cl-incf (person-age birthday-boy))
+(incf (person-age birthday-boy))
 @end example
 
 You can create a new @code{person} by calling @code{make-person},
@@ -4459,29 +4410,14 @@ user to modify @var{place}.
 Many of the advanced features of this package, such as @code{cl-defun},
 @code{cl-loop}, etc., are implemented as Lisp macros.  In
 byte-compiled code, these complex notations will be expanded into
-equivalent Lisp code which is simple and efficient.  For example,
-the form
-
-@example
-(cl-incf i n)
-@end example
-
-@noindent
-is expanded at compile-time to the Lisp form
-
-@example
-(setq i (+ i n))
-@end example
-
-@noindent
-which is the most efficient way of doing this operation
-in Lisp.  Thus, there is no performance penalty for using the more
-readable @code{cl-incf} form in your compiled code.
+equivalent Lisp code which is simple and efficient.  Thus, there is no
+performance penalty for using the more readable form in your compiled
+code.
 
 @emph{Interpreted} code, on the other hand, must expand these macros
 every time they are executed.  For this reason it is strongly
 recommended that code making heavy use of macros be compiled.
-A loop using @code{cl-incf} a hundred times will execute considerably
+A loop using @code{cl-first} a hundred times will execute considerably
 faster if compiled, and will also garbage-collect less because the
 macro expansion will not have to be generated, used, and thrown away a
 hundred times.
@@ -4907,7 +4843,7 @@ call to @code{make-adder} itself.
 @example
 (defun make-counter ()
   (lexical-let ((n 0))
-    (cl-function (lambda (&optional (m 1)) (cl-incf n m)))))
+    (cl-function (lambda (&optional (m 1)) (incf n m)))))
 (setq count-1 (make-counter))
 (funcall count-1 3)
      @result{} 3
@@ -5052,7 +4988,7 @@ In Emacs, these are obsolete, replaced by various features of
 
 @defmac define-modify-macro name arglist function [doc-string]
 This macro defines a ``read-modify-write'' macro similar to
-@code{cl-incf} and @code{cl-decf}.  You can replace this macro
+@code{incf} and @code{decf}.  You can replace this macro
 with @code{gv-letplace}.
 
 The macro @var{name} is defined to take a @var{place} argument
@@ -5180,8 +5116,8 @@ For example, the simple form of @code{defsetf} is shorthand for
 
 The Lisp form that is returned can access the arguments from
 @var{arglist} and @var{store-var} in an unrestricted fashion;
-macros like @code{cl-incf} that invoke this
-setf-method will insert temporary variables as needed to make
+macros that invoke this
+setf-method should insert temporary variables as needed to make
 sure the apparent order of evaluation is preserved.
 
 Another standard example:
@@ -5245,11 +5181,7 @@ temporary variables.  In the setf-methods generated by
 @code{defsetf}, the second return value is simply the list of
 arguments in the place form, and the first return value is a
 list of a corresponding number of temporary variables generated
-@c FIXME I don't think this is true anymore.
-by @code{cl-gensym}.  Macros like @code{cl-incf} that
-use this setf-method will optimize away most temporaries that
-turn out to be unnecessary, so there is little reason for the
-setf-method itself to optimize.
+by @code{cl-gensym}.
 @end defmac
 
 @node GNU Free Documentation License

@@ -315,17 +315,29 @@ The return value is the last VAL in the list.
 ;;       `(if (member ,v ,getter) nil
 ;;          ,(funcall setter `(cons ,v ,getter))))))
 
-;; (defmacro gv-inc! (place &optional val)
-;;   "Increment PLACE by VAL (default to 1)."
-;;   (declare (debug (gv-place &optional form)))
-;;   (gv-letplace (getter setter) place
-;;     (funcall setter `(+ ,getter ,(or val 1)))))
+;;;###autoload
+(defmacro incf (place &optional delta)
+  "Increment PLACE by DELTA (default to 1).
 
-;; (defmacro gv-dec! (place &optional val)
-;;   "Decrement PLACE by VAL (default to 1)."
-;;   (declare (debug (gv-place &optional form)))
-;;   (gv-letplace (getter setter) place
-;;     (funcall setter `(- ,getter ,(or val 1)))))
+The DELTA is first added to PLACE, and then stored in PLACE.
+Return the incremented value of PLACE.
+
+See also `decf'."
+  (declare (debug (gv-place &optional form)))
+  (gv-letplace (getter setter) place
+    (funcall setter `(+ ,getter ,(or delta 1)))))
+
+;;;###autoload
+(defmacro decf (place &optional delta)
+  "Decrement PLACE by DELTA (default to 1).
+
+The DELTA is first subtracted from PLACE, and then stored in PLACE.
+Return the decremented value of PLACE.
+
+See also `incf'."
+  (declare (debug (gv-place &optional form)))
+  (gv-letplace (getter setter) place
+    (funcall setter `(- ,getter ,(or delta 1)))))
 
 ;; For Edebug, the idea is to let Edebug instrument gv-places just like it does
 ;; for normal expressions, and then give it a gv-expander to DTRT.

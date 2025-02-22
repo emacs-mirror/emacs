@@ -3130,7 +3130,7 @@ If the multisession variable is synchronized, setting it may update
 the value first.  For instance:
 
 @lisp
-(cl-incf (multisession-value foo-bar))
+(incf (multisession-value foo-bar))
 @end lisp
 
 This first checks whether the value has changed in a different
