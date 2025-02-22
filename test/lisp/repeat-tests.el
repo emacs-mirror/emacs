@@ -269,7 +269,7 @@
    ("C-M-a" . repeat-tests-bind-call-a)
    ("C-M-o" . repeat-tests-bind-call-o)
    :repeat-map repeat-tests-bind-keys-repeat-map
-   :continue
+   :continue-only
    ("c"     . repeat-tests-bind-call-c)
    ;; :continue
    ("C-M-o" . repeat-tests-bind-call-o)
@@ -287,9 +287,9 @@
        "C-M-a c C-M-o c z"
        '((1 a) (1 c) (1 o) (1 c)) "z")
       ;; 'C-M-o' should not activate
-      ;; (repeat-tests--check
-      ;;  "C-M-o c z"
-      ;;  '((1 o)) "cz")
+      (repeat-tests--check
+       "C-M-o c z"
+       '((1 o)) "cz")
       ;; 'q' should exit
       (repeat-tests--check
        "C-M-a c q c"

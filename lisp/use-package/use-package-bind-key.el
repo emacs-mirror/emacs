@@ -88,14 +88,13 @@ deferred until the prefix key sequence is pressed."
          ;;   :filter SEXP
          ;;   :menu-name STRING
          ;;   :package SYMBOL
-	 ;;   :continue and :exit are used within :repeat-map
+	 ;;   :continue(-only) and :exit are used within :repeat-map
          ((or (and (eq x :map) (symbolp (cadr arg)))
               (and (eq x :prefix) (stringp (cadr arg)))
               (and (eq x :prefix-map) (symbolp (cadr arg)))
               (and (eq x :prefix-docstring) (stringp (cadr arg)))
-	      (and (eq x :repeat-map) (symbolp (cadr arg)))
-	      (eq x :continue)
-	      (eq x :exit)
+              (and (eq x :repeat-map) (symbolp (cadr arg)))
+              (memq x '(:continue :continue-only :exit))
               (and (eq x :repeat-docstring) (stringp (cadr arg)))
               (eq x :filter)
               (and (eq x :menu-name) (stringp (cadr arg)))

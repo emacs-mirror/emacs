@@ -290,6 +290,9 @@ Accepts keyword arguments:
                          same behavior as if no special keyword had
                          been used (that is, the command is bound, and
                          it's `repeat-map' property set)
+:continue-only BINDINGS - Within the scope of `:repeat-map', will make
+                         the command continue but not enter the repeat
+                         map, via the `repeat-continue' property
 :filter FORM           - optional form to determine when bindings apply
 
 The rest of the arguments are conses of keybinding string and a
@@ -325,11 +328,8 @@ function symbol (unquoted)."
                                          override-global-map))))
                    (setq repeat-map (cadr args))
                    (setq map repeat-map))
-                  ((eq :continue (car args))
-                   (setq repeat-type :continue
-                         arg-change-func 'cdr))
-                  ((eq :exit (car args))
-                   (setq repeat-type :exit
+                  ((memq (car args) '(:continue :continue-only :exit))
+                   (setq repeat-type (car args)
                          arg-change-func 'cdr))
                   ((eq :prefix (car args))
                    (setq prefix (cadr args)))
@@ -348,7 +348,7 @@ function symbol (unquoted)."
 
     (when repeat-type
       (unless repeat-map
-        (error ":continue and :exit require specifying :repeat-map")))
+        (error ":continue(-only) and :exit require specifying :repeat-map")))
 
     (when (and menu-name (not prefix))
       (error "If :menu-name is supplied, :prefix must be too"))
@@ -369,14 +369,14 @@ function symbol (unquoted)."
 
       (cl-flet
           ((wrap (map bindings)
-                 (if (and map pkg (not (memq map '(global-map
-                                                   override-global-map))))
-                     `((if (boundp ',map)
-                           ,(macroexp-progn bindings)
-                         (eval-after-load
-                             ,(if (symbolp pkg) `',pkg pkg)
-                           ',(macroexp-progn bindings))))
-                   bindings)))
+             (if (and map pkg (not (memq map '(global-map
+                                               override-global-map))))
+                 `((if (boundp ',map)
+                       ,(macroexp-progn bindings)
+                     (eval-after-load
+                         ,(if (symbolp pkg) `',pkg pkg)
+                       ',(macroexp-progn bindings))))
+               bindings)))
 
         (append
          (when prefix-map
@@ -401,9 +401,18 @@ function symbol (unquoted)."
                           ;; Only needed in this branch, since when
                           ;; repeat-map is non-nil, map is always
                           ;; non-nil
-                          `(,@(when (and repeat-map (not (eq repeat-type :exit)))
-                                `((put ,fun 'repeat-map ',repeat-map)))
-                            (bind-key ,(car form) ,fun ,map ,filter))
+                          (if (eq repeat-type :continue-only)
+                              `((unless (memq ',repeat-map
+                                              (or (get ,fun 'repeat-continue)
+                                                  '()))
+                                  (put ,fun 'repeat-continue
+                                       (append (or (get ,fun 'repeat-continue)
+                                                   '())
+                                               (list ',repeat-map))))
+                                (bind-key ,(car form) ,fun ,map ,filter))
+                            `(,@(when (and repeat-map (not (eq repeat-type :exit)))
+                                  `((put ,fun 'repeat-map ',repeat-map)))
+                              (bind-key ,(car form) ,fun ,map ,filter)))
                         `((bind-key ,(car form) ,fun nil ,filter))))))
                 first))
          (when next

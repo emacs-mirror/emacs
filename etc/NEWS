@@ -1653,8 +1653,9 @@ will be calculated based on the window width.
 A command with this symbol property whose value is a list of repeat
 maps will not activate the repeat map in 'repeat-mode'.  It will only
 continue the already activated repeating sequence.  Also 'defvar-keymap'
-supports a new keyword ':continue' with a list of commands that
-only continue the active repeating sequence.
+supports a new keyword ':continue' with a list of commands that only
+continue the active repeating sequence, and the 'use-package' and
+'bind-keys' macros supports a similar keyword ':continue-only'.
 
 ** New function 'completion-table-with-metadata'.
 It offers a more concise way to create a completion table with metadata.
