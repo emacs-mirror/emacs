@@ -4107,8 +4107,9 @@ This function expects to be in the right *tramp* buffer."
      vec (format "%s type -P %s 2>%s"
 		 (if dirlist (concat "PATH=" (string-join dirlist ":")) "")
 		 progname (tramp-get-remote-null-device vec)))
-    (unless (zerop (buffer-size))
-      (string-trim (buffer-string)))))
+    (goto-char (point-min))
+    (when (search-forward-regexp "/" nil 'noerror)
+      (string-trim (buffer-substring (match-beginning 0) (point-max))))))
 
 ;; On hydra.nixos.org, the $PATH environment variable is too long to
 ;; send it.  This is likely not due to PATH_MAX, but PIPE_BUF.  We
