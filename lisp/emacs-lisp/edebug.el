@@ -4255,7 +4255,7 @@ code location is known."
       (let ((new-frame (copy-edebug--frame frame))
             (fun (edebug--frame-fun frame))
             (args (edebug--frame-args frame)))
-        (cl-decf index) ;; FIXME: Not used?
+        (decf index) ;; FIXME: Not used?
         (pcase fun
           ('edebug-enter
 	   (setq skip-next-lambda t

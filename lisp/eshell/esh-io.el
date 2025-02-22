@@ -409,7 +409,7 @@ be a non-nil value on successful termination."
     (cl-assert (> (cdar handle) 0)
                "Attempted to close a handle with 0 references")
     (when (and (> (cdar handle) 0)
-               (= (cl-decf (cdar handle)) 0))
+               (= (decf (cdar handle)) 0))
       (dolist (target (caar handle))
         (eshell-close-target target status))
       (setcar (car handle) nil))))
@@ -428,7 +428,7 @@ current list of targets."
                        (aset handles index (list (cons nil 1) nil))))
            (defaultp (cadr handle)))
       (when defaultp
-        (cl-decf (cdar handle))
+        (decf (cdar handle))
         (setcar handle (cons nil 1)))
       (let ((current (caar handle))
             (where (eshell-get-target target mode)))

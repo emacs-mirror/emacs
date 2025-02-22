@@ -2772,7 +2772,7 @@ The candidate will still be chosen by `choose-completion' unless
                                    (setq end (1+ end)))
                                  ;; Tried to use a marker to track buffer changes
                                  ;; but that clashed with another existing marker.
-                                 (cl-decf (nth 1 base-position)
+                                 (decf (nth 1 base-position)
                                           (- end start (length choice)))
                                  ;; FIXME: Use `md' to do quoting&terminator here.
                                  (completion--replace start (min end (point-max)) choice)

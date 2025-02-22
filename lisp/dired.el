@@ -2947,7 +2947,7 @@ is controlled by `dired-movement-style'."
       (unless (dired-between-files)
         ;; Has moved to a non-empty line.  This movement does
         ;; make sense.
-        (cl-decf arg moving-down))
+        (decf arg moving-down))
       (setq old-position (point)))))
 
 (defun dired-previous-line (arg)

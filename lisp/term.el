@@ -3116,8 +3116,8 @@ See `term-prompt-regexp'."
                               (substring decoded-substring (- partial)))
                         (setq decoded-substring
                               (substring decoded-substring 0 (- partial)))
-                        (cl-decf str-length partial)
-                        (cl-decf funny partial))))
+                        (decf str-length partial)
+                        (decf funny partial))))
 
                   ;; Insert a string, check how many columns
                   ;; we moved, then delete that many columns

@@ -1790,7 +1790,7 @@ dicta sunt, explicabo.  "))
               (when (< index last-index)
                 (aset overlays index (aref overlays last-index)))
               (aset overlays last-index nil)
-              (cl-decf overlay-count)
+              (decf overlay-count)
               (delete-overlay ov)))))
 
         ;; Modify the buffer on occasion, which exercises the

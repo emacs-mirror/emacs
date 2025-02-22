@@ -336,7 +336,7 @@ FORM is of the form (ARGS . BODY)."
                            (format "%S" (cons 'fn (cl--make-usage-args
                                                    orig-args))))))))
                 (when (memq '&optional simple-args)
-                  (cl-decf slen))
+                  (decf slen))
                 (setq header
                       (cons
                        (if (eq :documentation (car-safe (car header)))

@@ -453,7 +453,7 @@ Return them as multiple value."
    do
    (when (= nest 1)
      (push `(,(comp-range-1+ low) . ,i) res))
-   (cl-decf nest)
+   (decf nest)
    finally return (reverse res)))
 
 (defun comp--range-intersection (&rest ranges)
@@ -485,7 +485,7 @@ Return them as multiple value."
    (when (= nest n-ranges)
      (push `(,low . ,i)
            res))
-   (cl-decf nest)
+   (decf nest)
    finally return (reverse res)))
 
 (defun comp--range-negation (range)

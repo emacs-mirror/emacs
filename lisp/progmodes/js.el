@@ -1031,7 +1031,7 @@ Return the pitem of the function we went to the beginning of."
         (setq found nil)))
 
     (while (> arg 0)
-      (cl-decf arg)
+      (decf arg)
       ;; If we're just past the end of a function, the user probably wants
       ;; to go to the beginning of *that* function
       (when (eq (char-before) ?})
@@ -1367,7 +1367,7 @@ LIMIT defaults to point."
       (js-end-of-defun)))
 
   (while (> arg 0)
-    (cl-decf arg)
+    (decf arg)
     ;; look for function backward. if we're inside it, go to that
     ;; function's end. otherwise, search for the next function's end and
     ;; go there
@@ -4036,7 +4036,7 @@ See `treesit-thing-settings' for more information.")
              (ne (treesit-node-end node))
              (syntax (pcase-exhaustive name
                        ('regexp
-                        (cl-decf ns)
+                        (decf ns)
                         (cl-incf ne)
                         (string-to-syntax "\"/"))
                        ('jsx

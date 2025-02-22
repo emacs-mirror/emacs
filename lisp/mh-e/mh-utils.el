@@ -578,7 +578,7 @@ This function is a testable helper of `mh-sub-folders-actual'."
                                       (line-beginning-position) t)))
         (when (integerp has-pos)
           (while (equal (char-after has-pos) ? )
-            (cl-decf has-pos))
+            (decf has-pos))
           (cl-incf has-pos)
           (while (equal (char-after start-pos) ? )
             (cl-incf start-pos))
@@ -603,7 +603,7 @@ This function is a testable helper of `mh-sub-folders-actual'."
       (let ((folder-name-len (length (format "%s/" (substring folder 1)))))
         (when (equal "+/" folder)
           ;; folder "+/" includes a trailing slash
-          (cl-decf folder-name-len))
+          (decf folder-name-len))
         (setq results (mapcar (lambda (f)
                                 (cons (substring (car f) folder-name-len)
                                       (cdr f)))

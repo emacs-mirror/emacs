@@ -1029,7 +1029,7 @@ article came from is also searched."
             (let ((i 5))
               (while (and (> i 2)
                           (not (nth i group-info)))
-                (when (nthcdr (cl-decf i) group-info)
+                (when (nthcdr (decf i) group-info)
                   (setcdr (nthcdr i group-info) nil))))
 
             ;; update read and unread

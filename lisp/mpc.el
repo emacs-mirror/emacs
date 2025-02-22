@@ -869,7 +869,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                          (list "move" song-pos dest-pos))
                   (if (< song-pos dest-pos)
                       ;; This move has shifted dest-pos by 1.
-                      (cl-decf dest-pos))
+                      (decf dest-pos))
                   (cl-incf i)))
               ;; Sort them from last to first, so the renumbering
               ;; caused by the earlier deletions affect
@@ -2357,7 +2357,7 @@ This is used so that they can be compared with `eq', which is needed for
                   (if (null new-context)
                       ;; There isn't more context: choose one arbitrarily
                       ;; and keep looking for a better match elsewhere.
-                      (cl-decf context-size)
+                      (decf context-size)
                     (setq context new-context)
                     (setq score (mpc-songpointer-score context pos))
                     (save-excursion

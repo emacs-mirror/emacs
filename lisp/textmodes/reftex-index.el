@@ -1396,7 +1396,7 @@ Here are all local bindings.
   (interactive "p")
   (reftex-index-phrases-parse-header t)
   (while (> arg 0)
-    (cl-decf arg)
+    (decf arg)
     (end-of-line)
     (if (re-search-forward reftex-index-phrases-phrase-regexp12 nil t)
         (progn

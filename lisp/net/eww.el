@@ -1805,7 +1805,7 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 	    (while (and (> length 0)
 			(eq (char-after (1- (point))) ? ))
 	      (delete-region (1- (point)) (point))
-	      (cl-decf length))))
+              (decf length))))
 	 ((< length 0)
 	  ;; Add padding.
 	  (save-excursion

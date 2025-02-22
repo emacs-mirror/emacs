@@ -1090,7 +1090,7 @@ When point is just after a { or [, limit string to matching parenthesis."
                   (- (string-to-char number-string) ?A -1))
             (aset reftex-section-numbers i (string-to-number number-string)))
         (pop numbers))
-      (cl-decf i)))
+      (decf i)))
   (put 'reftex-section-numbers 'appendix appendix))
 
 ;;;###autoload

@@ -1149,7 +1149,7 @@ This enforces rescanning the buffer on next use."
 
 (defun reftex-silence-toc-markers (list n)
   ;; Set all toc markers in the first N entries in list to nil
-  (while (and list (> (cl-decf n) -1))
+  (while (and list (> (decf n) -1))
     (and (eq (car (car list)) 'toc)
          (markerp (nth 4 (car list)))
          (set-marker (nth 4 (car list)) nil))

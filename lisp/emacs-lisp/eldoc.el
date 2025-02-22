@@ -923,7 +923,7 @@ the docstrings eventually produced, using
                (cl-incf want)
                (lambda (string &rest plist)
                  (register-doc pos string plist origin)
-                 (when (zerop (cl-decf want)) (display-doc))
+                 (when (zerop (decf want)) (display-doc))
                  t))
               (:eager
                (lambda (string &rest plist)

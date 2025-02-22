@@ -636,10 +636,10 @@ abbreviating it with ellipses to fit within a size limit."
               (throw 'done (buffer-string)))
             (let* ((ratio (/ result limit))
                    (delta-level (max 1 (min (- print-level 2) ratio))))
-              (cl-decf print-level delta-level)
-              (cl-decf print-length (* delta-length delta-level))
+              (decf print-level delta-level)
+              (decf print-length (* delta-length delta-level))
               (when cl-print-string-length
-                (cl-decf cl-print-string-length
+                (decf cl-print-string-length
                          (ceiling cl-print-string-length 4.0))))))))))
 
 (provide 'cl-print)

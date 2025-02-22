@@ -715,7 +715,7 @@ it in the environment specified by BINDINGS."
       (insert (make-string len ? )))))
 
 (defsubst gnus-tree-forward-line (n)
-  (while (>= (cl-decf n) 0)
+  (while (>= (decf n) 0)
     (unless (zerop (forward-line 1))
       (end-of-line)
       (insert "\n")))

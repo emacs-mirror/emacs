@@ -341,7 +341,7 @@ Returns ELT."
   "Prepend ELT into VEC.
 Returns ELT."
   (puthash (1- (comp-vec-beg vec)) elt (comp-vec-data vec))
-  (cl-decf (comp-vec-beg vec))
+  (decf (comp-vec-beg vec))
   elt)
 
 
@@ -1543,7 +1543,7 @@ and the annotation emission."
   (comp--emit `(set-rest-args-to-local ,(comp--slot-n nonrest)))
   (setf (comp--sp) nonrest)
   (when (and (> nonrest 8) (null rest))
-    (cl-decf (comp--sp))))
+    (decf (comp--sp))))
 
 (defun comp--limplify-finalize-function (func)
   "Reverse insns into all basic blocks of FUNC."

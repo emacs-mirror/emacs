@@ -2214,7 +2214,7 @@ make one."
 			  ebrowse-member-list-accessors)
 		     (cl-first ebrowse-member-list-accessors)))
 		((minusp incr)
-		 (or (and (>= (cl-decf index) 0)
+                 (or (and (>= (decf index) 0)
 			  (nth index
 			       ebrowse-member-list-accessors))
 		     (cl-first (last ebrowse-member-list-accessors))))))

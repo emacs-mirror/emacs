@@ -46,7 +46,7 @@
 	(while (and l (> n 1))
 	  (setcdr nl (list (pop l)))
 	  (setq nl (cdr nl))
-	  (cl-decf n))
+          (decf n))
 	ret))))
 
 (defun cvs-partition (p l)

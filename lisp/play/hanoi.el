@@ -318,7 +318,7 @@ BITS must be of length nrings.  Start at START-TIME."
 
 ;; put never-before-placed RING on POLE and update their cars.
 (defun hanoi-insert-ring (ring pole)
-  (cl-decf (car pole) baseward-step)
+  (decf (car pole) baseward-step)
   (let ((str (car ring))
 	(start (- (car pole) (* (/ (cdr ring) 2) fly-step))))
     (setcar ring (car pole))
@@ -338,7 +338,7 @@ BITS must be of length nrings.  Start at START-TIME."
 ;; do one pole-to-pole move and update the ring and pole pairs.
 (defun hanoi-move-ring (ring from to start-time)
   (cl-incf (car from) baseward-step)
-  (cl-decf (car to) baseward-step)
+  (decf (car to) baseward-step)
   (let* ;; We move flywards-steps steps up the pole to the fly row,
 	;; then fly fly-steps steps across the fly row, then go
 	;; baseward-steps steps down the new pole.

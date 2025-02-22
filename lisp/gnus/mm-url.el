@@ -310,7 +310,7 @@ If FOLLOW-REFRESH is non-nil, redirect refresh url in META."
 	(done nil)
 	(first t)
 	result)
-    (while (and (not (zerop (cl-decf times)))
+    (while (and (not (zerop (decf times)))
 		(not done))
       (with-timeout (mm-url-timeout)
 	(unless first

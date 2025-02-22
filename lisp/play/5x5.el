@@ -858,7 +858,7 @@ lest."
   "Move up."
   (interactive nil 5x5-mode)
   (unless (zerop 5x5-y-pos)
-    (cl-decf 5x5-y-pos)
+    (decf 5x5-y-pos)
     (5x5-position-cursor)))
 
 (defun 5x5-down ()
@@ -872,7 +872,7 @@ lest."
   "Move left."
   (interactive nil 5x5-mode)
   (unless (zerop 5x5-x-pos)
-    (cl-decf 5x5-x-pos)
+    (decf 5x5-x-pos)
     (5x5-position-cursor)))
 
 (defun 5x5-right ()

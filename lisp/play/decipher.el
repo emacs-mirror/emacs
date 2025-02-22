@@ -603,7 +603,7 @@ You should use this if you edit the ciphertext."
       (while (>= plain-char ?a)
         (backward-char)
         (push (cons plain-char (following-char)) decipher-alphabet)
-        (cl-decf plain-char)))))
+        (decf plain-char)))))
 
 ;;;===================================================================
 ;;; Analyzing ciphertext:
@@ -832,7 +832,7 @@ TOTAL is the total number of letters in the ciphertext."
   ;; We do not include spaces (word divisions) in this count.
   (let ((total 0)
         (i 26))
-    (while (>= (cl-decf i) 0)
+    (while (>= (decf i) 0)
       (if (or (> (aref before-count i) 0)
               (> (aref after-count  i) 0))
           (cl-incf total)))
@@ -849,7 +849,7 @@ Creates the statistics buffer if it doesn't exist."
         decipher--digram decipher--digram-list freq-list)
     (message "Scanning buffer...")
     (let ((i 26))
-      (while (>= (cl-decf i) 0)
+      (while (>= (decf i) 0)
         (aset decipher--before i (make-vector 27 0))
         (aset decipher--after  i (make-vector 27 0))))
     (if decipher-ignore-spaces
@@ -857,7 +857,7 @@ Creates the statistics buffer if it doesn't exist."
           (decipher-loop-no-breaks #'decipher--analyze)
           ;; The first character of ciphertext was marked as following a space:
           (let ((i 26))
-            (while (>= (cl-decf i) 0)
+            (while (>= (decf i) 0)
               (aset (aref decipher--after  i) 26 0))))
       (decipher-loop-with-breaks #'decipher--analyze))
     (message "Processing results...")
@@ -872,7 +872,7 @@ Creates the statistics buffer if it doesn't exist."
     ;;   of times it occurs, and DIFFERENT is the number of different
     ;;   letters it appears next to.
     (let ((i 26))
-      (while (>= (cl-decf i) 0)
+      (while (>= (decf i) 0)
         (setq freq-list
               (cons (list (+ i ?A)
                           (aref decipher--freqs i)

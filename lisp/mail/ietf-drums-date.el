@@ -88,7 +88,7 @@ treat them as whitespace (per RFC822)."
 	                    ;; it to see if it might be a paren.
                             (cl-incf index))
                           ((eq char ?\() (cl-incf nest))
-                          ((eq char ?\)) (cl-decf nest)))))))
+                          ((eq char ?\)) (decf nest)))))))
       (skip-ignored)		;; Skip leading whitespace.
       (while (and (< index end)
                   (not (and comment-eof

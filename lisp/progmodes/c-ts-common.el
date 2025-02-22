@@ -491,7 +491,7 @@ characters on the current line."
     ;; one level because the code below assumes NODE is a statement
     ;; _inside_ a {} block.
     (when (c-ts-common--node-is node 'block 'close-bracket)
-      (cl-decf level))
+      (decf level))
     ;; If point is on an empty line, NODE would be nil, but we pretend
     ;; there is a statement node.
     (when (null node)
@@ -530,7 +530,7 @@ characters on the current line."
                           (goto-char (treesit-node-start node))
                           (looking-back (rx bol (* whitespace))
                                         (line-beginning-position)))))
-          (cl-decf level)))
+          (decf level)))
       ;; Go up the tree.
       (setq node (treesit-node-parent node)))
     (* level (symbol-value c-ts-common-indent-offset))))

@@ -310,7 +310,7 @@ If RECURSIVE is t, return groups in its subtopics too."
     (while (and (not (zerop num))
 		(setq topic (funcall way topic)))
       (when (gnus-topic-goto-topic topic)
-	(cl-decf num)))
+        (decf num)))
     (unless (zerop num)
       (goto-char (point-max)))
     num))

@@ -679,7 +679,7 @@ at least 3 (which is the default value)."
       (pcase-exhaustive name
         ('regexp
          (let ((syntax (string-to-syntax "\"/")))
-           (cl-decf ns)
+           (decf ns)
            (cl-incf ne)
            (put-text-property ns (1+ ns) 'syntax-table syntax)
            (put-text-property (1- ne) ne 'syntax-table syntax)))

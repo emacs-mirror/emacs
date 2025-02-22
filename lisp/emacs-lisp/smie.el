@@ -2240,7 +2240,7 @@ position corresponding to each rule."
                                   (push off-data (nth 1 sig-data))
                                   off-data))))
                       (cl-assert (>= (cdr ooff-data) count))
-                      (cl-decf (cdr ooff-data) count)
+                      (decf (cdr ooff-data) count)
                       (cl-incf (cdr noff-data) count))))))))))
     rules))
 

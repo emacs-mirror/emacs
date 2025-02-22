@@ -3376,7 +3376,7 @@ function is called recursively."
                 ;; Normal case.
                 (setq pos (funcall advance (or prev parent))))))
           ;; A successful step! Decrement counter.
-          (cl-decf counter))))
+          (decf counter))))
     ;; Counter equal to 0 means we successfully stepped ARG steps.
     (if (eq counter 0) pos nil)))
 

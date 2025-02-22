@@ -744,7 +744,7 @@ While entering the regexp, completion on known citation keys is possible.
       (if (> arg 1)
           (progn
             (skip-chars-backward "}")
-            (cl-decf arg)
+            (decf arg)
             (reftex-do-citation arg))
         (forward-char 1)))
 

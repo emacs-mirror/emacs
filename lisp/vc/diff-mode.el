@@ -1713,7 +1713,7 @@ Only works for unified diffs."
         (cond
          ((and (memq (char-after) '(?\s ?! ?+ ?-))
                (memq (char-after (1+ (point))) '(?\s ?\t)))
-          (cl-decf count) t)
+          (decf count) t)
          ((or (zerop count) (= count lines)) nil)
          ((memq (char-after) '(?! ?+ ?-))
           (if (not (and (eq (char-after (1+ (point))) ?\n)
@@ -1765,7 +1765,7 @@ Only works for unified diffs."
             (forward-line)
             (while
                 (pcase (char-after)
-                  (?\s (cl-decf before) (cl-decf after) t)
+                  (?\s (decf before) (decf after) t)
                   (?-
                    (cond
                     ((and (looking-at diff-separator-re)
@@ -1780,15 +1780,15 @@ Only works for unified diffs."
                      ;; will not get confused.
                      (save-excursion (insert "\n")) nil)
                     (t
-                     (cl-decf before) t)))
-                  (?+ (cl-decf after) t)
+                     (decf before) t)))
+                  (?+ (decf after) t)
                   (_
                    (cond
                     ((and diff-valid-unified-empty-line
                           ;; Not just (eolp) so we don't infloop at eob.
                           (eq (char-after) ?\n)
                           (> before 0) (> after 0))
-                     (cl-decf before) (cl-decf after) t)
+                     (decf before) (decf after) t)
                     ((and (zerop before) (zerop after)) nil)
                     ((or (< before 0) (< after 0))
                      (error (if (or (zerop before) (zerop after))

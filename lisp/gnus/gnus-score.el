@@ -3179,7 +3179,7 @@ The decay variables are `gnus-score-decay-constant' and
 	      (setq score (or (nth 1 kill)
 			      gnus-score-interactive-default-score)
 		    n times)
-	      (while (natnump (cl-decf n))
+              (while (natnump (decf n))
 		(setq score (funcall gnus-decay-score-function score)))
 	      (setcdr kill (cons score
 				 (cdr (cdr kill)))))))))

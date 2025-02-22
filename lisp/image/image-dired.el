@@ -1184,7 +1184,7 @@ With a negative prefix argument, prompt user for the delay."
   (interactive nil image-dired-thumbnail-mode)
   (let ((inhibit-read-only t))
     (delete-char 1)
-    (cl-decf image-dired--number-of-thumbnails))
+    (decf image-dired--number-of-thumbnails))
   (let ((pos (point)))
     (image-dired--line-up-with-method)
     (goto-char pos)

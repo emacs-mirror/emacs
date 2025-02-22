@@ -1830,7 +1830,7 @@ current line is also eligible as a target."
 	  (gnus-group-mark-update group unmark)))
       (unless no-advance
 	(gnus-group-next-group 1))
-      (cl-decf n))
+      (decf n))
     (gnus-group-position-point)
     n))
 
@@ -4012,7 +4012,7 @@ yanked) a list of yanked groups is returned."
   (interactive "p" gnus-group-mode)
   (setq arg (or arg 1))
   (let (info group prev out)
-    (while (>= (cl-decf arg) 0)
+    (while (>= (decf arg) 0)
       (when (not (setq info (pop gnus-list-of-killed-groups)))
 	(error "No more newsgroups to yank"))
       (push (setq group (nth 1 info)) out)
