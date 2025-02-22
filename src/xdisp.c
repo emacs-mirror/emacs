@@ -35873,15 +35873,15 @@ define_frame_cursor1 (struct frame *f, Emacs_Cursor cursor, Lisp_Object pointer)
 #endif
 }
 
-/* Take proper action when mouse has moved to the mode or header line
-   or marginal area AREA of window W, x-position X and y-position Y.
-   X is relative to the start of the text display area of W, so the
-   width of bitmap areas and scroll bars must be subtracted to get a
-   position relative to the start of the mode line.  */
+/* Take proper action when mouse has moved to one of the window's lines
+   (mode, tab, or header) or marginal area AREA of window W, x-position
+   X and y-position Y.  X is relative to the start of the text display
+   area of W, so the width of bitmap areas and scroll bars must be
+   subtracted to get a position relative to the start of a line.  */
 
 static void
-note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
-				    enum window_part area)
+note_line_or_margin_highlight (Lisp_Object window, int x, int y,
+			       enum window_part area)
 {
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
@@ -36017,9 +36017,13 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
       /* Change the mouse pointer according to what is under it.  */
       if (FRAME_WINDOW_P (f))
 	{
-	  bool draggable = (! WINDOW_BOTTOMMOST_P (w)
-			    || minibuf_level
-			    || NILP (Vresize_mini_windows));
+	  bool draggable_window_bottom_line =
+	    (area == ON_MODE_LINE && (! WINDOW_BOTTOMMOST_P (w)
+				      || minibuf_level
+				      || NILP (Vresize_mini_windows)));
+	  bool draggable_window_top_line =
+	    ((area == ON_HEADER_LINE || area == ON_TAB_LINE)
+	     && ! WINDOW_TOPMOST_P (w));
 
 	  if (STRINGP (string))
 	    {
@@ -36038,11 +36042,12 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 		  map = Fget_text_property (pos, Qlocal_map, string);
 		  if (!KEYMAPP (map))
 		    map = Fget_text_property (pos, Qkeymap, string);
-		  if (!KEYMAPP (map) && draggable && area == ON_MODE_LINE)
+		  if (!KEYMAPP (map) && (draggable_window_top_line
+					 || draggable_window_bottom_line))
 		    cursor = FRAME_OUTPUT_DATA (f)->vertical_drag_cursor;
 		}
 	    }
-	  else if (draggable && area == ON_MODE_LINE)
+	  else if (draggable_window_top_line || draggable_window_bottom_line)
 	    cursor = FRAME_OUTPUT_DATA (f)->vertical_drag_cursor;
 	  else if ((area == ON_MODE_LINE
 		    && WINDOW_BOTTOMMOST_P (w)
@@ -36474,11 +36479,11 @@ note_mouse_highlight (struct frame *f, int x, int y)
     }
 #endif
 
-  /* Mouse is on the mode, header line or margin?  */
+  /* Mouse is on a line or margin?  */
   if (part == ON_MODE_LINE || part == ON_HEADER_LINE || part == ON_TAB_LINE
       || part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
     {
-      note_mode_line_or_margin_highlight (window, x, y, part);
+      note_line_or_margin_highlight (window, x, y, part);
 
 #ifdef HAVE_WINDOW_SYSTEM
       if (part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
