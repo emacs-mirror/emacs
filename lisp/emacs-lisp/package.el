@@ -4525,7 +4525,7 @@ of an installed ELPA package.
 The return value is a string (or nil in case we can't find it).
 It works in more cases if the call is in the file which contains
 the `Version:' header."
-  ;; In a sense, this is a lie, but it does just what we want: precompute
+  ;; In a sense, this is a lie, but it does just what we want: precomputes
   ;; the version at compile time and hardcodes it into the .elc file!
   (declare (pure t))
   ;; Hack alert!

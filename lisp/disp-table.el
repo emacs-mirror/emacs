@@ -112,7 +112,7 @@ Valid symbols are `truncation', `wrap', `escape', `control',
 
     (princ "\nBox vertical line glyph: ")
     (prin1 (display-table-slot dt 'box-vertical))
-    (princ "\nBox horizonal line glyph: ")
+    (princ "\nBox horizontal line glyph: ")
     (prin1 (display-table-slot dt 'box-horizontal))
     (princ "\nBox upper left corner glyph: ")
     (prin1 (display-table-slot dt 'box-down-right))
@@ -125,7 +125,7 @@ Valid symbols are `truncation', `wrap', `escape', `control',
 
     (princ "\nBox double vertical line glyph: ")
     (prin1 (display-table-slot dt 'box-double-vertical))
-    (princ "\nBox double horizonal line glyph: ")
+    (princ "\nBox double horizontal line glyph: ")
     (prin1 (display-table-slot dt 'box-double-horizontal))
     (princ "\nBox double upper left corner glyph: ")
     (prin1 (display-table-slot dt 'box-double-down-right))

@@ -107,7 +107,7 @@ By default should have same value as `html-ts-mode-indent-offset'."
             executable html-ts-mode-indent-offset))
           ((setq executable (executable-find "xmllint"))
            (format "%s --html --quiet --format -" executable))
-          (t "Install tidy, ore some other HTML pretty print tool, and set `mhtml-ts-mode-pretty-print-command'.")))
+          (t "Install tidy, or some other HTML pretty print tool, and set `mhtml-ts-mode-pretty-print-command'.")))
   "The command to pretty print the current HTML buffer."
   :type 'string
   :version "31.1")
@@ -522,7 +522,7 @@ Powered by tree-sitter."
                   js--treesit-jsdoc-comment-regexp))
 
 
-    ;; Many treesit fuctions need to know the language at-point.
+    ;; Many treesit functions need to know the language at-point.
     ;; So you should define such a function.
     (setq-local treesit-language-at-point-function #'mhtml-ts-mode--language-at-point)
     (setq-local prettify-symbols-alist mhtml-ts-mode--prettify-symbols-alist)
@@ -594,7 +594,7 @@ Powered by tree-sitter."
     ;; Flymake
     (add-hook 'flymake-diagnostic-functions #'mhtml-ts-mode-flymake-mhtml nil 'local)))
 
-;; Add nome extra parents.
+;; Add some extra parents.
 (derived-mode-add-parents 'mhtml-ts-mode '(css-mode js-mode))
 
 (when (and (treesit-ready-p 'html) (treesit-ready-p 'javascript) (treesit-ready-p 'css))

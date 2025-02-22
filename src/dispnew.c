@@ -3514,7 +3514,7 @@ make_matrix_current (struct frame *f)
 
 /* Prepare ROOT's desired row at index Y for copying child frame
    contents to it.  Value is the prepared desired row or NULL if we
-   don't have, and can't contruct a desired row.  */
+   don't have, and can't construct a desired row.  */
 
 static struct glyph_row *
 prepare_desired_root_row (struct frame *root, int y)

@@ -918,7 +918,7 @@ comment delimiters."
   (when (> beg end) (setq beg (prog1 end (setq end beg))))
   ;; Bind `comment-use-global-state' to nil.  While uncommenting a region
   ;; (which works a line at a time), a comment can appear to be
-  ;; included in a mult-line string, but it is actually not.
+  ;; included in a multi-line string, but it is actually not.
   (let ((comment-use-global-state nil))
     (save-excursion
       (funcall uncomment-region-function beg end arg))))

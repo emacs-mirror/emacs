@@ -420,7 +420,7 @@ The format is an alist, with string keys ABBREV-UNIT, and elements like:
 
   (ABBREV-UNIT UNIT UNIT-PLURAL SECS)
 
-where UNIT is a unit of time, ABBREV-UNIT is the abreviated form of
+where UNIT is a unit of time, ABBREV-UNIT is the abbreviated form of
 UNIT, UNIT-PLURAL is the plural form of UNIT, and SECS is the number of
 seconds per UNIT.")
 

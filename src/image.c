@@ -12030,7 +12030,7 @@ svg_css_length_to_pixels (RsvgLength length, double dpi, int font_size)
    The basic process, which is used for all versions of librsvg, is to
    load the SVG and parse it, then extract the image dimensions.  We
    then use those image dimensions to calculate the final size and
-   wrap the SVG data inside another SVG we build on the fly. This
+   wrap the SVG data inside another SVG we build on the fly.  This
    wrapper does the necessary resizing and setting of foreground and
    background colors and is then parsed and rasterized.
 
@@ -12117,8 +12117,8 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   rsvg_handle_write (rsvg_handle, (unsigned char *) contents, size, &err);
   if (err) goto rsvg_error;
 
-  /* The parsing is complete, rsvg_handle is ready to be used, close
-     it for further writes.  */
+  /* The parsing is complete, rsvg_handle is ready to be used, close it
+     for further writes.  */
   rsvg_handle_close (rsvg_handle, &err);
   if (err) goto rsvg_error;
 #endif
@@ -12348,7 +12348,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 		     SBYTES (wrapped_contents), &err);
   if (err) goto rsvg_error;
 
-  /* The parsing is complete, rsvg_handle is ready to used, close it
+  /* The parsing is complete, rsvg_handle is ready to be used, close it
      for further writes.  */
   rsvg_handle_close (rsvg_handle, &err);
   if (err) goto rsvg_error;

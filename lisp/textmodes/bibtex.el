@@ -88,7 +88,7 @@ If this is a function, call it to generate the initial field text."
   :risky t)
 ;; The functionality provided by `bibtex-include-OPTkey' is a special case
 ;; of what `bibtex-aux-opt-alist' offers.  Which BibTeX style files actually
-;; use the key field?  The BibTeX docomentation suggests it is used rarely.
+;; use the key field?  The BibTeX documentation suggests it is used rarely.
 ;; Under biblatex, the key field is an alias for sortkey, see Secs. 2.2.3
 ;; and 2.2.5.
 (make-obsolete-variable 'bibtex-include-OPTkey

@@ -206,7 +206,7 @@ set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   /* Menu bars on child frames don't work on all platforms, which is
      the reason why prepare_menu_bar does not update_menu_bar for
      child frames (info from Martin Rudalics).  This could be
-     implemented in ttys, but it's probaly not worth it.  */
+     implemented in ttys, but it's probably not worth it.  */
   if (is_tty_child_frame (f))
     {
       FRAME_MENU_BAR_LINES (f) = 0;

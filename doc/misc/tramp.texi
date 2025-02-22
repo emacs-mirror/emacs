@@ -6239,7 +6239,7 @@ as above in your @file{~/.emacs}:
 @item
 I get an error @samp{unix_listener: path
 "/very/long/path/.cache/emacs/tramp.XXX" too long for Unix domain
-socket} when connectiong via @option{ssh} to a remote host.
+socket} when connecting via @option{ssh} to a remote host.
 
 @vindex small-temporary-file-directory
 By default, @value{tramp} uses the directory @file{~/.cache/emacs/}

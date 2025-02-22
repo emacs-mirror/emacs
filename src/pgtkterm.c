@@ -198,7 +198,7 @@ pgtk_enumerate_devices (struct pgtk_display_info *dpyinfo,
 	  else
 	    {
 	      /* GTK bug 7737 results in GDK seats being initialized
-		 with NULL devices in some cirumstances.  As events will
+		 with NULL devices in some circumstances.  As events will
 		 presumably also be delivered with their device fields
 		 set to NULL, insert a ersatz device record associated
 		 with NULL.  (bug#76239) */

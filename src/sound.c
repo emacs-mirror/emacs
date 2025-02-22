@@ -139,7 +139,7 @@ struct wav_header
   u_int32_t data_length;
 };
 
-/* The file header of Sun adio files (*.au).  Files are always in
+/* The file header of Sun audio files (*.au).  Files are always in
    big-endian byte-order.  */
 
 struct au_header

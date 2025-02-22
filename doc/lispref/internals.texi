@@ -963,7 +963,7 @@ the format to use.
 
 @cindex @code{staticpro}, protection from GC
   If you directly define a file-scope C variable of type
-@code{Lisp_Object}, you must protect it from garbage-collection by
+@code{Lisp_Object}, you must protect it from garbage collection by
 calling @code{staticpro} in @code{syms_of_@var{filename}}, like this:
 
 @example

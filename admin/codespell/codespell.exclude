@@ -1789,3 +1789,16 @@ ine\\(?:-global\\)?-minor-mode\\|ine-compilation-mode\\|un-cvs-mode\\|\
 	(oarticle (make-symbol "gnus-setup-message-oarticle"))
 	   (,oarticle gnus-article-reply)
 	 (gnus-inews-add-send-actions ,winconf ,buffer ,oarticle ,config
+  Thur, Fri, Sat, Sun
+[3]: Merget, Brinkmann, Aviram, Somorovsky, Mittmann, and
+                      (ansi-color-cyan                     :short "ansi-cyan"           :slug "anc" :foreground ,fg-term-cyan)
+                      (ansi-color-bright-cyan              :short "ansi-bright-cyan"    :slug "ANc" :foreground ,fg-term-cyan-bright)
+      (search-forward "foo.correc")
+	 "Your finger was not centred, try swiping your finger again"
+           (ofrom (marker-position (widget-get group :from)))
+      (should (= ofrom (widget-get group :from)))
+           (ofrom (marker-position (widget-get group :from)))
+      (should (= ofrom (widget-get group :from)))
+  (should (equal (cl-subseq "hello world" -5 -1) "worl"))
+    ("\\.te?xi\\'" . texinfo-mode)
+    ("\\.te?xt\\'" . text-mode)

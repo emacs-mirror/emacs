@@ -4295,7 +4295,7 @@ types.  */)
     dump_emacs_reloc_to_emacs_ptr_raw (ctx, &staticvec[i], staticvec[i]);
   dump_emacs_reloc_immediate_int (ctx, &staticidx, staticidx);
 
-  /* Dump until while we keep finding objects to dump.  We add new
+  /* Dump while we keep finding objects to dump.  We add new
      objects to the queue by side effect during dumping.
      We accumulate some types of objects in special lists to get more
      locality for these object types at runtime.  */

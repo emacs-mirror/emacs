@@ -7522,7 +7522,7 @@ multi-line strings (but not C++, for example)."
   "Construct a regexp for a C++ raw string opener matching CLOSER."
   (concat "\\(R\\(\"\\)" (regexp-quote (substring closer 1 -1)) "(\\)"))
 
-;; The positions of various components of mult-line strings surrounding BEG,
+;; The positions of various components of multi-line strings surrounding BEG,
 ;;  END and (1- BEG) (of before-change-functions) as returned by
 ;; `c-ml-string-delims-around-point'.
 (defvar c-old-beg-ml nil)

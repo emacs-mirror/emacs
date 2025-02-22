@@ -348,7 +348,7 @@ This input method has support for polytonic and archaic Greek
 characters.
 
 ---
-*** New language-environment and input method for Tifinagh.
+*** New language environment and input method for Tifinagh.
 The Tifinagh script is used to write the Berber languages.
 
 ---
@@ -473,8 +473,8 @@ a web browser to load them.  For example, it could be used like this:
     (add-to-list 'browse-url-transform-alist
                  '("www.google.com" . "www.duckduckgo.com"))
 
-*** New function 'browse-url-qutebrowser' for the Qutebrowser.
-For better integration with the Qutebrowser, set
+*** New function 'browse-url-qutebrowser' for Qutebrowser.
+For better integration with Qutebrowser, set
 'browse-url(-secondary)-browser-function' to 'browse-url-qutebrowser'.
 
 *** New GTK-native launch mode.
@@ -1269,7 +1269,7 @@ observed on Android).
 
 +++
 *** 'yank-media' now auto-selects the most preferred MIME type.
-Major-mode authors can customise the variables
+Major-mode authors can customize the variables
 'yank-media-autoselect-function' and/or 'yank-media-preferred-types' to
 change the selection rules.
 

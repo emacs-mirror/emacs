@@ -271,7 +271,11 @@ asynchronously."
 (defun package-vc--generate-description-file (pkg-desc pkg-file)
   "Generate a package description file for PKG-DESC and write it to PKG-FILE."
   (let ((name (package-desc-name pkg-desc)))
-    ;; Infer the subject if missing.
+    (when (equal (package-desc-summary pkg-desc) package--default-summary)
+      ;; We unset the package description if it is just the default
+      ;; summary, so that the following heuristic can take effect.
+      (setf (package-desc-summary pkg-desc) nil))
+    ;; Infer the package description if missing.
     (unless (package-desc-summary pkg-desc)
       (setf (package-desc-summary pkg-desc)
             (let ((main-file (package-vc--main-file pkg-desc)))
