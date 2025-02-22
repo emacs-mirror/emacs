@@ -571,10 +571,10 @@ If COUNT is negative, shifting is actually to the right.
 In this case, if VALUE is a negative fixnum treat it as unsigned,
 i.e., subtract 2 * `most-negative-fixnum' from VALUE before shifting it.
 
-Most uses of this function turn out to be mistakes.  We recommend
-to use `ash' instead, unless COUNT could ever be negative, and
-if, when COUNT is negative, your program really needs the special
-treatment of negative COUNT provided by this function."
+Most uses of this function turn out to be mistakes.  We recommend using
+`ash' instead, unless COUNT could ever be negative, in which case your
+program should only use this function if it specifically requires the
+special handling of negative COUNT."
   (declare (ftype (function (integer integer) integer))
            (compiler-macro
             (lambda (form)
