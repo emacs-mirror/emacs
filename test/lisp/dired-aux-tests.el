@@ -89,25 +89,25 @@
      (should-error (dired-rename-file from to-mv nil)))))
 
 (ert-deftest dired-test-bug30624 ()
-  "test for https://debbugs.gnu.org/30624 ."
-  (cl-letf* ((target-dir (make-temp-file "target" 'dir))
-             ((symbol-function 'dired-mark-read-file-name)
-              (lambda (&rest _) target-dir))
-             (inhibit-message t))
-    ;; Delete target-dir: `dired-do-create-files' must recreate it.
-    (delete-directory target-dir)
-    (let ((file1 (make-temp-file "bug30624_file1"))
-          (file2 (make-temp-file "bug30624_file2"))
-          (dired-create-destination-dirs 'always)
-          (buf (dired temporary-file-directory)))
-      (unwind-protect
-          (progn
-            (dired-revert)
-            (dired-mark-files-regexp "bug30624_file")
-            (should (dired-do-create-files 'copy 'dired-copy-file "Copy" nil)))
-        (delete-directory target-dir 'recursive)
-        (mapc #'delete-file `(,file1 ,file2))
-        (kill-buffer buf)))))
+  "Test for <https://debbugs.gnu.org/30624>."
+  (ert-with-temp-directory target-dir
+    (ert-with-temp-file file1
+      :suffix "bug30624_file1"
+      (ert-with-temp-file _file2
+        :suffix "bug30624_file2"
+        (cl-letf* (((symbol-function 'dired-mark-read-file-name)
+                    (lambda (&rest _) target-dir))
+                   (inhibit-message t))
+          ;; Delete target-dir: `dired-do-create-files' must recreate it.
+          (delete-directory target-dir)
+          (let ((dired-create-destination-dirs 'always)
+                (buf (dired (file-name-directory file1))))
+            (unwind-protect
+                (progn
+                  (dired-revert)
+                  (dired-mark-files-regexp "bug30624_file")
+                  (should (dired-do-create-files 'copy 'dired-copy-file "Copy" nil)))
+              (kill-buffer buf))))))))
 
 (defun dired-test--check-highlighting (command positions)
   (let ((start 1))
