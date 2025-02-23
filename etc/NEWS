@@ -1279,6 +1279,11 @@ Major-mode authors can customize the variables
 'yank-media-autoselect-function' and/or 'yank-media-preferred-types' to
 change the selection rules.
 
+** Miscellaneous
+
+---
+*** kermit.el is now obsolete.
+
 
 * New Modes and Packages in Emacs 31.1
 
