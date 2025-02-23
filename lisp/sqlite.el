@@ -23,6 +23,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 (declare-function sqlite-transaction "sqlite.c")
 (declare-function sqlite-commit "sqlite.c")
 (declare-function sqlite-rollback "sqlite.c")
@@ -35,10 +37,7 @@ If BODY signals an error, or transaction commit fails, roll
 back the transaction changes before allowing the signal to
 propagate."
   (declare (indent 1) (debug (form body)))
-  (let ((db-var (gensym))
-        (func-var (gensym))
-        (res-var (gensym))
-        (commit-var (gensym)))
+  (cl-with-gensyms (db-var func-var res-var commit-var)
     `(let ((,db-var ,db)
            (,func-var (lambda () ,@body))
            ,res-var ,commit-var)
