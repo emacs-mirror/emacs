@@ -13003,7 +13003,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (Qgs_load_image, "gs-load-image");
 #endif /* HAVE_GHOSTSCRIPT */
 
-#ifdef HAVE_NTGUI
+#ifdef WINDOWSNT
   /* Versions of libpng, libgif, and libjpeg that we were compiled with,
      or -1 if no PNG/GIF support was compiled in.  This is tested by
      w32-win.el to correctly set up the alist used to search for the
