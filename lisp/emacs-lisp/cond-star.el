@@ -4,6 +4,11 @@
 
 ;; Maintainer: Richard Stallman <rms@gnu.org>
 ;; Package: emacs
+;; Version: 1.0
+;; Package-Requires: ((emacs "24.3"))
+
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded above.
 
 ;; This file is part of GNU Emacs.
 
@@ -22,7 +27,12 @@
 
 ;;; Commentary:
 
-;; This library implements `cond*', an alternative to `pcase'.
+;; This library implements the `cond*' macro, that extends `cond' with
+;; pattern-matching capabilities.  It provides an alternative to
+;; `pcase'.  Consult the Info note `(elisp) cond* Macro' for details on
+;; how to use it.
+
+;;; Implementation Notice:
 
 ;; Here is the list of functions the generated code is known to call:
 ;; car, cdr, car-safe, cdr-safe, nth, nthcdr, null, eq, equal, eql, =,
@@ -75,7 +85,7 @@ Instead, control always falls through to the next clause (if any).
 All bindings made in CONDITION for the BODY of the non-exit clause
 are passed along to the rest of the clauses in this `cond*' construct.
 
-\\[match*\\] for documentation of the patterns for use in `match*'."
+\\[match*] for documentation of the patterns for use in `match*'."
   (cond*-convert clauses))
 
 (defmacro match* (pattern _datum)
