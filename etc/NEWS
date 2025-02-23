@@ -254,6 +254,12 @@ behavior to try to split vertically first.
 Calling this function before 'delete-frame' is useful to avoid that the
 latter throws an error when the argument FRAME cannot be deleted.
 
++++
+*** New value 'force' for option `frame-inhibit-implied-resize'.
+This will inhibit implied resizing while a new frame is made and can be
+useful on tiling window managers where the initial frame size should be
+specified by external means.
+
 ** Tab Bars and Tab Lines
 
 ---
