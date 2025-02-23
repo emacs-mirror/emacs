@@ -591,11 +591,15 @@ Typically \"page-%s.png\".")
   (cl-labels ((revert ()
                 (let ((revert-buffer-preserve-modes t))
                   (apply orig-fun args)
-                  ;; Update the cached version of the pdf file,
-                  ;; too.  This is the one that's used when
-                  ;; rendering (bug#26996).
-                  (unless (equal buffer-file-name
-                                 doc-view--buffer-file-name)
+                  ;; Update the cached version of the pdf file, too.
+                  ;; This is the one that's used when rendering
+                  ;; (bug#26996).  doc-view--buffer-file-name is nil in
+                  ;; the case where we've switched to the editing mode
+                  ;; (bug#76478).  In that case, we'll update the cached
+                  ;; version when switching back to doc-view-mode.
+                  (when (and doc-view--buffer-file-name
+                             (not (equal buffer-file-name
+                                         doc-view--buffer-file-name)))
                     ;; FIXME: Lars says he needed to recreate
                     ;; the dir, we should figure out why.
                     (doc-view-make-safe-dir doc-view-cache-directory)
@@ -2443,7 +2447,20 @@ to the next best mode."
 See the command `doc-view-mode' for more information on this mode."
   :lighter " DocView"
   (when doc-view-minor-mode
-    (add-hook 'change-major-mode-hook (lambda () (doc-view-minor-mode -1)) nil t)
+    (add-hook 'change-major-mode-hook
+              (lambda ()
+                (doc-view-minor-mode -1))
+              nil t)
+    ;; OpenDocuments are archive files, so their editing mode is
+    ;; archive-mode.  When editing and saving a file in that archive,
+    ;; it'll automatically revert the archive buffer.  Take care to
+    ;; re-enable `doc-view-minor-mode' in that case.
+    (add-hook 'revert-buffer-restore-functions
+              (lambda ()
+                (lambda ()
+                  (unless (derived-mode-p 'doc-view-mode)
+                    (doc-view-minor-mode 1))))
+              nil t)
     (message
      "%s"
      (substitute-command-keys
