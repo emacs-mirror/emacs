@@ -1249,16 +1249,16 @@ resizing with the following option:
 If this option is @code{nil}, changing a frame's font, menu bar, tool
 bar, internal borders, fringes or scroll bars may resize its outer frame
 in order to keep the number of columns or lines of its text area
-unaltered.  If this option is @code{t}, no such resizing is done once a
-frame has obtained its initial size.  If this is the symbol
-@code{force}, no implicit resizing is done whenever a new frame is made.
+unaltered.  If this option is @code{t}, no such resizing happens once a
+frame has obtained its initial size.  If the value is the symbol
+@code{force}, no implicit resizing happens whenever a new frame is made.
 The latter can be useful with tiling window managers where the initial
 size of a frame is determined by external means.
 
 The value of this option can be also a list of frame parameters.  In
-that case, implied resizing is inhibited for the change of a parameter
-that appears in this list.  Parameters currently handled by this
-option are @code{font}, @code{font-backend},
+that case, implied resizing is inhibited for the change of the
+parameters that appear in this list.  Parameters currently handled by
+this option are @code{font}, @code{font-backend},
 @code{internal-border-width}, @code{menu-bar-lines} and
 @code{tool-bar-lines}.
 

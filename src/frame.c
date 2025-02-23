@@ -7113,9 +7113,9 @@ a non-nil value in your init file.  */);
 If this option is nil, setting font, menu bar, tool bar, tab bar,
 internal borders, fringes or scroll bars of a specific frame may resize
 the frame in order to preserve the number of columns or lines it
-displays.  If this option is t, no such resizing is done once a frame
+displays.  If this option is t, no such resizing happens once a frame
 has got its initial size.  If this is the symbol `force', no implicit
-resizing is done whenever a new frame is made.  This can be useful with
+resizing happens whenever a new frame is made.  This can be useful with
 tiling window managers where the initial size of a frame is determined
 by external means.
 
