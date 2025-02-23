@@ -329,9 +329,7 @@ This is useful for separating the issuance of messages by the
 code under test from the behavior of the *Messages* buffer."
   (declare (debug (symbolp body))
            (indent 1))
-  (let ((g-message-advice (gensym))
-        (g-print-advice (gensym))
-        (g-collector (gensym)))
+  (cl-with-gensyms (g-message-advice g-print-advice g-collector)
     `(let* ((,var "")
             (,g-collector (lambda (msg) (setq ,var (concat ,var msg))))
             (,g-message-advice (ert--make-message-advice ,g-collector))
