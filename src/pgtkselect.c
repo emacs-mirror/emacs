@@ -50,7 +50,7 @@ static Lisp_Object pgtk_get_window_property_as_lisp_data (struct pgtk_display_in
 							  GdkWindow *, GdkAtom,
 							  Lisp_Object, GdkAtom, bool);
 static Lisp_Object selection_data_to_lisp_data (struct pgtk_display_info *,
-						void const *,
+						const unsigned char *,
 						ptrdiff_t, GdkAtom, int);
 static void lisp_data_to_selection_data (struct pgtk_display_info *, Lisp_Object,
 					 struct selection_data *);
@@ -148,7 +148,7 @@ pgtk_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
   guint32 timestamp = gtk_get_current_event_time ();
   GdkAtom selection_atom = symbol_to_gdk_atom (selection_name);
   Lisp_Object targets;
-  ptrdiff_t ntargets;
+  ptrdiff_t i, ntargets;
   GtkTargetEntry *gtargets;
 
   if (timestamp == GDK_CURRENT_TIME)
@@ -207,7 +207,7 @@ pgtk_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
       gtargets = xzalloc (sizeof *gtargets * ASIZE (targets));
       ntargets = 0;
 
-      for (ptrdiff_t i = 0; i < ASIZE (targets); i++)
+      for (i = 0; i < ASIZE (targets); ++i)
 	{
 	  if (SYMBOLP (AREF (targets, i)))
 	    gtargets[ntargets++].target
@@ -1072,17 +1072,38 @@ pgtk_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_typ
 
 /* Subroutines of pgtk_get_window_property_as_lisp_data */
 
+static ptrdiff_t
+pgtk_size_for_format (gint format)
+{
+  switch (format)
+    {
+    case 8:
+      return sizeof (unsigned char);
+    case 16:
+      return sizeof (unsigned short);
+    case 32:
+      return sizeof (unsigned long);
+
+    default:
+      emacs_abort ();
+    }
+}
+
 /* Use xfree, not g_free, to free the data obtained with this function.  */
 
 static void
-pgtk_get_window_property (GdkWindow *window, void **data_ret,
+pgtk_get_window_property (GdkWindow *window, unsigned char **data_ret,
 			  ptrdiff_t *bytes_ret, GdkAtom *actual_type_ret,
-			  int *actual_format_ret)
+			  int *actual_format_ret, unsigned long *actual_size_ret)
 {
   gint length, actual_format;
   unsigned char *data;
+  ptrdiff_t element_size;
   void *xdata;
   GdkAtom actual_type;
+  unsigned long i;
+  unsigned int *idata;
+  unsigned long *ldata;
 
   data = NULL;
 
@@ -1096,39 +1117,63 @@ pgtk_get_window_property (GdkWindow *window, void **data_ret,
       *actual_type_ret = GDK_NONE;
       *bytes_ret = 0;
       *actual_format_ret = 8;
+      *actual_size_ret = 0;
 
       return;
     }
 
-  if (! (actual_type == GDK_SELECTION_TYPE_ATOM
-	 || actual_type == gdk_atom_intern_static_string ("ATOM_PAIR")))
-    actual_type = GDK_NONE;
-
-  if (ULONG_WIDTH > 32 && actual_format == 32)
+  if (actual_type == GDK_SELECTION_TYPE_ATOM
+      || actual_type == gdk_atom_intern_static_string ("ATOM_PAIR"))
     {
-      unsigned long int *ldata = (unsigned long int *) data;
-      gint n = length / sizeof *ldata;
-      unsigned int *idata;
-      length = n * sizeof *idata;
-      idata = xdata = xmalloc (length);
-      for (gint i = 0; i < n; i++)
+      /* GDK should not allow anything else.  */
+      eassert (actual_format == 32);
+
+      length = length / sizeof (GdkAtom);
+      xdata = xmalloc (sizeof (GdkAtom) * length + 1);
+      memcpy (xdata, data, 1 + length * sizeof (GdkAtom));
+
+      g_free (data);
+
+      *data_ret = xdata;
+      *actual_type_ret = actual_type;
+      *bytes_ret = length * sizeof (GdkAtom);
+      *actual_format_ret = 32;
+      *actual_size_ret = length;
+
+      return;
+    }
+
+  element_size = pgtk_size_for_format (actual_format);
+  length = length / element_size;
+
+  /* Add an extra byte on the end.  GDK guarantees that it is
+     NULL.  */
+  xdata = xmalloc (1 + element_size * length);
+  memcpy (xdata, data, 1 + element_size * length);
+
+  if (actual_format == 32 && LONG_WIDTH > 32)
+    {
+      ldata = (typeof (ldata)) data;
+      idata = xdata;
+
+      for (i = 0; i < length; ++i)
 	idata[i] = ldata[i];
+
+      /* There is always enough space in idata.  */
+      idata[length] = 0;
+      *bytes_ret = sizeof *idata * length;
     }
   else
-    {
-      /* Add an extra byte on the end.  GDK guarantees that it is
-	 NULL.  */
-      xdata = xmalloc (length + 1);
-      memcpy (xdata, data, length + 1);
-    }
-
-  *bytes_ret = length;
+    /* I think GDK itself prevents element_size from exceeding the
+       length at which this computation fails.  */
+    *bytes_ret = element_size * length;
 
   /* Now free the original `data' allocated by GDK.  */
   g_free (data);
 
   *data_ret = xdata;
   *actual_type_ret = GDK_NONE;
+  *actual_size_ret = length;
   *actual_format_ret = actual_format;
   *actual_type_ret = actual_type;
 }
@@ -1141,13 +1186,15 @@ pgtk_get_window_property_as_lisp_data (struct pgtk_display_info *dpyinfo,
 {
   GdkAtom actual_type;
   int actual_format;
-  void *data;
+  unsigned long actual_size;
+  unsigned char *data = 0;
   ptrdiff_t bytes = 0;
   Lisp_Object val;
   GdkDisplay *display = dpyinfo->display;
 
   pgtk_get_window_property (window, &data, &bytes,
-			    &actual_type, &actual_format);
+			    &actual_type, &actual_format,
+			    &actual_size);
 
   if (!data)
     {
@@ -1214,7 +1261,7 @@ pgtk_get_window_property_as_lisp_data (struct pgtk_display_info *dpyinfo,
 
 static Lisp_Object
 selection_data_to_lisp_data (struct pgtk_display_info *dpyinfo,
-			     void const *data,
+			     const unsigned char *data,
 			     ptrdiff_t size, GdkAtom type, int format)
 {
   if (type == gdk_atom_intern_static_string ("NULL"))
@@ -1224,7 +1271,7 @@ selection_data_to_lisp_data (struct pgtk_display_info *dpyinfo,
     {
       Lisp_Object str, lispy_type;
 
-      str = make_unibyte_string (data, size);
+      str = make_unibyte_string ((char *) data, size);
       /* Indicate that this string is from foreign selection by a text
 	 property `foreign-selection' so that the caller of
 	 x-get-selection-internal (usually x-get-selection) can know
@@ -1247,7 +1294,8 @@ selection_data_to_lisp_data (struct pgtk_display_info *dpyinfo,
 	       /* Treat ATOM_PAIR type similar to list of atoms.  */
 	       || type == gdk_atom_intern_static_string ("ATOM_PAIR")))
     {
-      GdkAtom const *idata = data;
+      ptrdiff_t i;
+      GdkAtom *idata = (GdkAtom *) data;
 
       if (size == sizeof (GdkAtom))
 	return gdk_atom_to_symbol (idata[0]);
@@ -1255,7 +1303,7 @@ selection_data_to_lisp_data (struct pgtk_display_info *dpyinfo,
 	{
 	  Lisp_Object v = make_nil_vector (size / sizeof (GdkAtom));
 
-	  for (ptrdiff_t i = 0; i < size / sizeof (GdkAtom); i++)
+	  for (i = 0; i < size / sizeof (GdkAtom); i++)
 	    ASET (v, i, gdk_atom_to_symbol (idata[i]));
 	  return v;
 	}
@@ -1287,11 +1335,12 @@ selection_data_to_lisp_data (struct pgtk_display_info *dpyinfo,
    */
   else if (format == 16)
     {
+      ptrdiff_t i;
       Lisp_Object v = make_uninit_vector (size / 2);
 
       if (type == GDK_SELECTION_TYPE_INTEGER)
         {
-          for (ptrdiff_t i = 0; i < size / 2; i++)
+          for (i = 0; i < size / 2; i++)
             {
               short j = ((short *) data) [i];
               ASET (v, i, make_fixnum (j));
@@ -1299,7 +1348,7 @@ selection_data_to_lisp_data (struct pgtk_display_info *dpyinfo,
         }
       else
         {
-          for (ptrdiff_t i = 0; i < size / 2; i++)
+          for (i = 0; i < size / 2; i++)
             {
 	      unsigned short j = ((unsigned short *) data) [i];
               ASET (v, i, make_fixnum (j));
@@ -1309,11 +1358,12 @@ selection_data_to_lisp_data (struct pgtk_display_info *dpyinfo,
     }
   else
     {
+      ptrdiff_t i;
       Lisp_Object v = make_nil_vector (size / sizeof (gint));
 
       if (type == GDK_SELECTION_TYPE_INTEGER)
         {
-          for (ptrdiff_t i = 0; i < size / sizeof (gint); i++)
+          for (i = 0; i < size / sizeof (gint); i++)
             {
               int j = ((gint *) data) [i];
               ASET (v, i, INT_TO_INTEGER (j));
@@ -1321,7 +1371,7 @@ selection_data_to_lisp_data (struct pgtk_display_info *dpyinfo,
         }
       else
         {
-          for (ptrdiff_t i = 0; i < size / sizeof (gint); i++)
+          for (i = 0; i < size / sizeof (gint); i++)
             {
 	      unsigned int j = ((unsigned int *) data) [i];
               ASET (v, i, INT_TO_INTEGER (j));
@@ -1428,6 +1478,7 @@ lisp_data_to_selection_data (struct pgtk_display_info *dpyinfo,
 	 a set of 16 or 32 bit INTEGERs;
 	 or a set of ATOM_PAIRs (represented as [[A1 A2] [A3 A4] ...]
        */
+      ptrdiff_t i;
       ptrdiff_t size = ASIZE (obj);
 
       if (SYMBOLP (AREF (obj, 0)))
@@ -1436,7 +1487,7 @@ lisp_data_to_selection_data (struct pgtk_display_info *dpyinfo,
 	  void *data;
 	  GdkAtom *x_atoms;
 	  if (NILP (type)) type = QATOM;
-	  for (ptrdiff_t i = 0; i < size; i++)
+	  for (i = 0; i < size; i++)
 	    if (!SYMBOLP (AREF (obj, i)))
 	      signal_error ("All elements of selection vector must have same type", obj);
 
@@ -1444,7 +1495,7 @@ lisp_data_to_selection_data (struct pgtk_display_info *dpyinfo,
 	  x_atoms = data;
 	  cs->format = 32;
 	  cs->size = size;
-	  for (ptrdiff_t i = 0; i < size; i++)
+	  for (i = 0; i < size; i++)
 	    x_atoms[i] = symbol_to_gdk_atom (AREF (obj, i));
 	}
       else
@@ -1456,7 +1507,7 @@ lisp_data_to_selection_data (struct pgtk_display_info *dpyinfo,
 	  unsigned long *x_atoms;
 	  short *shorts;
 	  if (NILP (type)) type = QINTEGER;
-	  for (ptrdiff_t i = 0; i < size; i++)
+	  for (i = 0; i < size; i++)
 	    {
 	      if (! RANGED_FIXNUMP (SHRT_MIN, AREF (obj, i), SHRT_MAX))
 		{
@@ -1473,7 +1524,7 @@ lisp_data_to_selection_data (struct pgtk_display_info *dpyinfo,
 	  shorts = data;
 	  cs->format = format;
 	  cs->size = size;
-	  for (ptrdiff_t i = 0; i < size; i++)
+	  for (i = 0; i < size; i++)
 	    {
 	      if (format == 32)
 		x_atoms[i] = cons_to_gdk_long (AREF (obj, i));
@@ -1509,11 +1560,13 @@ clean_local_selection_data (Lisp_Object obj)
     }
   if (VECTORP (obj))
     {
+      ptrdiff_t i;
       ptrdiff_t size = ASIZE (obj);
+      Lisp_Object copy;
       if (size == 1)
 	return clean_local_selection_data (AREF (obj, 0));
-      Lisp_Object copy = make_nil_vector (size);
-      for (ptrdiff_t i = 0; i < size; i++)
+      copy = make_nil_vector (size);
+      for (i = 0; i < size; i++)
 	ASET (copy, i, clean_local_selection_data (AREF (obj, i)));
       return copy;
     }
