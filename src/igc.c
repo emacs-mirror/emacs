@@ -3890,10 +3890,6 @@ buffer_it_next (struct igc_buffer_it *it)
 static bool
 arena_step (void)
 {
-  /* mps_arena_step does not guarantee to return swiftly.  And it seems
-     that it sometimes does an opportunistic full collection alleging
-     the client predicted lots of idle time.  But it doesn't tell how
-     it comes to that conclusion.  */
   if (!FIXNUMP (Vigc_step_interval)
       || XFIXNUM (Vigc_step_interval) != 0)
     {
@@ -3905,7 +3901,9 @@ arena_step (void)
 	    interval = 0.05;
 	}
 
-      if (mps_arena_step (global_igc->arena, interval, 0))
+      /* 1.0 is the lowest possible value for the third argument to
+	 mps_arena_step (bug#76505).  */
+      if (mps_arena_step (global_igc->arena, interval, 1.0))
 	return true;
     }
 
