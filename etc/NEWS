@@ -200,6 +200,11 @@ deleted implicitly by functions like 'kill-buffer', 'bury-buffer' and
 'quit-restore-window'.
 
 +++
+*** New user option 'quit-window-kill-buffer'.
+This option specifies whether 'quit-window' should preferably kill or
+bury the buffer shown by the window to quit.
+
++++
 *** New user option 'kill-buffer-quit-windows'.
 This option has 'kill-buffer' call 'quit-restore-window' to handle the
 further destiny of any window showing the buffer to be killed.

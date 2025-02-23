@@ -4953,11 +4953,26 @@ instead of burying it.
 
 @vindex quit-window-hook
 The function @code{quit-window} first runs @code{quit-window-hook}.
-Then it calls the function @code{quit-restore-window}, described next,
+Then it calls the function @code{quit-restore-window}, described below,
 which does the hard work.
 @end deffn
 
-You can get more control by calling @code{quit-restore-window} instead.
+The following option tells @code{quit-window} whether it should
+preferably kill or bury @var{window}'s buffer.
+
+@defopt quit-window-kill-buffer
+If this is @code{nil} and @var{kill} is @code{nil}, @code{quit-window}
+will bury @var{window}'s buffer.  If this is @code{t},
+@code{quit-window} will try to kill @var{window}'s buffer.  Otherwise,
+this should be a list of major modes.  @code{quit-window} will kill the
+buffer of @var{window} regardless of the value of @var{kill} if that
+buffer's major mode is either a member of this list or is derived from a
+member of this list.  In any other case, @code{quit-window} will kill
+the buffer only if @var{kill} is non-@code{nil} and bury it otherwise.
+@end defopt
+
+You can get more control by calling @code{quit-restore-window} instead
+of @code{quit-window}.
 
 @defun quit-restore-window &optional window bury-or-kill
 This function handles @var{window} and its buffer after quitting.  The
