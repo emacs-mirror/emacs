@@ -683,17 +683,17 @@ This function returns @var{number-or-marker} minus 1.
 
 @defmac incf place &optional delta
 This macro increments the number stored in @var{place} by one, or
-by @var{delta} if specified.  The incremented value is returned.
+by @var{delta} if specified.  It returns the incremented value.
 
-@var{place} can be a symbol or a generalized variable, @xref{Generalized
-Variables}.  For example, @code{(incf i)} is equivalent to
-@code{(setq i (1+ i))}, and @code{(incf (car x) 2)} is equivalent to
-@code{(setcar x (+ (car x) 2))}.
+@var{place} can be a symbol or a generalized variable,
+@pxref{Generalized Variables}.  For example, @w{@samp{(incf i)}} is
+equivalent to @w{@samp{(setq i (1+ i))}}, and @w{@samp{(incf (car x)
+2)}} is equivalent to @w{@samp{(setcar x (+ (car x) 2))}}.
 @end defmac
 
 @defmac decf place &optional delta
 This macro decrements the number stored in @var{place} by one, or
-by @var{delta} if specified.  The decremented value is returned.
+by @var{delta} if specified.  It returns the decremented value.
 @end defmac
 
 @defun + &rest numbers-or-markers

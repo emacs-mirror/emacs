@@ -1363,7 +1363,7 @@ change it globally with:
     (set-default-toplevel-value 'lexical-binding t)
 
 +++
-*** New functions 'incf' and 'decf'.
+*** New macros 'incf' and 'decf'.
 They increment or decrement the value stored in a variable (a symbol),
 or in a generalized variable.
 
