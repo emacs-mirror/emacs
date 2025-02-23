@@ -175,6 +175,21 @@
     (should (string= (buffer-string) "éä\"ba÷"))
     (should (equal (transpose-test-get-byte-positions 7) '(1 3 5 6 7 8 10)))))
 
+(ert-deftest editfns-tests--transpose-equal-but-not ()
+  (with-temp-buffer
+    (let ((str1 (propertize "ab" 'my-prop 'ab))
+          (str2 (propertize "SPC" 'my-prop 'SPC))
+          (str3 (propertize "é" 'my-prop 'é)))
+      (insert " " str1 str2 str3 " ")
+      (transpose-regions (+ (point-min) 1) (+ (point-min) 3)
+                         (+ (point-min) 6) (+ (point-min) 7))
+      (should (equal-including-properties
+               str3 (buffer-substring (+ (point-min) 1) (+ (point-min) 2))))
+      (should (equal-including-properties
+               str2 (buffer-substring (+ (point-min) 2) (+ (point-min) 5))))
+      (should (equal-including-properties
+               str1 (buffer-substring (+ (point-min) 5) (+ (point-min) 7)))))))
+
 (ert-deftest format-c-float ()
   (should-error (format "%c" 0.5)))
 

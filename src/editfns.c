@@ -4423,7 +4423,7 @@ ring.  */)
   ptrdiff_t gap, len1, len_mid, len2;
   unsigned char *start1_addr, *start2_addr, *temp;
 
-  INTERVAL cur_intv, tmp_interval1, tmp_interval_mid, tmp_interval2, tmp_interval3;
+  INTERVAL cur_intv, tmp_interval1, tmp_interval2, tmp_interval3;
   Lisp_Object buf;
 
   XSETBUFFER (buf, current_buffer);
@@ -4494,7 +4494,8 @@ ring.  */)
     }
 
   start2_byte = CHAR_TO_BYTE (start2);
-  len1_byte = CHAR_TO_BYTE (end1) - start1_byte;
+  ptrdiff_t end1_byte = CHAR_TO_BYTE (end1);
+  len1_byte = end1_byte - start1_byte;
   len2_byte = end2_byte - start2_byte;
 
 #ifdef BYTE_COMBINING_DEBUG
@@ -4526,168 +4527,87 @@ ring.  */)
      enough to use as the temporary storage?  That would avoid an
      allocation... interesting.  Later, don't fool with it now.  */
 
-  if (end1 == start2)		/* adjacent regions */
+  modify_text (start1, end2);
+  tmp_interval1 = copy_intervals (cur_intv, start1, len1);
+  tmp_interval2 = copy_intervals (cur_intv, start2, len2);
+  USE_SAFE_ALLOCA;
+  if (len1_byte == len2_byte && len1 == len2)
+    /* Regions are same size, though, how nice.  */
+    /* The char lengths also have to match, for text-properties.  */
     {
-      modify_text (start1, end2);
-      record_change (start1, len1 + len2);
+      if (end1 == start2)	/* Merge the two parts into a single one.  */
+	record_change (start1, (end2 - start1));
+      else
+	{
+	  record_change (start1, len1);
+	  record_change (start2, len2);
+	}
 
-      tmp_interval1 = copy_intervals (cur_intv, start1, len1);
-      tmp_interval2 = copy_intervals (cur_intv, start2, len2);
-      /* Don't use Fset_text_properties: that can cause GC, which can
-	 clobber objects stored in the tmp_intervals.  */
+      tmp_interval3 = validate_interval_range (buf, &startr1, &endr1, 0);
+      if (tmp_interval3)
+	set_text_properties_1 (startr1, endr1, Qnil, buf, tmp_interval3);
+
+      tmp_interval3 = validate_interval_range (buf, &startr2, &endr2, 0);
+      if (tmp_interval3)
+	set_text_properties_1 (startr2, endr2, Qnil, buf, tmp_interval3);
+
+      temp = SAFE_ALLOCA (len1_byte);
+      start1_addr = BYTE_POS_ADDR (start1_byte);
+      start2_addr = BYTE_POS_ADDR (start2_byte);
+      memcpy (temp, start1_addr, len1_byte);
+      memcpy (start1_addr, start2_addr, len2_byte);
+      memcpy (start2_addr, temp, len1_byte);
+    }
+  else
+    {
+      len_mid = start2_byte - end1_byte;
+      record_change (start1, (end2 - start1));
+      INTERVAL tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
       tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
       if (tmp_interval3)
 	set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
-
-      USE_SAFE_ALLOCA;
-
-      /* First region smaller than second.  */
-      if (len1_byte < len2_byte)
-        {
-	  temp = SAFE_ALLOCA (len2_byte);
-
-	  /* Don't precompute these addresses.  We have to compute them
-	     at the last minute, because the relocating allocator might
-	     have moved the buffer around during the xmalloc.  */
-	  start1_addr = BYTE_POS_ADDR (start1_byte);
-	  start2_addr = BYTE_POS_ADDR (start2_byte);
-
-          memcpy (temp, start2_addr, len2_byte);
-          memcpy (start1_addr + len2_byte, start1_addr, len1_byte);
-          memcpy (start1_addr, temp, len2_byte);
-        }
-      else
-	/* First region not smaller than second.  */
-        {
-	  temp = SAFE_ALLOCA (len1_byte);
-	  start1_addr = BYTE_POS_ADDR (start1_byte);
-	  start2_addr = BYTE_POS_ADDR (start2_byte);
-          memcpy (temp, start1_addr, len1_byte);
-          memcpy (start1_addr, start2_addr, len2_byte);
-          memcpy (start1_addr + len2_byte, temp, len1_byte);
-        }
-
-      SAFE_FREE ();
-      graft_intervals_into_buffer (tmp_interval1, start1 + len2,
-                                   len1, current_buffer, 0);
-      graft_intervals_into_buffer (tmp_interval2, start1,
-                                   len2, current_buffer, 0);
-      update_compositions (start1, start1 + len2, CHECK_BORDER);
-      update_compositions (start1 + len2, end2, CHECK_TAIL);
-    }
-  /* Non-adjacent regions, because end1 != start2, bleagh...  */
-  else
-    {
-      len_mid = start2_byte - (start1_byte + len1_byte);
-
-      if (len1_byte == len2_byte)
-	/* Regions are same size, though, how nice.  */
-        {
-	  USE_SAFE_ALLOCA;
-
-          modify_text (start1, end2);
-          record_change (start1, len1);
-          record_change (start2, len2);
-          tmp_interval1 = copy_intervals (cur_intv, start1, len1);
-          tmp_interval2 = copy_intervals (cur_intv, start2, len2);
-
-	  tmp_interval3 = validate_interval_range (buf, &startr1, &endr1, 0);
-	  if (tmp_interval3)
-	    set_text_properties_1 (startr1, endr1, Qnil, buf, tmp_interval3);
-
-	  tmp_interval3 = validate_interval_range (buf, &startr2, &endr2, 0);
-	  if (tmp_interval3)
-	    set_text_properties_1 (startr2, endr2, Qnil, buf, tmp_interval3);
-
-	  temp = SAFE_ALLOCA (len1_byte);
-	  start1_addr = BYTE_POS_ADDR (start1_byte);
-	  start2_addr = BYTE_POS_ADDR (start2_byte);
-          memcpy (temp, start1_addr, len1_byte);
-          memcpy (start1_addr, start2_addr, len2_byte);
-          memcpy (start2_addr, temp, len1_byte);
-	  SAFE_FREE ();
-
-          graft_intervals_into_buffer (tmp_interval1, start2,
-                                       len1, current_buffer, 0);
-          graft_intervals_into_buffer (tmp_interval2, start1,
-                                       len2, current_buffer, 0);
-        }
-
-      else if (len1_byte < len2_byte)	/* Second region larger than first */
-        /* Non-adjacent & unequal size, area between must also be shifted.  */
-        {
-	  USE_SAFE_ALLOCA;
-
-          modify_text (start1, end2);
-          record_change (start1, (end2 - start1));
-          tmp_interval1 = copy_intervals (cur_intv, start1, len1);
-          tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
-          tmp_interval2 = copy_intervals (cur_intv, start2, len2);
-
-	  tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
-	  if (tmp_interval3)
-	    set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
-
+      if (len1_byte < len2_byte)	/* Second region larger than first */
+	{
 	  /* holds region 2 */
 	  temp = SAFE_ALLOCA (len2_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
-          memcpy (temp, start2_addr, len2_byte);
-          memcpy (start1_addr + len_mid + len2_byte, start1_addr, len1_byte);
-          memmove (start1_addr + len2_byte, start1_addr + len1_byte, len_mid);
-          memcpy (start1_addr, temp, len2_byte);
-	  SAFE_FREE ();
-
-          graft_intervals_into_buffer (tmp_interval1, end2 - len1,
-                                       len1, current_buffer, 0);
-          graft_intervals_into_buffer (tmp_interval_mid, start1 + len2,
-                                       len_mid, current_buffer, 0);
-          graft_intervals_into_buffer (tmp_interval2, start1,
-                                       len2, current_buffer, 0);
-        }
+	  memcpy (temp, start2_addr, len2_byte);
+	  memcpy (start1_addr + len_mid + len2_byte, start1_addr, len1_byte);
+	  memmove (start1_addr + len2_byte, start1_addr + len1_byte, len_mid);
+	  memcpy (start1_addr, temp, len2_byte);
+	}
       else
 	/* Second region smaller than first.  */
-        {
-	  USE_SAFE_ALLOCA;
-
-          record_change (start1, (end2 - start1));
-          modify_text (start1, end2);
-
-          tmp_interval1 = copy_intervals (cur_intv, start1, len1);
-          tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
-          tmp_interval2 = copy_intervals (cur_intv, start2, len2);
-
-	  tmp_interval3 = validate_interval_range (buf, &startr1, &endr2, 0);
-	  if (tmp_interval3)
-	    set_text_properties_1 (startr1, endr2, Qnil, buf, tmp_interval3);
-
+	{
 	  /* holds region 1 */
 	  temp = SAFE_ALLOCA (len1_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
-          memcpy (temp, start1_addr, len1_byte);
-          memcpy (start1_addr, start2_addr, len2_byte);
-          memmove (start1_addr + len2_byte, start1_addr + len1_byte, len_mid);
-          memcpy (start1_addr + len2_byte + len_mid, temp, len1_byte);
-	  SAFE_FREE ();
-
-          graft_intervals_into_buffer (tmp_interval1, end2 - len1,
-                                       len1, current_buffer, 0);
-          graft_intervals_into_buffer (tmp_interval_mid, start1 + len2,
-                                       len_mid, current_buffer, 0);
-          graft_intervals_into_buffer (tmp_interval2, start1,
-                                       len2, current_buffer, 0);
-        }
-
-      update_compositions (start1, start1 + len2, CHECK_BORDER);
-      update_compositions (end2 - len1, end2, CHECK_BORDER);
+	  memcpy (temp, start1_addr, len1_byte);
+	  memcpy (start1_addr, start2_addr, len2_byte);
+	  memmove (start1_addr + len2_byte, start1_addr + len1_byte, len_mid);
+	  memcpy (start1_addr + len2_byte + len_mid, temp, len1_byte);
+	}
+      graft_intervals_into_buffer (tmp_interval_mid, start1 + len2,
+                                   len_mid, current_buffer, 0);
     }
+  SAFE_FREE ();
+  graft_intervals_into_buffer (tmp_interval1, end2 - len1,
+                               len1, current_buffer, 0);
+  graft_intervals_into_buffer (tmp_interval2, start1,
+                               len2, current_buffer, 0);
+
+  update_compositions (start1, start1 + len2, CHECK_BORDER);
+  update_compositions (end2 - len1, end2, CHECK_BORDER);
 
   /* When doing multiple transpositions, it might be nice
      to optimize this.  Perhaps the markers in any one buffer
      should be organized in some sorted data tree.  */
   if (NILP (leave_markers))
     {
+      /* FIXME: Since the undo info doesn't record the transposition as its own
+	 operation, we won't enjoy 'transpose_markers' during undo :-(  */
       transpose_markers (start1, end1, start2, end2,
 			 start1_byte, start1_byte + len1_byte,
 			 start2_byte, start2_byte + len2_byte);
