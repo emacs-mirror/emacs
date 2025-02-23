@@ -1205,14 +1205,14 @@ for new groups, and subscribe the new groups as zombies."
 	     (let ((do-sub (gnus-matches-options-n g-name)))
 	       (cond
 		((eq do-sub 'subscribe)
-		 (cl-incf groups)
+                 (incf groups)
 		 (puthash g-name nil gnus-killed-hashtb) ;; group
 		 (gnus-call-subscribe-functions
 		  gnus-subscribe-options-newsgroup-method g-name))
 		((eq do-sub 'ignore)
 		 nil)
 		(t
-		 (cl-incf groups)
+                 (incf groups)
 		 (puthash g-name nil gnus-killed-hashtb) ;; group
 		 (if gnus-subscribe-hierarchical-interactive
 		     (push g-name new-newsgroups)
@@ -1765,7 +1765,7 @@ backend check whether the group actually exists."
 	(cl-dolist (smethod gnus-secondary-select-methods)
 	  (when (equal method smethod)
 	    (cl-return i))
-	  (cl-incf i))
+          (incf i))
 	i)))
    ;; Just say that all foreign groups have the same rank.
    (t

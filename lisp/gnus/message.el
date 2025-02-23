@@ -2645,7 +2645,7 @@ Return the number of headers removed."
 		   (looking-at "[!-9;-~]+:"))
 	    (looking-at regexp))
 	  (progn
-	    (cl-incf number)
+            (incf number)
 	    (when first
 	      (setq last t))
 	    (delete-region
@@ -2670,7 +2670,7 @@ Return the number of headers removed."
     (save-excursion
       (goto-char (point-min))
       (while (re-search-forward regexp nil t)
-	(cl-incf count)))
+        (incf count)))
     (while (> count 1)
       (message-remove-header header nil t)
       (decf count))))
@@ -3881,7 +3881,7 @@ text was killed."
   "Create a rot table with offset N."
   (let ((i -1)
 	(table (make-string 256 0)))
-    (while (< (cl-incf i) 256)
+    (while (< (incf i) 256)
       (aset table i i))
     (concat
      (substring table 0 ?A)

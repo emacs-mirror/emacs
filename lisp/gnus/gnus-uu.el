@@ -2058,7 +2058,7 @@ If no file has been included, the user will be asked for a file."
       (setq length (count-lines (point-min) (point-max)))
       (setq parts (/ length gnus-uu-post-length))
       (unless (< (% length gnus-uu-post-length) 4)
-	(cl-incf parts)))
+        (incf parts)))
 
     (when gnus-uu-post-separate-description
       (forward-line -1))
@@ -2117,7 +2117,7 @@ If no file has been included, the user will be asked for a file."
 	(insert-buffer-substring uubuf beg end)
 	(insert beg-line "\n")
 	(setq beg end)
-	(cl-incf i)
+        (incf i)
 	(goto-char (point-min))
 	(re-search-forward
 	 (concat "^" (regexp-quote mail-header-separator) "$") nil t)

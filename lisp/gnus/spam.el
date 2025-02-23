@@ -1750,7 +1750,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
           ;; eliminate duplicates
           (dolist (article (copy-sequence ulist))
             (when (memq article rlist)
-              (cl-incf delcount)
+              (incf delcount)
               (setq rlist (delq article rlist))
               (setq ulist (delq article ulist))))
 

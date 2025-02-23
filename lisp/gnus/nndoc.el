@@ -786,7 +786,7 @@ from the document.")
       (setq blk (nndoc-oe-dbx-decode-block)))
     (while (and blk (> (car blk) 0) (or (zerop (nth 3 blk))
 					(> (nth 3 blk) p)))
-      (push (list (cl-incf i) p nil nil nil 0) nndoc-dissection-alist)
+      (push (list (incf i) p nil nil nil 0) nndoc-dissection-alist)
       (while (and (> (car blk) 0) (> (nth 3 blk) p))
 	(goto-char (1+ (nth 3 blk)))
 	(setq blk (nndoc-oe-dbx-decode-block)))
@@ -925,7 +925,7 @@ from the document.")
 		    (and (re-search-backward nndoc-file-end nil t)
 			 (beginning-of-line)))))
 	    (setq body-end (point))
-	    (push (list (cl-incf i) head-begin head-end body-begin body-end
+            (push (list (incf i) head-begin head-end body-begin body-end
 			(count-lines body-begin body-end))
 		  nndoc-dissection-alist)))))
     (setq nndoc-dissection-alist (nreverse nndoc-dissection-alist))))
@@ -1038,7 +1038,7 @@ PARENT is the message-ID of the parent summary line, or nil for none."
 		  (replace-match line t t summary-insert)
 		(concat summary-insert line)))))
     ;; Generate dissection information for this entity.
-    (push (list (cl-incf nndoc-mime-split-ordinal)
+    (push (list (incf nndoc-mime-split-ordinal)
 		head-begin head-end body-begin body-end
 		(count-lines body-begin body-end)
 		article-insert summary-insert)
@@ -1076,7 +1076,7 @@ PARENT is the message-ID of the parent summary line, or nil for none."
 	       part-begin part-end article-insert
 	       (concat position
 		       (and position ".")
-		       (format "%d" (cl-incf part-counter)))
+                       (format "%d" (incf part-counter)))
 	       message-id)))))))))
 
 ;;;###autoload

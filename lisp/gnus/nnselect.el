@@ -736,7 +736,7 @@ group info."
                    (push (1+ seq) old-arts)
                  (setq gnus-newsgroup-selection
                        (vconcat gnus-newsgroup-selection (vector article)))
-                 (cl-incf last)))
+                 (incf last)))
              (gnus-search-run-query
               (list (cons 'search-query-spec query-spec)
                     (cons 'search-group-spec group-spec))))

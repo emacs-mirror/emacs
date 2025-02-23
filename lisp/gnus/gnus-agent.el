@@ -2166,7 +2166,7 @@ method's subscribed groups."
 	     'gnus-agent-file-loading-local
 	     #'gnus-agent-read-and-cache-local))
       (when gnus-agent-article-local-times
-	(cl-incf gnus-agent-article-local-times)))
+        (incf gnus-agent-article-local-times)))
     gnus-agent-article-local))
 
 (defun gnus-agent-read-and-cache-local (file)
@@ -3343,9 +3343,9 @@ missing NOV entry.  Run gnus-agent-regenerate-group to restore it.")))
 							       article-number)))
 			      (size (float (file-attribute-size
 					    (file-attributes file-name)))))
-			 (cl-incf bytes-freed size)
-			 (cl-incf size-files-deleted size)
-			 (cl-incf files-deleted)
+                         (incf bytes-freed size)
+                         (incf size-files-deleted size)
+                         (incf files-deleted)
 			 (delete-file file-name))
 		       (push "expired cached article" actions))
 		     (setf (nth 1 entry) nil)
@@ -3358,13 +3358,13 @@ missing NOV entry.  Run gnus-agent-regenerate-group to restore it.")))
 				    marker
 				  (- marker position-offset)))
 
-		     (cl-incf nov-entries-deleted)
+                     (incf nov-entries-deleted)
 
                      (let* ((from (line-beginning-position))
 			    (to (progn (forward-line 1) (point)))
 			    (freed (- to from)))
-		       (cl-incf bytes-freed freed)
-		       (cl-incf position-offset freed)
+                       (incf bytes-freed freed)
+                       (incf position-offset freed)
 		       (delete-region from to)))
 
 		   ;; If considering all articles is set, I can only
@@ -3421,9 +3421,9 @@ expiration tests failed." group article-number)
 
 	 (when (boundp 'gnus-agent-expire-stats)
 	   (let ((stats gnus-agent-expire-stats))
-	     (cl-incf (nth 2 stats) bytes-freed)
-	     (cl-incf (nth 1 stats) files-deleted)
-	     (cl-incf (nth 0 stats) nov-entries-deleted)))
+             (incf (nth 2 stats) bytes-freed)
+             (incf (nth 1 stats) files-deleted)
+             (incf (nth 0 stats) nov-entries-deleted)))
 
 	 (gnus-agent-update-files-total-fetched-for group (- size-files-deleted)))))))
 
@@ -4076,25 +4076,25 @@ CLEAN is obsolete and ignored."
 	       (let ((sum 0.0)
 		     file)
 		 (while (setq file (pop delta))
-		   (cl-incf sum (float (or (file-attribute-size
-					    (file-attributes
-					     (nnheader-concat
-					      path
-					      (if (numberp file)
-						  (number-to-string file)
-						file))))
-					   0))))
+                   (incf sum (float (or (file-attribute-size
+                                         (file-attributes
+                                          (nnheader-concat
+                                           path
+                                           (if (numberp file)
+                                               (number-to-string file)
+                                             file))))
+                                        0))))
 		 (setq delta sum))
 	     (let ((sum (- (nth 2 entry)))
 		   (info (directory-files-and-attributes
 			  path nil "\\`-?[0-9]+\\'" t))
 		   file)
 	       (while (setq file (pop info))
-		 (cl-incf sum (float (or (file-attribute-size (cdr file)) 0))))
+                 (incf sum (float (or (file-attribute-size (cdr file)) 0))))
 	       (setq delta sum))))
 
 	 (setq gnus-agent-need-update-total-fetched-for t)
-	 (cl-incf (nth 2 entry) delta))))))
+         (incf (nth 2 entry) delta))))))
 
 (defun gnus-agent-update-view-total-fetched-for
     (group agent-over &optional method path)

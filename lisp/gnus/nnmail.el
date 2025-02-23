@@ -790,7 +790,7 @@ If SOURCE is a directory spec, try to return the group name component."
 	  (narrow-to-region start (point))
 	  (goto-char (point-min))
 	  (nnmail-check-duplication message-id func artnum-func)
-	  (cl-incf count)
+          (incf count)
 	  (setq end (point-max))))
       (goto-char end))
     count))
@@ -936,7 +936,7 @@ If SOURCE is a directory spec, try to return the group name component."
 	  (save-restriction
 	    (narrow-to-region start (point))
 	    (goto-char (point-min))
-	    (cl-incf count)
+            (incf count)
 	    (nnmail-check-duplication message-id func artnum-func)
 	    (setq end (point-max))))
 	(goto-char end)))
@@ -989,7 +989,7 @@ If SOURCE is a directory spec, try to return the group name component."
 	  (save-restriction
 	    (narrow-to-region start (point))
 	    (goto-char (point-min))
-	    (cl-incf count)
+            (incf count)
 	    (nnmail-check-duplication message-id func artnum-func junk-func)
 	    (setq end (point-max))))
 	(goto-char end)
@@ -1848,8 +1848,8 @@ be called once per group or once for all groups."
 		      ((error quit)
 		       (message "Mail source %s failed: %s" source cond)
 		       0)))
-	  (cl-incf total new)
-	  (cl-incf i)))
+          (incf total new)
+          (incf i)))
       ;; If we did indeed read any incoming spools, we save all info.
       (if (zerop total)
 	  (when mail-source-plugged

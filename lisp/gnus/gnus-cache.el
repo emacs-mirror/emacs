@@ -833,11 +833,11 @@ supported."
 	   (while (setq file (pop files))
 	     (setq attrs (file-attributes file))
 	     (unless (file-attribute-type attrs)
-	       (cl-incf size (float (file-attribute-size attrs)))))))
+               (incf size (float (file-attribute-size attrs)))))))
 
        (setq gnus-cache-need-update-total-fetched-for t)
 
-       (cl-incf (nth 1 entry) (if subtract (- size) size))))))
+       (incf (nth 1 entry) (if subtract (- size) size))))))
 
 (defun gnus-cache-update-overview-total-fetched-for (group file)
   (when gnus-cache-total-fetched-hashtb

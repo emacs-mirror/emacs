@@ -3214,7 +3214,7 @@ The following commands are available:
   "Add OFFSET to the POS of all data entries in DATA."
   (setq gnus-newsgroup-data-reverse nil)
   (while data
-    (cl-incf (gnus-data-pos (car data)) offset)
+    (incf (gnus-data-pos (car data)) offset)
     (setq data (cdr data))))
 
 (defun gnus-summary-article-pseudo-p (article)
@@ -3841,7 +3841,7 @@ the thread are to be displayed."
 	    1)
 	   (t 0))))
     (when (and level (zerop level) gnus-tmp-new-adopts)
-      (cl-incf number
+      (incf number
 	    (apply #'+ (mapcar
 		        #'gnus-summary-number-of-articles-in-thread
 		        gnus-tmp-new-adopts))))
@@ -4458,7 +4458,7 @@ Returns HEADER if it was entered in the DEPENDENCIES.  Returns nil otherwise."
 	    (setq end (1+ (point)))
 	    (when (search-backward "<" nil t)
 	      (setq new-child (buffer-substring (point) end))
-	      (push (list (cl-incf generation)
+              (push (list (incf generation)
 			  child (setq child new-child)
 			  subject date)
 		    relations)))
@@ -5503,7 +5503,7 @@ or a straight list of headers."
 		      (nthcdr 1 thread))
 		stack))
 	(push (if (nth 1 thread) 1 0) tree-stack)
-	(cl-incf gnus-tmp-level)
+        (incf gnus-tmp-level)
 	(setq threads (if thread-end nil (cdar thread)))
 	(if gnus-summary-display-while-building
 	    (if building-count
@@ -8756,7 +8756,7 @@ If ALL, mark even excluded ticked and dormants as read."
   (let ((num 0))
     (while threads
       (when (memq (mail-header-number (caar threads)) gnus-newsgroup-limit)
-	(cl-incf num))
+        (incf num))
       (pop threads))
     (< num 2)))
 
@@ -8888,7 +8888,7 @@ fetch-old-headers verbiage, and so on."
 			  gnus-summary-expunge-below))
 	      ;; We increase the expunge-tally here, but that has
 	      ;; nothing to do with the limits, really.
-	      (cl-incf gnus-newsgroup-expunged-tally)
+              (incf gnus-newsgroup-expunged-tally)
 	      ;; We also mark as read here, if that's wanted.
 	      (when (and gnus-summary-mark-below
 			 (< score gnus-summary-mark-below))
@@ -8913,7 +8913,7 @@ fetch-old-headers verbiage, and so on."
 (defun gnus-expunge-thread (thread)
   "Mark all articles in THREAD as read."
   (let* ((number (mail-header-number (car thread))))
-    (cl-incf gnus-newsgroup-expunged-tally)
+    (incf gnus-newsgroup-expunged-tally)
     ;; We also mark as read here, if that's wanted.
     (setq gnus-newsgroup-unreads
 	  (delq number gnus-newsgroup-unreads))
@@ -8983,7 +8983,7 @@ Return the number of articles fetched."
 	(error "No References in the current article")
       ;; For each Message-ID in the References header...
       (while (string-match "<[^>]*>" ref)
-	(cl-incf n)
+        (incf n)
 	;; ... fetch that article.
 	(gnus-summary-refer-article
 	 (prog1 (match-string 0 ref)
@@ -11246,7 +11246,7 @@ If NO-EXPIRE, auto-expiry will be inhibited."
     (re-search-backward "[\n\r]" (line-beginning-position) 'move-to-limit)
     (when forward
       (when (looking-at "\r")
-	(cl-incf forward))
+        (incf forward))
       (when (<= (+ forward (point)) (point-max))
 	;; Go to the right position on the line.
 	(goto-char (+ forward (point)))
@@ -11825,7 +11825,7 @@ will not be hidden."
     (let ((end nil)
           (count 0))
       (while (not end)
-        (cl-incf count)
+        (incf count)
         (when (zerop (mod count 1000))
           (message "Hiding all threads... %d" count))
 	(when (or (not predicate)
@@ -12498,7 +12498,7 @@ If REVERSE, save parts that do not match TYPE."
 			      (cdr gnus-article-current)
 			      gnus-summary-save-parts-counter))))
 		   dir)))
-	(cl-incf gnus-summary-save-parts-counter)
+        (incf gnus-summary-save-parts-counter)
 	(unless (file-exists-p file)
 	  (mm-save-part-to-file handle file))))))
 

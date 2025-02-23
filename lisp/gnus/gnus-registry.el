@@ -1142,7 +1142,7 @@ non-nil."
            (expected (length old))
            entry)
       (while (car-safe old)
-        (cl-incf count)
+        (incf count)
         ;; todo: use progress reporters.
         (when (and (< 0 expected)
                    (= 0 (mod count 100)))

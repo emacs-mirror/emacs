@@ -283,7 +283,7 @@ that was fetched."
 	    ;; should check time-since-last-output, which
 	    ;; needs to be done in nntp.el.
 	    (while (eq article gnus-async-current-prefetch-article)
-	      (cl-incf tries)
+              (incf tries)
 	      (when (nntp-accept-process-output proc)
 		(setq tries 0))
 	      (when (and (not nntp-have-messaged)

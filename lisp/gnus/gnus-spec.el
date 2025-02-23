@@ -283,15 +283,15 @@ Return a list of updated types."
     ;; Find the start position.
     (while (and (< seek length)
 		(< wseek start))
-      (cl-incf wseek (char-width (aref string seek)))
-      (cl-incf seek))
+      (incf wseek (char-width (aref string seek)))
+      (incf seek))
     (setq wstart seek)
     ;; Find the end position.
     (while (and (<= seek length)
 		(or (not end)
 		    (<= wseek end)))
-      (cl-incf wseek (char-width (aref string seek)))
-      (cl-incf seek))
+      (incf wseek (char-width (aref string seek)))
+      (incf seek))
     (setq wend seek)
     (substring string wstart (1- wend))))
 
