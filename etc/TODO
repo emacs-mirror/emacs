@@ -222,6 +222,31 @@ https://lists.gnu.org/r/emacs-devel/2008-08/msg00456.html
 
 * Important features
 
+** Make it easier to contribute
+
+*** New script to catch common mistakes in patches.
+Examples of things to catch are missing or malformed ChangeLog, style
+issues in C, Lisp, and Texinfo, etc.  There is no need to be overly
+ambitious in a first draft, making a start is better than nothing.  It
+could draw inspiration from checkpatch.pl used by the Linux kernel.
+
+*** New make target or script to run tests for changed files.
+This might require some kind of data structure mapping a source file to
+the tests which exercise some of the code in that source file.  The
+first approximation is to run FOO-tests when you modify a file FOO, but
+some FOO's get used in many places in the test suite, so this is not a
+simple 1:1 relation.  Then we could ask contributors to run the relevant
+tests as part of the submission process.
+
+*** Automated emails to contributors when their commits make tests fail
+Having EMBA or something similar email the guilty parties in case of
+new test failures (or maybe even warnings) would be great.
+
+*** Automated testing of patches submitted to the bug tracker
+Create a bot that can run the above "check patch" script, and perhaps
+even run unit tests, for every patch submitted to the bug tracker, and
+then send an automated email with the results.  Can EMBA help with this?
+
 ** Speed up Elisp execution
 
 *** Speed up function calls
