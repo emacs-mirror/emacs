@@ -1561,7 +1561,7 @@ XPM-BUFFER defaults to \" *strokes-xpm*\"."
 		   ;; yet another of the same bit-type, so we continue
 		   ;; counting...
 		   (progn
-		     (cl-incf count)
+                     (incf count)
 		     (forward-char 1))
 		 ;; otherwise, it's the opposite bit-type, so we do a
 		 ;; write and then restart count ### NOTE (for myself

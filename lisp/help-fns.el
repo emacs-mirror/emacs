@@ -958,7 +958,7 @@ TYPE indicates the namespace and is `fun' or `var'."
 ;;           (let ((count 0))
 ;;             (obarray-map (lambda (sym)
 ;;                            (when (or (fboundp sym) (boundp sym))
-;;                              (cl-incf count)))
+;;                              (incf count)))
 ;;                          obarray)
 ;;             count))
 ;;          (p (make-progress-reporter "Check first releases..." 0 count)))
@@ -971,7 +971,7 @@ TYPE indicates the namespace and is `fun' or `var'."
 ;;             (obarray-map
 ;;              (lambda (sym)
 ;;                (when (or (fboundp sym) (boundp sym))
-;;                  (cl-incf count)
+;;                  (incf count)
 ;;                  (progress-reporter-update p count)
 ;;                  (let ((vt (progn (setq quoted t)
 ;;                                   (help-fns--first-release sym)))

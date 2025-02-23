@@ -1713,7 +1713,7 @@ LOUDLY, if non-nil, allows progress-meter bar."
     ;; Fontify each item in `font-lock-keywords' from `start' to `end'.
     (while keywords
       (if loudly (message "Fontifying %s... (regexps..%s)" bufname
-			  (make-string (cl-incf count) ?.)))
+                          (make-string (incf count) ?.)))
       ;;
       ;; Find an occurrence of `matcher' from `start' to `end'.
       (setq keyword (car keywords) matcher (car keyword))

@@ -381,7 +381,7 @@ In other words, \"undo\" changes in window configuration."
  	(setq winner-pending-undo-ring (winner-ring (selected-frame)))
  	(setq winner-undo-counter 0)
  	(setq winner-undone-data (list (winner-win-data))))
-      (cl-incf winner-undo-counter)	; starting at 1
+      (incf winner-undo-counter)	; starting at 1
       (when (and (winner-undo-this)
  		 (not (window-minibuffer-p)))
  	(message "Winner undo (%d / %d)"

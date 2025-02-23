@@ -155,7 +155,7 @@ the tail of the list."
 (let ((key ?a))
   (while (<= key ?z)
     (keymap-set decipher-mode-map (char-to-string key) #'decipher-keypress)
-    (cl-incf key)))
+    (incf key)))
 
 (defvar-keymap decipher-stats-mode-map
   :doc "Keymap for Decipher-Stats mode."
@@ -170,7 +170,7 @@ the tail of the list."
         (c ?0))
     (while (<= c ?9)
       (modify-syntax-entry c "_" table) ;Digits are not part of words
-      (cl-incf c))
+      (incf c))
     table)
   "Decipher mode syntax table.")
 
@@ -373,7 +373,7 @@ The most useful commands are:
   (if undo-rec
       (progn
         (push undo-rec decipher-undo-list)
-        (cl-incf decipher-undo-list-size)
+        (incf decipher-undo-list-size)
         (if (> decipher-undo-list-size decipher-undo-limit)
             (let ((new-size (- decipher-undo-limit 100)))
               ;; Truncate undo list to NEW-SIZE elements:
@@ -547,7 +547,7 @@ you have determined the keyword."
           (progn
             (while (rassoc cipher-char decipher-alphabet)
               ;; Find the next unused letter
-              (cl-incf cipher-char))
+              (incf cipher-char))
             (push (cons ?\s cipher-char) undo-rec)
             (decipher-set-map cipher-char (car plain-map) t))))
     (decipher-add-undo undo-rec)))
@@ -797,17 +797,17 @@ TOTAL is the total number of letters in the ciphertext."
   ;;     A vector of 26 integers, counting the number of occurrences
   ;;     of the corresponding characters.
   (setq decipher--digram (format "%c%c" decipher--prev-char decipher-char))
-  (cl-incf (cdr (or (assoc decipher--digram decipher--digram-list)
+  (incf (cdr (or (assoc decipher--digram decipher--digram-list)
                  (car (push (cons decipher--digram 0)
                             decipher--digram-list)))))
   (and (>= decipher--prev-char ?A)
-       (cl-incf (aref (aref decipher--before (- decipher--prev-char ?A))
+       (incf (aref (aref decipher--before (- decipher--prev-char ?A))
                    (if (equal decipher-char ?\s)
                        26
                      (- decipher-char ?A)))))
   (and (>= decipher-char ?A)
-       (cl-incf (aref decipher--freqs (- decipher-char ?A)))
-       (cl-incf (aref (aref decipher--after (- decipher-char ?A))
+       (incf (aref decipher--freqs (- decipher-char ?A)))
+       (incf (aref (aref decipher--after (- decipher-char ?A))
                    (if (equal decipher--prev-char ?\s)
                        26
                      (- decipher--prev-char ?A)))))
@@ -818,8 +818,8 @@ TOTAL is the total number of letters in the ciphertext."
   (let ((total 0))
     (concat
      (mapconcat (lambda (x)
-                  (cond ((> x 99) (cl-incf total) "XX")
-                        ((> x 0)  (cl-incf total) (format "%2d" x))
+                  (cond ((> x 99) (incf total) "XX")
+                        ((> x 0)  (incf total) (format "%2d" x))
                         (t        "  ")))
                 counts
                 "")
@@ -835,7 +835,7 @@ TOTAL is the total number of letters in the ciphertext."
     (while (>= (decf i) 0)
       (if (or (> (aref before-count i) 0)
               (> (aref after-count  i) 0))
-          (cl-incf total)))
+          (incf total)))
     total))
 
 (defun decipher-analyze-buffer ()

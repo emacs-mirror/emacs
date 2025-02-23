@@ -634,7 +634,7 @@ The songs are returned as alists."
                        (i 0))
                    (mapcar (lambda (s)
                              (prog1 (cons (cons 'Pos (number-to-string i)) s)
-                               (cl-incf i)))
+                               (incf i)))
                            l)))
                 ((eq tag 'Search)
                  (mpc-proc-buf-to-alists
@@ -870,7 +870,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                   (if (< song-pos dest-pos)
                       ;; This move has shifted dest-pos by 1.
                       (decf dest-pos))
-                  (cl-incf i)))
+                  (incf i)))
               ;; Sort them from last to first, so the renumbering
               ;; caused by the earlier deletions affect
               ;; later ones a bit less.
@@ -1420,12 +1420,12 @@ string POST."
           (while (and (zerop (forward-line 1))
                       (get-char-property (point) 'mpc-select))
             (setq end (1+ (point)))
-            (cl-incf after))
+            (incf after))
           (goto-char mid)
           (while (and (zerop (forward-line -1))
                       (get-char-property (point) 'mpc-select))
             (setq start (point))
-            (cl-incf before))
+            (incf before))
           (if (and (= after 0) (= before 0))
               ;; Shortening an already minimum-size region: do nothing.
               nil
@@ -1449,13 +1449,13 @@ string POST."
               (start (line-beginning-position)))
           (while (and (zerop (forward-line 1))
                       (not (get-char-property (point) 'mpc-select)))
-            (cl-incf count))
+            (incf count))
           (unless (get-char-property (point) 'mpc-select)
             (setq count nil))
           (goto-char start)
           (while (and (zerop (forward-line -1))
                       (not (get-char-property (point) 'mpc-select)))
-            (cl-incf before))
+            (incf before))
           (unless (get-char-property (point) 'mpc-select)
             (setq before nil))
           (when (and before (or (null count) (< before count)))
@@ -2063,7 +2063,7 @@ This is used so that they can be compared with `eq', which is needed for
                                                 (cdr (assq 'file song1))
                                                 (cdr (assq 'file song2)))))
                                       (and (integerp cmp) (< cmp 0)))))))
-              (cl-incf totaltime (string-to-number (or (cdr (assq 'Time song)) "0")))
+              (incf totaltime (string-to-number (or (cdr (assq 'Time song)) "0")))
               (mpc-format mpc-songs-format song)
               (delete-char (- (skip-chars-backward " "))) ;Remove trailing space.
               (insert "\n")
@@ -2305,12 +2305,12 @@ This is used so that they can be compared with `eq', which is needed for
     (dolist (song (car context))
       (and (zerop (forward-line -1))
            (eq (get-text-property (point) 'mpc-file) song)
-           (cl-incf count)))
+           (incf count)))
     (goto-char pos)
     (dolist (song (cdr context))
       (and (zerop (forward-line 1))
            (eq (get-text-property (point) 'mpc-file) song)
-           (cl-incf count)))
+           (incf count)))
     count))
 
 (defun mpc-songpointer-refresh-hairy ()
@@ -2351,7 +2351,7 @@ This is used so that they can be compared with `eq', which is needed for
                ((< score context-size) nil)
                (t
                 ;; Score is equal and increasing context might help: try it.
-                (cl-incf context-size)
+                (incf context-size)
                 (let ((new-context
                        (mpc-songpointer-context context-size plbuf)))
                   (if (null new-context)

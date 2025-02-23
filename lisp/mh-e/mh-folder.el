@@ -1472,7 +1472,7 @@ function doesn't recenter the folder buffer."
          (let ((lines-from-end 2))
            (save-excursion
              (while (> (point-max) (progn (forward-line) (point)))
-               (cl-incf lines-from-end)))
+               (incf lines-from-end)))
            (recenter (- lines-from-end))))
         ;; '(4) is the same as C-u prefix argument.
         (t (recenter (or arg '(4))))))

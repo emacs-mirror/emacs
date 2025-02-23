@@ -391,7 +391,7 @@ The returned list DOES NOT share structure with LIST."
 	(i 0))
     (while remain
       (push (pop remain) sublist)
-      (cl-incf i)
+      (incf i)
       (and (= i n)
 	   ;; We have finished a sublist
 	   (progn (push (nreverse sublist) result)

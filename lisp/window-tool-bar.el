@@ -234,10 +234,10 @@ This is for when you want more customizations than the command
                                   (propertize " " 'invisible t))))
              (mem2 (memory-use-counts)))
         (cl-mapl (lambda (l-init l0 l1)
-                   (cl-incf (car l-init) (- (car l1) (car l0))))
+                   (incf (car l-init) (- (car l1) (car l0))))
                  window-tool-bar--memory-use-delta-step1 mem0 mem1)
         (cl-mapl (lambda (l-init l1 l2)
-                   (cl-incf (car l-init) (- (car l2) (car l1))))
+                   (incf (car l-init) (- (car l2) (car l1))))
                  window-tool-bar--memory-use-delta-step2 mem1 mem2)
 
         (setf window-tool-bar-string--cache
@@ -251,8 +251,8 @@ This is for when you want more customizations than the command
                      '(:box (line-width 1)))
                     (propertize " " 'display '(space :width (1))))
                result))
-        (cl-incf window-tool-bar--refresh-done-count))
-    (cl-incf window-tool-bar--refresh-skipped-count))
+        (incf window-tool-bar--refresh-done-count))
+    (incf window-tool-bar--refresh-skipped-count))
 
   window-tool-bar-string--cache)
 

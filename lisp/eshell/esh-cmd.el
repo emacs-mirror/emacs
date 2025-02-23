@@ -542,7 +542,7 @@ If ARGS is not a sequence, treat it as a list of one element."
         (cl-assert (and i end))
         (while (< i end)
           (iter-yield i)
-          (cl-incf i))))
+          (incf i))))
      ((stringp arg)
       (iter-yield arg))
      ((listp arg)

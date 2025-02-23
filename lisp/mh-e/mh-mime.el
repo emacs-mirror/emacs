@@ -750,7 +750,7 @@ buttons need to be displayed multiple times (for instance when
 nested messages are opened)."
   (or (gethash handle (mh-mime-part-index-hash (mh-buffer-data)))
       (setf (gethash handle (mh-mime-part-index-hash (mh-buffer-data)))
-            (cl-incf (mh-mime-parts-count (mh-buffer-data))))))
+            (incf (mh-mime-parts-count (mh-buffer-data))))))
 
 (defun mh-small-image-p (handle)
   "Decide whether HANDLE is a \"small\" image that can be displayed inline.

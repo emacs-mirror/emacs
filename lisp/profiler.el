@@ -240,7 +240,7 @@ Optional argument MODE means only check for the specified mode (cpu or mem)."
 (defun profiler-calltree-depth (tree)
   (let ((d 0))
     (while (setq tree (profiler-calltree-parent tree))
-      (cl-incf d))
+      (incf d))
     d))
 
 (defun profiler-calltree-find (tree entry)
@@ -274,7 +274,7 @@ Optional argument MODE means only check for the specified mode (cpu or mem)."
                  (setq child (profiler-make-calltree
                               :entry entry :parent node))
                  (push child (profiler-calltree-children node)))
-               (cl-incf (profiler-calltree-count child) count)
+               (incf (profiler-calltree-count child) count)
                (setq node child)))))))
    log))
 
@@ -367,7 +367,7 @@ Optional argument MODE means only check for the specified mode (cpu or mem)."
            (push tmp parents)
            (setq tmp (cdr tmp)))
          (when (aref (cdar parents) (1- max))
-           (cl-incf (profiler-calltree-count leftover-tree) count)
+           (incf (profiler-calltree-count leftover-tree) count)
            (setq node leftover-tree))
          (pcase-dolist (`(,i . ,parent) parents)
            (let ((j (1- max)))
@@ -380,7 +380,7 @@ Optional argument MODE means only check for the specified mode (cpu or mem)."
                        (setq child (profiler-make-calltree
                                     :entry f :parent node))
                        (push child (profiler-calltree-children node)))
-                     (cl-incf (profiler-calltree-count child) count)
+                     (incf (profiler-calltree-count child) count)
                      (setq node child)))))))))
      log)))
 
@@ -388,7 +388,7 @@ Optional argument MODE means only check for the specified mode (cpu or mem)."
   (let ((total-count 0))
     ;; FIXME: the memory profiler's total wraps around all too easily!
     (dolist (child (profiler-calltree-children tree))
-      (cl-incf total-count (profiler-calltree-count child)))
+      (incf total-count (profiler-calltree-count child)))
     (unless (zerop total-count)
       (profiler-calltree-walk
        tree (lambda (node)

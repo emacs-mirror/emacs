@@ -112,7 +112,7 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
 				  s))))
 		    (key (nth 5 fields))
 		    (val (nth 6 fields)))
-		(cl-incf n)
+                (incf n)
 		;;(message "adding <%s>=<%s> exp=<%s> dom=<%s> path=<%s> sec=%S" key val expires dom path secure)
 		(url-cookie-store key val expires dom path secure)
 		))

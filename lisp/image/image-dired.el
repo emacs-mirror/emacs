@@ -608,7 +608,7 @@ thumbnail buffer to be selected."
           (when (string-match-p (image-dired--file-name-regexp) file)
             (image-dired-insert-thumbnail
              (image-dired--get-create-thumbnail-file file) file dired-buf)
-            (cl-incf image-dired--number-of-thumbnails))))
+            (incf image-dired--number-of-thumbnails))))
       (if (plusp image-dired--number-of-thumbnails)
           (if do-not-pop
               (display-buffer buf)
@@ -1216,9 +1216,9 @@ See also `image-dired-line-up-dynamic'."
         (forward-char)
         (if (= image-dired-thumbs-per-row 1)
             (insert "\n")
-          (cl-incf thumb-prev-pos thumb-width-chars)
+          (incf thumb-prev-pos thumb-width-chars)
           (insert (propertize " " 'display `(space :align-to ,thumb-prev-pos)))
-          (cl-incf seen)
+          (incf seen)
           (when (and (= seen (- image-dired-thumbs-per-row 1))
                      (not (eobp)))
             (forward-char)

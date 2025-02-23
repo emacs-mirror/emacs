@@ -541,13 +541,13 @@ changes in daylight saving time are not taken into account."
         seconds)
     ;; Years are simple.
     (when (decoded-time-year delta)
-      (cl-incf (decoded-time-year time) (decoded-time-year delta)))
+      (incf (decoded-time-year time) (decoded-time-year delta)))
 
     ;; Months are pretty simple, but start at 1 (for January).
     (when (decoded-time-month delta)
       (let ((new (+ (1- (decoded-time-month time)) (decoded-time-month delta))))
         (setf (decoded-time-month time) (1+ (mod new 12)))
-        (cl-incf (decoded-time-year time) (/ new 12))))
+        (incf (decoded-time-year time) (/ new 12))))
 
     ;; Adjust for month length (as described in the doc string).
     (setf (decoded-time-day time)
@@ -581,10 +581,10 @@ changes in daylight saving time are not taken into account."
   "Increase or decrease the month in TIME by 1."
   (if increase
       (progn
-        (cl-incf (decoded-time-month time))
+        (incf (decoded-time-month time))
         (when (> (decoded-time-month time) 12)
           (setf (decoded-time-month time) 1)
-          (cl-incf (decoded-time-year time))))
+          (incf (decoded-time-year time))))
     (decf (decoded-time-month time))
     (when (zerop (decoded-time-month time))
       (setf (decoded-time-month time) 12)
@@ -594,7 +594,7 @@ changes in daylight saving time are not taken into account."
   "Increase or decrease the day in TIME by 1."
   (if increase
       (progn
-        (cl-incf (decoded-time-day time))
+        (incf (decoded-time-day time))
         (when (> (decoded-time-day time)
                  (date-days-in-month (decoded-time-year time)
                                      (decoded-time-month time)))

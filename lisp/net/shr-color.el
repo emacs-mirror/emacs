@@ -208,7 +208,7 @@ This will convert \"80 %\" to 204, \"100 %\" to 255 but \"123\" to \"123\"."
 
 (defun shr-color-hue-to-rgb (x y h)
   "Convert X Y H to RGB value."
-  (when (< h 0) (cl-incf h))
+  (when (< h 0) (incf h))
   (when (> h 1) (decf h))
   (cond ((< h (/ 6.0)) (+ x (* (- y x) h 6)))
         ((< h 0.5) y)

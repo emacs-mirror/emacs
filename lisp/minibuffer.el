@@ -1758,7 +1758,7 @@ KEYFUN takes an element of ELEMS and should return a numerical value."
     (dolist (c hist)
       (unless (gethash c hash)
         (puthash c index hash))
-      (cl-incf index))
+      (incf index))
     (minibuffer--sort-by-key
      elems (lambda (x) (gethash x hash most-positive-fixnum)))))
 
@@ -4068,7 +4068,7 @@ Return nil if there's no such element."
         (i 0))
     (dolist (x pattern)
       (unless (stringp x)
-        (cl-incf i)
+        (incf i)
         (if (eq x 'point) (setq idx i))))
     idx))
 

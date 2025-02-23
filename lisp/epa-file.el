@@ -250,8 +250,8 @@ encryption is used."
         (while (and (< p1 new-start)
                     (< p2 (point-max))
                     (eql (char-after p1) (char-after p2)))
-          (cl-incf p1)
-          (cl-incf p2))
+          (incf p1)
+          (incf p2))
         (delete-region new-start p2)
         (delete-region p1 new-start)))
     ;; Restore point, if possible.

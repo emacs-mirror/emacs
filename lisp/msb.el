@@ -803,7 +803,7 @@ results in
 (defun msb--mode-menu-cond ()
   (let ((key msb-modes-key))
     (mapcar (lambda (item)
-	      (cl-incf key)
+              (incf key)
 	      (list `( eq major-mode (quote ,(car item)))
 		    key
 		    (concat (cdr item) " (%d)")))
@@ -837,7 +837,7 @@ It takes the form ((TITLE . BUFFER-LIST)...)."
                                               buffer
                                               max-buffer-name-length)
                                      buffer))
-                     and do (cl-incf n)
+                     and do (incf n)
                      until (>= n msb-display-most-recently-used))))
       (cons (if (stringp msb-most-recently-used-title)
 		(format msb-most-recently-used-title
@@ -1025,7 +1025,7 @@ variable `msb-menu-cond'."
 	  (tmp-list nil))
       (while (< count msb-max-menu-items)
 	(push (pop list) tmp-list)
-	(cl-incf count))
+        (incf count))
       (setq tmp-list (nreverse tmp-list))
       (setq sub-name (concat (car (car tmp-list)) "..."))
       (push (nconc (list mcount sub-name
@@ -1065,7 +1065,7 @@ variable `msb-menu-cond'."
 				  (cons (buffer-name (cdr item))
 					(cons (car item) 'msb--select-buffer)))
 				(cdr sub-menu))))
-	   (nconc (list (cl-incf mcount) (car sub-menu)
+           (nconc (list (incf mcount) (car sub-menu)
 			'keymap (car sub-menu))
 		  (msb--split-menus buffers))))))
      raw-menu)))

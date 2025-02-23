@@ -310,7 +310,7 @@ Errors out if the key exists already."
     (dolist (tr (oref db tracked))
       (maphash
        (lambda (key v)
-	 (cl-incf count)
+         (incf count)
 	 (when (and (< 0 expected)
 		    (= 0 (mod count 1000)))
 	   (message "reindexing: %d of %d (%.2f%%)"

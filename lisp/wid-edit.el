@@ -1341,7 +1341,7 @@ nothing is shown in the echo area."
 	  (when new
 	    (if (eq new old)
                 (setq pos (point))
-              (cl-incf tabable)
+              (incf tabable)
 	      (setq arg (cond (fwd (1- arg))
                               (bwd (1+ arg))))
 	      (setq old new))))))

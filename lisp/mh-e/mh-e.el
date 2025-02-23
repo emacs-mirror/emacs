@@ -463,7 +463,7 @@ all the strings have been used."
               (push (buffer-substring-no-properties (point)
                                                     (line-end-position))
                     arg-list)
-              (cl-incf count)
+              (incf count)
               (forward-line))
             (apply #'call-process cmd nil (list out nil) nil
                    (nreverse arg-list))))

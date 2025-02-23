@@ -3110,7 +3110,7 @@ See `term-prompt-regexp'."
                                   (eq (char-charset (aref decoded-substring
                                                           (- count 1 partial)))
                                       'eight-bit))
-                        (cl-incf partial))
+                        (incf partial))
                       (when (> count partial 0)
                         (setq term-terminal-undecoded-bytes
                               (substring decoded-substring (- partial)))
@@ -3487,7 +3487,7 @@ color is unset in the terminal state."
        (pcase (pop parameters)
          ;; 256 color
          (5 (if (setq term-ansi-current-color (pop parameters))
-                (cl-incf term-ansi-current-color)
+                (incf term-ansi-current-color)
               (term-ansi-reset)))
          ;; Full 24-bit color
          (2 (cl-loop with color = (1+ 256) ; Base
@@ -3517,7 +3517,7 @@ color is unset in the terminal state."
        (pcase (pop parameters)
          ;; 256 color
          (5 (if (setq term-ansi-current-bg-color (pop parameters))
-                (cl-incf term-ansi-current-bg-color)
+                (incf term-ansi-current-bg-color)
               (term-ansi-reset)))
          ;; Full 24-bit color
          (2 (cl-loop with color = (1+ 256) ; Base

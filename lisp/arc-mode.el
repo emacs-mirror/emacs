@@ -1692,7 +1692,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                        (t (+ (string-width uid) (string-width gid) 1)))))
             (if (> len maxidlen) (setq maxidlen len))))
         (let ((size (archive--file-desc-size desc)))
-          (cl-incf totalsize size)
+          (incf totalsize size)
           (if (> size maxsize) (setq maxsize size))))
       (let* ((sizelen (length (number-to-string maxsize)))
              (dash

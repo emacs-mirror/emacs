@@ -1768,7 +1768,7 @@ This is a specialization of `soap-encode-value' for
                      (let ((e-name (intern e-name)))
                        (dolist (v value)
                          (when (equal (car v) e-name)
-                           (cl-incf instance-count)
+                           (incf instance-count)
                            (soap-encode-value (cdr v) candidate))))
                    (if (soap-xs-complex-type-indicator type)
                        (let ((current-point (point)))
@@ -1776,12 +1776,12 @@ This is a specialization of `soap-encode-value' for
                          ;; characters were inserted in the buffer.
                          (soap-encode-value value candidate)
                          (when (not (equal current-point (point)))
-                           (cl-incf instance-count)))
+                           (incf instance-count)))
                      (dolist (v value)
                        (let ((current-point (point)))
                          (soap-encode-value v candidate)
                          (when (not (equal current-point (point)))
-                           (cl-incf instance-count))))))))
+                           (incf instance-count))))))))
              ;; Do some sanity checking
              (let* ((indicator (soap-xs-complex-type-indicator type))
                     (element-type (soap-xs-element-type element))
@@ -1997,7 +1997,7 @@ This is a specialization of `soap-decode-type' for
                               (list node)))
                   (element-type (soap-xs-element-type element)))
              (dolist (node children)
-               (cl-incf instance-count)
+               (incf instance-count)
                (let* ((attributes
                        (soap-decode-xs-attributes element-type node))
                       ;; Attributes may specify xsi:type override.
@@ -2316,7 +2316,7 @@ See also `soap-resolve-references' and
           (message (cdr input)))
       ;; Name this part if it was not named
       (when (or (null name) (equal name ""))
-        (setq name (format "in%d" (cl-incf counter))))
+        (setq name (format "in%d" (incf counter))))
       (when (soap-name-p message)
         (setf (soap-operation-input operation)
               (cons (intern name)
@@ -2327,7 +2327,7 @@ See also `soap-resolve-references' and
     (let ((name (car output))
           (message (cdr output)))
       (when (or (null name) (equal name ""))
-        (setq name (format "out%d" (cl-incf counter))))
+        (setq name (format "out%d" (incf counter))))
       (when (soap-name-p message)
         (setf (soap-operation-output operation)
               (cons (intern name)
@@ -2339,7 +2339,7 @@ See also `soap-resolve-references' and
       (let ((name (car fault))
             (message (cdr fault)))
         (when (or (null name) (equal name ""))
-          (setq name (format "fault%d" (cl-incf counter))))
+          (setq name (format "fault%d" (incf counter))))
         (if (soap-name-p message)
             (push (cons (intern name)
                         (soap-wsdl-get message wsdl 'soap-message-p))
@@ -2425,19 +2425,19 @@ traverse an element tree."
           ;; If this namespace does not have an alias, create one for it.
           (catch 'done
             (while t
-              (setq nstag (format "ns%d" (cl-incf nstag-id)))
+              (setq nstag (format "ns%d" (incf nstag-id)))
               (unless (assoc nstag alias-table)
                 (soap-wsdl-add-alias nstag (soap-namespace-name ns) wsdl)
                 (throw 'done t)))))
 
         (maphash (lambda (_name element)
                    (cond ((soap-element-p element) ; skip links
-                          (cl-incf nprocessed)
+                          (incf nprocessed)
                           (soap-resolve-references element wsdl))
                          ((listp element)
                           (dolist (e element)
                             (when (soap-element-p e)
-                              (cl-incf nprocessed)
+                              (incf nprocessed)
                               (soap-resolve-references e wsdl))))))
                  (soap-namespace-elements ns)))))
   wsdl)

@@ -426,7 +426,7 @@ If NAMED is non-nil, collect named child only."
 If NAMED is non-nil, count named child only."
   (let ((count 0))
     (while (setq node (treesit-node-prev-sibling node named))
-      (cl-incf count))
+      (incf count))
     count))
 
 (defun treesit-node-field-name (node)
@@ -2367,7 +2367,7 @@ Similar to `treesit-indent', but indent a region instead."
                         (copy-marker anchor t)))
                 ;; SET OFFSET.
                 (setf (aref meta-vec (+ 1 (* idx meta-len))) offset))))
-          (cl-incf idx)
+          (incf idx)
           (setq lines-left-to-move (forward-line 1)))
         ;; Now IDX = last valid IDX + 1.
         (goto-char starting-pos)

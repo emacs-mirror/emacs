@@ -233,8 +233,8 @@ Use streaming commands."
 	(setq start-point
 	      (pop3-wait-for-messages process pop3-stream-length
 				      total-size start-point))
-	(cl-incf waited-for pop3-stream-length))
-      (cl-incf i))
+        (incf waited-for pop3-stream-length))
+      (incf i))
     (pop3-wait-for-messages process (- count waited-for)
 			    total-size start-point)))
 

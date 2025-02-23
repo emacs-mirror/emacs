@@ -852,7 +852,7 @@ while \(:host t) would find all host entries."
                   (auth-source-specmatchp spec (cdr key)))
          ;; remove that key
          (password-cache-remove key)
-         (cl-incf count)))
+         (incf count)))
      password-data)
     count))
 

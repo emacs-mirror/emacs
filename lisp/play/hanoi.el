@@ -337,7 +337,7 @@ BITS must be of length nrings.  Start at START-TIME."
 
 ;; do one pole-to-pole move and update the ring and pole pairs.
 (defun hanoi-move-ring (ring from to start-time)
-  (cl-incf (car from) baseward-step)
+  (incf (car from) baseward-step)
   (decf (car to) baseward-step)
   (let* ;; We move flywards-steps steps up the pole to the fly row,
 	;; then fly fly-steps steps across the fly row, then go
