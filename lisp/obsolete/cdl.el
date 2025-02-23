@@ -5,6 +5,7 @@
 ;; Author: Ata Etemadi <ATAE@spva.physics.imperial.ac.uk>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: data
+;; Obsolete-since: 31.1
 
 ;; This file is part of GNU Emacs.
 
@@ -22,6 +23,10 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; This library is obsolete.
+;;
+;; Use `shell-command' and `shell-command-on-region' instead.
 
 ;;; Code:
 

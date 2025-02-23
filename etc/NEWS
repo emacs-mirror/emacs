@@ -1293,6 +1293,10 @@ change the selection rules.
 ** Miscellaneous
 
 ---
+*** cdl.el is now obsolete.
+Use 'shell-command' and 'shell-command-on-region' instead.
+
+---
 *** kermit.el is now obsolete.
 
 
