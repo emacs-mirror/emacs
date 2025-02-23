@@ -184,6 +184,9 @@ expectations.
 
 * Changes in Emacs 30.1
 
+** Fix shell injection vulnerability in man.el (CVE-2025-1244).
+We urge all users to upgrade immediately.
+
 ** New user option 'trusted-content' to allow potentially dangerous features.
 This option lists those files and directories whose content Emacs should
 consider as sufficiently trusted to run any part of the code contained
