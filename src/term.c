@@ -4077,7 +4077,8 @@ create_tty_output (struct frame *f)
   f->output_data.tty = t;
 }
 
-/* Delete frame F's face cache, and its tty-dependent part.  */
+/* Delete frame F's face cache, and its tty-dependent part.  This is
+   installed as a delete_frame_hook.  */
 
 static void
 tty_free_frame_resources (struct frame *f)
@@ -4085,6 +4086,11 @@ tty_free_frame_resources (struct frame *f)
   eassert (FRAME_TERMCAP_P (f));
   free_frame_faces (f);
   xfree (f->output_data.tty);
+
+  /* Deleting a child frame means we have to thoroughly redisplay its
+     root frame to make sure the child disappears from the display.  */
+  if (FRAME_PARENT_FRAME (f))
+    SET_FRAME_GARBAGED (root_frame (f));
 }
 
 #elif defined MSDOS

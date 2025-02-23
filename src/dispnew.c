@@ -3525,12 +3525,22 @@ prepare_desired_root_row (struct frame *root, int y)
     return desired_row;
 
   /* If we have a current row that is up to date, copy that to the
-     desired row and use that.  */
-  /* Don't copy rows that aren't enabled, in particuler because they
-     might not have the 'frame' member of glyphs set.  */
+     desired row and use that.  Don't copy rows that are bot enabled, in
+     particular because they might not have the 'frame' member of glyphs
+     set.  */
   struct glyph_row *current_row = MATRIX_ROW (root->current_matrix, y);
   if (current_row->enabled_p)
     {
+# ifdef GLYPH_DEBUG
+      /* Safety belt: Try to make sure that we don't copy glyphs from a
+         stale current matrix that contains glyphs referring to dead
+         frames. */
+      for (int i = 0; i < current_row->used[TEXT_AREA]; ++i)
+	{
+	  struct glyph *glyph = current_row->glyphs[TEXT_AREA] + i;
+	  eassert (glyph->frame && FRAME_LIVE_P (glyph->frame));
+	}
+# endif
       memcpy (desired_row->glyphs[0], current_row->glyphs[0],
 	      root->current_matrix->matrix_w * sizeof (struct glyph));
       desired_row->enabled_p = true;
