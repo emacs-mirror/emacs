@@ -53,7 +53,7 @@ or `(pcase* PATTERN DATUM)',
 `(bind* BINDINGS...)' means to bind BINDINGS (as if they were in `let*')
 for the body of the clause, and all subsequent clauses, since the `bind*'
 clause is always a non-exit clause.  As a condition, it counts as true
-and runs the body of the clause if the first binding's value is non-nil.  
+and runs the body of the clause if the first binding's value is non-nil.
 
 `(match* PATTERN DATUM)' means to match DATUM against the pattern PATTERN
 For its patterns, see `match*'.
