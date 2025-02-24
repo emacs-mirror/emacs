@@ -30,7 +30,7 @@
 
 (eval-when-compile (require 'cl-lib))
 (require 'ert)
-(require 'subr-x) ; string-trim
+(require 'subr-x)
 
 
 ;;; Test buffers.
