@@ -372,15 +372,6 @@ directory, like `default-directory'."
 		       (regexp :tag "From")
                        (regexp :tag "To"))))
 
-;; These declarations are here to avoid byte-compiler warnings about
-;; functions defined later via 'define-ibuffer-op'.
-(declare-function ibuffer-do-toggle-lock "ibuffer.el")
-(declare-function ibuffer-do-toggle-read-only "ibuffer.el")
-(declare-function ibuffer-do-save "ibuffer.el")
-(declare-function ibuffer-do-delete "ibuffer.el")
-(declare-function ibuffer-do-toggle-modified "ibuffer.el")
-(declare-function ibuffer-do-kill-on-deletion-marks "ibuffer.el")
-
 (defvar-keymap ibuffer--filter-map
   "RET"    #'ibuffer-filter-by-mode
   "SPC"    #'ibuffer-filter-chosen-by-completion
