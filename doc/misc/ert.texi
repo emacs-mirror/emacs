@@ -1093,10 +1093,11 @@ for writing tests.
 
 @subsection Test Buffers
 
-@defmac ert-with-test-buffer ((&key ((:name name-form))) &body body)
+@defmac ert-with-test-buffer ((&key ((:name name-form :selected select-form))) &body body)
 This macro creates a test buffer and runs @var{body} in that buffer.  If
 @var{body} finishes successfully, the test buffer is killed; if there is
-an error, the test buffer is kept around for further inspection.
+an error, the test buffer is kept around for further inspection.  The
+return value is the last form in @var{body}.
 
 The test buffer name is derived from the name of the ERT test and the
 result of @var{NAME-FORM}.  Example:
@@ -1109,6 +1110,16 @@ result of @var{NAME-FORM}.  Example:
 
 This uses the test buffer @file{*Test buffer
 (backtrace-tests--variables): variables*}.
+
+If @var{select-form} is non-nil, select the buffer after creating it.
+This has the same effect as combining @code{ert-with-test-buffer} with
+@code{ert-with-buffer-selected}.  Example:
+
+@lisp
+(ert-deftest whitespace-tests--global ()
+  (ert-with-test-buffer-selected (:name "global" :selected t)
+    @dots{}))
+@end lisp
 @end defmac
 
 @defmac ert-with-buffer-selected (buffer &body body)
@@ -1131,23 +1142,6 @@ value is the last form in @var{body}.  Example:
 @end lisp
 
 This displays a temporary buffer like @file{ *temp*-739785*}.
-@end defmac
-
-@defmac ert-with-test-buffer-selected ((&key name) &body body)
-This creates a test buffer, switches to it, and runs @var{body}.
-
-It combines @code{ert-with-test-buffer} and
-@code{ert-with-buffer-selected}.  The return value is the last form in
-@var{body}.  Example:
-
-@lisp
-(ert-deftest whitespace-tests--global ()
-  (ert-with-test-buffer-selected (:name "global")
-    @dots{}))
-@end lisp
-
-This displays the test buffer @file{*Test buffer
-(whitespace-tests--global): global*}.
 @end defmac
 
 @defun ert-kill-all-test-buffers ()

@@ -46,7 +46,7 @@ always located at the beginning of buffer."
 BODY is code to be executed within the temp buffer.  Point is
 always located at the beginning of buffer."
   (declare (indent 1) (debug t))
-  `(ert-with-test-buffer-selected ()
+  `(ert-with-test-buffer (:selected t)
      (,mode)
      (hs-minor-mode 1)
      (insert ,contents)

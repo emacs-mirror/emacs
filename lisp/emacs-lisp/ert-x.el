@@ -90,17 +90,28 @@ ERT--THUNK with that buffer as current."
       (kill-buffer ert--buffer)
       (remhash ert--buffer ert--test-buffers))))
 
-(cl-defmacro ert-with-test-buffer ((&key ((:name name-form)))
+(cl-defmacro ert-with-test-buffer ((&key ((:name name-form))
+                                         ((:selected select-form)))
                                    &body body)
   "Create a test buffer and run BODY in that buffer.
 
-To be used in ERT tests.  If BODY finishes successfully, the test
-buffer is killed; if there is an error, the test buffer is kept
-around for further inspection.  Its name is derived from
-the name of the test and the result of NAME-FORM."
-  (declare (debug ((":name" form) def-body))
+To be used in ERT tests.  If BODY finishes successfully, the test buffer
+is killed; if there is an error, the test buffer is kept around for
+further inspection.  The name of the buffer is derived from the name of
+the test and the result of NAME-FORM.
+
+If SELECT-FORM is non-nil, switch to the test buffer before running
+BODY, as if body was in `ert-with-buffer-selected'.
+
+The return value is the last form in BODY."
+  (declare (debug ((":name" form) (":selected" form) def-body))
            (indent 1))
-  `(ert--call-with-test-buffer ,name-form (lambda () ,@body)))
+  `(ert--call-with-test-buffer
+    ,name-form
+    ,(if select-form
+         `(lambda () (ert-with-buffer-selected (current-buffer)
+                  ,@body))
+       `(lambda () ,@body))))
 
 (cl-defmacro ert-with-buffer-selected (buffer-or-name &body body)
   "Display a buffer in a temporary selected window and run BODY.
@@ -124,13 +135,12 @@ value is the last form in BODY."
 (cl-defmacro ert-with-test-buffer-selected ((&key name) &body body)
   "Create a test buffer, switch to it, and run BODY.
 
-This combines `ert-with-test-buffer' and
-`ert-with-buffer-selected'.  The return value is the last form in
-BODY."
-  (declare (debug ((":name" form) body)) (indent 1))
-  `(ert-with-test-buffer (:name ,name)
-     (ert-with-buffer-selected (current-buffer)
-       ,@body)))
+This combines `ert-with-test-buffer' and `ert-with-buffer-selected'.
+The return value is the last form in BODY."
+  (declare (obsolete ert-with-test-buffer "31.1")
+           (debug ((":name" form) body)) (indent 1))
+  `(ert-with-test-buffer (:name ,name :selected t)
+     ,@body))
 
 ;;;###autoload
 (defun ert-kill-all-test-buffers ()

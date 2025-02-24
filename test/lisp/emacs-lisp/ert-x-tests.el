@@ -117,24 +117,24 @@
   (should (equal (ert-with-buffer-selected nil "foo") "foo")))
 
 (ert-deftest ert-test-with-test-buffer-selected/selected ()
-  (ert-with-test-buffer-selected ()
+  (ert-with-test-buffer (:selected t)
     (should (eq (window-buffer) (current-buffer)))))
 
 (ert-deftest ert-test-with-test-buffer-selected/modification-hooks ()
-  (ert-with-test-buffer-selected ()
+  (ert-with-test-buffer (:selected t)
     (should (null inhibit-modification-hooks))))
 
 (ert-deftest ert-test-with-test-buffer-selected/read-only ()
-  (ert-with-test-buffer-selected ()
+  (ert-with-test-buffer (:selected t)
     (should (null inhibit-read-only))
     (should (null buffer-read-only))))
 
 (ert-deftest ert-test-with-test-buffer-selected/return-value ()
-  (should (equal (ert-with-test-buffer-selected () "foo") "foo")))
+  (should (equal (ert-with-test-buffer (:selected t) "foo") "foo")))
 
 (ert-deftest ert-test-with-test-buffer-selected/buffer-name ()
   (should (equal (ert-with-test-buffer (:name "foo") (buffer-name))
-                 (ert-with-test-buffer-selected (:name "foo")
+                 (ert-with-test-buffer (:name "foo" :selected t)
                    (buffer-name)))))
 
 (ert-deftest ert-filter-string ()
