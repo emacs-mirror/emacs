@@ -22,7 +22,6 @@
 ;;; Code:
 
 (require 'ert)
-(require 'ert-x)
 (require 'hideshow)
 
 ;; Dependencies for testing:

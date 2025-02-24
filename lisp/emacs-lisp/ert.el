@@ -2992,6 +2992,152 @@ write erts files."
           (forward-line 1)))
       (nreverse specs))))
 
+
+;;; Buffer related helpers
+
+(defun ert--text-button (string &rest properties)
+  "Return a string containing STRING as a text button with PROPERTIES.
+
+See `make-text-button'."
+  (with-temp-buffer
+    (insert string)
+    (apply #'make-text-button (point-min) (point-max) properties)
+    (buffer-string)))
+
+(defun ert--format-test-buffer-name (base-name)
+  "Compute a test buffer name based on BASE-NAME.
+
+Helper function for `ert--test-buffers'."
+  (format "*Test buffer (%s)%s*"
+          (or (and (ert-running-test)
+                   (ert-test-name (ert-running-test)))
+              "<anonymous test>")
+          (if base-name
+              (format ": %s" base-name)
+            "")))
+
+(defvar ert--test-buffers (make-hash-table :weakness t)
+  "Table of all test buffers.  Keys are the buffer objects, values are t.
+
+The main use of this table is for `ert-kill-all-test-buffers'.
+Not all buffers in this table are necessarily live, but all live
+test buffers are in this table.")
+
+(define-button-type 'ert--test-buffer-button
+  'action #'ert--test-buffer-button-action
+  'help-echo "mouse-2, RET: Pop to test buffer")
+
+(defun ert--test-buffer-button-action (button)
+  "Pop to the test buffer that BUTTON is associated with."
+  (pop-to-buffer (button-get button 'ert--test-buffer)))
+
+(defun ert--call-with-test-buffer (ert--base-name ert--thunk)
+  "Helper function for `ert-with-test-buffer'.
+
+Create a test buffer with a name based on ERT--BASE-NAME and run
+ERT--THUNK with that buffer as current."
+  (let* ((ert--buffer (generate-new-buffer
+                    (ert--format-test-buffer-name ert--base-name)))
+         (ert--button (ert--text-button (buffer-name ert--buffer)
+                                  :type 'ert--test-buffer-button
+                                  'ert--test-buffer ert--buffer)))
+    (puthash ert--buffer 't ert--test-buffers)
+    ;; We don't use `unwind-protect' here since we want to kill the
+    ;; buffer only on success.
+    (prog1 (with-current-buffer ert--buffer
+             (ert-info (ert--button :prefix "Buffer: ")
+               (funcall ert--thunk)))
+      (kill-buffer ert--buffer)
+      (remhash ert--buffer ert--test-buffers))))
+
+(cl-defmacro ert-with-test-buffer ((&key ((:name name-form))
+                                      ((:selected select-form)))
+                                &body body)
+  "Create a test buffer and run BODY in that buffer.
+
+To be used in ERT tests.  If BODY finishes successfully, the test buffer
+is killed; if there is an error, the test buffer is kept around for
+further inspection.  The name of the buffer is derived from the name of
+the test and the result of NAME-FORM.
+
+If SELECT-FORM is non-nil, switch to the test buffer before running
+BODY, as if body was in `ert-with-buffer-selected'.
+
+The return value is the last form in BODY."
+  (declare (debug ((":name" form) (":selected" form) def-body))
+           (indent 1))
+  `(ert--call-with-test-buffer
+    ,name-form
+    ,(if select-form
+         `(lambda () (ert-with-buffer-selected (current-buffer)
+                  ,@body))
+       `(lambda () ,@body))))
+
+(defun ert-kill-all-test-buffers ()
+  "Kill all test buffers that are still live."
+  (interactive)
+  (let ((count 0))
+    (maphash (lambda (buffer _dummy)
+               (when (or (not (buffer-live-p buffer))
+                         (kill-buffer buffer))
+                 (incf count)))
+             ert--test-buffers)
+    (message "%s out of %s test buffers killed"
+             count (hash-table-count ert--test-buffers)))
+  ;; It could be that some test buffers were actually kept alive
+  ;; (e.g., due to `kill-buffer-query-functions').  I'm not sure what
+  ;; to do about this.  For now, let's just forget them.
+  (clrhash ert--test-buffers)
+  nil)
+
+(cl-defmacro ert-with-buffer-selected (buffer-or-name &body body)
+  "Display a buffer in a temporary selected window and run BODY.
+
+If BUFFER-OR-NAME is nil, the current buffer is used.
+
+The buffer is made the current buffer, and the temporary window
+becomes the `selected-window', before BODY is evaluated.  The
+modification hooks `before-change-functions' and
+`after-change-functions' are not inhibited during the evaluation
+of BODY, which makes it easier to use `execute-kbd-macro' to
+simulate user interaction.  The window configuration is restored
+before returning, even if BODY exits nonlocally.  The return
+value is the last form in BODY."
+  (declare (debug (form body)) (indent 1))
+  `(save-window-excursion
+     (with-current-buffer (or ,buffer-or-name (current-buffer))
+       (with-selected-window (display-buffer (current-buffer))
+         ,@body))))
+
+(defun ert-call-with-buffer-renamed (buffer-name thunk)
+  "Protect the buffer named BUFFER-NAME from side-effects and run THUNK.
+
+Renames the buffer BUFFER-NAME to a new temporary name, creates a
+new buffer named BUFFER-NAME, executes THUNK, kills the new
+buffer, and renames the original buffer back to BUFFER-NAME.
+
+This is useful if THUNK has undesirable side-effects on an Emacs
+buffer with a fixed name such as *Messages*."
+  (let ((new-buffer-name (generate-new-buffer-name
+                          (format "%s orig buffer" buffer-name))))
+    (with-current-buffer (get-buffer-create buffer-name)
+      (rename-buffer new-buffer-name))
+    (unwind-protect
+        (progn
+          (get-buffer-create buffer-name)
+          (funcall thunk))
+      (when (get-buffer buffer-name)
+        (kill-buffer buffer-name))
+      (with-current-buffer new-buffer-name
+        (rename-buffer buffer-name)))))
+
+(cl-defmacro ert-with-buffer-renamed ((buffer-name-form) &body body)
+  "Protect the buffer named BUFFER-NAME from side-effects and run BODY.
+
+See `ert-call-with-buffer-renamed' for details."
+  (declare (indent 1))
+  `(ert-call-with-buffer-renamed ,buffer-name-form (lambda () ,@body)))
+
 ;;; Obsolete
 
 (define-obsolete-function-alias 'ert-equal-including-properties

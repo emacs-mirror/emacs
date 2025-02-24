@@ -535,6 +535,7 @@ help ERT find the defining call to the macro by putting the property
 * Useful Techniques::           Some examples.
 * erts files::                  Files containing many buffer tests.
 * Syntax Highlighting Tests::   Tests for face assignment.
+* Helpers for Buffers::         Dealing with buffers during tests.
 * Helper Functions::            Various helper functions.
 @end menu
 
@@ -1085,13 +1086,20 @@ macros accept the same keyword parameters as @code{ert-deftest} i.e.,
 @code{:tag} and @code{:expected-result}.
 
 
-@node Helper Functions
-@section Various Helper Functions
+@node Helpers for Buffers
+@section Handling Buffers during tests
 
-The package @file{ert-x.el} contains some macros and functions useful
-for writing tests.
+ERT comes with some macros for dealing with buffers used when testing.
 
-@subsection Test Buffers
+@subsection Creating temporary buffers
+
+@findex ert-kill-all-test-buffers
+The @code{ert-with-test-buffer} macro can be used to create a temporary
+buffer during a test, which is cleaned up automatically if the test is
+successful.  But if the test fails, the buffer stays around so that you
+can more easily investigate the test failure.  When you are done, you
+can use the command @code{ert-kill-all-test-buffers} to kill all test
+buffers that have been created by this macro.
 
 @defmac ert-with-test-buffer ((&key ((:name name-form :selected select-form))) &body body)
 This macro creates a test buffer and runs @var{body} in that buffer.  If
@@ -1144,9 +1152,7 @@ value is the last form in @var{body}.  Example:
 This displays a temporary buffer like @file{ *temp*-739785*}.
 @end defmac
 
-@defun ert-kill-all-test-buffers ()
-It kills all test buffers that are still live.
-@end defun
+@subsection Protecting buffers
 
 @defmac ert-with-buffer-renamed ((buffer-name-form) &body body)
 This macro protects the buffer @var{buffer-name} from side-effects and
@@ -1162,6 +1168,13 @@ buffer with a fixed name such as @file{*Messages*}.  Example:
 (ert-with-buffer-renamed ("*Messages*") @dots{})
 @end lisp
 @end defmac
+
+
+@node Helper Functions
+@section Various Helper Functions
+
+The package @file{ert-x.el} contains some macros and functions useful
+for writing tests.
 
 @defmac ert-with-message-capture (var &rest body)
 This macro executes @var{body} while collecting messages in @var{var}.

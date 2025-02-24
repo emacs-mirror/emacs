@@ -19,7 +19,6 @@
 ;;; Code:
 
 (require 'ert)
-(require 'ert-x)
 (require 'faceup)
 (require 'whitespace)
 

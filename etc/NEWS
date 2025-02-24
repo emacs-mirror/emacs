@@ -1408,6 +1408,17 @@ and signal an error if they are given a non-number.
 They return non-nil if an integer is odd or even, respectively, and
 signal an error if they are given a non-integer.
 
+** ERT
+
+*** Some experimental ERT macros are now considered stable.
+The following macros, previously only available in the experimental
+'ert-x' module, are now considered stable and have been moved to 'ert':
+- ert-with-test-buffer
+- ert-with-buffer-selected
+- ert-with-buffer-renamed
+
+See the ERT manual for more information.
+
 ** Time & Date
 
 +++
