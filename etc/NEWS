@@ -537,6 +537,9 @@ Such bindings make it possible to compute which function to bind to FUNC.
 *** 'cl-locally' is now obsolete.
 It is an alias for the 'progn' special-form.
 
++++
+*** 'cl-declare' is now obsolete; use 'defvar' instead.
+
 ** Whitespace
 
 ---
