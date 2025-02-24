@@ -243,7 +243,8 @@ automatically)."
   ;; those entries can be simplified, but we keep them for when
   ;; `eglot.el' is installed via GNU ELPA in an older Emacs.
   `(((rust-ts-mode rust-mode) . ("rust-analyzer"))
-    ((cmake-mode cmake-ts-mode) . ("cmake-language-server"))
+    ((cmake-mode cmake-ts-mode)
+     . ,(eglot-alternatives '(("neocmakelsp" "cmake-language-server"))))
     (vimrc-mode . ("vim-language-server" "--stdio"))
     ((python-mode python-ts-mode)
      . ,(eglot-alternatives
