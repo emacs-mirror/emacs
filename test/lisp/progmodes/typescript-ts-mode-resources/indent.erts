@@ -111,8 +111,8 @@ return (
 <div>
 {
 props.foo
-? Hello, foo!
-: Hello, World!;
+? 'Hello, foo!'
+: 'Hello, World!'
 }
 </div>
 </div>
@@ -129,8 +129,8 @@ const foo = (props) => {
           <div>
             {
               props.foo
-                ? Hello, foo!
-                : Hello, World!;
+                ? 'Hello, foo!'
+                : 'Hello, World!'
             }
           </div>
         </div>
