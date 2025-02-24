@@ -27755,7 +27755,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
     case Lisp_String:
       {
 	/* A string: output it and check for %-constructs within it.  */
-	unsigned char c;
+	int c;
 	ptrdiff_t offset = 0;
 
 	if (SCHARS (elt) > 0
@@ -27925,6 +27925,15 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 		field = 0;
 		while ((c = SREF (elt, offset++)) >= '0' && c <= '9')
 		  field = field * 10 + c - '0';
+
+		/* "%" could be followed by a multibyte character.  */
+                if (STRING_MULTIBYTE (elt))
+		  {
+		    int length;
+		    offset--;
+		    c = string_char_and_length (SDATA (elt) + offset, &length);
+		    offset += length;
+		  }
 
 		/* Don't pad beyond the total padding allowed.  */
 		if (field_width - n > 0 && field > field_width - n)
