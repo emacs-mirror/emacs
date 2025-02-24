@@ -1369,7 +1369,7 @@ infinite loops when the code/environment contains a circular object.")
 
       ;; Set the name here if it was not set by edebug-make-enter-wrapper.
       (setq edebug-def-name
-	    (or edebug-def-name edebug-old-def-name (cl-gensym "edebug-anon")))
+            (or edebug-def-name edebug-old-def-name (gensym "edebug-anon")))
 
       ;; Add this def as a dependent of containing def.  Buggy.
       '(if (and edebug-containing-def-name

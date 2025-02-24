@@ -1247,7 +1247,7 @@ If it is running also stop it."
 ARGS is a keyword-value plist passed to the backend along
 with a report function."
   (flymake-log :debug "Running backend %s" backend)
-  (let ((run-token (cl-gensym "backend-token")))
+  (let ((run-token (gensym "backend-token")))
     (flymake--with-backend-state backend state
       (setf (flymake--state-running state) run-token
             (flymake--state-disabled state) nil

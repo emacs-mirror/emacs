@@ -961,21 +961,14 @@ See Bug#57915."
                          :b 1)))
 
 (ert-deftest cl-lib-test-gensym ()
-  ;; Since the expansion of `should' calls `cl-gensym' and thus has a
-  ;; side-effect on `cl--gensym-counter', we have to make sure all
-  ;; macros in our test body are expanded before we rebind
-  ;; `cl--gensym-counter' and run the body.  Otherwise, the test would
-  ;; fail if run interpreted.
-  (let ((body (byte-compile
-               '(lambda ()
-                  (should (equal (symbol-name (cl-gensym)) "G0"))
-                  (should (equal (symbol-name (cl-gensym)) "G1"))
-                  (should (equal (symbol-name (cl-gensym)) "G2"))
-                  (should (equal (symbol-name (cl-gensym "foo")) "foo3"))
-                  (should (equal (symbol-name (cl-gensym "bar")) "bar4"))
-                  (should (equal cl--gensym-counter 5))))))
+  (with-suppressed-warnings ((obsolete cl-gensym))
     (let ((cl--gensym-counter 0))
-      (funcall body))))
+      (should (equal (symbol-name (cl-gensym)) "G0"))
+      (should (equal (symbol-name (cl-gensym)) "G1"))
+      (should (equal (symbol-name (cl-gensym)) "G2"))
+      (should (equal (symbol-name (cl-gensym "foo")) "foo3"))
+      (should (equal (symbol-name (cl-gensym "bar")) "bar4"))
+      (should (equal cl--gensym-counter 5)))))
 
 (ert-deftest cl-the ()
   (should (eql (cl-the integer 42) 42))

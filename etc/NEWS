@@ -540,6 +540,9 @@ It is an alias for the 'progn' special-form.
 +++
 *** 'cl-declare' is now obsolete; use 'defvar' instead.
 
++++
+*** 'cl-gensym' is now obsolete; use 'gensym' instead.
+
 ** Whitespace
 
 ---

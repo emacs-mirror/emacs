@@ -166,6 +166,7 @@ whether X is known at compile time, macroexpand it completely in
 (defun cl-gensym (&optional prefix)
   "Generate a new uninterned symbol.
 The name is made by appending a number to PREFIX, default \"G\"."
+  (declare (obsolete gensym "31.1"))
   (let ((pfix (if (stringp prefix) prefix "G"))
 	(num (if (integerp prefix) prefix
 	       (prog1 cl--gensym-counter
@@ -1270,10 +1271,10 @@ For more details, see Info node `(cl)Loop Facility'.
       (let ((loop-for-bindings nil) (loop-for-sets nil) (loop-for-steps nil)
 	    (ands nil))
 	(while
-	    ;; Use `cl-gensym' rather than `make-symbol'.  It's important that
+            ;; Use `gensym' rather than `make-symbol'.  It's important that
 	    ;; (not (eq (symbol-name var1) (symbol-name var2))) because
 	    ;; these vars get added to the macro-environment.
-	    (let ((var (or (pop cl--loop-args) (cl-gensym "--cl-var--"))))
+            (let ((var (or (pop cl--loop-args) (gensym "--cl-var--"))))
 	      (setq word (pop cl--loop-args))
 	      (if (eq word 'being) (setq word (pop cl--loop-args)))
 	      (if (memq word '(the each)) (setq word (pop cl--loop-args)))

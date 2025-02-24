@@ -881,7 +881,7 @@ Honor `eglot-strict-mode'."
   "Function of args CL-LAMBDA-LIST for processing INTERFACE objects.
 Honor `eglot-strict-mode'."
   (declare (indent 1) (debug (sexp &rest form)))
-  (let ((e (cl-gensym "jsonrpc-lambda-elem")))
+  (let ((e (gensym "jsonrpc-lambda-elem")))
     `(lambda (,e) (cl-block nil (eglot--dbind ,cl-lambda-list ,e ,@body)))))
 
 (cl-defmacro eglot--dcase (obj &rest clauses)
@@ -927,12 +927,12 @@ treated as in `eglot--dbind'."
 
 (cl-defmacro eglot--when-live-buffer (buf &rest body)
   "Check BUF live, then do BODY in it." (declare (indent 1) (debug t))
-  (let ((b (cl-gensym)))
+  (let ((b (gensym)))
     `(let ((,b ,buf)) (if (buffer-live-p ,b) (with-current-buffer ,b ,@body)))))
 
 (cl-defmacro eglot--when-buffer-window (buf &body body)
   "Check BUF showing somewhere, then do BODY in it." (declare (indent 1) (debug t))
-  (let ((b (cl-gensym)))
+  (let ((b (gensym)))
     `(let ((,b ,buf))
        ;;notice the exception when testing with `ert'
        (when (or (get-buffer-window ,b) (ert-running-test))
@@ -3142,7 +3142,7 @@ may be called multiple times (respecting the protocol of
 (cl-defmacro eglot--collecting-xrefs ((collector) &rest body)
   "Sort and handle xrefs collected with COLLECTOR in BODY."
   (declare (indent 1) (debug (sexp &rest form)))
-  (let ((collected (cl-gensym "collected")))
+  (let ((collected (gensym "collected")))
     `(unwind-protect
          (let (,collected)
            (cl-flet ((,collector (xref) (push xref ,collected)))
@@ -4221,7 +4221,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
      collect (cl-loop
               for (_token regexp emitter) in grammar
               thereis (and (re-search-forward (concat "\\=" regexp) nil t)
-                           (list (cl-gensym "state-") emitter (match-string 0)))
+                           (list (gensym "state-") emitter (match-string 0)))
               finally (error "Glob '%s' invalid at %s" (buffer-string) (point))))))
 
 (cl-defun eglot--glob-fsm (states &key (exit 'eobp) noerror)
