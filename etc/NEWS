@@ -247,6 +247,17 @@ landscape shape for instance, Emacs could split horizontally before
 splitting vertically.  The default setting preserves Emacs historical
 behavior to try to split vertically first.
 
++++
+*** New argument INDIRECT for 'get-buffer-window-list'.
+With this argument non-nil, 'get-buffer-window-list' will include in the
+return value windows whose buffers share their text with BUFFER-OR-NAME.
+
++++
+*** New 'display-buffer' action alist entry 'reuse-indirect'.
+With such an entry, 'display-buffer-reuse-window' may also choose a
+window whose buffer shares text with the buffer to display.
+
+
 ** Frames
 
 +++

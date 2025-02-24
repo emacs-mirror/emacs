@@ -2697,7 +2697,37 @@ Ordering}).  This function may be changed in a future version of Emacs
 to eliminate this discrepancy.
 @end defun
 
-@defun get-buffer-window-list &optional buffer-or-name minibuf all-frames
+The following function can tell for a specific window whether its buffer
+shares the text of some other buffer (@pxref{Indirect Buffers}).
+
+@defun window-indirect-buffer-p &optional window buffer-or-name
+This function returns non-@code{nil} if @var{window} is indirectly
+related to @var{buffer-or-name}.  @var{window} must be a live window and
+defaults to the selected window.  @var{buffer-or-name} may be a buffer
+or the name of an existing buffer and defaults to the current buffer.
+
+@var{window} is indirectly related to @var{buffer-or-name} if one of the
+following conditions hold:
+
+@itemize @bullet
+@item
+@var{buffer-or-name} specifies an indirect buffer and @var{window}'s
+buffer is its base buffer.
+
+@item
+@var{window}'s buffer is an indirect buffer whose base buffer is the
+buffer specified by @var{buffer-or-name}.
+
+@item
+Both, @var{window}'s buffer and the buffer specified by
+@var{buffer-or-name}, are indirect buffer's sharing the same base
+buffer.
+@end itemize
+
+It returns @code{nil} if none of the above holds.
+@end defun
+
+@defun get-buffer-window-list &optional buffer-or-name minibuf all-frames indirect
 This function returns a list of all windows currently displaying
 @var{buffer-or-name}.  @var{buffer-or-name} should be a buffer or the
 name of an existing buffer.  If omitted or @code{nil}, it defaults to
@@ -2709,6 +2739,13 @@ The arguments @var{minibuf} and @var{all-frames} have the same
 meanings as in the function @code{next-window} (@pxref{Cyclic Window
 Ordering}).  Note that the @var{all-frames} argument does @emph{not}
 behave exactly like in @code{get-buffer-window}.
+
+The optional argument @var{indirect} non-@code{nil} means to append to
+the list of windows showing @var{buffer-or-name} a list of all windows
+that are indirectly related to @var{buffer-or-name}, that is, windows
+for which @code{window-indirect-buffer-p} (see above) with the window
+and the buffer specified by @var{buffer-or-name} as arguments returns
+non-@code{nil}.
 @end defun
 
 @deffn Command replace-buffer-in-windows &optional buffer-or-name
@@ -3165,6 +3202,17 @@ searches just the selected frame.
 If this function chooses a window on another frame, it makes that
 frame visible and, unless @var{alist} contains an
 @code{inhibit-switch-frame} entry, raises that frame if necessary.
+
+If @var{alist} has a non-@code{nil} @code{reuse-indirect} entry and no
+window showing @var{buffer} has been found, this function tries to find
+a window that is indirectly related to @var{buffer}---a window for which
+@code{window-indirect-buffer-p} (@pxref{Buffers and Windows}) with the
+window and @var{buffer} as arguments returns non-@code{nil}.  If such a
+window has been found and the @sc{cdr} of the @code{reuse-indirect}
+entry equals the symbol @code{buffer}, it does not replace the buffer of
+that window with @var{buffer} but returns the window with its old buffer
+in place.  Otherwise, it puts @var{buffer} into that window and returns
+that window.
 @end defun
 
 @defun display-buffer-reuse-mode-window buffer alist

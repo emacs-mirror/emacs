@@ -2616,7 +2616,36 @@ selected frame and no others."
 	  (setq best-window window))))
     best-window))
 
-(defun get-buffer-window-list (&optional buffer-or-name minibuf all-frames)
+(defun window-indirect-buffer-p (&optional window buffer-or-name)
+  "Return non-nil if specified WINDOW is indirectly related to BUFFER-OR-NAME.
+WINDOW must be a live window and defaults to the selected window.
+BUFFER-OR-NAME may be a buffer or the name of an existing buffer and
+defaults to the current buffer.
+
+WINODW is indirectly related to BUFFER-OR-NAME if one of the following
+conditions hold:
+
+- BUFFER-OR-NAME specifies an indirect buffer and WINDOW's buffer is its
+  base buffer.
+
+- WINDOW's buffer is an indirect buffer whose base buffer is the buffer
+  specified by BUFFER-OR-NAME.
+
+- Both, WINDOW's buffer and the buffer specified by BUFFER-OR-NAME, are
+  indirect buffer's sharing the same base buffer.
+
+Return nil if none of the above holds."
+  (let* ((window (window-normalize-window window t))
+	 (window-buffer (window-buffer window))
+	 (window-base-buffer (buffer-base-buffer window-buffer))
+	 (buffer (window-normalize-buffer buffer-or-name))
+	 (buffer-base-buffer (buffer-base-buffer buffer)))
+    (or (eq buffer-base-buffer window-buffer)
+	(eq window-base-buffer buffer)
+	(and buffer-base-buffer
+	     (eq buffer-base-buffer window-base-buffer)))))
+
+(defun get-buffer-window-list (&optional buffer-or-name minibuf all-frames indirect)
   "Return list of all windows displaying BUFFER-OR-NAME, or nil if none.
 BUFFER-OR-NAME may be a buffer or the name of an existing buffer
 and defaults to the current buffer.  If the selected window displays
@@ -2645,12 +2674,23 @@ non-nil values of ALL-FRAMES have special meanings:
 - A frame means consider all windows on that frame only.
 
 Anything else means consider all windows on the selected frame
-and no others."
+and no others.
+
+INDIRECT non-nil means to append to the list of windows showing
+BUFFER-OR-NAME a list of all windows that are indirectly related to
+BUFFER-OR-NAME, that is, windows for which `window-indirect-buffer-p'
+with the window and the buffer specified by BUFFER-OR-NAME as arguments
+returns non-nil."
   (let ((buffer (window-normalize-buffer buffer-or-name))
+	(window-list (window-list-1 (selected-window) minibuf all-frames))
 	windows)
-    (dolist (window (window-list-1 (selected-window) minibuf all-frames))
+    (dolist (window window-list)
       (when (eq (window-buffer window) buffer)
 	(setq windows (cons window windows))))
+    (when indirect
+      (dolist (window window-list)
+	(when (window-indirect-buffer-p window buffer)
+	  (setq windows (cons window windows)))))
     (nreverse windows)))
 
 (defun minibuffer-window-active-p (window)
@@ -8348,35 +8388,56 @@ If ALIST has a non-nil `inhibit-switch-frame' entry, then in the
 event that a window on another frame is chosen, avoid raising
 that frame.
 
+If ALIST has a non-nil `reuse-indirect' entry and no window showing
+BUFFER has been found, try to find a window that is indirectly related
+to BUFFER and return that window.  This would be a window for which
+`window-indirect-buffer-p' with the window and BUFFER as arguments
+returns non-nil.  If a suitable window has been found and the cdr of the
+entry equals the symbol `buffer', do not replace the buffer of that
+window with BUFFER but return the window with its old buffer in place.
+Otherwise, put BUFFER into that window and return the window.
+
 This is an action function for buffer display, see Info
 node `(elisp) Buffer Display Action Functions'.  It should be
 called only by `display-buffer' or a function directly or
 indirectly called by the latter."
-  (let* ((alist-entry (assq 'reusable-frames alist))
-	 (frames (cond (alist-entry (cdr alist-entry))
+  (let* ((reusable-frames (assq 'reusable-frames alist))
+	 (reuse-indirect (assq 'reuse-indirect alist))
+	 (frames (cond (reusable-frames (cdr reusable-frames))
 		       ((window--pop-up-frames alist)
 			0)
 		       (display-buffer-reuse-frames 0)
 		       (t (last-nonminibuffer-frame))))
-	 (window (if (and (eq buffer (window-buffer))
-			  (not (cdr (assq 'inhibit-same-window alist))))
-		     (selected-window)
-                   ;; Preferably use a window on the selected frame,
-                   ;; if such a window exists (Bug#36680).
-                   (let* ((windows (delq (selected-window)
-                                         (get-buffer-window-list
-                                          buffer 'nomini frames)))
-                          (first (car windows))
-                          (this-frame (selected-frame)))
-                     (cond
-                      ((eq (window-frame first) this-frame)
-                       first)
-                      ((catch 'found
-                         (dolist (next (cdr windows))
-                           (when (eq (window-frame next) this-frame)
-                             (throw 'found next)))))
-                      (t first))))))
+	 (inhibit-same (cdr (assq 'inhibit-same-window alist)))
+	 (window
+	  ;; Avoid calling 'get-buffer-window-list' if the selected
+	  ;; window already shows BUFFER and can be used.
+	  (if (and (eq buffer (window-buffer)) (not inhibit-same))
+	      (selected-window)
+            ;; Preferably use a window on the selected frame,
+            ;; if such a window exists (Bug#36680).
+            (let* ((windows-raw
+		    (get-buffer-window-list
+                     buffer 'nomini frames reuse-indirect))
+		   (windows (if inhibit-same
+				(delq (selected-window) windows-raw)
+			      windows-raw))
+                   (first (car windows))
+                   (this-frame (selected-frame)))
+              (cond
+               ((eq (window-frame first) this-frame)
+                first)
+               ((catch 'found
+                  (dolist (next (cdr windows))
+                    (when (eq (window-frame next) this-frame)
+                      (throw 'found next)))))
+               (t first))))))
     (when (window-live-p window)
+      (when (and (eq (cdr reuse-indirect) 'buffer)
+		 (not (eq (window-buffer window) buffer)))
+	;; Pretend we were asking for a window showing the buffer of
+	;; that window.
+	(setq buffer (window-buffer window)))
       (prog1 (window--display-buffer buffer window 'reuse alist)
 	(unless (cdr (assq 'inhibit-switch-frame alist))
 	  (window--maybe-raise-frame (window-frame window)))))))
