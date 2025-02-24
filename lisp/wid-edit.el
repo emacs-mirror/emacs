@@ -549,8 +549,15 @@ With CHECK-AFTER non-nil, considers also the content after point, if needed."
   :group 'widget-faces)
 
 (defun widget-specify-inactive (widget from to)
-  "Make WIDGET inactive for user modifications."
-  (unless (widget-get widget :inactive)
+  "Make WIDGET inactive for user modifications.
+
+If WIDGET is already inactive, moves the :inactive overlay to the positions
+indicated by FROM and TO, either numbers or markers.
+
+If WIDGET is not inactive, creates an overlay that spans from FROM to TO,
+and saves that overlay under the :inactive property for WIDGET."
+  (if (widget-get widget :inactive)
+      (move-overlay (widget-get widget :inactive) from to)
     (let ((overlay (make-overlay from to nil t nil)))
       (overlay-put overlay 'face 'widget-inactive)
       ;; This is disabled, as it makes the mouse cursor change shape.

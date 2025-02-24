@@ -1333,6 +1333,9 @@ modifications.
 Function that takes a widget and makes it inactive for user
 modifications.
 
+If you modify a widget that is not active, you should make sure the
+:deactivate function gets called again after the modifications.
+
 @vindex action@r{ keyword}
 @item :action
 Function that takes a widget and optionally an event, and handles a

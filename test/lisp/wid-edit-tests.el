@@ -481,4 +481,18 @@ markers (and so on) as well."
       (should (= ofrom2 (widget-get group2 :from)))
       (should (= oto2 (widget-get group2 :to))))))
 
+(ert-deftest widget-test-modification-of-inactive-widget ()
+  "Test that modifications to an inactive widget keep all of it inactive."
+  (with-temp-buffer
+    (let* ((radio (widget-create 'radio-button-choice
+                                 '(item "One") '(item "Two") '(item "Confirm")))
+           (from (widget-get radio :from))
+           (to (widget-get radio :to))
+           (ov (progn (widget-apply radio :deactivate)
+                      (widget-get radio :inactive))))
+      (widget-value-set radio "")
+      (widget-apply radio :deactivate)
+      (should (= (overlay-start ov) from))
+      (should (= (overlay-end ov) to)))))
+
 ;;; wid-edit-tests.el ends here
