@@ -123,7 +123,8 @@ An empty list disables VC altogether."
 ;; The Arch back end will be retrieved and fixed if it is ever required.
 (defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS"
 					 ".src" ".svn" ".git" ".hg" ".bzr"
-                                         "_MTN" "_darcs" "{arch}" ".repo")
+                                         "_MTN" "_darcs" "{arch}" ".repo"
+                                         ".jj")
   "List of directory names to be ignored when walking directory trees."
   :type '(repeat string)
   :group 'vc)
