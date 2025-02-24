@@ -83,6 +83,7 @@ Emacs images and their source in the GNOME icons stock/ directory:
   lock-ok.xpm               data/stock_lock-ok
   lock.xpm                  data/stock_lock
   next-page.xpm             navigation/stock_next-page
+  last-page.xpm             mirrored from navigation/stock_next-page
   redo.xpm                  generic/stock_redo
   refresh.xpm               generic/stock_refresh
   search-replace.xpm        slightly modified generic/stock_search-and-replace
