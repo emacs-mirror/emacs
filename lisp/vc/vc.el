@@ -2461,12 +2461,19 @@ Unlike `vc-find-revision-save', doesn't save the buffer to the file."
                 (goto-char (point-min))
                 (if buffer
                     ;; For non-interactive, skip any questions
-                    (let ((enable-local-variables :safe) ;; to find `mode:'
+                    (let ((enable-local-variables
+                           (if (memq enable-local-variables '(:safe :all nil))
+                               enable-local-variables
+                             ;; Ignore other values that query,
+                             ;; use `:safe' to find `mode:'.
+                             :safe))
                           (buffer-file-name file))
                       ;; Don't run hooks that might assume buffer-file-name
                       ;; really associates buffer with a file (bug#39190).
                       (ignore-errors (delay-mode-hooks (set-auto-mode))))
-                  (normal-mode))
+                  ;; Use non-nil 'find-file' arg of 'normal-mode'
+                  ;; to not ignore 'enable-local-variables' when nil.
+                  (normal-mode (not enable-local-variables)))
 	        (set-buffer-modified-p nil)
                 (setq buffer-read-only t)
                 (setq failed nil))
