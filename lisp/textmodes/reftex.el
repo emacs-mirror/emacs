@@ -277,7 +277,7 @@ on the menu bar.
 
 (defun reftex-next-multifile-index ()
   ;; Return the next free index for multifile symbols.
-  (cl-incf reftex-multifile-index))
+  (incf reftex-multifile-index))
 
 (defun reftex-tie-multifile-symbols ()
   "Tie the buffer-local symbols to globals connected with the master file.
@@ -937,7 +937,7 @@ This enforces rescanning the buffer on next use."
                          (not (member (aref fmt i) '(?%))))
                (setq word (concat word "\\|" (regexp-quote
                                               (substring fmt 0 (1+ i)))))
-               (cl-incf i))
+               (incf i))
              (cons (concat word "\\)\\=") typekey))
            (nreverse reftex-words-to-typekey-alist)))
 
@@ -990,7 +990,7 @@ This enforces rescanning the buffer on next use."
            (mapconcat
             (lambda(x)
               (format "[%c] %-20.20s%s" (car x) (nth 1 x)
-                      (if (= 0 (mod (cl-incf i) 3)) "\n" "")))
+                      (if (= 0 (mod (incf i) 3)) "\n" "")))
             reftex-key-to-index-macro-alist "")))
 
     ;; Make the full list of section levels
@@ -1084,7 +1084,7 @@ This enforces rescanning the buffer on next use."
               (args (substring macro (match-beginning 0)))
               opt-list nlabel (cnt 0))
           (while (string-match "\\`[[{]\\(\\*\\)?[]}]" args)
-            (cl-incf cnt)
+            (incf cnt)
             (when (eq ?\[ (string-to-char args))
               (push cnt opt-list))
             (when (and (match-end 1)
@@ -1280,7 +1280,7 @@ Valid actions are: readable, restore, read, kill, write."
                   "SELECT EXTERNAL DOCUMENT\n------------------------\n"
                   (mapconcat
                    (lambda (x)
-                     (format fmt (cl-incf n) (or (car x) "")
+                     (format fmt (incf n) (or (car x) "")
                              (abbreviate-file-name (cdr x))))
                    xr-alist ""))
                  nil t))

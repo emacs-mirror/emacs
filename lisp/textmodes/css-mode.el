@@ -1080,12 +1080,12 @@ the returned hex string."
         (push (min (max 0 (round number)) 255) result)
 	(goto-char (match-end 0))
 	(css--color-skip-blanks)
-	(cl-incf iter)
+        (incf iter)
 	;; Accept a superset of the CSS syntax since I'm feeling lazy.
 	(when (and (= (skip-chars-forward ",/") 0)
 		   (= iter 3))
 	  ;; The alpha is optional.
-	  (cl-incf iter))
+          (incf iter))
 	(css--color-skip-blanks)))
     (when (looking-at ")")
       (forward-char)

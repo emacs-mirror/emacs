@@ -2199,7 +2199,7 @@ Hierarchy is displayed in a temporary buffer."
 	  (rst-update-section hdr)
 	  (goto-char (point-max))
 	  (insert "\n")
-	  (cl-incf level))))))
+          (incf level))))))
 
 (define-obsolete-function-alias 'rst-display-adornments-hierarchy
   #'rst-display-hdr-hierarchy "29.1")
@@ -2752,7 +2752,7 @@ See `rst-toc-insert-tree' for STYLE, DEPTH and TGT-STN.  See
 	    (or (rst-toc-insert-stn child buf style depth indent
 				    (concat numbering (format num-fmt count))
 				    keymap tgt-stn) fnd))
-      (cl-incf count))))
+      (incf count))))
 
 ;; FIXME refactoring: Use `rst-Stn-buffer' instead of `buf'.
 (defun rst-toc-insert-stn (stn buf style depth indent numbering keymap tgt-stn)
@@ -3466,7 +3466,7 @@ Otherwise return nil."
 	     (t ; Non-empty line in indented block.
 	      (when (or broken in-sub in-super)
 		(setq in-first t)
-		(cl-incf count))
+                (incf count))
 	      (setq in-sub nil)
 	      (setq in-super nil)))
 	    (save-excursion
@@ -3494,7 +3494,7 @@ do all lines instead of just paragraphs."
         (in-sub
          (insert indent))
         ((or in-first all)
-         (let ((tag (format "%d. " (cl-incf enum))))
+         (let ((tag (format "%d. " (incf enum))))
            (setq indent (make-string (length tag) ? ))
            (insert tag)))
         (t
@@ -3546,7 +3546,7 @@ Renumber as necessary.  Region is from BEG to END."
 	   (goto-char marker) nil)
 	  (looking-at (rst-re 'itmany-beg-1))
 	  (replace-match (format "%d." count) nil nil nil 1)
-	  (cl-incf count))))))
+          (incf count))))))
 
 (defun rst-line-block-region (beg end &optional with-empty)
   "Add line block prefixes for a region.

@@ -1945,7 +1945,7 @@ Mark is left at original location."
 	(if (not (eq (char-syntax (preceding-char)) ?/))
 	    (progn
 	      ;; Don't count single-char words.
-	      (unless (looking-at ".\\>") (cl-incf count))
+              (unless (looking-at ".\\>") (incf count))
 	      (forward-char 1))
 	  (let ((cmd
 		 (buffer-substring-no-properties

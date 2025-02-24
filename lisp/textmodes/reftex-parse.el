@@ -629,7 +629,7 @@ if the information is exact (t) or approximate (nil)."
         found)
     (save-excursion
       (while (not rtn)
-        (cl-incf cnt)
+        (incf cnt)
         (setq found (re-search-backward (reftex-everything-regexp) nil t))
         (setq rtn
               (cond
@@ -693,7 +693,7 @@ if the information is exact (t) or approximate (nil)."
                       (when (and (eq (car (car list)) 'index)
                                  (string= (nth 2 index-info)
                                           (nth 2 (car list))))
-                        (cl-incf n)
+                        (incf n)
                         (setq dist (abs (- (point) (nth 4 (car list)))))
                         (if (or (not last-dist) (< dist last-dist))
                             (setq last-dist dist last (car list))))
@@ -875,8 +875,8 @@ considered an argument of macro \\macro."
                                 (backward-sexp))
                               t)
                           (error nil)))
-              (if (memq (following-char) '(?\( ?\[)) (cl-incf cnt-opt))
-              (cl-incf cnt))
+              (if (memq (following-char) '(?\( ?\[)) (incf cnt-opt))
+              (incf cnt))
             (setq pos (point))
             (when (and (memq (following-char) '(?\[ ?\( ?\{))
                        (re-search-backward "\\\\[*a-zA-Z]+\\=" nil t))
@@ -1017,18 +1017,18 @@ OPT-ARGS is a list of argument numbers which are optional."
         (while (< cnt n)
           (while (and (member cnt opt-args)
                       (eq (following-char) ?\{))
-            (cl-incf cnt))
+            (incf cnt))
           (when (< cnt n)
             (unless (and (condition-case nil
                              (or (forward-list 1) t)
                            (error nil))
                          (reftex-move-to-next-arg)
-                         (cl-incf cnt))
+                         (incf cnt))
               (setq cnt 1000))))
 
         (while (and (memq cnt opt-args)
                     (eq (following-char) ?\{))
-          (cl-incf cnt)))
+          (incf cnt)))
       (if (and (= n cnt)
                (> (skip-chars-forward "{[") 0))
           (reftex-context-substring)
@@ -1114,7 +1114,7 @@ When LEVEL is non-nil, increase section numbers on that level."
           (if (or (not partspecial)
                   (not (= idx 1)))
               (aset reftex-section-numbers idx 0))
-          (cl-incf idx))))
+          (incf idx))))
     (if partspecial
         (setq string (concat "Part " (reftex-roman-number
                                       (aref reftex-section-numbers 0))))
@@ -1124,7 +1124,7 @@ When LEVEL is non-nil, increase section numbers on that level."
         (if (not (and partspecial (not (equal string ""))))
             (setq string (concat string (if (not (string= string "")) "." "")
                                  (int-to-string n))))
-        (cl-incf idx))
+        (incf idx))
       (save-match-data
         (if (string-match "\\`\\([@0]\\.\\)+" string)
             (setq string (replace-match "" nil nil string)))
