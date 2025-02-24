@@ -2067,15 +2067,15 @@ a `let' form, except that the list of symbols can be computed at run-time."
 ;;;###autoload
 (defmacro cl-flet (bindings &rest body)
   "Make local function definitions.
-Each definition can take the form (FUNC EXP) where
-FUNC is the function name, and EXP is an expression that returns the
-function value to which it should be bound, or it can take the more common
-form (FUNC ARGLIST BODY...) which is a shorthand
-for (FUNC (lambda ARGLIST BODY)).
 
-FUNC is defined only within FORM, not BODY, so you can't write
-recursive function definitions.  Use `cl-labels' for that.  See
-info node `(cl) Function Bindings' for details.
+Each definition can take the form (FUNC EXP) where FUNC is the function
+name, and EXP is an expression that returns the function value to which
+it should be bound, or it can take the more common form (FUNC ARGLIST
+BODY...) which is a shorthand for (FUNC (lambda ARGLIST BODY)).
+
+FUNC is defined only within FORM, not BODY, so you can't write recursive
+function definitions.  Use `cl-labels' for that.  See Info node
+`(cl) Function Bindings' for details.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1)
@@ -2250,12 +2250,14 @@ Like `cl-flet' but the definitions can refer to previous ones.
 ;;;###autoload
 (defmacro cl-labels (bindings &rest body)
   "Make local (recursive) function definitions.
-BINDINGS is a list of definitions of the form (FUNC ARGLIST BODY...) where
-FUNC is the function name, ARGLIST its arguments, and BODY the
-forms of the function body.  FUNC is defined in any BODY, as well
-as FORM, so you can write recursive and mutually recursive
-function definitions.  See info node `(cl) Function Bindings' for
-details.
+
+BINDINGS is a list of definitions of the form (FUNC ARGLIST BODY...)
+where FUNC is the function name, ARGLIST its arguments, and BODY the
+forms of the function body.
+
+FUNC is defined in any BODY, as well as FORM, so you can write recursive
+and mutually recursive function definitions.  See Info node
+`(cl) Function Bindings' for details.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1) (debug cl-flet))
