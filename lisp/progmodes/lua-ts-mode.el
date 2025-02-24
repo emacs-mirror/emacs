@@ -793,8 +793,7 @@ Calls REPORT-FN directly."
                 `((lua
                    (function ,(rx (or "function_declaration"
                                       "function_definition")))
-                   (keyword ,(regexp-opt lua-ts--keywords
-                                         'symbols))
+                   (keyword ,(regexp-opt lua-ts--keywords 'symbols))
                    (loop-statement ,(rx (or "do_statement"
                                             "for_statement"
                                             "repeat_statement"
@@ -812,18 +811,10 @@ Calls REPORT-FN directly."
                              keyword
                              loop-statement
                              ,(rx (or "arguments"
-                                      "break_statement"
-                                      "expression_list"
-                                      "false"
-                                      "identifier"
-                                      "nil"
-                                      "number"
                                       "parameters"
                                       "parenthesized_expression"
                                       "string"
-                                      "table_constructor"
-                                      "true"
-                                      "vararg_expression"))))
+                                      "table_constructor"))))
                    (text "comment"))))
 
     ;; Imenu/Outline/Which-function.
