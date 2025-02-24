@@ -69,7 +69,7 @@ again."
 
 If `eshell-incomplete' is thrown during the evaluation of a
 disjunct, that disjunct yields nil."
-  (let ((result (gensym)))
+  (cl-with-gensyms (result)
     `(let (,result)
        (or ,@(cl-loop for disjunct in disjuncts collect
                       `(if (catch 'eshell-incomplete

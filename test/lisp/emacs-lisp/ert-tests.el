@@ -617,7 +617,7 @@ This macro is used to test if macroexpansion in `should' works."
   (should (ert--special-operator-p 'if))
   (should-not (ert--special-operator-p 'car))
   (should-not (ert--special-operator-p 'ert--special-operator-p))
-  (let ((b (cl-gensym)))
+  (cl-with-gensyms (b)
     (should-not (ert--special-operator-p b))
     (fset b 'if)
     (should (ert--special-operator-p b))))

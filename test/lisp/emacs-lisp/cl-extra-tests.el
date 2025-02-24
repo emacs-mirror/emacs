@@ -23,7 +23,7 @@
 (require 'ert)
 
 (ert-deftest cl-lib-test-remprop ()
-  (let ((x (cl-gensym)))
+  (cl-with-gensyms (x)
     (should (equal (symbol-plist x) '()))
     ;; Remove nonexistent property on empty plist.
     (cl-remprop x 'b)

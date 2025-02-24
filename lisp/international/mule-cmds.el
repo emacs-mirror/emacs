@@ -2668,7 +2668,7 @@ but this macro does not by itself perform redisplay.  If BODY needs to
 display something with LOCALE-NAME's settings, include a call
 to `redraw-frame' in BODY."
   (declare (indent 1) (debug (sexp def-body)))
-  (let ((current (gensym)))
+  (cl-with-gensyms (current)
     `(let ((,current current-locale-environment))
        (unwind-protect
            (progn

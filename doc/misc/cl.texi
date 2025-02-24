@@ -1370,7 +1370,7 @@ expansion of another macro:
 
 @example
 (cl-defmacro my-dolist ((x list) &rest body)
-  (let ((var (cl-gensym)))
+  (cl-with-gensyms (var)
     (list 'cl-loop 'for var 'on list 'do
           (cl-list* 'cl-symbol-macrolet
                     (list (list x (list 'car var)))

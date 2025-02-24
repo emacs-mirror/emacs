@@ -1678,7 +1678,7 @@ line after applying FUNCTION."
 
 (defun kmacro-menu--marks-exist-p ()
   "Return non-nil if markers exist for any table entries."
-  (let ((tag (gensym)))
+  (cl-with-gensyms (tag)
     (catch tag
       (kmacro-menu--map-ids (lambda (id)
                               (when (alist-get (kmacro-menu--id-position id)

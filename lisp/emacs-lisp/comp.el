@@ -953,7 +953,7 @@ Points to the next slot to be filled.")
 Restore the original value afterwards."
   (declare (debug (form body))
            (indent defun))
-  (let ((sym (gensym)))
+  (cl-with-gensyms (sym)
     `(let ((,sym (comp--sp)))
        (setf (comp--sp) ,sp)
        (progn ,@body)

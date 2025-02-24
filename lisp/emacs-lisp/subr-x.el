@@ -551,8 +551,7 @@ as changes in text properties, `buffer-file-coding-system', buffer
 multibyteness, etc. -- will not be noticed, and the buffer will still
 be marked unmodified, effectively ignoring those changes."
   (declare (debug t) (indent 0))
-  (let ((hash (gensym))
-        (buffer (gensym)))
+  (cl-with-gensyms (hash buffer)
     `(let ((,hash (and (not (buffer-modified-p))
                        (buffer-hash)))
            (,buffer (current-buffer)))
