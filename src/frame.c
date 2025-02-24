@@ -7113,17 +7113,25 @@ a non-nil value in your init file.  */);
 If this option is nil, setting font, menu bar, tool bar, tab bar,
 internal borders, fringes or scroll bars of a specific frame may resize
 the frame in order to preserve the number of columns or lines it
-displays.  If this option is t, no such resizing happens once a frame
-has got its initial size.  If this is the symbol `force', no implicit
-resizing happens whenever a new frame is made.  This can be useful with
-tiling window managers where the initial size of a frame is determined
-by external means.
+displays.
+
+If this option is t, no such resizing happens once Emacs has agreed with
+the window manager on the final initial size of a frame.  That size will
+have taken into account the size of the text area requested by the user
+and the size of all decorations initially present on the frame.
+
+If this is the symbol `force', no implicit resizing happens even before
+a frame has obtained its final initial size.  As a consequence, the
+initial frame size may not necessarily be the one requested by the user.
+This value can be useful with tiling window managers where the initial
+size of a frame is determined by external means.
 
 The value of this option can be also a list of frame parameters.  In
-this case, resizing is inhibited when changing a parameter that
-appears in that list.  The parameters currently handled by this option
-include `font', `font-backend', `internal-border-width',
-`menu-bar-lines', `tool-bar-lines' and `tab-bar-lines'.
+this case, resizing is inhibited once a frame has obtained its final
+initial size when changing a parameter that appears in that list.  The
+parameters currently handled by this option include `font',
+`font-backend', `internal-border-width', `menu-bar-lines',
+`tool-bar-lines' and `tab-bar-lines'.
 
 Changing any of the parameters `scroll-bar-width', `scroll-bar-height',
 `vertical-scroll-bars', `horizontal-scroll-bars', `left-fringe' and

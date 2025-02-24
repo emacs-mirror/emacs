@@ -1234,11 +1234,22 @@ immediately after running @code{window-size-change-functions} for
 @cindex implied resizing of frame
 
 By default, Emacs tries to keep the number of lines and columns of a
-frame's text area unaltered when, for example, toggling its menu or
-tool bar, changing its default font or setting the width of any of its
-scroll bars.  This means that in such case Emacs must ask the window
-manager to resize the frame's window in order to accommodate the size
-change.
+frame's text area (@pxref{Frame Layout}) unaltered when, for example,
+toggling the menu or tool bar, changing the default font or setting the
+default width of scroll bars on that frame.  When any of these
+decorations is drawn by a toolkit, this usually means that Emacs has to
+work against that toolkit because the latter usually tries to keep the
+outer frame size unaltered when the size of a decoration changes, thus
+implicitly changing the size of the frame's text area.
+
+  In practice this means that whenever Emacs issues a request to add or
+remove such a decoration, it will issue a second request with the
+intention to restore the original size of the frame's text area.  When
+any of these decorations is drawn by Emacs itself (like the tool bar
+with the Lucid or MS-Windows builds or the tab bar), Emacs may still
+have to alter the size of the native frame accordingly and issue a
+resize request because these decorations should not be accounted for by
+the text area of the frame.
 
   Occasionally, such @dfn{implied frame resizing} may be unwanted, for
 example, when a frame has been maximized or made full-screen (where
@@ -1249,16 +1260,29 @@ resizing with the following option:
 If this option is @code{nil}, changing a frame's font, menu bar, tool
 bar, internal borders, fringes or scroll bars may resize its outer frame
 in order to keep the number of columns or lines of its text area
-unaltered.  If this option is @code{t}, no such resizing happens once a
-frame has obtained its initial size.  If the value is the symbol
-@code{force}, no implicit resizing happens whenever a new frame is made.
-The latter can be useful with tiling window managers where the initial
-size of a frame is determined by external means.
+unaltered.
+
+If this option is @code{t}, Emacs will not resize a frame in any of
+these cases once it has agreed with the window manager on the final
+initial size of that frame.  More precisely, this means that Emacs may
+resize a frame implicitly until all of its decorations have been taken
+into account and it has been given the initial size requested by the
+user.  Any further changes of decorations will not cause an implied
+resizing of the frame.
+
+If this option equals the symbol @code{force}, Emacs will not perform
+any implied resizing of a frame even before it has agreed with the
+window manager on the final initial size of that frame.  As a
+consequence, the initial size of a frame's text area may not necessarily
+reflect the one specified by the user.  This value can be useful with
+tiling window managers where the initial size of a frame is determined
+by external means.
 
 The value of this option can be also a list of frame parameters.  In
-that case, implied resizing is inhibited for the change of the
-parameters that appear in this list.  Parameters currently handled by
-this option are @code{font}, @code{font-backend},
+that case, implied resizing of a frame is inhibited for the change of
+any parameters that appears in this list once Emacs has agreed with the
+window manager on the final initial size of that frame.  Parameters
+currently handled by this option are @code{font}, @code{font-backend},
 @code{internal-border-width}, @code{menu-bar-lines} and
 @code{tool-bar-lines}.
 
@@ -1288,11 +1312,11 @@ even if this option is non-@code{nil}.
 Note also that window managers usually do not ask for resizing a frame
 when they change the number of lines occupied by an external menu or
 tool bar.  Typically, such ``wrappings'' occur when a user shrinks a
-frame horizontally, making it impossible to display all elements of
-its menu or tool bar.  They may also result from a change of the major
-mode altering the number of items of a menu or tool bar.  Any such
-wrappings may implicitly alter the number of lines of a frame's text
-area and are unaffected by the setting of this option.
+frame horizontally, making it impossible to display all elements of its
+menu or tool bar.  They may also result from a change of the major mode
+altering the number of items of a menu or tool bar.  Any such wrappings
+may implicitly alter the number of lines of a frame's text area and are
+unaffected by the setting of this option.
 @end defopt
 
 
