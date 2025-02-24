@@ -321,6 +321,14 @@ If non-nil, `recentf-open-files' will show labels for keys that can be
 used as shortcuts to open the Nth file."
   :group 'recentf
   :type 'boolean)
+
+(defcustom recentf-show-messages t
+  "Whether to show verbose messages about low-level recentf actions.
+nil means to not show messages related to the recentf machinery.
+t means show messages that were printed by default on Emacs <= 31.1."
+  :group 'recentf
+  :type 'boolean
+  :version "31.1")
 
 ;;; Utilities
 ;;
@@ -525,9 +533,9 @@ See also the command `recentf-open-most-recent-file'."
 
 (defvar recentf-menu-items-for-commands
   (list
-   ["Cleanup list"
+   ["Clean up list"
     recentf-cleanup
-    :help "Remove duplicates, and obsoletes files from the recent list"
+    :help "Remove duplicates, and obsolete files from the recent list"
     :active t]
    ["Edit list..."
     recentf-edit-list
@@ -1331,8 +1339,12 @@ Write data into the file specified by `recentf-save-file'."
         (insert "\n\n;; Local Variables:\n"
                 (format ";; coding: %s\n" recentf-save-file-coding-system)
                 ";; End:\n")
-        (write-region (point-min) (point-max)
-                      (expand-file-name recentf-save-file))
+        (write-region (point-min)
+                      (point-max)
+                      (expand-file-name recentf-save-file) nil
+                      (unless (or (called-interactively-p 'interactive)
+                                 recentf-show-messages)
+                        'quiet))
         (when recentf-save-file-modes
           (set-file-modes recentf-save-file recentf-save-file-modes))
         nil)

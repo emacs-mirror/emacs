@@ -1762,3 +1762,43 @@ integers from 1 to @var{n}.  @kbd{INV INDX} takes three numbers
 	dee6b36286 If use-package-verbose is t, show loading times when :afte...
 	267fc6d00c4 ruby-smie-rules: Fix misindentation of a method call afte...
 	b0181dafb9e Improve documentation of 'enable-local-variables' in Emac...
+(string-lessp "abc" "abd")
+(string-lessp "abd" "abc")
+@item @code{\ine}
+            (idlwave-define-abbrev "ine" "IF N_Elements() EQ 0 THEN"
+@kbd{P l} (@code{mh-print-msg}) (the @i{l} is for @i{l}ine printer or
+	* cookie.el (cookie): Enhance it to handle both LINS files and
+                          "^(def\\(custom\\|face\\|group\\|ine\\(?:-globalized\\)?-minor-mode\\)" nil t)
+ine\\(?:-global\\)?-minor-mode\\|ine-compilation-mode\\|un-cvs-mode\\|\
+	(message "Transpose: c(har), l(ine), p(aragraph), s(-exp), w(ord),")
+	(t (message "Ask for: l(ine number), c(ursor position), p(age number)")
+;; * ITS-style LINS format (strings terminated by ASCII 0 characters,
+     "^\\(?:[Ee]rror on \\|[Ww]arning on\\( \\)\\)?[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+\
+(idlwave-define-abbrev "ine" "if n_elements() eq 0 then" (idlwave-keyword-abbrev 11))
+        "copy" "def~ine" "del" "desc~ribe" "disc~onnect" "ed~it"
+        "undef~ine" "var~iable" "whenever")
+     (insert "abc abd"))
+   (should (string= (buffer-string) "abc abd"))
+  (let (node indx comma)
+	      indx (match-string 3 url))
+    (when (> (length indx) 0)
+		    indx)
+      (setq comma (match-string 2 indx))
+      (setq indx  (match-string 1 indx))
+      (Info-index indx)
+	(oarticle (make-symbol "gnus-setup-message-oarticle"))
+	   (,oarticle gnus-article-reply)
+	 (gnus-inews-add-send-actions ,winconf ,buffer ,oarticle ,config
+  Thur, Fri, Sat, Sun
+[3]: Merget, Brinkmann, Aviram, Somorovsky, Mittmann, and
+                      (ansi-color-cyan                     :short "ansi-cyan"           :slug "anc" :foreground ,fg-term-cyan)
+                      (ansi-color-bright-cyan              :short "ansi-bright-cyan"    :slug "ANc" :foreground ,fg-term-cyan-bright)
+      (search-forward "foo.correc")
+	 "Your finger was not centred, try swiping your finger again"
+           (ofrom (marker-position (widget-get group :from)))
+      (should (= ofrom (widget-get group :from)))
+           (ofrom (marker-position (widget-get group :from)))
+      (should (= ofrom (widget-get group :from)))
+  (should (equal (cl-subseq "hello world" -5 -1) "worl"))
+    ("\\.te?xi\\'" . texinfo-mode)
+    ("\\.te?xt\\'" . text-mode)

@@ -424,7 +424,7 @@ on MS-Windows cannot have too many concurrent sub-processes.")
     (setf (process-sentinel process)
           (lambda (process status)
             ;; Trigger next in queue once a thumbnail has been created
-            (cl-decf image-dired-queue-active-jobs)
+            (decf image-dired-queue-active-jobs)
             (image-dired-thumb-queue-run)
             (when (= image-dired-queue-active-jobs 0)
               (image-dired-debug

@@ -104,9 +104,14 @@ allow `git commit' to determine identities for authors and committers."
        ,@body)))
 
 (defun vc-git-test--run (&rest args)
-  "Run git ARGS…, check for non-zero status, and return output."
+  "Run git ARGS…, check for non-zero status, and return output.
+If the exit status is non-zero, log the command output and re-throw."
   (with-temp-buffer
-    (apply 'vc-git-command t 0 nil args)
+    (condition-case err
+        (apply 'vc-git-command t 0 nil args)
+      (t (message "Error running Git: %s" err)
+         (message "(buffer-string:\n%s\n)" (buffer-string))
+         (signal (car err) (cdr err))))
     (buffer-string)))
 
 (defun vc-git-test--start-branch ()
@@ -120,31 +125,30 @@ agnostic of init.defaultbranch."
   (string-trim (vc-git-test--run "branch" "--show-current")))
 
 (defun vc-git-test--dir-headers (headers)
-  "Return an alist of header values for the current `vc-dir' buffer.
-
+  "Return an alist of header values as they would appear in `vc-dir'.
 HEADERS should be a list of (NAME ...) strings.  This function will
 return a list of (NAME . VALUE) pairs, where VALUE is nil if the header
 is absent."
-  ;; FIXME: to reproduce interactive sessions faithfully, we would need
-  ;; to wait for the dir-status-files process to terminate; have not
-  ;; found a reliable way to do this.  As a workaround, kill pending
-  ;; processes and revert the `vc-dir' buffer.
-  (vc-dir-kill-dir-status-process)
-  (revert-buffer)
-  (mapcar
-   (lambda (header)
-     (let* ((pattern
-             (rx bol
-                 (literal header) (* space) ": " (group (+ nonl))
-                 eol))
-            (value (and (goto-char (point-min))
-                        (re-search-forward pattern nil t)
-                        (match-string 1))))
-       (cons header value)))
-   headers))
+  (with-temp-buffer
+    ;; We invoke the backend's dir-extra-headers function directly
+    ;; because (a) that covers the logic we mean to test (b) going
+    ;; through vc-dir "like a user would" has proven fraught; see
+    ;; bug#76187 for hard-to-reproduce and hard-to-diagnose errors.
+    (insert (vc-git-dir-extra-headers default-directory) "\n")
+    (mapcar
+     (lambda (header)
+       (let* ((pattern
+               (rx bol
+                   (literal header) (* space) ": " (group (+ nonl))
+                   eol))
+              (value (and (goto-char (point-min))
+                          (re-search-forward pattern nil t)
+                          (match-string 1))))
+         (cons header value)))
+     headers)))
 
 (ert-deftest vc-git-test-dir-branch-headers ()
-  "Check that `vc-dir' shows expected branch-related headers."
+  "Check that dir-extra-headers recognizes various branch arrangements."
   (skip-unless (executable-find vc-git-program))
   ;; Create a repository that will serve as the "remote".
   (vc-git-test--with-repo origin-repo
@@ -152,42 +156,42 @@ is absent."
       ;; 'git clone' this repository and test things in this clone.
       (ert-with-temp-directory clone-repo
         (vc-git-test--run "clone" origin-repo clone-repo)
-        (vc-dir clone-repo)
-        (should
-         (equal
-          (vc-git-test--dir-headers
-           '("Branch" "Tracking" "Remote"))
-          `(("Branch"   . ,main-branch)
-            ("Tracking" . ,(concat "origin/" main-branch))
-            ("Remote"   . ,origin-repo))))
-        ;; Checkout a new branch: no tracking information.
-        (vc-git-test--run "checkout" "-b" "feature/foo" main-branch)
-        (should
-         (equal
-          (vc-git-test--dir-headers
-           '("Branch" "Tracking" "Remote"))
-          '(("Branch"   . "feature/foo")
-            ("Tracking" . nil)
-            ("Remote"   . nil))))
-        ;; Push with '--set-upstream origin': tracking information
-        ;; should be updated.
-        (vc-git-test--run "push" "--set-upstream" "origin" "feature/foo")
-        (should
-         (equal
-          (vc-git-test--dir-headers
-           '("Branch" "Tracking" "Remote"))
-          `(("Branch"   . "feature/foo")
-            ("Tracking" . "origin/feature/foo")
-            ("Remote"   . ,origin-repo))))
-        ;; Checkout a new branch tracking the _local_ main branch.
-        ;; Bug#68183.
-        (vc-git-test--run "checkout" "-b" "feature/bar" "--track" main-branch)
-        (should
-         (equal
-          (vc-git-test--dir-headers
-           '("Branch" "Tracking" "Remote"))
-          `(("Branch"   . "feature/bar")
-            ("Tracking" . ,main-branch)
-            ("Remote"   . "none (tracking local branch)"))))))))
+        (let ((default-directory clone-repo))
+          (should
+           (equal
+            (vc-git-test--dir-headers
+             '("Branch" "Tracking" "Remote"))
+            `(("Branch"   . ,main-branch)
+              ("Tracking" . ,(concat "origin/" main-branch))
+              ("Remote"   . ,origin-repo))))
+          ;; Checkout a new branch: no tracking information.
+          (vc-git-test--run "checkout" "-b" "feature/foo" main-branch)
+          (should
+           (equal
+            (vc-git-test--dir-headers
+             '("Branch" "Tracking" "Remote"))
+            '(("Branch"   . "feature/foo")
+              ("Tracking" . nil)
+              ("Remote"   . nil))))
+          ;; Push with '--set-upstream origin': tracking information
+          ;; should be updated.
+          (vc-git-test--run "push" "--set-upstream" "origin" "feature/foo")
+          (should
+           (equal
+            (vc-git-test--dir-headers
+             '("Branch" "Tracking" "Remote"))
+            `(("Branch"   . "feature/foo")
+              ("Tracking" . "origin/feature/foo")
+              ("Remote"   . ,origin-repo))))
+          ;; Checkout a new branch tracking the _local_ main branch.
+          ;; Bug#68183.
+          (vc-git-test--run "checkout" "-b" "feature/bar" "--track" main-branch)
+          (should
+           (equal
+            (vc-git-test--dir-headers
+             '("Branch" "Tracking" "Remote"))
+            `(("Branch"   . "feature/bar")
+              ("Tracking" . ,main-branch)
+              ("Remote"   . "none (tracking local branch)")))))))))
 
 ;;; vc-git-tests.el ends here

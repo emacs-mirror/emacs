@@ -1334,7 +1334,7 @@ Pop to member buffer if no prefix ARG, to tree buffer otherwise."
                                    "Indentation"
                                    (int-to-string ebrowse--indentation))
                                   nil nil ebrowse--indentation))))
-    (when (cl-plusp width)
+    (when (plusp width)
       (setq-local ebrowse--indentation width)
       (ebrowse-redraw-tree))))
 
@@ -2168,7 +2168,7 @@ The new width is read from the minibuffer."
 					    ebrowse--decl-column
 					  ebrowse--column-width))
 			 "): ")))))
-    (when (cl-plusp width)
+    (when (plusp width)
       (if ebrowse--long-display-flag
 	  (setq ebrowse--decl-column width)
 	(setq ebrowse--column-width width))
@@ -2209,12 +2209,12 @@ make one."
 			     ebrowse--accessor
 			     #'eql)))
     (setf ebrowse--accessor
-	  (cond ((cl-plusp incr)
+	  (cond ((plusp incr)
 		 (or (nth (1+ index)
 			  ebrowse-member-list-accessors)
 		     (cl-first ebrowse-member-list-accessors)))
-		((cl-minusp incr)
-		 (or (and (>= (cl-decf index) 0)
+		((minusp incr)
+                 (or (and (>= (decf index) 0)
 			  (nth index
 			       ebrowse-member-list-accessors))
 		     (cl-first (last ebrowse-member-list-accessors))))))
@@ -2693,7 +2693,7 @@ TREE is the class tree in which the members are found."
 	  (when (>= i ebrowse--n-columns)
 	    (setf i 0)
 	    (insert "\n")))))
-    (when (cl-plusp i)
+    (when (plusp i)
       (insert "\n"))
     (goto-char (point-min))))
 
@@ -2863,7 +2863,7 @@ Prefix arg INC specifies which one."
     (setq index (+ inc (seq-position containing-list
 				     ebrowse--displayed-class
 				     #'eql)))
-    (cond ((cl-minusp index) (message "No previous class"))
+    (cond ((minusp index) (message "No previous class"))
 	  ((null (nth index containing-list)) (message "No next class")))
     (setq index (max 0 (min index (1- (length containing-list)))))
     (setq cls (nth index containing-list))
@@ -3729,7 +3729,7 @@ Positions in buffers that have no file names are not saved."
     (let ((too-much (- (length ebrowse-position-stack)
 		       ebrowse-max-positions)))
       ;; Do not let the stack grow to infinity.
-      (when (cl-plusp too-much)
+      (when (plusp too-much)
 	(setq ebrowse-position-stack
 	      (butlast ebrowse-position-stack too-much)))
       ;; Push the position.

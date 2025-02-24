@@ -105,29 +105,27 @@ a future Emacs interpreter will be able to use it.")
 ;; can safely be used in init files.
 
 ;;;###autoload
-(defmacro cl-incf (place &optional x)
+(defalias 'cl-incf #'incf
   "Increment PLACE by X (1 by default).
 PLACE may be a symbol, or any generalized variable allowed by `setf'.
 The return value is the incremented value of PLACE.
 
 If X is specified, it should be an expression that should
-evaluate to a number."
-  (declare (debug (place &optional form)))
-  (if (symbolp place)
-      (list 'setq place (if x (list '+ place x) (list '1+ place)))
-    (list 'cl-callf '+ place (or x 1))))
+evaluate to a number.
 
-(defmacro cl-decf (place &optional x)
+This macro is considered deprecated in favor of the built-in macro
+`incf' that was added in Emacs 31.1.")
+
+(defalias 'cl-decf #'decf
   "Decrement PLACE by X (1 by default).
 PLACE may be a symbol, or any generalized variable allowed by `setf'.
 The return value is the decremented value of PLACE.
 
 If X is specified, it should be an expression that should
-evaluate to a number."
-  (declare (debug cl-incf))
-  (if (symbolp place)
-      (list 'setq place (if x (list '- place x) (list '1- place)))
-    (list 'cl-callf '- place (or x 1))))
+evaluate to a number.
+
+This macro is considered deprecated in favor of the built-in macro
+`decf' that was added in Emacs 31.1.")
 
 (defmacro cl-pushnew (x place &rest keys)
   "Add X to the list stored in PLACE unless X is already in the list.
@@ -164,9 +162,9 @@ to an element already in the list stored in PLACE.
 		  val))
 
 (defun cl--set-substring (str start end val)
-  (if end (if (< end 0) (cl-incf end (length str)))
+  (if end (if (< end 0) (incf end (length str)))
     (setq end (length str)))
-  (if (< start 0) (cl-incf start (length str)))
+  (if (< start 0) (incf start (length str)))
   (concat (and (> start 0) (substring str 0 start))
 	  val
 	  (and (< end (length str)) (substring str end))))
@@ -270,27 +268,29 @@ so that they are registered at compile-time as well as run-time."
 
 (define-obsolete-function-alias 'cl-floatp-safe 'floatp "24.4")
 
-(defsubst cl-plusp (number)
-  "Return t if NUMBER is positive."
-  (declare (side-effect-free t))
-  (> number 0))
+(defalias 'cl-plusp #'plusp
+  "Return t if NUMBER is positive.
 
-(defsubst cl-minusp (number)
-  "Return t if NUMBER is negative."
-  (declare (side-effect-free t))
-  (< number 0))
+This function is considered deprecated in favor of the built-in function
+`plusp' that was added in Emacs 31.1.")
 
-(defun cl-oddp (integer)
-  "Return t if INTEGER is odd."
-  (declare (side-effect-free t)
-           (compiler-macro (lambda (_) `(eq (logand ,integer 1) 1))))
-  (eq (logand integer 1) 1))
+(defalias 'cl-minusp #'minusp
+  "Return t if NUMBER is negative.
 
-(defun cl-evenp (integer)
-  "Return t if INTEGER is even."
-  (declare (side-effect-free t)
-           (compiler-macro (lambda (_) `(eq (logand ,integer 1) 0))))
-  (eq (logand integer 1) 0))
+This function is considered deprecated in favor of the built-in function
+`minusp' that was added in Emacs 31.1.")
+
+(defalias 'cl-oddp #'oddp
+  "Return t if INTEGER is odd.
+
+This function is considered deprecated in favor of the built-in function
+`oddp' that was added in Emacs 31.1.")
+
+(defalias 'cl-evenp #'evenp
+  "Return t if INTEGER is even.
+
+This function is considered deprecated in favor of the built-in function
+`evenp' that was added in Emacs 31.1.")
 
 (defconst cl-digit-char-table
   (let* ((digits (make-vector 256 nil))
@@ -456,7 +456,7 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 ;;With optional argument N, returns Nth-to-last link (default 1)."
 ;;  (if n
 ;;      (let ((m 0) (p x))
-;;	(while (consp p) (cl-incf m) (pop p))
+;;      (while (consp p) (incf m) (pop p))
 ;;	(if (<= n 0) p
 ;;	  (if (< n m) (nthcdr (- m n) x) x)))
 ;;    (while (consp (cdr x)) (pop x))

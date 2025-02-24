@@ -100,7 +100,7 @@ Print the contents hidden by the ellipsis to STREAM."
           (cl-print-object (pop object) stream)
         (cl-print-insert-ellipsis object t stream)
         (setq object nil))
-      (cl-incf count))
+      (incf count))
     (when object
       (princ " . " stream) (cl-print-object object stream))))
 
@@ -123,7 +123,7 @@ Print the contents hidden by the ellipsis to STREAM."
     (while (< i limit)
       (unless (= i start) (princ " " stream))
       (cl-print-object (aref object i) stream)
-      (cl-incf i))
+      (incf i))
     (when (< limit len)
       (princ " " stream)
       (cl-print-insert-ellipsis object limit stream))))
@@ -298,7 +298,7 @@ into a button whose action shows the function's disassembly.")
         (princ (cl--slot-descriptor-name slot) stream)
         (princ " " stream)
         (cl-print-object (aref object (1+ i)) stream))
-      (cl-incf i))
+      (incf i))
     (when (< limit len)
       (princ " " stream)
       (cl-print-insert-ellipsis object limit stream))))
@@ -369,7 +369,7 @@ primitives such as `prin1'.")
           (princ start-pos stream)
           (princ " " stream) (princ end-pos stream)
           (princ " " stream) (cl-print-object props stream)
-          (cl-incf interval-count))
+          (incf interval-count))
         (setq start-pos end-pos
               end-pos (next-property-change start-pos object len))))
     (when (< start-pos len)
@@ -636,10 +636,10 @@ abbreviating it with ellipses to fit within a size limit."
               (throw 'done (buffer-string)))
             (let* ((ratio (/ result limit))
                    (delta-level (max 1 (min (- print-level 2) ratio))))
-              (cl-decf print-level delta-level)
-              (cl-decf print-length (* delta-length delta-level))
+              (decf print-level delta-level)
+              (decf print-length (* delta-length delta-level))
               (when cl-print-string-length
-                (cl-decf cl-print-string-length
+                (decf cl-print-string-length
                          (ceiling cl-print-string-length 4.0))))))))))
 
 (provide 'cl-print)

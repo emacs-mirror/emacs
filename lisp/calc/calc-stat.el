@@ -390,7 +390,7 @@
 	      (math-reject-arg (car p) 'anglep))
 	  (setq p (cdr p)))
 	(setq flat (sort flat 'math-lessp))
-	(if (= (% len 2) 0)
+	(if (evenp len)
 	    (math-div (math-add (nth (1- hlen) flat) (nth hlen flat)) 2)
 	  (nth hlen flat))))))
 

@@ -3645,9 +3645,10 @@ CHECK_SUBR (Lisp_Object x)
    for more efficient dump loading.  */
 #ifdef DARWIN_OS
 # define SUBR_SECTION_ATTRIBUTE ATTRIBUTE_SECTION ("__DATA,subrs")
-#else
+#else /* !DARWIN_OS */
 # define SUBR_SECTION_ATTRIBUTE ATTRIBUTE_SECTION (".subrs")
-#endif
+#endif /* !DARWIN_OS */
+
 
 /* Define a built-in function for calling from Lisp.
  `lname' should be the name to give the function in Lisp,
@@ -4655,7 +4656,7 @@ extern void adjust_markers_for_insert (ptrdiff_t, ptrdiff_t,
 extern void adjust_markers_bytepos (ptrdiff_t, ptrdiff_t,
 				    ptrdiff_t, ptrdiff_t, int);
 extern void replace_range (ptrdiff_t, ptrdiff_t, Lisp_Object, bool, bool,
-			   bool, bool, bool);
+			   bool, bool);
 extern void replace_range_2 (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t,
 			     const char *, ptrdiff_t, ptrdiff_t, bool);
 extern void syms_of_insdel (void);

@@ -36,6 +36,7 @@
 
 (require 'sendmail)
 (require 'message)
+(require 'lisp-mnt)
 
 (defgroup emacsbug nil
   "Sending Emacs bug reports."
@@ -497,6 +498,10 @@ and send the mail again%s."
     (when (get-buffer-window help)
       (quit-window nil (get-buffer-window help)))))
 
+(defconst submit-emacs-patch-excluded-maintainers
+  '("emacs-devel@gnu.org")
+  "List of maintainer addresses for `submit-emacs-patch' to ignore.")
+
 ;;;###autoload
 (defun submit-emacs-patch (subject file)
   "Send an Emacs patch to the Emacs maintainers.
@@ -533,7 +538,33 @@ Message buffer where you can explain more about the patch."
     (button-mode 1))
   (compose-mail-other-window report-emacs-bug-address subject)
   (rfc822-goto-eoh)
-  (insert "X-Debbugs-Cc: \n")
+  (insert "X-Debbugs-Cc: ")
+  (let ((maint (let (files)
+                 (with-temp-buffer
+                   (insert-file-contents file)
+                   (while (search-forward-regexp "^\\+\\{3\\} ./\\(.*\\)" nil t)
+                     (push (expand-file-name
+                            (match-string-no-properties 1)
+                            source-directory)
+                           files)))
+                 (mapcan
+                  (lambda (patch)
+                    (seq-remove
+                     (pcase-lambda (`(,_name . ,addr))
+                       (member addr submit-emacs-patch-excluded-maintainers))
+                     ;; TODO: Consult admin/MAINTAINERS for additional
+                     ;; information.  This either requires some
+                     ;; heuristics to parse the existing file or to
+                     ;; adjust the file format to make it more machine
+                     ;; readable (bug#69646).
+                     (lm-maintainers patch)))
+                  files))))
+    (when maint
+      (insert (mapconcat
+               (pcase-lambda (`(,name . ,addr))
+                 (format "%s <%s>" name addr))
+               maint ", "))))
+  (insert "\n")
   (message-goto-body)
   (insert "\n\n\n")
   (emacs-build-description)

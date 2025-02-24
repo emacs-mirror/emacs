@@ -372,6 +372,15 @@ directory, like `default-directory'."
 		       (regexp :tag "From")
                        (regexp :tag "To"))))
 
+;; These declarations are here to avoid byte-compiler warnings about
+;; functions defined later via 'define-ibuffer-op'.
+(declare-function ibuffer-do-toggle-lock "ibuffer.el")
+(declare-function ibuffer-do-toggle-read-only "ibuffer.el")
+(declare-function ibuffer-do-save "ibuffer.el")
+(declare-function ibuffer-do-delete "ibuffer.el")
+(declare-function ibuffer-do-toggle-modified "ibuffer.el")
+(declare-function ibuffer-do-kill-on-deletion-marks "ibuffer.el")
+
 (defvar-keymap ibuffer--filter-map
   "RET"    #'ibuffer-filter-by-mode
   "SPC"    #'ibuffer-filter-chosen-by-completion
@@ -931,7 +940,7 @@ width and the longest string in LIST."
     (when (get-text-property (point) 'ibuffer-title)
       (forward-line 1)
       (setq arg 1))
-    (cl-decf arg)))
+    (decf arg)))
 
 (defun ibuffer-forward-line (&optional arg skip-group-names)
   "Move forward ARG lines, wrapping around the list if necessary."
@@ -946,7 +955,7 @@ width and the longest string in LIST."
 	    (and skip-group-names
 		 (get-text-property (point) 'ibuffer-filter-group-name)))
     (when (> arg 0)
-      (cl-decf arg))
+      (decf arg))
     (ibuffer-skip-properties (append '(ibuffer-title)
 				     (when skip-group-names
 				       '(ibuffer-filter-group-name)))
@@ -959,7 +968,7 @@ width and the longest string in LIST."
 		 (or (eobp)
 		     (get-text-property (point) 'ibuffer-summary)))
 	(goto-char (point-min)))
-      (cl-decf arg)
+      (decf arg)
       (ibuffer-skip-properties (append '(ibuffer-title)
 				       (when skip-group-names
 					 '(ibuffer-filter-group-name)))
@@ -1504,7 +1513,7 @@ If point is on a group name, this function operates on that group."
 		(max (nth 2 form))
 		(align (nth 3 form))
 		(elide (nth 4 form)))
-	   (let* ((from-end-p (when (cl-minusp min)
+	   (let* ((from-end-p (when (minusp min)
 				(setq min (- min))
 				t))
 		  (letbindings nil)
@@ -1917,7 +1926,7 @@ the buffer object itself and the current mark symbol."
 		     (cl-incf ibuffer-map-lines-count)
 		     (when (< ibuffer-map-lines-total
 			      orig-target-line)
-		       (cl-decf target-line-offset)))
+                       (decf target-line-offset)))
 		    (t
 		     (cl-incf ibuffer-map-lines-count)
 		     (forward-line 1)))))
@@ -2055,7 +2064,7 @@ the value of point at the beginning of the line for that buffer."
       element
     (pcase-let ((`(,sym ,min ,_max ,align) element))
       ;; Ignore negative MIN, since the titles are left-aligned.
-      (when (cl-minusp min)
+      (when (minusp min)
 	(setq min (- min)))
       (let* ((name (or (get sym 'ibuffer-column-name)
 		       (error "Unknown column %s in ibuffer-formats" sym)))
@@ -2080,7 +2089,7 @@ the value of point at the beginning of the line for that buffer."
       (make-string (length element) ?\s)
     (pcase-let ((`(,sym ,min ,_max ,align) element))
       ;; Ignore negative MIN, since the summaries are left-aligned.
-      (when (cl-minusp min)
+      (when (minusp min)
         (setq min (- min)))
       (let* ((summary
               (if (get sym 'ibuffer-column-summarizer)

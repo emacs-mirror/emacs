@@ -20,6 +20,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 
 (defun try-link (target link)
   (make-symbolic-link target link)
@@ -30,19 +31,17 @@
     failure))
 
 (defun fileio-tests--symlink-failure ()
-  (let* ((dir (make-temp-file "fileio" t))
-         (link (expand-file-name "link" dir)))
-    (unwind-protect
-        (let (failure
-              (char 0))
-          (while (and (not failure) (< char 127))
-            (setq char (1+ char))
-            (when (and (eq system-type 'cygwin) (eq char 92))
-              (setq char (1+ char)))
-            (setq failure (try-link (string char) link)))
-          (or failure
-              (try-link "/:" link)))
-      (delete-directory dir t))))
+  (ert-with-temp-directory dir
+    (let* ((link (expand-file-name "link" dir)))
+      (let (failure
+            (char 0))
+        (while (and (not failure) (< char 127))
+          (setq char (1+ char))
+          (when (and (eq system-type 'cygwin) (eq char 92))
+            (setq char (1+ char)))
+          (setq failure (try-link (string char) link)))
+        (or failure
+            (try-link "/:" link))))))
 
 (ert-deftest fileio-tests--odd-symlink-chars ()
   "Check that any non-NULL ASCII character can appear in a symlink.
@@ -109,24 +108,20 @@ Also check that an encoding error can appear in a symlink."
       (should (equal (expand-file-name "~/bar") "x:/foo/bar")))))
 
 (ert-deftest fileio-tests--insert-file-interrupt ()
-  (let ((text "-*- coding: binary -*-\n\xc3\xc3help")
-        f)
-    (unwind-protect
-        (progn
-          (setq f (make-temp-file "ftifi"))
-          (write-region text nil f nil 'silent)
-          (with-temp-buffer
-            (catch 'toto
-              (let ((set-auto-coding-function (lambda (&rest _) (throw 'toto nil))))
-                (insert-file-contents f)))
-            (goto-char (point-min))
-            (unless (eobp)
-              (forward-line 1)
-              (let ((c1 (char-after)))
-                (forward-char 1)
-                (should (equal c1 (char-before)))
-                (should (equal c1 (char-after)))))))
-      (if f (delete-file f)))))
+  (ert-with-temp-file f
+    (let ((text "-*- coding: binary -*-\n\xc3\xc3help"))
+      (write-region text nil f nil 'silent)
+      (with-temp-buffer
+        (catch 'toto
+          (let ((set-auto-coding-function (lambda (&rest _) (throw 'toto nil))))
+            (insert-file-contents f)))
+        (goto-char (point-min))
+        (unless (eobp)
+          (forward-line 1)
+          (let ((c1 (char-after)))
+            (forward-char 1)
+            (should (equal c1 (char-before)))
+            (should (equal c1 (char-after)))))))))
 
 (ert-deftest fileio-tests--relative-default-directory ()
   "Test `expand-file-name' when `default-directory' is relative."
@@ -159,12 +154,12 @@ Also check that an encoding error can appear in a symlink."
 
 (ert-deftest fileio-tests--circular-after-insert-file-functions ()
   "Test `after-insert-file-functions' as a circular list."
-  (let ((f (make-temp-file "fileio"))
-        (after-insert-file-functions (list 'identity)))
-    (setcdr after-insert-file-functions after-insert-file-functions)
-    (write-region "hello\n" nil f nil 'silent)
-    (should-error (insert-file-contents f) :type 'circular-list)
-    (delete-file f)))
+  (ert-with-temp-file f
+    :suffix "fileio"
+    (let ((after-insert-file-functions (list 'identity)))
+      (setcdr after-insert-file-functions after-insert-file-functions)
+      (write-region "hello\n" nil f nil 'silent)
+      (should-error (insert-file-contents f) :type 'circular-list))))
 
 (ert-deftest fileio-tests/null-character ()
   (should-error (file-exists-p "/foo\0bar")

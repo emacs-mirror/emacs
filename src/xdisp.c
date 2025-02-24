@@ -17473,7 +17473,7 @@ redisplay_internal (void)
 
 	  if (is_tty_frame (f))
 	    {
-	      /* Ignore all invisble tty frames, children or root.  */
+	      /* Ignore all invisible tty frames, children or root.  */
 	      if (!frame_redisplay_p (f))
 		continue;
 
@@ -25074,7 +25074,8 @@ maybe_produce_line_number (struct it *it)
       eassert (it->lnum_width > 0);
     }
   /* Extra +2 for the two blanks we add before and after the number.  */
-  char *lnum_buf = alloca (it->lnum_width + 2 + 1);
+  char *lnum_buf = alloca (max (it->lnum_width, INT_STRLEN_BOUND (ptrdiff_t))
+			   + 2 + 1);
   if (EQ (Vdisplay_line_numbers, Qrelative))
     lnum_offset = it->pt_lnum;
   else if (EQ (Vdisplay_line_numbers, Qvisual))

@@ -347,7 +347,7 @@ of the drawing."
 	 (odd nil)
 	 p1)
     (while s
-      (setq odd (= (% (length s) 2) 1))
+      (setq odd (oddp (length s)))
       (setq r (chart-translate-namezone (oref a chart) i))
       (if (eq dir 'vertical)
 	  (setq p (/ (+ (car r) (cdr r)) 2))
@@ -633,7 +633,7 @@ argument to `chart-sort' to sort the lists if desired."
 	     (m (member s extlst)))
 	(unless (null s)
 	  (if m
-              (cl-incf (car (nthcdr (- (length extlst) (length m)) cntlst)))
+              (incf (car (nthcdr (- (length extlst) (length m)) cntlst)))
 	    (setq extlst (cons s extlst)
                   cntlst (cons 1 cntlst))))))
     ;; Let's create the chart!

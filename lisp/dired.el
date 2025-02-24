@@ -2914,7 +2914,7 @@ is controlled by `dired-movement-style'."
                         (dired-move-to-filename)
                         (point)))
         ;; Up/Down indicates the direction.
-        (moving-down (if (cl-plusp arg)
+        (moving-down (if (plusp arg)
                          1              ; means Down.
                        -1)))            ; means Up.
     ;; Line by line in case we forget to skip empty lines.
@@ -2930,7 +2930,7 @@ is controlled by `dired-movement-style'."
           ;; means infinite loop with no files found.
           (if (and wrapped (eq old-arg arg))
               (setq arg 0)
-            (goto-char (if (cl-plusp moving-down)
+            (goto-char (if (plusp moving-down)
                            (point-min)
                          (point-max))))
           (setq wrapped t))
@@ -2947,7 +2947,7 @@ is controlled by `dired-movement-style'."
       (unless (dired-between-files)
         ;; Has moved to a non-empty line.  This movement does
         ;; make sense.
-        (cl-decf arg moving-down))
+        (decf arg moving-down))
       (setq old-position (point)))))
 
 (defun dired-previous-line (arg)

@@ -875,7 +875,7 @@ Assuming we've just performed a `hif-token-regexp' lookup."
   (setq end (or end (point)))
   (while (and (> (1- end) 1)
               (hif-is-white (char-after (1- end))))
-     (cl-decf end))
+     (decf end))
   (let ((p0 end)
         p cmt ce ws we ;; ce:comment start, ws:white start, we whilte end
         cmtlist) ;; pair of (start.end) of comments
@@ -938,7 +938,7 @@ Assuming we've just performed a `hif-token-regexp' lookup."
     ;; Ignore leading whites ahead of comment
     (while (and (> (1- cmt) 1)
                 (hif-is-white (char-after (1- cmt))))
-       (cl-decf cmt))
+       (decf cmt))
     (goto-char cmt)))
 
 (defun hif-tokenize (start end)

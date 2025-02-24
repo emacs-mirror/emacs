@@ -850,7 +850,7 @@ if we don't understand a construct, we signal
                (push "(?:" parts))
               ((eq c ?\})
                (push ?\) parts)
-               (cl-decf group))
+               (decf group))
               ((and (eq c ?,) (> group 0))
                (push ?| parts))
               ((eq c ?\\)

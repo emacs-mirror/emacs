@@ -7287,14 +7287,14 @@ back to standard interface."
 			     (lambda (sub-entry)
 			       (cl-incf index)
 			       (format
-				(if (zerop (mod index 2)) "    [%s] %-26s"
+				(if (cl-evenp index) "    [%s] %-26s"
 				  "[%s] %s\n")
 				(funcall fontify-key
 					 (char-to-string (car sub-entry))
 					 top-key)
 				(nth 1 sub-entry)))
 			     sub-menu "")
-			    (when (zerop (mod index 2)) "\n"))))))))
+			    (when (cl-evenp index) "\n"))))))))
 		entries ""))
 	     ;; Publishing menu is hard-coded.
 	     (format "\n[%s] Publish

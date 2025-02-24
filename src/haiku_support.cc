@@ -350,7 +350,7 @@ keysym_from_raw_char (int32 raw, int32 key, unsigned *code)
 #if B_HAIKU_VERSION >= B_HAIKU_VERSION_1_PRE_BETA_6
     case B_HANGUL_HANJA_KEY:
 #else /* B_HAIKU_VERSION < B_HAIKU_VERSION_1_PRE_BETA_6 */
-    case B_HANGUL:
+    case B_HANGUL_HANJA:
 #endif /* B_HAIKU_VERSION >= B_HAIKU_VERSION_1_PRE_BETA_6 */
       *code = KEY_HANGUL_HANJA;
       break;

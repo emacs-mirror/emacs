@@ -1060,7 +1060,7 @@ even if it doesn't match the type.)
 
 \(fn [VARIABLE VALUE]...)"
   (declare (debug setq))
-  (unless (zerop (mod (length pairs) 2))
+  (unless (evenp (length pairs))
     (error "PAIRS must have an even number of variable/value members"))
   (let ((expr nil))
     (while pairs
@@ -3054,11 +3054,18 @@ To check for other states, call `custom-variable-state'."
     (let* ((form (widget-get widget :custom-form))
            (symbol (widget-get widget :value))
            (get (or (get symbol 'custom-get) 'default-value))
-           (value (if (default-boundp symbol)
-                      (condition-case nil
-                          (funcall get symbol)
-                        (error (throw 'get-error t)))
-                    (symbol-value symbol)))
+           (value-widget (car (widget-get widget :children)))
+           ;; Round-trip the value, for the sake of widgets that accept
+           ;; values of different types (e.g., the obsolete key-sequence widget
+           ;; which takes either strings or vectors.  (Bug#76156)
+           (value
+            (widget-apply value-widget :value-to-external
+                          (widget-apply value-widget :value-to-internal
+                                        (if (default-boundp symbol)
+                                            (condition-case nil
+                                                (funcall get symbol)
+                                              (error (throw 'get-error t)))
+                                          (symbol-value symbol)))))
            (orig-value (widget-value (car (widget-get widget :children)))))
       (not (equal (if (memq form '(lisp mismatch))
                       ;; Mimic `custom-variable-value-create'.
@@ -5423,6 +5430,13 @@ Erase customizations; set options
 Entry to this mode calls the value of `Custom-mode-hook'
 if that value is non-nil."
   (use-local-map custom-mode-map)
+  (when (not (boundp 'tool-bar-map))
+    ;; setq-local will render tool-bar-map buffer local before the form
+    ;; is evaluated, but if tool-bar.el remains unloaded this blv will
+    ;; be unbound and consequently once tool-bar-local-item-from-menu is
+    ;; called and autoloads tool-bar.el, no binding will be created,
+    ;; causing it to signal.
+    (setq tool-bar-map (make-sparse-keymap)))
   (setq-local tool-bar-map
 	      (or custom-tool-bar-map
 		  ;; Set up `custom-tool-bar-map'.

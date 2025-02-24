@@ -94,7 +94,7 @@ Goto End
 :mvOk
 rm -f junk.2
 Echo Checking whether 'gcc' is available...
-echo main(){} >junk.c
+echo int main(void){} >junk.c
 gcc -c junk.c
 if exist junk.o goto gccOk
 Echo To configure 'Emacs' you need to have 'gcc'!
@@ -107,7 +107,8 @@ If Not "%DJGPP%" == "" goto djgppOk
 Echo To compile 'Emacs' under MS-DOS you MUST have DJGPP installed!
 Goto End
 :djgppOk
-echo int main()           >junk.c
+echo #include "sys/version.h" >junk.c
+echo int main()          >>junk.c
 echo #ifdef __DJGPP__    >>junk.c
 echo {return (__DJGPP__)*10 + (__DJGPP_MINOR__);} >>junk.c
 echo #else               >>junk.c

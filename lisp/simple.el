@@ -9622,11 +9622,11 @@ More precisely, a char with closeparen syntax is self-inserted.")
 	     ;; Verify an even number of quoting characters precede the close.
              ;; FIXME: Also check if this parenthesis closes a comment as
              ;; can happen in Pascal and SML.
-	     (= 1 (logand 1 (- (point)
-			       (save-excursion
-				 (forward-char -1)
-				 (skip-syntax-backward "/\\")
-				 (point))))))
+	     (oddp (- (point)
+		      (save-excursion
+			(forward-char -1)
+			(skip-syntax-backward "/\\")
+			(point)))))
     (funcall blink-paren-function)))
 
 (put 'blink-paren-post-self-insert-function 'priority 100)

@@ -171,7 +171,7 @@ FUNCTION is also reversed.
     (if (listp cl-seq)
 	(let ((p (nthcdr cl-start cl-seq))
 	      (n (and cl-end (- cl-end cl-start))))
-	  (while (and p (or (null n) (>= (cl-decf n) 0)))
+          (while (and p (or (null n) (>= (decf n) 0)))
 	    (setcar p cl-item)
 	    (setq p (cdr p))))
       (or cl-end (setq cl-end (length cl-seq)))
@@ -206,7 +206,7 @@ SEQ1 is destructively modified, then returned.
 				   (min cl-n1 (- cl-end2 cl-start2)))
 				  ((and cl-n1 (null cl-end2)) cl-n1)
 				  ((and (null cl-n1) cl-end2) (- cl-end2 cl-start2)))))
-		  (while (and cl-p1 cl-p2 (or (null cl-n) (>= (cl-decf cl-n) 0)))
+                  (while (and cl-p1 cl-p2 (or (null cl-n) (>= (decf cl-n) 0)))
 		    (setcar cl-p1 (car cl-p2))
 		    (setq cl-p1 (cdr cl-p1) cl-p2 (cdr cl-p2))))
 	      (setq cl-end2 (if (null cl-n1)
@@ -439,8 +439,8 @@ to avoid corrupting the original SEQ.
 	  (setq cl-seq (copy-sequence cl-seq))
 	  (unless cl-from-end
 	    (setf (elt cl-seq cl-i) cl-new)
-	    (cl-incf cl-i)
-	    (cl-decf cl-count))
+            (incf cl-i)
+	    (decf cl-count))
 	  (apply 'cl-nsubstitute cl-new cl-old cl-seq :count cl-count
 		 :start cl-i cl-keys))))))
 

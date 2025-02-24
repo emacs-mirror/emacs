@@ -2008,7 +2008,7 @@ ARGS is the argument list of function SYM."
                          (and (string-match-p "\\.\\.\\.\\'"
                                               (substring args 1 (1- (length args))))
                               (= (length (remove "..." args-lst)) 2)
-                              (> index 1) (eq (logand index 1) 1)))
+                              (> index 1) (oddp index)))
                      (setq index 0))
 		    (t
 		     (setq index (1- index))))))

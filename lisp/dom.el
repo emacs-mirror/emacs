@@ -234,7 +234,7 @@ white-space."
 	(insert "(")
 	(dolist (elem attr)
 	  (insert (format "(%S . %S)" (car elem) (cdr elem)))
-	  (if (zerop (cl-decf times))
+          (if (zerop (decf times))
 	      (insert ")")
 	    (insert "\n" (make-string column ?\s))))))
     (let* ((children (if remove-empty
@@ -254,7 +254,7 @@ white-space."
 		            (string-match "\\`[\n\r\t  ]*\\'" child)))
 		  (insert (format "%S" child)))
 	    (dom-pp child remove-empty))
-	  (if (zerop (cl-decf times))
+          (if (zerop (decf times))
 	      (insert ")")
 	    (insert "\n" (make-string (1+ column) ?\s))))))))
 

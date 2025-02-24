@@ -1559,7 +1559,7 @@ either an internal or external browser.
 If a remote file is specified, a local temporary copy of that file is
 passed to the browser.
 
-*** Support for the conkeror browser is now obsolete.
+*** Support for the Conkeror browser is now obsolete.
 
 *** Support for the Mosaic browser has been removed.
 This support has been obsolete since 25.1.

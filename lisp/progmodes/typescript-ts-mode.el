@@ -239,7 +239,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
         (ignore-errors
           (treesit-query-compile language queries-b t)
           queries-b)
-        ;; Return a dummy query that doens't do anything, if neither
+        ;; Return a dummy query that doesn't do anything, if neither
         ;; query works.
         '("," @_ignore))))
 
@@ -679,7 +679,7 @@ at least 3 (which is the default value)."
       (pcase-exhaustive name
         ('regexp
          (let ((syntax (string-to-syntax "\"/")))
-           (cl-decf ns)
+           (decf ns)
            (cl-incf ne)
            (put-text-property ns (1+ ns) 'syntax-table syntax)
            (put-text-property (1- ne) ne 'syntax-table syntax)))

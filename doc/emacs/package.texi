@@ -35,8 +35,6 @@ install or uninstall packages via this buffer.  @xref{Package Menu}.
 name of a package, and displays a help buffer describing the
 attributes of the package and the features that it implements.
 
-@cindex GNU ELPA
-@cindex NonGNU ELPA
   By default, Emacs downloads packages from two archives:
 @url{https://elpa.gnu.org/, GNU ELPA} and @url{https://elpa.nongnu.org/,
 NonGNU ELPA}.  These are maintained by the Emacs developers and hosted
@@ -400,6 +398,8 @@ package is somehow unavailable, Emacs signals an error and stops
 installation.)  A package's requirements list is shown in its help
 buffer.
 
+@cindex GNU ELPA
+@cindex NonGNU ELPA
   By default, Emacs downloads packages from two archives:
 @url{https://elpa.gnu.org/, GNU ELPA} and @url{https://elpa.nongnu.org/,
 NonGNU ELPA}.  These are maintained by the Emacs developers and hosted
@@ -420,6 +420,7 @@ name of the package archive directory.  You can alter this list if you
 wish to use third party package archives---but do so at your own risk,
 and use only third parties that you think you can trust!
 
+@cindex base location, package archive
 @defopt package-archives
 The value of this variable is an alist of package archives recognized
 by the Emacs package manager.

@@ -176,7 +176,7 @@
             ;; don't hide real conflicts.
             (puthash key (gethash key override) table)
           (display-warning 'smie (format "Conflict: %s %s/%s %s" x old val y))
-          (cl-incf smie-warning-count))
+          (incf smie-warning-count))
       (puthash key val table))))
 
 (defun smie-precs->prec2 (precs)
@@ -585,13 +585,13 @@ PREC2 is a table as returned by `smie-precs->prec2' or
               (unless (caar cst)
                 (setcar (car cst) i)
                 ;; (smie-check-grammar table prec2 'step1)
-                (cl-incf i))
+                (incf i))
               (setq csts (delq cst csts))))
           (unless progress
             (error "Can't resolve the precedence cycle: %s"
                    (smie-debug--describe-cycle
                     table (smie-debug--prec2-cycle csts)))))
-        (cl-incf i 10))
+        (incf i 10))
       ;; Propagate equality constraints back to their sources.
       (dolist (eq (nreverse eqs))
         (when (null (cadr eq))
@@ -602,7 +602,7 @@ PREC2 is a table as returned by `smie-precs->prec2' or
           ;; So set it here rather than below since doing it below
           ;; makes it more difficult to obey the equality constraints.
           (setcar (cdr eq) i)
-          (cl-incf i))
+          (incf i))
         (cl-assert (or (null (caar eq)) (eq (caar eq) (cadr eq))))
         (setcar (car eq) (cadr eq))
         ;; (smie-check-grammar table prec2 'step2)
@@ -612,10 +612,10 @@ PREC2 is a table as returned by `smie-precs->prec2' or
       (dolist (x table)
         (unless (nth 1 x)
           (setf (nth 1 x) i)
-          (cl-incf i))                  ;See other (cl-incf i) above.
+          (incf i))                  ;See other (incf i) above.
         (unless (nth 2 x)
           (setf (nth 2 x) i)
-          (cl-incf i))))                ;See other (cl-incf i) above.
+          (incf i))))                ;See other (incf i) above.
     ;; Mark closers and openers.
     (dolist (x (gethash :smie-open/close-alist prec2))
       (let* ((token (car x))
@@ -2157,7 +2157,7 @@ position corresponding to each rule."
                  (trace (mapcar #'cdr (cdr itrace)))
                  (cur (current-indentation)))
             (when (numberp nindent)     ;Skip `noindent' and friends.
-              (cl-incf (gethash (cons (- cur nindent) trace) otraces 0)))))
+              (incf (gethash (cons (- cur nindent) trace) otraces 0)))))
         (forward-line 1)))
     (progress-reporter-done pr)
 
@@ -2193,14 +2193,14 @@ position corresponding to each rule."
                                              (let ((data (list 0 nil nil)))
                                                (puthash sig data sigs)
                                                data))))
-                           (cl-incf (nth 0 sig-data) count)
+                           (incf (nth 0 sig-data) count)
                            (push (cons count otrace) (nth 2 sig-data))
                            (let ((sig-off-data
                                   (or (assq offset (nth 1 sig-data))
                                       (let ((off-data (cons offset 0)))
                                         (push off-data (nth 1 sig-data))
                                         off-data))))
-                             (cl-incf (cdr sig-off-data) count))))))))
+                             (incf (cdr sig-off-data) count))))))))
                otraces)
 
       ;; Finally, guess the indentation rules.
@@ -2240,8 +2240,8 @@ position corresponding to each rule."
                                   (push off-data (nth 1 sig-data))
                                   off-data))))
                       (cl-assert (>= (cdr ooff-data) count))
-                      (cl-decf (cdr ooff-data) count)
-                      (cl-incf (cdr noff-data) count))))))))))
+                      (decf (cdr ooff-data) count)
+                      (incf (cdr noff-data) count))))))))))
     rules))
 
 (defun smie-config-guess ()

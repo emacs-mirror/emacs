@@ -893,13 +893,7 @@ cannot be completed sensibly: `custom-ident',
     (modify-syntax-entry ?? "." st)
     st))
 
-(defvar-keymap css-mode-map
-  :doc "Keymap used in `css-mode'."
-  "<remap> <info-lookup-symbol>" #'css-lookup-symbol
-  ;; `info-complete-symbol' is not used.
-  "<remap> <complete-symbol>" #'completion-at-point
-  "C-c C-f" #'css-cycle-color-format
-  :menu
+(defvar css-mode--menu
   '("CSS"
     :help "CSS-specific features"
     ["Reformat block" fill-paragraph
@@ -910,7 +904,17 @@ cannot be completed sensibly: `custom-ident',
     ["Describe symbol" css-lookup-symbol
      :help "Display documentation for a CSS symbol"]
     ["Complete symbol" completion-at-point
-     :help "Complete symbol before point"]))
+     :help "Complete symbol before point"])
+    "Menu bar for `css-mode'")
+
+(defvar-keymap css-mode-map
+  :doc "Keymap used in `css-mode'."
+  "<remap> <info-lookup-symbol>" #'css-lookup-symbol
+  ;; `info-complete-symbol' is not used.
+  "<remap> <complete-symbol>" #'completion-at-point
+  "C-c C-f" #'css-cycle-color-format
+  :menu
+  css-mode--menu)
 
 (eval-and-compile
   (defconst css--uri-re
@@ -1771,6 +1775,21 @@ rgb()/rgba()."
               (replace-regexp-in-string "[\n ]+" " " s)))
            res)))))))
 
+(defvar css--treesit-font-lock-feature-list
+  '((selector comment query keyword)
+    (property constant string)
+    (error variable function operator bracket))
+  "Settings for `treesit-font-lock-feature-list'.")
+
+(defvar css--treesit-simple-imenu-settings
+  `(( nil ,(rx bos (or "rule_set" "media_statement") eos)
+      nil nil))
+  "Settings for `treesit-simple-imenu'.")
+
+(defvar css--treesit-defun-type-regexp
+  "rule_set"
+  "Settings for `treesit-defun-type-regexp'.")
+
 (define-derived-mode css-base-mode prog-mode "CSS"
   "Generic mode to edit Cascading Style Sheets (CSS).
 
@@ -1825,16 +1844,12 @@ can also be used to fill comments.
     ;; Tree-sitter specific setup.
     (setq treesit-primary-parser (treesit-parser-create 'css))
     (setq-local treesit-simple-indent-rules css--treesit-indent-rules)
-    (setq-local treesit-defun-type-regexp "rule_set")
+    (setq-local treesit-defun-type-regexp css--treesit-defun-type-regexp)
     (setq-local treesit-defun-name-function #'css--treesit-defun-name)
     (setq-local treesit-font-lock-settings css--treesit-settings)
-    (setq-local treesit-font-lock-feature-list
-                '((selector comment query keyword)
-                  (property constant string)
-                  (error variable function operator bracket)))
-    (setq-local treesit-simple-imenu-settings
-                `(( nil ,(rx bos (or "rule_set" "media_statement") eos)
-                    nil nil)))
+    (setq-local treesit-font-lock-feature-list css--treesit-font-lock-feature-list)
+    (setq-local treesit-simple-imenu-settings css--treesit-simple-imenu-settings)
+
     (treesit-major-mode-setup)
 
     (add-to-list 'auto-mode-alist '("\\.css\\'" . css-ts-mode))))

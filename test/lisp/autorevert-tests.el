@@ -581,6 +581,8 @@ This expects `auto-revert--messages' to be bound by
 ;; This is inspired by Bug#44638, Bug#71424.
 (ert-deftest auto-revert-test07-auto-revert-several-buffers ()
   "Check autorevert for several buffers visiting the same file."
+  (skip-unless (or file-notify--library
+                   (file-remote-p temporary-file-directory)))
   ;; (with-auto-revert-test
   (ert-with-temp-file tmpfile
     (let ((auto-revert-use-notify t)

@@ -80,7 +80,7 @@
 		 (recenter))
                 ((and (or (eq continue 'backspace)
                           (eq continue ?\177))
-                      (zerop (% state 2)))
+                      (evenp state))
 		 (scroll-down))
 		(t (setq continue nil))))))))
 

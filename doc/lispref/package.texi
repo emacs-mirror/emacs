@@ -301,12 +301,12 @@ command-line option, when it prepares the package for download.)
 @cindex package archive
 
 @cindex GNU ELPA
-@cindex non-GNU ELPA
+@cindex NonGNU ELPA
   Via the Package Menu, users may download packages from @dfn{package
 archives}.  Such archives are specified by the variable
 @code{package-archives}, whose default value lists the archives
 hosted on @url{https://elpa.gnu.org, GNU ELPA} and
-@url{https://elpa.nongnu.org, non-GNU ELPA}.  This section describes
+@url{https://elpa.nongnu.org, NonGNU ELPA}.  This section describes
 how to set up and maintain a package archive.
 
   A package archive is simply a directory in which the package files,

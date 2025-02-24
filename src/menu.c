@@ -1417,8 +1417,13 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
      doesn't have its hooks set (e.g., in a batch session), because
      such a frame cannot display menus.  */
   if (!FRAME_INITIAL_P (f))
-    selection = FRAME_TERMINAL (f)->menu_show_hook (f, xpos, ypos, menuflags,
-						    title, &error_name);
+    {
+      if (FRAME_TERMCAP_P (f) && !NILP (Vx_popup_menu_function))
+	selection  = calln (Vx_popup_menu_function, position, menu);
+      else
+	selection = FRAME_TERMINAL (f)->menu_show_hook (f, xpos, ypos, menuflags,
+							title, &error_name);
+    }
 
   unbind_to (specpdl_count, Qnil);
 
@@ -1630,6 +1635,12 @@ It is only run before the menu is really going to be displayed.  It
 won't be run if `x-popup-menu' fails or returns for some other reason
 (such as the keymap is invalid).  */);
   Vx_pre_popup_menu_hook = Qnil;
+
+  DEFVAR_LISP ("x-popup-menu-function", Vx_popup_menu_function,
+	       doc : /* Function to call to pop up a menu.
+ The function is called like `x-popup-menu'.  This is currently only
+ used for frames on text terminals.  */);
+  Vx_popup_menu_function = Qnil;
 
   defsubr (&Sx_popup_menu);
   defsubr (&Sx_popup_dialog);

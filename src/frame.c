@@ -173,27 +173,34 @@ get_frame_param (struct frame *frame, Lisp_Object prop)
 }
 
 
-/* Return 1 if `frame-inhibit-implied-resize' is non-nil or fullscreen
-   state of frame F would be affected by a vertical (horizontal if
-   HORIZONTAL is true) resize.  PARAMETER is the symbol of the frame
-   parameter that is changed.  */
+/* Return true if 'frame-inhibit-implied-resize' is non-nil or
+   fullscreen state of frame F would be affected by a vertical
+   (horizontal if HORIZONTAL is true) resize.  PARAMETER is the symbol
+   of the frame parameter about to be changed.
+
+   If 'frame-inhibit-implied-resize' equals 'force', unconditionally
+   return true (Bug#76275).  Otherwise, return nil if F has not been
+   made yet and (on GTK) its tool bar has not been resized at least
+   once.  Together these should ensure that F always gets its requested
+   initial size.  */
 bool
 frame_inhibit_resize (struct frame *f, bool horizontal, Lisp_Object parameter)
 {
   Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
 
-  return (f->after_make_frame
+  return (EQ (frame_inhibit_implied_resize, Qforce)
+	  || (f->after_make_frame
 #ifdef USE_GTK
-	  && f->tool_bar_resized
+	      && f->tool_bar_resized
 #endif
-	  && (EQ (frame_inhibit_implied_resize, Qt)
-	      || (CONSP (frame_inhibit_implied_resize)
-		  && !NILP (Fmemq (parameter, frame_inhibit_implied_resize)))
-	      || (horizontal
-		  && !NILP (fullscreen) && !EQ (fullscreen, Qfullheight))
-	      || (!horizontal
-		  && !NILP (fullscreen) && !EQ (fullscreen, Qfullwidth))
-	      || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f)));
+	      && (EQ (frame_inhibit_implied_resize, Qt)
+		  || (CONSP (frame_inhibit_implied_resize)
+		      && !NILP (Fmemq (parameter, frame_inhibit_implied_resize)))
+		  || (horizontal
+		      && !NILP (fullscreen) && !EQ (fullscreen, Qfullheight))
+		  || (!horizontal
+		      && !NILP (fullscreen) && !EQ (fullscreen, Qfullwidth))
+		  || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))));
 }
 
 
@@ -207,7 +214,7 @@ set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   /* Menu bars on child frames don't work on all platforms, which is
      the reason why prepare_menu_bar does not update_menu_bar for
      child frames (info from Martin Rudalics).  This could be
-     implemented in ttys, but it's probaly not worth it.  */
+     implemented in ttys, but it's probably not worth it.  */
   if (is_tty_child_frame (f))
     {
       FRAME_MENU_BAR_LINES (f) = 0;
@@ -1808,7 +1815,7 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
 
       /* When FRAME's root frame is not its terminal's top frame, make
 	 that root frame the new top frame of FRAME's terminal.  */
-      if (root_frame (f) != XFRAME (top_frame))
+      if (NILP (top_frame) || root_frame (f) != XFRAME (top_frame))
 	{
 	  struct frame *p = FRAME_PARENT_FRAME (f);
 
@@ -6858,6 +6865,7 @@ syms_of_frame (void)
   DEFSYM (Qmake_invisible, "make-invisible");
   DEFSYM (Quse_frame_synchronization, "use-frame-synchronization");
   DEFSYM (Qfont_parameter, "font-parameter");
+  DEFSYM (Qforce, "force");
 
   for (int i = 0; i < ARRAYELTS (frame_parms); i++)
     {
@@ -7111,12 +7119,14 @@ a non-nil value in your init file.  */);
 
   DEFVAR_LISP ("frame-inhibit-implied-resize", frame_inhibit_implied_resize,
 	       doc: /* Whether frames should be resized implicitly.
-If this option is nil, setting font, menu bar, tool bar, tab bar, internal
-borders, fringes or scroll bars of a specific frame may resize the frame
-in order to preserve the number of columns or lines it displays.  If
-this option is t, no such resizing is done.  Note that the size of
-fullscreen and maximized frames, the height of fullheight frames and the
-width of fullwidth frames never change implicitly.
+If this option is nil, setting font, menu bar, tool bar, tab bar,
+internal borders, fringes or scroll bars of a specific frame may resize
+the frame in order to preserve the number of columns or lines it
+displays.  If this option is t, no such resizing happens once a frame
+has got its initial size.  If this is the symbol `force', no implicit
+resizing happens whenever a new frame is made.  This can be useful with
+tiling window managers where the initial size of a frame is determined
+by external means.
 
 The value of this option can be also a list of frame parameters.  In
 this case, resizing is inhibited when changing a parameter that
@@ -7141,9 +7151,11 @@ adding/removing a tool bar or tab bar does not change the frame
 height.  Otherwise it's t which means the frame size never changes
 implicitly when there's no window system support.
 
-Note that when a frame is not large enough to accommodate a change of
-any of the parameters listed above, Emacs may try to enlarge the frame
-even if this option is non-nil.  */);
+Note that the size of fullscreen and maximized frames, the height of
+fullheight frames and the width of fullwidth frames never change
+implicitly.  Note also that when a frame is not large enough to
+accommodate a change of any of the parameters listed above, Emacs may
+try to enlarge the frame even if this option is non-nil.  */);
 #if defined (HAVE_WINDOW_SYSTEM) && !defined (HAVE_ANDROID)
 #if defined (USE_GTK) || defined (HAVE_NS)
   frame_inhibit_implied_resize = list1 (Qtab_bar_lines);

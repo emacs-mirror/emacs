@@ -276,7 +276,7 @@ all RULES in total."
                  ;; If there's more than 1 rule, and the rule want to apply
                  ;; highlight to match 0, create an extra group to be able to
                  ;; tell when *this* match 0 has succeeded.
-                 (cl-incf offset)
+                 (incf offset)
                  (setq re (concat "\\(" re "\\)")))
                (setq re (syntax-propertize--shift-groups-and-backrefs re offset))
                (let ((code '())
@@ -356,7 +356,7 @@ all RULES in total."
                              code))))
                  (push (cons condition (nreverse code))
                        branches))
-               (cl-incf offset (regexp-opt-depth orig-re))
+               (incf offset (regexp-opt-depth orig-re))
                re))
            rules
            "\\|")))
@@ -586,8 +586,8 @@ The rest is only useful if you're interested in tweaking the algorithm.")
 	  syntax-ppss-stats))
 (defun syntax-ppss--update-stats (i old new)
   (let ((pair (aref syntax-ppss-stats i)))
-    (cl-incf (car pair))
-    (cl-incf (cdr pair) (- new old))))
+    (incf (car pair))
+    (incf (cdr pair) (- new old))))
 
 (defun syntax-ppss--data ()
   (if (eq (point-min) 1)

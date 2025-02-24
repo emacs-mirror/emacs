@@ -3315,15 +3315,15 @@ struct rect
 static bool
 rect_intersect (struct rect *r, struct rect r1, struct rect r2)
 {
-  int x1 = max (r1.x, r2.x);
-  int x2 = min (r1.x + r1.w, r2.x + r2.w);
-  if (x2 < x1)
+  int x = max (r1.x, r2.x);
+  int y = max (r1.y, r2.y);
+  int w = min (r1.x + r1.w, r2.x + r2.w) - x;
+  int h = min (r1.y + r1.h, r2.y + r2.h) - y;
+
+  if (w == 0 || h == 0)
     return false;
-  int y1 = max (r1.y, r2.y);
-  int y2 = min (r1.y + r1.h, r2.y + r2.h);
-  if (y2 < y1)
-    return false;
-  *r = (struct rect) { .x = x1, .y = y1, .w = x2 - x1, .h = y2 - y1 };
+
+  *r = (struct rect) { .x = x, .y = y, .w = w, .h = h };
   return true;
 }
 
@@ -3541,7 +3541,7 @@ make_matrix_current (struct frame *f)
 
 /* Prepare ROOT's desired row at index Y for copying child frame
    contents to it.  Value is the prepared desired row or NULL if we
-   don't have, and can't contruct a desired row.  */
+   don't have, and can't construct a desired row.  */
 
 static struct glyph_row *
 prepare_desired_root_row (struct frame *root, int y)
@@ -3552,12 +3552,22 @@ prepare_desired_root_row (struct frame *root, int y)
     return desired_row;
 
   /* If we have a current row that is up to date, copy that to the
-     desired row and use that.  */
-  /* Don't copy rows that aren't enabled, in particuler because they
-     might not have the 'frame' member of glyphs set.  */
+     desired row and use that.  Don't copy rows that are bot enabled, in
+     particular because they might not have the 'frame' member of glyphs
+     set.  */
   struct glyph_row *current_row = MATRIX_ROW (root->current_matrix, y);
   if (current_row->enabled_p)
     {
+# ifdef GLYPH_DEBUG
+      /* Safety belt: Try to make sure that we don't copy glyphs from a
+         stale current matrix that contains glyphs referring to dead
+         frames. */
+      for (int i = 0; i < current_row->used[TEXT_AREA]; ++i)
+	{
+	  struct glyph *glyph = current_row->glyphs[TEXT_AREA] + i;
+	  eassert (glyph->frame && FRAME_LIVE_P (glyph->frame));
+	}
+# endif
       memcpy (desired_row->glyphs[0], current_row->glyphs[0],
 	      root->current_matrix->matrix_w * sizeof (struct glyph));
       desired_row->enabled_p = true;
@@ -3747,8 +3757,8 @@ copy_child_glyphs (struct frame *root, struct frame *child)
     }
 
   /* First visible row/col, relative to the child frame.  */
-  int child_x = child->left_pos < 0 ? - child->left_pos : 0;
-  int child_y = child->top_pos < 0 ? - child->top_pos : 0;
+  int child_x, child_y;
+  child_xy (child, r.x, r.y, &child_x, &child_y);
 
   /* For all rows in the intersection, copy glyphs from the child's
      current matrix to the root's desired matrix, enabling those rows
@@ -3996,6 +4006,14 @@ terminal_cursor_magic (struct frame *root, struct frame *topmost_child)
 	    tty_hide_cursor (FRAME_TTY (root));
 	}
     }
+
+  /* Hide cursor if selected frame has (cursor-type . nil).  */
+  {
+    struct frame *sf = SELECTED_FRAME ();
+    Lisp_Object cursor = assq_no_quit (Qcursor_type, sf->param_alist);
+    if (CONSP (cursor) && NILP (XCDR (cursor)))
+      tty_hide_cursor (FRAME_TTY (root));
+  }
 }
 
 void

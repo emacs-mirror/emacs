@@ -3371,8 +3371,8 @@ Another option is to create better backup file naming with user and
 host names prefixed to the file name.  For example, transforming
 @file{/etc/secretfile} to
 @file{~/.emacs.d/backups/!su:root@@localhost:!etc!secretfile}, set the
-@value{tramp} user option @code{tramp-backup-directory-alist} from
-the existing user option @code{backup-directory-alist}.
+@value{tramp} user option @code{tramp-backup-directory-alist} from the
+existing user option @code{backup-directory-alist}.
 
 Then @value{tramp} backs up to a file name that is transformed with a
 prefix consisting of the DIRECTORY name.  This file name prefixing
@@ -3394,10 +3394,12 @@ Example:
 The backup file name of
 @file{@trampfn{su,root@@localhost,/etc/secretfile}} would be
 @ifset unified
-@file{@trampfn{su,root@@localhost,~/.emacs.d/backups/!su:root@@localhost:!etc!secretfile~}}.
+@file{@trampfn{su,root@@localhost,~/.emacs.d/backups/@c
+!su:root@@localhost:!etc!secretfile~}}.
 @end ifset
 @ifset separate
-@file{@trampfn{su,root@@localhost,~/.emacs.d/backups/![su!root@@localhost]!etc!secretfile~}}.
+@file{@trampfn{su,root@@localhost,~/.emacs.d/backups/@c
+![su!root@@localhost]!etc!secretfile~}}.
 @end ifset
 
 @vindex auto-save-file-name-transforms
@@ -3847,15 +3849,21 @@ ssh@value{postfixhop}you@@remotehost@value{postfix}/path @key{RET}}
 
 Each involved method must be an inline method (@pxref{Inline methods}).
 
-@value{tramp} adds the ad-hoc definitions on the fly to
-@code{tramp-default-proxies-alist} and is available for reuse during
-that Emacs session.  Subsequent @value{tramp} connections to the same
-remote host can then use the shortcut form:
-@samp{@trampfn{ssh,you@@remotehost,/path}}.
+@value{tramp} adds the ad-hoc definitions as an ephemeral record to
+@code{tramp-default-proxies-alist}, which are available for reuse
+during that Emacs session.  Subsequent @value{tramp} connections to
+the same remote host can then use the abbreviated form
+@file{@trampfn{ssh,you@@remotehost,/path}}.
 
+@anchor{tramp-show-ad-hoc-proxies}
 @defopt tramp-show-ad-hoc-proxies
 If this user option is non-@code{nil}, ad-hoc definitions are kept in
-remote file names instead of showing the shortcuts.
+remote file names instead of showing the abbreviations.  This is
+useful if the ad-hoc proxy definition shall be used in further Emacs
+sessions, kept in configuration files of recentf and other packages.
+
+A non-@code{nil} setting of this option has effect only if set before
+the connection is established.
 
 @lisp
 (customize-set-variable 'tramp-show-ad-hoc-proxies t)
@@ -3866,10 +3874,18 @@ Ad-hoc definitions are removed from @code{tramp-default-proxies-alist}
 via the command @kbd{M-x tramp-cleanup-all-connections @key{RET}}
 (@pxref{Cleanup remote connections}).
 
+@anchor{tramp-save-ad-hoc-proxies}
 @defopt tramp-save-ad-hoc-proxies
 For ad-hoc definitions to be saved automatically in
 @code{tramp-default-proxies-alist} for future Emacs sessions, set
-@code{tramp-save-ad-hoc-proxies} to non-@code{nil}.
+@code{tramp-save-ad-hoc-proxies} to non-@code{nil}.  The resulting
+user option @code{tramp-default-proxies-alist} is saved in your
+@file{.emacs} file.
+
+If you use saved configuration files with abbreviated ad-hoc proxy
+definitions on another host, for example by distribution of the
+@code{recentf-save-file}, you must distribute your @file{.emacs} file
+as well.
 
 @lisp
 (customize-set-variable 'tramp-save-ad-hoc-proxies t)
@@ -6052,18 +6068,30 @@ Thanks to @value{tramp} users for contributing to these recipes.
 
 
 @item
-Why saved multi-hop file names do not work in a new Emacs session?
+Why don't saved ad-hoc multi-hop file names work in a new Emacs session?
 
-When saving ad-hoc multi-hop @value{tramp} file names (@pxref{Ad-hoc
-multi-hops}) via bookmarks, recent files, filecache, bbdb, or another
-package, use the full ad-hoc file name including all hops, like
-@file{@trampfn{ssh,bird@@bastion|ssh@value{postfixhop}@c
-news.my.domain,/opt/news/etc}}.
+By default, ad-hoc multi-hop file names are abbreviated after
+completing the initial connection.  These abbreviated forms retain
+only the final hop, and so only the Emacs session that generated the
+abbreviated form can understand it.  @xref{Ad-hoc multi-hops}.
 
-Alternatively, when saving abbreviated multi-hop file names
-@file{@trampfn{ssh,news@@news.my.domain,/opt/news/etc}}, the user
-option @code{tramp-save-ad-hoc-proxies} must be set non-@code{nil}
-value.
+For example, after connecting to @file{@trampfn{ssh,bird@@bastion|@c
+ssh@value{postfixhop}news@@news.my.domain,/opt/news/etc}}, the file
+name becomes @file{@trampfn{ssh,news@@news.my.domain,/opt/news/etc}}.
+If the abbreviated form is saved in a bookmark, the recent files list,
+bbdb, or similar, a new Emacs session has no way to know that the
+connection must go through @samp{bird@@bastion} first.
+
+There are two mechanisms to deal with this.  The first is to customize
+@code{tramp-show-ad-hoc-proxies} to a non-@code{nil} value, which
+disables abbreviation.  Then the fully-qualified ad-hoc multi-hop file
+name is the one that will be both displayed and saved.
+@xref{tramp-show-ad-hoc-proxies}.
+
+Alternatively, you can customize @code{tramp-save-ad-hoc-proxies} to a
+non-@code{nil} value which means to save the information how an
+abbreviated multi-hop file name can be expanded.
+@xref{tramp-save-ad-hoc-proxies}.
 
 
 @item
@@ -6239,7 +6267,7 @@ as above in your @file{~/.emacs}:
 @item
 I get an error @samp{unix_listener: path
 "/very/long/path/.cache/emacs/tramp.XXX" too long for Unix domain
-socket} when connectiong via @option{ssh} to a remote host.
+socket} when connecting via @option{ssh} to a remote host.
 
 @vindex small-temporary-file-directory
 By default, @value{tramp} uses the directory @file{~/.cache/emacs/}

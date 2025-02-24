@@ -798,7 +798,7 @@ CODE can be a lambda expression, a macro, or byte-compiled code."
 
 (defun elint-check-setq-form (form env)
   "Lint the setq FORM in ENV."
-  (or (= (mod (length form) 2) 1)
+  (or (oddp (length form))
       ;; (setq foo) is valid and equivalent to (setq foo nil).
       (elint-warning "Missing value in setq: %s" form))
   (let ((newenv env)
@@ -833,7 +833,7 @@ CODE can be a lambda expression, a macro, or byte-compiled code."
   "Lint the defcustom FORM in ENV."
   (if (and (> (length form) 3)
 	   ;; even no. of keyword/value args ?
-	   (zerop (logand (length form) 1)))
+	   (evenp (length form)))
       (elint-env-add-global-var (elint-form (nth 2 form) env)
 				(car (cdr form)))
     (elint-error "Malformed variable declaration: %s" form)

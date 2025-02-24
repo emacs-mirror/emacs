@@ -435,7 +435,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
              ;; Malformed code is translated to code that signals an error
              ;; at run time.
              (let ((nargs (length args)))
-               (if (/= (logand nargs 1) 0)
+               (if (oddp nargs)
                    (macroexp-warn-and-return
                     (format-message "odd number of arguments in `setq' form")
                     `(signal 'wrong-number-of-arguments '(setq ,nargs))

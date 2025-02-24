@@ -69,7 +69,7 @@ like tooltips.  Other use-cases of child frames are not supported yet.
 In particular:
 
 - trying to create minibuffer-only child frames on a TTY frame will
-  signal an error.
+  signal an error; and
 - a TTY child frame cannot be converted to a root frame or vice-versa.
 
 To enable tooltips on TTY frames, call 'tty-tip-mode'.
@@ -179,7 +179,7 @@ the "*Completions*" buffer is hidden.
 ---
 *** New user option 'crm-prompt' for 'completing-read-multiple'.
 This option configures the prompt format of 'completing-read-multiple'.
-By default the prompt indicates to the user that the completion command
+By default, the prompt indicates to the user that the completion command
 accepts a comma-separated list.  The prompt format can include the
 separator description and the separator string, which are both stored as
 text properties of the 'crm-separator' regular expression.
@@ -198,6 +198,11 @@ Several functions to modify the window layout have been added:
 This abnormal hook gives its client a way to save a window from getting
 deleted implicitly by functions like 'kill-buffer', 'bury-buffer' and
 'quit-restore-window'.
+
++++
+*** New user option 'quit-window-kill-buffer'.
+This option specifies whether 'quit-window' should preferably kill or
+bury the buffer shown by the window to quit.
 
 +++
 *** New user option 'kill-buffer-quit-windows'.
@@ -249,6 +254,12 @@ behavior to try to split vertically first.
 Calling this function before 'delete-frame' is useful to avoid that the
 latter throws an error when the argument FRAME cannot be deleted.
 
++++
+*** New value 'force' for option `frame-inhibit-implied-resize'.
+This will inhibit implied resizing while a new frame is made and can be
+useful on tiling window managers where the initial frame size should be
+specified by external means.
+
 ** Tab Bars and Tab Lines
 
 ---
@@ -297,7 +308,7 @@ first argument.  This is a way for the callers to indicate, for example,
 the reason or the context why the project is asked for.
 
 ---
-*** New command 'project-find-matching-file'
+*** New command 'project-find-matching-file'.
 It can be used when switching between projects with similar file trees
 (such as Git worktrees of the same repository).  It supports being
 invoked standalone or from the 'project-switch-commands' dispatch menu.
@@ -348,7 +359,7 @@ This input method has support for polytonic and archaic Greek
 characters.
 
 ---
-*** New language-environment and input method for Tifinagh.
+*** New language environment and input method for Tifinagh.
 The Tifinagh script is used to write the Berber languages.
 
 ---
@@ -432,6 +443,12 @@ set to 'title'.
 When non-nil, buffer sizes are shown in human readable format.
 
 ---
+*** 'define-ibuffer-op' prompts can now be functions.
+The prompts 'opstring' and 'active-opstring' can now either be strings
+or functions.  This is useful when your prompts can benefit from dynamic
+content.
+
+---
 ** Buffer Menu
 
 *** New user option 'Buffer-menu-human-readable-sizes'.
@@ -453,10 +470,10 @@ to the corresponding position in the old text and vice versa.
 This allows passing a string with wildcards, or a cons cell where the
 first element is a list and the rest is a list of files.
 
-*** Bound unused letters in 'image-dired-thumbnail-mode-map'
+*** Bound unused letters in 'image-dired-thumbnail-mode-map'.
 For a more comfortable navigation experience (as in, no modifier keys),
-the keys "f", "b", "n", "p", "a" and "e" are now bound to the
-same functions as their C- counterparts.
+the keys 'f', 'b', 'n', 'p', 'a' and 'e' are now bound to the
+same functions as their 'C-' counterparts.
 
 ** Browse URL
 
@@ -467,8 +484,8 @@ a web browser to load them.  For example, it could be used like this:
     (add-to-list 'browse-url-transform-alist
                  '("www.google.com" . "www.duckduckgo.com"))
 
-*** New function 'browse-url-qutebrowser' for the Qutebrowser.
-For better integration with the Qutebrowser, set
+*** New function 'browse-url-qutebrowser' for Qutebrowser.
+For better integration with Qutebrowser, set
 'browse-url(-secondary)-browser-function' to 'browse-url-qutebrowser'.
 
 *** New GTK-native launch mode.
@@ -485,11 +502,29 @@ Emacs 25.1), and gnudoit (obsolete since Emacs 25.1).
 ** CL-Lib
 
 +++
+*** Some cl-lib functions and macros are now built-in.
+These functions or macros have been added to Emacs Lisp, and the old
+names are now aliases for the built-in equivalents:
+ - 'cl-incf'   renamed to 'incf'
+ - 'cl-decf'   renamed to 'decf'
+ - 'cl-oddp'   renamed to 'oddp'
+ - 'cl-evenp'  renamed to 'evenp'
+ - 'cl-plusp'  renamed to 'plusp'
+ - 'cl-minusp' renamed to 'minusp'
+
+The old names are considered deprecated, and will be marked as obsolete
+in some future release.
+
++++
 *** 'cl-labels' now also accepts '(FUNC EXP)' bindings, like 'cl-flet'.
 Such bindings make it possible to compute which function to bind to FUNC.
 
 ---
 *** 'cl-block' names are now lexically scoped, as documented.
+
++++
+*** 'cl-locally' is now obsolete.
+It is an alias for the 'progn' special-form.
 
 ** Whitespace
 
@@ -512,6 +547,13 @@ Bookmark names are now saved uniquely.
 This user option controls the width of the type column on the bookmark
 menu 'bookmark-bmenu-list'.  The default value is 8 which is backwards
 compatible.
+
+** Recentf
+
+---
+*** New user option 'recentf-show-messages'.
+'recentf-save-list' can print a message when saving the recentf list.
+The new option, if set to nil, suppresses this message.
 
 ** Saveplace
 
@@ -674,7 +716,7 @@ those commands search in input history only when the point is after the
 last prompt.
 
 +++
-** Mail-util
+** Mail Utils
 
 *** New user option 'mail-re-regexps'.
 This contains the list of regular expressions used to match "Re:" and
@@ -827,6 +869,11 @@ backend.
 *** Checkdoc will now flag incorrect formatting in warnings.
 This affects calls to 'warn', 'lwarn', 'display-warning', and
 'message-box'.
+
+---
+*** New user option 'checkdoc-allow-quoting-nil-and-t'.
+Customizing this option to a non-nil value stops checkdoc from warning
+for docstrings where symbols 'nil' and 't' are in quotes.
 
 ---
 *** The default of 'checkdoc-verb-check-experimental-flag' is now nil.
@@ -1134,8 +1181,14 @@ of seconds.  Crossfading can be toggled using the command
 This command displays information about the currently playing song or
 song at point in the "*MPC-Songs*" buffer.  The list of tags to display
 can be customized using the new user option 'mpc-song-viewer-tags' and
-the appearance of the list with the new faces 'mpc-song-viewer-tag',
-'mpc-song-viewer-value', and 'mpc-song-viewer-empty'.
+the appearance of the list with the new faces 'mpc-table-key',
+'mpc-table-value', and 'mpc-table-empty'.
+
+---
+*** New command 'mpc-server-stats'.
+This command displays information about the connected MPD server.  The
+appearance of the list can be customized with the new faces
+'mpc-table-key' and 'mpc-table-value'.
 
 ** VC
 
@@ -1161,13 +1214,18 @@ cloning, or prompts for that, too.
 When the argument is non-nil, the function switches to a buffer visiting
 the directory into which the repository was cloned.
 
+---
+*** 'C-x v u' ('vc-revert') now works on directories listed in VC Directory.
+Reverting a directory means reverting changes to all files inside it.
+
 ** Package
 
 +++
 *** No longer warn if a package has no footer line.
 package.el no longer warns for packages without a "footer line", which
 is the line that usually appears at the very end of an Emacs Lisp file:
-;;; FILENAME ends here
+
+    ;;; FILENAME ends here
 
 ---
 *** New optional argument to 'package-autoremove'.
@@ -1215,8 +1273,46 @@ This macro adds the current buffer to 'inhibit-auto-revert-buffers',
 runs its body, and removes the current buffer from
 'inhibit-auto-revert-buffers' afterwards.
 
+** Strokes
+
+--
+** 'strokes-mode' no longer demands the presence of a mouse.
+'strokes-mode' now permits itself to be enabled if no mouse is
+connected, to facilitate enabling 'strokes-mode' in sessions where the
+availability of a mouse device varies during execution (as is frequently
+observed on Android).
+
+** Yank media
+
++++
+*** 'yank-media' now auto-selects the most preferred MIME type.
+Major-mode authors can customize the variables
+'yank-media-autoselect-function' and/or 'yank-media-preferred-types' to
+change the selection rules.
+
+** Miscellaneous
+
+---
+*** kermit.el is now obsolete.
+
 
 * New Modes and Packages in Emacs 31.1
+
+** New major modes based on the tree-sitter library
+
+*** New major mode 'markdown-ts-mode'.
+A major mode based on the tree-sitter library for editing Markdown files.
+
+*** New major mode 'mhtml-ts-mode'.
+An optional major mode based on the tree-sitter library for editing HTML
+files.  This mode handles indentation, fontification, and commenting for
+embedded JavaScript and CSS.
+
+---
+*** New major mode 'go-work-ts-mode'.
+A major mode based on the tree-sitter library for editing "go.work"
+files.  If tree-sitter is properly set-up by the user, it can be
+enabled for files named "go.work".
 
 
 * Incompatible Lisp Changes in Emacs 31.1
@@ -1231,6 +1327,11 @@ An old alternative name (without the first 'e') has been removed.
 
 +++
 ** 'read-directory-name' now accepts an optional PREDICATE argument.
+
++++
+** 'text-property-default-nonsticky' is now buffer-local.
+This variable now becomes buffer-local when set.  Use 'setq-default' in
+(the unlikely) case you want to change the global value.
 
 ---
 ** All the digit characters now have the 'digit' category.
@@ -1262,8 +1363,35 @@ name.  Previously, Eshell only did this for MS-Windows systems. To
 restore the old behavior, you can set 'eshell-pwd-convert-function' to
 'identity'.
 
+---
+** The rx 'eval' form now uses the current elisp dialect for evaluation.
+Previously, its argument was always evaluated using dynamic binding.
+
 
 * Lisp Changes in Emacs 31.1
+
+---
+** You can change the default value of 'lexical-binding'.
+While the default is still the use dynamic binding dialect of ELisp
+in those places that don't explicitly set 'lexical-binding' you can
+change it globally with:
+
+    (set-default-toplevel-value 'lexical-binding t)
+
++++
+*** New macros 'incf' and 'decf'.
+They increment or decrement the value stored in a variable (a symbol),
+or in a generalized variable.
+
++++
+** New functions 'plusp' and 'minusp'.
+They return non-nil if a number is positive or negative, respectively,
+and signal an error if they are given a non-number.
+
++++
+** New functions 'oddp' and 'evenp'.
+They return non-nil if an integer is odd or even, respectively, and
+signal an error if they are given a non-integer.
 
 ** Time & Date
 
@@ -1364,6 +1492,24 @@ language symbol.  For example, 'cpp' is translated to "C++".  A new
 variable 'treesit-language-display-name-alist' holds the translations of
 language symbols where that translation is not trivial.
 
+*** New function 'treesit-merge-font-lock-feature-list'.
+This function merges two tree-sitter font-lock feature lists.  Returns a
+new font-lock feature list with no duplicates in the same level.  It can
+be used to merge font-lock feature lists in a multi-language major mode.
+
+*** New function 'treesit-replace-font-lock-feature-settings'.
+Given two tree-sitter font-lock settings, it replaces the feature in the
+second font-lock settings with the same feature in the first font-lock
+settings.  In a multi-language major mode it is sometimes necessary to
+replace features from one of the major modes, with others that are
+better suited to the new multilingual context.
+
+*** New function 'treesit-simple-indent-modify-rules'.
+Given two tree-sitter indent rules, it replaces, adds, or prepends rules
+in the old rules with new ones, then returns the modified rules.  In a
+multi-language major mode it is sometimes necessary to modify rules from
+one of the major modes to better suit the new multilingual context.
+
 +++
 *** New command 'treesit-explore'.
 This command replaces 'treesit-explore-mode'.  It turns on
@@ -1380,7 +1526,12 @@ at point to explore.
 *** New variable 'treesit-aggregated-simple-imenu-settings'.
 This variable allows major modes to setup Imenu for multiple languages.
 
-*** New function 'treesit-add-simple-indent-rules'.
++++
+*** New variable 'treesit-aggregated-outline-predicate'.
+This variable allows major modes to setup 'outline-minor-mode'
+for multiple languages.
+
+*** New function 'treesit-simple-indent-add-rules'.
 This new function makes it easier to customize indent rules for
 tree-sitter modes.
 
@@ -1537,10 +1688,10 @@ In addition to ':file FILE' for playing a sound from a file, ':data
 DATA' can now be used to play a sound from memory.
 
 ---
-** New major mode 'go-work-ts-mode'.
-A major mode based on the tree-sitter library for editing "go.work"
-files.  If tree-sitter is properly set-up by the user, it can be
-enabled for files named "go.work".
+** The MS-DOS port of Emacs now supports more recent releases of GCC and Binutils.
+Accordingly, we have revised our recommendations for a suitable DJGPP
+toolchain to GCC 14.2.0 and Binutils 2.35.1 in lieu of GCC 3.4.x and
+Binutils 2.26.
 
 
 ----------------------------------------------------------------------

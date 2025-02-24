@@ -150,7 +150,7 @@
   (with-temp-buffer
     (buffer-enable-undo)
     (dotimes (i 1048576)
-      (if (zerop (% i 2))
+      (if (evenp i)
           (insert "Evenses")
         (insert "Oddses")))
     (undo-boundary)

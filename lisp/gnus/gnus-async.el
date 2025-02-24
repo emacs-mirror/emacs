@@ -178,7 +178,7 @@ that was fetched."
 		    d)
 		(while (and (setq d (pop data))
 			    (if (numberp n)
-				(natnump (cl-decf n))
+                                (natnump (decf n))
 			      n))
 		  (unless (or (gnus-async-prefetched-article-entry
 			       group (setq article (gnus-data-number d)))

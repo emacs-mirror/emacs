@@ -17,6 +17,7 @@
 #
 # ----------------------------------------------------------------------
 /^srcdir *=/s/@[^@\n]*@/./
+/^top_srcdir *=/s/@[^@\n]*@/..\/../
 /^VPATH *=/s/@[^@\n]*@/./
 /^MAKEINFO *=/s/@[^@\n]*@/makeinfo/
 /^AM_DEFAULT_VERBOSITY *=/s/@AM_DEFAULT_VERBOSITY@/1/

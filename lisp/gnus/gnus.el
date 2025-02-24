@@ -3787,7 +3787,7 @@ just the host name."
 		gsep "."))
 	(setq levels (- glen levels))
 	(dolist (g glist)
-	  (push (if (>= (cl-decf levels) 0)
+          (push (if (>= (decf levels) 0)
 		    (if (zerop (length g))
 			""
 		      (substring g 0 1))

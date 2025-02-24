@@ -58,7 +58,7 @@ Non-nil if EWW should ask for confirmation before sending the
 selected region to the configured search engine.  This is the
 default to mitigate the risk of accidental data leak.  Set this
 variable to nil to send the region to the search engine
-straightaway."
+straight away."
   :version "31.1"
   :group 'eww
   :type 'boolean)
@@ -1805,7 +1805,7 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 	    (while (and (> length 0)
 			(eq (char-after (1- (point))) ? ))
 	      (delete-region (1- (point)) (point))
-	      (cl-decf length))))
+              (decf length))))
 	 ((< length 0)
 	  ;; Add padding.
 	  (save-excursion

@@ -43,7 +43,7 @@
         (result nil))
     (while !lt!(< index num)!test!
       (push index result)!loop!
-      (cl-incf index))!end-loop!
+      (incf index))!end-loop!
     (nreverse result)))
 
 (defun edebug-test-code-choices (input)

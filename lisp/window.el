@@ -1003,6 +1003,7 @@ and may be called only if no window on SIDE exists yet."
 	 ;; window and not make a new parent window unless needed.
 	 (window-combination-resize 'side)
 	 (window-combination-limit nil)
+	 (ignore-window-parameters t)
 	 (window (split-window-no-error next-to nil on-side))
          (alist (if (assq 'dedicated alist)
                     alist
@@ -5446,6 +5447,21 @@ elsewhere.  This value is used by `quit-windows-on'."
      ((eq bury-or-kill 'bury)
       (bury-buffer-internal buffer)))))
 
+(defcustom quit-window-kill-buffer nil
+  "Non-nil means `quit-window' will try to kill WINDOW's buffer.
+If this is nil and the KILL argument is nil, `quit-window' will bury
+WINDOW's buffer.  If this is t, `quit-window' will always try to kill
+WINDOW's buffer.  Otherwise, this should be a list of major modes.
+`quit-window' will kill the buffer of its WINDOW argument regardless of
+the value of KILL if that buffer's major mode is either a member of this
+list or is derived from a member of this list.  In any other case,
+`quit-window' will kill the buffer only if KILL is non-nil and bury it
+otherwise."
+  :type '(choice (boolean :tag "All major modes")
+		 (repeat (symbol :tag "Major mode")))
+  :version "31.1"
+  :group 'windows)
+
 (defun quit-window (&optional kill window)
   "Quit WINDOW and bury its buffer.
 WINDOW must be a live window and defaults to the selected one.
@@ -5459,11 +5475,19 @@ Windows' for more details.
 The functions in `quit-window-hook' will be run before doing
 anything else."
   (interactive "P")
-  ;; Run the hook from the buffer implied to get any buffer-local
-  ;; values.
-  (with-current-buffer (window-buffer (window-normalize-window window))
-    (run-hooks 'quit-window-hook))
-  (quit-restore-window window (if kill 'kill 'bury)))
+  (let (kill-from-mode)
+    (with-current-buffer (window-buffer (window-normalize-window window))
+      ;; Run the hook from the buffer implied to get any buffer-local
+      ;; values.
+      (run-hooks 'quit-window-hook)
+
+      (setq kill-from-mode
+	    (or (eq quit-window-kill-buffer t)
+		(and (listp quit-window-kill-buffer)
+		     (derived-mode-p quit-window-kill-buffer)))))
+
+    (quit-restore-window
+     window (if (or kill kill-from-mode) 'kill 'bury))))
 
 (defun quit-windows-on (&optional buffer-or-name kill frame)
   "Quit all windows showing BUFFER-OR-NAME.
@@ -5649,6 +5673,7 @@ changed by this function."
        ;; frame's root window, split the frame's main window instead
        ;; (Bug#73627).
        ((and (eq window (frame-root-window frame))
+	     (not ignore-window-parameters)
 	     (window-with-parameter 'window-side nil frame))
 	(throw 'done (split-window (window-main-window frame)
 				   size side pixelwise refer)))

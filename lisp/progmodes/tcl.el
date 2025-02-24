@@ -201,26 +201,24 @@ quoted for Tcl."
 ;; Keymaps, abbrevs, syntax tables.
 ;;
 
-(defvar tcl-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "{" 'tcl-electric-char)
-    (define-key map "}" 'tcl-electric-brace)
-    (define-key map "[" 'tcl-electric-char)
-    (define-key map "]" 'tcl-electric-char)
-    (define-key map ";" 'tcl-electric-char)
-    (define-key map "#" 'tcl-electric-hash) ;Remove?  -stef
-    (define-key map "\e\C-q" 'tcl-indent-exp)
-    (define-key map "\177" 'backward-delete-char-untabify)
-    (define-key map "\t" 'tcl-indent-command)
-    (define-key map "\M-\C-x" 'tcl-eval-defun)
-    (define-key map "\C-c\C-i" 'tcl-help-on-word)
-    (define-key map "\C-c\C-v" 'tcl-eval-defun)
-    (define-key map "\C-c\C-f" 'tcl-load-file)
-    (define-key map "\C-c\C-t" 'inferior-tcl)
-    (define-key map "\C-c\C-x" 'tcl-eval-region)
-    (define-key map "\C-c\C-s" 'switch-to-tcl)
-    map)
-  "Keymap used in `tcl-mode'.")
+(defvar-keymap tcl-mode-map
+  :doc "Keymap used in `tcl-mode'."
+  "{"       #'tcl-electric-char
+  "}"       #'tcl-electric-brace
+  "["       #'tcl-electric-char
+  "]"       #'tcl-electric-char
+  ";"       #'tcl-electric-char
+  "#"       #'tcl-electric-hash ;Remove?  -stef
+  "C-M-q"   #'tcl-indent-exp
+  "DEL"     #'backward-delete-char-untabify
+  "TAB"     #'tcl-indent-command
+  "C-M-x"   #'tcl-eval-defun
+  "C-c C-i" #'tcl-help-on-word
+  "C-c C-v" #'tcl-eval-defun
+  "C-c C-f" #'tcl-load-file
+  "C-c C-t" #'inferior-tcl
+  "C-c C-x" #'tcl-eval-region
+  "C-c C-s" #'switch-to-tcl)
 
 (defvar tcl-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -249,23 +247,21 @@ quoted for Tcl."
     st)
   "Syntax table in use in `tcl-mode' buffers.")
 
-(defvar inferior-tcl-mode-map
+(defvar-keymap inferior-tcl-mode-map
+  :doc "Keymap used in `inferior-tcl-mode'."
   ;; FIXME we override comint keybindings here.
   ;; Maybe someone has a better set?
-  (let ((map (make-sparse-keymap)))
-    ;; Will inherit from `comint-mode-map' thanks to define-derived-mode.
-    (define-key map "\t" #'completion-at-point)
-    (define-key map "\M-?" #'comint-dynamic-list-filename-completions)
-    (define-key map "\177" #'backward-delete-char-untabify)
-    (define-key map "\M-\C-x" #'tcl-eval-defun)
-    (define-key map "\C-c\C-i" #'tcl-help-on-word)
-    (define-key map "\C-c\C-v" #'tcl-eval-defun)
-    (define-key map "\C-c\C-f" #'tcl-load-file)
-    (define-key map "\C-c\C-t" #'inferior-tcl)
-    (define-key map "\C-c\C-x" #'tcl-eval-region)
-    (define-key map "\C-c\C-s" #'switch-to-tcl)
-    map)
-  "Keymap used in `inferior-tcl-mode'.")
+  ;; Will inherit from `comint-mode-map' thanks to define-derived-mode.
+  "TAB"     #'completion-at-point
+  "M-?"     #'comint-dynamic-list-filename-completions
+  "DEL"     #'backward-delete-char-untabify
+  "C-M-x"   #'tcl-eval-defun
+  "C-c C-i" #'tcl-help-on-word
+  "C-c C-v" #'tcl-eval-defun
+  "C-c C-f" #'tcl-load-file
+  "C-c C-t" #'inferior-tcl
+  "C-c C-x" #'tcl-eval-region
+  "C-c C-s" #'switch-to-tcl)
 
 (easy-menu-define tcl-mode-menu tcl-mode-map "Menu used in `tcl-mode'."
   '("Tcl"

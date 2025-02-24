@@ -2514,13 +2514,11 @@ Adapt also mode line."
         (force-mode-line-update 'all)
         (read-passwd--hide-password)))))
 
-(defvar read-passwd-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map minibuffer-local-map)
-    (define-key map "\C-u" #'delete-minibuffer-contents) ;bug#12570
-    (define-key map "\t" #'read-passwd-toggle-visibility)
-    map)
-  "Keymap used while reading passwords.")
+(defvar-keymap read-passwd-map
+  :doc "Keymap used while reading passwords."
+  :parent minibuffer-local-map
+  "C-u" #'delete-minibuffer-contents ;bug#12570
+  "TAB" #'read-passwd-toggle-visibility)
 
 (define-minor-mode read-passwd-mode
   "Toggle visibility of password in minibuffer."

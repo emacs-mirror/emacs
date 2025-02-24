@@ -1753,7 +1753,7 @@ quae ab illo inventore veritatis et quasi architecto beatae vitae
 dicta sunt, explicabo.  "))
 
       (while (< iteration-count iteration-target)
-        (cl-incf iteration-count)
+        (incf iteration-count)
 
         ;; Toggle GROWING if we've reached a size boundary.  The idea
         ;; is to initially steadily increase the overlay count, then
@@ -1780,7 +1780,7 @@ dicta sunt, explicabo.  "))
                    (ov (make-overlay begin end nil
                                      (= 0 (random 2)) (= 0 (random 2)))))
               (aset overlays overlay-count ov)
-              (cl-incf overlay-count)))
+              (incf overlay-count)))
            ((and (not create-overlay) (> overlay-count 0))
 
             ;; Possibly delete a random overlay.
@@ -1790,7 +1790,7 @@ dicta sunt, explicabo.  "))
               (when (< index last-index)
                 (aset overlays index (aref overlays last-index)))
               (aset overlays last-index nil)
-              (cl-decf overlay-count)
+              (decf overlay-count)
               (delete-overlay ov)))))
 
         ;; Modify the buffer on occasion, which exercises the
@@ -8523,22 +8523,16 @@ Finally, kill the buffer and its temporary file."
 (ert-deftest test-buffer-chars-modified-ticks ()
   "Test `buffer-chars-modified-tick'."
   (setq temporary-file-directory (file-truename temporary-file-directory))
-  (let ((text "foobar")
-        f1 f2)
-    (unwind-protect
-        (progn
-          (setq f1 (make-temp-file "buf-modiff-tests")
-                f2 (make-temp-file "buf-modiff-tests"))
-          (with-current-buffer (find-file f1)
-            (should (= (buffer-chars-modified-tick) 1))
-            (should (= (buffer-chars-modified-tick) (buffer-modified-tick)))
-            (write-region text nil f2 nil 'silent)
-            (insert-file-contents f2)
-            (should (= (buffer-chars-modified-tick) (buffer-modified-tick)))
-            (should (> (buffer-chars-modified-tick) 1))))
-      (if f1 (delete-file f1))
-      (if f2 (delete-file f2))
-      )))
+  (ert-with-temp-file f1
+    (ert-with-temp-file f2
+      (let ((text "foobar"))
+        (with-current-buffer (find-file f1)
+          (should (= (buffer-chars-modified-tick) 1))
+          (should (= (buffer-chars-modified-tick) (buffer-modified-tick)))
+          (write-region text nil f2 nil 'silent)
+          (insert-file-contents f2)
+          (should (= (buffer-chars-modified-tick) (buffer-modified-tick)))
+          (should (> (buffer-chars-modified-tick) 1)))))))
 
 (ert-deftest test-labeled-narrowing ()
   "Test `with-restriction' and `without-restriction'."

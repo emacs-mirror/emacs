@@ -20,36 +20,44 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-;;; Commentary:
-
-;;
-
 ;;; Code:
 
 (require 'autoconf)
 (require 'ert)
+(require 'ert-font-lock)
 
 (ert-deftest autoconf-tests-current-defun-function-define ()
   (with-temp-buffer
+    (autoconf-mode)
     (insert "AC_DEFINE([HAVE_RSVG], [1], [Define to 1 if using librsvg.])")
+    (let ((def "HAVE_RSVG"))
+      (search-backward def)
+      (should (equal (autoconf-current-defun-function) def)))
     (goto-char (point-min))
-    (should-not (autoconf-current-defun-function))
-    (forward-char 11)
-    (should (equal (autoconf-current-defun-function) "HAVE_RSVG"))))
+    (should-not (autoconf-current-defun-function))))
 
 (ert-deftest autoconf-tests-current-defun-function-subst ()
   (with-temp-buffer
+    (autoconf-mode)
     (insert "AC_SUBST([srcdir])")
+    (let ((def "srcdir"))
+      (search-backward def)
+      (should (equal (autoconf-current-defun-function) "srcdir")))
     (goto-char (point-min))
-    (should-not (autoconf-current-defun-function))
-    (forward-char 10)
-    (should (equal (autoconf-current-defun-function) "srcdir"))))
+    (should-not (autoconf-current-defun-function))))
 
 (ert-deftest autoconf-tests-autoconf-mode-comment-syntax ()
   (with-temp-buffer
     (autoconf-mode)
-    (insert "dnl  Autoconf script for GNU Emacs")
-    (should (nth 4 (syntax-ppss)))))
+    (dolist (start '("dnl" "#"))
+      (insert start "  Autoconf script for GNU Emacs")
+      (should (eq (syntax-ppss-context (syntax-ppss)) 'comment))
+      (insert "\n")
+      (should-not (syntax-ppss-context (syntax-ppss))))))
+
+(ert-font-lock-deftest-file autoconf-tests-font-lock
+  "Test `autoconf-mode' font lock."
+  autoconf-mode "configure.ac")
 
 (provide 'autoconf-tests)
 ;;; autoconf-tests.el ends here

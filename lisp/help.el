@@ -2200,18 +2200,17 @@ The `temp-buffer-window-setup-hook' hook is called."
                                    (current-active-maps t)))))
     (catch 'res
       (dolist (val help-event-list)
-        (let ((key (vector (if (eql val 'help)
-                               help-char
-                             val))))
-          (unless (seq-find (lambda (map) (and (keymapp map) (lookup-key map key)))
-                            bindings)
-            (throw 'res
-                   (concat
-                    str
-                    (substitute-command-keys
-                     (format
-                      " (\\`%s' for help)"
-                      (key-description key))))))))
+        (when (setq val (if (eql val 'help) help-char val))
+          (let ((key (vector val)))
+            (unless (seq-find (lambda (map) (and (keymapp map) (lookup-key map key)))
+                              bindings)
+              (throw 'res
+                     (concat
+                      str
+                      (substitute-command-keys
+                       (format
+                        " (\\`%s' for help)"
+                        (key-description key)))))))))
       str)))
 
 

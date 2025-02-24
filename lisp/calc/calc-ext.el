@@ -25,7 +25,6 @@
 
 (require 'calc)
 (require 'calc-macs)
-(require 'cl-lib)
 
 ;; Declare functions which are defined elsewhere.
 (declare-function math-clip "calc-bin" (a &optional w))
@@ -2111,7 +2110,7 @@ calc-kill calc-kill-region calc-yank))))
 
 ;;; True if A is an odd integer.  [P R R] [Public]
 (defun math-oddp (a)
-  (and (integerp a) (cl-oddp a)))
+  (and (integerp a) (oddp a)))
 
 ;;; True if A is an integer.  [P x] [Public]
 (defalias 'math-integerp #'integerp)

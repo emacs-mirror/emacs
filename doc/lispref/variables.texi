@@ -285,7 +285,7 @@ previous example is equivalent to using nested @code{let} bindings:
 @defspec letrec (bindings@dots{}) forms@dots{}
 This special form is like @code{let*}, but all the variables are bound
 before any of the local values are computed.  The values are then
-assigned to the locally bound variables.  This is only useful when
+assigned to the locally bound variables.  This is useful only when
 lexical binding is in effect, and you want to create closures that
 refer to bindings that would otherwise not yet be in effect when using
 @code{let*}.
@@ -351,7 +351,7 @@ A function call is in the tail position if it's the very last thing
 done so that the value returned by the call is the value of @var{body}
 itself, as is the case in the recursive call to @code{sum} above.
 
-@code{named-let} can only be used when lexical-binding is enabled.
+@code{named-let} can be used only when lexical-binding is enabled.
 @xref{Lexical Binding}.
 @end defspec
 
@@ -392,7 +392,7 @@ object can be; but it is still a value.  If a variable is void, trying
 to evaluate the variable signals a @code{void-variable} error, instead
 of returning a value.
 
-  Under the optional lexical scoping rule, the value cell only holds
+  Under the optional lexical scoping rule, the value cell holds only
 the variable's global value---the value outside of any lexical binding
 construct.  When a variable is lexically bound, the local value is
 determined by the lexical environment; hence, variables can have local
@@ -710,8 +710,8 @@ completely.
   The usual way to reference a variable is to write the symbol which
 names it.  @xref{Symbol Forms}.
 
-  Occasionally, you may want to reference a variable which is only
-determined at run time.  In that case, you cannot specify the variable
+  Occasionally, you may want to reference a variable which is determined
+only at run time.  In that case, you cannot specify the variable
 name in the text of the program.  You can use the @code{symbol-value}
 function to extract the value.
 
@@ -1991,8 +1991,8 @@ to use this, @pxref{Auto Major Mode}.
 
 @defvar permanently-enabled-local-variables
 Some local variable settings will, by default, be heeded even if
-@code{enable-local-variables} is @code{nil}.  By default, this is only
-the case for the @code{lexical-binding} local variable setting, but
+@code{enable-local-variables} is @code{nil}.  By default, this is the
+case only for the @code{lexical-binding} local variable setting, but
 this can be controlled by using this variable, which is a list of
 symbols.
 @end defvar
@@ -3130,7 +3130,7 @@ If the multisession variable is synchronized, setting it may update
 the value first.  For instance:
 
 @lisp
-(cl-incf (multisession-value foo-bar))
+(incf (multisession-value foo-bar))
 @end lisp
 
 This first checks whether the value has changed in a different

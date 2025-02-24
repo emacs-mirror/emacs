@@ -609,7 +609,7 @@ thumbnail buffer to be selected."
             (image-dired-insert-thumbnail
              (image-dired--get-create-thumbnail-file file) file dired-buf)
             (cl-incf image-dired--number-of-thumbnails))))
-      (if (> image-dired--number-of-thumbnails 0)
+      (if (plusp image-dired--number-of-thumbnails)
           (if do-not-pop
               (display-buffer buf)
             (pop-to-buffer buf))
@@ -697,21 +697,21 @@ point is on the last image, move to the last one and vice versa."
   (setq arg (or arg 1))
   (let (pos)
     (dotimes (_ (abs arg))
-      (if (and (not (if (> arg 0) (eobp) (bobp)))
+      (if (and (not (if (plusp arg) (eobp) (bobp)))
                (save-excursion
-                 (forward-char (if (> arg 0) 1 -1))
-                 (while (and (not (if (> arg 0) (eobp) (bobp)))
+                 (forward-char (if (plusp arg) 1 -1))
+                 (while (and (not (if (plusp arg) (eobp) (bobp)))
                              (not (image-dired-image-at-point-p)))
-                   (forward-char (if (> arg 0) 1 -1)))
+                   (forward-char (if (plusp arg) 1 -1)))
                  (setq pos (point))
                  (image-dired-image-at-point-p)))
           (goto-char pos)
         (if wrap-around
-            (goto-char (if (> arg 0)
+            (goto-char (if (plusp arg)
                            (point-min)
                          ;; There are two spaces after the last image.
                          (- (point-max) 2)))
-          (message "At %s image" (if (> arg 0) "last" "first"))))))
+          (message "At %s image" (if (plusp arg) "last" "first"))))))
   (image-dired--update-header-line)
   (when image-dired-track-movement
     (image-dired-track-original-file)))
@@ -1133,7 +1133,7 @@ With a negative prefix argument, prompt user for the delay."
   (let ((delay
          (cond ((not arg)
                 image-dired-slideshow-delay)
-               ((> arg 0)
+               ((plusp arg)
                 arg)
                ((<= arg 0)
                 (string-to-number
@@ -1184,7 +1184,7 @@ With a negative prefix argument, prompt user for the delay."
   (interactive nil image-dired-thumbnail-mode)
   (let ((inhibit-read-only t))
     (delete-char 1)
-    (cl-decf image-dired--number-of-thumbnails))
+    (decf image-dired--number-of-thumbnails))
   (let ((pos (point)))
     (image-dired--line-up-with-method)
     (goto-char pos)
@@ -1247,7 +1247,7 @@ Ask user how many thumbnails should be displayed per row."
   (interactive nil image-dired-thumbnail-mode)
   (let ((image-dired-thumbs-per-row
          (string-to-number (read-string "How many thumbs per row: "))))
-    (if (not (> image-dired-thumbs-per-row 0))
+    (if (not (plusp image-dired-thumbs-per-row))
         (message "Number must be greater than 0")
       (image-dired-line-up))))
 

@@ -4479,7 +4479,7 @@ Returns HEADER if it was entered in the DEPENDENCIES.  Returns nil otherwise."
 	(push gnus-reffed-article-number gnus-newsgroup-sparse)
 	(push (cons gnus-reffed-article-number gnus-sparse-mark)
 	      gnus-newsgroup-reads)
-	(cl-decf gnus-reffed-article-number)))
+        (decf gnus-reffed-article-number)))
     (gnus-message 7 "Making sparse threads...done")))
 
 (defun gnus-build-old-threads ()
@@ -4737,7 +4737,7 @@ If LINE, insert the rebuilt thread starting on line LINE."
 			     (setq parent (gnus-parent-id references)))
 			(car (gnus-id-to-thread parent))
 		      nil))
-      (cl-decf generation))
+      (decf generation))
     (and (not (eq headers in-headers))
 	 headers)))
 
@@ -6152,7 +6152,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
       (let ((i 5))
 	(while (and (> i 2)
 		    (not (nth i info)))
-	  (when (nthcdr (cl-decf i) info)
+          (when (nthcdr (decf i) info)
 	    (setcdr (nthcdr i info) nil)))))))
 
 (defun gnus-set-mode-line (where)
@@ -6560,7 +6560,7 @@ current article will be taken into consideration."
 		   (if backward
 		       (gnus-summary-find-prev nil article)
 		     (gnus-summary-find-next nil article)))
-	    (cl-decf n)))
+            (decf n)))
 	(nreverse articles)))
      ((and (and transient-mark-mode mark-active) (mark))
       (message "region active")
@@ -8967,7 +8967,7 @@ The difference between N and the number of articles fetched is returned."
 	(gnus-message 1 "No references in article %d"
 		      (gnus-summary-article-number))
 	(setq error t))
-      (cl-decf n))
+      (decf n))
     (gnus-summary-position-point)
     n))
 
@@ -11898,7 +11898,7 @@ If SILENT, don't output messages."
 	(n (abs n)))
     (while (and (> n 0)
 		(gnus-summary-go-to-next-thread backward))
-      (cl-decf n))
+      (decf n))
     (unless silent
       (gnus-summary-position-point))
     (when (and (not silent) (/= 0 n))
@@ -12671,7 +12671,7 @@ If REVERSE, save parts that do not match TYPE."
 	      ;; article numbers for this article.
 	      (setf (mail-header-number header) gnus-reffed-article-number))
 	    (with-current-buffer gnus-summary-buffer
-	      (cl-decf gnus-reffed-article-number)
+              (decf gnus-reffed-article-number)
 	      (gnus-remove-header (mail-header-number header))
 	      (push header gnus-newsgroup-headers)
 	      (setq gnus-current-headers header)
@@ -13156,7 +13156,7 @@ If ALL is a number, fetch this number of articles."
 	  gnus-newsgroup-highest i)
     (while (> i old-high)
       (push i new)
-      (cl-decf i))
+      (decf i))
     (if (not new)
 	(message "No gnus is bad news")
       (gnus-summary-insert-articles new)

@@ -357,7 +357,7 @@ Test with both unibyte and multibyte strings."
     (let ((calls 0))
       (add-hook 'after-change-functions
                 (lambda (_begin _end _length)
-                  (cl-incf calls)
+                  (incf calls)
                   (signal 'json-tests--error
                           '("Error in `after-change-functions'")))
                 :local)
@@ -371,7 +371,7 @@ Test with both unibyte and multibyte strings."
     (let ((calls 0))
       (add-hook 'after-change-functions
                 (lambda (_begin _end _length)
-                  (cl-incf calls)
+                  (incf calls)
                   (throw 'test-tag 'throw-value))
                 :local)
       (should

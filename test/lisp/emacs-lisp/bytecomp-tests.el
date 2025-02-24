@@ -1704,8 +1704,8 @@ writable (Bug#44631)."
             (set-file-modes directory #o500)
             (should (byte-compile-file input-file))
             (should (file-regular-p output-file))
-            (should (cl-plusp (file-attribute-size
-                               (file-attributes output-file)))))
+            (should (plusp (file-attribute-size
+                            (file-attributes output-file)))))
         ;; Allow the directory to be deleted.
         (set-file-modes directory #o777)))))
 
@@ -1757,8 +1757,8 @@ mountpoint (Bug#44631)."
                     (ert-fail `((status . ,status)
                                 (output . ,(buffer-string)))))))
               (should (file-regular-p output-file))
-              (should (cl-plusp (file-attribute-size
-                                 (file-attributes output-file)))))
+              (should (plusp (file-attribute-size
+                              (file-attributes output-file)))))
           ;; Allow the directory to be deleted.
           (set-file-modes directory #o777))))))
 
@@ -1772,8 +1772,8 @@ mountpoint (Bug#44631)."
                      nil "test.el" nil nil nil 'excl)
       (should (byte-compile-file "test.el"))
       (should (file-regular-p "test.elc"))
-      (should (cl-plusp (file-attribute-size
-                         (file-attributes "test.elc")))))))
+      (should (plusp (file-attribute-size
+                      (file-attributes "test.elc")))))))
 
 (defun bytecomp-tests--get-vars ()
   (list (ignore-errors (symbol-value 'bytecomp-tests--var1))
@@ -1812,7 +1812,7 @@ compiled correctly."
   (cl-letf ((lexical-binding t)
             ((symbol-function 'counter) nil))
     (let ((x 0))
-      (defun counter () (cl-incf x))
+      (defun counter () (incf x))
       (should (equal (counter) 1))
       (should (equal (counter) 2))
       ;; byte compiling should not cause counter to always return the

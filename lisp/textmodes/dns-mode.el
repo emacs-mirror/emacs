@@ -325,7 +325,7 @@ See `dns-mode-ipv6-to-nibbles' for examples."
                                           (string-to-number chunk 16)))))
          (rev-address-nibbles
           (nreverse (if (and prefix-length
-                             (cl-minusp prefix-length))
+                             (minusp prefix-length))
                         (substring expanded-address prefix-length-nibbles)
                       (substring expanded-address 0 prefix-length-nibbles)))))
     (with-temp-buffer
@@ -334,7 +334,7 @@ See `dns-mode-ipv6-to-nibbles' for examples."
                (insert char)
                (insert "."))
       (if (and prefix-length
-               (cl-minusp prefix-length))
+               (minusp prefix-length))
           (delete-char -1)
         (insert "ip6.arpa."))
       (insert " ")

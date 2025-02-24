@@ -722,13 +722,6 @@ lists).  Any other prefix will result in the value being
 pretty-printed in a separate buffer.
 @end table
 
-@cindex lexical binding (Edebug)
-  Edebug supports evaluation of expressions containing references to
-lexically bound symbols created by the following constructs in
-@file{cl.el}: @code{lexical-let}, @code{macrolet}, and
-@code{symbol-macrolet}.
-@c FIXME?  What about lexical-binding = t?
-
 @node Eval List
 @subsection Evaluation List Buffer
 

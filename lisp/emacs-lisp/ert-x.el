@@ -140,7 +140,7 @@ BODY."
     (maphash (lambda (buffer _dummy)
 	       (when (or (not (buffer-live-p buffer))
 			 (kill-buffer buffer))
-		 (cl-incf count)))
+                 (incf count)))
 	     ert--test-buffers)
     (message "%s out of %s test buffers killed"
 	     count (hash-table-count ert--test-buffers)))
@@ -260,7 +260,7 @@ structure with the plists in ARGS."
                (string (let ((begin (point)))
                          (insert x)
                          (set-text-properties begin (point) current-plist)))
-               (list (unless (zerop (mod (length x) 2))
+               (list (unless (evenp (length x))
                        (error "Odd number of args in plist: %S" x))
                      (setq current-plist x))))
     (buffer-string)))

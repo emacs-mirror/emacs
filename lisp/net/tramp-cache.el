@@ -482,10 +482,10 @@ used to cache connection properties of the local machine."
 	  (hash (tramp-get-hash-table key))
 	  (cached (and (hash-table-p hash)
 		       (gethash ,property hash tramp-cache-undefined))))
-     (tramp-message key 7 "Saved %s %s" property cached)
+     (tramp-message key 7 "Saved %s %s" ,property cached)
      (unwind-protect (progn ,@body)
        ;; Reset PROPERTY.  Recompute hash, it could have been flushed.
-       (tramp-message key 7 "Restored %s %s" property cached)
+       (tramp-message key 7 "Restored %s %s" ,property cached)
        (setq hash (tramp-get-hash-table key))
        (if (not (eq cached tramp-cache-undefined))
 	   (puthash ,property cached hash)

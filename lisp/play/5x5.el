@@ -312,7 +312,7 @@ Quit current game           \\[5x5-quit-game]"
 		  (forward-char  (+ 1 (/ (1+ 5x5-x-scale) 2)))
 		  (dotimes (x 5x5-grid-size)
 		    (when (5x5-cell solution-grid y x)
-		      (if (= 0 (mod 5x5-x-scale 2))
+		      (if (evenp 5x5-x-scale)
 			  (progn
 			    (insert "()")
 			    (delete-region (point) (+ (point) 2))
@@ -858,7 +858,7 @@ lest."
   "Move up."
   (interactive nil 5x5-mode)
   (unless (zerop 5x5-y-pos)
-    (cl-decf 5x5-y-pos)
+    (decf 5x5-y-pos)
     (5x5-position-cursor)))
 
 (defun 5x5-down ()
@@ -872,7 +872,7 @@ lest."
   "Move left."
   (interactive nil 5x5-mode)
   (unless (zerop 5x5-x-pos)
-    (cl-decf 5x5-x-pos)
+    (decf 5x5-x-pos)
     (5x5-position-cursor)))
 
 (defun 5x5-right ()

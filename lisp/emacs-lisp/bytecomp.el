@@ -2052,7 +2052,7 @@ also be compiled."
                         (not (member source (dir-locals--all-files directory)))
                         ;; File is requested to be ignored
                         (not (string-match-p ignore-files-regexp source)))
-                   (progn (cl-incf
+                   (progn (incf
                            (pcase (byte-recompile-file source force arg)
                              ('no-byte-compile skip-count)
                              ('t file-count)
@@ -3773,7 +3773,7 @@ This assumes the function has the `important-return-value' property."
         ;; Add missing &optional (or &rest) arguments.
         (dotimes (_ (- (/ (1+ fmax2) 2) alen))
           (byte-compile-push-constant nil)))
-       ((zerop (logand fmax2 1))
+       ((evenp fmax2)
         (byte-compile-report-error
          (format "Too many arguments for inlined function %S" form))
         (byte-compile-discard (- alen (/ fmax2 2))))

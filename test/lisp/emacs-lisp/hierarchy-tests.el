@@ -499,7 +499,7 @@
   (let ((labelfn-base (lambda (_item _indent) (insert "foo")))
         (spy-count 0)
         (condition (lambda (_item _indent) nil)))
-    (cl-letf (((symbol-function 'hierarchy-labelfn-button) (lambda (_labelfn _actionfn) (lambda (_item _indent) (cl-incf spy-count)))))
+    (cl-letf (((symbol-function 'hierarchy-labelfn-button) (lambda (_labelfn _actionfn) (lambda (_item _indent) (incf spy-count)))))
       (funcall (hierarchy-labelfn-button-if labelfn-base condition #'identity) nil nil)
       (should (equal spy-count 0)))))
 
@@ -507,7 +507,7 @@
   (let ((labelfn-base (lambda (_item _indent) (insert "foo")))
         (spy-count 0)
         (condition (lambda (_item _indent) t)))
-    (cl-letf (((symbol-function 'hierarchy-labelfn-button) (lambda (_labelfn _actionfn) (lambda (_item _indent) (cl-incf spy-count)))))
+    (cl-letf (((symbol-function 'hierarchy-labelfn-button) (lambda (_labelfn _actionfn) (lambda (_item _indent) (incf spy-count)))))
       (funcall (hierarchy-labelfn-button-if labelfn-base condition #'identity) nil nil)
       (should (equal spy-count 1)))))
 

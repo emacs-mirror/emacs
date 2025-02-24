@@ -2181,7 +2181,7 @@ A useful command to bind to SPC.  See `term-replace-by-expanded-history'."
 Quotes are single and double."
   (let ((countsq (term-how-many-region "\\(^\\|[^\\]\\)'" beg end))
 	(countdq (term-how-many-region "\\(^\\|[^\\]\\)\"" beg end)))
-    (or (= (mod countsq 2) 1) (= (mod countdq 2) 1))))
+    (or (oddp countsq) (oddp countdq))))
 
 (defun term-how-many-region (regexp beg end)
   "Return number of matches for REGEXP from BEG to END."
@@ -3016,7 +3016,7 @@ See `term-prompt-regexp'."
 (defconst term-control-seq-regexp
   (concat
    ;; A control character not matched in a longer sequence below,
-   "\\(?:[\x00-\x19\x1C-\x1F\r\n\t\b]\\|"
+   "\\(?:[\x00-\x19\x1C-\x1F]\\|"
    ;; some Emacs specific control sequences, implemented by
    ;; `term-command-hook',
    "\032[^\n]+\n\\|"
@@ -3116,8 +3116,8 @@ See `term-prompt-regexp'."
                               (substring decoded-substring (- partial)))
                         (setq decoded-substring
                               (substring decoded-substring 0 (- partial)))
-                        (cl-decf str-length partial)
-                        (cl-decf funny partial))))
+                        (decf str-length partial)
+                        (decf funny partial))))
 
                   ;; Insert a string, check how many columns
                   ;; we moved, then delete that many columns

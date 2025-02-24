@@ -65,7 +65,7 @@
 	       collect ?, into s
 	       and do (setq i 3)
 	       collect c into s
-	       do (cl-decf i)
+               do (decf i)
 	       finally return
 	       (apply #'string (if (eq (car s) ?,) (cdr s) s)))
     (profiler-ensure-string number)))
@@ -336,7 +336,7 @@ Optional argument MODE means only check for the specified mode (cpu or mem)."
                (cl-assert (function-equal (aref backtrace max)
                                           (aref parent i)))
                (while (progn
-                        (cl-decf imatch) (cl-decf match)
+                        (decf imatch) (decf match)
                         (when (> imatch 0)
                           (function-equal (aref backtrace match)
                                           (aref parent imatch)))))
@@ -373,7 +373,7 @@ Optional argument MODE means only check for the specified mode (cpu or mem)."
            (let ((j (1- max)))
              (while (> j i)
                (let ((f (aref parent j)))
-                 (cl-decf j)
+                 (decf j)
                  (when f
                    (let ((child (profiler-calltree-find node f)))
                      (unless child

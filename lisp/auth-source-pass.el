@@ -196,7 +196,7 @@ See `auth-source-pass-get'."
   "Return a string with the file content of ENTRY."
   (with-temp-buffer
     ;; `file-name-handler-alist' could be nil, or miss the
-    ;; `epa-file-handler' entry.  We ensure, that it does exist.
+    ;; `epa-file-handler' entry.  We ensure that it does exist.
     ;; (Bug#67937)
     (let ((file-name-handler-alist
            (cons epa-file-handler file-name-handler-alist)))
@@ -314,13 +314,13 @@ HOSTS can be a string or a list of strings."
                       ,@(and secret (not (eq secret t)) (list :secret secret)))
                    (if (setq suffixedp (plist-get m :suffix)) suffixed out))
                   (unless suffixedp
-                    (when (or (zerop (cl-decf max))
+                    (when (or (zerop (decf max))
                               (null (setq entries (delete e entries))))
                       (throw 'done out)))))
               (setq suffixed (nreverse suffixed))
               (while suffixed
                 (push (pop suffixed) out)
-                (when (zerop (cl-decf max))
+                (when (zerop (decf max))
                   (throw 'done out))))))))))
 
 (defun auth-source-pass--disambiguate (host &optional user port)

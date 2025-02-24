@@ -587,8 +587,10 @@ change the variable @code{select-enable-clipboard} to @code{nil}.
 instance, a web browser will usually let you choose ``Copy Image'' on
 images, and this image will be put on the clipboard.  On capable
 platforms, Emacs can yank these objects with the @code{yank-media}
-command---but only in modes that have support for it (@pxref{Yanking
-Media,,, elisp, The Emacs Lisp Reference Manual}).
+command---but only in modes that have support for it.  By default, it
+auto-selects the preferred media type available in the clipboard but
+this can be overridden by giving the prefix argument to the command
+(@pxref{Yanking Media,,, elisp, The Emacs Lisp Reference Manual}).
 
 @cindex clipboard manager
 @vindex x-select-enable-clipboard-manager

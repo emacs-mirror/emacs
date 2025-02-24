@@ -409,6 +409,26 @@ if so, @code{nil} otherwise.  The argument must be a number.
 @code{(zerop x)} is equivalent to @code{(= x 0)}.
 @end defun
 
+@defun plusp number
+This predicate tests whether its argument is positive, and returns
+@code{t} if so, @code{nil} otherwise.  The argument must be a number.
+@end defun
+
+@defun minusp number
+This predicate tests whether its argument is negative, and returns
+@code{t} if so, @code{nil} otherwise.  The argument must be a number.
+@end defun
+
+@defun oddp integer
+This predicate tests whether its argument is an odd number, and returns
+@code{t} if so, @code{nil} otherwise.  The argument must be an integer.
+@end defun
+
+@defun evenp integer
+This predicate tests whether its argument is an even number, and returns
+@code{t} if so, @code{nil} otherwise.  The argument must be an integer.
+@end defun
+
 @node Comparison of Numbers
 @section Comparison of Numbers
 @cindex number comparison
@@ -648,8 +668,8 @@ foo
      @result{} 4
 @end example
 
-If you want to increment the variable, you must use @code{setq},
-like this:
+If you want to increment the variable, you must use @code{setq} (or
+@code{incf}), like this:
 
 @example
 (setq foo (1+ foo))
@@ -660,6 +680,21 @@ like this:
 @defun 1- number-or-marker
 This function returns @var{number-or-marker} minus 1.
 @end defun
+
+@defmac incf place &optional delta
+This macro increments the number stored in @var{place} by one, or
+by @var{delta} if specified.  It returns the incremented value.
+
+@var{place} can be a symbol or a generalized variable,
+@pxref{Generalized Variables}.  For example, @w{@samp{(incf i)}} is
+equivalent to @w{@samp{(setq i (1+ i))}}, and @w{@samp{(incf (car x)
+2)}} is equivalent to @w{@samp{(setcar x (+ (car x) 2))}}.
+@end defmac
+
+@defmac decf place &optional delta
+This macro decrements the number stored in @var{place} by one, or
+by @var{delta} if specified.  It returns the decremented value.
+@end defmac
 
 @defun + &rest numbers-or-markers
 This function adds its arguments together.  When given no arguments,

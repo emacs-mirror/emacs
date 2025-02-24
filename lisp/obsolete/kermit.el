@@ -6,6 +6,7 @@
 ;; Maintainer: emacs-devel@gnu.org
 ;; Created: 15 Feb 1988
 ;; Keywords: comm
+;; Obsolete-since: 31.1
 
 ;; This file is part of GNU Emacs.
 
@@ -23,6 +24,15 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; This library is obsolete.
+;;
+;; If you are looking for Kermit support in Emacs, you might want to
+;; take a look here instead:
+;;
+;;     https://www.kermitproject.org/archive.html#emacs
+
+;; ---
 
 ;; I'm not sure, but I think somebody asked about running kermit under shell
 ;; mode a while ago.  Anyway, here is some code that I find useful.  The result

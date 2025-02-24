@@ -187,8 +187,7 @@ returns the buffer used."
 					       (prin1-to-string new))))
                                   (list (or old-alt old)
                                         (or new-alt new)))))
-		     " "))
-	 (thisdir default-directory))
+		     " ")))
     (with-current-buffer buf
       (setq buffer-read-only t)
       (buffer-disable-undo (current-buffer))
@@ -199,25 +198,26 @@ returns the buffer used."
       (setq-local revert-buffer-function
                   (lambda (_ignore-auto _noconfirm)
                     (diff-no-select old new switches no-async (current-buffer))))
-      (setq default-directory thisdir)
+      (setq default-directory temporary-file-directory)
       (setq diff-default-directory default-directory)
       (let ((inhibit-read-only t))
 	(insert command "\n"))
-      (if (and (not no-async) (fboundp 'make-process))
-	  (let ((proc (start-process "Diff" buf shell-file-name
-                                     shell-command-switch command)))
-	    (set-process-filter proc #'diff-process-filter)
-            (set-process-sentinel
-             proc (lambda (proc _msg)
-                    (with-current-buffer (process-buffer proc)
-                      (diff-sentinel (process-exit-status proc)
-                                     old-alt new-alt)))))
-	;; Async processes aren't available.
-	(let ((inhibit-read-only t))
-	  (diff-sentinel
-	   (call-process shell-file-name nil buf nil
-			 shell-command-switch command)
-           old-alt new-alt))))
+      (with-file-modes #o600
+        (if (and (not no-async) (fboundp 'make-process))
+	    (let ((proc (start-process "Diff" buf shell-file-name
+                                       shell-command-switch command)))
+	      (set-process-filter proc #'diff-process-filter)
+              (set-process-sentinel
+               proc (lambda (proc _msg)
+                      (with-current-buffer (process-buffer proc)
+                        (diff-sentinel (process-exit-status proc)
+                                       old-alt new-alt)))))
+	  ;; Async processes aren't available.
+	  (let ((inhibit-read-only t))
+	    (diff-sentinel
+	     (call-process shell-file-name nil buf nil
+			   shell-command-switch command)
+             old-alt new-alt)))))
     buf))
 
 (defun diff-process-filter (proc string)

@@ -800,26 +800,24 @@ The environment marked is the one that contains point or follows point."
     st)
   "Syntax table used in Metafont or MetaPost mode.")
 
-(defvar meta-common-mode-map
-  (let ((map (make-sparse-keymap)))
-    ;; Navigation:
-    (define-key map "\M-\C-a"   'meta-beginning-of-defun)
-    (define-key map "\M-\C-e"   'meta-end-of-defun)
-    (define-key map "\M-\C-h"   'meta-mark-defun)
-    ;; Indentation:
-    (define-key map "\M-\C-q"   'meta-indent-defun)
-    (define-key map "\C-c\C-qe" 'meta-indent-defun)
-    (define-key map "\C-c\C-qr" 'meta-indent-region)
-    (define-key map "\C-c\C-qb" 'meta-indent-buffer)
-    ;; Commenting Out:
-    (define-key map "\C-c%"     'meta-comment-defun)
-    ;; (define-key map "\C-uC-c%"  'meta-uncomment-defun)
-    (define-key map "\C-c;"     'meta-comment-region)
-    (define-key map "\C-c:"     'meta-uncomment-region)
-    ;; Symbol Completion:
-    (define-key map "\M-\t"     'completion-at-point)
-    map)
-  "Keymap used in Metafont or MetaPost mode.")
+(defvar-keymap meta-common-mode-map
+  :doc "Keymap used in Metafont or MetaPost mode."
+  ;; Navigation:
+  "C-M-a"       #'meta-beginning-of-defun
+  "C-M-e"       #'meta-end-of-defun
+  "C-M-h"       #'meta-mark-defun
+  ;; Indentation:
+  "C-M-q"       #'meta-indent-defun
+  "C-c C-q e"   #'meta-indent-defun
+  "C-c C-q r"   #'meta-indent-region
+  "C-c C-q b"   #'meta-indent-buffer
+  ;; Commenting Out:
+  "C-c %"       #'meta-comment-defun
+  ;; "C-u C - c %" #'meta-uncomment-defun
+  "C-c ;"       #'meta-comment-region
+  "C-c :"       #'meta-uncomment-region
+  ;; Symbol Completion:
+  "C-M-i"       #'completion-at-point)
 
 (easy-menu-define
  meta-mode-menu meta-common-mode-map

@@ -3167,12 +3167,22 @@ It's required in both cases: whether you define
 @code{outline-regexp} or @code{outline-search-function}.
 @end defvar
 
-If built with tree-sitter, Emacs can automatically use
-Outline minor mode if the major mode sets the following variable.
+If built with tree-sitter, Emacs can automatically use Outline
+minor mode if the major mode sets one of the following variables.
 
 @defvar treesit-outline-predicate
 This variable instructs Emacs how to find lines with outline headings.
 It should be a predicate that matches the node on the heading line.
+@end defvar
+
+@defvar treesit-aggregated-outline-predicate
+This variable allows major modes to configure outlines for multiple
+languages.  Its value is an alist mapping language symbols to outline
+headings as described above for the value of
+@code{treesit-outline-predicate}.
+
+If this variable is non-@code{nil}, it overrides
+@code{treesit-outline-predicate} for setting up outline headings.
 @end defvar
 
 @node Font Lock Mode
@@ -3420,7 +3430,7 @@ However, @var{facespec} can also evaluate to a list of this form:
 
 @example
 (@var{subexp}
-(face @var{face} @var{prop1} @var{val1} @var{prop2} @var{val2}@dots{}))
+ (face @var{face} @var{prop1} @var{val1} @var{prop2} @var{val2}@dots{}))
 @end example
 
 @noindent

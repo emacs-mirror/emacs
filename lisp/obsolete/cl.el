@@ -272,10 +272,6 @@
                first
                svref
                copy-seq
-               evenp
-               oddp
-               minusp
-               plusp
                floatp-safe
                declaim
                proclaim
@@ -286,8 +282,6 @@
                values-list
                values
                pushnew
-               decf
-               incf
                ))
   (let ((new (if (consp fun) (prog1 (cdr fun) (setq fun (car fun)))
                (intern (format "cl-%s" fun)))))

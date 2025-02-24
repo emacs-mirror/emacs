@@ -1601,7 +1601,7 @@ To use this, apply a binary operator (evaluate it), then call this."
     (overflow-error
      ;; X and Y must be integers, as expt silently returns floating-point
      ;; infinity on floating-point overflow.
-     (if (or (natnump x) (zerop (logand y 1)))
+     (if (or (natnump x) (evenp y))
 	 1.0e+INF
        -1.0e+INF))))
 

@@ -47,20 +47,21 @@ A `cond*' construct is a series of clauses, and a clause
 normally has the form (CONDITION BODY...).
 
 CONDITION can be a Lisp expression, as in `cond'.
-Or it can be one of `(pcase* PATTERN DATUM)',
-`(bind* BINDINGS...)', or `(match* PATTERN DATUM)',
+Or it can be one of`(bind* BINDINGS...)', `(match* PATTERN DATUM)',
+or `(pcase* PATTERN DATUM)',
+
+`(bind* BINDINGS...)' means to bind BINDINGS (as if they were in `let*')
+for the body of the clause, and all subsequent clauses, since the `bind*'
+clause is always a non-exit clause.  As a condition, it counts as true
+and runs the body of the clause if the first binding's value is non-nil.
+
+`(match* PATTERN DATUM)' means to match DATUM against the pattern PATTERN
+For its patterns, see `match*'.
+The condition counts as true if PATTERN matches DATUM.
 
 `(pcase* PATTERN DATUM)' means to match DATUM against the
 pattern PATTERN, using the same pattern syntax as `pcase'.
 The condition counts as true if PATTERN matches DATUM.
-
-`(bind* BINDINGS...)' means to bind BINDINGS (as if they were in `let*')
-for the body of the clause.  As a condition, it counts as true
-if the first binding's value is non-nil.  All the bindings are made
-unconditionally for whatever scope they cover.
-
-`(match* PATTERN DATUM)' is an alternative to `pcase*' that uses another
-syntax for its patterns, see `match*'.
 
 When a clause's condition is true, and it exits the `cond*'
 or is the last clause, the value of the last expression
@@ -69,7 +70,7 @@ in its body becomes the return value of the `cond*' construct.
 Non-exit clause:
 
 If a clause has only one element, or if its first element is
-a `bind*' clause, this clause never exits the `cond*' construct.
+t or a `bind*' clause, this clause never exits the `cond*' construct.
 Instead, control always falls through to the next clause (if any).
 All bindings made in CONDITION for the BODY of the non-exit clause
 are passed along to the rest of the clauses in this `cond*' construct.
@@ -149,10 +150,9 @@ ATOM (meaning any other kind of non-list not described above)
       (and (cdr-safe clause)
            ;; Starts with t.
            (or (eq (car clause) t)
-               ;; Begins with keyword.
-               (keywordp (car clause))))
-      ;; Ends with keyword.
-      (keywordp (car (last clause)))))
+               ;; Starts with a `bind*' pseudo-form.
+               (and (consp (car clause))
+                    (eq (caar clause) 'bind*))))))
 
 (defun cond*-non-exit-clause-substance (clause)
   "For a non-exit cond* clause CLAUSE, return its substance.

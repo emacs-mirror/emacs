@@ -49,7 +49,7 @@
 ;; so there will be more than one parser for each language in a buffer.
 ;; We can also have local parser of the same language as the host
 ;; parser.  All of which means we can't equalize language and parser,
-;; and create paresr for a language willy-nilly anymore.  Major mode
+;; and create parser for a language willy-nilly anymore.  Major mode
 ;; will manage their parsers.
 
 ;;; Code:
@@ -1317,6 +1317,40 @@ and leave settings for other languages unchanged."
                        ((memq feature remove-list) nil)
                        (t current-value))))))
 
+(defun treesit-merge-font-lock-feature-list (features-list-1 features-list-2)
+  "Merge two tree-sitter font lock feature lists.
+Returns a new font lock feature list with no duplicates in the same level.
+It can be used to merge font lock feature lists in a multi-language major mode.
+FEATURES-LIST-1 and FEATURES-LIST-2 are list of lists of feature symbols."
+  (let ((result nil)
+	(features-1 (car features-list-1))
+	(features-2 (car features-list-2)))
+    (while (or features-1 features-2)
+      (cond
+       ((and features-1 (not features-2)) (push features-1 result))
+       ((and (not features-1) features-2) (push features-2 result))
+       ((and features-1 features-2) (push (cl-union features-1 features-2) result)))
+      (setq features-list-1 (cdr features-list-1)
+	    features-list-2 (cdr features-list-2)
+	    features-1 (car features-list-1)
+            features-2 (car features-list-2)))
+    (nreverse result)))
+
+(defun treesit-replace-font-lock-feature-settings (new-settings settings)
+  "Replaces :feature in SETTINGS with :feature from NEW-SETTINGS.
+Both SETTINGS and NEW-SETTINGS must be a value suitable for
+`treesit-font-lock-settings'.
+Return a value suitable for `treesit-font-lock-settings'"
+  (let ((result nil))
+    (dolist (new-setting new-settings)
+      (let ((new-feature (treesit-font-lock-setting-feature new-setting)))
+	(dolist (setting settings)
+	  (let ((feature (treesit-font-lock-setting-feature setting)))
+	    (if (eq new-feature feature)
+		(push new-setting result)
+	      (push setting result))))))
+    (nreverse result)))
+
 (defun treesit-add-font-lock-rules (rules &optional how feature)
   "Add font-lock RULES to the current buffer.
 
@@ -1809,7 +1843,7 @@ but not in this case:
     }
 
 The value of this variable affects the `standalone-parent' indent preset
-for treesit-simple-indent.  If the value is nil, the standlone condition
+for treesit-simple-indent.  If the value is nil, the standalone condition
 is as described.  Some major mode might want to relax the condition a
 little bit, so that it ignores some punctuation like \".\".  For
 example, a Javascript mode might want to consider the method call below
@@ -2474,7 +2508,7 @@ RULES."
                             offset)))))
              (cons lang (mapcar #'optimize-rule indent-rules)))))
 
-(defun treesit-add-simple-indent-rules (language rules &optional where anchor)
+(defun treesit-simple-indent-add-rules (language rules &optional where anchor)
   "Add simple indent RULES for LANGUAGE.
 
 This function only affects `treesit-simple-indent-rules',
@@ -2482,7 +2516,7 @@ This function only affects `treesit-simple-indent-rules',
 
 WHERE can be either :before or :after, which means adding RULES before
 or after the existing rules in `treesit-simple-indent-rules'.  If
-ommited, default to adding the rules before (so it overrides existing
+omitted, default to adding the rules before (so it overrides existing
 rules).
 
 If ANCHOR is non-nil, add RULES before/after the rules in
@@ -2505,6 +2539,46 @@ end of existing rules."
                 (append existing-rules rules)
               (append rules existing-rules)))))
     (setf (alist-get language treesit-simple-indent-rules) new-rules)))
+
+(defun treesit-simple-indent-modify-rules (lang new-rules rules &optional how)
+  "Pick out rules for LANG in RULES, and modify it according to NEW_RULES.
+
+RULES should have the same form as `treesit-simple-indent-rules', i.e, a
+list of (LANG RULES...).  Return a new modified rules in the form
+of (LANG RULES...).
+
+If HOW is omitted or :replace, for each rule in NEW-RULES, find the old
+rule that has the same matcher, and replace it.
+
+If HOW is :prepend, just prepend NEW-RULES to the old rules; if HOW is
+:append, append NEW-RULES."
+  (cond
+   ((not (alist-get lang rules))
+    (error "No rules for language %s in RULES" lang))
+   ((not (alist-get lang new-rules))
+    (error "No rules for language %s in NEW-RULES" lang))
+   (t (let* ((copy-of-rules (copy-tree rules))
+	     (lang-rules (alist-get lang copy-of-rules))
+	     (lang-new-rules (alist-get lang new-rules)))
+	(cond
+	 ((eq how :prepend)
+	  (setf (alist-get lang copy-of-rules)
+		(append lang-new-rules lang-rules)))
+	 ((eq how :append)
+	  (setf (alist-get lang copy-of-rules)
+		(append lang-rules lang-new-rules)))
+	 ((or (eq how :replace) t)
+	  (let ((tail-new-rules lang-new-rules)
+		(tail-rules lang-rules)
+		(new-rule nil)
+		(rule nil))
+	    (while (setq new-rule (car tail-new-rules))
+	      (while (setq rule (car tail-rules))
+		(when (equal (nth 0 new-rule) (nth 0 rule))
+		  (setf (car tail-rules) new-rule))
+		(setq tail-rules (cdr tail-rules)))
+	      (setq tail-new-rules (cdr tail-new-rules))))))
+	copy-of-rules))))
 
 ;;; Search
 
@@ -2764,6 +2838,15 @@ ARG is described in the docstring of `up-list'."
                                            (treesit-node-end parent)
                                          (treesit-node-start parent))))
           (setq parent (treesit-parent-until parent pred)))
+
+        (when-let* ((_ (null parent))
+                    (parser (treesit-node-parser (treesit-node-at (point))))
+                    (_ (not (eq parser treesit-primary-parser)))
+                    (guest-root-node (treesit-parser-root-node parser)))
+          ;; Continue from the host node that contains the guest parser.
+          (setq parent (treesit-thing-at
+                        (- (treesit-node-start guest-root-node) 2) pred)))
+
         (or (when (and default-pos
                        (or (null parent)
                            (if (> arg 0)
@@ -3293,7 +3376,7 @@ function is called recursively."
                 ;; Normal case.
                 (setq pos (funcall advance (or prev parent))))))
           ;; A successful step! Decrement counter.
-          (cl-decf counter))))
+          (decf counter))))
     ;; Counter equal to 0 means we successfully stepped ARG steps.
     (if (eq counter 0) pos nil)))
 
@@ -3527,6 +3610,16 @@ Intended to be set by a major mode.  When nil, the predicate
 is constructed from the value of `treesit-simple-imenu-settings'
 when a major mode sets it.")
 
+(defvar-local treesit-aggregated-outline-predicate nil
+  "Settings that configure `treesit-outline-search' for multi-language modes.
+
+The value should be an alist of (LANG . SETTINGS), where LANG is a
+language symbol, and SETTINGS has the same form as
+`treesit-outline-predicate'.
+
+When both this variable and `treesit-outline-predicate' are non-nil,
+this variable takes priority.")
+
 (defun treesit-outline-predicate--from-imenu (node)
   ;; Return an outline searching predicate created from Imenu.
   ;; Return the value suitable to set `treesit-outline-predicate'.
@@ -3544,7 +3637,10 @@ when a major mode sets it.")
 
 (defun treesit-outline--at-point ()
   "Return the outline heading node at the current line."
-  (let* ((pred treesit-outline-predicate)
+  (let* ((pred (if treesit-aggregated-outline-predicate
+                   (alist-get (treesit-language-at (point))
+                              treesit-aggregated-outline-predicate)
+                 treesit-outline-predicate))
          (bol (pos-bol))
          (eol (pos-eol))
          (current (treesit-thing-at (point) pred))
@@ -3555,6 +3651,18 @@ when a major mode sets it.")
          (next-valid (when next (<= bol next eol))))
     (or (and current-valid current)
         (and next-valid (treesit-thing-at next pred)))))
+
+(defun treesit-closest-parser-boundary (pos backward)
+  "Get the closest boundary of a local parser."
+  (when-let* ((ranges (mapcar #'treesit-parser-included-ranges
+                              (treesit-parser-list)))
+              (ranges (delq nil (delete '((1 . 1)) ranges)))
+              (bounds (seq-filter
+                       (lambda (p) (if backward (< p pos) (> p pos)))
+                       (flatten-list ranges)))
+              (closest (when bounds
+                         (if backward (seq-max bounds) (seq-min bounds)))))
+    closest))
 
 (defun treesit-outline-search (&optional bound move backward looking-at)
   "Search for the next outline heading in the syntax tree.
@@ -3575,28 +3683,65 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
               (if (eq (point) (pos-bol))
                   (if (bobp) (point) (1- (point)))
                 (pos-eol))))
+           (pred (if treesit-aggregated-outline-predicate
+                     (alist-get (treesit-language-at pos)
+                                treesit-aggregated-outline-predicate)
+                   treesit-outline-predicate))
            (found (or bob-pos
-                      (treesit-navigate-thing pos (if backward -1 1) 'beg
-                                              treesit-outline-predicate))))
-      (if found
-          (if (or (not bound) (if backward (>= found bound) (<= found bound)))
-              (progn
-                (goto-char found)
-                (goto-char (pos-bol))
-                (set-match-data (list (point) (pos-eol)))
-                t)
-            (when move (goto-char bound))
-            nil)
-        (when move (goto-char (or bound (if backward (point-min) (point-max)))))
-        nil))))
+                      (treesit-navigate-thing pos (if backward -1 1) 'beg pred)))
+           (closest (treesit-closest-parser-boundary pos backward)))
+
+      ;; Handle multi-language modes
+      (if (and closest
+               (or
+                ;; Possibly was inside the local parser, and when can't find
+                ;; more matches inside it then need to go over the closest
+                ;; parser boundary to the primary parser.
+                (not found)
+                ;; Possibly skipped the local parser, either while navigating
+                ;; inside the primary parser, or inside a local parser
+                ;; interspersed by ranges of other local parsers, e.g.
+                ;; <html><script>|</script><style/><script/></html>
+                (if backward (> closest found) (< closest found))))
+          (progn
+            (goto-char (if backward
+                           (max (point-min) (1- closest))
+                         (min (point-max) (1+ closest))))
+            (treesit-outline-search bound move backward))
+
+        (if found
+            (if (or (not bound) (if backward (>= found bound) (<= found bound)))
+                (progn
+                  (goto-char found)
+                  (goto-char (pos-bol))
+                  (set-match-data (list (point) (pos-eol)))
+                  t)
+              (when move (goto-char bound))
+              nil)
+          (when move (goto-char (or bound (if backward (point-min) (point-max)))))
+          nil)))))
 
 (defun treesit-outline-level ()
   "Return the depth of the current outline heading."
   (let* ((node (treesit-outline--at-point))
-         (level 1))
-    (while (setq node (treesit-parent-until node treesit-outline-predicate))
+         (level 1)
+         (parser (when (and treesit-aggregated-outline-predicate node)
+                   (treesit-node-parser node)))
+         (pred (if treesit-aggregated-outline-predicate
+                   (alist-get (treesit-language-at (point))
+                              treesit-aggregated-outline-predicate)
+                 treesit-outline-predicate)))
+    (while (setq node (treesit-parent-until node pred))
       (setq level (1+ level)))
-    (if (zerop level) 1 level)))
+    (when-let* ((_ (and parser (not (eq parser treesit-primary-parser))))
+                (guest-root-node (treesit-parser-root-node parser))
+                (host-lang (treesit-parser-language treesit-primary-parser))
+                (host-pred (alist-get host-lang treesit-aggregated-outline-predicate)))
+      ;; Continue from the host node that contains the guest parser.
+      (setq node (treesit-node-at (- (treesit-node-start guest-root-node) 2)))
+      (while (setq node (treesit-parent-until node host-pred))
+        (setq level (1+ level))))
+    level))
 
 ;;; Hideshow mode
 
@@ -3881,11 +4026,14 @@ before calling this function."
                 #'treesit-simple-imenu))
 
   ;; Outline minor mode.
-  (when (and (or treesit-outline-predicate treesit-simple-imenu-settings)
+  (when (and (or treesit-outline-predicate
+                 treesit-aggregated-outline-predicate
+                 treesit-simple-imenu-settings)
              (not (seq-some #'local-variable-p
                             '(outline-search-function
                               outline-regexp outline-level))))
-    (unless treesit-outline-predicate
+    (unless (or treesit-outline-predicate
+                treesit-aggregated-outline-predicate)
       (setq treesit-outline-predicate
             #'treesit-outline-predicate--from-imenu))
     (setq-local outline-search-function #'treesit-outline-search

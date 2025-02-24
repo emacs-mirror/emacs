@@ -1031,7 +1031,7 @@ Return the pitem of the function we went to the beginning of."
         (setq found nil)))
 
     (while (> arg 0)
-      (cl-decf arg)
+      (decf arg)
       ;; If we're just past the end of a function, the user probably wants
       ;; to go to the beginning of *that* function
       (when (eq (char-before) ?})
@@ -1367,7 +1367,7 @@ LIMIT defaults to point."
       (js-end-of-defun)))
 
   (while (> arg 0)
-    (cl-decf arg)
+    (decf arg)
     ;; look for function backward. if we're inside it, go to that
     ;; function's end. otherwise, search for the next function's end and
     ;; go there
@@ -3920,6 +3920,44 @@ See `treesit-thing-settings' for more information.")
 (defvar js--treesit-jsdoc-beginning-regexp (rx bos "/**")
   "Regular expression matching the beginning of a jsdoc block comment.")
 
+(defvar js--treesit-thing-settings
+  `((javascript
+     (sexp ,(js--regexp-opt-symbol js--treesit-sexp-nodes))
+     (list ,(js--regexp-opt-symbol js--treesit-list-nodes))
+     (sentence ,(js--regexp-opt-symbol js--treesit-sentence-nodes))
+     (text ,(js--regexp-opt-symbol '("comment"
+                                     "string_fragment")))))
+  "Settings for `treesit-thing-settings'.")
+
+(defvar js--treesit-font-lock-feature-list
+  '(( comment document definition)
+    ( keyword string)
+    ( assignment constant escape-sequence jsx number
+      pattern string-interpolation)
+    ( bracket delimiter function operator property))
+  "Settings for `treesit-font-lock-feature-list'.")
+
+(defvar js--treesit-simple-imenu-settings
+  `(("Function" "\\`function_declaration\\'" nil nil)
+    ("Variable" "\\`lexical_declaration\\'"
+     js--treesit-valid-imenu-entry nil)
+    ("Class" ,(rx bos (or "class_declaration"
+                          "method_definition")
+                  eos)
+     nil nil))
+  "Settings for `treesit-simple-imenu'.")
+
+(defvar js--treesit-defun-type-regexp
+  (rx (or "class_declaration"
+          "method_definition"
+          "function_declaration"
+          "lexical_declaration"))
+  "Settings for `treesit-defun-type-regexp'.")
+
+(defvar js--treesit-jsdoc-comment-regexp
+  (rx (or "comment" "line_comment" "block_comment" "description"))
+  "Regexp for `c-ts-common--comment-regexp'.")
+
 ;;;###autoload
 (define-derived-mode js-ts-mode js-base-mode "JavaScript"
   "Major mode for editing JavaScript.
@@ -3951,29 +3989,15 @@ See `treesit-thing-settings' for more information.")
     ;; Indent.
     (setq-local treesit-simple-indent-rules js--treesit-indent-rules)
     ;; Navigation.
-    (setq-local treesit-defun-type-regexp
-                (rx (or "class_declaration"
-                        "method_definition"
-                        "function_declaration"
-                        "lexical_declaration")))
+    (setq-local treesit-defun-type-regexp js--treesit-defun-type-regexp)
+
     (setq-local treesit-defun-name-function #'js--treesit-defun-name)
 
-    (setq-local treesit-thing-settings
-                `((javascript
-                   (sexp ,(js--regexp-opt-symbol js--treesit-sexp-nodes))
-                   (list ,(js--regexp-opt-symbol js--treesit-list-nodes))
-                   (sentence ,(js--regexp-opt-symbol js--treesit-sentence-nodes))
-                   (text ,(js--regexp-opt-symbol '("comment"
-                                                   "string_fragment"))))))
+    (setq-local treesit-thing-settings js--treesit-thing-settings)
 
     ;; Fontification.
     (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
-    (setq-local treesit-font-lock-feature-list
-                '(( comment document definition)
-                  ( keyword string)
-                  ( assignment constant escape-sequence jsx number
-                    pattern string-interpolation)
-                  ( bracket delimiter function operator property)))
+    (setq-local treesit-font-lock-feature-list js--treesit-font-lock-feature-list)
 
     (when (treesit-ready-p 'jsdoc t)
       (setq-local treesit-range-settings
@@ -3983,17 +4007,11 @@ See `treesit-thing-settings' for more information.")
                    :local t
                    `(((comment) @capture (:match ,js--treesit-jsdoc-beginning-regexp @capture)))))
 
-      (setq c-ts-common--comment-regexp (rx (or "comment" "line_comment" "block_comment" "description"))))
+      (setq c-ts-common--comment-regexp js--treesit-jsdoc-comment-regexp))
 
     ;; Imenu
-    (setq-local treesit-simple-imenu-settings
-                `(("Function" "\\`function_declaration\\'" nil nil)
-                  ("Variable" "\\`lexical_declaration\\'"
-                   js--treesit-valid-imenu-entry nil)
-                  ("Class" ,(rx bos (or "class_declaration"
-                                        "method_definition")
-                                eos)
-                   nil nil)))
+    (setq-local treesit-simple-imenu-settings js--treesit-simple-imenu-settings)
+
     (treesit-major-mode-setup)
 
     (add-to-list 'auto-mode-alist
@@ -4018,7 +4036,7 @@ See `treesit-thing-settings' for more information.")
              (ne (treesit-node-end node))
              (syntax (pcase-exhaustive name
                        ('regexp
-                        (cl-decf ns)
+                        (decf ns)
                         (cl-incf ne)
                         (string-to-syntax "\"/"))
                        ('jsx

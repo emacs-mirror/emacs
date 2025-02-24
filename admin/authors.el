@@ -97,6 +97,7 @@ files.")
     ("Earl Hyatt" "Earl" "ej32u@protonmail\\.com")
     ("Ed L. Cashin" "Ed L Cashin")
     ("Edward M. Reingold" "Ed\\(ward\\( M\\)?\\)? Reingold" "Reingold Edward M")
+    ("Elías Gabriel Pérez" "eg642616@gmail\\.com") ; bug#76319
     ("Emilio C. Lopes" "Emilio Lopes")
     ("Eric M. Ludlam" "Eric Ludlam")
     ("Eric S. Raymond" "Eric Raymond")
@@ -178,6 +179,7 @@ files.")
     ("Lars Magne Ingebrigtsen" "Lars Ingebrigtsen")
     ("Laurence Warne" "lWarne" "laurencewarne@gmail\\.com")
     (nil "lensplaysgames@gmail\\.com")
+    ("Vladimir Nikishkin" "lockywolf")
     (nil "lorniu@gmail\\.com")
     (nil "LynX@bk\\.ru")
     (nil "lu4nx")
@@ -655,6 +657,7 @@ Changes to files matching one of the regexps in this list are not listed.")
     "if-11.cc"
     "if-11.res"
     "java/org/gnu/emacs/EmacsWindowAttachmentManager.java"
+    "lisp/gnus/gnus-nocem.el"
     "lisp/gnus/legacy-gnus-agent.el"
     "legacy-gnus-agent.el"
     "admin/coccinelle/xsave.cocci"

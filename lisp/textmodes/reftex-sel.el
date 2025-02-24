@@ -705,8 +705,8 @@ Cycle in reverse order if optional argument REVERSE is non-nil."
             (setq sep (nth 2 c))
             (overlay-put (nth 1 c) 'before-string
                          (if sep
-                             (format "*%c%d* " sep (cl-decf cnt))
-                           (format "*%d*  " (cl-decf cnt)))))
+                             (format "*%c%d* " sep (decf cnt))
+                           (format "*%d*  " (decf cnt)))))
           reftex-select-marked)
     (message "Entry no longer marked")))
 

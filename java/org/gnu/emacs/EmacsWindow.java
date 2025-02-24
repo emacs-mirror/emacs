@@ -50,6 +50,7 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewManager;
 import android.view.WindowManager;
 
@@ -271,19 +272,25 @@ public final class EmacsWindow extends EmacsHandleObject
 	  }
       }
 
-    EmacsActivity.invalidateFocus (4);
-
+    /* This is just a sanity test and is not reliable since `children'
+       may be modified between isEmpty and handle destruction.  */
     if (!children.isEmpty ())
       throw new IllegalStateException ("Trying to destroy window with "
 				       + "children!");
 
     /* Remove the view from its parent and make it invisible.  */
     EmacsService.SERVICE.runOnUiThread (new Runnable () {
+	@Override
 	public void
 	run ()
 	{
 	  ViewManager parent;
 	  EmacsWindowManager manager;
+
+	  /* Invalidate the focus; this should transfer the input focus
+	     to the next eligible window as this window is no longer
+	     present in parent.children.  */
+	  EmacsActivity.invalidateFocus (4);
 
 	  if (EmacsActivity.focusedWindow == EmacsWindow.this)
 	    EmacsActivity.focusedWindow = null;
@@ -325,22 +332,38 @@ public final class EmacsWindow extends EmacsHandleObject
   {
     int rectWidth, rectHeight;
 
-    rect.left = left;
-    rect.top = top;
-    rect.right = right;
-    rect.bottom = bottom;
+    /* If this is an override-redirect window, don't ever modify
+       rect.left and rect.top, as its WM window will always have been
+       moved in unison with itself.  */
+
+    if (overrideRedirect)
+      {
+	rect.right = rect.left + (right - left);
+	rect.bottom = rect.top + (bottom - top);
+      }
+    /* If parent is null, use xPosition and yPosition instead of the
+       geometry rectangle positions.  */
+    else if (parent == null)
+      {
+	rect.left = xPosition;
+	rect.top = yPosition;
+	rect.right = rect.left + (right - left);
+	rect.bottom = rect.top + (bottom - top);
+      }
+    /* Otherwise accept the new position offered by the toolkit.  FIXME:
+       isn't there a potential race condition here if the toolkit lays
+       out EmacsView after a child frame's rect is set but before it
+       calls onLayout to read the modifies rect?  */
+    else
+      {
+	rect.left = left;
+	rect.top = top;
+	rect.right = right;
+	rect.bottom = bottom;
+      }
 
     rectWidth = right - left;
     rectHeight = bottom - top;
-
-    /* If parent is null, use xPosition and yPosition instead of the
-       geometry rectangle positions.  */
-
-    if (parent == null)
-      {
-	left = xPosition;
-	top = yPosition;
-      }
 
     return EmacsNative.sendConfigureNotify (this.handle,
 					    System.currentTimeMillis (),
@@ -359,8 +382,17 @@ public final class EmacsWindow extends EmacsHandleObject
 	run ()
 	{
 	  if (overrideRedirect)
-	    /* Set the layout parameters again.  */
-	    view.setLayoutParams (getWindowLayoutParams ());
+	    {
+	      WindowManager.LayoutParams params;
+
+	      /* Set the layout parameters again.  */
+	      params = getWindowLayoutParams ();
+	      view.setLayoutParams (params);
+
+	      /* Announce this update to the window server.  */
+	      if (windowManager != null)
+		windowManager.updateViewLayout (view, params);
+	    }
 
 	  view.mustReportLayout = true;
 	  view.requestLayout ();
@@ -1348,6 +1380,11 @@ public final class EmacsWindow extends EmacsHandleObject
 	  EmacsWindowManager manager;
 	  ViewManager parent;
 
+	  /* Invalidate the focus; this should transfer the input focus
+	     to the next eligible window as this window is no longer
+	     present in parent.children.  */
+	  EmacsActivity.invalidateFocus (7);
+
 	  /* First, detach this window if necessary.  */
 	  manager = EmacsWindowManager.MANAGER;
 	  manager.detachWindow (EmacsWindow.this);
@@ -1621,6 +1658,18 @@ public final class EmacsWindow extends EmacsHandleObject
        and Y by them.  */
     array[0] += x;
     array[1] += y;
+
+    /* In the case of an override redirect window, the WM window's
+       extents and position match the Emacs window exactly.  */
+
+    if (overrideRedirect)
+      {
+	synchronized (this)
+	  {
+	    array[0] += rect.left;
+	    array[1] += rect.top;
+	  }
+      }
 
     /* Return the resulting coordinates.  */
     return array;

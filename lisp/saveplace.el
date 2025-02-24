@@ -401,7 +401,8 @@ may have changed) back to `save-place-alist'."
                t))))
 	(condition-case nil
 	    ;; Don't use write-file; we don't want this buffer to visit it.
-            (write-region (point-min) (point-max) file)
+            (write-region (point-min) (point-max) file nil
+			  (unless (called-interactively-p 'interactive) 'quiet))
 	  (file-error (message "Saving places: can't write %s" file)))))))
 
 (defun save-places-to-alist ()

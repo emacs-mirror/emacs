@@ -392,8 +392,7 @@
   (setq internal-make-interpreted-closure-function
         #'cconv-make-interpreted-closure))
 (load "cus-start") ;Late to reduce customize-rogue (needs loaddefs.el anyway)
-(if (not (eq system-type 'ms-dos))
-    (load "tooltip"))
+(load "tooltip")
 (load "international/iso-transl") ; Binds Alt-[ and friends.
 
 ;; Used by `kill-buffer', for instance.
@@ -600,7 +599,10 @@ directory got moved.  This is set to be a pair in the form of:
               (error nil))))))
   (if dump-mode
       (let ((output (cond ((equal dump-mode "pdump") "emacs.pdmp")
-                          ((equal dump-mode "pbootstrap") "bootstrap-emacs.pdmp")
+                          ((equal dump-mode "pbootstrap")
+                           (if (eq system-type 'ms-dos)
+                               "b-emacs.pdmp"
+                             "bootstrap-emacs.pdmp"))
                           (t (error "Unrecognized dump mode %s" dump-mode)))))
         (when (and (featurep 'native-compile)
                    (equal dump-mode "pdump"))
@@ -617,9 +619,9 @@ directory got moved.  This is set to be a pair in the form of:
           (unwind-protect
               (let ((tmp-dump-mode dump-mode)
                     (dump-mode nil)
-                    ;; Set `lexical-binding' to nil by default
+                    ;; Set `lexical-binding' to its default value
                     ;; in the dumped Emacs.
-                    (lexical-binding nil))
+                    (lexical-binding (default-toplevel-value 'lexical-binding)))
                 (if (member tmp-dump-mode '("pdump" "pbootstrap"))
                     (dump-emacs-portable (expand-file-name output invocation-directory))
                   (dump-emacs output (if (eq system-type 'ms-dos)

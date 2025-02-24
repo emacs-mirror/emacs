@@ -1776,18 +1776,20 @@ to a given widget."
 (defun widget-default-create (widget)
   "Create WIDGET at point in the current buffer."
   (widget-specify-insert
-   (let ((from (point))
+   (let ((str (widget-get widget :format))
+         (onext 0) (next 0)
 	 button-begin button-end
 	 sample-begin sample-end
 	 doc-begin doc-end
          value-pos
          (markers (widget--prepare-markers-for-inside-insertion widget)))
-     (insert (widget-get widget :format))
-     (goto-char from)
      ;; Parse escapes in format.
-     (while (re-search-forward "%\\(.\\)" nil t)
-       (let ((escape (char-after (match-beginning 1))))
-	 (delete-char -2)
+     (while (string-match "%\\(.\\)" str next)
+       (setq next (match-end 1))
+       ;; If we skipped some literal text, insert it.
+       (when (/= (- next onext) 2)
+         (insert (substring str onext (- next 2))))
+       (let ((escape (string-to-char (match-string 1 str))))
 	 (cond ((eq escape ?%)
 		(insert ?%))
 	       ((eq escape ?\[)
@@ -1831,7 +1833,11 @@ to a given widget."
 		    (widget-apply widget :value-create)
 		  (setq value-pos (point))))
 	       (t
-		(widget-apply widget :format-handler escape)))))
+		(widget-apply widget :format-handler escape))))
+       (setq onext next))
+     ;; Insert remaining literal text, if any.
+     (when (> (length str) next)
+       (insert (substring str next)))
      ;; Specify button, sample, and doc, and insert value.
      (and button-begin button-end
 	  (widget-specify-button widget button-begin button-end))
@@ -2578,14 +2584,15 @@ If the item is checked, CHOSEN is a cons whose cdr is the value."
 	  (buttons (widget-get widget :buttons))
 	  (button-args (or (widget-get type :sibling-args)
 			   (widget-get widget :button-args)))
-	  (from (point))
+          (str (widget-get widget :entry-format))
+          (onext 0) (next 0)
 	  child button)
-     (insert (widget-get widget :entry-format))
-     (goto-char from)
      ;; Parse % escapes in format.
-     (while (re-search-forward "%\\([bv%]\\)" nil t)
-       (let ((escape (char-after (match-beginning 1))))
-	 (delete-char -2)
+     (while (string-match "%\\([bv%]\\)" str next)
+       (setq next (match-end 1))
+       (when (/= (- next onext) 2)
+         (insert (substring str onext (- next 2))))
+       (let ((escape (string-to-char (match-string 1 str))))
 	 (cond ((eq escape ?%)
 		(insert ?%))
 	       ((eq escape ?b)
@@ -2609,7 +2616,10 @@ If the item is checked, CHOSEN is a cons whose cdr is the value."
                              (widget-create-child-value
                               widget type (car (cdr chosen)))))))
 	       (t
-		(error "Unknown escape `%c'" escape)))))
+		(error "Unknown escape `%c'" escape))))
+       (setq onext next))
+     (when (> (length str) next)
+       (insert (substring str next)))
      ;; Update properties.
      (and button child (widget-put child :button button))
      (and button (widget-put widget :buttons (cons button buttons)))
@@ -2756,16 +2766,17 @@ Return an alist of (TYPE MATCH)."
 	  (buttons (widget-get widget :buttons))
 	  (button-args (or (widget-get type :sibling-args)
 			   (widget-get widget :button-args)))
-	  (from (point))
+          (str (widget-get widget :entry-format))
+          (onext 0) (next 0)
 	  (chosen (and (null (widget-get widget :choice))
 		       (widget-apply type :match value)))
 	  child button)
-     (insert (widget-get widget :entry-format))
-     (goto-char from)
      ;; Parse % escapes in format.
-     (while (re-search-forward "%\\([bv%]\\)" nil t)
-       (let ((escape (char-after (match-beginning 1))))
-	 (delete-char -2)
+     (while (string-match "%\\([bv%]\\)" str next)
+       (setq next (match-end 1))
+       (when (/= (- next onext) 2)
+         (insert (substring str onext (- next 2))))
+       (let ((escape (string-to-char (match-string 1 str))))
 	 (cond ((eq escape ?%)
 		(insert ?%))
 	       ((eq escape ?b)
@@ -2784,7 +2795,10 @@ Return an alist of (TYPE MATCH)."
 			(to (widget-get child :to)))
                     (widget-specify-unselected child from to))))
 	       (t
-		(error "Unknown escape `%c'" escape)))))
+		(error "Unknown escape `%c'" escape))))
+       (setq onext next))
+     (when (> (length str) next)
+       (insert (substring str next)))
      ;; Update properties.
      (when chosen
        (widget-put widget :choice type))
@@ -3053,17 +3067,19 @@ Save CHILD into the :last-deleted list, so it can be inserted later."
   ;; Create a new entry to the list.
   (let ((type (nth 0 (widget-get widget :args)))
 	;; (widget-push-button-gui widget-editable-list-gui)
+        (str (widget-get widget :entry-format))
+        (onext 0) (next 0)
 	child delete insert)
     (widget-specify-insert
-     (save-excursion
-       (and (widget--should-indent-p)
-            (widget-get widget :indent)
-            (insert-char ?\s (widget-get widget :indent)))
-       (insert (widget-get widget :entry-format)))
+     (and (widget--should-indent-p)
+          (widget-get widget :indent)
+          (insert-char ?\s (widget-get widget :indent)))
      ;; Parse % escapes in format.
-     (while (re-search-forward "%\\(.\\)" nil t)
-       (let ((escape (char-after (match-beginning 1))))
-	 (delete-char -2)
+     (while (string-match "%\\(.\\)" str next)
+       (setq next (match-end 1))
+       (when (/= (- next onext) 2)
+         (insert (substring str onext (- next 2))))
+       (let ((escape (string-to-char (match-string 1 str))))
 	 (cond ((eq escape ?%)
 		(insert ?%))
 	       ((eq escape ?i)
@@ -3079,7 +3095,10 @@ Save CHILD into the :last-deleted list, so it can be inserted later."
 		             widget type
 		             (if conv value (widget-default-get type)))))
 	       (t
-		(error "Unknown escape `%c'" escape)))))
+		(error "Unknown escape `%c'" escape))))
+       (setq onext next))
+     (when (> (length str) next)
+       (insert (substring str next)))
      (let ((buttons (widget-get widget :buttons)))
        (if insert (push insert buttons))
        (if delete (push delete buttons))

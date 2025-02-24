@@ -1967,16 +1967,24 @@ former.  */)
   return Qnil;
 }
 
+#ifndef MSDOS
+
 /* A buffer holding a string of the form "TZ=value", intended
    to be part of the environment.  If TZ is supposed to be unset,
    the buffer string is "tZ=".  */
  static char *tzvalbuf;
 
+#endif /* !MSDOS */
+
 /* Get the local time zone rule.  */
 char *
 emacs_getenv_TZ (void)
 {
+#ifndef MSDOS
   return tzvalbuf[0] == 'T' ? tzvalbuf + tzeqlen : 0;
+#else /* MSDOS */
+  return getenv ("TZ");
+#endif /* MSDOS */
 }
 
 /* Set the local time zone rule to TZSTRING, which can be null to
@@ -1990,6 +1998,7 @@ emacs_getenv_TZ (void)
 int
 emacs_setenv_TZ (const char *tzstring)
 {
+#ifndef MSDOS
   static ptrdiff_t tzvalbufsize;
   ptrdiff_t tzstringlen = tzstring ? strlen (tzstring) : 0;
   char *tzval = tzvalbuf;
@@ -2044,6 +2053,21 @@ emacs_setenv_TZ (const char *tzstring)
     xputenv (tzval);
 
   return 0;
+#else /* MSDOS */
+  /* Happily, there are no threads on MS-DOS that might be contending
+     with Emacs for access to TZ.  Call putenv to modify TZ: the code
+     above is not only unnecessary but results in modifications being
+     omitted in consequence of an internal environment counter
+     remaining unchanged despite DJGPP being all too ready to reuse
+     preexisting environment storage.  */
+  USE_SAFE_ALLOCA;
+  char *buf = SAFE_ALLOCA (tzeqlen + strlen (tzstring) + 1);
+  strcpy (buf, "TZ=");
+  strcpy (buf + tzeqlen, tzstring);
+  xputenv (buf);
+  SAFE_FREE ();
+  return 0;
+#endif /* MSDOS */
 }
 
 #ifdef NEED_ZTRILLION_INIT

@@ -577,7 +577,7 @@ the bounds of a region containing Lisp code to pretty-print."
     (insert ")")))
 
 (defun pp--format-definition (sexp indent edebug)
-  (while (and (cl-plusp indent)
+  (while (and (plusp indent)
               sexp)
     (insert " ")
     ;; We don't understand all the edebug specs.
@@ -592,7 +592,7 @@ the bounds of a region containing Lisp code to pretty-print."
         (pp--insert-lisp (car sexp)))
       (pop sexp))
     (pop edebug)
-    (cl-decf indent))
+    (decf indent))
   (when (stringp (car sexp))
     (insert "\n")
     (prin1 (pop sexp) (current-buffer)))

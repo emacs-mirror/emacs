@@ -420,7 +420,7 @@ The format is an alist, with string keys ABBREV-UNIT, and elements like:
 
   (ABBREV-UNIT UNIT UNIT-PLURAL SECS)
 
-where UNIT is a unit of time, ABBREV-UNIT is the abreviated form of
+where UNIT is a unit of time, ABBREV-UNIT is the abbreviated form of
 UNIT, UNIT-PLURAL is the plural form of UNIT, and SECS is the number of
 seconds per UNIT.")
 
@@ -561,7 +561,7 @@ changes in daylight saving time are not taken into account."
             (days (abs days)))
         (while (> days 0)
           (decoded-time--alter-day time increase)
-          (cl-decf days))))
+          (decf days))))
 
     ;; Do the time part, which is pretty simple (except for leap
     ;; seconds, I guess).
@@ -585,10 +585,10 @@ changes in daylight saving time are not taken into account."
         (when (> (decoded-time-month time) 12)
           (setf (decoded-time-month time) 1)
           (cl-incf (decoded-time-year time))))
-    (cl-decf (decoded-time-month time))
+    (decf (decoded-time-month time))
     (when (zerop (decoded-time-month time))
       (setf (decoded-time-month time) 12)
-      (cl-decf (decoded-time-year time)))))
+      (decf (decoded-time-year time)))))
 
 (defun decoded-time--alter-day (time increase)
   "Increase or decrease the day in TIME by 1."
@@ -600,7 +600,7 @@ changes in daylight saving time are not taken into account."
                                      (decoded-time-month time)))
           (setf (decoded-time-day time) 1)
           (decoded-time--alter-month time t)))
-    (cl-decf (decoded-time-day time))
+    (decf (decoded-time-day time))
     (when (zerop (decoded-time-day time))
       (decoded-time--alter-month time nil)
       (setf (decoded-time-day time)

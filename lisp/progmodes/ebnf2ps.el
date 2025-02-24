@@ -5947,7 +5947,7 @@ killed after process termination."
 
 (defun ebnf-end-of-string ()
   (let ((n 1))
-    (while (> (logand n 1) 0)
+    (while (oddp n)
       (skip-chars-forward "^\"" ebnf-limit)
       (setq n (- (skip-chars-backward "\\\\")))
       (goto-char (+ (point) n 1))))

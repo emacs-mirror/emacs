@@ -668,7 +668,7 @@ SELECTED-P nil means TAB is not the selected tab.
 When TAB is not selected and is even-numbered, make FACE
 inherit from `tab-line-tab-inactive-alternate'.  For use in
 `tab-line-tab-face-functions'."
-  (when (and (not selected-p) (cl-evenp (cl-position tab tabs)))
+  (when (and (not selected-p) (evenp (cl-position tab tabs)))
     (setf face `(:inherit (tab-line-tab-inactive-alternate ,face))))
   face)
 

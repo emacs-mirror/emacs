@@ -2930,6 +2930,7 @@ virtualenv related vars."
   (let* ((virtualenv (when python-shell-virtualenv-root
                        (directory-file-name python-shell-virtualenv-root)))
          (res python-shell-process-environment))
+    (push "PYTHON_BASIC_REPL=1" res)
     (when python-shell-unbuffered
       (push "PYTHONUNBUFFERED=1" res))
     (when python-shell-extra-pythonpaths
@@ -4537,6 +4538,13 @@ def __PYTHON_EL_native_completion_setup():
             if not is_ipython:
                 readline.set_completer(new_completer)
             else:
+                # Ensure that rlcompleter.__main__ and __main__ are identical.
+                # (Bug#76205)
+                import sys
+                try:
+                    sys.modules['rlcompleter'].__main__ = sys.modules['__main__']
+                except KeyError:
+                    pass
                 # Try both initializations to cope with all IPython versions.
                 # This works fine for IPython 3.x but not for earlier:
                 readline.set_completer(new_completer)
@@ -5539,9 +5547,8 @@ def __FFAP_get_module_path(objstr):
 (defvar ffap-alist)
 
 (eval-after-load "ffap"
-  '(progn
-     (push '(python-mode . python-ffap-module-path) ffap-alist)
-     (push '(inferior-python-mode . python-ffap-module-path) ffap-alist)))
+  '(dolist (mode '(python-mode python-ts-mode inferior-python-mode))
+     (add-to-list 'ffap-alist `(,mode . python-ffap-module-path))))
 
 
 ;;; Code check
@@ -7223,7 +7230,7 @@ implementations: `python-mode' and `python-ts-mode'."
     (when python-indent-guess-indent-offset
       (python-indent-guess-indent-offset))
 
-    (add-to-list 'auto-mode-alist (cons python--auto-mode-alist-regexp  'python-ts-mode))
+    (add-to-list 'auto-mode-alist (cons python--auto-mode-alist-regexp 'python-ts-mode))
     (add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-ts-mode))))
 
 (derived-mode-add-parents 'python-ts-mode '(python-mode))

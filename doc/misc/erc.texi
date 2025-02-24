@@ -866,15 +866,15 @@ Examples of use:
 @example
 (erc-tls :server "irc.libera.chat" :port 6697
          :client-certificate
-         '("/home/bandali/my-cert.key"
-           "/home/bandali/my-cert.crt"))
+         (list (expand-file-name "~/key.pem")
+               (expand-file-name "~/cert.pem")))
 @end example
 
 @example
 (erc-tls :server "irc.libera.chat" :port 6697
          :client-certificate
-         `(,(expand-file-name "~/cert-libera.key")
-           ,(expand-file-name "~/cert-libera.crt")))
+         '("/home/bandali/libera.pem"
+           "/home/bandali/libera.pem")) ; same file
 @end example
 
 @example
@@ -882,16 +882,23 @@ Examples of use:
          :client-certificate t)
 @end example
 
+Make sure to use absolute file names for the key and the cert.  The
+files themselves must be in @acronym{PEM}-encoded text format and can be
+concatenated into a single file.
+
 In the case of @code{:client-certificate t}, you will need to add a
 line like the following to your authinfo file
 (for example, @file{~/.authinfo.gpg}):
 
 @example
-machine irc.libera.chat key /home/bandali/my-cert.key cert /home/bandali/my-cert.crt
+machine irc.libera.chat key /home/bandali/key.pem cert /home/bandali/cert.pem
 @end example
 
 @xref{Help for users,,,auth, Emacs auth-source Library}, for more on the
 @file{.authinfo}/@file{.netrc} backend of @code{auth-source}.
+If you invoke @code{erc-tls} interactively and need ERC to query
+auth-source for a client cert, see the user option
+@code{network-stream-use-client-certificates}.
 For other uses of auth-source throughout ERC, @pxref{auth-source,
 ERC's auth-source integration}.
 @end defun
@@ -1244,7 +1251,7 @@ External
 
 (erc-tls :server "irc.libera.chat" :port 6697 :nick "aph"
          :client-certificate
-         '("/home/aph/my.key" "/home/aph/my.crt"))
+         '("/home/aph/key.pem" "/home/aph/cert.pem"))
 @end lisp
 
 You decide to switch things up and try out the @samp{EXTERNAL}
@@ -1258,7 +1265,7 @@ Multiple networks
 @example
 # ~/.authinfo.gpg
 
-machine irc.libera.chat key /home/aph/my.key cert /home/aph/my.crt
+machine irc.libera.chat key /home/aph/key.pem cert /home/aph/cert.pem
 machine Example.Net login alyssa password sEcReT
 machine Example.Net login aph-bot password sesame
 @end example

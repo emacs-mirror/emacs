@@ -171,7 +171,7 @@ the symbol name with first letter capitalized.  For languages that has
 ``irregular'' names, @var{treesit-language-display-name-alist} maps
 language symbols to their display names.
 
-If a major mode package uses a langauge with ``irregular'' name, they
+If a major mode package uses a language with ``irregular'' name, they
 should add a mapping into @var{treesit-language-display-name-alist} on
 load.
 @end defun

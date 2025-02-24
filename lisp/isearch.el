@@ -2893,7 +2893,7 @@ The command accepts Unicode names like \"smiling face\" or
 
 (defun isearch-backslash (str)
   "Return t if STR ends in an odd number of backslashes."
-  (= (mod (- (length str) (string-match "\\\\*\\'" str)) 2) 1))
+  (oddp (- (length str) (string-match "\\\\*\\'" str))))
 
 (defun isearch-fallback (want-backslash &optional allow-invalid to-barrier)
   "Return point to previous successful match to allow regexp liberalization.
@@ -4098,7 +4098,10 @@ This is called when `isearch-update' is invoked (which can cause the
 search string to change or the window to scroll).  It is also used
 by other Emacs features."
   (when (and (null executing-kbd-macro)
-             (sit-for 0)         ;make sure (window-start) is credible
+             ;; This used to read `(sit-for 0)', but that has proved
+             ;; unreliable when called from within
+             ;; after-change-functions bound to certain special events.
+             (redisplay)         ;make sure (window-start) is credible
              (or (not (equal isearch-string
                              isearch-lazy-highlight-last-string))
                  (not (memq (selected-window)

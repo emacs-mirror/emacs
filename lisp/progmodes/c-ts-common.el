@@ -491,7 +491,7 @@ characters on the current line."
     ;; one level because the code below assumes NODE is a statement
     ;; _inside_ a {} block.
     (when (c-ts-common--node-is node 'block 'close-bracket)
-      (cl-decf level))
+      (decf level))
     ;; If point is on an empty line, NODE would be nil, but we pretend
     ;; there is a statement node.
     (when (null node)
@@ -530,7 +530,7 @@ characters on the current line."
                           (goto-char (treesit-node-start node))
                           (looking-back (rx bol (* whitespace))
                                         (line-beginning-position)))))
-          (cl-decf level)))
+          (decf level)))
       ;; Go up the tree.
       (setq node (treesit-node-parent node)))
     (* level (symbol-value c-ts-common-indent-offset))))
@@ -538,7 +538,7 @@ characters on the current line."
 ;;; Baseline indent rule
 
 (defvar c-ts-common-list-indent-style 'align
-  "Intructs `c-ts-common-baseline-indent-rule' how to indent lists.
+  "Instructs `c-ts-common-baseline-indent-rule' how to indent lists.
 
 If the value is `align', indent lists like this:
 
@@ -594,7 +594,7 @@ chaining like
     .method()     front of the node.
 
 But ff `treesit-simple-indent-standalone-predicate' is non-nil, use that
-for determining standlone line."
+for determining standalone line."
   (let (anchor)
     (save-excursion
       (catch 'term
@@ -620,7 +620,7 @@ chaining like
     .method()     front of the node.
 
 But ff `treesit-simple-indent-standalone-predicate' is non-nil, use that
-for determining standlone line."
+for determining standalone line."
   (save-excursion
     (setq node (treesit-node-prev-sibling node 'named))
     (goto-char (treesit-node-start node))
@@ -710,7 +710,7 @@ The rule also handles method chaining like
                             (rx (or "(" "[")))
       (let ((first-sibling (treesit-node-child parent 0 'named)))
         (cond
-         ;; Closing delimeters.
+         ;; Closing delimiters.
          ((treesit-node-match-p node (rx (or ")" "]")))
           (if (eq c-ts-common-list-indent-style 'align)
               (cons (treesit-node-start (treesit-node-child parent 0))

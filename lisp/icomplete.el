@@ -877,7 +877,7 @@ by `group-function''s second \"transformation\" protocol."
            for neighbor = nil
            if (and preds (> space-above 0)) do
            (push (setq neighbor (pop preds)) scroll-above)
-           (cl-decf space-above)
+           (decf space-above)
            else if (consp succs) collect
            (setq neighbor (pop succs)) into scroll-below-aux
            while neighbor

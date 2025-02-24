@@ -376,7 +376,7 @@ Interactively, you can try hitting \\[keyboard-quit] to quit."
         (should (consp result))
         (should (integerp (car result)))
         (should (integerp (cdr result)))
-        (should (cl-plusp (cdr result)))
+        (should (plusp (cdr result)))
         (should (time-equal-p result desired-result))))))
 
 (ert-deftest mod-test-add-nanosecond/nil ()

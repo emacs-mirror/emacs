@@ -1247,14 +1247,18 @@ resizing with the following option:
 
 @defopt frame-inhibit-implied-resize
 If this option is @code{nil}, changing a frame's font, menu bar, tool
-bar, internal borders, fringes or scroll bars may resize its outer
-frame in order to keep the number of columns or lines of its text area
-unaltered.  If this option is @code{t}, no such resizing is done.
+bar, internal borders, fringes or scroll bars may resize its outer frame
+in order to keep the number of columns or lines of its text area
+unaltered.  If this option is @code{t}, no such resizing happens once a
+frame has obtained its initial size.  If the value is the symbol
+@code{force}, no implicit resizing happens whenever a new frame is made.
+The latter can be useful with tiling window managers where the initial
+size of a frame is determined by external means.
 
 The value of this option can be also a list of frame parameters.  In
-that case, implied resizing is inhibited for the change of a parameter
-that appears in this list.  Parameters currently handled by this
-option are @code{font}, @code{font-backend},
+that case, implied resizing is inhibited for the change of the
+parameters that appear in this list.  Parameters currently handled by
+this option are @code{font}, @code{font-backend},
 @code{internal-border-width}, @code{menu-bar-lines} and
 @code{tool-bar-lines}.
 
@@ -4811,6 +4815,30 @@ When a selection offers a data type matching @var{types}, the function
 designating the matching selection data type, and the data returned by
 @code{gui-get-selection}.
 @end defun
+
+The @code{yank-media} command auto selects the preferred @sc{mime} type
+by default.  The rules used for the selection can be controlled through
+the variables @code{yank-media-autoselect-function} and
+@code{yank-media-preferred-types}.
+
+@defvar yank-media-autoselect-function
+This variable should specify a function that will be called with the
+list of @sc{mime} types available for the current major mode, and should
+return a list of preferred @sc{mime} types to use.  The first @sc{mime}
+type in the list will always be used by the @code{yank-media} command
+when auto selection is requested.
+@end defvar
+
+@defvar yank-media-preferred-types
+This variable changes the default selection process of
+@code{yank-media-autoselect-function}.  It is a list that should contain
+the sole @sc{mime} type to choose in the order of their preference.  It
+can also contain a function in which case it is called with the list of
+available @sc{mime} types and must return a list of preferred @sc{mime}
+types in order of their preference.  This list is passed onto the
+@code{yank-media} command so the first element of the returned list is
+chosen when auto selection is requested.
+@end defvar
 
 The @code{yank-media-types} command presents a list of selection data
 types that are currently available, which is useful when implementing

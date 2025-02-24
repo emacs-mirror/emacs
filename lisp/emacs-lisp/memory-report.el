@@ -168,7 +168,7 @@ by counted more than once."
         (total 0))
     (mapatoms
      (lambda (symbol)
-       (cl-incf total (memory-report--object-size
+       (incf total (memory-report--object-size
                        counted (symbol-plist symbol))))
      obarray)
     (list
@@ -217,16 +217,16 @@ by counted more than once."
   (let ((total 0)
         (size (memory-report--size 'cons)))
     (while value
-      (cl-incf total size)
+      (incf total size)
       (setf (gethash value counted) t)
       (when (car value)
-        (cl-incf total (memory-report--object-size counted (car value))))
+        (incf total (memory-report--object-size counted (car value))))
       (let ((next (cdr value)))
         (setq value (when next
                       (if (consp next)
                           (unless (gethash next counted)
                             (cdr value))
-                        (cl-incf total (memory-report--object-size
+                        (incf total (memory-report--object-size
                                         counted next))
                         nil)))))
     total))
@@ -235,7 +235,7 @@ by counted more than once."
   (let ((total (+ (memory-report--size 'vector)
                   (* (memory-report--size 'object) (length value)))))
     (cl-loop for elem across value
-             do (cl-incf total (memory-report--object-size counted elem)))
+             do (incf total (memory-report--object-size counted elem)))
     total))
 
 (cl-defmethod memory-report--object-size-1 (counted (value hash-table))
@@ -243,8 +243,8 @@ by counted more than once."
                   (* (memory-report--size 'object) (hash-table-size value)))))
     (maphash
      (lambda (key elem)
-       (cl-incf total (memory-report--object-size counted key))
-       (cl-incf total (memory-report--object-size counted elem)))
+       (incf total (memory-report--object-size counted key))
+       (incf total (memory-report--object-size counted elem)))
      value)
     total))
 

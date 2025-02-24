@@ -161,7 +161,7 @@
                                   (car slot) (nth 1 slot)
                                   type props)))
                      (puthash (car slot) (+ i offset) index-table)
-                     (cl-incf i))
+                     (incf i))
                    v))
          (class (cl--struct-new-class
                  name docstring

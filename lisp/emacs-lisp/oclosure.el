@@ -125,7 +125,7 @@
         (it (make-hash-table :test #'eq)))
     (dolist (desc slotdescs)
       (let* ((slot (cl--slot-descriptor-name desc)))
-        (cl-incf i)
+        (incf i)
         (when (gethash slot it)
           (error "Duplicate slot name: %S" slot))
         (setf (gethash slot it) i)))
@@ -305,7 +305,7 @@ list of slot properties.  The currently known properties are the following:
                             ;; Always use a double hyphen: if users wants to
                             ;; make it public, they can do so with an alias.
                             (aname (intern (format "%S--%S" name slot))))
-                       (cl-incf i)
+                       (incf i)
                        (if (not mutable)
                            `(defalias ',aname
                               ;; We use `oclosure--copy' instead of

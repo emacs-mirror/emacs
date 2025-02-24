@@ -2665,7 +2665,7 @@ in a clean environment."
 	    (list
              (cl-loop for c in
                       (completing-read-multiple
-                       "Packages to isolate, as comma-separated list: " table
+                       "Packages to isolate: " table
                        nil t)
 		           collect (alist-get c table nil nil #'string=))
                   current-prefix-arg)))
@@ -3982,7 +3982,7 @@ Return nil if there were no errors; non-nil otherwise."
               (package-menu--transaction-status))
           (dolist (pkg install-list)
             (setq package-menu--transaction-status
-                  (format status-format (cl-incf i)))
+                  (format status-format (incf i)))
             (force-mode-line-update)
             (redisplay 'force)
             ;; Don't mark as selected, `package-menu-execute' already
@@ -4289,7 +4289,7 @@ string, show all packages.
 When called interactively, prompt for ARCHIVE.  To specify
 several archives, type their names separated by commas."
   (interactive (list (completing-read-multiple
-                      "Filter by archive (comma separated): "
+                      "Filter by archive: "
                       (mapcar #'car package-archives)))
                package-menu-mode)
   (package--ensure-package-menu-mode)
@@ -4333,7 +4333,7 @@ or \"built-in\" or \"obsolete\".
 When called interactively, prompt for KEYWORD.  To specify several
 keywords, type them separated by commas."
   (interactive (list (completing-read-multiple
-                      "Keywords (comma separated): "
+                      "Keywords: "
                       (package-all-keywords)))
                package-menu-mode)
   (package--ensure-package-menu-mode)
@@ -4525,7 +4525,7 @@ of an installed ELPA package.
 The return value is a string (or nil in case we can't find it).
 It works in more cases if the call is in the file which contains
 the `Version:' header."
-  ;; In a sense, this is a lie, but it does just what we want: precompute
+  ;; In a sense, this is a lie, but it does just what we want: precomputes
   ;; the version at compile time and hardcodes it into the .elc file!
   (declare (pure t))
   ;; Hack alert!

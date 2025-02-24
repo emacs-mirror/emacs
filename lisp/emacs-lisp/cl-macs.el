@@ -336,7 +336,7 @@ FORM is of the form (ARGS . BODY)."
                            (format "%S" (cons 'fn (cl--make-usage-args
                                                    orig-args))))))))
                 (when (memq '&optional simple-args)
-                  (cl-decf slen))
+                  (decf slen))
                 (setq header
                       (cons
                        (if (eq :documentation (car-safe (car header)))
@@ -1598,12 +1598,12 @@ For more details, see Info node `(cl)Loop Facility'.
      ((memq word '(sum summing))
       (let ((what (pop cl--loop-args))
 	    (var (cl--loop-handle-accum 0)))
-	(push `(progn (cl-incf ,var ,what) t) cl--loop-body)))
+        (push `(progn (incf ,var ,what) t) cl--loop-body)))
 
      ((memq word '(count counting))
       (let ((what (pop cl--loop-args))
 	    (var (cl--loop-handle-accum 0)))
-	(push `(progn (if ,what (cl-incf ,var)) t) cl--loop-body)))
+        (push `(progn (if ,what (incf ,var)) t) cl--loop-body)))
 
      ((memq word '(minimize minimizing maximize maximizing))
       (push `(progn ,(macroexp-let2 macroexp-copyable-p temp
@@ -2624,10 +2624,8 @@ values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
 ;;; Declarations.
 
 ;;;###autoload
-(defmacro cl-locally (&rest body)
-  "Equivalent to `progn'."
-  (declare (debug t))
-  (cons 'progn body))
+(define-obsolete-function-alias 'cl-locally #'progn "31.1")
+
 ;;;###autoload
 (defmacro cl-the (type form)
   "Return FORM.  If type-checking is enabled, assert that it is of TYPE."
@@ -2701,7 +2699,7 @@ Example:
 	 (let ((speed (assq (nth 1 (assq 'speed (cdr spec)))
 			    '((0 nil) (1 t) (2 t) (3 t))))
 	       (safety (assq (nth 1 (assq 'safety (cdr spec)))
-			     '((0 t) (1 t) (2 t) (3 nil)))))
+			     '((0 t) (1 nil) (2 nil) (3 nil)))))
 	   (if speed (setq cl--optimize-speed (car speed)
 			   byte-optimize (nth 1 speed)))
 	   (if safety (setq cl--optimize-safety (car safety)
@@ -3259,7 +3257,7 @@ To see the documentation for a defined struct type, use
                        (declare (side-effect-free t))
                        ,access-body)
                     forms)
-              (when (cl-oddp (length desc))
+              (when (oddp (length desc))
                 (push
                  (macroexp-warn-and-return
                   (format-message

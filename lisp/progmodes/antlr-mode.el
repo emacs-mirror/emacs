@@ -1198,9 +1198,9 @@ is non-nil, move to beginning of the rule."
 	    (antlr-skip-exception-part skip-comment)))
       (if (<= (point) pos)		; moved backward?
 	  (goto-char pos)		; rewind
-	(cl-decf arg))			; already moved one defun forward
+        (decf arg))			; already moved one defun forward
       (unless (zerop arg)
-	(while (>= (cl-decf arg) 0)
+        (while (>= (decf arg) 0)
 	  (antlr-search-forward ";"))
 	(antlr-skip-exception-part skip-comment)))))
 
@@ -2276,7 +2276,7 @@ to a lesser extent, `antlr-tab-offset-alist'."
 	(unless (symbolp syntax)		; direct indentation
 	  ;;(antlr-invalidate-context-cache)
 	  (cl-incf indent (antlr-syntactic-context))
-	  (and (> indent 0) (looking-at antlr-indent-item-regexp) (cl-decf indent))
+          (and (> indent 0) (looking-at antlr-indent-item-regexp) (decf indent))
 	  (setq indent (* indent c-basic-offset)))
 	;; the usual major-mode indent stuff ---------------------------------
 	(setq orig (- (point-max) orig))

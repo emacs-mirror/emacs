@@ -256,7 +256,7 @@ while (my $file = <FIND>) {
       ## $maxargs
       \s*(\S+)\s*,
       ## $interactive
-      \s*((?:0|\"(?:(?:[^\\\"]|\\.)*)\"))\s*,
+      \s*((?:0|NULL|\"(?:(?:[^\\\"]|\\.)*)\"))\s*,
       ## $docstring
       \s*doc:\s*\/\*\s*(.*?)\s*\*\/
       # attributes -- skip
@@ -297,7 +297,7 @@ while (my $file = <FIND>) {
   $contents =~ s/(?:\s|;);.*//mog;
   my @matches =
     ($contents =~
-     /\((def(?:un|subst|macro))\s+(\S+)\s+\(([^()]*)\)\s+\"((?:[^\\\"]|\\.)+)\"(.*?)\)/sgo);
+     /\((def(?:un|subst|macro)|cl-defun)\s+(\S+)\s+\(([^()]*)\)\s+\"((?:[^\\\"]|\\.)+)\"(.*?)\)/sgo);
   while (@matches) {
     my ($defform, $function, $parms, $docstring, $code_fragment) = splice (@matches, 0, 5);
 
@@ -320,17 +320,21 @@ while (my $file = <FIND>) {
   my $contents = FileContents $file;
   $contents =~ s/(?:\s|;);.*//mog;
 
-  my @matches = ($contents =~ /^\((?:defalias|fset|define-function)\s+\'([A-Za-z0-9_-]+)\s+\'([A-Za-z0-9_-]+)/mog);
+  my @matches = ($contents =~ /^\((?:defalias|fset|define-function)\s+\'([A-Za-z0-9_<>=-]+)\s+[#]?\'([A-Za-z0-9_-]+)/mog);
   while (@matches) {
     my ($alias, $aliasee) = splice (@matches, 0, 2);
     print "alias $alias aliasee $aliasee\n";
     if (exists $code_funtype{$aliasee}) { $code_funtype{$alias} = $code_funtype{$aliasee}; }
+    else {$code_funtype{$alias} = 1;}
     if (exists $code_arglist{$aliasee}) { $code_arglist{$alias} = $code_arglist{$aliasee}; }
   }
 }
 
+# FIXME: Consider cl-defgeneric, minor and major modes.
+
 foreach my $fun (sort keys %texi_funtype) {
   if (not exists $code_funtype{$fun}) {
+    next if $fun eq 'foo';
     print "nuke-this-doc: $fun $texi_funtype{$fun}\n";
   }
 }

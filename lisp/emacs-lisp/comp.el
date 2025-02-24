@@ -334,14 +334,14 @@ Useful to hook into pass checkers.")
   "Append ELT into VEC.
 Returns ELT."
   (puthash (comp-vec-end vec) elt (comp-vec-data vec))
-  (cl-incf (comp-vec-end vec))
+  (incf (comp-vec-end vec))
   elt)
 
 (defsubst comp-vec-prepend (vec elt)
   "Prepend ELT into VEC.
 Returns ELT."
   (puthash (1- (comp-vec-beg vec)) elt (comp-vec-data vec))
-  (cl-decf (comp-vec-beg vec))
+  (decf (comp-vec-beg vec))
   elt)
 
 
@@ -492,7 +492,7 @@ non local exit (ends with an `unreachable' insn)."))
   "Return a sequential number generator."
   (let ((n -1))
     (lambda ()
-      (cl-incf n))))
+      (incf n))))
 
 (cl-defstruct (comp-func (:copier nil))
   "LIMPLE representation of a function."
@@ -1302,7 +1302,7 @@ and the annotation emission."
                           ;;      ,(concat "LAP op " op-name)))
                           ;; Emit the stack adjustment if present.
                           ,(when (and sp-delta (not (eq 0 sp-delta)))
-			     `(cl-incf (comp--sp) ,sp-delta))
+                             `(incf (comp--sp) ,sp-delta))
                           ,@(comp--body-eff body op-name sp-delta))
                 else
 		collect `(',op (signal 'native-ice
@@ -1336,7 +1336,7 @@ and the annotation emission."
                              (make--comp-mvar :constant arg)
                              (comp--slot+1))))
       (byte-call
-       (cl-incf (comp--sp) (- arg))
+       (incf (comp--sp) (- arg))
        (comp--emit-set-call (comp--callref 'funcall (1+ arg) (comp--sp))))
       (byte-unbind
        (comp--emit (comp--call 'helper_unbind_n
@@ -1491,19 +1491,19 @@ and the annotation emission."
       (byte-numberp auto)
       (byte-integerp auto)
       (byte-listN
-       (cl-incf (comp--sp) (- 1 arg))
+       (incf (comp--sp) (- 1 arg))
        (comp--emit-set-call (comp--callref 'list arg (comp--sp))))
       (byte-concatN
-       (cl-incf (comp--sp) (- 1 arg))
+       (incf (comp--sp) (- 1 arg))
        (comp--emit-set-call (comp--callref 'concat arg (comp--sp))))
       (byte-insertN
-       (cl-incf (comp--sp) (- 1 arg))
+       (incf (comp--sp) (- 1 arg))
        (comp--emit-set-call (comp--callref 'insert arg (comp--sp))))
       (byte-stack-set
        (comp--copy-slot (1+ (comp--sp)) (- (comp--sp) arg -1)))
       (byte-stack-set2 (cl-assert nil)) ;; TODO
       (byte-discardN
-       (cl-incf (comp--sp) (- arg)))
+       (incf (comp--sp) (- arg)))
       (byte-switch
        ;; Assume to follow the emission of a setimm.
        ;; This is checked into comp--emit-switch.
@@ -1513,7 +1513,7 @@ and the annotation emission."
       (byte-constant
        (comp--emit-setimm arg))
       (byte-discardN-preserve-tos
-       (cl-incf (comp--sp) (- arg))
+       (incf (comp--sp) (- arg))
        (comp--copy-slot (+ arg (comp--sp)))))))
 
 (defun comp--emit-narg-prologue (minarg nonrest rest)
@@ -1543,7 +1543,7 @@ and the annotation emission."
   (comp--emit `(set-rest-args-to-local ,(comp--slot-n nonrest)))
   (setf (comp--sp) nonrest)
   (when (and (> nonrest 8) (null rest))
-    (cl-decf (comp--sp))))
+    (decf (comp--sp))))
 
 (defun comp--limplify-finalize-function (func)
   "Reverse insns into all basic blocks of FUNC."
@@ -1722,7 +1722,7 @@ into the C code forwarding the compilation unit."
    for inst = (car inst-cell)
    for next-inst = (car-safe (cdr inst-cell))
    do (comp--limplify-lap-inst inst)
-      (cl-incf (comp-limplify-pc comp-pass))
+      (incf (comp-limplify-pc comp-pass))
    when (comp--lap-fall-through-p inst)
    do (pcase next-inst
         (`(TAG ,_label . ,label-sp)
@@ -1755,7 +1755,7 @@ into the C code forwarding the compilation unit."
       (let ((args (comp-func-l-args func)))
         (if (comp-args-p args)
             (cl-loop for i below (comp-args-max args)
-                     do (cl-incf (comp--sp))
+                     do (incf (comp--sp))
                         (comp--emit `(set-par-to-local ,(comp--slot) ,i)))
           (comp--emit-narg-prologue (comp-args-base-min args)
                                    (comp-nargs-nonrest args)
@@ -1901,7 +1901,7 @@ Return OP otherwise."
   (if-let* ((match (eql (comp-mvar-slot op) (comp-mvar-slot cmp-res)))
             (new-mvar (make--comp-mvar
                        :slot
-                       (- (cl-incf (comp-func-vframe-size comp-func))))))
+                       (- (incf (comp-func-vframe-size comp-func))))))
       (progn
         (push `(assume ,new-mvar ,op) (cdr insns-seq))
         new-mvar)
@@ -2768,7 +2768,7 @@ Return t if something was changed."
                                  (comp--copy-insn insn))
                do
                (comp--fwprop-insn insn)
-               (cl-incf i)
+               (incf i)
                when (and (null modified) (not (equal insn orig-insn)))
                  do (setf modified t))
                when (> i comp--fwprop-max-insns-scan)

@@ -2673,7 +2673,7 @@ Return the number of headers removed."
 	(cl-incf count)))
     (while (> count 1)
       (message-remove-header header nil t)
-      (cl-decf count))))
+      (decf count))))
 
 (defun message-narrow-to-headers ()
   "Narrow the buffer to the head of the message."
@@ -6035,7 +6035,7 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
                         (while (search-forward "\"" nil t)
                           (when (prog2
                                     (backward-char)
-                                    (zerop (% (skip-chars-backward "\\\\") 2))
+                                    (evenp (skip-chars-backward "\\\\"))
                                   (goto-char (match-beginning 0)))
                             (insert "\\"))
                           (forward-char))
@@ -6591,7 +6591,7 @@ they are."
     (when (> count maxcount)
       (let ((surplus (- count maxcount)))
 	(message-shorten-1 refs cut surplus)
-	(cl-decf count surplus)))
+        (decf count surplus)))
 
     ;; When sending via news, make sure the total folded length will
     ;; be less than 998 characters.  This is to cater to broken INN
@@ -8929,7 +8929,7 @@ used to take the screenshot."
   (unless (executable-find (car message-screenshot-command))
     (error "Can't find %s to take the screenshot"
 	   (car message-screenshot-command)))
-  (cl-decf delay)
+  (decf delay)
   (unless (zerop delay)
     (dotimes (i delay)
       (message "Sleeping %d second%s..."

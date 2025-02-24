@@ -37,7 +37,6 @@
 /^#undef HAVE_STRUCT_UTIMBUF *$/s/^.*$/#define HAVE_STRUCT_UTIMBUF 1/
 /^#undef LOCALTIME_CACHE *$/s/^.*$/#define LOCALTIME_CACHE 1/
 /^#undef HAVE_TZSET *$/s/^.*$/#define HAVE_TZSET 1/
-/^#undef HAVE_UNEXEC *$/s/^.*$/#define HAVE_UNEXEC 1/
 /^#undef HAVE_RINT *$/s/^.*$/#define HAVE_RINT 1/
 /^#undef HAVE_C99_STRTOLD *$/s/^.*$/#define HAVE_C99_STRTOLD 1/
 /^#undef HAVE_DIFFTIME *$/s/^.*$/#define HAVE_DIFFTIME 1/
@@ -138,6 +137,7 @@ s/^#undef HAVE_DECL_PUTCHAR_UNLOCKED *$/#define HAVE_DECL_PUTCHAR_UNLOCKED 0/
 s/^#undef HAVE_DECL_PUTC_UNLOCKED *$/#define HAVE_DECL_PUTC_UNLOCKED 0/
 s/^#undef HAVE_DECL_STRTOLL *$/#define HAVE_DECL_STRTOLL 1/
 s/^#undef HAVE_DECL_STRTOIMAX *$/#define HAVE_DECL_STRTOIMAX 1/
+s/^#undef HAVE_PDUMPER *$/#define HAVE_PDUMPER 1/
 s/^#undef HAVE_STRTOLL *$/#define HAVE_STRTOLL 1/
 s/^#undef HAVE_STRTOULL *$/#define HAVE_STRTOULL 1/
 /^#undef HAVE_STRUCT_DIRENT_D_TYPE *$/c\

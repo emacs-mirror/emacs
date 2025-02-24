@@ -509,7 +509,7 @@ Presumes point is at the end of the `cl-defmethod' symbol."
     (let ((n 2))
       (while (and (ignore-errors (forward-sexp 1) t)
                   (not (eq (char-before) ?\))))
-        (cl-incf n))
+        (incf n))
       n)))
 
 ;;;###autoload

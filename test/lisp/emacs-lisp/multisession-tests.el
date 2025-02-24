@@ -41,7 +41,7 @@
               ""
               :synchronized t)
             (should (= (multisession-value multisession--foo) 0))
-            (cl-incf (multisession-value multisession--foo))
+            (incf (multisession-value multisession--foo))
             (should (= (multisession-value multisession--foo) 1))
             (call-process
              (concat invocation-directory invocation-name)
@@ -56,7 +56,7 @@
                             (define-multisession-variable multisession--foo 0
                               ""
                               :synchronized t)
-                            (cl-incf (multisession-value multisession--foo))))))
+                            (incf (multisession-value multisession--foo))))))
             (should (= (multisession-value multisession--foo) 2)))
         (sqlite-close multisession--db)
         (setq multisession--db nil)))))
@@ -75,7 +75,7 @@
               ""
               :synchronized t)
             (should (= (multisession-value multisession--bar) 0))
-            (cl-incf (multisession-value multisession--bar))
+            (incf (multisession-value multisession--bar))
             (should (= (multisession-value multisession--bar) 1))
             (setq proc
                   (start-process
@@ -92,11 +92,11 @@
                                   (define-multisession-variable multisession--bar 0
                                     "" :synchronized t)
                                   (dotimes (i 100)
-                                    (cl-incf (multisession-value multisession--bar))))))))
+                                    (incf (multisession-value multisession--bar))))))))
             (while (process-live-p proc)
               (ignore-error sqlite-locked-error
                 (message "multisession--bar %s" (multisession-value multisession--bar))
-                ;;(cl-incf (multisession-value multisession--bar))
+                ;;(incf (multisession-value multisession--bar))
                 )
               (sleep-for 0.1))
             (message "multisession--bar ends up as %s" (multisession-value multisession--bar))
@@ -114,7 +114,7 @@
         ""
         :synchronized t)
       (should (= (multisession-value multisession--sfoo) 0))
-      (cl-incf (multisession-value multisession--sfoo))
+      (incf (multisession-value multisession--sfoo))
       (should (= (multisession-value multisession--sfoo) 1))
       ;; On Windows and Haiku, we don't have sub-second resolution, so
       ;; let some time pass to make the "later" logic work.
@@ -133,7 +133,7 @@
                       (define-multisession-variable multisession--sfoo 0
                         ""
                         :synchronized t)
-                      (cl-incf (multisession-value multisession--sfoo))))))
+                      (incf (multisession-value multisession--sfoo))))))
       (should (= (multisession-value multisession--sfoo) 2)))))
 
 (ert-deftest multi-test-files-busy ()
@@ -148,7 +148,7 @@
         ""
         :synchronized t)
       (should (= (multisession-value multisession--sbar) 0))
-      (cl-incf (multisession-value multisession--sbar))
+      (incf (multisession-value multisession--sbar))
       (should (= (multisession-value multisession--sbar) 1))
       (setq proc
             (start-process
@@ -165,10 +165,10 @@
                             (define-multisession-variable multisession--sbar 0
                               "" :synchronized t)
                             (dotimes (i 100)
-                              (cl-incf (multisession-value multisession--sbar))))))))
+                              (incf (multisession-value multisession--sbar))))))))
       (while (process-live-p proc)
         (message "multisession--sbar %s" (multisession-value multisession--sbar))
-        ;;(cl-incf (multisession-value multisession--sbar))
+        ;;(incf (multisession-value multisession--sbar))
         (sleep-for 0.1))
       (message "multisession--sbar ends up as %s" (multisession-value multisession--sbar))
       (should (< (multisession-value multisession--sbar) 200)))))

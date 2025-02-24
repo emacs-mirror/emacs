@@ -113,7 +113,7 @@ identical output."
 (cps-testcase cps-while-incf
  (let* ((i 0) (j 10))
    (while (< i 10)
-     (cl-incf i)
+     (incf i)
      (setf j (+ j (* i 10))))
    j))
 
@@ -273,7 +273,7 @@ identical output."
                             (iter-yield 1)
                             (error "Test")
                             (iter-yield 2))
-                       (cl-incf nr-unwound))))))
+                       (incf nr-unwound))))))
     (should (equal (iter-next iter) 1))
     (should-error (iter-next iter))
     (should (equal nr-unwound 1))))

@@ -135,8 +135,9 @@ settings, then once more for each (OPTION . VALUE) pair.")
 
 (ert-deftest shr-test/zoom-image ()
   "Test that `shr-zoom-image' properly replaces the original image."
-  (skip-unless (bound-and-true-p image-types))
-  (skip-unless (libxml-available-p))
+  (skip-unless (and (bound-and-true-p image-types)
+                    (image-type-available-p 'png)
+                    (fboundp 'libxml-parse-html-region)))
   (let* ((image (expand-file-name "data/image/blank-100x200.png"
                                   (getenv "EMACS_TEST_DIRECTORY")))
          (image-url (concat "file://" (if (string-prefix-p "/" image)
@@ -154,7 +155,7 @@ settings, then once more for each (OPTION . VALUE) pair.")
                      (put-image-calls 0)
                      (shr-put-image-function
                       (lambda (&rest args)
-                        (cl-incf put-image-calls)
+                        (incf put-image-calls)
                         (apply #'shr-put-image args)))
                      (shr-width 80)
                      (shr-use-fonts nil)

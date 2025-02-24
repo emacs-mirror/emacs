@@ -164,7 +164,7 @@ doprnt_non_null_end (char *buffer, ptrdiff_t bufsize, char const *format,
   return nbytes;
 }
 
-/* Format to BUFFER (of positive size BUFSIZE) data formated by FORMAT,
+/* Format to BUFFER (of positive size BUFSIZE) data formatted by FORMAT,
    terminated at either the first NUL or (if FORMAT_END is non-null
    and there are no NUL bytes between FORMAT and FORMAT_END)
    terminated at position FORMAT_END.  AP specifies format arguments.

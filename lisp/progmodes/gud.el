@@ -919,7 +919,7 @@ CONTEXT is the text before COMMAND on the line."
 	 (while (string-match "\\([^'\\]\\|\\\\'\\)*'" str pos)
 	   (setq count (1+ count)
 		 pos (match-end 0)))
-	 (and (= (mod count 2) 1)
+	 (and (oddp count)
 	      (setq complete-list (list (concat str "'"))))))
   complete-list)
 

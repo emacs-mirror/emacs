@@ -718,13 +718,13 @@ on.  Only lasts until the region is next deactivated."
            ((and (< nextcol curcol) (< curcol col))
             (let ((curdiff (- col curcol)))
               (if (<= curdiff n)
-                (progn (cl-decf n curdiff) (setq col curcol))
+                (progn (decf n curdiff) (setq col curcol))
                 (setq col (- col n) n 0))))
            ((< nextcol 0) (ding) (setq n 0 col 0)) ;Bumping into BOL!
            ((= nextcol curcol) (funcall cmd 1))
            (t ;; (> nextcol curcol)
             (if (<= diff n)
-                (progn (cl-decf n diff) (setq col nextcol))
+                (progn (decf n diff) (setq col nextcol))
               (setq col (if (< col nextcol) (+ col n) (- col n)) n 0))))
           (setq step (1+ step))))
       ;; FIXME: This rectangle--col-pos's move-to-column is wasted!

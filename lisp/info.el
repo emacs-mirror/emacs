@@ -3987,7 +3987,7 @@ with a list of packages that contain all specified keywords."
      (require 'finder)
      (list
       (completing-read-multiple
-       "Keywords (separated by comma): "
+       "Keywords: "
        (mapcar #'symbol-name (mapcar #'car (append finder-known-keywords
                                                    (finder-unknown-keywords))))
        nil t))))
