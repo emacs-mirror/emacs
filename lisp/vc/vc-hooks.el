@@ -127,7 +127,8 @@ An empty list disables VC altogether."
                                          ".jj")
   "List of directory names to be ignored when walking directory trees."
   :type '(repeat string)
-  :group 'vc)
+  :group 'vc
+  :version "31.1")
 
 (defcustom vc-make-backup-files nil
   "If non-nil, backups of registered files are made as with other files.
