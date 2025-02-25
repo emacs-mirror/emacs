@@ -4091,25 +4091,23 @@ only in DIRLIST.
 Returns the absolute file name of PROGNAME, if found, and nil otherwise.
 
 This function expects to be in the right *tramp* buffer."
-  (with-current-buffer (tramp-get-connection-buffer vec)
-    (unless ignore-path
-      (setq dirlist (cons "$PATH" dirlist)))
-    (when ignore-tilde
-      ;; Remove all ~/foo directories from dirlist.
-      (let (newdl d)
-	(while dirlist
-	  (setq d (car dirlist)
-		dirlist (cdr dirlist))
-	  (unless (char-equal ?~ (aref d 0))
-	    (setq newdl (cons d newdl))))
-	(setq dirlist (nreverse newdl))))
-    (tramp-send-command
-     vec (format "%s type -P %s 2>%s"
-		 (if dirlist (concat "PATH=" (string-join dirlist ":")) "")
-		 progname (tramp-get-remote-null-device vec)))
-    (goto-char (point-min))
-    (when (search-forward-regexp "/" nil 'noerror)
-      (string-trim (buffer-substring (match-beginning 0) (point-max))))))
+  (unless ignore-path
+    (setq dirlist (cons "$PATH" dirlist)))
+  (when ignore-tilde
+    ;; Remove all ~/foo directories from dirlist.
+    (let (newdl d)
+      (while dirlist
+	(setq d (car dirlist)
+	      dirlist (cdr dirlist))
+	(unless (char-equal ?~ (aref d 0))
+	  (setq newdl (cons d newdl))))
+      (setq dirlist (nreverse newdl))))
+  (when (tramp-send-command-and-check
+         vec (format "(unalias %s; %s command -pv %s)"
+                     progname
+                     (if dirlist (concat "PATH=" (string-join dirlist ":")) "")
+                     progname))
+    (string-trim (tramp-get-buffer-string (tramp-get-connection-buffer vec)))))
 
 ;; On hydra.nixos.org, the $PATH environment variable is too long to
 ;; send it.  This is likely not due to PATH_MAX, but PIPE_BUF.  We
