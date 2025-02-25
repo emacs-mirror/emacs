@@ -2196,7 +2196,9 @@ Once uploaded, tests defined in the file may be loaded and
 executed by means of `ats-exec-tests'."
   (interactive
    (let* ((connection (ats-read-connection "Connection: "))
-	  (dir ats-emacs-test-directory)
+	  (dir (or ats-emacs-test-directory
+		   (read-directory-name "Test base directory: "
+					nil nil t)))
 	  (test (completing-read "Test to upload: "
 				 (ats-list-tests-locally dir)
 				 nil t nil
@@ -2206,64 +2208,113 @@ executed by means of `ats-exec-tests'."
 		    (expand-file-name dir)))
 	 (test-file
 	  (concat dir-name test-name "-tests.el"))
+	 (internal-resource-directory
+	  (concat dir-name (file-name-directory test-name)
+		  "resources"))
 	 (resources-directory
-	  (concat dir-name test-name "-resources"))
+	  (if (file-directory-p internal-resource-directory)
+	      internal-resource-directory
+	    (concat dir-name test-name "-resources")))
 	 ;; Strip all directories from the test name.
 	 (default-directory (file-name-directory test-file)))
     (unless (file-regular-p test-file)
       (error "Not a regular file: %s" test-file))
-    ;; Create a compressed tar file.  Though a cpio implementation
-    ;; exists in the sources for Android 2.2's command line tools, yet
-    ;; it is often deleted in release builds of the OS to reduce storage
-    ;; utilization, so it is best to resort to tar and gzip, which Emacs
-    ;; is able to decompress without command line utilities.
-    (let ((temp-file (make-temp-file "ats-" nil ".tar")))
-      (unwind-protect
-	  (progn
-	    (let ((bare-test-file (file-name-nondirectory test-file))
-		  (bare-test-resources (file-name-nondirectory test-file)))
-	      (let ((rc (if (file-directory-p resources-directory)
-			    (call-process "tar" nil nil nil "cf" temp-file
-					  bare-test-file bare-test-resources)
-			  (call-process "tar" nil nil nil "cf" temp-file
-					bare-test-file))))
-		(unless (eq 0 rc)
-		  (error "tar exited with code: %d" rc)))
-	      ;; Compress this file.
-	      (with-temp-buffer
-		(set-buffer-multibyte nil)
-		(let ((rc (call-process "gzip" temp-file '(t nil) nil
-					"-c" temp-file)))
+    (if (file-directory-p resources-directory)
+	;; Create a compressed tar file.  Though a cpio implementation
+	;; exists in the sources for Android 2.2's command line tools,
+	;; yet it is often deleted in release builds of the OS to reduce
+	;; storage utilization, so it is best to resort to tar and gzip,
+	;; which Emacs is able to decompress without command line
+	;; utilities.
+	(let ((temp-file (make-temp-file "ats-" nil ".tar"))
+	      (bare-test-file (file-name-nondirectory test-file))
+	      (bare-test-resources
+	       (file-name-nondirectory resources-directory)))
+	  (unwind-protect
+	      (progn
+		(let ((rc (call-process
+			   "tar" nil nil nil "cfh" temp-file
+			   bare-test-file bare-test-resources)))
 		  (unless (eq 0 rc)
-		    (error "gzip -c exited with code: %d" rc))
-		  ;; Write this compressed data to the destination and
-		  ;; decompress it there.
-		  (let ((rc (ats-eval
-			     process
-			     `(with-temp-buffer
-				(set-buffer-multibyte nil)
-				(insert ,(buffer-string))
-				(zlib-decompress-region (point-min)
-							(point-max))
-				(let ((dir
-				       (concat (file-name-as-directory
-						temporary-file-directory)
-					       "ats-tests/" ,test-name)))
-				  (if (file-directory-p dir)
-				      (let ((files (directory-files-recursively
-						    dir ""))
-					    (default-directory dir))
-					(mapc #'delete-file files))
-				    (make-directory dir t))
-				  (let ((default-directory dir))
-				    (require 'tar-mode)
-				    (tar-mode)
-				    (tar-untar-buffer)))))))
-		    (when (eq (car rc) 'error)
-		      (error "Remote error: %S" (cdr rc)))
-		    (message "Uploaded test `%s'" test-name))))))
-	(with-demoted-errors "Removing temporary file: %S"
-	  (delete-file temp-file))))))
+		    (error "tar exited with code: %d" rc)))
+		;; Compress this file.
+		(with-temp-buffer
+		  (set-buffer-multibyte nil)
+		  (let ((rc (call-process "gzip" nil '(t nil) nil
+					  "-c" temp-file)))
+		    (unless (eq 0 rc)
+		      (error "gzip -c exited with code: %d" rc))
+		    ;; Write this compressed data to the destination and
+		    ;; decompress it there.
+		    (let ((rc (ats-eval
+			       process
+			       `(with-temp-buffer
+				  (set-buffer-multibyte nil)
+				  (insert ,(buffer-string))
+				  (zlib-decompress-region (point-min)
+							  (point-max))
+				  (let ((dir
+					 (concat (file-name-as-directory
+						  temporary-file-directory)
+						 "ats-tests/" ,test-name)))
+				    (if (file-directory-p dir)
+					(let ((files
+					       (directory-files-recursively
+						dir ""))
+					      (default-directory dir))
+					  (mapc #'delete-file files))
+				      (make-directory dir t))
+				    (let ((default-directory dir)
+					  ;; Otherwise file name handlers
+					  ;; such as `epa-file-handler'
+					  ;; are liable to interfere with
+					  ;; the extraction process.
+					  (file-name-handler-alist nil))
+				      (require 'tar-mode)
+				      (tar-mode)
+				      (tar-untar-buffer))))
+			       nil t)))
+		      (when (eq (car rc) 'error)
+			(error "Remote error: %S" (cdr rc)))
+		      (message "Uploaded test `%s'" test-name)))))
+	    (with-demoted-errors "Removing temporary file: %S"
+	      (delete-file temp-file))))
+      ;; Just compress and transfer the file alone.
+      (with-temp-buffer
+	(set-buffer-multibyte nil)
+	(let ((rc (call-process "gzip" nil '(t nil) nil
+				"-c" test-file)))
+	  (unless (eq 0 rc)
+	    (error "gzip -c exited with code: %d" rc))
+	  ;; Write this compressed data to the destination and
+	  ;; decompress it there.
+	  (let ((rc (ats-eval
+		     process
+		     `(with-temp-buffer
+			(set-buffer-multibyte nil)
+			(insert ,(buffer-string))
+			(zlib-decompress-region (point-min)
+						(point-max))
+			(let* ((dir
+				(concat (file-name-as-directory
+					 temporary-file-directory)
+					"ats-tests/" ,test-name))
+			       (dir-1 (file-name-as-directory dir)))
+			  (if (file-directory-p dir)
+			      (let ((files
+				     (directory-files-recursively
+				      dir ""))
+				    (default-directory dir))
+				(mapc #'delete-file files))
+			    (make-directory dir t))
+			  (write-region
+			   (point-min) (point-max)
+			   (concat dir-1 ,(file-name-nondirectory
+					   test-file)))))
+		     nil t)))
+	    (when (eq (car rc) 'error)
+	      (error "Remote error: %S" (cdr rc)))
+	    (message "Uploaded test `%s'" test-name)))))))
 
 (defun ats-list-tests-locally (dir)
   "Return a list of tests defined in DIR.
@@ -2272,7 +2323,13 @@ a likewise structured directory tree."
   (let* ((default-directory (expand-file-name dir))
 	 (start (length default-directory)))
     (let ((dirs (directory-files-recursively
-		 dir "^[[:alnum:]-]+-tests\\.el$"))
+		 dir "^[[:alnum:]-]+-tests\\.el$"
+		 ;; Do not recurse into resource directories, as ERC's
+		 ;; contain several files that resemble tests.
+		 nil (lambda (dir-name)
+		       (and (not (equal (file-name-nondirectory dir-name)
+					"resources"))
+			    (not (string-suffix-p "-resources" dir-name))))))
 	  tests)
       (dolist (dir dirs)
 	(let ((len (length dir)))
@@ -2304,6 +2361,7 @@ uploaded to the remote device represented by PROCESS, as by
 			(lambda (dir)
 			  (let* ((name (file-name-nondirectory dir)))
 			    (and (not (funcall is-test-directory name dir))
+				 (not (equal name "resources"))
 				 (not (string-suffix-p name "-resources")))))))
 		      (tests nil))
 		  (dolist (dir dirs)
@@ -2361,28 +2419,48 @@ Display the output of the tests executed in a buffer."
 	  (t (setq file-name (cdr rc))))
     ;; Delete all tests, load the byte-compiled test file, and execute
     ;; those tests just defined subject to SELECTOR.
-    (setq rc (ats-eval process
-		       `(progn
-			  (require 'ert)
-			  (ert-delete-all-tests)
-			  (load ,file-name)
-			  (with-temp-buffer
-			    (let ((standard-output (current-buffer))
-				  (set-message-function
-				   (lambda (message)
-				     (insert message "\n"))))
-			      (insert ,(format "=== Executing %s on %s ===\n"
-					       test device))
-			      (let ((noninteractive t))
-				(ert-run-tests-batch ',selector))
-			      (insert "=== Test execution complete ===\n")
-			      (buffer-string))))))
-    (cond ((eq (car rc) 'error)
-	   (error "Error executing `%s-tests.el': %S" test (cdr rc)))
-	  (t (with-current-buffer (get-buffer-create "*Test Output*")
-	       (goto-char (point-max))
-	       (insert (cdr rc))
-	       (pop-to-buffer (current-buffer)))))))
+    (with-current-buffer (get-buffer-create "*Test Output*")
+      (insert (format "=== Executing %s on %s ===\n" test device))
+      (redisplay)
+      (setq rc (ats-eval process
+			 `(progn
+			    (require 'ert)
+			    (ert-delete-all-tests)
+			    (load ,file-name)
+			    (with-temp-buffer
+			      (let ((standard-output (current-buffer))
+				    (set-message-function
+				     (lambda (message)
+				       (insert message "\n"))))
+				(let ((noninteractive t))
+				  (ert-run-tests-batch ',selector))
+				(insert "=== Test execution complete ===\n")
+				(buffer-string))))))
+      (cond ((eq (car rc) 'error)
+	     (error "Error executing `%s-tests.el': %S" test (cdr rc)))
+	    (t (progn
+		 (goto-char (point-max))
+		 (insert (cdr rc))
+		 (pop-to-buffer (current-buffer))))))))
+
+(defun ats-run-all-tests (process dir)
+  "Run all Emacs tests defined in DIR on the device represented by PROCESS.
+Upload each and every test defined in DIR to the said device,
+and execute them in sequence.  With a prefix argument, just run
+the tests without uploading them."
+  (interactive
+   (list (ats-read-connection "Connection: ")
+	 (or ats-emacs-test-directory
+	     (read-directory-name "Test base directory: "
+				  nil nil t))))
+  (let ((tests (ats-list-tests-locally dir)))
+    (unless current-prefix-arg
+      (dolist-with-progress-reporter (test tests)
+	  "Uploading tests to device..."
+	(ats-upload-test process dir test)))
+    (dolist-with-progress-reporter (test tests)
+	"Running tests..."
+      (ats-run-test process test))))
 
 (provide 'test-controller)
 
