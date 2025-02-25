@@ -4802,7 +4802,6 @@ buffers, and buffers related to a remote process are cleaned up.
 @end defopt
 
 @deffn Command tramp-cleanup-bufferless-connections
-
 Similar to @code{tramp-cleanup-all-connections}, remote connections and
 ad-hoc proxy definitions are flushed, but limited to those connections
 for which no associated buffers exist (except for Tramp internal

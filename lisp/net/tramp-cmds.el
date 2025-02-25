@@ -101,9 +101,9 @@ SYNTAX can be one of the symbols `default' (default),
 ;; Use `match-buffers' starting with Emacs 29.1.
 ;;;###tramp-autoload
 (defun tramp-list-remote-buffers ()
-  "Return a list of remote buffers, excluding internal tramp buffers.
-A buffer is considered remote if either its `default-directory' or its
-buffer file name is a remote file name."
+  "Return a list of remote buffers, excluding internal Tramp buffers.
+A buffer is considered remote if either its `default-directory' or
+`buffer-file-name' is a remote file name."
   (tramp-compat-seq-keep
    (lambda (buffer)
      (when (tramp-tramp-file-p
@@ -115,8 +115,8 @@ buffer file name is a remote file name."
 ;;;###tramp-autoload
 (defun tramp-list-remote-buffer-connections ()
   "Return a list of all remote buffer connections.
-A buffer is considered remote if either its `default-directory' or the
-function `buffer-file-name' is a remote file name."
+A buffer is considered remote if either its `default-directory' or
+`buffer-file-name' is a remote file name."
   (seq-uniq
    (mapcar (lambda (buffer)
              (or
@@ -124,7 +124,7 @@ function `buffer-file-name' is a remote file name."
                 (file-remote-p (buffer-file-name buffer)))
               (when (tramp-get-default-directory buffer)
                 (file-remote-p (tramp-get-default-directory buffer)))))
-           ;; Eliminate false positives from internal tramp buffers
+           ;; Eliminate false positives from internal Tramp buffers.
            (seq-remove
             (lambda (buffer)
               (member (buffer-name buffer) (tramp-list-tramp-buffers)))
@@ -356,9 +356,10 @@ Display a message of cleaned-up connections."
                (seq-difference
                 (mapcar #'tramp-make-tramp-file-name (tramp-list-connections))
                 (tramp-list-remote-buffer-connections))))
-    (message "Cleaning up %s" (mapconcat #'identity bufferless-connections ", "))
+    (message "Cleaning up %s" (string-join bufferless-connections ", "))
     (dolist (connection bufferless-connections)
-      (tramp-cleanup-connection (tramp-dissect-file-name connection 'noexpand)))))
+      (tramp-cleanup-connection
+       (tramp-dissect-file-name connection 'noexpand)))))
 
 ;;; Rename
 
