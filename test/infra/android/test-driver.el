@@ -1,5 +1,5 @@
 ;;; Receive and execute Lisp code submitted by a test controller.  -*- lexical-binding: t; -*-
-;;; $Id: ats-driver.el,v 1.6 2025/02/19 01:56:55 jw Exp $
+;;; $Id: ats-driver.el,v 1.7 2025/02/25 07:58:35 jw Exp $
 
 ;; Copyright (C) 2025 Free Software Foundation, Inc.
 
@@ -52,6 +52,9 @@
 (defvar-local ats-eval-serial nil
   "Serial number identifying this result.")
 
+(defvar-local ats-eval-do-decode nil
+  "Whether to decode the form provided as utf-8-emacs.")
+
 (defun ats-process-filter (process string)
   "Filter input from `ats-process'.
 Insert STRING into the connection buffer, till a full command is
@@ -90,7 +93,7 @@ read."
 		    (error "Connection rejected; wanted ID=%s, received ID=%s"
 			   (match-string 2 command) (match-string 1 command)))
 		   ((string-match
-		     "^-eval \\([[:digit:]]+\\) \\([[:digit:]]+\\) \\(t\\|nil\\)$"
+		     "^-eval \\([[:digit:]]+\\) \\([[:digit:]]+\\) \\(t\\|nil\\) \\(t\\|nil\\)$"
 		     command)
 		    (setq ats-eval-serial (string-to-number
 					   (match-string 1 command))
@@ -98,45 +101,54 @@ read."
 				       (match-string 2 command))
 			  ats-eval-as-printed (equal
 					       (match-string 3 command)
-					       "t")))
+					       "t")
+			  ats-eval-do-decode (equal
+					      (match-string 4 command)
+					      "t")))
 		   (t (error (concat "Unknown command: " command))))))))
 	  (when ats-in-eval
 	    ;; Proceed till `ats-in-eval' characters are read.
 	    (when (>= (- (point-max) (point-min)) ats-in-eval)
-	      (let ((value
-		     (save-restriction
-		       (narrow-to-region (point-min) (1+ ats-in-eval))
-		       (condition-case err
-			   (let* ((str (buffer-string)))
-			     (with-current-buffer "*ATS*"
-			       (goto-char (point-max))
-			       (let ((inhibit-read-only t))
-				 (insert "--> " (truncate-string-to-width
-						 str 72)
-					 "\n")))
-			     (let* ((expr (car (read-from-string str)))
-				    (value (eval expr)))
-			       (cons 'ok value)))
-			 (error (cons 'error err))))))
-		(let* ((print-escape-control-characters t)
-		       (print-escape-newlines t)
-		       (str (prin1-to-string value)))
-		  (if ats-eval-as-printed
-		      (let* ((quoted (prin1-to-string str)))
+	      (unwind-protect
+		  (let ((value
+			 (save-restriction
+			   (narrow-to-region (point-min) (1+ ats-in-eval))
+			   (condition-case err
+			       (let* ((str (buffer-string)))
+				 (with-current-buffer "*ATS*"
+				   (goto-char (point-max))
+				   (let ((inhibit-read-only t))
+				     (insert "--> " (truncate-string-to-width
+						     str 256)
+					     "\n")))
+				 (let* ((str (if ats-eval-do-decode
+						 (decode-coding-string
+						  str 'utf-8-emacs t)
+					       str))
+					(expr (car (read-from-string str)))
+					(value (eval expr)))
+				   (cons 'ok value)))
+			     (t (cons 'error err))))))
+		    (let* ((print-escape-control-characters t)
+			   (print-escape-newlines t)
+			   (str (encode-coding-string
+				 (prin1-to-string value) 'utf-8-emacs t)))
+		      (if ats-eval-as-printed
+			  (let* ((quoted (prin1-to-string str)))
+			    (process-send-string
+			     process (format "\fats-request:%d %d\n"
+					     ats-eval-serial
+					     (length quoted)))
+			    (process-send-string process quoted))
 			(process-send-string
 			 process (format "\fats-request:%d %d\n"
 					 ats-eval-serial
-					 (length quoted)))
-			(process-send-string process quoted))
-		    (process-send-string
-		     process (format "\fats-request:%d %d\n"
-				     ats-eval-serial
-				     (length str)))
-		    (process-send-string process str)))
-		(process-send-string process "\n"))
-	      (delete-region (point-min)
-			     (+ (point-min) ats-in-eval))
-	      (setq ats-in-eval nil)))
+					 (length str)))
+			(process-send-string process str)))
+		    (process-send-string process "\n"))
+		(delete-region (point-min)
+			       (+ (point-min) ats-in-eval))
+		(setq ats-in-eval nil))))
 	  ;; Don't loop if the form data is yet to arrive.
 	  (setq firstchar (char-after (point-min))
 		in-eval nil))))))
@@ -170,7 +182,7 @@ failure."
 		     :buffer "*ats connection*"
 		     :host host
 		     :service port
-		     :coding 'utf-8-emacs
+		     :coding 'no-conversion
 		     :filter #'ats-process-filter))
   (process-send-string ats-process (concat id "\n")))
 
@@ -191,7 +203,7 @@ the controller."
 					:host 'local
 					:service t
 					:family 'ipv4
-					:coding 'utf-8-emacs
+					:coding 'no-conversion
 					:log #'ats-driver-log))
 	 (service (process-contact process :service)))
     (with-temp-buffer
