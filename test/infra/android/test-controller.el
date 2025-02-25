@@ -11,7 +11,7 @@
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
@@ -1295,6 +1295,11 @@ DEVICE is the device where COMMFILE resides."
 (defvar ats-accepting-connection nil
   "UUID of connections being established.")
 
+(defvar-local ats-associated-process nil
+  "ATS process associated with this buffer.
+Such a process will be returned by `ats-read-connection' without
+prompting the user.")
+
 (defun ats-address-to-hostname (address)
   "Return the hostname component of the address ADDRESS."
   (progn
@@ -1374,7 +1379,7 @@ Value is the port on which it will listen."
 					      t
 					    ats-default-port)
 				 :family 'ipv4
-				 :coding 'utf-8-emacs
+				 :coding 'no-conversion
 				 :sentinel #'ats-server-sentinel
 				 :log #'ats-server-log)))
       (setq ats-server process)
@@ -1613,15 +1618,21 @@ the same port."
 
 (defun ats-read-connection (prompt)
   "Read an ATS connection from the user, with completion.
-PROMPT is the prompt displayed by `completing-read'.
-Value is a process representing such a connection."
-  (let ((procs))
-    (dolist (proc (process-list))
-      (when (process-get proc 'ats-connection-details)
-	(push (buffer-name (process-buffer proc)) procs)))
-    (let ((buffer (completing-read prompt procs
-				   nil t nil 'ats-read-processes)))
-      (get-buffer-process buffer))))
+If `ats-associated-process' is set in the current buffer, return
+this process if it remains alive.  PROMPT is the prompt
+displayed by `completing-read'.  Value is a process representing
+such a connection."
+  (or (and ats-associated-process
+	   (eq (process-status ats-associated-process) 'open)
+	   ats-associated-process)
+      (let ((procs))
+	(dolist (proc (process-list))
+	  (when (process-get proc 'ats-connection-details)
+	    (push (buffer-name (process-buffer proc)) procs)))
+	(let ((buffer (completing-read prompt procs
+				       nil t nil
+				       'ats-read-processes)))
+	  (get-buffer-process buffer)))))
 
 (defun ats-disconnect (process)
   "Disconnect from the ATS connection represented by PROCESS.
@@ -1633,7 +1644,7 @@ forwarding currently in place."
   (ats-in-connection-context (get-process process) details
     (delete-process process)))
 
-(defun ats-establish-connection (process details)
+(defun ats-establish-connection (process details &optional interactive)
   "Finalize a connection represented by PROCESS.
 DETAILS should be an alist of connection information to which
 `ats-adb-host' is appended, with the following keys:
@@ -1662,6 +1673,9 @@ DETAILS should be an alist of connection information to which
     The port on the ADB host system mediating between the local
     and the remote system.
 
+If INTERACTIVE, open a Lisp interaction buffer with
+`ats-open-lisp-interaction-buffer'.
+
 Value is PROCESS itself."
   (process-put process 'ats-connection-details
 	       (append `((host . ,ats-adb-host)
@@ -1680,10 +1694,12 @@ Value is PROCESS itself."
 		       t)))
     (message "Connection established to %s (on %s)"
 	     (cdr (assq 'device details)) host))
-  process)
+  (prog1 process
+    (when interactive
+      (ats-open-lisp-interaction-buffer process))))
 
 ;;;###autoload
-(defun ats-connect (device user &optional host)
+(defun ats-connect (device user &optional host interactive)
   "Establish a connection to DEVICE on HOST executing as USER.
 HOST, if nil, defaults to `ats-adb-host'.
 If an instance of Emacs is already executing on DEVICE and the
@@ -1718,7 +1734,7 @@ this machine and an SSH daemon be executing on the host)."
 					  user-alist nil t))))
 		 (list device (or (cdr (assoc user user-alist))
 				  (error "Unknown user: %s" user))
-		       host)))
+		       host t)))
   ;; Terminate any existing instances of Emacs executing as this user.
   (let* ((ats-adb-host host)
 	 (emacs-aid (ats-get-package-aid device "org.gnu.emacs"))
@@ -1798,7 +1814,8 @@ this machine and an SSH daemon be executing on the host)."
 				   (remote-port . ,remote-port)
 				   (host-port . ,host-port)
 				   (user . ,user)
-				   (device . ,device))))))
+				   (device . ,device))
+			 interactive))))
 	    ;; On failure, cease forwarding to this device, but permit
 	    ;; the connection to the host to remain.
 	    (unless process
@@ -1841,7 +1858,7 @@ this machine and an SSH daemon be executing on the host)."
 				 :buffer name
 				 :host 'local
 				 :service local-port
-				 :coding 'utf-8-emacs
+				 :coding 'no-conversion
 				 :sentinel #'ats-server-sentinel))
 		  (process-send-string process "-ok\n")
 		  (ats-establish-connection process
@@ -1849,7 +1866,8 @@ this machine and an SSH daemon be executing on the host)."
 					      (local-port . ,local-port)
 					      (host-port . ,host-port)
 					      (user . ,user)
-					      (device . ,device))))
+					      (device . ,device))
+					    interactive))
 	      (error
 	       (when process
 		 ;; Finalize the failed process as best as can be
@@ -1875,18 +1893,22 @@ this machine and an SSH daemon be executing on the host)."
 
 ;; (defvar ats-eval-tm 0)
 
-(defun ats-eval (process form &optional as-printed)
+(defun ats-eval (process form &optional as-printed raw)
   "Evaluate FORM in PROCESS, which form must be printable.
 Form should evaluate to a value that must be printable, or
 signal an error.  Value is (ok . VALUE) if no error was
-signaled, or (error . VALUE) otherwise.
+signaled, or (error . VALUE) otherwise.  If RAW, instruct
+PROCESS not to attempt to decode the printed representation of
+FORM as multibyte text; this does not influence the decoding
+whatever value it returns.
 
 Set AS-PRINTED to insist that the value be returned as a string;
 this enables non-printable values to be returned in a meaningful
 manner."
   (ats-in-connection-context process details
     (save-restriction
-      (let* ((str (prin1-to-string form))
+      (let* ((str (encode-coding-string
+		   (prin1-to-string form) 'utf-8-emacs t))
 	     (length (length str))
 	     (serial (setf (alist-get 'eval-serial details)
 			   (1+ (alist-get 'eval-serial details))))
@@ -1897,9 +1919,10 @@ manner."
 	     (point (point))
 	     size form)
 	(process-send-string process
-			     (format "-eval %d %d %s\n" serial
+			     (format "-eval %d %d %s %s\n" serial
 				     length
-				     (if as-printed "t" "nil")))
+				     (if as-printed "t" "nil")
+				     (if raw "nil" "t")))
 	(process-send-string process str)
 	;; Read the resultant form.
 	(while (not form)
@@ -1923,8 +1946,443 @@ manner."
 	      (when (>= (- (point-max) (point-min)) size)
 		(narrow-to-region (point-min) (+ (point-min) size))
 		(goto-char (point-min))
-		(setq form (read (current-buffer)))))))
+		(setq form (car (read-from-string
+				 (decode-coding-string
+				  (buffer-string)
+				  'utf-8-unix t))))))))
 	form))))
+
+
+
+;; Remote Lisp Interaction mode.
+
+(defvar ats-remote-eval-defuns
+  '(progn
+     (defalias 'ats-remote-eval-on-device
+       #'(lambda (form)
+	   "Remotely evaluate a submitted form FORM.
+Collect FORM's standard output and return values, and return a
+list of the form (ok STANDARD-OUTPUT VALUE VALUE-TRUNCATED),
+where STANDARD-OUTPUT is any output the form has printed or
+inserted, VALUE is FORM's value, and VALUE-TRUNCATED is FORM's
+value after truncation as in the manner of `eval-expression',
+both as strings.
+
+If FORM should signal an error, value becomes (error ERROR),
+where ERROR is a cons of the error's symbol and of its data."
+	   (condition-case error
+	       (let ((standard-output
+		      (get-buffer-create "*ats-standard-output*")))
+		 (with-current-buffer standard-output
+		   (erase-buffer)
+		   (let ((value (eval form nil)))
+		     (list 'ok (buffer-string)
+			   (prin1-to-string value)
+			   (let ((print-length eval-expression-print-length)
+				 (print-level eval-expression-print-level))
+			     (prin1-to-string value))))))
+	     (error (list 'error error))))))
+  "Forms to be evaluated on the remote device before remote evaluation.")
+
+(defun ats-remote-eval-print-sexp
+    (value value-truncated output &optional no-truncate)
+  "Print VALUE and VALUE-TRUNCATED (a string) to OUTPUT.
+The manner of printing is subject to NO-TRUNCATE.
+Adapted from `elisp--eval-last-sexp-print-value' in
+`elisp-mode.el'."
+  (let* ((unabbreviated value) (beg (point)) end)
+    (prog1 (princ (if no-truncate
+		      value
+		    value-truncated)
+		  output)
+      (setq end (point))
+      (when (and (bufferp output)
+		 (or (not (null print-length))
+		     (not (null print-level)))
+		 (not (string= unabbreviated
+			       (buffer-substring-no-properties beg end))))
+	(last-sexp-setup-props beg end value
+			       unabbreviated
+			       (buffer-substring-no-properties beg end))))))
+
+(defun ats-remote-eval-for-interaction (process form &optional no-truncate)
+  "Evaluate FORM for Lisp interaction in a remote device.
+PROCESS represents the connection to the said device.  Insert
+text printed by FORM to standard output and its return value on
+success, as would `eval-last-sexp', and signal an error on
+failure.
+If NO-TRUNCATE, print FORM's value in full without truncation."
+  (let ((details (process-get process 'ats-connection-details))
+	rc)
+    ;; First, set up a utility function.
+    (unless (cdr (assq 'remote-eval-initialized details))
+      (setq rc (ats-eval process ats-remote-eval-defuns))
+      (when (eq (car rc) 'error)
+	(error "Could not initialize remote evaluation: %S"
+	       (cdr rc)))
+      (process-put process 'ats-connection-details
+		   (cons '(remote-eval-initialized . t) details)))
+    ;; Next, really evaluate the form, and also, recognize and convert
+    ;; errors in preparing to evaluate the form appropriately.
+    (let ((value (ats-eval process
+			   `(let ((eval-expression-print-length
+				   ,eval-expression-print-length)
+				  (eval-expression-print-level
+				   ,eval-expression-print-level))
+			      (ats-remote-eval-on-device ',form)))))
+      (cond ((eq (car value) 'ok)
+	     ;; The form was read successfully, but evaluation may
+	     ;; nevertheless have terminated with an error.
+	     (let ((value (cdr value)))
+	       (cond ((eq (car value) 'ok)
+		      (insert (cadr value))
+		      (ats-remote-eval-print-sexp (caddr value)
+						  (cadddr value)
+						  (current-buffer)
+						  no-truncate))
+		     ((eq (car value) 'error)
+		      (signal (caadr value)
+			      (cdadr value))))))
+	    ((eq (car value) 'error)
+	     ;; The device could not decode the form.
+	     (error "Error decoding form on device: %S" (cdr value)))))))
+
+(defun ats-remote-eval-print-last-sexp (process &optional arg)
+  "Evaluate sexp before point; print value into the current buffer.
+Evaluation transpires in the device controlled by the remote
+connection represented by PROCESS.  ARG inhibits truncation of
+printed values, as in `eval-print-last-sexp'."
+  (interactive (list (ats-read-connection "Connection: ")
+		     current-prefix-arg))
+  (insert "\n")
+  (ats-remote-eval-for-interaction process (elisp--preceding-sexp)
+				   arg)
+  (insert "\n"))
+
+(defun ats-remote-eval-last-sexp (process &optional arg)
+  "Evaluate sexp before point.
+Subsequently, print value and inserted text in the echo area.
+Evaluation transpires in the device controlled by the remote
+connection represented by PROCESS.  ARG inhibits truncation of
+printed values, as in `eval-print-last-sexp'."
+  (interactive (list (ats-read-connection "Connection: ")
+		     current-prefix-arg))
+  (let ((sexp (elisp--preceding-sexp)))
+    (with-temp-buffer
+      (ats-remote-eval-for-interaction process sexp arg)
+      (message (buffer-string)))))
+
+(defun ats-remote-eval-defun (process)
+  "Evaluate defun around or after point.
+Evaluation transpires in the device controlled by the remote
+connection represented by PROCESS."
+  (interactive (list (ats-read-connection "Connection: ")))
+  (let ((standard-output t) form)
+    ;; Read the form from the buffer, and record where it ends.
+    (save-excursion
+      (end-of-defun)
+      (beginning-of-defun)
+      (setq form (read (current-buffer))))
+    (with-temp-buffer
+      (ats-remote-eval-for-interaction process form)
+      (message (buffer-string)))))
+
+(defun ats-remote-eval-region-or-buffer (process)
+  "Evaluate the forms in the active region or the whole buffer.
+Evaluation transpires in the device controlled by the remote
+connection represented by PROCESS."
+  (interactive (list (ats-read-connection "Connection: ")))
+  (let ((evalstring (if (use-region-p)
+			(buffer-substring (region-beginning)
+					  (region-end))
+		      (buffer-string))))
+    (ats-eval process `(with-temp-buffer
+			 (insert ,evalstring)
+			 (eval-buffer)))))
+
+(defvar ats-lisp-interaction-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [remap eval-print-last-sexp]
+		#'ats-remote-eval-print-last-sexp)
+    (define-key map [remap eval-defun]
+		#'ats-remote-eval-defun)
+    (define-key map [remap elisp-eval-region-or-buffer]
+		#'ats-remote-eval-region-or-buffer)
+    (define-key map [remap eval-last-sexp]
+		#'ats-remote-eval-last-sexp)
+    map)
+  "Keymap applied in `ats-lisp-interaction-mode' buffers.")
+
+(easy-menu-define ats-lisp-interaction-mode-menu
+  ats-lisp-interaction-mode-map
+  "Menu for Ats Lisp Interaction mode."
+  '("Lisp-Interaction"
+    ["Complete Lisp Symbol" completion-at-point
+     :help "Perform completion on Lisp symbol preceding point"]
+    ["Indent or Pretty-Print" indent-pp-sexp
+     :help "Indent each line of the list starting just after point, or prettyprint it"]
+    ["Evaluate and Print" ats-remote-eval-print-last-sexp
+     :help "Evaluate sexp before point; print value into current buffer"]
+    ["Evaluate Defun" ats-remote-eval-defun
+     :help "Evaluate the top-level form containing point, or after point"]))
+
+(define-derived-mode ats-lisp-interaction-mode lisp-interaction-mode
+  `("Remote Lisp Interaction"
+    (:eval (unless (and ats-associated-process
+			(processp ats-associated-process)
+			(eq (process-status ats-associated-process)
+			    'open))
+	     ,(propertize " disconnected" 'face 'error))))
+  "Variant of `lisp-interaction-mode' that executes forms remotely.
+This derivative of `lisp-interaction-mode' rebinds such commands
+as \\[eval-print-last-sexp] to variants which submit forms for
+execution on remote Android devices connected over `adb'.  It
+also disables a number of features unsupported by remote
+execution facilities, such as edebug.")
+
+(defun ats-open-lisp-interaction-buffer (process)
+  "Open an Ats Lisp Interaction Mode buffer on PROCESS
+Create and display a buffer in `ats-lisp-interaction-mode'; that
+is, a mode akin to `lisp-interaction-mode' but which submits
+forms typed to a remote Android device over the connection
+represented by PROCESS."
+  (interactive (list (ats-read-connection "Connection: ")))
+  (ats-in-connection-context process details
+    (let ((device (cdr (assq 'device details)))
+	  (user (cdr (assq 'user details))))
+      (with-current-buffer (get-buffer-create
+			    (format "*Lisp Interaction in %s (on %s%s)*"
+				    device
+				    (or ats-adb-host "localhost")
+				    (if (not (eq user 0))
+					(format ", as %d" user)
+				      "")))
+	(ats-lisp-interaction-mode)
+	(setq ats-associated-process process)
+	(when (eq (buffer-size) 0)
+	  (insert (format "\
+;; This buffer enables typed Lisp forms to be executed in the device `%s' on `%s'.
+;; View the doc string of `ats-lisp-interaction-mode' for specifics.\n\n"
+			  device
+			  (or ats-adb-host "localhost")))
+	  (save-excursion
+	    (goto-char (point-min))
+	    (fill-region (point) (progn
+				   (end-of-line)
+				   (point)))
+	    (goto-char (point-max))
+	    (beginning-of-line)
+	    (fill-region (point) (point-max))))
+	(pop-to-buffer (current-buffer))))))
+
+
+;; ERT regression testing.
+
+(defvar ats-emacs-test-directory
+  (and load-file-name
+       (expand-file-name
+	(concat (file-name-directory load-file-name)
+		"../../")))
+  "Directory in which to locate Emacs regression tests, or nil otherwise.")
+
+(defun ats-upload-test (process dir test-name)
+  "Upload a test file and its resources to a remote device.
+PROCESS represents the connection to the device.
+TEST-NAME concatenated with \"-tests.el\" should identify a file
+in DIR implementing a series of ERC regression tests.  If there
+is additionally a directory by the name TEST-NAME-resources in
+the same directory, upload it to the remote device also.
+Once uploaded, tests defined in the file may be loaded and
+executed by means of `ats-exec-tests'."
+  (interactive
+   (let* ((connection (ats-read-connection "Connection: "))
+	  (dir ats-emacs-test-directory)
+	  (test (completing-read "Test to upload: "
+				 (ats-list-tests-locally dir)
+				 nil t nil
+				 'ats-uploaded-tests)))
+     (list connection dir test)))
+  (let* ((dir-name (file-name-as-directory
+		    (expand-file-name dir)))
+	 (test-file
+	  (concat dir-name test-name "-tests.el"))
+	 (resources-directory
+	  (concat dir-name test-name "-resources"))
+	 ;; Strip all directories from the test name.
+	 (default-directory (file-name-directory test-file)))
+    (unless (file-regular-p test-file)
+      (error "Not a regular file: %s" test-file))
+    ;; Create a compressed tar file.  Though a cpio implementation
+    ;; exists in the sources for Android 2.2's command line tools, yet
+    ;; it is often deleted in release builds of the OS to reduce storage
+    ;; utilization, so it is best to resort to tar and gzip, which Emacs
+    ;; is able to decompress without command line utilities.
+    (let ((temp-file (make-temp-file "ats-" nil ".tar")))
+      (unwind-protect
+	  (progn
+	    (let ((bare-test-file (file-name-nondirectory test-file))
+		  (bare-test-resources (file-name-nondirectory test-file)))
+	      (let ((rc (if (file-directory-p resources-directory)
+			    (call-process "tar" nil nil nil "cf" temp-file
+					  bare-test-file bare-test-resources)
+			  (call-process "tar" nil nil nil "cf" temp-file
+					bare-test-file))))
+		(unless (eq 0 rc)
+		  (error "tar exited with code: %d" rc)))
+	      ;; Compress this file.
+	      (with-temp-buffer
+		(set-buffer-multibyte nil)
+		(let ((rc (call-process "gzip" temp-file '(t nil) nil
+					"-c" temp-file)))
+		  (unless (eq 0 rc)
+		    (error "gzip -c exited with code: %d" rc))
+		  ;; Write this compressed data to the destination and
+		  ;; decompress it there.
+		  (let ((rc (ats-eval
+			     process
+			     `(with-temp-buffer
+				(set-buffer-multibyte nil)
+				(insert ,(buffer-string))
+				(zlib-decompress-region (point-min)
+							(point-max))
+				(let ((dir
+				       (concat (file-name-as-directory
+						temporary-file-directory)
+					       "ats-tests/" ,test-name)))
+				  (if (file-directory-p dir)
+				      (let ((files (directory-files-recursively
+						    dir ""))
+					    (default-directory dir))
+					(mapc #'delete-file files))
+				    (make-directory dir t))
+				  (let ((default-directory dir))
+				    (require 'tar-mode)
+				    (tar-mode)
+				    (tar-untar-buffer)))))))
+		    (when (eq (car rc) 'error)
+		      (error "Remote error: %S" (cdr rc)))
+		    (message "Uploaded test `%s'" test-name))))))
+	(with-demoted-errors "Removing temporary file: %S"
+	  (delete-file temp-file))))))
+
+(defun ats-list-tests-locally (dir)
+  "Return a list of tests defined in DIR.
+DIR ought to be the `test' directory in the Emacs repository or
+a likewise structured directory tree."
+  (let* ((default-directory (expand-file-name dir))
+	 (start (length default-directory)))
+    (let ((dirs (directory-files-recursively
+		 dir "^[[:alnum:]-]+-tests\\.el$"))
+	  tests)
+      (dolist (dir dirs)
+	(let ((len (length dir)))
+	  (push (substring dir start (- len 9)) tests)))
+      (nreverse tests))))
+
+(defun ats-list-tests (process)
+  "Enumerate those tests which have already been uploaded to PROCESS.
+Return a list of strings identifying tests which have been
+uploaded to the remote device represented by PROCESS, as by
+`ats-upload-tests', and which may be executed with
+`ats-exec-tests'."
+  (let ((rc (ats-eval
+	     process
+	     `(let* ((dir (concat (file-name-as-directory
+				   temporary-file-directory)
+				  "ats-tests"))
+		     (len (length (file-name-as-directory dir)))
+		     (default-directory dir)
+		     (is-test-directory '(lambda (dir name)
+					   (file-regular-p
+					    (format "%s/%s-tests.el"
+						    dir name)))))
+		(let ((dirs
+		       (directory-files-recursively
+			dir "" t
+			;; Do not iterate into directories that are tests of
+			;; themselves, or their resources.
+			(lambda (dir)
+			  (let* ((name (file-name-nondirectory dir)))
+			    (and (not (funcall is-test-directory name dir))
+				 (not (string-suffix-p name "-resources")))))))
+		      (tests nil))
+		  (dolist (dir dirs)
+		    (when (funcall is-test-directory
+				   dir
+				   (file-name-nondirectory dir))
+		      (push (substring dir len) tests)))
+		  (nreverse tests))))))
+    (when (eq (car rc) 'error)
+      (error "Remote error: %S" (cdr rc)))
+    (cdr rc)))
+
+(defun ats-run-test (process test &optional selector)
+  "Run tests defined in a single test TEST on a remote device.
+PROCESS represents the device on which to execute these tests.
+SELECTOR is an ERT test selector, as with `ert-select-tests'.
+\(You may upload tests beforehand by calling `ats-upload-test'.)
+Display the output of the tests executed in a buffer."
+  (interactive
+   (let* ((connection
+	   (ats-read-connection "Connection: "))
+	  (test
+	   (completing-read "Test to execute: "
+			    (ats-list-tests connection)
+			    nil t nil 'ats-tests-executed)))
+     (list connection test)))
+  ;; Attempt to byte-compile this test file.
+  (let ((rc (ats-eval
+	     process
+	     `(progn
+		(let* ((dir (concat (file-name-as-directory
+				     temporary-file-directory)
+				    "ats-tests/" ,test))
+		       (name ,(file-name-nondirectory test))
+		       (testfile (concat (file-name-as-directory dir)
+					 name "-tests.el")))
+		  (with-temp-buffer
+		    (let ((value (byte-compile-file testfile))
+			  (byte-compile-log-buffer (buffer-name)))
+		      (cond ((eq value 'no-byte-compile)
+			     testfile)
+			    (value
+			     (byte-compile-dest-file testfile))
+			    (t (list (buffer-string))))))))))
+	(device (cdr (assq 'device (process-get
+				    process 'ats-connection-details))))
+	file-name)
+    (cond ((eq (car rc) 'error)
+	   (error "Error during byte-compilation of `%s-tests.el': %S"
+		  test (cdr rc)))
+	  ((listp (cdr rc))
+	   (error
+	    "Encountered errors byte-compiling `%s-tests.el':\n%s"
+	    test (cadr rc)))
+	  (t (setq file-name (cdr rc))))
+    ;; Delete all tests, load the byte-compiled test file, and execute
+    ;; those tests just defined subject to SELECTOR.
+    (setq rc (ats-eval process
+		       `(progn
+			  (require 'ert)
+			  (ert-delete-all-tests)
+			  (load ,file-name)
+			  (with-temp-buffer
+			    (let ((standard-output (current-buffer))
+				  (set-message-function
+				   (lambda (message)
+				     (insert message "\n"))))
+			      (insert ,(format "=== Executing %s on %s ===\n"
+					       test device))
+			      (let ((noninteractive t))
+				(ert-run-tests-batch ',selector))
+			      (insert "=== Test execution complete ===\n")
+			      (buffer-string))))))
+    (cond ((eq (car rc) 'error)
+	   (error "Error executing `%s-tests.el': %S" test (cdr rc)))
+	  (t (with-current-buffer (get-buffer-create "*Test Output*")
+	       (goto-char (point-max))
+	       (insert (cdr rc))
+	       (pop-to-buffer (current-buffer)))))))
 
 (provide 'test-controller)
 
