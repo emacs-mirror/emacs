@@ -101,11 +101,34 @@ SYNTAX can be one of the symbols `default' (default),
 ;; Use `match-buffers' starting with Emacs 29.1.
 ;;;###tramp-autoload
 (defun tramp-list-remote-buffers ()
-  "Return a list of all buffers with remote `default-directory'."
+  "Return a list of remote buffers, excluding internal tramp buffers.
+A buffer is considered remote if either its `default-directory' or its
+buffer file name is a remote file name."
   (tramp-compat-seq-keep
-   (lambda (x)
-     (when (tramp-tramp-file-p (tramp-get-default-directory x)) x))
+   (lambda (buffer)
+     (when (tramp-tramp-file-p
+            (or (buffer-file-name buffer)
+                (tramp-get-default-directory buffer)))
+       buffer))
    (buffer-list)))
+
+;;;###tramp-autoload
+(defun tramp-list-remote-buffer-connections ()
+  "Return a list of all remote buffer connections.
+A buffer is considered remote if either its `default-directory' or the
+function `buffer-file-name' is a remote file name."
+  (seq-uniq
+   (mapcar (lambda (buffer)
+             (or
+              (when (buffer-file-name buffer)
+                (file-remote-p (buffer-file-name buffer)))
+              (when (tramp-get-default-directory buffer)
+                (file-remote-p (tramp-get-default-directory buffer)))))
+           ;; Eliminate false positives from internal tramp buffers
+           (seq-remove
+            (lambda (buffer)
+              (member (buffer-name buffer) (tramp-list-tramp-buffers)))
+            (tramp-list-remote-buffers)))))
 
 ;;; Cleanup
 
@@ -320,6 +343,22 @@ non-nil."
   (interactive)
   (let ((tramp-cleanup-some-buffers-hook '(always)))
     (tramp-cleanup-some-buffers)))
+
+;;;###tramp-autoload
+(defun tramp-cleanup-bufferless-connections ()
+  "Flush connection-related objects for which no buffer exists.
+A bufferless connection is one for which no live buffer's
+`buffer-file-name' or `default-directory' is associated with that
+connection, except for Tramp internal buffers.
+Display a message of cleaned-up connections."
+  (interactive)
+  (when-let* ((bufferless-connections
+               (seq-difference
+                (mapcar #'tramp-make-tramp-file-name (tramp-list-connections))
+                (tramp-list-remote-buffer-connections))))
+    (message "Cleaning up %s" (mapconcat #'identity bufferless-connections ", "))
+    (dolist (connection bufferless-connections)
+      (tramp-cleanup-connection (tramp-dissect-file-name connection 'noexpand)))))
 
 ;;; Rename
 

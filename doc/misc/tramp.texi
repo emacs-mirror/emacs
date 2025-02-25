@@ -4783,13 +4783,13 @@ proxy definitions (@pxref{Ad-hoc multi-hops}).
 
 @deffn Command tramp-cleanup-all-buffers
 Just as for @code{tramp-cleanup-all-connections}, all remote
-connections and ad-hoc proxy definition are cleaned up in addition to
+connections and ad-hoc proxy definitions are cleaned up in addition to
 killing all buffers related to remote connections.
 @end deffn
 
 @deffn Command tramp-cleanup-some-buffers
 Similar to @code{tramp-cleanup-all-buffers}, where all remote
-connections and ad-hoc proxy definition are cleaned up.  However,
+connections and ad-hoc proxy definitions are cleaned up.  However,
 additional buffers are killed only if one of the functions in
 @code{tramp-cleanup-some-buffers-hook} returns @code{t}.
 @end deffn
@@ -4800,6 +4800,19 @@ killed when @code{tramp-cleanup-some-buffers} is called.  Per default,
 remote buffers which are linked to a remote file, remote @code{dired}
 buffers, and buffers related to a remote process are cleaned up.
 @end defopt
+
+@deffn Command tramp-cleanup-bufferless-connections
+
+Similar to @code{tramp-cleanup-all-connections}, remote connections and
+ad-hoc proxy definitions are flushed, but limited to those connections
+for which no associated buffers exist (except for Tramp internal
+buffers).
+
+This command is helpful to prune connections after you close remote-file
+buffers without having to either cherry pick via
+@code{tramp-cleanup-connection} or clear them all via
+@code{tramp-cleanup-all-connections}.
+@end deffn
 
 
 @node Renaming remote files
