@@ -1439,6 +1439,12 @@ Display of tooltips on text-only terminals now happens after
 behavior, customize the value of 'tooltip-delay' to zero.
 
 ---
+*** New user option 'follow-mode-prefix-key'.
+This user option replaces 'follow-mode-prefix', which had to be set
+before loading Follow mode.  This new option allows you to change the
+prefix even after it was loaded, using 'customize-option' or 'setopt'.
+
+---
 *** cdl.el is now obsolete.
 Use 'shell-command' and 'shell-command-on-region' instead.
 
