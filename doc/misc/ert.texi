@@ -1125,7 +1125,7 @@ This has the same effect as combining @code{ert-with-test-buffer} with
 
 @lisp
 (ert-deftest whitespace-tests--global ()
-  (ert-with-test-buffer-selected (:name "global" :selected t)
+  (ert-with-test-buffer (:name "global" :selected t)
     @dots{}))
 @end lisp
 @end defmac
