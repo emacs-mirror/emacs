@@ -4951,7 +4951,10 @@ Goes through the list `tramp-inline-compress-commands'."
 	 ;; ControlPersist option is introduced in OpenSSH 5.6.
 	 (when (and (not (eq tramp-use-connection-share 'suppress))
                     (tramp-ssh-option-exists-p vec "ControlPersist=no"))
-	   " -o ControlPersist=no")))))))
+	   " -o ControlPersist=no")))))
+
+   ;; Return a string, whatsoever.
+   (t "")))
 
 (defun tramp-scp-strict-file-name-checking (vec)
   "Return the strict file name checking argument of the local scp."
