@@ -2900,24 +2900,27 @@ returns nil."
         (menu-bar (menu-bar-keymap))
         prev-key
         prev-column
+        keys-seen
         found)
     (catch 'done
       (map-keymap
        (lambda (key binding)
-         (when (> column x-position)
-           (setq found t)
-           (throw 'done nil))
-         (setq prev-key key)
-         (pcase binding
-           ((or `(,(and (pred stringp) name) . ,_) ;Simple menu item.
-                `(menu-item ,name ,_cmd            ;Extended menu item.
-                            . ,(and props
-                                    (guard (let ((visible
-                                                  (plist-get props :visible)))
-                                             (or (null visible)
-                                                 (eval visible)))))))
-            (setq prev-column column
-                  column (+ column (length name) 1)))))
+         (unless (memq key keys-seen)
+           (push key keys-seen)
+           (when (> column x-position)
+             (setq found t)
+             (throw 'done nil))
+           (setq prev-key key)
+           (pcase binding
+             ((or `(,(and (pred stringp) name) . ,_) ;Simple menu item.
+                  `(menu-item ,name ,_cmd            ;Extended menu item.
+                              . ,(and props
+                                      (guard (let ((visible
+                                                    (plist-get props :visible)))
+                                               (or (null visible)
+                                                   (eval visible)))))))
+              (setq prev-column column
+                    column (+ column (length name) 1))))))
        menu-bar)
       ;; Check the last menu item.
       (when (> column x-position)
