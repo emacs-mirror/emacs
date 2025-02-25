@@ -680,7 +680,7 @@ at least 3 (which is the default value)."
         ('regexp
          (let ((syntax (string-to-syntax "\"/")))
            (decf ns)
-           (cl-incf ne)
+           (incf ne)
            (put-text-property ns (1+ ns) 'syntax-table syntax)
            (put-text-property (1- ne) ne 'syntax-table syntax)))
         ;; We put punctuation syntax on all the balanced pair

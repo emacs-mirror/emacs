@@ -658,7 +658,7 @@ Return nil if NODE is not a defun node or doesn't have a name."
              (eq last-command-event ?\")
              (let ((count 0))
                (while (eq (char-before (- (point) count)) last-command-event)
-                 (cl-incf count))
+                 (incf count))
                (= count 3))
              (eq (char-after) last-command-event))
     (save-excursion

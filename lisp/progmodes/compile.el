@@ -1641,9 +1641,9 @@ RULE is the name (symbol) of the rule used or nil if anonymous.
   "Note that a new message with severity TYPE was seen.
 This updates the appropriate variable used by the mode-line."
   (cl-case type
-    (0 (cl-incf compilation-num-infos-found))
-    (1 (cl-incf compilation-num-warnings-found))
-    (2 (cl-incf compilation-num-errors-found))))
+    (0 (incf compilation-num-infos-found))
+    (1 (incf compilation-num-warnings-found))
+    (2 (incf compilation-num-errors-found))))
 
 (defun compilation-parse-errors (start end &rest rules)
   "Parse errors between START and END.

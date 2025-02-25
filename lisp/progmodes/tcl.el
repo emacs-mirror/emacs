@@ -432,9 +432,9 @@ This variable is generally set from `tcl-proc-regexp',
             (pcase (char-after (match-beginning 0))
               (?\\ (forward-char 1))
               (?\" (setq type 'matched))
-              (?\{ (cl-incf depth))
+              (?\{ (incf depth))
               (?\} (if (zerop depth) (setq type 'unmatched)
-                     (cl-incf depth)))))
+                     (incf depth)))))
           (when (> (line-beginning-position) pos)
             ;; The quote is not on the same line as the deciding
             ;; factor, so make sure we revisit this choice later.

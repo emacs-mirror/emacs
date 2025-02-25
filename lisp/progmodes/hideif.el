@@ -888,7 +888,7 @@ Assuming we've just performed a `hif-token-regexp' lookup."
                 ;; merge whites immediately ahead
                 (setq ce (if (and we (= (1- p) we)) ws p))
                 ;; scan for end of line
-                (while (and (< (cl-incf p) end)
+                (while (and (< (incf p) end)
                             (not (char-equal ?\n (char-after p)))
                             (not (char-equal ?\r (char-after p)))))
                 ;; Merge with previous comment if immediately followed
@@ -913,7 +913,7 @@ Assuming we've just performed a `hif-token-regexp' lookup."
                 (while (< (1+ p) end)
                   (if (not (and (char-equal ?* (char-after p))
                                 (char-equal ?/ (char-after (1+ p)))))
-                      (cl-incf p)
+                      (incf p)
                     ;; found `*/', mark end pos
                     (push (cons cmt (1+ (setq p (1+ p)))) cmtlist)
                     (throw 'break nil)))
@@ -927,7 +927,7 @@ Assuming we've just performed a `hif-token-regexp' lookup."
                     we p))
           (setq ws nil
                 we nil)))
-      (cl-incf p))
+      (incf p))
     ;; Goto beginning of the last comment, if we're within
     (setq cmt (car cmtlist)) ;; last cmt
     (setq cmt (if (and cmt
@@ -1531,7 +1531,7 @@ and `+='...)."
 
 (defvar hif-__COUNTER__ 0)
 (defun hif-__COUNTER__ ()
-  (prog1 hif-__COUNTER__ (cl-incf hif-__COUNTER__)))
+  (prog1 hif-__COUNTER__ (incf hif-__COUNTER__)))
 
 (defun hif-__cplusplus ()
   (and (string-match
@@ -1604,7 +1604,7 @@ and `+='...)."
               (push tk items) ; first item, in reverse order
               (setq tk 'hif-token-concat))
             (while (eq tk 'hif-token-concat)
-              (cl-incf count)
+              (incf count)
               ;; 2+ item
               (setq l (cdr l)
                     tk (car l))
@@ -2477,7 +2477,7 @@ first arg will be `hif-etc'."
                          (tokens
                           (and name
                                (prog1 t
-                                 (cl-incf hif-verbose-define-count)
+                                 (incf hif-verbose-define-count)
                                  ;; only show 1/50 to not slow down to much
                                  (if (and hide-ifdef-verbose
                                           (= (% hif-verbose-define-count 50) 1))

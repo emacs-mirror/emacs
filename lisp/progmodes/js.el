@@ -982,7 +982,7 @@ top-most pitem.  Otherwise, return nil."
            with func-depth = 0
            with func-pitem
            if (eq 'function (js--pitem-type pitem))
-           do (cl-incf func-depth)
+           do (incf func-depth)
            and do (setq func-pitem pitem)
            finally return (if (eq func-depth 1) func-pitem)))
 
@@ -1017,7 +1017,7 @@ Return the pitem of the function we went to the beginning of."
   (setq arg (or arg 1))
   (let ((found))
     (while (and (not (eobp)) (< arg 0))
-      (cl-incf arg)
+      (incf arg)
       (when (and (not js-flat-functions)
                  (or (eq (js-syntactic-context) 'function)
                      (js--function-prologue-beginning)))
@@ -1360,7 +1360,7 @@ LIMIT defaults to point."
   "Value of `end-of-defun-function' for `js-mode'."
   (setq arg (or arg 1))
   (while (and (not (bobp)) (< arg 0))
-    (cl-incf arg)
+    (incf arg)
     (js-beginning-of-defun)
     (js-beginning-of-defun)
     (unless (bobp)
@@ -3180,7 +3180,7 @@ the broken-down class name of the item to insert."
       (setq pitem-name (js--pitem-strname pitem))
       (when (eq pitem-name t)
         (setq pitem-name (format "[unknown %s]"
-                                 (cl-incf (car unknown-ctr)))))
+                                 (incf (car unknown-ctr)))))
 
       (cond
        ((memq pitem-type '(function macro))
@@ -3255,7 +3255,7 @@ the broken-down class name of the item to insert."
                      (ctr 0))
 
                 (while (gethash name2 symbols)
-                  (setq name2 (format "%s<%d>" name (cl-incf ctr))))
+                  (setq name2 (format "%s<%d>" name (incf ctr))))
 
                 (puthash name2 (cdr item) symbols))))
 
@@ -4037,7 +4037,7 @@ See `treesit-thing-settings' for more information.")
              (syntax (pcase-exhaustive name
                        ('regexp
                         (decf ns)
-                        (cl-incf ne)
+                        (incf ne)
                         (string-to-syntax "\"/"))
                        ('jsx
                         (string-to-syntax "|")))))

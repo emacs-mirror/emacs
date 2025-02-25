@@ -503,7 +503,7 @@ characters on the current line."
       (let ((parent (treesit-node-parent node)))
         ;; Increment level for every bracket (with exception).
         (when (c-ts-common--node-is node 'block)
-          (cl-incf level)
+          (incf level)
           (save-excursion
             (goto-char (treesit-node-start node))
             ;; Add an extra level if the opening bracket is on its own
@@ -515,12 +515,12 @@ characters on the current line."
                   ;; Add a level.
                   ((looking-back (rx bol (* whitespace))
                                  (line-beginning-position))
-                   (cl-incf level)))))
+                   (incf level)))))
         ;; Fix bracketless statements.
         (when (and (c-ts-common--node-is parent
                        'if 'do 'while 'for)
                    (not (c-ts-common--node-is node 'block)))
-          (cl-incf level))
+          (incf level))
         ;; Flatten "else if" statements.
         (when (and (c-ts-common--node-is node 'else)
                    (c-ts-common--node-is node 'if)
