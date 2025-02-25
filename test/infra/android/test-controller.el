@@ -452,7 +452,9 @@ as PACKAGE, provided that it is debuggable."
   (save-restriction
     (narrow-to-region (point) (point))
     (let* ((name (format "%s.sh" (make-temp-name "ats-")))
-	   (fullname (concat (file-name-as-directory "/tmp") name)))
+	   (fullname (concat (file-name-as-directory
+			      temporary-file-directory)
+			     name)))
       (with-temp-buffer
 	(insert script)
 	(write-region (point-min) (point-max) fullname))
