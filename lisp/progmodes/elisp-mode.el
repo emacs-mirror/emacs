@@ -335,8 +335,8 @@ mouse-1: Enable lexical-binding mode"
 		      mouse-face mode-line-highlight
                       local-map ,elisp--dynlex-modeline-map)))
   "Major mode for editing Lisp code to run in Emacs.
-
-- Delete converts tabs to spaces as it moves back.
+\\<emacs-lisp-mode-map>
+- \\[backward-delete-char-untabify] converts tabs to spaces as it moves back.
 - Blank lines separate paragraphs.
 - Semicolons start comments.
 
@@ -1330,8 +1330,8 @@ Like Lisp mode except that \\[eval-print-last-sexp] evals the Lisp expression
 before point, and prints its value into the buffer, advancing point.
 Note that printing is controlled by `eval-expression-print-length'
 and `eval-expression-print-level'.
-
-- Delete converts tabs to spaces as it moves back.
+\\<lisp-interaction-mode-map>
+- \\[backward-delete-char-untabify] converts tabs to spaces as it moves back.
 - Paragraphs are separated only by blank lines.
 - Semicolons start comments.
 
