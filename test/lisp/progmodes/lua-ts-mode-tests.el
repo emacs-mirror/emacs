@@ -22,6 +22,7 @@
 (require 'ert)
 (require 'ert-font-lock)
 (require 'ert-x)
+(require 'hideshow)
 (require 'treesit)
 (require 'which-func)
 
@@ -47,6 +48,18 @@
     (goto-char (point-min))
     (should (equal "f" (which-function)))
     (which-function-mode -1)))
+
+(ert-deftest lua-ts-test-hideshow ()
+  (skip-unless (treesit-ready-p 'lua t))
+  (with-temp-buffer
+    (insert-file-contents (ert-resource-file "hide-show.lua"))
+    (lua-ts-mode)
+    (hs-minor-mode)
+    (hs-hide-all)
+    (should (= 11 (length (overlays-in (point-min) (point-max)))))
+    (hs-show-all)
+    (should (= 0 (length (overlays-in (point-min) (point-max)))))
+    (hs-minor-mode -1)))
 
 (provide 'lua-ts-mode-tests)
 
