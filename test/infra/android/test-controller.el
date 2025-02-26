@@ -2482,6 +2482,73 @@ subject to SELECTOR, as in `ert-run-tests'."
 	"Running tests..."
       (ats-run-test process test selector))))
 
+
+
+;; Batch mode text execution.
+(defun ats-execute-tests-batch ()
+  "Execute tests in batch mode, in the manner of `test/Makefile'.
+Prompt for a device and execute tests on the same.  Save log
+files to a directory specified by the user.
+Call this function from the command line, with, for example:
+
+  $ emacs --batch -l test-controller.el -f ats-execute-tests-batch"
+  (let* ((ats-adb-host (getenv "ATS_ADB_HOST"))
+	 (devices (ats-enumerate-devices
+		   (lambda (name state _)
+		     (and (equal state "device")
+			  (ignore-errors
+			    (ats-get-package-aid name "org.gnu.emacs")))))))
+    (message "These devices are presently available for test execution:")
+    (let ((nth 0))
+      (dolist (device devices)
+	(message "%2d. %-24s(API level %d, %s)"
+		 (incf nth) (car device)
+		 (ats-get-sdk-version (car device))
+		 (ats-getprop (car device) "ro.product.cpu.abi"))))
+    (let* ((number (string-to-number
+		    (read-string
+		     "Select a device by typing its number, and Return: ")))
+	   (device (if (or (< number 1) (> number (length devices)))
+		       (user-error "Invalid selection: %s" number)
+		     (car (nth (1- number) devices))))
+	   (users (ats-list-users device)))
+      (setq nth 0)
+      (dolist (user users)
+	(message "%2d. %s (id=%d)" (incf nth)
+		 (cadr user) (car user)))
+      (setq number (string-to-number
+		    (read-string
+		     "As which user should tests be executed? ")))
+      (when (or (< number 1) (> number (length users)))
+	(user-error "Invalid selection: %s" number))
+      (let* ((user (car (nth (1- number) users)))
+	     (connection (ats-connect device user)))
+	(ats-upload-all-tests
+	 connection
+	 (or ats-emacs-test-directory
+	     (read-directory-name "Test base directory: "
+				  nil nil t)))
+	(let ((output-directory
+	       (read-directory-name
+		"Where to save test log files? ")))
+	  (mkdir output-directory t)
+	  (let ((tests (ats-list-tests connection)))
+	    (dolist (test tests)
+	      (message "Generating `%s/%s-test.log'"
+		       output-directory test)
+	      (ats-run-test connection test)
+	      (let ((output-file
+		     (concat (file-name-as-directory
+			      output-directory)
+			     test "-test.log")))
+		(mkdir (file-name-directory output-file) t)
+		(with-current-buffer "*Test Output*"
+		  (write-region (point-min) (point-max)
+				(concat (file-name-as-directory
+					 output-directory)
+					test "-test.log"))
+		  (erase-buffer))))))))))
+
 (provide 'test-controller)
 
 ;;; test-controller.el ends here
