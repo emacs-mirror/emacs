@@ -28,11 +28,10 @@
 (require 'eshell)
 (require 'em-banner)
 (require 'em-prompt)
+(require 'ert-x)
 
 (require 'eshell-tests-helpers
-         (expand-file-name "eshell-tests-helpers"
-                           (file-name-directory (or load-file-name
-                                                    default-directory))))
+         (ert-resource-file "eshell-tests-helpers"))
 
 ;;; Tests:
 

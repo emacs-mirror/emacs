@@ -2442,7 +2442,11 @@ Display the output of the tests executed in a buffer."
 					(with-current-buffer temp-buffer
 					  (insert message "\n")))))
 				(let ((noninteractive t))
-				  (ert-run-tests-batch ',selector))
+				  ;; Prevent activation of the mark and
+				  ;; other actions taken by the tests
+				  ;; from affecting the test buffer.
+				  (with-temp-buffer
+				    (ert-run-tests-batch ',selector)))
 				(insert "=== Test execution complete ===\n")
 				(buffer-substring-no-properties
 				 (point-min) (point-max)))))))

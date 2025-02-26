@@ -24,14 +24,14 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'esh-mode)
 (require 'eshell)
 (require 'em-alias)
+(require 'ert-x)
 
 (require 'eshell-tests-helpers
-         (expand-file-name "eshell-tests-helpers"
-                           (file-name-directory (or load-file-name
-                                                    default-directory))))
+         (ert-resource-file "eshell-tests-helpers"))
 ;;; Tests:
 
 (ert-deftest em-alias-test/simple-alias ()

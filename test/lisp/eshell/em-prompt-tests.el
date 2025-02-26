@@ -26,11 +26,10 @@
 (require 'ert)
 (require 'eshell)
 (require 'em-prompt)
+(require 'ert-x)
 
 (require 'eshell-tests-helpers
-         (expand-file-name "eshell-tests-helpers"
-                           (file-name-directory (or load-file-name
-                                                    default-directory))))
+         (ert-resource-file "eshell-tests-helpers"))
 
 (defmacro em-prompt-test--with-multiline (&rest body)
   "Execute BODY with a multiline Eshell prompt."

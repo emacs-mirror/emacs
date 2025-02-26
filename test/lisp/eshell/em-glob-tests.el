@@ -25,12 +25,11 @@
 
 (require 'tramp)
 (require 'ert)
+(require 'ert-x)
 (require 'em-glob)
 
 (require 'eshell-tests-helpers
-         (expand-file-name "eshell-tests-helpers"
-                           (file-name-directory (or load-file-name
-                                                    default-directory))))
+         (ert-resource-file "eshell-tests-helpers"))
 
 (defvar eshell-prefer-lisp-functions)
 

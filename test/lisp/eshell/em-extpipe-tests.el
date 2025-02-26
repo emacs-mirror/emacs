@@ -27,11 +27,10 @@
 (require 'cl-lib)
 (require 'ert)
 (require 'ert-x)
+(require 'ert-x)
 (require 'em-extpipe)
 (require 'eshell-tests-helpers
-         (expand-file-name "eshell-tests-helpers"
-                           (file-name-directory (or load-file-name
-                                                    default-directory))))
+         (ert-resource-file "eshell-tests-helpers"))
 
 (defmacro em-extpipe-tests--deftest (name input &rest body)
   (declare (indent 2))
