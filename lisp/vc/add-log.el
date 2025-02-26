@@ -324,7 +324,9 @@ CHANGELOGS is a list in the form returned by
                (insert ":\n")
              (insert " ")
              (cl-loop for def in defuns
-                      do (insert "(" def "):\n")))))
+                      do (progn
+                           (insert "(" def "):\n")
+                           (log-edit-fill-entry))))))
 
 (defun change-log-find-file ()
   "Visit the file for the change under point."
