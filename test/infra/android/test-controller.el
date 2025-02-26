@@ -2436,6 +2436,7 @@ Display the output of the tests executed in a buffer."
 				     ;; present...
 				     (ert-remote-temporary-file-directory
 				      null-device)
+				     (overriding-text-conversion-style nil)
 				     (set-message-function
 				      (lambda (message)
 					(with-current-buffer temp-buffer
@@ -2443,7 +2444,8 @@ Display the output of the tests executed in a buffer."
 				(let ((noninteractive t))
 				  (ert-run-tests-batch ',selector))
 				(insert "=== Test execution complete ===\n")
-				(buffer-string))))))
+				(buffer-substring-no-properties
+				 (point-min) (point-max)))))))
       (cond ((eq (car rc) 'error)
 	     (error "Error executing `%s-tests.el': %S" test (cdr rc)))
 	    (t (progn

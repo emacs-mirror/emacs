@@ -30,6 +30,7 @@
 (eval-when-compile (require 'cl-lib))
 
 (ert-deftest test-rmc--add-key-description ()
+  (skip-when (display-graphic-p))
   (cl-letf (((symbol-function 'display-supports-face-attributes-p) (lambda (_ _) t)))
     (should (equal (rmc--add-key-description '(?y "yes"))
                    '(?y . "yes")))
@@ -39,6 +40,7 @@
                    `(?\s . "SPC foo bar")))))
 
 (ert-deftest test-rmc--add-key-description/with-attributes ()
+  (skip-when (display-graphic-p))
   (cl-letf (((symbol-function 'display-supports-face-attributes-p) (lambda (_ _) t)))
     (should (equal-including-properties
              (rmc--add-key-description '(?y "yes"))
@@ -51,6 +53,7 @@
              `(?\s . ,(concat (propertize "SPC" 'face 'read-multiple-choice-face) " foo bar"))))))
 
 (ert-deftest test-rmc--add-key-description/non-graphical-display ()
+  (skip-when (display-graphic-p))
   (cl-letf (((symbol-function 'display-supports-face-attributes-p) (lambda (_ _) nil)))
     (should (equal-including-properties
              (rmc--add-key-description '(?y "yes"))
@@ -60,6 +63,7 @@
              `(?n . ,(concat (propertize "n" 'face 'help-key-binding) " foo"))))))
 
 (ert-deftest test-read-multiple-choice ()
+  (skip-when (display-graphic-p))
   (dolist (char '(?y ?n))
     (cl-letf* (((symbol-function #'read-key) (lambda () char))
                (str (if (eq char ?y) "yes" "no")))
@@ -67,6 +71,7 @@
                      (read-multiple-choice "Do it? " '((?y "yes") (?n "no"))))))))
 
 (ert-deftest test-read-multiple-choice-help ()
+  (skip-when (display-graphic-p))
   (let ((chars '(?o ?a))
         help)
     (cl-letf* (((symbol-function #'read-key)

@@ -45,6 +45,8 @@
                    (read-library-name)))))
 
 (ert-deftest find-func-tests--locate-symbols ()
+  ;; C source files are unavailable when testing on Android.
+  (skip-when (featurep 'android))
   (should (cdr
            (find-function-search-for-symbol
             #'goto-line nil "simple")))
