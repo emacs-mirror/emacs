@@ -1990,7 +1990,7 @@ when using per-directory thumbnail file storage"))
               (setq tag-link-list
                     (append tag-link-list (list (cons tag tag-link))))
             (setq tag-link-list (list (cons tag tag-link))))
-          (setq count (1+ count))))
+          (incf count)))
       (setq count 1)
       ;; Main loop where we generated thumbnail pages per tag
       (dolist (curr tags)
@@ -2037,7 +2037,7 @@ when using per-directory thumbnail file storage"))
             (insert "  <p><a href=\"index.html\">Index</a></p>\n")
             (insert "  </body>\n")
             (insert "</html>\n"))
-          (setq count (1+ count))))
+          (incf count)))
       (insert "  </body>\n")
       (insert "</html>"))))
 
@@ -2099,7 +2099,7 @@ when using per-directory thumbnail file storage"))
 ;;        (format "Size of thumbnail directory: %d, delete old file %s? "
 ;;                dirsize (cadr (cdar files))))
 ;;       (delete-file (cadr (cdar files)))
-;;       (setq dirsize (- dirsize (car (cdar files))))
+;;       (decf dirsize (car (cdar files)))
 ;;       (setq files (cdr files)))))
 
 (provide 'image-dired)
