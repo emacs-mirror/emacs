@@ -197,11 +197,14 @@ expression, in which case we want to handle forms differently."
           (when exps (cons 'progn exps)))))
 
      ;; For complex cases, try again on the macro-expansion.
-     ((and (memq car '(easy-mmode-define-global-mode define-global-minor-mode
-                       define-globalized-minor-mode defun defmacro
-		       easy-mmode-define-minor-mode define-minor-mode
-                       define-inline cl-defun cl-defmacro cl-defgeneric
-                       cl-defstruct pcase-defmacro iter-defun cl-iter-defun))
+     ((and (memq car '( define-globalized-minor-mode defun defmacro
+                        define-minor-mode define-inline
+                        cl-defun cl-defmacro cl-defgeneric
+                        cl-defstruct pcase-defmacro iter-defun cl-iter-defun
+                        ;; Obsolete; keep until the alias is removed.
+                        easy-mmode-define-global-mode
+                        easy-mmode-define-minor-mode
+                        define-global-minor-mode))
            (macrop car)
 	   (setq expand (let ((load-true-file-name file)
                               (load-file-name file))
@@ -211,15 +214,18 @@ expression, in which case we want to handle forms differently."
       (loaddefs-generate--make-autoload expand file 'expansion))
 
      ;; For special function-like operators, use the `autoload' function.
-     ((memq car '(define-skeleton define-derived-mode
+     ((memq car '( define-skeleton define-derived-mode
                    define-compilation-mode define-generic-mode
-		   easy-mmode-define-global-mode define-global-minor-mode
-		   define-globalized-minor-mode
-		   easy-mmode-define-minor-mode define-minor-mode
+                   define-globalized-minor-mode
+                   define-minor-mode
 		   cl-defun defun* cl-defmacro defmacro*
                    define-overloadable-function
                    transient-define-prefix transient-define-suffix
-                   transient-define-infix transient-define-argument))
+                   transient-define-infix transient-define-argument
+                   ;; Obsolete; keep until the alias is removed.
+                   easy-mmode-define-global-mode
+                   easy-mmode-define-minor-mode
+                   define-global-minor-mode))
       (let* ((macrop (memq car '(defmacro cl-defmacro defmacro*)))
 	     (name (nth 1 form))
 	     (args (pcase car
@@ -243,17 +249,18 @@ expression, in which case we want to handle forms differently."
         (loaddefs-generate--shorten-autoload
          `(autoload ,(if (listp name) name (list 'quote name))
             ,file ,doc
-            ,(or (and (memq car '(define-skeleton define-derived-mode
+            ,(or (and (memq car '( define-skeleton define-derived-mode
                                    define-generic-mode
-                                   easy-mmode-define-global-mode
-                                   define-global-minor-mode
                                    define-globalized-minor-mode
-                                   easy-mmode-define-minor-mode
                                    define-minor-mode
                                    transient-define-prefix
                                    transient-define-suffix
                                    transient-define-infix
-                                   transient-define-argument))
+                                   transient-define-argument
+                                   ;; Obsolete; keep until the alias is removed.
+                                   easy-mmode-define-global-mode
+                                   easy-mmode-define-minor-mode
+                                   define-global-minor-mode))
                       t)
                  (and (eq (car-safe (car body)) 'interactive)
                       ;; List of modes or just t.

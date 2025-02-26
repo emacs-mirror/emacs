@@ -420,7 +420,7 @@ lisp-fill-paragraph was refactored in version 28.\")"))
           '("defsubst" "cl-defsubst" "define-inline"
             "define-advice" "defadvice" "defalias"
             "define-derived-mode" "define-minor-mode"
-            "define-generic-mode" "define-global-minor-mode"
+            "define-generic-mode"
             "define-globalized-minor-mode" "define-skeleton"
             "define-widget" "ert-deftest" "defconst" "defcustom"
             "defvaralias" "defvar-local" "defface" "define-error"))))
