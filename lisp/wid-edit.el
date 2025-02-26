@@ -427,7 +427,12 @@ the :notify function can't know the new value.")
 	(overlay-put overlay 'local-map keymap)
 	(overlay-put overlay 'face face)
 	(overlay-put overlay 'follow-link follow-link)
-	(overlay-put overlay 'help-echo help-echo))
+        (overlay-put overlay 'help-echo help-echo)
+        ;; Since the `widget-field' face has a :box attribute, we need to add
+        ;; some character with no face after the newline character, to avoid
+        ;; clashing with text that comes after the field and has a face with
+        ;; a :box attribute too.  (Bug#51550)
+        (overlay-put overlay 'after-string #(" " 0 1 (invisible t))))
       (setq to (1- to))
       (setq rear-sticky t))
     (let ((overlay (make-overlay from to nil nil rear-sticky)))
@@ -468,8 +473,6 @@ the :notify function can't know the new value.")
     (widget-put widget :button-overlay overlay)
     (when (functionp help-echo)
       (setq help-echo 'widget-mouse-help))
-    (overlay-put overlay 'before-string
-                 (propertize " " 'invisible t 'face face))
     (overlay-put overlay 'button widget)
     (overlay-put overlay 'keymap (widget-get widget :keymap))
     (overlay-put overlay 'evaporate t)
