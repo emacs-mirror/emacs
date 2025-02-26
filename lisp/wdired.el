@@ -69,6 +69,7 @@
 ;;; Code:
 
 (require 'dired)
+(eval-when-compile (require 'cl-lib))
 (autoload 'dired-do-create-files-regexp "dired-aux")
 
 (defgroup wdired nil
