@@ -598,7 +598,7 @@ point, otherwise hide it."
 
 (defun completion-preview-insert ()
   "Insert the completion candidate that the preview is showing."
-  (interactive)
+  (interactive nil completion-preview-active-mode)
   (completion-preview--barf-if-no-preview)
   (let* ((pre (completion-preview--get 'completion-preview-base))
          (end (completion-preview--get 'completion-preview-end))
@@ -678,14 +678,14 @@ Beyond moving point, FUN should not modify the current buffer."
   "Insert the first N words of the current completion preview candidate.
 
 Interactively, N is the numeric prefix argument, and it defaults to 1."
-  (interactive "^p")
+  (interactive "^p" completion-preview-active-mode)
   (completion-preview-partial-insert #'forward-word n))
 
 (defun completion-preview-insert-sexp (&optional n)
   "Insert the first N s-expressions of the current completion preview candidate.
 
 Interactively, N is the numeric prefix argument, and it defaults to 1."
-  (interactive "^p")
+  (interactive "^p" completion-preview-active-mode)
   (completion-preview-partial-insert #'forward-sexp n 'interactive))
 
 (defun completion-preview-complete ()
@@ -696,7 +696,7 @@ common prefix to insert, it displays the list of matching completion
 candidates unless `completion-auto-help' is nil.  If you repeat this
 command again when the completions list is visible, it scrolls the
 completions list."
-  (interactive)
+  (interactive nil completion-preview-active-mode)
   (completion-preview--barf-if-no-preview)
   (let* ((beg (completion-preview--get 'completion-preview-beg))
          (end (completion-preview--get 'completion-preview-end))
@@ -758,7 +758,7 @@ completions list."
 
 If N is negative, cycle -N candidates forward.  Interactively, N is the
 prefix argument and defaults to 1."
-  (interactive "p")
+  (interactive "p" completion-preview-active-mode)
   (completion-preview-next-candidate (- n)))
 
 (defun completion-preview-next-candidate (n)
@@ -766,7 +766,7 @@ prefix argument and defaults to 1."
 
 If N is negative, cycle -N candidates backward.  Interactively, N is the
 prefix argument and defaults to 1."
-  (interactive "p")
+  (interactive "p" completion-preview-active-mode)
   (when completion-preview-active-mode
     (let* ((beg (completion-preview--get 'completion-preview-beg))
            (end (completion-preview--get 'completion-preview-end))
@@ -808,15 +808,9 @@ prefix argument and defaults to 1."
 The first argument, SYMBOL, is ignored.  You can use this function as
 the `completion-predicate' property of commands that you define that
 should only be available when the completion preview is active."
+  (declare
+   (obsolete "check for `completion-preview-active-mode' instead." "31.1"))
   (buffer-local-value 'completion-preview-active-mode buffer))
-
-(dolist (cmd '(completion-preview-insert
-               completion-preview-insert-word
-               completion-preview-insert-sexp
-               completion-preview-complete
-               completion-preview-prev-candidate
-               completion-preview-next-candidate))
-  (put cmd 'completion-predicate #'completion-preview-active-p))
 
 ;;;###autoload
 (define-minor-mode completion-preview-mode
