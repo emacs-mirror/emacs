@@ -67,6 +67,17 @@
           (inotify-rm-watch wd)
           (should-not (inotify-valid-p wd)))))))
 
+(ert-deftest inotify-file-watch-stop-delivery ()
+  "Test whether IN_IGNORE events are delivered."
+  (skip-unless (featurep 'inotify))
+  (progn
+    (ert-with-temp-file temp-file
+      (inotify-add-watch
+       temp-file t (lambda (event)
+                     (when (memq 'ignored (cadr event))
+                       (throw 'success t)))))
+    (should (catch 'success (recursive-edit) nil))))
+
 (provide 'inotify-tests)
 
 ;;; inotify-tests.el ends here
