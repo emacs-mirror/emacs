@@ -3438,8 +3438,9 @@ igc_xnrealloc_ambig (void *old_pa, ptrdiff_t nitems, ptrdiff_t item_size)
   void *new_pa = xzalloc (nbytes);
   char *end = (char *) new_pa + nbytes;
   root_create_ambig (global_igc, new_pa, end, "xnrealloc-ambig");
-  memcpy (new_pa, old_pa, old_nbytes);
-  eassert (memcmp (new_pa, old_pa, old_nbytes) == 0);
+  ptrdiff_t min_nbytes = min (old_nbytes, nbytes);
+  memcpy (new_pa, old_pa, min_nbytes);
+  eassert (memcmp (new_pa, old_pa, min_nbytes) == 0);
   igc_xfree (old_pa);
 
   return new_pa;
