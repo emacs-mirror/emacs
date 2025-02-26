@@ -2502,7 +2502,7 @@ Call this function from the command line, with, for example:
     (let ((nth 0))
       (dolist (device devices)
 	(message "%2d. %-24s(API level %d, %s)"
-		 (incf nth) (car device)
+		 (setq nth (1+ nth)) (car device)
 		 (ats-get-sdk-version (car device))
 		 (ats-getprop (car device) "ro.product.cpu.abi"))))
     (let* ((number (string-to-number
@@ -2511,10 +2511,10 @@ Call this function from the command line, with, for example:
 	   (device (if (or (< number 1) (> number (length devices)))
 		       (user-error "Invalid selection: %s" number)
 		     (car (nth (1- number) devices))))
-	   (users (ats-list-users device)))
-      (setq nth 0)
+	   (users (ats-list-users device))
+	   (nth 0))
       (dolist (user users)
-	(message "%2d. %s (id=%d)" (incf nth)
+	(message "%2d. %s (id=%d)" (setq nth (1+ nth))
 		 (cadr user) (car user)))
       (setq number (string-to-number
 		    (read-string
