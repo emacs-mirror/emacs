@@ -50,4 +50,3 @@
 # The "kbd" macro turns KBD into @kbd{KBD}.  Additionally, it
 # encloses case-sensitive special keys (SPC, RET...) within @key{...}.
 #+macro: kbd (eval (org-texinfo-kbd-macro $1))
-

@@ -3678,7 +3678,7 @@ tty_menu_help_callback (char const *help_string, int pane, int item)
   /* (menu-item MENU-NAME PANE-NUMBER)  */
   menu_object = list3 (Qmenu_item, pane_name, make_fixnum (pane));
   show_help_echo (help_string ? build_string (help_string) : Qnil,
- 		  Qnil, menu_object, make_fixnum (item));
+		  Qnil, menu_object, make_fixnum (item));
 }
 
 struct tty_pop_down_menu

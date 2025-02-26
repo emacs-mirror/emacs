@@ -2051,17 +2051,17 @@ set_point_both (ptrdiff_t charpos, ptrdiff_t bytepos)
 
       if (! EQ (leave_before, enter_before) && !NILP (leave_before))
 	calln (leave_before, make_fixnum (old_position),
-      	       make_fixnum (charpos));
+	       make_fixnum (charpos));
       if (! EQ (leave_after, enter_after) && !NILP (leave_after))
 	calln (leave_after, make_fixnum (old_position),
-      	       make_fixnum (charpos));
+	       make_fixnum (charpos));
 
       if (! EQ (enter_before, leave_before) && !NILP (enter_before))
 	calln (enter_before, make_fixnum (old_position),
-      	       make_fixnum (charpos));
+	       make_fixnum (charpos));
       if (! EQ (enter_after, leave_after) && !NILP (enter_after))
 	calln (enter_after, make_fixnum (old_position),
-      	       make_fixnum (charpos));
+	       make_fixnum (charpos));
     }
 }
 
