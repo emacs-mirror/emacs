@@ -1934,7 +1934,7 @@ manner."
 	  ;;   (prog1 (accept-process-output process nil nil 1)
 	  ;;     (setq ats-eval-tm (+ (- (float-time) t1)
 	  ;;	       ats-eval-tm))))
-	  (when (accept-process-output process nil nil 1)
+	  (when (accept-process-output process)
 	    (when (not size)
 	      ;; First skip all output till the header is read.
 	      (save-excursion
@@ -2430,10 +2430,16 @@ Display the output of the tests executed in a buffer."
 			    (ert-delete-all-tests)
 			    (load ,file-name)
 			    (with-temp-buffer
-			      (let ((standard-output (current-buffer))
-				    (set-message-function
-				     (lambda (message)
-				       (insert message "\n"))))
+			      (let* ((temp-buffer (current-buffer))
+				     (standard-output temp-buffer)
+				     ;; Disable remote tests for the
+				     ;; present...
+				     (ert-remote-temporary-file-directory
+				      null-device)
+				     (set-message-function
+				      (lambda (message)
+					(with-current-buffer temp-buffer
+					  (insert message "\n")))))
 				(let ((noninteractive t))
 				  (ert-run-tests-batch ',selector))
 				(insert "=== Test execution complete ===\n")
@@ -2445,11 +2451,9 @@ Display the output of the tests executed in a buffer."
 		 (insert (cdr rc))
 		 (pop-to-buffer (current-buffer))))))))
 
-(defun ats-run-all-tests (process dir)
-  "Run all Emacs tests defined in DIR on the device represented by PROCESS.
-Upload each and every test defined in DIR to the said device,
-and execute them in sequence.  With a prefix argument, just run
-the tests without uploading them."
+(defun ats-upload-all-tests (process dir)
+  "Upload every Emacs test in DIR to the device represented by PROCESS.
+Upload each and every test defined in DIR to the said device."
   (interactive
    (list (ats-read-connection "Connection: ")
 	 (or ats-emacs-test-directory
@@ -2459,10 +2463,18 @@ the tests without uploading them."
     (unless current-prefix-arg
       (dolist-with-progress-reporter (test tests)
 	  "Uploading tests to device..."
-	(ats-upload-test process dir test)))
+	(ats-upload-test process dir test)))))
+
+(defun ats-run-all-tests (process &optional selector)
+  "Run every Emacs test uploaded to the device represented by PROCESS.
+Execute every Emacs test that has been uploaded to PROCESS,
+subject to SELECTOR, as in `ert-run-tests'."
+  (interactive (list (ats-read-connection "Connection: ")
+		     (and current-prefix-arg (read))))
+  (let ((tests (ats-list-tests process)))
     (dolist-with-progress-reporter (test tests)
 	"Running tests..."
-      (ats-run-test process test))))
+      (ats-run-test process test selector))))
 
 (provide 'test-controller)
 
