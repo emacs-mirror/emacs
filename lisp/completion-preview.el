@@ -32,6 +32,15 @@
 ;; the buffer.  Completion Preview mode continues to update the
 ;; suggestion as you type according to the text around point.
 ;;
+;; Completion Preview mode uses `completion-at-point-functions' to find
+;; relevant completion suggestions, similarly to `completion-at-point'.
+;; You can use `completion-at-point' with your favorite in-buffer
+;; completion interface together with Completion Preview mode, just
+;; invoke `completion-at-point' as usual when you want to see all
+;; currently available completions.  Another reason to invoke
+;; `completion-at-point' is when you want non-prefix completion, since
+;; Completion Preview mode only shows one prefix completion.
+;;
 ;; The commands `completion-preview-next-candidate' and
 ;; `completion-preview-prev-candidate' allow you to cycle the
 ;; completion candidate that the preview suggests.  These commands
