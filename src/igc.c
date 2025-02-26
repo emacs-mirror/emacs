@@ -228,17 +228,21 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
    Initial state is IGC_STATE_INITIAL, until everything needed has been
    successfully initialized.
+   This state also called `clamped' in MPS docs.
 
    State goes from IGC_STATE_INITIAL to IGC_STATE_USABLE_PARKED where
    everything is usable, but GC is not done.
+   This state is also called `parked' in MPS docs.
 
    State then goes from there to IGC_STATE_USABLE when everything is
    fully usable and GCs are done.
+   This state is also called `unclamped' in MPS docs.
 
    It goes from usable to IGC_STATE_DEAD if an error happens or
    something is detected that forces us to terminate the process
    early.  While terminating in this state, fallbacks are implemented
-   that let Emacs do its thing while terminating.  */
+   that let Emacs do its thing while terminating.
+   This state is also called `postmortem' in MPS docs.  */
 
 enum igc_state
 {
@@ -4820,6 +4824,10 @@ make_pool_with_class (struct igc *gc, mps_fmt_t fmt, mps_class_t cls, mps_awl_fi
   return pool;
 }
 
+/* The most important MPS pool type is named
+   AMC (Automatic Mostly Copying).  AMC implements a variant of a
+   copying collector.  Objects allocated from AMC pools can
+   therefore change their memory addresses.  */
 static mps_pool_t
 make_pool_amc (struct igc *gc, mps_fmt_t fmt)
 {
