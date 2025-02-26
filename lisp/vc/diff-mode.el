@@ -2663,7 +2663,8 @@ are relative to the root directory of the VC repository."
                         (if other-buf (set-buffer other-buf)
                           (set-buffer (generate-new-buffer " *diff-other-text*"))
                           (insert (if applied old-text new-text))
-                          (funcall (buffer-local-value 'major-mode buf))
+                          (let ((delay-mode-hooks t))
+                            (funcall (buffer-local-value 'major-mode buf)))
                           (setq other-buf (current-buffer)))
                         (goto-char (point-min))
                         (forward-line (+ =lines -1
