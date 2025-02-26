@@ -295,7 +295,7 @@ non-nil if FILE exists and its contents were successfully inserted."
       (let ((filepos 0))
         (while
 	    (and (< 0 (cadr (insert-file-contents
-			     file nil filepos (cl-incf filepos blocksize))))
+                             file nil filepos (incf filepos blocksize))))
 		 (progn (beginning-of-line)
                         (let ((pos (re-search-forward limit nil 'move)))
                           (when pos (delete-region (match-beginning 0)

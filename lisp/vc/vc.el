@@ -2824,7 +2824,7 @@ or if PL-RETURN is `limit-unsupported'."
     (let ((entries 0))
       (goto-char (point-min))
       (while (re-search-forward log-view-message-re nil t)
-        (cl-incf entries))
+        (incf entries))
       (if (or (stringp limit)
               (< entries limit))
           ;; The log has been printed in full.  Perhaps it started
@@ -3808,7 +3808,7 @@ marked revisions, use those."
                  "text/x-patch"
                  patch-subject
                  "attachment"
-                 (format "%04d-%s" (cl-incf i) filename))))))
+                 (format "%04d-%s" (incf i) filename))))))
         (open-line 2)))))
 
 (defun vc-default-responsible-p (_backend _file)
