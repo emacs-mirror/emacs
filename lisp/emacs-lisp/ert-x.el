@@ -392,6 +392,9 @@ The same keyword arguments are supported as in
     (cond
      ((getenv "REMOTE_TEMPORARY_FILE_DIRECTORY"))
      ((eq system-type 'windows-nt) null-device)
+     ;; Android's built-in shell is far too dysfunctional to support
+     ;; Tramp.
+     ((eq system-type 'android) null-device)
      (t (add-to-list
          'tramp-methods
          '("mock"
