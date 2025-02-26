@@ -373,6 +373,13 @@ Completion Preview mode avoids updating the preview after these commands.")
                   (ensure-list completion-preview-adapt-background-color))))
   completion-preview--overlay)
 
+(defsubst completion-preview--propertize-for-mouse (str)
+  "`propertize' STR, a completion suggestion, with mouse-related properties."
+  (propertize str
+              'mouse-face 'completion-preview-highlight
+              'help-echo "click to accept, scroll to cycle"
+              'keymap completion-preview--mouse-map))
+
 (defsubst completion-preview--get (prop)
   "Return property PROP of the completion preview overlay."
   (overlay-get completion-preview--overlay prop))
@@ -498,9 +505,8 @@ candidates or if there are multiple matching completions and
                                          'completion-preview-exact))
                            common)
       (let ((ov (completion-preview--make-overlay
-                 end (propertize (concat (substring common (- end beg)) suffix)
-                                 'mouse-face 'completion-preview-highlight
-                                 'keymap completion-preview--mouse-map))))
+                 end (completion-preview--propertize-for-mouse
+                      (concat (substring common (- end beg)) suffix)))))
         (overlay-put ov 'completion-preview-beg beg)
         (overlay-put ov 'completion-preview-end end)
         (overlay-put ov 'completion-preview-index 0)
@@ -557,9 +563,8 @@ point, otherwise hide it."
                (string-prefix-p (buffer-substring beg end) cand))
           ;; The previous preview is still applicable, update it.
           (overlay-put (completion-preview--make-overlay
-                        end (propertize (substring cand (- end beg))
-                                        'mouse-face 'completion-preview-highlight
-                                        'keymap completion-preview--mouse-map))
+                        end (completion-preview--propertize-for-mouse
+                             (substring cand (- end beg))))
                        'completion-preview-end end)
         ;; The previous preview is no longer applicable, hide it.
         (completion-preview-active-mode -1))))
@@ -666,10 +671,8 @@ Beyond moving point, FUN should not modify the current buffer."
       (completion-preview--inhibit-update)
       (overlay-put (completion-preview--make-overlay
                     (point)
-                    (propertize
-                     (substring aft (- (point) end))
-                     'mouse-face 'completion-preview-highlight
-                     'keymap completion-preview--mouse-map))
+                    (completion-preview--propertize-for-mouse
+                     (substring aft (- (point) end))))
                    'completion-preview-end (point)))
      ;; If we kept nothing, do nothing.
      )))
@@ -748,9 +751,7 @@ completions list."
           ;; Otherwise, remove the common prefix from the preview.
           (completion-preview--inhibit-update)
           (overlay-put (completion-preview--make-overlay
-                        pos (propertize
-                             suf 'mouse-face 'completion-preview-highlight
-                             'keymap completion-preview--mouse-map))
+                        pos (completion-preview--propertize-for-mouse suf))
                        'completion-preview-end pos))))))
 
 (defun completion-preview-prev-candidate (n)
@@ -792,9 +793,8 @@ prefix argument and defaults to 1."
                                            'completion-preview
                                          'completion-preview-exact))
                            suf)
-      (let ((aft (propertize (substring (concat com suf) (- end beg))
-                             'mouse-face 'completion-preview-highlight
-                             'keymap completion-preview--mouse-map)))
+      (let ((aft (completion-preview--propertize-for-mouse
+                  (substring (concat com suf) (- end beg)))))
         (add-text-properties 0 1 '(cursor 1) aft)
         (overlay-put completion-preview--overlay 'completion-preview-index new)
         (overlay-put completion-preview--overlay 'after-string aft))
