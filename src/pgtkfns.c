@@ -2646,7 +2646,7 @@ unwind_create_tip_frame (Lisp_Object frame)
    when this happens.  */
 
 static Lisp_Object
-x_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, struct frame *p)
+pgtk_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, struct frame *p)
 {
   struct frame *f;
   Lisp_Object frame;
@@ -3264,10 +3264,13 @@ Text larger than the specified size is clipped.  */)
 
       /* Create a frame for the tooltip, and record it in the global
 	 variable tip_frame.  */
-      if (NILP (tip_frame = x_create_tip_frame (FRAME_DISPLAY_INFO (f), parms, f)))
+      if (NILP ((tip_frame = pgtk_create_tip_frame (FRAME_DISPLAY_INFO (f),
+						    parms, f))))
 	/* Creating the tip frame failed.  */
 	return unbind_to (count, Qnil);
     }
+  else
+    tip_window = FRAME_X_WINDOW (XFRAME (tip_frame));
 
   tip_f = XFRAME (tip_frame);
   window = FRAME_ROOT_WINDOW (tip_f);

@@ -66,10 +66,6 @@ static Lisp_Object tip_frame;
 /* The X and Y deltas of the last call to `x-show-tip'.  */
 static Lisp_Object tip_dx, tip_dy;
 
-/* The window-system window corresponding to the frame of the
-   currently visible tooltip.  */
-static NSWindow *tip_window;
-
 /* A timer that hides or deletes the currently visible tooltip when it
    fires.  */
 static Lisp_Object tip_timer;
@@ -2959,10 +2955,7 @@ unwind_create_tip_frame (Lisp_Object frame)
 
   deleted = unwind_create_frame (frame);
   if (EQ (deleted, Qt))
-    {
-      tip_window = NULL;
-      tip_frame = Qnil;
-    }
+    tip_frame = Qnil;
 }
 
 /* Create a frame for a tooltip on the display described by DPYINFO.

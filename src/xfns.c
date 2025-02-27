@@ -9109,12 +9109,12 @@ Text larger than the specified size is clipped.  */)
 		      break;
 		    }
 		  else
-		    tip_last_parms =
-		      calln (Qassq_delete_all, parm, tip_last_parms);
+		    tip_last_parms
+		      = calln (Qassq_delete_all, parm, tip_last_parms);
 		}
 	      else
-		tip_last_parms =
-		  calln (Qassq_delete_all, parm, tip_last_parms);
+		tip_last_parms
+		  = calln (Qassq_delete_all, parm, tip_last_parms);
 	    }
 
 	  /* Now check if every parameter in what is left of
@@ -9166,6 +9166,9 @@ Text larger than the specified size is clipped.  */)
 	/* Creating the tip frame failed.  */
 	return unbind_to (count, Qnil);
     }
+  else
+    /* Required by X11 drag and drop.  */
+    tip_window = FRAME_X_WINDOW (XFRAME (tip_frame));
 
   tip_f = XFRAME (tip_frame);
   window = FRAME_ROOT_WINDOW (tip_f);
