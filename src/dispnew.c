@@ -3293,7 +3293,7 @@ rect_intersect (struct rect *r, struct rect r1, struct rect r2)
   int w = min (r1.x + r1.w, r2.x + r2.w) - x;
   int h = min (r1.y + r1.h, r2.y + r2.h) - y;
 
-  if (w == 0 || h == 0)
+  if (w <= 0 || h <= 0)
     return false;
 
   *r = (struct rect) { .x = x, .y = y, .w = w, .h = h };
