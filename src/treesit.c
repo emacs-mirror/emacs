@@ -3272,7 +3272,7 @@ treesit_initialize_query (Lisp_Object query, const TSLanguage *lang,
 
 DEFUN ("treesit-query-capture",
        Ftreesit_query_capture,
-       Streesit_query_capture, 2, 5, 0,
+       Streesit_query_capture, 2, 6, 0,
        doc: /* Query NODE with patterns in QUERY.
 
 Return a list of (CAPTURE_NAME . NODE).  CAPTURE_NAME is the name
@@ -3289,7 +3289,11 @@ in which the query is executed.  Any matching node whose span overlaps
 with the region between BEG and END are captured, it doesn't have to
 be completely in the region.
 
-If NODE-ONLY is non-nil, return a list of nodes.
+If GROUPED is non-nil, group captures into matches and return a list of
+MATCH, where each MATH is a list of (CAPTURE_NAME . NODE).
+
+If NODE-ONLY is non-nil, return nodes only, and don't include
+CAPTURE_NAME.
 
 Besides a node, NODE can be a parser, in which case the root node of
 that parser is used.  NODE can also be a language symbol, in which case
@@ -3300,7 +3304,8 @@ Signal `treesit-query-error' if QUERY is malformed or something else
 goes wrong.  You can use `treesit-query-validate' to validate and debug
 the query.  */)
   (Lisp_Object node, Lisp_Object query,
-   Lisp_Object beg, Lisp_Object end, Lisp_Object node_only)
+   Lisp_Object beg, Lisp_Object end, Lisp_Object node_only,
+   Lisp_Object grouped)
 {
   if (!(TS_COMPILED_QUERY_P (query)
 	|| CONSP (query) || STRINGP (query)))
@@ -3385,8 +3390,22 @@ the query.  */)
 
   while (ts_query_cursor_next_match (cursor, &match))
     {
-      /* Record the checkpoint that we may roll back to.  */
+      /* Depends on the value of GROUPED, we have two modes of
+         operation.
+
+         If GROUPED is nil (mode 1), we return a list of captures; in
+         this case, we append the captures first, and revert back if the
+         captures don't match.
+
+         If GROUPED is non-nil (mode 2), we return a list of match
+         groups; in this case, we collect captures into a list first,
+         and append to the results after verifying that the group
+         matches.  */
+
+      /* Mode 1: Record the checkpoint that we may roll back to.  */
       prev_result = result;
+      /* Mode 2: Create a list storing captures of this match group.  */
+      Lisp_Object match_group = Qnil;
       /* 1. Get captured nodes.  */
       const TSQueryCapture *captures = match.captures;
       for (int idx = 0; idx < match.capture_count; idx++)
@@ -3408,7 +3427,10 @@ the query.  */)
 	  else
 	    cap = captured_node;
 
-	  result = Fcons (cap, result);
+	  if (NILP (grouped))
+	    result = Fcons (cap, result); /* Mode 1. */
+	  else
+	    match_group = Fcons (cap, match_group); /* Mode 2. */
 	}
       /* 2. Get predicates and check whether this match can be
          included in the result list.  */
@@ -3421,15 +3443,27 @@ the query.  */)
 	}
 
       /* captures_lisp = Fnreverse (captures_lisp); */
+      /* Mode 1.  */
       struct capture_range captures_range = { result, prev_result };
-      bool match = treesit_eval_predicates (captures_range, predicates,
-					    &predicate_signal_data);
+      /* Mode 2.  */
+      if (!NILP (grouped))
+	{
+	  captures_range.start = match_group;
+	  captures_range.end = Qnil;
+	}
+      bool match
+	= treesit_eval_predicates (captures_range, predicates,
+				   &predicate_signal_data);
+
       if (!NILP (predicate_signal_data))
 	break;
 
-      /* Predicates didn't pass, roll back.  */
-      if (!match)
+      /* Mode 1: Predicates didn't pass, roll back.  */
+      if (!match && NILP (grouped))
 	result = prev_result;
+      /* Mode 2: Predicates pass, add this match group.  */
+      if (match && !NILP (grouped))
+	result = Fcons (Fnreverse (match_group), result);
     }
 
   /* Final clean up.  */
