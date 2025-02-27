@@ -258,10 +258,20 @@ language and doesn't match the language of the local parser."
                 ;; finding parser, try local parser first, then global
                 ;; parser.
                 (t
-                 ;; LANG can be nil.
-                 (let* ((lang (treesit-language-at pos))
-                        (local-parser (car (treesit-local-parsers-at
-                                            pos lang)))
+                 ;; LANG can be nil.  We don't want to use the fallback
+                 ;; in `treesit-language-at', so here we call
+                 ;; `treesit-language-at-point-function' directly.
+                 (let* ((lang (and treesit-language-at-point-function
+                                   (funcall treesit-language-at-point-function
+                                            pos)))
+                        (local-parser
+                         ;; Find the local parser with highest
+                         ;; embed-level at point.
+                         (car (seq-sort-by #'treesit-parser-embed-level
+                                           (lambda (a b)
+                                             (> (or a 0) (or b 0)))
+                                           (treesit-local-parsers-at
+                                            pos lang))))
                         (global-parser (car (treesit-parser-list
                                              nil lang)))
                         (parser (or local-parser global-parser)))
