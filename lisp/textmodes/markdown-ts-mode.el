@@ -98,6 +98,7 @@
 
   (setq-local treesit-simple-imenu-settings
               `(("Headings" markdown-ts-imenu-node-p nil markdown-ts-imenu-name-function)))
+  (setq-local treesit-outline-predicate "section")
 
   (when (treesit-ready-p 'markdown)
     (treesit-parser-create 'markdown-inline)

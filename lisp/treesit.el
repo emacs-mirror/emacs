@@ -3664,7 +3664,7 @@ this variable takes priority.")
                          (if backward (seq-max bounds) (seq-min bounds)))))
     closest))
 
-(defun treesit-outline-search (&optional bound move backward looking-at)
+(defun treesit-outline-search (&optional bound move backward looking-at recursive)
   "Search for the next outline heading in the syntax tree.
 For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
 `outline-search-function'."
@@ -3684,7 +3684,7 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
                   (if (bobp) (point) (1- (point)))
                 (pos-eol))))
            (pred (if treesit-aggregated-outline-predicate
-                     (alist-get (treesit-language-at pos)
+                     (alist-get (treesit-language-at (or bob-pos pos))
                                 treesit-aggregated-outline-predicate)
                    treesit-outline-predicate))
            (found (or bob-pos
@@ -3692,7 +3692,7 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
            (closest (treesit-closest-parser-boundary pos backward)))
 
       ;; Handle multi-language modes
-      (if (and closest
+      (if (and closest (not recursive)
                (or
                 ;; Possibly was inside the local parser, and when can't find
                 ;; more matches inside it then need to go over the closest
@@ -3707,7 +3707,7 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
             (goto-char (if backward
                            (max (point-min) (1- closest))
                          (min (point-max) (1+ closest))))
-            (treesit-outline-search bound move backward))
+            (treesit-outline-search bound move backward nil 'recursive))
 
         (if found
             (if (or (not bound) (if backward (>= found bound) (<= found bound)))
