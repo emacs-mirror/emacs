@@ -714,31 +714,56 @@ struct buffer
 
 struct marker_it
 {
-#ifdef HAVE_MPS
-  Lisp_Object markers, obj;
-  ptrdiff_t i;
+# ifdef HAVE_MPS
+  struct Lisp_Vector *v;
+  Lisp_Object obj;
+  ptrdiff_t slot;
 # else
   struct Lisp_Marker *marker;
 #endif
 };
 
-#ifdef HAVE_MPS
+# ifdef HAVE_MPS
+
+enum
+{
+  IGC_IDX_FREE_LIST = 0,
+  IGC_IDX_HEAD = 1,
+  IGC_IDX_START = 2,
+
+  IGC_OFF_NEXT = 0,
+  IGC_OFF_PREV = 1,
+  IGC_OFF_MARKER = 2,
+  IGC_MA_NSLOTS = 3,
+};
+
+INLINE int
+slot_to_index (int slot)
+{
+  return (slot * IGC_MA_NSLOTS) + IGC_IDX_START;
+}
+
+#define IGC_MA_FREE_LIST(v) (v)->contents[IGC_IDX_FREE_LIST]
+#define IGC_MA_HEAD(v) (v)->contents[IGC_IDX_HEAD]
+
+#define IGC_MA_MARKER(v, slot) (v)->contents[slot_to_index (slot) + IGC_OFF_MARKER]
+#define IGC_MA_NEXT(v, slot) (v)->contents[slot_to_index (slot) + IGC_OFF_NEXT]
+#define IGC_MA_PREV(v, slot) (v)->contents[slot_to_index (slot) + IGC_OFF_PREV]
+
+#define IGC_MA_CAPACITY(v) (((v)->header.size - IGC_IDX_START) / IGC_MA_NSLOTS)
+
 INLINE struct marker_it
 marker_it_init (struct buffer *b)
 {
-  Lisp_Object v = BUF_MARKERS (b);
-  if (!VECTORP (v))
-    return (struct marker_it){ .obj = Qnil };
-
-  Lisp_Object obj = Qnil;
-  for (ptrdiff_t i = 1; i < ASIZE (v); ++i)
+  if (VECTORP (BUF_MARKERS (b)))
     {
-      obj = AREF (v, i);
-      if (MARKERP (obj))
-	return (struct marker_it) { .i = i, .markers = v, .obj = obj };
+      struct Lisp_Vector *v = XVECTOR (BUF_MARKERS (b));
+      ptrdiff_t slot = XFIXNUM (IGC_MA_HEAD (v));
+      if (slot >= 0)
+	return (struct marker_it)
+	  { .slot = slot, .v = v, .obj = IGC_MA_MARKER (v, slot) };
     }
-
-  return (struct marker_it) { .obj = Qnil };
+  return (struct marker_it){ .obj = Qnil };
 }
 
 INLINE bool
@@ -750,16 +775,8 @@ marker_it_valid (struct marker_it *it)
 INLINE void
 marker_it_next (struct marker_it *it)
 {
-  it->obj = Qnil;
-  for (++it->i; it->i < ASIZE (it->markers); ++it->i)
-    {
-      Lisp_Object m = AREF (it->markers, it->i);
-      if (MARKERP (m))
-	{
-	  it->obj = m;
-	  break;
-	}
-    }
+  it->slot = XFIXNUM (IGC_MA_NEXT (it->v, it->slot));
+  it->obj = it->slot < 0 ? Qnil : IGC_MA_MARKER (it->v, it->slot);
 }
 
 INLINE struct Lisp_Marker *

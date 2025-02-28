@@ -2135,21 +2135,39 @@ fix_vectorlike (mps_ss_t ss, struct Lisp_Vector *v)
   return MPS_RES_OK;
 }
 
+static void
+unchain (struct Lisp_Vector *v, int slot)
+{
+  IGC_MA_MARKER (v, slot) = IGC_MA_FREE_LIST (v);
+  IGC_MA_FREE_LIST (v) = make_fixnum (slot);
+
+  int prev = XFIXNUM (IGC_MA_PREV (v, slot));
+  if (prev >= 0)
+    IGC_MA_NEXT (v, prev) = IGC_MA_NEXT (v, slot);
+  else
+    IGC_MA_HEAD (v) = IGC_MA_NEXT (v, slot);
+
+  int next = XFIXNUM (IGC_MA_NEXT (v, slot));
+  if (next >= 0)
+    IGC_MA_PREV (v, next) = IGC_MA_PREV (v, slot);
+}
+
 static mps_res_t
 fix_marker_vector (mps_ss_t ss, struct Lisp_Vector *v)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    for (size_t i = 0, n = vector_size (v); i < n; ++i)
+    for (ptrdiff_t slot = XFIXNUM (IGC_MA_HEAD (v)), next;
+	 slot >= 0; slot = next)
       {
-	Lisp_Object old = v->contents[i];
-	IGC_FIX12_OBJ (ss, &v->contents[i]);
+	next = XFIXNUM (IGC_MA_NEXT (v, slot));
+
+	Lisp_Object old = IGC_MA_MARKER (v, slot);
+	IGC_FIX12_OBJ (ss, &IGC_MA_MARKER (v, slot));
+
 	/* FIXME/igc: this is right for marker vectors only.  */
-	if (NILP (v->contents[i]) && !NILP (old))
-	  {
-	    v->contents[i] = v->contents[0];
-	    v->contents[0] = make_fixnum (i);
-	  }
+	if (NILP (IGC_MA_MARKER (v, slot)) && !NILP (old))
+	  unchain (v, slot);
       }
   }
   MPS_SCAN_END (ss);
@@ -4524,18 +4542,39 @@ alloc_marker_vector (ptrdiff_t len, Lisp_Object init)
 static Lisp_Object
 larger_marker_vector (Lisp_Object v)
 {
-  igc_assert (NILP (v) || (VECTORP (v) && XFIXNUM (AREF (v, 0)) < 0));
-  ptrdiff_t old_len = NILP (v) ? 0 : ASIZE (v);
-  ptrdiff_t new_len = max (2, 2 * old_len);
-  Lisp_Object new_v = alloc_marker_vector (new_len, Qnil);
-  ptrdiff_t i = 0;
+  igc_assert (NILP (v)
+	      || (VECTORP (v)
+		  && XFIXNUM (IGC_MA_FREE_LIST (XVECTOR (v))) < 0));
+  ptrdiff_t old_nslots = NILP (v) ? 0 : IGC_MA_CAPACITY (XVECTOR (v));
+  ptrdiff_t new_nslots = max (4, 2 * old_nslots);
+  ptrdiff_t alloc_len = new_nslots * IGC_MA_NSLOTS + IGC_IDX_START;
+  Lisp_Object new_v = alloc_marker_vector (alloc_len, Qnil);
+  struct Lisp_Vector *xnew_v = XVECTOR (new_v);
+  ptrdiff_t slot = 0;
   if (VECTORP (v))
-    for (i = 1; i < ASIZE (v); ++i)
-      ASET (new_v, i, AREF (v, i));
-  for (; i < ASIZE (new_v) - 1; ++i)
-    ASET (new_v, i, make_fixnum (i + 1));
-  ASET (new_v, i, make_fixnum (-1));
-  ASET (new_v, 0, make_fixnum (NILP (v) ? 1 : ASIZE (v)));
+    {
+      struct Lisp_Vector *xv = XVECTOR (v);
+      IGC_MA_FREE_LIST (xnew_v) = IGC_MA_FREE_LIST (xv);
+      IGC_MA_HEAD (xnew_v) = IGC_MA_HEAD (xv);
+      for (slot = 0; slot < IGC_MA_CAPACITY (xv); ++slot)
+	{
+	  IGC_MA_MARKER (xnew_v, slot) = IGC_MA_MARKER (xv, slot);
+	  IGC_MA_NEXT (xnew_v, slot) = IGC_MA_NEXT (xv, slot);
+	  IGC_MA_PREV (xnew_v, slot) = IGC_MA_PREV (xv, slot);
+	}
+    }
+  else
+    IGC_MA_HEAD (xnew_v) = make_fixnum (-1);
+
+  for (; slot < IGC_MA_CAPACITY (xnew_v) - 1; ++slot)
+    {
+      IGC_MA_MARKER (xnew_v, slot) = make_fixnum (slot + 1);
+      IGC_MA_NEXT (xnew_v, slot) = make_fixnum (-1);
+      IGC_MA_PREV (xnew_v, slot) = make_fixnum (-1);
+    }
+
+  IGC_MA_MARKER (xnew_v, slot) = make_fixnum (-1);
+  IGC_MA_FREE_LIST (xnew_v) = make_fixnum (old_nslots);
   return new_v;
 }
 
@@ -4544,15 +4583,24 @@ igc_add_marker (struct buffer *b, struct Lisp_Marker *m)
 {
   Lisp_Object v = BUF_MARKERS (b);
   igc_assert (NILP (v) || VECTORP (v));
-  ptrdiff_t next_free = NILP (v) ? -1 : XFIXNUM (AREF (v, 0));
-  if (next_free < 0)
+  struct Lisp_Vector *xv = NILP (v) ? NULL : XVECTOR (v);
+  ptrdiff_t slot = NILP (v) ? -1 : XFIXNUM (IGC_MA_FREE_LIST (xv));
+  if (slot < 0)
     {
       v = BUF_MARKERS (b) = larger_marker_vector (v);
-      next_free = XFIXNUM (AREF (v, 0));
+      xv = XVECTOR (v);
+      slot = XFIXNUM (IGC_MA_FREE_LIST (xv));
     }
-  ASET (v, 0, AREF (v, next_free));
-  ASET (v, next_free, make_lisp_ptr (m, Lisp_Vectorlike));
-  m->index = next_free;
+
+  IGC_MA_FREE_LIST (xv) = IGC_MA_MARKER (xv, slot);
+  IGC_MA_MARKER (xv, slot) = make_lisp_ptr (m, Lisp_Vectorlike);
+  IGC_MA_NEXT (xv, slot) = IGC_MA_HEAD (xv);
+  IGC_MA_PREV (xv, slot) = make_fixnum (-1);
+  IGC_MA_HEAD (xv) = make_fixnum (slot);
+  ptrdiff_t next = XFIXNUM (IGC_MA_NEXT (xv, slot));
+  if (next >= 0)
+    IGC_MA_PREV (xv, next) = make_fixnum (slot);
+  m->slot = slot;
   m->buffer = b;
 }
 
@@ -4561,11 +4609,12 @@ igc_remove_marker (struct buffer *b, struct Lisp_Marker *m)
 {
   Lisp_Object v = BUF_MARKERS (b);
   igc_assert (VECTORP (v));
-  igc_assert (m->index >= 1 && m->index < ASIZE (v));
-  igc_assert (MARKERP (AREF (v, m->index)) && XMARKER (AREF (v, m->index)) == m);
-  ASET (v, m->index, AREF (v, 0));
-  ASET (v, 0, make_fixnum (m->index));
-  m->index = -1;
+  struct Lisp_Vector *xv = XVECTOR (v);
+  igc_assert (m->slot >= 0 && m->slot < IGC_MA_CAPACITY (xv));
+  igc_assert (MARKERP (IGC_MA_MARKER (xv, m->slot))
+	      && XMARKER (IGC_MA_MARKER (xv, m->slot)) == m);
+  unchain (xv, m->slot);
+  m->slot = -1;
   m->buffer = NULL;
 }
 
@@ -4575,9 +4624,10 @@ igc_remove_all_markers (struct buffer *b)
   Lisp_Object v = BUF_MARKERS (b);
   if (VECTORP (v))
     {
-      for (ptrdiff_t i = 1; i < ASIZE (v); ++i)
-	if (MARKERP (AREF (v, i)))
-	  XMARKER (AREF (v, i))->buffer = NULL;
+      struct Lisp_Vector *xv = XVECTOR (v);
+      for (ptrdiff_t slot = 0; slot < IGC_MA_CAPACITY (xv); ++slot)
+	if (MARKERP (IGC_MA_MARKER (xv, slot)))
+	  XMARKER (IGC_MA_MARKER (xv, slot))->buffer = NULL;
       BUF_MARKERS (b) = Qnil;
     }
 }
