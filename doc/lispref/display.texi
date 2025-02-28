@@ -8585,6 +8585,7 @@ The newline character (character code 10) has a special effect: it
 ends the preceding line and starts a new line.
 
 @cindex ASCII control characters
+@cindex non-printable ASCII characters
 @item
 The non-printable @dfn{@acronym{ASCII} control characters}---character
 codes 0 through 31, as well as the @key{DEL} character (character code

@@ -1608,6 +1608,22 @@ with L, LRE, or LRO Unicode bidi character type.")
  (lambda (range _ignore) (set-char-table-range char-width-table range 2))
  'arabic-2-column)
 
+
+;;; Setting printable-chars.  The default is nil for control characters,
+;;; otherwise t.
+;;; The table is initialized in character.c with a crude approximation,
+;;; which considers any non-ASCII character above U+009F to be printable.
+;;; Note: this should be consistent with [:print:] character class,
+;;; see character.c:printablep.
+(let ((table (unicode-property-table-internal 'general-category)))
+    (when table
+      (map-char-table (lambda (key val)
+                        ;; Cs: Surrogates
+                        ;; Cn: Unassigned
+                        (when (memq val '(Cs Cn))
+                          (set-char-table-range printable-chars key nil)))
+                      table)))
+
 ;; Internal use only.
 ;; Alist of locale symbol vs charsets.  In a language environment
 ;; corresponding to the locale, width of characters in the charsets is

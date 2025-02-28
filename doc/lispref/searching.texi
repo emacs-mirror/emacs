@@ -622,6 +622,7 @@ This matches any character whose code is in the range 0--31.
 @item [:digit:]
 This matches @samp{0} through @samp{9}.  Thus, @samp{[-+[:digit:]]}
 matches any digit, as well as @samp{+} and @samp{-}.
+@cindex graphic characters
 @item [:graph:]
 This matches graphic characters---everything except spaces,
 @acronym{ASCII} and non-@acronym{ASCII} control characters,
@@ -638,6 +639,7 @@ one.
 This matches any multibyte character (@pxref{Text Representations}).
 @item [:nonascii:]
 This matches any non-@acronym{ASCII} character.
+@cindex printable characters
 @item [:print:]
 This matches any printing character---either spaces or graphic
 characters matched by @samp{[:graph:]}.
