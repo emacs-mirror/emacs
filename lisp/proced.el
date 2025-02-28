@@ -1423,10 +1423,12 @@ a certain refinement, consider defining a new filter in `proced-filter-alist'."
 
 (defun proced-< (num1 num2)
   "Return t if NUM1 less than NUM2.
-Return `equal' if NUM1 equals NUM2.  Return nil if NUM1 greater than NUM2."
-  (if (= num1 num2)
-      'equal
-    (< num1 num2)))
+Return `equal' if NUM1 equals NUM2.  Return nil if NUM1 greater than NUM2.
+If either NUM1 or NUM2 is not a number, return nil."
+  (when (and (numberp num1) (numberp num2))
+    (if (= num1 num2)
+        'equal
+      (< num1 num2))))
 
 (defun proced-string-lessp (s1 s2)
   "Return t if string S1 is less than S2 in lexicographic order.
