@@ -120,9 +120,9 @@
   :version "22.1"
   :link '(info-link :tag "Tramp manual" "(tramp) Top"))
 
-;; Maybe we need once a real Tramp mode, with key bindings etc.
+;; On MS-DOS, there is no process support.
 ;;;###autoload
-(defvar tramp-mode t
+(defvar tramp-mode (not (eq system-type 'ms-dos))
   "Whether Tramp is enabled.
 If it is set to nil, all remote file names are used literally.  Don't
 set it manually, use `inhibit-remote-files' or `without-remote-files'
