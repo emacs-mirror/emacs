@@ -1247,9 +1247,8 @@ matching node whose span overlaps with the region between @var{beg}
 and @var{end} is captured; it doesn't have to be completely contained
 in the region.
 
-If @var{grouped} is non-@code{nil}, instead of returning a list of
-@w{@code{(@var{capture_name} . @var{node})}}, this function returns a
-list of list of it.  The grouping is determined by @var{query}.
+If @var{grouped} is non-@code{nil}, this function returns a grouped list
+of lists of captured nodes.  The grouping is determined by @var{query}.
 Captures in the same match of a pattern in @var{query} are grouped
 together.
 

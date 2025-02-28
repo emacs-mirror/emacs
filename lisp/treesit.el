@@ -153,7 +153,7 @@ of max unsigned 32-bit value for byte offsets into buffer text."
 
 ;;; Parser API supplement
 
-;; The primary parser will be access frequently (after each re-parse,
+;; The primary parser will be accessed frequently (after each re-parse,
 ;; before redisplay, etc, see
 ;; `treesit--font-lock-mark-ranges-to-fontify'), so we don't want to
 ;; allow it to be a callback function which returns the primary parser
@@ -559,8 +559,8 @@ respective offset values are added to each (START . END) range
 being returned.  Capture names generally don't matter, but names
 that starts with an underscore are ignored.
 
-RANGE-FN, if non-nil, is a function that takes a node and OFFSET, and
-returns the ranges to use for that node."
+RANGE-FN, if non-nil, is a function that takes a NODE and OFFSET, and
+returns the ranges to use for that NODE."
   (let ((offset-left (or (car offset) 0))
         (offset-right (or (cdr offset) 0)))
     (cl-loop for capture
@@ -585,8 +585,8 @@ Query NODE with QUERY, the captured nodes generates ranges.  Nodes
 captured by the `@language' capture name are converted to language
 symbols with LANGUAGE-FN.
 
-RANGE-FN, if non-nil, is a function that takes a node and OFFSET, and
-returns the ranges to use for that node.
+RANGE-FN, if non-nil, is a function that takes a NODE and OFFSET, and
+returns the ranges to use for that NODE.
 
 BEG, END, OFFSET are the same as in `treesit-query-range'."
   (let ((offset-left (or (car offset) 0))
@@ -644,13 +644,13 @@ using a single parser for all the ranges.  If OFFSET is non-nil, it
 should be a cons of numbers (START-OFFSET . END-OFFSET), where the start
 and end offset are added to each queried range to get the result ranges.
 
-If RANGE-FN is non-nil, it should be a function, Emacs uses this
+If RANGE-FN is non-nil, it should be a function; Emacs uses this
 function to compute the ranges to use for the embedded parser.  The
 function is passed the captured node and OFFSET, and should return a
 list of ranges, where each range is a cons of the start and end
 position.
 
-Capture names generally don't matter, but names that starts with
+Capture names generally don't matter, but names that start with
 an underscore are ignored.
 
 QUERY can also be a function, in which case it is called with 2
@@ -672,8 +672,8 @@ like this:
 Each QUERY is a tree-sitter query in either the string,
 s-expression or compiled form.
 
-Capture names generally don't matter, but names that starts with an
-underscore are ignored.  And `@language' is reserved.
+Capture names generally don't matter, but names that start with an
+underscore are ignored.  The `@language' capture name is reserved.
 
 For each QUERY, :KEYWORD and VALUE pairs add meta information to
 it.  For example,
@@ -690,8 +690,8 @@ this way: Emacs queries QUERY in the host language's parser,
 computes the ranges spanned by the captured nodes, and applies
 these ranges to parsers for the embedded language.
 
-If the embed language is dynamic, then a function in place of the embed
-language symbol.  This function will by passed a node and should return
+If the embed language is dynamic, then `:embed' can specify a
+function.  This function will by passed a node and should return
 the language symbol for the embedded code block.  The node is the one
 captured from QUERY with capture name `@language'.  Also make sure the
 code block and language capture are in the same match group.
@@ -896,10 +896,10 @@ it."
         (delete-overlay ov)))))
 
 (defsubst treesit--parser-at-level (parsers level &optional include-null)
-  "Filter for parsers in PARSERS that has embed level equal to LEVEL.
+  "Filter for parsers in PARSERS that have embed level equal to LEVEL.
 
-If INCLUDE-NULL is non-nil, also include parsers that has a nil embed
-level."
+If INCLUDE-NULL is non-nil, also include parsers whose embed level
+is nil."
   (seq-filter (lambda (parser)
                 (or (eq (treesit-parser-embed-level parser) level)
                     (and include-null
@@ -918,7 +918,7 @@ Use QUERY to get the ranges, and set ranges for embedded parsers to
 those ranges.  HOST-PARSER and QUERY must match.
 
 EMBED-LANG is either a language symbol or a function that takes a node
-and return a language symbol.
+and returns a language symbol.
 
 EMBED-LEVEL is the embed level for the local parsers being created or
 updated.  When looking for existing local parsers, only look for parsers
@@ -928,7 +928,7 @@ level.
 RANGE-FN, if non-nil, is a function that takes a node and OFFSET, and
 returns the ranges to use for that node.
 
-Return updated parsers in a list."
+Return updated parsers as a list."
   (let ((ranges-by-lang
          (if (functionp embed-lang)
              (treesit-query-range-by-language
@@ -998,7 +998,7 @@ for the local parser.
 RANGE-FN, if non-nil, is a function that takes a node and OFFSET, and
 returns the ranges to use for that node.
 
-Return the created local parsers in a list."
+Return the created local parsers as a list."
   ;; Update range.
   (let ((ranges-by-lang
          (if (functionp embedded-lang)
@@ -1050,8 +1050,8 @@ Return the created local parsers in a list."
   "Given a HOST-PARSER, update ranges between BEG and END.
 
 Go over each settings in SETTINGS, try to create or update the embedded
-language in that setting.  Return the created or updated embedded
-language parsers in a list.
+language in that setting.  Return the list of the created or updated
+embedded language parsers.
 
 EMBED-LEVEL is the embed level for the embedded parser being created or
 updated.  When looking for existing embedded parsers, only look for

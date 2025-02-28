@@ -64,12 +64,13 @@ struct Lisp_TS_Parser
      = 0, end_byte = UINT32_MAX).  */
   Lisp_Object last_set_ranges;
   /* Parsers for embedded code blocks will have a non-zero embed level.
-     The primary parser has level 0, and each layer of embedded parser
-     gets +1 level.  The embed level can be either a non-negative
-     integer or nil.  Every parser created by treesit-parser-create
-     starts with a nil level.  If the value is nil, that means the range
-     functions (treesit-update-ranges and friends) haven't touched this
-     parser yet, and this parser isn't part of the embed parser tree.  */
+     The primary parser has level 0, and each additional layer of parser
+     embedding increments the leve by 1.  The embed level can be either
+     a non-negative integer or nil.  Every parser created by
+     'treesit-parser-create' starts with a nil level.  If the value is
+     nil, that means the range functions (treesit-update-ranges and
+     friends) haven't touched this parser yet, and this parser isn't
+     part of the embed parser tree.  */
   Lisp_Object embed_level;
   /* Some comments: Technically you could calculate embed_level by
      following parent_node, but parent_node might be outdated so it's a
@@ -80,7 +81,7 @@ struct Lisp_TS_Parser
      for a parser will be useful beyond this.  And we can always convert
      these to properties later, but not vice versa.  */
   /* When an embedded parser is created, it's usually based on a node in
-     the host parser.  This field saves that node so it possible to
+     the host parser.  This field saves that node so it's possible to
      climb up and out of the embedded parser into the host parser.  Note
      that the range of the embedded parser doesn't have to match that of
      the parent node.  */

@@ -1827,8 +1827,8 @@ DEFUN ("treesit-parser-embed-level",
 
 The embed level can be either nil or a non-negative integer.  A value of
 nil means the parser isn't part of the embedded parser tree.  The
-primary parser has embed level 0, from it, each layer of embedded parser
-has +1 embed level.  */)
+primary parser has embed level 0, and each additional layer of parser
+embedding increments the embed level by 1.  */)
   (Lisp_Object parser)
 {
   treesit_check_parser (parser);
@@ -1839,7 +1839,9 @@ has +1 embed level.  */)
 DEFUN ("treesit-parser-set-embed-level",
        Ftreesit_parser_set_embed_level, Streesit_parser_set_embed_level,
        2, 2, 0,
-       doc: /* Set the embed level for PARSER to LEVEL.  */)
+       doc: /* Set the embed level for PARSER to LEVEL.
+LEVEL can be nil, for a parser that is not part of an embedded parser
+tree; otherwise it must be a non-negative integer.  */)
   (Lisp_Object parser, Lisp_Object level)
 {
   treesit_check_parser (parser);
@@ -1859,7 +1861,7 @@ DEFUN ("treesit-parser-parent-node",
        1, 1, 0,
        doc: /* Return PARSER's parent node, if one exists.
 
-Only embeded local parser can have parent node.  When Emacs uses a node
+Only embeded local parsers can have parent node.  When Emacs uses a node
 in the host parser to create this local parser, that node is considered
 the parent node of the local parser.  */)
   (Lisp_Object parser)
@@ -1871,7 +1873,7 @@ the parent node of the local parser.  */)
 DEFUN ("treesit-parser-set-parent-node",
        Ftreesit_parser_set_parent_node, Streesit_parser_set_parent_node,
        2, 2, 0,
-       doc: /* Return PARSER's parent node to NODE.  */)
+       doc: /* Make NODE be the parent node of PARSER.  */)
   (Lisp_Object parser, Lisp_Object node)
 {
   treesit_check_parser (parser);
@@ -3289,8 +3291,9 @@ in which the query is executed.  Any matching node whose span overlaps
 with the region between BEG and END are captured, it doesn't have to
 be completely in the region.
 
-If GROUPED is non-nil, group captures into matches and return a list of
-MATCH, where each MATH is a list of (CAPTURE_NAME . NODE).
+If GROUPED is non-nil, ther function groups the returned list of
+captures into matches and return a list of MATCH, where each MATCH is
+a list of the form (CAPTURE_NAME . NODE).
 
 If NODE-ONLY is non-nil, return nodes only, and don't include
 CAPTURE_NAME.
