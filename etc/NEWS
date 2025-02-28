@@ -1470,8 +1470,8 @@ strings in a variety of formats, for example "6 months 3 weeks" or "5m
 ** The function 'purecopy' is now an obsolete alias for 'identity'.
 
 ** New function 'native-compile-directory'.
-This function natively-compiles all Lisp files in a directory and in its
-sub-directories, recursively, which were not already natively-compiled.
+This function natively compiles all Lisp files in a directory and in its
+sub-directories, recursively, which were not already natively compiled.
 
 ---
 ** New function 'color-blend'.

@@ -5503,7 +5503,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
     case RELOC_NATIVE_SUBR:
       {
 	/* When resurrecting from a dump given non all the original
-	   native compiled subrs may be still around we can't rely on
+	   native-compiled subrs may be still around we can't rely on
 	   a 'top_level_run' mechanism, we revive them one-by-one
 	   here.  */
 	struct Lisp_Subr *subr = dump_ptr (dump_base, reloc_offset);

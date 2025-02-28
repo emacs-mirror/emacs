@@ -518,7 +518,7 @@ load_gccjit_if_necessary (bool mandatory)
 #endif
 #define SETJMP_NAME SETJMP
 
-/* Max number function importable by native compiled code.  */
+/* Max number function importable by native-compiled code.  */
 #define F_RELOC_MAX_SIZE 1600
 
 typedef struct {
@@ -5556,7 +5556,7 @@ syms_of_comp (void)
     doc: /* If non-nil, compile loaded .elc files asynchronously.
 
 After compilation, each function definition is updated to use the
-natively-compiled one.  */);
+natively compiled one.  */);
   native_comp_jit_compilation = true;
 
   DEFSYM (Qnative_comp_speed, "native-comp-speed");
@@ -5726,7 +5726,7 @@ For internal use.  */);
   Vcomp_eln_to_el_h = CALLN (Fmake_hash_table, QCtest, Qequal);
 
   DEFVAR_LISP ("native-comp-eln-load-path", Vnative_comp_eln_load_path,
-    doc: /* List of directories to look for natively-compiled *.eln files.
+    doc: /* List of directories to look for native-compiled *.eln files.
 
 The *.eln files are actually looked for in a version-specific
 subdirectory of each directory in this list.  That subdirectory
@@ -5746,11 +5746,11 @@ Emacs.  */);
 	       Vnative_comp_enable_subr_trampolines,
     doc: /* If non-nil, enable generation of trampolines for calling primitives.
 Trampolines are needed so that Emacs respects redefinition or advice of
-primitive functions when they are called from Lisp code natively-compiled
+primitive functions when they are called from native-compiled Lisp code
 at `native-comp-speed' of 2.
 
 By default, the value is t, and when Emacs sees a redefined or advised
-primitive called from natively-compiled Lisp, it generates a trampoline
+primitive called from native-compiled Lisp, it generates a trampoline
 for it on-the-fly.
 
 If the value is a file name (a string), it specifies the directory in
@@ -5762,8 +5762,8 @@ When this variable is nil, generation of trampolines is disabled.
 Disabling the generation of trampolines, when a trampoline for a redefined
 or advised primitive is not already available from previous compilations,
 means that such redefinition or advice will not have effect when calling
-primitives from natively-compiled Lisp code.  That is, calls to primitives
-without existing trampolines from natively-compiled Lisp will behave as if
+primitives from native-compiled Lisp code.  That is, calls to primitives
+without existing trampolines from native-compiled Lisp will behave as if
 the primitive was called directly from C, and will ignore its redefinition
 and advice.  */);
 

@@ -909,7 +909,7 @@ install-etc:
 	  done ; \
 	done
 
-### Install native compiled Lisp files.
+### Install native-compiled Lisp files.
 install-eln: lisp
 ifeq ($(HAVE_NATIVE_COMP),yes)
 	umask 022 ; \

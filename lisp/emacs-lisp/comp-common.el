@@ -56,7 +56,7 @@ This is intended for debugging the compiler itself.
   "Primitive functions to exclude from trampoline optimization.
 
 Primitive functions included in this list will not be called
-directly by the natively-compiled code, which makes trampolines for
+directly by the native-compiled code, which makes trampolines for
 those primitives unnecessary in case of function redefinition/advice."
   :type '(repeat symbol)
   :version "30.1")
@@ -520,7 +520,7 @@ itself."
             ;; Declared Lisp function
             (setf type-spec delc-type)
           (when (native-comp-function-p f)
-            ;; Native compiled inferred
+            ;; Natively compiled inferred
             (setf kind 'inferred
                   type-spec (subr-type f))))))
     (when type-spec

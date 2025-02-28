@@ -223,7 +223,7 @@ that is not in the form of ELisp source code but something like
 machine code or byte code instead.  More specifically it returns
 @code{t} if the function is built-in (a.k.a.@: ``primitive'',
 @pxref{What Is a Function}), or byte-compiled (@pxref{Byte
-Compilation}), or natively-compiled (@pxref{Native Compilation}), or
+Compilation}), or native-compiled (@pxref{Native Compilation}), or
 a function loaded from a dynamic module (@pxref{Dynamic Modules}).
 @end defun
 
@@ -2868,7 +2868,7 @@ For description of additional types, see @ref{Lisp Data Types}).
 
 Declaring a function with an incorrect type produces undefined behavior
 and could lead to unexpected results or might even crash Emacs when
-natively-compiled code is loaded, if it was compiled with
+native-compiled code is loaded, if it was compiled with
 @code{compilation-safety} level of zero (@pxref{compilation-safety}).
 Note also that when redefining (or advising) a type-declared function,
 the replacement should respect the original signature to avoid such

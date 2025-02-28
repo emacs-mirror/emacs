@@ -5179,7 +5179,7 @@ if test "${with_native_compilation}" != "no"; then
     LIBS=$SAVE_LIBS
 fi
 AC_DEFINE_UNQUOTED([NATIVE_ELISP_SUFFIX], [".eln"],
-  [System extension for native compiled elisp])
+  [System extension for native-compiled elisp])
 AC_SUBST([HAVE_NATIVE_COMP])
 AC_SUBST([LIBGCCJIT_CFLAGS])
 AC_SUBST([LIBGCCJIT_LIBS])

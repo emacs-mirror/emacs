@@ -3112,7 +3112,7 @@ This is to `put' what `defalias' is to `fset'."
 (declare-function comp-el-to-eln-rel-filename "comp.c")
 
 (defun locate-eln-file (eln-file)
-  "Locate a natively-compiled ELN-FILE by searching its load path.
+  "Locate a native-compiled ELN-FILE by searching its load path.
 This function looks in directories named by `native-comp-eln-load-path'."
   (declare (important-return-value t))
   (or (locate-file-internal (concat comp-native-version-dir "/" eln-file)

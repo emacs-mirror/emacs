@@ -32,7 +32,7 @@ It is no longer enough to specify 'bindir=DIRECTORY' on the command
 line of the "make install" command.
 
 The reason for this new requirement is that Emacs needs to locate at
-startup the directory with its "*.eln" natively-compiled files for the
+startup the directory with its "*.eln" natively compiled files for the
 preloaded Lisp packages, and the relative name of that directory needs
 therefore to be recorded in the executable as part of the build.
 

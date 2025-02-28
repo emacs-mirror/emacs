@@ -3487,7 +3487,7 @@ These are like 'line-end-position' and 'line-beginning-position'
 
 ** New function 'compiled-function-p'.
 This returns non-nil if its argument is either a built-in, or a
-byte-compiled, or a natively-compiled function object, or a function
+byte-compiled, or a native-compiled function object, or a function
 loaded from a dynamic module.
 
 ** 'deactivate-mark' can have new value 'dont-save'.
@@ -3580,7 +3580,7 @@ things to be saved.
 ** New function 'string-equal-ignore-case'.
 This compares strings ignoring case differences.
 
-** 'symbol-file' can now report natively-compiled ".eln" files.
+** 'symbol-file' can now report native-compiled ".eln" files.
 If Emacs was built with native-compilation enabled, Lisp programs can
 now call 'symbol-file' with the new optional 3rd argument non-nil to
 request the name of the ".eln" file which defined a given symbol.
