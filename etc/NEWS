@@ -184,6 +184,17 @@ accepts a comma-separated list.  The prompt format can include the
 separator description and the separator string, which are both stored as
 text properties of the 'crm-separator' regular expression.
 
+---
+*** New user option 'completion-preview-sort-function'.
+This option controls how Completion Preview mode sorts completion
+candidates.  If you use this mode together with an in-buffer completion
+popup interface, such as the interfaces that the GNU ELPA packages Corfu
+and Company provide, you can set this option to the same sort function
+that your popup interface uses for a more integrated experience.
+
+Note: 'completion-preview-sort-function' was present also in Emacs 30.1,
+albeit as a variable, not a user option.
+
 ** Windows
 
 +++
