@@ -1705,6 +1705,12 @@ where a userspace executable loader is required, has been optimized on
 systems featuring Linux 3.5.0 and above.
 
 ---
+** It is now possible to read GUI events from non-main Lisp threads on Android.
+Put differently, this enables input events to be read and recursive
+editing sessions to be started from non-main threads.  The only platform
+where this remains unsupported is Nextstep (GNUstep or Mac OS).
+
+---
 ** 'NSSpeechRecognitionUsageDescription' now included in "Info.plist" (macOS).
 Should Emacs (or any built-in shell) invoke a process using macOS speech
 recognition APIs, the relevant permission dialog is now displayed, thus
