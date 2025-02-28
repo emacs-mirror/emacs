@@ -81,6 +81,7 @@ if any, or the value of EXP."
               (eval (let ((sv (get symbol 'saved-value)))
                       (if sv (car sv) exp)))))))
 
+(declare-function widget-apply "wid-edit" (widget property &rest args))
 (defun custom-initialize-reset (symbol exp)
   "Initialize SYMBOL based on EXP.
 Set the symbol, using its `:set' function (or `set-default-toplevel-value'

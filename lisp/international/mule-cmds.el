@@ -33,6 +33,7 @@
 (eval-when-compile (require 'cl-lib))
 
 (defvar dos-codepage)
+(autoload 'widget-put "wid-edit")
 (autoload 'widget-value "wid-edit")
 
 ;;; MULE related key bindings and menus.

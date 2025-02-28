@@ -514,6 +514,7 @@ The variable `electric-layout-rules' says when and how to insert newlines."
 
 ;; The default :value-create produces "list of numbers" when given "list
 ;; of characters", this prints them as characters.
+(declare-function widget-get "wid-edit" (widget property))
 (defun electric--print-list-of-chars (widget)
   (let ((print-integers-as-characters t))
     (princ (widget-get widget :value) (current-buffer))))

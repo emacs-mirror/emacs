@@ -93,7 +93,6 @@ ARGS are passed to `message'."
   (get symbol 'widget-type))
 
 (autoload 'widget-create-child-value "wid-edit")
-(autoload 'widget-convert "wid-edit")
 (autoload 'widget-default-get "wid-edit")
 
 ;; Note: The format of `gmm-tool-bar-item' may change if some future Emacs

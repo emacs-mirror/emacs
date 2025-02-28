@@ -88,6 +88,8 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(declare-function widget-put "wid-edit" (widget property value))
+
 ;;; Completion table manipulation
 
 ;; New completion-table operation.

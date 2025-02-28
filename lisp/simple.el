@@ -30,6 +30,7 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(declare-function widget-apply "wid-edit" (widget property &rest args))
 (declare-function widget-convert "wid-edit" (type &rest args))
 
 ;;; From compile.el
