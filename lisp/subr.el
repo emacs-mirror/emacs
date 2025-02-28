@@ -537,7 +537,12 @@ ARGS is a list of the first N arguments to pass to FUN.
 The result is a new function which does the same as FUN, except that
 the first N arguments are fixed at the values with which this function
 was called."
-  (declare (side-effect-free error-free))
+  (declare (side-effect-free error-free)
+           (compiler-macro
+            (lambda (_)
+              `(lambda (&rest args2)
+                 ,(let ((l (length args)))
+                    `(apply ,fun ,@args args2))))))
   (lambda (&rest args2)
     (apply fun (append args args2))))
 
