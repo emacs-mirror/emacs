@@ -10,7 +10,7 @@ instructions in this file should be sufficient.  For other
 configurations, we have additional specialized files:
 
   . INSTALL.REPO if you build from a Git checkout
-  . nt/INSTALL if you build for MS-Windows
+  . nt/INSTALL if you build a native (non-Cygwin) Emacs for MS-Windows
   . nextstep/INSTALL if you build for GNUstep/macOS
   . java/INSTALL if you build for Android
   . msdos/INSTALL if you build for MS-DOS
@@ -294,11 +294,19 @@ Lisp code even if your system satisfies the build requirements, use the
 
 DETAILED BUILDING AND INSTALLATION:
 
-(This is for a Unix or Unix-like system.  For GNUstep and macOS,
-see nextstep/INSTALL.  For non-ancient versions of MS Windows, see
-the file nt/INSTALL.  For MS-DOS and MS Windows 3.X, see msdos/INSTALL.)
+(This is for a Unix or Unix-like system (including Cygwin on
+MS-Windows).  For GNUstep and macOS, see nextstep/INSTALL.  For building
+a native Windows Emacs for non-ancient versions of MS Windows, see the
+file nt/INSTALL.  For MS-DOS and MS Windows 3.X, see msdos/INSTALL.)
 
 1) See BASIC INSTALLATION above for getting and configuring Emacs.
+
+1a) For ordinary production builds, if you want to specify non-default
+compiler options via CFLAGS variable, we recommend against using
+optimization options -O3 or -Os, and also recommend not to use the
+compiler option -fsanitize=undefined.  These are known to sometimes cause
+problems with the generated code, and we recommend using them only in
+debugging builds or for testing specific problems in Emacs.
 
 2) In the unlikely event that 'configure' does not detect your system
 type correctly, consult './etc/MACHINES' to see what --host, --build
@@ -533,6 +541,9 @@ files (in addition to the standard directories), instruct the linker
 to look in '/bar/mylib' for libraries, pass the -Og optimization
 switch to the compiler, and link against libfoo and libbar
 libraries in addition to the standard ones.
+
+For ordinary production builds, we recommend against using -O3 and -Os
+in CFLAGS, and also against using -fsanitize=undefined compiler option.
 
 For some libraries, like Gtk+, fontconfig and ALSA, 'configure' uses
 pkg-config to find where those libraries are installed.

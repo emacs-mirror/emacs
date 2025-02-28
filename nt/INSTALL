@@ -55,6 +55,10 @@ build should run on Windows 9X and newer systems).
        ./configure --prefix=/d/usr/emacs --enable-checking='yes,glyphs' \
          CFLAGS='-O0 -g3'
 
+     (For ordinary production builds, we recommend not to use -O3 or -Os
+     in CFLAGS, as those could sometimes produce bad or suboptimal code,
+     especially in major new releases of GCC.)
+
   3. After the configure script finishes, it should display the
      resulting configuration.  After that, type
 
