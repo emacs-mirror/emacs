@@ -266,57 +266,191 @@ struct android_event_container
   union android_event event;
 };
 
-struct android_event_queue
-{
-  /* Mutex protecting the event queue.  */
-  pthread_mutex_t mutex;
+/* Thread-specific component of the Android event queue.  */
 
+struct android_thread_event_queue
+{
   /* Mutex protecting the select data.  */
   pthread_mutex_t select_mutex;
 
   /* The thread used to run select.  */
   pthread_t select_thread;
 
+  /* Arguments to pselect used by the select thread.  */
+  fd_set *select_readfds;
+  fd_set *select_writefds;
+  fd_set *select_exceptfds;
+  struct timespec *select_timeout;
+  int select_nfds;
+
+  /* Semaphores posted around invocations of pselect.  */
+  sem_t start_sem;
+  sem_t select_sem;
+
+  /* Value of pselect.  */
+  int select_rc;
+
+#if __ANDROID_API__ < 21
+  /* Select self-pipe.  */
+  int select_pipe[2];
+#else /* __ANDROID_API__ >= 21 */
+  /* Whether a signal has been received to cancel pselect in this
+     thread.  */
+  volatile sig_atomic_t cancel_signal_received;
+#endif /* __ANDROID_API__ >= 21 */
+
+  /* Whether this thread must exit.  */
+  int canceled;
+};
+
+#if __ANDROID_API__ >= 21
+#define SELECT_SIGNAL SIGUSR1
+#endif /* __ANDROID_API__ >= 21 */
+
+struct android_event_queue
+{
+  /* Mutex protecting the event queue.  */
+  pthread_mutex_t mutex;
+
   /* Condition variables for the reading side.  */
   pthread_cond_t read_var;
 
-  /* The number of events in the queue.  If this is greater than 1024,
-     writing will block.  */
-  int num_events;
-
   /* Circular queue of events.  */
   struct android_event_container events;
+
+#ifndef THREADS_ENABLED
+  /* If threads are disabled, the thread-specific component of the main
+     and only thread.  */
+  struct android_thread_event_queue thread;
+#endif /* !THREADS_ENABLED */
+
+  /* The number of events in the queue.  */
+  int num_events;
 };
-
-/* Arguments to pselect used by the select thread.  */
-static int android_pselect_nfds;
-static fd_set *android_pselect_readfds;
-static fd_set *android_pselect_writefds;
-static fd_set *android_pselect_exceptfds;
-static struct timespec *android_pselect_timeout;
-
-/* Value of pselect.  */
-static int android_pselect_rc;
 
 /* The global event queue.  */
 static struct android_event_queue event_queue;
 
-/* Semaphores used to signal select completion and start.  */
-static sem_t android_pselect_sem, android_pselect_start_sem;
+/* Main select loop of select threads.  */
+static void *android_run_select_thread (void *);
 
-#if __ANDROID_API__ < 16
+/* Initialize a thread-local component of the Android event queue
+   THREAD.  Create and initialize a thread whose purpose is to execute
+   `select' in an interruptible manner, and initialize variables or file
+   descriptors with which to communicate with it.  */
 
-/* Select self-pipe.  */
-static int select_pipe[2];
+static void
+android_init_thread_events (struct android_thread_event_queue *thread)
+{
+  thread->canceled = false;
+  thread->select_readfds = NULL;
+  thread->select_writefds = NULL;
+  thread->select_exceptfds = NULL;
+  thread->select_timeout = NULL;
+  thread->select_nfds = 0;
 
-#else
+  if (pthread_mutex_init (&thread->select_mutex, NULL))
+    {
+      __android_log_print (ANDROID_LOG_FATAL, __func__,
+			   "pthread_mutex_init: %s",
+			   strerror (errno));
+      emacs_abort ();
+    }
 
-/* Whether or not pselect has been interrupted.  */
-static volatile sig_atomic_t android_pselect_interrupted;
+  sem_init (&thread->select_sem, 0, 0);
+  sem_init (&thread->start_sem, 0, 0);
 
-#endif
+#if __ANDROID_API__ < 21
+  /* Set up the file descriptor used to wake up pselect.  */
+  if (pipe2 (thread->select_pipe, O_CLOEXEC) < 0)
+    {
+      __android_log_print (ANDROID_LOG_FATAL, __func__,
+			   "pipe2: %s", strerror (errno));
+      emacs_abort ();
+    }
 
-/* Set the task name of the current task to NAME, a string at most 16
+  /* Make sure the read end will fit in fd_set.  */
+  if (thread->select_pipe[0] >= FD_SETSIZE)
+    {
+      __android_log_print (ANDROID_LOG_FATAL, __func__,
+			   "read end of select pipe"
+			   " exceeds FD_SETSIZE!");
+      emacs_abort ();
+    }
+#endif /* __ANDROID_API__ < 21 */
+
+  /* Start the select thread.  */
+  if (pthread_create (&thread->select_thread, NULL,
+		      android_run_select_thread, thread))
+    {
+      __android_log_print (ANDROID_LOG_FATAL, __func__,
+			   "pthread_create: %s",
+			   strerror (errno));
+      emacs_abort ();
+    }
+}
+
+#ifdef THREADS_ENABLED
+
+/* Destroy a thread-local component of the Android event queue provided
+   as DATA, and release DATA's storage itself.  Must be invoked at a
+   time when the select thread is idle, i.e., awaiting
+   DATA->start_sem.  */
+
+static void
+android_finalize_thread_events (void *data)
+{
+  int rc;
+  struct android_thread_event_queue *thread;
+
+  /* Cancel the thread and pause till it exits.  */
+  thread = data;
+  thread->canceled = 1;
+  sem_post (&thread->start_sem);
+  rc = pthread_join (thread->select_thread, NULL);
+  if (rc)
+    emacs_abort ();
+
+  /* Release the select thread, semaphores, etc.  */
+  pthread_mutex_destroy (&thread->select_mutex);
+  sem_close (&thread->select_sem);
+  sem_close (&thread->start_sem);
+#if __ANDROID_API__ < 21
+  close (thread->select_pipe[0]);
+  close (thread->select_pipe[1]);
+#endif /* __ANDROID_API__ < 21 */
+  xfree (thread);
+}
+
+/* TLS keys associating polling threads with Emacs threads.  */
+static pthread_key_t poll_thread, poll_thread_internal;
+
+#endif /* THREADS_ENABLED */
+
+/* Return the thread-specific component of the event queue appertaining
+   to this thread, or create it as well as a polling thread if
+   absent.  */
+
+static struct android_thread_event_queue *
+android_get_poll_thread (void)
+{
+#ifndef THREADS_ENABLED
+  return &event_queue.thread;
+#else /* THREADS_ENABLED */
+  struct android_thread_event_queue *queue;
+
+  queue = pthread_getspecific (poll_thread);
+  if (!queue)
+    {
+      queue = xmalloc (sizeof *queue);
+      android_init_thread_events (queue);
+      pthread_setspecific (poll_thread, queue);
+    }
+  return queue;
+#endif /* !THREADS_ENABLED */
+}
+
+/* Set the task name of the current task to NAME, a string at most 21
    characters in length.
 
    This name is displayed as that of the task (LWP)'s pthread in
@@ -357,67 +491,73 @@ android_set_task_name (const char *name)
 }
 
 static void *
-android_run_select_thread (void *data)
+android_run_select_thread (void *thread_data)
 {
   /* Apparently this is required too.  */
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
   int rc;
-#if __ANDROID_API__ < 16
+  struct android_thread_event_queue *data;
+#if __ANDROID_API__ < 21
   int nfds;
   fd_set readfds;
   char byte;
-#else
+#else /* __ANDROID_API__ >= 21 */
   sigset_t signals, waitset;
   int sig;
-#endif
+#endif /* __ANDROID_API__ >= 21 */
 
   /* Set the name of this thread's LWP for debugging purposes.  */
-  android_set_task_name ("`android_select'");
+  android_set_task_name ("Emacs polling thread");
+  data = thread_data;
 
-#if __ANDROID_API__ < 16
+#if __ANDROID_API__ < 21
   /* A completely different implementation is used when building for
-     Android versions earlier than 16, because pselect with a signal
-     mask does not work there.  Instead of blocking SIGUSR1 and
-     unblocking it inside pselect, a file descriptor is used instead.
-     Something is written to the file descriptor every time select is
-     supposed to return.  */
+     Android versions earlier than 21, because pselect with a signal
+     mask does not work properly: the signal mask is truncated on APIs
+     <= 16, and elsewhere, the signal mask is applied in userspace
+     before issuing a select system call, between which SELECT_SIGNAL
+     may arrive.  Instead of blocking SELECT_SIGNAL and unblocking it
+     inside pselect, a file descriptor is selected.  Data is written to
+     the file descriptor whenever select is supposed to return.  */
 
   while (true)
     {
       /* Wait for the thread to be released.  */
-      while (sem_wait (&android_pselect_start_sem) < 0)
+      while (sem_wait (&data->start_sem) < 0)
 	;;
+      if (data->canceled)
+	return NULL;
 
       /* Get the select lock and call pselect.  API 8 does not have
 	 working pselect in any sense.  Instead, pselect wakes up on
 	 select_pipe[0].  */
 
-      pthread_mutex_lock (&event_queue.select_mutex);
-      nfds = android_pselect_nfds;
+      pthread_mutex_lock (&data->select_mutex);
+      nfds = data->select_nfds;
 
-      if (android_pselect_readfds)
-	readfds = *android_pselect_readfds;
+      if (data->select_readfds)
+	readfds = *data->select_readfds;
       else
 	FD_ZERO (&readfds);
 
-      if (nfds < select_pipe[0] + 1)
-	nfds = select_pipe[0] + 1;
-      FD_SET (select_pipe[0], &readfds);
+      if (nfds < data->select_pipe[0] + 1)
+	nfds = data->select_pipe[0] + 1;
+      FD_SET (data->select_pipe[0], &readfds);
 
       rc = pselect (nfds, &readfds,
-		    android_pselect_writefds,
-		    android_pselect_exceptfds,
-		    android_pselect_timeout,
+		    data->select_writefds,
+		    data->select_exceptfds,
+		    data->select_timeout,
 		    NULL);
 
       /* Subtract 1 from rc if readfds contains the select pipe, and
 	 also remove it from that set.  */
 
-      if (rc != -1 && FD_ISSET (select_pipe[0], &readfds))
+      if (rc != -1 && FD_ISSET (data->select_pipe[0], &readfds))
 	{
 	  rc -= 1;
-	  FD_CLR (select_pipe[0], &readfds);
+	  FD_CLR (data->select_pipe[0], &readfds);
 
 	  /* If no file descriptors aside from the select pipe are
 	     ready, then pretend that an error has occurred.  */
@@ -427,11 +567,11 @@ android_run_select_thread (void *data)
 
       /* Save the read file descriptor set back again.  */
 
-      if (android_pselect_readfds)
-	*android_pselect_readfds = readfds;
+      if (data->select_readfds)
+	*data->select_readfds = readfds;
 
-      android_pselect_rc = rc;
-      pthread_mutex_unlock (&event_queue.select_mutex);
+      data->select_rc = rc;
+      pthread_mutex_unlock (&data->select_mutex);
 
       /* Signal the main thread that there is now data to read.  Hold
          the event queue lock during this process to make sure this
@@ -443,44 +583,46 @@ android_run_select_thread (void *data)
       pthread_mutex_unlock (&event_queue.mutex);
 
       /* Read a single byte from the select pipe.  */
-      read (select_pipe[0], &byte, 1);
+      read (data->select_pipe[0], &byte, 1);
 
       /* Signal the Emacs thread that pselect is done.  If read_var
 	 was signaled by android_write_event, event_queue.mutex could
 	 still be locked, so this must come before.  */
-      sem_post (&android_pselect_sem);
+      sem_post (&data->select_sem);
     }
-#else
+#else /* __ANDROID_API__ >= 21 */
+  sigfillset (&signals);
   if (pthread_sigmask (SIG_BLOCK, &signals, NULL))
     __android_log_print (ANDROID_LOG_FATAL, __func__,
 			 "pthread_sigmask: %s",
 			 strerror (errno));
 
-  sigfillset (&signals);
-  sigdelset (&signals, SIGUSR1);
+  sigdelset (&signals, SELECT_SIGNAL);
   sigemptyset (&waitset);
-  sigaddset (&waitset, SIGUSR1);
+  sigaddset (&waitset, SELECT_SIGNAL);
+#ifdef THREADS_ENABLED
+  pthread_setspecific (poll_thread_internal, thread_data);
+#endif /* THREADS_ENABLED */
 
   while (true)
     {
       /* Wait for the thread to be released.  */
-      while (sem_wait (&android_pselect_start_sem) < 0)
+      while (sem_wait (&data->start_sem) < 0)
 	;;
-
-      /* Clear the ``pselect interrupted'' flag.  This is safe because
-	 right now, SIGUSR1 is blocked.  */
-      android_pselect_interrupted = 0;
+      if (data->canceled)
+	return NULL;
 
       /* Get the select lock and call pselect.  */
-      pthread_mutex_lock (&event_queue.select_mutex);
-      rc = pselect (android_pselect_nfds,
-		    android_pselect_readfds,
-		    android_pselect_writefds,
-		    android_pselect_exceptfds,
-		    android_pselect_timeout,
+      data->cancel_signal_received = 0;
+      pthread_mutex_lock (&data->select_mutex);
+      rc = pselect (data->select_nfds,
+		    data->select_readfds,
+		    data->select_writefds,
+		    data->select_exceptfds,
+		    data->select_timeout,
 		    &signals);
-      android_pselect_rc = rc;
-      pthread_mutex_unlock (&event_queue.select_mutex);
+      data->select_rc = rc;
+      pthread_mutex_unlock (&data->select_mutex);
 
       /* Signal the main thread that there is now data to read.  Hold
          the event queue lock during this process to make sure this
@@ -491,39 +633,51 @@ android_run_select_thread (void *data)
       pthread_cond_broadcast (&event_queue.read_var);
       pthread_mutex_unlock (&event_queue.mutex);
 
-      /* Check `android_pselect_interrupted' instead of rc and errno.
+      /* Test a separate flag `data->cancel_signal_received' rather than
+	 rc and errno.
 
          This is because `pselect' does not return an rc of -1 upon
          being interrupted in some versions of Android, but does set
          signal masks correctly.  */
-
-      if (!android_pselect_interrupted)
-	/* Now, wait for SIGUSR1, unless pselect was interrupted and
-	   the signal was already delivered.  The Emacs thread will
-	   always send this signal after read_var is triggered or the
-	   UI thread has sent an event.  */
+      if (!data->cancel_signal_received)
+	/* Now, wait for SELECT_SIGNAL, unless pselect was interrupted
+	   and the signal has already been delivered.  The Emacs thread
+	   will always send this signal after read_var is triggered or
+	   the UI thread has sent an event.  */
 	sigwait (&waitset, &sig);
 
       /* Signal the Emacs thread that pselect is done.  If read_var
 	 was signaled by android_write_event, event_queue.mutex could
 	 still be locked, so this must come before.  */
-      sem_post (&android_pselect_sem);
+      sem_post (&data->select_sem);
     }
-#endif
+#endif /* __ANDROID_API__ >= 21 */
 
   return NULL;
 }
 
-#if __ANDROID_API__ >= 16
+#if __ANDROID_API__ >= 21
 
 static void
-android_handle_sigusr1 (int sig, siginfo_t *siginfo, void *arg)
+android_handle_poll_signal (int sig, siginfo_t *siginfo, void *arg)
 {
-  /* Notice that pselect has been interrupted.  */
-  android_pselect_interrupted = 1;
+  struct android_thread_event_queue *queue;
+
+  /* Although pthread_getspecific is not AS-safe, its implementation has
+     been verified to be safe to invoke from a single handler called
+     within pselect in a controlled manner, and this is the only means
+     of retrieving thread-specific data from a signal handler, as the
+     POSIX real-time signal system calls are unavailable to Android
+     applications.  */
+#ifdef THREADS_ENABLED
+  queue = pthread_getspecific (poll_thread_internal);
+#else /* !THREADS_ENABLED */
+  queue = &event_queue.thread;
+#endif /* !THREADS_ENABLED */
+  queue->cancel_signal_received = 1;
 }
 
-#endif
+#endif /* __ANDROID_API__ >= 21 */
 
 /* Semaphore used to indicate completion of a query.
    This should ideally be defined further down.  */
@@ -543,66 +697,57 @@ static pthread_t main_thread_id;
 static void
 android_init_events (void)
 {
+#if __ANDROID_API__ >= 21
   struct sigaction sa;
+#endif /* __ANDROID_API__ >= 21 */
 
   if (pthread_mutex_init (&event_queue.mutex, NULL))
-    __android_log_print (ANDROID_LOG_FATAL, __func__,
-			 "pthread_mutex_init: %s",
-			 strerror (errno));
-
-  if (pthread_mutex_init (&event_queue.select_mutex, NULL))
-    __android_log_print (ANDROID_LOG_FATAL, __func__,
-			 "pthread_mutex_init: %s",
-			 strerror (errno));
+    {
+      __android_log_print (ANDROID_LOG_FATAL, __func__,
+			   "pthread_mutex_init: %s",
+			   strerror (errno));
+      emacs_abort ();
+    }
 
   if (pthread_cond_init (&event_queue.read_var, NULL))
-    __android_log_print (ANDROID_LOG_FATAL, __func__,
-			 "pthread_cond_init: %s",
-			 strerror (errno));
-
-  sem_init (&android_pselect_sem, 0, 0);
-  sem_init (&android_pselect_start_sem, 0, 0);
-  sem_init (&android_query_sem, 0, 0);
+    {
+      __android_log_print (ANDROID_LOG_FATAL, __func__,
+			   "pthread_cond_init: %s",
+			   strerror (errno));
+      emacs_abort ();
+    }
 
   event_queue.events.next = &event_queue.events;
   event_queue.events.last = &event_queue.events;
 
   main_thread_id = pthread_self ();
 
-#if __ANDROID_API__ >= 16
-
-  /* Before starting the select thread, make sure the disposition for
-     SIGUSR1 is correct.  */
+#if __ANDROID_API__ >= 21
+  /* Before any event threads are initialized, guarantee that the
+     disposition of SELECT_SIGNAL is correct.  */
   sigfillset (&sa.sa_mask);
-  sa.sa_sigaction = android_handle_sigusr1;
+  sa.sa_sigaction = android_handle_poll_signal;
   sa.sa_flags = SA_SIGINFO;
-
-#else
-
-  /* Set up the file descriptor used to wake up pselect.  */
-  if (pipe2 (select_pipe, O_CLOEXEC) < 0)
-    __android_log_print (ANDROID_LOG_FATAL, __func__,
-			 "pipe2: %s", strerror (errno));
-
-  /* Make sure the read end will fit in fd_set.  */
-  if (select_pipe[0] >= FD_SETSIZE)
-    __android_log_print (ANDROID_LOG_FATAL, __func__,
-			 "read end of select pipe"
-			 " lies outside FD_SETSIZE!");
-
-#endif
-
-  if (sigaction (SIGUSR1, &sa, NULL))
-    __android_log_print (ANDROID_LOG_FATAL, __func__,
-			 "sigaction: %s",
-			 strerror (errno));
-
-  /* Start the select thread.  */
-  if (pthread_create (&event_queue.select_thread, NULL,
-		      android_run_select_thread, NULL))
-    __android_log_print (ANDROID_LOG_FATAL, __func__,
-			 "pthread_create: %s",
-			 strerror (errno));
+  if (sigaction (SELECT_SIGNAL, &sa, NULL))
+    {
+      __android_log_print (ANDROID_LOG_FATAL, __func__,
+			   "sigaction: %s",
+			   strerror (errno));
+      emacs_abort ();
+    }
+#endif /* __ANDROID_API__ >= 21 */
+#ifndef THREADS_ENABLED
+  android_init_thread_events (&event_queue.thread);
+#else /* THREADS_ENABLED */
+  if (pthread_key_create (&poll_thread, android_finalize_thread_events)
+      || pthread_key_create (&poll_thread_internal, NULL))
+    {
+      __android_log_print (ANDROID_LOG_FATAL, __func__,
+			   "pthread_key_create: %s",
+			   strerror (errno));
+      emacs_abort ();
+    }
+#endif /* THREADS_ENABLED */
 }
 
 int
@@ -761,25 +906,17 @@ int
 android_select (int nfds, fd_set *readfds, fd_set *writefds,
 		fd_set *exceptfds, struct timespec *timeout)
 {
-  int nfds_return;
-#if __ANDROID_API__ < 16
+  int nfds_return, nevents;
+#if __ANDROID_API__ < 21
   static char byte;
 #endif
+  struct android_thread_event_queue *data;
 
-#ifdef THREADS_ENABLED
-  if (!pthread_equal (pthread_self (), main_thread_id))
-    return pselect (nfds, readfds, writefds, exceptfds, timeout,
-		    NULL);
-#endif /* THREADS_ENABLED */
-
-  /* Since Emacs is reading keyboard input again, signify that queries
-     from input methods are no longer ``urgent''.  */
-
-  __atomic_clear (&android_urgent_query, __ATOMIC_RELEASE);
-
-  /* Check for and run anything the UI thread wants to run on the main
-     thread.  */
-  android_check_query ();
+  /* When threads are enabled, the following is executed before the
+     global lock is released.  */
+#ifndef THREADS_ENABLED
+  android_before_select ();
+#endif /* !THREADS_ENABLED */
 
   pthread_mutex_lock (&event_queue.mutex);
 
@@ -804,60 +941,60 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
 
   nfds_return = 0;
 
-  pthread_mutex_lock (&event_queue.select_mutex);
-  android_pselect_nfds = nfds;
-  android_pselect_readfds = readfds;
-  android_pselect_writefds = writefds;
-  android_pselect_exceptfds = exceptfds;
-  android_pselect_timeout = timeout;
-  pthread_mutex_unlock (&event_queue.select_mutex);
+  data = android_get_poll_thread ();
+
+  pthread_mutex_lock (&data->select_mutex);
+  data->select_nfds = nfds;
+  data->select_readfds = readfds;
+  data->select_writefds = writefds;
+  data->select_exceptfds = exceptfds;
+  data->select_timeout = timeout;
+  pthread_mutex_unlock (&data->select_mutex);
 
   /* Release the select thread.  */
-  sem_post (&android_pselect_start_sem);
+  sem_post (&data->start_sem);
 
   /* Start waiting for the event queue condition to be set.  */
   pthread_cond_wait (&event_queue.read_var, &event_queue.mutex);
 
-#if __ANDROID_API__ >= 16
+#if __ANDROID_API__ >= 21
   /* Interrupt the select thread now, in case it's still in
      pselect.  */
-  pthread_kill (event_queue.select_thread, SIGUSR1);
-#else
+  pthread_kill (data->select_thread, SELECT_SIGNAL);
+#else /* __ANDROID_API__ < 21 */
   /* Interrupt the select thread by writing to the select pipe.  */
-  if (write (select_pipe[1], &byte, 1) != 1)
+  if (write (data->select_pipe[1], &byte, 1) != 1)
     __android_log_print (ANDROID_LOG_FATAL, __func__,
 			 "write: %s", strerror (errno));
-#endif
+#endif /* __ANDROID_API__ < 21 */
 
-  /* Unlock the event queue mutex.  */
+  /* Are there any events in the event queue?  */
+  nevents = event_queue.num_events;
   pthread_mutex_unlock (&event_queue.mutex);
 
-  /* Wait for pselect to return in any case.  This must be done with
-     the event queue mutex unlocked.  Otherwise, the pselect thread
-     can hang if it tries to lock the event queue mutex to signal
-     read_var after the UI thread has already done so.  */
-  while (sem_wait (&android_pselect_sem) < 0)
+  /* Wait for pselect to return in any case.  This must be done with the
+     event queue mutex unlocked.  Otherwise, the pselect thread can hang
+     if it tries to lock the event queue mutex to signal read_var after
+     the UI thread has already done so.  */
+  while (sem_wait (&data->select_sem) < 0)
     ;;
 
   /* If there are now events in the queue, return 1.  */
-
-  pthread_mutex_lock (&event_queue.mutex);
-  if (event_queue.num_events)
+  if (nevents)
     nfds_return = 1;
-  pthread_mutex_unlock (&event_queue.mutex);
 
-  /* Add the return value of pselect if it has also found ready file
-     descriptors.  */
+  /* Add the return value of pselect if it has also discovered ready
+     file descriptors.  */
 
-  if (android_pselect_rc >= 0)
-    nfds_return += android_pselect_rc;
+  if (data->select_rc >= 0)
+    nfds_return += data->select_rc;
   else if (!nfds_return)
-    /* If pselect was interrupted and nfds_return is 0 (meaning that
-       no events have been read), indicate that an error has taken
+    /* If pselect was interrupted and nfds_return is 0 (meaning that no
+       events have been read), indicate that an error has taken
        place.  */
-    nfds_return = android_pselect_rc;
+    nfds_return = data->select_rc;
 
-  if ((android_pselect_rc < 0) && nfds_return >= 0)
+  if ((data->select_rc < 0) && nfds_return >= 0)
     {
       /* Clear the file descriptor sets if events will be delivered
 	 but no file descriptors have become ready to prevent the
@@ -6721,6 +6858,23 @@ static void *android_query_context;
    itself; however, the input signal handler executes a memory fence
    to ensure that all query related writes become visible.  */
 
+/* Clear the ``urgent query'' flag and run any function that the UI
+   thread has asked to run.  Must be invoked before `android_select'
+   from the thread holding the global lock.  */
+
+void
+android_before_select (void)
+{
+  /* Since Emacs is reading keyboard input again, signify that queries
+     from input methods are no longer ``urgent''.  */
+
+  __atomic_clear (&android_urgent_query, __ATOMIC_RELEASE);
+
+  /* Check for and run anything the UI thread wants to run on the main
+     thread.  */
+  android_check_query ();
+}
+
 /* Run any function that the UI thread has asked to run, and then
    signal its completion.  */
 
@@ -6781,7 +6935,7 @@ android_check_query_urgent (void)
   if (!proc)
     return;
 
-  proc (closure);
+  (*proc) (closure);
 
   /* Finish the query.  Don't clear `android_urgent_query'; instead,
      do that the next time Emacs enters the keyboard loop.  */
@@ -6931,8 +7085,8 @@ android_run_in_emacs_thread (void (*proc) (void *), void *closure)
   /* Send a dummy event.  `android_check_query' will be called inside
      wait_reading_process_output after the event arrives.
 
-     Otherwise, android_select will call android_check_thread the next
-     time it is entered.  */
+     Otherwise, android_select will call `android_check_query' when next
+     it is entered.  */
   android_write_event (&event);
 
   /* Start waiting for the function to be executed.  First, wait two

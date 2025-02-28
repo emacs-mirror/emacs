@@ -653,6 +653,9 @@ thread_select (select_func *func, int max_fds, fd_set *rfds,
   sa.efds = efds;
   sa.timeout = timeout;
   sa.sigmask = sigmask;
+#if defined HAVE_ANDROID && !defined ANDROID_STUBIFY
+  android_before_select ();
+#endif /* HAVE_ANDROID && !defined ANDROID_STUBIFY */
   flush_stack_call_func (really_call_select, &sa);
   return sa.result;
 }
