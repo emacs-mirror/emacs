@@ -374,7 +374,9 @@ The same keyword arguments are supported as in
 
 (defun ert-gcc-is-clang-p ()
   "Return non-nil if the `gcc' command actually runs the Clang compiler."
-  (internal--gcc-is-clang-p))
+  (require 'ffap)
+  (declare-function ffap--gcc-is-clang-p "ffap" ())
+  (ffap--gcc-is-clang-p))
 
 (defvar tramp-default-host-alist)
 (defvar tramp-methods)
