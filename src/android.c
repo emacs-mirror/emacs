@@ -304,7 +304,7 @@ static struct android_event_queue event_queue;
 /* Semaphores used to signal select completion and start.  */
 static sem_t android_pselect_sem, android_pselect_start_sem;
 
-#if __ANDROID_API__ < 16
+#if __ANDROID_API__ < 21
 
 /* Select self-pipe.  */
 static int select_pipe[2];
@@ -363,7 +363,7 @@ android_run_select_thread (void *data)
   JNI_STACK_ALIGNMENT_PROLOGUE;
 
   int rc;
-#if __ANDROID_API__ < 16
+#if __ANDROID_API__ < 21
   int nfds;
   fd_set readfds;
   char byte;
@@ -375,7 +375,7 @@ android_run_select_thread (void *data)
   /* Set the name of this thread's LWP for debugging purposes.  */
   android_set_task_name ("`android_select'");
 
-#if __ANDROID_API__ < 16
+#if __ANDROID_API__ < 21
   /* A completely different implementation is used when building for
      Android versions earlier than 16, because pselect with a signal
      mask does not work there.  Instead of blocking SIGUSR1 and
@@ -451,12 +451,12 @@ android_run_select_thread (void *data)
       sem_post (&android_pselect_sem);
     }
 #else
+  sigfillset (&signals);
   if (pthread_sigmask (SIG_BLOCK, &signals, NULL))
     __android_log_print (ANDROID_LOG_FATAL, __func__,
 			 "pthread_sigmask: %s",
 			 strerror (errno));
 
-  sigfillset (&signals);
   sigdelset (&signals, SIGUSR1);
   sigemptyset (&waitset);
   sigaddset (&waitset, SIGUSR1);
@@ -514,7 +514,7 @@ android_run_select_thread (void *data)
   return NULL;
 }
 
-#if __ANDROID_API__ >= 16
+#if __ANDROID_API__ >= 21
 
 static void
 android_handle_sigusr1 (int sig, siginfo_t *siginfo, void *arg)
@@ -569,7 +569,7 @@ android_init_events (void)
 
   main_thread_id = pthread_self ();
 
-#if __ANDROID_API__ >= 16
+#if __ANDROID_API__ >= 21
 
   /* Before starting the select thread, make sure the disposition for
      SIGUSR1 is correct.  */
@@ -762,7 +762,7 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
 		fd_set *exceptfds, struct timespec *timeout)
 {
   int nfds_return;
-#if __ANDROID_API__ < 16
+#if __ANDROID_API__ < 21
   static char byte;
 #endif
 
@@ -818,7 +818,7 @@ android_select (int nfds, fd_set *readfds, fd_set *writefds,
   /* Start waiting for the event queue condition to be set.  */
   pthread_cond_wait (&event_queue.read_var, &event_queue.mutex);
 
-#if __ANDROID_API__ >= 16
+#if __ANDROID_API__ >= 21
   /* Interrupt the select thread now, in case it's still in
      pselect.  */
   pthread_kill (event_queue.select_thread, SIGUSR1);
