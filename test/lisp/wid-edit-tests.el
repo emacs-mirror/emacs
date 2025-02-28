@@ -22,8 +22,20 @@
 (require 'ert)
 (require 'wid-edit)
 
+(ert-deftest widget-test-editable-field-widget-get/put ()
+  (with-temp-buffer
+    (let ((widget (widget-create 'editable-field
+                                 :size 13
+                                 :format "Name: %v "
+                                 "My Name")))
+      (should (eq (widget-get widget :size) 13))
+      (should (equal (widget-get widget :format) "Name: %v "))
+      (widget-put widget :size 1)
+      (widget-put widget :format "foo")
+      (should (eq (widget-get widget :size) 1))
+      (should (equal (widget-get widget :format) "foo")))))
+
 (ert-deftest widget-at ()
-  "Test `widget-at' behavior."
   (with-temp-buffer
     (should-not (widget-at))
     (let ((marco (widget-create 'link "link widget"))

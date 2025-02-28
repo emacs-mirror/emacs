@@ -3831,65 +3831,8 @@ FILENAME are suppressed.  */)
 
   return feature;
 }
+
 
-/* Primitives for work of the "widget" library.
-   In an ideal world, this section would not have been necessary.
-   However, lisp function calls being as slow as they are, it turns
-   out that some functions in the widget library (wid-edit.el) are the
-   bottleneck of Widget operation.  Here is their translation to C,
-   for the sole reason of efficiency.  */
-
-DEFUN ("widget-put", Fwidget_put, Swidget_put, 3, 3, 0,
-       doc: /* In WIDGET, set PROPERTY to VALUE.
-The value can later be retrieved with `widget-get'.  */)
-  (Lisp_Object widget, Lisp_Object property, Lisp_Object value)
-{
-  CHECK_CONS (widget);
-  XSETCDR (widget, plist_put (XCDR (widget), property, value));
-  return value;
-}
-
-DEFUN ("widget-get", Fwidget_get, Swidget_get, 2, 2, 0,
-       doc: /* In WIDGET, get the value of PROPERTY.
-The value could either be specified when the widget was created, or
-later with `widget-put'.  */)
-  (Lisp_Object widget, Lisp_Object property)
-{
-  Lisp_Object tmp;
-
-  while (1)
-    {
-      if (NILP (widget))
-	return Qnil;
-      CHECK_CONS (widget);
-      tmp = plist_member (XCDR (widget), property);
-      if (CONSP (tmp))
-	{
-	  tmp = XCDR (tmp);
-	  return CAR (tmp);
-	}
-      tmp = XCAR (widget);
-      if (NILP (tmp))
-	return Qnil;
-      widget = Fget (tmp, Qwidget_type);
-    }
-}
-
-DEFUN ("widget-apply", Fwidget_apply, Swidget_apply, 2, MANY, 0,
-       doc: /* Apply the value of WIDGET's PROPERTY to the widget itself.
-Return the result of applying the value of PROPERTY to WIDGET.
-ARGS are passed as extra arguments to the function.
-usage: (widget-apply WIDGET PROPERTY &rest ARGS)  */)
-  (ptrdiff_t nargs, Lisp_Object *args)
-{
-  Lisp_Object widget = args[0];
-  Lisp_Object property = args[1];
-  Lisp_Object propval = Fwidget_get (widget, property);
-  Lisp_Object trailing_args = Flist (nargs - 2, args + 2);
-  Lisp_Object result = CALLN (Fapply, propval, widget, trailing_args);
-  return result;
-}
-
 #ifdef HAVE_LANGINFO_CODESET
 #include <langinfo.h>
 #endif
@@ -6903,9 +6846,6 @@ For best results this should end in a space.  */);
   defsubr (&Srequire);
   defsubr (&Sprovide);
   defsubr (&Splist_member);
-  defsubr (&Swidget_put);
-  defsubr (&Swidget_get);
-  defsubr (&Swidget_apply);
   defsubr (&Sbase64_encode_region);
   defsubr (&Sbase64_decode_region);
   defsubr (&Sbase64_encode_string);
