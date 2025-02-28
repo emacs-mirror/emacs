@@ -238,7 +238,13 @@ To disable sorting, set this option to `identity'.
 
 If the completion table that produces the candidates already specifies a
 sort function, it takes precedence over this option."
-  :type 'function
+  :type '(choice
+          (function-item :tag "Sort alphabetically"
+                         minibuffer-sort-alphabetically)
+          (function-item :tag "First by length, then alphabetically"
+                         minibuffer--sort-by-length-alpha)
+          (function-item :tag "Disable sorting" identity)
+          (function :tag "Custom sort function"))
   :version "31.1")
 
 (defface completion-preview
