@@ -2601,8 +2601,14 @@ This function could be in the list `comint-output-filter-functions'."
         prompt)
     (when (let ((case-fold-search t))
             (string-match comint-password-prompt-regexp string))
-      (setq prompt (string-trim (match-string 0 string)
-                                "[ \n\r\t\v\f\b\a]+" "\n+"))
+      (setq prompt
+            (let ((content (string-trim (match-string 0 string)
+                                        "[ \n\r\t\v\f\b\a]+" "\n+"))
+                  (suffix " "))
+              (concat content
+                      (and (not (string-empty-p content))
+                           (not (string-suffix-p suffix content))
+                           suffix))))
       ;; Use `run-at-time' in order not to pause execution of the
       ;; process filter with a minibuffer
       (run-at-time
