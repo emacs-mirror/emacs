@@ -663,6 +663,10 @@ FD_SETSIZE."
 (ert-deftest process-tests/fd-setsize-no-crash/make-process ()
   "Check that Emacs doesn't crash when trying to use more than
 FD_SETSIZE file descriptors (Bug#24325)."
+  ;; Emacs is terminated on Android or aborts when the toolkit fails to
+  ;; allocate sufficient graphics buffer handles long before FD_SETSIZE
+  ;; is exceeded.
+  (skip-when (eq system-type 'android))
   (with-timeout (60 (ert-fail "Test timed out"))
     (let ((cat (executable-find "cat")))
       (skip-unless cat)
@@ -708,6 +712,10 @@ FD_SETSIZE file descriptors (Bug#24325)."
 (ert-deftest process-tests/fd-setsize-no-crash/make-pipe-process ()
   "Check that Emacs doesn't crash when trying to use more than
 FD_SETSIZE file descriptors (Bug#24325)."
+  ;; Emacs is terminated on Android or aborts when the toolkit fails to
+  ;; allocate sufficient graphics buffer handles long before FD_SETSIZE
+  ;; is exceeded.
+  (skip-when (eq system-type 'android))
   (with-timeout (60 (ert-fail "Test timed out"))
     (process-tests--fd-setsize-test
       (process-tests--with-buffers buffers
@@ -735,6 +743,10 @@ FD_SETSIZE file descriptors (Bug#24325)."
 (ert-deftest process-tests/fd-setsize-no-crash/make-network-process ()
   "Check that Emacs doesn't crash when trying to use more than
 FD_SETSIZE file descriptors (Bug#24325)."
+  ;; Emacs is terminated on Android or aborts when the toolkit fails to
+  ;; allocate sufficient graphics buffer handles long before FD_SETSIZE
+  ;; is exceeded.
+  (skip-when (eq system-type 'android))
   (skip-unless (featurep 'make-network-process '(:server t)))
   (skip-unless (featurep 'make-network-process '(:family local)))
   ;; Avoid hang due to connect/accept handshake on Cygwin (bug#49496).
@@ -777,6 +789,10 @@ FD_SETSIZE file descriptors (Bug#24325)."
 (ert-deftest process-tests/fd-setsize-no-crash/make-serial-process ()
   "Check that Emacs doesn't crash when trying to use more than
 FD_SETSIZE file descriptors (Bug#24325)."
+  ;; Emacs is terminated on Android or aborts when the toolkit fails to
+  ;; allocate sufficient graphics buffer handles long before FD_SETSIZE
+  ;; is exceeded.
+  (skip-when (eq system-type 'android))
   ;; This test cannot be run if PTYs aren't supported.
   (skip-when (eq system-type 'windows-nt))
   (with-timeout (60 (ert-fail "Test timed out"))

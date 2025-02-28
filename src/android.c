@@ -388,6 +388,10 @@ android_init_thread_events (struct android_thread_event_queue *thread)
 			   strerror (errno));
       emacs_abort ();
     }
+
+  /* Wait for the thread to be initialized.  */
+  while (sem_wait (&thread->select_sem) < 0)
+    ;;
 }
 
 #ifdef THREADS_ENABLED
@@ -521,6 +525,9 @@ android_run_select_thread (void *thread_data)
      inside pselect, a file descriptor is selected.  Data is written to
      the file descriptor whenever select is supposed to return.  */
 
+  /* Release the user after initialization.  */
+  sem_post (&data->select_sem);
+
   while (true)
     {
       /* Wait for the thread to be released.  */
@@ -603,6 +610,8 @@ android_run_select_thread (void *thread_data)
 #ifdef THREADS_ENABLED
   pthread_setspecific (poll_thread_internal, thread_data);
 #endif /* THREADS_ENABLED */
+  /* Release the user after initialization.  */
+  sem_post (&data->select_sem);
 
   while (true)
     {
