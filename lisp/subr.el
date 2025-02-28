@@ -541,8 +541,7 @@ was called."
            (compiler-macro
             (lambda (_)
               `(lambda (&rest args2)
-                 ,(let ((l (length args)))
-                    `(apply ,fun ,@args args2))))))
+                 ,`(apply ,fun ,@args args2)))))
   (lambda (&rest args2)
     (apply fun (append args args2))))
 
