@@ -1465,14 +1465,17 @@ final or penultimate step during initialization."))
 
 (ert-deftest subr-tests-internal--c-header-file-path ()
   (should (seq-every-p #'stringp (internal--c-header-file-path)))
-  (should (member "/usr/include" (internal--c-header-file-path)))
+  (should (locate-file "stdio.h" (internal--c-header-file-path)))
+  (or (memq system-type '(windows-nt ms-dos))
+      (should (member "/usr/include" (internal--c-header-file-path))))
   (should (equal (internal--c-header-file-path)
                  (delete-dups (internal--c-header-file-path))))
   ;; Return a meaningful result even if calling some compiler fails.
   (cl-letf (((symbol-function 'call-process)
              (lambda (_program &optional _infile _destination _display &rest _args) 1)))
     (should (seq-every-p #'stringp (internal--c-header-file-path)))
-    (should (member "/usr/include" (internal--c-header-file-path)))
+    (should (member (expand-file-name "/usr/include")
+                    (internal--c-header-file-path)))
     (should (equal (internal--c-header-file-path)
                    (delete-dups (internal--c-header-file-path))))))
 
@@ -1482,13 +1485,16 @@ final or penultimate step during initialization."))
              (lambda (_program &optional _infile _destination _display &rest args)
                (when (equal (car args) "-print-multiarch")
                  (insert "\n") 0))))
-    (should (member "/usr/include" (internal--c-header-file-path))))
+    (should (member (expand-file-name "/usr/include")
+                    (internal--c-header-file-path))))
   ;; Handle single values of "gcc -print-multiarch".
-  (cl-letf (((symbol-function 'call-process)
+  (cl-letf ((system-type 'foo)
+            ((symbol-function 'call-process)
              (lambda (_program &optional _infile _destination _display &rest args)
                (when (equal (car args) "-print-multiarch")
                  (insert "x86_64-linux-gnu\n") 0))))
-    (should (member "/usr/include/x86_64-linux-gnu" (internal--c-header-file-path)))))
+    (should (member (expand-file-name "/usr/include/x86_64-linux-gnu")
+                    (internal--c-header-file-path)))))
 
 (ert-deftest subr-tests-internal--c-header-file-path/clang-mocked ()
   ;; Handle clang 15.0.0 output on macOS 15.2.
@@ -1519,8 +1525,7 @@ End of search list.
 # 1 \"<built-in>\" 2
 # 1 \"<stdin>\" 2")
                0)))
-    (should (member "/usr/include" (internal--c-header-file-path)))
-    (should (member "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/15.0.0/include"
+    (should (member (expand-file-name "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/15.0.0/include")
                     (internal--c-header-file-path)))))
 
 (provide 'subr-tests)
