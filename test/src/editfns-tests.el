@@ -320,6 +320,41 @@
   (should (equal (buffer-substring-no-properties (point-min) (point-max))
                  (concat (string (char-from-name "SMILE")) "1234"))))
 
+(defun editfns--replace-region (from to string)
+  (save-excursion
+    (save-restriction
+      (narrow-to-region from to)
+      (let ((buf (current-buffer)))
+        (with-temp-buffer
+          (let ((str-buf (current-buffer)))
+            (insert string)
+            (with-current-buffer buf
+              (replace-buffer-contents str-buf))))))))
+
+(ert-deftest editfns-tests--replace-region ()
+  :expected-result :failed
+  (with-temp-buffer
+    (insert "here is some text")
+    (let ((m5n (copy-marker (+ (point-min) 5)))
+          (m5a (copy-marker (+ (point-min) 5) t))
+          (m6n (copy-marker (+ (point-min) 6)))
+          (m6a (copy-marker (+ (point-min) 6) t))
+          (m7n (copy-marker (+ (point-min) 7)))
+          (m7a (copy-marker (+ (point-min) 7) t)))
+      (editfns--replace-region (+ (point-min) 5) (+ (point-min) 7) "be")
+      (should (equal (buffer-string) "here be some text"))
+      (should (equal (point) (point-max)))
+      ;; Markers before the replaced text stay before.
+      (should (= m5n (+ (point-min) 5)))
+      (should (= m5a (+ (point-min) 5)))
+      ;; Markers in the replaced text can end up at either end, depending
+      ;; on whether they're advance-after-insert or not.
+      (should (= m6n (+ (point-min) 5)))
+      (should (<= (+ (point-min) 5) m6a (+ (point-min) 7)))
+      ;; Markers after the replaced text stay after.
+      (should (= m7n (+ (point-min) 7)))
+      (should (= m7a (+ (point-min) 7))))))
+
 (ert-deftest delete-region-undo-markers-1 ()
   "Make sure we don't end up with freed markers reachable from Lisp."
   ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=30931#40

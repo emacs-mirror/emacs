@@ -2050,6 +2050,7 @@ nil.  */)
 
   if (early_abort)
     {
+      /* FIXME: Use 'replace_range'!  */
       del_range (min_a, ZV);
       Finsert_buffer_substring (source, Qnil,Qnil);
       SAFE_FREE_UNBIND_TO (count, Qnil);
@@ -2099,6 +2100,7 @@ nil.  */)
           eassert (beg_a <= end_a);
           eassert (beg_b <= end_b);
           eassert (beg_a < end_a || beg_b < end_b);
+          /* FIXME: Use 'replace_range'!  */
           if (beg_a < end_a)
             del_range (beg_a, end_a);
           if (beg_b < end_b)
