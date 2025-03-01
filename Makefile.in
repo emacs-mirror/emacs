@@ -1307,7 +1307,7 @@ emacslog = build-aux/gitlog-to-emacslog
 # The ChangeLog history files are called ChangeLog.1, ChangeLog.2, ...,
 # ChangeLog.$(CHANGELOG_HISTORY_INDEX_MAX).  $(CHANGELOG_N) stands for
 # the newest (highest-numbered) ChangeLog history file.
-CHANGELOG_HISTORY_INDEX_MAX = 4
+CHANGELOG_HISTORY_INDEX_MAX = 5
 CHANGELOG_N = ChangeLog.$(CHANGELOG_HISTORY_INDEX_MAX)
 
 # Convert git commit log to ChangeLog file.  make-dist uses this.
