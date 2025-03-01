@@ -1129,12 +1129,12 @@ treesit_sync_visible_region (Lisp_Object parser)
     ptrdiff_t beg = XFIXNUM (XCAR (range));
     ptrdiff_t end = XFIXNUM (XCDR (range));
 
-    if (end <= visible_beg)
-      /* Even the end is before visible_beg, discard this range.  */
+    if (end <= BUF_BEGV (buffer))
+      /* Even the end is before BUF_BEGV (buffer), discard this range.  */
       new_ranges_head = XCDR (new_ranges_head);
-    else if (beg >= visible_end)
+    else if (beg >= BUF_ZV (buffer))
       {
-	/* Even the beg is after visible_end, discard this range and all
+	/* Even the beg is after BUF_ZV (buffer), discard this range and all
            the ranges after it.  */
 	if (NILP (prev_cons))
 	  new_ranges_head = Qnil;
@@ -1147,10 +1147,10 @@ treesit_sync_visible_region (Lisp_Object parser)
 	/* At this point, the range overlaps with the visible portion of
 	   the buffer in some way (in front / in back / completely
 	   encased / completely encases).  */
-	if (beg < visible_beg)
-	  XSETCAR (range, make_fixnum (visible_beg));
-	if (end > visible_end)
-	  XSETCDR (range, make_fixnum (visible_end));
+	if (beg < BUF_BEGV (buffer))
+	  XSETCAR (range, make_fixnum (BUF_BEGV (buffer)));
+	if (end > BUF_ZV (buffer))
+	  XSETCDR (range, make_fixnum (BUF_ZV (buffer)));
       }
     prev_cons = lisp_ranges;
   }
@@ -1160,8 +1160,8 @@ treesit_sync_visible_region (Lisp_Object parser)
      options, so just throw the towel: just give the parser a zero
      range.  (Perfect filling!!)   */
   if (NILP (new_ranges_head))
-    new_ranges_head = Fcons (Fcons (make_fixnum (visible_beg),
-				    make_fixnum (visible_beg)),
+    new_ranges_head = Fcons (Fcons (make_fixnum (BUF_BEGV (buffer)),
+				    make_fixnum (BUF_BEGV (buffer))),
 			     Qnil);
 
   XTS_PARSER (parser)->last_set_ranges = new_ranges_head;
