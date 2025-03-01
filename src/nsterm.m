@@ -6820,6 +6820,13 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
   return YES;
 }
 
+/* Tell NS we want to accept clicks that activate the window */
+- (BOOL)acceptsFirstMouse:(NSEvent *)theEvent
+{
+  NSTRACE_MSG ("First mouse event: type=%ld, clickCount=%ld",
+               [theEvent type], [theEvent clickCount]);
+  return YES;
+}
 - (void)resetCursorRects
 {
   NSRect visible = [self visibleRect];
