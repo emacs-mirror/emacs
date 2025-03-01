@@ -14,7 +14,6 @@ used to look up the next input event; this continues until a command
 is found.  The whole process is called @dfn{key lookup}.
 
 @menu
-* Key Sequences::               Key sequences as Lisp objects.
 * Keymap Basics::               Basic concepts of keymaps.
 * Format of Keymaps::           What a keymap looks like as a Lisp object.
 * Creating Keymaps::            Functions to create and copy keymaps.
@@ -30,6 +29,7 @@ is found.  The whole process is called @dfn{key lookup}.
 * Key Lookup::                  Finding a key's binding in one keymap.
 * Functions for Key Lookup::    How to request key lookup.
 * Changing Key Bindings::       Redefining a key in a keymap.
+* Key Sequences::               Key sequences as Lisp objects.
 * Low-Level Key Binding::       Legacy key syntax description.
 * Remapping Commands::          A keymap can translate one command to another.
 * Translation Keymaps::         Keymaps for translating sequences of events.
@@ -37,72 +37,6 @@ is found.  The whole process is called @dfn{key lookup}.
 * Scanning Keymaps::            Looking through all keymaps, for printing help.
 * Menu Keymaps::                Defining a menu as a keymap.
 @end menu
-
-@node Key Sequences
-@section Key Sequences
-@cindex key
-@cindex keystroke
-@cindex key sequence
-
-  A @dfn{key sequence}, or @dfn{key} for short, is a sequence of one
-or more input events that form a unit.  Input events include
-characters, function keys, mouse actions, or system events external to
-Emacs, such as @code{iconify-frame} (@pxref{Input Events}).
-The Emacs Lisp representation for a key sequence is a string or
-vector.  Unless otherwise stated, any Emacs Lisp function that accepts
-a key sequence as an argument can handle both representations.
-
-  In the string representation, alphanumeric characters ordinarily
-stand for themselves; for example, @code{"a"} represents @kbd{a}
-and @code{"2"} represents @kbd{2}.  Control character events are
-prefixed by the substring @code{"\C-"}, and meta characters by
-@code{"\M-"}; for example, @code{"\C-x"} represents the key @kbd{C-x}.
-In addition, the @key{TAB}, @key{RET}, @key{ESC}, and @key{DEL} events
-are represented by @code{"\t"}, @code{"\r"}, @code{"\e"}, and
-@code{"\d"} respectively.  The string representation of a complete key
-sequence is the concatenation of the string representations of the
-constituent events; thus, @code{"\C-xl"} represents the key sequence
-@kbd{C-x l}.
-
-  Key sequences containing function keys, mouse button events, system
-events, or non-@acronym{ASCII} characters such as @kbd{C-=} or
-@kbd{H-a} cannot be represented as strings; they have to be
-represented as vectors.
-
-  In the vector representation, each element of the vector represents
-an input event, in its Lisp form.  @xref{Input Events}.  For example,
-the vector @code{[?\C-x ?l]} represents the key sequence @kbd{C-x l}.
-
-  For examples of key sequences written in string and vector
-representations, @ref{Init Rebinding,,, emacs, The GNU Emacs Manual}.
-
-@defun kbd keyseq-text
-This function converts the text @var{keyseq-text} (a string constant)
-into a key sequence (a string or vector constant).  The contents of
-@var{keyseq-text} should use the same syntax as in the buffer invoked
-by the @kbd{C-x C-k @key{RET}} (@code{kmacro-edit-macro}) command; in
-particular, you must surround function key names with
-@samp{<@dots{}>}.  @xref{Edit Keyboard Macro,,, emacs, The GNU Emacs
-Manual}.
-
-@example
-(kbd "C-x") @result{} "\C-x"
-(kbd "C-x C-f") @result{} "\C-x\C-f"
-(kbd "C-x 4 C-f") @result{} "\C-x4\C-f"
-(kbd "X") @result{} "X"
-(kbd "RET") @result{} "^M"
-(kbd "C-c SPC") @result{} "\C-c@ "
-(kbd "<f1> SPC") @result{} [f1 32]
-(kbd "C-M-<down>") @result{} [C-M-down]
-@end example
-
-@findex key-valid-p
-The @code{kbd} function is very permissive, and will try to return
-something sensible even if the syntax used isn't completely
-conforming.  To check whether the syntax is actually valid, use the
-@code{key-valid-p} function.
-@end defun
-
 
 @node Keymap Basics
 @section Keymap Basics
@@ -1695,6 +1629,71 @@ Modes}); then its keymap will automatically inherit from
     map))
 @end group
 @end smallexample
+@end defun
+
+@node Key Sequences
+@section Key Sequences
+@cindex key
+@cindex keystroke
+@cindex key sequence
+
+  A @dfn{key sequence}, or @dfn{key} for short, is a sequence of one
+or more input events that form a unit.  Input events include
+characters, function keys, mouse actions, or system events external to
+Emacs, such as @code{iconify-frame} (@pxref{Input Events}).
+The Emacs Lisp representation for a key sequence is a string or
+vector.  Unless otherwise stated, any Emacs Lisp function that accepts
+a key sequence as an argument can handle both representations.
+
+  In the string representation, alphanumeric characters ordinarily
+stand for themselves; for example, @code{"a"} represents @kbd{a}
+and @code{"2"} represents @kbd{2}.  Control character events are
+prefixed by the substring @code{"\C-"}, and meta characters by
+@code{"\M-"}; for example, @code{"\C-x"} represents the key @kbd{C-x}.
+In addition, the @key{TAB}, @key{RET}, @key{ESC}, and @key{DEL} events
+are represented by @code{"\t"}, @code{"\r"}, @code{"\e"}, and
+@code{"\d"} respectively.  The string representation of a complete key
+sequence is the concatenation of the string representations of the
+constituent events; thus, @code{"\C-xl"} represents the key sequence
+@kbd{C-x l}.
+
+  Key sequences containing function keys, mouse button events, system
+events, or non-@acronym{ASCII} characters such as @kbd{C-=} or
+@kbd{H-a} cannot be represented as strings; they have to be
+represented as vectors.
+
+  In the vector representation, each element of the vector represents
+an input event, in its Lisp form.  @xref{Input Events}.  For example,
+the vector @code{[?\C-x ?l]} represents the key sequence @kbd{C-x l}.
+
+  For examples of key sequences written in string and vector
+representations, @ref{Init Rebinding,,, emacs, The GNU Emacs Manual}.
+
+@defun kbd keyseq-text
+This function converts the text @var{keyseq-text} (a string constant)
+into a key sequence (a string or vector constant).  The contents of
+@var{keyseq-text} should use the same syntax as in the buffer invoked
+by the @kbd{C-x C-k @key{RET}} (@code{kmacro-edit-macro}) command; in
+particular, you must surround function key names with
+@samp{<@dots{}>}.  @xref{Edit Keyboard Macro,,, emacs, The GNU Emacs
+Manual}.
+
+@example
+(kbd "C-x") @result{} "\C-x"
+(kbd "C-x C-f") @result{} "\C-x\C-f"
+(kbd "C-x 4 C-f") @result{} "\C-x4\C-f"
+(kbd "X") @result{} "X"
+(kbd "RET") @result{} "^M"
+(kbd "C-c SPC") @result{} "\C-c@ "
+(kbd "<f1> SPC") @result{} [f1 32]
+(kbd "C-M-<down>") @result{} [C-M-down]
+@end example
+
+@findex key-valid-p
+The @code{kbd} function is very permissive, and will try to return
+something sensible even if the syntax used isn't completely
+conforming.  To check whether the syntax is actually valid, use the
+@code{key-valid-p} function.
 @end defun
 
 @node Low-Level Key Binding
