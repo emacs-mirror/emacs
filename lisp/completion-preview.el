@@ -774,6 +774,10 @@ completions list."
             ;; hook update the completion preview in case the candidate
             ;; can be completed further.
             (when (functionp efn)
+              ;; Remove stale preview since `efn' can make arbitrary
+              ;; text and point modifications that might interfere with
+              ;; a subsequent preview update.  See bug#76606.
+              (completion-preview-active-mode -1)
               (funcall efn (concat base com) (if (cdr all) 'exact 'finished)))
           ;; Otherwise, remove the common prefix from the preview.
           (completion-preview--inhibit-update)

@@ -611,7 +611,7 @@ For example:
 
 @example
 (cl-defmacro dolist ((var listform &optional resultform)
-                   &rest body)
+                     &rest body)
   @dots{})
 @end example
 
