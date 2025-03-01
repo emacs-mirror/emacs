@@ -574,6 +574,7 @@ The function must satisfy this calling convention:
   "C-c RET C-p" #'makefile-makepp-mode
   "M-p"         #'makefile-previous-dependency
   "M-n"         #'makefile-next-dependency
+  "M-q"         #'fill-paragraph
   "C-M-i"       #'completion-at-point)
 
 (when makefile-electric-keys

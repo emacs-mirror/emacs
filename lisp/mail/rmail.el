@@ -176,7 +176,10 @@ Its name should end with a slash."
   :group 'rmail)
 
 (defcustom rmail-movemail-program nil
-  "If non-nil, the file name of the `movemail' program."
+  "If non-nil, the file name of the `movemail' program.
+If you customize this after starting Rmail, reset the
+variable `rmail-movemail-variant-in-use' to the nil value,
+and then restart Rmail."
   :group 'rmail-retrieve
   :type '(choice (const nil) string))
 
