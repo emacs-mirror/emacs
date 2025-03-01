@@ -521,6 +521,12 @@ behavior of the indirect buffer."
     (with-current-buffer buf
       (comint-write-input-ring))))
 
+(defun ielm--write-history-on-interrupt (_proc _group)
+  "Save the IELM input history when the process is interrupted."
+  (funcall (ielm--input-history-writer (current-buffer)))
+  ;; Let the rest of the hook functions run as well.
+  nil)
+
 ;;; Major mode
 
 (define-derived-mode inferior-emacs-lisp-mode comint-mode "IELM"
@@ -658,7 +664,10 @@ Customized bindings may be defined in `ielm-map', which currently contains:
          '(rear-nonsticky t field output inhibit-line-move-field-capture t))))
     (comint-output-filter (ielm-process) ielm-prompt-internal)
     (set-marker comint-last-input-start (ielm-pm))
-    (set-process-filter (get-buffer-process (current-buffer)) 'comint-output-filter)))
+    (set-process-filter (get-buffer-process (current-buffer))
+                        'comint-output-filter)
+    (add-hook 'interrupt-process-functions
+              #'ielm--write-history-on-interrupt -1 t)))
 
 (defun ielm-get-old-input nil
   ;; Return the previous input surrounding point

@@ -918,6 +918,14 @@ for docstrings where symbols 'nil' and 't' are in quotes.
 In most cases, having it enabled leads to a large amount of false
 positives.
 
+** IELM
+
+---
+*** IELM input history is now saved also when the IELM process is killed.
+When you kill the IELM process with "C-c C-c", the input history is now
+saved to the file specified by 'ielm-history-file-name', just like when
+you exit the Emacs session or kill the IELM buffer.
+
 ** DocView
 
 ---
