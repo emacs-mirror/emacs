@@ -678,7 +678,7 @@ network.  The corresponding back end must have a `request-post' method."
 If ARG, don't do that.  If ARG is 1, prompt for a group name to post to.
 Depending on the selected group, the message might be either a mail or
 a news."
-  (interactive "P" gnus-summary-mode)
+  (interactive "P" gnus-summary-mode gnus-article-mode)
   ;; Bind this variable here to make message mode hooks work ok.
   (let ((gnus-newsgroup-name
 	 (if arg
