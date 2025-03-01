@@ -165,7 +165,7 @@ left alone when opening a URL in an external browser."
         (let (kill-buffer-query-functions)
           (kill-buffer (call-interactively #'find-file-at-point)))))))
 
-(ert-deftest ffap-test-path ()
+(ert-deftest ffap-test-path-unix ()
   (skip-unless (file-exists-p "/bin"))
   (skip-unless (file-exists-p "/usr/bin"))
   (with-temp-buffer
@@ -181,6 +181,32 @@ left alone when opening a URL in an external browser."
     (insert ":/bin")
     (goto-char (point-min))
     (should (equal (ffap-file-at-point) nil))))
+
+(ert-deftest ffap-test-path-portable ()
+  ;; Why 'load-path' and not 'exec-path'?  Because there are various
+  ;; complications when the test is run on Windows from MSYS Bash: the
+  ;; few first directories MSYS adds to the system PATH may not exist,
+  ;; and the very first one is ".", which ffap-file-at-point doesn't
+  ;; recognize as a file.
+  (skip-unless (> (length load-path) 2))
+  (let ((dir1 (expand-file-name (car load-path)))
+        (dir2 (expand-file-name (nth 1 load-path))))
+    (skip-unless (and (file-exists-p dir1) (file-exists-p dir2)))
+    (with-temp-buffer
+      (insert (format "%s%s%s" dir1 path-separator dir2))
+      (goto-char (point-min))
+      ;; Use 'file-equal-p' because PATH could have backslashes, "~",
+      ;; and other constructs that will make 'equal' fail.
+      (should (file-equal-p (ffap-file-at-point) dir1)))
+    (with-temp-buffer
+      (insert (format "%s%s%s" dir1 path-separator dir2))
+      (goto-char (point-min))
+      (search-forward path-separator)
+      (should (file-equal-p (ffap-file-at-point) dir2)))
+    (with-temp-buffer
+      (insert "%s%s" path-separator dir2)
+      (goto-char (point-min))
+      (should (equal (ffap-file-at-point) nil)))))
 
 (ert-deftest ffap-tests--c-path ()
   (should (seq-every-p #'stringp (ffap--c-path)))
