@@ -7606,15 +7606,7 @@ This function causes the browser widget specified by @var{xwidget} to
 execute the specified JavaScript @code{script}.
 @end defun
 
-@defun xwidget-webkit-execute-script-rv xwidget script &optional default
-This function executes the specified @var{script} like
-@code{xwidget-webkit-execute-script} does, but it also returns the
-script's return value as a string.  If @var{script} doesn't return a
-value, this function returns @var{default}, or @code{nil} if
-@var{default} was omitted.
-@end defun
-
-@defun xwidget-webkit-get-title xwidget
+@defun xwidget-webkit-title xwidget
 This function returns the title of @var{xwidget} as a string.
 @end defun
 

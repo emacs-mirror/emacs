@@ -179,6 +179,23 @@ the available version of Tree-sitter for Java."
     (error
      `((string_literal) @font-lock-string-face))))
 
+(defun java-ts-mode--fontify-constant (node override start end &rest _)
+  "Fontify a Java constant.
+In Java the names of variables declared class constants and of ANSI
+constants should be all uppercase with words separated by underscores.
+This function also prevents annotations from being highlighted as if
+they were constants.
+For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
+  (let ((node-start (treesit-node-start node))
+	(case-fold-search nil))
+    (when (and
+	   (not (equal (char-before node-start) ?@)) ;; skip annotations
+	   (string-match "\\`[A-Z_][0-9A-Z_]*\\'" (treesit-node-text node)))
+      (treesit-fontify-with-override
+       node-start (treesit-node-end node)
+       'font-lock-constant-face override
+       start end))))
+
 (defvar java-ts-mode--font-lock-settings
   (treesit-font-lock-rules
    :language 'java
@@ -189,8 +206,7 @@ the available version of Tree-sitter for Java."
    :language 'java
    :override t
    :feature 'constant
-   `(((identifier) @font-lock-constant-face
-      (:match "\\`[A-Z_][0-9A-Z_]*\\'" @font-lock-constant-face))
+   `((identifier) @java-ts-mode--fontify-constant
      [(true) (false)] @font-lock-constant-face)
    :language 'java
    :override t
