@@ -204,7 +204,7 @@ it returns true, with ARG provided as a second argument."
 	      (save-excursion
 		(goto-char beg)
 		(save-match-data
-		  (when (re-search-forward "\\([RSDZTtWXxKWPI]\\) " nil t)
+		  (when (re-search-forward "\\([RSDZTtWXxKPI]\\) " nil t)
 		    (setq beg (point))
 		    (push (cons 'S (match-string 1)) process)))))
 	    (push (cons column (buffer-substring beg (match-beginning 0)))
@@ -2349,7 +2349,7 @@ a likewise structured directory tree."
   (let* ((default-directory (expand-file-name dir))
 	 (start (length default-directory)))
     (let ((dirs (directory-files-recursively
-		 dir "^[[:alnum:]-]+-tests\\.el$"
+		 dir "\\`[[:alnum:]-]+-tests\\.el\\'"
 		 ;; Do not recurse into resource directories, as ERC's
 		 ;; contain several files that resemble tests.
 		 nil (lambda (dir-name)
