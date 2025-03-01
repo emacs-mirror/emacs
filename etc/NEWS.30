@@ -16,6 +16,33 @@ You can narrow news to a specific version by calling 'view-emacs-news'
 with a prefix argument or by typing 'C-u C-h C-n'.
 
 
+* Installation Changes in Emacs 30.2
+
+
+* Startup Changes in Emacs 30.2
+
+
+* Changes in Emacs 30.2
+
+
+* Editing Changes in Emacs 30.2
+
+
+* Changes in Specialized Modes and Packages in Emacs 30.2
+
+
+* New Modes and Packages in Emacs 30.2
+
+
+* Incompatible Lisp Changes in Emacs 30.2
+
+
+* Lisp Changes in Emacs 30.2
+
+
+* Changes in Emacs 30.2 on Non-Free Operating Systems
+
+
 * Installation Changes in Emacs 30.1
 
 ** Native compilation is now enabled by default.
@@ -183,6 +210,9 @@ expectations.
 
 
 * Changes in Emacs 30.1
+
+** Fix shell injection vulnerability in man.el (CVE-2025-1244).
+We urge all users to upgrade immediately.
 
 ** New user option 'trusted-content' to allow potentially dangerous features.
 This option lists those files and directories whose content Emacs should
@@ -425,7 +455,7 @@ This user option controls outline visibility in the output buffer of
 'describe-bindings' when 'describe-bindings-outline' is non-nil.
 
 *** 'describe-function' shows the function's inferred type when available.
-For native-compiled Lisp functions, 'describe-function' prints (after
+For native compiled Lisp functions, 'describe-function' prints (after
 the signature) the automatically inferred function type as well.  If the
 function's type was explicitly declared (via the 'declare' form's
 'ftype' property), 'describe-function' shows the declared type.  This is
