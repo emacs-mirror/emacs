@@ -251,7 +251,8 @@ Note that the last two arguments are not respected when
 `use-system-tooltips' is non-nil and Emacs is built with support
 for system tooltips, such as on NS, Haiku, and with the GTK
 toolkit."
-  (if use-echo-area
+  (if (or use-echo-area
+          (not (display-graphic-p)))
       (tooltip-show-help-non-mode text)
     (condition-case error
 	(let ((params (copy-sequence tooltip-frame-parameters))
@@ -285,8 +286,13 @@ toolkit."
   "Hide a tooltip, if one is displayed.
 Value is non-nil if tooltip was open."
   (tooltip-cancel-delayed-tip)
-  (when (x-hide-tip)
-    (setq tooltip-hide-time (float-time))))
+  (if (display-graphic-p)
+      (when (x-hide-tip)
+        (setq tooltip-hide-time (float-time)))
+    (let ((msg (current-message)))
+      (message "")
+      (when (not (or (null msg) (equal msg "")))
+        (setq tooltip-hide-time (float-time))))))
 
 
 ;;; Debugger-related functions
@@ -386,11 +392,10 @@ It is also called if Tooltip mode is on, for text-only displays."
 (defun tooltip-show-help (msg)
   "Function installed as `show-help-function'.
 MSG is either a help string to display, or nil to cancel the display."
-  (if (and (display-graphic-p)
-           ;; Tooltips can't be displayed on top of the global menu
-           ;; bar on NS.
-           (or (not (eq window-system 'ns))
-               (not (menu-or-popup-active-p))))
+  (if ;; Tooltips can't be displayed on top of the global menu bar on
+      ;; NS.
+      (not (and (eq window-system 'ns)
+                (menu-or-popup-active-p)))
       (let ((previous-help tooltip-help-message))
 	(setq tooltip-help-message msg)
 	(cond ((null msg)
@@ -408,9 +413,7 @@ MSG is either a help string to display, or nil to cancel the display."
 	       ;; A different help.  Remove a previous tooltip, and
 	       ;; display a new one, with some delay.
 	       (tooltip-hide)
-	       (tooltip-start-delayed-tip))))
-    ;; On text-only displays, try `tooltip-show-help-non-mode'.
-    (tooltip-show-help-non-mode msg)))
+	       (tooltip-start-delayed-tip))))))
 
 (defun tooltip-help-tips (_event)
   "Hook function to display a help tooltip.

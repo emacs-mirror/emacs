@@ -1347,6 +1347,12 @@ change the selection rules.
 ** Miscellaneous
 
 ---
+*** 'tooltip-mode' now shows tooltips after delay on TTY frames.
+Display of tooltips on text-only terminals now happens after
+'tooltip-delay' as it does on GUI terminals.  To get back the old
+behavior, customize the value of 'tooltip-delay' to zero.
+
+---
 *** cdl.el is now obsolete.
 Use 'shell-command' and 'shell-command-on-region' instead.
 
