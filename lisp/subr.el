@@ -3263,13 +3263,19 @@ process."
 
 (defun process-get (process propname)
   "Return the value of PROCESS' PROPNAME property.
-This is the last value stored with `(process-put PROCESS PROPNAME VALUE)'."
+This is the last value stored with `(process-put PROCESS PROPNAME VALUE)'.
+
+Together with `process-put', this can be used to store and retrieve
+miscellaneous values associated with the process."
   (declare (side-effect-free t))
   (plist-get (process-plist process) propname))
 
 (defun process-put (process propname value)
   "Change PROCESS' PROPNAME property to VALUE.
-It can be retrieved with `(process-get PROCESS PROPNAME)'."
+It can be retrieved with `(process-get PROCESS PROPNAME)'.
+
+Together with `process-get', this can be used to store and retrieve
+miscellaneous values associated with the process."
   (set-process-plist process
 		     (plist-put (process-plist process) propname value)))
 
