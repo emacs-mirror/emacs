@@ -335,9 +335,10 @@ mouse-1: Enable lexical-binding mode"
 		      mouse-face mode-line-highlight
                       local-map ,elisp--dynlex-modeline-map)))
   "Major mode for editing Lisp code to run in Emacs.
-Commands:
-Delete converts tabs to spaces as it moves back.
-Blank lines separate paragraphs.  Semicolons start comments.
+
+- Delete converts tabs to spaces as it moves back.
+- Blank lines separate paragraphs.
+- Semicolons start comments.
 
 When editing Lisp data (as opposed to code), `lisp-data-mode' can
 be used instead.
@@ -367,7 +368,7 @@ be used instead.
             #'elisp-completion-at-point nil 'local)
   (add-hook 'flymake-diagnostic-functions #'elisp-flymake-checkdoc nil t)
   (add-hook 'flymake-diagnostic-functions
-              #'elisp-flymake-byte-compile nil t)
+            #'elisp-flymake-byte-compile nil t)
   (add-hook 'context-menu-functions #'elisp-context-menu 10 t))
 
 ;; Font-locking support.
@@ -1333,10 +1334,9 @@ before point, and prints its value into the buffer, advancing point.
 Note that printing is controlled by `eval-expression-print-length'
 and `eval-expression-print-level'.
 
-Commands:
-Delete converts tabs to spaces as it moves back.
-Paragraphs are separated only by blank lines.
-Semicolons start comments.
+- Delete converts tabs to spaces as it moves back.
+- Paragraphs are separated only by blank lines.
+- Semicolons start comments.
 
 \\{lisp-interaction-mode-map}"
   :abbrev-table nil

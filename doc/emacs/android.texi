@@ -145,8 +145,8 @@ attempts to open the file with the wrapper will fail.
 @cindex /content/by-authority directory, android
 @cindex /content/by-authority-named directory, android
   Some files are given to Emacs as ``content identifiers'' that the
-system provides access to outside the normal filesystem APIs.  Emacs
-uses pseudo-directories named @file{/content/by-authority} and
+system provides access to independently of the normal filesystem APIs.
+Emacs uses pseudo-directories named @file{/content/by-authority} and
 @file{/content/by-authority-named} to access those files.  Do not make
 any assumptions about the contents of these directories, or try to open
 files in it yourself.
@@ -227,9 +227,9 @@ system settings.
 
 @item
 Directories provided by @dfn{document providers} on Android 5.0 and
-later.  These directories exist outside the normal Unix filesystem,
-containing files provided by external programs (@pxref{Android
-Document Providers}.)
+later.  These directories exist independently of the Unix virtual
+filesystem, containing files provided by external programs
+(@pxref{Android Document Providers}.)
 @end itemize
 
   Despite ordinary installations of Android not having files within
@@ -324,9 +324,8 @@ its name to the command @code{android-relinquish-directory-access}.
   The same limitations applied to the @file{/assets} directory
 (@pxref{Android File System}) are applied when creating sub-processes
 within those directories, because they do not exist within the Unix
-file-system.  In addition, although Emacs can normally write and
-create files inside these directories, it cannot create symlinks or
-hard links.
+file-system.  In addition, although Emacs can normally write and create
+files inside these directories, it cannot create symlinks or hard links.
 
   Since document providers are allowed to perform expensive network
 operations to obtain file contents, a file access operation within one

@@ -2377,7 +2377,7 @@ though when this function is run from an idle timer with a delay of zero
 seconds.
 @end defun
 
-@defun buffer-text-pixel-size &optional buffer-or-name window from to x-limit y-limit
+@defun buffer-text-pixel-size &optional buffer-or-name window x-limit y-limit
 This is much like @code{window-text-pixel-size}, but can be used when
 the buffer isn't shown in a window.  (@code{window-text-pixel-size} is
 faster when it is, so this function shouldn't be used in that case.)
@@ -2388,10 +2388,14 @@ live window and defaults to the selected one; the function will
 compute the text dimensions as if @var{buffer} is displayed in
 @var{window}.  The return value is a cons of the maximum pixel-width
 of any text line and the pixel-height of all the text lines of the
-buffer specified by @var{buffer-or-name}.
+accessible portion of the buffer specified by @var{buffer-or-name}.
 
 The optional arguments @var{x-limit} and @var{y-limit} have the same
 meaning as with @code{window-text-pixel-size}.
+
+If you want to measure dimensions of some part of the buffer text,
+narrow the buffer to that part before calling this function
+(@pxref{Narrowing}).
 @end defun
 
 @defun string-pixel-width string &optional buffer

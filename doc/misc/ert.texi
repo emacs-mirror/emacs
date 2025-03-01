@@ -963,7 +963,7 @@ checking face assignment.  Test assertions are included in code-level
 comments directly and can be read either from inline strings or files.
 The parser expects the input string to contain at least one assertion.
 
-Test assertion parser extracts tests from comment-only lines.  Every
+The test assertion parser extracts tests from comment-only lines.  Every
 comment assertion line starts either with a caret (@samp{^}) or an arrow
 (@samp{<-}).  A single caret/arrow or carets should be followed
 immediately by the name of a face or a list of faces to be checked
@@ -985,7 +985,7 @@ var variable = 11;
 @end example
 
 Both symbol-only @code{:face} property values and assertion face values
-are normalized to single element lists so assertions below are
+are normalized to single element lists so the assertions below are
 equivalent:
 
 @example
@@ -1062,7 +1062,7 @@ definition:
 
 @lisp
 (ert-font-lock-deftest test-macro-test--inline
-    emacs-lisp-mode
+  emacs-lisp-mode
   "
 (defun fun ())
 ;; ^ font-lock-keyword-face
@@ -1076,13 +1076,13 @@ file:
 
 @lisp
 (ert-font-lock-deftest-file test-macro-test--file
-    "Test reading correct assertions from a file"
+  "Test reading correct assertions from a file."
   javascript-mode
   "correct.js")
 @end lisp
 
 The @code{ert-font-lock-deftest} and @code{ert-font-lock-deftest-file}
-macros accept the same keyword parameters as @code{ert-deftest} i.e.,
+macros accept the same keyword arguments as @code{ert-deftest}, i.e.,
 @code{:tag} and @code{:expected-result}.
 
 

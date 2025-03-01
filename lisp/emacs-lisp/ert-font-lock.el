@@ -27,8 +27,8 @@
 ;; highlighting provided by font-lock.
 ;;
 ;; ert-font-lock entry points are functions
-;; `ert-font-lock-test-string' and `ert-font-lock-test-file' and
-;; convenience macros: `ert-font-lock-deftest' and
+;; `ert-font-lock-test-string' and `ert-font-lock-test-file', and
+;; convenience macros `ert-font-lock-deftest' and
 ;; `ert-font-lock-deftest-file'.
 ;;
 ;; See unit tests in ert-font-lock-tests.el for usage examples.
@@ -124,19 +124,21 @@ Argument TEST-NAME - name of the currently running ert test."
 (defmacro ert-font-lock-deftest (name &rest docstring-keys-mode-and-str)
   "Define test NAME (a symbol) using assertions from TEST-STR.
 
-Other than MAJOR-MODE and TEST-STR parameters, this macro accepts
-the same parameters and keywords as `ert-deftest' and is intended
-to be used through `ert'.
+The MAJOR-MODE symbol determines the syntax and font lock of TEST-STR.
 
-\(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] \
+Except for the MAJOR-MODE and TEST-STR parameters, this macro accepts
+the same arguments and keywords as `ert-deftest' and is intended to be
+used through `ert'.
+
+\(fn NAME [DOCSTRING] [:expected-result RESULT-TYPE] \
 [:tags \\='(TAG...)] MAJOR-MODE TEST-STR)"
   (declare (debug (&define [&name "test@" symbolp]
-                           sexp [&optional stringp]
+                           [&optional stringp]
                            [&rest keywordp sexp]
                            symbolp
                            stringp))
-           (doc-string 3)
-           (indent 2))
+           (doc-string 2)
+           (indent 1))
   (pcase-let ((`(,documentation
                  ,documentation-supplied-p
                  ,keys ,mode ,arg)
@@ -159,22 +161,23 @@ to be used through `ert'.
 (defmacro ert-font-lock-deftest-file (name &rest docstring-keys-mode-and-file)
   "Define test NAME (a symbol) using assertions from FILE.
 
-FILE - path to a file with assertions in ERT resource director as
-return by `ert-resource-directory'.
+FILE names a file with assertions in the ERT resource directory, as
+returned by `ert-resource-directory'.  The MAJOR-MODE symbol determines
+the syntax and font lock of FILE's contents.
 
-Other than MAJOR-MODE and FILE parameters, this macro accepts the
-same parameters and keywords as `ert-deftest' and is intended to
-be used through `ert'.
+Except for the MAJOR-MODE and FILE parameters, this macro accepts the
+same arguments and keywords as `ert-deftest' and is intended to be used
+through `ert'.
 
-\(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] \
+\(fn NAME [DOCSTRING] [:expected-result RESULT-TYPE] \
 [:tags \\='(TAG...)] MAJOR-MODE FILE)"
   (declare (debug (&define [&name "test@" symbolp]
-                           sexp [&optional stringp]
+                           [&optional stringp]
                            [&rest keywordp sexp]
                            symbolp
                            stringp))
-           (doc-string 3)
-           (indent 2))
+           (doc-string 2)
+           (indent 1))
 
   (pcase-let ((`(,documentation
                  ,documentation-supplied-p

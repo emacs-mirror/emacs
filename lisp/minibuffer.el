@@ -1516,7 +1516,7 @@ pair of a group title string and a list of group candidate strings."
 (defvar completion-tab-width nil)
 
 (defvar completion-fail-discreetly nil
-  "If non-nil, stay quiet when there  is no match.")
+  "If non-nil, stay quiet when there is no match.")
 
 (defun completion--message (msg)
   (if completion-show-inline-help
