@@ -6320,6 +6320,11 @@ command `prefer-coding-system') is used.
 If NOERROR is non-nil, silently assume the `raw-text' coding if the
 guesswork fails.  Normally, an error is signaled in such case.
 
+This function is semi-obsolete, since for most purposes it is equivalent
+to calling `secure-hash` with the symbol `md5' as the ALGORITHM
+argument.  The OBJECT, START and END arguments have the same meanings as
+in `secure-hash'.
+
 Note that MD5 is not collision resistant and should not be used for
 anything security-related.  See `secure-hash' for alternatives.  */)
   (Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp_Object coding_system, Lisp_Object noerror)
