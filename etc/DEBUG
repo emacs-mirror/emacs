@@ -1010,14 +1010,16 @@ program.
 ** Running Emacs with address sanitization
 
 Building Emacs with address sanitization can help debug memory-use
-problems, such as freeing the same object twice.  To use
-AddressSanitizer with GCC and similar compilers, append
+problems, such as freeing the same object twice.  It does, however,
+require special care to ensure that Emacs's garbage collection continues
+working.  To use AddressSanitizer with GCC and similar compilers, append
 '-fsanitize=address' to CFLAGS, either when running 'configure' or
-running 'make'.  Configure, build and run Emacs with
-ASAN_OPTIONS='detect_leaks=0' in the environment to suppress
-diagnostics of minor memory leaks in Emacs.  For example:
+running 'make'.  When running Emacs, ensure the ASAN_OPTIONS environment
+variable is set and includes 'detect_stack_use_after_return=0' (to keep
+GC working) and 'detect_leaks=0' (to avoid noisy diagnostics about minor
+memory leaks in Emacs).  For example:
 
-  export ASAN_OPTIONS='detect_leaks=0'
+  export ASAN_OPTIONS='detect_leaks=0,detect_stack_use_after_return=0'
   ./configure CFLAGS='-O0 -g3 -fsanitize=address'
   make
   src/emacs
@@ -1034,8 +1036,7 @@ will let you gain control when an error is detected and before
 AddressSanitizer outputs to stderr or terminates the program.
 
 Address sanitization is incompatible with undefined-behavior
-sanitization, unfortunately.  Address sanitization is also
-incompatible with the --with-dumping=unexec option of 'configure'.
+sanitization, unfortunately.
 
 *** Address poisoning/unpoisoning
 
