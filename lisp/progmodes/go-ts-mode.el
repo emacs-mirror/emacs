@@ -172,7 +172,8 @@
      ,@(when (go-ts-mode--iota-query-supported-p)
          '((iota) @font-lock-constant-face))
      (const_declaration
-      (const_spec name: (identifier) @font-lock-constant-face)))
+      (const_spec name: (identifier) @font-lock-constant-face
+                  ("," name: (identifier) @font-lock-constant-face)*)))
 
    :language 'go
    :feature 'delimiter

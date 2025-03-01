@@ -14,8 +14,8 @@ used to look up the next input event; this continues until a command
 is found.  The whole process is called @dfn{key lookup}.
 
 @menu
-* Key Sequences::               Key sequences as Lisp objects.
 * Keymap Basics::               Basic concepts of keymaps.
+* Changing Key Bindings::       Redefining a key in a keymap.
 * Format of Keymaps::           What a keymap looks like as a Lisp object.
 * Creating Keymaps::            Functions to create and copy keymaps.
 * Inheritance and Keymaps::     How one keymap can inherit the bindings
@@ -29,7 +29,7 @@ is found.  The whole process is called @dfn{key lookup}.
                                    A minor mode can also override them.
 * Key Lookup::                  Finding a key's binding in one keymap.
 * Functions for Key Lookup::    How to request key lookup.
-* Changing Key Bindings::       Redefining a key in a keymap.
+* Key Sequences::               Key sequences as Lisp objects.
 * Low-Level Key Binding::       Legacy key syntax description.
 * Remapping Commands::          A keymap can translate one command to another.
 * Translation Keymaps::         Keymaps for translating sequences of events.
@@ -37,72 +37,6 @@ is found.  The whole process is called @dfn{key lookup}.
 * Scanning Keymaps::            Looking through all keymaps, for printing help.
 * Menu Keymaps::                Defining a menu as a keymap.
 @end menu
-
-@node Key Sequences
-@section Key Sequences
-@cindex key
-@cindex keystroke
-@cindex key sequence
-
-  A @dfn{key sequence}, or @dfn{key} for short, is a sequence of one
-or more input events that form a unit.  Input events include
-characters, function keys, mouse actions, or system events external to
-Emacs, such as @code{iconify-frame} (@pxref{Input Events}).
-The Emacs Lisp representation for a key sequence is a string or
-vector.  Unless otherwise stated, any Emacs Lisp function that accepts
-a key sequence as an argument can handle both representations.
-
-  In the string representation, alphanumeric characters ordinarily
-stand for themselves; for example, @code{"a"} represents @kbd{a}
-and @code{"2"} represents @kbd{2}.  Control character events are
-prefixed by the substring @code{"\C-"}, and meta characters by
-@code{"\M-"}; for example, @code{"\C-x"} represents the key @kbd{C-x}.
-In addition, the @key{TAB}, @key{RET}, @key{ESC}, and @key{DEL} events
-are represented by @code{"\t"}, @code{"\r"}, @code{"\e"}, and
-@code{"\d"} respectively.  The string representation of a complete key
-sequence is the concatenation of the string representations of the
-constituent events; thus, @code{"\C-xl"} represents the key sequence
-@kbd{C-x l}.
-
-  Key sequences containing function keys, mouse button events, system
-events, or non-@acronym{ASCII} characters such as @kbd{C-=} or
-@kbd{H-a} cannot be represented as strings; they have to be
-represented as vectors.
-
-  In the vector representation, each element of the vector represents
-an input event, in its Lisp form.  @xref{Input Events}.  For example,
-the vector @code{[?\C-x ?l]} represents the key sequence @kbd{C-x l}.
-
-  For examples of key sequences written in string and vector
-representations, @ref{Init Rebinding,,, emacs, The GNU Emacs Manual}.
-
-@defun kbd keyseq-text
-This function converts the text @var{keyseq-text} (a string constant)
-into a key sequence (a string or vector constant).  The contents of
-@var{keyseq-text} should use the same syntax as in the buffer invoked
-by the @kbd{C-x C-k @key{RET}} (@code{kmacro-edit-macro}) command; in
-particular, you must surround function key names with
-@samp{<@dots{}>}.  @xref{Edit Keyboard Macro,,, emacs, The GNU Emacs
-Manual}.
-
-@example
-(kbd "C-x") @result{} "\C-x"
-(kbd "C-x C-f") @result{} "\C-x\C-f"
-(kbd "C-x 4 C-f") @result{} "\C-x4\C-f"
-(kbd "X") @result{} "X"
-(kbd "RET") @result{} "^M"
-(kbd "C-c SPC") @result{} "\C-c@ "
-(kbd "<f1> SPC") @result{} [f1 32]
-(kbd "C-M-<down>") @result{} [C-M-down]
-@end example
-
-@findex key-valid-p
-The @code{kbd} function is very permissive, and will try to return
-something sensible even if the syntax used isn't completely
-conforming.  To check whether the syntax is actually valid, use the
-@code{key-valid-p} function.
-@end defun
-
 
 @node Keymap Basics
 @section Keymap Basics
@@ -155,6 +89,280 @@ modes have keymaps.)  The local keymap bindings shadow (i.e., take
 precedence over) the corresponding global bindings.  The minor mode
 keymaps shadow both local and global keymaps.  @xref{Active Keymaps},
 for details.
+
+@node Changing Key Bindings
+@section Changing Key Bindings
+@cindex changing key bindings
+@cindex rebinding
+
+  The way to rebind a key is to change its entry in a keymap.  If you
+change a binding in the global keymap, the change is effective in all
+buffers (though it has no direct effect in buffers that shadow the
+global binding with a local one).  If you change the current buffer's
+local map, that usually affects all buffers using the same major mode.
+The @code{keymap-global-set} and @code{keymap-local-set} functions are
+convenient interfaces for these operations (@pxref{Key Binding
+Commands}).  You can also use @code{keymap-set}, a more general
+function; then you must explicitly specify the map to change.
+
+  When choosing the key sequences for Lisp programs to rebind, please
+follow the Emacs conventions for use of various keys (@pxref{Key
+Binding Conventions}).
+
+  The functions below signal an error if @var{keymap} is not a keymap,
+or if @var{key} is not a valid key.
+
+@var{key} is a string representing a single key or a series of key
+strokes, and must satisfy @code{key-valid-p}.  Key strokes are
+separated by a single space character.
+
+Each key stroke is either a single character, or the name of an
+event, surrounded by angle brackets.  In addition, any key stroke
+may be preceded by one or more modifier keys.  Finally, a limited
+number of characters have a special shorthand syntax.  Here's some
+example key sequences:
+
+@table @kbd
+@item f
+The key @kbd{f}.
+
+@item S o m
+A three key sequence of the keys @kbd{S}, @kbd{o} and @kbd{m}.
+
+@item C-c o
+A two key sequence of the keys @kbd{c} with the control modifier and
+then the key @kbd{o}
+
+@item H-<left>
+The key named @kbd{left} with the hyper modifier.
+
+@item M-RET
+The @kbd{return} key with a meta modifier.
+
+@item C-M-<space>
+The @kbd{space} key with both the control and meta modifiers.
+@end table
+
+The only keys that have a special shorthand syntax are @kbd{NUL},
+@kbd{RET}, @kbd{TAB}, @kbd{LFD}, @kbd{ESC}, @kbd{SPC} and @kbd{DEL}.
+
+The modifiers have to be specified in alphabetical order:
+@samp{A-C-H-M-S-s}, which is @samp{Alt-Control-Hyper-Meta-Shift-super}.
+
+@findex keymap-set
+@defun keymap-set keymap key binding
+This function sets the binding for @var{key} in @var{keymap}.  (If
+@var{key} is more than one event long, the change is actually made
+in another keymap reached from @var{keymap}.)  The argument
+@var{binding} can be any Lisp object, but only certain types are
+meaningful.  (For a list of meaningful types, see @ref{Key Lookup}.)
+The value returned by @code{keymap-set} is @var{binding}.
+
+If @var{key} is @kbd{<t>}, this sets the default binding in
+@var{keymap}.  When an event has no binding of its own, the Emacs
+command loop uses the keymap's default binding, if there is one.
+
+@cindex invalid prefix key error
+@cindex key sequence error
+Every prefix of @var{key} must be a prefix key (i.e., bound to a keymap)
+or undefined; otherwise an error is signaled.  If some prefix of
+@var{key} is undefined, then @code{keymap-set} defines it as a prefix
+key so that the rest of @var{key} can be defined as specified.
+
+If there was previously no binding for @var{key} in @var{keymap}, the
+new binding is added at the beginning of @var{keymap}.  The order of
+bindings in a keymap makes no difference for keyboard input, but it
+does matter for menu keymaps (@pxref{Menu Keymaps}).
+@end defun
+
+@findex keymap-unset
+@defun keymap-unset keymap key &optional remove
+This function is the inverse of @code{keymap-set}, it unsets the
+binding for @var{key} in @var{keymap}, which is the same as setting
+the binding to @code{nil}.  In order to instead remove the binding
+completely, specify @var{remove} as non-@code{nil}.  This only makes a
+difference if @var{keymap} has a parent keymap: if you just unset a key
+in a child map, it will still shadow the same key in the parent
+keymap; using @var{remove} instead will allow the key in the parent keymap
+to be used.
+@end defun
+
+Note: using @code{keymap-unset} with @var{remove} non-@code{nil} is
+intended for users to put in their init file; Emacs packages should
+avoid using it if possible, since they have complete control over
+their own keymaps anyway, and they should not be altering other
+packages' keymaps.
+
+  This example creates a sparse keymap and makes a number of
+bindings in it:
+
+@smallexample
+@group
+(setq map (make-sparse-keymap))
+    @result{} (keymap)
+@end group
+@group
+(keymap-set map "C-f" 'forward-char)
+    @result{} forward-char
+@end group
+@group
+map
+    @result{} (keymap (6 . forward-char))
+@end group
+
+@group
+;; @r{Build sparse submap for @kbd{C-x} and bind @kbd{f} in that.}
+(keymap-set map "C-x f" 'forward-word)
+    @result{} forward-word
+@end group
+@group
+map
+@result{} (keymap
+    (24 keymap                ; @kbd{C-x}
+        (102 . forward-word)) ;      @kbd{f}
+    (6 . forward-char))       ; @kbd{C-f}
+@end group
+
+@group
+;; @r{Bind @kbd{C-p} to the @code{ctl-x-map}.}
+(keymap-set map "C-p" ctl-x-map)
+;; @code{ctl-x-map}
+@result{} [nil @dots{} find-file @dots{} backward-kill-sentence]
+@end group
+
+@group
+;; @r{Bind @kbd{C-f} to @code{foo} in the @code{ctl-x-map}.}
+(keymap-set map "C-p C-f" 'foo)
+@result{} 'foo
+@end group
+@group
+map
+@result{} (keymap     ; @r{Note @code{foo} in @code{ctl-x-map}.}
+    (16 keymap [nil @dots{} foo @dots{} backward-kill-sentence])
+    (24 keymap
+        (102 . forward-word))
+    (6 . forward-char))
+@end group
+@end smallexample
+
+@noindent
+Note that storing a new binding for @kbd{C-p C-f} actually works by
+changing an entry in @code{ctl-x-map}, and this has the effect of
+changing the bindings of both @kbd{C-p C-f} and @kbd{C-x C-f} in the
+default global map.
+
+@code{keymap-set} is the general work horse for defining a key in a
+keymap.  When writing modes, however, you frequently have to bind a
+large number of keys at once, and using @code{keymap-set} on them all
+can be tedious and error-prone.  Instead you can use
+@code{define-keymap}, which creates a keymap and binds a number of
+keys.  @xref{Creating Keymaps}, for details.
+
+The function @code{substitute-key-definition} scans a keymap for
+keys that have a certain binding and rebinds them with a different
+binding.  Another feature which is cleaner and can often produce the
+same results is to remap one command into another (@pxref{Remapping
+Commands}).
+
+@defun substitute-key-definition olddef newdef keymap &optional oldmap
+@cindex replace bindings
+This function replaces @var{olddef} with @var{newdef} for any keys in
+@var{keymap} that were bound to @var{olddef}.  In other words,
+@var{olddef} is replaced with @var{newdef} wherever it appears.  The
+function returns @code{nil}.
+
+For example, this redefines @kbd{C-x C-f}, if you do it in an Emacs with
+standard bindings:
+
+@smallexample
+@group
+(substitute-key-definition
+ 'find-file 'find-file-read-only (current-global-map))
+@end group
+@end smallexample
+
+If @var{oldmap} is non-@code{nil}, that changes the behavior of
+@code{substitute-key-definition}: the bindings in @var{oldmap} determine
+which keys to rebind.  The rebindings still happen in @var{keymap}, not
+in @var{oldmap}.  Thus, you can change one map under the control of the
+bindings in another.  For example,
+
+@smallexample
+(substitute-key-definition
+  'delete-backward-char 'my-funny-delete
+  my-map global-map)
+@end smallexample
+
+@noindent
+puts the special deletion command in @code{my-map} for whichever keys
+are globally bound to the standard deletion command.
+
+Here is an example showing a keymap before and after substitution:
+
+@smallexample
+@group
+(setq map (list 'keymap
+                (cons ?1 olddef-1)
+                (cons ?2 olddef-2)
+                (cons ?3 olddef-1)))
+@result{} (keymap (49 . olddef-1) (50 . olddef-2) (51 . olddef-1))
+@end group
+
+@group
+(substitute-key-definition 'olddef-1 'newdef map)
+@result{} nil
+@end group
+@group
+map
+@result{} (keymap (49 . newdef) (50 . olddef-2) (51 . newdef))
+@end group
+@end smallexample
+@end defun
+
+@defun suppress-keymap keymap &optional nodigits
+@cindex @code{self-insert-command} override
+This function changes the contents of the full keymap @var{keymap} by
+remapping @code{self-insert-command} to the command @code{undefined}
+(@pxref{Remapping Commands}).  This has the effect of undefining all
+printing characters, thus making ordinary insertion of text impossible.
+@code{suppress-keymap} returns @code{nil}.
+
+If @var{nodigits} is @code{nil}, then @code{suppress-keymap} defines
+digits to run @code{digit-argument}, and @kbd{-} to run
+@code{negative-argument}.  Otherwise it makes them undefined like the
+rest of the printing characters.
+
+@cindex yank suppression
+@cindex @code{quoted-insert} suppression
+The @code{suppress-keymap} function does not make it impossible to
+modify a buffer, as it does not suppress commands such as @code{yank}
+and @code{quoted-insert}.  To prevent any modification of a buffer, make
+it read-only (@pxref{Read Only Buffers}).
+
+Since this function modifies @var{keymap}, you would normally use it
+on a newly created keymap.  Operating on an existing keymap
+that is used for some other purpose is likely to cause trouble; for
+example, suppressing @code{global-map} would make it impossible to use
+most of Emacs.
+
+This function can be used to initialize the local keymap of a major
+mode for which insertion of text is not desirable.  But usually such a
+mode should be derived from @code{special-mode} (@pxref{Basic Major
+Modes}); then its keymap will automatically inherit from
+@code{special-mode-map}, which is already suppressed.  Here is how
+@code{special-mode-map} is defined:
+
+@smallexample
+@group
+(defvar special-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (keymap-set map "q" 'quit-window)
+    @dots{}
+    map))
+@end group
+@end smallexample
+@end defun
 
 @node Format of Keymaps
 @section Format of Keymaps
@@ -1428,278 +1636,69 @@ for other kinds of input events.  Thus, @kbd{M-@key{F1}}, a function
 key, is not converted into @kbd{@key{ESC} @key{F1}}.
 @end defopt
 
-@node Changing Key Bindings
-@section Changing Key Bindings
-@cindex changing key bindings
-@cindex rebinding
+@node Key Sequences
+@section Key Sequences
+@cindex key
+@cindex keystroke
+@cindex key sequence
 
-  The way to rebind a key is to change its entry in a keymap.  If you
-change a binding in the global keymap, the change is effective in all
-buffers (though it has no direct effect in buffers that shadow the
-global binding with a local one).  If you change the current buffer's
-local map, that usually affects all buffers using the same major mode.
-The @code{keymap-global-set} and @code{keymap-local-set} functions are
-convenient interfaces for these operations (@pxref{Key Binding
-Commands}).  You can also use @code{keymap-set}, a more general
-function; then you must explicitly specify the map to change.
+  A @dfn{key sequence}, or @dfn{key} for short, is a sequence of one
+or more input events that form a unit.  Input events include
+characters, function keys, mouse actions, or system events external to
+Emacs, such as @code{iconify-frame} (@pxref{Input Events}).
+The Emacs Lisp representation for a key sequence is a string or
+vector.  Unless otherwise stated, any Emacs Lisp function that accepts
+a key sequence as an argument can handle both representations.
 
-  When choosing the key sequences for Lisp programs to rebind, please
-follow the Emacs conventions for use of various keys (@pxref{Key
-Binding Conventions}).
+  In the string representation, alphanumeric characters ordinarily
+stand for themselves; for example, @code{"a"} represents @kbd{a}
+and @code{"2"} represents @kbd{2}.  Control character events are
+prefixed by the substring @code{"\C-"}, and meta characters by
+@code{"\M-"}; for example, @code{"\C-x"} represents the key @kbd{C-x}.
+In addition, the @key{TAB}, @key{RET}, @key{ESC}, and @key{DEL} events
+are represented by @code{"\t"}, @code{"\r"}, @code{"\e"}, and
+@code{"\d"} respectively.  The string representation of a complete key
+sequence is the concatenation of the string representations of the
+constituent events; thus, @code{"\C-xl"} represents the key sequence
+@kbd{C-x l}.
 
-  The functions below signal an error if @var{keymap} is not a keymap,
-or if @var{key} is not a valid key.
+  Key sequences containing function keys, mouse button events, system
+events, or non-@acronym{ASCII} characters such as @kbd{C-=} or
+@kbd{H-a} cannot be represented as strings; they have to be
+represented as vectors.
 
-@var{key} is a string representing a single key or a series of key
-strokes, and must satisfy @code{key-valid-p}.  Key strokes are
-separated by a single space character.
+  In the vector representation, each element of the vector represents
+an input event, in its Lisp form.  @xref{Input Events}.  For example,
+the vector @code{[?\C-x ?l]} represents the key sequence @kbd{C-x l}.
 
-Each key stroke is either a single character, or the name of an
-event, surrounded by angle brackets.  In addition, any key stroke
-may be preceded by one or more modifier keys.  Finally, a limited
-number of characters have a special shorthand syntax.  Here's some
-example key sequences:
+  For examples of key sequences written in string and vector
+representations, @ref{Init Rebinding,,, emacs, The GNU Emacs Manual}.
 
-@table @kbd
-@item f
-The key @kbd{f}.
+@defun kbd keyseq-text
+This function converts the text @var{keyseq-text} (a string constant)
+into a key sequence (a string or vector constant).  The contents of
+@var{keyseq-text} should use the same syntax as in the buffer invoked
+by the @kbd{C-x C-k @key{RET}} (@code{kmacro-edit-macro}) command; in
+particular, you must surround function key names with
+@samp{<@dots{}>}.  @xref{Edit Keyboard Macro,,, emacs, The GNU Emacs
+Manual}.
 
-@item S o m
-A three key sequence of the keys @kbd{S}, @kbd{o} and @kbd{m}.
+@example
+(kbd "C-x") @result{} "\C-x"
+(kbd "C-x C-f") @result{} "\C-x\C-f"
+(kbd "C-x 4 C-f") @result{} "\C-x4\C-f"
+(kbd "X") @result{} "X"
+(kbd "RET") @result{} "^M"
+(kbd "C-c SPC") @result{} "\C-c@ "
+(kbd "<f1> SPC") @result{} [f1 32]
+(kbd "C-M-<down>") @result{} [C-M-down]
+@end example
 
-@item C-c o
-A two key sequence of the keys @kbd{c} with the control modifier and
-then the key @kbd{o}
-
-@item H-<left>
-The key named @kbd{left} with the hyper modifier.
-
-@item M-RET
-The @kbd{return} key with a meta modifier.
-
-@item C-M-<space>
-The @kbd{space} key with both the control and meta modifiers.
-@end table
-
-The only keys that have a special shorthand syntax are @kbd{NUL},
-@kbd{RET}, @kbd{TAB}, @kbd{LFD}, @kbd{ESC}, @kbd{SPC} and @kbd{DEL}.
-
-The modifiers have to be specified in alphabetical order:
-@samp{A-C-H-M-S-s}, which is @samp{Alt-Control-Hyper-Meta-Shift-super}.
-
-@findex keymap-set
-@defun keymap-set keymap key binding
-This function sets the binding for @var{key} in @var{keymap}.  (If
-@var{key} is more than one event long, the change is actually made
-in another keymap reached from @var{keymap}.)  The argument
-@var{binding} can be any Lisp object, but only certain types are
-meaningful.  (For a list of meaningful types, see @ref{Key Lookup}.)
-The value returned by @code{keymap-set} is @var{binding}.
-
-If @var{key} is @kbd{<t>}, this sets the default binding in
-@var{keymap}.  When an event has no binding of its own, the Emacs
-command loop uses the keymap's default binding, if there is one.
-
-@cindex invalid prefix key error
-@cindex key sequence error
-Every prefix of @var{key} must be a prefix key (i.e., bound to a keymap)
-or undefined; otherwise an error is signaled.  If some prefix of
-@var{key} is undefined, then @code{keymap-set} defines it as a prefix
-key so that the rest of @var{key} can be defined as specified.
-
-If there was previously no binding for @var{key} in @var{keymap}, the
-new binding is added at the beginning of @var{keymap}.  The order of
-bindings in a keymap makes no difference for keyboard input, but it
-does matter for menu keymaps (@pxref{Menu Keymaps}).
-@end defun
-
-@findex keymap-unset
-@defun keymap-unset keymap key &optional remove
-This function is the inverse of @code{keymap-set}, it unsets the
-binding for @var{key} in @var{keymap}, which is the same as setting
-the binding to @code{nil}.  In order to instead remove the binding
-completely, specify @var{remove} as non-@code{nil}.  This only makes a
-difference if @var{keymap} has a parent keymap: if you just unset a key
-in a child map, it will still shadow the same key in the parent
-keymap; using @var{remove} instead will allow the key in the parent keymap
-to be used.
-@end defun
-
-Note: using @code{keymap-unset} with @var{remove} non-@code{nil} is
-intended for users to put in their init file; Emacs packages should
-avoid using it if possible, since they have complete control over
-their own keymaps anyway, and they should not be altering other
-packages' keymaps.
-
-  This example creates a sparse keymap and makes a number of
-bindings in it:
-
-@smallexample
-@group
-(setq map (make-sparse-keymap))
-    @result{} (keymap)
-@end group
-@group
-(keymap-set map "C-f" 'forward-char)
-    @result{} forward-char
-@end group
-@group
-map
-    @result{} (keymap (6 . forward-char))
-@end group
-
-@group
-;; @r{Build sparse submap for @kbd{C-x} and bind @kbd{f} in that.}
-(keymap-set map "C-x f" 'forward-word)
-    @result{} forward-word
-@end group
-@group
-map
-@result{} (keymap
-    (24 keymap                ; @kbd{C-x}
-        (102 . forward-word)) ;      @kbd{f}
-    (6 . forward-char))       ; @kbd{C-f}
-@end group
-
-@group
-;; @r{Bind @kbd{C-p} to the @code{ctl-x-map}.}
-(keymap-set map "C-p" ctl-x-map)
-;; @code{ctl-x-map}
-@result{} [nil @dots{} find-file @dots{} backward-kill-sentence]
-@end group
-
-@group
-;; @r{Bind @kbd{C-f} to @code{foo} in the @code{ctl-x-map}.}
-(keymap-set map "C-p C-f" 'foo)
-@result{} 'foo
-@end group
-@group
-map
-@result{} (keymap     ; @r{Note @code{foo} in @code{ctl-x-map}.}
-    (16 keymap [nil @dots{} foo @dots{} backward-kill-sentence])
-    (24 keymap
-        (102 . forward-word))
-    (6 . forward-char))
-@end group
-@end smallexample
-
-@noindent
-Note that storing a new binding for @kbd{C-p C-f} actually works by
-changing an entry in @code{ctl-x-map}, and this has the effect of
-changing the bindings of both @kbd{C-p C-f} and @kbd{C-x C-f} in the
-default global map.
-
-@code{keymap-set} is the general work horse for defining a key in a
-keymap.  When writing modes, however, you frequently have to bind a
-large number of keys at once, and using @code{keymap-set} on them all
-can be tedious and error-prone.  Instead you can use
-@code{define-keymap}, which creates a keymap and binds a number of
-keys.  @xref{Creating Keymaps}, for details.
-
-The function @code{substitute-key-definition} scans a keymap for
-keys that have a certain binding and rebinds them with a different
-binding.  Another feature which is cleaner and can often produce the
-same results is to remap one command into another (@pxref{Remapping
-Commands}).
-
-@defun substitute-key-definition olddef newdef keymap &optional oldmap
-@cindex replace bindings
-This function replaces @var{olddef} with @var{newdef} for any keys in
-@var{keymap} that were bound to @var{olddef}.  In other words,
-@var{olddef} is replaced with @var{newdef} wherever it appears.  The
-function returns @code{nil}.
-
-For example, this redefines @kbd{C-x C-f}, if you do it in an Emacs with
-standard bindings:
-
-@smallexample
-@group
-(substitute-key-definition
- 'find-file 'find-file-read-only (current-global-map))
-@end group
-@end smallexample
-
-If @var{oldmap} is non-@code{nil}, that changes the behavior of
-@code{substitute-key-definition}: the bindings in @var{oldmap} determine
-which keys to rebind.  The rebindings still happen in @var{keymap}, not
-in @var{oldmap}.  Thus, you can change one map under the control of the
-bindings in another.  For example,
-
-@smallexample
-(substitute-key-definition
-  'delete-backward-char 'my-funny-delete
-  my-map global-map)
-@end smallexample
-
-@noindent
-puts the special deletion command in @code{my-map} for whichever keys
-are globally bound to the standard deletion command.
-
-Here is an example showing a keymap before and after substitution:
-
-@smallexample
-@group
-(setq map (list 'keymap
-                (cons ?1 olddef-1)
-                (cons ?2 olddef-2)
-                (cons ?3 olddef-1)))
-@result{} (keymap (49 . olddef-1) (50 . olddef-2) (51 . olddef-1))
-@end group
-
-@group
-(substitute-key-definition 'olddef-1 'newdef map)
-@result{} nil
-@end group
-@group
-map
-@result{} (keymap (49 . newdef) (50 . olddef-2) (51 . newdef))
-@end group
-@end smallexample
-@end defun
-
-@defun suppress-keymap keymap &optional nodigits
-@cindex @code{self-insert-command} override
-This function changes the contents of the full keymap @var{keymap} by
-remapping @code{self-insert-command} to the command @code{undefined}
-(@pxref{Remapping Commands}).  This has the effect of undefining all
-printing characters, thus making ordinary insertion of text impossible.
-@code{suppress-keymap} returns @code{nil}.
-
-If @var{nodigits} is @code{nil}, then @code{suppress-keymap} defines
-digits to run @code{digit-argument}, and @kbd{-} to run
-@code{negative-argument}.  Otherwise it makes them undefined like the
-rest of the printing characters.
-
-@cindex yank suppression
-@cindex @code{quoted-insert} suppression
-The @code{suppress-keymap} function does not make it impossible to
-modify a buffer, as it does not suppress commands such as @code{yank}
-and @code{quoted-insert}.  To prevent any modification of a buffer, make
-it read-only (@pxref{Read Only Buffers}).
-
-Since this function modifies @var{keymap}, you would normally use it
-on a newly created keymap.  Operating on an existing keymap
-that is used for some other purpose is likely to cause trouble; for
-example, suppressing @code{global-map} would make it impossible to use
-most of Emacs.
-
-This function can be used to initialize the local keymap of a major
-mode for which insertion of text is not desirable.  But usually such a
-mode should be derived from @code{special-mode} (@pxref{Basic Major
-Modes}); then its keymap will automatically inherit from
-@code{special-mode-map}, which is already suppressed.  Here is how
-@code{special-mode-map} is defined:
-
-@smallexample
-@group
-(defvar special-mode-map
-  (let ((map (make-sparse-keymap)))
-    (suppress-keymap map)
-    (keymap-set map "q" 'quit-window)
-    @dots{}
-    map))
-@end group
-@end smallexample
+@findex key-valid-p
+The @code{kbd} function is very permissive, and will try to return
+something sensible even if the syntax used isn't completely
+conforming.  To check whether the syntax is actually valid, use the
+@code{key-valid-p} function.
 @end defun
 
 @node Low-Level Key Binding
