@@ -129,6 +129,30 @@ first line\r_next line\r\n"))
            (term-test-screen-from-input 40 12 (let ((str (make-string 30 ?a)))
                                                 (list str str))))))
 
+(ert-deftest term-line-wrap-no-auto-margins ()
+  (skip-when (memq system-type '(windows-nt ms-dos)))
+  (let* ((width 40)
+         (line (cl-loop for i upfrom 0 to 60
+                     collect (+ ?a (% i 26)) into chars
+                     finally return (apply #'string chars)))
+         (expected (concat (substring line 0 (1- width))
+                           (substring line (1- (length line)))))
+         (rmam "\e[?7l"))
+    (should
+     (equal (term-test-screen-from-input width 12 (concat rmam line))
+            expected))
+    ;; Again, but split input into chunks.
+    (should (equal
+             (term-test-screen-from-input
+              width 12
+              (cl-loop
+                    with step = 3
+                    with n = (length line)
+                    for i upfrom 0 below n by step
+                    collect (substring line i (min n (+ i step))) into parts
+                    finally return (cons rmam parts)))
+             expected))))
+
 (ert-deftest term-colors ()
   (skip-when (memq system-type '(windows-nt ms-dos)))
   (pcase-dolist (`(,str ,expected) ansi-test-strings)

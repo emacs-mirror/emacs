@@ -488,6 +488,19 @@ content.
 When non-nil, buffer sizes are shown in human readable format.  The
 default is nil, which retains the old format.
 
+** Term
+
+*** The terminal emulator now supports auto-margins control.
+Term mode now handles DECAWM escape sequences that control whether text
+automatically wraps at the right margin:
+- \e[?7h enables auto-margins (default)
+- \e[?7l disables auto-margins
+
+When auto-margins is disabled, characters that would go beyond the right margin
+are discarded, which matches the behavior of physical terminals and other
+terminal emulators. Control sequences and escape sequences are still processed
+correctly regardless of margin position.
+
 ** Smerge
 
 *** New command 'smerge-extend' extends a conflict over surrounding lines.

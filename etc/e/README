@@ -7,6 +7,9 @@ version.  If it is necessary, use:
 
 tic -o ../ ./eterm-color.ti
 
+(Sometimes tic puts output in etc/65 instead of etc/e.  Move it to etc/e
+yourself if it does that.)
+
 The compiled files are used by lisp/term.el, so if they are moved,
 term.el needs to be changed.  terminfo requires them to be stored in
 an 'e' subdirectory (the first character of the file name).
