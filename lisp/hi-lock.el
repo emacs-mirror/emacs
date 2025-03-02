@@ -381,7 +381,6 @@ Hi-lock: end is found.  A mode is excluded if it's in the list
   :group 'hi-lock)
 
 (defun turn-on-hi-lock-if-enabled ()
-  (setq hi-lock-archaic-interface-message-used t)
   (unless (memq major-mode hi-lock-exclude-modes)
     (hi-lock-mode 1)))
 
