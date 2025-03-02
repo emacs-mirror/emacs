@@ -1372,7 +1372,9 @@ for determining whether point is within a selector."
       "@import"
       "@charset"
       "@namespace"
-      "@keyframes"] @font-lock-builtin-face
+      "@keyframes"
+      "@supports"] @font-lock-builtin-face
+      (at_keyword) @font-lock-builtin-face
       ["and"
        "or"
        "not"
@@ -1393,7 +1395,8 @@ for determining whether point is within a selector."
      (child_selector) @css-selector
      (id_selector) @css-selector
      (tag_name) @css-selector
-     (class_name) @css-selector)
+     (class_name) @css-selector
+     (keyframe_block (integer_value) @css-selector) )
 
    :feature 'property
    :language 'css
@@ -1413,7 +1416,8 @@ for determining whether point is within a selector."
    :feature 'query
    :language 'css
    '((keyword_query) @font-lock-property-use-face
-     (feature_name) @font-lock-property-use-face)
+     (feature_name) @font-lock-property-use-face
+     (keyframes_name) @font-lock-property-use-face)
 
    :feature 'bracket
    :language 'css
@@ -1428,9 +1432,10 @@ for determining whether point is within a selector."
   "Return the defun name of NODE.
 Return nil if there is no name or if NODE is not a defun node."
   (pcase (treesit-node-type node)
-    ("rule_set" (treesit-node-text
-                 (treesit-node-child node 0) t))
-    ("media_statement"
+    ((or "rule_set" "keyframe_block")
+     (treesit-node-text
+      (treesit-node-child node 0) t))
+    ((or "media_statement" "keyframes_statement" "supports_statement")
      (let ((block (treesit-node-child node -1)))
        (string-trim
         (buffer-substring-no-properties
@@ -1782,12 +1787,17 @@ rgb()/rgba()."
   "Settings for `treesit-font-lock-feature-list'.")
 
 (defvar css--treesit-simple-imenu-settings
-  `(( nil ,(rx bos (or "rule_set" "media_statement") eos)
+  `(( nil ,(rx bos (or "rule_set"
+                       "media_statement"
+                       "keyframes_statement"
+                       "keyframe_block"
+                       "supports_statement")
+               eos)
       nil nil))
   "Settings for `treesit-simple-imenu'.")
 
 (defvar css--treesit-defun-type-regexp
-  "rule_set"
+  (rx bos (or "rule_set" "keyframe_block") eos)
   "Settings for `treesit-defun-type-regexp'.")
 
 (define-derived-mode css-base-mode prog-mode "CSS"
@@ -1849,6 +1859,33 @@ can also be used to fill comments.
     (setq-local treesit-font-lock-settings css--treesit-settings)
     (setq-local treesit-font-lock-feature-list css--treesit-font-lock-feature-list)
     (setq-local treesit-simple-imenu-settings css--treesit-simple-imenu-settings)
+    (setq-local treesit-thing-settings
+                `((css
+                   (list
+                    ,(rx bos (or "keyframe_block_list"
+                                 "block"
+                                 "pseudo_class_arguments"
+                                 "pseudo_class_with_selector_arguments"
+                                 "pseudo_class_nth_child_arguments"
+                                 "pseudo_element_arguments"
+                                 "feature_query"
+                                 "parenthesized_query"
+                                 "selector_query"
+                                 "parenthesized_value"
+                                 "grid_value"
+                                 "arguments")
+                         eos))
+                   (sentence
+                    ,(rx bos (or "import_statement"
+                                 "charset_statement"
+                                 "namespace_statement"
+                                 "postcss_statement"
+                                 "at_rule"
+                                 "declaration"
+                                 )
+                         eos))
+                   (text
+                    ,(rx bos (or "comment") eos)))))
 
     (treesit-major-mode-setup)
 
