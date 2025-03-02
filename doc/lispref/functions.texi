@@ -1055,7 +1055,17 @@ The result is a new function that accepts the rest of
 arguments and calls the original function with all the arguments
 combined.
 
-  Here's how to do partial application in Emacs Lisp:
+  In Emacs Lisp, this is best done with an anonymous function.  For
+example, if you have a function @samp{my-function} that takes two
+arguments, you could do something like this:
+
+@example
+(mapcar (lambda (x) (my-function 123 x)) @dots{})
+@end example
+
+  You can also do partial application using the function
+@code{apply-partially}.  However, this will be slower than using an
+anonymous function with @code{lambda}.
 
 @defun apply-partially func &rest args
 This function returns a new function which, when called, will call

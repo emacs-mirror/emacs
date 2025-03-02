@@ -536,12 +536,13 @@ configuration."
 ARGS is a list of the first N arguments to pass to FUN.
 The result is a new function which does the same as FUN, except that
 the first N arguments are fixed at the values with which this function
-was called."
-  (declare (side-effect-free error-free)
-           (compiler-macro
-            (lambda (_)
-              `(lambda (&rest args2)
-                 ,`(apply ,fun ,@args args2)))))
+was called.
+
+In almost all cases, you want to use a regular anonymous function
+defined with `lambda' instead.  It will be faster, because it does not
+have the overhead of calling `apply' and `append', which this function
+has to do internally."
+  (declare (side-effect-free error-free))
   (lambda (&rest args2)
     (apply fun (append args args2))))
 
