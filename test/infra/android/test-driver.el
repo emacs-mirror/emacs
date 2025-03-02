@@ -1,5 +1,5 @@
 ;;; Receive and execute Lisp code submitted by a test controller.  -*- lexical-binding: t; -*-
-;;; $Id: ats-driver.el,v 1.8 2025/03/02 11:11:56 jw Exp $
+;;; $Id: ats-driver.el,v 1.9 2025/03/02 12:52:57 jw Exp $
 
 ;; Copyright (C) 2025 Free Software Foundation, Inc.
 
@@ -43,17 +43,20 @@
 			 :inherit variable-pitch))
   "Face of ATS header elements.")
 
-(defvar-local ats-in-eval nil
-  "Whether an `-eval' command is being processed and form's size.")
+(defvar ats-in-eval nil
+  "Whether an `-eval' command is being processed and the form's size.")
 
-(defvar-local ats-eval-as-printed nil
+(defvar ats-eval-as-printed nil
   "Whether to return the values of the submitted form as a string.")
 
-(defvar-local ats-eval-serial nil
+(defvar ats-eval-serial nil
   "Serial number identifying this result.")
 
-(defvar-local ats-eval-do-decode nil
+(defvar ats-eval-do-decode nil
   "Whether to decode the form provided as utf-8-emacs.")
+
+(defvar ats-executing-form nil
+  "Bound to `true' when executing a submitted form.")
 
 (defun ats-process-filter (process string)
   "Filter input from `ats-process'.
@@ -126,7 +129,8 @@ read."
 						  str 'utf-8-emacs t)
 					       str))
 					(expr (car (read-from-string str)))
-					(value (eval expr)))
+					(value (let ((ats-executing-form t))
+						 (eval expr))))
 				   (cons 'ok value)))
 			     (t (cons 'error err))))))
 		    (let* ((print-escape-control-characters t)
@@ -211,6 +215,43 @@ the controller."
       (write-region (point-min) (point-max) commfile t))
     (message "; Listening for connection from controller at localhost:%d"
 	     service)))
+
+
+
+;; `kill-emacs' interception.
+
+(defun ats-kill-emacs-function ()
+  "Print a message announcing that Emacs is exiting.
+Also, if executing a Lisp form, reply to the controller with the
+backtrace of the exit before really exiting."
+  (when-let* ((standard-output #'external-debugging-output)
+	      (process ats-process))
+    (princ (if ats-executing-form
+	       "Emacs is attempting to exit while evaluating a form...\n"
+	     "Emacs is exiting...\n"))
+    (backtrace)
+    (when ats-in-eval
+      (with-temp-buffer
+	(let ((standard-output (current-buffer)))
+	  (backtrace)
+	  (let ((err (cons 'exit (buffer-string))))
+	    (let* ((print-escape-control-characters t)
+		   (print-escape-newlines t)
+		   (str (encode-coding-string
+			 (prin1-to-string err) 'utf-8-emacs t)))
+	      (if ats-eval-as-printed
+		  (let* ((quoted (prin1-to-string str)))
+		    (process-send-string
+		     process (format "\fats-request:%d %d\n"
+				     ats-eval-serial
+				     (length quoted)))
+		    (process-send-string process quoted))
+		(process-send-string
+		 process (format "\fats-request:%d %d\n"
+				 ats-eval-serial
+				 (length str)))
+		(process-send-string process str)))))))))
+(add-hook 'kill-emacs-hook #'ats-kill-emacs-function)
 
 (provide 'test-driver)
 
