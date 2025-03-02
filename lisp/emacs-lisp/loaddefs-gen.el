@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
 
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: maint
 ;; Package: emacs
 
