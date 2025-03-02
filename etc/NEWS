@@ -445,6 +445,17 @@ modal editing packages.
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
 ---
+** Text mode
+
+*** New commands to convert between ASCII and full-width characters.
+New commands 'fullwidth-region' and 'fullwidth-word' convert ASCII
+characters in region or in the word at point to the corresponding
+full-width characters, which are customarily used instead of ASCII
+characters in CJK texts.  For example, 'A' is converted to 'Ａ', '1' is
+converted to '１', etc.  Companion commands 'halfwidth-region' and
+'halfwidth-word' perform the opposite conversion.
+
+---
 ** ASM mode
 
 *** 'asm-mode-set-comment-hook' is obsolete.
