@@ -1,5 +1,5 @@
 ;;; Receive and execute Lisp code submitted by a test controller.  -*- lexical-binding: t; -*-
-;;; $Id: ats-driver.el,v 1.7 2025/02/25 07:58:35 jw Exp $
+;;; $Id: ats-driver.el,v 1.8 2025/03/02 11:11:56 jw Exp $
 
 ;; Copyright (C) 2025 Free Software Foundation, Inc.
 
@@ -41,8 +41,7 @@
 
 (defface ats-header '((t :height 1.3 :weight bold
 			 :inherit variable-pitch))
-  "Face of ATS header elements."
-  :group 'silence-byte-compiler)
+  "Face of ATS header elements.")
 
 (defvar-local ats-in-eval nil
   "Whether an `-eval' command is being processed and form's size.")
@@ -220,4 +219,5 @@ the controller."
 ;; Local Variables:
 ;; emacs-lisp-docstring-fill-column: 64
 ;; indent-tabs-mode: t
+;; no-byte-compile: t
 ;; End:
