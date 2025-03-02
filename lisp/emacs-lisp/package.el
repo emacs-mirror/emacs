@@ -2196,7 +2196,8 @@ built-in package with a (possibly newer) version from a package archive."
 ;;;###autoload
 (defun package-install (pkg &optional dont-select)
   "Install the package PKG.
-PKG can be a `package-desc' or a symbol naming one of the
+
+PKG can be a `package-desc', or a symbol or string naming one of the
 available packages in an archive in `package-archives'.
 
 Mark the installed package as selected by adding it to
@@ -2229,6 +2230,8 @@ had been enabled."
                      package-archive-contents)
                     nil t))
            nil)))
+  (cl-check-type pkg (or string symbol package-desc))
+  (if (stringp pkg) (setq pkg (intern pkg)))
   (package--archives-initialize)
   (add-hook 'post-command-hook #'package-menu--post-refresh)
   (let ((name (if (package-desc-p pkg)
@@ -2256,7 +2259,9 @@ had been enabled."
 
 ;;;###autoload
 (defun package-upgrade (name)
-  "Upgrade package NAME if a newer version exists."
+  "Upgrade package NAME if a newer version exists.
+
+NAME can be either a symbol or a string."
   (interactive
    (list (completing-read
           "Upgrade package: " (package--upgradeable-packages t) nil t)))
