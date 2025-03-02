@@ -625,7 +625,8 @@ and saves that overlay under the :inactive property for WIDGET."
 (defun widget-put (widget property value)
   "In WIDGET, set PROPERTY to VALUE.
 The value can later be retrieved with `widget-get'."
-  (setcdr widget (plist-put (cdr widget) property value)))
+  (setcdr widget (plist-put (cdr widget) property value))
+  value)
 
 ;;;###autoload
 (defun widget-get (widget property)
