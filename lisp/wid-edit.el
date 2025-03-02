@@ -633,12 +633,16 @@ The value can later be retrieved with `widget-get'."
   "In WIDGET, get the value of PROPERTY.
 The value could either be specified when the widget was created, or
 later with `widget-put'."
-   (let (value found)
-     (while (and widget (not found))
-       (if (setq found (plist-member (cdr widget) property))
-           (setq value (cadr found))
-         (setq widget (get (widget-type widget) 'widget-type))))
-     value))
+  (let (value)
+    (while (and widget
+                (let ((found (plist-member (cdr widget) property)))
+                  (cond (found
+                         (setq value (cadr found))
+                         nil)
+                        (t
+                         (setq widget (get (widget-type widget) 'widget-type))
+                         t)))))
+    value))
 
 (defun widget-get-indirect (widget property)
   "In WIDGET, get the value of PROPERTY.
