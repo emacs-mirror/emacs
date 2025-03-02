@@ -775,8 +775,20 @@ use \\[kmacro-name-last-macro]."
 			 last-input-event)))
     (if end-macro
 	(kmacro-end-macro arg)		; modifies last-kbd-macro
+      ;; The effect of Fcall_last_kbd_macro must be reimplemented in
+      ;; Lisp, as the binding of `last-kbd-macro' might not take effect
+      ;; in the C function if the selected frame's terminal is not
+      ;; assigned as the current keyboard.
       (let ((last-kbd-macro (or macro last-kbd-macro)))
-	(call-last-kbd-macro arg #'kmacro-loop-setup-function)))
+        (setq this-command last-command)
+        (setq real-this-command last-kbd-macro)
+        (when defining-kbd-macro
+          (error "Can't execute anonymous macro while defining one"))
+        (unless last-kbd-macro
+          (error "No kbd macro has been defined"))
+	(execute-kbd-macro last-kbd-macro arg
+                           #'kmacro-loop-setup-function)
+        (setq this-command last-command)))
     (when (consp arg)
       (setq arg (car arg)))
     (when (and (or (null arg) (> arg 0))
