@@ -906,6 +906,9 @@ is nil."
                          (null (treesit-parser-embed-level parser)))))
               parsers))
 
+(declare-function treesit-parser-set-embed-level "treesit.c")
+(declare-function treesit-parser-embed-level "treesit.c")
+
 (defun treesit--update-ranges-non-local
     ( host-parser query embed-lang embed-level
       &optional beg end offset range-fn)
