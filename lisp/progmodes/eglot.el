@@ -1089,6 +1089,8 @@ object."
                                          [,@(mapcar
                                              #'car eglot--tag-faces)])))
             :window `(:showDocument (:support t)
+                      :showMessage (:messageActionItem
+                                    (:additionalPropertiesSupport t))
                       :workDoneProgress ,(if eglot-report-progress t :json-false))
             :general (list :positionEncodings ["utf-32" "utf-8" "utf-16"])
             :experimental eglot--{})))
@@ -2593,18 +2595,19 @@ still unanswered LSP requests to the server\n"))))
 (cl-defmethod eglot-handle-request
   (_server (_method (eql window/showMessageRequest))
            &key type message actions &allow-other-keys)
-  "Handle server request window/showMessageRequest."
-  (let* ((actions (append actions nil)) ;; gh#627
+  "Handle server request window/showMessageRequest.
+ACTIONS is a list of MessageActionItem, this has the user choose one and
+return it back to the server.  :null is returned if the list was empty."
+  (let* ((actions (mapcar (lambda (a) (cons (plist-get a :title) a)) actions))
          (label (completing-read
                  (concat
                   (format (propertize "[eglot] Server reports (type=%s): %s"
                                       'face (if (or (not type) (<= type 1)) 'error))
                           type message)
                   "\nChoose an option: ")
-                 (or (mapcar (lambda (obj) (plist-get obj :title)) actions)
-                     '("OK"))
-                 nil t (plist-get (elt actions 0) :title))))
-    (if label `(:title ,label) :null)))
+                 (or actions '("OK"))
+                 nil t (caar actions))))
+    (if (and actions label) (cdr (assoc label actions)) :null)))
 
 (cl-defmethod eglot-handle-notification
   (_server (_method (eql window/logMessage)) &key _type _message)
