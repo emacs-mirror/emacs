@@ -1357,6 +1357,9 @@ behavior, customize the value of 'tooltip-delay' to zero.
 Use 'shell-command' and 'shell-command-on-region' instead.
 
 ---
+*** echistory.el is now obsolete.
+
+---
 *** hashcash.el is now obsolete.
 It is believed to no longer be useful as a method to fight spam.
 

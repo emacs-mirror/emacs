@@ -860,7 +860,7 @@ for completeness, but some may be worth documenting.
 
 Here's a list which is probably not complete/correct: align, allout,
 artist, ansi-color, array, calculator, cdl, cmuscheme, completion,
-delim-col, dirtrack, double, echistory, elide-head, easymenu, expand,
+delim-col, dirtrack, double, elide-head, easymenu, expand,
 flow-ctrl, format [format-alist], generic/generic-x [various modes],
 kermit, log-edit, makesum, midnight [other than in Kill Buffer node],
 mouse-copy [?], mouse-drag, mouse-sel, net-utils, snmp-mode

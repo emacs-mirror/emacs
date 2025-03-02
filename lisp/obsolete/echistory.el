@@ -4,6 +4,7 @@
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: emacs-devel@gnu.org
+;; Obsolete-since: 31.1
 
 ;; This file is part of GNU Emacs.
 
