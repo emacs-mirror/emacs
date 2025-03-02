@@ -203,7 +203,7 @@ EXCLUDE_TESTS =
 SLOW_TESTS = ${srcdir}/lisp/net/tramp-tests.el
 
 ELFILES := $(sort $(shell find ${srcdir} -name manual -prune -o \
-		-name data -prune -o \
+		-name data -prune -o -name infra -prune -o \
 		-name "*resources" -prune -o \
 		${maybe_exclude_module_tests} \
 		-name "*.el" ! -name ".*" -print))
