@@ -3,10 +3,10 @@
 ;; Copyright (C) 2003-2025 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
+;; Maintainer: emacs-devel@gnu.org
 ;; URL: https://github.com/fgallina/python.el
 ;; Version: 0.29
 ;; Package-Requires: ((emacs "29.1") (compat "29.1.1.0") (seq "2.23") (project "0.1") (flymake "1.0"))
-;; Maintainer: emacs-devel@gnu.org
 ;; Created: Jul 2010
 ;; Keywords: languages
 
