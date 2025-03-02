@@ -30,8 +30,8 @@
                                  "My Name")))
       (should (eq (widget-get widget :size) 13))
       (should (equal (widget-get widget :format) "Name: %v "))
-      (widget-put widget :size 1)
-      (widget-put widget :format "foo")
+      (should (eq (widget-put widget :size 1) 1))
+      (should (equal (widget-put widget :format "foo") "foo"))
       (should (eq (widget-get widget :size) 1))
       (should (equal (widget-get widget :format) "foo")))))
 
