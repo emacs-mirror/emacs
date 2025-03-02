@@ -41,7 +41,8 @@
 
 (defface ats-header '((t :height 1.3 :weight bold
 			 :inherit variable-pitch))
-  "Face of ATS header elements.")
+  "Face of ATS header elements."
+  :group 'silence-byte-compiler)
 
 (defvar-local ats-in-eval nil
   "Whether an `-eval' command is being processed and form's size.")

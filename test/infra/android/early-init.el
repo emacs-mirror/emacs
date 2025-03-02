@@ -1,4 +1,4 @@
-;;; Suppress deletion of the initial frame by `frame-initialize'.
+;;; Suppress deletion of the initial frame by `frame-initialize'.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2025 Free Software Foundation, Inc.
 
