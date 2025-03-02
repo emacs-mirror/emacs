@@ -1764,13 +1764,25 @@ this machine and an SSH daemon be executing on the host)."
 	     device emacs-username "org.gnu.emacs" "org.gnu.emacs" user))))))
   ;; Upload the test driver.
   (let* ((ats-adb-host host)
+	 (staging-directory (ats-get-staging-directory device
+						       "org.gnu.emacs"
+						       user))
 	 (ats-file (let ((file (and ats-file-directory
 				    (concat (file-name-as-directory
 					     ats-file-directory)
 					    "test-driver.el"))))
 		     (or (and file (file-exists-p file) file)
 			 (read-file-name "ATS test driver file: "))))
+	 (ats-early-init-file
+	  (let ((file (and ats-file-directory
+			   (concat (file-name-as-directory
+				    ats-file-directory)
+				   "early-init.el"))))
+	    (or (and file (file-exists-p file) file)
+		(read-file-name "ATS early-init file: "))))
 	 (file (ats-upload device ats-file "org.gnu.emacs" user))
+	 (_ (ats-upload device ats-early-init-file
+			"org.gnu.emacs" user))
 	 ;; Start the server.
 	 (server-port (ats-start-server))
 	 ;; Forward the server to the ADB host.
@@ -1806,7 +1818,13 @@ this machine and an SSH daemon be executing on the host)."
 		 device user
 		 `((:component . "org.gnu.emacs/.EmacsActivity")
 		   ("org.gnu.emacs.STARTUP_ARGUMENTS"
-		    "-q" "--load" ,file "--eval"
+		    "--load" ,file
+		    ;; Set the Emacs home directory to the ATS staging
+		    ;; directory, where an early-init.el should be
+		    ;; uploaded that inhibits the deletion of the
+		    ;; initial frame.
+		    "--init-directory" ,staging-directory
+		    "--eval"
 		    ,(format "(ats-establish-connection \"localhost\" %d \"%s\")"
 			     remote-port uuid))))
 		(setq process
@@ -1837,7 +1855,12 @@ this machine and an SSH daemon be executing on the host)."
 	 device user
 	 `((:component . "org.gnu.emacs/.EmacsActivity")
 	   ("org.gnu.emacs.STARTUP_ARGUMENTS"
-	    "-q" "--load" ,file "--eval"
+	    "--load" ,file
+	    ;; Set the Emacs home directory to the ATS staging
+	    ;; directory, where an early-init.el should be uploaded that
+	    ;; inhibits the deletion of the initial frame.
+	    "--init-directory" ,staging-directory
+	    "--eval"
 	    ,(format "(ats-initiate-connection %S)" commfile))))
 	(let* ((portno (with-timeout
 			   (ats-await-connection-timeout
@@ -2422,6 +2445,7 @@ Display the output of the tests executed in a buffer."
     ;; Delete all tests, load the byte-compiled test file, and execute
     ;; those tests just defined subject to SELECTOR.
     (with-current-buffer (get-buffer-create "*Test Output*")
+      (goto-char (point-max))
       (insert (format "=== Executing %s on %s ===\n" test device))
       (redisplay)
       (setq rc (ats-eval process
@@ -2429,23 +2453,23 @@ Display the output of the tests executed in a buffer."
 			    (require 'ert)
 			    (ert-delete-all-tests)
 			    (load ,file-name)
-			    (with-temp-buffer
-			      (let* ((temp-buffer (current-buffer))
-				     (standard-output temp-buffer)
-				     ;; Disable remote tests for the
-				     ;; present...
-				     (ert-remote-temporary-file-directory
-				      null-device)
-				     (overriding-text-conversion-style nil)
-				     (set-message-function
-				      (lambda (message)
-					(with-current-buffer temp-buffer
-					  (insert message "\n")))))
-				(let ((noninteractive t))
-				  ;; Prevent activation of the mark and
-				  ;; other actions taken by the tests
-				  ;; from affecting the test buffer.
-				  (with-temp-buffer
+			    (with-selected-frame terminal-frame
+			      (with-temp-buffer
+				(let* ((temp-buffer (current-buffer))
+				       (standard-output temp-buffer)
+				       ;; Disable remote tests for the
+				       ;; present...
+				       (ert-remote-temporary-file-directory
+					null-device)
+				       (overriding-text-conversion-style nil)
+				       (message-log-max t)
+				       ;; It isn't possible for
+				       ;; Vset_message_function to take
+				       ;; effect when the initial frame
+				       ;; is selected.
+				       (messages-buffer-name
+					(buffer-name temp-buffer)))
+				  (let ((noninteractive t))
 				    (ert-run-tests-batch ',selector)))
 				(insert "=== Test execution complete ===\n")
 				(buffer-substring-no-properties
@@ -2480,9 +2504,17 @@ subject to SELECTOR, as in `ert-run-tests'."
   (let ((tests (ats-list-tests process)))
     (dolist-with-progress-reporter (test tests)
 	"Running tests..."
-      (ats-run-test process test selector))))
+      (condition-case err
+	  (ats-run-test process test selector)
+	(t (progn
+	     (message "Error in executing `%s': %S" test err)))))))
 
 
+
+(defun ats-cmd-error (format &rest args)
+  "Print an error message FORMAT, formatted with ARGS, and exit."
+  (apply #'message format args)
+  (kill-emacs 1))
 
 ;; Batch mode text execution.
 (defun ats-execute-tests-batch ()
@@ -2491,46 +2523,133 @@ Prompt for a device and execute tests on the same.  Save log
 files to a directory specified by the user.
 Call this function from the command line, with, for example:
 
-  $ emacs --batch -l test-controller.el -f ats-execute-tests-batch"
+  $ emacs --batch -l test-controller.el -f ats-execute-tests-batch
+
+The following command-line arguments are also accepted:
+
+  -h			Print help text.
+  --device, -s DEVICE	Serial number of a device to which to connect.
+  --user, -a UID	ID of the user as which to execute tests.
+  --stub-file		Name of `stub.zip' wrapper required on Android <= 4.4.
+  --test-dir		Directory in which Emacs's tests are situated.
+  --output-dir, -o DIR	Name of a directory into which to save test logs.
+  --no-upload		Don't upload tests; only run those which already exist."
   (let* ((ats-adb-host (getenv "ATS_ADB_HOST"))
 	 (devices (ats-enumerate-devices
 		   (lambda (name state _)
 		     (and (equal state "device")
 			  (ignore-errors
-			    (ats-get-package-aid name "org.gnu.emacs")))))))
-    (message "These devices are presently available for test execution:")
-    (let ((nth 0))
-      (dolist (device devices)
-	(message "%2d. %-24s(API level %d, %s)"
-		 (setq nth (1+ nth)) (car device)
-		 (ats-get-sdk-version (car device))
-		 (ats-getprop (car device) "ro.product.cpu.abi"))))
-    (let* ((number (string-to-number
-		    (read-string
-		     "Select a device by typing its number, and Return: ")))
-	   (device (if (or (< number 1) (> number (length devices)))
-		       (user-error "Invalid selection: %s" number)
-		     (car (nth (1- number) devices))))
+			    (ats-get-package-aid name "org.gnu.emacs"))))))
+	 (cmd-device nil)
+	 (cmd-user nil)
+	 (cmd-output-dir nil)
+	 (cmd-no-upload nil))
+    ;; Read command-line arguments.
+    (let (arg)
+      (while (setq arg (pop argv))
+	(cond ((equal arg "-f") (pop argv)) ;; Do nothing.  Emacs does
+					    ;; not remove this from argv
+					    ;; for unknown reasons.
+	      ((equal arg "-h")
+	       (message "Execute this file from the command line, with,\
+ for example:
+
+  $ emacs --batch -l test-controller.el -f ats-execute-tests-batch
+
+The following command-line arguments are also accepted:
+
+  --h			Print this help text.
+  --device, -s DEVICE	Serial number of a device to which to connect.
+  --user, -a UID	ID of the user as which to execute tests.
+  --stub-file		Name of `stub.zip' wrapper required on Android <= 4.4.
+  --test-dir		Directory in which Emacs's tests are situated.
+  --output-dir, -o DIR	Name of a directory into which to save test logs.
+  --no-upload		Don't upload tests; only run those which already exist.")
+	       (kill-emacs 0))
+	      ((or (equal arg "-s") (equal arg "--device"))
+	       (setq cmd-device
+		     (or (pop argv)
+			 (ats-cmd-error
+			  "Expected argument to `--device' option"))))
+	      ((or (equal arg "-a") (equal arg "--user"))
+	       (setq cmd-user
+		     (or (pop argv)
+			 (ats-cmd-error
+			  "Expected argument to `--user' option"))))
+	      ((or (equal arg "-o") (equal arg "--output-dir"))
+	       (setq cmd-output-dir
+		     (or (pop argv)
+			 (ats-cmd-error
+			  "Expected argument to `--output-dir' option"))))
+	      ((equal arg "--stub-file")
+	       (setq ats-working-stub-file
+		     (or (pop argv)
+			 (ats-cmd-error
+			  "Expected argument to `--stub-file' option."))))
+	      ((equal arg "--test-dir")
+	       (setq ats-emacs-test-directory
+		     (or (pop argv)
+			 (ats-cmd-error
+			  "Expected argument to `--test-dir' option."))))
+	      ((equal arg "--no-upload")
+	       (setq cmd-no-upload t))
+	      (t (ats-cmd-error "Unknown command line argument `%s'" arg)))))
+    ;; Validate and apply command-line arguments or prompt the user for
+    ;; parameters in their absence.
+    (if cmd-device
+	(unless (member cmd-device (mapcar #'car devices))
+	  (ats-cmd-error
+	   "Device `%s' does not exist or has no installation of Emacs"
+	   cmd-device))
+      (message "These devices are presently available for test execution:")
+      (let ((nth 0))
+	(dolist (device devices)
+	  (message "%2d. %-24s(API level %d, %s)"
+		   (setq nth (1+ nth)) (car device)
+		   (ats-get-sdk-version (car device))
+		   (ats-getprop (car device) "ro.product.cpu.abi")))))
+    (let* ((number (and (not cmd-device)
+			(string-to-number
+			 (read-string
+			  "Select a device by typing its number, and Return: "))))
+	   (device (or cmd-device
+		       (if (or (< number 1) (> number (length devices)))
+			   (ats-cmd-error "Invalid selection: %s" number)
+			 (car (nth (1- number) devices)))))
 	   (users (ats-list-users device))
-	   (nth 0))
-      (dolist (user users)
-	(message "%2d. %s (id=%d)" (setq nth (1+ nth))
-		 (cadr user) (car user)))
-      (setq number (string-to-number
-		    (read-string
-		     "As which user should tests be executed? ")))
-      (when (or (< number 1) (> number (length users)))
-	(user-error "Invalid selection: %s" number))
-      (let* ((user (car (nth (1- number) users)))
+	   (nth 0)
+	   (user nil))
+      (if cmd-user
+	  (progn
+	    (let ((valid-number (string-match-p "^[[:digit:]]+$" cmd-user))
+		  (uid (string-to-number cmd-user)))
+	      (unless valid-number
+		(ats-cmd-error "Invalid value for `--user' argument: %s"
+			    cmd-user))
+	      (unless (assq uid users)
+		(ats-cmd-error "No such user exists: %d" uid))
+	      ;; Don't prompt the user afterwards.
+	      (setq user uid)))
+	(dolist (user users)
+	  (message "%2d. %s (id=%d)" (setq nth (1+ nth))
+		   (cadr user) (car user)))
+	(setq number (string-to-number
+		      (read-string
+		       "As which user should tests be executed? ")))
+	(when (or (< number 1) (> number (length users)))
+	  (ats-cmd-error "Invalid selection: %s" number)))
+      (let* ((user (or user (car (nth (1- number) users))))
 	     (connection (ats-connect device user)))
-	(ats-upload-all-tests
-	 connection
-	 (or ats-emacs-test-directory
-	     (read-directory-name "Test base directory: "
-				  nil nil t)))
+	(unless cmd-no-upload
+	  (ats-upload-all-tests
+	   connection
+	   (or ats-emacs-test-directory
+	       (read-directory-name "Test base directory: "
+				    nil nil t))))
 	(let ((output-directory
-	       (read-directory-name
-		"Where to save test log files? ")))
+	       (or cmd-output-dir
+		   (read-directory-name
+		    "Where to save test log files? "))))
 	  (mkdir output-directory t)
 	  (let ((tests (ats-list-tests connection)))
 	    (dolist (test tests)
