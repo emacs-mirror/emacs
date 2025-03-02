@@ -293,6 +293,7 @@ candidates or if there are multiple matching completions and
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   (let* ((pred (plist-get props :predicate))
          (string (buffer-substring beg end))
+         (completion-extra-properties props)
          (md (completion-metadata string table pred))
          (sort-fn (or (completion-metadata-get md 'cycle-sort-function)
                       (completion-metadata-get md 'display-sort-function)
