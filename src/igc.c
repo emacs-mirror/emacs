@@ -1553,6 +1553,7 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
 	       thread's control stack, or to something in the bytecode
 	       stack.  Both should already be ambiguous roots.  */
 	  case SPECPDL_BACKTRACE:
+	    IGC_FIX12_OBJ (ss, &pdl->bt.function);
 	    break;
 
 #ifdef HAVE_MODULES
