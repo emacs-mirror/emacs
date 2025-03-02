@@ -1,3 +1,4 @@
+;; -*- lexical-binding:t -*-
 (defun dabbrev-expand (arg)
   "Expand previous word \"dynamically\".
 
