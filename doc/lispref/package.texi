@@ -314,12 +314,6 @@ and associated files, are stored.  If you want the archive to be
 reachable via HTTP, this directory must be accessible to a web server;
 @xref{Archive Web Server}.
 
-  A convenient way to set up and update a package archive is via the
-@code{package-x} library.  This is included with Emacs, but not loaded
-by default; type @kbd{M-x load-library @key{RET} package-x @key{RET}} to
-load it, or add @code{(require 'package-x)} to your init file.
-@xref{Lisp Libraries,, Lisp Libraries, emacs, The GNU Emacs Manual}.
-
 @noindent
 After you create an archive, remember that it is not accessible in the
 Package Menu interface unless it is in @code{package-archives}.
@@ -338,7 +332,7 @@ them using a cryptographic key.  If you have generated a
 private/public gpg key pair, you can use gpg to sign the package like
 this:
 
-@c FIXME EasyPG / package-x way to do this.
+@c FIXME EasyPG way to do this.
 @example
 gpg -ba -o @var{file}.sig @var{file}
 @end example
