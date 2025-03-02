@@ -228,15 +228,15 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
    Initial state is IGC_STATE_INITIAL, until everything needed has been
    successfully initialized.
-   This state also called `clamped' in MPS docs.
+   This state is called `parked' in MPS docs.
 
    State goes from IGC_STATE_INITIAL to IGC_STATE_USABLE_PARKED where
    everything is usable, but GC is not done.
-   This state is also called `parked' in MPS docs.
+   This still corresponds to the `parked' state in MPS docs.
 
    State then goes from there to IGC_STATE_USABLE when everything is
    fully usable and GCs are done.
-   This state is also called `unclamped' in MPS docs.
+   This state is called `unclamped' in MPS docs.
 
    It goes from usable to IGC_STATE_DEAD if an error happens or
    something is detected that forces us to terminate the process
