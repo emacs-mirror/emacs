@@ -1,4 +1,5 @@
-;;; Suppress deletion of the initial frame by `frame-initialize'.  -*- lexical-binding:t -*-
+;;; Suppress deletion of the initial frame by `frame-initialize'.
+;; $Id: early-init.el,v 1.2 2025/03/02 11:18:42 jw Exp $
 
 ;; Copyright (C) 2025 Free Software Foundation, Inc.
 
@@ -19,15 +20,16 @@
 
 
 
-(message "Loading early-init.el...")
-
 (advice-add 'frame-initialize :around
             (lambda (oldfun &rest args)
               (let ((subr (symbol-function 'delete-frame))
                     (terminal-frame terminal-frame))
                 (unwind-protect
                     (progn
-                      (message "Suppressed deletion of the initial frame.")
                       (fset 'delete-frame #'ignore)
                       (apply oldfun args))
                   (fset 'delete-frame subr)))))
+
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
