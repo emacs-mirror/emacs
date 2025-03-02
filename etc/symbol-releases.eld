@@ -11,6 +11,9 @@
 (
  ("29.1" fun plistp)
  ("28.1" fun always)
+ ("27.1" fun project-files)
+ ("26.1" fun flymake--diag-region)
+ ("26.1" fun flymake-make-diagnostic)
  ("26.1" fun when-let*)
  ("26.1" fun and-let*)
  ("26.1" fun if-let*)
