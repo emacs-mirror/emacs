@@ -808,7 +808,7 @@ it in the environment specified by BINDINGS."
 
 (defun gnus-highlight-selected-tree (article)
   "Highlight the selected article in the tree."
-  (when (buffer-live-p gnus-tree-buffer)
+  (when (buffer-live-p (get-buffer gnus-tree-buffer))
     (let ((buf (current-buffer))
 	  region)
       (set-buffer gnus-tree-buffer)
