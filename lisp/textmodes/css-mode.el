@@ -1780,6 +1780,33 @@ rgb()/rgba()."
               (replace-regexp-in-string "[\n ]+" " " s)))
            res)))))))
 
+(defvar css--treesit-thing-settings
+  `((css (list
+          ,(rx bos (or "keyframe_block_list"
+                       "block"
+                       "pseudo_class_arguments"
+                       "pseudo_class_with_selector_arguments"
+                       "pseudo_class_nth_child_arguments"
+                       "pseudo_element_arguments"
+                       "feature_query"
+                       "parenthesized_query"
+                       "selector_query"
+                       "parenthesized_value"
+                       "grid_value"
+                       "arguments")
+               eos))
+         (sentence
+          ,(rx bos (or "import_statement"
+                       "charset_statement"
+                       "namespace_statement"
+                       "postcss_statement"
+                       "at_rule"
+                       "declaration")
+               eos))
+         (text
+          ,(rx bos "comment" eos))))
+  "Settings for `treesit-thing-settings'.")
+
 (defvar css--treesit-font-lock-feature-list
   '((selector comment query keyword)
     (property constant string)
@@ -1795,6 +1822,10 @@ rgb()/rgba()."
                eos)
       nil nil))
   "Settings for `treesit-simple-imenu'.")
+
+(defvar css-ts-mode--outline-predicate
+  (nth 1 (car css--treesit-simple-imenu-settings))
+  "Predicate for `treesit-outline-predicate'.")
 
 (defvar css--treesit-defun-type-regexp
   (rx bos (or "rule_set" "keyframe_block") eos)
@@ -1859,33 +1890,8 @@ can also be used to fill comments.
     (setq-local treesit-font-lock-settings css--treesit-settings)
     (setq-local treesit-font-lock-feature-list css--treesit-font-lock-feature-list)
     (setq-local treesit-simple-imenu-settings css--treesit-simple-imenu-settings)
-    (setq-local treesit-thing-settings
-                `((css
-                   (list
-                    ,(rx bos (or "keyframe_block_list"
-                                 "block"
-                                 "pseudo_class_arguments"
-                                 "pseudo_class_with_selector_arguments"
-                                 "pseudo_class_nth_child_arguments"
-                                 "pseudo_element_arguments"
-                                 "feature_query"
-                                 "parenthesized_query"
-                                 "selector_query"
-                                 "parenthesized_value"
-                                 "grid_value"
-                                 "arguments")
-                         eos))
-                   (sentence
-                    ,(rx bos (or "import_statement"
-                                 "charset_statement"
-                                 "namespace_statement"
-                                 "postcss_statement"
-                                 "at_rule"
-                                 "declaration"
-                                 )
-                         eos))
-                   (text
-                    ,(rx bos (or "comment") eos)))))
+    (setq-local treesit-outline-predicate css-ts-mode--outline-predicate)
+    (setq-local treesit-thing-settings css--treesit-thing-settings)
 
     (treesit-major-mode-setup)
 

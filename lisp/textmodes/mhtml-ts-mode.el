@@ -313,8 +313,9 @@ NODE and PARENT are ignored."
     (car js--treesit-thing-settings)
     `((defun ,js--treesit-defun-type-regexp)))
    ;; CSS thing settings
-   `(css
-     (defun ,(regexp-opt (list css--treesit-defun-type-regexp)))))
+   (append
+    (car css--treesit-thing-settings)
+    `((defun ,css--treesit-defun-type-regexp))))
   "Settings for `treesit-thing-settings'.")
 
 ;; We use a function instead of a variable, because
@@ -585,7 +586,7 @@ Powered by tree-sitter."
                 `((html . ,#'html-ts-mode--outline-predicate)
                   ;; TODO: add a predicate like for html above
                   (javascript . "\\`function_declaration\\'")
-                  (css . "\\`rule_set\\'")))
+                  (css . ,css-ts-mode--outline-predicate)))
 
     (treesit-major-mode-setup)
 
