@@ -179,9 +179,9 @@ For backends which don't support it, it is emulated."
 
 (defmacro vc--fix-home-for-bzr (tempdir)
   ;; See the comment in `vc-bzr-test-bug9726'.
-  '(when (eq backend 'Bzr)
-     (push (format "BZR_HOME=%s" tempdir) process-environment)
-     (push (format "HOME=%s" tempdir) process-environment)))
+  `(when (eq backend 'Bzr)
+     (push (format "BZR_HOME=%s" ,tempdir) process-environment)
+     (push (format "HOME=%s" ,tempdir) process-environment)))
 
 (defun vc-test--create-repo (backend)
   "Create a test repository in `default-directory', a temporary directory."
