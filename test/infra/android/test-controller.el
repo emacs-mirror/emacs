@@ -1922,10 +1922,11 @@ this machine and an SSH daemon be executing on the host)."
   "Evaluate FORM in PROCESS, which form must be printable.
 Form should evaluate to a value that must be printable, or
 signal an error.  Value is (ok . VALUE) if no error was
-signaled, or (error . VALUE) otherwise.  If RAW, instruct
-PROCESS not to attempt to decode the printed representation of
-FORM as multibyte text; this does not influence the decoding
-whatever value it returns.
+signaled, or (error . VALUE) otherwise.  It may also be (exit
+. BACKTRACE) if Emacs exited whilst FORM was executing. If RAW,
+instruct PROCESS not to attempt to decode the printed
+representation of FORM as multibyte text; this does not
+influence the decoding whatever value it returns.
 
 Set AS-PRINTED to insist that the value be returned as a string;
 this enables non-printable values to be returned in a meaningful
@@ -2476,6 +2477,9 @@ Display the output of the tests executed in a buffer."
 				 (point-min) (point-max)))))))
       (cond ((eq (car rc) 'error)
 	     (error "Error executing `%s-tests.el': %S" test (cdr rc)))
+	    ((eq (car rc) 'exit)
+	     (message "Backtrace:\n%s" (cdr rc))
+	     (error "Remote Emacs exited inside `%s-tests.el'" test))
 	    (t (progn
 		 (goto-char (point-max))
 		 (insert (cdr rc))
