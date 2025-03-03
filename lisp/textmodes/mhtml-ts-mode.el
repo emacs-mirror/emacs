@@ -367,15 +367,6 @@ NODE and PARENT are ignored."
 (defvar mhtml-ts-mode--prettify-symbols-alist js--prettify-symbols-alist
   "Alist of symbol prettifications for various supported languages.")
 
-(defun mhtml-ts-mode--html-defun-name (node)
-  "Return the defun name of NODE.
-Return nil if there is no name or if NODE is not a defun node."
-  (when (string-match-p "element" (treesit-node-type node))
-    (treesit-node-text
-     node
-     ;; (treesit-search-subtree node "\\`tag_name\\'" nil nil 2)
-     t)))
-
 ;; In order to support `which-fuction-mode' we should define
 ;; a function that return the defun name.
 ;; In a multilingual treesit mode, this can be implemented simply by
@@ -584,8 +575,7 @@ Powered by tree-sitter."
 
     (setq-local treesit-aggregated-outline-predicate
                 `((html . ,#'html-ts-mode--outline-predicate)
-                  ;; TODO: add a predicate like for html above
-                  (javascript . "\\`function_declaration\\'")
+                  (javascript . ,js-ts-mode--outline-predicate)
                   (css . ,css-ts-mode--outline-predicate)))
 
     (treesit-major-mode-setup)
