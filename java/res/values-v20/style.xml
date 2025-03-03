@@ -1,6 +1,6 @@
 <!-- Style resources for GNU Emacs on Android.
 
-Copyright (C) 2023-2025 Free Software Foundation, Inc.
+Copyright (C) 2025 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,19 +18,13 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 
 <resources>
-  <!-- Style used for popup menus and relatives from Android 10.0 to
-       14.0.  -->
-  <style name="EmacsStyle" parent="@android:style/Theme.DeviceDefault.DayNight">
-    <item name="android:windowActionBar">false</item>
-    <item name="android:windowNoTitle">true</item>
-
-    <!-- Required to make sure the status bar text remains legible.  -->
-    <item name="android:statusBarColor">@android:color/black</item>
-
+  <!-- Style used for popup menus and relatives between Android 4.4 W
+       and Android 10.  -->
+  <style name="EmacsStyle"
+	 parent="@android:style/Theme.DeviceDefault.NoActionBar">
     <!-- Suppress the swipe-to-dismiss gesture enabled on certain
          systems.  -->
     <item name="android:windowSwipeToDismiss">false</item>
   </style>
-  <style name="EmacsStyleOpen"
-	 parent="@android:style/Theme.DeviceDefault.DayNight"/>
+  <style name="EmacsStyleOpen" parent="@android:style/Theme.DeviceDefault"/>
 </resources>
