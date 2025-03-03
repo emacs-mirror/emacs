@@ -204,6 +204,7 @@ uniscribe_close (struct font *font)
 
 #ifdef HAVE_HARFBUZZ
   w32_dwrite_free_cached_face (uniscribe_font->dwrite_cache);
+  uniscribe_font->dwrite_cache = NULL;
   if (uniscribe_font->w32_font.font.driver == &harfbuzz_font_driver
       && uniscribe_font->cache)
     hb_font_destroy ((hb_font_t *) uniscribe_font->cache);
