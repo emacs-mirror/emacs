@@ -1066,7 +1066,9 @@ Function range settings in SETTINGS are ignored."
         (modified-tick (buffer-chars-modified-tick)))
     (dolist (setting settings)
       (let* ((query (nth 0 setting))
-             (query-lang (treesit-query-language query))
+             (query-lang (if (functionp query)
+                             'never
+                           (treesit-query-language query)))
              (embed-lang (nth 1 setting))
              (local (nth 2 setting))
              (offset (nth 3 setting))
