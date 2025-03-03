@@ -501,8 +501,10 @@ extern bool lucid_event_type_list_p (Lisp_Object);
 extern void kbd_buffer_store_event (struct input_event *);
 extern void kbd_buffer_store_event_hold (struct input_event *,
 					 struct input_event *);
+#if defined HAVE_X11 || defined HAVE_PGTK
 extern void kbd_buffer_store_selection_event_hold (struct selection_input_event *,
 						   struct input_event *);
+#endif
 extern void poll_for_input_1 (void);
 extern void show_help_echo (Lisp_Object, Lisp_Object, Lisp_Object,
                             Lisp_Object);

@@ -3840,6 +3840,7 @@ kbd_buffer_store_event_hold (struct input_event *event,
   maybe_quit_while_no_input (event->kind);
 }
 
+#if defined HAVE_X11 || defined HAVE_PGTK
 /* Store EVENT obtained at interrupt level into kbd_buffer, fifo.
    This is like kbd_buffer_store_event_hold, but for struct
    selection_input_event instead of struct input_event.
@@ -3870,6 +3871,7 @@ kbd_buffer_store_selection_event_hold (struct selection_input_event *event,
 
   maybe_quit_while_no_input (event->kind);
 }
+#endif	/* HAVE_X11 || HAVE_PGTK */
 
 /* Limit help event positions to this range, to avoid overflow problems.  */
 #define INPUT_EVENT_POS_MAX \
