@@ -1326,6 +1326,8 @@ Return t if THEME was successfully loaded, nil otherwise."
                              (mapcar #'symbol-name
 				     (custom-available-themes))))
     nil nil))
+  (unless (symbolp theme)
+    (signal 'wrong-type-argument (list 'symbolp theme)))
   (unless (custom-theme-name-valid-p theme)
     (error "Invalid theme name `%s'" theme))
   ;; If THEME is already enabled, re-enable it after loading, even if
