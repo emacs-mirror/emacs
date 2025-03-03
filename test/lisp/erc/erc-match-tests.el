@@ -28,6 +28,8 @@
 
 
 (ert-deftest erc-add-entry-to-list ()
+  ;; These tests currently freeze in Android.
+  (skip-when (featurep 'android))
   (let ((erc-pals '("z"))
         (erc-match-quote-when-adding 'ask))
 
