@@ -1059,7 +1059,9 @@ embedded language parsers.
 EMBED-LEVEL is the embed level for the embedded parser being created or
 updated.  When looking for existing embedded parsers, only look for
 parsers of this level; when creating new parsers, set their level to
-this level."
+this level.
+
+Function range settings in SETTINGS are ignored."
   (let ((touched-parsers nil)
         (modified-tick (buffer-chars-modified-tick)))
     (dolist (setting settings)
@@ -1071,7 +1073,9 @@ this level."
              (range-fn (nth 4 setting)))
         (when (eq query-lang (treesit-parser-language host-parser))
           (cond
-           ((functionp query) (funcall query beg end))
+           ;; Function range settings don't participate in the recursive
+           ;; update, they're handled by `treesit--update-range'.
+           ((functionp query) nil)
            (local
             (setq touched-parsers
                   (append touched-parsers
@@ -1100,6 +1104,11 @@ region."
         (end (or end (point-max)))
         (host-parsers (list treesit-primary-parser))
         (embed-level 0))
+    ;; Handle function range settings here once. They don't participate
+    ;; in the recursive update below.
+    (dolist (setting treesit-range-settings)
+      (when (functionp (car setting))
+        (funcall (car setting) beg end)))
     (while (and host-parsers (< embed-level 4))
       (cl-incf embed-level)
       (let ((next-round-of-host-parsers nil))
