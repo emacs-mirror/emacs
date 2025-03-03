@@ -481,6 +481,59 @@ If non-nil, use the face `diff-changed-unspecified'.  Otherwise,
 use the face `diff-removed' for removed lines, and the face
 `diff-added' for added lines.")
 
+(defvar diff-buffer-type nil)
+
+(defvar diff--indicator-added-re
+  (rx bol
+      (group (any "+>"))
+      (group (zero-or-more nonl) "\n")))
+
+(defvar diff--indicator-removed-re
+  (rx bol
+      (group (any "<-"))
+      (group (zero-or-more nonl) "\n")))
+
+(defun diff--git-preamble-end ()
+  (save-excursion
+    (goto-char (point-min))
+    (re-search-forward "^diff --git .+ .+$" nil t)
+    (forward-line 2)
+    (point)))
+
+(defun diff--git-footer-start ()
+  (save-excursion
+    (goto-char (point-max))
+    (re-search-backward "^-- $" nil t)
+    (point)))
+
+(defun diff--indicator-matcher-helper (limit regexp)
+  "Fontify added/removed lines from point to LIMIT using REGEXP.
+
+If this is a Git patch, don't fontify lines before the first hunk, or in
+the email signature at the end."
+  (catch 'return
+    (when (eq diff-buffer-type 'git)
+      (let ((preamble-end (diff--git-preamble-end))
+            (footer-start (diff--git-footer-start))
+            (beg (point))
+            (end limit))
+        (cond ((or (<= end preamble-end)
+                   (>= beg footer-start))
+               (throw 'return nil))
+              ;; end is after preamble, adjust beg:
+              ((< beg preamble-end)
+               (goto-char preamble-end))
+              ;; beg is before footer, adjust end:
+              ((> end footer-start)
+               (setq limit footer-start)))))
+    (re-search-forward regexp limit t)))
+
+(defun diff--indicator-added-matcher (limit)
+  (diff--indicator-matcher-helper limit diff--indicator-added-re))
+
+(defun diff--indicator-removed-matcher (limit)
+  (diff--indicator-matcher-helper limit diff--indicator-removed-re))
+
 (defvar diff-font-lock-keywords
   `((,(concat "\\(" diff-hunk-header-re-unified "\\)\\(.*\\)$")
      (1 'diff-hunk-header) (6 'diff-function))
@@ -495,9 +548,9 @@ use the face `diff-removed' for removed lines, and the face
     ("^\\(---\\|\\+\\+\\+\\|\\*\\*\\*\\) \\([^\t\n]+?\\)\\(?:\t.*\\| \\(\\*\\*\\*\\*\\|----\\)\\)?\n"
      (0 'diff-header)
      (2 (if (not (match-end 3)) 'diff-file-header) prepend))
-    ("^\\([-<]\\)\\(.*\n\\)"
+    (diff--indicator-removed-matcher
      (1 diff-indicator-removed-face) (2 'diff-removed))
-    ("^\\([+>]\\)\\(.*\n\\)"
+    (diff--indicator-added-matcher
      (1 diff-indicator-added-face) (2 'diff-added))
     ("^\\(!\\)\\(.*\n\\)"
      (1 (if diff-use-changed-face
@@ -562,7 +615,6 @@ See https://lists.gnu.org/r/emacs-devel/2007-11/msg01990.html")
 (defconst diff-separator-re "^--+ ?$")
 
 (defvar diff-narrowed-to nil)
-(defvar diff-buffer-type nil)
 
 (defun diff-hunk-style (&optional style)
   (when (looking-at diff-hunk-header-re)

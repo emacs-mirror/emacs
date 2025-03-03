@@ -557,5 +557,45 @@ baz"))))
 +1
 ")))))
 
+(ert-deftest diff-mode-test-git-patch ()
+  (let ((file (ert-resource-file "git.patch")))
+   (with-temp-buffer
+     (insert-file-contents file)
+     (diff-mode)
+     (font-lock-ensure)
+     (goto-char (point-min))
+     (re-search-forward "magic_number = 42")
+     (should (eq (get-text-property (match-beginning 0) 'face)
+                 'diff-removed))
+     (re-search-forward "magic_number = 73")
+     (should (eq (get-text-property (match-beginning 0) 'face)
+                 'diff-added)))))
+
+(ert-deftest diff-mode-test-git-patch/before-first-hunk ()
+  (let ((file (ert-resource-file "git.patch")))
+   (with-temp-buffer
+     (insert-file-contents file)
+     (diff-mode)
+     (font-lock-ensure)
+     (goto-char (point-min))
+     (re-search-forward "This is not a removed line")
+     (should (eq (get-text-property (match-beginning 0) 'face)
+                  'diff-context))
+     (re-search-forward "This is not an added line")
+     (font-lock-ensure)
+     (should (eq (get-text-property (match-beginning 0) 'face)
+                 'diff-context)))))
+
+(ert-deftest diff-mode-test-git-patch/signature ()
+  (let ((file (ert-resource-file "git.patch")))
+   (with-temp-buffer
+     (insert-file-contents file)
+     (diff-mode)
+     (font-lock-ensure)
+     (goto-char (point-max))
+     (re-search-backward "^-- $")
+     (should (eq (get-text-property (match-beginning 0) 'face)
+                  'diff-context)))))
+
 (provide 'diff-mode-tests)
 ;;; diff-mode-tests.el ends here
