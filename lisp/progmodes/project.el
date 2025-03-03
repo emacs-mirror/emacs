@@ -1837,6 +1837,16 @@ Also see the `project-kill-buffers-display-buffer-list' variable."
   :version "28.1"
   :group 'project)
 
+(defcustom project-list-exclude nil
+  "Exclude projects from being remembered by `project-remember-project'.
+It should be a list of regexps and predicates for project roots and
+objects to always exclude from being remembered.  The predicate should
+take one argument, the project object, and should return non-nil if the
+project should not be remembered."
+  :type '(repeat (choice regexp function))
+  :version "31.1"
+  :group 'project)
+
 (defvar project--list 'unset
   "List structure containing root directories of known projects.
 With some possible metadata (to be decided).")
@@ -1902,9 +1912,16 @@ has changed, and NO-WRITE is nil."
 ;;;###autoload
 (defun project-remember-project (pr &optional no-write)
   "Add project PR to the front of the project list.
+If project PR satisfies `project-list-exclude', then nothing is done.
 Save the result in `project-list-file' if the list of projects
 has changed, and NO-WRITE is nil."
-  (project--remember-dir (project-root pr) no-write))
+  (let ((root (project-root pr)))
+    (unless (seq-some (lambda (r)
+                        (if (functionp r)
+                            (funcall r pr)
+                          (string-match-p r root)))
+                      project-list-exclude)
+      (project--remember-dir root no-write))))
 
 (defun project--remove-from-project-list (project-root report-message)
   "Remove directory PROJECT-ROOT of a missing project from the project list.
@@ -2274,7 +2291,7 @@ made from `project-switch-commands'.
 When called in a program, it will use the project corresponding
 to directory DIR."
   (interactive (list (funcall project-prompter)))
-  (project--remember-dir dir)
+  (project-remember-project (project-current nil dir))
   (let ((command (if (symbolp project-switch-commands)
                      project-switch-commands
                    (project--switch-project-command dir)))
