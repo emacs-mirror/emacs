@@ -6891,7 +6891,7 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 {
   NSTRACE_MSG ("First mouse event: type=%ld, clickCount=%ld",
                [theEvent type], [theEvent clickCount]);
-  return YES;
+  return ns_click_through;
 }
 - (void)resetCursorRects
 {
@@ -11299,6 +11299,21 @@ This variable is ignored on macOS < 10.7 and GNUstep.  Default is t.  */);
 	       x_underline_at_descent_line,
      doc: /* SKIP: real doc in xterm.c.  */);
   x_underline_at_descent_line = 0;
+
+  // TODO: add an "auto" mode that passes clicks through to "utility" UI
+  // elements, selectis windows, and so on, but doesn't pass them
+  // through for commands in general --- consistent with
+  // other applications.
+
+  DEFVAR_BOOL ("ns-click-through",
+	       ns_click_through,
+	       doc: /* Whether to pass activation clicks through to Emacs.
+When nil, if Emacs is not focused, the click that focuses Emacs will not
+be interpreted as a common.  If t, it will be.  For example, when nil,
+if Emacs is inactive, two clicks are needed to move point: the first to
+activate Emacs and the second to activate the mouse-1 binding.  When t,
+only a single click is needed.  */);
+  ns_click_through = YES;
 
   DEFSYM (Qx_underline_at_descent_line, "x-underline-at-descent-line");
 

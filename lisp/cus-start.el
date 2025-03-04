@@ -582,6 +582,12 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
              (ns-use-fullscreen-animation ns boolean "25.1")
              (ns-use-srgb-colorspace ns boolean "24.4")
              (ns-scroll-event-delta-factor ns float "29.1")
+
+             (ns-click-through
+	      ns (choice (const :tag "Never (nil)" :value nil)
+                  (const :tag "Always (t)" :value t))
+              "31.1")
+
 	     ;; process.c
 	     (delete-exited-processes processes-basics boolean)
              (process-error-pause-time processes-basics integer "29.1")

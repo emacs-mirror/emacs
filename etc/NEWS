@@ -29,6 +29,19 @@ applies, and please also update docstrings as needed.
 The traditional unexec dumper, deprecated since Emacs 27, has been
 removed.
 
+
+* MacOS/NS Changes in Emacs 31.1
+
+---
+** New user option 'ns-click-through' controls whether activation clicks
+are passed through to Emacs commands.
+When nil, clicking on an inactive Emacs frame will only activate it.
+When t (the default), the click will both activate the frame and be interpreted
+as a command.
+
++++
+** On Cocoa builds, stipples now render with color. (Bug#73384)
+
 ** Changed GCC default options on 32-bit x86 systems.
 When using GCC 4 or later to build Emacs on 32-bit x86 systems,
 'configure' now defaults to using the GCC options '-mfpmath=sse' (if the
