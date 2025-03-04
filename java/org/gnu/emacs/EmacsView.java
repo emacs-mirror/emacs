@@ -707,6 +707,8 @@ public final class EmacsView extends ViewGroup
   popupMenu (EmacsContextMenu menu, int xPosition,
 	     int yPosition, boolean force)
   {
+    ContextThemeWrapper context;
+
     if (popupActive && !force)
       return false;
 
@@ -719,6 +721,16 @@ public final class EmacsView extends ViewGroup
 
     contextMenu = menu;
     popupActive = true;
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM)
+      {
+	context = (ContextThemeWrapper) getContext ();
+	/* It is necessary to reload the current theme before attempting
+	   to display a new popup menu, or any previously applied system
+	   theme will continue to apply to it.  */
+	context.setTheme (R.style.EmacsStyleOpen);
+	context.setTheme (R.style.EmacsStyle);
+      }
 
     /* Use showContextMenu (float, float) on N to get actual popup
        behavior.  */
