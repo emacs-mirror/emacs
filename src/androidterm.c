@@ -125,22 +125,39 @@ android_show_hourglass (struct frame *f)
 
   x->hourglass = true;
 
-  if (!f->pointer_invisible)
-    android_define_cursor (FRAME_ANDROID_WINDOW (f),
-			   x->hourglass_cursor);
+  /* An hourglass cursor ought to be visible whether or not the standard
+     cursor is invisible.  */
+  android_define_cursor (FRAME_ANDROID_WINDOW (f),
+			 x->hourglass_cursor);
+}
+
+static android_cursor
+make_invisible_cursor (struct android_display_info *dpyinfo)
+{
+  return android_create_font_cursor (ANDROID_XC_NULL);
 }
 
 static void
 android_hide_hourglass (struct frame *f)
 {
   struct android_output *x;
+  struct android_display_info *dpyinfo;
 
   x = FRAME_ANDROID_OUTPUT (f);
+  dpyinfo = FRAME_DISPLAY_INFO (f);
   x->hourglass = false;
 
   if (!f->pointer_invisible)
     android_define_cursor (FRAME_ANDROID_WINDOW (f),
 			   x->current_cursor);
+  else
+    {
+      if (!dpyinfo->invisible_cursor)
+	dpyinfo->invisible_cursor = make_invisible_cursor (dpyinfo);
+
+      android_define_cursor (FRAME_ANDROID_WINDOW (f),
+			     dpyinfo->invisible_cursor);
+    }
 }
 
 static void
@@ -259,18 +276,16 @@ android_ring_bell (struct frame *f)
     }
 }
 
-static android_cursor
-make_invisible_cursor (struct android_display_info *dpyinfo)
-{
-  return android_create_font_cursor (ANDROID_XC_NULL);
-}
-
 static void
 android_toggle_visible_pointer (struct frame *f, bool invisible)
 {
   struct android_display_info *dpyinfo;
 
   dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  /* An hourglass cursor overrides invisibility.  */
+  if (FRAME_ANDROID_OUTPUT (f)->hourglass)
+    goto set_invisibility;
 
   if (!dpyinfo->invisible_cursor)
     dpyinfo->invisible_cursor = make_invisible_cursor (dpyinfo);
@@ -280,10 +295,9 @@ android_toggle_visible_pointer (struct frame *f, bool invisible)
 			   dpyinfo->invisible_cursor);
   else
     android_define_cursor (FRAME_ANDROID_WINDOW (f),
-			   (FRAME_ANDROID_OUTPUT (f)->hourglass
-			    ? f->output_data.android->hourglass_cursor
-			    : f->output_data.android->current_cursor));
+			   f->output_data.android->current_cursor);
 
+ set_invisibility:
   f->pointer_invisible = invisible;
 }
 
