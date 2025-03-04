@@ -4223,7 +4223,7 @@ ns_draw_stretch_glyph_string (struct glyph_string *s)
 	      CGContextClipToRect (context, bounds);
 	      CGContextScaleCTM (context, 1, -1);
 
-	      /* Stamp the foreground colour using the stipple mask.  */
+	      /* Stamp the foreground color using the stipple mask.  */
 	      [[NSColor colorWithUnsignedLong:s->face->foreground] set];
 	      CGRect imageSize = CGRectMake (0, 0, CGImageGetWidth (mask),
 					     CGImageGetHeight (mask));
