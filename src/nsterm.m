@@ -3826,8 +3826,8 @@ ns_maybe_dumpglyphs_background (struct glyph_string *s, char force_p)
 			  s->height - 2 * box_line_width);
 	  NSRectFill (r);
 	  s->background_filled_p = 1;
-	  CGImageRef mask =
-	    [dpyinfo->bitmaps[face->stipple - 1].img stippleMask];
+	  CGImageRef mask
+	    = [dpyinfo->bitmaps[face->stipple - 1].img stippleMask];
 
 	  /* This part could possibly be improved, the author is
 	     unfamiliar with NS/CoreGraphics and isn't sure if it's
@@ -4205,25 +4205,25 @@ ns_draw_stretch_glyph_string (struct glyph_string *s)
 #ifdef NS_IMPL_COCOA
 	      /* On cocoa emacs the stipple is stored as a mask CGImage.
 		 First we want to clear the background with the bg
-		 colour */
+		 color.  */
 	      [[NSColor colorWithUnsignedLong:s->face->background] set];
 	      NSRectFill (NSMakeRect (x, s->y, background_width, s->height));
 
 	      /* This part could possibly be improved, the author is
 		 unfamiliar with NS/CoreGraphics and isn't sure if it's
-		 possible to do this with NSImage */
+		 possible to do this with NSImage.  */
 	      CGImageRef mask = [dpyinfo->bitmaps[s->face->stipple - 1].img stippleMask];
 	      CGRect bounds = CGRectMake (s->x, s->y, s->background_width, s->height);
 
 	      /* Checkpoint the graphics state and then focus in on the
-		 area we're going to fill */
+		 area we're going to fill.  */
 	      NSGraphicsContext *ctx = [NSGraphicsContext currentContext];
 	      [ctx saveGraphicsState];
 	      CGContextRef context = [ctx CGContext];
-	      CGContextClipToRect(context, bounds);
+	      CGContextClipToRect (context, bounds);
 	      CGContextScaleCTM (context, 1, -1);
 
-	      /* Stamp the foreground colour using the stipple mask */
+	      /* Stamp the foreground colour using the stipple mask.  */
 	      [[NSColor colorWithUnsignedLong:s->face->foreground] set];
 	      CGRect imageSize = CGRectMake (0, 0, CGImageGetWidth (mask),
 					     CGImageGetHeight (mask));
