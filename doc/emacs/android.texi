@@ -1203,3 +1203,45 @@ installation within Emacs's home directory.
   In addition to the projects mentioned above, statically linked
 binaries for most Linux kernel-based systems can also be run on
 Android.
+
+@cindex XDG MIME database, Android
+@cindex displaying SVG images with embeds, Android
+  Emacs can be configured with support for viewing SVG image files by
+means of the @code{librsvg} library.  In SVG files, there may be
+references to other images on the file-system, whose format
+@code{librsvg} cannot detect by default, and which will be rendered as
+blank squares unless an XDG-compliant @dfn{MIME database} is installed
+into the directory @file{.local/share/mime} within your home directory.
+
+  As the XDG @code{shared-mime-info} tools must be available to generate
+such a database, it is recommended to produce this database in a
+temporary directory on a GNU/Linux or Unix system, before transferring
+the same to the recipient Android device.  With the latest release of
+@code{shared-mime-info} installed, create a temporary directory in which
+to generate the MIME database, copy the default
+@file{freedesktop.org.in} MIME catalog to a directory named
+@file{packages}, and execute @code{update-mime-info} to generate the
+database:
+
+@example
+$ mkdir -p my-mime-database/packages
+$ cp /usr/share/mime/packages/freedesktop.org.xml my-mime-database/packages
+$ update-mime-info my-mime-database
+@end example
+
+This may print a series of notices stating that the MIME database
+specified is not in the search path on your host system, which are of no
+consequence.  Proceed by transferring the contents of the MIME database
+to the recipient system, e.g., to
+@file{/sdcard/Download/my-mime-database.tar.gz}:
+
+@example
+$ cd; mkdir -p .local/share
+$ tar xfz /sdcard/Download/my-mime-database.tar.gz
+$ mv my-mime-database .local/share/mime
+$ rm /sdcard/Download/my-mime-database.tar.gz
+@end example
+
+If your Emacs session has already attempted to display an SVG image with
+embeds, Emacs must be restarted before the new MIME database will enter
+into effect.

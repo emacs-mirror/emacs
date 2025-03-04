@@ -445,4 +445,17 @@ instead."
     (should (string= (buffer-string) "foobar"))
     (should (eq (get-text-property 6 'prop) 'val))))
 
+(ert-deftest completion-preview-propagates-properties ()
+  "Test the completion metadata handling of Completion Preview mode."
+  (with-temp-buffer
+    (setq-local
+     completion-preview-sort-function #'minibuffer-sort-alphabetically
+     completion-at-point-functions
+     (list (completion-preview-tests--capf '("foobaz" "foobar")
+                                           :display-sort-function #'identity)))
+    (insert "foo")
+    (let ((this-command 'self-insert-command))
+      (completion-preview--post-command))
+    (completion-preview-tests--check-preview "baz" 'completion-preview-common)))
+
 ;;; completion-preview-tests.el ends here
