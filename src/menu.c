@@ -1628,7 +1628,7 @@ won't be run if `x-popup-menu' fails or returns for some other reason
   Vx_pre_popup_menu_hook = Qnil;
 
   DEFVAR_LISP ("x-popup-menu-function", Vx_popup_menu_function,
-	       doc : /* Function to call to pop up a menu.
+	       doc: /* Function to call to pop up a menu.
  The function is called like `x-popup-menu'.  This is currently only
  used for frames on text terminals.  */);
   Vx_popup_menu_function = Qnil;

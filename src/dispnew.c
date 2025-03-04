@@ -6948,7 +6948,7 @@ sit_for (Lisp_Object timeout, bool reading, int display_option)
 
 
 DEFUN ("redisplay", Fredisplay, Sredisplay, 0, 1, 0,
-       doc : /* Perform redisplay.
+       doc: /* Perform redisplay.
 Optional arg FORCE exists for historical reasons and is ignored.
 Value is t if redisplay has been performed, nil if executing a
 keyboard macro.  */)

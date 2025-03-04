@@ -2673,7 +2673,7 @@ tty_frame_at (int x, int y, int *cx, int *cy)
 }
 
 DEFUN ("tty-frame-at", Ftty_frame_at, Stty_frame_at, 2, 2, 0,
-       doc : /* Return tty frame containing absolute pixel position (X, Y).
+       doc: /* Return tty frame containing absolute pixel position (X, Y).
 Value is nil if no frame found.  Otherwise it is a list (FRAME CX CY),
 where FRAME is the frame containing (X, Y) and CX and CY are X and Y
 relative to FRAME.  */)
