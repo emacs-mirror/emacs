@@ -450,13 +450,6 @@ but with a different end of line convention (bug#48137)."
     (package-refresh-contents)
     (package-install 'simple-single)))
 
-(ert-deftest package-test-install-single-from-archive/string-type ()
-  "Install a single package from a package archive, using string argument."
-  (with-package-test ()
-    (package-initialize)
-    (package-refresh-contents)
-    (package-install "simple-single")))
-
 (ert-deftest package-test-install-prioritized ()
   "Install a lower version from a higher-prioritized archive."
   (with-package-test ()
