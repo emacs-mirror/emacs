@@ -267,6 +267,14 @@ See `eldoc-documentation-strategy' for more detail."
     (eldoc-mode 1)))
 
 
+(defun eldoc--update ()
+  (when (or eldoc-mode
+            (and global-eldoc-mode
+                 (eldoc--supported-p)))
+    ;; Don't ignore, but also don't full-on signal errors
+    (with-demoted-errors "eldoc error: %s"
+      (eldoc-print-current-symbol-info)) ))
+
 (defun eldoc-schedule-timer ()
   "Ensure `eldoc-timer' is running.
 
@@ -277,13 +285,7 @@ reflect the change."
       (setq eldoc-timer
             (run-with-idle-timer
 	     eldoc-idle-delay nil
-	     (lambda ()
-               (when (or eldoc-mode
-                         (and global-eldoc-mode
-                              (eldoc--supported-p)))
-                 ;; Don't ignore, but also don't full-on signal errors
-                 (with-demoted-errors "eldoc error: %s"
-                   (eldoc-print-current-symbol-info)) )))))
+             #'eldoc--update)))
 
   ;; If user has changed the idle delay, update the timer.
   (cond ((not (= eldoc-idle-delay eldoc-current-idle-delay))
