@@ -124,7 +124,7 @@ strings case-insensitively."
 			      (if (consp cl-y) (pop cl-y) (aref cl-y cl-i)))))
 	    (when acc
 	      (push val cl-res)))))
-	(and acc (nreverse cl-res)))))
+      (and acc (nreverse cl-res)))))
 
 ;;;###autoload
 (defsubst cl-map (cl-type cl-func cl-seq &rest cl-rest)
@@ -132,7 +132,7 @@ strings case-insensitively."
 TYPE is the sequence type to return.
 \n(fn TYPE FUNCTION SEQUENCE...)"
   (declare (important-return-value t))
-  (let ((cl-res (apply #'cl-mapcar cl-func cl-seq cl-rest)))
+  (let ((cl-res (apply 'cl-mapcar cl-func cl-seq cl-rest)))
     (and cl-type (cl-coerce cl-res cl-type))))
 
 ;;;###autoload
