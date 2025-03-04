@@ -2197,8 +2197,8 @@ built-in package with a (possibly newer) version from a package archive."
 (defun package-install (pkg &optional dont-select)
   "Install the package PKG.
 
-PKG can be a `package-desc', or a symbol or string naming one of the
-available packages in an archive in `package-archives'.
+PKG can be a `package-desc', or a symbol naming one of the available
+packages in an archive in `package-archives'.
 
 Mark the installed package as selected by adding it to
 `package-selected-packages'.
@@ -2230,8 +2230,7 @@ had been enabled."
                      package-archive-contents)
                     nil t))
            nil)))
-  (cl-check-type pkg (or string symbol package-desc))
-  (if (stringp pkg) (setq pkg (intern pkg)))
+  (cl-check-type pkg (or symbol package-desc))
   (package--archives-initialize)
   (add-hook 'post-command-hook #'package-menu--post-refresh)
   (let ((name (if (package-desc-p pkg)
@@ -2261,21 +2260,19 @@ had been enabled."
 (defun package-upgrade (name)
   "Upgrade package NAME if a newer version exists.
 
-NAME can be either a symbol or a string."
+NAME should be a symbol."
   (interactive
-   (list (completing-read
-          "Upgrade package: " (package--upgradeable-packages t) nil t)))
-  (let* ((package (if (symbolp name)
-                      name
-                    (intern name)))
-         (pkg-desc (cadr (assq package package-alist)))
+   (list (intern (completing-read
+                  "Upgrade package: "
+                  (package--upgradeable-packages t) nil t))))
+  (let* ((pkg-desc (cadr (assq name package-alist)))
          (package-install-upgrade-built-in (not pkg-desc)))
     ;; `pkg-desc' will be nil when the package is an "active built-in".
     (if (and pkg-desc (package-vc-p pkg-desc))
         (package-vc-upgrade pkg-desc)
       (when pkg-desc
         (package-delete pkg-desc 'force 'dont-unselect))
-      (package-install package
+      (package-install name
                        ;; An active built-in has never been "selected"
                        ;; before.  Mark it as installed explicitly.
                        (and pkg-desc 'dont-select)))))

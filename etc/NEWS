@@ -1322,6 +1322,10 @@ will not prompt the user for confirmation before installing packages.
 Refreshing the package index will no longer block when invoked
 interactively.
 
+---
+*** 'package-upgrade' no longer accepts a string argument.
+When called from Lisp, it now only accepts a symbol.
+
 +++
 *** package-x.el is now obsolete.
 
