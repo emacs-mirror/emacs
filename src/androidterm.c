@@ -841,7 +841,7 @@ handle_one_android_event (struct android_display_info *dpyinfo,
   union android_event configureEvent;
   struct frame *f, *any, *mouse_frame;
   Mouse_HLInfo *hlinfo;
-  struct input_event inev;
+  union buffered_input_event inev;
   int modifiers, count, do_help;
   struct android_touch_point *touchpoint, **last;
   Lisp_Object window;
@@ -865,7 +865,7 @@ handle_one_android_event (struct android_display_info *dpyinfo,
   if (any && any->wait_event_type == event->type)
     any->wait_event_type = 0; /* Indicates we got it.  */
 
-  EVENT_INIT (inev);
+  EVENT_INIT (inev.ie);
 
   switch (event->type)
     {
@@ -936,8 +936,8 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	if (!FRAME_TOOLTIP_P (f)
 	    && (old_left != f->left_pos || old_top != f->top_pos))
 	  {
-	    inev.kind = MOVE_FRAME_EVENT;
-	    XSETFRAME (inev.frame_or_window, f);
+	    inev.ie.kind = MOVE_FRAME_EVENT;
+	    XSETFRAME (inev.ie.frame_or_window, f);
 	  }
 
 	if (f && FRAME_OUTPUT_DATA (f)->need_cursor_updates)
@@ -996,10 +996,10 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	memset (&compose_status, 0, sizeof (compose_status));
 
       /* Common for all keysym input events.  */
-      XSETFRAME (inev.frame_or_window, any);
-      inev.modifiers
+      XSETFRAME (inev.ie.frame_or_window, any);
+      inev.ie.modifiers
 	= android_android_to_emacs_modifiers (dpyinfo, modifiers);
-      inev.timestamp = event->xkey.time;
+      inev.ie.timestamp = event->xkey.time;
 
       keysym = event->xkey.keycode;
 
@@ -1033,8 +1033,8 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 
 	if (event->xkey.keycode == (uint32_t) -1)
 	  {
-	    inev.kind = PREEDIT_TEXT_EVENT;
-	    inev.arg = Qnil;
+	    inev.ie.kind = PREEDIT_TEXT_EVENT;
+	    inev.ie.arg = Qnil;
 
 	    /* If text was looked up, decode it and make it the
 	       preedit text.  */
@@ -1042,7 +1042,7 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	    if (status_return == ANDROID_LOOKUP_CHARS && nchars)
 	      {
 		copy_bufptr[nchars] = 0;
-		inev.arg = from_unicode_buffer (copy_bufptr);
+		inev.ie.arg = from_unicode_buffer (copy_bufptr);
 	      }
 
 	    goto done_keysym;
@@ -1061,11 +1061,11 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	  /* Deal with characters.  */
 
 	  if (copy_bufptr[0] < 128)
-	    inev.kind = ASCII_KEYSTROKE_EVENT;
+	    inev.ie.kind = ASCII_KEYSTROKE_EVENT;
 	  else
-	    inev.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+	    inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
 
-	  inev.code = copy_bufptr[0];
+	  inev.ie.code = copy_bufptr[0];
 	}
       else if (nchars < 2 && keysym)
 	{
@@ -1075,8 +1075,8 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 
 	  /* Next, deal with special ``characters'' by giving the
 	     keycode to keyboard.c.  */
-	  inev.kind = NON_ASCII_KEYSTROKE_EVENT;
-	  inev.code = keysym;
+	  inev.ie.kind = NON_ASCII_KEYSTROKE_EVENT;
+	  inev.ie.code = keysym;
 	}
       else
 	{
@@ -1084,25 +1084,25 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 
 	  for (i = 0; i < nchars; ++i)
 	    {
-	      inev.kind = (SINGLE_BYTE_CHAR_P (copy_bufptr[i])
-			   ? ASCII_KEYSTROKE_EVENT
-			   : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-	      inev.code = copy_bufptr[i];
+	      inev.ie.kind = (SINGLE_BYTE_CHAR_P (copy_bufptr[i])
+			      ? ASCII_KEYSTROKE_EVENT
+			      : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+	      inev.ie.code = copy_bufptr[i];
 
 	      /* If the character is actually '\n', then change this
 		 to RET.  */
 
 	      if (copy_bufptr[i] == '\n')
 		{
-		  inev.kind = NON_ASCII_KEYSTROKE_EVENT;
-		  inev.code = 66;
+		  inev.ie.kind = NON_ASCII_KEYSTROKE_EVENT;
+		  inev.ie.code = 66;
 		}
 
-	      kbd_buffer_store_event_hold (&inev, hold_quit);
+	      kbd_buffer_store_buffered_event (&inev, hold_quit);
 	    }
 
 	  count += nchars;
-	  inev.kind = NO_EVENT;  /* Already stored above.  */
+	  inev.ie.kind = NO_EVENT;  /* Already stored above.  */
 	}
 
       goto done_keysym;
@@ -1122,7 +1122,7 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 
     case ANDROID_FOCUS_IN:
     case ANDROID_FOCUS_OUT:
-      android_detect_focus_change (dpyinfo, any, event, &inev);
+      android_detect_focus_change (dpyinfo, any, event, &inev.ie);
       goto OTHER;
 
     case ANDROID_WINDOW_ACTION:
@@ -1150,8 +1150,8 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	      if (!f)
 		goto OTHER;
 
-	      inev.kind = DELETE_WINDOW_EVENT;
-	      XSETFRAME (inev.frame_or_window, f);
+	      inev.ie.kind = DELETE_WINDOW_EVENT;
+	      XSETFRAME (inev.ie.frame_or_window, f);
 	    }
 	}
 
@@ -1210,8 +1210,8 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 		  && !EQ (window, last_mouse_window)
 		  && !EQ (window, selected_window))
 		{
-		  inev.kind = SELECT_WINDOW_EVENT;
-		  inev.frame_or_window = window;
+		  inev.ie.kind = SELECT_WINDOW_EVENT;
+		  inev.ie.frame_or_window = window;
 		}
 
 	      /* Remember the last window where we saw the mouse.  */
@@ -1392,10 +1392,10 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	  if (!(tab_bar_p && NILP (tab_bar_arg)) && !tool_bar_p)
 	    if (! popup_activated ())
 	      {
-		android_construct_mouse_click (&inev, &event->xbutton, f);
+		android_construct_mouse_click (&inev.ie, &event->xbutton, f);
 
 		if (!NILP (tab_bar_arg))
-		  inev.arg = tab_bar_arg;
+		  inev.ie.arg = tab_bar_arg;
 	      }
 	}
 
@@ -1438,8 +1438,8 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	  /* Simply update the tool position and send an update.  */
 	  touchpoint->x = event->touch.x;
 	  touchpoint->y = event->touch.y;
-	  android_update_tools (any, &inev);
-	  inev.timestamp = event->touch.time;
+	  android_update_tools (any, &inev.ie);
+	  inev.ie.timestamp = event->touch.time;
 
 	  goto OTHER;
 	}
@@ -1512,12 +1512,12 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	}
 
       /* Now generate the Emacs event.  */
-      inev.kind = TOUCHSCREEN_BEGIN_EVENT;
-      inev.timestamp = event->touch.time;
-      XSETFRAME (inev.frame_or_window, any);
-      XSETINT (inev.x, event->touch.x);
-      XSETINT (inev.y, event->touch.y);
-      XSETINT (inev.arg, event->touch.pointer_id);
+      inev.ie.kind = TOUCHSCREEN_BEGIN_EVENT;
+      inev.ie.timestamp = event->touch.time;
+      XSETFRAME (inev.ie.frame_or_window, any);
+      XSETINT (inev.ie.x, event->touch.x);
+      XSETINT (inev.ie.y, event->touch.y);
+      XSETINT (inev.ie.arg, event->touch.pointer_id);
 
       goto OTHER;
 
@@ -1540,8 +1540,8 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 
       touchpoint->x = event->touch.x;
       touchpoint->y = event->touch.y;
-      android_update_tools (any, &inev);
-      inev.timestamp = event->touch.time;
+      android_update_tools (any, &inev.ie);
+      inev.ie.timestamp = event->touch.time;
 
       goto OTHER;
 
@@ -1583,18 +1583,18 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 		 grabbed by the tool bar).  */
 	      xfree (touchpoint);
 
-	      inev.kind = TOUCHSCREEN_END_EVENT;
-	      inev.timestamp = event->touch.time;
+	      inev.ie.kind = TOUCHSCREEN_END_EVENT;
+	      inev.ie.timestamp = event->touch.time;
 
 	      /* Report whether the sequence has been canceled.  */
 
 	      if (event->touch.flags & ANDROID_TOUCH_SEQUENCE_CANCELED)
-		inev.modifiers = 1;
+		inev.ie.modifiers = 1;
 
-	      XSETFRAME (inev.frame_or_window, any);
-	      XSETINT (inev.x, event->touch.x);
-	      XSETINT (inev.y, event->touch.y);
-	      XSETINT (inev.arg, event->touch.pointer_id);
+	      XSETFRAME (inev.ie.frame_or_window, any);
+	      XSETINT (inev.ie.x, event->touch.x);
+	      XSETINT (inev.ie.y, event->touch.y);
+	      XSETINT (inev.ie.arg, event->touch.pointer_id);
 
 	      /* Break out of the loop.  */
 	      goto OTHER;
@@ -1643,24 +1643,24 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	    }
 
 	  /* Determine what kind of event to send.  */
-	  inev.kind = ((fabs (wheel_event_y)
+	  inev.ie.kind = ((fabs (wheel_event_y)
 			   >= fabs (wheel_event_x))
 			  ? WHEEL_EVENT : HORIZ_WHEEL_EVENT);
-	  inev.timestamp = event->wheel.time;
+	  inev.ie.timestamp = event->wheel.time;
 
 	  /* Set the event coordinates.  */
-	  XSETINT (inev.x, event->wheel.x);
-	  XSETINT (inev.y, event->wheel.y);
+	  XSETINT (inev.ie.x, event->wheel.x);
+	  XSETINT (inev.ie.y, event->wheel.y);
 
 	  /* Set the frame.  */
-	  XSETFRAME (inev.frame_or_window, any);
+	  XSETFRAME (inev.ie.frame_or_window, any);
 
 	  /* Figure out the scroll direction.  */
-	  inev.modifiers = (signbit ((fabs (wheel_event_x)
-				      >= fabs (wheel_event_y))
-				     ? wheel_event_x
-				     : wheel_event_y)
-			    ? down_modifier : up_modifier);
+	  inev.ie.modifiers = (signbit ((fabs (wheel_event_x)
+					 >= fabs (wheel_event_y))
+					? wheel_event_x
+					: wheel_event_y)
+			       ? down_modifier : up_modifier);
 
 	  /* Figure out how much to scale the deltas by.  */
 	  window = window_from_coordinates (any, event->wheel.x,
@@ -1678,14 +1678,16 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	  scroll_unit = pow (scroll_height, 2.0 / 3.0);
 
 	  /* Add the keyboard modifiers.  */
-	  inev.modifiers
+	  inev.ie.modifiers
 	    |= android_android_to_emacs_modifiers (dpyinfo,
 						   event->wheel.state);
 
 	  /* Finally include the scroll deltas.  */
-	  inev.arg = list3 (Qnil,
-			    make_float (wheel_event_x * scroll_unit),
-			    make_float (wheel_event_y * scroll_unit));
+	  inev.ie.arg = list3 (Qnil,
+			       make_float (wheel_event_x
+					   * scroll_unit),
+			       make_float (wheel_event_y
+					   * scroll_unit));
 
 	  wheel_event_x = 0.0;
 	  wheel_event_y = 0.0;
@@ -1705,8 +1707,8 @@ handle_one_android_event (struct android_display_info *dpyinfo,
       SET_FRAME_VISIBLE (any, false);
       SET_FRAME_ICONIFIED (any, true);
 
-      inev.kind = ICONIFY_EVENT;
-      XSETFRAME (inev.frame_or_window, any);
+      inev.ie.kind = ICONIFY_EVENT;
+      XSETFRAME (inev.ie.frame_or_window, any);
       goto OTHER;
 
     case ANDROID_DEICONIFIED:
@@ -1720,8 +1722,8 @@ handle_one_android_event (struct android_display_info *dpyinfo,
       SET_FRAME_VISIBLE (any, true);
       SET_FRAME_ICONIFIED (any, false);
 
-      inev.kind = DEICONIFY_EVENT;
-      XSETFRAME (inev.frame_or_window, any);
+      inev.ie.kind = DEICONIFY_EVENT;
+      XSETFRAME (inev.ie.frame_or_window, any);
       goto OTHER;
 
       /* Context menu handling.  */
@@ -1769,12 +1771,12 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	goto OTHER;
 
       /* Generate a drag and drop event to convey its position.  */
-      inev.kind = DRAG_N_DROP_EVENT;
-      XSETFRAME (inev.frame_or_window, any);
-      inev.timestamp = ANDROID_CURRENT_TIME;
-      XSETINT (inev.x, event->dnd.x);
-      XSETINT (inev.y, event->dnd.y);
-      inev.arg = Fcons (inev.x, inev.y);
+      inev.ie.kind = DRAG_N_DROP_EVENT;
+      XSETFRAME (inev.ie.frame_or_window, any);
+      inev.ie.timestamp = ANDROID_CURRENT_TIME;
+      XSETINT (inev.ie.x, event->dnd.x);
+      XSETINT (inev.ie.y, event->dnd.y);
+      inev.ie.arg = Fcons (inev.ie.x, inev.ie.y);
       goto OTHER;
 
     case ANDROID_DND_URI_EVENT:
@@ -1790,15 +1792,15 @@ handle_one_android_event (struct android_display_info *dpyinfo,
 	 content or file URI or a string to be inserted.  Generate an
 	 event with this information.  */
 
-      inev.kind = DRAG_N_DROP_EVENT;
-      XSETFRAME (inev.frame_or_window, any);
-      inev.timestamp = ANDROID_CURRENT_TIME;
-      XSETINT (inev.x, event->dnd.x);
-      XSETINT (inev.y, event->dnd.y);
-      inev.arg = Fcons ((event->type == ANDROID_DND_TEXT_EVENT
-			 ? Qtext : Quri),
-			android_decode_utf16 (event->dnd.uri_or_string,
-					      event->dnd.length));
+      inev.ie.kind = DRAG_N_DROP_EVENT;
+      XSETFRAME (inev.ie.frame_or_window, any);
+      inev.ie.timestamp = ANDROID_CURRENT_TIME;
+      XSETINT (inev.ie.x, event->dnd.x);
+      XSETINT (inev.ie.y, event->dnd.y);
+      inev.ie.arg = Fcons ((event->type == ANDROID_DND_TEXT_EVENT
+			    ? Qtext : Quri),
+			   android_decode_utf16 (event->dnd.uri_or_string,
+						 event->dnd.length));
       free (event->dnd.uri_or_string);
       goto OTHER;
 
@@ -1806,14 +1808,15 @@ handle_one_android_event (struct android_display_info *dpyinfo,
     case ANDROID_NOTIFICATION_ACTION:
 
       if (event->notification.type == ANDROID_NOTIFICATION_DELETED)
-	android_notification_deleted (&event->notification, &inev);
+	android_notification_deleted (&event->notification, &inev.ie);
       else
 	{
 	  Lisp_Object action;
 
 	  action = android_decode_utf16 (event->notification.action,
 					 event->notification.length);
-	  android_notification_action (&event->notification, &inev, action);
+	  android_notification_action (&event->notification, &inev.ie,
+				       action);
 	}
 
       /* Free dynamically allocated data.  */
@@ -1826,9 +1829,9 @@ handle_one_android_event (struct android_display_info *dpyinfo,
     }
 
  OTHER:
-  if (inev.kind != NO_EVENT)
+  if (inev.ie.kind != NO_EVENT)
     {
-      kbd_buffer_store_event_hold (&inev, hold_quit);
+      kbd_buffer_store_buffered_event (&inev, hold_quit);
       count++;
     }
 

@@ -408,7 +408,7 @@ static void timer_resume_idle (void);
 static void deliver_user_signal (int);
 static char *find_user_signal_name (int);
 static void store_user_signal_events (void);
-static bool is_ignored_event_kind (enum event_kind);
+static bool is_ignored_event (union buffered_input_event *);
 
 /* Advance or retreat a buffered input event pointer.  */
 
@@ -3629,7 +3629,7 @@ readable_events (int flags)
 		      && (event->kind == FOCUS_IN_EVENT
 			  || event->kind == FOCUS_OUT_EVENT))
 		     || (input_pending_p_filter_events
-			 && is_ignored_event_kind (event->kind))))
+			 && is_ignored_event (event))))
 #ifdef USE_TOOLKIT_SCROLL_BARS
 		  && !((flags & READABLE_EVENTS_IGNORE_SQUEEZABLES)
 		       && (event->kind == SCROLL_BAR_CLICK_EVENT
@@ -3714,31 +3714,6 @@ kbd_buffer_store_event (register struct input_event *event)
   kbd_buffer_store_event_hold (event, 0);
 }
 
-static void
-beware_long_paste (void)
-{
-#ifdef subprocesses
-  if (! (kbd_buffer_nr_stored () <= KBD_BUFFER_SIZE / 2
-	 && kbd_on_hold_p ()))
-    {
-      /* Don't read keyboard input until we have processed kbd_buffer.
-	 This happens when pasting text longer than KBD_BUFFER_SIZE/2.  */
-      hold_keyboard_input ();
-      unrequest_sigio ();
-      stop_polling ();
-    }
-#endif
-}
-
-/* If we're inside while-no-input, and this event qualifies
-   as input, set quit-flag to cause an interrupt.  */
-static void
-maybe_quit_while_no_input (enum event_kind kind)
-{
-  if (!NILP (Vthrow_on_input) && !is_ignored_event_kind (kind))
-    Vquit_flag = Vthrow_on_input;
-}
-
 /* Store EVENT obtained at interrupt level into kbd_buffer, fifo.
 
    If HOLD_QUIT is 0, just stuff EVENT into the fifo.
@@ -3750,8 +3725,8 @@ maybe_quit_while_no_input (enum event_kind kind)
    subsequent input events have been parsed (and discarded).  */
 
 void
-kbd_buffer_store_event_hold (struct input_event *event,
-			     struct input_event *hold_quit)
+kbd_buffer_store_buffered_event (union buffered_input_event *event,
+				 struct input_event *hold_quit)
 {
   if (event->kind == NO_EVENT)
     emacs_abort ();
@@ -3761,23 +3736,23 @@ kbd_buffer_store_event_hold (struct input_event *event,
 
   if (event->kind == ASCII_KEYSTROKE_EVENT)
     {
-      int c = event->code & 0377;
+      int c = event->ie.code & 0377;
 
-      if (event->modifiers & ctrl_modifier)
+      if (event->ie.modifiers & ctrl_modifier)
 	c = make_ctrl_char (c);
 
-      c |= (event->modifiers
+      c |= (event->ie.modifiers
 	    & (meta_modifier | alt_modifier
 	       | hyper_modifier | super_modifier));
 
       if (c == quit_char)
 	{
-	  KBOARD *kb = FRAME_KBOARD (XFRAME (event->frame_or_window));
+	  KBOARD *kb = FRAME_KBOARD (XFRAME (event->ie.frame_or_window));
 
 	  if (single_kboard && kb != current_kboard)
 	    {
 	      kset_kbd_queue
-		(kb, list2 (make_lispy_switch_frame (event->frame_or_window),
+		(kb, list2 (make_lispy_switch_frame (event->ie.frame_or_window),
 			    make_fixnum (c)));
 	      kb->kbd_queue_has_data = true;
 
@@ -3796,7 +3771,7 @@ kbd_buffer_store_event_hold (struct input_event *event,
 
 	  if (hold_quit)
 	    {
-	      *hold_quit = *event;
+	      *hold_quit = event->ie;
 	      return;
 	    }
 
@@ -3807,9 +3782,9 @@ kbd_buffer_store_event_hold (struct input_event *event,
 	  {
 	    Lisp_Object focus;
 
-	    focus = FRAME_FOCUS_FRAME (XFRAME (event->frame_or_window));
+	    focus = FRAME_FOCUS_FRAME (XFRAME (event->ie.frame_or_window));
 	    if (NILP (focus))
-	      focus = event->frame_or_window;
+	      focus = event->ie.frame_or_window;
 	    internal_last_event_frame = focus;
 	    Vlast_event_frame = focus;
 	  }
@@ -3832,46 +3807,27 @@ kbd_buffer_store_event_hold (struct input_event *event,
   union buffered_input_event *next_slot = next_kbd_event (kbd_store_ptr);
   if (kbd_fetch_ptr != next_slot)
     {
-      kbd_store_ptr->ie = *event;
+      *kbd_store_ptr = *event;
       kbd_store_ptr = next_slot;
-      beware_long_paste ();
+#ifdef subprocesses
+      if (kbd_buffer_nr_stored () > KBD_BUFFER_SIZE / 2
+	  && ! kbd_on_hold_p ())
+        {
+          /* Don't read keyboard input until we have processed kbd_buffer.
+             This happens when pasting text longer than KBD_BUFFER_SIZE/2.  */
+          hold_keyboard_input ();
+          unrequest_sigio ();
+          stop_polling ();
+        }
+#endif	/* subprocesses */
     }
 
-  maybe_quit_while_no_input (event->kind);
+  /* If we're inside while-no-input, and this event qualifies
+     as input, set quit-flag to cause an interrupt.  */
+  if (!NILP (Vthrow_on_input)
+      && !is_ignored_event (event))
+    Vquit_flag = Vthrow_on_input;
 }
-
-#if defined HAVE_X11 || defined HAVE_PGTK
-/* Store EVENT obtained at interrupt level into kbd_buffer, fifo.
-   This is like kbd_buffer_store_event_hold, but for struct
-   selection_input_event instead of struct input_event.
-
-   If HOLD_QUIT && HOLD_QUIT->kind != NO_EVENT, discard EVENT.
-
-   This is used to postpone the processing of the quit event until all
-   subsequent input events have been parsed (and discarded).  */
-
-void
-kbd_buffer_store_selection_event_hold (struct selection_input_event *event,
-				       struct input_event *hold_quit)
-{
-  if (hold_quit && hold_quit->kind != NO_EVENT)
-    return;
-
-  /* Don't let the very last slot in the buffer become full,
-     since that would make the two pointers equal,
-     and that is indistinguishable from an empty buffer.
-     Discard the event if it would fill the last slot.  */
-  union buffered_input_event *next_slot = next_kbd_event (kbd_store_ptr);
-  if (kbd_fetch_ptr != next_slot)
-    {
-      kbd_store_ptr->sie = *event;
-      kbd_store_ptr = next_slot;
-      beware_long_paste ();
-    }
-
-  maybe_quit_while_no_input (event->kind);
-}
-#endif	/* HAVE_X11 || HAVE_PGTK */
 
 /* Limit help event positions to this range, to avoid overflow problems.  */
 #define INPUT_EVENT_POS_MAX \
@@ -12921,11 +12877,11 @@ init_while_no_input_ignore_events (void)
 }
 
 static bool
-is_ignored_event_kind (enum event_kind kind)
+is_ignored_event (union buffered_input_event *event)
 {
   Lisp_Object ignore_event;
 
-  switch (kind)
+  switch (event->kind)
     {
     case FOCUS_IN_EVENT: ignore_event = Qfocus_in; break;
     case FOCUS_OUT_EVENT: ignore_event = Qfocus_out; break;

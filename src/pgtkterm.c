@@ -286,8 +286,12 @@ flip_cr_context (struct frame *f)
 
 
 static void
-evq_grow_if_needed (struct event_queue_t *evq)
+evq_enqueue (union buffered_input_event *ev)
 {
+  struct event_queue_t *evq = &event_q;
+  struct frame *frame;
+  struct pgtk_display_info *dpyinfo;
+
   if (evq->cap == 0)
     {
       evq->cap = 4;
@@ -299,44 +303,28 @@ evq_grow_if_needed (struct event_queue_t *evq)
       evq->cap += evq->cap / 2;
       evq->q = xrealloc (evq->q, sizeof *evq->q * evq->cap);
     }
-}
 
-static void
-evq_enqueue (struct input_event const *ev)
-{
-  struct event_queue_t *evq = &event_q;
-  struct frame *frame;
-  struct pgtk_display_info *dpyinfo;
+  evq->q[evq->nr++] = *ev;
 
-  evq_grow_if_needed (evq);
-  evq->q[evq->nr++].ie = *ev;
-
-  frame = NULL;
-
-  if (WINDOWP (ev->frame_or_window))
-    frame = WINDOW_XFRAME (XWINDOW (ev->frame_or_window));
-
-  if (FRAMEP (ev->frame_or_window))
-    frame = XFRAME (ev->frame_or_window);
-
-  if (frame)
+  if (ev->ie.kind != SELECTION_REQUEST_EVENT
+      && ev->ie.kind != SELECTION_CLEAR_EVENT)
     {
-      dpyinfo = FRAME_DISPLAY_INFO (frame);
+      frame = NULL;
 
-      if (dpyinfo->last_user_time < ev->timestamp)
-	dpyinfo->last_user_time = ev->timestamp;
+      if (WINDOWP (ev->ie.frame_or_window))
+	frame = WINDOW_XFRAME (XWINDOW (ev->ie.frame_or_window));
+
+      if (FRAMEP (ev->ie.frame_or_window))
+	frame = XFRAME (ev->ie.frame_or_window);
+
+      if (frame)
+	{
+	  dpyinfo = FRAME_DISPLAY_INFO (frame);
+
+	  if (dpyinfo->last_user_time < ev->ie.timestamp)
+	    dpyinfo->last_user_time = ev->ie.timestamp;
+	}
     }
-
-  raise (SIGIO);
-}
-
-static void
-evq_selection_enqueue (struct selection_input_event const *ev)
-{
-  struct event_queue_t *evq = &event_q;
-
-  evq_grow_if_needed (evq);
-  evq->q[evq->nr++].sie = *ev;
 
   raise (SIGIO);
 }
@@ -349,27 +337,17 @@ evq_flush (struct input_event *hold_quit)
 
   while (evq->nr > 0)
     {
-      /* Because kbd_buffer_store_event_hold and
-	 kbd_buffer_store_selection_event_hold may do longjmp,
-	 we need to shift event queue before passing a pointer
-	 to a copy of the event, so that events in
+      /* kbd_buffer_store_buffered_event may do longjmp, so
+	 we need to shift event queue first and pass the event
+	 to kbd_buffer_store_buffered_event so that events in
 	 queue are not processed twice.  Bug#52941 */
+      union buffered_input_event ev = evq->q[0];
+      int i;
+      for (i = 1; i < evq->nr; i++)
+	evq->q[i - 1] = evq->q[i];
       evq->nr--;
 
-      if (evq->q[0].kind == SELECTION_REQUEST_EVENT
-	  || evq->q[0].kind == SELECTION_CLEAR_EVENT)
-	{
-	  struct selection_input_event sinev = evq->q[0].sie;
-	  memmove (&evq->q[0], &evq->q[1], evq->nr * sizeof evq->q[0]);
-	  kbd_buffer_store_selection_event_hold (&sinev, hold_quit);
-	}
-      else
-	{
-	  struct input_event inev = evq->q[0].ie;
-	  memmove (&evq->q[0], &evq->q[1], evq->nr * sizeof evq->q[0]);
-	  kbd_buffer_store_event_hold (&inev, hold_quit);
-	}
-
+      kbd_buffer_store_buffered_event (&ev, hold_quit);
       n++;
     }
 
@@ -3950,21 +3928,21 @@ static void
 pgtk_send_scroll_bar_event (Lisp_Object window, enum scroll_bar_part part,
 			    int portion, int whole, bool horizontal)
 {
-  struct input_event inev;
+  union buffered_input_event inev;
 
-  EVENT_INIT (inev);
+  EVENT_INIT (inev.ie);
 
-  inev.kind = (horizontal
-	       ? HORIZONTAL_SCROLL_BAR_CLICK_EVENT
-	       : SCROLL_BAR_CLICK_EVENT);
-  inev.frame_or_window = window;
-  inev.arg = Qnil;
-  inev.timestamp = 0;
-  inev.code = 0;
-  inev.part = part;
-  inev.x = make_fixnum (portion);
-  inev.y = make_fixnum (whole);
-  inev.modifiers = 0;
+  inev.ie.kind = (horizontal
+		  ? HORIZONTAL_SCROLL_BAR_CLICK_EVENT
+		  : SCROLL_BAR_CLICK_EVENT);
+  inev.ie.frame_or_window = window;
+  inev.ie.arg = Qnil;
+  inev.ie.timestamp = 0;
+  inev.ie.code = 0;
+  inev.ie.part = part;
+  inev.ie.x = make_fixnum (portion);
+  inev.ie.y = make_fixnum (whole);
+  inev.ie.modifiers = 0;
 
   evq_enqueue (&inev);
 }
@@ -4964,6 +4942,7 @@ static gboolean
 pgtk_handle_event (GtkWidget *widget, GdkEvent *event, gpointer *data)
 {
   struct frame *f;
+  union buffered_input_event inev;
   GtkWidget *frame_widget;
   gint x, y;
 
@@ -4980,18 +4959,18 @@ pgtk_handle_event (GtkWidget *widget, GdkEvent *event, gpointer *data)
 					&x, &y);
       if (f)
 	{
-	  struct input_event inev;
-	  inev.kind = PINCH_EVENT;
-	  XSETFRAME (inev.frame_or_window, f);
-	  XSETINT (inev.x, x);
-	  XSETINT (inev.y, y);
-	  inev.arg = list4 (make_float (event->touchpad_pinch.dx),
-			    make_float (event->touchpad_pinch.dy),
-			    make_float (event->touchpad_pinch.scale),
-			    make_float (event->touchpad_pinch.angle_delta));
-	  inev.modifiers = pgtk_gtk_to_emacs_modifiers (FRAME_DISPLAY_INFO (f),
+
+	  inev.ie.kind = PINCH_EVENT;
+	  XSETFRAME (inev.ie.frame_or_window, f);
+	  XSETINT (inev.ie.x, x);
+	  XSETINT (inev.ie.y, y);
+	  inev.ie.arg = list4 (make_float (event->touchpad_pinch.dx),
+			       make_float (event->touchpad_pinch.dy),
+			       make_float (event->touchpad_pinch.scale),
+			       make_float (event->touchpad_pinch.angle_delta));
+	  inev.ie.modifiers = pgtk_gtk_to_emacs_modifiers (FRAME_DISPLAY_INFO (f),
 							   event->touchpad_pinch.state);
-	  inev.device
+	  inev.ie.device
 	    = pgtk_get_device_for_event (FRAME_DISPLAY_INFO (f), event);
 	  evq_enqueue (&inev);
 	}
@@ -5209,17 +5188,17 @@ pgtk_enqueue_string (struct frame *f, gchar *str)
     return;
   for (; *ustr != 0; ustr++)
     {
-      struct input_event inev;
+      union buffered_input_event inev;
       Lisp_Object c = make_fixnum (*ustr);
-      EVENT_INIT (inev);
-      inev.kind = (SINGLE_BYTE_CHAR_P (XFIXNAT (c))
-		   ? ASCII_KEYSTROKE_EVENT
-		   : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-      inev.arg = Qnil;
-      inev.code = XFIXNAT (c);
-      XSETFRAME (inev.frame_or_window, f);
-      inev.modifiers = 0;
-      inev.timestamp = 0;
+      EVENT_INIT (inev.ie);
+      inev.ie.kind = (SINGLE_BYTE_CHAR_P (XFIXNAT (c))
+		      ? ASCII_KEYSTROKE_EVENT
+		      : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+      inev.ie.arg = Qnil;
+      inev.ie.code = XFIXNAT (c);
+      XSETFRAME (inev.ie.frame_or_window, f);
+      inev.ie.modifiers = 0;
+      inev.ie.timestamp = 0;
       evq_enqueue (&inev);
     }
 
@@ -5229,28 +5208,28 @@ pgtk_enqueue_string (struct frame *f, gchar *str)
 void
 pgtk_enqueue_preedit (struct frame *f, Lisp_Object preedit)
 {
-  struct input_event inev;
-  EVENT_INIT (inev);
-  inev.kind = PREEDIT_TEXT_EVENT;
-  inev.arg = preedit;
-  inev.code = 0;
-  XSETFRAME (inev.frame_or_window, f);
-  inev.modifiers = 0;
-  inev.timestamp = 0;
+  union buffered_input_event inev;
+  EVENT_INIT (inev.ie);
+  inev.ie.kind = PREEDIT_TEXT_EVENT;
+  inev.ie.arg = preedit;
+  inev.ie.code = 0;
+  XSETFRAME (inev.ie.frame_or_window, f);
+  inev.ie.modifiers = 0;
+  inev.ie.timestamp = 0;
   evq_enqueue (&inev);
 }
 
 static gboolean
 key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 {
-  struct input_event inev;
+  union buffered_input_event inev;
   ptrdiff_t nbytes;
   Mouse_HLInfo *hlinfo;
   struct frame *f;
   struct pgtk_display_info *dpyinfo;
 
   f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
-  EVENT_INIT (inev);
+  EVENT_INIT (inev.ie);
   hlinfo = MOUSE_HL_INFO (f);
   nbytes = 0;
 
@@ -5321,20 +5300,20 @@ key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
       orig_keysym = keysym;
 
       /* Common for all keysym input events.  */
-      XSETFRAME (inev.frame_or_window, f);
-      inev.modifiers
+      XSETFRAME (inev.ie.frame_or_window, f);
+      inev.ie.modifiers
 	= pgtk_gtk_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), modifiers);
-      inev.timestamp = event->key.time;
+      inev.ie.timestamp = event->key.time;
 
       /* First deal with keysyms which have defined
          translations to characters.  */
       if (keysym >= 32 && keysym < 128)
 	/* Avoid explicitly decoding each ASCII character.  */
 	{
-	  inev.kind = ASCII_KEYSTROKE_EVENT;
-	  inev.code = keysym;
+	  inev.ie.kind = ASCII_KEYSTROKE_EVENT;
+	  inev.ie.code = keysym;
 
-	  inev.device
+	  inev.ie.device
 	    = pgtk_get_device_for_event (FRAME_DISPLAY_INFO (f), event);
 	  goto done;
 	}
@@ -5343,12 +5322,12 @@ key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
       if (keysym >= 0x01000000 && keysym <= 0x0110FFFF)
 	{
 	  if (keysym < 0x01000080)
-	    inev.kind = ASCII_KEYSTROKE_EVENT;
+	    inev.ie.kind = ASCII_KEYSTROKE_EVENT;
 	  else
-	    inev.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
-	  inev.code = keysym & 0xFFFFFF;
+	    inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+	  inev.ie.code = keysym & 0xFFFFFF;
 
-	  inev.device
+	  inev.ie.device
 	    = pgtk_get_device_for_event (FRAME_DISPLAY_INFO (f), event);
 	  goto done;
 	}
@@ -5358,12 +5337,12 @@ key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 	  && (c = Fgethash (make_fixnum (keysym),
 			    Vpgtk_keysym_table, Qnil), FIXNATP (c)))
 	{
-	  inev.kind = (SINGLE_BYTE_CHAR_P (XFIXNAT (c))
-		       ? ASCII_KEYSTROKE_EVENT
-		       : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-	  inev.code = XFIXNAT (c);
+	  inev.ie.kind = (SINGLE_BYTE_CHAR_P (XFIXNAT (c))
+			  ? ASCII_KEYSTROKE_EVENT
+			  : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+	  inev.ie.code = XFIXNAT (c);
 
-	  inev.device
+	  inev.ie.device
 	    = pgtk_get_device_for_event (FRAME_DISPLAY_INFO (f), event);
 	  goto done;
 	}
@@ -5442,18 +5421,18 @@ key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 	{
 	  /* make_lispy_event will convert this to a symbolic
 	     key.  */
-	  inev.kind = NON_ASCII_KEYSTROKE_EVENT;
-	  inev.code = keysym;
+	  inev.ie.kind = NON_ASCII_KEYSTROKE_EVENT;
+	  inev.ie.code = keysym;
 
-	  inev.device
+	  inev.ie.device
 	    = pgtk_get_device_for_event (FRAME_DISPLAY_INFO (f), event);
 	  goto done;
 	}
 
       {
-	inev.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
-	inev.arg = make_unibyte_string ((char *) copy_bufptr, nbytes);
-	inev.device
+	inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+	inev.ie.arg = make_unibyte_string ((char *) copy_bufptr, nbytes);
+	inev.ie.device
 	  = pgtk_get_device_for_event (FRAME_DISPLAY_INFO (f), event);
 
 	if (keysym == GDK_KEY_VoidSymbol)
@@ -5462,9 +5441,9 @@ key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
     }
 
 done:
-  if (inev.kind != NO_EVENT)
+  if (inev.ie.kind != NO_EVENT)
     {
-      XSETFRAME (inev.frame_or_window, f);
+      XSETFRAME (inev.ie.frame_or_window, f);
       evq_enqueue (&inev);
     }
 
@@ -5543,11 +5522,11 @@ map_event (GtkWidget *widget,
 	   gpointer *user_data)
 {
   struct frame *f = pgtk_any_window_to_frame (event->any.window);
-  struct input_event inev;
+  union buffered_input_event inev;
 
-  EVENT_INIT (inev);
-  inev.kind = NO_EVENT;
-  inev.arg = Qnil;
+  EVENT_INIT (inev.ie);
+  inev.ie.kind = NO_EVENT;
+  inev.ie.arg = Qnil;
 
   if (f)
     {
@@ -5574,12 +5553,12 @@ map_event (GtkWidget *widget,
 
       if (iconified)
 	{
-	  inev.kind = DEICONIFY_EVENT;
-	  XSETFRAME (inev.frame_or_window, f);
+	  inev.ie.kind = DEICONIFY_EVENT;
+	  XSETFRAME (inev.ie.frame_or_window, f);
 	}
     }
 
-  if (inev.kind != NO_EVENT)
+  if (inev.ie.kind != NO_EVENT)
     evq_enqueue (&inev);
   return FALSE;
 }
@@ -5591,13 +5570,13 @@ window_state_event (GtkWidget *widget,
 {
   struct frame *f = pgtk_any_window_to_frame (event->window_state.window);
   GdkWindowState new_state;
-  struct input_event inev;
+  union buffered_input_event inev;
 
   new_state = event->window_state.new_window_state;
 
-  EVENT_INIT (inev);
-  inev.kind = NO_EVENT;
-  inev.arg = Qnil;
+  EVENT_INIT (inev.ie);
+  inev.ie.kind = NO_EVENT;
+  inev.ie.arg = Qnil;
 
   if (new_state & GDK_WINDOW_STATE_FULLSCREEN)
     store_frame_param (f, Qfullscreen, Qfullboth);
@@ -5643,8 +5622,8 @@ window_state_event (GtkWidget *widget,
   else
     {
       FRAME_X_OUTPUT (f)->has_been_visible = true;
-      inev.kind = DEICONIFY_EVENT;
-      XSETFRAME (inev.frame_or_window, f);
+      inev.ie.kind = DEICONIFY_EVENT;
+      XSETFRAME (inev.ie.frame_or_window, f);
       SET_FRAME_ICONIFIED (f, false);
       SET_FRAME_VISIBLE (f, true);
     }
@@ -5654,7 +5633,7 @@ window_state_event (GtkWidget *widget,
   else
     store_frame_param (f, Qsticky, Qnil);
 
-  if (inev.kind != NO_EVENT)
+  if (inev.ie.kind != NO_EVENT)
     evq_enqueue (&inev);
   return FALSE;
 }
@@ -5664,19 +5643,19 @@ delete_event (GtkWidget *widget,
 	      GdkEvent *event, gpointer *user_data)
 {
   struct frame *f = pgtk_any_window_to_frame (event->any.window);
-  struct input_event inev;
+  union buffered_input_event inev;
 
-  EVENT_INIT (inev);
-  inev.kind = NO_EVENT;
-  inev.arg = Qnil;
+  EVENT_INIT (inev.ie);
+  inev.ie.kind = NO_EVENT;
+  inev.ie.arg = Qnil;
 
   if (f)
     {
-      inev.kind = DELETE_WINDOW_EVENT;
-      XSETFRAME (inev.frame_or_window, f);
+      inev.ie.kind = DELETE_WINDOW_EVENT;
+      XSETFRAME (inev.ie.frame_or_window, f);
     }
 
-  if (inev.kind != NO_EVENT)
+  if (inev.ie.kind != NO_EVENT)
     evq_enqueue (&inev);
   return TRUE;
 }
@@ -5693,7 +5672,7 @@ delete_event (GtkWidget *widget,
 static void
 pgtk_focus_changed (gboolean is_enter, int state,
 		    struct pgtk_display_info *dpyinfo, struct frame *frame,
-		    struct input_event *bufp)
+		    union buffered_input_event *bufp)
 {
   if (is_enter)
     {
@@ -5705,13 +5684,13 @@ pgtk_focus_changed (gboolean is_enter, int state,
 	  /* Don't stop displaying the initial startup message
 	     for a switch-frame event we don't need.  */
 	  /* When run as a daemon, Vterminal_frame is always NIL.  */
-	  bufp->arg = (((NILP (Vterminal_frame)
-			 || !FRAME_PGTK_P (XFRAME (Vterminal_frame))
-			 || EQ (Fdaemonp (), Qt))
-			&& CONSP (Vframe_list)
-			&& !NILP (XCDR (Vframe_list))) ? Qt : Qnil);
-	  bufp->kind = FOCUS_IN_EVENT;
-	  XSETFRAME (bufp->frame_or_window, frame);
+	  bufp->ie.arg = (((NILP (Vterminal_frame)
+			    || !FRAME_PGTK_P (XFRAME (Vterminal_frame))
+			    || EQ (Fdaemonp (), Qt))
+			   && CONSP (Vframe_list)
+			   && !NILP (XCDR (Vframe_list))) ? Qt : Qnil);
+	  bufp->ie.kind = FOCUS_IN_EVENT;
+	  XSETFRAME (bufp->ie.frame_or_window, frame);
 	}
 
       frame->output_data.pgtk->focus_state |= state;
@@ -5726,8 +5705,8 @@ pgtk_focus_changed (gboolean is_enter, int state,
           dpyinfo->x_focus_event_frame = 0;
           pgtk_new_focus_frame (dpyinfo, NULL);
 
-	  bufp->kind = FOCUS_OUT_EVENT;
-	  XSETFRAME (bufp->frame_or_window, frame);
+          bufp->ie.kind = FOCUS_OUT_EVENT;
+          XSETFRAME (bufp->ie.frame_or_window, frame);
         }
 
       if (frame->pointer_invisible)
@@ -5739,7 +5718,7 @@ static gboolean
 enter_notify_event (GtkWidget *widget, GdkEvent *event,
 		    gpointer *user_data)
 {
-  struct input_event inev;
+  union buffered_input_event inev;
   struct frame *frame
     = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
 
@@ -5751,14 +5730,14 @@ enter_notify_event (GtkWidget *widget, GdkEvent *event,
   int focus_state
     = focus_frame ? focus_frame->output_data.pgtk->focus_state : 0;
 
-  EVENT_INIT (inev);
-  inev.kind = NO_EVENT;
-  inev.arg = Qnil;
+  EVENT_INIT (inev.ie);
+  inev.ie.kind = NO_EVENT;
+  inev.ie.arg = Qnil;
 
   if (event->crossing.detail != GDK_NOTIFY_INFERIOR
       && event->crossing.focus && !(focus_state & FOCUS_EXPLICIT))
     pgtk_focus_changed (TRUE, FOCUS_IMPLICIT, dpyinfo, frame, &inev);
-  if (inev.kind != NO_EVENT)
+  if (inev.ie.kind != NO_EVENT)
     evq_enqueue (&inev);
   return TRUE;
 }
@@ -5767,7 +5746,7 @@ static gboolean
 leave_notify_event (GtkWidget *widget, GdkEvent *event,
 		    gpointer *user_data)
 {
-  struct input_event inev;
+  union buffered_input_event inev;
   struct frame *frame
     = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
 
@@ -5788,9 +5767,9 @@ leave_notify_event (GtkWidget *widget, GdkEvent *event,
       hlinfo->mouse_face_mouse_frame = 0;
     }
 
-  EVENT_INIT (inev);
-  inev.kind = NO_EVENT;
-  inev.arg = Qnil;
+  EVENT_INIT (inev.ie);
+  inev.ie.kind = NO_EVENT;
+  inev.ie.arg = Qnil;
 
   if (event->crossing.detail != GDK_NOTIFY_INFERIOR
       && event->crossing.focus && !(focus_state & FOCUS_EXPLICIT))
@@ -5807,7 +5786,7 @@ leave_notify_event (GtkWidget *widget, GdkEvent *event,
 	}
     }
 
-  if (inev.kind != NO_EVENT)
+  if (inev.ie.kind != NO_EVENT)
     evq_enqueue (&inev);
   return TRUE;
 }
@@ -5815,20 +5794,20 @@ leave_notify_event (GtkWidget *widget, GdkEvent *event,
 static gboolean
 focus_in_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 {
-  struct input_event inev;
+  union buffered_input_event inev;
   struct frame *frame
     = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
 
   if (frame == NULL)
     return TRUE;
 
-  EVENT_INIT (inev);
-  inev.kind = NO_EVENT;
-  inev.arg = Qnil;
+  EVENT_INIT (inev.ie);
+  inev.ie.kind = NO_EVENT;
+  inev.ie.arg = Qnil;
 
   pgtk_focus_changed (TRUE, FOCUS_EXPLICIT,
 		      FRAME_DISPLAY_INFO (frame), frame, &inev);
-  if (inev.kind != NO_EVENT)
+  if (inev.ie.kind != NO_EVENT)
     evq_enqueue (&inev);
 
   pgtk_im_focus_in (frame);
@@ -5839,20 +5818,20 @@ focus_in_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 static gboolean
 focus_out_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 {
-  struct input_event inev;
+  union buffered_input_event inev;
   struct frame *frame
     = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
 
   if (frame == NULL)
     return TRUE;
 
-  EVENT_INIT (inev);
-  inev.kind = NO_EVENT;
-  inev.arg = Qnil;
+  EVENT_INIT (inev.ie);
+  inev.ie.kind = NO_EVENT;
+  inev.ie.arg = Qnil;
 
   pgtk_focus_changed (FALSE, FOCUS_EXPLICIT,
 		      FRAME_DISPLAY_INFO (frame), frame, &inev);
-  if (inev.kind != NO_EVENT)
+  if (inev.ie.kind != NO_EVENT)
     evq_enqueue (&inev);
 
   pgtk_im_focus_out (frame);
@@ -5922,7 +5901,7 @@ static gboolean
 motion_notify_event (GtkWidget *widget, GdkEvent *event,
 		     gpointer *user_data)
 {
-  struct input_event inev;
+  union buffered_input_event inev;
   struct frame *f, *frame;
   struct pgtk_display_info *dpyinfo;
   Mouse_HLInfo *hlinfo;
@@ -5938,9 +5917,9 @@ motion_notify_event (GtkWidget *widget, GdkEvent *event,
 	  && (gdk_device_get_source (device) == GDK_SOURCE_TOUCHSCREEN)))
     return FALSE;
 
-  EVENT_INIT (inev);
-  inev.kind = NO_EVENT;
-  inev.arg = Qnil;
+  EVENT_INIT (inev.ie);
+  inev.ie.kind = NO_EVENT;
+  inev.ie.arg = Qnil;
 
   previous_help_echo_string = help_echo_string;
   help_echo_string = Qnil;
@@ -5991,8 +5970,8 @@ motion_notify_event (GtkWidget *widget, GdkEvent *event,
 	      && !EQ (window, last_mouse_window)
 	      && !EQ (window, selected_window))
 	    {
-	      inev.kind = SELECT_WINDOW_EVENT;
-	      inev.frame_or_window = window;
+	      inev.ie.kind = SELECT_WINDOW_EVENT;
+	      inev.ie.frame_or_window = window;
 	    }
 
 	  /* Remember the last window where we saw the mouse.  */
@@ -6013,7 +5992,7 @@ motion_notify_event (GtkWidget *widget, GdkEvent *event,
   if (!NILP (help_echo_string) || !NILP (previous_help_echo_string))
     do_help = 1;
 
-  if (inev.kind != NO_EVENT)
+  if (inev.ie.kind != NO_EVENT)
     evq_enqueue (&inev);
 
   if (do_help > 0)
@@ -6066,7 +6045,7 @@ static gboolean
 button_event (GtkWidget *widget, GdkEvent *event,
 	      gpointer *user_data)
 {
-  struct input_event inev;
+  union buffered_input_event inev;
   struct frame *f, *frame;
   struct pgtk_display_info *dpyinfo;
 
@@ -6087,9 +6066,9 @@ button_event (GtkWidget *widget, GdkEvent *event,
 	  && (gdk_device_get_source (device) == GDK_SOURCE_TOUCHSCREEN)))
     return FALSE;
 
-  EVENT_INIT (inev);
-  inev.kind = NO_EVENT;
-  inev.arg = Qnil;
+  EVENT_INIT (inev.ie);
+  inev.ie.kind = NO_EVENT;
+  inev.ie.arg = Qnil;
 
   /* ignore double click and triple click. */
   if (event->type != GDK_BUTTON_PRESS && event->type != GDK_BUTTON_RELEASE)
@@ -6158,16 +6137,16 @@ button_event (GtkWidget *widget, GdkEvent *event,
 		  && event->button.time > ignore_next_mouse_click_timeout)
 		{
 		  ignore_next_mouse_click_timeout = 0;
-		  construct_mouse_click (&inev, &event->button, f);
+		  construct_mouse_click (&inev.ie, &event->button, f);
 		}
 	      if (event->type == GDK_BUTTON_RELEASE)
 		ignore_next_mouse_click_timeout = 0;
 	    }
 	  else
-	    construct_mouse_click (&inev, &event->button, f);
+	    construct_mouse_click (&inev.ie, &event->button, f);
 
 	  if (!NILP (tab_bar_arg))
-	    inev.arg = tab_bar_arg;
+	    inev.ie.arg = tab_bar_arg;
 	}
     }
 
@@ -6189,7 +6168,7 @@ button_event (GtkWidget *widget, GdkEvent *event,
   if (f != 0)
     f->mouse_moved = false;
 
-  if (inev.kind != NO_EVENT)
+  if (inev.ie.kind != NO_EVENT)
     evq_enqueue (&inev);
   return TRUE;
 }
@@ -6197,15 +6176,15 @@ button_event (GtkWidget *widget, GdkEvent *event,
 static gboolean
 scroll_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 {
-  struct input_event inev;
+  union buffered_input_event inev;
   struct frame *f, *frame;
   struct pgtk_display_info *dpyinfo;
   GdkScrollDirection dir;
   double delta_x, delta_y;
 
-  EVENT_INIT (inev);
-  inev.kind = NO_EVENT;
-  inev.arg = Qnil;
+  EVENT_INIT (inev.ie);
+  inev.ie.kind = NO_EVENT;
+  inev.ie.arg = Qnil;
 
   frame = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
   dpyinfo = FRAME_DISPLAY_INFO (frame);
@@ -6215,19 +6194,19 @@ scroll_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
   else
     f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
 
-  inev.kind = NO_EVENT;
-  inev.timestamp = event->scroll.time;
-  inev.modifiers
+  inev.ie.kind = NO_EVENT;
+  inev.ie.timestamp = event->scroll.time;
+  inev.ie.modifiers
     = pgtk_gtk_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), event->scroll.state);
-  XSETINT (inev.x, event->scroll.x);
-  XSETINT (inev.y, event->scroll.y);
-  XSETFRAME (inev.frame_or_window, f);
-  inev.arg = Qnil;
+  XSETINT (inev.ie.x, event->scroll.x);
+  XSETINT (inev.ie.y, event->scroll.y);
+  XSETFRAME (inev.ie.frame_or_window, f);
+  inev.ie.arg = Qnil;
 
   if (gdk_event_is_scroll_stop_event (event))
     {
-      inev.kind = TOUCH_END_EVENT;
-      inev.device
+      inev.ie.kind = TOUCH_END_EVENT;
+      inev.ie.device
 	= pgtk_get_device_for_event (FRAME_DISPLAY_INFO (f), event);
       evq_enqueue (&inev);
       return TRUE;
@@ -6238,20 +6217,20 @@ scroll_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
       switch (dir)
 	{
 	case GDK_SCROLL_UP:
-	  inev.kind = WHEEL_EVENT;
-	  inev.modifiers |= up_modifier;
+	  inev.ie.kind = WHEEL_EVENT;
+	  inev.ie.modifiers |= up_modifier;
 	  break;
 	case GDK_SCROLL_DOWN:
-	  inev.kind = WHEEL_EVENT;
-	  inev.modifiers |= down_modifier;
+	  inev.ie.kind = WHEEL_EVENT;
+	  inev.ie.modifiers |= down_modifier;
 	  break;
 	case GDK_SCROLL_LEFT:
-	  inev.kind = HORIZ_WHEEL_EVENT;
-	  inev.modifiers |= up_modifier;
+	  inev.ie.kind = HORIZ_WHEEL_EVENT;
+	  inev.ie.modifiers |= up_modifier;
 	  break;
 	case GDK_SCROLL_RIGHT:
-	  inev.kind = HORIZ_WHEEL_EVENT;
-	  inev.modifiers |= down_modifier;
+	  inev.ie.kind = HORIZ_WHEEL_EVENT;
+	  inev.ie.modifiers |= down_modifier;
 	  break;
 	case GDK_SCROLL_SMOOTH:		/* shut up warning */
 	  break;
@@ -6261,14 +6240,14 @@ scroll_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
     {
       if (!mwheel_coalesce_scroll_events)
 	{
-	  inev.kind = ((fabs (delta_x) > fabs (delta_y))
-		       ? HORIZ_WHEEL_EVENT
-		       : WHEEL_EVENT);
-	  inev.modifiers |= (inev.kind == HORIZ_WHEEL_EVENT
-			     ? (delta_x >= 0 ? up_modifier : down_modifier)
-			     : (delta_y >= 0 ? down_modifier : up_modifier));
-	  inev.arg = list3 (Qnil, make_float (-delta_x * 100),
-			    make_float (-delta_y * 100));
+	  inev.ie.kind = ((fabs (delta_x) > fabs (delta_y))
+			  ? HORIZ_WHEEL_EVENT
+			  : WHEEL_EVENT);
+	  inev.ie.modifiers |= (inev.ie.kind == HORIZ_WHEEL_EVENT
+				? (delta_x >= 0 ? up_modifier : down_modifier)
+				: (delta_y >= 0 ? down_modifier : up_modifier));
+	  inev.ie.arg = list3 (Qnil, make_float (-delta_x * 100),
+			       make_float (-delta_y * 100));
 	}
       else
 	{
@@ -6277,21 +6256,21 @@ scroll_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 	  if (dpyinfo->scroll.acc_y >= dpyinfo->scroll.y_per_line)
 	    {
 	      int nlines = dpyinfo->scroll.acc_y / dpyinfo->scroll.y_per_line;
-	      inev.kind = WHEEL_EVENT;
-	      inev.modifiers |= down_modifier;
-	      inev.arg = list3 (make_fixnum (nlines),
-				make_float (-dpyinfo->scroll.acc_x * 100),
-				make_float (-dpyinfo->scroll.acc_y * 100));
+	      inev.ie.kind = WHEEL_EVENT;
+	      inev.ie.modifiers |= down_modifier;
+	      inev.ie.arg = list3 (make_fixnum (nlines),
+				   make_float (-dpyinfo->scroll.acc_x * 100),
+				   make_float (-dpyinfo->scroll.acc_y * 100));
 	      dpyinfo->scroll.acc_y -= dpyinfo->scroll.y_per_line * nlines;
 	    }
 	  else if (dpyinfo->scroll.acc_y <= -dpyinfo->scroll.y_per_line)
 	    {
 	      int nlines = -dpyinfo->scroll.acc_y / dpyinfo->scroll.y_per_line;
-	      inev.kind = WHEEL_EVENT;
-	      inev.modifiers |= up_modifier;
-	      inev.arg = list3 (make_fixnum (nlines),
-				make_float (-dpyinfo->scroll.acc_x * 100),
-				make_float (-dpyinfo->scroll.acc_y * 100));
+	      inev.ie.kind = WHEEL_EVENT;
+	      inev.ie.modifiers |= up_modifier;
+	      inev.ie.arg = list3 (make_fixnum (nlines),
+				   make_float (-dpyinfo->scroll.acc_x * 100),
+				   make_float (-dpyinfo->scroll.acc_y * 100));
 
 	      dpyinfo->scroll.acc_y -= -dpyinfo->scroll.y_per_line * nlines;
 	    }
@@ -6299,31 +6278,31 @@ scroll_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 		   || !mwheel_coalesce_scroll_events)
 	    {
 	      int nchars = dpyinfo->scroll.acc_x / dpyinfo->scroll.x_per_char;
-	      inev.kind = HORIZ_WHEEL_EVENT;
-	      inev.modifiers |= up_modifier;
-	      inev.arg = list3 (make_fixnum (nchars),
-				make_float (-dpyinfo->scroll.acc_x * 100),
-				make_float (-dpyinfo->scroll.acc_y * 100));
+	      inev.ie.kind = HORIZ_WHEEL_EVENT;
+	      inev.ie.modifiers |= up_modifier;
+	      inev.ie.arg = list3 (make_fixnum (nchars),
+				   make_float (-dpyinfo->scroll.acc_x * 100),
+				   make_float (-dpyinfo->scroll.acc_y * 100));
 
 	      dpyinfo->scroll.acc_x -= dpyinfo->scroll.x_per_char * nchars;
 	    }
 	  else if (dpyinfo->scroll.acc_x <= -dpyinfo->scroll.x_per_char)
 	    {
 	      int nchars = -dpyinfo->scroll.acc_x / dpyinfo->scroll.x_per_char;
-	      inev.kind = HORIZ_WHEEL_EVENT;
-	      inev.modifiers |= down_modifier;
-	      inev.arg = list3 (make_fixnum (nchars),
-				make_float (-dpyinfo->scroll.acc_x * 100),
-				make_float (-dpyinfo->scroll.acc_y * 100));
+	      inev.ie.kind = HORIZ_WHEEL_EVENT;
+	      inev.ie.modifiers |= down_modifier;
+	      inev.ie.arg = list3 (make_fixnum (nchars),
+				   make_float (-dpyinfo->scroll.acc_x * 100),
+				   make_float (-dpyinfo->scroll.acc_y * 100));
 
 	      dpyinfo->scroll.acc_x -= -dpyinfo->scroll.x_per_char * nchars;
 	    }
 	}
     }
 
-  if (inev.kind != NO_EVENT)
+  if (inev.ie.kind != NO_EVENT)
     {
-      inev.device
+      inev.ie.device
 	= pgtk_get_device_for_event (FRAME_DISPLAY_INFO (f), event);
       evq_enqueue (&inev);
     }
@@ -6418,7 +6397,7 @@ drag_leave (GtkWidget *widget, GdkDragContext *context,
 	    guint time, gpointer user_data)
 {
   struct frame *f;
-  struct input_event inev;
+  union buffered_input_event inev;
 
   f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
 
@@ -6432,16 +6411,16 @@ drag_leave (GtkWidget *widget, GdkDragContext *context,
 		       g_object_unref);
     }
 
-  EVENT_INIT (inev);
+  EVENT_INIT (inev.ie);
 
-  inev.kind = DRAG_N_DROP_EVENT;
-  inev.modifiers = 0;
-  inev.arg = Qnil;
-  inev.timestamp = time;
+  inev.ie.kind = DRAG_N_DROP_EVENT;
+  inev.ie.modifiers = 0;
+  inev.ie.arg = Qnil;
+  inev.ie.timestamp = time;
 
-  XSETINT (inev.x, 0);
-  XSETINT (inev.y, 0);
-  XSETFRAME (inev.frame_or_window, f);
+  XSETINT (inev.ie.x, 0);
+  XSETINT (inev.ie.y, 0);
+  XSETFRAME (inev.ie.frame_or_window, f);
 
   evq_enqueue (&inev);
 }
@@ -6452,7 +6431,7 @@ drag_motion (GtkWidget *widget, GdkDragContext *context,
 
 {
   struct frame *f;
-  struct input_event inev;
+  union buffered_input_event inev;
   GdkAtom name;
   GdkDragAction suggestion;
 
@@ -6478,18 +6457,18 @@ drag_motion (GtkWidget *widget, GdkDragContext *context,
   name = gdk_drag_get_selection (context);
   suggestion = gdk_drag_context_get_suggested_action (context);
 
-  EVENT_INIT (inev);
+  EVENT_INIT (inev.ie);
 
-  inev.kind = DRAG_N_DROP_EVENT;
-  inev.modifiers = 0;
-  inev.arg = list4 (Qlambda, intern (gdk_atom_name (name)),
-		    make_uint (time),
-		    drag_action_to_symbol (suggestion));
-  inev.timestamp = time;
+  inev.ie.kind = DRAG_N_DROP_EVENT;
+  inev.ie.modifiers = 0;
+  inev.ie.arg = list4 (Qlambda, intern (gdk_atom_name (name)),
+		       make_uint (time),
+		       drag_action_to_symbol (suggestion));
+  inev.ie.timestamp = time;
 
-  XSETINT (inev.x, x);
-  XSETINT (inev.y, y);
-  XSETFRAME (inev.frame_or_window, f);
+  XSETINT (inev.ie.x, x);
+  XSETINT (inev.ie.y, y);
+  XSETFRAME (inev.ie.frame_or_window, f);
 
   evq_enqueue (&inev);
 
@@ -6501,7 +6480,7 @@ drag_drop (GtkWidget *widget, GdkDragContext *context,
 	   int x, int y, guint time, gpointer user_data)
 {
   struct frame *f;
-  struct input_event inev;
+  union buffered_input_event inev;
   GdkAtom name;
   GdkDragAction selected_action;
 
@@ -6527,18 +6506,18 @@ drag_drop (GtkWidget *widget, GdkDragContext *context,
   name = gdk_drag_get_selection (context);
   selected_action = gdk_drag_context_get_selected_action (context);
 
-  EVENT_INIT (inev);
+  EVENT_INIT (inev.ie);
 
-  inev.kind = DRAG_N_DROP_EVENT;
-  inev.modifiers = 0;
-  inev.arg = list4 (Qquote, intern (gdk_atom_name (name)),
-		    make_uint (time),
-		    drag_action_to_symbol (selected_action));
-  inev.timestamp = time;
+  inev.ie.kind = DRAG_N_DROP_EVENT;
+  inev.ie.modifiers = 0;
+  inev.ie.arg = list4 (Qquote, intern (gdk_atom_name (name)),
+		       make_uint (time),
+		       drag_action_to_symbol (selected_action));
+  inev.ie.timestamp = time;
 
-  XSETINT (inev.x, x);
-  XSETINT (inev.y, y);
-  XSETFRAME (inev.frame_or_window, f);
+  XSETINT (inev.ie.x, x);
+  XSETINT (inev.ie.y, y);
+  XSETFRAME (inev.ie.frame_or_window, f);
 
   evq_enqueue (&inev);
 
@@ -6666,12 +6645,12 @@ touch_event_cb (GtkWidget *self, GdkEvent *event, gpointer user_data)
   struct pgtk_display_info *dpyinfo;
   struct frame *f;
   EMACS_INT local_detail;
-  struct input_event inev;
+  union buffered_input_event inev;
   struct pgtk_touch_point *touchpoint;
   Lisp_Object arg = Qnil;
   int state;
 
-  EVENT_INIT (inev);
+  EVENT_INIT (inev.ie);
 
   f = pgtk_any_window_to_frame (gtk_widget_get_window (self));
   eassert (f);
@@ -6690,12 +6669,12 @@ touch_event_cb (GtkWidget *self, GdkEvent *event, gpointer user_data)
 					    event->touch.x, event->touch.y,
 					    f);
       /* Generate the input event.  */
-      inev.kind = TOUCHSCREEN_BEGIN_EVENT;
-      inev.timestamp = event->touch.time;
-      XSETFRAME (inev.frame_or_window, f);
-      XSETINT (inev.x, lrint (event->touch.x));
-      XSETINT (inev.y, lrint (event->touch.y));
-      XSETINT (inev.arg, local_detail);
+      inev.ie.kind = TOUCHSCREEN_BEGIN_EVENT;
+      inev.ie.timestamp = event->touch.time;
+      XSETFRAME (inev.ie.frame_or_window, f);
+      XSETINT (inev.ie.x, lrint (event->touch.x));
+      XSETINT (inev.ie.y, lrint (event->touch.y));
+      XSETINT (inev.ie.arg, local_detail);
       break;
 
     case GDK_TOUCH_UPDATE:
@@ -6712,9 +6691,9 @@ touch_event_cb (GtkWidget *self, GdkEvent *event, gpointer user_data)
       /* Construct the input event.  */
       touchpoint->x = lrint (event->touch.x);
       touchpoint->y = lrint (event->touch.y);
-      inev.kind = TOUCHSCREEN_UPDATE_EVENT;
-      inev.timestamp = event->touch.time;
-      XSETFRAME (inev.frame_or_window, f);
+      inev.ie.kind = TOUCHSCREEN_UPDATE_EVENT;
+      inev.ie.timestamp = event->touch.time;
+      XSETFRAME (inev.ie.frame_or_window, f);
 
       for (touchpoint = dpyinfo->touchpoints;
 	   touchpoint; touchpoint = touchpoint->next)
@@ -6725,7 +6704,7 @@ touch_event_cb (GtkWidget *self, GdkEvent *event, gpointer user_data)
 			 arg);
 	}
 
-      inev.arg = arg;
+      inev.ie.arg = arg;
       break;
 
     case GDK_TOUCH_END:
@@ -6738,14 +6717,14 @@ touch_event_cb (GtkWidget *self, GdkEvent *event, gpointer user_data)
       if (state)
 	{
 	  /* ... generate a suitable event.  */
-	  inev.kind = TOUCHSCREEN_END_EVENT;
-	  inev.timestamp = event->touch.time;
-	  inev.modifiers = (event->type != GDK_TOUCH_END);
+	  inev.ie.kind = TOUCHSCREEN_END_EVENT;
+	  inev.ie.timestamp = event->touch.time;
+	  inev.ie.modifiers = (event->type != GDK_TOUCH_END);
 
-	  XSETFRAME (inev.frame_or_window, f);
-	  XSETINT (inev.x, lrint (event->touch.x));
-	  XSETINT (inev.y, lrint (event->touch.y));
-	  XSETINT (inev.arg, local_detail);
+	  XSETFRAME (inev.ie.frame_or_window, f);
+	  XSETINT (inev.ie.x, lrint (event->touch.x));
+	  XSETINT (inev.ie.y, lrint (event->touch.y));
+	  XSETINT (inev.ie.arg, local_detail);
 	}
       break;
 
@@ -6756,9 +6735,9 @@ touch_event_cb (GtkWidget *self, GdkEvent *event, gpointer user_data)
   /* If the above produced a workable event, report the name of the
      device that gave rise to it.  */
 
-  if (inev.kind != NO_EVENT)
+  if (inev.ie.kind != NO_EVENT)
     {
-      inev.device = pgtk_get_device_for_event (dpyinfo, event);
+      inev.ie.device = pgtk_get_device_for_event (dpyinfo, event);
       evq_enqueue (&inev);
 
       /* Next, save this event for future menu activations, unless it is
@@ -6771,7 +6750,7 @@ touch_event_cb (GtkWidget *self, GdkEvent *event, gpointer user_data)
 	}
     }
 
-  return inev.kind != NO_EVENT;
+  return inev.ie.kind != NO_EVENT;
 }
 
 
@@ -6782,12 +6761,12 @@ static void
 pgtk_monitors_changed_cb (GdkScreen *screen, gpointer user_data)
 {
   struct terminal *terminal;
-  struct input_event inev;
+  union buffered_input_event inev;
 
-  EVENT_INIT (inev);
+  EVENT_INIT (inev.ie);
   terminal = user_data;
-  inev.kind = MONITORS_CHANGED_EVENT;
-  XSETTERMINAL (inev.arg, terminal);
+  inev.ie.kind = MONITORS_CHANGED_EVENT;
+  XSETTERMINAL (inev.ie.arg, terminal);
 
   evq_enqueue (&inev);
 }
@@ -6949,6 +6928,7 @@ pgtk_selection_event (GtkWidget *widget, GdkEvent *event,
 		      gpointer user_data)
 {
   struct frame *f;
+  union buffered_input_event inev;
 
   if (event->type == GDK_PROPERTY_NOTIFY)
     pgtk_handle_property_notify (&event->property);
@@ -6959,15 +6939,15 @@ pgtk_selection_event (GtkWidget *widget, GdkEvent *event,
 
       if (f)
 	{
-	  struct selection_input_event sinev = {0};
+	  EVENT_INIT (inev.ie);
 
-	  sinev.kind = (event->type == GDK_SELECTION_CLEAR
+	  inev.sie.kind = (event->type == GDK_SELECTION_CLEAR
 			   ? SELECTION_CLEAR_EVENT
 			   : SELECTION_REQUEST_EVENT);
 
-	  SELECTION_EVENT_DPYINFO (&sinev) = FRAME_DISPLAY_INFO (f);
-	  SELECTION_EVENT_SELECTION (&sinev) = event->selection.selection;
-	  SELECTION_EVENT_TIME (&sinev) = event->selection.time;
+	  SELECTION_EVENT_DPYINFO (&inev.sie) = FRAME_DISPLAY_INFO (f);
+	  SELECTION_EVENT_SELECTION (&inev.sie) = event->selection.selection;
+	  SELECTION_EVENT_TIME (&inev.sie) = event->selection.time;
 
 	  if (event->type == GDK_SELECTION_REQUEST)
 	    {
@@ -6977,12 +6957,12 @@ pgtk_selection_event (GtkWidget *widget, GdkEvent *event,
 		 It would make sense to wait for the transfer to
 	         complete.  But I don't know if GDK actually does
 	         that.  */
-	      SELECTION_EVENT_REQUESTOR (&sinev) = event->selection.requestor;
-	      SELECTION_EVENT_TARGET (&sinev) = event->selection.target;
-	      SELECTION_EVENT_PROPERTY (&sinev) = event->selection.property;
+	      SELECTION_EVENT_REQUESTOR (&inev.sie) = event->selection.requestor;
+	      SELECTION_EVENT_TARGET (&inev.sie) = event->selection.target;
+	      SELECTION_EVENT_PROPERTY (&inev.sie) = event->selection.property;
 	    }
 
-	  evq_selection_enqueue (&sinev);
+	  evq_enqueue (&inev);
 	  return TRUE;
 	}
     }

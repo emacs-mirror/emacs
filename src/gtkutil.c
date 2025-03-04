@@ -6382,7 +6382,7 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
 {
   Lisp_Object tail, tem;
   struct frame *f = NULL;
-  struct input_event inev;
+  union buffered_input_event inev;
   guint keysym = event->key.keyval;
   unsigned int xstate;
   gunichar uc;
@@ -6419,15 +6419,15 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
       && !FRAME_DISPLAY_INFO (f)->prefer_native_input)
     return true;
 
-  EVENT_INIT (inev);
-  XSETFRAME (inev.frame_or_window, f);
+  EVENT_INIT (inev.ie);
+  XSETFRAME (inev.ie.frame_or_window, f);
 
   xstate = xg_virtual_mods_to_x (FRAME_DISPLAY_INFO (f),
 				 event->key.state);
 
-  inev.modifiers
+  inev.ie.modifiers
     |= x_x_to_emacs_modifiers (FRAME_DISPLAY_INFO (f), xstate);
-  inev.timestamp = event->key.time;
+  inev.ie.timestamp = event->key.time;
 
 #ifdef HAVE_XINPUT2
   if (event->key.time == pending_keystroke_time)
@@ -6436,7 +6436,7 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
 				  FRAME_DISPLAY_INFO (f)->pending_keystroke_source);
 
       if (source)
-	inev.device = source->name;
+	inev.ie.device = source->name;
     }
 #endif
 
@@ -6455,8 +6455,8 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
   if (keysym >= 32 && keysym < 128)
     /* Avoid explicitly decoding each ASCII character.  */
     {
-      inev.kind = ASCII_KEYSTROKE_EVENT;
-      inev.code = keysym;
+      inev.ie.kind = ASCII_KEYSTROKE_EVENT;
+      inev.ie.code = keysym;
       goto done;
     }
 
@@ -6464,10 +6464,10 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
   if (keysym >= 0x01000000 && keysym <= 0x0110FFFF)
     {
       if (keysym < 0x01000080)
-	inev.kind = ASCII_KEYSTROKE_EVENT;
+	inev.ie.kind = ASCII_KEYSTROKE_EVENT;
       else
-	inev.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
-      inev.code = keysym & 0xFFFFFF;
+	inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+      inev.ie.code = keysym & 0xFFFFFF;
       goto done;
     }
 
@@ -6523,8 +6523,8 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
        /* Any "vendor-specific" key is ok.  */
        || (keysym & (1 << 28))))
     {
-      inev.kind = NON_ASCII_KEYSTROKE_EVENT;
-      inev.code = keysym;
+      inev.ie.kind = NON_ASCII_KEYSTROKE_EVENT;
+      inev.ie.code = keysym;
       goto done;
     }
 
@@ -6532,22 +6532,22 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
 
   if (uc)
     {
-      inev.kind = (SINGLE_BYTE_CHAR_P (uc)
-		   ? ASCII_KEYSTROKE_EVENT
-		   : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-      inev.code = uc;
+      inev.ie.kind = (SINGLE_BYTE_CHAR_P (uc)
+		      ? ASCII_KEYSTROKE_EVENT
+		      : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+      inev.ie.code = uc;
     }
   else
     {
-      inev.kind = NON_ASCII_KEYSTROKE_EVENT;
-      inev.code = keysym;
+      inev.ie.kind = NON_ASCII_KEYSTROKE_EVENT;
+      inev.ie.code = keysym;
     }
 
  done:
-  if (inev.kind != NO_EVENT)
+  if (inev.ie.kind != NO_EVENT)
     {
       xg_pending_quit_event.kind = NO_EVENT;
-      kbd_buffer_store_event_hold (&inev, &xg_pending_quit_event);
+      kbd_buffer_store_buffered_event (&inev, &xg_pending_quit_event);
     }
 
   XNoOp (FRAME_X_DISPLAY (f));
