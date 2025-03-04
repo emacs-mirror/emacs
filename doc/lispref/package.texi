@@ -332,7 +332,7 @@ them using a cryptographic key.  If you have generated a
 private/public gpg key pair, you can use gpg to sign the package like
 this:
 
-@c FIXME EasyPG / package-x way to do this.
+@c FIXME EasyPG way to do this.
 @example
 gpg -ba -o @var{file}.sig @var{file}
 @end example

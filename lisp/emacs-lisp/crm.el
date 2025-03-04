@@ -269,7 +269,9 @@ with empty strings removed."
           (setq-local completion-list-insert-choice-function
                       (lambda (_start _end choice)
                         (let* ((beg (save-excursion
-                                      (if (search-backward-regexp crm-separator nil t)
+                                      (if (search-backward-regexp crm-separator
+                                                                  (field-beginning)
+                                                                  t)
                                           (1+ (point))
                                         (minibuffer-prompt-end))))
                                (end (save-excursion
