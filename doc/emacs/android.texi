@@ -1219,7 +1219,7 @@ temporary directory on a GNU/Linux or Unix system, before transferring
 the same to the recipient Android device.  With the latest release of
 @code{shared-mime-info} installed, create a temporary directory in which
 to generate the MIME database, copy the default
-@file{freedesktop.org.in} MIME catalog to a folder named
+@file{freedesktop.org.in} MIME catalog to a directory named
 @file{packages}, and execute @code{update-mime-info} to generate the
 database:
 
@@ -1233,7 +1233,7 @@ This may print a series of notices stating that the MIME database
 specified is not in the search path on your host system, which are of no
 consequence.  Proceed by transferring the contents of the MIME database
 to the recipient system, e.g., to
-@code{/sdcard/Download/my-mime-database.tar.gz}:
+@file{/sdcard/Download/my-mime-database.tar.gz}:
 
 @example
 $ cd; mkdir -p .local/share
