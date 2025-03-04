@@ -918,7 +918,7 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
 
 DEFUN ("defvar-1", Fdefvar_1, Sdefvar_1, 2, 3, 0,
        doc: /* Like `defvar' but as a function.
-More specifically behaves like (defvar SYM 'INITVALUE DOCSTRING).  */)
+More specifically behaves like (defvar SYM \\='INITVALUE DOCSTRING).  */)
   (Lisp_Object sym, Lisp_Object initvalue, Lisp_Object docstring)
 {
   return defvar (sym, initvalue, docstring, false);
@@ -959,7 +959,7 @@ usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
 
 DEFUN ("defconst-1", Fdefconst_1, Sdefconst_1, 2, 3, 0,
        doc: /* Like `defconst' but as a function.
-More specifically, behaves like (defconst SYM 'INITVALUE DOCSTRING).  */)
+More specifically, behaves like (defconst SYM \\='INITVALUE DOCSTRING).  */)
   (Lisp_Object sym, Lisp_Object initvalue, Lisp_Object docstring)
 {
   CHECK_SYMBOL (sym);
