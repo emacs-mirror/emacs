@@ -7389,12 +7389,6 @@ android_free_cursor (android_cursor cursor)
    application data directory to manually load executables and replace
    the `execve' system call.  */
 
-enum
-  {
-    /* Maximum number of arguments available.  */
-    MAXARGS = 1024,
-  };
-
 /* Rewrite the command line given in *ARGV to utilize the `exec1'
    bootstrap binary if necessary.
 
@@ -7406,9 +7400,11 @@ enum
 int
 android_rewrite_spawn_argv (const char ***argv)
 {
-  static const char *new_args[MAXARGS];
-  static char exec1_name[PATH_MAX], loader_name[PATH_MAX];
+  static const char **new_args;
+  static size_t n_new_args;
+  static char exec1_name[PATH_MAX + 1], loader_name[PATH_MAX + 1];
   size_t i, nargs;
+  int n;
 
   /* This isn't required on Android 9 or earlier.  */
 
@@ -7428,22 +7424,25 @@ android_rewrite_spawn_argv (const char ***argv)
   while ((*argv)[nargs])
     ++nargs;
 
-  /* nargs now holds the number of arguments in argv.  If it's larger
-     than MAXARGS, return failure.  */
-
-  if (nargs + 2 > MAXARGS)
+  /* Allocate a buffer in which to save the rewritten argument
+     array.  */
+  if (n_new_args != nargs)
     {
-      errno = E2BIG;
-      return 1;
+      new_args = xrealloc (new_args, sizeof *new_args * (nargs + 3));
+      n_new_args = nargs + 2;
     }
 
   /* Fill in the name of `libexec1.so'.  */
-  snprintf (exec1_name, PATH_MAX, "%s/libexec1.so",
-	    android_lib_dir);
+  n = snprintf (exec1_name, PATH_MAX + 1, "%s/libexec1.so",
+		android_lib_dir);
+  if (n >= PATH_MAX)
+    goto name_too_long;
 
   /* And libloader.so.  */
-  snprintf (loader_name, PATH_MAX, "%s/libloader.so",
-	    android_lib_dir);
+  n = snprintf (loader_name, PATH_MAX + 1, "%s/libloader.so",
+		android_lib_dir);
+  if (n >= PATH_MAX)
+    goto name_too_long;
 
   /* Now fill in the first two arguments.  */
   new_args[0] = exec1_name;
@@ -7457,6 +7456,10 @@ android_rewrite_spawn_argv (const char ***argv)
   *argv = new_args;
 
   /* Return success.  */
+  return 0;
+
+ name_too_long:
+  errno = ENAMETOOLONG;
   return 0;
 }
 
