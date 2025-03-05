@@ -1481,7 +1481,7 @@ For more details, see Info node `(cl)Loop Facility'.
 	       ((memq word key-types)
 		(or (memq (car cl--loop-args) '(in of))
                     (error "Expected `of'"))
-		(let ((cl-map (cl--pop2 cl--loop-args))
+                (let ((map (cl--pop2 cl--loop-args))
 		      (other
                        (if (eq (car cl--loop-args) 'using)
                            (if (and (= (length (cadr cl--loop-args)) 2)
@@ -1496,7 +1496,7 @@ For more details, see Info node `(cl)Loop Facility'.
                    'keys (lambda (body)
                            `(,(if (memq word '(key-seq key-seqs))
                                   'cl--map-keymap-recursively 'map-keymap)
-                             (lambda (,var ,other) . ,body) ,cl-map)))))
+                             (lambda (,var ,other) . ,body) ,map)))))
 
 	       ((memq word '(frame frames screen screens))
 		(let ((temp (make-symbol "--cl-var--")))
