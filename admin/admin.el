@@ -98,6 +98,10 @@ Optional argument DATE is the release date, default today."
 (defvar admin-git-command (executable-find "git")
   "The `git' program to use.")
 
+(defvar admin-android-version-code-regexp
+  "\\bAuto-incrementing version code\\(?:.\\|\n\\)*\\([[:digit:]]\\{9\\}\\)$"
+  "Regexp with which to detect the version code in AndroidManifest.xml.")
+
 (defun set-version (root version)
   "Set Emacs version to VERSION in relevant files under ROOT.
 Root must be the root of an Emacs source tree."
@@ -122,6 +126,11 @@ Root must be the root of an Emacs source tree."
 		       (rx (and "AC_INIT" (1+ (not (in ?,)))
                                 ?, (0+ space) ?\[
                                 (submatch (1+ (in "0-9."))))))
+  (set-version-in-file root "java/AndroidManifest.xml.in"
+                       (apply #'format "%02d%02d%02d000"
+                              (mapcar #'string-to-number
+                                      (split-string version "\\.")))
+                       admin-android-version-code-regexp)
   (set-version-in-file root "nt/README.W32" version
 		       (rx (and "version" (1+ space)
 				(submatch (1+ (in "0-9."))))))
