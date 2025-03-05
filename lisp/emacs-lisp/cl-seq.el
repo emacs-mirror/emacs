@@ -47,7 +47,7 @@
 ;; This is special-cased here so that we can compile
 ;; this file independent from cl-macs.
 
-(defmacro cl--parsing-keywords (kwords other-keys &rest body)
+(defmacro cl--parsing-keywords (keywords other-keys &rest body)
   (declare (indent 2) (debug (sexp sexp &rest form)))
   `(let* ,(mapcar
            (lambda (x)
@@ -59,26 +59,22 @@
                    (setq mem `(and ,mem (setq cl-if ,mem) t)))
                (list (intern
                       (format "cl-%s" (substring (symbol-name var) 1)))
-                     (if (consp x) `(or ,mem ,(car (cdr x))) mem))))
-           kwords)
+                     (if (consp x) `(or ,mem ,(cadr x)) mem))))
+           keywords)
      ,@(append
         (and (not (eq other-keys t))
-             (list
-              (list 'let '((cl-keys-temp cl-keys))
-                    (list 'while 'cl-keys-temp
-                          (list 'or (list 'memq '(car cl-keys-temp)
-                                          (list 'quote
-                                                (mapcar
-                                                 (lambda (x)
-                                                   (if (consp x)
-                                                       (car x) x))
-                                                 (append kwords
-                                                         other-keys))))
-                                '(car (cdr (memq (quote :allow-other-keys)
-                                                 cl-keys)))
-                                '(error "Bad keyword argument %s"
-                                        (car cl-keys-temp)))
-                          '(setq cl-keys-temp (cdr (cdr cl-keys-temp)))))))
+             `((let ((cl-keys-temp cl-keys))
+                 (while cl-keys-temp
+                   (or (memq (car cl-keys-temp)
+                             (quote ,(mapcar
+                                      (lambda (x)
+                                        (if (consp x)
+                                            (car x) x))
+                                      (append keywords other-keys))))
+                       (cadr (memq :allow-other-keys cl-keys))
+                       (error "Bad keyword argument %s"
+                              (car cl-keys-temp)))
+                   (setq cl-keys-temp (cddr cl-keys-temp))))))
         body)))
 
 (defmacro cl--check-key (x)     ;Expects `cl-key' in context of generated code.
