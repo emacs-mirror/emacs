@@ -931,6 +931,11 @@ This change affects both 'M-x checkdoc' and the corresponding flymake
 backend.
 
 ---
+*** New user option 'checkdoc-arguments-missing-flag'.
+Set this to nil to disable warnings for function arguments that are not
+documented in docstrings.
+
+---
 *** Checkdoc will now flag incorrect formatting in warnings.
 This affects calls to 'warn', 'lwarn', 'display-warning', and
 'message-box'.
