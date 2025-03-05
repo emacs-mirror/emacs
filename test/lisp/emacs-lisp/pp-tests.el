@@ -85,4 +85,13 @@
              (signal (car err) (cdr err))
              ))))))))
 
+(ert-deftest pp-tests--bug76715 ()
+  (with-temp-buffer
+    (let ((pp-default-function #'pp-fill)
+          (fill-column 8)
+          (val '(x. y{ z. a{ b. x. y{ z. a{ b.)))
+      (pp val (current-buffer))
+      (goto-char (point-min))
+      (should (equal (read (current-buffer)) val)))))
+
 ;;; pp-tests.el ends here.
