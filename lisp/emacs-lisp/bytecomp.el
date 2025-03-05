@@ -242,6 +242,7 @@ This includes variable references and calls to functions such as `car'."
   "Compile `cond' clauses to a jump table implementation (using a hash-table)."
   :version "26.1"
   :type 'boolean)
+(make-obsolete-variable 'byte-compile-cond-use-jump-table nil "31.1")
 
 (defvar byte-compile-dynamic nil
   "Formerly used to compile function bodies so they load lazily.
