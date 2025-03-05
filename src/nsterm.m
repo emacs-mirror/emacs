@@ -11300,10 +11300,9 @@ This variable is ignored on macOS < 10.7 and GNUstep.  Default is t.  */);
      doc: /* SKIP: real doc in xterm.c.  */);
   x_underline_at_descent_line = 0;
 
-  // TODO: add an "auto" mode that passes clicks through to "utility" UI
-  // elements, selectis windows, and so on, but doesn't pass them
-  // through for commands in general --- consistent with
-  // other applications.
+  /* TODO: add an "auto" mode that passes clicks through to "utility" UI
+     elements, selects windows, and so on, but doesn't pass them through
+     for commands in general--as with other applications.  */
 
   DEFVAR_BOOL ("ns-click-through",
 	       ns_click_through,
