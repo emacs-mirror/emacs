@@ -400,9 +400,11 @@ See also `incf'."
 (gv-define-simple-setter match-data set-match-data 'fix)
 (gv-define-simple-setter overlay-get overlay-put)
 (gv-define-setter overlay-start (store ov)
-  `(progn (move-overlay ,ov ,store (overlay-end ,ov)) ,store))
+  (macroexp-let2 nil store store
+    `(progn (move-overlay ,ov ,store (overlay-end ,ov)) ,store)))
 (gv-define-setter overlay-end (store ov)
-  `(progn (move-overlay ,ov (overlay-start ,ov) ,store) ,store))
+  (macroexp-let2 nil store store
+    `(progn (move-overlay ,ov (overlay-start ,ov) ,store) ,store)))
 (gv-define-simple-setter process-buffer set-process-buffer)
 (gv-define-simple-setter process-filter set-process-filter)
 (gv-define-simple-setter process-sentinel set-process-sentinel)
