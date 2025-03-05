@@ -415,6 +415,26 @@ Return nil if there is no name or if NODE is not a defun node."
                                   "_type"
                                   "true"
                                   "false")))
+                   (list ,(rx bos (or "inferred_parameters"
+                                      "parenthesized_expression"
+                                      "argument_list"
+                                      "type_arguments"
+                                      "switch_block"
+                                      "record_pattern_body"
+                                      "block"
+                                      "resource_specification"
+                                      "annotation_argument_list"
+                                      "element_value_array_initializer"
+                                      "module_body"
+                                      "enum_body"
+                                      "type_parameters"
+                                      "class_body"
+                                      "constructor_body"
+                                      "annotation_type_body"
+                                      "interface_body"
+                                      "array_initializer"
+                                      "formal_parameters")
+                              eos))
                    (sentence ,(rx (or "statement"
                                       "local_variable_declaration"
                                       "field_declaration"
@@ -450,6 +470,14 @@ Return nil if there is no name or if NODE is not a defun node."
                 ("Interface" "\\`interface_declaration\\'" nil nil)
                 ("Enum" "\\`record_declaration\\'" nil nil)
                 ("Method" "\\`method_declaration\\'" nil nil)))
+  ;; Outline minor mode
+  (setq-local treesit-outline-predicate
+              (rx bos (or "class_declaration"
+                          "interface_declaration"
+                          "method_declaration"
+                          "constructor_declaration")
+                  eos))
+
   (treesit-major-mode-setup))
 
 (derived-mode-add-parents 'java-ts-mode '(java-mode))
