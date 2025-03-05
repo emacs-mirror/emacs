@@ -3866,7 +3866,9 @@ Currently there are `js-mode' and `js-ts-mode'."
     "labeled_statement"
     "variable_declaration"
     "lexical_declaration"
-    "jsx_attribute")
+    "jsx_opening_element"
+    "jsx_attribute"
+    "jsx_closing_element")
   "Nodes that designate sentences in JavaScript.
 See `treesit-thing-settings' for more information.")
 
@@ -3958,10 +3960,10 @@ See `treesit-thing-settings' for more information.")
 
 (defvar js-ts-mode--outline-predicate
   `(or (and "\\`class\\'" named)
-       ,(rx bos (or"class_declaration"
-                   "method_definition"
-                   "function_declaration"
-                   "function_expression")
+       ,(rx bos (or "class_declaration"
+                    "method_definition"
+                    "function_declaration"
+                    "function_expression")
             eos)))
 
 (defvar js--treesit-defun-type-regexp
@@ -4009,9 +4011,7 @@ See `treesit-thing-settings' for more information.")
     (setq-local treesit-simple-indent-rules js--treesit-indent-rules)
     ;; Navigation.
     (setq-local treesit-defun-type-regexp js--treesit-defun-type-regexp)
-
     (setq-local treesit-defun-name-function #'js--treesit-defun-name)
-
     (setq-local treesit-thing-settings js--treesit-thing-settings)
 
     ;; Fontification.

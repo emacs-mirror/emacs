@@ -317,6 +317,8 @@ Argument LANGUAGE is either `typescript' or `tsx'."
                                object: (identifier) @font-lock-type-face
                                property: (property_identifier) @font-lock-type-face))
 
+       (internal_module (identifier) @font-lock-type-face)
+
        (arrow_function
         parameter: (identifier) @font-lock-variable-name-face)
 
@@ -509,6 +511,49 @@ See `treesit-thing-settings' for more information.")
   "Nodes that designate lists in TypeScript.
 See `treesit-thing-settings' for more information.")
 
+(defvar typescript-ts-mode--defun-type-regexp
+  (rx bos (or "internal_module"
+              "interface_declaration"
+              "class_declaration"
+              "method_definition"
+              "function_declaration"
+              "lexical_declaration")
+      eos)
+  "Settings for `treesit-defun-type-regexp'.")
+
+(defun typescript-ts-mode--defun-name (node)
+  "Return the defun name of NODE.
+Return nil if there is no name or if NODE is not a defun node."
+  (or (js--treesit-defun-name node)
+      (treesit-node-text
+       (pcase (treesit-node-type node)
+         ("internal_module"
+          (treesit-node-child node 1))
+         ("interface_declaration"
+          (treesit-node-child-by-field-name node "name")))
+       t)))
+
+(defvar typescript-ts-mode--simple-imenu-settings
+  `(("Namespace" "\\`internal_module\\'" nil nil)
+    ("Interface" "\\`interface_declaration\\'" nil nil)
+    ("Class" "\\`class_declaration\\'" nil nil)
+    ("Method" "\\`method_definition\\'" nil nil)
+    ("Function" "\\`function_declaration\\'" nil nil)
+    ("Variable" ,(rx bos (or "lexical_declaration"
+                             "variable_declaration")
+                     eos)
+     ,#'js--treesit-valid-imenu-entry nil))
+  "Settings for `treesit-simple-imenu'.")
+
+(defvar typescript-ts-mode--outline-predicate
+  (rx bos (or "internal_module"
+              "interface_declaration"
+              "class_declaration"
+              "method_definition"
+              "function_declaration"
+              "function_expression")
+      eos))
+
 ;;;###autoload
 (define-derived-mode typescript-ts-base-mode prog-mode "TypeScript"
   "Generic major mode for editing TypeScript.
@@ -526,33 +571,21 @@ This mode is intended to be inherited by concrete major modes."
   (setq-local electric-layout-rules
 	      '((?\; . after) (?\{ . after) (?\} . before)))
   ;; Navigation.
-  (setq-local treesit-defun-type-regexp
-              (regexp-opt '("class_declaration"
-                            "method_definition"
-                            "function_declaration"
-                            "lexical_declaration")))
-  (setq-local treesit-defun-name-function #'js--treesit-defun-name)
+  (setq-local treesit-defun-type-regexp typescript-ts-mode--defun-type-regexp)
+  (setq-local treesit-defun-name-function #'typescript-ts-mode--defun-name)
 
   (setq-local treesit-thing-settings
               `((typescript
-                 (sexp ,(regexp-opt typescript-ts-mode--sexp-nodes 'symbols))
-                 (list ,(regexp-opt typescript-ts-mode--list-nodes
-                                         'symbols))
-                 (sentence ,(regexp-opt
-                             typescript-ts-mode--sentence-nodes 'symbols))
-                 (text ,(regexp-opt '("comment"
-                                      "template_string")
-                                    'symbols)))))
+                 (sexp ,(js--regexp-opt-symbol typescript-ts-mode--sexp-nodes))
+                 (list ,(js--regexp-opt-symbol typescript-ts-mode--list-nodes))
+                 (sentence ,(js--regexp-opt-symbol typescript-ts-mode--sentence-nodes))
+                 (text ,(js--regexp-opt-symbol '("comment" "template_string"))))))
 
-  ;; Imenu (same as in `js-ts-mode').
+  ;; Imenu (same as in `js-ts-mode') + namespace/interface.
   (setq-local treesit-simple-imenu-settings
-              `(("Function" "\\`function_declaration\\'" nil nil)
-                ("Variable" "\\`lexical_declaration\\'"
-                 js--treesit-valid-imenu-entry nil)
-                ("Class" ,(rx bos (or "class_declaration"
-                                      "method_definition")
-                              eos)
-                 nil nil))))
+              typescript-ts-mode--simple-imenu-settings)
+  ;; Outline minor mode
+  (setq-local treesit-outline-predicate typescript-ts-mode--outline-predicate))
 
 ;;;###autoload
 (define-derived-mode typescript-ts-mode typescript-ts-base-mode "TypeScript"
@@ -618,24 +651,21 @@ at least 3 (which is the default value)."
 
     (setq-local treesit-thing-settings
                 `((tsx
-                   (sexp ,(regexp-opt
+                   (sexp ,(js--regexp-opt-symbol
                            (append typescript-ts-mode--sexp-nodes
                                    '("jsx"))))
-                   (list ,(concat "^"
-                                       (regexp-opt
-                                        (append typescript-ts-mode--list-nodes
-                                                '(
-                                                  "jsx_element"
-                                                  "jsx_self_closing_element"
-                                                  "jsx_expression")))
-                                       "$"))
-                   (sentence ,(regexp-opt
+                   (list ,(js--regexp-opt-symbol
+                           (append typescript-ts-mode--list-nodes
+                                   '("jsx_element"
+                                     "jsx_self_closing_element"
+                                     "jsx_expression"))))
+                   (sentence ,(js--regexp-opt-symbol
                                (append typescript-ts-mode--sentence-nodes
-                                       '("jsx_element"
-                                         "jsx_self_closing_element"))))
-                   (text ,(regexp-opt '("comment"
-                                        "template_string"))
-                         'symbols))))
+                                       '("jsx_opening_element"
+                                         "jsx_attribute"
+                                         "jsx_closing_element"))))
+                   (text ,(js--regexp-opt-symbol '("comment"
+                                                   "template_string"))))))
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings

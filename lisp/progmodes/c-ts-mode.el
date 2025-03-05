@@ -1048,7 +1048,9 @@ Return nil if NODE is not a defun node or doesn't have a name."
            (treesit-parent-until node "function_definition"))
       ;; DEFUNs in Emacs sources.
       (and c-ts-mode-emacs-sources-support
-           (c-ts-mode--emacs-defun-p node))))
+           (c-ts-mode--emacs-defun-p node))
+      (member (treesit-node-type node) '("namespace_definition"
+                                         "class_specifier"))))
 
 ;;; Defun navigation
 
