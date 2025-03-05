@@ -445,24 +445,24 @@ to avoid corrupting the original SEQ.
                  :start i cl-keys))))))
 
 ;;;###autoload
-(defun cl-substitute-if (new pred cl-list &rest cl-keys)
+(defun cl-substitute-if (new pred seq &rest cl-keys)
   "Substitute NEW for all items satisfying PREDICATE in SEQ.
 This is a non-destructive function; it makes a copy of SEQ if necessary
 to avoid corrupting the original SEQ.
 \nKeywords supported:  :key :count :start :end :from-end
 \n(fn NEW PREDICATE SEQ [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-substitute new nil cl-list :if pred cl-keys))
+  (apply #'cl-substitute new nil seq :if pred cl-keys))
 
 ;;;###autoload
-(defun cl-substitute-if-not (new pred cl-list &rest cl-keys)
+(defun cl-substitute-if-not (new pred seq &rest cl-keys)
   "Substitute NEW for all items not satisfying PREDICATE in SEQ.
 This is a non-destructive function; it makes a copy of SEQ if necessary
 to avoid corrupting the original SEQ.
 \nKeywords supported:  :key :count :start :end :from-end
 \n(fn NEW PREDICATE SEQ [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-substitute new nil cl-list :if-not pred cl-keys))
+  (apply #'cl-substitute new nil seq :if-not pred cl-keys))
 
 ;;;###autoload
 (defun cl-nsubstitute (new old seq &rest cl-keys)
@@ -603,12 +603,12 @@ Return the index of the matching item, or nil if not found.
 \n(fn ITEM SEQ [KEYWORD VALUE]...)"
   (declare (important-return-value t))
   (cl--parsing-keywords (:test :test-not :key :if :if-not (:start 0) :end) ()
-    (let ((count 0) cl-x)
+    (let ((count 0) x)
       (or cl-end (setq cl-end (length seq)))
       (if (consp seq) (setq seq (nthcdr cl-start seq)))
       (while (< cl-start cl-end)
-        (setq cl-x (if (consp seq) (pop seq) (aref seq cl-start)))
-        (if (cl--check-test item cl-x) (setq count (1+ count)))
+        (setq x (if (consp seq) (pop seq) (aref seq cl-start)))
+        (if (cl--check-test item x) (incf count))
 	(setq cl-start (1+ cl-start)))
       count)))
 
@@ -705,9 +705,9 @@ This is a destructive function; it reuses the storage of SEQ if possible.
     (cl--parsing-keywords (:key) ()
       (if (memq cl-key '(nil identity))
           (sort seq pred)
-        (sort seq (lambda (cl-x cl-y)
-                    (funcall pred (funcall cl-key cl-x)
-                             (funcall cl-key cl-y))))))))
+        (sort seq (lambda (x y)
+                    (funcall pred (funcall cl-key x)
+                             (funcall cl-key y))))))))
 
 ;;;###autoload
 (defun cl-stable-sort (seq pred &rest cl-keys)
