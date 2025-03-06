@@ -350,6 +350,6 @@ repositories require an incrementing numeric version code to detect
 upgrades, which is provided here and is altered by admin/admin.el.
 Refer to e.g. https://forum.f-droid.org/t/emacs-packaging/30424/25.
 
-Version-code: 300050000
+Version-code: 300150000
 
 -->
