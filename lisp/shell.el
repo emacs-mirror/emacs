@@ -700,6 +700,7 @@ command."
   (setq-local paragraph-separate "\\'")
   (setq-local paragraph-start comint-prompt-regexp)
   (setq-local font-lock-defaults '(shell-font-lock-keywords t))
+  (setq-local bookmark-make-record-function #'shell-bookmark-make-record)
   (setq-local shell-dirstack nil)
   (setq-local shell-last-dir nil)
   (setq-local comint-get-old-input #'shell-get-old-input)
@@ -1861,6 +1862,134 @@ this function when switching `comint-fontify-input-mode' in order
 to make `shell-highlight-undef-mode' redo its setup."
   (when shell-highlight-undef-mode
     (shell-highlight-undef-mode 1)))
+
+;;; Bookmark support:
+
+(declare-function bookmark-prop-get "bookmark" (bookmark prop))
+
+(defcustom shell-bookmark-name-function #'shell-bookmark-name-from-default-directory
+  "Function to generate a shell bookmark name.
+The default is `shell-bookmark-name', which see."
+  :group 'shell
+  :type `(choice (function-item ,#'shell-bookmark-name-from-default-directory)
+                 (function-item ,#'shell-bookmark-name-from-buffer-name)
+                 function)
+  :version "31.1")
+
+(defun shell-bookmark-name-from-default-directory ()
+  "Return a `shell-mode' bookmark name based on `default-directory'.
+Return \"shell-\" appended with the final path component of the buffer's
+`default-directory'."
+  (format "shell-%s"
+          (file-name-nondirectory
+           (directory-file-name
+            (file-name-directory default-directory)))))
+
+(defun shell-bookmark-name-from-buffer-name ()
+  "Return a `shell-mode' bookmark name based on buffer name'.
+Return `buffer-name' stripped of its count suffix; e.g., \"*shell*<2>\",
+if adorned by `rename-uniquely', which see."
+  (replace-regexp-in-string "<[[:digit:]]+>\\'" "" (buffer-name)))
+
+(defvar shell-bookmark-defaults-function #'shell-bookmark-defaults
+  "Function to generate a list of default shell bookmark names.
+This list is used by `bookmark-set' and prompted by
+`read-from-minibuffer'.")
+
+(defun shell-bookmark-defaults ()
+  "Return bookmark name options for the current `shell-mode' buffer."
+  (list
+   (funcall shell-bookmark-name-function)
+   (buffer-name)
+   default-directory))
+
+(defun shell-bookmark-make-record ()
+  "Create a bookmark record for the current `shell-mode' buffer.
+Handle both local and remote shell buffers.
+Before creating ad-hoc multi-hop remote connections, customize either or
+both:
+`tramp-save-ad-hoc-proxies' to non-nil to persist proxy routes.
+`tramp-show-ad-hoc-proxies' to non-nil to ensure connections are fully
+ qualified.  This is helpful if you use the same persisted bookmarks
+ file on multiple hosts."
+  (let ((bookmark-shell-file-name
+         (or (connection-local-value shell-file-name) sh-shell-file)))
+    `((defaults . ,(funcall shell-bookmark-defaults-function))
+      (location . ,default-directory)
+      (shell-file-name . ,bookmark-shell-file-name)
+      (handler . shell-bookmark-jump))))
+
+(defvar shell-bookmark-jump-non-essential nil
+  "If non-nil, new remote connections are inhibited in shell-bookmark-jump.
+This is useful when loading a session via `desktop-read' or another
+session-management package.")
+
+;;;###autoload
+(defun shell-bookmark-jump (bookmark)
+  "Default BOOKMARK handler for shell buffers.
+Create a shell buffer with its `default-directory', shell process, and
+buffer name from the bookmark.  If there is an existing shell buffer of
+the same name, default `shell-mode' behavior is to reuse that buffer.
+
+For a remote shell `default-directory' will be the remote file name.
+Remote shell buffers reuse existing connections that match the remote
+file name, or may prompt you to create a new connection.  Bind
+`tramp-show-ad-hoc-proxies' to non-nil to ensure multi-hop remote
+connections are fully qualified.
+
+If called with a single \\[universal-argument] prefix, a new shell
+buffer will be created if there is an existing buffer with the same
+name.  The new buffer name is made unique using `rename-uniquely', which
+see.
+
+If called with a double \\[universal-argument] prefix, new remote
+connections are inhibited, though an existing connection will be reused.
+You can make a remote connection manually by reloading the buffer using
+\\[find-alternate-file] or create a new shell using \\[shell].
+
+If called with a triple \\[universal-argument] prefix, a new buffer will
+be created if necessary, and new remote connections are inhibited."
+  (let* ((bookmark-default-directory (bookmark-prop-get bookmark 'location))
+         (default-directory bookmark-default-directory)
+         (explicit-shell-file-name (bookmark-prop-get bookmark 'shell-file-name))
+         (prefix-arg (prefix-numeric-value current-prefix-arg))
+         (maybe-new-shell (or (= 4 prefix-arg) (= 64 prefix-arg)))
+         (non-essential (or shell-bookmark-jump-non-essential
+                            (= 16 prefix-arg) (= 64 prefix-arg)))
+         (shell-buffer-name (car bookmark))
+         (shell-buffer-name (if (and maybe-new-shell
+                                     (comint-check-proc shell-buffer-name))
+                                (generate-new-buffer-name shell-buffer-name)
+                              shell-buffer-name)))
+    ;; Handle a local shell, a remote shell with an existing
+    ;; connection, or a remote shell needing a connection and new
+    ;; connections not inhibited.
+    (if (or (not (file-remote-p default-directory))
+            (file-remote-p default-directory nil 'connected)
+            (and (not non-essential)
+                 (not (file-remote-p default-directory nil 'connected))))
+        (shell shell-buffer-name)
+      ;; Handle a remote shell with no matching active connection and if
+      ;; new connections are inhibited.
+      (let* ((file-name-handler-alist nil)
+             ;; Ignore file-name-handler-alist to guard
+             ;; abbreviate-file-name, et.al., which are remote aware.
+             ;; The macro without-remote-files is insufficient for this
+             ;; case.
+             (shell-buffer
+              (shell shell-buffer-name)))
+        (with-current-buffer shell-buffer
+          ;; Allow reloading or M-x shell to attempt a remote connection.
+          (setq default-directory bookmark-default-directory)
+          (setq list-buffers-directory bookmark-default-directory)
+          ;; Inhibit features that may cause remote connection attempts.
+          ;; These settings revert when the user reloads the buffer.
+          (dirtrack-mode -1)
+          (shell-dirtrack-mode -1)
+          (delq (assoc "7" ansi-osc-handlers) ; ansi-osc-directory-tracker
+                ansi-osc-handlers))))))
+(put #'shell-bookmark-jump 'bookmark-handler-type "Shell")
+(put #'shell-bookmark-jump 'bookmark-inhibit 'insert)
 
 (provide 'shell)
 

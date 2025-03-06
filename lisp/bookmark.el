@@ -1530,14 +1530,18 @@ this."
   (interactive (list (bookmark-completing-read "Insert bookmark contents")))
   (bookmark-maybe-historicize-string bookmark-name)
   (bookmark-maybe-load-default-file)
-  (let ((orig-point (point))
-	(str-to-insert
-	 (save-current-buffer
-           (bookmark-handle-bookmark bookmark-name)
-	   (buffer-string))))
-    (insert str-to-insert)
-    (push-mark)
-    (goto-char orig-point)))
+  (if (eq 'insert (get (or (bookmark-get-handler bookmark-name)
+                           #'bookmark-default-handler)
+                       'bookmark-inhibit))
+      (error "Insert not supported for bookmark %s" bookmark-name)
+    (let ((orig-point (point))
+	  (str-to-insert
+	   (save-current-buffer
+             (bookmark-handle-bookmark bookmark-name)
+	     (buffer-string))))
+      (insert str-to-insert)
+      (push-mark)
+      (goto-char orig-point))))
 
 
 ;;;###autoload

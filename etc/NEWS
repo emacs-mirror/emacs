@@ -690,6 +690,16 @@ It removes all the buttons in the specified region.
 
 ** Shell
 
+---
+*** Shell buffers now support bookmarks.
+
+You can now bookmark local and remote shell buffers using the bookmark
+menu 'bookmark-bmenu-list', or by using the command 'bookmark-set'.
+Shell bookmarks can be loaded via the menu and by using the command
+'bookmark-jump', which open a bookmarked shell, restore its buffer name,
+its current directory, and create a remote connection, if necessary.
+You can customize 'shell-bookmark-name-function'.
+
 *** New command to complete the shell history.
 'comint-complete-input-ring' ('C-x <up>') is like 'minibuffer-complete-history'
 but completes on comint inputs.
