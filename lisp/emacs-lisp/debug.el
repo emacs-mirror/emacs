@@ -153,8 +153,6 @@ where CAUSE can be:
     (insert (debugger--buffer-state-content state)))
   (goto-char (debugger--buffer-state-pos state)))
 
-(defvar debugger--last-error nil)
-
 (defun debugger--duplicate-p (args)
   (pcase args
     (`(error ,err . ,_) (and (consp err) (eq err debugger--last-error)))))
