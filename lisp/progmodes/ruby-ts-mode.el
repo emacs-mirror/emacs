@@ -1253,6 +1253,11 @@ leading double colon is not added."
                                 "hash")
                                eos)
                               #'ruby-ts--list-p))
+                 (sentence ,(rx bos (or "return"
+                                        "body_statement"
+                                        "call"
+                                        "assignment")
+                                eos))
                  (text ,(lambda (node)
                           (or (member (treesit-node-type node)
                                       '("comment" "string_content" "heredoc_content"))
