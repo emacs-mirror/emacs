@@ -582,7 +582,11 @@ or \\='never."
                        (setq pat input))))
                  (if (setq win (get-buffer-window buffer))
                      (with-selected-window win
-                       (when noconfirm
+                       (when (or (eq noconfirm t) ; Using insist
+                                 ;; Don't exit when noconfirm == (never)
+                                 ;; If we are here user has pressed C-h
+                                 ;; calling `register-preview-1'.
+                                 (memq nil noconfirm))
                          ;; Happen only when
                          ;; *-use-preview == insist.
                          (exit-minibuffer))

@@ -5992,7 +5992,7 @@ The appropriate types are:
          (val (car value)))
     (cond
      ((eq val 'mode) (setf (nth 1 args)
-                           '(symbol :keymap custom-dirlocals-field-map
+                           `(symbol :keymap ,custom-dirlocals-field-map
                                     :tag "Minor mode")))
      ((eq val 'unibyte) (setf (nth 1 args) '(boolean)))
      ((eq val 'subdirs) (setf (nth 1 args) '(boolean)))
@@ -6001,7 +6001,7 @@ The appropriate types are:
         (when (custom--editable-field-p w)
           (widget-put w :keymap custom-dirlocals-field-map))
         (setf (nth 1 args) w)))
-     (t (setf (nth 1 args) '(sexp :keymap custom-dirlocals-field-map))))
+     (t (setf (nth 1 args) `(sexp :keymap ,custom-dirlocals-field-map))))
     (widget-put (nth 0 args) :keymap custom-dirlocals-field-map)
     (widget-group-value-create widget)))
 
