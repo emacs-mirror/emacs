@@ -823,8 +823,9 @@ Doing that might make Emacs dysfunctional, and might even crash Emacs.  */)
 
 DEFUN ("bare-symbol", Fbare_symbol, Sbare_symbol, 1, 1, 0,
        doc: /* Extract, if need be, the bare symbol from SYM.
-SYM is either a symbol or a symbol with position.
-Ignore `symbols-with-pos-enabled'.  */)
+SYM must be either a symbol or a symbol with position, otherwise
+the function will signal the `wrong-type-argument' error.
+This function ignores `symbols-with-pos-enabled'.  */)
   (register Lisp_Object sym)
 {
   if (BARE_SYMBOL_P (sym))
@@ -847,7 +848,8 @@ DEFUN ("remove-pos-from-symbol", Fremove_pos_from_symbol,
        Sremove_pos_from_symbol, 1, 1, 0,
        doc: /* If ARG is a symbol with position, return it without the position.
 Otherwise, return ARG unchanged.  Ignore `symbols-with-pos-enabled'.
-Compare with `bare-symbol'.  */)
+Compare with `bare-symbol', which does the same, but signals an error
+if ARG is not a symbol.  */)
   (register Lisp_Object arg)
 {
   if (SYMBOL_WITH_POS_P (arg))
