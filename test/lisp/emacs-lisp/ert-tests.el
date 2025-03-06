@@ -28,6 +28,7 @@
 
 (require 'cl-lib)
 (require 'ert)
+(require 'ert-x)
 
 ;;; Self-test that doesn't rely on ERT, for bootstrapping.
 
@@ -1028,6 +1029,17 @@ F failing-test
   (should (equal (ert-with-test-buffer (:name "foo") (buffer-name))
                  (ert-with-test-buffer (:name "foo" :selected t)
                    (buffer-name)))))
+
+(ert-deftest ert-test-erts-skip-one ()
+  "Test that Skip does not affect subsequent test cases (Bug#76839)."
+  (should-error (ert-test-erts-file (ert-resource-file "erts-skip-one.erts")
+                                    (lambda () ()))
+                :type 'ert-test-failed))
+
+(ert-deftest ert-test-erts-skip-last ()
+  "Test that Skip does not fail on last test case (Bug#76839)."
+  (ert-test-erts-file (ert-resource-file "erts-skip-last.erts")
+                      (lambda () ())))
 
 (provide 'ert-tests)
 

@@ -1,0 +1,16 @@
+Name: first
+Skip: t
+
+=-=
+FOO
+=-=
+FOO
+=-=-=
+
+Name: second
+
+=-=
+FOO
+=-=
+BAR
+=-=-=

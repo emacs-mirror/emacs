@@ -2921,7 +2921,7 @@ write erts files."
     (if (and skip
              (eval (car (read-from-string skip))))
         ;; Skipping this test.
-        ()
+        (goto-char end-after)
       ;; Do the test.
       (goto-char end-after)
       ;; We have a separate after section.
