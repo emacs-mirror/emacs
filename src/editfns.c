@@ -2520,7 +2520,7 @@ It returns the number of characters changed.  */)
 		     but it should handle multibyte characters correctly.  */
 		  string = make_multibyte_string ((char *) str, 1, str_len);
 		  replace_range (pos, pos + 1, string,
-				 true, false, true, false);
+				 true, false, false);
 		  len = str_len;
 		}
 	      else
@@ -2564,7 +2564,7 @@ It returns the number of characters changed.  */)
 		= (VECTORP (val)
 		   ? Fconcat (1, &val)
 		   : Fmake_string (make_fixnum (1), val, Qnil));
-	      replace_range (pos, pos + len, string, true, false, true, false);
+	      replace_range (pos, pos + len, string, true, false, false);
 	      pos_byte += SBYTES (string);
 	      pos += SCHARS (string);
 	      characters_changed += SCHARS (string);

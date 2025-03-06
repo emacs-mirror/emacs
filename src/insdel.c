@@ -1425,7 +1425,7 @@ adjust_after_insert (ptrdiff_t from, ptrdiff_t from_byte,
 
 void
 replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
-               bool run_mod_hooks, bool inherit, bool markers,
+               bool run_mod_hooks, bool inherit,
                bool adjust_match_data)
 {
   ptrdiff_t inschars = SCHARS (new);
@@ -1541,19 +1541,8 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
   eassert (GPT <= GPT_BYTE);
 
   /* Adjust markers for the deletion and the insertion.  */
-  if (markers)
-    adjust_markers_for_replace (from, from_byte, nchars_del, nbytes_del,
-				inschars, outgoing_insbytes);
-  else
-    {
-      /* The character positions of the markers remain intact, but we
-	 still need to update their byte positions, because the
-	 deleted and the inserted text might have multibyte sequences
-	 which make the original byte positions of the markers
-	 invalid.  */
-      adjust_markers_bytepos (from, from_byte, from + inschars,
-			      from_byte + outgoing_insbytes, true);
-    }
+  adjust_markers_for_replace (from, from_byte, nchars_del, nbytes_del,
+			      inschars, outgoing_insbytes);
 
   offset_intervals (current_buffer, from, inschars - nchars_del);
 

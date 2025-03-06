@@ -458,7 +458,7 @@ internal_self_insert (int c, EMACS_INT n)
       ptrdiff_t to;
       if (ckd_add (&to, PT, chars_to_delete))
 	to = PTRDIFF_MAX;
-      replace_range (PT, to, string, true, true, true, false);
+      replace_range (PT, to, string, true, true, false);
       Fforward_char (make_fixnum (n));
     }
   else if (n > 1)
