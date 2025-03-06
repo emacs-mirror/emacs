@@ -1501,6 +1501,34 @@ Meant to be given a global binding convenient to the user.  Example:
 
     (keymap-global-set "C-c M-r" 'remember-prefix-map)
 
+** Speedbar
+
++++
+*** The new command 'speedbar-window-mode' opens Speedbar in a window
+instead of a frame.
+
++++
+*** New command 'speedbar-window' is an alias for 'speedbar-window-mode'.
+
++++
+*** The new user option 'speedbar-prefer-window', tells 'speedbar' to
+open a side window instead of a frame.
+
++++
+*** The new user option ‘speedbar-dedicated-window’ defines whether the
+‘speedbar’ is displayed in a dedicated window.
+
++++
+*** The new user option 'speedbar-window-default-width' defines the
+initial width of the 'speedbar-window'
+
++++
+*** The new user option 'speedbar-window-max-width' defines the maximum
+width of the 'speedbar-window' when it is closed and then restored.
+
+---
+*** 'speedbar-easymenu-definition-trailer' is now a function.
+
 ** Miscellaneous
 
 ---

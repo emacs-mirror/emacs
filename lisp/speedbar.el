@@ -22,9 +22,9 @@
 
 ;;; Commentary:
 ;;
-;;   The speedbar provides a frame in which files, and locations in
-;; files are displayed.  These items can be clicked on with mouse-2 in
-;; to display that file location.
+;;   The speedbar provides a frame or a window in which files, and
+;; locations in files are displayed.  These items can be clicked on with
+;; mouse-2 in to display that file location.
 ;;
 ;;; Customizing and Developing for speedbar
 ;;
@@ -139,7 +139,65 @@
   :version "21.1"
   :type 'boolean)
 
+(defcustom speedbar-select-frame-method 'attached
+  "Specify how to select a frame for displaying a file.
+A number such as 1 or -1 means to pass that number to `other-frame'
+while selecting a frame from speedbar.  Any other value means to use
+the attached frame (the frame that speedbar was started from)."
+  :group 'speedbar
+  :type '(choice integer (other :tag "attached" attached)))
+
+(defcustom speedbar-prefer-window nil
+  "If t, the command `speedbar' opens the speedbar in a window."
+  :type 'boolean
+  :group 'speedbar
+  :version "31.1")
+
+(defcustom speedbar-window-dedicated-window t
+  "Whether to make the `speedbar-window' dedicated."
+  :group 'speedbar
+  :type 'boolean
+  :version "31.1")
+
+(defcustom speedbar-window-side 'left
+  "Control the side of the frame on which to show the speedbar window.
+The value can be `left', `right', `top' or `bottom'.
+See `display-buffer-in-side-window' for more details."
+  :type '(radio (const :tag "Left" left)
+		(const :tag "Right" right)
+		(const :tag "Top" top)
+		(const :tag "Bottom" bottom))
+  :group 'speedbar
+  :version "31.1")
+
+(defcustom speedbar-window-default-width 20
+  "Initial width in characters of `speedbar-window'.
+Specified the desired width when `speedbar-window' is opened on the left or
+right side.  The default value is the same width of `speedbar-frame-mode'."
+  :type 'integer
+  :group 'speedbar
+  :version "31.1")
+
+(defcustom speedbar-window-max-width 40
+  "The maximum allowed width in characters of the `speedbar-window'.
+The `speedbar-window' width can exceed the value defined here, however
+if the window is closed and then reopened, this will be the width of the
+`speedbar-window'."
+  :type 'integer
+  :group 'speedbar
+  :version "31.1")
+
 ;;; Code:
+
+(defconst speedbar--buffer-name " SPEEDBAR"
+  "Speedbar buffer name.")
+
+(defvar speedbar--window nil
+  "The window displaying `speedbar-window'.")
+
+(defvar speedbar--window-width speedbar-window-default-width
+"Stores the current width of `speedbar-window'.
+Subsequent calls to `speedbar-window' will open a window of this width.")
 
 (defvar speedbar-initial-expansion-mode-alist
   '(("buffers" speedbar-buffer-easymenu-definition speedbar-buffers-key-map
@@ -845,11 +903,18 @@ This basically creates a sparse keymap, and makes its parent be
     )
   "Additional menu items while in file-mode.")
 
-(defvar speedbar-easymenu-definition-trailer
-  '(["Customize..." speedbar-customize t]
-    ["Close" dframe-close-frame t]
-    ["Quit" delete-frame t])
-  "Menu items appearing at the end of the speedbar menu.")
+(defun speedbar-easymenu-definition-trailer ()
+  "Return menu items appearing at the end of the speedbar menu."
+  (let ((type (speedbar-frame-or-window)))
+    (cond ((eq type 'frame)
+	   '(["Customize..." speedbar-customize t]
+	     ["Close" dframe-close-frame t]
+	     ["Quit" delete-frame t]))
+	  ((eq type 'window)
+	   '(["Customize..." speedbar-customize t]
+	     ["Close"
+	      (lambda () (interactive) (speedbar-window--close))
+	      :keys "q" :active t])))))
 
 (defvar speedbar-desired-buffer nil
   "Non-nil when speedbar is showing buttons specific to a special mode.
@@ -892,7 +957,19 @@ directories.")
 ;;
 
 ;;;###autoload
-(defalias 'speedbar 'speedbar-frame-mode)
+(defun speedbar (&optional arg)
+  "Open or close the `speedbar'.
+Positive ARG means turn on, negative turn off.
+A nil ARG means toggle.  If `speedbar-prefer-window' is t, open the
+speedbar in a window instead of in a separate frame."
+  (interactive "P")
+  (if speedbar-prefer-window
+      (speedbar-window-mode arg)
+    (speedbar-frame-mode arg)))
+
+;;;###autoload
+(defalias 'speedbar-frame 'speedbar-frame-mode)
+
 ;;;###autoload
 (defun speedbar-frame-mode (&optional arg)
   "Enable or disable speedbar.
@@ -902,10 +979,12 @@ be displayed.  Currently, only one speedbar is supported at a time.
 `speedbar-before-popup-hook' is called before popping up the speedbar frame.
 `speedbar-before-delete-hook' is called before the frame is deleted."
   (interactive "P")
+  (when (eq (speedbar-frame-or-window) 'window)
+    (speedbar-window--close))
   ;; Get the buffer to play with
   (if (not (buffer-live-p speedbar-buffer))
       (with-current-buffer
-          (setq speedbar-buffer (get-buffer-create " SPEEDBAR"))
+          (setq speedbar-buffer (get-buffer-create speedbar--buffer-name))
 	(speedbar-mode)))
   ;; Do the frame thing
   (dframe-frame-mode arg
@@ -935,6 +1014,119 @@ be displayed.  Currently, only one speedbar is supported at a time.
     (message (substitute-command-keys
               "Use \\[speedbar-get-focus] to see the speedbar window"))))
 
+(defsubst speedbar-current-frame ()
+  "Return the frame to use for speedbar based on current context."
+  (dframe-current-frame 'speedbar-frame 'speedbar-mode))
+
+(defsubst speedbar-window--window-live-p ()
+    "Return non-nil if `speedbar--window' is defined and live."
+  (when (and speedbar--window (window-live-p speedbar--window))
+    speedbar--window))
+
+(defsubst speedbar-window--buffer-live-p ()
+    "Return non-nil if `speedbar-buffer' is live."
+  (when (and speedbar-buffer (buffer-live-p speedbar-buffer))
+    speedbar-buffer))
+
+(defun speedbar-window--live-p ()
+  "Return t if `speedbar-window' is live."
+  (and (speedbar-window--buffer-live-p) (speedbar-window--window-live-p)))
+
+(defsubst speedbar-window-current-window ()
+  "Return t if the selected windows is the `speedbar--window'."
+  (eq (selected-window) speedbar--window))
+
+(defsubst speedbar-window--width ()
+  "Return the width of `speedbar-window'."
+  (let ((edges (window-edges speedbar--window)))
+    (- (nth 2 edges) (nth 0 edges))))
+
+(defun speedbar-frame-or-window ()
+  "Return `frame' or `window' if one of each are open.
+Return nil if both are closed."
+  (cond
+   ((speedbar-window--live-p)
+    'window)
+   ((and (frame-live-p (speedbar-current-frame))
+	 speedbar-buffer
+	 (not (speedbar-window--live-p)))
+    'frame)
+   (t nil)))
+
+;;;###autoload
+(defalias 'speedbar-window 'speedbar-window-mode)
+;;;###autoload
+(defun speedbar-window-mode (&optional arg)
+  "Enable or disable speedbar window mode.
+Positive ARG means turn on, negative turn off.
+A nil ARG means toggle.  Once the speedbar window is activated, a buffer in
+`speedbar-mode' will be displayed.  Currently, only one speedbar is
+supported at a time.
+`speedbar-before-popup-hook' is called before popping up the speedbar frame.
+`speedbar-before-delete-hook' is called before the frame is deleted."
+  (interactive "P")
+  (when (eq (speedbar-frame-or-window) 'frame)
+    (delete-frame (speedbar-current-frame)))
+
+  (if (or (and (not arg) (speedbar-window--live-p))
+	  (and (numberp arg) (< arg 0)))
+      (speedbar-window--close)
+    (let ((current-window (selected-window)))
+      (unless (speedbar-window--buffer-live-p)
+	(setq speedbar-buffer (get-buffer-create speedbar--buffer-name)))
+
+      (setq speedbar-frame (selected-frame)
+	    dframe-attached-frame (selected-frame)
+	    speedbar-select-frame-method 'attached
+	    speedbar-last-selected-file nil)
+
+      (set-buffer speedbar-buffer)
+      (speedbar-mode)
+
+      ;; let's create the window
+      (setq speedbar--window
+	    (display-buffer-in-side-window speedbar-buffer
+					   `((side ,@speedbar-window-side)
+					     (slot . 0)
+					     (dedicated ,@speedbar-window-dedicated-window)
+					     (window-width ,@speedbar--window-width))))
+      ;; additional window parameters
+      (set-window-parameter speedbar--window 'no-other-window t)
+      (set-window-parameter speedbar--window 'no-delete-other-windows t)
+
+      ;; `speedbar-reconfigure-keymaps' checks if the `speedbar-window' is open, so
+      ;; should stay after the buffer and window definition.
+      (speedbar-reconfigure-keymaps)
+      (speedbar-update-contents)
+      (speedbar-set-timer dframe-update-speed)
+
+      ;; hscroll
+      (setq-local auto-hscroll-mode nil)
+      ;; reset the selection variable
+      (setq speedbar-last-selected-file nil)
+      (select-window current-window))))
+
+(defun speedbar-window--close ()
+  "Close `speedbar-window'."
+  (when (speedbar-window--live-p)
+    (let ((current-window (selected-window)))
+      ;; store the current window width
+      (setq speedbar--window-width
+	    (let ((current-width (speedbar-window--width)))
+	      (if (> current-width speedbar-window-max-width)
+		  speedbar-window-max-width
+		current-width)))
+
+      (delete-window speedbar--window)
+      (setq speedbar--window nil
+	    speedbar-frame nil
+	    dframe-attached-frame nil)
+      (speedbar-set-timer nil)
+      (kill-buffer speedbar-buffer)
+      (setq speedbar-buffer nil)
+      (when (and current-window (window-live-p current-window))
+	(select-window current-window)))))
+
 (defun speedbar-frame-reposition-smartly ()
   "Reposition the speedbar frame to be next to the attached frame."
   (cond ((or (assoc 'left speedbar-frame-parameters)
@@ -951,10 +1143,6 @@ be displayed.  Currently, only one speedbar is supported at a time.
 	 (dframe-reposition-frame speedbar-frame
 				  (dframe-attached-frame speedbar-frame)
 				  speedbar-default-position))))
-
-(defsubst speedbar-current-frame ()
-  "Return the frame to use for speedbar based on current context."
-  (dframe-current-frame 'speedbar-frame 'speedbar-mode))
 
 (defun speedbar-handle-delete-frame (e)
   "Handle a delete-frame event E.
@@ -980,6 +1168,14 @@ selected.  If the speedbar frame is active, then select the attached frame."
   "Return the width of the speedbar frame in characters.
 Return nil if it doesn't exist."
   (frame-width speedbar-frame))
+
+(defun speedbar-width ()
+  "Return the width of the `speedbar'.
+if `speedbar-window-mode' is open, the width is `speedbar-window--width'
+otherwise the width is `speedbar-frame-width'."
+  (if (speedbar-window--live-p)
+      (speedbar-window--width)
+    (speedbar-frame-width)))
 
 (define-derived-mode speedbar-mode fundamental-mode "Speedbar"
   "Major mode for managing a display of directories and tags.
@@ -1067,7 +1263,7 @@ frame and window to be the currently active frame and window."
   (if (and (frame-live-p (speedbar-current-frame))
 	   speedbar-buffer)
       (with-current-buffer speedbar-buffer
-	(let* ((w (or (speedbar-frame-width) 20))
+	(let* ((w (or (speedbar-width) 20))
 	       (p1 "<<")
 	       (p5 ">>")
 	       (p3 (if speedbar-update-flag "#" "!"))
@@ -1129,7 +1325,7 @@ and the existence of packages."
 			    (setq alist (cdr alist)))
 			  displays)))
 	    ;; The trailer
-	    speedbar-easymenu-definition-trailer))
+	    (speedbar-easymenu-definition-trailer)))
 	(localmap (save-excursion
 		    (let ((cf (selected-frame)))
 		      (prog2
@@ -1840,7 +2036,7 @@ INDEX is not used, but is required by the caller."
       ;; Nuke the beginning of the directory if it's too long...
       (cond ((eq speedbar-directory-button-trim-method 'span)
 	     (beginning-of-line)
-	     (let ((ww (or (speedbar-frame-width) 20)))
+	     (let ((ww (or (speedbar-width) 20)))
 	       (move-to-column ww nil)
 	       (while (>= (current-column) ww)
 		 (re-search-backward "[/\\]" nil t)
@@ -1856,7 +2052,7 @@ INDEX is not used, but is required by the caller."
 		   (move-to-column ww nil)))))
 	    ((eq speedbar-directory-button-trim-method 'trim)
 	     (end-of-line)
-	     (let ((ww (or (speedbar-frame-width) 20))
+	     (let ((ww (or (speedbar-width) 20))
 		   (tl (current-column)))
 	       (if (< ww tl)
 		   (progn
@@ -2527,56 +2723,67 @@ Also resets scanner functions."
   ;; change this if it changed for some reason
   (speedbar-set-mode-line-format))
 
+(defun speedbar--speedbar-live-p ()
+  "Return non-nil if `speedbar-window-mode' or `speedbar-frame-mode' are active."
+  (cond
+   ((and (speedbar-current-frame)
+	 (frame-live-p (speedbar-current-frame)))
+    t)
+   ((speedbar-window--window-live-p) t)
+   (t nil)))
+
 (defun speedbar-timer-fn ()
   "Run whenever Emacs is idle to update the speedbar item."
-  (if (or (not (speedbar-current-frame))
-	  (not (frame-live-p (speedbar-current-frame))))
+  (if (not (speedbar--speedbar-live-p))
       (speedbar-set-timer nil)
     ;; Save all the match data so that we don't mess up executing fns
     (save-match-data
       ;; Only do stuff if the frame is visible, not an icon, and if
       ;; it is currently flagged to do something.
       (if (and speedbar-update-flag
-	       (speedbar-current-frame)
+	       (or (speedbar-window-current-window)
+		   (speedbar-current-frame))
 	       (frame-visible-p (speedbar-current-frame))
 	       (not (eq (frame-visible-p (speedbar-current-frame)) 'icon)))
 	  (let ((af (selected-frame)))
-	      (dframe-select-attached-frame speedbar-frame)
-	      ;; make sure we at least choose a window to
-	      ;; get a good directory from
-	      (if (window-minibuffer-p)
-		  nil
-		;; Check for special modes
-		(speedbar-maybe-add-localized-support (current-buffer))
-		;; Update for special mode all the time!
-		(if (and speedbar-mode-specific-contents-flag
-			 (consp speedbar-special-mode-expansion-list)
-			 (local-variable-p
-			  'speedbar-special-mode-expansion-list
-			  (current-buffer)))
-		    ;;(eq (get major-mode 'mode-class 'special)))
-		    (progn
-		      (if (<= 2 speedbar-verbosity-level)
+	    (dframe-select-attached-frame speedbar-frame)
+	    ;; make sure we at least choose a window to
+	    ;; get a good directory from
+	    (if (window-minibuffer-p)
+		nil
+	      ;; Check for special modes
+	      (speedbar-maybe-add-localized-support (current-buffer))
+	      ;; Update for special mode all the time!
+	      (if (and speedbar-mode-specific-contents-flag
+		       (consp speedbar-special-mode-expansion-list)
+		       (local-variable-p
+			'speedbar-special-mode-expansion-list
+			(current-buffer)))
+		  ;;(eq (get major-mode 'mode-class 'special)))
+		  (progn
+		    (if (<= 2 speedbar-verbosity-level)
+			(dframe-message
+			 "Updating speedbar to special mode: %s..."
+			 major-mode))
+		    (speedbar-update-special-contents)
+		    (if (<= 2 speedbar-verbosity-level)
+			(progn
 			  (dframe-message
-			   "Updating speedbar to special mode: %s..."
-			   major-mode))
-		      (speedbar-update-special-contents)
-		      (if (<= 2 speedbar-verbosity-level)
-			  (progn
-			    (dframe-message
-			     "Updating speedbar to special mode: %s...done"
-			     major-mode)
-			    (dframe-message nil))))
+			   "Updating speedbar to special mode: %s...done"
+			   major-mode)
+			  (dframe-message nil))))
 
- 		  ;; Update all the contents if directories change!
- 		  (unless (and (or (member major-mode speedbar-ignored-modes)
-				   (eq af (speedbar-current-frame))
-				   (not (buffer-file-name)))
-			       ;; Always update for GUD.
-			       (not (string-equal "GUD"
-				     speedbar-initial-expansion-list-name)))
-		    (speedbar-update-localized-contents)))
-		(select-frame af))
+		;; Update all the contents if directories change!
+		(unless (and (or (member major-mode speedbar-ignored-modes)
+				 (and
+				  (eq af (speedbar-current-frame))
+				  (speedbar-window-current-window))
+				 (not (buffer-file-name)))
+			     ;; Always update for GUD.
+			     (not (string-equal "GUD"
+						speedbar-initial-expansion-list-name)))
+		  (speedbar-update-localized-contents)))
+	      (select-frame af))
 	    ;; Now run stealthy updates of time-consuming items
 	    (speedbar-stealthy-updates)))))
   (run-hooks 'speedbar-timer-hook))
@@ -3366,13 +3573,6 @@ TOKEN will be the list, and INDENT is the current indentation level."
 
 ;;; Loading files into the attached frame.
 ;;
-(defcustom speedbar-select-frame-method 'attached
-  "Specify how to select a frame for displaying a file.
-A number such as 1 or -1 means to pass that number to `other-frame'
-while selecting a frame from speedbar.  Any other value means to use
-the attached frame (the frame that speedbar was started from)."
-  :group 'speedbar
-  :type '(choice integer (other :tag "attached" attached)))
 
 (defun speedbar-find-file-in-frame (file)
   "Load FILE into the frame attached to speedbar.
