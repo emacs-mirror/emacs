@@ -605,7 +605,7 @@ FOR_EACH_ALIST_VALUE	c-src/emacs/src/lisp.h	/^#define FOR_EACH_ALIST_VALUE(head_
 FOR_EACH_TAIL	c-src/emacs/src/lisp.h	/^#define FOR_EACH_TAIL(hare, list, tortoise, n)	\\$/
 FRAMEP	c-src/emacs/src/lisp.h	/^FRAMEP (Lisp_Object a)$/
 FRC	make-src/Makefile	/^FRC:;$/
-FREEFLOOD	c-src/emacs/src/gmalloc.c	1858
+FREEFLOOD	c-src/emacs/src/gmalloc.c	1863
 FSRC	make-src/Makefile	/^FSRC=entry.for entry.strange_suffix entry.strange$/
 FUN0	y-src/parse.y	/^yylex FUN0()$/
 FUN1	y-src/parse.y	/^str_to_col FUN1(char **,str)$/
@@ -950,12 +950,12 @@ Lua_functions	c-src/etags.c	/^Lua_functions (FILE *inf)$/
 Lua_help	c-src/etags.c	600
 Lua_suffixes	c-src/etags.c	598
 MAGENTA	cp-src/screen.hpp	17
-MAGICBYTE	c-src/emacs/src/gmalloc.c	1856
-MAGICFREE	c-src/emacs/src/gmalloc.c	1855
-MAGICWORD	c-src/emacs/src/gmalloc.c	1854
+MAGICBYTE	c-src/emacs/src/gmalloc.c	1861
+MAGICFREE	c-src/emacs/src/gmalloc.c	1860
+MAGICWORD	c-src/emacs/src/gmalloc.c	1859
 MAKE	make-src/Makefile	/^MAKE:=$(MAKE) --no-print-directory$/
 MAKESRC	make-src/Makefile	/^MAKESRC=Makefile$/
-MALLOCFLOOD	c-src/emacs/src/gmalloc.c	1857
+MALLOCFLOOD	c-src/emacs/src/gmalloc.c	1862
 MANY	c-src/emacs/src/lisp.h	2833
 MARKERP	c-src/emacs/src/lisp.h	/^# define MARKERP(x) lisp_h_MARKERP (x)$/
 MAXPATHLEN	c-src/etags.c	115
@@ -1629,43 +1629,27 @@ Y	c-src/h.h	100
 YACC	c-src/etags.c	2199
 YELLOW	cp-src/screen.hpp	26
 YSRC	make-src/Makefile	/^YSRC=parse.y parse.c atest.y cccp.c cccp.y$/
-YYABORT	/usr/share/bison/bison.simple	153
 YYABORT	/usr/share/bison/bison.simple	154
-YYACCEPT	/usr/share/bison/bison.simple	152
 YYACCEPT	/usr/share/bison/bison.simple	153
 YYBACKUP	/usr/share/bison/bison.simple	/^#define YYBACKUP(Token, Value)					\\$/
 YYBISON	y-src/cccp.c	4
 YYBISON	y-src/parse.c	4
 YYDPRINTF	/usr/share/bison/bison.simple	/^# define YYDPRINTF(Args)			\\$/
 YYDPRINTF	/usr/share/bison/bison.simple	/^# define YYDPRINTF(Args)$/
-YYEMPTY	/usr/share/bison/bison.simple	150
 YYEMPTY	/usr/share/bison/bison.simple	151
-YYEOF	/usr/share/bison/bison.simple	151
 YYEOF	/usr/share/bison/bison.simple	152
-YYERRCODE	/usr/share/bison/bison.simple	178
 YYERRCODE	/usr/share/bison/bison.simple	179
-YYERROR	/usr/share/bison/bison.simple	154
 YYERROR	/usr/share/bison/bison.simple	155
-YYFAIL	/usr/share/bison/bison.simple	158
 YYFAIL	/usr/share/bison/bison.simple	159
-YYFPRINTF	/usr/share/bison/bison.simple	225
 YYFPRINTF	/usr/share/bison/bison.simple	226
-YYINITDEPTH	/usr/share/bison/bison.simple	244
 YYINITDEPTH	/usr/share/bison/bison.simple	245
-YYLEX	/usr/share/bison/bison.simple	200
 YYLEX	/usr/share/bison/bison.simple	201
-YYLEX	/usr/share/bison/bison.simple	202
 YYLEX	/usr/share/bison/bison.simple	203
-YYLEX	/usr/share/bison/bison.simple	206
 YYLEX	/usr/share/bison/bison.simple	207
-YYLEX	/usr/share/bison/bison.simple	208
 YYLEX	/usr/share/bison/bison.simple	209
-YYLEX	/usr/share/bison/bison.simple	212
 YYLEX	/usr/share/bison/bison.simple	213
 YYLLOC_DEFAULT	/usr/share/bison/bison.simple	/^# define YYLLOC_DEFAULT(Current, Rhs, N)       	\\$/
-YYMAXDEPTH	/usr/share/bison/bison.simple	255
 YYMAXDEPTH	/usr/share/bison/bison.simple	256
-YYMAXDEPTH	/usr/share/bison/bison.simple	259
 YYMAXDEPTH	/usr/share/bison/bison.simple	260
 YYPARSE_PARAM_ARG	/usr/share/bison/bison.simple	351
 YYPARSE_PARAM_ARG	/usr/share/bison/bison.simple	354
@@ -1676,37 +1660,22 @@ YYPARSE_PARAM_DECL	/usr/share/bison/bison.simple	359
 YYPOPSTACK	/usr/share/bison/bison.simple	445
 YYPOPSTACK	/usr/share/bison/bison.simple	447
 YYRECOVERING	/usr/share/bison/bison.simple	/^#define YYRECOVERING()  (!!yyerrstatus)$/
-YYSIZE_T	/usr/share/bison/bison.simple	128
 YYSIZE_T	/usr/share/bison/bison.simple	129
-YYSIZE_T	/usr/share/bison/bison.simple	131
 YYSIZE_T	/usr/share/bison/bison.simple	132
-YYSIZE_T	/usr/share/bison/bison.simple	136
 YYSIZE_T	/usr/share/bison/bison.simple	137
-YYSIZE_T	/usr/share/bison/bison.simple	140
 YYSIZE_T	/usr/share/bison/bison.simple	141
-YYSIZE_T	/usr/share/bison/bison.simple	145
 YYSIZE_T	/usr/share/bison/bison.simple	146
-YYSIZE_T	/usr/share/bison/bison.simple	51
 YYSIZE_T	/usr/share/bison/bison.simple	52
-YYSIZE_T	/usr/share/bison/bison.simple	56
 YYSIZE_T	/usr/share/bison/bison.simple	57
-YYSIZE_T	/usr/share/bison/bison.simple	71
 YYSIZE_T	/usr/share/bison/bison.simple	72
-YYSIZE_T	/usr/share/bison/bison.simple	75
 YYSIZE_T	/usr/share/bison/bison.simple	76
-YYSTACK_ALLOC	/usr/share/bison/bison.simple	50
 YYSTACK_ALLOC	/usr/share/bison/bison.simple	51
-YYSTACK_ALLOC	/usr/share/bison/bison.simple	55
 YYSTACK_ALLOC	/usr/share/bison/bison.simple	56
-YYSTACK_ALLOC	/usr/share/bison/bison.simple	59
 YYSTACK_ALLOC	/usr/share/bison/bison.simple	60
-YYSTACK_ALLOC	/usr/share/bison/bison.simple	78
 YYSTACK_ALLOC	/usr/share/bison/bison.simple	79
 YYSTACK_BYTES	/usr/share/bison/bison.simple	/^#  define YYSTACK_BYTES(N) \\$/
 YYSTACK_FREE	/usr/share/bison/bison.simple	/^#  define YYSTACK_FREE(Ptr) do { \/* empty *\/; } wh/
-YYSTACK_FREE	/usr/share/bison/bison.simple	79
 YYSTACK_FREE	/usr/share/bison/bison.simple	80
-YYSTACK_GAP_MAX	/usr/share/bison/bison.simple	93
 YYSTACK_GAP_MAX	/usr/share/bison/bison.simple	94
 YYSTACK_RELOCATE	/usr/share/bison/bison.simple	/^# define YYSTACK_RELOCATE(Type, Stack)					\\$/
 YYSTACK_RELOCATE	/usr/share/bison/bison.simple	548
@@ -1714,7 +1683,6 @@ YYSTD	/usr/share/bison/bison.simple	/^# define YYSTD(x) std::x$/
 YYSTD	/usr/share/bison/bison.simple	/^# define YYSTD(x) x$/
 YYSTYPE	y-src/parse.y	72
 YYSTYPE	y-src/parse.y	73
-YYTERROR	/usr/share/bison/bison.simple	177
 YYTERROR	/usr/share/bison/bison.simple	178
 YY_DECL_NON_LSP_VARIABLES	/usr/share/bison/bison.simple	374
 YY_DECL_VARIABLES	/usr/share/bison/bison.simple	385
@@ -1759,33 +1727,33 @@ __init__	pyt-src/server.py	/^    def __init__(self, user, userlist, master=None/
 __ip	c.c	159
 __libc_atexit	c-src/exit.c	30
 __libc_atexit	c-src/exit.strange_suffix	30
-__malloc_extra_blocks	c-src/emacs/src/gmalloc.c	381
+__malloc_extra_blocks	c-src/emacs/src/gmalloc.c	382
 __malloc_initialize	c-src/emacs/src/gmalloc.c	/^__malloc_initialize (void)$/
-__malloc_initialized	c-src/emacs/src/gmalloc.c	379
+__malloc_initialized	c-src/emacs/src/gmalloc.c	380
 __repr__	pyt-src/server.py	/^    def __repr__(self):$/
-__sbrk	c-src/emacs/src/gmalloc.c	1513
+__sbrk	c-src/emacs/src/gmalloc.c	1516
 __str__	pyt-src/server.py	/^    def __str__(self):$/
 __up	c.c	160
-_aligned_blocks	c-src/emacs/src/gmalloc.c	1004
-_aligned_blocks_mutex	c-src/emacs/src/gmalloc.c	518
+_aligned_blocks	c-src/emacs/src/gmalloc.c	1006
+_aligned_blocks_mutex	c-src/emacs/src/gmalloc.c	519
 _bar?	ruby-src/test1.ru	/^    def self._bar?(abc)$/
-_bytes_free	c-src/emacs/src/gmalloc.c	376
-_bytes_used	c-src/emacs/src/gmalloc.c	374
-_chunks_free	c-src/emacs/src/gmalloc.c	375
-_chunks_used	c-src/emacs/src/gmalloc.c	373
-_fraghead	c-src/emacs/src/gmalloc.c	370
+_bytes_free	c-src/emacs/src/gmalloc.c	377
+_bytes_used	c-src/emacs/src/gmalloc.c	375
+_chunks_free	c-src/emacs/src/gmalloc.c	376
+_chunks_used	c-src/emacs/src/gmalloc.c	374
+_fraghead	c-src/emacs/src/gmalloc.c	371
 _free	c-src/emacs/src/gmalloc.c	/^_free (void *ptr)$/
 _free_internal	c-src/emacs/src/gmalloc.c	/^_free_internal (void *ptr)$/
 _free_internal_nolock	c-src/emacs/src/gmalloc.c	/^_free_internal_nolock (void *ptr)$/
-_heapbase	c-src/emacs/src/gmalloc.c	355
-_heapindex	c-src/emacs/src/gmalloc.c	364
-_heapinfo	c-src/emacs/src/gmalloc.c	358
-_heaplimit	c-src/emacs/src/gmalloc.c	367
+_heapbase	c-src/emacs/src/gmalloc.c	356
+_heapindex	c-src/emacs/src/gmalloc.c	365
+_heapinfo	c-src/emacs/src/gmalloc.c	359
+_heaplimit	c-src/emacs/src/gmalloc.c	368
 _malloc	c-src/emacs/src/gmalloc.c	/^_malloc (size_t size)$/
 _malloc_internal	c-src/emacs/src/gmalloc.c	/^_malloc_internal (size_t size)$/
 _malloc_internal_nolock	c-src/emacs/src/gmalloc.c	/^_malloc_internal_nolock (size_t size)$/
-_malloc_mutex	c-src/emacs/src/gmalloc.c	517
-_malloc_thread_enabled_p	c-src/emacs/src/gmalloc.c	519
+_malloc_mutex	c-src/emacs/src/gmalloc.c	518
+_malloc_thread_enabled_p	c-src/emacs/src/gmalloc.c	520
 _realloc	c-src/emacs/src/gmalloc.c	/^_realloc (void *ptr, size_t size)$/
 _realloc_internal	c-src/emacs/src/gmalloc.c	/^_realloc_internal (void *ptr, size_t size)$/
 _realloc_internal_nolock	c-src/emacs/src/gmalloc.c	/^_realloc_internal_nolock (void *ptr, size_t size)$/
@@ -1898,7 +1866,7 @@ align	c-src/emacs/src/gmalloc.c	/^align (size_t size)$/
 alignas	c-src/emacs/src/lisp.h	/^# define alignas(alignment) \/* empty *\/$/
 aligned	c-src/emacs/src/gmalloc.c	199
 aligned_alloc	c-src/emacs/src/gmalloc.c	/^aligned_alloc (size_t alignment, size_t size)$/
-aligned_alloc	c-src/emacs/src/gmalloc.c	1718
+aligned_alloc	c-src/emacs/src/gmalloc.c	1722
 aligned_alloc	c-src/emacs/src/gmalloc.c	71
 alignlist	c-src/emacs/src/gmalloc.c	196
 alive	cp-src/conway.hpp	7
@@ -2102,7 +2070,7 @@ cacheLRUEntry_s	c.c	172
 cacheLRUEntry_t	c.c	177
 calculate_goal_info	merc-src/accumulator.m	/^:- pred calculate_goal_info(hlds_goal_expr::in, hl/
 calloc	c-src/emacs/src/gmalloc.c	/^calloc (size_t nmemb, size_t size)$/
-calloc	c-src/emacs/src/gmalloc.c	1717
+calloc	c-src/emacs/src/gmalloc.c	1721
 calloc	c-src/emacs/src/gmalloc.c	66
 calloc	c-src/emacs/src/gmalloc.c	70
 can_be_null	c-src/emacs/src/regex.h	370
@@ -2732,7 +2700,7 @@ frag	c-src/emacs/src/gmalloc.c	152
 frame_local	c-src/emacs/src/lisp.h	2341
 free	c-src/emacs/src/gmalloc.c	/^free (void *ptr)$/
 free	c-src/emacs/src/gmalloc.c	166
-free	c-src/emacs/src/gmalloc.c	1719
+free	c-src/emacs/src/gmalloc.c	1723
 free	c-src/emacs/src/gmalloc.c	67
 free	c-src/emacs/src/gmalloc.c	72
 free_fdesc	c-src/etags.c	/^free_fdesc (register fdesc *fdp)$/
@@ -2843,7 +2811,7 @@ hash_table_test	c-src/emacs/src/lisp.h	1805
 hashfn	c-src/emacs/src/lisp.h	/^  EMACS_UINT (*hashfn) (struct hash_table_test *t,/
 hat	tex-src/texinfo.tex	/^\\def\\hat{\\realbackslash hat}$/
 hat	tex-src/texinfo.tex	/^\\def\\hat{\\realbackslash hat}%$/
-hdr	c-src/emacs/src/gmalloc.c	1860
+hdr	c-src/emacs/src/gmalloc.c	1865
 head_table	c-src/emacs/src/keyboard.c	11027
 header	c-src/emacs/src/lisp.h	1371
 header	c-src/emacs/src/lisp.h	1388
@@ -2854,7 +2822,7 @@ header	c-src/emacs/src/lisp.h	1826
 header_size	c-src/emacs/src/lisp.h	1471
 heading	tex-src/texinfo.tex	/^\\def\\heading{\\parsearg\\secheadingi}$/
 headings	tex-src/texinfo.tex	/^\\def\\headings #1 {\\csname HEADINGS#1\\endcsname}$/
-heapsize	c-src/emacs/src/gmalloc.c	361
+heapsize	c-src/emacs/src/gmalloc.c	362
 hello	scm-src/test.scm	/^(define hello "Hello, Emacs!")$/
 hello	scm-src/test.scm	/^(set! hello "Hello, world!")$/
 hello-world	scm-src/test.scm	/^(define (hello-world)$/
@@ -3129,13 +3097,13 @@ language	c-src/etags.c	199
 last-tag	el-src/emacs/lisp/progmodes/etags.el	/^(defvar last-tag nil$/
 last_abbrev_point	c-src/abbrev.c	79
 last_auto_save	c-src/emacs/src/keyboard.c	214
-last_heapinfo	c-src/emacs/src/gmalloc.c	402
+last_heapinfo	c-src/emacs/src/gmalloc.c	403
 last_mouse_button	c-src/emacs/src/keyboard.c	5215
 last_mouse_x	c-src/emacs/src/keyboard.c	5216
 last_mouse_y	c-src/emacs/src/keyboard.c	5217
 last_non_minibuf_size	c-src/emacs/src/keyboard.c	207
 last_point_position	c-src/emacs/src/keyboard.c	217
-last_state_size	c-src/emacs/src/gmalloc.c	401
+last_state_size	c-src/emacs/src/gmalloc.c	402
 last_undo_boundary	c-src/emacs/src/keyboard.c	1287
 lasta	c.c	272
 lastargmargin	tex-src/texinfo.tex	/^\\newskip\\deflastargmargin \\deflastargmargin=18pt$/
@@ -3273,7 +3241,7 @@ mach_task_self	c-src/machsyscalls.h	/^SYSCALL (mach_task_self, -28,$/
 mach_thread_self	c-src/machsyscalls.h	/^SYSCALL (mach_thread_self, -27,$/
 macheader	tex-src/texinfo.tex	/^\\def\\defmac{\\defparsebody\\Edefmac\\defmacx\\defmache/
 macx\defmacheader	tex-src/texinfo.tex	/^\\def\\defmac{\\defparsebody\\Edefmac\\defmacx\\defmache/
-magic	c-src/emacs/src/gmalloc.c	1863
+magic	c-src/emacs/src/gmalloc.c	1868
 mainmagstep	tex-src/texinfo.tex	/^\\let\\mainmagstep=\\magstep1$/
 mainmagstep	tex-src/texinfo.tex	/^\\let\\mainmagstep=\\magstephalf$/
 maintaining.info	make-src/Makefile	/^maintaining.info: maintaining.texi$/
@@ -3301,7 +3269,7 @@ make_uninit_sub_char_table	c-src/emacs/src/lisp.h	/^make_uninit_sub_char_table (
 make_uninit_vector	c-src/emacs/src/lisp.h	/^make_uninit_vector (ptrdiff_t size)$/
 malloc	c-src/emacs/src/gmalloc.c	/^extern void *malloc (size_t size) ATTRIBUTE_MALLOC/
 malloc	c-src/emacs/src/gmalloc.c	/^malloc (size_t size)$/
-malloc	c-src/emacs/src/gmalloc.c	1715
+malloc	c-src/emacs/src/gmalloc.c	1719
 malloc	c-src/emacs/src/gmalloc.c	64
 malloc	c-src/emacs/src/gmalloc.c	68
 malloc_atfork_handler_child	c-src/emacs/src/gmalloc.c	/^malloc_atfork_handler_child (void)$/
@@ -3334,7 +3302,7 @@ maybe_gc	c-src/emacs/src/lisp.h	/^maybe_gc (void)$/
 mcCSC	cp-src/c.C	6
 mcheck	c-src/emacs/src/gmalloc.c	/^mcheck (void (*func) (enum mcheck_status))$/
 mcheck_status	c-src/emacs/src/gmalloc.c	283
-mcheck_used	c-src/emacs/src/gmalloc.c	2012
+mcheck_used	c-src/emacs/src/gmalloc.c	2017
 mdbcomp	merc-src/accumulator.m	/^:- import_module mdbcomp.$/
 me22b	lua-src/test.lua	/^   local function test.me22b (one)$/
 me_22a	lua-src/test.lua	/^   function test.me_22a(one, two)$/
@@ -3374,7 +3342,7 @@ module_instance_method	ruby-src/test.rb	/^    def module_instance_method$/
 more=	ruby-src/test1.ru	/^                :more$/
 more_aligned_int	c.c	165
 morecore_nolock	c-src/emacs/src/gmalloc.c	/^morecore_nolock (size_t size)$/
-morecore_recursing	c-src/emacs/src/gmalloc.c	604
+morecore_recursing	c-src/emacs/src/gmalloc.c	605
 mouse_syms	c-src/emacs/src/keyboard.c	4627
 move	cp-src/clheir.cpp	/^void agent::move(int direction)$/
 mprobe	c-src/emacs/src/gmalloc.c	/^mprobe (void *ptr)$/
@@ -3668,7 +3636,7 @@ pagealignmacro	tex-src/texinfo.tex	/^\\global\\let\\pagealignmacro=\\chappager$/
 pagealignmacro	tex-src/texinfo.tex	/^\\global\\let\\pagealignmacro=\\chappager}$/
 pagebody	tex-src/texinfo.tex	/^\\def\\pagebody#1{\\vbox to\\pageheight{\\boxmaxdepth=\\/
 pagecontents	tex-src/texinfo.tex	/^\\gdef\\pagecontents#1{\\ifvoid\\topins\\else\\unvbox\\to/
-pagesize	c-src/emacs/src/gmalloc.c	1703
+pagesize	c-src/emacs/src/gmalloc.c	1707
 pagesofar	tex-src/texinfo.tex	/^\\def\\pagesofar{\\unvbox\\partialpage %$/
 pair	merc-src/accumulator.m	/^:- import_module pair.$/
 par	tex-src/texinfo.tex	/^\\let\\par=\\lisppar$/
@@ -3883,7 +3851,7 @@ readauxfile	tex-src/texinfo.tex	/^\\def\\readauxfile{%$/
 readline	c-src/etags.c	/^readline (linebuffer *lbp, FILE *stream)$/
 readline_internal	c-src/etags.c	/^readline_internal (linebuffer *lbp, register FILE /
 realloc	c-src/emacs/src/gmalloc.c	/^realloc (void *ptr, size_t size)$/
-realloc	c-src/emacs/src/gmalloc.c	1716
+realloc	c-src/emacs/src/gmalloc.c	1720
 realloc	c-src/emacs/src/gmalloc.c	65
 realloc	c-src/emacs/src/gmalloc.c	69
 reallochook	c-src/emacs/src/gmalloc.c	/^reallochook (void *ptr, size_t size)$/
@@ -4107,7 +4075,7 @@ site	cp-src/conway.hpp	/^    site(int xi, int yi): x(xi), y(yi), alive(0) {/
 site	cp-src/conway.hpp	5
 size	c-src/emacs/src/gmalloc.c	156
 size	c-src/emacs/src/gmalloc.c	163
-size	c-src/emacs/src/gmalloc.c	1862
+size	c-src/emacs/src/gmalloc.c	1867
 size	c-src/emacs/src/lisp.h	1364
 size	c-src/emacs/src/lisp.h	1390
 size	c-src/etags.c	236
@@ -4188,7 +4156,7 @@ start_polling	c-src/emacs/src/keyboard.c	/^start_polling (void)$/
 start_up	prol-src/natded.prolog	/^start_up:-$/
 startcontents	tex-src/texinfo.tex	/^\\def\\startcontents#1{%$/
 startenumeration	tex-src/texinfo.tex	/^\\def\\startenumeration#1{%$/
-state_protected_p	c-src/emacs/src/gmalloc.c	400
+state_protected_p	c-src/emacs/src/gmalloc.c	401
 statetable	html-src/algrthms.html	/^Next$/
 staticetags	make-src/Makefile	/^staticetags:$/
 step	cp-src/clheir.hpp	/^    virtual void step(void) { }$/
