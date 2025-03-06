@@ -1547,7 +1547,7 @@ routes.
 are fully qualified.  This is helpful if you use the same persisted
 bookmarks file on multiple hosts.
 
-@xref{Top, The Tramp Manual,, tramp, The Tramp Manual}.
+@xref{Ad-hoc multi-hops,,, tramp, The Tramp Manual}.
 
 @node Shell Options
 @subsection Shell Mode Options

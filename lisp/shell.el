@@ -1867,9 +1867,10 @@ to make `shell-highlight-undef-mode' redo its setup."
 
 (declare-function bookmark-prop-get "bookmark" (bookmark prop))
 
-(defcustom shell-bookmark-name-function #'shell-bookmark-name-from-default-directory
+(defcustom shell-bookmark-name-function
+  #'shell-bookmark-name-from-default-directory
   "Function to generate a shell bookmark name.
-The default is `shell-bookmark-name', which see."
+The default is `shell-bookmark-name-from-default-directory', which see."
   :group 'shell
   :type `(choice (function-item ,#'shell-bookmark-name-from-default-directory)
                  (function-item ,#'shell-bookmark-name-from-buffer-name)
@@ -1878,15 +1879,15 @@ The default is `shell-bookmark-name', which see."
 
 (defun shell-bookmark-name-from-default-directory ()
   "Return a `shell-mode' bookmark name based on `default-directory'.
-Return \"shell-\" appended with the final path component of the buffer's
-`default-directory'."
+Return \"shell-\" appended with the final file name component of the
+buffer's `default-directory'."
   (format "shell-%s"
           (file-name-nondirectory
            (directory-file-name
             (file-name-directory default-directory)))))
 
 (defun shell-bookmark-name-from-buffer-name ()
-  "Return a `shell-mode' bookmark name based on buffer name'.
+  "Return a `shell-mode' bookmark name based on buffer name.
 Return `buffer-name' stripped of its count suffix; e.g., \"*shell*<2>\",
 if adorned by `rename-uniquely', which see."
   (replace-regexp-in-string "<[[:digit:]]+>\\'" "" (buffer-name)))
@@ -1906,12 +1907,8 @@ This list is used by `bookmark-set' and prompted by
 (defun shell-bookmark-make-record ()
   "Create a bookmark record for the current `shell-mode' buffer.
 Handle both local and remote shell buffers.
-Before creating ad-hoc multi-hop remote connections, customize either or
-both:
-`tramp-save-ad-hoc-proxies' to non-nil to persist proxy routes.
-`tramp-show-ad-hoc-proxies' to non-nil to ensure connections are fully
- qualified.  This is helpful if you use the same persisted bookmarks
- file on multiple hosts."
+For ad-hoc multi-hop remote connections, see Info node
+`(tramp)Ad-hoc multi-hops'."
   (let ((bookmark-shell-file-name
          (or (connection-local-value shell-file-name) sh-shell-file)))
     `((defaults . ,(funcall shell-bookmark-defaults-function))
@@ -1933,9 +1930,8 @@ the same name, default `shell-mode' behavior is to reuse that buffer.
 
 For a remote shell `default-directory' will be the remote file name.
 Remote shell buffers reuse existing connections that match the remote
-file name, or may prompt you to create a new connection.  Bind
-`tramp-show-ad-hoc-proxies' to non-nil to ensure multi-hop remote
-connections are fully qualified.
+file name, or may prompt you to create a new connection.  For ad-hoc
+multi-hop remote connections, see Info node `(tramp)Ad-hoc multi-hops'.
 
 If called with a single \\[universal-argument] prefix, a new shell
 buffer will be created if there is an existing buffer with the same
