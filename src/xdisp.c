@@ -14368,7 +14368,10 @@ update_tab_bar (struct frame *f, bool save_match_data)
 
 	  /* Redisplay the tab-bar if we changed it.  */
 	  if (new_n_tab_bar != f->n_tab_bar_items
-	      || NILP (Fequal (new_tab_bar, f->tab_bar_items)))
+	      /* Some features modify the appearance of the tab bar by
+                 manipulating the text properties.  */
+	      || NILP (Fequal_including_properties (new_tab_bar,
+						    f->tab_bar_items)))
             {
               /* Redisplay that happens asynchronously due to an expose event
                  may access f->tab_bar_items.  Make sure we update both
