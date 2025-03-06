@@ -27612,15 +27612,31 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 	      int c = fetch_string_char_advance (mode_string, &i, &i_byte);
 	      if (c == ' ' && prev == ' ')
 		{
-		  display_string (NULL,
-				  Fsubstring (mode_string, make_fixnum (start),
-					      make_fixnum (i - 1)),
-				  Qnil, 0, 0, &it, 0, 0, 0,
-				  STRING_MULTIBYTE (mode_string));
-		  /* Skip past the rest of the space characters. */
-		  while (c == ' ' && i < SCHARS (mode_string))
-		      c = fetch_string_char_advance (mode_string, &i, &i_byte);
-		  start = i - 1;
+		  Lisp_Object prev_pos = make_fixnum (i - 1);
+
+		  /* SPC characters with 'display' properties are not
+                     really "empty", since they have non-trivial visual
+                     effects on the mode line.  */
+		  if (NILP (Fget_text_property (prev_pos, Qdisplay,
+						mode_string)))
+		    {
+		      display_string (NULL,
+				      Fsubstring (mode_string,
+						  make_fixnum (start),
+						  prev_pos),
+				      Qnil, 0, 0, &it, 0, 0, 0,
+				      STRING_MULTIBYTE (mode_string));
+		      /* Skip past the rest of the space characters. */
+		      while (c == ' ' && i < SCHARS (mode_string)
+			     && NILP (Fget_text_property (make_fixnum (i),
+							  Qdisplay,
+							  mode_string)))
+			{
+			  c = fetch_string_char_advance (mode_string,
+							 &i, &i_byte);
+			}
+		      start = i - 1;
+		    }
 		}
 	      prev = c;
 	    }
