@@ -457,9 +457,10 @@ The first subexpression is the actual text of the field.")
              'log-edit-header)
          nil lax))
      ("^\n"
-      (progn (goto-char (match-end 0)) (1+ (match-end 0))) nil
-      (0 '(face log-edit-headers-separator
-           display-line-numbers-disable t rear-nonsticky t))))
+      (and (not (bound-and-true-p git-commit-mode))
+           (progn (goto-char (match-end 0)) (1+ (match-end 0)))) nil
+      (0 '( face log-edit-headers-separator
+            display-line-numbers-disable t rear-nonsticky t))))
     (log-edit--match-first-line (0 'log-edit-summary))))
 
 (defvar log-edit-font-lock-gnu-style nil
