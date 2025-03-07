@@ -2265,6 +2265,7 @@ NAME should be a symbol."
    (list (intern (completing-read
                   "Upgrade package: "
                   (package--upgradeable-packages t) nil t))))
+  (cl-check-type name symbol)
   (let* ((pkg-desc (cadr (assq name package-alist)))
          (package-install-upgrade-built-in (not pkg-desc)))
     ;; `pkg-desc' will be nil when the package is an "active built-in".
