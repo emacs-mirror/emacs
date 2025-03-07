@@ -1915,7 +1915,6 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
 	break;
     }
 
-  bool debugger_called = false;
   if (/* Don't run the debugger for a memory-full error.
 	 (There is no room in memory to do that!)  */
       !oom
@@ -1929,7 +1928,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
 	     if requested".  */
 	  || EQ (clause, Qerror)))
     {
-      debugger_called
+      bool debugger_called
 	= maybe_call_debugger (conditions, error);
       /* We can't return values to code which signaled an error, but we
 	 can continue code which has signaled a quit.  */
