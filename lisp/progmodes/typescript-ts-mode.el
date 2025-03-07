@@ -254,7 +254,10 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 		      @typescript-ts-jsx-tag-face)
 
                      (jsx_attribute (property_identifier)
-                                    @typescript-ts-jsx-attribute-face)))
+                                    @typescript-ts-jsx-attribute-face)
+
+                     (jsx_expression (identifier)
+                                     @font-lock-variable-use-face)))
         (queries-b '((jsx_opening_element
 	              [(nested_identifier (identifier)) (identifier)]
 	              @typescript-ts-jsx-tag-face)
@@ -268,7 +271,10 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 	              @typescript-ts-jsx-tag-face)
 
                      (jsx_attribute (property_identifier)
-                                    @typescript-ts-jsx-attribute-face))))
+                                    @typescript-ts-jsx-attribute-face)
+
+                     (jsx_expression (identifier)
+                                     @font-lock-variable-use-face))))
     (or (and (treesit-query-valid-p language queries-a)
              queries-a)
         (and (treesit-query-valid-p language queries-b)
@@ -305,6 +311,10 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      :feature 'constant
      `(((identifier) @font-lock-constant-face
         (:match "\\`[A-Z_][0-9A-Z_]*\\'" @font-lock-constant-face))
+       ((identifier) @font-lock-constant-face
+        (:equal "document" @font-lock-constant-face))
+       ((identifier) @font-lock-constant-face
+        (:equal "console" @font-lock-constant-face))
        [(true) (false) (null) (undefined)] @font-lock-constant-face)
 
      :language language
@@ -404,7 +414,28 @@ Argument LANGUAGE is either `typescript' or `tsx'."
         parameters:
         [(_ (identifier) @font-lock-variable-name-face)
          (_ (_ (identifier) @font-lock-variable-name-face))
-         (_ (_ (_ (identifier) @font-lock-variable-name-face)))]))
+         (_ (_ (_ (identifier) @font-lock-variable-name-face)))])
+
+       (template_substitution (identifier) @font-lock-variable-use-face)
+
+       (call_expression
+        arguments: (arguments (identifier) @font-lock-variable-use-face))
+
+       (pair
+        value: (identifier) @font-lock-variable-use-face)
+
+       ;; What is being called could be a static Type (convention
+       ;; CamelCase, leading caps).
+       ((member_expression
+         object: (identifier) @font-lock-type-face)
+        (:match "\\`[A-Z_][0-9A-Za-z_]*\\'" @font-lock-type-face))
+       ;; If not, assume what is being called is a instance-value
+       ;; and in that it's a variable. Properties are less used in
+       ;; javascript/typescript)
+       (member_expression
+        object: (identifier) @font-lock-variable-use-face)
+
+       (non_null_expression (identifier) @font-lock-variable-use-face))
 
      :language language
      :feature 'property
