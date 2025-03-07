@@ -1,5 +1,4 @@
-;;; -*- lexical-binding: t; symbol-packages: t; -*-
-;;; tty-tip.el --- Display help in kind of tooltips on ttys
+;;; tty-tip.el --- Display help in kind of tooltips on ttys  -*- lexical-binding: t; symbol-packages: t; -*-
 
 ;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
 
@@ -27,6 +26,8 @@
 ;;
 ;; You can customize face `tooltip', `tooltip-short-delay',
 ;; `tooltip-delay', `tooltip-recent-seconds'.
+
+;;; Code:
 
 (require 'tooltip)
 
@@ -205,4 +206,4 @@
 
 (provide 'tty-tip)
 
-;;; End
+;;; tty-tip.el ends here
