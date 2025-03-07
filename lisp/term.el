@@ -4062,10 +4062,7 @@ all pending output has been dealt with."))
       ;; extra space when wrapped is false.
       (when wrapped
 	(insert ? ))
-      ;; If there's a marker at the start of the next line, we shouldn't
-      ;; disturb it: erase-in-line doesn't change logical
-      ;; line structure.
-      (insert-before-markers ?\n)
+      (insert ?\n)
       (put-text-property saved-point (point) 'font-lock-face 'default)
       (goto-char saved-point))))
 
