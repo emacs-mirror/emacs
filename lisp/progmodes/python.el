@@ -329,8 +329,8 @@ effect."
 
 ;;; Bindings
 
-(defvar-keymap python-mode-map
-  :doc "Keymap for `python-mode'."
+(defvar-keymap python-base-mode-map
+  :doc "Keymap for `python-base-mode'."
   ;; Movement
   "<remap> <backward-sentence>" #'python-nav-backward-block
   "<remap> <forward-sentence>"  #'python-nav-forward-block
@@ -375,7 +375,7 @@ effect."
 
 (defvar subword-mode nil)
 
-(easy-menu-define python-menu python-mode-map
+(easy-menu-define python-menu python-base-mode-map
   "Menu used for ´python-mode'."
   '("Python"
     :help "Python-specific Features"
@@ -436,7 +436,10 @@ effect."
       :style toggle :selected subword-mode
       :help "Toggle subword movement and editing mode"])))
 
-(defvar python-ts-mode-map (copy-keymap python-mode-map)
+(defvar python-mode-map (make-composed-keymap nil python-base-mode-map)
+ "Keymap for `python-mode'.")
+
+(defvar python-ts-mode-map (make-composed-keymap nil python-base-mode-map)
   "Keymap for `python-ts-mode'.")
 
 
