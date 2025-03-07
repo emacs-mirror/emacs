@@ -4040,7 +4040,7 @@ all pending output has been dealt with."))
                            '(term-line-wrap t rear-nonsticky t)))))
 
 (defun term-erase-in-line (kind)
-  (when (= kind 1) ;; erase left of point
+  (when (>= kind 1) ;; erase left of point
     (let ((cols (term-horizontal-column)) (saved-point (point)))
       (term-vertical-motion 0)
       (delete-region (point) saved-point)
