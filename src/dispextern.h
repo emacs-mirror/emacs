@@ -3482,13 +3482,16 @@ enum tool_bar_item_image
    capabilities being queried for when calling `tty_capable_p' (which
    returns true if the terminal supports all of them).  */
 
-#define TTY_CAP_INVERSE		0x01
-#define TTY_CAP_UNDERLINE	0x02
-#define TTY_CAP_BOLD		0x04
-#define TTY_CAP_DIM		0x08
-#define TTY_CAP_ITALIC  	0x10
-#define TTY_CAP_STRIKE_THROUGH	0x20
-#define TTY_CAP_UNDERLINE_STYLED	(0x32 & TTY_CAP_UNDERLINE)
+enum
+{
+  TTY_CAP_INVERSE = 1 << 1,
+  TTY_CAP_UNDERLINE = 1 << 2,
+  TTY_CAP_BOLD = 1 << 3,
+  TTY_CAP_DIM = 1 << 4,
+  TTY_CAP_ITALIC = 1 << 5,
+  TTY_CAP_STRIKE_THROUGH = 1 << 6,
+  TTY_CAP_UNDERLINE_STYLED = 1 << 7
+};
 
 
 /***********************************************************************
