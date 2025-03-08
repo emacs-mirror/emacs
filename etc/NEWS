@@ -206,10 +206,12 @@ Several functions to modify the window layout have been added:
 'transpose-window-layout', 'rotate-windows', and 'rotate-windows-back'.
 
 +++
-*** New user option 'windmove-allow-repeated-command-override'.
-This option controls whether pressing the same windmove command twice
-overrides the no-other-window property, allowing navigation to windows
-that would normally be skipped.
+*** Windmove commands now move to skipped windows if invoked twice in a row.
+The new user option 'windmove-allow-repeated-command-override' controls
+this behavior: if it's non-nil, invoking the same windmove command twice
+overrides the 'no-other-window' property, allowing navigation to windows
+that would normally be skipped.  The default is t; customize it to nil
+if you want the old behavior.
 
 +++
 *** New hook 'window-deletable-functions'.
