@@ -1831,10 +1831,11 @@ Also see the `project-kill-buffers-display-buffer-list' variable."
 
 ;;; Project list
 
-(defcustom project-list-file (locate-user-emacs-file "projects")
+(defcustom project-list-file
+  (locate-user-emacs-file '("projects.eld" "projects"))
   "File in which to save the list of known projects."
   :type 'file
-  :version "28.1"
+  :version "31.1"
   :group 'project)
 
 (defcustom project-list-exclude nil

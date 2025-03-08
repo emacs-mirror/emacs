@@ -81,12 +81,13 @@ To specify the file in which to save them, modify the variable
   'bookmark-default-file "27.1")
 (define-obsolete-variable-alias 'bookmark-file 'bookmark-default-file "27.1")
 (defcustom bookmark-default-file
-  (locate-user-emacs-file "bookmarks" ".emacs.bmk")
+  (locate-user-emacs-file '("bookmarks.eld" "bookmarks") ".emacs.bmk")
   "File in which to save bookmarks by default."
   ;; The current default file is defined via the internal variable
   ;; `bookmark-bookmarks-timestamp'.  This does not affect the value
   ;; of `bookmark-default-file'.
-  :type 'file)
+  :type 'file
+  :version "31.1")
 
 (defcustom bookmark-watch-bookmark-file t
   "If non-nil reload the default bookmark file if it was changed.

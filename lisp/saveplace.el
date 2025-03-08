@@ -62,9 +62,10 @@ when the place in that buffer was recorded.
 
 This alist is saved between Emacs sessions.")
 
-(defcustom save-place-file (locate-user-emacs-file "places" ".emacs-places")
+(defcustom save-place-file
+  (locate-user-emacs-file '("places.eld" "places") ".emacs-places")
   "Name of the file that records `save-place-alist' value."
-  :version "24.4"                       ; added locate-user-emacs-file
+  :version "31.1"
   :type 'file)
 
 (defcustom save-place-version-control nil

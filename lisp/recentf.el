@@ -82,10 +82,11 @@ See the command `recentf-save-list'."
 		 (const :tag "No Limit" nil))
   :version "31.1")
 
-(defcustom recentf-save-file (locate-user-emacs-file "recentf" ".recentf")
+(defcustom recentf-save-file
+  (locate-user-emacs-file '("recentf.eld" "recentf") ".recentf")
   "File to save the recent list into."
   :group 'recentf
-  :version "24.4"
+  :version "31.1"
   :type 'file
   :initialize 'custom-initialize-default
   :set (lambda (symbol value)

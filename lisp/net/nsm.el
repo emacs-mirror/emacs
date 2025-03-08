@@ -79,9 +79,10 @@ option."
                  (const :tag "Off" nil)
                  (function :tag "Custom function")))
 
-(defcustom nsm-settings-file (locate-user-emacs-file "network-security.data")
+(defcustom nsm-settings-file
+  (locate-user-emacs-file '("network-security.eld" "network-security.data"))
   "The file the security manager settings will be stored in."
-  :version "25.1"
+  :version "31.1"
   :type 'file)
 
 (defcustom nsm-save-host-names nil
