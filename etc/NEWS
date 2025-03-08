@@ -206,6 +206,12 @@ Several functions to modify the window layout have been added:
 'transpose-window-layout', 'rotate-windows', and 'rotate-windows-back'.
 
 +++
+*** New user option 'windmove-allow-repeated-command-override'.
+This option controls whether pressing the same windmove command twice
+overrides the no-other-window property, allowing navigation to windows
+that would normally be skipped.
+
++++
 *** New hook 'window-deletable-functions'.
 This abnormal hook gives its client a way to save a window from getting
 deleted implicitly by functions like 'kill-buffer', 'bury-buffer' and
