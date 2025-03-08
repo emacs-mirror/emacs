@@ -673,7 +673,7 @@ anyway."
                   (ignore-errors
                     (delete-directory (file-name-directory server-file))))))
             (signal 'server-running-external
-                    (list (format "There is an existing Emacs server, named %S"
+                    (list (format "The existing Emacs server, called \"%s\", could not be stopped."
                                   server-name))))
       ;; If this Emacs already had a server, clear out associated status.
       (while server-clients
@@ -725,16 +725,27 @@ the `server-process' variable."
           (when (server-stop)
             (message (if leave-dead "Stopped server" "Restarting server"))))
       (server-running-external
-       (display-warning
-        'server
-        (concat "Unable to start the Emacs server.\n"
-                (cadr err)
-                (substitute-command-keys
-                 (concat "\nTo start the server in this Emacs process, stop "
-                         "the existing server or call \\[server-force-delete] "
-                         "to forcibly disconnect it.")))
-        :warning)
-       (setq leave-dead t)))
+       (cond
+        ((not leave-dead)
+         (display-warning
+          'server
+          (concat "Unable to start the Emacs server.\n"
+                  (cadr err)
+                  (substitute-command-keys
+                   (concat "\nTo start the server in this Emacs session, stop "
+                           "the existing server or call \\[server-force-delete] "
+                           "to forcibly disconnect it.")))
+          :warning)
+         (setq leave-dead t))
+        (t
+         (display-warning
+          'server
+          (concat "Unable to stop the Emacs server.\n"
+                  (cadr err)
+                  (substitute-command-keys
+                   (concat "\n(Perhaps it was run from a different Emacs session?)\n"
+                           "You can try stopping the server forcibly by calling \\[server-force-delete].")))
+          :warning)))))
       ;; Now any previous server is properly stopped.
     (unless leave-dead
       (let ((server-file (server--file-name)))
@@ -2016,7 +2027,7 @@ This sets the variable `server-stop-automatically' (which see)."
 
 (defun server-unload-function ()
   "Unload the Server library."
-  (server-mode -1)
+  (ignore-errors (server-stop 'noframe))
   (substitute-key-definition 'server-edit nil ctl-x-map)
   (save-current-buffer
     (dolist (buffer (buffer-list))
