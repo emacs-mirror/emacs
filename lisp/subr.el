@@ -301,6 +301,19 @@ value of last one, or nil if there are none."
     (macroexp-warn-and-return (format-message "`when' with empty body")
                               (list 'progn cond nil) '(empty-body when) t)))
 
+(defmacro static-when (condition &rest body)
+  "A conditional compilation macro.
+Evaluate CONDITION at macro-expansion time.  If it is non-nil,
+expand the macro to evaluate all BODY forms sequentially and return
+the value of the last one, or nil if there are none."
+  (declare (indent 1) (debug t))
+  (if body
+      (if (eval condition lexical-binding)
+          (cons 'progn body)
+        nil)
+    (macroexp-warn-and-return (format-message "`static-when' with empty body")
+                              (list 'progn nil nil) '(empty-body static-when) t)))
+
 (defmacro unless (cond &rest body)
   "If COND yields nil, do BODY, else return nil.
 When COND yields nil, eval BODY forms sequentially and return
@@ -310,6 +323,19 @@ value of last one, or nil if there are none."
       (cons 'if (cons cond (cons nil body)))
     (macroexp-warn-and-return (format-message "`unless' with empty body")
                               (list 'progn cond nil) '(empty-body unless) t)))
+
+(defmacro static-unless (condition &rest body)
+  "A conditional compilation macro.
+Evaluate CONDITION at macro-expansion time.  If it is nil,
+expand the macro to evaluate all BODY forms sequentially and return
+the value of the last one, or nil if there are none."
+  (declare (indent 1) (debug t))
+  (if body
+      (if (eval condition lexical-binding)
+          nil
+        (cons 'progn body))
+    (macroexp-warn-and-return (format-message "`static-unless' with empty body")
+                              (list 'progn nil nil) '(empty-body static-unless) t)))
 
 (defsubst subr-primitive-p (object)
   "Return t if OBJECT is a built-in primitive written in C.
