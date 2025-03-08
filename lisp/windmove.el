@@ -385,11 +385,13 @@ the second invocation will override the `no-other-window' property.
 CALLING-COMMAND is the command that called this function, used to detect
 repeated commands."
   (let* ((repeated-command
-          (and calling-command (eq last-command calling-command)))
+          (and calling-command
+               windmove-allow-repeated-command-override
+               (eq last-command
+                   (intern (format "%s-override" calling-command)))))
          (other-window (windmove-find-other-window dir arg window)))
 
-    (when (and (null other-window)
-               repeated-command windmove-allow-repeated-command-override)
+    (when (and (null other-window) repeated-command)
       (setf other-window (window-in-direction dir window t arg windmove-wrap-around t)))
 
     ;; Create window if needed
@@ -411,6 +413,11 @@ repeated commands."
                windmove-allow-repeated-command-override)
       (let ((test-window (window-in-direction dir window t arg windmove-wrap-around t)))
         (when test-window
+          ;; Remember that we stopped at a boundary so we don't override
+          ;; a no-other-window before telling the user about it during a
+          ;; multi-command movement sequence.
+          (setf this-command
+                (intern (format "%s-override" calling-command)))
           (user-error "No window %s (repeat to override)" dir))))
 
     (cond ((null other-window)
