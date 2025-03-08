@@ -165,7 +165,7 @@ directory hierarchy."
   `(eglot--call-with-timeout ,timeout (lambda () ,@body)))
 
 (defun eglot--call-with-timeout (timeout fn)
-  (let* ((tag (cl-gensym "eglot-test-timeout"))
+  (let* ((tag (gensym "eglot-test-timeout"))
          (timed-out (make-symbol "timeout"))
          (timeout-and-message
           (if (listp timeout) timeout
