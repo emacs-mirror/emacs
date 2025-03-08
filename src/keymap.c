@@ -53,6 +53,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "intervals.h"
 #include "keymap.h"
 #include "window.h"
+#include "igc.h"
 
 /* Actually allocate storage for these variables.  */
 
@@ -1588,26 +1589,42 @@ current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
 		/* Use malloc here.  See the comment above this function.
 		   Avoid realloc here; it causes spurious traps on GNU/Linux [KFS] */
 		block_input ();
+#ifdef HAVE_MPS
+		newmodes = igc_xzalloc_ambig (allocsize);
+#else
 		newmodes = malloc (allocsize);
+#endif
 		if (newmodes)
 		  {
 		    if (cmm_modes)
 		      {
 			memcpy (newmodes, cmm_modes,
 				cmm_size * sizeof cmm_modes[0]);
+#ifdef HAVE_MPS
+			igc_xfree (cmm_modes);
+#else
 			free (cmm_modes);
+#endif
 		      }
 		    cmm_modes = newmodes;
 		  }
 
+#ifdef HAVE_MPS
+		newmaps = igc_xzalloc_ambig (allocsize);
+#else
 		newmaps = malloc (allocsize);
+#endif
 		if (newmaps)
 		  {
 		    if (cmm_maps)
 		      {
 			memcpy (newmaps, cmm_maps,
 				cmm_size * sizeof cmm_maps[0]);
+#ifdef HAVE_MPS
+			igc_xfree (cmm_maps);
+#else
 			free (cmm_maps);
+#endif
 		      }
 		    cmm_maps = newmaps;
 		  }
