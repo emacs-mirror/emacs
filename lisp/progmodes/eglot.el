@@ -4601,20 +4601,19 @@ If NOERROR, return predicate, else erroring function."
       (eglot--error "No hierarchy information here"))
     (with-current-buffer (get-buffer-create name)
       (eglot-hierarchy-mode)
-      (setq-local
-       eglot--hierarchy-roots roots
-       eglot--hierarchy-specs specs
-       eglot--cached-server server
-       eglot--hierarchy-source-major-mode mode
-       buffer-read-only t
-       revert-buffer-function
-       (lambda (&rest _ignore)
-         ;; flush cache, would defeat purpose of a revert
-         (mapc (lambda (r)
-                 (eglot--dbind ((HierarchyItem) name) r
-                   (set-text-properties 0 1 nil name)))
-               eglot--hierarchy-roots)
-         (eglot--hierarchy-2)))
+      (setq-local eglot--hierarchy-roots roots)
+      (setq-local eglot--hierarchy-specs specs)
+      (setq-local eglot--cached-server server)
+      (setq-local eglot--hierarchy-source-major-mode mode)
+      (setq-local buffer-read-only t)
+      (setq-local revert-buffer-function
+                  (lambda (&rest _ignore)
+                    ;; flush cache, would defeat purpose of a revert
+                    (mapc (lambda (r)
+                            (eglot--dbind ((HierarchyItem) name) r
+                              (set-text-properties 0 1 nil name)))
+                          eglot--hierarchy-roots)
+                    (eglot--hierarchy-2)))
       (eglot--hierarchy-2))))
 
 (defun eglot--hierarchy-2 ()
