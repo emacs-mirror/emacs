@@ -2824,7 +2824,8 @@ Helper function for `describe-package'."
          (status (if desc (package-desc-status desc) "orphan"))
          (incompatible-reason (package--incompatible-p desc))
          (signed (if desc (package-desc-signed desc)))
-         (maintainers (cdr (assoc :maintainer extras)))
+         (maintainers (or (cdr (assoc :maintainer extras))
+                          (cdr (assoc :maintainers extras))))
          (authors (cdr (assoc :authors extras)))
          (news (and-let* (pkg-dir
                           ((not built-in))
