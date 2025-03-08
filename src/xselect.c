@@ -299,10 +299,17 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
     Lisp_Object selection_data;
     Lisp_Object prev_value;
 
+    prev_value = LOCAL_SELECTION (selection_name, dpyinfo);
+
+    /* If the previous value contains alternative data for responding to
+       programs that do not understand a specialized drag-and-drop
+       protocol and DND_DATA is unset, transfer it to the new value.  */
+    if (NILP (dnd_data) && !NILP (prev_value))
+      dnd_data = XCAR (XCDR (XCDR (XCDR (XCDR (prev_value)))));
+
     selection_data = list5 (selection_name, selection_value,
 			    INT_TO_INTEGER (timestamp), frame,
 			    dnd_data);
-    prev_value = LOCAL_SELECTION (selection_name, dpyinfo);
 
     tset_selection_alist
       (dpyinfo->terminal,
