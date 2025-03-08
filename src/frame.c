@@ -2756,17 +2756,19 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 	  struct frame *f1 = XFRAME (frame1);
 
 	  /* Set frame_on_same_kboard to frame1 if it is on the same
-	     keyboard.  Set frame_with_minibuf to frame1 if it also
-	     has a minibuffer.  Leave the loop immediately if frame1
-	     is also minibuffer-only.
+	     keyboard and is not a tooltip frame.  Set
+	     frame_with_minibuf to frame1 if it also has a minibuffer.
+	     Leave the loop immediately if frame1 is also
+	     minibuffer-only.
 
-	     Emacs 26 does _not_ set frame_on_same_kboard here when it
-	     finds a minibuffer-only frame and subsequently fails to
+	     Emacs 26 did _not_ set frame_on_same_kboard here when it
+	     found a minibuffer-only frame, and subsequently failed to
 	     set default_minibuffer_frame below.  Not a great deal and
-	     never noticed since make_frame_without_minibuffer creates
-	     a new minibuffer frame in that case (which can be a minor
-	     annoyance though).  To consider for Emacs 26.3.  */
-	  if (kb == FRAME_KBOARD (f1))
+	     never noticed since make_frame_without_minibuffer created a
+	     new minibuffer frame in that case (which can be a minor
+	     annoyance though).  */
+	  if (!FRAME_TOOLTIP_P (f1)
+	      && kb == FRAME_KBOARD (f1))
 	    {
 	      frame_on_same_kboard = frame1;
 	      if (FRAME_HAS_MINIBUF_P (f1))
