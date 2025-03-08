@@ -3388,13 +3388,16 @@ dump_metadata_for_pdumper (struct dump_context *ctx)
 static void
 dump_sort_copied_objects (struct dump_context *ctx)
 {
+  Lisp_Object queue_reversed;
+
+  queue_reversed = Fnreverse (ctx->copied_queue);
   /* Sort the objects into the order in which they'll appear in the
      Emacs: this way, on startup, we'll do both the IO from the dump
      file and the copy into Emacs in-order, where prefetch will be
      most effective.  */
-  ctx->copied_queue =
-    CALLN (Fsort, Fnreverse (ctx->copied_queue),
-           Qdump_emacs_portable__sort_predicate_copied);
+  ctx->copied_queue
+    = CALLN (Fsort, queue_reversed,
+	     Qdump_emacs_portable__sort_predicate_copied);
 }
 
 /* Dump parts of copied objects we need at runtime.  */
@@ -3959,9 +3962,11 @@ drain_reloc_list (struct dump_context *ctx,
                   struct dump_table_locator *out_locator)
 {
   struct dump_flags old_flags = ctx->flags;
+  Lisp_Object list_reversed, relocs;
   ctx->flags.pack_objects = true;
-  Lisp_Object relocs = CALLN (Fsort, Fnreverse (*reloc_list),
-                              Qdump_emacs_portable__sort_predicate);
+  list_reversed = Fnreverse (*reloc_list);
+  relocs = CALLN (Fsort, list_reversed,
+		  Qdump_emacs_portable__sort_predicate);
   *reloc_list = Qnil;
   dump_align_output (ctx, max (alignof (struct dump_reloc),
 			       alignof (struct emacs_reloc)));
@@ -4082,8 +4087,9 @@ static void
 dump_do_fixups (struct dump_context *ctx)
 {
   dump_off saved_offset = ctx->offset;
-  Lisp_Object fixups = CALLN (Fsort, Fnreverse (ctx->fixups),
-                              Qdump_emacs_portable__sort_predicate);
+  Lisp_Object fixups_reversed = Fnreverse (ctx->fixups);
+  Lisp_Object fixups = CALLN (Fsort, fixups_reversed,
+			      Qdump_emacs_portable__sort_predicate);
   Lisp_Object prev_fixup = Qnil;
   ctx->fixups = Qnil;
   while (!NILP (fixups))
@@ -5430,8 +5436,8 @@ dump_do_dump_relocation (const uintptr_t dump_base,
     case RELOC_NATIVE_COMP_UNIT:
       {
 	static enum { UNKNOWN, LOCAL_BUILD, INSTALLED } installation_state;
-	struct Lisp_Native_Comp_Unit *comp_u =
-	  dump_ptr (dump_base, reloc_offset);
+	struct Lisp_Native_Comp_Unit *comp_u
+	  = dump_ptr (dump_base, reloc_offset);
 	comp_u->lambda_gc_guard_h = CALLN (Fmake_hash_table, QCtest, Qeq);
 	if (STRINGP (comp_u->file))
 	  error ("trying to load incoherent dumped eln file %s",
