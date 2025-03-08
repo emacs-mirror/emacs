@@ -1364,6 +1364,32 @@ subsequent to which a reproduction of the exception precipitating the
 spurious OOM error should be located.  This exception is invariably
 indicative of a bug within Emacs that should be fixed.
 
+** Debugging Emacs with Incremental Garbage Collector (igc)
+
+The Emacs incremental garbage collector (igc), relies on the C library
+by Ravenbrook Limited, the Memory Pool System (MPS).  It is copyrighted
+under the 2-clause BSD license.
+
+Debugging memory management errors can be complex.
+
+The following is explained in the MPS documentation from Ravenbrook.
+See also the Info manual:
+(info "(MemoryPoolSystem) Debugging with the Memory Pool System")
+
+The key abstraction is the concept of memory `arena', which has four
+states.  Two of these are important for debugging, the clamped and
+parked states.  When debugging igc, you can clamp the arena before
+inspecting memory:
+
+     (gdb) call mps_arena_clamp(arena)
+
+and then release it afterwards with:
+
+     (gdb) call mps_arena_release(arena)
+
+
+
+
 
 This file is part of GNU Emacs.
 
