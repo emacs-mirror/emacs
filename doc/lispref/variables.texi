@@ -1649,7 +1649,7 @@ on having separate values in separate buffers, then using
 @code{make-variable-buffer-local} can be the best solution.
 @end deffn
 
-@defmac defvar-local variable value &optional docstring
+@defmac defvar-local variable &optional value docstring
 This macro defines @var{variable} as a variable with initial value
 @var{value} and @var{docstring}, and marks it as automatically
 buffer-local.  It is equivalent to calling @code{defvar} followed by

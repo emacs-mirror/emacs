@@ -88,19 +88,16 @@ should be displayed in its place.")
 ;;; The following are all local variables in the minibuffer
 
 ;; Input pre-inserted into the minibuffer before the user can edit it.
-(defvar minibuf-eldef-initial-input)
-(make-variable-buffer-local 'minibuf-eldef-initial-input)
+(defvar-local minibuf-eldef-initial-input)
+
 ;; and the length of the buffer with it inserted.
-(defvar minibuf-eldef-initial-buffer-length)
-(make-variable-buffer-local 'minibuf-eldef-initial-buffer-length)
+(defvar-local minibuf-eldef-initial-buffer-length)
 
 ;; True if the current minibuffer prompt contains the default spec.
-(defvar minibuf-eldef-showing-default-in-prompt)
-(make-variable-buffer-local 'minibuf-eldef-showing-default-in-prompt)
+(defvar-local minibuf-eldef-showing-default-in-prompt)
 
 ;; An overlay covering the default portion of the prompt
-(defvar minibuf-eldef-overlay)
-(make-variable-buffer-local 'minibuf-eldef-overlay)
+(defvar-local minibuf-eldef-overlay)
 
 
 ;;; Hook functions

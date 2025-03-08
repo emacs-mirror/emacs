@@ -50,8 +50,7 @@ the `minibuffer-depth-indicator' face."
 ;; An overlay covering the prompt.  This is a buffer-local variable in
 ;; each affected minibuffer.
 ;;
-(defvar minibuffer-depth-overlay)
-(make-variable-buffer-local 'minibuffer-depth-overlay)
+(defvar-local minibuffer-depth-overlay)
 
 ;; This function goes on minibuffer-setup-hook
 (defun minibuffer-depth-setup ()

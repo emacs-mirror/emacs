@@ -30,6 +30,16 @@
 (require 'ert-x)
 (eval-when-compile (require 'cl-lib))
 
+(defvar-local subr-tests--local-var1)
+(defvar-local subr-tests--local-var2 'hello)
+(defvar-local subr-tests--local-var3 nil "Doc.")
+(ert-deftest subr-test-defvar-local ()
+  (should (local-variable-if-set-p 'subr-tests--local-var1))
+  (should (local-variable-if-set-p 'subr-tests--local-var2))
+  (should (eq subr-tests--local-var2 'hello))
+  (should (local-variable-if-set-p 'subr-tests--local-var3))
+  (should (get 'subr-tests--local-var3 'variable-documentation)))
+
 (ert-deftest subr-test-apply-partially ()
   (should (functionp (apply-partially #'identity)))
   (should (functionp (apply-partially #'list 1 2 3)))

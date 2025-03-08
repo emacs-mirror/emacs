@@ -3235,8 +3235,7 @@ Return 0 if current buffer is not a minibuffer."
 ;; isearch minibuffer history
 (add-hook 'minibuffer-setup-hook 'minibuffer-history-isearch-setup)
 
-(defvar minibuffer-history-isearch-message-overlay)
-(make-variable-buffer-local 'minibuffer-history-isearch-message-overlay)
+(defvar-local minibuffer-history-isearch-message-overlay)
 
 (defun minibuffer-history-isearch-setup ()
   "Set up a minibuffer for using isearch to search the minibuffer history.

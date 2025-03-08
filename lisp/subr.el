@@ -192,14 +192,20 @@ pair.
       (setq pairs (cdr (cdr pairs))))
     (macroexp-progn (nreverse expr))))
 
-(defmacro defvar-local (var val &optional docstring)
-  "Define VAR as a buffer-local variable with default value VAL.
+(defmacro defvar-local (symbol &rest args)
+  "Define SYMBOL as a buffer-local variable with default value VALUE.
 Like `defvar' but additionally marks the variable as being automatically
-buffer-local wherever it is set."
+buffer-local wherever it is set.
+\n(fn symbol &optional value docstring)"
   (declare (debug defvar) (doc-string 3) (indent 2))
   ;; Can't use backquote here, it's too early in the bootstrap.
-  (list 'progn (list 'defvar var val docstring)
-        (list 'make-variable-buffer-local (list 'quote var))))
+  (let ((value (car-safe args))
+        (docstring (car-safe (cdr-safe args))))
+    (list 'progn
+          (if (zerop (length args))
+              (list 'defvar symbol)
+            (list 'defvar symbol value docstring))
+          (list 'make-variable-buffer-local (list 'quote symbol)))))
 
 (defun buffer-local-boundp (symbol buffer)
   "Return non-nil if SYMBOL is bound in BUFFER.
