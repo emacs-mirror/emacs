@@ -179,7 +179,11 @@ by invoking the same movement command twice in succession when
   :version "28.1")
 
 (defcustom windmove-allow-repeated-command-override t
-  "Control whether pressing the same windmove command twice overrides the no-other-window property."
+  "If non-nil, using windmove commands twice overrides `no-other-window'.
+Normally, the `no-other-window' window property prevents windmove
+commands from moving to that window.  When this variable is non-nil,
+invoking the command twice means the second invocation ignores the
+property."
   :type 'boolean
   :version "31.1")
 
