@@ -68,7 +68,18 @@
           (should (equal (locate-user-emacs-file basename)
                          in-edir))
           (should (equal (locate-user-emacs-file basename "anything")
-                         in-edir)))))))
+                         in-edir)))
+        ;; NEW-FILE is a list.
+        (should (equal (locate-user-emacs-file '("first" "second"))
+                       (expand-file-name "first" user-emacs-directory)))
+        (should (equal (locate-user-emacs-file '("first" "second") "never")
+                       (expand-file-name "first" user-emacs-directory)))
+        (let ((exists (expand-file-name "exists" user-emacs-directory)))
+          (write-region "data" nil exists nil 'quietly)
+          (should (equal (locate-user-emacs-file '("missing" "exists"))
+                         exists))
+          (should (equal (locate-user-emacs-file '("missing1" "exists") "missing2")
+                         exists)))))))
 
 ;; Test combinations:
 ;; `enable-local-variables' t, nil, :safe, :all, or something else.

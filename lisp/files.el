@@ -1242,12 +1242,24 @@ inaccessible location."
 If NEW-NAME exists in `user-emacs-directory', return it.
 Else if OLD-NAME is non-nil and ~/OLD-NAME exists, return ~/OLD-NAME.
 Else return NEW-NAME in `user-emacs-directory', creating the
-directory if it does not exist."
+directory if it does not exist.
+
+NEW-NAME can also be a list, in which case consider all names in that
+list, from last to first, and use the first name that exists.  If none
+of them exists, use the `car' of that list."
   (convert-standard-filename
    (let* ((home (concat "~" (or init-file-user "")))
 	  (at-home (and old-name (expand-file-name old-name home)))
           (bestname (abbreviate-file-name
-                     (expand-file-name new-name user-emacs-directory))))
+                     (if (listp new-name)
+                         (or (car (seq-filter
+                                   #'file-exists-p
+                                   (mapcar
+                                    (lambda (f)
+                                      (expand-file-name f user-emacs-directory))
+                                    (reverse new-name))))
+                             (expand-file-name (car new-name) user-emacs-directory))
+                       (expand-file-name new-name user-emacs-directory)))))
      (if (and at-home (not (file-readable-p bestname))
               (file-readable-p at-home))
 	 at-home
