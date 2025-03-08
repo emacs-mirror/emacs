@@ -2990,6 +2990,9 @@ Each function runs in the log output buffer without args.")
 			       rev-buff-func)
   (let (retval (buffer (get-buffer-create buffer-name)))
     (with-current-buffer buffer
+      ;; Ensure we drop any directory-local variables from the last
+      ;; directory from which a log buffer was generated (bug#44698).
+      (kill-all-local-variables 'kill-permanent)
       (setq-local vc-log-view-type type))
     (setq retval (funcall backend-func backend buffer-name type files))
     (with-current-buffer buffer
