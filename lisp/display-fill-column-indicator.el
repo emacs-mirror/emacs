@@ -43,7 +43,7 @@
   :link '(info-link "(emacs)Displaying Boundaries"))
 
 (defcustom display-fill-column-indicator-warning nil
-  "Highlight fill-column-indicator when current column is too long.
+  "Highlight fill-column-indicator when current line is too long.
 Non-nil means highlight fill-column-indicator when current column exceeds
 `display-fill-column-indicator-column'."
   :type 'boolean
@@ -51,7 +51,7 @@ Non-nil means highlight fill-column-indicator when current column exceeds
 
 (defface display-fill-column-indicator-warning-face
   '((t :inherit error :stipple nil))
-  "Face used to highlight `display-fill-column-indicator' when column is too long."
+  "Face used to highlight `display-fill-column-indicator' when lines are too long."
   :version "31.1")
 
 (defun fill-indicator--set-warning ()
