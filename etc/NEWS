@@ -135,6 +135,9 @@ usual minibuffer history commands.  Each command has a separate history.
 
 ---
 ** New minor mode 'find-function-mode' replaces 'find-function-setup-keys'.
+The new minor mode defines the keys at a higher precedence level than
+the old function, one more usual for a minor mode.  To restore the old
+behavior, customize 'find-function-mode-lower-precedence' to non-nil.
 
 ** Minibuffer and Completions
 

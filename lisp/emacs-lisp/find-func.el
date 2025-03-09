@@ -187,6 +187,21 @@ for completion."
   :version "29.1"
   :group 'find-function)
 
+(defcustom find-function-mode-lower-precedence nil
+  "If non-nil, `find-function-mode' defines keys in the global map.
+This is for compatibility with the historical behavior of
+the old `find-function-setup-keys'."
+  :type 'boolean
+  :version "31.1"
+  :group 'find-function
+  :set (lambda (symbol value)
+         ;; Toggle the mode off before changing this setting in order to
+         ;; avoid getting into an inconsistent state.
+         (let ((already-on find-function-mode))
+           (when already-on (find-function-mode -1))
+           (set-default symbol value)
+           (when already-on (find-function-mode 1)))))
+
 ;;; Functions:
 
 (defun find-library-suffixes ()
@@ -812,30 +827,47 @@ See `find-function-on-key'."
     (when (and symb (not (equal symb 0)))
       (find-variable-other-window symb))))
 
+(defvar-keymap find-function-mode-map
+  :doc "Keymap for `find-function-mode'."
+  "C-x F"   #'find-function
+  "C-x 4 F" #'find-function-other-window
+  "C-x 5 F" #'find-function-other-frame
+
+  "C-x K"   #'find-function-on-key
+  "C-x 4 K" #'find-function-on-key-other-window
+  "C-x 5 K" #'find-function-on-key-other-frame
+
+  "C-x V"   #'find-variable
+  "C-x 4 V" #'find-variable-other-window
+  "C-x 5 V" #'find-variable-other-frame
+
+  "C-x L"   #'find-library
+  "C-x 4 L" #'find-library-other-window
+  "C-x 5 L" #'find-library-other-frame)
+
 ;;;###autoload
 (define-minor-mode find-function-mode
   "Enable some key bindings for the `find-function' family of functions."
   :group 'find-function :version "31.1" :global t :lighter nil
-  ;; For compatibility with the historical behavior of the old
-  ;; `find-function-setup-keys', define our bindings at the precedence
-  ;; level of the global map.
-  :keymap nil
-  (pcase-dolist (`(,map ,key ,cmd)
-                 `((,ctl-x-map   "F" find-function)
-                   (,ctl-x-4-map "F" find-function-other-window)
-                   (,ctl-x-5-map "F" find-function-other-frame)
-                   (,ctl-x-map   "K" find-function-on-key)
-                   (,ctl-x-4-map "K" find-function-on-key-other-window)
-                   (,ctl-x-5-map "K" find-function-on-key-other-frame)
-                   (,ctl-x-map   "V" find-variable)
-                   (,ctl-x-4-map "V" find-variable-other-window)
-                   (,ctl-x-5-map "V" find-variable-other-frame)
-                   (,ctl-x-map   "L" find-library)
-                   (,ctl-x-4-map "L" find-library-other-window)
-                   (,ctl-x-5-map "L" find-library-other-frame)))
-    (if find-function-mode
-        (keymap-set map key cmd)
-      (keymap-unset map key t))))
+  (when find-function-mode-lower-precedence
+    (rplacd (assq 'find-function-mode minor-mode-map-alist)
+            (if find-function-mode
+                (make-sparse-keymap)
+              find-function-mode-map))
+    (named-let define-keys ((from find-function-mode-map)
+                            (into (current-global-map))
+                            (prefix []))
+      (map-keymap (lambda (event binding)
+                    (let* ((key (vector event))
+                           (prefixed (vconcat prefix key)))
+                      (if-let* (((keymapp binding))
+                                (ninto (lookup-key into key))
+                                ((keymapp ninto)))
+                          (define-keys binding ninto prefixed)
+                        (if find-function-mode
+                            (global-set-key prefixed binding)
+                          (global-unset-key prefixed)))))
+                  from))))
 
 ;;;###autoload
 (defun find-function-setup-keys ()
