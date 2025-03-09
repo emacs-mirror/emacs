@@ -29,6 +29,8 @@
 (require 'reftex)
 
 (defmacro reftex-with-special-syntax (&rest body)
+  "Evaluate BODY with syntax table set to `reftex-syntax-table'."
+  (declare (debug t))
   `(let ((saved-syntax (syntax-table)))
      (unwind-protect
          (progn
