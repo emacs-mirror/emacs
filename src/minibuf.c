@@ -1406,20 +1406,28 @@ and some related functions, which use zero-indexing for POSITION.  */)
 /* Functions that use the minibuffer to read various things.  */
 
 DEFUN ("read-string", Fread_string, Sread_string, 1, 5, 0,
-       doc: /* Read a string from the minibuffer, prompting with string PROMPT.
-If non-nil, second arg INITIAL-INPUT is a string to insert before reading.
-  This argument has been superseded by DEFAULT-VALUE and should normally be nil
-  in new code.  It behaves as INITIAL-CONTENTS in `read-from-minibuffer' (which
-  see).
-The third arg HISTORY, if non-nil, specifies a history list
-  and optionally the initial position in the list.
+       doc: /* Read and return a string from the minibuffer, prompting with PROMPT.
+
+PROMPT is a string, which should normally end with the string ": ".
+
+If non-nil, second arg INITIAL-INPUT is a string to insert before
+reading.  This argument has been superseded by DEFAULT-VALUE and should
+normally be nil in new code.  It behaves as INITIAL-CONTENTS in
+`read-from-minibuffer' (which see).
+
+The third arg HISTORY, if non-nil, specifies a history list and
+optionally the initial position in the list.
+
 See `read-from-minibuffer' for details of HISTORY argument.
-Fourth arg DEFAULT-VALUE is the default value or the list of default values.
- If non-nil, it is used for history commands, and as the value (or the first
- element of the list of default values) to return if the user enters the
- empty string.
-Fifth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
- the current input method and the setting of `enable-multibyte-characters'.  */)
+
+Fourth arg DEFAULT-VALUE is the default value or the list of default
+values.  If non-nil, it is used for history commands, and as the value
+(or the first element of the list of default values) to return if the
+user enters the empty string.
+
+Fifth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer
+inherits the current input method and the setting of
+`enable-multibyte-characters'.  */)
   (Lisp_Object prompt, Lisp_Object initial_input, Lisp_Object history, Lisp_Object default_value, Lisp_Object inherit_input_method)
 {
   Lisp_Object val;
