@@ -7456,10 +7456,20 @@ Does not set point.  Does nothing if mark ring is empty."
     (pop mark-ring))
   (deactivate-mark))
 
+(defcustom exchange-point-and-mark-highlight-region t
+  "Activate region when exchanging point and mark.
+
+When set to nil, this modifies `exchange-point-and-mark' so that it doesn't
+activate mark when it is not already active."
+  :type 'boolean
+  :group 'editing-basics
+  :version 31.1)
+
 (defun exchange-point-and-mark (&optional arg)
   "Put the mark where point is now, and point where the mark is now.
 This command works even when the mark is not active,
-and it reactivates the mark.
+and it reactivates the mark unless
+`exchange-point-and-mark-highlight-region' is nil.
 
 If Transient Mark mode is on, a prefix ARG deactivates the mark
 if it is active, and otherwise avoids reactivating it.  If
@@ -7467,15 +7477,18 @@ Transient Mark mode is off, a prefix ARG enables Transient Mark
 mode temporarily."
   (interactive "P")
   (let ((omark (mark t))
+        (region-was-active (region-active-p))
 	(temp-highlight (eq (car-safe transient-mark-mode) 'only)))
     (if (null omark)
         (user-error "No mark set in this buffer"))
     (set-mark (point))
     (goto-char omark)
-    (or temp-highlight
-        (cond ((xor arg (not (region-active-p)))
-	       (deactivate-mark))
-	      (t (activate-mark))))
+    (cond (temp-highlight)
+          ((xor arg (if exchange-point-and-mark-highlight-region
+                        (not (region-active-p))
+                      (not region-was-active)))
+	   (deactivate-mark))
+	  (t (activate-mark)))
     nil))
 
 (defcustom shift-select-mode t
