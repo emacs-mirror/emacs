@@ -206,6 +206,7 @@ Character sets for defining other charsets, or for backward compatibility
 (defun read-charset (prompt &optional default-value initial-input)
   "Read a character set from the minibuffer, prompting with string PROMPT.
 It must be an Emacs character set listed in the variable `charset-list'.
+Return the charset as a symbol.
 
 Optional arguments are DEFAULT-VALUE and INITIAL-INPUT.
 DEFAULT-VALUE, if non-nil, is the default value.

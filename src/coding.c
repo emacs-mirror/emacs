@@ -8625,7 +8625,8 @@ about coding-system objects.  */)
 
 DEFUN ("read-non-nil-coding-system", Fread_non_nil_coding_system,
        Sread_non_nil_coding_system, 1, 1, 0,
-       doc: /* Read a coding system from the minibuffer, prompting with string PROMPT.  */)
+       doc: /* Read a coding system from the minibuffer, prompting with string PROMPT.
+Return the symbol of the coding-system.  */)
   (Lisp_Object prompt)
 {
   Lisp_Object val;
@@ -8641,6 +8642,8 @@ DEFUN ("read-non-nil-coding-system", Fread_non_nil_coding_system,
 DEFUN ("read-coding-system", Fread_coding_system, Sread_coding_system, 1, 2, 0,
        doc: /* Read a coding system from the minibuffer, prompting with string PROMPT.
 If the user enters null input, return second argument DEFAULT-CODING-SYSTEM.
+Return the coding-system's symbol, or nil if both the user input and
+DEFAULT-CODING-SYSTEM are empty or null.
 Ignores case when completing coding systems (all Emacs coding systems
 are lower-case).  */)
   (Lisp_Object prompt, Lisp_Object default_coding_system)

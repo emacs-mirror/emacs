@@ -885,6 +885,7 @@ Default name to DEFAULT-DIRNAME if user exits with the same
 non-empty string that was inserted by this function.
  (If DEFAULT-DIRNAME is omitted, DIR combined with INITIAL is used,
   or just DIR if INITIAL is nil.)
+Return the directory as a string.
 If the user exits with an empty minibuffer, this function returns
 an empty string.  (This can happen only if the user erased the
 pre-inserted contents or if `insert-default-directory' is nil.)

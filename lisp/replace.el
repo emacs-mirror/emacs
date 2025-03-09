@@ -929,7 +929,7 @@ regexp from the user."
       (or result input))))
 
 (defun read-regexp-case-fold-search (regexp)
-  "Return a value for `case-fold-search' based on REGEXP and current settings.
+  "Return the value for `case-fold-search' based on REGEXP and current settings.
 REGEXP is a string as returned by `read-regexp'."
   (let ((fold (get-text-property 0 'case-fold regexp)))
     (cond
