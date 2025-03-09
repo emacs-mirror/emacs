@@ -9790,6 +9790,13 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   NSTRACE ("[EmacsWindow constrainFrameRect:" NSTRACE_FMT_RECT " toScreen:]",
              NSTRACE_ARG_RECT (frameRect));
 
+  /* Don't do anything for child frames because that leads to weird
+     child frame placement in some cases involving Dock placement and
+     Dock Hiding.  */
+  struct frame *f = ((EmacsView *) [self delegate])->emacsframe;
+  if (FRAME_PARENT_FRAME (f))
+    return frameRect;
+
 #ifdef NS_IMPL_COCOA
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1090
   // If separate spaces is on, it is like each screen is independent.  There is
