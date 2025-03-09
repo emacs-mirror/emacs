@@ -901,7 +901,15 @@ to the front of this list.")
     (error "Unknown theme `%s'" theme)))
 
 (defun custom--should-apply-setting (theme)
-  (or (null custom--inhibit-theme-enable)
+  "Non-nil if settings for the theme THEME should apply immediately.
+
+Theme settings apply immediately if:
+- THEME is already enabled.
+- THEME is being enabled via `enable-theme' or an interactive call to
+  `load-theme'.
+- THEME is the `user' theme."
+  (or (memq theme custom-enabled-themes)
+      (null custom--inhibit-theme-enable)
       (and (eq custom--inhibit-theme-enable 'apply-only-user)
            (eq theme 'user))))
 
@@ -1235,6 +1243,10 @@ external packages).  For manual user customizations, use
 
 (defvar custom--inhibit-theme-enable 'apply-only-user
   "Whether the custom-theme-set-* functions act immediately.
+
+If the theme argument for those functions is an already enabled theme,
+the theme settings always apply immediately, ignoring this variable.
+
 If nil, `custom-theme-set-variables' and `custom-theme-set-faces'
 change the current values of the given variable or face.  If
 t, they just make a record of the theme settings.  If the
