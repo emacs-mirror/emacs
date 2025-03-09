@@ -3780,7 +3780,7 @@ FILENAME are suppressed.  */)
 	{
 	  /* Avoid landing here recursively while outputting the
 	     backtrace from the error.  */
-	  gflags.will_dump_ = false;
+	  gflags.will_dump = false;
 	  error ("(require %s) while preparing to dump",
 		 SDATA (SYMBOL_NAME (feature)));
 	}

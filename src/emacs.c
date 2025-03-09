@@ -1311,13 +1311,11 @@ android_emacs_init (int argc, char **argv, char *dump_file)
   if (!initialized && temacs)
     {
 #ifdef HAVE_PDUMPER
-      if (strcmp (temacs, "pdump") == 0 ||
-          strcmp (temacs, "pbootstrap") == 0)
-        gflags.will_dump_with_pdumper_ = true;
-      if (strcmp (temacs, "pbootstrap") == 0)
-        gflags.will_bootstrap_ = true;
-      gflags.will_dump_ =
-        will_dump_with_pdumper_p ();
+      if (!strcmp (temacs, "pdump") || !strcmp (temacs, "pbootstrap"))
+        gflags.will_dump_with_pdumper = true;
+      if (!strcmp (temacs, "pbootstrap"))
+	gflags.will_bootstrap = true;
+      gflags.will_dump = will_dump_with_pdumper_p ();
       if (will_dump_p ())
         dump_mode = temacs;
 #endif

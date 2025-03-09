@@ -150,8 +150,6 @@ union emacs_align_type
 {
   struct frame frame;
   struct Lisp_Bignum Lisp_Bignum;
-  struct Lisp_Bool_Vector Lisp_Bool_Vector;
-  struct Lisp_Char_Table Lisp_Char_Table;
   struct Lisp_CondVar Lisp_CondVar;
   struct Lisp_Finalizer Lisp_Finalizer;
   struct Lisp_Float Lisp_Float;
@@ -160,21 +158,25 @@ union emacs_align_type
   struct Lisp_Misc_Ptr Lisp_Misc_Ptr;
   struct Lisp_Mutex Lisp_Mutex;
   struct Lisp_Overlay Lisp_Overlay;
-  struct Lisp_Sub_Char_Table Lisp_Sub_Char_Table;
   struct Lisp_Subr Lisp_Subr;
   struct Lisp_Sqlite Lisp_Sqlite;
   struct Lisp_User_Ptr Lisp_User_Ptr;
-  struct Lisp_Vector Lisp_Vector;
   struct terminal terminal;
   struct thread_state thread_state;
   struct window window;
 
   /* Omit the following since they would require including process.h
-     etc.  In practice their alignments never exceed that of the
-     structs already listed.  */
+     etc, or because they are defined with flexible array members, which
+     are rejected by some C99 compilers when this union subsequently
+     appears in an `alignof' expression.  In practice their alignments
+     never exceed that of the structs already listed.  */
 #if 0
+  struct Lisp_Bool_Vector Lisp_Bool_Vector;
+  struct Lisp_Char_Table Lisp_Char_Table;
+  struct Lisp_Sub_Char_Table Lisp_Sub_Char_Table;
   struct Lisp_Module_Function Lisp_Module_Function;
   struct Lisp_Process Lisp_Process;
+  struct Lisp_Vector Lisp_Vector;
   struct save_window_data save_window_data;
   struct scroll_bar scroll_bar;
   struct xwidget_view xwidget_view;
@@ -5167,14 +5169,20 @@ mark_memory (void const *start, void const *end)
   for (pp = start; (void const *) pp < end; pp += GC_POINTER_ALIGNMENT)
     {
       void *p = *(void *const *) pp;
+      intptr_t ip;
+
+#if !USE_LSB_TAG && !defined WIDE_EMACS_INT
+      ip = (intptr_t) p;
+      mark_maybe_pointer ((void *) (ip & VALMASK), false);
+#else /* USE_LSB_TAG || WIDE_EMACS_INT */
       mark_maybe_pointer (p, false);
+#endif /* USE_LSB_TAG || WIDE_EMACS_INT */
 
       /* Unmask any struct Lisp_Symbol pointer that make_lisp_symbol
 	 previously disguised by adding the address of 'lispsym'.
 	 On a host with 32-bit pointers and 64-bit Lisp_Objects,
 	 a Lisp_Object might be split into registers saved into
 	 non-adjacent words and P might be the low-order word's value.  */
-      intptr_t ip;
       ckd_add (&ip, (intptr_t) p, (intptr_t) lispsym);
       mark_maybe_pointer ((void *) ip, true);
     }
