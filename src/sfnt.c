@@ -7685,7 +7685,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     PUSH_UNCHECKED (c);				\
   }
 
-#define _MAX()					\
+#define INS_MAX()				\
   {						\
     int32_t e1, e2;				\
 						\
@@ -7695,7 +7695,7 @@ sfnt_interpret_trap (struct sfnt_interpreter *interpreter,
     PUSH_UNCHECKED (MAX (e1, e2));		\
   }
 
-#define _MIN()					\
+#define INS_MIN()				\
   {						\
     int32_t e1, e2;				\
 						\
@@ -12190,11 +12190,11 @@ sfnt_interpret_run (struct sfnt_interpreter *interpreter,
 	  break;
 
 	case 0x8B:  /* MAX */
-	  _MAX ();
+	  INS_MAX ();
 	  break;
 
 	case 0x8C:  /* MIN */
-	  _MIN ();
+	  INS_MIN ();
 	  break;
 
 	  /* Scan or dropout control is not implemented.  Instead, 256
