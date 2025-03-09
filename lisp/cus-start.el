@@ -317,10 +317,13 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (vertical-centering-font-regexp display
 					     (choice (const nil) regexp))
 	     ;; frame.c
-	     (default-frame-alist frames
-	       (repeat (cons :format "%v"
-			     (symbol :tag "Parameter")
-			     (sexp :tag "Value"))))
+             (default-frame-alist
+              frames
+              (repeat (cons :format "%v"
+                            (symbol :tag "Parameter"
+                                    :completions ,frame--special-parameters)
+                            (sexp :tag "Value"
+                                  :complete frame--complete-parameter-value))))
 	     (mouse-highlight mouse (choice (const :tag "disabled" nil)
 					    (const :tag "always shown" t)
 					    (other :tag "hidden by keypress" 1))
