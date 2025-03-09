@@ -750,19 +750,13 @@ encode_terminal_code (struct glyph *src, int src_len,
 /* An implementation of write_glyphs for termcap frames. */
 
 static void
-tty_write_glyphs (struct frame *f, struct glyph *string, int len)
+tty_write_glyphs_1 (struct frame *f, struct glyph *string, int len)
 {
   struct tty_display_info *tty = FRAME_TTY (f);
   tty_turn_off_insert (tty);
   tty_hide_cursor (tty);
 
-  /* Don't dare write in last column of bottom line, if Auto-Wrap,
-     since that would scroll the whole frame on some terminals.  */
-  if (AutoWrap (tty)
-      && curY (tty) + 1 == FRAME_TOTAL_LINES (f)
-      && (curX (tty) + len) == FRAME_COLS (f))
-    len --;
-  if (len <= 0)
+  if (len == 0)
     return;
 
   cmplus (tty, len);
@@ -966,6 +960,30 @@ tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
     }
 
   cmcheckmagic (tty);
+}
+
+static void
+tty_write_glyphs (struct frame *f, struct glyph *string, int len)
+{
+  struct tty_display_info *tty = FRAME_TTY (f);
+  /* Don't dare write in last column of bottom line, if Auto-Wrap,
+     since that would scroll the whole frame on some terminals.  */
+  if (AutoWrap (tty)
+      && curY (tty) + 1 == FRAME_TOTAL_LINES (f)
+      && curX (tty) + len == FRAME_COLS (f)
+      && curX (tty) < FRAME_COLS (f) - 1
+      && len > 0)
+    {
+      /* Write glyphs except the first. */
+      int old_x = curX (tty), old_y = curY (tty);
+      tty_write_glyphs_1 (f, string + 1, len - 1);
+
+      /* Insert the first glyph, shifting the rest right.  */
+      cmgoto (tty, old_y, old_x);
+      tty_insert_glyphs (f, string, 1);
+    }
+  else
+    tty_write_glyphs_1 (f, string, len);
 }
 
 /* An implementation of delete_glyphs for termcap frames. */
