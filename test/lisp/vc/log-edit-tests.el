@@ -364,7 +364,7 @@ Report color and/or grayscale properly.
   "Helper function for the log-edit-done-strip-cvs-lines tests.
 Tests that running log-edit-done-strip-cvs-lines as a log-edit-done-hook
 produces the WANTED string when run on INITIAL-TEXT with
-'log-edit-vc-backend' set to VC-BACKEND.\""
+\\='log-edit-vc-backend' set to VC-BACKEND.\""
   (with-temp-buffer
       (let ((log-edit-done-hook 'log-edit-done-strip-cvs-lines)
             (log-edit-vc-backend vc-backend))
