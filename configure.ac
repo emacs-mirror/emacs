@@ -7865,9 +7865,8 @@ fi
 
 if test "${HAVE_XFT}" = yes; then
   AC_MSG_WARN([This configuration uses libXft, which has a number of
-    font rendering issues, and is being considered for removal in the
-    next release of Emacs.  Please consider using Cairo graphics +
-    HarfBuzz text shaping instead (they are auto-detected if the
+    font rendering issues in its earlier releases.  Please consider
+    using Cairo graphics instead (they are auto-detected if the
     relevant development headers are installed).])
 fi
 
