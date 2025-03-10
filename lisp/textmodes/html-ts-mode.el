@@ -125,6 +125,9 @@ Return nil if there is no name or if NODE is not a defun node."
      (treesit-search-subtree node "\\`tag_name\\'" nil nil 2)
      t)))
 
+(declare-function treesit-node-end "treesit.c")
+(declare-function treesit-node-start "treesit.c")
+
 (defun html-ts-mode--outline-predicate (node)
   "Limit outlines to multi-line elements."
   (when (string-match-p "element" (treesit-node-type node))
