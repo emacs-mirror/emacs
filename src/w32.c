@@ -10451,9 +10451,10 @@ check_windows_init_file (void)
     }
 }
 
-/* from w32fns.c */
+/* from w32fns.c  */
 extern void remove_w32_kbdhook (void);
-
+/* from w32proc.c  */
+extern void free_wait_pool (void);
 void
 term_ntproc (int ignored)
 {
@@ -10463,11 +10464,12 @@ term_ntproc (int ignored)
 
   term_timers ();
 
-  /* shutdown the socket interface if necessary */
+  /* shutdown the socket interface if necessary.  */
   term_winsock ();
 
   term_w32select ();
-
+  /* exit all worker threads of sys_select if necessary.  */
+  free_wait_pool ();
 #if HAVE_NATIVE_IMAGE_API
   w32_gdiplus_shutdown ();
 #endif
