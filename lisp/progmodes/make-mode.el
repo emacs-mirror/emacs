@@ -225,8 +225,18 @@ not be enclosed in { } or ( )."
 ;; that if you change this regexp you might have to fix the imenu
 ;; index in makefile-imenu-generic-expression.
 (defvar makefile-dependency-regex
-  ;; Allow for two nested levels $(v1:$(v2:$(v3:a=b)=c)=d)
-  "^\\(\\(?:\\$\\(?:[({]\\(?:\\$\\(?:[({]\\(?:\\$\\(?:[^({]\\|.[^\n$#})]+?[})]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\|[^\n$#:=]\\)+?\\)\\(:\\)\\(?:[ \t]*$\\|[^=\n]\\(?:[^#\n]*?;[ \t]*\\(.+\\)\\)?\\)"
+  (letrec ((elems-re
+            (lambda (n &optional outer)
+              (if (< n 1)
+                   "[^\n$#})]+?"
+                (concat "\\(?:\\$\\(?:"
+                        "[({]" (funcall elems-re (- n 1)) "[})]"
+                        "\\|[^({]\\)"
+                        "\\|[^\n$#" (if outer "\t:=" ")}") "]\\)+?")))))
+    (concat
+     ;; Allow for two nested levels $(v1:$(v2:$(v3:a=b)=c)=d)
+     "^\\(" (funcall elems-re 3 'outer)
+     "\\)\\(:\\)\\(?:[ \t]*$\\|[^=\n]\\(?:[^#\n]*?;[ \t]*\\(.+\\)\\)?\\)"))
   "Regex used to find dependency lines in a makefile.")
 
 (defconst makefile-bsdmake-dependency-regex
