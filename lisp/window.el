@@ -7690,7 +7690,8 @@ Return WINDOW if BUFFER and WINDOW are live."
        ;; Don't dedicate WINDOW if it is dedicated because it shows
        ;; BUFFER already or it is reused and is not a side window.
        ((or (window-dedicated-p window)
-            (and (eq type 'reuse) (not (eq (cdr alist-dedicated) 'side)))))
+            (and (eq type 'reuse)
+		 (not (window-parameter window 'window-side)))))
        ;; Otherwise, if ALIST contains a 'dedicated' entry, use that
        ;; entry's value (which may be nil).
        (alist-dedicated
