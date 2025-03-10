@@ -7323,15 +7323,17 @@ The state which existed when entering the ephemeral is reset."
 
 ;;; Dead summaries.
 
-(defvar gnus-dead-summary-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map)
-    (substitute-key-definition 'undefined 'gnus-summary-wake-up-the-dead map)
-    (dolist (key '("\C-d" "\r" "\177" [delete]))
-      (define-key map key 'gnus-summary-wake-up-the-dead))
-    (dolist (key '("q" "Q"))
-      (define-key map key 'bury-buffer))
-    map))
+(defvar-keymap gnus-dead-summary-mode-map
+  :full t :suppress t
+  "C-d"      #'gnus-summary-wake-up-the-dead
+  "RET"      #'gnus-summary-wake-up-the-dead
+  "DEL"      #'gnus-summary-wake-up-the-dead
+  "<delete>" #'gnus-summary-wake-up-the-dead
+  "q"        #'bury-buffer
+  "Q"        #'bury-buffer)
+
+(keymap-substitute gnus-dead-summary-mode-map
+                   'undefined 'gnus-summary-wake-up-the-dead)
 
 (define-minor-mode gnus-dead-summary-mode
   "Minor mode for Gnus summary buffers."

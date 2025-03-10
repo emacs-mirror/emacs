@@ -536,13 +536,11 @@ result of the verification."
 		 (item :tag "ask" nil))
   :group 'mime-security)
 
-(defvar mm-viewer-completion-map
-  (let ((map (make-sparse-keymap 'mm-viewer-completion-map)))
-    (set-keymap-parent map minibuffer-local-completion-map)
-    ;; Should we bind other key to minibuffer-complete-word?
-    (define-key map " " 'self-insert-command)
-    map)
-  "Keymap for input viewer with completion.")
+(defvar-keymap mm-viewer-completion-map
+  :doc "Keymap for input viewer with completion."
+  :parent minibuffer-local-completion-map
+  ;; Should we bind other key to minibuffer-complete-word?
+  "SPC" #'self-insert-command)
 
 ;;; The functions.
 

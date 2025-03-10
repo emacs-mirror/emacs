@@ -2803,23 +2803,27 @@ See Info node `(gnus)Formatting Variables'."
 ;;;
 
 (defun gnus-suppress-keymap (keymap)
+  (declare (obsolete nil "31.1"))
   (suppress-keymap keymap)
   (let ((keys '([delete] "\177" "\M-u"))) ;[mouse-2]
     (while keys
       (define-key keymap (pop keys) 'undefined))))
 
-(defvar gnus-article-mode-map
-  (let ((keymap (make-sparse-keymap)))
-    (gnus-suppress-keymap keymap)
-    keymap))
-(defvar gnus-summary-mode-map
-  (let ((keymap (make-keymap)))
-    (gnus-suppress-keymap keymap)
-    keymap))
-(defvar gnus-group-mode-map
-  (let ((keymap (make-keymap)))
-    (gnus-suppress-keymap keymap)
-    keymap))
+(defvar-keymap gnus-article-mode-map
+  :suppress t
+  "<delete>" #'undefined
+  "DEL"      #'undefined
+  "M-u"      #'undefined)
+(defvar-keymap gnus-summary-mode-map
+  :full t :suppress t
+  "<delete>" #'undefined
+  "DEL"      #'undefined
+  "M-u"      #'undefined)
+(defvar-keymap gnus-group-mode-map
+  :full t :suppress t
+  "<delete>" #'undefined
+  "DEL"      #'undefined
+  "M-u"      #'undefined)
 
 
 
