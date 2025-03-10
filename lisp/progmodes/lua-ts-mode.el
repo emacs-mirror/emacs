@@ -40,6 +40,7 @@
 
 ;;; Code:
 
+(require 'c-ts-common)
 (require 'comint)
 (require 'treesit)
 (treesit-declare-unavailable-functions)
@@ -286,12 +287,19 @@ values of OVERRIDE."
 
 (defvar lua-ts--simple-indent-rules
   `((lua
+     ;; Handle multi-line strings and comments.
      ((or (and (node-is "comment") (parent-is "chunk"))
           lua-ts--multi-line-comment-start
           (parent-is "comment_content")
           (parent-is "string_content")
           (or (node-is "]]") (node-is "comment_end")))
       no-indent 0)
+
+     ;; Handle multiple "end" statements on a single line.
+     ((and (node-is "end") lua-ts--end-line-matcher)
+      standalone-parent lua-ts--end-indent-offset)
+
+     ;; Handle tables in the arguments of a function call.
      ((and (n-p-gp "field" "table_constructor" "arguments")
            lua-ts--multi-arg-function-call-matcher
            lua-ts--last-arg-function-call-matcher)
@@ -300,75 +308,44 @@ values of OVERRIDE."
            lua-ts--multi-arg-function-call-matcher
            lua-ts--last-arg-function-call-matcher)
       standalone-parent 0)
-     ((and (n-p-gp "field" "table_constructor" "arguments")
+     ((and (match "field" "table_constructor" nil 1 1)
            lua-ts--multi-arg-function-call-matcher)
       parent lua-ts-indent-offset)
      ((and (n-p-gp "}" "table_constructor" "arguments")
            lua-ts--multi-arg-function-call-matcher)
       parent 0)
+
+     ;; Handle multi-line concatenation and continuation.
+     ((or (n-p-gp "expression_list" "assignment_statement" "variable_declaration")
+          (and (parent-is "binary_expression")
+               lua-ts--variable-declaration-continuation))
+      lua-ts--variable-declaration-continuation-anchor
+      lua-ts-indent-offset)
+     ;; `lua-ts-indent-continuation-lines' is non-nil.
+     ((and (lambda (&rest _) lua-ts-indent-continuation-lines)
+           (parent-is "binary_expression"))
+      standalone-parent lua-ts-indent-offset)
+     ;; `lua-ts-indent-continuation-lines' is nil.
+     ((parent-is "binary_expression") standalone-parent 0)
+
+     ;; Handle immediately invoked function expressions.
+     ((or (n-p-gp "block" "function_definition" "parenthesized_expression")
+          (n-p-gp "block" "function_definition" "arguments"))
+      parent lua-ts-indent-offset)
+     ((or (n-p-gp "end" "function_definition" "parenthesized_expression")
+          (n-p-gp "end" "function_definition" "arguments"))
+      parent 0)
+
+     ;; Handle basic indentation.
      ((or (node-is "do")
           (node-is "then")
           (node-is "elseif_statement")
           (node-is "else_statement")
           (node-is "until")
-          (node-is ")")
-          (node-is "}"))
+          (node-is "end")
+          (node-is ")"))
       standalone-parent 0)
-     ((match null "table_constructor")
-      standalone-parent lua-ts-indent-offset)
-     ((or (and (parent-is "arguments") lua-ts--first-child-matcher)
-          (and (parent-is "parameters") lua-ts--first-child-matcher)
-          (and (parent-is "table_constructor") lua-ts--first-child-matcher))
-      standalone-parent lua-ts-indent-offset)
-     ((and (not lua-ts--comment-first-sibling-matcher)
-           (or (parent-is "arguments")
-               (parent-is "parameters")
-               (parent-is "table_constructor")))
-      lua-ts--first-real-sibling-anchor 0)
-     ((or (parent-is "arguments")
-          (parent-is "parameters")
-          (parent-is "table_constructor"))
-      standalone-parent lua-ts-indent-offset)
-     ((and (n-p-gp "block" "function_definition" "parenthesized_expression")
-           lua-ts--nested-function-block-matcher
-           lua-ts--nested-function-block-include-matcher)
-      parent lua-ts-indent-offset)
-     ((and (n-p-gp "block" "function_definition" "arguments")
-           lua-ts--nested-function-argument-matcher)
-      parent lua-ts-indent-offset)
-     ((match "function_definition" "parenthesized_expression")
-      standalone-parent lua-ts-indent-offset)
-     ((node-is "block") standalone-parent lua-ts-indent-offset)
-     ((parent-is "block") parent 0)
-     ((and (node-is "end") lua-ts--end-line-matcher)
-      standalone-parent lua-ts--end-indent-offset)
-     ((match "end" "function_declaration") parent 0)
-     ((and (n-p-gp "end" "function_definition" "parenthesized_expression")
-           lua-ts--nested-function-end-argument-matcher)
-      parent 0)
-     ((and (n-p-gp "end" "function_definition" "parenthesized_expression")
-           lua-ts--nested-function-block-matcher
-           lua-ts--nested-function-end-matcher
-           lua-ts--nested-function-last-function-matcher)
-      parent 0)
-     ((and (n-p-gp "end" "function_definition" "arguments")
-           lua-ts--top-level-function-call-matcher)
-      standalone-parent 0)
-     ((n-p-gp "end" "function_definition" "arguments") parent 0)
-     ((or (match "end" "function_definition")
-          (node-is "end"))
-      standalone-parent 0)
-     ((n-p-gp "expression_list" "assignment_statement" "variable_declaration")
-      lua-ts--variable-declaration-continuation-anchor
-      lua-ts-indent-offset)
-     ((and (parent-is "binary_expression")
-           lua-ts--variable-declaration-continuation)
-      lua-ts--variable-declaration-continuation-anchor
-      lua-ts-indent-offset)
-     ((and (lambda (&rest _) lua-ts-indent-continuation-lines)
-           (parent-is "binary_expression"))
-      standalone-parent lua-ts-indent-offset)
-     ((parent-is "binary_expression") standalone-parent 0)
+
      ((or (parent-is "function_declaration")
           (parent-is "function_definition")
           (parent-is "do_statement")
@@ -377,10 +354,19 @@ values of OVERRIDE."
           (parent-is "while_statement")
           (parent-is "if_statement")
           (parent-is "else_statement")
-          (parent-is "elseif_statement"))
+          (parent-is "elseif_statement")
+          ;; `c-ts-common-baseline-indent-rule' will handle further
+          ;; siblings after the first one has been properly indented.
+          ;; The opening bracket occupies index 0.
+          (match nil "arguments" nil 1 1)
+          (match nil "parameters" nil 1 1)
+          (match "field" "table_constructor" nil 1 1))
       standalone-parent lua-ts-indent-offset)
+
+     ((parent-is "block") parent 0)
      ((parent-is "chunk") column-0 0)
-     ((parent-is "ERROR") no-indent 0))))
+     ((parent-is "ERROR") no-indent 0)
+     c-ts-common-baseline-indent-rule)))
 
 (defun lua-ts--end-line-matcher (&rest _)
   "Matches if there is more than one `end' on the current line."
@@ -394,26 +380,10 @@ values of OVERRIDE."
   "Count the number of `end's on the current line."
   (count-matches "end" (line-beginning-position) (line-end-position)))
 
-(defun lua-ts--first-child-matcher (node &rest _)
-  "Matches if NODE is the first among its siblings."
-  (= (treesit-node-index node) 1))
-
-(defun lua-ts--function-definition-p (node)
-  "Return t if NODE is a function_definition."
-  (equal "function_definition" (treesit-node-type node)))
-
 (defun lua-ts--g-parent (node)
   "Return the grand-parent of NODE."
   (let ((parent (treesit-node-parent node)))
     (treesit-node-parent parent)))
-
-(defun lua-ts--g-g-parent (node)
-  "Return the great-grand-parent of NODE."
-  (treesit-node-parent (lua-ts--g-parent node)))
-
-(defun lua-ts--g-g-g-parent (node)
-  "Return the great-great-grand-parent of NODE."
-  (treesit-node-parent (lua-ts--g-g-parent node)))
 
 (defun lua-ts--multi-arg-function-call-matcher (_n parent &rest _)
   "Matches if PARENT has multiple arguments."
@@ -425,86 +395,18 @@ values of OVERRIDE."
          (last (1- (treesit-node-child-count g-parent t))))
     (treesit-node-eq parent (seq-elt (treesit-node-children g-parent t) last))))
 
-(defun lua-ts--nested-function-argument-matcher (node &rest _)
-  "Matches if NODE is in a nested function argument."
-  (save-excursion
-    (goto-char (treesit-node-start node))
-    (treesit-beginning-of-defun)
-    (backward-char 2)
-    (and (not (looking-at ")("))
-         (not (equal "chunk"
-                     (treesit-node-type
-                      (lua-ts--g-parent (treesit-node-at (point)))))))))
-
-(defun lua-ts--nested-function-block-matcher (node &rest _)
-  "Matches if NODE is in a nested function block."
-  (let* ((g-g-g-parent (lua-ts--g-g-g-parent node))
-         (g-g-g-type (treesit-node-type g-g-g-parent)))
-    (not (equal g-g-g-type "chunk"))))
-
-(defun lua-ts--nested-function-block-include-matcher (node _p bol &rest _)
-  "Matches if NODE's child at BOL is not another block."
-  (let* ((child (treesit-node-first-child-for-pos node bol))
-         (child-type (treesit-node-type child))
-         (g-g-g-type (treesit-node-type (lua-ts--g-g-g-parent node))))
-    (or (equal child-type "assignment_statement")
-        (and (equal child-type "return_statement")
-             (or (equal g-g-g-type "arguments")
-                 (and (equal g-g-g-type "expression_list")
-                      (not (treesit-search-subtree child "function_call"))))))))
-
-(defun lua-ts--nested-function-end-matcher (node &rest _)
-  "Matches if NODE is the `end' of a nested function."
-  (save-excursion
-    (goto-char (treesit-node-start node))
-    (treesit-beginning-of-defun)
-    (looking-at "function[[:space:]]*")))
-
-(defun lua-ts--nested-function-end-argument-matcher (node &rest _)
-  "Matches if great-great-grandparent of NODE is arguments."
-  (equal "arguments" (treesit-node-type (lua-ts--g-g-g-parent node))))
-
-(defun lua-ts--nested-function-last-function-matcher (_n parent &rest _)
-  "Matches if PARENT is the last nested function."
-  (let ((sparse-tree
-         (treesit-induce-sparse-tree parent #'lua-ts--function-definition-p)))
-    (= 1 (length (cadr sparse-tree)))))
-
-(defun lua-ts--comment-first-sibling-matcher (node &rest _)
-  "Matches NODE if its previous sibling is a comment."
-  (let ((sibling (treesit-node-prev-sibling node)))
-    (and (= 0 (treesit-node-index sibling t))
-         (equal "comment" (treesit-node-type sibling)))))
-
-(defun lua-ts--top-level-function-call-matcher (node &rest _)
-  "Matches if NODE is within a top-level function call."
-  (let* ((g-g-p (lua-ts--g-g-parent node))
-         (g-g-g-p (lua-ts--g-g-g-parent node)))
-    (and (equal "function_call" (treesit-node-type g-g-p))
-         (equal "chunk" (treesit-node-type g-g-g-p)))))
-
-(defun lua-ts--first-real-sibling-anchor (_n parent _)
-  "Return the start position of the first non-comment child of PARENT."
-  (treesit-node-start
-   (seq-first
-    (seq-filter
-     (lambda (n) (not (equal "comment" (treesit-node-type n))))
-     (treesit-node-children parent t)))))
-
 (defun lua-ts--variable-declaration-continuation (node &rest _)
   "Matches if NODE is part of a multi-line variable declaration."
-  (treesit-parent-until node
-                        (lambda (p)
-                          (equal "variable_declaration"
-                                 (treesit-node-type p)))))
+  (treesit-parent-until node (lambda (p)
+                               (equal "variable_declaration"
+                                      (treesit-node-type p)))))
 
 (defun lua-ts--variable-declaration-continuation-anchor (node &rest _)
   "Return the start position of the variable declaration for NODE."
   (save-excursion
     (goto-char (treesit-node-start
                 (lua-ts--variable-declaration-continuation node)))
-    (when (looking-back (rx bol (* whitespace))
-                        (line-beginning-position))
+    (when (looking-back (rx bol (* whitespace)) (line-beginning-position))
       (point))))
 
 (defun lua-ts--multi-line-comment-start (node &rest _)
@@ -783,6 +685,8 @@ Calls REPORT-FN directly."
                    variable)))
 
     ;; Indent.
+    (setq-local c-ts-common-indent-offset 'lua-ts-indent-offset)
+    (setq-local c-ts-common-list-indent-style 'simple)
     (setq-local treesit-simple-indent-rules lua-ts--simple-indent-rules)
 
     ;; Navigation.
