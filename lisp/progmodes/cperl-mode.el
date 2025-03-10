@@ -575,12 +575,12 @@ This way enabling/disabling of menu items is more correct."
 
 (defcustom cperl-fontify-trailer
   'perl-code
-  "How to fontify text after an \"__END__\" or \"__DATA__\" token.
-If \"perl-code\", treat as Perl code for fontification, and
-examine for imenu entries.  Use this setting if you have trailing
-POD documentation, or for modules which use AutoLoad or
-AutoSplit.  If \"comment\", treat as comment, and do not look for
-imenu entries."
+  "How to treat text after an \"__END__\" or \"__DATA__\" token.
+If \"perl-code\", treat as Perl code for fontification, examine for
+imenu entries, and indent according to Perl syntax.  Use this setting if
+you have trailing POD documentation, or for modules which use AutoLoad
+or AutoSplit.  If \"comment\", treat as comment, do not look for imenu
+entries, and do not change indentation."
   :type '(choice (const perl-code)
 		 (const comment))
   :version "30.1"
