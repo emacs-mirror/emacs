@@ -14878,6 +14878,14 @@ x_fast_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
       return;
     }
 
+  FOR_EACH_FRAME (tail, frame)
+    {
+      if (FRAME_X_P (XFRAME (frame))
+	  && (FRAME_DISPLAY_INFO (XFRAME (frame))
+	      == dpyinfo))
+	XFRAME (frame)->mouse_moved = false;
+    }
+
   if (!EQ (Vx_use_fast_mouse_position, Qreally_fast))
     {
       /* This means that Emacs should select a frame and report the
@@ -14885,14 +14893,6 @@ x_fast_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	 making multiple roundtrips to the X server querying for the
 	 window beneath the pointer, and was borrowed from
 	 haiku_mouse_position in haikuterm.c.  */
-
-      FOR_EACH_FRAME (tail, frame)
-	{
-	  if (FRAME_X_P (XFRAME (frame))
-	      && (FRAME_DISPLAY_INFO (XFRAME (frame))
-		  == dpyinfo))
-	    XFRAME (frame)->mouse_moved = false;
-	}
 
       if (gui_mouse_grabbed (dpyinfo)
 	  && !EQ (track_mouse, Qdropping)
@@ -14952,8 +14952,8 @@ x_fast_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
     }
   else
     {
-      /* This means Emacs should only report the coordinates of the
-	 last mouse motion.  */
+      /* This means Emacs should only report the coordinates of the last
+	 mouse motion.  */
 
       if (dpyinfo->last_mouse_motion_frame)
 	{
@@ -14963,15 +14963,6 @@ x_fast_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 	  *y = make_fixnum (dpyinfo->last_mouse_motion_y);
 	  *bar_window = Qnil;
 	  *part = scroll_bar_nowhere;
-
-	  FOR_EACH_FRAME (tail, frame)
-	    {
-	      if (FRAME_X_P (XFRAME (frame))
-		  && (FRAME_DISPLAY_INFO (XFRAME (frame))
-		      == dpyinfo))
-		XFRAME (frame)->mouse_moved = false;
-	    }
-
 	  dpyinfo->last_mouse_motion_frame->mouse_moved = false;
 	}
     }
