@@ -1461,7 +1461,7 @@ extern struct frame *make_initial_frame (void);
 extern struct frame *make_frame (bool);
 extern bool frame_redisplay_p (struct frame *);
 extern int tty_child_pos_param (struct frame *, Lisp_Object,
-				Lisp_Object, int);
+				Lisp_Object, int, int);
 extern int tty_child_size_param (struct frame *, Lisp_Object,
 				 Lisp_Object, int);
 #ifdef HAVE_WINDOW_SYSTEM

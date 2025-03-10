@@ -1715,19 +1715,19 @@ IT_set_frame_parameters (struct frame *f, Lisp_Object alist)
      a nuumber of other flags.  */
   if (is_tty_child_frame (f))
     {
-      int x = tty_child_pos_param (f, Qleft, alist, f->left_pos);
-      int y = tty_child_pos_param (f, Qtop, alist, f->top_pos);
+      int w = tty_child_size_param (f, Qwidth, alist, f->total_cols);
+      int h = tty_child_size_param (f, Qheight, alist, f->total_lines);
+      if (w != f->total_cols || h != f->total_lines)
+	change_frame_size (f, w, h, false, false, false);
+
+      int x = tty_child_pos_param (f, Qleft, alist, f->left_pos, w);
+      int y = tty_child_pos_param (f, Qtop, alist, f->top_pos, h);
       if (x != f->left_pos || y != f->top_pos)
 	{
 	  f->left_pos = x;
 	  f->top_pos = y;
 	  SET_FRAME_GARBAGED (root_frame (f));
 	}
-
-      int w = tty_child_size_param (f, Qwidth, alist, f->total_cols);
-      int h = tty_child_size_param (f, Qheight, alist, f->total_lines);
-      if (w != f->total_cols || h != f->total_lines)
-	change_frame_size (f, w, h, false, false, false);
 
       Lisp_Object visible = Fassq (Qvisibility, alist);
       if (CONSP (visible))

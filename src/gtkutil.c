@@ -1070,19 +1070,27 @@ xg_set_geometry (struct frame *f)
 	     be off by scrollbar width + window manager decorations.  */
 #ifndef HAVE_PGTK
 	  if (f->size_hint_flags & XNegative)
-	    f->left_pos = (x_display_pixel_width (FRAME_DISPLAY_INFO (f))
+	    f->left_pos = ((FRAME_PARENT_FRAME (f)
+			    ? FRAME_PIXEL_WIDTH (FRAME_PARENT_FRAME (f))
+			    : x_display_pixel_width (FRAME_DISPLAY_INFO (f)))
 			   - FRAME_PIXEL_WIDTH (f) + f->left_pos);
 
 	  if (f->size_hint_flags & YNegative)
-	    f->top_pos = (x_display_pixel_height (FRAME_DISPLAY_INFO (f))
+	    f->top_pos = ((FRAME_PARENT_FRAME (f)
+			   ? FRAME_PIXEL_HEIGHT (FRAME_PARENT_FRAME (f))
+			   : x_display_pixel_height (FRAME_DISPLAY_INFO (f)))
 			  - FRAME_PIXEL_HEIGHT (f) + f->top_pos);
 #else
 	  if (f->size_hint_flags & XNegative)
-	    f->left_pos = (pgtk_display_pixel_width (FRAME_DISPLAY_INFO (f))
+	    f->left_pos = ((FRAME_PARENT_FRAME (f)
+			    ? FRAME_PIXEL_WIDTH (FRAME_PARENT_FRAME (f))
+			    : pgtk_display_pixel_width (FRAME_DISPLAY_INFO (f)))
 			   - FRAME_PIXEL_WIDTH (f) + f->left_pos);
 
 	  if (f->size_hint_flags & YNegative)
-	    f->top_pos = (pgtk_display_pixel_height (FRAME_DISPLAY_INFO (f))
+	    f->top_pos = ((FRAME_PARENT_FRAME (f)
+			   ? FRAME_PIXEL_HEIGHT (FRAME_PARENT_FRAME (f))
+			   : pgtk_display_pixel_height (FRAME_DISPLAY_INFO (f)))
 			  - FRAME_PIXEL_HEIGHT (f) + f->top_pos);
 #endif
 

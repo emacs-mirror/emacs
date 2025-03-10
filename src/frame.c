@@ -1489,17 +1489,43 @@ get_future_frame_param (Lisp_Object parameter,
 #endif
 
 int
-tty_child_pos_param (struct frame *child, Lisp_Object key,
-		     Lisp_Object params, int dflt)
+tty_child_pos_param (struct frame *f, Lisp_Object key,
+		     Lisp_Object params, int pos, int size)
 {
+  struct frame *p = XFRAME (f->parent_frame);
   Lisp_Object val = Fassq (key, params);
+
   if (CONSP (val))
     {
       val = XCDR (val);
-      if (FIXNUMP (val))
-	return XFIXNUM (val);
+
+      if (EQ (val, Qminus))
+	pos = (EQ (key, Qtop)
+	       ? p->pixel_height - size
+	       : p->pixel_width - size);
+      else if (TYPE_RANGED_FIXNUMP (int, val))
+	{
+	  pos = XFIXNUM (val);
+
+	  if (pos < 0)
+	    /* Handle negative value. */
+	    pos = (EQ (key, Qtop)
+		   ? p->pixel_height - size + pos
+		   : p->pixel_width - size + pos);
+	}
+      else if (CONSP (val) && EQ (XCAR (val), Qplus)
+	       && CONSP (XCDR (val))
+	       && TYPE_RANGED_FIXNUMP (int, XCAR (XCDR (val))))
+	pos = XFIXNUM (XCAR (XCDR (val)));
+      else if (CONSP (val) && EQ (XCAR (val), Qminus)
+	       && CONSP (XCDR (val))
+	       && RANGED_FIXNUMP (-INT_MAX, XCAR (XCDR (val)), INT_MAX))
+	pos = (EQ (key, Qtop)
+	       ? p->pixel_height - size - XFIXNUM (XCAR (XCDR (val)))
+	       : p->pixel_width - size - XFIXNUM (XCAR (XCDR (val))));
     }
-  return dflt;
+
+  return pos;
 }
 
 int
@@ -1546,10 +1572,10 @@ static void
 tty_child_frame_rect (struct frame *f, Lisp_Object params,
 		      int *x, int *y, int *w, int *h)
 {
-  *x = tty_child_pos_param (f, Qleft, params, 0);
-  *y = tty_child_pos_param (f, Qtop, params, 0);
   *w = tty_child_size_param (f, Qwidth, params, FRAME_TOTAL_COLS (f));
   *h = tty_child_size_param (f, Qheight, params, FRAME_TOTAL_LINES (f));
+  *x = tty_child_pos_param (f, Qleft, params, 0, *w);
+  *y = tty_child_pos_param (f, Qtop, params, 0, *h);
 }
 
 #endif /* !HAVE_ANDROID */
@@ -1688,10 +1714,6 @@ affects all frames on the same terminal device.  */)
 
   f->left_pos = x;
   f->top_pos = y;
-  store_in_alist (&parms, Qleft, make_fixnum (x));
-  store_in_alist (&parms, Qtop, make_fixnum (y));
-  store_in_alist (&parms, Qwidth, make_fixnum (width));
-  store_in_alist (&parms, Qheight, make_fixnum (height));
 
   store_in_alist (&parms, Qtty_type, build_string (t->display_info.tty->type));
   store_in_alist (&parms, Qtty,
@@ -3951,8 +3973,11 @@ list, but are otherwise ignored.  */)
 
       if (is_tty_child_frame (f))
 	{
-	  int x = tty_child_pos_param (f, Qleft, params, f->left_pos);
-	  int y = tty_child_pos_param (f, Qtop, params, f->top_pos);
+	  int w = tty_child_size_param (f, Qwidth, params, f->total_cols);
+	  int h = tty_child_size_param (f, Qheight, params, f->total_lines);
+	  int x = tty_child_pos_param (f, Qleft, params, f->left_pos, w);
+	  int y = tty_child_pos_param (f, Qtop, params, f->top_pos, h);
+
 	  if (x != f->left_pos || y != f->top_pos)
 	    {
 	      f->left_pos = x;
@@ -3960,8 +3985,6 @@ list, but are otherwise ignored.  */)
 	      SET_FRAME_GARBAGED (root_frame (f));
 	    }
 
-	  int w = tty_child_size_param (f, Qwidth, params, f->total_cols);
-	  int h = tty_child_size_param (f, Qheight, params, f->total_lines);
 	  if (w != f->total_cols || h != f->total_lines)
 	    change_frame_size (f, w, h, false, false, false);
 
