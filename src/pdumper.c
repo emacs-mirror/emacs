@@ -5810,7 +5810,7 @@ pdumper_load (const char *dump_filename, char *argv0)
   if ((dump_base + dump_size) & ~VALMASK)
     {
       fprintf (stderr,
-	       "Failed to load dump file: 0x%p+0x%p & 0x%p != 0\n",
+	       "Failed to load dump file: 0x%p+0x%p & ~0x%p != 0\n",
 	       (void *) dump_base, (void *) dump_size,
 	       (void *) (uintptr_t) VALMASK);
       goto out;
