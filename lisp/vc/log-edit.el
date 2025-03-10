@@ -458,8 +458,13 @@ The first subexpression is the actual text of the field.")
              'log-edit-header)
          nil lax))
      ("^\n"
-      (and (not (bound-and-true-p git-commit-mode))
-           (progn (goto-char (match-end 0)) (1+ (match-end 0)))) nil
+      (and
+       ;; This fixes a bug with `git-commit-mode', a NonGNU ELPA package
+       ;; used by Magit.  Without this check, we get a wrong display
+       ;; when `git-commit-major-mode' is set to `log-edit-mode'.
+       (not (bound-and-true-p git-commit-mode))
+       (progn (goto-char (match-end 0)) (1+ (match-end 0))))
+      nil
       (0 '( face log-edit-headers-separator
             display-line-numbers-disable t rear-nonsticky t))))
     (log-edit--match-first-line (0 'log-edit-summary))))
