@@ -94,8 +94,9 @@ handles the corresponding kind of display.")
     "vertical-scroll-bars" "visibility" "wait-for-wm" "width" "z-group")
   "List of special frame parameters that makes sense to customize.")
 
-(declare-function "widget-field-text-end" "wid-edit")
-(declare-function "widget-field-start" "wid-edit")
+(declare-function widget-field-text-end "wid-edit")
+(declare-function widget-field-start "wid-edit")
+(declare-function widget-get "wid-edit")
 
 (defun frame--complete-parameter-value (widget)
   "Provide completion for WIDGET, which holds frame parameter's values."
