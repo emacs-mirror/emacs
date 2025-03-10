@@ -77,7 +77,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define VM_POSIX 1
 #define VM_MS_WINDOWS 2
 
-#if !USE_LSB_TAG
+#if !USE_LSB_TAG && !defined WIDE_EMACS_INT
 # define VM_SUPPORTED 0
 #elif defined (HAVE_MMAP) && defined (MAP_FIXED)
 # define VM_SUPPORTED VM_POSIX
