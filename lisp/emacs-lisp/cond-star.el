@@ -3,7 +3,7 @@
 ;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
 
 ;; Maintainer: Richard Stallman <rms@gnu.org>
-;; Package: emacs
+;; Package: cond-star
 ;; Version: 1.0
 ;; Package-Requires: ((emacs "24.3"))
 
