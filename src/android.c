@@ -7426,7 +7426,7 @@ android_rewrite_spawn_argv (const char ***argv)
 
   /* Allocate a buffer in which to save the rewritten argument
      array.  */
-  if (n_new_args != nargs)
+  if (n_new_args != nargs + 2)
     {
       new_args = xrealloc (new_args, sizeof *new_args * (nargs + 3));
       n_new_args = nargs + 2;
