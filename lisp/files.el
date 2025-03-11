@@ -4163,10 +4163,12 @@ DIR-NAME is the name of the associated directory.  Otherwise it is nil."
 
 (defun hack-local-variables (&optional handle-mode inhibit-locals)
   "Parse and put into effect this buffer's local variables spec.
-For buffers visiting files, also puts into effect directory-local
-variables.
+Also puts into effect directory-local variables.
+For buffers not visiting files, apply the directory-local variables that
+would be applicable to files in `default-directory'.
 
-Uses `hack-local-variables-apply' to apply the variables.
+Uses `hack-local-variables-apply' and `hack-dir-local-variables'
+to apply the variables.
 
 If `enable-local-variables' or `local-enable-local-variables' is
 nil, or INHIBIT-LOCALS is non-nil, this function disregards all
