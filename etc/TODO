@@ -1806,12 +1806,6 @@ https://lists.gnu.org/r/emacs-devel/2012-06/msg00354.html
 It wouldn't have to be a complete replacement, just enough
 for vc-rcs-update-changelog.
 
-** Allow Emacs to use the bottom-right corner of a TTY
-Emacs doesn't use the bottom-right corner of a TTY when terminfo
-capability "am" (auto_right_margin) is defined.  It could use the
-bottom-right corner nonetheless when certain other capabilities are
-defined.  See bug#57607.
-
 ** Replace tramp-archive.el by a native libarchive(3) implementation.
 The former is based on the GVFS archive backend, which makes it
 available on GNU/Linux only.  That implementation has further
