@@ -2193,12 +2193,18 @@ customize `diff-ask-before-revert-and-kill-hunk' to control that."
 
 (defun diff-apply-buffer (&optional beg end reverse)
   "Apply the diff in the entire diff buffer.
+Interactively, if the region is active, apply all hunks that the region
+overlaps; otherwise, apply all hunks.
+With a prefix argument, reverse-apply the hunks.
 If applying all hunks succeeds, save the changed buffers.
+
 When called from Lisp with optional arguments, restrict the application
-to hunks lying between BEG and END, and reverse-apply them when REVERSE is
-non-nil.  Returns nil if buffers were successfully modified and saved, or
-the number of failed hunk applications otherwise."
-  (interactive)
+to hunks lying between BEG and END, and reverse-apply them when REVERSE
+is non-nil.  Returns nil if buffers were successfully modified and
+saved, or the number of failed hunk applications otherwise."
+  (interactive (list (use-region-beginning)
+                     (use-region-end)
+                     current-prefix-arg))
   (let ((buffer-edits nil)
         (failures 0)
         (diff-refine nil))
