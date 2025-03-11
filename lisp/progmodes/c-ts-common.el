@@ -37,10 +37,14 @@
 ;;
 ;; For indenting statements:
 ;;
-;; - Set `c-ts-common-indent-offset', and
-;;   `c-ts-common-indent-type-regexp-alist', then use simple-indent
-;;   offset `c-ts-common-statement-offset' in
-;;   `treesit-simple-indent-rules'.
+;; - Set `c-ts-common-indent-offset'.  Use
+;;   `c-ts-common-baseline-indent-rule' as the fallback indent rule, and
+;;   add override rules to tweak the behavior.
+;;
+;; - There's also a node-level-based indentation algorithm, it's not as
+;;   good as `c-ts-common-baseline-indent-rule', but if you want to play
+;;   with it, set `c-ts-common-indent-type-regexp-alist' and use
+;;   `c-ts-common-statement-offset'.
 
 ;;; Code:
 
@@ -709,6 +713,9 @@ The rule also handles method chaining like
      ((treesit-node-match-p (treesit-node-child parent 0)
                             (rx (or "(" "[")))
       (let ((first-sibling (treesit-node-child parent 0 'named)))
+        (while (treesit-node-match-p
+                first-sibling c-ts-common--comment-regexp 'ignore-missing)
+          (setq first-sibling (treesit-node-next-sibling first-sibling 'named)))
         (cond
          ;; Closing delimiters.
          ((treesit-node-match-p node (rx (or ")" "]")))
