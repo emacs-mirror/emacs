@@ -945,48 +945,6 @@ TYPE indicates the namespace and is `fun' or `var'."
     (when first
       (make-text-button first nil 'type 'help-news 'help-args place))))
 
-;; (defun help-fns--check-first-releases ()
-;;   "Compare the old liberal regexp to the new more restrictive one."
-;;   (interactive)
-;;   (let* ((quoted nil)
-;;          (rx-fun (lambda (orig-fun symbol)
-;;                    (if quoted
-;;                        (funcall orig-fun symbol)
-;;                      (format "\\_<%s\\_>"
-;;                              (regexp-quote (symbol-name symbol))))))
-;;          (count
-;;           (let ((count 0))
-;;             (obarray-map (lambda (sym)
-;;                            (when (or (fboundp sym) (boundp sym))
-;;                              (incf count)))
-;;                          obarray)
-;;             count))
-;;          (p (make-progress-reporter "Check first releases..." 0 count)))
-;;     (with-current-buffer (get-buffer-create "*Check-first-release*")
-;;       (unwind-protect
-;;           (progn
-;;             (advice-add 'help-fns--first-release-regexp :around rx-fun)
-;;             (erase-buffer)
-;;             (setq count 0)
-;;             (obarray-map
-;;              (lambda (sym)
-;;                (when (or (fboundp sym) (boundp sym))
-;;                  (incf count)
-;;                  (progress-reporter-update p count)
-;;                  (let ((vt (progn (setq quoted t)
-;;                                   (help-fns--first-release sym)))
-;;                        (vnil (progn (setq quoted nil)
-;;                                     (help-fns--first-release sym))))
-;;                    (when (and vnil (not (equal vt vnil)))
-;;                      (insert (symbol-name sym)
-;;                              "\nnot-quoted: " (or vnil "nil")
-;;                              "\nquoted:     " (or vt "nil")
-;;                              "\n\n")))))
-;;              obarray)
-;;             (progress-reporter-done p))
-;;         (advice-remove 'help-fns--first-release-regexp rx-fun))
-;;       (display-buffer (current-buffer)))))
-
 (add-hook 'help-fns-describe-function-functions
           #'help-fns--mention-first-function-release)
 (add-hook 'help-fns-describe-variable-functions
