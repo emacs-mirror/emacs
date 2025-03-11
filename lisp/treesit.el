@@ -629,6 +629,20 @@ If none are valid, return nil."
 
 ;;; Range API supplement
 
+;; (ref:local-parser-overlay) Regarding local parser overlays, we store
+;; the local parser in a overlay spanning across the code block that the
+;; parser is responsible of. The `treesit-parser' property stores the
+;; parser, the `treesit-host-parser' property stores the host parser,
+;; the `treesit-parser-ov-timestamp' property stores the buffer's tick
+;; counter (`buffer-modified-tick') when we last updated this overlay,
+;; it's used for garbage-collecting stale ranges and local parsers.
+;;
+;; Besides local parsers, we also create overlays for non-local parsers,
+;; just to mark the start and end of each range it parses, so that other
+;; functions can make use of this information.  To differentiate the
+;; overlay for local and non-local parsers, local parsers' overlay has
+;; the `treesit-parser-local-p' property set to non-nil.
+
 (defvar-local treesit-range-settings nil
   "A list of range settings.
 
@@ -849,12 +863,16 @@ If WITH-HOST is non-nil, return a list of (PARSER . HOST-PARSER)
 instead.  HOST-PARSER is the host parser which created the local
 PARSER."
   (let ((res nil))
+    ;; Refer to (ref:local-parser-overlay) for more explanation of local
+    ;; parser overlays.
     (dolist (ov (overlays-at (or pos (point))))
-      (when-let* ((parser (overlay-get ov 'treesit-parser))
-                  (host-parser (overlay-get ov 'treesit-host-parser)))
-        (when (or (null language)
-                  (eq (treesit-parser-language parser)
-                      language))
+      (let ((parser (overlay-get ov 'treesit-parser))
+            (host-parser (overlay-get ov 'treesit-host-parser))
+            (local-p (overlay-get ov 'treesit-parser-local-p)))
+        (when (and parser host-parser local-p
+                   (or (null language)
+                       (eq (treesit-parser-language parser)
+                           language)))
           (push (if with-host (cons parser host-parser) parser) res))))
     (nreverse res)))
 
@@ -872,12 +890,16 @@ If WITH-HOST is non-nil, return a list of (PARSER . HOST-PARSER)
 instead.  HOST-PARSER is the host parser which created the local
 PARSER."
   (let ((res nil))
+    ;; Refer to (ref:local-parser-overlay) for more explanation of local
+    ;; parser overlays.
     (dolist (ov (overlays-in (or beg (point-min)) (or end (point-max))))
-      (when-let* ((parser (overlay-get ov 'treesit-parser))
-                  (host-parser (overlay-get ov 'treesit-host-parser)))
-        (when (or (null language)
-                  (eq (treesit-parser-language parser)
-                      language))
+      (let ((parser (overlay-get ov 'treesit-parser))
+            (host-parser (overlay-get ov 'treesit-host-parser))
+            (local-p (overlay-get ov 'treesit-parser-local-p)))
+        (when (and parser host-parser local-p
+                   (or (null language)
+                       (eq (treesit-parser-language parser)
+                           language)))
           (push (if with-host (cons parser host-parser) parser) res))))
     (nreverse res)))
 
@@ -887,12 +909,16 @@ PARSER."
 For every local parser overlay between BEG and END, if its
 `treesit-parser-ov-timestamp' is smaller than MODIFIED-TICK, delete
 it."
+  ;; Refer to (ref:local-parser-overlay) for more explanation of local
+  ;; parser overlays.
   (dolist (ov (overlays-in beg end))
     (when-let* ((ov-timestamp
                  (overlay-get ov 'treesit-parser-ov-timestamp)))
       (when (< ov-timestamp modified-tick)
-        (when-let* ((local-parser (overlay-get ov 'treesit-parser)))
-          (treesit-parser-delete local-parser))
+        (let ((local-parser (overlay-get ov 'treesit-parser))
+              (local-p (overlay-get ov 'treesit-parser-local-p)))
+          (when (and local-p local-parser)
+            (treesit-parser-delete local-parser)))
         (delete-overlay ov)))))
 
 (defsubst treesit--parser-at-level (parsers level &optional include-null)
@@ -910,7 +936,7 @@ is nil."
 (declare-function treesit-parser-embed-level "treesit.c")
 
 (defun treesit--update-ranges-non-local
-    ( host-parser query embed-lang embed-level
+    ( host-parser query embed-lang modified-tick embed-level
       &optional beg end offset range-fn)
   "Update range for non-local parsers between BEG and END under HOST-PARSER.
 
@@ -922,6 +948,11 @@ those ranges.  HOST-PARSER and QUERY must match.
 
 EMBED-LANG is either a language symbol or a function that takes a node
 and returns a language symbol.
+
+When this function touches an overlay, it sets the
+`treesit-parser-ov-timestamp' property of the overlay to MODIFIED-TICK.
+This will help Emacs garbage-collect overlays that aren't in use
+anymore.
 
 EMBED-LEVEL is the embed level for the local parsers being created or
 updated.  When looking for existing local parsers, only look for parsers
@@ -954,6 +985,29 @@ Return updated parsers as a list."
                         (treesit-parser-list nil resolved-embed-lang)
                         embed-level 'include-null)))))
         (when embed-parser
+          ;; Lay an overlay over each range to mark the start & end of
+          ;; it for other functions to access (e.g., outline wants to
+          ;; know this).  Refer to (ref:local-parser-overlay) for more
+          ;; explanation of local parser overlays.
+          (dolist (range new-ranges)
+            (let ((has-existing-ov nil))
+              (setq has-existing-ov
+                    (catch 'done
+                      (dolist (ov (overlays-in (car range) (cdr range)))
+                        (when (eq (overlay-get ov 'treesit-parser)
+                                  embed-parser)
+                          (move-overlay ov (car range) (cdr range))
+                          (overlay-put ov 'treesit-parser-ov-timestamp
+                                       modified-tick)
+                          (throw 'done t)))))
+              (unless has-existing-ov
+                (let ((ov (make-overlay (car range) (cdr range))))
+                  (overlay-put ov 'treesit-parser embed-parser)
+                  (overlay-put ov 'treesit-parser-local-p nil)
+                  (overlay-put ov 'treesit-host-parser host-parser)
+                  (overlay-put ov 'treesit-parser-ov-timestamp
+                               modified-tick)))))
+          ;; Set ranges for the embed parser.
           (let* ((old-ranges (treesit-parser-included-ranges
                               embed-parser))
                  (set-ranges (treesit--clip-ranges
@@ -1025,7 +1079,8 @@ Return the created local parsers as a list."
                                                embedded-parser))
                                  (parser-level (treesit-parser-embed-level
                                                 embedded-parser)))
-                       (when (and (eq parser-lang embedded-lang)
+                       (when (and (overlay-get ov 'treesit-parser-local-p)
+                                  (eq parser-lang embedded-lang)
                                   (eq embed-level parser-level))
                          (treesit-parser-set-included-ranges
                           embedded-parser `((,beg . ,end)))
@@ -1035,12 +1090,15 @@ Return the created local parsers as a list."
                          (throw 'done embedded-parser)))))))
             (if existing-local-parser
                 (push existing-local-parser touched-parsers)
-              ;; Create overlay and local parser.
+              ;; Create overlay and local parser.  Refer to
+              ;; (ref:local-parser-overlay) for more explanation of
+              ;; local parser overlays.
               (let ((embedded-parser (treesit-parser-create
                                       embedded-lang nil t 'embedded))
                     (ov (make-overlay beg end nil nil t)))
                 (treesit-parser-set-embed-level embedded-parser embed-level)
                 (overlay-put ov 'treesit-parser embedded-parser)
+                (overlay-put ov 'treesit-parser-local-p t)
                 (overlay-put ov 'treesit-host-parser host-parser)
                 (overlay-put ov 'treesit-parser-ov-timestamp
                              modified-tick)
@@ -1093,8 +1151,8 @@ Function range settings in SETTINGS are ignored."
            (t (setq touched-parsers
                     (append touched-parsers
                             (treesit--update-ranges-non-local
-                             host-parser query embed-lang embed-level
-                             beg end offset range-fn))))))))
+                             host-parser query embed-lang modified-tick
+                             embed-level beg end offset range-fn))))))))
     touched-parsers))
 
 (defun treesit-update-ranges (&optional beg end)
@@ -4274,8 +4332,10 @@ before calling this function."
 
   ;; Remove existing local parsers.
   (dolist (ov (overlays-in (point-min) (point-max)))
-    (when-let* ((parser (overlay-get ov 'treesit-parser)))
-      (treesit-parser-delete parser)
+    (let ((parser (overlay-get ov 'treesit-parser))
+          (local-p (overlay-get ov 'treesit-parser-local-p)))
+      (when (and parser local-p)
+        (treesit-parser-delete parser))
       (delete-overlay ov))))
 
 ;;; Helpers
