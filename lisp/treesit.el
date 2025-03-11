@@ -4525,7 +4525,7 @@ in the region."
                (<= (treesit-node-end n) end))
              t t)))))
 
-(defun treesit--explorer-refresh ()
+(defun treesit--explorer-refresh-1 ()
   "Update the syntax tree buffer."
   (when (and treesit-explore-mode
              (buffer-live-p treesit--explorer-buffer))
@@ -4575,6 +4575,19 @@ in the region."
                           (= (forward-line 4) 0))
                 (set-window-start window (point))))
             (set-window-point window pos)))))))
+
+(defun treesit--explorer-refresh ()
+  "Update the syntax tree buffer."
+  (condition-case nil
+      (treesit--explorer-refresh-1)
+    (treesit-parser-deleted
+     (when treesit--explorer-buffer
+       (with-current-buffer treesit--explorer-buffer
+         (let ((inhibit-read-only t))
+           (goto-char (point-min))
+           (unless (looking-at "Parser is deleted")
+             (insert (propertize "Parser is deleted\n"
+                                 'face 'error)))))))))
 
 (defun treesit--explorer-post-command (&rest _)
   "Post-command function that runs in the source buffer."
