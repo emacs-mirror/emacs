@@ -109,9 +109,7 @@ conjunction with `tab-bar-select-tab-modifiers', which see.
 
 If \\='tab, define only TAB and SHIFT-TAB tab-selection key mappings.
 
-If nil, do not define any key mappings.
-
-Customize this option, or use `setopt' to ensure it will take effect."
+If nil, do not define any key mappings."
   :type '(choice (const :tag "All keys" t)
                  (const :tag "Numeric tab selection keys" numeric)
                  (const :tag "TAB and SHIFT-TAB selection keys" tab)

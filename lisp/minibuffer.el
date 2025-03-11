@@ -5285,10 +5285,7 @@ and `blink-matching-paren' more user-friendly."
   "List of regular expressions that trigger `minibuffer-regexp-mode' features.
 The features of `minibuffer-regexp-mode' will be activated in a minibuffer
 interaction if and only if a prompt matching some regexp in this list
-appears at the beginning of the minibuffer.
-
-Setting this variable directly with `setq' has no effect; instead,
-either use \\[customize-option] interactively or use `setopt'."
+appears at the beginning of the minibuffer."
   :type '(repeat (string :tag "Prompt"))
   :set (lambda (sym val)
 	 (set-default sym val)

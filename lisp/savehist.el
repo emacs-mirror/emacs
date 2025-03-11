@@ -121,8 +121,7 @@ executes in under 5 ms on my system."
 
 (defcustom savehist-autosave-interval (* 5 60)
   "The interval between autosaves of minibuffer history.
-If set to nil, disables timer-based autosaving.
-Use `setopt' or Customize commands to set this option."
+If set to nil, disables timer-based autosaving."
   :type '(choice (const :tag "Disabled" nil)
                  (integer :tag "Seconds"))
   :set (lambda (sym val)

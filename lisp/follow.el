@@ -230,10 +230,7 @@ After that, changing the prefix key requires manipulating keymaps."
 (make-obsolete-variable 'follow-mode-prefix 'follow-mode-prefix-key "31.1")
 
 (defcustom follow-mode-prefix-key (key-description follow-mode-prefix)
-  "Prefix key to use for follow commands in Follow mode.
-
-Setting this variable with `setq' has no effect; use either `setopt'
-or `customize-option' to change its value."
+  "Prefix key to use for follow commands in Follow mode."
   :type 'string
   :set (lambda (symbol value)
          (defvar follow-mode-map) (defvar follow-mode-submap)

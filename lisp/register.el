@@ -147,10 +147,7 @@ all; the preview buffer is still accessible with `help-char' (\\`C-h').
 
 When set to `traditional' (the default), provide a more basic preview
 according to `register-preview-delay'; this preserves the traditional
-behavior of Emacs 29 and before.
-
-Setting this variable with `setq' has no effect; use either `setopt'
-or `customize-option' to change its value."
+behavior of Emacs 29 and before."
   :type '(choice
           (const :tag "Use preview" t)
           (const :tag "Use preview and exit by pressing register name" insist)

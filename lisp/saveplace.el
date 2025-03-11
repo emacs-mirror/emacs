@@ -235,8 +235,7 @@ If `save-place-mode' is enabled, set the timer, otherwise cancel the timer."
 
 (defcustom save-place-autosave-interval nil
   "The interval between auto saves of buffer places.
-If set to nil, disables timer-based auto saving.
-Use `setopt' or Customize commands to set this option."
+If set to nil, disables timer-based auto saving."
   :type '(choice (const :tag "Disabled" nil)
                  (integer :tag "Seconds"))
   :version "31.1"

@@ -868,6 +868,19 @@ the C sources, too."
              (function-get function 'disabled))
     (insert "  This function is disabled.\n")))
 
+(add-hook 'help-fns-describe-variable-functions #'help--recommend-setopt)
+(defun help--recommend-setopt (symbol)
+  ;; TODO: This would be better if added to the docstring itself, but I
+  ;;       ran into `byte-compile-dynamic-docstring' and gave up.
+  (when (and (get symbol 'custom-set)
+             ;; Don't override manually written documentation.
+             (not (string-match (rx word-start "setopt" word-end)
+                                (get symbol 'variable-documentation))))
+    ;; FIXME: `princ` removes text properties added by s-c-k.
+    (princ (substitute-command-keys "\
+Setting this variable with `setq' has no effect; use either `setopt'
+or \\[customize-option] to change its value.\n\n"))))
+
 (defun help-fns--first-release-regexp (symbol)
   (let* ((name (symbol-name symbol))
          (quoted (regexp-quote name)))

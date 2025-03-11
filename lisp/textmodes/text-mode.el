@@ -83,10 +83,7 @@ means that Text mode adds an Ispell word completion function to
 `completion-at-point-functions'.  Any other non-nil value says to
 bind M-TAB directly to `ispell-complete-word' instead.  If this
 is nil, Text mode neither binds M-TAB to `ispell-complete-word'
-nor does it extend `completion-at-point-functions'.
-
-This user option only takes effect when you customize it in
-Custom or with `setopt', not with `setq'."
+nor does it extend `completion-at-point-functions'."
   :group 'text
   :type '(choice (const completion-at-point) boolean)
   :version "30.1"
