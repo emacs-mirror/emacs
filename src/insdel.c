@@ -1428,12 +1428,29 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
                bool run_mod_hooks, bool inherit,
                bool adjust_match_data)
 {
-  ptrdiff_t inschars = SCHARS (new);
-  ptrdiff_t insbytes = SBYTES (new);
+  ptrdiff_t inschars;
+  ptrdiff_t insbeg;
+  struct buffer *insbuf;
+  if (STRINGP (new))
+    {
+      insbuf = NULL;
+      insbeg = 0;
+      inschars = SCHARS (new);
+    }
+  else
+    {
+      CHECK_VECTOR (new);
+      /* Let `Faref' signal an error if it's too small.  */
+      Lisp_Object insend = Faref (new, make_fixnum (2));
+      CHECK_BUFFER (AREF (new, 0));
+      CHECK_FIXNUM (AREF (new, 1));
+      CHECK_FIXNUM (insend);
+      insbuf = XBUFFER (AREF (new, 0));
+      insbeg = XFIXNUM (AREF (new, 1));
+      inschars = XFIXNUM (insend) - insbeg;
+    }
   ptrdiff_t from_byte, to_byte;
   ptrdiff_t nbytes_del, nchars_del;
-  INTERVAL intervals;
-  ptrdiff_t outgoing_insbytes = insbytes;
   Lisp_Object deletion;
 
   check_markers ();
@@ -1459,17 +1476,51 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
   nchars_del = to - from;
   nbytes_del = to_byte - from_byte;
 
-  if (nbytes_del <= 0 && insbytes == 0)
+  if (nbytes_del <= 0 && inschars == 0)
     return;
+
+  ptrdiff_t insbeg_bytes, insend_bytes;
+  ptrdiff_t insbytes;
+  unsigned char *insbeg_ptr;
+  bool new_is_multibyte;
+  if (!insbuf)
+    {
+      new_is_multibyte = STRING_MULTIBYTE (new);
+      insbytes = SBYTES (new);
+      insbeg_ptr = SDATA (new);
+    }
+  else
+    {
+      new_is_multibyte = !NILP (BVAR (insbuf, enable_multibyte_characters));
+      ptrdiff_t insend = insbeg + inschars;
+      if (new_is_multibyte)
+	{
+	  insbeg_bytes = buf_charpos_to_bytepos (insbuf, insbeg);
+	  insend_bytes = buf_charpos_to_bytepos (insbuf, insend);
+	}
+      else
+	{
+	  insbeg_bytes = insbeg;
+	  insend_bytes = insend;
+	}
+      insbytes = insend_bytes - insbeg_bytes;
+      if (insbuf->text->gpt_byte > insbeg_bytes
+	  && insbuf->text->gpt_byte < insend_bytes)
+	move_gap_both (insbeg, insbeg_bytes);
+      insbeg_ptr = BUF_BYTE_ADDRESS (insbuf, insbeg_bytes);
+      eassert (insbuf->text->gpt_byte <= insbeg_bytes
+	       || insbuf->text->gpt_byte >= insend_bytes);
+    }
+  ptrdiff_t outgoing_insbytes = insbytes;
 
   /* Make OUTGOING_INSBYTES describe the text
      as it will be inserted in this buffer.  */
 
   if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
     outgoing_insbytes = inschars;
-  else if (! STRING_MULTIBYTE (new))
+  else if (! new_is_multibyte)
     outgoing_insbytes
-      = count_size_as_multibyte (SDATA (new), insbytes);
+      = count_size_as_multibyte (insbeg_ptr, insbytes);
 
   /* Make sure the gap is somewhere in or next to what we are deleting.  */
   if (from > GPT)
@@ -1504,8 +1555,8 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
 
   /* Copy the string text into the buffer, perhaps converting
      between single-byte and multibyte.  */
-  copy_text (SDATA (new), GPT_ADDR, insbytes,
-	     STRING_MULTIBYTE (new),
+  copy_text (insbeg_ptr, GPT_ADDR, insbytes,
+	     new_is_multibyte,
 	     ! NILP (BVAR (current_buffer, enable_multibyte_characters)));
 
 #ifdef BYTE_COMBINING_DEBUG
@@ -1548,7 +1599,10 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
 
   /* Get the intervals for the part of the string we are inserting--
      not including the combined-before bytes.  */
-  intervals = string_intervals (new);
+  INTERVAL intervals
+    = (!insbuf ? string_intervals (new)
+       : copy_intervals (buffer_intervals (insbuf), insbeg, inschars));
+
   /* Insert those intervals.  */
   graft_intervals_into_buffer (intervals, from, inschars,
 			       current_buffer, inherit);
@@ -1571,7 +1625,7 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
   CHARS_MODIFF = MODIFF;
 
   if (adjust_match_data)
-    update_search_regs (from, to, from + SCHARS (new));
+    update_search_regs (from, to, from + inschars);
 
   if (run_mod_hooks)
     {

@@ -2050,9 +2050,10 @@ nil.  */)
 
   if (early_abort)
     {
-      /* FIXME: Use 'replace_range'!  */
-      del_range (min_a, ZV);
-      Finsert_buffer_substring (source, Qnil,Qnil);
+      Lisp_Object src = CALLN (Fvector, source_buffer,
+			       make_fixnum (BUF_BEGV (b)),
+			       make_fixnum (BUF_ZV (b)));
+      replace_range (BEGV, ZV, src, true, false, false);
       SAFE_FREE_UNBIND_TO (count, Qnil);
       return Qnil;
     }
@@ -2075,6 +2076,7 @@ nil.  */)
 
   ptrdiff_t i = size_a;
   ptrdiff_t j = size_b;
+  Lisp_Object src = CALLN (Fvector, source_buffer, Qnil, Qnil);
   /* Walk backwards through the lists of changes.  This was also
      cargo-culted from src/analyze.c in GNU Diffutils.  Because we
      walk backwards, we don’t have to keep the positions in sync.  */
@@ -2101,14 +2103,9 @@ nil.  */)
           eassert (beg_b <= end_b);
           eassert (beg_a < end_a || beg_b < end_b);
           /* FIXME: Use 'replace_range'!  */
-          if (beg_a < end_a)
-            del_range (beg_a, end_a);
-          if (beg_b < end_b)
-            {
-              SET_PT (beg_a);
-              Finsert_buffer_substring (source, make_fixed_natnum (beg_b),
-                                        make_fixed_natnum (end_b));
-            }
+          ASET (src, 1, make_fixed_natnum (beg_b));
+          ASET (src, 2, make_fixed_natnum (end_b));
+          replace_range (beg_a, end_a, src, true, false, false);
 	}
       --i;
       --j;

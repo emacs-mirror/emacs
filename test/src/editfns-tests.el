@@ -280,23 +280,25 @@
 
 (ert-deftest replace-buffer-contents-1 ()
   (with-temp-buffer
-    (insert #("source" 2 4 (prop 7)))
+    (insert #("source " 2 4 (prop 7)))
     (let ((source (current-buffer)))
       (with-temp-buffer
         (insert "before dest after")
         (let ((marker (set-marker (make-marker) 14)))
           (save-restriction
-            (narrow-to-region 8 12)
-            (replace-buffer-contents source))
+            (narrow-to-region 8 13)
+            (goto-char 12)
+            (should (looking-at " \\'"))
+            (replace-buffer-contents source)
+            (should (looking-at " \\'")))
           (should (equal (marker-buffer marker) (current-buffer)))
           (should (equal (marker-position marker) 16)))
         (should (equal-including-properties
                  (buffer-string)
-                 #("before source after" 9 11 (prop 7))))
-        (should (equal (point) 9))))
+                 #("before source after" 9 11 (prop 7))))))
     (should (equal-including-properties
              (buffer-string)
-             #("source" 2 4 (prop 7))))))
+             #("source " 2 4 (prop 7))))))
 
 (ert-deftest replace-buffer-contents-2 ()
   (with-temp-buffer
@@ -332,7 +334,7 @@
               (replace-buffer-contents str-buf))))))))
 
 (ert-deftest editfns-tests--replace-region ()
-  :expected-result :failed
+  ;; :expected-result :failed
   (with-temp-buffer
     (insert "here is some text")
     (let ((m5n (copy-marker (+ (point-min) 5)))
