@@ -374,9 +374,9 @@ add
 @lisp
 (add-hook 'inferior-octave-mode-hook
           (lambda ()
-            (define-key inferior-octave-mode-map [up]
+            (keymap-set inferior-octave-mode-map "<up>"
               'comint-previous-input)
-            (define-key inferior-octave-mode-map [down]
+            (keymap-set inferior-octave-mode-map "<down>"
               'comint-next-input)))
 @end lisp
 @noindent

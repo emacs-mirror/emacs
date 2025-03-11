@@ -2622,7 +2622,7 @@ parenthesis, it simply inserts a % like normal.
 @lisp
 ;; By an unknown contributor
 
-(global-set-key "%" 'match-paren)
+(keymap-global-set "%" 'match-paren)
 
 (defun match-paren (arg)
   "Go to the matching paren if on a paren; otherwise insert %."
@@ -3012,8 +3012,8 @@ new definition to the appropriate keymap.  Adding a @samp{Forward Word}
 item to the @samp{Edit} menu thus requires the following Lisp code:
 
 @lisp
-(define-key global-map
-  [menu-bar edit forward]
+(keymap-set global-map
+  "<menu-bar> <edit> <forward>"
   '("Forward word" . forward-word))
 @end lisp
 
@@ -3035,7 +3035,7 @@ To add a new menu, rather than a new option to an existing menu, we must
 define an entirely new keymap:
 
 @lisp
-(define-key global-map [menu-bar words]
+(keymap-set global-map "<menu-bar> <words>"
   (cons "Words" (make-sparse-keymap "Words")))
 @end lisp
 
@@ -3045,8 +3045,8 @@ The above code creates a new sparse keymap, gives it the name
 following code:
 
 @lisp
-(define-key global-map
-  [menu-bar words forward]
+(keymap-set global-map
+  "<menu-bar> <words> <forward>"
   '("Forward word" . forward-word))
 @end lisp
 
@@ -3057,26 +3057,26 @@ define menu options @samp{foo}, @samp{bar}, and @samp{baz} (in that
 order), the menu option @samp{baz} would appear at the top, and
 @samp{foo} would be at the bottom.
 
-One way to avoid this problem is to use the function @code{define-key-after},
-which works the same as @code{define-key}, but lets you modify where items
+One way to avoid this problem is to use the function @code{keymap-set-after},
+which works the same as @code{keymap-set}, but lets you modify where items
 appear.  The following Lisp code would insert the @samp{Forward Word}
 item in the @samp{Edit} menu immediately following the @samp{Undo} item:
 
 @lisp
-(define-key-after
-  (lookup-key global-map [menu-bar edit])
-  [forward]
+(keymap-set-after
+  (keymap-lookup global-map "<menu-bar> <edit>")
+  "<forward>"
   '("Forward word" . forward-word)
   'undo)
 @end lisp
 
-Note how the second and third arguments to @code{define-key-after} are
-different from those of @code{define-key}, and that we have added a new
+Note how the second and third arguments to @code{keymap-set-after} are
+different from those of @code{keymap-set}, and that we have added a new
 (final) argument, the function after which our new key should be
 defined.
 
 To move a menu option from one position to another, simply evaluate
-@code{define-key-after} with the appropriate final argument.
+@code{keymap-set-after} with the appropriate final argument.
 
 More detailed information---and more examples of how to create and
 modify menu options---are in the @cite{Emacs Lisp Reference Manual}, under
@@ -3093,7 +3093,7 @@ For example, to delete the @samp{Words} menu (@pxref{Modifying pull-down
 menus}), use:
 
 @lisp
-(define-key global-map [menu-bar words] nil)
+(keymap-set global-map "<menu-bar> <words>" nil)
 @end lisp
 
 Similarly, removing a menu option requires redefining a keymap entry to
@@ -3102,7 +3102,7 @@ from the @samp{Edit} menu (we added it in @ref{Modifying pull-down
 menus}), use:
 
 @lisp
-(define-key global-map [menu-bar edit forward] nil)
+(keymap-set global-map "<menu-bar> <edit> <forward>" nil)
 @end lisp
 
 @node Turning on syntax highlighting
@@ -4083,11 +4083,11 @@ information is available from
 
 Keys can be bound to commands either interactively or in your init
 file (@pxref{Setting up a customization file}).  To interactively bind
-keys for all modes, type @kbd{M-x global-set-key @key{RET} @var{key}
+keys for all modes, type @kbd{M-x keymap-global-set @key{RET} @var{key}
 @var{cmd} @key{RET}}.
 
 To bind a key just in the current major mode, type @kbd{M-x
-local-set-key @key{RET} @var{key} @var{cmd} @key{RET}}.
+keymap-local-set @key{RET} @var{key} @var{cmd} @key{RET}}.
 
 @xref{Key Bindings,,, emacs, The GNU Emacs Manual}.
 
@@ -4099,7 +4099,7 @@ init file.  If the key binding is global, no changes to the
 command are required.  For example,
 
 @lisp
-(global-set-key [f1] 'help-for-help)
+(keymap-global-set "<f1>" 'help-for-help)
 @end lisp
 
 @noindent
@@ -4110,7 +4110,7 @@ function.  For example, in TeX mode, a local binding might be
 @lisp
 (add-hook 'tex-mode-hook
   (lambda ()
-   (local-set-key [f1] 'help-for-help)))
+   (keymap-local-set "<f1>" 'help-for-help)))
 @end lisp
 
 
@@ -4128,8 +4128,8 @@ bound as a complete key, then you must unbind it before the new
 binding.  For example, if @kbd{ESC @{} is previously bound:
 
 @lisp
-(global-unset-key [?\e ?@{])   ;;   or
-(local-unset-key [?\e ?@{])
+(keymap-global-unset "M-@{")   ;;   or
+(keymap-local-unset "M-@{")
 @end lisp
 
 @item
@@ -4137,8 +4137,8 @@ Aside from commands and ``lambda lists,'' a vector or string also
 can be bound to a key and thus treated as a macro.  For example:
 
 @lisp
-(global-set-key [f10] [?\C-x?\e?\e?\C-a?\C-k?\C-g])  ;;  or
-(global-set-key [f10] "\C-x\e\e\C-a\C-k\C-g")
+(keymap-global-set "<f10>" [?\C-x?\e?\e?\C-a?\C-k?\C-g])  ;;  or
+(keymap-global-set "<f10>" "\C-x\e\e\C-a\C-k\C-g")
 @end lisp
 
 @end itemize
@@ -4154,12 +4154,11 @@ character in the key sequence has been misspecified (e.g., @samp{C-f}
 used instead of @samp{\C-f} within a Lisp expression).  In the other
 case, a @dfn{prefix key} in the keystroke sequence you were trying to bind
 was already bound as a @dfn{complete key}.  Historically, the @samp{ESC [}
-prefix was usually the problem, in which case you should evaluate either
-of these forms before attempting to bind the key sequence:
+prefix was usually the problem, in which case you should evaluate this
+form before attempting to bind the key sequence:
 
 @lisp
-(global-unset-key [?\e ?[])  ;;  or
-(global-unset-key "\e[")
+(keymap-global-unset "M-[")
 @end lisp
 
 @node Terminal setup code works after Emacs has begun
@@ -4183,7 +4182,7 @@ newer).  For example,
           (lambda ()
            (when (string-match "\\`vt220" (or (getenv "TERM") ""))
              ;; Make vt220's "Do" key behave like M-x:
-             (global-set-key [do] 'execute-extended-command))))
+             (keymap-global-set "<do>" 'execute-extended-command))))
 @end lisp
 
 For information on what Emacs does every time it is started, see the
@@ -4280,7 +4279,7 @@ It is possible to swap the @key{Backspace} and @key{DEL} keys inside
 Emacs:
 
 @lisp
-(keyboard-translate ?\C-h ?\C-?)
+(key-translate "C-h" "C-?")
 @end lisp
 
 @noindent
@@ -4292,20 +4291,20 @@ Similarly, you could remap @key{DEL} to act as @kbd{C-d}, which by
 default deletes forward:
 
 @lisp
-(keyboard-translate ?\C-? ?\C-d)
+(key-translate "C-?" "C-d")
 @end lisp
 
-@xref{Swapping keys}, for further details about @code{keyboard-translate}.
+@xref{Swapping keys}, for further details about @code{key-translate}.
 
 @item
 Another approach is to switch key bindings and put help on @kbd{C-x h}
 instead:
 
 @lisp
-(global-set-key "\C-h" 'delete-backward-char)
+(keymap-global-set "C-h" 'delete-backward-char)
 
 ;; overrides mark-whole-buffer
-(global-set-key "\C-xh" 'help-command)
+(keymap-global-set "C-x h" 'help-command)
 @end lisp
 
 @noindent
@@ -4313,7 +4312,7 @@ This method is not recommended, though: it only solves the problem for
 those modes which bind @key{DEL} to @code{delete-backward-char}.  Modes
 which bind @key{DEL} to something else, such as @code{view-mode}, will
 not work as you expect when you press the @key{Backspace} key.  For this
-reason, we recommend the @code{keyboard-translate} method, shown
+reason, we recommend the @code{key-translate} method, shown
 above.
 
 Other popular key bindings for help are @kbd{M-?} and @kbd{C-x ?}.
@@ -4336,15 +4335,15 @@ Manual}.
 @section How do I swap two keys?
 @cindex Swapping keys
 @cindex Keys, swapping
-@cindex @code{keyboard-translate}
+@cindex @code{key-translate}
 
 You can swap two keys (or key sequences) by using the
-@code{keyboard-translate} function.  For example, to turn @kbd{C-h}
+@code{key-translate} function.  For example, to turn @kbd{C-h}
 into @key{DEL} and @key{DEL} to @kbd{C-h}, use
 
 @lisp
-(keyboard-translate ?\C-h ?\C-?)  ; translate 'C-h' to DEL
-(keyboard-translate ?\C-? ?\C-h)  ; translate DEL to 'C-h'.
+(key-translate "C-h" "C-?")  ; translate 'C-h' to DEL
+(key-translate "C-?" "C-h")  ; translate DEL to 'C-h'.
 @end lisp
 
 @noindent
@@ -4354,7 +4353,7 @@ keymaps.
 
 However, in the specific case of @kbd{C-h} and @key{DEL}, you should
 toggle @code{normal-erase-is-backspace-mode} instead of calling
-@code{keyboard-translate}.
+@code{key-translate}.
 @xref{DEL Does Not Delete,,, emacs, The GNU Emacs Manual}.
 
 Keyboard translations are not the same as key bindings in keymaps.
@@ -4426,7 +4425,7 @@ generates @key{ESC}.  If not, the following form can be used to bind it:
 
 @lisp
 ;; F11 is the documented ESC replacement on DEC terminals.
-(define-key function-key-map [f11] [?\e])
+(keymap-set function-key-map "<f11>" [?\e])
 @end lisp
 
 @node Compose Character
@@ -4450,7 +4449,7 @@ prefixes to the function key symbol.  For example (from the Emacs
 documentation):
 
 @lisp
-(global-set-key [?\C-x right] 'forward-page)
+(keymap-global-set "C-x <right>" 'forward-page)
 @end lisp
 
 @noindent
@@ -4463,7 +4462,7 @@ represent these modifiers, prepend the strings @samp{C-}, @samp{M-},
 is how to make @kbd{H-M-RIGHT} move forward a word:
 
 @lisp
-(global-set-key [H-M-right] 'forward-word)
+(keymap-global-set "H-M-<right>" 'forward-word)
 @end lisp
 
 @itemize @bullet
@@ -4821,8 +4820,8 @@ best fix I've been able to come up with:
 
 (add-hook 'rmail-mode-hook
   (lambda ()
-    (define-key rmail-mode-map "r" 'rmail-reply-t)
-    (define-key rmail-mode-map "R" 'rmail-reply)))
+    (keymap-set rmail-mode-map "r" 'rmail-reply-t)
+    (keymap-set rmail-mode-map "R" 'rmail-reply)))
 @end lisp
 
 @node Automatically starting a mail or news reader

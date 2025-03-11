@@ -3311,7 +3311,7 @@ following is added to a group parameter
 
 @lisp
 (gnus-summary-prepared-hook
-  (lambda nil (local-set-key "d" (local-key-binding "n"))))
+  (lambda nil (keymap-local-set "d" (local-key-binding "n"))))
 @end lisp
 
 when the group is entered, the 'd' key will not mark the article as
@@ -4529,7 +4529,7 @@ The key @kbd{v} is reserved for users.  You can bind it to some
 command or better use it as a prefix key.  For example:
 
 @lisp
-(define-key gnus-group-mode-map (kbd "v j d")
+(keymap-set gnus-group-mode-map "v j d"
   (lambda ()
     (interactive)
     (gnus-group-jump-to-group "nndraft:drafts")))
@@ -4882,7 +4882,7 @@ customize-apropos @key{RET} gnus-summary-tool-bar}.
 The key @kbd{v} is reserved for users.  You can bind it to some
 command or better use it as a prefix key.  For example:
 @lisp
-(define-key gnus-summary-mode-map (kbd "v -") "LrS") ;; lower subthread
+(keymap-set gnus-summary-mode-map "v -" "LrS") ;; lower subthread
 @end lisp
 
 @menu
@@ -6654,7 +6654,7 @@ article, you could say something like:
 @group
 (add-hook 'gnus-summary-mode-hook 'my-alter-summary-map)
 (defun my-alter-summary-map ()
-  (local-set-key "!" 'gnus-summary-put-mark-as-ticked-next))
+  (keymap-local-set "!" 'gnus-summary-put-mark-as-ticked-next))
 @end group
 @end lisp
 
@@ -6663,7 +6663,7 @@ or
 
 @lisp
 (defun my-alter-summary-map ()
-  (local-set-key "!" "MM!n"))
+  (keymap-local-set "!" "MM!n"))
 @end lisp
 
 
@@ -17485,8 +17485,7 @@ summary buffer.
       (gnus-summary-scroll-up arg))))
 
 (with-eval-after-load "gnus"
-  (define-key gnus-summary-mode-map
-    (kbd "<RET>") 'browse-nnrss-url))
+  (keymap-set gnus-summary-mode-map "RET" 'browse-nnrss-url))
 (add-to-list 'nnmail-extra-headers nnrss-url-field)
 @end lisp
 
@@ -22498,7 +22497,7 @@ I use the following to check for mails:
   (nnmairix-update-groups "mairixsearch" t t)
   (gnus-group-list-groups))
 
-(define-key gnus-group-mode-map "g" 'my-check-mail-mairix-update)
+(keymap-set gnus-group-mode-map "g" 'my-check-mail-mairix-update)
 @end lisp
 
 Instead of @samp{"mairixsearch"} use the name of your @code{nnmairix}
@@ -28524,8 +28523,7 @@ enjoy the power of @acronym{MML}.
 
 The line below enables BBDB in resending a message:
 @lisp
-(define-key message-minibuffer-local-map [(tab)]
-  'bbdb-complete-name)
+(keymap-set message-minibuffer-local-map "TAB" 'bbdb-complete-name)
 @end lisp
 
 @item

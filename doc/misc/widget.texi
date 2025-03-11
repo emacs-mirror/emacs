@@ -3088,8 +3088,8 @@ Example:
 @group
 (defvar widget-ranged-integer-map
   (let ((map (copy-keymap widget-keymap)))
-    (define-key map [up] #'widget-ranged-integer-increase)
-    (define-key map [down] #'widget-ranged-integer-decrease)
+    (keymap-set map "<up>" #'widget-ranged-integer-increase)
+    (keymap-set map "<down>" #'widget-ranged-integer-decrease)
     map))
 @end group
 

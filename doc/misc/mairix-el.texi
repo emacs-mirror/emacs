@@ -199,15 +199,15 @@ might or might not collide with some other modes.  Simply include them
 in your @file{.emacs} and adapt to your needs:
 
 @lisp
-(global-set-key (kbd "C-c C-o m") 'mairix-search)
-(global-set-key (kbd "C-c C-o w") 'mairix-widget-search)
-(global-set-key (kbd "C-c C-o u") 'mairix-update-database)
-(global-set-key (kbd "C-c C-o f") 'mairix-search-from-this-article)
-(global-set-key (kbd "C-c C-o t") 'mairix-search-thread-this-article)
-(global-set-key (kbd "C-c C-o b") 'mairix-widget-search-based-on-article)
-(global-set-key (kbd "C-c C-o s") 'mairix-save-search)
-(global-set-key (kbd "C-c C-o i") 'mairix-use-saved-search)
-(global-set-key (kbd "C-c C-o e") 'mairix-edit-saved-searches)
+(keymap-global-set "C-c C-o m" 'mairix-search)
+(keymap-global-set "C-c C-o w" 'mairix-widget-search)
+(keymap-global-set "C-c C-o u" 'mairix-update-database)
+(keymap-global-set "C-c C-o f" 'mairix-search-from-this-article)
+(keymap-global-set "C-c C-o t" 'mairix-search-thread-this-article)
+(keymap-global-set "C-c C-o b" 'mairix-widget-search-based-on-article)
+(keymap-global-set "C-c C-o s" 'mairix-save-search)
+(keymap-global-set "C-c C-o i" 'mairix-use-saved-search)
+(keymap-global-set "C-c C-o e" 'mairix-edit-saved-searches)
 @end lisp
 
 Here's a description of the available interactive functions:

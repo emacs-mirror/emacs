@@ -1968,8 +1968,8 @@ Under the X Window System, every keyboard key emits its preferred form,
 so you can just type
 
 @lisp
-(global-set-key [f11] 'calendar)                        ; L1, Stop
-(global-set-key [f14] 'undo)                            ; L4, Undo
+(keymap-global-set "<f11>" 'calendar)                   ; L1, Stop
+(keymap-global-set "<f14>" 'undo)                       ; L4, Undo
 @end lisp
 
 @noindent
@@ -2885,7 +2885,7 @@ the standard Emacs mechanism for binding function keys to commands.
 For instance,
 
 @example
-(global-set-key [f13] 'repeat-complex-command)
+(keymap-global-set "<f13>" 'repeat-complex-command)
 @end example
 
 @noindent
@@ -2932,7 +2932,7 @@ say, @kbd{f12 \3} like this:
 
 Note that even though the macro uses the function key @kbd{f12}, the key is
 actually free and can still be bound to some Emacs function via
-@code{define-key} or @code{global-set-key}.
+@code{define-key} or @code{keymap-global-set}.
 
 
 Viper allows the user to define macro names that are prefixes of other macros.

@@ -473,11 +473,11 @@ e.g., this key binding for @kbd{C-c w} runs WoMan on the topic at
 point without seeking confirmation:
 
 @lisp
-(global-set-key "\C-cw"
-                (lambda ()
-                  (interactive)
-                  (let ((woman-use-topic-at-point t))
-                    (woman))))
+(keymap-global-set "C-c w"
+                   (lambda ()
+                     (interactive)
+                     (let ((woman-use-topic-at-point t))
+                       (woman))))
 @end lisp
 
 

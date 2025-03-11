@@ -870,7 +870,7 @@ event @var{event}.  This command is meant to be bound to a mouse
 command, like this:
 
 @example
-(global-set-key '[(S-mouse-1)] semantic-ia-fast-mouse-jump)
+(keymap-global-set "S-<mouse-1>" 'semantic-ia-fast-mouse-jump)
 @end example
 @end defun
 

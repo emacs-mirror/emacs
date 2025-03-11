@@ -4291,7 +4291,7 @@ bind it within the link text, using the @code{keymap} text property
 
 @example
 (let ((map (make-sparse-keymap)))
-  (define-key map [mouse-2] 'operate-this-button)
+  (keymap-set map "<mouse-2>" 'operate-this-button)
   (put-text-property link-start link-end 'keymap map))
 @end example
 

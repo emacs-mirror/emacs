@@ -17873,10 +17873,10 @@ problem recently.)
 @smallexample
 @group
 ;; Translate 'C-h' to <DEL>.
-; (keyboard-translate ?\C-h ?\C-?)
+; (key-translate "C-h" "C-?")
 
 ;; Translate <DEL> to 'C-h'.
-(keyboard-translate ?\C-? ?\C-h)
+(key-translate "C-?" "C-h")
 @end group
 @end smallexample
 
