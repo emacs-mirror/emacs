@@ -87,6 +87,7 @@ CPU is as in `proced--assert-process-valid-cpu-refinement'."
      #'proced--assert-process-valid-cpu-refinement-explainer)
 
 (ert-deftest proced-format-test ()
+  (skip-when (eq system-type 'darwin)) ; Bug#76898
   (dolist (format '(short medium long verbose))
     (proced--within-buffer
      format
@@ -94,6 +95,7 @@ CPU is as in `proced--assert-process-valid-cpu-refinement'."
      (proced--assert-emacs-pid-in-buffer))))
 
 (ert-deftest proced-update-test ()
+  (skip-when (eq system-type 'darwin)) ; Bug#76898
   (proced--within-buffer
    'short
    'user
@@ -101,6 +103,7 @@ CPU is as in `proced--assert-process-valid-cpu-refinement'."
    (proced--assert-emacs-pid-in-buffer)))
 
 (ert-deftest proced-revert-test ()
+  (skip-when (eq system-type 'darwin)) ; Bug#76898
   (proced--within-buffer
    'short
    'user
@@ -108,6 +111,7 @@ CPU is as in `proced--assert-process-valid-cpu-refinement'."
    (proced--assert-emacs-pid-in-buffer)))
 
 (ert-deftest proced-color-test ()
+  (skip-when (eq system-type 'darwin)) ; Bug#76898
   (let ((proced-enable-color-flag t))
     (proced--within-buffer
      'short
