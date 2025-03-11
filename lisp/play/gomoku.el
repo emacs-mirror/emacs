@@ -153,8 +153,7 @@ SHOULD be at least 2 (MUST BE at least 1).")
   "<remap> <next-line>"              #'gomoku-move-down
   "<remap> <move-beginning-of-line>" #'gomoku-beginning-of-line
   "<remap> <move-end-of-line>"       #'gomoku-end-of-line
-  "<remap> <undo>"                   #'gomoku-human-takes-back
-  "<remap> <advertised-undo>"        #'gomoku-human-takes-back)
+  "<remap> <undo>"                   #'gomoku-human-takes-back)
 
 
 (defvar gomoku-emacs-won ()

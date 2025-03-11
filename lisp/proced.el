@@ -655,7 +655,6 @@ Important: the match ends just after the marker.")
   "h"         #'describe-mode
   "?"         #'proced-help
   "<remap> <undo>"            #'proced-undo
-  "<remap> <advertised-undo>" #'proced-undo
   ;; Additional keybindings are inherited from `special-mode-map'
   )
 (put 'proced-mark :advertised-binding "m")

@@ -1823,6 +1823,10 @@ This function inserts the special EVENT into the input event queue.
 This event is sent when the device running Emacs enters or leaves the
 sleep state.
 
+** Variable aliases obsolete since Emacs 23.2 have been removed:
+'advertised-undo', 'advertised-widget-backward', and
+'dired-advertised-find-file'.
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 

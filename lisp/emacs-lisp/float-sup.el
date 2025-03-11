@@ -30,7 +30,7 @@
 (with-suppressed-warnings ((lexical pi))
   (defconst pi float-pi
     "Obsolete since Emacs-23.3.  Use `float-pi' instead."))
-(make-obsolete-variable 'pi 'float-pi "23.3")
+(make-obsolete-variable 'pi 'float-pi "23.3") ; "28.1"
 (internal-make-var-non-special 'pi)
 
 (defconst float-e (exp 1) "The value of e (2.7182818...).")

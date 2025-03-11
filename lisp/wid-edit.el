@@ -1094,12 +1094,6 @@ button end points."
 
 ;;; Keymap and Commands.
 
-;; This alias exists only so that one can choose in doc-strings (e.g.
-;; Custom-mode) which key-binding of widget-keymap one wants to refer to.
-;; https://lists.gnu.org/r/emacs-devel/2008-11/msg00480.html
-(define-obsolete-function-alias 'advertised-widget-backward
-  #'widget-backward "23.2")
-
 ;;;###autoload
 (defvar widget-keymap
   (let ((map (make-sparse-keymap)))

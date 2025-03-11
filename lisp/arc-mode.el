@@ -444,7 +444,6 @@ be added."
     ;; Let mouse-1 follow the link.
     (define-key map [follow-link] 'mouse-face)
 
-    (define-key map [remap advertised-undo] #'archive-undo)
     (define-key map [remap undo] #'archive-undo)
 
     (define-key map [mouse-2] 'archive-extract)

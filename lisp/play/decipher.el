@@ -150,8 +150,7 @@ the tail of the list."
   "R"   #'decipher-restore-checkpoint
   "U"   #'decipher-undo
   "SPC" #'decipher-keypress
-  "<remap> <undo>" #'decipher-undo
-  "<remap> <advertised-undo>" #'decipher-undo)
+  "<remap> <undo>" #'decipher-undo)
 (let ((key ?a))
   (while (<= key ?z)
     (keymap-set decipher-mode-map (char-to-string key) #'decipher-keypress)
