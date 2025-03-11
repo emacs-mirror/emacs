@@ -73,33 +73,31 @@ function should return non-nil, move point, and set match-data
 appropriately.  When the argument LOOKING-AT is non-nil, it should
 imitate the function `looking-at'.")
 
-(defvar outline-mode-prefix-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "@" 'outline-mark-subtree)
-    (define-key map "\C-n" 'outline-next-visible-heading)
-    (define-key map "\C-p" 'outline-previous-visible-heading)
-    (define-key map "\C-i" 'outline-show-children)
-    (define-key map "\C-s" 'outline-show-subtree)
-    (define-key map "\C-d" 'outline-hide-subtree)
-    (define-key map "\C-u" 'outline-up-heading)
-    (define-key map "\C-f" 'outline-forward-same-level)
-    (define-key map "\C-b" 'outline-backward-same-level)
-    (define-key map "\C-t" 'outline-hide-body)
-    (define-key map "\C-a" 'outline-show-all)
-    (define-key map "\C-c" 'outline-hide-entry)
-    (define-key map "\C-e" 'outline-show-entry)
-    (define-key map "\C-l" 'outline-hide-leaves)
-    (define-key map "\C-k" 'outline-show-branches)
-    (define-key map "\C-q" 'outline-hide-sublevels)
-    (define-key map "\C-o" 'outline-hide-other)
-    (define-key map "\C-^" 'outline-move-subtree-up)
-    (define-key map "\C-v" 'outline-move-subtree-down)
-    (keymap-set map "/ s" #'outline-show-by-heading-regexp)
-    (keymap-set map "/ h" #'outline-hide-by-heading-regexp)
-    (define-key map [(control ?<)] 'outline-promote)
-    (define-key map [(control ?>)] 'outline-demote)
-    (define-key map "\C-m" 'outline-insert-heading)
-    map))
+(defvar-keymap outline-mode-prefix-map
+  "@"       #'outline-mark-subtree
+  "C-n"     #'outline-next-visible-heading
+  "C-p"     #'outline-previous-visible-heading
+  "C-i"     #'outline-show-children
+  "C-s"     #'outline-show-subtree
+  "C-d"     #'outline-hide-subtree
+  "C-u"     #'outline-up-heading
+  "C-f"     #'outline-forward-same-level
+  "C-b"     #'outline-backward-same-level
+  "C-t"     #'outline-hide-body
+  "C-a"     #'outline-show-all
+  "C-c"     #'outline-hide-entry
+  "C-e"     #'outline-show-entry
+  "C-l"     #'outline-hide-leaves
+  "C-k"     #'outline-show-branches
+  "C-q"     #'outline-hide-sublevels
+  "C-o"     #'outline-hide-other
+  "C-^"     #'outline-move-subtree-up
+  "C-v"     #'outline-move-subtree-down
+  "/ SPC s" #'outline-show-by-heading-regexp
+  "/ SPC h" #'outline-hide-by-heading-regexp
+  "C-<"     #'outline-promote
+  "C->"     #'outline-demote
+  "RET"     #'outline-insert-heading)
 
 (defvar outline-mode-menu-bar-map
   (let ((map (make-sparse-keymap)))
