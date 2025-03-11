@@ -1,7 +1,6 @@
 ;;; follow.el --- synchronize windows showing the same buffer  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-1997, 1999, 2001-2025 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren
 ;; Maintainer: emacs-devel@gnu.org
@@ -1098,13 +1097,9 @@ Return the selected window."
       (setq win-start-end (cdr win-start-end)))
     win))
 
-;; Lets select a window showing the end. Make sure we only select it if
+;; Lets select a window showing the end.  Make sure we only select it if
 ;; it wasn't just moved here.  (I.e. M-> shall not unconditionally place
 ;; point in the selected window.)
-;;
-;; (Compatibility kludge: in Emacs `window-end' is equal to `point-max';
-;; in XEmacs, it is equal to `point-max + 1'.  Should I really bother
-;; checking `window-end' now when I check `end-of-buffer' explicitly?)
 
 (defun follow-select-if-end-visible (win-start-end)
   "Select and return a window, if end is visible in it."
@@ -1115,10 +1110,7 @@ Return the selected window."
       ;; command.
       (if (and (eq (point-max) (nth 2 (car win-start-end)))
 	       (nth 3 (car win-start-end))
-	       ;; `window-end' might return nil.
-	       (let ((end (window-end (car (car win-start-end)))))
-		 (and end
-		      (eq (point-max) (min (point-max) end)))))
+               (eq (point-max) (window-end (caar win-start-end))))
 	  (progn
 	    (setq win (car (car win-start-end)))
 	    (select-window win)))
