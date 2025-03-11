@@ -877,7 +877,7 @@ PARSER."
     (nreverse res)))
 
 (defun treesit-local-parsers-on (&optional beg end language with-host)
-  "Return all the local parsers that covers the region between BEG and END.
+  "Return the list of local parsers that cover the region between BEG and END.
 
 BEG and END default to the beginning and end of the buffer's accessible
 portion.
