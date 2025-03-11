@@ -630,17 +630,17 @@ If none are valid, return nil."
 ;;; Range API supplement
 
 ;; (ref:local-parser-overlay) Regarding local parser overlays, we store
-;; the local parser in a overlay spanning across the code block that the
-;; parser is responsible of. The `treesit-parser' property stores the
-;; parser, the `treesit-host-parser' property stores the host parser,
+;; the local parser in an overlay spanning across the code block for
+;; which the parser is responsible. The `treesit-parser' property stores
+;; the parser, the `treesit-host-parser' property stores the host parser,
 ;; the `treesit-parser-ov-timestamp' property stores the buffer's tick
 ;; counter (`buffer-modified-tick') when we last updated this overlay,
-;; it's used for garbage-collecting stale ranges and local parsers.
+;; which is used for garbage-collecting stale ranges and local parsers.
 ;;
 ;; Besides local parsers, we also create overlays for non-local parsers,
-;; just to mark the start and end of each range it parses, so that other
+;; just to mark the start and end of each range they parse, so that other
 ;; functions can make use of this information.  To differentiate the
-;; overlay for local and non-local parsers, local parsers' overlay has
+;; overlay for local and non-local parsers, local parsers' overlays have
 ;; the `treesit-parser-local-p' property set to non-nil.
 
 (defvar-local treesit-range-settings nil
