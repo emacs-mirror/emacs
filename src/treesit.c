@@ -1368,7 +1368,6 @@ make_treesit_parser (Lisp_Object buffer, TSParser *parser,
   lisp_parser->tag = tag;
   lisp_parser->last_set_ranges = Qnil;
   lisp_parser->embed_level = Qnil;
-  lisp_parser->parent_node = Qnil;
   lisp_parser->buffer = buffer;
   lisp_parser->parser = parser;
   lisp_parser->tree = tree;
@@ -1855,35 +1854,6 @@ tree; otherwise it must be a non-negative integer.  */)
   XTS_PARSER (parser)->embed_level = level;
   return level;
 }
-
-DEFUN ("treesit-parser-parent-node",
-       Ftreesit_parser_parent_node, Streesit_parser_parent_node,
-       1, 1, 0,
-       doc: /* Return PARSER's parent node, if one exists.
-
-Only embeded local parsers can have parent node.  When Emacs uses a node
-in the host parser to create this local parser, that node is considered
-the parent node of the local parser.  */)
-  (Lisp_Object parser)
-{
-  treesit_check_parser (parser);
-  return XTS_PARSER (parser)->parent_node;
-}
-
-DEFUN ("treesit-parser-set-parent-node",
-       Ftreesit_parser_set_parent_node, Streesit_parser_set_parent_node,
-       2, 2, 0,
-       doc: /* Make NODE be the parent node of PARSER.  */)
-  (Lisp_Object parser, Lisp_Object node)
-{
-  treesit_check_parser (parser);
-  if (!NILP (node))
-    CHECK_TS_NODE (node);
-
-  XTS_PARSER (parser)->parent_node = node;
-  return node;
-}
-
 
 /* Return true if PARSER is not deleted and its buffer is live.  */
 static bool
@@ -4642,8 +4612,6 @@ applies to LANGUAGE-A will be redirected to LANGUAGE-B instead.  */);
   defsubr (&Streesit_parser_tag);
   defsubr (&Streesit_parser_embed_level);
   defsubr (&Streesit_parser_set_embed_level);
-  defsubr (&Streesit_parser_parent_node);
-  defsubr (&Streesit_parser_set_parent_node);
 
   defsubr (&Streesit_parser_root_node);
   defsubr (&Streesit_parse_string);

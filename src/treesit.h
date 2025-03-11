@@ -72,20 +72,6 @@ struct Lisp_TS_Parser
      friends) haven't touched this parser yet, and this parser isn't
      part of the embed parser tree.  */
   Lisp_Object embed_level;
-  /* Some comments: Technically you could calculate embed_level by
-     following parent_node, but parent_node might be outdated so it's a
-     good idea to record embed_level separately.  Embed_level and
-     parent_node could have been implemented as "parser properties" with
-     an obarray, but ultimately I think two explicit fields helps
-     documentation better and it's not clear to me that a property list
-     for a parser will be useful beyond this.  And we can always convert
-     these to properties later, but not vice versa.  */
-  /* When an embedded parser is created, it's usually based on a node in
-     the host parser.  This field saves that node so it's possible to
-     climb up and out of the embedded parser into the host parser.  Note
-     that the range of the embedded parser doesn't have to match that of
-     the parent node.  */
-  Lisp_Object parent_node;
   /* The buffer associated with this parser.  */
   Lisp_Object buffer;
   /* The pointer to the tree-sitter parser.  Never NULL.  */
