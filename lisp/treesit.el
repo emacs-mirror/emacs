@@ -877,7 +877,7 @@ PARSER."
     (nreverse res)))
 
 (defun treesit-local-parsers-on (&optional beg end language with-host)
-  "Return all the local parsers between BEG and END.
+  "Return all the local parsers that covers the region between BEG and END.
 
 BEG and END default to the beginning and end of the buffer's accessible
 portion.
@@ -892,7 +892,9 @@ PARSER."
   (let ((res nil))
     ;; Refer to (ref:local-parser-overlay) for more explanation of local
     ;; parser overlays.
-    (dolist (ov (overlays-in (or beg (point-min)) (or end (point-max))))
+    (dolist (ov (if (eq beg end)
+                    (overlays-at beg)
+                  (overlays-in (or beg (point-min)) (or end (point-max)))))
       (let ((parser (overlay-get ov 'treesit-parser))
             (host-parser (overlay-get ov 'treesit-host-parser))
             (local-p (overlay-get ov 'treesit-parser-local-p)))
