@@ -535,7 +535,7 @@ and all `time-stamp-format' compatibility."
       ((fmt-len (length format))
        (ind 0)
        cur-char
-       (result "")
+       (result nil)
        (handle-one-conversion
         (lambda ()
 	  (let ((prev-char nil)
@@ -779,17 +779,13 @@ and all `time-stamp-format' compatibility."
     ;; iterate over the format string
     (while (< ind fmt-len)
       (setq cur-char (aref format ind))
-      (setq
-       result
-       (concat
-        result
-        (cond
-         ((eq cur-char ?%)
-          (funcall handle-one-conversion))
-         (t
-	  (char-to-string cur-char)))))
+      (push (cond ((eq cur-char ?%)
+                   (funcall handle-one-conversion))
+                  (t
+                   (char-to-string cur-char)))
+            result)
       (setq ind (1+ ind)))
-    result))
+    (apply #'concat (nreverse result))))
 
 (defun time-stamp-do-letter-case (change-is-downcase
                                   upcase title-case change-case text)
