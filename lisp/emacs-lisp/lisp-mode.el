@@ -513,7 +513,7 @@ This will generate compile-time constants from BINDINGS."
          ;; Constant values.
          (,(lambda (bound) (lisp-mode--search-key ":" bound))
           (0 font-lock-builtin-face))
-         ;; ELisp and CLisp `&' keywords as types.
+         ;; ELisp and Common Lisp `&' keywords as types.
          (,(lambda (bound) (lisp-mode--search-key "&" bound))
           (0 font-lock-type-face))
          ;; ELisp regexp grouping constructs
@@ -568,7 +568,7 @@ This will generate compile-time constants from BINDINGS."
          ;; Constant values.
          (,(lambda (bound) (lisp-mode--search-key ":" bound))
           (0 font-lock-builtin-face))
-         ;; ELisp and CLisp `&' keywords as types.
+         ;; ELisp and Common Lisp `&' keywords as types.
          (,(lambda (bound) (lisp-mode--search-key "&" bound))
           (0 font-lock-type-face))
          ;; ELisp regexp grouping constructs
