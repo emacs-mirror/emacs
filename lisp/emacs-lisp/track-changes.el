@@ -3,7 +3,7 @@
 ;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Version: 1.3
+;; Version: 1.4
 ;; Package-Requires: ((emacs "24"))
 
 ;; This file is part of GNU Emacs.
