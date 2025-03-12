@@ -2390,7 +2390,7 @@ This line typically looks something like
 
     ;;; My little pony mode  -*- lexical-binding: t -*-
 
-It is needed to inform the compiler about which dialect of ELisp
+It is needed to inform the compiler about which dialect of Elisp
 your code is using: the modern dialect with lexical binding or
 the old dialect with only dynamic binding.
 
