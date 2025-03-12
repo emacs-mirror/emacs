@@ -854,20 +854,14 @@ See `find-function-on-key'."
             (if find-function-mode
                 (make-sparse-keymap)
               find-function-mode-map))
-    (named-let define-keys ((from find-function-mode-map)
-                            (into (current-global-map))
-                            (prefix []))
-      (map-keymap (lambda (event binding)
-                    (let* ((key (vector event))
-                           (prefixed (vconcat prefix key)))
-                      (if-let* (((keymapp binding))
-                                (ninto (lookup-key into key))
-                                ((keymapp ninto)))
-                          (define-keys binding ninto prefixed)
-                        (if find-function-mode
-                            (global-set-key prefixed binding)
-                          (global-unset-key prefixed)))))
-                  from))))
+    (let ((parent (keymap-parent (current-global-map))))
+      (if find-function-mode
+          (unless (memq find-function-mode-map parent)
+            (setf (keymap-parent (current-global-map))
+                  (make-composed-keymap (list find-function-mode-map
+                                              parent))))
+        (when (memq find-function-mode-map parent)
+          (delq find-function-mode-map parent))))))
 
 ;;;###autoload
 (defun find-function-setup-keys ()
