@@ -599,14 +599,14 @@ Details logged to `track-changes--error-log'")
   (track-changes--trace)
   (cl-assert track-changes--state)
   (let ((offset (- (- end beg) len)))
-    (incf track-changes--buffer-size offset)
+    (cl-incf track-changes--buffer-size offset)
     (if (and (eq track-changes--before-clean 'unset)
              (not track-changes--before-no))
          ;; This can be a sign that a `before-change-functions' went missing,
          ;; or that we called `track-changes--clean-state' between
          ;; a `before-change-functions' and `after-change-functions'.
          (track-changes--before beg end)
-      (incf track-changes--before-end offset))
+      (cl-incf track-changes--before-end offset))
     (setq track-changes--before-clean nil)
     (if (not (or track-changes--before-no
                  (save-restriction
