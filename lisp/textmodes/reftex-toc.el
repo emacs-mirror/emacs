@@ -162,14 +162,14 @@ Here are all local bindings.
 \\`C-c >'      Display Index. With prefix arg, restrict index to current section.
 \\`q' / \\`k'      Hide/Kill *toc* buffer, return to position of reftex-toc command.
 \\`l' \\`i' \\`c' \\`F'    Toggle display of  [l]abels,  [i]ndex,  [c]ontext,  [F]ile borders.
-\\`t'          Change maximum toc depth (e.g. `3 t' hides levels greater than 3).
+\\`t'          Change maximum toc depth (e.g., \\`3 t' hides levels greater than 3).
 \\`f' / \\`g'      Toggle follow mode / Refresh *toc* buffer.
 \\`a' / \\`d'      Toggle auto recenter / Toggle dedicated frame
-\\`r' / \\`C-u r'  Reparse the LaTeX document     / Reparse entire LaTeX document.
+\\`r' / \\`C-u r'  Reparse the LaTeX document / Reparse entire LaTeX document.
 \\`.'          In other window, show position from where `reftex-toc' was called.
 \\`M-%'        Global search and replace to rename label at point.
 \\`x'          Switch to TOC of external document (with LaTeX package `xr').
-\\`z'          Jump to a specific section (e.g. \\`3 z' goes to section 3).")
+\\`z'          Jump to a specific section (e.g., \\`3 z' goes to section 3).")
 
 (defvar reftex--rebuilding-toc nil)
 
