@@ -3798,7 +3798,18 @@ completion lists.  If you want to suppress this completion because
 there are invalid entries in the persistency file, for example if the
 host configuration changes often, or if you plug your laptop to
 different networks frequently, you can set the user option
-@code{tramp-completion-use-cache} to @code{nil}.
+@code{tramp-completion-use-cache} to @code{nil}.  This is set per
+default for all container-based methods, like @option{docker} or
+@option{podman}.  If you want to suppress this for other connections,
+you can use the connection property @t{"completion-use-cache"},
+@xref{Predefined connection information}.  Example:
+
+@lisp
+@group
+(add-to-list 'tramp-connection-properties
+             (list "^/sshfs:" "completion-use-cache" nil))
+@end group
+@end lisp
 
 After remote host name completion comes completion of file names on
 the remote host.  It works the same as with local host file completion
