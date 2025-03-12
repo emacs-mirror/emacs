@@ -7460,7 +7460,7 @@ When set to nil, this modifies `exchange-point-and-mark' so that it doesn't
 activate mark when it is not already active."
   :type 'boolean
   :group 'editing-basics
-  :version 31.1)
+  :version "31.1")
 
 (defun exchange-point-and-mark (&optional arg)
   "Put the mark where point is now, and point where the mark is now.
