@@ -1784,7 +1784,9 @@ confirm you really want to revert and kill the hunk.  You can customize
 @findex diff-apply-buffer
 @item C-c @key{RET} a
 Apply all the hunks in the buffer (@code{diff-apply-buffer}).  If the
-diffs were applied successfully, save the changed buffers.
+region is active, apply all hunks that the region overlaps; otherwise,
+apply all hunks.  With a prefix argument, reverse-apply the hunks.
+If the diffs were applied successfully, save the changed buffers.
 
 @findex diff-delete-other-hunks
 @item C-c @key{RET} n

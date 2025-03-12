@@ -1364,6 +1364,15 @@ It is intended to be added to the 'log-edit-done-hook' so that
 'vc-cvs-checkin' behaves like invoking "cvs commit [files...]" from the
 command line.
 
+** Diff mode
+
++++
+*** diff-apply-buffer now considers the region and can reverse-apply.
+If the region is active, this command now applies all hunks that the
+region overlaps; otherwise, it applies all hunks.
+With a prefix arguments, it now reverse-applies the hunks.
+This matches the existing prefix argument to 'diff-apply-hunk'.
+
 ** Package
 
 +++
