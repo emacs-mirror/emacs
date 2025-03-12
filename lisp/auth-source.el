@@ -638,7 +638,7 @@ will ensure that any results will actually have a :secret
 property.
 
 :delete t means to delete any found entries.  nil by default.
-Use `auth-source-delete' in Elisp code instead of calling
+Use `auth-source-delete' in Lisp code instead of calling
 `auth-source-search' directly with this parameter.
 
 :type (X Y Z) will check only those backend types.  `netrc' and

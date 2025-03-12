@@ -5078,16 +5078,16 @@ AC_DEFUN([libgccjit_smoke_test], [
       }]])])
 
 AC_DEFUN([libgccjit_not_found_err], [
-  AC_MSG_ERROR([Elisp native compiler was requested, but libgccjit was not found.
+  AC_MSG_ERROR([Lisp native compiler was requested, but libgccjit was not found.
 Please try installing libgccjit or a similar package.
-If you are sure you want Emacs be compiled without Elisp native compiler,
+If you are sure you want Emacs be compiled without the Lisp native compiler,
 pass the --without-native-compilation option to configure.])])
 
 AC_DEFUN([libgccjit_dev_not_found_err], [
-  AC_MSG_ERROR([Elisp native compiler was requested, but libgccjit header files were
+  AC_MSG_ERROR([Lisp native compiler was requested, but libgccjit header files were
 not found.
 Please try installing libgccjit-dev or a similar package.
-If you are sure you want Emacs be compiled without Elisp native compiler,
+If you are sure you want Emacs be compiled without the Lisp native compiler,
 pass the --without-native-compilation option to configure.])])
 
 AC_DEFUN([libgccjit_broken_err], [

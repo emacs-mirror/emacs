@@ -1892,7 +1892,7 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
 
   /* After setting `selected_frame`, we're temporarily in an inconsistent
      state where (selected-window) != (frame-selected-window).  Until this
-     invariant is restored we should be very careful not to run Elisp code.
+     invariant is restored we should be very careful not to run any Lisp.
      (bug#58343)  */
   selected_frame = frame;
 

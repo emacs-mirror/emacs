@@ -48,7 +48,7 @@ source files that mix multiple programming languages.
 * User-defined Things::      User-defined ``Things'' and Navigation.
 * Multiple Languages::       Parse text written in multiple languages.
 * Tree-sitter Major Modes::  Develop major modes using tree-sitter.
-* Tree-sitter C API::        Compare the C API and the Elisp API.
+* Tree-sitter C API::        Compare the C API and the Lisp API.
 @end menu
 
 @node Language Grammar
@@ -2305,8 +2305,8 @@ Null nodes are converted to @code{nil}.
 @end itemize
 
 Below is the correspondence between all C API functions and their
-Elisp counterparts.  Sometimes one Elisp function corresponds to
-multiple C functions, and many C functions don't have an Elisp
+Lisp counterparts.  Sometimes one Lisp function corresponds to
+multiple C functions, and many C functions don't have a Lisp
 counterpart.
 
 @example

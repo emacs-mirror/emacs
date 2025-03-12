@@ -26271,7 +26271,7 @@ etc.@: backends.
 @item
 Store arbitrary data
 
-Through a simple Elisp API, the registry can remember any data for a
+Through a simple Lisp API, the registry can remember any data for a
 message.  A built-in inverse map, when activated, allows quick lookups
 of all messages matching a particular set of criteria.
 @end enumerate

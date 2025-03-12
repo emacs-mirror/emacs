@@ -904,7 +904,7 @@ lexically and dynamically bound symbols actually used by FORM."
 
 (defun cconv-make-interpreted-closure (args body env docstring iform)
   "Make a closure for the interpreter.
-This is intended to be called at runtime by the Elisp interpreter (when
+This is intended to be called at runtime by the Lisp interpreter (when
 the code has not been compiled).
 FUN is the closure's source code, must be a lambda form.
 ENV is the runtime representation of the lexical environment,
