@@ -2015,14 +2015,21 @@ function does not look for the @samp{mode:} local variable in the
 @w{@samp{-*-}} line.  @code{set-auto-mode} does that, also taking
 @code{enable-local-variables} into account (@pxref{Auto Major Mode}).
 
-This function works by walking the alist stored in
-@code{file-local-variables-alist} and applying each local variable in
-turn.  It calls @code{before-hack-local-variables-hook} and
+This function also puts into effect directory-local variables as
+specified in @file{.dir-locals.el}.  If the buffer is not visiting any
+file, then the directory-local variables that apply are those which
+would be applicable to files in the @code{default-directory}
+(@pxref{Directory Local Variables}).
+
+This function works by walking the alists stored in
+@code{file-local-variables-alist} and @code{dir-local-variables-alist}
+and applying each local variable in turn.  It calls
+@code{before-hack-local-variables-hook} and
 @code{hack-local-variables-hook} before and after applying the
-variables, respectively.  It only calls the before-hook if the alist
-is non-@code{nil}; it always calls the other hook.  This
-function ignores a @samp{mode} element if it specifies the same major
-mode as the buffer already has.
+variables, respectively.  It only calls the before-hook if
+@code{file-local-variables-alist} is non-@code{nil}; it always calls the
+other hook.  This function ignores a @samp{mode} element if it specifies
+the same major mode as the buffer already has.
 
 If the optional argument @var{handle-mode} is @code{t}, then all this
 function does is return a symbol specifying the major mode, if the
@@ -2293,6 +2300,17 @@ This alist holds directory names, their assigned class names, and
 modification times of the associated directory local variables file
 (if there is one).  The function @code{dir-locals-set-directory-class}
 updates this list.
+@end defvar
+
+@defvar dir-local-variables-alist
+This buffer-local variable holds the alist of directory-local variable
+settings.  Each element of the alist is of the form @w{@code{(@var{var}
+. @var{value})}}, where @var{var} is a symbol of the local variable and
+@var{value} is its value (this is the same structure as that of
+@code{file-local-variables-alist}, @pxref{File Local Variables}).  When
+Emacs visits a file, it collects all the directory-local variables into
+this alist, and then the @code{hack-local-variables} function applies
+them one by one (again, @pxref{File Local Variables}).
 @end defvar
 
 @defvar hack-dir-local-get-variables-functions
