@@ -7457,17 +7457,18 @@ Does not set point.  Does nothing if mark ring is empty."
 (defcustom exchange-point-and-mark-highlight-region t
   "Activate region when exchanging point and mark.
 
-When set to nil, this modifies `exchange-point-and-mark' so that it doesn't
-activate mark when it is not already active."
+When set to nil, this modifies `exchange-point-and-mark' so that it
+doesn't activate the mark if it is not already active.
+
+This variable has no effect when Transient Mark mode is off."
   :type 'boolean
   :group 'editing-basics
   :version "31.1")
 
 (defun exchange-point-and-mark (&optional arg)
   "Put the mark where point is now, and point where the mark is now.
-This command works even when the mark is not active,
-and it reactivates the mark unless
-`exchange-point-and-mark-highlight-region' is nil.
+This command works even when the mark is not active, and it reactivates
+the mark unless `exchange-point-and-mark-highlight-region' is nil.
 
 If Transient Mark mode is on, a prefix ARG deactivates the mark
 if it is active, and otherwise avoids reactivating it.  If

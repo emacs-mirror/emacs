@@ -484,8 +484,9 @@ modal editing packages.
 
 ** New user variable 'exchange-point-and-mark-highlight-region'.
 When set to nil, this modifies `exchange-point-and-mark' so that it doesn't
-activate mark when it is not already active.
-The default value is 't' which changes nothing to previous behavior.
+activate the mark if it is not already active.
+The default value is t, which retains the old behavior.
+This variable has no effect when Transient Mark mode is off.
 
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
