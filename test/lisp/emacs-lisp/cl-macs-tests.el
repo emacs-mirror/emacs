@@ -930,7 +930,7 @@ See Bug#57915."
   (cl-flet ((fn (&key x) x))
     (should-error (fn :x))
     (should (eq (fn :x :a) :a)))
-  ;; In ELisp function arguments are always statically scoped (bug#47552).
+  ;; In Elisp function arguments are always statically scoped (bug#47552).
   (let ((cl--test-a 'dyn)
         ;; FIXME: How do we silence the "Lexical argument shadows" warning?
         (f

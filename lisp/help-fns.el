@@ -254,7 +254,7 @@ interactive command."
       (setq fn (intern val)))
     ;; These error messages are intended to be less technical for the
     ;; `describe-command' case, as they are directed at users that are
-    ;; not necessarily ELisp programmers.
+    ;; not necessarily Elisp programmers.
     (unless (and fn (symbolp fn))
       (user-error (if want-command
                       "You didn't specify a command's symbol"

@@ -700,7 +700,7 @@ The following OPTIONS are accepted:\n\
 ", "\
 -F ALIST, --frame-parameters=ALIST\n\
 			Set the parameters of a new frame\n\
--e, --eval    		Evaluate the FILE arguments as ELisp expressions\n\
+-e, --eval    		Evaluate the FILE arguments as Elisp expressions\n\
 -n, --no-wait		Don't wait for the server to return\n\
 -w, --timeout=SECONDS	Seconds to wait before timing out\n\
 -q, --quiet		Don't display messages on success\n\

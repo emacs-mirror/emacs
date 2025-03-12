@@ -309,7 +309,7 @@ explicitly yields.  Global variables are shared among all threads, but
 a 'let' binding is thread-local.  Each thread also has its own current
 buffer and its own match data.
 
-See the chapter "(elisp) Threads" in the ELisp manual for full
+See the chapter "(elisp) Threads" in the Elisp manual for full
 documentation of these facilities.
 
 ** The new user variable 'electric-quote-chars' provides a list
@@ -471,7 +471,7 @@ See the doc string of 'dir-locals-file' for more information.
 
 ** Connection-local variables can be used to specify local variables
 with a value depending on the connected remote server.  For details,
-see the node "(elisp) Connection Local Variables" in the ELisp manual.
+see the node "(elisp) Connection Local Variables" in the Elisp manual.
 
 ** International domain names (IDNA) are now encoded via the new
 puny.el library, so that one can visit Web sites with non-ASCII URLs.
@@ -946,7 +946,7 @@ rotation, as well as saving the image to a file.  These commands are
 also available in 'image-mode'.
 
 *** A new library for creating and manipulating SVG images has been
-added.  See the "(elisp) SVG Images" section in the ELisp reference
+added.  See the "(elisp) SVG Images" section in the Elisp reference
 manual for details.
 
 *** New setf-able function to access and set image parameters is
@@ -1106,7 +1106,7 @@ environments or ANTLR programs with embedded Python code.
 A major mode can provide indentation context for a sub-mode.  To
 support this, modes should use 'prog-first-column' instead of a
 literal zero and avoid calling 'widen' in their indentation functions.
-See the node "(elisp) Mode-Specific Indent" in the ELisp manual for
+See the node "(elisp) Mode-Specific Indent" in the Elisp manual for
 more details.
 
 ** ERC
@@ -1441,7 +1441,7 @@ It has been renamed as internal function 'window--make-major-side-window',
 however applications should instead call 'display-buffer-in-side-window'
 (passing the SIDE and SLOT parameters as elements of ALIST).  This approach
 is backwards-compatible with versions of Emacs in which the old function
-exists.  See the node "Displaying Buffers in Side Windows" in the ELisp
+exists.  See the node "Displaying Buffers in Side Windows" in the Elisp
 manual for more details.
 
 * Lisp Changes in Emacs 26.1
@@ -1493,13 +1493,13 @@ range of indentation.
 
 ** New function 'secure-hash-algorithms' to list the algorithms that
 'secure-hash' supports.
-See the node "(elisp) Checksum/Hash" in the ELisp manual for details.
+See the node "(elisp) Checksum/Hash" in the Elisp manual for details.
 
 ** Emacs now exposes the GnuTLS cryptographic API with the functions
 'gnutls-macs' and 'gnutls-hash-mac'; 'gnutls-digests' and
 'gnutls-hash-digest'; 'gnutls-ciphers' and 'gnutls-symmetric-encrypt'
 and 'gnutls-symmetric-decrypt'.
-See the node "(elisp) GnuTLS Cryptography" in the ELisp manual for details.
+See the node "(elisp) GnuTLS Cryptography" in the Elisp manual for details.
 
 ** The function 'gnutls-available-p' now returns a list of capabilities
 supported by the GnuTLS library used by Emacs.
@@ -1707,7 +1707,7 @@ frame's outer border.
 frame.
 
 **** 'parent-frame' makes a frame the child frame of another Emacs
-frame.  The section "(elisp) Child Frames" in the ELisp manual
+frame.  The section "(elisp) Child Frames" in the Elisp manual
 describes the intrinsics of that relationship.
 
 **** 'delete-before' triggers deletion of one frame before that of
@@ -1782,12 +1782,12 @@ function 'display-buffer-in-side-window' will display its buffer in a
 side window.  Functions for toggling all side windows on a frame,
 changing and reversing the layout of side windows and returning the
 main (major non-side) window of a frame are provided.  For details
-consult the section "(elisp) Side Windows" in the ELisp manual.
+consult the section "(elisp) Side Windows" in the Elisp manual.
 
 *** Support for atomic windows - rectangular compositions of windows
 treated by 'split-window', 'delete-window' and 'delete-other-windows'
 like a single live window - is now official.  For details consult the
-section "(elisp) Atomic Windows" in the ELisp manual.
+section "(elisp) Atomic Windows" in the Elisp manual.
 
 *** New 'display-buffer' alist entry 'window-parameters' allows the
 assignment of window parameters to the window used for displaying the
@@ -1826,7 +1826,7 @@ window's body.
 
 *** The semantics of 'mouse-autoselect-window' has changed slightly.
 For details see the section "(elisp) Mouse Window Auto-selection" in
-the ELisp manual.
+the Elisp manual.
 
 *** 'select-frame-by-name' now may return a frame on another display
 if it does not find a suitable one on the current display.

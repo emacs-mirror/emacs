@@ -325,7 +325,7 @@ happens in interactive invocations."
 
 ;;;###autoload
 (define-derived-mode emacs-lisp-mode lisp-data-mode
-  `("ELisp"
+  `("Elisp"
     (lexical-binding (:propertize "/l"
                       help-echo "Using lexical-binding mode")
                      (:propertize "/d"

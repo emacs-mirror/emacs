@@ -6196,7 +6196,7 @@ extract_data_from_object (Lisp_Object spec,
       /* Format: (iv-auto REQUIRED-LENGTH).  */
 
       if (! FIXNATP (start))
-        error ("Without a length, `iv-auto' can't be used; see ELisp manual");
+        error ("Without a length, `iv-auto' can't be used; see Elisp manual");
       else
         {
 	  EMACS_INT start_hold = XFIXNAT (start);

@@ -35,7 +35,7 @@
 
 ;; This file defines ruby-ts-mode which is a major mode for editing
 ;; Ruby files that uses Tree Sitter to parse the language.  More
-;; information about Tree Sitter can be found in the ELisp Info pages
+;; information about Tree Sitter can be found in the Elisp Info pages
 ;; as well as this website: https://tree-sitter.github.io/tree-sitter/
 
 ;; For this major mode to work, Emacs has to be compiled with

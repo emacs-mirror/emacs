@@ -2087,7 +2087,7 @@ key, a click, or a menu-item"))
       '(menu-item "Look Up Key in User Manual..." Info-goto-emacs-key-command-node
                   :help "Display manual section that describes a key"))
     (define-key menu [lookup-subject-in-elisp-manual]
-      '(menu-item "Look Up Subject in ELisp Manual..." elisp-index-search
+      '(menu-item "Look Up Subject in Elisp Manual..." elisp-index-search
                   :help "Find description of a subject in Emacs Lisp manual"))
     (define-key menu [lookup-subject-in-emacs-manual]
       '(menu-item "Look Up Subject in User Manual..." emacs-index-search

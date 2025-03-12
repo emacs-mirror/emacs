@@ -1564,7 +1564,7 @@ for writing code that can work across different Emacs versions.
 
 ---
 ** You can change the default value of 'lexical-binding'.
-While the default is still the use dynamic binding dialect of ELisp
+While the default is still the use dynamic binding dialect of Elisp
 in those places that don't explicitly set 'lexical-binding' you can
 change it globally with:
 

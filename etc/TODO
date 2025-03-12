@@ -105,7 +105,7 @@ longer)."
 
 ** Do interactive mode tagging for commands
 Change "(interactive)" to "(interactive nil foo-mode)" for command
-completion purposes.  Pick a major mode or ELisp library, and check
+completion purposes.  Pick a major mode or Elisp library, and check
 all interactive commands to see if they are only relevant in one
 particular mode.  This requires care as some commands might be useful
 outside of the mode they were written for.
@@ -730,9 +730,9 @@ H-S-C-M-s-double-wheel-up, ...
 
 *** Support for the $ (paired delimiter) in parse-partial-sexp
 
-*** Support for hook-chars whose effect is specified by ELisp code
+*** Support for hook-chars whose effect is specified by Elisp code
 Hook-chars could have their effect on the parsing-state specified by
-ELisp code.  Thus a character could both close a string and open a
+Elisp code.  Thus a character could both close a string and open a
 comment at the same time and do it in a context-sensitive way.
 
 *** Ability to add mode-specific data to the partial-parse-state

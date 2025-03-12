@@ -89,7 +89,7 @@ Calls `srecode-semantic-apply-tag-to-dict-default' first."
   (let* ((tag (oref tagobj prime))
 	 (doc (semantic-tag-docstring tag)))
 
-    ;; It is much more common to have doc on ELisp.
+    ;; It is much more common to have doc on Elisp.
     (srecode-dictionary-set-value dict "DOC" doc)
 
     (cond

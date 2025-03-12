@@ -260,7 +260,7 @@ from a shell prompt, like this:
 
 where Emacs-PID is the process ID of Emacs being debugged.  Other
 useful signals to send are SIGUSR1 and SIGUSR2; see "Error Debugging"
-in the ELisp manual for how to use those.
+in the Elisp manual for how to use those.
 
 When Emacs is displaying on a text terminal, it is useful to have a
 separate terminal for the debug session.  This can be done by starting
@@ -805,7 +805,7 @@ not exit when it should.
 On GNU and Unix systems, you can also try sending Emacs SIGUSR2,
 which, if 'debug-on-event' has its default value, will cause Emacs to
 attempt to break out of its current loop and enter the Lisp
-debugger.  (See the node "Debugging" in the ELisp manual for the
+debugger.  (See the node "Debugging" in the Elisp manual for the
 details about the Lisp debugger.)  This feature is useful when a
 C-level debugger is not conveniently available.
 

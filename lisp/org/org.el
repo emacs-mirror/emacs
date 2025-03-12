@@ -3157,16 +3157,16 @@ There are multiple ways to set the category.  One way is to set
 it in the document property drawer.  For example:
 
 :PROPERTIES:
-:CATEGORY: ELisp
+:CATEGORY: Elisp
 :END:
 
 Other ways to define it is as an Emacs file variable, for example
 
-#   -*- mode: org; org-category: \"ELisp\"
+#   -*- mode: org; org-category: \"Elisp\"
 
 or for the file to contain a special line:
 
-#+CATEGORY: ELisp
+#+CATEGORY: Elisp
 
 If the file does not specify a category, then file's base name
 is used instead.")
@@ -9422,7 +9422,7 @@ With numeric prefix arg, switch to the Nth state.
 With a numeric prefix arg of 0, inhibit note taking for the change.
 With a numeric prefix arg of -1, cancel repeater to allow marking as DONE.
 
-When called through ELisp, arg is also interpreted in the following way:
+When called through Elisp, arg is also interpreted in the following way:
 `none'        -> empty state
 \"\"            -> switch to empty state
 `done'        -> switch to DONE

@@ -5670,7 +5670,7 @@ make_lispy_event (struct input_event *event)
 			  }
 		      }
 
-		    /* ELisp manual 2.4b says (x y) are window
+		    /* Elisp manual 2.4b says (x y) are window
 		       relative but code says they are
 		       frame-relative.  */
 		    position = list4 (event->frame_or_window,

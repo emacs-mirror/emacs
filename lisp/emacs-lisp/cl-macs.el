@@ -2060,7 +2060,7 @@ a `let' form, except that the list of symbols can be computed at run-time."
                                (funcall (cdr found) cl--labels-magic)))))
       (if (and replacement (eq cl--labels-magic (car replacement)))
           (nth 1 replacement)
-        ;; FIXME: Here, we'd like to return the `&whole' form, but since ELisp
+        ;; FIXME: Here, we'd like to return the `&whole' form, but since Elisp
         ;; doesn't have that, we approximate it via `cl--labels-convert-cache'.
         (let ((res `(function ,f)))
           (setq cl--labels-convert-cache (cons f res))

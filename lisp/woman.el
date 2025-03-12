@@ -1861,7 +1861,7 @@ Argument EVENT is the invoking mouse event."
 
 (define-derived-mode woman-mode man-common "WoMan"
   "Turn on (most of) Man mode to browse a buffer formatted by WoMan.
-WoMan is an ELisp emulation of much of the functionality of the Emacs
+WoMan is an Elisp emulation of much of the functionality of the Emacs
 `man' command running the standard UN*X man and ?roff programs.
 WoMan author: F.J.Wright@Maths.QMW.ac.uk
 See `Man-mode' for additional details.
@@ -3508,7 +3508,7 @@ The expression may be an argument in quotes."
 	    ((memq (setq op (following-char)) '(?& ?:)) ; Boolean and / or
 	     (forward-char)
 	     (setq value
-		   ;; and / or are special forms, not functions, in ELisp
+		   ;; and / or are special forms, not functions, in Elisp
 		   (if (eq op ?&)
 		       ;; and
 		       (if (> value 0)

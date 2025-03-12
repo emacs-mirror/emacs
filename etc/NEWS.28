@@ -3906,7 +3906,7 @@ support these coding-systems.
 This new system is provided by the new macro 'bindat-type' and
 obsoletes the old data layout specifications.  It supports
 arbitrary-size integers, recursive types, and more.  See the Info node
-"(elisp) Byte Packing" in the ELisp manual for more details.
+"(elisp) Byte Packing" in the Elisp manual for more details.
 
 ** New macro 'with-environment-variables'.
 This macro allows setting environment variables temporarily when

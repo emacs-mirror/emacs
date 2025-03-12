@@ -77,7 +77,7 @@
 ;; modes.  For the `rx' syntax the function `rx-to-string' is applied to
 ;; the evaluated expression read.  So you can use quoted arguments
 ;; with something like '("findme") or you can construct arguments to
-;; your hearts delight with a valid ELisp expression.  (The compiled
+;; your hearts delight with a valid Elisp expression.  (The compiled
 ;; string form will be copied by `reb-copy')  If you want to take
 ;; a glance at the corresponding string you can temporarily change the
 ;; input syntax.

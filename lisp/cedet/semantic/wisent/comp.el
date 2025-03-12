@@ -3461,12 +3461,12 @@ Automatically called by the Emacs Lisp byte compiler as a
 
 ;; `wisent--compile-grammar' generates the actual parse table
 ;; we need at run-time, but in order to be able to compile the code it
-;; contains, we need to "reify" it back into a piece of ELisp code
+;; contains, we need to "reify" it back into a piece of Elisp code
 ;; which (re)builds it.
 ;; This is needed for 2 reasons:
 ;; - The parse tables include an obarray and these don't survive the print+read
 ;;   steps involved in generating a `.elc' file and reading it back in.
-;; - Within the parse table vectors/obarrays we have ELisp functions which
+;; - Within the parse table vectors/obarrays we have Elisp functions which
 ;;   we want to byte-compile, but if we were to just `quote' the table
 ;;   we'd get them with the same non-compiled functions.
 (defun wisent-automaton-lisp-form (automaton)

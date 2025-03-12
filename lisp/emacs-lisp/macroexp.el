@@ -729,7 +729,7 @@ test of free variables in the following ways:
 - It does not distinguish variables from functions, so it can be used
   both to detect whether a given variable is used by SEXP and to
   detect whether a given function is used by SEXP.
-- It does not actually know ELisp syntax, so it only looks for the presence
+- It does not actually know Elisp syntax, so it only looks for the presence
   of symbols in SEXP and can't distinguish if those symbols are truly
   references to the given variable (or function).  That can make the result
   include bindings which actually aren't used.
