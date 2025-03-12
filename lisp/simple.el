@@ -7458,7 +7458,10 @@ Does not set point.  Does nothing if mark ring is empty."
   "Activate region when exchanging point and mark.
 
 When set to nil, this modifies `exchange-point-and-mark' so that it
-doesn't activate the mark if it is not already active.
+doesn't activate the mark if it is not already active, except when there
+is a prefix argument.  Setting this variable to nil effectively swaps
+the meanings of the presence and absence of a prefix argument to
+`exchange-point-and-mark'.
 
 This variable has no effect when Transient Mark mode is off."
   :type 'boolean
