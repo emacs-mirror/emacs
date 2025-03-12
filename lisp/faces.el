@@ -1095,7 +1095,7 @@ of the default face.  Value is FACE."
   "Text string to display as the sample text for `read-face-name'.")
 
 (defun read-face-name (prompt &optional default multiple)
-  "Read one or more face names, prompting with PROMPT.
+  "Read and return one or more face names, strings, prompting with PROMPT.
 PROMPT should not end in a space or a colon.
 
 If DEFAULT is non-nil, it should be a face (a symbol) or a face
@@ -1373,7 +1373,7 @@ of a global face.  Value is the new attribute value."
 		  (pattern &optional face frame maximum width))
 
 (defun read-face-font (face &optional frame)
-  "Read the name of a font for FACE on FRAME.
+  "Read and return the string name of the font for FACE on FRAME.
 If optional argument FRAME is nil or omitted, use the selected frame."
   (let ((completion-ignore-case t))
     (completing-read (format-message
@@ -1981,7 +1981,7 @@ If omitted or nil, that stands for the selected frame's display."
 
 (defun read-color (&optional prompt convert-to-RGB allow-empty-name msg
 			     foreground face)
-  "Read a color name or RGB triplet.
+  "Read a color name or RGB triplet, return a string, the color name or RGB.
 Completion is available for color names, but not for RGB triplets.
 
 RGB triplets have the form \"#RRGGBB\".  Each of the R, G, and B

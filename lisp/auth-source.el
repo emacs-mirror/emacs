@@ -2547,7 +2547,7 @@ Adapt also mode line."
 
 ;;;###autoload
 (defun read-passwd (prompt &optional confirm default)
-  "Read a password, prompting with PROMPT, and return it.
+  "Read a password, prompting with PROMPT, and return password as a string.
 If optional CONFIRM is non-nil, read the password twice to make sure.
 Optional DEFAULT is a default password to use instead of empty input.
 

@@ -46,15 +46,17 @@ modify this GNU manual.''
 @insertcopying
 
 ERT is a tool for automated testing in Emacs Lisp.  Its main features
-are facilities for defining tests, running them and reporting the
-results, and for debugging test failures interactively.
+are facilities for defining and running tests, reporting results, and
+debugging test failures interactively.  Tests are written in Emacs Lisp,
+just like the code under test, making it easy to write expressive and
+concise test cases.
 
-ERT is similar to tools for other environments such as JUnit, but has
-unique features that take advantage of the dynamic and interactive
-nature of Emacs.  Despite its name, it works well both for test-driven
-development (see
-@url{https://en.wikipedia.org/wiki/Test-driven_development}) and for
-traditional software development methods.
+ERT has unique features that take advantage of the dynamic and
+interactive nature of Emacs.  It is unopinionated about when or how
+tests are written: you can use it to verify newly written code,
+reproduce known bugs, prevent regressions, or explore the behavior of
+complex systems.  It can be used for both unit tests and larger
+integration tests.
 
 @menu
 * Introduction::                A simple example of an ERT test.

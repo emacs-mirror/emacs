@@ -1296,7 +1296,7 @@ barf_if_interaction_inhibited (void)
 
 DEFUN ("read-from-minibuffer", Fread_from_minibuffer,
        Sread_from_minibuffer, 1, 7, 0,
-       doc: /* Read a string from the minibuffer, prompting with string PROMPT.
+       doc: /* Read and return a string from the minibuffer, prompting with string PROMPT.
 The optional second arg INITIAL-CONTENTS is an obsolete alternative to
   DEFAULT-VALUE.  It normally should be nil in new code, except when
   HIST is a cons.  It is discussed in more detail below.
@@ -1448,7 +1448,7 @@ inherits the current input method and the setting of
 }
 
 DEFUN ("read-command", Fread_command, Sread_command, 1, 2, 0,
-       doc: /* Read the name of a command and return as a symbol.
+       doc: /* Read the name of a command and return it as a symbol.
 Prompt with PROMPT.  By default, return DEFAULT-VALUE or its first element
 if it is a list.  If DEFAULT-VALUE is omitted or nil, and the user enters
 null input, return a symbol whose name is an empty string.  */)

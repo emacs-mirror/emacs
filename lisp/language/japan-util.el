@@ -317,7 +317,8 @@ Optional argument KATAKANA-ONLY non-nil means to convert only KATAKANA char."
 ;;;###autoload
 (defun read-hiragana-string (prompt &optional initial-input)
   "Read a Hiragana string from the minibuffer, prompting with string PROMPT.
-If non-nil, second arg INITIAL-INPUT is a string to insert before reading."
+If non-nil, second arg INITIAL-INPUT is a string to insert before reading.
+Return the string read from the minibuffer."
   (read-multilingual-string prompt initial-input "japanese-hiragana"))
 
 ;;

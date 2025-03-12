@@ -3409,7 +3409,7 @@ miscellaneous values associated with the process."
 (defvar read-key-delay 0.01) ;Fast enough for 100Hz repeat rate, hopefully.
 
 (defun read-key (&optional prompt disable-fallbacks)
-  "Read a key from the keyboard.
+  "Read a key from the keyboard, return the event thus read.
 Contrary to `read-event' this will not return a raw event but instead will
 obey the input decoding and translations usually done by `read-key-sequence'.
 So escape sequences and keyboard encoding are taken into account.
@@ -3531,7 +3531,7 @@ with Emacs.  Do not call it directly in your own packages."
   "The default history for the `read-number' function.")
 
 (defun read-number (prompt &optional default hist)
-  "Read a numeric value in the minibuffer, prompting with PROMPT.
+  "Read from the minibuffer and return a numeric value, prompting with PROMPT.
 DEFAULT specifies a default value to return if the user just types RET.
 For historical reasons, the value of DEFAULT is always inserted into
 PROMPT, so it's recommended to use `format' instead of `format-prompt'

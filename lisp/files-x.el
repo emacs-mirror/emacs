@@ -38,7 +38,9 @@
 ;;; Commands to add/delete file-local/directory-local variables.
 
 (defun read-file-local-variable (prompt)
-  "Read file-local variable using PROMPT and completion.
+  "Read the name of a file-local variable using PROMPT and completion.
+Return the symbol of the variable, or nil if the user entered empty or
+null name.
 Intended to be used in the `interactive' spec of
 `add-file-local-variable', `delete-file-local-variable',
 `add-dir-local-variable', `delete-dir-local-variable'."
@@ -57,7 +59,7 @@ Intended to be used in the `interactive' spec of
     (and (stringp variable) (intern variable))))
 
 (defun read-file-local-variable-value (variable)
-  "Read value of file-local VARIABLE using completion.
+  "Read and return the value of a file-local VARIABLE using completion.
 Intended to be used in the `interactive' spec of
 `add-file-local-variable' and `add-dir-local-variable'."
   (cond
@@ -90,7 +92,9 @@ Intended to be used in the `interactive' spec of
 			    default)))))
 
 (defun read-file-local-variable-mode ()
-  "Read per-directory file-local variable's mode using completion.
+  "Read the name of a per-directory file-local variable's mode using completion.
+Return the symbol of the variable, or nil if the user entered empty or
+null name.
 Intended to be used in the `interactive' spec of
 `add-dir-local-variable', `delete-dir-local-variable'."
   (let* ((default (and (symbolp major-mode) (symbol-name major-mode)))

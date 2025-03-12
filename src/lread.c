@@ -855,7 +855,7 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
 
 DEFUN ("read-char", Fread_char, Sread_char, 0, 3, 0,
        doc: /* Read a character event from the command input (keyboard or macro).
-It is returned as a number.
+Return the character as a number.
 If the event has modifiers, they are resolved and reflected in the
 returned character code if possible (e.g. C-SPC yields 0 and C-a yields 97).
 If some of the modifiers cannot be reflected in the character code, the
@@ -903,7 +903,7 @@ If `inhibit-interaction' is non-nil, this function will signal an
 }
 
 DEFUN ("read-event", Fread_event, Sread_event, 0, 3, 0,
-       doc: /* Read an event object from the input stream.
+       doc: /* Read and return an event object from the input stream.
 
 If you want to read non-character events, consider calling `read-key'
 instead.  `read-key' will decode events via `input-decode-map' that
@@ -939,7 +939,7 @@ If `inhibit-interaction' is non-nil, this function will signal an
 
 DEFUN ("read-char-exclusive", Fread_char_exclusive, Sread_char_exclusive, 0, 3, 0,
        doc: /* Read a character event from the command input (keyboard or macro).
-It is returned as a number.  Non-character events are ignored.
+Return the character as a number.  Non-character events are ignored.
 If the event has modifiers, they are resolved and reflected in the
 returned character code if possible (e.g. C-SPC yields 0 and C-a yields 97).
 If some of the modifiers cannot be reflected in the character code, the

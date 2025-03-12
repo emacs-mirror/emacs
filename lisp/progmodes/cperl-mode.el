@@ -5607,7 +5607,7 @@ Do not look before LIM."
 	   (forward-sexp -1)
 	   (not
 	    (looking-at
-	     "\\(map\\|grep\\|say\\|printf?\\|system\\|exec\\|tr\\|s\\)\\>")))))))
+	     "\\(map\\|grep\\|say\\|printf?\\|system\\|exec\\|tr\\|s\\)\\_>")))))))
 
 
 (defun cperl-indent-exp ()

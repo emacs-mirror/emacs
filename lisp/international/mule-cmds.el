@@ -1673,6 +1673,7 @@ This is a subroutine for `describe-input-method'."
 
 (defun read-multilingual-string (prompt &optional initial-input input-method)
   "Read a multilingual string from minibuffer, prompting with string PROMPT.
+Return the string thus read.
 The input method selected last time is activated in minibuffer.
 If optional second argument INITIAL-INPUT is non-nil, insert it in the
 minibuffer initially.

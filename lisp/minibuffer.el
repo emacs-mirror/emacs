@@ -3174,7 +3174,7 @@ with `minibuffer-local-must-match-map'."
   "?"   #'self-insert-and-exit)
 
 (defun read-no-blanks-input (prompt &optional initial inherit-input-method)
-  "Read a string from the terminal, not allowing blanks.
+  "Read and return a string from the terminal, not allowing blanks.
 Prompt with PROMPT.  Whitespace terminates the input.  If INITIAL is
 non-nil, it should be a string, which is used as initial input, with
 point positioned at the end, so that SPACE will accept the input.
@@ -3556,7 +3556,8 @@ like the `beginning-of-buffer' command."
      (if (listp default) default (list default)))))
 
 (defun read-file-name (prompt &optional dir default-filename mustmatch initial predicate)
-  "Read file name, prompting with PROMPT and completing in directory DIR.
+  "Read a file name, prompting with PROMPT and completing in directory DIR.
+Retrun the file name as a string.
 The return value is not expanded---you must call `expand-file-name'
 yourself.
 

@@ -326,6 +326,7 @@ variable."
 (defun read-answer (question answers)
   "Read an answer either as a complete word or its character abbreviation.
 Ask user a question and accept an answer from the list of possible answers.
+Return the long answer even when accepting short ones.
 
 QUESTION should end in a space; this function adds a list of answers to it.
 
@@ -348,8 +349,6 @@ Example:
     (\"quit\" ?q \"exit\"))
 
 When `read-answer-short' is non-nil, accept short answers.
-
-Return a long answer even in case of accepting short ones.
 
 When `use-dialog-box' is t, pop up a dialog window to get user input."
   (let* ((short (if (eq read-answer-short 'auto)

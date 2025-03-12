@@ -888,6 +888,7 @@ DEFAULT-DIRNAME specifies the default directory name to return if user
 exits with the same non-empty string that was inserted by this function.
  (If DEFAULT-DIRNAME is omitted, DIR combined with INITIAL is used,
   or just DIR if INITIAL is nil.)
+Return the directory as a string.
 
 If the user exits with an empty minibuffer, return an empty
 string.  (This can happen only if the user erased the pre-inserted

@@ -2276,7 +2276,7 @@ This is used by the \\<minibuffer-local-must-match-map>\\[execute-extended-comma
   "Minor mode used for completion in `read-extended-command'.")
 
 (defun read-extended-command (&optional prompt)
-  "Read command name to invoke via `execute-extended-command'.
+  "Read and return name of command to invoke via `execute-extended-command'.
 Use `read-extended-command-predicate' to determine which commands
 to include among completion candidates.
 
@@ -4311,7 +4311,7 @@ after the default value."
   "Keymap used for completing shell commands in minibuffer.")
 
 (defun read-shell-command (prompt &optional initial-contents hist &rest args)
-  "Read a shell command from the minibuffer.
+  "Read a shell command from the minibuffer, and return it as a string.
 The arguments are the same as the ones of `read-from-minibuffer',
 except READ and KEYMAP are missing and HIST defaults
 to `shell-command-history'."
@@ -6461,7 +6461,8 @@ variable to determine how strings should be escaped."
 (defvar read-from-kill-ring-history)
 (defun read-from-kill-ring (prompt)
   "Read a `kill-ring' entry using completion and minibuffer history.
-PROMPT is a string to prompt with."
+PROMPT is a string to prompt with.
+Return the entry as a string."
   ;; `current-kill' updates `kill-ring' with a possible interprogram-paste
   (current-kill 0)
   (let* ((history-add-new-input nil)
@@ -11298,7 +11299,9 @@ killed."
   (string= string ""))
 
 (defun read-signal-name ()
-  "Read a signal number or name."
+  "Read a signal number or name.
+Return the signal number, if the user entered a number, otherwise
+the signal symbol."
   (let ((value
          (completing-read "Signal code or name: "
                           (signal-names)
