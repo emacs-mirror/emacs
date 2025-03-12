@@ -74,30 +74,30 @@ appropriately.  When the argument LOOKING-AT is non-nil, it should
 imitate the function `looking-at'.")
 
 (defvar-keymap outline-mode-prefix-map
-  "@"       #'outline-mark-subtree
-  "C-n"     #'outline-next-visible-heading
-  "C-p"     #'outline-previous-visible-heading
-  "C-i"     #'outline-show-children
-  "C-s"     #'outline-show-subtree
-  "C-d"     #'outline-hide-subtree
-  "C-u"     #'outline-up-heading
-  "C-f"     #'outline-forward-same-level
-  "C-b"     #'outline-backward-same-level
-  "C-t"     #'outline-hide-body
-  "C-a"     #'outline-show-all
-  "C-c"     #'outline-hide-entry
-  "C-e"     #'outline-show-entry
-  "C-l"     #'outline-hide-leaves
-  "C-k"     #'outline-show-branches
-  "C-q"     #'outline-hide-sublevels
-  "C-o"     #'outline-hide-other
-  "C-^"     #'outline-move-subtree-up
-  "C-v"     #'outline-move-subtree-down
-  "/ SPC s" #'outline-show-by-heading-regexp
-  "/ SPC h" #'outline-hide-by-heading-regexp
-  "C-<"     #'outline-promote
-  "C->"     #'outline-demote
-  "RET"     #'outline-insert-heading)
+  "@"   #'outline-mark-subtree
+  "C-n" #'outline-next-visible-heading
+  "C-p" #'outline-previous-visible-heading
+  "C-i" #'outline-show-children
+  "C-s" #'outline-show-subtree
+  "C-d" #'outline-hide-subtree
+  "C-u" #'outline-up-heading
+  "C-f" #'outline-forward-same-level
+  "C-b" #'outline-backward-same-level
+  "C-t" #'outline-hide-body
+  "C-a" #'outline-show-all
+  "C-c" #'outline-hide-entry
+  "C-e" #'outline-show-entry
+  "C-l" #'outline-hide-leaves
+  "C-k" #'outline-show-branches
+  "C-q" #'outline-hide-sublevels
+  "C-o" #'outline-hide-other
+  "C-^" #'outline-move-subtree-up
+  "C-v" #'outline-move-subtree-down
+  "/ s" #'outline-show-by-heading-regexp
+  "/ h" #'outline-hide-by-heading-regexp
+  "C-<" #'outline-promote
+  "C->" #'outline-demote
+  "RET" #'outline-insert-heading)
 
 (defvar outline-mode-menu-bar-map
   (let ((map (make-sparse-keymap)))
