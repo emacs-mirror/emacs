@@ -4486,6 +4486,7 @@ fi
 ### End of font-backend (under any platform) section.
 
 ### Start of font-backend (under X11) section.
+is_xft_version_outdated=no
 if test "${HAVE_X11}" = "yes"; then
   if test $HAVE_CAIRO = yes; then
     dnl Strict linkers fail with
@@ -4534,7 +4535,20 @@ if test "${HAVE_X11}" = "yes"; then
 
 	if test "${HAVE_XFT}" = "yes"; then
 	  AC_DEFINE([HAVE_XFT], [1], [Define to 1 if you have the Xft library.])
-	    AC_SUBST([XFT_LIBS])
+	  AC_SUBST([XFT_LIBS])
+	  AC_CACHE_CHECK([whether libXft is not recent enough to support color fonts],
+	    [emacs_cv_is_xft_version_outdated],
+	    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+	      [[
+		#include <X11/Xlib.h>
+	        #include <X11/Xft/Xft.h>
+		#if XftVersion < 20306
+		#error "Xft < 2.3.6"
+		#endif /* XftVersion < 20306 */
+	      ]], [])],
+	      [emacs_cv_is_xft_version_outdated=no],
+	      [emacs_cv_is_xft_version_outdated=yes])])
+	  is_xft_version_outdated=$emacs_cv_is_xft_version_outdated
 	  C_SWITCH_X_SITE="$C_SWITCH_X_SITE $XFT_CFLAGS"
 	fi                        # "${HAVE_XFT}" = "yes"
 	CPPFLAGS=$OLD_CPPFLAGS
@@ -7863,11 +7877,11 @@ you can continue to support by using '$0 --with-pop'.])
   esac
 fi
 
-if test "${HAVE_XFT}" = yes; then
-  AC_MSG_WARN([This configuration uses libXft, which has a number of
-    font rendering issues in its earlier releases.  Please consider
-    using Cairo graphics instead (they are auto-detected if the
-    relevant development headers are installed).])
+if test "${HAVE_XFT}" = yes && test "$is_xft_version_outdated" = "yes"; then
+  AC_MSG_WARN([This configuration uses a version of libXft earlier than 2.3.6,
+    which is impacted by a number of rendering issues up to and including
+    crashes.  Please consider using Cairo graphics instead (they are
+    auto-detected if the relevant development headers are installed).])
 fi
 
 if test "${HAVE_CAIRO}" = "yes" && test "${HAVE_HARFBUZZ}" = no; then
