@@ -292,6 +292,12 @@ return value windows whose buffers share their text with BUFFER-OR-NAME.
 With such an entry, 'display-buffer-reuse-window' may also choose a
 window whose buffer shares text with the buffer to display.
 
++++
+*** New variable 'window-state-normalize-buffer-name'.
+When bound to non-nil, 'window-state-get' will normalize 'uniquify'
+managed buffer names by removing 'uniquify' prefixes and suffixes.  This
+helps restore window buffers across Emacs sessions.
+
 ** Frames
 
 +++

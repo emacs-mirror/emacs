@@ -6300,6 +6300,22 @@ specific buffers."
     ))
 
 ;;; Window states, how to get them and how to put them in a window.
+
+(defvar window-state-normalize-buffer-name nil
+  "Non-nil means accommodate buffer names under `uniquify' management.
+`uniquify' prefixes and suffixes will be removed.")
+
+(defun window--state-normalize-buffer-name (buffer)
+  "Normalize BUFFER name, accommodating `uniquify'.
+If BUFFER is under `uniquify' management, return its `buffer-name' with
+its prefixes and suffixes removed; otherwise return BUFFER
+`buffer-name'."
+  (or (and window-state-normalize-buffer-name
+           (fboundp 'uniquify-buffer-base-name)
+           (with-current-buffer buffer
+             (uniquify-buffer-base-name)))
+      (buffer-name buffer)))
+
 (defun window--state-get-1 (window &optional writable)
   "Helper function for `window-state-get'."
   (let* ((type
@@ -6352,7 +6368,8 @@ specific buffers."
 		(let ((point (window-point window))
 		      (start (window-start window)))
 		  `((buffer
-		     ,(if writable (buffer-name buffer) buffer)
+		     ,(if writable (window--state-normalize-buffer-name
+                                    buffer) buffer)
 		     (selected . ,selected)
 		     (hscroll . ,(window-hscroll window))
 		     (fringes . ,(window-fringes window))
@@ -6374,13 +6391,15 @@ specific buffers."
             ,@(when next-buffers
                 `((next-buffers
                    . ,(if writable
-                          (mapcar #'buffer-name next-buffers)
+                          (mapcar #'window--state-normalize-buffer-name
+                                  next-buffers)
                         next-buffers))))
             ,@(when prev-buffers
                 `((prev-buffers
                    . ,(if writable
                           (mapcar (lambda (entry)
-                                    (list (buffer-name (nth 0 entry))
+                                    (list (window--state-normalize-buffer-name
+                                           (nth 0 entry))
                                           (marker-position (nth 1 entry))
                                           (marker-position (nth 2 entry))))
                                   prev-buffers)
