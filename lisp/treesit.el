@@ -3132,13 +3132,14 @@ ARG is described in the docstring of `up-list'."
                                          (treesit-node-start parent))))
           (setq parent (treesit-parent-until parent pred)))
 
-        (when-let* ((_ (null parent))
-                    (parser (treesit-node-parser (treesit-node-at (point))))
-                    (_ (not (eq parser treesit-primary-parser)))
-                    (guest-root-node (treesit-parser-root-node parser)))
-          ;; Continue from the host node that contains the guest parser.
-          (setq parent (treesit-thing-at
-                        (- (treesit-node-start guest-root-node) 2) pred)))
+        (unless parent
+          (let ((parsers (seq-keep (lambda (o)
+                                     (overlay-get o 'treesit-host-parser))
+                                   (overlays-at (point) t))))
+            (while (and (not parent) parsers)
+              (setq parent (treesit-parent-until
+                            (treesit-node-at (point) (car parsers)) pred)
+                    parsers (cdr parsers)))))
 
         (or (when (and default-pos
                        (or (null parent)
@@ -4017,16 +4018,17 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
                  treesit-outline-predicate)))
     (while (setq node (treesit-parent-until node pred))
       (setq level (1+ level)))
-    ;; Continue counting from the host node.
-    (when-let* ((parser
-                 (when treesit-aggregated-outline-predicate
-                   (seq-some (lambda (o) (overlay-get o 'treesit-host-parser))
-                             (overlays-at (point)))))
-                (node (treesit-node-at (point) parser))
-                (lang (treesit-parser-language parser))
-                (pred (alist-get lang treesit-aggregated-outline-predicate)))
-      (while (setq node (treesit-parent-until node pred))
-        (setq level (1+ level))))
+
+    ;; Continue counting the host nodes.
+    (dolist (parser (seq-keep (lambda (o)
+                                (overlay-get o 'treesit-host-parser))
+                              (overlays-at (point) t)))
+      (let* ((node (treesit-node-at (point) parser))
+             (lang (treesit-parser-language parser))
+             (pred (alist-get lang treesit-aggregated-outline-predicate)))
+        (while (setq node (treesit-parent-until node pred))
+          (setq level (1+ level)))))
+
     level))
 
 ;;; Hideshow mode
