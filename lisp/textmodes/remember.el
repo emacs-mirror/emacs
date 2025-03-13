@@ -185,8 +185,8 @@
 (defcustom remember-initial-major-mode 'text-mode
   "Major mode to use in the `remember-buffer'."
   :type '(choice (const    :tag "Use `initial-major-mode'" nil)
-		 (function :tag "Major mode" text-mode))
-  :version "31.0")
+                 (function :tag "Major mode" text-mode))
+  :version "31.1")
 
 (defcustom remember-mode-hook nil
   "Functions run upon entering `remember-mode'."
@@ -484,10 +484,10 @@ The file is named by calling `format-time-string' using
 
 (defcustom remember-data-files-regex nil
   "Regular expression for specifying which files to append data.
-If non-nil, keep only files whose non-directory part match the regexp.
+If non-nil, keep only files whose non-directory part matches the regexp.
 Used by `remember-append-in-data-directory'."
   :type '(choice (const :tag "Any file" nil) regexp)
-  :version "31.0")
+  :version "31.1")
 
 (defun remember-append-in-data-directory ()
   "Append remember data to a file in `remember-data-directory'.
@@ -709,6 +709,7 @@ is non-nil, bury it and return nil; otherwise return t."
 
 ;; Prefix map
 
+(defvar remember-prefix-map)
 (define-prefix-command 'remember-prefix-map)
 ;; Use with for example:
 ;; (keymap-global-set "C-c r" 'remember-prefix-map)

@@ -1452,15 +1452,15 @@ change the selection rules.
 ** Remember
 
 ---
-*** `remember-mode' is now a minor mode.
-The `remember' command enables the major mode set in
-`remember-initial-major-mode' and then the `remember-mode' minor mode in
-the `remember-buffer'.  This allows users to customize the major mode
+*** Remember mode is now a minor mode.
+The 'remember' command enables the major mode set in
+'remember-initial-major-mode' and then the 'remember-mode' minor mode in
+the 'remember-buffer'.  This allows users to customize the major mode
 used to write notes.
 
 ---
 *** New handler that append remember data in directory.
-The `remember-append-in-data-directory' handler appends remember data in
+The 'remember-append-in-data-directory' handler appends remember data in
 a file, that file being choosen by the user through the minibuffer.
 
 ---
