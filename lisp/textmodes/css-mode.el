@@ -1824,7 +1824,13 @@ rgb()/rgba()."
   "Settings for `treesit-simple-imenu'.")
 
 (defvar css-ts-mode--outline-predicate
-  (nth 1 (car css--treesit-simple-imenu-settings))
+  (rx bos (or "rule_set"
+              "media_statement"
+              "keyframes_statement"
+              "keyframe_block"
+              "supports_statement"
+              "at_rule")
+      eos)
   "Predicate for `treesit-outline-predicate'.")
 
 (defvar css--treesit-defun-type-regexp
