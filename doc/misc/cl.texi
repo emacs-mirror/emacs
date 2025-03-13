@@ -4066,6 +4066,55 @@ A documentation string describing the slot.
 
 Other slot options are currently ignored.
 
+@defmac cl-with-accessors name bindings body@dot{}
+You can use @code{cl-with-accessors} to lexically define symbols as
+expressions calling the given accessor functions on a single instance of
+a structure or class defined by @code{cl-defstruct} or @code{defclass}
+(@pxref{eieio}).  This can simplify code that repeatedly accesses slots.
+With it, you can use @code{setf} and @code{setq} on the symbols like
+normal variables, modifying the values in the structure.  Unlike the
+macro @code{with-slots} (@pxref{Accessing Slots,,,eieio,EIEIO}), because
+the symbol expands to a function call, @code{cl-with-accessors} can be
+used with any generalized variable that can take a single argument, such
+as @code{cl-first} and @code{cl-rest}.
+@end defmac
+
+@example
+;; Using accessors with long, clear names without the macro:
+(defun internal-normalization (person)
+  "Correct the values of the slots in PERSON to be as expected."
+  ;; Check the values of the structure:
+  (when (equal (person-optional-secondary-data person) "")
+    (setf (person-optional-secondary-data person) nil))
+  (when (null (person-access-settings person))
+    (setf (person-access-settings person) 'default))
+  (when (< (long-accessor-name-that-can-become-unreadable-when-repeated
+            person)
+           9)
+    (cl-incf (long-accessor-name-that-can-become-unreadable-when-repeated
+              person)
+             100))
+  ;; And so on before returning the structure:
+  person)
+
+;; Using accessors with long, clear names with the macro:
+(defun internal-normalization (person)
+  "Correct the values of the slots in PERSON to be as expected."
+  (cl-with-accessors ((secondary-data person-optional-secondary-data)
+                      (access-settings person-access-settings)
+                      (short-name person-much-longer-accessor-name))
+      person
+    ;; Check the values of the structure:
+    (when (equal secondary-data "")
+      (setf secondary-data nil))
+    (when (null access-settings)
+      (setf access-settings 'default))
+    (when (< short-name 9)
+      (cl-incf short-name 100))
+    ;; And so on before returning the structure:
+    person))
+@end example
+
 For obscure historical reasons, structure options take a different
 form than slot options.  A structure option is either a keyword
 symbol, or a list beginning with a keyword symbol possibly followed

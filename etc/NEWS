@@ -1611,6 +1611,16 @@ New faces have been added to 'icomplete-vertical-mode':
 - 'icomplete-vertical-unselected-prefix-indicator-face' controls the
   appearance of unselected candidate prefixes.
 
+** CL-Lib
+
++++
+*** New macro 'cl-with-accessors'.
+This macro is similar to 'with-slots', but uses accessor functions
+instead of slot names.  It is useful when slots' accessor functions are
+used repeatedly, such as reading from a slot and then writing to that
+slot.  Symbol macros are created for the accessor functions using
+'cl-symbol-macrolet', so that they can be used with 'setq' and 'setf'.
+
 ** Miscellaneous
 
 ---

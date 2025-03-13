@@ -541,6 +541,21 @@ collection clause."
   (should (mystruct-p (cl-lib--con-1)))
   (should (mystruct-p (cl-lib--con-2))))
 
+(ert-deftest cl-lib-struct-with-accessors ()
+  (let ((x (make-mystruct :abc 1 :def 2)))
+    (cl-with-accessors ((abc mystruct-abc)
+                        (def mystruct-def))
+        x
+      (should (= abc 1))
+      (should-error (setf abc 99))
+      (should (= def 2))
+      (setf def 3)
+      (should (= def 3))
+      (setq def 4)
+      (should (= def 4)))
+    (should (= 4 (mystruct-def x)))
+    (should (= 1 (mystruct-abc x)))))
+ 
 (ert-deftest cl-lib-arglist-performance ()
   ;; An `&aux' should not cause lambda's arglist to be turned into an &rest
   ;; that's parsed by hand.
