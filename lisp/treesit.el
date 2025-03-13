@@ -3418,9 +3418,16 @@ What constitutes as text and source code sentence is determined
 by `text' and `sentence' in `treesit-thing-settings'."
   (if (treesit-node-match-p (treesit-node-at (point)) 'text t)
       (funcall #'forward-sentence-default-function arg)
-    (funcall
-     (if (> arg 0) #'treesit-end-of-thing #'treesit-beginning-of-thing)
-     'sentence (abs arg))))
+    (or (funcall
+         (if (> arg 0) #'treesit-end-of-thing #'treesit-beginning-of-thing)
+         'sentence (abs arg))
+        ;; On failure jump to the buffer's end as `forward-sentence' does,
+        ;; but no further than the boundary of the current range.
+        (goto-char (if (> arg 0)
+                       (min (point-max) (next-single-char-property-change
+                                         (point) 'treesit-parser))
+                     (max (point-min) (previous-single-char-property-change
+                                       (point) 'treesit-parser)))))))
 
 (defun treesit-forward-comment (&optional count)
   "Tree-sitter `forward-comment-function' implementation.
