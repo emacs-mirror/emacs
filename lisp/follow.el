@@ -234,8 +234,9 @@ After that, changing the prefix key requires manipulating keymaps."
   :type 'string
   :set (lambda (symbol value)
          (defvar follow-mode-map) (defvar follow-mode-submap)
-         (keymap-unset follow-mode-map (symbol-value symbol))
-         (keymap-set follow-mode-map value follow-mode-submap)
+         (when (boundp 'follow-mode-map)
+           (keymap-unset follow-mode-map (symbol-value symbol))
+           (keymap-set follow-mode-map value follow-mode-submap))
          (set-default symbol value))
   :group 'follow
   :version "31.1")
