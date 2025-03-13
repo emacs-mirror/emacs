@@ -1560,6 +1560,9 @@ an indirect buffer.  */)
       CHECK_BUFFER (buffer);
       buf = XBUFFER (buffer);
     }
+
+  struct buffer *buffer_given = buf;
+
   if (buf->base_buffer)
     buf = buf->base_buffer;
 
@@ -1595,7 +1598,7 @@ an indirect buffer.  */)
 
   /* Create parser.  */
   Lisp_Object lisp_buf;
-  XSETBUFFER (lisp_buf, buf);
+  XSETBUFFER (lisp_buf, buffer_given);
   Lisp_Object lisp_parser = make_treesit_parser (lisp_buf,
 						 parser, NULL,
 						 language, tag);
