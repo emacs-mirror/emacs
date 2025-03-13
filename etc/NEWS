@@ -681,6 +681,14 @@ were also dynamically accumulated in minibuffer history during
 minibuffer use, they are now saved only once in the file specified by
 'savehist-file'.  Previously, they were saved twice.
 
+** Rectangle Mark
+---
+*** New user option to control whether empty rectangle selections are shown.
+The new user option 'rectangle-indicate-zero-width-rectangle' can be
+used to disable the default display of empty rectangular selections.
+The default is t; set it to nil to disable the indication (which causes
+a horizontal shift of text on display, and thus could be annoying).
+
 ** Message
 
 ---
