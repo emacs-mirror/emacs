@@ -1409,7 +1409,11 @@ adjust_after_insert (ptrdiff_t from, ptrdiff_t from_byte,
   adjust_after_replace (from, from_byte, Qnil, newlen, len_byte);
 }
 
-/* Replace the text from character positions FROM to TO with NEW,
+/* Replace the text from character positions FROM to TO with NEW.
+   NEW could either be a string, the replacement text, or a vector
+   [BUFFER BEG END], where BUFFER is the buffer with the replacement
+   text and BEG and END are buffer positions in BUFFER that give the
+   replacement text beginning and end.
    If PREPARE, call prepare_to_modify_buffer.
    If INHERIT, the newly inserted text should inherit text properties
    from the surrounding non-deleted text.
@@ -1419,9 +1423,7 @@ adjust_after_insert (ptrdiff_t from, ptrdiff_t from_byte,
 /* Note that this does not yet handle markers quite right.
    Also it needs to record a single undo-entry that does a replacement
    rather than a separate delete and insert.
-   That way, undo will also handle markers properly.
-
-   But if MARKERS is 0, don't relocate markers.  */
+   That way, undo will also handle markers properly.  */
 
 void
 replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
@@ -1504,9 +1506,19 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
 	  insend_bytes = insend;
 	}
       insbytes = insend_bytes - insbeg_bytes;
+      /* Move gap out of the replacement text, to arrange for
+         replacement text to be contiguous in the source buffer, so that
+         we could copy it in one go.  */
       if (insbuf->text->gpt_byte > insbeg_bytes
 	  && insbuf->text->gpt_byte < insend_bytes)
-	move_gap_both (insbeg, insbeg_bytes);
+	{
+	  struct buffer *old = current_buffer;
+	  if (insbuf != old)
+	    set_buffer_internal (insbuf);
+	  move_gap_both (insbeg, insbeg_bytes);
+	  if (insbuf != old)
+	    set_buffer_internal (old);
+	}
       insbeg_ptr = BUF_BYTE_ADDRESS (insbuf, insbeg_bytes);
       eassert (insbuf->text->gpt_byte <= insbeg_bytes
 	       || insbuf->text->gpt_byte >= insend_bytes);
