@@ -160,7 +160,7 @@ sharedstatedir=@sharedstatedir@
 # a subdirectory of this.
 libexecdir=@libexecdir@
 
-# Currently only used for the systemd service file.
+# Where to install object code libraries.  Used for ELN_DESTDIR.
 libdir=@libdir@
 
 # Where to install emacs-module.h.
@@ -207,15 +207,7 @@ desktopdir=$(datarootdir)/applications
 metainfodir=$(datarootdir)/metainfo
 
 # Where the etc/emacs.service file is to be installed.
-# The system value (typically /usr/lib/systemd/user) can be
-# obtained with: pkg-config --variable=systemduserunitdir systemd
-# but that does not respect configure's prefix.
-# It is not clear where we should install this file when
-# prefix != /usr (or /usr/local?) (eg for non-root installs).
-# Other options include ~/.config/systemd/user/,
-# $XDG_RUNTIME_DIR/systemd/user/
-# It seems the user may end up having to make a manual link...
-systemdunitdir=$(libdir)/systemd/user
+systemduserunitdir=@systemduserunitdir@
 
 # Where the etc/images/icons/hicolor directory is to be installed.
 icondir=$(datarootdir)/icons
@@ -886,14 +878,16 @@ install-etc:
 	  ${srcdir}/etc/emacs.metainfo.xml > $${tmp}; \
 	${INSTALL_DATA} $${tmp} "$(DESTDIR)${metainfodir}/${EMACS_NAME}.metainfo.xml"; \
 	rm -f $${tmp}
-	umask 022; $(MKDIR_P) "$(DESTDIR)$(systemdunitdir)"
+  ifneq ($(systemduserunitdir),)
+	umask 022; $(MKDIR_P) "$(DESTDIR)$(systemduserunitdir)"
 	tmp=etc/emacs.tmpservice; rm -f $${tmp}; \
 	sed -e '/^##/d' \
 	  -e "/^Documentation/ s/emacs(1)/${EMACS_NAME}(1)/" \
 	  -e "/^ExecStart/ s|emacs|${bindir}/${EMACS}|" \
 	  ${srcdir}/etc/emacs.service > $${tmp}; \
-	$(INSTALL_DATA) $${tmp} "$(DESTDIR)$(systemdunitdir)/${EMACS_NAME}.service"; \
+	$(INSTALL_DATA) $${tmp} "$(DESTDIR)$(systemduserunitdir)/${EMACS_NAME}.service"; \
 	rm -f $${tmp}
+  endif
 	thisdir=`pwd -P`; \
 	cd ${iconsrcdir} || exit 1; umask 022 ; \
 	for dir in */*/apps */*/mimetypes; do \
@@ -977,7 +971,9 @@ uninstall: uninstall-$(NTDIR) uninstall-doc uninstall-gsettings-schemas
 	fi)
 	-rm -f "$(DESTDIR)${desktopdir}/${EMACS_NAME}.desktop"
 	-rm -f "$(DESTDIR)${metainfodir}/${EMACS_NAME}.metainfo.xml"
-	-rm -f "$(DESTDIR)$(systemdunitdir)/${EMACS_NAME}.service"
+  ifneq ($(systemduserunitdir),)
+	-rm -f "$(DESTDIR)$(systemduserunitdir)/${EMACS_NAME}.service"
+  endif
   ifneq (,$(use_gamedir))
 	for file in snake-scores tetris-scores; do \
 	  file="$(DESTDIR)${gamedir}/$${file}"; \

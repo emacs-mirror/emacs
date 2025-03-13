@@ -37,6 +37,11 @@ host system supports SSE2) or '-fno-tree-sra' (if not).  These GCC
 options work around GCC bug 58416, which can cause Emacs to behave
 incorrectly in rare cases.
 
+---
+** New configure option '--with-systemduserunitdir'.
+This allows to specify the directory where the user unit file for
+systemd is installed; default is '${prefix}/usr/lib/systemd/user'.
+
 
 * Startup Changes in Emacs 31.1
 

@@ -481,6 +481,24 @@ AC_SUBST([HAVE_PDUMPER])
 DUMPING=$with_dumping
 AC_SUBST([DUMPING])
 
+dnl Where the etc/emacs.service file is to be installed.
+dnl We use $(prefix)/lib/systemd/user as default, but this may not be
+dnl in systemd's search path when prefix is neither /usr nor /usr/local.
+dnl In that case (e.g. for non-root installs) the location can be
+dnl specified with the configure option.
+dnl See https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html#id-1.8.5
+dnl for documentation of systemd's unit file load path.
+AC_ARG_WITH([systemduserunitdir],
+  [AS_HELP_STRING([--with-systemduserunitdir=DIR],
+    [directory for systemd user unit file;
+    default 'PREFIX/usr/lib/systemd/user'])],
+  [systemduserunitdir=${withval}],
+  [systemduserunitdir='${prefix}/lib/systemd/user'])
+if test "${systemduserunitdir}" = "no"; then
+  systemduserunitdir=''
+fi
+AC_SUBST([systemduserunitdir])
+
 dnl FIXME currently it is not the last.
 dnl This should be the last --with option, because --with-x is
 dnl added later on when we find the file name of X, and it's best to
