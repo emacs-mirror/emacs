@@ -196,7 +196,7 @@ pair.
   "Define SYMBOL as a buffer-local variable with default value VALUE.
 Like `defvar' but additionally marks the variable as being automatically
 buffer-local wherever it is set.
-\n(fn symbol &optional value docstring)"
+\n(fn SYMBOL &optional VALUE DOCSTRING)"
   (declare (debug defvar) (doc-string 3) (indent 2))
   ;; Can't use backquote here, it's too early in the bootstrap.
   (let ((value (car-safe args))
