@@ -3619,6 +3619,10 @@ Only match the specified window systems.")
 				type)
 			 (checklist :inline t
 				    :offset 0
+                                    (const :format "Graphic "
+                                           :sibling-args (:help-echo "\
+Any graphics-capable display")
+                                           graphic)
 				    (const :format "X "
 					   :sibling-args (:help-echo "\
 The X11 Window System.")
