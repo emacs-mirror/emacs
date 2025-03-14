@@ -34,7 +34,8 @@
 (defcustom text-mode-hook '(text-mode-hook-identify)
   "Normal hook run when entering Text mode and many related modes."
   :type 'hook
-  :options '(turn-on-auto-fill turn-on-flyspell)
+  :options '(turn-on-auto-fill flyspell-mode)
+  :version "31.1"
   :group 'text)
 
 (defvar text-mode-variant nil

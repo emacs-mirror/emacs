@@ -1065,6 +1065,12 @@ allows idle timers and other code to run during this delay period.  We
 consider making this behavior the default in a future Emacs version, so
 we invite Flyspell users to enable this new option and report issues.
 
+---
+*** 'turn-on-flyspell' and 'turn-off-flyspell' are obsolete.
+To unconditionally enable 'flyspell-mode' from a hook, use this instead:
+
+    (add-hook 'text-mode-hook #'flyspell-mode)
+
 ** Tramp
 
 +++

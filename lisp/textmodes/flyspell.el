@@ -530,18 +530,6 @@ in your init file.
 	       (flyspell-mode -1)))
     (flyspell--mode-off)))
 
-;;;###autoload
-(defun turn-on-flyspell ()
-  "Unconditionally turn on Flyspell mode."
-  (flyspell-mode 1))
-
-;;;###autoload
-(defun turn-off-flyspell ()
-  "Unconditionally turn off Flyspell mode."
-  (flyspell-mode -1))
-
-(custom-add-option 'text-mode-hook 'turn-on-flyspell)
-
 (defvar flyspell-buffers nil
   "For remembering buffers running flyspell.")
 (make-obsolete-variable 'flyspell-buffers "not used." "28.1")
@@ -2407,6 +2395,15 @@ This function is meant to be added to `flyspell-incorrect-hook'."
 
 (define-obsolete-function-alias 'flyspell-mode-on 'flyspell--mode-on "30.1")
 (define-obsolete-function-alias 'flyspell-mode-off 'flyspell--mode-off "30.1")
+
+;;;###autoload
+(define-obsolete-function-alias 'turn-on-flyspell #'flyspell-mode "31.1")
+
+;;;###autoload
+(defun turn-off-flyspell ()
+  "Unconditionally turn off Flyspell mode."
+  (declare (obsolete flyspell-mode "31.1"))
+  (flyspell-mode -1))
 
 (provide 'flyspell)
 
