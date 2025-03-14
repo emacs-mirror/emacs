@@ -71,13 +71,21 @@ modify this GNU manual.''
 @top EDE
 @comment  node-name,  next,  previous,  up
 
-@ede{} is the Emacs Development Environment: an Emacs extension that
-simplifies building and debugging programs in Emacs.  It attempts to
-emulate a typical IDE (Integrated Development Environment).  @ede{}
+@ede{} (Emacs Development Environment) is an Emacs extension that
+simplifies building and debugging programs in Emacs.  @ede{}
 can manage or create your makefiles and other building environment
 duties, allowing you to concentrate on writing code rather than
 support files.  It aims to make it much easier for new programmers to
 learn and adopt GNU ways of doing things.
+
+In contrast to Emacs's built-in ``project'' support (@pxref{Projects,,,
+emacs, GNU Emacs Manual}), which provides lightweight project management
+features focused on file navigation and search, @ede{} offers a
+structured approach to managing build systems, configuration files, and
+project metadata.  While built-in projects are well-suited to
+general-purpose workflows, @ede{} is useful for projects using tools
+like @samp{make}, @samp{automake}, or @samp{autoconf}, or that involve
+managing multiple targets, include paths, and build configurations.
 
 @ifnottex
 @insertcopying
