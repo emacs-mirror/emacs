@@ -105,7 +105,7 @@ If Which Function delays the initial display of buffers too much,
 e.g., when it is used with Eglot, and the language server takes a
 long time to send the information, you can use this option to delay
 activation of Which Function until Imenu is used for the first time."
-  :type 'integer)
+  :type 'natnum)
 
 (defcustom which-func-update-delay
   ;; Backwards-compatibility: if users had changed this before
@@ -119,18 +119,15 @@ doing an update."
   :group 'display
   :version "30.1")
 
-(defvar which-func-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mode-line mouse-1] 'beginning-of-defun)
-    (define-key map [mode-line mouse-2]
-      (lambda ()
-	(interactive)
-	(if (eq (point-min) 1)
-	    (narrow-to-defun)
-	  (widen))))
-    (define-key map [mode-line mouse-3] 'end-of-defun)
-    map)
-  "Keymap to display on mode line which-func.")
+(defvar-keymap which-func-keymap
+  :doc "Keymap to display on mode line which-func."
+  "<mode-line> <mouse-1>" #'beginning-of-defun
+  "<mode-line> <mouse-2>" (lambda ()
+                            (interactive)
+                            (if (eq (point-min) 1)
+                                (narrow-to-defun)
+                              (widen)))
+  "<mode-line> <mouse-3>" #'end-of-defun)
 
 (defface which-func
   ;; Whether `font-lock-function-name-face' is an appropriate face to
@@ -164,11 +161,12 @@ doing an update."
 		 local-map ,which-func-keymap
 		 face which-func
 		 mouse-face mode-line-highlight
-                 help-echo ,(concat
-                             "Current function\n"
-                             "mouse-1: go to beginning\n"
-                             "mouse-2: toggle rest visibility\n"
-                             "mouse-3: go to end"))
+                 help-echo ,(substitute-command-keys
+                             (concat
+                              "Current function\n"
+                              "\\`mouse-1': go to beginning\n"
+                              "\\`mouse-2': toggle rest visibility\n"
+                              "\\`mouse-3': go to end")))
     "]")
   "Format for displaying the function in the mode line."
   :version "28.1"
