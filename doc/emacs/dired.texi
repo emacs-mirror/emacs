@@ -460,6 +460,14 @@ View the file described on the current line, with View mode
 (@code{dired-view-file}).  View mode provides convenient commands to
 navigate the buffer but forbids changing it; @xref{View Mode}.
 
+@item @@
+@kindex @@ @r{(Dired)}
+@findex tramp-dired-find-file-with-sudo
+Open the file described on the current line, with root permissions
+(@code{tramp-dired-find-file-with-sudo}).  Calling it with the @kbd{C-u}
+prefix argument asks for another Tramp method interactively but
+@option{sudo}.  @xref{Ad-hoc multi-hops, Tramp,, tramp, The Tramp Manual}.
+
 @item ^
 @kindex ^ @r{(Dired)}
 @findex dired-up-directory

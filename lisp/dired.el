@@ -2416,6 +2416,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
   "x"       #'dired-do-flagged-delete
   "y"       #'dired-show-file-type
   "+"       #'dired-create-directory
+  "@"       #'tramp-dired-find-file-with-sudo
   ;; moving
   "<"       #'dired-prev-dirline
   ">"       #'dired-next-dirline

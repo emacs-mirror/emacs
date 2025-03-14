@@ -285,7 +285,6 @@ return value windows whose buffers share their text with BUFFER-OR-NAME.
 With such an entry, 'display-buffer-reuse-window' may also choose a
 window whose buffer shares text with the buffer to display.
 
-
 ** Frames
 
 +++
@@ -294,7 +293,7 @@ Calling this function before 'delete-frame' is useful to avoid that the
 latter throws an error when the argument FRAME cannot be deleted.
 
 +++
-*** New value 'force' for option `frame-inhibit-implied-resize'.
+*** New value 'force' for user option 'frame-inhibit-implied-resize'.
 This will inhibit implied resizing while a new frame is made and can be
 useful on tiling window managers where the initial frame size should be
 specified by external means.
@@ -363,8 +362,6 @@ invoked standalone or from the 'project-switch-commands' dispatch menu.
 This user option describes projects that should always be skipped by
 'project-remember-project'.
 
-***
-
 ** Registers
 
 *** New functions 'buffer-to-register' and 'file-to-register'.
@@ -396,14 +393,14 @@ please contact us if you still need it for some reason.
 
 ---
 ** Modified settings for an enabled theme now apply immediately.
-Evaluating a custom-theme-set-faces or custom-theme-set-variables
+Evaluating a 'custom-theme-set-faces' or 'custom-theme-set-variables'
 call for an enabled theme causes the settings to apply immediately,
 without a need to re-load the theme.
 
 ---
 ** 'describe-variable' now automatically says if 'setopt' is needed.
-If a user option has a defcustom :set function, users will normally need
-to set it with 'setopt' for it to take an effect.  If the docstring
+If a user option has a defcustom ':set' function, users will normally
+need to set it with 'setopt' for it to take an effect.  If the docstring
 doesn't already mention 'setopt', the 'describe-variable' command will
 now add a note about this automatically.
 
@@ -545,6 +542,7 @@ default is nil, which retains the old format.
 *** The terminal emulator now supports auto-margins control.
 Term mode now handles DECAWM escape sequences that control whether text
 automatically wraps at the right margin:
+
 - \e[?7h enables auto-margins (default)
 - \e[?7l disables auto-margins
 
@@ -603,12 +601,13 @@ Emacs 25.1), and gnudoit (obsolete since Emacs 25.1).
 *** Some cl-lib functions and macros are now built-in.
 These functions or macros have been added to Emacs Lisp, and the old
 names are now aliases for the built-in equivalents:
- - 'cl-incf'   renamed to 'incf'
- - 'cl-decf'   renamed to 'decf'
- - 'cl-oddp'   renamed to 'oddp'
- - 'cl-evenp'  renamed to 'evenp'
- - 'cl-plusp'  renamed to 'plusp'
- - 'cl-minusp' renamed to 'minusp'
+
+- 'cl-incf'   renamed to 'incf'
+- 'cl-decf'   renamed to 'decf'
+- 'cl-oddp'   renamed to 'oddp'
+- 'cl-evenp'  renamed to 'evenp'
+- 'cl-plusp'  renamed to 'plusp'
+- 'cl-minusp' renamed to 'minusp'
 
 The old names are considered deprecated, and will be marked as obsolete
 in some future release.
@@ -687,6 +686,7 @@ minibuffer use, they are now saved only once in the file specified by
 'savehist-file'.  Previously, they were saved twice.
 
 ** Rectangle Mark
+
 ---
 *** New user option to control whether empty rectangle selections are shown.
 The new user option 'rectangle-indicate-zero-width-rectangle' can be
@@ -740,9 +740,8 @@ It removes all the buttons in the specified region.
 
 ** Shell
 
----
++++
 *** Shell buffers now support bookmarks.
-
 You can now bookmark local and remote shell buffers using the bookmark
 menu 'bookmark-bmenu-list', or by using the command 'bookmark-set'.
 Shell bookmarks can be loaded via the menu and by using the command
@@ -1021,7 +1020,7 @@ positives.
 
 ---
 *** IELM input history is now saved also when the IELM process is killed.
-When you kill the IELM process with "C-c C-c", the input history is now
+When you kill the IELM process with 'C-c C-c', the input history is now
 saved to the file specified by 'ielm-history-file-name', just like when
 you exit the Emacs session or kill the IELM buffer.
 
@@ -1075,6 +1074,16 @@ for Tramp internal buffers, are flushed.  This is helpful to prune
 connections after you close remote-file buffers without having to either
 cherry pick via 'tramp-cleanup-connection' or clear them all via
 'tramp-cleanup-all-connections'.
+
++++
+*** New command 'tramp-dired-find-file-with-sudo'.
+This command, bound to '@' in Dired, visits the file or directory on the
+recent Dired line with root permissions.
+
++++
+*** Command 'tramp-revert-buffer-with-sudo' is bound to 'C-x x @' now.
+Called with the prefix argument 'C-u', the used Tramp method is asked
+interactively.  This happens also for 'tramp-dired-find-file-with-sudo'.
 
 +++
 *** Connection method "kubernetes" supports now optional namespace.
@@ -1371,19 +1380,19 @@ the directory into which the repository was cloned.
 *** 'C-x v u' ('vc-revert') now works on directories listed in VC Directory.
 Reverting a directory means reverting changes to all files inside it.
 
-*** New function 'log-edit-done-strip-cvs-lines'.
-This function strips all lines beginning with "CVS:" from the buffer.
+*** New command 'log-edit-done-strip-cvs-lines'.
+This command strips all lines beginning with "CVS:" from the buffer.
 It is intended to be added to the 'log-edit-done-hook' so that
-'vc-cvs-checkin' behaves like invoking "cvs commit [files...]" from the
+'vc-cvs-checkin' behaves like invoking 'cvs commit [files...]' from the
 command line.
 
 ** Diff mode
 
 +++
-*** diff-apply-buffer now considers the region and can reverse-apply.
+*** 'diff-apply-buffer' now considers the region and can reverse-apply.
 If the region is active, this command now applies all hunks that the
 region overlaps; otherwise, it applies all hunks.
-With a prefix arguments, it now reverse-applies the hunks.
+With a prefix argument, it now reverse-applies the hunks.
 This matches the existing prefix argument to 'diff-apply-hunk'.
 
 ** Package
@@ -1448,13 +1457,13 @@ runs its body, and removes the current buffer from
 ** Strokes
 
 --
-** 'strokes-mode' no longer demands the presence of a mouse.
+*** 'strokes-mode' no longer demands the presence of a mouse.
 'strokes-mode' now permits itself to be enabled if no mouse is
 connected, to facilitate enabling 'strokes-mode' in sessions where the
 availability of a mouse device varies during execution (as is frequently
 observed on Android).
 
-** Yank media
+** Yank Media
 
 +++
 *** 'yank-media' now auto-selects the most preferred MIME type.
@@ -1472,7 +1481,7 @@ the 'remember-buffer'.  This allows users to customize the major mode
 used to write notes.
 
 ---
-*** New handler that append remember data in directory.
+*** New handler that appends remember data in directory.
 The 'remember-append-in-data-directory' handler appends remember data in
 a file, that file being choosen by the user through the minibuffer.
 
@@ -1593,28 +1602,28 @@ restore the old behavior, you can set 'eshell-pwd-convert-function' to
 'identity'.
 
 ---
-** The rx 'eval' form now uses the current elisp dialect for evaluation.
+** The rx 'eval' form now uses the current Elisp dialect for evaluation.
 Previously, its argument was always evaluated using dynamic binding.
 
 
 * Lisp Changes in Emacs 31.1
 
 +++
-** New macros 'static-when' and 'static-unless' implement conditional
-compilation like 'static-if'.
-These macros evaluate their condition at macro-expansion time and are useful
-for writing code that can work across different Emacs versions.
+** New macros 'static-when' and 'static-unless'.
+Like 'static-if', these macros evaluate their condition at
+macro-expansion time and are useful for writing code that can work
+across different Emacs versions.
 
 ---
 ** You can change the default value of 'lexical-binding'.
-While the default is still the use dynamic binding dialect of Elisp
+While the default is still the use of dynamic binding dialect of Elisp
 in those places that don't explicitly set 'lexical-binding' you can
 change it globally with:
 
     (set-default-toplevel-value 'lexical-binding t)
 
 +++
-*** New macros 'incf' and 'decf'.
+** New macros 'incf' and 'decf'.
 They increment or decrement the value stored in a variable (a symbol),
 or in a generalized variable.
 
@@ -1638,11 +1647,12 @@ This means that you can now call it with just one argument, like
 *** Some experimental ERT macros are now considered stable.
 The following macros, previously only available in the experimental
 'ert-x' module, are now considered stable and have been moved to 'ert':
+
 - ert-with-test-buffer
 - ert-with-buffer-selected
 - ert-with-buffer-renamed
 
-See the ERT manual for more information.
+See "(ert) Helper Functions" node in the ERT manual for more information.
 
 ** Time & Date
 
@@ -1852,7 +1862,7 @@ maps will not activate the repeat map in 'repeat-mode'.  It will only
 continue the already activated repeating sequence.  Also 'defvar-keymap'
 supports a new keyword ':continue' with a list of commands that only
 continue the active repeating sequence, and the 'use-package' and
-'bind-keys' macros supports a similar keyword ':continue-only'.
+'bind-keys' macros support a similar keyword ':continue-only'.
 
 ** New function 'completion-table-with-metadata'.
 It offers a more concise way to create a completion table with metadata.

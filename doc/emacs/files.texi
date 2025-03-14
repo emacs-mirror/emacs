@@ -1174,6 +1174,15 @@ the major mode actually turned on as result of reverting a buffer
 depends on mode remapping, and could be different from the original mode
 if you customized @code{major-mode-remap-alist} in-between.
 
+@cindex reverting with root permissions
+@findex tramp-revert-buffer-with-sudo
+@kindex C-x x @@
+A variant of reverting a buffer is visiting it by the
+@code{tramp-revert-buffer-with-sudo} (@kbd{C-x x @@}) command. It
+reopens the file or Dired buffer with root permissions.  With a prefix
+argument of @kbd{C-u}, you could change the default Tramp method
+(@option{sudo}).  @xref{Ad-hoc multi-hops, Tramp,, tramp, The Tramp Manual}.
+
 @node Auto Revert
 @section Auto Revert: Keeping buffers automatically up-to-date
 @cindex Global Auto Revert mode

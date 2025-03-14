@@ -3928,23 +3928,31 @@ containers on the remote host.
 
 A common use case for ad-hoc specifications is to visit a file or a
 directory with proper permissions, for example with the @option{sudo}
-method.  The command @code{tramp-revert-buffer-with-sudo} supports
-this.
+method.  The commands @code{tramp-revert-buffer-with-sudo} (@kbd{C-x x
+@@}), and @code{tramp-dired-find-file-with-sudo} (@kbd{@@} in
+@code{dired-mode}) support this.
 
+@kindex C-x x @@
 @deffn Command tramp-revert-buffer-with-sudo
 This command shows the current buffer with @option{sudo} permissions.
 The buffer must either visit a file, or a directory
 (@code{dired-mode}).
 @end deffn
 
-@defopt tramp-file-name-with-method
-The method @code{tramp-revert-buffer-with-sudo} shows an alternate
-buffer.  It defaults to @option{sudo}, other valid methods are
-@option{su}, @option{doas}, @option{run0}, and @option{ksu}.
+@kindex @@ @r{(in dired})
+@deffn Command tramp-dired-find-file-with-sudo
+In @code{dired-mode}, visit the file or directory named on this line.
+This is performed with @option{sudo} permissions.
+@end deffn
 
-@lisp
-(customize-set-variable 'tramp-file-name-with-method "doas")
-@end lisp
+@defopt tramp-file-name-with-method
+The method used in @code{tramp-revert-buffer-with-sudo} and
+@code{tramp-dired-find-file-with-sudo}.  It defaults to @option{sudo},
+other valid methods are @option{su}, @option{doas}, @option{run0}, and
+@option{ksu}.
+
+If a command is called with a prefix argument @kbd{C-u}, the option's
+value is read interactively.
 @end defopt
 
 These methods apply the user @samp{root} as default.  If another user

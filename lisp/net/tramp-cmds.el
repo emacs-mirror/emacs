@@ -32,6 +32,7 @@
 
 ;; Pacify byte-compiler.
 (declare-function dired-advertise "dired")
+(declare-function dired-get-file-for-visit "dired")
 (declare-function dired-unadvertise "dired")
 (declare-function mml-mode "mml")
 (declare-function mml-insert-empty-tag "mml")
@@ -637,6 +638,19 @@ For details, see `tramp-rename-files'."
 		 (const "ksu"))
   :link '(tramp-info-link :tag "Tramp manual" tramp-file-name-with-method))
 
+(defmacro with-tramp-file-name-with-method (&rest body)
+  "Ask user for `tramp-file-name-with-method' if needed.
+Run BODY."
+  (declare (indent 0) (debug t))
+  `(let ((tramp-file-name-with-method
+          (if current-prefix-arg
+	      (completing-read
+	       "Tramp method: "
+               (mapcar #'cadr (cdr (get 'tramp-file-name-with-method 'custom-type)))
+               nil t tramp-file-name-with-method)
+            tramp-file-name-with-method)))
+     ,@body))
+
 (defun tramp-file-name-with-sudo (filename)
   "Convert FILENAME into a multi-hop file name with \"sudo\".
 An alternative method could be chosen with `tramp-file-name-with-method'."
@@ -669,27 +683,38 @@ An alternative method could be chosen with `tramp-file-name-with-method'."
      (make-tramp-file-name
       :method tramp-file-name-with-method :localname filename))))
 
-;;;###tramp-autoload
+;;;###autoload
 (defun tramp-revert-buffer-with-sudo ()
   "Revert current buffer to visit with \"sudo\" permissions.
 An alternative method could be chosen with `tramp-file-name-with-method'.
 If the buffer visits a file, the file is replaced.
 If the buffer runs `dired', the buffer is reverted."
   (interactive)
-  (cond
-   ((buffer-file-name)
-    (find-alternate-file (tramp-file-name-with-sudo (buffer-file-name))))
-   ((tramp-dired-buffer-p)
-    (dired-unadvertise (expand-file-name default-directory))
-    (setq default-directory (tramp-file-name-with-sudo default-directory)
-	  list-buffers-directory
-	  (tramp-file-name-with-sudo list-buffers-directory))
-    (if (consp dired-directory)
-	(setcar
-	 dired-directory (tramp-file-name-with-sudo (car dired-directory)))
-      (setq dired-directory (tramp-file-name-with-sudo dired-directory)))
-    (dired-advertise)
-    (revert-buffer))))
+  (with-tramp-file-name-with-method
+    (cond
+     ((buffer-file-name)
+      (let ((pos (point)))
+        (find-alternate-file (tramp-file-name-with-sudo (buffer-file-name)))
+        (goto-char pos)))
+     ((tramp-dired-buffer-p)
+      (dired-unadvertise (expand-file-name default-directory))
+      (setq default-directory (tramp-file-name-with-sudo default-directory)
+	    list-buffers-directory
+	    (tramp-file-name-with-sudo list-buffers-directory))
+      (if (consp dired-directory)
+	  (setcar
+	   dired-directory (tramp-file-name-with-sudo (car dired-directory)))
+        (setq dired-directory (tramp-file-name-with-sudo dired-directory)))
+      (dired-advertise)
+      (revert-buffer)))))
+
+;;;###autoload
+(defun tramp-dired-find-file-with-sudo ()
+  "In Dired, visit the file or directory named on this line.
+This is performed with \"sudo\" permissions."
+  (interactive)
+  (with-tramp-file-name-with-method
+    (find-file (tramp-file-name-with-sudo (dired-get-file-for-visit)))))
 
 ;;; Recompile on ELPA
 
