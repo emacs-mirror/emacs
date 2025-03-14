@@ -134,11 +134,15 @@ Works like `css--fontify-region'."
   :type 'boolean
   :safe 'booleanp)
 
-(defcustom php-ts-mode-php-executable (or (executable-find "php") "/usr/bin/php")
-  "The location of PHP executable."
+(defcustom php-ts-mode-php-default-executable (or (executable-find "php") "/usr/bin/php")
+  "The default PHP executable."
   :tag "PHP Executable"
   :version "30.1"
   :type 'file)
+
+(defvar-local php-ts-mode-alternative-php-program-name nil
+  "An alternative to the usual `php' program name.
+In non-nil, `php-ts-mode--executable' try to find this executable.")
 
 (defcustom php-ts-mode-php-config nil
   "The location of php.ini file.
@@ -270,7 +274,7 @@ Calls REPORT-FN directly."
              :noquery t
              :connection-type 'pipe
              :buffer (generate-new-buffer " *php-ts-mode-flymake*")
-             :command `(,php-ts-mode-php-executable
+             :command `(,(php-ts-mode--executable)
                         "-l" "-d" "display_errors=0")
              :sentinel
              (lambda (proc _event)
@@ -305,6 +309,16 @@ Calls REPORT-FN directly."
 
 
 ;;; Utils
+
+(defun php-ts-mode--executable ()
+  "Return the absolute filename of the php executable.
+If the `default-directory' is remote, search on a remote host, otherwise
+it searches locally.  If `php-ts-mode-alternative-php-program-name' is
+non-zero, it searches for this program instead of the usual `php'.
+If the search fails, it returns `php-ts-mode-php-default-executable'."
+  (or (executable-find
+      (or php-ts-mode-alternative-php-program-name "php") t)
+    php-ts-mode-php-default-executable))
 
 (defun php-ts-mode--get-indent-style ()
   "Helper function to set indentation style.
@@ -595,7 +609,7 @@ doesn't have a child.
 
 PARENT is NODE's parent, BOL is the beginning of non-whitespace
 characters of the current line."
-  (when-let ((prev-sibling
+  (when-let* ((prev-sibling
               (or (treesit-node-prev-sibling node t)
                   (treesit-node-prev-sibling
                    (treesit-node-first-child-for-pos parent bol) t)
@@ -1236,7 +1250,7 @@ Return nil if the NODE has no field “name” or if NODE is not a defun node."
   "Indent the current top-level declaration syntactically.
 `treesit-defun-type-regexp' defines what constructs to indent."
   (interactive "*")
-  (when-let ((orig-point (point-marker))
+  (when-let* ((orig-point (point-marker))
              (node (treesit-defun-at-point)))
     (indent-region (treesit-node-start node)
                    (treesit-node-end node))
@@ -1613,7 +1627,7 @@ for PORT, HOSTNAME, DOCUMENT-ROOT and ROUTER-SCRIPT."
       (message "Run PHP built-in web server with args %s into buffer %s"
                (string-join args " ")
                buf-name)
-      (apply #'make-comint name php-ts-mode-php-executable nil args))
+      (apply #'make-comint name (php-ts-mode--executable) nil args))
     (funcall
      (if (called-interactively-p 'interactive) #'display-buffer #'get-buffer)
      buf-name)))
@@ -1677,18 +1691,19 @@ Prompt for CMD if `php-ts-mode-php-executable' is nil.
 Optional CONFIG, if supplied, is the php.ini file to use."
   (interactive (when current-prefix-arg
                  (list
-                  (read-string "Run PHP: " php-ts-mode-php-executable)
+                  (read-string "Run PHP: " (php-ts-mode--executable))
                   (expand-file-name
                    (read-file-name "With config: " php-ts-mode-php-config)))))
-  (let ((buffer (get-buffer-create php-ts-mode-inferior-php-buffer))
-        (cmd (or
-              cmd
-              php-ts-mode-php-executable
-              (read-string "Run PHP: " php-ts-mode-php-executable)))
-        (config (or
-                 config
-                 (and php-ts-mode-php-config
-                      (expand-file-name php-ts-mode-php-config)))))
+  (let* ((php-prog (php-ts-mode--executable))
+         (buffer (get-buffer-create php-ts-mode-inferior-php-buffer))
+         (cmd (or
+               cmd
+               php-prog
+               (read-string "Run PHP: " php-prog)))
+         (config (or
+                  config
+                  (and php-ts-mode-php-config
+                       (expand-file-name php-ts-mode-php-config)))))
     (unless (comint-check-proc buffer)
       (with-current-buffer buffer
         (inferior-php-ts-mode-startup cmd config)
