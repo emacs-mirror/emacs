@@ -1675,8 +1675,8 @@ The buffer position of the character clicked on in the text area; or,
 if the event was outside the text area, the window area where it
 occurred.  It is one of the symbols @code{mode-line},
 @code{header-line}, @code{tab-line}, @code{vertical-line},
-@code{left-margin}, @code{right-margin}, @code{left-fringe}, or
-@code{right-fringe}.
+@code{left-margin}, @code{right-margin}, @code{left-fringe},
+@code{right-fringe}, @code{tab-bar}, or @code{menu-bar}.
 
 In one special case, @var{pos-or-area} is a list containing a symbol
 (one of the symbols listed above) instead of just the symbol.  This
