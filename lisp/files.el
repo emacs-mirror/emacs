@@ -1310,9 +1310,9 @@ the value of the variable `exec-path'."
 
 (defun executable-find (command &optional remote)
   "Search for COMMAND in `exec-path' and return the absolute file name.
-Return nil if COMMAND is not found anywhere in `exec-path'.  If
-REMOTE is non-nil, search on the remote host indicated by
-`default-directory' instead."
+Return nil if COMMAND is not found anywhere in `exec-path'.
+If REMOTE is non-nil, search on a remote host if `default-directory' is
+remote, otherwise search locally."
   (if (and remote (file-remote-p default-directory))
       (let ((res (locate-file
 	          command

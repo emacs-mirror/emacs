@@ -7451,7 +7451,7 @@ not a list, return a one-element list containing OBJECT."
 The MESSAGE form will be evaluated immediately, but the resulting
 string will be displayed only if BODY takes longer than TIMEOUT seconds.
 
-\(fn (timeout message) &rest body)"
+\(fn (TIMEOUT MESSAGE) &rest BODY)"
   (declare (indent 1))
   `(funcall-with-delayed-message ,(car args) ,(cadr args)
                                  (lambda ()

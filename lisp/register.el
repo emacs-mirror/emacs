@@ -130,11 +130,11 @@ description of the argument.  The function to use is set according
 to the value of `register--read-with-preview-function'.")
 
 (defcustom register-use-preview 'traditional
-  "Whether to show register preview when modifying registers.
+  "Whether register commands show preview of registers with non-nil values.
 
 When set to t, show a preview buffer with navigation and highlighting.
 
-When set `insist', behave as with t, but allow exiting the minibuffer by
+When set to `insist', behave as with t, but allow exiting the minibuffer by
 pressing the register name a second time.  For example, press \\`a' to
 select register \"a\", then press \\`a' again to exit the minibuffer.
 

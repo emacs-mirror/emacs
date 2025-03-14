@@ -2935,15 +2935,19 @@ is controlled by `dired-movement-style'."
           (setq wrapped t))
          ;; `bounded': go back to the last non-empty line.
          (dired-movement-style ; Either 'bounded or anything else non-nil.
-          (while (and (dired-between-files) (not (zerop arg)))
+          (while (and (dired-between-files)
+                      (not (dired-get-subdir))
+                      (not (zerop arg)))
             (funcall jumpfun (- moving-down))
             ;; Point not moving means infinite loop.
             (if (= old-position (point))
                 (setq arg 0)
               (setq old-position (point))))
           ;; Encountered a boundary, so let's stop movement.
-          (setq arg (if (dired-between-files) 0 moving-down)))))
-      (unless (dired-between-files)
+          (setq arg (if (and (dired-between-files)
+                             (not (dired-get-subdir)))
+                        0 moving-down)))))
+      (unless (and (dired-between-files) (not (dired-get-subdir)))
         ;; Has moved to a non-empty line.  This movement does
         ;; make sense.
         (decf arg moving-down))
