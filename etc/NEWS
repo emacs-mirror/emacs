@@ -1909,6 +1909,9 @@ allowing Emacs users access to speech recognition utilities.
 Note: Accepting this permission allows the use of system APIs, which may
 send user data to Apple’s speech recognition servers.
 
++++
+** On Mac OS X, stipples now render with color.
+
 ---
 ** Emacs on MS-Windows now supports GUI dialogs and message boxes better.
 In particular, it is now possible to show text with embedded newlines in
@@ -1940,6 +1943,12 @@ current buffer, if the major mode supports it.  (Support for
 '--without-native-image-api'.)
 
 ---
+** Emacs on MS-Windows now supports up to 1024 sub-processes.
+Changes in implementation of monitoring sub-processes allow Emacs on
+MS-Windows to start up to 1024 sub-processes, similar to GNU/Linux and
+other free systems.
+
+---
 ** Images on MS-Windows now support the ':transform-smoothing' flag.
 Transformed images are smoothed using the bilinear interpolation by
 means of the GDI+ library.
@@ -1954,9 +1963,6 @@ DATA' can now be used to play a sound from memory.
 Accordingly, we have revised our recommendations for a suitable DJGPP
 toolchain to GCC 14.2.0 and Binutils 2.35.1 in lieu of GCC 3.4.x and
 Binutils 2.26.
-
-+++
-** On Mac OS X, stipples now render with color.
 
 
 ----------------------------------------------------------------------
