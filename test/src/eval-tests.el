@@ -282,6 +282,18 @@ expressions works for identifiers starting with period."
   (should-error (defvaralias 'eval-tests--my-c 'eval-tests--my-d)
                 :type 'cyclic-variable-indirection))
 
+(ert-deftest eval-tests--internal-delete-indirect-variable ()
+  (defvar eval-tests--i-d-i-v-var 'foo)
+  (defvaralias 'eval-tests--i-d-i-v-var1 'eval-tests--i-d-i-v-var "Doc string.")
+  (internal-delete-indirect-variable 'eval-tests--i-d-i-v-var1)
+
+  (should (eq (indirect-variable 'eval-tests--i-d-i-v-var1)
+              'eval-tests--i-d-i-v-var1))
+  (should-not (boundp 'eval-tests--i-d-i-v-var1))
+  (should-not (get 'eval-tests--i-d-i-v-var1 'variable-documentation))
+
+  (should-error (internal-delete-indirect-variable 'eval-tests--i-d-i-v-var)))
+
 (defvar eval-tests/global-var 'global-value)
 (defvar-local eval-tests/buffer-local-var 'default-value)
 (ert-deftest eval-tests/default-value ()

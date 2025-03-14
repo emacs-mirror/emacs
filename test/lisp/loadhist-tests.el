@@ -101,4 +101,12 @@
   (should (null (get 'loadhist--bar-dec 'function-history)))
   (should (null (get 'loadhist--foo-inc 'function-history))))
 
+(ert-deftest loadhist-test-unload-feature-alias ()
+  "Check that bug#76748 has been fixed."
+  (add-to-list 'load-path (expand-file-name
+                           "loadhist-resources/"
+                           loadhist--tests-dir))
+  (load "loadhist--alias" nil t)
+  (unload-feature 'loadhist--alias))
+
 ;;; loadhist-tests.el ends here

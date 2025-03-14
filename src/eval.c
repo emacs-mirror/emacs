@@ -720,6 +720,24 @@ signal a `cyclic-variable-indirection' error.  */)
   return base_variable;
 }
 
+DEFUN ("internal-delete-indirect-variable", Finternal_delete_indirect_variable, Sinternal_delete_indirect_variable,
+       1, 1, 0,
+       doc: /* Internal use only.
+Undeclare SYMBOL as variable alias, then unbind it.
+Return SYMBOL.  */)
+  (register Lisp_Object symbol)
+{
+  CHECK_SYMBOL (symbol);
+  if (XSYMBOL (symbol)->u.s.redirect != SYMBOL_VARALIAS)
+    xsignal2 (Qerror,
+	      build_string ("Cannot undeclare a variable that is not an alias"),
+	      symbol);
+  XSYMBOL (symbol)->u.s.redirect = SYMBOL_PLAINVAL;
+  Fput (symbol, Qvariable_documentation, Qnil);
+  Fset (symbol, Qunbound);
+  return symbol;
+}
+
 static union specbinding *
 default_toplevel_binding (Lisp_Object symbol)
 {
@@ -4488,6 +4506,7 @@ alist of active lexical bindings.  */);
   defsubr (&Sdefvar_1);
   defsubr (&Sdefvaralias);
   DEFSYM (Qdefvaralias, "defvaralias");
+  defsubr (&Sinternal_delete_indirect_variable);
   defsubr (&Sdefconst);
   defsubr (&Sdefconst_1);
   defsubr (&Sinternal__define_uninitialized_variable);
