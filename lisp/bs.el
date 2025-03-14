@@ -73,8 +73,8 @@
 ;; This package offers two functions for buffer cycling.  If you want to cycle
 ;; through buffer list you can use `bs-cycle-next' or `bs-cycle-previous'.
 ;; Bind these function to a key like
-;;   (global-set-key [(f9)]   'bs-cycle-previous)
-;;   (global-set-key [(f10)]  'bs-cycle-next)
+;;   (keymap-global-set "<f9>"  #'bs-cycle-previous)
+;;   (keymap-global-set "<f10>" #'bs-cycle-next)
 ;;
 ;; Both functions use a special subset of all buffers for cycling to avoid
 ;; to go through internal buffers like *Messages*.

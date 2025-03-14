@@ -48,9 +48,9 @@
 ;;
 ;; To use mouse-drag, place the following in your init file:
 ;; -either-
-;;     (global-set-key [down-mouse-2] 'mouse-drag-throw)
+;;     (keymap-global-set "<down-mouse-2>" #'mouse-drag-throw)
 ;; -or-
-;;     (global-set-key [down-mouse-2] 'mouse-drag-drag)
+;;     (keymap-global-set "<down-mouse-2>" #'mouse-drag-drag)
 ;;
 ;;
 ;;

@@ -40,8 +40,8 @@
 ;;
 ;; Suggested key bindings:
 ;;
-;; (global-set-key [C-tab] 'scan-buf-next-region)
-;; (global-set-key [C-M-tab] 'scan-buf-previous-region)
+;; (keymap-global-set "C-<tab>" #'scan-buf-next-region)
+;; (keymap-global-set "C-M-<tab>" #'scan-buf-previous-region)
 
 ;;; Code:
 

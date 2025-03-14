@@ -41,13 +41,13 @@
 
 ;; You may wish to add something like the following to your init file:
 ;;
-;;   (global-set-key "\C-cj" 'webjump)
-;;   (setq webjump-sites
-;;         (append '(
-;;                   ("My Home Page" . "www.someisp.net/users/joebobjr/")
-;;                   ("Pop's Site"   . "www.joebob-and-son.com/")
-;;                   )
-;;                 webjump-sample-sites))
+;;   (keymap-global-set "C-c j" #'webjump)
+;;   (setopt webjump-sites
+;;           (append '(
+;;                     ("My Home Page" . "www.someisp.net/users/joebobjr/")
+;;                     ("Pop's Site"   . "www.joebob-and-son.com/")
+;;                     )
+;;                   webjump-sample-sites))
 ;;
 ;; The above loads this package, binds `C-c j' to invoke WebJump, and adds your
 ;; personal favorite sites to the hotlist.

@@ -124,12 +124,11 @@
 ;; The variable `woman-use-topic-at-point' can be rebound locally,
 ;; which may be useful to provide special private key bindings, e.g.
 
-;;  (global-set-key "\C-cw"
-;;  		  (lambda ()
-;;  		    (interactive)
-;;  		    (let ((woman-use-topic-at-point t))
-;;  		      (woman)))))
-
+;; (keymap-global-set "C-c w"
+;;                    (lambda ()
+;;                      (interactive)
+;;                      (let ((woman-use-topic-at-point t))
+;;                        (woman)))))
 
 ;; Customization, Hooks and Imenu
 ;; ==============================

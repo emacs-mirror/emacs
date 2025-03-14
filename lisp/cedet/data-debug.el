@@ -29,7 +29,7 @@
 ;;
 ;; The best way to get started is to bind M-: to 'data-debug-eval-expression.
 ;;
-;; (global-set-key "\M-:" 'data-debug-eval-expression)
+;; (keymap-global-set "M-:" 'data-debug-eval-expression)
 ;;
 ;; If you write functions with complex output that need debugging, you
 ;; can make them interactive with data-debug-show-stuff.  For example:

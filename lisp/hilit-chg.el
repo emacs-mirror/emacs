@@ -113,8 +113,8 @@
 
 
 ;;     Possible bindings:
-;; (global-set-key '[C-right] #'highlight-changes-next-change)
-;; (global-set-key '[C-left]  #'highlight-changes-previous-change)
+;; (keymap-global-set "C-<right>" #'highlight-changes-next-change)
+;; (keymap-global-set "C-<left>"  #'highlight-changes-previous-change)
 ;;
 ;;     Other interactive functions (that could be bound if desired):
 ;; `highlight-changes-mode'

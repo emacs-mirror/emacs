@@ -333,7 +333,7 @@
 ;;
 ;;   (add-hook 'table-cell-map-hook
 ;;     (lambda ()
-;;       (local-set-key [<key sequence>] '<function>)))
+;;       (keymap-local-set "<key sequence>" '<function>)))
 ;;
 ;; Adding the above to your init file is a common way to customize a
 ;; mode specific keymap.  However it does not work for this package.

@@ -1318,7 +1318,7 @@ This returns an error if any Emacs frames are X frames."
   ;; and turned the Emacs f10 back on.
   ;; ;; Motif normally handles f10 itself, so don't try to handle it a second time.
   ;; (if (featurep 'motif)
-  ;;     (global-set-key [f10] 'ignore))
+  ;;     (keymap-global-set "<f10>" 'ignore))
 
   ;; Enable CLIPBOARD copy/paste through menu bar commands.
   (menu-bar-enable-clipboard)

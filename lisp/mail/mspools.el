@@ -62,8 +62,8 @@
 
 ;; Extras.
 ;;
-;; (global-set-key '[S-f1] 'mspools-show) ;Bind mspools-show to Shift F1.
-;; (setq mspools-update t)                ;Automatically update buffer.
+;; (keymap-global-set "S-<f1>" #'mspools-show) ;Bind mspools-show to Shift F1.
+;; (setopt mspools-update t)                ;Automatically update buffer.
 
 ;; Interface with the mail filter.
 ;; We assume that the mail filter drops new mail into the spool
