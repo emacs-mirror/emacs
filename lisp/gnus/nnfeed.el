@@ -294,7 +294,7 @@ group names to their data, which should be a vector of the form
                 ((hash-table-p s)))
           (with-temp-file f
             (insert ";;;; -*- mode: lisp-data -*- DO NOT EDIT\n")
-            (prin1 s (current-buffer))
+            (prin1 s (current-buffer) t)
             (insert "\n")
             t)
         t)
