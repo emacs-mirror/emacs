@@ -24,11 +24,11 @@
 ;;; Commentary:
 
 ;; Winner mode is a global minor mode that records the changes in the
-;; window configuration (i.e. how the frames are partitioned into
-;; windows) so that the changes can be "undone" using the command
-;; `winner-undo'.  By default this one is bound to the key sequence
-;; ctrl-c left.  If you change your mind (while undoing), you can
-;; press ctrl-c right (calling `winner-redo').
+;; window configuration (in other words, how the frames are partitioned
+;; into windows), so that the changes can be "undone" using the command
+;; `winner-undo'.  By default, it is bound to the key sequence `C-c
+;; <left>'.  If you change your mind (while undoing), you can press
+;; `C-c <right>' (`winner-redo').
 
 ;;; Code:
 
@@ -44,9 +44,21 @@
   "Restoring window configurations."
   :group 'windows)
 
+(defun winner--set-dont-bind-my-keys (symbol value)
+  (defvar winner-mode-map)
+  (when (boundp 'winner-mode-map)
+    (if value
+        (progn (keymap-unset winner-mode-map "C-c <left>")
+               (keymap-unset winner-mode-map "C-c <left>"))
+      ;; Default bindings.
+      (keymap-set winner-mode-map "C-c <left>" #'winner-undo)
+      (keymap-set winner-mode-map "C-c <right>" #'winner-redo)))
+  (set-default symbol value))
+
 (defcustom winner-dont-bind-my-keys nil
-  "Non-nil means do not bind keys in Winner mode."
-  :type 'boolean)
+  "Non-nil means do not bind default keys in Winner mode."
+  :type 'boolean
+  :set #'winner--set-dont-bind-my-keys)
 
 (defcustom winner-ring-size 200
   "Maximum number of stored window configurations per frame."
@@ -321,13 +333,9 @@ You may want to include buffer names such as *Help*, *Apropos*,
   "Functions to run whenever Winner mode is turned off."
   :type 'hook)
 
-(defvar winner-mode-map
-  (let ((map (make-sparse-keymap)))
-    (unless winner-dont-bind-my-keys
-      (define-key map [(control c) left] #'winner-undo)
-      (define-key map [(control c) right] #'winner-redo))
-    map)
-  "Keymap for Winner mode.")
+(defvar-keymap winner-mode-map
+  :doc "Keymap for Winner mode.")
+(setopt winner-dont-bind-my-keys winner-dont-bind-my-keys)
 
 (defvar-keymap winner-repeat-map
   :doc "Keymap to repeat winner key sequences.  Used in `repeat-mode'."
