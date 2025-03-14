@@ -10453,8 +10453,6 @@ check_windows_init_file (void)
 
 /* from w32fns.c  */
 extern void remove_w32_kbdhook (void);
-/* from w32proc.c  */
-extern void free_wait_pool (void);
 void
 term_ntproc (int ignored)
 {

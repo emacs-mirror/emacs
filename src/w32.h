@@ -254,6 +254,9 @@ extern Lisp_Object w32_read_registry (HKEY, Lisp_Object, Lisp_Object);
 /* Used instead of execvp to restart Emacs.  */
 extern int w32_reexec_emacs (char *, const char *);
 
+/* From w32proc.c.  */
+extern void free_wait_pool (void);
+
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>
 
