@@ -49,7 +49,7 @@
   (when (boundp 'winner-mode-map)
     (if value
         (progn (keymap-unset winner-mode-map "C-c <left>")
-               (keymap-unset winner-mode-map "C-c <left>"))
+               (keymap-unset winner-mode-map "C-c <right>"))
       ;; Default bindings.
       (keymap-set winner-mode-map "C-c <left>" #'winner-undo)
       (keymap-set winner-mode-map "C-c <right>" #'winner-redo)))
