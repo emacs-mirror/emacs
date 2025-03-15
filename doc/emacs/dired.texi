@@ -1868,8 +1868,9 @@ names of the marked (or next @var{n}) files into the kill ring, as if
 you had killed them with @kbd{C-w}.  The names are separated by a
 space.
 
-  With a zero prefix argument, this uses the absolute file name of
-each marked file.  With just @kbd{C-u} as the prefix argument, it uses
+  With a zero prefix argument, this uses the absolute file name of each
+marked file.  With prefix value 1, it uses names relative to the
+project root.  With just @kbd{C-u} as the prefix argument, it uses
 file names relative to the Dired buffer's default directory.  (This
 can still contain slashes if in a subdirectory.)  As a special case,
 if point is on a directory header line, @kbd{w} gives you the absolute

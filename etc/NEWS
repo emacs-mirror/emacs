@@ -1211,6 +1211,10 @@ Without 'dired-hide-details-hide-absolute-location':
 When 'dired-make-directory-clickable' is non-nil, clicking on the base
 name of the directory now reverts the Dired buffer.
 
+*** 'dired-copy-filename-as-kill' supports project-relative names.
+With a new value of the prefix argument (1), this command copies file
+names relative to the root directory of the current project.
+
 ** Grep
 
 +++
