@@ -2396,10 +2396,6 @@ Both characters must have the same length of multi-byte form.  */)
 	    record_change (pos, 1);
 	  for (i = 0; i < len; i++) *p++ = tostr[i];
 
-#ifdef HAVE_TREE_SITTER
-	  /* FIXME: Why not do it when we `signal_after_change`?  */
-	  treesit_record_change (pos_byte, pos_byte + len, pos_byte + len);
-#endif
 	  last_changed =  pos + 1;
 	}
       pos_byte = pos_byte_next;
@@ -2408,6 +2404,9 @@ Both characters must have the same length of multi-byte form.  */)
 
   if (changed > 0)
     {
+#ifdef HAVE_TREE_SITTER
+      treesit_record_change (changed, last_changed, last_changed);
+#endif
       signal_after_change (changed,
 			   last_changed - changed, last_changed - changed);
       update_compositions (changed, last_changed, CHECK_ALL);
