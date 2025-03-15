@@ -362,6 +362,10 @@ invoked standalone or from the 'project-switch-commands' dispatch menu.
 This user option describes projects that should always be skipped by
 'project-remember-project'.
 
+---
+*** New command 'project-save-some-buffers' bound to 'C-x p C-x s'.
+This is like 'C-x s', but only for this project's buffers.
+
 ** Registers
 
 *** New functions 'buffer-to-register' and 'file-to-register'.
