@@ -372,10 +372,15 @@ all upper-case names.  The most often used ones, in addition to
 `PRIMARY', are `SECONDARY' and `CLIPBOARD'.
 
 DATA-TYPE is usually `STRING', but can also be one of the symbols
-in `selection-converter-alist', which see.  Window systems other
-than X usually support only a small subset of these symbols, in
-addition to `STRING'; MS-Windows supports `TARGETS', which reports
-the formats available in the clipboard if TYPE is `CLIPBOARD'."
+in `selection-converter-alist', which see.  On X, we recommend
+to always use a specific DATA-TYPE expected from the selection
+owner.  In particular, if the data is expected to be non-ASCII
+text, in many cases using \\='UTF8_STRING is the most reasonable
+value for DATA-TYPE.
+
+Window systems other than X usually support only a small subset of
+these symbols, in addition to `STRING'; MS-Windows supports `TARGETS',
+which reports the formats available in the clipboard if TYPE is `CLIPBOARD'."
   (let ((data (gui-backend-get-selection (or type 'PRIMARY)
                                          (or data-type 'STRING))))
     (when (and (stringp data)
