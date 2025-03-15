@@ -10462,11 +10462,11 @@ term_ntproc (int ignored)
 
   term_timers ();
 
-  /* shutdown the socket interface if necessary.  */
+  /* Shut down the socket interface if necessary.  */
   term_winsock ();
 
   term_w32select ();
-  /* exit all worker threads of sys_select if necessary.  */
+  /* Exit all worker threads of sys_select if necessary.  */
   free_wait_pool ();
 #if HAVE_NATIVE_IMAGE_API
   w32_gdiplus_shutdown ();
