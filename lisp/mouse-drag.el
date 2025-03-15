@@ -203,7 +203,7 @@ about which direction is natural.  Perhaps it has to do with which
 hemisphere you're in.)
 
 To test this function, evaluate:
-    (global-set-key [down-mouse-2] \\='mouse-drag-throw)"
+    (keymap-global-set \"<down-mouse-2>\" \\='mouse-drag-throw)"
   (interactive "e")
   ;; we want to do save-selected-window, but that requires 19.29
   (let* ((start-posn (event-start start-event))
@@ -263,7 +263,7 @@ Drag scrolling is identical to the \"hand\" option in MacPaint, or the
 middle button in Tk text widgets.
 
 To test this function, evaluate:
-    (global-set-key [down-mouse-2] \\='mouse-drag-drag)"
+    (keymap-global-set \"<down-mouse-2>\" \\='mouse-drag-drag)"
   (interactive "e")
   ;; we want to do save-selected-window, but that requires 19.29
   (let* ((start-posn (event-start start-event))

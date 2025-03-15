@@ -144,17 +144,17 @@ znak/ow diakrytycznych. Funkcje te mo/zna pogrupowa/c nast/epuj/aco.
    (defun deprefixify-iso8859-2-region (start end)
      (interactive \"*r\")
      (ogonek-deprefixify-region start end ?/ \"iso8859-2\"))
-   (global-set-key \"\\C-cd\" \\='deprefixify-iso8859-2-region) ; ctrl-c d
+   (keymap-global-set \"C-c d\" \\='deprefixify-iso8859-2-region) ; ctrl-c d
 
    (defun mazovia-to-iso8859-2 (start end)
      (interactive \"*r\")
      (ogonek-recode-region start end \"mazovia\" \"iso8859-2\"))
-   (global-set-key \"\\C-cr\" \\='mazovia-to-iso8859-2) ; ctrl-c r
+   (keymap-global-set \"C-c r\" \\='mazovia-to-iso8859-2) ; ctrl-c r
 
    (defun prefixify-iso8859-2-region (start end)
      (interactive \"*r\")
      (ogonek-prefixify-region start end \"iso8859-2\" ?/))
-   (global-set-key \"\\C-cp\" \\='prefixify-iso8859-2-region) ; ctrl-c p
+   (keymap-global-set \"C-c p\" \\='prefixify-iso8859-2-region) ; ctrl-c p
 
  Ka/zd/a operacj/e przekodowania mo/zna w ca/lo/sci odwo/la/c
  przez wykonanie polecenia `undo'.")
@@ -244,17 +244,17 @@ The functions come in the following groups.
    (defun deprefixify-iso8859-2-region (start end)
      (interactive \"*r\")
      (ogonek-deprefixify-region start end ?/ \"iso8859-2\"))
-   (global-set-key \"\\C-cd\" \\='deprefixify-iso8859-2-region) ; ctrl-c d
+   (keymap-global-set \"C-c d\" \\='deprefixify-iso8859-2-region) ; ctrl-c d
 
    (defun mazovia-to-iso8859-2 (start end)
      (interactive \"*r\")
      (ogonek-recode-region start end \"mazovia\" \"iso8859-2\"))
-   (global-set-key \"\\C-cr\" \\='mazovia-to-iso8859-2) ; ctrl-c r
+   (keymap-global-set \"C-c r\" \\='mazovia-to-iso8859-2) ; ctrl-c r
 
    (defun prefixify-iso8859-2-region (start end)
      (interactive \"*r\")
      (ogonek-prefixify-region start end \"iso8859-2\" ?/))
-   (global-set-key \"\\C-cp\" \\='prefixify-iso8859-2-region) ; ctrl-c p
+   (keymap-global-set \"C-c p\" \\='prefixify-iso8859-2-region) ; ctrl-c p
 
  Each recoding operation can be called off using the `undo' command.")
 
