@@ -101,6 +101,7 @@ For the developer:
 * GNU Free Documentation License:: The license for this documentation.
 * Function Index::              @value{tramp} functions.
 * Variable Index::              User options and variables.
+* Key Index::                   Key bindings for @value{tramp} commands.
 * Concept Index::               An item for each concept.
 
 @detailmenu
@@ -6809,6 +6810,11 @@ maintainers, analyzing the remote commands for performance analysis.
 @node Variable Index
 @unnumbered Variable Index
 @printindex vr
+
+
+@node Key Index
+@unnumbered Key Index
+@printindex ky
 
 
 @node Concept Index
