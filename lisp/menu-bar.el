@@ -1922,18 +1922,18 @@ mail status in mode line"))
                   :help "Toggle automatic parsing in source code buffers (Semantic mode)"
                   :button (:toggle . (bound-and-true-p semantic-mode))))
 
+    (define-key menu [ede]
+      '(menu-item "Project Support (EDE)"
+                  global-ede-mode
+                  :help "Toggle the Emacs Development Environment (Global EDE mode)"
+                  :button (:toggle . (bound-and-true-p global-ede-mode))))
+
     (define-key menu [eglot]
       '(menu-item "Language Server Support (Eglot)" eglot
                   :help "Start language server suitable for this buffer's major-mode"))
 
     (define-key menu [project]
       menu-bar-project-item)
-
-    (define-key menu [ede]
-      '(menu-item "Project Support (EDE)"
-                  global-ede-mode
-                  :help "Toggle the Emacs Development Environment (Global EDE mode)"
-                  :button (:toggle . (bound-and-true-p global-ede-mode))))
 
     (define-key menu [gdb]
       '(menu-item "Debugger (GDB)..." gdb
