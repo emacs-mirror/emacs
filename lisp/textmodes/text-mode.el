@@ -286,6 +286,9 @@ The argument NLINES says how many lines to center."
           (aset tbl ch (+ ch #xFEE0))
           (aset rev-tbl (+ ch #xFEE0) ch)
           (setq ch (1+ ch)))
+        ;; SPC -> U+3000 IDEOGRAPHIC SPACE
+        (aset tbl ?\  #x3000)
+        (aset rev-tbl #x3000 ?\ )
         (set-char-table-extra-slot tbl 0 rev-tbl)
         (set-char-table-extra-slot tbl 1 1)
         (set-char-table-extra-slot rev-tbl 1 1)
