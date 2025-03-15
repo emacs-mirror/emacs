@@ -1283,7 +1283,8 @@ generating a buffered list of errors.")
   "Used to create the return error text returned from all engines.
 TEXT, START, END and UNFIXABLE conform to
 `checkdoc-create-error-function', which see."
-  (funcall checkdoc-create-error-function text start end unfixable))
+  (funcall checkdoc-create-error-function
+           (substitute-quotes text) start end unfixable))
 
 (defun checkdoc--create-error-for-checkdoc (text start end &optional unfixable)
   "Create an error for Checkdoc.
