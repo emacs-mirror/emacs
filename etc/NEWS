@@ -1587,6 +1587,10 @@ commands.  When nil, clicking on an inactive Emacs frame will only
 activate it.  When t (the default), the click will both activate the
 frame and be interpreted as a command.
 
+*** New variable 'global-hl-line-modes'.
+This specifies in which major modes should the 'global-hl-line-mode' be
+switched on.
+
 ---
 *** New user option 'display-fill-column-indicator-warning'.
 Customize it to a non-nil value to have the fill-column indicators

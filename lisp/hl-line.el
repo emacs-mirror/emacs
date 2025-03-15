@@ -122,6 +122,33 @@ the command `global-hl-line-mode' to turn Global Hl-Line mode on."
   :version "24.1"
   :group 'hl-line)
 
+(defcustom global-hl-line-modes t
+  "Which major modes `hl-line-mode' is switched on in.
+This variable can be either t (all major modes), nil (no major modes),
+or a list of modes and (not modes) to switch use this minor mode or
+not.  For instance
+
+  (c-mode (not message-mode mail-mode) text-mode)
+
+means \"use this mode in all modes derived from `c-mode', don't use in
+modes derived from `message-mode' or `mail-mode', but do use in other
+modes derived from `text-mode'\".  An element with value t means \"use\"
+and nil means \"don't use\".  There's an implicit nil at the end of the
+list."
+  :type
+  '(choice (const :tag "Enable in all major modes" t)
+           (repeat :tag "Rules (earlier takes precedence)..."
+                   (choice
+                    (const :tag "Enable in all (other) modes" t)
+                    (symbol :value fundamental-mode :tag
+                            "Enable in major mode")
+                    (cons :tag "Don't enable in major modes"
+                          (const :tag "Don't enable in..." not)
+                          (repeat
+                           (symbol :value fundamental-mode :tag
+                                   "Major mode"))))))
+  :version "31.1")
+
 (defvar hl-line-range-function nil
   "If non-nil, function to call to return highlight range.
 The function of no args should return a cons cell; its car value
@@ -236,7 +263,8 @@ on `post-command-hook'."
 
 (defun global-hl-line-highlight ()
   "Highlight the current line in the current window."
-  (when global-hl-line-mode	; Might be changed outside the mode function.
+  (when (and global-hl-line-mode 	; Might be changed outside the mode function.
+             (easy-mmode--globalized-predicate-p global-hl-line-modes))
     (unless (window-minibuffer-p)
       (unless (overlayp global-hl-line-overlay)
         (setq global-hl-line-overlay (hl-line-make-overlay))) ; To be moved.
