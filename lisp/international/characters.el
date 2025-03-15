@@ -1428,12 +1428,14 @@ with L, LRE, or LRO Unicode bidi character type.")
 
 ;; A: East Asian "Ambiguous" characters.
 (let ((l '((#x00A1 . #x00A1)
-	   (#x00A4 . #x00A4)
+	   ; (#x00A4 . #x00A4) whitespace-mode uses this
 	   (#x00A7 . #x00A8)
 	   (#x00AA . #x00AA)
 	   (#x00AD . #x00AE)
 	   (#x00B0 . #x00B4)
-	   (#x00B6 . #x00BA)
+	   ; (#x00B6 . #x00BA)  whitespace-mode uses U+00B7
+           (#x00B6 . #x00B6)
+           (#x00B8 . #x00BA)
 	   (#x00BC . #x00BF)
 	   (#x00C6 . #x00C6)
 	   (#x00D0 . #x00D0)
@@ -1667,6 +1669,10 @@ fonts being used.  In some CJK locales the fonts are set so that
 these characters are displayed as full-width.  This setting is most
 important for text-mode frames, because there Emacs cannot access the
 metrics of the fonts used by the console or the terminal emulator.
+You should configure the terminal emulator to behave consistently
+with the value of this option, by making sure it dispays ambiguous-width
+characters as half-width or full-width, depending on the value of this
+option.
 
 Do not set this directly via `setq'; instead, use `setopt' or the
 Customize commands.  Alternatively, call `update-cjk-ambiguous-char-widths'

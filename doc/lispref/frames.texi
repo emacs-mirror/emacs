@@ -4161,8 +4161,14 @@ programs.  It takes two optional arguments, @var{type} and
 
 The @var{data-type} argument specifies the form of data conversion to
 use, to convert the raw data obtained from another program into Lisp
-data.  @xref{X Selections}, for an enumeration of data types valid under
-X, and @pxref{Other Selections} for those elsewhere.
+data.  It defaults to @code{STRING}.  @xref{X Selections}, for an
+enumeration of data types valid on X, and @pxref{Other Selections} for
+those elsewhere.  On X Window system, we recommend to always specify a
+particular @var{data-type}, especially if the selection is expected to
+be non-ASCII text (in which case Lisp programs should prefer
+@code{UTF8_STRING} as the value of @var{data-type}).  This is because
+the default @var{data-type} value, @code{STRING}, can only support
+Latin-1 text, which in many cases is nowadays inadequate.
 @end defun
 
 @defopt selection-coding-system
