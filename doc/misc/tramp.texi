@@ -3935,9 +3935,8 @@ method.  The commands @code{tramp-revert-buffer-with-sudo} (@kbd{C-x x
 
 @kindex C-x x @@
 @deffn Command tramp-revert-buffer-with-sudo
-This command shows the current buffer with @option{sudo} permissions.
-The buffer must either visit a file, or a directory
-(@code{dired-mode}).
+This command visits the current buffer with @option{sudo} permissions.
+The buffer must either visit a file, or a directory in @code{dired-mode}.
 @end deffn
 
 @kindex @@ @r{(in dired})

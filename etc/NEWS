@@ -1084,12 +1084,12 @@ cherry pick via 'tramp-cleanup-connection' or clear them all via
 +++
 *** New command 'tramp-dired-find-file-with-sudo'.
 This command, bound to '@' in Dired, visits the file or directory on the
-recent Dired line with root permissions.
+recent Dired line with superuser, or root, permissions.
 
 +++
-*** Command 'tramp-revert-buffer-with-sudo' is bound to 'C-x x @' now.
-Called with the prefix argument 'C-u', the used Tramp method is asked
-interactively.  This happens also for 'tramp-dired-find-file-with-sudo'.
+*** 'C-x x @' is now bound to 'tramp-revert-buffer-with-sudo'.
+You can use 'C-u C-x x @' to select a Tramp method other than the
+default, 'sudo'.
 
 +++
 *** Connection method "kubernetes" supports now optional namespace.
