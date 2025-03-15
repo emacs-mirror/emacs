@@ -3215,8 +3215,8 @@ its response can be seen."
 
 ;; These are not installed in the comint-mode keymap.  But they are
 ;; available for people who want them.  Shell-mode installs them:
-;; (define-key shell-mode-map "\t" 'completion-at-point)
-;; (define-key shell-mode-map "\M-?"
+;; (keymap-set shell-mode-map "TAB" 'completion-at-point)
+;; (keymap-set shell-mode-map "M-?"
 ;;             'comint-dynamic-list-filename-completions)))
 ;;
 ;; Commands like this are fine things to put in load hooks if you

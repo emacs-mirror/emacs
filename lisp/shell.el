@@ -48,8 +48,8 @@
 ;; Some suggestions for your init file.
 ;;
 ;; ;; Define M-# to run some strange command:
-;; (eval-after-load "shell"
-;;  '(define-key shell-mode-map "\M-#" 'shells-dynamic-spell))
+;; (with-eval-after-load 'shell
+;;   (keymap-set shell-mode-map "M-#" 'shells-dynamic-spell))
 
 ;; Brief Command Documentation:
 ;;============================================================================

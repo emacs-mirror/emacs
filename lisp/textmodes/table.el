@@ -343,7 +343,7 @@
 ;;
 ;;   (add-hook 'table-cell-map-hook
 ;;     (lambda ()
-;;       (define-key table-cell-map [<key sequence>] '<function>)))
+;;       (keymap-set table-cell-map "<key sequence>" '<function>)))
 ;;
 ;; -----
 ;; Menu:

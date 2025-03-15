@@ -129,7 +129,7 @@
 ;; To map the primary remember function to the keystroke F8, do the
 ;; following.
 ;;
-;;   (define-key global-map [f8] 'remember)
+;;   (keymap-global-set "<f8>" 'remember)
 ;;
 ;; * Feedback
 ;;

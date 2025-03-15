@@ -31,9 +31,9 @@
 ;; buffer.
 
 ;; To make this the default, you must do
-;; (define-key global-map "\C-h" 'ehelp-command)
-;; (define-key global-map [help] 'ehelp-command)
-;; (define-key global-map [f1] 'ehelp-command)
+;; (keymap-global-set "C-h" 'ehelp-command)
+;; (keymap-global-set "<help>" 'ehelp-command)
+;; (keymap-global-set "<f1>" 'ehelp-command)
 
 ;;; Code:
 

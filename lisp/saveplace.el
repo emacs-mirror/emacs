@@ -38,7 +38,7 @@
 (require 'cl-lib)
 
 ;; this is what I was using during testing:
-;; (define-key ctl-x-map "p" 'toggle-save-place-globally)
+;; (keymap-set ctl-x-map "p" 'toggle-save-place-globally)
 
 (defgroup save-place nil
   "Automatically save place in files."

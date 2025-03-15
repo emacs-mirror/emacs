@@ -109,8 +109,8 @@
 ;;  (add-hook
 ;;   'mail-mode-hook
 ;;   (lambda ()
-;;      (define-key mail-mode-map [remap next-line] 'mail-abbrev-next-line)
-;;      (define-key mail-mode-map [remap end-of-buffer] 'mail-abbrev-end-of-buffer)))
+;;      (keymap-set mail-mode-map "<remap> <next-line>" 'mail-abbrev-next-line)
+;;      (keymap-set mail-mode-map "<remap> <end-of-buffer>" 'mail-abbrev-end-of-buffer)))
 ;;
 ;; If you want multiple addresses separated by a string other than ", " then
 ;; you can set the variable mail-alias-separator-string to it.  This has to

@@ -4228,8 +4228,8 @@ This is a good place to put keybindings.")
 
 ;; These are not installed in the term-mode keymap.  But they are
 ;; available for people who want them.  Shell-mode installs them:
-;; (define-key shell-mode-map "\t" 'term-dynamic-complete)
-;; (define-key shell-mode-map "\M-?"
+;; (keymap-set shell-mode-map "TAB" 'term-dynamic-complete)
+;; (keymap-set shell-mode-map "M-?"
 ;;             'term-dynamic-list-filename-completions)))
 ;;
 ;; Commands like this are fine things to put in load hooks if you
