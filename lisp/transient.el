@@ -1573,6 +1573,10 @@ drawing in the transient buffer.")
 This is bound while the suffix predicate is being evaluated,
 and while functions that return faces are being evaluated.")
 
+(defvar transient--current-suffix nil
+  "The suffix currently being invoked using a mouse event.
+Do not use this; instead use function `transient-suffix-object'.")
+
 (defvar transient--pending-group nil
   "The group that is currently being processed.
 This is bound while the suffixes are drawn in the transient buffer.")
@@ -1656,6 +1660,7 @@ probably use this instead:
     (cl-check-type command command))
   (cond
    (transient--pending-suffix)
+   (transient--current-suffix)
    ((or transient--prefix
         transient-current-prefix)
     (let ((suffixes
@@ -2544,7 +2549,8 @@ value.  Otherwise return CHILDREN as is."
                (transient--redisplay)))))
     (setq transient-current-prefix nil)
     (setq transient-current-command nil)
-    (setq transient-current-suffixes nil)))
+    (setq transient-current-suffixes nil)
+    (setq transient--current-suffix nil)))
 
 (defun transient--post-exit (&optional command)
   (transient--debug 'post-exit)
@@ -2577,6 +2583,8 @@ value.  Otherwise return CHILDREN as is."
     (setq transient--all-levels-p nil)
     (setq transient--minibuffer-depth 0)
     (run-hooks 'transient-exit-hook)
+    (when command
+      (setq transient--current-suffix nil))
     (when resume
       (transient--stack-pop))))
 
@@ -2748,12 +2756,12 @@ Use that command's pre-command to determine transient behavior."
            (not (eq (posn-window (event-start last-command-event))
                     transient--window)))
       transient--stay
-    (setq this-command
-          (with-selected-window transient--window
-            (get-text-property (if (mouse-event-p last-command-event)
-                                   (posn-point (event-start last-command-event))
-                                 (point))
-                               'command)))
+    (with-selected-window transient--window
+      (let ((pos (if (mouse-event-p last-command-event)
+                     (posn-point (event-start last-command-event))
+                   (point))))
+        (setq this-command (get-text-property pos 'command))
+        (setq transient--current-suffix (get-text-property pos 'suffix))))
     (transient--call-pre-command)))
 
 (defun transient--do-recurse ()
