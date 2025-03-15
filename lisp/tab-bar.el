@@ -97,8 +97,8 @@
 
 
 
-(defvar tab-bar-mode-map (make-sparse-keymap)
-  "Tab Bar mode map.")
+(defvar-keymap tab-bar-mode-map
+  :doc "Tab Bar mode map.")
 
 (defcustom tab-bar-define-keys t
   "Define specified tab-bar key bindings.

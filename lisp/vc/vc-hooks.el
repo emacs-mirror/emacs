@@ -694,10 +694,8 @@ Before doing that, check if there are any old backups and get rid of them."
   ;; and this will simply use it.
   (define-key menu-bar-tools-menu [vc] vc-menu-entry))
 
-(defconst vc-mode-line-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mode-line down-mouse-1] vc-menu-entry)
-    map))
+(defvar-keymap vc-mode-line-map
+  "<mode-line> <down-mouse-1>" vc-menu-entry)
 
 (defun vc-mode-line (file &optional backend)
   "Set `vc-mode' to display type of version control for FILE.

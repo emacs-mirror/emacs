@@ -5227,10 +5227,8 @@ File name handlers might not support pty association, if PROGRAM is nil."
 
 (defvar process-menu-query-only nil)
 
-(defvar process-menu-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [?d] 'process-menu-delete-process)
-    map))
+(defvar-keymap process-menu-mode-map
+  "d" #'process-menu-delete-process)
 
 (define-derived-mode process-menu-mode tabulated-list-mode "Process Menu"
   "Major mode for listing the processes called by Emacs."
@@ -11019,11 +11017,9 @@ and setting it to nil."
     (setq buffer-invisibility-spec nil)))
 
 
-(defvar messages-buffer-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map special-mode-map)
-    (define-key map "g" nil)            ; nothing to revert
-    map))
+(defvar-keymap messages-buffer-mode-map
+  :parent special-mode-map
+  "g" nil) ; nothing to revert
 
 (define-derived-mode messages-buffer-mode special-mode "Messages"
   "Major mode used in the \"*Messages*\" buffer."

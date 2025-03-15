@@ -1882,16 +1882,13 @@ Each element in the list should be a list of strings or pairs
 		 (file :tag "File")))
 
 
-(defvar splash-screen-keymap
-  (let ((map (make-sparse-keymap)))
-    (suppress-keymap map)
-    (set-keymap-parent map button-buffer-map)
-    (define-key map "\C-?" #'scroll-down-command)
-    (define-key map [?\S-\ ] #'scroll-down-command)
-    (define-key map " " #'scroll-up-command)
-    (define-key map "q" #'exit-splash-screen)
-    map)
-  "Keymap for splash screen buffer.")
+(defvar-keymap splash-screen-keymap
+  :doc "Keymap for splash screen buffer."
+  :suppress t :parent button-buffer-map
+  "DEL"   #'scroll-down-command
+  "S-SPC" #'scroll-down-command
+  "SPC"   #'scroll-up-command
+  "q"     #'exit-splash-screen)
 
 ;; These are temporary storage areas for the splash screen display.
 

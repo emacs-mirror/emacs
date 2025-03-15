@@ -409,7 +409,7 @@ File extensions to generate the tags for."
   (remove-hook 'after-save-hook #'etags-regen--update-file)
   (remove-hook 'before-save-hook #'etags-regen--mark-as-new))
 
-(defvar etags-regen-mode-map (make-sparse-keymap))
+(defvar-keymap etags-regen-mode-map)
 
 ;;;###autoload
 (define-minor-mode etags-regen-mode

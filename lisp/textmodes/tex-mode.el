@@ -945,18 +945,14 @@ START is the position of the \\ and DELIM is the delimiter char."
     map)
  "Keymap shared by TeX modes.")
 
-(defvar latex-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map tex-mode-map)
-    (define-key map "\C-c\C-s" #'latex-split-block)
-    map)
-  "Keymap for `latex-mode'.  See also `tex-mode-map'.")
+(defvar-keymap latex-mode-map
+  :doc "Keymap for `latex-mode'.  See also `tex-mode-map'."
+  :parent tex-mode-map
+  "C-c C-s" #'latex-split-block)
 
-(defvar plain-tex-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map tex-mode-map)
-    map)
-  "Keymap for `plain-tex-mode'.  See also `tex-mode-map'.")
+(defvar-keymap plain-tex-mode-map
+  :doc "Keymap for `plain-tex-mode'.  See also `tex-mode-map'."
+  :parent tex-mode-map)
 
 (defvar tex-shell-map
   (let ((m (make-sparse-keymap)))

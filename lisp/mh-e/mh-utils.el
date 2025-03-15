@@ -920,10 +920,8 @@ Handle RFC 822 (or later) continuation lines."
              when (equal (downcase x) field) return t
              finally return nil)))
 
-(defvar mh-hidden-header-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] #'mh-letter-toggle-header-field-display-button)
-    map))
+(defvar-keymap mh-hidden-header-keymap
+  "<mouse-2>" #'mh-letter-toggle-header-field-display-button)
 
 ;;;###mh-autoload
 (defun mh-letter-toggle-header-field-display (arg)

@@ -300,11 +300,9 @@ Value is used for `mode-line-frame-identification', which see."
 ;;;###autoload
 (put 'mode-line-frame-identification 'risky-local-variable t)
 
-(defvar mode-line-window-dedicated-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mode-line mouse-1] #'toggle-window-dedicated)
-    map)
-  "Keymap for what is displayed by `mode-line-window-dedicated'.")
+(defvar-keymap mode-line-window-dedicated-keymap
+  :doc "Keymap for what is displayed by `mode-line-window-dedicated'."
+  "<mode-line> <mouse-1>" #'toggle-window-dedicated)
 
 (defun mode-line-window-control ()
   "Compute mode line construct for window dedicated state.
@@ -628,20 +626,18 @@ Normally displays the buffer percentage and, optionally, the
 buffer size, the line number and the column number.")
 (put 'mode-line-position 'risky-local-variable t)
 
-(defvar mode-line-buffer-identification-keymap
+(defvar-keymap mode-line-buffer-identification-keymap
+  :doc "Keymap for what is displayed by `mode-line-buffer-identification'."
   ;; Add menu of buffer operations to the buffer identification part
   ;; of the mode line.or header line.
-  (let ((map (make-sparse-keymap)))
-    ;; Bind down- events so that the global keymap won't ``shine
-    ;; through''.
-    (define-key map [mode-line mouse-1] 'mode-line-previous-buffer)
-    (define-key map [header-line down-mouse-1] 'ignore)
-    (define-key map [header-line mouse-1] 'mode-line-previous-buffer)
-    (define-key map [mode-line mouse-3] 'mode-line-next-buffer)
-    (define-key map [header-line down-mouse-3] 'ignore)
-    (define-key map [header-line mouse-3] 'mode-line-next-buffer)
-    map) "\
-Keymap for what is displayed by `mode-line-buffer-identification'.")
+  ;; Bind down- events so that the global keymap won't ``shine
+  ;; through''.
+  "<mode-line> <mouse-1>"        #'mode-line-previous-buffer
+  "<header-line> <down-mouse-1>" #'ignore
+  "<header-line> <mouse-1>"      #'mode-line-previous-buffer
+  "<mode-line> <mouse-3>"        #'mode-line-next-buffer
+  "<header-line> <down-mouse-3>" #'ignore
+  "<header-line> <mouse-3>"      #'mode-line-next-buffer)
 
 (defun propertized-buffer-identification (fmt)
   "Return a list suitable for `mode-line-buffer-identification'.

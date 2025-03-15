@@ -3816,12 +3816,10 @@ available on the net."
 ;;; 			Ispell Minor Mode
 ;;; **********************************************************************
 
-(defvar ispell-minor-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map " " 'ispell-minor-check)
-    (define-key map "\r" 'ispell-minor-check)
-    map)
-  "Keymap used for Ispell minor mode.")
+(defvar-keymap ispell-minor-keymap
+  :doc "Keymap used for Ispell minor mode."
+  "SPC" #'ispell-minor-check
+  "RET" #'ispell-minor-check)
 
 ;;;###autoload
 (define-minor-mode ispell-minor-mode

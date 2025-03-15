@@ -2517,19 +2517,17 @@ The valid answers include `act', `skip', `act-and-show',
 
 This keymap is used by `y-or-n-p' as well as `query-replace'.")
 
-(defvar multi-query-replace-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map query-replace-map)
-    (define-key map "Y" 'automatic-all)
-    (define-key map "N" 'exit-current)
-    map)
-  "Keymap that defines additional bindings for multi-buffer replacements.
+(defvar-keymap multi-query-replace-map
+  :doc "Keymap that defines additional bindings for multi-buffer replacements.
 It extends its parent map `query-replace-map' with new bindings to
 operate on a set of buffers/files.  The difference with its parent map
 is the additional answers `automatic-all' to replace all remaining
 matches in all remaining buffers with no more questions, and
 `exit-current' to skip remaining matches in the current buffer
-and to continue with the next buffer in the sequence.")
+and to continue with the next buffer in the sequence."
+  :parent query-replace-map
+  "Y" 'automatic-all
+  "N" 'exit-current)
 
 (defun replace-match-string-symbols (n)
   "Process a list (and any sub-lists), expanding certain symbols.

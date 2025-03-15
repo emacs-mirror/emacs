@@ -201,11 +201,9 @@ Set from last use.")
     (?i info ?s)
     (?d details ?s)
     (?D pressed-details ?s)))
-(defvar mh-mime-security-button-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\r" #'mh-press-button)
-    (define-key map [mouse-2] #'mh-push-button)
-    map))
+(defvar-keymap mh-mime-security-button-map
+  "RET"       #'mh-press-button
+  "<mouse-2>" #'mh-push-button)
 
 
 
