@@ -1333,7 +1333,7 @@ See the variable `Man-notify-method' for the different notification behaviors."
       ('friendly
        (and (frame-live-p saved-frame)
             (select-frame saved-frame))
-       (display-buffer man-buffer 'not-this-window))
+       (display-buffer man-buffer))
       ('thrifty
        (and (frame-live-p saved-frame)
             (select-frame saved-frame))
