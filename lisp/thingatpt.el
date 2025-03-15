@@ -52,7 +52,7 @@
 
 ;;; Code:
 
-(provide 'thingatpt)
+(require 'cl-lib)
 
 (defvar thing-at-point-provider-alist nil
   "Alist of providers for returning a \"thing\" at point.
@@ -684,7 +684,6 @@ back from point."
         (unless (< prev (point)) (forward-char))))
     (and match (<= (match-beginning 0) old (match-end 0)))))
 
-
 ;;   Email addresses
 (defvar thing-at-point-email-regexp
   "<?[-+_~a-zA-Z0-9/][-+_.~:a-zA-Z0-9/]*@[-a-zA-Z0-9]+[-.a-zA-Z0-9]*>?"
@@ -783,6 +782,7 @@ This is for returning the Lisp object represented by text at point;
 use (thing-at-point \\='sexp) instead if you rather want the balanced
 expression at point regardless of Lisp syntax."
   (form-at-point 'sexp))
+
 ;;;###autoload
 (defun symbol-at-point ()
   "Return the symbol at point, or nil if none is found."
@@ -875,4 +875,83 @@ overlay) set."
              (min (1+ pos) (point-max)) property)
             (next-single-char-property-change pos property)))))
 
+(defun thing-at-point-things (&optional all)
+  "Return the list of \"things\" which are valid at point.
+
+If ALL is non-nil, return all known \"things\" without testing their
+validity."
+  (let ((allthings
+         (delq 'thing
+               (cl-delete-duplicates
+                (nconc
+                 (cl-loop for sym being the symbols
+                          if (or (get sym 'thing-at-point)
+                                 (get sym 'bounds-of-thing-at-point)
+                                 (get sym 'beginning-op)
+                                 (get sym 'end-op)
+                                 ;; `forward-thing' does not depend on the
+                                 ;; symbol properties, and falls back to a
+                                 ;; function naming scheme
+                                 (or (get sym 'forward-op)
+                                     (functionp (intern-soft
+                                                 (format "forward-%s" sym)))))
+                          collect sym)
+                 (mapcar #'car thing-at-point-provider-alist)
+                 (mapcar #'car bounds-of-thing-at-point-provider-alist)
+                 (mapcar #'car forward-thing-provider-alist))))))
+    (if all
+        (sort allthings)
+      ;; Determine which things are valid at point.
+      (sort (cl-loop for sym in allthings
+                     if (bounds-of-thing-at-point sym)
+                     collect sym)))))
+
+(defun read-thing-at-point-thing (&optional prompt all narrow)
+  "Return a \"thing\" suitable for `thing-at-point'.
+
+Test the known \"things\" to see which are valid.  If only one thing is
+valid at point, return its symbol.  If more than one thing is valid,
+PROMPT the user to choose from the valid options.
+
+If ALL is non-nil, choose from all known \"things\" without testing
+their validity.
+
+If NARROW is non-nil, exclude things which make no sense in a narrowing
+context.  (This is currently only `buffer', which means `point-min' to
+`point-max' and therefore is a no-op for narrowing.)"
+  (let ((things (thing-at-point-things all)))
+    (when narrow
+      (setq things (delq 'buffer things)))
+    (cond ((null things) (user-error "No thing at point"))
+          ((eql 1 (length things)) (car things))
+          (t (let ((default (cond ((and (use-region-p) (memq 'region things))
+                                   'region)
+                                  ((memq 'sexp things)
+                                   'sexp)
+                                  (t
+                                   (car things)))))
+               (intern (completing-read
+                        (format (or prompt "Thing (default %s): ")
+                                default)
+                        things nil :require-match nil nil
+                        (symbol-name default))))))))
+
+;;;###autoload
+(defun narrow-to-thing-at-point (thing)
+  "Narrow to THING at point.  Interactively, obtain a valid THING using
+`read-thing-at-point-thing'.  With a prefix argument, select the thing
+from all known things."
+  (interactive (list (read-thing-at-point-thing "Narrow to thing (default %s): "
+                                                current-prefix-arg :narrow)))
+  (if-let ((bounds (bounds-of-thing-at-point thing)))
+      (narrow-to-region (car bounds) (cdr bounds))
+    (user-error "No %s at point" thing)))
+
+;;;###autoload
+(defun narrow-to-sexp-at-point ()
+  "Narrow to `sexp-at-point'."
+  (interactive)
+  (narrow-to-thing-at-point 'sexp))
+
+(provide 'thingatpt)
 ;;; thingatpt.el ends here

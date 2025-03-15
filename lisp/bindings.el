@@ -1059,9 +1059,11 @@ if `inhibit-field-text-motion' is non-nil."
 
 (defvar-keymap narrow-map
   :doc "Keymap for narrowing commands."
+  "d" #'narrow-to-defun
   "n" #'narrow-to-region
-  "w" #'widen
-  "g" #'goto-line-relative)
+  "p" #'narrow-to-page
+  "t" #'narrow-to-thing-at-point
+  "w" #'widen)
 (define-key ctl-x-map "n" narrow-map)
 
 ;; Quitting
@@ -1216,6 +1218,8 @@ if `inhibit-field-text-motion' is non-nil."
   "TAB" #'move-to-column
   "i"   #'imenu)
 (define-key esc-map "g" goto-map)
+
+(define-key ctl-x-map "ng" #'goto-line-relative)
 
 (defvar-keymap search-map
   :doc "Keymap for search related commands."
@@ -1512,7 +1516,6 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key esc-map "\C-a" 'beginning-of-defun)
 (define-key esc-map "\C-e" 'end-of-defun)
 (define-key esc-map "\C-h" 'mark-defun)
-(define-key ctl-x-map "nd" 'narrow-to-defun)
 (define-key esc-map "(" 'insert-parentheses)
 (define-key esc-map ")" 'move-past-close-and-reindent)
 
@@ -1572,7 +1575,7 @@ if `inhibit-field-text-motion' is non-nil."
 
 (define-key ctl-x-map "\C-p" 'mark-page)
 (define-key ctl-x-map "l" 'count-lines-page)
-(define-key ctl-x-map "np" 'narrow-to-page)
+
 
 (defvar-keymap abbrev-map
   :doc "Keymap for abbrev commands."
