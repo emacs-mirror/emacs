@@ -126,8 +126,8 @@ frame to displaying it in a window and vice versa simply by using the
 
 @cindex @code{speedbar-prefer-window}
 The user option @code{speedbar-prefer-window} changes the behavior of
-the @code{speedbar} command, if set to t the @code{speedbar} command
-will display the speedbar in a window instead of in a frame.
+the @code{speedbar} command: if set to @code{t}, the @code{speedbar}
+command will display the speedbar in a window instead of in a frame.
 
 @node Basic Navigation
 @chapter Basic Navigation
@@ -674,14 +674,14 @@ Customize speedbar's many colors and fonts.
 @end table
 
 @menu
-* Frames, Windows and Faces::   Visible behaviors.
+* Frames Windows and Faces::   Visible behaviors.
 * Tag Hierarchy Methods::       Customizing how tags are displayed.
 * Version Control::             Adding new VC detection modes.
 * Hooks::                       The many hooks you can use.
 @end menu
 
-@node Frames and Faces
-@section Frames and Faces
+@node Frames Windows and Faces
+@section Frames, Windows and Faces
 @cindex faces
 @cindex frame parameters
 
@@ -727,14 +727,15 @@ side on which the @code{speedbar-window} is displayed by changing the
 The size of the @code{speedbar-window}, when opened on the left or right
 side, can be defined by changing the
 @code{speedbar-window-default-width} option, which defines the default
-window size. The width of the speedbar window can be greater than
+window size.  The width of the speedbar window can be greater than
 @code{speedbar-window-max-width}, but if it is closed and later
 reopened, the width will be equal to @code{speedbar-window-max-width}.
 
 @cindex @code{speedbar-window-dedicated-window}
 By default, @code{speedbar-window} is displayed in a dedicated window,
-so @code{display-buffer} will never use this window. Setting
-@code{speedbar-window-dedicated-window} to nil can change this behavior.
+so @code{display-buffer} will never use this window.  Setting
+@code{speedbar-window-dedicated-window} to @code{nil} changes this
+behavior.
 
 @node Tag Hierarchy Methods
 @section Tag Hierarchy Methods
