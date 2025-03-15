@@ -290,6 +290,25 @@
                               "type_declaration")))
     (setq-local treesit-defun-name-function #'go-ts-mode--defun-name)
 
+    (setq-local treesit-thing-settings
+                `((go
+                   (list
+                    ,(rx bos (or "import_spec_list"
+                                 "var_spec_list"
+                                 "type_parameter_list"
+                                 "parameter_list"
+                                 "parenthesized_type"
+                                 "type_arguments"
+                                 "field_declaration_list"
+                                 "block"
+                                 "parenthesized_expression"
+                                 "special_argument_list"
+                                 "argument_list"
+                                 "literal_value")
+                         eos))
+                   (sentence
+                    (or "declaration" "statement")))))
+
     ;; Imenu.
     (setq-local treesit-simple-imenu-settings
                 `(("Function" "\\`function_declaration\\'" nil nil)

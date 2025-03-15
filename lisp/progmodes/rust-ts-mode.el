@@ -597,6 +597,40 @@ See `prettify-symbols-compose-predicate'."
                               "struct_item")))
     (setq-local treesit-defun-name-function #'rust-ts-mode--defun-name)
 
+    (setq-local treesit-thing-settings
+                `((rust
+                   (list
+                    ,(rx bos (or "token_tree_pattern"
+                                 "token_tree"
+                                 "attribute_item"
+                                 "inner_attribute_item"
+                                 "declaration_list"
+                                 "enum_variant_list"
+                                 "field_declaration_list"
+                                 "ordered_field_declaration_list"
+                                 "type_parameters"
+                                 "use_list"
+                                 "parameters"
+                                 "bracketed_type"
+                                 "array_type"
+                                 "for_lifetimes"
+                                 "tuple_type"
+                                 "unit_type"
+                                 "use_bounds"
+                                 "type_arguments"
+                                 "delim_token_tree"
+                                 "arguments"
+                                 "array_expression"
+                                 "parenthesized_expression"
+                                 "tuple_expression"
+                                 "unit_expression"
+                                 "field_initializer_list"
+                                 "match_block"
+                                 "block"
+                                 "tuple_pattern"
+                                 "slice_pattern")
+                         eos)))))
+
     (treesit-major-mode-setup)))
 
 (derived-mode-add-parents 'rust-ts-mode '(rust-mode))
