@@ -1569,7 +1569,8 @@ it is displayed along with the global value."
     (let ((str (read-string-from-buffer
                 (format ";; Edit the `%s' variable." (nth 0 var))
                 (prin1-to-string (nth 1 var)))))
-      (set (nth 0 var) (read str)))))
+      (set (nth 0 var) (read str))
+      (revert-buffer))))
 
 (autoload 'shortdoc-help-fns-examples-function "shortdoc")
 
