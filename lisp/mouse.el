@@ -1664,7 +1664,7 @@ is dragged over to."
   "Event areas not containing buffer positions.
 Example: mouse clicks in the fringe come with a position in
 (nth 5).  This is useful but is not where we clicked, so
-don't look up that position's properties!.  Likewise for
+don't look up that position's properties!  Likewise for
 the other event areas.")
 
 (defun mouse-posn-property (pos property)
@@ -1690,6 +1690,9 @@ because such events do not contain buffer positions."
 		 (get-text-property (cdr str) property (car str)))
             (and pt
                  (not (memq (posn-area pos)
+                            ;; Don't return position of these mouse
+                            ;; events because they don't describe the
+                            ;; position of the click.
                             mouse-event-areas-with-no-buffer-positions))
                  (get-char-property pt property w))))
     (get-char-property pos property)))
