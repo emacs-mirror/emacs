@@ -3243,14 +3243,21 @@ to the working revision (except for keyword expansion)."
     ;; show the changes and ask for confirmation to discard them.
     (when (or (not files) (memq (buffer-file-name) files))
       (vc-buffer-sync nil))
-    (dolist (file files)
-      (let ((buf (get-file-buffer file)))
-	(when (and buf (buffer-modified-p buf))
-	  (error "Please kill or save all modified buffers before reverting")))
-      (when (vc-up-to-date-p file)
-	(if (yes-or-no-p (format "%s seems up-to-date.  Revert anyway? " file))
-	    (setq queried t)
-	  (error "Revert canceled"))))
+    (save-some-buffers nil (lambda ()
+                             (member (buffer-file-name) files)))
+    (let (needs-save)
+      (dolist (file files)
+        (let ((buf (get-file-buffer file)))
+	  (when (and buf (buffer-modified-p buf))
+            (push buf needs-save)))
+        (when (vc-up-to-date-p file)
+	  (if (yes-or-no-p (format "%s seems up-to-date.  Revert anyway? "
+                                   file))
+	      (setq queried t)
+	    (error "Revert canceled"))))
+      (when needs-save
+        (error "Cannot revert with these buffers unsaved: %s"
+               (string-join (mapcar #'buffer-name needs-save) ", "))))
     (unwind-protect
 	(when (if vc-revert-show-diff
 		  (progn
