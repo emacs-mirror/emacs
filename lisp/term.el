@@ -4742,77 +4742,6 @@ The return value may be nil for a special serial port."
                                      (nth 1 y))))))))
 
 
-;;; Converting process modes to use term mode
-;; ===========================================================================
-;; Renaming variables
-;; Most of the work is renaming variables and functions.  These are the common
-;; ones:
-;; Local variables:
-;;	last-input-start	term-last-input-start
-;; 	last-input-end		term-last-input-end
-;;	shell-prompt-pattern	term-prompt-regexp
-;;     shell-set-directory-error-hook <no equivalent>
-;; Miscellaneous:
-;;	shell-set-directory	<unnecessary>
-;; 	shell-mode-map		term-mode-map
-;; Commands:
-;;	shell-send-input	term-send-input
-;;	shell-send-eof		term-delchar-or-maybe-eof
-;; 	kill-shell-input	term-kill-input
-;;	interrupt-shell-subjob	term-interrupt-subjob
-;;	stop-shell-subjob	term-stop-subjob
-;;	quit-shell-subjob	term-quit-subjob
-;;	kill-shell-subjob	term-kill-subjob
-;;	kill-output-from-shell	term-kill-output
-;;	show-output-from-shell	term-show-output
-;;	copy-last-shell-input	Use term-previous-input/term-next-input
-;;
-;; SHELL-SET-DIRECTORY is gone, its functionality taken over by
-;; SHELL-DIRECTORY-TRACKER, the shell mode's term-input-filter-functions.
-;; Term mode does not provide functionality equivalent to
-;; shell-set-directory-error-hook; it is gone.
-;;
-;; term-last-input-start is provided for modes which want to munge
-;; the buffer after input is sent, perhaps because the inferior
-;; insists on echoing the input.  The LAST-INPUT-START variable in
-;; the old shell package was used to implement a history mechanism,
-;; but you should think twice before using term-last-input-start
-;; for this; the input history ring often does the job better.
-;;
-;; If you are implementing some process-in-a-buffer mode, called foo-mode, do
-;; *not* create the term-mode local variables in your foo-mode function.
-;; This is not modular.  Instead, call term-mode, and let *it* create the
-;; necessary term-specific local variables.  Then create the
-;; foo-mode-specific local variables in foo-mode.  Set the buffer's keymap to
-;; be foo-mode-map, and its mode to be foo-mode.  Set the term-mode hooks
-;; (term-{prompt-regexp, input-filter, input-filter-functions,
-;; get-old-input) that need to be different from the defaults.  Call
-;; foo-mode-hook, and you're done.  Don't run the term-mode hook yourself;
-;; term-mode will take care of it.  The following example, from shell.el,
-;; is typical:
-;;
-;; (defvar shell-mode-map
-;;   (let ((map (make-sparse-keymap)))
-;;     (define-key map "\C-c\C-f" 'shell-forward-command)
-;;     (define-key map "\C-c\C-b" 'shell-backward-command)
-;;     (define-key map "\t" 'term-dynamic-complete)
-;;     (define-key map "\M-?"
-;;       'term-dynamic-list-filename-completions)))
-;;
-;; (define-derived-mode shell-mode term-mode "Shell"
-;;   "A shell mode."
-;;   (setq-local term-prompt-regexp shell-prompt-pattern)
-;;   (setq-local shell-directory-stack nil)
-;;   (add-hook 'term-input-filter-functions #'shell-directory-tracker nil t))
-;;
-;; Completion for term-mode users
-;;
-;; For modes that use term-mode, term-dynamic-complete-functions is the
-;; hook to add completion functions to.  Functions on this list should return
-;; non-nil if completion occurs (i.e., further completion should not occur).
-;; You could use completion-in-region to do the bulk of the
-;; completion job.
-
 (provide 'term)
 
 ;;; term.el ends here
