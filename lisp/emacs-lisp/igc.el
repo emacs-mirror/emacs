@@ -82,6 +82,34 @@
   (igc-stats))
 
 (define-derived-mode igc-stats-mode special-mode "Statistics"
+  "Display memory statistics from `igc-info', about incremental GC.
+You can display two snapshots A and B containing the info from `igc-info'
+at different times.  These can be displayed either as-is, or by showing the
+difference between them.  Type \\`a' to switch to snapshot A
+and \\`b' to switch to snapshot B.  To take a snapshot, type \\`s'.
+To reset the current snapshot, type \\`s'.
+To display the difference between A and B, type \\`d'.
+To perform a full GC, type \\`c'.
+Type \\`g' to refresh the the difference view.
+Type \\`?' to see the mode's help.
+
+The IGC memory statistics is a list of elements describing the various
+statistics of the incremental GC.  The elements are of the
+form (NAME NOBJECTS NBYTES LARGEST), where:
+- NAME is a string describing the kind of objects this entry represents,
+- NOBJECTS is the number of objects of this type,
+- NBYTES is the number of bytes used by objects of this type,
+- LARGEST is the largest object of this type.
+
+In addition, there are several pseudo-objects which provide overall
+IGC statistics:
+ - committed       -- the amount of committed memory in bytes
+ - commit-limit    -- max amount of memory the arena is allowed to commit
+ - spare-committed -- memory which remains committed and which the
+     arena is managing as free memory
+ - reserved        -- total address space reserved by the arena
+ - spare           -- spare commit limit fraction
+ - pause-time      -- max amount of time GC operations may pause Emacs."
   (keymap-local-set "a" #'igc-display-a)
   (keymap-local-set "b" #'igc-display-b)
   (keymap-local-set "c" #'igc-collect)
@@ -138,7 +166,7 @@ Type \\`?' to see the mode's help."
       (goto-char (point-min))
       (forward-line (1- old-line))))
   (display-buffer "*igc*")
-  (message "Type `C-h f igc-stats RET' for instructions"))
+  (message "Type `?' in the *igc* buffer for help"))
 
 (defun igc--roots-diff (i1 i2)
   (cl-loop for (t1 n1 s1) in i1
