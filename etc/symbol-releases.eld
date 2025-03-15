@@ -59,6 +59,7 @@
 
  ("19.34" fun make-directory)
  ("19.7" fun defsubst)
+ ("18.59" fun current-global-map)
  ("18.59" fun mark)
  ("13.8" fun nthcdr)
  ("13.8" fun nreverse)
