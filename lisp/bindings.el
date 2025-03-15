@@ -25,6 +25,8 @@
 
 ;;; Code:
 
+(declare-function tramp-revert-buffer-with-sudo "tramp-cmds")
+
 (defun make-mode-line-mouse-map (mouse function) "\
 Return a keymap with single entry for mouse key MOUSE on the mode line.
 MOUSE is defined to run function FUNCTION with no args in the buffer
