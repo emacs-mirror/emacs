@@ -597,5 +597,101 @@ baz"))))
      (should (eq (get-text-property (match-beginning 0) 'face)
                   'diff-context)))))
 
+(ert-deftest diff-mode-test-topmost-addition-undo ()
+  (let ((patch "diff --git a/fruits b/fruits
+index 0dcecd3..d0eb2e7 100644
+--- a/fruits
++++ b/fruits
+@@ -1,2 +1,3 @@
++fruits
+ apple
+ orange
+")
+        (text-before "apple
+orange
+")
+        (text-after "fruits
+apple
+orange
+"))
+    (ert-with-temp-directory temp-dir
+      (let ((buf-after
+             (find-file-noselect (format "%s/%s" temp-dir "fruits"))))
+        (cd temp-dir)
+
+        (with-current-buffer buf-after (insert text-after) (save-buffer))
+        (with-temp-buffer
+          (insert patch)
+          (goto-char (point-min))
+          (diff-hunk-next)
+          ;; Undo hunk by non-nil REVERSE argument (C-u C-c C-a)
+          (diff-apply-hunk t))
+        (with-current-buffer buf-after
+          (should (string-equal (buffer-string) text-before)))
+
+        (with-current-buffer buf-after
+          (erase-buffer) (insert text-after) (save-buffer))
+        (with-temp-buffer
+          (insert patch)
+          (goto-char (point-min))
+          (diff-hunk-next)
+          ;; Undo hunk by dwim behaviour
+          (cl-letf (((symbol-function 'y-or-n-p) #'always))
+            (diff-apply-hunk)))
+        (with-current-buffer buf-after
+          (should (string-equal (buffer-string) text-before)))
+
+        (with-current-buffer buf-after
+          (set-buffer-modified-p nil)
+          (kill-buffer buf-after))))))
+
+(ert-deftest diff-mode-test-bottommost-addition-undo ()
+  (let ((patch "diff --git a/fruits b/fruits
+index 0dcecd3..6f210ff 100644
+--- a/fruits
++++ b/fruits
+@@ -1,2 +1,3 @@
+ apple
+ orange
++plum
+")
+        (text-before "apple
+orange
+")
+        (text-after "apple
+orange
+plum
+"))
+    (ert-with-temp-directory temp-dir
+      (let ((buf-after
+             (find-file-noselect (format "%s/%s" temp-dir "fruits"))))
+        (cd temp-dir)
+
+        (with-current-buffer buf-after (insert text-after) (save-buffer))
+        (with-temp-buffer
+          (insert patch)
+          (goto-char (point-min))
+          (diff-hunk-next)
+          ;; Undo hunk by non-nil REVERSE argument (C-u C-c C-a)
+          (diff-apply-hunk t))
+        (with-current-buffer buf-after
+          (should (string-equal (buffer-string) text-before)))
+
+        (with-current-buffer buf-after
+          (erase-buffer) (insert text-after) (save-buffer))
+        (with-temp-buffer
+          (insert patch)
+          (goto-char (point-min))
+          (diff-hunk-next)
+          ;; Undo hunk by dwim behaviour
+          (cl-letf (((symbol-function 'y-or-n-p) #'always))
+            (diff-apply-hunk)))
+        (with-current-buffer buf-after
+          (should (string-equal (buffer-string) text-before)))
+
+        (with-current-buffer buf-after
+          (set-buffer-modified-p nil)
+          (kill-buffer buf-after))))))
+
 (provide 'diff-mode-tests)
 ;;; diff-mode-tests.el ends here

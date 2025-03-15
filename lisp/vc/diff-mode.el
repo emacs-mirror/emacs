@@ -2048,9 +2048,11 @@ SWITCHED is non-nil if the patch is already applied."
         (goto-char (point-min)) (forward-line (1- (string-to-number line)))
 	(let* ((orig-pos (point))
 	       (switched nil)
-	       ;; FIXME: Check for case where both OLD and NEW are found.
-	       (pos (or (diff-find-text (car old))
-			(progn (setq switched t) (diff-find-text (car new)))
+	       (maybe-old (diff-find-text (car old)))
+	       (maybe-new (diff-find-text (car new)))
+	       (pos (or (and maybe-new maybe-old (null reverse) (setq switched t) maybe-new)
+			maybe-old
+			(progn (setq switched t) maybe-new)
 			(progn (setq switched nil)
 			       (condition-case nil
 				   (diff-find-approx-text (car old))
