@@ -615,14 +615,18 @@ point, otherwise hide it."
       (cancel-timer completion-preview--timer)
       (setq completion-preview--timer nil))
 
-    ;; If we're called after a command that itself updates the
-    ;; preview, don't do anything.
-    (unless internal-p
-      (if (and (completion-preview-require-certain-commands)
-               (completion-preview-require-minimum-symbol-length)
-               (not buffer-read-only))
-          (completion-preview--show)
-        (completion-preview-active-mode -1)))))
+    (cond
+     (internal-p
+      ;; `this-command' took care of updating the preview.  Do nothing.
+      )
+     ((and (completion-preview-require-certain-commands)
+           (completion-preview-require-minimum-symbol-length)
+           (not buffer-read-only))
+      ;; All conditions met.  Show or update the preview.
+      (completion-preview--show))
+     (completion-preview-active-mode
+      ;; The preview is shown, but it shouldn't be.  Hide it.
+      (completion-preview-active-mode -1)))))
 
 (defun completion-preview--barf-if-no-preview ()
   "Signal a `user-error' if completion preview is not active."

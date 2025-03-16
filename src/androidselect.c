@@ -418,7 +418,10 @@ close_asset_fd (void *afd)
 }
 
 /* Return the offset, file descriptor and length of the data contained
-   in the asset file descriptor AFD, in *FD, *OFFSET, and *LENGTH.
+   in the asset file descriptor AFD, in *FD, *OFFSET, and *LENGTH.  AFD
+   will not be released if an exception is detected; it is the
+   responsibility of the caller to arrange that it be.
+
    Value is 0 upon success, 1 otherwise.  */
 
 static int
@@ -487,6 +490,9 @@ extract_fd_offsets (jobject afd, int *fd, jlong *offset, jlong *length)
       *fd = (*android_java_env)->CallIntMethod (android_java_env,
 						java_fd,
 						fd_class.get_fd);
+      android_exception_check_1 (java_fd);
+      ANDROID_DELETE_LOCAL_REF (java_fd);
+
       if (*fd >= 0)
 	return 0;
     }
