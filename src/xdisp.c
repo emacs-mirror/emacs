@@ -17569,7 +17569,10 @@ redisplay_internal (void)
 	  if (is_tty_frame (f))
 	    {
 	      /* Ignore all invisible tty frames, children or root.  */
-	      if (!frame_redisplay_p (f))
+	      if (!frame_redisplay_p (f)
+		  /* Ignore frames not yet completely made, which we
+		     cannot safely redisplay.  */
+		  || !f->after_make_frame)
 		continue;
 
 	      /* Remember tty root frames which we've seen.  */
