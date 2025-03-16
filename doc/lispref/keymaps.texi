@@ -1844,6 +1844,8 @@ local keymap, or @code{nil} if it is undefined there.
 
 The argument @var{accept-defaults} controls checking for default bindings,
 as in @code{lookup-key} (above).
+
+Use @code{keymap-local-lookup} instead of this function.
 @end defun
 
 @defun global-key-binding key &optional accept-defaults
@@ -1852,6 +1854,8 @@ current global keymap, or @code{nil} if it is undefined there.
 
 The argument @var{accept-defaults} controls checking for default bindings,
 as in @code{lookup-key} (above).
+
+Use @code{keymap-global-lookup} instead of this function.
 @end defun
 
 @defun event-convert-list list
