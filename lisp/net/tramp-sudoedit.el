@@ -244,84 +244,88 @@ absolute file names."
   (unless (memq op '(copy rename))
     (error "Unknown operation `%s', must be `copy' or `rename'" op))
 
-  (setq filename (file-truename filename))
   (if (file-directory-p filename)
       (progn
 	(copy-directory filename newname keep-date t)
 	(when (eq op 'rename) (delete-directory filename 'recursive)))
+    (if (file-symlink-p filename)
+	(progn
+	  (make-symbolic-link
+	   (file-symlink-p filename) newname ok-if-already-exists)
+	  (when (eq op 'rename) (delete-file filename)))
 
-    ;; FIXME: This should be optimized.  Computing `file-attributes'
-    ;; checks already, whether the file exists.
-    (let ((t1 (tramp-sudoedit-file-name-p filename))
-	  (t2 (tramp-sudoedit-file-name-p newname))
-	  (file-times (file-attribute-modification-time
-		       (file-attributes filename)))
-	  (file-modes (tramp-default-file-modes filename))
-	  (attributes (and preserve-extended-attributes
-			   (file-extended-attributes filename)))
-	  (sudoedit-operation
-	   (cond
-	    ((and (eq op 'copy) preserve-uid-gid) '("cp" "-f" "-p"))
-	    ((eq op 'copy) '("cp" "-f"))
-	    ((eq op 'rename) '("mv" "-f"))))
-	  (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
+      ;; FIXME: This should be optimized.  Computing `file-attributes'
+      ;; checks already, whether the file exists.
+      (let ((t1 (tramp-sudoedit-file-name-p filename))
+	    (t2 (tramp-sudoedit-file-name-p newname))
+	    (file-times (file-attribute-modification-time
+			 (file-attributes filename)))
+	    (file-modes (tramp-default-file-modes filename))
+	    (attributes (and preserve-extended-attributes
+			     (file-extended-attributes filename)))
+	    (sudoedit-operation
+	     (cond
+	      ((and (eq op 'copy) preserve-uid-gid) '("cp" "-f" "-p"))
+	      ((eq op 'copy) '("cp" "-f"))
+	      ((eq op 'rename) '("mv" "-f"))))
+	    (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
 
-      (with-parsed-tramp-file-name (if t1 filename newname) nil
-	(tramp-barf-if-file-missing v filename
-	  (when (and (not ok-if-already-exists) (file-exists-p newname))
-	    (tramp-error v 'file-already-exists newname))
-	  (when (and (file-directory-p newname)
-		     (not (directory-name-p newname)))
-	    (tramp-error v 'file-error "File is a directory %s" newname))
+	(with-parsed-tramp-file-name (if t1 filename newname) nil
+	  (tramp-barf-if-file-missing v filename
+	    (when (and (not ok-if-already-exists) (file-exists-p newname))
+	      (tramp-error v 'file-already-exists newname))
+	    (when (and (file-directory-p newname)
+		       (not (directory-name-p newname)))
+	      (tramp-error v 'file-error "File is a directory %s" newname))
 
-	  (if (or (and (tramp-tramp-file-p filename) (not t1))
-		  (and (tramp-tramp-file-p newname)  (not t2)))
-	      ;; We cannot copy or rename directly.
-	      (let ((tmpfile (tramp-compat-make-temp-file filename)))
-		(if (eq op 'copy)
-		    (copy-file filename tmpfile t)
-		  (rename-file filename tmpfile t))
-		(rename-file tmpfile newname ok-if-already-exists))
+	    (if (or (and (tramp-tramp-file-p filename) (not t1))
+		    (and (tramp-tramp-file-p newname)  (not t2)))
+		;; We cannot copy or rename directly.
+		(let ((tmpfile (tramp-compat-make-temp-file filename)))
+		  (if (eq op 'copy)
+		      (copy-file filename tmpfile t)
+		    (rename-file filename tmpfile t))
+		  (rename-file tmpfile newname ok-if-already-exists))
 
-	    ;; Direct action.
-	    (with-tramp-progress-reporter
-		v 0 (format "%s %s to %s" msg-operation filename newname)
-	      (unless (tramp-sudoedit-send-command
-		       v sudoedit-operation
-		       (tramp-unquote-file-local-name filename)
-		       (tramp-unquote-file-local-name newname))
-		(tramp-error
-		 v 'file-error
-		 "Error %s `%s' `%s'" msg-operation filename newname))))
+	      ;; Direct action.
+	      (with-tramp-progress-reporter
+		  v 0 (format "%s %s to %s" msg-operation filename newname)
+		(unless (tramp-sudoedit-send-command
+			 v sudoedit-operation
+			 (tramp-unquote-file-local-name filename)
+			 (tramp-unquote-file-local-name newname))
+		  (tramp-error
+		   v 'file-error
+		   "Error %s `%s' `%s'" msg-operation filename newname))))
 
-	  ;; When `newname' is local, we must change the ownership to
-	  ;; the local user.
-	  (unless (tramp-tramp-file-p newname)
-	    (tramp-set-file-uid-gid
-	     (concat (file-remote-p filename) newname)
-	     (tramp-get-local-uid 'integer)
-	     (tramp-get-local-gid 'integer)))
+	    ;; When `newname' is local, we must change the ownership
+	    ;; to the local user.
+	    (unless (tramp-tramp-file-p newname)
+	      (tramp-set-file-uid-gid
+	       (concat (file-remote-p filename) newname)
+	       (tramp-get-local-uid 'integer)
+	       (tramp-get-local-gid 'integer)))
 
-	  ;; Set the time and mode. Mask possible errors.
-	  (when keep-date
-	    (ignore-errors
-	      (set-file-times
-	       newname file-times (unless ok-if-already-exists 'nofollow))
-	      (set-file-modes newname file-modes)))
+	    ;; Set the time and mode. Mask possible errors.
+	    (when keep-date
+	      (ignore-errors
+		(set-file-times
+		 newname file-times (unless ok-if-already-exists 'nofollow))
+		(set-file-modes newname file-modes)))
 
-	  ;; Handle `preserve-extended-attributes'.  We ignore possible
-	  ;; errors, because ACL strings could be incompatible.
-	  (when attributes
-	    (ignore-errors
-	      (set-file-extended-attributes newname attributes)))
+	    ;; Handle `preserve-extended-attributes'.  We ignore possible
+	    ;; errors, because ACL strings could be incompatible.
+	    (when attributes
+	      (ignore-errors
+		(set-file-extended-attributes newname attributes)))
 
-	  (when (and t1 (eq op 'rename))
-	    (with-parsed-tramp-file-name filename v1
-	      (tramp-flush-file-properties v1 v1-localname)))
+	    (when (and t1 (eq op 'rename))
+	      (with-parsed-tramp-file-name filename v1
+		(tramp-flush-file-properties v1 v1-localname)))
 
-	  (when t2
-	    (with-parsed-tramp-file-name newname v2
-	      (tramp-flush-file-properties v2 v2-localname))))))))
+	    (when t2
+	      (with-parsed-tramp-file-name newname v2
+		(tramp-flush-file-properties v2 v2-localname)))))))))
 
 (defun tramp-sudoedit-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date

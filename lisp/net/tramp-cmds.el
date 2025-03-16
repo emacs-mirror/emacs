@@ -738,6 +738,7 @@ By default this is done using the \"sudo\" Tramp method.
 YOu can customize `tramp-file-name-with-method' to change this.
 
 Interactively, with a prefix argument, prompt for a different method."
+  ;; (declare (completion tramp-dired-buffer-command-completion-p))
   (interactive)
   (with-tramp-file-name-with-method
     (find-file (tramp-file-name-with-sudo (dired-get-file-for-visit)))))

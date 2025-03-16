@@ -114,6 +114,7 @@ this variable \"client min protocol=NT1\"."
        "Read from server failed, maybe it closed the connection"
        "Call timed out: server did not respond"
        (: (+ (not blank)) ": command not found")
+       (: (+ (not blank)) " does not exist")
        "Server doesn't support UNIX CIFS calls"
        (| ;; Samba.
 	"ERRDOS"
@@ -596,66 +597,63 @@ KEEP-DATE has no effect in case NEWNAME resides on an SMB server.
 PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   (setq filename (expand-file-name filename)
 	newname (expand-file-name newname))
-  (with-tramp-progress-reporter
-      (tramp-dissect-file-name
-       (if (tramp-tramp-file-p filename) filename newname))
-      0 (format "Copying %s to %s" filename newname)
 
-    (if (file-directory-p filename)
-	(copy-directory filename newname keep-date 'parents 'copy-contents)
+  (with-parsed-tramp-file-name
+      (if (tramp-tramp-file-p filename) filename newname) nil
+    (with-tramp-progress-reporter
+	v 0 (format "Copying %s to %s" filename newname)
 
-      (unless (file-exists-p filename)
-	(tramp-error
-	 (tramp-dissect-file-name
-	  (if (tramp-tramp-file-p filename) filename newname))
-	 'file-missing filename))
+      (if (file-directory-p filename)
+	  (copy-directory filename newname keep-date 'parents 'copy-contents)
 
-      ;; `file-local-copy' returns a file name also for a local file
-      ;; with `jka-compr-handler', so we cannot trust its result as
-      ;; indication for a remote file name.
-      (if-let* ((tmpfile
-		 (and (tramp-tramp-file-p filename) (file-local-copy filename))))
-	  ;; Remote filename.
-	  (condition-case err
-	      (rename-file tmpfile newname ok-if-already-exists)
-	    ((error quit)
-	     (delete-file tmpfile)
-	     (signal (car err) (cdr err))))
+	(tramp-barf-if-file-missing v filename
+	  ;; `file-local-copy' returns a file name also for a local
+	  ;; file with `jka-compr-handler', so we cannot trust its
+	  ;; result as indication for a remote file name.
+	  (if-let* ((tmpfile
+		     (and (tramp-tramp-file-p filename)
+			  (file-local-copy filename))))
+	      ;; Remote filename.
+	      (condition-case err
+		  (rename-file tmpfile newname ok-if-already-exists)
+		((error quit)
+		 (delete-file tmpfile)
+		 (signal (car err) (cdr err))))
 
-	;; Remote newname.
-	(when (and (file-directory-p newname)
-		   (directory-name-p newname))
-	  (setq newname
-		(expand-file-name (file-name-nondirectory filename) newname)))
+	    ;; Remote newname.
+	    (when (and (file-directory-p newname)
+		       (directory-name-p newname))
+	      (setq newname
+		    (expand-file-name
+		     (file-name-nondirectory filename) newname)))
 
-	(with-parsed-tramp-file-name newname nil
-	  (when (and (not ok-if-already-exists) (file-exists-p newname))
-	    (tramp-error v 'file-already-exists newname))
-	  (when (and (file-directory-p newname)
-		     (not (directory-name-p newname)))
-	    (tramp-error v 'file-error "File is a directory %s" newname))
+	    (when (and (not ok-if-already-exists) (file-exists-p newname))
+	      (tramp-error v 'file-already-exists newname))
+	    (when (and (file-directory-p newname)
+		       (not (directory-name-p newname)))
+	      (tramp-error v 'file-error "File is a directory %s" newname))
 
-	  (unless (tramp-smb-get-share v)
-	    (tramp-error
-	     v 'file-error "Target `%s' must contain a share name" newname))
-	  (unless (tramp-smb-send-command
-		   v (format "put %s %s"
-			     (tramp-smb-shell-quote-argument filename)
-			     (tramp-smb-shell-quote-localname v)))
-	    (tramp-error
-	     v 'file-error "Cannot copy `%s' to `%s'" filename newname))
+	    (unless (tramp-smb-get-share v)
+	      (tramp-error
+	       v 'file-error "Target `%s' must contain a share name" newname))
+	    (unless (tramp-smb-send-command
+		     v (format "put %s %s"
+			       (tramp-smb-shell-quote-argument filename)
+			       (tramp-smb-shell-quote-localname v)))
+	      (tramp-error
+	       v 'file-error "Cannot copy `%s' to `%s'" filename newname))
 
-	  ;; When newname did exist, we have wrong cached values.
-	  (when (tramp-tramp-file-p newname)
-	    (with-parsed-tramp-file-name newname v2
-	      (tramp-flush-file-properties v2 v2-localname))))))
+	    ;; When newname did exist, we have wrong cached values.
+	    (when (tramp-tramp-file-p newname)
+	      (with-parsed-tramp-file-name newname v2
+		(tramp-flush-file-properties v2 v2-localname))))))
 
-    ;; KEEP-DATE handling.
-    (when keep-date
-      (set-file-times
-       newname
-       (file-attribute-modification-time (file-attributes filename))
-       (unless ok-if-already-exists 'nofollow)))))
+      ;; KEEP-DATE handling.
+      (when keep-date
+	(set-file-times
+	 newname
+	 (file-attribute-modification-time (file-attributes filename))
+	 (unless ok-if-already-exists 'nofollow))))))
 
 (defun tramp-smb-handle-delete-directory (directory &optional recursive trash)
   "Like `delete-directory' for Tramp files."
@@ -1306,46 +1304,45 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 
   (with-parsed-tramp-file-name
       (if (tramp-tramp-file-p filename) filename newname) nil
-    (unless (file-exists-p filename)
-      (tramp-error v 'file-missing filename))
-    (when (and (not ok-if-already-exists) (file-exists-p newname))
-      (tramp-error v 'file-already-exists newname))
-    (when (and (file-directory-p newname)
-	       (not (directory-name-p newname)))
-      (tramp-error v 'file-error "File is a directory %s" newname))
+    (tramp-barf-if-file-missing v filename
+      (when (and (not ok-if-already-exists) (file-exists-p newname))
+	(tramp-error v 'file-already-exists newname))
+      (when (and (file-directory-p newname)
+		 (not (directory-name-p newname)))
+	(tramp-error v 'file-error "File is a directory %s" newname))
 
-    (with-tramp-progress-reporter
-	v 0 (format "Renaming %s to %s" filename newname)
+      (with-tramp-progress-reporter
+	  v 0 (format "Renaming %s to %s" filename newname)
 
-      (if (and (not (file-exists-p newname))
-	       (tramp-equal-remote filename newname)
-	       (string-equal
-		(tramp-smb-get-share (tramp-dissect-file-name filename))
-		(tramp-smb-get-share (tramp-dissect-file-name newname))))
-	  ;; We can rename directly.
-	  (with-parsed-tramp-file-name filename v1
-	    (with-parsed-tramp-file-name newname v2
+	(if (and (not (file-exists-p newname))
+		 (tramp-equal-remote filename newname)
+		 (string-equal
+		  (tramp-smb-get-share (tramp-dissect-file-name filename))
+		  (tramp-smb-get-share (tramp-dissect-file-name newname))))
+	    ;; We can rename directly.
+	    (with-parsed-tramp-file-name filename v1
+	      (with-parsed-tramp-file-name newname v2
 
-	      ;; We must also flush the cache of the directory, because
-	      ;; `file-attributes' reads the values from there.
-	      (tramp-flush-file-properties v1 v1-localname)
-	      (tramp-flush-file-properties v2 v2-localname)
-	      (unless (tramp-smb-get-share v2)
-		(tramp-error
-		 v2 'file-error
-		 "Target `%s' must contain a share name" newname))
-	      (unless (tramp-smb-send-command
-		       v2 (format "rename %s %s"
-				  (tramp-smb-shell-quote-localname v1)
-				  (tramp-smb-shell-quote-localname v2)))
-		(tramp-error v2 'file-error "Cannot rename `%s'" filename))))
+		;; We must also flush the cache of the directory, because
+		;; `file-attributes' reads the values from there.
+		(tramp-flush-file-properties v1 v1-localname)
+		(tramp-flush-file-properties v2 v2-localname)
+		(unless (tramp-smb-get-share v2)
+		  (tramp-error
+		   v2 'file-error
+		   "Target `%s' must contain a share name" newname))
+		(unless (tramp-smb-send-command
+			 v2 (format "rename %s %s"
+				    (tramp-smb-shell-quote-localname v1)
+				    (tramp-smb-shell-quote-localname v2)))
+		  (tramp-error v2 'file-error "Cannot rename `%s'" filename))))
 
-	;; We must rename via copy.
-	(copy-file
-	 filename newname ok-if-already-exists 'keep-time 'preserve-uid-gid)
-	(if (file-directory-p filename)
-	    (delete-directory filename 'recursive)
-	  (delete-file filename))))))
+	  ;; We must rename via copy.
+	  (copy-file
+	   filename newname ok-if-already-exists 'keep-time 'preserve-uid-gid)
+	  (if (file-directory-p filename)
+	      (delete-directory filename 'recursive)
+	    (delete-file filename)))))))
 
 (defun tramp-smb-action-set-acl (proc vec)
   "Set ACL data."

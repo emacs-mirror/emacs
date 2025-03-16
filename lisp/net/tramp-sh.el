@@ -2128,123 +2128,129 @@ file names."
       (progn
 	(copy-directory filename newname keep-date t)
 	(when (eq op 'rename) (delete-directory filename 'recursive)))
+    (if (file-symlink-p filename)
+	(progn
+	  (make-symbolic-link
+	   (file-symlink-p filename) newname ok-if-already-exists)
+	  (when (eq op 'rename) (delete-file filename)))
 
-    ;; FIXME: This should be optimized.  Computing `file-attributes'
-    ;; checks already, whether the file exists.
-    (let ((t1 (tramp-tramp-file-p filename))
-	  (t2 (tramp-tramp-file-p newname))
-	  (length (file-attribute-size
-		   (file-attributes (file-truename filename))))
-	  (file-times (file-attribute-modification-time
-		       (file-attributes filename)))
-	  (file-modes (tramp-default-file-modes filename))
-	  (msg-operation (if (eq op 'copy) "Copying" "Renaming"))
-          copy-keep-date)
+      ;; FIXME: This should be optimized.  Computing `file-attributes'
+      ;; checks already, whether the file exists.
+      (let ((t1 (tramp-tramp-file-p filename))
+	    (t2 (tramp-tramp-file-p newname))
+	    (length (or (file-attribute-size
+			 (file-attributes (file-truename filename)))
+			;; `filename' doesn't exist, for example due
+			;; to non-existent symlink target.
+			0))
+	    (file-times (file-attribute-modification-time
+			 (file-attributes filename)))
+	    (file-modes (tramp-default-file-modes filename))
+	    (msg-operation (if (eq op 'copy) "Copying" "Renaming"))
+            copy-keep-date)
 
-      (with-parsed-tramp-file-name (if t1 filename newname) nil
-	(unless length
-	  (tramp-error v 'file-missing filename))
-	(tramp-barf-if-file-missing v filename
-	  (when (and (not ok-if-already-exists) (file-exists-p newname))
-	    (tramp-error v 'file-already-exists newname))
-	  (when (and (file-directory-p newname)
-		     (not (directory-name-p newname)))
-	    (tramp-error v 'file-error "File is a directory %s" newname))
+	(with-parsed-tramp-file-name (if t1 filename newname) nil
+	  (tramp-barf-if-file-missing v filename
+	    (when (and (not ok-if-already-exists) (file-exists-p newname))
+	      (tramp-error v 'file-already-exists newname))
+	    (when (and (file-directory-p newname)
+		       (not (directory-name-p newname)))
+	      (tramp-error v 'file-error "File is a directory %s" newname))
 
-	  (with-tramp-progress-reporter
-	      v 0 (format "%s %s to %s" msg-operation filename newname)
+	    (with-tramp-progress-reporter
+		v 0 (format "%s %s to %s" msg-operation filename newname)
 
-	    (cond
-	     ;; Both are Tramp files.
-	     ((and t1 t2)
-	      (with-parsed-tramp-file-name filename v1
-		(with-parsed-tramp-file-name newname v2
-		  (cond
-		   ;; Shortcut: if method, host, user are the same for
-		   ;; both files, we invoke `cp' or `mv' on the remote
-		   ;; host directly.
-		   ((tramp-equal-remote filename newname)
-	            (setq copy-keep-date
-			  (or (eq op 'rename) keep-date preserve-uid-gid))
-		    (tramp-do-copy-or-rename-file-directly
-		     op filename newname
-		     ok-if-already-exists keep-date preserve-uid-gid))
-
-		   ;; Try out-of-band operation.
-		   ((and
-		     (tramp-method-out-of-band-p v1 length)
-		     (tramp-method-out-of-band-p v2 length))
-	            (setq copy-keep-date
-                          (tramp-get-method-parameter v 'tramp-copy-keep-date))
-		    (tramp-do-copy-or-rename-file-out-of-band
-		     op filename newname ok-if-already-exists keep-date))
-
-		   ;; No shortcut was possible.  So we copy the file
-		   ;; first.  If the operation was `rename', we go
-		   ;; back and delete the original file (if the copy
-		   ;; was successful).  The approach is simple-minded:
-		   ;; we create a new buffer, insert the contents of
-		   ;; the source file into it, then write out the
-		   ;; buffer to the target file.  The advantage is
-		   ;; that it doesn't matter which file name handlers
-		   ;; are used for the source and target file.
-		   (t
-		    (tramp-do-copy-or-rename-file-via-buffer
-		     op filename newname ok-if-already-exists keep-date))))))
-
-	     ;; One file is a Tramp file, the other one is local.
-	     ((or t1 t2)
 	      (cond
-	       ;; Fast track on local machine.
-	       ((tramp-local-host-p v)
-	        (setq copy-keep-date
-		      (or (eq op 'rename) keep-date preserve-uid-gid))
-		(tramp-do-copy-or-rename-file-directly
-		 op filename newname
-		 ok-if-already-exists keep-date preserve-uid-gid))
+	       ;; Both are Tramp files.
+	       ((and t1 t2)
+		(with-parsed-tramp-file-name filename v1
+		  (with-parsed-tramp-file-name newname v2
+		    (cond
+		     ;; Shortcut: if method, host, user are the same
+		     ;; for both files, we invoke `cp' or `mv' on the
+		     ;; remote host directly.
+		     ((tramp-equal-remote filename newname)
+	              (setq copy-keep-date
+			    (or (eq op 'rename) keep-date preserve-uid-gid))
+		      (tramp-do-copy-or-rename-file-directly
+		       op filename newname
+		       ok-if-already-exists keep-date preserve-uid-gid))
 
-	       ;; If the Tramp file has an out-of-band method, the
-	       ;; corresponding copy-program can be invoked.
-	       ((tramp-method-out-of-band-p v length)
-	        (setq copy-keep-date
-                      (tramp-get-method-parameter v 'tramp-copy-keep-date))
-		(tramp-do-copy-or-rename-file-out-of-band
-		 op filename newname ok-if-already-exists keep-date))
+		     ;; Try out-of-band operation.
+		     ((and
+		       (tramp-method-out-of-band-p v1 length)
+		       (tramp-method-out-of-band-p v2 length))
+	              (setq copy-keep-date
+                            (tramp-get-method-parameter v 'tramp-copy-keep-date))
+		      (tramp-do-copy-or-rename-file-out-of-band
+		       op filename newname ok-if-already-exists keep-date))
 
-	       ;; Use the inline method via a Tramp buffer.
-	       (t (tramp-do-copy-or-rename-file-via-buffer
-		   op filename newname ok-if-already-exists keep-date))))
+		     ;; No shortcut was possible.  So we copy the file
+		     ;; first.  If the operation was `rename', we go
+		     ;; back and delete the original file (if the copy
+		     ;; was successful).  The approach is simple-minded:
+		     ;; we create a new buffer, insert the contents of
+		     ;; the source file into it, then write out the
+		     ;; buffer to the target file.  The advantage is
+		     ;; that it doesn't matter which file name handlers
+		     ;; are used for the source and target file.
+		     (t
+		      (tramp-do-copy-or-rename-file-via-buffer
+		       op filename newname ok-if-already-exists keep-date))))))
 
-	     (t
-	      ;; One of them must be a Tramp file.
-	      (error "Tramp implementation says this cannot happen")))
+	       ;; One file is a Tramp file, the other one is local.
+	       ((or t1 t2)
+		(cond
+		 ;; Fast track on local machine.
+		 ((tramp-local-host-p v)
+	          (setq copy-keep-date
+			(or (eq op 'rename) keep-date preserve-uid-gid))
+		  (tramp-do-copy-or-rename-file-directly
+		   op filename newname
+		   ok-if-already-exists keep-date preserve-uid-gid))
 
-	    ;; In case of `rename', we must flush the cache of the source file.
-	    (when (and t1 (eq op 'rename))
-	      (with-parsed-tramp-file-name filename v1
-		(tramp-flush-file-properties v1 v1-localname)))
+		 ;; If the Tramp file has an out-of-band method, the
+		 ;; corresponding copy-program can be invoked.
+		 ((tramp-method-out-of-band-p v length)
+	          (setq copy-keep-date
+			(tramp-get-method-parameter v 'tramp-copy-keep-date))
+		  (tramp-do-copy-or-rename-file-out-of-band
+		   op filename newname ok-if-already-exists keep-date))
 
-	    ;; NEWNAME has wrong cached values.
-	    (when t2
-	      (with-parsed-tramp-file-name newname v2
-		(tramp-flush-file-properties v2 v2-localname)))
+		 ;; Use the inline method via a Tramp buffer.
+		 (t (tramp-do-copy-or-rename-file-via-buffer
+		     op filename newname ok-if-already-exists keep-date))))
 
-	    ;; Handle `preserve-extended-attributes'.  We ignore
-	    ;; possible errors, because ACL strings could be
-	    ;; incompatible.
-	    (when-let* ((attributes (and preserve-extended-attributes
-					 (file-extended-attributes filename))))
-	      (ignore-errors
-		(set-file-extended-attributes newname attributes)))
+	       (t
+		;; One of them must be a Tramp file.
+		(error "Tramp implementation says this cannot happen")))
 
-            ;; KEEP-DATE handling.
-            (when (and keep-date (not copy-keep-date))
-              (set-file-times
-               newname file-times (unless ok-if-already-exists 'nofollow)))
+	      ;; In case of `rename', we must flush the cache of the source file.
+	      (when (and t1 (eq op 'rename))
+		(with-parsed-tramp-file-name filename v1
+		  (tramp-flush-file-properties v1 v1-localname)))
 
-            ;; Set the mode.
-            (unless (and keep-date copy-keep-date)
-              (set-file-modes newname file-modes))))))))
+	      ;; NEWNAME has wrong cached values.
+	      (when t2
+		(with-parsed-tramp-file-name newname v2
+		  (tramp-flush-file-properties v2 v2-localname)))
+
+	      ;; Handle `preserve-extended-attributes'.  We ignore
+	      ;; possible errors, because ACL strings could be
+	      ;; incompatible.
+	      (when-let* ((attributes (and preserve-extended-attributes
+					   (file-extended-attributes filename))))
+		(ignore-errors
+		  (set-file-extended-attributes newname attributes)))
+
+              ;; KEEP-DATE handling.
+              (when (and keep-date (not copy-keep-date))
+		(set-file-times
+		 newname file-times (unless ok-if-already-exists 'nofollow)))
+
+              ;; Set the mode.
+              (unless (and keep-date copy-keep-date)
+		(set-file-modes newname file-modes)))))))))
 
 (defun tramp-do-copy-or-rename-file-via-buffer
     (op filename newname _ok-if-already-exists _keep-date)
@@ -3119,7 +3125,7 @@ will be used."
 			  ;; character to read.  When a process does
 			  ;; not read from stdin, like magit, it
 			  ;; should set a timeout
-			  ;; instead. See`tramp-pipe-stty-settings'.
+			  ;; instead.  See `tramp-pipe-stty-settings'.
 			  ;; (Bug#62093)
 			  ;; FIXME: Shall we rather use "stty raw"?
 			  (tramp-send-command
@@ -5631,7 +5637,7 @@ Nonexistent directories are removed from spec."
 	   (lambda (x) (not (tramp-get-file-property vec x "file-directory-p")))
 	   remote-path))))))
 
-;; The PIPE_BUF in POSIX [1] can be as low as 512 [2]. Here are the values
+;; The PIPE_BUF in POSIX [1] can be as low as 512 [2].  Here are the values
 ;; on various platforms:
 ;;   - 512 on macOS, FreeBSD, NetBSD, OpenBSD, MirBSD, native Windows.
 ;;   - 4 KiB on Linux, OSF/1, Cygwin, Haiku.
