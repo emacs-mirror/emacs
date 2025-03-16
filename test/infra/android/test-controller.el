@@ -2537,7 +2537,13 @@ The following command-line arguments are also accepted:
   --stub-file		Name of `stub.zip' wrapper required on Android <= 4.4.
   --test-dir		Directory in which Emacs's tests are situated.
   --output-dir, -o DIR	Name of a directory into which to save test logs.
-  --no-upload		Don't upload tests; only run those which already exist."
+  --no-upload		Don't upload tests; only run those which already exist.
+
+In addition, these options exist to facilitate debugging the
+automated testing process itself.
+
+  --bisect COUNT	Skip COUNT tests from the beginning to investigate
+			compatibility issues between tests."
   (let* ((ats-adb-host (getenv "ATS_ADB_HOST"))
 	 (devices (ats-enumerate-devices
 		   (lambda (name state _)
@@ -2547,7 +2553,8 @@ The following command-line arguments are also accepted:
 	 (cmd-device nil)
 	 (cmd-user nil)
 	 (cmd-output-dir nil)
-	 (cmd-no-upload nil))
+	 (cmd-no-upload nil)
+	 (bisect 0))
     ;; Read command-line arguments.
     (let (arg)
       (while (setq arg (pop argv))
@@ -2568,7 +2575,13 @@ The following command-line arguments are also accepted:
   --stub-file		Name of `stub.zip' wrapper required on Android <= 4.4.
   --test-dir		Directory in which Emacs's tests are situated.
   --output-dir, -o DIR	Name of a directory into which to save test logs.
-  --no-upload		Don't upload tests; only run those which already exist.")
+  --no-upload		Don't upload tests; only run those which already exist.
+
+In addition, these options exist to facilitate debugging the
+automated testing process itself.
+
+  --bisect COUNT	Skip COUNT tests from the beginning to investigate
+			compatibility issues between tests.")
 	       (kill-emacs 0))
 	      ((or (equal arg "-s") (equal arg "--device"))
 	       (setq cmd-device
@@ -2597,6 +2610,17 @@ The following command-line arguments are also accepted:
 			  "Expected argument to `--test-dir' option."))))
 	      ((equal arg "--no-upload")
 	       (setq cmd-no-upload t))
+	      ((equal arg "--bisect")
+	       (let ((value (or (pop argv)
+				(ats-cmd-error
+				 "Expected argument to `--bisect' option."))))
+		 (setq bisect (progn
+				(unless (string-match-p
+					 "\\`[[:digit:]]+\\'" value)
+				  (ats-cmd-error
+				   "Invalid value for `--bisect' option: `%s'"
+				   value))
+				(string-to-number value)))))
 	      (t (ats-cmd-error "Unknown command line argument `%s'" arg)))))
     ;; Validate and apply command-line arguments or prompt the user for
     ;; parameters in their absence.
@@ -2625,10 +2649,11 @@ The following command-line arguments are also accepted:
 	   (user nil))
       (if cmd-user
 	  (progn
-	    (let ((valid-number (string-match-p "^[[:digit:]]+$" cmd-user))
+	    (let ((valid-number
+		   (string-match-p "\\`[[:digit:]]+\\'" cmd-user))
 		  (uid (string-to-number cmd-user)))
 	      (unless valid-number
-		(ats-cmd-error "Invalid value for `--user' argument: %s"
+		(ats-cmd-error "Invalid value for `--user' argument: `'%s'"
 			    cmd-user))
 	      (unless (assq uid users)
 		(ats-cmd-error "No such user exists: %d" uid))
@@ -2655,8 +2680,9 @@ The following command-line arguments are also accepted:
 		   (read-directory-name
 		    "Where to save test log files? "))))
 	  (mkdir output-directory t)
-	  (let ((tests (ats-list-tests connection)))
-	    (dolist (test tests)
+	  (let* ((tests (ats-list-tests connection))
+		 (start (nthcdr bisect tests)))
+	    (dolist (test start)
 	      (message "Generating `%s/%s-test.log'"
 		       output-directory test)
 	      (ats-run-test connection test)
