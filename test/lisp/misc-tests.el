@@ -178,6 +178,70 @@
             (should (equal (point) (+ 14 vdelta hdelta)))
             (should (equal (mark) (+ 2 hdelta)))))))))
 
+;; Check that `string-pixel-width' returns a consistent result in the
+;; various situations that can lead to erroneous results.
+(ert-deftest misc-test-string-pixel-width-char-property-alias-alist ()
+  "Test `string-pixel-width' with `char-property-alias-alist'."
+  (with-temp-buffer
+    (let ((text0 (propertize "This text"
+                             'display "xxxx"
+                             'face 'variable-pitch))
+          (text1 (propertize "This text"
+                             'my-display "xxxx"
+                             'my-face 'variable-pitch)))
+      (setq-local char-property-alias-alist '((display my-display)
+                                              (face my-face)))
+      (should (= (string-pixel-width text0 (current-buffer))
+                 (string-pixel-width text1 (current-buffer)))))))
+
+;; This test never fails in batch mode.
+(ert-deftest misc-test-string-pixel-width-face-remapping-alist ()
+  "Test `string-pixel-width' with `face-remapping-alist'."
+  (with-temp-buffer
+    (setq-local face-remapping-alist '((variable-pitch . default)))
+    (let ((text0 (propertize "This text" 'face 'default))
+          (text1 (propertize "This text" 'face 'variable-pitch)))
+      (should (= (string-pixel-width text0 (current-buffer))
+                 (string-pixel-width text1 (current-buffer)))))))
+
+(ert-deftest misc-test-string-pixel-width-default-text-properties ()
+  "Test `string-pixel-width' with `default-text-properties'."
+  (with-temp-buffer
+    (setq-local default-text-properties '(display "XXXX"))
+    (let ((text0 (propertize "This text" 'display "XXXX"))
+          (text1 "This text"))
+      (should (= (string-pixel-width text0 (current-buffer))
+                 (string-pixel-width text1 (current-buffer)))))))
+
+(ert-deftest misc-test-string-pixel-width-line-and-wrap-prefix ()
+  "Test `string-pixel-width' with `line-prefix' and `wrap-prefix'."
+  (let ((lp (default-value 'line-prefix))
+        (wp (default-value 'line-prefix))
+        (text (make-string 2000 ?X))
+        w0 w1)
+    (unwind-protect
+        (progn
+          (setq-default line-prefix nil wrap-prefix nil)
+          (setq w0 (string-pixel-width text))
+          (setq-default line-prefix "PPPP" wrap-prefix "WWWW")
+          (setq w1 (string-pixel-width text)))
+      (setq-default line-prefix lp wrap-prefix wp))
+    (should (= w0 w1))))
+
+;; This test never fails in batch mode.
+(ert-deftest misc-test-string-pixel-width-display-line-numbers ()
+  "Test `string-pixel-width' with `display-line-numbers'."
+  (let ((dln (default-value 'display-line-numbers))
+        (text "This text")
+        w0 w1)
+    (unwind-protect
+        (progn
+          (setq-default display-line-numbers nil)
+          (setq w0 (string-pixel-width text))
+          (setq-default display-line-numbers t)
+          (setq w1 (string-pixel-width text)))
+      (setq-default display-line-numbers dln))
+    (should (= w0 w1))))
 
 (provide 'misc-tests)
 ;;; misc-tests.el ends here
