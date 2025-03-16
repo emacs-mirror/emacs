@@ -1,5 +1,5 @@
 /* Markers: examining, setting and deleting.
-   Copyright (C) 1985, 1997-1998, 2001-2024 Free Software Foundation,
+   Copyright (C) 1985, 1997-1998, 2001-2025 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -231,18 +231,30 @@ markers_move_gap_to_charpos (struct Lisp_Markers *t, ptrdiff_t charpos)
 void
 markers_kill (struct Lisp_Markers *t, struct Lisp_Marker *m)
 {
-  m_index_t i = markers_search_marker (t, m);
-  if (i < t->gap_beg)
-    {
-      markers_move_gap (t, i + 1);
-      eassert (t->gap_beg == i + 1);
-      t->gap_beg = i;
-    }
+  m_index_t i;
+  if (t->gap_beg > 0 && t->markers[t->gap_beg - 1] == m)
+    /* Optimize common case, where we just added this marker.  */
+    i = --t->gap_beg;
+  else if (t->gap_end < t->size && t->markers[t->gap_end] == m)
+    /* Since we add at the beginning of the gap, you might think this case
+       is less common yet, in practice it seems to happen about as much
+       as the previous case.  */
+    i = t->gap_end++;
   else
     {
-      markers_move_gap (t, i);
-      eassert (t->gap_end == i);
-      t->gap_end = i + 1;
+      i = markers_search_marker (t, m);
+      if (i < t->gap_beg)
+	{
+	  markers_move_gap (t, i + 1);
+	  eassert (t->gap_beg == i + 1);
+	  t->gap_beg = i;
+	}
+      else
+	{
+	  markers_move_gap (t, i);
+	  eassert (t->gap_end == i);
+	  t->gap_end = i + 1;
+	}
     }
   eassert (t->markers[i] == m);
   t->markers[i] = NULL;
@@ -281,7 +293,12 @@ markers_add (struct Lisp_Markers *t, struct Lisp_Marker *m)
 {
   if (t->gap_beg == t->gap_end)
     t = markers_grow (t);
-  markers_move_gap_to_charpos (t, m->charpos);
+  ptrdiff_t charpos = m->charpos;
+  /* In the vast majority of cases, the gap doesn't need to be moved.  */
+  if ((t->gap_beg > 0 && t->markers[t->gap_beg - 1]->charpos > charpos)
+      || (t->gap_end < t->size && t->markers[t->gap_end]->charpos < charpos))
+    markers_move_gap_to_charpos (t, charpos);
+  eassert (t->markers[t->gap_beg] == NULL);
   t->markers[t->gap_beg++] = m;
   markers_sanity_check (t);
   return t;
