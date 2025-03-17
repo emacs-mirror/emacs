@@ -1503,7 +1503,7 @@ a file, that file being choosen by the user through the minibuffer.
 *** New prefix map for remember commands.
 Meant to be given a global binding convenient to the user.  Example:
 
-    (keymap-global-set "C-c M-r" 'remember-prefix-map)
+    (keymap-global-set "C-c r" 'remember-prefix-map)
 
 ** Speedbar
 
