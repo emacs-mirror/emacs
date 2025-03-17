@@ -180,17 +180,16 @@ PARENT and BOL are the as in other matchers."
   "Tree-sitter indent rules.")
 
 (defvar java-ts-mode--keywords
-  '("abstract" "assert" "break" "case" "catch"
-    "class" "continue" "default" "do" "else"
-    "enum" "exports" "extends" "final" "finally"
+  '("abstract" "assert" "break"
+    "case" "catch" "class" "continue" "default" "do"
+    "else" "enum" "exports" "extends" "final" "finally"
     "for" "if" "implements" "import" "instanceof"
-    "interface" "module" "native" "new" "non-sealed"
-    "open" "opens" "package" "private" "protected"
-    "provides" "public" "requires" "return" "sealed"
-    "static" "strictfp" "switch" "synchronized"
-    "throw" "throws" "to" "transient" "transitive"
-    "try" "uses" "volatile" "while" "with" "record"
-    "@interface")
+    "interface" "long" "module" "native" "new" "non-sealed"
+    "open" "opens" "package" "permits" "private" "protected"
+    "provides" "public" "record" "requires" "return" "sealed"
+    "short" "static" "strictfp" "switch" "synchronized"
+    "throw" "throws" "to" "transient" "transitive" "try"
+    "uses" "volatile" "when" "while" "with" "yield")
   "Java keywords for tree-sitter font-locking.")
 
 (defvar java-ts-mode--operators
