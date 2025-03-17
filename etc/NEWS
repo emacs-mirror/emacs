@@ -981,7 +981,7 @@ blocks are syntax-highlighted if the Doxygen grammar library is
 available.
 
 ---
-*** New user option 'java-ts-mode-method-chaining-indent-offset'
+*** New user option 'java-ts-mode-method-chaining-indent-offset'.
 Now method chaining is indented by 8 spaces rather than 4, and this
 variable controls how much is indented for method chaining.
 
