@@ -999,6 +999,21 @@ the URL-REGEXP of the association."
                 :value-type ,vc-cloneable-backends-custom-type)
   :version "31.1")
 
+(defcustom vc-resolve-conflicts t
+  "Whether to mark conflicted file as resolved upon saving.
+
+If this is non-nil and there are no more conflict markers in the file,
+VC will mark the conflicts in the saved file as resolved.  This is
+only meaningful for VCS that handle conflicts by inserting conflict
+markers in a conflicted file.
+
+When saving a conflicted file, VC first tries to use the value
+of `vc-BACKEND-resolve-conflicts', for handling backend-specific
+settings.  It defaults to this option if that option has the special
+value `default'."
+  :type 'boolean
+  :version "31.1")
+
 
 ;; File property caching
 
