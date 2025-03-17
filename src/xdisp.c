@@ -1147,7 +1147,7 @@ static bool set_cursor_from_row (struct window *, struct glyph_row *,
 				 struct glyph_matrix *, ptrdiff_t, ptrdiff_t,
 				 int, int);
 static bool cursor_row_fully_visible_p (struct window *, bool, bool, bool);
-static bool update_menu_bar (struct frame *, bool, bool);
+static bool update_menu_bar (struct frame *, bool, bool, struct window *);
 static bool try_window_reusing_current_matrix (struct window *);
 static int try_window_id (struct window *);
 static void maybe_produce_line_number (struct it *);
@@ -14066,13 +14066,32 @@ prepare_menu_bars (void)
       /* True means that update_menu_bar has run its hooks
 	 so any further calls to update_menu_bar shouldn't do so again.  */
       bool menu_bar_hooks_run = false;
+      struct window *sw = XWINDOW (selected_window);
+      struct frame *sf = WINDOW_XFRAME (sw);
+      struct frame *rf = NULL;
+
+      if (FRAME_PARENT_FRAME (sf) && !FRAME_WINDOW_P (sf)
+	  && FRAME_MENU_BAR_LINES (sf) == 0
+	  && FRAME_MENU_BAR_LINES (rf = root_frame (sf)) != 0
+	  && NILP (Fdefault_value (Qtty_menu_open_use_tmm)))
+	/* If the selected window's frame is a tty child frame without
+	   menu bar, that frame's root frame has a menu bar and
+	   'tty-menu-open-use-tmm' is nil, update the menu bar of the
+	   root frame from the selected window.  */
+	sf = rf;
+      else
+	{
+	  sf = NULL;
+	  sw = NULL;
+	}
 
       record_unwind_save_match_data ();
 
       FOR_EACH_FRAME (tail, frame)
 	{
 	  struct frame *f = XFRAME (frame);
-	  struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (f));
+	  struct window *w
+	    = sf == f ? sw : XWINDOW (FRAME_SELECTED_WINDOW (f));
 
 	  /* Ignore tooltip frame.  */
 	  if (FRAME_TOOLTIP_P (f))
@@ -14084,8 +14103,8 @@ prepare_menu_bars (void)
 	      && !XBUFFER (w->contents)->text->redisplay)
 	    continue;
 
-	  if (!FRAME_PARENT_FRAME (f))
-	    menu_bar_hooks_run = update_menu_bar (f, false, menu_bar_hooks_run);
+	  menu_bar_hooks_run
+	    = update_menu_bar (f, false, menu_bar_hooks_run, w);
 
 	  update_tab_bar (f, false);
 #ifdef HAVE_WINDOW_SYSTEM
@@ -14097,10 +14116,21 @@ prepare_menu_bars (void)
     }
   else
     {
-      struct frame *sf = SELECTED_FRAME ();
+      struct window *sw = XWINDOW (selected_window);
+      struct frame *sf = WINDOW_XFRAME (sw);
+      struct frame *rf = NULL;
 
-      if (!FRAME_PARENT_FRAME (sf))
-	update_menu_bar (sf, true, false);
+      if (FRAME_PARENT_FRAME (sf) && !FRAME_WINDOW_P (sf)
+	  && FRAME_MENU_BAR_LINES (sf) == 0
+	  && FRAME_MENU_BAR_LINES (rf = root_frame (sf)) != 0
+	  && NILP (Fdefault_value (Qtty_menu_open_use_tmm)))
+	/* If the selected window's frame is a tty child frame without
+	   menu bar, that frame's root frame has a menu bar and
+	   'tty-menu-open-use-tmm' is nil, update the menu bar of the
+	   root frame from the selected window.  */
+	sf = rf;
+
+      update_menu_bar (sf, true, false, sw);
 
       update_tab_bar (sf, true);
 #ifdef HAVE_WINDOW_SYSTEM
@@ -14119,22 +14149,22 @@ prepare_menu_bars (void)
    If HOOKS_RUN, a previous call to update_menu_bar
    already ran the menu bar hooks for this redisplay, so there
    is no need to run them again.  The return value is the
-   updated value of this flag, to pass to the next call.  */
+   updated value of this flag, to pass to the next call.
+
+   W, if set, denotes the window that should be considered as selected.
+   For a tty child frame using F as surrogate menu bar frame, this
+   specifes the child frame's selected window and its buffer shall be
+   used for updating the menu bar of the root frame instead of the
+   buffer of the root frame's selected window.  */
 
 static bool
-update_menu_bar (struct frame *f, bool save_match_data, bool hooks_run)
+update_menu_bar (struct frame *f, bool save_match_data, bool hooks_run, struct window *w)
 {
-  Lisp_Object window;
-  struct window *w;
-
   /* If called recursively during a menu update, do nothing.  This can
      happen when, for instance, an activate-menubar-hook causes a
      redisplay.  */
   if (inhibit_menubar_update)
     return hooks_run;
-
-  window = FRAME_SELECTED_WINDOW (f);
-  w = XWINDOW (window);
 
   if (FRAME_WINDOW_P (f)
       ?
@@ -21195,24 +21225,33 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 
   /* When we reach a frame's selected window, redo the frame's menu
      bar, tool bar, tab-bar, and the frame's title.  */
-  if (update_mode_line
-      && EQ (FRAME_SELECTED_WINDOW (f), window))
+  if (update_mode_line && EQ (FRAME_SELECTED_WINDOW (f), window))
     {
-      bool redisplay_menu_p;
-
       if (FRAME_WINDOW_P (f))
 	{
 #ifdef HAVE_EXT_MENU_BAR
-	  redisplay_menu_p = FRAME_EXTERNAL_MENU_BAR (f);
+	  if (FRAME_EXTERNAL_MENU_BAR (f))
+	    display_menu_bar (w);
 #else
-	  redisplay_menu_p = FRAME_MENU_BAR_LINES (f) > 0;
+	  if (FRAME_MENU_BAR_LINES (f) > 0)
+	    display_menu_bar (w);
 #endif
 	}
       else
-        redisplay_menu_p = FRAME_MENU_BAR_LINES (f) > 0;
+	{
+	  struct frame *rf = NULL;
 
-      if (redisplay_menu_p)
-        display_menu_bar (w);
+	  if (FRAME_PARENT_FRAME (f)
+	      && FRAME_MENU_BAR_LINES (f) == 0
+	      && FRAME_MENU_BAR_LINES (rf = root_frame (f)) != 0
+	      && NILP (Fdefault_value (Qtty_menu_open_use_tmm)))
+	    /* If F is a tty child frame without menu bar, that frame's root
+	       frame has a menu bar and 'tty-menu-open-use-tmm' is nil,
+	       display the menu bar of the root frame's selected window.  */
+	    display_menu_bar (XWINDOW (FRAME_SELECTED_WINDOW (rf)));
+	  else if (FRAME_MENU_BAR_LINES (f) > 0)
+	    display_menu_bar (w);
+	}
 
 #ifdef HAVE_WINDOW_SYSTEM
       if (FRAME_WINDOW_P (f))
@@ -27466,9 +27505,18 @@ display_tty_menu_item (const char *item_text, int width, int face_id,
 {
   struct it it;
   struct frame *f = SELECTED_FRAME ();
-  struct window *w = XWINDOW (f->selected_window);
   struct glyph_row *row;
   size_t item_len = strlen (item_text);
+
+  struct frame *rf = NULL;
+
+  if (FRAME_PARENT_FRAME (f) && !FRAME_WINDOW_P (f)
+      && FRAME_MENU_BAR_LINES (f) == 0
+      && FRAME_MENU_BAR_LINES (rf = root_frame (f)) != 0
+      && NILP (Fdefault_value (Qtty_menu_open_use_tmm)))
+    f = rf;
+
+  struct window *w = XWINDOW (f->selected_window);
 
   eassert (FRAME_TERMCAP_P (f));
 
@@ -38610,6 +38658,7 @@ depending on your patience and the speed of your system.  */);
   DEFSYM (Qnhdrag, "nhdrag");
   DEFSYM (Qvdrag, "vdrag");
   DEFSYM (Qhourglass, "hourglass");
+  DEFSYM (Qtty_menu_open_use_tmm, "tty-menu-open-use-tmm");
 }
 
 

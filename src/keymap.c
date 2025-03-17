@@ -1652,7 +1652,8 @@ DEFUN ("current-active-maps", Fcurrent_active_maps, Scurrent_active_maps,
        doc: /* Return a list of the currently active keymaps.
 OLP if non-nil indicates that we should obey `overriding-local-map' and
 `overriding-terminal-local-map'.  POSITION can specify a click position
-like in the respective argument of `key-binding'.  */)
+like in the respective argument of `key-binding' or a live window which
+means to return the active maps for that window's buffer.  */)
   (Lisp_Object olp, Lisp_Object position)
 {
   specpdl_ref count = SPECPDL_INDEX ();
@@ -1680,6 +1681,16 @@ like in the respective argument of `key-binding'.  */)
 	  */
 	  record_unwind_current_buffer ();
 	  set_buffer_internal (XBUFFER (XWINDOW (window)->contents));
+	}
+    }
+  else if (WINDOW_LIVE_P (position))
+    {
+      if (BUFFERP (XWINDOW (position)->contents)
+	  && XBUFFER (XWINDOW (position)->contents) != current_buffer)
+	{
+	  /* See comment above.  */
+	  record_unwind_current_buffer ();
+	  set_buffer_internal (XBUFFER (XWINDOW (position)->contents));
 	}
     }
 

@@ -2691,53 +2691,74 @@ FROM-MENU-BAR, if non-nil, means we are dropping one of menu-bar's menus."
 			 (filter (when (symbolp map)
 				   (plist-get (get map 'menu-prop) :filter))))
 		    (if filter (funcall filter (symbol-function map)) map)))))
-	 (frame (selected-frame))
+	 (selected-frame (selected-frame))
+	 (frame (if (and (eq (framep selected-frame) t) (frame-parent)
+			 from-menu-bar
+			 (zerop (or (frame-parameter nil 'menu-bar-lines) 0)))
+		    ;; If the selected frame is a tty child frame
+		    ;; without its own menu bar and we are called from
+		    ;; the menu bar, the menu bar must be on the root
+		    ;; frame of the selected frame.
+		    (frame-root-frame)
+		  (selected-frame)))
 	 event cmd)
-    (if from-menu-bar
-	(let* ((xy (posn-x-y position))
-	       (menu-symbol (menu-bar-menu-at-x-y (car xy) (cdr xy))))
-	  (setq position (list menu-symbol (list frame '(menu-bar)
-						 xy 0))))
-      (setq position (popup-menu-normalize-position position)))
-    ;; The looping behavior was taken from lmenu's popup-menu-popup
-    (while (and map (setq event
-			  ;; map could be a prefix key, in which case
-			  ;; we need to get its function cell
-			  ;; definition.
-			  (x-popup-menu position (indirect-function map))))
-      ;; Strangely x-popup-menu returns a list.
-      ;; mouse-major-mode-menu was using a weird:
-      ;; (key-binding (apply 'vector (append '(menu-bar) menu-prefix events)))
-      (setq cmd
-	    (cond
-	     ((and from-menu-bar
-		   (consp event)
-		   (numberp (car event))
-		   (numberp (cdr event)))
-	      (let ((x (car event))
-		    (y (cdr event))
-		    menu-symbol)
-		(setq menu-symbol (menu-bar-menu-at-x-y x y))
-		(setq position (list menu-symbol (list frame '(menu-bar)
-						 event 0)))
-		(setq map
-		      (key-binding (vector 'menu-bar menu-symbol)))))
-	     ((and (not (keymapp map)) (listp map))
-	      ;; We were given a list of keymaps.  Search them all
-	      ;; in sequence until a first binding is found.
-	      (let ((mouse-click (apply 'vector event))
-		    binding)
-		(while (and map (null binding))
-		  (setq binding (lookup-key-ignore-too-long (car map) mouse-click))
-		  (setq map (cdr map)))
-                binding))
-	     (t
-	      ;; We were given a single keymap.
-	      (lookup-key map (apply 'vector event)))))
-      ;; Clear out echoing, which perhaps shows a prefix arg.
-      (message "")
-      ;; Maybe try again but with the submap.
-      (setq map (if (keymapp cmd) cmd)))
+    (with-selected-frame frame
+      (if from-menu-bar
+	  (let* ((xy (posn-x-y position))
+		 (menu-symbol (menu-bar-menu-at-x-y (car xy) (cdr xy))))
+	    (setq position (list menu-symbol (list frame '(menu-bar)
+						   xy 0))))
+	(setq position (popup-menu-normalize-position position)))
+
+      ;; The looping behavior was taken from lmenu's popup-menu-popup
+      (while (and map (setq event
+			    ;; map could be a prefix key, in which case
+			    ;; we need to get its function cell
+			    ;; definition.
+			    (x-popup-menu position (indirect-function map))))
+	;; Strangely x-popup-menu returns a list.
+	;; mouse-major-mode-menu was using a weird:
+	;; (key-binding (apply 'vector (append '(menu-bar) menu-prefix events)))
+	(setq cmd
+	      (cond
+	       ((and from-menu-bar
+		     (consp event)
+		     (numberp (car event))
+		     (numberp (cdr event)))
+		(let ((x (car event))
+		      (y (cdr event))
+		      menu-symbol)
+		  (setq menu-symbol (menu-bar-menu-at-x-y x y))
+		  (setq position (list menu-symbol (list frame '(menu-bar)
+							 event 0)))
+		  (if (not (eq frame selected-frame))
+		      ;; If we are using the menu bar from the root
+		      ;; frame, look up the key binding in the keymaps
+		      ;; of the initially selected window's buffer to
+		      ;; make sure that navigating the menu bar with the
+		      ;; keyboard works as intended.
+		      (setq map
+			    (key-binding (vector 'menu-bar menu-symbol) nil nil
+					 (frame-selected-window selected-frame)))
+		    (setq map
+			  (key-binding (vector 'menu-bar menu-symbol))))))
+	       ((and (not (keymapp map)) (listp map))
+		;; We were given a list of keymaps.  Search them all
+		;; in sequence until a first binding is found.
+		(let ((mouse-click (apply 'vector event))
+		      binding)
+		  (while (and map (null binding))
+		    (setq binding (lookup-key-ignore-too-long (car map) mouse-click))
+		    (setq map (cdr map)))
+		  binding))
+	       (t
+		;; We were given a single keymap.
+		(lookup-key map (apply 'vector event)))))
+	;; Clear out echoing, which perhaps shows a prefix arg.
+	(message "")
+	;; Maybe try again but with the submap.
+	(setq map (if (keymapp cmd) cmd))))
+
     ;; If the user did not cancel by refusing to select,
     ;; and if the result is a command, run it.
     (when (and (null map) (commandp cmd))
@@ -2808,14 +2829,27 @@ is nil or not.
 If FRAME is nil or not given, use the selected frame."
   (interactive
    (list nil (prefix-numeric-value current-prefix-arg)))
-  (let ((type (framep (or frame (selected-frame)))))
+  (let* ((type (framep (or frame (selected-frame))))
+	 root
+	 (frame (if (and (eq type t) (frame-parent frame)
+			 (null tty-menu-open-use-tmm)
+			 (zerop (or (frame-parameter frame 'menu-bar-lines) 0))
+			 (setq root (frame-root-frame))
+			 (not (zerop
+			       (or (frame-parameter root 'menu-bar-lines) 0))))
+		    ;; If FRAME is a tty child frame without its own
+		    ;; menu bar, 'tty-menu-open-use-tmm' is false and
+		    ;; FRAME's root frame has a menu bar, use that root
+		    ;; frame's menu bar.
+		    root
+		  frame)))
     (cond
      ((eq type 'x) (x-menu-bar-open frame))
      ((eq type 'w32) (w32-menu-bar-open frame))
      ((eq type 'haiku) (haiku-menu-bar-open frame))
      ((eq type 'pgtk) (pgtk-menu-bar-open frame))
      ((and (null tty-menu-open-use-tmm)
-	   (not (zerop (or (frame-parameter nil 'menu-bar-lines) 0))))
+	   (not (zerop (or (frame-parameter frame 'menu-bar-lines) 0))))
       ;; Make sure the menu bar is up to date.  One situation where
       ;; this is important is when this function is invoked by name
       ;; via M-x, in which case the menu bar includes the "Minibuf"
@@ -2831,7 +2865,7 @@ If FRAME is nil or not given, use the selected frame."
                       (current-local-map) (vector 'menu-bar menu))
 		     (cdar (minor-mode-key-binding (vector 'menu-bar menu)))
                      (mouse-menu-bar-map))
-		    (posn-at-x-y x 0 nil t) nil t)))
+		    (posn-at-x-y x 0 frame t) nil t)))
      (t (with-selected-frame (or frame (selected-frame))
           (tmm-menubar))))))
 
