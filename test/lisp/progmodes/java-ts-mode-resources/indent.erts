@@ -1,8 +1,8 @@
 Code:
   (lambda ()
-    (setq indent-tabs-mode nil)
     (setq java-ts-mode-indent-offset 4)
     (java-ts-mode)
+    (setq indent-tabs-mode nil)
     (indent-region (point-min) (point-max)))
 
 Point-Char: |
