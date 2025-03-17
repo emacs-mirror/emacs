@@ -57,7 +57,7 @@ buffer.")
 
 (defun help-key ()
   "Return `help-char' in a format suitable for the `keymap-set' KEY argument."
-  (key-description (char-to-string help-char)))
+  (key-description (vector help-char)))
 
 (defvar-keymap help-map
   :doc "Keymap for characters following the Help key."

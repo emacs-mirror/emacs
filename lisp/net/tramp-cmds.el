@@ -550,7 +550,8 @@ ESC or `q' to quit without changing further buffers,
 		 (new-bfn (and (stringp bfn) (string-replace source target bfn)))
 		 (prompt (format-message
 			  "Set visited file name to `%s' [Type yn!eq or %s] "
-			  new-bfn (key-description (vector help-char)))))
+                          new-bfn (if (fboundp 'help-key) (help-key) ; 29.1
+                                    (key-description (vector help-char))))))
 	    (when (and (buffer-live-p buffer) (stringp bfn)
 		       (string-prefix-p source bfn)
 		       ;; Skip, and don't ask again.
