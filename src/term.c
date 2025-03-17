@@ -2676,12 +2676,68 @@ tty_frame_at (int x, int y, int *cx, int *cy)
       Lisp_Object frame = Fcar (frames);
       struct frame *f = XFRAME (frame);
       int fx, fy;
+      bool on_border = false;
+
       root_xy (f, 0, 0, &fx, &fy);
 
-      if ((fx <= x && x < fx + f->pixel_width)
-	  && (fy <= y && y < fy + f->pixel_height))
+      if (!FRAME_UNDECORATED (f) && FRAME_PARENT_FRAME (f))
+	{
+	  if (fy - 1 <= y && y <= fy + f->pixel_height + 1)
+	    {
+	      if (fx == x + 1)
+		{
+		  *cx = -1;
+		  on_border = true;
+		}
+	      else if (fx + f->pixel_width == x)
+		{
+		  *cx = f->pixel_width;
+		  on_border = true;
+		}
+
+	      if (on_border)
+		{
+		  *cy = y - fy;
+
+		  return frame;
+		}
+	    }
+
+	  if (fx - 1 <= x && x <= fx + f->pixel_width + 1)
+	    {
+	      if (fy == y + 1)
+		{
+		  *cy = -1;
+		  on_border = true;
+		}
+	      else if (fy + f->pixel_height == y)
+		{
+		  *cy = f->pixel_height;
+		  on_border = true;
+		}
+
+	      if (on_border)
+		{
+		  *cx = x - fx;
+
+		  return frame;
+		}
+	    }
+
+
+	  if ((fx <= x && x <= fx + f->pixel_width)
+	      && (fy <= y && y <= fy + f->pixel_height))
+	    {
+	      child_xy (XFRAME (frame), x, y, cx, cy);
+
+	      return frame;
+	    }
+	}
+      else if ((fx <= x && x <= fx + f->pixel_width)
+	       && (fy <= y && y <= fy + f->pixel_height))
 	{
 	  child_xy (XFRAME (frame), x, y, cx, cy);
+
 	  return frame;
 	}
     }
@@ -2705,6 +2761,7 @@ relative to FRAME.  */)
   Lisp_Object frame = tty_frame_at (XFIXNUM (x), XFIXNUM (y), &cx, &cy);
   if (NILP (frame))
     return Qnil;
+
   return list3 (frame, make_fixnum (cx), make_fixnum (cy));
 }
 

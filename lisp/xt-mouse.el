@@ -306,19 +306,41 @@ which is the \"1006\" extension implemented in Xterm >= 277."
              (x (or (nth 1 frame-and-xy) x))
              (y (or (nth 2 frame-and-xy) y))
              (w (window-at x y frame))
-             (ltrb (window-edges w))
-             (left (nth 0 ltrb))
-             (top (nth 1 ltrb))
-             (posn (if w
-		       (posn-at-x-y (- x left) (- y top) w t)
-		     (append (list nil (if (and tab-bar-mode
-                                                (or (not menu-bar-mode)
-                                                    ;; The tab-bar is on the
-                                                    ;; second row below menu-bar
-                                                    (eq y 1)))
-                                           'tab-bar
-                                         'menu-bar))
-                             (nthcdr 2 (posn-at-x-y x y (selected-frame))))))
+             (posn
+	      (if w
+		  (let* ((ltrb (window-edges w))
+			 (left (nth 0 ltrb))
+			 (top (nth 1 ltrb)))
+		    (posn-at-x-y (- x left) (- y top) w t))
+		(let* ((frame-has-menu-bar
+			(not (zerop (frame-parameter frame 'menu-bar-lines))))
+		       (frame-has-tab-bar
+			(not (zerop (frame-parameter frame 'tab-bar-lines))))
+		       (item
+			(cond
+                         ((and frame-has-menu-bar (eq y 0))
+			  'menu-bar)
+			 ((and frame-has-tab-bar
+			       (or (and frame-has-menu-bar
+					(eq y 1))
+				   (eq y 0)))
+                          'tab-bar)
+			 ((eq x -1)
+			  (cond
+			   ((eq y -1) 'top-left-corner)
+			   ((eq y (frame-height frame)) 'bottom-left-corner)
+			   (t 'left-edge)))
+			 ((eq x (frame-width frame))
+			  (cond
+			   ((eq y -1) 'top-right-corner)
+			   ((eq y (frame-height frame)) 'bottom-right-corner)
+			   (t 'right-edge)))
+			 ((eq y -1) 'top-edge)
+			 (t 'bottom-edge))))
+		  (append (list (unless (memq item '(menu-bar tab-bar))
+				  frame)
+				item)
+			  (nthcdr 2 (posn-at-x-y x y (selected-frame)))))))
              (event (list type posn)))
         (setcar (nthcdr 3 posn) timestamp)
 

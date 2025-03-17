@@ -1766,7 +1766,8 @@ The following sources are applied in this order:
                                    (list :extend (cadr tail))))))
     (setq face-attrs (face-spec-choose (get face 'face-override-spec) frame))
     (face-spec-set-2 face frame face-attrs)
-    (when (and (fboundp 'set-frame-parameter) ; This isn't available
+    (when (and (not (eq (framep frame) t))
+	       (fboundp 'set-frame-parameter) ; This isn't available
                                               ; during loadup.
                (eq face 'scroll-bar))
       ;; Set the `scroll-bar-foreground' and `scroll-bar-background'

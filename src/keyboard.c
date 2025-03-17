@@ -5553,7 +5553,6 @@ static short const scroll_bar_parts[] = {
   SYMBOL_INDEX (Qrightmost), SYMBOL_INDEX (Qend_scroll), SYMBOL_INDEX (Qratio)
 };
 
-#ifdef HAVE_WINDOW_SYSTEM
 /* An array of symbol indexes of internal border parts, indexed by an enum
    internal_border_part value.  Note that Qnil corresponds to
    internal_border_part_none and should not appear in Lisp events.  */
@@ -5564,7 +5563,6 @@ static short const internal_border_parts[] = {
   SYMBOL_INDEX (Qbottom_right_corner), SYMBOL_INDEX (Qbottom_edge),
   SYMBOL_INDEX (Qbottom_left_corner)
 };
-#endif
 
 /* A vector, indexed by button number, giving the down-going location
    of currently depressed buttons, both scroll bar and non-scroll bar.
@@ -5598,6 +5596,90 @@ static Time button_down_time;
 /* The number of clicks in this multiple-click.  */
 
 static int double_click_count;
+
+enum frame_border_side
+{
+  ON_LEFT,
+  ON_TOP,
+  ON_RIGHT,
+  ON_BOTTOM,
+  ON_NONE
+};
+
+/* Handle make_lispy_event when a tty child frame's decorations shall be
+   used in lieu of internal borders.  R denotes the root frame under
+   investigation, MX and MY are the positions of the mouse relative to
+   R.  WINDOW_OR_FRAME denotes the frame previously reported as the
+   frame under (MX, MY).  Note: The decorations of a child frame are
+   always drawn outside the child frame, so WINDOW_OR_FRAME is certainly
+   not the frame we are looking for.  Neither is R.  A candidate frame
+   is any frame but WINDOW_OR_FRAME and R whose root is R, which is not
+   decorated and has a 'drag-internal-border' parameter.  If we find a
+   suitable frame, set WINDOW_OR_FRAME to it and POSN to the part of the
+   internal border corresponding to (MX, MY) on the frame found.  */
+
+static void
+make_lispy_tty_position (struct frame *r, int mx, int my,
+			 Lisp_Object *window_or_frame, Lisp_Object *posn)
+{
+  enum frame_border_side side = ON_NONE;
+  struct frame *f = NULL;
+  Lisp_Object tail, frame;
+  int ix, iy = 0;
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      f = XFRAME (frame);
+
+      int left = f->left_pos;
+      int top = f->top_pos;
+      int right = left + f->pixel_width;
+      int bottom = top + f->pixel_height;
+
+      if (root_frame (f) == r && f != r
+	  && !FRAME_UNDECORATED (f)
+	  && !NILP (get_frame_param (f, Qdrag_internal_border)))
+	{
+	  if (left == mx + 1 && my >= top && my <= bottom)
+	    {
+	      side = ON_LEFT;
+	      ix = -1;
+	      iy = my - top + 1;
+	      break;
+	    }
+	  else if (right == mx && my >= top && my <= bottom)
+	    {
+	      side = ON_RIGHT;
+	      ix = f->pixel_width;
+	      iy = my - top + 1;
+	      break;
+	    }
+	  else if (top == my + 1 && mx >= left && mx <= right)
+	    {
+	      side = ON_TOP;
+	      ix = mx - left + 1;
+	      iy = -1;
+	      break;
+	    }
+	  else if (bottom == my && mx >= left && mx <= right)
+	    {
+	      side = ON_BOTTOM;
+	      ix = mx - left + 1;
+	      iy = f->pixel_height;
+	      break;
+	    }
+	}
+    }
+
+  if (side != ON_NONE)
+    {
+      enum internal_border_part part
+	= frame_internal_border_part (f, ix, iy);
+
+      XSETFRAME (*window_or_frame, f);
+      *posn = builtin_lisp_symbol (internal_border_parts[part]);
+    }
+}
 
 /* X and Y are frame-relative coordinates for a click or wheel event.
    Return a Lisp-style event list.  */
@@ -5677,7 +5759,14 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
       window_or_frame = Qnil;	/* see above */
     }
 
-  if (WINDOWP (window_or_frame))
+  if (WINDOWP (window_or_frame) && is_tty_frame (f)
+      && (is_tty_root_frame_with_visible_child (f)
+	  || is_tty_child_frame (f)))
+    make_lispy_tty_position (root_frame (f), mx, my, &window_or_frame, &posn);
+
+  if (!NILP (posn))
+    ;
+  else if (WINDOWP (window_or_frame))
     {
       /* It's a click in window WINDOW at frame coordinates (X,Y)  */
       struct window *w = XWINDOW (window_or_frame);
@@ -5880,9 +5969,7 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
       xret = mx;
       yret = my;
 
-#ifdef HAVE_WINDOW_SYSTEM
-      if (FRAME_WINDOW_P (f)
-	  && FRAME_LIVE_P (f)
+      if (FRAME_LIVE_P (f)
 	  && NILP (posn)
 	  && FRAME_INTERNAL_BORDER_WIDTH (f) > 0
 	  && !NILP (get_frame_param (f, Qdrag_internal_border)))
@@ -5892,7 +5979,6 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 
 	  posn = builtin_lisp_symbol (internal_border_parts[part]);
 	}
-#endif
     }
   else
     {
@@ -12572,7 +12658,9 @@ The `posn-' functions access elements of such lists.  */)
      into the left fringe.  */
   if (XFIXNUM (x) != -1)
     CHECK_FIXNAT (x);
-  CHECK_FIXNAT (y);
+  CHECK_FIXNUM (y);
+  if (XFIXNUM (y) != -1)
+    CHECK_FIXNAT (y);
 
   if (NILP (frame_or_window))
     frame_or_window = selected_window;

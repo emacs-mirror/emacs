@@ -31,6 +31,19 @@ enum vertical_scroll_bar_type
   vertical_scroll_bar_right
 };
 
+enum internal_border_part
+  {
+   INTERNAL_BORDER_NONE,
+   INTERNAL_BORDER_LEFT_EDGE,
+   INTERNAL_BORDER_TOP_LEFT_CORNER,
+   INTERNAL_BORDER_TOP_EDGE,
+   INTERNAL_BORDER_TOP_RIGHT_CORNER,
+   INTERNAL_BORDER_RIGHT_EDGE,
+   INTERNAL_BORDER_BOTTOM_RIGHT_CORNER,
+   INTERNAL_BORDER_BOTTOM_EDGE,
+   INTERNAL_BORDER_BOTTOM_LEFT_CORNER,
+  };
+
 #ifdef HAVE_WINDOW_SYSTEM
 
 enum fullscreen_type
@@ -52,19 +65,6 @@ enum z_group
   z_group_below,
   z_group_above_suspended,
 };
-
-enum internal_border_part
-  {
-   INTERNAL_BORDER_NONE,
-   INTERNAL_BORDER_LEFT_EDGE,
-   INTERNAL_BORDER_TOP_LEFT_CORNER,
-   INTERNAL_BORDER_TOP_EDGE,
-   INTERNAL_BORDER_TOP_RIGHT_CORNER,
-   INTERNAL_BORDER_RIGHT_EDGE,
-   INTERNAL_BORDER_BOTTOM_RIGHT_CORNER,
-   INTERNAL_BORDER_BOTTOM_EDGE,
-   INTERNAL_BORDER_BOTTOM_LEFT_CORNER,
-  };
 
 #ifdef NS_IMPL_COCOA
 enum ns_appearance_type
@@ -1862,7 +1862,6 @@ extern Lisp_Object gui_display_get_resource (Display_Info *,
 extern void set_frame_menubar (struct frame *f, bool deep_p);
 extern void frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
 extern void free_frame_menubar (struct frame *);
-extern enum internal_border_part frame_internal_border_part (struct frame *f, int x, int y);
 
 #if defined HAVE_X_WINDOWS
 extern void x_wm_set_icon_position (struct frame *, int, int);
@@ -1888,6 +1887,8 @@ gui_set_bitmap_icon (struct frame *f)
 #endif /* !HAVE_NS */
 #endif /* HAVE_WINDOW_SYSTEM */
 
+extern enum internal_border_part frame_internal_border_part (struct frame *f,
+							     int x, int y);
 extern bool frame_ancestor_p (struct frame *af, struct frame *df);
 
 INLINE void

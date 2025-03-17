@@ -1758,6 +1758,13 @@ function returns nil.  */)
 {
   struct frame *f = decode_live_frame (frame);
 
+  CHECK_INTEGER (x);
+  CHECK_INTEGER (y);
+
+  if (XFIXNUM (x) < 0 || XFIXNUM (x) > FRAME_PIXEL_WIDTH (f)
+      || XFIXNUM (y) < 0 || XFIXNUM (y) > FRAME_PIXEL_HEIGHT (f))
+    return Qnil;
+
   CHECK_NUMBER (x);
   CHECK_NUMBER (y);
 

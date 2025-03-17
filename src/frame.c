@@ -2897,7 +2897,7 @@ The functions are run with one argument, the frame to be deleted.  */)
   return delete_frame (frame, !NILP (force) ? Qt : Qnil);
 }
 
-#ifdef HAVE_WINDOW_SYSTEM
+
 /**
  * frame_internal_border_part:
  *
@@ -2920,7 +2920,11 @@ The functions are run with one argument, the frame to be deleted.  */)
 enum internal_border_part
 frame_internal_border_part (struct frame *f, int x, int y)
 {
-  int border = FRAME_INTERNAL_BORDER_WIDTH (f);
+  int border = (FRAME_INTERNAL_BORDER_WIDTH (f)
+		? FRAME_INTERNAL_BORDER_WIDTH (f)
+		: (is_tty_child_frame (f) && !FRAME_UNDECORATED (f))
+		? 1
+		: 0);
   int offset = FRAME_LINE_HEIGHT (f);
   int width = FRAME_PIXEL_WIDTH (f);
   int height = FRAME_PIXEL_HEIGHT (f);
@@ -2989,7 +2993,7 @@ frame_internal_border_part (struct frame *f, int x, int y)
 
   return part;
 }
-#endif
+
 
 /* Return mouse position in character cell units.  */
 
@@ -6549,6 +6553,36 @@ selected frame.  This is useful when `make-pointer-invisible' is set.  */)
   return decode_any_frame (frame)->pointer_invisible ? Qnil : Qt;
 }
 
+DEFUN ("mouse-position-in-root-frame", Fmouse_position_in_root_frame,
+       Smouse_position_in_root_frame, 0, 0, 0,
+       doc: /* Return mouse position in selected frame's root frame.
+Return the position of `mouse-position' in coordinates of the root frame
+of the frame returned by 'mouse-position'.  */)
+  (void)
+{
+  Lisp_Object pos = mouse_position (true);
+  Lisp_Object frame = XCAR (pos);
+  struct frame *f = XFRAME (frame);
+  int x = XFIXNUM (XCAR (XCDR (pos))) + f->left_pos;
+  int y = XFIXNUM (XCDR (XCDR (pos))) + f->top_pos;
+
+  if (!FRAMEP (frame))
+    return Qnil;
+  else
+    {
+      f = FRAME_PARENT_FRAME (f);
+
+      while (f)
+	{
+	  x = x + f->left_pos;
+	  y = y + f->top_pos;
+	  f = FRAME_PARENT_FRAME (f);
+	}
+
+      return Fcons (make_fixnum (x), make_fixnum (y));
+    }
+}
+
 DEFUN ("frame--set-was-invisible", Fframe__set_was_invisible,
        Sframe__set_was_invisible, 2, 2, 0,
        doc: /* Set FRAME's was-invisible flag if WAS-INVISIBLE is non-nil.
@@ -7334,6 +7368,7 @@ allow `make-frame' to show the current buffer even if its hidden.  */);
   defsubr (&Sframe_position);
   defsubr (&Sset_frame_position);
   defsubr (&Sframe_pointer_visible_p);
+  defsubr (&Smouse_position_in_root_frame);
   defsubr (&Sframe__set_was_invisible);
   defsubr (&Sframe_window_state_change);
   defsubr (&Sset_frame_window_state_change);
