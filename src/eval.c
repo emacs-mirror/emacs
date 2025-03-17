@@ -722,9 +722,9 @@ signal a `cyclic-variable-indirection' error.  */)
 
 DEFUN ("internal-delete-indirect-variable", Finternal_delete_indirect_variable, Sinternal_delete_indirect_variable,
        1, 1, 0,
-       doc: /* Internal use only.
-Undeclare SYMBOL as variable alias, then unbind it.
-Return SYMBOL.  */)
+       doc: /* Undeclare SYMBOL as variable alias, then unbind it.
+Return SYMBOL.
+Internal use only.  */)
   (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);

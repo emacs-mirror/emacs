@@ -1406,17 +1406,19 @@ It is intended to be added to the 'log-edit-done-hook' so that
 command line.
 
 ---
-*** New user options 'vc-resolve-conflicts', 'vc-*-resolve-conflicts'
+*** New user options 'vc-resolve-conflicts' and 'vc-*-resolve-conflicts'.
 Control whether to mark a conflicted file as resolved when saving.
 You can now control it globally, with 'vc-resolve-conflicts' or for
 specific backends with 'vc-bzr-resolve-conflicts',
 'vc-hg-resolve-conflicts' and 'vc-svn-resolve-conflicts'.
+
 ---
-*** New value for 'vc-git-resolve-conflicts'
+*** New value for 'vc-git-resolve-conflicts'.
 The option now accepts the symbol 'default' as a value, which is
 its default value.  Effectively, the default value hasn't changed,
 since 'vc-resolve-conflicts' defaults to t, the previous default value
 for 'vc-git-resolve-conflicts'.
+
 ** Diff mode
 
 +++
