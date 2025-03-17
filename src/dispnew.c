@@ -512,6 +512,8 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 		      dim.width * sizeof (struct glyph));
 
 	      if ((row == matrix->rows + dim.height - 1
+		   /* The mode line, if displayed, never has marginal
+                      areas.  */
 		   && !(w && window_wants_mode_line (w)))
 		  || (row == matrix->rows && matrix->tab_line_p)
 		  || (row == matrix->rows
