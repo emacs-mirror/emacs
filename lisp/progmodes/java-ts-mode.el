@@ -236,11 +236,6 @@ For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
      (block_comment) @font-lock-comment-face)
    :language 'java
    :override t
-   :feature 'constant
-   `((identifier) @java-ts-mode--fontify-constant
-     [(true) (false)] @font-lock-constant-face)
-   :language 'java
-   :override t
    :feature 'keyword
    `([,@java-ts-mode--keywords
       (this)
@@ -346,7 +341,13 @@ For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
      (argument_list (identifier) @font-lock-variable-name-face)
 
      (expression_statement (identifier) @font-lock-variable-use-face))
-
+   ;; Make sure the constant feature is after expression and definition,
+   ;; because those two applies variable-name-face on some constants.
+   :language 'java
+   :override t
+   :feature 'constant
+   `((identifier) @java-ts-mode--fontify-constant
+     [(true) (false)] @font-lock-constant-face)
    :language 'java
    :feature 'bracket
    '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
