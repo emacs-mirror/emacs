@@ -1013,12 +1013,14 @@ xd_lisp_dbus_to_dbus (Lisp_Object bus)
   return xmint_pointer (Fcar (bus));
 }
 
+#ifdef HAVE_MPS
 /* Convert a Lisp D-Bus object to a pointer.  */
 static Lisp_Object *
 xd_lisp_dbus_to_pin (Lisp_Object bus)
 {
   return xmint_pointer (Fcdr (bus));
 }
+#endif
 
 /* Return D-Bus connection address.
    BUS is either a Lisp symbol, :system, :session, :system-private or
@@ -1144,7 +1146,9 @@ xd_close_bus (Lisp_Object bus)
 
   /* Retrieve bus address.  */
   connection = xd_lisp_dbus_to_dbus (busobj);
+#ifdef HAVE_MPS
   Lisp_Object *pin = xd_lisp_dbus_to_pin (busobj);
+#endif
 
   if (xd_get_connection_references (connection) == 1)
     {
