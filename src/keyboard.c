@@ -5616,9 +5616,12 @@ enum frame_border_side
    is any frame but WINDOW_OR_FRAME and R whose root is R, which is not
    decorated and has a 'drag-internal-border' parameter.  If we find a
    suitable frame, set WINDOW_OR_FRAME to it and POSN to the part of the
-   internal border corresponding to (MX, MY) on the frame found.  */
+   internal border corresponding to (MX, MY) on the frame found.
 
-static void
+   Value is 1 if MX and MY rest in one of R or its children's
+   decorations, and 0 otherwise.  */
+
+static int
 make_lispy_tty_position (struct frame *r, int mx, int my,
 			 Lisp_Object *window_or_frame, Lisp_Object *posn)
 {
@@ -5678,7 +5681,10 @@ make_lispy_tty_position (struct frame *r, int mx, int my,
 
       XSETFRAME (*window_or_frame, f);
       *posn = builtin_lisp_symbol (internal_border_parts[part]);
+      return 1;
     }
+
+  return 0;
 }
 
 /* X and Y are frame-relative coordinates for a click or wheel event.
@@ -5761,10 +5767,9 @@ make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
 
   if (WINDOWP (window_or_frame) && is_tty_frame (f)
       && (is_tty_root_frame_with_visible_child (f)
-	  || is_tty_child_frame (f)))
-    make_lispy_tty_position (root_frame (f), mx, my, &window_or_frame, &posn);
-
-  if (!NILP (posn))
+	  || is_tty_child_frame (f))
+      && make_lispy_tty_position (root_frame (f), mx, my,
+				  &window_or_frame, &posn))
     ;
   else if (WINDOWP (window_or_frame))
     {
