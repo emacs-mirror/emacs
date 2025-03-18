@@ -1185,7 +1185,7 @@ If a directory or nothing is found at point, return nil."
 	     (not (file-directory-p file-name)))
 	file-name)))
 
-;;;###autoload (define-key ctl-x-map "d" 'dired)
+;;;###autoload (keymap-set ctl-x-map "d" #'dired)
 ;;;###autoload
 (defun dired (dirname &optional switches)
   "\"Edit\" directory DIRNAME--delete, rename, print, etc. some files in it.
@@ -1214,21 +1214,21 @@ If DIRNAME is already in a Dired buffer, that buffer is used without refresh."
   (interactive (dired-read-dir-and-switches ""))
   (pop-to-buffer-same-window (dired-noselect dirname switches)))
 
-;;;###autoload (define-key ctl-x-4-map "d" 'dired-other-window)
+;;;###autoload (keymap-set ctl-x-4-map "d" #'dired-other-window)
 ;;;###autoload
 (defun dired-other-window (dirname &optional switches)
   "\"Edit\" directory DIRNAME.  Like `dired' but select in another window."
   (interactive (dired-read-dir-and-switches "in other window "))
   (switch-to-buffer-other-window (dired-noselect dirname switches)))
 
-;;;###autoload (define-key ctl-x-5-map "d" 'dired-other-frame)
+;;;###autoload (keymap-set ctl-x-5-map "d" #'dired-other-frame)
 ;;;###autoload
 (defun dired-other-frame (dirname &optional switches)
   "\"Edit\" directory DIRNAME.  Like `dired' but make a new frame."
   (interactive (dired-read-dir-and-switches "in other frame "))
   (switch-to-buffer-other-frame (dired-noselect dirname switches)))
 
-;;;###autoload (define-key tab-prefix-map "d" 'dired-other-tab)
+;;;###autoload (keymap-set tab-prefix-map "d" #'dired-other-tab)
 ;;;###autoload
 (defun dired-other-tab (dirname &optional switches)
   "\"Edit\" directory DIRNAME.  Like `dired' but make a new tab."
@@ -2681,7 +2681,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 (defun dired-context-menu (menu click)
   "Populate MENU with Dired mode commands at CLICK."
   (when (mouse-posn-property (event-start click) 'dired-filename)
-    (define-key menu [dired-separator] menu-bar-separator)
+    (keymap-set menu "<dired-separator>" menu-bar-separator)
     (let* ((filename (save-excursion
                        (mouse-set-point click)
                        (dired-get-filename nil t)))
@@ -5306,10 +5306,8 @@ Interactively with prefix argument, read FILE-NAME."
 ;;; Click-To-Select mode
 
 (defvar-keymap dired-click-to-select-map
-  :doc "Keymap placed on files under `dired-click-to-select' mode.")
-
-(define-key dired-click-to-select-map [mouse-2]
-            #'dired-mark-for-click)
+  :doc "Keymap placed on files under `dired-click-to-select' mode."
+  "<mouse-2>" #'dired-mark-for-click)
 
 (defun dired-mark-for-click (event)
   "Mark or unmark the file underneath the mouse click at EVENT.
