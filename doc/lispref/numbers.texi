@@ -927,13 +927,13 @@ reproducing the same pattern moved over.
 
   The bitwise operations in Emacs Lisp apply only to integers.
 
-@defun ash integer1 count
+@defun ash integer count
 @cindex arithmetic shift
-@code{ash} (@dfn{arithmetic shift}) shifts the bits in @var{integer1}
+@code{ash} (@dfn{arithmetic shift}) shifts the bits in @var{integer}
 to the left @var{count} places, or to the right if @var{count} is
 negative.  Left shifts introduce zero bits on the right; right shifts
 discard the rightmost bits.  Considered as an integer operation,
-@code{ash} multiplies @var{integer1} by
+@code{ash} multiplies @var{integer} by
 @ifnottex
 2**@var{count},
 @end ifnottex
@@ -1002,20 +1002,20 @@ Here are examples of shifting left or right by two bits:
 @end smallexample
 @end defun
 
-@defun lsh integer1 count
+@defun lsh integer count
 @cindex logical shift
 @code{lsh}, which is an abbreviation for @dfn{logical shift}, shifts the
-bits in @var{integer1} to the left @var{count} places, or to the right
+bits in @var{integer} to the left @var{count} places, or to the right
 if @var{count} is negative, bringing zeros into the vacated bits.  If
-@var{count} is negative, then @var{integer1} must be either a fixnum
+@var{count} is negative, then @var{integer} must be either a fixnum
 or a positive bignum, and @code{lsh} treats a negative fixnum as if it
 were unsigned by subtracting twice @code{most-negative-fixnum} before
 shifting, producing a nonnegative result.  This quirky behavior dates
 back to when Emacs supported only fixnums; nowadays @code{ash} is a
 better choice.
 
-As @code{lsh} behaves like @code{ash} except when @var{integer1} and
-@var{count1} are both negative, the following examples focus on these
+As @code{lsh} behaves like @code{ash} except when @var{integer} and
+@var{count} are both negative, the following examples focus on these
 exceptional cases.  These examples assume 30-bit fixnums.
 
 @smallexample

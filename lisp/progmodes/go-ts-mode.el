@@ -172,7 +172,8 @@
      ,@(when (go-ts-mode--iota-query-supported-p)
          '((iota) @font-lock-constant-face))
      (const_declaration
-      (const_spec name: (identifier) @font-lock-constant-face)))
+      (const_spec name: (identifier) @font-lock-constant-face
+                  ("," name: (identifier) @font-lock-constant-face)*)))
 
    :language 'go
    :feature 'delimiter
@@ -288,6 +289,25 @@
                               "function_declaration"
                               "type_declaration")))
     (setq-local treesit-defun-name-function #'go-ts-mode--defun-name)
+
+    (setq-local treesit-thing-settings
+                `((go
+                   (list
+                    ,(rx bos (or "import_spec_list"
+                                 "var_spec_list"
+                                 "type_parameter_list"
+                                 "parameter_list"
+                                 "parenthesized_type"
+                                 "type_arguments"
+                                 "field_declaration_list"
+                                 "block"
+                                 "parenthesized_expression"
+                                 "special_argument_list"
+                                 "argument_list"
+                                 "literal_value")
+                         eos))
+                   (sentence
+                    (or "declaration" "statement")))))
 
     ;; Imenu.
     (setq-local treesit-simple-imenu-settings

@@ -1470,6 +1470,22 @@ Depends on `c-ts-common-comment-setup'."
                 `((php
                    (defun ,treesit-defun-type-regexp)
                    (sexp (not ,(rx (or "{" "}" "[" "]" "(" ")" ","))))
+                   (list
+                    ,(rx bos (or "namespace_use_group"
+                                 "enum_declaration_list"
+                                 "declaration_list"
+                                 "property_hook_list"
+                                 "use_list"
+                                 "anonymous_function_use_clause"
+                                 "formal_parameters"
+                                 "match_block"
+                                 "switch_block"
+                                 "compound_statement"
+                                 "parenthesized_expression"
+                                 "_array_destructing"
+                                 "arguments"
+                                 "_complex_string_part")
+                         eos))
                    (sentence  ,(regexp-opt
                                 '("break_statement"
                                   "case_statement"

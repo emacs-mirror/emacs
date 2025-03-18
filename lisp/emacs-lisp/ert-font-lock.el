@@ -27,8 +27,8 @@
 ;; highlighting provided by font-lock.
 ;;
 ;; ert-font-lock entry points are functions
-;; `ert-font-lock-test-string' and `ert-font-lock-test-file' and
-;; convenience macros: `ert-font-lock-deftest' and
+;; `ert-font-lock-test-string' and `ert-font-lock-test-file', and
+;; convenience macros `ert-font-lock-deftest' and
 ;; `ert-font-lock-deftest-file'.
 ;;
 ;; See unit tests in ert-font-lock-tests.el for usage examples.
@@ -37,8 +37,6 @@
 
 (require 'ert)
 (require 'ert-x)
-(require 'newcomment)
-(require 'pcase)
 
 (defconst ert-font-lock--face-symbol-re
   (rx (+ (or alphanumeric "-" "_" "." "/")))
@@ -100,98 +98,95 @@ Argument TEST-NAME - name of the currently running ert test."
 
 (defun ert-font-lock--parse-macro-args (doc-keys-mode-arg)
   "Parse DOC-KEYS-MODE-ARG macro argument list."
-  (let (doc doc-p mode arg)
+  (let (doc mode arg)
 
     (when (stringp (car doc-keys-mode-arg))
-      (setq doc (pop doc-keys-mode-arg)
-            doc-p t))
+      (setq doc (pop doc-keys-mode-arg)))
 
     (pcase-let
         ((`(,keys ,mode-arg)
           (ert--parse-keys-and-body doc-keys-mode-arg)))
 
       (unless (symbolp (car mode-arg))
-        (error "A major mode symbol expected: %S" (car mode-arg)))
+        (error "Expected a major mode symbol: %S" (car mode-arg)))
       (setq mode (pop mode-arg))
 
       (unless (stringp (car mode-arg))
-        (error "A string or file with assertions expected: %S" (car mode-arg)))
+        (error "Expected a string or file with assertions: %S" (car mode-arg)))
       (setq arg (pop mode-arg))
 
-      (list doc doc-p keys mode arg))))
+      (list doc keys mode arg))))
 
 ;;;###autoload
 (defmacro ert-font-lock-deftest (name &rest docstring-keys-mode-and-str)
   "Define test NAME (a symbol) using assertions from TEST-STR.
 
-Other than MAJOR-MODE and TEST-STR parameters, this macro accepts
-the same parameters and keywords as `ert-deftest' and is intended
-to be used through `ert'.
+The MAJOR-MODE symbol determines the syntax and font lock of TEST-STR.
 
-\(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] \
+Except for the MAJOR-MODE and TEST-STR parameters, this macro accepts
+the same arguments and keywords as `ert-deftest' and is intended to be
+used through `ert'.
+
+\(fn NAME [DOCSTRING] [:expected-result RESULT-TYPE] \
 [:tags \\='(TAG...)] MAJOR-MODE TEST-STR)"
   (declare (debug (&define [&name "test@" symbolp]
-                           sexp [&optional stringp]
+                           [&optional stringp]
                            [&rest keywordp sexp]
                            symbolp
                            stringp))
-           (doc-string 3)
-           (indent 2))
-  (pcase-let ((`(,documentation
-                 ,documentation-supplied-p
-                 ,keys ,mode ,arg)
+           (doc-string 2)
+           (indent 1))
+  (pcase-let ((`(,documentation ,keys ,mode ,arg)
                (ert-font-lock--parse-macro-args docstring-keys-mode-and-str)))
 
     `(ert-set-test ',name
                    (make-ert-test
                     :name ',name
-                    ,@(when documentation-supplied-p
+                    ,@(when documentation
                         `(:documentation ,documentation))
                     ,@(when (map-contains-key keys :expected-result)
                         `(:expected-result-type ,(map-elt keys :expected-result)))
                     ,@(when (map-contains-key keys :tags)
                         `(:tags ,(map-elt keys :tags)))
-                    :body (lambda () (ert-font-lock--test-body-str ',mode ,arg ',name))
-
+                    :body (lambda ()
+                            (ert-font-lock--test-body-str ',mode ,arg ',name))
                     :file-name ,(or (macroexp-file-name) buffer-file-name)))))
 
 ;;;###autoload
 (defmacro ert-font-lock-deftest-file (name &rest docstring-keys-mode-and-file)
   "Define test NAME (a symbol) using assertions from FILE.
 
-FILE - path to a file with assertions in ERT resource director as
-return by `ert-resource-directory'.
+FILE names a file with assertions in the ERT resource directory, as
+returned by `ert-resource-directory'.  The MAJOR-MODE symbol determines
+the syntax and font lock of FILE's contents.
 
-Other than MAJOR-MODE and FILE parameters, this macro accepts the
-same parameters and keywords as `ert-deftest' and is intended to
-be used through `ert'.
+Except for the MAJOR-MODE and FILE parameters, this macro accepts the
+same arguments and keywords as `ert-deftest' and is intended to be used
+through `ert'.
 
-\(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] \
+\(fn NAME [DOCSTRING] [:expected-result RESULT-TYPE] \
 [:tags \\='(TAG...)] MAJOR-MODE FILE)"
   (declare (debug (&define [&name "test@" symbolp]
-                           sexp [&optional stringp]
+                           [&optional stringp]
                            [&rest keywordp sexp]
                            symbolp
                            stringp))
-           (doc-string 3)
-           (indent 2))
-
-  (pcase-let ((`(,documentation
-                 ,documentation-supplied-p
-                 ,keys ,mode ,arg)
+           (doc-string 2)
+           (indent 1))
+  (pcase-let ((`(,documentation ,keys ,mode ,arg)
                (ert-font-lock--parse-macro-args docstring-keys-mode-and-file)))
 
     `(ert-set-test ',name
                    (make-ert-test
                     :name ',name
-                    ,@(when documentation-supplied-p
+                    ,@(when documentation
                         `(:documentation ,documentation))
                     ,@(when (map-contains-key keys :expected-result)
                         `(:expected-result-type ,(map-elt keys :expected-result)))
                     ,@(when (map-contains-key keys :tags)
                         `(:tags ,(map-elt keys :tags)))
                     :body (lambda () (ert-font-lock--test-body-file
-                                 ',mode (ert-resource-file ,arg) ',name))
+                                      ',mode (ert-resource-file ,arg) ',name))
                     :file-name ,(or (macroexp-file-name) buffer-file-name)))))
 
 (defun ert-font-lock--in-comment-p ()
@@ -354,10 +349,8 @@ The function is meant to be run from within an ERT test."
 
       ;; normalize both expected and resulting face - these can be
       ;; either symbols, nils or lists of symbols
-      (when (not (listp actual-face))
-        (setq actual-face (list actual-face)))
-      (when (not (listp expected-face))
-        (setq expected-face (list expected-face)))
+      (setq actual-face (ensure-list actual-face))
+      (setq expected-face (ensure-list expected-face))
 
       ;; fail when lists are not 'equal and the assertion is *not negated*
       (when (and (not negation) (not (equal actual-face expected-face)))

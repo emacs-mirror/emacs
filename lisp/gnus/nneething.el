@@ -102,7 +102,7 @@ included.")
 	    (nneething-insert-head file)
 	    (insert ".\n"))
 
-	  (cl-incf count)
+          (incf count)
 
 	  (and large
 	       (zerop (% count 20))

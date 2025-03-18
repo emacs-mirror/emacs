@@ -116,15 +116,15 @@ e-mail transmission, news posting, etc."
   "Decode HZ WORD and return it."
   (let ((i -1) (s (substring word 0)) v)
     (if (or (not firstc) (eq firstc ?{))
-	(while (< (cl-incf i) (length s))
+        (while (< (incf i) (length s))
 	  (if (eq (setq v (aref s i)) ? ) nil
 	    (aset s i (+ 128 v))))
-      (while (< (cl-incf i) (length s))
+      (while (< (incf i) (length s))
 	(if (eq (setq v (aref s i)) ? ) nil
 	  (setq v (+ (* 94 v) (aref s (1+ i)) -3135))
 	  (aset s i (+ (/ v 157) (if (eq firstc ?<) 201 161)))
 	  (setq v (% v 157))
-	  (aset s (cl-incf i) (+ v (if (< v 63) 64 98))))))
+          (aset s (incf i) (+ v (if (< v 63) 64 98))))))
     s))
 
 (provide 'rfc1843)

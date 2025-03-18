@@ -778,13 +778,13 @@ based on the marks on the component groups."
 
     ;; We need to convert the unreads to reads.  We compress the
     ;; sequence as we go, otherwise it could be huge.
-    (while (and (<= (cl-incf i) nnvirtual-mapping-len)
+    (while (and (<= (incf i) nnvirtual-mapping-len)
 		unreads)
       (if (= i (car unreads))
 	  (setq unreads (cdr unreads))
 	;; try to get a range.
 	(setq beg i)
-	(while (and (<= (cl-incf i) nnvirtual-mapping-len)
+        (while (and (<= (incf i) nnvirtual-mapping-len)
 		    (not (= i (car unreads)))))
 	(setq i (- i 1))
 	(if (= i beg)

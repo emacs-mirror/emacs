@@ -175,6 +175,21 @@
     (should (string= (buffer-string) "éä\"ba÷"))
     (should (equal (transpose-test-get-byte-positions 7) '(1 3 5 6 7 8 10)))))
 
+(ert-deftest editfns-tests--transpose-equal-but-not ()
+  (with-temp-buffer
+    (let ((str1 (propertize "ab" 'my-prop 'ab))
+          (str2 (propertize "SPC" 'my-prop 'SPC))
+          (str3 (propertize "é" 'my-prop 'é)))
+      (insert " " str1 str2 str3 " ")
+      (transpose-regions (+ (point-min) 1) (+ (point-min) 3)
+                         (+ (point-min) 6) (+ (point-min) 7))
+      (should (equal-including-properties
+               str3 (buffer-substring (+ (point-min) 1) (+ (point-min) 2))))
+      (should (equal-including-properties
+               str2 (buffer-substring (+ (point-min) 2) (+ (point-min) 5))))
+      (should (equal-including-properties
+               str1 (buffer-substring (+ (point-min) 5) (+ (point-min) 7)))))))
+
 (ert-deftest format-c-float ()
   (should-error (format "%c" 0.5)))
 
@@ -265,23 +280,25 @@
 
 (ert-deftest replace-buffer-contents-1 ()
   (with-temp-buffer
-    (insert #("source" 2 4 (prop 7)))
+    (insert #("source " 2 4 (prop 7)))
     (let ((source (current-buffer)))
       (with-temp-buffer
         (insert "before dest after")
         (let ((marker (set-marker (make-marker) 14)))
           (save-restriction
-            (narrow-to-region 8 12)
-            (replace-buffer-contents source))
+            (narrow-to-region 8 13)
+            (goto-char 12)
+            (should (looking-at " \\'"))
+            (replace-buffer-contents source)
+            (should (looking-at " \\'")))
           (should (equal (marker-buffer marker) (current-buffer)))
           (should (equal (marker-position marker) 16)))
         (should (equal-including-properties
                  (buffer-string)
-                 #("before source after" 9 11 (prop 7))))
-        (should (equal (point) 9))))
+                 #("before source after" 9 11 (prop 7))))))
     (should (equal-including-properties
              (buffer-string)
-             #("source" 2 4 (prop 7))))))
+             #("source " 2 4 (prop 7))))))
 
 (ert-deftest replace-buffer-contents-2 ()
   (with-temp-buffer
@@ -304,6 +321,41 @@
   (replace-buffer-contents "a")
   (should (equal (buffer-substring-no-properties (point-min) (point-max))
                  (concat (string (char-from-name "SMILE")) "1234"))))
+
+(defun editfns--replace-region (from to string)
+  (save-excursion
+    (save-restriction
+      (narrow-to-region from to)
+      (let ((buf (current-buffer)))
+        (with-temp-buffer
+          (let ((str-buf (current-buffer)))
+            (insert string)
+            (with-current-buffer buf
+              (replace-buffer-contents str-buf))))))))
+
+(ert-deftest editfns-tests--replace-region ()
+  ;; :expected-result :failed
+  (with-temp-buffer
+    (insert "here is some text")
+    (let ((m5n (copy-marker (+ (point-min) 5)))
+          (m5a (copy-marker (+ (point-min) 5) t))
+          (m6n (copy-marker (+ (point-min) 6)))
+          (m6a (copy-marker (+ (point-min) 6) t))
+          (m7n (copy-marker (+ (point-min) 7)))
+          (m7a (copy-marker (+ (point-min) 7) t)))
+      (editfns--replace-region (+ (point-min) 5) (+ (point-min) 7) "be")
+      (should (equal (buffer-string) "here be some text"))
+      (should (equal (point) (point-max)))
+      ;; Markers before the replaced text stay before.
+      (should (= m5n (+ (point-min) 5)))
+      (should (= m5a (+ (point-min) 5)))
+      ;; Markers in the replaced text can end up at either end, depending
+      ;; on whether they're advance-after-insert or not.
+      (should (= m6n (+ (point-min) 5)))
+      (should (<= (+ (point-min) 5) m6a (+ (point-min) 7)))
+      ;; Markers after the replaced text stay after.
+      (should (= m7n (+ (point-min) 7)))
+      (should (= m7a (+ (point-min) 7))))))
 
 (ert-deftest delete-region-undo-markers-1 ()
   "Make sure we don't end up with freed markers reachable from Lisp."

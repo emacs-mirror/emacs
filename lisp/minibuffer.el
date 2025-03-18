@@ -88,6 +88,8 @@
 
 (eval-when-compile (require 'cl-lib))
 
+(declare-function widget-put "wid-edit" (widget property value))
+
 ;;; Completion table manipulation
 
 ;; New completion-table operation.
@@ -1514,7 +1516,7 @@ pair of a group title string and a list of group candidate strings."
 (defvar completion-tab-width nil)
 
 (defvar completion-fail-discreetly nil
-  "If non-nil, stay quiet when there  is no match.")
+  "If non-nil, stay quiet when there is no match.")
 
 (defun completion--message (msg)
   (if completion-show-inline-help
@@ -1758,7 +1760,7 @@ KEYFUN takes an element of ELEMS and should return a numerical value."
     (dolist (c hist)
       (unless (gethash c hash)
         (puthash c index hash))
-      (cl-incf index))
+      (incf index))
     (minibuffer--sort-by-key
      elems (lambda (x) (gethash x hash most-positive-fixnum)))))
 
@@ -3172,7 +3174,7 @@ with `minibuffer-local-must-match-map'."
   "?"   #'self-insert-and-exit)
 
 (defun read-no-blanks-input (prompt &optional initial inherit-input-method)
-  "Read a string from the terminal, not allowing blanks.
+  "Read and return a string from the terminal, not allowing blanks.
 Prompt with PROMPT.  Whitespace terminates the input.  If INITIAL is
 non-nil, it should be a string, which is used as initial input, with
 point positioned at the end, so that SPACE will accept the input.
@@ -3554,7 +3556,8 @@ like the `beginning-of-buffer' command."
      (if (listp default) default (list default)))))
 
 (defun read-file-name (prompt &optional dir default-filename mustmatch initial predicate)
-  "Read file name, prompting with PROMPT and completing in directory DIR.
+  "Read a file name, prompting with PROMPT and completing in directory DIR.
+Retrun the file name as a string.
 The return value is not expanded---you must call `expand-file-name'
 yourself.
 
@@ -4068,7 +4071,7 @@ Return nil if there's no such element."
         (i 0))
     (dolist (x pattern)
       (unless (stringp x)
-        (cl-incf i)
+        (incf i)
         (if (eq x 'point) (setq idx i))))
     idx))
 
@@ -5283,10 +5286,7 @@ and `blink-matching-paren' more user-friendly."
   "List of regular expressions that trigger `minibuffer-regexp-mode' features.
 The features of `minibuffer-regexp-mode' will be activated in a minibuffer
 interaction if and only if a prompt matching some regexp in this list
-appears at the beginning of the minibuffer.
-
-Setting this variable directly with `setq' has no effect; instead,
-either use \\[customize-option] interactively or use `setopt'."
+appears at the beginning of the minibuffer."
   :type '(repeat (string :tag "Prompt"))
   :set (lambda (sym val)
 	 (set-default sym val)

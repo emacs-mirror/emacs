@@ -153,7 +153,7 @@
       tramp-error-show-message-timeout nil
       tramp-persistency-file-name nil
       tramp-verbose 0
-      vc-handled-backends nil)
+      vc-handled-backends (unless noninteractive vc-handled-backends))
 
 (defconst tramp-test-name-prefix "tramp-test"
   "Prefix to use for temporary test files.")
@@ -2871,7 +2871,9 @@ This checks also `file-name-as-directory', `file-name-directory',
   (dolist (quoted (if (tramp--test-expensive-test-p) '(nil t) '(nil)))
     (let ((tmp-name1 (tramp--test-make-temp-name nil quoted))
 	  (tmp-name2 (tramp--test-make-temp-name nil quoted))
-	  (tmp-name3 (tramp--test-make-temp-name 'local quoted)))
+	  (tmp-name3 (tramp--test-make-temp-name 'local quoted))
+	  (tmp-name4
+	   (file-name-nondirectory (tramp--test-make-temp-name 'local quoted))))
       (dolist (source-target
 	       `(;; Copy on remote side.
 		 (,tmp-name1 . ,tmp-name2)
@@ -2879,8 +2881,12 @@ This checks also `file-name-as-directory', `file-name-directory',
 		 (,tmp-name1 . ,tmp-name3)
 		 ;; Copy from local side to remote side.
 		 (,tmp-name3 . ,tmp-name1)))
-	(let ((source (car source-target))
-	      (target (cdr source-target)))
+	(let* ((source (car source-target))
+	       (source-link
+		(expand-file-name tmp-name4 (file-name-directory source)))
+	       (target (cdr source-target))
+	       (target-link
+		(expand-file-name tmp-name4 (file-name-directory target))))
 
 	  ;; Copy simple file.
 	  (unwind-protect
@@ -2904,6 +2910,26 @@ This checks also `file-name-as-directory', `file-name-directory',
 	    ;; Cleanup.
 	    (ignore-errors (delete-file source))
 	    (ignore-errors (delete-file target)))
+
+	  ;; Copy symlinked file.
+	  (unwind-protect
+	      (tramp--test-ignore-make-symbolic-link-error
+	       (write-region "foo" nil source-link)
+	       (should (file-exists-p source-link))
+	       (make-symbolic-link tmp-name4 source)
+	       (should (file-exists-p source))
+	       (should (string-equal (file-symlink-p source) tmp-name4))
+	       (copy-file source target)
+	       ;; Some backends like tramp-gvfs.el do not create the
+	       ;; link on the target.
+	       (when (file-symlink-p target)
+		 (should (string-equal (file-symlink-p target) tmp-name4))))
+
+	    ;; Cleanup.
+	    (ignore-errors (delete-file source))
+	    (ignore-errors (delete-file source-link))
+	    (ignore-errors (delete-file target))
+	    (ignore-errors (delete-file target-link)))
 
 	  ;; Copy file to directory.
 	  (unwind-protect
@@ -2980,7 +3006,9 @@ This checks also `file-name-as-directory', `file-name-directory',
   (dolist (quoted  (if (tramp--test-expensive-test-p) '(nil t) '(nil)))
     (let ((tmp-name1 (tramp--test-make-temp-name nil quoted))
 	  (tmp-name2 (tramp--test-make-temp-name nil quoted))
-	  (tmp-name3 (tramp--test-make-temp-name 'local quoted)))
+	  (tmp-name3 (tramp--test-make-temp-name 'local quoted))
+	  (tmp-name4
+	   (file-name-nondirectory (tramp--test-make-temp-name 'local quoted))))
       (dolist (source-target
 	       `(;; Rename on remote side.
 		 (,tmp-name1 . ,tmp-name2)
@@ -2988,8 +3016,12 @@ This checks also `file-name-as-directory', `file-name-directory',
 		 (,tmp-name1 . ,tmp-name3)
 		 ;; Rename from local side to remote side.
 		 (,tmp-name3 . ,tmp-name1)))
-	(let ((source (car source-target))
-	      (target (cdr source-target)))
+	(let* ((source (car source-target))
+	       (source-link
+		(expand-file-name tmp-name4 (file-name-directory source)))
+	       (target (cdr source-target))
+	       (target-link
+		(expand-file-name tmp-name4 (file-name-directory target))))
 
 	  ;; Rename simple file.
 	  (unwind-protect
@@ -3017,6 +3049,27 @@ This checks also `file-name-as-directory', `file-name-directory',
 	    ;; Cleanup.
 	    (ignore-errors (delete-file source))
 	    (ignore-errors (delete-file target)))
+
+	  ;; Rename symlinked file.
+	  (unwind-protect
+	      (tramp--test-ignore-make-symbolic-link-error
+	       (write-region "foo" nil source-link)
+	       (should (file-exists-p source-link))
+	       (make-symbolic-link tmp-name4 source)
+	       (should (file-exists-p source))
+	       (should (string-equal (file-symlink-p source) tmp-name4))
+	       (rename-file source target)
+	       (should-not (file-exists-p source))
+	       ;; Some backends like tramp-gvfs.el do not create the
+	       ;; link on the target.
+	       (when (file-symlink-p target)
+		 (should (string-equal (file-symlink-p target) tmp-name4))))
+
+	    ;; Cleanup.
+	    (ignore-errors (delete-file source))
+	    (ignore-errors (delete-file source-link))
+	    (ignore-errors (delete-file target))
+	    (ignore-errors (delete-file target-link)))
 
 	  ;; Rename file to directory.
 	  (unwind-protect
@@ -3814,6 +3867,18 @@ This tests also `access-file', `file-readable-p',
 		 (if quoted #'file-name-quote #'identity)
 		 (file-attribute-type attr))
 		(file-remote-p (file-truename tmp-name1) 'localname)))
+	      (delete-file tmp-name2)
+
+	      ;; A non-existent link target makes the file unaccessible.
+	      (make-symbolic-link "error" tmp-name2)
+	      (should (file-symlink-p tmp-name2))
+	      (should-error
+	       (access-file tmp-name2 "error")
+	       :type 'file-missing)
+	      ;; `file-ownership-preserved-p' should return t for
+	      ;; symlinked files to a non-existing target.
+	      (when test-file-ownership-preserved-p
+		(should (file-ownership-preserved-p tmp-name2 'group)))
 	      (delete-file tmp-name2))
 
 	    ;; Check, that "//" in symlinks are handled properly.
@@ -4463,13 +4528,11 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	       (make-symbolic-link tmp-name1 tmp-name2)
 	       (should (file-symlink-p tmp-name1))
 	       (should (file-symlink-p tmp-name2))
-	       (should-not (file-regular-p tmp-name1))
-	       (should-not (file-regular-p tmp-name2))
 	       (should-error
-		(file-truename tmp-name1)
+		(file-regular-p tmp-name1)
 		:type 'file-error)
 	       (should-error
-		(file-truename tmp-name2)
+		(file-regular-p tmp-name2)
 		:type 'file-error))))
 
 	;; Cleanup.
@@ -7390,10 +7453,6 @@ This requires restrictions of file name syntax."
 		     (if quoted #'file-name-quote #'identity)
 		     (file-attribute-type (file-attributes file3)))
 		    (file-remote-p (file-truename file1) 'localname)))
-		  ;; Check file contents.
-		  (with-temp-buffer
-		    (insert-file-contents file3)
-		    (should (string-equal (buffer-string) elt)))
 		  (delete-file file3))))
 
 	    ;; Check file names.

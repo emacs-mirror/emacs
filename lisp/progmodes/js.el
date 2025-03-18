@@ -982,7 +982,7 @@ top-most pitem.  Otherwise, return nil."
            with func-depth = 0
            with func-pitem
            if (eq 'function (js--pitem-type pitem))
-           do (cl-incf func-depth)
+           do (incf func-depth)
            and do (setq func-pitem pitem)
            finally return (if (eq func-depth 1) func-pitem)))
 
@@ -1017,7 +1017,7 @@ Return the pitem of the function we went to the beginning of."
   (setq arg (or arg 1))
   (let ((found))
     (while (and (not (eobp)) (< arg 0))
-      (cl-incf arg)
+      (incf arg)
       (when (and (not js-flat-functions)
                  (or (eq (js-syntactic-context) 'function)
                      (js--function-prologue-beginning)))
@@ -1360,7 +1360,7 @@ LIMIT defaults to point."
   "Value of `end-of-defun-function' for `js-mode'."
   (setq arg (or arg 1))
   (while (and (not (bobp)) (< arg 0))
-    (cl-incf arg)
+    (incf arg)
     (js-beginning-of-defun)
     (js-beginning-of-defun)
     (unless (bobp)
@@ -3180,7 +3180,7 @@ the broken-down class name of the item to insert."
       (setq pitem-name (js--pitem-strname pitem))
       (when (eq pitem-name t)
         (setq pitem-name (format "[unknown %s]"
-                                 (cl-incf (car unknown-ctr)))))
+                                 (incf (car unknown-ctr)))))
 
       (cond
        ((memq pitem-type '(function macro))
@@ -3255,7 +3255,7 @@ the broken-down class name of the item to insert."
                      (ctr 0))
 
                 (while (gethash name2 symbols)
-                  (setq name2 (format "%s<%d>" name (cl-incf ctr))))
+                  (setq name2 (format "%s<%d>" name (incf ctr))))
 
                 (puthash name2 (cdr item) symbols))))
 
@@ -3544,6 +3544,9 @@ Check if a node type is available, then return the right indent rules."
    :feature 'definition
    `(,@(js--treesit-font-lock-compatibility-definition-feature)
 
+     (class
+      name: (identifier) @font-lock-type-face)
+
      (class_declaration
       name: (identifier) @font-lock-type-face)
 
@@ -3708,7 +3711,7 @@ Return nil if there is no name or if NODE is not a defun node."
   (treesit-node-text
    (treesit-node-child-by-field-name
     (pcase (treesit-node-type node)
-      ("lexical_declaration"
+      ((or "lexical_declaration" "variable_declaration")
        (treesit-search-subtree node "variable_declarator" nil nil 1))
       ((or "function_declaration" "method_definition" "class_declaration")
        node))
@@ -3716,9 +3719,15 @@ Return nil if there is no name or if NODE is not a defun node."
    t))
 
 (defun js--treesit-valid-imenu-entry (node)
-  "Return nil if NODE is a non-top-level \"lexical_declaration\"."
+  "Return nil if NODE is a non-top-level lexical/variable declaration."
   (pcase (treesit-node-type node)
-    ("lexical_declaration" (treesit-node-top-level node))
+    ((or "lexical_declaration" "variable_declaration")
+     (not (treesit-node-top-level
+           node (rx bos (or "class_declaration"
+                            "method_definition"
+                            "function_declaration"
+                            "function_expression")
+                    eos))))
     (_ t)))
 
 (defun js--treesit-language-at-point (point)
@@ -3857,8 +3866,9 @@ Currently there are `js-mode' and `js-ts-mode'."
     "labeled_statement"
     "variable_declaration"
     "lexical_declaration"
-    "jsx_element"
-    "jsx_self_closing_element")
+    "jsx_opening_element"
+    "jsx_attribute"
+    "jsx_closing_element")
   "Nodes that designate sentences in JavaScript.
 See `treesit-thing-settings' for more information.")
 
@@ -3906,9 +3916,11 @@ See `treesit-thing-settings' for more information.")
     "object_pattern"
     "array"
     "array_pattern"
+    "jsx_element"
     "jsx_expression"
-    "_jsx_string"
-    "string"
+    "jsx_self_closing_element"
+    "template_string"
+    "template_substitution"
     "regex"
     "arguments"
     "class_body"
@@ -3938,24 +3950,34 @@ See `treesit-thing-settings' for more information.")
   "Settings for `treesit-font-lock-feature-list'.")
 
 (defvar js--treesit-simple-imenu-settings
-  `(("Function" "\\`function_declaration\\'" nil nil)
-    ("Variable" "\\`lexical_declaration\\'"
-     js--treesit-valid-imenu-entry nil)
-    ("Class" ,(rx bos (or "class_declaration"
-                          "method_definition")
-                  eos)
-     nil nil))
+  `(("Class" "\\`class_declaration\\'" nil nil)
+    ("Method" "\\`method_definition\\'" nil nil)
+    ("Function" "\\`function_declaration\\'" nil nil)
+    ("Variable" ,(rx bos (or "lexical_declaration"
+                             "variable_declaration")
+                     eos)
+     ,#'js--treesit-valid-imenu-entry nil))
   "Settings for `treesit-simple-imenu'.")
 
+(defvar js-ts-mode--outline-predicate
+  `(or (and "\\`class\\'" named)
+       ,(rx bos (or "class_declaration"
+                    "method_definition"
+                    "function_declaration"
+                    "function_expression")
+            eos)))
+
 (defvar js--treesit-defun-type-regexp
-  (rx (or "class_declaration"
-          "method_definition"
-          "function_declaration"
-          "lexical_declaration"))
+  (rx bos (or "class_declaration"
+              "method_definition"
+              "function_declaration"
+              "lexical_declaration"
+              "variable_declaration")
+      eos)
   "Settings for `treesit-defun-type-regexp'.")
 
 (defvar js--treesit-jsdoc-comment-regexp
-  (rx (or "comment" "line_comment" "block_comment" "description"))
+  (rx bos (or "comment" "line_comment" "block_comment" "description") eos)
   "Regexp for `c-ts-common--comment-regexp'.")
 
 ;;;###autoload
@@ -3990,9 +4012,7 @@ See `treesit-thing-settings' for more information.")
     (setq-local treesit-simple-indent-rules js--treesit-indent-rules)
     ;; Navigation.
     (setq-local treesit-defun-type-regexp js--treesit-defun-type-regexp)
-
     (setq-local treesit-defun-name-function #'js--treesit-defun-name)
-
     (setq-local treesit-thing-settings js--treesit-thing-settings)
 
     ;; Fontification.
@@ -4011,6 +4031,8 @@ See `treesit-thing-settings' for more information.")
 
     ;; Imenu
     (setq-local treesit-simple-imenu-settings js--treesit-simple-imenu-settings)
+    ;; Outline minor mode
+    (setq-local treesit-outline-predicate js-ts-mode--outline-predicate)
 
     (treesit-major-mode-setup)
 
@@ -4037,7 +4059,7 @@ See `treesit-thing-settings' for more information.")
              (syntax (pcase-exhaustive name
                        ('regexp
                         (decf ns)
-                        (cl-incf ne)
+                        (incf ne)
                         (string-to-syntax "\"/"))
                        ('jsx
                         (string-to-syntax "|")))))

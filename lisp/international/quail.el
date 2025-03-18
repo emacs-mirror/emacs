@@ -2419,10 +2419,10 @@ should be made by `quail-build-decode-map' (which see)."
                    (let ((last-col-elt (or (nth (1- (* (1+ col) newrows))
                                                 single-list)
                                            (car (last single-list)))))
-                     (cl-incf width (+ (max 3 (length (car last-col-elt)))
+                     (incf width (+ (max 3 (length (car last-col-elt)))
                                        1 single-trans-width 1))))
                  (< width window-width))
-          (cl-incf cols))
+          (incf cols))
         (setq rows (/ (+ len cols -1) cols)) ;Round up.
         (let ((key-width (max 3 (length (car (nth (1- rows) single-list))))))
           (insert "key")

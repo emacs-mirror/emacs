@@ -171,7 +171,7 @@ there.")
 	      (delete-region (point) (point-max)))
 
 	    (and do-message
-		 (zerop (% (cl-incf count) 20))
+                 (zerop (% (incf count) 20))
 		 (nnheader-message 5 "nnspool: Receiving headers... %d%%"
 				   (floor (* count 100.0) number))))
 

@@ -1067,6 +1067,68 @@ Key bindings:
 
   (setq-local treesit-thing-settings
               `((c-sharp
+                 (list
+                  ,(rx bos (or "global_attribute"
+                               "attribute_argument_list"
+                               "attribute_list"
+                               "enum_member_declaration_list"
+                               "type_parameter_list"
+                               "declaration_list"
+                               "accessor_list"
+                               "bracketed_parameter_list"
+                               "parameter_list"
+                               "argument_list"
+                               "tuple_pattern"
+                               "block"
+                               "bracketed_argument_list"
+                               "type_argument_list"
+                               "array_rank_specifier"
+                               "function_pointer_type"
+                               "tuple_type"
+                               "_for_statement_conditions"
+                               "switch_body"
+                               "catch_declaration"
+                               "catch_filter_clause"
+                               "parenthesized_pattern"
+                               "list_pattern"
+                               "positional_pattern_clause"
+                               "property_pattern_clause"
+                               "parenthesized_variable_designation"
+                               "_switch_expression_body"
+                               "interpolated_string_expression"
+                               "interpolation"
+                               "parenthesized_expression"
+                               "_parenthesized_lvalue_expression"
+                               "anonymous_object_creation_expression"
+                               "initializer_expression"
+                               "_with_body"
+                               "tuple_expression"
+                               "preproc_parenthesized_expression")
+                       eos))
+                 (sentence
+                  ,(rx bos (or "extern_alias_directive"
+                               "using_directive"
+                               "file_scoped_namespace_declaration"
+                               "enum_declaration"
+                               "delegate_declaration"
+                               "_declaration_list_body"
+                               "field_declaration"
+                               "event_declaration"
+                               "event_field_declaration"
+                               "indexer_declaration"
+                               "property_declaration"
+                               "_function_body"
+                               "break_statement"
+                               "continue_statement"
+                               "do_statement"
+                               "empty_statement"
+                               "expression_statement"
+                               "return_statement"
+                               "yield_statement"
+                               "throw_statement"
+                               "goto_statement"
+                               "local_declaration_statement")
+                       eos))
                  (text
                   ,(regexp-opt '("comment"
                                  "verbatim_string-literal"
@@ -1099,6 +1161,18 @@ Key bindings:
                 ("Record" "\\`record_declaration\\'" nil nil)
                 ("Struct" "\\`struct_declaration\\'" nil nil)
                 ("Method" "\\`method_declaration\\'" nil nil)))
+
+  ;; Outline minor mode.
+  (setq-local treesit-outline-predicate
+              (rx bos (or "namespace_declaration"
+                          "class_declaration"
+                          "interface_declaration"
+                          "enum_declaration"
+                          "record_declaration"
+                          "struct_declaration"
+                          "method_declaration"
+                          "local_function_statement")
+                  eos))
 
   (treesit-major-mode-setup)
 

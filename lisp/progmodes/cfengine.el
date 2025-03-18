@@ -52,7 +52,7 @@
 ;; the policy, it's a quick way to make it more legible without
 ;; manually reindenting it.  For instance:
 
-;; (global-set-key [(control f4)] 'cfengine3-reformat-json-string)
+;; (keymap-global-set "C-<f4>" 'cfengine3-reformat-json-string)
 
 ;; This is not the same as the mode written by Rolf Ebert
 ;; <ebert@waporo.muc.de>, distributed with cfengine-2.0.5.  It does

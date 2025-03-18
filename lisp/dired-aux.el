@@ -1912,7 +1912,7 @@ return t; if SYM is q or ESC, return nil."
 		 (concat (apply #'format-message prompt args)
 			 (if help-form
 			     (format " [Type yn!q or %s] "
-				     (key-description (vector help-char)))
+                                     (help-key))
 			   " [Type y, n, q or !] ")))
 	   (set sym (setq char (read-char-choice prompt char-choices)))
 	   (if (memq char '(?y ?\s ?!)) t)))))

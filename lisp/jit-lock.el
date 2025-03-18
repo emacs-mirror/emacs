@@ -179,6 +179,10 @@ If nil, contextual fontification is disabled.")
 
 ;;; JIT lock mode
 
+(defun jit-lock-context--update ()
+  (unless jit-lock--antiblink-grace-timer
+    (jit-lock-context-fontify)))
+
 (defun jit-lock-mode (arg)
   "Toggle Just-in-time Lock mode.
 Turn Just-in-time Lock mode on if and only if ARG is non-nil.
@@ -255,10 +259,7 @@ If you need to debug code run from jit-lock, see `jit-lock-debug-mode'."
     (when (eq jit-lock-contextually t)
       (unless jit-lock-context-timer
         (setq jit-lock-context-timer
-              (run-with-idle-timer jit-lock-context-time t
-                                   (lambda ()
-                                     (unless jit-lock--antiblink-grace-timer
-                                       (jit-lock-context-fontify))))))
+              (run-with-idle-timer jit-lock-context-time t #'jit-lock-context--update)))
       (add-hook 'post-command-hook #'jit-lock--antiblink-post-command nil t)
       (setq jit-lock-context-unfontify-pos
             (or jit-lock-context-unfontify-pos (point-max))))
@@ -706,6 +707,10 @@ will take place when text is fontified stealthily."
               ;; buffer, only jit-lock-context-* will re-fontify it.
               (min jit-lock-context-unfontify-pos jit-lock-start))))))
 
+(defun jit-lock--antiblink-update ()
+  (jit-lock-context-fontify)
+  (setq jit-lock--antiblink-grace-timer nil))
+
 (defun jit-lock--antiblink-post-command ()
   (let* ((new-l-b-p (copy-marker (syntax--lbp)))
          (l-b-p-2 (syntax--lbp 2))
@@ -722,11 +727,7 @@ will take place when text is fontified stealthily."
            (and same-line
                 (null jit-lock--antiblink-string-or-comment) new-s-o-c)
            (setq jit-lock--antiblink-grace-timer
-                 (run-with-idle-timer jit-lock-antiblink-grace nil
-                                      (lambda ()
-                                        (jit-lock-context-fontify)
-                                        (setq jit-lock--antiblink-grace-timer
-                                              nil)))))
+                 (run-with-idle-timer jit-lock-antiblink-grace nil #'jit-lock--antiblink-update)))
           (;; Closed an unterminated multiline string.
            (and same-line
                 (null new-s-o-c) jit-lock--antiblink-string-or-comment)

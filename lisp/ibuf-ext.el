@@ -752,7 +752,7 @@ specification, with the same structure as an element of the list
                  (hip-crowd (cdr (assq t res)))
                  (lamers (cdr (assq nil res))))
 	    (aset vec i hip-crowd)
-	    (cl-incf i)
+            (incf i)
 	    (setq bmarklist lamers))))
       (let (ret)
 	(dotimes (j i)
@@ -898,7 +898,7 @@ See also `ibuffer-kill-filter-group'."
 		  (if (equal (car groups) group)
 		      (setq found t
 			    groups nil)
-		    (cl-incf res)
+                    (incf res)
 		    (setq groups (cdr groups))))
 		res)))
     (cond ((not found)

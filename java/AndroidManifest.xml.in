@@ -338,3 +338,18 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 	     android:label="GNU Emacs service"/>
   </application>
 </manifest>
+
+<!-- Auto-incrementing version code.
+
+This comment contains an Android version code
+(https://developer.android.com/studio/publish/versioning#versioningsettings)
+corresponding to the current Emacs version.  The version code in
+AndroidManifest.xml.in is hard-coded to a fixed value to facilitate
+package downgrades.  Some automated systems employed by Android package
+repositories require an incrementing numeric version code to detect
+upgrades, which is provided here and is altered by admin/admin.el.
+Refer to e.g. https://forum.f-droid.org/t/emacs-packaging/30424/25.
+
+Version-code: 310050000
+
+-->

@@ -3,7 +3,7 @@
 ;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Version: 1.2
+;; Version: 1.4
 ;; Package-Requires: ((emacs "24"))
 
 ;; This file is part of GNU Emacs.
@@ -76,7 +76,12 @@
 
 ;;; News:
 
-;; Since v1.1:
+;; v1.3:
+;;
+;; - Fix bug#73041.
+;; - New `trace' setting for `track-changes-record-errors'.
+;;
+;; v1.2:
 ;;
 ;; - New function `track-changes-inconsistent-state-p'.
 
@@ -594,14 +599,14 @@ Details logged to `track-changes--error-log'")
   (track-changes--trace)
   (cl-assert track-changes--state)
   (let ((offset (- (- end beg) len)))
-    (incf track-changes--buffer-size offset)
+    (cl-incf track-changes--buffer-size offset)
     (if (and (eq track-changes--before-clean 'unset)
              (not track-changes--before-no))
          ;; This can be a sign that a `before-change-functions' went missing,
          ;; or that we called `track-changes--clean-state' between
          ;; a `before-change-functions' and `after-change-functions'.
          (track-changes--before beg end)
-      (incf track-changes--before-end offset))
+      (cl-incf track-changes--before-end offset))
     (setq track-changes--before-clean nil)
     (if (not (or track-changes--before-no
                  (save-restriction

@@ -1,7 +1,15 @@
 Instructions to create pretest or release tarballs. -*- coding: utf-8 -*-
--- originally written by Gerd Moellmann, amended by Francesco Potortì
+-- originally written by Gerd Möllmann, amended by Francesco Potortì
    with the initial help of Eli Zaretskii
 
+
+Preparations:
+
+0.  In order to upload to the GNU FTP server, you must be registered as
+    an Emacs maintainer and have your GPG key acknowledged by the FTP
+    people.  Do this as soon as possible to avoid lead time.  For
+    instructions, see:
+    <https://www.gnu.org/prep/maintain/html_node/Automated-Upload-Registration.html>.
 
 Steps to take before starting on the first pretest in any release sequence:
 
@@ -18,7 +26,7 @@ Steps to take before starting on the first pretest in any release sequence:
     the release branch, see admin/release-branch.txt, but it can't
     hurt to double check its value.)  Commit cus-edit.el if changed.
 
-3.  Remove any old pretests from https://alpha.gnu.org/gnu/emacs/pretest.
+3.  Remove any old pretests from <https://alpha.gnu.org/gnu/emacs/pretest>.
     You can use 'gnupload --delete' (see below for more gnupload details).
     (We currently don't bother with this.)
 
@@ -224,12 +232,12 @@ General steps (for each step, check for possible errors):
     against the previous release (if this is the first pretest) or the
     previous pretest.  If you did not make the previous pretest
     yourself, find it at <https://alpha.gnu.org/gnu/emacs/pretest>.
-    Releases are of course at <https://ftp.gnu.org/pub/gnu/emacs/>.
+    Releases are at <https://ftp.gnu.org/pub/gnu/emacs/>.
 
      ./admin/diff-tar-files emacs-OLD.tar emacs-NEW.tar
 
-    Alternatively, if you want to use the compressed tarballs (which
-    diff-tar-files doesn't understand):
+    Alternatively, if you want to do this manually using the compressed
+    tarballs:
 
      tar tJf emacs-OLD.tar.xz | sed -e 's,^[^/]*,,' | sort > old_tmp
      tar tJf emacs-NEW.tar.xz | sed -e 's,^[^/]*,,' | sort > new_tmp
@@ -289,14 +297,12 @@ General steps (for each step, check for possible errors):
       xz -c emacs-NEW.tar > emacs-NEW.tar.xz
     For pretests, just xz is probably fine (saves bandwidth).
 
-    Now you should upload the files to the GNU ftp server.  In order to
-    do that, you must be registered as an Emacs maintainer and have your
-    GPG key acknowledged by the ftp people.  For instructions, see
-    https://www.gnu.org/prep/maintain/html_node/Automated-Upload-Registration.html
-    The simplest method to upload is to use the gnulib
+    Now you should upload the files to the GNU FTP server; your
+    GPG key must already be accepted as described above.
+    The simplest method of uploading is with the gnulib
     <https://www.gnu.org/s/gnulib/> script "build-aux/gnupload":
 
-    For a pretest:
+    For a pretest or release candidate:
      gnupload [--user your@gpg.key.email] --to alpha.gnu.org:emacs/pretest \
        FILE.gz FILE.xz ...
 
@@ -325,11 +331,11 @@ General steps (for each step, check for possible errors):
     FILE.sig, FILE.directive.asc.
     For a release, place the files in the /incoming/ftp directory.
     For a pretest, place the files in /incoming/alpha instead, so that
-    they appear on https://alpha.gnu.org/.
+    they appear on <https://alpha.gnu.org/>.
 
 11. After five minutes, verify that the files are visible at
-    https://alpha.gnu.org/gnu/emacs/pretest/ for a pretest, or
-    https://ftp.gnu.org/gnu/emacs/ for a release.
+    <https://alpha.gnu.org/gnu/emacs/pretest/> for a pretest, or
+    <https://ftp.gnu.org/gnu/emacs/> for a release.
 
     Download them and check the signatures and SHA1/SHA256 checksums.
     Check they build (./configure --with-native-compilation).
@@ -353,7 +359,7 @@ General steps (for each step, check for possible errors):
       sha1sum emacs-NEW.tar.xz
       sha256sum emacs-NEW.tar.xz
 
-    You can optionally sign the announcement email, preferably using
+    You can optionally sign the announcement email using
     the same PGP key that you used for signing the tarball.
     (Use e.g. `M-x mml-secure-message-sign' in `message-mode' to sign
     an email.)
@@ -371,7 +377,7 @@ General steps (for each step, check for possible errors):
 UPDATING THE EMACS WEB PAGES AFTER A RELEASE
 
 As soon as possible after a release, the Emacs web pages at
-https://www.gnu.org/software/emacs/ should be updated.
+<https://www.gnu.org/software/emacs/> should be updated.
 (See admin/notes/www for general information.)
 
 The pages to update are:

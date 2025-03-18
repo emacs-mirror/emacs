@@ -204,7 +204,8 @@ JSONRPC message."
 ;;;
 (cl-defmacro jsonrpc-lambda (cl-lambda-list &body body)
   (declare (indent 1) (debug (sexp &rest form)))
-  (let ((e (cl-gensym "jsonrpc-lambda-elem")))
+  (let ((e (funcall (if (fboundp 'gensym) 'gensym 'cl-gensym)
+                    "jsonrpc-lambda-elem")))
     `(lambda (,e) (apply (cl-function (lambda ,cl-lambda-list ,@body)) ,e))))
 
 (defun jsonrpc-events-buffer (connection)
@@ -377,9 +378,9 @@ never be sent at all, in case it is overridden in the meantime by
 a new request with identical DEFERRED and for the same buffer.
 However, in that situation, the original timeout is kept.
 
-Returns nil."
-  (apply #'jsonrpc--async-request-1 connection method params args)
-  nil)
+Returns a list whose first element is an integer identifying the request
+as specified in the JSONRPC 2.0 spec."
+  (apply #'jsonrpc--async-request-1 connection method params args))
 
 (cl-defun jsonrpc-request (connection
                            method params &key
@@ -405,7 +406,9 @@ remote endpoint (normal or error) are ignored and the function exits
 returning CANCEL-ON-INPUT-RETVAL.  If CANCEL-ON-INPUT is a function, it
 is invoked with one argument, an integer identifying the canceled
 request as specified in the JSONRPC 2.0 spec."
-  (let* ((tag (cl-gensym "jsonrpc-request-catch-tag")) id-and-timer
+  (let* ((tag (funcall (if (fboundp 'gensym) 'gensym 'cl-gensym)
+                       "jsonrpc-request-catch-tag"))
+         id-and-timer
          canceled
          (throw-on-input nil)
          (retval

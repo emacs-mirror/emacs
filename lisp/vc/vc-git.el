@@ -166,17 +166,24 @@ uses a full scan)."
                  (repeat :tag "Argument List" :value ("") string))
   :version "30.1")
 
-(defcustom vc-git-resolve-conflicts t
-  "When non-nil, mark conflicted file as resolved upon saving.
+(defcustom vc-git-resolve-conflicts 'default
+  "Whether to mark conflicted file as resolved upon saving.
 That is performed after all conflict markers in it have been removed.
+
+If this is t and there are no more conflict markers in the file,
+VC will mark the conflicts in the saved file as resolved.
+
 If the value is `unstage-maybe', and no merge, rebase or similar
 operation is in progress, then after the last conflict is resolved, also
-clear the staging area."
+clear the staging area.
+
+A value of `default' means to use the value of `vc-resolve-conflicts'."
   :type '(choice (const :tag "Don't resolve" nil)
                  (const :tag "Resolve" t)
                  (const :tag "Resolve and maybe unstage all files"
-                        unstage-maybe))
-  :version "25.1")
+                        unstage-maybe)
+                 (const :tag "Use vc-resolve-conflicts" default))
+  :version "31.1")
 
 (defcustom vc-git-program "git"
   "Name of the Git executable (excluding any arguments)."
@@ -1445,7 +1452,9 @@ This prompts for a branch to merge from."
                (goto-char (point-min))
                (re-search-forward "^<<<<<<< " nil 'noerror)))
     (smerge-start-session)
-    (when vc-git-resolve-conflicts
+    (unless (or (null vc-git-resolve-conflicts)
+                (and (eq vc-git-resolve-conflicts 'default)
+                     (not vc-resolve-conflicts)))
       (add-hook 'after-save-hook #'vc-git-resolve-when-done nil 'local))
     (vc-message-unresolved-conflicts buffer-file-name)))
 

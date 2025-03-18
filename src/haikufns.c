@@ -53,10 +53,6 @@ Lisp_Object tip_frame;
 /* The X and Y deltas of the last call to `x-show-tip'.  */
 Lisp_Object tip_dx, tip_dy;
 
-/* The window-system window corresponding to the frame of the
-   currently visible tooltip.  */
-static Window tip_window;
-
 /* A timer that hides or deletes the currently visible tooltip when it
    fires.  */
 static Lisp_Object tip_timer;
@@ -610,7 +606,7 @@ initial_setup_back_buffer (struct frame *f)
   unblock_input ();
 }
 
-static void
+static Lisp_Object
 unwind_create_frame (Lisp_Object frame)
 {
   struct frame *f = XFRAME (frame);
@@ -619,22 +615,27 @@ unwind_create_frame (Lisp_Object frame)
      display is disconnected after the frame has become official, but
      before x_create_frame removes the unwind protect.  */
   if (!FRAME_LIVE_P (f))
-    return;
+    return Qnil;
 
   /* If frame is ``official'', nothing to do.  */
   if (NILP (Fmemq (frame, Vframe_list)))
     {
       haiku_free_frame_resources (f);
       free_glyphs (f);
+      return Qt;
     }
+
+  return Qnil;
 }
 
 static void
 unwind_create_tip_frame (Lisp_Object frame)
 {
-  unwind_create_frame (frame);
-  tip_window = NULL;
-  tip_frame = Qnil;
+  Lisp_Object deleted;
+
+  deleted = unwind_create_frame (frame);
+  if (deleted)
+    tip_frame = Qnil;
 }
 
 static unsigned long
@@ -671,6 +672,12 @@ haiku_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval
       if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
     }
+}
+
+static void
+do_unwind_create_frame (Lisp_Object frame)
+{
+  unwind_create_frame (frame);
 }
 
 static Lisp_Object
@@ -759,7 +766,7 @@ haiku_create_frame (Lisp_Object parms)
   FRAME_DISPLAY_INFO (f) = dpyinfo;
 
   /* With FRAME_DISPLAY_INFO set up, this unwind-protect is safe.  */
-  record_unwind_protect (unwind_create_frame, frame);
+  record_unwind_protect (do_unwind_create_frame, frame);
 
   /* Set the name; the functions to which we pass f expect the name to
      be set.  */
@@ -2504,12 +2511,12 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 		      break;
 		    }
 		  else
-		    tip_last_parms =
-		      calln (Qassq_delete_all, parm, tip_last_parms);
+		    tip_last_parms
+		      = calln (Qassq_delete_all, parm, tip_last_parms);
 		}
 	      else
-		tip_last_parms =
-		  calln (Qassq_delete_all, parm, tip_last_parms);
+		tip_last_parms
+		  = calln (Qassq_delete_all, parm, tip_last_parms);
 	    }
 
 	  /* Now check if every parameter in what is left of

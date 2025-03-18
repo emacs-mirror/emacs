@@ -865,7 +865,7 @@ Returns nil if URL contains no name starting with FILE."
 		(setq failed t)))
 	  (if failed
 	      (setq searching nil)
-	    (cl-incf n)))
+            (incf n)))
 	(substring (car matches) 0 n))))))
 
 (defun url-dav-register-handler (op)

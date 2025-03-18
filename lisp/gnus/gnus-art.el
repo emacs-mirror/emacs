@@ -1839,7 +1839,7 @@ Initialized from `text-mode-syntax-table'.")
       (if (looking-at (car list))
 	  (setq list nil)
 	(setq list (cdr list))
-	(cl-incf i)))
+        (incf i)))
       i))
 
 (defun article-hide-headers (&optional _arg _delete)

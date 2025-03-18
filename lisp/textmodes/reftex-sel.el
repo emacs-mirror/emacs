@@ -244,7 +244,7 @@ During a selection process, these are the local bindings.
     ;; Walk the docstruct and insert the appropriate stuff
     (while (setq cell (pop all))
 
-      (cl-incf index)
+      (incf index)
       (setq from (point))
 
       (cond
@@ -314,7 +314,7 @@ During a selection process, these are the local bindings.
                    (or show-commented (null comment)))
 
           ;; Yes we want this one
-          (cl-incf cnt)
+          (incf cnt)
           (setq prev-inserted cell)
 ;         (if (eq offset 'attention) (setq offset cell))
 

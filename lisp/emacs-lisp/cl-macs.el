@@ -166,6 +166,7 @@ whether X is known at compile time, macroexpand it completely in
 (defun cl-gensym (&optional prefix)
   "Generate a new uninterned symbol.
 The name is made by appending a number to PREFIX, default \"G\"."
+  (declare (obsolete gensym "31.1"))
   (let ((pfix (if (stringp prefix) prefix "G"))
 	(num (if (integerp prefix) prefix
 	       (prog1 cl--gensym-counter
@@ -1270,10 +1271,10 @@ For more details, see Info node `(cl)Loop Facility'.
       (let ((loop-for-bindings nil) (loop-for-sets nil) (loop-for-steps nil)
 	    (ands nil))
 	(while
-	    ;; Use `cl-gensym' rather than `make-symbol'.  It's important that
+            ;; Use `gensym' rather than `make-symbol'.  It's important that
 	    ;; (not (eq (symbol-name var1) (symbol-name var2))) because
 	    ;; these vars get added to the macro-environment.
-	    (let ((var (or (pop cl--loop-args) (cl-gensym "--cl-var--"))))
+            (let ((var (or (pop cl--loop-args) (gensym "--cl-var--"))))
 	      (setq word (pop cl--loop-args))
 	      (if (eq word 'being) (setq word (pop cl--loop-args)))
 	      (if (memq word '(the each)) (setq word (pop cl--loop-args)))
@@ -1480,7 +1481,7 @@ For more details, see Info node `(cl)Loop Facility'.
 	       ((memq word key-types)
 		(or (memq (car cl--loop-args) '(in of))
                     (error "Expected `of'"))
-		(let ((cl-map (cl--pop2 cl--loop-args))
+                (let ((map (cl--pop2 cl--loop-args))
 		      (other
                        (if (eq (car cl--loop-args) 'using)
                            (if (and (= (length (cadr cl--loop-args)) 2)
@@ -1495,7 +1496,7 @@ For more details, see Info node `(cl)Loop Facility'.
                    'keys (lambda (body)
                            `(,(if (memq word '(key-seq key-seqs))
                                   'cl--map-keymap-recursively 'map-keymap)
-                             (lambda (,var ,other) . ,body) ,cl-map)))))
+                             (lambda (,var ,other) . ,body) ,map)))))
 
 	       ((memq word '(frame frames screen screens))
 		(let ((temp (make-symbol "--cl-var--")))
@@ -2059,7 +2060,7 @@ a `let' form, except that the list of symbols can be computed at run-time."
                                (funcall (cdr found) cl--labels-magic)))))
       (if (and replacement (eq cl--labels-magic (car replacement)))
           (nth 1 replacement)
-        ;; FIXME: Here, we'd like to return the `&whole' form, but since ELisp
+        ;; FIXME: Here, we'd like to return the `&whole' form, but since Elisp
         ;; doesn't have that, we approximate it via `cl--labels-convert-cache'.
         (let ((res `(function ,f)))
           (setq cl--labels-convert-cache (cons f res))
@@ -2068,16 +2069,14 @@ a `let' form, except that the list of symbols can be computed at run-time."
 ;;;###autoload
 (defmacro cl-flet (bindings &rest body)
   "Make local function definitions.
-Each definition can take the form (FUNC EXP) where
-FUNC is the function name, and EXP is an expression that returns the
-function value to which it should be bound, or it can take the more common
-form (FUNC ARGLIST BODY...) which is a shorthand
-for (FUNC (lambda ARGLIST BODY)) where BODY is wrapped in
-a `cl-block' named FUNC.
+Each definition can take the form (FUNC EXP) where FUNC is the function
+name, and EXP is an expression that returns the function value to which
+it should be bound, or it can take the more common form (FUNC ARGLIST
+BODY...) which is a shorthand for (FUNC (lambda ARGLIST BODY)).
 
-FUNC is defined only within FORM, not BODY, so you can't write
-recursive function definitions.  Use `cl-labels' for that.  See
-info node `(cl) Function Bindings' for details.
+FUNC is defined only within FORM, not BODY, so you can't write recursive
+function definitions.  Use `cl-labels' for that.  See Info node
+`(cl) Function Bindings' for details.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1)
@@ -2276,16 +2275,14 @@ Like `cl-flet' but the definitions can refer to previous ones.
 ;;;###autoload
 (defmacro cl-labels (bindings &rest body)
   "Make local (recursive) function definitions.
-BINDINGS is a list of definitions of the form either (FUNC EXP)
-where EXP is a form that should return the function to bind to the
-function name FUNC, or (FUNC ARGLIST BODY...) where
-FUNC is the function name, ARGLIST its arguments, and BODY the
-forms of the function body.  BODY is wrapped in a `cl-block' named FUNC.
-FUNC is in scope in any BODY or EXP, as well as in FORM, so you can write
-recursive and mutually recursive function definitions, with the caveat
-that EXPs are evaluated in sequence and you cannot call a FUNC before its
-EXP has been evaluated.
-See info node `(cl) Function Bindings' for details.
+
+BINDINGS is a list of definitions of the form (FUNC ARGLIST BODY...)
+where FUNC is the function name, ARGLIST its arguments, and BODY the
+forms of the function body.
+
+FUNC is defined in any BODY, as well as FORM, so you can write recursive
+and mutually recursive function definitions.  See Info node
+`(cl) Function Bindings' for details.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1) (debug cl-flet))
@@ -2728,6 +2725,7 @@ For instance
 
 will turn off byte-compile warnings in the function.
 See Info node `(cl)Declarations' for details."
+  (declare (obsolete defvar "31.1"))
   (if (macroexp-compiling-p)
       (while specs
 	(if (listp cl--declare-stack) (push (car specs) cl--declare-stack))
@@ -3578,7 +3576,10 @@ Of course, we really can't know that for sure, so it's just a heuristic."
 ;;;###autoload
 (defmacro cl-check-type (form type &optional string)
   "Verify that FORM is of type TYPE; signal an error if not.
-STRING is an optional description of the desired type."
+STRING is an optional description of the desired type.
+
+Hint: To check the type of an object, use `cl-type-of'.
+To define new types, see `cl-deftype'."
   (declare (debug (place cl-type-spec &optional stringp)))
   (and (or (not (macroexp-compiling-p))
 	   (< cl--optimize-speed 3) (= cl--optimize-safety 3))

@@ -32370,7 +32370,7 @@ has the advantage that it is quietly ignored if @code{calc-check-defines}
 is not yet defined because Calc has not yet been loaded.
 
 Examples of things that ought to be enclosed in a @code{calc-define}
-property are @code{defmath} calls, @code{define-key} calls that modify
+property are @code{defmath} calls, @code{keymap-set} calls that modify
 the Calc key map, and any calls that redefine things defined inside Calc.
 Ordinary @code{defun}s need not be enclosed with @code{calc-define}.
 
@@ -32478,7 +32478,7 @@ there.
 @vindex calc-Y-help-msgs
 Calc reserves a special prefix key, shift-@kbd{Y}, for user-written
 extensions to Calc.  There are no built-in commands that work with
-this prefix key; you must call @code{define-key} from Lisp (probably
+this prefix key; you must call @code{keymap-set} from Lisp (probably
 from inside a @code{calc-define} property) to add to it.  Initially only
 @kbd{Y ?} is defined; it takes help messages from a list of strings
 (initially @code{nil}) in the variable @code{calc-Y-help-msgs}.  All
@@ -32512,9 +32512,9 @@ decreases the precision.
 
 (put 'calc-define 'inc-prec '(progn
 
-(define-key calc-mode-map (format "Y%sI" inc-prec-base-key)
+(keymap-set calc-mode-map (format "Y %s I" inc-prec-base-key)
             'calc-increase-precision)
-(define-key calc-mode-map (format "Y%sD" inc-prec-base-key)
+(keymap-set calc-mode-map (format "Y %s D" inc-prec-base-key)
             'calc-decrease-precision)
 
 (setq calc-Y-help-msgs
@@ -35297,7 +35297,7 @@ The usual prefix for Calc is the key sequence @kbd{C-x *}.  If you wish
 to use a different prefix, you can put
 
 @example
-(global-set-key "NEWPREFIX" 'calc-dispatch)
+(keymap-global-set "NEWPREFIX" 'calc-dispatch)
 @end example
 
 @noindent

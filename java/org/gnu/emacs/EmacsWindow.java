@@ -353,7 +353,7 @@ public final class EmacsWindow extends EmacsHandleObject
     /* Otherwise accept the new position offered by the toolkit.  FIXME:
        isn't there a potential race condition here if the toolkit lays
        out EmacsView after a child frame's rect is set but before it
-       calls onLayout to read the modifies rect?  */
+       calls onLayout to read the modified rect?  */
     else
       {
 	rect.left = left;

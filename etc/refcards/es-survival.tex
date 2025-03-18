@@ -1,0 +1,425 @@
+%&tex
+% Title:  GNU Emacs Survival Card
+
+% Copyright (C) 2025 Free Software Foundation, Inc.
+
+% Author: Włodek Bzyl <matwb@univ.gda.pl>
+% Spanish translation: Elias Gabriel Perez <eg642616@gmail.com>
+
+% This document is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+
+% As a special additional permission, you may distribute reference cards
+% printed, or formatted for printing, with the notice "Released under
+% the terms of the GNU General Public License version 3 or later"
+% instead of the usual distributed-under-the-GNU-GPL notice, and without
+% a copy of the GPL itself.
+
+% This document is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+
+% You should have received a copy of the GNU General Public License
+% along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+% Thanks to Cecilio Pardo, Mauro Aranda and Stephen Berman for
+% the suggestions.
+
+%**start of header
+
+% User interface is `plain.tex' and macros described below
+%
+% \title{CARD TITLE}{for version 23}
+% \section{NAME}
+% optional paragraphs separated with \askip amount of vertical space
+% \key{KEY-NAME} description of key or
+% \mkey{M-x LONG-LISP-NAME} description of Elisp function
+%
+% \kbd{ARG} -- argument is typed literally
+
+\def\plainfmtname{plain}
+\ifx\fmtname\plainfmtname
+\else
+  \errmessage{This file requires `plain' format to be typeset correctly}
+  \endinput
+\fi
+
+% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
+% a landscape layout.
+\input pdflayout.sty
+\pdflayout=(1)
+
+\input emacsver.tex
+
+\def\copyrightnotice{\penalty-1\vfill
+  \vbox{\smallfont\baselineskip=0.8\baselineskip\raggedcenter
+    Copyright \copyright\ \year\ Free Software Foundation, Inc.\break
+    For GNU Emacs version \versionemacs\break
+    Author W{\l}odek Bzyl (matwb@univ.gda.pl)
+    Translated by Elias Gabriel P{\'e}rez
+
+    Released under the terms of the GNU General Public License
+    version 3 or later.
+
+    For more Emacs documentation, and the \TeX{} source for this card,
+    see the Emacs distribution,
+    or {\tt https://www.gnu.org/software/emacs}\par}}
+
+\hsize 3.2in
+\vsize 7.95in
+\font\titlefont=cmss10 scaled 1200
+\font\headingfont=cmss10
+\font\smallfont=cmr6
+\font\smallsy=cmsy6
+\font\eightrm=cmr8
+\font\eightbf=cmbx8
+\font\eightit=cmti8
+\font\eighttt=cmtt8
+\font\eightmi=cmmi8
+\font\eightsy=cmsy8
+\font\eightss=cmss8
+\textfont0=\eightrm
+\textfont1=\eightmi
+\textfont2=\eightsy
+\def\rm{\eightrm} \rm
+\def\bf{\eightbf}
+\def\it{\eightit}
+\def\tt{\eighttt}
+\def\ss{\eightss}
+\baselineskip=0.8\baselineskip
+
+\newdimen\intercolumnskip % horizontal space between columns
+\intercolumnskip=0.5in
+
+% The TeXbook, p. 257
+\let\lr=L \newbox\leftcolumn
+\output={\if L\lr
+    \global\setbox\leftcolumn\columnbox \global\let\lr=R
+  \else
+       \doubleformat \global\let\lr=L\fi}
+\def\doubleformat{\shipout\vbox{\makeheadline
+    \leftline{\box\leftcolumn\hskip\intercolumnskip\columnbox}
+    \makefootline}
+  \advancepageno}
+\def\columnbox{\leftline{\pagebody}}
+
+\def\newcolumn{\vfil\eject}
+
+\def\bye{\par\vfil\supereject
+  \if R\lr \null\vfil\eject\fi
+  \end}
+
+\outer\def\title#1#2{{\titlefont\centerline{#1}}\vskip 1ex plus 0.5ex
+   \centerline{\ss#2}
+   \vskip2\baselineskip}
+
+\outer\def\section#1{\filbreak
+  \bskip
+  \leftline{\headingfont #1}
+  \askip}
+\def\bskip{\vskip 2.5ex plus 0.25ex }
+\def\askip{\vskip 0.75ex plus 0.25ex}
+
+\newdimen\defwidth \defwidth=0.25\hsize
+\def\hang{\hangindent\defwidth}
+
+\def\textindent#1{\noindent\llap{\hbox to \defwidth{\tt#1\hfil}}\ignorespaces}
+\def\key{\par\hangafter=0\hang\textindent}
+
+\def\mtextindent#1{\noindent\hbox{\tt#1\quad}\ignorespaces}
+\def\mkey{\par\hangafter=1\hang\mtextindent}
+
+\def\kbd#{\bgroup\tt \let\next= }
+
+\newdimen\raggedstretch
+\newskip\raggedparfill \raggedparfill=0pt plus 1fil
+\def\nohyphens
+   {\hyphenpenalty10000\exhyphenpenalty10000\pretolerance10000}
+\def\raggedspaces
+   {\spaceskip=0.3333em\relax
+    \xspaceskip=0.5em\relax}
+\def\raggedright
+   {\raggedstretch=6em
+    \nohyphens
+    \rightskip=0pt plus \raggedstretch
+    \raggedspaces
+    \parfillskip=\raggedparfill
+    \relax}
+\def\raggedcenter
+   {\raggedstretch=6em
+    \nohyphens
+    \rightskip=0pt plus \raggedstretch
+    \leftskip=\rightskip
+    \raggedspaces
+    \parfillskip=0pt
+    \relax}
+
+\chardef\\=`\\
+
+\raggedright
+\nopagenumbers
+\parindent 0pt
+\interlinepenalty=10000
+\hoffset -0.2in
+%\voffset 0.2in
+
+%**end of header
+
+
+\title{Tarjeta\ de\ Supervivencia\ para\ GNU\ \ Emacs}{para la versi{\'o}n \versionemacs}
+
+A continuaci{\'o}n, \kbd{C-z} significa presionar la tecla `\kbd{z}' mientras
+mantienes presionada la tecla {\it Ctrl}. \kbd{M-z} significa
+presionar la tecla `\kbd{z}' mientras mantienes presionada la tecla
+{\it Meta\/} (tambi{\'e}n llamada {\it Alt\/} en algunos teclados)
+o despu{\'e}s de presionar la tecla {\it Esc\/}.
+
+\section{Abrir Emacs}
+
+Para Abrir GNU Emacs, solo escriba su nombre: \kbd{emacs}.
+Emacs divide sus marcos en varias {\'a}reas:
+  la barra del men{\'u},
+  el {\'a}rea del buffer donde se edita el texto,
+  la barra modal (mode-line) describiendo el buffer en la ventana que est{\'a} encima de {\'e}l,
+  y en la {\'u}ltima l{\'i}nea el {\'a}rea del minibuffer o de mensajes.
+\askip
+\key{C-x C-c} salir de Emacs
+\key{C-x C-f} editar archivo; este comando usa el minibuffer para leer
+  el nombre del archivo; usa este para crear nuevos archivos con tan solo
+  escribir el nombre del nuevo archivo que desee.
+\key{C-x C-s} guardar archivo
+\key{C-x k} eliminar un buffer
+\key{C-g} en la mayor{\'i}a de los casos: cancela, detiene, aborta parcialmente
+  algo escrito o un comando ejecut{\'a}ndose
+\key{C-x u} deshacer
+
+\section{Moverse}
+
+\key{C-l} desplazar l{\'i}nea actual al centro de la ventana
+\key{C-x b} cambiar a otro buffer
+\key{M-<} ir al comienzo del buffer
+\key{M->} ir al final del buffer
+\key{M-g M-g} ir a un n{\'u}mero de l{\'i}nea dado
+
+\section{M{\'u}ltiples Ventanas}
+
+\key{C-x 0} remover la ventana actual
+\key{C-x 1} hacer que la ventana activa sea la {\'u}nica
+\key{C-x 2} dividir ventana horizontalmente
+\key{C-x 3} dividir ventana verticalmente
+\key{C-x o} ir a otra ventana
+
+\section{Regiones}
+
+Emacs define una `regi{\'o}n' como el espacio entre la selecci{\'o}n y el
+punto.  Una selecci{\'o}n se establece con \kbd{C-{\it espacio}}.
+El punto esta en la posici{\'o}n del cursor.
+\askip
+\key{M-h} seleccionar p{\'a}rrafo
+\key{C-x h} seleccionar todo el buffer
+
+\section{Cortar y Pegar}
+
+\key{C-w} cortar regi{\'o}n
+\key{M-w} copiar regi{\'o}n (al kill-ring)
+\key{C-k} cortar desde el cursor hasta el final de la l{\'i}nea
+\key{M-DEL} cortar palabra
+\key{C-y} volver a pegar lo {\'u}ltimo que se cort{\'o} (\kbd{C-w C-y} la
+  combinaci{\'o}n podr{\'i}a usarse
+para mover el texto)
+\key{M-y} remplazar {\'u}ltimo pegado con la cortada anterior
+
+\section{Buscar}
+
+\key{C-s} buscar un texto
+\key{C-r} buscar hacia atr{\'a}s un texto
+\key{RET} salir de la b{\'u}squeda
+\key{M-C-s} buscar con una expresi{\'o}n regular
+\key{M-C-r} buscar hacia atr{\'a}s con una expresi{\'o}n regular
+\askip
+Usa otra vez \kbd{C-s} o \kbd{C-r} para repetir la b{\'u}squeda en
+cualquier direcci{\'o}n.
+
+\section{Etiquetas}
+
+La tabla de etiquetas guarda la localizaci{\'o}n de funciones y definiciones
+de procedimientos, variables globales, tipos de datos y cualquier otra
+cosa conveniente.  Para crear un archivo de tablas de etiquetas, escriba
+`{\tt etags} {\it archivos\_a\_ingresar}' como un comando de shell.
+\askip
+\key{M-.} encontrar una definici{\'o}n
+\key{M-,} volver a donde \kbd{M-.} fue invocado por {\'u}ltima vez
+\mkey{M-x tags-query-replace} ejecutar query-replace en todos los archivos
+  registrados en la tabla de etiquetas
+
+\section{Compilar}
+
+\key{M-x compile} compilar c{\'o}digo en la ventana activa
+\key{C-c C-c} ir al siguiente error del compilador, cuando est{\'e}
+  en la ventana de compilaci{\'o}n o
+\key{C-x `} cuando est{\'e} en la ventana con el c{\'o}digo fuente
+
+\section{Dired, El Editor de Directorios}
+
+\key{C-x d} invocar Dired
+\key{d} marcar este archivo para eliminaci{\'o}n
+\key{\~{}} marcar todos los archivos de respaldo para eliminaci{\'o}n
+\key{u} quitar marca de eliminaci{\'o}n
+\key{x} eliminar los archivos marcados para eliminaci{\'o}n
+\key{C} copiar archivo
+\key{g} actualizar el buffer de Dired
+\key{f} abrir el archivo descrito en la l{\'i}nea actual
+\key{s} cambiar entre el orden alfab{\'e}tico de fecha y hora
+
+\section{Lectura y env{\'i}o de correo electr{\'o}nico}
+
+\key{M-x rmail} empezar a leer el correo
+\key{q} dejar de leer el correo
+\key{h} mostrar encabezados
+\key{d} marcar el mensaje actual para eliminaci{\'o}n
+\key{x} eliminar todos los mensajes marcados para eliminaci{\'o}n
+
+\key{C-x m} redactar un mensaje
+\key{C-c C-c} enviar el mensaje y cambiar a otro buffer
+\key{C-c C-f C-c} ir al campo de encabezado 'Cc' y crea uno
+  si no hay ninguno
+
+\section{Miscel{\'a}neos}
+
+\key{M-q} rellenar p{\'a}rrafo
+\key{M-/} expandir la palabra anterior din{\'a}micamente
+\key{C-z} minimizar (suspender) Emacs cuando se est{\'a} ejecutando
+  gr{\'a}ficamente o en terminal, respectivamente
+\mkey{M-x revert-buffer} actualizar texto del buffer acorde al archivo
+  guardado
+
+\section{Buscar y Remplazar}
+
+\key{M-\%} buscar y remplazar de forma interactiva
+\key{M-C-\%} buscar usando expresiones regulares
+\askip
+Las respuestas v{\'a}lidas en query-replace son
+\askip
+\key{SPC} remplazar este y pasa al siguiente
+\key{,} remplazar este pero no te muevas
+\key{DEL} saltar al siguiente sin remplazar
+\key{!} remplazar todas las coincidencias restantes
+\key{\^{}} volver a la coincidencia anterior
+\key{RET} salir de query-replace
+\key{C-r} entrar a la edici{\'o}n recursiva (\kbd{M-C-c} para salir)
+
+\section{Expresiones regulares}
+
+\key{. {\rm(dot)}} cualquier car{\'a}cter individual excepto una nueva l{\'i}nea
+\key{*} cero o m{\'a}s repeticiones
+\key{+} una o m{\'a}s repeticiones
+\key{?} cero o una repetici{\'o}n
+\key{[$\ldots$]} denota una clase de car{\'a}cter a coincidir
+\key{[\^{}$\ldots$]} niega la clase
+
+\key{\\{\it c}} mantener caracteres que de otra manera tendr{\'i}an un
+  significado especial en expresiones regulares
+
+\key{$\ldots$\\|$\ldots$\\|$\ldots$} coincide con una de las
+  alternativas (``or'')
+\key{\\( $\ldots$ \\)} agrupa una serie de patrones de elementos a un
+  solo elemento
+\key{\\{\it n}} mismo texto como del grupo n{\'u}mero {\it n\/}
+
+\key{\^{}} coincidencias con el inicio de la l{\'i}nea
+\key{\$} coincidencias al final de la l{\'i}nea
+
+\key{\\w} encuentra un car{\'a}cter de una palabra
+\key{\\W} encuentra un car{\'a}cter de una palabra
+\key{\\<} encuentra al comienzo de una palabra
+\key{\\>} encuentra al final de una palabra
+\key{\\b} encuentra en el salto de palabra
+\key{\\B} encuentra en un no salto de palabra
+
+\section{Registros}
+
+\key{C-x r s} guardar selecci{\'o}n en el registro
+\key{C-x r i} insertar el contenido del registro en el buffer
+
+\key{C-x r SPC} guardar el valor del cursor en el registro
+\key{C-x r j} saltar al punto guardado en el registro
+
+\section{Rect{\'a}ngulos}
+
+\key{C-x r r} copiar rect{\'a}ngulo al registro
+\key{C-x r k} cortar rect{\'a}ngulo
+\key{C-x r y} pegar rect{\'a}ngulo
+\key{C-x r t} a{\~n}adir un prefijo a cada l{\'i}nea con un texto
+
+\key{C-x r o} abrir rect{\'a}ngulo, desplazar el texto hacia la derecha
+\key{C-x r c} dejar rect{\'a}ngulo en blanco
+
+\section{Shells}
+
+\key{M-x shell} iniciar un shell dentro de Emacs
+\key{M-!} ejecutar un comando de shell dentro de Emacs
+\key{M-|} ejecutar un comando de shell de una regi{\'o}n
+\key{C-u M-|} filtrar regi{\'o}n a trav{\'e}s de un comando de shell
+
+\section{Revisi{\'o}n Ortogr{\'a}fica}
+
+\key{M-\$} comprobar la ortograf{\'i}a de la palabra en el cursor
+\mkey{M-x ispell-region} comprobar la ortograf{\'i}a de todas las palabras de
+  la selecci{\'o}n
+\mkey{M-x ispell-buffer} comprobar la ortograf{\'i}a de todo el buffer
+
+\section{Caracteres Internacionales}
+
+\key{C-x RET C-\\} seleccionar y activar el m{\'e}todo de entrada para el
+  buffer actual
+\key{C-\\} activar o desactivar el m{\'e}todo de entrada
+\mkey{M-x list-input-methods} mostrar todos los m{\'e}todos de entrada
+\mkey{M-x set-language-environment} especificar idioma principal
+
+\key{C-x RET c} establecer el sistema de codificaci{\'o}n para el siguiente comando
+\mkey{M-x find-file-literally} abrir archivo sin conversi{\'o}n
+  de ning{\'u}n tipo
+
+\mkey{M-x list-coding-systems} mostrar todos los sistemas de codificaci{\'o}n
+\mkey{M-x prefer-coding-system} escoger el sistema de codificaci{\'o}n preferido
+
+\section{Macros del teclado}
+
+\key{C-x (} empezar a definir una macro
+\key{C-x )} terminar de definir la macro
+\key{C-x e} ejecutar la {\'u}ltima macro definida
+\key{C-u C-x (} a{\~n}adir a la {\'u}ltima macro definida
+\mkey{M-x name-last-kbd-macro} nombrar {\'u}ltima macro definida
+
+\section{Personalizaci{\'o}n sencilla}
+
+\key{M-x customize} personalizar variables y caras
+
+\section{Obtener Ayuda}
+
+Emacs completa los comandos por usted.  Escribiendo \kbd{M-x}
+{\it tab\/} o {\it espacio\/} proporciona una lista de comandos de Emacs.
+\askip
+\key{C-h} ayuda de Emacs
+\key{C-h t} ejecutar el tutorial de Emacs
+\key{C-h i} entrar a Info, el navegador de documentaci{\'o}n
+\key{C-h a} mostrar comandos que coinciden con una string (apropos)
+\key{C-h k} mostrar documentaci{\'o}n de la funci{\'o}n invocada por la
+  pulsaci{\'o}n de tecla
+\askip
+Emacs se mete en diferentes {\it modos}, cada uno de los cuales personaliza
+Emacs para editar texto de un tipo particular.  La l{\'i}nea modal (mode-line)
+contiene los nombres de los modos actuales, entre par{\'e}ntesis.
+\askip
+\key{C-h m} obtener informaci{\'o}n espec{\'i}fica del modo
+
+\copyrightnotice
+
+\bye
+
+% Local variables:
+% compile-command: "pdftex survival"
+% End:

@@ -450,21 +450,21 @@
 ;;
 ;; Current global keyboard mapping is:
 ;;
-;;    (global-set-key [print]     'pr-ps-fast-fire)
-;;    (global-set-key [M-print]   'pr-ps-mode-using-ghostscript)
-;;    (global-set-key [S-print]   'pr-ps-mode-using-ghostscript)
-;;    (global-set-key [C-print]   'pr-txt-fast-fire)
-;;    (global-set-key [C-M-print] 'pr-txt-fast-fire)
+;;    (keymap-global-set "<print>"     'pr-ps-fast-fire)
+;;    (keymap-global-set "M-<print>"   'pr-ps-mode-using-ghostscript)
+;;    (keymap-global-set "S-<print>"   'pr-ps-mode-using-ghostscript)
+;;    (keymap-global-set "C-<print>"   'pr-txt-fast-fire)
+;;    (keymap-global-set "C-M-<print>" 'pr-txt-fast-fire)
 ;;
 ;; As a suggestion of global keyboard mapping for some `printing' commands:
 ;;
-;;    (global-set-key "\C-ci"  'pr-interface)
-;;    (global-set-key "\C-cbp" 'pr-ps-buffer-print)
-;;    (global-set-key "\C-cbx" 'pr-ps-buffer-preview)
-;;    (global-set-key "\C-cbb" 'pr-ps-buffer-using-ghostscript)
-;;    (global-set-key "\C-crp" 'pr-ps-region-print)
-;;    (global-set-key "\C-crx" 'pr-ps-region-preview)
-;;    (global-set-key "\C-crr" 'pr-ps-region-using-ghostscript)
+;;    (keymap-global-set "C-c i"   'pr-interface)
+;;    (keymap-global-set "C-c b p" 'pr-ps-buffer-print)
+;;    (keymap-global-set "C-c b x" 'pr-ps-buffer-preview)
+;;    (keymap-global-set "C-c b b" 'pr-ps-buffer-using-ghostscript)
+;;    (keymap-global-set "C-c r p" 'pr-ps-region-print)
+;;    (keymap-global-set "C-c r x" 'pr-ps-region-preview)
+;;    (keymap-global-set "C-c r r" 'pr-ps-region-using-ghostscript)
 ;;
 ;;
 ;; Options
@@ -2969,13 +2969,13 @@ Calls `pr-update-menus' to adjust menus."
 (global-set-key [(control meta print)] 'pr-txt-fast-fire)
 
 ;;; You can also use something like:
-;;;(global-set-key "\C-ci"  'pr-interface)
-;;;(global-set-key "\C-cbp" 'pr-ps-buffer-print)
-;;;(global-set-key "\C-cbx" 'pr-ps-buffer-preview)
-;;;(global-set-key "\C-cbb" 'pr-ps-buffer-using-ghostscript)
-;;;(global-set-key "\C-crp" 'pr-ps-region-print)
-;;;(global-set-key "\C-crx" 'pr-ps-region-preview)
-;;;(global-set-key "\C-crr" 'pr-ps-region-using-ghostscript)
+;;;(keymap-global-set "C-c i"   'pr-interface)
+;;;(keymap-global-set "C-c b p" 'pr-ps-buffer-print)
+;;;(keymap-global-set "C-c b x" 'pr-ps-buffer-preview)
+;;;(keymap-global-set "C-c b b" 'pr-ps-buffer-using-ghostscript)
+;;;(keymap-global-set "C-c r p" 'pr-ps-region-print)
+;;;(keymap-global-set "C-c r x" 'pr-ps-region-preview)
+;;;(keymap-global-set "C-c r r" 'pr-ps-region-using-ghostscript)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

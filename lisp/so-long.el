@@ -383,6 +383,43 @@
 ;; Finally, the `so-long-predicate' user option enables the automated behavior
 ;; to be determined by a custom function, if greater control is needed.
 
+;; * Non-file buffers
+;; ------------------
+;; As noted in the introduction, `global-so-long-mode' only affects buffers
+;; visiting files, and only at the point in time that they are visited.  The
+;; library does not automatically detect if long lines are inserted into an
+;; existing buffer, which means that non-file buffers are not processed at all
+;; by the global mode (although the `so-long' command can be invoked manually).
+;; To handle such buffers additional glue code will be required, and that code
+;; should likely be specific to the particular use-case to avoid unintended
+;; behaviours.
+;;
+;; An example to handle `compilation-mode' (and derivative) buffers follows:
+;;
+;;   ;; Trigger `so-long-minor-mode' for long compile output.
+;;   (with-eval-after-load 'compile
+;;     (require 'so-long))
+;;
+;;   (add-hook 'compilation-mode-hook 'my-so-long-compilation-mode)
+;;
+;;   (defun my-so-long-compilation-mode ()
+;;     "Add `my-so-long-compilation-filter' to local `compilation-filter-hook'."
+;;     (add-hook 'compilation-filter-hook
+;;               'my-so-long-compilation-filter nil :local))
+;;
+;;   (defun my-so-long-compilation-filter ()
+;;     "Maybe call `so-long-minor-mode' during `compilation-filter-hook'."
+;;     (let ((start (save-excursion (goto-char compilation-filter-start)
+;;                                  (line-beginning-position))))
+;;       (when (> (- (point) start) so-long-threshold)
+;;         (save-restriction
+;;           (narrow-to-region start (point))
+;;           (when (let (so-long-max-lines so-long-skip-leading-comments)
+;;                   (funcall so-long-predicate))
+;;             (so-long-minor-mode 1)
+;;             (remove-hook 'compilation-filter-hook
+;;                          'my-so-long-compilation-filter :local))))))
+
 ;; * Implementation notes
 ;; ----------------------
 ;; This library advises `set-auto-mode' (in order to react after Emacs has
@@ -1517,14 +1554,14 @@ The variables are set in accordance with what was remembered in `so-long'."
       (kill-local-variable variable))))
 
 (defun so-long-mode-maintain-preserved-variables ()
-  "Set any \"preserved\" variables.
+  "Set variables listed in `so-long-mode-preserved-variables'.
 
 The variables are set in accordance with what was remembered in `so-long'."
   (dolist (var (so-long-original 'so-long-mode-preserved-variables))
     (so-long-restore-variable var)))
 
 (defun so-long-mode-maintain-preserved-minor-modes ()
-  "Enable or disable \"preserved\" minor modes.
+  "Enable or disable modes listed in `so-long-mode-preserved-minor-modes'.
 
 The modes are set in accordance with what was remembered in `so-long'."
   (dolist (mode (so-long-original 'so-long-mode-preserved-minor-modes))
@@ -1716,7 +1753,8 @@ major mode is a member (or derivative of a member) of `so-long-target-modes'.
        (not so-long--inhibited)
        (not so-long--calling)
        (or (eq so-long-target-modes t)
-           (derived-mode-p so-long-target-modes))
+           ;; Maintain `derived-mode-p' compatibility with Emacs < 30.
+           (apply #'derived-mode-p so-long-target-modes))
        (setq so-long-detected-p (funcall so-long-predicate))
        ;; `so-long' should be called; but only if and when the buffer is
        ;; displayed in a window.  Long lines in invisible buffers are generally
@@ -2028,7 +2066,10 @@ If it appears in `%s', you should remove it."
   ;; Update to version 1.0 from earlier versions:
   (when (version< so-long-version "1.0")
     (remove-hook 'change-major-mode-hook 'so-long-change-major-mode)
-    (require 'advice) ;; It should already be loaded, but just in case.
+    (require 'advice)
+    ;; `ad-find-advice' is a macro in Emacs 26 and earlier.
+    (eval-when-compile (when (< emacs-major-version 27)
+                         (require 'advice)))
     (declare-function ad-find-advice "advice")
     (declare-function ad-remove-advice "advice")
     (declare-function ad-activate "advice")

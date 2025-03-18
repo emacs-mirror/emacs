@@ -885,7 +885,9 @@ for highlighting the match that is found."
      (t (error "No previous View-mode search")))
     (save-excursion
       (if end (goto-char (if (< times 0) (point-max) (point-min)))
-	(forward-line (if (< times 0) -1 1)))
+        (if (< times 0)
+            (beginning-of-line)
+          (end-of-line)))
       (if (if no (view-search-no-match-lines times regexp)
 	    (re-search-forward regexp nil t times))
 	  (setq where (point))))

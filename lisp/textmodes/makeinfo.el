@@ -34,10 +34,10 @@
 ;;; Keybindings (defined in `texinfo.el')
 
 ;; makeinfo bindings
-; (define-key texinfo-mode-map "\C-c\C-m\C-r" 'makeinfo-region)
-; (define-key texinfo-mode-map "\C-c\C-m\C-b" 'makeinfo-buffer)
-; (define-key texinfo-mode-map "\C-c\C-m\C-k" 'kill-compilation)
-; (define-key texinfo-mode-map "\C-c\C-m\C-l"
+; (keymap-set texinfo-mode-map "C-c C-m C-r" 'makeinfo-region)
+; (keymap-set texinfo-mode-map "C-c C-m C-b" 'makeinfo-buffer)
+; (keymap-set texinfo-mode-map "C-c C-m C-k" 'kill-compilation)
+; (keymap-set texinfo-mode-map "C-c C-m C-l"
 ;   'makeinfo-recenter-compilation-buffer)
 
 ;;; Code:

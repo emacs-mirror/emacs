@@ -138,7 +138,7 @@ to the highlighted and clickable region."
                               (or (< (match-beginning i) m-b1)
                                   (> (match-end i) m-e1)))
                      (throw 'within-bounds nil))
-                   (cl-incf i))
+                   (incf i))
                  t)))
         ;; All groups 2..10 are within bounds.
         (cons m-b1 m-e1)

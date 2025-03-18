@@ -604,7 +604,7 @@ This function also removes `unset' properties and calls
 Every function is called with one argument, a hash-table indexed by
 EditorConfig settings represented as symbols and whose corresponding value
 is represented as a string.  It should return a list of (VAR . VAL) settings
-where VAR is an ELisp variable and VAL is the value to which it should be set.")
+where VAR is a Lisp variable and VAL is the value to which it should be set.")
 
 (defun editorconfig--get-local-variables (props)
   "Get variables settings according to EditorConfig PROPS."

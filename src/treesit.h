@@ -63,6 +63,15 @@ struct Lisp_TS_Parser
      but rather return DEFAULT_RANGE.  (A single range where start_byte
      = 0, end_byte = UINT32_MAX).  */
   Lisp_Object last_set_ranges;
+  /* Parsers for embedded code blocks will have a non-zero embed level.
+     The primary parser has level 0, and each additional layer of parser
+     embedding increments the leve by 1.  The embed level can be either
+     a non-negative integer or nil.  Every parser created by
+     'treesit-parser-create' starts with a nil level.  If the value is
+     nil, that means the range functions (treesit-update-ranges and
+     friends) haven't touched this parser yet, and this parser isn't
+     part of the embed parser tree.  */
+  Lisp_Object embed_level;
   /* The buffer associated with this parser.  */
   Lisp_Object buffer;
   /* The pointer to the tree-sitter parser.  Never NULL.  */

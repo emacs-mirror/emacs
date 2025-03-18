@@ -2196,8 +2196,9 @@ built-in package with a (possibly newer) version from a package archive."
 ;;;###autoload
 (defun package-install (pkg &optional dont-select)
   "Install the package PKG.
-PKG can be a `package-desc' or a symbol naming one of the
-available packages in an archive in `package-archives'.
+
+PKG can be a `package-desc', or a symbol naming one of the available
+packages in an archive in `package-archives'.
 
 Mark the installed package as selected by adding it to
 `package-selected-packages'.
@@ -2229,6 +2230,7 @@ had been enabled."
                      package-archive-contents)
                     nil t))
            nil)))
+  (cl-check-type pkg (or symbol package-desc))
   (package--archives-initialize)
   (add-hook 'post-command-hook #'package-menu--post-refresh)
   (let ((name (if (package-desc-p pkg)
@@ -2256,21 +2258,22 @@ had been enabled."
 
 ;;;###autoload
 (defun package-upgrade (name)
-  "Upgrade package NAME if a newer version exists."
+  "Upgrade package NAME if a newer version exists.
+
+NAME should be a symbol."
   (interactive
-   (list (completing-read
-          "Upgrade package: " (package--upgradeable-packages t) nil t)))
-  (let* ((package (if (symbolp name)
-                      name
-                    (intern name)))
-         (pkg-desc (cadr (assq package package-alist)))
+   (list (intern (completing-read
+                  "Upgrade package: "
+                  (package--upgradeable-packages t) nil t))))
+  (cl-check-type name symbol)
+  (let* ((pkg-desc (cadr (assq name package-alist)))
          (package-install-upgrade-built-in (not pkg-desc)))
     ;; `pkg-desc' will be nil when the package is an "active built-in".
     (if (and pkg-desc (package-vc-p pkg-desc))
         (package-vc-upgrade pkg-desc)
       (when pkg-desc
         (package-delete pkg-desc 'force 'dont-unselect))
-      (package-install package
+      (package-install name
                        ;; An active built-in has never been "selected"
                        ;; before.  Mark it as installed explicitly.
                        (and pkg-desc 'dont-select)))))
@@ -2821,7 +2824,8 @@ Helper function for `describe-package'."
          (status (if desc (package-desc-status desc) "orphan"))
          (incompatible-reason (package--incompatible-p desc))
          (signed (if desc (package-desc-signed desc)))
-         (maintainers (cdr (assoc :maintainer extras)))
+         (maintainers (or (cdr (assoc :maintainer extras))
+                          (cdr (assoc :maintainers extras))))
          (authors (cdr (assoc :authors extras)))
          (news (and-let* (pkg-dir
                           ((not built-in))

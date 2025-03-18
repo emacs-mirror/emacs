@@ -1996,7 +1996,7 @@ Overlays could be added when some user options are enabled, e.g.,
                     (i 0))
                 (put-text-property opoint end 'invisible 'dired-hide-details-detail)
                 (while (re-search-forward "[^ ]+" end t)
-                  (when (member (cl-incf i) dired-hide-details-preserved-columns)
+                  (when (member (incf i) dired-hide-details-preserved-columns)
                     (put-text-property opoint (point) 'invisible nil))
                   (setq opoint (point)))))
             (let ((beg (point)) (end (save-excursion
@@ -2416,6 +2416,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
   "x"       #'dired-do-flagged-delete
   "y"       #'dired-show-file-type
   "+"       #'dired-create-directory
+  "@"       #'tramp-dired-find-file-with-sudo
   ;; moving
   "<"       #'dired-prev-dirline
   ">"       #'dired-next-dirline
@@ -2439,7 +2440,6 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
   "?"       #'dired-summary
   "DEL"     #'dired-unmark-backward
   "<remap> <undo>"             #'dired-undo
-  "<remap> <advertised-undo>"  #'dired-undo
   "<remap> <vc-next-action>"   #'dired-vc-next-action
   ;; thumbnail manipulation (image-dired)
   "C-t d"   #'image-dired-display-thumbs
@@ -2936,15 +2936,19 @@ is controlled by `dired-movement-style'."
           (setq wrapped t))
          ;; `bounded': go back to the last non-empty line.
          (dired-movement-style ; Either 'bounded or anything else non-nil.
-          (while (and (dired-between-files) (not (zerop arg)))
+          (while (and (dired-between-files)
+                      (not (dired-get-subdir))
+                      (not (zerop arg)))
             (funcall jumpfun (- moving-down))
             ;; Point not moving means infinite loop.
             (if (= old-position (point))
                 (setq arg 0)
               (setq old-position (point))))
           ;; Encountered a boundary, so let's stop movement.
-          (setq arg (if (dired-between-files) 0 moving-down)))))
-      (unless (dired-between-files)
+          (setq arg (if (and (dired-between-files)
+                             (not (dired-get-subdir)))
+                        0 moving-down)))))
+      (unless (and (dired-between-files) (not (dired-get-subdir)))
         ;; Has moved to a non-empty line.  This movement does
         ;; make sense.
         (decf arg moving-down))
@@ -3026,9 +3030,6 @@ directory in another window."
                 (concat "File no longer exists; type \\<dired-mode-map>"
                         "\\[revert-buffer] to update Dired buffer")))))))
 
-;; Force C-m keybinding rather than `f' or `e' in the mode doc:
-(define-obsolete-function-alias 'dired-advertised-find-file
-  #'dired-find-file "23.2")
 (defun dired-find-file ()
   "In Dired, visit the file or directory named on this line."
   (interactive nil dired-mode)
@@ -3469,6 +3470,8 @@ If EOL, it should be an position to use instead of
 
 ;;; Copy names of marked files into kill-ring
 
+(declare-function project-root "project" (project))
+
 (defun dired-copy-filename-as-kill (&optional arg)
   "Copy names of marked (or next ARG) files into the kill ring.
 If there are several names, they will be separated by a space,
@@ -3477,6 +3480,7 @@ be quoted (with double quotes).  (When there's a single file, no
 quoting is done.)
 
 With a zero prefix arg, use the absolute file name of each marked file.
+With a prefix value 1, use the names relative to the current project root.
 With \\[universal-argument], use the file name relative to the Dired buffer's
 `default-directory'.  (This still may contain slashes if in a subdirectory.)
 
@@ -3488,8 +3492,13 @@ You can then feed the file name(s) to other commands with \\[yank]."
   (let* ((files
           (or (ensure-list (dired-get-subdir))
               (if arg
-                  (cond ((zerop (prefix-numeric-value arg))
+                  (cond ((eql 0 arg)
                          (dired-get-marked-files))
+                        ((eql 1 arg)
+                         (let ((root (project-root (project-current t))))
+                           (mapcar
+                            (lambda (file) (file-relative-name file root))
+                            (dired-get-marked-files))))
                         ((consp arg)
                          (dired-get-marked-files t))
                         (t

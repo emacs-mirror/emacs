@@ -47,7 +47,7 @@
   ;;"f" #'Helper-describe-function
   ;;"v" #'Helper-describe-variable
   "?" #'Helper-help-options
-  (key-description (char-to-string help-char)) #'Helper-help-options)
+  (help-key) #'Helper-help-options)
 (fset 'Helper-help-map Helper-help-map)
 
 (defun Helper-help-scroller ()

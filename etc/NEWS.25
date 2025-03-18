@@ -275,7 +275,7 @@ to produce its authentication key.
 *** Successive single-char deletions are collapsed in the undo-log just like
 successive char insertions.  Which commands invoke this behavior is
 controlled by the new 'undo-auto-amalgamate' function.  See the node
-"Undo" in the ELisp manual for more details.
+"Undo" in the Elisp manual for more details.
 
 *** The heuristic used to insert 'undo-boundary' after each command
 has changed, so that if a command causes changes in more than just the
@@ -1418,10 +1418,10 @@ continued to the next line.
 ** New macro 'define-advice'.
 
 ** Emacs Lisp now supports generators.
-See the "Generators" section of the ELisp manual for the details.
+See the "Generators" section of the Elisp manual for the details.
 
 ** New finalizer facility for running code when objects become unreachable.
-See the "Finalizer Type" subsection in the ELisp manual for the
+See the "Finalizer Type" subsection in the Elisp manual for the
 details.
 
 ** Lexical closures can use '(:documentation FORM)' to build their docstring.

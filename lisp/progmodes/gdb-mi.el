@@ -3545,9 +3545,9 @@ corresponding to the mode line clicked."
         (add-to-list 'gdb-threads-list
                      (cons (gdb-mi--field thread 'id)
                            thread))
-        (cl-incf (if running
-                     gdb-running-threads-count
-                   gdb-stopped-threads-count))
+        (incf (if running
+                  gdb-running-threads-count
+                gdb-stopped-threads-count))
 
         (gdb-table-add-row
          table

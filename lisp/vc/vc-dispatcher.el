@@ -186,9 +186,15 @@ Another is that undo information is not kept."
       ;; want any of its output to appear from now on.
       (when oldproc (delete-process oldproc)))
     (kill-all-local-variables)
-    (setq-local vc-parent-buffer camefrom)
-    (setq-local vc-parent-buffer-name
-                (concat " from " (buffer-name camefrom)))
+    ;; Kill also this permanent local var in case the VC command that
+    ;; created BUF was invoked from a different directory (bug#44698).
+    (kill-local-variable 'file-local-variables-alist)
+    ;; If we are refreshing an existing view,
+    ;; don't throw away where we really came from (bug#59457).
+    (unless (eq camefrom (current-buffer))
+      (setq-local vc-parent-buffer camefrom)
+      (setq-local vc-parent-buffer-name
+                  (concat " from " (buffer-name camefrom))))
     (setq default-directory olddir)
     (let ((buffer-undo-list t)
           (inhibit-read-only t))

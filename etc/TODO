@@ -105,7 +105,7 @@ longer)."
 
 ** Do interactive mode tagging for commands
 Change "(interactive)" to "(interactive nil foo-mode)" for command
-completion purposes.  Pick a major mode or ELisp library, and check
+completion purposes.  Pick a major mode or Lisp library, and check
 all interactive commands to see if they are only relevant in one
 particular mode.  This requires care as some commands might be useful
 outside of the mode they were written for.
@@ -221,6 +221,31 @@ Needed for dired buffers and DTRT WRT 'auto-revert-mode'.
 https://lists.gnu.org/r/emacs-devel/2008-08/msg00456.html
 
 * Important features
+
+** Make it easier to contribute
+
+*** New script to catch common mistakes in patches.
+Examples of things to catch are missing or malformed ChangeLog, style
+issues in C, Lisp, and Texinfo, etc.  There is no need to be overly
+ambitious in a first draft, making a start is better than nothing.  It
+could draw inspiration from checkpatch.pl used by the Linux kernel.
+
+*** New make target or script to run tests for changed files.
+This might require some kind of data structure mapping a source file to
+the tests which exercise some of the code in that source file.  The
+first approximation is to run FOO-tests when you modify a file FOO, but
+some FOO's get used in many places in the test suite, so this is not a
+simple 1:1 relation.  Then we could ask contributors to run the relevant
+tests as part of the submission process.
+
+*** Automated emails to contributors when their commits make tests fail
+Having EMBA or something similar email the guilty parties in case of
+new test failures (or maybe even warnings) would be great.
+
+*** Automated testing of patches submitted to the bug tracker
+Create a bot that can run the above "check patch" script, and perhaps
+even run unit tests, for every patch submitted to the bug tracker, and
+then send an automated email with the results.  Can EMBA help with this?
 
 ** Speed up Elisp execution
 
@@ -705,9 +730,9 @@ H-S-C-M-s-double-wheel-up, ...
 
 *** Support for the $ (paired delimiter) in parse-partial-sexp
 
-*** Support for hook-chars whose effect is specified by ELisp code
+*** Support for hook-chars whose effect is specified by Lisp
 Hook-chars could have their effect on the parsing-state specified by
-ELisp code.  Thus a character could both close a string and open a
+Lisp code.  Thus a character could both close a string and open a
 comment at the same time and do it in a context-sensitive way.
 
 *** Ability to add mode-specific data to the partial-parse-state
@@ -835,7 +860,7 @@ for completeness, but some may be worth documenting.
 
 Here's a list which is probably not complete/correct: align, allout,
 artist, ansi-color, array, calculator, cdl, cmuscheme, completion,
-delim-col, dirtrack, double, echistory, elide-head, easymenu, expand,
+delim-col, dirtrack, double, elide-head, easymenu, expand,
 flow-ctrl, format [format-alist], generic/generic-x [various modes],
 kermit, log-edit, makesum, midnight [other than in Kill Buffer node],
 mouse-copy [?], mouse-drag, mouse-sel, net-utils, snmp-mode
@@ -1780,12 +1805,6 @@ https://lists.gnu.org/r/emacs-devel/2012-06/msg00354.html
 ** Maybe replace lib-src/rcs2log with a Lisp implementation
 It wouldn't have to be a complete replacement, just enough
 for vc-rcs-update-changelog.
-
-** Allow Emacs to use the bottom-right corner of a TTY
-Emacs doesn't use the bottom-right corner of a TTY when terminfo
-capability "am" (auto_right_margin) is defined.  It could use the
-bottom-right corner nonetheless when certain other capabilities are
-defined.  See bug#57607.
 
 ** Replace tramp-archive.el by a native libarchive(3) implementation.
 The former is based on the GVFS archive backend, which makes it

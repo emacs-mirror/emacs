@@ -95,9 +95,9 @@ const foo = () => {
 
 Code:
   (lambda ()
-    (setq indent-tabs-mode nil)
     (setq tsx-ts-mode-indent-offset 2)
     (tsx-ts-mode)
+    (setq indent-tabs-mode nil)
     (indent-region (point-min) (point-max)))
 
 Name: JSX indentation
@@ -111,8 +111,8 @@ return (
 <div>
 {
 props.foo
-? Hello, foo!
-: Hello, World!;
+? 'Hello, foo!'
+: 'Hello, World!'
 }
 </div>
 </div>
@@ -129,8 +129,8 @@ const foo = (props) => {
           <div>
             {
               props.foo
-                ? Hello, foo!
-                : Hello, World!;
+                ? 'Hello, foo!'
+                : 'Hello, World!'
             }
           </div>
         </div>

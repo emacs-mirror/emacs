@@ -958,8 +958,7 @@ point.  Value is a list of symbols, more than one can be specified:
 @code{eldoc-hint}: ElDoc is used to hint about at-point actions.
 @item
 @code{margin}: A special indicator appears in the margin of the line
-that point is currently on.  This indicator is not interactive (you
-cannot click on it with the mouse).
+that point is currently on.
 @item
 @code{nearby}: An interactive special indicator appears near point.
 @item

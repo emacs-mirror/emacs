@@ -579,9 +579,9 @@ This function is a testable helper of `mh-sub-folders-actual'."
         (when (integerp has-pos)
           (while (equal (char-after has-pos) ? )
             (decf has-pos))
-          (cl-incf has-pos)
+          (incf has-pos)
           (while (equal (char-after start-pos) ? )
-            (cl-incf start-pos))
+            (incf start-pos))
           (let* ((name (buffer-substring start-pos has-pos))
                  (first-char (aref name 0))
                  (second-char (and (length> name 1) (aref name 1)))
@@ -920,10 +920,8 @@ Handle RFC 822 (or later) continuation lines."
              when (equal (downcase x) field) return t
              finally return nil)))
 
-(defvar mh-hidden-header-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] #'mh-letter-toggle-header-field-display-button)
-    map))
+(defvar-keymap mh-hidden-header-keymap
+  "<mouse-2>" #'mh-letter-toggle-header-field-display-button)
 
 ;;;###mh-autoload
 (defun mh-letter-toggle-header-field-display (arg)

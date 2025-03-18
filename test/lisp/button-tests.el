@@ -101,4 +101,32 @@
       (setq button (insert-button "overlay" 'help-echo help))
       (should (equal (button--help-echo button) "overlay: x")))))
 
+(ert-deftest button--preserve-help-echo ()
+  "Ensure buttonizing functions preserve existing `help-echo' properties."
+  ;; buttonize.
+  (let* ((string (propertize "button text" 'help-echo "help text"))
+         (button (buttonize string #'ignore)))
+    (should (equal (get-text-property 0 'help-echo button)
+                   "help text")))
+  ;; buttonize-region.
+  (with-temp-buffer
+    (insert (propertize "button text" 'help-echo "help text"))
+    (buttonize-region (point-min) (point) #'ignore)
+    (should (equal (get-text-property (point-min) 'help-echo)
+                   "help text"))
+    ;; unbuttonize-region should not clear the property either.
+    (unbuttonize-region (point-min) (point))
+    (should (equal (get-text-property (point-min) 'help-echo)
+                   "help text")))
+  ;; unbuttonize-region should still clear properties applied with
+  ;; buttonize.
+  (with-temp-buffer
+    (insert "button text")
+    (buttonize-region (point-min) (point) #'ignore nil "help text")
+    (should (equal (get-text-property (point-min) 'help-echo)
+                   "help text"))
+    (unbuttonize-region (point-min) (point))
+    (should (equal (get-text-property (point-min) 'help-echo)
+                   nil))))
+
 ;;; button-tests.el ends here

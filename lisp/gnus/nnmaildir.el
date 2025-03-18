@@ -841,7 +841,7 @@ This variable is set by `nnmaildir-request-article'.")
 		     ;; then look in marks directories
 		     (not (file-exists-p (concat cdir prefix)))
 		     (file-exists-p (concat ndir prefix)))
-		(cl-incf num)))))
+                (incf num)))))
 	(setf (nnmaildir--grp-cache group) (make-vector num nil))
         (let ((inhibit-quit t))
           (puthash gname group groups))

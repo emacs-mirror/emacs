@@ -1067,5 +1067,94 @@ Additionally register an `ert-info' to help identify test failures."
   (should (cl-subsetp '(1 2) '(1 2 3 2)))
   (should (cl-subsetp () ())))
 
+(defun cl--oddp-safe (x)
+  (and (numberp x) (oddp x)))
+
+(ert-deftest cl-subst-if-test ()
+  (should (equal (cl-subst-if 'X #'cl--oddp-safe '(1 2 (3 4 5) 6))
+                 '(X 2 (X 4 X) 6)))
+  (should (equal (cl-subst-if 'X #'cl--oddp-safe '(1 2 (3 4 5) 6)
+                              :key (lambda (x) (and (numberp x) (1+ x))))
+                 '(1 X (3 X 5) X))))
+
+(ert-deftest cl-subst-if-not-test ()
+  (should (equal (cl-subst-if-not 'X (lambda (x) (or (not (numberp x)) (oddp x)))
+                                  '(1 2 (3 4 5) 6))
+                 '(1 X (3 X 5) X)))
+  (should (equal (cl-subst-if-not 'X (lambda (x) (or (not (numberp x)) (oddp x)))
+                                  '(1 2 (3 4 5) 6)
+                                  :key (lambda (x) (and (numberp x) (1+ x))))
+                 '(X 2 (X 4 X) 6))))
+
+(ert-deftest cl-nsubst-test ()
+  (should (equal (let ((tree (list 'a 'b (list 'c 'd 'a) 'e)))
+                   (cl-nsubst 'X 'a tree))
+                 '(X b (c d X) e)))
+  (should (equal (let ((tree (list 'a 'b (list 'c 'd 'a) 'e)))
+                   (cl-nsubst 'X 'a tree
+                              :test #'eq))
+                 '(X b (c d X) e)))
+  (should (equal (let ((tree (list 'a 'b (list 'c 'd 'a) 'e)))
+                   (cl-nsubst 'X 'a tree
+                              :test-not (lambda (a b) (or (consp b) (eq a b)))))
+                 '(a X (X X a . X) X . X)))
+  (should (equal (let ((tree (list (cons 1 'a) (cons 2 'b) (cons 3 'a))))
+                   (cl-nsubst 'X 'a tree
+                              :key #'cdr-safe))
+                 '(X (2 . b) X))))
+
+(ert-deftest cl-nsubst-if-test ()
+  (should (equal (let ((tree (list 1 2 (list 3 4 5) 6)))
+                   (cl-nsubst-if 'X #'cl--oddp-safe tree))
+                 '(X 2 (X 4 X) 6)))
+  (should (equal (let ((tree (list 1 2 (list 3 4 5) 6)))
+                   (cl-nsubst-if 'X #'cl--oddp-safe tree
+                                 :key (lambda (x) (and (numberp x) (1+ x)))))
+                 '(1 X (3 X 5) X))))
+
+(ert-deftest cl-nsubst-if-not-test ()
+  (should (equal (let ((tree (list 1 2 (list 3 4 5) 6)))
+                   (cl-nsubst-if-not 'X
+                                     (lambda (x) (or (not (numberp x)) (oddp x)))
+                                     tree))
+                 '(1 X (3 X 5) X)))
+  (should (equal (let ((tree (list 1 2 (list 3 4 5) 6)))
+                   (cl-nsubst-if-not 'X
+                                     (lambda (x) (or (not (numberp x)) (oddp x)))
+                                     tree
+                                     :key (lambda (x) (and (numberp x) (1+ x)))))
+                 '(X 2 (X 4 X) 6))))
+
+(ert-deftest cl-sublis-test ()
+  (should (equal (cl-sublis '((a . x) (b . y)) '(a b (a c)))
+                 '(x y (x c))))
+  (should (equal (cl-sublis '((1 . x) (2 . y)) '(1 2 (3 4))
+                            :key (lambda (x) (and (numberp x) (1- x))))
+                 '(1 x (y 4))))
+  (should (equal (cl-sublis '(("a" . x) ("b" . y)) '("a" "b" ("a" "c"))
+                            :test #'equal)
+                 '(x y (x "c"))))
+  (should (equal (cl-sublis '(("a" . x) ("b" . y)) '("a" "b" ("a" "c"))
+                            :test-not #'equal)
+                 'x)))
+
+(ert-deftest cl-nsublis-test ()
+  (should (equal (let ((tree (list 'a 'b '(a c))))
+                   (cl-nsublis '((a . x) (b . y)) tree))
+                 '(x y (x c))))
+  (should (equal (let ((tree (list '(1 . a) '(2 . b) '(3 . c))))
+                   (cl-nsublis '((a . x) (b . y)) tree))
+                 '((1 . x) (2 . y) (3 . c)))))
+
+(ert-deftest cl-tree-equal-test ()
+  (should (cl-tree-equal '(1 (2 3) 4) '(1 (2 3) 4)))
+  (should-not (cl-tree-equal '(1 (2 3) 4) '(1 (2 3) 5)))
+  (should (cl-tree-equal '(("a" . 1) ("b" . 2)) '(("a" . 1) ("b" . 2)) :test #'equal))
+  (should-not (cl-tree-equal '(("a" . 1) ("b" . 2)) '(("a" . 1) ("b" . 3)) :test #'equal))
+  (should (cl-tree-equal '(1 2 3) '(1 2 3) :key (lambda (x) (and x (1+ x)))))
+  (should (cl-tree-equal '(a b c) '(a b c) :key #'symbol-name :test #'equal))
+  (should-not (cl-tree-equal '(1 2 3) '(1 2 3) :test-not #'eq))
+  (should (cl-tree-equal '(1 2 3) '(1 2 3) :key #'identity :test #'eq)))
+
 (provide 'cl-seq-tests)
 ;;; cl-seq-tests.el ends here

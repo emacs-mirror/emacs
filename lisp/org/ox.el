@@ -6660,7 +6660,7 @@ to `:default' encoding.  If it fails, return S."
   "Call function FUN on the results returned by BODY evaluation.
 
 FUN is an anonymous function of one argument.  BODY should be a valid
-ELisp source expression.  BODY evaluation happens in an asynchronous process,
+Elisp source expression.  BODY evaluation happens in an asynchronous process,
 from a buffer which is an exact copy of the current one.
 
 Use `org-export-add-to-stack' in FUN in order to register results

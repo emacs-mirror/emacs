@@ -214,7 +214,7 @@
 ;; `ido-buffer-completion-map'.
 ;;
 ;; (with-eval-after-load 'ido
-;;   (define-key ido-common-completion-map " " 'ido-next-match))
+;;   (keymap-set ido-common-completion-map "SPC" 'ido-next-match))
 
 ;; Seeing all the matching buffers or files
 ;; ----------------------------------------

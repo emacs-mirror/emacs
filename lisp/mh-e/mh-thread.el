@@ -248,7 +248,7 @@ sibling."
       (beginning-of-line)
       (forward-char address-start-offset)
       (while (char-equal (char-after) ? )
-        (cl-incf level)
+        (incf level)
         (forward-char))
       level)))
 

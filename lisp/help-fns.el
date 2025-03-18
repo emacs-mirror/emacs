@@ -254,7 +254,7 @@ interactive command."
       (setq fn (intern val)))
     ;; These error messages are intended to be less technical for the
     ;; `describe-command' case, as they are directed at users that are
-    ;; not necessarily ELisp programmers.
+    ;; not necessarily Elisp programmers.
     (unless (and fn (symbolp fn))
       (user-error (if want-command
                       "You didn't specify a command's symbol"
@@ -868,6 +868,20 @@ the C sources, too."
              (function-get function 'disabled))
     (insert "  This function is disabled.\n")))
 
+(add-hook 'help-fns-describe-variable-functions #'help--recommend-setopt)
+(defun help--recommend-setopt (symbol)
+  ;; TODO: This would be better if added to the docstring itself, but I
+  ;;       ran into `byte-compile-dynamic-docstring' and gave up.
+  (when (and (get symbol 'custom-set)
+             ;; Don't override manually written documentation.
+             (not (string-match (rx word-start "setopt" word-end)
+                                (documentation-property
+                                 symbol 'variable-documentation))))
+    ;; FIXME: `princ` removes text properties added by s-c-k.
+    (princ (substitute-command-keys "\
+Setting this variable with `setq' has no effect; use either `setopt'
+or \\[customize-option] to change its value.\n\n"))))
+
 (defun help-fns--first-release-regexp (symbol)
   (let* ((name (symbol-name symbol))
          (quoted (regexp-quote name)))
@@ -944,48 +958,6 @@ TYPE indicates the namespace and is `fun' or `var'."
                       (setq first version))))))))))
     (when first
       (make-text-button first nil 'type 'help-news 'help-args place))))
-
-;; (defun help-fns--check-first-releases ()
-;;   "Compare the old liberal regexp to the new more restrictive one."
-;;   (interactive)
-;;   (let* ((quoted nil)
-;;          (rx-fun (lambda (orig-fun symbol)
-;;                    (if quoted
-;;                        (funcall orig-fun symbol)
-;;                      (format "\\_<%s\\_>"
-;;                              (regexp-quote (symbol-name symbol))))))
-;;          (count
-;;           (let ((count 0))
-;;             (obarray-map (lambda (sym)
-;;                            (when (or (fboundp sym) (boundp sym))
-;;                              (cl-incf count)))
-;;                          obarray)
-;;             count))
-;;          (p (make-progress-reporter "Check first releases..." 0 count)))
-;;     (with-current-buffer (get-buffer-create "*Check-first-release*")
-;;       (unwind-protect
-;;           (progn
-;;             (advice-add 'help-fns--first-release-regexp :around rx-fun)
-;;             (erase-buffer)
-;;             (setq count 0)
-;;             (obarray-map
-;;              (lambda (sym)
-;;                (when (or (fboundp sym) (boundp sym))
-;;                  (cl-incf count)
-;;                  (progress-reporter-update p count)
-;;                  (let ((vt (progn (setq quoted t)
-;;                                   (help-fns--first-release sym)))
-;;                        (vnil (progn (setq quoted nil)
-;;                                     (help-fns--first-release sym))))
-;;                    (when (and vnil (not (equal vt vnil)))
-;;                      (insert (symbol-name sym)
-;;                              "\nnot-quoted: " (or vnil "nil")
-;;                              "\nquoted:     " (or vt "nil")
-;;                              "\n\n")))))
-;;              obarray)
-;;             (progress-reporter-done p))
-;;         (advice-remove 'help-fns--first-release-regexp rx-fun))
-;;       (display-buffer (current-buffer)))))
 
 (add-hook 'help-fns-describe-function-functions
           #'help-fns--mention-first-function-release)
@@ -1597,7 +1569,8 @@ it is displayed along with the global value."
     (let ((str (read-string-from-buffer
                 (format ";; Edit the `%s' variable." (nth 0 var))
                 (prin1-to-string (nth 1 var)))))
-      (set (nth 0 var) (read str)))))
+      (set (nth 0 var) (read str))
+      (revert-buffer))))
 
 (autoload 'shortdoc-help-fns-examples-function "shortdoc")
 

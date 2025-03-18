@@ -360,4 +360,57 @@ Report color and/or grayscale properly.
       (let ((fill-column 64)) (log-edit-fill-entry))
       (should (equal (buffer-string) wanted)))))
 
+(defun log-edit-done-strip-cvs-lines-helper (initial-text wanted vc-backend)
+  "Helper function for the log-edit-done-strip-cvs-lines tests.
+Tests that running log-edit-done-strip-cvs-lines as a log-edit-done-hook
+produces the WANTED string when run on INITIAL-TEXT with
+\\='log-edit-vc-backend' set to VC-BACKEND.\""
+  (with-temp-buffer
+      (let ((log-edit-done-hook 'log-edit-done-strip-cvs-lines)
+            (log-edit-vc-backend vc-backend))
+        (setq-local log-edit-callback #'(lambda () (interactive) nil))
+        (insert initial-text)
+        (log-edit-done)
+        (should (equal (buffer-string) wanted)))))
+
+(ert-deftest log-edit-done-strip-cvs-lines-cvs ()
+  "Strip lines beginning with \"CVS:\" when using CVS as VC backend."
+  (let (string wanted)
+    (setq string "summary line
+first line
+CVS: Please evaluate your changes and consider the following.
+CVS: Abort checkin if you answer no.
+"
+          wanted "summary line
+first line
+")
+    (log-edit-done-strip-cvs-lines-helper string wanted 'CVS)))
+
+(ert-deftest log-edit-done-strip-cvs-lines-non-cvs ()
+  "Do not strip lines beginning with \"CVS:\" when not using CVS as VC backend."
+  (let (string)
+    (setq string "summary line
+first line
+CVS: Please evaluate your changes and consider the following.
+CVS: Abort checkin if you answer no.
+")
+  (log-edit-done-strip-cvs-lines-helper string string nil)))
+
+(ert-deftest log-edit-done-strip-cvs-lines-only-cvs-colon-blank ()
+  "Strip lines that contain solely \"CVS: \" when using CVS as VC backend."
+  (let (string wanted)
+    (setq string "CVS: \n"
+          wanted "")
+    (log-edit-done-strip-cvs-lines-helper string wanted 'CVS)))
+
+(ert-deftest log-edit-done-strip-cvs-lines-only-cvs-colon ()
+  "Strip lines that contain solely \"CVS:\" when using CVS as VC backend."
+  ;; This test verifies that lines consisting only of "CVS:" (no blank
+  ;; after the colon) are stripped from the commit message.
+  ;; CVS does this to accomodate editors that delete trailing whitespace.
+  (let (string wanted)
+    (setq string "CVS:\n"
+          wanted "")
+    (log-edit-done-strip-cvs-lines-helper string wanted 'CVS)))
+
 ;;; log-edit-tests.el ends here

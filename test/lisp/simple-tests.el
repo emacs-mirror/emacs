@@ -22,7 +22,6 @@
 ;;; Code:
 
 (require 'ert)
-(require 'ert-x)
 (eval-when-compile (require 'cl-lib))
 
 (defun simple-test--buffer-substrings ()
@@ -1148,7 +1147,7 @@ See Bug#21722."
 (ert-deftest kill-whole-line-invisible ()
   (cl-flet ((test (kill-whole-line-arg &rest expected-lines)
               (ert-info ((format "%s" kill-whole-line-arg) :prefix "Subtest: ")
-                (ert-with-test-buffer-selected nil
+                (ert-with-test-buffer (:selected t)
                   (simple-test--set-buffer-text-point-mark
                    (string-join
                     '("* -2" "hidden"
@@ -1216,7 +1215,7 @@ See Bug#21722."
   (cl-flet
       ((test (kill-whole-line-arg expected-kill-lines expected-buffer-lines)
          (ert-info ((format "%s" kill-whole-line-arg) :prefix "Subtest: ")
-           (ert-with-test-buffer-selected nil
+           (ert-with-test-buffer (:selected t)
              (simple-test--set-buffer-text-point-mark
               (string-join '("-2" "-1" "A<POINT>B" "1" "2" "") "\n"))
              (read-only-mode 1)
@@ -1238,7 +1237,7 @@ See Bug#21722."
     (test -9 '("-2" "-1" "AB") '("<POINT>-2" "-1" "AB" "1" "2" ""))))
 
 (ert-deftest kill-whole-line-after-other-kill ()
-  (ert-with-test-buffer-selected nil
+  (ert-with-test-buffer (:selected t)
     (simple-test--set-buffer-text-point-mark "A<POINT>X<MARK>B")
     (setq last-command #'ignore)
     (kill-region (point) (mark))
@@ -1250,7 +1249,7 @@ See Bug#21722."
                    (simple-test--get-buffer-text-point-mark)))))
 
 (ert-deftest kill-whole-line-buffer-boundaries ()
-  (ert-with-test-buffer-selected nil
+  (ert-with-test-buffer (:selected t)
     (ert-info ("0" :prefix "Subtest: ")
       (simple-test--set-buffer-text-point-mark "<POINT>")
       (should-error (kill-whole-line -1)
@@ -1281,7 +1280,7 @@ See Bug#21722."
       (should (equal "A\n" (car kill-ring))))))
 
 (ert-deftest kill-whole-line-line-boundaries ()
-  (ert-with-test-buffer-selected nil
+  (ert-with-test-buffer (:selected t)
     (ert-info ("1a" :prefix "Subtest: ")
       (simple-test--set-buffer-text-point-mark "-1\n<POINT>\n1\n")
       (setq last-command #'ignore)

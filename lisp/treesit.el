@@ -153,6 +153,18 @@ of max unsigned 32-bit value for byte offsets into buffer text."
 
 ;;; Parser API supplement
 
+;; The primary parser will be accessed frequently (after each re-parse,
+;; before redisplay, etc, see
+;; `treesit--font-lock-mark-ranges-to-fontify'), so we don't want to
+;; allow it to be a callback function which returns the primary parser
+;; (it might be slow).  It's not something that needs to be dynamic
+;; anyway.
+(defvar-local treesit-primary-parser nil
+  "The primary parser for this buffer.
+
+The primary parser should be a parser that parses the entire buffer, as
+opposed to embedded parsers which parses only part of the buffer.")
+
 (defvar-local treesit-language-at-point-function nil
   "A function that returns the language at point.
 This is used by `treesit-language-at', which is used by various
@@ -246,10 +258,20 @@ language and doesn't match the language of the local parser."
                 ;; finding parser, try local parser first, then global
                 ;; parser.
                 (t
-                 ;; LANG can be nil.
-                 (let* ((lang (treesit-language-at pos))
-                        (local-parser (car (treesit-local-parsers-at
-                                            pos lang)))
+                 ;; LANG can be nil.  We don't want to use the fallback
+                 ;; in `treesit-language-at', so here we call
+                 ;; `treesit-language-at-point-function' directly.
+                 (let* ((lang (and treesit-language-at-point-function
+                                   (funcall treesit-language-at-point-function
+                                            pos)))
+                        (local-parser
+                         ;; Find the local parser with highest
+                         ;; embed-level at point.
+                         (car (seq-sort-by #'treesit-parser-embed-level
+                                           (lambda (a b)
+                                             (> (or a 0) (or b 0)))
+                                           (treesit-local-parsers-at
+                                            pos lang))))
                         (global-parser (car (treesit-parser-list
                                              nil lang)))
                         (parser (or local-parser global-parser)))
@@ -426,7 +448,7 @@ If NAMED is non-nil, collect named child only."
 If NAMED is non-nil, count named child only."
   (let ((count 0))
     (while (setq node (treesit-node-prev-sibling node named))
-      (cl-incf count))
+      (incf count))
     count))
 
 (defun treesit-node-field-name (node)
@@ -526,7 +548,7 @@ See `treesit-query-capture' for QUERY."
        (treesit-parser-root-node parser)
        query))))
 
-(defun treesit-query-range (node query &optional beg end offset)
+(defun treesit-query-range (node query &optional beg end offset range-fn)
   "Query the current buffer and return ranges of captured nodes.
 
 QUERY, NODE, BEG, END are the same as in `treesit-query-capture'.
@@ -535,7 +557,10 @@ END specifics the range of each captured node.  OFFSET is an
 optional pair of numbers (START-OFFSET . END-OFFSET).  The
 respective offset values are added to each (START . END) range
 being returned.  Capture names generally don't matter, but names
-that starts with an underscore are ignored."
+that starts with an underscore are ignored.
+
+RANGE-FN, if non-nil, is a function that takes a NODE and OFFSET, and
+returns the ranges to use for that NODE."
   (let ((offset-left (or (car offset) 0))
         (offset-right (or (cdr offset) 0)))
     (cl-loop for capture
@@ -543,8 +568,47 @@ that starts with an underscore are ignored."
              for name = (car capture)
              for node = (cdr capture)
              if (not (string-prefix-p "_" (symbol-name name)))
-             collect (cons (+ (treesit-node-start node) offset-left)
-                           (+ (treesit-node-end node) offset-right)))))
+             append
+             (if range-fn
+                 (funcall range-fn node offset)
+               (list (cons (+ (treesit-node-start node) offset-left)
+                           (+ (treesit-node-end node) offset-right)))))))
+
+(defun treesit-query-range-by-language
+    (node query language-fn &optional beg end offset range-fn)
+  "Like `treesit-query-range', but return multiple ranges by language.
+
+Return an alist of the form ((LANGUAGE . RANGES) ...), containing
+separate ranges for each language detected in the query.
+
+Query NODE with QUERY, the captured nodes generates ranges.  Nodes
+captured by the `@language' capture name are converted to language
+symbols with LANGUAGE-FN.
+
+RANGE-FN, if non-nil, is a function that takes a NODE and OFFSET, and
+returns the ranges to use for that NODE.
+
+BEG, END, OFFSET are the same as in `treesit-query-range'."
+  (let ((offset-left (or (car offset) 0))
+        (offset-right (or (cdr offset) 0))
+        (ranges-by-language nil))
+    (dolist (match-group (treesit-query-capture node query beg end nil t))
+      (let* ((lang-node (alist-get 'language match-group))
+             (lang (funcall language-fn lang-node)))
+        (dolist (capture match-group)
+          (let ((name (car capture))
+                (node (cdr capture)))
+            (when (and (not (equal (symbol-name name) "language"))
+                       (not (string-prefix-p "_" (symbol-name name))))
+              (push (if range-fn
+                        (funcall range-fn node offset)
+                      (list (cons (+ (treesit-node-start node) offset-left)
+                                  (+ (treesit-node-end node) offset-right))))
+                    (alist-get lang ranges-by-language)))))))
+    (mapcar (lambda (entry)
+              (cons (car entry)
+                    (apply #'append (nreverse (cdr entry)))))
+            ranges-by-language)))
 
 (defun treesit-query-valid-p (language query)
   "Return non-nil if QUERY is valid in LANGUAGE, nil otherwise."
@@ -565,20 +629,42 @@ If none are valid, return nil."
 
 ;;; Range API supplement
 
+;; (ref:local-parser-overlay) Regarding local parser overlays, we store
+;; the local parser in an overlay spanning across the code block for
+;; which the parser is responsible. The `treesit-parser' property stores
+;; the parser, the `treesit-host-parser' property stores the host parser,
+;; the `treesit-parser-ov-timestamp' property stores the buffer's tick
+;; counter (`buffer-modified-tick') when we last updated this overlay,
+;; which is used for garbage-collecting stale ranges and local parsers.
+;;
+;; Besides local parsers, we also create overlays for non-local parsers,
+;; just to mark the start and end of each range they parse, so that other
+;; functions can make use of this information.  To differentiate the
+;; overlay for local and non-local parsers, local parsers' overlays have
+;; the `treesit-parser-local-p' property set to non-nil.
+
 (defvar-local treesit-range-settings nil
   "A list of range settings.
 
-Each element of the list is of the form (QUERY LANGUAGE LOCAL-P
-OFFSET).  When updating the range of each parser in the buffer,
-`treesit-update-ranges' queries each QUERY, and sets LANGUAGE's
-range to the range spanned by captured nodes.  QUERY must be a
-compiled query.  If LOCAL-P is t, give each range a separate
-local parser rather than using a single parser for all the
-ranges.  If OFFSET is non-nil, it should be a cons of
-numbers (START-OFFSET . END-OFFSET), where the start and end
-offset are added to each queried range to get the result ranges.
+Each element of the list is of the form
 
-Capture names generally don't matter, but names that starts with
+    (QUERY LANGUAGE LOCAL-P OFFSET RANGE-FN)
+
+When updating the range of each parser in the buffer,
+`treesit-update-ranges' queries each QUERY, and sets LANGUAGE's range to
+the range spanned by captured nodes.  QUERY must be a compiled query.
+If LOCAL-P is t, give each range a separate local parser rather than
+using a single parser for all the ranges.  If OFFSET is non-nil, it
+should be a cons of numbers (START-OFFSET . END-OFFSET), where the start
+and end offset are added to each queried range to get the result ranges.
+
+If RANGE-FN is non-nil, it should be a function; Emacs uses this
+function to compute the ranges to use for the embedded parser.  The
+function is passed the captured node and OFFSET, and should return a
+list of ranges, where each range is a cons of the start and end
+position.
+
+Capture names generally don't matter, but names that start with
 an underscore are ignored.
 
 QUERY can also be a function, in which case it is called with 2
@@ -600,8 +686,8 @@ like this:
 Each QUERY is a tree-sitter query in either the string,
 s-expression or compiled form.
 
-Capture names generally don't matter, but names that starts with
-an underscore are ignored.
+Capture names generally don't matter, but names that start with an
+underscore are ignored.  The `@language' capture name is reserved.
 
 For each QUERY, :KEYWORD and VALUE pairs add meta information to
 it.  For example,
@@ -610,13 +696,19 @@ it.  For example,
      :embed \\='javascript
      :host \\='html
      :offset \\='(1 . -1)
-     \\='((script_element (raw_text) @cap)))
+     \\='((script_element (raw_text) @javascript)))
 
 The `:embed' keyword specifies the embedded language, and the
 `:host' keyword specifies the host language.  They are used in
 this way: Emacs queries QUERY in the host language's parser,
 computes the ranges spanned by the captured nodes, and applies
 these ranges to parsers for the embedded language.
+
+If the embed language is dynamic, then `:embed' can specify a
+function.  This function will by passed a node and should return
+the language symbol for the embedded code block.  The node is the one
+captured from QUERY with capture name `@language'.  Also make sure the
+code block and language capture are in the same match group.
 
 If there's a `:local' keyword with value t, the range computed by
 this QUERY is given a dedicated local parser.  Otherwise, the
@@ -629,13 +721,19 @@ be (3 . 7).  This can be used to exclude things like surrounding
 delimiters from being included in the range covered by an
 embedded parser.
 
+If there's a `:range-fn' keyword with a function, Emacs uses that
+function to compute the ranges to use for the embedded parser.  The
+function is passed the captured node and the offset given by the
+`:offset' keyword, and should return a list of ranges, where each range
+is a cons of the start and end position.
+
 QUERY can also be a function that takes two arguments, START and
 END.  If QUERY is a function, it doesn't need the :KEYWORD VALUE
 pair preceding it.  This function should set the ranges for
 parsers in the current buffer in the region between START and
 END.  It is OK for this function to set ranges in a larger region
 that encompasses the region between START and END."
-  (let (host embed offset result local)
+  (let (host embed offset result local range-fn)
     (while query-specs
       (pcase (pop query-specs)
         (:local (when (eq t (pop query-specs))
@@ -645,8 +743,8 @@ that encompasses the region between START and END."
                    (signal 'treesit-error (list "Value of :host option should be a symbol" host-lang)))
                  (setq host host-lang)))
         (:embed (let ((embed-lang (pop query-specs)))
-                  (unless (symbolp embed-lang)
-                    (signal 'treesit-error (list "Value of :embed option should be a symbol" embed-lang)))
+                  (unless (or (symbolp embed-lang) (functionp embed-lang))
+                    (signal 'treesit-error (list "Value of :embed option should be a symbol or a function" embed-lang)))
                   (setq embed embed-lang)))
         (:offset (let ((range-offset (pop query-specs)))
                    (unless (and (consp range-offset)
@@ -654,6 +752,10 @@ that encompasses the region between START and END."
                                 (numberp (cdr range-offset)))
                      (signal 'treesit-error (list "Value of :offset option should be a pair of numbers" range-offset)))
                    (setq offset range-offset)))
+        (:range-fn (let ((range-fn (pop query-specs)))
+                     (unless (functionp range-fn)
+                       (signal 'treesit-error (list "Value of :range-fn option should be a function" range-fn)))
+                     (setq range-fn range-fn)))
         (query (if (functionp query)
                    (push (list query nil nil) result)
                  (when (null embed)
@@ -661,10 +763,28 @@ that encompasses the region between START and END."
                  (when (null host)
                    (signal 'treesit-error (list "Value of :host option cannot be omitted")))
                  (push (list (treesit-query-compile host query)
-                             embed local offset)
+                             embed local offset range-fn)
                        result))
-               (setq host nil embed nil offset nil local nil))))
+               (setq host nil embed nil offset nil local nil range-fn nil))))
     (nreverse result)))
+
+(defun treesit-range-fn-exclude-children (node offset)
+  "Return ranges spanned by NODE but excluding its children.
+
+OFFSET is added to the start and end of the overall range.
+
+This can be used as a `:range-fn' in `treesit-range-rules'."
+  (let* ((start (+ (treesit-node-start node) (or (car offset) 0)))
+         (end (+ (treesit-node-end node) (or (cdr offset) 0)))
+         (prev-end start)
+         (ranges nil))
+    (dolist (child (treesit-node-children node))
+      (let ((child-start (treesit-node-start child))
+            (child-end (treesit-node-end child)))
+        (push (cons prev-end child-start) ranges)
+        (setq prev-end child-end)))
+    (push (cons prev-end end) ranges)
+    (nreverse ranges)))
 
 (defun treesit--merge-ranges (old-ranges new-ranges start end)
   "Merge OLD-RANGES and NEW-RANGES, discarding ranges between START and END.
@@ -743,34 +863,45 @@ If WITH-HOST is non-nil, return a list of (PARSER . HOST-PARSER)
 instead.  HOST-PARSER is the host parser which created the local
 PARSER."
   (let ((res nil))
+    ;; Refer to (ref:local-parser-overlay) for more explanation of local
+    ;; parser overlays.
     (dolist (ov (overlays-at (or pos (point))))
-      (when-let* ((parser (overlay-get ov 'treesit-parser))
-                  (host-parser (overlay-get ov 'treesit-host-parser)))
-        (when (or (null language)
-                  (eq (treesit-parser-language parser)
-                      language))
+      (let ((parser (overlay-get ov 'treesit-parser))
+            (host-parser (overlay-get ov 'treesit-host-parser))
+            (local-p (overlay-get ov 'treesit-parser-local-p)))
+        (when (and parser host-parser local-p
+                   (or (null language)
+                       (eq (treesit-parser-language parser)
+                           language)))
           (push (if with-host (cons parser host-parser) parser) res))))
     (nreverse res)))
 
 (defun treesit-local-parsers-on (&optional beg end language with-host)
-  "Return all the local parsers between BEG END.
+  "Return the list of local parsers that cover the region between BEG and END.
 
-BEG and END default to the beginning and end of the buffer's
-accessible portion.
-Local parsers are those which have an `embedded' tag, and only parse
-a limited region marked by an overlay with a non-nil `treesit-parser'
+BEG and END default to the beginning and end of the buffer's accessible
+portion.
+
+Local parsers are those that have an `embedded' tag, and only parse a
+limited region marked by an overlay with a non-nil `treesit-parser'
 property.  If LANGUAGE is non-nil, only return parsers for LANGUAGE.
 
 If WITH-HOST is non-nil, return a list of (PARSER . HOST-PARSER)
 instead.  HOST-PARSER is the host parser which created the local
 PARSER."
   (let ((res nil))
-    (dolist (ov (overlays-in (or beg (point-min)) (or end (point-max))))
-      (when-let* ((parser (overlay-get ov 'treesit-parser))
-                  (host-parser (overlay-get ov 'treesit-host-parser)))
-        (when (or (null language)
-                  (eq (treesit-parser-language parser)
-                      language))
+    ;; Refer to (ref:local-parser-overlay) for more explanation of local
+    ;; parser overlays.
+    (dolist (ov (if (eq beg end)
+                    (overlays-at beg)
+                  (overlays-in (or beg (point-min)) (or end (point-max)))))
+      (let ((parser (overlay-get ov 'treesit-parser))
+            (host-parser (overlay-get ov 'treesit-host-parser))
+            (local-p (overlay-get ov 'treesit-parser-local-p)))
+        (when (and parser host-parser local-p
+                   (or (null language)
+                       (eq (treesit-parser-language parser)
+                           language)))
           (push (if with-host (cons parser host-parser) parser) res))))
     (nreverse res)))
 
@@ -780,60 +911,251 @@ PARSER."
 For every local parser overlay between BEG and END, if its
 `treesit-parser-ov-timestamp' is smaller than MODIFIED-TICK, delete
 it."
+  ;; Refer to (ref:local-parser-overlay) for more explanation of local
+  ;; parser overlays.
   (dolist (ov (overlays-in beg end))
     (when-let* ((ov-timestamp
                  (overlay-get ov 'treesit-parser-ov-timestamp)))
       (when (< ov-timestamp modified-tick)
-        (when-let* ((local-parser (overlay-get ov 'treesit-parser)))
-          (treesit-parser-delete local-parser))
+        (let ((local-parser (overlay-get ov 'treesit-parser))
+              (local-p (overlay-get ov 'treesit-parser-local-p)))
+          (when (and local-p local-parser)
+            (treesit-parser-delete local-parser)))
         (delete-overlay ov)))))
 
+(defsubst treesit--parser-at-level (parsers level &optional include-null)
+  "Filter for parsers in PARSERS that have embed level equal to LEVEL.
+
+If INCLUDE-NULL is non-nil, also include parsers whose embed level
+is nil."
+  (seq-filter (lambda (parser)
+                (or (eq (treesit-parser-embed-level parser) level)
+                    (and include-null
+                         (null (treesit-parser-embed-level parser)))))
+              parsers))
+
+(declare-function treesit-parser-set-embed-level "treesit.c")
+(declare-function treesit-parser-embed-level "treesit.c")
+
+(defun treesit--update-ranges-non-local
+    ( host-parser query embed-lang modified-tick embed-level
+      &optional beg end offset range-fn)
+  "Update range for non-local parsers between BEG and END under HOST-PARSER.
+
+OFFSET is a cons (OFFSET-START . OFFSET-END), the start and end will be
+added to each captured range as range offset.
+
+Use QUERY to get the ranges, and set ranges for embedded parsers to
+those ranges.  HOST-PARSER and QUERY must match.
+
+EMBED-LANG is either a language symbol or a function that takes a node
+and returns a language symbol.
+
+When this function touches an overlay, it sets the
+`treesit-parser-ov-timestamp' property of the overlay to MODIFIED-TICK.
+This will help Emacs garbage-collect overlays that aren't in use
+anymore.
+
+EMBED-LEVEL is the embed level for the local parsers being created or
+updated.  When looking for existing local parsers, only look for parsers
+of this level; when creating new local parsers, set their level to this
+level.
+
+RANGE-FN, if non-nil, is a function that takes a node and OFFSET, and
+returns the ranges to use for that node.
+
+Return updated parsers as a list."
+  (let ((ranges-by-lang
+         (if (functionp embed-lang)
+             (treesit-query-range-by-language
+              host-parser query embed-lang beg end offset range-fn)
+           (list (cons embed-lang
+                       (treesit-query-range
+                        host-parser query beg end offset range-fn)))))
+        (touched-parsers nil))
+    (dolist (lang-and-ranges ranges-by-lang)
+      (let* ((resolved-embed-lang (car lang-and-ranges))
+             (new-ranges (cdr lang-and-ranges))
+             (embed-parser
+              ;; Prefer embed parser with the right level, but if none
+              ;; exists, ones that doesn't have a embed level are ok
+              ;; too.
+              (or (car (treesit--parser-at-level
+                        (treesit-parser-list nil resolved-embed-lang)
+                        embed-level))
+                  (car (treesit--parser-at-level
+                        (treesit-parser-list nil resolved-embed-lang)
+                        embed-level 'include-null)))))
+        (when embed-parser
+          ;; Lay an overlay over each range to mark the start & end of
+          ;; it for other functions to access (e.g., outline wants to
+          ;; know this).  Refer to (ref:local-parser-overlay) for more
+          ;; explanation of local parser overlays.
+          (dolist (range new-ranges)
+            (let ((has-existing-ov nil))
+              (setq has-existing-ov
+                    (catch 'done
+                      (dolist (ov (overlays-in (car range) (cdr range)))
+                        (when (eq (overlay-get ov 'treesit-parser)
+                                  embed-parser)
+                          (move-overlay ov (car range) (cdr range))
+                          (overlay-put ov 'treesit-parser-ov-timestamp
+                                       modified-tick)
+                          (throw 'done t)))))
+              (unless has-existing-ov
+                (let ((ov (make-overlay (car range) (cdr range))))
+                  (overlay-put ov 'treesit-parser embed-parser)
+                  (overlay-put ov 'treesit-parser-local-p nil)
+                  (overlay-put ov 'treesit-host-parser host-parser)
+                  (overlay-put ov 'treesit-parser-ov-timestamp
+                               modified-tick)))))
+          ;; Set ranges for the embed parser.
+          (let* ((old-ranges (treesit-parser-included-ranges
+                              embed-parser))
+                 (set-ranges (treesit--clip-ranges
+                              (treesit--merge-ranges
+                               old-ranges new-ranges beg end)
+                              (point-min) (point-max))))
+            (treesit-parser-set-embed-level
+             embed-parser embed-level)
+            (treesit-parser-set-included-ranges
+             embed-parser (or set-ranges
+                              ;; When there's no range for the
+                              ;; embedded language, set it's
+                              ;; range to a dummy (1 . 1),
+                              ;; otherwise it would be set to
+                              ;; the whole buffer, which is
+                              ;; not what we want.
+                              `((,(point-min) . ,(point-min)))))
+            (push embed-parser touched-parsers)))))
+    touched-parsers))
+
 (defun treesit--update-ranges-local
-    (query embedded-lang modified-tick &optional beg end)
-  "Update range for local parsers between BEG and END.
+    ( host-parser query embedded-lang modified-tick embed-level
+      &optional beg end range-fn)
+  "Update range for local parsers between BEG and END under HOST-PARSER.
 Use QUERY to get the ranges, and make sure each range has a local
-parser for EMBEDDED-LANG.
+parser for EMBEDDED-LANG.  HOST-PARSER and QUERY must match.
 
 The local parser is stored in an overlay, in the `treesit-parser'
 property, the host parser is stored in the `treesit-host-parser'
 property.
 
 When this function touches an overlay, it sets the
-`treesit-parser-ov-timestamp' property of the overlay to
-MODIFIED-TICK.  This will help Emacs garbage-collect overlays that
-aren't in use anymore."
+`treesit-parser-ov-timestamp' property of the overlay to MODIFIED-TICK.
+This will help Emacs garbage-collect overlays that aren't in use
+anymore.
+
+EMBED-LEVEL is the embed level for the local parsers being created or
+updated.  When looking for existing local parsers, only look for parsers
+of this level; when creating new local parsers, set their level to this
+level.
+
+OFFSET is a cons of start and end offsets that are applied to the range
+for the local parser.
+
+RANGE-FN, if non-nil, is a function that takes a node and OFFSET, and
+returns the ranges to use for that node.
+
+Return the created local parsers as a list."
   ;; Update range.
-  (let* ((host-lang (treesit-query-language query))
-         (host-parser (car (treesit-parser-list nil host-lang)))
-         (ranges (treesit-query-range host-parser query beg end)))
-    (pcase-dolist (`(,beg . ,end) ranges)
-      (let ((has-parser nil))
-        (setq
-         has-parser
-         (catch 'done
-           (dolist (ov (overlays-in beg end) nil)
-             ;; Update range of local parser.
-             (when-let* ((embedded-parser (overlay-get ov 'treesit-parser))
-                         (parser-lang (treesit-parser-language
-                                       embedded-parser)))
-               (when (eq parser-lang embedded-lang)
-                 (treesit-parser-set-included-ranges
-                  embedded-parser `((,beg . ,end)))
-                 (move-overlay ov beg end)
-                 (overlay-put ov 'treesit-parser-ov-timestamp
-                              modified-tick)
-                 (throw 'done t))))))
-        ;; Create overlay and local parser.
-        (when (not has-parser)
-          (let ((embedded-parser (treesit-parser-create
-                                  embedded-lang nil t 'embedded))
-                (ov (make-overlay beg end nil nil t)))
-            (overlay-put ov 'treesit-parser embedded-parser)
-            (overlay-put ov 'treesit-host-parser host-parser)
-            (overlay-put ov 'treesit-parser-ov-timestamp
-                         modified-tick)
-            (treesit-parser-set-included-ranges
-             embedded-parser `((,beg . ,end)))))))))
+  (let ((ranges-by-lang
+         (if (functionp embedded-lang)
+             (treesit-query-range-by-language
+              host-parser query embedded-lang beg end range-fn)
+           (list (cons embedded-lang
+                       (treesit-query-range
+                        host-parser query beg end range-fn)))))
+        (touched-parsers nil))
+    (dolist (lang-and-range ranges-by-lang)
+      (let ((embedded-lang (car lang-and-range))
+            (ranges (cdr lang-and-range)))
+        (pcase-dolist (`(,beg . ,end) ranges)
+          (let ((existing-local-parser
+                 (catch 'done
+                   (dolist (ov (overlays-in beg end) nil)
+                     ;; Update range of local parser.
+                     (when-let* ((embedded-parser
+                                  (overlay-get ov 'treesit-parser))
+                                 (parser-lang (treesit-parser-language
+                                               embedded-parser))
+                                 (parser-level (treesit-parser-embed-level
+                                                embedded-parser)))
+                       (when (and (overlay-get ov 'treesit-parser-local-p)
+                                  (eq parser-lang embedded-lang)
+                                  (eq embed-level parser-level))
+                         (treesit-parser-set-included-ranges
+                          embedded-parser `((,beg . ,end)))
+                         (move-overlay ov beg end)
+                         (overlay-put ov 'treesit-parser-ov-timestamp
+                                      modified-tick)
+                         (throw 'done embedded-parser)))))))
+            (if existing-local-parser
+                (push existing-local-parser touched-parsers)
+              ;; Create overlay and local parser.  Refer to
+              ;; (ref:local-parser-overlay) for more explanation of
+              ;; local parser overlays.
+              (let ((embedded-parser (treesit-parser-create
+                                      embedded-lang nil t 'embedded))
+                    (ov (make-overlay beg end nil nil t)))
+                (treesit-parser-set-embed-level embedded-parser embed-level)
+                (overlay-put ov 'treesit-parser embedded-parser)
+                (overlay-put ov 'treesit-parser-local-p t)
+                (overlay-put ov 'treesit-host-parser host-parser)
+                (overlay-put ov 'treesit-parser-ov-timestamp
+                             modified-tick)
+                (treesit-parser-set-included-ranges
+                 embedded-parser `((,beg . ,end)))
+                (push embedded-parser touched-parsers)))))))
+    touched-parsers))
+
+(defun treesit--update-range-1 (beg end host-parser settings embed-level)
+  "Given a HOST-PARSER, update ranges between BEG and END.
+
+Go over each settings in SETTINGS, try to create or update the embedded
+language in that setting.  Return the list of the created or updated
+embedded language parsers.
+
+EMBED-LEVEL is the embed level for the embedded parser being created or
+updated.  When looking for existing embedded parsers, only look for
+parsers of this level; when creating new parsers, set their level to
+this level.
+
+Function range settings in SETTINGS are ignored."
+  (let ((touched-parsers nil)
+        (modified-tick (buffer-chars-modified-tick)))
+    (dolist (setting settings)
+      (let* ((query (nth 0 setting))
+             (query-lang (if (functionp query)
+                             'never
+                           (treesit-query-language query)))
+             (embed-lang (nth 1 setting))
+             (local (nth 2 setting))
+             (offset (nth 3 setting))
+             (range-fn (nth 4 setting)))
+        (when (eq query-lang (treesit-parser-language host-parser))
+          (cond
+           ;; Function range settings don't participate in the recursive
+           ;; update, they're handled by `treesit--update-range'.
+           ((functionp query) nil)
+           (local
+            (setq touched-parsers
+                  (append touched-parsers
+                          (treesit--update-ranges-local
+                           host-parser query embed-lang modified-tick
+                           embed-level beg end range-fn))))
+           ;; When updating ranges, we want to avoid querying the whole
+           ;; buffer which could be slow in very large buffers.
+           ;; Instead, we only query for nodes that intersect with the
+           ;; region between BEG and END.  Also, we only update the
+           ;; ranges intersecting BEG and END; outside of that region we
+           ;; inherit old ranges.
+           (t (setq touched-parsers
+                    (append touched-parsers
+                            (treesit--update-ranges-non-local
+                             host-parser query embed-lang modified-tick
+                             embed-level beg end offset range-fn))))))))
+    touched-parsers))
 
 (defun treesit-update-ranges (&optional beg end)
   "Update the ranges for each language in the current buffer.
@@ -841,41 +1163,24 @@ If BEG and END are non-nil, only update parser ranges in that
 region."
   (let ((modified-tick (buffer-chars-modified-tick))
         (beg (or beg (point-min)))
-        (end (or end (point-max))))
-    ;; When updating ranges, we want to avoid querying the whole buffer
-    ;; which could be slow in very large buffers.  Instead, we only
-    ;; query for nodes that intersect with the region between BEG and
-    ;; END.  Also, we only update the ranges intersecting BEG and END;
-    ;; outside of that region we inherit old ranges.
+        (end (or end (point-max)))
+        (host-parsers (list treesit-primary-parser))
+        (embed-level 0))
+    ;; Handle function range settings here once. They don't participate
+    ;; in the recursive update below.
     (dolist (setting treesit-range-settings)
-      (let ((query (nth 0 setting))
-            (language (nth 1 setting))
-            (local (nth 2 setting))
-            (offset (nth 3 setting)))
-        (cond
-         ((functionp query) (funcall query beg end))
-         (local
-          (treesit--update-ranges-local
-           query language modified-tick beg end))
-         (t
-          (let* ((host-lang (treesit-query-language query))
-                 (parser (car (treesit-parser-list nil language)))
-                 (old-ranges (treesit-parser-included-ranges parser))
-                 (new-ranges (treesit-query-range
-                              host-lang query beg end offset))
-                 (set-ranges (treesit--clip-ranges
-                              (treesit--merge-ranges
-                               old-ranges new-ranges beg end)
-                              (point-min) (point-max))))
-            (dolist (parser (treesit-parser-list nil language))
-              (treesit-parser-set-included-ranges
-               parser (or set-ranges
-                          ;; When there's no range for the embedded
-                          ;; language, set it's range to a dummy (1
-                          ;; . 1), otherwise it would be set to the
-                          ;; whole buffer, which is not what we want.
-                          `((,(point-min) . ,(point-min)))))))))))
-
+      (when (functionp (car setting))
+        (funcall (car setting) beg end)))
+    (while (and host-parsers (< embed-level 4))
+      (cl-incf embed-level)
+      (let ((next-round-of-host-parsers nil))
+        (dolist (host-parser host-parsers)
+          (setq next-round-of-host-parsers
+                (append next-round-of-host-parsers
+                        (treesit--update-range-1
+                         beg end host-parser
+                         treesit-range-settings embed-level))))
+        (setq host-parsers next-round-of-host-parsers)))
     (treesit--cleanup-local-range-overlays modified-tick beg end)))
 
 (defun treesit-parser-range-on (parser beg &optional end)
@@ -929,18 +1234,6 @@ LANGUAGE's name and return the resulting string."
 (define-error 'treesit-font-lock-error
               "Generic tree-sitter font-lock error"
               'treesit-error)
-
-;; The primary parser will be access frequently (after each re-parse,
-;; before redisplay, etc, see
-;; `treesit--font-lock-mark-ranges-to-fontify'), so we don't want to
-;; allow it to be a callback function which returns the primary parser
-;; (it might be slow).  It's not something that needs to be dynamic
-;; anyway.
-(defvar-local treesit-primary-parser nil
-  "The primary parser for this buffer.
-
-The primary parser should be a parser that parses the entire buffer, as
-opposed to embedded parsers which parses only part of the buffer.")
 
 (defvar-local treesit-font-lock-settings nil
   "A list of SETTINGs for treesit-based fontification.
@@ -2367,7 +2660,7 @@ Similar to `treesit-indent', but indent a region instead."
                         (copy-marker anchor t)))
                 ;; SET OFFSET.
                 (setf (aref meta-vec (+ 1 (* idx meta-len))) offset))))
-          (cl-incf idx)
+          (incf idx)
           (setq lines-left-to-move (forward-line 1)))
         ;; Now IDX = last valid IDX + 1.
         (goto-char starting-pos)
@@ -2839,13 +3132,14 @@ ARG is described in the docstring of `up-list'."
                                          (treesit-node-start parent))))
           (setq parent (treesit-parent-until parent pred)))
 
-        (when-let* ((_ (null parent))
-                    (parser (treesit-node-parser (treesit-node-at (point))))
-                    (_ (not (eq parser treesit-primary-parser)))
-                    (guest-root-node (treesit-parser-root-node parser)))
-          ;; Continue from the host node that contains the guest parser.
-          (setq parent (treesit-thing-at
-                        (- (treesit-node-start guest-root-node) 2) pred)))
+        (unless parent
+          (let ((parsers (seq-keep (lambda (o)
+                                     (overlay-get o 'treesit-host-parser))
+                                   (overlays-at (point) t))))
+            (while (and (not parent) parsers)
+              (setq parent (treesit-parent-until
+                            (treesit-node-at (point) (car parsers)) pred)
+                    parsers (cdr parsers)))))
 
         (or (when (and default-pos
                        (or (null parent)
@@ -3124,9 +3418,16 @@ What constitutes as text and source code sentence is determined
 by `text' and `sentence' in `treesit-thing-settings'."
   (if (treesit-node-match-p (treesit-node-at (point)) 'text t)
       (funcall #'forward-sentence-default-function arg)
-    (funcall
-     (if (> arg 0) #'treesit-end-of-thing #'treesit-beginning-of-thing)
-     'sentence (abs arg))))
+    (or (funcall
+         (if (> arg 0) #'treesit-end-of-thing #'treesit-beginning-of-thing)
+         'sentence (abs arg))
+        ;; On failure jump to the buffer's end as `forward-sentence' does,
+        ;; but no further than the boundary of the current range.
+        (goto-char (if (> arg 0)
+                       (min (point-max) (next-single-char-property-change
+                                         (point) 'treesit-parser))
+                     (max (point-min) (previous-single-char-property-change
+                                       (point) 'treesit-parser)))))))
 
 (defun treesit-forward-comment (&optional count)
   "Tree-sitter `forward-comment-function' implementation.
@@ -3652,19 +3953,7 @@ this variable takes priority.")
     (or (and current-valid current)
         (and next-valid (treesit-thing-at next pred)))))
 
-(defun treesit-closest-parser-boundary (pos backward)
-  "Get the closest boundary of a local parser."
-  (when-let* ((ranges (mapcar #'treesit-parser-included-ranges
-                              (treesit-parser-list)))
-              (ranges (delq nil (delete '((1 . 1)) ranges)))
-              (bounds (seq-filter
-                       (lambda (p) (if backward (< p pos) (> p pos)))
-                       (flatten-list ranges)))
-              (closest (when bounds
-                         (if backward (seq-max bounds) (seq-min bounds)))))
-    closest))
-
-(defun treesit-outline-search (&optional bound move backward looking-at)
+(defun treesit-outline-search (&optional bound move backward looking-at recursive)
   "Search for the next outline heading in the syntax tree.
 For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
 `outline-search-function'."
@@ -3684,15 +3973,20 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
                   (if (bobp) (point) (1- (point)))
                 (pos-eol))))
            (pred (if treesit-aggregated-outline-predicate
-                     (alist-get (treesit-language-at pos)
+                     (alist-get (treesit-language-at (or bob-pos pos))
                                 treesit-aggregated-outline-predicate)
                    treesit-outline-predicate))
            (found (or bob-pos
                       (treesit-navigate-thing pos (if backward -1 1) 'beg pred)))
-           (closest (treesit-closest-parser-boundary pos backward)))
+           (closest (unless bob-pos
+                      (if backward
+                          (previous-single-char-property-change pos 'treesit-parser)
+                        (next-single-char-property-change pos 'treesit-parser)))))
 
       ;; Handle multi-language modes
       (if (and closest
+               (not (eq closest (if backward (point-min) (point-max))))
+               (not recursive)
                (or
                 ;; Possibly was inside the local parser, and when can't find
                 ;; more matches inside it then need to go over the closest
@@ -3707,7 +4001,7 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
             (goto-char (if backward
                            (max (point-min) (1- closest))
                          (min (point-max) (1+ closest))))
-            (treesit-outline-search bound move backward))
+            (treesit-outline-search bound move backward nil 'recursive))
 
         (if found
             (if (or (not bound) (if backward (>= found bound) (<= found bound)))
@@ -3725,22 +4019,23 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
   "Return the depth of the current outline heading."
   (let* ((node (treesit-outline--at-point))
          (level 1)
-         (parser (when (and treesit-aggregated-outline-predicate node)
-                   (treesit-node-parser node)))
          (pred (if treesit-aggregated-outline-predicate
                    (alist-get (treesit-language-at (point))
                               treesit-aggregated-outline-predicate)
                  treesit-outline-predicate)))
     (while (setq node (treesit-parent-until node pred))
       (setq level (1+ level)))
-    (when-let* ((_ (and parser (not (eq parser treesit-primary-parser))))
-                (guest-root-node (treesit-parser-root-node parser))
-                (host-lang (treesit-parser-language treesit-primary-parser))
-                (host-pred (alist-get host-lang treesit-aggregated-outline-predicate)))
-      ;; Continue from the host node that contains the guest parser.
-      (setq node (treesit-node-at (- (treesit-node-start guest-root-node) 2)))
-      (while (setq node (treesit-parent-until node host-pred))
-        (setq level (1+ level))))
+
+    ;; Continue counting the host nodes.
+    (dolist (parser (seq-keep (lambda (o)
+                                (overlay-get o 'treesit-host-parser))
+                              (overlays-at (point) t)))
+      (let* ((node (treesit-node-at (point) parser))
+             (lang (treesit-parser-language parser))
+             (pred (alist-get lang treesit-aggregated-outline-predicate)))
+        (while (setq node (treesit-parent-until node pred))
+          (setq level (1+ level)))))
+
     level))
 
 ;;; Hideshow mode
@@ -4041,8 +4336,10 @@ before calling this function."
 
   ;; Remove existing local parsers.
   (dolist (ov (overlays-in (point-min) (point-max)))
-    (when-let* ((parser (overlay-get ov 'treesit-parser)))
-      (treesit-parser-delete parser)
+    (let ((parser (overlay-get ov 'treesit-parser))
+          (local-p (overlay-get ov 'treesit-parser-local-p)))
+      (when (and parser local-p)
+        (treesit-parser-delete parser))
       (delete-overlay ov))))
 
 ;;; Helpers
@@ -4232,7 +4529,7 @@ in the region."
                (<= (treesit-node-end n) end))
              t t)))))
 
-(defun treesit--explorer-refresh ()
+(defun treesit--explorer-refresh-1 ()
   "Update the syntax tree buffer."
   (when (and treesit-explore-mode
              (buffer-live-p treesit--explorer-buffer))
@@ -4283,6 +4580,19 @@ in the region."
                 (set-window-start window (point))))
             (set-window-point window pos)))))))
 
+(defun treesit--explorer-refresh ()
+  "Update the syntax tree buffer."
+  (condition-case nil
+      (treesit--explorer-refresh-1)
+    (treesit-parser-deleted
+     (when treesit--explorer-buffer
+       (with-current-buffer treesit--explorer-buffer
+         (let ((inhibit-read-only t))
+           (goto-char (point-min))
+           (unless (looking-at "Parser is deleted")
+             (insert (propertize "Parser is deleted\n"
+                                 'face 'error)))))))))
+
 (defun treesit--explorer-post-command (&rest _)
   "Post-command function that runs in the source buffer."
   (when treesit-explore-mode
@@ -4323,6 +4633,9 @@ Return the start of the syntax tree text corresponding to NODE."
                do (setq start (overlay-start ov))
                if (treesit-node-eq end-node (overlay-get ov 'treesit-node))
                do (setq end (overlay-end ov)))
+      ;; FIXME: Fix highlighting for a node that spans across multiple
+      ;; ranges: the buffer region in-between ranges shouldn't be
+      ;; highlighted.
       (when (and start end)
         (setq-local treesit--explorer-highlight-overlay
                     (make-overlay start end))

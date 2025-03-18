@@ -997,7 +997,7 @@ error and non-nil on success."
       ;; <https://android.stackexchange.com/questions/226638/how-to-use-multibyte-file-names-in-adb-shell/232379#232379>
       ;; mksh uses UTF-8 internally, but is currently limited to the
       ;; BMP (basic multilingua plane), which means U+0000 to
-      ;; U+FFFD. If you want to use SMP codepoints (U-00010000 to
+      ;; U+FFFD.  If you want to use SMP codepoints (U-00010000 to
       ;; U-0010FFFD) on the input line, you currently have to disable
       ;; the UTF-8 mode (sorry).
       (tramp-adb-execute-adb-command vec "shell" command)

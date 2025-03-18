@@ -1535,7 +1535,10 @@ This is equivalent to specifying the @samp{file} protocol:
 absolute file name of the @command{movemail} executable.  If it is
 @code{nil}, Rmail searches for @command{movemail} in the directories
 listed in @code{rmail-movemail-search-path}, then in @code{exec-path}
-(@pxref{Shell}), then in @code{exec-directory}.
+(@pxref{Shell}), then in @code{exec-directory}.  This variable should be
+customized before starting Rmail; if you customize it after starting
+Rmail, you will need to set @code{rmail-movemail-variant-in-use} to the
+@code{nil} value, and then restart Rmail.
 
 @node Remote Mailboxes
 @section Retrieving Mail from Remote Mailboxes

@@ -170,9 +170,22 @@ placement bugs in old versions of Emacs."
   "Whether the windmove commands are allowed to target all type of windows.
 If this variable is set to non-nil, all windmove commands will
 ignore the `no-other-window' parameter applied by `display-buffer-alist'
-or `set-window-parameter'."
+or `set-window-parameter'.
+
+Another way to move into windows with the no-other-window property is
+by invoking the same movement command twice in succession when
+`windmove-allow-repeated-command-override' is true."
   :type 'boolean
   :version "28.1")
+
+(defcustom windmove-allow-repeated-command-override t
+  "If non-nil, using windmove commands twice overrides `no-other-window'.
+Normally, the `no-other-window' window property prevents windmove
+commands from moving to that window.  When this variable is non-nil,
+invoking the command twice means the second invocation ignores the
+property."
+  :type 'boolean
+  :version "31.1")
 
 
 ;; Note:
@@ -359,21 +372,54 @@ use the left or top edge of WINDOW as reference point."
 
 ;; Selects the window that's hopefully at the location returned by
 ;; `windmove-find-other-window', or screams if there's no window there.
-(defun windmove-do-window-select (dir &optional arg window)
+(defun windmove-do-window-select (dir &optional arg window calling-command)
   "Move to the window at direction DIR as seen from WINDOW.
 DIR, ARG, and WINDOW are handled as by `windmove-find-other-window'.
 If no window is at direction DIR, an error is signaled.
 If `windmove-create-window' is a function, call that function with
 DIR, ARG and WINDOW.  If it is non-nil, try to create a new window
-in direction DIR instead."
-  (let ((other-window (windmove-find-other-window dir arg window)))
+in direction DIR instead.
+
+When the same windmove command is invoked twice in succession,
+the second invocation will override the `no-other-window' property.
+CALLING-COMMAND is the command that called this function, used to detect
+repeated commands."
+  (let* ((repeated-command
+          (and calling-command
+               windmove-allow-repeated-command-override
+               (eq last-command
+                   (intern (format "%s-override" calling-command)))))
+         (other-window (windmove-find-other-window dir arg window)))
+
+    (when (and (null other-window) repeated-command)
+      (setf other-window (window-in-direction dir window t arg windmove-wrap-around t)))
+
+    ;; Create window if needed
     (when (and windmove-create-window
                (or (null other-window)
                    (and (window-minibuffer-p other-window)
                         (not (minibuffer-window-active-p other-window)))))
-      (setq other-window (if (functionp windmove-create-window)
-                             (funcall windmove-create-window dir arg window)
-                           (split-window window nil dir))))
+      (setf other-window
+            (if (functionp windmove-create-window)
+                (funcall windmove-create-window dir arg window)
+              (split-window window nil dir))))
+
+    ;; If we still don't have a window but could with allow-all-windows,
+    ;; fail with a helpful message.
+    (when (and (null other-window)
+               calling-command
+               (not windmove-allow-all-windows)
+               (not repeated-command)
+               windmove-allow-repeated-command-override)
+      (let ((test-window (window-in-direction dir window t arg windmove-wrap-around t)))
+        (when test-window
+          ;; Remember that we stopped at a boundary so we don't override
+          ;; a no-other-window before telling the user about it during a
+          ;; multi-command movement sequence.
+          (setf this-command
+                (intern (format "%s-override" calling-command)))
+          (user-error "No window %s (repeat to override)" dir))))
+
     (cond ((null other-window)
            (user-error "No window %s from selected window" dir))
           ((and (window-minibuffer-p other-window)
@@ -389,52 +435,76 @@ in direction DIR instead."
 ;; `windmove-do-window-select', meant to be bound to keys.
 
 ;;;###autoload
-(defun windmove-left (&optional arg)
+(defun windmove-left (&optional arg is-interactive)
   "Select the window to the left of the current one.
 With no prefix argument, or with prefix argument equal to zero,
 \"left\" is relative to the position of point in the window; otherwise
 it is relative to the top edge (for positive ARG) or the bottom edge
 \(for negative ARG) of the current window.
 If no window is at the desired location, an error is signaled
-unless `windmove-create-window' is non-nil and a new window is created."
-  (interactive "P")
-  (windmove-do-window-select 'left (and arg (prefix-numeric-value arg))))
+unless `windmove-create-window' is non-nil and a new window is created.
+
+If `windmove-allow-repeated-command-override' is true and this commnad
+stopped because it wouldn't move into a window marked with
+`no-other-window', repeating the command will move into that window."
+  (interactive "P\np")
+  (windmove-do-window-select
+   'left (and arg (prefix-numeric-value arg)) nil
+   (and is-interactive this-command)))
 
 ;;;###autoload
-(defun windmove-up (&optional arg)
+(defun windmove-up (&optional arg is-interactive)
   "Select the window above the current one.
 With no prefix argument, or with prefix argument equal to zero, \"up\"
 is relative to the position of point in the window; otherwise it is
 relative to the left edge (for positive ARG) or the right edge (for
 negative ARG) of the current window.
 If no window is at the desired location, an error is signaled
-unless `windmove-create-window' is non-nil and a new window is created."
-  (interactive "P")
-  (windmove-do-window-select 'up (and arg (prefix-numeric-value arg))))
+unless `windmove-create-window' is non-nil and a new window is created.
+
+If `windmove-allow-repeated-command-override' is true and this commnad
+stopped because it wouldn't move into a window marked with
+`no-other-window', repeating the command will move into that window."
+  (interactive "P\np")
+  (windmove-do-window-select
+   'up (and arg (prefix-numeric-value arg)) nil
+   (and is-interactive this-command)))
 
 ;;;###autoload
-(defun windmove-right (&optional arg)
+(defun windmove-right (&optional arg is-interactive)
   "Select the window to the right of the current one.
 With no prefix argument, or with prefix argument equal to zero,
 \"right\" is relative to the position of point in the window;
 otherwise it is relative to the top edge (for positive ARG) or the
 bottom edge (for negative ARG) of the current window.
 If no window is at the desired location, an error is signaled
-unless `windmove-create-window' is non-nil and a new window is created."
-  (interactive "P")
-  (windmove-do-window-select 'right (and arg (prefix-numeric-value arg))))
+unless `windmove-create-window' is non-nil and a new window is created.
+
+If `windmove-allow-repeated-command-override' is true and this commnad
+stopped because it wouldn't move into a window marked with
+`no-other-window', repeating the command will move into that window."
+  (interactive "P\np")
+  (windmove-do-window-select
+   'right (and arg (prefix-numeric-value arg)) nil
+   (and is-interactive this-command)))
 
 ;;;###autoload
-(defun windmove-down (&optional arg)
+(defun windmove-down (&optional arg is-interactive)
   "Select the window below the current one.
 With no prefix argument, or with prefix argument equal to zero,
 \"down\" is relative to the position of point in the window; otherwise
 it is relative to the left edge (for positive ARG) or the right edge
 \(for negative ARG) of the current window.
 If no window is at the desired location, an error is signaled
-unless `windmove-create-window' is non-nil and a new window is created."
-  (interactive "P")
-  (windmove-do-window-select 'down (and arg (prefix-numeric-value arg))))
+unless `windmove-create-window' is non-nil and a new window is created.
+
+If `windmove-allow-repeated-command-override' is true and this commnad
+stopped because it wouldn't move into a window marked with
+`no-other-window', repeating the command will move into that window."
+  (interactive "P\np")
+  (windmove-do-window-select
+   'down (and arg (prefix-numeric-value arg)) nil
+   (and is-interactive this-command)))
 
 
 ;;; set up keybindings

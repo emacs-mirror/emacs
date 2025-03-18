@@ -80,14 +80,14 @@ treat them as whitespace (per RFC822)."
                               (or (> nest 0)
                                   (ietf-drums-date--ignore-char-p char)
                                   (and (not comment-eof) (eql char ?\())))
-                    (cl-incf index)
+                    (incf index)
                     ;; FWS bookkeeping.
                     (cond ((and (eq char ?\\)
                                 (< (1+ index) end))
 	                    ;; Move to the next char but don't check
 	                    ;; it to see if it might be a paren.
-                            (cl-incf index))
-                          ((eq char ?\() (cl-incf nest))
+                            (incf index))
+                          ((eq char ?\() (incf nest))
                           ((eq char ?\)) (decf nest)))))))
       (skip-ignored)		;; Skip leading whitespace.
       (while (and (< index end)
@@ -106,8 +106,8 @@ treat them as whitespace (per RFC822)."
             ;; RFC2?822 dates need escaping anyway, so it shouldn't
             ;; matter that this is not done strictly correctly.  --
             ;; rgr, 24-Dec-21.
-            (cl-incf index))
-          (while (and (< (cl-incf index) end)
+            (incf index))
+          (while (and (< (incf index) end)
                       (setq char (aref string index))
                       (not (or (ietf-drums-date--ignore-char-p char)
                                (eq char ?\())))
@@ -116,7 +116,7 @@ treat them as whitespace (per RFC822)."
             (when (and (eq char ?\\)
                        (< (1+ index) end))
               ;; Escaped character, see above.
-              (cl-incf index)))
+              (incf index)))
           (push (if all-digits
                     (cl-parse-integer string :start start :end index)
                   (substring string start index))

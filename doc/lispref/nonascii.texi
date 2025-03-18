@@ -754,7 +754,10 @@ each character in columns that it will occupy on the screen.
 The value of this variable is a char-table that specifies, for each
 character, whether it is printable or not.  That is, if evaluating
 @code{(aref printable-chars char)} results in @code{t}, the character
-is printable, and if it results in @code{nil}, it is not.
+is printable, and if it results in @code{nil}, it is not.  The
+definition of what is a printable character is the same as for the
+@samp{[:print:]} character class in regular expressions, @pxref{Char
+Classes}.
 @end defvar
 
 @node Character Sets

@@ -79,3 +79,22 @@ class C
 
 say "done!";
 =-=-=
+
+Name: cperl-keyword-in-subname
+
+=-=
+# Bug#76851
+sub exec_fcn {
+}
+
+sub other {
+}
+=-=-=
+
+Name: cperl-keyword-without-space
+
+=-=
+# Bug#76851, message #13
+my %h = map{$_=>1}
+  @ARGV;
+=-=-=

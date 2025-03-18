@@ -92,6 +92,9 @@ PROMPT will be inserted at the start of the buffer, but won't be
 included in the resulting string.  If nil, no prompt will be
 inserted in the buffer.
 
+When the user exits recursive edit, this function returns the
+edited STRING.
+
 Also see `string-edit'."
   (string-edit
    prompt

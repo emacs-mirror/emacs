@@ -1675,8 +1675,8 @@ The buffer position of the character clicked on in the text area; or,
 if the event was outside the text area, the window area where it
 occurred.  It is one of the symbols @code{mode-line},
 @code{header-line}, @code{tab-line}, @code{vertical-line},
-@code{left-margin}, @code{right-margin}, @code{left-fringe}, or
-@code{right-fringe}.
+@code{left-margin}, @code{right-margin}, @code{left-fringe},
+or @code{right-fringe}.
 
 In one special case, @var{pos-or-area} is a list containing a symbol
 (one of the symbols listed above) instead of just the symbol.  This
@@ -1791,17 +1791,18 @@ handle), @code{up} (the up arrow at one end of the scroll bar), or
 @c The 'top', 'bottom', and 'end-scroll' codes don't seem to be used.
 @end table
 
-For clicks on the frame's internal border (@pxref{Frame Layout}),
-the frame's tool bar (@pxref{Tool Bar}) or tab bar, @var{position}
-has this form:
+For clicks on the frame's internal border (@pxref{Frame Layout}), the
+frame's tool bar (@pxref{Tool Bar}) or tab bar or menu bar,
+@var{position} has this form:
 
 @example
- (@var{frame} @var{part} (@var{X} . @var{Y}) @var{timestamp})
+ (@var{frame} @var{part} (@var{X} . @var{Y}) @var{timestamp} @var{object})
 @end example
 
 @table @asis
 @item @var{frame}
-The frame whose internal border or tool bar or tab bar was clicked on.
+The frame whose internal border or tool bar or tab bar or menu bar was
+clicked on.
 
 @item @var{part}
 The part of the frame which was clicked on.  This can be one
@@ -1815,6 +1816,13 @@ The frame has a tool bar, and the event was in the tool-bar area.
 @cindex tab-bar mouse events
 @item tab-bar
 The frame has a tab bar, and the event was in the tab-bar area.
+
+@cindex menu-bar mouse events
+@item menu-bar
+The event was on the frame's menu bar area.  This kind of click event
+can happen only on text-only frames or on X frames in a non-toolkit
+build of Emacs.  (In toolkit builds of Emacs, menu-bar clicks are
+handled by the toolkit, and are not visible to Emacs as click events.)
 
 @item left-edge
 @itemx top-edge
@@ -1837,6 +1845,9 @@ the frame doesn't have its @code{drag-internal-border} parameter
 (@pxref{Mouse Dragging Parameters}) set to a non-@code{nil} value.
 @end table
 
+@item @var{object}
+This member is present only for clicks on the tab bar, and it is the
+propertized string with information about the clicked button.
 @end table
 
 

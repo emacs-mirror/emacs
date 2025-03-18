@@ -964,6 +964,9 @@ select.  For example, in Rmail mode, the speedbar shows a list of Rmail
 files, and lets you move the current message to another Rmail file by
 clicking on its @samp{<M>} box.
 
+The speedbar can optionally be displayed as a window rather than a
+separate frame, in both terminal and graphics mode.
+
   For more details on using and programming the speedbar, @xref{Top,
 Speedbar,,speedbar, Speedbar Manual}.
 

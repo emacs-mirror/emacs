@@ -751,19 +751,13 @@ encode_terminal_code (struct glyph *src, int src_len,
 /* An implementation of write_glyphs for termcap frames. */
 
 static void
-tty_write_glyphs (struct frame *f, struct glyph *string, int len)
+tty_write_glyphs_1 (struct frame *f, struct glyph *string, int len)
 {
   struct tty_display_info *tty = FRAME_TTY (f);
   tty_turn_off_insert (tty);
   tty_hide_cursor (tty);
 
-  /* Don't dare write in last column of bottom line, if Auto-Wrap,
-     since that would scroll the whole frame on some terminals.  */
-  if (AutoWrap (tty)
-      && curY (tty) + 1 == FRAME_TOTAL_LINES (f)
-      && (curX (tty) + len) == FRAME_COLS (f))
-    len --;
-  if (len <= 0)
+  if (len == 0)
     return;
 
   cmplus (tty, len);
@@ -967,6 +961,30 @@ tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
     }
 
   cmcheckmagic (tty);
+}
+
+static void
+tty_write_glyphs (struct frame *f, struct glyph *string, int len)
+{
+  struct tty_display_info *tty = FRAME_TTY (f);
+  /* Don't dare write in last column of bottom line, if Auto-Wrap,
+     since that would scroll the whole frame on some terminals.  */
+  if (AutoWrap (tty)
+      && curY (tty) + 1 == FRAME_TOTAL_LINES (f)
+      && curX (tty) + len == FRAME_COLS (f)
+      && curX (tty) < FRAME_COLS (f) - 1
+      && len > 0)
+    {
+      /* Write glyphs except the first. */
+      int old_x = curX (tty), old_y = curY (tty);
+      tty_write_glyphs_1 (f, string + 1, len - 1);
+
+      /* Insert the first glyph, shifting the rest right.  */
+      cmgoto (tty, old_y, old_x);
+      tty_insert_glyphs (f, string, 1);
+    }
+  else
+    tty_write_glyphs_1 (f, string, len);
 }
 
 /* An implementation of delete_glyphs for termcap frames. */
@@ -2659,12 +2677,68 @@ tty_frame_at (int x, int y, int *cx, int *cy)
       Lisp_Object frame = Fcar (frames);
       struct frame *f = XFRAME (frame);
       int fx, fy;
+      bool on_border = false;
+
       root_xy (f, 0, 0, &fx, &fy);
 
-      if ((fx <= x && x < fx + f->pixel_width)
-	  && (fy <= y && y < fy + f->pixel_height))
+      if (!FRAME_UNDECORATED (f) && FRAME_PARENT_FRAME (f))
+	{
+	  if (fy - 1 <= y && y <= fy + f->pixel_height + 1)
+	    {
+	      if (fx == x + 1)
+		{
+		  *cx = -1;
+		  on_border = true;
+		}
+	      else if (fx + f->pixel_width == x)
+		{
+		  *cx = f->pixel_width;
+		  on_border = true;
+		}
+
+	      if (on_border)
+		{
+		  *cy = y - fy;
+
+		  return frame;
+		}
+	    }
+
+	  if (fx - 1 <= x && x <= fx + f->pixel_width + 1)
+	    {
+	      if (fy == y + 1)
+		{
+		  *cy = -1;
+		  on_border = true;
+		}
+	      else if (fy + f->pixel_height == y)
+		{
+		  *cy = f->pixel_height;
+		  on_border = true;
+		}
+
+	      if (on_border)
+		{
+		  *cx = x - fx;
+
+		  return frame;
+		}
+	    }
+
+
+	  if ((fx <= x && x <= fx + f->pixel_width)
+	      && (fy <= y && y <= fy + f->pixel_height))
+	    {
+	      child_xy (XFRAME (frame), x, y, cx, cy);
+
+	      return frame;
+	    }
+	}
+      else if ((fx <= x && x <= fx + f->pixel_width)
+	       && (fy <= y && y <= fy + f->pixel_height))
 	{
 	  child_xy (XFRAME (frame), x, y, cx, cy);
+
 	  return frame;
 	}
     }
@@ -2674,7 +2748,7 @@ tty_frame_at (int x, int y, int *cx, int *cy)
 }
 
 DEFUN ("tty-frame-at", Ftty_frame_at, Stty_frame_at, 2, 2, 0,
-       doc : /* Return tty frame containing absolute pixel position (X, Y).
+       doc: /* Return tty frame containing absolute pixel position (X, Y).
 Value is nil if no frame found.  Otherwise it is a list (FRAME CX CY),
 where FRAME is the frame containing (X, Y) and CX and CY are X and Y
 relative to FRAME.  */)
@@ -2688,6 +2762,7 @@ relative to FRAME.  */)
   Lisp_Object frame = tty_frame_at (XFIXNUM (x), XFIXNUM (y), &cx, &cy);
   if (NILP (frame))
     return Qnil;
+
   return list3 (frame, make_fixnum (cx), make_fixnum (cy));
 }
 
@@ -3690,7 +3765,7 @@ tty_menu_help_callback (char const *help_string, int pane, int item)
   /* (menu-item MENU-NAME PANE-NUMBER)  */
   menu_object = list3 (Qmenu_item, pane_name, make_fixnum (pane));
   show_help_echo (help_string ? build_string (help_string) : Qnil,
- 		  Qnil, menu_object, make_fixnum (item));
+		  Qnil, menu_object, make_fixnum (item));
 }
 
 struct tty_pop_down_menu

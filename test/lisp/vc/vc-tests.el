@@ -177,6 +177,12 @@ For backends which don't support it, it is emulated."
 
    (t (vc-create-repo backend))))
 
+(defmacro vc--fix-home-for-bzr (tempdir)
+  ;; See the comment in `vc-bzr-test-bug9726'.
+  `(when (eq backend 'Bzr)
+     (push (format "BZR_HOME=%s" ,tempdir) process-environment)
+     (push (format "HOME=%s" ,tempdir) process-environment)))
+
 (defun vc-test--create-repo (backend)
   "Create a test repository in `default-directory', a temporary directory."
   (ert-with-temp-directory tempdir
@@ -187,10 +193,7 @@ For backends which don't support it, it is emulated."
              (make-temp-name "vc-test") temporary-file-directory)))
           (process-environment process-environment)
           vc-test--cleanup-hook)
-      (when (eq backend 'Bzr)
-        (setq process-environment (cons (format "BZR_HOME=%s" tempdir)
-                                        process-environment)))
-
+      (vc--fix-home-for-bzr tempdir)
       (unwind-protect
           (progn
             ;; Cleanup.
@@ -242,9 +245,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
              (make-temp-name "vc-test") temporary-file-directory)))
           (process-environment process-environment)
           vc-test--cleanup-hook)
-      (when (eq backend 'Bzr)
-        (setq process-environment (cons (format "BZR_HOME=%s" tempdir)
-                                        process-environment)))
+      (vc--fix-home-for-bzr tempdir)
       (unwind-protect
           (progn
             ;; Cleanup.
@@ -323,9 +324,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
              (make-temp-name "vc-test") temporary-file-directory)))
           (process-environment process-environment)
           vc-test--cleanup-hook)
-      (when (eq backend 'Bzr)
-        (setq process-environment (cons (format "BZR_HOME=%s" tempdir)
-                                        process-environment)))
+      (vc--fix-home-for-bzr tempdir)
       (unwind-protect
           (progn
             ;; Cleanup.
@@ -388,10 +387,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
              (make-temp-name "vc-test") temporary-file-directory)))
           (process-environment process-environment)
           vc-test--cleanup-hook)
-      (when (eq backend 'Bzr)
-        (setq process-environment (cons (format "BZR_HOME=%s" tempdir)
-                                        process-environment)))
-
+      (vc--fix-home-for-bzr tempdir)
       (unwind-protect
           (progn
             ;; Cleanup.
@@ -466,10 +462,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
              (make-temp-name "vc-test") temporary-file-directory)))
           (process-environment process-environment)
           vc-test--cleanup-hook)
-      (when (eq backend 'Bzr)
-        (setq process-environment (cons (format "BZR_HOME=%s" tempdir)
-                                        process-environment)))
-
+      (vc--fix-home-for-bzr tempdir)
       (unwind-protect
           (progn
             ;; Cleanup.
@@ -549,10 +542,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
              (make-temp-name "vc-test") temporary-file-directory)))
           (process-environment process-environment)
           vc-test--cleanup-hook)
-      (when (eq backend 'Bzr)
-        (setq process-environment (cons (format "BZR_HOME=%s" tempdir)
-                                        process-environment)))
-
+      (vc--fix-home-for-bzr tempdir)
       (unwind-protect
           (progn
             ;; Cleanup.
@@ -601,9 +591,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
               (make-temp-name "vc-test") temporary-file-directory))))
           (process-environment process-environment)
           vc-test--cleanup-hook)
-      (when (eq backend 'Bzr)
-        (setq process-environment (cons (format "BZR_HOME=%s" tempdir)
-                                        process-environment)))
+      (vc--fix-home-for-bzr tempdir)
       ;; git tries various approaches to guess a user name and email,
       ;; which can fail depending on how the system is configured.
       ;; Eg if the user account has no GECOS, git commit can fail with

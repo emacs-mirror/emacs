@@ -257,9 +257,9 @@ email composition buffers (@pxref{Inline Query Expansion})
 
 @lisp
 (with-eval-after-load "message"
-  (define-key message-mode-map [(control ?c) (tab)] 'eudc-expand-try-all))
+  (keymap-set message-mode-map "C-c <tab>" 'eudc-expand-try-all))
 (with-eval-after-load "sendmail"
-  (define-key mail-mode-map [(control ?c) (tab)] 'eudc-expand-try-all))
+  (keymap-set mail-mode-map "C-c <tab>" 'eudc-expand-try-all))
 @end lisp
 
 @menu
@@ -355,7 +355,7 @@ LDAP:
 @vindex ldap-host-parameters-alist
 @lisp
 (with-eval-after-load "message"
-  (define-key message-mode-map (kbd "TAB") 'eudc-expand-try-all))
+  (keymap-set message-mode-map "TAB" 'eudc-expand-try-all))
 (setopt eudc-server-hotlist
         '(("" . bbdb)
           ("ldaps://ldap.gnu.org" . ldap)))
@@ -412,7 +412,7 @@ configure EUDC for LDAP:
 @vindex ldap-host-parameters-alist
 @lisp
 (with-eval-after-load "message"
-  (define-key message-mode-map (kbd "TAB") 'eudc-expand-try-all))
+  (keymap-set message-mode-map "TAB" 'eudc-expand-try-all))
 (setopt eudc-server-hotlist
         '(("" . bbdb)
           ("ldaps://ldap.gnu.org" . ldap)))
@@ -442,7 +442,7 @@ and the @file{.emacs} expressions become:
 @vindex ldap-host-parameters-alist
 @lisp
 (with-eval-after-load "message"
-  (define-key message-mode-map (kbd "TAB") 'eudc-expand-try-all))
+  (keymap-set message-mode-map "TAB" 'eudc-expand-try-all))
 (setopt eudc-server-hotlist
         '(("" . bbdb) ("" . ldap)))
 (setopt ldap-host-parameters-alist

@@ -903,6 +903,7 @@ DIRS must contain directory names."
     (define-key map "x" 'project-execute-extended-command)
     (define-key map "o" 'project-any-command)
     (define-key map "\C-b" 'project-list-buffers)
+    (define-key map "\C-xs" 'project-save-some-buffers)
     map)
   "Keymap for project commands.")
 
@@ -1828,13 +1829,32 @@ Also see the `project-kill-buffers-display-buffer-list' variable."
           ((funcall query-user)
            (mapc #'kill-buffer bufs)))))
 
+;;;###autoload
+(defun project-save-some-buffers (arg)
+  "Like `save-some-buffers', but only for this project's buffers."
+  (interactive "P")
+  (save-some-buffers arg (save-some-buffers-root)))
+
 
 ;;; Project list
 
-(defcustom project-list-file (locate-user-emacs-file "projects")
+(defcustom project-list-file
+  (locate-user-emacs-file (if (>= emacs-major-version 31)
+                              '("projects.eld" "projects")
+                            "projects"))
   "File in which to save the list of known projects."
   :type 'file
-  :version "28.1"
+  :version "31.1"
+  :group 'project)
+
+(defcustom project-list-exclude nil
+  "Exclude projects from being remembered by `project-remember-project'.
+It should be a list of regexps and predicates for project roots and
+objects to always exclude from being remembered.  The predicate should
+take one argument, the project object, and should return non-nil if the
+project should not be remembered."
+  :type '(repeat (choice regexp function))
+  :version "31.1"
   :group 'project)
 
 (defvar project--list 'unset
@@ -1902,9 +1922,16 @@ has changed, and NO-WRITE is nil."
 ;;;###autoload
 (defun project-remember-project (pr &optional no-write)
   "Add project PR to the front of the project list.
+If project PR satisfies `project-list-exclude', then nothing is done.
 Save the result in `project-list-file' if the list of projects
 has changed, and NO-WRITE is nil."
-  (project--remember-dir (project-root pr) no-write))
+  (let ((root (project-root pr)))
+    (unless (seq-some (lambda (r)
+                        (if (functionp r)
+                            (funcall r pr)
+                          (string-match-p r root)))
+                      project-list-exclude)
+      (project--remember-dir root no-write))))
 
 (defun project--remove-from-project-list (project-root report-message)
   "Remove directory PROJECT-ROOT of a missing project from the project list.
@@ -2274,7 +2301,7 @@ made from `project-switch-commands'.
 When called in a program, it will use the project corresponding
 to directory DIR."
   (interactive (list (funcall project-prompter)))
-  (project--remember-dir dir)
+  (project-remember-project (project-current nil dir))
   (let ((command (if (symbolp project-switch-commands)
                      project-switch-commands
                    (project--switch-project-command dir)))

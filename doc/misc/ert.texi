@@ -46,15 +46,17 @@ modify this GNU manual.''
 @insertcopying
 
 ERT is a tool for automated testing in Emacs Lisp.  Its main features
-are facilities for defining tests, running them and reporting the
-results, and for debugging test failures interactively.
+are facilities for defining and running tests, reporting results, and
+debugging test failures interactively.  Tests are written in Emacs Lisp,
+just like the code under test, making it easy to write expressive and
+concise test cases.
 
-ERT is similar to tools for other environments such as JUnit, but has
-unique features that take advantage of the dynamic and interactive
-nature of Emacs.  Despite its name, it works well both for test-driven
-development (see
-@url{https://en.wikipedia.org/wiki/Test-driven_development}) and for
-traditional software development methods.
+ERT has unique features that take advantage of the dynamic and
+interactive nature of Emacs.  It is unopinionated about when or how
+tests are written: you can use it to verify newly written code,
+reproduce known bugs, prevent regressions, or explore the behavior of
+complex systems.  It can be used for both unit tests and larger
+integration tests.
 
 @menu
 * Introduction::                A simple example of an ERT test.
@@ -535,6 +537,7 @@ help ERT find the defining call to the macro by putting the property
 * Useful Techniques::           Some examples.
 * erts files::                  Files containing many buffer tests.
 * Syntax Highlighting Tests::   Tests for face assignment.
+* Helpers for Buffers::         Dealing with buffers during tests.
 * Helper Functions::            Various helper functions.
 @end menu
 
@@ -962,7 +965,7 @@ checking face assignment.  Test assertions are included in code-level
 comments directly and can be read either from inline strings or files.
 The parser expects the input string to contain at least one assertion.
 
-Test assertion parser extracts tests from comment-only lines.  Every
+The test assertion parser extracts tests from comment-only lines.  Every
 comment assertion line starts either with a caret (@samp{^}) or an arrow
 (@samp{<-}).  A single caret/arrow or carets should be followed
 immediately by the name of a face or a list of faces to be checked
@@ -984,7 +987,7 @@ var variable = 11;
 @end example
 
 Both symbol-only @code{:face} property values and assertion face values
-are normalized to single element lists so assertions below are
+are normalized to single element lists so the assertions below are
 equivalent:
 
 @example
@@ -1061,7 +1064,7 @@ definition:
 
 @lisp
 (ert-font-lock-deftest test-macro-test--inline
-    emacs-lisp-mode
+  emacs-lisp-mode
   "
 (defun fun ())
 ;; ^ font-lock-keyword-face
@@ -1075,28 +1078,36 @@ file:
 
 @lisp
 (ert-font-lock-deftest-file test-macro-test--file
-    "Test reading correct assertions from a file"
+  "Test reading correct assertions from a file."
   javascript-mode
   "correct.js")
 @end lisp
 
 The @code{ert-font-lock-deftest} and @code{ert-font-lock-deftest-file}
-macros accept the same keyword parameters as @code{ert-deftest} i.e.,
+macros accept the same keyword arguments as @code{ert-deftest}, i.e.,
 @code{:tag} and @code{:expected-result}.
 
 
-@node Helper Functions
-@section Various Helper Functions
+@node Helpers for Buffers
+@section Handling Buffers during tests
 
-The package @file{ert-x.el} contains some macros and functions useful
-for writing tests.
+ERT comes with some macros for dealing with buffers used when testing.
 
-@subsection Test Buffers
+@subsection Creating temporary buffers
 
-@defmac ert-with-test-buffer ((&key ((:name name-form))) &body body)
+@findex ert-kill-all-test-buffers
+The @code{ert-with-test-buffer} macro can be used to create a temporary
+buffer during a test, which is cleaned up automatically if the test is
+successful.  But if the test fails, the buffer stays around so that you
+can more easily investigate the test failure.  When you are done, you
+can use the command @code{ert-kill-all-test-buffers} to kill all test
+buffers that have been created by this macro.
+
+@defmac ert-with-test-buffer ((&key ((:name name-form :selected select-form))) &body body)
 This macro creates a test buffer and runs @var{body} in that buffer.  If
 @var{body} finishes successfully, the test buffer is killed; if there is
-an error, the test buffer is kept around for further inspection.
+an error, the test buffer is kept around for further inspection.  The
+return value is the last form in @var{body}.
 
 The test buffer name is derived from the name of the ERT test and the
 result of @var{NAME-FORM}.  Example:
@@ -1109,6 +1120,16 @@ result of @var{NAME-FORM}.  Example:
 
 This uses the test buffer @file{*Test buffer
 (backtrace-tests--variables): variables*}.
+
+If @var{select-form} is non-nil, select the buffer after creating it.
+This has the same effect as combining @code{ert-with-test-buffer} with
+@code{ert-with-buffer-selected}.  Example:
+
+@lisp
+(ert-deftest whitespace-tests--global ()
+  (ert-with-test-buffer (:name "global" :selected t)
+    @dots{}))
+@end lisp
 @end defmac
 
 @defmac ert-with-buffer-selected (buffer &body body)
@@ -1133,26 +1154,7 @@ value is the last form in @var{body}.  Example:
 This displays a temporary buffer like @file{ *temp*-739785*}.
 @end defmac
 
-@defmac ert-with-test-buffer-selected ((&key name) &body body)
-This creates a test buffer, switches to it, and runs @var{body}.
-
-It combines @code{ert-with-test-buffer} and
-@code{ert-with-buffer-selected}.  The return value is the last form in
-@var{body}.  Example:
-
-@lisp
-(ert-deftest whitespace-tests--global ()
-  (ert-with-test-buffer-selected (:name "global")
-    @dots{}))
-@end lisp
-
-This displays the test buffer @file{*Test buffer
-(whitespace-tests--global): global*}.
-@end defmac
-
-@defun ert-kill-all-test-buffers ()
-It kills all test buffers that are still live.
-@end defun
+@subsection Protecting buffers
 
 @defmac ert-with-buffer-renamed ((buffer-name-form) &body body)
 This macro protects the buffer @var{buffer-name} from side-effects and
@@ -1168,6 +1170,13 @@ buffer with a fixed name such as @file{*Messages*}.  Example:
 (ert-with-buffer-renamed ("*Messages*") @dots{})
 @end lisp
 @end defmac
+
+
+@node Helper Functions
+@section Various Helper Functions
+
+The package @file{ert-x.el} contains some macros and functions useful
+for writing tests.
 
 @defmac ert-with-message-capture (var &rest body)
 This macro executes @var{body} while collecting messages in @var{var}.

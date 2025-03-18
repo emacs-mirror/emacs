@@ -1521,31 +1521,40 @@ The meanings of both arguments are the same as documented in
                     xrefs
                   (setq xrefs 'called-already)))))))
   (let ((cb (current-buffer))
-        (pt (point)))
+        (pt (point))
+        (win (selected-window)))
     (prog1
         (funcall xref-show-xrefs-function fetcher
-                 `((window . ,(selected-window))
+                 `((window . ,win)
                    (display-action . ,display-action)
                    (auto-jump . ,xref-auto-jump-to-first-xref)))
-      (xref--push-markers cb pt))))
+      (xref--push-markers cb pt win))))
 
 (defun xref--show-defs (xrefs display-action)
   (let ((cb (current-buffer))
-        (pt (point)))
+        (pt (point))
+        (win (selected-window)))
     (prog1
         (funcall xref-show-definitions-function xrefs
-                 `((window . ,(selected-window))
+                 `((window . ,win)
                    (display-action . ,display-action)
                    (auto-jump . ,xref-auto-jump-to-first-definition)))
-      (xref--push-markers cb pt))))
+      (xref--push-markers cb pt win))))
 
-(defun xref--push-markers (buf pt)
+(defun xref--push-markers (buf pt win)
   (when (buffer-live-p buf)
-    (save-excursion
-      (with-no-warnings (set-buffer buf))
-      (goto-char pt)
-      (unless (region-active-p) (push-mark nil t))
-      (xref-push-marker-stack))))
+    ;; This was we support the `xref-history-storage' getter which
+    ;; depends on the selected window.  This is getting pretty complex,
+    ;; though. The alternative approach to try would be to push early
+    ;; but undo the stack insertion and mark-pushing in error handler.
+    (save-window-excursion
+      (when (window-live-p win)
+        (select-window win))
+      (save-excursion
+        (with-no-warnings (set-buffer buf))
+        (goto-char pt)
+        (unless (region-active-p) (push-mark nil t))
+        (xref-push-marker-stack)))))
 
 (defun xref--prompt-p (command)
   (or (eq xref-prompt-for-identifier t)

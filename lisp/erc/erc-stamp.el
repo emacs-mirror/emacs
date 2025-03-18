@@ -732,6 +732,9 @@ non-nil."
               (symbol (make-symbol "erc-stamp--insert-date"))
               (marker (setf (erc-stamp--date-marker data) (point-min-marker))))
     (setf (erc-stamp--date-fn data) symbol)
+    ;; Disable logging in case `erc-log-write-after-insert' is in effect.
+    (when erc--msg-props
+      (push 'log (gethash 'erc--skip erc--msg-props)))
     (fset symbol
           (lambda (&rest _)
             (remove-hook hook-var symbol)

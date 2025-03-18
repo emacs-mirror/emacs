@@ -1893,6 +1893,15 @@ Usage:
 :vc              Install the package directly from a version control system
                  (using `package-vc.el')."
   (declare (indent defun))
+  (when (stringp name)
+    (user-error "String where there should be a symbol.  \
+Try this instead: `(use-package %s ...)'"
+                name))
+  (when (and (consp name) (eq (car name) 'quote))
+    (user-error "Quoted symbol where it should be unquoted.  \
+Try this instead: `(use-package %s ...)'"
+                (symbol-name (cadr name))))
+  (cl-check-type name symbol)
   (unless (memq :disabled args)
     (macroexp-progn
      (use-package-concat

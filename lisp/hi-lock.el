@@ -245,17 +245,6 @@ by cycling through the faces in `hi-lock-face-defaults'."
 (defvar hi-lock-file-patterns-prefix "Hi-lock"
   "String used to identify hi-lock patterns at the start of files.")
 
-(defvar hi-lock-archaic-interface-message-used nil
-  "Non-nil if user alerted that `global-hi-lock-mode' is now the global switch.
-Earlier versions of hi-lock used `hi-lock-mode' as the global switch;
-the message is issued if it appears that `hi-lock-mode' is used assuming
-that older functionality.  This variable avoids multiple reminders.")
-
-(defvar hi-lock-archaic-interface-deduce nil
-  "If non-nil, sometimes assume that `hi-lock-mode' means `global-hi-lock-mode'.
-Assumption is made if `hi-lock-mode' used in the *scratch* buffer while
-a library is being loaded.")
-
 (easy-menu-define hi-lock-menu nil
   "Menu for hi-lock mode."
   '("Hi Lock"
@@ -358,17 +347,6 @@ Hi-lock: end is found.  A mode is excluded if it's in the list
 		      " Hi" ""))
   :global nil
   :keymap hi-lock-map
-  (when (and (equal (buffer-name) "*scratch*")
-             load-in-progress
-             (not (called-interactively-p 'interactive))
-             (not hi-lock-archaic-interface-message-used))
-    (setq hi-lock-archaic-interface-message-used t)
-    (if hi-lock-archaic-interface-deduce
-        (global-hi-lock-mode hi-lock-mode)
-      (warn "%s"
-       "Possible archaic use of (hi-lock-mode).
-Use (global-hi-lock-mode 1) in .emacs to enable hi-lock for all buffers,
-use (hi-lock-mode 1) for individual buffers.")))
   (if hi-lock-mode
       ;; Turned on.
       (progn
@@ -403,7 +381,6 @@ use (hi-lock-mode 1) for individual buffers.")))
   :group 'hi-lock)
 
 (defun turn-on-hi-lock-if-enabled ()
-  (setq hi-lock-archaic-interface-message-used t)
   (unless (memq major-mode hi-lock-exclude-modes)
     (hi-lock-mode 1)))
 

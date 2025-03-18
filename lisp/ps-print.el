@@ -145,9 +145,9 @@
 ;; `ps-spool-buffer-with-faces', `ps-spool-region-with-faces', and
 ;; `ps-despool'.  Here are the bindings I use on my Sun 4 keyboard:
 ;;
-;;   (global-set-key 'f22 'ps-spool-buffer-with-faces) ;f22 is prsc
-;;   (global-set-key '(shift f22) 'ps-spool-region-with-faces)
-;;   (global-set-key '(control f22) 'ps-despool)
+;;   (keymap-global-set "<f22>" #'ps-spool-buffer-with-faces) ;f22 is prsc
+;;   (keymap-global-set "S-<f22>" #'ps-spool-region-with-faces)
+;;   (keymap-global-set "C-<f22>" #'ps-despool)
 ;;
 ;;
 ;; The Printer Interface

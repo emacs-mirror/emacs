@@ -332,6 +332,7 @@
       (load "term/w32-win")
       (load "disp-table")
       (when (eq system-type 'windows-nt)
+        (load "term/w32-nt")
         (load "w32-fns")
         (load "ls-lisp")
         (load "dos-w32"))

@@ -33,6 +33,7 @@
 (eval-when-compile (require 'cl-lib))
 
 (defvar dos-codepage)
+(autoload 'widget-put "wid-edit")
 (autoload 'widget-value "wid-edit")
 
 ;;; MULE related key bindings and menus.
@@ -1672,6 +1673,7 @@ This is a subroutine for `describe-input-method'."
 
 (defun read-multilingual-string (prompt &optional initial-input input-method)
   "Read a multilingual string from minibuffer, prompting with string PROMPT.
+Return the string thus read.
 The input method selected last time is activated in minibuffer.
 If optional second argument INITIAL-INPUT is non-nil, insert it in the
 minibuffer initially.
@@ -2668,7 +2670,7 @@ but this macro does not by itself perform redisplay.  If BODY needs to
 display something with LOCALE-NAME's settings, include a call
 to `redraw-frame' in BODY."
   (declare (indent 1) (debug (sexp def-body)))
-  (let ((current (gensym)))
+  (cl-with-gensyms (current)
     `(let ((,current current-locale-environment))
        (unwind-protect
            (progn

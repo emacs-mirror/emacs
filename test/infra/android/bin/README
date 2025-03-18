@@ -1,0 +1,50 @@
+Copyright (C) 2025 Free Software Foundation, Inc.  -*- coding: utf-8 -*-
+See the end of the file for license conditions.
+
+This directory holds a minuscule stub executable that invokes the
+appropriate Java APIs to execute an activity with string array
+parameters.  It is not necessary on systems that have received AOSP
+commit:
+
+  https://android.googlesource.com/platform/frameworks/base/+/28600e2%5E%21/
+
+which is to say, Android 5.0 (API 21) or newer.
+
+
+------------------------------------------------------------------------
+In consequence of this stub's liberal usage of private APIs, you must
+compile this executable yourself, and link it against a copy of the
+Android framework libraries extracted from a real installation of
+Android 4.4.x and processed through `dex2jar':
+
+  https://github.com/pxb1988/dex2jar
+
+The resultant class file, once further compiled into Dex bytecode with
+`d8' and archived, must be renamed "stub.zip" and placed in this
+directory; for example:
+
+  $ adb pull /system/framework/framework.jar
+  /system/framework/framework.jar: 1 file pulled, 0 skipped. 1.6 MB/s (3818859 bytes in 2.342s)
+  $ adb pull /system/framework/core.jar
+  /system/framework/core.jar: 1 file pulled, 0 skipped. 1.6 MB/s (1237856 bytes in 0.743s)
+  $ dex2jar {core,framework}.jar
+  dex2jar core.jar -> ./core-dex2jar.jar
+  dex2jar framework.jar -> ./framework-dex2jar.jar
+  $ javac AtsStub.java -source 1.6 -classpath "core-dex2jar.jar:framework-dex2jar.jar"
+  $ d8 AtsStub.class && zip stub.zip classes.dex
+
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.

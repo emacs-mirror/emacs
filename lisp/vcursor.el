@@ -250,7 +250,7 @@
 ;; In addition to any other bindings, vcursor-map contains key definitions
 ;; for handling the vcursor.  You should assign this to a prefix key
 ;; in the usual way, e.g.
-;;      (global-set-key [f14] vcursor-map)
+;;      (keymap-global-set "<f14>" vcursor-map)
 ;; and also as usual \C-h in this map will list the key definitions, which
 ;; are designed to be easy to remember.
 ;;

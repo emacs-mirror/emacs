@@ -926,7 +926,7 @@ See `semantic-format-tag-prototype' for Emacs Lisp for more details."
 (defvar-mode-local emacs-lisp-mode semantic-stickyfunc-sticky-classes
   '(function type variable)
   "Add variables.
-ELisp variables can be pretty long, so track this one too.")
+Elisp variable names can be pretty long, so track this one too.")
 
 (with-suppressed-warnings ((obsolete define-child-mode))
   ;; FIXME: We should handle this some other way!

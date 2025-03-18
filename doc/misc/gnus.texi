@@ -874,7 +874,6 @@ Thwarting Email Spam
 * The problem of spam::         Some background, and some solutions
 * Anti-Spam Basics::            Simple steps to reduce the amount of spam.
 * SpamAssassin::                How to use external anti-spam tools.
-* Hashcash::                    Reduce spam by burning CPU time.
 
 Spam Package
 
@@ -892,7 +891,6 @@ Spam Back Ends
 * Blacklists and Whitelists::
 * BBDB Whitelists::
 * Gmane Spam Reporting::
-* Anti-spam Hashcash Payments::
 * Blackholes::
 * Regular Expressions Header Matching::
 * Bogofilter::
@@ -3313,7 +3311,7 @@ following is added to a group parameter
 
 @lisp
 (gnus-summary-prepared-hook
-  (lambda nil (local-set-key "d" (local-key-binding "n"))))
+  (lambda nil (keymap-local-set "d" (local-key-binding "n"))))
 @end lisp
 
 when the group is entered, the 'd' key will not mark the article as
@@ -4531,7 +4529,7 @@ The key @kbd{v} is reserved for users.  You can bind it to some
 command or better use it as a prefix key.  For example:
 
 @lisp
-(define-key gnus-group-mode-map (kbd "v j d")
+(keymap-set gnus-group-mode-map "v j d"
   (lambda ()
     (interactive)
     (gnus-group-jump-to-group "nndraft:drafts")))
@@ -4884,7 +4882,7 @@ customize-apropos @key{RET} gnus-summary-tool-bar}.
 The key @kbd{v} is reserved for users.  You can bind it to some
 command or better use it as a prefix key.  For example:
 @lisp
-(define-key gnus-summary-mode-map (kbd "v -") "LrS") ;; lower subthread
+(keymap-set gnus-summary-mode-map "v -" "LrS") ;; lower subthread
 @end lisp
 
 @menu
@@ -6656,7 +6654,7 @@ article, you could say something like:
 @group
 (add-hook 'gnus-summary-mode-hook 'my-alter-summary-map)
 (defun my-alter-summary-map ()
-  (local-set-key "!" 'gnus-summary-put-mark-as-ticked-next))
+  (keymap-local-set "!" 'gnus-summary-put-mark-as-ticked-next))
 @end group
 @end lisp
 
@@ -6665,7 +6663,7 @@ or
 
 @lisp
 (defun my-alter-summary-map ()
-  (local-set-key "!" "MM!n"))
+  (keymap-local-set "!" "MM!n"))
 @end lisp
 
 
@@ -17487,8 +17485,7 @@ summary buffer.
       (gnus-summary-scroll-up arg))))
 
 (with-eval-after-load "gnus"
-  (define-key gnus-summary-mode-map
-    (kbd "<RET>") 'browse-nnrss-url))
+  (keymap-set gnus-summary-mode-map "RET" 'browse-nnrss-url))
 (add-to-list 'nnmail-extra-headers nnrss-url-field)
 @end lisp
 
@@ -22500,7 +22497,7 @@ I use the following to check for mails:
   (nnmairix-update-groups "mairixsearch" t t)
   (gnus-group-list-groups))
 
-(define-key gnus-group-mode-map "g" 'my-check-mail-mairix-update)
+(keymap-set gnus-group-mode-map "g" 'my-check-mail-mairix-update)
 @end lisp
 
 Instead of @samp{"mairixsearch"} use the name of your @code{nnmairix}
@@ -24318,7 +24315,6 @@ This is annoying.  Here's what you can do about it.
 * The problem of spam::         Some background, and some solutions
 * Anti-Spam Basics::            Simple steps to reduce the amount of spam.
 * SpamAssassin::                How to use external anti-spam tools.
-* Hashcash::                    Reduce spam by burning CPU time.
 @end menu
 
 @node The problem of spam
@@ -24539,81 +24535,6 @@ spam.  And here is the nifty function:
   (gnus-summary-save-in-pipe "razor-report -f -d" t)
   (gnus-summary-mark-as-expirable 1))
 @end lisp
-
-@node Hashcash
-@subsection Hashcash
-@cindex hashcash
-
-One technique to fight spam is to require senders to do something
-costly and demonstrably unique for each message they send.  This has
-the obvious drawback that you cannot rely on everyone in the world
-using this technique, since it is not part of the Internet standards,
-but it may be useful in smaller communities.
-
-While the tools in the previous section work well in practice, they
-work only because the tools are constantly maintained and updated as
-new form of spam appears.  This means that a small percentage of spam
-will always get through.  It also means that somewhere, someone needs
-to read lots of spam to update these tools.  Hashcash avoids that, but
-instead prefers that everyone you contact through e-mail supports the
-scheme.  You can view the two approaches as pragmatic vs dogmatic.
-The approaches have their own advantages and disadvantages, but as
-often in the real world, a combination of them is stronger than either
-one of them separately.
-
-@cindex X-Hashcash
-The ``something costly'' is to burn CPU time, more specifically to
-compute a hash collision up to a certain number of bits.  The
-resulting hashcash cookie is inserted in a @samp{X-Hashcash:} header.
-For more details, and for the external application @code{hashcash} you
-need to install to use this feature, see
-@uref{http://www.hashcash.org/}.
-
-If you wish to generate hashcash for each message you send, you can
-customize @code{message-generate-hashcash} (@pxref{Mail Headers, ,Mail
-Headers,message, The Message Manual}), as in:
-
-@lisp
-(setq message-generate-hashcash t)
-@end lisp
-
-You will need to set up some additional variables as well:
-
-@table @code
-
-@item hashcash-default-payment
-@vindex hashcash-default-payment
-This variable indicates the default number of bits the hash collision
-should consist of.  By default this is 20.  Suggested useful values
-include 17 to 29.
-
-@item hashcash-payment-alist
-@vindex hashcash-payment-alist
-Some receivers may require you to spend burn more CPU time than the
-default.  This variable contains a list of @samp{(@var{addr}
-@var{amount})} cells, where @var{addr} is the receiver (email address
-or newsgroup) and @var{amount} is the number of bits in the collision
-that is needed.  It can also contain @samp{(@var{addr} @var{string}
-@var{amount})} cells, where the @var{string} is the string to use
-(normally the email address or newsgroup name is used).
-
-@item hashcash-program
-@vindex hashcash-program
-Where the @code{hashcash} binary is installed.  This variable should
-be automatically set by @code{executable-find}, but if it's @code{nil}
-(usually because the @code{hashcash} binary is not in your path)
-you'll get a warning when you check hashcash payments and an error
-when you generate hashcash payments.
-
-@end table
-
-Gnus can verify hashcash cookies, although this can also be done by
-hand customized mail filtering scripts.  To verify a hashcash cookie
-in a message, use the @code{mail-check-payment} function in the
-@code{hashcash.el} library.  You can also use the @code{spam.el}
-package with the @code{spam-use-hashcash} back end to validate hashcash
-cookies in incoming mail and filter mail accordingly (@pxref{Anti-spam
-Hashcash Payments}).
 
 @node Spam Package
 @section Spam Package
@@ -25245,7 +25166,6 @@ Processors}).
 * Blacklists and Whitelists::
 * BBDB Whitelists::
 * Gmane Spam Reporting::
-* Anti-spam Hashcash Payments::
 * Blackholes::
 * Regular Expressions Header Matching::
 * Bogofilter::
@@ -25438,23 +25358,6 @@ numbers don't correspond to the Gmane article numbers.  When
 Mail address exposed in the User-Agent spam reports to Gmane.  It allows
 the Gmane administrators to contact you in case of misreports.  The
 default is @code{user-mail-address}.
-
-@end defvar
-
-@node Anti-spam Hashcash Payments
-@subsubsection Anti-spam Hashcash Payments
-@cindex spam filtering
-@cindex hashcash, spam filtering
-@cindex spam
-
-@defvar spam-use-hashcash
-
-Similar to @code{spam-use-whitelist} (@pxref{Blacklists and
-Whitelists}), but uses hashcash tokens for whitelisting messages
-instead of the sender address.  Messages without a hashcash payment
-token will be sent to the next spam-split rule.  This is an explicit
-filter, meaning that unless a hashcash token is found, the messages
-are not assumed to be spam or ham.
 
 @end defvar
 
@@ -26008,8 +25911,7 @@ such a back end.
 
 This function will install a back end that can only check incoming mail
 for spam contents.  It can't register or unregister messages.
-@code{spam-use-blackholes} and @code{spam-use-hashcash} are such
-back ends.
+@code{spam-use-blackholes} is such a back end.
 
 @item
 @code{spam-install-statistical-checkonly-backend}
@@ -26369,7 +26271,7 @@ etc.@: backends.
 @item
 Store arbitrary data
 
-Through a simple ELisp API, the registry can remember any data for a
+Through a simple Lisp API, the registry can remember any data for a
 message.  A built-in inverse map, when activated, allows quick lookups
 of all messages matching a particular set of criteria.
 @end enumerate
@@ -28621,8 +28523,7 @@ enjoy the power of @acronym{MML}.
 
 The line below enables BBDB in resending a message:
 @lisp
-(define-key message-minibuffer-local-map [(tab)]
-  'bbdb-complete-name)
+(keymap-set message-minibuffer-local-map "TAB" 'bbdb-complete-name)
 @end lisp
 
 @item
@@ -29060,8 +28961,6 @@ that are accessible from the article buffer.
 nnfolder archives.
 
 @item Gnus now supports the ``hashcash'' client puzzle anti-spam mechanism.
-Use @code{(setq message-generate-hashcash t)} to enable.
-@xref{Hashcash}.
 
 @item You can now drag and drop attachments to the Message buffer.
 See @code{mml-dnd-protocol-alist} and @code{mml-dnd-attach-options}.

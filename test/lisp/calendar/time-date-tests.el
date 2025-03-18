@@ -161,6 +161,18 @@
     (should (equal (decoded-time-add time (mdec :month 10))
                    '(12 15 16 8 5 2020 1 t 7200)))
 
+    (should (equal (decoded-time-add time (mdec :month -1))
+                   '(12 15 16 8 6 2019 1 t 7200)))
+
+    (should (equal (decoded-time-add time (mdec :month -10))
+                   '(12 15 16 8 9 2018 1 t 7200)))
+
+    (should (equal (decoded-time-add time (mdec :month -14))
+                   '(12 15 16 8 5 2018 1 t 7200)))
+
+    (should (equal (decoded-time-add time (mdec :month -24))
+                   '(12 15 16 8 7 2017 1 t 7200)))
+
     (should (equal (decoded-time-add time (mdec :day 1))
                    '(12 15 16 9 7 2019 1 t 7200)))
 

@@ -1210,6 +1210,12 @@ The function is called with two arguments: the first is the overlay, and
 the second is @code{nil} to make the overlay visible, or @code{t} to
 make it invisible again.
 
+@cindex invisible text, and display properties
+  The @code{invisible} property is ignored in text that is covered by a
+@dfn{replacing} @code{display} property, because such @code{display}
+properties skip the text without processing its properties.
+@xref{Replacing Specs}.
+
 @node Selective Display
 @section Selective Display
 @c @cindex selective display   Duplicates selective-display
@@ -1918,7 +1924,9 @@ same as in the unhighlighted text.
 This property activates various features that change the
 way text is displayed.  For example, it can make text appear taller
 or shorter, higher or lower, wider or narrower, or replaced with an image.
-@xref{Display Property}.
+@xref{Display Property}.  Note that, if the @code{display} property is a
+@dfn{replacing} one (@pxref{Replacing Specs}), the @code{invisible}
+property of the same overlay will be ignored.
 
 @kindex help-echo @r{(overlay property)}
 @item help-echo
@@ -1981,8 +1989,11 @@ conventions are the same as for the @code{modification-hooks} functions.
 @kindex invisible @r{(overlay property)}
 @item invisible
 The @code{invisible} property can make the text in the overlay
-invisible, which means that it does not appear on the screen.
-@xref{Invisible Text}, for details.
+invisible, which means that it does not appear on the screen.  However,
+if the text covered by the overlay has a @dfn{replacing} @code{display}
+property, the @code{invisible} property will be ignored, because a
+replacing @code{display} property skips the text without examining its
+properties.  @xref{Invisible Text}, for details.
 
 @kindex intangible @r{(overlay property)}
 @item intangible
@@ -2377,7 +2388,7 @@ though when this function is run from an idle timer with a delay of zero
 seconds.
 @end defun
 
-@defun buffer-text-pixel-size &optional buffer-or-name window from to x-limit y-limit
+@defun buffer-text-pixel-size &optional buffer-or-name window x-limit y-limit
 This is much like @code{window-text-pixel-size}, but can be used when
 the buffer isn't shown in a window.  (@code{window-text-pixel-size} is
 faster when it is, so this function shouldn't be used in that case.)
@@ -2388,10 +2399,14 @@ live window and defaults to the selected one; the function will
 compute the text dimensions as if @var{buffer} is displayed in
 @var{window}.  The return value is a cons of the maximum pixel-width
 of any text line and the pixel-height of all the text lines of the
-buffer specified by @var{buffer-or-name}.
+accessible portion of the buffer specified by @var{buffer-or-name}.
 
 The optional arguments @var{x-limit} and @var{y-limit} have the same
 meaning as with @code{window-text-pixel-size}.
+
+If you want to measure dimensions of some part of the buffer text,
+narrow the buffer to that part before calling this function
+(@pxref{Narrowing}).
 @end defun
 
 @defun string-pixel-width string &optional buffer
@@ -5307,10 +5322,15 @@ instead of the text that has the property.  These are called
 to interactively move point into the middle of buffer text that is
 replaced in this way.
 
+@cindex display properties, and invisible text
+@cindex composition property, and replacing display specs
   If a list of display specifications includes more than one replacing
 display specification, the first overrides the rest.  Replacing
 display specifications make most other display specifications
-irrelevant, since those don't apply to the replacement.
+irrelevant, since those don't apply to the replacement.  In addition,
+any @code{invisible} and @code{composition} properties of the text that
+is replaced are ignored, because the replaced text is skipped and its
+properties are not processed.
 
   For replacing display specifications, @dfn{the text that has the
 property} means all the consecutive characters that have the same
@@ -7606,15 +7626,7 @@ This function causes the browser widget specified by @var{xwidget} to
 execute the specified JavaScript @code{script}.
 @end defun
 
-@defun xwidget-webkit-execute-script-rv xwidget script &optional default
-This function executes the specified @var{script} like
-@code{xwidget-webkit-execute-script} does, but it also returns the
-script's return value as a string.  If @var{script} doesn't return a
-value, this function returns @var{default}, or @code{nil} if
-@var{default} was omitted.
-@end defun
-
-@defun xwidget-webkit-get-title xwidget
+@defun xwidget-webkit-title xwidget
 This function returns the title of @var{xwidget} as a string.
 @end defun
 
@@ -8585,6 +8597,7 @@ The newline character (character code 10) has a special effect: it
 ends the preceding line and starts a new line.
 
 @cindex ASCII control characters
+@cindex non-printable ASCII characters
 @item
 The non-printable @dfn{@acronym{ASCII} control characters}---character
 codes 0 through 31, as well as the @key{DEL} character (character code

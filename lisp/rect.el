@@ -456,6 +456,11 @@ With a prefix (or a FILL) argument, also fill too short lines."
   :version "25.1"
   :type 'boolean)
 
+(defcustom rectangle-indicate-zero-width-rectangle t
+  "If non-nil, make zero-width rectangles visible on display."
+  :version "31.1"
+  :type 'boolean)
+
 (defun rectangle--string-preview ()
   (when rectangle-preview
     (let ((str (minibuffer-contents)))
@@ -960,7 +965,8 @@ Ignores `line-move-visual'."
                         (overlay-put ol 'after-string str))))
                    ((overlay-get ol 'after-string)
                     (overlay-put ol 'after-string nil)))
-                  (when (and (= leftcol rightcol) (display-graphic-p))
+                  (when (and (= leftcol rightcol) (display-graphic-p)
+                             rectangle-indicate-zero-width-rectangle)
                     ;; Make zero-width rectangles visible!
                     (overlay-put ol 'after-string
                                  (concat (propertize

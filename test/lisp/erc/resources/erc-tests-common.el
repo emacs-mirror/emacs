@@ -75,7 +75,10 @@ Assign the result to `erc-server-process' in the current buffer."
 ;; `get-buffer-create' with INHIBIT-BUFFER-HOOKS.
 (defun erc-tests-common-kill-buffers (&rest extra-buffers)
   "Kill all ERC buffers and possibly EXTRA-BUFFERS."
-  (let (erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
+  (let (erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook
+        ;; To facilitate automatic testing when a fake-server has already
+	;; been created by an earlier ERT test.
+	(kill-buffer-query-functions nil))
     (dolist (buf (erc-buffer-list))
       (kill-buffer buf))
     (named-let doit ((buffers extra-buffers))

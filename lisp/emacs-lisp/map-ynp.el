@@ -173,7 +173,7 @@ The function's value is the number of actions taken."
                                          "%s(\\`y', \\`n', \\`!', \\`.', \\`q', %sor \\`%s') "
                                          minibuffer-prompt-properties)
                                   prompt user-keys
-                                  (key-description (vector help-char)))))
+                                  (help-key))))
 		       (if minibuffer-auto-raise
 			   (raise-frame (window-frame (minibuffer-window))))
                        (unwind-protect
@@ -198,7 +198,7 @@ The function's value is the number of actions taken."
                                  (format
                                   "%s(\\`y', \\`n', \\`!', \\`.', \\`q', %sor \\`%s') %s"
                                   prompt user-keys
-                                  (key-description (vector help-char))
+                                  (help-key)
                                   (if (equal char -1)
                                       "[end-of-keyboard-macro]"
                                     (single-key-description char))))))
@@ -279,7 +279,7 @@ Type \\`SPC' or \\`y' to %s the current %s;
                           (message (substitute-command-keys
                                     (format
                                      "Type \\`%s' for help"
-                                     (key-description (vector help-char)))))
+                                     (help-key))))
 			  (beep)
 			  (sit-for 1)
 			  (funcall try-again))))
@@ -326,6 +326,7 @@ variable."
 (defun read-answer (question answers)
   "Read an answer either as a complete word or its character abbreviation.
 Ask user a question and accept an answer from the list of possible answers.
+Return the long answer even when accepting short ones.
 
 QUESTION should end in a space; this function adds a list of answers to it.
 
@@ -348,8 +349,6 @@ Example:
     (\"quit\" ?q \"exit\"))
 
 When `read-answer-short' is non-nil, accept short answers.
-
-Return a long answer even in case of accepting short ones.
 
 When `use-dialog-box' is t, pop up a dialog window to get user input."
   (let* ((short (if (eq read-answer-short 'auto)

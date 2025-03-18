@@ -39,13 +39,13 @@
   "Create a buffer with STR contents and MODE. "
   (declare (indent 1) (debug t))
   `(with-temp-buffer
-     (insert ,str)
      (,mode)
+     (insert ,str)
      (goto-char (point-min))
      ,@body))
 
 (defun ert-font-lock--wrap-begin-end (re)
-  (concat "^" re "$"))
+  (rx bol (regexp re) eol))
 
 ;;; Regexp tests
 ;;;
@@ -97,89 +97,89 @@
 
 (ert-deftest test-line-comment-p--emacs-lisp ()
   (with-temp-buffer-str-mode emacs-lisp-mode
-                             "not comment
+    "not comment
 ;; comment
 "
-                             (should-not (ert-font-lock--line-comment-p))
-                             (forward-line)
-                             (should (ert-font-lock--line-comment-p))
-                             (forward-line)
-                             (should-not (ert-font-lock--line-comment-p))))
+    (should-not (ert-font-lock--line-comment-p))
+    (forward-line)
+    (should (ert-font-lock--line-comment-p))
+    (forward-line)
+    (should-not (ert-font-lock--line-comment-p))))
 
 (ert-deftest test-line-comment-p--shell-script ()
   (with-temp-buffer-str-mode shell-script-mode
-                             "echo Not a comment
+    "echo Not a comment
 # comment
 "
-                             (should-not (ert-font-lock--line-comment-p))
-                             (forward-line)
-                             (should (ert-font-lock--line-comment-p))))
+    (should-not (ert-font-lock--line-comment-p))
+    (forward-line)
+    (should (ert-font-lock--line-comment-p))))
 
 (declare-function php-mode "php-mode")
 (ert-deftest test-line-comment-p--php ()
-  (skip-unless (featurep 'php-mode))
+  (skip-unless (fboundp 'php-mode))
 
   (with-temp-buffer-str-mode php-mode
-                             "echo 'Not a comment'
+    "echo 'Not a comment'
 // comment
 /* comment */
 "
-                             (should-not (ert-font-lock--line-comment-p))
-                             (forward-line)
-                             (should (ert-font-lock--line-comment-p))
-                             (forward-line)
-                             (should (ert-font-lock--line-comment-p))))
+    (should-not (ert-font-lock--line-comment-p))
+    (forward-line)
+    (should (ert-font-lock--line-comment-p))
+    (forward-line)
+    (should (ert-font-lock--line-comment-p))))
 
 
 (ert-deftest test-line-comment-p--javascript ()
   (with-temp-buffer-str-mode javascript-mode
-                             "// comment
+    "// comment
 
    // comment, after a blank line
 
 var abc = function(d) {};
 "
-                             (should (ert-font-lock--line-comment-p))
+    (should (ert-font-lock--line-comment-p))
 
-                             (forward-line)
-                             (should-not (ert-font-lock--line-comment-p))
+    (forward-line)
+    (should-not (ert-font-lock--line-comment-p))
 
-                             (forward-line)
-                             (should (ert-font-lock--line-comment-p))
+    (forward-line)
+    (should (ert-font-lock--line-comment-p))
 
-                             (forward-line)
-                             (should-not (ert-font-lock--line-comment-p))
+    (forward-line)
+    (should-not (ert-font-lock--line-comment-p))
 
-                             (forward-line)
-                             (should-not (ert-font-lock--line-comment-p))))
+    (forward-line)
+    (should-not (ert-font-lock--line-comment-p))))
 
 (ert-deftest test-line-comment-p--python ()
 
   (with-temp-buffer-str-mode python-mode
-                             "# comment
+    "# comment
 
    # comment
 print(\"Hello, world!\")"
-                             (should (ert-font-lock--line-comment-p))
+    (should (ert-font-lock--line-comment-p))
 
-                             (forward-line)
-                             (should-not (ert-font-lock--line-comment-p))
+    (forward-line)
+    (should-not (ert-font-lock--line-comment-p))
 
-                             (forward-line)
-                             (should (ert-font-lock--line-comment-p))
+    (forward-line)
+    (should (ert-font-lock--line-comment-p))
 
-                             (forward-line)
-                             (should-not (ert-font-lock--line-comment-p))))
+    (forward-line)
+    (should-not (ert-font-lock--line-comment-p))))
 
 (ert-deftest test-line-comment-p--c ()
 
   (with-temp-buffer-str-mode c-mode
-                             "// comment
+    "// comment
 /* also comment */"
-                             (should (ert-font-lock--line-comment-p))
+    (should (ert-font-lock--line-comment-p))
 
-                             (forward-line)
-                             (should (ert-font-lock--line-comment-p))))
+    (forward-line)
+    (should (ert-font-lock--line-comment-p))))
 
 (ert-deftest test-parse-comments--no-assertion-error ()
   (let* ((str "
@@ -568,14 +568,14 @@ var abc = function(d) {
 ;;
 
 (ert-font-lock-deftest test-macro-test--correct-highlighting
-    emacs-lisp-mode
+  emacs-lisp-mode
   "
 (defun fun ())
 ;; ^ font-lock-keyword-face
 ;;      ^ font-lock-function-name-face")
 
 (ert-font-lock-deftest test-macro-test--docstring
-    "A test with a docstring."
+  "A test with a docstring."
   emacs-lisp-mode
   "
 (defun fun ())
@@ -583,7 +583,7 @@ var abc = function(d) {
   )
 
 (ert-font-lock-deftest test-macro-test--failing
-    "A failing test."
+  "A failing test."
   :expected-result :failed
   emacs-lisp-mode
   "
@@ -591,18 +591,18 @@ var abc = function(d) {
 ;; ^ wrong-face")
 
 (ert-font-lock-deftest-file test-macro-test--file
-    "Test reading correct assertions from a file"
+  "Test reading correct assertions from a file."
   javascript-mode
   "correct.js")
 
 (ert-font-lock-deftest-file test-macro-test--file-no-asserts
-    "Check failing on files without assertions"
+  "Check failing on files without assertions."
   :expected-result :failed
   javascript-mode
   "no-asserts.js")
 
 (ert-font-lock-deftest-file test-macro-test--file-failing
-    "Test reading wrong assertions from a file"
+  "Test reading wrong assertions from a file."
   :expected-result :failed
   javascript-mode
   "broken.js")

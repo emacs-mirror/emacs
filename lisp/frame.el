@@ -60,6 +60,79 @@ The car of each entry is a regular expression matching a display
 name string.  The cdr is a symbol giving the window-system that
 handles the corresponding kind of display.")
 
+;; If you're adding a new frame parameter to `frame_parms' in frame.c,
+;; consider if it makes sense for the user to customize it via
+;; `initial-frame-alist' and the like.
+;; If it does, add it here, in order to provide completion for
+;; that parameter in the Customize UI.
+;; If the parameter has some special values, modify
+;; `frame--complete-parameter-value' to provide completion for those
+;; values as well.
+(defconst frame--special-parameters
+  '("alpha" "alpha-background" "auto-hide-function" "auto-lower"
+    "auto-raise" "background-color" "background-mode" "border-color"
+    "border-width" "bottom-divider-width" "bottom-visible" "buffer-list"
+    "buffer-predicate" "child-frame-border-width" "cursor-color"
+    "cursor-type" "delete-before" "display" "display-type"
+    "drag-internal-border" "drag-with-header-line" "drag-with-mode-line"
+    "drag-with-tab-line" "explicit-name" "fit-frame-to-buffer-margins"
+    "fit-frame-to-buffer-sizes" "font" "font-backend" "foreground-color"
+    "fullscreen" "fullscreen-restore" "height" "horizontal-scroll-bars"
+    "icon-left" "icon-name" "icon-top" "icon-type"
+    "inhibit-double-buffering" "internal-border-width" "keep-ratio"
+    "left" "left-fringe" "line-spacing" "menu-bar-lines" "min-height"
+    "min-width" "minibuffer" "minibuffer-exit" "mouse-color"
+    "mouse-wheel-frame" "name" "no-accept-focus" "no-focus-on-map"
+    "no-other-frame" "no-special-glyphs" "ns-appearance"
+    "ns-transparent-titlebar" "outer-window-id" "override-redirect"
+    "parent-frame" "right-fringe" "rigth-divider-width" "screen-gamma"
+    "scroll-bar-background" "scroll-bar-foreground" "scroll-bar-height"
+    "scroll-bar-width" "shaded" "skip-taskbar" "snap-width" "sticky"
+    "tab-bar-lines" "title" "tool-bar-lines" "tool-bar-position" "top"
+    "top-visible" "tty-color-mode" "undecorated" "unspittable"
+    "use-frame-synchronization" "user-position" "user-size"
+    "vertical-scroll-bars" "visibility" "wait-for-wm" "width" "z-group")
+  "List of special frame parameters that makes sense to customize.")
+
+(declare-function widget-field-text-end "wid-edit")
+(declare-function widget-field-start "wid-edit")
+(declare-function widget-get "wid-edit")
+
+(defun frame--complete-parameter-value (widget)
+  "Provide completion for WIDGET, which holds frame parameter's values."
+  (let* ((parameter (widget-value
+                     (nth 0
+                          (widget-get (widget-get widget :parent) :children))))
+         (comps (cond ((eq parameter 'display-type)
+                       '("color" "grayscale" "mono"))
+                      ((eq parameter 'z-group) '("nil" "above" "below"))
+                      ((memq parameter '(fullscreen fullscreen-restore))
+                       '("fullwidth" "fullheight" "fullboth" "maximized"))
+                      ((eq parameter 'cursor-type)
+                       '("t" "nil" "box" "hollow" "bar" "hbar"))
+                      ((eq parameter 'vertical-scroll-bars)
+                       '("nil" "left" "right"))
+                      ((eq parameter 'tool-bar-position)
+                       '("top" "bottom" "left" "right"))
+                      ((eq parameter 'minibuffer)
+                       '("t" "nil" "only"))
+                      ((eq parameter 'minibuffer-exit)
+                       '("nil" "t" "iconify-frame" "delete-frame"))
+                      ((eq parameter 'visibility) '("nil" "t" "icon"))
+                      ((memq parameter '(ns-appearance background-mode))
+                       '("dark" "light"))
+                      ((eq parameter 'font-backend)
+                       '("x" "xft" "xfthb" "ftcr" "ftcrhb" "gdi"
+                         "uniscribe" "harfbuzz"))
+                      ((memq parameter '(buffer-predicate auto-hide-function))
+                       (apply-partially
+                        #'completion-table-with-predicate
+                        obarray #'fboundp 'strict))
+                      (t nil))))
+    (completion-in-region (widget-field-start widget)
+                          (max (point) (widget-field-text-end widget))
+                          comps)))
+
 ;; The initial value given here used to ask for a minibuffer.
 ;; But that's not necessary, because the default is to have one.
 ;; By not specifying it here, we let an X resource specify it.
@@ -91,9 +164,11 @@ process:
 * Set `initial-frame-alist' in your normal init file in a way
   that matches the X resources, to override what you put in
   `default-frame-alist'."
-  :type '(repeat (cons :format "%v"
-		       (symbol :tag "Parameter")
-		       (sexp :tag "Value")))
+  :type `(repeat (cons :format "%v"
+                       (symbol :tag "Parameter"
+                               :completions ,frame--special-parameters)
+                       (sexp :tag "Value"
+                             :complete frame--complete-parameter-value)))
   :group 'frames)
 
 (defcustom minibuffer-frame-alist '((width . 80) (height . 2))
@@ -110,9 +185,11 @@ You can set this in your init file; for example,
 
 It is not necessary to include (minibuffer . only); that is
 appended when the minibuffer frame is created."
-  :type '(repeat (cons :format "%v"
-		       (symbol :tag "Parameter")
-		       (sexp :tag "Value")))
+  :type `(repeat (cons :format "%v"
+                       (symbol :tag "Parameter"
+                               :completions ,frame--special-parameters)
+                       (sexp :tag "Value"
+                             :complete frame--complete-parameter-value)))
   :group 'frames)
 
 (defun frame-deletable-p (&optional frame)

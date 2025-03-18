@@ -1,0 +1,77 @@
+Glossary of Abbreviations, Acronyms, and Jargon
+
+This document provides a list of common abbreviations, acronyms, and
+jargon used on emacs-devel@gnu.org.  This is a non-exhaustive list.
+Feel free to expand as needed.
+
+See also (info "(emacs) Glossary").
+
+
+## Glossary
+
+bikeshedding       – excessive discussion over minor details rather than
+                     focusing on the main issue
+bitrot             – gradual deterioration of software due to changes in
+                     its environment or dependencies
+cockpit error      - user error
+code smell         – an indication that a section of code may have
+                     underlying issues or could be improved
+foo, bar, baz      – generic placeholder names used in examples and
+                     documentation
+gross              – an inelegant, messy, or overly complicated solution
+                     that works but is suboptimal; describes necessary
+                     workarounds or code that should ideally be improved
+hysterical raisins - historical reasons
+install on <foo>   - push to Git branch <foo> in repository
+notabug            - an issue reported as a bug but deemed to be
+                     expected behavior
+paper cut          – a minor but annoying issue that should be easy to fix
+pilot error        - user error
+yak shaving        – engaging in a series of seemingly unrelated tasks
+                     to accomplish an initial goal
+wontfix            – an issue reported as a bug but that won't be fixed,
+                     often due to design decisions or low priority
+
+
+## Abbreviations
+
+AFAICT   - as far as I can tell
+AFAIK    - as far as I know
+AFAIR    - as far as I remember
+AFAIU    - as far as I understand
+AFK      - away from keyboard
+AKA      - also known as
+ASAP     - as soon as possible
+BTW      - by the way
+CL       - Common Lisp
+DTRT     - do the right thing
+DWIM     - do what I mean
+ENOPATCH - no patch is attached
+FTR      - for the record
+FWIW     - for what it's worth
+FYI      - for your information
+GNU      - GNU is not Unix
+HTH      - hope this helps
+IANAL    - I am not a lawyer
+ICYMI    - in case you missed it
+IIRC     - if I recall correctly
+IIUC     - if I understand correctly
+IMHO     - in my humble opinion
+IMNSHO   - in my not so humble opinion
+IMO      - in my opinion
+IOW      - in other words
+LGTM     - looks good to me
+LMK      - let me know
+OOO      - out of office
+OOTB     - out of the box
+OTOH     - on the other hand
+SNAFU    - situation normal, all fouled up
+TBD      - to be determined
+TBH      - to be honest
+TIA      - thanks in advance
+TL;DR    - too long; didn't read
+TRT      - the right thing
+WFM      - works for me
+WIP      - work in progress
+WRT      - with respect to
+YMMV     - your mileage may vary

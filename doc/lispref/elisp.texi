@@ -1388,7 +1388,7 @@ Parsing Program Source
 * Pattern Matching::         Pattern matching with query patterns.
 * Multiple Languages::       Parse text written in multiple languages.
 * Tree-sitter Major Modes::  Develop major modes using tree-sitter.
-* Tree-sitter C API::        Compare the C API and the ELisp API.
+* Tree-sitter C API::        Compare the C API and the Lisp API.
 
 Syntax Descriptors
 

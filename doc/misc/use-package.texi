@@ -1172,6 +1172,35 @@ Specifying @code{:continue} @emph{forces} setting the
 @end group
 @end lisp
 
+@findex :continue-only@r{, inside} :repeat-map@r{ and} :bind
+@cindex binding commands that only continue repeat series
+Specifying @code{:continue-only} inside the scope of @code{:repeat-map}
+will make commands continue an active repeating sequence, but never
+initiate it.  This is done by setting the @code{repeat-continue}
+property of each command with the keymap, but not the @code{repeat-map}
+property.  This is useful for commands that should be available while
+repeating a sequence, but not initiate the repeat map themselves.
+Example:
+
+@lisp
+@group
+(use-package emacs
+  :bind
+  (:repeat-map
+   paragraph-repeat-map
+   ("@}" . forward-paragraph)
+   ("@{" . backward-paragraph)
+   ("]" . forward-paragraph)
+   ("[" . backward-paragraph)
+   :continue-only
+   ("h" . mark-paragraph)
+   ("w" . kill-region)
+   ("M-w" . kill-ring-save)
+   ("k" . kill-paragraph)
+   ("y" . yank)))
+@end group
+@end lisp
+
 @node Displaying keybindings
 @subsection Displaying personal keybindings
 @cindex display your keybindings

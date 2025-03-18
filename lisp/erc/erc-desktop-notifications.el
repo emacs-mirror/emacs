@@ -65,8 +65,11 @@ This will replace the last notification sent with this function."
   (dbus-ignore-errors
     (setq erc-notifications-last-notification
           (let* ((channel (if privp (erc-get-buffer nick) (current-buffer)))
-                 (title (format "%s in %s" (xml-escape-string nick t) channel))
-                 (body (xml-escape-string (erc-controls-strip msg) t)))
+                 (title (format "%s in %s"
+                                (erc-compat--xml-escape-string nick t)
+                                channel))
+                 (body (erc-compat--xml-escape-string (erc-controls-strip msg)
+                                                      t)))
             (funcall (cond ((featurep 'android)
                             #'android-notifications-notify)
                            ((featurep 'haiku)

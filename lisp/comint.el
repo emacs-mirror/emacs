@@ -186,11 +186,11 @@ narrowing in effect.  This way you will be certain that none of
 the remaining prompts will be accidentally messed up.  You may
 wish to put something like the following in your init file:
 
-\(add-hook \\='comint-mode-hook
-          (lambda ()
-            (define-key comint-mode-map [remap kill-region] \\='comint-kill-region)
-            (define-key comint-mode-map [remap kill-whole-line]
-              \\='comint-kill-whole-line)))
+    (with-eval-after-load \\='comint
+      (keymap-set comint-mode-map \"<remap> <kill-region>\"
+                                  \\='comint-kill-region)
+      (keymap-set comint-mode-map \"<remap> <kill-whole-line>\"
+                                  \\='comint-kill-whole-line))
 
 If you sometimes use `comint-mode' on text-only terminals or with `emacs -nw',
 you might wish to use another binding for `comint-kill-whole-line'."
@@ -2601,8 +2601,14 @@ This function could be in the list `comint-output-filter-functions'."
         prompt)
     (when (let ((case-fold-search t))
             (string-match comint-password-prompt-regexp string))
-      (setq prompt (string-trim (match-string 0 string)
-                                "[ \n\r\t\v\f\b\a]+" "\n+"))
+      (setq prompt
+            (let ((content (string-trim (match-string 0 string)
+                                        "[ \n\r\t\v\f\b\a]+" "\n+"))
+                  (suffix " "))
+              (concat content
+                      (and (not (string-empty-p content))
+                           (not (string-suffix-p suffix content))
+                           suffix))))
       ;; Use `run-at-time' in order not to pause execution of the
       ;; process filter with a minibuffer
       (run-at-time
@@ -3209,8 +3215,8 @@ its response can be seen."
 
 ;; These are not installed in the comint-mode keymap.  But they are
 ;; available for people who want them.  Shell-mode installs them:
-;; (define-key shell-mode-map "\t" 'completion-at-point)
-;; (define-key shell-mode-map "\M-?"
+;; (keymap-set shell-mode-map "TAB" 'completion-at-point)
+;; (keymap-set shell-mode-map "M-?"
 ;;             'comint-dynamic-list-filename-completions)))
 ;;
 ;; Commands like this are fine things to put in load hooks if you

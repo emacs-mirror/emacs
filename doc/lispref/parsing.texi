@@ -48,7 +48,7 @@ source files that mix multiple programming languages.
 * User-defined Things::      User-defined ``Things'' and Navigation.
 * Multiple Languages::       Parse text written in multiple languages.
 * Tree-sitter Major Modes::  Develop major modes using tree-sitter.
-* Tree-sitter C API::        Compare the C API and the ELisp API.
+* Tree-sitter C API::        Compare the C API and the Lisp API.
 @end menu
 
 @node Language Grammar
@@ -1225,7 +1225,7 @@ example, the capture name @code{biexp}:
 @cindex query functions, tree-sitter
 Now we can introduce the @dfn{query functions}.
 
-@defun treesit-query-capture node query &optional beg end node-only
+@defun treesit-query-capture node query &optional beg end node-only grouped
 This function matches patterns in @var{query} within @var{node}.  The
 argument @var{query} can be either an s-expression, a string, or a
 compiled query object.  For now, we focus on the s-expression syntax;
@@ -1246,6 +1246,11 @@ region of buffer text where this function should match nodes.  Any
 matching node whose span overlaps with the region between @var{beg}
 and @var{end} is captured; it doesn't have to be completely contained
 in the region.
+
+If @var{grouped} is non-@code{nil}, this function returns a grouped list
+of lists of captured nodes.  The grouping is determined by @var{query}.
+Captures in the same match of a pattern in @var{query} are grouped
+together.
 
 @vindex treesit-query-error
 @findex treesit-query-validate
@@ -1284,7 +1289,7 @@ For example, it could have two top-level patterns:
 @group
 (setq query
       '((binary_expression) @@biexp
-        (number_literal) @@number @@biexp)
+        (number_literal) @@number)
 @end group
 @end example
 
@@ -2300,8 +2305,8 @@ Null nodes are converted to @code{nil}.
 @end itemize
 
 Below is the correspondence between all C API functions and their
-ELisp counterparts.  Sometimes one ELisp function corresponds to
-multiple C functions, and many C functions don't have an ELisp
+Lisp counterparts.  Sometimes one Lisp function corresponds to
+multiple C functions, and many C functions don't have a Lisp
 counterpart.
 
 @example

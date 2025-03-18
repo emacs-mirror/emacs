@@ -30,126 +30,7 @@
 
 (eval-when-compile (require 'cl-lib))
 (require 'ert)
-(require 'subr-x) ; string-trim
-
-
-;;; Test buffers.
-
-(defun ert--text-button (string &rest properties)
-  "Return a string containing STRING as a text button with PROPERTIES.
-
-See `make-text-button'."
-  (with-temp-buffer
-    (insert string)
-    (apply #'make-text-button (point-min) (point-max) properties)
-    (buffer-string)))
-
-(defun ert--format-test-buffer-name (base-name)
-  "Compute a test buffer name based on BASE-NAME.
-
-Helper function for `ert--test-buffers'."
-  (format "*Test buffer (%s)%s*"
-	  (or (and (ert-running-test)
-		   (ert-test-name (ert-running-test)))
-	      "<anonymous test>")
-	  (if base-name
-	      (format ": %s" base-name)
-	    "")))
-
-(defvar ert--test-buffers (make-hash-table :weakness t)
-  "Table of all test buffers.  Keys are the buffer objects, values are t.
-
-The main use of this table is for `ert-kill-all-test-buffers'.
-Not all buffers in this table are necessarily live, but all live
-test buffers are in this table.")
-
-(define-button-type 'ert--test-buffer-button
-  'action #'ert--test-buffer-button-action
-  'help-echo "mouse-2, RET: Pop to test buffer")
-
-(defun ert--test-buffer-button-action (button)
-  "Pop to the test buffer that BUTTON is associated with."
-  (pop-to-buffer (button-get button 'ert--test-buffer)))
-
-(defun ert--call-with-test-buffer (ert--base-name ert--thunk)
-  "Helper function for `ert-with-test-buffer'.
-
-Create a test buffer with a name based on ERT--BASE-NAME and run
-ERT--THUNK with that buffer as current."
-  (let* ((ert--buffer (generate-new-buffer
-                       (ert--format-test-buffer-name ert--base-name)))
-         (ert--button (ert--text-button (buffer-name ert--buffer)
-                                        :type 'ert--test-buffer-button
-                                        'ert--test-buffer ert--buffer)))
-    (puthash ert--buffer 't ert--test-buffers)
-    ;; We don't use `unwind-protect' here since we want to kill the
-    ;; buffer only on success.
-    (prog1 (with-current-buffer ert--buffer
-             (ert-info (ert--button :prefix "Buffer: ")
-               (funcall ert--thunk)))
-      (kill-buffer ert--buffer)
-      (remhash ert--buffer ert--test-buffers))))
-
-(cl-defmacro ert-with-test-buffer ((&key ((:name name-form)))
-                                   &body body)
-  "Create a test buffer and run BODY in that buffer.
-
-To be used in ERT tests.  If BODY finishes successfully, the test
-buffer is killed; if there is an error, the test buffer is kept
-around for further inspection.  Its name is derived from
-the name of the test and the result of NAME-FORM."
-  (declare (debug ((":name" form) def-body))
-           (indent 1))
-  `(ert--call-with-test-buffer ,name-form (lambda () ,@body)))
-
-(cl-defmacro ert-with-buffer-selected (buffer-or-name &body body)
-  "Display a buffer in a temporary selected window and run BODY.
-
-If BUFFER-OR-NAME is nil, the current buffer is used.
-
-The buffer is made the current buffer, and the temporary window
-becomes the `selected-window', before BODY is evaluated.  The
-modification hooks `before-change-functions' and
-`after-change-functions' are not inhibited during the evaluation
-of BODY, which makes it easier to use `execute-kbd-macro' to
-simulate user interaction.  The window configuration is restored
-before returning, even if BODY exits nonlocally.  The return
-value is the last form in BODY."
-  (declare (debug (form body)) (indent 1))
-  `(save-window-excursion
-     (with-current-buffer (or ,buffer-or-name (current-buffer))
-       (with-selected-window (display-buffer (current-buffer))
-         ,@body))))
-
-(cl-defmacro ert-with-test-buffer-selected ((&key name) &body body)
-  "Create a test buffer, switch to it, and run BODY.
-
-This combines `ert-with-test-buffer' and
-`ert-with-buffer-selected'.  The return value is the last form in
-BODY."
-  (declare (debug ((":name" form) body)) (indent 1))
-  `(ert-with-test-buffer (:name ,name)
-     (ert-with-buffer-selected (current-buffer)
-       ,@body)))
-
-;;;###autoload
-(defun ert-kill-all-test-buffers ()
-  "Kill all test buffers that are still live."
-  (interactive)
-  (let ((count 0))
-    (maphash (lambda (buffer _dummy)
-	       (when (or (not (buffer-live-p buffer))
-			 (kill-buffer buffer))
-                 (incf count)))
-	     ert--test-buffers)
-    (message "%s out of %s test buffers killed"
-	     count (hash-table-count ert--test-buffers)))
-  ;; It could be that some test buffers were actually kept alive
-  ;; (e.g., due to `kill-buffer-query-functions').  I'm not sure what
-  ;; to do about this.  For now, let's just forget them.
-  (clrhash ert--test-buffers)
-  nil)
-
+(require 'subr-x)
 
 ;;; Simulate commands.
 
@@ -265,37 +146,6 @@ structure with the plists in ARGS."
                      (setq current-plist x))))
     (buffer-string)))
 
-
-(defun ert-call-with-buffer-renamed (buffer-name thunk)
-  "Protect the buffer named BUFFER-NAME from side-effects and run THUNK.
-
-Renames the buffer BUFFER-NAME to a new temporary name, creates a
-new buffer named BUFFER-NAME, executes THUNK, kills the new
-buffer, and renames the original buffer back to BUFFER-NAME.
-
-This is useful if THUNK has undesirable side-effects on an Emacs
-buffer with a fixed name such as *Messages*."
-  (let ((new-buffer-name (generate-new-buffer-name
-                          (format "%s orig buffer" buffer-name))))
-    (with-current-buffer (get-buffer-create buffer-name)
-      (rename-buffer new-buffer-name))
-    (unwind-protect
-        (progn
-          (get-buffer-create buffer-name)
-          (funcall thunk))
-      (when (get-buffer buffer-name)
-        (kill-buffer buffer-name))
-      (with-current-buffer new-buffer-name
-        (rename-buffer buffer-name)))))
-
-(cl-defmacro ert-with-buffer-renamed ((buffer-name-form) &body body)
-  "Protect the buffer named BUFFER-NAME from side-effects and run BODY.
-
-See `ert-call-with-buffer-renamed' for details."
-  (declare (indent 1))
-  `(ert-call-with-buffer-renamed ,buffer-name-form (lambda () ,@body)))
-
-
 (defun ert-buffer-string-reindented (&optional buffer)
   "Return the contents of BUFFER after reindentation.
 
@@ -329,9 +179,7 @@ This is useful for separating the issuance of messages by the
 code under test from the behavior of the *Messages* buffer."
   (declare (debug (symbolp body))
            (indent 1))
-  (let ((g-message-advice (gensym))
-        (g-print-advice (gensym))
-        (g-collector (gensym)))
+  (cl-with-gensyms (g-message-advice g-print-advice g-collector)
     `(let* ((,var "")
             (,g-collector (lambda (msg) (setq ,var (concat ,var msg))))
             (,g-message-advice (ert--make-message-advice ,g-collector))
@@ -526,7 +374,9 @@ The same keyword arguments are supported as in
 
 (defun ert-gcc-is-clang-p ()
   "Return non-nil if the `gcc' command actually runs the Clang compiler."
-  (internal--gcc-is-clang-p))
+  (require 'ffap)
+  (declare-function ffap--gcc-is-clang-p "ffap" ())
+  (ffap--gcc-is-clang-p))
 
 (defvar tramp-default-host-alist)
 (defvar tramp-methods)
@@ -544,6 +394,9 @@ The same keyword arguments are supported as in
     (cond
      ((getenv "REMOTE_TEMPORARY_FILE_DIRECTORY"))
      ((eq system-type 'windows-nt) null-device)
+     ;; Android's built-in shell is far too dysfunctional to support
+     ;; Tramp.
+     ((eq system-type 'android) null-device)
      (t (add-to-list
          'tramp-methods
          '("mock"
@@ -562,6 +415,19 @@ The same keyword arguments are supported as in
           (setenv "HOME" (directory-file-name temporary-file-directory)))
         (format "/mock::%s" temporary-file-directory))))
   "Temporary directory for remote file tests.")
+
+
+;;;; Obsolete
+
+(cl-defmacro ert-with-test-buffer-selected ((&key name) &body body)
+  "Create a test buffer, switch to it, and run BODY.
+
+This combines `ert-with-test-buffer' and `ert-with-buffer-selected'.
+The return value is the last form in BODY."
+  (declare (obsolete ert-with-test-buffer "31.1")
+           (debug ((":name" form) body)) (indent 1))
+  `(ert-with-test-buffer (:name ,name :selected t)
+     ,@body))
 
 (provide 'ert-x)
 

@@ -485,19 +485,19 @@ The following %-sequences are provided:
           (when (re-search-forward (rx "design capacity:" (+ space)
                                        battery--acpi-capacity eol)
 				   nil t)
-	    (cl-incf design-capacity (string-to-number (match-string 1))))
+            (incf design-capacity (string-to-number (match-string 1))))
           (when (re-search-forward (rx "last full capacity:" (+ space)
                                        battery--acpi-capacity eol)
 				   nil t)
-	    (cl-incf last-full-capacity (string-to-number (match-string 1))))
+            (incf last-full-capacity (string-to-number (match-string 1))))
           (when (re-search-forward (rx "design capacity warning:" (+ space)
                                        battery--acpi-capacity eol)
                                    nil t)
-	    (cl-incf warn (string-to-number (match-string 1))))
+            (incf warn (string-to-number (match-string 1))))
           (when (re-search-forward (rx "design capacity low:" (+ space)
                                        battery--acpi-capacity eol)
 				   nil t)
-	    (cl-incf low (string-to-number (match-string 1)))))))
+            (incf low (string-to-number (match-string 1)))))))
     (setq full-capacity (if (> last-full-capacity 0)
 			    last-full-capacity design-capacity))
     (and capacity rate
@@ -587,10 +587,10 @@ The following %-sequences are provided:
 	  (when (re-search-forward
                  "POWER_SUPPLY_\\(CURRENT\\|POWER\\)_NOW=\\([0-9]*\\)$"
                  nil t)
-	    (cl-incf power-now
-		     (* (string-to-number (match-string 2))
-			(if (eq (char-after (match-beginning 1)) ?C)
-			    voltage-now 1))))
+            (incf power-now
+                  (* (string-to-number (match-string 2))
+                     (if (eq (char-after (match-beginning 1)) ?C)
+                         voltage-now 1))))
 	  (goto-char (point-min))
 	  (when (re-search-forward "POWER_SUPPLY_TEMP=\\([0-9]*\\)$" nil t)
 	    (setq temperature (match-string 1)))
@@ -604,10 +604,10 @@ The following %-sequences are provided:
 			(re-search-forward
 			 "POWER_SUPPLY_CHARGE_NOW=\\([0-9]*\\)$" nil t)
 			(setq now-string (match-string 1)))
-		   (cl-incf energy-full (* (string-to-number full-string)
-                                           voltage-now))
-		   (cl-incf energy-now  (* (string-to-number now-string)
-                                           voltage-now)))
+                   (incf energy-full (* (string-to-number full-string)
+                                        voltage-now))
+                   (incf energy-now  (* (string-to-number now-string)
+                                        voltage-now)))
                   ((and (goto-char (point-min))
 			(re-search-forward
 			 "POWER_SUPPLY_ENERGY_FULL=\\([0-9]*\\)$" nil t)
@@ -615,8 +615,8 @@ The following %-sequences are provided:
 			(re-search-forward
 			 "POWER_SUPPLY_ENERGY_NOW=\\([0-9]*\\)$" nil t)
 			(setq now-string (match-string 1)))
-		   (cl-incf energy-full (string-to-number full-string))
-		   (cl-incf energy-now  (string-to-number now-string)))))
+                   (incf energy-full (string-to-number full-string))
+                   (incf energy-now  (string-to-number now-string)))))
 	  (unless (zerop power-now)
 	    (let ((remaining (if (string= charging-state "Discharging")
 				 energy-now

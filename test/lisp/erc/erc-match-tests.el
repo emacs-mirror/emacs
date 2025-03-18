@@ -28,6 +28,10 @@
 
 
 (ert-deftest erc-add-entry-to-list ()
+  ;; These tests currently freeze in Android.
+  (when (featurep 'android)
+    (ert-skip "Freezes on Android as of 31.0.50"))
+
   (let ((erc-pals '("z"))
         (erc-match-quote-when-adding 'ask))
 

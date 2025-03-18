@@ -34,7 +34,8 @@
 (defcustom text-mode-hook '(text-mode-hook-identify)
   "Normal hook run when entering Text mode and many related modes."
   :type 'hook
-  :options '(turn-on-auto-fill turn-on-flyspell)
+  :options '(turn-on-auto-fill flyspell-mode)
+  :version "31.1"
   :group 'text)
 
 (defvar text-mode-variant nil
@@ -83,10 +84,7 @@ means that Text mode adds an Ispell word completion function to
 `completion-at-point-functions'.  Any other non-nil value says to
 bind M-TAB directly to `ispell-complete-word' instead.  If this
 is nil, Text mode neither binds M-TAB to `ispell-complete-word'
-nor does it extend `completion-at-point-functions'.
-
-This user option only takes effect when you customize it in
-Custom or with `setopt', not with `setq'."
+nor does it extend `completion-at-point-functions'."
   :group 'text
   :type '(choice (const completion-at-point) boolean)
   :version "30.1"
@@ -270,6 +268,88 @@ The argument NLINES says how many lines to center."
 	   (forward-line -1)))))
 
 (define-obsolete-function-alias 'indented-text-mode #'text-mode "29.1")
+
+
+
+(defvar text-mode--fullwidth-table nil)
+
+(defun text-mode--get-fullwidth-table ()
+  "Return translation table for converting half-width characters to fullwidth."
+  (or (and (char-table-p text-mode--fullwidth-table)
+           text-mode--fullwidth-table)
+      ;; Create the translation table.
+      (let ((tbl (make-char-table 'translation-table))
+            (rev-tbl (make-char-table 'translation-table))
+            (ch ?!))
+        (while (<= ch ?~)
+          ;; ! -> ！, 0 -> ０, A -> Ａ, etc.
+          (aset tbl ch (+ ch #xFEE0))
+          (aset rev-tbl (+ ch #xFEE0) ch)
+          (setq ch (1+ ch)))
+        ;; SPC -> U+3000 IDEOGRAPHIC SPACE
+        (aset tbl ?\  #x3000)
+        (aset rev-tbl #x3000 ?\ )
+        (set-char-table-extra-slot tbl 0 rev-tbl)
+        (set-char-table-extra-slot tbl 1 1)
+        (set-char-table-extra-slot rev-tbl 1 1)
+        (put 'text-mode--fullwidth-table 'translation-table tbl)
+        (setq text-mode--fullwidth-table tbl)
+        tbl)))
+
+(defun fullwidth-region (from to)
+  "Convert ASCII characters in the region to their fullwidth variants.
+This converts 1 to １, A to Ａ, etc.
+When called from Lisp, FROM and TO are character positions that define
+the region in which to convert characters."
+  (interactive "r")
+  (translate-region from to
+                    (text-mode--get-fullwidth-table)))
+
+(defun halfwidth-region (from to)
+  "Convert fullwidth characters in the region to their ASCII variants.
+This converts １ to 1, Ａ to A, etc.
+When called from Lisp, FROM and TO are character positions that define
+the region in which to convert characters."
+  (interactive "r")
+  (translate-region from to
+                    (char-table-extra-slot (text-mode--get-fullwidth-table)
+                                           0)))
+
+(defun fullwidth-word (arg)
+  "Convert fullwidth characters in word at point, moving over the word.
+This converts fullwidth characters to their ASCII variants:
+１ to 1, Ａ to A, etc.
+With numerical argument ARG, convert that many words starting from point.
+With negative argument, convert previous words, but do not move point.
+If point is in the middle of a word, the part of that word before point
+is ignored when converting forward, and the part of that word after
+point is ignored when converting backward."
+  (interactive "p")
+  (let* ((pt (point-marker))
+         (beg pt)
+         (end (progn
+                (forward-word arg)
+                (point))))
+    (fullwidth-region beg end)
+    (or (> arg 0) (goto-char pt))))
+
+(defun halfwidth-word (arg)
+  "Convert characters in word at point to fullwidth, moving over the word.
+This converts ASCII characters to their fullwidth variants:
+1 to １, A to Ａ, etc.
+With numerical argument ARG, convert that many words starting from point.
+With negative argument, convert previous words, but do not move point.
+If point is in the middle of a word, the part of that word before point
+is ignored when converting forward, and the part of that word after
+point is ignored when converting backward."
+  (interactive "p")
+  (let* ((pt (point-marker))
+         (beg pt)
+         (end (progn
+                (forward-word arg)
+                (point))))
+    (halfwidth-region beg end)
+    (or (> arg 0) (goto-char pt))))
 
 (provide 'text-mode)
 

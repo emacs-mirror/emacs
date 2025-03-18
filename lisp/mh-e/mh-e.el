@@ -42,9 +42,9 @@
 ;;   M-x mh-smail to send mail.  From within the mail reader, "s" works, too.
 
 ;; Your .emacs might benefit from these bindings:
-;;   (global-set-key "\C-cr" 'mh-rmail)
-;;   (global-set-key "\C-xm" 'mh-smail)
-;;   (global-set-key "\C-x4m" 'mh-smail-other-window)
+;;   (keymap-global-set "C-c r" #'mh-rmail)
+;;   (keymap-global-set "C-x m" #'mh-smail)
+;;   (keymap-global-set "C-x 4 m" #'mh-smail-other-window)
 
 ;; Mailing Lists:
 ;;   mh-e-users@lists.sourceforge.net
@@ -463,7 +463,7 @@ all the strings have been used."
               (push (buffer-substring-no-properties (point)
                                                     (line-end-position))
                     arg-list)
-              (cl-incf count)
+              (incf count)
               (forward-line))
             (apply #'call-process cmd nil (list out nil) nil
                    (nreverse arg-list))))

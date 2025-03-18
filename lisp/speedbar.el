@@ -22,9 +22,9 @@
 
 ;;; Commentary:
 ;;
-;;   The speedbar provides a frame in which files, and locations in
-;; files are displayed.  These items can be clicked on with mouse-2 in
-;; to display that file location.
+;;   The speedbar provides a frame or a window in which files, and
+;; locations in files are displayed.  These items can be clicked on with
+;; mouse-2 in to display that file location.
 ;;
 ;;; Customizing and Developing for speedbar
 ;;
@@ -139,7 +139,65 @@
   :version "21.1"
   :type 'boolean)
 
+(defcustom speedbar-select-frame-method 'attached
+  "Specify how to select a frame for displaying a file.
+A number such as 1 or -1 means to pass that number to `other-frame'
+while selecting a frame from speedbar.  Any other value means to use
+the attached frame (the frame that speedbar was started from)."
+  :group 'speedbar
+  :type '(choice integer (other :tag "attached" attached)))
+
+(defcustom speedbar-prefer-window nil
+  "If t, the command `speedbar' opens the speedbar in a window."
+  :type 'boolean
+  :group 'speedbar
+  :version "31.1")
+
+(defcustom speedbar-window-dedicated-window t
+  "Whether to make the `speedbar-window' dedicated."
+  :group 'speedbar
+  :type 'boolean
+  :version "31.1")
+
+(defcustom speedbar-window-side 'left
+  "Control the side of the frame on which to show the speedbar window.
+The value can be `left', `right', `top' or `bottom'.
+See `display-buffer-in-side-window' for more details."
+  :type '(radio (const :tag "Left" left)
+		(const :tag "Right" right)
+		(const :tag "Top" top)
+		(const :tag "Bottom" bottom))
+  :group 'speedbar
+  :version "31.1")
+
+(defcustom speedbar-window-default-width 20
+  "Initial width in characters of `speedbar-window'.
+Specified the desired width when `speedbar-window' is opened on the left or
+right side.  The default value is the same width of `speedbar-frame-mode'."
+  :type 'integer
+  :group 'speedbar
+  :version "31.1")
+
+(defcustom speedbar-window-max-width 40
+  "The maximum allowed width in characters of the `speedbar-window'.
+The `speedbar-window' width can exceed the value defined here, however
+if the window is closed and then reopened, this will be the width of the
+`speedbar-window'."
+  :type 'integer
+  :group 'speedbar
+  :version "31.1")
+
 ;;; Code:
+
+(defconst speedbar--buffer-name " SPEEDBAR"
+  "Speedbar buffer name.")
+
+(defvar speedbar--window nil
+  "The window displaying `speedbar-window'.")
+
+(defvar speedbar--window-width speedbar-window-default-width
+"Stores the current width of `speedbar-window'.
+Subsequent calls to `speedbar-window' will open a window of this width.")
 
 (defvar speedbar-initial-expansion-mode-alist
   '(("buffers" speedbar-buffer-easymenu-definition speedbar-buffers-key-map
@@ -220,9 +278,9 @@ frame."
   :type 'boolean)
 
 (defcustom speedbar-query-confirmation-method 'all
-  "Query control for file operations.
-The `all' flag means to always query before file operations.
-The `none-but-delete' flag means to not query before any file
+  "Control querying for file operations.
+The value `all' means to always query before file operations.
+The value `none-but-delete' means to not query before any file
 operations, except before a file deletion."
   :group 'speedbar
   :type '(radio (const :tag "Always Query before some file operations."
@@ -284,7 +342,7 @@ The default buffer is the buffer in the selected window in the attached frame."
   :type 'hook)
 
 (defcustom speedbar-show-unknown-files nil
-  "Non-nil show files we can't expand with a ? in the expand button.
+  "Non-nil means show files we can't expand with a ? in the expand button.
 A nil value means don't show the file in the list."
   :group 'speedbar
   :type 'boolean)
@@ -309,7 +367,8 @@ attached to and added to this list before the new frame is initialized."
   :version "30.1")
 
 (defcustom speedbar-use-imenu-flag t
-  "Non-nil means use imenu for file parsing, nil to use etags.
+  "Whether to use imenu or etags for file parsing.
+Non-nil means use imenu for file parsing, nil means use etags.
 Etags support is not as robust as imenu support." ; See Bug#51102
   :tag "Use Imenu for tags"
   :group 'speedbar
@@ -335,12 +394,12 @@ display is used instead."
   :type 'boolean)
 
 (defcustom speedbar-track-mouse-flag (not speedbar-use-tool-tips-flag)
-  "Non-nil means to display info about the line under the mouse."
+  "Non-nil means to display info about the line under the mouse pointer."
   :group 'speedbar
   :type 'boolean)
 
 (defcustom speedbar-default-position 'left-right
-  "Default position of the speedbar frame.
+  "Default position of the speedbar frame relative to the attached frame.
 Possible values are `left', `right' or `left-right'.
 If value is `left-right', the most suitable location is
 determined automatically."
@@ -350,8 +409,8 @@ determined automatically."
 		(const :tag "Right" right)))
 
 (defcustom speedbar-sort-tags nil
-  "If non-nil, sort tags in the speedbar display.  *Obsolete*.
-Use `speedbar-tag-hierarchy-method' instead."
+  "If non-nil, sort tags in the speedbar display.
+This option is obsolete; use `speedbar-tag-hierarchy-method' instead."
   :group 'speedbar
   :type 'boolean)
 
@@ -405,7 +464,7 @@ items is reached."
   :type 'integer)
 
 (defcustom speedbar-directory-button-trim-method 'span
-  "Indicates how the directory button will be displayed.
+  "Control how the directory button in speedbar will be displayed.
 Possible values are:
  `span' - span large directories over multiple lines.
  `trim' - trim large directories to only show the last few.
@@ -419,7 +478,7 @@ Possible values are:
 
 (defcustom speedbar-smart-directory-expand-flag t
   "Non-nil means speedbar should use smart expansion.
-Smart expansion only affects when speedbar wants to display a
+Smart expansion is only in effect when speedbar wants to display a
 directory for a file in the attached frame.  When smart expansion is
 enabled, new directories which are children of a displayed directory
 are expanded in the current framework.  If nil, then the current
@@ -433,7 +492,7 @@ hierarchy would be replaced with the new directory."
   :type 'integer)
 
 (defcustom speedbar-hide-button-brackets-flag nil
-  "Non-nil means speedbar will hide the brackets around the + or -."
+  "If non-nil, speedbar will hide the brackets around the + or -."
   :group 'speedbar
   :type 'boolean)
 
@@ -474,14 +533,14 @@ hierarchy would be replaced with the new directory."
   "String separating file text from indicator characters.")
 
 (defcustom speedbar-vc-do-check t
-  "Non-nil check all files in speedbar to see if they have been checked out.
+  "If non-nil, check all files in speedbar to see if they have been checked out.
 Any file checked out is marked with `speedbar-vc-indicator'."
   :group 'speedbar-vc
   :type 'boolean)
 
 (defvar speedbar-vc-indicator "*"
   "Text used to mark files which are currently checked out.
-Other version control systems can be added by examining the function
+Other version control systems can be added by examining the functions
 `speedbar-vc-directory-enable-hook' and `speedbar-vc-in-control-hook'.")
 
 (defcustom speedbar-vc-directory-enable-hook nil
@@ -502,7 +561,7 @@ current file, and the FILENAME of the file being checked."
   "Local variable maintaining the current version control check position.")
 
 (defcustom speedbar-obj-do-check t
-  "Non-nil check all files in speedbar to see if they have an object file.
+  "If non-nil, check all files in speedbar to see if they have an object file.
 Any file checked out is marked with `speedbar-obj-indicator', and the
 marking is based on `speedbar-obj-alist'."
   :group 'speedbar-vc
@@ -561,7 +620,7 @@ state data."
 		 (repeat :tag "List of modes" (symbol :tag "Major mode"))))
 
 (defun speedbar-extension-list-to-regex (extlist)
-  "Takes EXTLIST, a list of extensions and transforms it into regexp.
+  "Take EXTLIST, a list of extensions and transform it into regexp.
 All the preceding `.' are stripped for an optimized expression starting
 with `.' followed by extensions, followed by full-filenames."
   (let ((regex1 nil) (regex2 nil))
@@ -844,11 +903,18 @@ This basically creates a sparse keymap, and makes its parent be
     )
   "Additional menu items while in file-mode.")
 
-(defvar speedbar-easymenu-definition-trailer
-  '(["Customize..." speedbar-customize t]
-    ["Close" dframe-close-frame t]
-    ["Quit" delete-frame t])
-  "Menu items appearing at the end of the speedbar menu.")
+(defun speedbar-easymenu-definition-trailer ()
+  "Return menu items appearing at the end of the speedbar menu."
+  (let ((type (speedbar-frame-or-window)))
+    (cond ((eq type 'frame)
+	   '(["Customize..." speedbar-customize t]
+	     ["Close" dframe-close-frame t]
+	     ["Quit" delete-frame t]))
+	  ((eq type 'window)
+	   '(["Customize..." speedbar-customize t]
+	     ["Close"
+	      (lambda () (interactive) (speedbar-window--close))
+	      :keys "q" :active t])))))
 
 (defvar speedbar-desired-buffer nil
   "Non-nil when speedbar is showing buttons specific to a special mode.
@@ -891,20 +957,34 @@ directories.")
 ;;
 
 ;;;###autoload
-(defalias 'speedbar 'speedbar-frame-mode)
+(defun speedbar (&optional arg)
+  "Open or close the `speedbar'.
+Positive ARG means turn on, negative turn off.
+A nil ARG means toggle.  If `speedbar-prefer-window' is t, open the
+speedbar in a window instead of in a separate frame."
+  (interactive "P")
+  (if speedbar-prefer-window
+      (speedbar-window-mode arg)
+    (speedbar-frame-mode arg)))
+
+;;;###autoload
+(defalias 'speedbar-frame 'speedbar-frame-mode)
+
 ;;;###autoload
 (defun speedbar-frame-mode (&optional arg)
-  "Enable or disable speedbar.  Positive ARG means turn on, negative turn off.
-A nil ARG means toggle.  Once the speedbar frame is activated, a buffer in
-`speedbar-mode' will be displayed.  Currently, only one speedbar is
-supported at a time.
+  "Enable or disable speedbar.
+Positive ARG means turn on, negative turn off.  A nil ARG means toggle.
+Once the speedbar frame is activated, a buffer in `speedbar-mode' will
+be displayed.  Currently, only one speedbar is supported at a time.
 `speedbar-before-popup-hook' is called before popping up the speedbar frame.
 `speedbar-before-delete-hook' is called before the frame is deleted."
   (interactive "P")
+  (when (eq (speedbar-frame-or-window) 'window)
+    (speedbar-window--close))
   ;; Get the buffer to play with
   (if (not (buffer-live-p speedbar-buffer))
       (with-current-buffer
-          (setq speedbar-buffer (get-buffer-create " SPEEDBAR"))
+          (setq speedbar-buffer (get-buffer-create speedbar--buffer-name))
 	(speedbar-mode)))
   ;; Do the frame thing
   (dframe-frame-mode arg
@@ -934,6 +1014,119 @@ supported at a time.
     (message (substitute-command-keys
               "Use \\[speedbar-get-focus] to see the speedbar window"))))
 
+(defsubst speedbar-current-frame ()
+  "Return the frame to use for speedbar based on current context."
+  (dframe-current-frame 'speedbar-frame 'speedbar-mode))
+
+(defsubst speedbar-window--window-live-p ()
+    "Return non-nil if `speedbar--window' is defined and live."
+  (when (and speedbar--window (window-live-p speedbar--window))
+    speedbar--window))
+
+(defsubst speedbar-window--buffer-live-p ()
+    "Return non-nil if `speedbar-buffer' is live."
+  (when (and speedbar-buffer (buffer-live-p speedbar-buffer))
+    speedbar-buffer))
+
+(defun speedbar-window--live-p ()
+  "Return t if `speedbar-window' is live."
+  (and (speedbar-window--buffer-live-p) (speedbar-window--window-live-p)))
+
+(defsubst speedbar-window-current-window ()
+  "Return t if the selected windows is the `speedbar--window'."
+  (eq (selected-window) speedbar--window))
+
+(defsubst speedbar-window--width ()
+  "Return the width of `speedbar-window'."
+  (let ((edges (window-edges speedbar--window)))
+    (- (nth 2 edges) (nth 0 edges))))
+
+(defun speedbar-frame-or-window ()
+  "Return `frame' or `window' if one of each are open.
+Return nil if both are closed."
+  (cond
+   ((speedbar-window--live-p)
+    'window)
+   ((and (frame-live-p (speedbar-current-frame))
+	 speedbar-buffer
+	 (not (speedbar-window--live-p)))
+    'frame)
+   (t nil)))
+
+;;;###autoload
+(defalias 'speedbar-window 'speedbar-window-mode)
+;;;###autoload
+(defun speedbar-window-mode (&optional arg)
+  "Enable or disable speedbar window mode.
+Positive ARG means turn on, negative turn off.
+A nil ARG means toggle.  Once the speedbar window is activated, a buffer in
+`speedbar-mode' will be displayed.  Currently, only one speedbar is
+supported at a time.
+`speedbar-before-popup-hook' is called before popping up the speedbar frame.
+`speedbar-before-delete-hook' is called before the frame is deleted."
+  (interactive "P")
+  (when (eq (speedbar-frame-or-window) 'frame)
+    (delete-frame (speedbar-current-frame)))
+
+  (if (or (and (not arg) (speedbar-window--live-p))
+	  (and (numberp arg) (< arg 0)))
+      (speedbar-window--close)
+    (let ((current-window (selected-window)))
+      (unless (speedbar-window--buffer-live-p)
+	(setq speedbar-buffer (get-buffer-create speedbar--buffer-name)))
+
+      (setq speedbar-frame (selected-frame)
+	    dframe-attached-frame (selected-frame)
+	    speedbar-select-frame-method 'attached
+	    speedbar-last-selected-file nil)
+
+      (set-buffer speedbar-buffer)
+      (speedbar-mode)
+
+      ;; let's create the window
+      (setq speedbar--window
+	    (display-buffer-in-side-window speedbar-buffer
+					   `((side ,@speedbar-window-side)
+					     (slot . 0)
+					     (dedicated ,@speedbar-window-dedicated-window)
+					     (window-width ,@speedbar--window-width))))
+      ;; additional window parameters
+      (set-window-parameter speedbar--window 'no-other-window t)
+      (set-window-parameter speedbar--window 'no-delete-other-windows t)
+
+      ;; `speedbar-reconfigure-keymaps' checks if the `speedbar-window' is open, so
+      ;; should stay after the buffer and window definition.
+      (speedbar-reconfigure-keymaps)
+      (speedbar-update-contents)
+      (speedbar-set-timer dframe-update-speed)
+
+      ;; hscroll
+      (setq-local auto-hscroll-mode nil)
+      ;; reset the selection variable
+      (setq speedbar-last-selected-file nil)
+      (select-window current-window))))
+
+(defun speedbar-window--close ()
+  "Close `speedbar-window'."
+  (when (speedbar-window--live-p)
+    (let ((current-window (selected-window)))
+      ;; store the current window width
+      (setq speedbar--window-width
+	    (let ((current-width (speedbar-window--width)))
+	      (if (> current-width speedbar-window-max-width)
+		  speedbar-window-max-width
+		current-width)))
+
+      (delete-window speedbar--window)
+      (setq speedbar--window nil
+	    speedbar-frame nil
+	    dframe-attached-frame nil)
+      (speedbar-set-timer nil)
+      (kill-buffer speedbar-buffer)
+      (setq speedbar-buffer nil)
+      (when (and current-window (window-live-p current-window))
+	(select-window current-window)))))
+
 (defun speedbar-frame-reposition-smartly ()
   "Reposition the speedbar frame to be next to the attached frame."
   (cond ((or (assoc 'left speedbar-frame-parameters)
@@ -951,12 +1144,8 @@ supported at a time.
 				  (dframe-attached-frame speedbar-frame)
 				  speedbar-default-position))))
 
-(defsubst speedbar-current-frame ()
-  "Return the frame to use for speedbar based on current context."
-  (dframe-current-frame 'speedbar-frame 'speedbar-mode))
-
 (defun speedbar-handle-delete-frame (e)
-  "Handle a delete frame event E.
+  "Handle a delete-frame event E.
 If the deleted frame is the frame speedbar is attached to,
 we need to delete speedbar also."
   (when (and speedbar-frame
@@ -979,6 +1168,14 @@ selected.  If the speedbar frame is active, then select the attached frame."
   "Return the width of the speedbar frame in characters.
 Return nil if it doesn't exist."
   (frame-width speedbar-frame))
+
+(defun speedbar-width ()
+  "Return the width of the `speedbar'.
+if `speedbar-window-mode' is open, the width is `speedbar-window--width'
+otherwise the width is `speedbar-frame-width'."
+  (if (speedbar-window--live-p)
+      (speedbar-window--width)
+    (speedbar-frame-width)))
 
 (define-derived-mode speedbar-mode fundamental-mode "Speedbar"
   "Major mode for managing a display of directories and tags.
@@ -1066,7 +1263,7 @@ frame and window to be the currently active frame and window."
   (if (and (frame-live-p (speedbar-current-frame))
 	   speedbar-buffer)
       (with-current-buffer speedbar-buffer
-	(let* ((w (or (speedbar-frame-width) 20))
+	(let* ((w (or (speedbar-width) 20))
 	       (p1 "<<")
 	       (p5 ">>")
 	       (p3 (if speedbar-update-flag "#" "!"))
@@ -1128,7 +1325,7 @@ and the existence of packages."
 			    (setq alist (cdr alist)))
 			  displays)))
 	    ;; The trailer
-	    speedbar-easymenu-definition-trailer))
+	    (speedbar-easymenu-definition-trailer)))
 	(localmap (save-excursion
 		    (let ((cf (selected-frame)))
 		      (prog2
@@ -1177,7 +1374,7 @@ and the existence of packages."
 	  (error (dframe-message nil)))))))
 
 (defun speedbar-show-info-under-mouse ()
-  "Call the info function for the line under the mouse."
+  "Call the info function for the line under the mouse pointer."
   (let ((pos (mouse-position)))	; we ignore event until I use it later.
     (if (equal (car pos) speedbar-frame)
 	(save-excursion
@@ -1360,7 +1557,7 @@ File style information is displayed with `speedbar-item-info'."
 				  (point) (line-end-position)))))
 
 (defun speedbar-item-info ()
-  "Display info in the minibuffer about the button the mouse is over.
+  "Display info in the minibuffer about the button the mouse pointer is over.
 This function can be replaced in `speedbar-mode-functions-list' as
 `speedbar-item-info'."
   (interactive)
@@ -1479,7 +1676,7 @@ Files can be copied to new names or places."
 	      ))))))
 
 (defun speedbar-item-rename ()
-  "Rename the item under the cursor or mouse.
+  "Rename the item under the cursor or the mouse pointer.
 Files can be renamed to new names or moved to new directories."
   (interactive)
   (let ((f (speedbar-line-file)))
@@ -1524,7 +1721,8 @@ Files can be renamed to new names or moved to new directories."
       (error "Not a file"))))
 
 (defun speedbar-item-delete ()
-  "Delete the item under the cursor.  Files are removed from disk."
+  "Delete the item under the cursor.
+Files are removed from disk."
   (interactive)
   (let ((f (speedbar-line-file)))
     (if (not f) (error "Not a file"))
@@ -1679,7 +1877,7 @@ This is based on `speedbar-initial-expansion-list-name' referencing
 		    speedbar-initial-expansion-mode-alist)))))
 
 (defun speedbar-initial-keymap ()
-  "Return the current default menu data.
+  "Return the current default keymap data.
 This is based on `speedbar-initial-expansion-list-name' referencing
 `speedbar-initial-expansion-mode-alist'."
   (symbol-value
@@ -1838,7 +2036,7 @@ INDEX is not used, but is required by the caller."
       ;; Nuke the beginning of the directory if it's too long...
       (cond ((eq speedbar-directory-button-trim-method 'span)
 	     (beginning-of-line)
-	     (let ((ww (or (speedbar-frame-width) 20)))
+	     (let ((ww (or (speedbar-width) 20)))
 	       (move-to-column ww nil)
 	       (while (>= (current-column) ww)
 		 (re-search-backward "[/\\]" nil t)
@@ -1854,7 +2052,7 @@ INDEX is not used, but is required by the caller."
 		   (move-to-column ww nil)))))
 	    ((eq speedbar-directory-button-trim-method 'trim)
 	     (end-of-line)
-	     (let ((ww (or (speedbar-frame-width) 20))
+	     (let ((ww (or (speedbar-width) 20))
 		   (tl (current-column)))
 	       (if (< ww tl)
 		   (progn
@@ -1956,7 +2154,7 @@ position to insert a new item, and that the new item will end with a CR."
 ;;; Build button lists
 ;;
 (defun speedbar-insert-files-at-point (files level)
-  "Insert list of FILES starting at point, and indenting all files to LEVEL.
+  "Insert list of FILES starting at point, and indent all files to LEVEL.
 Tag expandable items with a +, otherwise a ?.  Don't highlight ? as we
 don't know how to manage them.  The input parameter FILES is a cons
 cell of the form (DIRLIST . FILELIST)."
@@ -2028,7 +2226,7 @@ Groups may optionally contain a position."
 	   )))
 
 (defun speedbar-generic-list-positioned-group-p (sublst)
-  "Non-nil if SUBLST is a group with a position."
+  "Return non-nil if SUBLST is a group with a position."
   (and (stringp (car-safe sublst))
        (number-or-marker-p (car-safe (cdr-safe sublst)))
        (listp (cdr-safe (cdr-safe sublst)))
@@ -2039,7 +2237,7 @@ Groups may optionally contain a position."
 	     ))))
 
 (defun speedbar-generic-list-tag-p (sublst)
-  "Non-nil if SUBLST is a tag."
+  "Return non-nil if SUBLST is a tag."
   (and (stringp (car-safe sublst))
        (or (and (number-or-marker-p (cdr-safe sublst))
 		(not (cdr-safe (cdr-safe sublst))))
@@ -2525,56 +2723,67 @@ Also resets scanner functions."
   ;; change this if it changed for some reason
   (speedbar-set-mode-line-format))
 
+(defun speedbar--speedbar-live-p ()
+  "Return non-nil if `speedbar-window-mode' or `speedbar-frame-mode' are active."
+  (cond
+   ((and (speedbar-current-frame)
+	 (frame-live-p (speedbar-current-frame)))
+    t)
+   ((speedbar-window--window-live-p) t)
+   (t nil)))
+
 (defun speedbar-timer-fn ()
   "Run whenever Emacs is idle to update the speedbar item."
-  (if (or (not (speedbar-current-frame))
-	  (not (frame-live-p (speedbar-current-frame))))
+  (if (not (speedbar--speedbar-live-p))
       (speedbar-set-timer nil)
     ;; Save all the match data so that we don't mess up executing fns
     (save-match-data
       ;; Only do stuff if the frame is visible, not an icon, and if
       ;; it is currently flagged to do something.
       (if (and speedbar-update-flag
-	       (speedbar-current-frame)
+	       (or (speedbar-window-current-window)
+		   (speedbar-current-frame))
 	       (frame-visible-p (speedbar-current-frame))
 	       (not (eq (frame-visible-p (speedbar-current-frame)) 'icon)))
 	  (let ((af (selected-frame)))
-	      (dframe-select-attached-frame speedbar-frame)
-	      ;; make sure we at least choose a window to
-	      ;; get a good directory from
-	      (if (window-minibuffer-p)
-		  nil
-		;; Check for special modes
-		(speedbar-maybe-add-localized-support (current-buffer))
-		;; Update for special mode all the time!
-		(if (and speedbar-mode-specific-contents-flag
-			 (consp speedbar-special-mode-expansion-list)
-			 (local-variable-p
-			  'speedbar-special-mode-expansion-list
-			  (current-buffer)))
-		    ;;(eq (get major-mode 'mode-class 'special)))
-		    (progn
-		      (if (<= 2 speedbar-verbosity-level)
+	    (dframe-select-attached-frame speedbar-frame)
+	    ;; make sure we at least choose a window to
+	    ;; get a good directory from
+	    (if (window-minibuffer-p)
+		nil
+	      ;; Check for special modes
+	      (speedbar-maybe-add-localized-support (current-buffer))
+	      ;; Update for special mode all the time!
+	      (if (and speedbar-mode-specific-contents-flag
+		       (consp speedbar-special-mode-expansion-list)
+		       (local-variable-p
+			'speedbar-special-mode-expansion-list
+			(current-buffer)))
+		  ;;(eq (get major-mode 'mode-class 'special)))
+		  (progn
+		    (if (<= 2 speedbar-verbosity-level)
+			(dframe-message
+			 "Updating speedbar to special mode: %s..."
+			 major-mode))
+		    (speedbar-update-special-contents)
+		    (if (<= 2 speedbar-verbosity-level)
+			(progn
 			  (dframe-message
-			   "Updating speedbar to special mode: %s..."
-			   major-mode))
-		      (speedbar-update-special-contents)
-		      (if (<= 2 speedbar-verbosity-level)
-			  (progn
-			    (dframe-message
-			     "Updating speedbar to special mode: %s...done"
-			     major-mode)
-			    (dframe-message nil))))
+			   "Updating speedbar to special mode: %s...done"
+			   major-mode)
+			  (dframe-message nil))))
 
- 		  ;; Update all the contents if directories change!
- 		  (unless (and (or (member major-mode speedbar-ignored-modes)
-				   (eq af (speedbar-current-frame))
-				   (not (buffer-file-name)))
-			       ;; Always update for GUD.
-			       (not (string-equal "GUD"
-				     speedbar-initial-expansion-list-name)))
-		    (speedbar-update-localized-contents)))
-		(select-frame af))
+		;; Update all the contents if directories change!
+		(unless (and (or (member major-mode speedbar-ignored-modes)
+				 (and
+				  (eq af (speedbar-current-frame))
+				  (speedbar-window-current-window))
+				 (not (buffer-file-name)))
+			     ;; Always update for GUD.
+			     (not (string-equal "GUD"
+						speedbar-initial-expansion-list-name)))
+		  (speedbar-update-localized-contents)))
+	      (select-frame af))
 	    ;; Now run stealthy updates of time-consuming items
 	    (speedbar-stealthy-updates)))))
   (run-hooks 'speedbar-timer-hook))
@@ -2744,7 +2953,7 @@ indicator, then do not add a space."
 	  ))))
 
 (defun speedbar-check-read-only ()
-  "Scan all the files in a directory, and for each see if it is read only."
+  "Scan all the files in a directory, and for each see if it is read-only."
   ;; Check for to-do to be reset.  If reset but no RCS is available
   ;; then set to nil (do nothing) otherwise, start at the beginning
   (save-excursion
@@ -3303,7 +3512,7 @@ INDENT is the current indentation level and is unused."
   (speedbar-set-timer dframe-update-speed))
 
 (defun speedbar-tag-file (text token indent)
-  "The cursor is on a selected line.  Expand the tags in the specified file.
+  "Expand tags in file given by TOKEN when button TEXT was clicked.
 The parameter TEXT and TOKEN are required, where TEXT is the button
 clicked, and TOKEN is the file to expand.  INDENT is the current
 indentation level."
@@ -3345,7 +3554,8 @@ INDENT is the current indentation level."
     ))
 
 (defun speedbar-tag-expand (text token indent)
-  "Expand a tag sublist.  Imenu will return sub-lists of specialized tag types.
+  "Expand a tag sublist TOKEN for button TEXT and indentation level INDENT.
+Imenu will return sub-lists of specialized tag types.
 Etags does not support this feature.  TEXT will be the button string.
 TOKEN will be the list, and INDENT is the current indentation level."
   (cond ((string-search "+" text)	;we have to expand this file
@@ -3363,16 +3573,9 @@ TOKEN will be the list, and INDENT is the current indentation level."
 
 ;;; Loading files into the attached frame.
 ;;
-(defcustom speedbar-select-frame-method 'attached
-  "Specify how to select a frame for displaying a file.
-A number such as 1 or -1 means to pass that number to `other-frame'
-while selecting a frame from speedbar.  Any other value means to use
-the attached frame (the frame that speedbar was started from)."
-  :group 'speedbar
-  :type '(choice integer (other :tag "attached" attached)))
 
 (defun speedbar-find-file-in-frame (file)
-  "This will load FILE into the speedbar attached frame.
+  "Load FILE into the frame attached to speedbar.
 If the file is being displayed in a different frame already, then raise that
 frame instead."
   (let* ((buff (find-file-noselect file))
@@ -3395,18 +3598,13 @@ frame instead."
   "Recenter a speedbar buffer so the current indentation level is all visible.
 This assumes that the cursor is on a file, or tag of a file which the user is
 interested in."
-
   (save-selected-window
-
     (select-window (get-buffer-window speedbar-buffer t))
-
     (set-buffer speedbar-buffer)
-
     (if (<= (count-lines (point-min) (point-max))
 	    (1- (window-height)))
 	;; whole buffer fits
 	(let ((cp (point)))
-
 	  (goto-char (point-min))
 	  (recenter 0)
 	  (goto-char cp))
@@ -3666,7 +3864,8 @@ regular expression EXPR."
       )))
 
 (defun speedbar-parse-tex-string ()
-  "Parse a Tex string.  Only find data which is relevant."
+  "Parse a Tex string.
+Only finds data which is relevant."
   (save-excursion
     (let ((bound (line-end-position)))
       (cond ((re-search-forward "\\(\\(sub\\)*section\\|chapter\\|cite\\)\\s-*{[^\C-?}]*}?" bound t)
@@ -3810,8 +4009,8 @@ Optional argument DEPTH specifies the current depth of the back search."
 		(buffer-file-name buffer))))))))
 
 (defun speedbar-buffer-click (text token _indent)
-  "When the users clicks on a buffer-button in speedbar.
-TEXT is the buffer's name, TOKEN and INDENT are unused."
+  "Select frame when the users clicks on a buffer-button in speedbar.
+TEXT is the buffer's name, INDENT is unused."
   (if dframe-power-click
       (let ((pop-up-frames t)) (select-window (display-buffer text)))
     (dframe-select-attached-frame speedbar-frame)

@@ -850,7 +850,7 @@ type detected."
 (defun mml-compute-boundary (cont)
   "Return a unique boundary that does not exist in CONT."
   (let ((mml-boundary (funcall mml-boundary-function
-			       (cl-incf mml-multipart-number))))
+                               (incf mml-multipart-number))))
     (unless mml-inhibit-compute-boundary
       ;; This function tries again and again until it has found
       ;; a unique boundary.
@@ -870,7 +870,7 @@ type detected."
       (when (re-search-forward (concat "^--" (regexp-quote mml-boundary))
 			       nil t)
 	(setq mml-boundary (funcall mml-boundary-function
-				    (cl-incf mml-multipart-number)))
+                                    (incf mml-multipart-number)))
 	(throw 'not-unique nil))))
    ((eq (car cont) 'multipart)
     (mapc #'mml-compute-boundary-1 (cddr cont))))

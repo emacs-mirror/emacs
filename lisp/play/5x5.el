@@ -335,7 +335,7 @@ Quit current game           \\[5x5-quit-game]"
 
 (defun 5x5-made-move ()
   "Keep track of how many moves have been made."
-  (cl-incf 5x5-moves))
+  (incf 5x5-moves))
 
 (defun 5x5-make-random-grid (&optional move)
   "Make a random grid."
@@ -865,7 +865,7 @@ lest."
   "Move down."
   (interactive nil 5x5-mode)
   (unless (= 5x5-y-pos (1- 5x5-grid-size))
-    (cl-incf 5x5-y-pos)
+    (incf 5x5-y-pos)
     (5x5-position-cursor)))
 
 (defun 5x5-left ()
@@ -879,7 +879,7 @@ lest."
   "Move right."
   (interactive nil 5x5-mode)
   (unless (= 5x5-x-pos (1- 5x5-grid-size))
-    (cl-incf 5x5-x-pos)
+    (incf 5x5-x-pos)
     (5x5-position-cursor)))
 
 (defun 5x5-bol ()

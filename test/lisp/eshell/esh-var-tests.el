@@ -28,11 +28,10 @@
 (require 'esh-mode)
 (require 'esh-var)
 (require 'eshell)
+(require 'ert-x)
 
 (require 'eshell-tests-helpers
-         (expand-file-name "eshell-tests-helpers"
-                           (file-name-directory (or load-file-name
-                                                    default-directory))))
+         (ert-resource-file "eshell-tests-helpers"))
 
 (defvar eshell-test-value nil)
 (defvar eshell-test-begin nil)

@@ -1044,7 +1044,9 @@ file names."
   (unless (memq op '(copy rename))
     (error "Unknown operation `%s', must be `copy' or `rename'" op))
 
-  (setq filename (file-truename filename))
+  ;; We cannot use `file-truename', this would fail for symlinks with
+  ;; non-existing target.
+  (setq filename (expand-file-name filename))
   (if (file-directory-p filename)
       (progn
 	(copy-directory filename newname keep-date t)
@@ -2217,7 +2219,7 @@ connection if a previous connection has died for some reason."
 		    method '(("smb" . "smb-share")
 			     ("davs" . "dav")
 			     ("nextcloud" . "dav")
-			     ("afp". "afp-volume")
+			     ("afp" . "afp-volume")
 			     ("gdrive" . "google-drive")))
 		   method)
 	       tramp-gvfs-mounttypes)

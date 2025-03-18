@@ -35,7 +35,7 @@
 
 ;; This file defines ruby-ts-mode which is a major mode for editing
 ;; Ruby files that uses Tree Sitter to parse the language.  More
-;; information about Tree Sitter can be found in the ELisp Info pages
+;; information about Tree Sitter can be found in the Elisp Info pages
 ;; as well as this website: https://tree-sitter.github.io/tree-sitter/
 
 ;; For this major mode to work, Emacs has to be compiled with
@@ -1253,6 +1253,11 @@ leading double colon is not added."
                                 "hash")
                                eos)
                               #'ruby-ts--list-p))
+                 (sentence ,(rx bos (or "return"
+                                        "body_statement"
+                                        "call"
+                                        "assignment")
+                                eos))
                  (text ,(lambda (node)
                           (or (member (treesit-node-type node)
                                       '("comment" "string_content" "heredoc_content"))

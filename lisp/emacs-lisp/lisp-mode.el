@@ -101,7 +101,6 @@
                     "defun*" "defsubst" "define-inline"
                     "define-advice" "defadvice" "define-skeleton"
                     "define-compilation-mode" "define-minor-mode"
-                    "define-global-minor-mode"
                     "define-globalized-minor-mode"
                     "define-derived-mode" "define-generic-mode"
                     "ert-deftest"
@@ -352,7 +351,7 @@ This will generate compile-time constants from BINDINGS."
      (el-fdefs '("defsubst" "cl-defsubst" "define-inline"
                  "define-advice" "defadvice" "defalias"
                  "define-derived-mode" "define-minor-mode"
-                 "define-generic-mode" "define-global-minor-mode"
+                 "define-generic-mode"
                  "define-globalized-minor-mode" "define-skeleton"
                  "define-widget" "ert-deftest"))
      (el-vdefs '("defconst" "defcustom" "defvaralias" "defvar-local"
@@ -514,10 +513,10 @@ This will generate compile-time constants from BINDINGS."
          ;; Constant values.
          (,(lambda (bound) (lisp-mode--search-key ":" bound))
           (0 font-lock-builtin-face))
-         ;; ELisp and CLisp `&' keywords as types.
+         ;; Elisp and Common Lisp `&' keywords as types.
          (,(lambda (bound) (lisp-mode--search-key "&" bound))
           (0 font-lock-type-face))
-         ;; ELisp regexp grouping constructs
+         ;; Elisp regexp grouping constructs
          (,(lambda (bound)
              (catch 'found
                ;; The following loop is needed to continue searching after matches
@@ -569,10 +568,10 @@ This will generate compile-time constants from BINDINGS."
          ;; Constant values.
          (,(lambda (bound) (lisp-mode--search-key ":" bound))
           (0 font-lock-builtin-face))
-         ;; ELisp and CLisp `&' keywords as types.
+         ;; Elisp and Common Lisp `&' keywords as types.
          (,(lambda (bound) (lisp-mode--search-key "&" bound))
           (0 font-lock-type-face))
-         ;; ELisp regexp grouping constructs
+         ;; Elisp regexp grouping constructs
          ;; This is too general -- rms.
          ;; A user complained that he has functions whose names start with `do'
          ;; and that they get the wrong color.
@@ -1434,14 +1433,14 @@ Any non-integer value means do not use a different value of
   :version "30.1")
 
 (defvar lisp-fill-paragraphs-as-doc-string t
-  "Whether `lisp-fill-paragraph' should fill strings as ELisp doc strings.
+  "Whether `lisp-fill-paragraph' should fill strings as Elisp doc strings.
 The default behavior of `lisp-fill-paragraph' is tuned for filling Emacs
 Lisp doc strings, with their special treatment for the first line.
 Specifically, strings are filled in a narrowed context to avoid filling
 surrounding code, which means any leading indent is disregarded, which
 can cause the filled string to extend passed the configured
 `fill-column' variable value.  If you would rather fill the string in
-its original context, disregarding the special conventions of ELisp doc
+its original context, disregarding the special conventions of Elisp doc
 strings, and want to ensure the `fill-column' value is more strictly
 respected, set this variable to nil.  Doing so makes
 `lisp-fill-paragraph' behave as it used to in Emacs 27 and prior

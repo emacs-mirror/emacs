@@ -230,10 +230,11 @@ the associated section number."
   :type '(repeat (cons (string :tag "Bogus Section")
 		       (string :tag "Real Section"))))
 
-(defcustom Man-header-file-path (internal--c-header-file-path)
+(defcustom Man-header-file-path t
   "C Header file search path used in Man."
   :version "31.1"
-  :type '(repeat string))
+  :type '(choice (repeat string)
+                 (const :tag "Use 'ffap-c-path'" t)))
 
 (defcustom Man-name-local-regexp (concat "^" (regexp-opt '("NOM" "NAME")) "$")
   "Regexp that matches the text that precedes the command's name.
@@ -571,7 +572,11 @@ list of directories where the remote system has the C header files."
   (let ((remote-id (file-remote-p default-directory)))
     (if (null remote-id)
         ;; The local case.
-        Man-header-file-path
+        (if (not (eq t Man-header-file-path))
+            Man-header-file-path
+          (require 'ffap)
+          (defvar ffap-c-path)
+          ffap-c-path)
       ;; The remote case.  Use connection-local variables.
       (mapcar
        (lambda (elt) (concat remote-id elt))

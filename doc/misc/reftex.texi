@@ -2050,7 +2050,7 @@ binding for @code{reftex-cite-format}.
 
 @lisp
 (add-hook 'mail-setup-hook
-          (lambda () (define-key mail-mode-map "\C-c["
+          (lambda () (keymap-set mail-mode-map "C-c ["
                        (lambda ()
                          (interactive)
                          (let ((reftex-cite-format 'locally))

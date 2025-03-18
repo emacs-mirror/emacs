@@ -311,7 +311,7 @@ See the Gnus manual for an explanation of the syntax used.")
 	    ;; Select the frame in question and do more splits there.
 	    (select-frame frame)
 	    (setq fresult (or (gnus-configure-frame (elt subs i)) fresult))
-	    (cl-incf i))
+            (incf i))
 	  ;; Select the frame that has the selected buffer.
 	  (when fresult
 	    (select-frame (window-frame fresult)))))
@@ -343,7 +343,7 @@ See the Gnus manual for an explanation of the syntax used.")
 		    ((eq type 'vertical)
 		     (setq s (max s window-min-height))))
 	      (setcar (cdar comp-subs) s)
-	      (cl-incf total s)))
+              (incf total s)))
 	  ;; Take care of the "1.0" spec.
 	  (if rest
 	      (setcar (cdr rest) (- len total))

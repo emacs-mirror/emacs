@@ -773,6 +773,7 @@ See the Eshell Info manual, which is distributed with Emacs.
 * Shell Prompts::          Two ways to recognize shell prompts.
 * History: Shell History.  Repeating previous commands in a shell buffer.
 * Directory Tracking::     Keeping track when the subshell changes directory.
+* Shell Bookmarks::        Save and restore local and remote shell buffers.
 * Options: Shell Options.  Options for customizing Shell mode.
 * Terminal emulator::      An Emacs window as a terminal emulator.
 * Term Mode::              Special Emacs commands used in Term mode.
@@ -1199,7 +1200,7 @@ subshell:
 
 By default, Shell mode handles common @acronym{ANSI} escape codes (for
 instance, for changing the color of text).  Emacs also optionally
-supports some extend escape codes, like some of the @acronym{OSC}
+supports some extended escape codes, like some of the @acronym{OSC}
 (Operating System Codes) if you put the following in your init file:
 
 @lisp
@@ -1502,6 +1503,51 @@ working directory; see the documentation of the variable
 @code{dirtrack-list} for details.  To use Dirtrack mode, type @kbd{M-x
 dirtrack-mode} in the Shell buffer, or add @code{dirtrack-mode} to
 @code{shell-mode-hook} (@pxref{Hooks}).
+
+@node Shell Bookmarks
+@subsection Shell Bookmarks
+@cindex shell bookmarks
+
+Shell mode buffers can be bookmarked, and both local and remote
+(@pxref{Remote Files}) shell buffers are supported.  @xref{Bookmarks}.
+
+  Opening, or ``jumping'' to, a bookmarked shell restores its buffer
+name, its current directory, and will create a remote connection, as
+necessary, using the shell command you used to create the remote buffer.
+
+@vindex shell-bookmark-name-function
+@findex shell-bookmark-name-from-default-directory
+@findex shell-bookmark-name-from-buffer-name
+  The option @code{shell-bookmark-name-function} can be customized to
+suit your preferences.  It defaults to the function
+@code{shell-bookmark-name-from-default-directory} which uses the final
+component of the buffer's @code{default-directory}.  An alternate
+function, @code{shell-bookmark-name-from-buffer-name}, uses the buffer's
+name with its @code{rename-uniquely} suffix brackets "<>" stripped.  You
+can bind this option to your own function.
+
+  You can inhibit remote connections when you open a remote shell
+bookmark.  This is useful when you restore sessions with
+@code{desktop-load}, or via another session-management package, to avoid
+time delays establishing connections.  You can establish a connection on
+an unconnected remote buffer using the command @kbd{C-x C-v}
+(@code{find-alternate-file}).  To inhibit a connection interactively,
+give a prefix argument before invoking the open/jump bookmark menu item,
+or before invoking the command @code{bookmark-jump}.  @footnote{To
+inhibit a connection programmatically, refer to the documentation for
+the variable @code{shell-bookmark-jump-non-essential}.}  @footnote{To
+properly handle multi-hop remote connections, refer to the documentation
+for the function @code{shell-bookmark-jump}.}
+
+Note: Before creating ad-hoc multi-hop remote connections, customize
+either or both:
+@code{tramp-save-ad-hoc-proxies} to non-@code{nil} to persist proxy
+routes.
+@code{tramp-show-ad-hoc-proxies} to non-@code{nil} to ensure connections
+are fully qualified.  This is helpful if you use the same persisted
+bookmarks file on multiple hosts.
+
+@xref{Ad-hoc multi-hops,,, tramp, The Tramp Manual}.
 
 @node Shell Options
 @subsection Shell Mode Options

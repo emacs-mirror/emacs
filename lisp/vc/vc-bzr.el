@@ -110,6 +110,16 @@ The option \"--no-classify\" should be present if your bzr supports it."
                  (repeat :tag "Argument List" :value ("") string))
   :version "24.1")
 
+(defcustom vc-bzr-resolve-conflicts 'default
+  "Whether to mark conflicted file as resolved upon saving.
+If this is t and there are no more conflict markers in the file,
+VC will mark the conflicts in the saved file as resolved.
+A value of `default' means to use the value of `vc-resolve-conflicts'."
+  :type '(choice (const :tag "Don't resolve" nil)
+                 (const :tag "Resolve" t)
+                 (const :tag "Use vc-resolve-conflicts" default))
+  :version "31.1")
+
 ;; since v0.9, bzr supports removing the progress indicators
 ;; by setting environment variable BZR_PROGRESS_BAR to "none".
 (defun vc-bzr-command (bzr-command buffer okstatus file-or-list &rest args)
@@ -531,7 +541,10 @@ in the branch repository (or whose status not be determined)."
     ;; but the one in `bzr pull' isn't, so it would be good to provide an
     ;; elisp function to remerge from the .BASE/OTHER/THIS files.
     (smerge-start-session)
-    (add-hook 'after-save-hook #'vc-bzr-resolve-when-done nil t)
+    (when (or (eq vc-bzr-resolve-conflicts t)
+              (and (eq vc-bzr-resolve-conflicts 'default)
+                   vc-resolve-conflicts))
+      (add-hook 'after-save-hook #'vc-bzr-resolve-when-done nil t))
     (vc-message-unresolved-conflicts buffer-file-name)))
 
 (defun vc-bzr-clone (remote directory rev)

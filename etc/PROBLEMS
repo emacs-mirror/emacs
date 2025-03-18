@@ -3484,6 +3484,22 @@ for further discussion.
 
 * Runtime problems specific to macOS
 
+** Spurious warnings on macOS 15.
+
+When starting Emacs from the terminal, the following warnings are
+displayed:
+
+2024-09-20 14:24:58.583 emacs[23293:150402] +[IMKClient subclass]: chose IMKClient_Legacy
+2024-09-20 14:24:58.583 emacs[23293:150402] +[IMKInputSession subclass]:chose IMKInputSession_Legacy
+
+As far as we can tell, this is harmless, and affects other software too.
+Our understanding is that this is a bug in macOS 15, and should be
+reported to and fixed by Apple.
+
+For more information, see:
+https://discussions.apple.com/thread/255761734?sortBy=rank
+
+
 ** Error message about malicious software when opening Emacs on macOS
 
 When opening Emacs, you may see an error message saying something like
@@ -3813,6 +3829,16 @@ connecting to your device over ADB as in the preceding entries and
 executing:
 
   $ adb shell appops set --uid org.gnu.emacs MANAGE_EXTERNAL_STORAGE allow
+
+** Images embedded in SVG files are invisible.
+
+This is a product of librsvg's failing to locate a suitable MIME
+database enabling it automatically to detect image file formats.  The
+procedure by which to obtain such a database is documented in the node
+'(emacs)Android Software' in the Emacs manual; you may also download a
+pre-compiled MIME database from this SourceForge repository:
+
+  https://sourceforge.net/projects/android-ports-for-gnu-emacs/files/mime-database.tar.gz/download
 
 * Build-time problems
 

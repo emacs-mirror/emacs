@@ -36,14 +36,15 @@
 ;; for ``one-click scrolling''.
 ;;
 ;; To use mouse-copy, place the following in your init file:
-;;	(require 'mouse-copy)
-;;     (global-set-key [M-down-mouse-1] 'mouse-drag-secondary-pasting)
-;;     (global-set-key [M-S-down-mouse-1] 'mouse-drag-secondary-moving)
+;;     (autoload 'mouse-drag-secondary-pasting "mouse-copy")
+;;     (autoload 'mouse-drag-secondary-moving "mouse-copy")
+;;     (keymap-global-set "M-<down-mouse-1>" #'mouse-drag-secondary-pasting)
+;;     (keymap-global-set "M-S-<down-mouse-1>" #'mouse-drag-secondary-moving)
 ;;
-;; (These definitions override the old binding of M-mouse-1 to
-;; mouse-drag-secondary.  I find I don't use that command much so its
-;; loss is not important, and it can be made up with a M-mouse-1
-;; followed by a M-mouse-3.  I personally reserve M-mouse bindings
+;; (These definitions override the old binding of `M-<mouse-1>' to
+;; `mouse-drag-secondary'.  I find I don't use that command much so its
+;; loss is not important, and it can be made up with a `M-<mouse-1>'
+;; followed by a `M-mouse-3'.  I personally reserve M-mouse bindings
 ;; for my window manager and bind everything to C-mouse.)
 ;;
 ;;
@@ -151,7 +152,8 @@ If you have the bug (or the real fix :-), please let me know."
   "Drag out a secondary selection, then paste it at the current point.
 
 To test this function, evaluate:
-	(global-set-key [M-down-mouse-1] \\='mouse-drag-secondary-pasting)
+    (keymap-global-set \"M-<down-mouse-1>\"
+                       \\='mouse-drag-secondary-pasting)
 put the point at one place, then click and drag over some other region."
   (interactive "e")
   ;; Work-around: We see and react to each part of a multi-click event

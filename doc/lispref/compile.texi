@@ -764,32 +764,32 @@ you to be able to native-compile Lisp code.
 
 @vindex native-compile@r{, a Lisp feature}
   To determine whether the current Emacs process can produce and load
-natively-compiled Lisp code, call
+natively compiled Lisp code, call
 @code{native-comp-available-p} (@pxref{Native-Compilation Functions}).
 
-  Unlike byte-compiled code, natively-compiled Lisp code is executed
+  Unlike byte-compiled code, native-compiled Lisp code is executed
 directly by the machine's hardware, and therefore runs at full speed
 that the host CPU can provide.  The resulting speedup generally
 depends on what the Lisp code does, but is usually 2.5 to 5 times
 faster than the corresponding byte-compiled code.
 
   Since native code is generally incompatible between different
-systems, the natively-compiled code is @emph{not} transportable from
+systems, the native-compiled code is @emph{not} transportable from
 one machine to another, it can only be used on the same machine where
 it was produced or on very similar ones (having the same CPU and
-run-time libraries).  The transportability of natively-compiled code
+run-time libraries).  The transportability of native-compiled code
 is the same as that of shared libraries (@file{.so} or @file{.dll}
 files).
 
-  Libraries of natively-compiled code include crucial dependencies on
+  Libraries of native-compiled code include crucial dependencies on
 Emacs Lisp primitives (@pxref{What Is a Function}) and their calling
-conventions, and thus Emacs usually won't load natively-compiled code
+conventions, and thus Emacs usually won't load native-compiled code
 produced by earlier or later Emacs versions; native compilation of the
 same Lisp code by a different Emacs version will usually produce a
-natively-compiled library under a unique file name that only that
+natively compiled library under a unique file name that only that
 version of Emacs will be able to load.  However, the use of unique
 file names enables several versions of the same Lisp library
-natively-compiled by several different versions of Emacs to be placed
+natively compiled by several different versions of Emacs to be placed
 within the same directory.
 
 @vindex no-native-compile
@@ -882,7 +882,7 @@ non-@code{nil}, tells the function to place the resulting @file{.eln}
 files in the last directory mentioned in
 @code{native-comp-eln-load-path} (@pxref{Library Search}); this is
 meant to be used as part of building an Emacs source tarball for the
-first time, when the natively-compiled files, which are absent from
+first time, when the native-compiled files, which are absent from
 the source tarball, should be generated in the build tree instead of
 the user's cache directory.
 @end defun
@@ -891,7 +891,7 @@ Native compilation can be run entirely asynchronously, in a subprocess
 of the main Emacs process.  This leaves the main Emacs process free to
 use while the compilation runs in the background.  This is the method
 used by Emacs to natively-compile any Lisp file or byte-compiled Lisp
-file that is loaded into Emacs, when no natively-compiled file for it
+file that is loaded into Emacs, when no native-compiled file for it
 is available.  Note that because of this use of a subprocess, native
 compilation may produce warning and errors which byte-compilation does
 not, and Lisp code may thus need to be modified to work correctly.  See
@@ -938,7 +938,7 @@ in any of the directories mentioned in the
 @deffn Command emacs-lisp-native-compile
 This command compiles the file visited by the current buffer into
 native code, if the file was changed since the last time it was
-natively-compiled.
+natively compiled.
 @end deffn
 
 @deffn Command emacs-lisp-native-compile-and-load
@@ -1125,13 +1125,13 @@ control this, use a separate variable, described below.
 This variable controls generation of trampolines.  A trampoline is a
 small piece of native code required to allow calling Lisp primitives,
 which were advised or redefined, from Lisp code that was
-natively-compiled with @code{native-comp-speed} set to 2 or greater.
+natively compiled with @code{native-comp-speed} set to 2 or greater.
 Emacs stores the generated trampolines on separate @file{*.eln} files.
 By default, this variable's value is @code{t}, which enables the
 generation of trampoline files; setting it to @code{nil} disables the
 generation of trampolines.  Note that if a trampoline needed for
 advising or redefining a primitive is not available and cannot be
-generated, calls to that primitive from natively-compiled Lisp will
+generated, calls to that primitive from native-compiled Lisp will
 ignore redefinitions and advices, and will behave as if the primitive
 was called directly from C.  Therefore, we don't recommend disabling
 the trampoline generation, unless you know that all the trampolines

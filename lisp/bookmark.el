@@ -81,12 +81,13 @@ To specify the file in which to save them, modify the variable
   'bookmark-default-file "27.1")
 (define-obsolete-variable-alias 'bookmark-file 'bookmark-default-file "27.1")
 (defcustom bookmark-default-file
-  (locate-user-emacs-file "bookmarks" ".emacs.bmk")
+  (locate-user-emacs-file '("bookmarks.eld" "bookmarks") ".emacs.bmk")
   "File in which to save bookmarks by default."
   ;; The current default file is defined via the internal variable
   ;; `bookmark-bookmarks-timestamp'.  This does not affect the value
   ;; of `bookmark-default-file'.
-  :type 'file)
+  :type 'file
+  :version "31.1")
 
 (defcustom bookmark-watch-bookmark-file t
   "If non-nil reload the default bookmark file if it was changed.
@@ -1522,6 +1523,8 @@ name."
 (defun bookmark-insert (bookmark-name)
   "Insert the text of the file pointed to by bookmark BOOKMARK-NAME.
 BOOKMARK-NAME is a bookmark name (a string), not a bookmark record.
+Refuse to insert bookmarks whose handlers have the property
+`bookmark-inhibit' eq `insert'.
 
 You may have a problem using this function if the value of variable
 `bookmark-alist' is nil.  If that happens, you need to load in some
@@ -1530,14 +1533,18 @@ this."
   (interactive (list (bookmark-completing-read "Insert bookmark contents")))
   (bookmark-maybe-historicize-string bookmark-name)
   (bookmark-maybe-load-default-file)
-  (let ((orig-point (point))
-	(str-to-insert
-	 (save-current-buffer
-           (bookmark-handle-bookmark bookmark-name)
-	   (buffer-string))))
-    (insert str-to-insert)
-    (push-mark)
-    (goto-char orig-point)))
+  (if (eq 'insert (get (or (bookmark-get-handler bookmark-name)
+                           #'bookmark-default-handler)
+                       'bookmark-inhibit))
+      (error "Insert not supported for bookmark %s" bookmark-name)
+    (let ((orig-point (point))
+	  (str-to-insert
+	   (save-current-buffer
+             (bookmark-handle-bookmark bookmark-name)
+	     (buffer-string))))
+      (insert str-to-insert)
+      (push-mark)
+      (goto-char orig-point))))
 
 
 ;;;###autoload

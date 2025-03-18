@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Transient User and Developer Manual
-@subtitle for version 0.8.4
+@subtitle for version 0.8.6
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -53,7 +53,7 @@ resource to get over that hurdle is Psionic K's interactive tutorial,
 available at @uref{https://github.com/positron-solutions/transient-showcase}.
 
 @noindent
-This manual is for Transient version 0.8.4.
+This manual is for Transient version 0.8.6.
 
 @insertcopying
 @end ifnottex
@@ -777,6 +777,11 @@ This displays the window at the bottom of the selected frame.
 For alternatives see @ref{Buffer Display Action Functions,,,elisp,},
 and @xref{Buffer Display Action Alists,,,elisp,}.
 
+When you switch to a different ACTION, you should keep the ALIST
+entries for @code{dedicated} and @code{inhibit-same-window} in most cases.
+Do not drop them because you are unsure whether they are needed;
+if you are unsure, then keep them.
+
 Note that the buffer that was current before the transient buffer
 is shown should remain the current buffer.  Many suffix commands
 act on the thing at point, if appropriate, and if the transient
@@ -1019,8 +1024,10 @@ that multiple suffix commands can be bound to the same key, provided
 they are never active at the same time, see @ref{Predicate Slots}.
 
 Unfortunately both false-positives and false-negatives are possible.
-To deal with the former use non-@code{nil} @var{KEEP-OTHER@.}  To deal with the
-latter remove the conflicting binding explicitly.
+To deal with the former use non-@code{nil} @var{KEEP-OTHER@.}  The symbol @code{always}
+prevents the removal of a false-positive in some cases where other
+non-@code{nil} values would fail.  To deal with false-negatives remove the
+conflicting binding separately, using @code{transient-remove-suffix}.
 @end defun
 
 @defun transient-replace-suffix prefix loc suffix
@@ -1880,16 +1887,9 @@ the suffix's @code{transient} slot.
 @item
 While a sub-prefix is active we nearly always want @kbd{C-g} to take the
 user back to the ``super-prefix'', even when the other suffixes don't
-do that.  However, in rare cases this may not be desirable, and that
-makes the following complication necessary:
-
-For @code{transient-suffix} objects the @code{transient} slot is unbound.  We can
-ignore that for the most part because @code{nil} and the slot being unbound
-are treated as equivalent, and mean ``do exit''.  That isn't actually
-true for suffixes that are sub-prefixes though.  For such suffixes
-unbound means ``do exit but allow going back'', which is the default,
-while @code{nil} means ``do exit permanently'', which requires that slot to
-be explicitly set to that value.
+do that.  However, in rare cases this may not be desirable, in which
+case @code{replace} can be used as the value of the sub-prefix's @code{transient}
+slot.
 @end itemize
 
 @anchor{Pre-commands for Infixes}
@@ -1933,7 +1933,7 @@ predicate is automatically picked based on the value of the @code{transient}
 slot for the sub-prefix itself.
 
 @defun transient--do-recurse
-Call the transient prefix command, preparing for return to active
+Call the transient prefix command, preparing for return to outer
 transient.
 
 Whether we actually return to the parent transient is ultimately

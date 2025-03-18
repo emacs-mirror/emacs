@@ -2841,6 +2841,19 @@ Test @var{condition} at macro-expansion time.  If its value is
 non-@code{nil}, expand the macro to @var{then-form}, otherwise expand
 it to @var{else-forms} enclosed in a @code{progn}.  @var{else-forms}
 may be empty.
+@end defmac
+
+@defmac static-when condition body...
+Test @var{condition} at macro-expansion time.  If its value is
+non-@code{nil}, expand the macro to evaluate all @var{body} forms
+sequentially and return the value of the last one, or @code{nil} if there
+are none.
+@end defmac
+
+@defmac static-unless condition body...
+Test @var{condition} at macro-expansion time.  If its value is @code{nil},
+expand the macro to evaluate all @var{body} forms sequentially and return
+the value of the last one, or @code{nil} if there are none.
 
 Here is an example of its use from CC Mode, which prevents a
 @code{defadvice} form being compiled in newer versions of Emacs:

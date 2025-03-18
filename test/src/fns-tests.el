@@ -277,7 +277,7 @@
   (should (string-collate-equalp "xyzzy" "XYZZY" nil t))
 
   ;; Locale must be valid.
-  (should-error (string-collate-equalp "xyzzy" "xyzzy" "en_XY.UTF-8")))
+  (should-error (string-collate-equalp "xyzzy" "xyzzy" 'not-a-locale)))
 
 ;; There must be a check for valid codepoints.  (Check not implemented yet)
 ;  (should-error

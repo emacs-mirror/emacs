@@ -24,6 +24,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
     <item name="android:windowActionBar">false</item>
     <item name="android:windowNoTitle">true</item>
     <item name="android:windowLightStatusBar">?android:attr/isLightTheme</item>
+    <!-- Suppress the swipe-to-dismiss gesture enabled on certain
+         systems.  -->
+    <item name="android:windowSwipeToDismiss">false</item>
   </style>
   <style name="EmacsStyleOpen"
 	 parent="@android:style/Theme.DeviceDefault.DayNight"/>

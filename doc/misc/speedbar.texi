@@ -46,11 +46,11 @@ information related to the current buffer.  Its original inspiration
 is the ``explorer'' often used in modern development environments, office
 packages, and web browsers.
 
-Speedbar displays a narrow frame in which a tree view is shown.  This
-tree view defaults to containing a list of files and directories.  Files
-can be ``expanded'' to list tags inside.  Directories can be expanded to
-list the files within them.  Each file or tag can be jumped to
-immediately.
+Speedbar displays a narrow frame or a narrow window in which a tree view
+is shown.  This tree view defaults to containing a list of files and
+directories.  Files can be ``expanded'' to list tags inside.
+Directories can be expanded to list the files within them.  Each file or
+tag can be jumped to immediately.
 
 Speedbar expands upon ``explorer'' windows by maintaining context with the
 user.  For example, when using the file view, the current buffer's file
@@ -114,6 +114,21 @@ The function to use when switching between frames using the keyboard is
 @code{speedbar-get-focus}.  This function will toggle between frames, and
 it's useful to bind it to a key in terminal mode.  @xref{Customizing}.
 
+@cindex @code{speedbar-window}
+Optionally, the speedbar can be displayed as a window, splitting the
+windows of the selected frame, in both terminal and graphics modes.
+Only one speedbar window can be open at a time.
+
+It is possible to switch from displaying the speedbar in a separate
+frame to displaying it in a window and vice versa simply by using the
+@kbd{M-x speedbar-window @key{RET}} or
+@kbd{M-x speedbar-frame@key{RET}} command.
+
+@cindex @code{speedbar-prefer-window}
+The user option @code{speedbar-prefer-window} changes the behavior of
+the @code{speedbar} command: if set to @code{t}, the @code{speedbar}
+command will display the speedbar in a window instead of in a frame.
+
 @node Basic Navigation
 @chapter Basic Navigation
 
@@ -138,10 +153,11 @@ These key bindings are common across all modes:
 @table @kbd
 @item Q
 @cindex quitting speedbar
-Quit speedbar, and kill the frame.
+Quit speedbar, and kill the frame.  This is only available for
+@code{speed-frame}.
 @item q
-Quit speedbar, and hide the frame.  This makes it faster to restore the
-speedbar frame, than if you press @kbd{Q}.
+Quit speedbar, and hide the frame or close the window.  This makes it
+faster to restore the speedbar frame, than if you press @kbd{Q}.
 @item g
 @cindex refresh speedbar display
 Refresh whatever contents are in speedbar.
@@ -658,14 +674,14 @@ Customize speedbar's many colors and fonts.
 @end table
 
 @menu
-* Frames and Faces::        Visible behaviors.
-* Tag Hierarchy Methods::   Customizing how tags are displayed.
-* Version Control::         Adding new VC detection modes.
-* Hooks::                   The many hooks you can use.
+* Frames Windows and Faces::   Visible behaviors.
+* Tag Hierarchy Methods::       Customizing how tags are displayed.
+* Version Control::             Adding new VC detection modes.
+* Hooks::                       The many hooks you can use.
 @end menu
 
-@node Frames and Faces
-@section Frames and Faces
+@node Frames Windows and Faces
+@section Frames, Windows and Faces
 @cindex faces
 @cindex frame parameters
 
@@ -700,6 +716,26 @@ You can also customize speedbar's initial frame parameters by changing
 the alist @code{speedbar-frame-parameters}.  This variable is used to
 set up initial details.  Height is also automatically added when
 speedbar is created, though you can override it.
+
+@cindex @code{speedbar-window-side}
+If the speedbar is displayed in a window, you can also customize the
+side on which the @code{speedbar-window} is displayed by changing the
+@code{speedbar-window-side} option.
+
+@cindex @code{speedbar-window-default-width}
+@cindex @code{speedbar-window-max-width}
+The size of the @code{speedbar-window}, when opened on the left or right
+side, can be defined by changing the
+@code{speedbar-window-default-width} option, which defines the default
+window size.  The width of the speedbar window can be greater than
+@code{speedbar-window-max-width}, but if it is closed and later
+reopened, the width will be equal to @code{speedbar-window-max-width}.
+
+@cindex @code{speedbar-window-dedicated-window}
+By default, @code{speedbar-window} is displayed in a dedicated window,
+so @code{display-buffer} will never use this window.  Setting
+@code{speedbar-window-dedicated-window} to @code{nil} changes this
+behavior.
 
 @node Tag Hierarchy Methods
 @section Tag Hierarchy Methods

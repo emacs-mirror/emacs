@@ -593,7 +593,7 @@ MARKED-ONLY non-nil means include marked classes only."
     (ebrowse-for-all-trees (tree ebrowse--tree-table)
       (when (or (not marked-only) (ebrowse-ts-mark tree))
 	(let ((class (ebrowse-ts-class tree)))
-	  (when (zerop (% (cl-incf i) 20))
+          (when (zerop (% (incf i) 20))
 	    (ebrowse-show-progress "Preparing file list" (zerop i)))
 	  ;; Add files mentioned in class description
 	  (let ((source-file (ebrowse-cs-source-file class))
@@ -864,7 +864,7 @@ type `ebrowse-hs' is set to the resulting table."
     (garbage-collect)
     ;; For all classes...
     (ebrowse-for-all-trees (c ebrowse--tree-table)
-      (when (zerop (% (cl-incf i) 10))
+      (when (zerop (% (incf i) 10))
 	(ebrowse-show-progress "Preparing member lookup" (zerop i)))
       (dolist (f ebrowse-member-list-accessors)
         (dolist (m (funcall f c))
@@ -1649,7 +1649,7 @@ INFO is a list (TREE-HEADER TREE-OR-MEMBER MEMBER-LIST)."
                      when (re-search-forward pattern (+ start offset) t)
                        return t
                      never (bobp)
-                     do (cl-incf offset offset)))
+                     do (incf offset offset)))
       (cond (found
 	     (beginning-of-line)
 	     (run-hooks 'ebrowse-view/find-hook))
@@ -2689,7 +2689,7 @@ TREE is the class tree in which the members are found."
 			  mouse-face highlight
 			  ebrowse-tree ,tree
 			  help-echo "mouse-2: view definition; mouse-3: menu"))
-	  (cl-incf i)
+          (incf i)
 	  (when (>= i ebrowse--n-columns)
 	    (setf i 0)
 	    (insert "\n")))))
@@ -4032,11 +4032,11 @@ NUMBER-OF-STATIC-VARIABLES:"
   (let ((classes 0) (member-functions 0) (member-variables 0)
 	(static-functions 0) (static-variables 0))
     (ebrowse-for-all-trees (tree ebrowse--tree-table)
-      (cl-incf classes)
-      (cl-incf member-functions (length (ebrowse-ts-member-functions tree)))
-      (cl-incf member-variables (length (ebrowse-ts-member-variables tree)))
-      (cl-incf static-functions (length (ebrowse-ts-static-functions tree)))
-      (cl-incf static-variables (length (ebrowse-ts-static-variables tree))))
+      (incf classes)
+      (incf member-functions (length (ebrowse-ts-member-functions tree)))
+      (incf member-variables (length (ebrowse-ts-member-variables tree)))
+      (incf static-functions (length (ebrowse-ts-static-functions tree)))
+      (incf static-variables (length (ebrowse-ts-static-variables tree))))
     (list classes member-functions member-variables
 	  static-functions static-variables)))
 

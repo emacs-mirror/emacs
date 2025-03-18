@@ -115,18 +115,21 @@ DEFINE_GDB_SYMBOL_END (GCTYPEBITS)
 typedef int EMACS_INT;
 typedef unsigned int EMACS_UINT;
 enum { EMACS_INT_WIDTH = INT_WIDTH, EMACS_UINT_WIDTH = UINT_WIDTH };
+#  define ALIGNOF_EMACS_INT ALIGNOF_INT
 #  define EMACS_INT_MAX INT_MAX
 #  define pI ""
 # elif INTPTR_MAX <= LONG_MAX && !defined WIDE_EMACS_INT
 typedef long int EMACS_INT;
 typedef unsigned long EMACS_UINT;
 enum { EMACS_INT_WIDTH = LONG_WIDTH, EMACS_UINT_WIDTH = ULONG_WIDTH };
+#  define ALIGNOF_EMACS_INT ALIGNOF_LONG
 #  define EMACS_INT_MAX LONG_MAX
 #  define pI "l"
 # elif INTPTR_MAX <= LLONG_MAX
 typedef long long int EMACS_INT;
 typedef unsigned long long int EMACS_UINT;
 enum { EMACS_INT_WIDTH = LLONG_WIDTH, EMACS_UINT_WIDTH = ULLONG_WIDTH };
+#  define ALIGNOF_EMACS_INT ALIGNOF_LONG_LONG
 #  define EMACS_INT_MAX LLONG_MAX
 /* MinGW supports %lld only if __USE_MINGW_ANSI_STDIO is non-zero,
    which is arranged by config.h, and (for mingw.org) if GCC is 6.0 or
@@ -263,6 +266,11 @@ DEFINE_GDB_SYMBOL_END (INTTYPEBITS)
    expression involving VAL_MAX.  */
 #define VAL_MAX (EMACS_INT_MAX >> (GCTYPEBITS - 1))
 
+/* The alignment ideally required of objects subject to garbage
+   collection.  (In the sense that it would be ideal for such an
+   alignment to be available to enable LSB tagging.)  */
+#define IDEAL_GCALIGNMENT 8
+
 /* Whether the least-significant bits of an EMACS_INT contain the tag.
    On hosts where pointers-as-ints do not exceed VAL_MAX / 2, USE_LSB_TAG is:
     a. unnecessary, because the top bits of an EMACS_INT are unused, and
@@ -270,7 +278,15 @@ DEFINE_GDB_SYMBOL_END (INTTYPEBITS)
    So, USE_LSB_TAG is true only on hosts where it might be useful.  */
 DEFINE_GDB_SYMBOL_BEGIN (bool, USE_LSB_TAG)
 #ifndef HAVE_MPS
+#if (ALIGNOF_EMACS_INT < IDEAL_GCALIGNMENT && !defined alignas	\
+     && !defined WIDE_EMACS_INT					\
+     && !defined HAVE_STRUCT_ATTRIBUTE_ALIGNED			\
+     && !defined __alignas_is_defined				\
+     && __STDC_VERSION__ < 202311 && __cplusplus < 201103)
+#define USE_LSB_TAG 0
+#else /* ALIGNOF_EMACS_INT >= IDEAL_GCALIGNMENT || defined alignas ... */
 #define USE_LSB_TAG (VAL_MAX / 2 < INTPTR_MAX)
+#endif /* ALIGNOF_EMACS_INT >= IDEAL_GCALIGNMENT || defined alignas ... */
 #else
 #define USE_LSB_TAG 1
 #endif
@@ -292,7 +308,7 @@ DEFINE_GDB_SYMBOL_END (VALMASK)
    USE_LSB_TAG, 1 otherwise.  It must be a literal integer constant,
    for older versions of GCC (through at least 4.9).  */
 #if USE_LSB_TAG
-# define GCALIGNMENT 8
+# define GCALIGNMENT IDEAL_GCALIGNMENT
 # if GCALIGNMENT != 1 << GCTYPEBITS
 #  error "GCALIGNMENT and GCTYPEBITS are inconsistent"
 # endif
@@ -671,15 +687,15 @@ extern bool initialized;
 extern struct gflags
 {
   /* True means this Emacs instance was born to dump.  */
-  bool will_dump_ : 1;
-  bool will_bootstrap_ : 1;
+  bool will_dump;
+  bool will_bootstrap;
 #ifdef HAVE_PDUMPER
   /* Set in an Emacs process that will likely dump with pdumper; all
      Emacs processes may dump with pdumper, however.  */
-  bool will_dump_with_pdumper_ : 1;
+  bool will_dump_with_pdumper;
   /* Set in an Emacs process that has been restored from a portable
      dump.  */
-  bool dumped_with_pdumper_ : 1;
+  bool dumped_with_pdumper;
 #endif
 } gflags;
 
@@ -687,7 +703,7 @@ INLINE bool
 will_dump_p (void)
 {
 #if HAVE_PDUMPER
-  return gflags.will_dump_;
+  return gflags.will_dump;
 #else
   return false;
 #endif
@@ -697,7 +713,7 @@ INLINE bool
 will_bootstrap_p (void)
 {
 #if HAVE_PDUMPER
-  return gflags.will_bootstrap_;
+  return gflags.will_bootstrap;
 #else
   return false;
 #endif
@@ -707,7 +723,7 @@ INLINE bool
 will_dump_with_pdumper_p (void)
 {
 #if HAVE_PDUMPER
-  return gflags.will_dump_with_pdumper_;
+  return gflags.will_dump_with_pdumper;
 #else
   return false;
 #endif
@@ -717,7 +733,7 @@ INLINE bool
 dumped_with_pdumper_p (void)
 {
 #if HAVE_PDUMPER
-  return gflags.dumped_with_pdumper_;
+  return gflags.dumped_with_pdumper;
 #else
   return false;
 #endif
@@ -4655,8 +4671,7 @@ extern void adjust_markers_for_insert (ptrdiff_t, ptrdiff_t,
 				       ptrdiff_t, ptrdiff_t, bool);
 extern void adjust_markers_bytepos (ptrdiff_t, ptrdiff_t,
 				    ptrdiff_t, ptrdiff_t, int);
-extern void replace_range (ptrdiff_t, ptrdiff_t, Lisp_Object, bool, bool,
-			   bool, bool);
+extern void replace_range (ptrdiff_t, ptrdiff_t, Lisp_Object, bool, bool, bool);
 extern void replace_range_2 (ptrdiff_t, ptrdiff_t, ptrdiff_t, ptrdiff_t,
 			     const char *, ptrdiff_t, ptrdiff_t, bool);
 extern void syms_of_insdel (void);
@@ -4762,7 +4777,7 @@ flush_stack_call_func (void (*func) (void *arg), void *arg)
      '__builtin_unwind_init' ineffective (bug#65727).
      See <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=115132>.  */
 #if defined __GNUC__ && !defined __clang__ && !defined __OBJC__
-  asm ("");
+  __asm__ ("");
 #endif
 }
 

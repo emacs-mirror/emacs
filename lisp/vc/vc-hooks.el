@@ -123,10 +123,12 @@ An empty list disables VC altogether."
 ;; The Arch back end will be retrieved and fixed if it is ever required.
 (defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS"
 					 ".src" ".svn" ".git" ".hg" ".bzr"
-                                         "_MTN" "_darcs" "{arch}" ".repo")
+                                         "_MTN" "_darcs" "{arch}" ".repo"
+                                         ".jj")
   "List of directory names to be ignored when walking directory trees."
   :type '(repeat string)
-  :group 'vc)
+  :group 'vc
+  :version "31.1")
 
 (defcustom vc-make-backup-files nil
   "If non-nil, backups of registered files are made as with other files.
@@ -293,7 +295,7 @@ non-nil if FILE exists and its contents were successfully inserted."
       (let ((filepos 0))
         (while
 	    (and (< 0 (cadr (insert-file-contents
-			     file nil filepos (cl-incf filepos blocksize))))
+                             file nil filepos (incf filepos blocksize))))
 		 (progn (beginning-of-line)
                         (let ((pos (re-search-forward limit nil 'move)))
                           (when pos (delete-region (match-beginning 0)
@@ -692,10 +694,8 @@ Before doing that, check if there are any old backups and get rid of them."
   ;; and this will simply use it.
   (define-key menu-bar-tools-menu [vc] vc-menu-entry))
 
-(defconst vc-mode-line-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mode-line down-mouse-1] vc-menu-entry)
-    map))
+(defvar-keymap vc-mode-line-map
+  "<mode-line> <down-mouse-1>" vc-menu-entry)
 
 (defun vc-mode-line (file &optional backend)
   "Set `vc-mode' to display type of version control for FILE.

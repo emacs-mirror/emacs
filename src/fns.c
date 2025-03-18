@@ -3783,7 +3783,7 @@ FILENAME are suppressed.  */)
 	{
 	  /* Avoid landing here recursively while outputting the
 	     backtrace from the error.  */
-	  gflags.will_dump_ = false;
+	  gflags.will_dump = false;
 	  error ("(require %s) while preparing to dump",
 		 SDATA (SYMBOL_NAME (feature)));
 	}
@@ -3834,65 +3834,8 @@ FILENAME are suppressed.  */)
 
   return feature;
 }
+
 
-/* Primitives for work of the "widget" library.
-   In an ideal world, this section would not have been necessary.
-   However, lisp function calls being as slow as they are, it turns
-   out that some functions in the widget library (wid-edit.el) are the
-   bottleneck of Widget operation.  Here is their translation to C,
-   for the sole reason of efficiency.  */
-
-DEFUN ("widget-put", Fwidget_put, Swidget_put, 3, 3, 0,
-       doc: /* In WIDGET, set PROPERTY to VALUE.
-The value can later be retrieved with `widget-get'.  */)
-  (Lisp_Object widget, Lisp_Object property, Lisp_Object value)
-{
-  CHECK_CONS (widget);
-  XSETCDR (widget, plist_put (XCDR (widget), property, value));
-  return value;
-}
-
-DEFUN ("widget-get", Fwidget_get, Swidget_get, 2, 2, 0,
-       doc: /* In WIDGET, get the value of PROPERTY.
-The value could either be specified when the widget was created, or
-later with `widget-put'.  */)
-  (Lisp_Object widget, Lisp_Object property)
-{
-  Lisp_Object tmp;
-
-  while (1)
-    {
-      if (NILP (widget))
-	return Qnil;
-      CHECK_CONS (widget);
-      tmp = plist_member (XCDR (widget), property);
-      if (CONSP (tmp))
-	{
-	  tmp = XCDR (tmp);
-	  return CAR (tmp);
-	}
-      tmp = XCAR (widget);
-      if (NILP (tmp))
-	return Qnil;
-      widget = Fget (tmp, Qwidget_type);
-    }
-}
-
-DEFUN ("widget-apply", Fwidget_apply, Swidget_apply, 2, MANY, 0,
-       doc: /* Apply the value of WIDGET's PROPERTY to the widget itself.
-Return the result of applying the value of PROPERTY to WIDGET.
-ARGS are passed as extra arguments to the function.
-usage: (widget-apply WIDGET PROPERTY &rest ARGS)  */)
-  (ptrdiff_t nargs, Lisp_Object *args)
-{
-  Lisp_Object widget = args[0];
-  Lisp_Object property = args[1];
-  Lisp_Object propval = Fwidget_get (widget, property);
-  Lisp_Object trailing_args = Flist (nargs - 2, args + 2);
-  Lisp_Object result = CALLN (Fapply, propval, widget, trailing_args);
-  return result;
-}
-
 #ifdef HAVE_LANGINFO_CODESET
 #include <langinfo.h>
 #endif
@@ -6920,7 +6863,7 @@ extract_data_from_object (Lisp_Object spec,
       /* Format: (iv-auto REQUIRED-LENGTH).  */
 
       if (! FIXNATP (start))
-        error ("Without a length, `iv-auto' can't be used; see ELisp manual");
+        error ("Without a length, `iv-auto' can't be used; see Elisp manual");
       else
         {
 	  EMACS_INT start_hold = XFIXNAT (start);
@@ -7043,6 +6986,11 @@ command `prefer-coding-system') is used.
 
 If NOERROR is non-nil, silently assume the `raw-text' coding if the
 guesswork fails.  Normally, an error is signaled in such case.
+
+This function is semi-obsolete, since for most purposes it is equivalent
+to calling `secure-hash` with the symbol `md5' as the ALGORITHM
+argument.  The OBJECT, START and END arguments have the same meanings as
+in `secure-hash'.
 
 Note that MD5 is not collision resistant and should not be used for
 anything security-related.  See `secure-hash' for alternatives.  */)
@@ -7570,9 +7518,6 @@ For best results this should end in a space.  */);
   defsubr (&Srequire);
   defsubr (&Sprovide);
   defsubr (&Splist_member);
-  defsubr (&Swidget_put);
-  defsubr (&Swidget_get);
-  defsubr (&Swidget_apply);
   defsubr (&Sbase64_encode_region);
   defsubr (&Sbase64_decode_region);
   defsubr (&Sbase64_encode_string);

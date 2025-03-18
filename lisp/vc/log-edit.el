@@ -210,7 +210,8 @@ such as a bug-tracking system.  The list of files about to be committed
 can be obtained from `log-edit-files'."
   :group 'log-edit
   :type '(hook :options (log-edit-set-common-indentation
-			 log-edit-add-to-changelog)))
+                         log-edit-add-to-changelog
+                         log-edit-done-strip-cvs-lines)))
 
 (defcustom log-edit-strip-single-file-name nil
   "If non-nil, remove file name from single-file log entries."
@@ -457,9 +458,15 @@ The first subexpression is the actual text of the field.")
              'log-edit-header)
          nil lax))
      ("^\n"
-      (progn (goto-char (match-end 0)) (1+ (match-end 0))) nil
-      (0 '(face log-edit-headers-separator
-           display-line-numbers-disable t rear-nonsticky t))))
+      (and
+       ;; This fixes a bug with `git-commit-mode', a NonGNU ELPA package
+       ;; used by Magit.  Without this check, we get a wrong display
+       ;; when `git-commit-major-mode' is set to `log-edit-mode'.
+       (not (bound-and-true-p git-commit-mode))
+       (progn (goto-char (match-end 0)) (1+ (match-end 0))))
+      nil
+      (0 '( face log-edit-headers-separator
+            display-line-numbers-disable t rear-nonsticky t))))
     (log-edit--match-first-line (0 'log-edit-summary))))
 
 (defvar log-edit-font-lock-gnu-style nil
@@ -925,6 +932,20 @@ This simply uses the local CVS/Template file."
     (when (file-readable-p "CVS/Template")
       (goto-char (point-max))
       (insert-file-contents "CVS/Template"))))
+
+(defun log-edit-done-strip-cvs-lines (&optional interactive)
+  "Strip lines starting with \"CVS:\" from commit log message.
+When not called interactively do this only when the VC backend is CVS.
+This mimicks what CVS does when invoked as \\='cvs commit [files...]'."
+  (interactive "p")
+  (when (or interactive (eq log-edit-vc-backend 'CVS))
+    (let ((case-fold-search nil))
+      (goto-char (point-min))
+      ;; NB: While CVS defines CVSEDITPREFIX as "CVS: " it actually
+      ;; checks only the first four characters of af a line, i.e. "CVS:"
+      ;; to deal with editors that strip trailing whitespace.
+      ;; c.f. src/cvs.h and src/logmsg.c:do_editor()
+      (flush-lines "^CVS:"))))
 
 (defun log-edit-insert-cvs-rcstemplate ()
   "Insert the RCS commit log template from the CVS repository.

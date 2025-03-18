@@ -91,7 +91,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_String_39D7E563BF
 #  error "struct Lisp_String changed"
 # endif
-# ifndef HASH_Lisp_Marker_D850433F19
+# ifndef HASH_Lisp_Marker_123009D29E
 #  error "struct Lisp_Marker changed"
 # endif
 # ifndef HASH_itree_node_8AF9E94FBA
@@ -208,7 +208,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_module_global_reference_85FFC23A88
 #  error "struct module_global_reference changed"
 # endif
-# ifndef HASH_Lisp_TS_Parser_5BA9C3BFF1
+# ifndef HASH_Lisp_TS_Parser_C53391180E
 #  error "struct Lisp_TS_Parser changed"
 # endif
 # ifndef HASH_Lisp_TS_Query_31B815035A

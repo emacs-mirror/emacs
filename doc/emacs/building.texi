@@ -1580,7 +1580,7 @@ Emacs Lisp Reference Manual}.
 @cindex native compilation
   Emacs Lisp code can also be compiled into @dfn{native code}: machine
 code not unlike the one produced by a C or Fortran compiler.  Native
-code runs even faster than byte-code.  Natively-compiled Emacs Lisp
+code runs even faster than byte-code.  Natively compiled Emacs Lisp
 code is stored in files whose names end in @samp{.eln}.  @xref{Native
 Compilation,, Native Compilation, elisp, the Emacs Lisp Reference Manual}.
 
@@ -1660,7 +1660,7 @@ way, you don't need to modify the default value of @code{load-path}.
 
 @vindex native-comp-eln-load-path
   Similarly to @code{load-path}, the list of directories where Emacs
-looks for @file{*.eln} files with natively-compiled Lisp code is
+looks for @file{*.eln} files with native-compiled Lisp code is
 specified by the variable @code{native-comp-eln-load-path}.
 
 @cindex autoload

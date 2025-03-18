@@ -374,7 +374,7 @@ also applies `reftex-translate-to-ascii-function' to the string."
            (sep (or separator "")))
       (while (assoc (concat label sep (int-to-string num))
                     (symbol-value reftex-docstruct-symbol))
-        (cl-incf num))
+        (incf num))
       (setcdr cell num)
       (concat label sep (int-to-string num))))))
 

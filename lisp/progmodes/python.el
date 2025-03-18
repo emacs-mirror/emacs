@@ -3,10 +3,10 @@
 ;; Copyright (C) 2003-2025 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
-;; URL: https://github.com/fgallina/python.el
-;; Version: 0.28
-;; Package-Requires: ((emacs "24.4") (compat "29.1.1.0") (seq "2.23"))
 ;; Maintainer: emacs-devel@gnu.org
+;; URL: https://github.com/fgallina/python.el
+;; Version: 0.30
+;; Package-Requires: ((emacs "29.1") (compat "29.1.1.0") (seq "2.23") (project "0.1") (flymake "1.0"))
 ;; Created: Jul 2010
 ;; Keywords: languages
 
@@ -329,8 +329,8 @@ effect."
 
 ;;; Bindings
 
-(defvar-keymap python-mode-map
-  :doc "Keymap for `python-mode'."
+(defvar-keymap python-base-mode-map
+  :doc "Keymap for `python-base-mode'."
   ;; Movement
   "<remap> <backward-sentence>" #'python-nav-backward-block
   "<remap> <forward-sentence>"  #'python-nav-forward-block
@@ -375,7 +375,7 @@ effect."
 
 (defvar subword-mode nil)
 
-(easy-menu-define python-menu python-mode-map
+(easy-menu-define python-menu python-base-mode-map
   "Menu used for ´python-mode'."
   '("Python"
     :help "Python-specific Features"
@@ -436,7 +436,10 @@ effect."
       :style toggle :selected subword-mode
       :help "Toggle subword movement and editing mode"])))
 
-(defvar python-ts-mode-map (copy-keymap python-mode-map)
+(defvar python-mode-map (make-composed-keymap nil python-base-mode-map)
+ "Keymap for `python-mode'.")
+
+(defvar python-ts-mode-map (make-composed-keymap nil python-base-mode-map)
   "Keymap for `python-ts-mode'.")
 
 
@@ -1105,11 +1108,14 @@ fontified."
                    'font-lock-doc-face
                  'font-lock-string-face))
 
-         (ignore-interpolation (not
-                                (seq-some
-                                 (lambda (feats) (memq 'string-interpolation feats))
-                                 (seq-take treesit-font-lock-feature-list
-                                           (treesit--compute-font-lock-level treesit-font-lock-level)))))
+         (ignore-interpolation
+          (not (seq-some
+                (lambda (feats) (memq 'string-interpolation feats))
+                (seq-take treesit-font-lock-feature-list
+                          (if (fboundp 'treesit--compute-font-lock-level)
+                              (treesit--compute-font-lock-level
+                               treesit-font-lock-level)
+                            treesit-font-lock-level)))))
          ;; If interpolation is enabled, highlight only
          ;; string_start/string_content/string_end children.  Do not
          ;; touch interpolation node that can occur inside of the
@@ -6938,6 +6944,12 @@ argument, restrict the suggestions to imports defining the symbol
 at point.  If there is only one such suggestion, act without
 asking.
 
+If the buffer does not belong to a project, the import statement is
+searched under the buffer's default directory.  For example, if the file
+is located directly under the home directory, all files under the home
+directory will be searched.  Please note that this can take a long time
+and may appear to hang.
+
 When calling from Lisp, use a non-nil NAME to restrict the
 suggestions to imports defining NAME."
   (interactive (list (when current-prefix-arg (thing-at-point 'symbol))))
@@ -6982,7 +6994,17 @@ asking."
 
 ;;;###autoload
 (defun python-fix-imports ()
-  "Add missing imports and remove unused ones from the current buffer."
+  "Add missing imports and remove unused ones from the current buffer.
+
+If there are missing imports, ask for an import statement using all
+imports found in the current project as suggestions.  If there is only
+one such suggestion, act without asking.
+
+If the buffer does not belong to a project, the import statement is
+searched under the buffer's default directory.  For example, if the file
+is located directly under the home directory, all files under the home
+directory will be searched.  Please note that this can take a long time
+and may appear to hang."
   (interactive)
   (let ((buffer (current-buffer))
         undefined unused add remove)
@@ -7233,7 +7255,8 @@ implementations: `python-mode' and `python-ts-mode'."
     (add-to-list 'auto-mode-alist (cons python--auto-mode-alist-regexp 'python-ts-mode))
     (add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-ts-mode))))
 
-(derived-mode-add-parents 'python-ts-mode '(python-mode))
+(when (fboundp 'derived-mode-add-parents) ; Emacs 30.1
+  (derived-mode-add-parents 'python-ts-mode '(python-mode)))
 
 ;;; Completion predicates for M-x
 ;; Commands that only make sense when editing Python code.

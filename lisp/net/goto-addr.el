@@ -43,9 +43,8 @@
 ;; (for example):
 ;;
 ;; (setq goto-address-highlight-keymap
-;;   (let ((m (make-sparse-keymap)))
-;;     (define-key m [S-mouse-2] 'goto-address-at-point)
-;;     m))
+;;       (define-keymap
+;;         "S-<mouse-2>" 'goto-address-at-point))
 ;;
 
 ;; Known bugs/features:

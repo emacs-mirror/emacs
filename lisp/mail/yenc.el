@@ -97,14 +97,14 @@
 		  (cond ((or (eq char ?\r)
 			     (eq char ?\n)))
 			((eq char ?=)
-			 (setq char (char-after (cl-incf first)))
+                         (setq char (char-after (incf first)))
 			 (with-current-buffer work-buffer
 			   (insert-char (mod (- char 106) 256) 1)))
 			(t
 			 (with-current-buffer work-buffer
 			   ;;(insert-char (mod (- char 42) 256) 1)
 			   (insert-char (aref yenc-decoding-vector char) 1))))
-		  (cl-incf first))
+                  (incf first))
 		(setq bytes (buffer-size work-buffer))
 		(unless (and (= (cdr (assq 'size header-alist)) bytes)
 			     (= (cdr (assq 'size footer-alist)) bytes))

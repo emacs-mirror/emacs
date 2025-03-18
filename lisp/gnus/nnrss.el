@@ -682,7 +682,7 @@ which RSS 2.0 allows."
 	    (setq enclosure (list url name len type))))
 	(push
 	 (list
-	  (cl-incf nnrss-group-max)
+          (incf nnrss-group-max)
 	  (current-time)
 	  url
 	  (and subject (nnrss-mime-encode-string subject))

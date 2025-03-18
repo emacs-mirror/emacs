@@ -85,10 +85,20 @@
   :version "28.1"
   :group 'tab-bar-faces)
 
+(defface tab-bar-tab-highlight
+  '((((class color) (min-colors 88))
+     :box (:line-width 1 :style released-button)
+     :background "grey85"
+     :foreground "black")
+    (t :inverse-video nil))
+  "Tab bar face for highlighting."
+  :version "31.1"
+  :group 'tab-bar-faces)
+
 
 
-(defvar tab-bar-mode-map (make-sparse-keymap)
-  "Tab Bar mode map.")
+(defvar-keymap tab-bar-mode-map
+  :doc "Tab Bar mode map.")
 
 (defcustom tab-bar-define-keys t
   "Define specified tab-bar key bindings.
@@ -99,9 +109,7 @@ conjunction with `tab-bar-select-tab-modifiers', which see.
 
 If \\='tab, define only TAB and SHIFT-TAB tab-selection key mappings.
 
-If nil, do not define any key mappings.
-
-Customize this option, or use `setopt' to ensure it will take effect."
+If nil, do not define any key mappings."
   :type '(choice (const :tag "All keys" t)
                  (const :tag "Numeric tab selection keys" numeric)
                  (const :tag "TAB and SHIFT-TAB selection keys" tab)
@@ -291,7 +299,12 @@ to switch the frame between different window configurations.
 See `current-window-configuration' for more about window configurations.
 To add a button (which can then record one more window configuration),
 click on the \"+\" button.  Clicking on the \"x\" icon of a button
-deletes the button."
+deletes the button.
+
+If you intend to use `tab-bar-mode' with `winner-mode', we recommend
+using `tab-bar-history-mode' instead, since it provides tab-specific
+window configuration history, and is better behaved when `tab-bar-mode'
+is turned on."
   :global t
   ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.
   :variable tab-bar-mode
@@ -881,10 +894,15 @@ It uses the function `tab-bar-tab-face-function'."
    0 (length name) (funcall tab-bar-tab-face-function tab) t name)
   name)
 
+(defun tab-bar-tab-name-format-mouse-face (name _tab _i)
+  "Apply the `mouse-face' `tab-bar-tab-highlight' to the tab name."
+  (propertize name 'mouse-face 'tab-bar-tab-highlight))
+
 (defcustom tab-bar-tab-name-format-functions
   '(tab-bar-tab-name-format-hints
     tab-bar-tab-name-format-close-button
-    tab-bar-tab-name-format-face)
+    tab-bar-tab-name-format-face
+    tab-bar-tab-name-format-mouse-face)
   "Functions called to modify the tab name.
 Each function is called with three arguments: the name returned
 by the previously called modifier, the tab and its number.
@@ -894,6 +912,7 @@ It should return the formatted tab name to display in the tab bar."
                   (function-item tab-bar-tab-name-format-hints)
                   (function-item tab-bar-tab-name-format-close-button)
                   (function-item tab-bar-tab-name-format-face)
+                  (function-item tab-bar-tab-name-format-mouse-face)
                   (function :tag "Custom function")))
   :group 'tab-bar
   :version "30.1")

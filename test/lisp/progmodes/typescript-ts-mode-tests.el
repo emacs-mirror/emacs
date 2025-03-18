@@ -24,7 +24,6 @@
 (require 'treesit)
 
 (ert-deftest typescript-ts-mode-test-indentation ()
-  :tags (if (getenv "EMACS_EMBA_CI") '(:unstable))
   (skip-unless (and (treesit-ready-p 'typescript)
                     (treesit-ready-p 'tsx)))
   (ert-test-erts-file (ert-resource-file "indent.erts")))

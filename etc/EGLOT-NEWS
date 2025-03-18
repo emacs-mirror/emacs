@@ -777,4 +777,3 @@ bug-reference-bug-regexp: "\\(\\(github\\|bug\\)#\\([0-9]+\\)\\)"
 bug-reference-url-format: eglot--debbugs-or-github-bug-uri
 paragraph-separate: "[	 ]"
 End:
-

@@ -427,7 +427,12 @@ the :notify function can't know the new value.")
 	(overlay-put overlay 'local-map keymap)
 	(overlay-put overlay 'face face)
 	(overlay-put overlay 'follow-link follow-link)
-	(overlay-put overlay 'help-echo help-echo))
+        (overlay-put overlay 'help-echo help-echo)
+        ;; Since the `widget-field' face has a :box attribute, we need to add
+        ;; some character with no face after the newline character, to avoid
+        ;; clashing with text that comes after the field and has a face with
+        ;; a :box attribute too.  (Bug#51550)
+        (overlay-put overlay 'after-string #(" " 0 1 (invisible t))))
       (setq to (1- to))
       (setq rear-sticky t))
     (let ((overlay (make-overlay from to nil nil rear-sticky)))
@@ -468,8 +473,6 @@ the :notify function can't know the new value.")
     (widget-put widget :button-overlay overlay)
     (when (functionp help-echo)
       (setq help-echo 'widget-mouse-help))
-    (overlay-put overlay 'before-string
-                 (propertize " " 'invisible t 'face face))
     (overlay-put overlay 'button widget)
     (overlay-put overlay 'keymap (widget-get widget :keymap))
     (overlay-put overlay 'evaporate t)
@@ -549,8 +552,15 @@ With CHECK-AFTER non-nil, considers also the content after point, if needed."
   :group 'widget-faces)
 
 (defun widget-specify-inactive (widget from to)
-  "Make WIDGET inactive for user modifications."
-  (unless (widget-get widget :inactive)
+  "Make WIDGET inactive for user modifications.
+
+If WIDGET is already inactive, moves the :inactive overlay to the positions
+indicated by FROM and TO, either numbers or markers.
+
+If WIDGET is not inactive, creates an overlay that spans from FROM to TO,
+and saves that overlay under the :inactive property for WIDGET."
+  (if (widget-get widget :inactive)
+      (move-overlay (widget-get widget :inactive) from to)
     (let ((overlay (make-overlay from to nil t nil)))
       (overlay-put overlay 'face 'widget-inactive)
       ;; This is disabled, as it makes the mouse cursor change shape.
@@ -611,6 +621,29 @@ With CHECK-AFTER non-nil, considers also the content after point, if needed."
 	 (symbolp (car widget))
 	 (get (car widget) 'widget-type))))
 
+;;;###autoload
+(defun widget-put (widget property value)
+  "In WIDGET, set PROPERTY to VALUE.
+The value can later be retrieved with `widget-get'."
+  (setcdr widget (plist-put (cdr widget) property value))
+  value)
+
+;;;###autoload
+(defun widget-get (widget property)
+  "In WIDGET, get the value of PROPERTY.
+The value could either be specified when the widget was created, or
+later with `widget-put'."
+  (let (value)
+    (while (and widget
+                (let ((found (plist-member (cdr widget) property)))
+                  (cond (found
+                         (setq value (cadr found))
+                         nil)
+                        (t
+                         (setq widget (get (widget-type widget) 'widget-type))
+                         t)))))
+    value))
+
 (defun widget-get-indirect (widget property)
   "In WIDGET, get the value of PROPERTY.
 If the value is a symbol, return its binding.
@@ -627,6 +660,13 @@ Otherwise, just return the value."
 	((car widget)
 	 (widget-member (get (car widget) 'widget-type) property))
 	(t nil)))
+
+;;;###autoload
+(defun widget-apply (widget property &rest args)
+  "Apply the value of WIDGET's PROPERTY to the widget itself.
+Return the result of applying the value of PROPERTY to WIDGET.
+ARGS are passed as extra arguments to the function."
+  (apply (widget-get widget property) widget args))
 
 (defun widget-value (widget)
   "Extract the current value of WIDGET."
@@ -1054,12 +1094,6 @@ button end points."
 
 ;;; Keymap and Commands.
 
-;; This alias exists only so that one can choose in doc-strings (e.g.
-;; Custom-mode) which key-binding of widget-keymap one wants to refer to.
-;; https://lists.gnu.org/r/emacs-devel/2008-11/msg00480.html
-(define-obsolete-function-alias 'advertised-widget-backward
-  #'widget-backward "23.2")
-
 ;;;###autoload
 (defvar widget-keymap
   (let ((map (make-sparse-keymap)))
@@ -1334,7 +1368,7 @@ nothing is shown in the echo area."
 	  (when new
 	    (if (eq new old)
                 (setq pos (point))
-              (cl-incf tabable)
+              (incf tabable)
 	      (setq arg (cond (fwd (1- arg))
                               (bwd (1+ arg))))
 	      (setq old new))))))

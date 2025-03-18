@@ -517,7 +517,7 @@ Number of simultaneous jobs is limited by `image-dired-queue-active-limit'."
                image-dired-queue-active-limit)))
         (while (and image-dired-queue
                     (< image-dired-queue-active-jobs max-jobs))
-          (cl-incf image-dired-queue-active-jobs)
+          (incf image-dired-queue-active-jobs)
           (apply #'image-dired-create-thumb-1 (pop image-dired-queue))))
     ;; We are on MS-Windows with ImageMagick/GraphicsMagick, and need to
     ;; generate thumbnails by our lonesome selves.

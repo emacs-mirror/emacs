@@ -4260,37 +4260,42 @@ x_window (struct frame *f, long window_prompting)
        Note that we do not specify here whether the position
        is a user-specified or program-specified one.
        We pass that information later, in x_wm_set_size_hint.  */
-    {
-      int left = f->left_pos;
-      bool xneg = (window_prompting & XNegative) != 0;
-      int top = f->top_pos;
-      bool yneg = (window_prompting & YNegative) != 0;
-      if (xneg)
-	left = -left;
-      if (yneg)
-	top = -top;
+    bool xneg = (window_prompting & XNegative) != 0;
+    bool yneg = (window_prompting & YNegative) != 0;
 
-      if (window_prompting & USPosition)
-	sprintf (f->shell_position, "=%dx%d%c%d%c%d",
+    if (FRAME_PARENT_FRAME (f))
+      {
+	if (window_prompting & XNegative)
+	  f->left_pos = (FRAME_PIXEL_WIDTH (FRAME_PARENT_FRAME (f))
+			 - FRAME_PIXEL_WIDTH (f) + f->left_pos);
+
+	if (window_prompting & YNegative)
+	  f->top_pos = (FRAME_PIXEL_HEIGHT (FRAME_PARENT_FRAME (f))
+			- FRAME_PIXEL_HEIGHT (f) + f->top_pos);
+
+	window_prompting &= ~ (XNegative | YNegative);
+      }
+
+    if (window_prompting & USPosition)
+      sprintf (f->shell_position, "=%dx%d%c%d%c%d",
+	       FRAME_PIXEL_WIDTH (f) + extra_borders,
+	       FRAME_PIXEL_HEIGHT (f) + menubar_size + extra_borders,
+	       (xneg ? '-' : '+'), f->left_pos,
+	       (yneg ? '-' : '+'), f->top_pos);
+    else
+      {
+	sprintf (f->shell_position, "=%dx%d",
 		 FRAME_PIXEL_WIDTH (f) + extra_borders,
-		 FRAME_PIXEL_HEIGHT (f) + menubar_size + extra_borders,
-		 (xneg ? '-' : '+'), left,
-		 (yneg ? '-' : '+'), top);
-      else
-        {
-          sprintf (f->shell_position, "=%dx%d",
-                   FRAME_PIXEL_WIDTH (f) + extra_borders,
-                   FRAME_PIXEL_HEIGHT (f) + menubar_size + extra_borders);
+		 FRAME_PIXEL_HEIGHT (f) + menubar_size + extra_borders);
 
-          /* Setting x and y when the position is not specified in
-             the geometry string will set program position in the WM hints.
-             If Emacs had just one program position, we could set it in
-             fallback resources, but since each make-frame call can specify
-             different program positions, this is easier.  */
-          XtSetArg (gal[gac], XtNx, left); gac++;
-          XtSetArg (gal[gac], XtNy, top); gac++;
-        }
-    }
+	/* Setting x and y when the position is not specified in
+	   the geometry string will set program position in the WM hints.
+	   If Emacs had just one program position, we could set it in
+	   fallback resources, but since each make-frame call can specify
+	   different program positions, this is easier.  */
+	XtSetArg (gal[gac], XtNx, f->left_pos); gac++;
+	XtSetArg (gal[gac], XtNy, f->top_pos); gac++;
+      }
 
     XtSetArg (gal[gac], XtNgeometry, f->shell_position); gac++;
     XtSetValues (shell_widget, gal, gac);
@@ -4468,6 +4473,19 @@ x_window (struct frame *f)
   attributes.override_redirect = FRAME_OVERRIDE_REDIRECT (f);
   attribute_mask = (CWBackPixel | CWBorderPixel | CWBitGravity | CWEventMask
 		    | CWOverrideRedirect | CWColormap);
+
+  if (FRAME_PARENT_FRAME (f))
+    {
+      if (f->size_hint_flags & XNegative)
+	f->left_pos = (FRAME_PIXEL_WIDTH (FRAME_PARENT_FRAME (f))
+		       - FRAME_PIXEL_WIDTH (f) + f->left_pos);
+
+      if (f->size_hint_flags & YNegative)
+	f->top_pos = (FRAME_PIXEL_HEIGHT (FRAME_PARENT_FRAME (f))
+		      - FRAME_PIXEL_HEIGHT (f) + f->top_pos);
+
+      f->size_hint_flags &= ~ (XNegative | YNegative);
+    }
 
   block_input ();
   FRAME_X_WINDOW (f)
@@ -9118,12 +9136,12 @@ Text larger than the specified size is clipped.  */)
 		      break;
 		    }
 		  else
-		    tip_last_parms =
-		      calln (Qassq_delete_all, parm, tip_last_parms);
+		    tip_last_parms
+		      = calln (Qassq_delete_all, parm, tip_last_parms);
 		}
 	      else
-		tip_last_parms =
-		  calln (Qassq_delete_all, parm, tip_last_parms);
+		tip_last_parms
+		  = calln (Qassq_delete_all, parm, tip_last_parms);
 	    }
 
 	  /* Now check if every parameter in what is left of
@@ -9175,6 +9193,9 @@ Text larger than the specified size is clipped.  */)
 	/* Creating the tip frame failed.  */
 	return unbind_to (count, Qnil);
     }
+  else
+    /* Required by X11 drag and drop.  */
+    tip_window = FRAME_X_WINDOW (XFRAME (tip_frame));
 
   tip_f = XFRAME (tip_frame);
   window = FRAME_ROOT_WINDOW (tip_f);

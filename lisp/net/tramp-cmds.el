@@ -32,6 +32,7 @@
 
 ;; Pacify byte-compiler.
 (declare-function dired-advertise "dired")
+(declare-function dired-get-file-for-visit "dired")
 (declare-function dired-unadvertise "dired")
 (declare-function mml-mode "mml")
 (declare-function mml-insert-empty-tag "mml")
@@ -101,11 +102,34 @@ SYNTAX can be one of the symbols `default' (default),
 ;; Use `match-buffers' starting with Emacs 29.1.
 ;;;###tramp-autoload
 (defun tramp-list-remote-buffers ()
-  "Return a list of all buffers with remote `default-directory'."
+  "Return a list of remote buffers, excluding internal Tramp buffers.
+A buffer is considered remote if either its `default-directory' or
+`buffer-file-name' is a remote file name."
   (tramp-compat-seq-keep
-   (lambda (x)
-     (when (tramp-tramp-file-p (tramp-get-default-directory x)) x))
+   (lambda (buffer)
+     (when (tramp-tramp-file-p
+            (or (buffer-file-name buffer)
+                (tramp-get-default-directory buffer)))
+       buffer))
    (buffer-list)))
+
+;;;###tramp-autoload
+(defun tramp-list-remote-buffer-connections ()
+  "Return a list of all remote buffer connections.
+A buffer is considered remote if either its `default-directory' or
+`buffer-file-name' is a remote file name."
+  (seq-uniq
+   (mapcar (lambda (buffer)
+             (or
+              (when (buffer-file-name buffer)
+                (file-remote-p (buffer-file-name buffer)))
+              (when (tramp-get-default-directory buffer)
+                (file-remote-p (tramp-get-default-directory buffer)))))
+           ;; Eliminate false positives from internal Tramp buffers.
+           (seq-remove
+            (lambda (buffer)
+              (member (buffer-name buffer) (tramp-list-tramp-buffers)))
+            (tramp-list-remote-buffers)))))
 
 ;;; Cleanup
 
@@ -321,6 +345,23 @@ non-nil."
   (let ((tramp-cleanup-some-buffers-hook '(always)))
     (tramp-cleanup-some-buffers)))
 
+;;;###tramp-autoload
+(defun tramp-cleanup-bufferless-connections ()
+  "Flush connection-related objects for which no buffer exists.
+A bufferless connection is one for which no live buffer's
+`buffer-file-name' or `default-directory' is associated with that
+connection, except for Tramp internal buffers.
+Display a message of cleaned-up connections."
+  (interactive)
+  (when-let* ((bufferless-connections
+               (seq-difference
+                (mapcar #'tramp-make-tramp-file-name (tramp-list-connections))
+                (tramp-list-remote-buffer-connections))))
+    (message "Cleaning up %s" (string-join bufferless-connections ", "))
+    (dolist (connection bufferless-connections)
+      (tramp-cleanup-connection
+       (tramp-dissect-file-name connection 'noexpand)))))
+
 ;;; Rename
 
 (defcustom tramp-default-rename-alist nil
@@ -509,7 +550,8 @@ ESC or `q' to quit without changing further buffers,
 		 (new-bfn (and (stringp bfn) (string-replace source target bfn)))
 		 (prompt (format-message
 			  "Set visited file name to `%s' [Type yn!eq or %s] "
-			  new-bfn (key-description (vector help-char)))))
+                          new-bfn (if (fboundp 'help-key) (help-key) ; 29.1
+                                    (key-description (vector help-char))))))
 	    (when (and (buffer-live-p buffer) (stringp bfn)
 		       (string-prefix-p source bfn)
 		       ;; Skip, and don't ask again.
@@ -597,6 +639,19 @@ For details, see `tramp-rename-files'."
 		 (const "ksu"))
   :link '(tramp-info-link :tag "Tramp manual" tramp-file-name-with-method))
 
+(defmacro with-tramp-file-name-with-method (&rest body)
+  "Ask user for `tramp-file-name-with-method' if needed.
+Run BODY."
+  (declare (indent 0) (debug t))
+  `(let ((tramp-file-name-with-method
+          (if current-prefix-arg
+	      (completing-read
+	       "Tramp method: "
+               (mapcar #'cadr (cdr (get 'tramp-file-name-with-method 'custom-type)))
+               nil t tramp-file-name-with-method)
+            tramp-file-name-with-method)))
+     ,@body))
+
 (defun tramp-file-name-with-sudo (filename)
   "Convert FILENAME into a multi-hop file name with \"sudo\".
 An alternative method could be chosen with `tramp-file-name-with-method'."
@@ -629,27 +684,71 @@ An alternative method could be chosen with `tramp-file-name-with-method'."
      (make-tramp-file-name
       :method tramp-file-name-with-method :localname filename))))
 
-;;;###tramp-autoload
+;; FIXME: We would like to rename this for Emacs 31.1 to a name that
+;; does not encode the default method.  It is intended as a generic
+;; privilege-elevation command.  Some ideas from bug#76974:
+;; `tramp-revert-buffer-obtain-root',
+;; `tramp-revert-buffer-as-superuser'.
+
+;;;###autoload
 (defun tramp-revert-buffer-with-sudo ()
-  "Revert current buffer to visit with \"sudo\" permissions.
-An alternative method could be chosen with `tramp-file-name-with-method'.
+  "Visit the current file again with superuser, or root, permissions.
+
+By default this is done using the \"sudo\" Tramp method.
+You can customize `tramp-file-name-with-method' to change this.
+
+Interactively, with a prefix argument, prompt for a different method.
+
 If the buffer visits a file, the file is replaced.
 If the buffer runs `dired', the buffer is reverted."
   (interactive)
-  (cond
-   ((buffer-file-name)
-    (find-alternate-file (tramp-file-name-with-sudo (buffer-file-name))))
-   ((tramp-dired-buffer-p)
-    (dired-unadvertise (expand-file-name default-directory))
-    (setq default-directory (tramp-file-name-with-sudo default-directory)
-	  list-buffers-directory
-	  (tramp-file-name-with-sudo list-buffers-directory))
-    (if (consp dired-directory)
-	(setcar
-	 dired-directory (tramp-file-name-with-sudo (car dired-directory)))
-      (setq dired-directory (tramp-file-name-with-sudo dired-directory)))
-    (dired-advertise)
-    (revert-buffer))))
+  (with-tramp-file-name-with-method
+    (cond
+     ((buffer-file-name)
+      (let ((pos (point)))
+        (find-alternate-file (tramp-file-name-with-sudo (buffer-file-name)))
+        (goto-char pos)))
+     ((tramp-dired-buffer-p)
+      (dired-unadvertise (expand-file-name default-directory))
+      (setq default-directory (tramp-file-name-with-sudo default-directory)
+	    list-buffers-directory
+	    (tramp-file-name-with-sudo list-buffers-directory))
+      (if (consp dired-directory)
+	  (setcar
+	   dired-directory (tramp-file-name-with-sudo (car dired-directory)))
+        (setq dired-directory (tramp-file-name-with-sudo dired-directory)))
+      (dired-advertise)
+      (revert-buffer)))))
+
+;; This function takes action, when `read-extended-command-predicate'
+;; is set to `command-completion-default-include-p'.
+(defun tramp-dired-buffer-command-completion-p (_symbol buffer)
+  "A predicate for Tramp interactive commands.
+They are completed by `M-x TAB' only in Dired buffers."
+  (declare (tramp-suppress-trace t))
+  (with-current-buffer buffer
+    (tramp-dired-buffer-p)))
+
+;; FIXME: See FIXME above about renaming this before Emacs 31.1.
+
+;;;###autoload
+(defun tramp-dired-find-file-with-sudo ()
+  "Visit the file or directory named on this line as the superuser.
+
+By default this is done using the \"sudo\" Tramp method.
+YOu can customize `tramp-file-name-with-method' to change this.
+
+Interactively, with a prefix argument, prompt for a different method."
+  ;; (declare (completion tramp-dired-buffer-command-completion-p))
+  (interactive)
+  (with-tramp-file-name-with-method
+    (find-file (tramp-file-name-with-sudo (dired-get-file-for-visit)))))
+
+;; `tramp-dired-buffer-command-completion-p' is not autoloaded, and this
+;; setting isn't either.
+(function-put
+ #'tramp-dired-find-file-with-sudo 'completion-predicate
+ #'tramp-dired-buffer-command-completion-p)
 
 ;;; Recompile on ELPA
 

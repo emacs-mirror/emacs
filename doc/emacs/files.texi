@@ -1174,6 +1174,17 @@ the major mode actually turned on as result of reverting a buffer
 depends on mode remapping, and could be different from the original mode
 if you customized @code{major-mode-remap-alist} in-between.
 
+@cindex reverting with superuser permissions
+@cindex reverting with root permissions
+@findex tramp-revert-buffer-with-sudo
+@kindex C-x x @@
+The @kbd{C-x x @@} keystroke is bound to the
+@code{tramp-revert-buffer-with-sudo} command.  This visits the file
+again, but with superuser, or root, permissions.  If called with a
+@kbd{C-u} prefix argument, it prompts for another Tramp method to use
+other than the default, @option{sudo}.  @xref{Ad-hoc multi-hops, Tramp,,
+tramp, The Tramp Manual}.
+
 @node Auto Revert
 @section Auto Revert: Keeping buffers automatically up-to-date
 @cindex Global Auto Revert mode
@@ -1784,7 +1795,9 @@ confirm you really want to revert and kill the hunk.  You can customize
 @findex diff-apply-buffer
 @item C-c @key{RET} a
 Apply all the hunks in the buffer (@code{diff-apply-buffer}).  If the
-diffs were applied successfully, save the changed buffers.
+region is active, apply all hunks that the region overlaps; otherwise,
+apply all hunks.  With a prefix argument, reverse-apply the hunks.
+If the diffs were applied successfully, save the changed buffers.
 
 @findex diff-delete-other-hunks
 @item C-c @key{RET} n

@@ -2041,6 +2041,15 @@ the available projects.  @kbd{M-x project-forget-project}
 prompts you to choose one of the available projects, and then removes
 it from the file.
 
+@vindex project-list-exclude
+  The user option @code{project-list-exclude} may be set to always
+ignore certain projects from being remembered and saved to
+@code{project-list-file}.  It is a list of regular expressions and
+predicate functions for project roots and objects.  The regexp is
+matched against the project root, and the predicate should take the
+project object as the only argument and return non-@code{nil} if the
+project should @emph{not} be saved to @code{project-list-file}.
+
 @node Change Log
 @section Change Logs
 

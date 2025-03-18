@@ -189,12 +189,9 @@ regexp to replace with IMAGE.  IMAGE is the name of an image file in
 		    smiley-cached-regexp-alist))))))))
 
 ;; Not implemented:
-;; (defvar smiley-mouse-map
-;;   (let ((map (make-sparse-keymap)))
-;;     (define-key map [down-mouse-2] 'ignore) ; override widget
-;;     (define-key map [mouse-2]
-;;       'smiley-mouse-toggle-buffer)
-;;     map))
+;; (defvar-keymap smiley-mouse-map
+;;   "<down-mouse-2>" #'ignore ; override widget
+;;   "<mouse-2>"      #'smiley-mouse-toggle-buffer)
 
 ;;;###autoload
 (defun smiley-region (start end)

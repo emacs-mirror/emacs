@@ -1090,7 +1090,7 @@ With argument, add COUNT copies of CHAR."
   (let ((i 0))
     (while (< i count)
       (xwidget-webkit-next-result (xwidget-webkit-current-session))
-      (cl-incf i)))
+      (incf i)))
   (xwidget-webkit-isearch--update t))
 
 (defun xwidget-webkit-isearch-backward (count)
@@ -1104,7 +1104,7 @@ With argument, add COUNT copies of CHAR."
   (let ((i 0))
     (while (< i count)
       (xwidget-webkit-previous-result (xwidget-webkit-current-session))
-      (cl-incf i)))
+      (incf i)))
   (xwidget-webkit-isearch--update t))
 
 (defun xwidget-webkit-isearch-exit ()

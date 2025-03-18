@@ -7931,6 +7931,11 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 	  return unbind_to (count, Qnil);
 	}
     }
+  else
+    /* Required by X11 drag and drop, and left here in the interests of
+       consistency and in the event drag and drop should be implemented
+       on W32.  */
+    tip_window = FRAME_W32_WINDOW (XFRAME (tip_frame));
 
   tip_f = XFRAME (tip_frame);
   window = FRAME_ROOT_WINDOW (tip_f);

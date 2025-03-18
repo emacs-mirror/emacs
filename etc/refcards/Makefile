@@ -54,8 +54,14 @@ PDF_SLOVAKIAN = \
 	sk-refcard.pdf \
 	sk-survival.pdf
 
+PDF_SPANISH = \
+	es-dired-ref.pdf \
+	es-refcard.pdf \
+	es-survival.pdf
+
 PDF_TARGETS = $(PDF_ENGLISH) $(PDF_CZECH) $(PDF_FRENCH) $(PDF_GERMAN) \
-	$(PDF_POLISH) $(PDF_PORTUGUESE) $(PDF_RUSSIAN) $(PDF_SLOVAKIAN)
+	$(PDF_POLISH) $(PDF_PORTUGUESE) $(PDF_RUSSIAN) $(PDF_SLOVAKIAN) \
+	$(PDF_SPANISH)
 
 PS_ENGLISH = $(PDF_ENGLISH:.pdf=.ps)
 PS_CZECH = $(PDF_CZECH:.pdf=.ps)
@@ -65,6 +71,7 @@ PS_POLISH = $(PDF_POLISH:.pdf=.ps)
 PS_PORTUGUESE = $(PDF_PORTUGUESE:.pdf=.ps)
 PS_RUSSIAN = $(PDF_RUSSIAN:.pdf=.ps)
 PS_SLOVAKIAN = $(PDF_SLOVAKIAN:.pdf=.ps)
+PS_SPANISH = $(PDF_SPANISH:.pdf=.ps)
 
 PS_TARGETS = $(PDF_TARGETS:.pdf=.ps)
 
@@ -80,7 +87,7 @@ pdf: $(PDF_TARGETS)
 ps: $(PS_TARGETS)
 
 
-.PHONY: english czech french german polish portuguese russian slovakian
+.PHONY: english czech french german polish portuguese russian slovakian spanish
 english: $(PDF_ENGLISH)
 czech: $(PDF_CZECH)
 french: $(PDF_FRENCH)
@@ -89,6 +96,7 @@ polish: $(PDF_POLISH)
 portuguese: $(PDF_PORTUGUESE)
 russian: $(PDF_RUSSIAN)
 slovakian: $(PDF_SLOVAKIAN)
+spanish: $(PDF_SPANISH)
 
 .PHONY: english-ps czech-ps french-ps german-ps polish-ps portuguese-ps russian-ps slovakian-ps
 english-ps: $(PS_ENGLISH)
@@ -99,6 +107,7 @@ polish-ps: $(PS_POLISH)
 portuguese-ps: $(PS_PORTUGUESE)
 russian-ps: $(PS_RUSSIAN)
 slovakian-ps: $(PS_SLOVAKIAN)
+spanish-ps: $(PS_SPANISH)
 
 
 ## Default for file that do not use a different paper size.
@@ -288,6 +297,31 @@ sk-survival.dvi: $(sk_survival_deps)
 	$(ENVADD) csplain sk-survival.tex
 sk-survival.ps: sk-survival.dvi
 	dvips -t a4 -o $@ sk-survival.dvi
+
+es_dired_ref_deps = es-dired-ref.tex emacsver.tex pdflayout.sty
+es-dired-ref.pdf: $(es_dired_ref_deps)
+	input=es-dired-ref.tex; $(make_cs)
+es-dired-ref.dvi: $(es_dired_ref_deps)
+	$(ENVADD) csplain es-dired-ref.tex
+es-dired-ref.ps: es-dired-ref.dvi
+	dvips -t a4 -o $@ es-dired-ref.dvi
+
+es_refcard_deps = es-refcard.tex emacsver.tex pdflayout.sty
+es-refcard.pdf: $(es_refcard_deps)
+	input=es-refcard.tex; $(make_cs)
+es-refcard.dvi: $(es_refcard_deps)
+	$(ENVADD) csplain es-refcard.tex
+es-refcard.ps: es-refcard.dvi
+	dvips -t a4 -o $@ es-refcard.dvi
+
+es_survival_deps = es-survival.tex emacsver.tex pdflayout.sty
+es-survival.pdf: $(es_survival_deps)
+	input=es-survival.tex; $(make_cs)
+es-survival.dvi: $(es_survival_deps)
+	$(ENVADD) csplain es-survival.tex
+es-survival.ps: es-survival.dvi
+	dvips -t a4 -o $@ es-survival.dvi
+
 
 survival_deps = survival.tex emacsver.tex pdflayout.sty
 survival.pdf: $(survival_deps)

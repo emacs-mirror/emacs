@@ -658,7 +658,7 @@ When called with a `C-0' (zero) prefix, insert a template at point.
 When called with a `C-1' (one) prefix, force prompting for a date when
 a datetree entry is made.
 
-ELisp programs can set KEYS to a string associated with a template
+Elisp programs can set KEYS to a string associated with a template
 in `org-capture-templates'.  In this case, interactive selection
 will be bypassed.
 

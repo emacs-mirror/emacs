@@ -883,11 +883,11 @@ controlled in the following way:
 - If the list of fields is preceded with `:pack-var VAR' then the object to
   be packed is bound to VAR when evaluating the EXPs of `:pack-val'.
 
-All the above BITLEN, LEN, LE, COUNT, and EXP are ELisp expressions evaluated
+All the above BITLEN, LEN, LE, COUNT, and EXP are Elisp expressions evaluated
 in the current lexical context extended with the previous fields.
 
 TYPE can additionally be one of the Bindat type macros defined with
-`bindat-defmacro' (and listed below) or an ELisp expression which returns
+`bindat-defmacro' (and listed below) or an Elisp expression which returns
 a bindat type expression."
   (declare (indent 0) (debug (bindat-type)))
   `(progn

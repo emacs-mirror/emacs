@@ -638,7 +638,7 @@ will ensure that any results will actually have a :secret
 property.
 
 :delete t means to delete any found entries.  nil by default.
-Use `auth-source-delete' in ELisp code instead of calling
+Use `auth-source-delete' in Lisp code instead of calling
 `auth-source-search' directly with this parameter.
 
 :type (X Y Z) will check only those backend types.  `netrc' and
@@ -852,7 +852,7 @@ while \(:host t) would find all host entries."
                   (auth-source-specmatchp spec (cdr key)))
          ;; remove that key
          (password-cache-remove key)
-         (cl-incf count)))
+         (incf count)))
      password-data)
     count))
 
@@ -2547,7 +2547,7 @@ Adapt also mode line."
 
 ;;;###autoload
 (defun read-passwd (prompt &optional confirm default)
-  "Read a password, prompting with PROMPT, and return it.
+  "Read a password, prompting with PROMPT, and return password as a string.
 If optional CONFIRM is non-nil, read the password twice to make sure.
 Optional DEFAULT is a default password to use instead of empty input.
 

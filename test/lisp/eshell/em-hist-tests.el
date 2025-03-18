@@ -26,11 +26,10 @@
 (require 'ert-x)
 (require 'em-hist)
 (require 'eshell)
+(require 'ert-x)
 
 (require 'eshell-tests-helpers
-         (expand-file-name "eshell-tests-helpers"
-                           (file-name-directory (or load-file-name
-                                                    default-directory))))
+         (ert-resource-file "eshell-tests-helpers"))
 
 (cl-defun em-hist-test/check-history-file (file-name expected &optional
                                                      (expected-ring t))

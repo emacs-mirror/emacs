@@ -60,7 +60,7 @@ modify this GNU manual.''
 * Predicates::           Type predicates and equality predicates.
 * Control Structure::    Assignment, conditionals, blocks, looping.
 * Macros::               Destructuring, compiler macros.
-* Declarations::         @code{cl-proclaim}, @code{cl-declare}, etc.
+* Declarations::         @code{cl-proclaim}, @code{cl-declaim}, etc.
 * Symbols::              Property lists, creating symbols.
 * Numbers::              Predicates, functions, random numbers.
 * Sequences::            Mapping, functions, searching, sorting.
@@ -611,7 +611,7 @@ For example:
 
 @example
 (cl-defmacro dolist ((var listform &optional resultform)
-                   &rest body)
+                     &rest body)
   @dots{})
 @end example
 
@@ -1370,7 +1370,7 @@ expansion of another macro:
 
 @example
 (cl-defmacro my-dolist ((x list) &rest body)
-  (let ((var (cl-gensym)))
+  (cl-with-gensyms (var)
     (list 'cl-loop 'for var 'on list 'do
           (cl-list* 'cl-symbol-macrolet
                     (list (list x (list 'car var)))
@@ -2652,8 +2652,7 @@ mechanism that allows you to give the compiler special hints
 about the types of data that will be stored in particular variables,
 and about the ways those variables and functions will be used.  This
 package defines versions of all the Common Lisp declaration forms:
-@code{declare}, @code{locally}, @code{proclaim}, @code{declaim},
-and @code{the}.
+@code{proclaim}, @code{declaim}, and @code{the}.
 
 Most of the Common Lisp declarations are not currently useful in Emacs
 Lisp.  For example, the byte-code system provides little
@@ -2683,15 +2682,6 @@ compiler treats the rest of the file that contains the @code{cl-declaim}
 form.)
 @end defmac
 
-@defmac cl-declare decl-specs@dots{}
-This macro is used to make declarations within functions and other
-code.  Common Lisp allows declarations in various locations, generally
-at the beginning of any of the many ``implicit @code{progn}s''
-throughout Lisp syntax, such as function bodies, @code{let} bodies,
-etc.  Currently the only declaration understood by @code{cl-declare}
-is @code{special}.
-@end defmac
-
 @defmac cl-the type form
 @code{cl-the} returns the value of @code{form}, first checking (if
 optimization settings permit) that it is of type @code{type}.  Future
@@ -2707,8 +2697,8 @@ For now, Emacs Lisp will treat the above code as exactly equivalent
 to @code{(mapcar 'car foo)}.
 @end defmac
 
-Each @var{decl-spec} in a @code{cl-proclaim}, @code{cl-declaim}, or
-@code{cl-declare} should be a list beginning with a symbol that says
+Each @var{decl-spec} in a @code{cl-proclaim} or @code{cl-declaim}
+should be a list beginning with a symbol that says
 what kind of declaration it is.  This package currently understands
 @code{special}, @code{inline}, @code{notinline}, @code{optimize},
 and @code{warn} declarations.  (The @code{warn} declaration is an
@@ -2725,9 +2715,6 @@ variables are intentionally being referred to without being
 bound in the body of the function.  The compiler normally emits
 warnings for such references, since they could be typographical
 errors for references to local variables.
-
-The declaration @code{(cl-declare (special @var{var1} @var{var2}))} is
-equivalent to @code{(defvar @var{var1}) (defvar @var{var2})}.
 
 In top-level contexts, it is generally better to write
 @code{(defvar @var{var})} than @code{(cl-declaim (special @var{var}))},
@@ -2759,12 +2746,6 @@ containing source file is done.  It is correct to use it to
 request that a function you have defined should be inlined,
 but it is impolite to use it to request inlining of an external
 function.
-
-In Common Lisp, it is possible to use @code{(declare (inline @dots{}))}
-before a particular call to a function to cause just that call to
-be inlined; the current byte compilers provide no way to implement
-this, so @code{(cl-declare (inline @dots{}))} is currently ignored by
-this package.
 
 @item notinline
 The @code{notinline} declaration lists functions which should
@@ -2800,12 +2781,7 @@ Emacs itself, Emacs will not crash with a segmentation fault
 just because of an error in a fully-optimized Lisp program.
 
 The @code{optimize} declaration is normally used in a top-level
-@code{cl-proclaim} or @code{cl-declaim} in a file; Common Lisp allows
-it to be used with @code{declare} to set the level of optimization
-locally for a given form, but this will not work correctly with the
-current byte-compiler.  (The @code{cl-declare}
-will set the new optimization level, but that level will not
-automatically be unset after the enclosing form is done.)
+@code{cl-proclaim} or @code{cl-declaim} in a file.
 
 @item warn
 This declaration controls what sorts of warnings are generated
@@ -2828,7 +2804,7 @@ missing from Emacs Lisp.
 
 @menu
 * Property Lists::       @code{cl-get}, @code{cl-remprop}, @code{cl-getf}, @code{cl-remf}.
-* Creating Symbols::     @code{cl-gensym}, @code{cl-gentemp}.
+* Creating Symbols::     @code{cl-gentemp}.
 @end menu
 
 @node Property Lists
@@ -2916,30 +2892,10 @@ out the property and value cells.
 @section Creating Symbols
 @cindex gensym
 
-@noindent
-These functions create unique symbols, typically for use as
-temporary variables.
-
-@defun cl-gensym &optional x
-This function creates a new, uninterned symbol (using @code{make-symbol})
-with a unique name.  (The name of an uninterned symbol is relevant
-only if the symbol is printed.)  By default, the name is generated
-from an increasing sequence of numbers, @samp{G1000}, @samp{G1001},
-@samp{G1002}, etc.  If the optional argument @var{x} is a string, that
-string is used as a prefix instead of @samp{G}.  Uninterned symbols
-are used in macro expansions for temporary variables, to ensure that
-their names will not conflict with ``real'' variables in the user's
-code.
-
-(Internally, the variable @code{cl--gensym-counter} holds the counter
-used to generate names.  It is initialized with zero and incremented
-after each use.)
-@end defun
-
 @defun cl-gentemp &optional x
-This function is like @code{cl-gensym}, except that it produces a new
-@emph{interned} symbol.  If the symbol that is generated already
-exists, the function keeps incrementing the counter and trying
+This function is like the built-in @code{gensym}, except that it
+produces a new @emph{interned} symbol.  If the symbol that is generated
+already exists, the function keeps incrementing the counter and trying
 again until a new symbol is generated.
 @end defun
 
@@ -4443,18 +4399,18 @@ an expansion similar to:
 @example
 (cl-block nil
      (let* ((x 0)
-            (G1004 nil))
+            (g1004 nil))
        (while (< x 10)
-         (setq G1004 (cons x G1004))
+         (setq g1004 (cons x g1004))
          (setq x (+ x 1)))
-       (nreverse G1004)))
+       (nreverse g1004)))
 @end example
 
 @noindent
 will be inserted into the buffer.  (The @code{cl-block} macro is
 expanded differently in the interpreter and compiler, so
 @code{cl-prettyexpand} just leaves it alone.  The temporary
-variable @code{G1004} was created by @code{cl-gensym}.)
+variable @code{g1004} was created by @code{gensym}.)
 
 If the optional argument @var{full} is true, then @emph{all}
 macros are expanded, including @code{cl-block}, @code{cl-eval-when},
@@ -5181,7 +5137,7 @@ temporary variables.  In the setf-methods generated by
 @code{defsetf}, the second return value is simply the list of
 arguments in the place form, and the first return value is a
 list of a corresponding number of temporary variables generated
-by @code{cl-gensym}.
+by @code{gensym}.
 @end defmac
 
 @node GNU Free Documentation License

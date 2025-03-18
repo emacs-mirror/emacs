@@ -311,4 +311,3 @@ gen-clean:
 	rm -f ${CHARSETS} ${SED_SCRIPT} ${TRANS_TABLE} ${srcdir}/charsets.stamp
 
 maintainer-clean: gen-clean distclean
-

@@ -267,6 +267,14 @@ See `eldoc-documentation-strategy' for more detail."
     (eldoc-mode 1)))
 
 
+(defun eldoc--update ()
+  (when (or eldoc-mode
+            (and global-eldoc-mode
+                 (eldoc--supported-p)))
+    ;; Don't ignore, but also don't full-on signal errors
+    (with-demoted-errors "eldoc error: %s"
+      (eldoc-print-current-symbol-info)) ))
+
 (defun eldoc-schedule-timer ()
   "Ensure `eldoc-timer' is running.
 
@@ -277,13 +285,7 @@ reflect the change."
       (setq eldoc-timer
             (run-with-idle-timer
 	     eldoc-idle-delay nil
-	     (lambda ()
-               (when (or eldoc-mode
-                         (and global-eldoc-mode
-                              (eldoc--supported-p)))
-                 ;; Don't ignore, but also don't full-on signal errors
-                 (with-demoted-errors "eldoc error: %s"
-                   (eldoc-print-current-symbol-info)) )))))
+             #'eldoc--update)))
 
   ;; If user has changed the idle delay, update the timer.
   (cond ((not (= eldoc-idle-delay eldoc-current-idle-delay))
@@ -903,7 +905,7 @@ the docstrings eventually produced, using
            interactive))
          (make-callback
           (method origin)
-          (let ((pos (prog1 howmany (incf howmany))))
+          (let ((pos (prog1 howmany (cl-incf howmany))))
             (cl-ecase method
               (:enthusiast
                (lambda (string &rest plist)
@@ -920,10 +922,10 @@ the docstrings eventually produced, using
                                     nil #'display-doc))
                  t))
               (:patient
-               (incf want)
+               (cl-incf want)
                (lambda (string &rest plist)
                  (register-doc pos string plist origin)
-                 (when (zerop (decf want)) (display-doc))
+                 (when (zerop (cl-decf want)) (display-doc))
                  t))
               (:eager
                (lambda (string &rest plist)

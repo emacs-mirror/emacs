@@ -481,6 +481,24 @@ AC_SUBST([HAVE_PDUMPER])
 DUMPING=$with_dumping
 AC_SUBST([DUMPING])
 
+dnl Where the etc/emacs.service file is to be installed.
+dnl We use $(prefix)/lib/systemd/user as default, but this may not be
+dnl in systemd's search path when prefix is neither /usr nor /usr/local.
+dnl In that case (e.g. for non-root installs) the location can be
+dnl specified with the configure option.
+dnl See https://www.freedesktop.org/software/systemd/man/latest/systemd.unit.html#id-1.8.5
+dnl for documentation of systemd's unit file load path.
+AC_ARG_WITH([systemduserunitdir],
+  [AS_HELP_STRING([--with-systemduserunitdir=DIR],
+    [directory for systemd user unit file;
+    default 'PREFIX/usr/lib/systemd/user'])],
+  [systemduserunitdir=${withval}],
+  [systemduserunitdir='${prefix}/lib/systemd/user'])
+if test "${systemduserunitdir}" = "no"; then
+  systemduserunitdir=''
+fi
+AC_SUBST([systemduserunitdir])
+
 dnl FIXME currently it is not the last.
 dnl This should be the last --with option, because --with-x is
 dnl added later on when we find the file name of X, and it's best to
@@ -3233,7 +3251,67 @@ AC_CACHE_CHECK(
    fi])
 doug_lea_malloc=$emacs_cv_var_doug_lea_malloc
 
+AC_CHECK_ALIGNOF([int])
+AC_CHECK_ALIGNOF([long])
+AC_CHECK_ALIGNOF([long long])
+AC_CHECK_SIZEOF([long])
+
+AC_CACHE_CHECK([for struct alignment],
+  [emacs_cv_struct_alignment],
+  [AC_COMPILE_IFELSE(
+     [AC_LANG_PROGRAM([[#include <stddef.h>
+			struct s { char c; } __attribute__ ((aligned (8)));
+			struct t { char c; struct s s; };
+			char verify[offsetof (struct t, s) == 8 ? 1 : -1];
+		      ]])],
+     [emacs_cv_struct_alignment=yes],
+     [emacs_cv_struct_alignment=no])])
+if test "$emacs_cv_struct_alignment" = yes; then
+  AC_DEFINE([HAVE_STRUCT_ATTRIBUTE_ALIGNED], [1],
+    [Define to 1 if 'struct __attribute__ ((aligned (N)))' aligns the
+     structure to an N-byte boundary.])
+fi
+
 system_malloc=yes
+
+# If it appears as if the system malloc can't be trusted to return
+# adequately positioned memory, enable the GNU malloc, which more
+# consistently provides allocations at low addresses, as is required for
+# the pdumper to load dump files at a representable location.
+AS_IF([test "$with_pdumper" = "yes" && test "$with_wide_int" != "yes"],
+  AC_CHECK_HEADERS([stdalign.h])
+  [AC_CACHE_CHECK([whether alignas is required yet unavailable],
+    [emacs_cv_alignas_unavailable],
+    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#ifdef HAVE_STDALIGN_H
+#include <stdalign.h>
+#endif
+      #include <limits.h>
+     ]], [[
+#define IDEAL_GCALIGNMENT 8
+#if INTPTR_MAX <= INT_MAX && !defined WIDE_EMACS_INT
+#  define ALIGNOF_EMACS_INT ALIGNOF_INT
+# elif INTPTR_MAX <= LONG_MAX && !defined WIDE_EMACS_INT
+#  define ALIGNOF_EMACS_INT ALIGNOF_LONG
+# elif INTPTR_MAX <= LLONG_MAX
+#  define ALIGNOF_EMACS_INT ALIGNOF_LONG_LONG
+# else
+# error "INTPTR_MAX too large"
+#endif
+
+#if (ALIGNOF_EMACS_INT < IDEAL_GCALIGNMENT && !defined alignas	\
+     && !defined HAVE_STRUCT_ATTRIBUTE_ALIGNED	       		\
+     && !defined __alignas_is_defined				\
+     && __STDC_VERSION__ < 202311 && __cplusplus < 201103)
+#error "!USE_LSB_TAG required"
+#endif
+   ]])], [emacs_cv_alignas_unavailable=no],
+        [emacs_cv_alignas_unavailable=yes])])
+   AS_IF([test "$emacs_cv_alignas_unavailable" = "yes"],
+     [system_malloc=no
+       AC_MSG_WARN([The GNU memory manager will be enabled as your system
+does not guarantee that the portable dumper can allocate memory at a suitably
+low address.])])])
 
 dnl This must be before the test of $ac_cv_func_sbrk below.
 AC_CHECK_FUNCS_ONCE([sbrk])
@@ -4441,6 +4519,7 @@ fi
 ### End of font-backend (under any platform) section.
 
 ### Start of font-backend (under X11) section.
+is_xft_version_outdated=no
 if test "${HAVE_X11}" = "yes"; then
   if test $HAVE_CAIRO = yes; then
     dnl Strict linkers fail with
@@ -4489,7 +4568,20 @@ if test "${HAVE_X11}" = "yes"; then
 
 	if test "${HAVE_XFT}" = "yes"; then
 	  AC_DEFINE([HAVE_XFT], [1], [Define to 1 if you have the Xft library.])
-	    AC_SUBST([XFT_LIBS])
+	  AC_SUBST([XFT_LIBS])
+	  AC_CACHE_CHECK([whether libXft is not recent enough to support color fonts],
+	    [emacs_cv_is_xft_version_outdated],
+	    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+	      [[
+		#include <X11/Xlib.h>
+	        #include <X11/Xft/Xft.h>
+		#if XftVersion < 20306
+		#error "Xft < 2.3.6"
+		#endif /* XftVersion < 20306 */
+	      ]], [])],
+	      [emacs_cv_is_xft_version_outdated=no],
+	      [emacs_cv_is_xft_version_outdated=yes])])
+	  is_xft_version_outdated=$emacs_cv_is_xft_version_outdated
 	  C_SWITCH_X_SITE="$C_SWITCH_X_SITE $XFT_CFLAGS"
 	fi                        # "${HAVE_XFT}" = "yes"
 	CPPFLAGS=$OLD_CPPFLAGS
@@ -5033,16 +5125,16 @@ AC_DEFUN([libgccjit_smoke_test], [
       }]])])
 
 AC_DEFUN([libgccjit_not_found_err], [
-  AC_MSG_ERROR([ELisp native compiler was requested, but libgccjit was not found.
+  AC_MSG_ERROR([Lisp native compiler was requested, but libgccjit was not found.
 Please try installing libgccjit or a similar package.
-If you are sure you want Emacs be compiled without ELisp native compiler,
+If you are sure you want Emacs be compiled without the Lisp native compiler,
 pass the --without-native-compilation option to configure.])])
 
 AC_DEFUN([libgccjit_dev_not_found_err], [
-  AC_MSG_ERROR([ELisp native compiler was requested, but libgccjit header files were
+  AC_MSG_ERROR([Lisp native compiler was requested, but libgccjit header files were
 not found.
 Please try installing libgccjit-dev or a similar package.
-If you are sure you want Emacs be compiled without ELisp native compiler,
+If you are sure you want Emacs be compiled without the Lisp native compiler,
 pass the --without-native-compilation option to configure.])])
 
 AC_DEFUN([libgccjit_broken_err], [
@@ -5194,7 +5286,7 @@ if test "${with_native_compilation}" != "no"; then
     LIBS=$SAVE_LIBS
 fi
 AC_DEFINE_UNQUOTED([NATIVE_ELISP_SUFFIX], [".eln"],
-  [System extension for native compiled elisp])
+  [System extension for native-compiled elisp])
 AC_SUBST([HAVE_NATIVE_COMP])
 AC_SUBST([LIBGCCJIT_CFLAGS])
 AC_SUBST([LIBGCCJIT_LIBS])
@@ -5887,7 +5979,6 @@ AC_SUBST([HAVE_LIBSECCOMP])
 AC_SUBST([LIBSECCOMP_LIBS])
 AC_SUBST([LIBSECCOMP_CFLAGS])
 
-AC_CHECK_SIZEOF([long])
 SIZEOF_LONG="$ac_cv_sizeof_long"
 AC_SUBST([SIZEOF_LONG])
 
@@ -7250,22 +7341,6 @@ else
 fi
 AC_SUBST([LIBXMENU])
 
-AC_CACHE_CHECK([for struct alignment],
-  [emacs_cv_struct_alignment],
-  [AC_COMPILE_IFELSE(
-     [AC_LANG_PROGRAM([[#include <stddef.h>
-			struct s { char c; } __attribute__ ((aligned (8)));
-			struct t { char c; struct s s; };
-			char verify[offsetof (struct t, s) == 8 ? 1 : -1];
-		      ]])],
-     [emacs_cv_struct_alignment=yes],
-     [emacs_cv_struct_alignment=no])])
-if test "$emacs_cv_struct_alignment" = yes; then
-  AC_DEFINE([HAVE_STRUCT_ATTRIBUTE_ALIGNED], [1],
-    [Define to 1 if 'struct __attribute__ ((aligned (N)))' aligns the
-     structure to an N-byte boundary.])
-fi
-
 AC_C_RESTRICT
 AC_C_TYPEOF
 
@@ -7885,12 +7960,11 @@ you can continue to support by using '$0 --with-pop'.])
   esac
 fi
 
-if test "${HAVE_XFT}" = yes; then
-  AC_MSG_WARN([This configuration uses libXft, which has a number of
-    font rendering issues, and is being considered for removal in the
-    next release of Emacs.  Please consider using Cairo graphics +
-    HarfBuzz text shaping instead (they are auto-detected if the
-    relevant development headers are installed).])
+if test "${HAVE_XFT}" = yes && test "$is_xft_version_outdated" = "yes"; then
+  AC_MSG_WARN([This configuration uses a version of libXft earlier than 2.3.6,
+    which is impacted by a number of rendering issues up to and including
+    crashes.  Please consider using Cairo graphics instead (they are
+    auto-detected if the relevant development headers are installed).])
 fi
 
 if test "${HAVE_CAIRO}" = "yes" && test "${HAVE_HARFBUZZ}" = no; then

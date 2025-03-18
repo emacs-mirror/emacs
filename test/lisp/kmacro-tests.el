@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'kmacro)
+(require 'cl-lib)
 (require 'seq)
 (require 'ert)
 (require 'ert-x)
@@ -157,8 +158,7 @@ Execute BODY, then check that the string VALUE was inserted
 into the current buffer at point."
   (declare (debug (stringp body))
            (indent 1))
-  (let ((g-p (cl-gensym))
-        (g-bsize (cl-gensym)))
+  (cl-with-gensyms (g-p g-bsize)
     `(let ((,g-p (point))
            (,g-bsize (buffer-size)))
        ,@body
@@ -172,7 +172,7 @@ VALUE and any text written to *Messages* during the execution,
 cause the current test to fail."
   (declare (debug (form body))
            (indent 1))
-  (let ((g-captured-messages (cl-gensym)))
+  (cl-with-gensyms (g-captured-messages)
     `(ert-with-message-capture ,g-captured-messages
        ,@body
        (should (string-match-p ,value ,g-captured-messages)))))

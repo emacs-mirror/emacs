@@ -483,7 +483,7 @@ To modify the key bindings, use the @code{ido-setup-hook}.  For example:
 
 (defun ido-my-keys ()
  "Add my key bindings for Ido."
- (define-key ido-completion-map " " 'ido-next-match))
+ (keymap-set ido-completion-map "SPC" 'ido-next-match))
 @end example
 
 @c @defopt ido-setup-hook

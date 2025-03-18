@@ -58,29 +58,26 @@ comparison or merge operations are being performed."
     ))
 
 
+(defvar vc-find-revision-no-save)
+
 (defun ediff-vc-internal (rev1 rev2 &optional startup-hooks)
   ;; Run Ediff on versions of the current buffer.
   ;; If REV1 is "", use the latest version of the current buffer's file.
   ;; If REV2 is "" then compare current buffer with REV1.
   ;; If the current buffer is named `F', the version is named `F.~REV~'.
   ;; If `F.~REV~' already exists, it is used instead of being re-created.
-  (let (file1 file2 rev1buf rev2buf)
+  (let ((vc-find-revision-no-save (not ediff-keep-tmp-versions))
+        rev1buf rev2buf)
     (if (string= rev1 "")
 	(setq rev1 (ediff-vc-latest-version (buffer-file-name))))
     (save-window-excursion
       (save-excursion
 	(vc-revision-other-window rev1)
-	(setq rev1buf (current-buffer)
-	      file1 (buffer-file-name)))
+	(setq rev1buf (current-buffer)))
       (save-excursion
 	(or (string= rev2 "") 		; use current buffer
 	    (vc-revision-other-window rev2))
-	(setq rev2buf (current-buffer)
-	      file2 (buffer-file-name)))
-      (push (lambda ()
-	      (ediff-delete-version-file file1)
-	      (or (string= rev2 "") (ediff-delete-version-file file2)))
-	    startup-hooks))
+	(setq rev2buf (current-buffer))))
     (ediff-buffers
      rev1buf rev2buf
      startup-hooks
@@ -143,7 +140,8 @@ With prefix argument, prompts for a revision name."
 (defun ediff-vc-merge-internal (rev1 rev2 ancestor-rev
 				     &optional startup-hooks merge-buffer-file)
 ;; If ANCESTOR-REV non-nil, merge with ancestor
-  (let (buf1 buf2 ancestor-buf)
+  (let ((vc-find-revision-no-save t)
+        buf1 buf2 ancestor-buf)
     (save-window-excursion
       (save-excursion
 	(vc-revision-other-window rev1)
@@ -158,17 +156,7 @@ With prefix argument, prompts for a revision name."
 		(setq ancestor-rev (vc-working-revision
                                     buffer-file-name)))
 	    (vc-revision-other-window ancestor-rev)
-	    (setq ancestor-buf (current-buffer))))
-      (push (let ((f1 (buffer-file-name buf1))
-                  (f2 (unless (string= rev2 "") (buffer-file-name buf2)))
-                  (fa (unless (or (string= ancestor-rev "")
-		                  (not ancestor-rev))
-		        (buffer-file-name ancestor-buf))))
-              (lambda ()
-	        (ediff-delete-version-file f1)
-	        (if f2 (ediff-delete-version-file f2))
-	        (if fa (ediff-delete-version-file fa))))
-	    startup-hooks))
+	    (setq ancestor-buf (current-buffer)))))
     (if ancestor-rev
 	(ediff-merge-buffers-with-ancestor
 	 buf1 buf2 ancestor-buf
@@ -199,11 +187,6 @@ With prefix argument, prompts for a revision name."
 	 startup-hooks 'ediff-merge-revisions-with-ancestor merge-buffer-file)
       (ediff-merge-buffers
        buf1 buf2 startup-hooks 'ediff-merge-revisions merge-buffer-file))))
-
-
-;; delete version file on exit unless ediff-keep-tmp-versions is true
-(defun ediff-delete-version-file (file)
-  (or ediff-keep-tmp-versions (delete-file file)))
 
 
 (provide 'ediff-vers)

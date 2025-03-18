@@ -3,7 +3,7 @@
 ;; Copyright (C) 1997-2025 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Old-Version: 0.6.2
+;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: docs, maint, lisp
 
 ;; This file is part of GNU Emacs.
@@ -353,19 +353,19 @@ See Info node `(elisp) Documentation Tips' for background."
 ;; This is how you can use checkdoc to make mass fixes on the Emacs
 ;; source tree:
 ;;
-;; (setq checkdoc--argument-missing-flag nil)      ; optional
+;; (setq checkdoc-arguments-missing-flag nil)      ; optional
 ;; (setq checkdoc--disambiguate-symbol-flag nil)   ; optional
 ;; (setq checkdoc--interactive-docstring-flag nil) ; optional
 ;; (setq checkdoc-permit-comma-termination-flag t) ; optional
-;; (setq checkdoc-verb-check-experimental-flag nil)
 ;; Then use `M-x find-dired' ("-name '*.el'") and `M-x checkdoc-dired'
 
-(defvar checkdoc--argument-missing-flag t
-  "Non-nil means warn if arguments are missing from docstring.
-This variable is intended for use on Emacs itself, where the
-large number of libraries means it is impractical to fix all
-of these warnings en masse.  In almost any other case, setting
-this to anything but t is likely to be counter-productive.")
+(define-obsolete-variable-alias 'checkdoc--argument-missing-flag
+  'checkdoc-arguments-missing-flag "31.1")
+(defcustom checkdoc-arguments-missing-flag t
+  "Non-nil means warn if function arguments are missing from docstring."
+  :type 'boolean
+  :version "31.1")
+;;;###autoload(put 'checkdoc-arguments-missing-flag 'safe-local-variable 'booleanp)
 
 (defvar checkdoc--disambiguate-symbol-flag t
   "Non-nil means ask to disambiguate Lisp symbol.
@@ -1283,7 +1283,8 @@ generating a buffered list of errors.")
   "Used to create the return error text returned from all engines.
 TEXT, START, END and UNFIXABLE conform to
 `checkdoc-create-error-function', which see."
-  (funcall checkdoc-create-error-function text start end unfixable))
+  (funcall checkdoc-create-error-function
+           (substitute-quotes text) start end unfixable))
 
 (defun checkdoc--create-error-for-checkdoc (text start end &optional unfixable)
   "Create an error for Checkdoc.
@@ -1852,7 +1853,7 @@ function,command,variable,option or symbol." ms1))))))
 						  (looking-at "[.?!]")))
 			     (insert "."))
 			 nil)
-                     (when checkdoc--argument-missing-flag
+                     (when checkdoc-arguments-missing-flag
                        (checkdoc-create-error
                         (format-message
                          "Argument `%s' should appear (as %s) in the doc string"

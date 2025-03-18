@@ -90,7 +90,7 @@
                   (shortdoc-function-examples 'string-match-p)))))
 
 (ert-deftest shortdoc-help-fns-examples-function-test ()
-  "Test that `shortdoc-help-fns-examples-function' correctly prints ELisp function examples."
+  "Test that `shortdoc-help-fns-examples-function' correctly prints Lisp function examples."
   (with-temp-buffer
     (shortdoc-help-fns-examples-function 'string-fill)
     (should (equal "\n  Examples:\n\n  (string-fill \"Three short words\" 12)\n    => \"Three short\\nwords\"\n  (string-fill \"Long-word\" 3)\n    => \"Long-word\"\n\n"

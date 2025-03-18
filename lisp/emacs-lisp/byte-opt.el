@@ -172,7 +172,7 @@ Earlier variables shadow later ones with the same name.")
        ;; When the function comes from another file, we byte-compile
        ;; the inlined function first, and then inline its byte-code.
        ;; This also has the advantage that the final code does not
-       ;; depend on the order of compilation of ELisp files, making
+       ;; depend on the order of compilation of Elisp files, making
        ;; the build more reproducible.
        (if (eq fn localfn)
            ;; From the same file => same mode.

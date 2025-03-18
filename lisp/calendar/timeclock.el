@@ -37,12 +37,12 @@
 ;; You'll probably want to bind the timeclock commands to some handy
 ;; keystrokes.  Assuming C-c t is unbound, you might use:
 ;;
-;;   (define-key (kbd "C-c t i") 'timeclock-in)
-;;   (define-key (kbd "C-c t o") 'timeclock-out)
-;;   (define-key (kbd "C-c t c") 'timeclock-change)
-;;   (define-key (kbd "C-c t r") 'timeclock-reread-log)
-;;   (define-key (kbd "C-c t u") 'timeclock-update-mode-line)
-;;   (define-key (kbd "C-c t w") 'timeclock-when-to-leave-string)
+;;   (keymap-set "C-c t i" 'timeclock-in)
+;;   (keymap-set "C-c t o" 'timeclock-out)
+;;   (keymap-set "C-c t c" 'timeclock-change)
+;;   (keymap-set "C-c t r" 'timeclock-reread-log)
+;;   (keymap-set "C-c t u" 'timeclock-update-mode-line)
+;;   (keymap-set "C-c t w" 'timeclock-when-to-leave-string)
 
 ;; If you want Emacs to display the amount of time "left" to your
 ;; workday in the mode-line, you can either set the value of

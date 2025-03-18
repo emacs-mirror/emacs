@@ -19,7 +19,6 @@
 ;;; Code:
 
 (require 'ert)
-(require 'ert-x)
 (require 'faceup)
 (require 'whitespace)
 
@@ -30,7 +29,7 @@ The buffer is displayed in `selected-window', and
 nil, `whitespace-mode' is left disabled."
   (declare (debug ((style form) def-body))
            (indent 1))
-  `(ert-with-test-buffer-selected ()
+  `(ert-with-test-buffer (:selected t)
      ;; In case global-*-mode is enabled.
      (whitespace-mode -1)
      (font-lock-mode -1)
@@ -63,7 +62,7 @@ buffer's content."
     (unwind-protect
         (progn
           (global-whitespace-mode 1)
-          (ert-with-test-buffer-selected ()
+          (ert-with-test-buffer (:selected t)
             (normal-mode)
             (should whitespace-mode)
             (global-whitespace-mode -1)

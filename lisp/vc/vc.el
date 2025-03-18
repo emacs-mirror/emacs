@@ -999,6 +999,21 @@ the URL-REGEXP of the association."
                 :value-type ,vc-cloneable-backends-custom-type)
   :version "31.1")
 
+(defcustom vc-resolve-conflicts t
+  "Whether to mark conflicted file as resolved upon saving.
+
+If this is non-nil and there are no more conflict markers in the file,
+VC will mark the conflicts in the saved file as resolved.  This is
+only meaningful for VCS that handle conflicts by inserting conflict
+markers in a conflicted file.
+
+When saving a conflicted file, VC first tries to use the value
+of `vc-BACKEND-resolve-conflicts', for handling backend-specific
+settings.  It defaults to this option if that option has the special
+value `default'."
+  :type 'boolean
+  :version "31.1")
+
 
 ;; File property caching
 
@@ -2461,12 +2476,19 @@ Unlike `vc-find-revision-save', doesn't save the buffer to the file."
                 (goto-char (point-min))
                 (if buffer
                     ;; For non-interactive, skip any questions
-                    (let ((enable-local-variables :safe) ;; to find `mode:'
+                    (let ((enable-local-variables
+                           (if (memq enable-local-variables '(:safe :all nil))
+                               enable-local-variables
+                             ;; Ignore other values that query,
+                             ;; use `:safe' to find `mode:'.
+                             :safe))
                           (buffer-file-name file))
                       ;; Don't run hooks that might assume buffer-file-name
                       ;; really associates buffer with a file (bug#39190).
                       (ignore-errors (delay-mode-hooks (set-auto-mode))))
-                  (normal-mode))
+                  ;; Use non-nil 'find-file' arg of 'normal-mode'
+                  ;; to not ignore 'enable-local-variables' when nil.
+                  (normal-mode (not enable-local-variables)))
 	        (set-buffer-modified-p nil)
                 (setq buffer-read-only t)
                 (setq failed nil))
@@ -2817,7 +2839,7 @@ or if PL-RETURN is `limit-unsupported'."
     (let ((entries 0))
       (goto-char (point-min))
       (while (re-search-forward log-view-message-re nil t)
-        (cl-incf entries))
+        (incf entries))
       (if (or (stringp limit)
               (< entries limit))
           ;; The log has been printed in full.  Perhaps it started
@@ -3236,14 +3258,21 @@ to the working revision (except for keyword expansion)."
     ;; show the changes and ask for confirmation to discard them.
     (when (or (not files) (memq (buffer-file-name) files))
       (vc-buffer-sync nil))
-    (dolist (file files)
-      (let ((buf (get-file-buffer file)))
-	(when (and buf (buffer-modified-p buf))
-	  (error "Please kill or save all modified buffers before reverting")))
-      (when (vc-up-to-date-p file)
-	(if (yes-or-no-p (format "%s seems up-to-date.  Revert anyway? " file))
-	    (setq queried t)
-	  (error "Revert canceled"))))
+    (save-some-buffers nil (lambda ()
+                             (member (buffer-file-name) files)))
+    (let (needs-save)
+      (dolist (file files)
+        (let ((buf (get-file-buffer file)))
+	  (when (and buf (buffer-modified-p buf))
+            (push buf needs-save)))
+        (when (vc-up-to-date-p file)
+	  (if (yes-or-no-p (format "%s seems up-to-date.  Revert anyway? "
+                                   file))
+	      (setq queried t)
+	    (error "Revert canceled"))))
+      (when needs-save
+        (error "Cannot revert with these buffers unsaved: %s"
+               (string-join (mapcar #'buffer-name needs-save) ", "))))
     (unwind-protect
 	(when (if vc-revert-show-diff
 		  (progn
@@ -3801,7 +3830,7 @@ marked revisions, use those."
                  "text/x-patch"
                  patch-subject
                  "attachment"
-                 (format "%04d-%s" (cl-incf i) filename))))))
+                 (format "%04d-%s" (incf i) filename))))))
         (open-line 2)))))
 
 (defun vc-default-responsible-p (_backend _file)

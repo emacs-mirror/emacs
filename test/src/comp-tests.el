@@ -329,7 +329,7 @@ Check that the resulting binaries do not differ."
     (should (= (funcall f 3) 4))))
 
 (comp-deftest lambda-return2 ()
-  "Check a nested lambda function gets native compiled."
+  "Check a nested lambda function gets natively compiled."
   (let ((f (comp-tests-lambda-return-f2)))
     (should (native-comp-function-p f))
     (let ((f2 (funcall f)))

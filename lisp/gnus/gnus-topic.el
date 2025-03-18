@@ -135,7 +135,7 @@ should return non-nil if the topic is to be displayed."
 	number)
     (while entries
       (when (numberp (setq number (car (pop entries))))
-	(cl-incf total number)))
+        (incf total number)))
     total))
 
 (defun gnus-group-topic (group)
@@ -520,7 +520,7 @@ articles in the topic and its subtopics."
         0
       ;; Insert any sub-topics.
       (while topicl
-        (cl-incf unread
+        (incf unread
 	         (gnus-topic-prepare-topic
 	          (pop topicl) (1+ level) list-level predicate
 	          (not visiblep) lowest regexp)))
@@ -574,7 +574,7 @@ articles in the topic and its subtopics."
 	         (car entry) (gnus-info-method info)))))
 	  (when (and (listp entry)
 		     (numberp (car entry)))
-	    (cl-incf unread (car entry)))
+            (incf unread (car entry)))
 	  (when (listp entry)
 	    (setq tick t))))
       (goto-char beg)
@@ -752,10 +752,10 @@ articles in the topic and its subtopics."
 		      (cdr gnus-group-list-mode) nil t))
 	entry)
     (while children
-      (cl-incf unread (gnus-topic-unread (caar (pop children)))))
+      (incf unread (gnus-topic-unread (caar (pop children)))))
     (while (setq entry (pop entries))
       (when (numberp (car entry))
-	(cl-incf unread (car entry))))
+        (incf unread (car entry))))
     (gnus-topic-insert-topic-line
      topic t t (car (gnus-topic-find-topology topic)) nil unread all-groups)))
 
@@ -799,10 +799,10 @@ articles in the topic and its subtopics."
       (if reads
 	  (setq unread (- (gnus-group-topic-unread) reads))
 	(while children
-	  (cl-incf unread (gnus-topic-unread (caar (pop children)))))
+          (incf unread (gnus-topic-unread (caar (pop children)))))
 	(while (setq entry (pop entries))
 	  (when (numberp (car entry))
-	    (cl-incf unread (car entry)))))
+            (incf unread (car entry)))))
       (setq old-unread (gnus-group-topic-unread))
       ;; Insert the topic line.
       (gnus-topic-insert-topic-line

@@ -573,7 +573,7 @@ not when you are in the minibuffer).
 function that you add to the hook variable @code{quail-activate-hook}.
 @xref{Hooks}.  For example, you can redefine some of the input
 method's keys by defining key bindings in the keymap returned by the
-function @code{quail-translation-keymap}, using @code{define-key}.
+function @code{quail-translation-keymap}, using @code{keymap-set}.
 @xref{Init Rebinding}.
 
   Input methods are inhibited when the text in the buffer is read-only

@@ -1607,10 +1607,12 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
 ;;;###autoload
 (defun shortdoc-display-group (group &optional function same-window)
   "Pop to a buffer with short documentation summary for functions in GROUP.
+Interactively, prompt for GROUP.
 If FUNCTION is non-nil, place point on the entry for FUNCTION (if any).
 If SAME-WINDOW, don't pop to a new window."
-  (interactive (list (completing-read "Show summary for functions in: "
-                                      (mapcar #'car shortdoc--groups))))
+  (interactive (list (completing-read
+                      "Group of functions for which to show summary: "
+                      (mapcar #'car shortdoc--groups))))
   (when (stringp group)
     (setq group (intern group)))
   (unless (assq group shortdoc--groups)

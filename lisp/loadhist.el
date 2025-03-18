@@ -211,9 +211,13 @@ unloading."
       (kill-local-variable x)))
   (if (and (boundp x) (timerp (symbol-value x)))
       (cancel-timer (symbol-value x)))
-  ;; Get rid of the default binding if we can.
-  (unless (local-variable-if-set-p x)
-    (makunbound x)))
+  (cond
+   ;; "Unbind" indirect variable.
+   ((not (eq (indirect-variable x) x))
+    (internal-delete-indirect-variable x))
+   ;; Get rid of the default binding if we can.
+   ((not (local-variable-if-set-p x))
+    (makunbound x))))
 
 (cl-defmethod loadhist-unload-element ((x (head define-type)))
   (let* ((name (cdr x)))

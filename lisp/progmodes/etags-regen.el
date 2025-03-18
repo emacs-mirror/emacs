@@ -381,7 +381,7 @@ File extensions to generate the tags for."
     ;; Like 10ms vs 20ms here.  But `shell-command' makes it easy to
     ;; direct stderr to a separate buffer.
     (shell-command
-     (format "%s %s %s -o -"
+     (format "%s %s -o - %s"
              etags-regen-program (mapconcat #'identity options " ")
              (mapconcat #'identity file-names " "))
      t etags-regen--errors-buffer-name))
@@ -409,7 +409,7 @@ File extensions to generate the tags for."
   (remove-hook 'after-save-hook #'etags-regen--update-file)
   (remove-hook 'before-save-hook #'etags-regen--mark-as-new))
 
-(defvar etags-regen-mode-map (make-sparse-keymap))
+(defvar-keymap etags-regen-mode-map)
 
 ;;;###autoload
 (define-minor-mode etags-regen-mode

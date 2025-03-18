@@ -36,6 +36,8 @@
 ;; For bootstrap reasons, we cannot use any macros here since they're
 ;; not defined yet.
 
+(defvar debugger--last-error nil)
+
 (defalias 'debug-early-backtrace
   #'(lambda (&optional base)
       "Print a trace of Lisp function calls currently active.
@@ -76,15 +78,20 @@ of the build process."
 	                      (setq args (cdr args)))
 	               (princ " ")))
 	         (princ ")\n"))))
-	 base))))
+	 base))
+      (message "debug-early-backtrace...done")))
 
 (defalias 'debug--early
   #'(lambda (error base)
-  (princ "\nError: ")
-  (prin1 (car error))	; The error symbol.
-  (princ " ")
-  (prin1 (cdr error))	; The error data.
-  (debug-early-backtrace base)))
+      (if (eq error debugger--last-error) nil
+        (setq debugger--last-error nil)
+        (princ "\nError: ")
+        (prin1 (car error))             ; The error symbol.
+        (princ " ")
+        (prin1 (cdr error))             ; The error data.
+        (prog1 ;; Purposefully not `unwind-protect'!
+            (debug-early-backtrace base)
+          (setq debugger--last-error error)))))
 
 (defalias 'debug-early                  ;Called from C.
   #'(lambda (&rest args)

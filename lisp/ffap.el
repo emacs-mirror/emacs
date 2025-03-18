@@ -179,12 +179,13 @@ Note this name may be omitted if it equals the default
   :group 'ffap)
 
 (defvar ffap-url-regexp
-  (concat
-   "\\("
-   "news\\(post\\)?:\\|mailto:\\|file:" ; no host ok
-   "\\|"
-   "\\(ftp\\|https?\\|telnet\\|gopher\\|gemini\\|www\\|wais\\)://" ; needs host
-   "\\)")
+  (eval-when-compile
+    (concat
+     "\\("
+     "news\\(post\\)?:\\|mailto:\\|file:" ; no host ok
+     "\\|"
+     "\\(ftp\\|https?\\|telnet\\|gopher\\|gemini\\|www\\|wais\\)://" ;Needs host
+     "\\)"))
   "Regexp matching the beginning of a URI, for ffap.
 If the value is nil, disable URL-matching features in ffap.")
 
@@ -831,13 +832,79 @@ to extract substrings.")
   (and (not (string-match "\\.el\\'" name))
        (ffap-locate-file name '(".el") load-path)))
 
-(defvar ffap-c-path (internal--c-header-file-path)
+(defun ffap--gcc-is-clang-p ()
+  "Return non-nil if the `gcc' command actually runs the Clang compiler."
+  ;; Recent macOS machines run llvm when you type gcc by default.  (!)
+  ;; We can't even check if it's a symlink; it's a binary placed in
+  ;; "/usr/bin/gcc".  So we need to check the output.
+  (when-let* ((out (ignore-errors
+                     (with-temp-buffer
+                       (call-process "gcc" nil t nil "--version")
+                       (buffer-string)))))
+   (string-match "Apple \\(LLVM\\|[Cc]lang\\)\\|Xcode\\.app" out)))
+
+(defun ffap--c-path ()
+  "Return search path for C header files (a list of strings)."
+  ;; FIXME: It's not clear that this is a good place to put this, or
+  ;; even that this should necessarily be internal.
+  ;; See also (Bug#10702):
+  ;; cc-search-directories, semantic-c-dependency-system-include-path,
+  ;; semantic-gcc-setup
+  (delete-dups
+   ;; We treat MS-Windows/MS-DOS specially, since there's no
+   ;; widely-accepted canonical directory for C include files.
+   (let ((base (if (not (memq system-type '(windows-nt ms-dos)))
+                   '("/usr/include" "/usr/local/include")))
+         (call-clang-p (or (ffap--gcc-is-clang-p)
+                           (and (executable-find "clang")
+                                (not (executable-find "gcc"))))))
+     (cond ((or call-clang-p
+                (memq system-type '(windows-nt ms-dos)))
+            ;; This is either macOS, or MS-Windows/MS-DOS, or a system
+            ;; with clang only.
+            (with-temp-buffer
+              (ignore-errors
+                (call-process (if call-clang-p "clang" "gcc")
+                              nil t nil
+                              "-v" "-E" "-"))
+              (goto-char (point-min))
+              (narrow-to-region
+               (save-excursion
+                 (re-search-forward
+                  "^#include <\\.\\.\\.> search starts here:\n" nil t)
+                 (point))
+               (save-excursion
+                 (re-search-forward "^End of search list.$" nil t)
+                 (pos-bol)))
+              (while (search-forward "(framework directory)" nil t)
+                (delete-line))
+              ;; "gcc -v" reports file names with many "..", so we
+              ;; normalize it.
+              (or (mapcar #'expand-file-name
+                          (append base
+                                  (split-string (buffer-substring-no-properties
+                                                 (point-min) (point-max)))))
+                  ;; Fallback for whedn the compiler is not available.
+                  (list (expand-file-name "/usr/include")
+                        (expand-file-name "/usr/local/include")))))
+           ;; Prefer GCC.
+           ((let ((arch (with-temp-buffer
+                          (when (eq 0 (ignore-errors
+                                        (call-process "gcc" nil '(t nil) nil
+                                                      "-print-multiarch")))
+                            (goto-char (point-min))
+                            (buffer-substring (point) (line-end-position))))))
+              (if (zerop (length arch))
+                  base
+                (append base (list (expand-file-name arch "/usr/include"))))))))))
+
+(defvar ffap-c-path (ffap--c-path)      ;FIXME: Delay initialization?
   "List of directories to search for include files.")
 
 (defun ffap-c-mode (name)
   (ffap-locate-file name t ffap-c-path))
 
-(defvar ffap-c++-path
+(defvar ffap-c++-path      ;FIXME: Delay initialization?
   (let ((c++-include-dir (with-temp-buffer
                            (when (eq 0 (ignore-errors
                                          (call-process "g++" nil t nil "-v")))

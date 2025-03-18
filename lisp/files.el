@@ -888,6 +888,7 @@ DEFAULT-DIRNAME specifies the default directory name to return if user
 exits with the same non-empty string that was inserted by this function.
  (If DEFAULT-DIRNAME is omitted, DIR combined with INITIAL is used,
   or just DIR if INITIAL is nil.)
+Return the directory as a string.
 
 If the user exits with an empty minibuffer, return an empty
 string.  (This can happen only if the user erased the pre-inserted
@@ -1242,12 +1243,24 @@ inaccessible location."
 If NEW-NAME exists in `user-emacs-directory', return it.
 Else if OLD-NAME is non-nil and ~/OLD-NAME exists, return ~/OLD-NAME.
 Else return NEW-NAME in `user-emacs-directory', creating the
-directory if it does not exist."
+directory if it does not exist.
+
+NEW-NAME can also be a list, in which case consider all names in that
+list, from last to first, and use the first name that exists.  If none
+of them exists, use the `car' of that list."
   (convert-standard-filename
    (let* ((home (concat "~" (or init-file-user "")))
 	  (at-home (and old-name (expand-file-name old-name home)))
           (bestname (abbreviate-file-name
-                     (expand-file-name new-name user-emacs-directory))))
+                     (if (listp new-name)
+                         (or (car (seq-filter
+                                   #'file-exists-p
+                                   (mapcar
+                                    (lambda (f)
+                                      (expand-file-name f user-emacs-directory))
+                                    (reverse new-name))))
+                             (expand-file-name (car new-name) user-emacs-directory))
+                       (expand-file-name new-name user-emacs-directory)))))
      (if (and at-home (not (file-readable-p bestname))
               (file-readable-p at-home))
 	 at-home
@@ -1297,9 +1310,9 @@ the value of the variable `exec-path'."
 
 (defun executable-find (command &optional remote)
   "Search for COMMAND in `exec-path' and return the absolute file name.
-Return nil if COMMAND is not found anywhere in `exec-path'.  If
-REMOTE is non-nil, search on the remote host indicated by
-`default-directory' instead."
+Return nil if COMMAND is not found anywhere in `exec-path'.
+If REMOTE is non-nil, search on a remote host if `default-directory' is
+remote, otherwise search locally."
   (if (and remote (file-remote-p default-directory))
       (let ((res (locate-file
 	          command
@@ -4192,10 +4205,12 @@ DIR-NAME is the name of the associated directory.  Otherwise it is nil."
 
 (defun hack-local-variables (&optional handle-mode inhibit-locals)
   "Parse and put into effect this buffer's local variables spec.
-For buffers visiting files, also puts into effect directory-local
-variables.
+Also puts into effect directory-local variables.
+For buffers not visiting files, apply the directory-local variables that
+would be applicable to files in `default-directory'.
 
-Uses `hack-local-variables-apply' to apply the variables.
+Uses `hack-local-variables-apply' and `hack-dir-local-variables'
+to apply the variables.
 
 If `enable-local-variables' or `local-enable-local-variables' is
 nil, or INHIBIT-LOCALS is non-nil, this function disregards all

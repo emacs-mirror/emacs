@@ -287,7 +287,7 @@ folder containing the index search results."
                                           "-sequence"
                                           "cur" (format "%s" cur)))
                      (cl-loop for msg in msgs
-                              do (cl-incf result-count)
+                              do (incf result-count)
                               (setf (gethash result-count origin-map)
                                     (cons folder msg)))))
                  folder-results-map)

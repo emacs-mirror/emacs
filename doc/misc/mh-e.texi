@@ -2646,7 +2646,7 @@ browser when clicked with @kbd{S-mouse-2}. This binding works in any
 buffer, including HTML buffers.
 
 @smalllisp
-(global-set-key [S-mouse-2] 'browse-url-at-mouse)
+(keymap-global-set "S-<mouse-2>" 'browse-url-at-mouse)
 @end smalllisp
 
 @node Digests
@@ -3112,7 +3112,7 @@ electric-buffer-list} to see what I mean.
 
 Before we leave this section, I'll include a function that I use as a
 front end to MH-E@footnote{Stephen Gildea's favorite binding is
-@kbd{(global-set-key "\C-cr" 'mh-rmail)}.}. It toggles between your
+@kbd{(keymap-global-set "C-c r" 'mh-rmail)}.}. It toggles between your
 working window configuration, which may be quite involved---windows
 filled with source, compilation output, man pages, and other
 documentation---and your MH-E window configuration. Like the rest of
@@ -3153,7 +3153,7 @@ when going into mail."
           (set-window-configuration my-normal-screen)
           nil))))                   ; @r{set my-mh-screen-saved to nil}
 
-(global-set-key "\C-x\r" 'my-mh-rmail)  ;@r{ call with C-x @key{RET}}
+(keymap-global-set "C-x RET" 'my-mh-rmail)  ;@r{ call with C-x @key{RET}}
 
 @i{Starting MH-E}
 
@@ -3447,11 +3447,10 @@ bindings, for example:
 
 (defun my-mh-folder-mode-hook ()
   "Hook to set key bindings in MH-Folder mode."
-  (if (not my-mh-init-done)             ; @r{only need to bind the keys once }
-      (progn
-        (local-set-key "//" 'my-search-msg)
-        (local-set-key "b" 'mh-burst-digest)    ; @r{better use of @kbd{b}}
-        (setq my-mh-init-done t))))
+  (unless my-mh-init-done             ; @r{only need to bind the keys once }
+    (keymap-local-set "/ /" 'my-search-msg)
+    (keymap-local-set "b" 'mh-burst-digest)    ; @r{better use of @kbd{b}}
+    (setq my-mh-init-done t)))
 
 (add-hook 'mh-folder-mode-hook 'my-mh-folder-mode-hook)
 
@@ -3983,8 +3982,8 @@ you would rather preserve the window layout. You may find adding the
 following key bindings to @file{~/.emacs} useful:
 
 @smalllisp
-(global-set-key "\C-xm" 'mh-smail)
-(global-set-key "\C-x4m" 'mh-smail-other-window)
+(keymap-global-set "C-x m" 'mh-smail)
+(keymap-global-set "C-x 4 m" 'mh-smail-other-window)
 @end smalllisp
 
 @cindex draft folder
@@ -4054,13 +4053,13 @@ this hook.
 (defun my-mh-letter-mode-hook ()
   "Prepare letter for editing."
   (when (not letter-mode-init-done)     ; @r{only need to bind the keys once}
-    (local-set-key "\C-ctb" 'add-enriched-text)
-    (local-set-key "\C-cti" 'add-enriched-text)
-    (local-set-key "\C-ctf" 'add-enriched-text)
-    (local-set-key "\C-cts" 'add-enriched-text)
-    (local-set-key "\C-ctB" 'add-enriched-text)
-    (local-set-key "\C-ctu" 'add-enriched-text)
-    (local-set-key "\C-ctc" 'add-enriched-text)
+    (keymap-local-set "C-c t b" 'add-enriched-text)
+    (keymap-local-set "C-c t i" 'add-enriched-text)
+    (keymap-local-set "C-c t f" 'add-enriched-text)
+    (keymap-local-set "C-c t s" 'add-enriched-text)
+    (keymap-local-set "C-c t B" 'add-enriched-text)
+    (keymap-local-set "C-c t u" 'add-enriched-text)
+    (keymap-local-set "C-c t c" 'add-enriched-text)
     (setq letter-mode-init-done t))
   (save-excursion
     (goto-char (point-max))             ; @r{go to end of message to}

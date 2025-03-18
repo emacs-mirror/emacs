@@ -183,6 +183,16 @@ If `ask', you will be prompted for a branch type."
                  (const :tag "Ask" ask))
   :version "28.1")
 
+(defcustom vc-hg-resolve-conflicts 'default
+  "Whether to mark conflicted file as resolved upon saving.
+If this is t and there are no more conflict markers in the file,
+VC will mark the conflicts in the saved file as resolved.
+A value of `default' means to use the value of `vc-resolve-conflicts'."
+  :type '(choice (const :tag "Don't resolve" nil)
+                 (const :tag "Resolve" t)
+                 (const :tag "Use vc-resolve-conflicts" default))
+  :version "31.1")
+
 
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
@@ -811,14 +821,14 @@ if we don't understand a construct, we signal
     (cl-macrolet ((peek () '(and (< i n) (aref glob i))))
       (while (< i n)
         (setf c (aref glob i))
-        (cl-incf i)
+        (incf i)
         (cond ((not (memq c '(?* ?? ?\[ ?\{ ?\} ?, ?\\)))
                (push (vc-hg--escape-for-pcre c) parts))
               ((eq c ?*)
                (cond ((eq (peek) ?*)
-                      (cl-incf i)
+                      (incf i)
                       (cond ((eq (peek) ?/)
-                             (cl-incf i)
+                             (incf i)
                              (push "(?:.*/)?" parts))
                             (t
                              (push ".*" parts))))
@@ -828,9 +838,9 @@ if we don't understand a construct, we signal
               ((eq c ?\[)
                (let ((j i))
                  (when (and (< j n) (memq (aref glob j) '(?! ?\])))
-                   (cl-incf j))
+                   (incf j))
                  (while (and (< j n) (not (eq (aref glob j) ?\])))
-                   (cl-incf j))
+                   (incf j))
                  (cond ((>= j n)
                         (push "\\[" parts))
                        (t
@@ -846,7 +856,7 @@ if we don't understand a construct, we signal
                           (push x parts)
                           (push ?\] parts))))))
               ((eq c ?\{)
-               (cl-incf group)
+               (incf group)
                (push "(?:" parts))
               ((eq c ?\})
                (push ?\) parts)
@@ -856,7 +866,7 @@ if we don't understand a construct, we signal
               ((eq c ?\\)
                (if (eq i n)
                    (push "\\\\" parts)
-                 (cl-incf i)
+                 (incf i)
                  (push ?\\ parts)
                  (push c parts)))
               (t
@@ -1263,7 +1273,10 @@ REV is the revision to check out into WORKFILE."
     ;; Hg may not recognize "conflict" as a state, but we can do better.
     (vc-file-setprop buffer-file-name 'vc-state 'conflict)
     (smerge-start-session)
-    (add-hook 'after-save-hook #'vc-hg-resolve-when-done nil t)
+    (when (or (eq vc-hg-resolve-conflicts t)
+              (and (eq vc-hg-resolve-conflicts 'default)
+                   vc-resolve-conflicts))
+      (add-hook 'after-save-hook #'vc-hg-resolve-when-done nil t))
     (vc-message-unresolved-conflicts buffer-file-name)))
 
 (defun vc-hg-clone (remote directory rev)

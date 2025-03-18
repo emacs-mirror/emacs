@@ -531,18 +531,13 @@ time is used.  The time zone is determined by `time-stamp-time-zone'."
 Optional second argument TIME is only for testing.
 This is an internal routine implementing extensions to `format-time-string'
 and all `time-stamp-format' compatibility."
-  (let ((fmt-len (length format))
-	(ind 0)
-	cur-char
-	(result ""))
-    (while (< ind fmt-len)
-      (setq cur-char (aref format ind))
-      (setq
-       result
-       (concat
-        result
-        (cond
-         ((eq cur-char ?%)
+  (let*
+      ((fmt-len (length format))
+       (ind 0)
+       cur-char
+       (result nil)
+       (handle-one-conversion
+        (lambda ()
 	  (let ((prev-char nil)
 		(field-width "")
 		field-result
@@ -780,11 +775,17 @@ and all `time-stamp-format' compatibility."
 	    (format (format "%%%s%c"
 			    field-width
 			    (if (numberp field-result) ?d ?s))
-		    (or field-result ""))))
-         (t
-	  (char-to-string cur-char)))))
+                    (or field-result "")))))) ;end of handle-one-conversion
+    ;; iterate over the format string
+    (while (< ind fmt-len)
+      (setq cur-char (aref format ind))
+      (push (cond ((eq cur-char ?%)
+                   (funcall handle-one-conversion))
+                  (t
+                   (char-to-string cur-char)))
+            result)
       (setq ind (1+ ind)))
-    result))
+    (apply #'concat (nreverse result))))
 
 (defun time-stamp-do-letter-case (change-is-downcase
                                   upcase title-case change-case text)

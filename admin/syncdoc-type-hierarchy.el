@@ -107,7 +107,7 @@
                                 (insert "|\n||")
                                 (setq x 0))
                            do (insert (symbol-name child) " ")
-                           do (cl-incf x (1+ child-len)) )
+                           do (incf x (1+ child-len)) )
                do (insert "\n")))
     (require 'org-table)
     (declare-function org-table-align "org")

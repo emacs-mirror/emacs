@@ -904,7 +904,7 @@ lexically and dynamically bound symbols actually used by FORM."
 
 (defun cconv-make-interpreted-closure (args body env docstring iform)
   "Make a closure for the interpreter.
-This is intended to be called at runtime by the ELisp interpreter (when
+This is intended to be called at runtime by the Lisp interpreter (when
 the code has not been compiled).
 FUN is the closure's source code, must be a lambda form.
 ENV is the runtime representation of the lexical environment,
@@ -950,7 +950,7 @@ for the lexical bindings."
              (newenv (nconc (mapcar (lambda (fv) (assq fv env)) (car fvs))
                             (cdr fvs))))
         ;; Never return a nil env, since nil means to use the dynbind
-        ;; dialect of ELisp.
+        ;; dialect of Elisp.
         (make-interpreted-closure args expanded-fun-body (or newenv '(t))
                                   docstring iform)))))
 

@@ -88,9 +88,8 @@ See `cua--rectangle'.")
   "List of overlays used to display current rectangle.")
 (put 'cua--rectangle-overlays 'permanent-local t)
 
-(defvar cua--overlay-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\r" #'cua-rotate-rectangle)))
+(defvar-keymap cua--overlay-keymap
+  "RET" #'cua-rotate-rectangle)
 
 (defvar cua--virtual-edges-debug nil)
 

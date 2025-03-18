@@ -89,9 +89,8 @@
 ;; structure.
 
 ;; Or (3): Put this in your init file:
-;; (add-hook 'dired-mode-hook
-;;          (lambda ()
-;;            (define-key dired-mode-map "W" 'woman-dired-find-file)))
+;; (with-eval-after-load 'dired
+;;   (keymap-set dired-mode-map "W" 'woman-dired-find-file))
 ;; and open the directory containing the man page file using Dired,
 ;; put the cursor on the file, and press `W'.
 
@@ -124,12 +123,11 @@
 ;; The variable `woman-use-topic-at-point' can be rebound locally,
 ;; which may be useful to provide special private key bindings, e.g.
 
-;;  (global-set-key "\C-cw"
-;;  		  (lambda ()
-;;  		    (interactive)
-;;  		    (let ((woman-use-topic-at-point t))
-;;  		      (woman)))))
-
+;; (keymap-global-set "C-c w"
+;;                    (lambda ()
+;;                      (interactive)
+;;                      (let ((woman-use-topic-at-point t))
+;;                        (woman)))))
 
 ;; Customization, Hooks and Imenu
 ;; ==============================
@@ -1861,7 +1859,7 @@ Argument EVENT is the invoking mouse event."
 
 (define-derived-mode woman-mode man-common "WoMan"
   "Turn on (most of) Man mode to browse a buffer formatted by WoMan.
-WoMan is an ELisp emulation of much of the functionality of the Emacs
+WoMan is an Elisp emulation of much of the functionality of the Emacs
 `man' command running the standard UN*X man and ?roff programs.
 WoMan author: F.J.Wright@Maths.QMW.ac.uk
 See `Man-mode' for additional details.
@@ -3508,7 +3506,7 @@ The expression may be an argument in quotes."
 	    ((memq (setq op (following-char)) '(?& ?:)) ; Boolean and / or
 	     (forward-char)
 	     (setq value
-		   ;; and / or are special forms, not functions, in ELisp
+		   ;; and / or are special forms, not functions, in Elisp
 		   (if (eq op ?&)
 		       ;; and
 		       (if (> value 0)

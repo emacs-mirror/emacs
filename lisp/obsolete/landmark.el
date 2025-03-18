@@ -206,7 +206,6 @@
     (define-key map [remap beginning-of-line] #'landmark-beginning-of-line)
     (define-key map [remap end-of-line] #'landmark-end-of-line)
     (define-key map [remap undo] #'landmark-human-takes-back)
-    (define-key map [remap advertised-undo] #'landmark-human-takes-back)
     map)
   "Local keymap to use in Landmark mode.")
 

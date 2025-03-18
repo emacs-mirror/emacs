@@ -436,9 +436,9 @@ function f(a, b)| end
 Name: forward-sexp moves over strings
 
 =-=
-print("|1, 2, 3")
+print(|"1, 2, 3")
 =-=
-print("1, 2, 3|")
+print("1, 2, 3"|)
 =-=-=
 
 Name: forward-sexp moves over tables
@@ -557,9 +557,9 @@ function f|(a, b) end
 Name: backward-sexp moves over strings
 
 =-=
-print("1, 2, 3|")
+print("1, 2, 3"|)
 =-=
-print("|1, 2, 3")
+print(|"1, 2, 3")
 =-=-=
 
 Name: backward-sexp moves over tables
@@ -599,5 +599,55 @@ end|
     elseif true then
         print "bar"
     end
+end
+=-=-=
+
+Name: backward-sexp moves over do statements
+
+=-=
+do
+  print(a + 1)
+end|
+=-=
+|do
+  print(a + 1)
+end
+=-=-=
+
+Name: backward-sexp moves over for statements
+
+=-=
+for k,v in pairs({}) do
+  print(k, v)
+end|
+=-=
+|for k,v in pairs({}) do
+  print(k, v)
+end
+=-=-=
+
+Name: backward-sexp moves over repeat statements
+
+=-=
+repeat
+  n = n + 1
+until n > 10|
+=-=
+|repeat
+  n = n + 1
+until n > 10
+=-=-=
+
+Name: backward-sexp moves over while statements
+
+=-=
+while n < 99
+do
+  n = n+1
+end|
+=-=
+|while n < 99
+do
+  n = n+1
 end
 =-=-=

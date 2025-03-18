@@ -1,7 +1,6 @@
 ;;; follow.el --- synchronize windows showing the same buffer  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-1997, 1999, 2001-2025 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren
 ;; Maintainer: emacs-devel@gnu.org
@@ -75,7 +74,7 @@
 ;;   immediately below the end of the left-hand window.  As long as
 ;;   `follow-mode' is active, the two windows will follow each other!
 ;;
-;; * Play around and enjoy! Scroll one window and watch the other.
+;; * Play around and enjoy!  Scroll one window and watch the other.
 ;;   Jump to the beginning or end.  Press `Cursor down' at the last
 ;;   line of the left-hand window.  Enter new lines into the
 ;;   text.  Enter long lines spanning several lines, or several
@@ -90,11 +89,11 @@
 ;; visible area of the current buffer.
 ;;
 ;; I recommend adding it, and `follow-mode', to hotkeys in the global
-;; key map.  To do so, add the following lines (replacing `[f7]' and
-;; `[f8]' with your favorite keys) to the init file:
+;; key map.  To do so, add the following lines (replacing "<f7>" and
+;; "<f8>" with your favorite keys) to your init file:
 ;;
-;; (global-set-key [f8] #'follow-mode)
-;; (global-set-key [f7] #'follow-delete-other-windows-and-split)
+;; (keymap-global-set "<f8>" #'follow-mode)
+;; (keymap-global-set "<f7>" #'follow-delete-other-windows-and-split)
 
 
 ;; There exist two system variables that control the appearance of
@@ -104,8 +103,8 @@
 ;; To make sure lines are never truncated, place the following lines
 ;; in your Init file:
 ;;
-;; (setq truncate-lines nil)
-;; (setq truncate-partial-width-windows nil)
+;; (setopt truncate-lines nil)
+;; (setopt truncate-partial-width-windows nil)
 
 
 ;; One way to configure Follow mode is to create one or more functions
@@ -116,11 +115,9 @@
 ;; `follow-mode'.
 ;;
 ;; Example:
-;; (add-hook 'follow-mode-hook 'my-follow-mode-hook)
-;;
-;; (defun my-follow-mode-hook ()
-;;    (define-key follow-mode-map "\C-ca" #'your-favorite-function)
-;;    (define-key follow-mode-map "\C-cb" #'another-function))
+;; (with-eval-after-load 'follow
+;;   (keymap-set follow-mode-map "C-c a" #'your-favorite-function)
+;;   (keymap-set follow-mode-map "C-c b" #'another-function))
 
 
 ;; Usage:
@@ -181,7 +178,7 @@
 ;;    be reactivated by hitting the same key again.
 ;;
 ;;    Example from my ~/.emacs:
-;;	(global-set-key [f8] #'follow-mode)
+;;	(keymap-global-set "<f8>" #'follow-mode)
 
 ;; Implementation:
 ;;
@@ -230,39 +227,52 @@ The value of this variable is checked as part of loading Follow mode.
 After that, changing the prefix key requires manipulating keymaps."
   :type 'string
   :group 'follow)
+(make-obsolete-variable 'follow-mode-prefix 'follow-mode-prefix-key "31.1")
 
-(defvar follow-mode-map
-  (let ((mainmap (make-sparse-keymap))
-        (map (make-sparse-keymap)))
-    (define-key map "\C-v"	#'follow-scroll-up)
-    (define-key map "\M-v"	#'follow-scroll-down)
-    (define-key map "v"		#'follow-scroll-down)
-    (define-key map "1"		#'follow-delete-other-windows-and-split)
-    (define-key map "b"		#'follow-switch-to-buffer)
-    (define-key map "\C-b"	#'follow-switch-to-buffer-all)
-    (define-key map "\C-l"	#'follow-recenter)
-    (define-key map "<"		#'follow-first-window)
-    (define-key map ">"		#'follow-last-window)
-    (define-key map "n"		#'follow-next-window)
-    (define-key map "p"		#'follow-previous-window)
+(defcustom follow-mode-prefix-key (key-description follow-mode-prefix)
+  "Prefix key to use for follow commands in Follow mode."
+  :type 'key
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+         (defvar follow-mode-map) (defvar follow-mode-submap)
+         (keymap-unset follow-mode-map (symbol-value symbol))
+         (keymap-set follow-mode-map value follow-mode-submap)
+         (set-default symbol value))
+  :group 'follow
+  :version "31.1")
 
-    (define-key mainmap follow-mode-prefix map)
+(defun follow--prefix-key (key)
+  (concat follow-mode-prefix-key " " key))
 
-    ;; Replace the standard `end-of-buffer', when in Follow mode.  (I
-    ;; don't see the point in trying to replace every function that
-    ;; could be enhanced in Follow mode.  End-of-buffer is a special
-    ;; case since it is very simple to define and it greatly enhances
-    ;; the look and feel of Follow mode.)
-    (define-key mainmap [remap end-of-buffer] #'follow-end-of-buffer)
+(defvar-keymap follow-mode-submap
+  "C-v" #'follow-scroll-up
+  "M-v" #'follow-scroll-down
+  "v"   #'follow-scroll-down
+  "1"   #'follow-delete-other-windows-and-split
+  "b"   #'follow-switch-to-buffer
+  "C-b" #'follow-switch-to-buffer-all
+  "C-l" #'follow-recenter
+  "<"   #'follow-first-window
+  ">"   #'follow-last-window
+  "n"   #'follow-next-window
+  "p"   #'follow-previous-window)
 
-    (define-key mainmap [remap scroll-bar-toolkit-scroll] #'follow-scroll-bar-toolkit-scroll)
-    (define-key mainmap [remap scroll-bar-drag] #'follow-scroll-bar-drag)
-    (define-key mainmap [remap scroll-bar-scroll-up] #'follow-scroll-bar-scroll-up)
-    (define-key mainmap [remap scroll-bar-scroll-down] #'follow-scroll-bar-scroll-down)
-    (define-key mainmap [remap mwheel-scroll] #'follow-mwheel-scroll)
+(defvar-keymap follow-mode-map
+  :doc "Minor mode keymap for Follow mode."
+  follow-mode-prefix-key follow-mode-submap
 
-    mainmap)
-  "Minor mode keymap for Follow mode.")
+  ;; Replace the standard `end-of-buffer' when in Follow mode.  (I don't
+  ;; see the point in trying to replace every function that could be
+  ;; enhanced in Follow mode.  End-of-buffer is a special case since it
+  ;; is very simple to define and it greatly enhances the look and feel
+  ;; of Follow mode.)
+  "<remap> <end-of-buffer>"             #'follow-end-of-buffer
+
+  "<remap> <scroll-bar-toolkit-scroll>" #'follow-scroll-bar-toolkit-scroll
+  "<remap> <scroll-bar-drag>"           #'follow-scroll-bar-drag
+  "<remap> <scroll-bar-scroll-up>"      #'follow-scroll-bar-scroll-up
+  "<remap> <scroll-bar-scroll-down>"    #'follow-scroll-bar-scroll-down
+  "<remap> <mwheel-scroll>"             #'follow-mwheel-scroll)
 
 ;; When the mode is not activated, only one item is visible to activate
 ;; the mode.
@@ -1085,13 +1095,9 @@ Return the selected window."
       (setq win-start-end (cdr win-start-end)))
     win))
 
-;; Lets select a window showing the end. Make sure we only select it if
+;; Lets select a window showing the end.  Make sure we only select it if
 ;; it wasn't just moved here.  (I.e. M-> shall not unconditionally place
 ;; point in the selected window.)
-;;
-;; (Compatibility kludge: in Emacs `window-end' is equal to `point-max';
-;; in XEmacs, it is equal to `point-max + 1'.  Should I really bother
-;; checking `window-end' now when I check `end-of-buffer' explicitly?)
 
 (defun follow-select-if-end-visible (win-start-end)
   "Select and return a window, if end is visible in it."
@@ -1102,10 +1108,7 @@ Return the selected window."
       ;; command.
       (if (and (eq (point-max) (nth 2 (car win-start-end)))
 	       (nth 3 (car win-start-end))
-	       ;; `window-end' might return nil.
-	       (let ((end (window-end (car (car win-start-end)))))
-		 (and end
-		      (eq (point-max) (min (point-max) end)))))
+               (eq (point-max) (window-end (caar win-start-end))))
 	  (progn
 	    (setq win (car (car win-start-end)))
 	    (select-window win)))

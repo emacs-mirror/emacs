@@ -60,7 +60,7 @@
 ;;; Code:
 
 (require 'dired)
-(require 'cl-lib)			; for cl-gensym
+(require 'cl-lib)
 
 ;; CUSTOMIZATIONS
 
@@ -176,7 +176,7 @@ this value can let another user see some of your images."
   (format "%s%s-%s.jpg"
           (thumbs-temp-dir)
           thumbs-temp-prefix
-          (cl-gensym "T")))
+          (gensym "T")))
 
 (defun thumbs-thumbsdir ()
   "Return the current thumbnails directory (from `thumbs-thumbsdir').

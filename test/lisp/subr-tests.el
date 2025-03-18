@@ -30,6 +30,29 @@
 (require 'ert-x)
 (eval-when-compile (require 'cl-lib))
 
+(defvar-local subr-tests--local-var1)
+(defvar-local subr-tests--local-var2 'hello)
+(defvar-local subr-tests--local-var3 nil "Doc.")
+(ert-deftest subr-test-defvar-local ()
+  (should (local-variable-if-set-p 'subr-tests--local-var1))
+  (should (local-variable-if-set-p 'subr-tests--local-var2))
+  (should (eq subr-tests--local-var2 'hello))
+  (should (local-variable-if-set-p 'subr-tests--local-var3))
+  (should (get 'subr-tests--local-var3 'variable-documentation)))
+
+(ert-deftest subr-test-apply-partially ()
+  (should (functionp (apply-partially #'identity)))
+  (should (functionp (apply-partially #'list 1 2 3)))
+  (should (equal (mapcar (apply-partially #'identity) '(9 cups of sugar))
+                 '(9 cups of sugar)))
+  (should (equal (mapcar (apply-partially #'eq 3) '(3 spoons of butter))
+                 '(t nil nil nil)))
+  (should (equal (funcall (apply-partially #'list 1 2 3) 4)
+                 '(1 2 3 4)))
+  (let* ((a 1) (b 2) (c 3)
+         (fun (apply-partially #'list a b c)))
+    (should (equal (funcall fun 4) '(1 2 3 4)))))
+
 (ert-deftest subr-test-zerop ()
   (should (zerop 0))
   (should (zerop 0.0))
@@ -39,8 +62,8 @@
   (should-not (zerop 0.0e+NaN))
   (should-not (zerop float-pi))
   (should-not (zerop 1.0e+INF))
-  (should-not (zerop (random most-positive-fixnum)))
-  (should-not (zerop (- (random (- most-negative-fixnum)))))
+  (should-not (zerop (1+ (random most-positive-fixnum))))
+  (should-not (zerop (- (1- (random (- most-negative-fixnum))))))
   (should-not (zerop (1+ most-positive-fixnum)))
   (should-not (zerop (1- most-negative-fixnum)))
   (should-error (zerop "-5") :type 'wrong-type-argument))
@@ -1449,66 +1472,6 @@ final or penultimate step during initialization."))
                  (out (subst-char-in-string from to in))
                  (props-out (object-intervals out)))
             (should (equal props-out props-in))))))))
-
-(ert-deftest subr-tests-internal--c-header-file-path ()
-  (should (seq-every-p #'stringp (internal--c-header-file-path)))
-  (should (member "/usr/include" (internal--c-header-file-path)))
-  (should (equal (internal--c-header-file-path)
-                 (delete-dups (internal--c-header-file-path))))
-  ;; Return a meaningful result even if calling some compiler fails.
-  (cl-letf (((symbol-function 'call-process)
-             (lambda (_program &optional _infile _destination _display &rest _args) 1)))
-    (should (seq-every-p #'stringp (internal--c-header-file-path)))
-    (should (member "/usr/include" (internal--c-header-file-path)))
-    (should (equal (internal--c-header-file-path)
-                   (delete-dups (internal--c-header-file-path))))))
-
-(ert-deftest subr-tests-internal--c-header-file-path/gcc-mocked ()
-  ;; Handle empty values of "gcc -print-multiarch".
-  (cl-letf (((symbol-function 'call-process)
-             (lambda (_program &optional _infile _destination _display &rest args)
-               (when (equal (car args) "-print-multiarch")
-                 (insert "\n") 0))))
-    (should (member "/usr/include" (internal--c-header-file-path))))
-  ;; Handle single values of "gcc -print-multiarch".
-  (cl-letf (((symbol-function 'call-process)
-             (lambda (_program &optional _infile _destination _display &rest args)
-               (when (equal (car args) "-print-multiarch")
-                 (insert "x86_64-linux-gnu\n") 0))))
-    (should (member "/usr/include/x86_64-linux-gnu" (internal--c-header-file-path)))))
-
-(ert-deftest subr-tests-internal--c-header-file-path/clang-mocked ()
-  ;; Handle clang 15.0.0 output on macOS 15.2.
-  (cl-letf (((symbol-function 'internal--gcc-is-clang-p) (lambda () t))
-            ((symbol-function 'call-process)
-             (lambda (_program &optional _infile _destination _display &rest _args)
-               (insert "\
-Apple clang version 15.0.0 (clang-1500.3.9.4)
-Target: arm64-apple-darwin24.2.0
-Thread model: posix
-InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
- \"/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang\"
-[[[...Emacs test omits some verbose junk from the output here...]]]
-clang -cc1 version 15.0.0 (clang-1500.3.9.4) default target arm64-apple-darwin24.2.0
-ignoring nonexistent directory \"/usr/local/include\"
-#include \"...\" search starts here:
-#include <...> search starts here:
- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/15.0.0/include
- /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include
- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include
- /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks (framework directory)
-End of search list.
-# 1 \"<stdin>\"
-# 1 \"<built-in>\" 1
-# 1 \"<built-in>\" 3
-# 418 \"<built-in>\" 3
-# 1 \"<command line>\" 1
-# 1 \"<built-in>\" 2
-# 1 \"<stdin>\" 2")
-               0)))
-    (should (member "/usr/include" (internal--c-header-file-path)))
-    (should (member "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/15.0.0/include"
-                    (internal--c-header-file-path)))))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

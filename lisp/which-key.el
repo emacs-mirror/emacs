@@ -2213,7 +2213,8 @@ Actual lines: %s"
   (let* ((paging-key (concat prefix-keys " " which-key-paging-key))
          (paging-key-bound (eq 'which-key-C-h-dispatch
                                (key-binding (kbd paging-key))))
-         (key (key-description (vector help-char)))
+         (key (if (fboundp 'help-key) (help-key) ; 29.1
+                (key-description (vector help-char))))
          (key (if paging-key-bound
                   (concat key " or " which-key-paging-key)
                 key)))

@@ -7,9 +7,15 @@
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
+;; Version: 0
+;; Package-Requires: ()
+;; Package-Type: multi
+;; URL: https://www.gnu.org/software/tramp/
 
-;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; This is also a GNU ELPA package.  Avoid functionality that is not
 ;; compatible with the version of Emacs recorded in trampver.el.
+;; Version and Package-Requires are place holders.  They are updated
+;; when the GNU ELPA package is released.
 
 ;; This file is part of GNU Emacs.
 
@@ -120,9 +126,8 @@
   :version "22.1"
   :link '(info-link :tag "Tramp manual" "(tramp) Top"))
 
-;; Maybe we need once a real Tramp mode, with key bindings etc.
 ;;;###autoload
-(defvar tramp-mode t
+(defvar tramp-mode (fboundp 'make-process) ; Disable on MS-DOS.
   "Whether Tramp is enabled.
 If it is set to nil, all remote file names are used literally.  Don't
 set it manually, use `inhibit-remote-files' or `without-remote-files'
@@ -2102,7 +2107,7 @@ does not exist, otherwise propagate the error."
     `(condition-case ,err
          (progn ,@body)
        (error
-	(if (not (file-exists-p ,filename))
+	(if (not (or (file-exists-p ,filename) (file-symlink-p ,filename)))
 	    (tramp-error ,vec 'file-missing ,filename)
 	  (signal (car ,err) (cdr ,err)))))))
 
@@ -3571,12 +3576,17 @@ BODY is the backend specific code."
        (when (tramp-connectable-p ,filename)
 	 (with-parsed-tramp-file-name (expand-file-name ,filename) nil
 	   (with-tramp-file-property v localname "file-exists-p"
-	     ;; Examine `file-attributes' cache to see if request can
-	     ;; be satisfied without remote operation.
-	     (if (tramp-file-property-p v localname "file-attributes")
-		 (not
-		  (null (tramp-get-file-property v localname "file-attributes")))
-	       ,@body))))))
+	     (cond
+	      ;; Examine `file-attributes' cache to see if request can
+	      ;; be satisfied without remote operation.
+	      ((and-let*
+		   (((tramp-file-property-p v localname "file-attributes"))
+		    (fa (tramp-get-file-property v localname "file-attributes"))
+		    ((not (stringp (car fa)))))))
+	      ;; Symlink to a non-existing target counts as nil.
+	      ((file-symlink-p ,filename)
+	       (file-exists-p (file-truename ,filename)))
+	      (t ,@body)))))))
 
 (defmacro tramp-skeleton-file-local-copy (filename &rest body)
   "Skeleton for `tramp-*-handle-file-local-copy'.
@@ -3841,7 +3851,7 @@ BODY is the backend specific code."
 	 ;; We cannot add "file-attributes", "file-executable-p",
 	 ;; "file-ownership-preserved-p", "file-readable-p",
 	 ;; "file-writable-p".
-	 '("file-directory-p" "file-exists-p" "file-symlinkp" "file-truename")
+	 '("file-directory-p" "file-exists-p" "file-symlink-p" "file-truename")
        (tramp-flush-file-properties v localname))
      (condition-case err
 	 (progn ,@body)

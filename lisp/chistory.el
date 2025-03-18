@@ -119,16 +119,14 @@ The buffer is left in Command History mode."
 	  (error "No command history")
 	(command-history-mode)))))
 
-(defvar command-history-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map (make-composed-keymap lisp-mode-shared-map
-                                                 special-mode-map))
-    (define-key map "x" #'command-history-repeat)
-    (define-key map "\n" #'next-line)
-    (define-key map "\r" #'next-line)
-    (define-key map "\177" #'previous-line)
-    map)
-  "Keymap for `command-history-mode'.")
+(defvar-keymap command-history-mode-map
+  :doc "Keymap for `command-history-mode'."
+  :parent (make-composed-keymap lisp-mode-shared-map
+                                special-mode-map)
+  "x"   #'command-history-repeat
+  "C-j" #'next-line
+  "RET" #'next-line
+  "DEL" #'previous-line)
 
 (define-derived-mode command-history-mode special-mode "Command History"
   "Major mode for listing and repeating recent commands.

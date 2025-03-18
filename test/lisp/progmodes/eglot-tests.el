@@ -1236,7 +1236,7 @@ GUESSED-MAJOR-MODES-SYM are bound to the useful return values of
 `eglot--guess-contact'.  Unless the server program evaluates to
 \"a-missing-executable.exe\", this macro will assume it exists."
   (declare (indent 1) (debug t))
-  (let ((i-sym (cl-gensym)))
+  (let ((i-sym (gensym)))
     `(dolist (,i-sym '(nil t))
        (let ((,interactive-sym ,i-sym)
              (buffer-file-name "_")

@@ -39,42 +39,32 @@
 
 (require 'eudc)
 
-(defvar eudc-bob-generic-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map "s" #'eudc-bob-save-object)
-    (define-key map "!" #'eudc-bob-pipe-object-to-external-program)
-    (define-key map [down-mouse-3] #'eudc-bob-popup-menu)
-    map)
-  "Keymap for multimedia objects.")
+(defvar-keymap eudc-bob-generic-keymap
+  :doc "Keymap for multimedia objects."
+  "s" #'eudc-bob-save-object
+  "!" #'eudc-bob-pipe-object-to-external-program
+  "<down-mouse-3>" #'eudc-bob-popup-menu)
 
-(defvar eudc-bob-image-keymap
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map eudc-bob-generic-keymap)
-    (define-key map "t" #'eudc-bob-toggle-inline-display)
-    map)
-  "Keymap for inline images.")
+(defvar-keymap eudc-bob-image-keymap
+  :doc "Keymap for inline images."
+  :parent eudc-bob-generic-keymap
+  "t" #'eudc-bob-toggle-inline-display)
 
-(defvar eudc-bob-sound-keymap
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map eudc-bob-generic-keymap)
-    (define-key map (kbd "RET") #'eudc-bob-play-sound-at-point)
-    (define-key map [down-mouse-2] #'eudc-bob-play-sound-at-mouse)
-    map)
-  "Keymap for inline sounds.")
+(defvar-keymap eudc-bob-sound-keymap
+  :doc "Keymap for inline sounds."
+  :parent eudc-bob-generic-keymap
+  "RET" #'eudc-bob-play-sound-at-point
+  "<down-mouse-2>" #'eudc-bob-play-sound-at-mouse)
 
-(defvar eudc-bob-url-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") #'browse-url-at-point)
-    (define-key map [down-mouse-2] #'browse-url-at-mouse)
-    map)
-  "Keymap for inline urls.")
+(defvar-keymap eudc-bob-url-keymap
+  :doc "Keymap for inline urls."
+  "RET" #'browse-url-at-point
+  "<down-mouse-2>" #'browse-url-at-mouse)
 
-(defvar eudc-bob-mail-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") #'goto-address-at-point)
-    (define-key map [down-mouse-2] #'goto-address-at-point)
-    map)
-  "Keymap for inline e-mail addresses.")
+(defvar-keymap eudc-bob-mail-keymap
+  :doc "Keymap for inline e-mail addresses."
+  "RET" #'goto-address-at-point
+  "<down-mouse-2>" #'goto-address-at-point)
 
 (defvar eudc-bob-generic-menu
   '("EUDC Binary Object Menu"

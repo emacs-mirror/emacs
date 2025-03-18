@@ -608,7 +608,7 @@ thumbnail buffer to be selected."
           (when (string-match-p (image-dired--file-name-regexp) file)
             (image-dired-insert-thumbnail
              (image-dired--get-create-thumbnail-file file) file dired-buf)
-            (cl-incf image-dired--number-of-thumbnails))))
+            (incf image-dired--number-of-thumbnails))))
       (if (plusp image-dired--number-of-thumbnails)
           (if do-not-pop
               (display-buffer buf)
@@ -1216,9 +1216,9 @@ See also `image-dired-line-up-dynamic'."
         (forward-char)
         (if (= image-dired-thumbs-per-row 1)
             (insert "\n")
-          (cl-incf thumb-prev-pos thumb-width-chars)
+          (incf thumb-prev-pos thumb-width-chars)
           (insert (propertize " " 'display `(space :align-to ,thumb-prev-pos)))
-          (cl-incf seen)
+          (incf seen)
           (when (and (= seen (- image-dired-thumbs-per-row 1))
                      (not (eobp)))
             (forward-char)
@@ -1990,7 +1990,7 @@ when using per-directory thumbnail file storage"))
               (setq tag-link-list
                     (append tag-link-list (list (cons tag tag-link))))
             (setq tag-link-list (list (cons tag tag-link))))
-          (setq count (1+ count))))
+          (incf count)))
       (setq count 1)
       ;; Main loop where we generated thumbnail pages per tag
       (dolist (curr tags)
@@ -2037,7 +2037,7 @@ when using per-directory thumbnail file storage"))
             (insert "  <p><a href=\"index.html\">Index</a></p>\n")
             (insert "  </body>\n")
             (insert "</html>\n"))
-          (setq count (1+ count))))
+          (incf count)))
       (insert "  </body>\n")
       (insert "</html>"))))
 
@@ -2099,7 +2099,7 @@ when using per-directory thumbnail file storage"))
 ;;        (format "Size of thumbnail directory: %d, delete old file %s? "
 ;;                dirsize (cadr (cdar files))))
 ;;       (delete-file (cadr (cdar files)))
-;;       (setq dirsize (- dirsize (car (cdar files))))
+;;       (decf dirsize (car (cdar files)))
 ;;       (setq files (cdr files)))))
 
 (provide 'image-dired)

@@ -789,31 +789,28 @@ current score file."
     (delete-windows-on (current-buffer))
     (erase-buffer)
     (insert string ":\n\n")
-    (let ((max -1)
-	  (list alist)
-	  (i 0)
-	  n width pad format)
-      ;; find the longest string to display
-      (while list
-	(setq n (length (nth idx (car list))))
-	(unless (> max n)
-	  (setq max n))
-	(setq list (cdr list)))
-      (setq max (+ max 4))		; %c, `:', SPACE, a SPACE at end
-      (setq n (/ (1- (window-width)) max)) ; items per line
-      (setq width (/ (1- (window-width)) n)) ; width of each item
-      ;; insert `n' items, each in a field of width `width'
-      (while alist
-	(if (< i n)
-	    ()
-	  (setq i 0)
+    (let* ((longest-string (+ 4        ;  %c, `:', SPACE, a SPACE at end
+                              (seq-reduce #'max
+                                          (mapcar (lambda (elem)
+                                                    (length (nth idx elem)))
+                                                  alist)
+                                          0)))
+           (w (1- (window-width)))
+           (items-per-line (/ w longest-string))
+           (item-width (/ w items-per-line))
+           (pad (- item-width 3))
+           (i 0))
+      ;; Insert `items-per-line' items, each in a field of width
+      ;; `item-width'.
+      (dolist (elem alist)
+        (when (>= i items-per-line)
+          (setq i 0)
 	  (delete-char -1)		; the `\n' takes a char
 	  (insert "\n"))
-	(setq pad (- width 3))
-	(setq format (concat "%c: %-" (int-to-string pad) "s"))
-	(insert (format format (caar alist) (nth idx (car alist))))
-	(setq alist (cdr alist))
-	(setq i (1+ i))))
+        (insert (substitute-command-keys
+                 (format (concat "\\`%c': %-" (int-to-string pad) "s")
+                         (car elem) (nth idx elem))))
+        (incf i)))
     (goto-char (point-min))
     ;; display ourselves in a small window at the bottom
     (appt-select-lowest-window)

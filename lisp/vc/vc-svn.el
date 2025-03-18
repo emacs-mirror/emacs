@@ -106,6 +106,16 @@ switches."
   :version "24.1"     ; no longer consult the obsolete vc-header-alist
   :type '(repeat string))
 
+(defcustom vc-svn-resolve-conflicts 'default
+  "Whether to mark conflicted file as resolved upon saving.
+If this is t and there are no more conflict markers in the file,
+VC will mark the conflicts in the saved file as resolved.
+A value of `default' means to use the value of `vc-resolve-conflicts'."
+  :type '(choice (const :tag "Don't resolve" nil)
+                 (const :tag "Resolve" t)
+                 (const :tag "Use vc-resolve-conflicts" default))
+  :version "31.1")
+
 ;; We want to autoload it for use by the autoloaded version of
 ;; vc-svn-registered, but we want the value to be compiled at startup, not
 ;; at dump time.
@@ -688,7 +698,10 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
         ;; There are conflict markers.
         (progn
           (smerge-start-session)
-          (add-hook 'after-save-hook #'vc-svn-resolve-when-done nil t))
+          (when (or (eq vc-svn-resolve-conflicts t)
+              (and (eq vc-svn-resolve-conflicts 'default)
+                   vc-resolve-conflicts))
+            (add-hook 'after-save-hook #'vc-svn-resolve-when-done nil t)))
       ;; There are no conflict markers.  This is problematic: maybe it means
       ;; the conflict has been resolved and we should immediately call "svn
       ;; resolved", or it means that the file's type does not allow Svn to

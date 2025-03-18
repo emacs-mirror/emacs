@@ -2665,9 +2665,9 @@ always reads a string from the `kill-ring' using the minibuffer."
     (isearch-yank-string (current-kill 1)))))
 
 (defun isearch-yank-x-selection ()
-  "Pull current X selection into search string."
+  "Pull current PRIMARY X selection into the search string."
   (interactive)
-  (isearch-yank-string (gui-get-selection))
+  (isearch-yank-string (ignore-errors (gui-get-primary-selection)))
   ;; If `gui-get-selection' returned the text from the active region,
   ;; then it "used" the mark which we should hence deactivate.
   (when select-active-regions (deactivate-mark)))

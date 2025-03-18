@@ -504,11 +504,17 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 
 	  while (row < end)
 	    {
-	      row->glyphs[LEFT_MARGIN_AREA] =
-		xnrealloc (row->glyphs[LEFT_MARGIN_AREA],
-			   dim.width, sizeof (struct glyph));
-	      /* The mode line, if displayed, never has marginal areas.  */
+	      row->glyphs[LEFT_MARGIN_AREA]
+		= xnrealloc (row->glyphs[LEFT_MARGIN_AREA],
+			     dim.width, sizeof (struct glyph));
+	      /* We actually need to clear only the 'frame' member, but
+                 it's easier to clear everything.  */
+	      memset (row->glyphs[LEFT_MARGIN_AREA], 0,
+		      dim.width * sizeof (struct glyph));
+
 	      if ((row == matrix->rows + dim.height - 1
+		   /* The mode line, if displayed, never has marginal
+                      areas.  */
 		   && !(w && window_wants_mode_line (w)))
 		  || (row == matrix->rows && matrix->tab_line_p)
 		  || (row == matrix->rows
@@ -3320,7 +3326,7 @@ rect_intersect (struct rect *r, struct rect r1, struct rect r2)
   int w = min (r1.x + r1.w, r2.x + r2.w) - x;
   int h = min (r1.y + r1.h, r2.y + r2.h) - y;
 
-  if (w == 0 || h == 0)
+  if (w <= 0 || h <= 0)
     return false;
 
   *r = (struct rect) { .x = x, .y = y, .w = w, .h = h };
@@ -6975,7 +6981,7 @@ sit_for (Lisp_Object timeout, bool reading, int display_option)
 
 
 DEFUN ("redisplay", Fredisplay, Sredisplay, 0, 1, 0,
-       doc : /* Perform redisplay.
+       doc: /* Perform redisplay.
 Optional arg FORCE exists for historical reasons and is ignored.
 Value is t if redisplay has been performed, nil if executing a
 keyboard macro.  */)

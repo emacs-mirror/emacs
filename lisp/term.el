@@ -349,6 +349,10 @@ contains saved `term-home-marker' from original sub-buffer.")
   "Current vertical row (relative to home-marker) or nil if unknown.")
 (defvar term-insert-mode nil)
 (defvar term-vertical-motion)
+(defvar term-auto-margins t
+  "When non-nil, terminal will automatically wrap lines at the right margin.
+This can be toggled by the application using DECAWM escape sequences.")
+
 (defvar term-do-line-wrapping nil
   "Last character was a graphic in the last column.
 If next char is graphic, first move one column right
@@ -1148,6 +1152,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (setq-local term-last-input-start (make-marker))
   (setq-local term-last-input-end (make-marker))
   (setq-local term-last-input-match "")
+  (setq-local term-auto-margins t)
 
   ;; Always display the onscreen keyboard.
   (setq-local touch-screen-display-keyboard t)
@@ -1682,7 +1687,7 @@ Using \"emacs\" loses, because bash disables editing if $TERM == emacs.")
 :mk=\\E[8m:cb=\\E[1K:op=\\E[39;49m:Co#256:pa#32767\
 :AB=\\E[48;5;%%dm:AF=\\E[38;5;%%dm:cr=^M\
 :bl=^G:do=^J:le=^H:ta=^I:se=\\E[27m:ue=\\E[24m\
-:kb=^?:kD=^[[3~:sc=\\E7:rc=\\E8:r1=\\Ec:"
+:kb=^?:kD=^[[3~:sc=\\E7:rc=\\E8:r1=\\Ec:RA=\\E[?7l:SA=\\E[?7h:"
   ;; : -undefine ic
   ;; don't define :te=\\E[2J\\E[?47l\\E8:ti=\\E7\\E[?47h\
   "Termcap capabilities supported.")
@@ -3110,7 +3115,7 @@ See `term-prompt-regexp'."
                                   (eq (char-charset (aref decoded-substring
                                                           (- count 1 partial)))
                                       'eight-bit))
-                        (cl-incf partial))
+                        (incf partial))
                       (when (> count partial 0)
                         (setq term-terminal-undecoded-bytes
                               (substring decoded-substring (- partial)))
@@ -3128,19 +3133,24 @@ See `term-prompt-regexp'."
                     (unless term-suppress-hard-newline
                       (while (> (+ (length decoded-substring) old-column)
                                 term-width)
-                        (insert (substring decoded-substring 0
-                                           (- term-width old-column)))
-                        ;; Since we've enough text to fill the whole line,
-                        ;; delete previous text regardless of
-                        ;; `term-insert-mode's value.
-                        (delete-region (point) (line-end-position))
-                        (term-down 1 t)
-                        (term-move-columns (- (term-current-column)))
-                        (add-text-properties (1- (point)) (point)
-                                             '(term-line-wrap t rear-nonsticky t))
-                        (setq decoded-substring
-                              (substring decoded-substring (- term-width old-column)))
-                        (setq old-column 0)))
+                        (let* ((here-length (- term-width old-column))
+                               (to-insert (substring decoded-substring 0 here-length)))
+                          (setf decoded-substring (substring decoded-substring here-length))
+                          (insert to-insert)
+                          (setf term-current-column nil)
+                          ;; Since we've enough text to fill the whole line,
+                          ;; delete previous text regardless of
+                          ;; `term-insert-mode's value.
+                          (delete-region (point) (line-end-position))
+                          (if term-auto-margins
+                              (progn
+                                (term-move-to-column 0)
+                                (term-down 1 t)
+                                (add-text-properties (1- (point)) (point)
+                                                     '(term-line-wrap t rear-nonsticky t))
+                                (setq old-column 0))
+                            (term-move-columns -1)
+                            (setf old-column (term-current-column))))))
                     (insert decoded-substring)
                     (setq term-current-column (current-column)
                           columns (- term-current-column old-column))
@@ -3162,14 +3172,18 @@ See `term-prompt-regexp'."
 
                     (put-text-property old-point (point)
                                        'font-lock-face term-current-face))
-                  ;; If the last char was written in last column,
+                  ;; If the last char was written in last column and auto-margins is enabled,
                   ;; back up one column, but remember we did so.
                   ;; Thus we emulate xterm/vt100-style line-wrapping.
+                  ;; If auto-margins is disabled, the cursor stays at the last column
+                  ;; and further output is discarded until a cursor movement occurs.
                   (when (eq (term-current-column) term-width)
                     (term-move-columns -1)
-                    ;; We check after ctrl sequence handling if point
-                    ;; was moved (and leave line-wrapping state if so).
-                    (setq term-do-line-wrapping (point)))
+                    ;; Only set line-wrapping if auto-margins is enabled
+                    (when term-auto-margins
+                      ;; We check after ctrl sequence handling if point
+                      ;; was moved (and leave line-wrapping state if so).
+                      (setq term-do-line-wrapping (point))))
                   (setq term-current-column nil)
                   (setq i funny))
                 (pcase-exhaustive (and (<= ctl-end str-length) (aref str i))
@@ -3205,15 +3219,19 @@ See `term-prompt-regexp'."
                       ;; We only handle control sequences with a single
                       ;; "Final" byte (see [ECMA-48] section 5.4).
                       (when (eq ctl-params-end (1- ctl-end))
-                        (term-handle-ansi-escape
-                         proc
-                         (mapcar ;; We don't distinguish empty params
-                          ;; from 0 (according to [ECMA-48] we
-                          ;; should, but all commands we support
-                          ;; default to 0 values anyway).
-                          #'string-to-number
-                          (split-string ctl-params ";"))
-                         (aref str (1- ctl-end)))))
+                        (let* ((private (string-prefix-p "?" ctl-params))
+                               (ctl-params
+                                (if private (substring ctl-params 1) ctl-params)))
+                          (term-handle-ansi-escape
+                           proc
+                           (mapcar ;; We don't distinguish empty params
+                            ;; from 0 (according to [ECMA-48] we
+                            ;; should, but all commands we support
+                            ;; default to 0 values anyway).
+                            #'string-to-number
+                            (split-string ctl-params ";"))
+                           (aref str (1- ctl-end))
+                           private))))
                      (?D ;; Scroll forward (apparently not documented in
                       ;; [ECMA-48], [ctlseqs] mentions it as C1
                       ;; character "Index" though).
@@ -3426,7 +3444,8 @@ option is enabled.  See `term-set-goto-process-mark'."
   (setq term-current-row 0)
   (setq term-current-column 1)
   (term--reset-scroll-region)
-  (setq term-insert-mode nil))
+  (setq term-insert-mode nil)
+  (setq term-auto-margins t))
 
 (defun term--color-as-hex (for-foreground)
   "Return the current ANSI color as a hexadecimal color string.
@@ -3487,7 +3506,7 @@ color is unset in the terminal state."
        (pcase (pop parameters)
          ;; 256 color
          (5 (if (setq term-ansi-current-color (pop parameters))
-                (cl-incf term-ansi-current-color)
+                (incf term-ansi-current-color)
               (term-ansi-reset)))
          ;; Full 24-bit color
          (2 (cl-loop with color = (1+ 256) ; Base
@@ -3517,7 +3536,7 @@ color is unset in the terminal state."
        (pcase (pop parameters)
          ;; 256 color
          (5 (if (setq term-ansi-current-bg-color (pop parameters))
-                (cl-incf term-ansi-current-bg-color)
+                (incf term-ansi-current-bg-color)
               (term-ansi-reset)))
          ;; Full 24-bit color
          (2 (cl-loop with color = (1+ 256) ; Base
@@ -3569,8 +3588,11 @@ color is unset in the terminal state."
 ;; Handle a character assuming (eq terminal-state 2) -
 ;; i.e. we have previously seen Escape followed by ?[.
 
-(defun term-handle-ansi-escape (proc params char)
+(defun term-handle-ansi-escape (proc params char &optional private)
   (cond
+   ((and private (not (memq char '(?h ?l))))
+    ;; Recognize private capabilities only for mode entry and exit
+    nil)
    ((or (eq char ?H)  ;; cursor motion (terminfo: cup,home)
 	;; (eq char ?f) ;; xterm seems to handle this sequence too, not
 	;; needed for now
@@ -3633,17 +3655,30 @@ color is unset in the terminal state."
    ((eq char ?@)
     (term-insert-spaces (max 1 (car params))))
    ;; \E[?h - DEC Private Mode Set
+
+   ;; N.B. we previously had a bug in which we'd decode \e[?<NR>h or
+   ;; \e[?<NR>l as a command with zero in the params field and so
+   ;; didn't recognize DEC private escape sequences.  However, the
+   ;; termcap and terminfo files had the non-? (question mark means DEC
+   ;; private) versions, so things kind of worked anyway.  To preserve
+   ;; compatibility, we recognize both private- and non-private
+   ;; messages for capabilities we added before we fixed the bug but
+   ;; require the private flag for capabilities we added after.
    ((eq char ?h)
-    (cond ((eq (car params) 4)  ;; (terminfo: smir)
-	   (setq term-insert-mode t))
-	  ((eq (car params) 47) ;; (terminfo: smcup)
-	   (term-switch-to-alternate-sub-buffer t))))
+    (cond ((eq (car params) 4) ;; (terminfo: smir)
+           (setq term-insert-mode t))
+          ((and private (eq (car params) 7)) ;; (terminfo: smam)
+           (setq term-auto-margins t))
+          ((eq (car params) 47) ;; (terminfo: smcup)
+           (term-switch-to-alternate-sub-buffer t))))
    ;; \E[?l - DEC Private Mode Reset
    ((eq char ?l)
-    (cond ((eq (car params) 4)  ;; (terminfo: rmir)
-	   (setq term-insert-mode nil))
+    (cond ((eq (car params) 4) ;; (terminfo: rmir)
+           (setq term-insert-mode nil))
+          ((and private (eq (car params) 7)) ;; (terminfo: rmam)
+           (setq term-auto-margins nil))
           ((eq (car params) 47) ;; (terminfo: rmcup)
-	   (term-switch-to-alternate-sub-buffer nil))))
+           (term-switch-to-alternate-sub-buffer nil))))
 
    ;; Modified to allow ansi coloring -mm
    ;; \E[m - Set/reset modes, set bg/fg
@@ -4005,7 +4040,7 @@ all pending output has been dealt with."))
                            '(term-line-wrap t rear-nonsticky t)))))
 
 (defun term-erase-in-line (kind)
-  (when (= kind 1) ;; erase left of point
+  (when (>= kind 1) ;; erase left of point
     (let ((cols (term-horizontal-column)) (saved-point (point)))
       (term-vertical-motion 0)
       (delete-region (point) saved-point)
@@ -4015,19 +4050,24 @@ all pending output has been dealt with."))
 	  (wrapped (and (zerop (term-horizontal-column))
 			(not (zerop (term-current-column))))))
       (term-vertical-motion 1)
-      (delete-region saved-point (point))
-      ;; wrapped is true if we're at the beginning of screen line,
-      ;; but not a buffer line.  If we delete the current screen line
-      ;; that will make the previous line no longer wrap, and (because
-      ;; of the way Emacs display works) point will be at the end of
-      ;; the previous screen line rather then the beginning of the
-      ;; current one.  To avoid that, we make sure that current line
-      ;; contain a space, to force the previous line to continue to wrap.
-      ;; We could do this always, but it seems preferable to not add the
-      ;; extra space when wrapped is false.
-      (when wrapped
-	(insert ? ))
-      (insert ?\n)
+      ;; Do nothing if we have nothing to delete
+      (unless (and (eq saved-point (1- (point)))
+                   (eq (char-before) ?\n)
+                   (not wrapped))
+        ;; Insert before deletion to preserve markers.
+        ;; wrapped is true if we're at the beginning of screen line,
+        ;; but not a buffer line.  If we delete the current screen line
+        ;; that will make the previous line no longer wrap, and (because
+        ;; of the way Emacs display works) point will be at the end of
+        ;; the previous screen line rather then the beginning of the
+        ;; current one.  To avoid that, we make sure that current line
+        ;; contain a space, to force the previous line to continue to wrap.
+        ;; We could do this always, but it seems preferable to not add the
+        ;; extra space when wrapped is false.
+        (when wrapped
+	  (insert-before-markers ? ))
+        (insert-before-markers ?\n)
+        (delete-region saved-point (point)))
       (put-text-property saved-point (point) 'font-lock-face 'default)
       (goto-char saved-point))))
 
@@ -4188,8 +4228,8 @@ This is a good place to put keybindings.")
 
 ;; These are not installed in the term-mode keymap.  But they are
 ;; available for people who want them.  Shell-mode installs them:
-;; (define-key shell-mode-map "\t" 'term-dynamic-complete)
-;; (define-key shell-mode-map "\M-?"
+;; (keymap-set shell-mode-map "TAB" 'term-dynamic-complete)
+;; (keymap-set shell-mode-map "M-?"
 ;;             'term-dynamic-list-filename-completions)))
 ;;
 ;; Commands like this are fine things to put in load hooks if you
@@ -4701,77 +4741,6 @@ The return value may be nil for a special serial port."
           :button (:toggle . ,(equal (plist-get config (nth 0 y))
                                      (nth 1 y))))))))
 
-
-;;; Converting process modes to use term mode
-;; ===========================================================================
-;; Renaming variables
-;; Most of the work is renaming variables and functions.  These are the common
-;; ones:
-;; Local variables:
-;;	last-input-start	term-last-input-start
-;; 	last-input-end		term-last-input-end
-;;	shell-prompt-pattern	term-prompt-regexp
-;;     shell-set-directory-error-hook <no equivalent>
-;; Miscellaneous:
-;;	shell-set-directory	<unnecessary>
-;; 	shell-mode-map		term-mode-map
-;; Commands:
-;;	shell-send-input	term-send-input
-;;	shell-send-eof		term-delchar-or-maybe-eof
-;; 	kill-shell-input	term-kill-input
-;;	interrupt-shell-subjob	term-interrupt-subjob
-;;	stop-shell-subjob	term-stop-subjob
-;;	quit-shell-subjob	term-quit-subjob
-;;	kill-shell-subjob	term-kill-subjob
-;;	kill-output-from-shell	term-kill-output
-;;	show-output-from-shell	term-show-output
-;;	copy-last-shell-input	Use term-previous-input/term-next-input
-;;
-;; SHELL-SET-DIRECTORY is gone, its functionality taken over by
-;; SHELL-DIRECTORY-TRACKER, the shell mode's term-input-filter-functions.
-;; Term mode does not provide functionality equivalent to
-;; shell-set-directory-error-hook; it is gone.
-;;
-;; term-last-input-start is provided for modes which want to munge
-;; the buffer after input is sent, perhaps because the inferior
-;; insists on echoing the input.  The LAST-INPUT-START variable in
-;; the old shell package was used to implement a history mechanism,
-;; but you should think twice before using term-last-input-start
-;; for this; the input history ring often does the job better.
-;;
-;; If you are implementing some process-in-a-buffer mode, called foo-mode, do
-;; *not* create the term-mode local variables in your foo-mode function.
-;; This is not modular.  Instead, call term-mode, and let *it* create the
-;; necessary term-specific local variables.  Then create the
-;; foo-mode-specific local variables in foo-mode.  Set the buffer's keymap to
-;; be foo-mode-map, and its mode to be foo-mode.  Set the term-mode hooks
-;; (term-{prompt-regexp, input-filter, input-filter-functions,
-;; get-old-input) that need to be different from the defaults.  Call
-;; foo-mode-hook, and you're done.  Don't run the term-mode hook yourself;
-;; term-mode will take care of it.  The following example, from shell.el,
-;; is typical:
-;;
-;; (defvar shell-mode-map
-;;   (let ((map (make-sparse-keymap)))
-;;     (define-key map "\C-c\C-f" 'shell-forward-command)
-;;     (define-key map "\C-c\C-b" 'shell-backward-command)
-;;     (define-key map "\t" 'term-dynamic-complete)
-;;     (define-key map "\M-?"
-;;       'term-dynamic-list-filename-completions)))
-;;
-;; (define-derived-mode shell-mode term-mode "Shell"
-;;   "A shell mode."
-;;   (setq-local term-prompt-regexp shell-prompt-pattern)
-;;   (setq-local shell-directory-stack nil)
-;;   (add-hook 'term-input-filter-functions #'shell-directory-tracker nil t))
-;;
-;; Completion for term-mode users
-;;
-;; For modes that use term-mode, term-dynamic-complete-functions is the
-;; hook to add completion functions to.  Functions on this list should return
-;; non-nil if completion occurs (i.e., further completion should not occur).
-;; You could use completion-in-region to do the bulk of the
-;; completion job.
 
 (provide 'term)
 

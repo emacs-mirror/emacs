@@ -153,8 +153,6 @@ where CAUSE can be:
     (insert (debugger--buffer-state-content state)))
   (goto-char (debugger--buffer-state-pos state)))
 
-(defvar debugger--last-error nil)
-
 (defun debugger--duplicate-p (args)
   (pcase args
     (`(error ,err . ,_) (and (consp err) (eq err debugger--last-error)))))
@@ -253,11 +251,11 @@ the debugger will not be entered."
 		    ;; Place an extra debug-on-exit for macro's.
 		    (when (eq 'lambda (car-safe (cadr (backtrace-frame 1 base))))
 		      (backtrace-debug 2 t base))))
-                (with-current-buffer debugger-buffer
-                  (unless (derived-mode-p 'debugger-mode)
-	            (debugger-mode))
-	          (debugger-setup-buffer debugger-args)
-	          (when non-interactive-frame
+                (set-buffer debugger-buffer)
+                (unless (derived-mode-p 'debugger-mode)
+	          (debugger-mode))
+	        (debugger-setup-buffer debugger-args)
+	        (if non-interactive-frame
 		    ;; If the backtrace is long, save the beginning
 		    ;; and the end, but discard the middle.
                     (let ((inhibit-read-only t))
@@ -269,38 +267,37 @@ the debugger will not be entered."
 		          (goto-char (point-max))
 		          (forward-line (- (/ debugger-batch-max-lines 2)))
 		          (delete-region middlestart (point)))
-		        (insert "...\n")))
-		    (message "%s" (buffer-string))
-		    (kill-emacs -1)))
-	        (pop-to-buffer
-	         debugger-buffer
-	         `((display-buffer-reuse-window
-		    display-buffer-in-previous-window
-		    display-buffer-below-selected)
-		   . ((window-min-height . 10)
-                      (window-height . fit-window-to-buffer)
-		      ,@(when (and (window-live-p debugger-previous-window)
-				   (frame-visible-p
-				    (window-frame debugger-previous-window)))
-		          `((previous-window . ,debugger-previous-window))))))
-	        (setq debugger-window (selected-window))
-		(when debugger-jumping-flag
-		  ;; Try to restore previous height of debugger
-		  ;; window.
-		  (condition-case nil
-		      (window-resize
-		       debugger-window
-		       (- debugger-previous-window-height
-			  (window-total-height debugger-window)))
-		    (error nil))
-		  (setq debugger-previous-window debugger-window))
-	        (message "")
-	        (let ((standard-output nil)
-		      (buffer-read-only t))
-		  (message "")
-		  ;; Make sure we unbind buffer-read-only in the right buffer.
-		  (save-excursion
-		    (recursive-edit))))
+		        (insert "...\n"))
+		      (message "%s" (buffer-string)))
+	          (pop-to-buffer
+	           debugger-buffer
+	           `((display-buffer-reuse-window
+		      display-buffer-in-previous-window
+		      display-buffer-below-selected)
+		     . ((window-min-height . 10)
+		        (window-height . fit-window-to-buffer)
+		        ,@(when (and (window-live-p debugger-previous-window)
+				     (frame-visible-p
+				      (window-frame debugger-previous-window)))
+		            `((previous-window . ,debugger-previous-window))))))
+	          (setq debugger-window (selected-window))
+		  (when debugger-jumping-flag
+		    ;; Try to restore previous height of debugger
+		    ;; window.
+		    (condition-case nil
+		        (window-resize
+		         debugger-window
+		         (- debugger-previous-window-height
+			    (window-total-height debugger-window)))
+		      (error nil))
+		    (setq debugger-previous-window debugger-window))
+	          (message "")
+	          (let ((standard-output nil)
+		        (buffer-read-only t))
+		    (message "")
+		    ;; Make sure we unbind buffer-read-only in the right buffer.
+		    (save-excursion
+		      (recursive-edit)))))
 	    (when (and (window-live-p debugger-window)
 		       (eq (window-buffer debugger-window) debugger-buffer))
 	      ;; Record height of debugger window.

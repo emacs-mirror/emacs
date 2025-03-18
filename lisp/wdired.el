@@ -69,6 +69,7 @@
 ;;; Code:
 
 (require 'dired)
+(eval-when-compile (require 'cl-lib))
 (autoload 'dired-do-create-files-regexp "dired-aux")
 
 (defgroup wdired nil
@@ -527,7 +528,7 @@ non-nil means return old filename."
     (when files-renamed
       (pcase-let ((`(,errs . ,successful-renames)
                    (wdired-do-renames files-renamed)))
-        (cl-incf errors errs)
+        (incf errors errs)
         ;; Some of the renames may fail -- in that case, don't mark an
         ;; already-existing file with the same name as renamed.
         (pcase-dolist (`(,file . _) wdired--old-marks)

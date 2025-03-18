@@ -372,15 +372,6 @@ directory, like `default-directory'."
 		       (regexp :tag "From")
                        (regexp :tag "To"))))
 
-;; These declarations are here to avoid byte-compiler warnings about
-;; functions defined later via 'define-ibuffer-op'.
-(declare-function ibuffer-do-toggle-lock "ibuffer.el")
-(declare-function ibuffer-do-toggle-read-only "ibuffer.el")
-(declare-function ibuffer-do-save "ibuffer.el")
-(declare-function ibuffer-do-delete "ibuffer.el")
-(declare-function ibuffer-do-toggle-modified "ibuffer.el")
-(declare-function ibuffer-do-kill-on-deletion-marks "ibuffer.el")
-
 (defvar-keymap ibuffer--filter-map
   "RET"    #'ibuffer-filter-by-mode
   "SPC"    #'ibuffer-filter-chosen-by-completion
@@ -1119,7 +1110,7 @@ a new window in the current frame, splitting vertically."
 			(setq trying nil))
 		    (error
 		     ;; Handle a failure
-		     (if (or (> (cl-incf attempts) 4)
+                     (if (or (> (incf attempts) 4)
 			     (and (stringp (cadr err))
 				  ;; This definitely falls in the
 				  ;; ghetto hack category...
@@ -1917,18 +1908,18 @@ the buffer object itself and the current mark symbol."
 	      ;; nil if it chose not to affect the buffer
 	      ;; `kill' means the remove line from the buffer list
 	      ;; t otherwise
-	      (cl-incf ibuffer-map-lines-total)
+              (incf ibuffer-map-lines-total)
 	      (cond ((null result)
 		     (forward-line 1))
 		    ((eq result 'kill)
 		     (delete-region (line-beginning-position)
 				    (1+ (line-end-position)))
-		     (cl-incf ibuffer-map-lines-count)
+                     (incf ibuffer-map-lines-count)
 		     (when (< ibuffer-map-lines-total
 			      orig-target-line)
                        (decf target-line-offset)))
 		    (t
-		     (cl-incf ibuffer-map-lines-count)
+                     (incf ibuffer-map-lines-count)
 		     (forward-line 1)))))
 	  ;; With `ibuffer-auto-mode' enabled, `ibuffer-expert' nil
 	  ;; and more than one marked buffer lines, the preceding loop

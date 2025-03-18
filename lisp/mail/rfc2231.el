@@ -293,7 +293,7 @@ the result of this function."
 	    (insert param "*=")
 	  (while (not (eobp))
 	    (insert (if (>= num 0) " " "")
-		    param "*" (format "%d" (cl-incf num)) "*=")
+                    param "*" (format "%d" (incf num)) "*=")
 	    (forward-line 1))))
        (spacep
 	(goto-char (point-min))

@@ -173,7 +173,7 @@ on your system, you could say something like:
       (format "fake+none+%s+%d" gnus-newsgroup-name number)
     (format "fake+none+%s+%s"
 	    gnus-newsgroup-name
-	    (int-to-string (cl-incf nnheader-fake-message-id)))))
+            (int-to-string (incf nnheader-fake-message-id)))))
 
 (defsubst nnheader-fake-message-id-p (id)
   (save-match-data		       ; regular message-id's are <.*>
@@ -601,7 +601,7 @@ the line could be found."
 	(while (and (eq nnheader-head-chop-length
 			(nth 1 (mm-insert-file-contents
 				file nil beg
-				(cl-incf beg nnheader-head-chop-length))))
+                                (incf beg nnheader-head-chop-length))))
 		    ;; CRLF or CR might be used for the line-break code.
 		    (prog1 (not (re-search-forward "\n\r?\n\\|\r\r" nil t))
 		      (goto-char (point-max)))
@@ -773,7 +773,7 @@ If FULL, translate everything."
 	(when (setq trans (cdr (assq (aref leaf i)
 				     nnheader-file-name-translation-alist)))
 	  (aset leaf i trans))
-	(cl-incf i))
+        (incf i))
       (concat path leaf))))
 
 (defun nnheader-report (backend &rest args)

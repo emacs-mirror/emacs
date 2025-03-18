@@ -232,21 +232,23 @@ Optional ARGUMENTS to to be passed to it."
 (defun mhtml-ts-mode--colorize-css-value (node override start end &rest _)
   "Colorize CSS property value like `css--fontify-region'.
 For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
-  (if (and mhtml-ts-mode-css-fontify-colors
-           (string-equal "plain_value" (treesit-node-type node)))
-      (let ((color (css--compute-color start (treesit-node-text node t))))
-        (when color
-          (with-silent-modifications
-            (add-text-properties
-             (treesit-node-start node) (treesit-node-end node)
-             (list 'face (list :background color
-                               :foreground (readable-foreground-color
-                                            color)
-                               :box '(:line-width -1)))))))
+  (let ((node-start (treesit-node-start node))
+	(node-end (treesit-node-end node)))
     (treesit-fontify-with-override
-     (treesit-node-start node) (treesit-node-end node)
+     node-start node-end
      'font-lock-variable-name-face
-     override start end)))
+     override start end)
+    ;; apply color if required
+    (when-let* ((ok (and mhtml-ts-mode-css-fontify-colors
+			 (member (treesit-node-type node) '("plain_value" "color_value"))))
+		(color (css--compute-color start (treesit-node-text node t))))
+	(with-silent-modifications
+	  (add-text-properties
+	   node-start node-end
+	   (list 'face (list :background color
+                             :foreground (readable-foreground-color
+					  color)
+                             :box '(:line-width -1))))))))
 
 ;; Embedded languages should be indented according to the language
 ;; that embeds them.
@@ -293,8 +295,8 @@ NODE and PARENT are ignored."
             :language 'css
             :override t
             :feature 'variable
-            '((plain_value) @font-lock-variable-name-face
-              (plain_value) @mhtml-ts-mode--colorize-css-value))
+            '((plain_value) @mhtml-ts-mode--colorize-css-value
+              (color_value) @mhtml-ts-mode--colorize-css-value))
            css--treesit-settings))
   "Settings for `treesit-font-lock-settings'.")
 
@@ -311,8 +313,9 @@ NODE and PARENT are ignored."
     (car js--treesit-thing-settings)
     `((defun ,js--treesit-defun-type-regexp)))
    ;; CSS thing settings
-   `(css
-     (defun ,(regexp-opt (list css--treesit-defun-type-regexp)))))
+   (append
+    (car css--treesit-thing-settings)
+    `((defun ,css--treesit-defun-type-regexp))))
   "Settings for `treesit-thing-settings'.")
 
 ;; We use a function instead of a variable, because
@@ -338,9 +341,8 @@ NODE and PARENT are ignored."
             `((css ((parent-is "stylesheet")
                     mhtml-ts-mode--js-css-tag-bol
                     mhtml-ts-mode--js-css-indent-offset)))
-            css--treesit-indent-rules 'prepend)
-           :replace))
-  "Settings for `treesit-simple-indent-rules'.")
+            css--treesit-indent-rules
+	    :prepend))))
 
 (defvar mhtml-ts-mode--treesit-aggregated-simple-imenu-settings
   `((html ,@html-ts-mode--treesit-simple-imenu-settings)
@@ -364,15 +366,6 @@ NODE and PARENT are ignored."
 ;; alist of all the languages. In our case only javascript defined this alist.
 (defvar mhtml-ts-mode--prettify-symbols-alist js--prettify-symbols-alist
   "Alist of symbol prettifications for various supported languages.")
-
-(defun mhtml-ts-mode--html-defun-name (node)
-  "Return the defun name of NODE.
-Return nil if there is no name or if NODE is not a defun node."
-  (when (string-match-p "element" (treesit-node-type node))
-    (treesit-node-text
-     node
-     ;; (treesit-search-subtree node "\\`tag_name\\'" nil nil 2)
-     t)))
 
 ;; In order to support `which-fuction-mode' we should define
 ;; a function that return the defun name.
@@ -582,9 +575,8 @@ Powered by tree-sitter."
 
     (setq-local treesit-aggregated-outline-predicate
                 `((html . ,#'html-ts-mode--outline-predicate)
-                  ;; TODO: add a predicate like for html above
-                  (javascript . "\\`function_declaration\\'")
-                  (css . "\\`rule_set\\'")))
+                  (javascript . ,js-ts-mode--outline-predicate)
+                  (css . ,css-ts-mode--outline-predicate)))
 
     (treesit-major-mode-setup)
 

@@ -55,10 +55,10 @@
 (require 'gnus-sum)
 
 ;; FIXME: should avoid using C-c (no?)
-;; (define-key gnus-summary-mode-map "\C-crm" 'gnus-bookmark-set)
-;; (define-key global-map "\C-crb" 'gnus-bookmark-jump)
-;; (define-key global-map "\C-crj" 'gnus-bookmark-jump)
-;; (define-key global-map "\C-crl" 'gnus-bookmark-bmenu-list)
+;; (keymap-set gnus-summary-mode-map "C-c r m" 'gnus-bookmark-set)
+;; (keymap-global-set "C-c r b" 'gnus-bookmark-jump)
+;; (keymap-global-set "C-c r j" 'gnus-bookmark-jump)
+;; (keymap-global-set "C-c r l" 'gnus-bookmark-bmenu-list)
 
 ;; FIXME: Add keybindings, see
 ;; http://thread.gmane.org/gmane.emacs.gnus.general/63101/focus=63379 [dead link]

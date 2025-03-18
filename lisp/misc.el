@@ -262,8 +262,7 @@ variation of `C-x M-c M-butterfly' from url `https://xkcd.com/378/'."
 ;; A command to list dynamically loaded libraries.  This useful in
 ;; environments where dynamic-library-alist is used, i.e., Windows
 
-(defvar list-dynamic-libraries--loaded-only-p)
-(make-variable-buffer-local 'list-dynamic-libraries--loaded-only-p)
+(defvar-local list-dynamic-libraries--loaded-only-p)
 
 (defun list-dynamic-libraries--loaded (from)
   "Compute the \"Loaded from\" column.

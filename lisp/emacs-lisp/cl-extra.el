@@ -91,120 +91,120 @@ strings case-insensitively."
 ;;; Control structures.
 
 ;;;###autoload
-(defun cl--mapcar-many (cl-func cl-seqs &optional acc)
-  (if (cdr (cdr cl-seqs))
-      (let* ((cl-res nil)
-	     (cl-n (apply #'min (mapcar #'length cl-seqs)))
-	     (cl-i 0)
-	     (cl-args (copy-sequence cl-seqs))
-	     cl-p1 cl-p2)
-	(setq cl-seqs (copy-sequence cl-seqs))
-	(while (< cl-i cl-n)
-	  (setq cl-p1 cl-seqs cl-p2 cl-args)
-	  (while cl-p1
-	    (setcar cl-p2
-		    (if (consp (car cl-p1))
-			(prog1 (car (car cl-p1))
-			  (setcar cl-p1 (cdr (car cl-p1))))
-		      (aref (car cl-p1) cl-i)))
-	    (setq cl-p1 (cdr cl-p1) cl-p2 (cdr cl-p2)))
+(defun cl--mapcar-many (func seqs &optional acc)
+  (if (cdr (cdr seqs))
+      (let* ((res nil)
+             (n (apply #'min (mapcar #'length seqs)))
+             (i 0)
+             (args (copy-sequence seqs))
+             p1 p2)
+        (setq seqs (copy-sequence seqs))
+        (while (< i n)
+          (setq p1 seqs p2 args)
+          (while p1
+            (setcar p2
+                    (if (consp (car p1))
+                        (prog1 (car (car p1))
+                          (setcar p1 (cdr (car p1))))
+                      (aref (car p1) i)))
+            (setq p1 (cdr p1) p2 (cdr p2)))
 	  (if acc
-	      (push (apply cl-func cl-args) cl-res)
-	    (apply cl-func cl-args))
-	  (setq cl-i (1+ cl-i)))
-	(and acc (nreverse cl-res)))
-    (let ((cl-res nil)
-	  (cl-x (car cl-seqs))
-	  (cl-y (nth 1 cl-seqs)))
-      (let ((cl-n (min (length cl-x) (length cl-y)))
-	    (cl-i -1))
-	(while (< (setq cl-i (1+ cl-i)) cl-n)
-	  (let ((val (funcall cl-func
-			      (if (consp cl-x) (pop cl-x) (aref cl-x cl-i))
-			      (if (consp cl-y) (pop cl-y) (aref cl-y cl-i)))))
+              (push (apply func args) res)
+            (apply func args))
+          (setq i (1+ i)))
+        (and acc (nreverse res)))
+    (let ((res nil)
+          (x (car seqs))
+          (y (nth 1 seqs)))
+      (let ((n (min (length x) (length y)))
+            (i -1))
+        (while (< (setq i (1+ i)) n)
+          (let ((val (funcall func
+                              (if (consp x) (pop x) (aref x i))
+                              (if (consp y) (pop y) (aref y i)))))
 	    (when acc
-	      (push val cl-res)))))
-	(and acc (nreverse cl-res)))))
+              (push val res)))))
+      (and acc (nreverse res)))))
 
 ;;;###autoload
-(defsubst cl-map (cl-type cl-func cl-seq &rest cl-rest)
+(defsubst cl-map (type func seq &rest rest)
   "Map a FUNCTION across one or more SEQUENCEs, returning a sequence.
 TYPE is the sequence type to return.
 \n(fn TYPE FUNCTION SEQUENCE...)"
   (declare (important-return-value t))
-  (let ((cl-res (apply #'cl-mapcar cl-func cl-seq cl-rest)))
-    (and cl-type (cl-coerce cl-res cl-type))))
+  (let ((res (apply 'cl-mapcar func seq rest)))
+    (and type (cl-coerce res type))))
 
 ;;;###autoload
-(defun cl-maplist (cl-func cl-list &rest cl-rest)
+(defun cl-maplist (func list &rest rest)
   "Map FUNCTION to each sublist of LIST or LISTs.
 Like `cl-mapcar', except applies to lists and their cdr's rather than to
 the elements themselves.
 \n(fn FUNCTION LIST...)"
   (declare (important-return-value t))
-  (if cl-rest
-      (let ((cl-res nil)
-	    (cl-args (cons cl-list (copy-sequence cl-rest)))
-	    cl-p)
-	(while (not (memq nil cl-args))
-	  (push (apply cl-func cl-args) cl-res)
-	  (setq cl-p cl-args)
-	  (while cl-p (setcar cl-p (cdr (pop cl-p)))))
-	(nreverse cl-res))
-    (let ((cl-res nil))
-      (while cl-list
-	(push (funcall cl-func cl-list) cl-res)
-	(setq cl-list (cdr cl-list)))
-      (nreverse cl-res))))
+  (if rest
+      (let ((res nil)
+            (args (cons list (copy-sequence rest)))
+            p)
+        (while (not (memq nil args))
+          (push (apply func args) res)
+          (setq p args)
+          (while p (setcar p (cdr (pop p)))))
+        (nreverse res))
+    (let ((res nil))
+      (while list
+        (push (funcall func list) res)
+        (setq list (cdr list)))
+      (nreverse res))))
 
 ;;;###autoload
-(defun cl-mapc (cl-func cl-seq &rest cl-rest)
+(defun cl-mapc (func seq &rest rest)
   "Like `cl-mapcar', but does not accumulate values returned by the function.
 \n(fn FUNCTION SEQUENCE...)"
-  (if cl-rest
-      (if (or (cdr cl-rest) (nlistp cl-seq) (nlistp (car cl-rest)))
+  (if rest
+      (if (or (cdr rest) (nlistp seq) (nlistp (car rest)))
           (progn
-            (cl--mapcar-many cl-func (cons cl-seq cl-rest))
-            cl-seq)
-        (let ((cl-x cl-seq) (cl-y (car cl-rest)))
-          (while (and cl-x cl-y)
-            (funcall cl-func (pop cl-x) (pop cl-y)))
-          cl-seq))
-    (mapc cl-func cl-seq)))
+            (cl--mapcar-many func (cons seq rest))
+            seq)
+        (let ((x seq) (y (car rest)))
+          (while (and x y)
+            (funcall func (pop x) (pop y)))
+          seq))
+    (mapc func seq)))
 
 ;;;###autoload
-(defun cl-mapl (cl-func cl-list &rest cl-rest)
+(defun cl-mapl (func list &rest rest)
   "Like `cl-maplist', but does not accumulate values returned by the function.
 \n(fn FUNCTION LIST...)"
-  (if cl-rest
-      (let ((cl-args (cons cl-list (copy-sequence cl-rest)))
-	    cl-p)
-	(while (not (memq nil cl-args))
-          (apply cl-func cl-args)
-	  (setq cl-p cl-args)
-	  (while cl-p (setcar cl-p (cdr (pop cl-p))))))
-    (let ((cl-p cl-list))
-      (while cl-p (funcall cl-func cl-p) (setq cl-p (cdr cl-p)))))
-  cl-list)
+  (if rest
+      (let ((args (cons list (copy-sequence rest)))
+            p)
+        (while (not (memq nil args))
+          (apply func args)
+          (setq p args)
+          (while p (setcar p (cdr (pop p))))))
+    (let ((p list))
+      (while p (funcall func p) (setq p (cdr p)))))
+  list)
 
 ;;;###autoload
-(defun cl-mapcan (cl-func cl-seq &rest cl-rest)
+(defun cl-mapcan (func seq &rest rest)
   "Like `cl-mapcar', but nconc's together the values returned by the function.
 \n(fn FUNCTION SEQUENCE...)"
   (declare (important-return-value t))
-  (if cl-rest
-      (apply #'nconc (apply #'cl-mapcar cl-func cl-seq cl-rest))
-    (mapcan cl-func cl-seq)))
+  (if rest
+      (apply #'nconc (apply #'cl-mapcar func seq rest))
+    (mapcan func seq)))
 
 ;;;###autoload
-(defun cl-mapcon (cl-func cl-list &rest cl-rest)
+(defun cl-mapcon (func list &rest rest)
   "Like `cl-maplist', but nconc's together the values returned by the function.
 \n(fn FUNCTION LIST...)"
   (declare (important-return-value t))
-  (apply #'nconc (apply #'cl-maplist cl-func cl-list cl-rest)))
+  (apply #'nconc (apply #'cl-maplist func list rest)))
 
 ;;;###autoload
-(defun cl-some (cl-pred cl-seq &rest cl-rest)
+(defun cl-some (pred seq &rest rest)
   "Say whether PREDICATE is true for any element in the SEQ sequences.
 More specifically, the return value of this function will be the
 same as the first return value of PREDICATE where PREDICATE has a
@@ -212,105 +212,105 @@ non-nil value.
 
 \n(fn PREDICATE SEQ...)"
   (declare (important-return-value t))
-  (if (or cl-rest (nlistp cl-seq))
+  (if (or rest (nlistp seq))
       (catch 'cl-some
         (apply #'cl-map nil
-               (lambda (&rest cl-x)
-                 (let ((cl-res (apply cl-pred cl-x)))
-                   (if cl-res (throw 'cl-some cl-res))))
-	       cl-seq cl-rest) nil)
-    (let ((cl-x nil))
-      (while (and cl-seq (not (setq cl-x (funcall cl-pred (pop cl-seq))))))
-      cl-x)))
+               (lambda (&rest x)
+                 (let ((res (apply pred x)))
+                   (if res (throw 'cl-some res))))
+               seq rest) nil)
+    (let ((x nil))
+      (while (and seq (not (setq x (funcall pred (pop seq))))))
+      x)))
 
 ;;;###autoload
-(defun cl-every (cl-pred cl-seq &rest cl-rest)
+(defun cl-every (pred seq &rest rest)
   "Return true if PREDICATE is true of every element of SEQ or SEQs.
 \n(fn PREDICATE SEQ...)"
   (declare (important-return-value t))
-  (if (or cl-rest (nlistp cl-seq))
+  (if (or rest (nlistp seq))
       (catch 'cl-every
         (apply #'cl-map nil
-               (lambda (&rest cl-x)
-                 (or (apply cl-pred cl-x) (throw 'cl-every nil)))
-	       cl-seq cl-rest) t)
-    (while (and cl-seq (funcall cl-pred (car cl-seq)))
-      (setq cl-seq (cdr cl-seq)))
-    (null cl-seq)))
+               (lambda (&rest x)
+                 (or (apply pred x) (throw 'cl-every nil)))
+               seq rest) t)
+    (while (and seq (funcall pred (car seq)))
+      (setq seq (cdr seq)))
+    (null seq)))
 
 ;;;###autoload
-(defsubst cl-notany (cl-pred cl-seq &rest cl-rest)
+(defsubst cl-notany (pred seq &rest rest)
   "Return true if PREDICATE is false of every element of SEQ or SEQs.
 \n(fn PREDICATE SEQ...)"
   (declare (important-return-value t))
-  (not (apply #'cl-some cl-pred cl-seq cl-rest)))
+  (not (apply #'cl-some pred seq rest)))
 
 ;;;###autoload
-(defsubst cl-notevery (cl-pred cl-seq &rest cl-rest)
+(defsubst cl-notevery (pred seq &rest rest)
   "Return true if PREDICATE is false of some element of SEQ or SEQs.
 \n(fn PREDICATE SEQ...)"
   (declare (important-return-value t))
-  (not (apply #'cl-every cl-pred cl-seq cl-rest)))
+  (not (apply #'cl-every pred seq rest)))
 
 ;;;###autoload
-(defun cl--map-keymap-recursively (cl-func-rec cl-map &optional cl-base)
-  (or cl-base
-      (setq cl-base (copy-sequence [0])))
+(defun cl--map-keymap-recursively (func-rec map &optional base)
+  (or base
+      (setq base (copy-sequence [0])))
   (map-keymap
-   (lambda (cl-key cl-bind)
-     (aset cl-base (1- (length cl-base)) cl-key)
-     (if (keymapp cl-bind)
+   (lambda (key bind)
+     (aset base (1- (length base)) key)
+     (if (keymapp bind)
          (cl--map-keymap-recursively
-          cl-func-rec cl-bind
-          (vconcat cl-base (list 0)))
-       (funcall cl-func-rec cl-base cl-bind)))
-   cl-map))
+          func-rec bind
+          (vconcat base (list 0)))
+       (funcall func-rec base bind)))
+   map))
 
 ;;;###autoload
-(defun cl--map-intervals (cl-func &optional cl-what cl-prop cl-start cl-end)
-  (or cl-what (setq cl-what (current-buffer)))
-  (if (bufferp cl-what)
-      (let (cl-mark cl-mark2 (cl-next t) cl-next2)
-	(with-current-buffer cl-what
-	  (setq cl-mark (copy-marker (or cl-start (point-min))))
-	  (setq cl-mark2 (and cl-end (copy-marker cl-end))))
-	(while (and cl-next (or (not cl-mark2) (< cl-mark cl-mark2)))
-	  (setq cl-next (if cl-prop (next-single-property-change
-				     cl-mark cl-prop cl-what)
-			  (next-property-change cl-mark cl-what))
-		cl-next2 (or cl-next (with-current-buffer cl-what
-				       (point-max))))
-	  (funcall cl-func (prog1 (marker-position cl-mark)
-			     (set-marker cl-mark cl-next2))
-		   (if cl-mark2 (min cl-next2 cl-mark2) cl-next2)))
-	(set-marker cl-mark nil) (if cl-mark2 (set-marker cl-mark2 nil)))
-    (or cl-start (setq cl-start 0))
-    (or cl-end (setq cl-end (length cl-what)))
-    (while (< cl-start cl-end)
-      (let ((cl-next (or (if cl-prop (next-single-property-change
-				      cl-start cl-prop cl-what)
-			   (next-property-change cl-start cl-what))
-			 cl-end)))
-	(funcall cl-func cl-start (min cl-next cl-end))
-	(setq cl-start cl-next)))))
+(defun cl--map-intervals (func &optional what prop start end)
+  (or what (setq what (current-buffer)))
+  (if (bufferp what)
+      (let (mark mark2 (next t) next2)
+        (with-current-buffer what
+          (setq mark (copy-marker (or start (point-min))))
+          (setq mark2 (and end (copy-marker end))))
+        (while (and next (or (not mark2) (< mark mark2)))
+          (setq next (if prop (next-single-property-change
+                               mark prop what)
+                       (next-property-change mark what))
+                next2 (or next (with-current-buffer what
+                                 (point-max))))
+          (funcall func (prog1 (marker-position mark)
+                          (set-marker mark next2))
+                   (if mark2 (min next2 mark2) next2)))
+        (set-marker mark nil) (if mark2 (set-marker mark2 nil)))
+    (or start (setq start 0))
+    (or end (setq end (length what)))
+    (while (< start end)
+      (let ((next (or (if prop (next-single-property-change
+                                start prop what)
+                        (next-property-change start what))
+                      end)))
+        (funcall func start (min next end))
+        (setq start next)))))
 
 ;;;###autoload
-(defun cl--map-overlays (cl-func &optional cl-buffer cl-start cl-end cl-arg)
-  (or cl-buffer (setq cl-buffer (current-buffer)))
-  (let (cl-ovl)
-    (with-current-buffer cl-buffer
-      (setq cl-ovl (overlay-lists))
-      (if cl-start (setq cl-start (copy-marker cl-start)))
-      (if cl-end (setq cl-end (copy-marker cl-end))))
-    (setq cl-ovl (nconc (car cl-ovl) (cdr cl-ovl)))
-    (while (and cl-ovl
-		(or (not (overlay-start (car cl-ovl)))
-		    (and cl-end (>= (overlay-start (car cl-ovl)) cl-end))
-		    (and cl-start (<= (overlay-end (car cl-ovl)) cl-start))
-		    (not (funcall cl-func (car cl-ovl) cl-arg))))
-      (setq cl-ovl (cdr cl-ovl)))
-    (if cl-start (set-marker cl-start nil))
-    (if cl-end (set-marker cl-end nil))))
+(defun cl--map-overlays (func &optional buffer start end arg)
+  (or buffer (setq buffer (current-buffer)))
+  (let (ovl)
+    (with-current-buffer buffer
+      (setq ovl (overlay-lists))
+      (if start (setq start (copy-marker start)))
+      (if end (setq end (copy-marker end))))
+    (setq ovl (nconc (car ovl) (cdr ovl)))
+    (while (and ovl
+                (or (not (overlay-start (car ovl)))
+                    (and end (>= (overlay-start (car ovl)) end))
+                    (and start (<= (overlay-end (car ovl)) start))
+                    (not (funcall func (car ovl) arg))))
+      (setq ovl (cdr ovl)))
+    (if start (set-marker start nil))
+    (if end (set-marker end nil))))
 
 ;;; Support for `setf'.
 ;;;###autoload

@@ -3619,6 +3619,10 @@ Only match the specified window systems.")
 				type)
 			 (checklist :inline t
 				    :offset 0
+                                    (const :format "Graphic "
+                                           :sibling-args (:help-echo "\
+Any graphics-capable display")
+                                           graphic)
 				    (const :format "X "
 					   :sibling-args (:help-echo "\
 The X11 Window System.")
@@ -5351,10 +5355,13 @@ The format is suitable for use with `easy-menu-define'."
 To see what function the widget will call, use the
 `widget-describe' command."
   (interactive "@d")
-  (let ((button (get-char-property pos 'button)))
-    ;; If there is no button at point, then use the one at the start
-    ;; of the line, if it is a custom-group-link (bug#2298).
+  (let ((button (or (get-char-property pos 'button)
+                    ;; Maybe we are just past a button, and it's quite handy
+                    ;; to action it as well.  (Bug#72341)
+                    (get-char-property (1- pos) 'button))))
     (or button
+        ;; If there is no button at point, then use the one at the start
+        ;; of the line, if it is a custom-group-link (bug#2298).
 	(if (setq button (get-char-property (line-beginning-position) 'button))
 	    (or (eq (widget-type button) 'custom-group-link)
 		(setq button nil))))
@@ -5992,7 +5999,7 @@ The appropriate types are:
          (val (car value)))
     (cond
      ((eq val 'mode) (setf (nth 1 args)
-                           '(symbol :keymap custom-dirlocals-field-map
+                           `(symbol :keymap ,custom-dirlocals-field-map
                                     :tag "Minor mode")))
      ((eq val 'unibyte) (setf (nth 1 args) '(boolean)))
      ((eq val 'subdirs) (setf (nth 1 args) '(boolean)))
@@ -6001,7 +6008,7 @@ The appropriate types are:
         (when (custom--editable-field-p w)
           (widget-put w :keymap custom-dirlocals-field-map))
         (setf (nth 1 args) w)))
-     (t (setf (nth 1 args) '(sexp :keymap custom-dirlocals-field-map))))
+     (t (setf (nth 1 args) `(sexp :keymap ,custom-dirlocals-field-map))))
     (widget-put (nth 0 args) :keymap custom-dirlocals-field-map)
     (widget-group-value-create widget)))
 

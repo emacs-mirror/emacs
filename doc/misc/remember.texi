@@ -211,8 +211,8 @@ Here is one way to map the remember functions in your init file
 Manual}) to very accessible keystrokes facilities using the mode:
 
 @lisp
-(define-key global-map (kbd "<f9> r") 'remember)
-(define-key global-map (kbd "<f9> R") 'remember-region)
+(keymap-set global-map "<f9> r" 'remember)
+(keymap-set global-map "<f9> R" 'remember-region)
 @end lisp
 
 @cindex annotation

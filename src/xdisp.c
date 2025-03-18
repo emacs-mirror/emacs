@@ -1150,7 +1150,7 @@ static bool set_cursor_from_row (struct window *, struct glyph_row *,
 				 struct glyph_matrix *, ptrdiff_t, ptrdiff_t,
 				 int, int);
 static bool cursor_row_fully_visible_p (struct window *, bool, bool, bool);
-static bool update_menu_bar (struct frame *, bool, bool);
+static bool update_menu_bar (struct frame *, bool, bool, struct window *);
 static bool try_window_reusing_current_matrix (struct window *);
 static int try_window_id (struct window *);
 static void maybe_produce_line_number (struct it *);
@@ -11656,6 +11656,7 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to,
   it.bidi_p = false;
 
   int start_x;
+  ptrdiff_t start_bpos = BYTEPOS (startp);
   if (vertical_offset != 0)
     {
       int last_y;
@@ -11688,6 +11689,7 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to,
       it.current_y = (WINDOW_TAB_LINE_HEIGHT (w)
 		      + WINDOW_HEADER_LINE_HEIGHT (w));
       start = clip_to_bounds (BEGV, IT_CHARPOS (it), ZV);
+      start_bpos = CHAR_TO_BYTE (start);
       start_y = it.current_y;
       start_x = it.current_x;
     }
@@ -11749,7 +11751,7 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to,
   it.current_y = start_y;
   /* If FROM is on a newline, pretend that we start at the beginning
      of the next line, because the newline takes no place on display.  */
-  if (FETCH_BYTE (start) == '\n')
+  if (FETCH_BYTE (start_bpos) == '\n')
     it.current_x = 0, it.wrap_prefix_width = 0;
   if (!NILP (x_limit))
     {
@@ -14071,13 +14073,32 @@ prepare_menu_bars (void)
       /* True means that update_menu_bar has run its hooks
 	 so any further calls to update_menu_bar shouldn't do so again.  */
       bool menu_bar_hooks_run = false;
+      struct window *sw = XWINDOW (selected_window);
+      struct frame *sf = WINDOW_XFRAME (sw);
+      struct frame *rf = NULL;
+
+      if (FRAME_PARENT_FRAME (sf) && !FRAME_WINDOW_P (sf)
+	  && FRAME_MENU_BAR_LINES (sf) == 0
+	  && FRAME_MENU_BAR_LINES (rf = root_frame (sf)) != 0
+	  && NILP (Fdefault_value (Qtty_menu_open_use_tmm)))
+	/* If the selected window's frame is a tty child frame without
+	   menu bar, that frame's root frame has a menu bar and
+	   'tty-menu-open-use-tmm' is nil, update the menu bar of the
+	   root frame from the selected window.  */
+	sf = rf;
+      else
+	{
+	  sf = NULL;
+	  sw = NULL;
+	}
 
       record_unwind_save_match_data ();
 
       FOR_EACH_FRAME (tail, frame)
 	{
 	  struct frame *f = XFRAME (frame);
-	  struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (f));
+	  struct window *w
+	    = sf == f ? sw : XWINDOW (FRAME_SELECTED_WINDOW (f));
 
 	  /* Ignore tooltip frame.  */
 	  if (FRAME_TOOLTIP_P (f))
@@ -14089,8 +14110,8 @@ prepare_menu_bars (void)
 	      && !XBUFFER (w->contents)->text->redisplay)
 	    continue;
 
-	  if (!FRAME_PARENT_FRAME (f))
-	    menu_bar_hooks_run = update_menu_bar (f, false, menu_bar_hooks_run);
+	  menu_bar_hooks_run
+	    = update_menu_bar (f, false, menu_bar_hooks_run, w);
 
 	  update_tab_bar (f, false);
 #ifdef HAVE_WINDOW_SYSTEM
@@ -14102,10 +14123,21 @@ prepare_menu_bars (void)
     }
   else
     {
-      struct frame *sf = SELECTED_FRAME ();
+      struct window *sw = XWINDOW (selected_window);
+      struct frame *sf = WINDOW_XFRAME (sw);
+      struct frame *rf = NULL;
 
-      if (!FRAME_PARENT_FRAME (sf))
-	update_menu_bar (sf, true, false);
+      if (FRAME_PARENT_FRAME (sf) && !FRAME_WINDOW_P (sf)
+	  && FRAME_MENU_BAR_LINES (sf) == 0
+	  && FRAME_MENU_BAR_LINES (rf = root_frame (sf)) != 0
+	  && NILP (Fdefault_value (Qtty_menu_open_use_tmm)))
+	/* If the selected window's frame is a tty child frame without
+	   menu bar, that frame's root frame has a menu bar and
+	   'tty-menu-open-use-tmm' is nil, update the menu bar of the
+	   root frame from the selected window.  */
+	sf = rf;
+
+      update_menu_bar (sf, true, false, sw);
 
       update_tab_bar (sf, true);
 #ifdef HAVE_WINDOW_SYSTEM
@@ -14124,22 +14156,22 @@ prepare_menu_bars (void)
    If HOOKS_RUN, a previous call to update_menu_bar
    already ran the menu bar hooks for this redisplay, so there
    is no need to run them again.  The return value is the
-   updated value of this flag, to pass to the next call.  */
+   updated value of this flag, to pass to the next call.
+
+   W, if set, denotes the window that should be considered as selected.
+   For a tty child frame using F as surrogate menu bar frame, this
+   specifes the child frame's selected window and its buffer shall be
+   used for updating the menu bar of the root frame instead of the
+   buffer of the root frame's selected window.  */
 
 static bool
-update_menu_bar (struct frame *f, bool save_match_data, bool hooks_run)
+update_menu_bar (struct frame *f, bool save_match_data, bool hooks_run, struct window *w)
 {
-  Lisp_Object window;
-  struct window *w;
-
   /* If called recursively during a menu update, do nothing.  This can
      happen when, for instance, an activate-menubar-hook causes a
      redisplay.  */
   if (inhibit_menubar_update)
     return hooks_run;
-
-  window = FRAME_SELECTED_WINDOW (f);
-  w = XWINDOW (window);
 
   if (FRAME_WINDOW_P (f)
       ?
@@ -14373,7 +14405,10 @@ update_tab_bar (struct frame *f, bool save_match_data)
 
 	  /* Redisplay the tab-bar if we changed it.  */
 	  if (new_n_tab_bar != f->n_tab_bar_items
-	      || NILP (Fequal (new_tab_bar, f->tab_bar_items)))
+	      /* Some features modify the appearance of the tab bar by
+                 manipulating the text properties.  */
+	      || NILP (Fequal_including_properties (new_tab_bar,
+						    f->tab_bar_items)))
             {
               /* Redisplay that happens asynchronously due to an expose event
                  may access f->tab_bar_items.  Make sure we update both
@@ -15086,7 +15121,6 @@ handle_tab_bar_click (struct frame *f, int x, int y, bool down_p,
   return Fcons (Qtab_bar, Fcons (caption, make_fixnum (0)));
 }
 
-
 /* Possibly highlight a tab-bar item on frame F when mouse moves to
    tab-bar window-relative coordinates X/Y.  Called from
    note_mouse_highlight.  */
@@ -15098,8 +15132,7 @@ note_tab_bar_highlight (struct frame *f, int x, int y)
   struct window *w = XWINDOW (window);
   Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   int hpos, vpos;
-  struct glyph *glyph;
-  struct glyph_row *row;
+  struct glyph *glyph = NULL;
   int i;
   Lisp_Object enabled_p;
   int prop_idx;
@@ -15145,25 +15178,124 @@ note_tab_bar_highlight (struct frame *f, int x, int y)
 
   /* If tab-bar item is not enabled, don't highlight it.  */
   enabled_p = AREF (f->tab_bar_items, prop_idx + TAB_BAR_ITEM_ENABLED_P);
+
   if (!NILP (enabled_p) && !NILP (Vmouse_highlight))
     {
-      /* Compute the x-position of the glyph.  In front and past the
-	 image is a space.  We include this in the highlighted area.  */
+      struct glyph_row *row = NULL;
+      struct glyph *row_start_glyph = NULL;
+      struct glyph *tmp_glyph;
+      int total_pixel_width;
+      Lisp_Object string;
+      Lisp_Object mouse_face;
+      int mouse_face_id = -1;
+      int hpos0, hpos_caption;
+
       row = MATRIX_ROW (w->current_matrix, vpos);
-      for (i = x = 0; i < hpos; ++i)
-	x += row->glyphs[TEXT_AREA][i].pixel_width;
+      /* display_tab_bar does not yet support R2L.  */
+      eassert (!row->reversed_p);
+      row_start_glyph = row->glyphs[TEXT_AREA];
 
-      /* Record this as the current active region.  */
-      hlinfo->mouse_face_beg_col = hpos;
-      hlinfo->mouse_face_beg_row = vpos;
-      hlinfo->mouse_face_beg_x = x;
-      hlinfo->mouse_face_past_end = false;
+      string = AREF (f->tab_bar_items, prop_idx + TAB_BAR_ITEM_CAPTION);
+      if (STRINGP (string))
+	{
+	  /* Compute starting column of the tab-bar-item to adjust col
+	     of the mouse face relative to row_start_glyph.
 
-      hlinfo->mouse_face_end_col = hpos + 1;
-      hlinfo->mouse_face_end_row = vpos;
-      hlinfo->mouse_face_end_x = x + glyph->pixel_width;
-      hlinfo->mouse_face_window = window;
-      hlinfo->mouse_face_face_id = TAB_BAR_FACE_ID;
+	     tab_bar_item_info does not contain the absolute starting
+	     offset of the item.  We compute it by looking backwards
+	     until we find a glyph that belongs to a previous tab bar
+	     item, or if this is the first item.  */
+	  hpos0 = hpos + 1;
+	  int tmp_prop_idx;
+	  bool tmp_bool;
+	  for (tmp_glyph = glyph;
+	       tmp_glyph >= row_start_glyph;
+	       tmp_glyph--)
+	    {
+	      if (!tab_bar_item_info (f, tmp_glyph, &tmp_prop_idx, &tmp_bool)
+		  || tmp_prop_idx != prop_idx)
+		break; /* Just before the beginning of this item.  */
+	      else
+		--hpos0;
+	    }
+
+	  /* Offset into the caption vs. the row.  */
+	  hpos_caption = hpos - hpos0;
+
+	  mouse_face = Fget_text_property (make_fixnum (hpos_caption),
+					   Qmouse_face, string);
+	  if (!NILP (mouse_face))
+	    {
+	      mouse_face_id = lookup_named_face (w, f, mouse_face, false);
+	      if (mouse_face_id < 0)
+		mouse_face_id = compute_char_face (f, ' ', mouse_face);
+	      draw = DRAW_MOUSE_FACE;
+	    }
+	}
+
+      if (draw == DRAW_MOUSE_FACE)
+	{
+	  Lisp_Object b, e;
+	  ptrdiff_t begpos, endpos;
+	  int beg_x, end_x;
+
+	  /* Search for mouse-face boundaries.  */
+	  b = Fprevious_single_property_change (make_fixnum (hpos_caption + 1),
+						Qmouse_face, string, Qnil);
+	  if (NILP (b))
+	    begpos = 0;
+	  else
+	    begpos = XFIXNUM (b);
+	  e = Fnext_single_property_change (make_fixnum (begpos), Qmouse_face, string, Qnil);
+	  if (NILP (e))
+	    endpos = SCHARS (string);
+	  else
+	    endpos = XFIXNUM (e);
+
+	  /* Compute the starting and ending pixel coordinates */
+	  for (i = beg_x = 0;
+	       i < hpos0 + begpos; ++i)
+	    beg_x += row->glyphs[TEXT_AREA][i].pixel_width;
+	  for (end_x = 0,
+		 i = hpos0 + begpos;
+	       i < hpos0 + endpos; ++i)
+	    end_x += row->glyphs[TEXT_AREA][i].pixel_width;
+
+	  if ( EQ (window, hlinfo->mouse_face_window)
+	       && (hlinfo->mouse_face_beg_col <= hpos
+		   && hpos < hlinfo->mouse_face_end_col)
+	       && hlinfo->mouse_face_beg_row == vpos )
+	    return;
+
+	  hlinfo->mouse_face_window = window;
+	  hlinfo->mouse_face_face_id = mouse_face_id;
+	  hlinfo->mouse_face_beg_row = vpos;
+	  hlinfo->mouse_face_end_row = vpos;
+	  hlinfo->mouse_face_past_end = false;
+	  hlinfo->mouse_face_beg_col = hpos0 + begpos;
+	  hlinfo->mouse_face_end_col = hpos0 + endpos;
+	  hlinfo->mouse_face_beg_x   = beg_x;
+	  hlinfo->mouse_face_end_x   = end_x;
+	}
+      else
+	{
+	  /* Compute the x-position of the glyph.  In front and past the
+	     image is a space.  We include this in the highlighted area.  */
+	  for (i = x = 0; i < hpos; ++i)
+	    x += row->glyphs[TEXT_AREA][i].pixel_width;
+	  total_pixel_width = glyph->pixel_width;
+
+	  hlinfo->mouse_face_face_id = TAB_BAR_FACE_ID;
+	  hlinfo->mouse_face_beg_col = hpos;
+	  hlinfo->mouse_face_beg_row = vpos;
+	  hlinfo->mouse_face_beg_x = x;
+	  hlinfo->mouse_face_past_end = false;
+
+	  hlinfo->mouse_face_end_col = hpos + 1;
+	  hlinfo->mouse_face_end_row = vpos;
+	  hlinfo->mouse_face_end_x = x + total_pixel_width;
+	  hlinfo->mouse_face_window = window;
+	}
 
       /* Display it as active.  */
       show_mouse_face (hlinfo, draw, true);
@@ -17474,7 +17606,10 @@ redisplay_internal (void)
 	  if (is_tty_frame (f))
 	    {
 	      /* Ignore all invisible tty frames, children or root.  */
-	      if (!frame_redisplay_p (f))
+	      if (!frame_redisplay_p (f)
+		  /* Ignore frames not yet completely made, which we
+		     cannot safely redisplay.  */
+		  || !f->after_make_frame)
 		continue;
 
 	      /* Remember tty root frames which we've seen.  */
@@ -21097,24 +21232,33 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 
   /* When we reach a frame's selected window, redo the frame's menu
      bar, tool bar, tab-bar, and the frame's title.  */
-  if (update_mode_line
-      && EQ (FRAME_SELECTED_WINDOW (f), window))
+  if (update_mode_line && EQ (FRAME_SELECTED_WINDOW (f), window))
     {
-      bool redisplay_menu_p;
-
       if (FRAME_WINDOW_P (f))
 	{
 #ifdef HAVE_EXT_MENU_BAR
-	  redisplay_menu_p = FRAME_EXTERNAL_MENU_BAR (f);
+	  if (FRAME_EXTERNAL_MENU_BAR (f))
+	    display_menu_bar (w);
 #else
-	  redisplay_menu_p = FRAME_MENU_BAR_LINES (f) > 0;
+	  if (FRAME_MENU_BAR_LINES (f) > 0)
+	    display_menu_bar (w);
 #endif
 	}
       else
-        redisplay_menu_p = FRAME_MENU_BAR_LINES (f) > 0;
+	{
+	  struct frame *rf = NULL;
 
-      if (redisplay_menu_p)
-        display_menu_bar (w);
+	  if (FRAME_PARENT_FRAME (f)
+	      && FRAME_MENU_BAR_LINES (f) == 0
+	      && FRAME_MENU_BAR_LINES (rf = root_frame (f)) != 0
+	      && NILP (Fdefault_value (Qtty_menu_open_use_tmm)))
+	    /* If F is a tty child frame without menu bar, that frame's root
+	       frame has a menu bar and 'tty-menu-open-use-tmm' is nil,
+	       display the menu bar of the root frame's selected window.  */
+	    display_menu_bar (XWINDOW (FRAME_SELECTED_WINDOW (rf)));
+	  else if (FRAME_MENU_BAR_LINES (f) > 0)
+	    display_menu_bar (w);
+	}
 
 #ifdef HAVE_WINDOW_SYSTEM
       if (FRAME_WINDOW_P (f))
@@ -27368,9 +27512,18 @@ display_tty_menu_item (const char *item_text, int width, int face_id,
 {
   struct it it;
   struct frame *f = SELECTED_FRAME ();
-  struct window *w = XWINDOW (f->selected_window);
   struct glyph_row *row;
   size_t item_len = strlen (item_text);
+
+  struct frame *rf = NULL;
+
+  if (FRAME_PARENT_FRAME (f) && !FRAME_WINDOW_P (f)
+      && FRAME_MENU_BAR_LINES (f) == 0
+      && FRAME_MENU_BAR_LINES (rf = root_frame (f)) != 0
+      && NILP (Fdefault_value (Qtty_menu_open_use_tmm)))
+    f = rf;
+
+  struct window *w = XWINDOW (f->selected_window);
 
   eassert (FRAME_TERMCAP_P (f));
 
@@ -27614,15 +27767,31 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 	      int c = fetch_string_char_advance (mode_string, &i, &i_byte);
 	      if (c == ' ' && prev == ' ')
 		{
-		  display_string (NULL,
-				  Fsubstring (mode_string, make_fixnum (start),
-					      make_fixnum (i - 1)),
-				  Qnil, 0, 0, &it, 0, 0, 0,
-				  STRING_MULTIBYTE (mode_string));
-		  /* Skip past the rest of the space characters. */
-		  while (c == ' ' && i < SCHARS (mode_string))
-		      c = fetch_string_char_advance (mode_string, &i, &i_byte);
-		  start = i - 1;
+		  Lisp_Object prev_pos = make_fixnum (i - 1);
+
+		  /* SPC characters with 'display' properties are not
+                     really "empty", since they have non-trivial visual
+                     effects on the mode line.  */
+		  if (NILP (Fget_text_property (prev_pos, Qdisplay,
+						mode_string)))
+		    {
+		      display_string (NULL,
+				      Fsubstring (mode_string,
+						  make_fixnum (start),
+						  prev_pos),
+				      Qnil, 0, 0, &it, 0, 0, 0,
+				      STRING_MULTIBYTE (mode_string));
+		      /* Skip past the rest of the space characters. */
+		      while (c == ' ' && i < SCHARS (mode_string)
+			     && NILP (Fget_text_property (make_fixnum (i),
+							  Qdisplay,
+							  mode_string)))
+			{
+			  c = fetch_string_char_advance (mode_string,
+							 &i, &i_byte);
+			}
+		      start = i - 1;
+		    }
 		}
 	      prev = c;
 	    }
@@ -27762,7 +27931,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
     case Lisp_String:
       {
 	/* A string: output it and check for %-constructs within it.  */
-	unsigned char c;
+	int c;
 	ptrdiff_t offset = 0;
 
 	if (SCHARS (elt) > 0
@@ -27932,6 +28101,15 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 		field = 0;
 		while ((c = SREF (elt, offset++)) >= '0' && c <= '9')
 		  field = field * 10 + c - '0';
+
+		/* "%" could be followed by a multibyte character.  */
+                if (STRING_MULTIBYTE (elt))
+		  {
+		    int length;
+		    offset--;
+		    c = string_char_and_length (SDATA (elt) + offset, &length);
+		    offset += length;
+		  }
 
 		/* Don't pad beyond the total padding allowed.  */
 		if (field_width - n > 0 && field > field_width - n)
@@ -38519,6 +38697,7 @@ depending on your patience and the speed of your system.  */);
   DEFSYM (Qnhdrag, "nhdrag");
   DEFSYM (Qvdrag, "vdrag");
   DEFSYM (Qhourglass, "hourglass");
+  DEFSYM (Qtty_menu_open_use_tmm, "tty-menu-open-use-tmm");
 }
 
 

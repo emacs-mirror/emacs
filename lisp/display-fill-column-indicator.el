@@ -42,6 +42,30 @@
   :group 'display
   :link '(info-link "(emacs)Displaying Boundaries"))
 
+(defcustom display-fill-column-indicator-warning nil
+  "Highlight fill-column-indicator when current line is too long.
+Non-nil means highlight fill-column-indicator when current column exceeds
+`display-fill-column-indicator-column'."
+  :type 'boolean
+  :version "31.1")
+
+(defface display-fill-column-indicator-warning-face
+  '((t :inherit error :stipple nil))
+  "Face used to highlight `display-fill-column-indicator' when lines are too long."
+  :version "31.1")
+
+(defun fill-indicator--set-warning ()
+  "Set the warning face for the fill column indicator."
+  (if-let* ((column (if (integerp display-fill-column-indicator-column)
+                        display-fill-column-indicator-column
+                      fill-column))
+            ((> (save-excursion (end-of-line) (current-column))
+                column)))
+      (progn
+        (face-remap-set-base
+         'fill-column-indicator
+         'display-fill-column-indicator-warning-face))
+    (face-remap-reset-base 'fill-column-indicator)))
 
 ;;;###autoload
 (define-minor-mode display-fill-column-indicator-mode
@@ -68,7 +92,11 @@ See Info node `Displaying Boundaries' for details."
                              (eq (aref (query-font (car (internal-char-font nil ?\u2502))) 0)
                                  (face-font 'default))))
                     ?\u2502
-                  ?|))))
+                  ?|)))
+        (if display-fill-column-indicator-warning
+            (add-hook 'post-command-hook #'fill-indicator--set-warning nil t)))
+    (if display-fill-column-indicator-warning
+        (remove-hook 'post-command-hook #'fill-indicator--set-warning t))
     (setq display-fill-column-indicator nil)))
 
 (defun display-fill-column-indicator--turn-on ()

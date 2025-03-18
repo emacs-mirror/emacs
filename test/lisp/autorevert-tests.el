@@ -295,6 +295,7 @@ This expects `auto-revert--messages' to be bound by
 
                (ert-with-message-capture auto-revert--messages
                  (auto-revert-tests--write-file "another text" tmpfile (pop times))
+                 (should (eq desc auto-revert-notify-watch-descriptor))
                  (auto-revert--wait-for-revert buf))
                ;; Check, that the buffer hasn't been reverted.  File
                ;; notification should be disabled, falling back to
@@ -304,7 +305,14 @@ This expects `auto-revert--messages' to be bound by
                (or (eq file-notify--library 'w32notify)
                    (getenv "EMACS_EMBA_CI")
                    (should-not
-                    (file-notify-valid-p auto-revert-notify-watch-descriptor)))
+                    ;; The auto-revert timer is wont to establish a new
+                    ;; watch soon after the previous descriptor is
+                    ;; destroyed, which not unnaturally interferes with
+                    ;; our testing for its destruction, since descriptor
+                    ;; IDs are reused.  Therefore, test the identity of
+                    ;; the previous descriptor, not just its validity.
+                    (and (eq desc auto-revert-notify-watch-descriptor)
+                         (file-notify-valid-p auto-revert-notify-watch-descriptor))))
 
                ;; Once the file has been recreated, the buffer shall be
                ;; reverted.

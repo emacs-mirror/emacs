@@ -1066,7 +1066,7 @@ map_char_table_for_charset (void (*c_function) (Lisp_Object, Lisp_Object),
    vector of property values (symbols nil, L, R, etc).
 
    The full list of Unicode character properties supported by Emacs is
-   documented in the ELisp manual, in the node "Character Properties".
+   documented in the Elisp manual, in the node "Character Properties".
 
    A table for Unicode character property has these characteristics:
 

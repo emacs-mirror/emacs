@@ -1939,7 +1939,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 				 (cons (match-end 1) (match-beginning 2)))
 		string-delims (cons open-delim (c-get-ml-closer open-delim)))
 	  (goto-char (caar string-delims))))
-	
+
        ;; Point is in the body of an ml string.
        ((and string-delims
 	     (>= (point) (cadar string-delims))

@@ -1719,7 +1719,14 @@ multifile patches.  For `ediff-directory-revisions', we insist that
 all marked sessions must be active."
   (interactive)
   (let ((coding-system-for-read ediff-coding-system-for-read))
-    (or (ediff-buffer-live-p ediff-meta-diff-buffer)
+    (unless (and (ediff-buffer-live-p ediff-meta-diff-buffer)
+                 ;; We assume `ediff-meta-diff-buffer' doesn't
+                 ;; visit any file.  But if the user saves the
+                 ;; `ediff-meta-diff-buffer' to a file, that
+                 ;; assumption isn't right anymore.  (Bug#3348)
+                 ;; So, if `ediff-meta-diff-buffer' is visiting some
+                 ;; file, create a new buffer rather than reusing it.
+                 (not (buffer-file-name ediff-meta-diff-buffer)))
 	(setq ediff-meta-diff-buffer
 	      (get-buffer-create
 	       (ediff-unique-buffer-name "*Ediff Multifile Diffs" "*"))))

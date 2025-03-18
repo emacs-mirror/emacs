@@ -1111,7 +1111,10 @@ frame with the mouse."
 	 (drag-bottom (memq part '(bottom-right bottom bottom-left)))
 	 ;; Initial "first" mouse position.  While dragging we base all
 	 ;; calculations against that position.
-	 (first-x-y (mouse-absolute-pixel-position))
+	 (tty (tty-type frame))
+	 (first-x-y (if tty
+			(mouse-position-in-root-frame)
+		      (mouse-absolute-pixel-position)))
          (first-x (car first-x-y))
          (first-y (cdr first-x-y))
          (exitfun nil)
@@ -1119,7 +1122,9 @@ frame with the mouse."
           (lambda (event)
             (interactive "e")
             (when (consp event)
-              (let* ((last-x-y (mouse-absolute-pixel-position))
+              (let* ((last-x-y (if tty
+				   (mouse-position-in-root-frame)
+				 (mouse-absolute-pixel-position)))
 		     (last-x (car last-x-y))
 		     (last-y (cdr last-x-y))
 		     (left (- last-x first-x))
@@ -1228,10 +1233,13 @@ frame with the mouse."
          (parent-bottom (and parent-edges (nth 3 parent-edges)))
 	 ;; Initial "first" mouse position.  While dragging we base all
 	 ;; calculations against that position.
-	 (first-x-y (mouse-absolute-pixel-position))
-         (first-x (car first-x-y))
-         (first-y (cdr first-x-y))
-         ;; `snap-width' (maybe also a yet to be provided `snap-height')
+	 (tty (tty-type frame))
+	 (first-x-y (if tty
+			(mouse-position-in-root-frame)
+		      (mouse-absolute-pixel-position)))
+	 (first-x (car first-x-y))
+	 (first-y (cdr first-x-y))
+	 ;; `snap-width' (maybe also a yet to be provided `snap-height')
          ;; could become floats to handle proportionality wrt PARENT.
          ;; We don't do any checks on this parameter so far.
          (snap-width (frame-parameter frame 'snap-width))
@@ -1247,7 +1255,9 @@ frame with the mouse."
           (lambda (event)
             (interactive "e")
             (when (consp event)
-              (let* ((last-x-y (mouse-absolute-pixel-position))
+              (let* ((last-x-y (if tty
+				   (mouse-position-in-root-frame)
+				 (mouse-absolute-pixel-position)))
 		     (last-x (car last-x-y))
 		     (last-y (cdr last-x-y))
 		     (left (- last-x first-x))
@@ -1655,6 +1665,18 @@ is dragged over to."
 ;; operation.
 (put 'mouse-drag-region 'undo-inhibit-region t)
 
+(defvar mouse-event-areas-with-no-buffer-positions
+  '( mode-line header-line vertical-line
+     left-fringe right-fringe
+     left-margin right-margin
+     tab-bar menu-bar
+     tab-line)
+  "Event areas not containing buffer positions.
+Example: mouse clicks in the fringe come with a position in
+(nth 5).  This is useful but is not where we clicked, so
+don't look up that position's properties!  Likewise for
+the other event areas.")
+
 (defun mouse-posn-property (pos property)
   "Look for a property at click position.
 POS may be either a buffer position or a click position like
@@ -1663,7 +1685,9 @@ a string, the text property PROPERTY is examined.
 If this is nil or the click is not on a string, then
 the corresponding buffer position is searched for PROPERTY.
 If PROPERTY is encountered in one of those places,
-its value is returned."
+its value is returned.  Mouse events in areas listed in
+`mouse-event-areas-with-no-buffer-positions' always return nil
+because such events do not contain buffer positions."
   (if (consp pos)
       (let ((w (posn-window pos)) (pt (posn-point pos))
 	    (str (posn-string pos)))
@@ -1674,12 +1698,12 @@ its value is returned."
 	(or (and str
                  (< (cdr str) (length (car str)))
 		 (get-text-property (cdr str) property (car str)))
-            ;; Mouse clicks in the fringe come with a position in
-            ;; (nth 5).  This is useful but is not exactly where we clicked, so
-            ;; don't look up that position's properties!
-            (and pt (not (memq (posn-area pos)
-                               '(left-fringe right-fringe
-                                 left-margin right-margin tab-bar)))
+            (and pt
+                 (not (memq (posn-area pos)
+                            ;; Don't return position of these mouse
+                            ;; events because they don't describe the
+                            ;; position of the click.
+                            mouse-event-areas-with-no-buffer-positions))
                  (get-char-property pt property w))))
     (get-char-property pos property)))
 

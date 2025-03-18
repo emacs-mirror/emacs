@@ -332,18 +332,78 @@
 
 (ert-deftest erc-scenarios-log--save-buffer-in-logs/truncate-on-save ()
   :tags '(:expensive-test)
+  (with-suppressed-warnings ((obsolete erc-truncate-buffer-on-save))
+    (erc-scenarios-common-with-cleanup
+        ((erc-scenarios-common-dialog "base/assoc/bouncer-history")
+         (dumb-server (erc-d-run "localhost" t 'foonet))
+         (tempdir (make-temp-file "erc-tests-log." t nil nil))
+         (erc-log-channels-directory tempdir)
+         (erc-modules (cons 'log erc-modules))
+         (port (process-contact dumb-server :service))
+         (erc-truncate-buffer-on-save t)
+         (logchan (expand-file-name (format "#chan!tester@127.0.0.1:%d.txt"
+                                            port)
+                                    tempdir))
+         (erc-server-flood-penalty 0.1)
+         (erc-insert-timestamp-function #'erc-insert-timestamp-left)
+         (expect (erc-d-t-make-expecter)))
+
+      (unless noninteractive
+        (add-hook 'kill-emacs-hook
+                  (lambda () (delete-directory tempdir :recursive))))
+
+      (ert-info ("Connect to foonet")
+        (with-current-buffer (erc :server "127.0.0.1"
+                                  :port port
+                                  :nick "tester"
+                                  :password "foonet:changeme"
+                                  :full-name "tester")
+          (should (string= (buffer-name) (format "127.0.0.1:%d" port)))))
+
+      (with-current-buffer (erc-d-t-wait-for 5 (get-buffer "#chan"))
+        (funcall expect 10 "<someone> [07:04:10] hi everyone")
+        (should-not (file-exists-p logchan))
+        ;; Simulate an M-x erc-save-buffer-in-logs RET
+        (cl-letf (((symbol-function 'called-interactively-p) #'always))
+          (call-interactively #'erc-save-buffer-in-logs))
+        (should (file-exists-p logchan))
+        (funcall expect 10 "<alice> bob: As't please your lordship")
+        (erc-save-buffer-in-logs)
+        ;; Not truncated when called by lisp code.
+        (should (> (buffer-size) 400)))
+
+      (ert-info ("No double entries")
+        (with-temp-buffer
+          (insert-file-contents logchan)
+          (funcall expect 0.1 "hi everyone")
+          (funcall expect -0.1 "hi everyone")
+          (funcall expect 0.1 "Playback Complete")
+          (funcall expect -0.1 "Playback Complete")
+          (funcall expect 10 "<alice> bob: As't")))
+
+      (erc-log-mode -1)
+      (when noninteractive (delete-directory tempdir :recursive)))))
+
+(ert-deftest erc-scenarios-log--write-after-insert ()
+  :tags '(:expensive-test :unstable)
+
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/assoc/bouncer-history")
        (dumb-server (erc-d-run "localhost" t 'foonet))
        (tempdir (make-temp-file "erc-tests-log." t nil nil))
        (erc-log-channels-directory tempdir)
-       (erc-modules (cons 'log erc-modules))
+       (erc-modules `(truncate log ,@erc-modules))
+       (erc-max-buffer-size 512)
+       (erc-log-write-after-insert t)
+       (erc-timestamp-format-left "\n[@@DATE__STAMP@@]\n")
+       (erc-truncate-padding-size 512)
        (port (process-contact dumb-server :service))
-       (erc-truncate-buffer-on-save t)
        (logchan (expand-file-name (format "#chan!tester@127.0.0.1:%d.txt" port)
                                   tempdir))
+       (logserv (expand-file-name
+                 (format "127.0.0.1:%d!tester@127.0.0.1:%d.txt" port port)
+                 tempdir))
        (erc-server-flood-penalty 0.1)
-       (erc-insert-timestamp-function #'erc-insert-timestamp-left)
        (expect (erc-d-t-make-expecter)))
 
     (unless noninteractive
@@ -356,30 +416,48 @@
                                 :nick "tester"
                                 :password "foonet:changeme"
                                 :full-name "tester")
-        (should (string= (buffer-name) (format "127.0.0.1:%d" port)))))
+        (should (string= (buffer-name) (format "127.0.0.1:%d" port)))
+        ;; File already exists because `erc-log-write-after-insert' is
+        ;; non-nil.
+        (should (file-exists-p logserv))
+        (should-not (file-exists-p logchan))
+        ;; Verify that truncation actually happens where it should.
+        (funcall expect 10 "*** MAXLIST=beI:60")
+        (should (= (pos-bol) 22))
+        ;; Exactly two + 1 (for date stamp) newlines preserved.
+        (should (string-prefix-p "\n\n\n[" (buffer-string)))))
+
+    (ert-info ("Log file ahead of truncation point")
+      ;; Log contains lines still present in buffer.
+      (with-temp-buffer
+        (insert-file-contents logserv)
+        (funcall expect 10 "@@DATE__STAMP@@")
+        (funcall expect 10 "*** MAXLIST=beI:60")))
 
     (with-current-buffer (erc-d-t-wait-for 5 (get-buffer "#chan"))
-      (funcall expect 10 "<someone> [07:04:10] hi everyone")
-      (should-not (file-exists-p logchan))
-      ;; Simulate an M-x erc-save-buffer-in-logs RET
-      (cl-letf (((symbol-function 'called-interactively-p) #'always))
-        (call-interactively #'erc-save-buffer-in-logs))
+      (funcall expect 10 "@@DATE__STAMP@@")
+      (funcall expect 10 "please your lordship")
       (should (file-exists-p logchan))
-      (funcall expect 10 "<alice> bob: As't please your lordship")
-      (erc-save-buffer-in-logs)
-      ;; Not truncated when called by lisp code.
-      (should (> (buffer-size) 400)))
+      (funcall expect -0.1 "[07:04:37] alice: Here," (point-min)))
 
-    (ert-info ("No double entries")
+    (ert-info ("Log ahead of truncation point")
       (with-temp-buffer
         (insert-file-contents logchan)
-        (funcall expect 0.1 "hi everyone")
-        (funcall expect -0.1 "hi everyone")
-        (funcall expect 0.1 "Playback Complete")
-        (funcall expect -0.1 "Playback Complete")
-        (funcall expect 10 "<alice> bob: As't")))
+        (funcall expect 10 "@@DATE__STAMP@@")
+        (funcall expect 1 "You have joined")
+        ;; No unwanted duplicates.
+        (funcall expect 1 "<bob> [07:04:37] alice: Here,")
+        (funcall expect -0.001 "<bob> [07:04:37] alice: Here,")
+        (funcall expect 1 "<alice> [07:04:42] bob: By my troth")
+        (funcall expect -0.001 "<alice> [07:04:42] bob: By my troth")
+        (funcall expect 1 "I will grant it")
+
+        ;; Writes happen instantly because `erc-log-write-after-insert'
+        ;; is non-nil.  Compare to `erc-scenarios-log--truncate' above.
+        (funcall expect 1 "loathed enemy")))
 
     (erc-log-mode -1)
+    (erc-truncate-mode -1)
     (when noninteractive (delete-directory tempdir :recursive))))
 
 ;;; erc-scenarios-log.el ends here

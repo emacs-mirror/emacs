@@ -863,111 +863,111 @@ struct mstats308,10154
     size_t bytes_free;314,10407
 extern struct mstats mstats 318,10519
 extern void memory_warnings 321,10626
-void *(*__malloc_hook)__malloc_hook352,11745
-char *_heapbase;_heapbase355,11831
-malloc_info *_heapinfo;_heapinfo358,11929
-static size_t heapsize;361,11985
-size_t _heapindex;364,12049
-size_t _heaplimit;367,12111
-struct list _fraghead[_fraghead370,12173
-size_t _chunks_used;373,12231
-size_t _bytes_used;374,12252
-size_t _chunks_free;375,12272
-size_t _bytes_free;376,12293
-int __malloc_initialized;379,12342
-size_t __malloc_extra_blocks;381,12369
-void (*__malloc_initialize_hook)__malloc_initialize_hook383,12400
-void (*__after_morecore_hook)__after_morecore_hook384,12441
-static int state_protected_p;400,12914
-static size_t last_state_size;401,12944
-static malloc_info *last_heapinfo;last_heapinfo402,12975
-protect_malloc_state 405,13016
-#define PROTECT_MALLOC_STATE(426,13629
-#define PROTECT_MALLOC_STATE(429,13699
-align 435,13796
-get_contiguous_space 466,14618
-register_heapinfo 497,15327
-pthread_mutex_t _malloc_mutex 517,15881
-pthread_mutex_t _aligned_blocks_mutex 518,15940
-int _malloc_thread_enabled_p;519,16007
-malloc_atfork_handler_prepare 522,16050
-malloc_atfork_handler_parent 529,16141
-malloc_atfork_handler_child 536,16235
-malloc_enable_thread 544,16377
-malloc_initialize_1 563,16963
-__malloc_initialize 594,17795
-static int morecore_recursing;604,17928
-morecore_nolock 609,18068
-_malloc_internal_nolock 722,21586
-_malloc_internal 920,28104
-malloc 932,28249
-extern void *_malloc _malloc956,29035
-extern void _free 957,29066
-extern void *_realloc _realloc958,29094
-_malloc 961,29142
-_free 967,29198
-_realloc 973,29242
-void (*__free_hook)__free_hook1001,30262
-struct alignlist *_aligned_blocks _aligned_blocks1004,30348
-_free_internal_nolock 1009,30477
-_free_internal 1255,38479
-free 1265,38606
-weak_alias 1277,38802
-#define min(1306,39817
-void *(*__realloc_hook)__realloc_hook1310,39902
-_realloc_internal_nolock 1319,40313
-_realloc_internal 1435,43567
-realloc 1447,43730
-calloc 1478,44899
-#define	__sbrk	1513,46048
-extern void *__sbrk __sbrk1518,46253
-__default_morecore 1525,46517
-void *(*__memalign_hook)__memalign_hook1554,47463
-aligned_alloc 1557,47529
-memalign 1647,49711
-posix_memalign 1656,49916
-extern void *valloc valloc1695,51148
-extern int getpagesize 1700,51286
-static size_t pagesize;1703,51325
-valloc 1706,51357
-#undef malloc1715,51498
-#undef realloc1716,51512
-#undef calloc1717,51527
-#undef aligned_alloc1718,51541
-#undef free1719,51562
-extern void *malloc malloc1722,51617
-extern void *realloc realloc1723,51652
-extern void *calloc calloc1724,51699
-extern void free 1725,51748
-extern void *aligned_alloc aligned_alloc1727,51804
-extern int posix_memalign 1729,51898
-hybrid_malloc 1736,52091
-hybrid_calloc 1744,52196
-hybrid_free 1752,52327
-hybrid_aligned_alloc 1765,52634
-hybrid_realloc 1780,52990
-char *gget_current_dir_name gget_current_dir_name1808,53759
-hybrid_get_current_dir_name 1811,53803
-static void (*old_free_hook)old_free_hook1846,54928
-static void *(*old_malloc_hook)old_malloc_hook1847,54970
-static void *(*old_realloc_hook)old_realloc_hook1848,55017
-static void (*abortfunc)abortfunc1851,55131
-#define MAGICWORD	1854,55213
-#define MAGICFREE	1855,55268
-#define MAGICBYTE	1856,55323
-#define MALLOCFLOOD	1857,55355
-#define FREEFLOOD	1858,55389
-struct hdr1860,55422
-    size_t size;1862,55437
-    size_t magic;1863,55491
-checkhdr 1867,55588
-freehook 1891,56029
-mallochook 1927,56811
-reallochook 1944,57150
-mabort 1978,57908
-static int mcheck_used 2012,58593
-mcheck 2015,58626
-mprobe 2035,59145
+void *(*__malloc_hook)__malloc_hook353,11766
+char *_heapbase;_heapbase356,11852
+malloc_info *_heapinfo;_heapinfo359,11950
+static size_t heapsize;362,12006
+size_t _heapindex;365,12070
+size_t _heaplimit;368,12132
+struct list _fraghead[_fraghead371,12194
+size_t _chunks_used;374,12252
+size_t _bytes_used;375,12273
+size_t _chunks_free;376,12293
+size_t _bytes_free;377,12314
+int __malloc_initialized;380,12363
+size_t __malloc_extra_blocks;382,12390
+void (*__malloc_initialize_hook)__malloc_initialize_hook384,12421
+void (*__after_morecore_hook)__after_morecore_hook385,12462
+static int state_protected_p;401,12935
+static size_t last_state_size;402,12965
+static malloc_info *last_heapinfo;last_heapinfo403,12996
+protect_malloc_state 406,13037
+#define PROTECT_MALLOC_STATE(427,13650
+#define PROTECT_MALLOC_STATE(430,13720
+align 436,13817
+get_contiguous_space 467,14639
+register_heapinfo 498,15348
+pthread_mutex_t _malloc_mutex 518,15902
+pthread_mutex_t _aligned_blocks_mutex 519,15961
+int _malloc_thread_enabled_p;520,16028
+malloc_atfork_handler_prepare 523,16071
+malloc_atfork_handler_parent 530,16162
+malloc_atfork_handler_child 537,16256
+malloc_enable_thread 545,16398
+malloc_initialize_1 564,16984
+__malloc_initialize 595,17816
+static int morecore_recursing;605,17949
+morecore_nolock 610,18089
+_malloc_internal_nolock 723,21607
+_malloc_internal 921,28125
+malloc 933,28270
+extern void *_malloc _malloc957,29056
+extern void _free 958,29087
+extern void *_realloc _realloc959,29115
+_malloc 962,29163
+_free 968,29219
+_realloc 974,29263
+void (*__free_hook)__free_hook1003,30310
+struct alignlist *_aligned_blocks _aligned_blocks1006,30396
+_free_internal_nolock 1011,30525
+_free_internal 1257,38527
+free 1267,38654
+weak_alias 1279,38850
+#define min(1309,39886
+void *(*__realloc_hook)__realloc_hook1313,39971
+_realloc_internal_nolock 1322,40382
+_realloc_internal 1438,43636
+realloc 1450,43799
+calloc 1481,44973
+#define	__sbrk	1516,46115
+extern void *__sbrk __sbrk1521,46320
+__default_morecore 1528,46584
+void *(*__memalign_hook)__memalign_hook1557,47527
+aligned_alloc 1560,47593
+memalign 1650,49775
+posix_memalign 1659,49980
+extern void *valloc valloc1699,51243
+extern int getpagesize 1704,51381
+static size_t pagesize;1707,51420
+valloc 1710,51452
+#undef malloc1719,51593
+#undef realloc1720,51607
+#undef calloc1721,51622
+#undef aligned_alloc1722,51636
+#undef free1723,51657
+extern void *malloc malloc1726,51712
+extern void *realloc realloc1727,51747
+extern void *calloc calloc1728,51794
+extern void free 1729,51843
+extern void *aligned_alloc aligned_alloc1731,51899
+extern int posix_memalign 1733,51993
+hybrid_malloc 1740,52186
+hybrid_calloc 1748,52291
+hybrid_free 1756,52422
+hybrid_aligned_alloc 1769,52729
+hybrid_realloc 1784,53085
+char *gget_current_dir_name gget_current_dir_name1812,53854
+hybrid_get_current_dir_name 1815,53898
+static void (*old_free_hook)old_free_hook1851,55050
+static void *(*old_malloc_hook)old_malloc_hook1852,55092
+static void *(*old_realloc_hook)old_realloc_hook1853,55139
+static void (*abortfunc)abortfunc1856,55253
+#define MAGICWORD	1859,55335
+#define MAGICFREE	1860,55390
+#define MAGICBYTE	1861,55445
+#define MALLOCFLOOD	1862,55477
+#define FREEFLOOD	1863,55511
+struct hdr1865,55544
+    size_t size;1867,55559
+    size_t magic;1868,55613
+checkhdr 1872,55710
+freehook 1896,56151
+mallochook 1932,56933
+reallochook 1949,57272
+mabort 1983,58030
+static int mcheck_used 2017,58715
+mcheck 2020,58748
+mprobe 2040,59267
 
 c-src/emacs/src/regex.h,5300
 #define _REGEX_H 21,837
@@ -5769,62 +5769,62 @@ y-src/parse.c,520
 # define	L_GE	27,510
 
 /usr/share/bison/bison.simple,1787
-# define YYSTD(40,
-# define YYSTD(42,
-#  define YYSTACK_ALLOC 50,
-#  define YYSIZE_T 51,
-#    define YYSTACK_ALLOC 55,
-#    define YYSIZE_T 56,
-#     define YYSTACK_ALLOC 59,
-#  define YYSTACK_FREE(67,
-#   define YYSIZE_T 71,
-#    define YYSIZE_T 75,
-#  define YYSTACK_ALLOC 78,
-#  define YYSTACK_FREE 79,
-union yyalloc83,
-  short yyss;85,
-  YYSTYPE yyvs;86,
-  YYLTYPE yyls;88,
-# define YYSTACK_GAP_MAX 93,
-#  define YYSTACK_BYTES(98,
-#  define YYSTACK_BYTES(102,
-# define YYSTACK_RELOCATE(112,
-# define YYSIZE_T 128,
-# define YYSIZE_T 131,
-#  define YYSIZE_T 136,
-#   define YYSIZE_T 140,
-# define YYSIZE_T 145,
-#define yyerrok	148,
-#define yyclearin	149,
-#define YYEMPTY	150,
-#define YYEOF	151,
-#define YYACCEPT	152,
-#define YYABORT 153,
-#define YYERROR	154,
-#define YYFAIL	158,
-#define YYRECOVERING(159,
-#define YYBACKUP(160,
-#define YYTERROR	177,
-#define YYERRCODE	178,
-# define YYLLOC_DEFAULT(189,
-#   define YYLEX	200,
-#   define YYLEX	202,
-#   define YYLEX	206,
-#   define YYLEX	208,
-# define YYLEX	212,
-#  define YYFPRINTF 225,
-# define YYDPRINTF(228,
-int yydebug;237,
-# define YYDPRINTF(239,
-# define YYINITDEPTH 244,
-# undef YYMAXDEPTH255,
-# define YYMAXDEPTH 259,
-#  define yymemcpy 264,
-yymemcpy 271,
-#   define yystrlen 293,
-yystrlen 298,
-#   define yystpcpy 316,
-yystpcpy 322,
+# define YYSTD(41,
+# define YYSTD(43,
+#  define YYSTACK_ALLOC 51,
+#  define YYSIZE_T 52,
+#    define YYSTACK_ALLOC 56,
+#    define YYSIZE_T 57,
+#     define YYSTACK_ALLOC 60,
+#  define YYSTACK_FREE(68,
+#   define YYSIZE_T 72,
+#    define YYSIZE_T 76,
+#  define YYSTACK_ALLOC 79,
+#  define YYSTACK_FREE 80,
+union yyalloc84,
+  short yyss;86,
+  YYSTYPE yyvs;87,
+  YYLTYPE yyls;89,
+# define YYSTACK_GAP_MAX 94,
+#  define YYSTACK_BYTES(99,
+#  define YYSTACK_BYTES(103,
+# define YYSTACK_RELOCATE(113,
+# define YYSIZE_T 129,
+# define YYSIZE_T 132,
+#  define YYSIZE_T 137,
+#   define YYSIZE_T 141,
+# define YYSIZE_T 146,
+#define yyerrok	149,
+#define yyclearin	150,
+#define YYEMPTY	151,
+#define YYEOF	152,
+#define YYACCEPT	153,
+#define YYABORT 154,
+#define YYERROR	155,
+#define YYFAIL	159,
+#define YYRECOVERING(160,
+#define YYBACKUP(161,
+#define YYTERROR	178,
+#define YYERRCODE	179,
+# define YYLLOC_DEFAULT(190,
+#   define YYLEX	201,
+#   define YYLEX	203,
+#   define YYLEX	207,
+#   define YYLEX	209,
+# define YYLEX	213,
+#  define YYFPRINTF 226,
+# define YYDPRINTF(229,
+int yydebug;238,
+# define YYDPRINTF(240,
+# define YYINITDEPTH 245,
+# undef YYMAXDEPTH256,
+# define YYMAXDEPTH 260,
+#  define yymemcpy 265,
+yymemcpy 272,
+#   define yystrlen 294,
+yystrlen 299,
+#   define yystpcpy 317,
+yystpcpy 323,
 #  define YYPARSE_PARAM_ARG 351,
 #  define YYPARSE_PARAM_DECL352,
 #  define YYPARSE_PARAM_ARG 354,

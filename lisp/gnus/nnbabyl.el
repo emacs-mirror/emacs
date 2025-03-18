@@ -101,7 +101,7 @@
 	  (insert ".\n"))
 	(and (numberp nnmail-large-newsgroup)
 	     (> number nnmail-large-newsgroup)
-	     (zerop (% (cl-incf count) 20))
+             (zerop (% (incf count) 20))
 	     (nnheader-message 5 "nnbabyl: Receiving headers... %d%%"
 			       (floor (* count 100.0) number))))
 

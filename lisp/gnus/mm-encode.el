@@ -207,7 +207,7 @@ This is either `base64' or `quoted-printable'."
 	(goto-char (point-min))
 	(skip-chars-forward "\x20-\x7f\r\n\t" limit)
 	(while (< (point) limit)
-	  (cl-incf n8bit)
+          (incf n8bit)
 	  (forward-char 1)
 	  (skip-chars-forward "\x20-\x7f\r\n\t" limit))
 	(if (or (< (* 6 n8bit) (- limit (point-min)))

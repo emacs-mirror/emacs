@@ -28,7 +28,7 @@
 ;;
 ;; You can bind this to a key by adding this to your Init file:
 ;;
-;;   (global-set-key [(control return)] 'calculator)
+;;   (keymap-global-set "C-<return>" #'calculator)
 ;;
 ;; Written by Eli Barzilay, eli@barzilay.org
 

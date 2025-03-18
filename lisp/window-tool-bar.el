@@ -7,7 +7,7 @@
 ;; Version: 0.3
 ;; Keywords: mouse
 ;; URL: http://github.com/chaosemer/window-tool-bar
-;; Package-Requires: ((emacs "27.1") (compat "29.1"))
+;; Package-Requires: ((emacs "27.1") (compat "30"))
 
 ;; This is a GNU ELPA :core package.  Avoid adding functionality that
 ;; is not available in the version of Emacs recorded above or any of
@@ -234,10 +234,10 @@ This is for when you want more customizations than the command
                                   (propertize " " 'invisible t))))
              (mem2 (memory-use-counts)))
         (cl-mapl (lambda (l-init l0 l1)
-                   (cl-incf (car l-init) (- (car l1) (car l0))))
+                   (incf (car l-init) (- (car l1) (car l0))))
                  window-tool-bar--memory-use-delta-step1 mem0 mem1)
         (cl-mapl (lambda (l-init l1 l2)
-                   (cl-incf (car l-init) (- (car l2) (car l1))))
+                   (incf (car l-init) (- (car l2) (car l1))))
                  window-tool-bar--memory-use-delta-step2 mem1 mem2)
 
         (setf window-tool-bar-string--cache
@@ -251,8 +251,8 @@ This is for when you want more customizations than the command
                      '(:box (line-width 1)))
                     (propertize " " 'display '(space :width (1))))
                result))
-        (cl-incf window-tool-bar--refresh-done-count))
-    (cl-incf window-tool-bar--refresh-skipped-count))
+        (incf window-tool-bar--refresh-done-count))
+    (incf window-tool-bar--refresh-skipped-count))
 
   window-tool-bar-string--cache)
 
@@ -385,26 +385,13 @@ MENU-ITEM is a menu item to convert.  See info node `(elisp)Tool Bar'."
   (interactive)
   nil)
 
-;; static-if was added in Emacs 30, but this packages supports earlier
-;; versions.
-(defmacro window-tool-bar--static-if (condition then-form &rest else-forms)
-  "A conditional compilation macro.
-Evaluate CONDITION at macro-expansion time.  If it is non-nil,
-expand the macro to THEN-FORM.  Otherwise expand it to ELSE-FORMS
-enclosed in a `progn' form.  ELSE-FORMS may be empty."
-  (declare (indent 2)
-           (debug (sexp sexp &rest sexp)))
-  (if (eval condition lexical-binding)
-      then-form
-    (cons 'progn else-forms)))
-
 (defvar window-tool-bar--ignored-event-types
   (let ((list (append
                '(mouse-movement pinch
                  wheel-down wheel-up wheel-left wheel-right)
                ;; Prior to emacs 30, wheel events could also surface as
                ;; mouse-<NUM> buttons.
-               (window-tool-bar--static-if (version< emacs-version "30")
+               (static-if (< emacs-major-version 30)
                    (list
                     mouse-wheel-down-event mouse-wheel-up-event
                     mouse-wheel-left-event mouse-wheel-right-event

@@ -54,8 +54,8 @@
 ;; correctly if `repeat' is invoked through a rebinding to a single keystroke
 ;; and the global variable repeat-on-final-keystroke is set to a value
 ;; that doesn't include that keystroke.  For example, the lines
-;;   (global-set-key "\C-z" 'repeat)
-;;   (setq repeat-on-final-keystroke "z")
+;;   (keymap-global-set "C-z" #'repeat)
+;;   (setopt repeat-on-final-keystroke "z")
 ;; in your .emacs would allow `edit-kbd-macro' to work correctly when C-z was
 ;; used in a keyboard macro to invoke `repeat', but would still allow C-x z
 ;; to be used for `repeat' elsewhere.  The real reason for documenting this

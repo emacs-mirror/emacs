@@ -345,7 +345,7 @@ calling this function)."
           (if stderr
               (let ((target (eshell-get-target stderr error-mode)))
                 (cons (when target (list target)) 1))
-            (cl-incf (cdr output-target))
+            (incf (cdr output-target))
             output-target)))
     (aset handles eshell-output-handle (list output-target t))
     (aset handles eshell-error-handle (list error-target t))
@@ -366,7 +366,7 @@ is not shared with the original handles."
     (dotimes (idx eshell-number-of-handles)
       (when-let* ((handle (aref handles idx)))
         (unless steal-p
-          (cl-incf (cdar handle)))
+          (incf (cdar handle)))
         (aset dup-handles idx (list (car handle) t))))
     dup-handles))
 
@@ -374,7 +374,7 @@ is not shared with the original handles."
   "Protect the handles in HANDLES from a being closed."
   (dotimes (idx eshell-number-of-handles)
     (when-let* ((handle (aref handles idx)))
-      (cl-incf (cdar handle))))
+      (incf (cdar handle))))
   handles)
 
 (declare-function eshell-exit-success-p "esh-cmd")
@@ -442,7 +442,7 @@ If HANDLES is nil, use `eshell-current-handles'."
   (let* ((handles (or handles eshell-current-handles))
          (handle-to-copy (car (aref handles index-to-copy))))
     (when handle-to-copy
-      (cl-incf (cdr handle-to-copy)))
+      (incf (cdr handle-to-copy)))
     (eshell-close-handle (aref handles index) nil)
     (setcar (aref handles index) handle-to-copy)))
 
@@ -527,8 +527,8 @@ When the buffer exceeds `eshell-buffered-print-size' in characters, this
 will flush it using `eshell-flush' (which see)."
   (setq eshell--buffered-print-queue
         (nconc eshell--buffered-print-queue strings))
-  (cl-incf eshell--buffered-print-current-size
-           (apply #'+ (mapcar #'length strings)))
+  (incf eshell--buffered-print-current-size
+        (apply #'+ (mapcar #'length strings)))
   (when (> eshell--buffered-print-current-size eshell-buffered-print-size)
     (eshell-flush)))
 
