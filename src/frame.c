@@ -3705,7 +3705,10 @@ store_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)
     {
       if (NILP (f->parent_frame) != NILP (val))
 	error ("Making a root frame a child or vice versa is not supported");
+
+      SET_FRAME_GARBAGED (root_frame (f));
       f->parent_frame = val;
+      SET_FRAME_GARBAGED (root_frame (f));
     }
 
   /* The tty color needed to be set before the frame's parameter
