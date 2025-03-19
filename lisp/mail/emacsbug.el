@@ -543,10 +543,11 @@ Message buffer where you can explain more about the patch."
                  (with-temp-buffer
                    (insert-file-contents file)
                    (while (search-forward-regexp "^\\+\\{3\\} ./\\(.*\\)" nil t)
-                     (push (expand-file-name
-                            (match-string-no-properties 1)
-                            source-directory)
-                           files)))
+                     (let ((file (expand-file-name
+                                  (match-string-no-properties 1)
+                                  source-directory)))
+                       (when (file-readable-p file)
+                         (push file files)))))
                  (mapcan
                   (lambda (patch)
                     (seq-remove
