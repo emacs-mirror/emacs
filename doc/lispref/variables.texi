@@ -2920,6 +2920,10 @@ the list stored in @var{place}.  It is analogous to @code{(setf
 subforms.  Note that @code{push} and @code{pop} on an @code{nthcdr}
 place can be used to insert or delete at any position in a list.
 
+Similarly, the macros @code{incf} and @code{decf} (@pxref{Arithmetic
+Operations}) can be used to increment or decrement generalized
+variables that are numbers.
+
 The @file{cl-lib} library defines various extensions for generalized
 variables, including additional @code{setf} places.
 @xref{Generalized Variables,,, cl, Common Lisp Extensions}.
