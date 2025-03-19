@@ -1845,6 +1845,50 @@ Intended for `eldoc-documentation-functions' (which see)."
                          'font-lock-function-name-face
                        'font-lock-keyword-face)))))
 
+(defcustom elisp-eldoc-funcall-with-docstring-length 'short
+  "Control length of doc string shown by `elisp-eldoc-funcall-with-docstring'.
+If set to `short', only show the first sentence of the doc string.
+Otherwise if set to `full', display full doc string."
+  :type '(choice
+          (const :tag "Short" short)
+          (const :tag "Full" full))
+  :group 'elisp
+  :version "31.1")
+
+(defun elisp-eldoc-funcall-with-docstring (callback &rest _ignored)
+  "Document function call at point by calling CALLBACK.
+Intended for `eldoc-documentation-functions' (which see).
+Compared to `elisp-eldoc-funcall', this also includes the
+current function doc string, doc string length depends on
+`elisp-eldoc-funcall-with-docstring-length'."
+  (let* ((sym-info (elisp--fnsym-in-current-sexp))
+         (fn-sym (car sym-info))
+         (doc (when (fboundp fn-sym)
+                (propertize
+                 (cdr (help-split-fundoc
+                       (condition-case nil (documentation fn-sym t)
+                         (invalid-function nil))
+                       fn-sym))
+                 'face 'font-lock-doc-face))))
+    (when fn-sym
+      (funcall callback
+               (concat (apply #'elisp-get-fnsym-args-string sym-info)
+                       ;; Ensure not display the docstring in the
+                       ;; mode-line.
+                       (when (and doc (not (minibufferp)))
+                         (concat
+                          "\n"
+                          (pcase elisp-eldoc-funcall-with-docstring-length
+                            ('full doc)
+                            ('short
+                             (save-match-data
+                               (when (string-match "\\." doc)
+                                 (concat "\n" (substring doc 0 (match-end 0))))))))))
+               :thing fn-sym
+               :face (if (functionp fn-sym)
+                         'font-lock-function-name-face
+                       'font-lock-keyword-face)))))
+
 (defun elisp-eldoc-var-docstring (callback &rest _ignored)
   "Document variable at point by calling CALLBACK.
 Intended for `eldoc-documentation-functions' (which see).

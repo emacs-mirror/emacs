@@ -565,6 +565,19 @@ The prompts 'opstring' and 'active-opstring' can now either be strings
 or functions.  This is useful when your prompts can benefit from dynamic
 content.
 
+** ElDoc
+---
+*** New eldoc function 'elisp-eldoc-funcall-with-docstring'.
+This function includes the current function docstring in eldoc echo area
+and can be used as a more detailed alternative to 'elisp-eldoc-funcall'.
+
+---
+*** New user option 'elisp-eldoc-funcall-with-docstring-length'.
+This user option specifies how long function docstring must be displayed
+in 'elisp-eldoc-funcall-with-docstring'.  If set to 'short' only display
+cut docstring before period.  Otherwise if set to 'full', display full
+docstring.'
+
 ---
 ** Buffer Menu
 
