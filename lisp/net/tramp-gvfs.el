@@ -1051,100 +1051,106 @@ file names."
       (progn
 	(copy-directory filename newname keep-date t)
 	(when (eq op 'rename) (delete-directory filename 'recursive)))
+    (if (file-symlink-p filename)
+	(progn
+	  (make-symbolic-link
+	   (file-symlink-p filename) newname ok-if-already-exists)
+	  (when (eq op 'rename) (delete-file filename)))
 
-    (let ((t1 (tramp-tramp-file-p filename))
-	  (t2 (tramp-tramp-file-p newname))
-	  (equal-remote (tramp-equal-remote filename newname))
-	  (volatile
-	   (and (eq op 'rename) (tramp-gvfs-file-name-p filename)
-		(equal
-		 (cdr
-		  (assoc
-		   "standard::is-volatile"
-		   (tramp-gvfs-get-file-attributes filename)))
-		 "TRUE")))
-	  ;; "gvfs-rename" is not trustworthy.
-	  (gvfs-operation (if (eq op 'copy) "gvfs-copy" "gvfs-move"))
-	  (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
+      (let ((t1 (tramp-tramp-file-p filename))
+	    (t2 (tramp-tramp-file-p newname))
+	    (equal-remote (tramp-equal-remote filename newname))
+	    (volatile
+	     (and (eq op 'rename) (tramp-gvfs-file-name-p filename)
+		  (equal
+		   (cdr
+		    (assoc
+		     "standard::is-volatile"
+		     (tramp-gvfs-get-file-attributes filename)))
+		   "TRUE")))
+	    ;; "gvfs-rename" is not trustworthy.
+	    (gvfs-operation (if (eq op 'copy) "gvfs-copy" "gvfs-move"))
+	    (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
 
-      (with-parsed-tramp-file-name (if t1 filename newname) nil
-	(tramp-barf-if-file-missing v filename
-	  (when (and (not ok-if-already-exists) (file-exists-p newname))
-	    (tramp-error v 'file-already-exists newname))
-	  (when (and (file-directory-p newname)
-		     (not (directory-name-p newname)))
-	    (tramp-error v 'file-error "File is a directory %s" newname))
-	  (when (file-regular-p newname)
-	    (delete-file newname))
+	(with-parsed-tramp-file-name (if t1 filename newname) nil
+	  (tramp-barf-if-file-missing v filename
+	    (when (and (not ok-if-already-exists) (file-exists-p newname))
+	      (tramp-error v 'file-already-exists newname))
+	    (when (and (file-directory-p newname)
+		       (not (directory-name-p newname)))
+	      (tramp-error v 'file-error "File is a directory %s" newname))
+	    (when (file-regular-p newname)
+	      (delete-file newname))
 
-	  (cond
-	   ;; We cannot rename volatile files, as used by Google-drive.
-	   ((and (not equal-remote) volatile)
-	    (prog1 (copy-file
-		    filename newname ok-if-already-exists keep-date
-		    preserve-uid-gid preserve-extended-attributes)
-	      (delete-file filename)))
+	    (cond
+	     ;; We cannot rename volatile files, as used by Google-drive.
+	     ((and (not equal-remote) volatile)
+	      (prog1 (copy-file
+		      filename newname ok-if-already-exists keep-date
+		      preserve-uid-gid preserve-extended-attributes)
+		(delete-file filename)))
 
-	   ;; We cannot copy or rename directly.
-	   ((or (and equal-remote
-		     (tramp-get-connection-property v "direct-copy-failed"))
-		(and t1 (not (tramp-gvfs-file-name-p filename)))
-		(and t2 (not (tramp-gvfs-file-name-p newname))))
-	    (let ((tmpfile (tramp-compat-make-temp-file filename)))
-	      (if (eq op 'copy)
-		  (copy-file
-		   filename tmpfile t keep-date preserve-uid-gid
-		   preserve-extended-attributes)
-		(rename-file filename tmpfile t))
-	      (rename-file tmpfile newname ok-if-already-exists)))
+	     ;; We cannot copy or rename directly.
+	     ((or (and equal-remote
+		       (tramp-get-connection-property v "direct-copy-failed"))
+		  (and t1 (not (tramp-gvfs-file-name-p filename)))
+		  (and t2 (not (tramp-gvfs-file-name-p newname))))
+	      (let ((tmpfile (tramp-compat-make-temp-file filename)))
+		(if (eq op 'copy)
+		    (copy-file
+		     filename tmpfile t keep-date preserve-uid-gid
+		     preserve-extended-attributes)
+		  (rename-file filename tmpfile t))
+		(rename-file tmpfile newname ok-if-already-exists)))
 
-	   ;; Direct action.
-	   (t (with-tramp-progress-reporter
-		  v 0 (format "%s %s to %s" msg-operation filename newname)
-		(unless
-		    (and (apply
-			  #'tramp-gvfs-send-command v gvfs-operation
-			  (append
-			   (and (eq op 'copy) (or keep-date preserve-uid-gid)
-				'("--preserve"))
-			   (list
-			    (tramp-gvfs-url-file-name filename)
-			    (tramp-gvfs-url-file-name newname))))
-			 ;; Some backends do not return a proper error
-			 ;; code in case of direct copy/move.  Apply
-			 ;; sanity checks.
-			 (or (not equal-remote)
-			     (and
-			      (tramp-gvfs-info newname)
-			      (or (eq op 'copy)
-				  (not (tramp-gvfs-info filename))))))
+	     ;; Direct action.
+	     (t (with-tramp-progress-reporter
+		    v 0 (format "%s %s to %s" msg-operation filename newname)
+		  (unless
+		      (and (apply
+			    #'tramp-gvfs-send-command v gvfs-operation
+			    (append
+			     (and (eq op 'copy) (or keep-date preserve-uid-gid)
+				  '("--preserve"))
+			     (list
+			      (tramp-gvfs-url-file-name filename)
+			      (tramp-gvfs-url-file-name newname))))
+			   ;; Some backends do not return a proper
+			   ;; error code in case of direct copy/move.
+			   ;; Apply sanity checks.
+			   (or (not equal-remote)
+			       (and
+				(tramp-gvfs-info newname)
+				(or (eq op 'copy)
+				    (not (tramp-gvfs-info filename))))))
 
-		  (if (or (not equal-remote)
-			  (and equal-remote
-			       (tramp-get-connection-property
-				v "direct-copy-failed")))
-		      ;; Propagate the error.
-		      (with-current-buffer (tramp-get-connection-buffer v)
-			(goto-char (point-min))
-			(tramp-error-with-buffer
-			 nil v 'file-error
-			 "%s failed, see buffer `%s' for details"
-			 msg-operation (buffer-name)))
+		    (if (or (not equal-remote)
+			    (and equal-remote
+				 (tramp-get-connection-property
+				  v "direct-copy-failed")))
+			;; Propagate the error.
+			(with-current-buffer (tramp-get-connection-buffer v)
+			  (goto-char (point-min))
+			  (tramp-error-with-buffer
+			   nil v 'file-error
+			   "%s failed, see buffer `%s' for details"
+			   msg-operation (buffer-name)))
 
-		    ;; Some WebDAV server, like the one from QNAP, do
-		    ;; not support direct copy/move.  Try a fallback.
-		    (tramp-set-connection-property v "direct-copy-failed" t)
-		    (tramp-gvfs-do-copy-or-rename-file
-		     op filename newname ok-if-already-exists keep-date
-		     preserve-uid-gid preserve-extended-attributes))))
+		      ;; Some WebDAV server, like the one from QNAP,
+		      ;; do not support direct copy/move.  Try a
+		      ;; fallback.
+		      (tramp-set-connection-property v "direct-copy-failed" t)
+		      (tramp-gvfs-do-copy-or-rename-file
+		       op filename newname ok-if-already-exists keep-date
+		       preserve-uid-gid preserve-extended-attributes))))
 
-	      (when (and t1 (eq op 'rename))
-		(with-parsed-tramp-file-name filename nil
-		  (tramp-flush-file-properties v localname)))
+		(when (and t1 (eq op 'rename))
+		  (with-parsed-tramp-file-name filename nil
+		    (tramp-flush-file-properties v localname)))
 
-	      (when t2
-		(with-parsed-tramp-file-name newname nil
-		  (tramp-flush-file-properties v localname))))))))))
+		(when t2
+		  (with-parsed-tramp-file-name newname nil
+		    (tramp-flush-file-properties v localname)))))))))))
 
 (defun tramp-gvfs-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date

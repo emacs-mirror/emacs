@@ -5309,19 +5309,20 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    ;; 	(delete-file tmp-name)))
 
 	    ;; Check remote and local STDERR.
-	    (dolist (local '(nil t))
-	      (setq tmp-name (tramp--test-make-temp-name local quoted))
-	      (should-not
-	       (zerop
-		(process-file "cat" nil `(t ,tmp-name) nil "/does-not-exist")))
-	      (with-temp-buffer
-		(insert-file-contents tmp-name)
-		(should
-		 (string-match-p
-		  (rx "cat:" (* nonl) " No such file or directory")
-		  (buffer-string)))
-		(should-not (get-buffer-window (current-buffer) t))
-		(delete-file tmp-name))))
+	    (unless (tramp--test-sshfs-p)
+	      (dolist (local '(nil t))
+		(setq tmp-name (tramp--test-make-temp-name local quoted))
+		(should-not
+		 (zerop
+		  (process-file "cat" nil `(t ,tmp-name) nil "/does-not-exist")))
+		(with-temp-buffer
+		  (insert-file-contents tmp-name)
+		  (should
+		   (string-match-p
+		    (rx "cat:" (* nonl) " No such file or directory")
+		    (buffer-string)))
+		  (should-not (get-buffer-window (current-buffer) t))
+		  (delete-file tmp-name)))))
 
 	;; Cleanup.
 	(ignore-errors (kill-buffer buffer))
