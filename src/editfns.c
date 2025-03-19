@@ -2305,6 +2305,19 @@ Both characters must have the same length of multi-byte form.  */)
     = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   int fromc, toc;
 
+#ifdef HAVE_TREE_SITTER
+  ptrdiff_t start_char = fix_position (start);
+  ptrdiff_t old_end_char = fix_position (end);
+  ptrdiff_t start_byte = CHAR_TO_BYTE (start_char);
+  ptrdiff_t old_end_byte = CHAR_TO_BYTE (old_end_char);
+  struct ts_linecol start_linecol
+    = treesit_linecol_maybe (start_char, start_byte,
+			     BUF_TS_LINECOL_POINT (current_buffer));
+  struct ts_linecol old_end_linecol
+    = treesit_linecol_maybe (old_end_char, old_end_byte,
+			     BUF_TS_LINECOL_POINT (current_buffer));
+#endif
+
  restart:
 
   validate_region (&start, &end);
@@ -2405,7 +2418,8 @@ Both characters must have the same length of multi-byte form.  */)
   if (changed > 0)
     {
 #ifdef HAVE_TREE_SITTER
-      treesit_record_change (changed, last_changed, last_changed);
+      treesit_record_change (start_byte, old_end_byte, old_end_byte,
+			     start_linecol, old_end_linecol, old_end_char);
 #endif
       signal_after_change (changed,
 			   last_changed - changed, last_changed - changed);
@@ -2592,6 +2606,15 @@ It returns the number of characters changed.  */)
 		}
 	      else
 		{
+#ifdef HAVE_TREE_SITTER
+		  struct ts_linecol linecol_cache
+		    = BUF_TS_LINECOL_POINT (current_buffer);
+		  struct ts_linecol start_linecol
+		    = treesit_linecol_maybe (pos, pos_byte, linecol_cache);
+		  struct ts_linecol old_end_linecol
+		    = treesit_linecol_maybe (pos + 1, pos_byte + len,
+					     start_linecol);
+#endif
 		  record_change (pos, 1);
 		  while (str_len-- > 0)
 		    *p++ = *str++;
@@ -2604,7 +2627,8 @@ It returns the number of characters changed.  */)
                      modified buffer content manually, so we need to
                      notify tree-sitter manually.  */
 		  treesit_record_change (pos_byte, pos_byte + len,
-					 pos_byte + len);
+					 pos_byte + len, start_linecol,
+					 old_end_linecol, pos + 1);
 #endif
 		}
 	      characters_changed++;
@@ -4555,6 +4579,15 @@ ring.  */)
   start1_byte = CHAR_TO_BYTE (start1);
   end2_byte = CHAR_TO_BYTE (end2);
 
+#ifdef HAVE_TREE_SITTER
+  struct ts_linecol start_linecol
+    = treesit_linecol_maybe (start1, start1_byte,
+			     BUF_TS_LINECOL_POINT (current_buffer));
+  struct ts_linecol old_end_linecol
+    = treesit_linecol_maybe (end2, end2_byte,
+			     BUF_TS_LINECOL_POINT (current_buffer));
+#endif
+
   /* Make sure the gap won't interfere, by moving it out of the text
      we will operate on.  */
   if (start1 < gap && gap < end2)
@@ -4694,10 +4727,8 @@ ring.  */)
     }
 
 #ifdef HAVE_TREE_SITTER
-  /* I don't think it's common to transpose two far-apart regions, so
-     amalgamating the edit into one should be fine.  This is what the
-     signal_after_change below does, too.  */
-  treesit_record_change (start1_byte, end2_byte, end2_byte);
+  treesit_record_change (start1_byte, end2_byte, end2_byte,
+			 start_linecol, old_end_linecol, end2);
 #endif
 
   signal_after_change (start1, end2 - start1, end2 - start1);

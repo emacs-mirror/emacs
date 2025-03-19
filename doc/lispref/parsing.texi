@@ -419,6 +419,27 @@ tree-sitter can be activated.  Major modes should check this value
 when deciding whether to enable tree-sitter features.
 @end defvar
 
+@defvar treesit-languages-require-line-column-tracking
+Emacs by default doesn't keep track of line and column numbers for
+positions in a buffer.  However, some language grammars utilize the line
+and column information for parsing.  If parsers of these languages are
+created in a buffer, Emacs will turn on line and column tracking and
+report these information to these parsers.  Once the buffer starts
+tracking line and column, it never stops doing so.  And once a parser is
+created as tracking/not-tracking line and column, it stays that way
+regardless of changes to this variable.
+
+This variable is a list of languages that require line and column
+tracking.  The vast majority of languages don't need line and column
+information.  So far, only Haskell is known to need it.
+
+@findex treesit-tracking-line-column-p
+@findex treesit-parser-tracking-line-column-p
+User can use @code{treesit-tracking-line-column-p} and
+@code{treesit-parser-tracking-line-column-p} to check if a buffer or
+parser is tracking line and column, respectively.
+@end defvar
+
 @cindex creating tree-sitter parsers
 @cindex tree-sitter parser, creating
 @defun treesit-parser-create language &optional buffer no-reuse tag

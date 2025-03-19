@@ -48,6 +48,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "w32heap.h"		/* for mmap_* */
 #endif
 
+#ifdef HAVE_TREE_SITTER
+#include "treesit.h"
+#endif
+
 /* Work around GCC bug 109847
    https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109847
    which causes GCC to mistakenly complain about
@@ -641,6 +645,13 @@ even if it is dead.  The return value is never nil.  */)
   bset_width_table (b, Qnil);
   b->prevent_redisplay_optimizations_p = 1;
 
+#ifdef HAVE_TREE_SITTER
+  /* By default, use empty linecol, which means disable tracking.  */
+  SET_BUF_TS_LINECOL_BEGV (b, TREESIT_EMPTY_LINECOL);
+  SET_BUF_TS_LINECOL_POINT (b, TREESIT_EMPTY_LINECOL);
+  SET_BUF_TS_LINECOL_ZV (b, TREESIT_EMPTY_LINECOL);
+#endif
+
   /* An ordinary buffer normally doesn't need markers
      to handle BEGV and ZV.  */
   bset_pt_marker (b, Qnil);
@@ -866,6 +877,13 @@ Interactively, CLONE and INHIBIT-BUFFER-HOOKS are nil.  */)
   b->width_run_cache = 0;
   b->bidi_paragraph_cache = 0;
   bset_width_table (b, Qnil);
+
+#ifdef HAVE_TREE_SITTER
+  /* By default, use empty linecol, which means disable tracking.  */
+  SET_BUF_TS_LINECOL_BEGV (b, TREESIT_EMPTY_LINECOL);
+  SET_BUF_TS_LINECOL_POINT (b, TREESIT_EMPTY_LINECOL);
+  SET_BUF_TS_LINECOL_ZV (b, TREESIT_EMPTY_LINECOL);
+#endif
 
   name = Fcopy_sequence (name);
   set_string_intervals (name, NULL);
@@ -2617,6 +2635,13 @@ results, see Info node `(elisp)Swapping Text'.  */)
   swapfield_ (zv_marker, Lisp_Object);
   bset_point_before_scroll (current_buffer, Qnil);
   bset_point_before_scroll (other_buffer, Qnil);
+
+#ifdef HAVE_TREE_SITTER
+  swapfield_ (ts_parser_list, Lisp_Object);
+  swapfield (ts_linecol_begv, struct ts_linecol);
+  swapfield (ts_linecol_point, struct ts_linecol);
+  swapfield (ts_linecol_zv, struct ts_linecol);
+#endif
 
   modiff_incr (&current_buffer->text->modiff, 1);
   modiff_incr (&other_buffer->text->modiff, 1);

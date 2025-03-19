@@ -4415,6 +4415,10 @@ extern void update_echo_area (void);
 extern void truncate_echo_area (ptrdiff_t);
 extern void redisplay (void);
 extern ptrdiff_t count_lines (ptrdiff_t start_byte, ptrdiff_t end_byte);
+extern ptrdiff_t display_count_lines (ptrdiff_t start_byte,
+				      ptrdiff_t limit_byte,
+				      ptrdiff_t count,
+				      ptrdiff_t *byte_pos_ptr);
 
 void set_frame_cursor_types (struct frame *, Lisp_Object);
 extern void syms_of_xdisp (void);

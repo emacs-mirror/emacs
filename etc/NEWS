@@ -683,6 +683,23 @@ Users can customize this variable to add simple custom indentation rules
 for tree-sitter major modes.
 
 +++
+*** New variable 'treesit-languages-require-line-column-tracking'
+Now Emacs can optionally track line and column numbers for buffer edits
+and send that information to tree-sitter parsers.  Parsers of languages
+in this list will receive line and column information.  This is only
+needed for very few languages.  So far only Haskell is known to need it.
+
++++
+*** New function 'treesit-tracking-line-column-p'
+New function to check if a buffer is tracking line and column for buffer
+edits.
+
++++
+*** New function 'treesit-parser-tracking-line-column-p'
+New function to check if a parser is receiving line and column
+information.
+
++++
 *** 'treesit-language-at-point-function' is now optional.
 Multi-language major modes can rely on the default return value from
 'treesit-language-at' that uses the new function 'treesit-parsers-at'.
