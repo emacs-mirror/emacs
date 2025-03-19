@@ -6288,7 +6288,10 @@ Before and after saving the buffer, this function runs
         (if (not enable-recursive-minibuffers)
             (progn (display-buffer buf)
                    (setq other-window-scroll-buffer buf))
-          (view-buffer buf (lambda (_) (exit-recursive-edit)))
+          ;; Like 'view-buffer' but ignore 'special' mode-class
+          ;; because 'q' should call 'exit-action' in any case:
+          (switch-to-buffer buf)
+          (view-mode-enter nil (lambda (_) (exit-recursive-edit)))
           (recursive-edit))
         ;; Return nil to ask about BUF again.
         nil)
@@ -6307,7 +6310,10 @@ Before and after saving the buffer, this function runs
                (if (not enable-recursive-minibuffers)
                    (progn (display-buffer diffbuf)
                           (setq other-window-scroll-buffer diffbuf))
-                 (view-buffer diffbuf (lambda (_) (exit-recursive-edit)))
+                 ;; Like 'view-buffer' but ignore 'special' mode-class
+                 ;; because 'q' should call 'exit-action' in any case:
+                 (switch-to-buffer diffbuf)
+                 (view-mode-enter nil (lambda (_) (exit-recursive-edit)))
                  (recursive-edit))))
            ;; Return nil to ask about BUF again.
            nil)
