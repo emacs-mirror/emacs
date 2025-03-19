@@ -7147,6 +7147,7 @@ implementations: `python-mode' and `python-ts-mode'."
           (add-hook 'eldoc-documentation-functions #'python-eldoc-function nil t)
         (add-function :before-until (local 'eldoc-documentation-function)
                       #'python-eldoc-function))))
+  (eldoc-add-command-completions "python-indent-dedent-line-backspace")
 
   ;; TODO: Use tree-sitter to figure out the block in `python-ts-mode'.
   (dolist (mode '(python-mode python-ts-mode))

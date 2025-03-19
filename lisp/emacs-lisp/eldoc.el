@@ -994,7 +994,7 @@ the docstrings eventually produced, using
 
 ;; Prime the command list.
 (eldoc-add-command-completions
- "back-to-indentation"
+ "comment-indent-new-line" "delete-char" "back-to-indentation"
  "backward-" "beginning-of-" "delete-other-windows" "delete-window"
  "down-list" "end-of-" "exchange-point-and-mark" "forward-" "goto-"
  "handle-select-window" "indent-for-tab-command" "left-" "mark-page"
