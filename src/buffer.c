@@ -641,6 +641,13 @@ even if it is dead.  The return value is never nil.  */)
   bset_width_table (b, Qnil);
   b->prevent_redisplay_optimizations_p = 1;
 
+#ifdef HAVE_TREE_SITTER
+  b->ts_linecol_cache.pos = 1;
+  b->ts_linecol_cache.byte_pos = 1;
+  b->ts_linecol_cache.line = 1;
+  b->ts_linecol_cache.col = 0;
+#endif
+
   /* An ordinary buffer normally doesn't need markers
      to handle BEGV and ZV.  */
   bset_pt_marker (b, Qnil);
@@ -866,6 +873,13 @@ Interactively, CLONE and INHIBIT-BUFFER-HOOKS are nil.  */)
   b->width_run_cache = 0;
   b->bidi_paragraph_cache = 0;
   bset_width_table (b, Qnil);
+
+#ifdef HAVE_TREE_SITTER
+  b->ts_linecol_cache.pos = 1;
+  b->ts_linecol_cache.byte_pos = 1;
+  b->ts_linecol_cache.line = 1;
+  b->ts_linecol_cache.col = 0;
+#endif
 
   name = Fcopy_sequence (name);
   set_string_intervals (name, NULL);
@@ -2617,6 +2631,11 @@ results, see Info node `(elisp)Swapping Text'.  */)
   swapfield_ (zv_marker, Lisp_Object);
   bset_point_before_scroll (current_buffer, Qnil);
   bset_point_before_scroll (other_buffer, Qnil);
+
+#ifdef HAVE_TREE_SITTER
+  swapfield_ (ts_parser_list, Lisp_Object);
+  swapfield (ts_linecol_cache, struct ts_linecol);
+#endif
 
   modiff_incr (&current_buffer->text->modiff, 1);
   modiff_incr (&other_buffer->text->modiff, 1);
@@ -5018,8 +5037,6 @@ DEFUN ("overlay-tree", Foverlay_tree, Soverlay_tree, 0, 1, 0,
   return overlay_tree (b->overlays, b->overlays->root);
 }
 #endif
-
-
 
 /* Initialize the buffer routines.  */
 void

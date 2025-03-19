@@ -224,6 +224,51 @@
       (kill-buffer base)
       (kill-buffer indirect))))
 
+;;; Linecol
+
+(ert-deftest treesit-linecol-basic ()
+  "Tests for basic lincol synchronization."
+  (with-temp-buffer
+    (should (equal (treesit--linecol-cache)
+                   '(:line 1 :col 0 :pos 1 :bytepos 1)))
+    (should (equal (treesit--linecol-at (point))
+                   '(1 . 0)))
+    (insert "\n")
+    ;; Buffer content: a single newline.
+    (should (equal (treesit--linecol-at (point))
+                   '(2 . 0)))
+
+    (treesit--linecol-cache-set 2 0 2 2)
+    (should (equal (treesit--linecol-cache)
+                   '(:line 2 :col 0 :pos 2 :bytepos 2)))
+
+    (goto-char (point-min))
+    (should (equal (treesit--linecol-at (point))
+                   '(1 . 0)))
+
+    (insert "0123456789")
+    ;; Buffer content: ten chars followed by a newline.
+    (treesit--linecol-cache-set 1 0 1 1)
+    (should (equal (treesit--linecol-at (point))
+                   '(1 . 10)))
+
+    (goto-char (point-max))
+    (should (equal (treesit--linecol-at (point))
+                   '(2 . 0)))
+
+    (treesit--linecol-cache-set 1 5 6 6)
+    (should (equal (treesit--linecol-at (point))
+                   '(2 . 0)))
+
+    (treesit--linecol-cache-set 2 0 12 12)
+    ;; Position 6 is in the middle of the first line.
+    (should (equal (treesit--linecol-at 6)
+                   '(1 . 5)))
+    ;; Position 11 is at the end of the line.
+    (should (equal (treesit--linecol-at 11)
+                   '(1 . 10)))
+    ))
+
 ;;; Tree traversal
 
 (ert-deftest treesit-search-subtree ()

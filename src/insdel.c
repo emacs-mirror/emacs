@@ -891,6 +891,11 @@ insert_1_both (const char *string,
   if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
     nchars = nbytes;
 
+#ifdef HAVE_TREE_SITTER
+  struct ts_linecol start_linecol
+    = treesit_linecol_maybe (PT, PT_BYTE, current_buffer->ts_linecol_cache);
+#endif
+
   if (prepare)
     /* Do this before moving and increasing the gap,
        because the before-change hooks might move the gap
@@ -945,7 +950,9 @@ insert_1_both (const char *string,
 #ifdef HAVE_TREE_SITTER
   eassert (nbytes >= 0);
   eassert (PT_BYTE >= 0);
-  treesit_record_change (PT_BYTE, PT_BYTE, PT_BYTE + nbytes);
+
+  treesit_record_change (PT_BYTE, PT_BYTE, PT_BYTE + nbytes,
+			 start_linecol, start_linecol, PT + nchars);
 #endif
 
   adjust_point (nchars, nbytes);
@@ -1017,6 +1024,11 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
       = count_size_as_multibyte (SDATA (string) + pos_byte,
 				 nbytes);
 
+#ifdef HAVE_TREE_SITTER
+  struct ts_linecol start_linecol
+    = treesit_linecol_maybe (PT, PT_BYTE, current_buffer->ts_linecol_cache);
+#endif
+
   /* Do this before moving and increasing the gap,
      because the before-change hooks might move the gap
      or make it smaller.  */
@@ -1081,7 +1093,9 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 #ifdef HAVE_TREE_SITTER
   eassert (nbytes >= 0);
   eassert (PT_BYTE >= 0);
-  treesit_record_change (PT_BYTE, PT_BYTE, PT_BYTE + nbytes);
+
+  treesit_record_change (PT_BYTE, PT_BYTE, PT_BYTE + nbytes,
+			 start_linecol, start_linecol, PT + nchars);
 #endif
 
   adjust_point (nchars, outgoing_nbytes);
@@ -1094,7 +1108,8 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
    GPT_ADDR (if not text_at_gap_tail).
    Contrary to insert_from_gap, this does not invalidate any cache,
    nor update any markers, nor record any buffer modification information
-   of any sort, with the single exception of notifying tree-sitter.  */
+   of any sort, with the single exception of notifying tree-sitter and
+   updating tree-sitter linecol cache.  */
 void
 insert_from_gap_1 (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
 {
@@ -1103,6 +1118,8 @@ insert_from_gap_1 (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
 
 #ifdef HAVE_TREE_SITTER
   ptrdiff_t ins_bytepos = GPT_BYTE;
+  struct ts_linecol start_linecol
+    = treesit_linecol_maybe (GPT, GPT_BYTE, current_buffer->ts_linecol_cache);
 #endif
 
   GAP_SIZE -= nbytes;
@@ -1123,7 +1140,9 @@ insert_from_gap_1 (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
 #ifdef HAVE_TREE_SITTER
   eassert (nbytes >= 0);
   eassert (ins_bytepos >= 0);
-  treesit_record_change (ins_bytepos, ins_bytepos, ins_bytepos + nbytes);
+
+  treesit_record_change (ins_bytepos, ins_bytepos, ins_bytepos + nbytes,
+			 start_linecol, start_linecol, ins_bytepos + nbytes);
 #endif
 }
 
@@ -1186,6 +1205,8 @@ insert_from_buffer (struct buffer *buf,
 
 #ifdef HAVE_TREE_SITTER
   ptrdiff_t obyte = PT_BYTE;
+  struct ts_linecol start_linecol
+    = treesit_linecol_maybe (opoint, obyte, current_buffer->ts_linecol_cache);
 #endif
 
   insert_from_buffer_1 (buf, charpos, nchars, inherit);
@@ -1196,7 +1217,9 @@ insert_from_buffer (struct buffer *buf,
   eassert (PT_BYTE >= BEG_BYTE);
   eassert (obyte >= BEG_BYTE);
   eassert (PT_BYTE >= obyte);
-  treesit_record_change (obyte, obyte, PT_BYTE);
+
+  treesit_record_change (obyte, obyte, PT_BYTE,
+			 start_linecol, start_linecol, PT);
 #endif
 }
 
@@ -1481,6 +1504,14 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
   if (nbytes_del <= 0 && inschars == 0)
     return;
 
+#ifdef HAVE_TREE_SITTER
+  struct ts_linecol start_linecol
+    = treesit_linecol_maybe (from, from_byte, current_buffer->ts_linecol_cache);
+  struct ts_linecol old_end_linecol
+    = treesit_linecol_maybe (to, to_byte, current_buffer->ts_linecol_cache);
+#endif
+
+
   ptrdiff_t insbeg_bytes, insend_bytes;
   ptrdiff_t insbytes;
   unsigned char *insbeg_ptr;
@@ -1623,7 +1654,9 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
   eassert (to_byte >= from_byte);
   eassert (outgoing_insbytes >= 0);
   eassert (from_byte >= 0);
-  treesit_record_change (from_byte, to_byte, from_byte + outgoing_insbytes);
+
+  treesit_record_change (from_byte, to_byte, from_byte + outgoing_insbytes,
+			 start_linecol, old_end_linecol, from + inschars);
 #endif
 
   /* Relocate point as if it were a marker.  */
@@ -1948,6 +1981,13 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
   nchars_del = to - from;
   nbytes_del = to_byte - from_byte;
 
+#ifdef HAVE_TREE_SITTER
+  struct ts_linecol start_linecol
+    = treesit_linecol_maybe (from, from_byte, current_buffer->ts_linecol_cache);
+  struct ts_linecol old_end_linecol
+    = treesit_linecol_maybe (to, to_byte, current_buffer->ts_linecol_cache);
+#endif
+
   /* Make sure the gap is somewhere in or next to what we are deleting.  */
   if (from > GPT)
     gap_right (from, from_byte);
@@ -2007,7 +2047,8 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
 #ifdef HAVE_TREE_SITTER
   eassert (from_byte <= to_byte);
   eassert (from_byte >= 0);
-  treesit_record_change (from_byte, to_byte, from_byte);
+  treesit_record_change (from_byte, to_byte, from_byte,
+			 start_linecol, old_end_linecol, from);
 #endif
 
   return deletion;

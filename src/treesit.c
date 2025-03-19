@@ -864,6 +864,176 @@ loaded or the file name couldn't be determined, return nil.  */)
 }
 
 
+/*** Linecol functions */
+
+#define TREE_SITTER_DEBUG_LINECOL true
+
+static void
+treesit_print_linecol (struct ts_linecol linecol)
+{
+  printf ("{ line=%ld col=%ld pos=%ld byte_pos=%ld }\n", linecol.line, linecol.col, linecol.pos, linecol.byte_pos);
+}
+
+static void
+treesit_validate_linecol (const char *name, struct ts_linecol linecol)
+{
+  eassert (linecol.pos <= Z);
+
+  if (linecol.pos > Z)
+    {
+      printf ("OUT OF RANGE\n");
+      treesit_print_linecol (linecol);
+      printf ("Z: %ld\n", Z);
+    }
+
+  ptrdiff_t true_line_count = count_lines (BEG, linecol.byte_pos) + 1;
+  eassert (true_line_count == linecol.line);
+
+  if (true_line_count != linecol.line)
+    {
+      printf ("MISMATCH\n");
+      printf ("%s: ", name);
+      treesit_print_linecol (linecol);
+      printf ("true: %ld\n", true_line_count);
+    }
+}
+
+/* Calculate and return the line and column number of BYTE_POS by
+   scanning newlines from CACHE.  CACHE must be valid.  */
+static struct ts_linecol
+treesit_linecol_of_pos (ptrdiff_t target_pos, ptrdiff_t target_byte_pos,
+			struct ts_linecol cache)
+{
+  eassert (target_pos == target_byte_pos);
+
+  if (TREE_SITTER_DEBUG_LINECOL)
+    {
+      /* eassert (true_line_count == cache.line); */
+      treesit_validate_linecol ("cache", cache);
+    }
+
+  /* When we finished searching for newlines between CACHE and
+     TARGET_POS, BYTE_POS_2 is at TARGET_POS, and BYTE_POS_1 is at the
+     previous newline.  If TARGET_POS happends to be on a newline,
+     BYTE_POS_1 will be on that position.  BYTE_POS_1 is used for
+     calculating the column.  (If CACHE and TARGET_POS are in the same
+     line, BYTE_POS_1 is unset and we don't use it.)  */
+  ptrdiff_t byte_pos_1 = 0;
+  ptrdiff_t pos_2 = 0;
+  ptrdiff_t byte_pos_2 = 0;
+  /* Number of lines between CACHE and TARGET_POS.  */
+  ptrdiff_t line_delta = 0;
+
+  if (target_byte_pos == cache.byte_pos)
+    return cache;
+
+  /* Search forward. */
+  if (cache.byte_pos < target_byte_pos)
+    {
+      pos_2 = cache.pos;
+      byte_pos_2 = cache.byte_pos;
+      while (byte_pos_2 < target_byte_pos)
+	{
+	  ptrdiff_t counted = 0;
+	  pos_2 = find_newline (pos_2, byte_pos_2, target_pos, target_byte_pos,
+				1, &counted, &byte_pos_2, false);
+
+	  if (counted > 0) byte_pos_1 = byte_pos_2;
+	  line_delta += counted;
+	  /* printf ("byte_pos_2=%ld counted=%ld line_delta=%ld\n", byte_pos_2, counted, line_delta); */
+	}
+      eassert (byte_pos_2 == target_byte_pos);
+      /* At this point, byte_pos_2 is at target_pos, and byte_pos_1 is
+         at the previous newline if we went across any.  */
+
+      struct ts_linecol target_linecol;
+      target_linecol.pos = target_pos;
+      target_linecol.byte_pos = target_byte_pos;
+      target_linecol.line = cache.line + line_delta;
+      /* If we moved across any newline, use the previous newline to
+         calculate the column; if we stayed at the same line, use the
+         cached column to calculate the new column.  */
+      target_linecol.col = line_delta > 0
+	? target_byte_pos - byte_pos_1
+	: target_byte_pos - cache.byte_pos + cache.col;
+
+      if (TREE_SITTER_DEBUG_LINECOL)
+	{
+	  /* eassert (true_line_count == target_linecol.line); */
+	  treesit_validate_linecol ("target", target_linecol);
+	}
+
+      return target_linecol;
+    }
+
+  /* Search backward. */
+  printf ("BACK\n");
+  pos_2 = cache.pos + 1;
+  /* The "+1" Cancels out with the "-1" in the first iteration. */
+  byte_pos_2 = cache.byte_pos + 1;
+  while (byte_pos_2 > target_byte_pos)
+    {
+      ptrdiff_t counted = 0;
+      /* pos_2 - 1 won't underflow because of the loop condition.  */
+      pos_2 = find_newline (pos_2 - 1, byte_pos_2 - 1,
+			    target_pos, target_byte_pos,
+			    -1, &counted, &byte_pos_2, false);
+      line_delta += counted;
+    }
+  eassert (byte_pos_2 == target_byte_pos);
+  /* At this point, pos_2 is at target_pos.  */
+
+  struct ts_linecol target_linecol;
+  target_linecol.pos = target_pos;
+  target_linecol.byte_pos = target_byte_pos;
+  target_linecol.line = cache.line + line_delta;
+  eassert (cache.line + line_delta > 0);
+
+  /* Calculate the column.  */
+  if (line_delta == 0)
+    {
+      target_linecol.col = cache.col - (cache.byte_pos - target_byte_pos);
+    }
+  else
+    {
+      /* We need to find the previous newline in order to calculate the
+	 column.  Use POS_2 instead of POS_2 - 1, this way, if POS_2 is
+	 at BOL, we stay in the same place.  */
+      pos_2 = find_newline (pos_2, byte_pos_2, BEG, BEG_BYTE, -1,
+			    NULL, &byte_pos_2, false);
+      target_linecol.col = target_byte_pos - byte_pos_2;
+    }
+
+  if (TREE_SITTER_DEBUG_LINECOL)
+    {
+      treesit_validate_linecol ("target", target_linecol);
+    }
+
+  return target_linecol;
+}
+
+/* Return a TSPoint given POS and VISIBLE_BEG.  VISIBLE_BEG must be
+   before POS.  */
+static TSPoint
+treesit_make_ts_point (struct ts_linecol visible_beg,
+		       struct ts_linecol pos)
+{
+  TSPoint point;
+  if (visible_beg.line == pos.line)
+    {
+      point.row = 0;
+      point.column = pos.col - visible_beg.col;
+      eassert (point.column >= 0);
+    }
+  else
+    {
+      point.row = pos.line - visible_beg.line;
+      eassert (point.row > 0);
+      point.column = pos.col;
+    }
+  return point;
+}
+
 /*** Parsing functions  */
 
 static void
@@ -879,28 +1049,34 @@ treesit_check_parser (Lisp_Object obj)
    larger than UINT32_MAX.  */
 static inline void
 treesit_tree_edit_1 (TSTree *tree, ptrdiff_t start_byte,
-		     ptrdiff_t old_end_byte, ptrdiff_t new_end_byte)
+		     ptrdiff_t old_end_byte, ptrdiff_t new_end_byte,
+		     TSPoint start_point, TSPoint old_end_point,
+		     TSPoint new_end_point)
 {
   eassert (start_byte >= 0);
   eassert (start_byte <= old_end_byte);
   eassert (start_byte <= new_end_byte);
-  TSPoint dummy_point = {0, 0};
   eassert (start_byte <= UINT32_MAX);
   eassert (old_end_byte <= UINT32_MAX);
   eassert (new_end_byte <= UINT32_MAX);
   TSInputEdit edit = {(uint32_t) start_byte,
 		      (uint32_t) old_end_byte,
 		      (uint32_t) new_end_byte,
-		      dummy_point, dummy_point, dummy_point};
+		      start_point, old_end_point, new_end_point};
   ts_tree_edit (tree, &edit);
 }
 
-/* Update each parser's tree after the user made an edit.  This
-   function does not parse the buffer and only updates the tree, so it
-   should be very fast.  */
-void
-treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
-		       ptrdiff_t new_end_byte)
+/* Update each parser's tree after the user made an edit.  This function
+   does not parse the buffer and only updates the tree, so it should be
+   very fast.  If the caller knows there's no parser in the current
+   buffer, they can pass empty linecol for
+   START/OLD_END/NEW_END_linecol.  */
+static void
+treesit_record_change_1 (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
+			 ptrdiff_t new_end_byte,
+			 struct ts_linecol start_linecol,
+			 struct ts_linecol old_end_linecol,
+			 struct ts_linecol new_end_linecol)
 {
   struct buffer *base_buffer = current_buffer;
   if (current_buffer->base_buffer)
@@ -920,12 +1096,15 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
 	{
 	  eassert (start_byte <= old_end_byte);
 	  eassert (start_byte <= new_end_byte);
-	  /* Think the recorded change as a delete followed by an
-	     insert, and think of them as moving unchanged text back
-	     and forth.  After all, the whole point of updating the
-	     tree is to update the position of unchanged text.  */
-	  ptrdiff_t visible_beg = XTS_PARSER (lisp_parser)->visible_beg;
-	  ptrdiff_t visible_end = XTS_PARSER (lisp_parser)->visible_end;
+	  /* Before sending the edit to tree-sitter, we need to first
+	     clip the beg/end to visible_beg and visible_end of the
+	     parser.  A tip for understanding the code below: think the
+	     recorded change as a delete followed by an insert, and
+	     think of them as moving unchanged text back and forth.
+	     After all, the whole point of updating the tree is to
+	     update the position of unchanged text.  */
+	  const ptrdiff_t visible_beg = XTS_PARSER (lisp_parser)->visible_beg;
+	  const ptrdiff_t visible_end = XTS_PARSER (lisp_parser)->visible_end;
 	  eassert (visible_beg >= 0);
 	  eassert (visible_beg <= visible_end);
 
@@ -949,9 +1128,9 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
 	  eassert (start_offset <= old_end_offset);
 	  eassert (start_offset <= new_end_offset);
 
-	  treesit_tree_edit_1 (tree, start_offset, old_end_offset,
-			       new_end_offset);
-	  XTS_PARSER (lisp_parser)->need_reparse = true;
+	  /* We have the correct offset for start/end now, but don't
+	     update the tree yet, because we still need to calculate the
+	     TSPoint, which needs the updated visible_beg linecol.  */
 
 	  /* VISIBLE_BEG/END records tree-sitter's range of view in
 	     the buffer.  We need to adjust them when tree-sitter's
@@ -966,17 +1145,97 @@ treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
 	    visi_beg_delta = (old_end_byte < visible_beg
 			      ? new_end_byte - old_end_byte : 0);
 
-	  XTS_PARSER (lisp_parser)->visible_beg = visible_beg + visi_beg_delta;
-	  XTS_PARSER (lisp_parser)->visible_end = (visible_end
-						   + visi_beg_delta
-						   + (new_end_offset
-						      - old_end_offset));
+	  ptrdiff_t old_visi_beg = visible_beg;
+	  struct ts_linecol old_visi_beg_linecol
+	    = XTS_PARSER (lisp_parser)->visi_beg_linecol;
+	  /* struct ts_linecol old_visi_end_linecol */
+	  /*   = XTS_PARSER (lisp_parser)->visi_end_linecol; */
+
+	  const ptrdiff_t new_visible_beg = visible_beg + visi_beg_delta;
+	  const ptrdiff_t new_visible_end
+	    = (visible_end + visi_beg_delta
+	       + (new_end_offset - old_end_offset));
+
+	  XTS_PARSER (lisp_parser)->visible_beg = new_visible_beg;
+	  XTS_PARSER (lisp_parser)->visible_end = new_visible_end;
+	  XTS_PARSER (lisp_parser)->visi_beg_linecol
+	    = treesit_linecol_of_pos (BYTE_TO_CHAR (new_visible_beg),
+				      new_visible_beg,
+				      old_visi_beg <= start_byte
+					? old_visi_beg_linecol
+					: start_linecol);
+	  /* FIXME: computing visi_end_linecol from new_end_linecol
+	     could be expensive, we need a more efficient way to compute
+	     it.  */
+	  XTS_PARSER (lisp_parser)->visi_end_linecol
+	    = treesit_linecol_of_pos (BYTE_TO_CHAR (new_visible_end),
+				      new_visible_end,
+				      new_end_linecol);
 
 	  eassert (XTS_PARSER (lisp_parser)->visible_beg >= 0);
 	  eassert (XTS_PARSER (lisp_parser)->visible_beg
-		   <= XTS_PARSER (lisp_parser)->visible_end);
+	           <= XTS_PARSER (lisp_parser)->visible_end);
+
+	  /* Now, calculate TSPoints and finally update the tree.  */
+	  struct ts_linecol new_begv_linecol
+	    = XTS_PARSER (lisp_parser)->visi_beg_linecol;
+	  TSPoint old_end_point = treesit_make_ts_point (old_visi_beg_linecol,
+							 old_end_linecol);
+	  TSPoint start_point = treesit_make_ts_point (new_begv_linecol,
+						       start_linecol);
+	  TSPoint new_end_point = treesit_make_ts_point (new_begv_linecol,
+							 new_end_linecol);
+
+	  treesit_tree_edit_1 (tree, start_offset, old_end_offset,
+			       new_end_offset, start_point, old_end_point,
+			       new_end_point);
+	  XTS_PARSER (lisp_parser)->need_reparse = true;
 	}
     }
+}
+
+/* Return the linecol of POS, calculated from CACHE.  But if there's no
+   parser in the current buffer, skip calculation and return an empty
+   linecol instead.  */
+struct ts_linecol
+treesit_linecol_maybe (ptrdiff_t pos, ptrdiff_t pos_byte,
+		       struct ts_linecol cache)
+{
+  if (NILP (BVAR (current_buffer, ts_parser_list)))
+    return TREESIT_EMPTY_LINECOL;
+
+  return treesit_linecol_of_pos (pos, pos_byte, cache);
+}
+
+/* Update each parser's tree after the user made an edit.  This function
+   does not parse the buffer and only updates the tree, so it should be
+   very fast.
+
+   This is a wrapper over treesit_record_change that does a bit more
+   boilerplate work: it (optionally) calculates linecol for new_end,
+   pass all the positions into treesit_record_change_1 which does the
+   real work, and finally (optionally) sets buffer's linecol cache to
+   new_end's linecol.
+
+   If NEW_END is next to NEW_END_BYTE in the arglist, caller might
+   accidentally swap them, so I placed NEW_END at the end of the
+   arglist.  */
+void
+treesit_record_change (ptrdiff_t start_byte, ptrdiff_t old_end_byte,
+		       ptrdiff_t new_end_byte,
+		       struct ts_linecol start_linecol,
+		       struct ts_linecol old_end_linecol,
+		       ptrdiff_t new_end)
+{
+  struct ts_linecol new_end_linecol
+    = treesit_linecol_maybe (new_end, new_end_byte, start_linecol);
+
+  treesit_record_change_1 (start_byte, old_end_byte, new_end_byte,
+			   start_linecol, old_end_linecol, new_end_linecol);
+
+  treesit_print_linecol (new_end_linecol);
+  if (new_end_linecol.pos != 0)
+    current_buffer->ts_linecol_cache = new_end_linecol;
 }
 
 static TSRange *treesit_make_ts_ranges (Lisp_Object, Lisp_Object,
@@ -1046,6 +1305,7 @@ treesit_sync_visible_region (Lisp_Object parser)
 
   ptrdiff_t visible_beg = XTS_PARSER (parser)->visible_beg;
   ptrdiff_t visible_end = XTS_PARSER (parser)->visible_end;
+
   eassert (0 <= visible_beg);
   eassert (visible_beg <= visible_end);
 
@@ -1066,39 +1326,72 @@ treesit_sync_visible_region (Lisp_Object parser)
      from ________|xxxx|__
      to   |xxxx|__________ */
 
+  struct ts_linecol buffer_linecol_cache = buffer->ts_linecol_cache;
+  struct ts_linecol visi_beg_linecol = XTS_PARSER (parser)->visi_beg_linecol;
+  struct ts_linecol visi_end_linecol = XTS_PARSER (parser)->visi_end_linecol;
+  struct ts_linecol buffer_begv_linecol
+    = treesit_linecol_of_pos (BUF_BEGV (buffer), BUF_BEGV_BYTE (buffer),
+			      visi_beg_linecol);
+  struct ts_linecol buffer_zv_linecol
+    = treesit_linecol_of_pos (BUF_ZV (buffer), BUF_ZV_BYTE (buffer),
+			      buffer_linecol_cache);
+  eassert (visi_beg_linecol.byte_pos == visible_beg);
+
   /* 1. Make sure visible_beg <= BUF_BEGV_BYTE.  */
   if (visible_beg > BUF_BEGV_BYTE (buffer))
     {
+      TSPoint new_end = treesit_make_ts_point (buffer_begv_linecol,
+					       visi_beg_linecol);
       /* Tree-sitter sees: insert at the beginning.  */
-      treesit_tree_edit_1 (tree, 0, 0, visible_beg - BUF_BEGV_BYTE (buffer));
+      treesit_tree_edit_1 (tree, 0, 0, visible_beg - BUF_BEGV_BYTE (buffer),
+			   TREESIT_TS_POINT_1_0, TREESIT_TS_POINT_1_0,
+			   new_end);
       visible_beg = BUF_BEGV_BYTE (buffer);
+      visi_beg_linecol = buffer_begv_linecol;
       eassert (visible_beg <= visible_end);
     }
   /* 2. Make sure visible_end = BUF_ZV_BYTE.  */
   if (visible_end < BUF_ZV_BYTE (buffer))
     {
+      TSPoint start = treesit_make_ts_point (visi_beg_linecol,
+					     visi_end_linecol);
+      TSPoint new_end = treesit_make_ts_point (visi_beg_linecol,
+					       buffer_zv_linecol);
       /* Tree-sitter sees: insert at the end.  */
       treesit_tree_edit_1 (tree, visible_end - visible_beg,
 			   visible_end - visible_beg,
-			   BUF_ZV_BYTE (buffer) - visible_beg);
+			   BUF_ZV_BYTE (buffer) - visible_beg,
+			   start, start, new_end);
       visible_end = BUF_ZV_BYTE (buffer);
+      visi_end_linecol = buffer_zv_linecol;
       eassert (visible_beg <= visible_end);
     }
   else if (visible_end > BUF_ZV_BYTE (buffer))
     {
+      TSPoint start = treesit_make_ts_point (visi_beg_linecol,
+					     buffer_zv_linecol);
+      TSPoint old_end = treesit_make_ts_point (visi_beg_linecol,
+					       visi_end_linecol);
       /* Tree-sitter sees: delete at the end.  */
       treesit_tree_edit_1 (tree, BUF_ZV_BYTE (buffer) - visible_beg,
 			   visible_end - visible_beg,
-			   BUF_ZV_BYTE (buffer) - visible_beg);
+			   BUF_ZV_BYTE (buffer) - visible_beg,
+			   start, old_end, start);
       visible_end = BUF_ZV_BYTE (buffer);
+      visi_end_linecol = buffer_zv_linecol;
       eassert (visible_beg <= visible_end);
     }
   /* 3. Make sure visible_beg = BUF_BEGV_BYTE.  */
   if (visible_beg < BUF_BEGV_BYTE (buffer))
     {
+      TSPoint old_end = treesit_make_ts_point (visi_beg_linecol,
+					       buffer_begv_linecol);
       /* Tree-sitter sees: delete at the beginning.  */
-      treesit_tree_edit_1 (tree, 0, BUF_BEGV_BYTE (buffer) - visible_beg, 0);
+      treesit_tree_edit_1 (tree, 0, BUF_BEGV_BYTE (buffer) - visible_beg, 0,
+			   TREESIT_TS_POINT_1_0, old_end,
+			   TREESIT_TS_POINT_1_0);
       visible_beg = BUF_BEGV_BYTE (buffer);
+      visi_beg_linecol = buffer_begv_linecol;
       eassert (visible_beg <= visible_end);
     }
   eassert (0 <= visible_beg);
@@ -1108,6 +1401,8 @@ treesit_sync_visible_region (Lisp_Object parser)
 
   XTS_PARSER (parser)->visible_beg = visible_beg;
   XTS_PARSER (parser)->visible_end = visible_end;
+  XTS_PARSER (parser)->visi_beg_linecol = visi_beg_linecol;
+  XTS_PARSER (parser)->visi_end_linecol = visi_end_linecol;
 
   /* Fix ranges so that the ranges stays with in visible_end.  Here we
      try to do minimal work so that the ranges is minimally correct and
@@ -1381,6 +1676,19 @@ make_treesit_parser (Lisp_Object buffer, TSParser *parser,
   lisp_parser->need_to_gc_buffer = false;
   lisp_parser->within_reparse = false;
   eassert (lisp_parser->visible_beg <= lisp_parser->visible_end);
+
+  struct buffer *old_buf = current_buffer;
+  set_buffer_internal (XBUFFER (buffer));
+
+  /* treesit_linecol_of_pos doesn't signal, so no need to
+     unwind-protect.  */
+  lisp_parser->visi_beg_linecol = treesit_linecol_of_pos (BEGV, BEGV_BYTE,
+							  TREESIT_BOB_LINECOL);
+  lisp_parser->visi_end_linecol
+    = treesit_linecol_of_pos (ZV, ZV_BYTE, lisp_parser->visi_beg_linecol);
+
+  set_buffer_internal (old_buf);
+
   return make_lisp_ptr (lisp_parser, Lisp_Vectorlike);
 }
 
@@ -4376,6 +4684,66 @@ nodes in the subtree, including NODE.  */)
     }
 }
 
+DEFUN ("treesit--linecol-at", Ftreesit__linecol_at,
+       Streesit__linecol_at, 1, 1, 0,
+       doc: /* Test buffer-local linecol cache.
+
+Calculate the line and column at POS using the buffer-local cache,
+return the line and column in the form of
+
+  (LINE . COL)
+
+This is used for testing and debugging only.  */)
+  (Lisp_Object pos)
+{
+  CHECK_NUMBER (pos);
+  struct ts_linecol pos_linecol
+    = treesit_linecol_of_pos (XFIXNUM (pos), CHAR_TO_BYTE (XFIXNUM (pos)),
+			      current_buffer->ts_linecol_cache);
+  return Fcons (make_fixnum (pos_linecol.line), make_fixnum (pos_linecol.col));
+}
+
+DEFUN ("treesit--linecol-cache-set", Ftreesit__linecol_cache_set,
+       Streesit__linecol_cache_set, 4, 4, 0,
+       doc: /* Set the linecol cache for the current buffer.
+
+This is used for testing and debugging only.  */)
+  (Lisp_Object line, Lisp_Object col, Lisp_Object pos, Lisp_Object bytepos)
+{
+  CHECK_FIXNUM (line);
+  CHECK_FIXNUM (col);
+  CHECK_FIXNUM (pos);
+  CHECK_FIXNUM (bytepos);
+
+  current_buffer->ts_linecol_cache.line = XFIXNUM (line);
+  current_buffer->ts_linecol_cache.col = XFIXNUM (col);
+  current_buffer->ts_linecol_cache.pos = XFIXNUM (pos);
+  current_buffer->ts_linecol_cache.byte_pos = XFIXNUM (bytepos);
+
+  return Qnil;
+}
+
+DEFUN ("treesit--linecol-cache", Ftreesit__linecol_cache,
+       Streesit__linecol_cache, 0, 0, 0,
+       doc: /* Return the buffer-local linecol cache for debugging.
+
+Return a plist (:line LINE :col COL :pos POS :bytepos BYTEPOS).  This is
+used for testing and debugging only.  */)
+  (void)
+{
+  struct ts_linecol cache = current_buffer->ts_linecol_cache;
+
+  Lisp_Object plist =  (list4 (QCpos, make_fixnum (cache.pos),
+			       QCbytepos, make_fixnum (cache.byte_pos)));
+  plist = Fcons (make_fixnum (cache.col), plist);
+  plist = Fcons (QCcol, plist);
+  plist = Fcons (make_fixnum (cache.line), plist);
+  plist = Fcons (QCline, plist);
+
+  return plist;
+}
+
+
 #endif	/* HAVE_TREE_SITTER */
 
 DEFUN ("treesit-available-p", Ftreesit_available_p,
@@ -4418,6 +4786,11 @@ syms_of_treesit (void)
   DEFSYM (QCequal, ":equal");
   DEFSYM (QCmatch, ":match");
   DEFSYM (QCpred, ":pred");
+  DEFSYM (QCline, ":line");
+  DEFSYM (QCcol, ":col");
+  DEFSYM (QCpos, ":pos");
+  DEFSYM (QCbytepos, ":bytepos");
+
 
   DEFSYM (Qnot_found, "not-found");
   DEFSYM (Qsymbol_error, "symbol-error");
@@ -4649,6 +5022,10 @@ applies to LANGUAGE-A will be redirected to LANGUAGE-B instead.  */);
   defsubr (&Streesit_induce_sparse_tree);
   defsubr (&Streesit_node_match_p);
   defsubr (&Streesit_subtree_stat);
+
+  defsubr (&Streesit__linecol_at);
+  defsubr (&Streesit__linecol_cache);
+  defsubr (&Streesit__linecol_cache_set);
 #endif /* HAVE_TREE_SITTER */
   defsubr (&Streesit_available_p);
 #ifdef WINDOWSNT
