@@ -4265,7 +4265,7 @@ Attempt to do the search exactly the way the pending Isearch would."
                    (and (eq isearch-lazy-highlight-invisible 'open)
                         'can-be-opened)))
               (funcall isearch-filter-predicate mb me)))
-    (let ((ov (make-overlay mb me)))
+    (let ((ov (make-overlay mb me nil t nil)))
       (push ov isearch-lazy-highlight-overlays)
       ;; 1000 is higher than ediff's 100+,
       ;; but lower than isearch main overlay's 1001
