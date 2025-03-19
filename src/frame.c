@@ -210,22 +210,34 @@ set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   int olines = FRAME_MENU_BAR_LINES (f);
   int nlines = TYPE_RANGED_FIXNUMP (int, value) ? XFIXNUM (value) : 0;
 
-  /* Menu bars on child frames don't work on all platforms, which is
-     the reason why prepare_menu_bar does not update_menu_bar for
-     child frames (info from Martin Rudalics).  This could be
-     implemented in ttys, but it's probably not worth it.  */
-  if (is_tty_child_frame (f))
+  if (is_tty_frame (f))
     {
-      FRAME_MENU_BAR_LINES (f) = 0;
-      FRAME_MENU_BAR_HEIGHT (f) = 0;
-      return;
-    }
+      /* Menu bars on child frames don't work on all platforms, which is
+	 the reason why prepare_menu_bar does not update_menu_bar for
+	 child frames (info from Martin Rudalics).  This could be
+	 implemented in ttys, but it's probably not worth it.  */
+      if (FRAME_PARENT_FRAME (f))
+	FRAME_MENU_BAR_LINES (f) = FRAME_MENU_BAR_HEIGHT (f) = 0;
+      else
+	{
+	  /* Make only 0 or 1 menu bar line (Bug#77015).  */
+	  FRAME_MENU_BAR_LINES (f) = FRAME_MENU_BAR_HEIGHT (f)
+	    = nlines > 0 ? 1 : 0;
 
+	  if (FRAME_MENU_BAR_LINES (f) != olines)
+	    {
+	      windows_or_buffers_changed = 14;
+	      change_frame_size
+		(f, FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f),
+		 false, true, false);
+	    }
+	}
+    }
   /* Right now, menu bars don't work properly in minibuf-only frames;
      most of the commands try to apply themselves to the minibuffer
      frame itself, and get an error because you can't switch buffers
      in or split the minibuffer window.  */
-  if (!FRAME_MINIBUF_ONLY_P (f) && nlines != olines)
+  else if (!FRAME_MINIBUF_ONLY_P (f) && nlines != olines)
     {
       windows_or_buffers_changed = 14;
       FRAME_MENU_BAR_LINES (f) = FRAME_MENU_BAR_HEIGHT (f) = nlines;
