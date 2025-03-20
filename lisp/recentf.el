@@ -310,10 +310,10 @@ They are successively passed a file name to transform it."
   :type '(choice
           (const :tag "None" nil)
           (repeat :tag "Functions"
-           (choice
-            (const file-truename)
-            (const abbreviate-file-name)
-            (function :tag "Other function"))))
+                  (choice
+                   (const file-truename)
+                   (const abbreviate-file-name)
+                   (function :tag "Other function"))))
   :version "29.1")
 
 (defcustom recentf-show-file-shortcuts-flag t
@@ -372,7 +372,9 @@ the full list."
         (setq value (seq-take value limit)))
       (insert (format "\n(setq %S\n      '(" variable))
       (dolist (e value)
-        (insert (format "\n        %S" e)))
+        (insert (format "\n        %S"
+                        (or (and (stringp e) (substring-no-properties e))
+                            e))))
       (insert "\n        ))\n"))))
 
 (defvar recentf-auto-cleanup-timer nil
