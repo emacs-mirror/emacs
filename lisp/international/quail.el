@@ -2614,6 +2614,7 @@ KEY BINDINGS FOR TRANSLATION
 KEY BINDINGS FOR CONVERSION
 ---------------------------\n"))
       (setq quail-current-package nil)
+      (set-buffer-modified-p nil)
       ;; Resize the help window again, now that it has all its contents.
       (save-selected-window
  	(select-window (get-buffer-window (current-buffer) t))
