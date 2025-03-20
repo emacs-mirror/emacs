@@ -263,7 +263,8 @@ on `post-command-hook'."
 
 (defun global-hl-line-highlight ()
   "Highlight the current line in the current window."
-  (when (and global-hl-line-mode 	; Might be changed outside the mode function.
+  (require 'easy-mmode)
+  (when (and global-hl-line-mode ; Might be changed outside the mode function.
              (easy-mmode--globalized-predicate-p global-hl-line-modes))
     (unless (window-minibuffer-p)
       (unless (overlayp global-hl-line-overlay)
