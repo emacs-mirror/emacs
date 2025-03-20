@@ -216,7 +216,8 @@ Should be a list of strings."
   "Buffer used for communication with the Lua process.")
 
 (defun lua--customize-set-prefix-key (prefix-key-sym prefix-key-val)
-  (cl-assert (eq prefix-key-sym 'lua-prefix-key))
+  (unless (eq prefix-key-sym 'lua-prefix-key)
+    (error "Prefix doesn't match lua-prefix-key"))
   (set prefix-key-sym (when (and prefix-key-val (> (length prefix-key-val) 0))
                         ;; read-kbd-macro returns a string or a vector
                         ;; in both cases (elt x 0) is ok
@@ -777,7 +778,6 @@ Return the amount the indentation changed by."
 
 (defun lua--signum (x)
   "Return 1 if X is positive, -1 if negative, 0 if zero."
-  ;; XXX: backport from cl-extras for Emacs24
   (cond ((> x 0) 1) ((< x 0) -1) (t 0)))
 
 (defun lua--ensure-point-within-limit (limit backward)
@@ -1475,7 +1475,7 @@ shift, or the absolute column to indent to."
         (type 'relative)
         (accu 0))
     ;; Aggregate all neighbouring relative offsets, reversing the INFO list.
-    (cl-dolist (elt reversed-indentation-info)
+    (dolist (elt reversed-indentation-info)
       (if (and (eq (car elt) 'relative)
                (eq (caar indentation-info) 'relative))
           (setcdr (car indentation-info) (+ (cdar indentation-info) (cdr elt)))
@@ -1962,8 +1962,8 @@ left out."
 (defun lua-forward-sexp (&optional count)
   "Forward to block end"
   (interactive "p")
-  ;; negative offsets not supported
-  (cl-assert (or (not count) (>= count 0)))
+  (unless (or (not count) (>= count 0))
+    (error "Negative offsets not supported"))
   (save-match-data
     (let ((count (or count 1))
           (block-start (mapcar 'car lua-sexp-alist)))
