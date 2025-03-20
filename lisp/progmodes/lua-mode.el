@@ -838,12 +838,11 @@ found, returns point position, nil otherwise."
 
 (defconst lua-block-regexp
   (eval-when-compile
-    (concat
-     "\\(\\_<"
-     (regexp-opt '("do" "function" "repeat" "then"
-                   "else" "elseif" "end" "until") t)
-     "\\_>\\)\\|"
-     (regexp-opt '("{" "(" "[" "]" ")" "}") t))))
+    (rx (or (group symbol-start
+                   (group (or "do" "function" "repeat" "then"
+                              "else" "elseif" "end" "until"))
+                   symbol-end)
+            (group (any "()[]{}"))))))
 
 (defconst lua-block-token-alist
   '(("do"       "\\_<end\\_>"   "\\_<for\\|while\\_>"                       middle-or-open)
@@ -875,17 +874,15 @@ TOKEN-TYPE determines where the token occurs on a statement. open indicates that
   ;; The absence of else is deliberate, since it does not modify the
   ;; indentation level per se. It only may cause the line, in which the
   ;; else is, to be shifted to the left.
-  (concat
-   "\\(\\_<"
-   (regexp-opt '("do" "function" "repeat" "then" "if" "else" "elseif" "for" "while") t)
-   "\\_>\\|"
-   (regexp-opt '("{" "(" "["))
-   "\\)\\|\\(\\_<"
-   (regexp-opt '("end" "until") t)
-   "\\_>\\|"
-   (regexp-opt '("]" ")" "}"))
-   "\\)")
-  )
+  (rx (or (group (or (seq symbol-start
+                          (group (or "do" "function" "repeat" "then" "if"
+                                     "else" "elseif" "for" "while"))
+                          symbol-end)
+                     (any "([{")))
+          (group (or (seq symbol-start
+                          (group (or "end" "until"))
+                          symbol-end)
+                     (any ")]}"))))))
 
 (defun lua-get-block-token-info (token)
   "Returns the block token info entry for TOKEN from lua-block-token-alist"
@@ -1076,19 +1073,19 @@ Returns final value of point as integer or nil if operation failed."
 
 (defconst lua-cont-eol-regexp
   (eval-when-compile
-    (concat
-     "\\(?:\\(?1:\\_<"
-     (regexp-opt '("and" "or" "not" "in" "for" "while"
-                   "local" "function" "if" "until" "elseif" "return")
-                 t)
-     "\\_>\\)\\|"
-     "\\(?:^\\|[^" lua-operator-class "]\\)\\(?2:"
-     (regexp-opt '("+" "-" "*" "/" "%" "^" ".." "=="
-                   "=" "<" ">" "<=" ">=" "~=" "." ":"
-                   "&" "|" "~" ">>" "<<" "~" ",")
-                 t)
-     "\\)\\)"
-     "\\s *\\="))
+    (rx-to-string
+     `(seq (or (group-n 1
+                 symbol-start
+                 (group (or "and" "or" "not" "in" "for" "while" "local"
+                            "function" "if" "until" "elseif" "return"))
+                 symbol-end)
+               (seq (or bol (not (any ,lua-operator-class)))
+                    (group-n 2
+                      (group (or "%" "&" "*" "+" "," "-" "." ".." "/" ":"
+                                 "<" "<<" "<=" "=" "==" ">" ">=" ">>" "^"
+                                 "|" "~" "~=")))))
+           (zero-or-more (syntax whitespace))
+           point)))
   "Regexp that matches the ending of a line that needs continuation.
 
 This regexp starts from eol and looks for a binary operator or an unclosed
@@ -1097,17 +1094,17 @@ an optional whitespace till the end of the line.")
 
 (defconst lua-cont-bol-regexp
   (eval-when-compile
-    (concat
-     "\\=\\s *"
-     "\\(?:\\(?1:\\_<"
-     (regexp-opt '("and" "or" "not" "in") t)
-     "\\_>\\)\\|\\(?2:"
-     (regexp-opt '("," "+" "-" "*" "/" "%" "^" ".." "=="
-                   "=" "<" ">" "<=" ">=" "~=" "." ":"
-                   "&" "|" "~" ">>" "<<" "~")
-                 t)
-     "\\)\\(?:$\\|[^" lua-operator-class "]\\)"
-     "\\)"))
+    (rx-to-string
+     `(seq point (zero-or-more (syntax whitespace))
+           (or (group-n 1
+                 symbol-start
+                 (group (or "and" "in" "not" "or"))
+                 symbol-end)
+               (seq (group-n 2
+                      (group (or "%" "&" "*" "+" "," "-" "." ".." "/" ":"
+                                 "<" "<<" "<=" "=" "==" ">" ">=" ">>" "^"
+                                 "|" "~" "~=")))
+                    (or eol (not (any ,lua-operator-class))))))))
   "Regexp that matches a line that continues previous one.
 
 This regexp means, starting from point there is an optional whitespace followed
