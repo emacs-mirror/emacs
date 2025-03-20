@@ -185,8 +185,7 @@ connect to Lua process running remotely."
   "Command switches for `lua-default-application'.
 Should be a list of strings."
   :type '(repeat string)
-  :group 'lua)
-(make-variable-buffer-local 'lua-default-command-switches)
+  :version "31.1")
 
 (defcustom lua-always-show t
   "*Non-nil means display lua-process-buffer after sending a command."
@@ -270,19 +269,17 @@ If the latter is nil, the keymap translates into `lua-mode-map' verbatim.")
     result-map)
   "Keymap used in lua-mode buffers.")
 
-(defvar lua-electric-flag t
+(defvar-local lua-electric-flag t
   "If t, electric actions (like automatic reindentation) will happen when an electric
  key like `{' is pressed")
-(make-variable-buffer-local 'lua-electric-flag)
 
 (defcustom lua-prompt-regexp "[^\n]*\\(>[\t ]+\\)+$"
   "Regexp which matches the Lua program's prompt."
   :type  'regexp
   :version "31.1")
 
-(defvar lua--repl-buffer-p nil
+(defvar-local lua--repl-buffer-p nil
   "Buffer-local flag saying if this is a Lua REPL buffer.")
-(make-variable-buffer-local 'lua--repl-buffer-p)
 
 (defcustom lua-indent-string-contents nil
   "If non-nil, contents of multiline string will be indented.
