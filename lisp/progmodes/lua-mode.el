@@ -105,44 +105,41 @@
 ;; rx-wrappers for Lua
 
 (eval-and-compile
-  (defvar lua--rx-bindings)
+  (defvar lua--rx-bindings
+    '((symbol (&rest x) (seq symbol-start (or x) symbol-end))
+      (ws (* (any " \t")))
+      (ws+ (+ (any " \t")))
 
-  (setq
-   lua--rx-bindings
-   '((symbol (&rest x) (seq symbol-start (or x) symbol-end))
-     (ws (* (any " \t")))
-     (ws+ (+ (any " \t")))
-
-     (lua-name (symbol (seq (+ (any alpha "_")) (* (any alnum "_")))))
-     (lua-funcname (seq lua-name (* ws "." ws lua-name)
-                        (opt ws ":" ws lua-name)))
-     (lua-funcheader
-      ;; Outer (seq ...) is here to shy-group the definition
-      (seq (or (seq (symbol "function") ws (group-n 1 lua-funcname))
-               (seq (group-n 1 lua-funcname) ws "=" ws
-                    (symbol "function")))))
-     (lua-number
-      (seq (or (seq (+ digit) (opt ".") (* digit))
-               (seq (* digit) (opt ".") (+ digit)))
-           (opt (regexp "[eE][+-]?[0-9]+"))))
-     (lua-assignment-op (seq "=" (or buffer-end (not (any "=")))))
-     (lua-operator (or "+" "-" "*" "/" "%" "^" "#" "==" "~=" "<=" ">=" "<"
-                       ">" "=" ";" ":" "," "." ".." "..."))
-     (lua-keyword-operator (symbol "and" "not" "or"))
-     (lua-keyword
-      (symbol "break" "do" "else" "elseif" "end"  "for" "function"
-              "goto" "if" "in" "local" "repeat" "return"
-              "then" "until" "while"))
-     (lua-up-to-9-variables
-      (seq (group-n 1 lua-name) ws
-           (? "," ws (group-n 2 lua-name) ws
-              (? "," ws (group-n 3 lua-name) ws
-                 (? "," ws (group-n 4 lua-name) ws
-                    (? "," ws (group-n 5 lua-name) ws
-                       (? "," ws (group-n 6 lua-name) ws
-                          (? "," ws (group-n 7 lua-name) ws
-                             (? "," ws (group-n 8 lua-name) ws
-                                (? "," ws (group-n 9 lua-name) ws))))))))))))
+      (lua-name (symbol (seq (+ (any alpha "_")) (* (any alnum "_")))))
+      (lua-funcname (seq lua-name (* ws "." ws lua-name)
+                         (opt ws ":" ws lua-name)))
+      (lua-funcheader
+       ;; Outer (seq ...) is here to shy-group the definition
+       (seq (or (seq (symbol "function") ws (group-n 1 lua-funcname))
+                (seq (group-n 1 lua-funcname) ws "=" ws
+                     (symbol "function")))))
+      (lua-number
+       (seq (or (seq (+ digit) (opt ".") (* digit))
+                (seq (* digit) (opt ".") (+ digit)))
+            (opt (regexp "[eE][+-]?[0-9]+"))))
+      (lua-assignment-op (seq "=" (or buffer-end (not (any "=")))))
+      (lua-operator (or "+" "-" "*" "/" "%" "^" "#" "==" "~=" "<=" ">=" "<"
+                        ">" "=" ";" ":" "," "." ".." "..."))
+      (lua-keyword-operator (symbol "and" "not" "or"))
+      (lua-keyword
+       (symbol "break" "do" "else" "elseif" "end"  "for" "function"
+               "goto" "if" "in" "local" "repeat" "return"
+               "then" "until" "while"))
+      (lua-up-to-9-variables
+       (seq (group-n 1 lua-name) ws
+            (? "," ws (group-n 2 lua-name) ws
+               (? "," ws (group-n 3 lua-name) ws
+                  (? "," ws (group-n 4 lua-name) ws
+                     (? "," ws (group-n 5 lua-name) ws
+                        (? "," ws (group-n 6 lua-name) ws
+                           (? "," ws (group-n 7 lua-name) ws
+                              (? "," ws (group-n 8 lua-name) ws
+                                 (? "," ws (group-n 9 lua-name) ws))))))))))))
 
   (defmacro lua-rx (&rest regexps)
     (eval `(rx-let ,lua--rx-bindings
