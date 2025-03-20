@@ -111,143 +111,52 @@
   (require 'compile))
 
 (eval-and-compile
-  (if (fboundp #'rx-let)
-      (progn
-        ;; Emacs 27+ way of customizing rx
-        (defvar lua--rx-bindings)
+  (defvar lua--rx-bindings)
 
-        (setq
-         lua--rx-bindings
-         '((symbol (&rest x) (seq symbol-start (or x) symbol-end))
-           (ws (* (any " \t")))
-           (ws+ (+ (any " \t")))
+  (setq
+   lua--rx-bindings
+   '((symbol (&rest x) (seq symbol-start (or x) symbol-end))
+     (ws (* (any " \t")))
+     (ws+ (+ (any " \t")))
 
-           (lua-name (symbol (seq (+ (any alpha "_")) (* (any alnum "_")))))
-           (lua-funcname (seq lua-name (* ws "." ws lua-name)
-                              (opt ws ":" ws lua-name)))
-           (lua-funcheader
-            ;; Outer (seq ...) is here to shy-group the definition
-            (seq (or (seq (symbol "function") ws (group-n 1 lua-funcname))
-                     (seq (group-n 1 lua-funcname) ws "=" ws
-                          (symbol "function")))))
-           (lua-number
-            (seq (or (seq (+ digit) (opt ".") (* digit))
-                     (seq (* digit) (opt ".") (+ digit)))
-                 (opt (regexp "[eE][+-]?[0-9]+"))))
-           (lua-assignment-op (seq "=" (or buffer-end (not (any "=")))))
-           (lua-operator (or "+" "-" "*" "/" "%" "^" "#" "==" "~=" "<=" ">=" "<"
-                             ">" "=" ";" ":" "," "." ".." "..."))
-           (lua-keyword-operator (symbol "and" "not" "or"))
-           (lua-keyword
-            (symbol "break" "do" "else" "elseif" "end"  "for" "function"
-                    "goto" "if" "in" "local" "repeat" "return"
-                    "then" "until" "while"))
-           (lua-up-to-9-variables
-            (seq (group-n 1 lua-name) ws
-                 (? "," ws (group-n 2 lua-name) ws
-                    (? "," ws (group-n 3 lua-name) ws
-                       (? "," ws (group-n 4 lua-name) ws
-                          (? "," ws (group-n 5 lua-name) ws
-                             (? "," ws (group-n 6 lua-name) ws
-                                (? "," ws (group-n 7 lua-name) ws
-                                   (? "," ws (group-n 8 lua-name) ws
-                                      (? "," ws (group-n 9 lua-name) ws))))))))))))
-
-        (defmacro lua-rx (&rest regexps)
-          (eval `(rx-let ,lua--rx-bindings
-                   (rx ,@regexps))))
-
-        (defun lua-rx-to-string (form &optional no-group)
-          (rx-let-eval lua--rx-bindings
-            (rx-to-string form no-group))))
-    (progn
-      ;; Pre-Emacs 27 way of customizing rx
-      (defvar lua-rx-constituents)
-      (defvar rx-parent)
-
-      (defun lua-rx-to-string (form &optional no-group)
-        "Lua-specific replacement for `rx-to-string'.
-
-See `rx-to-string' documentation for more information FORM and
-NO-GROUP arguments."
-        (let ((rx-constituents lua-rx-constituents))
-          (rx-to-string form no-group)))
-
-      (defmacro lua-rx (&rest regexps)
-        "Lua-specific replacement for `rx'.
-
-See `rx' documentation for more information about REGEXPS param."
-        (cond ((null regexps)
-               (error "No regexp"))
-              ((cdr regexps)
-               (lua-rx-to-string `(and ,@regexps) t))
-              (t
-               (lua-rx-to-string (car regexps) t))))
-
-      (defun lua--new-rx-form (form)
-        "Add FORM definition to `lua-rx' macro.
-
-FORM is a cons (NAME . DEFN), see more in `rx-constituents' doc.
-This function enables specifying new definitions using old ones:
-if DEFN is a list that starts with `:rx' symbol its second
-element is itself expanded with `lua-rx-to-string'. "
-        (let ((form-definition (cdr form)))
-          (when (and (listp form-definition) (eq ':rx (car form-definition)))
-            (setcdr form (lua-rx-to-string (cadr form-definition) 'nogroup)))
-          (push form lua-rx-constituents)))
-
-      (defun lua--rx-symbol (form)
-        ;; form is a list (symbol XXX ...)
-        ;; Skip initial 'symbol
-        (setq form (cdr form))
-        ;; If there's only one element, take it from the list, otherwise wrap the
-        ;; whole list into `(or XXX ...)' form.
-        (setq form (if (eq 1 (length form))
-                       (car form)
-                     (append '(or) form)))
-        (and (fboundp 'rx-form) ; Silence Emacs 27's byte-compiler.
-             (rx-form `(seq symbol-start ,form symbol-end) rx-parent)))
-
-      (setq lua-rx-constituents (copy-sequence rx-constituents))
-
-      (mapc 'lua--new-rx-form
-            `((symbol lua--rx-symbol 1 nil)
-              (ws . "[ \t]*") (ws+ . "[ \t]+")
-              (lua-name :rx (symbol (regexp "[[:alpha:]_]+[[:alnum:]_]*")))
-              (lua-funcname
-               :rx (seq lua-name (* ws "." ws lua-name)
+     (lua-name (symbol (seq (+ (any alpha "_")) (* (any alnum "_")))))
+     (lua-funcname (seq lua-name (* ws "." ws lua-name)
                         (opt ws ":" ws lua-name)))
-              (lua-funcheader
-               ;; Outer (seq ...) is here to shy-group the definition
-               :rx (seq (or (seq (symbol "function") ws (group-n 1 lua-funcname))
-                            (seq (group-n 1 lua-funcname) ws "=" ws
-                                 (symbol "function")))))
-              (lua-number
-               :rx (seq (or (seq (+ digit) (opt ".") (* digit))
-                            (seq (* digit) (opt ".") (+ digit)))
-                        (opt (regexp "[eE][+-]?[0-9]+"))))
-              (lua-assignment-op
-               :rx (seq "=" (or buffer-end (not (any "=")))))
-              (lua-operator
-               :rx (or "+" "-" "*" "/" "%" "^" "#" "==" "~=" "<=" ">=" "<"
+     (lua-funcheader
+      ;; Outer (seq ...) is here to shy-group the definition
+      (seq (or (seq (symbol "function") ws (group-n 1 lua-funcname))
+               (seq (group-n 1 lua-funcname) ws "=" ws
+                    (symbol "function")))))
+     (lua-number
+      (seq (or (seq (+ digit) (opt ".") (* digit))
+               (seq (* digit) (opt ".") (+ digit)))
+           (opt (regexp "[eE][+-]?[0-9]+"))))
+     (lua-assignment-op (seq "=" (or buffer-end (not (any "=")))))
+     (lua-operator (or "+" "-" "*" "/" "%" "^" "#" "==" "~=" "<=" ">=" "<"
                        ">" "=" ";" ":" "," "." ".." "..."))
-              (lua-keyword-operator
-               :rx (symbol "and" "not" "or"))
-              (lua-keyword
-               :rx (symbol "break" "do" "else" "elseif" "end"  "for" "function"
-                           "goto" "if" "in" "local" "repeat" "return"
-                           "then" "until" "while"))
-              (lua-up-to-9-variables
-               :rx (seq (group-n 1 lua-name) ws
-                        (? "," ws (group-n 2 lua-name) ws
-                           (? "," ws (group-n 3 lua-name) ws
-                              (? "," ws (group-n 4 lua-name) ws
-                                 (? "," ws (group-n 5 lua-name) ws
-                                    (? "," ws (group-n 6 lua-name) ws
-                                       (? "," ws (group-n 7 lua-name) ws
-                                          (? "," ws (group-n 8 lua-name) ws
-                                             (? "," ws (group-n 9 lua-name) ws)))))))))))))))
+     (lua-keyword-operator (symbol "and" "not" "or"))
+     (lua-keyword
+      (symbol "break" "do" "else" "elseif" "end"  "for" "function"
+              "goto" "if" "in" "local" "repeat" "return"
+              "then" "until" "while"))
+     (lua-up-to-9-variables
+      (seq (group-n 1 lua-name) ws
+           (? "," ws (group-n 2 lua-name) ws
+              (? "," ws (group-n 3 lua-name) ws
+                 (? "," ws (group-n 4 lua-name) ws
+                    (? "," ws (group-n 5 lua-name) ws
+                       (? "," ws (group-n 6 lua-name) ws
+                          (? "," ws (group-n 7 lua-name) ws
+                             (? "," ws (group-n 8 lua-name) ws
+                                (? "," ws (group-n 9 lua-name) ws))))))))))))
 
+  (defmacro lua-rx (&rest regexps)
+    (eval `(rx-let ,lua--rx-bindings
+             (rx ,@regexps))))
+
+  (defun lua-rx-to-string (form &optional no-group)
+    (rx-let-eval lua--rx-bindings
+      (rx-to-string form no-group))))
 
 ;; Local variables
 (defgroup lua nil
@@ -467,23 +376,6 @@ traceback location."
 
 (defvar lua-region-end (make-marker)
   "End of special region for Lua communication.")
-
-(defvar lua-emacs-menu
-  '(["Restart With Whole File" lua-restart-with-whole-file t]
-    ["Kill Process" lua-kill-process t]
-    ["Hide Process Buffer" lua-hide-process-buffer t]
-    ["Show Process Buffer" lua-show-process-buffer t]
-    ["Beginning Of Proc" lua-beginning-of-proc t]
-    ["End Of Proc" lua-end-of-proc t]
-    ["Set Lua-Region Start" lua-set-lua-region-start t]
-    ["Set Lua-Region End" lua-set-lua-region-end t]
-    ["Send Lua-Region" lua-send-lua-region t]
-    ["Send Current Line" lua-send-current-line t]
-    ["Send Region" lua-send-region t]
-    ["Send Proc" lua-send-proc t]
-    ["Send Buffer" lua-send-buffer t]
-    ["Search Documentation" lua-search-documentation t])
-  "Emacs menu for Lua mode.")
 
 ;; the whole defconst is inside eval-when-compile, because it's later referenced
 ;; inside another eval-and-compile block
@@ -714,20 +606,6 @@ index of respective Lua reference manuals.")
     (setq-local electric-indent-chars
                 (append electric-indent-chars lua--electric-indent-chars)))
   (add-hook 'flymake-diagnostic-functions #'lua-flymake nil t)
-
-  ;; setup menu bar entry (XEmacs style)
-  (if (and (featurep 'menubar)
-           (boundp 'current-menubar)
-           (fboundp 'set-buffer-menubar)
-           (fboundp 'add-menu)
-           (not (assoc "Lua" current-menubar)))
-      (progn
-        (set-buffer-menubar (copy-sequence current-menubar))
-        (add-menu nil "Lua" lua-emacs-menu)))
-  ;; Append Lua menu to popup menu for Emacs.
-  (if (boundp 'mode-popup-menu)
-      (setq mode-popup-menu
-            (cons (concat mode-name " Mode Commands") lua-emacs-menu)))
 
   ;; hideshow setup
   (unless (assq 'lua-mode hs-special-modes-alist)
