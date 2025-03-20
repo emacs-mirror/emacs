@@ -36,11 +36,15 @@
 	   when (and n1 n2 (/= n1 n2))
 	   collect (list t1 (- n1 n2) (and s1 (- s1 s2)))))
 
-(defvar igc--a nil)
-(defvar igc--b nil)
-(defvar igc--display-mode 'a)
+(defvar igc--a nil
+  "IGC snapshot A.  Used for debugging.")
+(defvar igc--b nil
+  "IGC snapshot B.  Used for debugging.")
+(defvar igc--display-mode 'a
+  "IGC stats current snapshot, \='a or \='b.")
 
 (defun igc-snapshot ()
+  "Take snapshot A or B depending on igc--display-mode."
   (interactive)
   (if (eq igc--display-mode 'a)
       (setq igc--a (igc-info))
@@ -54,16 +58,19 @@
     (b igc--b)))
 
 (defun igc-display-diff ()
+  "Display the difference between IGC snapshots A and B."
   (interactive)
   (setq igc--display-mode 'diff)
   (igc-stats))
 
 (defun igc-display-a ()
+  "Display IGC stats snapshot A.  See igc-stats-mode."
   (interactive)
   (setq igc--display-mode 'a)
   (igc-stats))
 
 (defun igc-display-b ()
+  "Display IGC stats snapshot B.  See igc-stats-mode."
   (interactive)
   (setq igc--display-mode 'b)
   (igc-stats))
@@ -174,21 +181,26 @@ Type \\`?' to see the mode's help."
 	   unless (= n1 n2)
 	   collect (list t1 (- n1 n2) (and s1 (- s1 s2)))))
 
-(defvar igc--roots-a nil)
-(defvar igc--roots-b nil)
+(defvar igc--roots-a nil
+  "IGC roots snapshot A.  Used for debugging statistics.")
+(defvar igc--roots-b nil
+  "IGC roots snapshot B.  Used for debugging statistics.")
 (defvar igc--roots-display-mode 'a)
 
 (defun igc-roots-display-diff ()
+"Display the difference between IGC roots snapshots A and B."
   (interactive)
   (setq igc--roots-display-mode 'diff)
   (igc-roots-stats))
 
 (defun igc-roots-display-a ()
+  "Display IGC roots for snapshot A."
   (interactive)
   (setq igc--roots-display-mode 'a)
   (igc-roots-stats))
 
 (defun igc-roots-display-b ()
+  "Display IGC roots for snapshot B."
   (interactive)
   (setq igc--roots-display-mode 'b)
   (igc-roots-stats))
@@ -209,6 +221,7 @@ Type \\`?' to see the mode's help."
     (cl-loop for i being the hash-values of h collect i)))
 
 (defun igc--roots-snapshot ()
+  "Display roots snapshots a or b."
   (interactive)
   (if (eq igc--roots-display-mode 'a)
       (setq igc--roots-a (igc--roots-info))
@@ -298,6 +311,7 @@ Type \\`?' to see the mode's help."
 
 ;;;###autoload
 (defun igc-stop-collecting-stats ()
+  "Stop collecting IGC stats."
   (interactive)
   (when igc--collect-timer
     (cancel-timer igc--collect-timer)
@@ -306,7 +320,8 @@ Type \\`?' to see the mode's help."
       (sqlite-close igc--sqlite)
       (setq igc--sqlite nil))))
 
-(defvar igc-stats-time-format "%T.%3N")
+(defvar igc-stats-time-format "%T.%3N"
+  "Time format for exporting IGC stats, e.g. to csv or sqlite.")
 
 (defun igc--collect-stats-csv ()
   (let ((buffer (get-file-buffer igc--collect-file)))
