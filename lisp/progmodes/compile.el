@@ -85,14 +85,18 @@ Similarly, to remove a prefix \"bar/\", use:
                               (string :tag "Replace matched filename with"))))
   :version "27.1")
 
-(defvar compilation-filter-hook nil
+(defcustom compilation-filter-hook nil
   "Hook run after `compilation-filter' has inserted a string into the buffer.
 It is called with the variable `compilation-filter-start' bound
 to the position of the start of the inserted text, and point at
 its end.
 
 If Emacs lacks asynchronous process support, this hook is run
-after `call-process' inserts the grep output into the buffer.")
+after `call-process' inserts the grep output into the buffer."
+  :type 'hook
+  :options '(ansi-color-compilation-filter
+             ansi-osc-compilation-filter)
+  :version "31.1")
 
 (defvar compilation-filter-start nil
   "Position of the start of the text inserted by `compilation-filter'.
