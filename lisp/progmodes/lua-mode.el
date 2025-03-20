@@ -229,8 +229,7 @@ Should be a list of strings."
   :type 'string
   :set 'lua--customize-set-prefix-key
   :get (lambda (sym)
-         (let ((val (eval sym)))
-           (if val (single-key-description (eval sym)) "")))
+         (if-let* ((val (eval sym))) (single-key-description val) ""))
   :version "31.1")
 
 (defvar lua-prefix-mode-map
@@ -603,17 +602,15 @@ index of respective Lua reference manuals.")
       (fill-paragraph justify region))))
 
 (defun lua-prefix-key-update-bindings ()
-  (let (old-cons)
-    (if (eq lua-prefix-mode-map (keymap-parent lua-mode-map))
-        ;; if prefix-map is a parent, delete the parent
-        (set-keymap-parent lua-mode-map nil)
-      ;; otherwise, look for it among children
-      (when (setq old-cons (rassoc lua-prefix-mode-map lua-mode-map))
-        (delq old-cons lua-mode-map)))
-
-    (if (null lua-prefix-key)
-        (set-keymap-parent lua-mode-map lua-prefix-mode-map)
-      (define-key lua-mode-map (vector lua-prefix-key) lua-prefix-mode-map))))
+  (if (eq lua-prefix-mode-map (keymap-parent lua-mode-map))
+      ;; if prefix-map is a parent, delete the parent
+      (set-keymap-parent lua-mode-map nil)
+    ;; otherwise, look for it among children
+    (when-let* ((old-cons (rassoc lua-prefix-mode-map lua-mode-map)))
+      (delq old-cons lua-mode-map)))
+  (if (null lua-prefix-key)
+      (set-keymap-parent lua-mode-map lua-prefix-mode-map)
+    (define-key lua-mode-map (vector lua-prefix-key) lua-prefix-mode-map)))
 
 (defun lua-set-prefix-key (new-key-str)
   "Changes `lua-prefix-key' properly and updates keymaps
@@ -642,13 +639,11 @@ consider point as inside comment when it is between the two hyphens"
   "Return position of comment containing current point.
 
 If point is not inside a comment, return nil."
-  (unless parsing-state (setq parsing-state (syntax-ppss)))
-  (and
-   ;; Not a string
-   (not (nth 3 parsing-state))
-   ;; Syntax-based comment
-   (or (and (nth 4 parsing-state) (nth 8 parsing-state))
-       (lua--containing-double-hyphen-start-pos))))
+  (if-let* ((parsing-state (or parsing-state (syntax-ppss)))
+            ((not (nth 3 parsing-state))) ; Not a string.
+            ((nth 4 parsing-state)))      ; Syntax-based comment.
+      (nth 8 parsing-state)
+    (lua--containing-double-hyphen-start-pos)))
 
 (defun lua-comment-or-string-p (&optional pos)
   "Returns true if the point is in a comment or string."
@@ -744,24 +739,26 @@ Return the amount the indentation changed by."
         ;; save point as a distance to eob - it's invariant w.r.t indentation
         (pos (- (point-max) (point))))
     (back-to-indentation)
-    (if (lua-comment-or-string-p)
-        (setq indent (lua-calculate-string-or-comment-indentation)) ;; just restore point position
-      (setq indent (max 0 (lua-calculate-indentation))))
+    (setq indent (if (lua-comment-or-string-p)
+                     ;; Just restore point posistion.
+                     (lua-calculate-string-or-comment-indentation)
+                   (max 0 (lua-calculate-indentation))))
 
-    (when (not (equal indent (current-column)))
+    (unless (equal indent (current-column))
       (delete-region (line-beginning-position) (point))
       (indent-to indent))
 
     ;; If initial point was within line's indentation,
     ;; position after the indentation.  Else stay at same point in text.
-    (when (> (- (point-max) pos) (point))                                       ; 03e991
-      (goto-char (- (point-max) pos)))                                          ; 03e991
+    (when (> (- (point-max) pos) (point))
+      (goto-char (- (point-max) pos)))
 
     indent))
 
 (defun lua-calculate-string-or-comment-indentation ()
   "This function should be run when point at (current-indentation) is inside string"
-  (if (and (lua-string-p) (not lua-indent-string-contents))
+  (if (and (lua-string-p)
+           (not lua-indent-string-contents))
       ;; if inside string and strings aren't to be indented, return current indentation
       (current-indentation)
 
@@ -936,7 +933,7 @@ DIRECTION has to be either \\='forward or \\='backward."
     ;; (i.e. for a closing token), need to step one character forward
     ;; first, or the regexp will match the opening token.
     (when (eq search-direction 'forward) (forward-char 1))
-    (catch 'found                                                               ; 03e991
+    (catch 'found
       ;; If we are attempting to find a matching token for a terminating token
       ;; (i.e. a token that starts a statement when searching back, or a token
       ;; that ends a statement when searching forward), then we don't need to look
@@ -948,43 +945,42 @@ DIRECTION has to be either \\='forward or \\='backward."
         (throw 'found nil))
       (while (lua-find-regexp search-direction lua-indentation-modifier-regexp) ; 03e991
         ;; have we found a valid matching token?
-        (let ((found-token (match-string 0))
-              (found-pos (match-beginning 0)))
-          (let ((found-type (lua-get-token-type
-                             (lua-get-block-token-info found-token))))
-            (if (not (and match (string-match match found-token)))
-                ;; no - then there is a nested block. If we were looking for
-                ;; a block begin token, found-token must be a block end
-                ;; token; likewise, if we were looking for a block end token,
-                ;; found-token must be a block begin token, otherwise there
-                ;; is a grammatical error in the code.
-                (when (not (and                                                 ; 03e991
-                            (or (eq match-type 'middle)
-                                (eq found-type 'middle)
-                                (eq match-type 'middle-or-open)
-                                (eq found-type 'middle-or-open)
-                                (eq match-type found-type))
-                            (goto-char found-pos)
-                            (lua-find-matching-token-word found-token
-                                                          search-direction)))
-                  (when maybe-found-pos
-                    (goto-char maybe-found-pos)
-                    (throw 'found maybe-found-pos)))
-              ;; yes.
-              ;; if it is a not a middle kind, report the location
-              (when (not (or (eq found-type 'middle)
-                             (eq found-type 'middle-or-open)))
-                (throw 'found found-pos))
-              ;; if it is a middle-or-open type, record location, but keep searching.
-              ;; If we fail to complete the search, we'll report the location
-              (when (eq found-type 'middle-or-open)
-                (setq maybe-found-pos found-pos))
-              ;; Cannot use tail recursion. too much nesting on long chains of
-              ;; if/elseif. Will reset variables instead.
-              (setq token found-token)
-              (setq token-info (lua-get-block-token-info token))
-              (setq match (lua-get-token-match-re token-info search-direction))
-              (setq match-type (lua-get-token-type token-info))))))
+        (let* ((found-token (match-string 0))
+               (found-pos (match-beginning 0))
+               (found-type (lua-get-token-type
+                            (lua-get-block-token-info found-token))))
+          (if (not (and match (string-match match found-token)))
+              ;; no - then there is a nested block. If we were looking for
+              ;; a block begin token, found-token must be a block end
+              ;; token; likewise, if we were looking for a block end token,
+              ;; found-token must be a block begin token, otherwise there
+              ;; is a grammatical error in the code.
+              (unless (and (or (eq match-type 'middle)
+                               (eq found-type 'middle)
+                               (eq match-type 'middle-or-open)
+                               (eq found-type 'middle-or-open)
+                               (eq match-type found-type))
+                           (goto-char found-pos)
+                           (lua-find-matching-token-word
+                            found-token search-direction))
+                (when maybe-found-pos
+                  (goto-char maybe-found-pos)
+                  (throw 'found maybe-found-pos)))
+            ;; yes.
+            ;; if it is a not a middle kind, report the location
+            (unless (or (eq found-type 'middle)
+                        (eq found-type 'middle-or-open))
+              (throw 'found found-pos))
+            ;; if it is a middle-or-open type, record location, but keep searching.
+            ;; If we fail to complete the search, we'll report the location
+            (when (eq found-type 'middle-or-open)
+              (setq maybe-found-pos found-pos))
+            ;; Cannot use tail recursion. too much nesting on long chains of
+            ;; if/elseif. Will reset variables instead.
+            (setq token found-token)
+            (setq token-info (lua-get-block-token-info token))
+            (setq match (lua-get-token-match-re token-info search-direction))
+            (setq match-type (lua-get-token-type token-info)))))
       maybe-found-pos)))
 
 (defun lua-goto-matching-block-token (&optional parse-start direction)
@@ -997,11 +993,10 @@ Optional PARSE-START is a position to which the point should be moved first.
 DIRECTION has to be \\='forward or \\='backward (\\='forward by default)."
   (when parse-start (goto-char parse-start))
   (let ((case-fold-search nil))
-    (when (looking-at lua-indentation-modifier-regexp)                          ; 03e991
-      (let ((position (lua-find-matching-token-word (match-string 0)            ; 03e991
-                                                    direction)))
-        (and position                                                           ; 03e991
-             (goto-char position))))))                                          ; 03e991
+    (when-let* (((looking-at lua-indentation-modifier-regexp))
+                (position (lua-find-matching-token-word
+                           (match-string 0) direction)))
+      (goto-char position))))
 
 (defun lua-goto-matching-block (&optional noreport)
   "Go to the keyword balancing the one under the point.
@@ -1015,11 +1010,9 @@ is no block open/close open."
   (when (and (eq (char-syntax (following-char)) ?w)
              (not (looking-at "\\_<")))
     (re-search-backward "\\_<" nil t))
-  (let ((position (lua-goto-matching-block-token)))
-    (if (and (not position)
-             (not noreport))
-        (error "Not on a block control keyword or brace")
-      position)))
+  (if-let* ((position (lua-goto-matching-block-token)))
+      position
+    (unless noreport (error "Not on a block control keyword or brace"))))
 
 (defun lua-skip-ws-and-comments-backward (&optional limit)
   "Move point back skipping all whitespace and comments.
@@ -1030,14 +1023,12 @@ Return non-nil if moved point."
   (interactive)
   (unless (lua-string-p)
     (let ((start-pos (point))
-          (comment-start-pos (lua-comment-start-pos)))
-      (setq limit (min (point) (or limit (point-min))))
-      (when comment-start-pos
-        (goto-char (max limit comment-start-pos)))
+          (comment-start-pos (lua-comment-start-pos))
+          (limit (min (point) (or limit (point-min)))))
+      (when comment-start-pos (goto-char (max limit comment-start-pos)))
       (when (< limit (point)) (forward-comment (- limit (point))))
       (when (< (point) limit) (goto-char limit))
-      (when (/= start-pos (point))
-        (point)))))
+      (when (/= start-pos (point)) (point)))))
 
 (defun lua-skip-ws-and-comments-forward (&optional limit)
   "Move point forward skipping all whitespace and comments.
@@ -1048,8 +1039,8 @@ Return non-nil if moved point."
   (interactive)
   (unless (lua-string-p)
     (let ((start-pos (point))
-          (comment-start-pos (lua-comment-start-pos)))
-      (setq limit (max (point) (or limit (point-max))))
+          (comment-start-pos (lua-comment-start-pos))
+          (limit (max (point) (or limit (point-max)))))
       ;; Escape from current comment. It is necessary to use "while" because
       ;; luadoc parameters have non-comment face, and parse-partial-sexp with
       ;; 'syntax-table flag will stop on them.
@@ -1058,8 +1049,7 @@ Return non-nil if moved point."
         (forward-comment 1))
       (when (< (point) limit) (forward-comment (- limit (point))))
       (when (< limit (point)) (goto-char limit))
-      (when (/= start-pos (point))
-        (point)))))
+      (when (/= start-pos (point)) (point)))))
 
 (defun lua-forward-line-skip-blanks (&optional back)
   "Move 1 line forward/backward and skip all insignificant ws/comment lines.
@@ -1261,7 +1251,7 @@ This true is when the line :
 * starts with a 1+ block-closer tokens, an top-most block opener is on a continuation line
 "
   (save-excursion
-    (when parse-start (goto-char parse-start))                                  ; 03e991
+    (when parse-start (goto-char parse-start))
 
     ;; If line starts with a series of closer tokens, whether or not the line
     ;; is a continuation line is decided by the opener line, e.g.
