@@ -217,12 +217,12 @@ Should be a list of strings."
 
 (defun lua--customize-set-prefix-key (prefix-key-sym prefix-key-val)
   (cl-assert (eq prefix-key-sym 'lua-prefix-key))
-  (set prefix-key-sym (if (and prefix-key-val (> (length prefix-key-val) 0))
-                          ;; read-kbd-macro returns a string or a vector
-                          ;; in both cases (elt x 0) is ok
-                          (elt (read-kbd-macro prefix-key-val) 0)))
-  (if (fboundp 'lua-prefix-key-update-bindings)
-      (lua-prefix-key-update-bindings)))
+  (set prefix-key-sym (when (and prefix-key-val (> (length prefix-key-val) 0))
+                        ;; read-kbd-macro returns a string or a vector
+                        ;; in both cases (elt x 0) is ok
+                        (elt (read-kbd-macro prefix-key-val) 0)))
+  (when (fboundp 'lua-prefix-key-update-bindings)
+    (lua-prefix-key-update-bindings)))
 
 (defcustom lua-prefix-key "\C-c"
   "Prefix for all lua-mode commands."
@@ -574,8 +574,8 @@ index of respective Lua reference manuals.")
   (interactive "P")
   (let (blink-paren-function)
     (self-insert-command (prefix-numeric-value arg)))
-  (if lua-electric-flag
-      (lua-indent-line))
+  (when lua-electric-flag
+    (lua-indent-line))
   (blink-matching-open))
 
 ;; private functions
@@ -608,8 +608,8 @@ index of respective Lua reference manuals.")
         ;; if prefix-map is a parent, delete the parent
         (set-keymap-parent lua-mode-map nil)
       ;; otherwise, look for it among children
-      (if (setq old-cons (rassoc lua-prefix-mode-map lua-mode-map))
-          (delq old-cons lua-mode-map)))
+      (when (setq old-cons (rassoc lua-prefix-mode-map lua-mode-map))
+        (delq old-cons lua-mode-map)))
 
     (if (null lua-prefix-key)
         (set-keymap-parent lua-mode-map lua-prefix-mode-map)
@@ -754,8 +754,8 @@ Return the amount the indentation changed by."
 
     ;; If initial point was within line's indentation,
     ;; position after the indentation.  Else stay at same point in text.
-    (if (> (- (point-max) pos) (point))
-        (goto-char (- (point-max) pos)))
+    (when (> (- (point-max) pos) (point))                                       ; 03e991
+      (goto-char (- (point-max) pos)))                                          ; 03e991
 
     indent))
 
@@ -935,18 +935,18 @@ DIRECTION has to be either \\='forward or \\='backward."
     ;; if we are searching forward from the token at the current point
     ;; (i.e. for a closing token), need to step one character forward
     ;; first, or the regexp will match the opening token.
-    (if (eq search-direction 'forward) (forward-char 1))
-    (catch 'found
+    (when (eq search-direction 'forward) (forward-char 1))
+    (catch 'found                                                               ; 03e991
       ;; If we are attempting to find a matching token for a terminating token
       ;; (i.e. a token that starts a statement when searching back, or a token
       ;; that ends a statement when searching forward), then we don't need to look
       ;; any further.
-      (if (or (and (eq search-direction 'forward)
-                   (eq match-type 'close))
-              (and (eq search-direction 'backward)
-                   (eq match-type 'open)))
-          (throw 'found nil))
-      (while (lua-find-regexp search-direction lua-indentation-modifier-regexp)
+      (when (or (and (eq search-direction 'forward)
+                     (eq match-type 'close))
+                (and (eq search-direction 'backward)
+                     (eq match-type 'open)))
+        (throw 'found nil))
+      (while (lua-find-regexp search-direction lua-indentation-modifier-regexp) ; 03e991
         ;; have we found a valid matching token?
         (let ((found-token (match-string 0))
               (found-pos (match-beginning 0)))
@@ -958,18 +958,18 @@ DIRECTION has to be either \\='forward or \\='backward."
                 ;; token; likewise, if we were looking for a block end token,
                 ;; found-token must be a block begin token, otherwise there
                 ;; is a grammatical error in the code.
-                (if (not (and
-                          (or (eq match-type 'middle)
-                              (eq found-type 'middle)
-                              (eq match-type 'middle-or-open)
-                              (eq found-type 'middle-or-open)
-                              (eq match-type found-type))
-                          (goto-char found-pos)
-                          (lua-find-matching-token-word found-token
-                                                        search-direction)))
-                    (when maybe-found-pos
-                      (goto-char maybe-found-pos)
-                      (throw 'found maybe-found-pos)))
+                (when (not (and                                                 ; 03e991
+                            (or (eq match-type 'middle)
+                                (eq found-type 'middle)
+                                (eq match-type 'middle-or-open)
+                                (eq found-type 'middle-or-open)
+                                (eq match-type found-type))
+                            (goto-char found-pos)
+                            (lua-find-matching-token-word found-token
+                                                          search-direction)))
+                  (when maybe-found-pos
+                    (goto-char maybe-found-pos)
+                    (throw 'found maybe-found-pos)))
               ;; yes.
               ;; if it is a not a middle kind, report the location
               (when (not (or (eq found-type 'middle)
@@ -995,13 +995,13 @@ the matching token if successful, nil otherwise.
 
 Optional PARSE-START is a position to which the point should be moved first.
 DIRECTION has to be \\='forward or \\='backward (\\='forward by default)."
-  (if parse-start (goto-char parse-start))
+  (when parse-start (goto-char parse-start))
   (let ((case-fold-search nil))
-    (if (looking-at lua-indentation-modifier-regexp)
-        (let ((position (lua-find-matching-token-word (match-string 0)
-                                                      direction)))
-          (and position
-               (goto-char position))))))
+    (when (looking-at lua-indentation-modifier-regexp)                          ; 03e991
+      (let ((position (lua-find-matching-token-word (match-string 0)            ; 03e991
+                                                    direction)))
+        (and position                                                           ; 03e991
+             (goto-char position))))))                                          ; 03e991
 
 (defun lua-goto-matching-block (&optional noreport)
   "Go to the keyword balancing the one under the point.
@@ -1135,25 +1135,25 @@ previous one even though it looked like an end-of-statement.")
       (setq return-value (and (re-search-backward lua-cont-eol-regexp line-begin t)
                               (or (match-beginning 1)
                                   (match-beginning 2))))
-      (if (and return-value
-               (string-equal (match-string-no-properties 0) "return"))
-          ;; "return" keyword is ambiguous and depends on next token
-          (unless (save-excursion
-                    (goto-char (match-end 0))
-                    (forward-comment (point-max))
-                    (and
-                     ;; Not continuing: at end of file
-                     (not (eobp))
-                     (or
-                      ;; "function" keyword: it is a continuation, e.g.
-                      ;;
-                      ;;    return
-                      ;;       function() return 123 end
-                      ;;
-                      (looking-at (lua-rx (symbol "function")))
-                      ;; Looking at semicolon or any other keyword: not continuation
-                      (not (looking-at (lua-rx (or ";" lua-keyword)))))))
-            (setq return-value nil)))
+      (when (and return-value
+                 (string-equal (match-string-no-properties 0) "return"))
+        ;; "return" keyword is ambiguous and depends on next token
+        (unless (save-excursion
+                  (goto-char (match-end 0))
+                  (forward-comment (point-max))
+                  (and
+                   ;; Not continuing: at end of file
+                   (not (eobp))
+                   (or
+                    ;; "function" keyword: it is a continuation, e.g.
+                    ;;
+                    ;;    return
+                    ;;       function() return 123 end
+                    ;;
+                    (looking-at (lua-rx (symbol "function")))
+                    ;; Looking at semicolon or any other keyword: not continuation
+                    (not (looking-at (lua-rx (or ";" lua-keyword)))))))
+          (setq return-value nil)))
       return-value)))
 
 (defun lua-first-token-continues-p ()
@@ -1261,7 +1261,7 @@ This true is when the line :
 * starts with a 1+ block-closer tokens, an top-most block opener is on a continuation line
 "
   (save-excursion
-    (if parse-start (goto-char parse-start))
+    (when parse-start (goto-char parse-start))                                  ; 03e991
 
     ;; If line starts with a series of closer tokens, whether or not the line
     ;; is a continuation line is decided by the opener line, e.g.
@@ -1594,7 +1594,7 @@ left-shifter expression. "
 (defun lua--goto-line-beginning-rightmost-closer (&optional parse-start)
   (let (case-fold-search pos line-end-pos return-val)
     (save-excursion
-      (if parse-start (goto-char parse-start))
+      (when parse-start (goto-char parse-start))
       (setq line-end-pos (line-end-position))
       (back-to-indentation)
       (unless (lua-comment-or-string-p)
@@ -1805,8 +1805,8 @@ When called interactively, switch to the process buffer."
       (lua-send-string lua-process-init-code)))
 
   ;; when called interactively, switch to process buffer
-  (if (called-interactively-p 'any)
-      (switch-to-buffer lua-process-buffer)))
+  (when (called-interactively-p 'any)
+    (switch-to-buffer lua-process-buffer)))
 
 (defun lua-get-create-process ()
   "Return active Lua process creating one if necessary."
@@ -1902,8 +1902,8 @@ Otherwise, return START."
   (save-excursion
     (save-match-data
       (forward-line 0)
-      (if (looking-at comint-prompt-regexp)
-          (match-end 0)))))
+      (when (looking-at comint-prompt-regexp)
+        (match-end 0)))))
 
 (defun lua-send-lua-region ()
   "Send preset Lua region to Lua process."
