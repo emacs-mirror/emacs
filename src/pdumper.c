@@ -5047,10 +5047,7 @@ struct dump_memory_map
 void
 dump_discard_mem (void *mem, size_t size)
 {
-#ifdef HAVE_MPS
-  /* MPS doesn't use mmap.  */
-  return;
-#elif VM_SUPPORTED == VM_MS_WINDOWS
+#if VM_SUPPORTED == VM_MS_WINDOWS
   /* Discard COWed pages.  */
   (void) VirtualFree (mem, size, MEM_DECOMMIT);
   /* Release the commit charge for the mapping.  */
@@ -5071,8 +5068,11 @@ dump_discard_mem (void *mem, size_t size)
 static void
 dump_mmap_discard_contents (struct dump_memory_map *map)
 {
+#ifndef HAVE_MPS
+  /* MPS doesn't use mmap.  */
   if (map->mapping)
     dump_discard_mem (map->mapping, map->spec.size);
+#endif
 }
 
 static void
