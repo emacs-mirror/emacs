@@ -97,7 +97,7 @@ As Emacs Lisp programmers have grown in number, and the applications
 they write have grown more ambitious, it has become clear that Emacs
 Lisp could benefit from many of the conveniences of Common Lisp.
 
-The @dfn{CL} package adds a number of Common Lisp functions and
+The @dfn{CL-Lib} package adds a number of Common Lisp functions and
 control structures to Emacs Lisp.  While not a 100% complete
 implementation of Common Lisp, it adds enough functionality
 to make Emacs Lisp programming significantly more convenient.
