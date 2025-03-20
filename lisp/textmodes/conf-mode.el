@@ -136,6 +136,13 @@ not align (only setting space according to `conf-assignment-space')."
     table)
   "Syntax table in use in Unix style `conf-mode' buffers.")
 
+(defvar conf-npmrc-mode-syntax-table
+  (let ((table (make-syntax-table conf-mode-syntax-table)))
+    (modify-syntax-entry ?\; "<" table)
+    (modify-syntax-entry ?# "<" table)
+    table)
+  "Syntax table in use in npmrc `conf-mode' buffers.")
+
 (defvar conf-javaprop-mode-syntax-table
   (make-syntax-table conf-unix-mode-syntax-table)
   "Syntax table in use in Java properties buffers.")
@@ -663,6 +670,13 @@ For details see `conf-mode'.
 	Terminal=false"
   (conf-mode-initialize "#" 'conf-desktop-font-lock-keywords)
   (conf-quote-normal nil))
+
+;;;###autoload
+(define-derived-mode conf-npmrc-mode conf-mode "Conf[npmrc]"
+  :syntax-table conf-npmrc-mode-syntax-table
+ "Conf Mode starter for .npmrc files.
+Comments start with `#' and `;'. For details see `conf-mode'."
+ (conf-mode-initialize "#"))
 
 (provide 'conf-mode)
 

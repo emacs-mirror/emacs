@@ -1637,6 +1637,9 @@ highlight the fill-column indicators.  By default this is disabled.
 
 * New Modes and Packages in Emacs 31.1
 
+** New major mode 'conf-npmrc-mode'.
+A major mode based on conf-mode purposed for editing ".npmrc" files.
+
 ** New major modes based on the tree-sitter library
 
 *** New major mode 'markdown-ts-mode'.
