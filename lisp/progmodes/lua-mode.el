@@ -163,18 +163,18 @@
 (defcustom lua-indent-level 3
   "Amount by which Lua subexpressions are indented."
   :type 'integer
-  :group 'lua
-  :safe #'integerp)
+  :safe #'integerp
+  :version "31.1")
 
 (defcustom lua-comment-start "-- "
   "Default value of `comment-start'."
   :type 'string
-  :group 'lua)
+  :version "31.1")
 
 (defcustom lua-comment-start-skip "---*[ \t]*"
   "Default value of `comment-start-skip'."
   :type 'string
-  :group 'lua)
+  :version "31.1")
 
 (defcustom lua-default-application "lua"
   "Default application to run in Lua process.
@@ -184,7 +184,7 @@ start Lua process, or a (HOST . PORT) cons, that can be used to
 connect to Lua process running remotely."
   :type '(choice (string)
                  (cons string integer))
-  :group 'lua)
+  :version "31.1")
 
 (defcustom lua-default-command-switches (list "-i")
   "Command switches for `lua-default-application'.
@@ -204,7 +204,7 @@ Should be a list of strings."
                 ,@(when (fboundp 'eww) '((function-item eww)))
                 ,@(when (fboundp 'w3m-browse-url) '((function-item w3m-browse-url)))
                 (function :tag "Other function"))
-  :group 'lua)
+  :version "31.1")
 
 (defcustom lua-documentation-url
   (or (and (file-readable-p "/usr/share/doc/lua/manual.html")
@@ -233,11 +233,11 @@ Should be a list of strings."
 (defcustom lua-prefix-key "\C-c"
   "Prefix for all lua-mode commands."
   :type 'string
-  :group 'lua
   :set 'lua--customize-set-prefix-key
   :get (lambda (sym)
          (let ((val (eval sym)))
-           (if val (single-key-description (eval sym)) ""))))
+           (if val (single-key-description (eval sym)) "")))
+  :version "31.1")
 
 (defvar lua-prefix-mode-map
   (eval-when-compile
@@ -284,7 +284,7 @@ If the latter is nil, the keymap translates into `lua-mode-map' verbatim.")
 (defcustom lua-prompt-regexp "[^\n]*\\(>[\t ]+\\)+$"
   "Regexp which matches the Lua program's prompt."
   :type  'regexp
-  :group 'lua)
+  :version "31.1")
 
 (defvar lua--repl-buffer-p nil
   "Buffer-local flag saying if this is a Lua REPL buffer.")
@@ -293,25 +293,25 @@ If the latter is nil, the keymap translates into `lua-mode-map' verbatim.")
 (defcustom lua-indent-string-contents nil
   "If non-nil, contents of multiline string will be indented.
 Otherwise leading amount of whitespace on each line is preserved."
-  :group 'lua
   :type 'boolean
-  :safe #'booleanp)
+  :safe #'booleanp
+  :version "31.1")
 
 (defcustom lua-indent-nested-block-content-align t
   "If non-nil, the contents of nested blocks are indented to
 align with the column of the opening parenthesis, rather than
 just forward by `lua-indent-level'."
-  :group 'lua
   :type 'boolean
-  :safe #'booleanp)
+  :safe #'booleanp
+  :version "31.1")
 
 (defcustom lua-indent-close-paren-align t
   "If non-nil, close parenthesis are aligned with their open
 parenthesis.  If nil, close parenthesis are aligned to the
 beginning of the line."
-  :group 'lua
   :type 'boolean
-  :safe #'booleanp)
+  :safe #'booleanp
+  :version "31.1")
 
 (defcustom lua-jump-on-traceback t
   "*Jump to innermost traceback location in *lua* buffer.  When this
@@ -319,12 +319,16 @@ variable is non-nil and a traceback occurs when running Lua code in a
 process, jump immediately to the source code of the innermost
 traceback location."
   :type 'boolean
-  :group 'lua)
+  :version "31.1")
 
 (defcustom lua-mode-hook nil
   "Hooks called when Lua mode fires up."
   :type 'hook
-  :group 'lua)
+  :options '(eglot-ensure
+             flymake-mode
+             hs-minor-mode
+             outline-minor-mode)
+  :version "31.1")
 
 (defvar lua-region-start (make-marker)
   "Start of special region for Lua communication.")
@@ -533,7 +537,6 @@ index of respective Lua reference manuals.")
   "Major mode for editing Lua code."
   :abbrev-table lua-mode-abbrev-table
   :syntax-table lua-mode-syntax-table
-  :group 'lua
   (setq-local font-lock-defaults '(lua-font-lock-keywords ;; keywords
                                    nil                    ;; keywords-only
                                    nil                    ;; case-fold
@@ -2029,7 +2032,7 @@ left out."
 (defcustom lua-luacheck-program "luacheck"
   "Name of the luacheck executable."
   :type 'string
-  :group 'lua)
+  :version "31.1")
 
 (defvar-local lua--flymake-process nil)
 
