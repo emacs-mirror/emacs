@@ -243,9 +243,6 @@ Should be a list of strings."
          (let ((val (eval sym)))
            (if val (single-key-description (eval sym)) ""))))
 
-(defvar lua-mode-menu (make-sparse-keymap "Lua")
-  "Keymap for lua-mode's menu.")
-
 (defvar lua-prefix-mode-map
   (eval-when-compile
     (let ((result-map (make-sparse-keymap)))
@@ -271,7 +268,6 @@ If the latter is nil, the keymap translates into `lua-mode-map' verbatim.")
                  (char-to-string electric-char))
                 #'lua-electric-match))
             lua--electric-indent-chars))
-    (define-key result-map [menu-bar lua-mode] (cons "Lua" lua-mode-menu))
     (define-key result-map [remap backward-up-list] 'lua-backward-up-list)
 
     ;; handle prefix-keyed bindings:
@@ -2130,39 +2126,23 @@ member of `flymake-diagnostic-functions'."
 
 ;; menu bar
 
-(define-key lua-mode-menu [restart-with-whole-file]
-  '("Restart With Whole File" .  lua-restart-with-whole-file))
-(define-key lua-mode-menu [kill-process]
-  '("Kill Process" . lua-kill-process))
-
-(define-key lua-mode-menu [hide-process-buffer]
-  '("Hide Process Buffer" . lua-hide-process-buffer))
-(define-key lua-mode-menu [show-process-buffer]
-  '("Show Process Buffer" . lua-show-process-buffer))
-
-(define-key lua-mode-menu [end-of-proc]
-  '("End Of Proc" . lua-end-of-proc))
-(define-key lua-mode-menu [beginning-of-proc]
-  '("Beginning Of Proc" . lua-beginning-of-proc))
-
-(define-key lua-mode-menu [send-lua-region]
-  '("Send Lua-Region" . lua-send-lua-region))
-(define-key lua-mode-menu [set-lua-region-end]
-  '("Set Lua-Region End" . lua-set-lua-region-end))
-(define-key lua-mode-menu [set-lua-region-start]
-  '("Set Lua-Region Start" . lua-set-lua-region-start))
-
-(define-key lua-mode-menu [send-current-line]
-  '("Send Current Line" . lua-send-current-line))
-(define-key lua-mode-menu [send-region]
-  '("Send Region" . lua-send-region))
-(define-key lua-mode-menu [send-proc]
-  '("Send Proc" . lua-send-proc))
-(define-key lua-mode-menu [send-buffer]
-  '("Send Buffer" . lua-send-buffer))
-(define-key lua-mode-menu [search-documentation]
-  '("Search Documentation" . lua-search-documentation))
-
+(easy-menu-define lua-mode-menu lua-mode-map
+  "Menu bar entry for `lua-mode'."
+  `("Lua"
+    ["Search Documentation" lua-search-documentation]
+    ["Send Buffer" lua-send-buffer]
+    ["Send Proc" lua-send-proc]
+    ["Send Region" lua-send-region]
+    ["Send Current Line" lua-send-current-line]
+    ["Set Lua-Region Start" lua-set-lua-region-start]
+    ["Set Lua-Region End" lua-set-lua-region-end]
+    ["Send Lua-Region" lua-send-lua-region]
+    ["Beginning Of Proc" lua-beginning-of-proc]
+    ["End Of Proc" lua-end-of-proc]
+    ["Show Process Buffer" lua-show-process-buffer]
+    ["Hide Process Buffer" lua-hide-process-buffer]
+    ["Kill Process" lua-kill-process]
+    ["Restart With Whole File" lua-restart-with-whole-file]))
 
 (provide 'lua-mode)
 
