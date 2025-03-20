@@ -1237,6 +1237,7 @@ fontified."
      (parameters (identifier) @font-lock-variable-name-face)
      (parameters (typed_parameter (identifier) @font-lock-variable-name-face))
      (parameters (default_parameter name: (identifier) @font-lock-variable-name-face))
+     (parameters (typed_default_parameter name: (identifier) @font-lock-variable-name-face))
      (lambda_parameters (identifier) @font-lock-variable-name-face)
      (for_in_clause
       left: (identifier) @font-lock-variable-name-face)
@@ -1267,7 +1268,11 @@ fontified."
 
    :feature 'function
    :language 'python
-   '((call function: (identifier) @font-lock-function-call-face)
+   '(((call function: (identifier) @font-lock-type-face)
+      (:match "\\`[A-Z][A-Za-z0-9]+\\'" @font-lock-type-face))
+     (call function: (identifier) @font-lock-function-call-face)
+     (call arguments: (argument_list (keyword_argument
+                                      name: (identifier) @font-lock-property-name-face)))
      (call function: (attribute
                       attribute: (identifier) @font-lock-function-call-face)))
 
