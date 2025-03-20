@@ -96,7 +96,8 @@
 
 ;;; Code:
 (eval-when-compile
-  (require 'cl-lib))
+  (require 'cl-lib)
+  (require 'compile))
 
 (require 'comint)
 (require 'newcomment)
@@ -104,11 +105,6 @@
 
 
 ;; rx-wrappers for Lua
-
-(eval-when-compile
-  ;; Silence compilation warning about `compilation-error-regexp-alist' defined
-  ;; in compile.el.
-  (require 'compile))
 
 (eval-and-compile
   (defvar lua--rx-bindings)
@@ -288,14 +284,6 @@ If the latter is nil, the keymap translates into `lua-mode-map' verbatim.")
 (defcustom lua-prompt-regexp "[^\n]*\\(>[\t ]+\\)+$"
   "Regexp which matches the Lua program's prompt."
   :type  'regexp
-  :group 'lua)
-
-(defcustom lua-traceback-line-re
-  ;; This regexp skips prompt and meaningless "stdin:N:" prefix when looking
-  ;; for actual file-line locations.
-  "^\\(?:[\t ]*\\|.*>[\t ]+\\)\\(?:[^\n\t ]+:[0-9]+:[\t ]*\\)*\\(?:\\([^\n\t ]+\\):\\([0-9]+\\):\\)"
-  "Regular expression that describes tracebacks and errors."
-  :type 'regexp
   :group 'lua)
 
 (defvar lua--repl-buffer-p nil
@@ -1836,13 +1824,7 @@ When called interactively, switch to the process buffer."
     (setq lua-process (get-buffer-process lua-process-buffer))
     (set-process-query-on-exit-flag lua-process nil)
     (with-current-buffer lua-process-buffer
-      ;; enable error highlighting in stack traces
-      (require 'compile)
       (setq lua--repl-buffer-p t)
-      (make-local-variable 'compilation-error-regexp-alist)
-      (setq compilation-error-regexp-alist
-            (cons (list lua-traceback-line-re 1 2)
-                  compilation-error-regexp-alist))
       (compilation-shell-minor-mode 1)
       (setq-local comint-prompt-regexp lua-prompt-regexp)
 
