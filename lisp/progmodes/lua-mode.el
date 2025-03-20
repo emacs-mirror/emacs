@@ -1496,11 +1496,11 @@ shift, or the absolute column to indent to."
 
     ;; Aggregate indentation info, taking 'absolute modifiers into account.
     (mapc (lambda (x)
-            (let ((new-val (cdr x)))
-              (if (eq 'absolute (car x))
-                  (progn (setq type 'absolute
-                               accu new-val))
-                (setq accu (+ accu new-val)))))
+            (if-let* ((new-val (cdr x))
+                      ((eq 'absolute (car x))))
+                (setq type 'absolute
+                      accu new-val)
+                (setq accu (+ accu new-val))))
           indentation-info)
 
     (cons type accu)))
@@ -1609,9 +1609,8 @@ left-shifter expression. "
                       (goto-char (match-end 0))
                       (forward-comment (line-end-position))))))
     (when pos
-      (progn
-        (goto-char pos)
-        return-val))))
+      (goto-char pos)
+      return-val)))
 
 (defun lua-calculate-indentation-override (&optional parse-start)
   "Return overriding indentation amount for special cases.
