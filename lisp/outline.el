@@ -915,7 +915,8 @@ the match data is set appropriately."
 	 ;; move it to, adding a newline if necessary, to ensure these points
 	 ;; are at bol on the line below the subtree.
          (end-point-func (lambda ()
-			   (outline-end-of-subtree)
+			   (let ((outline-blank-line nil))
+			     (outline-end-of-subtree))
 			   (if (eq (char-after) ?\n) (forward-char 1)
 				(if (and (eobp) (not (bolp))) (insert "\n")))
 			   (point)))
