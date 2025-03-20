@@ -93,7 +93,6 @@
 ;; See "M-x apropos-command ^lua-" for a list of commands.
 ;; See "M-x customize-group lua" for a list of customizable variables.
 
-
 ;;; Code:
 (eval-when-compile
   (require 'cl-lib)
@@ -103,7 +102,6 @@
 (require 'newcomment)
 (require 'rx)
 
-
 ;; rx-wrappers for Lua
 
 (eval-and-compile
@@ -253,7 +251,6 @@ If the latter is nil, the keymap translates into `lua-mode-map' verbatim.")
 
 (defvar lua--electric-indent-chars
   (mapcar #'string-to-char '("}" "]" ")")))
-
 
 (defvar lua-mode-map
   (let ((result-map (make-sparse-keymap)))
@@ -408,7 +405,6 @@ traceback location."
 
 This is a compilation of 5.1, 5.2 and 5.3 builtins taken from the
 index of respective Lua reference manuals.")
-
 
 (defvar lua-font-lock-keywords
   `(;; highlight the hash-bang line "#!/foo/bar/lua" as comment
@@ -573,8 +569,6 @@ index of respective Lua reference manuals.")
                    ,(regexp-opt (mapcar 'cdr lua-sexp-alist) 'words) ;end
                    nil lua-forward-sexp))))
 
-
-
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-mode))
 
@@ -613,7 +607,6 @@ index of respective Lua reference manuals.")
       (forward-line 1))
     (let ((fill-paragraph-handle-comment t))
       (fill-paragraph justify region))))
-
 
 (defun lua-prefix-key-update-bindings ()
   (let (old-cons)
@@ -684,7 +677,6 @@ If point is not inside string or comment, return nil."
 (defconst lua-ml-begin-regexp
   "\\(?:\\(?1:-\\)-\\[\\|\\(?2:\\[\\)\\)\\(?3:=*\\)\\[")
 
-
 (defun lua-try-match-multiline-end (end)
   "Try to match close-bracket for multiline literal around point.
 
@@ -705,7 +697,6 @@ information provided at point and re-search-forward to it."
                   (match-string-no-properties 3)
                   (if (match-beginning 1) 1 2))
           end 'noerror))))
-
 
 (defun lua-try-match-multiline-begin (limit)
   "Try to match multiline open-brackets.
@@ -751,7 +742,6 @@ Intended to be used as a `syntax-propertize-function'."
         (put-text-property (match-beginning 2) (match-end 2)
                            'syntax-table (string-to-syntax "|"))))))
 
-
 (defun lua-indent-line ()
   "Indent current line for Lua mode.
 Return the amount the indentation changed by."
@@ -794,7 +784,6 @@ Return the amount the indentation changed by."
                0
              lua-indent-level))))))
 
-
 (defun lua--signum (x)
   "Return 1 if X is positive, -1 if negative, 0 if zero."
   ;; XXX: backport from cl-extras for Emacs24
@@ -813,7 +802,6 @@ If point is beyond limit, move it onto limit."
     (goto-char limit)
     nil))
 
-
 (defun lua--escape-from-string (&optional backward)
   "Move point outside of string if it is inside one.
 
@@ -826,7 +814,6 @@ placed before the string."
           (goto-char (nth 8 parse-state))
         (parse-partial-sexp (point) (line-end-position) nil nil (syntax-ppss) 'syntax-table))
       t)))
-
 
 (defun lua-find-regexp (direction regexp &optional limit)
   "Searches for a regular expression in the direction specified.
@@ -857,7 +844,6 @@ found, returns point position, nil otherwise."
             (when (eq direction 'forward)
               (forward-comment 1)))))
      finally return (point))))
-
 
 (defconst lua-block-regexp
   (eval-when-compile
@@ -1081,7 +1067,6 @@ Return non-nil if moved point."
       (when (/= start-pos (point))
         (point)))))
 
-
 (defun lua-forward-line-skip-blanks (&optional back)
   "Move 1 line forward/backward and skip all insignificant ws/comment lines.
 
@@ -1177,7 +1162,6 @@ previous one even though it looked like an end-of-statement.")
             (setq return-value nil)))
       return-value)))
 
-
 (defun lua-first-token-continues-p ()
   "Return non-nil if the first token on this line is a continuation token."
   (let ((line-end (line-end-position)))
@@ -1192,13 +1176,11 @@ previous one even though it looked like an end-of-statement.")
        (or (match-beginning 1)
            (match-beginning 2))))))
 
-
 (defun lua--backward-up-list-noerror ()
   "Safe version of lua-backward-up-list that does not signal an error."
   (condition-case nil
       (lua-backward-up-list)
     (scan-error nil)))
-
 
 (defun lua-backward-up-list ()
   "Goto starter/opener of the block that contains point."
@@ -1241,7 +1223,6 @@ previous one even though it looked like an end-of-statement.")
                                     "for" "local")
                             lua-funcheader)))))
 
-
 (defun lua-is-continuing-statement-p-1 ()
   "Return non-nil if current lined continues a statement.
 
@@ -1275,7 +1256,6 @@ The criteria for a continuing statement are:
                     (and (eq (char-after continuation-pos) ?,)
                          (equal parent-block-opener "{")))))
                  continuation-pos))))))
-
 
 (defun lua-is-continuing-statement-p (&optional parse-start)
   "Returns non-nil if the line at PARSE-START should be indented as continuation line.
@@ -1465,7 +1445,6 @@ Return list of indentation modifiers from point to BOUND."
              indentation-info))))
   indentation-info)
 
-
 (defun lua-calculate-indentation-info (&optional parse-end)
   "For each block token on the line, computes how it affects the indentation.
 The effect of each token can be either a shift relative to the current
@@ -1506,7 +1485,6 @@ and relative each, and the shift/column to indent to."
              indentation-info (min parse-end (line-end-position)))))
 
     indentation-info))
-
 
 (defun lua-accumulate-indentation-info (reversed-indentation-info)
   "Accumulates the indentation information previously calculated by
@@ -1552,7 +1530,6 @@ one."
         (- (cdr indentation-info) (current-indentation))
       (cdr indentation-info))))
 
-
 (eval-when-compile
   (defconst lua--function-name-rx
     '(seq symbol-start
@@ -1561,7 +1538,6 @@ one."
           (? ":" (+ (any alnum "_")))
           symbol-end)
     "Lua function name regexp in `rx'-SEXP format."))
-
 
 (defconst lua--left-shifter-regexp
   (eval-when-compile
@@ -1608,7 +1584,6 @@ The following left-shifter expressions are currently handled:
    - function call arguments block, () or {} block
    - function expression a.k.a. lambda, begin-end block.")
 
-
 (defun lua-point-is-after-left-shifter-p ()
   "Check if point is right after a left-shifter expression.
 
@@ -1643,7 +1618,6 @@ left-shifter expression. "
       (progn
         (goto-char pos)
         return-val))))
-
 
 (defun lua-calculate-indentation-override (&optional parse-start)
   "Return overriding indentation amount for special cases.
@@ -1692,7 +1666,6 @@ If not, return nil."
             (current-column)
           (current-indentation))))))
 
-
 (defun lua-calculate-indentation ()
   "Return appropriate indentation for current line as Lua code."
   (save-excursion
@@ -1716,7 +1689,6 @@ If not, return nil."
 (defvar lua--beginning-of-defun-re
   (lua-rx-to-string '(: bol (? (symbol "local") ws+) lua-funcheader))
   "Lua top level (matches only at the beginning of line) function header regex.")
-
 
 (defun lua-beginning-of-proc (&optional arg)
   "Move backward to the beginning of a Lua proc (or similar).
@@ -1964,7 +1936,6 @@ Otherwise, return START."
 Create a Lua process if one doesn't already exist."
   (interactive)
   (display-buffer (process-buffer (lua-get-create-process))))
-
 
 (defun lua-hide-process-buffer ()
   "Delete all windows that display `lua-process-buffer'."
