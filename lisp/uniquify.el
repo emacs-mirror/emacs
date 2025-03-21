@@ -89,6 +89,21 @@
   "Unique buffer names dependent on file name."
   :group 'files)
 
+(defun uniquify--buffer-refresh ()
+  "Refreshes all `uniquify'-managed buffers with current options."
+  (when uniquify-buffer-name-style
+    (save-current-buffer
+      (dolist (buffer (buffer-list))
+        (set-buffer buffer)
+        (when uniquify-managed
+          (rename-buffer (uniquify-buffer-base-name) 'unique))))))
+
+(defun uniquify--set-option (variable value)
+  "Call in `defcustom' :set keyword when `uniquify--buffer-refresh' is needed.
+VARIABLE is set to VALUE if `uniquify' is loaded."
+  (when (featurep 'uniquify) ; in case `uniquify' was unloaded
+    (set-default variable value)
+    (uniquify--buffer-refresh)))
 
 (defcustom uniquify-buffer-name-style 'post-forward-angle-brackets
   "How to construct unique buffer names for files with the same base name.
@@ -113,14 +128,21 @@ post-forward-angle-brackets could be:
     (concat base \"<\" (mapconcat #\\='identity extra-string \"/\") \">\"))
 
 The \"mumble\" part may be stripped as well, depending on the
-setting of `uniquify-strip-common-suffix'.  For more options that
-you can set, browse the `uniquify' custom group."
+setting of `uniquify-strip-common-suffix'.
+
+Setting this variable directly will not usually take effect; use either
+\\[customize] or `setopt', or call `uniquify--set-option'; otherwise
+reload your buffers.
+
+For more options that you can set, browse the `uniquify' custom group."
   :type '(radio (const forward)
 		(const reverse)
 		(const post-forward)
 		(const post-forward-angle-brackets)
                 (function :tag "Other")
 		(const :tag "numeric suffixes" nil))
+  :initialize #'custom-initialize-default
+  :set #'uniquify--set-option
   :version "24.4"
   :require 'uniquify)
 
@@ -135,20 +157,37 @@ you can set, browse the `uniquify' custom group."
   "Regular expression matching buffer names that should not be uniquified.
 For instance, set this to \"^draft-[0-9]+$\" to avoid having uniquify
 rename draft buffers even if `uniquify-after-kill-buffer-flag' is
-non-nil and the visited file name isn't the same as that of the buffer."
-  :type '(choice (const :tag "Uniquify all buffers" nil) regexp))
+non-nil and the visited file name isn't the same as that of the buffer.
+
+Setting this variable directly will not usually take effect; use either
+\\[customize] or `setopt', or call `uniquify--set-option'; otherwise
+reload your buffers."
+  :type '(choice (const :tag "Uniquify all buffers" nil) regexp)
+  :initialize #'custom-initialize-default
+  :set #'uniquify--set-option)
 
 (defcustom uniquify-min-dir-content 0
-  "Minimum number of directory name components included in buffer name."
-  :type 'integer)
+  "Minimum number of directory name components included in buffer name.
+Setting this variable directly will not usually take effect; use either
+\\[customize] or `setopt', or call `uniquify--set-option'; otherwise
+reload your buffers."
+  :type 'integer
+  :initialize #'custom-initialize-default
+  :set #'uniquify--set-option)
 
 (defcustom uniquify-separator nil
   "String separator for buffer name components.
 When `uniquify-buffer-name-style' is `post-forward', separates
 base file name from directory part in buffer names (default \"|\").
 When `uniquify-buffer-name-style' is `reverse', separates all
-file name components (default \"\\\")."
-  :type '(choice (const nil) string))
+file name components (default \"\\\").
+
+Setting this variable directly will not usually take effect; use either
+\\[customize] or `setopt', or call `uniquify--set-option'; otherwise
+reload your buffers."
+  :type '(choice (const nil) string)
+  :initialize #'custom-initialize-default
+  :set #'uniquify--set-option)
 
 (define-obsolete-variable-alias 'uniquify-trailing-separator-p
   'uniquify-trailing-separator-flag "31.1")
@@ -166,8 +205,14 @@ variable is ignored."
   "If non-nil, strip common directory suffixes of conflicting files.
 E.g. if you open /a1/b/c/d and /a2/b/c/d, the buffer names will say
 \"d|a1\" and \"d|a2\" instead of \"d|a1/b/c\" and \"d|a2/b/c\".
-This can be handy when you have deep parallel hierarchies."
-  :type 'boolean)
+This can be handy when you have deep parallel hierarchies.
+
+Setting this variable directly will not usually take effect; use either
+\\[customize] or `setopt', or call `uniquify--set-option'; otherwise
+reload your buffers."
+  :type 'boolean
+  :initialize #'custom-initialize-default
+  :set #'uniquify--set-option)
 
 (defvar uniquify-list-buffers-directory-modes '(dired-mode cvs-mode vc-dir-mode)
   "List of modes for which uniquify should obey `list-buffers-directory'.
@@ -192,11 +237,17 @@ actually exist in the filesystem); the components of this file
 name will then be used to uniquify the buffer's name.
 
 To include components from the `project-name' of the buffer, set
-this variable to `project-uniquify-dirname-transform'."
+this variable to `project-uniquify-dirname-transform'.
+
+Setting this variable directly will not usually take effect; use either
+\\[customize] or `setopt', or call `uniquify--set-option'; otherwise
+reload your buffers."
   :type `(choice (function-item :tag "Use directory name as-is" identity)
                  (function-item :tag "Include project name in directory name"
                                 ,#'project-uniquify-dirname-transform)
                  function)
+  :initialize #'custom-initialize-default
+  :set #'uniquify--set-option
   :version "30.1"
   :group 'uniquify)
 
