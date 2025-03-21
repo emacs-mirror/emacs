@@ -1,4 +1,6 @@
-;;; lua-mode.el --- a major-mode for editing Lua scripts  -*- lexical-binding: t -*-
+;;; lua-mode.el --- Major-mode for editing Lua files -*- lexical-binding: t -*-
+
+;; Copyright (C) 2025 Free Software Foundation, Inc.
 
 ;; Author: 2011-2013 immerrr <immerrr+lua@gmail.com>
 ;;         2010-2011 Reuben Thomas <rrt@sc3d.org>
@@ -11,31 +13,22 @@
 ;;              Paul Du Bois <pld-lua@gelatinous.com> and
 ;;              Aaron Smith <aaron-lua@gelatinous.com>.
 ;;
-;; URL:         https://immerrr.github.io/lua-mode
-;; Version:     20221027
-;; Package-Requires: ((emacs "24.3"))
-;;
-;; This file is NOT part of Emacs.
-;;
-;; This program is free software; you can redistribute it and/or modify
+;; Keywords: languages, processes, tools
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 ;;
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-;; Keywords: languages, processes, tools
-
-;; This field is expanded to commit SHA and commit date during the
-;; archive creation.
-;; Revision: $Format:%h (%cD)$
-;;
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -43,10 +36,10 @@
 ;; indentation, syntactical font-locking, running interactive shell,
 ;; Flymake checks with luacheck, interacting with `hs-minor-mode' and
 ;; online documentation lookup.
-
+;;
 ;; The following variables are available for customization (see more via
 ;; `M-x customize-group lua`):
-
+;;
 ;; - Var `lua-indent-level':
 ;;   indentation offset in spaces
 ;; - Var `lua-indent-string-contents':
@@ -64,9 +57,9 @@
 ;;   base URL for documentation lookup
 ;; - Var `lua-documentation-function': function used to
 ;;   show documentation (`eww` is a viable alternative for Emacs 25)
-
+;;
 ;; These are variables/commands that operate on the Lua process:
-
+;;
 ;; - Var `lua-default-application':
 ;;   command to start the Lua process (REPL)
 ;; - Var `lua-default-command-switches':
@@ -74,9 +67,9 @@
 ;;   if you expect working with Lua shell interactively)
 ;; - Cmd `lua-start-process': start new REPL process, usually happens automatically
 ;; - Cmd `lua-kill-process': kill current REPL process
-
+;;
 ;; These are variables/commands for interaction with the Lua process:
-
+;;
 ;; - Cmd `lua-show-process-buffer': switch to REPL buffer
 ;; - Cmd `lua-hide-process-buffer': hide window showing REPL buffer
 ;; - Var `lua-always-show': show REPL buffer after sending something
@@ -85,22 +78,23 @@
 ;; - Cmd `lua-send-defun': send current top-level function
 ;; - Cmd `lua-send-region': send active region
 ;; - Cmd `lua-restart-with-whole-file': restart REPL and send whole buffer
-
+;;
 ;; To enable on-the-fly linting, make sure you have the luacheck
 ;; program installed (available from luarocks) and activate
 ;; `flymake-mode'.
-
+;;
 ;; See "M-x apropos-command ^lua-" for a list of commands.
 ;; See "M-x customize-group lua" for a list of customizable variables.
 
 ;;; Code:
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'compile))
 
 (require 'comint)
 (require 'newcomment)
 (require 'rx)
+
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'compile))
 
 ;; rx-wrappers for Lua
 
@@ -150,6 +144,7 @@
       (rx-to-string form no-group))))
 
 ;; Local variables
+
 (defgroup lua nil
   "Major mode for editing Lua code."
   :prefix "lua-"
@@ -327,8 +322,8 @@ traceback location."
 (defvar lua-region-end (make-marker)
   "End of special region for Lua communication.")
 
-;; the whole defconst is inside eval-when-compile, because it's later referenced
-;; inside another eval-and-compile block
+;; The whole defconst is inside eval-when-compile, because it's later
+;; referenced inside another eval-and-compile block.
 (eval-and-compile
   (defconst
     lua--builtins
@@ -578,7 +573,7 @@ index of respective Lua reference manuals.")
     (lua-indent-line))
   (blink-matching-open))
 
-;; private functions
+;; Private functions
 
 (defun lua--fill-paragraph (&optional justify region)
   ;; Implementation of forward-paragraph for filling.
@@ -2031,7 +2026,7 @@ member of `flymake-diagnostic-functions'."
       (process-send-region lua--flymake-process (point-min) (point-max))
       (process-send-eof lua--flymake-process))))
 
-;; menu bar
+;; Menu bar
 
 (easy-menu-define lua-mode-menu lua-mode-map
   "Menu bar entry for `lua-mode'."
