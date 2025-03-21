@@ -2677,6 +2677,9 @@ A major mode based on the tree-sitter library for editing "go.work"
 files.  If tree-sitter is properly set-up by the user, it can be
 enabled for files named "go.work".
 
+** New package 'lua-mode'.
+The 'lua-mode' package from Non-GNU ELPA is now included in Emacs.
+
 
 * Incompatible Lisp Changes in Emacs 31.1
 
