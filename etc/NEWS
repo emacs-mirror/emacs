@@ -1202,6 +1202,14 @@ changes when supplied with a universal prefix argument via 'C-u':
 - 'C-u c a' copies all changes from buffer C to buffer A.
 - 'C-u c b' copies all changes from buffer C to buffer B.
 
++++
+*** Ediff now supports more flexible custom window layouts
+Custom implementations of 'ediff-window-setup-function' no
+longer need to display *all* ediff windows.  Any of the A, B, C,
+and control windows can be left undisplayed and the corresponding
+variable set to nil.  This change enables custom layouts without
+a control panel window.
+
 ** Dired
 
 +++
