@@ -10295,10 +10295,10 @@ move_it_in_display_line_to (struct it *it,
 		{
 		  bool moved_forward = false;
 
-		  if (/* IT->hpos == 0 means the very first glyph
-			 doesn't fit on the line, e.g. a wide
-			 image.  */
-		      it->hpos == 0
+		  if (/* IT->hpos == 0 (modulo line-number width) means
+			 the very first glyph doesn't fit on the line,
+			 e.g., a wide image.  */
+		      it->hpos == 0 + (it->lnum_width ? it->lnum_width + 2 : 0)
 		      || (new_x == it->last_visible_x
 			  && FRAME_WINDOW_P (it->f)))
 		    {
@@ -25842,7 +25842,7 @@ display_line (struct it *it, int cursor_vpos)
 		{
 		  /* End of a continued line.  */
 
-		  if (it->hpos == 0
+		  if (it->hpos == 0 + (it->lnum_width ? it->lnum_width + 2 : 0)
 		      || (new_x == it->last_visible_x
 			  && FRAME_WINDOW_P (it->f)
 			  && (row->reversed_p
