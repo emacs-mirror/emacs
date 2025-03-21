@@ -334,7 +334,7 @@ traceback location."
               "getmetatable" "ipairs" "load" "loadfile" "loadstring" "module"
               "next" "pairs" "pcall" "print" "rawequal" "rawget" "rawlen" "rawset"
               "require" "select" "setfenv" "setmetatable" "tonumber" "tostring"
-              "type" "unpack" "xpcall" "self"
+              "type" "unpack" "xpcall" "self" "warn"
               ("bit32" . ("arshift" "band" "bnot" "bor" "btest" "bxor" "extract"
                           "lrotate" "lshift" "replace" "rrotate" "rshift"))
               ("coroutine" . ("create" "isyieldable" "resume" "running" "status"
