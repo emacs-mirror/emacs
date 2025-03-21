@@ -2256,7 +2256,7 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
 		     ;; Windows can't show less than 3 lines anyway.
 		     (max 1 (/ (length strings) 2))))
 	   (colwidth (/ wwidth columns))
-	   (lines (if completions-max-height completions-max-height (frame-height))))
+	   (lines (or completions-max-height (frame-height))))
       (unless (or tab-stop-list (null completion-tab-width)
                   (zerop (mod colwidth completion-tab-width)))
         ;; Align to tab positions for the case
@@ -2264,15 +2264,17 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
         (setq colwidth (- colwidth (mod colwidth completion-tab-width))))
       (let ((completions-continuation
              (catch 'completions-truncated
-               (funcall (intern (format "completion--insert-%s" completions-format))
+               (funcall (intern (format "completion--insert-%s"
+                                        completions-format))
                         strings group-fun length wwidth colwidth columns lines)
                nil)))
         (when completions-continuation
           ;; If there's a bug which causes us to not insert the remaining
           ;; completions automatically, the user can at least press this button.
           (setq-local completions--lazy-insert-button
-                      (insert-button "[Completions truncated, click here to insert the rest.]"
-                                     'action #'completion--lazy-insert-strings))
+                      (insert-button
+                       "[Completions truncated, click here to insert the rest.]"
+                       'action #'completion--lazy-insert-strings))
           (button-put completions--lazy-insert-button
                       'completions-continuation completions-continuation))))))
 
@@ -2282,7 +2284,8 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
     (let ((completion-lazy-hilit t)
           (standard-output (current-buffer))
           (inhibit-read-only t)
-          (completions-continuation (button-get button 'completions-continuation)))
+          (completions-continuation
+           (button-get button 'completions-continuation)))
       (save-excursion
         (goto-char (button-start button))
         (delete-region (point) (button-end button))
@@ -2291,7 +2294,7 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
 
 (defun completion--insert-horizontal (strings group-fun
                                               length wwidth
-                                              colwidth _columns lines
+                                              colwidth columns lines
                                               &optional last-title)
   (let ((column 0)
         (first t)
@@ -2306,26 +2309,28 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
             (unless (equal title last-title)
               (setq last-title title)
               (when title
-                (insert (if first "" "\n") (format completions-group-format title) "\n")
+               (insert (if first "" "\n")
+                       (format completions-group-format title) "\n")
                 (setq column 0
                       first t)))))
 	(unless first
           ;; FIXME: `string-width' doesn't pay attention to
           ;; `display' properties.
-	  (if (< wwidth (+ column (max colwidth
-                                       (if (consp str)
-                                           (apply #'+ (mapcar #'string-width str))
-                                         (string-width str)))))
+	  (if (< wwidth (+ column
+                           (max colwidth
+                                (if (consp str)
+                                    (apply #'+ (mapcar #'string-width str))
+                                  (string-width str)))))
 	      ;; No space for `str' at point, move to next line.
 	      (progn
                 (insert "\n")
                 (when (and lines (> (line-number-at-pos) lines))
                   (throw 'completions-truncated
-                         (apply-partially
-                          #'completion--insert-horizontal
-                          ;; Add str back, since we haven't inserted it yet.
-                          (cons str strings) group-fun length wwidth colwidth _columns nil
-                          last-title)))
+                         (lambda ()
+                           (completion--insert-horizontal
+                            ;; Add str back, since we haven't inserted it yet.
+                            (cons str strings) group-fun length wwidth colwidth
+                            columns nil last-title))))
                 (setq column 0))
 	    (insert " \t")
 	    ;; Leave the space unpropertized so that in the case we're
@@ -2397,8 +2402,8 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
 	    (insert "\n"))
 	  (setq row (1+ row)))))))
 
-(defun completion--insert-one-column (strings group-fun _length _wwidth _colwidth _columns lines
-                                              &optional last-title)
+(defun completion--insert-one-column ( strings group-fun length wwidth colwidth
+                                       columns lines &optional last-title)
   (let ((last-string nil)
         str)
     (while strings
@@ -2415,10 +2420,10 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
         (insert "\n")
         (when (and lines (> (line-number-at-pos) lines))
           (throw 'completions-truncated
-                 (apply-partially
-                  #'completion--insert-one-column
-                  strings group-fun _length _wwidth _colwidth _columns nil
-                  last-title)))))
+                 (lambda ()
+                   (completion--insert-one-column
+                    strings group-fun length wwidth colwidth columns nil
+                    last-title))))))
     (delete-char -1)))
 
 (defun completion--insert (str group-fun)
