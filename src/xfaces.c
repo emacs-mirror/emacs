@@ -1150,14 +1150,18 @@ tty_defined_color (struct frame *f, const char *color_name,
   color_def->green = 0;
 
   if (*color_name)
-    status = tty_lookup_color (f, build_string (color_name), color_def, NULL);
-
-  if (color_def->pixel == FACE_TTY_DEFAULT_COLOR && *color_name)
     {
-      if (strcmp (color_name, "unspecified-fg") == 0)
-	color_def->pixel = FACE_TTY_DEFAULT_FG_COLOR;
-      else if (strcmp (color_name, "unspecified-bg") == 0)
-	color_def->pixel = FACE_TTY_DEFAULT_BG_COLOR;
+      Lisp_Object lcolor = build_string (color_name);
+      status = tty_lookup_color (f, lcolor, color_def, NULL);
+
+      if (color_def->pixel == FACE_TTY_DEFAULT_COLOR)
+	{
+	  color_name = SSDATA (lcolor);
+	  if (strcmp (color_name, "unspecified-fg") == 0)
+	    color_def->pixel = FACE_TTY_DEFAULT_FG_COLOR;
+	  else if (strcmp (color_name, "unspecified-bg") == 0)
+	    color_def->pixel = FACE_TTY_DEFAULT_BG_COLOR;
+	}
     }
 
   if (color_def->pixel != FACE_TTY_DEFAULT_COLOR)
