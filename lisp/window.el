@@ -6308,7 +6308,7 @@ specific buffers."
 (defun window--state-normalize-buffer-name (buffer)
   "Normalize BUFFER name, accommodating `uniquify'.
 If BUFFER is under `uniquify' management, return its `buffer-name' with
-its prefixes and suffixes removed; otherwise return BUFFER
+its prefixes and suffixes removed; otherwise return BUFFER's
 `buffer-name'."
   (or (and window-state-normalize-buffer-name
            (fboundp 'uniquify-buffer-base-name)
