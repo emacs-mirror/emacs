@@ -1698,6 +1698,7 @@ but you can also complete symbol names in ordinary Emacs buffers.
 @findex completion-at-point@r{, in programming language modes}
 @cindex Lisp symbol completion
 @cindex completion (Lisp symbols)
+@cindex code completion
   In most programming language modes, @kbd{C-M-i} (or
 @kbd{M-@key{TAB}}@footnote{
 On graphical displays, the @kbd{M-@key{TAB}} key is usually reserved
