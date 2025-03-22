@@ -186,8 +186,8 @@ new list of completions.  The candidate is automatically deselected when
 the "*Completions*" buffer is hidden.
 
 ---
-*** "*Completions*" is displayed faster with many completion candidates.
-As always, if there are more completion candidates than can be displayed
+*** "*Completions*" is now displayed faster when there are many candidates.
+As before, if there are more completion candidates than can be displayed
 in the current frame, only a subset of the candidates is displayed.
 This process is now faster: only that subset of the candidates is
 actually inserted into "*Completions*" until you run a command which
