@@ -49,19 +49,18 @@ modify this GNU manual.''
 @node Top
 @top use-package User Manual
 
-The @code{use-package} macro allows you to set up package
-customization in your init file in a declarative way.  It takes care
-of many things for you that would otherwise require a lot of
-repetitive boilerplate code.  It can help with common customization,
-such as binding keys, setting up hooks, customizing user options and
-faces, autoloading, and more.  It also helps you keep Emacs startup
-fast, even when you use many (even hundreds) of packages.
+The @code{use-package} macro allows you to set up package customization
+in your init file in a declarative way.  It reduces the need for
+repetitive boilerplate code by handling many common customization tasks
+for you.  These include binding keys, setting hooks, customizing user
+options and faces, setting up autoloading, and more.  It also helps you
+keep Emacs startup fast, even when you use many (even hundreds) of
+packages.
 
-Note that use-package is not a package manager.  Although use-package
-does have the useful capability to interface with the Emacs package
-manager, its primary purpose is help with the configuration and
-loading of packages, not with managing their download, upgrades, and
-installation.
+Note that use-package is not a package manager.  While it provides
+convenient integration with Emacs's built-in package manager, its
+primary purpose is to help with configuring and loading packages, not
+with downloading, upgrading, or installing them.
 
 @insertcopying
 

@@ -251,8 +251,12 @@ STATES should be an object returned by `buffer-local-set-state'."
 
 (defmacro push (newelt place)
   "Add NEWELT to the list stored in the generalized variable PLACE.
+
 This is morally equivalent to (setf PLACE (cons NEWELT PLACE)),
-except that PLACE is evaluated only once (after NEWELT)."
+except that PLACE is evaluated only once (after NEWELT).
+
+For more information about generalized variables, see Info node
+`(elisp) Generalized Variables'."
   (declare (debug (form gv-place)))
   (if (symbolp place)
       ;; Important special case, to avoid triggering GV too early in
@@ -266,9 +270,13 @@ except that PLACE is evaluated only once (after NEWELT)."
 
 (defmacro pop (place)
   "Return the first element of PLACE's value, and remove it from the list.
+
 PLACE must be a generalized variable whose value is a list.
 If the value is nil, `pop' returns nil but does not actually
-change the list."
+change the list.
+
+For more information about generalized variables, see Info node
+`(elisp) Generalized Variables'."
   (declare (debug (gv-place)))
   ;; We use `car-safe' here instead of `car' because the behavior is the same
   ;; (if it's not a cons cell, the `cdr' would have signaled an error already),

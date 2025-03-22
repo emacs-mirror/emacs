@@ -15,3 +15,8 @@ Re "behavior" vs "behaviour", etc.
   consistency.  Leave obsolete aliases, as always.
 
 - https://lists.gnu.org/r/emacs-devel/2005-06/msg00489.html
+
+- In comments, docstrings and other documentation that forms part of
+  Emacs itself, prefer not to abbreviate "Emacs Lisp".
+  Say just "Lisp" whenever the context allows.
+  If you must abbreviate "Emacs Lisp", capitalize it thus: "Elisp".
