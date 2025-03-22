@@ -1236,6 +1236,7 @@ extern void ns_set_no_accept_focus (struct frame *f, Lisp_Object new_value,
 extern void ns_set_z_group (struct frame *f, Lisp_Object new_value,
                             Lisp_Object old_value);
 #ifdef NS_IMPL_COCOA
+extern void ns_set_appearance_1 (struct frame *f, Lisp_Object value);
 extern void ns_set_appearance (struct frame *f, Lisp_Object new_value,
                                Lisp_Object old_value);
 extern void ns_set_transparent_titlebar (struct frame *f,

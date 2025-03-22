@@ -1932,6 +1932,17 @@ ns_set_z_group (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
 
 #ifdef NS_IMPL_COCOA
 void
+ns_set_appearance_1 (struct frame *f, Lisp_Object new_value)
+{
+  if (EQ (new_value, Qdark))
+    FRAME_NS_APPEARANCE (f) = ns_appearance_vibrant_dark;
+  else if (EQ (new_value, Qlight))
+    FRAME_NS_APPEARANCE (f) = ns_appearance_aqua;
+  else
+    FRAME_NS_APPEARANCE (f) = ns_appearance_system_default;
+}
+
+void
 ns_set_appearance (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
 {
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
@@ -1943,12 +1954,7 @@ ns_set_appearance (struct frame *f, Lisp_Object new_value, Lisp_Object old_value
   if (NSAppKitVersionNumber < NSAppKitVersionNumber10_10)
     return;
 
-  if (EQ (new_value, Qdark))
-    FRAME_NS_APPEARANCE (f) = ns_appearance_vibrant_dark;
-  else if (EQ (new_value, Qlight))
-    FRAME_NS_APPEARANCE (f) = ns_appearance_aqua;
-  else
-    FRAME_NS_APPEARANCE (f) = ns_appearance_system_default;
+  ns_set_appearance_1 (f, new_value);
 
   [window setAppearance];
 #endif /* MAC_OS_X_VERSION_MAX_ALLOWED >= 101000 */
