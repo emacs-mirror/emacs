@@ -857,9 +857,11 @@ over the active text displays the help text as a @dfn{tooltip}.
 @kindex C-h .
 @findex display-local-help
 @vindex help-at-pt-display-when-idle
+@vindex eldoc-help-at-pt
   On terminals that don't support mouse-tracking, you can display the
 help text for active buffer text at point by typing @kbd{C-h .}
 (@code{display-local-help}).  This shows the help text in the echo
 area.  To display help text automatically whenever it is available at
 point, set the variable @code{help-at-pt-display-when-idle} to
-@code{t}.
+@code{t}.  If you use Eldoc, set the variable @code{eldoc-help-at-pt}
+to @code{t} instead.

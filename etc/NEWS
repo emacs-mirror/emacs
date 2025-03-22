@@ -429,6 +429,11 @@ need to set it with 'setopt' for it to take an effect.  If the docstring
 doesn't already mention 'setopt', the 'describe-variable' command will
 now add a note about this automatically.
 
++++
+** New user option 'eldoc-help-at-pt' to show help at point via Eldoc.
+When enabled, display the 'help-at-pt-kbd-string' via Eldoc.  This
+setting is an alternative to 'help-at-pt-display-when-idle'.
+
 
 * Editing Changes in Emacs 31.1
 
