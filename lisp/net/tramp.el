@@ -3584,8 +3584,10 @@ BODY is the backend specific code."
 		    (fa (tramp-get-file-property v localname "file-attributes"))
 		    ((not (stringp (car fa)))))))
 	      ;; Symlink to a non-existing target counts as nil.
+	      ;; Protect against cyclic symbolic links.
 	      ((file-symlink-p ,filename)
-	       (file-exists-p (file-truename ,filename)))
+	       (ignore-errors
+		 (file-exists-p (file-truename ,filename))))
 	      (t ,@body)))))))
 
 (defmacro tramp-skeleton-file-local-copy (filename &rest body)
@@ -4194,10 +4196,9 @@ Let-bind it when necessary.")
 (defun tramp-handle-file-directory-p (filename)
   "Like `file-directory-p' for Tramp files."
   ;; `file-truename' could raise an error, for example due to a cyclic
-  ;; symlink.  We don't protect this despite it, because other errors
-  ;; might be worth to be visible, for example impossibility to mount
-  ;; in tramp-gvfs.el.
-  (eq (file-attribute-type (file-attributes (file-truename filename))) t))
+  ;; symlink.
+  (ignore-errors
+    (eq (file-attribute-type (file-attributes (file-truename filename))) t)))
 
 (defun tramp-handle-file-equal-p (filename1 filename2)
   "Like `file-equalp-p' for Tramp files."

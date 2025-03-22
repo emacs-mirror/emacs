@@ -3848,6 +3848,7 @@ This tests also `access-file', `file-readable-p',
 	    (should (stringp (file-attribute-user-id attr)))
 	    (should (stringp (file-attribute-group-id attr)))
 
+	    ;; Symbolic links.
 	    (tramp--test-ignore-make-symbolic-link-error
 	      (should-error
 	       (access-file tmp-name2 "error")
@@ -3869,17 +3870,24 @@ This tests also `access-file', `file-readable-p',
 		(file-remote-p (file-truename tmp-name1) 'localname)))
 	      (delete-file tmp-name2)
 
-	      ;; A non-existent link target makes the file unaccessible.
-	      (make-symbolic-link "error" tmp-name2)
-	      (should (file-symlink-p tmp-name2))
-	      (should-error
-	       (access-file tmp-name2 "error")
-	       :type 'file-missing)
-	      ;; `file-ownership-preserved-p' should return t for
-	      ;; symlinked files to a non-existing target.
-	      (when test-file-ownership-preserved-p
-		(should (file-ownership-preserved-p tmp-name2 'group)))
-	      (delete-file tmp-name2))
+	      ;; A non-existent or cyclic link target makes the file
+	      ;; unaccessible.
+	      (dolist (target
+		       `("does-not-exist" ,(file-name-nondirectory tmp-name2)))
+		(make-symbolic-link target tmp-name2)
+		(should (file-symlink-p tmp-name2))
+		(should-not (file-exists-p tmp-name2))
+		(should-not (file-directory-p tmp-name2))
+		(should-error
+		 (access-file tmp-name2 "error")
+		 :type
+		 (if (string-equal target "does-not-exist")
+		     'file-missing 'file-error))
+		;; `file-ownership-preserved-p' should return t for
+		;; symlinked files to a non-existing or cyclic target.
+		(when test-file-ownership-preserved-p
+		  (should (file-ownership-preserved-p tmp-name2 'group)))
+		(delete-file tmp-name2)))
 
 	    ;; Check, that "//" in symlinks are handled properly.
 	    (with-temp-buffer
@@ -4528,12 +4536,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	       (make-symbolic-link tmp-name1 tmp-name2)
 	       (should (file-symlink-p tmp-name1))
 	       (should (file-symlink-p tmp-name2))
-	       (should-error
-		(file-regular-p tmp-name1)
-		:type 'file-error)
-	       (should-error
-		(file-regular-p tmp-name2)
-		:type 'file-error))))
+	       (should-not (file-regular-p tmp-name1))
+	       (should-not (file-regular-p tmp-name2)))))
 
 	;; Cleanup.
 	(ignore-errors
