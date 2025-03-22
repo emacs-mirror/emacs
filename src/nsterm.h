@@ -1108,13 +1108,6 @@ struct x_output
 extern struct ns_display_info *ns_term_init (Lisp_Object display_name);
 extern void ns_term_shutdown (int sig);
 
-/* Constants for text rendering.  */
-#define NS_DUMPGLYPH_NORMAL             0
-#define NS_DUMPGLYPH_CURSOR             1
-#define NS_DUMPGLYPH_FOREGROUND         2
-#define NS_DUMPGLYPH_MOUSEFACE          3
-
-
 #ifdef NS_IMPL_GNUSTEP
 /* In nsfont.m, called from fontset.c.  */
 extern void nsfont_make_fontset_for_font (Lisp_Object name,
