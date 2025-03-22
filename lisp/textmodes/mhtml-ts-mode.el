@@ -50,12 +50,22 @@
 ;;; Code:
 
 (require 'treesit)
-(require 'html-ts-mode)
 (require 'css-mode) ;; for embed css into html
 (require 'js) ;; for embed javascript into html
 
 (eval-when-compile
   (require 'rx))
+
+;; Prevent compile warnings.
+(defvar html-ts-mode-indent-offset)
+(defvar html-ts-mode--treesit-font-lock-feature-list)
+(defvar html-ts-mode--font-lock-settings)
+(defvar html-ts-mode--treesit-things-settings)
+(defvar html-ts-mode--treesit-defun-type-regexp)
+(defvar html-ts-mode--indent-rules)
+(defvar html-ts-mode--treesit-simple-imenu-settings)
+(declare-function html-ts-mode--outline-predicate "html-ts-mode.el")
+(declare-function html-ts-mode--defun-name "html-ts-mode.el")
 
 ;; This tells the byte-compiler where the functions are defined.
 ;; Is only needed when a file needs to be able to byte-compile
@@ -447,11 +457,13 @@ Calls REPORT-FN directly.  Requires tidy."
   "Major mode for editing HTML with embedded JavaScript and CSS.
 Powered by tree-sitter."
   (if (not (and
-            (treesit-ready-p 'html)
-            (treesit-ready-p 'javascript)
-            (treesit-ready-p 'css)))
+            (treesit-ready-p 'html t)
+            (treesit-ready-p 'javascript t)
+            (treesit-ready-p 'css t)))
       (error "Tree-sitter parsers for HTML isn't available.  You can
     install the parsers with M-x `mhtml-ts-mode-install-parsers'")
+
+    (require 'html-ts-mode)
 
     ;; When an language is embedded, you should initialize some variable
     ;; just like it's done in the original mode.
