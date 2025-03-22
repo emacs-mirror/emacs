@@ -4018,6 +4018,9 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
 {
   struct frame *root = root_frame (f);
 
+  if (!root->after_make_frame)
+    return;
+
   /* Determine visible frames on the root frame, including the root
      frame itself.  Note that there are cases, see bug#75056, where we
      can be called for invisible frames.  This looks like a bug with
@@ -4036,7 +4039,8 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
   for (Lisp_Object tail = XCDR (z_order); CONSP (tail); tail = XCDR (tail))
     {
       topmost_child = XFRAME (XCAR (tail));
-      copy_child_glyphs (root, topmost_child);
+      if (topmost_child->after_make_frame)
+	copy_child_glyphs (root, topmost_child);
     }
 
   update_begin (root);
@@ -4089,7 +4093,8 @@ combine_updates (Lisp_Object roots)
   for (; CONSP (roots); roots = XCDR (roots))
     {
       struct frame *root = XFRAME (XCAR (roots));
-      combine_updates_for_frame (root, false);
+      if (root->after_make_frame)
+	combine_updates_for_frame (root, false);
     }
 }
 
