@@ -3632,7 +3632,8 @@ BODY is the backend specific code."
 	    ;; it for security reasons.
 	    (when (tramp-tramp-file-p result)
 	      (setq result (file-name-quote result 'top)))
-	    result)))))))
+	    ;; Remove possible trailing slash.
+	    (directory-file-name result))))))))
 
 (defmacro tramp-skeleton-make-directory (dir &optional parents &rest body)
   "Skeleton for `tramp-*-handle-make-directory'.
