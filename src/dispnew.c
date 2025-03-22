@@ -3358,8 +3358,26 @@ max_child_z_order (struct frame *parent)
   return z_order;
 }
 
+/* Return true if and only if F and all its ancestors are visible.  */
+
+static bool
+frame_ancestors_visible_p (struct frame *f)
+{
+  while (f)
+    {
+      if (!FRAME_VISIBLE_P (f))
+	return false;
+      else
+	f = FRAME_PARENT_FRAME (f);
+    }
+
+  return true;
+}
+
 /* Return a list of all frames having root frame ROOT.
-   If VISIBLE_ONLY is true, return only visible frames.  */
+
+   If VISIBLE_ONLY is true, return only frames that are visible and have
+   visible ancestors only.  */
 
 static Lisp_Object
 frames_with_root (struct frame *root, bool visible_only)
@@ -3369,8 +3387,9 @@ frames_with_root (struct frame *root, bool visible_only)
   FOR_EACH_FRAME (tail, frame)
     {
       struct frame *f = XFRAME (frame);
+
       if (root_frame (f) == root
-	  && (!visible_only || FRAME_VISIBLE_P (f)))
+	  && (!visible_only || frame_ancestors_visible_p (f)))
 	list = Fcons (frame, list);
     }
   return list;
@@ -3431,7 +3450,7 @@ frames_in_reverse_z_order (struct frame *f, bool visible_only)
   return frames;
 }
 
-/* Raise of lower frame F in z-order.  If RAISE is true, raise F, else
+/* Raise or lower frame F in z-order.  If RAISE is true, raise F, else
    lower f.  */
 
 void

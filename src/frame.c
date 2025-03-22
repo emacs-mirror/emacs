@@ -3294,21 +3294,28 @@ If omitted, FRAME defaults to the currently selected frame.
 On graphical displays, invisible frames are not updated and are
 usually not displayed at all, even in a window system's \"taskbar\".
 
-Normally you may not make FRAME invisible if all other frames are invisible,
-but if the second optional argument FORCE is non-nil, you may do so.
+Normally you may not make FRAME invisible if all other frames are
+invisible, but if the second optional argument FORCE is non-nil, you may
+do so.
 
-This function has no effect on text terminal frames.  Such frames are
-always considered visible, whether or not they are currently being
-displayed in the terminal.  */)
+On a text terminal make FRAME invisible if and only FRAME is either a
+child frame or another non-child frame can be found.  In the former
+case, if FRAME is the selected frame, select the first visible ancestor
+of FRAME instead.  In the latter case, if FRAME is the top frame of its
+terminal, make another frame that terminal's top frame.  */)
   (Lisp_Object frame, Lisp_Object force)
 {
   struct frame *f = decode_live_frame (frame);
+
+  XSETFRAME (frame, f);
 
   if (NILP (force) && !other_frames (f, true, false))
     error ("Attempt to make invisible the sole visible or iconified frame");
 
   if (FRAME_WINDOW_P (f) && FRAME_TERMINAL (f)->frame_visible_invisible_hook)
     FRAME_TERMINAL (f)->frame_visible_invisible_hook (f, false);
+
+  SET_FRAME_VISIBLE (f, false);
 
   if (is_tty_frame (f) && EQ (frame, selected_frame))
   /* On a tty if FRAME is the selected frame, we have to select another
@@ -3320,8 +3327,6 @@ displayed in the terminal.  */)
 		   ? mru_rooted_frame (f)
 		   : next_frame (frame, make_fixnum (0)),
 		   Qnil);
-
-  SET_FRAME_VISIBLE (f, false);
 
   /* Make menu bar update for the Buffers and Frames menus.  */
   windows_or_buffers_changed = 16;
@@ -3339,28 +3344,31 @@ for how to proceed.  */)
   (Lisp_Object frame)
 {
   struct frame *f = decode_live_frame (frame);
-#ifdef HAVE_WINDOW_SYSTEM
-  Lisp_Object parent = f->parent_frame;
 
-  if (!NILP (parent))
+  if (FRAME_PARENT_FRAME (f))
     {
       if (NILP (iconify_child_frame))
 	/* Do nothing.  */
 	return Qnil;
-      else if (EQ (iconify_child_frame, Qiconify_top_level))
+      else if (FRAME_WINDOW_P (f)
+	       && EQ (iconify_child_frame, Qiconify_top_level))
 	{
-	  /* Iconify top level frame instead (the default).  */
-	  Ficonify_frame (parent);
+	  /* Iconify root frame (the default).  */
+	  Lisp_Object root;
+
+	  XSETFRAME (root, root_frame (f));
+	  Ficonify_frame (root);
+
 	  return Qnil;
 	}
       else if (EQ (iconify_child_frame, Qmake_invisible))
 	{
-	  /* Make frame invisible instead.  */
+	  /* Make frame invisible.  */
 	  Fmake_frame_invisible (frame, Qnil);
+
 	  return Qnil;
 	}
     }
-#endif	/* HAVE_WINDOW_SYSTEM */
 
   if (FRAME_WINDOW_P (f) && FRAME_TERMINAL (f)->iconify_frame_hook)
     FRAME_TERMINAL (f)->iconify_frame_hook (f);
@@ -4008,10 +4016,18 @@ list, but are otherwise ignored.  */)
 	    change_frame_size (f, w, h, false, false, false);
 
 	  Lisp_Object visible = Fassq (Qvisibility, params);
+
 	  if (CONSP (visible))
-	    SET_FRAME_VISIBLE (f, !NILP (Fcdr (visible)));
+	    {
+	      if (EQ (Fcdr (visible), Qicon)
+		  && EQ (iconify_child_frame, Qmake_invisible))
+		SET_FRAME_VISIBLE (f, false);
+	      else
+		SET_FRAME_VISIBLE (f, !NILP (Fcdr (visible)));
+	    }
 
 	  Lisp_Object no_special = Fassq (Qno_special_glyphs, params);
+
 	  if (CONSP (no_special))
 	    FRAME_NO_SPECIAL_GLYPHS (f) = !NILP (Fcdr (no_special));
 	}
@@ -7287,15 +7303,15 @@ but will not be able to display text properties inside tooltip text.  */);
 	       doc: /* How to handle iconification of child frames.
 This variable tells Emacs how to proceed when it is asked to iconify a
 child frame.  If it is nil, `iconify-frame' will do nothing when invoked
-on a child frame.  If it is `iconify-top-level', Emacs will try to
-iconify the top level frame associated with this child frame instead.
-If it is `make-invisible', Emacs will try to make this child frame
-invisible instead.
+on a child frame.  If it is `iconify-top-level' and the child frame is
+on a graphical terminal, Emacs will try to iconify the root frame of
+this child frame.  If it is `make-invisible', Emacs will try to make
+this child frame invisible instead.
 
-Any other value means to try iconifying the child frame.  Since such an
-attempt is not honored by all window managers and may even lead to
-making the child frame unresponsive to user actions, the default is to
-iconify the top level frame instead.  */);
+Any other value means to try iconifying the child frame on a graphical
+terminal.  Since such an attempt is not honored by all window managers
+and may even lead to making the child frame unresponsive to user
+actions, the default is to iconify the root frame instead.  */);
   iconify_child_frame = Qiconify_top_level;
 
   DEFVAR_LISP ("expose-hidden-buffer", expose_hidden_buffer,
