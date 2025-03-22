@@ -1,10 +1,10 @@
 ;;; eieio.el --- Enhanced Implementation of Emacs Interpreted Objects  -*- lexical-binding:t -*-
 ;;;              or maybe Eric's Implementation of Emacs Interpreted Objects
 
-;; Copyright (C) 1995-1996, 1998-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2025 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Version: 1.4
+;; Old-Version: 1.4
 ;; Keywords: OO, lisp
 
 ;; This file is part of GNU Emacs.
@@ -43,14 +43,6 @@
 ;; to create a new class that inherits from a struct.
 
 ;;; Code:
-
-(defvar eieio-version "1.4"
-  "Current version of EIEIO.")
-
-(defun eieio-version ()
-  "Display the current version of EIEIO."
-  (interactive)
-  (message eieio-version))
 
 (require 'eieio-core)
 (eval-when-compile (require 'subr-x))
@@ -1003,6 +995,19 @@ This may create or delete slots, but does not affect the return value
 of `eq'."
   (error "EIEIO: `change-class' is unimplemented"))
 (define-obsolete-function-alias 'change-class #'eieio-change-class "26.1")
+
+
+;;; Obsolete
+;;
+(make-obsolete-variable 'eieio-version 'emacs-version "31.1")
+(defvar eieio-version "1.4"
+  "Current version of EIEIO.")
+
+(defun eieio-version ()
+  "Display the current version of EIEIO."
+  (declare (obsolete emacs-version "31.1"))
+  (interactive)
+  (message eieio-version))
 
 (provide 'eieio)
 
