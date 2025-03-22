@@ -35,8 +35,8 @@ although you can create additional frames and switch between them, the
 terminal only shows one non-child frame at a time.  This frame is
 referred to as the @dfn{top frame} of that terminal and can be retrieved
 with the function @code{tty-top-frame} described below.  A top frame may
-have child frames (@pxref{Child Frames}) which will be shown together
-with it but cannot be a child frame itself.
+have child frames (@pxref{Child Frames}), which will be shown together
+with it, but it cannot be a child frame itself.
 
 Graphical terminals, on the other hand, are managed by graphical display
 systems such as the X Window System, which allow Emacs to show multiple
@@ -3292,7 +3292,7 @@ value is @code{t} if @var{frame} is visible, @code{nil} if it is
 invisible, and @code{icon} if it is iconified.
 
 Note that the visibility status of a frame as reported by this function
-(and by the @code{visibility} frame parameter, @ref{Frame Interaction
+(and by the @code{visibility} frame parameter, @pxref{Frame Interaction
 Parameters}) does not necessarily tell whether the frame is actually
 seen on display.  Any such frame can be partially or completely obscured
 by other window manager windows on the same graphical terminal.  Whether
@@ -3313,7 +3313,7 @@ be seen even if they are considered visible by this function.
 This function iconifies frame @var{frame}.  If you omit @var{frame}, it
 iconifies the selected frame.  This will also remove any child frames
 (@pxref{Child Frames}) of @var{frame} from display.  On the top frame of
-a text terminal this function has no effect.  visible. If @var{frame} is
+a text terminal this function has no effect.  visible.  If @var{frame} is
 a child frame, the behavior depends on the value of the variable
 @code{iconify-child-frame} (@pxref{Child Frames}).
 @end deffn
