@@ -50,7 +50,7 @@ LIB_SRC_TOP_SRCDIR = $(realpath $(top_src))
 
 # This is a list of binaries to build and install in lib-src.
 
-LIBSRC_BINARIES = lib-src/etags lib-src/ctags lib-src/emacsclient \
+LIBSRC_BINARIES = lib-src/etags lib-src/emacsclient \
 		  lib-src/ebrowse lib-src/hexl lib-src/movemail
 
 CLEAN_SUBDIRS = $(wildcard src lib-src lib etc)

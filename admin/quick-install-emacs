@@ -27,7 +27,7 @@
 ## install emacs very often.  See the --help output for more details.
 
 
-PUBLIC_LIBSRC_BINARIES='emacsclient etags ctags ebrowse'
+PUBLIC_LIBSRC_BINARIES='emacsclient etags ebrowse'
 
 AVOID="CVS -DIC README COPYING ChangeLog ~ [.]orig$ [.]rej$ Makefile$ Makefile.in$ makefile$ makefile.w32-in$ stamp-subdir [.]cvsignore [.]arch-ids [{]arch[}] [.][cho]$ make-docfile"
 

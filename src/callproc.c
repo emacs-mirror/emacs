@@ -2167,14 +2167,10 @@ See `setenv' and `getenv'.  */);
   Vprocess_environment = Qnil;
 
   DEFVAR_LISP ("ctags-program-name", Vctags_program_name,
-    doc: /* Name of the `ctags' program distributed with Emacs.
+    doc: /* Name of the `ctags' program.
 Use this instead of calling `ctags' directly, as `ctags' may have been
 renamed to comply with executable naming restrictions on the system.  */);
-#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
   Vctags_program_name = build_string ("ctags");
-#else
-  Vctags_program_name = build_string ("libctags.so");
-#endif
 
   DEFVAR_LISP ("etags-program-name", Vetags_program_name,
     doc: /* Name of the `etags' program distributed with Emacs.

@@ -128,7 +128,6 @@ IS_D8_R8 := @IS_D8_R8@
 # containing the following files:
 #  lib/$(ANDROID_ABI)/libemacs.so
 #  lib/$(ANDROID_ABI)/libandroid-emacs.so
-#  lib/$(ANDROID_ABI)/libctags.so
 #  lib/$(ANDROID_ABI)/libetags.so
 #  lib/$(ANDROID_ABI)/libhexl.so
 #  lib/$(ANDROID_ABI)/libmovemail.so
@@ -143,8 +142,7 @@ all: $(APK_NAME)
 
 # Binaries to cross-compile.
 CROSS_SRC_BINS := $(top_builddir)/cross/src/android-emacs
-CROSS_LIBSRC_BINS := $(top_builddir)/cross/lib-src/ctags	\
-		     $(top_builddir)/cross/lib-src/hexl		\
+CROSS_LIBSRC_BINS := $(top_builddir)/cross/lib-src/hexl		\
 		     $(top_builddir)/cross/lib-src/ebrowse	\
 		     $(top_builddir)/cross/lib-src/emacsclient	\
 		     $(top_builddir)/cross/lib-src/etags

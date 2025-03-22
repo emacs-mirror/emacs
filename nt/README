@@ -44,7 +44,7 @@
   + addpm.exe - A basic installer that creates Start Menu icons for Emacs.
     Running this is optional.
 
-  + ctags.exe, etags.exe - Tools for generating tag files.  See the
+  + etags.exe - Tool for generating tag files.  See the
     `Tags' node of the Emacs manual.
 
   + ebrowse.exe - A tool for generating C++ browse information.  See the

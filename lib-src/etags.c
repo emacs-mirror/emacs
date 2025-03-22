@@ -126,16 +126,6 @@ University of California, as described above. */
 #include <getopt.h>
 #include <regex.h>
 
-/* Define CTAGS to make the program "ctags" compatible with the usual one.
- Leave it undefined to make the program "etags", which makes emacs-style
- tag tables and tags typedefs, #defines and struct/union/enum by default. */
-#ifdef CTAGS
-# undef  CTAGS
-# define CTAGS true
-#else
-# define CTAGS false
-#endif
-
 /* Define MERCURY_HEURISTICS_RATIO as it was necessary to disambiguate
    Mercury from Objective C, which have same file extensions .m
    See comments before function test_objc_is_mercury for details.  */
@@ -465,12 +455,12 @@ static bool typedefs_or_cplusplus; /* -T: create tags for C typedefs, level */
 				/* member functions. */
 static bool constantypedefs;	/* -d: create tags for C #define, enum */
 				/* constants and variables. */
-				/* -D: opposite of -d.  Default under ctags. */
+				/* -D: opposite of -d.  Default if ctags. */
 static int globals;		/* create tags for global variables */
 static int members;		/* create tags for C member variables */
 static int declarations;	/* --declarations: tag them and extern in C&Co*/
 static int no_line_directive;	/* ignore #line directives (undocumented) */
-static int no_duplicates;	/* no duplicate tags for ctags (undocumented) */
+static int no_duplicates;	/* no duplicate tags if ctags (undocumented) */
 static bool update;		/* -u: update tags */
 static bool vgrind_style;	/* -v: create vgrind style index output */
 static bool no_warnings;	/* -w: suppress warnings (undocumented) */
@@ -479,17 +469,19 @@ static bool cplusplus;		/* .[hc] means C++, not C (undocumented) */
 static bool ignoreindent;	/* -I: ignore indentation in C */
 static int packages_only;	/* --packages-only: in Ada, only tag packages*/
 static int class_qualify;	/* -Q: produce class-qualified tags in C++/Java */
+static bool ctags;		/* --ctags */
 static int debug;		/* --debug */
 static int fallback_lang;	/* --(no-)fallback-lang: Fortran/C fallbacks */
 static int empty_files;		/* --(no-)empty-file-entries */
-
-/* STDIN is defined in LynxOS system headers */
-#ifdef STDIN
-# undef STDIN
-#endif
-
-#define STDIN 0x1001		/* returned by getopt_long on --parse-stdin */
 static bool parsing_stdin;	/* --parse-stdin used */
+
+/* For long options that have no equivalent short option, use a
+   non-character as a pseudo short option, starting with CHAR_MAX + 1.  */
+enum
+  {
+    CTAGS_OPTION = CHAR_MAX + 1,
+    STDIN_OPTION
+  };
 
 static regexp *p_head;		/* list of all regexps */
 static bool need_filebuf;	/* some regexes are multi-line */
@@ -499,6 +491,7 @@ static struct option longopts[] =
   { "append",             no_argument,       NULL,               'a'   },
   { "packages-only",      no_argument,       &packages_only,     1     },
   { "c++",                no_argument,       NULL,               'C'   },
+  { "ctags",              no_argument,       NULL,        CTAGS_OPTION },
   { "debug",              no_argument,       &debug,             1     },
   { "declarations",       no_argument,       &declarations,      1     },
   { "no-line-directive",  no_argument,       &no_line_directive, 1     },
@@ -514,10 +507,10 @@ static struct option longopts[] =
   { "regex",              required_argument, NULL,               'r'   },
   { "no-regex",           no_argument,       NULL,               'R'   },
   { "ignore-case-regex",  required_argument, NULL,               'c'   },
-  { "parse-stdin",        required_argument, NULL,               STDIN },
+  { "parse-stdin",        required_argument, NULL,        STDIN_OPTION },
   { "version",            no_argument,       NULL,               'V'   },
 
-#if CTAGS /* Ctags options */
+  /* ctags options */
   { "backward-search",    no_argument,       NULL,               'B'   },
   { "cxref",              no_argument,       NULL,               'x'   },
   { "defines",            no_argument,       NULL,               'd'   },
@@ -528,7 +521,7 @@ static struct option longopts[] =
   { "vgrind",             no_argument,       NULL,               'v'   },
   { "no-warn",            no_argument,       NULL,               'w'   },
 
-#else /* Etags options */
+  /* etags options */
   { "no-defines",         no_argument,       NULL,               'D'   },
   { "no-globals",         no_argument,       &globals,           0     },
   { "include",            required_argument, NULL,               'i'   },
@@ -536,7 +529,7 @@ static struct option longopts[] =
   { "fallback-lang",      no_argument,       &fallback_lang,     1     },
   { "no-empty-file-entries", no_argument,    &empty_files,       0     },
   { "empty-file-entries", no_argument,       &empty_files,       1     },
-#endif
+
   { NULL }
 };
 
@@ -598,15 +591,17 @@ followed by a colon, are tags.";
    That is why default_C_entries is called for these. */
 static const char *default_C_suffixes [] =
   { "c", "h", NULL };
-#if CTAGS				/* C help for Ctags */
-static const char default_C_help [] =
+
+/* C help for ctags */
+static const char ctags_default_C_help[] =
 "In C code, any C function is a tag.  Use -t to tag typedefs.\n\
 Use -T to tag definitions of 'struct', 'union' and 'enum'.\n\
 Use -d to tag '#define' macro definitions and 'enum' constants.\n\
 Use --globals to tag global variables.\n\
 You can tag function declarations and external variables by\n\
 using '--declarations', and struct members by using '--members'.";
-#else					/* C help for Etags */
+
+/* C help for etags */
 static const char default_C_help [] =
 "In C code, any C function or typedef is a tag, and so are\n\
 definitions of 'struct', 'union' and 'enum'.  '#define' macro\n\
@@ -617,7 +612,6 @@ definitions and 'enum' constants are tags unless you specify\n\
 '--no-members' can make the tags table file much smaller.\n\
 You can tag function declarations and external variables by\n\
 using '--declarations'.";
-#endif	/* C help for Ctags and Etags */
 
 static const char *Cplusplus_suffixes [] =
   { "C", "c++", "cc", "cpp", "cxx", "H", "h++", "hh", "hpp", "hxx",
@@ -862,6 +856,7 @@ static language lang_names [] =
 {
   { "ada",       Ada_help,       Ada_funcs,         Ada_suffixes       },
   { "asm",       Asm_help,       Asm_labels,        Asm_suffixes       },
+#define C_LANG_NAMES_INDEX 2
   { "c",         default_C_help, default_C_entries, default_C_suffixes },
   { "c++",       Cplusplus_help, Cplusplus_entries, Cplusplus_suffixes },
   { "c*",        no_lang_help,   Cstar_entries,     Cstar_suffixes     },
@@ -934,15 +929,10 @@ For detailed help on a given language use, for example,\n\
 etags --help --lang=ada.");
 }
 
-#if CTAGS
-# define PROGRAM_NAME "ctags"
-#else
-# define PROGRAM_NAME "etags"
-#endif
 static _Noreturn void
 print_version (void)
 {
-  fputs ((PROGRAM_NAME " (" PACKAGE_NAME " " PACKAGE_VERSION ")\n"
+  fputs (("etags (" PACKAGE_NAME " " PACKAGE_VERSION ")\n"
 	  COPYRIGHT "\n"
 	  "This program is distributed under the terms in ETAGS.README\n"),
 	 stdout);
@@ -984,7 +974,7 @@ Relative ones are stored relative to the output file's directory.\n");
   puts ("--packages-only\n\
         For Ada files, only generate tags for packages.");
 
-  if (CTAGS)
+  if (ctags)
     puts ("-B, --backward-search\n\
         Write the search commands for the tag entries using '?', the\n\
         backward-search command instead of '/', the forward-search command.");
@@ -997,9 +987,13 @@ Relative ones are stored relative to the output file's directory.\n");
         Treat files whose name suffix defaults to C language as C++ files.");
   */
 
+  if (PRINT_UNDOCUMENTED_OPTIONS_HELP && !ctags)
+    puts ("--ctags\n\
+	Implement ctags behavior.");
+
   puts ("--declarations\n\
 	In C and derived languages, create tags for function declarations,");
-  if (CTAGS)
+  if (ctags)
     puts ("\tand create tags for extern variables if --globals is used.");
   else
     puts
@@ -1008,7 +1002,7 @@ Relative ones are stored relative to the output file's directory.\n");
   puts ("\tIn Mercury, tag both declarations starting a line with ':-' and\n\
         first predicates or functions in clauses.");
 
-  if (CTAGS)
+  if (ctags)
     puts ("-d, --defines\n\
         Create tag entries for C #define constants and enum constants, too.");
   else
@@ -1016,7 +1010,7 @@ Relative ones are stored relative to the output file's directory.\n");
         Don't create tag entries for C #define constants and enum constants.\n\
 	This makes the tags file smaller.");
 
-  if (!CTAGS)
+  if (!ctags)
     puts ("-i FILE, --include=FILE\n\
         Include a note in tag file indicating that, when searching for\n\
         a tag, one should also consult the tags file FILE after\n\
@@ -1026,7 +1020,7 @@ Relative ones are stored relative to the output file's directory.\n");
         Force the following files to be considered as written in the\n\
 	named language up to the next --language=LANG option.");
 
-  if (CTAGS)
+  if (ctags)
     puts ("--globals\n\
 	Create tag entries for global variables in some languages.");
   else
@@ -1037,7 +1031,7 @@ Relative ones are stored relative to the output file's directory.\n");
   puts ("--no-line-directive\n\
         Ignore #line preprocessor directives in C and derived languages.");
 
-  if (CTAGS)
+  if (ctags)
     puts ("--members\n\
 	Create tag entries for members of structures in some languages.");
   else
@@ -1045,7 +1039,7 @@ Relative ones are stored relative to the output file's directory.\n");
 	Do not create tag entries for members of structures\n\
 	in some languages.");
 
-  if (!CTAGS)
+  if (!ctags)
     {
       puts ("--fallback-lang\n\
 	If a file's language could not be determined, try to parse\n\
@@ -1092,7 +1086,7 @@ Relative ones are stored relative to the output file's directory.\n");
   puts ("--parse-stdin=NAME\n\
         Read from standard input and record tags as belonging to file NAME.");
 
-  if (CTAGS)
+  if (ctags)
     {
       puts ("-t, --typedefs\n\
         Generate tag entries for C and Ada typedefs.");
@@ -1101,7 +1095,7 @@ Relative ones are stored relative to the output file's directory.\n");
         and C++ member functions.");
     }
 
-  if (CTAGS)
+  if (ctags)
     puts ("-u, --update\n\
         Update the tag entries for the given files, leaving tag\n\
         entries for other files in place.  Currently, this is\n\
@@ -1110,7 +1104,7 @@ Relative ones are stored relative to the output file's directory.\n");
         tags file.  It is often faster to simply rebuild the entire\n\
         tag file than to use this.");
 
-  if (CTAGS)
+  if (ctags)
     {
       puts ("-v, --vgrind\n\
         Print on the standard output an index of items intended for\n\
@@ -1160,7 +1154,6 @@ main (int argc, char **argv)
   linebuffer filename_lb;
   bool help_asked = false;
   ptrdiff_t len;
-  char *optstring;
   int opt;
 
   progname = argv[0];
@@ -1192,9 +1185,7 @@ main (int argc, char **argv)
 
   /* When the optstring begins with a '-' getopt_long does not rearrange the
      non-options arguments to be at the end, but leaves them alone. */
-  optstring = concat ("-ac:Cf:Il:o:Qr:RSVhH",
-		      (CTAGS) ? "BxdtTuvw" : "Di:",
-		      "");
+  static char const optstring[] = "-aBc:CdDf:hHi:Il:o:Qr:RStTuvVwx";
 
   while ((opt = getopt_long (argc, argv, optstring, longopts, NULL)) != EOF)
     switch (opt)
@@ -1215,7 +1206,13 @@ main (int argc, char **argv)
 	++file_count;
 	break;
 
-      case STDIN:
+      case CTAGS_OPTION:
+	/* Operate as ctags, not etags.  */
+	ctags = true;
+	lang_names[C_LANG_NAMES_INDEX].help = ctags_default_C_help;
+	break;
+
+      case STDIN_OPTION:
 	/* Parse standard input.  Idea by Vivek <vivek@etla.org>. */
 	argbuffer[current_arg].arg_type = at_stdin;
 	argbuffer[current_arg].what     = optarg;
@@ -1325,7 +1322,7 @@ main (int argc, char **argv)
     }
 
   if (tagfile == NULL)
-    tagfile = savestr (CTAGS ? "tags" : "TAGS");
+    tagfile = savestr (ctags ? "tags" : "TAGS");
   cwd = etags_getcwd ();	/* the current working directory */
   if (cwd[strlen (cwd) - 1] != '/')
     {
@@ -1349,7 +1346,7 @@ main (int argc, char **argv)
   linebuffer_init (&filebuf);
   linebuffer_init (&token_name);
 
-  if (!CTAGS)
+  if (!ctags)
     {
       if (streq (tagfile, "-"))
 	{
@@ -1407,13 +1404,13 @@ main (int argc, char **argv)
   free (filebuf.buffer);
   free (token_name.buffer);
 
-  if (!CTAGS || cxref_style)
+  if (!ctags || cxref_style)
     {
       /* Write the remaining tags to tagf (ETAGS) or stdout (CXREF). */
       put_entries (nodehead);
       free_tree (nodehead);
       nodehead = NULL;
-      if (!CTAGS)
+      if (!ctags)
 	{
 	  fdesc *fdp;
 
@@ -1462,7 +1459,7 @@ main (int argc, char **argv)
   if (fclose (tagf) == EOF)
     pfatal (tagfile);
 
-  if (CTAGS)
+  if (ctags)
     if (append_to_tagfile || update)
       {
 	/* Maybe these should be used:
@@ -1860,7 +1857,7 @@ process_file (FILE *fh, char *fn, language *lang)
   /* If not Ctags, and if this is not metasource and if it contained no #line
      directives, we can write the tags and free all nodes pointing to
      curfdp. */
-  if (!CTAGS
+  if (!ctags
       && curfdp->usecharno	/* no #line directives in this file */
       && !curfdp->lang->metasource)
     {
@@ -2092,7 +2089,7 @@ make_tag (const char *name, 	/* tag name, or NULL if unnamed */
     fprintf (stderr, "%s on %s:%"PRIdMAX": %s\n",
 	     named ? name : "(unnamed)", curfdp->taggedfname, lno, linestart);
 
-  if (!CTAGS && named)		/* maybe set named to false */
+  if (!ctags && named)		/* maybe set named to false */
     /* Let's try to make an implicit tag name, that is, create an unnamed tag
        such that etags.el can guess a name from it. */
     {
@@ -2133,17 +2130,17 @@ pfnote (char *name,		/* tag name, or NULL if unnamed */
 {
   register node *np;
 
-  if ((CTAGS && name == NULL)
+  if ((ctags && name == NULL)
       /* We used to have an assertion here for the case below, but if we hit
 	 that case, it just means our parser got confused, and there's nothing
 	 to do about such empty "tags".  */
-      || (!CTAGS && name && name[0] == '\0'))
+      || (!ctags && name && name[0] == '\0'))
     return;
 
   np = xmalloc (sizeof *np);
 
   /* If ctags mode, change name "main" to M<thisfilename>. */
-  if (CTAGS && !cxref_style && streq (name, "main"))
+  if (ctags && !cxref_style && streq (name, "main"))
     {
       char *fp = strrchr (curfdp->taggedfname, '/');
       np->name = concat ("M", fp == NULL ? curfdp->taggedfname : fp + 1, "");
@@ -2168,7 +2165,7 @@ pfnote (char *name,		/* tag name, or NULL if unnamed */
   else
     np->cno = invalidcharno;
   np->left = np->right = NULL;
-  if (CTAGS && !cxref_style)
+  if (ctags && !cxref_style)
     {
       if (strnlen (linestart, 50) < 50)
 	np->regex = concat (linestart, "$", "");
@@ -2295,7 +2292,7 @@ add_node (node *np, node **cur_node_p)
       return;
     }
 
-  if (!CTAGS)
+  if (!ctags)
     /* Etags Mode */
     {
       /* For each file name, tags are in a linked sublist on the right
@@ -2394,7 +2391,7 @@ invalidate_nodes (fdesc *badfdp, node **npp)
   node *np = *npp;
   stkentry *stack = NULL;
 
-  if (CTAGS)
+  if (ctags)
     {
       while (np)
 	{
@@ -2504,7 +2501,7 @@ put_entry (node *np)
   /* Output this entry */
   if (np->valid)
     {
-      if (!CTAGS)
+      if (!ctags)
 	{
 	  /* Etags mode */
 	  if (fdp != np->fdp)
@@ -2576,7 +2573,7 @@ put_entries (node *np)
   if (np == NULL)
     return;
 
-  if (CTAGS)
+  if (ctags)
     {
       while (np)
 	{

@@ -1471,7 +1471,6 @@ in the repository.")
     ("org/COPYRIGHT-AND-LICENSE" . "org/README")
     ("lisp/net/idna.el" . "puny.el")
     ;; Moved to different directories.
-    ("ctags.1" . "ctags.1")
     ("etags.1" . "etags.1")
     ("emacs.1" . "emacs.1")
     ("emacsclient.1" . "emacsclient.1")

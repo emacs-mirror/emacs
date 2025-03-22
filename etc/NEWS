@@ -30,6 +30,12 @@ The traditional unexec dumper, deprecated since Emacs 27, has been
 removed.
 
 ---
+** Emacs's old ctags program is no longer built or installed.
+You are encouraged to use Universal Ctags <https://ctags.io/> instead.
+For now, to get the old ctags behavior you can can run 'etags --ctags'
+or use a shell script named 'ctags' that runs 'etags --ctags "$@"'.
+
+---
 ** Changed GCC default options on 32-bit x86 systems.
 When using GCC 4 or later to build Emacs on 32-bit x86 systems,
 'configure' now defaults to using the GCC options '-mfpmath=sse' (if the

@@ -32,13 +32,6 @@ exit_status=0
 
 cd "$PD"/../doc/man
 for page in *.1; do
-    # ctags.1 just includes the man page etags.1, which AFAICT will
-    # default to the one installed on the system (!), instead of the
-    # one in the repository.  So checking it is pointless, and we will
-    # in any case already check etags.1 separately.
-    if [ "$page" == "ctags.1" ]; then
-        continue
-    fi
     log=$(emacs_mktemp)
     LC_ALL=C.UTF-8 MANROFFSEQ='' MANWIDTH=80 \
         man --warnings=all,mac -E UTF-8 -l -Tutf8 -Z "$page" >/dev/null 2> "$log"

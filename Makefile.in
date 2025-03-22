@@ -812,9 +812,7 @@ install-info: info
 
 ## "gzip || true" is because some gzips exit with non-zero status
 ## if compression would not reduce the file size.  Eg, the gzip in
-## OpenBSD 4.9 seems to do this (2013/03).  In Emacs, this can
-## only happen with the tiny ctags.1 manpage.  We don't really care if
-## ctags.1 is compressed or not.  "gzip -f" is another option here,
+## OpenBSD 4.9 seems to do this (2013/03).  "gzip -f" is another option here,
 ## but not sure if portable.
 install-man:
 	umask 022; ${MKDIR_P} "$(DESTDIR)${man1dir}"

@@ -612,7 +612,7 @@ installed locations, with 'make install'.  By default, Emacs's files
 are installed in the following directories:
 
 '/usr/local/bin' holds the executable programs users normally run -
-		'emacs', 'etags', 'ctags', 'emacsclient'.
+		'emacs', 'etags', 'emacsclient'.
 
 '/usr/local/share/emacs/VERSION/lisp' holds the Emacs Lisp library;
 		'VERSION' stands for the number of the Emacs version
