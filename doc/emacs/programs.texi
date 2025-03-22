@@ -116,6 +116,16 @@ utilize the incremental parsing capabilities provided by
 @samp{tree-sitter}.  These modes have @samp{-ts-} in their names; for
 example @code{c-ts-mode}, @code{python-ts-mode}, etc.
 
+@cindex LSP
+@cindex language server
+@cindex Eglot
+  Major modes for programming languages can use services of
+@dfn{language servers} via the facilities provided by the Eglot package.
+Eglot implements LSP, the @dfn{language server protocol}, which allows
+Emacs to receive language-specific information and services that enrich
+and extend source code editing capabilities.  @xref{Eglot Features,,,
+eglot, Eglot: The Emacs LSP Client}.
+
 @kindex DEL @r{(programming modes)}
 @findex backward-delete-char-untabify
   In most programming languages, indentation should vary from line to
