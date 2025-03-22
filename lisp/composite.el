@@ -493,6 +493,24 @@ by `find-composition'."
         (setq idx (1+ idx)))))
     (or found endpos)))
 
+(defun composition-find-pos-glyph (composition pos)
+  "Find in COMPOSITION a glyph that corresponds to character at position POS.
+COMPOSITION is as returned by `find-composition'."
+  (let* ((from-pos (car composition))
+         (to-pos (nth 1 composition))
+         (gstring (nth 2 composition))
+         (nglyphs (lgstring-glyph-len gstring))
+        (idx 0)
+        glyph found)
+    (if (and (>= pos from-pos) (< pos to-pos))
+        (while (and (not found) (< idx nglyphs))
+          (setq glyph (lgstring-glyph gstring idx))
+          (if (and (>= pos (+ from-pos (lglyph-from glyph)))
+                   (<= pos (+ from-pos (lglyph-to glyph))))
+              (setq found (lglyph-code glyph)))
+          (setq idx (1+ idx))))
+    found))
+
 (defun compose-glyph-string (gstring from to)
   (let ((glyph (lgstring-glyph gstring from))
 	from-pos to-pos)
