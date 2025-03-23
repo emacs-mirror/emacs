@@ -3836,6 +3836,11 @@ pgtk_flash (struct frame *f)
       cairo_fill (cr);
     }
 
+  /* This surface may be leaked if XTflash is invoked again after a
+     visible bell but before the atimer has had an opportunity to undo
+     the first invocation.  (bug#77128) */
+  if (FRAME_X_OUTPUT (f)->cr_surface_visible_bell)
+    cairo_surface_destroy (FRAME_X_OUTPUT (f)->cr_surface_visible_bell);
   FRAME_X_OUTPUT (f)->cr_surface_visible_bell = surface;
 
   delay = make_timespec (0, 50 * 1000 * 1000);
