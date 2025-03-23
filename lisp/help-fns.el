@@ -875,20 +875,6 @@ the C sources, too."
              (function-get function 'disabled))
     (insert "  This function is disabled.\n")))
 
-(add-hook 'help-fns-describe-variable-functions #'help--recommend-setopt)
-(defun help--recommend-setopt (symbol)
-  ;; TODO: This would be better if added to the docstring itself, but I
-  ;;       ran into `byte-compile-dynamic-docstring' and gave up.
-  (when (and (get symbol 'custom-set)
-             ;; Don't override manually written documentation.
-             (not (string-match (rx word-start "setopt" word-end)
-                                (documentation-property
-                                 symbol 'variable-documentation))))
-    ;; FIXME: `princ` removes text properties added by s-c-k.
-    (princ (substitute-command-keys "\
-Setting this variable with `setq' has no effect; use either `setopt'
-or \\[customize-option] to change its value.\n\n"))))
-
 (defun help-fns--first-release-regexp (symbol)
   (let* ((name (symbol-name symbol))
          (quoted (regexp-quote name)))
@@ -1602,12 +1588,26 @@ it is displayed along with the global value."
 (defun help-fns--customize-variable (variable &optional text)
   ;; Make a link to customize if this variable can be customized.
   (when (custom-variable-p variable)
-    (let ((customize-label "customize"))
+    (let ((customize-label "customize")
+          (custom-set (get variable 'custom-set)))
       (princ (concat "  You can " customize-label (or text " this variable.")))
+      (when (and custom-set
+                 ;; Don't override manually written documentation.
+                 (not (string-match (rx word-start "setopt" word-end)
+                                    (documentation-property
+                                     variable 'variable-documentation))))
+        (princ (substitute-quotes
+                (concat "\n  Setting this variable directly with `setq' may not take effect;"
+                        "\n  use either customize or `setopt'"
+                        ;; Skip text if `custom-set' property is an
+                        ;; anonymous function.
+                        (when (symbolp custom-set)
+                          (concat ", or call `" (symbol-name custom-set) "'"))
+                        "."))))
       (with-current-buffer standard-output
 	(save-excursion
-          (re-search-backward (concat "\\(" customize-label "\\)"))
-	  (help-xref-button 1 'help-customize-variable variable)))
+          (while (re-search-backward (concat "\\(" customize-label "\\)") nil t)
+	    (help-xref-button 1 'help-customize-variable variable))))
       (terpri))))
 
 (add-hook 'help-fns-describe-variable-functions
