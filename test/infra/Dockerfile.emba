@@ -24,7 +24,7 @@
 # Maintainer: Ted Zlatanov <tzz@lifelogs.com>
 # URL: https://emba.gnu.org/emacs/emacs
 
-FROM debian:bullseye as emacs-base
+FROM debian:bookworm as emacs-base
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
@@ -60,16 +60,7 @@ RUN ./autogen.sh autoconf
 RUN ./configure --with-file-notification=gfile
 RUN make -j `nproc` bootstrap
 
-# Debian bullseye doesn't provide proper packages.  So we use Debian
-# sid for this.
-FROM debian:sid as emacs-eglot
-
-# This corresponds to emacs-base.
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev \
-      libxml2-dev libdbus-1-dev libacl1-dev acl git texinfo gdb \
-    && rm -rf /var/lib/apt/lists/*
+FROM emacs-base as emacs-eglot
 
 # Install clangd, tsserver.
 RUN apt-get update && \
@@ -112,16 +103,7 @@ RUN make -j `nproc` bootstrap
 #     --eval '(package-install (quote company))' \
 #     --eval '(package-install (quote yasnippet))'
 
-# Debian bullseye doesn't provide proper packages.  So we use Debian
-# sid for this.
-FROM debian:sid as emacs-tree-sitter
-
-# This corresponds to emacs-base.
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev \
-      libxml2-dev libdbus-1-dev libacl1-dev acl git texinfo gdb \
-    && rm -rf /var/lib/apt/lists/*
+FROM emacs-base as emacs-tree-sitter
 
 # Install tree-sitter library.
 RUN apt-get update && \
@@ -183,7 +165,7 @@ FROM emacs-base as emacs-native-comp
 # The libgccjit version must correspond to the gcc version.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      libgccjit-10-dev zlib1g-dev \
+      libgccjit-12-dev zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 FROM emacs-native-comp as emacs-native-comp-speed0
