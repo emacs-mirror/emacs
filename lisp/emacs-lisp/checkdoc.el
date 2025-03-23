@@ -1694,35 +1694,6 @@ function,command,variable,option or symbol." ms1))))))
 	 (if ret
 	     (checkdoc-create-error ret mb me)
 	   nil)))
-     ;; * Format the documentation string so that it fits in an
-     ;;   Emacs window on an 80-column screen.  It is a good idea
-     ;;   for most lines to be no wider than 60 characters.  The
-     ;;   first line can be wider if necessary to fit the
-     ;;   information that ought to be there.
-     (save-excursion
-       (let* ((start (point))
-              (eol nil)
-              ;; Respect this file local variable.
-              (max-column (max 80 byte-compile-docstring-max-column))
-              ;; Allow the first line to be three characters longer, to
-              ;; fit the leading ` "' while still having a docstring
-              ;; shorter than e.g. 80 characters.
-              (first t)
-              (get-max-column (lambda () (+ max-column (if first 3 0)))))
-	 (while (and (< (point) e)
-		     (or (progn (end-of-line) (setq eol (point))
-                                (< (current-column) (funcall get-max-column)))
-			 (progn (beginning-of-line)
-				(re-search-forward "\\\\\\\\[[<{]"
-						   eol t))
-                         (checkdoc-in-sample-code-p start e)))
-           (setq first nil)
-	   (forward-line 1))
-	 (end-of-line)
-         (if (and (< (point) e) (> (current-column) (funcall get-max-column)))
-	     (checkdoc-create-error
-              (format "Some lines are over %d columns wide" max-column)
-	      s (save-excursion (goto-char s) (line-end-position))))))
      ;; Here we deviate to tests based on a variable or function.
      ;; We must do this before checking for symbols in quotes because there
      ;; is a chance that just such a symbol might really be an argument.

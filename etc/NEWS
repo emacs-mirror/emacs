@@ -1025,6 +1025,11 @@ This change affects both 'M-x checkdoc' and the corresponding flymake
 backend.
 
 ---
+*** Checkdoc no longer warns about wide docstrings.
+The Checkdoc warning for wide docstrings duplicates the byte-compiler
+warning added in Emacs 28.1.  This redundancy is now removed.
+
+---
 *** New user option 'checkdoc-arguments-missing-flag'.
 Set this to nil to disable warnings for function arguments that are not
 documented in docstrings.
