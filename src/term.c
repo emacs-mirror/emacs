@@ -184,9 +184,15 @@ tty_send_additional_strings (struct terminal *terminal, Lisp_Object sym)
       Lisp_Object string = XCAR (extra_codes);
       if (STRINGP (string))
         {
-	  fwrite (SDATA (string), 1, SBYTES (string), tty->output);
+	  struct Lisp_String *str = XSTRING (string);
+	  /* Don't use SBYTES, as that is not protected from GC.  */
+	  ptrdiff_t sbytes
+	    = (str->u.s.size_byte < 0
+	       ? str->u.s.size & ~ARRAY_MARK_FLAG
+	       : str->u.s.size_byte);
+	  fwrite (SDATA (string), 1, sbytes, tty->output);
           if (tty->termscript)
-	    fwrite (SDATA (string), 1, SBYTES (string), tty->termscript);
+	    fwrite (SDATA (string), 1, sbytes, tty->termscript);
         }
     }
 }
