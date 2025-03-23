@@ -3229,7 +3229,8 @@ To see the documentation for a defined struct type, use
 	      ;; and pred-check, so changing it is not straightforward.
 	      (push `(,defsym ,accessor (cl-x)
                        ,(let ((long-docstring
-                               (format "Access slot \"%s\" of `%s' struct CL-X." slot name)))
+                               (format "Access slot \"%s\" of `%s' struct X."
+                                       slot name)))
                           (concat
                            ;; NB.  This will produce incorrect results
                            ;; in some cases, as our coding conventions
@@ -3246,14 +3247,21 @@ To see the documentation for a defined struct type, use
                                        80))
                                (concat
                                 (internal--format-docstring-line
-                                 "Access slot \"%s\" of CL-X." slot)
+                                 "Access slot \"%s\" of X." slot)
                                 "\n"
                                 (internal--format-docstring-line
-                                 "Struct CL-X is a `%s'." name))
+                                 "Struct X is a `%s'." name))
                              (internal--format-docstring-line long-docstring))
-                           (if doc (concat "\n" doc) "")))
+                           (if doc (concat "\n" doc) "")
+                           "\n"
+                           (format "\n\n(fn %s X)" accessor)))
                        (declare (side-effect-free t))
                        ,access-body)
+                    forms)
+              ;; FIXME: This hack is to document this as a generalized
+              ;; variable, despite it not having the `gv-expander'
+              ;; property.  See `help-fns--generalized-variable'.
+              (push `(function-put ',accessor 'document-generalized-variable t)
                     forms)
               (when (oddp (length desc))
                 (push

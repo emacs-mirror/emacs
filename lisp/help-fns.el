@@ -1262,7 +1262,9 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 
 (defun help-fns--generalized-variable (function)
   (when (and (symbolp function)
-             (get function 'gv-expander)
+             (or (get function 'gv-expander)
+                 ;; This is a hack, see cl-macs.el:
+                 (get function 'document-generalized-variable))
              ;; Don't mention obsolete generalized variables.
              (not (get function 'byte-obsolete-generalized-variable)))
     (insert (format-message "  `%s' is also a " function)
