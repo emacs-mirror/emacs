@@ -3928,45 +3928,74 @@ This is equivalent to @code{(nconc (cl-mapcar 'cons @var{keys} @var{values})
 The Common Lisp @dfn{structure} mechanism provides a general way
 to define data types similar to C's @code{struct} types.  A
 structure is a Lisp object containing some number of @dfn{slots},
-each of which can hold any Lisp data object.  Functions are
-provided for accessing and setting the slots, creating or copying
-structure objects, and recognizing objects of a particular structure
-type.
+each of which can hold any Lisp data object.
 
-In true Common Lisp, each structure type is a new type distinct
-from all existing Lisp types.  Since the underlying Emacs Lisp
-system provides no way to create new distinct types, this package
-implements structures as vectors (or lists upon request) with a
-special ``tag'' symbol to identify them.
+You can create a new structure with the @code{cl-defstruct} macro.  This
+macro automatically generates functions to access and modify its slots,
+create or copy structure objects, and to test whether an object belongs
+to the defined structure type.
+
+In standard Common Lisp, each structure type is a new type distinct from
+all existing Lisp types.  However, because Emacs Lisp lacks native
+support for defining new distinct types, this package implements
+structures using vectors (or lists upon request) with a special ``tag''
+symbol that to identify them.
 
 @defmac cl-defstruct name slots@dots{}
 The @code{cl-defstruct} form defines a new structure type called
 @var{name}, with the specified @var{slots}.  (The @var{slots}
 may begin with a string which documents the structure type.)
 In the simplest case, @var{name} and each of the @var{slots}
-are symbols.  For example,
+are symbols.  For example, this is how you define a struct type called
+@code{person} that contains three slots:
 
-@example
+@lisp
 (cl-defstruct person first-name age sex)
-@end example
+@end lisp
 
-@noindent
-defines a struct type called @code{person} that contains three slots.
+The @code{cl-defstruct} macro creates a new constructor function, such
+as @code{make-person} in this example, which returns a new struct
+instance.  This constructor accepts keyword arguments that correspond to
+the specified slots, such as @code{:first-name}, @code{:age}, and
+@code{:sex}.  These keyword arguments specify the initial values for the
+respective slots in the new object.  If a keyword argument is not
+provided, the slot is initialized to @code{nil}.@footnote{This behavior
+differs from Common Lisp, where an unitialized slot would be left as
+``undefined''.}
+
+In the example below, we create a new instance of the @code{person}
+struct, and store it in the variable @code{birthday-boy} for later use:
+
+@lisp
+(setq birthday-boy
+      (make-person :first-name "Peter" :age 23 :sex "male"))
+     @result{} #s(person "Peter" 23 "male")
+@end lisp
+
 Given a @code{person} object @var{p}, you can access those slots by
-calling @code{(person-first-name @var{p})}, @code{(person-age
-@var{p})}, and @code{(person-sex @var{p})}.  You can also change these
-slots by using @code{setf} on any of these place forms, for example:
+calling @code{(person-first-name @var{p})}, @code{(person-age @var{p})},
+and @code{(person-sex @var{p})}.
 
-@example
+You can also update the values of these slots using @code{setf} on any
+of these place forms, for example:
+
+@lisp
+(setf (person-first-name birthday-boy) "Old Peter")
+     @result{} "Old Peter"
+birthday-boy
+     @result{} #s(person "Old Peter" 23 "male")
+@end lisp
+
+Any macro that accepts a generalized variable can be used to modify
+struct fields (@pxref{Generalized Variables,,,elisp,GNU Emacs Lisp
+Reference Manual}).  Here is an example using @code{incf}:
+
+@lisp
 (incf (person-age birthday-boy))
-@end example
-
-You can create a new @code{person} by calling @code{make-person},
-which takes keyword arguments @code{:first-name}, @code{:age}, and
-@code{:sex} to specify the initial values of these slots in the
-new object.  (Omitting any of these arguments leaves the corresponding
-slot ``undefined'', according to the Common Lisp standard; in Emacs
-Lisp, such uninitialized slots are filled with @code{nil}.)
+     @result{} 24
+birthday-boy
+     @result{} #s(person "Old Peter" 24 "male")
+@end lisp
 
 Given a @code{person}, @code{(copy-person @var{p})} makes a new
 object of the same type whose slots are @code{eq} to those of @var{p}.
