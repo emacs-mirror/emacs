@@ -50,8 +50,6 @@
  ("22.1" fun version<=)
  ("22.1" fun read-number)
  ("21.1" var text-property-default-nonsticky)
- ("20.3" var time-stamp-pattern)
- ("19.16" fun time-stamp)
 
 ;; Since much of early Emacs source history is lost, these versions are
 ;; conservative estimates: the actual version of first appearance may very

@@ -2108,6 +2108,11 @@ mailabbrev.el used to have its own variable for this purpose
 ** In Buffer-Menu mode, the d and C-d commands (which mark buffers for
 deletion) now accept a prefix argument which serves as a repeat count.
 
+** 'time-stamp' can be disabled interactively with 'time-stamp-toggle-active'
+This new function works by toggling existing variable 'time-stamp-active'.
+When inactive, 'time-stamp' generates a warning message unless
+new variable 'time-stamp-warn-inactive' is nil.
+
 ** Changes in BibTeX mode.
 
 *** Reference keys can now be entered with TAB completion.  All
@@ -4981,6 +4986,12 @@ For this reason, 'read-key-sequence' encloses the event's PLACE-SYMBOL
 in a singleton list when it first inserts the prefix, but doesn't
 insert the prefix when processing events whose PLACE-SYMBOLs are
 already thus enclosed.
+
+** New function 'time-stamp' updates a template with the current time.
+This is intended to be used on 'write-file-hooks'.  The template details
+are controlled by file-local variables 'time-stamp-start', 'time-stamp-end',
+'time-stamp-line-limit', and 'time-stamp-format'.
+Disabled by turning off 'time-stamp-active'.
 
 
 

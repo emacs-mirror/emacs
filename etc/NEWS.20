@@ -925,6 +925,10 @@ reminder about upcoming diary entries.  See the documentation string
 for a sample shell script for calling this function automatically
 every night.
 
+** New convenience variable 'time-stamp-pattern'
+Using 'time-stamp-pattern', a file can specify several 'time-stamp'
+parameters with just one variable.
+
 ** Desktop changes
 
 *** All you need to do to enable use of the Desktop package, is to set
