@@ -3113,18 +3113,22 @@ mirror_line_dance (struct window *w, int unchanged_at_top, int nlines, int *copy
 static void
 check_window_matrix_pointers (struct window *w)
 {
-  while (w)
-    {
-      if (WINDOWP (w->contents))
-	check_window_matrix_pointers (XWINDOW (w->contents));
-      else
-	{
-	  struct frame *f = XFRAME (w->frame);
-	  check_matrix_pointers (w->desired_matrix, f->desired_matrix);
-	  check_matrix_pointers (w->current_matrix, f->current_matrix);
-	}
+  struct frame *f = XFRAME (w->frame);
 
-      w = NILP (w->next) ? 0 : XWINDOW (w->next);
+  if (f->after_make_frame)
+    {
+      while (w)
+	{
+	  if (WINDOWP (w->contents))
+	    check_window_matrix_pointers (XWINDOW (w->contents));
+	  else
+	    {
+	      check_matrix_pointers (w->desired_matrix, f->desired_matrix);
+	      check_matrix_pointers (w->current_matrix, f->current_matrix);
+	    }
+
+	  w = NILP (w->next) ? 0 : XWINDOW (w->next);
+	}
     }
 }
 
