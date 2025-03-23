@@ -574,12 +574,6 @@ When called with 2 \\[universal-argument] prefix args, disable magic word recogn
               (unless (eq major-mode 'reftex-select-label-mode)
                 (reftex-select-label-mode))
               (cl-pushnew (current-buffer) selection-buffers)
-              (setq truncate-lines t)
-              (setq mode-line-format
-                    (list "----  " 'mode-line-buffer-identification
-                          "  " 'global-mode-string "   (" mode-name ")"
-                          "  S<" 'reftex-refstyle ">"
-                          " -%-"))
               (cond
                ((= 0 (buffer-size))
                 (let ((buffer-read-only nil))
