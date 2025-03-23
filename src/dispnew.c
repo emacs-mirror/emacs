@@ -3115,6 +3115,8 @@ check_window_matrix_pointers (struct window *w)
 {
   struct frame *f = XFRAME (w->frame);
 
+  eassert (is_tty_frame (f));
+
   if (f->after_make_frame)
     {
       while (w)
