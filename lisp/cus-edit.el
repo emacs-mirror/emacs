@@ -6062,31 +6062,47 @@ Moves point into the widget that holds the value."
   (custom--initialize-widget-variables)
   (add-hook 'widget-forward-hook #'custom-dirlocals-maybe-update-cons nil t))
 
+(define-derived-mode Custom-dirlocals-mode nil "Custom dirlocals"
+  "Major mode for customize Directory Local Variables in the current directory.
+Entry to this mode calls the value of `Custom-mode-hook' if that value
+is non-nil.
+
+\\{custom-dirlocals-map}"
+  (kill-all-local-variables)
+  (custom-dirlocals--set-widget-vars)
+  (setq-local major-mode #'Custom-dirlocals-mode)
+  (setq-local text-conversion-style 'action)
+  (setq-local touch-screen-keyboard-function
+              #'Custom-display-on-screen-keyboard-p)
+  (setq-local revert-buffer-function #'Custom-dirlocals-revert-buffer)
+  (setq-local tool-bar-map
+              (or custom-dirlocals-tool-bar-map
+                  ;; Set up `custom-dirlocals-tool-bar-map'.
+                  (let ((map (make-sparse-keymap)))
+                    (mapc
+                     (lambda (arg)
+                       (tool-bar-local-item-from-menu
+                        (nth 1 arg) (nth 4 arg) map custom-dirlocals-map
+                        :label (nth 5 arg)))
+                     custom-dirlocals-commands)
+                    (setq custom-dirlocals-tool-bar-map map))))
+  (use-local-map custom-dirlocals-map)
+  (run-hooks 'Custom-mode-hook))
+
+(derived-mode-add-parents 'Custom-dirlocals-mode '(Custom-mode))
+
 (defmacro custom-dirlocals-with-buffer (&rest body)
   "Arrange to execute BODY in a \"*Customize Dirlocals*\" buffer."
   ;; We don't use `custom-buffer-create' because the settings here
   ;; don't go into the `custom-file'.
   `(progn
      (switch-to-buffer "*Customize Dirlocals*")
-     (kill-all-local-variables)
+
      (let ((inhibit-read-only t))
        (erase-buffer))
      (remove-overlays)
-     (custom-dirlocals--set-widget-vars)
+     (Custom-dirlocals-mode)
      ,@body
-     (setq-local tool-bar-map
-                 (or custom-dirlocals-tool-bar-map
-                     ;; Set up `custom-dirlocals-tool-bar-map'.
-                     (let ((map (make-sparse-keymap)))
-                       (mapc
-                        (lambda (arg)
-                          (tool-bar-local-item-from-menu
-                           (nth 1 arg) (nth 4 arg) map custom-dirlocals-map
-                           :label (nth 5 arg)))
-                        custom-dirlocals-commands)
-                       (setq custom-dirlocals-tool-bar-map map))))
-     (setq-local revert-buffer-function #'Custom-dirlocals-revert-buffer)
-     (use-local-map custom-dirlocals-map)
      (widget-setup)))
 
 (defun custom-dirlocals-get-options ()
