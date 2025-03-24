@@ -2022,13 +2022,13 @@ See `set-language-info-alist' for use in programs."
 	     (set-language-info-alist (car elt) (cdr elt)))
 	   ;; re-set the environment in case its parameters changed
 	   (set-language-environment current-language-environment)))
-  :type '(alist
+  :type `(alist
 	  :key-type (string :tag "Language environment"
 			    :completions
-                            (lambda (string pred action)
-                              (let ((completion-ignore-case t))
-                                (complete-with-action
-                                 action language-info-alist string pred))))
+                            ,(lambda (string pred action)
+                               (let ((completion-ignore-case t))
+                                 (complete-with-action
+                                  action language-info-alist string pred))))
 	  :value-type
 	  (alist :key-type symbol
 		 :options ((documentation string)

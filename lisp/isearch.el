@@ -685,10 +685,10 @@ This is like `describe-bindings', but displays only Isearch keys."
 
 (easy-menu-define isearch-menu-bar-map  isearch-mode-map
   "Menu for `isearch-mode'."
-  '("Isearch"
+  `("Isearch"
     ["Cancel search" isearch-cancel
      :help "Cancel current search and return to starting point"
-     :filter (lambda (binding)
+     :filter ,(lambda (binding)
                (if isearch-success 'isearch-abort binding))]
     ["Remove characters not found" isearch-abort
      :help "Quit current search"

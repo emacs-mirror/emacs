@@ -109,11 +109,11 @@
 (coding-system-put 'chinese-hz :ascii-compatible-p nil)
 
 (set-language-info-alist
- "Chinese-GB" '((charset chinese-gb2312 chinese-sisheng)
+ "Chinese-GB" `((charset chinese-gb2312 chinese-sisheng)
 		(iso639-language . zh)
                 (cjk-locale-symbol . zh_CN)
-		(setup-function . (lambda ()
-				    (use-cjk-char-width-table 'zh_CN)))
+		(setup-function . ,(lambda ()
+				     (use-cjk-char-width-table 'zh_CN)))
 		(exit-function . use-default-char-width-table)
 		(coding-system chinese-iso-8bit iso-2022-cn chinese-hz)
 		(coding-priority chinese-iso-8bit chinese-gbk chinese-big5
@@ -141,11 +141,11 @@
 (define-coding-system-alias 'cp950 'chinese-big5)
 
 (set-language-info-alist
- "Chinese-BIG5" '((charset chinese-big5-1 chinese-big5-2)
+ "Chinese-BIG5" `((charset chinese-big5-1 chinese-big5-2)
 		  (iso639-language . zh)
                   (cjk-locale-symbol . zh_HK)
-		  (setup-function . (lambda ()
-				      (use-cjk-char-width-table 'zh_HK)))
+		  (setup-function . ,(lambda ()
+				       (use-cjk-char-width-table 'zh_HK)))
 		  (exit-function . use-default-char-width-table)
 		  (coding-system chinese-big5 chinese-iso-7bit)
 		  (coding-priority chinese-big5 iso-2022-cn chinese-iso-8bit
@@ -195,14 +195,14 @@
 (define-coding-system-alias 'euc-taiwan 'euc-tw)
 
 (set-language-info-alist
- "Chinese-CNS" '((charset chinese-cns11643-1 chinese-cns11643-2
+ "Chinese-CNS" `((charset chinese-cns11643-1 chinese-cns11643-2
 			  chinese-cns11643-3 chinese-cns11643-4
 			  chinese-cns11643-5 chinese-cns11643-6
 			  chinese-cns11643-7)
 		 (iso639-language . zh)
                  (cjk-locale-symbol . zh_TW)
-		 (setup-function . (lambda ()
-				     (use-cjk-char-width-table 'zh_TW)))
+		 (setup-function . ,(lambda ()
+				      (use-cjk-char-width-table 'zh_TW)))
 		 (exit-function . use-default-char-width-table)
 		 (coding-system iso-2022-cn euc-tw)
 		 (coding-priority iso-2022-cn euc-tw chinese-big5
@@ -216,14 +216,14 @@ accepts Big5 for input also (which is then converted to CNS)."))
  '("Chinese"))
 
 (set-language-info-alist
- "Chinese-EUC-TW" '((charset chinese-cns11643-1 chinese-cns11643-2
+ "Chinese-EUC-TW" `((charset chinese-cns11643-1 chinese-cns11643-2
 			     chinese-cns11643-3 chinese-cns11643-4
 			     chinese-cns11643-5 chinese-cns11643-6
 			     chinese-cns11643-7 chinese-big5-1 chinese-big5-2)
 		    (iso639-language . zh)
                     (cjk-locale-symbol . zh_TW)
-		    (setup-function . (lambda ()
-					(use-cjk-char-width-table 'zh_TW)))
+		    (setup-function . ,(lambda ()
+					 (use-cjk-char-width-table 'zh_TW)))
 		    (exit-function . use-default-char-width-table)
 		    (coding-system euc-tw iso-2022-cn)
 		    (coding-priority euc-tw chinese-big5 iso-2022-cn
@@ -250,11 +250,11 @@ converted to CNS)."))
 (define-coding-system-alias 'windows-936 'chinese-gbk)
 
 (set-language-info-alist
- "Chinese-GBK" '((charset chinese-gbk)
+ "Chinese-GBK" `((charset chinese-gbk)
 		 (iso639-language . zh)
                  (cjk-locale-symbol . zh_CN)
-		 (setup-function . (lambda ()
-				     (use-cjk-char-width-table 'zh_CN)))
+		 (setup-function . ,(lambda ()
+				      (use-cjk-char-width-table 'zh_CN)))
 		 (exit-function . use-default-char-width-table)
 		 (coding-system chinese-gbk)
 		 (coding-priority gbk iso-2022-cn chinese-big5
