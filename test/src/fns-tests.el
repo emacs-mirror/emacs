@@ -1152,6 +1152,8 @@
 	     (sxhash-equal (make-string 1000 ?a))))
   (should (= (sxhash-equal (point-marker))
 	     (sxhash-equal (point-marker))))
+  (should (= (sxhash-equal (make-marker))
+	     (sxhash-equal (make-marker))))
   (should (= (sxhash-equal (make-vector 1000 (make-string 10 ?a)))
 	     (sxhash-equal (make-vector 1000 (make-string 10 ?a)))))
   (should (= (sxhash-equal (make-bool-vector 1000 t))
