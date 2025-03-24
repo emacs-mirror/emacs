@@ -518,10 +518,14 @@ Possible non-nil values:
               to the first/last visible line.
  * `bounded': don't move up/down if the current line is the
               first/last visible line.
+ * `cycle-files': like `cycle' but moves only over file lines.
+ * `bounded-files': like `bounded' but moves only over file lines.
 Any other non-nil value is treated as `bounded'."
   :type '(choice (const :tag "Move to any line" nil)
                  (const :tag "Cycle through non-empty lines" cycle)
-                 (const :tag "Stop on last/first non-empty line" bounded))
+                 (const :tag "Cycle through file lines" cycle-files)
+                 (const :tag "Stop on last/first non-empty line" bounded)
+                 (const :tag "Stop on last/first file line" bounded-files))
   :group 'dired
   :version "30.1")
 
@@ -2925,7 +2929,7 @@ is controlled by `dired-movement-style'."
         ;; but it still wants to move farther.
         (cond
          ;; `cycle': go to the other end.
-         ((eq dired-movement-style 'cycle)
+         ((memq dired-movement-style '(cycle cycle-files))
           ;; Argument not changing on the second wrap
           ;; means infinite loop with no files found.
           (if (and wrapped (eq old-arg arg))
@@ -2937,7 +2941,8 @@ is controlled by `dired-movement-style'."
          ;; `bounded': go back to the last non-empty line.
          (dired-movement-style ; Either 'bounded or anything else non-nil.
           (while (and (dired-between-files)
-                      (not (dired-get-subdir))
+                      (or (eq dired-movement-style 'bounded-files)
+                          (not (dired-get-subdir)))
                       (not (zerop arg)))
             (funcall jumpfun (- moving-down))
             ;; Point not moving means infinite loop.
@@ -2946,9 +2951,12 @@ is controlled by `dired-movement-style'."
               (setq old-position (point))))
           ;; Encountered a boundary, so let's stop movement.
           (setq arg (if (and (dired-between-files)
-                             (not (dired-get-subdir)))
+                             (or (eq dired-movement-style 'bounded-files)
+                                 (not (dired-get-subdir))))
                         0 moving-down)))))
-      (unless (and (dired-between-files) (not (dired-get-subdir)))
+      (unless (and (dired-between-files)
+                   (or (memq dired-movement-style '(cycle-files bounded-files))
+                       (not (dired-get-subdir))))
         ;; Has moved to a non-empty line.  This movement does
         ;; make sense.
         (decf arg moving-down))

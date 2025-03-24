@@ -422,16 +422,23 @@ and aborts the current test as failed if it doesn't."
 (cl-defmacro should-error (form &rest keys &key type exclude-subtypes)
   "Evaluate FORM and check that it signals an error.
 
-The error signaled needs to match TYPE.  TYPE should be a list
-of condition names.  (It can also be a non-nil symbol, which is
-equivalent to a singleton list containing that symbol.)  If
-EXCLUDE-SUBTYPES is nil, the error matches TYPE if one of its
-condition names is an element of TYPE.  If EXCLUDE-SUBTYPES is
-non-nil, the error matches TYPE if it is an element of TYPE.
+If no error was signaled, abort the test as failed and
+return (ERROR-SYMBOL . DATA) from the error.
 
-If the error matches, returns (ERROR-SYMBOL . DATA) from the
-error.  If not, or if no error was signaled, abort the test as
-failed."
+You can also match specific errors using the KEYWORD-ARGS arguments,
+which is specified as keyword/argument pairs.  The following arguments
+are defined:
+
+:type TYPE -- If TYPE is non-nil, the error signaled needs to match
+TYPE.  TYPE should be a list of condition names.  It can also be a
+symbol, which is equivalent to a one-element list containing that
+symbol.
+
+:exclude-subtypes EXCLUDED -- If EXCLUDED is non-nil, the error matches
+TYPE only if it is an element of TYPE.  If nil (the default), the error
+matches TYPE if one of its condition names is an element of TYPE.
+
+\(fn FORM &rest KEYWORD-ARGS)"
   (declare (debug t))
   (unless type (setq type ''error))
   (ert--expand-should

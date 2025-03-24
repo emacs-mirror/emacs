@@ -1208,7 +1208,7 @@ If the last event came from a keyboard macro, the value is @code{macro}.
 @cindex input devices
 @cindex device names
 Input events must come from somewhere; sometimes, that is a keyboard
-macro, a signal, or `unread-command-events', but it is usually a
+macro, a signal, or @code{unread-command-events}, but it is usually a
 physical input device connected to a computer that is controlled by
 the user.  Those devices are referred to as @dfn{input devices}, and
 Emacs associates each input event with the input device from which it
