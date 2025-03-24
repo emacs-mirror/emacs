@@ -18,5 +18,6 @@ Re "behavior" vs "behaviour", etc.
 
 - In comments, docstrings and other documentation that forms part of
   Emacs itself, prefer not to abbreviate "Emacs Lisp".
-  Say just "Lisp" whenever the context allows.
+  In docstrings and the Texinfo manuals, say just "Lisp" whenever the
+  context renders it unambiguous that you mean "Emacs Lisp".
   If you must abbreviate "Emacs Lisp", capitalize it thus: "Elisp".
