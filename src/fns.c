@@ -6035,9 +6035,14 @@ sxhash_obj (Lisp_Object obj, int depth)
 	      = XMARKER (obj)->buffer ? XMARKER (obj)->bytepos : 0;
 	    EMACS_UINT hash;
 #ifdef HAVE_MPS
-	    Lisp_Object buf;
-	    XSETBUFFER (buf, XMARKER (obj)->buffer);
-	    hash = igc_hash (buf);
+	    if (XMARKER (obj)->buffer)
+	      {
+		Lisp_Object buf;
+		XSETBUFFER (buf, XMARKER (obj)->buffer);
+		hash = igc_hash (buf);
+	      }
+	    else
+	      hash = 0;
 #else
 	    hash = (intptr_t) XMARKER (obj)->buffer;
 #endif
