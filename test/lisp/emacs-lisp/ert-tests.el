@@ -792,6 +792,14 @@ This macro is used to test if macroexpansion in `should' works."
                  '(char 1 "o" (different-properties-for-key a (different-atoms b foo))
                         context-before "f" context-after "o"))))
 
+(ert-deftest ert-test-explain-time-equal-p ()
+  (should-not (ert--explain-time-equal-p 123 '(0 123 0 0)))
+  (should (equal (ert--explain-time-equal-p 123 '(0 120 0 0))
+                 '(different-time-values
+                   "1970-01-01 00:02:03.000000000 UTC"
+                   "1970-01-01 00:02:00.000000000 UTC"
+                   difference "3.000000000"))))
+
 (ert-deftest ert-test-stats-set-test-and-result ()
   (let* ((test-1 (make-ert-test :name 'test-1
                                 :body (lambda () nil)))

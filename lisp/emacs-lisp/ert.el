@@ -669,6 +669,19 @@ Return nil if they are."
 (put 'equal-including-properties 'ert-explainer
      'ert--explain-equal-including-properties)
 
+(defun ert--explain-time-equal-p (a b)
+  "Explainer function for `time-equal-p'.
+A and B are the time values to compare."
+  (declare (ftype (function (t t) list))
+           (side-effect-free t))
+  (unless (time-equal-p a b)
+    `(different-time-values
+      ,(format-time-string "%F %T.%N %Z" a t)
+      ,(format-time-string "%F %T.%N %Z" b t)
+      difference
+      ,(format-time-string "%s.%N" (time-subtract a b) t))))
+(function-put #'time-equal-p 'ert-explainer #'ert--explain-time-equal-p)
+
 ;;; Implementation of `ert-info'.
 
 ;; TODO(ohler): The name `info' clashes with
