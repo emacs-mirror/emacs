@@ -2946,9 +2946,8 @@ FUN should be an interpreted closure."
         (push `(,(car binding) ',(cdr binding)) renv))
        ((eq binding t))
        (t (push `(defvar ,binding) body))))
-    (if (null renv)
-        `(lambda ,args ,@preamble ,@body)
-      `(let ,renv (lambda ,args ,@preamble ,@body)))))
+    (let ((fun `(lambda ,args ,@preamble ,@body)))
+      (if renv `(let ,renv ,fun) fun))))
 
 ;;;###autoload
 (defun byte-compile (form)
@@ -4229,7 +4228,7 @@ This function is never called when `lexical-binding' is nil."
   (pcase (length form)
     (1
      ;; No args: use the identity value for the operation.
-     (byte-compile-constant (eval form)))
+     (byte-compile-constant (eval form lexical-binding)))
     (2
      ;; One arg: compile (OP x) as (* x 1). This is identity for
      ;; all numerical values including -0.0, infinities and NaNs.
@@ -4487,39 +4486,42 @@ being undefined (or obsolete) will be suppressed.
 If CONDITION's value is (not (featurep \\='emacs)) or (featurep \\='xemacs),
 that suppresses all warnings during execution of BODY."
   (declare (indent 1) (debug t))
-  `(let* ((fbound-list (byte-compile-find-bound-condition
-			,condition '(fboundp functionp)
-			byte-compile-unresolved-functions))
-	  (bound-list (byte-compile-find-bound-condition
-                       ,condition '(boundp default-boundp local-variable-p)))
-          (new-bound-list
-           ;; (seq-difference  byte-compile-bound-variables))
-           (delq nil (mapcar (lambda (s)
-                               (if (memq s byte-compile-bound-variables) nil s))
-                             bound-list)))
-	  ;; Maybe add to the bound list.
-	  (byte-compile-bound-variables
-           (append new-bound-list byte-compile-bound-variables)))
-     (mapc #'byte-compile--check-prefixed-var new-bound-list)
-     (unwind-protect
-	 ;; If things not being bound at all is ok, so must them being
-	 ;; obsolete.  Note that we add to the existing lists since Tramp
-	 ;; (ab)uses this feature.
-         ;; FIXME: If `foo' is obsoleted by `bar', the code below
-         ;; correctly arranges to silence the warnings after testing
-         ;; existence of `foo', but the warning should also be
-         ;; silenced after testing the existence of `bar'.
-	 (let ((byte-compile-not-obsolete-vars
-		(append byte-compile-not-obsolete-vars bound-list))
-	       (byte-compile-not-obsolete-funcs
-		(append byte-compile-not-obsolete-funcs fbound-list)))
-	   ,@body)
-       ;; Maybe remove the function symbol from the unresolved list.
-       (dolist (fbound fbound-list)
-	 (when fbound
-	   (setq byte-compile-unresolved-functions
-		 (delq (assq fbound byte-compile-unresolved-functions)
-		       byte-compile-unresolved-functions)))))))
+  `(byte-compile--maybe-guarded ,condition (lambda () ,@body)))
+
+(defun byte-compile--maybe-guarded (condition body-fun)
+  (let* ((fbound-list (byte-compile-find-bound-condition
+		       condition '(fboundp functionp)
+		       byte-compile-unresolved-functions))
+	 (bound-list (byte-compile-find-bound-condition
+                      condition '(boundp default-boundp local-variable-p)))
+         (new-bound-list
+          ;; (seq-difference  byte-compile-bound-variables))
+          (delq nil (mapcar (lambda (s)
+                              (if (memq s byte-compile-bound-variables) nil s))
+                            bound-list)))
+	 ;; Maybe add to the bound list.
+	 (byte-compile-bound-variables
+          (append new-bound-list byte-compile-bound-variables)))
+    (mapc #'byte-compile--check-prefixed-var new-bound-list)
+    (unwind-protect
+	;; If things not being bound at all is ok, so must them being
+	;; obsolete.  Note that we add to the existing lists since Tramp
+	;; (ab)uses this feature.
+        ;; FIXME: If `foo' is obsoleted by `bar', the code below
+        ;; correctly arranges to silence the warnings after testing
+        ;; existence of `foo', but the warning should also be
+        ;; silenced after testing the existence of `bar'.
+	(let ((byte-compile-not-obsolete-vars
+	       (append byte-compile-not-obsolete-vars bound-list))
+	      (byte-compile-not-obsolete-funcs
+	       (append byte-compile-not-obsolete-funcs fbound-list)))
+	  (funcall body-fun))
+      ;; Maybe remove the function symbol from the unresolved list.
+      (dolist (fbound fbound-list)
+	(when fbound
+	  (setq byte-compile-unresolved-functions
+		(delq (assq fbound byte-compile-unresolved-functions)
+		      byte-compile-unresolved-functions)))))))
 
 (defun byte-compile-if (form)
   (byte-compile-form (car (cdr form)))
@@ -4550,8 +4552,10 @@ that suppresses all warnings during execution of BODY."
   ;; and the other is a constant expression whose value can be
   ;; compared with `eq' (with `macroexp-const-p').
   (or
-   (and (symbolp obj1) (macroexp-const-p obj2) (cons obj1 (eval obj2)))
-   (and (symbolp obj2) (macroexp-const-p obj1) (cons obj2 (eval obj1)))))
+   (and (symbolp obj1) (macroexp-const-p obj2)
+        (cons obj1 (eval obj2 lexical-binding)))
+   (and (symbolp obj2) (macroexp-const-p obj1)
+        (cons obj2 (eval obj1 lexical-binding)))))
 
 (defun byte-compile--common-test (test-1 test-2)
   "Most specific common test of `eq', `eql' and `equal'."
@@ -4604,7 +4608,7 @@ Return (TAIL VAR TEST CASES), where:
                    ;; Require a non-empty body, since the member
                    ;; function value depends on the switch argument.
                    body
-                   (let ((value (eval expr)))
+                   (let ((value (eval expr lexical-binding)))
                      (and (proper-list-p value)
                           (progn
                             (setq switch-var var)
@@ -5174,7 +5178,7 @@ binding slots have been popped."
              (if (null fun)
                  (message "Macro %s unrecognized, won't work in file" name)
                (message "Macro %s partly recognized, trying our luck" name)
-               (push (cons name (eval fun))
+               (push (cons name (eval fun lexical-binding))
                      byte-compile-macro-environment)))
            (byte-compile-keep-pending form))))
 
