@@ -225,20 +225,23 @@ in order to restore the state of the local variables set via this macro.
   (declare (debug setq))
   (unless (evenp (length pairs))
     (error "PAIRS must have an even number of variable/value members"))
-  `(prog1
-       (buffer-local-set-state--get ',pairs)
-     (setq-local ,@pairs)))
+  (let ((vars nil)
+        (tmp pairs))
+    (while tmp (push (car tmp) vars) (setq tmp (cddr tmp)))
+    (setq vars (nreverse vars))
+    `(prog1
+         (buffer-local-set-state--get ',vars)
+       (setq-local ,@pairs))))
 
-(defun buffer-local-set-state--get (pairs)
+(defun buffer-local-set-state--get (vars)
   (let ((states nil))
-    (while pairs
-      (push (list (car pairs)
-                  (and (boundp (car pairs))
-                       (local-variable-p (car pairs)))
-                  (and (boundp (car pairs))
-                       (symbol-value (car pairs))))
-            states)
-      (setq pairs (cddr pairs)))
+    (dolist (var vars)
+      (push (list var
+                  (and (boundp var)
+                       (local-variable-p var))
+                  (and (boundp var)
+                       (symbol-value var)))
+            states))
     (nreverse states)))
 
 (defun buffer-local-restore-state (states)
