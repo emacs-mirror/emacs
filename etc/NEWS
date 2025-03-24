@@ -363,6 +363,11 @@ docstring for arguments passed to a help-text function.
 It is equivalent to running ‘project-any-command’ with ‘find-file’.
 
 ---
+*** New command 'project-customize-dirlocals'.
+It is equivalent to running ‘project-any-command’ with
+‘customize-dirlocals’.
+
+---
 *** Improved prompt for 'project-switch-project'.
 The prompt now displays the chosen project on which to invoke a command.
 

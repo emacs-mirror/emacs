@@ -1391,6 +1391,14 @@ The current buffer's `default-directory' is available as part of
   (interactive)
   (vc-dir (project-root (project-current t))))
 
+;;;###autoload
+(defun project-customize-dirlocals ()
+  "Run `customize-dirlocals' in current project's root."
+  (interactive)
+  (customize-dirlocals
+   (expand-file-name ".dir-locals.el"
+                     (project-root (project-current t)))))
+
 (declare-function comint-check-proc "comint")
 
 ;;;###autoload
