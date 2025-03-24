@@ -2602,6 +2602,8 @@ reparse after indenting every single line.")
 (defun treesit-indent-region (beg end)
   "Indent the region between BEG and END.
 Similar to `treesit-indent', but indent a region instead."
+  (when (markerp beg) (setq beg (marker-position beg)))
+  (when (markerp end) (setq end (marker-position end)))
   (treesit-update-ranges beg end)
   ;; We indent `treesit--indent-region-batch-size' lines at a time, to
   ;; reduce the number of times the parser needs to re-parse.  In each
