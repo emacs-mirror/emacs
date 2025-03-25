@@ -133,6 +133,7 @@ RUN src/emacs -Q --batch \
       (elixir "https://github.com/elixir-lang/tree-sitter-elixir") \
       (go "https://github.com/tree-sitter/tree-sitter-go") \
       (gomod "https://github.com/camdencheek/tree-sitter-go-mod") \
+      (gowork "https://github.com/omertuc/tree-sitter-go-work") \
       (heex "https://github.com/phoenixframework/tree-sitter-heex") \
       (html "https://github.com/tree-sitter/tree-sitter-html") \
       (java "https://github.com/tree-sitter/tree-sitter-java") \
