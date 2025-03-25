@@ -224,6 +224,14 @@ module_decode_utf_8 (const char *str, ptrdiff_t len)
   return s;
 }
 
+/* Signal an error of type `buffer-too-small'.  */
+static void
+module_buffer_too_small (ptrdiff_t actual, ptrdiff_t required)
+{
+  xsignal2 (Qbuffer_too_small, INT_TO_INTEGER (actual),
+	    INT_TO_INTEGER (required));
+}
+
 
 /* Convenience macros for non-local exit handling.  */
 
@@ -817,9 +825,7 @@ module_copy_string_contents (emacs_env *env, emacs_value value, char *buf,
     {
       ptrdiff_t actual = *len;
       *len = required_buf_size;
-      args_out_of_range_3 (INT_TO_INTEGER (actual),
-                           INT_TO_INTEGER (required_buf_size),
-                           INT_TO_INTEGER (PTRDIFF_MAX));
+      module_buffer_too_small (actual, required_buf_size);
     }
 
   *len = required_buf_size;
@@ -1108,10 +1114,8 @@ module_extract_big_integer (emacs_env *env, emacs_value arg, int *sign,
         {
           ptrdiff_t actual = *count;
           *count = required;
-          args_out_of_range_3 (INT_TO_INTEGER (actual),
-                               INT_TO_INTEGER (required),
-                               INT_TO_INTEGER (module_bignum_count_max));
-        }
+	  module_buffer_too_small (actual, required);
+	}
       /* Set u = abs(x).  See https://stackoverflow.com/a/17313717. */
       if (0 < x)
         u = (EMACS_UINT) x;
@@ -1144,8 +1148,7 @@ module_extract_big_integer (emacs_env *env, emacs_value arg, int *sign,
     {
       ptrdiff_t actual = *count;
       *count = required;
-      args_out_of_range_3 (INT_TO_INTEGER (actual), INT_TO_INTEGER (required),
-                           INT_TO_INTEGER (module_bignum_count_max));
+      module_buffer_too_small (actual, required);
     }
   size_t written;
   mpz_export (magnitude, &written, order, size, endian, nails, *x);
@@ -1770,6 +1773,12 @@ syms_of_module (void)
   Fput (Qinvalid_arity, Qerror_conditions, list (Qinvalid_arity, Qerror));
   Fput (Qinvalid_arity, Qerror_message,
         build_string ("Invalid function arity"));
+
+  DEFSYM (Qbuffer_too_small, "buffer-too-small");
+  Fput (Qbuffer_too_small, Qerror_conditions,
+	list2 (Qbuffer_too_small, Qerror));
+  Fput (Qbuffer_too_small, Qerror_message,
+        build_unibyte_string ("Memory buffer too small"));
 
   DEFSYM (Qmodule_function_p, "module-function-p");
   DEFSYM (Qunicode_string_p, "unicode-string-p");
