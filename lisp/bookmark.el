@@ -98,8 +98,7 @@ This file defaults to `bookmark-default-file'.  But during an Emacs session,
   :version "27.1"
   :type '(choice (const :tag "Suggest to reload bookmark file if changed" t)
                  (const :tag "Silently reload bookmark file if changed" silent)
-                 (const :tag "Ignore changes of bookmark file" nil))
-  :group 'bookmark)
+                 (const :tag "Ignore changes of bookmark file" nil)))
 
 (defcustom bookmark-version-control 'nospecial
   "Whether or not to make numbered backups of the bookmark file.
@@ -386,7 +385,7 @@ type is read from the symbol property named
 (defun bookmark-all-names ()
   "Return a list of all current bookmark names."
   (bookmark-maybe-load-default-file)
-  (mapcar 'bookmark-name-from-full-record bookmark-alist))
+  (mapcar #'bookmark-name-from-full-record bookmark-alist))
 
 
 (defun bookmark-get-bookmark (bookmark-name-or-record &optional noerror)
@@ -587,7 +586,7 @@ If DEFAULT is nil then return empty string for empty input."
   (bookmark-maybe-load-default-file) ; paranoia
   (if (listp last-nonmenu-event)
       (bookmark-menu-popup-paned-menu t prompt
-                                      (mapcar 'bookmark-name-from-full-record
+                                      (mapcar #'bookmark-name-from-full-record
                                               (bookmark-maybe-sort-alist)))
     (let* ((completion-ignore-case bookmark-completion-ignore-case)
            (default (unless (equal "" default) default)))
@@ -606,7 +605,7 @@ from other commands that pass in the bookmark name, so
     (called-interactively-p 'interactive)
     (add-to-history 'bookmark-history ,string)))
 
-(defvar bookmark-make-record-function 'bookmark-make-record-default
+(defvar bookmark-make-record-function #'bookmark-make-record-default
   "A function that should be called to create a bookmark record.
 Modes may set this variable buffer-locally to enable bookmarking of
 locations that should be treated specially, such as Info nodes,
@@ -916,7 +915,7 @@ CODING is the symbol of the coding-system in which the file is encoded."
 
 ;;; Core code:
 
-(define-obsolete-function-alias 'bookmark-maybe-message 'message "27.1")
+(define-obsolete-function-alias 'bookmark-maybe-message #'message "27.1")
 
 (defvar-keymap bookmark-minibuffer-read-name-map
   :parent minibuffer-local-map
@@ -1319,7 +1318,7 @@ DISPLAY-FUNC would be `switch-to-buffer-other-window'."
   ;; Don't use `switch-to-buffer' because it would let the
   ;; window-point override the bookmark's point when
   ;; `switch-to-buffer-preserve-window-point' is non-nil.
-  (bookmark--jump-via bookmark (or display-func 'pop-to-buffer-same-window)))
+  (bookmark--jump-via bookmark (or display-func #'pop-to-buffer-same-window)))
 
 
 ;;;###autoload
@@ -1349,7 +1348,7 @@ BOOKMARK-NAME-OR-RECORD has a file, but that file no longer exists,
 then offer interactively to relocate BOOKMARK-NAME-OR-RECORD."
   (condition-case err
       (funcall (or (bookmark-get-handler bookmark-name-or-record)
-                   'bookmark-default-handler)
+                   #'bookmark-default-handler)
                (bookmark-get-bookmark bookmark-name-or-record))
     (bookmark-error-no-filename         ;file-error
      ;; We were unable to find the marked file, so ask if user wants to
@@ -1377,7 +1376,7 @@ then offer interactively to relocate BOOKMARK-NAME-OR-RECORD."
                      (bookmark-relocate bookmark-name-or-record)
                      ;; Try again.
                      (funcall (or (bookmark-get-handler bookmark-name-or-record)
-                                  'bookmark-default-handler)
+                                  #'bookmark-default-handler)
                               (bookmark-get-bookmark bookmark-name-or-record)))
                  (message
                   "Bookmark not relocated; consider removing it (%s)."
@@ -1466,7 +1465,7 @@ minibuffer history list `bookmark-history'."
   (insert (bookmark-location bookmark-name)))
 
 ;;;###autoload
-(defalias 'bookmark-locate 'bookmark-insert-location)
+(defalias 'bookmark-locate #'bookmark-insert-location)
 
 (defun bookmark-location (bookmark-name-or-record)
   "Return a description of the location of BOOKMARK-NAME-OR-RECORD."
@@ -1904,11 +1903,6 @@ unique numeric suffixes \"<2>\", \"<3>\", etc."
     ["Save Bookmarks" bookmark-bmenu-save  t]
     ["Load Bookmarks" bookmark-bmenu-load  t]))
 
-;; Bookmark Buffer Menu mode is suitable only for specially formatted
-;; data.
-(put 'bookmark-bmenu-mode 'mode-class 'special)
-
-
 ;; todo: need to display whether or not bookmark exists as a buffer in
 ;; flag column.
 
@@ -2007,9 +2001,9 @@ deletion, or > if it is flagged for displaying."
   (bookmark-bmenu--revert))
 
 ;;;###autoload
-(defalias 'list-bookmarks 'bookmark-bmenu-list)
+(defalias 'list-bookmarks #'bookmark-bmenu-list)
 ;;;###autoload
-(defalias 'edit-bookmarks 'bookmark-bmenu-list)
+(defalias 'edit-bookmarks #'bookmark-bmenu-list)
 
 (define-obsolete-function-alias 'bookmark-bmenu-set-header
   #'tabulated-list-init-header "28.1")
@@ -2303,7 +2297,7 @@ the related behaviors of `bookmark-save' and `bookmark-bmenu-save'."
         (pop-up-windows t))
     (delete-other-windows)
     (switch-to-buffer (other-buffer) nil t)
-    (bookmark--jump-via bmrk 'pop-to-buffer)
+    (bookmark--jump-via bmrk #'pop-to-buffer)
     (bury-buffer menu)))
 
 
@@ -2317,7 +2311,7 @@ the related behaviors of `bookmark-save' and `bookmark-bmenu-save'."
   "Select this line's bookmark in other window, leaving bookmark menu visible."
   (interactive nil bookmark-bmenu-mode)
   (let ((bookmark (bookmark-bmenu-bookmark)))
-    (bookmark--jump-via bookmark 'switch-to-buffer-other-window)))
+    (bookmark--jump-via bookmark #'switch-to-buffer-other-window)))
 
 
 (defun bookmark-bmenu-other-frame ()
@@ -2638,7 +2632,7 @@ This also runs `bookmark-exit-hook'."
        (bookmark-save)))
 
 (unless noninteractive
-  (add-hook 'kill-emacs-hook 'bookmark-exit-hook-internal))
+  (add-hook 'kill-emacs-hook #'bookmark-exit-hook-internal))
 
 (defun bookmark-unload-function ()
   "Unload the Bookmark library."
