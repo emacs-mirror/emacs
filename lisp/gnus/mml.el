@@ -1508,7 +1508,8 @@ FILENAME is a suggested file name for the attachment should a
 recipient wish to save a copy separate from the message."
   (interactive
    (let* ((buffer (read-buffer "Attach buffer: "))
-	  (type (mml-minibuffer-read-type buffer "text/plain"))
+	  (type (mml-minibuffer-read-type
+                 buffer (mm-default-buffer-type buffer)))
 	  (description (mml-minibuffer-read-description))
 	  (disposition (mml-minibuffer-read-disposition type nil)))
      (list buffer type description disposition)))
