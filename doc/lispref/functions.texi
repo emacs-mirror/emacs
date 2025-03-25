@@ -2727,12 +2727,15 @@ for the code emitted for the function (@pxref{Native-Compilation
 Variables}).
 
 @cindex function type declaration
+@cindex inferred type of function
 @item (ftype @var{type} &optional @var{function})
 Declare @var{type} to be the type of this function.  This is used for
 documentation by @code{describe-function}.  Also it can be used by the
 native compiler (@pxref{Native Compilation}) for improving code
 generation and for deriving more precisely the type of other functions
-without type declaration.
+without type declaration.  Functions that have such type declarations
+will be shown by @kbd{C-h C-f} as having a @dfn{declared type} (as
+opposed to @dfn{inferred type} of functions without declaration).
 
 @var{type} is a @dfn{type specifier} (@pxref{Type Specifiers}) in the
 form @w{@code{(function (@var{arg-1-type} @dots{} @var{arg-n-type})

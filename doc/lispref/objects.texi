@@ -1552,9 +1552,9 @@ types and the return type of a function.  Argument types can be interleaved
 with symbols @code{&optional} and @code{&rest} to match the function's
 arguments (@pxref{Argument List}).
 
-The type specifier represent a function whose first parameter is of type
-@code{symbol}, the second optional parameter is of type @code{float},
-and which returns an @code{integer}:
+The following type specifier represents a function whose first parameter
+is of type @code{symbol}, the second optional parameter is of type
+@code{float}, and which returns an @code{integer}:
 
 @example
  (function (symbol &optional float) integer)
