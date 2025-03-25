@@ -56,8 +56,7 @@ SECTIONS
        the result that lread.o (which defines lispsym) must be aligned
        to a multiple of 8 by hand.  */
     lread.o(.bss)
-    EXCLUDE_FILE(lread.o) *(.bss)
-    *(.gnu.linkonce.b.*)
+    *(EXCLUDE_FILE(lread.o) .bss .gnu.linkonce.b.*)
     *(COMMON)
      end = . ; PROVIDE(_end = .) ;
      . = ALIGN(0x200);
