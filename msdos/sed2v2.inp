@@ -140,9 +140,9 @@ s/^#undef HAVE_DECL_STRTOIMAX *$/#define HAVE_DECL_STRTOIMAX 1/
 s/^#undef HAVE_PDUMPER *$/#define HAVE_PDUMPER 1/
 s/^#undef HAVE_STRTOLL *$/#define HAVE_STRTOLL 1/
 s/^#undef HAVE_STRTOULL *$/#define HAVE_STRTOULL 1/
-s/^#undef ALIGNOF_INT *$/s/^.*$/#define ALIGNOF_INT 4/
-s/^#undef ALIGNOF_LONG *$/s/^.*$/#define ALIGNOF_LONG 4/
-s/^#undef ALIGNOF_LONG_LONG *$/s/^.*$/#define ALIGNOF_LONG_LONG 4/
+/^#undef ALIGNOF_INT *$/s/^.*$/#define ALIGNOF_INT 4/
+/^#undef ALIGNOF_LONG *$/s/^.*$/#define ALIGNOF_LONG 4/
+/^#undef ALIGNOF_LONG_LONG *$/s/^.*$/#define ALIGNOF_LONG_LONG 4/
 /^#undef HAVE_STRUCT_DIRENT_D_TYPE *$/c\
 #if __DJGPP__ + (__DJGPP_MINOR__ >= 5) >= 3\
 #define HAVE_STRUCT_DIRENT_D_TYPE 1/\

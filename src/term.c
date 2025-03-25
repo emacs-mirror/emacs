@@ -4183,6 +4183,10 @@ tty_free_frame_resources (struct frame *f)
 {
   eassert (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f));
   free_frame_faces (f);
+  /* Deleting a child frame means we have to thoroughly redisplay its
+     root frame to make sure the child disappears from the display.  */
+  if (FRAME_PARENT_FRAME (f))
+    SET_FRAME_GARBAGED (root_frame (f));
 }
 
 #endif
