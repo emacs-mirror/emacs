@@ -925,8 +925,7 @@ check_vec_index (Lisp_Object lvec, ptrdiff_t i)
 {
   CHECK_VECTOR (lvec);
   if (! (0 <= i && i < ASIZE (lvec)))
-    args_out_of_range_3 (INT_TO_INTEGER (i),
-			 make_fixnum (0), make_fixnum (ASIZE (lvec) - 1));
+    args_out_of_range (lvec, INT_TO_INTEGER (i));
 }
 
 static void
