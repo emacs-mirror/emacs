@@ -110,7 +110,8 @@ This variable should never be set directly, but bound before a call to
 (defun mm-default-buffer-type (buffer)
   "Return a default content type for BUFFER, a buffer name."
   (if-let* ((buf (get-buffer buffer))
-            ((eq (buffer-local-value 'major-mode buf) 'diff-mode)))
+            ((provided-mode-derived-p (buffer-local-value 'major-mode buf)
+                                      'diff-mode)))
       "text/x-patch" "text/plain"))
 
 (defun mm-safer-encoding (encoding &optional type)
