@@ -587,9 +587,7 @@ This macro is used to test if macroexpansion in `should' works."
 	(should found-complex)))))
 
 (ert-deftest ert-test-run-tests-batch-expensive ()
-  :tags (if (getenv "EMACS_EMBA_CI") '(:unstable))
-  ;; This test runs out of memory on MS-Windows, so skip it.
-  (skip-unless (not (eq system-type 'windows-nt)))
+  :tags '(:unstable)
   (let* ((complex-list '((:1 (:2 (:3 (:4 (:5 (:6 "abc"))))))))
 	 (failing-test-1
           (make-ert-test :name 'failing-test-1
