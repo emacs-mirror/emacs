@@ -369,7 +369,7 @@ defaults to `ignore'."
   "Define PEG rule NAME as equivalent to PEXS.
 The PEG expressions in PEXS are implicitly combined with the
 sequencing `and' operator of PEG grammars."
-  (declare (indent 1))
+  (declare (indent 2))
   (let ((inline nil))
     (while (keywordp (car pexs))
       (pcase (pop pexs)
