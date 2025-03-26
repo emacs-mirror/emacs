@@ -796,8 +796,8 @@ This macro is used to test if macroexpansion in `should' works."
   (should-not (ert--explain-time-equal-p 123 '(0 123 0 0)))
   (should (equal (ert--explain-time-equal-p 123 '(0 120 0 0))
                  '(different-time-values
-                   "1970-01-01 00:02:03.000000000 UTC"
-                   "1970-01-01 00:02:00.000000000 UTC"
+                   "1970-01-01 00:02:03.000000000+0000"
+                   "1970-01-01 00:02:00.000000000+0000"
                    difference "3.000000000"))))
 
 (ert-deftest ert-test-stats-set-test-and-result ()

@@ -676,8 +676,8 @@ A and B are the time values to compare."
            (side-effect-free t))
   (unless (time-equal-p a b)
     `(different-time-values
-      ,(format-time-string "%F %T.%N %Z" a t)
-      ,(format-time-string "%F %T.%N %Z" b t)
+      ,(format-time-string "%F %T.%N%z" a t)
+      ,(format-time-string "%F %T.%N%z" b t)
       difference
       ,(format-time-string "%s.%N" (time-subtract a b) t))))
 (function-put #'time-equal-p 'ert-explainer #'ert--explain-time-equal-p)
