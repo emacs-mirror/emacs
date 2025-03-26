@@ -2071,7 +2071,9 @@ The special value @code{child-frame} means to make a minibuffer-only
 child frame (@pxref{Child Frames}) whose parent becomes the frame
 created.  As if specified as @code{nil}, Emacs will set this parameter
 to the minibuffer window of the child frame but will not select the
-child frame after its creation.
+child frame after its creation.  The value @code{child-frame} has no
+effect on text terminals where you have to create a minibuffer-only
+frame manually (@pxref{Child Frame Peculiarities}).
 
 @vindex buffer-predicate@r{, a frame parameter}
 @item buffer-predicate
@@ -3311,11 +3313,12 @@ be seen even if they are considered visible by this function.
 
 @deffn Command iconify-frame &optional frame
 This function iconifies frame @var{frame}.  If you omit @var{frame}, it
-iconifies the selected frame.  This will also remove any child frames
-(@pxref{Child Frames}) of @var{frame} from display.  On the top frame of
-a text terminal this function has no effect.  visible.  If @var{frame} is
-a child frame, the behavior depends on the value of the variable
-@code{iconify-child-frame} (@pxref{Child Frames}).
+iconifies the selected frame.  This function also removes any child
+frames (@pxref{Child Frames}) of @var{frame} and their descendants from
+display.  If @var{frame} is a child frame itself, the behavior depends
+on the value of the variable @code{iconify-child-frame}.  If @var{frame}
+is the top frame of a text terminal (@pxref{Frames}), this function has
+no effect.
 @end deffn
 
 @deffn Command make-frame-visible &optional frame
@@ -3438,7 +3441,7 @@ function @code{frame-list-z-order} (@pxref{Finding All Frames}).
 
 @defopt minibuffer-auto-raise
 If this is non-@code{nil}, activation of the minibuffer raises the frame
-that the minibuffer window is in.  This function has no effect on text
+that the minibuffer window is in.  This variable has no effect on text
 terminals.
 @end defopt
 
@@ -3474,7 +3477,6 @@ unwanted frames are iconified instead.
 @node Child Frames
 @section Child Frames
 @cindex child frames
-@cindex parent frames
 
 Child frames are objects halfway between windows (@pxref{Windows}) and
 ``normal'' frames.  Like windows, they are attached to an owning frame.
@@ -3487,26 +3489,39 @@ with the help of frame parameters (@pxref{Frame Parameters}) without any
 specialized functions or customizable variables.  Child frames
 are meaningful on graphical and text terminals.
 
-  To create a new child frame or to convert a normal frame into a child
+@menu
+* Child Frame Operations::  Making and investigating child frames.
+* Child Frame Properties::  Special properties of child frames.
+* Child Frame Peculiarities:: Deviant behaviors of child frames.
+@end menu
+
+@node Child Frame Operations
+@subsection Child Frame Operations
+
+To create a new child frame or to convert a normal frame into a child
 frame, set that frame's @code{parent-frame} parameter (@pxref{Frame
 Interaction Parameters}) to that of an already existing frame.  The
 frame specified by that parameter will then be the frame's parent frame
-as long as the parameter is not changed or reset.  Technically, this
-makes the child frame's window-system window a child window of the
-parent frame's window-system window.
+as long as the parameter is not changed or reset.  Technically, on a GUI
+this makes the child frame's window-system window a child window of the
+parent frame's window-system window.  On a text terminal, this makes the
+frame usually appear on the same terminal as its parent frame, obscuring
+some part of it.
 
-@cindex reparent frame
-@cindex nest frame
-  The @code{parent-frame} parameter can be changed at any time.
-Setting it to another frame @dfn{reparents} the child frame.  Setting
-it to another child frame makes the frame a @dfn{nested} child frame.
-Setting it to @code{nil} restores the frame's status as a top-level
-frame---a frame whose window-system window is a child of its display's
-root window.@footnote{On Haiku, child frames are only visible when a
-parent frame is active, owing to a limitation of the Haiku windowing
-system.  Owing to the same limitation, child frames are only
-guaranteed to appear above their top-level parent; that is to say, the
-top-most frame in the hierarchy, which does not have a parent frame.}
+@cindex reparenting frames
+@cindex nesting frames
+@cindex top-level frame
+  The @code{parent-frame} parameter can be changed at any time.  Setting
+it to another frame @dfn{reparents} the child frame.  Setting it to
+another child frame makes the frame a @dfn{nested} child frame.  Setting
+it to @code{nil} restores the frame's status as a top-level frame---a
+frame whose window-system window is a child of its display's root
+window.@footnote{On Haiku, child frames are only visible when a parent
+frame is active, owing to a limitation of the Haiku windowing system.
+Owing to the same limitation, child frames are only guaranteed to appear
+above their top-level parent; that is to say, the top-most frame in the
+hierarchy, which does not have a parent frame.}  On text terminals,
+top-level frames are called root frames (see below).
 
   Since child frames can be arbitrarily nested, a frame can be both a
 child and a parent frame.  Also, the relative roles of child and parent
@@ -3515,16 +3530,69 @@ keep the size of a child frame sufficiently smaller than that of its
 parent).  An error will be signaled for the attempt to make a frame an
 ancestor of itself.
 
-   Most window-systems clip a child frame at the native edges
-(@pxref{Frame Geometry}) of its parent frame---everything outside these
-edges is usually invisible.  A child frame's @code{left} and @code{top}
+  When a parent frame is about to be deleted (@pxref{Deleting Frames}),
+its child frames are recursively deleted before it.  There is one
+exception to this rule: When the child frame serves as a surrogate
+minibuffer frame (@pxref{Minibuffers and Frames}) for another frame, it
+is retained until the parent frame has been deleted.  If, at this time,
+no remaining frame uses the child frame as its minibuffer frame, Emacs
+will try to delete the child frame too.  If that deletion fails for
+whatever reason, the child frame is made a top-level frame.  Since on
+text terminals no such conversion is possible, deleting a frame may
+throw an error if a surrogate minibuffer frame to be deleted is used by
+a frame that will not be deleted too.
+
+  The following three functions help to understand how parent and child
+frames related to each other.
+
+@defun frame-parent &optional frame
+This function returns the parent frame of @var{frame}.  It returns
+@code{nil} if @var{frame} has no parent frame.
+@end defun
+
+@cindex ancestor frame
+@cindex descendant frame
+@defun frame-ancestor-p ancestor descendant
+This functions returns non-@code{nil} if @var{ancestor} is an ancestor
+of @var{descendant}.  @var{ancestor} is an ancestor of @var{descendant}
+when it is either @var{descendant}'s parent frame or it is an ancestor
+of @var{descendant}'s parent frame.  Both, @var{ancestor} and
+@var{descendant} must specify live frames.
+@end defun
+
+@cindex root frame
+@defun frame-root-frame &optional frame
+This function returns the root frame of the specified @var{frame}.
+@var{frame} must be a live frame and defaults to the selected one.  The
+root frame of @var{frame} is the frame obtained by following the chain
+of parent frames starting with @var{frame} until a frame is reached that
+has no parent.  If @var{frame} has no parent, its root frame is
+@var{frame} itself.
+@end defun
+
+On a text terminal, a root frame is always positioned at the top left
+edge of its terminal and always occupies the full size of its terminal.
+
+
+@node Child Frame Properties
+@subsection Child Frame Properties
+
+Most window-systems clip child frames at the native edges (@pxref{Frame
+Geometry}) of their parent frame---everything outside these edges is
+usually invisible.  A child frame's @code{left} and @code{top}
 parameters specify a position relative to the top-left corner of its
 parent's native frame.  When the parent frame is resized, this position
 remains conceptually unaltered.
 
-  NS builds do not clip child frames at the parent frame's edges,
-allowing them to be positioned so they do not obscure the parent frame
-while still being visible themselves.
+  NS builds and text terminals do not clip child frames at the parent
+frame's edges, allowing them to be positioned so they do not obscure the
+parent frame while still being visible themselves.
+
+  Note also the function @code{window-largest-empty-rectangle}
+(@pxref{Coordinates and Windows}) which can be used to inscribe a child
+frame in the largest empty area of an existing window.  This can be
+useful to avoid that a child frame obscures any text shown in that
+window.
 
   Usually, moving a parent frame moves along all its child frames and
 their descendants as well, keeping their relative positions unaltered.
@@ -3546,24 +3614,21 @@ obscuring parts of it, except on NS builds where it may be positioned
 beneath the parent.  This is comparable to the window-system window of a
 top-level frame which also always appears on top of its parent
 window---the desktop's root window.  When a parent frame is iconified or
-made invisible (@pxref{Visibility of Frames}), its child frames are made
-invisible.  When a parent frame is deiconified or made visible, its
-child frames are made visible.
-
-  When a parent frame is about to be deleted (@pxref{Deleting
-Frames}), its child frames are recursively deleted before it.  There
-is one exception to this rule: When the child frame serves as a
-surrogate minibuffer frame (@pxref{Minibuffers and Frames}) for
-another frame, it is retained until the parent frame has been deleted.
-If, at this time, no remaining frame uses the child frame as its
-minibuffer frame, Emacs will try to delete the child frame too.  If
-that deletion fails for whatever reason, the child frame is made a
-top-level frame.
+made invisible (@pxref{Visibility of Frames}), any child frames
+descending from it will not be shown either even if
+@code{frame-visible-p} returns @code{t} for them.  When a parent frame
+is deiconified or made visible, any child frames descending from it will
+be shown again (provided they and all their ancestor frames are visible
+too).  If a child frame is used as surrogate minibuffer frame
+(@pxref{Minibuffers and Frames}), it's up to the application to
+guarantee the frame's visibility whenever the minibuffer is activated.
 
   Whether a child frame can have a menu or tool bar is window-system or
 window manager dependent.  Most window-systems explicitly disallow menu
 bars for child frames.  It seems advisable to disable both, menu and
-tool bars, via the frame's initial parameters settings.
+tool bars, via the frame's initial parameters settings.  On a text
+terminal, child frames use the menu bar of their root frame (provided it
+has one).
 
   Usually, child frames do not exhibit window manager decorations like a
 title bar or external borders (@pxref{Frame Geometry}).  When the child
@@ -3575,15 +3640,18 @@ outer border can be used.  On MS-Windows, specifying a non-zero outer
 border width will show a one-pixel wide external border.  Under all
 window-systems, the internal border can be used.  In either case, it's
 advisable to disable a child frame's window manager decorations with the
-@code{undecorated} frame parameter (@pxref{Management Parameters}).
+@code{undecorated} frame parameter (@pxref{Management Parameters}).  On
+a text terminal, on the other hand, it's better to leave that parameter
+alone so your child frame will be drawn with an outer border.
 
-  To resize or move an undecorated child frame with the mouse, special
+  To resize or move a border-less child frame with the mouse, special
 frame parameters (@pxref{Mouse Dragging Parameters}) have to be used.
 The internal border of a child frame, if present, can be used to resize
 the frame with the mouse, provided that frame has a non-@code{nil}
 @code{drag-internal-border} parameter.  If set, the @code{snap-width}
 parameter indicates the number of pixels where the frame @dfn{snaps} at
-the respective edge or corner of its parent frame.
+the respective edge or corner of its parent frame.  On a text terminal,
+the outer border can used for resizing.
 
   There are two ways to drag an entire child frame with the mouse: The
 @code{drag-with-mode-line} parameter, if non-@code{nil}, enables
@@ -3627,8 +3695,12 @@ to display completions in a separate window, the @code{minibuffer-exit}
 parameter (@pxref{Frame Interaction Parameters}) is useful in order to
 deal with the frame when the minibuffer is exited.
 
-  The behavior of child frames deviates from that of top-level frames in
-a number of other ways as well.  Here we sketch a few of them:
+
+@node Child Frame Peculiarities
+@subsection Child Frame Peculiarities
+
+The behavior of child frames deviates from that of normal frames in a
+number of peculiar ways.  Here we sketch a few of them:
 
 @itemize @bullet
 @item
@@ -3644,7 +3716,7 @@ described below.
 Raising, lowering and restacking child frames (@pxref{Raising and
 Lowering}) or changing the @code{z-group} (@pxref{Position Parameters})
 of a child frame changes only the stacking order of child frames with
-the same parent.
+the same parent.  Restacking has not been implemented on text terminals.
 
 @item
 Many window-systems are not able to change the opacity (@pxref{Font and
@@ -3667,43 +3739,6 @@ work on all window-systems.  Some will drop the object on the parent
 frame or on some ancestor instead.
 @end itemize
 
-  The following three functions can be useful when working with child and
-parent frames:
-
-@defun frame-parent &optional frame
-This function returns the parent frame of @var{frame}.  The parent frame
-of @var{frame} is the Emacs frame whose window-system window is the
-parent window of @var{frame}'s window-system window.  If such a frame
-exists, @var{frame} is considered a child frame of that frame.
-
-This function returns @code{nil} if @var{frame} has no parent frame.
-@end defun
-
-@cindex ancestor frame
-@defun frame-ancestor-p ancestor descendant
-This functions returns non-@code{nil} if @var{ancestor} is an ancestor
-of @var{descendant}.  @var{ancestor} is an ancestor of @var{descendant}
-when it is either @var{descendant}'s parent frame or it is an ancestor
-of @var{descendant}'s parent frame.  Both, @var{ancestor} and
-@var{descendant} must specify live frames.
-@end defun
-
-@cindex root frame
-@defun frame-root-frame &optional frame
-This function returns the root frame of the specified @var{frame}.
-@var{frame} must be a live frame and defaults to the selected one.  The
-root frame of @var{frame} is the frame obtained by following the chain
-of parent frames starting with @var{frame} until a frame is reached that
-has no parent.  If @var{frame} has no parent, its root frame is
-@var{frame} itself.
-@end defun
-
-Note also the function @code{window-largest-empty-rectangle}
-(@pxref{Coordinates and Windows}) which can be used to inscribe a child
-frame in the largest empty area of an existing window.  This can be
-useful to avoid that a child frame obscures any text shown in that
-window.
-
 Customizing the following option can be useful to tweak the behavior of
 @code{iconify-frame} for child frames.
 
@@ -3723,6 +3758,68 @@ iconify the root frame instead.
 On a text terminal the only feasible values are @code{nil} and
 @code{make-invisible}.
 @end defopt
+
+On text terminals exist a few restrictions with respect to reparenting:
+One is that a top frame (@pxref{Frames}) cannot be directly made a child
+frame---you first have to make another root frame the new top frame of
+its terminal.  If, on the other hand, you want a child frame to become
+the new top frame of its terminal, you have to make it a root frame
+first.
+
+  Also, the surrogate minibuffer window of any frame on a text terminal
+must reside on a frame with the same root frame.  Reparenting will throw
+an error whenever it violates this restriction.  It also means that it's
+more tricky to make a minibuffer-less frame whose minibuffer window
+resides on a minibuffer-only child frame.  On a GUI, Emacs proceeds as
+follows when a user has specified the value @code{child-frame} for the
+@code{minibuffer} parameter in @code{initial-frame-alist}
+(@pxref{Initial Parameters}):
+
+@enumerate
+@item
+Create a minibuffer-only frame.
+
+@item
+Create a minibuffer-less frame with its @code{minibuffer} parameter set
+to the window of the minibuffer-only frame.
+
+@item
+Make the minibuffer-less frame the parent frame of the minibuffer-only
+frame.
+
+@item
+Delete the originally selected frame.
+@end enumerate
+
+  On a text terminal you have to perform these operations manually as
+sketched in the following snippet:
+
+@example
+@group
+(let* ((selected (selected-frame))
+       (mini-only
+        (make-frame
+         `((parent-frame . ,selected)
+           (minibuffer . only)
+           (left . 1) (top . -1) (width . 20) (height . 1))))
+       (mini-less
+        (make-frame
+         (append `((parent-frame . ,selected)
+                   (minibuffer . ,(minibuffer-window mini-only)))))))
+  (set-frame-parameter mini-only 'parent-frame mini-less)
+  (set-frame-parameter mini-less 'parent-frame nil)
+  (select-frame mini-less)
+  (delete-frame selected))
+@end group
+@end example
+
+  This means that you first have to install the minibuffer-less and the
+minibuffer-only frames both as child frames of the selected frame with
+the @code{minibuffer} parameter of the minibuffer-less frame set to the
+minibuffer window of the minibuffer-only frame.  Then make the
+minibuffer-only frame a child frame of the minibuffer-less frame and
+make the minibuffer-less frame a new root frame.  Finally, select the
+minibuffer-less frame and delete the originally selected frame.
 
 
 @node Mouse Tracking

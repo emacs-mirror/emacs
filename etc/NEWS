@@ -75,11 +75,10 @@ the 'standard-display-table's extra slots with Unicode characters.
 Please see the documentation of that function to see which slots of the
 display table it changes.
 
++++
 ** Child frames are now supported on TTY frames.
 This supports use-cases like Posframe, Corfu, and child frames acting
-like tooltips.  Other use-cases of child frames are not supported yet.
-In particular, a TTY child frame cannot be converted to a root frame or
-vice-versa.
+like tooltips.
 
 To enable tooltips on TTY frames, call 'tty-tip-mode'.
 

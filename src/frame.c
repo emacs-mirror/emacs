@@ -2070,6 +2070,7 @@ parent window is the window-system's root window) or an embedded window
     return Qnil;
 }
 
+/* Return true if frame AF is an ancestor of frame DF.  */
 bool
 frame_ancestor_p (struct frame *af, struct frame *df)
 {
@@ -2081,6 +2082,22 @@ frame_ancestor_p (struct frame *af, struct frame *df)
 	return true;
       else
 	pf = FRAME_PARENT_FRAME (pf);
+    }
+
+  return false;
+}
+
+/* A frame AF subsumes a frame DF if AF and DF are the same or AF is an
+   ancestor of DF.  */
+static bool
+frame_subsumes_p (struct frame *af, struct frame *df)
+{
+  while (df)
+    {
+      if (df == af)
+	return true;
+      else
+	df = FRAME_PARENT_FRAME (df);
     }
 
   return false;
@@ -2099,7 +2116,6 @@ frame.  */)
   struct frame *df = decode_live_frame (descendant);
   return frame_ancestor_p (af, df) ? Qt : Qnil;
 }
-
 
 /* Return the root frame of frame F.  Follow the parent_frame chain
    until we reach a frame that has no parent.  That is the root frame.
@@ -2447,6 +2463,18 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 #endif
 
   XSETFRAME (frame, f);
+
+  if (is_tty_frame (f) && NILP (force))
+    /* If F is a tty frame, check for surrogate minibuffer frames F
+       subsumes used by a frame that is not subsumed by F. */
+    FOR_EACH_FRAME (frames, frame1)
+      {
+	struct frame *f1 = XFRAME (frame1);
+
+	if (frame_subsumes_p (f, WINDOW_XFRAME (XWINDOW (f1->minibuffer_window)))
+	    && !frame_subsumes_p (f, f1))
+	  error ("Cannot delete surrogate minibuffer frame");
+      }
 
   /* Softly delete all frames with this frame as their parent frame or
      as their `delete-before' frame parameter value.  */
@@ -3625,7 +3653,7 @@ store_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)
     {
       if (WINDOWP (val))
 	{
-	  if (!MINI_WINDOW_P (XWINDOW (val)))
+	  if (!WINDOW_LIVE_P (val) || !MINI_WINDOW_P (XWINDOW (val)))
 	    error ("The `minibuffer' parameter does not specify a valid minibuffer window");
 	  else if (FRAME_MINIBUF_ONLY_P (f))
 	    {
@@ -3641,6 +3669,10 @@ store_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)
 	      else
 		error ("Can't change the minibuffer window of a frame with its own minibuffer");
 	    }
+	  else if (is_tty_frame (f)
+		   && (root_frame (WINDOW_XFRAME (XWINDOW (val)))
+		       != root_frame (f)))
+	    error ("A frame and its surrogate minibuffer frame must have the same roots");
 	  else
 	    /* Store the chosen minibuffer window.  */
 	    fset_minibuffer_window (f, val);
@@ -3719,12 +3751,51 @@ store_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)
       val = old_val;
     }
 
-  /* Re-parenting is currently not implemented when changing a root
-     frame to a child frame or vice versa.  */
+  /* The parent frame parameter for ttys must be handled specially.  */
   if (is_tty_frame (f) && EQ (prop, Qparent_frame))
     {
-      if (NILP (f->parent_frame) != NILP (val))
-	error ("Making a root frame a child or vice versa is not supported");
+      /* Invariant: When a frame F1 uses a surrogate minibuffer frame M1
+	 on a tty, both F1 and M1 must have the same root frame.  */
+      Lisp_Object frames, frame1, old_val = f->parent_frame;
+
+      FOR_EACH_FRAME (frames, frame1)
+	{
+	  struct frame *f1 = XFRAME (frame1);
+	  struct frame *m1 = WINDOW_XFRAME (XWINDOW (f1->minibuffer_window));
+	  bool mismatch = false;
+
+	  /* Temporarily install VAL and check whether our invariant
+	     above gets violated.  */
+	  f->parent_frame = val;
+	  mismatch = root_frame (f1) != root_frame (m1);
+	  f->parent_frame = old_val;
+
+	  if (mismatch)
+	    error ("Cannot re-root surrogate minibuffer frame");
+	}
+
+      if (f == XFRAME (FRAME_TERMINAL (f)->display_info.tty->top_frame)
+	  && !NILP (val))
+	error ("Cannot make tty top frame a child frame");
+      else if (NILP (val))
+	{
+	  if (!FRAME_HAS_MINIBUF_P (f)
+	      && (!frame_ancestor_p
+		  (f, WINDOW_XFRAME (XWINDOW (f->minibuffer_window)))))
+	    error ("Cannot make tty root frame without valid minibuffer window");
+	  else
+	    {
+	      /* When making a frame a root frame, expand it to full size,
+		 if necessary, and position it at top left corner.  */
+	      int width, height;
+
+	      get_tty_size (fileno (FRAME_TTY (f)->input), &width, &height);
+	      adjust_frame_size (f, width, height - FRAME_TOP_MARGIN (f), 5, 0,
+				 Qterminal_frame);
+	      f->left_pos = 0;
+	      f->top_pos = 0;
+	    }
+	}
 
       SET_FRAME_GARBAGED (root_frame (f));
       f->parent_frame = val;
@@ -6593,14 +6664,15 @@ of the frame returned by 'mouse-position'.  */)
 {
   Lisp_Object pos = mouse_position (true);
   Lisp_Object frame = XCAR (pos);
-  struct frame *f = XFRAME (frame);
-  int x = XFIXNUM (XCAR (XCDR (pos))) + f->left_pos;
-  int y = XFIXNUM (XCDR (XCDR (pos))) + f->top_pos;
 
   if (!FRAMEP (frame))
     return Qnil;
   else
     {
+      struct frame *f = XFRAME (frame);
+      int x = XFIXNUM (XCAR (XCDR (pos))) + f->left_pos;
+      int y = XFIXNUM (XCDR (XCDR (pos))) + f->top_pos;
+
       f = FRAME_PARENT_FRAME (f);
 
       while (f)
