@@ -977,10 +977,20 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
   if (AutoWrap (tty)
       && curY (tty) + 1 == FRAME_TOTAL_LINES (f)
       && curX (tty) + len == FRAME_COLS (f)
-      && curX (tty) < FRAME_COLS (f) - 1
       && len > 0)
     {
-      /* Write glyphs except the first. */
+      /* If writing only one glyph in the last column, make that two so
+	 that we can shift that one glyph into the last column.  FIXME:
+	 Assuming a display width of 1 looks questionable, but that's
+	 done everywhere else involving auto-wrap.  */
+      if (len == 1)
+	{
+	  cmgoto (tty, curY (tty), curX (tty) - 1);
+	  --string;
+	  ++len;
+	}
+
+      /* Write glyphs except the first.  */
       int old_x = curX (tty), old_y = curY (tty);
       tty_write_glyphs_1 (f, string + 1, len - 1);
 
