@@ -610,6 +610,14 @@ text_extents_internal (IDWriteFontFace *dwrite_font_face,
 							       nglyphs,
 							       gmetrics,
 							       false);
+
+  /* E_INVALIDARG means some of the glyphs index is out of bounds for the font.  */
+  if (hr == E_INVALIDARG)
+    {
+      SAFE_FREE ();
+      return false;
+    }
+
   if (!verify_hr (hr, "Failed to GetGdiCompatibleGlyphMetrics"))
     {
       SAFE_FREE ();
