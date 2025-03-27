@@ -373,12 +373,17 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
   ;; if there is a conflict.
   (dolist (item fix-list)
     (with-current-buffer (uniquify-item-buffer item)
+      (setq uniquify-managed fix-list)))
+  (uniquify-rationalize--generic fix-list #'uniquify-rename-buffer #'get-buffer))
+
+(defun uniquify-rationalize--generic (fix-list rename-buffer-fn get-buffer-fn)
+  (dolist (item fix-list)
+    (with-current-buffer (uniquify-item-buffer item)
       ;; Refresh the dirnames and proposed names.
       (setf (uniquify-item-proposed item)
 	    (uniquify-get-proposed-name (uniquify-item-base item)
 					(uniquify-item-dirname item)
-                                        nil))
-      (setq uniquify-managed fix-list)))
+                                        nil))))
   ;; Strip any shared last directory names of the dirname.
   (when (and (cdr fix-list) uniquify-strip-common-suffix)
     (let ((strip t))
@@ -404,13 +409,13 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 		fix-list)))))
   ;; If uniquify-min-dir-content is 0, this will end up just
   ;; passing fix-list to uniquify-rationalize-conflicting-sublist.
-  (uniquify-rationalize-a-list fix-list))
+  (uniquify-rationalize-a-list fix-list nil rename-buffer-fn get-buffer-fn))
 
 (defun uniquify-item-greaterp (item1 item2)
   (string-lessp (uniquify-item-proposed item2)
 		(uniquify-item-proposed item1)))
 
-(defun uniquify-rationalize-a-list (fix-list &optional depth)
+(defun uniquify-rationalize-a-list (fix-list depth rename-buffer-fn get-buffer-fn)
   (unless depth (setq depth uniquify-min-dir-content))
   (let (conflicting-sublist	; all elements have the same proposed name
 	(old-proposed "")
@@ -421,12 +426,14 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
       (setq proposed (uniquify-item-proposed item))
       (unless (equal proposed old-proposed)
 	(uniquify-rationalize-conflicting-sublist conflicting-sublist
-						  old-proposed depth)
+						  old-proposed depth
+                                                  rename-buffer-fn get-buffer-fn)
 	(setq conflicting-sublist nil))
       (push item conflicting-sublist)
       (setq old-proposed proposed))
     (uniquify-rationalize-conflicting-sublist conflicting-sublist
-					      old-proposed depth)))
+					      old-proposed depth
+                                              rename-buffer-fn get-buffer-fn)))
 
 (defun uniquify-get-proposed-name (base dirname &optional depth)
   (unless depth (setq depth uniquify-min-dir-content))
@@ -478,12 +485,12 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 
 ;; Deal with conflicting-sublist, all of whose elements have identical
 ;; "base" components.
-(defun uniquify-rationalize-conflicting-sublist (conf-list old-name depth)
+(defun uniquify-rationalize-conflicting-sublist (conf-list old-name depth rename-buffer-fn get-buffer-fn)
   (when conf-list
     (if (or (cdr conf-list)
 	    ;; Check that the proposed name doesn't conflict with some
 	    ;; existing buffer.
-	    (let ((buf (get-buffer old-name)))
+	    (let ((buf (funcall get-buffer-fn old-name)))
 	      (and buf (not (eq buf (uniquify-item-buffer (car conf-list)))))))
 	(when uniquify-possibly-resolvable
 	  (setq uniquify-possibly-resolvable nil
@@ -494,10 +501,9 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 		   (uniquify-item-base item)
 		   (uniquify-item-dirname item)
 		   depth)))
-	  (uniquify-rationalize-a-list conf-list depth))
+	  (uniquify-rationalize-a-list conf-list depth rename-buffer-fn get-buffer-fn))
       (unless (string= old-name "")
-	(uniquify-rename-buffer (car conf-list) old-name)))))
-
+	(funcall rename-buffer-fn (car conf-list) old-name)))))
 
 (defun uniquify-rename-buffer (item newname)
   (let ((buffer (uniquify-item-buffer item)))
@@ -506,6 +512,44 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 	(let ((uniquify-buffer-name-style nil))	;Avoid hooks on rename-buffer.
 	  ;; Pass the `unique' arg, so the advice doesn't mark it as unmanaged.
 	  (rename-buffer newname t))))))
+
+(defvar-local uniquify--stateless-curname nil
+  "The current unique name of this buffer in `uniquify-get-unique-names'.")
+
+(defun uniquify-get-unique-names (buffers)
+  "Return an alist with a unique name for each buffer in BUFFERS.
+
+The names are unique only among BUFFERS, and may conflict with other
+buffers not in that list.
+
+This does not rename the buffers or change any state; the unique name is
+only present in the returned alist."
+  (let ((buffer-names (make-hash-table :size (length buffers) :test 'equal))
+        fix-lists-by-base)
+    (dolist (buf buffers)
+      (with-current-buffer buf
+        (setq uniquify--stateless-curname (buffer-name buf))
+        (puthash (buffer-name buf) buf buffer-names)
+        (when uniquify-managed
+          (let ((base (uniquify-item-base (car uniquify-managed))))
+            (push
+             (uniquify-make-item base (uniquify-buffer-file-name buf) buf nil)
+             (alist-get base fix-lists-by-base nil nil #'equal))))))
+    (dolist (pair fix-lists-by-base)
+      (uniquify-rationalize--generic
+       (cdr pair)
+       (lambda (item name)              ; rename-buffer
+         (with-current-buffer (uniquify-item-buffer item)
+           (remhash uniquify--stateless-curname buffer-names)
+           (setq uniquify--stateless-curname name)
+           (puthash name (current-buffer) buffer-names)))
+       (lambda (name)                   ; get-buffer
+         (gethash name buffer-names)))))
+  (mapcar (lambda (buf)
+            (with-current-buffer buf
+              (prog1 (cons uniquify--stateless-curname buf)
+                (kill-local-variable 'uniquify--stateless-curname))))
+          buffers))
 
 ;;; Hooks from the rest of Emacs
 
