@@ -141,9 +141,9 @@ Define @var{name} as an identifier for @var{rules}.
 @example
 @group
 (define-peg-ruleset number-grammar
-        '((number sign digit (* digit))
-          digit  ;; A reference to the definition above.
-          (sign (or "+" "-" ""))))
+  ;; `digit' here references the definition above.
+  (number () sign digit (* digit))
+  (sign () (or "+" "-" "")))
 @end group
 @end example
 
