@@ -760,17 +760,24 @@ the C sources, too."
               (high-doc (cdr high)))
           (unless (and (symbolp function)
                        (get function 'reader-construct))
-            (insert high-usage "\n")
-            (when-let* ((gate help-display-function-type)
-                        (res (comp-function-type-spec function))
-                        (type-spec (car res))
-                        (kind (cdr res)))
-              (insert (format
-                       (if (eq kind 'inferred)
-                           "\nInferred type: %s\n"
-                         "\nDeclared type: %s\n")
-                       type-spec))))
+            (insert high-usage "\n"))
           (fill-region fill-begin (point))
+          (when-let* (help-display-function-type
+                      (res (comp-function-type-spec function))
+                      (type-spec (car res))
+                      (kind (cdr res)))
+            (insert (if (eq kind 'inferred)
+                        "\nInferred type:\n  "
+                      "\nDeclared type:\n  "))
+            (with-demoted-errors "%S"
+              (let ((beg (point)))
+                (pp type-spec (current-buffer))
+                ;; Put it on a single line if it fits.
+                (and (eql beg (+ 2 (line-beginning-position 0)))
+                     (save-excursion
+                       (forward-char -1)
+                       (<= (current-column) (- fill-column 12)))
+                     (cl--set-buffer-substring (- beg 3) beg " ")))))
           high-doc)))))
 
 (defun help-fns--parent-mode (function)
