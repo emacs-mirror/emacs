@@ -42,12 +42,6 @@
 ;;; Define treesit generic mode
 
 ;;;###autoload
-(defvar treesit-generic-mode-list nil
-  "A list of mode names for `treesit-generic-mode'.
-Do not add entries to this list directly; use `define-treesit-generic-mode'
-instead (which see).")
-
-;;;###autoload
 (defmacro define-treesit-generic-mode (mode &optional docstring &rest body)
   "Create a new treesit generic mode MODE.
 
@@ -122,9 +116,6 @@ of `define-treesit-generic-mode'.
        ;; Add lang and source to source-alist.
        (add-to-list 'treesit-language-source-alist (cons ,lang ,source))
 
-       ;; Add a new entry.
-       (add-to-list 'treesit-generic-mode-list ,mode-name)
-
        ;; Add it to auto-mode-alist
        (dolist (re ,auto-mode)
          (add-to-list 'auto-mode-alist (cons re ',mode)))
@@ -134,8 +125,7 @@ of `define-treesit-generic-mode'.
          ,(or name pretty-name)
          ,(or docstring
               (concat (or name pretty-name) " mode.\n"
-                      "This a tree-sitter mode defined with `define-treesit-generic-mode'.\n"
-                      "It runs `" mode-name "-hook' as the last thing it does."))
+                      "This a tree-sitter mode defined with `define-treesit-generic-mode'."))
          (treesit-generic-mode-setup ,lang ,source)
          ,@body
          (treesit-major-mode-setup)))))
@@ -160,20 +150,6 @@ of `define-treesit-generic-mode'.
                    :feature 'highlights
                    query))
       (setq-local treesit-font-lock-feature-list '((highlights))))))
-
-;;;###autoload
-(defun treesit-generic-mode (mode)
-  "Enter treesit generic mode MODE.
-
-Treesit generic modes provide basic font-lock functionality for
-tree-sitter grammars.  (Files which are too small to warrant their
-own mode, but have comments, keywords, and the like.)
-
-To define a generic mode, use the function `define-treesit-generic-mode'.
-Some treesit generic modes are defined in `treesit-x.el'."
-  (interactive
-   (list (completing-read "Treesit generic mode: " treesit-generic-mode-list nil t)))
-  (funcall (intern mode)))
 
 ;;; Generic font-lock handling
 
