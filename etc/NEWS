@@ -75,7 +75,8 @@ the 'standard-display-table's extra slots with Unicode characters.
 Please see the documentation of that function to see which slots of the
 display table it changes.
 
-+++
+---
+** 'find-function' can now find cl-defmethod invocations hidden inside macros.
 ** Child frames are now supported on TTY frames.
 This supports use-cases like Posframe, Corfu, and child frames acting
 like tooltips.
