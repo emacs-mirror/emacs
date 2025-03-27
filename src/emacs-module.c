@@ -1596,14 +1596,13 @@ initialize_environment (emacs_env *env, struct emacs_env_private *priv)
   env->make_float = module_make_float;
   env->copy_string_contents = module_copy_string_contents;
   env->make_string = module_make_string;
-  env->make_unibyte_string = module_make_unibyte_string;
   env->make_user_ptr = module_make_user_ptr;
   env->get_user_ptr = module_get_user_ptr;
   env->set_user_ptr = module_set_user_ptr;
   env->get_user_finalizer = module_get_user_finalizer;
   env->set_user_finalizer = module_set_user_finalizer;
-  env->vec_set = module_vec_set;
   env->vec_get = module_vec_get;
+  env->vec_set = module_vec_set;
   env->vec_size = module_vec_size;
   env->should_quit = module_should_quit;
   env->process_input = module_process_input;
@@ -1615,6 +1614,7 @@ initialize_environment (emacs_env *env, struct emacs_env_private *priv)
   env->set_function_finalizer = module_set_function_finalizer;
   env->open_channel = module_open_channel;
   env->make_interactive = module_make_interactive;
+  env->make_unibyte_string = module_make_unibyte_string;
   return env;
 }
 
