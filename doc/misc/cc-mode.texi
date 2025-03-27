@@ -4316,6 +4316,9 @@ annotations.  @ref{Java Symbols}.
 First line in a member initialization list.  @ref{Class Symbols}.
 @item member-init-cont
 Subsequent member initialization list lines.  @ref{Class Symbols}.
+@item class-field-cont
+Lines continuing the first line inside a class/struct etc. definition.
+@ref{Class Symbols}.
 @item inher-intro
 First line of a multiple inheritance list.  @ref{Class Symbols}.
 @item inher-cont
@@ -4669,6 +4672,25 @@ elements:
 The @code{friend} and @code{inline-open} syntactic symbols are
 modifiers that do not have anchor positions.
 
+@ssindex class-field-cont
+In the following example, line 1 gets the syntax @code{topmost-intro},
+and line 2 @code{((inclass 1) (topmost-intro 1))} as expected.  Lines
+3, 4, and 5 are given the syntax @code{(class-field-cont 18 12)}
+rather than @code{topmost-intro-cont}.  This makes it easier to indent
+several comma separated fields with respect to their defining type,
+when @code{topmost-intro-cont} would tend to leave elements directly
+underneath their type.  @xref{Function Symbols}.  The anchor points are
+the positions of the type and the enclosing class's brace.
+
+@example
+ 1. struct foo @{
+ 2.     long
+ 3.         a,
+ 4.         b,
+ 5.         c;
+ 6. @};
+@end example
+ 
 @ssindex template-args-cont
 Template definitions introduce yet another syntactic symbol:
 

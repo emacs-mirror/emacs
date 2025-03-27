@@ -1273,9 +1273,8 @@ casts and declarations are fontified.  Used on level 2 and higher."
      ;; We're inside a brace list/enum list.
      ((and (eq (char-before match-pos) ?{)
 	   (or (c-at-enum-brace (1- match-pos))
-	       (c-inside-bracelist-p (1- match-pos)
-				     (cdr (c-parse-state))
-				     nil)))
+	       (c-at-bracelist-p (1- match-pos)
+				 (cdr (c-parse-state)))))
       (c-put-char-property (1- match-pos) 'c-type
 			   'c-not-decl)
       (cons 'not-decl nil))

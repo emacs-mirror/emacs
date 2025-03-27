@@ -65,7 +65,7 @@
 			 (statement-case-open . +)
 			 (statement-cont . +)
 			 (arglist-intro . c-lineup-arglist-intro-after-paren)
-			 (arglist-close . c-lineup-arglist)
+			 (arglist-close . c-lineup-arglist-close-under-paren)
 			 (inline-open . 0)
 			 (brace-list-open . +)
 			 (brace-list-intro . (first
@@ -230,7 +230,7 @@
 			 (statement-case-open   . +)
 			 (statement-cont        . +)
 			 (arglist-intro  . c-lineup-arglist-intro-after-paren)
-			 (arglist-close  . c-lineup-arglist)
+			 (arglist-close  . c-lineup-arglist-close-under-paren)
 			 (brace-list-intro . (first
 					      c-lineup-2nd-brace-entry-in-arglist
 					      c-lineup-class-decl-init-+ +))
