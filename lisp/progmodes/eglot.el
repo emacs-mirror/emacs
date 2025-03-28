@@ -612,12 +612,12 @@ Note additionally:
   :package-version '(Eglot . "1.19"))
 
 (defcustom eglot-code-action-indicator
-  (cl-loop for c in '(? ?⚡?✓ ?α ??)
+  (cl-loop for c in '(?💡 ?⚡?✓ ?α ??)
            when (char-displayable-p c)
            return (make-string 1 c))
   "Indicator string for code action suggestions."
   :type (let ((basic-choices
-               (cl-loop for c in '(? ?⚡?✓ ?α ??)
+               (cl-loop for c in '(?💡 ?⚡?✓ ?α ??)
                         when (char-displayable-p c)
                         collect `(const :tag ,(format "Use `%c'" c)
                                         ,(make-string 1 c)))))
