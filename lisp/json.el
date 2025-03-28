@@ -803,7 +803,7 @@ With prefix argument MINIMIZE, minimize it instead."
         (orig-buf (current-buffer)))
     ;; Strategy: Repeatedly `json-read' from the original buffer and
     ;; write the pretty-printed snippet to a temporary buffer.
-    ;; Use `replace-buffer-contents' to swap the original
+    ;; Use `replace-region-contents' to swap the original
     ;; region with the contents of the temporary buffer so that point,
     ;; marks, etc. are kept.
     ;; Stop as soon as we get an error from `json-read'.
@@ -825,16 +825,14 @@ With prefix argument MINIMIZE, minimize it instead."
                             (standard-output tmp-buf))
                         (with-current-buffer tmp-buf
                           (erase-buffer) (json--print json))
-                        (save-restriction
-                          (narrow-to-region beg (point))
-                          (replace-buffer-contents
-                           tmp-buf
-                           json-pretty-print-max-secs
-                           ;; FIXME: What's a good value here?  Can we use
-                           ;; something better, e.g., by deriving a value
-                           ;; from the size of the region?
-                           64)
-                        'keep-going))
+                        (replace-region-contents
+                         beg (point) tmp-buf
+                         json-pretty-print-max-secs
+                         ;; FIXME: What's a good value here?  Can we use
+                         ;; something better, e.g., by deriving a value
+                         ;; from the size of the region?
+                         64)
+                        'keep-going)
                     ;; EOF is expected because we json-read until we hit
                     ;; the end of the narrow region.
                     (json-end-of-file nil))))))))))

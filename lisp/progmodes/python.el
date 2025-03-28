@@ -6931,7 +6931,7 @@ Return non-nil if the buffer was actually modified."
             (unless (eq 0 status)
               (error "%s exited with status %s (maybe isort is missing?)"
                      python-interpreter status))
-            (replace-buffer-contents temp)
+            (replace-region-contents (point-min) (point-max) temp)
             (not (eq tick (buffer-chars-modified-tick)))))))))
 
 ;;;###autoload
