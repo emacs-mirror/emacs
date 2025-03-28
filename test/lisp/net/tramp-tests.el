@@ -4874,7 +4874,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
           (tramp-change-syntax syntax)
 	  ;; This has cleaned up all connection data, which are used
 	  ;; for completion.  We must refill the cache.
-	  (tramp-set-connection-property tramp-test-vec "property" nil)
+	  (tramp-set-connection-property tramp-test-vec "completion-use-cache" t)
 
           (let (;; This is needed for the `separate' syntax.
                 (prefix-format (substring tramp-prefix-format 1))
@@ -4988,9 +4988,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 ;; and Bug#60505.
 (ert-deftest tramp-test26-interactive-file-name-completion ()
   "Check interactive completion with different `completion-styles'."
-  ;; Method, user and host name in completion mode.
-  (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
 
+  ;; Method, user and host name in completion mode.
   (let ((method (file-remote-p ert-remote-temporary-file-directory 'method))
 	(user (file-remote-p ert-remote-temporary-file-directory 'user))
 	(host (file-remote-p ert-remote-temporary-file-directory 'host))
@@ -5012,7 +5011,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
           (tramp-change-syntax syntax)
 	  ;; This has cleaned up all connection data, which are used
 	  ;; for completion.  We must refill the cache.
-	  (tramp-set-connection-property tramp-test-vec "property" nil)
+	  (tramp-set-connection-property tramp-test-vec "completion-use-cache" t)
 
           (dolist
               (style
