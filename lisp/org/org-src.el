@@ -1414,13 +1414,9 @@ EVENT is passed to `mouse-set-point'."
       ;; insert new contents.
       (delete-overlay overlay)
       (let ((expecting-bol (bolp)))
-	(if (version< emacs-version "27.1")
-	    (progn (delete-region beg end)
-		   (insert (with-current-buffer write-back-buf (buffer-string))))
-	  (save-restriction
-	    (narrow-to-region beg end)
-	    (org-replace-buffer-contents write-back-buf 0.1 nil)
-	    (goto-char (point-max))))
+        (goto-char end)
+        (org-replace-region-contents beg end write-back-buf 0.1 nil)
+        (cl-assert (= (point) (+ beg (buffer-size write-back-buf))))
 	(when (and expecting-bol (not (bolp))) (insert "\n")))
       (kill-buffer write-back-buf)
       (save-buffer)
@@ -1461,14 +1457,9 @@ EVENT is passed to `mouse-set-point'."
        (undo-boundary)
        (goto-char beg)
        (let ((expecting-bol (bolp)))
-	 (if (version< emacs-version "27.1")
-	     (progn (delete-region beg end)
-		    (insert (with-current-buffer write-back-buf
-                              (buffer-string))))
-	   (save-restriction
-	     (narrow-to-region beg end)
-	     (org-replace-buffer-contents write-back-buf 0.1 nil)
-	     (goto-char (point-max))))
+         (goto-char end)
+         (org-replace-region-contents beg end write-back-buf 0.1 nil)
+         (cl-assert (= (point) (+ beg (buffer-size write-back-buf))))
 	 (when (and expecting-bol (not (bolp))) (insert "\n")))))
     (when write-back-buf (kill-buffer write-back-buf))
     ;; If we are to return to source buffer, put point at an

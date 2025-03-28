@@ -292,10 +292,20 @@ older than 27.1"
       (if tree (push tree elems))
       (nreverse elems))))
 
-(if (version< emacs-version "27.1")
-    (defsubst org-replace-buffer-contents (source &optional _max-secs _max-costs)
-      (replace-buffer-contents source))
-  (defalias 'org-replace-buffer-contents #'replace-buffer-contents))
+(defalias 'org-replace-region-contents
+  (if (> emacs-major-version 30)
+      #'replace-region-contents
+    ;; The `replace-region-contents' in Emacs<31 does not accept a buffer
+    ;; as SOURCE argument and does not preserve the position well enough.
+    (lambda (beg end source &optional max-secs max-costs)
+      (save-restriction
+        (narrow-to-region beg end)
+        (let ((eobp (eobp)))
+          (with-no-warnings
+            (if (< emacs-major-version 27)
+                (replace-buffer-contents source)
+              (replace-buffer-contents source max-secs max-costs)))
+          (if eobp (goto-char (point-max))))))))
 
 (unless (fboundp 'proper-list-p)
   ;; `proper-list-p' was added in Emacs 27.1.  The function below is
