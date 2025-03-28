@@ -846,10 +846,10 @@ variable @code{find-function-regexp-alist}.
 
 @vindex @code{find-function-regexp-alist}
 The alist @code{find-function-regexp-alist} associates object types with
-a regexp or function that finds the definition of that object in its
-source file.  Each element's car is a symbol the describes the type of
-object, or @code{nil} to identify functions defined with @code{defun}.
-Each element's cdr can be one of the following:
+a regexp or a function that finds the definition of that object in its
+source file.  Each element's @code{car} is a symbol that describes the
+type of object, or @code{nil}, which means a function defined with
+@code{defun}.  Each element's @code{cdr} can be one of the following:
 
 @itemize
 @item
