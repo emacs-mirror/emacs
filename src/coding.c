@@ -7898,6 +7898,8 @@ code_conversion_save (bool with_work_buf, bool multibyte)
       bset_enable_multibyte_characters (current_buffer, multibyte ? Qt : Qnil);
       if (EQ (workbuf, Vcode_conversion_reused_workbuf))
 	reused_workbuf_in_use = true;
+      /* FIXME: Maybe we should stay in the new workbuf, because we often
+	 switch right back to it anyway in order to initialize it further.  */
       set_buffer_internal (current);
     }
 

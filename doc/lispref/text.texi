@@ -4776,30 +4776,42 @@ all markers unrelocated.
 @node Replacing
 @section Replacing Buffer Text
 
-  You can use the following function to replace the text of one buffer
-with the text of another buffer:
+  You can use the following function to replace some the text of the
+current buffer:
 
-@deffn Command replace-buffer-contents source &optional max-secs max-costs
-This function replaces the accessible portion of the current buffer
-with the accessible portion of the buffer @var{source}.  @var{source}
-may either be a buffer object or the name of a buffer.  When
-@code{replace-buffer-contents} succeeds, the text of the accessible
-portion of the current buffer will be equal to the text of the
-accessible portion of the @var{source} buffer.
+@defun replace-region-contents beg end source &optional max-secs max-costs inherit
+This function replaces the region between @var{beg} and @var{end}
+of the current buffer with the text found in @var{source} which
+is usually a string or a buffer, in which case it will use the
+accessible portion of that buffer.
 
 This function attempts to keep point, markers, text properties, and
 overlays in the current buffer intact.  One potential case where this
-behavior is useful is external code formatting programs: they
-typically write the reformatted text into a temporary buffer or file,
-and using @code{delete-region} and @code{insert-buffer-substring}
-would destroy these properties.  However, the latter combination is
-typically faster (@xref{Deletion}, and @ref{Insertion}).
+behavior is useful is external code formatting programs: they typically
+write the reformatted text into a temporary buffer or file, and using
+@code{insert} and @code{delete-region} would destroy these properties.
 
-For its working, @code{replace-buffer-contents} needs to compare the
-contents of the original buffer with that of @var{source} which is a
-costly operation if the buffers are huge and there is a high number of
-differences between them.  In order to keep
-@code{replace-buffer-contents}'s runtime in bounds, it has two
+However, in order to do that, @code{replace-region-contents} needs to
+compare the contents of the original buffer with that of @var{source},
+using a costly algorithm which makes the operation much slower than
+a simple @code{insert} and @code{delete-region}.  In many cases, you may
+not need that refinement, and you will then want to pass 0 as
+@var{max-secs} argument, so as to short-circuit that costly algorithm:
+It will then be just as fast as @code{insert} and @code{delete-region}
+while still preserving point and markers marginally better.
+
+Beyond that basic usage, if you need to use as source a subset of the
+accessible portion of a buffer, @var{source} can also be a vector
+@code{[@var{sbuf} @var{sbeg} @var{send}]} where the region between
+@var{sbeg} and @var{send} in buffer @var{sbuf} is the text
+you want to use as source.
+
+If you need the inserted text to inherit text-properties
+from the adjoining text, you can pass a non-@code{nil} value as
+@var{inherit} argument.
+
+When you do want the costly refined replacement, in order to keep
+@code{replace-region-contents}'s runtime in bounds, it has two
 optional arguments.
 
 @var{max-secs} defines a hard boundary in terms of seconds.  If given
@@ -4810,26 +4822,14 @@ and exceeded, it will fall back to @code{delete-region} and
 the actual costs exceed this limit, heuristics are used to provide a
 faster but suboptimal solution.  The default value is 1000000.
 
-@code{replace-buffer-contents} returns @code{t} if a non-destructive
+@code{replace-region-contents} returns @code{t} if a non-destructive
 replacement could be performed.  Otherwise, i.e., if @var{max-secs}
 was exceeded, it returns @code{nil}.
-@end deffn
 
-@defun replace-region-contents beg end replace-fn &optional max-secs max-costs
-This function replaces the region between @var{beg} and @var{end}
-using the given @var{replace-fn}.  The function @var{replace-fn} is
-run in the current buffer narrowed to the specified region and it
-should return either a string or a buffer replacing the region.
-
-The replacement is performed using @code{replace-buffer-contents} (see
-above) which also describes the @var{max-secs} and @var{max-costs}
-arguments and the return value.
-
-Note: If the replacement is a string, it will be placed in a temporary
-buffer so that @code{replace-buffer-contents} can operate on it.
-Therefore, if you already have the replacement in a buffer, it makes
-no sense to convert it to a string using @code{buffer-substring} or
-similar.
+Note: When using the refined replacement algorithm, if the replacement
+is a string, it will be internally copied to a temporary buffer.
+Therefore, all else being equal, it is preferable to pass a buffer than
+a string as @var{source} argument.
 @end defun
 
 @node Decompression
