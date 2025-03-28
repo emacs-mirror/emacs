@@ -283,7 +283,7 @@ This part may be omitted to use the value of `time-stamp-end'.
 
 The pattern does not need to match the entire line of the time stamp.
 The pattern will update time stamp information on multiple lines if the
-pattern includes newlines, written as \"\\n\".
+pattern includes newlines, which can be written as \"\\n\".
 
 These variables are best changed with file-local variables.
 If you were to change `time-stamp-pattern', `time-stamp-line-limit',
@@ -307,7 +307,8 @@ Examples:
 // time-stamp-pattern: \"10/Author %L\\nRevised %-d %b %Y$\"
     (sets all four variables and updates text on two lines)
 
-See Info node `Time Stamps' for more examples.
+See Info node `Time Stamp Customization' for more discussion and more
+in-depth examples.
 
 
 See also `time-stamp-count' and `time-stamp-inserts-lines'.")
@@ -318,8 +319,8 @@ See also `time-stamp-count' and `time-stamp-inserts-lines'.")
 ;;;###autoload
 (defun time-stamp ()
   "Update any time stamp strings (timestamps) in the buffer.
-Look for a time stamp template and update it with the current date,
-time, and/or other info.
+Look for a time stamp template and update it with the current
+date, time, author, and/or other info.
 
 The template, which you manually create on one of the first 8 lines
 of the file before running this function, by default can look like
@@ -526,6 +527,7 @@ time is used.  The time zone is determined by `time-stamp-time-zone'."
 ;;; five years.
 ;;;      The : modifier is a temporary conversion feature used to resolve
 ;;; ambiguous formats--formats that are changing (over time) incompatibly.
+
 (defun time-stamp-string-preprocess (format &optional time)
   "Use a FORMAT to format date, time, file, and user information.
 Optional second argument TIME is only for testing.

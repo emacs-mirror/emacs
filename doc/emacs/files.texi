@@ -1007,8 +1007,8 @@ was written will be preserved even if the file is copied or transformed
 in a way that loses the file system's modification time.
 
 There are two steps to setting up automatic time stamping.
-First, you need to have a time stamp template
-somewhere in the first eight lines of the file.
+First, the file needs a time stamp template
+somewhere in the first eight lines.
 The template looks like this:
 
 @example
@@ -1022,59 +1022,81 @@ or (your choice) like this:
 Time-stamp: " "
 @end example
 
-@noindent
-When time-stamping, Emacs will write the current time, date, and/or
-other info between the brackets or quotes.
-
 @findex time-stamp
-Second, add the function @code{time-stamp}
+With that template in place, you can update the current buffer's time
+stamp once immediately with the command @kbd{M-x time-stamp}.
+Emacs will check for a template; if a template is found,
+Emacs will write the current date, time, author, and/or
+other info between the brackets or quotes.
+(If the buffer has no template, @code{time-stamp} does nothing.)
+After the first time stamp, the line might look like this:
+
+@example
+Time-stamp: <1993-07-06 11:05:14 terryg>
+@end example
+
+Second, configure Emacs to run @code{time-stamp} any time it saves a
+file, by adding @code{time-stamp}
 to @code{before-save-hook} (@pxref{Hooks}).
-To do this, either customize the option @code{before-save-hook}
-(with @kbd{M-x customize-option}, @pxref{Specific Customization})
-or edit your init file adding this line:
+You can either customize the option @code{before-save-hook}
+(with @kbd{M-x customize-option}, @pxref{Specific Customization}),
+or you can edit your init file adding this line:
 
 @example
 (add-hook 'before-save-hook 'time-stamp)
 @end example
 
-To enable automatic time-stamping for only a specific file, add the
-following line to a local variables list
-(@pxref{Specifying File Variables}) near the end of the file:
+@menu
+* Time Stamp Customization::   How to customize with time-stamp-pattern.
+* Time Stamps for One File::   Ensure automatic time-stamp of a specific file.
+@end menu
 
-@example
-eval: (add-hook 'before-save-hook 'time-stamp nil t)
-@end example
-
-To update the current buffer's time stamp once
-immediately, use the command @kbd{M-x time-stamp}.
+@node Time Stamp Customization
+@subsubsection Customizing the Time Stamp
 
 @vindex time-stamp-pattern
 To customize the time stamp in a particular file, set the
-variable @code{time-stamp-pattern} in that file's local variables list.
-You can change where the time stamp starts and ends and how the dynamic
-information is to be formatted; see the variable's built-in
-documentation for details.
+variable @code{time-stamp-pattern} in that file's local variables
+list (@pxref{Specifying File Variables}).
+You can change what pattern @code{time-stamp} will match against to
+identify a template and where in the file to look for the pattern using
+@code{time-stamp-pattern}; for details, see the variable's built-in
+documentation (with @kbd{C-h v}, @pxref{Name Help}).
+
 As a simple example, if this line occurs near the top of a file:
 
 @example
-\newcommand@{\yearpublished@}@{@}
+publishing_year_and_city = "Published nnnn in Boston, Mass.";
 @end example
 
 @noindent
-then the following at the end of the file tells @code{time-stamp} how to
-identify and update that custom template:
+then the following comment at the end of the same file tells
+@code{time-stamp} how to identify and update that custom template:
 
 @example
 @group
-%% Local variables:
-%% time-stamp-pattern: "@{.yearpublished@}@{%Y@}"
-%% End:
+// Local variables:
+// time-stamp-pattern: "Published %Y in Boston"
+// End:
 @end group
 @end example
 
-Here is another example, with the time stamp inserted into the last
-paragraph of an HTML document.  The @code{%%} in the pattern asks for
-the default format.
+This pattern says that the text before the start of the time stamp is
+``Published '', and the text after the end is `` in Boston''.
+If @code{time-stamp} finds both in one of the first eight lines,
+what is between will be replaced by the current year, as requested by
+the @code{%Y} format.
+
+After any change to file-local variables,
+type @kbd{M-x normal-mode} to re-read them.
+
+Here is another example, with the time stamp inserted into
+the last paragraph of an HTML document.
+Since this template is at the end of the document, not in the first
+eight lines, @code{time-stamp-format} starts with @code{-10/} to tell
+@code{time-stamp} to look at the last 10 lines.
+The @code{%%} asks for the default format
+(specified by @code{time-stamp-format}).
 
 @example
 @r{@dots{}}
@@ -1096,7 +1118,29 @@ Manual}).
 See the built-in documentation for the variable @code{time-stamp-format}
 for specifics and other variables that affect the formatting.
 
-For customizations, see the Custom group @code{time-stamp}.
+@node Time Stamps for One File
+@subsubsection Forcing Time Stamps for One File
+
+If you are working on a file with multiple authors, and you cannot
+be sure the other authors have enabled time-stamping globally in
+their Emacs init files, you can force it to be enabled for a
+particular file by adding @code{time-stamp} to that buffer's
+@code{before-save-hook} in that file's local variables list.
+To extend one of the previous examples:
+
+@example
+@group
+// Local variables:
+// eval: (add-hook 'before-save-hook 'time-stamp nil t)
+// time-stamp-pattern: "year_published = \"%Y\""
+// End:
+@end group
+@end example
+
+@noindent
+Although this example shows them both set together,
+you can use @code{eval} without also setting @code{time-stamp-pattern}
+if you like the default pattern.
 
 @node Reverting
 @section Reverting a Buffer
