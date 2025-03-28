@@ -849,15 +849,17 @@ The alist @code{find-function-regexp-alist} associates object types with
 a regexp or function that finds the definition of that object in its
 source file.  Each element's car is a symbol the describes the type of
 object, or @code{nil} to identify functions defined with @code{defun}.
-Each element's cdr can be:
+Each element's cdr can be one of the following:
 
 @itemize
 @item
-A symbol whose value is a string interpreted as a regexp
+A symbol whose value is a string interpreted as a regexp.
 @item
-A symbol naming a function that can find the definition
+A symbol naming a function that can find the definition.
 @item
-A cons cell where the car is a regexp (or function that returns one) and the cdr is a function that creates a matcher for macroexpanded forms
+A cons cell where the @code{car} is a regexp (or function that returns
+one) and the @code{cdr} is @dfn{form-matcher}: a function that creates a
+matcher for macro-expanded forms.
 @end itemize
 
 A regexp string is actually a format string, and @code{%s} will be
@@ -866,10 +868,11 @@ substituted with the name of the symbol we are looking for.
 A function will be called with one argument, the (symbol for) the object
 we are searching for.
 
-The form-matcher function in a cons cell value is called with one argument (the
-symbol being sought) and should return a function that takes a form and returns
-non-nil if the form defines the sought symbol. This is useful for finding
-definitions that are created by macro expansion.
+The form-matcher function in a cons cell value is called with one
+argument (the symbol being sought) and should return a function; that
+function should take a form and return non-@code{nil} if the form
+defines the sought symbol.  This is useful for finding definitions that
+are created by expansion of macros.
 
 @cindex @code{definition-name} (symbol property)
 If the function to be found is defined by a macro, it may be hard for

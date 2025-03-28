@@ -146,13 +146,13 @@ we're looking for) and it should search for it.
 
 A value can also be a cons (REGEX . EXPANDED-FORM-MATCHER-FACTORY).
 REGEX is as above; EXPANDED-FORM-MATCHER-FACTORY is a function of one
-argument, the same as we'd pass to a REGEX function, that returns
-another function of one argument that returns true if we're looking at a
-macroexpanded form that defines what we're looking for.  If you want to
-use EXPANDED-FORM-MATCHER-FACTORY exclusively, you can set REGEX to a
-never-match regex and force the fallback to
-EXPANDED-FORM-MATCHER-FACTORY.  The buffer to search is current during
-the call to EXPANDED-FORM-MATCHER-FACTORY.
+argument, the same object we'd pass to a REGEX function; it should return
+another function of one argument that returns non-nil if we're looking at
+a macroexpanded form that defines the object we're looking for.
+If you want to use EXPANDED-FORM-MATCHER-FACTORY exclusively, you can
+set REGEX to a never-match regexp, and force the fallback to
+EXPANDED-FORM-MATCHER-FACTORY.  EXPANDED-FORM-MATCHER-FACTORY is
+called with the buffer to search the current one.
 
 Symbols can have their own version of this alist on
 the property `find-function-type-alist'.
