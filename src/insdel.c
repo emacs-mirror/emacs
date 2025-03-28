@@ -1439,6 +1439,12 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
       insbeg = 0;
       inschars = SCHARS (new);
     }
+  else if (BUFFERP (new))
+    {
+      insbuf = XBUFFER (new);
+      insbeg = BUF_BEGV (insbuf);
+      inschars = BUF_ZV (insbuf) - insbeg;
+    }
   else
     {
       CHECK_VECTOR (new);

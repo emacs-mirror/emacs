@@ -7497,6 +7497,20 @@ OBJECT if it is readable."
   "Delete the current line."
   (delete-region (pos-bol) (pos-bol 2)))
 
+(defun replace-buffer-contents (source &optional max-secs max-costs)
+  "Replace accessible portion of current buffer with that of SOURCE.
+SOURCE can be a buffer or a string that names a buffer.
+Interactively, prompt for SOURCE.
+
+The replacement is performed using `replace-region-contents'
+which also describes the MAX-SECS and MAX-COSTS arguments and the
+return value."
+  (declare (obsolete replace-region-contents "31.1"))
+  (interactive "bSource buffer: ")
+  (replace-region-contents (point-min) (point-max)
+                           (if (stringp source) (get-buffer source) source)
+                           max-secs max-costs))
+
 (defun ensure-empty-lines (&optional lines)
   "Ensure that there are LINES number of empty lines before point.
 If LINES is nil or omitted, ensure that there is a single empty
