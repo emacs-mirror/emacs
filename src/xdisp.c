@@ -503,6 +503,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef HAVE_MPS
 #include "igc.h"
 #endif
+#include "pdumper.h"
 
 #ifndef FRAME_OUTPUT_DATA
 #define FRAME_OUTPUT_DATA(f) (NULL)
@@ -37569,6 +37570,15 @@ gui_union_rectangles (const Emacs_Rectangle *a, const Emacs_Rectangle *b,
 /***********************************************************************
 			    Initialization
  ***********************************************************************/
+#ifdef HAVE_MPS
+static void
+protect_global_values (void)
+{
+  igc_root_create_exact_ptr (&displayed_buffer);
+  igc_root_create_exact_ptr (&last_escape_glyph_frame);
+  igc_root_create_exact_ptr (&last_glyphless_glyph_frame);
+}
+#endif
 
 void
 syms_of_xdisp (void)
@@ -37813,12 +37823,10 @@ doesn't exist, it will be created and put into
       staticpro (ptr);
     }
 
+  pdumper_do_now_and_after_load (protect_global_values);
   displayed_buffer = NULL;
-  igc_root_create_exact_ptr (&displayed_buffer);
   last_escape_glyph_frame = NULL;
-  igc_root_create_exact_ptr (&last_escape_glyph_frame);
   last_glyphless_glyph_frame = NULL;
-  igc_root_create_exact_ptr (&last_glyphless_glyph_frame);
 #endif /* HAVE_MPS */
 
   DEFSYM (Qright_to_left, "right-to-left");

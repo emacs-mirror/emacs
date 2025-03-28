@@ -34,6 +34,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "xwidget.h"
 #include "dynlib.h"
 #include "igc.h"
+#include "pdumper.h"
 
 #include <c-ctype.h>
 #include <float.h>
@@ -3025,6 +3026,16 @@ init_print_once (void)
   defsubr (&Sexternal_debugging_output);
 }
 
+#ifdef HAVE_MPS
+static void
+protect_being_printed (void)
+{
+  /* FIXME/igc: Make it a Lisp vector and staticpro. */
+  igc_root_create_exact (being_printed,
+			 being_printed + ARRAYELTS (being_printed));
+}
+#endif
+
 void
 syms_of_print (void)
 {
@@ -3219,8 +3230,6 @@ be printed.  */);
   staticpro (&Vprint_variable_mapping);
 
 #ifdef HAVE_MPS
-  /* FIXME/igc: Make it a Lisp vector and staticpro. */
-  igc_root_create_exact (being_printed,
-			 being_printed + ARRAYELTS (being_printed));
+  pdumper_do_now_and_after_load (protect_being_printed);
 #endif
 }
