@@ -641,7 +641,7 @@ usage: (json-insert OBJECT &rest ARGS)  */)
   move_gap_both (PT, PT_BYTE);
   if (GAP_SIZE < jo.size)
     make_gap (jo.size - GAP_SIZE);
-  memcpy ((char *) BEG_ADDR + PT_BYTE - BEG_BYTE, jo.buf, jo.size);
+  memcpy (GPT_ADDR, jo.buf, jo.size);
 
   /* No need to keep allocation beyond this point.  */
   unbind_to (count, Qnil);
@@ -1754,15 +1754,16 @@ usage: (json-parse-buffer &rest args) */)
 
   struct json_parser p;
   unsigned char *begin = PT_ADDR;
-  unsigned char *end = GPT_ADDR;
+  unsigned char *end = (GPT == ZV) ? GPT_ADDR : ZV_ADDR;
   unsigned char *secondary_begin = NULL;
   unsigned char *secondary_end = NULL;
-  if (GPT_ADDR < Z_ADDR)
+  if (PT == ZV)
+    begin = end = NULL;
+  else if (GPT > PT && GPT < ZV && GAP_SIZE > 0)
     {
+      end = GPT_ADDR;
       secondary_begin = GAP_END_ADDR;
-      if (secondary_begin < PT_ADDR)
-	secondary_begin = PT_ADDR;
-      secondary_end = Z_ADDR;
+      secondary_end = ZV_ADDR;
     }
 
   json_parser_init (&p, conf, begin, end, secondary_begin,
