@@ -3845,9 +3845,12 @@ If SILENT, don't echo progress in mode-line."
                   (let ((temp (current-buffer)))
                     (with-current-buffer source
                       (save-excursion
-                        (save-restriction
-                          (narrow-to-region beg end)
-                          (replace-buffer-contents temp)))
+                        (if (> emacs-major-version 30)
+                            (replace-region-contents beg end temp)
+                          (save-restriction
+                            (narrow-to-region beg end)
+                            (with-no-warnings
+                              (replace-buffer-contents temp)))))
                       (when reporter
                         (eglot--reporter-update reporter (cl-incf done))))))))
             (mapcar (lambda (edit)

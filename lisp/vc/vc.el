@@ -1970,7 +1970,7 @@ of NEW (without destroying existing markers), swapping their text
 objects, and finally killing buffer ORIGINAL."
   (with-current-buffer original
     (let ((inhibit-read-only t))
-      (replace-buffer-contents new)))
+      (replace-region-contents (point-min) (point-max) new)))
   (with-current-buffer new
     (buffer-swap-text original))
   (kill-buffer original))
