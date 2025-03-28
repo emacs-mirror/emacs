@@ -154,12 +154,10 @@ to an element already in the list stored in PLACE.
 	`(setq ,place (cl-adjoin ,x ,place ,@keys)))
     `(cl-callf2 cl-adjoin ,x ,place ,@keys)))
 
-(defun cl--set-buffer-substring (start end val)
+(defun cl--set-buffer-substring (start end val &optional inherit)
   "Delete region from START to END and insert VAL."
-  (save-excursion (delete-region start end)
-		  (goto-char start)
-		  (insert val)
-		  val))
+  (replace-region-contents start end val 0 nil inherit)
+  val)
 
 (defun cl--set-substring (str start end val)
   (if end (if (< end 0) (incf end (length str)))

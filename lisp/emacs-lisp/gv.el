@@ -684,6 +684,8 @@ REF must have been previously obtained with `gv-ref'."
   `(insert (prog1 ,store (erase-buffer))))
 (make-obsolete-generalized-variable 'buffer-string nil "29.1")
 
+;; FIXME: Can't use `replace-region-contents' because it's not
+;; expected to be costly, so we need to pass MAX-SECS==0.
 (gv-define-simple-setter buffer-substring cl--set-buffer-substring)
 (make-obsolete-generalized-variable 'buffer-substring nil "29.1")
 
