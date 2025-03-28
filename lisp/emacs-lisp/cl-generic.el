@@ -1111,7 +1111,7 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
   (add-to-list 'find-function-regexp-alist
                `(cl-defmethod
                  . (,#'cl--generic-search-method
-                    . #'cl--generic-search-method-make-form-matcher)))
+                    . ,#'cl--generic-search-method-make-form-matcher)))
   (add-to-list 'find-function-regexp-alist
                '(cl-defgeneric . cl--generic-find-defgeneric-regexp)))
 
