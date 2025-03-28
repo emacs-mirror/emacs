@@ -331,7 +331,7 @@ max-level parent dirs.  File contents are not checked."
       (setq dirs (cdr dirs)))
     (when files
       (let ((flymake-proc--included-file-name (file-name-nondirectory file-name)))
-	(setq files (sort files 'flymake-proc--master-file-compare))))
+	(setq files (sort files #'flymake-proc--master-file-compare))))
     (flymake-log 3 "found %d possible master file(s)" (length files))
     files))
 
@@ -407,9 +407,10 @@ instead of reading master file from disk."
                   ;;  replace-match is not used here as it fails in
                   ;; XEmacs with 'last match not a buffer' error as
                   ;; check-includes calls replace-in-string
-                  (flymake-proc--replace-region
+                  (replace-region-contents
                    match-beg match-end
-                   (file-name-nondirectory patched-source-file-name))))
+                   (file-name-nondirectory patched-source-file-name)
+                   0)))
               (forward-line 1)))
           (when found
             (flymake-proc--save-buffer-in-file patched-master-file-name)))
@@ -424,11 +425,8 @@ instead of reading master file from disk."
 ;;; XXX: remove
 (defun flymake-proc--replace-region (beg end rep)
   "Replace text in BUFFER in region (BEG END) with REP."
-  (save-excursion
-    (goto-char end)
-    ;; Insert before deleting, so as to better preserve markers's positions.
-    (insert rep)
-    (delete-region beg end)))
+  (declare (obsolete replace-region-contents "31"))
+  (replace-region-contents beg end rep 0))
 
 (defun flymake-proc--read-file-to-temp-buffer (file-name)
   "Insert contents of FILE-NAME into newly created temp buffer."

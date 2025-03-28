@@ -777,7 +777,7 @@ the C sources, too."
                      (save-excursion
                        (forward-char -1)
                        (<= (current-column) (- fill-column 12)))
-                     (cl--set-buffer-substring (- beg 3) beg " ")))))
+                     (replace-region-contents (- beg 3) beg " " 0)))))
           high-doc)))))
 
 (defun help-fns--parent-mode (function)

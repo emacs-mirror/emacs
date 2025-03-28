@@ -1398,35 +1398,8 @@ Moves point to the end of the new text."
                               newtext)
     ;; Remove all text properties.
     (set-text-properties 0 (length newtext) nil newtext))
-  ;; Maybe this should be in subr.el.
-  ;; You'd think this is trivial to do, but details matter if you want
-  ;; to keep markers "at the right place" and be robust in the face of
-  ;; after-change-functions that may themselves modify the buffer.
-  (let ((prefix-len 0))
-    ;; Don't touch markers in the shared prefix (if any).
-    (while (and (< prefix-len (length newtext))
-                (< (+ beg prefix-len) end)
-                (eq (char-after (+ beg prefix-len))
-                    (aref newtext prefix-len)))
-      (setq prefix-len (1+ prefix-len)))
-    (unless (zerop prefix-len)
-      (setq beg (+ beg prefix-len))
-      (setq newtext (substring newtext prefix-len))))
-  (let ((suffix-len 0))
-    ;; Don't touch markers in the shared suffix (if any).
-    (while (and (< suffix-len (length newtext))
-                (< beg (- end suffix-len))
-                (eq (char-before (- end suffix-len))
-                    (aref newtext (- (length newtext) suffix-len 1))))
-      (setq suffix-len (1+ suffix-len)))
-    (unless (zerop suffix-len)
-      (setq end (- end suffix-len))
-      (setq newtext (substring newtext 0 (- suffix-len))))
-    (goto-char beg)
-    (let ((length (- end beg)))         ;Read `end' before we insert the text.
-      (insert-and-inherit newtext)
-      (delete-region (point) (+ (point) length)))
-    (forward-char suffix-len)))
+  (goto-char end)
+  (replace-region-contents beg end newtext 0.1 nil 'inherit))
 
 (defcustom completion-cycle-threshold nil
   "Number of completion candidates below which cycling is used.
