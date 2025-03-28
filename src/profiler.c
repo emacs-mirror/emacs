@@ -325,7 +325,7 @@ record_backtrace (struct profiler_log *plog, EMACS_INT count)
 static void
 add_sample (struct profiler_log *plog, EMACS_INT count)
 {
-  if (EQ (backtrace_top_function (), QAutomatic_GC)) /* bug#60237 */
+  if (BASE_EQ (backtrace_top_function (), QAutomatic_GC)) /* bug#60237 */
     /* Special case the time-count inside GC because the hash-table
        code is not prepared to be used while the GC is running.
        More specifically it uses ASIZE at many places where it does

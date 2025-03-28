@@ -1351,8 +1351,8 @@ BUF_CHAR_ADDRESS (struct buffer *buf, ptrdiff_t pos)
 	  + (pos < buf->text->gpt ? 0 : buf->text->gap_size));
 }
 
-/* Convert PTR, the address of a char in buffer BUF,
-   into a character position.  */
+/* Convert PTR, the address of a char in buffer BUF, into a byte
+   position.  */
 
 INLINE ptrdiff_t
 BUF_PTR_BYTE_POS (struct buffer *buf, unsigned char *ptr)
