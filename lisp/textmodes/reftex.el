@@ -62,6 +62,12 @@
     (setq reftex-tables-dirty t)
     (set symbol value)))
 
+(defvar reftex--suppress-nonfile-error nil
+  "When non-nil, don't signal error in non-file buffer.
+
+Note that this is just a quick and dirty hack and is _not_ reliable at
+all.  It only circumvents disastrous error in `reftex-TeX-master-file',
+in case that the user turns on RefTeX in latex mode hook.")
 
 ;; Configuration variables
 (require 'reftex-vars)
@@ -377,7 +383,8 @@ If the symbols for the current master file do not exist, they are created."
           (buffer-file-name)))))
     (cond
      ((null master)
-      (error "Need a filename for this buffer, please save it first"))
+      (or reftex--suppress-nonfile-error
+          (error "Need a filename for this buffer, please save it first")))
      ((or (file-exists-p (concat master ".tex"))
           (find-buffer-visiting (concat master ".tex")))
       ;; Ahh, an extra .tex was missing...
@@ -389,7 +396,10 @@ If the symbols for the current master file do not exist, they are created."
      (t
       ;; Use buffer file name.
       (setq master (buffer-file-name))))
-    (expand-file-name master)))
+    (if (and (not master)
+             reftex--suppress-nonfile-error)
+        "<none>.tex"
+      (expand-file-name master))))
 
 (defun reftex-is-multi ()
   ;; Tell if this is a multifile document.  When not sure, say yes.
