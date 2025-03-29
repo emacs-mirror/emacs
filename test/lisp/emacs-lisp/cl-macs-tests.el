@@ -520,7 +520,7 @@ collection clause."
                (:constructor cl-lib--con-1 (&aux (abc 1)))
                (:constructor cl-lib--con-2 (&optional def) "Constructor docstring."))
   "General docstring."
-  (abc 5 :readonly t) (def nil))
+  (abc 5 :read-only t) (def nil))
 
 (ert-deftest cl-lib-struct-accessors ()
   (let ((x (make-mystruct :abc 1 :def 2)))
@@ -530,8 +530,9 @@ collection clause."
     (should (eql (cl-struct-slot-value 'mystruct 'def x) -1))
     (should (eql (cl-struct-slot-offset 'mystruct 'abc) 1))
     (should-error (cl-struct-slot-offset 'mystruct 'marypoppins))
+    (should-error (setf (mystruct-abc x) 3))
     (should (pcase (cl-struct-slot-info 'mystruct)
-              (`((cl-tag-slot) (abc 5 :readonly t)
+              (`((cl-tag-slot) (abc 5 :read-only t)
                  (def . ,(or 'nil '(nil))))
                t)))))
 
