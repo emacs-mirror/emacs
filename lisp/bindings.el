@@ -429,6 +429,126 @@ a menu, so this function is not useful for non-menu keymaps."
                            (bindings--menu-item-string (cdr-safe b))))))
     (nconc (make-sparse-keymap prompt) bindings)))
 
+(defcustom mode-line-collapse-minor-modes nil
+  "Minor modes for which mode line lighters are hidden.
+Hidden lighters are collapsed into one.
+
+The value could be a list (MODES ...) which means to collapse lighters
+only for MODES, or a list (not MODES ...) which means to collapse all
+lighters for minor modes not in MODES.  Other non-nil values make all
+lighters hidden."
+  :type '(choice (const :tag "No modes" nil)
+                 (repeat :tag "Modes" symbol)
+                 (cons :tag "All modes except"
+                       (const not) (repeat symbol))
+                 (const :tag "All modes" t))
+  :group 'mode-line
+  :version "31.1")
+
+(defvar mode-line-minor-modes '(:eval (mode-line--minor-modes))
+  "Mode line construct for minor mode lighters.")
+;;;###autoload
+(put 'mode-line-minor-modes 'risky-local-variable t)
+
+(defun mode-line--make-lighter-menu (alist)
+  "Return a menu keymap for minor mode lighters in ALIST.
+ALIST should be in the same format as `minor-mode-alist'.
+
+Return nil if no lighters in ALIST should be visible, for example, there
+are no active minor modes or non-empty lighters."
+  (let ((menu (make-sparse-keymap "Minor Modes"))
+        (empty t))
+    (dolist (item alist)
+      (when-let* ((variable (car item))
+                  ((and (boundp variable)
+                        (symbol-value variable)))
+                  (lighter (format-mode-line `("" ,@(cdr-safe item))))
+                  ((not (string= lighter "")))
+                  (toggle (or (get variable :minor-mode-function) variable))
+                  ;; Follow the format in `mouse-minor-mode-menu'
+                  (name (format "%s - %s" lighter
+                                (capitalize
+                                 (string-replace
+                                  "-" " " (symbol-name toggle))))))
+        (when (eq ?  (aref name 0))
+          (setq name (substring name 1)))
+        (let* ((map (cdr-safe (assq variable minor-mode-map-alist)))
+               (mm-menu (and (keymapp map)
+                             (keymap-lookup map "<menu-bar>"))))
+          (setq mm-menu
+                (cond (mm-menu (mouse-menu-non-singleton mm-menu))
+                      ((fboundp toggle)
+                       (define-keymap :name name
+                         "<help>" (list 'menu-item
+                                        "Help for minor mode"
+                                        (lambda () (interactive)
+                                          (describe-function toggle)))
+                         "<turn-off>" (list 'menu-item
+                                            "Turn off minor mode"
+                                            toggle)))
+                      ;; No menu and not a minor mode function, so just
+                      ;; display the label without a sub-menu.
+                      (t nil)))
+          (keymap-set menu (format "<%s>" toggle)
+                      (list 'menu-item name mm-menu))
+          (setq empty nil))))
+    (and (not empty) menu)))
+
+(defun mode-line--minor-modes ()
+  "Compute mode line constructs for minor mode lighters."
+  (let (visible hidden)
+    (cond
+     ((not mode-line-collapse-minor-modes)
+      (setq visible minor-mode-alist
+            hidden nil))
+     ((eq 'not (car-safe mode-line-collapse-minor-modes))
+      (let ((modes (cdr mode-line-collapse-minor-modes)))
+        (dolist (item minor-mode-alist)
+          (if (memq (car item) modes)
+              (push item visible)
+            (push item hidden)))
+        (setq visible (nreverse visible)
+              hidden (nreverse hidden))))
+     ((listp mode-line-collapse-minor-modes)
+      (let ((modes mode-line-collapse-minor-modes))
+        (dolist (item minor-mode-alist)
+          (if (memq (car item) modes)
+              (push item hidden)
+            (push item visible)))
+        (setq visible (nreverse visible)
+              hidden (nreverse hidden))))
+     (t (setq visible nil
+              hidden minor-mode-alist)))
+    (list ""
+          `(:propertize ("" ,visible)
+                        mouse-face mode-line-highlight
+                        help-echo "Minor mode\n\
+mouse-1: Display minor mode menu\n\
+mouse-2: Show help for minor mode\n\
+mouse-3: Toggle minor modes"
+                        local-map ,mode-line-minor-mode-keymap)
+          (unless (string= "" (format-mode-line `("" ,hidden)))
+            (let* ((menu
+                    ;; FIXME: This is to defer the computation of the
+                    ;; menu, but may not play well with touchscreen.
+                    (lambda (e)
+                      (interactive "@e")
+                      (if-let* ((m (mode-line--make-lighter-menu hidden)))
+                          (popup-menu m e)
+                        (message "No menu available"))))
+                   (keymap
+                    (define-keymap
+                      :parent mode-line-minor-mode-keymap
+                      "<mode-line> <down-mouse-1>" menu
+                      "<mode-line> <mouse-2>" #'describe-mode)))
+              `(:propertize ,(if (char-displayable-p ?…) " …" " ...")
+                            mouse-face mode-line-highlight
+                            help-echo "Hidden minor modes\n\
+mouse-1: Display hidden minor modes\n\
+mouse-2: Show help for enabled minor modes\n\
+mouse-3: Toggle minor modes"
+                            local-map ,keymap))))))
+
 (defvar mode-line-major-mode-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map [mode-line down-mouse-1]
@@ -466,17 +586,11 @@ mouse-3: Toggle minor modes"
 			mouse-face mode-line-highlight
 			local-map ,mode-line-major-mode-keymap)
 	  '("" mode-line-process)
-	  `(:propertize ("" minor-mode-alist)
-			mouse-face mode-line-highlight
-			help-echo "Minor mode\n\
-mouse-1: Display minor mode menu\n\
-mouse-2: Show help for minor mode\n\
-mouse-3: Toggle minor modes"
-			local-map ,mode-line-minor-mode-keymap)
 	  (propertize "%n" 'help-echo "mouse-2: Remove narrowing from buffer"
 		      'mouse-face 'mode-line-highlight
 		      'local-map (make-mode-line-mouse-map
 				  'mouse-2 #'mode-line-widen))
+	  '("" mode-line-minor-modes)
 	  ")"
 	  (propertize "%]" 'help-echo recursive-edit-help-echo)
 	  " "))

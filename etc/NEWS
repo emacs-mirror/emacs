@@ -322,6 +322,15 @@ This will inhibit implied resizing while a new frame is made and can be
 useful on tiling window managers where the initial frame size should be
 specified by external means.
 
+** Mode Line
+
++++
+*** New user option 'mode-line-collapse-minor-modes'.
+If non-nil, minor mode lighters on the mode line are collapsed into a
+single button.  The value could also be a list to specify minor mode
+lighters to hide or show.  The default value is nil, which retains the
+previous behavior of showing all minor mode lighters.
+
 ** Tab Bars and Tab Lines
 
 ---
