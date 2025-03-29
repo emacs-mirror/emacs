@@ -1508,12 +1508,14 @@ A type specifier is an expression that denotes a type.  A type
 represents a set of possible values.  Type specifiers can be classified
 into primitive types and compound types.
 
-Type specifiers are in use for several purposes, including: documenting
-function interfaces through declaration (@pxref{Declare Form}),
-specifying structure slot values (@pxref{Structures,,, cl, Common Lisp
-Extensions for GNU Emacs Lisp}), type-checking through @code{cl-the}
-(@pxref{Declarations,,, cl, Common Lisp Extensions for GNU Emacs Lisp}),
-and others.
+Type specifiers are used for several purposes, including: documenting
+function interfaces through declarations (@pxref{Declare Form}),
+specifying structure slot types (@pxref{Structures,,, cl, Common Lisp
+Extensions for GNU Emacs Lisp}), performing type checks with
+@code{cl-the} (@pxref{Declarations,,, cl, Common Lisp Extensions for GNU
+Emacs Lisp}), and aiding the native compiler (@pxref{Native
+Compilation}) in optimizing code generation and inferring function
+signatures.
 
 @table @asis
 @item Primitive type specifiers
@@ -1552,9 +1554,9 @@ types and the return type of a function.  Argument types can be interleaved
 with symbols @code{&optional} and @code{&rest} to match the function's
 arguments (@pxref{Argument List}).
 
-The type specifier represent a function whose first parameter is of type
-@code{symbol}, the second optional parameter is of type @code{float},
-and which returns an @code{integer}:
+The following type specifier represents a function whose first parameter
+is of type @code{symbol}, the second optional parameter is of type
+@code{float}, and which returns an @code{integer}:
 
 @example
  (function (symbol &optional float) integer)
