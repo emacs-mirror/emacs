@@ -909,9 +909,8 @@ validity."
 (defun read-thing-at-point-thing (&optional prompt all narrow)
   "Return a \"thing\" suitable for `thing-at-point'.
 
-Test the known \"things\" to see which are valid.  If only one thing is
-valid at point, return its symbol.  If more than one thing is valid,
-PROMPT the user to choose from the valid options.
+Test the known \"things\" to see which are valid, and PROMPT the user
+to choose from the valid options.
 
 If ALL is non-nil, choose from all known \"things\" without testing
 their validity.
@@ -922,19 +921,20 @@ context.  (This is currently only `buffer', which means `point-min' to
   (let ((things (thing-at-point-things all)))
     (when narrow
       (setq things (delq 'buffer things)))
-    (cond ((null things) (user-error "No thing at point"))
-          ((eql 1 (length things)) (car things))
-          (t (let ((default (cond ((and (use-region-p) (memq 'region things))
-                                   'region)
-                                  ((memq 'sexp things)
-                                   'sexp)
-                                  (t
-                                   (car things)))))
-               (intern (completing-read
-                        (format (or prompt "Thing (default %s): ")
-                                default)
-                        things nil :require-match nil nil
-                        (symbol-name default))))))))
+    (when (null things)
+      (user-error "No thing at point"))
+    ;; Try to offer a useful default.
+    (let ((default (cond ((and (use-region-p) (memq 'region things))
+                          'region)
+                         ((memq 'sexp things)
+                          'sexp)
+                         (t
+                          (car things)))))
+      (intern (completing-read
+               (format (or prompt "Thing (default %s): ")
+                       default)
+               things nil :require-match nil nil
+               (symbol-name default))))))
 
 ;;;###autoload
 (defun narrow-to-thing-at-point (thing)
