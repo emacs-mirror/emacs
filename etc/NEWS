@@ -2268,6 +2268,11 @@ string instead of preprending it and 'tmm-mid-prompt' to said entry.
 
 ** Foldout
 
+*** Improved behavior of 'foldout-exit-fold' with negative prefix argument.
+When 'foldout-exit-fold' is called with a negative argument (so that the
+exited fold remains visible), the position of point and window view are
+preserved.
+
 ---
 *** New command 'foldout-widen-to-current-fold'.
 This command widens the view to the current fold level when in a fold,
