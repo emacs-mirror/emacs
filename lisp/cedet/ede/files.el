@@ -282,7 +282,7 @@ Do this whenever a new project is created, as opposed to loaded."
 (defun ede--directory-project-from-hash (dir)
   "If there is an already loaded project for DIR, return it from the hash."
   (setq dir (expand-file-name dir))
-  (gethash dir ede-project-directory-hash nil))
+  (gethash dir ede-project-directory-hash))
 
 (defun ede--directory-project-add-description-to-hash (dir desc)
   "Add to the EDE project hash DIR associated with DESC."
