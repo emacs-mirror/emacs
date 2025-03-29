@@ -357,6 +357,20 @@
             (should (= m7a (+ (point-min) 7)))))
         (widen)))))
 
+(ert-deftest editfns-tests--insert-via-replace ()
+  (with-temp-buffer
+    (insert "bar")
+    (goto-char (point-min))
+    ;; Check that markers insertion type is respected when an insertion
+    ;; happens via a "replace" operation.
+    (let ((m1 (copy-marker (point) nil))
+          (m2 (copy-marker (point) t)))
+      (looking-at "\\(\\)")
+      (replace-match "foo")
+      (should (equal "foobar" (buffer-string)))
+      (should (= (point-min) m1))
+      (should (= (+ (point-min) 3) m2)))))
+
 (ert-deftest delete-region-undo-markers-1 ()
   "Make sure we don't end up with freed markers reachable from Lisp."
   ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=30931#40
