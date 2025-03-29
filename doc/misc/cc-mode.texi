@@ -4690,7 +4690,7 @@ the positions of the type and the enclosing class's brace.
  5.         c;
  6. @};
 @end example
- 
+
 @ssindex template-args-cont
 Template definitions introduce yet another syntactic symbol:
 

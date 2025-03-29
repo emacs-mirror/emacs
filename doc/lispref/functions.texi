@@ -2894,22 +2894,12 @@ argument of type @var{string}, and returns one of the symbols
 
 For description of additional types, see @ref{Lisp Data Types}).
 
-<<<<<<< HEAD
-Declaring a function with an incorrect type produces undefined behavior
-and could lead to unexpected results or might even crash Emacs when
-native-compiled code is loaded, if it was compiled with
-@code{compilation-safety} level of zero (@pxref{compilation-safety}).
-Note also that when redefining (or advising) a type-declared function,
-the replacement should respect the original signature to avoid such
-undefined behavior.
-=======
 Declaring a function with an incorrect type causes undefined behavior.
 If such a function is natively compiled with @code{compilation-safety}
 set to zero (@pxref{compilation-safety}), this may result in incorrect
 execution or even Emacs crashing when the compiled code is loaded.
 Redefining or advising a type-declared function must preserve the
 original signature to avoid these issues.
->>>>>>> 9a07d64f5c734f08baa741d763640943a7b407e7
 
 @item no-font-lock-keyword
 This is valid for macros only.  Macros with this declaration are
