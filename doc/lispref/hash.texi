@@ -347,6 +347,11 @@ itself is copied---the keys and values are shared.
 This function returns the actual number of entries in @var{table}.
 @end defun
 
+@defun hash-table-contains-p key table
+This returns non-@code{nil} if there is an association for @var{key} in
+@var{table}.
+@end defun
+
 @defun hash-table-test table
 This returns the @var{test} value that was given when @var{table} was
 created, to specify how to hash and compare keys.  See

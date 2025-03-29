@@ -1489,5 +1489,17 @@ final or penultimate step during initialization."))
                  (props-out (object-intervals out)))
             (should (equal props-out props-in))))))))
 
+(ert-deftest hash-table-contains-p ()
+  (let ((h (make-hash-table)))
+    (should-not (hash-table-contains-p 'problems h))
+    (should-not (hash-table-contains-p 'cookie h))
+    (should-not (hash-table-contains-p 'milk h))
+    (puthash 'problems 99 h)
+    (puthash 'cookie nil h)
+    (puthash 'milk 'missing h)
+    (should (hash-table-contains-p 'problems h))
+    (should (hash-table-contains-p 'cookie h))
+    (should (hash-table-contains-p 'milk h))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

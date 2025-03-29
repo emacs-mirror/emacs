@@ -7392,6 +7392,13 @@ TRIM-LEFT and TRIM-RIGHT default to \"[ \\t\\n\\r]+\"."
   (declare (important-return-value t))
   (string-trim-left (string-trim-right string trim-right) trim-left))
 
+(defsubst hash-table-contains-p (key table)
+  "Return non-nil if TABLE has an element with KEY."
+  (declare (side-effect-free t)
+           (important-return-value t))
+  (let ((missing (make-symbol "missing")))
+    (not (eq (gethash key table missing) missing))))
+
 ;; The initial anchoring is for better performance in searching matches.
 (defconst regexp-unmatchable "\\`a\\`"
   "Standard regexp guaranteed not to match any string at all.")

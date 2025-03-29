@@ -1787,6 +1787,10 @@ strings in a variety of formats, for example "6 months 3 weeks" or "5m
 52.5s".
 
 +++
+** New function 'hash-table-contains-p'.
+This function returns non-nil if a given key is present in a hash table.
+
++++
 ** The function 'purecopy' is now an obsolete alias for 'identity'.
 
 ** New function 'native-compile-directory'.
