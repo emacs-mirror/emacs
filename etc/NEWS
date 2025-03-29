@@ -1591,6 +1591,26 @@ width of the 'speedbar-window' when it is closed and then restored.
 ---
 *** 'speedbar-easymenu-definition-trailer' is now a function.
 
+** Icomplete
+
+*** New user options for 'icomplete-vertical-mode'.
+New user options have been added to enhance 'icomplete-vertical-mode':
+- 'icomplete-vertical-in-buffer-adjust-list' aligns in-buffer
+  completion to the original cursor column.
+- 'icomplete-vertical-render-prefix-indicator' adds a prefix indicator
+  to completion candidates.
+- 'icomplete-vertical-selected-prefix-indicator' specifies the prefix
+  string for the selected candidate.
+- 'icomplete-vertical-unselected-prefix-indicator' specifies the prefix
+  string for unselected candidates.
+
+*** New faces for 'icomplete-vertical-mode'.
+New faces have been added to 'icomplete-vertical-mode':
+- 'icomplete-vertical-selected-prefix-indicator-face' controls the
+  appearance of the selected candidate prefix.
+- 'icomplete-vertical-unselected-prefix-indicator-face' controls the
+  appearance of unselected candidate prefixes.
+
 ** Miscellaneous
 
 ---
