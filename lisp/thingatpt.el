@@ -892,9 +892,9 @@ validity."
                                  ;; `forward-thing' does not depend on the
                                  ;; symbol properties, and falls back to a
                                  ;; function naming scheme
-                                 (or (get sym 'forward-op)
-                                     (functionp (intern-soft
-                                                 (format "forward-%s" sym)))))
+                                 (get sym 'forward-op)
+                                 (functionp (intern-soft
+                                             (format "forward-%s" sym))))
                           collect sym)
                  (mapcar #'car thing-at-point-provider-alist)
                  (mapcar #'car bounds-of-thing-at-point-provider-alist)
