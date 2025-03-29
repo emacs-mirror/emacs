@@ -113,17 +113,6 @@ If you have been using these variables in Lisp code (for example, in
 font-lock rules), simply quote the symbol, to use the face directly
 instead of its now-obsolete variable.
 
-** New minor mode 'electric-block-comment-mode'
-This mode automatically close block comment, typing `block-comment-start'
-closes it inserting their corresponding `block-comment-end'.
-Thus, allows closing block comments for major modes ​​that support it,
-such as:
-- c-mode, c++-mode, java-mode, js-mode, css-mode, and derived
-- html-mode, mhtml-mode, xml-mode and nxml-mode
-- pascal-mode
-- lua-ts-mode
-- lisp-mode and common-lisp-mode
-
 ** Network Security Manager (NSM) is now more strict.
 
 *** NSM warns about TLS 1.1 by default.
@@ -1678,6 +1667,14 @@ defined including, but not limited to, 'gitattributes-generic-ts-mode'.
 Visiting a file in such mode ask for confirmation before installing
 its tree-sitter grammar.  Then it highlights the visited file
 according to syntax defined by the grammar.
+
+** New minor mode 'electric-block-comment-mode'.
+This mode automatically close block comment, typing
+`block-comment-start' closes it inserting their corresponding
+`block-comment-end'.  Thus, allows closing block comments for major
+modes ​​that support it, such as: c-mode, c++-mode, java-mode, js-mode,
+css-mode, and derived: html-mode, mhtml-mode, xml-mode and nxml-mode,
+pascal-mode, lua-ts-mode, lisp-mode and common-lisp-mode
 
 
 * Incompatible Lisp Changes in Emacs 31.1

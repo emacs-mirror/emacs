@@ -758,8 +758,10 @@ corresponding `block-comment-end'."
   :group 'electricity
   :version "31.1"
   (if electric-block-comment-mode
-      (add-hook 'post-self-insert-hook #'electric-block-comment-post-self-insert-function 10 t)
-    (remove-hook 'post-self-insert-hook #'electric-block-comment-post-self-insert-function t)))
+      (add-hook 'post-self-insert-hook
+                #'electric-block-comment-post-self-insert-function 10 t)
+    (remove-hook 'post-self-insert-hook
+                 #'electric-block-comment-post-self-insert-function t)))
 
 (provide 'electric)
 
