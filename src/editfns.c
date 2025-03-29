@@ -54,6 +54,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "window.h"
 #include "blockinput.h"
+#include "coding.h"
 
 #ifdef WINDOWSNT
 # include "w32common.h"
@@ -1914,11 +1915,14 @@ static bool compareseq_early_abort (struct context *);
 #include "minmax.h"
 #include "diffseq.h"
 
-DEFUN ("replace-buffer-contents", Freplace_buffer_contents,
-       Sreplace_buffer_contents, 1, 3, "bSource buffer: ",
-       doc: /* Replace accessible portion of current buffer with that of SOURCE.
-SOURCE can be a buffer or a string that names a buffer.
-Interactively, prompt for SOURCE.
+DEFUN ("replace-region-contents", Freplace_region_contents,
+       Sreplace_region_contents, 3, 6, 0,
+       doc: /* Replace the region between BEG and END with that of SOURCE.
+SOURCE can be a buffer, a string, or a vector [SBUF SBEG SEND]
+denoting the subtring SBEG..SEND of buffer SBUF.
+
+If optional argument INHERIT is non-nil, the inserted text will inherit
+properties from adjoining text.
 
 As far as possible the replacement is non-destructive, i.e. existing
 buffer contents, markers, properties, and overlays in the current
@@ -1940,18 +1944,85 @@ computation.  If the actual costs exceed this limit, heuristics are
 used to provide a faster but suboptimal solution.  The default value
 is 1000000.
 
+Note: If the replacement is a string, it’ll usually be placed internally
+in a temporary buffer.  Therefore, all else being equal, it is preferable
+to pass a buffer rather than a string as SOURCE argument.
+
 This function returns t if a non-destructive replacement could be
 performed.  Otherwise, i.e., if MAX-SECS was exceeded, it returns
-nil.  */)
-  (Lisp_Object source, Lisp_Object max_secs, Lisp_Object max_costs)
+nil.
+
+SOURCE can also be a function that will be called with no arguments
+and with current buffer narrowed to BEG..END, and should return
+a buffer or a string.  But this is deprecated.  */)
+  (Lisp_Object beg, Lisp_Object end, Lisp_Object source,
+   Lisp_Object max_secs, Lisp_Object max_costs, Lisp_Object inherit)
 {
-  struct buffer *a = current_buffer;
-  Lisp_Object source_buffer = Fget_buffer (source);
-  if (NILP (source_buffer))
-    nsberror (source);
-  struct buffer *b = XBUFFER (source_buffer);
-  if (! BUFFER_LIVE_P (b))
+  validate_region (&beg, &end);
+  ptrdiff_t min_a = XFIXNUM (beg);
+  ptrdiff_t size_a = XFIXNUM (end) - min_a;
+  eassume (size_a >= 0);
+  bool a_empty = size_a == 0;
+  bool inh = !NILP (inherit);
+
+  if (FUNCTIONP (source))
+    {
+      specpdl_ref count = SPECPDL_INDEX ();
+      record_unwind_protect (save_restriction_restore,
+			     save_restriction_save ());
+      Fnarrow_to_region (beg, end);
+      source = calln (source);
+      unbind_to (count, Qnil);
+      }
+  ptrdiff_t min_b, size_b;
+  struct buffer *b;
+  if (STRINGP (source))
+    {
+      min_b = BEG;		/* Assuming we'll copy it into a buffer.  */
+      size_b = SCHARS (source);
+      b = NULL;
+    }
+  else if (BUFFERP (source))
+    {
+      b = XBUFFER (source);
+      min_b = BUF_BEGV (b);
+      size_b = BUF_ZV (b) - min_b;
+    }
+  else
+    {
+      CHECK_TYPE (VECTORP (source),
+		  list (Qor, Qstring, Qbuffer, Qvector), source);
+      /* Let `Faref' signal an error if it's too small.  */
+      Lisp_Object send = Faref (source, make_fixnum (2));
+      Lisp_Object sbeg = AREF (source, 1);
+      CHECK_BUFFER (AREF (source, 0));
+      b = XBUFFER (AREF (source, 0));
+      specpdl_ref count = SPECPDL_INDEX ();
+      record_unwind_current_buffer ();
+      set_buffer_internal (b);
+      validate_region (&sbeg, &send);
+      unbind_to (count, Qnil);
+      min_b = XFIXNUM (sbeg);
+      size_b = XFIXNUM (send) - min_b;
+    }
+  bool b_empty = size_b == 0;
+  if (b && !BUFFER_LIVE_P (b))
     error ("Selecting deleted buffer");
+
+  /* Handle trivial cases where at least one accessible portion is
+     empty.  */
+
+  if (a_empty && b_empty)
+    return Qt;
+  else if (a_empty || b_empty
+	   || EQ (max_secs, make_fixnum (0))
+	   || EQ (max_costs, make_fixnum (0)))
+    {
+      replace_range (min_a, min_a + size_a, source, true, false, inh);
+      return Qt;
+    }
+
+  struct buffer *a = current_buffer;
   if (a == b)
     error ("Cannot replace a buffer with itself");
 
@@ -1977,35 +2048,7 @@ nil.  */)
 	time_limit = tlim;
     }
 
-  ptrdiff_t min_a = BEGV;
-  ptrdiff_t min_b = BUF_BEGV (b);
-  ptrdiff_t size_a = ZV - min_a;
-  ptrdiff_t size_b = BUF_ZV (b) - min_b;
-  eassume (size_a >= 0);
-  eassume (size_b >= 0);
-  bool a_empty = size_a == 0;
-  bool b_empty = size_b == 0;
-
-  /* Handle trivial cases where at least one accessible portion is
-     empty.  */
-
-  if (a_empty && b_empty)
-    return Qt;
-
-  if (a_empty)
-    {
-      Finsert_buffer_substring (source, Qnil, Qnil);
-      return Qt;
-    }
-
-  if (b_empty)
-    {
-      del_range_both (BEGV, BEGV_BYTE, ZV, ZV_BYTE, true);
-      return Qt;
-    }
-
   specpdl_ref count = SPECPDL_INDEX ();
-
 
   ptrdiff_t diags = size_a + size_b + 3;
   ptrdiff_t del_bytes = size_a / CHAR_BIT + 1;
@@ -2019,6 +2062,18 @@ nil.  */)
   buffer = SAFE_ALLOCA (bytes_needed);
   unsigned char *deletions_insertions = memset (buffer + 2 * diags, 0,
 						del_bytes + ins_bytes);
+
+  /* The rest of the code is not prepared to handle a string SOURCE.  */
+  if (!b)
+    {
+      Lisp_Object workbuf
+	= code_conversion_save (true, STRING_MULTIBYTE (source));
+      b = XBUFFER (workbuf);
+      set_buffer_internal (b);
+      CALLN (Finsert, source);
+      set_buffer_internal (a);
+    }
+  Lisp_Object source_buffer = make_lisp_ptr (b, Lisp_Vectorlike);
 
   /* FIXME: It is not documented how to initialize the contents of the
      context structure.  This code cargo-cults from the existing
@@ -2053,7 +2108,7 @@ nil.  */)
       Lisp_Object src = CALLN (Fvector, source_buffer,
 			       make_fixnum (BUF_BEGV (b)),
 			       make_fixnum (BUF_ZV (b)));
-      replace_range (BEGV, ZV, src, true, false, false);
+      replace_range (min_a, min_a + size_a, src, true, false, inh);
       SAFE_FREE_UNBIND_TO (count, Qnil);
       return Qnil;
     }
@@ -2069,7 +2124,7 @@ nil.  */)
      modification hooks, because then they don't want that.  */
   if (!inhibit_modification_hooks)
     {
-      prepare_to_modify_buffer (BEGV, ZV, NULL);
+      prepare_to_modify_buffer (min_a, min_a + size_a, NULL);
       specbind (Qinhibit_modification_hooks, Qt);
       modification_hooks_inhibited = true;
     }
@@ -2102,10 +2157,9 @@ nil.  */)
           eassert (beg_a <= end_a);
           eassert (beg_b <= end_b);
           eassert (beg_a < end_a || beg_b < end_b);
-          /* FIXME: Use 'replace_range'!  */
           ASET (src, 1, make_fixed_natnum (beg_b));
           ASET (src, 2, make_fixed_natnum (end_b));
-          replace_range (beg_a, end_a, src, true, false, false);
+          replace_range (beg_a, end_a, src, true, false, inh);
 	}
       --i;
       --j;
@@ -2115,8 +2169,8 @@ nil.  */)
 
   if (modification_hooks_inhibited)
     {
-      signal_after_change (BEGV, size_a, ZV - BEGV);
-      update_compositions (BEGV, ZV, CHECK_INSIDE);
+      signal_after_change (min_a, size_a, size_b);
+      update_compositions (min_a, min_a + size_b, CHECK_INSIDE);
       /* We've locked the buffer's file above in
 	 prepare_to_modify_buffer; if the buffer is unchanged at this
 	 point, i.e. no insertions or deletions have been made, unlock
@@ -4787,7 +4841,7 @@ it to be non-nil.  */);
 
   defsubr (&Sinsert_buffer_substring);
   defsubr (&Scompare_buffer_substrings);
-  defsubr (&Sreplace_buffer_contents);
+  defsubr (&Sreplace_region_contents);
   defsubr (&Ssubst_char_in_region);
   defsubr (&Stranslate_region_internal);
   defsubr (&Sdelete_region);

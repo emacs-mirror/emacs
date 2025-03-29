@@ -7264,9 +7264,9 @@ an auto-save file."
 The command tries to preserve markers, properties and overlays.
 If the operation takes more than this time, a single
 delete+insert is performed.  Actually, this value is passed as
-the MAX-SECS argument to the function `replace-buffer-contents',
+the MAX-SECS argument to the function `replace-region-contents',
 so it is not ensured that the whole execution won't take longer.
-See `replace-buffer-contents' for more details.")
+See `replace-region-contents' for more details.")
 
 (defun revert-buffer-insert-file-contents-delicately (file-name _auto-save-p)
   "Optional function for `revert-buffer-insert-file-contents-function'.
@@ -7275,11 +7275,11 @@ The function `revert-buffer-with-fine-grain' uses this function by binding
 
 As with `revert-buffer-insert-file-contents--default-function', FILE-NAME is
 the name of the file and AUTO-SAVE-P is non-nil if this is an auto-save file.
-Since calling `replace-buffer-contents' can take a long time, depending of
+Since calling `replace-region-contents' can take a long time, depending of
 the number of changes made to the buffer, it uses the value of the variable
 `revert-buffer-with-fine-grain-max-seconds' as a maximum time to try delicately
 reverting the buffer.  If it fails, it does a delete+insert.  For more details,
-see `replace-buffer-contents'."
+see `replace-region-contents'."
   (cond
    ((not (file-exists-p file-name))
     (error (if buffer-file-number
@@ -7302,7 +7302,8 @@ see `replace-buffer-contents'."
                   (let ((temp-buf (current-buffer)))
                     (set-buffer buf)
                     (let ((buffer-file-name nil))
-                      (replace-buffer-contents
+                      (replace-region-contents
+                       (point-min) (point-max)
                        temp-buf
                        revert-buffer-with-fine-grain-max-seconds))))))))
       ;; See comments in revert-buffer-with-fine-grain for an explanation.

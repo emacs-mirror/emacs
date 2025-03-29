@@ -289,7 +289,7 @@
             (narrow-to-region 8 13)
             (goto-char 12)
             (should (looking-at " \\'"))
-            (replace-buffer-contents source)
+            (replace-region-contents (point-min) (point-max) source)
             (should (looking-at " \\'")))
           (should (equal (marker-buffer marker) (current-buffer)))
           (should (equal (marker-position marker) 16)))
@@ -306,7 +306,7 @@
     (let ((source (current-buffer)))
       (with-temp-buffer
         (insert "foo BAR baz qux")
-        (replace-buffer-contents source)
+        (replace-region-contents (point-min) (point-max) source)
         (should (equal-including-properties
                  (buffer-string)
                  "foo bar baz qux"))))))
@@ -318,44 +318,58 @@
   (switch-to-buffer "b")
   (insert-char (char-from-name "SMILE"))
   (insert "5678")
-  (replace-buffer-contents "a")
+  (replace-region-contents (point-min) (point-max) (get-buffer "a"))
   (should (equal (buffer-substring-no-properties (point-min) (point-max))
                  (concat (string (char-from-name "SMILE")) "1234"))))
-
-(defun editfns--replace-region (from to string)
-  (save-excursion
-    (save-restriction
-      (narrow-to-region from to)
-      (let ((buf (current-buffer)))
-        (with-temp-buffer
-          (let ((str-buf (current-buffer)))
-            (insert string)
-            (with-current-buffer buf
-              (replace-buffer-contents str-buf))))))))
 
 (ert-deftest editfns-tests--replace-region ()
   ;; :expected-result :failed
   (with-temp-buffer
-    (insert "here is some text")
-    (let ((m5n (copy-marker (+ (point-min) 5)))
-          (m5a (copy-marker (+ (point-min) 5) t))
-          (m6n (copy-marker (+ (point-min) 6)))
-          (m6a (copy-marker (+ (point-min) 6) t))
-          (m7n (copy-marker (+ (point-min) 7)))
-          (m7a (copy-marker (+ (point-min) 7) t)))
-      (editfns--replace-region (+ (point-min) 5) (+ (point-min) 7) "be")
-      (should (equal (buffer-string) "here be some text"))
-      (should (equal (point) (point-max)))
-      ;; Markers before the replaced text stay before.
-      (should (= m5n (+ (point-min) 5)))
-      (should (= m5a (+ (point-min) 5)))
-      ;; Markers in the replaced text can end up at either end, depending
-      ;; on whether they're advance-after-insert or not.
-      (should (= m6n (+ (point-min) 5)))
-      (should (<= (+ (point-min) 5) m6a (+ (point-min) 7)))
-      ;; Markers after the replaced text stay after.
-      (should (= m7n (+ (point-min) 7)))
-      (should (= m7a (+ (point-min) 7))))))
+    (let ((tmpbuf (current-buffer)))
+      (insert "  be  ")
+      (narrow-to-region (+ (point-min) 2) (- (point-max) 2))
+      (dolist (args `((,tmpbuf)
+                      (,(vector tmpbuf (point-min) (point-max)))
+                      (,"be")
+                      (,(vector tmpbuf (point-min) (point-max)) 0)
+                      (,"be" 0)))
+        (with-temp-buffer
+          (insert "here is some text")
+          (let ((m5n (copy-marker (+ (point-min) 5)))
+                (m5a (copy-marker (+ (point-min) 5) t))
+                (m6n (copy-marker (+ (point-min) 6)))
+                (m6a (copy-marker (+ (point-min) 6) t))
+                (m7n (copy-marker (+ (point-min) 7)))
+                (m7a (copy-marker (+ (point-min) 7) t)))
+            (apply #'replace-region-contents
+                   (+ (point-min) 5) (+ (point-min) 7) args)
+            (should (equal (buffer-string) "here be some text"))
+            (should (equal (point) (point-max)))
+            ;; Markers before the replaced text stay before.
+            (should (= m5n (+ (point-min) 5)))
+            (should (= m5a (+ (point-min) 5)))
+            ;; Markers in the replaced text can end up at either end, depending
+            ;; on whether they're advance-after-insert or not.
+            (should (= m6n (+ (point-min) 5)))
+            (should (<= (+ (point-min) 5) m6a (+ (point-min) 7)))
+            ;; Markers after the replaced text stay after.
+            (should (= m7n (+ (point-min) 7)))
+            (should (= m7a (+ (point-min) 7)))))
+        (widen)))))
+
+(ert-deftest editfns-tests--insert-via-replace ()
+  (with-temp-buffer
+    (insert "bar")
+    (goto-char (point-min))
+    ;; Check that markers insertion type is respected when an insertion
+    ;; happens via a "replace" operation.
+    (let ((m1 (copy-marker (point) nil))
+          (m2 (copy-marker (point) t)))
+      (looking-at "\\(\\)")
+      (replace-match "foo")
+      (should (equal "foobar" (buffer-string)))
+      (should (= (point-min) m1))
+      (should (= (+ (point-min) 3) m2)))))
 
 (ert-deftest delete-region-undo-markers-1 ()
   "Make sure we don't end up with freed markers reachable from Lisp."

@@ -348,12 +348,20 @@ adjust_markers_for_replace (ptrdiff_t from, ptrdiff_t from_byte,
   ptrdiff_t diff_chars = new_chars - old_chars;
   ptrdiff_t diff_bytes = new_bytes - old_bytes;
 
+  if (old_chars == 0)
+    {
+      /* Just an insertion: markers at FROM may need to move or not depending
+	 on their marker type.  Delegate this special case to
+	 'adjust_markers_for_insert' so the loop below can remain oblivious
+	 to marker types.  */
+      adjust_markers_for_insert (from, from_byte,
+				 from + new_chars, from_byte + new_bytes,
+				 false);
+      return;
+    }
+
   adjust_suspend_auto_hscroll (from, from + old_chars);
 
-  /* FIXME: When OLD_CHARS is 0, this "replacement" is really just an
-     insertion, but the behavior we provide here in that case is that of
-     `insert-before-markers` rather than that of `insert`.
-     Maybe not a bug, but not a feature either.  */
   for (m = BUF_MARKERS (current_buffer); m; m = m->next)
     {
       if (m->bytepos >= prev_to_byte)
@@ -371,8 +379,7 @@ adjust_markers_for_replace (ptrdiff_t from, ptrdiff_t from_byte,
   check_markers ();
 
   adjust_overlays_for_insert (from + old_chars, new_chars, true);
-  if (old_chars)
-    adjust_overlays_for_delete (from, old_chars);
+  adjust_overlays_for_delete (from, old_chars);
 }
 
 /* Starting at POS (BYTEPOS), find the byte position corresponding to
@@ -1409,9 +1416,9 @@ adjust_after_insert (ptrdiff_t from, ptrdiff_t from_byte,
   adjust_after_replace (from, from_byte, Qnil, newlen, len_byte);
 }
 
-/* Replace the text from character positions FROM to TO with NEW.
-   NEW could either be a string, the replacement text, or a vector
-   [BUFFER BEG END], where BUFFER is the buffer with the replacement
+/* Replace the text from character positions FROM to TO with the
+   replacement text NEW.  NEW could either be a string, a buffer, or
+   a vector [BUFFER BEG END], where BUFFER is the buffer with the replacement
    text and BEG and END are buffer positions in BUFFER that give the
    replacement text beginning and end.
    If PREPARE, call prepare_to_modify_buffer.
@@ -1438,6 +1445,12 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
       insbuf = NULL;
       insbeg = 0;
       inschars = SCHARS (new);
+    }
+  else if (BUFFERP (new))
+    {
+      insbuf = XBUFFER (new);
+      insbeg = BUF_BEGV (insbuf);
+      inschars = BUF_ZV (insbuf) - insbeg;
     }
   else
     {

@@ -3839,17 +3839,20 @@ If SILENT, don't echo progress in mode-line."
                         0 howmany)))
            (done 0))
       (mapc (pcase-lambda (`(,newText ,beg . ,end))
-              (let ((source (current-buffer)))
-                (with-temp-buffer
-                  (insert newText)
-                  (let ((temp (current-buffer)))
-                    (with-current-buffer source
-                      (save-excursion
-                        (save-restriction
-                          (narrow-to-region beg end)
-                          (replace-buffer-contents temp)))
-                      (when reporter
-                        (eglot--reporter-update reporter (cl-incf done))))))))
+              (if (> emacs-major-version 30)
+                  (replace-region-contents beg end newText)
+                (let ((source (current-buffer)))
+                  (with-temp-buffer
+                    (insert newText)
+                    (let ((temp (current-buffer)))
+                      (with-current-buffer source
+                        (save-excursion
+                          (save-restriction
+                            (narrow-to-region beg end)
+                            (with-no-warnings
+                              (replace-buffer-contents temp)))))))))
+              (when reporter
+                (eglot--reporter-update reporter (cl-incf done))))
             (mapcar (lambda (edit)
                       (eglot--dcase edit
                         (((TextEdit) range newText)

@@ -1753,6 +1753,13 @@ Previously, its argument was always evaluated using dynamic binding.
 * Lisp Changes in Emacs 31.1
 
 +++
+** Improve 'replace-region-contents' to accept more forms of sources.
+It has been promoted from 'subr-x' to the C code.
+You can now directly pass it a string or a buffer rather than a function.
+Actually passing it a function is now deprecated.
+'replace-buffer-contents' is also marked as obsolete.
+
++++
 ** New macros 'static-when' and 'static-unless'.
 Like 'static-if', these macros evaluate their condition at
 macro-expansion time and are useful for writing code that can work
