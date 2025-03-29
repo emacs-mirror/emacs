@@ -1132,7 +1132,7 @@ To extend one of the previous examples:
 @group
 // Local variables:
 // eval: (add-hook 'before-save-hook 'time-stamp nil t)
-// time-stamp-pattern: "year_published = \"%Y\""
+// time-stamp-pattern: "Published %Y in Boston"
 // End:
 @end group
 @end example

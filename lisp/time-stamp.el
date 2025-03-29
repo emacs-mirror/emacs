@@ -25,13 +25,14 @@
 
 ;; A template in a file can be updated with a new time stamp when
 ;; you save the file.  For example:
-;;     static char *ts = "sdmain.c Time-stamp: <2024-04-18 14:10:21 gildea>";
+;;     static char *ts = "sdmain.c Time-stamp: <2025-03-28 21:31:56 gildea>";
 
 ;; To use time-stamping, add this line to your init file:
 ;;     (add-hook 'before-save-hook 'time-stamp)
 ;; Now any time-stamp templates in your files will be updated automatically.
 
-;; See the documentation for the function `time-stamp' for details.
+;; For details, see the documentation for function `time-stamp'
+;; and the Info node `Time Stamps'.
 
 ;;; Code:
 
