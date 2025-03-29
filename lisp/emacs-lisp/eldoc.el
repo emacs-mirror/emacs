@@ -143,7 +143,8 @@ is only skipped if the documentation needs to be truncated there."
 This setting is an alternative to `help-at-pt-display-when-idle'.  If
 the value is non-nil, `eldoc-show-help-at-pt' will show help-at-point
 via Eldoc."
-  :type 'boolean)
+  :type 'boolean
+  :version "31.1")
 
 (defface eldoc-highlight-function-argument
   '((t (:inherit bold)))
