@@ -39,6 +39,8 @@
 
 (require 'treesit)
 
+(treesit-declare-unavailable-functions)
+
 ;;; Define treesit generic mode
 
 ;;;###autoload
