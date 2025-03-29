@@ -121,7 +121,7 @@
 
 (defun pcmpl-x-tlmgr-action-options (action)
   "Get the list of long options for ACTION."
-  (if (eq (gethash action pcmpl-x-tlmgr-options-cache 'missing) 'missing)
+  (if (not (hash-table-contains-p action pcmpl-x-tlmgr-options-cache))
       (with-temp-buffer
         (when (zerop
                (call-process pcmpl-x-tlmgr-program nil t nil action "-h"))

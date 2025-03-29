@@ -117,11 +117,10 @@ EXPANDED-PATTERN."
               completion-category-defaults)))
   (let ((cache (make-hash-table :test #'equal)))
     (cl-flet ((lookup-internal (string point)
-                (let* ((key (cons string point))
-                       (probe (gethash key cache 'external--notfound)))
-                  (if (eq probe 'external--notfound)
-                      (puthash key (funcall lookup string point) cache)
-                    probe))))
+                (let ((key (cons string point)))
+                  (if (hash-table-contains-p key cache)
+                      (gethash key cache)
+                    (puthash key (funcall lookup string point) cache)))))
       (lambda (string pred action)
         (pcase action
           (`metadata

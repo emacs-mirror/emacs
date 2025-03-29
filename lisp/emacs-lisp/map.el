@@ -403,8 +403,7 @@ If MAP is a plist, TESTFN defaults to `eq'."
 
 (cl-defmethod map-contains-key ((map hash-table) key &optional _testfn)
   "Return non-nil if MAP contains KEY, ignoring TESTFN."
-  (let ((v '(nil)))
-    (not (eq v (gethash key map v)))))
+  (hash-table-contains-p key map))
 
 (cl-defgeneric map-some (pred map)
   "Return the first non-nil value from applying PRED to elements of MAP.
