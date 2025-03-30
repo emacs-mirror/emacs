@@ -1553,9 +1553,6 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
   if (to < GPT)
     gap_left (to, to_byte, 0);
 
-  /* Even if we don't record for undo, we must keep the original text
-     because we may have to recover it because of inappropriate byte
-     combining.  */
   if (! EQ (BVAR (current_buffer, undo_list), Qt))
     deletion = make_buffer_string_both (from, from_byte, to, to_byte, 1);
 
