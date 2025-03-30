@@ -169,15 +169,15 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
 ;;;###tramp-autoload
 (defsubst tramp-sshfs-file-name-p (vec-or-filename)
   "Check if it's a VEC-OR-FILENAME for sshfs."
-  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
-    (string= (tramp-file-name-method vec) tramp-sshfs-method)))
+  (and-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename))
+	     ((string= (tramp-file-name-method vec) tramp-sshfs-method)))))
 
 ;;;###tramp-autoload
 (defun tramp-sshfs-file-name-handler (operation &rest args)
   "Invoke the sshfs handler for OPERATION and ARGS.
 First arg specifies the OPERATION, second arg is a list of
 arguments to pass to the OPERATION."
-  (if-let ((fn (assoc operation tramp-sshfs-file-name-handler-alist)))
+  (if-let* ((fn (assoc operation tramp-sshfs-file-name-handler-alist)))
       (prog1 (save-match-data (apply (cdr fn) args))
 	(setq tramp-debug-message-fnh-function (cdr fn)))
     (prog1 (tramp-run-real-handler operation args)
@@ -250,6 +250,9 @@ arguments to pass to the OPERATION."
 (defun tramp-sshfs-handle-process-file
   (program &optional infile destination display &rest args)
   "Like `process-file' for Tramp files."
+  ;; STDERR is not impelmemted.
+  (when (consp destination)
+    (setcdr destination `(,tramp-cache-undefined)))
   (tramp-skeleton-process-file program infile destination display args
     (let ((coding-system-for-read 'utf-8-dos)) ; Is this correct?
 
@@ -259,25 +262,18 @@ arguments to pass to the OPERATION."
 	    (tramp-unquote-shell-quote-argument localname)
 	    (mapconcat #'tramp-shell-quote-argument (cons program args) " ")))
       (when input (setq command (format "%s <%s" command input)))
-      (when stderr (setq command (format "%s 2>%s" command stderr)))
 
-      (unwind-protect
-	  (setq ret
-		(apply
-		 #'tramp-call-process
-		 v (tramp-get-method-parameter v 'tramp-login-program)
-		 nil outbuf display
-		 (tramp-expand-args
-		  v 'tramp-login-args nil
-		  ?h (or (tramp-file-name-host v) "")
-		  ?u (or (tramp-file-name-user v) "")
-		  ?p (or (tramp-file-name-port v) "")
-		  ?a "-t" ?l command)))
-
-	;; Synchronize stderr.
-	(when tmpstderr
-	  (tramp-cleanup-connection v 'keep-debug 'keep-password)
-	  (tramp-fuse-unmount v))))))
+      (setq ret
+	    (apply
+	     #'tramp-call-process
+	     v (tramp-get-method-parameter v 'tramp-login-program)
+	     nil outbuf display
+	     (tramp-expand-args
+	      v 'tramp-login-args nil
+	      ?h (or (tramp-file-name-host v) "")
+	      ?u (or (tramp-file-name-user v) "")
+	      ?p (or (tramp-file-name-port v) "")
+	      ?a "-t" ?l command))))))
 
 (defun tramp-sshfs-handle-rename-file
     (filename newname &optional ok-if-already-exists)

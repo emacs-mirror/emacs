@@ -167,6 +167,7 @@ How file names, directories and localnames are mangled and managed
 * Temporary directory::         Where temporary files are kept.
 * Localname deconstruction::    Breaking a localname into its components.
 * External packages::           Integration with external Lisp packages.
+* Extension packages::          Adding new methods to @value{tramp}.
 
 @end detailmenu
 @end menu
@@ -1112,7 +1113,8 @@ command to transfer is similar to the @option{scp} method.
 
 @command{rsync} performs much better than @command{scp} when
 transferring files that exist on both hosts.  However, this advantage
-is lost if the file exists only on one side of the connection.
+is lost if the file exists only on one side of the connection, during
+the first file transfer.
 
 This method supports the @samp{-p} argument.
 
@@ -1934,6 +1936,14 @@ They can be installed with Emacs's Package Manager.  This includes
 @c @item ibuffer-tramp.el
 @c Contact Svend Sorensen <svend@@ciffer.net>
 
+@cindex method @option{incus}
+@cindex @option{incus} method
+@item incus-tramp
+Integration for Incus containers.  A container is accessed via
+@file{@trampfn{incus,user@@container,/path/to/file}}, @samp{user} and
+@samp{container} have the same meaning as with the @option{docker}
+method.
+
 @cindex method @option{lxc}
 @cindex @option{lxc} method
 @item lxc-tramp
@@ -2211,6 +2221,12 @@ this interactively.
 @vindex auth-source-do-cache
 Set @code{auth-source-do-cache} to @code{nil} to disable password caching.
 
+For connections which use a session-timeout, like @option{sudo},
+@option{doas} and @option{run0}, the password cache is expired by
+@value{tramp} when the session expires (@pxref{Predefined connection
+information}).  However, this makes only sense if the password cannot
+be retrieved from a persistent authentication file or store.
+
 
 @node Connection caching
 @section Reusing connection related information
@@ -2332,9 +2348,9 @@ to a remote home directory, like @option{adb}, @option{rclone} and
 @item @t{"tmpdir"}
 
 The temporary directory on the remote host.  If not specified, the
-default value is @t{"/data/local/tmp"} for the @option{adb} method,
-@t{"/C$/Temp"} for the @option{smb} method, and @t{"/tmp"} otherwise.
-@ref{Temporary directory}.
+default value is @t{"/data/local/tmp"} for the @option{adb} and
+@option{androidsu} methods, @t{"/C$/Temp"} for the @option{smb}
+method, and @t{"/tmp"} otherwise.  @ref{Temporary directory}.
 
 @item @t{"posix"}
 
@@ -2623,7 +2639,7 @@ will help:
 @example
 @group
 if test "$TERM" = "dumb"; then
-   ...
+   @dots{}
 fi
 @end group
 @end example
@@ -3312,8 +3328,8 @@ Another option is to create better backup file naming with user and
 host names prefixed to the file name.  For example, transforming
 @file{/etc/secretfile} to
 @file{~/.emacs.d/backups/!su:root@@localhost:!etc!secretfile}, set the
-@value{tramp} user option @code{tramp-backup-directory-alist} from
-the existing user option @code{backup-directory-alist}.
+@value{tramp} user option @code{tramp-backup-directory-alist} from the
+existing user option @code{backup-directory-alist}.
 
 Then @value{tramp} backs up to a file name that is transformed with a
 prefix consisting of the DIRECTORY name.  This file name prefixing
@@ -3335,10 +3351,12 @@ Example:
 The backup file name of
 @file{@trampfn{su,root@@localhost,/etc/secretfile}} would be
 @ifset unified
-@file{@trampfn{su,root@@localhost,~/.emacs.d/backups/!su:root@@localhost:!etc!secretfile~}}.
+@file{@trampfn{su,root@@localhost,~/.emacs.d/backups/@c
+!su:root@@localhost:!etc!secretfile~}}.
 @end ifset
 @ifset separate
-@file{@trampfn{su,root@@localhost,~/.emacs.d/backups/![su!root@@localhost]!etc!secretfile~}}.
+@file{@trampfn{su,root@@localhost,~/.emacs.d/backups/@c
+![su!root@@localhost]!etc!secretfile~}}.
 @end ifset
 
 @vindex auto-save-file-name-transforms
@@ -3783,15 +3801,21 @@ ssh@value{postfixhop}you@@remotehost@value{postfix}/path @key{RET}}
 
 Each involved method must be an inline method (@pxref{Inline methods}).
 
-@value{tramp} adds the ad-hoc definitions on the fly to
-@code{tramp-default-proxies-alist} and is available for reuse during
-that Emacs session.  Subsequent @value{tramp} connections to the same
-remote host can then use the shortcut form:
-@samp{@trampfn{ssh,you@@remotehost,/path}}.
+@value{tramp} adds the ad-hoc definitions as an ephemeral record to
+@code{tramp-default-proxies-alist}, which are available for reuse
+during that Emacs session.  Subsequent @value{tramp} connections to
+the same remote host can then use the abbreviated form
+@file{@trampfn{ssh,you@@remotehost,/path}}.
 
+@anchor{tramp-show-ad-hoc-proxies}
 @defopt tramp-show-ad-hoc-proxies
 If this user option is non-@code{nil}, ad-hoc definitions are kept in
-remote file names instead of showing the shortcuts.
+remote file names instead of showing the abbreviations.  This is
+useful if the ad-hoc proxy definition shall be used in further Emacs
+sessions, kept in configuration files of recentf and other packages.
+
+A non-@code{nil} setting of this option has effect only if set before
+the connection is established.
 
 @lisp
 (customize-set-variable 'tramp-show-ad-hoc-proxies t)
@@ -3802,10 +3826,18 @@ Ad-hoc definitions are removed from @code{tramp-default-proxies-alist}
 via the command @kbd{M-x tramp-cleanup-all-connections @key{RET}}
 (@pxref{Cleanup remote connections}).
 
+@anchor{tramp-save-ad-hoc-proxies}
 @defopt tramp-save-ad-hoc-proxies
 For ad-hoc definitions to be saved automatically in
 @code{tramp-default-proxies-alist} for future Emacs sessions, set
-@code{tramp-save-ad-hoc-proxies} to non-@code{nil}.
+@code{tramp-save-ad-hoc-proxies} to non-@code{nil}.  The resulting
+user option @code{tramp-default-proxies-alist} is saved in your
+@file{.emacs} file.
+
+If you use saved configuration files with abbreviated ad-hoc proxy
+definitions on another host, for example by distribution of the
+@code{recentf-save-file}, you must distribute your @file{.emacs} file
+as well.
 
 @lisp
 (customize-set-variable 'tramp-save-ad-hoc-proxies t)
@@ -4600,7 +4632,9 @@ It cannot be killed via @code{interrupt-process}.
 It does not report the remote terminal name via @code{process-tty-name}.
 
 @item
-It does not set process property @code{remote-pid}.
+It does not set process property @code{remote-pid}.  Consequently,
+signals cannot be sent to that remote process; they are sent to the
+local process instead, which establishes the connection.
 
 @item
 It fails, when the command is too long.  This can happen on
@@ -4621,6 +4655,15 @@ connection sharing}.
 by the connection property @t{"direct-async-process"}.  This is still
 supported but deprecated, and it will be removed in a future
 @value{tramp} version.
+
+@strong{Note}: For the @option{ssh} and @option{scp} methods,
+@value{tramp} does not faithfully pass binary sequences on to the
+process.  You can change this by changing the respective connection
+argument (@pxref{Predefined connection information}) via
+
+@lisp
+(add-to-list 'tramp-connection-properties (list "/ssh:" "direct-async" t))
+@end lisp
 
 
 @node Cleanup remote connections
@@ -5013,8 +5056,8 @@ An archive file name can be a remote file name, as in
 Since all file operations are mapped internally to @acronym{GVFS}
 operations, remote file names supported by @code{tramp-gvfs} perform
 better, because no local copy of the file archive must be downloaded
-first.  For example, @samp{/sftp:user@@host:...} performs better than
-the similar @samp{/scp:user@@host:...}.  See the constant
+first.  For example, @samp{/sftp:user@@host:@dots{}} performs better
+than the similar @samp{/scp:user@@host:@dots{}}.  See the constant
 @code{tramp-archive-all-gvfs-methods} for a complete list of
 @code{tramp-gvfs} supported method names.
 
@@ -5137,6 +5180,17 @@ program.
 this stage.  Also note that with a verbosity level of 6 or greater, the
 contents of files and directories will be included in the debug buffer.
 Passwords typed in @value{tramp} will never be included there.
+
+If you find, that using @value{tramp} with @command{emacs -Q} doesn't
+cause any problem, you might check your init file for the suspicious
+configuration by bisecting it.  That is, comment out about half of the
+init file, and check whether the problem still arises when calling
+@command{emacs}.  If yes, comment out half of the still active code.
+Otherwise, comment out the active code, and uncomment the just
+commented code.
+
+Call @command{emacs}, again.  Reiterate, until you find the suspicious
+configuration.
 
 
 @node Frequently Asked Questions
@@ -5463,6 +5517,23 @@ nitrokey, or titankey.
 (residential) keys by @command{ssh-agent}.  As workaround, you might
 disable @command{ssh-agent} for such keys.
 
+
+@item
+Does @value{tramp} support fingerprint readers?
+
+Yes.  A fingerprint reader can be used as an additional authentication
+method for @option{sudo}-based logins.  @value{tramp} supports the
+required additional handshaking messages@footnote{It supports
+fingerprint readers driven by @command{fprintd}.}.  If the fingerprint
+isn't recognized by the fingerprint reader in time, authentication
+falls back to requesting a password.
+
+@vindex tramp-use-fingerprint
+If the user option @code{tramp-use-fingerprint} is @code{nil},
+@value{tramp} interrupts the fingerprint request, falling back to
+password authentication immediately.
+
+
 @item
 @value{tramp} does not connect to Samba or MS Windows hosts running
 SMB1 connection protocol
@@ -5646,6 +5717,7 @@ connection-local value.
 @end group
 @end lisp
 
+@vindex XDG_DATA_HOME@r{, environment variable}
 If Emacs is configured to use the XDG conventions for the trash
 directory, remote files cannot be restored with the respective tools,
 because those conventions don't specify remote paths.  Such files must
@@ -5895,18 +5967,30 @@ Thanks to @value{tramp} users for contributing to these recipes.
 
 
 @item
-Why saved multi-hop file names do not work in a new Emacs session?
+Why don't saved ad-hoc multi-hop file names work in a new Emacs session?
 
-When saving ad-hoc multi-hop @value{tramp} file names (@pxref{Ad-hoc
-multi-hops}) via bookmarks, recent files, filecache, bbdb, or another
-package, use the full ad-hoc file name including all hops, like
-@file{@trampfn{ssh,bird@@bastion|ssh@value{postfixhop}@c
-news.my.domain,/opt/news/etc}}.
+By default, ad-hoc multi-hop file names are abbreviated after
+completing the initial connection.  These abbreviated forms retain
+only the final hop, and so only the Emacs session that generated the
+abbreviated form can understand it.  @xref{Ad-hoc multi-hops}.
 
-Alternatively, when saving abbreviated multi-hop file names
-@file{@trampfn{ssh,news@@news.my.domain,/opt/news/etc}}, the user
-option @code{tramp-save-ad-hoc-proxies} must be set non-@code{nil}
-value.
+For example, after connecting to @file{@trampfn{ssh,bird@@bastion|@c
+ssh@value{postfixhop}news@@news.my.domain,/opt/news/etc}}, the file
+name becomes @file{@trampfn{ssh,news@@news.my.domain,/opt/news/etc}}.
+If the abbreviated form is saved in a bookmark, the recent files list,
+bbdb, or similar, a new Emacs session has no way to know that the
+connection must go through @samp{bird@@bastion} first.
+
+There are two mechanisms to deal with this.  The first is to customize
+@code{tramp-show-ad-hoc-proxies} to a non-@code{nil} value, which
+disables abbreviation.  Then the fully-qualified ad-hoc multi-hop file
+name is the one that will be both displayed and saved.
+@xref{tramp-show-ad-hoc-proxies}.
+
+Alternatively, you can customize @code{tramp-save-ad-hoc-proxies} to a
+non-@code{nil} value which means to save the information how an
+abbreviated multi-hop file name can be expanded.
+@xref{tramp-save-ad-hoc-proxies}.
 
 
 @item
@@ -5965,6 +6049,8 @@ $ export EDITOR=/path/to/emacsclient.sh
 @item
 How to determine whether a buffer is remote?
 
+@findex file-remote-p
+@vindex default-directory
 The buffer-local variable @code{default-directory} tells this.  If the
 form @code{(file-remote-p default-directory)} returns non-@code{nil},
 the buffer is remote.  See the optional arguments of
@@ -6075,6 +6161,36 @@ as above in your @file{~/.emacs}:
       (cons 'remote-file-error debug-ignored-errors))
 @end group
 @end lisp
+
+
+@item
+I get an error @samp{unix_listener: path
+"/very/long/path/.cache/emacs/tramp.XXX" too long for Unix domain
+socket} when connecting via @option{ssh} to a remote host.
+
+@vindex small-temporary-file-directory
+By default, @value{tramp} uses the directory @file{~/.cache/emacs/}
+for creation of OpenSSH Unix domain sockets.  On GNU/Linux, domain
+sockets have a much lower maximum path length (currently 107
+characters) than normal files.
+
+You can change this directory by setting the user option
+@code{small-temporary-file-directory} to another name, like
+
+@lisp
+@group
+(unless small-temporary-file-directory
+  (customize-set-variable
+   'small-temporary-file-directory
+   (format "/run/user/%d/emacs/" (user-uid)))
+  (make-directory small-temporary-file-directory t))
+@end group
+@end lisp
+
+@vindex XDG_RUNTIME_DIR@r{, environment variable}
+@t{"/run/user/UID"} is the value of the environment variable
+@env{XDG_RUNTIME_DIR}, which you can use instead via @code{(getenv
+"XDG_RUNTIME_DIR")}.
 
 
 @item
@@ -6209,6 +6325,7 @@ programs.
 * Temporary directory::         Where temporary files are kept.
 * Localname deconstruction::    Splitting a localname into its component parts.
 * External packages::           Integrating with external Lisp packages.
+* Extension packages::          Adding new methods to @value{tramp}.
 @end menu
 
 
@@ -6326,7 +6443,7 @@ root directory, it is most likely sufficient to make the
 @code{default-directory} of the process buffer as the root directory.
 
 
-@subsection Timers
+@subsection Timers, process filters, process sentinels, redisplay
 
 @vindex remote-file-error
 Timers run asynchronously at any time when Emacs is waiting for
@@ -6344,6 +6461,133 @@ wrapping the timer function body as follows:
   @dots{})
 @end group
 @end lisp
+
+A similar problem could happen with process filters, process
+sentinels, and redisplay (updating the mode line).
+
+
+@node Extension packages
+@section Adding new methods to @value{tramp}
+
+There are two ways to add new methods to @value{tramp}: writing a new
+backend including an own file name handler, or adding the new method,
+using the existing @code{tramp-sh-file-name-handler}.  The former
+shall happen inside the @value{tramp} repository, and it isn't
+discussed here.  The latter means usually a new ELPA package.
+@pxref{Customizing Methods} for some examples.
+
+
+@subsection Writing an own ELPA package
+
+An external ELPA package @file{foo-tramp.el}, which intends to
+provide a new @value{tramp} method, say @option{foo}, must add this
+new method to the variable @code{tramp-methods}.  This variable is an
+alist with elements @code{(@var{name} @var{param1} @var{param2}
+@dots{})}.
+
+@var{name} is the method name, @t{"foo"} in this case.
+@var{param}@t{x} is a pair of the form @code{(@var{key} @var{value})}.
+See the docstring of variable @code{tramp-methods} for possible
+@var{key}s and @var{value}s.  An example would be
+
+@lisp
+@group
+(add-to-list
+ 'tramp-methods
+ `("foo"
+   (tramp-login-program ,foo-tramp-executable)
+   (tramp-login-args (("exec") ("%h") ("--") ("su - %u")))
+   (tramp-remote-shell "/bin/sh")
+   (tramp-remote-shell-args ("-i" "-c"))))
+@end group
+@end lisp
+
+@code{foo-tramp-executable} in this example would be a Lisp constant,
+which is the program name of @command{foo}.
+
+Another initialization could tell @value{tramp} which are the default
+user and host name for method @option{foo}.  This is done by calling
+@code{tramp-set-completion-function}:
+
+@lisp
+@group
+(tramp-set-completion-function
+ "foo"
+ '((tramp-foo--completion-function @var{arg})))
+@end group
+@end lisp
+
+@code{tramp-foo--completion-function} is a function, which returns
+completion candidates.  @var{arg}, a string, is the argument for the
+completion function, for example a file name to read from.
+@pxref{Customizing Completion} for details.
+
+Finally, it might also be helpful to define default user or host names
+for method @option{foo}, in case a remote file name leaves them empty.
+This can be performed by calling
+
+@lisp
+@group
+(add-to-list 'tramp-default-user-alist '("foo" nil "root"))
+(add-to-list 'tramp-default-host-alist '("foo" nil "localhost"))
+@end group
+@end lisp
+
+@pxref{Default User} and @ref{Default Host} explaining the user options
+@code{tramp-default-user-alist} and @code{tramp-default-host-alist}.
+
+
+@subsection Making a customized method optional
+
+The settings of the previous subsection are global in the package
+@file{foo-tramp.el}, meaning they are activated when loading
+@code{foo-tramp}.  Sometimes, it is desired to make these settings
+available without loading the whole package @code{foo-tramp}, but
+declaring the new method @option{foo} as optional method only.  In
+this case, declare a function @code{tramp-enable-foo-method} which
+collects the initialization.  This function must be auto loaded.
+
+@lisp
+@group
+;;;###autoload
+(defun tramp-enable-foo-method ()
+  (add-to-list 'tramp-methods '("foo" @dots{}))
+  (tramp-set-completion-function "foo" @dots{})
+  (add-to-list 'tramp-default-user-alist '("foo" @dots{}))
+  (add-to-list 'tramp-default-host-alist '("foo" @dots{})))
+@end group
+@end lisp
+
+Then, you can activate method @option{foo} by calling @kbd{M-x
+tramp-enable-method @key{RET} foo @key{RET}}.  @pxref{Optional methods}.
+
+
+@subsection Activating a customized method without loading the package
+
+If you want to make method @option{foo} known after loading
+@value{tramp}, without loading the package @file{foo-tramp.el}, you
+must autoload the implementation of function
+@code{tramp-enable-foo-method}.  Add the following code in
+@file{foo-tramp.el}:
+
+@lisp
+@group
+;;;###autoload
+(progn
+  (defun tramp-enable-foo-method ()
+    (add-to-list 'tramp-methods '("foo" @dots{}))
+    (tramp-set-completion-function "foo" @dots{})
+    (add-to-list 'tramp-default-user-alist '("foo" @dots{}))
+    (add-to-list 'tramp-default-host-alist '("foo" @dots{}))))
+
+;;;###autoload
+(with-eval-after-load 'tramp (tramp-enable-method "foo"))
+@end group
+@end lisp
+
+The trick is to wrap the function definition of
+@code{tramp-enable-foo-method} with @code{progn} for the
+@code{;;;###autoload} cookie.
 
 
 @node Traces and Profiles

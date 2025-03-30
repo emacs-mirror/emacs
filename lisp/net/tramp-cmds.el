@@ -39,6 +39,8 @@
 (defvar mm-7bit-chars)
 (defvar reporter-eval-buffer)
 (defvar reporter-prompt-for-summary-p)
+(defvar tramp-repository-branch)
+(defvar tramp-repository-version)
 
 ;;;###tramp-autoload
 (defun tramp-change-syntax (&optional syntax)
@@ -609,7 +611,9 @@ If the buffer runs `dired', the buffer is reverted."
   (interactive)
   (cond
    ((buffer-file-name)
-    (find-alternate-file (tramp-file-name-with-sudo (buffer-file-name))))
+    (let ((pos (point)))
+      (find-alternate-file (tramp-file-name-with-sudo (buffer-file-name)))
+      (goto-char pos)))
    ((tramp-dired-buffer-p)
     (dired-unadvertise (expand-file-name default-directory))
     (setq default-directory (tramp-file-name-with-sudo default-directory)
@@ -644,7 +648,7 @@ This is needed if there are compatibility problems."
   ;; (declare (completion tramp-recompile-elpa-command-completion-p))
   (interactive)
   ;; We expect just one Tramp package is installed.
-  (when-let
+  (when-let*
       ((dir (tramp-compat-funcall
 	     'package-desc-dir
 	     (car (alist-get 'tramp (bound-and-true-p package-alist))))))
@@ -741,8 +745,8 @@ buffer in your bug report.
 
 (defun tramp-reporter-dump-variable (varsym mailbuf)
   "Pretty-print the value of the variable in symbol VARSYM."
-  (when-let ((reporter-eval-buffer reporter-eval-buffer)
-	     (val (buffer-local-value varsym reporter-eval-buffer)))
+  (when-let* ((reporter-eval-buffer reporter-eval-buffer)
+	      (val (buffer-local-value varsym reporter-eval-buffer)))
 
     (if (hash-table-p val)
 	;; Pretty print the cache.

@@ -879,9 +879,9 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
 ;;;###tramp-autoload
 (defsubst tramp-gvfs-file-name-p (vec-or-filename)
   "Check if it's a VEC-OR-FILENAME handled by the GVFS daemon."
-  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
-    (let ((method (tramp-file-name-method vec)))
-      (and (stringp method) (member method tramp-gvfs-methods)))))
+  (and-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename))
+	     (method (tramp-file-name-method vec))
+	     ((member method tramp-gvfs-methods)))))
 
 ;;;###tramp-autoload
 (defun tramp-gvfs-file-name-handler (operation &rest args)
@@ -891,11 +891,11 @@ arguments to pass to the OPERATION."
   ;; `file-remote-p' must not return an error.  (Bug#68976)
   (unless (or tramp-gvfs-enabled (eq operation 'file-remote-p))
     (tramp-user-error nil "Package `tramp-gvfs' not supported"))
-  (if-let ((filename (apply #'tramp-file-name-for-operation operation args))
-           (tramp-gvfs-dbus-event-vector
-            (and (tramp-tramp-file-p filename)
-                 (tramp-dissect-file-name filename)))
-           (fn (assoc operation tramp-gvfs-file-name-handler-alist)))
+  (if-let* ((filename (apply #'tramp-file-name-for-operation operation args))
+            (tramp-gvfs-dbus-event-vector
+             (and (tramp-tramp-file-p filename)
+                  (tramp-dissect-file-name filename)))
+            (fn (assoc operation tramp-gvfs-file-name-handler-alist)))
       (prog1 (save-match-data (apply (cdr fn) args))
 	(setq tramp-debug-message-fnh-function (cdr fn)))
     (prog1 (tramp-run-real-handler operation args)
@@ -928,9 +928,9 @@ arguments to pass to the OPERATION."
   "Like `dbus-byte-array-to-string' but remove trailing \\0 if exists.
 Return nil for null BYTE-ARRAY."
   ;; The byte array could be a variant.  Take care.
-  (when-let ((byte-array
-	      (if (and (consp byte-array) (atom (car byte-array)))
-		  byte-array (car byte-array))))
+  (when-let* ((byte-array
+	       (if (and (consp byte-array) (atom (car byte-array)))
+		   byte-array (car byte-array))))
     (dbus-byte-array-to-string
      (if (and (consp byte-array) (zerop (car (last byte-array))))
 	 (butlast byte-array) byte-array))))
@@ -1042,105 +1042,113 @@ file names."
   (unless (memq op '(copy rename))
     (error "Unknown operation `%s', must be `copy' or `rename'" op))
 
-  (setq filename (file-truename filename))
+  ;; We cannot use `file-truename', this would fail for symlinks with
+  ;; non-existing target.
+  (setq filename (expand-file-name filename))
   (if (file-directory-p filename)
       (progn
 	(copy-directory filename newname keep-date t)
 	(when (eq op 'rename) (delete-directory filename 'recursive)))
+    (if (file-symlink-p filename)
+	(progn
+	  (make-symbolic-link
+	   (file-symlink-p filename) newname ok-if-already-exists)
+	  (when (eq op 'rename) (delete-file filename)))
 
-    (let ((t1 (tramp-tramp-file-p filename))
-	  (t2 (tramp-tramp-file-p newname))
-	  (equal-remote (tramp-equal-remote filename newname))
-	  (volatile
-	   (and (eq op 'rename) (tramp-gvfs-file-name-p filename)
-		(equal
-		 (cdr
-		  (assoc
-		   "standard::is-volatile"
-		   (tramp-gvfs-get-file-attributes filename)))
-		 "TRUE")))
-	  ;; "gvfs-rename" is not trustworthy.
-	  (gvfs-operation (if (eq op 'copy) "gvfs-copy" "gvfs-move"))
-	  (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
+      (let ((t1 (tramp-tramp-file-p filename))
+	    (t2 (tramp-tramp-file-p newname))
+	    (equal-remote (tramp-equal-remote filename newname))
+	    (volatile
+	     (and (eq op 'rename) (tramp-gvfs-file-name-p filename)
+		  (equal
+		   (cdr
+		    (assoc
+		     "standard::is-volatile"
+		     (tramp-gvfs-get-file-attributes filename)))
+		   "TRUE")))
+	    ;; "gvfs-rename" is not trustworthy.
+	    (gvfs-operation (if (eq op 'copy) "gvfs-copy" "gvfs-move"))
+	    (msg-operation (if (eq op 'copy) "Copying" "Renaming")))
 
-      (with-parsed-tramp-file-name (if t1 filename newname) nil
-	(tramp-barf-if-file-missing v filename
-	  (when (and (not ok-if-already-exists) (file-exists-p newname))
-	    (tramp-error v 'file-already-exists newname))
-	  (when (and (file-directory-p newname)
-		     (not (directory-name-p newname)))
-	    (tramp-error v 'file-error "File is a directory %s" newname))
-	  (when (file-regular-p newname)
-	    (delete-file newname))
+	(with-parsed-tramp-file-name (if t1 filename newname) nil
+	  (tramp-barf-if-file-missing v filename
+	    (when (and (not ok-if-already-exists) (file-exists-p newname))
+	      (tramp-error v 'file-already-exists newname))
+	    (when (and (file-directory-p newname)
+		       (not (directory-name-p newname)))
+	      (tramp-error v 'file-error "File is a directory %s" newname))
+	    (when (file-regular-p newname)
+	      (delete-file newname))
 
-	  (cond
-	   ;; We cannot rename volatile files, as used by Google-drive.
-	   ((and (not equal-remote) volatile)
-	    (prog1 (copy-file
-		    filename newname ok-if-already-exists keep-date
-		    preserve-uid-gid preserve-extended-attributes)
-	      (delete-file filename)))
+	    (cond
+	     ;; We cannot rename volatile files, as used by Google-drive.
+	     ((and (not equal-remote) volatile)
+	      (prog1 (copy-file
+		      filename newname ok-if-already-exists keep-date
+		      preserve-uid-gid preserve-extended-attributes)
+		(delete-file filename)))
 
-	   ;; We cannot copy or rename directly.
-	   ((or (and equal-remote
-		     (tramp-get-connection-property v "direct-copy-failed"))
-		(and t1 (not (tramp-gvfs-file-name-p filename)))
-		(and t2 (not (tramp-gvfs-file-name-p newname))))
-	    (let ((tmpfile (tramp-compat-make-temp-file filename)))
-	      (if (eq op 'copy)
-		  (copy-file
-		   filename tmpfile t keep-date preserve-uid-gid
-		   preserve-extended-attributes)
-		(rename-file filename tmpfile t))
-	      (rename-file tmpfile newname ok-if-already-exists)))
+	     ;; We cannot copy or rename directly.
+	     ((or (and equal-remote
+		       (tramp-get-connection-property v "direct-copy-failed"))
+		  (and t1 (not (tramp-gvfs-file-name-p filename)))
+		  (and t2 (not (tramp-gvfs-file-name-p newname))))
+	      (let ((tmpfile (tramp-compat-make-temp-file filename)))
+		(if (eq op 'copy)
+		    (copy-file
+		     filename tmpfile t keep-date preserve-uid-gid
+		     preserve-extended-attributes)
+		  (rename-file filename tmpfile t))
+		(rename-file tmpfile newname ok-if-already-exists)))
 
-	   ;; Direct action.
-	   (t (with-tramp-progress-reporter
-		  v 0 (format "%s %s to %s" msg-operation filename newname)
-		(unless
-		    (and (apply
-			  #'tramp-gvfs-send-command v gvfs-operation
-			  (append
-			   (and (eq op 'copy) (or keep-date preserve-uid-gid)
-				'("--preserve"))
-			   (list
-			    (tramp-gvfs-url-file-name filename)
-			    (tramp-gvfs-url-file-name newname))))
-			 ;; Some backends do not return a proper error
-			 ;; code in case of direct copy/move.  Apply
-			 ;; sanity checks.
-			 (or (not equal-remote)
-			     (and
-			      (tramp-gvfs-info newname)
-			      (or (eq op 'copy)
-				  (not (tramp-gvfs-info filename))))))
+	     ;; Direct action.
+	     (t (with-tramp-progress-reporter
+		    v 0 (format "%s %s to %s" msg-operation filename newname)
+		  (unless
+		      (and (apply
+			    #'tramp-gvfs-send-command v gvfs-operation
+			    (append
+			     (and (eq op 'copy) (or keep-date preserve-uid-gid)
+				  '("--preserve"))
+			     (list
+			      (tramp-gvfs-url-file-name filename)
+			      (tramp-gvfs-url-file-name newname))))
+			   ;; Some backends do not return a proper
+			   ;; error code in case of direct copy/move.
+			   ;; Apply sanity checks.
+			   (or (not equal-remote)
+			       (and
+				(tramp-gvfs-info newname)
+				(or (eq op 'copy)
+				    (not (tramp-gvfs-info filename))))))
 
-		  (if (or (not equal-remote)
-			  (and equal-remote
-			       (tramp-get-connection-property
-				v "direct-copy-failed")))
-		      ;; Propagate the error.
-		      (with-current-buffer (tramp-get-connection-buffer v)
-			(goto-char (point-min))
-			(tramp-error-with-buffer
-			 nil v 'file-error
-			 "%s failed, see buffer `%s' for details"
-			 msg-operation (buffer-name)))
+		    (if (or (not equal-remote)
+			    (and equal-remote
+				 (tramp-get-connection-property
+				  v "direct-copy-failed")))
+			;; Propagate the error.
+			(with-current-buffer (tramp-get-connection-buffer v)
+			  (goto-char (point-min))
+			  (tramp-error-with-buffer
+			   nil v 'file-error
+			   "%s failed, see buffer `%s' for details"
+			   msg-operation (buffer-name)))
 
-		    ;; Some WebDAV server, like the one from QNAP, do
-		    ;; not support direct copy/move.  Try a fallback.
-		    (tramp-set-connection-property v "direct-copy-failed" t)
-		    (tramp-gvfs-do-copy-or-rename-file
-		     op filename newname ok-if-already-exists keep-date
-		     preserve-uid-gid preserve-extended-attributes))))
+		      ;; Some WebDAV server, like the one from QNAP,
+		      ;; do not support direct copy/move.  Try a
+		      ;; fallback.
+		      (tramp-set-connection-property v "direct-copy-failed" t)
+		      (tramp-gvfs-do-copy-or-rename-file
+		       op filename newname ok-if-already-exists keep-date
+		       preserve-uid-gid preserve-extended-attributes))))
 
-	      (when (and t1 (eq op 'rename))
-		(with-parsed-tramp-file-name filename nil
-		  (tramp-flush-file-properties v localname)))
+		(when (and t1 (eq op 'rename))
+		  (with-parsed-tramp-file-name filename nil
+		    (tramp-flush-file-properties v localname)))
 
-	      (when t2
-		(with-parsed-tramp-file-name newname nil
-		  (tramp-flush-file-properties v localname))))))))))
+		(when t2
+		  (with-parsed-tramp-file-name newname nil
+		    (tramp-flush-file-properties v localname)))))))))))
 
 (defun tramp-gvfs-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date
@@ -1403,7 +1411,7 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	     (or (cdr (assoc "standard::size" attributes)) "0")))
       ;; ... file mode flags
       (setq res-filemodes
-	    (if-let ((n (cdr (assoc "unix::mode" attributes))))
+	    (if-let* ((n (cdr (assoc "unix::mode" attributes))))
 		(tramp-file-mode-from-int (string-to-number n))
 	      (format
 	       "%s%s%s%s------"
@@ -1419,11 +1427,11 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 		   "-" "x"))))
       ;; ... inode and device
       (setq res-inode
-	    (if-let ((n (cdr (assoc "unix::inode" attributes))))
+	    (if-let* ((n (cdr (assoc "unix::inode" attributes))))
 		(string-to-number n)
 	      (tramp-get-inode (tramp-dissect-file-name filename))))
       (setq res-device
-	    (if-let ((n (cdr (assoc "unix::device" attributes))))
+	    (if-let* ((n (cdr (assoc "unix::device" attributes))))
 		(string-to-number n)
 	      (tramp-get-device (tramp-dissect-file-name filename))))
 
@@ -1677,19 +1685,21 @@ ID-FORMAT valid values are `string' and `integer'."
   ;; The result is cached in `tramp-get-remote-uid'.
   (if (equal id-format 'string)
       (tramp-file-name-user vec)
-    (when-let ((localname
-		(tramp-get-connection-property (tramp-get-process vec) "share")))
-      (file-attribute-user-id
-       (file-attributes (tramp-make-tramp-file-name vec localname) id-format)))))
+    (and-let* ((localname
+		(tramp-get-connection-property (tramp-get-process vec) "share"))
+	       ((file-attribute-user-id
+		 (file-attributes
+		  (tramp-make-tramp-file-name vec localname) id-format)))))))
 
 (defun tramp-gvfs-handle-get-remote-gid (vec id-format)
   "The gid of the remote connection VEC, in ID-FORMAT.
 ID-FORMAT valid values are `string' and `integer'."
   ;; The result is cached in `tramp-get-remote-gid'.
-  (when-let ((localname
-	      (tramp-get-connection-property (tramp-get-process vec) "share")))
-    (file-attribute-group-id
-     (file-attributes (tramp-make-tramp-file-name vec localname) id-format))))
+  (and-let* ((localname
+	      (tramp-get-connection-property (tramp-get-process vec) "share"))
+	     ((file-attribute-group-id
+	       (file-attributes
+		(tramp-make-tramp-file-name vec localname) id-format))))))
 
 (defun tramp-gvfs-handle-set-file-uid-gid (filename &optional uid gid)
   "Like `tramp-set-file-uid-gid' for Tramp files."
@@ -1722,12 +1732,12 @@ ID-FORMAT valid values are `string' and `integer'."
 	    (setq method "davs"
 		  localname
 		  (concat (tramp-gvfs-get-remote-prefix v) localname)))
-	  (when (string-equal "mtp" method)
-	    (when-let
-		((media (tramp-get-connection-property v "media-device")))
-	      (setq method (tramp-media-device-method media)
-		    host (tramp-media-device-host media)
-		    port (tramp-media-device-port media))))
+	  (when-let*
+	      (((string-equal "mtp" method))
+	       (media (tramp-get-connection-property v "media-device")))
+	    (setq method (tramp-media-device-method media)
+		  host (tramp-media-device-host media)
+		  port (tramp-media-device-port media)))
 	  (when (and user domain)
 	    (setq user (concat domain ";" user)))
 	  (url-recreate-url
@@ -1771,6 +1781,24 @@ a downcased host name only."
   (and (stringp url)
        (string-match (rx bol (+ alnum) "://" (group (+ (not (any "/:"))))) url)
        (match-string 1 url)))
+
+;; This is used in GNU ELPA package tramp-locproc.el.
+(defun tramp-gvfs-local-file-name (filename)
+  "Return local mount name of FILENAME."
+  (setq filename (file-name-unquote (expand-file-name filename)))
+  (with-parsed-tramp-file-name filename nil
+    (with-tramp-file-property v localname "local-file-name"
+      ;; As long as we call `tramp-gvfs-maybe-open-connection' here,
+      ;; we cache the result.
+      (tramp-gvfs-maybe-open-connection v)
+      (let ((quoted (file-name-quoted-p localname))
+	    (localname (file-name-unquote localname)))
+	(funcall
+	 (if quoted #'file-name-quote #'identity)
+	 (expand-file-name
+	  (if (file-name-absolute-p localname)
+	      (substring localname 1) localname)
+	  (tramp-get-file-property v "/" "fuse-mountpoint")))))))
 
 
 ;; D-Bus GVFS functions.
@@ -1924,10 +1952,10 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
 	(when (member method tramp-media-methods)
 	  ;; Ensure that media devices are cached.
 	  (tramp-get-media-devices nil)
-	  (when-let ((v (tramp-get-connection-property
-			 (make-tramp-media-device
-			  :method method :host host :port port)
-			 "vector" nil)))
+	  (when-let* ((v (tramp-get-connection-property
+			  (make-tramp-media-device
+			   :method method :host host :port port)
+			  "vector" nil)))
 	    (setq method (tramp-file-name-method v)
 		  host (tramp-file-name-host v)
 		  port (tramp-file-name-port v))))
@@ -2024,10 +2052,10 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
 	 (when (member method tramp-media-methods)
 	   ;; Ensure that media devices are cached.
 	   (tramp-get-media-devices vec)
-	   (when-let ((v (tramp-get-connection-property
-			  (make-tramp-media-device
-			   :method method :host host :port port)
-			  "vector")))
+	   (when-let* ((v (tramp-get-connection-property
+			   (make-tramp-media-device
+			    :method method :host host :port port)
+			   "vector")))
 	     (setq method (tramp-file-name-method v)
 		   host (tramp-file-name-host v)
 		   port (tramp-file-name-port v))))
@@ -2195,7 +2223,7 @@ connection if a previous connection has died for some reason."
 		    method '(("smb" . "smb-share")
 			     ("davs" . "dav")
 			     ("nextcloud" . "dav")
-			     ("afp". "afp-volume")
+			     ("afp" . "afp-volume")
 			     ("gdrive" . "google-drive")))
 		   method)
 	       tramp-gvfs-mounttypes)
@@ -2442,8 +2470,8 @@ It checks for registered GNOME Online Accounts."
 (defun tramp-get-media-device (vec)
   "Transform VEC into a `tramp-media-device' structure.
 Check, that respective cache values do exist."
-  (if-let ((media (tramp-get-connection-property vec "media-device"))
-	   (prop (tramp-get-connection-property media "vector")))
+  (if-let* ((media (tramp-get-connection-property vec "media-device"))
+	    (prop (tramp-get-connection-property media "vector")))
       media
     (tramp-get-media-devices vec)
     (tramp-get-connection-property vec "media-device")))

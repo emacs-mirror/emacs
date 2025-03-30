@@ -53,6 +53,8 @@
 (declare-function tramp-file-name-host-port "tramp")
 (declare-function tramp-file-name-user-domain "tramp")
 (declare-function tramp-get-default-directory "tramp")
+(defvar tramp-repository-branch)
+(defvar tramp-repository-version)
 
 ;;;###tramp-autoload
 (defcustom tramp-verbose 3
@@ -422,7 +424,7 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
 	    ;; Show buffer.
 	    (pop-to-buffer buf)
 	    (discard-input)
-	    (sit-for tramp-error-show-message-timeout)))
+	    (sit-for tramp-error-show-message-timeout 'nodisp)))
 	;; Reset timestamp.  It would be wrong after waiting for a while.
 	(when (tramp-file-name-equal-p vec (car tramp-current-connection))
 	  (setcdr tramp-current-connection (current-time)))))))
@@ -444,7 +446,7 @@ an input event arrives.  The other arguments are passed to `tramp-error'."
 	;; `tramp-error' does not show messages.  So we must do it ourselves.
 	(apply #'message fmt-string arguments)
 	(discard-input)
-	(sit-for tramp-error-show-message-timeout)
+	(sit-for tramp-error-show-message-timeout 'nodisp)
 	;; Reset timestamp.  It would be wrong after waiting for a while.
 	(when
 	    (tramp-file-name-equal-p vec-or-proc (car tramp-current-connection))
@@ -468,7 +470,7 @@ to `tramp-message'."
   (declare (tramp-suppress-trace t))
   (let (signal-hook-function)
     (apply 'tramp-message vec-or-proc 2 fmt-string arguments)
-    (lwarn 'tramp :warning fmt-string arguments)))
+    (apply 'lwarn 'tramp :warning fmt-string arguments)))
 
 (defun tramp-test-message (fmt-string &rest arguments)
   "Emit a Tramp message according `default-directory'."
@@ -486,7 +488,7 @@ to `tramp-message'."
   "Goto the linked message in debug buffer at place."
   (declare (tramp-suppress-trace t))
   (when (mouse-event-p last-input-event) (mouse-set-point last-input-event))
-  (when-let ((point (button-get button 'position)))
+  (when-let* ((point (button-get button 'position)))
     (goto-char point)))
 
 (define-button-type 'tramp-debug-button-type

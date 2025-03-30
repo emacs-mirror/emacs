@@ -186,8 +186,8 @@ pass to the OPERATION."
 ;;;###tramp-autoload
 (defsubst tramp-ftp-file-name-p (vec-or-filename)
   "Check if it's a VEC-OR-FILENAME that should be forwarded to Ange-FTP."
-  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
-    (string= (tramp-file-name-method vec) tramp-ftp-method)))
+  (and-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename))
+	     ((string= (tramp-file-name-method vec) tramp-ftp-method)))))
 
 ;;;###tramp-autoload
 (tramp--with-startup

@@ -279,19 +279,19 @@ or `tramp-podmancp-method'.
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
   (tramp-skeleton-completion-function method
-    (when-let ((raw-list
-		(shell-command-to-string
-		 (concat program " ps --format '{{.ID}}\t{{.Names}}'")))
-	       (lines (split-string raw-list "\n" 'omit))
-	       (names
-		(tramp-compat-seq-keep
-		 (lambda (line)
-		   (when (string-match
-			  (rx bol (group (1+ nonl))
-			      "\t" (? (group (1+ nonl))) eol)
-			  line)
-		     (or (match-string 2 line) (match-string 1 line))))
-		 lines)))
+    (when-let* ((raw-list
+		 (shell-command-to-string
+		  (concat program " ps --format '{{.ID}}\t{{.Names}}'")))
+		(lines (split-string raw-list "\n" 'omit))
+		(names
+		 (tramp-compat-seq-keep
+		  (lambda (line)
+		    (when (string-match
+			   (rx bol (group (1+ nonl))
+			       "\t" (? (group (1+ nonl))) eol)
+			   line)
+		      (or (match-string 2 line) (match-string 1 line))))
+		  lines)))
       (mapcar (lambda (name) (list nil name)) names))))
 
 ;;;###tramp-autoload
@@ -301,19 +301,19 @@ see its function help for a description of the format."
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
   (tramp-skeleton-completion-function method
-    (when-let ((raw-list
-		(shell-command-to-string
-		 (concat
-		  program " "
-		  (tramp-kubernetes--context-namespace vec)
-                  " get pods --no-headers"
-		  ;; We separate pods by "|".  Inside a pod, its name
-		  ;; is separated from the containers by ":".
-		  ;; Containers are separated by ",".
-		  " -o jsonpath='{range .items[*]}{\"|\"}{.metadata.name}"
-		  "{\":\"}{range .spec.containers[*]}{.name}{\",\"}"
-		  "{end}{end}'")))
-               (lines (split-string raw-list "|" 'omit)))
+    (when-let* ((raw-list
+		 (shell-command-to-string
+		  (concat
+		   program " "
+		   (tramp-kubernetes--context-namespace vec)
+                   " get pods --no-headers"
+		   ;; We separate pods by "|".  Inside a pod, its name
+		   ;; is separated from the containers by ":".
+		   ;; Containers are separated by ",".
+		   " -o jsonpath='{range .items[*]}{\"|\"}{.metadata.name}"
+		   "{\":\"}{range .spec.containers[*]}{.name}{\",\"}"
+		   "{end}{end}'")))
+		(lines (split-string raw-list "|" 'omit)))
       (let (names)
 	(dolist (line lines)
 	  (setq line (split-string line ":" 'omit))
@@ -382,7 +382,7 @@ Obey `tramp-kubernetes-context'"
 
 (defun tramp-kubernetes--current-context-data (vec)
   "Return Kubernetes current context data as JSON string."
-  (when-let ((current-context (tramp-kubernetes--current-context vec)))
+  (when-let* ((current-context (tramp-kubernetes--current-context vec)))
     (tramp-skeleton-kubernetes-vector vec
       (with-temp-buffer
 	(when (zerop
@@ -398,7 +398,7 @@ Obey `tramp-kubernetes-context'"
   "The kubectl options for context and namespace as string."
   (mapconcat
    #'identity
-   `(,(when-let ((context (tramp-kubernetes--current-context vec)))
+   `(,(when-let* ((context (tramp-kubernetes--current-context vec)))
 	(format "--context=%s" context))
      ,(when tramp-kubernetes-namespace
 	(format "--namespace=%s" tramp-kubernetes-namespace)))
@@ -411,18 +411,18 @@ Obey `tramp-kubernetes-context'"
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
   (tramp-skeleton-completion-function method
-    (when-let ((raw-list (shell-command-to-string (concat program " list -c")))
-	       ;; Ignore header line.
-               (lines (cdr (split-string raw-list "\n" 'omit)))
-	       ;; We do not show container IDs.
-               (names (tramp-compat-seq-keep
-		       (lambda (line)
-			 (when (string-match
-				(rx bol (1+ (not space))
-				    (1+ space) (group (1+ (not space))) space)
-				line)
-			   (match-string 1 line)))
-                       lines)))
+    (when-let* ((raw-list (shell-command-to-string (concat program " list -c")))
+		;; Ignore header line.
+		(lines (cdr (split-string raw-list "\n" 'omit)))
+		;; We do not show container IDs.
+		(names (tramp-compat-seq-keep
+			(lambda (line)
+			  (when (string-match
+				 (rx bol (1+ (not space))
+				     (1+ space) (group (1+ (not space))) space)
+				 line)
+			    (match-string 1 line)))
+			lines)))
       (mapcar (lambda (name) (list nil name)) names))))
 
 ;;;###tramp-autoload
@@ -432,19 +432,19 @@ see its function help for a description of the format."
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
   (tramp-skeleton-completion-function method
-    (when-let ((raw-list (shell-command-to-string (concat program " list")))
-	       ;; Ignore header line.
-               (lines (cdr (split-string raw-list "\n" 'omit)))
-	       ;; We do not show container IDs.
-               (names (tramp-compat-seq-keep
-		       (lambda (line)
-			 (when (string-match
-				(rx bol (1+ (not space))
-				    (1+ space) "|" (1+ space)
-				    (group (1+ (not space))) space)
-				line)
-			   (match-string 1 line)))
-                       lines)))
+    (when-let* ((raw-list (shell-command-to-string (concat program " list")))
+		;; Ignore header line.
+		(lines (cdr (split-string raw-list "\n" 'omit)))
+		;; We do not show container IDs.
+		(names (tramp-compat-seq-keep
+			(lambda (line)
+			  (when (string-match
+				 (rx bol (1+ (not space))
+				     (1+ space) "|" (1+ space)
+				     (group (1+ (not space))) space)
+				 line)
+			    (match-string 1 line)))
+			lines)))
       (mapcar (lambda (name) (list nil name)) names))))
 
 ;;;###tramp-autoload
@@ -456,19 +456,19 @@ ID, instance IDs.
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
   (tramp-skeleton-completion-function method
-    (when-let ((raw-list
-		(shell-command-to-string
-		 ;; Ignore header line.
-		 (concat program " ps --columns=instance,application | cat -")))
-               (lines (split-string raw-list "\n" 'omit))
-               (names (tramp-compat-seq-keep
-		       (lambda (line)
-			 (when (string-match
-				(rx bol (* space) (group (+ (not space)))
-				    (? (+ space) (group (+ (not space)))) eol)
-				line)
-			   (or (match-string 2 line) (match-string 1 line))))
-                       lines)))
+    (when-let* ((raw-list
+		 (shell-command-to-string
+		  ;; Ignore header line.
+		  (concat program " ps --columns=instance,application | cat -")))
+		(lines (split-string raw-list "\n" 'omit))
+		(names (tramp-compat-seq-keep
+			(lambda (line)
+			  (when (string-match
+				 (rx bol (* space) (group (+ (not space)))
+				     (? (+ space) (group (+ (not space)))) eol)
+				 line)
+			    (or (match-string 2 line) (match-string 1 line))))
+			lines)))
       (mapcar (lambda (name) (list nil name)) names))))
 
 ;;;###tramp-autoload
@@ -478,19 +478,19 @@ see its function help for a description of the format."
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
   (tramp-skeleton-completion-function method
-    (when-let ((raw-list
-		(shell-command-to-string (concat program " instance list")))
-	       ;; Ignore header line.
-               (lines (cdr (split-string raw-list "\n" 'omit)))
-               (names (tramp-compat-seq-keep
-		       (lambda (line)
-			 (when (string-match
-				(rx bol (group (1+ (not space)))
-				    (1+ space) (1+ (not space))
-				    (1+ space) (1+ (not space)))
-				line)
-			   (match-string 1 line)))
-                       lines)))
+    (when-let* ((raw-list
+		 (shell-command-to-string (concat program " instance list")))
+		;; Ignore header line.
+		(lines (cdr (split-string raw-list "\n" 'omit)))
+		(names (tramp-compat-seq-keep
+			(lambda (line)
+			  (when (string-match
+				 (rx bol (group (1+ (not space)))
+				     (1+ space) (1+ (not space))
+				     (1+ space) (1+ (not space)))
+				 line)
+			    (match-string 1 line)))
+			lines)))
       (mapcar (lambda (name) (list nil name)) names))))
 
 (defun tramp-nspawn--completion-function (method)
@@ -499,13 +499,13 @@ see its function help for a description of the format."
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
   (tramp-skeleton-completion-function method
-    (when-let ((raw-list
-		(shell-command-to-string (concat program " list --all -q")))
-	       ;; Ignore header line.
-               (lines (cdr (split-string raw-list "\n")))
-               (first-words (mapcar (lambda (line) (car (split-string line)))
-				    lines))
-               (machines (seq-take-while (lambda (name) name) first-words)))
+    (when-let* ((raw-list
+		 (shell-command-to-string (concat program " list --all -q")))
+		;; Ignore header line.
+		(lines (cdr (split-string raw-list "\n")))
+		(first-words
+		 (mapcar (lambda (line) (car (split-string line))) lines))
+		(machines (seq-take-while (lambda (name) name) first-words)))
       (mapcar (lambda (m) (list nil m)) machines))))
 
 ;;;###tramp-autoload

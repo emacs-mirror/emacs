@@ -201,15 +201,15 @@ It is used for TCP/IP devices."
 ;;;###tramp-autoload
 (defsubst tramp-adb-file-name-p (vec-or-filename)
   "Check if it's a VEC-OR-FILENAME for ADB."
-  (when-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename)))
-    (string= (tramp-file-name-method vec) tramp-adb-method)))
+  (and-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename))
+	     ((string= (tramp-file-name-method vec) tramp-adb-method)))))
 
 ;;;###tramp-autoload
 (defun tramp-adb-file-name-handler (operation &rest args)
   "Invoke the ADB handler for OPERATION.
 First arg specifies the OPERATION, second arg is a list of
 arguments to pass to the OPERATION."
-  (if-let ((fn (assoc operation tramp-adb-file-name-handler-alist)))
+  (if-let* ((fn (assoc operation tramp-adb-file-name-handler-alist)))
       (prog1 (save-match-data (apply (cdr fn) args))
 	(setq tramp-debug-message-fnh-function (cdr fn)))
     (prog1 (tramp-run-real-handler operation args)
@@ -616,7 +616,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		      (tramp-shell-quote-argument l2))
 		   "Error copying %s to %s" filename newname))
 
-	      (if-let ((tmpfile (file-local-copy filename)))
+	      (if-let* ((tmpfile (file-local-copy filename)))
 		  ;; Remote filename.
 		  (condition-case err
 		      (rename-file tmpfile newname ok-if-already-exists)
@@ -998,7 +998,7 @@ error and non-nil on success."
       ;; <https://android.stackexchange.com/questions/226638/how-to-use-multibyte-file-names-in-adb-shell/232379#232379>
       ;; mksh uses UTF-8 internally, but is currently limited to the
       ;; BMP (basic multilingua plane), which means U+0000 to
-      ;; U+FFFD. If you want to use SMP codepoints (U-00010000 to
+      ;; U+FFFD.  If you want to use SMP codepoints (U-00010000 to
       ;; U-0010FFFD) on the input line, you currently have to disable
       ;; the UTF-8 mode (sorry).
       (tramp-adb-execute-adb-command vec "shell" command)
@@ -1125,6 +1125,11 @@ connection if a previous connection has died for some reason."
 			 tramp-adb-program args)))
 		   (prompt (md5 (concat (prin1-to-string process-environment)
 					(current-time-string)))))
+
+	      ;; Set sentinel.  Initialize variables.
+	      (set-process-sentinel p #'tramp-process-sentinel)
+	      (tramp-post-process-creation p vec)
+
 	      ;; Wait for initial prompt.  On some devices, it needs
 	      ;; an initial RET, in order to get it.
               (sleep-for 0.1)
@@ -1132,10 +1137,6 @@ connection if a previous connection has died for some reason."
 	      (tramp-adb-wait-for-output p 30)
 	      (unless (process-live-p p)
 		(tramp-error vec 'file-error "Terminated!"))
-
-	      ;; Set sentinel.  Initialize variables.
-	      (set-process-sentinel p #'tramp-process-sentinel)
-	      (tramp-post-process-creation p vec)
 
 	      ;; Set connection-local variables.
 	      (tramp-set-connection-local-variables vec)
