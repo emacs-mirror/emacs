@@ -452,6 +452,27 @@ See `treesit-thing-settings' for more information.")
   "Nodes that designate sexps in TypeScript.
 See `treesit-thing-settings' for more information.")
 
+(defvar typescript-ts-mode--defun-type-regexp
+  (rx bos (or "internal_module"
+              "interface_declaration"
+              "class_declaration"
+              "method_definition"
+              "function_declaration"
+              "lexical_declaration")
+      eos)
+  "Settings for `treesit-defun-type-regexp'.")
+
+(defun typescript-ts-mode--defun-predicate (node)
+  "Check if NODE is a defun."
+  (pcase (treesit-node-type node)
+    ("lexical_declaration"
+     (treesit-node-match-p
+      (treesit-node-child-by-field-name
+       (treesit-node-child node 0 'named)
+       "value")
+      "arrow_function"))
+    (_ t)))
+
 ;;;###autoload
 (define-derived-mode typescript-ts-base-mode prog-mode "TypeScript"
   "Generic major mode for editing TypeScript.
@@ -470,10 +491,8 @@ This mode is intended to be inherited by concrete major modes."
 	      '((?\; . after) (?\{ . after) (?\} . before)))
   ;; Navigation.
   (setq-local treesit-defun-type-regexp
-              (regexp-opt '("class_declaration"
-                            "method_definition"
-                            "function_declaration"
-                            "lexical_declaration")))
+              (cons typescript-ts-mode--defun-type-regexp
+                    #'typescript-ts-mode--defun-predicate))
   (setq-local treesit-defun-name-function #'js--treesit-defun-name)
 
   (setq-local treesit-thing-settings
