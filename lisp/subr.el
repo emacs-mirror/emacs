@@ -4770,7 +4770,6 @@ Interactively, prompt for SOURCE.
 The replacement is performed using `replace-region-contents'
 which also describes the MAX-SECS and MAX-COSTS arguments and the
 return value."
-  (declare (obsolete replace-region-contents "31.1"))
   (interactive "bSource buffer: ")
   (replace-region-contents (point-min) (point-max) (get-buffer source)
                            max-secs max-costs))

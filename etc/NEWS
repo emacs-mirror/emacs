@@ -1757,7 +1757,6 @@ Previously, its argument was always evaluated using dynamic binding.
 It has been promoted from 'subr-x' to the C code.
 You can now directly pass it a string or a buffer rather than a function.
 Actually passing it a function is now deprecated.
-'replace-buffer-contents' is also marked as obsolete.
 
 +++
 ** New macros 'static-when' and 'static-unless'.
