@@ -31,8 +31,8 @@
 ;;     (add-hook 'before-save-hook 'time-stamp)
 ;; Now any time-stamp templates in your files will be updated automatically.
 
-;; See the documentation for the functions `time-stamp'
-;; and `time-stamp-toggle-active' for details.
+;; For details, see the documentation for function `time-stamp'
+;; and the Info node `Time Stamps'.
 
 ;;; Code:
 
@@ -64,7 +64,7 @@ with %, as follows.
 %5z  time zone offset: `-0500' (since Emacs 27; see note below)
 
 Non-date items:
-%%   a literal percent character: `%'
+%%   literal percent character: \"%\"
 %f   file name without directory        %F  absolute file name
 %l   login name                         %L  full name of logged-in user
 %q   unqualified host name              %Q  fully-qualified host name
@@ -74,12 +74,12 @@ Decimal digits between the % and the type character specify the
 field width.  Strings are truncated on the right.
 A leading zero in the field width zero-fills a number.
 
-For example, to get the format used by the `date' command,
+For example, to get a common format used by the \"date\" command,
 use \"%3a %3b %2d %02H:%02M:%02S %Z %Y\".
 
 The values of non-numeric formatted items depend on the locale
 setting recorded in `system-time-locale' and `locale-coding-system'.
-The examples here are for the default (`C') locale.
+The examples here are for the default (\"C\") locale.
 `time-stamp-time-zone' controls the time zone used.
 
 The default padding of some formats has changed to be more compatible
@@ -95,7 +95,7 @@ edited by older versions of Emacs also, do not use this format yet."
 
 
 (defcustom time-stamp-active t
-  "Non-nil to enable time-stamping of buffers by \\[time-stamp].
+  "Non-nil enables time-stamping of buffers by \\[time-stamp].
 Can be toggled by \\[time-stamp-toggle-active].
 
 This option does not affect when `time-stamp' is run, only what it
@@ -229,7 +229,11 @@ your init file, you would be incompatible with other people's files.")
 
 (defvar time-stamp-count 1		;Do not change!
   "How many templates \\[time-stamp] will look for in a buffer.
-The same time stamp will be written in each case.
+
+If the value is greater than 1, the same time stamp will be written in
+each case.  If you want to insert different text on different lines,
+then instead of changing this variable, include a newline (written as
+\"\\n\") in `time-stamp-format' or the format part of `time-stamp-pattern'.
 
 `time-stamp-count' is best changed with a file-local variable.
 If you were to change it in your init file, you would be incompatible
@@ -240,55 +244,61 @@ with other people's files.")
 (defvar time-stamp-pattern nil		;Do not change!
   "Convenience variable setting all `time-stamp' location and format values.
 This string has four parts, each of which is optional.
-These four parts set `time-stamp-line-limit', `time-stamp-start',
-`time-stamp-format', and `time-stamp-end'.  See the documentation
-for each of these variables for details.
+These four parts override `time-stamp-line-limit', `time-stamp-start',
+`time-stamp-format' and `time-stamp-end', respectively.  See the
+documentation for each of these variables for details.
 
 The first part is a number followed by a slash; the number sets the number
 of lines at the beginning (negative counts from end) of the file searched
 for the time stamp.  The number and the slash may be omitted to use the
-normal value.
+value of `time-stamp-line-limit' as the number.
 
 The second part is a regexp identifying the pattern preceding the time stamp.
-This part may be omitted to use the normal pattern.
+This part may be omitted to use the value of `time-stamp-start'.
 
-The third part specifies the format of the time stamp inserted.  See
-the documentation for `time-stamp-format' for details.  Specify this
-part as \"%%\" to use the normal format.
+The third part specifies the format of the time stamp inserted.  Specify
+this part as \"%%\" to use the value of `time-stamp-format'.
 
 The fourth part is a regexp identifying the pattern following the time stamp.
-This part may be omitted to use the normal pattern.
+This part may be omitted to use the value of `time-stamp-end'.
 
 The pattern does not need to match the entire line of the time stamp.
+The pattern will update time stamp information on multiple lines if the
+pattern includes newlines, which can be written as \"\\n\".
 
 These variables are best changed with file-local variables.
 If you were to change `time-stamp-pattern', `time-stamp-line-limit',
 `time-stamp-start', or `time-stamp-end' in your init file, you
 would be incompatible with other people's files.
 
-See also `time-stamp-count' and `time-stamp-inserts-lines'.
-
 Examples:
 
-\"-10/\" (sets only `time-stamp-line-limit')
+;; time-stamp-pattern: \"-10/\"
+    (sets only `time-stamp-line-limit')
 
-\"-9/^Last modified: %%$\" (sets `time-stamp-line-limit',
-`time-stamp-start' and `time-stamp-end')
+// time-stamp-pattern: \"-9/^Last modified: %%$\"
+    (sets `time-stamp-line-limit', `time-stamp-start' and `time-stamp-end')
 
-\"@set Time-stamp: %:B %1d, %Y$\" (sets `time-stamp-start',
-`time-stamp-format' and `time-stamp-end')
+@c time-stamp-pattern: \"@set Time-stamp: %:B %1d, %Y$\"
+    (sets `time-stamp-start', `time-stamp-format' and `time-stamp-end')
 
-\"newcommand{\\\\\\\\timestamp}{%%}\" (sets `time-stamp-start'
-and `time-stamp-end')")
+%% time-stamp-pattern: \"newcommand{\\\\\\\\timestamp}{%%}\"
+    (sets `time-stamp-start' and `time-stamp-end')
+
+See Info node `Time Stamp Customization' for more discussion and more
+in-depth examples.
+
+
+See also `time-stamp-count' and `time-stamp-inserts-lines'.")
 ;;;###autoload(put 'time-stamp-pattern 'safe-local-variable 'stringp)
 
 
 
 ;;;###autoload
 (defun time-stamp ()
-  "Update any time stamp string(s) in the buffer.
-This function looks for a time stamp template and updates it with
-the current date, time, and/or other info.
+  "Update any time stamp strings (timestamps) in the buffer.
+Look for a time stamp template and update it with the current
+date, time, author, and/or other info.
 
 The template, which you manually create on one of the first 8 lines
 of the file before running this function, by default can look like
@@ -311,12 +321,11 @@ To enable automatic time-stamping for only a specific file, add
 this line to a local variables list near the end of the file:
     eval: (add-hook \\='before-save-hook \\='time-stamp nil t)
 
-If the file has no time-stamp template, this function does nothing.
+If the file has no time stamp template or if `time-stamp-active' is nil,
+this function does nothing.
 
 You can set `time-stamp-pattern' in a file's local variables list
-to customize the information in the time stamp and where it is written.
-
-The time stamp is updated only if `time-stamp-active' is non-nil."
+to customize the information in the time stamp and where it is written."
   (interactive)
   (let ((line-limit time-stamp-line-limit)
 	(ts-start time-stamp-start)
@@ -466,10 +475,15 @@ Internal helper used by `time-stamp-string-preprocess'."
   (format-time-string format time time-stamp-time-zone))
 
 (defun time-stamp-string (&optional ts-format time)
-  "Generate the new string to be inserted by \\[time-stamp].
-Optionally use format TS-FORMAT instead of `time-stamp-format' to
-format the string.  Optional second argument TIME is only for testing;
-normally the current time is used."
+  "Return the current time and other info formatted for \\[time-stamp].
+Optional first argument TS-FORMAT gives the format to use; it defaults
+to the value of `time-stamp-format'.  Thus, with no arguments,
+this function returns the string `time-stamp' would use to update
+its template in the buffer.  The format accepted is similar to the
+format used by `format-time-string' with some extensions; see the
+documentation of `time-stamp-format' for details.
+Optional second argument TIME is only for testing; normally the current
+time is used.  The time zone is determined by `time-stamp-time-zone'."
   (if (stringp (or ts-format (setq ts-format time-stamp-format)))
       (time-stamp-string-preprocess ts-format time)))
 

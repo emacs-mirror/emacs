@@ -486,6 +486,11 @@ Backup Files
 * Backup Deletion::     Emacs deletes excess numbered backups.
 * Backup Copying::      Backups can be made by copying or renaming.
 
+Updating Time Stamps Automatically
+
+* Time Stamp Customization::   How to customize with time-stamp-pattern.
+* Time Stamps for One File::   Ensure automatic time-stamp of a specific file.
+
 @ifnottex
 Auto Reverting Non-File Buffers
 
