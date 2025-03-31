@@ -5069,7 +5069,10 @@ Ruby_functions (FILE *inf)
 	 /* Ruby method names can end in a '='.  Also, operator overloading can
 	    define operators whose names include '='.  */
 	  while (!notinname (*cp) || *cp == '=')
-	    cp++;
+	    {
+	      cp++;
+	      if (*(cp - 1) == ':') name = cp;
+	    }
 
 	  /* Remove "self." from the method name.  */
 	  if (cp - name > self_size1
