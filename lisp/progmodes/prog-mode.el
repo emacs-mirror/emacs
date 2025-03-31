@@ -230,10 +230,37 @@ Regexp match data 0 specifies the characters to be composed."
   ;; Return nil because we're not adding any face property.
   nil)
 
+(defun prettify-symbols--composition-displayable-p (composition)
+  "Return non-nil if COMPOSITION can be displayed with the current fonts.
+COMPOSITION can be a single character, a string, or a sequence (vector or
+list) of characters and composition rules as described in the documentation
+of `prettify-symbols-alist' and `compose-region'."
+  (cond
+   ((characterp composition)
+    (char-displayable-on-frame-p composition))
+   ((stringp composition)
+    (seq-every-p #'char-displayable-on-frame-p composition))
+   ((seqp composition)
+    ;; check that every even-indexed element is displayable
+    (seq-every-p
+     (lambda (idx-elt)
+       (if (evenp (car idx-elt))
+           (char-displayable-on-frame-p (cdr idx-elt))
+         t))
+     (seq-map-indexed #'cons composition)))
+   (t
+    ;; silently ignore invalid compositions
+    t)))
+
 (defun prettify-symbols--make-keywords ()
   (if prettify-symbols-alist
-      `((,(regexp-opt (mapcar 'car prettify-symbols-alist) t)
-         (0 (prettify-symbols--compose-symbol ',prettify-symbols-alist))))
+      (let ((filtered-alist
+             (seq-filter
+              (lambda (elt)
+                (prettify-symbols--composition-displayable-p (cdr elt)))
+              prettify-symbols-alist)))
+        `((,(regexp-opt (mapcar 'car filtered-alist) t)
+           (0 (prettify-symbols--compose-symbol ',filtered-alist)))))
     nil))
 
 (defvar-local prettify-symbols--keywords nil)

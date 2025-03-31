@@ -4122,6 +4122,14 @@ available, since it also checks whether the coding system for the text
 terminal can encode the character (@pxref{Terminal I/O Encoding}).
 @end defun
 
+@defun char-displayable-on-frame-p char frame
+This function behaves like @code{char-displayable-p} does (relative to
+@var{frame}), but in the graphical case, it does not perform the final
+check of whether the underlying text terminal can encode the character.
+It thus provides a displayability check for @var{char} more specific to
+@var{frame}.
+@end defun
+
 @node Low-Level Font
 @subsection Low-Level Font Representation
 @cindex font property

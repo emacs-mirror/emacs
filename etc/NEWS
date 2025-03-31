@@ -64,6 +64,9 @@ init file.
 
 * Changes in Emacs 31.1
 
+** `prettify-symbols-mode' attempts to ignore undisplayable characters.
+Previously, such characters would be rendered as, e.g., white boxes.
+
 +++
 ** 'standard-display-table' now has more extra slots.
 'standard-display-table' has been extended to allow specifying glyphs
@@ -1791,6 +1794,13 @@ Previously, its argument was always evaluated using dynamic binding.
 It has been promoted from 'subr-x' to the C code.
 You can now directly pass it a string or a buffer rather than a function.
 Actually passing it a function is now deprecated.
+
++++
+** New function 'char-displayable-on-frame-p'.
+'char-displayable-on-frame-p' returns non-nil if Emacs ought to be able
+to display its char argument on a given frame.  This new function,
+unlike 'char-displayable-p', does not check whether the character can be
+encoded by the underlying terminal.
 
 +++
 ** New macros 'static-when' and 'static-unless'.

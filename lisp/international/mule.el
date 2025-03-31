@@ -528,6 +528,32 @@ per-character basis, this may not be accurate."
                                    (throw 'tag3 charset)))
 			     charset-list)
 		       nil)))))))))))
+
+(defun char-displayable-on-frame-p (char &optional frame)
+  "Return non-nil if CHAR can be displayed in FRAME.
+FRAME nil means the selected frame.
+
+This function provides a stricter test than `char-displayable-p' does
+for determining if a character will display properly: in the graphical
+case, it does not check whether the underlying terminal can encode the
+character.
+
+Specifically, this function returns non-nil:
+
+- for a text terminal, if `char-displayable-p' returns non-nil.
+
+- for a graphical terminal, if `char-displayable-p' returns either t or
+  a font object.
+
+The two functions differ in behavior (i.e., `char-displayable-strict-p'
+returns nil but `char-displayable-p' does not) if the underlying
+terminal is graphical and can encode the character, but FRAME cannot."
+  (let ((display-capability (with-selected-frame (or frame (selected-frame))
+                              (char-displayable-p char))))
+    (if (display-graphic-p frame)
+        (or (eq display-capability t)
+            (fontp display-capability))
+      display-capability)))
 
 ;; Save the ASCII case table in case we need it later.  Some locales
 ;; (such as Turkish) modify the case behavior of ASCII characters,
