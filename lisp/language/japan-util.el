@@ -217,9 +217,12 @@ The argument object is not altered--the value is a copy."
 
 (defun japanese-replace-region (from to string)
   "Replace the region specified by FROM and TO to STRING."
-  (declare (obsolete replace-region-contents "31.1"))
   (goto-char to)
-  (replace-region-contents from to string 0))
+  (replace-region-contents from to
+                           (if (stringp string)
+                               string
+                             (string string))
+                             0))
 
 ;;;###autoload
 (defun japanese-katakana-region (from to &optional hankaku)
@@ -238,15 +241,13 @@ of which charset is `japanese-jisx0201-kana'."
 		     (get-char-code-property kana 'kana-composition)))
 	       slot) ;; next
 	  (if (and composition (setq slot (assq (following-char) composition)))
-	      (progn
-	        (goto-char (1+ (point)))
-	        (replace-region-contents (match-beginning 0) (point)
-				         (cdr slot) 0))
+	      (japanese-replace-region (match-beginning 0) (1+ (point))
+				       (cdr slot))
 	    (let ((kata (get-char-code-property
 			 kana (if hankaku 'jisx0201 'katakana))))
 	      (if kata
-		  (replace-region-contents (match-beginning 0) (point)
-					   kata 0)))))))))
+		  (japanese-replace-region (match-beginning 0) (point)
+					   kata)))))))))
 
 
 ;;;###autoload
@@ -262,16 +263,13 @@ of which charset is `japanese-jisx0201-kana'."
 	       (composition (get-char-code-property kata 'kana-composition))
 	       slot) ;; next
 	  (if (and composition (setq slot (assq (following-char) composition)))
-	      (progn
-	        (goto-char (1+ (point)))
-	        (replace-region-contents (match-beginning 0) (point)
-					 (get-char-code-property
-					  (cdr slot) 'hiragana)
-					 0))
+	      (japanese-replace-region (match-beginning 0) (1+ (point))
+				       (get-char-code-property
+					(cdr slot) 'hiragana))
 	    (let ((hira (get-char-code-property kata 'hiragana)))
 	      (if hira
-		  (replace-region-contents (match-beginning 0) (point)
-					   hira 0)))))))))
+		  (japanese-replace-region (match-beginning 0) (point)
+					   hira)))))))))
 
 ;;;###autoload
 (defun japanese-hankaku-region (from to &optional ascii-only)
@@ -290,8 +288,8 @@ Optional argument ASCII-ONLY non-nil means to convert only to ASCII char."
 				 (get-char-code-property zenkaku 'jisx0201))
 			    (get-char-code-property zenkaku 'ascii))))
 	  (if hankaku
-	      (replace-region-contents (match-beginning 0) (match-end 0)
-				       hankaku 0)))))))
+	      (japanese-replace-region (match-beginning 0) (match-end 0)
+				       hankaku)))))))
 
 ;;;###autoload
 (defun japanese-zenkaku-region (from to &optional katakana-only)
@@ -312,14 +310,12 @@ Optional argument KATAKANA-ONLY non-nil means to convert only KATAKANA char."
 	       (composition (get-char-code-property hankaku 'kana-composition))
 	       slot) ;; next
 	  (if (and composition (setq slot (assq (following-char) composition)))
-	      (progn
-	        (goto-char (1+ (point)))
-	        (replace-region-contents (match-beginning 0) (point)
-				         (cdr slot) 0))
+	      (japanese-replace-region (match-beginning 0) (1+ (point))
+				       (cdr slot))
 	    (let ((zenkaku (japanese-zenkaku hankaku)))
 	      (if zenkaku
-		  (replace-region-contents (match-beginning 0) (match-end 0)
-					   zenkaku 0)))))))))
+		  (japanese-replace-region (match-beginning 0) (match-end 0)
+					   zenkaku)))))))))
 
 ;;;###autoload
 (defun read-hiragana-string (prompt &optional initial-input)
