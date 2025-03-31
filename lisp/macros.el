@@ -72,14 +72,14 @@ use this command, and then save the file."
 	  (setq macroname 'last-kbd-macro definition last-kbd-macro)
 	  (insert "(setq "))
       (setq definition (symbol-function macroname))
+      (when (or (stringp definition) (vectorp definition))
+        (setq definition (kmacro (kmacro--to-vector definition))))
       ;; Prefer `defalias' over `fset' since it additionally keeps
       ;; track of the file where the users added it, and it interacts
       ;; better with `advice-add' (and hence things like ELP).
       (insert "(defalias '"))
     (prin1 macroname (current-buffer))
     (insert "\n   ")
-    (when (or (stringp definition) (vectorp definition))
-      (setq definition (kmacro (kmacro--to-vector definition))))
     (if (kmacro-p definition)
         (let ((vecdef  (kmacro--keys     definition))
               (counter (kmacro--counter definition))
@@ -93,8 +93,7 @@ use this command, and then save the file."
             (insert " ")
             (prin1 format (current-buffer)))
           (insert ")"))
-      ;; FIXME: Shouldn't this signal an error?
-      (prin1 definition (current-buffer)))
+        (prin1 `(key-parse ,(key-description definition)) (current-buffer)))
     (insert ")\n")
     (if keys
         (let ((keys (or (and (symbol-function macroname)
