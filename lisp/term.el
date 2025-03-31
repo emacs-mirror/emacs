@@ -3116,7 +3116,7 @@ See `term-prompt-regexp'."
                                                           (- count 1 partial)))
                                       'eight-bit))
                         (incf partial))
-                      (when (> count partial 0)
+                      (when (> partial 0)
                         (setq term-terminal-undecoded-bytes
                               (substring decoded-substring (- partial)))
                         (setq decoded-substring
