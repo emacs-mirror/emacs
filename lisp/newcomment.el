@@ -56,7 +56,6 @@
 ;; - spill auto-fill of comments onto the end of the next line.
 ;; - uncomment-region with a consp (for blocks) or somehow make the
 ;;   deletion of continuation markers less dangerous.
-;; - drop block-comment-<foo> unless it's really used.
 ;; - uncomment-region on a subpart of a comment.
 ;; - support gnu-style "multi-line with space in continue".
 ;; - somehow allow comment-dwim to use the region even if transient-mark-mode
@@ -183,9 +182,11 @@ guaranteed to be correctly ordered.  It is called within `save-excursion'.
 Applicable at least in modes for languages like fixed-format Fortran where
 comments always start in column zero.")
 
-;; ?? never set
-(defvar block-comment-start nil)
-(defvar block-comment-end nil)
+(defvar block-comment-start nil
+  "String to insert to start a new block comment, or nil if no supported.")
+
+(defvar block-comment-end nil
+  "String to insert to end a new block comment, or nil if no supported.")
 
 (defvar comment-quote-nested t
   "Non-nil if nested comments should be quoted.

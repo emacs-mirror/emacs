@@ -701,6 +701,8 @@ font-lock keywords will not be case sensitive."
   (setq-local add-log-current-defun-function #'lisp-current-defun-name)
   (setq-local comment-start ";")
   (setq-local comment-start-skip ";+ *")
+  (setq-local block-comment-start "#|")
+  (setq-local block-comment-end "|#")
   (setq-local comment-add 1)		;default to `;;' in comment-region
   (setq-local comment-column 40)
   (setq-local comment-use-syntax t)

@@ -622,6 +622,8 @@ Do \\[describe-key] on the following bindings to discover what they do.
   (setq-local indent-line-function #'sgml-indent-line)
   (setq-local comment-start "<!-- ")
   (setq-local comment-end " -->")
+  (setq-local block-comment-start "<!--")
+  (setq-local block-comment-end "-->")
   (setq-local comment-indent-function #'sgml-comment-indent)
   (setq-local comment-line-break-function #'sgml-comment-indent-new-line)
   (setq-local skeleton-further-elements '((completion-ignore-case t)))
