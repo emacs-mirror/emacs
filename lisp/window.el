@@ -6927,8 +6927,9 @@ WINDOW's buffer (although WINDOW may show BUFFER already).
 TYPE specifies the type of the calling operation and must be one
 of the symbols `reuse' (meaning that WINDOW exists already and
 will be used for displaying BUFFER), `window' (WINDOW was created
-on an already existing frame) or `frame' (WINDOW was created on a
-new frame).
+on an already existing frame), `frame' (WINDOW was created on a
+new frame) or `tab' (WINDOW is the selected window and BUFFER was
+created in a new tab).
 
 This function installs or updates the `quit-restore' parameter of
 WINDOW.  The `quit-restore' parameter is a list of four elements:
@@ -7675,7 +7676,8 @@ as compiled by `display-buffer'.
 TYPE must be one of the following symbols: `reuse' (which means
 WINDOW existed before the call of `display-buffer' and may
 already show BUFFER or not), `window' (WINDOW was created on an
-existing frame) or `frame' (WINDOW was created on a new frame).
+existing frame), `frame' (WINDOW was created on a new frame), or `tab'
+(WINDOW is the selected window and BUFFER was displayed in a new tab).
 TYPE is passed unaltered to `display-buffer-record-window'.
 
 Handle WINDOW's dedicated flag as follows: If WINDOW already
