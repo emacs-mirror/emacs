@@ -42,10 +42,116 @@
   (should (eq (length tab-bar-closed-tabs) 0)))
 
 (ert-deftest tab-bar-tests-close-other-tabs-default ()
-  (tab-bar-tests-close-other-tabs nil))
+  (tab-bar-tests-close-other-tabs nil)
+  ;; Clean up tabs afterwards
+  (tab-bar-tabs-set nil))
 
 (ert-deftest tab-bar-tests-close-other-tabs-with-arg ()
-  (dotimes (i 5) (tab-bar-tests-close-other-tabs i)))
+  (dotimes (i 5) (tab-bar-tests-close-other-tabs i))
+  ;; Clean up tabs afterwards
+  (tab-bar-tabs-set nil))
+
+(ert-deftest tab-bar-tests-quit-restore-window ()
+  (let* ((frame-params (when noninteractive
+                         '((window-system . nil)
+                           (tty-type . "linux"))))
+         (pop-up-frame-alist frame-params)
+         (frame-auto-hide-function 'delete-frame))
+
+    ;; 1.1. 'quit-restore-window' should delete the frame
+    ;; from initial window (bug#59862)
+    (progn
+      (should (eq (length (frame-list)) 1))
+      (other-frame-prefix)
+      (info)
+      (should (eq (length (frame-list)) 2))
+      (should (equal (buffer-name) "*info*"))
+      (view-echo-area-messages)
+      (other-window 1)
+      (should (eq (length (window-list)) 2))
+      (should (equal (buffer-name) "*Messages*"))
+      (quit-window)
+      (should (eq (length (window-list)) 1))
+      (should (equal (buffer-name) "*info*"))
+      (quit-window)
+      (should (eq (length (frame-list)) 1)))
+
+    ;; 1.2. 'quit-restore-window' should not delete the frame
+    ;; from non-initial window (bug#59862)
+    (progn
+      (should (eq (length (frame-list)) 1))
+      (other-frame-prefix)
+      (info)
+      (should (eq (length (frame-list)) 2))
+      (should (equal (buffer-name) "*info*"))
+      (view-echo-area-messages)
+      (should (eq (length (window-list)) 2))
+      (should (equal (buffer-name) "*info*"))
+      (quit-window)
+      (should (eq (length (window-list)) 1))
+      (should (eq (length (frame-list)) 2))
+      ;; FIXME: uncomment (should (equal (buffer-name) "*Messages*"))
+      (quit-window)
+      (should (eq (length (frame-list)) 2))
+      ;; Clean up the frame afterwards
+      (delete-frame))
+
+    ;; 2.1. 'quit-restore-window' should close the tab
+    ;; from initial window (bug#59862)
+    (progn
+      (should (eq (length (tab-bar-tabs)) 1))
+      (other-tab-prefix)
+      (info)
+      (should (eq (length (tab-bar-tabs)) 2))
+      (should (equal (buffer-name) "*info*"))
+      (view-echo-area-messages)
+      (other-window 1)
+      (should (eq (length (window-list)) 2))
+      (should (equal (buffer-name) "*Messages*"))
+      (quit-window)
+      (should (eq (length (window-list)) 1))
+      (should (equal (buffer-name) "*info*"))
+      (quit-window)
+      (should (eq (length (tab-bar-tabs)) 1)))
+
+    ;; 2.2. 'quit-restore-window' should not close the tab
+    ;; from non-initial window (bug#59862)
+    (progn
+      (should (eq (length (tab-bar-tabs)) 1))
+      (other-tab-prefix)
+      (info)
+      (should (eq (length (tab-bar-tabs)) 2))
+      (should (equal (buffer-name) "*info*"))
+      (view-echo-area-messages)
+      (should (eq (length (window-list)) 2))
+      (should (equal (buffer-name) "*info*"))
+      (quit-window)
+      (should (eq (length (window-list)) 1))
+      (should (eq (length (tab-bar-tabs)) 2))
+      (should (equal (buffer-name) "*Messages*"))
+      (quit-window)
+      (should (eq (length (tab-bar-tabs)) 2))
+      ;; Clean up the tab afterwards
+      (tab-close))
+
+    ;; 3. Don't delete the frame with dedicated window
+    ;; from the second tab (bug#71386)
+    (with-selected-frame (make-frame frame-params)
+      (switch-to-buffer (generate-new-buffer "test1"))
+      (tab-new)
+      (switch-to-buffer (generate-new-buffer "test2"))
+      (set-window-dedicated-p (selected-window) t)
+      (kill-buffer)
+      (should (eq (length (frame-list)) 2))
+      (should (eq (length (tab-bar-tabs)) 1))
+      ;; But now should delete the frame with dedicated window
+      ;; from the last tab
+      (set-window-dedicated-p (selected-window) t)
+      (kill-buffer)
+      (should (eq (length (frame-list)) 1)))
+
+    ;; Clean up tabs afterwards
+    (tab-bar-tabs-set nil)))
 
 (provide 'tab-bar-tests)
 ;;; tab-bar-tests.el ends here
