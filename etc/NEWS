@@ -1347,6 +1347,12 @@ mode.  Now, one needs to say '(midnight-mode +1)' instead.
 
 ** Python mode
 
+*** New repeat-map for Python indentation commands.
+The commands 'python-indent-shift-left' and 'python-indent-shift-right'
+can now be repeated using 'repeat-mode'.  With 'repeat-mode' enabled,
+after invoking one of these commands via 'C-c <' or 'C-c >', you can
+press '<' or '>' to repeat the command.
+
 ---
 *** Prefer "python" for 'python-interpreter' and 'python-shell-interpreter'.
 On recent versions of mainstream GNU/Linux distributions, "python"

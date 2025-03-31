@@ -373,6 +373,13 @@ effect."
   ;; Utilities
   "<remap> <complete-symbol>" #'completion-at-point)
 
+(defvar-keymap python-indent-repeat-map
+  :doc "Keymap to repeat Python indentation commands.
+Used in `repeat-mode'."
+  :repeat t
+  "<" #'python-indent-shift-left
+  ">" #'python-indent-shift-right)
+
 (defvar subword-mode nil)
 
 (easy-menu-define python-menu python-base-mode-map
