@@ -1636,12 +1636,16 @@ Both SETTINGS and NEW-SETTINGS must be a value suitable for
 Return a value suitable for `treesit-font-lock-settings'"
   (let ((result nil))
     (dolist (new-setting new-settings)
-      (let ((new-feature (treesit-font-lock-setting-feature new-setting)))
-	(dolist (setting settings)
-	  (let ((feature (treesit-font-lock-setting-feature setting)))
-	    (if (eq new-feature feature)
-		(push new-setting result)
-	      (push setting result))))))
+      (let ((new-feature (treesit-font-lock-setting-feature new-setting))
+            (new-lang (treesit-query-language
+                       (treesit-font-lock-setting-query new-setting))))
+        (dolist (setting settings)
+          (let ((feature (treesit-font-lock-setting-feature setting))
+                (lang (treesit-query-language
+                       (treesit-font-lock-setting-query setting))))
+            (if (and (eq new-lang lang) (eq new-feature feature))
+                (push new-setting result)
+              (push setting result))))))
     (nreverse result)))
 
 (defun treesit-add-font-lock-rules (rules &optional how feature)
@@ -1881,9 +1885,9 @@ If LOUDLY is non-nil, display some debugging information."
     ;; 1ms in xdisp.c, and 0.3ms in a small C file (for typing a single
     ;; character), not worth it.  --yuan
     (dolist (setting treesit-font-lock-settings)
-      (let* ((query (nth 0 setting))
-             (enable (nth 1 setting))
-             (override (nth 3 setting))
+      (let* ((query (treesit-font-lock-setting-query setting))
+             (enable (treesit-font-lock-setting-enable setting))
+             (override (treesit-font-lock-setting-override setting))
              (language (treesit-query-language query))
              (root-nodes (cl-remove-if-not
                           (lambda (node)

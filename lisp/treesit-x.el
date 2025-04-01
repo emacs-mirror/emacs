@@ -147,11 +147,15 @@ of `define-treesit-generic-mode'.
 
     (when-let* ((query (treesit-generic-mode-font-lock-query lang)))
       (setq-local treesit-font-lock-settings
-                  (treesit-font-lock-rules
-                   :language lang
-                   :feature 'highlights
-                   query))
-      (setq-local treesit-font-lock-feature-list '((highlights))))))
+                  (append treesit-font-lock-settings
+                          (treesit-font-lock-rules
+                           :language lang
+                           :feature 'highlights
+                           query)))
+      (setq-local treesit-font-lock-feature-list
+                  (treesit-merge-font-lock-feature-list
+                   treesit-font-lock-feature-list
+                   '((highlights)))))))
 
 ;;; Generic font-lock handling
 
@@ -201,6 +205,112 @@ of `define-treesit-generic-mode'.
   :name "Git-Attributes"
   (setq-local comment-start "# ")
   (setq-local comment-end ""))
+
+(define-treesit-generic-mode liquid-generic-ts-mode
+  "Tree-sitter generic mode for Liquid templates."
+  :lang 'liquid
+  :source "https://github.com/hankthetank27/tree-sitter-liquid"
+  :auto-mode "\\.liquid\\'"
+  :name "Liquid"
+  :parent mhtml-ts-mode
+
+  (setq-local treesit-range-settings
+              (append treesit-range-settings
+                      (treesit-range-rules
+                       :embed 'html
+                       :host 'liquid
+                       '(((template_content) @cap)))))
+
+  (setq-local treesit-thing-settings
+              (append treesit-thing-settings
+                      `((liquid (sexp (not ,(rx bos "program" eos)))
+                                (list ,(rx bos (or "range"
+                                                   "if_statement"
+                                                   "for_loop_statement"
+                                                   "case_statement"
+                                                   "unless_statement"
+                                                   "capture_statement"
+                                                   "form_statement"
+                                                   "tablerow_statement"
+                                                   "paginate_statement")
+                                           eos))))))
+
+  (setq-local treesit-aggregated-outline-predicate
+              (append treesit-aggregated-outline-predicate
+                      `((liquid . ,(rx bos (or "if_statement"
+                                               "for_loop_statement")
+                                       eos)))))
+
+  (when (treesit-ready-p 'yaml t)
+    (defvar yaml-ts-mode--font-lock-settings)
+    (require 'yaml-ts-mode)
+    (setq-local treesit-range-settings
+                (append treesit-range-settings
+                        (treesit-range-rules
+                         :embed 'yaml
+                         :host 'liquid
+                         :local t
+                         '(((front_matter) @cap)))))
+    (setq-local treesit-font-lock-settings
+                (append treesit-font-lock-settings
+                        yaml-ts-mode--font-lock-settings))))
+
+(defvar alpinejs-generic-ts-attr-regexp
+  (rx bos (or "x-" ":" "@"))
+  "Regexp for HTML attributes handled by Alpine.js")
+
+(defun alpinejs-generic-ts-attr-not-match (node)
+  (not (string-match-p alpinejs-generic-ts-attr-regexp
+                       (treesit-node-text node t))))
+
+(defun alpinejs-generic-ts-setup ()
+  "Tree-sitter generic setup for Alpine.js framework.
+It uses JavaScript highlighting inside a limited set of HTML attributes.
+Intended to be used in combination with such major modes as
+`mhtml-ts-mode' and `liquid-generic-ts-mode'.  For example:
+
+\(add-hook \\='mhtml-ts-mode-hook \\='alpinejs-generic-ts-setup)
+\(add-hook \\='liquid-generic-ts-mode-hook \\='alpinejs-generic-ts-setup)"
+
+  ;; Use JavaScript highlighting for Alpinejs HTML attributes
+  (setq-local treesit-range-settings
+              (append treesit-range-settings
+                      (treesit-range-rules
+                       :embed 'javascript
+                       :host 'html
+                       :local t
+                       `((attribute
+                          (attribute_name) @_name
+                          (:match ,alpinejs-generic-ts-attr-regexp @_name)
+                          (quoted_attribute_value
+                           (attribute_value) @cap))))))
+
+  ;; Highlight only non-Alpinejs HTML attributes
+  (setq-local treesit-font-lock-settings
+              (treesit-replace-font-lock-feature-settings
+               (treesit-font-lock-rules
+                :language 'html
+                :override t
+                :feature 'string
+                `((attribute
+                   (attribute_name) @_name
+                   (:pred alpinejs-generic-ts-attr-not-match @_name)
+                   (quoted_attribute_value) @font-lock-string-face)))
+               treesit-font-lock-settings))
+
+  ;; Highlight only quotes for Alpinejs HTML attributes
+  (setq-local treesit-font-lock-settings
+              (append treesit-font-lock-settings
+                      (treesit-font-lock-rules
+                       :language 'html
+                       :override t
+                       :feature 'string
+                       `((attribute
+                          (attribute_name) @_name
+                          (:match ,alpinejs-generic-ts-attr-regexp @_name)
+                          (quoted_attribute_value "\"" @font-lock-string-face))))))
+
+  (treesit-major-mode-setup))
 
 (provide 'treesit-x)
 
