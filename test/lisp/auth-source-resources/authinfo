@@ -1,2 +1,0 @@
-machine imap.example.org login jrh@example.org password "*foobar*"
-machine ftp.example.org login jrh password "*baz*"

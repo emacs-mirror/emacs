@@ -1,0 +1,44 @@
+("quicklisp" .
+ (:class qlot/source/dist:source-dist
+  :initargs (:distribution "https://beta.quicklisp.org/dist/quicklisp.txt" :%version :latest)
+  :version "2024-10-12"))
+("uiop" .
+ (:class qlot/source/ql:source-ql
+  :initargs (:%version :latest)
+  :version "ql-2024-10-12"))
+("micros" .
+ (:class qlot/source/git:source-git
+  :initargs (:remote-url "https://github.com/lem-project/micros.git")
+  :version "git-25177e04a946365397a0848a6545399860d310d0"))
+("lem-mailbox" .
+ (:class qlot/source/git:source-git
+  :initargs (:remote-url "https://github.com/lem-project/lem-mailbox.git")
+  :version "git-12d629541da440fadf771b0225a051ae65fa342a"))
+("async-process" .
+ (:class qlot/source/git:source-git
+  :initargs (:remote-url "https://github.com/lem-project/async-process.git")
+  :version "git-3b16b91d417530dac03559980fb5703206e20c55"))
+("sblint" .
+ (:class qlot/source/git:source-git
+  :initargs (:remote-url "https://github.com/cxxxr/sblint.git")
+  :version "git-1037296f604c3210ce073a53539d4ae95b0c2f8c"))
+("rove" .
+ (:class qlot/source/git:source-git
+  :initargs (:remote-url "https://github.com/fukamachi/rove.git")
+  :version "git-cacea7331c10fe9d8398d104b2dfd579bf7ea353"))
+("cl-sdl2" .
+ (:class qlot/source/git:source-git
+  :initargs (:remote-url "https://github.com/lem-project/cl-sdl2.git")
+  :version "git-24dd7f238f99065b0ae35266b71cce7783e89fa7"))
+("cl-sdl2-ttf" .
+ (:class qlot/source/git:source-git
+  :initargs (:remote-url "https://github.com/lem-project/cl-sdl2-ttf.git")
+  :version "git-f43344efe89cf9ce509e6ce4f7303ebb2ff14434"))
+("cl-sdl2-image" .
+ (:class qlot/source/git:source-git
+  :initargs (:remote-url "https://github.com/lem-project/cl-sdl2-image.git")
+  :version "git-8734b0e24de9ca390c9f763d9d7cd501546d17d4"))
+("jsonrpc" .
+ (:class qlot/source/git:source-git
+  :initargs (:remote-url "https://github.com/cxxxr/jsonrpc.git")
+  :version "git-2af1e0fad429ee8c706b86c4a853248cdd1be933"))

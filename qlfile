@@ -1,0 +1,10 @@
+ql uiop
+git micros https://github.com/lem-project/micros.git
+git lem-mailbox https://github.com/lem-project/lem-mailbox.git
+git async-process https://github.com/lem-project/async-process.git
+git sblint https://github.com/cxxxr/sblint.git
+git rove https://github.com/fukamachi/rove.git
+git cl-sdl2 https://github.com/lem-project/cl-sdl2.git
+git cl-sdl2-ttf https://github.com/lem-project/cl-sdl2-ttf.git
+git cl-sdl2-image https://github.com/lem-project/cl-sdl2-image.git
+git jsonrpc https://github.com/cxxxr/jsonrpc.git

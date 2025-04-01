@@ -1,0 +1,13 @@
+<html>
+  <script>
+    const ws = new WebSocket(#{ (princ $websocket-url) #});
+    ws.onmessage = function(event) {
+      console.log(event);
+      const html = event.data;
+      document.getElementById("main").innerHTML = html;
+    }
+  </script>
+  <body id="main">
+  #{ (princ $body) #}
+  </body>
+</html>

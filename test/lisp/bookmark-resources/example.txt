@@ -1,3 +1,0 @@
-This text file is used by bookmark-tests.el
-
-;; example.txt ends here.

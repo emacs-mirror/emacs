@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Lem
+Comment=Common Lisp editor/IDE with high expansibility
+Exec=/usr/local/bin/lem -i sdl2 %F
+MimeType=text/english;text/plain;text/x-makefile;text/x-c++hdr;text/x-c++src;application/x-shellscript;text/x-c;text/x-c++;
+Icon=lem
+Terminal=false
+Type=Application
+Categories=Development;TextEditor;

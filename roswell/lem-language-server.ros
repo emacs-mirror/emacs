@@ -1,0 +1,26 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#|
+exec ros +Q -- $0 "$@"
+|#
+(progn ;;init forms
+  (ros:ensure-asdf)
+  (uiop:with-current-directory ((asdf:system-source-directory :lem))
+    (setf (uiop:getenv "SBCL_HOME") "")
+    (uiop:run-program '("qlot" "install" "--no-deps")
+                      :output t
+                      :error-output t)
+    #+quicklisp
+    (setf ql:*quicklisp-home*
+          (merge-pathnames #P".qlot/"))
+    (load (merge-pathnames #P".qlot/setup.lisp")))
+  (uiop:symbol-call :ql :quickload '(:lem-language-server/cli) :silent t))
+
+(defpackage :ros.script.lem-language-server.3881471585
+  (:use :cl))
+(in-package :ros.script.lem-language-server.3881471585)
+
+(defun main (&rest args)
+  (lem-language-server/cli:main args))
+
+;;; vim: set ft=lisp lisp:

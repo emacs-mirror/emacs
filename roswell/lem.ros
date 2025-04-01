@@ -1,0 +1,40 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#|
+exec ros -Q -- $0 "$@"
+|#
+(progn ;;init forms
+  (ros:ensure-asdf)
+  #+quicklisp(ql:quickload '() :silent t)
+  )
+
+(defpackage :ros.script.lem.3864804718
+  (:use :cl))
+(in-package :ros.script.lem.3864804718)
+
+(defvar *default-frontend* "ncurses")
+
+(defun main (&rest argv)
+  (let ((cwd (uiop:getcwd))
+        (frontend (or (uiop:getenv "LEM_DEFAULT_FRONTEND") *default-frontend*)))
+    (loop with flag = t
+          do (cond ((find (first argv) '("--frontend" "-f") :test 'equal)
+                    (setf frontend (second argv)
+                          argv (cddr argv)))
+                   ((equal (first argv) "--")
+                    (setf argv (cdr argv)
+                          flag nil))
+                   (t (setf flag nil)))
+          while flag)
+    (let* ((name (format nil "lem-~A~A" frontend (or #+win32 ".exe" "")))
+           (local (merge-pathnames name cwd))
+           (cmd (roswell.util:which name)))
+      (cond
+        ((uiop:file-exists-p local)
+         (funcall 'roswell:exec (cons local argv)))
+        (cmd
+         (funcall 'roswell:exec (cons cmd argv)))
+        (t
+         (format t "unknown frontend: ~A~%" frontend)
+         1)))))
+;;; vim: set ft=lisp lisp:

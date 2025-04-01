@@ -1,0 +1,48 @@
+name: Generate document
+
+on:
+  push:
+    branches: [ 'main' ]
+  workflow_dispatch:
+    branches: [ '*' ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Roswell
+      env:
+        LISP: ${{ matrix.lisp }}
+      run: |
+        curl -L https://raw.githubusercontent.com/roswell/roswell/v22.12.14.113/scripts/install-for-ci.sh | sh
+    - name: Generate document and create pull request
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -ex
+
+        ros config set dynamic-space-size 2048
+        curl -L https://qlot.tech/installer | bash
+        export PATH="/home/runner/.qlot/bin:$PATH"
+        qlot install
+
+        document_file=docs/default-keybindings.md
+
+        qlot exec ros -s lem -s lem/extensions -e "(lem-documentation-mode:generate-markdown-file \"${document_file}\" :command)"
+
+        if [ -z "$(git diff ${document_file})" ]; then
+          exit 0
+        fi
+
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "github-actions[bot]"
+
+        branch_name="update-docs-$(date '+%Y%m%d-%H%M%S')"
+        git checkout -b $branch_name
+        git add ${document_file}
+        git commit -m "update ${document_file}"
+        git push origin $branch_name
+
+        gh pr create -B main -t "update ${document_file} $(date '+%Y%m%d-%H%M%S')" -b ''

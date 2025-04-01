@@ -1,0 +1,32 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#| lem launcher for SDL2 frontend
+exec ros +Q -m lem-sdl2 -L sbcl-bin -- $0 "$@"
+|#
+(progn
+  (ros:ensure-asdf)
+  (uiop:with-current-directory ((asdf:system-source-directory :lem))
+    (setf (uiop:getenv "SBCL_HOME") "")
+    (uiop:run-program '("qlot" "install" "--no-deps")
+                      :output t
+                      :error-output t)
+    #+quicklisp
+    (setf ql:*quicklisp-home*
+          (merge-pathnames #P".qlot/"))
+    (load (merge-pathnames #P".qlot/setup.lisp")))
+  (unless (find-package :lem)
+    (uiop:symbol-call :ql :quickload :lem-sdl2 :silent t)
+    (uiop:symbol-call :lem-core :load-site-init))
+  (when (find :roswell.dump.executable *features*)
+    (mapc (lambda (x)
+            (load x :verbose t))
+          (directory (merge-pathnames "scripts/build/*.lisp"
+                                      (asdf/system:system-source-directory :lem))))))
+
+(defpackage :ros.script.lem-sdl2.3891688398
+  (:use :cl))
+(in-package :ros.script.lem-sdl2.3891688398)
+
+(defun main (&rest argv)
+  (apply #'lem:lem argv))
+;;; vim: set ft=lisp lisp:

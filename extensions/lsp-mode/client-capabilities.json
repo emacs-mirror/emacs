@@ -1,0 +1,67 @@
+{
+  "workspace": {},
+  "textDocument": {
+    "synchronization": {
+      "didSave": true
+    },
+    "publishDiagnostics": {
+      "relatedInformation": true
+    },
+    "completion": {
+      "completionItem": {
+        "snippetSupport": false
+      },
+      "contextSupport": true
+    },
+    "hover": {},
+    "signatureHelp": {
+      "signatureInformation": {
+        "documentationFormat": [
+          "plaintext",
+          "markdown"
+        ],
+        "parameterInformation": {
+          "labelOffsetSupport": true
+        },
+        "activeParameterSupport": true
+      },
+      "contextSupport": true
+    },
+    "definition": {
+      "linkSupport": false
+    },
+    "typeDefinition": {
+      "linkSupport": false
+    },
+    "implementation": {
+      "linkSupport": false
+    },
+    "references": {},
+    "documentSymbol": {
+      "hierarchicalDocumentSymbolSupport": true
+    },
+    "codeAction": {
+      "isPreferredSupport": true,
+      "disabledSupport": true,
+      "codeActionLiteralSupport": {
+        "codeActionKind": {
+          "valueSet": [
+            "",
+            "quickfix",
+            "refactor",
+            "refactor.extract",
+            "refactor.inline",
+            "refactor.rewrite",
+            "source",
+            "source.organizeImports"
+          ]
+        }
+      },
+      "dynamicRegistration": false
+    },
+    "formatting": {},
+    "rangeFormatting": {},
+    "onTypeFormatting": {},
+    "rename": {}
+  }
+}

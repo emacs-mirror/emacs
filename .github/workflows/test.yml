@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: ["*"]
+  pull_request:
+    branches: ["*"]
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: lem
+  IMAGE_TAGS: latest ${{ github.sha }}
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  REGISTRY_USER: ${{ github.actor }}
+  REGISTRY_PASSWORD: ${{ github.token }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Roswell
+        env:
+          LISP: ${{ matrix.lisp }}
+        run: |
+          curl -L https://raw.githubusercontent.com/roswell/roswell/v22.12.14.113/scripts/install-for-ci.sh | sh
+      - name: Run test
+        run: |
+          set -ex
+
+          ros config set dynamic-space-size 2048
+          curl -L https://qlot.tech/installer | bash
+          export PATH="/home/runner/.qlot/bin:$PATH"
+
+          qlot install
+
+          make lint
+
+          if [ $(grep -r --include="*.lisp" 'lem::' | wc -l) -ne 0 ]; then
+            echo 'using `lem::` internal symbols'
+            echo 'https://google.github.io/styleguide/lispguide.xml?showone=Packages#Packages'
+            exit 1
+          fi
+
+            .qlot/bin/rove lem-tests.asd
+            .qlot/bin/rove extensions/vi-mode/lem-vi-mode.asd
+
+  push_image:
+    name: Push Image to GHCR
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v3
+      # Build image using Buildah action
+      - name: Build Image
+        uses: redhat-actions/buildah-build@v2
+        id: build_image
+        with:
+          containerfiles: ./Dockerfile
+          image: ${{ env.IMAGE_NAME }}
+          oci: true
+
+      # Push the image to GHCR (Image Registry)
+      - name: Push To GHCR
+        uses: redhat-actions/push-to-registry@v2
+        id: push
+        with:
+          image: ${{ steps.build_image.outputs.image }}
+          tags: ${{ steps.build_image.outputs.tags }}
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ env.REGISTRY_PASSWORD }}
+          extra-args: --disable-content-trust

@@ -1,0 +1,11 @@
+FROM alpine:3.17
+RUN apk add --no-cache alpine-sdk curl-dev libtool
+RUN cd /tmp \
+ && curl -O https://www.leonerd.org.uk/code/libvterm/libvterm-0.3.3.tar.gz \
+ && tar xf libvterm-0.3.3.tar.gz \
+ && cd /tmp/libvterm-0.3.3 \
+ && export CXXFLAGS="$CXXFLAGS -fPIC" \
+ && export CFLAGS="$CFLAGS -fPIC" make \
+ && make install clean \
+ && rm -rf /tmp/libvterm-0.3.3
+#docker build . -t libvterm && docker run -v $PWD:/build --rm libvterm /bin/ash -c "cd /build/;gcc terminal.c -Wl,-Bstatic -lvterm -Wl,-Bdynamic -o terminal.so -shared -fPIC"

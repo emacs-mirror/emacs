@@ -1,0 +1,328 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Swift",
+    "scopeName": "source.swift",
+    "patterns": [
+        {
+            "include": "#comment"
+        },
+        {
+            "include": "#constant"
+        },
+        {
+            "include": "#entity"
+        },
+        {
+            "include": "#invalid"
+        },
+        {
+            "include": "#keyword"
+        },
+        {
+            "include": "#meta"
+        },
+        {
+            "include": "#operator"
+        },
+        {
+            "include": "#punctuation"
+        },
+        {
+            "include": "#storage"
+        },
+        {
+            "include": "#string"
+        },
+        {
+            "include": "#support"
+        },
+        {
+            "include": "#type"
+        },
+        {
+            "include": "#variable"
+        }
+    ],
+    "repository": {
+        "comment": {
+            "patterns": [
+                {
+                    "name": "comment.block.swift",
+                    "begin": "/\\*",
+                    "end": "\\*/",
+                    "captures": {
+                        "0": {
+                            "name": "punctuation.definition.comment.swift"
+                        }
+                    }
+                },
+                {
+                    "name": "comment.line.double-slash.swift",
+                    "begin": "//",
+                    "end": "$",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "punctuation.definition.comment.swift"
+                        }
+                    }
+                }
+            ]
+        },
+        "constant": {
+            "patterns": [
+                {
+                    "name": "constant.language.swift",
+                    "match": "\\b(true|false|nil|none)\\b"
+                },
+                {
+                    "name": "constant.numeric.swift",
+                    "match": "(?x)(0b[0-1]+)|(0x[0-9a-fA-F]+)|(0o[0-7]+)|([+-]?([0-9]*[.])?[0-9]+)"
+                },
+                {
+                    "name": "constant.character.escape.swift",
+                    "match": "\\\\[0\\\\tnr\"']"
+                },
+                {
+                    "name": "constant.character.escape.swift",
+                    "match": "\\\\(x\\h{2}|u\\h{4}|U\\h{8})"
+                }
+            ]
+        },
+        "entity": {
+            "patterns": [
+                {
+                    "match": "([a-zA-Z!][a-zA-Z_]+)(?=[(])",
+                    "name": "entity.name.function.swift"
+                },
+                {
+                    "match": "(?<=protocol\\s)([a-zA-Z][a-zA-Z_]+)",
+                    "captures": {
+                        "1": {
+                            "name": "entity.name.function.protocol.swift"
+                        }
+                    }
+                },
+                {
+                    "match": "(?<=extension\\s)([a-zA-Z][a-zA-Z_]+)",
+                    "captures": {
+                        "1": {
+                            "name": "entity.name.function.extension.swift"
+                        }
+                    }
+                },
+                {
+                    "match": "(?<=enum\\s)([a-zA-Z][a-zA-Z_]+)",
+                    "captures": {
+                        "1": {
+                            "name": "entity.name.type.enum.swift"
+                        }
+                    }
+                },
+                {
+                    "match": "(?<=class\\s)([a-zA-Z][a-zA-Z_]+)",
+                    "captures": {
+                        "1": {
+                            "name": "entity.name.class.swift"
+                        }
+                    }
+                },
+                {
+                    "match": "(?<=import\\s)([a-zA-Z][a-zA-Z_]+)",
+                    "captures": {
+                        "1": {
+                            "name": "entity.name.type.module.swift"
+                        }
+                    }
+                },
+                {
+                    "match": "(?<=struct\\s)([a-zA-Z][a-zA-Z_]+)",
+                    "captures": {
+                        "1": {
+                            "name": "entity.name.type.struct.swift"
+                        }
+                    }
+                },
+                {
+                    "match": "\\b(func)\\s+([^\\t\\n\\x20\\x28]+)",
+                    "captures": {
+                        "1": {
+                            "name": "storage.type.function.swift"
+                        },
+                        "2": {
+                            "name": "entity.name.function.swift"
+                        }
+                    }
+                }
+            ]
+        },
+        "invalid": {
+            "patterns": []
+        },
+        "keyword": {
+            "patterns": [
+                {
+                    "name": "keyword.statement.swift",
+                    "match": "\\b(break|case|continue|catch|do|default|defer|else|fallthrough|for|guard|if|in|repeat|return|switch|try|where|while)\\b"
+                },
+                {
+                    "name": "keyword.declaration.swift",
+                    "match": "\\b(deinit|import|init|subscript)\\b"
+                },
+                {
+                    "name": "keyword.other.placeholder.swift",
+                    "match": "\\b(_)\\b"
+                },
+                {
+                    "name": "variable.language.swift",
+                    "match": "\\b(new|super)\\b"
+                },
+                {
+                    "name": "keyword.reserved.swift",
+                    "match": "\\b(associativity|didSet|get|infix|inout|left|mutating|nonmutating|operator|override|postfix|precedence|prefix|right|set|unowned|unowned(safe)|unowned(unsafe)|weak|willSet)\\b"
+                }
+            ]
+        },
+        "meta": {
+            "patterns": []
+        },
+        "operator": {
+            "patterns": [
+                {
+                    "name": "keyword.operator.swift",
+                    "match": "\\B[\\/=\\-+!*%<>&|^~\\?:]\\B"
+                },
+                {
+                    "name": "keyword.operator.access.swift",
+                    "match": "[.](?!\\d)"
+                }
+            ]
+        },
+        "punctuation": {
+            "patterns": [
+                {
+                    "name": "punctuation.other.comma.swift",
+                    "match": ","
+                },
+                {
+                    "name": "punctuation.other.paren.swift",
+                    "match": "[)(]"
+                }
+            ]
+        },
+        "storage": {
+            "patterns": [
+                {
+                    "name": "storage.modifier.swift",
+                    "match": "\\b(final|internal|private|fileprivate|public|open|override|static|required|convenience)\\b"
+                },
+                {
+                    "name": "storage.type.swift",
+                    "match": "\\b(class|enum|extension|protocol|precedencegroup|struct|typealias)\\b"
+                },
+                {
+                    "name": "storage.type.swift",
+                    "match": "\\b(typealias|precedencegroup)\\b"
+                }
+            ]
+        },
+        "escaped-char": {
+            "patterns": [
+                {
+                    "name": "constant.character.escape.swift",
+                    "match": "\\\\[0\\\\tnr\"']"
+                },
+                {
+                    "name": "constant.character.escape.swift",
+                    "match": "\\\\(x\\h{2}|u\\h{4}|U\\h{8})"
+                },
+                {
+                    "name": "invalid.illegal.constant.character.escape.swift",
+                    "match": "\\\\[^uxU]"
+                }
+            ]
+        },
+        "string": {
+            "patterns": [
+                {
+                    "name": "string.quoted.single.swift",
+                    "begin": "'",
+                    "end": "'"
+                },
+                {
+                    "name": "string.quoted.double.swift",
+                    "begin": "\"",
+                    "end": "\"",
+                    "patterns": [
+                        {
+                            "begin": "\\\\\\(",
+                            "end": "\\)",
+                            "beginCaptures": {
+                                "0": {
+                                    "name": "punctuation.section.embedded.begin.swift"
+                                }
+                            },
+                            "endCaptures": {
+                                "0": {
+                                    "name": "punctuation.section.embedded.end.swift"
+                                }
+                            },
+                            "patterns": [
+                                {
+                                    "name": "meta.embedded.line.swift",
+                                    "match": "."
+                                }
+                            ]
+                        },
+                        {
+                            "include": "#escaped-char"
+                        }
+                    ]
+                }
+            ]
+        },
+        "support": {
+            "patterns": []
+        },
+        "type": {
+            "patterns": [
+                {
+                    "match": "(?<=->\\s)([a-zA-Z][a-zA-Z_?]+)",
+                    "captures": {
+                        "1": {
+                            "name": "entity.name.type.return_type.swift"
+                        }
+                    }
+                },
+                {
+                    "name": "support.type.swift",
+                    "match": "(?x) \\b(Character|U?Int|U?Int(8|16|32|64) |Float|Double|Float(32|64)|Bool|String|Date|Data|URL |(double|float)[234]|(double|float)[234]x[234] |Any |AnyObject |Error |Equatable |Hashable |Comparable |CustomDebugStringConvertible |CustomStringConvertible |OptionSet |ManagedBuffer |ManagedBufferPointer |BitwiseOperations |CountedSet |Counter |Directions |ExpressibleByArrayLiteral |ExpressibleByBooleanLiteral |ExpressibleByDictionaryLiteral |ExpressibleByExtendedGraphemeClusterLiteral |ExpressibleByFloatLitera |ExpressibleByIntegerLiteral |ExpressibleByNilLiteral |ExpressibleByStringInterpolation |ExpressibleByStringLiteral |ExpressibleByUnicodeScalarLiteral |OrderedSet |PaperSize |RawRepresentable |(UI|NS|CF|CG)[A-Z][a-zA-Z0-9]+ |Stream |(In|Out)putStream |FileManager |Array |Unsafe[a-zA-Z]*Pointer |Bundle |Jex)\\b[?]?"
+                }
+            ]
+        },
+        "variable": {
+            "patterns": [
+                {
+                    "match": "\\b(self)\\b",
+                    "name": "variable.language.self.swift"
+                },
+                {
+                    "match": "\\b(let|var)\\s([a-zA-Z0-9]+)(:?)\\s([a-zA-Z0-9]+)?",
+                    "captures": {
+                        "1": {
+                            "name": "storage.type.swift"
+                        },
+                        "2": {
+                            "name": "variable.other.swift"
+                        },
+                        "3": {
+                            "name": "punctuation.definition.type.swift"
+                        },
+                        "4": {
+                            "name": "entity.name.type.swift"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

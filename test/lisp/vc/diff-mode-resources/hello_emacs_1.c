@@ -1,1 +1,0 @@
-int main() { printf("Hello, Emacs!\n"); return 0; }

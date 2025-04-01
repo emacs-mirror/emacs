@@ -1,0 +1,43 @@
+name: Build terminal.so
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install Homebrew
+      run: |
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+    - name: Install vterm
+      run: brew install libvterm
+
+    - name: compile
+      run: |
+        cd extensions/terminal
+        gcc terminal.c -I/opt/homebrew/include -L/opt/homebrew/lib -lvterm -o terminal.so -shared -fPIC
+        mv terminal.so lib/macosx/arm64/terminal.so
+
+    - name: Commit and push changes
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add .
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v6  
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: Add terminal.so
+        branch: update-terminal-so-macosx-arm64
+        title: Add terminal.so file
+        body: Update terminal.so on macosx/arm64
