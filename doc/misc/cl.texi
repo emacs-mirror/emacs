@@ -4066,17 +4066,17 @@ A documentation string describing the slot.
 
 Other slot options are currently ignored.
 
-@defmac cl-with-accessors name bindings body@dot{}
+@defmac cl-with-accessors name bindings body@dots{}
 You can use @code{cl-with-accessors} to lexically define symbols as
 expressions calling the given accessor functions on a single instance of
 a structure or class defined by @code{cl-defstruct} or @code{defclass}
-(@pxref{eieio}).  This can simplify code that repeatedly accesses slots.
-With it, you can use @code{setf} and @code{setq} on the symbols like
-normal variables, modifying the values in the structure.  Unlike the
-macro @code{with-slots} (@pxref{Accessing Slots,,,eieio,EIEIO}), because
-the symbol expands to a function call, @code{cl-with-accessors} can be
-used with any generalized variable that can take a single argument, such
-as @code{cl-first} and @code{cl-rest}.
+(@pxref{Building Classes,,,eieio,EIEIO}).  This can simplify code that
+repeatedly accesses slots.  With it, you can use @code{setf} and
+@code{setq} on the symbols like normal variables, modifying the values
+in the structure.  Unlike the macro @code{with-slots} (@pxref{Accessing
+Slots,,,eieio,EIEIO}), because the symbol expands to a function call,
+@code{cl-with-accessors} can be used with any generalized variable that
+can take a single argument, such as @code{cl-first} and @code{cl-rest}.
 @end defmac
 
 @example
