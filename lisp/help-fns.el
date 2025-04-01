@@ -1455,7 +1455,7 @@ it is displayed along with the global value."
 		  (let* ((sv (get variable 'standard-value))
 			 (origval (and (consp sv)
 				       (condition-case nil
-					   (eval (car sv) t)
+					   (custom--standard-value variable)
 					 (error :help-eval-error))))
                          from)
 		    (when (and (consp sv)

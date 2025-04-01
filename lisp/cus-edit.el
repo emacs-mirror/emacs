@@ -448,11 +448,13 @@
 
 (defvar custom-field-keymap
   (let ((map (copy-keymap widget-field-keymap)))
-    (define-key map "\C-c\C-c" 'Custom-set)
-    (define-key map "\C-x\C-s" 'Custom-save)
+    (define-key map "\C-c\C-c" #'Custom-set)
+    (define-key map "\C-x\C-s" #'Custom-save)
     map)
   "Keymap used inside editable fields in customization buffers.")
 
+;; FIXME: Doesn't this affect all `editable-field's ever?  Why not set
+;; the right keymap right away when we (define-widget 'editable-field ...)?
 (widget-put (get 'editable-field 'widget-type) :keymap custom-field-keymap)
 
 ;;; Utilities.
@@ -3004,7 +3006,7 @@ Possible return values are `standard', `saved', `set', `themed',
 		   (and (equal value (eval (car tmp)))
 			(equal comment temp))
 		 (error nil))
-               (if (equal value (eval (car (get symbol 'standard-value))))
+               (if (custom--standard-value-p symbol value)
                    'standard
 	         'set)
 	     'changed))
@@ -3348,8 +3350,8 @@ If `custom-reset-standard-variables-list' is nil, save, reset and
 redraw the widget immediately."
   (let* ((symbol (widget-value widget)))
     (if (get symbol 'standard-value)
-	(unless (equal (custom-variable-current-value widget)
-                       (eval (car (get symbol 'standard-value))))
+	(unless (custom--standard-value-p
+                 symbol (custom-variable-current-value widget))
           (custom-variable-backup-value widget))
       (user-error "No standard setting known for %S" symbol))
     (put symbol 'variable-comment nil)
@@ -5176,7 +5178,7 @@ This function does not save the buffer."
 (defun custom-save-faces ()
   "Save all customized faces in `custom-file'."
   (save-excursion
-    (custom-save-delete 'custom-reset-faces)
+    (custom-save-delete 'custom-reset-faces) ;FIXME: Never written!?
     (custom-save-delete 'custom-set-faces)
     (let ((standard-output (current-buffer))
 	  (saved-list (make-list 1 0)))
@@ -5336,9 +5338,9 @@ The format is suitable for use with `easy-menu-define'."
 
 (defvar tool-bar-map)
 
-;;; `custom-tool-bar-map' used to be set up here.  This will fail to
-;;; DTRT when `display-graphic-p' returns nil during compilation.  Hence
-;;; we set this up lazily in `Custom-mode'.
+;; `custom-tool-bar-map' used to be set up here.  This will fail to
+;; DTRT when `display-graphic-p' returns nil during compilation.  Hence
+;; we set this up lazily in `Custom-mode'.
 (defvar custom-tool-bar-map nil
   "Keymap for toolbar in Custom mode.")
 
@@ -5464,7 +5466,7 @@ if that value is non-nil."
   (make-local-variable 'custom-options)
   (make-local-variable 'custom-local-buffer)
   (custom--initialize-widget-variables)
-  (add-hook 'widget-edit-functions 'custom-state-buffer-message nil t))
+  (add-hook 'widget-edit-functions #'custom-state-buffer-message nil t))
 
 (defun custom--revert-buffer (_ignore-auto _noconfirm)
   (unless custom--invocation-options
