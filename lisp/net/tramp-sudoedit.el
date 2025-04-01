@@ -479,11 +479,11 @@ the result will be a local, non-Tramp, file name."
     (with-tramp-file-property v localname "file-executable-p"
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
-      (if (tramp-use-file-attributes v)
-	  (or (tramp-check-cached-permissions v ?x)
-	      (tramp-check-cached-permissions v ?s))
-	(tramp-sudoedit-send-command
-	 v "test" "-x" (file-name-unquote localname))))))
+      (or (tramp-check-cached-permissions v ?x)
+	  (tramp-check-cached-permissions v ?s)
+	  (tramp-check-cached-permissions v ?t)
+          (tramp-sudoedit-send-command
+	   v "test" "-x" (file-name-unquote localname))))))
 
 (defun tramp-sudoedit-handle-file-exists-p (filename)
   "Like `file-exists-p' for Tramp files."
@@ -519,10 +519,9 @@ the result will be a local, non-Tramp, file name."
     (with-tramp-file-property v localname "file-readable-p"
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
-      (if (tramp-use-file-attributes v)
-	  (tramp-handle-file-readable-p filename)
-	(tramp-sudoedit-send-command
-	 v "test" "-r" (file-name-unquote localname))))))
+      (or (tramp-handle-file-readable-p filename)
+	  (tramp-sudoedit-send-command
+	   v "test" "-r" (file-name-unquote localname))))))
 
 (defun tramp-sudoedit-handle-set-file-modes (filename mode &optional flag)
   "Like `set-file-modes' for Tramp files."
@@ -604,10 +603,9 @@ the result will be a local, non-Tramp, file name."
       (if (file-exists-p filename)
 	  ;; Examine `file-attributes' cache to see if request can be
 	  ;; satisfied without remote operation.
-	  (if (tramp-use-file-attributes v)
-	      (tramp-check-cached-permissions v ?w)
-	    (tramp-sudoedit-send-command
-	     v "test" "-w" (file-name-unquote localname)))
+	  (or (tramp-check-cached-permissions v ?w)
+	      (tramp-sudoedit-send-command
+	       v "test" "-w" (file-name-unquote localname)))
 	;; If file doesn't exist, check if directory is writable.
 	(and
 	 (file-directory-p (file-name-directory filename))
