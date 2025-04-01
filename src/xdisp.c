@@ -35864,6 +35864,15 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 #ifdef HAVE_WINDOW_SYSTEM
   if (IMAGEP (object))
     {
+      if (glyph != NULL && glyph->type == IMAGE_GLYPH)
+	{
+	  struct image *img = IMAGE_OPT_FROM_ID (f, glyph->u.img_id);
+	  if (img != NULL && IMAGEP (img->spec))
+	    {
+	      dx += glyph->slice.img.x;
+	      dy += glyph->slice.img.y;
+	    }
+	}
       Lisp_Object image_map, hotspot;
       if ((image_map = plist_get (XCDR (object), QCmap),
 	   !NILP (image_map))
