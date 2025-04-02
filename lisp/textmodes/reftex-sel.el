@@ -234,7 +234,7 @@ During a selection process, these are the local bindings.
             reftex-active-toc nil
             master-dir-re
             (concat "\\`" (regexp-quote
-                           (file-name-directory (reftex-TeX-master-file))))))
+                           (reftex--get-directory (reftex-TeX-master-file))))))
 
     (setq-local reftex-docstruct-symbol docstruct-symbol)
     (setq-local reftex-prefix

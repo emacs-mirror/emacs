@@ -76,7 +76,8 @@ The expanded value is cached."
   "Test if BibTeX or \\begin{thebibliography} should be used for the citation.
 Find the bof of the current file."
   (let* ((docstruct (symbol-value reftex-docstruct-symbol))
-         (rest (or (member (list 'bof (buffer-file-name)) docstruct)
+         (rest (or (member (list 'bof (reftex--get-buffer-identifier))
+                           docstruct)
                    docstruct))
          (bib (assq 'bib rest))
          (thebib (assq 'thebib rest))
@@ -104,11 +105,11 @@ Then this function will return the applicable database files."
   (or
    ;; Try inside this file (and its includes)
    (cdr (reftex-last-assoc-before-elt
-         'bib (list 'eof (buffer-file-name))
-         (member (list 'bof (buffer-file-name))
+         'bib (list 'eof (reftex--get-buffer-identifier))
+         (member (list 'bof (reftex--get-buffer-identifier))
                  (symbol-value reftex-docstruct-symbol))))
    ;; Try after the beginning of this file
-   (cdr (assq 'bib (member (list 'bof (buffer-file-name))
+   (cdr (assq 'bib (member (list 'bof (reftex--get-buffer-identifier))
                            (symbol-value reftex-docstruct-symbol))))
    ;; Anywhere in the entire document
    (cdr (assq 'bib (symbol-value reftex-docstruct-symbol)))

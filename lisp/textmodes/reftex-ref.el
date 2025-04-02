@@ -73,8 +73,10 @@ If optional BOUND is an integer, limit backward searches to that point."
          (file    (nth 3 cell))
          (comment (nth 4 cell))
          (note    (nth 5 cell))
-         (buf (reftex-get-file-buffer-force
-               file (not (eq t reftex-keep-temporary-buffers)))))
+         (buf (if (bufferp file)
+                  file
+                (reftex-get-file-buffer-force
+                 file (not (eq t reftex-keep-temporary-buffers))))))
     (if (not buf)
         (list label typekey "" file comment "LOST LABEL.  RESCAN TO FIX.")
       (with-current-buffer buf
@@ -102,7 +104,7 @@ If optional BOUND is an integer, limit backward searches to that point."
   (let* ((prefix (if (string-match "^[a-zA-Z0-9]+:" label)
                      (match-string 0 label)))
          (typekey (cdr (assoc prefix reftex-prefix-to-typekey-alist)))
-         (file (or file (buffer-file-name)))
+         (file (or file (reftex--get-buffer-identifier)))
          (trust reftex-trust-label-prefix)
          (in-comment (reftex-in-comment)))
     (if (and typekey
@@ -249,7 +251,7 @@ This function is controlled by the settings of reftex-insert-label-flags."
              (note (if (cdr here-I-am-info)
                        ""
                      "POSITION UNCERTAIN.  RESCAN TO FIX."))
-             (file (buffer-file-name))
+             (file (reftex--get-buffer-identifier))
              ;; (text nil)
              (tail (memq here-I-am (symbol-value reftex-docstruct-symbol))))
 
@@ -314,19 +316,21 @@ also applies `reftex-translate-to-ascii-function' to the string."
               (save-match-data
                 (cond
                  ((equal letter "f")
-                  (file-name-base (buffer-file-name)))
+                  (file-name-base (reftex--get-buffer-identifier)))
                  ((equal letter "F")
-                  (let ((masterdir (file-name-directory (reftex-TeX-master-file)))
-                        (file (file-name-sans-extension (buffer-file-name))))
+                  (let ((masterdir (reftex--get-directory
+                                    (reftex-TeX-master-file)))
+                        (file (file-name-sans-extension
+                               (reftex--get-buffer-identifier))))
                     (if (string-match (concat "\\`" (regexp-quote masterdir))
                                       file)
                         (substring file (length masterdir))
                       file)))
                  ((equal letter "m")
-                  (file-name-base (reftex-TeX-master-file)))
+                  (reftex--get-basename (reftex-TeX-master-file)))
                  ((equal letter "M")
                   (file-name-nondirectory
-                   (substring (file-name-directory (reftex-TeX-master-file))
+                   (substring (reftex--get-directory (reftex-TeX-master-file))
                               0 -1)))
                  ((equal letter "u")
                   (or (user-login-name) ""))
@@ -536,7 +540,8 @@ When called with 2 \\[universal-argument] prefix args, disable magic word recogn
   ;; Offer a menu with the appropriate labels.
   (let* ((buf (current-buffer))
          (xr-data (assq 'xr (symbol-value reftex-docstruct-symbol)))
-         (xr-alist (cons (cons "" (buffer-file-name)) (nth 1 xr-data)))
+         (xr-alist (cons (cons "" (reftex--get-buffer-identifier))
+                         (nth 1 xr-data)))
          (xr-index 0)
          (here-I-am (car (reftex-where-am-I)))
          (here-I-am1 here-I-am)

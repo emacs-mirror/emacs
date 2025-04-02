@@ -475,7 +475,7 @@ With prefix 3, restrict index to region."
          (docstruct-symbol reftex-docstruct-symbol)
          (index-tag (or tag (reftex-index-select-tag)))
          (master (reftex-TeX-master-file))
-         (calling-file (buffer-file-name))
+         (calling-file (reftex--get-buffer-identifier))
          (restriction
           (or overriding-restriction
               (and (not redo)
@@ -531,7 +531,7 @@ Restriction: <%s>
 SPC=view TAB=goto RET=goto+hide [e]dit [q]uit [r]escan [f]ollow [?]Help
 ------------------------------------------------------------------------------
 "
-               index-tag (abbreviate-file-name master)
+               index-tag (reftex--abbreviate-name master)
                (if (eq (car (car reftex-index-restriction-data)) 'toc)
                    (nth 2 (car reftex-index-restriction-data))
                  reftex-index-restriction-indicator)))
@@ -1107,7 +1107,8 @@ values are accessible individually."
       (when (and (re-search-forward (reftex-everything-regexp) nil t)
                  (match-end 10)
                  (< (abs (- (match-beginning 10) beg)) (length new))
-                 (setq info (reftex-index-info-safe buffer-file-name)))
+                 (setq info (reftex-index-info-safe
+                             (reftex--get-buffer-identifier))))
         (setcdr data (cdr info))))
     (let ((buffer-read-only nil))
       (save-excursion
@@ -1281,14 +1282,16 @@ You get a chance to edit the entry in the phrases buffer - finish with
   (interactive)
   (reftex-access-scan-info)
   (set-marker reftex-index-return-marker (point))
-  (let* ((master (reftex-TeX-master-file))
-         (name (concat (file-name-sans-extension master)
-                       reftex-index-phrase-file-extension)))
-    (find-file name)
-    (unless (eq major-mode 'reftex-index-phrases-mode)
-      (reftex-index-phrases-mode))
-    (if (= (buffer-size) 0)
-        (reftex-index-initialize-phrases-buffer master))))
+  (let ((master (reftex-TeX-master-file)))
+    (when (bufferp master)
+      (user-error "RefTeX phrases buffer requires a file buffer"))
+    (let ((name (concat (file-name-sans-extension master)
+                        reftex-index-phrase-file-extension)))
+      (find-file name)
+      (unless (eq major-mode 'reftex-index-phrases-mode)
+        (reftex-index-phrases-mode))
+      (if (= (buffer-size) 0)
+          (reftex-index-initialize-phrases-buffer master)))))
 
 (defun reftex-index-initialize-phrases-buffer (&optional master)
   "Initialize the phrases buffer by creating the header.
