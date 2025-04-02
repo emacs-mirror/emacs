@@ -55,8 +55,8 @@
  <developer_name>Free Software Foundation</developer_name>
  <screenshots>
   <screenshot type="default">
-    <image type="source" width="632" height="354">https://www.gnu.org/software/emacs/images/appdata-26.png</image>
-    <caption>Editing a Lisp program whilst viewing the Emacs manual.</caption>
+    <image type="source" width="1024" height="576">https://www.gnu.org/software/emacs/images/appdata-26.png</image>
+    <caption>Editing a Lisp program, whilst viewing the manual</caption>
   </screenshot>
  </screenshots>
  <update_contact>emacs-devel_AT_gnu.org</update_contact>
