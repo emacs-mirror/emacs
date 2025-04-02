@@ -13674,6 +13674,9 @@ static Lisp_Object mode_line_proptrans_alist;
 /* List of strings making up the mode-line.  */
 static Lisp_Object mode_line_string_list;
 
+/* Element number for the stored mode line string. */
+static ptrdiff_t mode_line_elt_no;
+
 /* Base face property when building propertized mode line string.  */
 static Lisp_Object mode_line_string_face;
 static Lisp_Object mode_line_string_face_prop;
@@ -27766,57 +27769,94 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 	{
 	  /* The window is wide enough; just display the mode line we
 	     just computed. */
-	  display_string (NULL, mode_string, Qnil,
-			  0, 0, &it, 0, 0, 0,
-			  STRING_MULTIBYTE (mode_string));
+	  Lisp_Object start = make_fixnum (0), end;
+	  Lisp_Object elt;
+
+	  /* Display the mode line string one element by one element.
+	     This is to make the ranges of mouse highlighting
+	     correct. */
+	  do
+	    {
+	      end = Fnext_single_property_change (start, Qmode_line_elt_no,
+						  mode_string, Qnil);
+	      elt = Fsubstring (mode_string, start, end);
+	      display_string (NULL, elt, Qnil, 0, 0, &it, 0, 0, 0,
+			      STRING_MULTIBYTE (elt));
+	      start = end;
+	    }
+	  while (!NILP (end));
 	}
       else
 	{
 	  /* Compress the mode line. */
-	  ptrdiff_t i = 0, i_byte = 0, start = 0;
+	  ptrdiff_t i = 0, i_byte = 0;
 	  int prev = 0;
+	  Lisp_Object start = make_fixnum (0), end;
+	  Lisp_Object elt = empty_unibyte_string;
 
-	  while (i < SCHARS (mode_string))
+	  /* Display the mode line string one element by one element.
+	     This is to make the ranges of mouse highlighting
+	     correct. */
+	  do
 	    {
-	      int c = fetch_string_char_advance (mode_string, &i, &i_byte);
-	      if (c == ' ' && prev == ' ')
+	      end = Fnext_single_property_change (start,
+						  Qmode_line_elt_no,
+						  mode_string,
+						  make_fixnum (SCHARS (mode_string)));
+	      while (i < XFIXNUM (end))
 		{
-		  Lisp_Object prev_pos = make_fixnum (i - 1);
-
-		  /* SPC characters with 'display' properties are not
-                     really "empty", since they have non-trivial visual
-                     effects on the mode line.  */
-		  if (NILP (Fget_text_property (prev_pos, Qdisplay,
-						mode_string)))
+		  int c = fetch_string_char_advance (mode_string, &i, &i_byte);
+		  if (c == ' ' && prev == ' ')
 		    {
-		      display_string (NULL,
-				      Fsubstring (mode_string,
-						  make_fixnum (start),
-						  prev_pos),
-				      Qnil, 0, 0, &it, 0, 0, 0,
-				      STRING_MULTIBYTE (mode_string));
-		      /* Skip past the rest of the space characters. */
-		      while (c == ' ' && i < SCHARS (mode_string)
-			     && NILP (Fget_text_property (make_fixnum (i),
-							  Qdisplay,
-							  mode_string)))
-			{
-			  c = fetch_string_char_advance (mode_string,
-							 &i, &i_byte);
-			}
-		      start = i - 1;
-		    }
-		}
-	      prev = c;
-	    }
+		      Lisp_Object prev_pos = make_fixnum (i - 1);
+		      Lisp_Object display = Fget_text_property (prev_pos,
+								Qdisplay,
+								mode_string);
 
-	  /* Display the final bit. */
-	  if (start < i)
-	    display_string (NULL,
-			    Fsubstring (mode_string, make_fixnum (start),
-					make_fixnum (i)),
-			    Qnil, 0, 0, &it, 0, 0, 0,
-			    STRING_MULTIBYTE (mode_string));
+		      /* SPC characters with 'display' properties are not
+			 really "empty", since they have non-trivial visual
+			 effects on the mode line.  */
+		      if (NILP (display))
+			{
+			  elt = concat2 (elt, Fsubstring (mode_string,
+							  start,
+							  prev_pos));
+
+			  /* Skip past the rest of the space characters. */
+			  Lisp_Object display = Fget_text_property (make_fixnum (i),
+								    Qdisplay,
+								    mode_string);
+			  while (c == ' ' && i < XFIXNUM (end)
+				 && NILP (display))
+			    {
+			      c = fetch_string_char_advance (mode_string,
+							     &i, &i_byte);
+			      display = Fget_text_property (make_fixnum (i),
+							    Qdisplay,
+							    mode_string);
+			    }
+
+			  /* Skip the final space no matter how the loop
+			     above ends. */
+			  if (c == ' ' && NILP (display))
+			    start = end;
+			  else
+			    start = make_fixnum (i - 1);
+			}
+		    }
+		  prev = c;
+		}
+
+	      /* Append the final bit. */
+	      if (XFIXNUM (start) < XFIXNUM (end))
+		elt = concat2 (elt, Fsubstring (mode_string, start, end));
+
+	      display_string (NULL, elt, Qnil, 0, 0, &it, 0, 0, 0,
+			      STRING_MULTIBYTE (elt));
+	      elt = empty_unibyte_string;
+	      start = end;
+	    }
+	  while (XFIXNUM (end) < SCHARS (mode_string));
 	}
     }
   pop_kboard ();
@@ -27938,6 +27978,20 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
   if (depth > 100)
     elt = build_string ("*too-deep*");
 
+  /* NOTE: Increment the number only for 'MODE_LINE_STRING', because for
+     other cases this variable is not used.  So we do not need to reset
+     the variable in every callers of this function.
+
+     NOTE: This might result in gaps in the stored element numbers
+     because some elements are processed recursively.  However, we
+     cannot increment this number when the number is stored because an
+     element could be stored by parts.  For example, "a%b" is stored as
+     two elements in the 'mode_line_string_list', but they should be
+     considered as one element, so we cannot increment this number when
+     "a" is stored. */
+  if (mode_line_target == MODE_LINE_STRING)
+    mode_line_elt_no++;
+
   depth++;
 
   switch (XTYPE (elt))
@@ -28035,7 +28089,11 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 		n += store_mode_line_noprop (SSDATA (elt), -1, prec);
 		break;
 	      case MODE_LINE_STRING:
-		n += store_mode_line_string (NULL, elt, true, 0, prec, Qnil);
+		{
+		  AUTO_LIST2 (src, Qmode_line_elt_no,
+			      make_fixnum (mode_line_elt_no));
+		  n += store_mode_line_string (NULL, elt, true, 0, prec, src);
+		}
 		break;
 	      case MODE_LINE_DISPLAY:
 		n += display_string (NULL, elt, Qnil, 0, 0, it,
@@ -28088,8 +28146,10 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 		      Lisp_Object mode_string
 			= Fsubstring (elt, make_fixnum (charpos),
 				      make_fixnum (endpos));
+		      AUTO_LIST2 (src, Qmode_line_elt_no,
+				  make_fixnum (mode_line_elt_no));
 		      n += store_mode_line_string (NULL, mode_string, false,
-						   0, 0, Qnil);
+						   0, 0, src);
 		    }
 		    break;
 		  case MODE_LINE_DISPLAY:
@@ -28169,6 +28229,8 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 			{
 			  Lisp_Object tem = build_string (spec);
 			  props = Ftext_properties_at (make_fixnum (charpos), elt);
+			  props = plist_put (props, Qmode_line_elt_no,
+					     make_fixnum (mode_line_elt_no));
 			  /* Should only keep face property in props */
 			  n += store_mode_line_string (NULL, tem, false,
 						       field, prec, props);
@@ -28384,6 +28446,9 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 	  n += store_mode_line_noprop ("", field_width - n, 0);
 	  break;
 	case MODE_LINE_STRING:
+	  /* NOTE: Padding implicitly has 'mode-line-elt-no' property
+	     to be nil.  Normally padding spaces are between two real
+	     elements, so this should be good. */
 	  n += store_mode_line_string ("", Qnil, false, field_width - n, 0,
 				       Qnil);
 	  break;
@@ -28591,6 +28656,7 @@ are the selected window and the WINDOW's buffer).  */)
     }
 
   push_kboard (FRAME_KBOARD (it.f));
+  mode_line_elt_no = 0;
   display_mode_element (&it, 0, 0, 0, format, Qnil, false);
   pop_kboard ();
 
@@ -37678,6 +37744,7 @@ be let-bound around code that needs to disable messages temporarily. */);
   DEFSYM (Qfontification_functions, "fontification-functions");
   DEFSYM (Qlong_line_optimizations_in_fontification_functions,
 	  "long-line-optimizations-in-fontification-functions");
+  DEFSYM (Qmode_line_elt_no, "mode-line-elt-no");
 
   /* Name of the symbol which disables Lisp evaluation in 'display'
      properties.  This is used by enriched.el.  */
