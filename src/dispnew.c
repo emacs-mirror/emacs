@@ -6447,7 +6447,11 @@ mode_line_string (struct window *w, enum window_part part,
 	      struct image *img;
 	      img = IMAGE_OPT_FROM_ID (WINDOW_XFRAME (w), glyph->u.img_id);
 	      if (img != NULL)
-		*object = img->spec;
+		{
+		  *object = img->spec;
+		  x0 += glyph->slice.img.x;
+		  y0 += glyph->slice.img.y;
+		}
 	      y0 -= row->ascent - glyph->ascent;
 	    }
 #endif
