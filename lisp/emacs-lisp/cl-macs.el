@@ -2072,7 +2072,8 @@ a `let' form, except that the list of symbols can be computed at run-time."
 Each definition can take the form (FUNC EXP) where FUNC is the function
 name, and EXP is an expression that returns the function value to which
 it should be bound, or it can take the more common form (FUNC ARGLIST
-BODY...) which is a shorthand for (FUNC (lambda ARGLIST BODY)).
+BODY...) which is a shorthand for (FUNC (lambda ARGLIST BODY))
+where BODY is wrapped in a `cl-block' named FUNC.
 
 FUNC is defined only within FORM, not BODY, so you can't write recursive
 function definitions.  Use `cl-labels' for that.  See Info node
@@ -2279,11 +2280,14 @@ Like `cl-flet' but the definitions can refer to previous ones.
 Each definition can take the form (FUNC EXP) where FUNC is the function
 name, and EXP is an expression that returns the function value to which
 it should be bound, or it can take the more common form (FUNC ARGLIST
-BODY...) which is a shorthand for (FUNC (lambda ARGLIST BODY)).
+BODY...) which is a shorthand for (FUNC (lambda ARGLIST BODY))
+where BODY is wrapped in a `cl-block' named FUNC.
 
-FUNC is defined in any BODY, as well as FORM, so you can write recursive
-and mutually recursive function definitions.  See Info node
-`(cl) Function Bindings' for details.
+FUNC is in scope in any BODY or EXP, as well as in FORM, so you can write
+recursive and mutually recursive function definitions, with the caveat
+that EXPs are evaluated in sequence and you cannot call a FUNC before its
+EXP has been evaluated.
+See Info node `(cl) Function Bindings' for details.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1) (debug cl-flet))
