@@ -5136,8 +5136,11 @@ extern void init_frame_once (void);
 extern void syms_of_frame (void);
 
 /* Defined in emacs.c.  */
+#ifndef WINDOWSNT
 extern char **initial_argv;
 extern int initial_argc;
+#endif
+extern char *initial_argv0;
 extern char const *emacs_wd;
 #if defined (HAVE_X_WINDOWS) || defined (HAVE_PGTK) || defined (HAVE_NS)
 extern bool display_arg;

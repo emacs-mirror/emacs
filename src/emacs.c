@@ -238,14 +238,32 @@ static int daemon_pipe[2];
 HANDLE w32_daemon_event;
 #endif
 
-/* Save argv and argc.  */
+/* Save argv and argc.
+
+   initial_argc, initial_argv:
+     A pristine copy of the command-line arguments as passed into main,
+     saved away before main has had a chance to modify them.  On
+     Windows, we use initial_cmdline instead.
+
+   initial_argv0:
+     argv[0] as passed into main.  Available on all ports.
+
+   initial_emacs_executable:
+     Path to the current executable.  Based on argv[0] but verified to
+     point to an existing executable if non-NULL.  */
+#ifndef WINDOWSNT
 char **initial_argv;
 int initial_argc;
+#endif
+char *initial_argv0;
 static char *initial_emacs_executable = NULL;
 
 /* The name of the working directory, or NULL if this info is unavailable.  */
 char const *emacs_wd;
 
+#ifndef WINDOWSNT
+static void copy_args (int argc, char **argv);
+#endif
 static void sort_args (int argc, char **argv);
 static void syms_of_emacs (void);
 
@@ -475,9 +493,6 @@ init_cmdargs (int argc, char **argv, int skip_args, char const *original_pwd)
   specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object raw_name;
   AUTO_STRING (slash_colon, "/:");
-
-  initial_argv = argv;
-  initial_argc = argc;
 
 #ifdef WINDOWSNT
   /* Must use argv[0] converted to UTF-8, as it begets many standard
@@ -1395,6 +1410,11 @@ android_emacs_init (int argc, char **argv, char *dump_file)
 
   init_standard_fds ();
   atexit (close_output_streams);
+
+#ifndef WINDOWSNT
+  copy_args (argc, argv);
+#endif
+  initial_argv0 = argv[0];
 
   /* Command-line argument processing.
 
@@ -2696,6 +2716,26 @@ static const struct standard_args standard_args[] =
   { "-kill", "--kill", -10, 0 },
 };
 
+#ifndef WINDOWSNT
+
+/* Copy the elements of ARGV (assumed to have ARGC elements) and store
+   the copy in initial_argv.  Store ARGC in initial_argc.  */
+
+static void
+copy_args (int argc, char **argv)
+{
+  char **new = xmalloc ((argc + 1) * sizeof *new);
+  int i;
+  new[0] = argv[0];
+  for (i = 1; i < argc; i++)
+    new[i] = xstrdup (argv[i]);
+  new[argc] = argv[argc];
+  initial_argv = new;
+  initial_argc = argc;
+}
+
+#endif
+
 /* Reorder the elements of ARGV (assumed to have ARGC elements)
    so that the highest priority ones come first.
    Do not change the order of elements of equal priority.
@@ -2900,7 +2940,7 @@ killed.  */
 	error ("Unknown Emacs executable");
 
       if (!file_access_p (initial_emacs_executable, F_OK))
-	error ("Emacs executable \"%s\" can't be found", initial_argv[0]);
+	error ("Emacs executable \"%s\" can't be found", initial_argv0);
     }
 #endif
 

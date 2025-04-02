@@ -2854,8 +2854,7 @@ emacs_perror (char const *message)
 {
   int err = errno;
   char const *error_string = emacs_strerror (err);
-  char const *command = (initial_argv && initial_argv[0]
-			 ? initial_argv[0] : "emacs");
+  char const *command = (initial_argv0 ? initial_argv0 : "emacs");
   /* Write it out all at once, if it's short; this is less likely to
      be interleaved with other output.  */
   char buf[min (PIPE_BUF, MAX_ALLOCA)];

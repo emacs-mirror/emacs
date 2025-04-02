@@ -30619,7 +30619,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
           argv[argc] = 0;
 
         argc = 0;
-        argv[argc++] = initial_argv[0];
+        argv[argc++] = initial_argv0;
 
         if (! NILP (display_name))
           {
