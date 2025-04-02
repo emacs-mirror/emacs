@@ -37,6 +37,19 @@
  <url type="contribute">https://www.gnu.org/software/emacs/manual/html_node/emacs/Contributing.html</url>
  <launchable type="desktop-id">emacs.desktop</launchable>
  <launchable type="service">emacs.service</launchable>
+ <recommends>
+   <control>keyboard</control>
+
+   <!-- 80×24 at 6×13 per character -->
+   <display_length side="longest">480</display_length>
+   <display_length side="shortest">312</display_length>
+ </recommends>
+ <supports>
+   <control>console</control>
+   <control>pointing</control>
+   <control>touch</control>
+   <internet/>
+ </supports>
  <project_group>GNU</project_group>
  <project_license>GPL-3.0+ and GFDL-1.3+</project_license>
  <developer_name>Free Software Foundation</developer_name>
