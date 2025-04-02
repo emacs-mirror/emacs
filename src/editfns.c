@@ -1973,14 +1973,17 @@ a buffer or a string.  But this is deprecated.  */)
       Fnarrow_to_region (beg, end);
       source = calln (source);
       unbind_to (count, Qnil);
-      }
+    }
   ptrdiff_t min_b, size_b;
   struct buffer *b;
   if (STRINGP (source))
     {
-      min_b = BEG;		/* Assuming we'll copy it into a buffer.  */
-      size_b = SCHARS (source);
       b = NULL;
+      min_b = BEG;		/* Assuming we'll copy it into a buffer.  */
+      /* Like 'size_b = SCHARS (source);', except inline to pacify -Wclobbered
+	 with gcc 14.2.1 20250110 (Red Hat 14.2.1-7) x86-64 -O2; see
+	 <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=21161>.  */
+      size_b = XSTRING (source)->u.s.size;
     }
   else if (BUFFERP (source))
     {
@@ -1992,7 +1995,7 @@ a buffer or a string.  But this is deprecated.  */)
     {
       CHECK_TYPE (VECTORP (source),
 		  list (Qor, Qstring, Qbuffer, Qvector), source);
-      /* Let `Faref' signal an error if it's too small.  */
+      /* Let Faref signal an error if SOURCE is too small.  */
       Lisp_Object send = Faref (source, make_fixnum (2));
       Lisp_Object sbeg = AREF (source, 1);
       CHECK_BUFFER (AREF (source, 0));
@@ -2005,6 +2008,7 @@ a buffer or a string.  But this is deprecated.  */)
       min_b = XFIXNUM (sbeg);
       size_b = XFIXNUM (send) - min_b;
     }
+  eassume (0 <= size_b);
   bool b_empty = size_b == 0;
   if (b && !BUFFER_LIVE_P (b))
     error ("Selecting deleted buffer");
