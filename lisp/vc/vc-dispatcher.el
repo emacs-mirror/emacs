@@ -205,8 +205,9 @@ Another is that undo information is not kept."
     ;; See bug#53626 and bug#77306.
     (setq default-directory olddir)
     (run-with-timer 0 nil (lambda ()
-                            (with-current-buffer buf
-                              (setq default-directory olddir))))
+                            (when (buffer-live-p buf)
+                              (with-current-buffer buf
+                                (setq default-directory olddir)))))
 
     (let ((buffer-undo-list t)
           (inhibit-read-only t))
