@@ -2309,7 +2309,7 @@ made from `project-switch-commands'.
 When called in a program, it will use the project corresponding
 to directory DIR."
   (interactive (list (funcall project-prompter)))
-  (project-remember-project (project-current nil dir))
+  (project-remember-project (project-current t dir))
   (let ((command (if (symbolp project-switch-commands)
                      project-switch-commands
                    (project--switch-project-command dir)))
