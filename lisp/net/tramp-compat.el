@@ -38,30 +38,34 @@
 (require 'xdg)
 
 (declare-function tramp-error "tramp-message")
+(declare-function tramp-warning "tramp-message")
 (declare-function tramp-tramp-file-p "tramp")
 (defvar tramp-temp-name-prefix)
 
 (defconst tramp-compat-emacs-compiled-version (eval-when-compile emacs-version)
   "The Emacs version used for compilation.")
 
-(unless (= emacs-major-version
-	   (car (version-to-list tramp-compat-emacs-compiled-version)))
-  (lwarn 'tramp :warning
-	 "Tramp has been compiled with Emacs %s, this is Emacs %s"
-	tramp-compat-emacs-compiled-version emacs-version))
+(with-eval-after-load 'tramp
+  (unless (= emacs-major-version
+	     (car (version-to-list tramp-compat-emacs-compiled-version)))
+    (tramp-warning nil
+      "Tramp has been compiled with Emacs %s, this is Emacs %s"
+      tramp-compat-emacs-compiled-version emacs-version))
 
-(with-eval-after-load 'docker-tramp
-  (lwarn 'tramp :warning
-	 (concat "Package `docker-tramp' has been obsoleted, "
-		 "please use integrated package `tramp-container'")))
-(with-eval-after-load 'kubernetes-tramp
-  (lwarn 'tramp :warning
-	 (concat "Package `kubernetes-tramp' has been obsoleted, "
-		 "please use integrated package `tramp-container'")))
-(with-eval-after-load 'tramp-nspawn
-  (lwarn 'tramp :warning
-	 (concat "Package `tramp-nspawn' has been obsoleted, "
-		 "please use integrated package `tramp-container'")))
+  (with-eval-after-load 'docker-tramp
+    (tramp-warning nil
+      (concat "Package `docker-tramp' has been obsoleted, "
+	      "please use integrated package `tramp-container'")))
+
+  (with-eval-after-load 'kubernetes-tramp
+    (tramp-warning nil
+      (concat "Package `kubernetes-tramp' has been obsoleted, "
+	      "please use integrated package `tramp-container'")))
+
+  (with-eval-after-load 'tramp-nspawn
+    (tramp-warning nil
+      (concat "Package `tramp-nspawn' has been obsoleted, "
+	      "please use integrated package `tramp-container'"))))
 
 ;; For not existing functions, obsolete functions, or functions with a
 ;; changed argument list, there are compiler warnings.  We want to
