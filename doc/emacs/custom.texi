@@ -1089,6 +1089,16 @@ local variable specifications; it automatically makes these variables
 local to the buffer, and sets them to the values specified in the
 file.
 
+  There are two ways to set file local variables: in the first
+line, or with a local variables list near the end of the file.
+
+  If a file has local variables in both a local variables list and
+in line one, Emacs processes @emph{everything} in line one first, and
+@emph{everything} in the local variables list afterward.  The exception
+to this is a major mode specification.  Emacs applies this first,
+wherever it appears, since most major modes kill all local variables as
+part of their initialization.
+
   File local variables override directory local variables
 (@pxref{Directory Variables}), if any are specified for a file's
 directory.
@@ -1101,9 +1111,7 @@ directory.
 @node Specifying File Variables
 @subsubsection Specifying File Variables
 
-  There are two ways to specify file local variable values: in the first
-line, or with a local variables list.  Here's how to specify them in the
-first line:
+Here is one way to specify local variables, in the first line:
 
 @example
 -*- mode: @var{modename}; @var{var}: @var{value}; @dots{} -*-
@@ -1113,20 +1121,8 @@ first line:
 You can specify any number of variable/value pairs in this way, each
 pair with a colon and semicolon.  The special variable/value pair
 @code{mode: @var{modename};}, if present, specifies a major mode
-(without the ``-mode'' suffix).  The @var{value}s are used literally,
+(without the ``-mode'' suffix).  The @var{value}s are used literally
 and not evaluated.
-
-@findex add-file-local-variable-prop-line
-@findex delete-file-local-variable-prop-line
-@findex copy-dir-locals-to-file-locals-prop-line
-  You can use @kbd{M-x add-file-local-variable-prop-line} instead of
-adding entries by hand.  This command prompts for a variable and
-value, and adds them to the first line in the appropriate way.
-@kbd{M-x delete-file-local-variable-prop-line} prompts for a variable,
-and deletes its entry from the line.  The command @kbd{M-x
-copy-dir-locals-to-file-locals-prop-line} copies the current
-directory-local variables to the first line (@pxref{Directory
-Variables}).
 
   Here is an example first line that specifies Lisp mode and sets two
 variables with numeric values:
@@ -1135,33 +1131,39 @@ variables with numeric values:
 ;; -*- mode: Lisp; fill-column: 75; comment-column: 50; -*-
 @end smallexample
 
+After any change to the @samp{-*-} line, type @kbd{M-x normal-mode}
+to re-interpret it.  @xref{Choosing Modes}.
+
 @noindent
 Aside from @code{mode}, other keywords that have special meanings as
 file variables are @code{coding}, @code{unibyte}, and @code{eval}.
-These are described below.
+These keywords are described later.
 
 @cindex shell scripts, and local file variables
 @cindex man pages, and local file variables
   In shell scripts, the first line is used to identify the script
 interpreter, so you cannot put any local variables there.  To
-accommodate this, Emacs looks for local variable specifications in the
+accommodate this, Emacs looks for local variables in the
 @emph{second} line if the first line specifies an interpreter.  The
-same is true for man pages which start with the magic string
+same is true for man pages that start with the magic string
 @samp{'\"} to specify a list of troff preprocessors (not all do,
 however).
 
-  Apart from using a @samp{-*-} line, you can define file local
-variables using a @dfn{local variables list} near the end of the file.
-The start of the local variables list should be no more than 3000
-characters from the end of the file, and must be on the last page if
-the file is divided into pages.
+@findex add-file-local-variable-prop-line
+@findex delete-file-local-variable-prop-line
+@findex copy-dir-locals-to-file-locals-prop-line
+  You can use @kbd{M-x add-file-local-variable-prop-line} instead of
+adding entries by hand.  This command prompts for a variable and
+value, and adds them to the first line in the appropriate way.
+The command
+@kbd{M-x delete-file-local-variable-prop-line} prompts for a variable,
+and deletes its entry from the line.  If there are any directory-local
+variables (@pxref{Directory Variables}), the command
+@kbd{M-x copy-dir-locals-to-file-locals-prop-line} will copy them
+to the first line.
 
-  If a file has both a local variables list and a @samp{-*-} line,
-Emacs processes @emph{everything} in the @samp{-*-} line first, and
-@emph{everything} in the local variables list afterward.  The exception
-to this is a major mode specification.  Emacs applies this first,
-wherever it appears, since most major modes kill all local variables as
-part of their initialization.
+You also can define file local
+variables using a @dfn{local variables list} near the end of the file.
 
   A local variables list starts with a line containing the string
 @samp{Local Variables:}, and ends with a line containing the string
@@ -1186,25 +1188,18 @@ won't confuse other programs that the file is intended for.  The
 example above is for the C programming language, where comments start
 with @samp{/*} and end with @samp{*/}.
 
-If some unrelated text might look to Emacs as a local variables list,
+The start of the local variables list must be no more than 3000
+characters from the end of the file, and it must be on the last page if
+the file is divided into pages.
+If some unrelated text might look to Emacs like a local variables list,
 you can countermand that by inserting a form-feed character (a page
-delimiter, @pxref{Pages}) after that text.  Emacs only looks for
-file-local variables in the last page of a file, after the last page
-delimiter.
+delimiter, @pxref{Pages}) after that text.
 
-@findex add-file-local-variable
-@findex delete-file-local-variable
-@findex copy-dir-locals-to-file-locals
-  Instead of typing in the local variables list directly, you can use
-the command @kbd{M-x add-file-local-variable}.  This prompts for a
-variable and value, and adds them to the list, adding the @samp{Local
-Variables:} string and start and end markers as necessary.  The
-command @kbd{M-x delete-file-local-variable} deletes a variable from
-the list.  @kbd{M-x copy-dir-locals-to-file-locals} copies
-directory-local variables to the list (@pxref{Directory Variables}).
+After any change to the local variables, type @kbd{M-x normal-mode}
+to re-read them.  @xref{Choosing Modes}.
 
   As with the @samp{-*-} line, the variables in a local variables list
-are used literally, and are not evaluated first.  If you want to split
+are used literally and are not evaluated first.  If you want to split
 a long string value across multiple lines of the file, you can use
 backslash-newline, which is ignored in Lisp string constants; you
 should put the prefix and suffix on each line, even lines that start
@@ -1217,6 +1212,17 @@ the list.  Here is an example:
 #   -Dmumble=blaah"
 # End:
 @end example
+
+@findex add-file-local-variable
+@findex delete-file-local-variable
+@findex copy-dir-locals-to-file-locals
+  Instead of typing in the local variables list directly, you can use
+the command @kbd{M-x add-file-local-variable}.  This prompts for a
+variable and value, and adds them to the list, adding the @samp{Local
+Variables:} string and start and end markers as necessary.  The
+command @kbd{M-x delete-file-local-variable} deletes a variable from
+the list.  @kbd{M-x copy-dir-locals-to-file-locals} copies
+directory-local variables to the list (@pxref{Directory Variables}).
 
   Some names have special meanings in a local variables
 list:
@@ -1260,7 +1266,7 @@ enabling the modes in the first line of the file, can say:
   Emacs will use the final defined mode it finds, so in older Emacs
 versions it will ignore @code{my-new-mode}, while in Emacs versions
 where @code{my-new-mode} is defined, it'll ignore @code{my-old-mode}.
-Similarly, in a local variable block at the end of the file:
+Similarly, in a local variables block at the end of the file:
 
 @example
 Local variables:
@@ -1291,10 +1297,6 @@ inappropriate to impose your preferences on another user who might
 edit the file.  If you wish to automatically enable or disable a minor
 mode in a situation-dependent way, it is often better to do it in a
 major mode hook (@pxref{Hooks}).
-
-  Use the command @kbd{M-x normal-mode} to reset the local variables
-and major mode of a buffer according to the file name and contents,
-including the local variables list if any.  @xref{Choosing Modes}.
 
 @node Safe File Variables
 @subsubsection Safety of File Variables
