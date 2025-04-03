@@ -4149,7 +4149,7 @@ and no others."
 
 ;;; Deleting windows.
 (defcustom window-deletable-functions nil
-   "Abnormal hook to decide whether a window may be implicitly deleted.
+  "Abnormal hook to decide whether a window may be implicitly deleted.
 The value should be a list of functions that take two arguments.  The
 first argument is the window about to be deleted.  The second argument
 if non-nil, means that the window is the only window on its frame and
@@ -4174,6 +4174,9 @@ WINDOW must be a valid window and defaults to the selected one.
 Return `frame' if WINDOW is the root window of its frame and that
 frame can be safely deleted.
 
+Return `tab' if WINDOW's tab can be safely closed that will
+effectively delete the window.
+
 Unless the optional argument NO-RUN is non-nil, run the abnormal hook
 `window-deletable-functions' and return nil if any function on that hook
 returns nil."
@@ -4187,19 +4190,18 @@ returns nil."
 
   (let ((frame (window-frame window)))
     (cond
-     ((and tab-bar-mode
-           ;; Fall back to frame handling in case of less than 2 tabs
+     ((and (> (frame-parameter frame 'tab-bar-lines) 0)
+           ;; Fall back to frame handling in case of less than 2 tabs.
            (> (length (funcall tab-bar-tabs-function frame)) 1)
-           ;; Close the tab with the initial window (bug#59862)
+           ;; Close the tab with the initial window (bug#59862).
            (or (eq (nth 1 (window-parameter window 'quit-restore)) 'tab)
-               ;; or with the dedicated window (bug#71386)
-               (and (window-dedicated-p window)
-                    (frame-root-window-p window)))
-           ;; Don't close the tab if more windows were created explicitly
+               ;; Or with the only window on the frame (bug#71386).
+               (frame-root-window-p window))
+           ;; Don't close the tab if more windows were created explicitly.
            (< (seq-count (lambda (w)
                            (memq (car (window-parameter w 'quit-restore))
                                  '(window tab frame same)))
-                         (window-list-1 nil 'nomini))
+                         (window-list-1 nil 'nomini frame))
               2))
       'tab)
      ((frame-root-window-p window)
