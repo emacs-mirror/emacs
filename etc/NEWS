@@ -2142,6 +2142,18 @@ sleep state.
 'advertised-undo', 'advertised-widget-backward', and
 'dired-advertised-find-file'.
 
+** VC
+
+---
+*** New buffer-local variable 'vc-buffer-overriding-fileset'.
+This can be used to override the behavior of 'vc-deduce-fileset'.
+This replaces and generalizes the old 'vc-annotate-parent-file'.
+
+---
+*** New buffer-local variable 'vc-buffer-revision'.
+This specifies the revision to which the buffer's contents corresponds.
+This replaces and generalizes the old 'vc-annotate-parent-rev'.
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 
