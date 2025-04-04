@@ -133,24 +133,21 @@
   "Keymap for RefTeX mode.")
 
 (defvar reftex-mode-menu nil)
-(defvar reftex-syntax-table nil)
-(defvar reftex-syntax-table-for-bib nil)
+(defvar reftex-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?\( "." st)
+    (modify-syntax-entry ?\) "." st)
+    st))
 
-(defun reftex--prepare-syntax-tables ()
-  (setq reftex-syntax-table (copy-syntax-table))
-  (modify-syntax-entry ?\( "." reftex-syntax-table)
-  (modify-syntax-entry ?\) "." reftex-syntax-table)
-
-  (setq reftex-syntax-table-for-bib (copy-syntax-table))
-  (modify-syntax-entry ?\' "." reftex-syntax-table-for-bib)
-  (modify-syntax-entry ?\" "." reftex-syntax-table-for-bib)
-  (modify-syntax-entry ?\[ "." reftex-syntax-table-for-bib)
-  (modify-syntax-entry ?\] "." reftex-syntax-table-for-bib)
-  (modify-syntax-entry ?\( "." reftex-syntax-table-for-bib)
-  (modify-syntax-entry ?\) "." reftex-syntax-table-for-bib))
-
-(unless (and reftex-syntax-table reftex-syntax-table-for-bib)
-  (reftex--prepare-syntax-tables))
+(defvar reftex-syntax-table-for-bib
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?\' "." st)
+    (modify-syntax-entry ?\" "." st)
+    (modify-syntax-entry ?\[ "." st)
+    (modify-syntax-entry ?\] "." st)
+    (modify-syntax-entry ?\( "." st)
+    (modify-syntax-entry ?\) "." st)
+    st))
 
 ;; The following definitions are out of place, but I need them here
 ;; to make the compilation of reftex-mode not complain.
@@ -211,9 +208,6 @@ on the menu bar.
           (and (eq reftex-auto-recenter-toc t)
                (reftex-toggle-auto-toc-recenter))
           (put 'reftex-auto-recenter-toc 'initialized t))
-
-        ;; Prepare the special syntax tables.
-	(reftex--prepare-syntax-tables)
 
         (run-hooks 'reftex-mode-hook))))
 
@@ -415,10 +409,7 @@ If the symbols for the current master file do not exist, they are created."
             (cond
              ((eq TeX-master t)
               (buffer-file-name))
-             ((eq TeX-master 'shared)
-              (setq TeX-master (read-file-name "Master file: "
-                                               nil nil t nil)))
-             (TeX-master)
+             ((or (stringp TeX-master) (bufferp TeX-master)) TeX-master)
              (t
               (setq TeX-master (read-file-name "Master file: "
                                                nil nil t nil)))))
@@ -437,7 +428,7 @@ If the symbols for the current master file do not exist, they are created."
            (t
             (buffer-file-name)))))
       (cond
-       ((null master))
+       ((not (stringp master)))
        ((or (file-exists-p (concat master ".tex"))
             (find-buffer-visiting (concat master ".tex")))
         ;; Ahh, an extra .tex was missing...
@@ -449,9 +440,9 @@ If the symbols for the current master file do not exist, they are created."
        (t
         ;; Use buffer file name.
         (setq master (buffer-file-name))))
-      (if master
+      (if (stringp master)
           (expand-file-name master)
-        (current-buffer)))))
+        (or master (current-buffer))))))
 
 (defun reftex-is-multi ()
   ;; Tell if this is a multifile document.  When not sure, say yes.
