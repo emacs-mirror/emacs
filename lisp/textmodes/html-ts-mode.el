@@ -144,7 +144,7 @@ Return nil if there is no name or if NODE is not a defun node."
   "Major mode for editing Html, powered by tree-sitter."
   :group 'html
 
-  (unless (treesit-ready-p 'html)
+  (unless (treesit-ready-p 'html t)
     (error "Tree-sitter for HTML isn't available"))
 
   (setq treesit-primary-parser (treesit-parser-create 'html))
@@ -180,7 +180,7 @@ Return nil if there is no name or if NODE is not a defun node."
 
 (derived-mode-add-parents 'html-ts-mode '(html-mode))
 
-(if (treesit-ready-p 'html)
+(if (treesit-ready-p 'html t)
     (add-to-list 'auto-mode-alist '("\\.html\\'" . html-ts-mode)))
 
 (provide 'html-ts-mode)
