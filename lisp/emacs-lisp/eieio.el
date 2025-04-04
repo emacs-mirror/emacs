@@ -289,20 +289,22 @@ and reference them using the function `class-option'."
           `(defun ,name (&rest slots)
              ,(internal--format-docstring-line
                "Create a new object of class type `%S'." name)
-             (declare (compiler-macro
-                       (lambda (whole)
-                         (if (not (stringp (car slots)))
-                             whole
-                           (macroexp-warn-and-return
-                            (format "Obsolete name arg %S to constructor %S"
-                                    (car slots) (car whole))
-                            ;; Keep the name arg, for backward compatibility,
-                            ;; but hide it so we don't trigger indefinitely.
-                            `(,(car whole) (identity ,(car slots))
-                              ,@(cdr slots))
-                            nil nil (car slots))))))
+             (declare (compiler-macro eieio--constructor-macro))
              (apply #'make-instance ',name slots))))))
 
+(defun eieio--constructor-macro (whole &rest slots)
+  (if (or (null slots) (keywordp (car slots))
+          ;; Detect the second pass!
+          (eq 'identity (car-safe (car slots))))
+      whole
+    (macroexp-warn-and-return
+     (format "Obsolete name arg %S to constructor %S"
+             (car slots) (car whole))
+     ;; Keep the name arg, for backward compatibility,
+     ;; but hide it so we don't trigger indefinitely.
+     `(,(car whole) (identity ,(car slots))
+       ,@(cdr slots))
+     nil nil (car slots))))
 
 ;;; Get/Set slots in an object.
 ;;
