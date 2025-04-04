@@ -373,9 +373,10 @@ entirely by setting `warning-suppress-types' or
 		     (let ((window (display-buffer
 				    buffer
 				    (when warning-display-at-bottom
-				      '(display-buffer--maybe-at-bottom
-					(window-height . (lambda (window)
-					  (fit-window-to-buffer window 10)))
+				      `(display-buffer--maybe-at-bottom
+					(window-height
+					 . ,(lambda (window)
+					      (fit-window-to-buffer window 10)))
 					(category . warning))))))
 		       (when (and window (markerp warning-series)
 				  (eq (marker-buffer warning-series) buffer))
