@@ -134,7 +134,7 @@
       ;; Clean up the tab afterwards
       (tab-close))
 
-    ;; 3. Don't delete the frame with dedicated window
+    ;; 3.1. Don't delete the frame with dedicated window
     ;; from the second tab (bug#71386)
     (with-selected-frame (make-frame frame-params)
       (switch-to-buffer (generate-new-buffer "test1"))
@@ -150,8 +150,25 @@
       (kill-buffer)
       (should (eq (length (frame-list)) 1)))
 
-    ;; Clean up tabs afterwards
-    (tab-bar-tabs-set nil)))
+    ;; 3.2. Don't delete the frame with an effectively-dedicated window
+    ;; from the second tab (bug#71386)
+    (with-selected-frame (make-frame frame-params)
+      (let ((switch-to-prev-buffer-skip #'always)
+            (kill-buffer-quit-windows nil))
+        (switch-to-buffer (generate-new-buffer "test1"))
+        (tab-bar-new-tab)
+        (switch-to-buffer (generate-new-buffer "test2"))
+        ;; This makes the window effectively dedicated.
+        (set-window-prev-buffers nil nil)
+        ;; Killing the buffer should close the tab, leave one open tab,
+        ;; and not delete the frame.
+        (kill-buffer)
+        (should (eq (length (tab-bar-tabs)) 1))
+        (should (eq (length (frame-list)) 2))
+        (delete-frame))))
+
+  ;; Clean up tabs afterwards
+  (tab-bar-tabs-set nil))
 
 (provide 'tab-bar-tests)
 ;;; tab-bar-tests.el ends here
