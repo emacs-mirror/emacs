@@ -5221,7 +5221,7 @@ and `blink-matching-paren' more user-friendly."
     (save-excursion
       (with-silent-modifications
         (remove-text-properties (point-min) (point-max) '(syntax-table nil))
-        (goto-char (point-min))
+        (goto-char (minibuffer-prompt-end))
         (while (re-search-forward
                 (rx (| (group "\\\\")
                        (: "\\" (| (group (in "(){}"))
