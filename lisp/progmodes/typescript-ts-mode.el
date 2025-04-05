@@ -38,6 +38,9 @@
 (declare-function treesit-parser-create "treesit.c")
 (declare-function treesit-query-capture "treesit.c")
 (declare-function treesit-query-compile "treesit.c")
+(declare-function treesit-node-child-by-field-name "treesit.c")
+(declare-function treesit-node-match-p "treesit.c")
+(declare-function treesit-node-type "treesit.c")
 
 (defcustom typescript-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `typescript-ts-mode'."
