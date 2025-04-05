@@ -256,15 +256,18 @@ Another is that undo information is not kept."
                                 'help-echo
                                 "A command is in progress in this buffer"))))
 
-(defun vc-exec-after (code &optional success)
-  "Eval CODE when the current buffer's process is done.
-If the current buffer has no process, just evaluate CODE.
-Else, add CODE to the process' sentinel.
+(defun vc-exec-after (code &optional success proc)
+  "Execute CODE when PROC, or the current buffer's process, is done.
 CODE should be a function of no arguments.
 
-If SUCCESS, it should be a process object.  Only run CODE if the
-SUCCESS process has a zero exit code."
-  (let ((proc (get-buffer-process (current-buffer))))
+The optional PROC argument specifies the process Emacs should wait for
+before executing CODE.  It defaults to the current buffer's process.
+If PROC is nil and the current buffer has no process, just evaluate
+CODE.  Otherwise, add CODE to the process's sentinel.
+
+If SUCCESS, it should be a process object.
+Only run CODE if the SUCCESS process has a zero exit code."
+  (let ((proc (or proc (get-buffer-process (current-buffer)))))
     (cond
      ;; If there's no background process, just execute the code.
      ;; We used to explicitly call delete-process on exited processes,
