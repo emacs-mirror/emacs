@@ -9821,7 +9821,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   /* Don't do anything for child frames because that leads to weird
      child frame placement in some cases involving Dock placement and
      Dock Hiding.  */
-  struct frame *f = ((EmacsView *) [self delegate])->emacsframe;
+  struct frame *f = *((EmacsView *) [self delegate])->emacsframe;
   if (FRAME_PARENT_FRAME (f))
     return frameRect;
 
