@@ -134,18 +134,21 @@ boundaries.  JUSTIFY is passed to `fill-paragraph'."
   (save-restriction
     (widen)
     (let ((node (treesit-node-at (point))))
-      (if (member (treesit-node-type node) '("block_scalar" "comment"))
-        (let* ((start (treesit-node-start node))
-               (end (treesit-node-end node))
-               (start-marker (point-marker))
-               (fill-paragraph-function nil))
-          (save-excursion
-            (goto-char start)
-            (forward-line)
-            (move-marker start-marker (point))
-            (narrow-to-region (point) end))
-          (fill-region start-marker end justify))
-        t))))
+      (pcase (treesit-node-type node)
+        ("block_scalar"
+         (let* ((start (treesit-node-start node))
+                (end (treesit-node-end node))
+                (start-marker (point-marker))
+                (fill-paragraph-function nil))
+           (save-excursion
+             (goto-char start)
+             (forward-line)
+             (move-marker start-marker (point))
+             (narrow-to-region (point) end))
+           (fill-region start-marker end justify)))
+        ("comment"
+         (fill-comment-paragraph justify))))
+    t))
 
 (defun yaml-ts-mode--defun-name (node)
   "Return the defun name of NODE.
@@ -173,6 +176,7 @@ Return nil if there is no name or if NODE is not a defun node."
     ;; Comments.
     (setq-local comment-start "# ")
     (setq-local comment-end "")
+    (setq-local comment-start-skip "#+\\s-*")
 
     ;; Indentation.
     (setq-local indent-tabs-mode nil)
