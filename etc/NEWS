@@ -573,10 +573,10 @@ and can be used as a more detailed alternative to 'elisp-eldoc-funcall'.
 
 ---
 *** New user option 'elisp-eldoc-funcall-with-docstring-length'.
-This user option specifies how long function docstring must be displayed
-in 'elisp-eldoc-funcall-with-docstring'.  If set to 'short' only display
-cut docstring before period.  Otherwise if set to 'full', display full
-docstring.'
+This user option specifies how long function doc string must be
+displayed in 'elisp-eldoc-funcall-with-docstring'.  If set to 'short'
+(the default), only display the first sentence of the doc string.
+Otherwise, if set to 'full', display the full doc string.'
 
 ---
 ** Buffer Menu
