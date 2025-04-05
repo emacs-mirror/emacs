@@ -3159,6 +3159,9 @@ Return the message.
 In batch mode, the message is printed to the standard error stream,
 followed by a newline.
 
+If the variable `inhibit-message' is non-nil, the message is not
+displayed, only logged in the `*Messages*' buffer.
+
 The first argument is a format control string, and the rest are data
 to be formatted under control of the string.  Percent sign (%), grave
 accent (\\=`) and apostrophe (\\=') are special in the format; see

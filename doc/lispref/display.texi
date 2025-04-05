@@ -5615,12 +5615,20 @@ instead of the text that has the display specification.
 
 @item (slice @var{x} @var{y} @var{width} @var{height})
 This specification together with @code{image} specifies a @dfn{slice}
-(a partial area) of the image to display.  The elements @var{y} and
-@var{x} specify the top left corner of the slice, within the image;
-@var{width} and @var{height} specify the width and height of the
-slice.  Integers are numbers of pixels.  A floating-point number
-in the range 0.0--1.0 stands for that fraction of the width or height
-of the entire image.
+(a partial area) of the image to display.  More precisely, the
+specification should have the following form:
+
+@lisp
+ ((slice @var{x} @var{y} @var{width} @var{height}) @var{image-desc})
+@end lisp
+
+@noindent
+where @var{image-desc} is an image descriptor described above.  The
+elements @var{x} and @var{y} specify the top left corner of the slice,
+within the image; @var{width} and @var{height} specify the width and
+height of the slice.  Integers are numbers of pixels.  A floating-point
+number in the range 0.0--1.0 stands for that fraction of the width or
+height of the entire image.
 
 @item ((margin nil) @var{string})
 A display specification of this form means to display @var{string}
