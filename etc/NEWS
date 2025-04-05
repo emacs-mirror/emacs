@@ -1213,6 +1213,14 @@ slot.  Symbol macros are created for the accessor functions using
 If 'whitespace-style' includes 'missing-newline-at-eof' (which is the
 default), the 'whitespace-cleanup' function will now add the newline.
 
+---
+*** 'whitespace-mode' now can prettify page delimiter characters (^L).
+If 'page-delimiters' is set in 'whitespace-style', or the new minor mode
+'whitespace-page-delimiters-mode' is on, the page delimiter characters
+(^L) are displayed as a pretty horizontal line that spans the entire
+width of the window.  The new 'whitespace-page-delimiter' face can be
+used to customize the appearence.
+
 ** Bookmark
 
 ---
