@@ -294,6 +294,41 @@ Only run CODE if the SUCCESS process has a zero exit code."
   (declare (indent 0) (debug (def-body)))
   `(vc-exec-after (lambda () ,@body)))
 
+(defun vc-wait-for-process-before-save (proc message)
+  "Make Emacs wait for PROC before saving buffers under current VC tree.
+If waiting for PROC takes more than a second, display MESSAGE.
+
+This is used to implement `vc-async-checkin'.  It effectively switches
+to a synchronous checkin in the case that the user asks to save a buffer
+under the tree in which the checkin operation is running.
+
+The hook installed by this function will make Emacs unconditionally wait
+for PROC if the root of the current VC tree couldn't be determined, and
+whenever writing out a buffer which doesn't have any `buffer-file-name'
+yet."
+  (letrec ((root (vc-root-dir))
+           (hook
+            (lambda ()
+              (cond ((not (process-live-p proc))
+                     (remove-hook 'before-save-hook hook))
+                    ((or (and buffer-file-name
+                              (or (not root)
+                                  (file-in-directory-p buffer-file-name
+                                                       root)))
+                         ;; No known buffer file name but we are saving:
+                         ;; perhaps writing out a `special-mode' buffer.
+                         ;; A `before-save-hook' cannot know whether or
+                         ;; not it'll be written out under ROOT.
+                         ;; Err on the side of switching to synchronous.
+                         (not buffer-file-name))
+                     (with-delayed-message (1 message)
+                       (while (process-live-p proc)
+                         (when (input-pending-p)
+                           (discard-input))
+                         (sit-for 0.05)))
+                     (remove-hook 'before-save-hook hook))))))
+    (add-hook 'before-save-hook hook)))
+
 (defvar vc-filter-command-function #'list
   "Function called to transform VC commands before execution.
 The function is called inside the buffer in which the command
@@ -525,23 +560,24 @@ asynchronous VC command has completed.  PROCESS-BUFFER is the
 buffer for the asynchronous VC process.
 
 If the current buffer is a VC Dir buffer, call `vc-dir-refresh'.
-If the current buffer is a Dired buffer, revert it."
+If the current buffer is a Dired buffer, revert it.
+If the current buffer visits a file, call `vc-refresh-state'."
   (let* ((buf (current-buffer))
 	 (tick (buffer-modified-tick buf)))
-    (cond
-     ((derived-mode-p 'vc-dir-mode)
-      (with-current-buffer process-buffer
-	(vc-run-delayed
-	 (if (buffer-live-p buf)
-             (with-current-buffer buf
-               (vc-dir-refresh))))))
-     ((derived-mode-p 'dired-mode)
-      (with-current-buffer process-buffer
-	(vc-run-delayed
-	 (and (buffer-live-p buf)
-              (= (buffer-modified-tick buf) tick)
-              (with-current-buffer buf
-                (revert-buffer)))))))))
+    (cl-macrolet ((run-delayed (&rest body)
+                    `(with-current-buffer process-buffer
+                       (vc-run-delayed
+                         (when (buffer-live-p buf)
+                           (with-current-buffer buf
+                             ,@body))))))
+      (cond ((derived-mode-p 'vc-dir-mode)
+             (run-delayed (vc-dir-refresh)))
+            ((derived-mode-p 'dired-mode)
+             (run-delayed
+              (when (= (buffer-modified-tick buf) tick)
+                (revert-buffer))))
+            (buffer-file-name
+             (run-delayed (vc-refresh-state)))))))
 
 ;; These functions are used to ensure that the view the user sees is up to date
 ;; even if the dispatcher client mode has messed with file contents (as in,

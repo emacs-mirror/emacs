@@ -1002,6 +1002,24 @@ the URL-REGEXP of the association."
                 :value-type ,vc-cloneable-backends-custom-type)
   :version "31.1")
 
+(defcustom vc-async-checkin nil
+  "If non-nil, checkin operations should be done asynchronously.
+
+This is useful to set as a directory local variable in repositories
+where the VCS in use performs checkin operations slowly.
+For example, Git is slow when committing changes to very large files,
+and Mercurial can be slow when there is a very large number of files.
+
+While an asynchronous checkin operation is in progress, Emacs installs a
+`before-save-hook' to switch back to a synchronous checkin if you ask to
+save buffers under the current VC tree.  This is to avoid nondeterminism
+regarding exactly what changes get checked in.
+
+Not supported by all backends."
+  :type 'boolean
+  :safe #'booleanp
+  :version "31.1")
+
 
 ;; File property caching
 
@@ -1857,26 +1875,33 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
    (lambda ()
      (vc-call-backend backend 'log-edit-mode))
    (lambda (files comment)
-     (message "Checking in %s..." (vc-delistify files))
      ;; "This log message intentionally left almost blank".
-     ;; RCS 5.7 gripes about white-space-only comments too.
-     (or (and comment (string-match "[^\t\n ]" comment))
-         (setq comment "*** empty log message ***"))
-     (with-vc-properties
-         files
-       ;; We used to change buffers to get local value of
-       ;; vc-checkin-switches, but 'the' local buffer is
-       ;; not a well-defined concept for filesets.
-       (progn
-         (if patch-string
-             (vc-call-backend backend 'checkin-patch patch-string comment)
-           (vc-call-backend backend 'checkin files comment rev))
-         (mapc #'vc-delete-automatic-version-backups files))
-       `((vc-state . up-to-date)
-         (vc-checkout-time . ,(file-attribute-modification-time
-			       (file-attributes file)))
-         (vc-working-revision . nil)))
-     (message "Checking in %s...done" (vc-delistify files)))
+     ;; RCS 5.7 gripes about whitespace-only comments too.
+     (unless (and comment (string-match "[^\t\n ]" comment))
+       (setq comment "*** empty log message ***"))
+     (cl-labels ((do-it ()
+                   ;; We used to change buffers to get local value of
+                   ;; `vc-checkin-switches', but the (singular) local
+                   ;; buffer is not well defined for filesets.
+                   (if patch-string
+                       (vc-call-backend backend 'checkin-patch
+                                        patch-string comment)
+                     (vc-call-backend backend 'checkin
+                                      files comment rev))
+                   (mapc #'vc-delete-automatic-version-backups files)))
+       (if (and vc-async-checkin
+                ;; Backends which support `vc-async-checkin'.
+                (memq backend '(Git Hg)))
+           ;; Rely on `vc-set-async-update' to update properties.
+           (do-it)
+         (message "Checking in %s..." (vc-delistify files))
+         (with-vc-properties files (do-it)
+                             `((vc-state . up-to-date)
+                               (vc-checkout-time
+                                . ,(file-attribute-modification-time
+			            (file-attributes file)))
+                               (vc-working-revision . nil)))
+         (message "Checking in %s...done" (vc-delistify files)))))
    'vc-checkin-hook
    backend
    patch-string))

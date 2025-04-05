@@ -1752,6 +1752,10 @@ were added, removed or edited, Emacs would refuse to proceed.
 Now Emacs prompts to first register the unregistered files, so that all
 files in the fileset are in a compatible state for a checkin.
 
++++
+*** New user option 'vc-async-checkin' to enable async checkin operations.
+Currently only supported by the Git and Mercurial backends.
+
 ---
 *** New 'log-edit-hook' option to display diff of changes to commit.
 You can customize 'log-edit-hook' to include its new
