@@ -2088,9 +2088,9 @@ where this remains unsupported is Nextstep (GNUstep or Mac OS).
 ---
 ** 'desktop-restore-frames' has been disabled by default on Android systems.
 Restrictions imposed on clients by the window manager on these systems
-are too prohibitive to admit of restoring frame configurations, and on
-the same account many window management facilities are unimplemented by
-Emacs also.
+are too prohibitive and don't allow restoring frame configurations.
+(For the same reason many window management facilities are also not
+implemented by Emacs.)
 
 ---
 ** 'NSSpeechRecognitionUsageDescription' now included in "Info.plist" (macOS).

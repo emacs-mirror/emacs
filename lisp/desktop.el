@@ -428,9 +428,9 @@ host is off-line."
 See related options `desktop-restore-reuses-frames',
 `desktop-restore-in-current-display', and `desktop-restore-forces-onscreen'.
 
-This option is enabled by default elsewhere than on Android, where it is
-disabled by default as programs are too handicapped by the window
-manager for frames to be restored."
+This option is enabled by default, except on Android.  It is disabled by
+default on Android because the window manager there prevents programs from
+restoring frames."
   :type 'boolean
   :group 'desktop
   :version "31.1")
