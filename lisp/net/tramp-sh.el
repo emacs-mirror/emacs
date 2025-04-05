@@ -648,6 +648,14 @@ we have this shell function.
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
+(defconst tramp-readlink-file-truename
+  "if %m -h \"$1\"; then echo t; else echo nil; fi
+%r \"$1\""
+  "Shell script to produce output suitable for use with `file-truename'
+on the remote file system.
+Format specifiers are replaced by `tramp-expand-script', percent
+characters need to be doubled.")
+
 (defconst tramp-perl-file-truename
   "%p -e '
 use File::Spec;
@@ -1151,11 +1159,11 @@ characters need to be doubled.")
 (defconst tramp-bundle-read-file-names
   "echo \"(\"
 while read file; do
-    quoted=`echo \"$file\" | sed -e \"s/\\\"/\\\\\\\\\\\\\\\\\\\"/\"`
-    printf \"(%%b\" \"\\\"$quoted\\\"\"
-    if %s \"$file\"; then printf \" %%b\" t; else printf \" %%b\" nil; fi
-    if %s \"$file\"; then printf \" %%b\" t; else printf \" %%b\" nil; fi
-    if %s \"$file\"; then printf \" %%b)\n\" t; else printf \" %%b)\n\" nil; fi
+  quoted=`echo \"$file\" | sed -e \"s/\\\"/\\\\\\\\\\\\\\\\\\\"/\"`
+  printf \"(%%b\" \"\\\"$quoted\\\"\"
+  if %q \"$file\"; then printf \" %%b\" t; else printf \" %%b\" nil; fi
+  if %m -r \"$file\"; then printf \" %%b\" t; else printf \" %%b\" nil; fi
+  if %m -d \"$file\"; then printf \" %%b)\n\" t; else printf \" %%b)\n\" nil; fi
 done
 echo \")\""
   "Script to check file attributes of a bundle of files.
@@ -1291,18 +1299,15 @@ Operations not mentioned here will be handled by the normal Emacs functions.")
     (cond
      ;; Use GNU readlink --canonicalize-missing where available.
      ((tramp-get-remote-readlink v)
+      (tramp-maybe-send-script
+       v tramp-readlink-file-truename "tramp_readlink_file_truename")
       (tramp-send-command-and-check
-       v (format
-	  (concat
-	   "(if %s -h \"%s\"; then echo t; else echo nil; fi) && "
-	   "%s --canonicalize-missing %s")
-	  (tramp-get-test-command v)
-	  (tramp-shell-quote-argument localname)
-	  (tramp-get-remote-readlink v)
-	  (tramp-shell-quote-argument localname)))
+       v (format "tramp_readlink_file_truename %s"
+		 (tramp-shell-quote-argument localname)))
       (with-current-buffer (tramp-get-connection-buffer v)
 	(goto-char (point-min))
-	(tramp-set-file-property v localname "file-symlink-marker" (read (current-buffer)))
+	(tramp-set-file-property
+	 v localname "file-symlink-marker" (read (current-buffer)))
 	;; We cannot call `read', the file name isn't quoted.
 	(forward-line)
 	(buffer-substring (point) (line-end-position))))
@@ -1318,7 +1323,8 @@ Operations not mentioned here will be handled by the normal Emacs functions.")
 		 (tramp-shell-quote-argument localname)))
       (with-current-buffer (tramp-get-connection-buffer v)
         (goto-char (point-min))
-	(tramp-set-file-property v localname "file-symlink-marker" (read (current-buffer)))
+	(tramp-set-file-property
+	 v localname "file-symlink-marker" (read (current-buffer)))
 	(read (current-buffer))))
 
      ;; Do it yourself.
@@ -3594,12 +3600,7 @@ FILES must be the local names only.  The cache attributes to be
 filled are described in `tramp-bundle-read-file-names'."
   (when files
     (tramp-maybe-send-script
-     vec
-     (format tramp-bundle-read-file-names
-	     (tramp-get-file-exists-command vec)
-	     (format "%s -r" (tramp-get-test-command vec))
-	     (format "%s -d" (tramp-get-test-command vec)))
-     "tramp_bundle_read_file_names")
+     vec tramp-bundle-read-file-names "tramp_bundle_read_file_names")
 
     (dolist
 	(elt
@@ -3982,14 +3983,15 @@ Fall back to normal file name handler if no Tramp handler exists."
 
 (defun tramp-expand-script (vec script)
   "Expand SCRIPT with remote files or commands.
-\"%a\", \"%h\", \"%l\", \"%o\", \"%p\", \"%r\", \"%s\" and \"%y\"
-format specifiers are replaced by the respective `awk',
-`hexdump', `ls', `od', `perl', `readlink', `stat' and `python'
-commands.  \"%n\" is replaced by \"2>/dev/null\", and \"%t\" is
-replaced by a temporary file name.  If VEC is nil, the respective
-local commands are used.  If there is a format specifier which
-cannot be expanded, this function returns nil."
-  (if (not (string-match-p (rx (| bol (not "%")) "%" (any "ahlnoprsty")) script))
+\"%a\", \"%h\", \"%l\", \"%m\", \"%o\", \"%p\", \"%q\", \"%r\", \"%s\"
+and \"%y\" format specifiers are replaced by the respective `awk',
+`hexdump', `ls', `test', od', `perl', `test -e', `readlink', `stat' and
+`python' commands.  \"%n\" is replaced by \"2>/dev/null\", and \"%t\" is
+replaced by a temporary file name.  If VEC is nil, the respective local
+commands are used.  If there is a format specifier which cannot be
+expanded, this function returns nil."
+  (if (not (string-match-p
+	    (rx (| bol (not "%")) "%" (any "ahlmnopqrsty")) script))
       script
     (catch 'wont-work
       (let ((awk (when (string-match-p (rx (| bol (not "%")) "%a") script)
@@ -4012,6 +4014,12 @@ cannot be expanded, this function returns nil."
 			  (or (tramp-get-ls-command vec)
 			      (throw 'wont-work nil))
 			  (tramp-sh--quoting-style-options vec))))
+	    (test (when (string-match-p (rx (| bol (not "%")) "%m") script)
+		    (or (tramp-get-test-command vec)
+			(throw 'wont-work nil))))
+	    (test-e (when (string-match-p (rx (| bol (not "%")) "%q") script)
+		      (or (tramp-get-file-exists-command vec)
+			  (throw 'wont-work nil))))
 	    (od (when (string-match-p (rx (| bol (not "%")) "%o") script)
 		  (or (if vec (tramp-get-remote-od vec) (executable-find "od"))
 		      (throw 'wont-work nil))))
@@ -4027,11 +4035,13 @@ cannot be expanded, this function returns nil."
 			 (executable-find "python"))
 		       (throw 'wont-work nil))))
 	    (readlink (when (string-match-p (rx (| bol (not "%")) "%r") script)
-			(or
-			 (if vec
-			     (tramp-get-remote-readlink vec)
-			   (executable-find "readlink"))
-			 (throw 'wont-work nil))))
+			(format "%s %s"
+				(or
+				 (if vec
+				     (tramp-get-remote-readlink vec)
+				   (executable-find "readlink"))
+				 (throw 'wont-work nil))
+				"--canonicalize-missing")))
 	    (stat (when (string-match-p (rx (| bol (not "%")) "%s") script)
 		    (or
 		     (if vec
@@ -4046,8 +4056,8 @@ cannot be expanded, this function returns nil."
 	(format-spec
 	 script
 	 (format-spec-make
-	  ?a awk ?h hdmp ?l ls ?n dev ?o od ?p perl
-	  ?r readlink ?s stat ?t tmp ?y python))))))
+	  ?a awk ?h hdmp ?l ls ?m test ?n dev ?o od ?p perl
+	  ?q test-e ?r readlink ?s stat ?t tmp ?y python))))))
 
 (defun tramp-maybe-send-script (vec script name)
   "Define in remote shell function NAME implemented as SCRIPT.
@@ -5828,12 +5838,11 @@ Nonexistent directories are removed from spec."
   "Determine remote `readlink' command."
   (with-tramp-connection-property vec "readlink"
     (tramp-message vec 5 "Finding a suitable `readlink' command")
-    (let ((result (tramp-find-executable
-		   vec "readlink" (tramp-get-remote-path vec))))
-      (when (and result
-		 (tramp-send-command-and-check
-		  vec (format "%s --canonicalize-missing /" result)))
-	result))))
+    (when-let* ((result (tramp-find-executable
+			 vec "readlink" (tramp-get-remote-path vec)))
+		((tramp-send-command-and-check
+		  vec (format "%s --canonicalize-missing /" result))))
+	result)))
 
 (defun tramp-get-remote-touch (vec)
   "Determine remote `touch' command."
