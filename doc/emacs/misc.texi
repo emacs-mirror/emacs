@@ -2924,11 +2924,14 @@ can use @kbd{M-x desktop-read} to restore a previously-saved desktop
 if the current Emacs session didn't load any desktop yet.
 
 @vindex desktop-restore-frames
-  By default, the desktop tries to save and restore the frame and
-window configuration.  To disable this, set
-@code{desktop-restore-frames} to @code{nil}.  (See that variable's
-documentation for some related options that you can customize to
-fine-tune this behavior.)
+  By default, the desktop tries to save and restore the frame and window
+configuration.@footnote{Except on Android, where this option defaults to
+@code{nil} because the window manager (@pxref{Android Windowing}) is too
+prohibitive to admit of restoring frame configurations.}  To disable or
+enable this, set @code{desktop-restore-frames} to @code{nil} or any
+non-@code{nil} value respectively.  (See that variable's documentation
+for some related options that you can customize to fine-tune this
+behavior.)
 
 @vindex frameset-filter-alist
   When the desktop restores the frame and window configuration, it
