@@ -1469,8 +1469,9 @@ If FILE-SYSTEM is non-nil, return file system attributes."
   "Like `file-executable-p' for Tramp files."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-executable-p"
-      (or (tramp-check-cached-permissions v ?x)
-	  (tramp-check-cached-permissions v ?s)))))
+      (or (tramp-check-cached-permissions v ?x 'force)
+	  (tramp-check-cached-permissions v ?s 'force)
+	  (tramp-check-cached-permissions v ?t 'force)))))
 
 (defun tramp-gvfs-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."

@@ -2972,8 +2972,8 @@ invoking @kbd{M-x desktop-read} next.  The @code{desktop-clear}
 command kills all buffers except for internal ones, and clears the
 global variables listed in @code{desktop-globals-to-clear}.  If you
 want it to preserve certain buffers, customize the variable
-@code{desktop-clear-preserve-buffers-regexp}, whose value is a regular
-expression matching the names of buffers not to kill.
+@code{desktop-clear-preserve-buffers}, whose value is a list of regular
+expressions matching the names of buffers not to kill.
 
 @vindex desktop-globals-to-save
   If you want to save minibuffer history from one session to

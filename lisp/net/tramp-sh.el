@@ -1787,10 +1787,10 @@ ID-FORMAT valid values are `string' and `integer'."
     (with-tramp-file-property v localname "file-executable-p"
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
-      (if (tramp-use-file-attributes v)
-	  (or (tramp-check-cached-permissions v ?x)
-	      (tramp-check-cached-permissions v ?s))
-	(tramp-run-test v "-x" localname)))))
+      (or (tramp-check-cached-permissions v ?x)
+	  (tramp-check-cached-permissions v ?s)
+	  (tramp-check-cached-permissions v ?t)
+	  (tramp-run-test v "-x" localname)))))
 
 (defun tramp-sh-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."
@@ -1798,9 +1798,8 @@ ID-FORMAT valid values are `string' and `integer'."
     (with-tramp-file-property v localname "file-readable-p"
       ;; Examine `file-attributes' cache to see if request can be
       ;; satisfied without remote operation.
-      (if (tramp-use-file-attributes v)
-	  (tramp-handle-file-readable-p filename)
-	(tramp-run-test v "-r" localname)))))
+      (or (tramp-handle-file-readable-p filename)
+	  (tramp-run-test v "-r" localname)))))
 
 ;; Functions implemented using the basic functions above.
 
@@ -1830,13 +1829,11 @@ ID-FORMAT valid values are `string' and `integer'."
       (if (file-exists-p filename)
 	  ;; Examine `file-attributes' cache to see if request can be
 	  ;; satisfied without remote operation.
-	  (if (tramp-use-file-attributes v)
-	      (tramp-check-cached-permissions v ?w)
-	    (tramp-run-test v "-w" localname))
+          (or (tramp-check-cached-permissions v ?w)
+	      (tramp-run-test v "-w" localname))
 	;; If file doesn't exist, check if directory is writable.
-	(and
-	 (file-directory-p (file-name-directory filename))
-	 (file-writable-p (file-name-directory filename)))))))
+	(and (file-directory-p (file-name-directory filename))
+	     (file-writable-p (file-name-directory filename)))))))
 
 (defun tramp-sh-handle-file-ownership-preserved-p (filename &optional group)
   "Like `file-ownership-preserved-p' for Tramp files."

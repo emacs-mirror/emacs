@@ -590,12 +590,11 @@ PROPERTIES is a list of file properties (strings)."
 	    print-length print-level)
 	;; Remove `tramp-null-hop'.
 	(remhash tramp-null-hop cache)
-	;; Remove temporary data.  If there is the key "login-as", we
-	;; don't save either, because all other properties might
-	;; depend on the login name, and we want to give the
-	;; possibility to use another login name later on.  Key
-	;; "started" exists for the "ftp" method only, which must not
-	;; be kept persistent.
+	;; If there is the key "login-as", we don't save, because all
+	;; other properties might depend on the login name, and we
+	;; want to give the possibility to use another login name
+	;; later on.  Key "started" exists for the "ftp" method only,
+	;; which must not be kept persistent.
 	(maphash
 	 (lambda (key value)
 	   (if (and (tramp-file-name-p key) (hash-table-p value)

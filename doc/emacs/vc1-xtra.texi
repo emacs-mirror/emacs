@@ -312,7 +312,14 @@ If you expect to contribute patches on a regular basis, you can set
 the user option @code{vc-default-patch-addressee} to the address(es)
 you wish to use.  This will be used as the default value when invoking
 @code{vc-prepare-patch}.  Project maintainers may consider setting
-this as a directory local variable (@pxref{Directory Variables}).
+this as a directory local variable
+@iftex
+(@pxref{Directory Variables,,Per-Directory Local Variables,
+emacs, the Emacs Manual}).
+@end iftex
+@ifnottex
+(@pxref{Directory Variables}).
+@end ifnottex
 
 @node Customizing VC
 @subsection Customizing VC
