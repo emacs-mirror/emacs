@@ -587,7 +587,7 @@ This macro is used to test if macroexpansion in `should' works."
 	(should found-complex)))))
 
 (ert-deftest ert-test-run-tests-batch-expensive ()
-  :tags (if (getenv "EMACS_EMBA_CI") '(:unstable))
+  :tags '(:unstable)
   (let* ((complex-list '((:1 (:2 (:3 (:4 (:5 (:6 "abc"))))))))
 	 (failing-test-1
           (make-ert-test :name 'failing-test-1
@@ -797,6 +797,14 @@ This macro is used to test if macroexpansion in `should' works."
                   #("foo" 0 1 (c d a b) 1 2 (a foo)))
                  '(char 1 "o" (different-properties-for-key a (different-atoms b foo))
                         context-before "f" context-after "o"))))
+
+(ert-deftest ert-test-explain-time-equal-p ()
+  (should-not (ert--explain-time-equal-p 123 '(0 123 0 0)))
+  (should (equal (ert--explain-time-equal-p 123 '(0 120 0 0))
+                 '(different-time-values
+                   "1970-01-01 00:02:03.000000000+0000"
+                   "1970-01-01 00:02:00.000000000+0000"
+                   difference "3.000000000"))))
 
 (ert-deftest ert-test-stats-set-test-and-result ()
   (let* ((test-1 (make-ert-test :name 'test-1

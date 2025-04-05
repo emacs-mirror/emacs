@@ -1985,7 +1985,7 @@ be created if necessary, and new remote connections are inhibited."
           (delq (assoc "7" ansi-osc-handlers) ; ansi-osc-directory-tracker
                 ansi-osc-handlers))))))
 (put #'shell-bookmark-jump 'bookmark-handler-type "Shell")
-(put #'shell-bookmark-jump 'bookmark-inhibit 'insert)
+(put #'shell-bookmark-jump 'bookmark-inhibit '(insert))
 
 (provide 'shell)
 

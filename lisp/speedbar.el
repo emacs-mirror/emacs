@@ -1048,7 +1048,8 @@ Return nil if both are closed."
    ((speedbar-window--live-p)
     'window)
    ((and (frame-live-p (speedbar-current-frame))
-	 speedbar-buffer
+         speedbar-buffer
+	 (buffer-live-p speedbar-buffer)
 	 (not (speedbar-window--live-p)))
     'frame)
    (t nil)))

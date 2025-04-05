@@ -373,6 +373,13 @@ effect."
   ;; Utilities
   "<remap> <complete-symbol>" #'completion-at-point)
 
+(defvar-keymap python-indent-repeat-map
+  :doc "Keymap to repeat Python indentation commands.
+Used in `repeat-mode'."
+  :repeat t
+  "<" #'python-indent-shift-left
+  ">" #'python-indent-shift-right)
+
 (defvar subword-mode nil)
 
 (easy-menu-define python-menu python-base-mode-map
@@ -6931,7 +6938,7 @@ Return non-nil if the buffer was actually modified."
             (unless (eq 0 status)
               (error "%s exited with status %s (maybe isort is missing?)"
                      python-interpreter status))
-            (replace-buffer-contents temp)
+            (replace-region-contents (point-min) (point-max) temp)
             (not (eq tick (buffer-chars-modified-tick)))))))))
 
 ;;;###autoload
@@ -7147,6 +7154,7 @@ implementations: `python-mode' and `python-ts-mode'."
           (add-hook 'eldoc-documentation-functions #'python-eldoc-function nil t)
         (add-function :before-until (local 'eldoc-documentation-function)
                       #'python-eldoc-function))))
+  (eldoc-add-command-completions "python-indent-dedent-line-backspace")
 
   ;; TODO: Use tree-sitter to figure out the block in `python-ts-mode'.
   (dolist (mode '(python-mode python-ts-mode))

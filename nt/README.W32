@@ -104,7 +104,7 @@ See the end of the file for license conditions.
   + addpm.exe - A basic installer that adds Emacs to "Start" menus and
     adds Emacs-related entries to the Windows Registry.
 
-  + ctags.exe, etags.exe - Tools for generating tag files.  See the
+  + etags.exe - Tool for generating tag files.  See the
     `Tags' node of the Emacs manual.
 
   + ebrowse.exe - A tool for generating C++ browse information.  See the

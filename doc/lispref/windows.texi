@@ -7000,6 +7000,12 @@ state will be written to disk and read back in another session.
 Together, the argument @var{writable} and the variable
 @code{window-persistent-parameters} specify which window parameters are
 saved by this function.  @xref{Window Parameters}.
+
+@vindex window-state-normalize-buffer-name
+Bind @code{window-state-normalize-buffer-name} to non-@code{nil} to
+normalize buffer names under @file{uniquify} management by removing its
+prefixes and suffixes.  This helps restore window buffers across Emacs
+sessions.  @xref{Uniquify,,, emacs, The GNU Emacs Manual}.
 @end defun
 
 The value returned by @code{window-state-get} can be used in the same

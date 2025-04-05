@@ -380,7 +380,7 @@ TYPE.  The resulting list has the format
   (INTERFACE PROTOCOL NAME TYPE DOMAIN FLAGS)."
   ;; Due to the service browser, all known services are kept in
   ;; `zeroconf-services-hash'.
-  (gethash (concat name "/" type) zeroconf-services-hash nil))
+  (gethash (concat name "/" type) zeroconf-services-hash))
 
 (defvar dbus-debug)
 
@@ -396,7 +396,7 @@ TYPE.  The resulting list has the format
 
     (or
      ;; Check whether we know this service already.
-     (gethash key zeroconf-resolved-services-hash nil)
+     (gethash key zeroconf-resolved-services-hash)
 
      ;; Resolve the service.  We don't propagate D-Bus errors.
      (dbus-ignore-errors
@@ -552,7 +552,7 @@ DOMAIN is nil, the local domain is used."
 
 (defun zeroconf-register-service-browser (type)
   "Register a service browser at the Avahi daemon."
-  (or (gethash type zeroconf-path-avahi-service-browser-hash nil)
+  (or (gethash type zeroconf-path-avahi-service-browser-hash)
       (puthash type
 	       (dbus-call-method
 		:system zeroconf-service-avahi zeroconf-path-avahi
@@ -573,8 +573,8 @@ DOMAIN is nil, the local domain is used."
   (let* ((name (zeroconf-service-name val))
 	 (type (zeroconf-service-type val))
 	 (key (concat name "/" type))
-	 (ahook (gethash type zeroconf-service-added-hooks-hash nil))
-	 (rhook (gethash type zeroconf-service-removed-hooks-hash nil)))
+         (ahook (gethash type zeroconf-service-added-hooks-hash))
+         (rhook (gethash type zeroconf-service-removed-hooks-hash)))
     (cond
      ((string-equal (dbus-event-member-name last-input-event) "ItemNew")
       ;; Add new service.
@@ -590,7 +590,7 @@ DOMAIN is nil, the local domain is used."
 (defun zeroconf-register-service-resolver (name type)
   "Register a service resolver at the Avahi daemon."
   (let ((key (concat name "/" type)))
-    (or (gethash key zeroconf-path-avahi-service-resolver-hash nil)
+    (or (gethash key zeroconf-path-avahi-service-resolver-hash)
 	(puthash key
 		 (dbus-call-method
 		  :system zeroconf-service-avahi zeroconf-path-avahi

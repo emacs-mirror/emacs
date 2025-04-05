@@ -2108,6 +2108,11 @@ mailabbrev.el used to have its own variable for this purpose
 ** In Buffer-Menu mode, the d and C-d commands (which mark buffers for
 deletion) now accept a prefix argument which serves as a repeat count.
 
+** 'time-stamp' can be disabled interactively with 'time-stamp-toggle-active'
+This new function works by toggling existing variable 'time-stamp-active'.
+When inactive, 'time-stamp' generates a warning message unless
+new variable 'time-stamp-warn-inactive' is nil.
+
 ** Changes in BibTeX mode.
 
 *** Reference keys can now be entered with TAB completion.  All
@@ -3149,7 +3154,7 @@ tempo.el		Template insertion with hotspots.
 
 
 
-* User Editing Changes in 19.23.
+* User Editing Changes in Emacs 19.23
 
 ** Emacs 19.23 uses Ispell version 3.
 
@@ -4021,7 +4026,7 @@ by building Emacs.
 ** New macro 'easy-menu-define'
 
 
-* Changes in 19.22.
+* Changes in Emacs 19.22
 
 ** The mouse click M-mouse-2 now inserts the current secondary
 selection (from Emacs or any other X client) where you click.
@@ -4085,7 +4090,7 @@ different properties.
 
 
 
-* User editing changes in version 19.21.
+* User editing changes in Emacs 19.21
 
 ** ISO Accents mode supports four additional characters:
 A-with-ring (entered as /A), AE ligature (entered as /E),
@@ -4093,7 +4098,7 @@ and their lower-case equivalents.
 
 
 
-* User editing changes in version 19.20.
+* User editing changes in Emacs 19.20
 (See following page for Lisp programming changes.)
 
 Note that some of these changes were made subsequent to the Emacs 19.20
@@ -4493,7 +4498,7 @@ Emacs command history.
 
 
 
-* Changes in version 19.19.
+* Changes in Emacs 19.19
 
 ** The new package bookmark.el records named bookmarks: positions that
 you can jump to.  Bookmarks are saved automatically between Emacs
@@ -4527,7 +4532,7 @@ inconsistent with integer `%'.
 
 
 
-* Changes in version 19.18.
+* Changes in Emacs 19.18
 
 ** Typing C-z in an iconified Emacs frame now deiconifies it.
 
@@ -4669,7 +4674,7 @@ minibuffer window, and returns t if the window is currently active.
 
 
 
-* Changes in version 19.17.
+* Changes in Emacs 19.17
 
 ** When Emacs displays a list of completions in a buffer,
 you can select a completion by clicking mouse button 2
@@ -4857,7 +4862,7 @@ argument FRAME, which specifies which frames it should affect.
 
 
 
-* Changes in version 19.16.
+* Changes in Emacs 19.16
 
 ** When dragging the mouse to select a region, Emacs now highlights the
 region as you drag (if Transient Mark mode is enabled).  If you
@@ -4982,9 +4987,15 @@ in a singleton list when it first inserts the prefix, but doesn't
 insert the prefix when processing events whose PLACE-SYMBOLs are
 already thus enclosed.
 
+** New function 'time-stamp' updates a template with the current time.
+This is intended to be used on 'write-file-hooks'.  The template details
+are controlled by file-local variables 'time-stamp-start', 'time-stamp-end',
+'time-stamp-line-limit', and 'time-stamp-format'.
+Disabled by turning off 'time-stamp-active'.
+
 
 
-* Changes in version 19.15.
+* Changes in Emacs 19.15
 
 ** 'make-frame-visible', which uniconified frames, is now a command,
 and thus may be bound to a key.  This makes sense because frames
@@ -5032,7 +5043,7 @@ and thus didn't document it.)
 
 
 
-* Changes in version 19.14.
+* Changes in Emacs 19.14
 
 ** To modify read-only text, bind the variable 'inhibit-read-only'
 to a non-nil value.  If the value is t, then all reasons that might
@@ -5078,7 +5089,7 @@ If you specify BEG or END, then the argument VISIT must be nil.
 
 
 
-* Changes in version 19.13.
+* Changes in Emacs 19.13
 
 ** Magic file names can now handle the 'load' operation.
 
@@ -5098,14 +5109,14 @@ We may move them again for greater consistency with other modes.
 
 
 
-* Changes in version 19.12.
+* Changes in Emacs 19.12
 
 ** You can now make many of the sort commands ignore case by setting
 'sort-fold-case' to a non-nil value.
 
 
 
-* Changes in version 19.11.
+* Changes in Emacs 19.11
 
 ** Supercite is installed.
 
@@ -5124,7 +5135,7 @@ it writes a file in the usual way.
 
 
 
-* Changes in version 19.10.
+* Changes in Emacs 19.10
 
 ** The command 'repeat-complex-command' is now on C-x ESC ESC.
 It used to be bound to C-x ESC.
@@ -5138,7 +5149,7 @@ using X).
 
 
 
-* Changes in version 19.8.
+* Changes in Emacs 19.8
 
 ** It is now simpler to tell Emacs to display accented characters under
 X windows.  M-x standard-display-european toggles the display of
@@ -5184,7 +5195,7 @@ If the optional arguments FACE and FRAME are specified, then
 
 
 
-* Changes in version 19.
+* Changes in Emacs 19.1
 
 ** When you kill buffers, Emacs now returns memory to the operating system,
 thus reducing the size of the Emacs process.  All the space that you free

@@ -1391,6 +1391,14 @@ The current buffer's `default-directory' is available as part of
   (interactive)
   (vc-dir (project-root (project-current t))))
 
+;;;###autoload
+(defun project-customize-dirlocals ()
+  "Run `customize-dirlocals' in current project's root."
+  (interactive)
+  (customize-dirlocals
+   (expand-file-name ".dir-locals.el"
+                     (project-root (project-current t)))))
+
 (declare-function comint-check-proc "comint")
 
 ;;;###autoload
@@ -2301,7 +2309,7 @@ made from `project-switch-commands'.
 When called in a program, it will use the project corresponding
 to directory DIR."
   (interactive (list (funcall project-prompter)))
-  (project-remember-project (project-current nil dir))
+  (project-remember-project (project-current t dir))
   (let ((command (if (symbolp project-switch-commands)
                      project-switch-commands
                    (project--switch-project-command dir)))

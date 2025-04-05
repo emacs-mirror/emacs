@@ -180,15 +180,14 @@ must return a string representing the column's value."
 
 ;; Font-Lock-Settings
 (defvar bs-mode-font-lock-keywords
-  (list ;; header in font-lock-type-face
-   (list (bs--make-header-match-string)
-	 '(1 font-lock-type-face append) '(1 'bold append))
-   ;; Buffername embedded by *
-   (list "^\\(.*\\*.*\\*.*\\)$" 1 'font-lock-constant-face)
-   ;; Dired-Buffers
-   '("^..\\(.*Dired .*\\)$" 1 font-lock-function-name-face)
-   ;; the star for modified buffers
-   '("^.\\(\\*\\) +[^\\*]"     1 font-lock-comment-face))
+  `(;; header in bold font-lock-type-face
+    (,(bs--make-header-match-string) (1 '(font-lock-type-face bold)))
+    ;; Buffername embedded by *
+    ("^\\(.*\\*.*\\*.*\\)$" (1 'font-lock-constant-face))
+    ;; Dired-Buffers
+    ("^..\\(.*Dired .*\\)$" (1 'font-lock-function-name-face))
+    ;; the star for modified buffers
+    ("^.\\(\\*\\) +[^\\*]"  (1 'font-lock-comment-face)))
   "Default font lock expressions for Buffer Selection Menu.")
 
 (defcustom bs-max-window-height 20
@@ -255,7 +254,7 @@ See also `bs-maximal-buffer-name-column'."
 (defcustom bs-configurations
   '(("all" nil nil nil nil nil)
     ("files" nil nil nil bs-visits-non-file bs-sort-buffer-interns-are-last)
-    ("files-and-scratch" "^\\*scratch\\*$" nil nil bs-visits-non-file
+    ("files-and-scratch" "\\`\\*scratch\\*\\'" nil nil bs-visits-non-file
      bs-sort-buffer-interns-are-last)
     ("all-intern-last" nil nil nil nil bs-sort-buffer-interns-are-last))
   "List of all configurations you can use in the Buffer Selection Menu.
@@ -420,7 +419,7 @@ naming a sort behavior.  Default is \"by nothing\" which means no sorting."
 Non-nil means to show all buffers.  Otherwise show buffers
 defined by current configuration `bs-current-configuration'.")
 
-(defvar bs--intern-show-never "^ \\|\\*buffer-selection\\*"
+(defvar bs--intern-show-never "\\` \\|\\*buffer-selection\\*"
   "Regular expression specifying which buffers never to show.
 A buffer whose name matches this regular expression will never be
 included in the buffer list.")
@@ -439,17 +438,6 @@ Used internally, only.")
   "v"       #'bs-view
   "!"       #'bs-select-in-one-window
   "F"       #'bs-select-other-frame
-  "1"       #'digit-argument
-  "2"       #'digit-argument
-  "3"       #'digit-argument
-  "4"       #'digit-argument
-  "5"       #'digit-argument
-  "6"       #'digit-argument
-  "7"       #'digit-argument
-  "8"       #'digit-argument
-  "9"       #'digit-argument
-  "-"       #'negative-argument
-  "ESC -"   #'negative-argument
   "o"       #'bs-select-other-window
   "C-o"     #'bs-tmp-select-other-window
   "<up>"    #'bs-up
@@ -464,7 +452,6 @@ Used internally, only.")
   "d"       #'bs-delete
   "C-d"     #'bs-delete-backward
   "k"       #'bs-delete
-  "g"       #'bs-refresh
   "C"       #'bs-set-configuration-and-refresh
   "c"       #'bs-select-next-configuration
   "q"       #'bs-kill
@@ -574,21 +561,20 @@ function.  SORT-DESCRIPTION is an element of `bs-sort-functions'."
   "Redisplay whole Buffer Selection Menu.
 If KEEP-LINE-P is non-nil the point will stay on current line.
 SORT-DESCRIPTION is an element of `bs-sort-functions'."
-  (let ((line (count-lines 1 (point))))
+  (let ((line (line-number-at-pos)))
     (bs-show-in-buffer (bs-buffer-list nil sort-description))
     (when keep-line-p
       (goto-char (point-min))
-      (forward-line line))
+      (forward-line (1- line)))
     (beginning-of-line)))
 
 (defun bs--goto-current-buffer ()
   "Go to line which represents the current buffer.
 Actually, it goes to the line which begins with the character
 in `bs-string-current' or `bs-string-current-marked'."
-  (let ((regexp (concat "^"
-			(regexp-quote bs-string-current)
-			"\\|^"
-			(regexp-quote bs-string-current-marked)))
+  (let ((regexp (concat "\\`"
+			(regexp-opt (list bs-string-current
+			                  bs-string-current-marked))))
 	point)
     (save-excursion
       (goto-char (point-min))
@@ -604,9 +590,7 @@ in `bs-string-current' or `bs-string-current-marked'."
     (format "Show buffer by configuration %S"
 	    bs-current-configuration)))
 
-(put 'bs-mode 'mode-class 'special)
-
-(define-derived-mode bs-mode nil "Buffer-Selection-Menu"
+(define-derived-mode bs-mode special-mode "Buffer-Selection-Menu"
   "Major mode for editing a subset of Emacs's buffers.
 \\<bs-mode-map>
 Aside from two header lines each line describes one buffer.
@@ -653,16 +637,15 @@ apply it.
 \\[bs-show-sorted] -- display buffer list sorted by next sort aspect.
 
 \\[bs-kill] -- leave Buffer Selection Menu without a selection.
-\\[bs-refresh] -- refresh Buffer Selection Menu.
+\\[revert-buffer] -- refresh Buffer Selection Menu.
 \\[describe-mode] -- display this help text."
   (buffer-disable-undo)
-  (setq buffer-read-only t
-	truncate-lines t
+  (setq truncate-lines t
 	show-trailing-whitespace nil)
   (setq-local font-lock-defaults '(bs-mode-font-lock-keywords t))
   (setq-local font-lock-verbose nil)
   (setq-local font-lock-global-modes '(not bs-mode))
-  (setq-local revert-buffer-function 'bs-refresh))
+  (setq-local revert-buffer-function #'bs-refresh))
 
 (defun bs-kill ()
   "Let buffer disappear and reset window configuration."
@@ -701,7 +684,7 @@ Arguments are IGNORED (for `revert-buffer')."
 Raise an error if not on a buffer line."
   (beginning-of-line)
   (let ((line (+ (- bs-header-lines-length)
-		 (count-lines 1 (point)))))
+		 (count-lines (point-min) (point)))))
     (when (< line 0)
       (error "You are on a header row"))
     (nth line bs-current-list)))
@@ -1011,7 +994,7 @@ Uses function `read-only-mode'."
 (defun bs--up ()
   "Move point vertically up one line.
 If on top of buffer list go to last line."
-  (if (> (count-lines 1 (point)) bs-header-lines-length)
+  (if (> (count-lines (point-min) (point)) bs-header-lines-length)
       (forward-line -1)
     (goto-char (point-max))
     (beginning-of-line)
@@ -1041,7 +1024,7 @@ A value of nil means BUFFER belongs to a file."
 
 (defun bs-sort-buffer-interns-are-last (_b1 b2)
   "Function for sorting internal buffers at the end of all buffers."
-  (string-match-p "^\\*" (buffer-name b2)))
+  (string-match-p "\\`\\*" (buffer-name b2)))
 
 ;; ----------------------------------------------------------------------
 ;; Configurations:
@@ -1062,19 +1045,19 @@ These variables are `bs-dont-show-regexp', `bs-must-show-regexp',
   "Define a configuration for showing only buffers visiting a file."
   (bs-config-clear)
   (setq ;; I want to see *-buffers at the end
-   bs-buffer-sort-function 'bs-sort-buffer-interns-are-last
+   bs-buffer-sort-function #'bs-sort-buffer-interns-are-last
    ;; Don't show files who don't belong to a file
-   bs-dont-show-function 'bs-visits-non-file))
+   bs-dont-show-function #'bs-visits-non-file))
 
 (defun bs-config--files-and-scratch ()
   "Define a configuration for showing buffer *scratch* and file buffers."
   (bs-config-clear)
   (setq ;; I want to see *-buffers at the end
-   bs-buffer-sort-function 'bs-sort-buffer-interns-are-last
+   bs-buffer-sort-function #'bs-sort-buffer-interns-are-last
    ;; Don't show files who don't belong to a file
-   bs-dont-show-function 'bs-visits-non-file
+   bs-dont-show-function #'bs-visits-non-file
    ;; Show *scratch* buffer.
-   bs-must-show-regexp "^\\*scratch\\*$"))
+   bs-must-show-regexp "\\`\\*scratch\\*\\'"))
 
 (defun bs-config--all ()
   "Define a configuration for showing all buffers.
@@ -1086,7 +1069,7 @@ Reset all according variables by `bs-config-clear'."
 Internal buffers appear at end of all buffers."
   (bs-config-clear)
   ;; I want to see *-buffers at the end
-  (setq bs-buffer-sort-function 'bs-sort-buffer-interns-are-last))
+  (setq bs-buffer-sort-function #'bs-sort-buffer-interns-are-last))
 
 (defun bs-set-configuration (name)
   "Set configuration to the one saved under string NAME in `bs-configurations'.
@@ -1170,7 +1153,7 @@ and move point to current buffer."
   (let* ((inhibit-read-only t)
 	 (map-fun (lambda (entry)
 		    (string-width (buffer-name entry))))
-	 (max-length-of-names (apply 'max
+	 (max-length-of-names (apply #'max
 				     (cons 0 (mapcar map-fun list))))
 	 (name-entry-length (min bs-maximal-buffer-name-column
 				 (max bs-minimal-buffer-name-column
@@ -1219,7 +1202,7 @@ buffer list used for buffer cycling."
   "Like `message' but don't log it on the message log.
 All arguments ARGS are transferred to function `message'."
   (let ((message-log-max nil))
-    (apply 'message args)))
+    (apply #'message args)))
 
 (defvar bs--cycle-list nil
   "Current buffer list used for cycling.")
@@ -1415,8 +1398,7 @@ function of one argument, the string heading for the column."
 	       (bs--format-aux (funcall col (bs--get-value (car column)))
 			       (nth 3 column) ; align
 			       (bs--get-value (nth 1 column))))
-	     bs-attributes-list
-	     ""))
+	     bs-attributes-list))
 
 (defun bs--show-with-configuration (name &optional arg)
   "Display buffer list of configuration with name NAME.

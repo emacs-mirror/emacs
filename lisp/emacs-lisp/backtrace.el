@@ -48,7 +48,6 @@
 Set to nil to disable fontification, which may be necessary in
 order to debug the code that does fontification."
   :type 'boolean
-  :group 'backtrace
   :version "27.1")
 
 (defcustom backtrace-line-length 5000
@@ -59,7 +58,6 @@ shorter than this, but success is not guaranteed.  If set to nil
 or zero, backtrace mode will not abbreviate the forms it prints."
   :type '(choice natnum
                  (const :value nil :tag "Don't abbreviate"))
-  :group 'backtrace
   :version "27.1")
 
 ;;; Backtrace frame data structure
@@ -877,13 +875,11 @@ followed by `backtrace-print-frame', once for each stack frame."
   ;; (set-buffer-multibyte t)
   (setq-local revert-buffer-function #'backtrace-revert)
   (setq-local filter-buffer-substring-function #'backtrace--filter-visible)
-  (setq-local indent-line-function 'lisp-indent-line)
-  (setq-local indent-region-function 'lisp-indent-region)
+  (setq-local indent-line-function #'lisp-indent-line)
+  (setq-local indent-region-function #'lisp-indent-region)
   (add-function :around (local 'cl-print-expand-ellipsis-function)
                 #'backtrace--expand-ellipsis)
   (add-hook 'xref-backend-functions #'backtrace--xref-backend nil t))
-
-(put 'backtrace-mode 'mode-class 'special)
 
 ;;; Backtrace printing
 

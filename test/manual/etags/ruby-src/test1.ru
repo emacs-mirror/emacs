@@ -43,3 +43,7 @@ A::Constant = 5
 
 # def foo_in_comment
 # end
+
+class A::C; end
+module A::M; end
+class ::D; end

@@ -353,11 +353,11 @@ directories and the app data directories of other applications.
   The Emacs distribution also incorporates several binaries.  While
 being executable files, they are packaged as libraries in the library
 directory, because otherwise the system will not unpack them while
-Emacs is being installed.  This means that instead of @code{ctags} or
-@code{emacsclient}, Lisp code must specify @code{libctags.so} or
+Emacs is being installed.  This means that instead of
+@code{emacsclient}, Lisp code must specify
 @code{libemacsclient.so} on the command line when starting either of
 those programs in a subprocess; to determine which names to use,
-consult the values of the variables @code{ctags-program-name},
+consult the values of the variables
 @code{etags-program-name}, @code{hexl-program-name},
 @code{emacsclient-program-name}, @code{movemail-program-name},
 @code{ebrowse-program-name}, and @code{rcs2log-program-name}.

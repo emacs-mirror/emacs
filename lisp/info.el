@@ -3475,9 +3475,9 @@ If FILE is nil, check the current Info file."
 (defun info--ensure-not-in-directory-node ()
   (if (equal (downcase (file-name-nondirectory Info-current-file))
              "dir")
-      (error (substitute-command-keys
-              (concat "The Info directory node has no index; "
-                      "type \\[Info-menu] to select a manual")))))
+      (user-error (substitute-command-keys
+                   (concat "The Info directory node has no index; "
+                           "type `\\[Info-menu]' to select a manual")))))
 
 ;;;###autoload
 (defun Info-index (topic)

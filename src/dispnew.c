@@ -3141,18 +3141,24 @@ mirror_line_dance (struct window *w, int unchanged_at_top, int nlines, int *copy
 static void
 check_window_matrix_pointers (struct window *w)
 {
-  while (w)
-    {
-      if (WINDOWP (w->contents))
-	check_window_matrix_pointers (XWINDOW (w->contents));
-      else
-	{
-	  struct frame *f = XFRAME (w->frame);
-	  check_matrix_pointers (w->desired_matrix, f->desired_matrix);
-	  check_matrix_pointers (w->current_matrix, f->current_matrix);
-	}
+  struct frame *f = XFRAME (w->frame);
 
-      w = NILP (w->next) ? 0 : XWINDOW (w->next);
+  eassert (is_tty_frame (f));
+
+  if (f->after_make_frame)
+    {
+      while (w)
+	{
+	  if (WINDOWP (w->contents))
+	    check_window_matrix_pointers (XWINDOW (w->contents));
+	  else
+	    {
+	      check_matrix_pointers (w->desired_matrix, f->desired_matrix);
+	      check_matrix_pointers (w->current_matrix, f->current_matrix);
+	    }
+
+	  w = NILP (w->next) ? 0 : XWINDOW (w->next);
+	}
     }
 }
 
@@ -3386,8 +3392,26 @@ max_child_z_order (struct frame *parent)
   return z_order;
 }
 
+/* Return true if and only if F and all its ancestors are visible.  */
+
+static bool
+frame_ancestors_visible_p (struct frame *f)
+{
+  while (f)
+    {
+      if (!FRAME_VISIBLE_P (f))
+	return false;
+      else
+	f = FRAME_PARENT_FRAME (f);
+    }
+
+  return true;
+}
+
 /* Return a list of all frames having root frame ROOT.
-   If VISIBLE_ONLY is true, return only visible frames.  */
+
+   If VISIBLE_ONLY is true, return only frames that are visible and have
+   visible ancestors only.  */
 
 static Lisp_Object
 frames_with_root (struct frame *root, bool visible_only)
@@ -3397,8 +3421,9 @@ frames_with_root (struct frame *root, bool visible_only)
   FOR_EACH_FRAME (tail, frame)
     {
       struct frame *f = XFRAME (frame);
+
       if (root_frame (f) == root
-	  && (!visible_only || FRAME_VISIBLE_P (f)))
+	  && (!visible_only || frame_ancestors_visible_p (f)))
 	list = Fcons (frame, list);
     }
   return list;
@@ -3459,7 +3484,7 @@ frames_in_reverse_z_order (struct frame *f, bool visible_only)
   return frames;
 }
 
-/* Raise of lower frame F in z-order.  If RAISE is true, raise F, else
+/* Raise or lower frame F in z-order.  If RAISE is true, raise F, else
    lower f.  */
 
 void
@@ -4027,6 +4052,9 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
 {
   struct frame *root = root_frame (f);
 
+  if (!root->after_make_frame)
+    return;
+
   /* Determine visible frames on the root frame, including the root
      frame itself.  Note that there are cases, see bug#75056, where we
      can be called for invisible frames.  This looks like a bug with
@@ -4045,7 +4073,8 @@ combine_updates_for_frame (struct frame *f, bool inhibit_scrolling)
   for (Lisp_Object tail = XCDR (z_order); CONSP (tail); tail = XCDR (tail))
     {
       topmost_child = XFRAME (XCAR (tail));
-      copy_child_glyphs (root, topmost_child);
+      if (topmost_child->after_make_frame)
+	copy_child_glyphs (root, topmost_child);
     }
 
   update_begin (root);
@@ -4098,7 +4127,8 @@ combine_updates (Lisp_Object roots)
   for (; CONSP (roots); roots = XCDR (roots))
     {
       struct frame *root = XFRAME (XCAR (roots));
-      combine_updates_for_frame (root, false);
+      if (root->after_make_frame)
+	combine_updates_for_frame (root, false);
     }
 }
 
@@ -6445,7 +6475,11 @@ mode_line_string (struct window *w, enum window_part part,
 	      struct image *img;
 	      img = IMAGE_OPT_FROM_ID (WINDOW_XFRAME (w), glyph->u.img_id);
 	      if (img != NULL)
-		*object = img->spec;
+		{
+		  *object = img->spec;
+		  x0 += glyph->slice.img.x;
+		  y0 += glyph->slice.img.y;
+		}
 	      y0 -= row->ascent - glyph->ascent;
 	    }
 #endif

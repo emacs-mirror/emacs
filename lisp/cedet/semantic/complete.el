@@ -177,6 +177,7 @@ Value should be a ... what?")
     (define-key km "\C-g" #'abort-recursive-edit)
     (define-key km "\M-n" #'next-history-element)
     (define-key km "\M-p" #'previous-history-element)
+    (define-key km "\M-v" #'switch-to-completions)
     (define-key km "\C-n" #'next-history-element)
     (define-key km "\C-p" #'previous-history-element)
     ;; Add history navigation

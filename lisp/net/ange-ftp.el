@@ -1004,7 +1004,7 @@ or nil meaning don't change it."
 
 (defun ange-ftp-hash-entry-exists-p (key tbl)
   "Return whether there is an association for KEY in table TBL."
-  (and tbl (not (eq (gethash key tbl 'unknown) 'unknown))))
+  (and tbl (hash-table-contains-p key tbl)))
 
 (defun ange-ftp-hash-table-keys (tbl)
   "Return a sorted list of all the active keys in table TBL, as strings."

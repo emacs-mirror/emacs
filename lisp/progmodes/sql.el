@@ -4164,7 +4164,7 @@ must tell Emacs.  Here's how to do that in your init file:
               (eval
                '(syntax-propertize-rules
                  ;; Handle escaped apostrophes within strings.
-                 ((if (eq sql-product 'mysql)
+                 ((if (member sql-product '(mysql mariadb))
                       "\\\\'"
                     "''")
                   (0

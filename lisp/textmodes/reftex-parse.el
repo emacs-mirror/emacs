@@ -74,10 +74,10 @@ When allowed, do only a partial scan from FILE."
 
   (let* ((old-list (symbol-value reftex-docstruct-symbol))
          (master (reftex-TeX-master-file))
-         (true-master (file-truename master))
-         (master-dir (file-name-as-directory (file-name-directory master)))
-         (file (or file (buffer-file-name)))
-         (true-file (file-truename file))
+         (true-master (reftex--get-truename master))
+         (master-dir (file-name-as-directory (reftex--get-directory master)))
+         (file (or file (reftex--get-buffer-identifier)))
+         (true-file (reftex--get-truename file))
          (bibview-cache (assq 'bibview-cache old-list))
          (reftex--index-tags (cdr (assq 'index-tags old-list)))
          from-file appendix docstruct tmp)
@@ -88,7 +88,7 @@ When allowed, do only a partial scan from FILE."
                          (member (list 'eof file) old-list))))
       ;; Scan whole document because no such file section exists
       (setq rescan 1))
-    (when (string= true-file true-master)
+    (when (equal true-file true-master)
       ;; Scan whole document because this file is the master
       (setq rescan 1))
 
@@ -186,13 +186,14 @@ When allowed, do only a partial scan from FILE."
 When RELATIVE is non-nil, give file names relative to directory
 of master file."
   (let* ((all (symbol-value reftex-docstruct-symbol))
-         (master-dir (file-name-directory (reftex-TeX-master-file)))
+         (master-dir (reftex--get-directory (reftex-TeX-master-file)))
          (re (concat "\\`" (regexp-quote master-dir)))
         file-list tmp file)
     (while (setq tmp (assoc 'bof all))
       (setq file (nth 1 tmp)
             all (cdr (memq tmp all)))
       (and relative
+           (stringp file) ; Ignore non-file buffers.
            (string-match re file)
            (setq file (substring file (match-end 0))))
       (push file file-list))
@@ -228,7 +229,7 @@ of master file."
                 (not (eq t reftex-keep-temporary-buffers)))))
 
         ;; Begin of file mark
-        (setq file (buffer-file-name))
+        (setq file (reftex--get-buffer-identifier))
         (push (list 'bof file) docstruct)
 
         (reftex-with-special-syntax
@@ -275,7 +276,8 @@ of master file."
                  (when (and toc-entry
                             (eq ;; Either both are t or both are nil.
                              (= (char-after bound) ?%)
-                             (string-suffix-p ".dtx" file)))
+                             (and (stringp file)
+                                  (string-suffix-p ".dtx" file))))
                    ;; It can happen that section info returns nil
                    (setq level (nth 5 toc-entry))
                    (setq highest-level (min highest-level level))
@@ -638,7 +640,8 @@ if the information is exact (t) or approximate (nil)."
                ((not found)
                 ;; no match
                 (or
-                 (car (member (list 'bof (buffer-file-name)) docstruct))
+                 (car (member (list 'bof (reftex--get-buffer-identifier))
+                              docstruct))
                  (not (setq cnt 2))
                  (assq 'bof docstruct)  ;; for safety reasons
                  'corrupted))
@@ -649,15 +652,16 @@ if the information is exact (t) or approximate (nil)."
                ((match-end 3)
                 ;; Section
                 (goto-char (1- (match-beginning 3)))
-                (let* ((list (member (list 'bof (buffer-file-name))
+                (let* ((buffile (reftex--get-buffer-identifier))
+                       (list (member (list 'bof buffile)
                                      docstruct))
-                       (endelt (car (member (list 'eof (buffer-file-name))
+                       (endelt (car (member (list 'eof buffile)
                                             list)))
                        rtn1)
                   (while (and list (not (eq endelt (car list))))
                     (if (and (eq (car (car list)) 'toc)
-                             (string= (buffer-file-name)
-                                      (nth 3 (car list))))
+                             (equal buffile
+                                    (nth 3 (car list))))
                         (cond
                          ((equal (point)
                                  (or (and (markerp (nth 4 (car list)))
@@ -685,10 +689,13 @@ if the information is exact (t) or approximate (nil)."
                 (when reftex-support-index
                   (let* ((index-info (save-excursion
                                        (reftex-index-info-safe nil)))
-                         (list (member (list 'bof (buffer-file-name))
-                                       docstruct))
-                         (endelt (car (member (list 'eof (buffer-file-name))
-                                              list)))
+                         (list (member
+                                (list 'bof (reftex--get-buffer-identifier))
+                                docstruct))
+                         (endelt
+                          (car (member
+                                (list 'eof (reftex--get-buffer-identifier))
+                                list)))
                          dist last-dist last (n 0))
                     ;; Check all index entries with equal text
                     (while (and list (not (eq endelt (car list))))
@@ -758,12 +765,13 @@ if the information is exact (t) or approximate (nil)."
          (when (re-search-forward (reftex-everything-regexp) nil t)
            (cond
             ((match-end 1)
-             (push (reftex-label-info (reftex-match-string 1) buffer-file-name)
+             (push (reftex-label-info (reftex-match-string 1)
+                                  (reftex--get-buffer-identifier))
                    (cdr tail)))
 
             ((match-end 3)
              (setq star (= ?* (char-after (match-end 3)))
-                   entry (reftex-section-info (buffer-file-name))
+                   entry (reftex-section-info (reftex--get-buffer-identifier))
                    level (nth 5 entry))
              ;; Insert the section info
              (push entry (cdr tail))
@@ -795,7 +803,8 @@ if the information is exact (t) or approximate (nil)."
             ((match-end 10)
              ;; Index entry
              (and reftex-support-index
-                  (setq entry (reftex-index-info-safe buffer-file-name))
+                  (setq entry (reftex-index-info-safe
+                               (reftex--get-buffer-identifier)))
                   ;; FIXME: (add-to-list 'reftex--index-tags (nth 1 index-entry))
                   (push entry (cdr tail))))))))))
 

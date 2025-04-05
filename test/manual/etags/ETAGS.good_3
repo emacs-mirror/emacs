@@ -3510,7 +3510,7 @@ module ModuleExample1,0
     def module_instance_method46,1051
     def ModuleExample.module_class_methodmodule_class_method49,1131
 
-ruby-src/test1.ru,935
+ruby-src/test1.ru,998
 class A1,0
  def a(2,8
  def b(5,38
@@ -3540,6 +3540,9 @@ module A9,57
                 :qux1)qux136,563
     alias_method ( :foo2,foo237,586
 A::Constant Constant42,655
+class A::C;C47,700
+module A::M;M48,716
+class ::D;D49,733
 
 rs-src/test.rs,52
 enum IpAddrKind 3,11

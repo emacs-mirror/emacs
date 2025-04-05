@@ -10299,10 +10299,10 @@ move_it_in_display_line_to (struct it *it,
 		{
 		  bool moved_forward = false;
 
-		  if (/* IT->hpos == 0 means the very first glyph
-			 doesn't fit on the line, e.g. a wide
-			 image.  */
-		      it->hpos == 0
+		  if (/* IT->hpos == 0 (modulo line-number width) means
+			 the very first glyph doesn't fit on the line,
+			 e.g., a wide image.  */
+		      it->hpos == 0 + (it->lnum_width ? it->lnum_width + 2 : 0)
 		      || (new_x == it->last_visible_x
 			  && FRAME_WINDOW_P (it->f)))
 		    {
@@ -16947,9 +16947,18 @@ overlay_arrow_at_row (struct it *it, struct glyph_row *row)
 
       val = find_symbol_value (var);
 
+      ptrdiff_t arrow_marker_pos;
       if (MARKERP (val)
 	  && current_buffer == XMARKER (val)->buffer
-	  && (MATRIX_ROW_START_CHARPOS (row) == marker_position (val)))
+	  && (arrow_marker_pos = marker_position (val),
+	      /* Normally, the marker position will be at the row's
+                 start charpos.  But if the previous text lines are
+                 invisible, the row's start charpos includes those
+                 invisible lines, so we make a more general test that
+                 the marker position is anywhere between the start and
+                 the end character positions of this row.  */
+	      (MATRIX_ROW_START_CHARPOS (row) <= arrow_marker_pos
+	       && arrow_marker_pos < MATRIX_ROW_END_CHARPOS (row))))
 	{
 	  if (FRAME_WINDOW_P (it->f)
 	      /* FIXME: if ROW->reversed_p is set, this should test
@@ -25684,7 +25693,7 @@ display_line (struct it *it, int cursor_vpos)
 
       /* Now, get the metrics of what we want to display.  This also
 	 generates glyphs in `row' (which is IT->glyph_row).  */
-      n_glyphs_before = row->used[TEXT_AREA];
+      n_glyphs_before = row->used[it->area];
       x = it->current_x;
 
       /* Remember the line height so far in case the next element doesn't
@@ -25731,6 +25740,7 @@ display_line (struct it *it, int cursor_vpos)
 	 the next one.  */
       if (it->area != TEXT_AREA)
 	{
+	  enum glyph_row_area area = it->area;
 	  row->ascent = max (row->ascent, it->max_ascent);
 	  row->height = max (row->height, it->max_ascent + it->max_descent);
 	  row->phys_ascent = max (row->phys_ascent, it->max_phys_ascent);
@@ -25739,6 +25749,17 @@ display_line (struct it *it, int cursor_vpos)
 	  row->extra_line_spacing = max (row->extra_line_spacing,
 					 it->max_extra_line_spacing);
 	  set_iterator_to_next (it, true);
+	  /* TTY frames cannot clip character glyphs that extend past the
+	     end of the marginal areas, so we must do that here "by hand".  */
+	  if (!FRAME_WINDOW_P (it->f)
+	      /* If we exhausted the glyphs of the marginal area...	 */
+	      && it->area != area
+	      /* ...and the last character was multi-column...	*/
+	      && it->nglyphs > 1
+	      /* ...and not all of its glyphs fit in the marginal area... */
+	      && row->used[area] < n_glyphs_before + it->nglyphs)
+	      /* ...then reset back to the previous character.	*/
+	    row->used[area] = n_glyphs_before;
 	  /* If we didn't handle the line/wrap prefix above, and the
 	     call to set_iterator_to_next just switched to TEXT_AREA,
 	     process the prefix now.  */
@@ -25850,7 +25871,7 @@ display_line (struct it *it, int cursor_vpos)
 		{
 		  /* End of a continued line.  */
 
-		  if (it->hpos == 0
+		  if (it->hpos == 0 + (it->lnum_width ? it->lnum_width + 2 : 0)
 		      || (new_x == it->last_visible_x
 			  && FRAME_WINDOW_P (it->f)
 			  && (row->reversed_p
@@ -31968,12 +31989,14 @@ produce_image_glyph (struct it *it)
      word-wrap, unless the image starts at column zero, because
      wrapping correctly needs the real pixel width of the image.  */
   if ((it->line_wrap != WORD_WRAP
-       || it->hpos == 0
+       || it->hpos == (0 + (it->lnum_width ? it->lnum_width + 2 : 0))
        /* Always crop images larger than the window-width, minus 1 space.  */
-       || it->pixel_width > it->last_visible_x - FRAME_COLUMN_WIDTH (it->f))
+       || it->pixel_width > (it->last_visible_x - it->lnum_pixel_width
+			     - FRAME_COLUMN_WIDTH (it->f)))
       && (crop = it->pixel_width - (it->last_visible_x - it->current_x),
 	  crop > 0)
-      && (it->hpos == 0 || it->pixel_width > it->last_visible_x / 4))
+      && (it->hpos == (0 + (it->lnum_width ? it->lnum_width + 2 : 0))
+	  || it->pixel_width > it->last_visible_x / 4))
     {
       it->pixel_width -= crop;
       slice.width -= crop;

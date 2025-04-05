@@ -572,7 +572,6 @@ the \\[vc-prefix-map] prefix for VC commands, for example).
 \\{log-edit-mode-map}"
   (setq-local font-lock-defaults '(log-edit-font-lock-keywords t))
   (make-local-variable 'font-lock-extra-managed-props)
-  (cl-pushnew 'rear-nonsticky font-lock-extra-managed-props)
   (cl-pushnew 'display-line-numbers-disable font-lock-extra-managed-props)
   (setq-local jit-lock-contextually t)  ;For the "first line is summary".
   (setq-local fill-paragraph-function #'log-edit-fill-entry)

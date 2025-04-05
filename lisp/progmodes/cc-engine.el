@@ -1651,26 +1651,30 @@ This function does not do any hidden buffer changes."
 
 	t))))
 
-(defsubst c-forward-comments ()
+(defsubst c-forward-comments (&optional lim)
   "Move forward past all following whitespace and comments.
-Line continuations, i.e. a backslashes followed by line breaks, are
-treated as whitespace.
+Line continuations, i.e. backslashes followed by line breaks, are
+treated as whitespace.  LIM, if non-nil, is a forward search limit.
+If LIM is inside a comment, point may be left at LIM.
 
 Note that this function might do hidden buffer changes.  See the
 comment at the start of cc-engine.el for more info."
 
-  (while (or
-	  ;; If forward-comment in at least XEmacs 21 is given a large
-	  ;; positive value, it'll loop all the way through if it hits
-	  ;; eob.
-	  (and (forward-comment 5)
-	       ;; Some emacsen (e.g. XEmacs 21) return t when moving
-	       ;; forwards at eob.
-	       (not (eobp)))
+  (save-restriction
+    (if lim
+	(narrow-to-region (point-min) lim))
+    (while (or
+	    ;; If forward-comment in at least XEmacs 21 is given a large
+	    ;; positive value, it'll loop all the way through if it hits
+	    ;; eob.
+	    (and (forward-comment 5)
+		 ;; Some emacsen (e.g. XEmacs 21) return t when moving
+		 ;; forwards at eob.
+		 (not (eobp)))
 
-	  (when (looking-at "\\\\[\n\r]")
-	    (forward-char 2)
-	    t))))
+	    (when (looking-at "\\\\[\n\r]")
+	      (forward-char 2)
+	      t)))))
 
 (defmacro c-forward-comment-minus-1 ()
   "Call (forward-comment -1), taking care of escaped newlines.
@@ -12139,6 +12143,9 @@ comment at the start of cc-engine.el for more info."
 		 (save-restriction
 		   (widen)
 		   (c-beginning-of-macro lim)))))
+     (progn (if (looking-at c-protection-key)
+		(c-forward-token-2))
+	    t)
      (setq id-start
 	   (car-safe (c-forward-decl-or-cast-1 (c-point 'bosws) 'top nil)))
      (numberp id-start)
@@ -13380,18 +13387,18 @@ comment at the start of cc-engine.el for more info."
       (setq ptr (cdr ptr)))
     (nreverse new)))
 
-(defun c-inside-bracelist-p (containing-sexp paren-state accept-in-paren)
-  ;; Return the buffer position of the beginning of the brace list statement
-  ;; if CONTAINING-SEXP is inside a brace list, otherwise return nil.
+(defun c-at-bracelist-p (containing-sexp paren-state)
+  ;; Try to return the buffer position of the beginning of the brace list
+  ;; statement whose brace block begins at CONTAINING-SEXP, otherwise return
+  ;; nil.  If the code cannot determine whether we're at a brace block, return
+  ;; nil.
   ;;
-  ;; CONTAINING-SEXP must be at an open brace, and is the buffer pos of the
-  ;; innermost containing brace.  NO IT ISN'T!!!  [This function is badly
+  ;; CONTAINING-SEXP must be at an open brace. [This function is badly
   ;; designed, and probably needs reformulating without its first argument,
   ;; and the critical position being at point.]
   ;;
-  ;; PAREN-STATE is the remainder of the state of enclosing braces.
-  ;; ACCEPT-IN-PAREN is non-nil iff we will accept as a brace list a brace
-  ;; directly enclosed in a parenthesis.
+  ;; PAREN-STATE is the state of enclosing braces at CONTAINING-SEXP (see
+  ;; `c-parse-state').
   ;;
   ;; The "brace list" here is recognized solely by its context, not by
   ;; its contents.
@@ -13429,7 +13436,7 @@ comment at the start of cc-engine.el for more info."
 	  (setq current-brace next-containing))))
       (cond
        ((consp bufpos)
-	(and (or accept-in-paren (not (eq (cdr bufpos) 'in-paren)))
+	(and (not (eq (cdr bufpos) 'in-paren))
 	     (car bufpos)))
        (non-brace-pos
 	;; We've encountered a ( or a [.  Remove the "middle part" of
@@ -13514,11 +13521,17 @@ comment at the start of cc-engine.el for more info."
 		    (cons (list beg) type)))))
 	(error nil))))
 
-(defun c-looking-at-statement-block ()
-  ;; Point is at an opening brace.  If this is a statement block (i.e. the
-  ;; elements in the block are terminated by semicolons, or the block is
-  ;; empty, or the block contains a characteristic keyword, or there is a
-  ;; nested statement block) return non-nil.  Otherwise, return nil.
+(defun c-looking-at-statement-block-1 ()
+  ;; Point is at an opening brace.  Try to determine whether it starts a
+  ;; statement block.  For example, if there are elements in the block
+  ;; terminated by semicolons, or the block contains a characteristic keyword,
+  ;; or a nested brace block is a statement block, return t.  If we determine
+  ;; the block cannot be a statement block, return nil.  Otherwise return the
+  ;; symbol `maybe'.
+  ;;
+  ;; The calculations are based solely on the contents of the block, not on
+  ;; its context.  There is special handling for C++ lambda expressions, which
+  ;; sometimes occur in brace blocks.
   (let ((here (point)))
     (prog1
 	(if (c-go-list-forward)
@@ -13528,25 +13541,141 @@ comment at the start of cc-engine.el for more info."
 	      (cond
 	       ((eq (char-before) ?\;))
 	       ((progn (c-forward-syntactic-ws)
-		       (eq (point) (1- there))))
+		       (eq (point) (1- there)))
+		'maybe)
 	       ((c-syntactic-re-search-forward
-		 c-stmt-block-only-keywords-regexp there t))
-	       ((c-syntactic-re-search-forward "{" there t t)
-		(backward-char)
-		(c-looking-at-statement-block))
-	       (t nil)))
+		 c-stmt-block-only-keywords-regexp there t t)
+		t)
+	       ((c-major-mode-is 'c++-mode)
+		(catch 'statement
+		  (while
+		      (and (c-syntactic-re-search-forward "[[{]" there 'bound t)
+			   (progn
+			     (backward-char)
+			     (cond
+			      ((eq (char-after) ?\[)
+			       (let ((bb (c-looking-at-c++-lambda-expression)))
+				 (if bb
+				     (c-go-list-forward bb there)
+				   (forward-char)
+				   t)))
+			      ((eq (c-looking-at-statement-block-1) t)
+			       (throw 'statement t))
+			      (t (c-go-list-forward)
+				 t)))))
+		  'maybe))
+	       (t (catch 'statement2
+		    (while
+			(and (c-syntactic-re-search-forward "{" there t t)
+			     (progn
+			       (backward-char)
+			       (if (eq (c-looking-at-statement-block-1) t)
+				   (throw 'statement2 t)
+				 (c-go-list-forward)))))
+		    'maybe))))
 	  (forward-char)
 	  (cond
 	   ((c-syntactic-re-search-forward ";" nil t t))
 	   ((progn (c-forward-syntactic-ws)
-		   (eobp)))
+		   (eobp))
+	    'maybe)
 	   ((c-syntactic-re-search-forward c-stmt-block-only-keywords-regexp
-					   nil t t))
-	   ((c-syntactic-re-search-forward "{" nil t t)
-	    (backward-char)
-	    (c-looking-at-statement-block))
-	   (t nil)))
+					   nil t t)
+	    t)
+	   ((c-major-mode-is 'c++-mode)
+	    (catch 'statement1
+	      (while
+		  (and (c-syntactic-re-search-forward "[[}]" nil 'bound t)
+		       (progn
+			 (backward-char)
+			 (cond
+			  ((eq (char-after) ?\[)
+			   (let ((bb (c-looking-at-c++-lambda-expression)))
+			     (cond ((and bb (c-go-list-forward bb)))
+				   (bb (throw 'statement1 'maybe))
+				   (t (forward-char) t))))
+			  ((eq (c-looking-at-statement-block-1) t)
+			   (throw 'statement1 t))
+			  ((c-go-list-forward))
+			  (t (throw 'statement1 'maybe))))))
+	      nil))
+	   (t (catch 'statement3
+		(while
+		    (and (c-syntactic-re-search-forward "{" nil t t)
+			 (progn
+			   (backward-char)
+			   (if (eq (c-looking-at-statement-block-1) t)
+			       (throw 'statement3 t)
+			     (c-go-list-forward)))))
+		'maybe))))
       (goto-char here))))
+
+(defun c-looking-at-statement-block ()
+  ;; Point is at an opening brace.  If this brace starts a statement block,
+  ;; return t.  Otherwise return nil.
+  ;;
+  ;; This function first examines the contents of the block beginning at the
+  ;; brace, and if this fails to give a definite result, it examines the
+  ;; context of the block.
+  (save-excursion
+    (let ((res (c-looking-at-statement-block-1))
+	  prev-tok)
+      (cond
+       ((memq res '(nil t))
+	res)
+       ((zerop (c-backward-token-2))
+	(setq prev-tok (point))
+	(cond
+	 ((looking-at "={]")
+	  nil)
+	 ((progn
+	    (if (looking-at c-type-decl-suffix-ws-ids-key) ; e.g. C++'s "final".
+		(c-backward-token-2))
+	    (if (and c-recognize-<>-arglists ; Skip back over template parens.
+		     (eq (char-after) ?>)
+		     (c-go-up-list-backward))
+		(c-backward-token-2))
+	    (and c-opt-block-decls-with-vars-key ; E.g. "enum", "class".
+		 (or (looking-at c-opt-block-decls-with-vars-key)
+		     (save-excursion
+		       (and (c-on-identifier)
+			    (zerop (c-backward-token-2))
+			    (looking-at c-opt-block-decls-with-vars-key)))))))
+	 ((eq (char-after) ?}))	      ; Statement block following another one.
+	 ((eq (char-after) ?:)	      ; Case label or ordinary label.
+	  (save-excursion
+	    (forward-char)
+	    (eq (c-beginning-of-statement-1 nil nil t) 'label)))
+	 ((save-excursion		; Between function arglist and block.
+	    (c-just-after-func-arglist-p))
+	  t)
+	 ((save-excursion	; Just after C++ class member initializations.
+	    (and (eq (char-after) ?\))
+		 (progn (forward-char)
+			(c-back-over-member-initializer-braces)))))
+	 ((and (eq (char-after) ?\))
+	       (c-go-up-list-backward))
+	  (prog1
+	      (cond
+	       ((save-excursion
+		  (and (zerop (c-backward-token-2)) ; Parens of an `if', etc.?
+		       (looking-at c-block-stmt-2-key))))
+	       ((save-excursion		; Between function arglist and block.
+		  (c-just-after-func-arglist-p))
+		t)
+	       ((progn			; A function call or declaration.
+		  (c-backward-syntactic-ws)
+		  (c-on-identifier))
+		t))
+	    (goto-char prev-tok)))
+	 ((eq (char-after) ?\;))	; Bare statement block.
+	 ((looking-at c-block-stmt-1-key)) ; E.g. "do", "else".
+	 ((eq (char-after) ?\()
+	  (and (zerop (c-backward-token-2))
+	       (or (looking-at c-operator-re) ; Statement expression.
+		   (looking-at c-block-stmt-2-key)))) ; E.g. "if", "catch".
+	 (t nil)))
+       (t nil)))))
 
 (defun c-forward-concept-fragment (&optional limit stop-at-end)
   ;; Are we currently at the "concept" keyword in a concept construct?  If so
@@ -13869,7 +13998,8 @@ comment at the start of cc-engine.el for more info."
     (when (and (c-looking-at-c++-lambda-capture-list)
 	       (c-go-list-forward nil lim))
       (c-forward-syntactic-ws lim)
-      (when (c-forward-<>-arglist t)
+      (when (and (eq (char-after) ?<)
+		 (c-forward-<>-arglist t))
 	(c-forward-syntactic-ws lim)
 	(when (looking-at c-requires-clause-key)
 	  (c-forward-c++-requires-clause lim nil)))
@@ -14240,7 +14370,9 @@ comment at the start of cc-engine.el for more info."
 	       ((or (not (eq step-type 'same))
 		    (eq paren-pos (point)))
 		(if (and (eq paren-pos (point))
-			 (c-inside-bracelist-p paren-pos paren-state nil))
+			 (or
+			  (c-at-bracelist-p paren-pos paren-state)
+			  (not (c-looking-at-statement-block))))
 		    (c-add-syntax 'brace-list-intro nil anchor-point-2)
 		  (c-add-syntax 'statement-block-intro nil)))
 	       ((save-excursion
@@ -14259,7 +14391,7 @@ comment at the start of cc-engine.el for more info."
 		 (max (c-point 'boi paren-pos) (point))))
 	       ((c-at-enum-brace paren-pos)
 		(c-add-syntax 'enum-intro nil anchor-point-2))
-	       ((c-inside-bracelist-p paren-pos paren-state nil)
+	       ((c-at-bracelist-p paren-pos paren-state)
 		(if (save-excursion
 		      (goto-char paren-pos)
 		      (c-looking-at-statement-block))
@@ -14269,9 +14401,11 @@ comment at the start of cc-engine.el for more info."
 		  (goto-char paren-pos)
 		  (setq bspec (c-looking-at-or-maybe-in-bracelist
 			       containing-sexp containing-sexp))
-		  (and (consp bspec)
-		       (eq (cdr bspec) 'in-paren)))
-		(c-add-syntax 'brace-list-intro (car bspec)
+		  (or (and (eq bspec t)
+			   (not (c-looking-at-statement-block)))
+		      (and (consp bspec)
+			   (eq (cdr bspec) 'in-paren))))
+		(c-add-syntax 'brace-list-intro (car-safe bspec)
 			      anchor-point-2))
 	       (t (c-add-syntax 'defun-block-intro nil))))
 
@@ -14364,9 +14498,8 @@ comment at the start of cc-engine.el for more info."
 
        ;; CASE B.2: brace-list-open
        ((or (consp special-brace-list)
-	    (c-inside-bracelist-p (point)
-				  (cons containing-sexp paren-state)
-				  nil))
+	    (c-at-bracelist-p (point)
+				  (cons containing-sexp paren-state)))
 	;; The most semantically accurate symbol here is
 	;; brace-list-open, but we normally report it simply as a
 	;; statement-cont.  The reason is that one normally adjusts
@@ -15287,15 +15420,33 @@ comment at the start of cc-engine.el for more info."
 			(< (point) placeholder)))
 	    (c-add-stmt-syntax
 	     (cond
-	      ((eq (point) placeholder) 'statement) ; unrecognized construct
+	      ((eq (point) placeholder)
+	       (setq placeholder nil)
+	       'statement)  ; unrecognized construct
 	      ;; A preceding comma at the top level means that a
 	      ;; new variable declaration starts here.  Use
 	      ;; topmost-intro-cont for it, for consistency with
 	      ;; the first variable declaration.  C.f. case 5N.
-	      ((eq char-before-ip ?,) 'topmost-intro-cont)
-	      (t 'statement-cont))
-	     nil nil containing-sexp paren-state))
-	   ))
+	      ((eq char-before-ip ?,)
+	       (if (save-excursion
+		     (and
+		      containing-sexp
+		      (progn (goto-char containing-sexp) t)
+		      (eq (char-after) ?{)
+		      (setq placeholder (point))
+		      (eq (c-beginning-of-statement-1
+			   (or (c-most-enclosing-brace paren-state)
+			       (c-determine-limit 500)))
+			  'same)
+		      (looking-at c-class-key)))
+		   'class-field-cont
+		 (setq placeholder nil)
+		 'topmost-intro-cont))
+	      (t
+	       (setq placeholder nil)
+	       'statement-cont))
+	     (and placeholder (list placeholder))
+	     nil containing-sexp paren-state))))
 
 	 ;; CASE 5G: we are looking at the brace which closes the
 	 ;; enclosing nested class decl
@@ -15507,6 +15658,23 @@ comment at the start of cc-engine.el for more info."
 		 (goto-char placeholder)))
 	  (c-add-syntax 'annotation-top-cont (c-point 'boi tmp-pos2)))
 
+	 ;; CASE 5V: Identifier following type inside class braces.
+	 ((save-excursion
+	    (and
+	     containing-sexp
+	     (eq (c-beginning-of-statement-1 containing-sexp nil nil t) 'same)
+	     (setq placeholder (point))
+	     (progn (goto-char containing-sexp) t)
+	     (eq (c-beginning-of-statement-1
+		  (or (c-most-enclosing-brace paren-state)
+		      (c-determine-limit 500)))
+		 'same)
+	     (looking-at c-class-key)
+	     (progn (goto-char placeholder) t)
+	     (eq (car (c-forward-decl-or-cast-1 (1+ containing-sexp) 'top nil))
+		 (c-point 'boi indent-point))))
+	  (c-add-syntax 'class-field-cont placeholder containing-sexp))
+
 	 ;; CASE 5M: we are at a topmost continuation line
 	 (t
 	  (c-beginning-of-statement-1
@@ -15617,9 +15785,8 @@ comment at the start of cc-engine.el for more info."
 	       (progn
 		 (setq placeholder
 		       (or (setq enum-pos (c-at-enum-brace))
-			   (c-inside-bracelist-p (point)
-						 paren-state
-						 nil)))
+			   (c-at-bracelist-p (point)
+					     paren-state)))
 		 (if placeholder
 		     (setq tmpsymbol
 			   `(,(if enum-pos 'enum-open 'brace-list-open)
@@ -15747,7 +15914,10 @@ comment at the start of cc-engine.el for more info."
 			      (goto-char containing-sexp)
 			      (c-looking-at-special-brace-list)))
 		       (setq enum-pos (c-at-enum-brace containing-sexp))
-		       (c-inside-bracelist-p containing-sexp paren-state t))))
+		       (c-at-bracelist-p containing-sexp paren-state)
+		       (save-excursion
+			 (goto-char containing-sexp)
+			 (not (c-looking-at-statement-block))))))
 	(cond
 	 ;; CASE 9A: In the middle of a special brace list opener.
 	 ((and (consp special-brace-list)

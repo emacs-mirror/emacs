@@ -601,7 +601,7 @@ what the parent of the node would be if it were a node."
 
 (derived-mode-add-parents 'go-mod-ts-mode '(go-mod-mode))
 
-(if (treesit-ready-p 'gomod)
+(if (treesit-ready-p 'gomod t)
     (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode)))
 
 ;;;; go.work support.

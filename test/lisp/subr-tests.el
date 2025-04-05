@@ -1285,6 +1285,26 @@ final or penultimate step during initialization."))
     (nconc cycle cycle)
     (should-not (plistp cycle))))
 
+(defun subr-tests--some-fun ())
+(defalias 'subr-tests--some-alias #'subr-tests--some-fun)
+
+(ert-deftest subr-tests-function-get ()
+  (unwind-protect
+      (progn
+        (should (eq (function-get 'subr-tests--some-fun 'prop) nil))
+        (should (eq (function-get 'subr-tests--some-alias 'prop) nil))
+        ;; With the function symbol directly.
+        (function-put 'subr-tests--some-fun 'prop 'value)
+        (should (eq (function-get 'subr-tests--some-fun 'prop) 'value))
+        ;; With an alias.
+        (should (eq (function-get 'subr-tests--some-alias 'prop) 'value))
+        (function-put 'subr-tests--some-alias 'prop 'value)
+        (should-error (function-get "non-symbol" 'prop)
+                      :type 'wrong-type-argument)
+        (should-error (function-put "non-symbol" 'prop 'val)
+                      :type 'wrong-type-argument))
+    (function-put 'subr-tests--some-fun 'prop nil)))
+
 (defun subr-tests--butlast-ref (list &optional n)
   "Reference implementation of `butlast'."
   (let ((m (or n 1))
@@ -1472,6 +1492,18 @@ final or penultimate step during initialization."))
                  (out (subst-char-in-string from to in))
                  (props-out (object-intervals out)))
             (should (equal props-out props-in))))))))
+
+(ert-deftest hash-table-contains-p ()
+  (let ((h (make-hash-table)))
+    (should-not (hash-table-contains-p 'problems h))
+    (should-not (hash-table-contains-p 'cookie h))
+    (should-not (hash-table-contains-p 'milk h))
+    (puthash 'problems 99 h)
+    (puthash 'cookie nil h)
+    (puthash 'milk 'missing h)
+    (should (hash-table-contains-p 'problems h))
+    (should (hash-table-contains-p 'cookie h))
+    (should (hash-table-contains-p 'milk h))))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

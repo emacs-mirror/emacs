@@ -1,0 +1,4 @@
+# Used by files-test.el.
+# .dir-locals.el and .dir-locals-2.el should define:
+# local variable `dir-locals-loaded'
+# local variable `dir-locals-2-loaded'

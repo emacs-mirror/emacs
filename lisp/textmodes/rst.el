@@ -4178,7 +4178,7 @@ string)) to be used for converting the document."
                                      (const :tag "No options" nil)
                                      (string :tag "Options"))))
   :group 'rst-compile
-  :package-version "1.2.0")
+  :package-version '(rst . "1.2.0"))
 
 ;; FIXME: Must be defcustom.
 (defvar rst-compile-primary-toolset 'html

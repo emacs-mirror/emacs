@@ -710,6 +710,8 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
   "Other Hash Table Functions"
   (hash-table-p
    :eval (hash-table-p 123))
+  (hash-table-contains-p
+   :no-eval (hash-table-contains-p 'key table))
   (copy-hash-table
    :no-eval (copy-hash-table table)
    :result-string "#s(hash-table ...)")

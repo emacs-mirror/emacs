@@ -548,6 +548,329 @@ This is with listings package:
 \\end{document}"))
       (kill-buffer (file-name-nondirectory tex-file)))))
 
+;;; non-file buffers
+
+(ert-deftest reftex-all-used-citation-keys-buffer ()
+  "Test `reftex-all-used-citation-keys' on a buffer without a file."
+  (with-temp-buffer
+    (insert "\
+\\documentclass{article}
+\\usepackage{biblatex}
+\\begin{document}
+
+Standard commands:
+\\cite[pre][pos]{cite:2022}
+\\Cite[pos]{Cite:2022}
+\\parencite{parencite:2022}
+\\Parencite[pre][]{Parencite:2022}
+\\footcite[][]{footcite:2022}
+\\footcitetext[pre][pos]{footcitetext:2022}
+
+Style specific commands:
+\\textcite{textcite:2022}
+\\Textcite[pos]{Textcite:2022}
+\\smartcite[pre][pos]{smartcite:2022}
+\\Smartcite[pre][]{Smartcite:2022}
+\\cite*[pre][pos]{cite*:2022}
+\\parencite*[][]{parencite*:2022}
+
+Style independent commands:
+\\autocite[pre][pos]{autocite:2022}
+\\autocite*[pos]{autocite*:2022}
+\\Autocite[pre][]{Autocite:2022}
+\\Autocite*{Autocite*:2022}
+
+Text commands:
+\\citeauthor[pre][pos]{citeauthor:2022}
+\\citeauthor*[pre][]{citeauthor*:2022}
+\\Citeauthor[pos]{Citeauthor:2022}
+\\Citeauthor*{Citeauthor*:2022}
+\\citetitle[][]{citetitle:2022}
+\\citetitle*[pre][pos]{citetitle*:2022}
+\\citeyear[pre][pos]{citeyear:2022}
+\\citeyear*[pre][pos]{citeyear*:2022}
+\\citedate[pre][pos]{citedate:2022}
+\\citedate*[pre][pos]{citedate*:2022}
+\\citeurl[pre][pos]{citeurl:2022}
+
+Special commands:
+\\nocite{nocite:2022}
+\\fullcite[pos]{fullcite:2022}
+\\footfullcite[][]{fullfootcite:2022}
+``volcite'' macros have different number of args.
+\\volcite{2}{volcite:2022}
+\\Volcite[pre]{1}{Volcite:2022}
+\\pvolcite{1}[pg]{pvolcite:2022}
+\\Pvolcite[pre]{2}[pg]{Pvolcite:2022}
+\\fvolcite[pre]{3}[pg]{fvolcite:2022}
+\\ftvolcite[pre]{3}[pg]{ftvolcite:2022}
+\\svolcite[pre]{2}[pg]{svolcite:2022}
+\\Svolcite[pre]{4}[pg]{Svolcite:2022}
+\\tvolcite[pre]{5}[pg]{tvolcite:2022}
+\\Tvolcite[pre]{2}[pg]{Tvolcite:2022}
+\\avolcite[pre]{3}[pg]{avolcite:2022}
+\\Avolcite[pre]{1}[pg]{Avolcite:2022}
+\\Notecite[pre]{Notecite:2022}
+\\pnotecite[pre]{pnotecite:2022}
+\\Pnotecite[pre]{Pnotecite:2022}
+\\fnotecite[pre]{fnotecite:2022}
+
+Natbib compatibility commands:
+\\citet{citet:2022}
+\\citet*[pre][pos]{citet*:2022}
+\\citep[pre][pos]{citep:2022}
+\\citep*[pos]{citep*:2022}
+\\citealt[pre][]{citealt:2022}
+\\citealt*[][]{citealt*:2022}
+\\citealp[pre][pos]{citealp:2022}
+\\citealp*{citealp*:2022}
+\\Citet[pre][pos]{Citet:2022}
+\\Citet*[pre][pos]{Citet*:2022}
+\\Citep[pre][pos]{Citep:2022}
+\\Citep*[pre][pos]{Citep*:2022}
+
+Qualified Citation Lists:
+\\cites(Global Prenote)(Global Postnote)[pre][post]{cites:1}[pre][post]{cites:2}
+\\Cites(Global Prenote)(Global Postnote)[pre][post]{Cites:1}[pre][post]{Cites:2}
+\\parencites(Global Prenote)(Global Postnote)[pre][post]{parencites:1}
+  [pre][post]{parencites:2}
+\\Parencites(Global Prenote)(Global Postnote)[pre][post]{Parencites:1}{Parencites:2}
+\\footcites[pre][post]{footcites:1}[pre][post]{footcites:2}
+\\footcitetexts{footcitetexts:1}{footcitetexts:2}
+\\smartcites{smartcites:1}
+% This is comment about \\smartcites{smartcites:2}
+[pre][post]{smartcites:2}
+% And this should be ignored \\smartcites{smartcites:3}{smartcites:4}
+
+
+Test for bug#56655:
+There was a few \\% of increase in budget \\Citep*{bug:56655}.
+
+And this should be % \\cite{ignored}.
+\\end{document}")
+    (tex-mode)
+    (let ((keys (reftex-all-used-citation-keys)))
+      (should (equal (sort keys #'string<)
+                     (sort (list
+                           ;; Standard commands:
+                           "cite:2022"      "Cite:2022"
+                           "parencite:2022" "Parencite:2022"
+                           "footcite:2022"  "footcitetext:2022"
+                           ;; Style specific commands:
+                           "textcite:2022"  "Textcite:2022"
+                           "smartcite:2022" "Smartcite:2022"
+                           "cite*:2022" "parencite*:2022"
+                           ;; Style independent commands:
+                           "autocite:2022"  "autocite*:2022"
+                           "Autocite:2022"  "Autocite*:2022"
+                           ;; Text commands
+                           "citeauthor:2022" "citeauthor*:2022"
+                           "Citeauthor:2022" "Citeauthor*:2022"
+                           "citetitle:2022"  "citetitle*:2022"
+                           "citeyear:2022"   "citeyear*:2022"
+                           "citedate:2022"   "citedate*:2022"
+                           "citeurl:2022"
+                           ;; Special commands:
+                           "nocite:2022"     "fullcite:2022"
+                           "fullfootcite:2022"
+                           "volcite:2022"   "Volcite:2022"
+                           "pvolcite:2022"  "Pvolcite:2022"
+                           "fvolcite:2022"  "ftvolcite:2022"
+                           "svolcite:2022"  "Svolcite:2022"
+                           "tvolcite:2022"  "Tvolcite:2022"
+                           "avolcite:2022"  "Avolcite:2022"
+                           "Notecite:2022"  "pnotecite:2022"
+                           "Pnotecite:2022" "fnotecite:2022"
+                           ;; Natbib compatibility commands:
+                           "citet:2022"   "citet*:2022"
+                           "citep:2022"   "citep*:2022"
+                           "citealt:2022" "citealt*:2022"
+                           "citealp:2022" "citealp*:2022"
+                           "Citet:2022"   "Citet*:2022"
+                           "Citep:2022"   "Citep*:2022"
+                           ;; Qualified Citation Lists
+                           "cites:1"         "cites:2"
+                           "Cites:1"         "Cites:2"
+                           "parencites:1"    "parencites:2"
+                           "Parencites:1"    "Parencites:2"
+                           "footcites:1"     "footcites:2"
+                           "footcitetexts:1" "footcitetexts:2"
+                           "smartcites:1"    "smartcites:2"
+                           "bug:56655")
+                         #'string<))))))
+
+(ert-deftest reftex-renumber-simple-labels-buffer ()
+  "Test `reftex-renumber-simple-labels' on a buffer without a file."
+  (let ((temp-buffer (generate-new-buffer " *temp*")))
+    (unwind-protect
+        (with-current-buffer temp-buffer
+          (insert "\
+\\documentclass{article}
+\\usepackage{tcolorbox}
+\\tcbuselibrary{theorems}
+\\usepackage{fancyvrb}
+\\usepackage{listings}
+
+\\begin{document}
+
+This is with tcolorbox package:
+\\begin{problem}[%
+    colback                = white          ,
+    colframe               = red!50!black   ,
+    fonttitle              = \\bfseries      ,
+    description delimiters = {\\flqq}{\\frqq} ,
+    label                  = {problem:2}]{Prove RH2}{}
+  Problem
+\\end{problem}
+
+This is with vanilla \\LaTeX:
+\\begin{equation}
+  \\label{eq:2}
+  2
+\\end{equation}
+By \\eqref{eq:2} and \\ref{problem:2}
+
+This is with tcolorbox package:
+\\begin{problem}[%
+    colback=white,
+    colframe=red!50!black,
+    fonttitle=\\bfseries,
+    theorem label supplement={hypertarget={XYZ-##1}},
+    theorem full label supplement={code={\\marginnote{##1}}},
+    label={problem:1}]{Prove RH1}{}
+  Problem
+\\end{problem}
+
+This is with vanilla \\LaTeX:
+\\begin{equation}
+  \\label{eq:1}
+  1
+\\end{equation}
+
+\\Cref{problem:1} and \\pageref{eq:1}.
+
+\\begin{problem}[label={problem:6}]{Some Problem}{}
+  Problem
+\\end{problem}
+
+\\Ref{problem:6}.
+
+This is with fancyvrb package:
+\\begin{Verbatim}[reflabel={lst:6}]
+Some Verb Content
+\\end{Verbatim}
+
+\\pageref{lst:6}
+
+This is with listings package:
+\\begin{lstlisting}[language=elisp,caption=Some Caption,label={lst:3}]
+(car (cons 1 '(2)))
+\\end{lstlisting}
+
+\\ref{lst:3}
+
+\\end{document}")
+
+          ;; The label prefix must be known to RefTeX:
+          (add-to-list 'reftex-label-alist
+                       '("problem" ?p "problem:" "~\\ref{%s}"
+                         nil nil nil)
+                       t)
+          (add-to-list 'reftex-label-alist
+                       '("Verbatim" ?l "lst:" "~\\ref{%s}"
+                         nil nil nil)
+                       t)
+          ;; The environments must be known to RefTeX otherwise the labels
+          ;; aren't parsed correctly:
+          (add-to-list 'reftex-label-regexps
+                       (concat "\\\\begin{\\(?:problem\\|Verbatim\\)}"
+                               "\\[[^][]*"
+                               "\\(?:{[^}{]*"
+                               "\\(?:{[^}{]*"
+                               "\\(?:{[^}{]*}[^}{]*\\)*"
+                               "}[^}{]*\\)*"
+                               "}[^][]*\\)*"
+                               "\\<\\(?:ref\\)?label[[:space:]]*=[[:space:]]*"
+                               "{?\\(?1:[^] ,}\r\n\t%]+\\)"
+                               "[^]]*\\]")
+                       t)
+          ;; Always run this after changing `reftex-label-regexps':
+          (reftex-compile-variables)
+
+          ;; Silence the user query:
+          (cl-letf (((symbol-function 'yes-or-no-p) #'always))
+            (reftex-renumber-simple-labels))
+
+          (should (string= (buffer-string)
+                           "\
+\\documentclass{article}
+\\usepackage{tcolorbox}
+\\tcbuselibrary{theorems}
+\\usepackage{fancyvrb}
+\\usepackage{listings}
+
+\\begin{document}
+
+This is with tcolorbox package:
+\\begin{problem}[%
+    colback                = white          ,
+    colframe               = red!50!black   ,
+    fonttitle              = \\bfseries      ,
+    description delimiters = {\\flqq}{\\frqq} ,
+    label                  = {problem:1}]{Prove RH2}{}
+  Problem
+\\end{problem}
+
+This is with vanilla \\LaTeX:
+\\begin{equation}
+  \\label{eq:1}
+  2
+\\end{equation}
+By \\eqref{eq:1} and \\ref{problem:1}
+
+This is with tcolorbox package:
+\\begin{problem}[%
+    colback=white,
+    colframe=red!50!black,
+    fonttitle=\\bfseries,
+    theorem label supplement={hypertarget={XYZ-##1}},
+    theorem full label supplement={code={\\marginnote{##1}}},
+    label={problem:2}]{Prove RH1}{}
+  Problem
+\\end{problem}
+
+This is with vanilla \\LaTeX:
+\\begin{equation}
+  \\label{eq:2}
+  1
+\\end{equation}
+
+\\Cref{problem:2} and \\pageref{eq:2}.
+
+\\begin{problem}[label={problem:3}]{Some Problem}{}
+  Problem
+\\end{problem}
+
+\\Ref{problem:3}.
+
+This is with fancyvrb package:
+\\begin{Verbatim}[reflabel={lst:1}]
+Some Verb Content
+\\end{Verbatim}
+
+\\pageref{lst:1}
+
+This is with listings package:
+\\begin{lstlisting}[language=elisp,caption=Some Caption,label={lst:2}]
+(car (cons 1 '(2)))
+\\end{lstlisting}
+
+\\ref{lst:2}
+
+\\end{document}")))
+      (kill-buffer temp-buffer))))
+
+
 ;;; Autoload tests
 
 ;; Test to check whether reftex autoloading mechanisms are working

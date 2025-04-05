@@ -3207,6 +3207,9 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|CBR\\|7Z\\|SQUASHFS\\)\\'" .
     ("\\.properties\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-javaprop-mode)
     ("\\.toml\\'" . conf-toml-mode)
     ("\\.desktop\\'" . conf-desktop-mode)
+    ;; Dot is excluded from npmrc, because global configs may lack it,
+    ;; e.g. in /etc/npmrc files.
+    ("npmrc\\'" . conf-npmrc-mode)
     ("/\\.redshift\\.conf\\'" . conf-windows-mode)
     ("\\`/etc/\\(?:DIR_COLORS\\|ethers\\|.?fstab\\|.*hosts\\|lesskey\\|login\\.?de\\(?:fs\\|vperm\\)\\|magic\\|mtab\\|pam\\.d/.*\\|permissions\\(?:\\.d/.+\\)?\\|protocols\\|rpc\\|services\\)\\'" . conf-space-mode)
     ("\\`/etc/\\(?:acpid?/.+\\|aliases\\(?:\\.d/.+\\)?\\|default/.+\\|group-?\\|hosts\\..+\\|inittab\\|ksysguarddrc\\|opera6rc\\|passwd-?\\|shadow-?\\|sysconfig/.+\\)\\'" . conf-mode)
@@ -4713,21 +4716,22 @@ the \".dir-locals.el\".
 
 See Info node `(elisp)Directory Local Variables' for details.")
 
-(defun dir-locals--all-files (directory)
+(defun dir-locals--all-files (directory &optional base-el-only)
   "Return a list of all readable dir-locals files in DIRECTORY.
 The returned list is sorted by increasing priority.  That is,
 values specified in the last file should take precedence over
 those in the first."
   (when (file-readable-p directory)
     (let* ((file-1 (expand-file-name (if (eq system-type 'ms-dos)
-                                        (dosified-file-name dir-locals-file)
-                                      dir-locals-file)
-                                    directory))
+                                         (dosified-file-name dir-locals-file)
+                                       dir-locals-file)
+                                     directory))
            (file-2 (when (string-match "\\.el\\'" file-1)
                      (replace-match "-2.el" t nil file-1)))
-          (out nil))
-      ;; The order here is important.
-      (dolist (f (list file-2 file-1))
+           out)
+      (dolist (f (or (and base-el-only (list file-1))
+                     ;; The order here is important.
+                     (list file-2 file-1)))
         (when (and f
                    (file-readable-p f)
                    ;; FIXME: Aren't file-regular-p and
@@ -4736,6 +4740,10 @@ those in the first."
                    (not (file-directory-p f)))
           (push f out)))
       out)))
+
+(defun dir-locals--base-file (directory)
+  "Return readable `dir-locals-file' in DIRECTORY, or nil."
+  (dir-locals--all-files directory 'base-el-only))
 
 (defun dir-locals-find-file (file)
   "Find the directory-local variables for FILE.
@@ -4758,7 +4766,7 @@ This function returns either:
     entry."
   (setq file (expand-file-name file))
   (let* ((locals-dir (locate-dominating-file (file-name-directory file)
-                                             #'dir-locals--all-files))
+                                             #'dir-locals--base-file))
          dir-elt)
     ;; `locate-dominating-file' may have abbreviated the name.
     (when locals-dir
@@ -6288,7 +6296,10 @@ Before and after saving the buffer, this function runs
         (if (not enable-recursive-minibuffers)
             (progn (display-buffer buf)
                    (setq other-window-scroll-buffer buf))
-          (view-buffer buf (lambda (_) (exit-recursive-edit)))
+          ;; Like 'view-buffer' but ignore 'special' mode-class
+          ;; because 'q' should call 'exit-action' in any case:
+          (switch-to-buffer buf)
+          (view-mode-enter nil (lambda (_) (exit-recursive-edit)))
           (recursive-edit))
         ;; Return nil to ask about BUF again.
         nil)
@@ -6307,7 +6318,10 @@ Before and after saving the buffer, this function runs
                (if (not enable-recursive-minibuffers)
                    (progn (display-buffer diffbuf)
                           (setq other-window-scroll-buffer diffbuf))
-                 (view-buffer diffbuf (lambda (_) (exit-recursive-edit)))
+                 ;; Like 'view-buffer' but ignore 'special' mode-class
+                 ;; because 'q' should call 'exit-action' in any case:
+                 (switch-to-buffer diffbuf)
+                 (view-mode-enter nil (lambda (_) (exit-recursive-edit)))
                  (recursive-edit))))
            ;; Return nil to ask about BUF again.
            nil)
@@ -7250,9 +7264,9 @@ an auto-save file."
 The command tries to preserve markers, properties and overlays.
 If the operation takes more than this time, a single
 delete+insert is performed.  Actually, this value is passed as
-the MAX-SECS argument to the function `replace-buffer-contents',
+the MAX-SECS argument to the function `replace-region-contents',
 so it is not ensured that the whole execution won't take longer.
-See `replace-buffer-contents' for more details.")
+See `replace-region-contents' for more details.")
 
 (defun revert-buffer-insert-file-contents-delicately (file-name _auto-save-p)
   "Optional function for `revert-buffer-insert-file-contents-function'.
@@ -7261,11 +7275,11 @@ The function `revert-buffer-with-fine-grain' uses this function by binding
 
 As with `revert-buffer-insert-file-contents--default-function', FILE-NAME is
 the name of the file and AUTO-SAVE-P is non-nil if this is an auto-save file.
-Since calling `replace-buffer-contents' can take a long time, depending of
+Since calling `replace-region-contents' can take a long time, depending of
 the number of changes made to the buffer, it uses the value of the variable
 `revert-buffer-with-fine-grain-max-seconds' as a maximum time to try delicately
 reverting the buffer.  If it fails, it does a delete+insert.  For more details,
-see `replace-buffer-contents'."
+see `replace-region-contents'."
   (cond
    ((not (file-exists-p file-name))
     (error (if buffer-file-number
@@ -7288,7 +7302,8 @@ see `replace-buffer-contents'."
                   (let ((temp-buf (current-buffer)))
                     (set-buffer buf)
                     (let ((buffer-file-name nil))
-                      (replace-buffer-contents
+                      (replace-region-contents
+                       (point-min) (point-max)
                        temp-buf
                        revert-buffer-with-fine-grain-max-seconds))))))))
       ;; See comments in revert-buffer-with-fine-grain for an explanation.

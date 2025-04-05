@@ -2402,16 +2402,16 @@ This should be an integer.  Used in `cpp-font-lock-keywords'.")
        1 font-lock-string-face prepend)
      ;;
      ;; Fontify function macro names.
-     '("^#[ \t]*define[ \t]+\\([[:alpha:]_][[:alnum:]_$]*\\)("
+     `("^#[ \t]*define[ \t]+\\([[:alpha:]_][[:alnum:]_$]*\\)("
        (1 font-lock-function-name-face prepend)
        ;;
        ;; Macro arguments.
-       ((lambda (limit)
-	  (re-search-forward
-	   "\\(?:\\([[:alpha:]_][[:alnum:]_]*\\)[,]?\\)"
-	   (or (save-excursion (re-search-forward ")" limit t))
-	       limit)
-	   t))
+       (,(lambda (limit)
+	   (re-search-forward
+	    "\\(?:\\([[:alpha:]_][[:alnum:]_]*\\)[,]?\\)"
+	    (or (save-excursion (re-search-forward ")" limit t))
+	        limit)
+	    t))
 	nil nil (1 font-lock-variable-name-face prepend)))
      ;;
      ;; Fontify symbol names in #elif or #if ... defined preprocessor directives.

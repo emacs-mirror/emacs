@@ -292,7 +292,13 @@
                (:include cl--class)
                (:noinline t)
                (:constructor nil)
-               (:constructor built-in-class--make (name docstring parents))
+               (:constructor built-in-class--make
+                (name docstring parent-types
+                      &aux (parents
+                            (mapcar (lambda (type)
+                                      (or (get type 'cl--class)
+                                          (error "Unknown type: %S" type)))
+                                    parent-types))))
                (:copier nil))
   "Type descriptors for built-in types.
 The `slots' (and hence `index-table') are currently unused."
@@ -322,13 +328,7 @@ The `slots' (and hence `index-table') are currently unused."
           ;; (message "Missing predicate for: %S" name)
           nil)
        (put ',name 'cl--class
-            (built-in-class--make ',name ,docstring
-                                  (mapcar (lambda (type)
-                                            (let ((class (get type 'cl--class)))
-                                              (unless class
-                                                (error "Unknown type: %S" type))
-                                              class))
-                                          ',parents))))))
+            (built-in-class--make ',name ,docstring ',parents)))))
 
 ;; FIXME: Our type DAG has various quirks:
 ;; - Some `keyword's are also `symbol-with-pos' but that's not reflected

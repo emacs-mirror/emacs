@@ -1398,35 +1398,8 @@ Moves point to the end of the new text."
                               newtext)
     ;; Remove all text properties.
     (set-text-properties 0 (length newtext) nil newtext))
-  ;; Maybe this should be in subr.el.
-  ;; You'd think this is trivial to do, but details matter if you want
-  ;; to keep markers "at the right place" and be robust in the face of
-  ;; after-change-functions that may themselves modify the buffer.
-  (let ((prefix-len 0))
-    ;; Don't touch markers in the shared prefix (if any).
-    (while (and (< prefix-len (length newtext))
-                (< (+ beg prefix-len) end)
-                (eq (char-after (+ beg prefix-len))
-                    (aref newtext prefix-len)))
-      (setq prefix-len (1+ prefix-len)))
-    (unless (zerop prefix-len)
-      (setq beg (+ beg prefix-len))
-      (setq newtext (substring newtext prefix-len))))
-  (let ((suffix-len 0))
-    ;; Don't touch markers in the shared suffix (if any).
-    (while (and (< suffix-len (length newtext))
-                (< beg (- end suffix-len))
-                (eq (char-before (- end suffix-len))
-                    (aref newtext (- (length newtext) suffix-len 1))))
-      (setq suffix-len (1+ suffix-len)))
-    (unless (zerop suffix-len)
-      (setq end (- end suffix-len))
-      (setq newtext (substring newtext 0 (- suffix-len))))
-    (goto-char beg)
-    (let ((length (- end beg)))         ;Read `end' before we insert the text.
-      (insert-and-inherit newtext)
-      (delete-region (point) (+ (point) length)))
-    (forward-char suffix-len)))
+  (replace-region-contents beg end newtext 0.1 nil 'inherit)
+  (goto-char (+ beg (length newtext))))
 
 (defcustom completion-cycle-threshold nil
   "Number of completion candidates below which cycling is used.
@@ -1690,6 +1663,7 @@ scroll the window of possible completions."
          ((eq completion-auto-select 'second-tab))
          ;; Reverse tab
          ((equal (this-command-keys) [backtab])
+          (completion--lazy-insert-strings)
           (if (pos-visible-in-window-p (point-min) window)
               ;; If beginning is in view, scroll up to the end.
               (set-window-point window (point-max))
@@ -1697,6 +1671,7 @@ scroll the window of possible completions."
             (with-selected-window window (scroll-down))))
          ;; Normal tab
          (t
+          (completion--lazy-insert-strings)
           (if (pos-visible-in-window-p (point-max) window)
               ;; If end is in view, scroll up to the end.
               (set-window-start window (point-min) nil)
@@ -2232,6 +2207,8 @@ If this is nil, no heading line will be shown."
                  (string :tag "Format string for heading line"))
   :version "29.1")
 
+(defvar-local completions--lazy-insert-button nil)
+
 (defun completion--insert-strings (strings &optional group-fun)
   "Insert a list of STRINGS into the current buffer.
 The candidate strings are inserted into the buffer depending on the
@@ -2253,23 +2230,53 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
 		     ;; Don't allocate more columns than we can fill.
 		     ;; Windows can't show less than 3 lines anyway.
 		     (max 1 (/ (length strings) 2))))
-	   (colwidth (/ wwidth columns)))
+	   (colwidth (/ wwidth columns))
+	   (lines (or completions-max-height (frame-height))))
       (unless (or tab-stop-list (null completion-tab-width)
                   (zerop (mod colwidth completion-tab-width)))
         ;; Align to tab positions for the case
         ;; when the caller uses tabs inside prefix.
         (setq colwidth (- colwidth (mod colwidth completion-tab-width))))
-      (funcall (intern (format "completion--insert-%s" completions-format))
-               strings group-fun length wwidth colwidth columns))))
+      (let ((completions-continuation
+             (catch 'completions-truncated
+               (funcall (intern (format "completion--insert-%s"
+                                        completions-format))
+                        strings group-fun length wwidth colwidth columns lines)
+               nil)))
+        (when completions-continuation
+          ;; If there's a bug which causes us to not insert the remaining
+          ;; completions automatically, the user can at least press this button.
+          (setq-local completions--lazy-insert-button
+                      (insert-button
+                       "[Completions truncated, click here to insert the rest.]"
+                       'action #'completion--lazy-insert-strings))
+          (button-put completions--lazy-insert-button
+                      'completions-continuation completions-continuation))))))
+
+(defun completion--lazy-insert-strings (&optional button)
+  (setq button (or button completions--lazy-insert-button))
+  (when button
+    (let ((completion-lazy-hilit t)
+          (standard-output (current-buffer))
+          (inhibit-read-only t)
+          (completions-continuation
+           (button-get button 'completions-continuation)))
+      (save-excursion
+        (goto-char (button-start button))
+        (delete-region (point) (button-end button))
+        (setq-local completions--lazy-insert-button nil)
+        (funcall completions-continuation)))))
 
 (defun completion--insert-horizontal (strings group-fun
                                               length wwidth
-                                              colwidth _columns)
+                                              colwidth columns lines
+                                              &optional last-title)
   (let ((column 0)
         (first t)
-	(last-title nil)
-        (last-string nil))
-    (dolist (str strings)
+        (last-string nil)
+        str)
+    (while strings
+      (setq str (pop strings))
       (unless (equal last-string str) ; Remove (consecutive) duplicates.
 	(setq last-string str)
         (when group-fun
@@ -2277,18 +2284,29 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
             (unless (equal title last-title)
               (setq last-title title)
               (when title
-                (insert (if first "" "\n") (format completions-group-format title) "\n")
+               (insert (if first "" "\n")
+                       (format completions-group-format title) "\n")
                 (setq column 0
                       first t)))))
 	(unless first
           ;; FIXME: `string-width' doesn't pay attention to
           ;; `display' properties.
-	  (if (< wwidth (+ column (max colwidth
-                                       (if (consp str)
-                                           (apply #'+ (mapcar #'string-width str))
-                                         (string-width str)))))
+	  (if (< wwidth (+ column
+                           (max colwidth
+                                (if (consp str)
+                                    (apply #'+ (mapcar #'string-width str))
+                                  (string-width str)))))
 	      ;; No space for `str' at point, move to next line.
-	      (progn (insert "\n") (setq column 0))
+	      (progn
+                (insert "\n")
+                (when (and lines (> (line-number-at-pos) lines))
+                  (throw 'completions-truncated
+                         (lambda ()
+                           (completion--insert-horizontal
+                            ;; Add str back, since we haven't inserted it yet.
+                            (cons str strings) group-fun length wwidth colwidth
+                            columns nil last-title))))
+                (setq column 0))
 	    (insert " \t")
 	    ;; Leave the space unpropertized so that in the case we're
 	    ;; already past the goal column, there is still
@@ -2309,7 +2327,7 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
 
 (defun completion--insert-vertical (strings group-fun
                                             _length _wwidth
-                                            colwidth columns)
+                                            colwidth columns _lines)
   (while strings
     (let ((group nil)
           (column 0)
@@ -2359,9 +2377,12 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
 	    (insert "\n"))
 	  (setq row (1+ row)))))))
 
-(defun completion--insert-one-column (strings group-fun &rest _)
-  (let ((last-title nil) (last-string nil))
-    (dolist (str strings)
+(defun completion--insert-one-column ( strings group-fun length wwidth colwidth
+                                       columns lines &optional last-title)
+  (let ((last-string nil)
+        str)
+    (while strings
+      (setq str (pop strings))
       (unless (equal last-string str) ; Remove (consecutive) duplicates.
 	(setq last-string str)
         (when group-fun
@@ -2371,14 +2392,20 @@ Runs of equal candidate strings are eliminated.  GROUP-FUN is a
               (when title
                 (insert (format completions-group-format title) "\n")))))
         (completion--insert str group-fun)
-        (insert "\n")))
+        (insert "\n")
+        (when (and lines (> (line-number-at-pos) lines))
+          (throw 'completions-truncated
+                 (lambda ()
+                   (completion--insert-one-column
+                    strings group-fun length wwidth colwidth columns nil
+                    last-title))))))
     (delete-char -1)))
 
 (defun completion--insert (str group-fun)
   (if (not (consp str))
       (add-text-properties
        (point)
-       (progn
+       (let ((str (completion-lazy-hilit str)))
          (insert
           (if group-fun
               (funcall group-fun str 'transform)
@@ -2622,6 +2649,7 @@ The candidate will still be chosen by `choose-completion' unless
          (end (or end (point-max)))
          (string (buffer-substring start end))
          (md (completion--field-metadata start))
+         (completion-lazy-hilit t)
          (completions (completion-all-completions
                        string
                        minibuffer-completion-table
@@ -2896,7 +2924,7 @@ This calls the function that `completion-in-region-function' specifies
 \(passing the same four arguments that it received) to do the work,
 and returns whatever it does.  The return value should be nil
 if there was no valid completion, else t."
-  (cl-assert (<= start (point)) (<= (point) end))
+  (cl-assert (<= start (point) end) t)
   (funcall completion-in-region-function start end collection predicate))
 
 (defcustom read-file-name-completion-ignore-case
@@ -4966,6 +4994,7 @@ and execute the forms."
                             (get-buffer-window "*Completions*" 0)))))
      (when window
        (with-selected-window window
+         (completion--lazy-insert-strings)
          ,@body))))
 
 (defcustom minibuffer-completion-auto-choose t
@@ -5192,7 +5221,7 @@ and `blink-matching-paren' more user-friendly."
     (save-excursion
       (with-silent-modifications
         (remove-text-properties (point-min) (point-max) '(syntax-table nil))
-        (goto-char (point-min))
+        (goto-char (minibuffer-prompt-end))
         (while (re-search-forward
                 (rx (| (group "\\\\")
                        (: "\\" (| (group (in "(){}"))

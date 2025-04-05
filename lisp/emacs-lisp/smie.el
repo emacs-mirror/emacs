@@ -2063,7 +2063,7 @@ position corresponding to each rule."
   (interactive "P")
   (let ((trace (cdr (smie-config--get-trace))))
     (cond
-     ((null trace) (message "No SMIE rules involved"))
+     ((null trace) (message "No SMIE rules involved at this position"))
      ((not arg)
       (message "Rules used: %s"
                (mapconcat (lambda (elem)

@@ -528,11 +528,10 @@ nested folders within them."
   (let* ((folder (mh-normalize-folder-name folder nil
                                            (string= folder "+/")
                                            t))
-         (match (gethash folder mh-sub-folders-cache 'no-result))
-         (sub-folders (cond ((eq match 'no-result)
-                             (setf (gethash folder mh-sub-folders-cache)
-                                   (mh-sub-folders-actual folder)))
-                            (t match))))
+         (sub-folders (if (hash-table-contains-p folder mh-sub-folders-cache)
+                          (gethash folder mh-sub-folders-cache)
+                        (setf (gethash folder mh-sub-folders-cache)
+                              (mh-sub-folders-actual folder)))))
     (if add-trailing-slash-flag
         (mapcar (lambda (x)
                   (if (cdr x) (cons (concat (car x) "/") (cdr x)) x))
@@ -629,7 +628,7 @@ otherwise completion on +foo won't tell us about the option
           last-slash)
       (while (setq last-slash (mh-search-from-end ?/ parent))
         (setq parent (substring parent 0 last-slash))
-        (unless (eq (gethash parent  mh-sub-folders-cache 'none) 'none)
+        (when (hash-table-contains-p parent mh-sub-folders-cache)
           (remhash parent mh-sub-folders-cache)
           (if one-ancestor-found
               (cl-return-from ancestor-found)

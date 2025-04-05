@@ -53,16 +53,21 @@ frame.
 
 If you don't like any of the two provided functions, write your own one.
 The basic guidelines:
-    1. It should leave the control buffer current and the control window
-       selected.
+    1. It should leave the control buffer current and, if showing,
+       the control window selected if showing these windows.
     2. It should set `ediff-window-A', `ediff-window-B', `ediff-window-C',
        and `ediff-control-window' to contain window objects that display
-       the corresponding buffers.
+       the corresponding buffers or `nil' if the corresponding window
+       is not shown.
     3. It should accept the following arguments:
        buffer-A, buffer-B, buffer-C, control-buffer
        Buffer C may not be used in jobs that compare only two buffers.
 If you plan to do something fancy, take a close look at how the two
-provided functions are written."
+provided functions are written.
+
+Set `ediff-select-control-window-on-setup' to nil to prevent the window
+`ediff-control-window' being selected by ediff after this
+function returns. "
   :type '(choice (const :tag "Choose Automatically" ediff-setup-windows-default)
 		 (const :tag "Multi Frame" ediff-setup-windows-multiframe)
 		 (const :tag "Single Frame" ediff-setup-windows-plain)
@@ -246,6 +251,17 @@ keyboard input to go into icons."
   :type 'boolean)
 
 ;;; Functions
+
+(defmacro ediff-with-live-window (window &rest body)
+  "Like `with-selected-window' but only if WINDOW is live.
+If WINDOW is not live (or not a window) do nothing and don't evaluate
+BODY, instead returning nil."
+  (declare (indent 1) (debug (form body)))
+  (let ((w (gensym "window")))
+    `(let ((,w ,window))
+      (when (window-live-p ,w)
+        (with-selected-window ,w
+          ,@body)))))
 
 (defun ediff-get-window-by-clicking (_wind _prev-wind wind-number)
   (let (event)

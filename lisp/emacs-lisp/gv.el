@@ -317,10 +317,13 @@ The return value is the last VAL in the list.
 
 ;;;###autoload
 (defmacro incf (place &optional delta)
-  "Increment PLACE by DELTA (default to 1).
+  "Increment generalized variable PLACE by DELTA (default to 1).
 
 The DELTA is first added to PLACE, and then stored in PLACE.
 Return the incremented value of PLACE.
+
+For more information about generalized variables, see Info node
+`(elisp) Generalized Variables'.
 
 See also `decf'."
   (declare (debug (gv-place &optional form)))
@@ -329,10 +332,13 @@ See also `decf'."
 
 ;;;###autoload
 (defmacro decf (place &optional delta)
-  "Decrement PLACE by DELTA (default to 1).
+  "Decrement generalized variable PLACE by DELTA (default to 1).
 
 The DELTA is first subtracted from PLACE, and then stored in PLACE.
 Return the decremented value of PLACE.
+
+For more information about generalized variables, see Info node
+`(elisp) Generalized Variables'.
 
 See also `incf'."
   (declare (debug (gv-place &optional form)))
@@ -678,6 +684,8 @@ REF must have been previously obtained with `gv-ref'."
   `(insert (prog1 ,store (erase-buffer))))
 (make-obsolete-generalized-variable 'buffer-string nil "29.1")
 
+;; FIXME: Can't use `replace-region-contents' because it's not
+;; expected to be costly, so we need to pass MAX-SECS==0.
 (gv-define-simple-setter buffer-substring cl--set-buffer-substring)
 (make-obsolete-generalized-variable 'buffer-substring nil "29.1")
 

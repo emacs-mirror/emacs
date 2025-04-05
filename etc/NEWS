@@ -30,6 +30,12 @@ The traditional unexec dumper, deprecated since Emacs 27, has been
 removed.
 
 ---
+** Emacs's old ctags program is no longer built or installed.
+You are encouraged to use Universal Ctags <https://ctags.io/> instead.
+For now, to get the old ctags behavior you can can run 'etags --ctags'
+or use a shell script named 'ctags' that runs 'etags --ctags "$@"'.
+
+---
 ** Changed GCC default options on 32-bit x86 systems.
 When using GCC 4 or later to build Emacs on 32-bit x86 systems,
 'configure' now defaults to using the GCC options '-mfpmath=sse' (if the
@@ -69,14 +75,10 @@ the 'standard-display-table's extra slots with Unicode characters.
 Please see the documentation of that function to see which slots of the
 display table it changes.
 
++++
 ** Child frames are now supported on TTY frames.
 This supports use-cases like Posframe, Corfu, and child frames acting
-like tooltips.  Other use-cases of child frames are not supported yet.
-In particular:
-
-- trying to create minibuffer-only child frames on a TTY frame will
-  signal an error; and
-- a TTY child frame cannot be converted to a root frame or vice-versa.
+like tooltips.
 
 To enable tooltips on TTY frames, call 'tty-tip-mode'.
 
@@ -144,6 +146,9 @@ The new minor mode defines the keys at a higher precedence level than
 the old function, one more usual for a minor mode.  To restore the old
 behavior, customize 'find-function-mode-lower-precedence' to non-nil.
 
+---
+** 'find-function' can now find 'cl-defmethod' invocations inside macros.
+
 ** Minibuffer and Completions
 
 +++
@@ -184,6 +189,16 @@ When point is on a completion candidate in the "*Completions*" buffer
 will still be on that candidate after "*Completions*" is updated with a
 new list of completions.  The candidate is automatically deselected when
 the "*Completions*" buffer is hidden.
+
+---
+*** "*Completions*" is now displayed faster when there are many candidates.
+As before, if there are more completion candidates than can be displayed
+in the current frame, only a subset of the candidates is displayed.
+This process is now faster: only that subset of the candidates is
+actually inserted into "*Completions*" until you run a command which
+interacts with the text of the "*Completions*" buffer.  This
+optimization only applies when 'completions-format' is 'horizontal' or
+'one-column'.
 
 ---
 *** New user option 'crm-prompt' for 'completing-read-multiple'.
@@ -285,6 +300,12 @@ return value windows whose buffers share their text with BUFFER-OR-NAME.
 With such an entry, 'display-buffer-reuse-window' may also choose a
 window whose buffer shares text with the buffer to display.
 
++++
+*** New variable 'window-state-normalize-buffer-name'.
+When bound to non-nil, 'window-state-get' will normalize 'uniquify'
+managed buffer names by removing 'uniquify' prefixes and suffixes.  This
+helps restore window buffers across Emacs sessions.
+
 ** Frames
 
 +++
@@ -340,6 +361,11 @@ docstring for arguments passed to a help-text function.
 ---
 *** New command 'project-root-find-file'.
 It is equivalent to running ‘project-any-command’ with ‘find-file’.
+
+---
+*** New command 'project-customize-dirlocals'.
+It is equivalent to running ‘project-any-command’ with
+‘customize-dirlocals’.
 
 ---
 *** Improved prompt for 'project-switch-project'.
@@ -407,6 +433,11 @@ If a user option has a defcustom ':set' function, users will normally
 need to set it with 'setopt' for it to take an effect.  If the docstring
 doesn't already mention 'setopt', the 'describe-variable' command will
 now add a note about this automatically.
+
++++
+** New user option 'eldoc-help-at-pt' to show help at point via Eldoc.
+When enabled, display the 'help-at-pt-kbd-string' via Eldoc.  This
+setting is an alternative to 'help-at-pt-display-when-idle'.
 
 
 * Editing Changes in Emacs 31.1
@@ -1006,6 +1037,11 @@ This change affects both 'M-x checkdoc' and the corresponding flymake
 backend.
 
 ---
+*** Checkdoc no longer warns about wide docstrings.
+The Checkdoc warning for wide docstrings duplicates the byte-compiler
+warning added in Emacs 28.1.  This redundancy is now removed.
+
+---
 *** New user option 'checkdoc-arguments-missing-flag'.
 Set this to nil to disable warnings for function arguments that are not
 documented in docstrings.
@@ -1192,6 +1228,14 @@ changes when supplied with a universal prefix argument via 'C-u':
 - 'C-u c a' copies all changes from buffer C to buffer A.
 - 'C-u c b' copies all changes from buffer C to buffer B.
 
++++
+*** Ediff now supports more flexible custom window layouts
+Custom implementations of 'ediff-window-setup-function' no
+longer need to display *all* ediff windows.  Any of the A, B, C,
+and control windows can be left undisplayed and the corresponding
+variable set to nil.  This change enables custom layouts without
+a control panel window.
+
 ** Dired
 
 +++
@@ -1302,6 +1346,12 @@ Putting '(require 'midnight)' in your init file no longer activates the
 mode.  Now, one needs to say '(midnight-mode +1)' instead.
 
 ** Python mode
+
+*** New repeat-map for Python indentation commands.
+The commands 'python-indent-shift-left' and 'python-indent-shift-right'
+can now be repeated using 'repeat-mode'.  With 'repeat-mode' enabled,
+after invoking one of these commands via 'C-c <' or 'C-c >', you can
+press '<' or '>' to repeat the command.
 
 ---
 *** Prefer "python" for 'python-interpreter' and 'python-shell-interpreter'.
@@ -1552,6 +1602,36 @@ width of the 'speedbar-window' when it is closed and then restored.
 ---
 *** 'speedbar-easymenu-definition-trailer' is now a function.
 
+** Icomplete
+
+*** New user options for 'icomplete-vertical-mode'.
+New user options have been added to enhance 'icomplete-vertical-mode':
+- 'icomplete-vertical-in-buffer-adjust-list' aligns in-buffer
+  completion to the original cursor column.
+- 'icomplete-vertical-render-prefix-indicator' adds a prefix indicator
+  to completion candidates.
+- 'icomplete-vertical-selected-prefix-indicator' specifies the prefix
+  string for the selected candidate.
+- 'icomplete-vertical-unselected-prefix-indicator' specifies the prefix
+  string for unselected candidates.
+
+*** New faces for 'icomplete-vertical-mode'.
+New faces have been added to 'icomplete-vertical-mode':
+- 'icomplete-vertical-selected-prefix-indicator-face' controls the
+  appearance of the selected candidate prefix.
+- 'icomplete-vertical-unselected-prefix-indicator-face' controls the
+  appearance of unselected candidate prefixes.
+
+** CL-Lib
+
++++
+*** New macro 'cl-with-accessors'.
+This macro is similar to 'with-slots', but uses accessor functions
+instead of slot names.  It is useful when slots' accessor functions are
+used repeatedly, such as reading from a slot and then writing to that
+slot.  Symbol macros are created for the accessor functions using
+'cl-symbol-macrolet', so that they can be used with 'setq' and 'setf'.
+
 ** Miscellaneous
 
 ---
@@ -1588,6 +1668,12 @@ activate it.  When t (the default), the click will both activate the
 frame and be interpreted as a command.
 
 ---
+*** New user option 'global-hl-line-modes'.
+This specifies in which major modes should the 'global-hl-line-mode' be
+switched on.  The default is t, which means enable it in all major
+modes.
+
+---
 *** New user option 'display-fill-column-indicator-warning'.
 Customize it to a non-nil value to have the fill-column indicators
 change their face if the current line exceeds the 'fill-column'.  The
@@ -1596,6 +1682,9 @@ highlight the fill-column indicators.  By default this is disabled.
 
 
 * New Modes and Packages in Emacs 31.1
+
+** New major mode 'conf-npmrc-mode'.
+A major mode based on 'conf-mode' for editing ".npmrc" files.
 
 ** New major modes based on the tree-sitter library
 
@@ -1612,6 +1701,21 @@ embedded JavaScript and CSS.
 A major mode based on the tree-sitter library for editing "go.work"
 files.  If tree-sitter is properly set-up by the user, it can be
 enabled for files named "go.work".
+
+** The file treesit-x.el defines a number of simple treesit modes.
+Using the new macro 'define-treesit-generic-mode' generic modes are
+defined including, but not limited to, 'gitattributes-generic-ts-mode'.
+Visiting a file in such mode ask for confirmation before installing
+its tree-sitter grammar.  Then it highlights the visited file
+according to syntax defined by the grammar.
+
+** New minor mode 'electric-block-comment-mode'.
+This mode automatically close block comment, typing
+`block-comment-start' closes it inserting their corresponding
+`block-comment-end'.  Thus, allows closing block comments for major
+modes that support it, such as: c-mode, c++-mode, java-mode, js-mode,
+css-mode, and derived: html-mode, mhtml-mode, xml-mode and nxml-mode,
+pascal-mode, lua-ts-mode, lisp-mode and common-lisp-mode
 
 
 * Incompatible Lisp Changes in Emacs 31.1
@@ -1670,6 +1774,12 @@ Previously, its argument was always evaluated using dynamic binding.
 * Lisp Changes in Emacs 31.1
 
 +++
+** Improve 'replace-region-contents' to accept more forms of sources.
+It has been promoted from 'subr-x' to the C code.
+You can now directly pass it a string or a buffer rather than a function.
+Actually passing it a function is now deprecated.
+
++++
 ** New macros 'static-when' and 'static-unless'.
 Like 'static-if', these macros evaluate their condition at
 macro-expansion time and are useful for writing code that can work
@@ -1722,6 +1832,10 @@ See "(ert) Helper Functions" node in the ERT manual for more information.
 Optional arguments are provided to produce human-readable time-duration
 strings in a variety of formats, for example "6 months 3 weeks" or "5m
 52.5s".
+
++++
+** New function 'hash-table-contains-p'.
+This function returns non-nil if a given key is present in a hash table.
 
 +++
 ** The function 'purecopy' is now an obsolete alias for 'identity'.

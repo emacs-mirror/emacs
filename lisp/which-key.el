@@ -61,8 +61,8 @@ This variable should be set before activating `which-key-mode'.
 A value of zero might lead to issues, so a non-zero value is
 recommended
 (see https://github.com/justbur/emacs-which-key/issues/134)."
-  :type 'number
-  :package-version "1.0" :version "30.1")
+  :type 'float
+  :package-version '(which-key . "1.0") :version "30.1")
 
 (defcustom which-key-idle-secondary-delay nil
   "Seconds to wait for which-key to pop up after initial display.

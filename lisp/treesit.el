@@ -1636,12 +1636,16 @@ Both SETTINGS and NEW-SETTINGS must be a value suitable for
 Return a value suitable for `treesit-font-lock-settings'"
   (let ((result nil))
     (dolist (new-setting new-settings)
-      (let ((new-feature (treesit-font-lock-setting-feature new-setting)))
-	(dolist (setting settings)
-	  (let ((feature (treesit-font-lock-setting-feature setting)))
-	    (if (eq new-feature feature)
-		(push new-setting result)
-	      (push setting result))))))
+      (let ((new-feature (treesit-font-lock-setting-feature new-setting))
+            (new-lang (treesit-query-language
+                       (treesit-font-lock-setting-query new-setting))))
+        (dolist (setting settings)
+          (let ((feature (treesit-font-lock-setting-feature setting))
+                (lang (treesit-query-language
+                       (treesit-font-lock-setting-query setting))))
+            (if (and (eq new-lang lang) (eq new-feature feature))
+                (push new-setting result)
+              (push setting result))))))
     (nreverse result)))
 
 (defun treesit-add-font-lock-rules (rules &optional how feature)
@@ -1881,9 +1885,9 @@ If LOUDLY is non-nil, display some debugging information."
     ;; 1ms in xdisp.c, and 0.3ms in a small C file (for typing a single
     ;; character), not worth it.  --yuan
     (dolist (setting treesit-font-lock-settings)
-      (let* ((query (nth 0 setting))
-             (enable (nth 1 setting))
-             (override (nth 3 setting))
+      (let* ((query (treesit-font-lock-setting-query setting))
+             (enable (treesit-font-lock-setting-enable setting))
+             (override (treesit-font-lock-setting-override setting))
              (language (treesit-query-language query))
              (root-nodes (cl-remove-if-not
                           (lambda (node)
@@ -2602,6 +2606,8 @@ reparse after indenting every single line.")
 (defun treesit-indent-region (beg end)
   "Indent the region between BEG and END.
 Similar to `treesit-indent', but indent a region instead."
+  (when (markerp beg) (setq beg (marker-position beg)))
+  (when (markerp end) (setq end (marker-position end)))
   (treesit-update-ranges beg end)
   ;; We indent `treesit--indent-region-batch-size' lines at a time, to
   ;; reduce the number of times the parser needs to re-parse.  In each
@@ -5098,7 +5104,8 @@ If anything goes wrong, this function signals an `treesit-error'."
           (when commit
             (treesit--git-checkout-branch workdir commit))
           (setq version (treesit--language-git-revision workdir))
-          (treesit--build-grammar workdir out-dir lang source-dir cc c++))
+          (treesit--build-grammar workdir out-dir lang source-dir cc c++)
+          (treesit--copy-queries workdir out-dir lang))
       ;; Remove workdir if it's not a repo owned by user and we
       ;; managed to create it in the first place.
       (when (and (not url-is-dir) (file-exists-p workdir))
@@ -5176,6 +5183,16 @@ If anything goes wrong, this function signals an `treesit-error'."
         ;; Ignore errors, in case the old version is still used.
         (ignore-errors (delete-file old-fname)))
       (message "Library installed to %s/%s" out-dir lib-name))))
+
+(defun treesit--copy-queries (workdir out-dir lang)
+  "Copy the LANG \"queries\" directory from WORKDIR to OUT-DIR."
+  (let* ((query-dir (expand-file-name "queries" workdir))
+         (dest-dir (expand-file-name (format "queries/%s" lang) out-dir)))
+    (when (file-directory-p query-dir)
+      (unless (file-directory-p dest-dir)
+        (make-directory dest-dir t))
+      (dolist (file (directory-files query-dir t "\\.scm\\'" t))
+        (copy-file file (expand-file-name (file-name-nondirectory file) dest-dir) t)))))
 
 ;;; Shortdocs
 

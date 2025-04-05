@@ -318,13 +318,13 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 ;;   GLYPH-CODE is a hexadigit string representing the glyph-ID.
 ;; Otherwise, return a string describing the terminal codes for the
 ;; character.
-(defun describe-char-display (pos char)
+(defun describe-char-display (pos char &optional glyph-code)
   (if (display-graphic-p (selected-frame))
       (let ((char-font-info (internal-char-font pos char)))
 	(if char-font-info
 	    (let ((type (font-get (car char-font-info) :type))
 		  (name (font-xlfd-name (car char-font-info)))
-		  (code (cdr char-font-info)))
+		  (code (or glyph-code (cdr char-font-info))))
 	       (if (integerp code)
 		   (format "%s:%s (#x%02X)" type name code)
 		 (format "%s:%s (#x%04X%04X)"
@@ -420,7 +420,7 @@ The character information includes:
                     (describe-text-properties pos tmp-buf)
                     (with-current-buffer tmp-buf (buffer-string)))
                 (kill-buffer tmp-buf))))
-           item-list max-width code)
+           item-list max-width code glyph-code trivial-p)
 
       (if multibyte-p
           (or (setq code (encode-char char charset))
@@ -489,7 +489,8 @@ The character information includes:
                       (if (and (= to (1+ from))
                                (= i (1- j))
                                (setq glyph (lgstring-glyph components i))
-                               (= char (lglyph-char glyph)))
+                               (= char (lglyph-char glyph))
+                               (setq trivial-p t))
                           ;; The composition is trivial.
                           (throw 'tag nil))
                       (nconc composition (list i (1- j))))
@@ -527,7 +528,13 @@ The character information includes:
                         (format "composed to form \"%s\" (see below)"
                                 (setq composition-string
                                       (buffer-substring from to))))))
-            (setq composition nil)))
+            ;; For "trivial" compositions, such as ligatures of ASCII
+            ;; characters, at least show the correct font glyph number.
+            (setq glyph-code (if (and composition
+                                      trivial-p
+                                      (display-graphic-p (selected-frame)))
+                                 (composition-find-pos-glyph composition pos))
+                  composition nil)))
 
       (setq item-list
             `(("position"
@@ -664,7 +671,7 @@ The character information includes:
                  (composition
                   (cadr composition))
                  (t
-                  (let ((display (describe-char-display pos char)))
+                  (let ((display (describe-char-display pos char glyph-code)))
                     (if (display-graphic-p (selected-frame))
                         (if display
                             (concat "by this font (glyph code):\n    " display)

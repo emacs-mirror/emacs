@@ -50,9 +50,9 @@
 ;;; Code:
 
 (require 'treesit)
-(require 'html-ts-mode)
 (require 'css-mode) ;; for embed css into html
 (require 'js) ;; for embed javascript into html
+(require 'html-ts-mode)
 
 (eval-when-compile
   (require 'rx))
@@ -447,9 +447,9 @@ Calls REPORT-FN directly.  Requires tidy."
   "Major mode for editing HTML with embedded JavaScript and CSS.
 Powered by tree-sitter."
   (if (not (and
-            (treesit-ready-p 'html)
-            (treesit-ready-p 'javascript)
-            (treesit-ready-p 'css)))
+            (treesit-ready-p 'html t)
+            (treesit-ready-p 'javascript t)
+            (treesit-ready-p 'css t)))
       (error "Tree-sitter parsers for HTML isn't available.  You can
     install the parsers with M-x `mhtml-ts-mode-install-parsers'")
 
@@ -589,7 +589,7 @@ Powered by tree-sitter."
 ;; Add some extra parents.
 (derived-mode-add-parents 'mhtml-ts-mode '(css-mode js-mode))
 
-(when (and (treesit-ready-p 'html) (treesit-ready-p 'javascript) (treesit-ready-p 'css))
+(when (and (treesit-ready-p 'html t) (treesit-ready-p 'javascript t) (treesit-ready-p 'css t))
   (add-to-list
    'auto-mode-alist '("\\.[sx]?html?\\(\\.[a-zA-Z_]+\\)?\\'" . mhtml-ts-mode)))
 

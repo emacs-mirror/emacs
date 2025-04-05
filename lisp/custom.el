@@ -390,9 +390,6 @@ See Info node `(elisp) Customization' in the Emacs Lisp manual
 for more information."
   (declare (doc-string 3) (debug (name body))
            (indent defun))
-  ;; It is better not to use backquote in this file,
-  ;; because that makes a bootstrapping problem
-  ;; if you need to recompile all the Lisp files using interpreted code.
   `(custom-declare-variable
     ',symbol
     ,(if lexical-binding
@@ -635,7 +632,7 @@ For other custom types, this has no effect."
   (let ((options (get symbol 'custom-options)))
     (unless (member option options)
       (put symbol 'custom-options (cons option options)))))
-(defalias 'custom-add-frequent-value 'custom-add-option)
+(defalias 'custom-add-frequent-value #'custom-add-option)
 
 (defun custom-add-link (symbol widget)
   "To the custom option SYMBOL add the link WIDGET."
@@ -679,6 +676,11 @@ property, or (ii) an alias for another customizable variable."
 (defun custom--standard-value (variable)
   "Return the standard value of VARIABLE."
   (eval (car (get variable 'standard-value)) t))
+
+(defun custom--standard-value-p (variable value)
+  "Return non-nil if VALUE is `equal' to the standard value of VARIABLE."
+  (let ((sv (get variable 'standard-value)))
+    (and sv (equal value (eval (with-demoted-errors "%S" (car sv)) t)))))
 
 (defun custom-note-var-changed (variable)
   "Inform Custom that VARIABLE has been set (changed).
@@ -777,12 +779,10 @@ Return non-nil if the `saved-value' property actually changed."
   (let* ((get (or (get symbol 'custom-get) #'default-value))
 	 (value (funcall get symbol))
 	 (saved (get symbol 'saved-value))
-	 (standard (get symbol 'standard-value))
 	 (comment (get symbol 'customized-variable-comment)))
     ;; Save default value if different from standard value.
     (put symbol 'saved-value
-         (unless (and standard
-                      (equal value (ignore-errors (eval (car standard)))))
+         (unless (custom--standard-value-p symbol value)
            (list (custom-quote value))))
     ;; Clear customized information (set, but not saved).
     (put symbol 'customized-value nil)
@@ -965,12 +965,11 @@ See `custom-known-themes' for a list of known themes."
 	  ;; recompute when the theme is disabled.
 	  (when (and (eq prop 'theme-value)
 		     (boundp symbol))
-	    (let ((sv  (get symbol 'standard-value))
-		  (val (symbol-value symbol)))
+	    (let ((val (symbol-value symbol)))
 	      (unless (or
                        ;; We only do this trick if the current value
                        ;; is different from the standard value.
-                       (and sv (equal (eval (car sv)) val))
+                       (custom--standard-value-p symbol val)
                        ;; And we don't do it if we would end up recording
                        ;; the same value for the user theme.  This way we avoid
                        ;; having ((user VALUE) (changed VALUE)).  That would be
@@ -1560,7 +1559,6 @@ After THEME has been enabled, runs `enable-theme-functions'."
       (let* ((prop (car s))
              (symbol (cadr s))
              (spec-list (get symbol prop))
-             (sv (get symbol 'standard-value))
              (val (and (boundp symbol) (symbol-value symbol))))
         ;; We can't call `custom-push-theme' when enabling the theme: it's not
         ;; that the theme settings have changed, it's just that we want to
@@ -1575,7 +1573,7 @@ After THEME has been enabled, runs `enable-theme-functions'."
                    (not (or spec-list
                             ;; Only if the current value is different from
                             ;; the standard value.
-                            (and sv (equal (eval (car sv)) val))
+                            (custom--standard-value-p symbol val)
                             ;; And only if the changed value is different
                             ;; from the new value under the user theme.
                             (and (eq theme 'user)

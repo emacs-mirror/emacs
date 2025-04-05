@@ -66,48 +66,30 @@ use this command, and then save the file."
                                               #'kmacro-keyboard-macro-p
 					      t))
 		     current-prefix-arg))
-  (let (definition)
-    (if (string= (symbol-name macroname) "")
-	(progn
-	  (setq macroname 'last-kbd-macro definition last-kbd-macro)
-	  (insert "(setq "))
-      (setq definition (symbol-function macroname))
+  (if (string= (symbol-name macroname) "")
+      (pp `(setq last-kbd-macro
+                 (key-parse ,(key-description last-kbd-macro)))
+          (current-buffer))
+    (let ((definition (symbol-function macroname)))
+      (when (or (stringp definition) (vectorp definition))
+        (setq definition (kmacro (kmacro--to-vector definition))))
       ;; Prefer `defalias' over `fset' since it additionally keeps
       ;; track of the file where the users added it, and it interacts
       ;; better with `advice-add' (and hence things like ELP).
-      (insert "(defalias '"))
-    (prin1 macroname (current-buffer))
-    (insert "\n   ")
-    (when (or (stringp definition) (vectorp definition))
-      (setq definition (kmacro (kmacro--to-vector definition))))
-    (if (kmacro-p definition)
-        (let ((vecdef  (kmacro--keys     definition))
-              (counter (kmacro--counter definition))
-              (format  (kmacro--format  definition)))
-          (insert "(kmacro ")
-          (prin1 (key-description vecdef) (current-buffer))
-          ;; FIXME: Do we really want to store the counter?
-          (unless (and (equal counter 0) (equal format "%d"))
-            (insert " ")
-            (prin1 counter (current-buffer))
-            (insert " ")
-            (prin1 format (current-buffer)))
-          (insert ")"))
-      ;; FIXME: Shouldn't this signal an error?
-      (prin1 definition (current-buffer)))
-    (insert ")\n")
-    (if keys
-        (let ((keys (or (and (symbol-function macroname)
-                             (where-is-internal (symbol-function macroname)
-                                                '(keymap)))
+      (let ((counter (kmacro--counter definition))
+            (format  (kmacro--format  definition)))
+        (pp `(defalias ',macroname
+               (kmacro ,(key-description (kmacro--keys definition))
+                       ;; FIXME: Do we really want to store the counter?
+                       . ,(unless (and (equal counter 0) (equal format "%d"))
+                            `(,counter ,format))))
+            (current-buffer)))
+      (when keys
+        (let ((keys (or (where-is-internal definition '(keymap))
                         (where-is-internal macroname '(keymap)))))
-	  (while keys
-	    (insert "(global-set-key ")
-	    (prin1 (car keys) (current-buffer))
-	    (insert " '")
-	    (prin1 macroname (current-buffer))
-	    (insert ")\n")
-	    (setq keys (cdr keys)))))))
+	  (dolist (key keys)
+	    (pp `(keymap-global-set ,(key-description key) #',macroname)
+	        (current-buffer))))))))
 
 ;;;###autoload
 (defun kbd-macro-query (flag)

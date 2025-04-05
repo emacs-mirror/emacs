@@ -37,7 +37,7 @@ SRCS=${ADASRC} ${ASRC} ${CSRC} ${CPSRC} ${ELSRC} ${ERLSRC} ${FSRC}\
 NONSRCS=./f-src/entry.strange ./erl-src/lists.erl ./cp-src/clheir.hpp.gz
 
 ETAGS_PROG=../../../lib-src/etags
-CTAGS_PROG=../../../lib-src/ctags
+CTAGS_PROG=../../../lib-src/etags --ctags
 
 REGEX=/[ \t]*DEFVAR_[A-Z_ \t\n(]+"\([^"]+\)"/
 xx="this line is here because of a fontlock bug

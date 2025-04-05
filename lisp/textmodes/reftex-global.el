@@ -37,16 +37,18 @@
 The TAGS file is also immediately visited with `visit-tags-table'."
   (interactive)
   (reftex-access-scan-info current-prefix-arg)
-  (let* ((master (reftex-TeX-master-file))
-         (files  (reftex-all-document-files))
-         (cmd    (format "%s %s"
-                         etags-program-name
-                         (mapconcat #'shell-quote-argument
-				    files " "))))
-    (with-current-buffer (reftex-get-file-buffer-force master)
-      (message "Running etags to create TAGS file...")
-      (shell-command cmd)
-      (visit-tags-table "TAGS"))))
+  (let ((master (reftex-TeX-master-file)))
+    (if (bufferp master)
+        (user-error "Cannot create TAGS file for non-file buffers")
+      (let* ((files  (reftex-all-document-files))
+             (cmd (format "%s %s"
+                          etags-program-name
+                          (mapconcat #'shell-quote-argument
+                                     files " "))))
+        (with-current-buffer (reftex-get-file-buffer-force master)
+          (message "Running etags to create TAGS file...")
+          (shell-command cmd)
+          (visit-tags-table "TAGS"))))))
 
 ;; History of grep commands.
 (defvar reftex-grep-history nil)
@@ -144,7 +146,7 @@ No active TAGS table is required."
                 (if (< 1 (length x1))
                     (append (list (car x))
                             (mapcar (lambda(x)
-                                      (abbreviate-file-name (nth 3 x)))
+                                      (reftex--abbreviate-name (nth 3 x)))
                                     x1))
                   (list nil))))))
           (reftex-uniquify-by-car (symbol-value reftex-docstruct-symbol)))))
@@ -369,31 +371,33 @@ labels."
         file buffer)
     (save-current-buffer
       (while (setq file (pop files))
-        (setq buffer (find-buffer-visiting file))
-        (when buffer
-          (set-buffer buffer)
-          (save-buffer))))))
+        (when (stringp file) ; Ignore non-file buffers.
+          (setq buffer (find-buffer-visiting file))
+          (when buffer
+            (set-buffer buffer)
+            (save-buffer)))))))
 
 (defun reftex-ensure-write-access (files)
   "Make sure we have write access to all files in FILES.
 Also checks if buffers visiting the files are in read-only mode."
   (let (file buf)
-    (while (setq file (pop files))
-      (unless (file-exists-p file)
-        (ding)
-        (or (y-or-n-p (format "No such file %s. Continue?" file))
-            (error "Abort")))
-      (unless (file-writable-p file)
-        (ding)
-        (or (y-or-n-p (format "No write access to %s. Continue?" file))
-            (error "Abort")))
-      (when (and (setq buf (find-buffer-visiting file))
-                 (with-current-buffer buf
-                   buffer-read-only))
-        (ding)
-        (or (y-or-n-p (format "Buffer %s is read-only.  Continue?"
-                              (buffer-name buf)))
-            (error "Abort"))))))
+    (while (setq file (pop files)) ; Ignore non-file buffers.
+      (when (stringp file)
+        (unless (file-exists-p file)
+          (ding)
+          (or (y-or-n-p (format "No such file %s. Continue?" file))
+              (error "Abort")))
+        (unless (file-writable-p file)
+          (ding)
+          (or (y-or-n-p (format "No write access to %s. Continue?" file))
+              (error "Abort")))
+        (when (and (setq buf (find-buffer-visiting file))
+                   (with-current-buffer buf
+                     buffer-read-only))
+          (ding)
+          (or (y-or-n-p (format "Buffer %s is read-only.  Continue?"
+                                (buffer-name buf)))
+              (error "Abort")))))))
 
 ;;; Multi-file RefTeX Isearch
 
@@ -456,7 +460,7 @@ Also checks if buffers visiting the files are in read-only mode."
 ;; beginning/end of the file list, depending of the search direction.
 (defun reftex-isearch-switch-to-next-file (crt-buf &optional wrapp)
   (reftex-access-scan-info)
-  (let ((cb (buffer-file-name crt-buf))
+  (let ((cb (reftex--get-buffer-identifier crt-buf))
 	(flist (reftex-all-document-files)))
     (when flist
       (if wrapp
@@ -464,7 +468,7 @@ Also checks if buffers visiting the files are in read-only mode."
 	    (setq flist (last flist)))
 	(unless isearch-forward
 	  (setq flist (reverse flist)))
-	(while (not (string= (car flist) cb))
+	(while (not (equal (car flist) cb))
 	  (setq flist (cdr flist)))
 	(setq flist (cdr flist)))
       (when flist

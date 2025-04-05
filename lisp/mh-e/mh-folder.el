@@ -51,9 +51,12 @@ the MH mail system."
   (interactive "P")
   (mh-find-path)
   (if arg
-      (call-interactively 'mh-visit-folder)
+      (progn
+        (call-interactively 'mh-visit-folder)
+        (mh-set-default-directory))
     (unless (get-buffer mh-inbox)
-      (mh-visit-folder mh-inbox (symbol-name mh-unseen-seq)))
+      (mh-visit-folder mh-inbox (symbol-name mh-unseen-seq))
+      (mh-set-default-directory))
     (mh-inc-folder)))
 
 ;;;###autoload
@@ -67,7 +70,8 @@ the MH mail system."
   (mh-find-path)                        ; init mh-inbox
   (if arg
       (call-interactively 'mh-visit-folder)
-    (mh-visit-folder mh-inbox)))
+    (mh-visit-folder mh-inbox))
+  (mh-set-default-directory))
 
 
 ;;; Desktop Integration

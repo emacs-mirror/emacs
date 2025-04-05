@@ -179,6 +179,31 @@ Hello.
       ;; (should-error (re-search-forward "Cc:"))
       )))
 
+(ert-deftest message-default-buffer-type ()
+  (let ((buf (get-buffer-create (md5 (current-time-string)) 'inhibit)))
+    (unwind-protect
+        (ert-with-test-buffer (:name "message")
+          (insert "From: dang@gnus.org
+To: user1
+--text follows this line--
+")
+          ;; Any mode.
+          (save-excursion
+            (ert-simulate-keys (concat (buffer-name buf) "\r\r\r\r")
+              (call-interactively 'mml-attach-buffer)))
+          (save-excursion
+            (should (re-search-forward "type=\"text/plain\"" nil 'noerror)))
+          ;; Diff mode.
+          (with-current-buffer buf (diff-mode))
+          (save-excursion
+            (ert-simulate-keys (concat (buffer-name buf) "\r\r\r\r")
+              (call-interactively 'mml-attach-buffer)))
+          (save-excursion
+            (should (re-search-forward "type=\"text/x-patch\"" nil 'noerror))))
+      ;; Cleanup.
+      (kill-buffer buf)
+      (ert-kill-all-test-buffers))))
+
 (provide 'message-mode-tests)
 
 ;;; message-tests.el ends here

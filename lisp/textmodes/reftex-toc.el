@@ -184,14 +184,14 @@ When called with a raw \\[universal-argument] prefix, rescan the document first.
 
   (interactive)
 
-  (if (or (not (string= reftex-last-toc-master (reftex-TeX-master-file)))
+  (if (or (not (equal reftex-last-toc-master (reftex-TeX-master-file)))
           ;; FIXME: use (interactive "P") to receive current-prefix-arg as
           ;; an argument instead of using the var here, which forces us to set
           ;; current-prefix-arg in the callers.
           current-prefix-arg)
       (reftex-erase-buffer "*toc*"))
 
-  (setq reftex-last-toc-file   (buffer-file-name))
+  (setq reftex-last-toc-file   (reftex--get-buffer-identifier))
   (setq reftex-last-toc-master (reftex-TeX-master-file))
 
   (set-marker reftex-toc-return-marker (point))
@@ -211,7 +211,8 @@ When called with a raw \\[universal-argument] prefix, rescan the document first.
   (let* ((this-buf (current-buffer))
          (docstruct-symbol reftex-docstruct-symbol)
          (xr-data (assq 'xr (symbol-value reftex-docstruct-symbol)))
-         (xr-alist (cons (cons "" (buffer-file-name)) (nth 1 xr-data)))
+         (xr-alist (cons (cons "" (reftex--get-buffer-identifier))
+                         (nth 1 xr-data)))
          (here-I-am (if reftex--rebuilding-toc
                         (get 'reftex-toc :reftex-data)
                       (car (reftex-where-am-I))))
@@ -261,7 +262,7 @@ When called with a raw \\[universal-argument] prefix, rescan the document first.
 "TABLE-OF-CONTENTS on %s
 SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 ------------------------------------------------------------------------------
-" (abbreviate-file-name reftex-last-toc-master)))
+" (reftex--abbreviate-name reftex-last-toc-master)))
 
       (if reftex-use-fonts
           (put-text-property (point-min) (point) 'font-lock-face reftex-toc-header-face))
@@ -997,7 +998,7 @@ label prefix determines the wording of a reference."
        (not (active-minibuffer-window))
        (fboundp 'reftex-toc-mode)
        (get-buffer-window "*toc*" 'visible)
-       (string= reftex-last-toc-master (reftex-TeX-master-file))
+       (equal reftex-last-toc-master (reftex-TeX-master-file))
        (let (current-prefix-arg)
          (reftex-toc-recenter))))
 

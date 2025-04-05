@@ -155,7 +155,7 @@ ANDROID=@ANDROID@
 CLIENTW = @CLIENTW@
 
 # Things that a user might actually run, which should be installed in bindir.
-INSTALLABLES = etags${EXEEXT} ctags${EXEEXT} emacsclient${EXEEXT} $(CLIENTW) \
+INSTALLABLES = etags${EXEEXT} emacsclient${EXEEXT} $(CLIENTW) \
                ebrowse${EXEEXT}
 
 # Things that Emacs runs internally, or during the build process,
@@ -413,13 +413,6 @@ etags_deps = ${srcdir}/etags.c $(NTLIB) $(config_h)
 etags_libs = $(NTLIB) $(LOADLIBES) $(LIBS_ETAGS)
 
 etags${EXEEXT}: ${etags_deps}
-	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} -o $@ $< $(etags_libs)
-
-## ctags.c is distinct from etags.c so that parallel makes do not write two
-## etags.o files on top of each other.
-## FIXME?
-## Can't we use a wrapper that calls 'etags --ctags'?
-ctags${EXEEXT}: ${srcdir}/ctags.c ${etags_deps}
 	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} -o $@ $< $(etags_libs)
 
 asset-directory-tool${EXEEXT}: ${srcdir}/asset-directory-tool.c $(config_h)

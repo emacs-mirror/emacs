@@ -138,6 +138,14 @@ is only skipped if the documentation needs to be truncated there."
                  (const :tag "Skip echo area if truncating" maybe))
   :version "28.1")
 
+(defcustom eldoc-help-at-pt nil
+  "If non-nil, show `help-at-pt-kbd-string' at point via Eldoc.
+This setting is an alternative to `help-at-pt-display-when-idle'.  If
+the value is non-nil, `eldoc-show-help-at-pt' will show help-at-point
+via Eldoc."
+  :type 'boolean
+  :version "31.1")
+
 (defface eldoc-highlight-function-argument
   '((t (:inherit bold)))
   "Face used for the argument at point in a function's argument list.
@@ -410,7 +418,7 @@ Also store it in `eldoc-last-message' and return that value."
                       (overlay-end show-paren--overlay)))))))
 
 
-(defvar eldoc-documentation-functions nil
+(defvar eldoc-documentation-functions (list #'eldoc-show-help-at-pt)
   "Hook of functions that produce doc strings.
 
 A doc string is typically relevant if point is on a function-like
@@ -957,6 +965,12 @@ the docstrings eventually produced, using
              (setq eldoc--last-request-state token)
              (eldoc--invoke-strategy nil))))))
 
+(defun eldoc-show-help-at-pt (&rest _)
+  "Show help at point via Eldoc if `eldoc-help-at-pt' is non-nil.
+Intended for `eldoc-documentation-functions' (which see)."
+  (when-let* ((help (and eldoc-help-at-pt (help-at-pt-kbd-string))))
+    (format "Help: %s" (substitute-command-keys help))))
+
 
 ;; This section only affects ElDoc output to the echo area, as in
 ;; `eldoc-display-in-echo-area'.
@@ -994,7 +1008,7 @@ the docstrings eventually produced, using
 
 ;; Prime the command list.
 (eldoc-add-command-completions
- "back-to-indentation"
+ "comment-indent-new-line" "delete-char" "back-to-indentation"
  "backward-" "beginning-of-" "delete-other-windows" "delete-window"
  "down-list" "end-of-" "exchange-point-and-mark" "forward-" "goto-"
  "handle-select-window" "indent-for-tab-command" "left-" "mark-page"

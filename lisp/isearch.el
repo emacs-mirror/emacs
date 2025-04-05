@@ -685,10 +685,10 @@ This is like `describe-bindings', but displays only Isearch keys."
 
 (easy-menu-define isearch-menu-bar-map  isearch-mode-map
   "Menu for `isearch-mode'."
-  '("Isearch"
+  `("Isearch"
     ["Cancel search" isearch-cancel
      :help "Cancel current search and return to starting point"
-     :filter (lambda (binding)
+     :filter ,(lambda (binding)
                (if isearch-success 'isearch-abort binding))]
     ["Remove characters not found" isearch-abort
      :help "Quit current search"
@@ -4265,7 +4265,7 @@ Attempt to do the search exactly the way the pending Isearch would."
                    (and (eq isearch-lazy-highlight-invisible 'open)
                         'can-be-opened)))
               (funcall isearch-filter-predicate mb me)))
-    (let ((ov (make-overlay mb me)))
+    (let ((ov (make-overlay mb me nil t nil)))
       (push ov isearch-lazy-highlight-overlays)
       ;; 1000 is higher than ediff's 100+,
       ;; but lower than isearch main overlay's 1001

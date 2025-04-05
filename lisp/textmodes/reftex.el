@@ -133,24 +133,21 @@
   "Keymap for RefTeX mode.")
 
 (defvar reftex-mode-menu nil)
-(defvar reftex-syntax-table nil)
-(defvar reftex-syntax-table-for-bib nil)
+(defvar reftex-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?\( "." st)
+    (modify-syntax-entry ?\) "." st)
+    st))
 
-(defun reftex--prepare-syntax-tables ()
-  (setq reftex-syntax-table (copy-syntax-table))
-  (modify-syntax-entry ?\( "." reftex-syntax-table)
-  (modify-syntax-entry ?\) "." reftex-syntax-table)
-
-  (setq reftex-syntax-table-for-bib (copy-syntax-table))
-  (modify-syntax-entry ?\' "." reftex-syntax-table-for-bib)
-  (modify-syntax-entry ?\" "." reftex-syntax-table-for-bib)
-  (modify-syntax-entry ?\[ "." reftex-syntax-table-for-bib)
-  (modify-syntax-entry ?\] "." reftex-syntax-table-for-bib)
-  (modify-syntax-entry ?\( "." reftex-syntax-table-for-bib)
-  (modify-syntax-entry ?\) "." reftex-syntax-table-for-bib))
-
-(unless (and reftex-syntax-table reftex-syntax-table-for-bib)
-  (reftex--prepare-syntax-tables))
+(defvar reftex-syntax-table-for-bib
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?\' "." st)
+    (modify-syntax-entry ?\" "." st)
+    (modify-syntax-entry ?\[ "." st)
+    (modify-syntax-entry ?\] "." st)
+    (modify-syntax-entry ?\( "." st)
+    (modify-syntax-entry ?\) "." st)
+    st))
 
 ;; The following definitions are out of place, but I need them here
 ;; to make the compilation of reftex-mode not complain.
@@ -212,9 +209,6 @@ on the menu bar.
                (reftex-toggle-auto-toc-recenter))
           (put 'reftex-auto-recenter-toc 'initialized t))
 
-        ;; Prepare the special syntax tables.
-	(reftex--prepare-syntax-tables)
-
         (run-hooks 'reftex-mode-hook))))
 
 (defvar reftex-docstruct-symbol)
@@ -253,6 +247,52 @@ on the menu bar.
 
 ;;; =========================================================================
 ;;;
+;;; Helper functions for handling both file names and buffer objects.
+;;;
+
+(defun reftex--get-buffer-identifier (&optional buffer)
+  "Return the base buffer's file name or buffer identifier.
+For file buffers, returns the file name of the base buffer.
+For non-file buffers, return the base buffer object itself.
+When BUFFER is nil, use the current buffer."
+  (let* ((buffer (or (buffer-base-buffer buffer) buffer (current-buffer))))
+    (or (buffer-local-value 'buffer-file-name buffer)
+        buffer)))
+
+(defun reftex--get-directory (file-or-buffer)
+  "Get the directory associated with FILE-OR-BUFFER.
+FILE-OR-BUFFER can be a file name or a buffer object."
+  (if (bufferp file-or-buffer)
+      (buffer-local-value 'default-directory file-or-buffer)
+    (file-name-directory file-or-buffer)))
+
+(defun reftex--abbreviate-name (file-or-buffer)
+  "Get a nice display name for FILE-OR-BUFFER.
+For files, returns the abbreviated file name.
+For buffers, returns the buffer name."
+  (if (bufferp file-or-buffer)
+      (prin1-to-string file-or-buffer)
+    (abbreviate-file-name file-or-buffer)))
+
+(defun reftex--get-basename (file-or-buffer)
+  "Get the base name (without extension) for FILE-OR-BUFFER.
+For file names, returns the file name without directory and extension.
+For buffer objects, returns a sanitized version of the buffer name
+suitable for use in LaTeX labels."
+  (if (bufferp file-or-buffer)
+      (file-name-base (buffer-name file-or-buffer))
+    (file-name-base file-or-buffer)))
+
+(defun reftex--get-truename (file-or-buffer)
+  "Get the canonical form of FILE-OR-BUFFER's identity.
+For files, returns the result of file-truename.
+For buffer objects, returns the buffer object itself."
+  (if (bufferp file-or-buffer)
+      file-or-buffer
+    (file-truename file-or-buffer)))
+
+;;; =========================================================================
+;;;
 ;;; Multibuffer Variables
 ;;;
 ;; Technical notes: These work as follows: We keep just one list
@@ -279,10 +319,16 @@ on the menu bar.
   ;; Return the next free index for multifile symbols.
   (incf reftex-multifile-index))
 
+(defun reftex--remove-buffer-from-master-index ()
+  "Remove current buffer from `reftex-master-index-list'."
+  (setq reftex-master-index-list
+        (assq-delete-all (current-buffer) reftex-master-index-list)))
+
 (defun reftex-tie-multifile-symbols ()
   "Tie the buffer-local symbols to globals connected with the master file.
 If the symbols for the current master file do not exist, they are created."
-  (let* ((master (file-truename (reftex-TeX-master-file)))
+  (let* ((master (reftex-TeX-master-file))
+         (master (reftex--get-truename master))
          (index (assoc master reftex-master-index-list))
          (symlist reftex-multifile-symbols)
          symbol symname newflag)
@@ -293,7 +339,11 @@ If the symbols for the current master file do not exist, they are created."
       ;; Get a new index and add info to the alist.
       (setq index (reftex-next-multifile-index)
             newflag t)
-      (push (cons master index) reftex-master-index-list))
+      (push (cons master index) reftex-master-index-list)
+      (when (bufferp master)
+        (with-current-buffer master
+          (add-hook 'kill-buffer-hook
+                    #'reftex--remove-buffer-from-master-index nil t))))
 
     ;; Get/create symbols and tie them.
     (while symlist
@@ -326,70 +376,73 @@ If the symbols for the current master file do not exist, they are created."
   ;; When AUCTeX is loaded, we will use it's more sophisticated method.
   ;; We also support the default TeX and LaTeX modes by checking for a
   ;; variable tex-main-file.
-  (let
-      ((master
-        (cond
-	 ;; Test if we're in a subfile using the subfiles document
-	 ;; class, e.g., \documentclass[main.tex]{subfiles}.  It's
-	 ;; argument is the main file, however it's not really the
-	 ;; master file in `TeX-master-file' or `tex-main-file's
-	 ;; sense.  It should be used for references but not for
-	 ;; compilation, thus subfiles use a setting of
-	 ;; `TeX-master'/`tex-main-file' being themselves.
-	 ((save-excursion
-            (goto-char (point-min))
-            (re-search-forward
-             "^[[:space:]]*\\\\documentclass\\[\\([^]]+\\)\\]{subfiles}"
-             nil t))
-          (match-string-no-properties 1))
-         ;; AUCTeX is loaded.  Use its mechanism.
-         ((fboundp 'TeX-master-file)
-          (condition-case nil
-              (TeX-master-file t)
-            (error (buffer-file-name))))
-         ;; Emacs LaTeX mode
-         ((fboundp 'tex-main-file) (tex-main-file))
-         ;; Check the `TeX-master' variable.
-         ((boundp 'TeX-master)
+  (with-current-buffer (or (buffer-base-buffer) (current-buffer))
+    (let
+        ;; Set master to a file name (possibly non-existent), or nil:
+        ((master
           (cond
-           ((eq TeX-master t)
-            (buffer-file-name))
-           ((eq TeX-master 'shared)
-            (setq TeX-master (read-file-name "Master file: "
-                                             nil nil t nil)))
-           (TeX-master)
+	   ;; Test if we're in a subfile using the subfiles document
+	   ;; class, e.g., \documentclass[main.tex]{subfiles}.  It's
+	   ;; argument is the main file, however it's not really the
+	   ;; master file in `TeX-master-file' or `tex-main-file's
+	   ;; sense.  It should be used for references but not for
+	   ;; compilation, thus subfiles use a setting of
+	   ;; `TeX-master'/`tex-main-file' being themselves.
+	   ((save-excursion
+              (goto-char (point-min))
+              (re-search-forward
+               "^[[:space:]]*\\\\documentclass\\[\\([^]]+\\)\\]{subfiles}"
+               nil t))
+            (match-string-no-properties 1))
+           ;; AUCTeX is loaded.  Use its mechanism.
+           ((fboundp 'TeX-master-file)
+            (condition-case nil
+                (TeX-master-file t)
+              (error (buffer-file-name))))
+           ;; Emacs LaTeX mode
+           ((fboundp 'tex-main-file)
+            (condition-case nil
+                (tex-main-file)
+              (error (buffer-file-name))))
+           ;; Check the `TeX-master' variable.
+           ((boundp 'TeX-master)
+            (cond
+             ((eq TeX-master t)
+              (buffer-file-name))
+             ((or (stringp TeX-master) (bufferp TeX-master)) TeX-master)
+             (t
+              (setq TeX-master (read-file-name "Master file: "
+                                               nil nil t nil)))))
+           ;; Check the `tex-main-file' variable.
+           ((boundp 'tex-main-file)
+            ;; This is the variable from the default TeX modes.
+            (cond
+             ((stringp tex-main-file)
+              ;; ok, this must be it
+              tex-main-file)
+             (t
+              ;; In this case, the buffer is its own master.
+              (buffer-file-name))))
+           ;; We know nothing about master file.  Assume this is a
+           ;; master file.
            (t
-            (setq TeX-master (read-file-name "Master file: "
-                                             nil nil t nil)))))
-         ;; Check the `tex-main-file' variable.
-         ((boundp 'tex-main-file)
-          ;; This is the variable from the default TeX modes.
-          (cond
-           ((stringp tex-main-file)
-            ;; ok, this must be it
-            tex-main-file)
-           (t
-            ;; In this case, the buffer is its own master.
-            (buffer-file-name))))
-         ;; We know nothing about master file.  Assume this is a
-         ;; master file.
-         (t
-          (buffer-file-name)))))
-    (cond
-     ((null master)
-      (error "Need a filename for this buffer, please save it first"))
-     ((or (file-exists-p (concat master ".tex"))
-          (find-buffer-visiting (concat master ".tex")))
-      ;; Ahh, an extra .tex was missing...
-      (setq master (concat master ".tex")))
-     ((or (file-exists-p master)
-          (find-buffer-visiting master))
-      ;; We either see the file, or have a buffer on it.  OK.
-      )
-     (t
-      ;; Use buffer file name.
-      (setq master (buffer-file-name))))
-    (expand-file-name master)))
+            (buffer-file-name)))))
+      (cond
+       ((not (stringp master)))
+       ((or (file-exists-p (concat master ".tex"))
+            (find-buffer-visiting (concat master ".tex")))
+        ;; Ahh, an extra .tex was missing...
+        (setq master (concat master ".tex")))
+       ((or (file-exists-p master)
+            (find-buffer-visiting master))
+        ;; We either see the file, or have a buffer on it.  OK.
+        )
+       (t
+        ;; Use buffer file name.
+        (setq master (buffer-file-name))))
+      (if (stringp master)
+          (expand-file-name master)
+        (or master (current-buffer))))))
 
 (defun reftex-is-multi ()
   ;; Tell if this is a multifile document.  When not sure, say yes.
@@ -712,7 +765,7 @@ on next use."
 (defun reftex-reset-scanning-information ()
   "Reset the symbols containing information from buffer scanning.
 This enforces rescanning the buffer on next use."
-  (if (string= reftex-last-toc-master (reftex-TeX-master-file))
+  (if (equal reftex-last-toc-master (reftex-TeX-master-file))
       (reftex-erase-buffer "*toc*"))
   (let ((symlist reftex-multifile-symbols)
         symbol)
@@ -1105,11 +1158,6 @@ This enforces rescanning the buffer on next use."
   ;; But, when RESCAN is -1, don't rescan even if docstruct is empty.
   ;; When FILE is non-nil, parse only from that file.
 
-  ;; Error out in a buffer without a file.
-  (if (and reftex-mode
-	   (not (buffer-file-name)))
-      (error "RefTeX works only in buffers visiting a file"))
-
   ;; Make sure we have the symbols tied
   (if (eq reftex-docstruct-symbol nil)
       ;; Symbols are not yet tied: Tie them.
@@ -1157,16 +1205,26 @@ This enforces rescanning the buffer on next use."
 
 (defun reftex-access-parse-file (action)
   "Perform ACTION on the parse file (the .rel file).
-Valid actions are: readable, restore, read, kill, write."
+Valid actions are: readable, restore, read, kill, write.
+For non-file buffers, persistence operations are skipped."
   (let* ((list (symbol-value reftex-docstruct-symbol))
          (docstruct-symbol reftex-docstruct-symbol)
          (master (reftex-TeX-master-file))
          (enable-local-variables nil)
-         (file (if (string-match "\\.[a-zA-Z]+\\'" master)
-                   (concat (substring master 0 (match-beginning 0))
-                           reftex-parse-file-extension)
-                 (concat master reftex-parse-file-extension))))
+         (non-file (bufferp master))
+         (file (if non-file
+                   nil
+                 (if (string-match "\\.[a-zA-Z]+\\'" master)
+                     (concat (substring master 0 (match-beginning 0))
+                             reftex-parse-file-extension)
+                   (concat master reftex-parse-file-extension)))))
     (cond
+     ;; For non-file buffers, skip file operations but allow initialization.
+     (non-file (cond ((eq action 'readable) nil)
+                     ((eq action 'read) nil)
+                     ((eq action 'kill) t)
+                     ((eq action 'restore)
+                      (error "Cannot restore for non-file buffer"))))
      ((eq action 'readable)
       (file-readable-p file))
      ((eq action 'restore)
@@ -1240,7 +1298,9 @@ Valid actions are: readable, restore, read, kill, write."
   (let* ((real-master (reftex-TeX-master-file))
          (parsed-master
           (nth 1 (assq 'bof (symbol-value reftex-docstruct-symbol)))))
-    (unless (string= (file-truename real-master) (file-truename parsed-master))
+    ;; Skip this check for buffer objects.
+    (unless (equal (reftex--get-truename real-master)
+                   (reftex--get-truename parsed-master))
       (message "Master file name in load file is different: %s versus %s"
                parsed-master real-master)
       (error "Master file name error")))
@@ -1281,7 +1341,7 @@ Valid actions are: readable, restore, read, kill, write."
                   (mapconcat
                    (lambda (x)
                      (format fmt (incf n) (or (car x) "")
-                             (abbreviate-file-name (cdr x))))
+                             (reftex--abbreviate-name (cdr x))))
                    xr-alist ""))
                  nil t))
           (cond
@@ -1299,8 +1359,11 @@ Valid actions are: readable, restore, read, kill, write."
   "Find FILE of type TYPE in MASTER-DIR or on the path associated with TYPE.
 If the file does not have any of the valid extensions for TYPE,
 try first the default extension and only then the naked file name.
-When DIE is non-nil, throw an error if file not found."
-  (let* ((rec-values (if reftex-search-unrecursed-path-first '(nil t) '(t)))
+When DIE is non-nil, throw an error if file not found.
+When FILE is a buffer object, return that buffer."
+  (if (bufferp file)
+      file
+    (let* ((rec-values (if reftex-search-unrecursed-path-first '(nil t) '(t)))
          (extensions (cdr (assoc type reftex-file-extensions)))
          (def-ext (car extensions))
          (ext-re (concat "\\("
@@ -1335,7 +1398,7 @@ When DIE is non-nil, throw an error if file not found."
 	    (setq file1 (reftex-find-file-on-path f path master-dir)))))))
     (cond (file1 file1)
           (die (error "No such file: %s" file) nil)
-          (t (message "No such file: %s (ignored)" file) nil))))
+          (t (message "No such file: %s (ignored)" file) nil)))))
 
 (defun reftex-find-file-externally (file type &optional master-dir)
   ;; Use external program to find FILE.
@@ -1742,7 +1805,9 @@ When DIE is non-nil, throw an error if file not found."
   ;; initializations according to `reftex-initialize-temporary-buffers',
   ;; and mark the buffer to be killed after use.
 
-  (let ((buf (find-buffer-visiting file)))
+  (let ((buf (if (bufferp file)
+                 file
+               (find-buffer-visiting file))))
 
     (cond (buf
            ;; We have it already as a buffer - just return it

@@ -5,9 +5,9 @@ The input files, which include source files in various languages
 supported by the programs, are in the *-src/ directories (e.g., c-src
 for C sources, ada-src for Ada, tex-src for TeX, etc.).
 
-The expected results are slightly different for each of the 7 commands
+The expected results are slightly different for each of the 8 commands
 (see below) run by the test suite, and are on files ETAGS.good_N
-(where N is between 1 and 6) and CTAGS.good.
+(where N is between 1 and 7) and CTAGS.good.
 
 To run the tests, say
 
@@ -48,9 +48,13 @@ corresponding "good" files, one by one.  Like this:
   $ cp ETAGS ETAGS.good_3
   ...
   $ make check
-  $ cp ETAGS ETAGS.good_6
+  $ cp ETAGS ETAGS.good_7
   $ make check
   $ cp CTAGS CTAGS.good
+  $ make check
+  $ cp CTAGS CTAGS.good_update
+  $ make check
+  $ cp CTAGS CTAGS.good_crlf
 
 This uses the fact that "make check" will stop after the first
 failure, i.e. after the first time 'diff' reports any diffs, and then

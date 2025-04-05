@@ -612,12 +612,12 @@ Note additionally:
   :package-version '(Eglot . "1.19"))
 
 (defcustom eglot-code-action-indicator
-  (cl-loop for c in '(? ?⚡?✓ ?α ??)
+  (cl-loop for c in '(?💡 ?⚡?✓ ?α ??)
            when (char-displayable-p c)
            return (make-string 1 c))
   "Indicator string for code action suggestions."
   :type (let ((basic-choices
-               (cl-loop for c in '(? ?⚡?✓ ?α ??)
+               (cl-loop for c in '(?💡 ?⚡?✓ ?α ??)
                         when (char-displayable-p c)
                         collect `(const :tag ,(format "Use `%c'" c)
                                         ,(make-string 1 c)))))
@@ -3839,17 +3839,20 @@ If SILENT, don't echo progress in mode-line."
                         0 howmany)))
            (done 0))
       (mapc (pcase-lambda (`(,newText ,beg . ,end))
-              (let ((source (current-buffer)))
-                (with-temp-buffer
-                  (insert newText)
-                  (let ((temp (current-buffer)))
-                    (with-current-buffer source
-                      (save-excursion
-                        (save-restriction
-                          (narrow-to-region beg end)
-                          (replace-buffer-contents temp)))
-                      (when reporter
-                        (eglot--reporter-update reporter (cl-incf done))))))))
+              (if (> emacs-major-version 30)
+                  (replace-region-contents beg end newText)
+                (let ((source (current-buffer)))
+                  (with-temp-buffer
+                    (insert newText)
+                    (let ((temp (current-buffer)))
+                      (with-current-buffer source
+                        (save-excursion
+                          (save-restriction
+                            (narrow-to-region beg end)
+                            (with-no-warnings
+                              (replace-buffer-contents temp)))))))))
+              (when reporter
+                (eglot--reporter-update reporter (cl-incf done))))
             (mapcar (lambda (edit)
                       (eglot--dcase edit
                         (((TextEdit) range newText)

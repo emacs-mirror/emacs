@@ -523,6 +523,17 @@ See `treesit-thing-settings' for more information.")
       eos)
   "Settings for `treesit-defun-type-regexp'.")
 
+(defun typescript-ts-mode--defun-predicate (node)
+  "Check if NODE is a defun."
+  (pcase (treesit-node-type node)
+    ("lexical_declaration"
+     (treesit-node-match-p
+      (treesit-node-child-by-field-name
+       (treesit-node-child node 0 'named)
+       "value")
+      "arrow_function"))
+    (_ t)))
+
 (defun typescript-ts-mode--defun-name (node)
   "Return the defun name of NODE.
 Return nil if there is no name or if NODE is not a defun node."
@@ -573,7 +584,9 @@ This mode is intended to be inherited by concrete major modes."
   (setq-local electric-layout-rules
 	      '((?\; . after) (?\{ . after) (?\} . before)))
   ;; Navigation.
-  (setq-local treesit-defun-type-regexp typescript-ts-mode--defun-type-regexp)
+  (setq-local treesit-defun-type-regexp
+              (cons typescript-ts-mode--defun-type-regexp
+                    #'typescript-ts-mode--defun-predicate))
   (setq-local treesit-defun-name-function #'typescript-ts-mode--defun-name)
 
   (setq-local treesit-thing-settings

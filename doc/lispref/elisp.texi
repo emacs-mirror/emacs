@@ -1187,6 +1187,12 @@ Window Frame Parameters
 * Cursor Parameters::       Controlling the cursor appearance.
 * Font and Color Parameters:: Fonts and colors for the frame text.
 
+Child Frames
+
+* Child Frame Operations::  Making and investigating child frames.
+* Child Frame Properties::  Special properties of child frames.
+* Child Frame Peculiarities:: Deviant behaviors of child frames.
+
 Positions
 
 * Point::                   The special position where editing takes place.

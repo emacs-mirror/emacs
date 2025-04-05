@@ -3848,6 +3848,7 @@ This tests also `access-file', `file-readable-p',
 	    (should (stringp (file-attribute-user-id attr)))
 	    (should (stringp (file-attribute-group-id attr)))
 
+	    ;; Symbolic links.
 	    (tramp--test-ignore-make-symbolic-link-error
 	      (should-error
 	       (access-file tmp-name2 "error")
@@ -3869,17 +3870,24 @@ This tests also `access-file', `file-readable-p',
 		(file-remote-p (file-truename tmp-name1) 'localname)))
 	      (delete-file tmp-name2)
 
-	      ;; A non-existent link target makes the file unaccessible.
-	      (make-symbolic-link "error" tmp-name2)
-	      (should (file-symlink-p tmp-name2))
-	      (should-error
-	       (access-file tmp-name2 "error")
-	       :type 'file-missing)
-	      ;; `file-ownership-preserved-p' should return t for
-	      ;; symlinked files to a non-existing target.
-	      (when test-file-ownership-preserved-p
-		(should (file-ownership-preserved-p tmp-name2 'group)))
-	      (delete-file tmp-name2))
+	      ;; A non-existent or cyclic link target makes the file
+	      ;; unaccessible.
+	      (dolist (target
+		       `("does-not-exist" ,(file-name-nondirectory tmp-name2)))
+		(make-symbolic-link target tmp-name2)
+		(should (file-symlink-p tmp-name2))
+		(should-not (file-exists-p tmp-name2))
+		(should-not (file-directory-p tmp-name2))
+		(should-error
+		 (access-file tmp-name2 "error")
+		 :type
+		 (if (string-equal target "does-not-exist")
+		     'file-missing 'file-error))
+		;; `file-ownership-preserved-p' should return t for
+		;; symlinked files to a non-existing or cyclic target.
+		(when test-file-ownership-preserved-p
+		  (should (file-ownership-preserved-p tmp-name2 'group)))
+		(delete-file tmp-name2)))
 
 	    ;; Check, that "//" in symlinks are handled properly.
 	    (with-temp-buffer
@@ -4528,12 +4536,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	       (make-symbolic-link tmp-name1 tmp-name2)
 	       (should (file-symlink-p tmp-name1))
 	       (should (file-symlink-p tmp-name2))
-	       (should-error
-		(file-regular-p tmp-name1)
-		:type 'file-error)
-	       (should-error
-		(file-regular-p tmp-name2)
-		:type 'file-error))))
+	       (should-not (file-regular-p tmp-name1))
+	       (should-not (file-regular-p tmp-name2)))))
 
 	;; Cleanup.
 	(ignore-errors
@@ -4870,7 +4874,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
           (tramp-change-syntax syntax)
 	  ;; This has cleaned up all connection data, which are used
 	  ;; for completion.  We must refill the cache.
-	  (tramp-set-connection-property tramp-test-vec "property" nil)
+	  (tramp-set-connection-property tramp-test-vec "completion-use-cache" t)
 
           (let (;; This is needed for the `separate' syntax.
                 (prefix-format (substring tramp-prefix-format 1))
@@ -4984,9 +4988,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 ;; and Bug#60505.
 (ert-deftest tramp-test26-interactive-file-name-completion ()
   "Check interactive completion with different `completion-styles'."
-  ;; Method, user and host name in completion mode.
-  (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
 
+  ;; Method, user and host name in completion mode.
   (let ((method (file-remote-p ert-remote-temporary-file-directory 'method))
 	(user (file-remote-p ert-remote-temporary-file-directory 'user))
 	(host (file-remote-p ert-remote-temporary-file-directory 'host))
@@ -5008,7 +5011,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
           (tramp-change-syntax syntax)
 	  ;; This has cleaned up all connection data, which are used
 	  ;; for completion.  We must refill the cache.
-	  (tramp-set-connection-property tramp-test-vec "property" nil)
+	  (tramp-set-connection-property tramp-test-vec "completion-use-cache" t)
 
           (dolist
               (style
@@ -5309,19 +5312,20 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    ;; 	(delete-file tmp-name)))
 
 	    ;; Check remote and local STDERR.
-	    (dolist (local '(nil t))
-	      (setq tmp-name (tramp--test-make-temp-name local quoted))
-	      (should-not
-	       (zerop
-		(process-file "cat" nil `(t ,tmp-name) nil "/does-not-exist")))
-	      (with-temp-buffer
-		(insert-file-contents tmp-name)
-		(should
-		 (string-match-p
-		  (rx "cat:" (* nonl) " No such file or directory")
-		  (buffer-string)))
-		(should-not (get-buffer-window (current-buffer) t))
-		(delete-file tmp-name))))
+	    (unless (tramp--test-sshfs-p)
+	      (dolist (local '(nil t))
+		(setq tmp-name (tramp--test-make-temp-name local quoted))
+		(should-not
+		 (zerop
+		  (process-file "cat" nil `(t ,tmp-name) nil "/does-not-exist")))
+		(with-temp-buffer
+		  (insert-file-contents tmp-name)
+		  (should
+		   (string-match-p
+		    (rx "cat:" (* nonl) " No such file or directory")
+		    (buffer-string)))
+		  (should-not (get-buffer-window (current-buffer) t))
+		  (delete-file tmp-name)))))
 
 	;; Cleanup.
 	(ignore-errors (kill-buffer buffer))

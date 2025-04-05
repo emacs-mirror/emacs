@@ -327,6 +327,7 @@ ButtonBar	pyt-src/server.py	/^def ButtonBar(frame, legend, ref, alternatives, co
 C	cp-src/fail.C	9
 C	cp-src/fail.C	/^			   C(int i) {x = i;}$/
 C	cp-src/fail.C	25
+C	ruby-src/test1.ru	/^class A::C; end$/
 CALLMANY	c-src/emacs/src/lisp.h	/^#define CALLMANY(f, array) (f) (ARRAYELTS (array),/
 CALLN	c-src/emacs/src/lisp.h	/^#define CALLN(f, ...) CALLMANY (f, ((Lisp_Object [/
 CAR	c-src/emacs/src/lisp.h	/^CAR (Lisp_Object c)$/
@@ -483,6 +484,7 @@ Cstar_suffixes	c-src/etags.c	562
 Cube.data.getFoo	lua-src/test.lua	/^function Cube.data.getFoo ()$/
 D	cp-src/fail.C	41
 D	cp-src/fail.C	/^		D() : ::A::T2::T(97), x(1066) {}$/
+D	ruby-src/test1.ru	/^class ::D; end$/
 DAEMON_RUNNING	c-src/emacs/src/lisp.h	4258
 DAEMON_RUNNING	c-src/emacs/src/lisp.h	4262
 DARKGRAY	cp-src/screen.hpp	20
@@ -964,6 +966,7 @@ LowerCaseNmStr	pas-src/common.pas	/^function LowerCaseNmStr; (*($/
 Lua_functions	c-src/etags.c	/^Lua_functions (FILE *inf)$/
 Lua_help	c-src/etags.c	600
 Lua_suffixes	c-src/etags.c	598
+M	ruby-src/test1.ru	/^module A::M; end$/
 MAGENTA	cp-src/screen.hpp	17
 MAGICBYTE	c-src/emacs/src/gmalloc.c	1861
 MAGICFREE	c-src/emacs/src/gmalloc.c	1860

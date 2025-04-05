@@ -292,6 +292,7 @@ Here is the current list of valid syntactic element symbols:
  defun-block-intro	-- The first line in a top-level defun.
  class-open		-- Brace that opens a class definition.
  class-close		-- Brace that closes a class definition.
+ class-field-cont	-- Continuation of first line inside a class.
  inline-open		-- Brace that opens an in-class inline method.
  inline-close		-- Brace that closes an in-class inline method.
  func-decl-cont		-- The region between a function definition's
@@ -1301,6 +1302,9 @@ can always override the use of `c-default-style' by making calls to
        ;; Anchor pos: Boi at the func decl arglist open.
        (member-init-cont      . c-lineup-multi-inher)
        ;; Anchor pos: Beg of the first member init.
+       (class-field-cont      . +)
+       ;; Anchor pos: BOI of the line containing the class keyword.
+       ;; 2nd pos: At the open brace.
        (inher-intro           . +)
        ;; Anchor pos: Boi at the class decl start.
        (inher-cont            . c-lineup-multi-inher)

@@ -3973,7 +3973,7 @@ There are several known workarounds:
 
 The linker error messages look like this:
 
- oo-spd/i386/ctags.o:ctags.c:(.text+0x156e): undefined reference to `_imp__re_set_syntax'
+ oo-spd/i386/etags.o:etags.c:(.text+0x156e): undefined reference to `_imp__re_set_syntax'
  collect2: ld returned 1 exit status
 
 This happens because GCC finds an incompatible regex.h header
@@ -4004,7 +4004,7 @@ Some versions of mingw32 make on some versions of Windows do not seem
 to detect the shell correctly.  Try "make SHELL=cmd.exe", or if that
 fails, try running make from Cygwin bash instead.
 
-*** Building 'ctags' for MS-Windows with the MinGW port of GCC fails.
+*** Building 'etags' for MS-Windows with the MinGW port of GCC fails.
 
 This might happen due to a bug in the MinGW header assert.h, which
 defines the 'assert' macro with a trailing semi-colon.  The following

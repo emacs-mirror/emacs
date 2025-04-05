@@ -3584,8 +3584,10 @@ BODY is the backend specific code."
 		    (fa (tramp-get-file-property v localname "file-attributes"))
 		    ((not (stringp (car fa)))))))
 	      ;; Symlink to a non-existing target counts as nil.
+	      ;; Protect against cyclic symbolic links.
 	      ((file-symlink-p ,filename)
-	       (file-exists-p (file-truename ,filename)))
+	       (ignore-errors
+		 (file-exists-p (file-truename ,filename))))
 	      (t ,@body)))))))
 
 (defmacro tramp-skeleton-file-local-copy (filename &rest body)
@@ -3630,7 +3632,8 @@ BODY is the backend specific code."
 	    ;; it for security reasons.
 	    (when (tramp-tramp-file-p result)
 	      (setq result (file-name-quote result 'top)))
-	    result)))))))
+	    ;; Remove possible trailing slash.
+	    (directory-file-name result))))))))
 
 (defmacro tramp-skeleton-make-directory (dir &optional parents &rest body)
   "Skeleton for `tramp-*-handle-make-directory'.
@@ -3810,10 +3813,13 @@ BODY is the backend specific code."
 		   tmpstderr (tramp-make-tramp-file-name v stderr))))
 	  ;; stderr to be discarded.
 	  ((null (cadr ,destination))
-	   (setq stderr (tramp-get-remote-null-device v)))))
+	   (setq stderr (tramp-get-remote-null-device v)))
+	  ((eq (cadr ,destination) tramp-cache-undefined)
+	   ;; stderr is not impelmemted.
+	   (tramp-warning v "%s" "STDERR not supported"))))
 	;; t
 	(,destination
-	(setq outbuf (current-buffer))))
+	 (setq outbuf (current-buffer))))
 
        ,@body
 
@@ -4191,10 +4197,9 @@ Let-bind it when necessary.")
 (defun tramp-handle-file-directory-p (filename)
   "Like `file-directory-p' for Tramp files."
   ;; `file-truename' could raise an error, for example due to a cyclic
-  ;; symlink.  We don't protect this despite it, because other errors
-  ;; might be worth to be visible, for example impossibility to mount
-  ;; in tramp-gvfs.el.
-  (eq (file-attribute-type (file-attributes (file-truename filename))) t))
+  ;; symlink.
+  (ignore-errors
+    (eq (file-attribute-type (file-attributes (file-truename filename))) t)))
 
 (defun tramp-handle-file-equal-p (filename1 filename2)
   "Like `file-equalp-p' for Tramp files."
@@ -5514,8 +5519,22 @@ support symbolic links."
 			 (insert-file-contents-literally
 			  error-file nil nil nil 'replace))
 		       (delete-file error-file)))))
-		(display-buffer output-buffer '(nil (allow-no-window . t)))))
-
+                (if async-shell-command-display-buffer
+                    ;; Display buffer immediately.
+                    (display-buffer output-buffer '(nil (allow-no-window . t)))
+                  ;; Defer displaying buffer until first process output.
+                  ;; Use disposable named advice so that the buffer is
+                  ;; displayed at most once per process lifetime.
+                  (let ((nonce (make-symbol "nonce")))
+                    (add-function
+		     :before (process-filter p)
+                     (lambda (proc _string)
+                       (let ((buf (process-buffer proc)))
+                         (when (buffer-live-p buf)
+                           (remove-function (process-filter proc)
+                                            nonce)
+                           (display-buffer buf '(nil (allow-no-window . t))))))
+                     `((name . ,nonce)))))))
 	    ;; Insert error messages if they were separated.
 	    (when (and error-file (not (process-live-p p)))
 	      (ignore-errors

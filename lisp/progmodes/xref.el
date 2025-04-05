@@ -1080,7 +1080,7 @@ This function is used as a value for `add-log-current-defun-function'."
            (let ((xref-current-item xref))
              (xref--show-location (xref-item-location xref) t)))
           (t
-           (error "No %s xref" (if backward "previous" "next"))))))
+           (user-error "No %s xref" (if backward "previous" "next"))))))
 
 (defvar xref--button-map
   (let ((map (make-sparse-keymap)))

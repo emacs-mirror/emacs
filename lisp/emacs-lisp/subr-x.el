@@ -281,35 +281,6 @@ the string."
   (declare (pure t) (side-effect-free t))
   (string-remove-suffix "\n" string))
 
-(defun replace-region-contents (beg end replace-fn
-                                    &optional max-secs max-costs)
-  "Replace the region between BEG and END using REPLACE-FN.
-REPLACE-FN runs on the current buffer narrowed to the region.  It
-should return either a string or a buffer replacing the region.
-
-The replacement is performed using `replace-buffer-contents'
-which also describes the MAX-SECS and MAX-COSTS arguments and the
-return value.
-
-Note: If the replacement is a string, it'll be placed in a
-temporary buffer so that `replace-buffer-contents' can operate on
-it.  Therefore, if you already have the replacement in a buffer,
-it makes no sense to convert it to a string using
-`buffer-substring' or similar."
-  (save-excursion
-    (save-restriction
-      (narrow-to-region beg end)
-      (goto-char (point-min))
-      (let ((repl (funcall replace-fn)))
-	(if (bufferp repl)
-	    (replace-buffer-contents repl max-secs max-costs)
-	  (let ((source-buffer (current-buffer)))
-	    (with-temp-buffer
-	      (insert repl)
-	      (let ((tmp-buffer (current-buffer)))
-		(set-buffer source-buffer)
-		(replace-buffer-contents tmp-buffer max-secs max-costs)))))))))
-
 ;;;###autoload
 (defmacro named-let (name bindings &rest body)
   "Looping construct taken from Scheme.
@@ -389,8 +360,8 @@ buffer when possible, instead of creating a new one on each call."
 ;;;###autoload
 (defun string-pixel-width (string &optional buffer)
   "Return the width of STRING in pixels.
-If BUFFER is non-nil, use the face remappings from that buffer when
-determining the width.
+If BUFFER is non-nil, use the face remappings, alternative and default
+properties from that buffer when determining the width.
 If you call this function to measure pixel width of a string
 with embedded newlines, it returns the width of the widest
 substring that does not include newlines."
@@ -400,11 +371,14 @@ substring that does not include newlines."
     ;; Keeping a work buffer around is more efficient than creating a
     ;; new temporary buffer.
     (with-work-buffer
-      (if buffer
-          (setq-local face-remapping-alist
-                      (with-current-buffer buffer
-                        face-remapping-alist))
-        (kill-local-variable 'face-remapping-alist))
+      ;; Setup current buffer to correctly compute pixel width.
+      (when buffer
+        (dolist (v '(face-remapping-alist
+                     char-property-alias-alist
+                     default-text-properties))
+          (if (local-variable-p v buffer)
+              (set (make-local-variable v)
+                   (buffer-local-value v buffer)))))
       ;; Avoid deactivating the region as side effect.
       (let (deactivate-mark)
         (insert string))
@@ -413,12 +387,8 @@ substring that does not include newlines."
       ;; (bug#59311).  Disable `line-prefix' and `wrap-prefix',
       ;; for the same reason.
       (add-text-properties
-       (point-min) (point-max) '(display-line-numbers-disable t))
-      ;; Prefer `remove-text-properties' to `propertize' to avoid
-      ;; creating a new string on each call.
-      (remove-text-properties
-       (point-min) (point-max) '(line-prefix nil wrap-prefix nil))
-      (setq line-prefix nil wrap-prefix nil)
+       (point-min) (point-max)
+       '(display-line-numbers-disable t line-prefix "" wrap-prefix ""))
       (car (buffer-text-pixel-size nil nil t)))))
 
 ;;;###autoload

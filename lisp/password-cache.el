@@ -82,8 +82,7 @@ regulate cache behavior."
   "Check if KEY is in the cache."
   (and password-cache
        key
-       (not (eq (gethash key password-data 'password-cache-no-data)
-                'password-cache-no-data))))
+       (hash-table-contains-p key password-data)))
 
 (defun password-read (prompt &optional key)
   "Read password, for use with KEY, from user, or from cache if wanted.
@@ -110,8 +109,7 @@ user again."
   "Add password to cache.
 The password is removed by a timer after `password-cache-expiry' seconds."
   (when (and password-cache-expiry
-             (eq (gethash key password-data 'password-cache-no-data)
-                 'password-cache-no-data))
+             (not (hash-table-contains-p key password-data)))
     (run-at-time password-cache-expiry nil
 		 #'password-cache-remove
 		 key))

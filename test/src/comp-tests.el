@@ -1512,7 +1512,12 @@ Return a list of results."
          (if (functionp x)
              (error "")
            x))
-       '(not function))))
+       '(not function))
+      ;; 81
+      ((defun comp-tests-ret-type-spec-f (x)
+         (print (comp-foo-p x))
+         (comp-foo-p x))
+       'boolean)))
 
   (defun comp-tests-define-type-spec-test (number x)
     `(comp-deftest ,(intern (format "ret-type-spec-%d" number)) ()

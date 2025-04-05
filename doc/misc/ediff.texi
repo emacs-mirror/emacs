@@ -2399,10 +2399,12 @@ The window displaying buffer A@.  If buffer A is not visible, this variable
 is @code{nil} or it may be a dead window.
 
 @item ediff-window-B
-The window displaying buffer B.
+The window displaying buffer B.  If buffer B is not visible, this variable
+is @code{nil} or it may be a dead window.
 
 @item ediff-window-C
-The window displaying buffer C, if any.
+The window displaying buffer C, if any.  If buffer C is not visible,
+this variable is @code{nil} or it may be a dead window.
 
 @item ediff-control-frame
 A dedicated frame displaying the control buffer, if it exists.  It is

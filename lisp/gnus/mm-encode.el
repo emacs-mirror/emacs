@@ -107,6 +107,13 @@ This variable should never be set directly, but bound before a call to
       "application/octet-stream"
     (mailcap-extension-to-mime (match-string 0 file))))
 
+(defun mm-default-buffer-type (buffer)
+  "Return a default content type for BUFFER, a buffer name."
+  (if-let* ((buf (get-buffer buffer))
+            ((provided-mode-derived-p (buffer-local-value 'major-mode buf)
+                                      'diff-mode)))
+      "text/x-patch" "text/plain"))
+
 (defun mm-safer-encoding (encoding &optional type)
   "Return an encoding similar to ENCODING but safer than it."
   (cond

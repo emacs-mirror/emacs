@@ -172,13 +172,13 @@
 ;; |PACK|UNPK|INDX|BLD |LEN |... |
 
 (defvar calc-keypad-vector-menu
-  '( ( ( "SUM"   calc-vector-sum calc-vector-alt-sum calc-vector-mean )
+  `( ( ( "SUM"   calc-vector-sum calc-vector-alt-sum calc-vector-mean )
        ( "PROD"  calc-vector-product nil calc-vector-sdev )
        ( "MAX"   calc-vector-max calc-vector-min calc-vector-median )
-       ( "MAP*"  (lambda () (interactive)
-		   (calc-map '(2 calcFunc-mul "*"))) )
-       ( "MAP^"  (lambda () (interactive)
-		   (calc-map '(2 calcFunc-pow "^"))) )
+       ( "MAP*"  ,(lambda () (interactive)
+		    (calc-map '(2 calcFunc-mul "*"))) )
+       ( "MAP^"  ,(lambda () (interactive)
+		    (calc-map '(2 calcFunc-pow "^"))) )
        ( "MAP$"  calc-map-stack ) )
      ( ( "MINV"  calc-inv )
        ( "MDET"  calc-mdet )

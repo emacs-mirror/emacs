@@ -748,34 +748,41 @@ associated `flymake-category' return DEFAULT."
   (flymake--lookup-type-property type 'severity
                                  (warning-numeric-level :error)))
 
-(defun flymake--indicator-overlay-spec (indicator)
+(defun flymake--indicator-overlay-spec (type)
   "Return INDICATOR as propertized string to use in error indicators."
-  (let* ((value (if (symbolp indicator)
+  (let* ((indicator (flymake--lookup-type-property
+                     type
+                     (cond ((eq flymake-indicator-type 'fringes)
+                            'flymake-bitmap)
+                           ((eq flymake-indicator-type 'margins)
+                            'flymake-margin-string))
+                     (alist-get 'bitmap (alist-get type ; backward compat
+                                                   flymake-diagnostic-types-alist))))
+         (value (if (symbolp indicator)
                     (symbol-value indicator)
                   indicator))
-         (indicator-car (if (listp value)
-                            (car value)
-                          value))
-         (indicator-cdr (if (listp value)
-                            (cdr value))))
+         (valuelist (if (listp value)
+                        value
+                      (list value)))
+         (indicator-car (car valuelist)))
+
     (cond
      ((and (symbolp indicator-car)
            flymake-fringe-indicator-position)
       (propertize "!" 'display
-                  (cons flymake-fringe-indicator-position
-                        (if (listp value)
-                            value
-                          (list value)))))
+                  (cons flymake-fringe-indicator-position valuelist)))
      ((and (stringp indicator-car)
            flymake-margin-indicator-position)
       (propertize "!"
                   'display
                   `((margin ,flymake-margin-indicator-position)
-                    ,(propertize
-                      indicator-car
-                      'face
-                      `(:inherit (,indicator-cdr
-                                  default)))))))))
+                    ,(propertize indicator-car
+                                 'face `(:inherit (,(cdr valuelist) default))
+                                 'mouse-face 'highlight
+                                 'help-echo "Open Flymake diagnostics"
+                                 'keymap `,(define-keymap
+                                             (format "<%s> <mouse-1>" flymake-margin-indicator-position)
+                                             #'flymake-show-buffer-diagnostics-at-event-line))))))))
 
 (defun flymake--resize-margins (&optional orig-width)
   "Resize current window margins according to `flymake-margin-indicator-position'.
@@ -941,16 +948,7 @@ Return nil or the overlay created."
                   (overlay-put ov prop (flymake--lookup-type-property
                                         type prop value)))))
       (default-maybe 'face 'flymake-error)
-      (default-maybe 'before-string
-        (flymake--indicator-overlay-spec
-         (flymake--lookup-type-property
-          type
-          (cond ((eq flymake-indicator-type 'fringes)
-                 'flymake-bitmap)
-                ((eq flymake-indicator-type 'margins)
-                 'flymake-margin-string))
-          (alist-get 'bitmap (alist-get type ; backward compat
-                                        flymake-diagnostic-types-alist)))))
+      (default-maybe 'before-string (flymake--indicator-overlay-spec type))
       ;; (default-maybe 'after-string
       ;;                (flymake--diag-text diagnostic))
       (default-maybe 'help-echo
@@ -1369,12 +1367,28 @@ Interactively, with a prefix arg, FORCE is t."
                   nil)))
              (flymake--import-foreign-diagnostics))))))
 
-(defvar flymake-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map `[,flymake-fringe-indicator-position mouse-1]
-                #'flymake-show-buffer-diagnostics)
-    map)
-  "Keymap for `flymake-mode'.")
+(defun flymake-show-buffer-diagnostics-at-event-line (event)
+  "Show diagnostics buffer on mouse click in the margin or fringe.
+This uses two different approaches to work.
+For margin it is set as a char property of the margin character directly.
+While in the fringe it is set as part of the `flymake-mode-map'."
+  (interactive "e")
+  (when-let* ((diagnostics (flymake-diagnostics-at-mouse-event event t))
+              (first-diag (car diagnostics)))
+    (with-selected-window (posn-window (event-end event))
+      (with-current-buffer (window-buffer)
+        (when (or (< (point) (flymake-diagnostic-beg first-diag))
+                  (> (point) (flymake-diagnostic-end first-diag)))
+          (goto-char (flymake-diagnostic-beg first-diag)))
+
+        (flymake-show-buffer-diagnostics first-diag)))))
+
+;; Set the fringe mouse-1 action directly and perform the filtering
+;; latter iterating over the overlays.
+(defvar-keymap flymake-mode-map
+               :doc "Keymap for `flymake-mode'."
+               (format "<%s> <mouse-1>" flymake-fringe-indicator-position)
+               #'flymake-show-buffer-diagnostics-at-event-line)
 
 ;;;###autoload
 (define-minor-mode flymake-mode
@@ -1616,6 +1630,28 @@ default) no filter is applied."
                      t))
   (flymake-goto-next-error (- (or n 1)) filter interactive))
 
+(defun flymake-diagnostics-at-mouse-event (event full-line)
+  "Get the flymake diagnostics for a position given by a mouse EVENT.
+When FULL-LINE is not nil it gives all the diagnostics in the EVENT's
+line.  The function does not move the cursor position."
+  (mouse-minibuffer-check event)
+  (let* ((posn (event-end event))
+	 (pos (posn-point posn)))
+    (when (and (numberp pos)
+               (< pos (point-max))) ;; pos is == (point-max) when the click is after the buffer end.
+      (with-selected-window (posn-window posn)
+	(with-current-buffer (window-buffer)
+          (save-excursion
+            (goto-char pos)
+            (if full-line
+                (flymake-diagnostics (line-beginning-position) (line-end-position))
+              (flymake-diagnostics pos (1+ pos)))))))))
+
+(defun flymake-show-buffer-diagnostics-at-event-position (event)
+  (interactive "e")
+  (flymake-show-buffer-diagnostics
+   (car (flymake-diagnostics-at-mouse-event event nil))))
+
 
 ;;; Mode-line and menu
 ;;;
@@ -1624,7 +1660,7 @@ default) no filter is applied."
     [ "Go to next problem"      flymake-goto-next-error t ]
     [ "Go to previous problem"  flymake-goto-prev-error t ]
     [ "Check now"               flymake-start t ]
-    [ "List all problems"       flymake-show-buffer-diagnostics t ]
+    [ "List all problems"       flymake-show-buffer-diagnostics-at-event-position t ]
     "--"
     [ "Go to log buffer"        flymake-switch-to-log-buffer t ]
     [ "Turn off Flymake"        flymake-mode t ]))
@@ -1651,6 +1687,15 @@ Separating each of these with space is not necessary."
   "The string to use in the Flymake mode line."
   :type 'string
   :version "29.1")
+
+(defcustom flymake-after-show-buffer-diagnostics-hook '(flymake-pulse-momentary-highlight-region)
+  "Hook called after jumping to a diagnostic line.
+
+This hooks are called when `flymake-show-buffer-diagnostics' receives
+the optional `diagnostic' argument and it matches an entry in the
+diagnostic's buffer."
+  :type 'hook
+  :version "31.0")
 
 (defvar flymake-mode-line-title '(:eval (flymake--mode-line-title))
   "Mode-line construct to show Flymake's mode name and menu.")
@@ -1822,6 +1867,17 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
     (define-key map (kbd "SPC") 'flymake-show-diagnostic)
     map))
 
+
+(defun flymake-pulse-momentary-highlight-region (&optional start end)
+  "Helper function to highlight region.
+This uses the point `line-beginning-position' and `line-end-position' to
+determine the optional START and END when the optional values are not
+specified."
+  (pulse-momentary-highlight-region (or start (line-beginning-position))
+                                    (or end (line-end-position))
+                                    'highlight))
+
+
 (defun flymake-show-diagnostic (pos &optional other-window)
   "Show location of diagnostic at POS."
   (interactive (list (point) t))
@@ -1833,9 +1889,7 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
          (end (flymake--diag-end diag))
          (visit (lambda (b e)
                   (goto-char b)
-                  (pulse-momentary-highlight-region (point)
-                                                    (or e (line-end-position))
-                                                    'highlight))))
+                  (flymake-pulse-momentary-highlight-region b e))))
     (with-current-buffer (cond ((bufferp locus) locus)
                                (t (find-file-noselect locus)))
       (with-selected-window
@@ -1969,7 +2023,7 @@ buffer."
 (define-obsolete-function-alias 'flymake-show-diagnostics-buffer
   'flymake-show-buffer-diagnostics "1.2.1")
 
-(defun flymake-show-buffer-diagnostics ()
+(defun flymake-show-buffer-diagnostics (&optional diagnostic)
   "Show a list of Flymake diagnostics for current buffer."
   (interactive)
   (unless flymake-mode
@@ -1987,7 +2041,15 @@ buffer."
                       `((display-buffer-reuse-window
                          display-buffer-below-selected)
                         (window-height . (lambda (window)
-                          (fit-window-to-buffer window 10))))))))
+                                           (fit-window-to-buffer window 10)))))
+      (when (and diagnostic flymake-after-show-buffer-diagnostics-hook)
+        (goto-char (point-min))
+        (catch 'done
+          (while-let ((id (tabulated-list-get-id (point))))
+            (if (eq (plist-get id :diagnostic) diagnostic)
+                (progn (run-hooks 'flymake-after-show-buffer-diagnostics-hook)
+                       (throw 'done nil))
+              (forward-line))))))))
 
 
 ;;; Per-project diagnostic listing

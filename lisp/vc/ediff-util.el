@@ -36,6 +36,15 @@
 (require 'ediff-diff)
 (require 'ediff-merg)
 
+(eval-when-compile
+  (require 'cl-lib))
+
+(ediff-defvar-local ediff-select-control-window-on-setup t
+  "Select the control window after window setup.
+`t' for compatibility.  Custom `ediff-window-setup-function'
+implementations may want to set it to `nil' to fully control
+window setup.")
+
 
 ;;; Functions
 
@@ -472,20 +481,20 @@ to invocation.")
 		      (ediff-get-value-according-to-buffer-type
 		       'C ediff-narrow-bounds))))
 	;; position point in buf A
-	(save-excursion
-	  (select-window ediff-window-A)
-	  (goto-char shift-A))
+        (when (window-live-p ediff-window-A)
+          (with-selected-window ediff-window-A
+            (goto-char shift-A)))
 	;; position point in buf B
-	(save-excursion
-	  (select-window ediff-window-B)
-	  (goto-char shift-B))
-	(if ediff-3way-job
-	    (save-excursion
-	      (select-window ediff-window-C)
-	      (goto-char shift-C)))
-	)
+        (when (window-live-p ediff-window-B)
+          (with-selected-window ediff-window-B
+            (goto-char shift-B)))
+	(if (and ediff-3way-job (window-live-p ediff-window-C))
+	    (with-selected-window ediff-window-C
+              (goto-char shift-C))))
 
-      (select-window ediff-control-window)
+      (when (and ediff-select-control-window-on-setup
+                 (window-live-p ediff-control-window))
+        (select-window ediff-control-window))
       (ediff-visible-region)
 
       (mapc #'funcall startup-hooks)
@@ -776,16 +785,19 @@ buffers."
 	     (or (not ediff-3way-job)
 		 (ediff-buffer-live-p ediff-buffer-C)))
 	(progn
-	  (or no-rehighlight
+          (or no-rehighlight
 	      (ediff-select-difference ediff-current-difference))
 
-	  (ediff-recenter-one-window 'A)
-	  (ediff-recenter-one-window 'B)
-	  (if ediff-3way-job
-	      (ediff-recenter-one-window 'C))
+          (save-current-buffer
+	    (ediff-recenter-one-window 'A))
+          (save-current-buffer
+	    (ediff-recenter-one-window 'B))
+          (if ediff-3way-job
+              (save-current-buffer
+	        (ediff-recenter-one-window 'C)))
 
-	  (ediff-with-current-buffer control-buf
-	    (ediff-recenter-ancestor) ; check if ancestor is alive
+          (ediff-with-current-buffer control-buf
+	    (ediff-recenter-ancestor)   ; check if ancestor is alive
 
 	    (if (and (ediff-multiframe-setup-p)
 		     (not ediff-use-long-help-message)
@@ -801,13 +813,11 @@ buffers."
     (ediff-with-current-buffer control-buf (ediff-refresh-mode-lines))
     ))
 
-;; this function returns to the window it was called from
-;; (which was the control window)
+;; this function does not change current window
 (defun ediff-recenter-one-window (buf-type)
   (if (ediff-valid-difference-p)
       ;; context must be saved before switching to windows A/B/C
-      (let* ((ctl-wind (selected-window))
-	     (shift (ediff-overlay-start
+      (let* ((shift (ediff-overlay-start
 		     (ediff-get-value-according-to-buffer-type
 		      buf-type ediff-narrow-bounds)))
 	     (job-name ediff-job-name)
@@ -817,20 +827,16 @@ buffers."
 	     (window (if (window-live-p (symbol-value window-name))
 			 (symbol-value window-name))))
 
-	(if (and window ediff-windows-job)
+	(when (and window ediff-windows-job)
 	    (set-window-start window shift))
-	(if window
-	    (progn
-	      (select-window window)
-	      (deactivate-mark)
-	      (ediff-position-region
+	(when window
+	    (with-selected-window window
+              (deactivate-mark)
+              (ediff-position-region
 	       (ediff-get-diff-posn buf-type 'beg nil control-buf)
 	       (ediff-get-diff-posn buf-type 'end nil control-buf)
 	       (ediff-get-diff-posn buf-type 'beg nil control-buf)
-	       job-name
-	       )))
-	(select-window ctl-wind)
-	)))
+	       job-name))))))
 
 (defun ediff-recenter-ancestor ()
   ;; do half-hearted job by recentering the ancestor buffer, if it is alive and
@@ -838,21 +844,17 @@ buffers."
   (if (and (ediff-buffer-live-p ediff-ancestor-buffer)
 	   (ediff-valid-difference-p))
       (let ((window (ediff-get-visible-buffer-window ediff-ancestor-buffer))
-	    (ctl-wind (selected-window))
 	    (job-name ediff-job-name)
 	    (ctl-buf ediff-control-buffer))
 	(ediff-with-current-buffer ediff-ancestor-buffer
 	  (goto-char (ediff-get-diff-posn 'Ancestor 'beg nil ctl-buf))
-	  (if window
-	      (progn
-		(select-window window)
-		(ediff-position-region
+	  (when (window-live-p window)
+	      (with-selected-window window
+                (ediff-position-region
 		 (ediff-get-diff-posn 'Ancestor 'beg nil ctl-buf)
 		 (ediff-get-diff-posn 'Ancestor 'end nil ctl-buf)
 		 (ediff-get-diff-posn 'Ancestor 'beg nil ctl-buf)
-		 job-name))))
-	(select-window ctl-wind)
-	)))
+		 job-name)))))))
 
 
 ;; This will have to be refined for 3way jobs
@@ -1064,10 +1066,9 @@ of the current buffer."
 		   (sit-for 3)))) ; let the user see the warning
 	(if (and toggle-ro-cmd
 		 (string-match "read-only-mode" (symbol-name toggle-ro-cmd)))
-	    (save-excursion
-	      (save-window-excursion
-		(select-window (ediff-get-visible-buffer-window buf))
-		(command-execute toggle-ro-cmd)))
+	    (save-window-excursion
+              (ediff-with-live-window (ediff-get-visible-buffer-window buf)
+                (command-execute toggle-ro-cmd)))
 	  (user-error "Don't know how to toggle read-only in buffer %S" buf))
 
 	;; Check if we made the current buffer updatable, but its file is RO.
@@ -1413,8 +1414,8 @@ Used in ediff-windows/regions only."
 (defun ediff-operate-on-windows (operation arg)
 
   ;; make sure windows aren't dead
-  (if (not (and (window-live-p ediff-window-A) (window-live-p ediff-window-B)))
-      (ediff-recenter 'no-rehighlight))
+  (unless (and (window-live-p ediff-window-A) (window-live-p ediff-window-B))
+    (ediff-recenter 'no-rehighlight))
   (if (not (and (ediff-buffer-live-p ediff-buffer-A)
 		(ediff-buffer-live-p ediff-buffer-B)
 		(or (not ediff-3way-job) (ediff-buffer-live-p ediff-buffer-C))
@@ -1424,8 +1425,7 @@ Used in ediff-windows/regions only."
 		))
       (error ediff-KILLED-VITAL-BUFFER))
 
-  (let* ((wind (selected-window))
-	 (wind-A ediff-window-A)
+  (let* ((wind-A ediff-window-A)
 	 (wind-B ediff-window-B)
 	 (wind-C ediff-window-C)
 	 (wind-Anc ediff-window-Ancestor)
@@ -1438,26 +1438,16 @@ Used in ediff-windows/regions only."
          (coefAnc (if with-Ancestor
                       (ediff-get-region-size-coefficient 'Ancestor operation))))
 
-    (select-window wind-A)
-    (condition-case nil
-	(funcall operation (round (* coefA arg)))
-      (error))
-    (select-window wind-B)
-    (condition-case nil
-	(funcall operation (round (* coefB arg)))
-      (error))
-    (if three-way
-	(progn
-	  (select-window wind-C)
-	  (condition-case nil
-	      (funcall operation (round (* coefC arg)))
-	    (error))))
+    (ediff-with-live-window wind-A
+      (ignore-errors (funcall operation (round (* coefA arg)))))
+    (ediff-with-live-window wind-B
+      (ignore-errors (funcall operation (round (* coefB arg)))))
+    (when three-way
+      (ediff-with-live-window wind-C
+        (ignore-errors (funcall operation (round (* coefC arg))))))
     (when with-Ancestor
-      (select-window wind-Anc)
-      (condition-case nil
-          (funcall operation (round (* coefAnc arg)))
-        (error)))
-    (select-window wind)))
+      (ediff-with-live-window wind-Anc
+        (ignore-errors (funcall operation (round (* coefAnc arg))))))))
 
 (defun ediff-scroll-vertically (&optional arg)
   "Vertically scroll buffers A, B (and C if appropriate).
@@ -1817,44 +1807,29 @@ current point position in the specified buffer."
 	 (beg (if past-last-diff
 		  (ediff-with-current-buffer buffer (point-max))
 		(ediff-get-diff-posn buf-type 'beg (1- diff-no))))
-	 ctl-wind wind-A wind-B wind-C
+	 wind-A wind-B wind-C
 	 shift)
     (if past-last-diff
 	(ediff-jump-to-difference -1)
       (ediff-jump-to-difference diff-no))
-    (setq ctl-wind (selected-window)
-	  wind-A ediff-window-A
+    (setq wind-A ediff-window-A
 	  wind-B ediff-window-B
 	  wind-C ediff-window-C)
     (if arg
-	(progn
-	  (ediff-with-current-buffer buffer
-	    (setq shift (- beg pt)))
-	  (select-window wind-A)
-	  (if past-last-diff (goto-char (point-max)))
-	  (condition-case nil
-	      (backward-char shift) ; noerror, if beginning of buffer
-	    (error))
-	  (recenter)
-	  (select-window wind-B)
-	  (if past-last-diff (goto-char (point-max)))
-	  (condition-case nil
-	      (backward-char shift) ; noerror, if beginning of buffer
-	    (error))
-	  (recenter)
-	  (if (window-live-p wind-C)
-	      (progn
-		(select-window wind-C)
-		(if past-last-diff (goto-char (point-max)))
-		(condition-case nil
-		    (backward-char shift) ; noerror, if beginning of buffer
-		  (error))
-		(recenter)
-		))
-	  (select-window ctl-wind)
-	  ))
-    ))
-
+	(save-selected-window
+	  (setq shift (- beg pt))
+          (ediff-with-live-window wind-A
+            (when past-last-diff (goto-char (point-max)))
+            (ignore-errors (backward-char shift))
+	    (recenter))
+          (ediff-with-live-window wind-B
+            (when past-last-diff (goto-char (point-max)))
+            (ignore-errors (backward-char shift))
+            (recenter))
+	  (ediff-with-live-window wind-C
+            (when past-last-diff (goto-char (point-max)))
+            (ignore-errors (backward-char shift))
+	    (recenter))))))
 
 ;; find region most related to the current point position (or POS, if given)
 ;; returns diff number as seen by the user (i.e., 1+ the internal
@@ -2725,10 +2700,7 @@ only if this merge job is part of a group, i.e., was invoked from within
   (let* ((buf-A ediff-buffer-A)
 	 (buf-B ediff-buffer-B)
 	 (buf-C ediff-buffer-C)
-	 (buf-A-wind (ediff-get-visible-buffer-window buf-A))
-	 (buf-B-wind (ediff-get-visible-buffer-window buf-B))
-	 (buf-C-wind (ediff-get-visible-buffer-window buf-C))
-	 (buf-patch  (if (boundp 'ediff-patchbufer) ediff-patchbufer nil))
+         (buf-patch  (if (boundp 'ediff-patchbufer) ediff-patchbufer nil))
 	 (buf-patch-diag (if (boundp 'ediff-patch-diagnostics)
 			     ediff-patch-diagnostics nil))
 	 (buf-err  ediff-error-buffer)
@@ -2746,35 +2718,18 @@ only if this merge job is part of a group, i.e., was invoked from within
     (if buf-fine-diff (bury-buffer buf-fine-diff))
     (if buf-patch (bury-buffer buf-patch))
     (if buf-patch-diag (bury-buffer buf-patch-diag))
-    (if (window-live-p buf-A-wind)
-	(progn
-	  (select-window buf-A-wind)
-	  (delete-other-windows)
-	  (bury-buffer))
-      (if (ediff-buffer-live-p buf-A)
-	  (progn
-	    (set-buffer buf-A)
-	    (bury-buffer))))
-    (if (window-live-p buf-B-wind)
-	(progn
-	  (select-window buf-B-wind)
-	  (delete-other-windows)
-	  (bury-buffer))
-      (if (ediff-buffer-live-p buf-B)
-	  (progn
-	    (set-buffer buf-B)
-	    (bury-buffer))))
-    (if (window-live-p buf-C-wind)
-	(progn
-	  (select-window buf-C-wind)
-	  (delete-other-windows)
-	  (bury-buffer))
-      (if (ediff-buffer-live-p buf-C)
-	  (progn
-	    (set-buffer buf-C)
-	    (bury-buffer))))
-    ))
-
+    (cl-loop
+          with buffers = (list buf-A buf-B buf-C)
+          with windows = (mapcar #'ediff-get-visible-buffer-window buffers)
+          for buffer in buffers
+          for window in windows
+          do (cond ((window-live-p window)
+                    (select-window window)
+	            (delete-other-windows)
+	            (bury-buffer))
+                   (buffer
+                    (set-buffer buffer)
+	            (bury-buffer))))))
 
 (defun ediff-suspend ()
   "Suspend Ediff.
@@ -3274,8 +3229,9 @@ Without an argument, it saves customized diff argument, if available
       (setq ediff-temp-indirect-buffer t))
     (pop-to-buffer cloned-buff)
     (setq wind (ediff-get-visible-buffer-window cloned-buff))
-    (select-window wind)
-    (delete-other-windows)
+    (when (window-live-p wind)
+      (select-window wind)
+      (delete-other-windows))
     (or (mark) (push-mark))
     (setq mark-active 'ediff-util)
     (setq-local transient-mark-mode t)
@@ -3310,7 +3266,8 @@ Without an argument, it saves customized diff argument, if available
   (let ((cloned-buff (ediff-make-cloned-buffer buff region-name)))
     (ediff-with-current-buffer cloned-buff
       (setq ediff-temp-indirect-buffer t))
-    (set-window-buffer wind cloned-buff)
+    (when (window-live-p wind)
+      (set-window-buffer wind cloned-buff))
     cloned-buff))
 
 (defun ediff-buffer-type (buffer)

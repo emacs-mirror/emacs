@@ -1082,13 +1082,36 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
       nil t)
      (re-search-forward base-re nil t))))
 
-;; WORKAROUND: This can't be a defconst due to bug#21237.
-(defvar cl--generic-find-defgeneric-regexp "(\\(?:cl-\\)?defgeneric[ \t]+%s\\_>")
+(defun cl--generic-search-method-make-form-matcher (met-name)
+  (let ((name (car met-name))
+        (qualifiers (cadr met-name))
+        (specializers (cddr met-name)))
+    (lambda (form)
+      (pcase form
+        (`(cl-generic-define-method
+           (function ,(pred (eq name)))
+           (quote ,(and (pred listp) m-qualifiers))
+           (quote ,(and (pred listp) m-args))
+           ,_call-con
+           ,_function)
+          (ignore-errors
+            (let* ((m-spec-args (car (cl--generic-split-args m-args)))
+                   (m-specializers
+                    (mapcar (lambda (spec-arg)
+                              (if (eq '&context (car-safe (car spec-arg)))
+                                  spec-arg (cdr spec-arg)))
+                            m-spec-args)))
+              (and (equal qualifiers m-qualifiers)
+                   (equal specializers m-specializers)))))))))
+
+(defconst cl--generic-find-defgeneric-regexp "(\\(?:cl-\\)?defgeneric[ \t]+%s\\_>")
 
 (with-eval-after-load 'find-func
   (defvar find-function-regexp-alist)
   (add-to-list 'find-function-regexp-alist
-               `(cl-defmethod . ,#'cl--generic-search-method))
+               `(cl-defmethod
+                 . (,#'cl--generic-search-method
+                    . ,#'cl--generic-search-method-make-form-matcher)))
   (add-to-list 'find-function-regexp-alist
                '(cl-defgeneric . cl--generic-find-defgeneric-regexp)))
 

@@ -144,6 +144,10 @@ This directory contains, among other things, the mhl program.")
 ;;;###autoload
 (put 'mh-lib-progs 'risky-local-variable t)
 
+(defvar mh-default-directory "~/"
+  "Default directory for MH-E folder buffers.
+Set to nil to have MH-E buffers inherit default-directory.")
+
 ;; Profile Components
 
 (defvar mh-draft-folder nil
@@ -437,6 +441,12 @@ gnus-version)
             (t
              (error "Bad element: %s" element))))
     new-list))
+
+(defun mh-set-default-directory ()
+  "Set `default-directory' to `mh-default-directory' unless it is nil."
+  (when (stringp mh-default-directory)
+    (setq default-directory (file-name-as-directory
+                             (expand-file-name mh-default-directory)))))
 
 
 

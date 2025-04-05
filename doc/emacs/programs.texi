@@ -115,6 +115,16 @@ utilize the incremental parsing capabilities provided by
 @samp{tree-sitter}.  These modes have @samp{-ts-} in their names; for
 example @code{c-ts-mode}, @code{python-ts-mode}, etc.
 
+@cindex LSP
+@cindex language server
+@cindex Eglot
+  Major modes for programming languages can use services of
+@dfn{language servers} via the facilities provided by the Eglot package.
+Eglot implements LSP, the @dfn{language server protocol}, which allows
+Emacs to receive language-specific information and services that enrich
+and extend source code editing capabilities.  @xref{Eglot Features,,,
+eglot, Eglot: The Emacs LSP Client}.
+
 @kindex DEL @r{(programming modes)}
 @findex backward-delete-char-untabify
   In most programming languages, indentation should vary from line to
@@ -404,6 +414,7 @@ define your own comparison function by writing Lisp code.
 the variable @code{completion-category-overrides} and setting its
 @code{display-sort-function} for the category @code{imenu}.
 
+@cindex eglot, for producing Imenu index
   If Eglot is activated for the current buffer's project
 (@pxref{Projects}) and the current buffer's major mode, Eglot provides
 its own facility for producing the buffer's index based on the
@@ -1501,6 +1512,7 @@ Global ElDoc mode, which is turned on by default, and turns on the
 ElDoc mode in buffers whose major mode sets the variables described
 below.  Use @w{@kbd{M-x global-eldoc-mode}} to turn it off globally.
 
+@cindex eglot, using with ElDoc
 Various major modes configure the Global ElDoc mode to use their
 documentation functions.  Examples include Emacs Lisp mode, Python
 mode, and Cfengine mode.  In addition, Emacs features that provide
@@ -1686,6 +1698,7 @@ but you can also complete symbol names in ordinary Emacs buffers.
 @findex completion-at-point@r{, in programming language modes}
 @cindex Lisp symbol completion
 @cindex completion (Lisp symbols)
+@cindex code completion
   In most programming language modes, @kbd{C-M-i} (or
 @kbd{M-@key{TAB}}@footnote{
 On graphical displays, the @kbd{M-@key{TAB}} key is usually reserved
@@ -1697,6 +1710,7 @@ uses the available support facilities to come up with the completion
 candidates:
 
 @itemize @bullet
+@cindex eglot, using to complete symbol at point
 @item
 If Eglot is activated for the current buffer's project
 (@pxref{Projects}) and the current buffer's major mode, the command

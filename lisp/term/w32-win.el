@@ -416,7 +416,7 @@ also be textual."
 
 (defun w32--get-selection (&optional type data-type)
   (cond ((and (eq type 'CLIPBOARD)
-              (eq data-type 'STRING))
+              (memq data-type '(STRING UTF8_STRING TEXT)))
          (with-demoted-errors "w32-get-clipboard-data:%S"
            (w32-get-clipboard-data)))
         ((eq data-type 'TARGETS)

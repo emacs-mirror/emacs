@@ -760,17 +760,24 @@ the C sources, too."
               (high-doc (cdr high)))
           (unless (and (symbolp function)
                        (get function 'reader-construct))
-            (insert high-usage "\n")
-            (when-let* ((gate help-display-function-type)
-                        (res (comp-function-type-spec function))
-                        (type-spec (car res))
-                        (kind (cdr res)))
-              (insert (format
-                       (if (eq kind 'inferred)
-                           "\nInferred type: %s\n"
-                         "\nDeclared type: %s\n")
-                       type-spec))))
+            (insert high-usage "\n"))
           (fill-region fill-begin (point))
+          (when-let* (help-display-function-type
+                      (res (comp-function-type-spec function))
+                      (type-spec (car res))
+                      (kind (cdr res)))
+            (insert (if (eq kind 'inferred)
+                        "\nInferred type:\n  "
+                      "\nDeclared type:\n  "))
+            (with-demoted-errors "%S"
+              (let ((beg (point)))
+                (pp type-spec (current-buffer))
+                ;; Put it on a single line if it fits.
+                (and (eql beg (+ 2 (line-beginning-position 0)))
+                     (save-excursion
+                       (forward-char -1)
+                       (<= (current-column) (- fill-column 12)))
+                     (replace-region-contents (- beg 3) beg " " 0)))))
           high-doc)))))
 
 (defun help-fns--parent-mode (function)
@@ -1262,7 +1269,9 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 
 (defun help-fns--generalized-variable (function)
   (when (and (symbolp function)
-             (get function 'gv-expander)
+             (or (get function 'gv-expander)
+                 ;; This is a hack, see cl-macs.el:
+                 (get function 'document-generalized-variable))
              ;; Don't mention obsolete generalized variables.
              (not (get function 'byte-obsolete-generalized-variable)))
     (insert (format-message "  `%s' is also a " function)
@@ -1446,7 +1455,7 @@ it is displayed along with the global value."
 		  (let* ((sv (get variable 'standard-value))
 			 (origval (and (consp sv)
 				       (condition-case nil
-					   (eval (car sv) t)
+					   (custom--standard-value variable)
 					 (error :help-eval-error))))
                          from)
 		    (when (and (consp sv)

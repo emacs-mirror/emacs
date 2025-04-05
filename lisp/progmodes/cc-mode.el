@@ -2047,9 +2047,7 @@ This function is used solely as a member of
     (while (and (< (point) search-end)
 		(search-forward-regexp c-cpp-include-key search-end 'bound)
 		(setq hash-pos (match-beginning 0)))
-      (save-restriction
-	(narrow-to-region (point-min) (c-point 'eoll))
-	(c-forward-comments))
+      (c-forward-comments (c-point 'eoll))
       (when (and (< (point) search-end)
 		 (looking-at "\\s(")
 		 (looking-at "\\(<\\)[^>\n\r]*\\(>\\)?")
@@ -2081,9 +2079,7 @@ This function is used solely as a member of
     (while (and (< (point) search-end)
 		(search-forward-regexp c-cpp-include-key search-end 'bound)
 		(setq hash-pos (match-beginning 0)))
-      (save-restriction
-	(narrow-to-region (point-min) (c-point 'eoll))
-	(c-forward-comments))
+      (c-forward-comments (c-point 'eoll))
       (when (and (< (point) search-end)
 		 (looking-at "\\(<\\)[^>\n\r]*\\(>\\)")
 		 (not (cdr (c-semi-pp-to-literal (match-beginning 0)))))

@@ -185,9 +185,15 @@ tty_send_additional_strings (struct terminal *terminal, Lisp_Object sym)
       Lisp_Object string = XCAR (extra_codes);
       if (STRINGP (string))
         {
-	  fwrite (SDATA (string), 1, SBYTES (string), tty->output);
+	  struct Lisp_String *str = XSTRING (string);
+	  /* Don't use SBYTES, as that is not protected from GC.  */
+	  ptrdiff_t sbytes
+	    = (str->u.s.size_byte < 0
+	       ? str->u.s.size & ~ARRAY_MARK_FLAG
+	       : str->u.s.size_byte);
+	  fwrite (SDATA (string), 1, sbytes, tty->output);
           if (tty->termscript)
-	    fwrite (SDATA (string), 1, SBYTES (string), tty->termscript);
+	    fwrite (SDATA (string), 1, sbytes, tty->termscript);
         }
     }
 }
@@ -972,10 +978,20 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
   if (AutoWrap (tty)
       && curY (tty) + 1 == FRAME_TOTAL_LINES (f)
       && curX (tty) + len == FRAME_COLS (f)
-      && curX (tty) < FRAME_COLS (f) - 1
       && len > 0)
     {
-      /* Write glyphs except the first. */
+      /* If writing only one glyph in the last column, make that two so
+	 that we can shift that one glyph into the last column.  FIXME:
+	 Assuming a display width of 1 looks questionable, but that's
+	 done everywhere else involving auto-wrap.  */
+      if (len == 1)
+	{
+	  cmgoto (tty, curY (tty), curX (tty) - 1);
+	  --string;
+	  ++len;
+	}
+
+      /* Write glyphs except the first.  */
       int old_x = curX (tty), old_y = curY (tty);
       tty_write_glyphs_1 (f, string + 1, len - 1);
 
@@ -4192,6 +4208,10 @@ tty_free_frame_resources (struct frame *f)
 {
   eassert (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f));
   free_frame_faces (f);
+  /* Deleting a child frame means we have to thoroughly redisplay its
+     root frame to make sure the child disappears from the display.  */
+  if (FRAME_PARENT_FRAME (f))
+    SET_FRAME_GARBAGED (root_frame (f));
 }
 
 #endif

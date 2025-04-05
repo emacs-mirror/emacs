@@ -1857,7 +1857,10 @@ ID-FORMAT valid values are `string' and `integer'."
                  ;; test.
                  (tramp-check-remote-uname v tramp-bsd-unames)
 		 (= (file-attribute-group-id attributes)
-		    (tramp-get-remote-gid v 'integer)))))))))
+		    (tramp-get-remote-gid v 'integer))
+		 ;; FIXME: `file-ownership-preserved-p' tests also the
+		 ;; ownership of the parent directory.  We don't.
+		 )))))))
 
 ;; Directory listings.
 

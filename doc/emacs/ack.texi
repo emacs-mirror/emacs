@@ -1301,8 +1301,9 @@ Tibor @v{S}imko and Milan Zamazal wrote @file{slovak.el}, support for
 editing text in Slovak language.
 
 @item
-Jo@~ao T@'avora wrote many improvements for @file{flymake.el}, an
-on-the-fly syntax-checking package.
+João Távora wrote many improvements for @file{flymake.el}, an on-the-fly
+syntax-checking package.  He also wrote @file{eglot.el}, a language
+server protocol (LSP) client that was added in Emacs 29.
 
 @item
 Luc Teirlinck wrote @file{help-at-pt.el}, providing local help through

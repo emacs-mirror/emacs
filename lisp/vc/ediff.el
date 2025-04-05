@@ -360,10 +360,13 @@ has been saved (if not in `buffer-file-name')."
 (defalias 'ediff #'ediff-files)
 
 ;;;###autoload
-(defun ediff-current-file ()
+(defun ediff-current-file (&optional startup-hooks)
   "Start ediff between current buffer and its file on disk.
 This command can be used instead of `revert-buffer'.  If there is
-nothing to revert then this command fails."
+nothing to revert then this command fails.
+
+Non-interactively, STARTUP-HOOKS is a list of functions that Emacs calls
+without arguments after setting up the Ediff buffers."
   (interactive)
   ;; This duplicates code from menu-bar.el.
   (unless (or (not (eq revert-buffer-function 'revert-buffer--default))
@@ -395,7 +398,7 @@ nothing to revert then this command fails."
       (insert-file-contents file-name)
       ;; Assume same modes:
       (funcall current-major))
-    (ediff-buffers revert-buf (current-buffer))))
+    (ediff-buffers revert-buf (current-buffer) startup-hooks)))
 
 
 ;;;###autoload

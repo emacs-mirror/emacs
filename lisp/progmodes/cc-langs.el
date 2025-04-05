@@ -2907,12 +2907,12 @@ one of `c-type-list-kwds', `c-ref-list-kwds',
 (c-lang-defconst c-protection-kwds
   "Access protection label keywords in classes."
   t    nil
-  c++  '("private" "protected" "public")
+  (c++ java)  '("private" "protected" "public")
   objc '("@private" "@protected" "@package" "@public"
 	 "@required" "@optional"))
 
 (c-lang-defconst c-protection-key
-  ;; A regexp match an element of `c-protection-kwds' cleanly.
+  ;; A regexp matching an element of `c-protection-kwds' cleanly.
   t (c-make-keywords-re t (c-lang-const c-protection-kwds)))
 (c-lang-defvar c-protection-key (c-lang-const c-protection-key))
 
@@ -3547,7 +3547,7 @@ Note that Java specific rules are currently applied to tell this from
 (c-lang-defconst c-stmt-block-only-keywords-regexp
   ;; A regexp matching a keyword in `c-stmt-block-only-keywords'.  Such a
   ;; match can start and end only at token boundaries.
-  t (concat "\\(^\\|\\=\\|[^" (c-lang-const c-symbol-chars) "]\\)"
+  t (concat "\\(\\<\\|\\=\\)"
 	    (c-make-keywords-re t (c-lang-const c-stmt-block-only-keywords))))
 (c-lang-defvar c-stmt-block-only-keywords-regexp
   (c-lang-const c-stmt-block-only-keywords-regexp))

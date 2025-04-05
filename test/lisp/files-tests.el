@@ -1782,6 +1782,21 @@ set to."
   ;; Invocation through env, with modified environment.
   (files-tests--check-shebang "#!/usr/bin/env -S PYTHONPATH=/...:${PYTHONPATH} python" 'python-base-mode))
 
+(ert-deftest files-test-dir-locals-2-solo ()
+  "Ensure that solo `.dir-locals-2.el' is ignored."
+  (with-current-buffer
+      (find-file-noselect (ert-resource-file
+                           (concat "dir-locals-2-solo/dir-locals-2-solo.txt")))
+    (should-not (local-variable-p 'dir-locals-2-loaded))))
+
+(ert-deftest files-test-dir-locals-2-paired ()
+  "Ensure that `.dir-locals-2.el' is loaded, if paired."
+  (let ((enable-local-variables :all))
+    (with-current-buffer (find-file-noselect
+                          (ert-resource-file (concat "dir-locals-and-2/dir-locals-and-2.txt")))
+      (should (local-variable-p 'dir-locals-loaded))
+      (should (local-variable-p 'dir-locals-2-loaded)))))
+
 (ert-deftest files-test-dir-locals-auto-mode-alist ()
   "Test an `auto-mode-alist' entry in `.dir-locals.el'"
   (find-file (ert-resource-file "whatever.quux"))

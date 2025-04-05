@@ -2248,6 +2248,7 @@ definitions of symbols.  (One disadvantage of this kind of backend is
 that it only knows about subunits that were loaded into the
 interpreter.)
 
+@cindex eglot, for finding definitions of identifiers
 @item
 If Eglot is activated for the current buffer's project
 (@pxref{Projects}) and the current buffer's major mode, Eglot consults

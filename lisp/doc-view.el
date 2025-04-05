@@ -321,9 +321,6 @@ stylesheet is switched, or its contents modified."
   :version "29.1"
   :set #'doc-view-custom-set-epub-user-stylesheet)
 
-(defvar-local doc-view--current-cache-dir nil
-  "Only used internally.")
-
 (defun doc-view-custom-set-epub-font-size (option-name new-value)
   (set-default option-name new-value)
   (doc-view--epub-reconvert))

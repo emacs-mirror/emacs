@@ -1404,12 +1404,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
 #ifdef NS_IMPL_COCOA
   tem = gui_display_get_arg (dpyinfo, parms, Qns_appearance, NULL, NULL,
                              RES_TYPE_SYMBOL);
-  if (EQ (tem, Qdark))
-    FRAME_NS_APPEARANCE (f) = ns_appearance_vibrant_dark;
-  else if (EQ (tem, Qlight))
-    FRAME_NS_APPEARANCE (f) = ns_appearance_aqua;
-  else
-    FRAME_NS_APPEARANCE (f) = ns_appearance_system_default;
+  ns_set_appearance_1 (f, tem);
   store_frame_param (f, Qns_appearance,
                      (!NILP (tem) && !EQ (tem, Qunbound)) ? tem : Qnil);
 

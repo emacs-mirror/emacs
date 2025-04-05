@@ -168,6 +168,21 @@ revision number and lock status."
   :type 'boolean
   :group 'vc)
 
+(defcustom vc-resolve-conflicts t
+  "Whether to mark conflicted file as resolved upon saving.
+
+If this is non-nil and there are no more conflict markers in the file,
+VC will mark the conflicts in the saved file as resolved.  This is
+only meaningful for VCS that handle conflicts by inserting conflict
+markers in a conflicted file.
+
+When saving a conflicted file, VC first tries to use the value
+of `vc-BACKEND-resolve-conflicts', for handling backend-specific
+settings.  It defaults to this option if that option has the special
+value `default'."
+  :type 'boolean
+  :version "31.1")
+
 ;;; This is handled specially now.
 ;; Tell Emacs about this new kind of minor mode
 ;; (add-to-list 'minor-mode-alist '(vc-mode vc-mode))
