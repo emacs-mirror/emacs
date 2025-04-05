@@ -27774,7 +27774,7 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 
 	  /* Display the mode line string one element by one element.
 	     This is to make the ranges of mouse highlighting
-	     correct. */
+	     correct.  */
 	  do
 	    {
 	      end = Fnext_single_property_change (start, Qmode_line_elt_no,
@@ -27788,7 +27788,7 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 	}
       else
 	{
-	  /* Compress the mode line. */
+	  /* Compress the mode line.  */
 	  ptrdiff_t i = 0, i_byte = 0;
 	  int prev = 0;
 	  Lisp_Object start = make_fixnum (0), end;
@@ -27796,7 +27796,7 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 
 	  /* Display the mode line string one element by one element.
 	     This is to make the ranges of mouse highlighting
-	     correct. */
+	     correct.  */
 	  do
 	    {
 	      end = Fnext_single_property_change (start,
@@ -27822,7 +27822,7 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 							  start,
 							  prev_pos));
 
-			  /* Skip past the rest of the space characters. */
+			  /* Skip past the rest of the space characters.  */
 			  Lisp_Object display = Fget_text_property (make_fixnum (i),
 								    Qdisplay,
 								    mode_string);
@@ -27837,7 +27837,7 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 			    }
 
 			  /* Skip the final space no matter how the loop
-			     above ends. */
+			     above ends.  */
 			  if (c == ' ' && NILP (display))
 			    start = end;
 			  else
@@ -27847,7 +27847,7 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 		  prev = c;
 		}
 
-	      /* Append the final bit. */
+	      /* Append the final bit.  */
 	      if (XFIXNUM (start) < XFIXNUM (end))
 		elt = concat2 (elt, Fsubstring (mode_string, start, end));
 
@@ -27886,7 +27886,7 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 	 glyph wider.  We actually add only as much space as is
 	 available for the last glyph of the modeline and whatever
 	 space is left beyond it, since that glyph could be only
-	 partially visible */
+	 partially visible.  */
       if (box_thickness > 0)
 	last->pixel_width += max (0, (box_thickness
 				      - (it.current_x - it.last_visible_x)));
@@ -27988,7 +27988,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
      element could be stored by parts.  For example, "a%b" is stored as
      two elements in the 'mode_line_string_list', but they should be
      considered as one element, so we cannot increment this number when
-     "a" is stored. */
+     "a" is stored.  */
   if (mode_line_target == MODE_LINE_STRING)
     mode_line_elt_no++;
 
