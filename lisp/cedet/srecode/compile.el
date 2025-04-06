@@ -199,8 +199,7 @@ STATE is the current compilation state."
 	(tag nil)
 	(class nil)
 	(table nil)
-	(STATE (srecode-compile-state (file-name-nondirectory
-				       (buffer-file-name))))
+	(STATE (srecode-compile-state))
 	(mode nil)
 	(application nil)
 	(framework nil)
@@ -263,7 +262,7 @@ STATE is the current compilation state."
 	    ;; Create a compound dictionary value from "value".
 	    (require 'srecode/dictionary)
 	    (let ((cv (srecode-dictionary-compound-variable
-		       name :value value)))
+		       :value value)))
 	      (setq vars (cons (cons name cv) vars)))
 	    ))
 	)

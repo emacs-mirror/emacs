@@ -648,8 +648,7 @@ Use DICTIONARY to resolve values."
 Use DICTIONARY to resolve values."
   (let* ((default (srecode-insert-ask-default sti dictionary))
 	 (compound-value
-	  (srecode-field-value (oref sti object-name)
-			       :firstinserter sti
+	  (srecode-field-value :firstinserter sti
 			       :defaultvalue default))
 	 )
     ;; Return this special compound value as the thing to insert.

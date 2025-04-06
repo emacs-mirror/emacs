@@ -89,7 +89,7 @@ based on `ede-locate-setup-options'."
       (when (called-interactively-p 'interactive)
 	(message "Setting locator to ede-locate-base"))
       (setq ans 'ede-locate-base))
-    (oset proj locate-obj (make-instance ans "Loc" :root root))
+    (oset proj locate-obj (make-instance ans :root root))
     (when (called-interactively-p 'interactive)
       (message "Setting locator to %s" ans))
     ))
