@@ -926,9 +926,8 @@ away from the bottom.  Counts wrapped lines as real lines."
         (scroll-up (- icomplete-prospects-height lines-to-bottom))))))
 
 (defun icomplete-vertical--add-indicator-to-selected (comp)
-  "Add indicators to the selected/unselected COMP completions."
-  (if (and icomplete-vertical-render-prefix-indicator
-           (get-text-property 0 'icomplete-selected comp))
+  "Add indicator to completion COMP according to its selection state."
+  (if (get-text-property 0 'icomplete-selected comp)
       (concat (propertize icomplete-vertical-selected-prefix-indicator
                           'face 'icomplete-vertical-selected-prefix-indicator-face)
               comp)
@@ -1012,8 +1011,11 @@ away from the bottom.  Counts wrapped lines as real lines."
     ;; Serialize completions and section titles into a list
     ;; of lines to render
     (cl-loop
-     for (comp prefix suffix section) in tuples
-     do (setq comp (icomplete-vertical--add-indicator-to-selected comp))
+     for (comp-no-indicator prefix suffix section) in tuples
+     for comp =
+     (if icomplete-vertical-render-prefix-indicator
+         (icomplete-vertical--add-indicator-to-selected comp-no-indicator)
+       comp-no-indicator)
      when section
      collect (propertize section 'face 'icomplete-section) into lines-aux
      and count 1 into nsections-aux
