@@ -4909,7 +4909,7 @@ make_igc (void)
   struct igc *gc = xzalloc (sizeof *gc);
   make_arena (gc);
 
-  /* We cannot let the GC run until at least all staticpros haven been
+  /* We cannot let the GC run until at least all staticpros have been
      processed.  Otherwise we might allocate objects that are not
      protected by anything.  */
   arena_park (gc);
