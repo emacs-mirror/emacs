@@ -38,6 +38,9 @@
 ;;   J.D. Smith <jdsmith@alum.mit.edu>
 ;;   Andre Spiegel <spiegel@gnu.org>
 ;;   Richard Stallman <rms@gnu.org>
+;;   Dmitry Gutov <dmitry@gutov.dev>
+;;   Juri Linkov <juri@linkov.net>
+;;   Sean Whitton <spwhitton@spwhitton.name>
 ;;
 ;; In July 2007 ESR returned and redesigned the mode to cope better
 ;; with modern version-control systems that do commits by fileset
