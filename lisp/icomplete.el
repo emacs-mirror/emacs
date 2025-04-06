@@ -884,7 +884,7 @@ by `group-function''s second \"transformation\" protocol."
                  else collect (list tr prefix suffix ))
       annotated)))
 
-(defun icomplete-vertical--adjust-lines-for-column (lines buffer data)
+(defun icomplete--adjust-lines-for-column (lines buffer data)
   "Adjust the LINES to align with the column in BUFFER based on DATA."
   (if icomplete-vertical-in-buffer-adjust-list
       (let* ((column (current-column))
@@ -914,7 +914,7 @@ by `group-function''s second \"transformation\" protocol."
                 lines))
     lines))
 
-(defun icomplete-vertical--ensure-visible-lines-inside-buffer ()
+(defun icomplete--ensure-visible-lines-inside-buffer ()
   "Ensure the completion list is visible in regular buffers only.
 Scrolls the screen to be at least `icomplete-prospects-height' real lines
 away from the bottom.  Counts wrapped lines as real lines."
@@ -925,7 +925,7 @@ away from the bottom.  Counts wrapped lines as real lines."
       (when (< lines-to-bottom icomplete-prospects-height)
         (scroll-up (- icomplete-prospects-height lines-to-bottom))))))
 
-(defun icomplete-vertical--add-indicator-to-selected (comp)
+(defun icomplete--add-indicator-to-selected (comp)
   "Add indicator to completion COMP according to its selection state."
   (if (get-text-property 0 'icomplete-selected comp)
       (concat (propertize icomplete-vertical-selected-prefix-indicator
@@ -956,11 +956,11 @@ away from the bottom.  Counts wrapped lines as real lines."
   (when (and icomplete-scroll
              (not icomplete--scrolled-completions)
              (not icomplete--scrolled-past))
-    (icomplete-vertical--ensure-visible-lines-inside-buffer))
+    (icomplete--ensure-visible-lines-inside-buffer))
   (when (and icomplete-scroll
              icomplete--scrolled-completions
              (null icomplete--scrolled-past))
-    (icomplete-vertical--ensure-visible-lines-inside-buffer)
+    (icomplete--ensure-visible-lines-inside-buffer)
     (cl-loop with preds
              for (comp . rest) on comps
              when (equal comp (car icomplete--scrolled-completions))
@@ -1014,7 +1014,7 @@ away from the bottom.  Counts wrapped lines as real lines."
      for (comp-no-indicator prefix suffix section) in tuples
      for comp =
      (if icomplete-vertical-render-prefix-indicator
-         (icomplete-vertical--add-indicator-to-selected comp-no-indicator)
+         (icomplete--add-indicator-to-selected comp-no-indicator)
        comp-no-indicator)
      when section
      collect (propertize section 'face 'icomplete-section) into lines-aux
@@ -1041,7 +1041,7 @@ away from the bottom.  Counts wrapped lines as real lines."
                  (t (min (ceiling nsections 2) (length scroll-above))))
            lines))
     (when icomplete--in-region-buffer
-      (setq lines (icomplete-vertical--adjust-lines-for-column
+      (setq lines (icomplete--adjust-lines-for-column
                    lines icomplete--in-region-buffer completion-in-region--data)))
     ;; At long last, render final string return value.  This may still
     ;; kick out lines at the end.
