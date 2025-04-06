@@ -3963,12 +3963,12 @@ If only regular files are in the fileset, call `vc-next-action' with
 the same value of the VERBOSE argument (interactively, the prefix
 argument).
 
-If one or more directories are in the fileset, start `vc-dir' in the root
-directory of the repository that includes the current directory, with
-the same files/directories marked in the VC-Directory buffer that were
-marked in the original Dired buffer.  If the current directory doesn't
-belong to a VCS repository, prompt for a repository directory.  In this
-case, the VERBOSE argument is ignored."
+If one or more directories are in the fileset, start `vc-dir' in the
+root directory of the repository that includes the current directory,
+with all directories in the fileset marked in the VC-Directory buffer
+that were marked in the original Dired buffer.  If the current directory
+doesn't belong to a VCS repository, prompt for a repository directory.
+In this case, the VERBOSE argument is ignored."
   (interactive "P" dired-mode)
   (let* ((marked-files
           (dired-get-marked-files nil nil nil nil t))

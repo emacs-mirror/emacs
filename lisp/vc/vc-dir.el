@@ -774,7 +774,17 @@ If UNMARK (interactively, the prefix), unmark instead."
 
 (defun vc-dir-mark-files (mark-files)
   "Mark files specified by file names in the argument MARK-FILES.
-MARK-FILES should be a list of absolute filenames."
+MARK-FILES should be a list of absolute filenames.
+Directories must have trailing slashes."
+  ;; Filter out subitems that would be implicitly marked.
+  (setq mark-files (sort mark-files))
+  (let ((next mark-files))
+    (while next
+      (when (string-suffix-p "/" (car next))
+        (while (string-prefix-p (car next) (cadr next))
+          (rplacd next (cddr next))))
+      (setq next (cdr next))))
+
   (ewoc-map
    (lambda (filearg)
      (when (member (expand-file-name (vc-dir-fileinfo->name filearg))
