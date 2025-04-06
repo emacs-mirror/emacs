@@ -503,7 +503,7 @@ section or ? for an ask variable."
 	    (when inserter
 	      (let ((base
 		     (cons (oref inserter object-name)
-			   (if (and (slot-boundp inserter :secondname)
+			   (if (and (slot-boundp inserter 'secondname)
 				    (oref inserter secondname))
 			       (split-string (oref inserter secondname)
 					     ":")
