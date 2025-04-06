@@ -1489,6 +1489,17 @@ its default value.  Effectively, the default value hasn't changed,
 since 'vc-resolve-conflicts' defaults to t, the previous default value
 for 'vc-git-resolve-conflicts'.
 
+---
+*** VC-Dir can now automatically add and remove marks on other lines.
+When you try to use a mark or unmark command where doing so would only
+be permitted if other lines were marked or unmarked first, Emacs
+will now ask you if you'd like to change the marks on those other lines.
+For example, if you try to mark a file contained within a directory that
+is already marked, Emacs will offer to unmark the directory, first.
+Previously, Emacs would simply refuse to make any changes.
+You can customize 'vc-dir-allow-mass-mark-changes' to restore the old
+behavior or dispense with the prompting.
+
 ** Diff mode
 
 +++
