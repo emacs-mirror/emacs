@@ -1388,6 +1388,7 @@ and then release it afterwards with:
 
      (gdb) call mps_arena_release(arena)
 
+In Emacs, the arena is usually stored in 'global_igc->arena'.
 
 
 
