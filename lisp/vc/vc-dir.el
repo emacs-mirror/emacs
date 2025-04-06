@@ -684,15 +684,15 @@ With prefix argument ARG, move that many lines."
          (file (ewoc-data crt))
 	 (isdir (vc-dir-fileinfo->directory file))
 	 ;; Forbid marking a directory containing marked files in its
-	 ;; tree, or a file in a marked directory tree.
-	 (conflict (if isdir
-		       (vc-dir-children-marked-p crt)
-		     (vc-dir-parent-marked-p crt))))
-    (when conflict
-      (error (if isdir
-		 "File `%s' in this directory is already marked"
+	 ;; tree, or a file or directory in a marked directory tree.
+         (child-conflict (and isdir (vc-dir-children-marked-p crt)))
+         (parent-conflict (vc-dir-parent-marked-p crt)))
+    (when (or child-conflict parent-conflict)
+      (error (if child-conflict
+		 "Entry `%s' in this directory is already marked"
 	       "Parent directory `%s' is already marked")
-	     (vc-dir-fileinfo->name conflict)))
+	     (vc-dir-fileinfo->name (or child-conflict
+                                        parent-conflict))))
     (setf (vc-dir-fileinfo->marked file) t)
     (ewoc-invalidate vc-ewoc crt)
     (unless (or arg (mouse-event-p last-command-event))
