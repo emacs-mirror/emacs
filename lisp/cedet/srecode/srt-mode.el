@@ -276,7 +276,7 @@ we can tell font lock about them.")
 		  (prin1 (format "%c" key))
 		  )))
 	    (terpri)
-	    (princ (documentation-property C 'variable-documentation))
+	    (princ (cl--class-docstring (cl--find-class C)))
 	    (terpri)
 	    (when showexample
 	      (princ "Example:")
