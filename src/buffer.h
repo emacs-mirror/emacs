@@ -217,8 +217,10 @@ extern ptrdiff_t advance_to_char_boundary (ptrdiff_t byte_pos);
    Do not check that the position is in range.  */
 
 #define FETCH_BYTE(n) (*BYTE_POS_ADDR (n))
-
+
 /* Define the actual buffer data structures.  */
+
+struct text_index;
 
 /* This data structure describes the actual text contents of a buffer.
    It is shared between indirect buffers and their base buffer.  */
@@ -287,6 +289,9 @@ struct buffer_text
 
     /* True if it needs to be redisplayed.  */
     bool_bf redisplay : 1;
+
+    /* Index supporting char <-> byte position mapping.  */
+    struct text_index *index;
   };
 
 /* Most code should use this macro to access Lisp fields in struct buffer.  */

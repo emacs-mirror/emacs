@@ -95,6 +95,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "intervals.h"
 #include "character.h"
 #include "buffer.h"
+#include "text-index.h"
 #include "window.h"
 #include "xwidget.h"
 #include "atimer.h"
@@ -2128,6 +2129,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
 
   /* Init buffer storage and default directory of main buffer.  */
+  init_text_index ();
   init_buffer ();
 
   /* Must precede init_cmdargs and init_sys_modes.  */
@@ -2233,6 +2235,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_eval ();
       syms_of_floatfns ();
 
+      syms_of_text_index ();
       syms_of_buffer ();
       syms_of_bytecode ();
       syms_of_callint ();
