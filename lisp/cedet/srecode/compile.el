@@ -361,7 +361,7 @@ STATE is the current compile state as an object of class
 			     :where 'end)))))))
 
     ;; Construct and return the template object.
-    (srecode-template (semantic-tag-name tag)
+    (srecode-template :object-name (semantic-tag-name tag)
 		      :context    context
 		      :args       (nreverse addargs)
 		      :dictionary root-dict
@@ -504,7 +504,8 @@ PROPS are additional properties that might need to be passed
 to the inserter constructor."
   ;;(message "Compile: %s %S" name props)
   (if (not key)
-      (apply #'make-instance 'srecode-template-inserter-variable name props)
+      (apply #'make-instance 'srecode-template-inserter-variable
+             :object-name name props)
     (let ((classes (eieio-class-children 'srecode-template-inserter))
 	  (new nil))
       ;; Loop over the various subclasses and
@@ -515,7 +516,8 @@ to the inserter constructor."
 	(when (and (not (class-abstract-p (car classes)))
 		   (equal (oref-default (car classes) key) key))
 	  ;; Create the new class, and apply state.
-	  (setq new (apply #'make-instance (car classes) name props))
+	  (setq new (apply #'make-instance (car classes)
+	                   :object-name name props))
 	  (srecode-inserter-apply-state new STATE)
 	  )
 	(setq classes (cdr classes)))

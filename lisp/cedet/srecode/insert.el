@@ -860,10 +860,10 @@ applied to the text between the section start and the
   "For the section inserter INS, parse INPUT.
 Shorten input until the END token is found.
 Return the remains of INPUT."
-  (let* ((out (srecode-compile-split-code tag input STATE
-					  (oref ins object-name))))
+  (let* ((name (oref ins object-name))
+	 (out (srecode-compile-split-code tag input STATE name)))
     (oset ins template (srecode-template
-			(eieio-object-name-string ins)
+			:object-name name
 			:context nil
 			:args nil
 			:code (cdr out)))
