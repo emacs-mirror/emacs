@@ -208,9 +208,7 @@ It creates an autoload function for CNAME's constructor."
       ;; turn this into a usable self-pointing symbol
       (when eieio-backward-compatibility
         (set cname cname)
-        (make-obsolete-variable cname (format "\
-use '%s or turn off `eieio-backward-compatibility' instead" cname)
-                                "25.1"))
+        (make-obsolete-variable cname (format "use '%s instead" cname) "25.1"))
 
       (when (memq nil parents)
         ;; If some parents aren't yet fully defined, just ignore them for now.

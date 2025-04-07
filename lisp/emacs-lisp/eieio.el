@@ -293,12 +293,15 @@ and reference them using the function `class-option'."
              (apply #'make-instance ',name slots))))))
 
 (defun eieio--constructor-macro (whole &rest slots)
+  ;; When `eieio-backward-compatibility' is removed, we should
+  ;; remove this compiler-macro, until then, it's best to emit a compile-time
+  ;; warning even if `eieio-backward-compatibility' is nil, I think.
   (if (or (null slots) (keywordp (car slots))
           ;; Detect the second pass!
           (eq 'identity (car-safe (car slots))))
       whole
     (macroexp-warn-and-return
-     (format "Obsolete name arg %S to constructor %S"
+     (format "Obsolete name argument %S to constructor %S"
              (car slots) (car whole))
      ;; Keep the name arg, for backward compatibility,
      ;; but hide it so we don't trigger indefinitely.
@@ -405,7 +408,7 @@ contents of field NAME is matched against PAT, or they can be of
 (cl-defgeneric eieio-object-name-string (obj)
   "Return a string which is OBJ's name."
   (or (gethash obj eieio--object-names)
-      (format "%s-%x" (eieio-object-class obj) (sxhash-eq obj))))
+      (format "%x" (sxhash-eq obj))))
 
 (define-obsolete-function-alias
   'object-name-string #'eieio-object-name-string "24.4")
@@ -702,6 +705,9 @@ for each slot.  For example:
   (make-instance \\='foo :slot1 value1 :slotN valueN)")
 
 (put 'make-instance 'compiler-macro
+     ;; When `eieio-backward-compatibility' is removed, we should
+     ;; remove this compiler-macro, until then, it's best to emit a compile-time
+     ;; warning even if `eieio-backward-compatibility' is nil, I think.
      (lambda (whole class &rest slots)
        (if (or (null slots) (keywordp (car slots))
                ;; Detect the second pass!
@@ -730,7 +736,7 @@ calls `initialize-instance' on that object."
              (let ((x (car slots)))
                (or (stringp x) (null x))))
         (funcall (if eieio-backward-compatibility #'ignore #'message)
-                 "Obsolete name %S passed to %S constructor"
+                 "Obsolete name argument %S passed to %S constructor"
                  (pop slots) class))
     ;; Call the initialize method on the new object with the slots
     ;; that were passed down to us.
@@ -837,7 +843,7 @@ first and modify the returned object.")
   (let ((nobj (copy-sequence obj)))
     (if (stringp (car params))
         (funcall (if eieio-backward-compatibility #'ignore #'message)
-                 "Obsolete name %S passed to clone" (pop params)))
+                 "Obsolete name argument %S passed to clone" (pop params)))
     (if params (shared-initialize nobj params))
     nobj))
 
