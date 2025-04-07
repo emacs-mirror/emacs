@@ -1500,6 +1500,11 @@ Previously, Emacs would simply refuse to make any changes.
 You can customize 'vc-dir-allow-mass-mark-changes' to restore the old
 behavior or dispense with the prompting.
 
+---
+*** New VC-Dir bindings 'z d' and 'D' to delete Git stashes.
+These correspond to the existing 'z p' to pop a stash and 'P' to pop the
+stash at point.
+
 ** Diff mode
 
 +++
