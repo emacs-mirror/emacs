@@ -1503,7 +1503,7 @@ behavior or dispense with the prompting.
 ---
 *** New VC-Dir bindings 'z d' and 'D' to delete Git stashes.
 These correspond to the existing 'z p' to pop a stash and 'P' to pop the
-stash at point.
+stash at point (deleting the stash at point is also bound to C-k).
 
 ** Diff mode
 
