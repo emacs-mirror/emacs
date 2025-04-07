@@ -1204,7 +1204,7 @@ It is based on `log-edit-mode', and has Git-specific extensions."
           (unwind-protect
               (vc-git-command nil 0 nil "apply" "--cached" patch-file)
             (delete-file patch-file))))
-      (when to-stash (vc-git--stash-staged-changes files)))
+      (when to-stash (vc-git--stash-staged-changes to-stash)))
     ;; When operating on the whole tree, better pass "-a" than ".",
     ;; since "."  fails when we're committing a merge.
     (apply #'vc-git-command nil 0
