@@ -43,6 +43,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "xwidget.h"
 #include "itree.h"
 #include "pdumper.h"
+#include "text-index.h"
 
 #ifdef WINDOWSNT
 #include "w32heap.h"		/* for mmap_* */
@@ -592,6 +593,7 @@ even if it is dead.  The return value is never nil.  */)
 
   /* An ordinary buffer uses its own struct buffer_text.  */
   b->text = &b->own_text;
+  b->text->index = NULL;
   b->base_buffer = NULL;
   /* No one shares the text with us now.  */
   b->indirections = 0;
@@ -845,6 +847,8 @@ Interactively, CLONE and INHIBIT-BUFFER-HOOKS are nil.  */)
 
   /* Use the base buffer's text object.  */
   b->text = b->base_buffer->text;
+  /* Make sure index has a defined value.  */
+  b->own_text.index = NULL;
   /* We have no own text.  */
   b->indirections = -1;
   /* Notify base buffer that we share the text now.  */
@@ -2056,8 +2060,6 @@ cleaning up all windows currently displaying the buffer to be killed. */)
      insisted on circular lists) so allow quitting here.  */
   frames_discard_buffer (buffer);
 
-  clear_charpos_cache (b);
-
   tem = Vinhibit_quit;
   Vinhibit_quit = Qt;
   /* Once the buffer is removed from Vbuffer_alist, its undo_list field is
@@ -2156,6 +2158,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
       free_region_cache (b->bidi_paragraph_cache);
       b->bidi_paragraph_cache = 0;
     }
+  text_index_free (b->own_text.index);
   bset_width_table (b, Qnil);
   unblock_input ();
 
@@ -2725,9 +2728,6 @@ current buffer is cleared.  */)
      instead.  */
   bset_undo_list (current_buffer, Qt);
 
-  /* If the cached position is for this buffer, clear it out.  */
-  clear_charpos_cache (current_buffer);
-
   if (NILP (flag))
     begv = BEGV_BYTE, zv = ZV_BYTE;
   else
@@ -2910,23 +2910,11 @@ current buffer is cleared.  */)
 
       tail = markers = BUF_MARKERS (current_buffer);
 
-      /* This prevents BYTE_TO_CHAR (that is, buf_bytepos_to_charpos) from
-	 getting confused by the markers that have not yet been updated.
-	 It is also a signal that it should never create a marker.  */
-      BUF_MARKERS (current_buffer) = NULL;
-
       for (; tail; tail = tail->next)
 	{
 	  tail->bytepos = advance_to_char_boundary (tail->bytepos);
 	  tail->charpos = BYTE_TO_CHAR (tail->bytepos);
 	}
-
-      /* Make sure no markers were put on the chain
-	 while the chain value was incorrect.  */
-      if (BUF_MARKERS (current_buffer))
-	emacs_abort ();
-
-      BUF_MARKERS (current_buffer) = markers;
 
       /* Do this last, so it can calculate the new correspondences
 	 between chars and bytes.  */

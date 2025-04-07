@@ -2825,6 +2825,7 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
   buffer->clip_changed = 0;
   buffer->last_window_start = -1;
   buffer->point_before_scroll_ = Qnil;
+  buffer->own_text.index = NULL;
 
   dump_off base_offset = 0;
   if (buffer->base_buffer)
