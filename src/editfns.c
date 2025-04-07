@@ -1968,6 +1968,7 @@ a buffer or a string.  But this is deprecated.  */)
   if (FUNCTIONP (source))
     {
       specpdl_ref count = SPECPDL_INDEX ();
+      record_unwind_protect_excursion ();
       record_unwind_protect (save_restriction_restore,
 			     save_restriction_save ());
       Fnarrow_to_region (beg, end);
@@ -2119,7 +2120,6 @@ a buffer or a string.  But this is deprecated.  */)
 
   Fundo_boundary ();
   bool modification_hooks_inhibited = false;
-  record_unwind_protect_excursion ();
 
   /* We are going to make a lot of small modifications, and having the
      modification hooks called for each of them will slow us down.
