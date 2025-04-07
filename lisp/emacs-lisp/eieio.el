@@ -304,7 +304,7 @@ and reference them using the function `class-option'."
      ;; but hide it so we don't trigger indefinitely.
      `(,(car whole) (identity ,(car slots))
        ,@(cdr slots))
-     nil nil (car slots))))
+     '(obsolete eieio-constructor-name-arg) nil (car slots))))
 
 ;;; Get/Set slots in an object.
 ;;
@@ -554,6 +554,7 @@ after they are created."
 Setting a slot's value makes it bound.  Calling `slot-makeunbound' will
 make a slot unbound.
 OBJECT can be an instance or a class."
+  (declare (compiler-macro eieio--check-slot-name))
   ;; Skip typechecking while retrieving this value.
   (let ((eieio-skip-typecheck t))
     ;; Return nil if the magic symbol is in there.
@@ -699,6 +700,20 @@ INITARGS is a property list with keywords based on the `:initarg'
 for each slot.  For example:
 
   (make-instance \\='foo :slot1 value1 :slotN valueN)")
+
+(put 'make-instance 'compiler-macro
+     (lambda (whole class &rest slots)
+       (if (or (null slots) (keywordp (car slots))
+               ;; Detect the second pass!
+               (eq 'identity (car-safe (car slots))))
+           whole
+         (macroexp-warn-and-return
+          (format "Obsolete name arg %S to `make-instance'" (car slots))
+          ;; Keep the name arg, for backward compatibility,
+          ;; but hide it so we don't trigger indefinitely.
+          `(,(car whole) ,class (identity ,(car slots))
+            ,@(cdr slots))
+          '(obsolete eieio-constructor-name-arg) nil (car slots)))))
 
 (define-obsolete-function-alias 'constructor #'make-instance "25.1")
 
