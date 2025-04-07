@@ -153,7 +153,7 @@ The class allocated value is replace by different sub classes.")
   "Make sure the targets slot is bound."
   (cl-call-next-method)
   (unless (slot-boundp this 'targets)
-    (oset this :targets nil))
+    (oset this targets nil))
   )
 
 (cl-defmethod ede-project-root ((this ede-generic-project))

@@ -31,6 +31,7 @@
 ;; `:custom'.
 
 (require 'eieio)
+(require 'eieio-base) ;; For `eieio-named's slot.
 (require 'widget)
 (require 'wid-edit)
 

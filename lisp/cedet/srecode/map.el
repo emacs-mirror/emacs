@@ -338,7 +338,7 @@ if that file is NEW, otherwise assume the mode has not changed."
     ;; Only do the save if we are dirty, or if we are in an interactive
     ;; Emacs.
     (when (and dirty (not noninteractive)
-	       (slot-boundp srecode-current-map :file))
+	       (slot-boundp srecode-current-map 'file))
       (eieio-persistent-save srecode-current-map))
     ))
 

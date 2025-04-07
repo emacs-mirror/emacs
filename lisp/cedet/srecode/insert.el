@@ -648,8 +648,7 @@ Use DICTIONARY to resolve values."
 Use DICTIONARY to resolve values."
   (let* ((default (srecode-insert-ask-default sti dictionary))
 	 (compound-value
-	  (srecode-field-value (oref sti object-name)
-			       :firstinserter sti
+	  (srecode-field-value :firstinserter sti
 			       :defaultvalue default))
 	 )
     ;; Return this special compound value as the thing to insert.
@@ -806,7 +805,7 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
     (srecode-insert-report-error
      dict
      "Only section dictionaries allowed for `%s'"
-     (eieio-object-name-string sti)))
+     (slot-value sti 'object-name)))
 
   ;; Output the code from the sub-template.
   (srecode-insert-method (slot-value sti slot) dict))
@@ -860,10 +859,10 @@ applied to the text between the section start and the
   "For the section inserter INS, parse INPUT.
 Shorten input until the END token is found.
 Return the remains of INPUT."
-  (let* ((out (srecode-compile-split-code tag input STATE
-					  (oref ins object-name))))
+  (let* ((name (oref ins object-name))
+	 (out (srecode-compile-split-code tag input STATE name)))
     (oset ins template (srecode-template
-			(eieio-object-name-string ins)
+			:object-name name
 			:context nil
 			:args nil
 			:code (cdr out)))

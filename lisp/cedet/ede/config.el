@@ -154,14 +154,9 @@ the directory isn't on the `safe' list, ask to add it to the safe list."
 	  (when (file-exists-p fname)
 	    (message "Ignoring EDE config file for now and creating a new one.  Use C-c . g to load it.")
 	    ;; Set how it was ignored.
-	    (if loadask
-		(setq ignore-type 'manual)
-	      (setq ignore-type 'auto))
-	    )
+	    (setq ignore-type (if loadask 'manual 'auto)))
 	  ;; Create a new one.
-	  (setq config (make-instance class
-				      "Configuration"
-				      :file fname))
+	  (setq config (make-instance class :file fname))
 	  (oset config ignored-file ignore-type)
 
 	  ;; Set initial values based on project.
