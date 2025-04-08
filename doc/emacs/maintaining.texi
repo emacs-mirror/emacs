@@ -190,8 +190,8 @@ which it refers to as @dfn{back ends}:
 @item
 Git is a decentralized version control system originally invented by
 Linus Torvalds to support development of Linux (his kernel).  VC
-supports many common Git operations, but others, such as repository
-syncing, must be done from the command line.
+supports all the common Git operations, but notably, Git rebases other
+than simply to edit a commit message must be done from the command line.
 
 @cindex CVS
 @item
@@ -235,8 +235,7 @@ everything you can do with RCS can be done through VC.
 @cindex Mercurial
 @item
 Mercurial (hg) is a decentralized version control system broadly
-resembling Git.  VC supports most Mercurial commands, with the
-exception of repository sync operations.
+resembling Git.  VC supports most Mercurial commands.
 
 @cindex bzr
 @cindex Bazaar
