@@ -2657,9 +2657,12 @@ Value is (TRUENAME . (:uri STR)), where STR is what is sent to the
 server on textDocument/didOpen and similar calls.  TRUENAME is the
 expensive cached value of `file-truename'.")
 
+(defvar-local eglot--versioned-identifier 0)
+
 (cl-defmethod eglot-handle-notification
-  (server (_method (eql textDocument/publishDiagnostics)) &key uri diagnostics
-           &allow-other-keys) ; FIXME: doesn't respect `eglot-strict-mode'
+  (server (_method (eql textDocument/publishDiagnostics))
+          &key uri diagnostics version
+          &allow-other-keys) ; FIXME: doesn't respect `eglot-strict-mode'
   "Handle notification publishDiagnostics."
   (cl-flet ((eglot--diag-type (sev)
               (cond ((null sev) 'eglot-error)
@@ -2681,6 +2684,8 @@ expensive cached value of `file-truename'.")
         (with-current-buffer buffer
           (cl-loop
            initially
+           (if (and version (/= version eglot--versioned-identifier))
+               (cl-return))
            (setq flymake-list-only-diagnostics
                  (assoc-delete-all path flymake-list-only-diagnostics))
            for diag-spec across diagnostics
@@ -2808,8 +2813,6 @@ Sets `eglot--TextDocumentIdentifier-cache' (which see) as a side effect."
       (setq eglot--TextDocumentIdentifier-cache
             `(,truename . (:uri ,(eglot-path-to-uri truename :truenamep t))))))
   (cdr eglot--TextDocumentIdentifier-cache))
-
-(defvar-local eglot--versioned-identifier 0)
 
 (defun eglot--VersionedTextDocumentIdentifier ()
   "Compute VersionedTextDocumentIdentifier object for current buffer."
