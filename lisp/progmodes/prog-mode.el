@@ -244,8 +244,8 @@ of `prettify-symbols-alist' and `compose-region'."
     ;; check that every even-indexed element is displayable
     (seq-every-p
      (lambda (idx-elt)
-       (if (evenp (car idx-elt))
-           (char-displayable-on-frame-p (cdr idx-elt))
+       (if (evenp (cdr idx-elt))
+           (char-displayable-on-frame-p (car idx-elt))
          t))
      (seq-map-indexed #'cons composition)))
    (t
