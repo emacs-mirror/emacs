@@ -1488,8 +1488,6 @@ in your init files."
         (setq-local treesit-range-settings
                     (treesit-range-rules 'c-ts-mode--emacs-set-ranges))
 
-        (setq-local treesit-language-at-point-function
-                    (lambda (_pos) 'c))
         (treesit-font-lock-recompute-features '(emacs-devel)))
 
       ;; Inject doxygen parser for comment.

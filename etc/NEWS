@@ -1995,18 +1995,6 @@ multi-language major mode it is sometimes necessary to modify rules from
 one of the major modes to better suit the new multilingual context.
 
 +++
-*** New command 'treesit-explore'.
-This command replaces 'treesit-explore-mode'.  It turns on
-'treesit-explore-mode' if it’s not on, and pops up the explorer buffer
-if it’s already on.
-
-+++
-*** 'treesit-explore-mode' now supports local parsers.
-Now 'treesit-explore-mode' (or 'treesit-explore') prompts for a parser
-rather than a language, and it’s now possible to select a local parser
-at point to explore.
-
-+++
 *** New variable 'treesit-aggregated-simple-imenu-settings'.
 This variable allows major modes to setup Imenu for multiple languages.
 
@@ -2022,6 +2010,23 @@ tree-sitter modes.
 *** New variable 'treesit-simple-indent-override-rules'.
 Users can customize this variable to add simple custom indentation rules
 for tree-sitter major modes.
+
++++
+*** 'treesit-language-at-point-function' is now optional.
+Multi-language major modes can rely on the default return value from
+'treesit-language-at' that uses the new function 'treesit-parsers-at'.
+
++++
+*** New command 'treesit-explore'.
+This command replaces 'treesit-explore-mode'.  It turns on
+'treesit-explore-mode' if it’s not on, and pops up the explorer buffer
+if it’s already on.
+
++++
+*** 'treesit-explore-mode' now supports local parsers.
+Now 'treesit-explore-mode' (or 'treesit-explore') prompts for a parser
+rather than a language, and it’s now possible to select a local parser
+at point to explore.
 
 +++
 ** New optional BUFFER argument for 'string-pixel-width'.

@@ -174,26 +174,19 @@ The function is called with one argument, the position of point.
 
 In general, this function should call `treesit-node-at' with an
 explicit language (usually the host language), and determine the
-language at point using the type of the returned node.
-
-DO NOT derive the language at point from parser ranges.  It's
-cumbersome and can't deal with some edge cases.")
+language at point using the type of the returned node.")
 
 (defun treesit-language-at (position)
   "Return the language at POSITION.
 
-This function assumes that parser ranges are up-to-date.  It
-returns the return value of `treesit-language-at-point-function'
-if it's non-nil, otherwise it returns the language of the first
-parser in `treesit-parser-list', or nil if there is no parser.
-
-In a multi-language buffer, make sure
-`treesit-language-at-point-function' is implemented!  Otherwise
-`treesit-language-at' wouldn't return the correct result."
+When there are multiple parsers that covers POSITION, determine
+the most relevant parser (hence language) by their embed level.
+If `treesit-language-at-point-function' is non-nil, return
+the return value of that function instead."
   (if treesit-language-at-point-function
       (funcall treesit-language-at-point-function position)
-    (when-let* ((parser (car (treesit-parser-list))))
-      (treesit-parser-language parser))))
+    (treesit-parser-language
+     (car (treesit-parsers-at position)))))
 
 ;;; Node API supplement
 
@@ -247,8 +240,9 @@ language and doesn't match the language of the local parser."
                 (parser-or-lang
                  (let* ((local-parser (car (treesit-local-parsers-at
                                             pos parser-or-lang)))
-                        (global-parser (car (treesit-parser-list
-                                             nil parser-or-lang)))
+                        (global-parser (car (treesit-parsers-at
+                                             pos parser-or-lang nil
+                                             '(primary global))))
                         (parser (or local-parser global-parser)))
                    (when parser
                      (treesit-parser-root-node parser))))
@@ -267,13 +261,10 @@ language and doesn't match the language of the local parser."
                         (local-parser
                          ;; Find the local parser with highest
                          ;; embed-level at point.
-                         (car (seq-sort-by #'treesit-parser-embed-level
-                                           (lambda (a b)
-                                             (> (or a 0) (or b 0)))
-                                           (treesit-local-parsers-at
-                                            pos lang))))
-                        (global-parser (car (treesit-parser-list
-                                             nil lang)))
+                         (car (treesit-local-parsers-at pos lang)))
+                        (global-parser (car (treesit-parsers-at
+                                             pos lang nil
+                                             '(primary global))))
                         (parser (or local-parser global-parser)))
                    (when parser
                      (treesit-parser-root-node parser))))))
@@ -851,30 +842,68 @@ those inside are kept."
            if (<= start (car range) (cdr range) end)
            collect range))
 
+(defun treesit-parsers-at (&optional pos language with-host only)
+  "Return all parsers at POS.
+
+POS defaults to point.  The returned parsers are sorted by
+the decreasing embed level.
+
+If LANGUAGE is non-nil, only return parsers for LANGUAGE.
+
+If WITH-HOST is non-nil, return a list of (PARSER . HOST-PARSER)
+instead.  HOST-PARSER is the host parser which created the PARSER.
+
+If ONLY is nil, return all parsers including the primary parser.
+
+The argument ONLY can be a list of symbols that specify what
+parsers to include in the return value.
+
+If ONLY contains the symbol `local', include local parsers.
+Local parsers are those which only parse a limited region marked
+by an overlay with non-nil `treesit-parser-local-p' property.
+
+If ONLY contains the symbol `global', include non-local parsers
+excluding the primary parser.
+
+If ONLY contains the symbol `primary', include the primary parser."
+  (let ((res nil))
+    ;; Refer to (ref:local-parser-overlay) for more explanation of local
+    ;; parser overlays.
+    (dolist (ov (overlays-at (or pos (point))))
+      (when-let* ((parser (overlay-get ov 'treesit-parser))
+                  (host-parser (or (null with-host)
+                                   (overlay-get ov 'treesit-host-parser)))
+                  (_ (or (null language)
+                         (eq (treesit-parser-language parser)
+                             language)))
+                  (_ (or (null only)
+                         (and (memq 'local only) (memq 'global only))
+                         (and (memq 'local only)
+                              (overlay-get ov 'treesit-parser-local-p))
+                         (and (memq 'global only)
+                              (not (overlay-get ov 'treesit-parser-local-p))))))
+        (push (if with-host (cons parser host-parser) parser) res)))
+    (when (or (null only) (memq 'primary only))
+      (setq res (cons treesit-primary-parser res)))
+    (seq-sort-by (lambda (p)
+                   (treesit-parser-embed-level
+                    (or (car-safe p) p)))
+                 (lambda (a b)
+                   (> (or a 0) (or b 0)))
+                 res)))
+
 (defun treesit-local-parsers-at (&optional pos language with-host)
   "Return all the local parsers at POS.
 
 POS defaults to point.
 Local parsers are those which only parse a limited region marked
-by an overlay with non-nil `treesit-parser' property.
+by an overlay with non-nil `treesit-parser-local-p' property.
 If LANGUAGE is non-nil, only return parsers for LANGUAGE.
 
 If WITH-HOST is non-nil, return a list of (PARSER . HOST-PARSER)
 instead.  HOST-PARSER is the host parser which created the local
 PARSER."
-  (let ((res nil))
-    ;; Refer to (ref:local-parser-overlay) for more explanation of local
-    ;; parser overlays.
-    (dolist (ov (overlays-at (or pos (point))))
-      (let ((parser (overlay-get ov 'treesit-parser))
-            (host-parser (overlay-get ov 'treesit-host-parser))
-            (local-p (overlay-get ov 'treesit-parser-local-p)))
-        (when (and parser host-parser local-p
-                   (or (null language)
-                       (eq (treesit-parser-language parser)
-                           language)))
-          (push (if with-host (cons parser host-parser) parser) res))))
-    (nreverse res)))
+  (treesit-parsers-at pos language with-host '(local)))
 
 (defun treesit-local-parsers-on (&optional beg end language with-host)
   "Return the list of local parsers that cover the region between BEG and END.
@@ -883,7 +912,7 @@ BEG and END default to the beginning and end of the buffer's accessible
 portion.
 
 Local parsers are those that have an `embedded' tag, and only parse a
-limited region marked by an overlay with a non-nil `treesit-parser'
+limited region marked by an overlay with a non-nil `treesit-parser-local-p'
 property.  If LANGUAGE is non-nil, only return parsers for LANGUAGE.
 
 If WITH-HOST is non-nil, return a list of (PARSER . HOST-PARSER)
@@ -3139,9 +3168,7 @@ ARG is described in the docstring of `up-list'."
           (setq parent (treesit-parent-until parent pred)))
 
         (unless parent
-          (let ((parsers (seq-keep (lambda (o)
-                                     (overlay-get o 'treesit-host-parser))
-                                   (overlays-at (point) t))))
+          (let ((parsers (mapcar #'cdr (treesit-parsers-at (point) nil t '(global local)))))
             (while (and (not parent) parsers)
               (setq parent (treesit-parent-until
                             (treesit-node-at (point) (car parsers)) pred)
@@ -3891,9 +3918,8 @@ by `treesit-simple-imenu-settings'."
       (lambda (entry)
         (let* ((lang (car entry))
                (settings (cdr entry))
-               (global-parser (car (treesit-parser-list nil lang)))
-               (local-parsers
-                (treesit-parser-list nil lang 'embedded)))
+               (global-parser (car (treesit-parsers-at nil lang nil '(primary global))))
+               (local-parsers (treesit-local-parsers-at nil lang)))
           (cons (treesit-language-display-name lang)
                 ;; No one says you can't have both global and local
                 ;; parsers for the same language.  E.g., Rust uses
@@ -4033,9 +4059,7 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
       (setq level (1+ level)))
 
     ;; Continue counting the host nodes.
-    (dolist (parser (seq-keep (lambda (o)
-                                (overlay-get o 'treesit-host-parser))
-                              (overlays-at (point) t)))
+    (dolist (parser (mapcar #'cdr (treesit-parsers-at (point) nil t '(global local))))
       (let* ((node (treesit-node-at (point) parser))
              (lang (treesit-parser-language parser))
              (pred (alist-get lang treesit-aggregated-outline-predicate)))

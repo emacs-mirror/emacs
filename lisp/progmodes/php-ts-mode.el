@@ -1150,32 +1150,6 @@ For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
    'font-lock-warning-face
    override start end))
 
-(defun php-ts-mode--html-language-at-point (point)
-  "Return the language at POINT assuming the point is within a HTML region."
-  (let* ((node (treesit-node-at point 'html))
-         (parent (treesit-node-parent node))
-         (node-query (format "(%s (%s))"
-                             (treesit-node-type parent)
-                             (treesit-node-type node))))
-    (cond
-     ((string-equal "(script_element (raw_text))" node-query) 'javascript)
-     ((string-equal "(style_element (raw_text))" node-query) 'css)
-     (t 'html))))
-
-(defun php-ts-mode--language-at-point (point)
-  "Return the language at POINT."
-  (let* ((node (treesit-node-at point 'php))
-         (node-type (treesit-node-type node))
-         (parent (treesit-node-parent node))
-         (node-query (format "(%s (%s))" (treesit-node-type parent) node-type)))
-    (save-excursion
-      (goto-char (treesit-node-start node))
-      (cond
-       ((not (member node-query '("(program (text))"
-                                  "(text_interpolation (text))")))
-        'php)
-       (t (php-ts-mode--html-language-at-point point))))))
-
 
 ;;; Imenu
 
@@ -1465,8 +1439,6 @@ Depends on `c-ts-common-comment-setup'."
                  '((style_element
                     (start_tag (tag_name))
                     (raw_text) @cap))))
-
-    (setq-local treesit-language-at-point-function #'php-ts-mode--language-at-point)
 
     ;; Navigation.
     (setq-local treesit-defun-type-regexp

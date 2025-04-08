@@ -596,18 +596,6 @@ With ARG, do it many times.  Negative ARG means move backward."
     (back-to-indentation)
     (point)))
 
-(defun elixir-ts--treesit-language-at-point (point)
-  "Return the language at POINT."
-  (let ((node (treesit-node-at point 'elixir)))
-    (if (and (equal (treesit-node-type node) "quoted_content")
-             (let ((prev-sibling (treesit-node-prev-sibling node t)))
-               (and (treesit-node-p prev-sibling)
-                    (string-match-p
-                     (rx bos (or "H" "F") eos)
-                     (treesit-node-text prev-sibling)))))
-        'heex
-      'elixir)))
-
 (defun elixir-ts--defun-p (node)
   "Return non-nil when NODE is a defun."
   (member (treesit-node-text
@@ -701,9 +689,6 @@ Return nil if NODE is not a defun node or doesn't have a name."
 
     (setq-local treesit-primary-parser
                 (treesit-parser-create 'elixir))
-
-    (setq-local treesit-language-at-point-function
-                'elixir-ts--treesit-language-at-point)
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings elixir-ts--font-lock-settings)

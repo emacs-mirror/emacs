@@ -211,21 +211,6 @@ Optional ARGUMENTS to to be passed to it."
   "Menu bar for `mhtml-ts-mode'."
   css-mode--menu)
 
-;; To enable some basic treesiter functionality, you should define
-;; a function that recognizes which grammar is used at-point.
-;; This function should be assigned to `treesit-language-at-point-function'
-(defun mhtml-ts-mode--language-at-point (point)
-  "Return the language at POINT assuming the point is within a HTML buffer."
-  (let* ((node (treesit-node-at point 'html))
-         (parent (treesit-node-parent node))
-         (node-query (format "(%s (%s))"
-                             (treesit-node-type parent)
-                             (treesit-node-type node))))
-    (cond
-     ((equal "(script_element (raw_text))" node-query) (js--treesit-language-at-point point))
-     ((equal "(style_element (raw_text))" node-query) 'css)
-     (t 'html))))
-
 ;; Custom font-lock function that's used to apply color to css color
 ;; The signature of the function should be conforming to signature
 ;; QUERY-SPEC required by `treesit-font-lock-rules'.
@@ -440,7 +425,7 @@ Calls REPORT-FN directly.  Requires tidy."
 
 ;;;###autoload
 (define-derived-mode mhtml-ts-mode html-ts-mode
-  '("HTML+" (:eval (let ((lang (mhtml-ts-mode--language-at-point (point))))
+  '("HTML+" (:eval (let ((lang (treesit-language-at (point))))
                      (cond ((eq lang 'html) "")
                            ((eq lang 'javascript) "JS")
                            ((eq lang 'css) "CSS")))))
@@ -514,10 +499,6 @@ Powered by tree-sitter."
       (setq-local c-ts-common--comment-regexp
                   js--treesit-jsdoc-comment-regexp))
 
-
-    ;; Many treesit functions need to know the language at-point.
-    ;; So you should define such a function.
-    (setq-local treesit-language-at-point-function #'mhtml-ts-mode--language-at-point)
     (setq-local prettify-symbols-alist mhtml-ts-mode--prettify-symbols-alist)
 
     ;; Indent.

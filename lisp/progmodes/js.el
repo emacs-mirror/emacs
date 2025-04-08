@@ -3730,22 +3730,6 @@ Return nil if there is no name or if NODE is not a defun node."
                     eos))))
     (_ t)))
 
-(defun js--treesit-language-at-point (point)
-  "Return the language at POINT."
-  (let* ((node (treesit-node-at point 'javascript))
-         (node-type (treesit-node-type node))
-         (node-start (treesit-node-start node))
-         (node-end (treesit-node-end node)))
-    (if (not (treesit-ready-p 'jsdoc t))
-        'javascript
-      (if (equal node-type "comment")
-          (save-excursion
-            (goto-char node-start)
-            (if (search-forward "/**" node-end t)
-                'jsdoc
-              'javascript))
-        'javascript))))
-
 ;;; Main Function
 
 ;;;###autoload
@@ -4006,7 +3990,6 @@ See `treesit-thing-settings' for more information.")
 
     ;; Tree-sitter setup.
     (setq-local treesit-primary-parser (treesit-parser-create 'javascript))
-    (setq-local treesit-language-at-point-function #'js--treesit-language-at-point)
 
     ;; Indent.
     (setq-local treesit-simple-indent-rules js--treesit-indent-rules)
