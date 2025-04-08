@@ -228,6 +228,22 @@ Type \\`?' to see the mode's help."
   (igc-roots-stats))
 
 (define-derived-mode igc-roots-mode special-mode "Roots"
+    "Display root statistics from `igc--roots'.
+You can display two snapshots A and B containing the info from `igc--roots'
+at different times.  These can be displayed either as-is, or by showing the
+difference between them.  \\<igc-roots-mode-map>Type \\[igc-roots-display-a] to switch to snapshot A and \\[igc-roots-display-b] to switch to
+snapshot B.  To take a snapshot, type \\[igc--roots-snapshot].
+To reset the current snapshot, type \\[igc-roots-clear].
+To display the difference between A and B, type \\[igc-roots-display-diff].
+Type \\`g' to refresh the the difference view.
+Type \\`?' to see the mode's help.
+
+The list of IGC roots is a list of elements, one each for every
+root.  Each element has the form (LABEL TYPE START END), where
+- LABEL is the label of the root
+- TYPE is either 'ambig' or 'exact'
+- START is the start address
+- END is either the end address or nil."
   (keymap-local-set "a" #'igc-roots-display-a)
   (keymap-local-set "b" #'igc-roots-display-b)
   (keymap-local-set "c" #'igc-collect)
@@ -274,7 +290,7 @@ Type \\`?' to see the mode's help."
 	(sort-lines nil (point-min) (point-max)))
       (goto-char (point-min))))
   (display-buffer "*igc roots*")
-  (message "Type `C-h f igc-roots-stats RET' for instructions"))
+  (message "Type `?' in the *igc roots* buffer for help"))
 
 (defvar igc--collect-timer nil)
 (defvar igc--collect-file nil)
