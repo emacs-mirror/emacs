@@ -1289,7 +1289,8 @@ BEWARE: this function may change the current buffer."
 FILES should be a pair, or list of pairs, of files and their VC states.
 BACKEND is the VC backend responsible for FILES."
   (let ((state (cdar files))
-        (files* (mapcar #'car (ensure-list files))))
+        (files* (mapcar #'car
+                        (if (proper-list-p files) files (list files)))))
     ;; Check that all files are in a consistent state, since we use that
     ;; state to decide which operation to perform.
     (dolist (crt (cdr files))
