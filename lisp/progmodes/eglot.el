@@ -1080,6 +1080,7 @@ object."
              :callHierarchy      `(:dynamicRegistration :json-false)
              :typeHierarchy      `(:dynamicRegistration :json-false)
              :publishDiagnostics (list :relatedInformation :json-false
+                                       :versionSupport t
                                        ;; TODO: We can support :codeDescription after
                                        ;; adding an appropriate UI to
                                        ;; Flymake.
