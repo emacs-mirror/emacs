@@ -1275,12 +1275,15 @@ static Lisp_Object
 get_lexical_binding (Lisp_Object stream, Lisp_Object from)
 {
   lexical_cookie_t lexc = lisp_file_lexical_cookie (stream);
-  return (lexc == Cookie_Lex ? Qt
-	  : lexc == Cookie_Dyn ? Qnil
-	  : (NILP (from)	/* Loading a byte-compiled file.  */
-	     || NILP (Vinternal__get_default_lexical_binding_function)
-	     ? Fdefault_toplevel_value (Qlexical_binding)
-	     : calln (Vinternal__get_default_lexical_binding_function, from)));
+  return ((lexc == Cookie_Lex
+	   ? Qt
+	   : (lexc == Cookie_Dyn
+	      ? Qnil
+	      : ((NILP (from)	/* Loading a byte-compiled file.  */
+		  || NILP (Vinternal__get_default_lexical_binding_function))
+		 ? Fdefault_toplevel_value (Qlexical_binding)
+		 : calln (Vinternal__get_default_lexical_binding_function,
+			  from)))));
 }
 
 DEFUN ("load", Fload, Sload, 1, 5, 0,
