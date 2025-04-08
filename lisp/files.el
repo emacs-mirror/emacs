@@ -4289,7 +4289,9 @@ You can add one with `M-x elisp-enable-lexical-binding RET'.
 See `%s' and `%s'
 for more information."
                          (if (not (and (bufferp from)
-                                       (equal (buffer-name from) " *load*")
+                                       (string-match-p
+                                          "\\` \\*load\\*\\(-[0-9]+\\)?\\'"
+                                          (buffer-name from))
                                        load-file-name))
                              from
                            (abbreviate-file-name load-file-name))
