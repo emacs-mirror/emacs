@@ -4278,26 +4278,36 @@ all the specified local variables, but ignores any settings of \"mode:\"."
           (hack-local-variables-apply))))))
 
 (defun internal--get-default-lexical-binding (from)
-  (let ((mib (lambda (node) (buttonize node (lambda (_) (info node))))))
+  (let ((mib (lambda (node) (buttonize node (lambda (_) (info node))
+                                  nil "mouse-2: Jump to Info node"))))
     (or (and (bufferp from) (zerop (buffer-size from)))
         (and (stringp from)
              (eql 0 (file-attribute-size (file-attributes from))))
-        (display-warning
-         '(files missing-lexbind-cookie)
-         (format-message "Missing `lexical-binding' cookie in %S.
-You can add one with `M-x elisp-enable-lexical-binding RET'.
+        (let ((source
+               (if (not (and (bufferp from)
+                             (string-match-p "\\` \\*load\\*\\(-[0-9]+\\)?\\'"
+                                             (buffer-name from))
+                             load-file-name))
+                   from
+                 (abbreviate-file-name load-file-name))))
+          (display-warning
+           '(files missing-lexbind-cookie)
+           (format-message "Missing `lexical-binding' cookie in %S.
+You can add one with `M-x %s RET'.
 See `%s' and `%s'
 for more information."
-                         (if (not (and (bufferp from)
-                                       (string-match-p
-                                          "\\` \\*load\\*\\(-[0-9]+\\)?\\'"
-                                          (buffer-name from))
-                                       load-file-name))
-                             from
-                           (abbreviate-file-name load-file-name))
-                         (funcall mib "(elisp)Selecting Lisp Dialect")
-                         (funcall mib "(elisp)Converting to Lexical Binding"))
-         :warning))
+                           source
+                           (buttonize "elisp-enable-lexical-binding"
+                                      (lambda (_)
+                                        (pop-to-buffer
+                                         (if (bufferp source) source
+                                           (find-file-noselect source)))
+                                        (call-interactively
+                                         #'elisp-enable-lexical-binding))
+                                      nil "mouse-2: Add cookie")
+                           (funcall mib "(elisp)Selecting Lisp Dialect")
+                           (funcall mib "(elisp)Converting to Lexical Binding"))
+           :warning)))
     (default-toplevel-value 'lexical-binding)))
 
 (setq internal--get-default-lexical-binding-function
