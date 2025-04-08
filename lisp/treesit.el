@@ -4068,6 +4068,10 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
 
     level))
 
+(defun treesit--after-change (beg end _len)
+  "Force updating the ranges after each text change."
+  (treesit-update-ranges beg end))
+
 ;;; Hideshow mode
 
 (defun treesit-hs-block-end ()
@@ -4362,7 +4366,16 @@ before calling this function."
       (setq treesit-outline-predicate
             #'treesit-outline-predicate--from-imenu))
     (setq-local outline-search-function #'treesit-outline-search
-                outline-level #'treesit-outline-level))
+                outline-level #'treesit-outline-level)
+    (add-hook 'outline-minor-mode-hook
+              (lambda ()
+                (if (bound-and-true-p outline-minor-mode)
+                    (add-hook 'after-change-functions
+                              #'treesit--after-change
+                              0 t)
+                  (remove-hook 'after-change-functions
+                               #'treesit--after-change t)))
+              nil t))
 
   ;; Remove existing local parsers.
   (dolist (ov (overlays-in (point-min) (point-max)))
