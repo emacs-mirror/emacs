@@ -368,7 +368,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                       'vc-not-supported)
                   (message "vc-state5 unsupported")
                 ;; unregistered: Bzr Git RCS Hg
-                ;; unsupported: CVS Mtn SCCS SRC SVN
+                ;; unsupported: CVS SCCS SRC SVN
                 (message "vc-state5 %s %s" backend (vc-state tmp-name backend))
                 (should (memq (vc-state tmp-name backend)
                               '(nil unregistered))))))
