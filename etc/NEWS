@@ -610,6 +610,13 @@ displayed in 'elisp-eldoc-funcall-with-docstring'.  If set to 'short'
 (the default), only display the first sentence of the docstring.
 Otherwise, if set to 'full', display the full docstring.
 
+---
+*** New user option 'elisp-eldoc-docstring-length-limit'.
+This user option controls maximum docstring character limit displayed by
+'elisp-eldoc-funcall-with-docstring' and
+'elisp-eldoc-var-docstring-with-value'.  By default it is set to 1000
+characters
+
 ** Buffer Menu
 
 ---
