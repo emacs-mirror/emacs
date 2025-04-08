@@ -1828,13 +1828,18 @@ Like 'static-if', these macros evaluate their condition at
 macro-expansion time and are useful for writing code that can work
 across different Emacs versions.
 
+** Lexical binding
+
 ---
-** You can change the default value of 'lexical-binding'.
+*** You can change the default value of 'lexical-binding'.
 While the default is still the use of dynamic binding dialect of Elisp
 in those places that don't explicitly set 'lexical-binding' you can
 change it globally with:
 
     (set-default-toplevel-value 'lexical-binding t)
+
+---
+*** Loading a file displays a warning if there is no 'lexical-binding' cookie.
 
 +++
 ** New macros 'incf' and 'decf'.

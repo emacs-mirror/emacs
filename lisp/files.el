@@ -4277,6 +4277,30 @@ all the specified local variables, but ignores any settings of \"mode:\"."
               (push elem file-local-variables-alist)))
           (hack-local-variables-apply))))))
 
+(defun internal--get-default-lexical-binding (from)
+  (let ((mib (lambda (node) (buttonize node (lambda (_) (info node))))))
+    (or (and (bufferp from) (zerop (buffer-size from)))
+        (and (stringp from)
+             (eql 0 (file-attribute-size (file-attributes from))))
+        (display-warning
+         '(files missing-lexbind-cookie)
+         (format-message "Missing `lexical-binding' cookie in %S.
+You can add one with `M-x elisp-enable-lexical-binding RET'.
+See `%s' and `%s'
+for more information."
+                         (if (not (and (bufferp from)
+                                       (equal (buffer-name from) " *load*")
+                                       load-file-name))
+                             from
+                           (abbreviate-file-name load-file-name))
+                         (funcall mib "(elisp)Selecting Lisp Dialect")
+                         (funcall mib "(elisp)Converting to Lexical Binding"))
+         :warning))
+    (default-toplevel-value 'lexical-binding)))
+
+(setq internal--get-default-lexical-binding-function
+      #'internal--get-default-lexical-binding)
+
 (defun hack-local-variables--find-variables (&optional handle-mode)
   "Return all local variables in the current buffer.
 If HANDLE-MODE is nil, we gather all the specified local

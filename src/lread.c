@@ -1271,6 +1271,18 @@ close_file_unwind_android_fd (void *ptr)
 
 #endif
 
+static Lisp_Object
+get_lexical_binding (Lisp_Object stream, Lisp_Object from)
+{
+  lexical_cookie_t lexc = lisp_file_lexical_cookie (stream);
+  return (lexc == Cookie_Lex ? Qt
+	  : lexc == Cookie_Dyn ? Qnil
+	  : (NILP (from)	/* Loading a byte-compiled file.  */
+	     || NILP (Vinternal__get_default_lexical_binding_function)
+	     ? Fdefault_toplevel_value (Qlexical_binding)
+	     : calln (Vinternal__get_default_lexical_binding_function, from)));
+}
+
 DEFUN ("load", Fload, Sload, 1, 5, 0,
        doc: /* Execute a file of Lisp code named FILE.
 First try FILE with `.elc' appended, then try with `.el', then try
@@ -1720,11 +1732,8 @@ Return t if the file exists and loads successfully.  */)
     }
   else
     {
-      lexical_cookie_t lexc = lisp_file_lexical_cookie (Qget_file_char);
       Fset (Qlexical_binding,
-	    (lexc == Cookie_Lex ? Qt
-	     : lexc == Cookie_Dyn ? Qnil
-	     : Fdefault_toplevel_value (Qlexical_binding)));
+	    get_lexical_binding (Qget_file_char, compiled ? Qnil : file));
 
       if (! version || version >= 22)
         readevalloop (Qget_file_char, &input, hist_file_name,
@@ -2609,11 +2618,7 @@ This function preserves the position of point.  */)
   specbind (Qstandard_output, tem);
   record_unwind_protect_excursion ();
   BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
-  lexical_cookie_t lexc = lisp_file_lexical_cookie (buf);
-  specbind (Qlexical_binding,
-	    lexc == Cookie_Lex ? Qt
-	    : lexc == Cookie_Dyn ? Qnil
-	    : Fdefault_toplevel_value (Qlexical_binding));
+  specbind (Qlexical_binding, get_lexical_binding (buf, buf));
   BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
   readevalloop (buf, 0, filename,
 		!NILP (printflag), unibyte, Qnil, Qnil, Qnil);
@@ -5169,7 +5174,7 @@ obarray_index (struct Lisp_Obarray *oa, const char *str, ptrdiff_t size_byte)
   return knuth_hash (reduce_emacs_uint_to_hash_hash (hash), oa->size_bits);
 }
 
-/* Return the symbol in OBARRAY whose names matches the string
+/* Return the symbol in OBARRAY whose name matches the string
    of SIZE characters (SIZE_BYTE bytes) at PTR.
    If there is no such symbol, return the integer bucket number of
    where the symbol would be if it were present.
@@ -6144,6 +6149,11 @@ through `require'.  */);
   DEFSYM (Qweakness, "weakness");
 
   DEFSYM (Qchar_from_name, "char-from-name");
+
+  DEFVAR_LISP ("internal--get-default-lexical-binding-function",
+	       Vinternal__get_default_lexical_binding_function,
+	       doc: /* Function to decide default lexical-binding.  */);
+  Vinternal__get_default_lexical_binding_function = Qnil;
 
   DEFVAR_LISP ("read-symbol-shorthands", Vread_symbol_shorthands,
           doc: /* Alist of known symbol-name shorthands.
