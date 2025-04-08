@@ -44,7 +44,7 @@
 (require 'seq)
 
 ;;; Code:
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 
 (declare-function fileloop-continue "fileloop")
 
@@ -1464,12 +1464,11 @@ state of item at point, if any."
 (defun vc-dir-printer (fileentry)
   (vc-call-backend vc-dir-backend 'dir-printer fileentry))
 
+(declare-function vc-only-files-state-and-model "vc")
+
 (defun vc-dir-deduce-fileset (&optional state-model-only-files)
   (let ((marked (vc-dir-marked-files))
-	files
-	only-files-list
-	state
-	model)
+	files only-files-list)
     (if marked
 	(progn
 	  (setq files marked)
@@ -1479,19 +1478,11 @@ state of item at point, if any."
 	(setq files (list crt))
 	(when state-model-only-files
 	  (setq only-files-list (vc-dir-child-files-and-states)))))
-
-    (when state-model-only-files
-      (setq state (cdar only-files-list))
-      ;; Check that all files are in a consistent state, since we use that
-      ;; state to decide which operation to perform.
-      (dolist (crt (cdr only-files-list))
-	(unless (vc-compatible-state (cdr crt) state)
-	  (error "When applying VC operations to multiple files, the files are required\nto  be in similar VC states.\n%s in state %s clashes with %s in state %s"
-		 (car crt) (cdr crt) (caar only-files-list) state)))
-      (setq only-files-list (mapcar #'car only-files-list))
-      (when (and state (not (eq state 'unregistered)))
-	(setq model (vc-checkout-model vc-dir-backend only-files-list))))
-    (list vc-dir-backend files only-files-list state model)))
+    (if state-model-only-files
+        (cl-list* vc-dir-backend files
+                  (vc-only-files-state-and-model only-files-list
+                                                 vc-dir-backend))
+      (list vc-dir-backend files))))
 
 ;;;###autoload
 (defun vc-dir-root ()

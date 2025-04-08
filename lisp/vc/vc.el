@@ -1284,6 +1284,24 @@ BEWARE: this function may change the current buffer."
     (unless (vc-backend buffer-file-name)
       (error "File %s is not under version control" buffer-file-name))))
 
+(defun vc-only-files-state-and-model (files backend)
+  "Compute last three `vc-deduce-fileset' return value elements for FILES.
+FILES should be a pair, or list of pairs, of files and their VC states.
+BACKEND is the VC backend responsible for FILES."
+  (let ((state (cdar files))
+        (files* (mapcar #'car (ensure-list files))))
+    ;; Check that all files are in a consistent state, since we use that
+    ;; state to decide which operation to perform.
+    (dolist (crt (cdr files))
+      (unless (vc-compatible-state (cdr crt) state)
+        (error "\
+To apply VC operations to multiple files, the files must be in similar VC states.
+%s in state %s clashes with %s in state %s"
+	       (car crt) (cdr crt) (caar files) state)))
+    (list files* state
+          (and state (not (eq state 'unregistered))
+               (vc-checkout-model backend files*)))))
+
 ;;; Support for the C-x v v command.
 ;; This is where all the single-file-oriented code from before the fileset
 ;; rewrite lives.

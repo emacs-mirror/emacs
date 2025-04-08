@@ -3992,31 +3992,25 @@ In this case, the VERBOSE argument is ignored."
           (add-hook 'vc-dir-refresh-hook transient-hook nil t))
       (vc-next-action verbose))))
 
-(declare-function vc-compatible-state "vc")
+(declare-function vc-only-files-state-and-model "vc")
 
 ;;;###autoload
-(defun dired-vc-deduce-fileset (&optional state-model-only-files not-state-changing)
+(defun dired-vc-deduce-fileset
+    (&optional state-model-only-files not-state-changing)
   (let ((backend (vc-responsible-backend default-directory))
-        (files (dired-get-marked-files nil nil nil nil t))
-        only-files-list
-        state
-        model)
-    (when (and (not not-state-changing) (cl-some #'file-directory-p files))
-      (user-error "State changing VC operations on directories supported only in `vc-dir'"))
-
-    (when state-model-only-files
-      (setq only-files-list (mapcar (lambda (file) (cons file (vc-state file))) files))
-      (setq state (cdar only-files-list))
-      ;; Check that all files are in a consistent state, since we use that
-      ;; state to decide which operation to perform.
-      (dolist (crt (cdr only-files-list))
-        (unless (vc-compatible-state (cdr crt) state)
-          (error "When applying VC operations to multiple files, the files are required\nto  be in similar VC states.\n%s in state %s clashes with %s in state %s"
-                 (car crt) (cdr crt) (caar only-files-list) state)))
-      (setq only-files-list (mapcar 'car only-files-list))
-      (when (and state (not (eq state 'unregistered)))
-        (setq model (vc-checkout-model backend only-files-list))))
-    (list backend files only-files-list state model)))
+        (files (dired-get-marked-files nil nil nil nil t)))
+    (when (and (not not-state-changing)
+               (cl-some #'file-directory-p files))
+      (user-error "\
+State-changing VC operations on directories supported only from VC-Dir"))
+    (if state-model-only-files
+        (let ((only-files-list (mapcar (lambda (file)
+                                         (cons file (vc-state file)))
+                                       files)))
+          (cl-list* backend files
+                    (vc-only-files-state-and-model only-files-list
+                                                   backend)))
+      (list backend files))))
 
 
 (provide 'dired-aux)
