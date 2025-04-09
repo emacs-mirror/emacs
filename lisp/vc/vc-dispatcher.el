@@ -177,8 +177,9 @@ Another is that undo information is not kept."
 (defun vc-setup-buffer (buf)
   "Prepare BUF for executing a slave command and make it current."
   (let ((camefrom (current-buffer))
-	(olddir default-directory))
-    (set-buffer (get-buffer-create buf))
+	(olddir default-directory)
+        (buf (get-buffer-create buf)))
+    (set-buffer buf)
     (let ((oldproc (get-buffer-process (current-buffer))))
       ;; If we wanted to wait for oldproc to finish before doing
       ;; something, we'd have used vc-eval-after.
