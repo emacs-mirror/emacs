@@ -197,7 +197,7 @@ pair.
 Like `defvar' but additionally marks the variable as being automatically
 buffer-local wherever it is set.
 \n(fn SYMBOL &optional VALUE DOCSTRING)"
-  (declare (debug defvar) (doc-string 3) (indent 2))
+  (declare (debug defvar) (doc-string 3) (indent defun))
   ;; Can't use backquote here, it's too early in the bootstrap.
   (let ((value (car-safe args))
         (docstring (car-safe (cdr-safe args))))
