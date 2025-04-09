@@ -490,9 +490,11 @@ List has a form of (file-name full-file-name (attribute-list))."
 (defun dired-do-chmod (&optional arg)
   "Change the mode of the marked (or next ARG) files.
 Both octal numeric modes like `644' and symbolic modes like `g+w'
-are supported.  Type \\<minibuffer-local-completion-map>\
-\\[next-history-element] to pull the file attributes of the file
-at point into the minibuffer.
+are supported.
+After invoking the command, \
+type \\<minibuffer-local-completion-map>\\[next-history-element] \
+to pull the file attributes
+of the file at point into the minibuffer.
 
 See Info node `(coreutils)File permissions' for more information.
 Alternatively, see the man page for \"chmod(1)\".
@@ -541,9 +543,10 @@ has no effect on MS-Windows."
 ;;;###autoload
 (defun dired-do-chgrp (&optional arg)
   "Change the group of the marked (or next ARG) files.
-Type \\<minibuffer-local-completion-map>\\[next-history-element] \
-to pull the file attributes of the file at point
-into the minibuffer."
+After invoking the command, \
+type \\<minibuffer-local-completion-map>\\[next-history-element] \
+to pull the file attributes
+of the file at point into the minibuffer."
   (interactive "P" dired-mode)
   (if (and (memq system-type '(ms-dos windows-nt))
            (not (file-remote-p default-directory)))
@@ -553,9 +556,10 @@ into the minibuffer."
 ;;;###autoload
 (defun dired-do-chown (&optional arg)
   "Change the owner of the marked (or next ARG) files.
-Type \\<minibuffer-local-completion-map>\\[next-history-element] \
-to pull the file attributes of the file at point
-into the minibuffer."
+After invoking the command, \
+type \\<minibuffer-local-completion-map>\\[next-history-element] \
+to pull the file attributes
+of the file at point into the minibuffer."
   (interactive "P" dired-mode)
   (if (and (memq system-type '(ms-dos windows-nt))
            (not (file-remote-p default-directory)))
@@ -566,9 +570,10 @@ into the minibuffer."
 (defun dired-do-touch (&optional arg)
   "Change the timestamp of the marked (or next ARG) files.
 This calls touch.
-Type Type \\<minibuffer-local-completion-map>\\[next-history-element] \
-to pull the file attributes of the file at point
-into the minibuffer."
+After invoking the command, \
+type \\<minibuffer-local-completion-map>\\[next-history-element] \
+to pull the file attributes
+of the file at point into the minibuffer."
   (interactive "P" dired-mode)
   (dired-do-chxxx "Timestamp" dired-touch-program 'touch arg))
 
