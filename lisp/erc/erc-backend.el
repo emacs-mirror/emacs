@@ -832,17 +832,23 @@ Make sure you are in an ERC buffer when running this."
     (with-current-buffer buffer
       (erc-server-reconnect))))
 
-(defun erc-server--reconnect-opened (buffer process)
+(defun erc--server-reconnect-opened (buffer process)
   "Reconnect session for server BUFFER using open PROCESS."
   (when (buffer-live-p buffer)
     (with-current-buffer buffer
-      (let ((erc-session-connector (lambda (&rest _) process)))
+      (let* ((orig erc-session-connector)
+             (erc-session-connector
+              (lambda (&rest _)
+                (setq erc-session-connector orig)
+                process)))
         (erc-server-reconnect)))))
 
 (defvar-local erc--server-reconnect-timeout nil)
-(defvar-local erc--server-reconnect-timeout-check 10)
-(defvar-local erc--server-reconnect-timeout-scale-function
-    #'erc--server-reconnect-timeout-double)
+
+;; These variables exist for use in unit tests.
+(defvar erc--server-reconnect-timeout-check 10)
+(defvar erc--server-reconnect-timeout-scale-function
+  #'erc--server-reconnect-timeout-double)
 
 (defun erc--server-reconnect-timeout-double (existing)
   "Double EXISTING timeout, but cap it at 5 minutes."
@@ -851,84 +857,57 @@ Make sure you are in an ERC buffer when running this."
 (defun erc--recon-probe-reschedule (proc)
   "Print a message saying PROC's intended peer can't be reached.
 Then call `erc-schedule-reconnect'."
-  (let ((buffer (process-buffer proc)))
-    (when (buffer-live-p buffer)
-      (with-current-buffer buffer
-        (let ((erc-server-reconnect-timeout erc--server-reconnect-timeout))
-          ;; FIXME either remove this deletion or explain why the one
-          ;; performed by `erc-schedule-reconnect' is insufficient.
-          ;; Perhaps because `proc' may not equal `erc-server-process'?
-          (when proc ; conn refused w/o :nowait
-            (delete-process proc))
-          (erc-display-message nil '(notice error) buffer
-                               'recon-probe-nobody-home)
-          (erc-schedule-reconnect buffer 0))))))
+  (let ((buffer (or (and-let* ((proc)
+                               (buffer (process-buffer proc))
+                               ((buffer-live-p buffer))
+                               (buffer)))
+                    (current-buffer))))
+    (with-current-buffer buffer
+      (let ((erc-server-reconnect-timeout
+             (or erc--server-reconnect-timeout
+                 erc-server-reconnect-timeout)))
+        (when (and proc (not (eq proc erc-server-process)))
+          (set-process-sentinel proc #'ignore)
+          (delete-process proc))
+        (erc-display-message nil '(notice error) buffer
+                             'recon-probe-nobody-home)
+        (erc-schedule-reconnect buffer 0)))))
+
+(defvar erc-server-delayed-check-reconnect-reuse-process-p t
+  "Whether to reuse a successful probe as the session process.")
 
 (defun erc--recon-probe-sentinel (proc event)
   "Send a \"PING\" to PROC's peer on an \"open\" EVENT.
 Otherwise, try connecting from scratch again after timeout."
   (pcase event
     ("open\n"
-     (let ((cookie (time-convert nil 'integer)))
-       (process-put proc 'erc--reconnect-cookie cookie)
-       ;; FIXME account for possible `file-error' when sending.
-       (run-at-time nil nil #'process-send-string proc
-                    (format "PING %d\r\n" cookie))))
-    ((and "connection broken by remote peer\n"
-          (guard (process-get proc 'erc--reconnect-cookie))
-          (let buffer (process-buffer proc))
-          (guard (buffer-live-p buffer)))
-     ;; This can run, for example, if the client dials a TLS-terminating
-     ;; endpoint with a non-TLS opener, like `erc-open-tls-stream', or
-     ;; if the server doesn't take kindly to an opening "PING" during
-     ;; connection registration.
-     (with-current-buffer buffer
-       (delete-process proc)
-       ;; Undo latest penalizing timeout increment.
-       (setq erc--server-reconnect-timeout
-             (max 1 (/ erc--server-reconnect-timeout 2)))
-       (erc-display-message nil '(notice error) buffer 'recon-probe-hung-up
-                            ?t erc--server-reconnect-timeout)
-       (run-at-time erc--server-reconnect-timeout
-                    nil #'erc-server-delayed-reconnect buffer)))
+     (set-process-sentinel proc #'ignore)
+     ;; This has been observed to possibly raise a `file-error'.
+     (if erc-server-delayed-check-reconnect-reuse-process-p
+         (run-at-time nil nil #'erc--server-reconnect-opened
+                      (process-buffer proc) proc)
+       (run-at-time nil nil #'delete-process proc)
+       (run-at-time nil nil #'erc-server-delayed-reconnect
+                    (process-buffer proc))))
     ((or "connection broken by remote peer\n" (rx bot "failed"))
      (run-at-time nil nil #'erc--recon-probe-reschedule proc))))
 
-(defun erc--recon-probe-filter (proc string)
-  "Reconnect, reusing PROC if STRING contains a \"PONG\"."
-  (when-let* ((buffer (process-buffer proc))
-              (buffer-live-p buffer))
-    (with-current-buffer buffer
-      (setq erc--server-reconnect-timeout nil))
-    (if-let* ; reuse proc if string has complete message
-        ((cookie (process-get proc 'erc--reconnect-cookie))
-         ;; Accommodate a leading ":<source> ".
-         ((string-suffix-p (format "PONG %d\r\n" cookie) string)))
-        (progn
-          (erc-log-irc-protocol string nil)
-          (set-process-sentinel proc #'ignore)
-          (set-process-filter proc nil)
-          (run-at-time nil nil #'erc-server--reconnect-opened buffer proc))
-      (delete-process proc)
-      (run-at-time nil nil #'erc-server-delayed-reconnect buffer))))
-
-(defun erc--recon-probe-check (proc tmrx)
-  "Restart auto-reconnect probe if PROC has failed or TIMER has EXPIRE'd.
-Expect TMRX to be a cons cell of (EXPIRE . TIMER)."
-  (let* ((status (process-status proc))
-         (expiredp (time-less-p (pop tmrx) (current-time)))
-         (buffer (process-buffer proc)))
-    (when (or expiredp
-              (not (eq 'connect status)) ; e.g., `closed'
-              (not (buffer-live-p buffer)))
-      (cancel-timer tmrx))
+(defun erc--recon-probe-check (proc expire)
+  "Restart reconnect probe if PROC has failed or EXPIRE time has passed.
+Otherwise, if PROC's buffer is live and its status is `connect', arrange
+for running again in 1 second."
+  (let* ((buffer (process-buffer proc))
+         ;;
+         status)
     (cond ((not (buffer-live-p buffer)))
-          (expiredp
+          ((time-less-p expire (current-time))
+           ;; TODO convert into proper catalog message for i18n.
            (erc-display-message nil 'error buffer "Timed out while dialing...")
-           (delete-process proc)
            (erc--recon-probe-reschedule proc))
-          ((eq 'failed status)
-           (erc--recon-probe-reschedule proc)))))
+          ((eq (setq status (process-status proc)) 'failed)
+           (erc--recon-probe-reschedule proc))
+          ((eq status 'connect)
+           (run-at-time 1 nil #'erc--recon-probe-check proc expire)))))
 
 ;; This probing strategy may appear to hang at various junctures.  It's
 ;; assumed that when *Messages* contains "Waiting for socket ..."  or
@@ -951,26 +930,31 @@ this function as their reconnector."
                          erc-server-reconnect-timeout)))
       (condition-case _
           (let* ((cert erc-session-client-certificate)
-                 (tmrx (list (time-add erc--server-reconnect-timeout-check
-                                       (current-time))))
                  (server (if (string-match erc--server-connect-dumb-ipv6-regexp
                                            erc-session-server)
                              (match-string 1 erc-session-server)
                            erc-session-server))
-                 (proc (apply erc-session-connector "*erc-connectivity-check*"
+                 (name (if erc-server-delayed-check-reconnect-reuse-process-p
+                           (format "erc-%s-%s" server erc-session-port)
+                         "*erc-connectivity-check*"))
+                 (proc (apply erc-session-connector name
                               nil server erc-session-port
-                              (and cert (list :client-certificate cert)))))
-            (setcdr tmrx (run-at-time 1 1 #'erc--recon-probe-check proc tmrx))
-            (set-process-filter proc #'erc--recon-probe-filter)
-            (set-process-sentinel proc #'erc--recon-probe-sentinel)
+                              (and cert (list :client-certificate cert))))
+                 (status (process-status proc)))
             (set-process-buffer proc buffer)
-            ;; Should `erc-server-process' also be set to `proc' here so
-            ;; that `erc-schedule-reconnect' can use it?
-            (cl-assert (processp proc))
-            (when (eq (process-status proc) 'open) ; :nowait is nil
-              (erc--recon-probe-sentinel proc "open\n")))
+            (set-process-filter proc #'ignore)
+            (if (not (eq status 'connect)) ; :nowait is nil
+                (erc--recon-probe-sentinel proc (if (eq status 'open)
+                                                    "open\n"
+                                                  "failed"))
+              (run-at-time 1 nil #'erc--recon-probe-check proc
+                           (time-add erc--server-reconnect-timeout-check
+                                     (current-time)))
+              (set-process-sentinel proc #'erc--recon-probe-sentinel)))
         ;; E.g., "make client process failed" "Connection refused".
-        (file-error (erc--recon-probe-reschedule nil))))))
+        (file-error (erc--recon-probe-reschedule nil))
+        ;; C-g during blocking connect, like with the SOCKS connector.
+        (quit (erc--cancel-auto-reconnect-timer))))))
 
 (defun erc-server-prefer-check-reconnect (buffer)
   "Defer to another reconnector based on BUFFER's `erc-session-connector'.
@@ -1085,7 +1069,6 @@ When `erc-server-reconnect-attempts' is a number, increment
                          ?i (if count erc-server-reconnect-count "N")
                          ?n (if count erc-server-reconnect-attempts "A"))
     (set-process-sentinel proc #'ignore)
-    (set-process-filter proc nil)
     (delete-process proc)
     (erc-update-mode-line)
     (setq erc-server-reconnecting nil
