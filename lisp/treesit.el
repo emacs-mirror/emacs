@@ -3985,7 +3985,7 @@ this variable takes priority.")
     (or (and current-valid current)
         (and next-valid (treesit-thing-at next pred)))))
 
-(defun treesit-outline-search (&optional bound move backward looking-at recursive)
+(defun treesit-outline-search (&optional bound move backward looking-at)
   "Search for the next outline heading in the syntax tree.
 For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
 `outline-search-function'."
@@ -4004,48 +4004,55 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
               (if (eq (point) (pos-bol))
                   (if (bobp) (point) (1- (point)))
                 (pos-eol))))
-           (pred (if treesit-aggregated-outline-predicate
-                     (alist-get (treesit-language-at (or bob-pos pos))
-                                treesit-aggregated-outline-predicate)
-                   treesit-outline-predicate))
+           (pred (unless bob-pos
+                   (if treesit-aggregated-outline-predicate
+                       (alist-get (treesit-language-at pos)
+                                  treesit-aggregated-outline-predicate)
+                     treesit-outline-predicate)))
            (found (or bob-pos
                       (treesit-navigate-thing pos (if backward -1 1) 'beg pred)))
-           (closest (unless bob-pos
+           (closest (when (and treesit-aggregated-outline-predicate (not bob-pos))
                       (if backward
                           (previous-single-char-property-change pos 'treesit-parser)
                         (next-single-char-property-change pos 'treesit-parser)))))
 
-      ;; Handle multi-language modes
-      (if (and closest
-               (not (eq closest (if backward (point-min) (point-max))))
-               (not recursive)
-               (or
-                ;; Possibly was inside the local parser, and when can't find
-                ;; more matches inside it then need to go over the closest
-                ;; parser boundary to the primary parser.
-                (not found)
-                ;; Possibly skipped the local parser, either while navigating
-                ;; inside the primary parser, or inside a local parser
-                ;; interspersed by ranges of other local parsers, e.g.
-                ;; <html><script>|</script><style/><script/></html>
-                (if backward (> closest found) (< closest found))))
-          (progn
-            (goto-char (if backward
-                           (max (point-min) (1- closest))
-                         (min (point-max) (1+ closest))))
-            (treesit-outline-search bound move backward nil 'recursive))
+      ;; Handle multi-language modes.
+      (while (and closest
+                  (not (eq closest (if backward (point-min) (point-max))))
+                  (or
+                   ;; Possibly was inside the local parser, and when can't find
+                   ;; more matches inside it then need to go over the closest
+                   ;; parser boundary to the primary parser, and search again.
+                   (not found)
+                   ;; Possibly skipped the local parser, either while navigating
+                   ;; inside the primary parser, or inside a local parser
+                   ;; interspersed by ranges of other local parsers, e.g.
+                   ;; <html><script>|</script><style/><script/></html>
+                   (if backward (> closest found) (< closest found))))
+        (goto-char (if backward
+                       (max (point-min) (1- closest))
+                     (min (point-max) (1+ closest))))
+        (setq pos (if (eq (point) (pos-bol))
+                      (if (bobp) (point) (1- (point)))
+                    (pos-eol))
+              pred (alist-get (treesit-language-at pos)
+                              treesit-aggregated-outline-predicate)
+              found (treesit-navigate-thing pos (if backward -1 1) 'beg pred)
+              closest (if backward
+                          (previous-single-char-property-change pos 'treesit-parser)
+                        (next-single-char-property-change pos 'treesit-parser))))
 
-        (if found
-            (if (or (not bound) (if backward (>= found bound) (<= found bound)))
-                (progn
-                  (goto-char found)
-                  (goto-char (pos-bol))
-                  (set-match-data (list (point) (pos-eol)))
-                  t)
-              (when move (goto-char bound))
-              nil)
-          (when move (goto-char (or bound (if backward (point-min) (point-max)))))
-          nil)))))
+      (if found
+          (if (or (not bound) (if backward (>= found bound) (<= found bound)))
+              (progn
+                (goto-char found)
+                (goto-char (pos-bol))
+                (set-match-data (list (point) (pos-eol)))
+                t)
+            (when move (goto-char bound))
+            nil)
+        (when move (goto-char (or bound (if backward (point-min) (point-max)))))
+        nil))))
 
 (defun treesit-outline-level ()
   "Return the depth of the current outline heading."

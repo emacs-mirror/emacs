@@ -1520,7 +1520,7 @@ Depends on `c-ts-common-comment-setup'."
     (setq-local electric-indent-chars
                 (append "{}():;," electric-indent-chars))
 
-    ;; Imenu/Which-function/Outline
+    ;; Imenu/Which-function
     (setq-local treesit-simple-imenu-settings
                 '(("Class" "\\`class_declaration\\'" nil nil)
                   ("Enum" "\\`enum_declaration\\'" nil nil)
@@ -1531,6 +1531,16 @@ Depends on `c-ts-common-comment-setup'."
                   ("Trait" "\\`trait_declaration\\'" nil nil)
                   ("Variable" "\\`variable_name\\'" nil nil)
                   ("Constant" "\\`const_element\\'" nil nil)))
+
+    ;; Outline
+    (setq-local treesit-outline-predicate
+                (rx bos (or "class_declaration"
+                            "function_definition"
+                            "interface_declaration"
+                            "method_declaration"
+                            "namespace_definition"
+                            "trait_declaration")
+                    eos))
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings
