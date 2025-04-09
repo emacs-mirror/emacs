@@ -433,6 +433,19 @@ This user option describes projects that should always be skipped by
 'project-remember-project'.
 
 ---
+*** New user option 'project-prune-zombie-projects'.
+This user option controls the automatic deletion of projects from
+'project-list-file' that cannot be accessed when prompting for a
+project.
+
+The value can be a predicate which takes one argument and should return
+non-nil if the project should be removed.  If set to nil, all the
+inaccessible projects will not be removed automatically.
+
+By default this is set to 'project-prune-zombies-default' function
+which removes all non-remote projects.
+
+---
 *** New command 'project-save-some-buffers' bound to 'C-x p C-x s'.
 This is like 'C-x s', but only for this project's buffers.
 
