@@ -1288,17 +1288,40 @@ BEWARE: this function may change the current buffer."
   "Compute last three `vc-deduce-fileset' return value elements for FILES.
 FILES should be a pair, or list of pairs, of files and their VC states.
 BACKEND is the VC backend responsible for FILES."
-  (let ((state (cdar files))
-        (files* (mapcar #'car
-                        (if (proper-list-p files) files (list files)))))
+  (let* ((files (if (proper-list-p files) files (list files)))
+         files* states-alist states state)
     ;; Check that all files are in a consistent state, since we use that
     ;; state to decide which operation to perform.
-    (dolist (crt (cdr files))
-      (unless (vc-compatible-state (cdr crt) state)
-        (error "\
+    (pcase-dolist (`(,file . ,state) files)
+      (push file files*)
+      (push file (alist-get state states-alist nil nil #'eq)))
+    (setq states (mapcar #'car states-alist))
+    (cond ((length= states 1)
+           (setq state (car states)))
+          ((cl-subsetp states '(added removed edited))
+           (setq state 'edited))
+
+          ;; Special, but common case:
+          ;; checking in both changes and new files at once.
+          ((and (cl-subsetp states '(added removed edited unregistered))
+                (y-or-n-p "Some files are unregistered; register them first?"))
+           (vc-register (list backend
+                              (cdr (assq 'unregistered states-alist))))
+           (setq state 'edited))
+
+          (t
+           (let* ((pred (lambda (elt)
+                          (memq (car elt) '(added removed edited))))
+                  (compat-alist (cl-remove-if-not pred states-alist))
+                  (other-alist (cl-remove-if pred states-alist))
+                  (first (car (or compat-alist other-alist)))
+                  (second (if compat-alist
+                              (car other-alist)
+                            (cadr other-alist))))
+             (error "\
 To apply VC operations to multiple files, the files must be in similar VC states.
 %s in state %s clashes with %s in state %s"
-	       (car crt) (cdr crt) (caar files) state)))
+                    (cadr first) (car first) (cadr second) (car second)))))
     (list files* state
           (and state (not (eq state 'unregistered))
                (vc-checkout-model backend files*)))))
@@ -1313,12 +1336,6 @@ To apply VC operations to multiple files, the files must be in similar VC states
     (and backend
          (or (eq (vc-checkout-model backend (list file)) 'implicit)
              (memq (vc-state file) '(edited needs-merge conflict))))))
-
-(defun vc-compatible-state (p q)
-  "Control which states can be in the same commit."
-  (or
-   (eq p q)
-   (and (member p '(edited added removed)) (member q '(edited added removed)))))
 
 (defun vc-read-backend (prompt &optional backends default)
   (let ((backends (or backends vc-handled-backends))
@@ -1344,6 +1361,8 @@ For modern merging-based version control systems:
    backend with which to register the fileset.
   If every work file in the VC fileset is either added or modified,
    pop up a *vc-log* buffer to commit the fileset changes.
+  (If some are added or modified and some are unregistered, offer to
+   register the unregistered ones, first.)
   For a centralized version control system, if any work file in
    the VC fileset is out of date, offer to update the fileset.
 
@@ -1432,7 +1451,7 @@ from which to check out the file(s)."
         ;; do nothing
         (message "Fileset is up-to-date"))))
      ;; Files have local changes
-     ((vc-compatible-state state 'edited)
+     ((memq state '(added removed edited))
       (let ((ready-for-commit files))
 	;; CVS, SVN and bzr don't care about read-only (bug#9781).
 	;; RCS does, SCCS might (someone should check...).

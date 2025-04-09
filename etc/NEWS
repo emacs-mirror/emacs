@@ -1505,6 +1505,13 @@ behavior or dispense with the prompting.
 These correspond to the existing 'z p' to pop a stash and 'P' to pop the
 stash at point (deleting the stash at point is also bound to C-k).
 
+---
+*** VC-Dir now offers to register files when checking in mixed filesets.
+Previously, if some files to be checked in were unregistered but others
+were added, removed or edited, Emacs would refuse to proceed.
+Now Emacs prompts to first register the unregistered files, so that all
+files in the fileset are in a compatible state for a checkin.
+
 ** Diff mode
 
 +++
