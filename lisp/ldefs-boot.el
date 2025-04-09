@@ -38064,7 +38064,7 @@ mode.
 
 ;;; Generated autoloads from window-x.el
 
-(autoload 'rotate-window-layout-counterclockwise "window-x" "\
+(autoload 'window-layout-rotate-anticlockwise "window-x" "\
 Rotate window layout of WINDOW counterclockwise by 90 degrees.
 
 If WINDOW is nil, it defaults to the root window of the selected frame.
@@ -38073,7 +38073,7 @@ Interactively, a prefix argument says to rotate the parent window of the
 selected window.
 
 (fn &optional WINDOW)" t)
-(autoload 'rotate-window-layout-clockwise "window-x" "\
+(autoload 'window-layout-rotate-clockwise "window-x" "\
 Rotate window layout under WINDOW clockwise by 90 degrees.
 
 If WINDOW is nil, it defaults to the root window of the selected frame.
@@ -38082,7 +38082,7 @@ Interactively, a prefix argument says to rotate the parent window of the
 selected window.
 
 (fn &optional WINDOW)" t)
-(autoload 'flip-window-layout-horizontally "window-x" "\
+(autoload 'window-layout-flip-leftright "window-x" "\
 Horizontally flip windows under WINDOW.
 
 Flip the window layout so that the window on the right becomes the
@@ -38094,7 +38094,7 @@ Interactively, a prefix argument says to flip the parent window of the
 selected window.
 
 (fn &optional WINDOW)" t)
-(autoload 'flip-window-layout-vertically "window-x" "\
+(autoload 'window-layout-flip-topdown "window-x" "\
 Vertically flip windows under WINDOW.
 
 Flip the window layout so that the top window becomes the bottom window,
@@ -38106,7 +38106,7 @@ Interactively, a prefix argument says to flip the parent window of the
 selected window.
 
 (fn &optional WINDOW)" t)
-(autoload 'transpose-window-layout "window-x" "\
+(autoload 'window-layout-transpose "window-x" "\
 Transpose windows under WINDOW.
 
 Reorganize the windows under WINDOW so that every horizontal split

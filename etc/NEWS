@@ -227,9 +227,9 @@ albeit as a variable, not a user option.
 +++
 *** New functions to modify window layout.
 Several functions to modify the window layout have been added:
-'rotate-window-layout-clockwise', 'rotate-window-layout-anticlockwise',
-'flip-window-layout-vertically', 'flip-window-layout-horizontally',
-'transpose-window-layout', 'rotate-windows', and 'rotate-windows-back'.
+'window-layout-rotate-clockwise', 'window-layout-rotate-anticlockwise',
+'window-layout-flip-topdown', 'window-layout-flip-leftright',
+'window-layout-transpose', 'rotate-windows', and 'rotate-windows-back'.
 
 +++
 *** Windmove commands now move to skipped windows if invoked twice in a row.
