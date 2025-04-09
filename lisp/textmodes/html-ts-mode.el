@@ -90,15 +90,15 @@
 
 (defvar html-ts-mode--treesit-things-settings
   `((html
-     (sexp ,(regexp-opt '("element"
-                          "text"
-                          "attribute"
-                          "value")))
-     (list ,(rx (or
-                 ;; Also match script_element and style_element
-                 "element"
-                 ;; HTML comments have the element syntax
-                 "comment")))
+     (sexp (not (or (and named
+                         ,(rx bos (or "document" "tag_name") eos))
+                    (and anonymous
+                         ,(rx (or "<!" "<" ">" "</"))))))
+     (list ,(rx (or "doctype"
+                    ;; Also match script_element and style_element
+                    "element"
+                    ;; HTML comments have the element syntax
+                    "comment")))
      (sentence ,(rx (and bos (or "tag_name" "attribute") eos)))
      (text ,(regexp-opt '("comment" "text")))))
   "Settings for `treesit-thing-settings'.")

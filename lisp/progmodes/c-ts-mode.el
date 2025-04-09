@@ -1194,7 +1194,11 @@ if `c-ts-mode-emacs-sources-support' is non-nil."
 (defvar c-ts-mode--thing-settings
   `(;; It's more useful to include semicolons as sexp so
     ;; that users can move to the end of a statement.
-    (sexp (not ,(rx (or "{" "}" "[" "]" "(" ")" ","))))
+    (sexp (not (or (and named
+                        ,(rx bos (or "translation_unit" "comment") eos))
+                   (and anonymous
+                        ,(rx (or "{" "}" "[" "]"
+                                 "(" ")" ","))))))
     (list
      ,(regexp-opt '("preproc_params"
                     "preproc_if"

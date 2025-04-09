@@ -1455,7 +1455,14 @@ Depends on `c-ts-common-comment-setup'."
     (setq-local treesit-thing-settings
                 `((php
                    (defun ,treesit-defun-type-regexp)
-                   (sexp (not ,(rx (or "{" "}" "[" "]" "(" ")" ","))))
+                   (sexp (not (or (and named
+                                       ,(rx bos (or "program"
+                                                    "comment")
+                                            eos))
+                                  (and anonymous
+                                       ,(rx bos (or "{" "}" "[" "]"
+                                                    "(" ")" ",")
+                                            eos)))))
                    (list
                     ,(rx bos (or "namespace_use_group"
                                  "enum_declaration_list"

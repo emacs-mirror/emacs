@@ -111,13 +111,6 @@
   "Face used for attributes in Elixir files."
   :group 'elixir-ts)
 
-(defconst elixir-ts--sexp-regexp
-  (rx bol
-      (or "call" "stab_clause" "binary_operator" "list" "tuple" "map" "pair"
-          "sigil" "string" "atom" "alias" "arguments" "identifier"
-          "boolean" "quoted_content" "bitstring")
-      eol))
-
 (defconst elixir-ts--test-definition-keywords
   '("describe" "test"))
 
@@ -574,20 +567,9 @@
               (:match "^[HF]$" @_name)
               (quoted_content) @heex)))))
 
-(defvar heex-ts--sexp-regexp)
+(defvar heex-ts--thing-settings)
 (defvar heex-ts--indent-rules)
 (defvar heex-ts--font-lock-settings)
-
-(defun elixir-ts--forward-sexp (&optional arg)
-  "Move forward across one balanced expression (sexp).
-With ARG, do it many times.  Negative ARG means move backward."
-  (or arg (setq arg 1))
-  (funcall
-   (if (> arg 0) #'treesit-end-of-thing #'treesit-beginning-of-thing)
-   (if (eq (treesit-language-at (point)) 'heex)
-       heex-ts--sexp-regexp
-     elixir-ts--sexp-regexp)
-   (abs arg)))
 
 (defun elixir-ts--treesit-anchor-grand-parent-bol (_n parent &rest _)
   "Return the beginning of non-space characters for the parent node of PARENT."
@@ -623,6 +605,14 @@ Return nil if NODE is not a defun node or doesn't have a name."
                  (treesit-node-text node-child t))
                 (_ nil))))
     (_ nil)))
+
+(defun elixir-ts--with-parens-0-p (node)
+  (equal (treesit-node-type (treesit-node-child node 0))
+         "("))
+
+(defun elixir-ts--with-parens-1-p (node)
+  (equal (treesit-node-type (treesit-node-child node 1))
+         "("))
 
 (defvar elixir-ts--syntax-propertize-query
   (when (treesit-available-p)
@@ -707,7 +697,34 @@ Return nil if NODE is not a defun node or doesn't have a name."
     (setq-local treesit-simple-indent-rules elixir-ts--indent-rules)
 
     ;; Navigation.
-    (setq-local forward-sexp-function #'elixir-ts--forward-sexp)
+    (setq-local treesit-thing-settings
+                `((elixir
+                   (sexp (not (or (and named
+                                       ,(rx bos (or "source" "comment") eos))
+                                  (and anonymous
+                                       ,(rx (or "{" "}" "[" "]" "(" ")"
+                                                "do" "end"))))))
+                   (list
+                    (or (and "\\`arguments\\'" ,#'elixir-ts--with-parens-0-p)
+                        (and "\\`unary_operator\\'" ,#'elixir-ts--with-parens-1-p)
+                        ,(rx bos (or "block"
+                                     "quoted_atom"
+                                     "string"
+                                     "interpolation"
+                                     "sigil"
+                                     "quoted_keyword"
+                                     "list"
+                                     "tuple"
+                                     "bitstring"
+                                     "map"
+                                     "do_block"
+                                     "anonymous_function")
+                             eos)))
+                   (sentence
+                    ,(rx bos (or "call") eos))
+                   (text
+                    ,(rx bos (or "string" "sigil" "comment") eos)))
+                  (heex ,@heex-ts--thing-settings)))
     (setq-local treesit-defun-type-regexp
                 '("call" . elixir-ts--defun-p))
 

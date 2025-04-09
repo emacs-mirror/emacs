@@ -3004,8 +3004,7 @@ across atoms (such as symbols or words) inside the list."
   (let ((arg (or arg 1))
         (pred (or treesit-sexp-type-regexp 'sexp))
         (node-at-point
-         (when (null treesit-sexp-type-regexp)
-           (treesit-node-at (point) (treesit-language-at (point))))))
+         (treesit-node-at (point) (treesit-language-at (point)))))
     (or (when (and node-at-point
                    ;; Make sure point is strictly inside node.
                    (< (treesit-node-start node-at-point)
@@ -3107,7 +3106,7 @@ redefined by the variable `down-list-function'.
 
 ARG is described in the docstring of `down-list'."
   (interactive "^p")
-  (let* ((pred 'list)
+  (let* ((pred (or treesit-sexp-type-regexp 'list))
          (arg (or arg 1))
          (cnt arg)
          (inc (if (> arg 0) 1 -1)))
@@ -3123,7 +3122,8 @@ ARG is described in the docstring of `down-list'."
                         (treesit-thing-prev (point) pred)))
              (child (when sibling
                       (treesit-node-child sibling (if (> arg 0) 0 -1)))))
-        (or (when (and default-pos
+        (or (when (and (null treesit-sexp-type-regexp)
+                       default-pos
                        (or (null child)
                            (if (> arg 0)
                                (<= default-pos (treesit-node-start child))
@@ -3147,7 +3147,7 @@ redefined by the variable `up-list-function'.
 
 ARG is described in the docstring of `up-list'."
   (interactive "^p")
-  (let* ((pred 'list)
+  (let* ((pred (or treesit-sexp-type-regexp 'list))
          (arg (or arg 1))
          (cnt arg)
          (inc (if (> arg 0) 1 -1)))
@@ -3174,7 +3174,8 @@ ARG is described in the docstring of `up-list'."
                             (treesit-node-at (point) (car parsers)) pred)
                     parsers (cdr parsers)))))
 
-        (or (when (and default-pos
+        (or (when (and (null treesit-sexp-type-regexp)
+                       default-pos
                        (or (null parent)
                            (if (> arg 0)
                                (<= default-pos (treesit-node-end parent))
@@ -3186,6 +3187,37 @@ ARG is described in the docstring of `up-list'."
                            (treesit-node-start parent))))
             (user-error "At top level")))
       (setq cnt (- cnt inc)))))
+
+(defun treesit-toggle-sexp-mode ()
+  "Toggle the mode of navigation for sexp and list commands.
+This mode toggle affects such navigation commands as
+`treesit-forward-sexp', `treesit-forward-list', `treesit-down-list',
+`treesit-up-list'.
+
+The list mode uses the `list' thing defined in `treesit-thing-settings'.
+In this mode commands use syntax definition to navigate symbols and
+treesit definition to navigate lists.
+
+The sexp mode uses the `sexp' thing defined in `treesit-thing-settings'.
+In this mode commands use the treesit definition only
+without distinction between symbols and lists."
+  (interactive)
+  (if (not (treesit-thing-defined-p 'list (treesit-language-at (point))))
+      (message "No `list' thing is defined in `treesit-thing-settings'")
+    (setq-local treesit-sexp-type-regexp
+                (unless treesit-sexp-type-regexp
+                  (if (treesit-thing-defined-p
+                       'sexp (treesit-language-at (point)))
+                      'sexp
+                    #'treesit-node-named))
+                forward-sexp-function
+                (if treesit-sexp-type-regexp
+                    #'treesit-forward-sexp
+                  #'treesit-forward-sexp-list))
+    (message "Toggle to mode where sexp commands navigate %s"
+             (or (and treesit-sexp-type-regexp
+                      "treesit nodes")
+                 "syntax symbols and treesit lists"))))
 
 (defun treesit-transpose-sexps (&optional arg)
   "Tree-sitter `transpose-sexps' function.

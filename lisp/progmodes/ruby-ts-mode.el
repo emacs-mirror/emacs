@@ -1167,52 +1167,18 @@ leading double colon is not added."
 
   (setq-local treesit-thing-settings
               `((ruby
-                 (sexp ,(cons (rx
-                               bos
-                               (or
-                                "class"
-                                "singleton_class"
-                                "module"
-                                "method"
-                                "singleton_method"
-                                "array"
-                                "hash"
-                                "parenthesized_statements"
-                                "method_parameters"
-                                "array_pattern"
-                                "hash_pattern"
-                                "if"
-                                "else"
-                                "then"
-                                "unless"
-                                "case"
-                                "case_match"
-                                "when"
-                                "while"
-                                "until"
-                                "for"
-                                "block"
-                                "do_block"
-                                "begin"
-                                "integer"
-                                "identifier"
-                                "self"
-                                "super"
-                                "constant"
-                                "simple_symbol"
-                                "hash_key_symbol"
-                                "symbol_array"
-                                "string"
-                                "string_array"
-                                "heredoc_body"
-                                "regex"
-                                "argument_list"
-                                "interpolation"
-                                "instance_variable"
-                                "global_variable"
-                                )
-                               eos)
-                              #'ruby-ts--sexp-p))
+                 (sexp (not (or (and named
+                                     ,(rx bos (or "program"
+                                                  "body_statement"
+                                                  "comment"
+                                                  "then")
+                                          eos))
+                                (and anonymous
+                                     ,(rx (or "do" "begin"
+                                              "if" "unless"
+                                              "def" "end"
+                                              "(" ")" "[" "]"
+                                              "{" "}" "|" "," ";"))))))
                  (list ,(cons (rx
                                bos
                                (or

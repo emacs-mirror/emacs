@@ -1781,7 +1781,13 @@ rgb()/rgba()."
            res)))))))
 
 (defvar css--treesit-thing-settings
-  `((css (list
+  `((css (sexp
+          (not (or (and named
+                        ,(rx bos (or "stylesheet" "comment") eos))
+                   (and anonymous
+                        ,(rx (or "{" "}" "[" "]"
+                                 "(" ")" ","))))))
+         (list
           ,(rx bos (or "keyframe_block_list"
                        "block"
                        "pseudo_class_arguments"
@@ -1804,7 +1810,7 @@ rgb()/rgba()."
                        "declaration")
                eos))
          (text
-          ,(rx bos "comment" eos))))
+          ,(rx bos (or "comment" "string_value") eos))))
   "Settings for `treesit-thing-settings'.")
 
 (defvar css--treesit-font-lock-feature-list

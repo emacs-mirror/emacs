@@ -535,6 +535,17 @@ This variable has no effect when Transient Mark mode is off.
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
+** Tree-sitter
+
+*** New command 'treesit-toggle-sexp-mode'.
+It toggles the mode of navigation for such sexp and list commands as
+'treesit-forward-sexp', 'treesit-forward-list', 'treesit-down-list',
+'treesit-up-list'.
+In sexp mode these commands navigate purely by treesit nodes
+defined by the thing ‘sexp’.
+In list mode they navigate using syntax tables for symbols
+and using the treesit thing ‘list’ for lists.
+
 ---
 ** Text mode
 

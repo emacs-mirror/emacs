@@ -436,19 +436,15 @@ Return nil if there is no name or if NODE is not a defun node."
 
     (setq-local treesit-thing-settings
                 `((java
-                   (sexp ,(rx (or "annotation"
-                                  "parenthesized_expression"
-                                  "argument_list"
-                                  "identifier"
-                                  "modifiers"
-                                  "block"
-                                  "body"
-                                  "literal"
-                                  "access"
-                                  "reference"
-                                  "_type"
-                                  "true"
-                                  "false")))
+                   (sexp (not (or (and named
+                                       ,(rx bos (or "program"
+                                                    "line_comment"
+                                                    "block_comment")
+                                            eos))
+                                  (and anonymous
+                                       ,(rx (or "{" "}" "[" "]"
+                                                "(" ")" "<" ">"
+                                                ","))))))
                    (list ,(rx bos (or "inferred_parameters"
                                       "parenthesized_expression"
                                       "argument_list"

@@ -56,12 +56,6 @@
   :safe 'integerp
   :group 'heex-ts)
 
-(defconst heex-ts--sexp-regexp
-  (rx bol
-      (or "directive" "tag" "component" "slot"
-          "attribute" "attribute_value" "quoted_attribute_value" "expression")
-      eol))
-
 ;; There seems to be no parent directive block for tree-sitter-heex,
 ;; so we ignore them for now until we learn how to query them.
 ;; https://github.com/phoenixframework/tree-sitter-heex/issues/28
@@ -139,14 +133,29 @@ Return nil if NODE is not a defun node or doesn't have a name."
        (treesit-node-child (treesit-node-child node 0) 1) nil)))
     (_ nil)))
 
-(defun heex-ts--forward-sexp (&optional arg)
-  "Move forward across one balanced expression (sexp).
-With ARG, do it many times.  Negative ARG means move backward."
-  (or arg (setq arg 1))
-  (funcall
-   (if (> arg 0) #'treesit-end-of-thing #'treesit-beginning-of-thing)
-   heex-ts--sexp-regexp
-   (abs arg)))
+(defvar heex-ts--thing-settings
+  `((sexp
+     (not (or (and named
+                   ,(rx bos (or "fragment" "comment") eos))
+              (and anonymous
+                   ,(rx (or "<!" "<" ">" "{" "}"))))))
+    (list
+     ,(rx bos (or "doctype"
+                  "tag"
+                  "component"
+                  "slot"
+                  "expression"
+                  "directive"
+                  "comment")
+          eos))
+    (sentence
+     ,(rx bos (or "tag_name"
+                  "component_name"
+                  "attribute")
+          eos))
+    (text
+     ,(rx bos (or "comment" "text") eos)))
+  "`treesit-thing-settings' for HEEx.")
 
 ;;;###autoload
 (define-derived-mode heex-ts-mode html-mode "HEEx"
@@ -158,10 +167,7 @@ With ARG, do it many times.  Negative ARG means move backward."
 
     ;; Comments
     (setq-local treesit-thing-settings
-                `((heex
-                   (text ,(regexp-opt '("comment" "text"))))))
-
-    (setq-local forward-sexp-function #'heex-ts--forward-sexp)
+                `((heex ,@heex-ts--thing-settings)))
 
     ;; Navigation.
     (setq-local treesit-defun-type-regexp
