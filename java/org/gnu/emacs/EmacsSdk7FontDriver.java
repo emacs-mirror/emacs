@@ -29,6 +29,7 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.Canvas;
 
+import android.util.DisplayMetrics;
 import android.util.Log;
 
 
@@ -103,6 +104,8 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     public
     Sdk7FontEntity (Sdk7Typeface typeface)
     {
+      DisplayMetrics metrics;
+
       foundry = "Google";
       family = typeface.familyName;
       adstyle = null;
@@ -110,7 +113,8 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
       slant = typeface.slant;
       spacing = typeface.spacing;
       width = typeface.width;
-      dpi = Math.round (EmacsService.SERVICE.metrics.scaledDensity * 160f);
+      metrics = EmacsService.SERVICE.getResources ().getDisplayMetrics ();
+      dpi = Math.round (metrics.scaledDensity * 160f);
 
       this.typeface = typeface;
     }
@@ -127,6 +131,7 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
     {
       float totalWidth;
       String testWidth, testString;
+      DisplayMetrics metrics;
 
       this.typeface = typeface;
       this.pixelSize = pixelSize;
@@ -137,7 +142,8 @@ public class EmacsSdk7FontDriver extends EmacsFontDriver
       slant = typeface.slant;
       spacing = typeface.spacing;
       width = typeface.width;
-      dpi = Math.round (EmacsService.SERVICE.metrics.scaledDensity * 160f);
+      metrics = EmacsService.SERVICE.getResources ().getDisplayMetrics ();
+      dpi = Math.round (metrics.scaledDensity * 160f);
 
       /* Compute the ascent and descent.  */
       typeface.typefacePaint.setTextSize (pixelSize);

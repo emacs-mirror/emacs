@@ -123,9 +123,6 @@ public final class EmacsService extends Service
   public static final int IC_MODE_TEXT     = 2;
   public static final int IC_MODE_PASSWORD = 3;
 
-  /* Display metrics used by font backends.  */
-  public DisplayMetrics metrics;
-
   /* Flag that says whether or not to print verbose debugging
      information when responding to an input method.  */
   public static final boolean DEBUG_IC = false;
@@ -149,8 +146,9 @@ public final class EmacsService extends Service
      thread.  */
   private Thread mainThread;
 
-  /* "Resources" object required by GContext bookkeeping.  */
-  public static Resources resources;
+  /* The display's horizontal and vertical density and that which is
+     consulted for font scaling.  */
+  private double dpiX, dpiY, dpiScaled;
 
   static
   {
@@ -236,10 +234,12 @@ public final class EmacsService extends Service
     final AssetManager manager;
     Context app_context;
     final String filesDir, libDir, cacheDir, classPath;
-    final double pixelDensityX;
-    final double pixelDensityY;
-    final double scaledDensity;
-    double tempScaledDensity;
+    final float pixelDensityX;
+    final float pixelDensityY;
+    final float scaledDensity;
+    float tempScaledDensity;
+    Resources resources;
+    DisplayMetrics metrics;
 
     super.onCreate ();
 
@@ -265,12 +265,17 @@ public final class EmacsService extends Service
        corresponds to 1 pixel, not 72 or 96 as used elsewhere.  This
        difference is codified in PT_PER_INCH defined in font.h.  */
 
-    if (tempScaledDensity < 160)
-      tempScaledDensity = 160;
+    if (tempScaledDensity < 160.0f)
+      tempScaledDensity = 160.0f;
 
     /* scaledDensity is const as required to refer to it from within
        the nested function below.  */
     scaledDensity = tempScaledDensity;
+
+    /* Save these fields for future reference.  */
+    dpiX = pixelDensityX;
+    dpiY = pixelDensityY;
+    dpiScaled = scaledDensity;
 
     /* Remove all tasks from previous Emacs sessions but the task
        created by the system at startup.  */
@@ -304,9 +309,8 @@ public final class EmacsService extends Service
 	    run ()
 	    {
 	      EmacsNative.setEmacsParams (manager, filesDir, libDir,
-					  cacheDir, (float) pixelDensityX,
-					  (float) pixelDensityY,
-					  (float) scaledDensity,
+					  cacheDir, pixelDensityX,
+					  pixelDensityY, scaledDensity,
 					  classPath, EmacsService.this,
 					  Build.VERSION.SDK_INT);
 	    }
@@ -342,6 +346,40 @@ public final class EmacsService extends Service
   {
     EmacsNative.onLowMemory ();
     super.onLowMemory ();
+  }
+
+  @Override
+  public void
+  onConfigurationChanged (Configuration newConfig)
+  {
+    DisplayMetrics metrics;
+    float pixelDensityX, pixelDensityY, scaledDensity;
+
+    metrics = getResources ().getDisplayMetrics ();
+
+    /* The display configuration may have been altered.  Retrieve the
+       revised display density and deliver an event if so.  */
+    pixelDensityX = metrics.xdpi;
+    pixelDensityY = metrics.ydpi;
+    scaledDensity = ((getScaledDensity (metrics)
+		      / metrics.density) * pixelDensityX);
+
+    /* A density below 160 probably indicates a system bug.  See
+       onCreate for more commentary.  */
+    if (scaledDensity < 160.0f)
+      scaledDensity = 160.0f;
+
+    if (pixelDensityX != dpiX || pixelDensityY != dpiY
+	|| scaledDensity != dpiScaled)
+      {
+	dpiX = pixelDensityX;
+	dpiY = pixelDensityY;
+	dpiScaled = scaledDensity;
+	EmacsNative.sendConfigurationChanged (pixelDensityX, pixelDensityY,
+					      scaledDensity);
+      }
+
+    super.onConfigurationChanged (newConfig);
   }
 
 
