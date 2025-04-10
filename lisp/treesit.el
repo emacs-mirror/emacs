@@ -3190,16 +3190,18 @@ ARG is described in the docstring of `up-list'."
 
 (defun treesit-toggle-sexp-mode ()
   "Toggle the mode of navigation for sexp and list commands.
-This mode toggle affects such navigation commands as
+This mode toggle affects navigation commands such as
 `treesit-forward-sexp', `treesit-forward-list', `treesit-down-list',
 `treesit-up-list'.
 
-The list mode uses the `list' thing defined in `treesit-thing-settings'.
-In this mode commands use syntax definition to navigate symbols and
-treesit definition to navigate lists.
+The mode can be `list' (the default) or `sexp'.
 
-The sexp mode uses the `sexp' thing defined in `treesit-thing-settings'.
-In this mode commands use the treesit definition only
+The `list' mode uses the `list' thing defined in `treesit-thing-settings'.
+See `treesit-thing-at-point'.  In this mode commands use syntax tables to
+navigate symbols and treesit definition to navigate lists.
+
+The `sexp' mode uses the `sexp' thing defined in `treesit-thing-settings'.
+In this mode commands use only the treesit definition of parser nodes,
 without distinction between symbols and lists."
   (interactive)
   (if (not (treesit-thing-defined-p 'list (treesit-language-at (point))))

@@ -538,13 +538,14 @@ This variable has no effect when Transient Mark mode is off.
 ** Tree-sitter
 
 *** New command 'treesit-toggle-sexp-mode'.
-It toggles the mode of navigation for such sexp and list commands as
-'treesit-forward-sexp', 'treesit-forward-list', 'treesit-down-list',
-'treesit-up-list'.
-In sexp mode these commands navigate purely by treesit nodes
-defined by the thing ‘sexp’.
-In list mode they navigate using syntax tables for symbols
-and using the treesit thing ‘list’ for lists.
+It toggles the mode of navigation for commands that move across sexp's
+and lists, such as 'treesit-forward-sexp', 'treesit-forward-list',
+'treesit-down-list', and 'treesit-up-list'.  This mode can be either
+'list', the default, or 'sexp'.
+In the default 'list' mode these commands move using syntax tables for
+symbols and using the thing 'list' for lists.
+In 'sexp' mode these commands move by treesit-defined parser nodes
+defined by the treesit thing 'sexp' as determined by 'treesit-thing-at'.
 
 ---
 ** Text mode
