@@ -1923,7 +1923,7 @@ this machine and an SSH daemon be executing on the host)."
 Form should evaluate to a value that must be printable, or
 signal an error.  Value is (ok . VALUE) if no error was
 signaled, or (error . VALUE) otherwise.  It may also be (exit
-. BACKTRACE) if Emacs exited whilst FORM was executing. If RAW,
+. BACKTRACE) if Emacs exited whilst FORM was executing.  If RAW,
 instruct PROCESS not to attempt to decode the printed
 representation of FORM as multibyte text; this does not
 influence the decoding whatever value it returns.
