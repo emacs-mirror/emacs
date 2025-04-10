@@ -2165,6 +2165,12 @@ are too prohibitive and don't allow restoring frame configurations.
 implemented by Emacs.)
 
 ---
+** Emacs responds to runtime display configuration changes on Android.
+The upshot of this is that Emacs will adapt to display resolution /
+layout changes applied while an Emacs session is active, which is
+possible on some recently released devices.
+
+---
 ** 'NSSpeechRecognitionUsageDescription' now included in "Info.plist" (macOS).
 Should Emacs (or any built-in shell) invoke a process using macOS speech
 recognition APIs, the relevant permission dialog is now displayed, thus
