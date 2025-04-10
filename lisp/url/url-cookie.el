@@ -73,7 +73,8 @@ telling Microsoft that."
 (defun url-cookie-parse-file (&optional fname)
   "Load FNAME, default `url-cookie-file'."
   ;; It's completely normal for the cookies file not to exist yet.
-  (load (or fname url-cookie-file) t t))
+  (let ((warning-inhibit-types '((files missing-lexbind-cookie))))
+    (load (or fname url-cookie-file) t t)))
 
 (defun url-cookie-parse-file-netscape (filename &optional long-session)
   "Load cookies from FILENAME in Netscape/Mozilla format.

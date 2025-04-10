@@ -225,7 +225,8 @@ about loading the abbrevs."
    (list
     (read-file-name (format-prompt "Read abbrev file" abbrev-file-name)
 		    nil abbrev-file-name t)))
-  (load (or file abbrev-file-name) nil quietly)
+  (let ((warning-inhibit-types '((files missing-lexbind-cookie))))
+    (load (or file abbrev-file-name) nil quietly))
   (setq abbrevs-changed nil))
 
 (defun quietly-read-abbrev-file (&optional file)

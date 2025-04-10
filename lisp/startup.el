@@ -620,13 +620,15 @@ It is the default value of the variable `top-level'."
           dir)
       (while tail
         (setq dir (car tail))
-        (let ((default-directory dir))
+        (let ((default-directory dir)
+              (warning-inhibit-types '((files missing-lexbind-cookie))))
           (load (expand-file-name "subdirs.el") t t t))
         ;; Do not scan standard directories that won't contain a leim-list.el.
         ;; https://lists.gnu.org/r/emacs-devel/2009-10/msg00502.html
         ;; (Except the preloaded one in lisp/leim.)
         (or (string-prefix-p lispdir dir)
-            (let ((default-directory dir))
+            (let ((default-directory dir)
+                  (warning-inhibit-types '((files missing-lexbind-cookie))))
               (load (expand-file-name "leim-list.el") t t t)))
         ;; We don't use a dolist loop and we put this "setq-cdr" command at
         ;; the end, because the subdirs.el files may add elements to the end

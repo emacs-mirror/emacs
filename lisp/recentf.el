@@ -1362,7 +1362,8 @@ empty `file-name-history' with the recent list."
         ;; We do not want Tramp asking for passwords.
         (non-essential t))
     (when (file-readable-p file)
-      (load-file file)
+      (let ((warning-inhibit-types '((files missing-lexbind-cookie))))
+        (load-file file))
       (and recentf-initialize-file-name-history
            (not file-name-history)
            (setq file-name-history (mapcar #'abbreviate-file-name

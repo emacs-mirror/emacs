@@ -205,7 +205,9 @@ histories, which is probably undesirable."
 	    ;; coding cookie to convey that information.  That way, if
 	    ;; the user changes the value of savehist-coding-system,
 	    ;; we can still correctly load the old file.
-	    (load savehist-file nil (not (called-interactively-p 'interactive)))
+            (let ((warning-inhibit-types '((files missing-lexbind-cookie))))
+	      (load savehist-file nil
+                    (not (called-interactively-p 'interactive))))
 	    (setq savehist-loaded t))
 	(error
 	 ;; Don't install the mode if reading failed.  Doing so would
