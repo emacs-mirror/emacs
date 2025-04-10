@@ -2427,7 +2427,8 @@ We apologize for the inconvenience.")))
   (cond
    ((and (not (equal filesets-menu-cache-file ""))
 	 (file-readable-p filesets-menu-cache-file))
-    (load-file filesets-menu-cache-file)
+    (let ((warning-inhibit-types '((files missing-lexbind-cookie))))
+      (load-file filesets-menu-cache-file))
     (if (and (equal filesets-cache-version filesets-version)
 	     (if filesets-cache-hostname-flag
 		 (equal filesets-cache-hostname (system-name))
