@@ -1995,6 +1995,31 @@ new face 'display-fill-column-indicator-warning-face' is used to
 highlight the fill-column indicators.  By default, this is disabled.
 
 ---
+*** New function 'flash-face-bell-function'.
+This function flashes a face briefly.
+It is intended to be used in 'ring-bell-function'.
+
+---
+*** New function 'flash-echo-area-bell-function'.
+This function flashes current echo area briefly.
+It is intended to be used in 'ring-bell-function'.
+
+---
+*** New user option 'flash-face-duration'.
+This option controls the flash duration for 'flash-face-bell-function'
+and 'flash-echo-area-bell-function'.
+
+---
+*** New user option 'flash-face-faces'.
+This option tells 'flash-face-bell-function' which faces should flash.
+
+---
+*** New user option 'flash-face-attributes'
+This option tells 'flash-face-bell-function' and
+'flash-echo-area-bell-function' which face attributes should be used
+for flash.
+
+---
 ** Flymake
 
 *** Windows without fringes now automatically use margin indicators.
