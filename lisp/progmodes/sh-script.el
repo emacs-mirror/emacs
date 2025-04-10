@@ -1662,6 +1662,12 @@ not written in Bash or sh."
                                  "command_substitution"
                                  "process_substitution")
                          eos))
+                   (sexp-default
+                    ;; For `C-M-f' in "$|(a)"
+                    ("$(" .
+                     ,(lambda (node)
+                        (equal (treesit-node-type (treesit-node-parent node))
+                               "command_substitution"))))
                    (sentence
                     ,(rx bos (or "redirected_statement"
                                  "declaration_command"

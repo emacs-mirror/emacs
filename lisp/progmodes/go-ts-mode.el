@@ -306,6 +306,11 @@
                                  "argument_list"
                                  "literal_value")
                          eos))
+                   (sexp-default
+                    ;; For `C-M-f' in "switch a |{ }"
+                    (lambda (node)
+                      (equal (treesit-node-type (treesit-node-parent node))
+                             "expression_switch_statement")))
                    (sentence
                     (or "declaration" "statement")))))
 

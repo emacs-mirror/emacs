@@ -1219,6 +1219,12 @@ leading double colon is not added."
                                 "hash")
                                eos)
                               #'ruby-ts--list-p))
+                 (sexp-default
+                  ;; For `C-M-f' in "#|{a}"
+                  ("#{" . ,(lambda (node)
+                             (and (eq (char-after (point)) ?{)
+                                  (equal (treesit-node-type (treesit-node-parent node))
+                                         "interpolation")))))
                  (sentence ,(rx bos (or "return"
                                         "body_statement"
                                         "call"
@@ -1226,19 +1232,8 @@ leading double colon is not added."
                                 eos))
                  (text ,(lambda (node)
                           (or (member (treesit-node-type node)
-                                      '("comment" "string_content" "heredoc_content"))
-                              ;; for C-M-f in hash[:key] and hash['key']
-                              (and (member (treesit-node-text node)
-                                           '("[" "]"))
-                                   (equal (treesit-node-type
-                                           (treesit-node-parent node))
-                                          "element_reference"))
-                              ;; for C-M-f in "abc #{ghi} def"
-                              (and (member (treesit-node-text node)
-                                           '("#{" "}"))
-                                   (equal (treesit-node-type
-                                           (treesit-node-parent node))
-                                          "interpolation"))))))))
+                                      '("comment" "string_content"
+                                        "heredoc_content"))))))))
 
   ;; Imenu.
   (setq-local imenu-create-index-function #'ruby-ts--imenu)

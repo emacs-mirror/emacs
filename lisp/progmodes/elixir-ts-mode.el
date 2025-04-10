@@ -720,6 +720,11 @@ Return nil if NODE is not a defun node or doesn't have a name."
                                      "do_block"
                                      "anonymous_function")
                              eos)))
+                   (sexp-default
+                    ;; For `C-M-f' in "&|(a)"
+                    ("(" . ,(lambda (node)
+                              (equal (treesit-node-type (treesit-node-parent node))
+                                     "unary_operator"))))
                    (sentence
                     ,(rx bos (or "call") eos))
                    (text

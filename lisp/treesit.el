@@ -3049,6 +3049,14 @@ ARG is described in the docstring of `forward-list'."
         ;; Use the default function only if it doesn't go
         ;; over the sibling and doesn't go out of the current group.
         (or (when (and default-pos
+                       ;; Fallback to the default sexp function when
+                       ;; matching the thing 'sexp-default' at point.
+                       (treesit-node-match-p
+                        (treesit-node-at (if (> arg 0) (point)
+                                           (max (1- (point)) (point-min))))
+                        'sexp-default t))
+              (goto-char default-pos))
+            (when (and default-pos
                        (or (null sibling)
                            (if (> arg 0)
                                (<= default-pos (treesit-node-start sibling))
