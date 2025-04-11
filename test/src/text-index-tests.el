@@ -25,9 +25,20 @@
 (require 'ert-x)
 (require 'cl-lib)
 
-(defvar text-index-test-files
+;; Note that the tests can be quite expensive on large files because of
+;; the calls to 'text-index--charpos-to-bytepos-brute' which always
+;; scans the text from the beginning.
+
+(defvar text-index-small-test-files
   (list (expand-file-name "HELLO" data-directory)
-        (expand-file-name "src/xdisp.c" source-directory)))
+        (expand-file-name "src/buffer.c" source-directory)))
+
+(defvar text-index-big-test-files
+  (list (expand-file-name "src/buffer.c" source-directory)))
+
+(defvar text-index-all-test-files
+  (append text-index-small-test-files
+          text-index-big-test-files))
 
 (cl-defun test-check-charpos (charpos)
   (let* ((real-bytepos (text-index--charpos-to-bytepos-brute charpos))
@@ -45,37 +56,40 @@
            nil)
           (t t))))
 
-(cl-defmacro text-index-with-buffer ((&rest options) &rest body)
+(cl-defmacro text-index-with-buffer ((file) &rest body)
   (declare (indent 1))
-  `(ert-with-test-buffer (,@options)
-     (insert-file-contents (expand-file-name "HELLO" data-directory))
+  `(ert-with-test-buffer ()
+     (insert-file-contents ,file)
      (progn ,@body)))
 
 (ert-deftest text-index-test-forward ()
-  (cl-loop for file in text-index-test-files do
-           (text-index-with-buffer ()
+  (cl-loop for file in text-index-small-test-files do
+           (text-index-with-buffer (file)
              (cl-loop for charpos from (point-min) below (point-max) do
                       (should (test-check-charpos charpos))))))
 
 (ert-deftest text-index-test-backward ()
-  (text-index-with-buffer ()
-    (cl-loop for charpos from (point-max) downto (point-min) do
-             (should (test-check-charpos charpos)))))
+  (cl-loop for file in text-index-small-test-files do
+           (text-index-with-buffer (file)
+             (cl-loop for charpos from (point-max) downto (point-min) do
+                      (should (test-check-charpos charpos))))))
 
 (ert-deftest text-index-test-random-charpos ()
-  (text-index-with-buffer ()
-    (cl-loop repeat 10000 do
-             (should (test-check-charpos (random (point-max)))))))
+  (cl-loop for file in text-index-all-test-files do
+           (text-index-with-buffer (file)
+             (cl-loop repeat 10000 do
+                      (should (test-check-charpos (random (point-max))))))))
 
 (defvar text-index-test-strings
   ["1" "💡" "💡3" "💡💡" "💡💡5"])
 
 (ert-deftest text-index-test-random-insert ()
-  (text-index-with-buffer ()
-    (cl-loop repeat 10000
-	     for charpos = (1+ (random (buffer-size)))
-	     for string = (aref text-index-test-strings
-                                (random (length text-index-test-strings)))
-	     do (progn (goto-char charpos)
-		       (insert string)
-		       (test-check-charpos (random (point-max)))))))
+  (cl-loop for file in text-index-all-test-files do
+           (text-index-with-buffer (file)
+             (cl-loop repeat 10000
+	              for charpos = (1+ (random (buffer-size)))
+	              for string = (aref text-index-test-strings
+                                         (random (length text-index-test-strings)))
+	              do (progn (goto-char charpos)
+		                (insert string)
+		                (test-check-charpos (random (point-max))))))))
