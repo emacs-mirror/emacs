@@ -3196,11 +3196,10 @@ ARG is described in the docstring of `up-list'."
             (user-error "At top level")))
       (setq cnt (- cnt inc)))))
 
-(defun treesit-toggle-sexp-type ()
-  "Toggle the type of navigation for sexp and list commands.
-This type toggle affects navigation commands such as
-`treesit-forward-sexp', `treesit-forward-list', `treesit-down-list',
-`treesit-up-list'.
+(defun treesit-cycle-sexp-type ()
+  "Cycle the type of navigation for sexp and list commands.
+This type affects navigation commands such as `treesit-forward-sexp',
+`treesit-forward-list', `treesit-down-list', `treesit-up-list'.
 
 The type can be `list' (the default) or `sexp'.
 
@@ -3224,7 +3223,7 @@ without distinction between symbols and lists."
                 (if treesit-sexp-type-regexp
                     #'treesit-forward-sexp
                   #'treesit-forward-sexp-list))
-    (message "Toggle sexp type to navigate %s"
+    (message "Cycle sexp type to navigate %s"
              (or (and treesit-sexp-type-regexp
                       "treesit nodes")
                  "syntax symbols and treesit lists"))))
