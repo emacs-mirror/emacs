@@ -271,7 +271,7 @@ abbrevs have been saved."
       (when (unencodable-char-position (point-min) (point-max) 'utf-8)
 	(setq coding-system-for-write 'utf-8-emacs))
       (goto-char (point-min))
-      (insert (format ";;-*-coding: %S; lexical-binding:t -*-\n"
+      (insert (format ";; -*- coding: %S; lexical-binding: t -*-\n"
                       coding-system-for-write))
       (write-region nil nil file nil (and (not verbose) 0)))))
 

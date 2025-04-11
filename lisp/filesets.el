@@ -2336,7 +2336,7 @@ fileset thinks this is necessary or not."
       (delete-file filesets-menu-cache-file))
     ;;(message "Filesets: saving menu cache")
     (with-temp-buffer
-      (insert ";; -*- mode: emacs-lisp; lexical-binding:t -*-\n")
+      (insert ";; -*- mode: emacs-lisp; lexical-binding: t -*-\n")
       (dolist (this filesets-menu-cache-contents)
 	(if (get this 'custom-type)
 	    (progn

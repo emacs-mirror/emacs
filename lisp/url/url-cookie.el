@@ -150,7 +150,7 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
     (url-cookie-clean-up)
     (url-cookie-clean-up t)
     (with-temp-buffer
-      (insert ";; Emacs-W3 HTTP cookies file  -*- lexical-binding:t -*-\n"
+      (insert ";; Emacs-W3 HTTP cookies file  -*- lexical-binding: t -*-\n"
 	      ";; Automatically generated file!!! DO NOT EDIT!!!\n\n"
 	      "(setq url-cookie-storage\n '")
       (let ((print-length nil) (print-level nil))
