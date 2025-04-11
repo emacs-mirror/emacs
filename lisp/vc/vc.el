@@ -3127,7 +3127,7 @@ shown log style is available via `vc-log-short-style'."
        (list rev lim)))
     (t
      (list nil (when (> vc-log-show-limit 0) vc-log-show-limit)))))
-  (let* ((vc-fileset (vc-deduce-fileset t)) ;FIXME: Why t? --Stef
+  (let* ((vc-fileset (vc-deduce-fileset t))
 	 (backend (car vc-fileset))
 	 (files (cadr vc-fileset))
 	 (working-revision (or working-revision vc-buffer-revision)))
