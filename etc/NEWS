@@ -1470,7 +1470,9 @@ appearance of the list can be customized with the new faces
 
 ---
 *** New buffer-local variable 'vc-buffer-overriding-fileset'.
-This can be used to override the behavior of 'vc-deduce-fileset'.
+Primarily intended for buffers not visiting files, this specifies the
+VC backend and VCS-managed file name or file names to which the buffer's
+contents corresponds.  It overrides the behavior of 'vc-deduce-fileset'.
 This replaces and generalizes the old 'vc-annotate-parent-file'.
 
 ---
