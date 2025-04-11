@@ -716,7 +716,7 @@ syms_of_text_index (void)
   defsubr (&Stext_index__charpos_to_bytepos_brute);
 
   DEFVAR_INT ("text-index-interval", text_index_interval, doc: /* */);
-  text_index_interval = 1000;
+  text_index_interval = 4*1024;
   DEFVAR_BOOL ("use-text-index", use_text_index, doc: /* */);
   use_text_index = true;
 }
