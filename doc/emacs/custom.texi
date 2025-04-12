@@ -2965,9 +2965,19 @@ Emacs will set @code{user-emacs-directory} to the directory it decides
 to use.  This directory is subsequently used to look for your other
 user-specific Emacs files, such as @code{custom-file} (@pxref{Saving
 Customizations}), the saved desktop (@pxref{Saving Emacs Sessions}) and
-others.  The @code{--init-directory} command-line option (@pxref{Initial
-Options}) overrides the value of @code{user-emacs-directory} determined
-as side effect of the search for your user init file described above.
+others.  It is also used to compute the value of the
+@code{native-comp-eln-load-path} (@pxref{Lisp Libraries}), which is
+where Emacs looks for natively-compiled Lisp code and where it deposits
+the newly-compiled Lisp code produced by asynchronous compilation of
+packages your init files and the subsequent Emacs session load.  The
+@code{--init-directory} command-line option (@pxref{Initial Options})
+overrides the value of @code{user-emacs-directory} determined as side
+effect of the search for your user init file described above.
+
+Since @code{user-emacs-directory}, once determined by Emacs, is used by
+the rest of the startup code to locate other files and directories, we
+do not recommend changing its value in your init files, as that could
+disrupt or break the correct startup of your Emacs sessions.
 
 Although this is backward-compatible with older Emacs versions, modern
 POSIX platforms prefer putting your initialization files under
