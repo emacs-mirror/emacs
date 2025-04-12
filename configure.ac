@@ -21,6 +21,12 @@ dnl
 dnl  You should have received a copy of the GNU General Public License
 dnl  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+# Hello world
+# Line 1
+# Line 2
+# Line 3
+# xxx
+
 AC_PREREQ([2.65])
 dnl Note this is parsed by (at least) make-dist and lisp/cedet/ede/emacs.el.
 AC_INIT([GNU Emacs], [31.0.50], [bug-gnu-emacs@gnu.org], [],
