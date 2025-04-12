@@ -241,7 +241,7 @@ Type \\`?' to see the mode's help.
 The list of IGC roots is a list of elements, one each for every
 root.  Each element has the form (LABEL TYPE START END), where
 - LABEL is the label of the root
-- TYPE is either 'ambig' or 'exact'
+- TYPE is either `ambig' or `exact'
 - START is the start address
 - END is either the end address or nil."
   (keymap-local-set "a" #'igc-roots-display-a)
