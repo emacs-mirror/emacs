@@ -22,9 +22,9 @@ dnl  You should have received a copy of the GNU General Public License
 dnl  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 # Hello world
-# Line 11
-# Line 22
-# Line 33
+# Line 111
+# Line 222
+# Line 333
 # xxx
 
 AC_PREREQ([2.65])
