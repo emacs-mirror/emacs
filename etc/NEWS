@@ -1469,18 +1469,6 @@ appearance of the list can be customized with the new faces
 ** VC
 
 ---
-*** New buffer-local variable 'vc-buffer-overriding-fileset'.
-Primarily intended for buffers not visiting files, this specifies the
-VC backend and VCS-managed file name or file names to which the buffer's
-contents corresponds.  It overrides the behavior of 'vc-deduce-fileset'.
-This replaces and generalizes the old 'vc-annotate-parent-file'.
-
----
-*** New buffer-local variable 'vc-buffer-revision'.
-This specifies the revision to which the buffer's contents corresponds.
-This replaces and generalizes the old 'vc-annotate-parent-rev'.
-
----
 *** Using 'e' from Log View mode to modify change comments now works for Git.
 
 ---
@@ -1548,6 +1536,18 @@ Previously, if some files to be checked in were unregistered but others
 were added, removed or edited, Emacs would refuse to proceed.
 Now Emacs prompts to first register the unregistered files, so that all
 files in the fileset are in a compatible state for a checkin.
+
+---
+*** New buffer-local variable 'vc-buffer-overriding-fileset'.
+Primarily intended for buffers not visiting files, this specifies the
+VC backend and VCS-managed file name or file names to which the buffer's
+contents corresponds.  It overrides the behavior of 'vc-deduce-fileset'.
+This replaces and generalizes the old 'vc-annotate-parent-file'.
+
+---
+*** New buffer-local variable 'vc-buffer-revision'.
+This specifies the revision to which the buffer's contents corresponds.
+This replaces and generalizes the old 'vc-annotate-parent-rev'.
 
 ** Diff mode
 
