@@ -518,7 +518,9 @@ BUTTON can also be a buffer position or nil (to mean point)."
       (user-error "No ellipsis to expand here")))
   (let* ((end (next-single-property-change (point) 'cl-print-ellipsis))
          (begin (previous-single-property-change end 'cl-print-ellipsis))
-         (value (get-text-property begin 'cl-print-ellipsis)))
+         (value (get-text-property begin 'cl-print-ellipsis))
+         ;; Ensure clicking the button works even in read only buffers.
+         (inhibit-read-only t))
     ;; FIXME: Rather than `t' (i.e. reuse the print-length/level unchanged),
     ;; I think it would make sense to increase the level by 1 and to
     ;; double the length at each expansion step.

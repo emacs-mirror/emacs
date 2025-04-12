@@ -109,7 +109,9 @@
 ;; TODO:
 ;; - log buffers need font-locking.
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'cl-print))
 
 ;; General customization
 
@@ -473,10 +475,22 @@ Display the buffer in some window, but don't select it."
                   (unless (eq (point) (point-min))
 	            (insert "\n"))
                   (setq new-window-start (point))
-                  (insert "Running \"" cmd)
+                  (insert "Running '" cmd)
                   (dolist (flag flags)
-	            (insert " " flag))
-                  (insert "\"...\n")
+                    (let ((lines (string-lines flag)))
+                      (insert " ")
+                      ;; If the argument has newlines in it (as a commit
+                      ;; message commonly will) then ellipse it down so
+                      ;; that the whole command is more readable.
+                      (if (cdr lines)
+                          (let ((flag (copy-sequence flag))
+                                (cl-print-string-length (length
+                                                         (car lines))))
+                            (set-text-properties 0 (length flag) nil
+                                                 flag)
+                            (cl-prin1 flag buffer))
+                        (insert flag))))
+                  (insert "'...\n")
                   args))))
 	(setq proc (apply #'vc-do-command t 'async command nil args))))
     (unless vc--inhibit-async-window
