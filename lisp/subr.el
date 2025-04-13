@@ -185,9 +185,10 @@ pair.
       ;; Can't use backquote here, it's too early in the bootstrap.
       (setq expr
             (cons
-             (list 'set
-                   (list 'make-local-variable (list 'quote (car pairs)))
-                   (car (cdr pairs)))
+             (list 'setq (car pairs)
+                   (list 'prog1
+                    (car (cdr pairs))
+                    (list 'make-local-variable (list 'quote (car pairs)))))
              expr))
       (setq pairs (cdr (cdr pairs))))
     (macroexp-progn (nreverse expr))))
