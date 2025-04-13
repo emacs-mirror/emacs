@@ -758,6 +758,12 @@ Emacs exit.
 ** Savehist
 
 ---
+*** The history file can be modified by external tools.
+Emacs can now handle this case gracefully by merging the external
+and internal history information.
+This feature is activated only when 'savehist-additional-variables' is nil.
+
+---
 *** Savehist no longer saves additional variables more than once.
 If you configured 'savehist-additional-variables' with variables that
 were also dynamically accumulated in minibuffer history during
@@ -1900,9 +1906,9 @@ This means that you can now call it with just one argument, like
 The following macros, previously only available in the experimental
 'ert-x' module, are now considered stable and have been moved to 'ert':
 
-- ert-with-test-buffer
-- ert-with-buffer-selected
-- ert-with-buffer-renamed
+- 'ert-with-test-buffer'
+- 'ert-with-buffer-selected'
+- 'ert-with-buffer-renamed'
 
 See "(ert) Helper Functions" node in the ERT manual for more information.
 
