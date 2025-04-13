@@ -162,7 +162,7 @@ along with minibuffer history.  You can change its value off
 
 (defvar savehist-loaded nil
  "Whether the history has already been loaded.")
-(make-obsolete-variable savehist-loaded 'savehist--file-sync-modtime "31")
+(make-obsolete-variable 'savehist-loaded 'savehist--file-sync-modtime "31")
 
 (defvar savehist--file-sync-modtime nil
   "Modtime of the `savehist-file' when we last sync'd up with it.")
@@ -209,7 +209,9 @@ histories, which is probably undesirable."
   "Load the history data from `savehist-file'.
 Be careful to do it while preserving the current history data."
   (when (and (file-exists-p savehist-file)
-             (not (equal savehist--file-sync-modtime (savehist--file-modtime))))
+             (not (and savehist-loaded
+                       (equal savehist--file-sync-modtime
+                              (savehist--file-modtime)))))
     ;; FIXME: Process the file manually rather than passing it to `load'.
     (let ((savehist-old-minibuffer-history-variables
            (mapcar (lambda (s) (and (boundp s) (cons s (symbol-value s))))
