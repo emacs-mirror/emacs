@@ -168,7 +168,7 @@ _start:
 	b	.one_auxv
 .cleanup:
 	cmp	x28, #-1		// is secondary fd set?
-	bne	.cleanup1		// not set
+	beq	.cleanup1		// not set
 	mov	x8, #57			// SYS_close
 	mov	x0, x28			// secondary fd
 	svc	#0			// syscall

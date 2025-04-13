@@ -181,7 +181,7 @@ _start:
 	b	.one_auxv
 .cleanup:
 	cmp	r14, #-1		@ secondary fd set?
-	bne	.cleanup1		@ not set
+	beq	.cleanup1		@ not set
 	mov	r7, #6			@ SYS_close
 	mov	r0, r14			@ secondary fd
 	swi	#0			@ syscall
