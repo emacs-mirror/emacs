@@ -2154,6 +2154,12 @@ provide instructions for finding the definition.
 New convenience function 'find-function-update-type-alist' offers a
 concise way to update a symbol's 'find-function-type-alist' property.
 
++++
+** 'inhibit-message' can now inhibit clearing of the echo-area.
+Binding 'inhibit-message' to a non-nil value will now suppress both
+the display of messages and the clearing of the echo-area, such as
+caused by calling 'message' with a nil argument.
+
 ** Special Events
 
 +++

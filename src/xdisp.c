@@ -13405,7 +13405,7 @@ clear_message (bool current_p, bool last_displayed_p)
 {
   Lisp_Object preserve = Qnil;
 
-  if (current_p)
+  if (current_p && !inhibit_message)
     {
       if (FUNCTIONP (Vclear_message_function)
           /* FIXME: (bug#63253) Same as for `set-message-function` above.  */

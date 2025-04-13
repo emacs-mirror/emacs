@@ -404,8 +404,10 @@ elapsed since the time the first message was emitted.
 
 @defvar inhibit-message
 When this variable is non-@code{nil}, @code{message} and related functions
-will not display any messages in the Echo Area.  Echo-area messages
-are still logged in the @file{*Messages*} buffer, though.
+will not display any messages in the Echo Area, and will also not clear
+previous echo-area messages when @code{message} is called with a
+@code{nil} or an empty argument.  Echo-area messages are still logged in
+the @file{*Messages*} buffer, though.
 @end defvar
 
 @defmac with-temp-message message &rest body
