@@ -1347,7 +1347,8 @@ Notations:  3.14e6     3.14 * 10^6
       (equal calc-settings-file user-init-file)
       (progn
 	(setq calc-loaded-settings-file t)
-	(load (file-name-sans-extension calc-settings-file) t)))   ; t = missing-ok
+	(let ((warning-inhibit-types '((files missing-lexbind-cookie))))
+          (load (file-name-sans-extension calc-settings-file) t))))   ; t = missing-ok
   (let ((p command-line-args))
     (while p
       (and (equal (car p) "-f")

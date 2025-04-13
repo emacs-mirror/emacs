@@ -326,7 +326,8 @@
           (equal user-init-file calc-settings-file)
           (> arg 0))
 	 (< arg 0)
-	 (load name t)
+	 (let ((warning-inhibit-types '((files missing-lexbind-cookie))))
+           (load name t))
 	 (message "New file")))))
 
 (defun math-get-modes-vec ()
