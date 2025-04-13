@@ -609,15 +609,17 @@ Only HEADERS of a type included in MIME are considered."
 (deffoo nnfeed-request-list (&optional server)
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
-    (when-let* ((p (point))
-                (s (nnfeed--parse-feed
-                    (or server (nnfeed--current-server-no-prefix))))
-                ((hash-table-p s)))
-      (maphash (lambda (group g)
-                 (insert (format "\"%s\" %s %s y\n"
-                                 group (aref g 3) (aref g 4))))
-               s)
-      (not (= (point) p)))))
+    (if-let* ((p (point))
+              (s (nnfeed--parse-feed
+                  (or server (nnfeed--current-server-no-prefix))))
+              ((hash-table-p s)))
+        (progn
+          (maphash (lambda (group g)
+                     (insert (format "\"%s\" %s %s y\n"
+                                     group (aref g 3) (aref g 4))))
+                   s)
+          (not (= (point) p)))
+      (nnheader-report 'nnfeed (nnheader-get-report nnfeed-backend)))))
 
 (deffoo nnfeed-request-post (&optional _server)
   (nnheader-report nnfeed-backend "%s is a read only backend" nnfeed-backend))
