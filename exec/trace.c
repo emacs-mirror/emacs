@@ -909,6 +909,18 @@ finish_exec (struct exec_tracee *tracee, USER_REGS_STRUCT *regs)
 	      tracee->pid, 0, 0))
     goto error;
 
+  /* Enable this block to debug the executable loader.  */
+#if 0
+  {
+    int rc, wstatus;
+  again1:
+    rc = waitpid (tracee->pid, &wstatus, __WALL);
+    if (rc == -1 && errno == EINTR)
+      goto again1;
+    ptrace (PTRACE_DETACH, tracee->pid, 0, 0);
+  }
+#endif /* 0 */
+
  error:
   free (tracee->exec_data);
   tracee->exec_data = NULL;
