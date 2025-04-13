@@ -4314,7 +4314,10 @@ for more information."
             ;; fail (e.g. not yet defined, or can't be (auto)loaded),
             ;; so use a simple fallback that won't get in the way.
             (error
-             (message "Missing `lexical-binding' cookie in %S" source)))))
+             ;; But not if this particular warning is disabled.
+             (unless (equal warning-inhibit-types
+                            '((files missing-lexbind-cookie)))
+               (message "Missing `lexical-binding' cookie in %S" source))))))
     (default-toplevel-value 'lexical-binding)))
 
 (setq internal--get-default-lexical-binding-function
