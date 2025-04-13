@@ -185,9 +185,7 @@
   (should (equal (url-recreate-url
                   (url-parse-make-urlobj "file" nil nil nil nil
                                          "c:/path/to/file" nil nil nil))
-                 (if (memq system-type '(windows-nt ms-dos))
-                     "file:/c:/path/to/file"
-                   "file:c:/path/to/file")))
+                 "file:/c:/path/to/file"))
   ;; accept backslashes too
   (should (equal (url-filename
                   (url-generic-parse-url "file:///c:\\directory\\file.txt"))
