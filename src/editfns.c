@@ -1929,7 +1929,9 @@ properties from adjoining text.
 
 As far as possible the replacement is non-destructive, i.e. existing
 buffer contents, markers, properties, and overlays in the current
-buffer stay intact.
+buffer stay intact.  However, if point is at the end of the replaced
+text, it may not be at the end of the replacement when this function
+returns.
 
 Because this function can be very slow if there is a large number of
 differences between the two buffers, there are two optional arguments
@@ -1940,14 +1942,16 @@ for comparing the buffers.  If it takes longer than MAX-SECS, the
 function falls back to a plain `delete-region' and
 `insert-buffer-substring'.  (Note that the checks are not performed
 too evenly over time, so in some cases it may run a bit longer than
-allowed).
+allowed).  In partricular, passing zero as the value of MAX-SECS
+disables the comparison step, so this function immediately falls
+back to a plain delete/insert method.
 
 The optional argument MAX-COSTS defines the quality of the difference
 computation.  If the actual costs exceed this limit, heuristics are
 used to provide a faster but suboptimal solution.  The default value
 is 1000000.
 
-Note: If the replacement is a string, it’ll usually be placed internally
+Note: If the replacement is a string, it'll usually be placed internally
 in a temporary buffer.  Therefore, all else being equal, it is preferable
 to pass a buffer rather than a string as SOURCE argument.
 
