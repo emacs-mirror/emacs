@@ -1184,7 +1184,7 @@ Return the filtered process list."
             ( ;; apply predicate to each list of attributes
              (eq (car filter) 'function)
              (dolist (process process-alist)
-               (if (funcall (car filter) (cdr process))
+               (if (funcall (cdr filter) (cdr process))
                    (push process new-alist))))
             (t ;; apply predicate to specified attribute
              (let* ((cdrfilter (cdr filter))
