@@ -1916,7 +1916,10 @@ static bool compareseq_early_abort (struct context *);
 #include "diffseq.h"
 
 DEFUN ("replace-region-contents", Freplace_region_contents,
-       Sreplace_region_contents, 3, 6, 0,
+       Sreplace_region_contents, 3, 6,
+       "(list (if (use-region-p) (region-beginning) (point-min)) \
+              (if (use-region-p) (region-end) (point-max)) 	 \
+              (get-buffer (read-buffer-to-switch \"Source buffer: \")))",
        doc: /* Replace the region between BEG and END with that of SOURCE.
 SOURCE can be a buffer, a string, or a vector [SBUF SBEG SEND]
 denoting the subtring SBEG..SEND of buffer SBUF.
