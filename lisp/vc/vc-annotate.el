@@ -497,7 +497,7 @@ revisions after."
   (interactive)
   (if (not (equal major-mode 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
-    (let ((warp-rev (vc-working-revision (cadr vc-buffer-overriding-fileset))))
+    (let ((warp-rev (vc-working-revision (caadr vc-buffer-overriding-fileset))))
       (if (equal warp-rev vc-buffer-revision)
 	  (message "Already at revision %s" warp-rev)
 	(vc-annotate-warp-revision warp-rev)))))
@@ -510,7 +510,7 @@ Return a cons (REV . FILENAME)."
 			      'annotate-extract-revision-at-line)))
     (if (or (null rev) (consp rev))
 	rev
-      (cons rev (cadr vc-buffer-overriding-fileset)))))
+      (cons rev (caadr vc-buffer-overriding-fileset)))))
 
 (defun vc-annotate-revision-at-line ()
   "Visit the annotation of the revision identified in the current line."
@@ -521,7 +521,7 @@ Return a cons (REV . FILENAME)."
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
 	(if (and (equal (car rev-at-line) vc-buffer-revision)
-		 (string= (cdr rev-at-line) (cadr vc-buffer-overriding-fileset)))
+		 (string= (cdr rev-at-line) (caadr vc-buffer-overriding-fileset)))
 	    (message "Already at revision %s" rev-at-line)
 	  (vc-annotate-warp-revision (car rev-at-line) (cdr rev-at-line)))))))
 
@@ -651,7 +651,7 @@ describes a revision number, so warp to that revision."
 	(while (and (> revspec 0) newrev)
           (setq newrev (vc-call-backend vc-annotate-backend 'next-revision
                                         (or file
-                                            (cadr vc-buffer-overriding-fileset))
+                                            (caadr vc-buffer-overriding-fileset))
                                         newrev))
           (setq revspec (1- revspec)))
 	(unless newrev
@@ -662,7 +662,7 @@ describes a revision number, so warp to that revision."
 	(while (and (< revspec 0) newrev)
           (setq newrev (vc-call-backend vc-annotate-backend 'previous-revision
                                         (or file
-                                            (cadr vc-buffer-overriding-fileset))
+                                            (caadr vc-buffer-overriding-fileset))
                                         newrev))
           (setq revspec (1+ revspec)))
 	(unless newrev
@@ -672,7 +672,7 @@ describes a revision number, so warp to that revision."
        (t (error "Invalid argument to vc-annotate-warp-revision")))
       (when newrev
 	(vc-annotate (or file
-                         (cadr vc-buffer-overriding-fileset))
+                         (caadr vc-buffer-overriding-fileset))
                      newrev
                      vc-annotate-parent-display-mode
                      buf
@@ -767,7 +767,7 @@ The annotations are relative to the current time, unless overridden by OFFSET."
 		(widen)
 		(line-number-at-pos)))
 	(rev vc-buffer-revision)
-        (file (cadr vc-buffer-overriding-fileset)))
+        (file (caadr vc-buffer-overriding-fileset)))
     (pop-to-buffer
      (or (and (buffer-live-p vc-parent-buffer)
 	      vc-parent-buffer)
