@@ -1846,7 +1846,7 @@ Intended for `eldoc-documentation-functions' (which see)."
                        'font-lock-keyword-face)))))
 
 (defcustom elisp-eldoc-docstring-length-limit 1000
-  "Maximum docstring character limit displayed by elisp eldoc functions."
+  "Maximum length of doc strings displayed by elisp ElDoc functions."
   :type 'natnum
   :group 'elisp
   :version "31.1")
