@@ -644,22 +644,24 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
           ;; FIXME: Try to avoid re-constructing a new function if the old one
           ;; is still valid (e.g. still empty method cache)?
           (gfun (cl--generic-make-function generic)))
-      (unless (symbol-function sym)
-        (defalias sym 'dummy))   ;Record definition into load-history.
       (cl-pushnew `(cl-defmethod . ,(cl--generic-load-hist-format
                                      (cl--generic-name generic)
                                      qualifiers specializers))
                   current-load-list :test #'equal)
       (let ((old-adv-cc (get-advertised-calling-convention
-                         (symbol-function sym)))
-            ;; Prevent `defalias' from recording this as the definition site of
-            ;; the generic function.
-            current-load-list)
+                         (symbol-function sym))))
         (when (listp old-adv-cc)
-          (set-advertised-calling-convention gfun old-adv-cc nil))
-        ;; But do use `defalias', so that it interacts properly with nadvice,
-        ;; e.g. for tracing/debug-on-entry.
-        (defalias sym gfun)))))
+          (set-advertised-calling-convention gfun old-adv-cc nil)))
+      (if (not (symbol-function sym))
+          ;; If this is the first definition, use it as "the definition site of
+          ;; the generic function" since we don't know if a `cl-defgeneric'
+          ;; will follow or not.
+          (defalias sym gfun)
+        ;; Prevent `defalias' from recording this as the definition site of
+        ;; the generic function.  But do use `defalias', so it interacts
+        ;; properly with nadvice, e.g. for ;; tracing/debug-on-entry.
+        (let (current-load-list)
+          (defalias sym gfun))))))
 
 (defvar cl--generic-dispatchers (make-hash-table :test #'equal))
 
