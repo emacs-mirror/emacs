@@ -1895,6 +1895,19 @@ When 'flymake-indicator-type' is set to 'fringes', as is now the default,
 flymake will automatically fall back to using margin indicators in
 windows without fringes, including any window on a text terminal.
 
+** SQLite
+
++++
+*** SQLite databases can now be opened in read-only mode.
+The new optional argument READONLY to 'sqlite-open' function allows to
+open an existing database only for reading.
+
+*** 'sqlite-open' now recognizes 'file://' URIs as well as file names.
+The 'file://' URIs are supported by default.  In the unusual case that a
+normal file name starts with "file:", you can disable the URI
+recognition by invoking 'sqlite-open' with the new optional argument
+DISABLE-URI non-nil.
+
 
 * New Modes and Packages in Emacs 31.1
 
