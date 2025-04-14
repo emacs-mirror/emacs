@@ -167,7 +167,7 @@ skip_environ:
 1:	ldrb	w3, [x2], #1
 	strb	w3, [x1], #1
 	cmp	x2, x9
-	bls	1b
+	blo	1b
 copy_env_and_args:
 	// Copy argc and the environment array.
 	mov	x8, x10
@@ -204,7 +204,7 @@ cleanup:
 1:	ldrb	w3, [x5], #1
 	strb	w3, [x7], #1
 	cmp	x5, x9
-	bls	1b
+	blo	1b
 	// Close file descriptors.
 2:	cmp	x28, #-1		// is secondary fd set?
 	beq	cleanup1		// not set

@@ -162,7 +162,7 @@ skip_environ:
   rep	movsb				# copy file name
 	movq	%r10, %rsi		# file name
 	/* Preserve jump command.  */
-	cmpq	%r8, %r11		# decide copy direction
+1:	cmpq	%r8, %r11		# decide copy direction
 	jb	1f			# copy forward
 	movq	48(%r8), %rax
 	movq	%rax, 48(%r11)		# %r11->at_base
