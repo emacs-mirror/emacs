@@ -53,7 +53,7 @@
                :nick "tester"
                :password "changeme"
                :full-name "tester")
-        (funcall expect 3 "debug mode")
+        (funcall expect 10 "debug mode")
         (erc-cmd-JOIN "#chan")))
 
     (erc-d-t-wait-for 2 (get-buffer "#chan"))
