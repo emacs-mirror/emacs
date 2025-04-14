@@ -103,8 +103,7 @@
                      ("lisp/c${CTTQ1}et/se-u" "lisp/c${CTTQ1}et/semantic-utest")
                      ("lisp/ced${CTTQ2}se-u" "lisp/ced${CTTQ2}semantic-utest")
                      ;; Test that env-vars don't prevent partial-completion.
-                     ;; FIXME: Ideally we'd like to keep the ${CTTQ}!
-                     ("lis/c${CTTQ1}/se-u" "lisp/cedet/semantic-utest")
+                     ("lis/c${CTTQ1}/se-u" "lisp/c${CTTQ1}et/semantic-utest")
                      ))
       (should (equal (completion-try-completion input
                                                 #'completion--file-name-table
