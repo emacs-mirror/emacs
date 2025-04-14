@@ -95,6 +95,12 @@ struct text_index
   size_t interval;
 };
 
+enum
+{
+  /* Value indicating a non-position.  */
+  TEXT_INDEX_INVALID_POSITION = -1
+};
+
 /* Cache (CHARPOS, BYTEPOS) as known position in index TI.  */
 
 static void
@@ -109,7 +115,8 @@ cache (struct text_index *ti, ptrdiff_t charpos, ptrdiff_t bytepos)
 static void
 invalidate_cache (struct text_index *ti)
 {
-  ti->cache.charpos = ti->cache.bytepos = 0;
+  ti->cache.charpos = TEXT_INDEX_INVALID_POSITION;
+  ti->cache.bytepos = TEXT_INDEX_INVALID_POSITION;
 }
 
 /* Value is true is known position cache of TI is valid.  */
@@ -117,7 +124,7 @@ invalidate_cache (struct text_index *ti)
 static bool
 is_cache_valid (const struct text_index *ti)
 {
-  return ti->cache.bytepos != 0;
+  return ti->cache.bytepos != TEXT_INDEX_INVALID_POSITION;
 }
 
 /* Return the byte position in index TI corresponding to index entry
@@ -221,6 +228,7 @@ make_text_index (size_t nbytes)
   ti->charpos = xnmalloc (ti->capacity, sizeof *ti->charpos);
   ti->charpos[0] = BEG;
   ti->nentries = 1;
+  invalidate_cache (ti);
   return ti;
 }
 
@@ -258,16 +266,18 @@ build_index (struct buffer *b, const struct text_pos to)
 {
   struct text_index *ti = b->text->index;
 
-  eassert (to.charpos > 0 || to.bytepos > 0);
-  eassert (to.charpos == 0 || to.bytepos == 0);
-  eassert (to.bytepos == 0
+  eassert (to.charpos != TEXT_INDEX_INVALID_POSITION
+	   || to.bytepos != TEXT_INDEX_INVALID_POSITION);
+  eassert (to.charpos == TEXT_INDEX_INVALID_POSITION
+	   || to.bytepos == TEXT_INDEX_INVALID_POSITION);
+  eassert (to.bytepos == TEXT_INDEX_INVALID_POSITION
 	   || (to.bytepos >= BEG_BYTE
 	       && to.bytepos <= BUF_Z_BYTE (b)));
-  eassert (to.bytepos == 0
+  eassert (to.bytepos == TEXT_INDEX_INVALID_POSITION
 	   || to.bytepos > max_indexed_bytepos (ti));
-  eassert (to.charpos == 0
+  eassert (to.charpos == TEXT_INDEX_INVALID_POSITION
 	   || (to.charpos >= BEG && to.charpos <= BUF_Z (b)));
-  eassert (to.charpos == 0
+  eassert (to.charpos == TEXT_INDEX_INVALID_POSITION
 	   || to.charpos > max_indexed_charpos (ti));
 
   /* Start at the byte position of the last index entry.  if TO_BYTEPOS
@@ -445,7 +455,7 @@ narrow_bytepos_bounds_1 (const struct text_pos known, struct text_pos *prev,
 			 struct text_pos *next, const ptrdiff_t bytepos)
 {
   eassert (bytepos >= prev->bytepos && bytepos <= next->bytepos);
-  eassert (known.bytepos != 0);
+  eassert (known.bytepos != TEXT_INDEX_INVALID_POSITION);
   if (known.bytepos == bytepos)
     return true;
 
@@ -465,7 +475,7 @@ narrow_bytepos_bounds_1 (const struct text_pos known, struct text_pos *prev,
 /* Improve the known bytepos bounds *PREV and *NEXT of buffer B using
    known positions in B.  BYTEPOS is a byte position to convert to a
    character position.  If an exact match for BYTEPOS is found, return
-   its charpos, otherwise return 0.  */
+   its charpos, otherwise return TEXT_INDEX_INVALID_POSITION.  */
 
 static ptrdiff_t
 narrow_bytepos_bounds (struct buffer *b, struct text_pos *prev,
@@ -486,7 +496,7 @@ narrow_bytepos_bounds (struct buffer *b, struct text_pos *prev,
       && narrow_bytepos_bounds_1 (ti->cache, prev, next, bytepos))
     return ti->cache.charpos;
 
-  return 0;
+  return TEXT_INDEX_INVALID_POSITION;
 }
 
 /* Improve the known bytepos bounds *PREV and *NEXT if KNOWN is closer
@@ -497,7 +507,7 @@ narrow_charpos_bounds_1 (const struct text_pos known, struct text_pos *prev,
 			 struct text_pos *next, const ptrdiff_t charpos)
 {
   eassert (charpos >= prev->charpos && charpos <= next->charpos);
-  eassert (known.charpos != 0);
+  eassert (known.charpos != TEXT_INDEX_INVALID_POSITION);
   if (known.charpos == charpos)
     return true;
 
@@ -517,7 +527,7 @@ narrow_charpos_bounds_1 (const struct text_pos known, struct text_pos *prev,
 /* Improve the known bytepos bounds *PREV and *NEXT of buffer B using
    known positions in B.  BYTEPOS is a byte position to convert to a
    character position.  If an exact match for BYTEPOS is found, return
-   its charpos, otherwise return 0.  */
+   its charpos, otherwise return TEXT_INDEX_INVALID_POSITION.  */
 
 static ptrdiff_t
 narrow_charpos_bounds (struct buffer *b, struct text_pos *prev,
@@ -538,7 +548,7 @@ narrow_charpos_bounds (struct buffer *b, struct text_pos *prev,
       && narrow_charpos_bounds_1 (ti->cache, prev, next, charpos))
     return ti->cache.bytepos;
 
-  return 0;
+  return TEXT_INDEX_INVALID_POSITION;
 }
 
 /* Return the character position in buffer B corresponding to
@@ -568,7 +578,7 @@ text_index_bytepos_to_charpos (struct buffer *b, const ptrdiff_t bytepos)
   struct text_pos next = next_known_text_pos (b, entry);
 
   ptrdiff_t charpos = narrow_bytepos_bounds (b, &prev, &next, bytepos);
-  if (charpos)
+  if (charpos != TEXT_INDEX_INVALID_POSITION)
     return charpos;
 
   /* Scan forward if the distance to the previous known position is
@@ -604,7 +614,7 @@ text_index_charpos_to_bytepos (struct buffer *b, const ptrdiff_t charpos)
   struct text_pos next = next_known_text_pos (b, entry);
 
   ptrdiff_t bytepos = narrow_charpos_bounds (b, &prev, &next, charpos);
-  if (bytepos)
+  if (bytepos != TEXT_INDEX_INVALID_POSITION)
     return bytepos;
 
   /* Don't scan forward if CHARPOS is exactly on the previous know
