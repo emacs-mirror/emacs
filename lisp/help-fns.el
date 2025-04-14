@@ -1967,7 +1967,8 @@ current buffer and the selected frame, respectively."
         (unless single
           ;; Don't record the `describe-variable' item in the stack.
           (setq help-xref-stack-item nil)
-          (help-setup-xref (list #'describe-symbol symbol) nil))
+          (let ((help-mode--current-data help-mode--current-data))
+            (help-setup-xref (list #'describe-symbol symbol) nil)))
         (goto-char (point-max))
         (help-xref--navigation-buttons)
         (goto-char (point-min))))))
