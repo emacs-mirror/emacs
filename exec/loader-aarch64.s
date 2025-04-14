@@ -144,7 +144,7 @@ skip_environ:
 	and	x7, x7, -8		// align value
 	add	x4, x7, x4		// destination argc
 	and	x4, x4, -16		// align destination argc
-	// Load values that must be into registers x14-x19.
+	// Load values that must be preserved into registers x14-x19.
 	// x14 = cmd->entry
 	// x15 = cmd->at_entry
 	// x16 = cmd->at_phent

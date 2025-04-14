@@ -231,10 +231,10 @@ struct exec_jump_command
   /* The value of AT_BASE inside the aux vector.  */
   USER_WORD at_base;
 
-#if defined __mips__ && !defined MIPS_NABI
-  /* The FPU mode to apply.  */
+#if defined __mips__
+  /* The FPU mode to apply.  Not used when !MIPS_NABI.  */
   USER_WORD fpu_mode;
-#endif /* defined __mips__ && !defined MIPS_NABI */
+#endif /* defined __mips__ */
 };
 
 
@@ -916,9 +916,7 @@ exec_0 (char *name, struct exec_tracee *tracee,
   program_header program;
   USER_WORD entry, program_entry, offset;
   USER_WORD header_offset;
-#ifndef __mips__
   USER_WORD name_len, aligned_len;
-#endif /* !__mips__ */
   struct exec_jump_command jump;
 #if defined __mips__ && !defined MIPS_NABI
   int fpu_mode;
@@ -1132,6 +1130,8 @@ exec_0 (char *name, struct exec_tracee *tracee,
     fpu_mode = FP_FRE;
 
   jump.fpu_mode = fpu_mode;
+#elif defined __mips__
+  jump.fpu_mode = 0;
 #endif /* defined __mips__ && !defined MIPS_NABI */
 
   /* The offset used for at_phdr should be that of the first
@@ -1149,8 +1149,6 @@ exec_0 (char *name, struct exec_tracee *tracee,
 	  sizeof jump);
   loader_area_used += sizeof jump;
 
-  /* TODO: MIPS support.  */
-#ifndef __mips__
   /* Copy the length of NAME and NAME itself to the loader area.  */
   name_len = strlen (name);
   aligned_len = ((name_len + 1 + sizeof name_len - 1)
@@ -1167,7 +1165,6 @@ exec_0 (char *name, struct exec_tracee *tracee,
   offset = aligned_len - (name_len + 1);
   while (offset--)
     loader_area[loader_area_used++] = '\0';
-#endif /* !__mips__ */
 
   /* Close the file descriptor and return the number of bytes
      used.  */
