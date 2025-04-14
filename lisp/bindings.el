@@ -445,6 +445,15 @@ lighters hidden."
   :group 'mode-line
   :version "31.1")
 
+(defcustom mode-line-modes-delimiters '("(" . ")")
+  "Strings placed around the modes displayed in the mode line.
+These elements are placed around `mode-name' and `mode-line-modes'."
+  :type '(choice (const :tag "No delimiters")
+                 (cons (string :tag "Left delimiter")
+                       (string :tag "Right delimiter")))
+  :group 'mode-line
+  :version "31.1")
+
 (defvar mode-line-minor-modes '(:eval (mode-line--minor-modes))
   "Mode line construct for minor mode lighters.")
 ;;;###autoload
@@ -577,7 +586,7 @@ Keymap to display on minor modes.")
   (let ((recursive-edit-help-echo
          "Recursive edit, type C-M-c to get out"))
     (list (propertize "%[" 'help-echo recursive-edit-help-echo)
-	  "("
+          '(:eval (car mode-line-modes-delimiters))
 	  `(:propertize ("" mode-name)
 			help-echo "Major mode\n\
 mouse-1: Display major mode menu\n\
@@ -591,7 +600,7 @@ mouse-3: Toggle minor modes"
 		      'local-map (make-mode-line-mouse-map
 				  'mouse-2 #'mode-line-widen))
 	  '("" mode-line-minor-modes)
-	  ")"
+          '(:eval (cdr mode-line-modes-delimiters))
 	  (propertize "%]" 'help-echo recursive-edit-help-echo)
 	  " "))
   "Mode line construct for displaying major and minor modes.")

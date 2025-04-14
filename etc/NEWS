@@ -336,6 +336,11 @@ single button.  The value could also be a list to specify minor mode
 lighters to hide or show.  The default value is nil, which retains the
 previous behavior of showing all minor mode lighters.
 
+*** New user option 'mode-line-modes-delimiters'.
+This option allows changing or removing the delimiters shown around
+the major mode and list of minor modes in the mode line.  The default
+retains the existing behavior of inserting parentheses.
+
 ** Tab Bars and Tab Lines
 
 ---
