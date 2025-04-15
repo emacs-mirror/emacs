@@ -1570,11 +1570,20 @@ by this command."
   (let ((var (get-text-property (point) 'help-fns--edit-variable)))
     (unless var
       (error "No variable under point"))
-    (let ((str (read-string-from-buffer
-                (format ";; Edit the `%s' variable." (nth 0 var))
-                (prin1-to-string (nth 1 var)))))
-      (set (nth 0 var) (read str))
-      (revert-buffer))))
+    (string-edit
+     (format ";; Edit the `%s' variable." (nth 0 var))
+     (prin1-to-string (nth 1 var))
+     (lambda (edited)
+       (set (nth 0 var) edited)
+       (exit-recursive-edit))
+     :abort-callback
+     (lambda ()
+       (exit-recursive-edit)
+       (error "Aborted edit, variable unchanged"))
+     :major-mode #'emacs-lisp-mode
+     :read #'read)
+    (recursive-edit)
+    (revert-buffer)))
 
 (autoload 'shortdoc-help-fns-examples-function "shortdoc")
 
