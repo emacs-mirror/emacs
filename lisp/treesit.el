@@ -3193,7 +3193,12 @@ ARG is described in the docstring of `up-list'."
               (goto-char (if (> arg 0)
                              (treesit-node-end parent)
                            (treesit-node-start parent))))
-            (user-error "At top level")))
+            (if no-syntax-crossing
+                ;; Assume called interactively; don't signal an error.
+                (user-error "At top level")
+              (signal 'scan-error
+                      (list (format-message "No more %S to move across" pred)
+                            (point) (point))))))
       (setq cnt (- cnt inc)))))
 
 (defun treesit-cycle-sexp-type ()
