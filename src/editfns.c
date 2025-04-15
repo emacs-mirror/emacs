@@ -4389,7 +4389,6 @@ transpose_markers (ptrdiff_t start1, ptrdiff_t end1,
 		   ptrdiff_t start2_byte, ptrdiff_t end2_byte)
 {
   register ptrdiff_t amt1, amt1_byte, amt2, amt2_byte, diff, diff_byte, mpos;
-  register struct Lisp_Marker *marker;
 
   /* Update point as if it were a marker.  */
   if (PT < start1)
@@ -4424,7 +4423,7 @@ transpose_markers (ptrdiff_t start1, ptrdiff_t end1,
   amt1_byte = (end2_byte - start2_byte) + (start2_byte - end1_byte);
   amt2_byte = (end1_byte - start1_byte) + (start2_byte - end1_byte);
 
-  for (marker = BUF_MARKERS (current_buffer); marker; marker = marker->next)
+  DO_MARKERS (current_buffer, marker)
     {
       mpos = marker->bytepos;
       if (mpos >= start1_byte && mpos < end2_byte)
@@ -4449,6 +4448,7 @@ transpose_markers (ptrdiff_t start1, ptrdiff_t end1,
 	}
       marker->charpos = mpos;
     }
+  END_DO_MARKERS;
 }
 
 DEFUN ("transpose-regions", Ftranspose_regions, Stranspose_regions, 4, 5,

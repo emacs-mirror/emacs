@@ -1758,10 +1758,16 @@ ASIZE (Lisp_Object array)
 }
 
 INLINE ptrdiff_t
+gc_vsize (const struct Lisp_Vector *v)
+{
+  return v->header.size & ~ARRAY_MARK_FLAG;
+}
+
+INLINE ptrdiff_t
 gc_asize (Lisp_Object array)
 {
   /* Like ASIZE, but also can be used in the garbage collector.  */
-  return XVECTOR (array)->header.size & ~ARRAY_MARK_FLAG;
+  return gc_vsize (XVECTOR (array));
 }
 
 INLINE ptrdiff_t
@@ -2853,6 +2859,9 @@ struct Lisp_Marker
      used to implement the functionality of markers, but rather to (ab)use
      markers as a cache for char<->byte mappings).  */
   ptrdiff_t bytepos;
+
+  /* If in a buffer's marker vector, this is the entry where it is stored. */
+  ptrdiff_t entry;
 } GCALIGNED_STRUCT;
 
 struct Lisp_Overlay
