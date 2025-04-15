@@ -207,8 +207,9 @@ skip_environ:
 	$sp = copy of string.  */
 	move	T4, $sp			# current sp
 	dsub	T5, $t3, $sp		# new argc - current sp
+	li	$t8, -16
 	blt	T5, 16, 1f		# more than two slots apart
-	dadd	$sp, $t3, -16		# $sp = two slots below new argc
+	dadd	$sp, $t3, $t8		# $sp = two slots below new argc
 	j	2f			# skip copying fds
 	move	$sp, T4			# retain current sp
 1:	ld	T5, (T4)		# old primary fd
