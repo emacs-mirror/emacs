@@ -872,11 +872,13 @@ void *lisp_malloc_loser EXTERNALLY_VISIBLE;
 static void *
 lisp_malloc (size_t nbytes, bool clearit, enum mem_type type)
 {
+  register void *val;
+
 #ifdef GC_MALLOC_CHECK
   allocated_mem_type = type;
 #endif
 
-  void *val = clearit ? calloc (1, nbytes) : malloc (nbytes);
+  val = clearit ? calloc (1, nbytes) : malloc (nbytes);
 
 #if ! USE_LSB_TAG
   /* If the memory just allocated cannot be addressed thru a Lisp
