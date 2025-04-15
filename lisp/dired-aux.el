@@ -2881,6 +2881,7 @@ adds the new file (and new subdirectories if provided) to whichever
 directory the user enters at the prompt).  If nil,
 `dired-create-empty-file' acts on the default directory by default."
   :type 'boolean
+  :group 'dired
   :version "31.1")
 
 ;;;###autoload
