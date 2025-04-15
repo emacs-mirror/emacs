@@ -321,7 +321,8 @@ Type \\`?' to see the mode's help."
       (setq igc--sqlite nil))))
 
 (defvar igc-stats-time-format "%T.%3N"
-  "Time format for exporting IGC stats, e.g. to csv or sqlite.")
+  "Format for exporting time stamps in IGC stats, e.g. to csv or sqlite.
+Used in calls to `format-time-string'.")
 
 (defun igc--collect-stats-csv ()
   (let ((buffer (get-file-buffer igc--collect-file)))
