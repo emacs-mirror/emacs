@@ -117,35 +117,40 @@ RUN ./autogen.sh autoconf
 RUN ./configure --with-tree-sitter
 RUN make -j `nproc` bootstrap
 
-# Install language grammars.
+# Install language grammars.  The ABI versions of libtree-sitter0 and
+# the respective grammars must match.  The grammar ABI version is determined by
+# grep LANGUAGE_VERSION /path/to/grammar-repo/src/parser.c
 RUN mkdir -p /root/.emacs.d/tree-sitter
 RUN git config --global http.sslverify "false"
 # See https://github.com/emacs-tree-sitter/tree-sitter-langs/tree/master/repos
 RUN src/emacs -Q --batch \
+    --eval \
+      '(message "ABI min version %d max version %d" \
+         (treesit-library-abi-version t) (treesit-library-abi-version))' \
     --eval '(setq \
       treesit-extra-load-path (list "/root/.emacs.d/tree-sitter") \
       treesit-language-source-alist \
-      (quote ((bash "https://github.com/tree-sitter/tree-sitter-bash") \
-      (c "https://github.com/tree-sitter/tree-sitter-c") \
-      (c-sharp "https://github.com/tree-sitter/tree-sitter-c-sharp") \
-      (cpp "https://github.com/tree-sitter/tree-sitter-cpp") \
-      (css "https://github.com/tree-sitter/tree-sitter-css") \
-      (elixir "https://github.com/elixir-lang/tree-sitter-elixir") \
-      (go "https://github.com/tree-sitter/tree-sitter-go") \
-      (gomod "https://github.com/camdencheek/tree-sitter-go-mod") \
-      (gowork "https://github.com/omertuc/tree-sitter-go-work") \
-      (heex "https://github.com/phoenixframework/tree-sitter-heex") \
-      (html "https://github.com/tree-sitter/tree-sitter-html") \
-      (java "https://github.com/tree-sitter/tree-sitter-java") \
-      (javascript "https://github.com/tree-sitter/tree-sitter-javascript") \
-      (jsdoc "https://github.com/tree-sitter/tree-sitter-jsdoc") \
-      (json "https://github.com/tree-sitter/tree-sitter-json") \
-      (lua "https://github.com/tree-sitter-grammars/tree-sitter-lua") \
-      (python "https://github.com/tree-sitter/tree-sitter-python") \
-      (ruby "https://github.com/tree-sitter/tree-sitter-ruby") \
-      (rust "https://github.com/tree-sitter/tree-sitter-rust") \
-      (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src") \
-      (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))))' \
+        (quote ((bash "https://github.com/tree-sitter/tree-sitter-bash") \
+        (c "https://github.com/tree-sitter/tree-sitter-c") \
+        (c-sharp "https://github.com/tree-sitter/tree-sitter-c-sharp") \
+        (cpp "https://github.com/tree-sitter/tree-sitter-cpp") \
+        (css "https://github.com/tree-sitter/tree-sitter-css") \
+        (elixir "https://github.com/elixir-lang/tree-sitter-elixir") \
+        (go "https://github.com/tree-sitter/tree-sitter-go") \
+        (gomod "https://github.com/camdencheek/tree-sitter-go-mod") \
+        (gowork "https://github.com/omertuc/tree-sitter-go-work") \
+        (heex "https://github.com/phoenixframework/tree-sitter-heex") \
+        (html "https://github.com/tree-sitter/tree-sitter-html") \
+        (java "https://github.com/tree-sitter/tree-sitter-java") \
+        (javascript "https://github.com/tree-sitter/tree-sitter-javascript") \
+        (jsdoc "https://github.com/tree-sitter/tree-sitter-jsdoc") \
+        (json "https://github.com/tree-sitter/tree-sitter-json") \
+        (lua "https://github.com/tree-sitter-grammars/tree-sitter-lua") \
+        (python "https://github.com/tree-sitter/tree-sitter-python") \
+        (ruby "https://github.com/tree-sitter/tree-sitter-ruby") \
+        (rust "https://github.com/tree-sitter/tree-sitter-rust" "v0.23.3") \
+        (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src") \
+        (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))))' \
     --eval '(dolist (lang (mapcar (quote car) treesit-language-source-alist)) \
       (treesit-install-language-grammar lang "/root/.emacs.d/tree-sitter"))'
 
