@@ -175,13 +175,15 @@ rest_of_exec:
 	dadd	$s1, $s1, $t0		# s1 = start of envp
 skip_environ:
 	/* Locate the auxiliary vector.  */
+	li	$t8, 8 			# DADDI2 isn't appropriate in delay slots.
 1:	ld	$t0, ($s1)		# t0 = *s1
 	bnez	$t0, 1b			# skip environment entry
-	daddi	$s1, $s1, 8		# s1++
+	dadd	$s1, $s1, $t8		# s1++
 	move	$s2, $s1		# s2 = end of environment
+	li	$t8, 16
 1:	ld	$t0, ($s1)		# t0 = s1->a_type
 	bnez	$t0, 1b			# skip auxiliary vector entry
-	daddi	$s1, $s1, 16		# (Elf64_auxv_t *) s1++
+	dadd	$s1, $s1, $t8		# (Elf64_auxv_t *) s1++
 	/* Decide how many bytes must be copied and where to
 	   save the file name.  Move the stack pointer to a safe
 	   position below any data that must be preserved.  */
