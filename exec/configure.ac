@@ -470,7 +470,8 @@ _ACEOF
    AS_IF([test "x$exec_cv_as_daddi" != "xyes"],
      [DADDI_BROKEN=yes])
    exec_CHECK_LINUX_CLONE3
-   exec_CHECK_MIPS_NABI
+   AC_DEFINE([MIPS_NABI], [1],
+    [Define to 1 if MIPS NABI calling convention is being used.])
    LOADERFLAGS="$LOADERFLAGS $LDPREFIX-Ttext=0x3e00000000"
    is_mips=yes
    exec_loader=loader-mips64el.s], [*],
