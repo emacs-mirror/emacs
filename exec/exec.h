@@ -152,6 +152,10 @@ struct exec_tracee
      completion.  */
   USER_WORD sp;
 
+  /* ID of the system call that is pending completion.  This value is
+     not available as the call number is overwritten on success.  */
+  USER_WORD callno;
+
   /* Name of the executable being run.  */
   char *exec_file;
 

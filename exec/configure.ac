@@ -213,11 +213,11 @@ AC_CACHE_CHECK([whether MIPS NABI calling convention is used],
   [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <sgidefs.h>
 ]], [[
-#ifndef  __mips64__
+#if !defined __mips64__ && !defined __LP64__
 #if _MIPS_SIM == _ABIO32
 OABI in use.
 #endif /* _MIPS_SIM == _ABIO32 */
-#endif /* !__mips64__ */
+#endif /* !__mips64__ && !defined __LP64__ */
 ]])], [exec_cv_mips_nabi=yes],
   [exec_cv_mips_nabi=no])])
 
@@ -455,12 +455,12 @@ AS_CASE([$host], [x86_64-*linux*],
       .section text
       .global __start
 __start:
-	li	$t0, 0
-	li	$t1, 0
-	daddi	$t0, $t1, 1
-	daddi	$t0, $t1, -1
-	daddi	$t0, -1
-	daddi	$t0, 1
+	li	\$t0, 0
+	li	\$t1, 0
+	daddi	\$t0, \$t1, 1
+	daddi	\$t0, \$t1, -1
+	daddi	\$t0, -1
+	daddi	\$t0, 1
 
 _ACEOF
       $AS $ASFLAGS conftest.s -o conftest.$OBJEXT \
