@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.	 If not, see <https://www.gnu.org/licenses/>.
 
-	include(`config-mips.m4')
+include(`config-mips.m4')
 
 ## Beware: $t0-$t4 alias the syscall (and function, but they are not
 ## material in this context) argument registers on N32 systems, and
@@ -28,7 +28,7 @@ __start:
 	## li	$v0, SYSCALL_nanosleep	# SYS_nanosleep
 	## la	$a0, timespec		# rqtp
 	## li	$a1, 0			# rmtp
-	## syscall				# syscall
+	## syscall			# syscall
 	lw	$s6, ($sp)		# original stack pointer
 	addi	$s0, $sp, 8		# start of load area
 	addi	$sp, -8			# primary fd, secondary fd
@@ -158,7 +158,6 @@ perror:
 rest_of_exec:
 	move	$s1, $s6		# s1 = original SP
 	lw	$t0, ($s1)		# argc
-	nop				# delay slot
 	sll	$t0, $t0, 2		# argc *= 4
 	addi	$t0, $t0, 8		# argc += 8
 	add	$s1, $s1, $t0		# s1 = start of envp
@@ -195,11 +194,11 @@ skip_environ:
 	   $sp = copy of string.  */
 	move	$t4, $sp		# current sp
 	sub	$t5, $t3, $sp		# new argc - current sp
-	bleu	$t5, -8, 1f		# more than two slots apart
+	blt	$t5, 8, 1f		# more than two slots apart
 	addi	$sp, $t3, -8		# $sp = two slots below new argc
 	j	2f			# skip copying fds
-1:	move	$sp, $t4		# retain current sp
-	lw	$t5, ($t4)		# old primary fd
+	move	$sp, $t4		# retain current sp
+1:	lw	$t5, ($t4)		# old primary fd
 	sw	$t5, ($sp)		# save the same
 	lw	$t5, 4($t4)		# old interpreter fd
 	sw	$t5, 4($sp)		# save the same
