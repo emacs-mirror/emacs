@@ -52,6 +52,7 @@
   (tab-bar-tabs-set nil))
 
 (ert-deftest tab-bar-tests-quit-restore-window ()
+  (skip-when (and noninteractive (eq system-type 'windows-nt)))
   (let* ((frame-params (when noninteractive
                          '((window-system . nil)
                            (tty-type . "linux"))))
