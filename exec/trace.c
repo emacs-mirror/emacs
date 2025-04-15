@@ -1246,7 +1246,11 @@ process_system_call (struct exec_tracee *tracee)
      set, this must be exec, whatever the value of SYSCALL_NUM_REG,
      which is erased when exec loads another image.  */
 
-  callno = (!tracee->exec_data ? regs.SYSCALL_NUM_REG : EXEC_SYSCALL);
+  callno = (!tracee->exec_data
+	    ? (!tracee->waiting_for_syscall
+	       ? regs.SYSCALL_NUM_REG : tracee->callno)
+	    : EXEC_SYSCALL);
+  tracee->callno = callno;
   switch (callno)
     {
     case EXEC_SYSCALL:
@@ -1653,6 +1657,11 @@ seccomp_system_call (struct exec_tracee *tracee)
 
   /* Now dispatch based on the system call.  */
   callno = regs.SYSCALL_NUM_REG;
+
+  /* Record the call number, which may be required if one of the
+     following handlers should arrange for process_system_call to
+     intercede after the system call completes.  */
+  tracee->callno = callno;
   switch (callno)
     {
     case EXEC_SYSCALL:
@@ -1715,7 +1724,7 @@ seccomp_system_call (struct exec_tracee *tracee)
       if (rc < 0)
 	return;
 
-      tracee->waiting_for_syscall = !tracee->waiting_for_syscall;
+      tracee->waiting_for_syscall = true;
       break;
 
     default:
@@ -2033,6 +2042,7 @@ after_fork (pid_t pid)
     return 1;
 
   tracee->pid = pid;
+  tracee->callno = 0;
   tracee->next = tracing_processes;
   tracee->waiting_for_syscall = false;
   tracee->new_child = false;

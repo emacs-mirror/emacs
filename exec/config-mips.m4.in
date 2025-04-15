@@ -38,7 +38,11 @@ define(`RESTORE', `ifelse(`@MIPS_N32@',`yes',`	nop',`	addi	$sp, 32')')
 define(`FP', `ifelse(`@MIPS_N32@',`yes',`$s8',`$fp')')
 
 dnl For mips64.  Some assemblers don't want to assemble `daddi'.
-define(`DADDI2', `ifelse(`@DADDI_BROKEN@',`yes',`	li	$at, $2
-dadd		 $1, $1, $at',`	daddi	$1, $2')')
-define(`DADDI3', `ifelse(`@DADDI_BROKEN@',`yes',`	li	$at, $3
-dadd		 $1, $2, $at',`	daddi	$1, $2, $3')')
+define(`DADDI2', `ifelse(`@DADDI_BROKEN@',`yes',`.set noat
+li	$at, $2
+dadd	$1, $1, $at
+.set at',`	daddi	$1, $2')')
+define(`DADDI3', `ifelse(`@DADDI_BROKEN@',`yes',`.set noat
+li	$at, $3
+dadd	$1, $2, $at
+.set at',`	daddi	$1, $2, $3')')

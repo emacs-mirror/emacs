@@ -231,10 +231,10 @@ struct exec_jump_command
   /* The value of AT_BASE inside the aux vector.  */
   USER_WORD at_base;
 
-#if defined __mips__
+#if defined __mips__ && !defined __LP64__
   /* The FPU mode to apply.  Not used when !MIPS_NABI.  */
   USER_WORD fpu_mode;
-#endif /* defined __mips__ */
+#endif /* defined __mips__ && !defined __LP64__ */
 };
 
 
@@ -918,6 +918,7 @@ exec_0 (char *name, struct exec_tracee *tracee,
   USER_WORD header_offset;
   USER_WORD name_len, aligned_len;
   struct exec_jump_command jump;
+  /* This also encompasses !__LP64__.  */
 #if defined __mips__ && !defined MIPS_NABI
   int fpu_mode;
 #endif /* defined __mips__ && !defined MIPS_NABI */
@@ -1130,9 +1131,9 @@ exec_0 (char *name, struct exec_tracee *tracee,
     fpu_mode = FP_FRE;
 
   jump.fpu_mode = fpu_mode;
-#elif defined __mips__
+#elif defined __mips__ && !defined __LP64__
   jump.fpu_mode = 0;
-#endif /* defined __mips__ && !defined MIPS_NABI */
+#endif /* defined __mips__ && defined MIPS_NABI && !defined __LP64__ */
 
   /* The offset used for at_phdr should be that of the first
      mapping.  */

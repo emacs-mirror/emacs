@@ -455,12 +455,12 @@ AS_CASE([$host], [x86_64-*linux*],
       .section text
       .global __start
 __start:
-	li	$t0, 0
-	li	$t1, 0
-	daddi	$t0, $t1, 1
-	daddi	$t0, $t1, -1
-	daddi	$t0, -1
-	daddi	$t0, 1
+	li	\$t0, 0
+	li	\$t1, 0
+	daddi	\$t0, \$t1, 1
+	daddi	\$t0, \$t1, -1
+	daddi	\$t0, -1
+	daddi	\$t0, 1
 
 _ACEOF
       $AS $ASFLAGS conftest.s -o conftest.$OBJEXT \
