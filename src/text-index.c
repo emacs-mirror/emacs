@@ -304,12 +304,16 @@ build_index (struct buffer *b, const struct text_pos to)
 
       if (bytepos == next_stop)
 	{
-	  /* Add a new index entry. If we reached the one after the
-	     position we are interested in, we're done since we can then
-	     scan forward and backward to BYTEPOS.  */
+	  /* Add a new index entry.  */
 	  append_entry (ti, charpos);
-	  if ((to.bytepos && bytepos > to.bytepos)
-	      || (to.charpos && charpos > to.charpos))
+
+	  /* If we reached the one after the position we are interested
+	     in, we're done since we can then scan forward and backward
+	     to BYTEPOS.  */
+	  if ((to.bytepos != TEXT_INDEX_INVALID_POSITION
+	       && bytepos > to.bytepos)
+	      || (to.charpos != TEXT_INDEX_INVALID_POSITION
+		  && charpos > to.charpos))
 	    break;
 
 	  /* Compute next stop. We are done if no next entry
@@ -338,7 +342,11 @@ ensure_bytepos_indexed (struct buffer *b, ptrdiff_t bytepos)
 {
   struct text_index *ti = ensure_has_index (b);
   if (bytepos > max_indexed_bytepos (ti))
-    build_index (b, (struct text_pos) { .bytepos = bytepos });
+    {
+      struct text_pos to
+	= {.charpos = TEXT_INDEX_INVALID_POSITION, .bytepos = bytepos};
+      build_index (b, to);
+    }
 }
 
 /* Make sure that buffer B's text index contains CHARPOS.  */
@@ -348,7 +356,11 @@ ensure_charpos_indexed (struct buffer *b, ptrdiff_t charpos)
 {
   struct text_index *ti = ensure_has_index (b);
   if (charpos > max_indexed_charpos (ti))
-    build_index (b, (struct text_pos) { .charpos = charpos});
+    {
+      struct text_pos to
+	= {.charpos = charpos, .bytepos = TEXT_INDEX_INVALID_POSITION};
+      build_index (b, to);
+    }
 }
 
 /* In buffer B, starting from index entry ENTRY, scan forward in B's
