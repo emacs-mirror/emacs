@@ -213,11 +213,11 @@ AC_CACHE_CHECK([whether MIPS NABI calling convention is used],
   [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <sgidefs.h>
 ]], [[
-#ifndef  __mips64__
+#if !defined __mips64__ && !defined __LP64__
 #if _MIPS_SIM == _ABIO32
 OABI in use.
 #endif /* _MIPS_SIM == _ABIO32 */
-#endif /* !__mips64__ */
+#endif /* !__mips64__ && !defined __LP64__ */
 ]])], [exec_cv_mips_nabi=yes],
   [exec_cv_mips_nabi=no])])
 
