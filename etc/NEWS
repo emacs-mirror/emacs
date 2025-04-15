@@ -674,6 +674,68 @@ Now 'treesit-explore-mode' (or 'treesit-explore') prompts for a parser
 rather than a language, and it is now possible to select a local parser
 at point to explore.
 
+** C-ts mode
+
++++
+*** New user option 'c-ts-mode-enable-doxygen'.
+By default, this is nil, and the Doxygen comment blocks in C/C++ source
+are highlighted like other comments.  When non-nil, Doxygen comment
+blocks are syntax-highlighted if the Doxygen grammar library is
+available.
+
+** Go-ts mode
+
++++
+*** New unit test commands.
+Three new commands are now available to run unit tests.
+
+The 'go-ts-mode-test-function-at-point' command runs the unit test at
+point.  If a region is active, it runs all the unit tests under the
+region.  It is bound to 'C-c C-t t' in 'go-ts-mode'.
+
+The 'go-ts-mode-test-this-file' command runs all unit tests in the current
+file.  It is bound to 'C-c C-t f' in 'go-ts-mode'.
+
+The 'go-ts-mode-test-this-package' command runs all unit tests under the
+package of the current buffer.  It is bound to 'C-c C-t p' in 'go-ts-mode'.
+
+The 'go-ts-mode-build-tags' user option is available to set a list of
+build tags for the test commands.
+
+The 'go-ts-mode-test-flags' user option is available to set a list of
+additional flags to pass to the go test command line.
+
+** Java-ts mode
+
++++
+*** New user option 'java-ts-mode-enable-doxygen'.
+By default, this is nil, and the Doxygen comment blocks in Java source
+are highlighted like other comments.  When non-nil, Doxygen comment
+blocks are syntax-highlighted if the Doxygen grammar library is
+available.
+
+---
+*** New user option 'java-ts-mode-method-chaining-indent-offset'.
+Now method chaining is indented by 8 spaces rather than 4, and this
+option controls how much is indented for method chaining.
+
+** PHP-ts mode
+
+---
+*** 'php-ts-mode-run-php-webserver' can now accept a custom "php.ini" file.
+You can use the new optional argument CONFIG when calling
+'php-ts-mode-run-php-webserver' to pass an alternative "php.ini" file to
+the built-in Web server.  Interactively, when invoked with a prefix
+argument, 'php-ts-mode-run-php-webserver' prompts for the config file as
+well as for other connection parameters.
+
+** Rust-ts mode
+
+---
+*** New user option 'rust-ts-mode-fontify-number-suffix-as-type'.
+Rust number literals may have an optional type suffix.  When this option
+is non-nil, this suffix is fontified using 'font-lock-type-face'.
+
 ** Text mode
 
 ---
@@ -1156,51 +1218,6 @@ To get the old behavior back, add an element '(enum-open
 'c-offsets-alist' likewise in any of the other ways detailed in the
 "(ccmode) Config Basics" node of the CC mode manual.
 
-** Go-ts mode
-
-+++
-*** New unit test commands.
-Three new commands are now available to run unit tests.
-
-The 'go-ts-mode-test-function-at-point' command runs the unit test at
-point.  If a region is active, it runs all the unit tests under the
-region.  It is bound to 'C-c C-t t' in 'go-ts-mode'.
-
-The 'go-ts-mode-test-this-file' command runs all unit tests in the current
-file.  It is bound to 'C-c C-t f' in 'go-ts-mode'.
-
-The 'go-ts-mode-test-this-package' command runs all unit tests under the
-package of the current buffer.  It is bound to 'C-c C-t p' in 'go-ts-mode'.
-
-The 'go-ts-mode-build-tags' user option is available to set a list of
-build tags for the test commands.
-
-The 'go-ts-mode-test-flags' user option is available to set a list of
-additional flags to pass to the go test command line.
-
-** C-ts mode
-
-+++
-*** New user option 'c-ts-mode-enable-doxygen'.
-By default, this is nil, and the Doxygen comment blocks in C/C++ source
-are highlighted like other comments.  When non-nil, Doxygen comment
-blocks are syntax-highlighted if the Doxygen grammar library is
-available.
-
-** Java-ts mode
-
-+++
-*** New user option 'java-ts-mode-enable-doxygen'.
-By default, this is nil, and the Doxygen comment blocks in Java source
-are highlighted like other comments.  When non-nil, Doxygen comment
-blocks are syntax-highlighted if the Doxygen grammar library is
-available.
-
----
-*** New user option 'java-ts-mode-method-chaining-indent-offset'.
-Now method chaining is indented by 8 spaces rather than 4, and this
-option controls how much is indented for method chaining.
-
 ** Emacs Lisp mode
 
 ---
@@ -1377,23 +1394,6 @@ overlap.
 They suggest the previous revision as the default for REV1, not the last
 one as before.  This makes them different from 'vc-diff' and
 'vc-root-diff' when those are called without a prefix argument.
-
-** PHP-ts mode
-
----
-*** 'php-ts-mode-run-php-webserver' can now accept a custom "php.ini" file.
-You can use the new optional argument CONFIG when calling
-'php-ts-mode-run-php-webserver' to pass an alternative "php.ini" file to
-the built-in Web server.  Interactively, when invoked with a prefix
-argument, 'php-ts-mode-run-php-webserver' prompts for the config file as
-well as for other connection parameters.
-
-** Rust-ts mode
-
----
-*** New user option 'rust-ts-mode-fontify-number-suffix-as-type'.
-Rust number literals may have an optional type suffix.  When this option
-is non-nil, this suffix is fontified using 'font-lock-type-face'.
 
 ** Ediff
 
