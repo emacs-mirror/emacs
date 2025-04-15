@@ -1423,6 +1423,20 @@ a control panel window.
 
 ** Dired
 
+---
+*** New user option 'dired-create-empty-file-in-current-directory'.
+When non-nil, 'dired-create-empty-file' creates a new empty file and
+adds an entry for it (or its topmost new parent directory if created)
+under the current subdirectory in the Dired buffer by default
+(otherwise, it adds adds the new file (and new subdirectories if
+provided) to whichever directory the user enters at the prompt).  When
+nil, `dired-create-empty-file' acts on the default directory by default.
+
+Note that setting this user option to non-nil makes invoking
+'dired-create-empty-file' outside of a Dired buffer raise an error (like
+other Dired commands that always prompt with the current subdirectory,
+such as 'dired-create-directory').
+
 +++
 *** New user option 'dired-check-symlinks' allows disabling validity checks.
 Dired uses 'file-truename' to check symbolic link validity when

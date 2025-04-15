@@ -2872,13 +2872,32 @@ If DIRECTORY already exists, signal an error."
       (dired-add-file new)
       (dired-move-to-filename))))
 
+(defcustom dired-create-empty-file-in-current-directory nil
+  "Whether `dired-create-empty-file' acts on the current directory.
+If non-nil, `dired-create-empty-file' creates a new empty file and adds
+an entry for it (or its topmost new parent directory if created) under
+the current subdirectory in the Dired buffer by default (otherwise, it
+adds the new file (and new subdirectories if provided) to whichever
+directory the user enters at the prompt).  If nil,
+`dired-create-empty-file' acts on the default directory by default."
+  :type 'boolean
+  :version "31.1")
+
 ;;;###autoload
 (defun dired-create-empty-file (file)
   "Create an empty file called FILE.
-Add a new entry for the new file in the Dired buffer.
 Parent directories of FILE are created as needed.
+Add an entry in the Dired buffer for the topmost new parent
+directory of FILE, if created, otherwise for the new file.
+If user option `dired-create-empty-file-in-current-directory' is
+non-nil, act on the current subdirectory by default, otherwise act on
+the default directory by default.
 If FILE already exists, signal an error."
-  (interactive (list (read-file-name "Create empty file: ")) dired-mode)
+  (interactive
+   (list (read-file-name "Create empty file: "
+                         (and dired-create-empty-file-in-current-directory
+                              (dired-current-directory))))
+   dired-mode)
   (let* ((expanded (expand-file-name file))
          new)
     (if (file-exists-p expanded)
