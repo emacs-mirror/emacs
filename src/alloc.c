@@ -3809,7 +3809,6 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
   p->buffer = 0;
   p->bytepos = 0;
   p->charpos = 0;
-  p->next = NULL;
   p->insertion_type = 0;
   p->need_adjustment = 0;
   return make_lisp_ptr (p, Lisp_Vectorlike);
@@ -3834,8 +3833,7 @@ build_marker (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t bytepos)
   m->bytepos = bytepos;
   m->insertion_type = 0;
   m->need_adjustment = 0;
-  m->next = BUF_MARKERS (buf);
-  BUF_MARKERS (buf) = m;
+  marker_vector_add (buf, m);
   return make_lisp_ptr (m, Lisp_Vectorlike);
 }
 
@@ -6264,6 +6262,13 @@ mark_buffer (struct buffer *buffer)
 
   mark_interval_tree (buffer_intervals (buffer));
 
+  /* Mark the marker vector itself live, but don't process its contents
+     yet, because these are weak references.  The marker vector can
+     already have been set to nil in kill-buffer.  */
+  Lisp_Object mv = BUF_MARKERS (buffer);
+  if (!NILP (mv))
+    set_vector_marked (XVECTOR (mv));
+
   /* For now, we just don't mark the undo_list.  It's done later in
      a special way just before the sweep phase, and after stripping
      some of its elements that are not needed any more.
@@ -6271,7 +6276,7 @@ mark_buffer (struct buffer *buffer)
      for dead buffers, the undo_list should be nil (set by Fkill_buffer),
      but just to be on the safe side, we mark it here.  */
   if (!BUFFER_LIVE_P (buffer))
-      mark_object (BVAR (buffer, undo_list));
+    mark_object (BVAR (buffer, undo_list));
 
   if (!itree_empty_p (buffer->overlays))
     mark_overlays (buffer->overlays->root);
@@ -7103,21 +7108,23 @@ sweep_symbols (void)
   gcstat.total_free_symbols = num_free;
 }
 
-/* Remove BUFFER's markers that are due to be swept.  This is needed since
-   we treat BUF_MARKERS and markers's `next' field as weak pointers.  */
-static void
-unchain_dead_markers (struct buffer *buffer)
-{
-  struct Lisp_Marker *this, **prev = &BUF_MARKERS (buffer);
+/* Remove BUFFER's markers that are due to be swept.  This is needed
+   since we treat marker references from BUF_MARKER weak references.
+   This relies on the fact that marker vectors only contain markers,
+   fixnums and nil, which means we only have to look at the marker
+   slots.  If such a marker is not yet marked, it's dead and we remove
+   it from the marker vector.  If it is not dead, it won't be freed
+   my sweep_vectors which is called after sweep_buffers.  */
 
-  while ((this = *prev))
-    if (vectorlike_marked_p (&this->header))
-      prev = &this->next;
-    else
-      {
-        this->buffer = NULL;
-        *prev = this->next;
-      }
+static void
+unchain_dead_markers (struct buffer *b)
+{
+  DO_MARKERS (b, m)
+    {
+      if (!vectorlike_marked_p (&m->header))
+	marker_vector_remove (XVECTOR (BUF_MARKERS (b)), m);
+    }
+  END_DO_MARKERS;
 }
 
 NO_INLINE /* For better stack traces */

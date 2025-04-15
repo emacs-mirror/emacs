@@ -2129,8 +2129,7 @@ dump_marker (struct dump_context *ctx, const struct Lisp_Marker *marker)
     {
       dump_field_lv_rawptr (ctx, out, marker, &marker->buffer,
 			    Lisp_Vectorlike, WEIGHT_NORMAL);
-      dump_field_lv_rawptr (ctx, out, marker, &marker->next,
-			    Lisp_Vectorlike, WEIGHT_STRONG);
+      DUMP_FIELD_COPY (out, marker, entry);
       DUMP_FIELD_COPY (out, marker, charpos);
       DUMP_FIELD_COPY (out, marker, bytepos);
     }
@@ -2874,8 +2873,8 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
       DUMP_FIELD_COPY (out, buffer, own_text.overlay_unchanged_modified);
       if (buffer->own_text.intervals)
         dump_field_fixup_later (ctx, out, buffer, &buffer->own_text.intervals);
-      dump_field_lv_rawptr (ctx, out, buffer, &buffer->own_text.markers,
-                            Lisp_Vectorlike, WEIGHT_NORMAL);
+      dump_field_lv (ctx, out, buffer, &buffer->own_text.markers,
+		     WEIGHT_NORMAL);
       DUMP_FIELD_COPY (out, buffer, own_text.inhibit_shrinking);
       DUMP_FIELD_COPY (out, buffer, own_text.redisplay);
     }

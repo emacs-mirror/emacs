@@ -250,13 +250,12 @@ void
 adjust_markers_for_delete (ptrdiff_t from, ptrdiff_t from_byte,
 			   ptrdiff_t to, ptrdiff_t to_byte)
 {
-  struct Lisp_Marker *m;
   ptrdiff_t charpos;
 
   text_index_invalidate (current_buffer, from_byte);
 
   adjust_suspend_auto_hscroll (from, to);
-  for (m = BUF_MARKERS (current_buffer); m; m = m->next)
+  DO_MARKERS (current_buffer, m)
     {
       charpos = m->charpos;
       eassert (charpos <= Z);
@@ -275,6 +274,7 @@ adjust_markers_for_delete (ptrdiff_t from, ptrdiff_t from_byte,
 	  m->bytepos = from_byte;
 	}
     }
+  END_DO_MARKERS;
   adjust_overlays_for_delete (from, to - from);
 }
 
@@ -293,12 +293,11 @@ adjust_markers_for_insert (ptrdiff_t from, ptrdiff_t from_byte,
 {
   text_index_invalidate (current_buffer, from_byte);
 
-  struct Lisp_Marker *m;
   ptrdiff_t nchars = to - from;
   ptrdiff_t nbytes = to_byte - from_byte;
 
   adjust_suspend_auto_hscroll (from, to);
-  for (m = BUF_MARKERS (current_buffer); m; m = m->next)
+  DO_MARKERS (current_buffer, m)
     {
       eassert (m->bytepos >= m->charpos
 	       && m->bytepos - m->charpos <= Z_BYTE - Z);
@@ -317,6 +316,7 @@ adjust_markers_for_insert (ptrdiff_t from, ptrdiff_t from_byte,
 	  m->charpos += nchars;
 	}
     }
+  END_DO_MARKERS;
   adjust_overlays_for_insert (from, to - from, before_markers);
 }
 
@@ -350,7 +350,6 @@ adjust_markers_for_replace (ptrdiff_t from, ptrdiff_t from_byte,
 {
   text_index_invalidate (current_buffer, from_byte);
 
-  register struct Lisp_Marker *m;
   ptrdiff_t prev_to_byte = from_byte + old_bytes;
   ptrdiff_t diff_chars = new_chars - old_chars;
   ptrdiff_t diff_bytes = new_bytes - old_bytes;
@@ -369,7 +368,7 @@ adjust_markers_for_replace (ptrdiff_t from, ptrdiff_t from_byte,
 
   adjust_suspend_auto_hscroll (from, from + old_chars);
 
-  for (m = BUF_MARKERS (current_buffer); m; m = m->next)
+  DO_MARKERS (current_buffer, m)
     {
       if (m->bytepos >= prev_to_byte)
 	{
@@ -382,6 +381,7 @@ adjust_markers_for_replace (ptrdiff_t from, ptrdiff_t from_byte,
 	  m->bytepos = from_byte;
 	}
     }
+  END_DO_MARKERS;
 
   check_markers ();
 
@@ -420,7 +420,6 @@ void
 adjust_markers_bytepos (ptrdiff_t from, ptrdiff_t from_byte,
 			ptrdiff_t to, ptrdiff_t to_byte, int to_z)
 {
-  register struct Lisp_Marker *m;
   ptrdiff_t beg = from, begbyte = from_byte;
 
   adjust_suspend_auto_hscroll (from, to);
@@ -429,16 +428,17 @@ adjust_markers_bytepos (ptrdiff_t from, ptrdiff_t from_byte,
     {
       /* Make sure each affected marker's bytepos is equal to
 	 its charpos.  */
-      for (m = BUF_MARKERS (current_buffer); m; m = m->next)
+      DO_MARKERS (current_buffer, m)
 	{
 	  if (m->bytepos > from_byte
 	      && (to_z || m->bytepos <= to_byte))
 	    m->bytepos = m->charpos;
 	}
+      END_DO_MARKERS;
     }
   else
     {
-      for (m = BUF_MARKERS (current_buffer); m; m = m->next)
+      DO_MARKERS (current_buffer, m)
 	{
 	  /* Recompute each affected marker's bytepos.  */
 	  if (m->bytepos > from_byte
@@ -455,6 +455,7 @@ adjust_markers_bytepos (ptrdiff_t from, ptrdiff_t from_byte,
 	      begbyte = m->bytepos;
 	    }
 	}
+      END_DO_MARKERS;
     }
 }
 

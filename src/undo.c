@@ -128,7 +128,7 @@ record_marker_adjustments (ptrdiff_t from, ptrdiff_t to)
 {
   prepare_record ();
 
-  for (struct Lisp_Marker *m = BUF_MARKERS (current_buffer); m; m = m->next)
+  DO_MARKERS (current_buffer, m)
     {
       ptrdiff_t charpos = m->charpos;
       eassert (charpos <= Z);
@@ -154,6 +154,7 @@ record_marker_adjustments (ptrdiff_t from, ptrdiff_t to)
             }
         }
     }
+  END_DO_MARKERS;
 }
 
 /* Record that a deletion is about to take place, of the characters in

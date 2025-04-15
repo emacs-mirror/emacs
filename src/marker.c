@@ -141,9 +141,7 @@ attach_marker (struct Lisp_Marker *m, struct buffer *b,
   if (m->buffer != b)
     {
       unchain_marker (m);
-      m->buffer = b;
-      m->next = BUF_MARKERS (b);
-      BUF_MARKERS (b) = m;
+      marker_vector_add (b, m);
     }
 }
 
@@ -336,40 +334,12 @@ detach_marker (Lisp_Object marker)
    buffer NULL.  */
 
 void
-unchain_marker (register struct Lisp_Marker *marker)
+unchain_marker (struct Lisp_Marker *marker)
 {
-  register struct buffer *b = marker->buffer;
-
-  if (b)
+  if (marker->buffer)
     {
-      register struct Lisp_Marker *tail, **prev;
-
-      /* No dead buffers here.  */
-      eassert (BUFFER_LIVE_P (b));
-
-      marker->buffer = NULL;
-      prev = &BUF_MARKERS (b);
-
-      for (tail = BUF_MARKERS (b); tail; prev = &tail->next, tail = *prev)
-	if (marker == tail)
-	  {
-	    if (*prev == BUF_MARKERS (b))
-	      {
-		/* Deleting first marker from the buffer's chain.  Crash
-		   if new first marker in chain does not say it belongs
-		   to the same buffer, or at least that they have the same
-		   base buffer.  */
-		if (tail->next && b->text != tail->next->buffer->text)
-		  emacs_abort ();
-	      }
-	    *prev = tail->next;
-	    /* We have removed the marker from the chain;
-	       no need to scan the rest of the chain.  */
-	    break;
-	  }
-
-      /* Error if marker was not in it's chain.  */
-      eassert (tail != NULL);
+      Lisp_Object mv = BUF_MARKERS (marker->buffer);
+      marker_vector_remove (XVECTOR (mv), marker);
     }
 }
 
