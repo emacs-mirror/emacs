@@ -37,7 +37,9 @@
 ;;; Helper functions
 
 (defvar markdown-ts--code-block-language-map
-  '(("c++" . cpp) ("c#" . c-sharp))
+  '(("c++" . cpp)
+    ("c#" . c-sharp)
+    ("sh" . bash))
   "Alist mapping code block language names to tree-sitter languages.
 
 Keys should be strings, and values should be language symbols.
@@ -53,7 +55,31 @@ For example, \"c++\" in
 maps to tree-sitter language `cpp'.")
 
 (defvar markdown-ts-code-block-source-mode-map
-  '((javascript . js-ts-mode))
+  '((bash . bash-ts-mode)
+    (c . c-ts-mode)
+    (c-sharp . csharp-ts-mode)
+    (cmake . cmake-ts-mode)
+    (cpp . c++-ts-mode)
+    (css . css-ts-mode)
+    (dockerfile . dockerfile-ts-mode)
+    (elixir . elixir-ts-mode)
+    (go . go-ts-mode)
+    (gomod . go-mod-ts-mode)
+    (gowork . go-work-ts-mode)
+    (heex . heex-ts-mode)
+    (html . html-ts-mode)
+    (java . java-ts-mode)
+    (javascript . js-ts-mode)
+    (json . json-ts-mode)
+    (lua . lua-ts-mode)
+    (php . php-ts-mode)
+    (python . python-ts-mode)
+    (ruby . ruby-ts-mode)
+    (rust . rust-ts-mode)
+    (toml . toml-ts-mode)
+    (tsx . tsx-ts-mode)
+    (typescript . typescript-ts-mode)
+    (yaml . yaml-ts-mode))
   "An alist of supported code block languages and their major mode.")
 
 ;;; Faces
@@ -228,12 +254,14 @@ the same features enabled in MODE."
   (let* ((lang-string (alist-get (treesit-node-text node)
                                  markdown-ts--code-block-language-map
                                  (treesit-node-text node) nil #'equal))
-         (lang (intern (downcase lang-string))))
+         (lang (if (symbolp lang-string)
+                   lang-string
+                 (intern (downcase lang-string)))))
     ;; FIXME: Kind of a hack here: we use this function as a hook for
     ;; loading up configs for the language for the code block on-demand.
     (unless (memq lang markdown-ts--configured-languages)
       (let ((mode (alist-get lang markdown-ts-code-block-source-mode-map)))
-        (when mode
+        (when (fboundp mode)
           (markdown-ts--add-config-for-mode lang mode)
           (push lang markdown-ts--configured-languages))))
     lang))
