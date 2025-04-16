@@ -135,11 +135,11 @@ with the current prefix.  The files are chosen according to
   :version "26.3")
 
 (defcustom help-enable-variable-value-editing nil
-  "If non-nil, allow editing values in *Help* buffers.
+  "If non-nil, allow editing variable values in *Help* buffers.
 
 To edit the value of a variable, use \\[describe-variable] to
 display a \"*Help*\" buffer, move point after the text
-\"Its value is\" and type \\`e'.
+\"Its value is\" and type \\`e' to invoke `help-fns-edit-variable'.
 
 Values that aren't readable by the Emacs Lisp reader can't be
 edited even if this option is enabled."
@@ -1555,7 +1555,16 @@ it is displayed along with the global value."
 
 (put 'help-fns-edit-variable 'disabled t)
 (defun help-fns-edit-variable ()
-  "Edit the variable under point."
+  "Edit the variable value at point in \"*Help*\" buffer.
+This command only works if `help-enable-variable-value-editing' is non-nil.
+
+To edit the value of a variable, use \\[describe-variable] followed by the name
+of a variable, to display a \"*Help*\" buffer, move point to
+the variable's value, usually after the text \"Its value is\", and
+type \\`e' to invoke this command.
+
+Values that aren't readable by the Emacs Lisp reader can't be edited
+by this command."
   (declare (completion ignore))
   (interactive)
   (let ((var (get-text-property (point) 'help-fns--edit-variable)))
