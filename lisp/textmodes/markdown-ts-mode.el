@@ -64,37 +64,37 @@ maps to tree-sitter language `cpp'.")
   :group 'faces)
 
 (defface markdown-ts-delimiter '((t (:inherit shadow)))
-  "Face for the # before headings.")
+  "Face for the # before Markdown headings.")
 
 (defface markdown-ts-heading-1 '((t (:inherit outline-1)))
-  "Face for first level headings.")
+  "Face for first level Markdown headings.")
 
 (defface markdown-ts-setext-heading '((t (:inherit markdown-ts-heading-1)))
-  "Face for setext headings (headings underlined by === or ---).")
+  "Face for setext Markdown headings (headings underlined by === or ---).")
 
 (defface markdown-ts-heading-2 '((t (:inherit outline-2)))
-  "Face for second level headings.")
+  "Face for second level Markdown headings.")
 
 (defface markdown-ts-heading-3 '((t (:inherit outline-3)))
-  "Face for third level headings.")
+  "Face for third level Markdown headings.")
 
 (defface markdown-ts-heading-4 '((t (:inherit outline-4)))
-  "Face for fourth level headings.")
+  "Face for fourth level Markdown headings.")
 
 (defface markdown-ts-heading-5 '((t (:inherit outline-5)))
-  "Face for fifth level headings.")
+  "Face for fifth level Markdown headings.")
 
 (defface markdown-ts-heading-6 '((t (:inherit outline-6)))
-  "Face for sixth level headings.")
+  "Face for sixth level Markdown headings.")
 
 (defface markdown-ts-list-marker '((t (:inherit font-lock-keyword-face)))
-  "Face for list markers like - and *.")
+  "Face for Markdown list markers like - and *.")
 
 (defface markdown-ts-block-quote '((t (:inherit font-lock-string-face)))
-  "Face for block quotes.")
+  "Face for Markdown block quotes.")
 
 (defface markdown-ts-language-keyword '((t (:inherit font-lock-keyword-face)))
-  "Face for the language keyword for code blocks.")
+  "Face for the language keyword for Markdown code blocks.")
 
 ;;; Font-lock
 
@@ -183,9 +183,9 @@ maps to tree-sitter language `cpp'.")
 (defvar-local markdown-ts--configured-languages nil
   "A list of languages that have been setup in this buffer.
 
-When a code block of a language appear, `markdown-ts-mode' loads
+When a code block of a language appears, `markdown-ts-mode' loads
 language setups like font-lock and indentation for that language, and
-add that language to this list.")
+adds that language to this list.")
 
 (defun markdown-ts--harvest-treesit-configs (mode)
   "Harvest tree-sitter configs from MODE.
