@@ -1637,7 +1637,9 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
 #endif
 
   /* Relocate point as if it were a marker.  */
-  if (from < PT)
+  if (from < PT
+      /* Mimic 'insert' when FROM==TO==PT).  */
+      || PT == to)
     adjust_point ((from + inschars - min (PT, to)),
 		  (from_byte + outgoing_insbytes - min (PT_BYTE, to_byte)));
 

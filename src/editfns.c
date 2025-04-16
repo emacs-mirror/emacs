@@ -1928,10 +1928,11 @@ If optional argument INHERIT is non-nil, the inserted text will inherit
 properties from adjoining text.
 
 As far as possible the replacement is non-destructive, i.e. existing
-buffer contents, markers, properties, and overlays in the current
-buffer stay intact.  However, if point is at the end of the replaced
-text, it may not be at the end of the replacement when this function
-returns.
+buffer contents, markers, point, properties, and overlays in the current
+buffer stay intact.  Point is treated like an "insert before" marker:
+if point starts at END, it will always be at the end of the replacement
+when this function returns, whereas if point starts at BEG it will
+remain at BEG only if the replaced text is not empty.
 
 Because this function can be very slow if there is a large number of
 differences between the two buffers, there are two optional arguments
