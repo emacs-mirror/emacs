@@ -214,9 +214,10 @@ Be careful to do it while preserving the current history data."
                               (savehist--file-modtime)))))
     ;; FIXME: Process the file manually rather than passing it to `load'.
     (let ((savehist-old-minibuffer-history-variables
-           (mapcar (lambda (s) (and (boundp s) (cons s (symbol-value s))))
-                   (cons 'savehist-minibuffer-history-variables
-                         savehist-minibuffer-history-variables))))
+           (delq nil (mapcar (lambda (s)
+                               (and (boundp s) (cons s (symbol-value s))))
+                             (cons 'savehist-minibuffer-history-variables
+                                   savehist-minibuffer-history-variables)))))
       (condition-case errvar
 	  (progn
 	    ;; Don't set coding-system-for-read -- we rely on the
