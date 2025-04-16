@@ -2908,11 +2908,8 @@ current buffer is cleared.  */)
 
       DO_MARKERS (current_buffer, tail)
 	{
-	  Lisp_Object buf_markers = BUF_MARKERS (current_buffer);
-	  BUF_MARKERS (current_buffer) = Qnil;
 	  tail->bytepos = advance_to_char_boundary (tail->bytepos);
 	  tail->charpos = BYTE_TO_CHAR (tail->bytepos);
-	  BUF_MARKERS (current_buffer) = buf_markers;
 	}
       END_DO_MARKERS;
 
