@@ -165,7 +165,8 @@ of max unsigned 32-bit value for byte offsets into buffer text."
 The primary parser should be a parser that parses the entire buffer, as
 opposed to embedded parsers which parses only part of the buffer.")
 
-(defvar-local treesit-language-at-point-function nil
+(defvar-local treesit-language-at-point-function
+  #'treesit-language-at-point-default
   "A function that returns the language at point.
 This is used by `treesit-language-at', which is used by various
 functions to determine which parser to use at point.
@@ -183,10 +184,15 @@ When there are multiple parsers that covers POSITION, determine
 the most relevant parser (hence language) by their embed level.
 If `treesit-language-at-point-function' is non-nil, return
 the return value of that function instead."
-  (if treesit-language-at-point-function
-      (funcall treesit-language-at-point-function position)
-    (treesit-parser-language
-     (car (treesit-parsers-at position)))))
+  (funcall (or treesit-language-at-point-function
+               #'treesit-language-at-point-default)
+           position))
+
+(defun treesit-language-at-point-default (position)
+  "Default function for `treesit-language-at-point-function'.
+Return the deepest parser by embed level."
+  (treesit-parser-language
+   (car (treesit-parsers-at position))))
 
 ;;; Node API supplement
 
@@ -238,12 +244,8 @@ language and doesn't match the language of the local parser."
                 ;; 2. Given a language, try local parser, then global
                 ;; parser.
                 (parser-or-lang
-                 (let* ((local-parser (car (treesit-local-parsers-at
-                                            pos parser-or-lang)))
-                        (global-parser (car (treesit-parsers-at
-                                             pos parser-or-lang nil
-                                             '(primary global))))
-                        (parser (or local-parser global-parser)))
+                 (let ((parser (car (treesit-parsers-at
+                                     pos parser-or-lang))))
                    (when parser
                      (treesit-parser-root-node parser))))
                 ;; 3. No given language, try to get a language at point.
@@ -252,20 +254,8 @@ language and doesn't match the language of the local parser."
                 ;; finding parser, try local parser first, then global
                 ;; parser.
                 (t
-                 ;; LANG can be nil.  We don't want to use the fallback
-                 ;; in `treesit-language-at', so here we call
-                 ;; `treesit-language-at-point-function' directly.
-                 (let* ((lang (and treesit-language-at-point-function
-                                   (funcall treesit-language-at-point-function
-                                            pos)))
-                        (local-parser
-                         ;; Find the local parser with highest
-                         ;; embed-level at point.
-                         (car (treesit-local-parsers-at pos lang)))
-                        (global-parser (car (treesit-parsers-at
-                                             pos lang nil
-                                             '(primary global))))
-                        (parser (or local-parser global-parser)))
+                 ;; LANG can be nil.  Use the parser deepest by embed level.
+                 (let ((parser (car (treesit-parsers-at pos))))
                    (when parser
                      (treesit-parser-root-node parser))))))
          (node root)
