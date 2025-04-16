@@ -578,6 +578,16 @@ See `prettify-symbols-compose-predicate'."
                   ("Struct" "\\`struct_item\\'" nil nil)
                   ("Fn" "\\`function_item\\'" nil nil)))
 
+    ;; Outline.
+    (setq-local treesit-outline-predicate
+                (rx bos (or "mod_item"
+                            "enum_item"
+                            "impl_item"
+                            "type_item"
+                            "struct_item"
+                            "function_item"
+                            "trait_item")
+                    eos))
     ;; Indent.
     (setq-local indent-tabs-mode nil
                 treesit-simple-indent-rules rust-ts-mode--indent-rules)
