@@ -670,6 +670,7 @@ Return nil if NODE is not a defun node or doesn't have a name."
   (when (treesit-ready-p 'elixir)
     ;; The HEEx parser has to be created first for elixir to ensure elixir
     ;; is the first language when looking for treesit ranges.
+    ;; (In Emacs 31 this requirement is removed.)
     (when (treesit-ready-p 'heex)
       ;; Require heex-ts-mode only when we load elixir-ts-mode
       ;; so that we don't get a tree-sitter compilation warning for
@@ -756,7 +757,9 @@ Return nil if NODE is not a defun node or doesn't have a name."
                     ( elixir-function-call elixir-variable elixir-operator elixir-number ))))
 
     (treesit-major-mode-setup)
-    (setq-local syntax-propertize-function #'elixir-ts--syntax-propertize)))
+    (setq-local syntax-propertize-function #'elixir-ts--syntax-propertize)
+    ;; Enable the 'sexp' navigation by default
+    (treesit-cycle-sexp-type)))
 
 (derived-mode-add-parents 'elixir-ts-mode '(elixir-mode))
 
