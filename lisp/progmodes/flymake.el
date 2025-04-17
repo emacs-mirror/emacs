@@ -371,7 +371,7 @@ generated it."
 
 (cl-defstruct (flymake--diag
                (:constructor flymake--diag-make))
-  locus beg end type text backend data overlay-properties overlay
+  locus beg end type origin code message backend data overlay-properties overlay
   ;; FIXME: See usage of these two in `flymake--highlight-line'.
   ;; Ideally they wouldn't be needed.
   orig-beg orig-end)
@@ -381,32 +381,39 @@ generated it."
                                 beg
                                 end
                                 type
-                                text
+                                info
                                 &optional data
                                 overlay-properties)
   "Make a Flymake diagnostic for LOCUS's region from BEG to END.
 LOCUS is a buffer object or a string designating a file name.
 
-TYPE is a diagnostic symbol and TEXT is string describing the
-problem detected in this region.  DATA is any object that the
-caller wishes to attach to the created diagnostic for later
-retrieval with `flymake-diagnostic-data'.
+TYPE is a diagnostic symbol (see Info Node `(Flymake)Flymake error
+types')
 
-If LOCUS is a buffer BEG and END should be buffer positions
-inside it.  If LOCUS designates a file, BEG and END should be a
-cons (LINE . COL) indicating a file position.  In this second
-case, END may be omitted in which case the region is computed
-using `flymake-diag-region' if the diagnostic is appended to an
-actual buffer.
+INFO is a description of the problem detected.  It may be a string, or
+list of three strings (ORIGIN CODE MESSAGE) appropriately categorizing
+and describing the diagnostic.
 
-OVERLAY-PROPERTIES is an alist of properties attached to the
-created diagnostic, overriding the default properties and any
-properties listed in the `flymake-overlay-control' property of
-the diagnostic's type symbol."
+DATA is any object that the caller wishes to attach to the created
+diagnostic for later retrieval with `flymake-diagnostic-data'.
+
+If LOCUS is a buffer, BEG and END should be buffer positions inside it.
+If LOCUS designates a file, BEG and END should be a cons (LINE . COL)
+indicating a file position.  In this second case, END may be omitted in
+which case the region is computed using `flymake-diag-region' if the
+diagnostic is appended to an actual buffer.
+
+OVERLAY-PROPERTIES is an alist of properties attached to the created
+diagnostic, overriding the default properties and any properties listed
+in the `flymake-overlay-control' property of the diagnostic's type
+symbol."
   (when (stringp locus)
     (setq locus (expand-file-name locus)))
+  (when (stringp info)
+    (setq info (list nil nil info)))
   (flymake--diag-make :locus locus :beg beg :end end
-                      :type type :text text :data data
+                      :type type :origin (car info) :code (cadr info)
+                      :message (caddr info) :data data
                       :overlay-properties overlay-properties
                       :orig-beg beg
                       :orig-end end))
@@ -432,13 +439,26 @@ diagnostics at BEG."
      ,(format "Get Flymake diagnostic DIAG's %s." (symbol-name thing))
      (,internal diag)))
 
-(flymake--diag-accessor flymake-diagnostic-text flymake--diag-text text)
 (flymake--diag-accessor flymake-diagnostic-type flymake--diag-type type)
 (flymake--diag-accessor flymake-diagnostic-backend flymake--diag-backend backend)
+(flymake--diag-accessor flymake-diagnostic-origin flymake--diag-origin backend)
+(flymake--diag-accessor flymake-diagnostic-code flymake--diag-code backend)
+(flymake--diag-accessor flymake-diagnostic-message flymake--diag-message backend)
 (flymake--diag-accessor flymake-diagnostic-data flymake--diag-data data)
 (flymake--diag-accessor flymake-diagnostic-beg flymake--diag-beg beg)
 (flymake--diag-accessor flymake-diagnostic-end flymake--diag-end end)
 (flymake--diag-accessor flymake-diagnostic-buffer flymake--diag-locus locus)
+
+(defun flymake-diagnostic-text (diag)
+  "Get Flymake diagnostic DIAG's text."
+  (let ((a (flymake--diag-origin diag))
+        (b (flymake--diag-code diag))
+        (c (flymake--diag-message diag)))
+    (concat a
+            (when (and a b) " ")
+            (when b (concat "[" b "]"))
+            (when (and c (or a b)) ": ")
+            c)))
 
 (defun flymake-diagnostic-oneliner (diag &optional nopaintp)
   "Get truncated one-line text string for diagnostic DIAG.
@@ -813,7 +833,9 @@ Return to original margin width if ORIG-WIDTH is non-nil."
                              flymake--diag-beg
                              flymake-diagnostic-type
                              flymake-diagnostic-backend
-                             flymake-diagnostic-text)
+                             flymake-diagnostic-origin
+                             flymake-diagnostic-code
+                             flymake-diagnostic-message)
                always (equal (funcall comp a) (funcall comp b)))))
 
 (defun flymake--delete-overlay (ov)
