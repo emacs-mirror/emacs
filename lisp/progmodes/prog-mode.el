@@ -30,10 +30,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib)
-                   (require 'subr-x)
-                   (require 'treesit))
-
-(treesit-declare-unavailable-functions)
+                   (require 'subr-x))
 
 (defgroup prog-mode nil
   "Generic programming mode, from which others derive."
@@ -144,8 +141,6 @@ instead."
 	  (end (progn (forward-sexp 1) (point))))
       (indent-region start end nil))))
 
-(declare-function treesit-node-at "treesit.c")
-
 (defun prog-fill-reindent-defun (&optional argument)
   "Refill or reindent the paragraph or defun that contains point.
 
@@ -156,19 +151,33 @@ Otherwise, reindent the function definition that contains point
 or follows point."
   (interactive "P")
   (save-excursion
-    (let ((treesit-text-node
-           (and (treesit-available-p)
-                (treesit-parser-list)
-                (treesit-node-match-p
-                 (treesit-node-at (point)) 'text t))))
-      (if (or treesit-text-node
-              (nth 8 (syntax-ppss))
-              (re-search-forward "\\s-*\\s<" (line-end-position) t))
-          (fill-paragraph argument (region-active-p))
-        (beginning-of-defun)
-        (let ((start (point)))
-          (end-of-defun)
-          (indent-region start (point) nil))))))
+    ;; FIXME: For some reason, the comment-start syntax regexp doesn't
+    ;; work for me.  But I kept it around to be safe, and in the hope
+    ;; that if can cover cases where comment-start-skip is unset.
+    (if (or (nth 4 (syntax-ppss))
+            ;; If point is at the beginning of a comment delimiter,
+            ;; syntax-ppss doesn't consider point as being inside a
+            ;; comment.
+            (save-excursion
+              (beginning-of-line)
+              (and comment-start-skip
+                   ;; FIXME: This doesn't work for the case where there
+                   ;; are two matches of comment-start-skip, and the
+                   ;; first one is, say, inside a string.  We need to
+                   ;; call re-search-forward repeatedly until either
+                   ;; reached EOL or (nth 4 (syntax-ppss)) returns
+                   ;; non-nil.
+                   (re-search-forward comment-start-skip (pos-eol) t)
+                   (nth 4 (syntax-ppss))))
+            (save-excursion
+              (beginning-of-line)
+              (and (re-search-forward "\\s-*\\s<" (line-end-position) t)
+                   (nth 4 (syntax-ppss)))))
+        (fill-paragraph argument (region-active-p))
+      (beginning-of-defun)
+      (let ((start (point)))
+        (end-of-defun)
+        (indent-region start (point) nil)))))
 
 (defun prog-first-column ()
   "Return the indentation column normally used for top-level constructs."
