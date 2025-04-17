@@ -130,7 +130,7 @@ record_marker_adjustments (ptrdiff_t from, ptrdiff_t to)
 
   DO_MARKERS (current_buffer, m)
     {
-      ptrdiff_t charpos = m->charpos;
+      ptrdiff_t charpos = marker_vector_charpos (m);
       eassert (charpos <= Z);
 
       if (from <= charpos && charpos <= to)

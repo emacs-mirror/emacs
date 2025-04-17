@@ -1781,7 +1781,7 @@ window_point (struct window *w)
 {
   return (w == XWINDOW (selected_window)
           ? BUF_PT (XBUFFER (w->contents))
-          : XMARKER (w->pointm)->charpos);
+          : marker_vector_charpos (XMARKER (w->pointm)));
 }
 
 DEFUN ("window-point", Fwindow_point, Swindow_point, 0, 1, 0,
@@ -5398,11 +5398,11 @@ set correctly.  See the code of `split-window' for how this is done.  */)
       /* Get dead window back its old buffer and markers.  */
       wset_buffer (n, n->old_buffer);
       set_marker_restricted
-	(n->start, make_fixnum (XMARKER (n->start)->charpos), n->contents);
+	(n->start, make_fixnum (marker_vector_charpos (XMARKER (n->start))), n->contents);
       set_marker_restricted
-	(n->pointm, make_fixnum (XMARKER (n->pointm)->charpos), n->contents);
+	(n->pointm, make_fixnum (marker_vector_charpos (XMARKER (n->pointm))), n->contents);
       set_marker_restricted
-	(n->old_pointm, make_fixnum (XMARKER (n->old_pointm)->charpos),
+	(n->old_pointm, make_fixnum (marker_vector_charpos (XMARKER (n->old_pointm))),
 	 n->contents);
 
       Vwindow_list = Qnil;
@@ -8052,8 +8052,7 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, ptrdiff_t i)
 	     the buffer; pointm is garbage in the selected window.  */
 	  if (EQ (window, selected_window))
 	    p->pointm = build_marker (XBUFFER (w->contents),
-				      BUF_PT (XBUFFER (w->contents)),
-				      BUF_PT_BYTE (XBUFFER (w->contents)));
+				      BUF_PT (XBUFFER (w->contents)));
 	  else
 	    p->pointm = Fcopy_marker (w->pointm, Qnil);
 	  p->old_pointm = Fcopy_marker (w->old_pointm, Qnil);

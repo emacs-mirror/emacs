@@ -8120,8 +8120,9 @@ decode_coding_object (struct coding_system *coding,
 	{
 	  DO_MARKERS (current_buffer, tail)
 	    {
+	      const ptrdiff_t charpos = marker_vector_charpos (tail);
 	      tail->need_adjustment
-		= tail->charpos == (tail->insertion_type ? from : to);
+		= charpos == (tail->insertion_type ? from : to);
 	      need_marker_adjustment |= tail->need_adjustment;
 	    }
 	  END_DO_MARKERS;
@@ -8256,15 +8257,15 @@ decode_coding_object (struct coding_system *coding,
 		  tail->need_adjustment = 0;
 		  if (tail->insertion_type)
 		    {
-		      tail->bytepos = from_byte;
-		      tail->charpos = from;
+		      marker_vector_set_charpos (tail, from);
 		    }
 		  else
 		    {
-		      tail->bytepos = from_byte + coding->produced;
-		      tail->charpos
+		      ptrdiff_t bytepos = from_byte + coding->produced;
+		      ptrdiff_t charpos
 			= (NILP (BVAR (current_buffer, enable_multibyte_characters))
-			   ? tail->bytepos : from + coding->produced_char);
+			   ? bytepos : from + coding->produced_char);
+		      marker_vector_set_charpos (tail, charpos);
 		    }
 		}
 	    }
@@ -8341,8 +8342,9 @@ encode_coding_object (struct coding_system *coding,
       same_buffer = true;
       DO_MARKERS (XBUFFER (src_object), tail)
 	{
+	  const ptrdiff_t charpos = marker_vector_charpos (tail);
 	  tail->need_adjustment
-	    = tail->charpos == (tail->insertion_type ? from : to);
+	    = charpos == (tail->insertion_type ? from : to);
 	  need_marker_adjustment |= tail->need_adjustment;
 	}
       END_DO_MARKERS;
@@ -8510,15 +8512,15 @@ encode_coding_object (struct coding_system *coding,
 		  tail->need_adjustment = 0;
 		  if (tail->insertion_type)
 		    {
-		      tail->bytepos = from_byte;
-		      tail->charpos = from;
+		      marker_vector_set_charpos (tail, from);
 		    }
 		  else
 		    {
-		      tail->bytepos = from_byte + coding->produced;
-		      tail->charpos
+		      const ptrdiff_t bytepos = from_byte + coding->produced;
+		      const ptrdiff_t charpos
 			= (NILP (BVAR (current_buffer, enable_multibyte_characters))
-			   ? tail->bytepos : from + coding->produced_char);
+			   ? bytepos : from + coding->produced_char);
+		      marker_vector_set_charpos (tail, charpos);
 		    }
 		}
 	    }

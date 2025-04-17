@@ -353,9 +353,8 @@ readchar (Lisp_Object readcharfun, bool *multibyte)
 	  bytepos++;
 	}
 
-      XMARKER (readcharfun)->bytepos = bytepos;
-      XMARKER (readcharfun)->charpos++;
-
+      const ptrdiff_t charpos = marker_vector_charpos (XMARKER (readcharfun));
+      marker_vector_set_charpos (XMARKER (readcharfun), charpos + 1);
       return c;
     }
 
@@ -502,16 +501,8 @@ unreadchar (Lisp_Object readcharfun, int c)
     }
   else if (MARKERP (readcharfun))
     {
-      struct buffer *b = XMARKER (readcharfun)->buffer;
-      ptrdiff_t bytepos = XMARKER (readcharfun)->bytepos;
-
-      XMARKER (readcharfun)->charpos--;
-      if (! NILP (BVAR (b, enable_multibyte_characters)))
-	bytepos -= buf_prev_char_len (b, bytepos);
-      else
-	bytepos--;
-
-      XMARKER (readcharfun)->bytepos = bytepos;
+      const ptrdiff_t charpos = marker_vector_charpos (XMARKER (readcharfun));
+      marker_vector_set_charpos (XMARKER (readcharfun), charpos - 1);
     }
   else if (STRINGP (readcharfun))
     {
