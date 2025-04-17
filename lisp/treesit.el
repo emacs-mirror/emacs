@@ -1053,7 +1053,7 @@ Return updated parsers as a list."
 
 (defun treesit--update-ranges-local
     ( host-parser query embedded-lang modified-tick embed-level
-      &optional beg end range-fn)
+      &optional beg end offset range-fn)
   "Update range for local parsers between BEG and END under HOST-PARSER.
 Use QUERY to get the ranges, and make sure each range has a local
 parser for EMBEDDED-LANG.  HOST-PARSER and QUERY must match.
@@ -1083,10 +1083,10 @@ Return the created local parsers as a list."
   (let ((ranges-by-lang
          (if (functionp embedded-lang)
              (treesit-query-range-by-language
-              host-parser query embedded-lang beg end range-fn)
+              host-parser query embedded-lang beg end offset range-fn)
            (list (cons embedded-lang
                        (treesit-query-range
-                        host-parser query beg end range-fn)))))
+                        host-parser query beg end offset range-fn)))))
         (touched-parsers nil))
     (dolist (lang-and-range ranges-by-lang)
       (let ((embedded-lang (car lang-and-range))
@@ -1164,7 +1164,7 @@ Function range settings in SETTINGS are ignored."
                   (append touched-parsers
                           (treesit--update-ranges-local
                            host-parser query embed-lang modified-tick
-                           embed-level beg end range-fn))))
+                           embed-level beg end offset range-fn))))
            ;; When updating ranges, we want to avoid querying the whole
            ;; buffer which could be slow in very large buffers.
            ;; Instead, we only query for nodes that intersect with the
