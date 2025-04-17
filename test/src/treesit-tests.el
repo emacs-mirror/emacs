@@ -835,104 +835,107 @@ visible_end.)"
 (ert-deftest treesit-node-supplemental ()
   "Supplemental node functions."
   (skip-unless (treesit-language-available-p 'json))
-  (let (parser root-node doc-node)
-    (progn
-      (insert "[1,2,{\"name\": \"Bob\"},3]")
-      (setq parser (treesit-parser-create 'json))
-      (setq root-node (treesit-parser-root-node
-                       parser))
-      (setq doc-node (treesit-node-child root-node 0)))
-    ;; `treesit-node-buffer'.
-    (should (equal (treesit-node-buffer root-node)
-                   (current-buffer)))
-    ;; `treesit-node-language'.
-    (should (eq (treesit-node-language root-node)
-                'json))
-    ;; `treesit-node-at'.
-    (should (equal (treesit-node-string
-                    (treesit-node-at 1 'json))
-                   "(\"[\")"))
-    ;; `treesit-node-on'
-    (should (equal (treesit-node-string
-                    (treesit-node-on 1 2 'json))
-                   "(\"[\")"))
-    ;; `treesit-buffer-root-node'.
-    (should (treesit-node-eq
-             (treesit-buffer-root-node 'json)
-             root-node))
-    ;; `treesit-filter-child'.
-    (should (equal (mapcar
-                    (lambda (node)
-                      (treesit-node-type node))
-                    (treesit-filter-child
-                     doc-node (lambda (node)
-                                (treesit-node-check node 'named))))
-                   '("number" "number" "object" "number")))
-    ;; `treesit-node-text'.
-    (should (equal (treesit-node-text doc-node)
-                   "[1,2,{\"name\": \"Bob\"},3]"))
-    ;; `treesit-node-index'.
-    (should (eq (treesit-node-index doc-node)
-                0))
-    ;; TODO:
-    ;; `treesit-parent-until'
-    ;; `treesit-parent-while'
-    ;; `treesit-node-children'
-    ;; `treesit-node-field-name'
-    ;; `treesit-search-forward-goto'
-    ))
+  (with-temp-buffer
+    (let (parser root-node doc-node)
+      (progn
+        (insert "[1,2,{\"name\": \"Bob\"},3]")
+        (setq parser (treesit-parser-create 'json))
+        (setq root-node (treesit-parser-root-node
+                         parser))
+        (setq doc-node (treesit-node-child root-node 0)))
+      ;; `treesit-node-buffer'.
+      (should (equal (treesit-node-buffer root-node)
+                     (current-buffer)))
+      ;; `treesit-node-language'.
+      (should (eq (treesit-node-language root-node)
+                  'json))
+      ;; `treesit-node-at'.
+      (should (equal (treesit-node-string
+                      (treesit-node-at 1 'json))
+                     "(\"[\")"))
+      ;; `treesit-node-on'
+      (should (equal (treesit-node-string
+                      (treesit-node-on 1 2 'json))
+                     "(\"[\")"))
+      ;; `treesit-buffer-root-node'.
+      (should (treesit-node-eq
+               (treesit-buffer-root-node 'json)
+               root-node))
+      ;; `treesit-filter-child'.
+      (should (equal (mapcar
+                      (lambda (node)
+                        (treesit-node-type node))
+                      (treesit-filter-child
+                       doc-node (lambda (node)
+                                  (treesit-node-check node 'named))))
+                     '("number" "number" "object" "number")))
+      ;; `treesit-node-text'.
+      (should (equal (treesit-node-text doc-node)
+                     "[1,2,{\"name\": \"Bob\"},3]"))
+      ;; `treesit-node-index'.
+      (should (eq (treesit-node-index doc-node)
+                  0))
+      ;; TODO:
+      ;; `treesit-parent-until'
+      ;; `treesit-parent-while'
+      ;; `treesit-node-children'
+      ;; `treesit-node-field-name'
+      ;; `treesit-search-forward-goto'
+      )))
 
 (ert-deftest treesit-node-at ()
   "Test `treesit-node-at'."
   (skip-unless (treesit-language-available-p 'json))
-  (let (parser)
-    (progn
-      (insert "[1,  2, 3,4]  ")
-      (setq parser (treesit-parser-create 'json))
-      (treesit-parser-root-node parser))
-    ;; Point at ",", should return ",".
-    (goto-char (point-min))
-    (search-forward "1")
-    (should (equal (treesit-node-text
-                    (treesit-node-at (point)))
-                   ","))
-    ;; Point behind ",", should still return the ",".
-    (search-forward ",")
-    (should (equal (treesit-node-text
-                    (treesit-node-at (point)))
-                   ","))
-    ;; Point between "," and "2", should return 2.
-    (forward-char)
-    (should (equal (treesit-node-text
-                    (treesit-node-at (point)))
-                   "2"))
-    ;; EOF, should return the last leaf node "]".
-    (goto-char (point-max))
-    (should (equal (treesit-node-text
-                    (treesit-node-at (point)))
-                   "]"))))
+  (with-temp-buffer
+    (let (parser)
+      (progn
+        (insert "[1,  2, 3,4]  ")
+        (setq parser (treesit-parser-create 'json))
+        (treesit-parser-root-node parser))
+      ;; Point at ",", should return ",".
+      (goto-char (point-min))
+      (search-forward "1")
+      (should (equal (treesit-node-text
+                      (treesit-node-at (point)))
+                     ","))
+      ;; Point behind ",", should still return the ",".
+      (search-forward ",")
+      (should (equal (treesit-node-text
+                      (treesit-node-at (point)))
+                     ","))
+      ;; Point between "," and "2", should return 2.
+      (forward-char)
+      (should (equal (treesit-node-text
+                      (treesit-node-at (point)))
+                     "2"))
+      ;; EOF, should return the last leaf node "]".
+      (goto-char (point-max))
+      (should (equal (treesit-node-text
+                      (treesit-node-at (point)))
+                     "]")))))
 
 (ert-deftest treesit-node-check ()
   "Test `treesit-node-check'."
   (skip-unless (treesit-language-available-p 'json))
-  (let (parser root-node array-node comment-node)
-    (progn
-      (insert "/* comment */ [1,  2, 3,4  ")
-      (setq parser (treesit-parser-create 'json))
-      (setq root-node (treesit-parser-root-node
-                       parser))
-      (setq comment-node (treesit-node-child root-node 0))
-      (setq array-node (treesit-node-child root-node 1)))
+  (with-temp-buffer
+    (let (parser root-node array-node comment-node)
+      (progn
+        (insert "/* comment */ [1,  2, 3,4  ")
+        (setq parser (treesit-parser-create 'json))
+        (setq root-node (treesit-parser-root-node
+                         parser))
+        (setq comment-node (treesit-node-child root-node 0))
+        (setq array-node (treesit-node-child root-node 1)))
 
-    (should (treesit-node-check comment-node 'extra))
-    (should (treesit-node-check array-node 'has-error))
-    (should-error (treesit-node-check array-node 'xxx))
-    (should (treesit-node-check (treesit-node-child array-node -1)
-                                'missing))
-    (goto-char (point-max))
-    (insert "]")
-    (treesit-parser-root-node parser)
-    (should (treesit-node-check array-node 'outdated))))
+      (should (treesit-node-check comment-node 'extra))
+      (should (treesit-node-check array-node 'has-error))
+      (should-error (treesit-node-check array-node 'xxx))
+      (should (treesit-node-check (treesit-node-child array-node -1)
+                                  'missing))
+      (goto-char (point-max))
+      (insert "]")
+      (treesit-parser-root-node parser)
+      (should (treesit-node-check array-node 'outdated)))))
 
 ;;; Defun navigation
 ;;
@@ -1262,36 +1265,38 @@ This tests bug#60355."
   "Test search subtree forward."
   (skip-unless (treesit-language-available-p 'python))
   (require 'python)
-  (python-ts-mode)
-  (insert "Temp(1, 2)")
-  (goto-char (point-min))
-  (pcase-let* ((`((,_ . ,call-node))
-                (treesit-query-capture (treesit-buffer-root-node)
-                                       '((call) @c)))
-               (node (treesit-search-subtree
-                      call-node
-                      (lambda (n) (equal (treesit-node-type n) "integer")))))
+  (with-temp-buffer
+    (python-ts-mode)
+    (insert "Temp(1, 2)")
+    (goto-char (point-min))
+    (pcase-let* ((`((,_ . ,call-node))
+                  (treesit-query-capture (treesit-buffer-root-node)
+                                         '((call) @c)))
+                 (node (treesit-search-subtree
+                        call-node
+                        (lambda (n) (equal (treesit-node-type n) "integer")))))
 
-    (should node)
-    (should (equal (treesit-node-text node) "1"))))
+      (should node)
+      (should (equal (treesit-node-text node) "1")))))
 
 (ert-deftest treesit-search-subtree-backward-1 ()
   "Test search subtree with backward=t."
   (skip-unless (treesit-language-available-p 'python))
   (require 'python)
-  (python-ts-mode)
-  (insert "Temp(1, 2)")
-  (goto-char (point-min))
-  (pcase-let* ((`((,_ . ,call-node))
-                (treesit-query-capture (treesit-buffer-root-node)
-                                       '((call) @c)))
-               (node (treesit-search-subtree
-                      call-node
-                      (lambda (n) (equal (treesit-node-type n) "integer"))
-                      t)))
+  (with-temp-buffer
+    (python-ts-mode)
+    (insert "Temp(1, 2)")
+    (goto-char (point-min))
+    (pcase-let* ((`((,_ . ,call-node))
+                  (treesit-query-capture (treesit-buffer-root-node)
+                                         '((call) @c)))
+                 (node (treesit-search-subtree
+                        call-node
+                        (lambda (n) (equal (treesit-node-type n) "integer"))
+                        t)))
 
-    (should node)
-    (should (equal (treesit-node-text node) "2"))))
+      (should node)
+      (should (equal (treesit-node-text node) "2")))))
 
 ;;; Imenu
 

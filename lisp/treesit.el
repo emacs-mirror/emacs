@@ -873,8 +873,10 @@ If ONLY contains the symbol `primary', include the primary parser."
                          (and (memq 'global only)
                               (not (overlay-get ov 'treesit-parser-local-p))))))
         (push (if with-host (cons parser host-parser) parser) res)))
-    (when (or (null only) (memq 'primary only))
-      (setq res (cons treesit-primary-parser res)))
+    (when (and treesit-primary-parser (or (null only) (memq 'primary only)))
+      (push treesit-primary-parser res))
+    (unless res
+      (push (car (treesit-parser-list)) res))
     (seq-sort-by (lambda (p)
                    (treesit-parser-embed-level
                     (or (car-safe p) p)))
