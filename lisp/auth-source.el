@@ -708,7 +708,11 @@ must call it to obtain the actual value."
           (condition-case nil
               (unless (auth-source-search-collection
                        (plist-get spec key)
-                       (slot-value backend key))
+                       (slot-value
+                        backend
+                        (if (keywordp key)
+                            (intern-soft (substring (symbol-name key) 1))
+                          key)))
                 (setq filtered-backends (delq backend filtered-backends))
                 (cl-return))
             (invalid-slot-name nil))))
