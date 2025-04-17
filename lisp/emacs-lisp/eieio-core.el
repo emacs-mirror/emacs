@@ -63,12 +63,14 @@ default setting for optimization purposes.")
 (defvar eieio-optimize-primary-methods-flag t
   "Non-nil means to optimize the method dispatch on primary methods.")
 
-(defvar eieio-backward-compatibility t
+(defvar eieio-backward-compatibility 'warn
   "If nil, drop support for some behaviors of older versions of EIEIO.
 Currently under control of this var:
 - Define every class as a var whose value is the class symbol.
 - Define <class>-child-p and <class>-list-p predicates.
-- Allow object names in constructors.")
+- Allow object names in constructors.
+When `warn', also emit warnings at run-time when code uses those
+deprecated features.")
 
 (define-obsolete-variable-alias 'eieio-unbound 'eieio--unbound "28.1")
 (defvar eieio--unbound (make-symbol "eieio--unbound")
@@ -359,6 +361,8 @@ See `defclass' for more information."
              (internal--format-docstring-line
               "Test OBJ to see if it a list of objects which are a child of type `%s'."
               cname))
+            (when (eq eieio-backward-compatibility 'warn)
+              (message "Use of obsolete function %S" csym))
             (when (listp obj)
               (let ((ans t)) ;; nil is valid
                 ;; Loop over all the elements of the input list, test
@@ -909,12 +913,15 @@ reverse-lookup that name, and recurse with the associated slot value."
   (let* ((fsi (gethash slot (cl--class-index-table class))))
     (if (integerp fsi)
         fsi
-      (let ((fn (eieio--initarg-to-attribute class slot)))
-	(if fn
+      (when eieio-backward-compatibility
+	(let ((fn (eieio--initarg-to-attribute class slot)))
+	  (when fn
+            (when (eq eieio-backward-compatibility 'warn)
+              (message "Accessing slot `%S' via obsolete initarg name `%S'"
+                       fn slot))
             ;; Accessing a slot via its :initarg is accepted by EIEIO
             ;; (but not CLOS) but is a bad idea (for one: it's slower).
-            (eieio--slot-name-index class fn)
-          nil)))))
+            (eieio--slot-name-index class fn)))))))
 
 (defun eieio--class-slot-name-index (class slot)
   "In CLASS find the index of the named SLOT.

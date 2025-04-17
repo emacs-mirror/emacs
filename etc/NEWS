@@ -736,6 +736,15 @@ well as for other connection parameters.
 Rust number literals may have an optional type suffix.  When this option
 is non-nil, this suffix is fontified using 'font-lock-type-face'.
 
+** EIEIO
+---
+*** New value 'warn' for 'eieio-backward-compatibility'.
+This is the new default value and causes warnings to be emitted
+at run-time for the use of the associated deprecated features.
+(setq eieio-backward-compatibility t) can be used to recover
+the previous silence.
+
+---
 ** Text mode
 
 ---
