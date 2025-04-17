@@ -1,6 +1,6 @@
 ;;; modus-operandi-deuteranopia-theme.el --- Deuteranopia-optimized theme with a white background -*- lexical-binding:t -*-
 
-;; Copyright (C) 2019-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2025  Free Software Foundation, Inc.
 
 ;; Author: Protesilaos Stavrou <info@protesilaos.com>
 ;; Maintainer: Protesilaos Stavrou <info@protesilaos.com>
@@ -167,14 +167,10 @@ standard)."
 
       (bg-completion       "#c0deff")
       (bg-hover            "#b2e4dc")
-      (bg-hover-secondary  "#f5d0a0")
+      (bg-hover-secondary  "#e5d7a0")
       (bg-hl-line          "#dae5ec")
       (bg-region           "#bdbdbd")
       (fg-region           "#000000")
-
-      (bg-char-0 "#7feaff")
-      (bg-char-1 "#ffaaff")
-      (bg-char-2 "#dff000")
 
       (bg-mode-line-active        "#d0d6ff")
       (fg-mode-line-active        "#0f0f0f")
@@ -216,13 +212,6 @@ standard)."
 
       (bg-diff-context    "#f3f3f3")
 
-;;; Paren match
-
-      (bg-paren-match        "#5fcfff")
-      (fg-paren-match        fg-main)
-      (bg-paren-expression   "#efd3f5")
-      (underline-paren-match unspecified)
-
 ;;; Mappings
 
 ;;;; General mappings
@@ -257,17 +246,17 @@ standard)."
 ;;;; Code mappings
 
       (bracket fg-main)
-      (builtin magenta-warmer)
+      (builtin yellow)
       (comment yellow-cooler)
-      (constant blue-cooler)
+      (constant blue-faint)
       (delimiter fg-main)
       (docmarkup magenta-faint)
       (docstring green-faint)
-      (fnname magenta)
-      (keyword magenta-cooler)
+      (fnname yellow-warmer)
+      (keyword blue-cooler)
       (number fg-main)
       (operator fg-main)
-      (preprocessor red-cooler)
+      (preprocessor magenta-cooler)
       (punctuation fg-main)
       (rx-backslash blue-cooler)
       (rx-construct yellow-cooler)
@@ -275,12 +264,19 @@ standard)."
       (type cyan-cooler)
       (variable cyan)
 
+;;;; Paren match
+
+      (bg-paren-match        bg-cyan-subtle)
+      (fg-paren-match        fg-main)
+      (underline-paren-match unspecified)
+      (bg-paren-expression   bg-yellow-nuanced)
+
 ;;;; Accent mappings
 
-      (accent-0 blue)
+      (accent-0 blue-warmer)
       (accent-1 yellow-warmer)
       (accent-2 cyan)
-      (accent-3 magenta-cooler)
+      (accent-3 yellow-cooler)
 
 ;;;; Button mappings
 
@@ -291,10 +287,10 @@ standard)."
 
 ;;;; Completion mappings
 
-      (fg-completion-match-0 blue)
+      (fg-completion-match-0 blue-warmer)
       (fg-completion-match-1 yellow-warmer)
       (fg-completion-match-2 cyan)
-      (fg-completion-match-3 magenta-cooler)
+      (fg-completion-match-3 yellow-cooler)
       (bg-completion-match-0 unspecified)
       (bg-completion-match-1 unspecified)
       (bg-completion-match-2 unspecified)
@@ -313,7 +309,7 @@ standard)."
       (date-scheduled yellow-cooler)
       (date-scheduled-subtle yellow-faint)
       (date-weekday cyan)
-      (date-weekend magenta)
+      (date-weekend blue-cooler)
 
 ;;;; Line number mappings
 
@@ -374,7 +370,7 @@ standard)."
       (fg-prose-macro magenta-cooler)
 
       (bg-prose-verbatim unspecified)
-      (fg-prose-verbatim magenta-warmer)
+      (fg-prose-verbatim yellow)
 
       (prose-done blue)
       (prose-todo yellow-warmer)
@@ -385,7 +381,7 @@ standard)."
       (prose-table fg-alt)
       (prose-table-formula yellow-warmer)
 
-      (prose-tag magenta-faint)
+      (prose-tag fg-alt)
 
 ;;;; Rainbow mappings
 
@@ -403,7 +399,7 @@ standard)."
 
       (bg-search-current bg-yellow-intense)
       (bg-search-lazy bg-blue-intense)
-      (bg-search-replace bg-magenta-intense)
+      (bg-search-replace bg-yellow-intense)
 
       (bg-search-rx-group-0 bg-cyan-intense)
       (bg-search-rx-group-1 bg-magenta-intense)
@@ -463,11 +459,11 @@ standard)."
       (fg-heading-0 cyan-cooler)
       (fg-heading-1 fg-main)
       (fg-heading-2 yellow-faint)
-      (fg-heading-3 fg-alt)
-      (fg-heading-4 magenta)
-      (fg-heading-5 green-faint)
-      (fg-heading-6 red-faint)
-      (fg-heading-7 cyan-warmer)
+      (fg-heading-3 blue-faint)
+      (fg-heading-4 green-faint)
+      (fg-heading-5 magenta-cooler)
+      (fg-heading-6 yellow-cooler)
+      (fg-heading-7 cyan)
       (fg-heading-8 fg-dim)
 
       (bg-heading-0 unspecified)

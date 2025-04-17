@@ -4,9 +4,9 @@
 #+language: en
 #+options: ':t toc:nil author:t email:t num:t
 #+startup: content
-#+macro: stable-version 4.6.0
-#+macro: release-date 2024-10-27
-#+macro: development-version 4.7.0-dev
+#+macro: stable-version 4.7.0
+#+macro: release-date 2025-04-17
+#+macro: development-version 4.8.0-dev
 #+macro: file @@texinfo:@file{@@$1@@texinfo:}@@
 #+macro: space @@texinfo:@: @@
 #+macro: kbd @@texinfo:@kbd{@@$1@@texinfo:}@@
@@ -88,7 +88,7 @@ The Modus themes consist of eight themes, divided into four subgroups.
   are variants of the two main themes.  They slightly tone down the
   intensity of the background and provide a bit more color variety.
   ~modus-operandi-tinted~ has a set of base tones that are shades of
-  light ocher (earthly colors), while ~modus-vivendi-tinted~ gives a
+  light ochre (earthly colors), while ~modus-vivendi-tinted~ gives a
   night sky impression.
 
 - Deuteranopia themes :: ~modus-operandi-deuteranopia~ and its
@@ -1309,37 +1309,32 @@ Examples demonstrating how to use the aforementioned:
 #+findex: modus-themes-list-colors
 The command ~modus-themes-list-colors~ uses minibuffer completion to
 select an item from the Modus themes and then produces a buffer with
-previews of its color palette entries.  The buffer has a naming scheme
-that reflects the given choice, like =modus-operandi-list-colors= for
-the ~modus-operandi~ theme.
+previews of all of its color palette entries.
 
 #+findex: modus-themes-list-colors-current
 The command ~modus-themes-list-colors-current~ skips the minibuffer
-selection process and just produces a preview for the current Modus
-theme.
+selection process to produce a preview for the current Modus theme.
 
 When called with a prefix argument (=C-u= with the default key
 bindings), these commands will show a preview of the palette's
-semantic color mappings instead of the named colors.  In this context,
-"named colors" are entries that associate a symbol to a string color
-value, such as =(blue-warmer "#354fcf")=.  Whereas "semantic color
-mappings" associate a named color to a symbol, like =(string
-blue-warmer)=, thus making the theme render all string constructs in
-the =blue-warmer= color value ([[#h:34c7a691-19bb-4037-8d2f-67a07edab150][Option for palette overrides]]).
+semantic color mappings instead of the full palette ([[#h:34c7a691-19bb-4037-8d2f-67a07edab150][Option for palette overrides]]).
 
 #+findex: modus-themes-preview-colors
 #+findex: modus-themes-preview-colors-current
-Aliases for those commands are ~modus-themes-preview-colors~ and
+Aliases for these commands are ~modus-themes-preview-colors~ and
 ~modus-themes-preview-colors-current~.
 
-Each row shows a foreground and background coloration using the
-underlying value it references.  For example a line with =#a60000= (a
-shade of red) will show red text followed by a stripe with that same
-color as a backdrop.
+Each row includes a foreground and background rendition of the given
+color value. For example a line with =#a60000= (a shade of red) will
+show a column with a red background combined with a suitable
+foreground followed by another column with a red foreground against
+the current theme's background. The intent is to illustrate which
+values are suitable as a background or foreground.
 
 The name of the buffer describes the given Modus theme and what the
-contents are, such as =*modus-operandi-list-colors*= for named colors
-and ==*modus-operandi-list-mappings*= for the semantic color mappings.
+contents are, such as =*modus-operandi-list-all*= for the entirety of
+the palette (named colors as well as semantic color mappings) and
+==*modus-operandi-list-mappings*= for the mappings only.
 
 * Use colors from the Modus themes palette
 :PROPERTIES:
@@ -1361,7 +1356,7 @@ value in some other application.
 :END:
 
 #+findex: modus-themes-get-color-value
-The function ~modus-themes-get-color-value~ can be called from Lisp to
+The fuction ~modus-themes-get-color-value~ can be called from Lisp to
 return the value of a color from the active Modus theme palette. It
 takea a =COLOR= argument and an optional =OVERRIDES=. It also accepts
 a third =THEME= argument, to get the color from the given theme.
@@ -2367,7 +2362,7 @@ until version 4.3.0.
 ;; was the default in versions of the Modus themes before 4.4.0
 (setq modus-themes-common-palette-overrides
       '((bg-prose-block-contents unspecified)
-        (bg-prose-block-delimiter unspecified)
+        (bg-prose-block-delimiter unspeficied)
         (fg-prose-block-delimiter fg-dim)))
 #+end_src
 
@@ -2941,7 +2936,7 @@ Reload the theme for changes to take effect.
 :CUSTOM_ID: h:a5140c9c-18b2-45db-8021-38d0b5074116
 :END:
 
-By default, the background of the ~region~ face extends from the
+By the default, the background of the ~region~ face extends from the
 end of the line to the edge of the window.  To limit it to the end of
 the line, we need to override the face's =:extend= attribute.  Adding
 this to the Emacs configuration file will suffice:
@@ -3365,7 +3360,7 @@ specification of that variable looks like this:
 
 With the exception of ~org-verbatim~ and ~org-code~ faces, everything else
 uses the corresponding type of emphasis: a bold typographic weight, or
-italicized, underlined, and struck through text.
+italicised, underlined, and struck through text.
 
 The best way for users to add some extra attributes, such as a
 foreground color, is to define their own faces and assign them to the
@@ -3985,13 +3980,13 @@ styles to use. The following is but a basic attempt to get started.
   (modus-themes-with-colors
     (custom-set-faces
      ;; FIXME: What is a "region cursor" and should it differ from the position highlights below?
-     `(meow-region-cursor-1 ((,c :inherit (bold modus-themes-reset-soft) :background ,bg-char-0)))
-     `(meow-region-cursor-2 ((,c :inherit (bold modus-themes-reset-soft) :background ,bg-char-1)))
-     `(meow-region-cursor-3 ((,c :inherit (bold modus-themes-reset-soft) :background ,bg-char-2)))
+     `(meow-region-cursor-1 ((,c :inherit (bold modus-themes-search-current modus-themes-reset-soft))))
+     `(meow-region-cursor-2 ((,c :inherit (bold modus-themes-search-current modus-themes-reset-soft))))
+     `(meow-region-cursor-3 ((,c :inherit (bold modus-themes-search-current modus-themes-reset-soft))))
 
-     `(meow-position-highlight-number-1 ((,c :inherit (bold modus-themes-reset-soft) :background ,bg-char-0)))
-     `(meow-position-highlight-number-2 ((,c :inherit (bold modus-themes-reset-soft) :background ,bg-char-1)))
-     `(meow-position-highlight-number-3 ((,c :inherit (bold modus-themes-reset-soft) :background ,bg-char-2))))))
+     `(meow-position-highlight-number-1 ((,c :inherit (bold modus-themes-search-current modus-themes-reset-soft))))
+     `(meow-position-highlight-number-2 ((,c :inherit (bold modus-themes-search-current modus-themes-reset-soft))))
+     `(meow-position-highlight-number-3 ((,c :inherit (bold modus-themes-search-current modus-themes-reset-soft)))))))
 
 (add-hook 'enable-theme-functions #'my-modus-themes-custom-faces)
 #+end_src
@@ -4048,45 +4043,6 @@ the theme level. Users can try this instead:
 #+end_src
 
 [[#h:d87673fe-2ce1-4c80-a4b8-be36ca9f2d24][Using a hook at the post-load-theme phase]].
-
-** DIY Add support for howm
-:PROPERTIES:
-:CUSTOM_ID: h:7ea8fa66-1cd8-47b0-92b4-9998a3068f85
-:END:
-
-The ~howm~ package is a note-taking solution for Emacs. Users can add
-support for its faces with something like the following.
-
-#+begin_src emacs-lisp
-(defun my-modus-themes-custom-faces (&rest _)
-  (modus-themes-with-colors
-    (custom-set-faces
-     `(action-lock-face ((,c :inherit button)))
-     `(howm-mode-keyword-face (( )))
-     `(howm-mode-ref-face ((,c :inherit link)))
-     `(howm-mode-title-face ((,c :inherit modus-themes-heading-0)))
-     `(howm-mode-wiki-face ((,c :inherit link)))
-     `(howm-reminder-deadline-face ((,c :foreground ,date-deadline)))
-     `(howm-reminder-late-deadline-face ((,c :inherit bold :foreground ,date-deadline)))
-     `(howm-reminder-defer-face ((,c :foreground ,date-scheduled)))
-     `(howm-reminder-scheduled-face ((,c :foreground ,date-scheduled)))
-     `(howm-reminder-done-face ((,c :foreground ,prose-done)))
-     `(howm-reminder-todo-face ((,c :foreground ,prose-todo)))
-     `(howm-reminder-normal-face ((,c :foreground ,date-common)))
-     `(howm-reminder-today-face ((,c :inherit bold :foreground ,date-common)))
-     `(howm-reminder-tomorrow-face ((,c :inherit bold :foreground ,date-scheduled)))
-     `(howm-simulate-todo-mode-line-face ((,c :inherit bold)))
-     `(howm-view-empty-face (( )))
-     `(howm-view-hilit-face ((,c :inherit match)))
-     `(howm-view-name-face ((,c :inherit bold)))
-     `(iigrep-counts-face1 ((,c :foreground ,rainbow-1)))
-     `(iigrep-counts-face2 ((,c :foreground ,rainbow-2)))
-     `(iigrep-counts-face3 ((,c :foreground ,rainbow-3)))
-     `(iigrep-counts-face4 ((,c :foreground ,rainbow-4)))
-     `(iigrep-counts-face5 ((,c :foreground ,rainbow-5))))))
-
-(add-hook 'enable-theme-functions #'my-modus-themes-custom-faces)
-#+end_src
 
 ** DIY Use a hook at the post-load-theme phase
 :PROPERTIES:
@@ -4207,6 +4163,7 @@ project.  The idea is to offer an overview of the known status of all
 affected face groups.  The items with an appended asterisk =*= tend to
 have lots of extensions, so the "full support" may not be 100% true…
 
++ abbrev
 + ace-window
 + agda2-mode
 + all-the-icons
@@ -4314,6 +4271,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + hl-fill-column
 + hl-line-mode
 + hl-todo
++ howm
 + hydra
 + ibuffer
 + icomplete
@@ -4420,6 +4378,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + sly
 + smart-mode-line
 + smerge
++ spacious-padding
 + speedbar
 + spell-fu
 + stripes
@@ -4435,8 +4394,10 @@ have lots of extensions, so the "full support" may not be 100% true…
 + terraform-mode
 + term
 + textsec
++ tldr
 + transient (pop-up windows such as Magit's)
 + trashed
++ treemacs
 + tree-sitter
 + tty-menu
 + tuareg
@@ -5407,7 +5368,7 @@ more effective than trying to do the same with either red or blue (the
 latter is the least effective in that regard).
 
 When we need to work with several colors, it is always better to have
-sufficient maneuvering space, especially since we cannot pick arbitrary
+sufficient manoeuvring space, especially since we cannot pick arbitrary
 colors but only those that satisfy the accessibility objectives of the
 themes.
 
@@ -5513,7 +5474,7 @@ it is already understood that one must follow the indicator or headline
 to view its contents and (ii) underlining everything would make the
 interface virtually unusable.
 
-Again, one must exercise judgment in order to avoid discrimination,
+Again, one must exercise judgement in order to avoid discrimination,
 where "discrimination" refers to:
 
 + The treatment of substantially different magnitudes as if they were of
@@ -5587,7 +5548,7 @@ the themes, which is partially fleshed out in this manual.
 
 With regard to the artistic aspect (where "art" qua skill may amount to
 an imprecise science), there is no hard-and-fast rule in effect as it
-requires one to exercise discretion and make decisions based on
+requires one to exercize discretion and make decisions based on
 context-dependent information or constraints.  As is true with most
 things in life, when in doubt, do not cling on to the letter of the law
 but try to understand its spirit.
@@ -5736,14 +5697,14 @@ The Modus themes are a collective effort.  Every bit of work matters.
   Contovounesios, Björn Lindström, Carlo Zancanaro, Christian Tietze,
   Daniel Mendler, David Edmondson, Eli Zaretskii, Fritz Grabo, Gautier
   Ponsinet, Illia Ostapyshyn, Jared Finder, Kévin Le Gouguec, Koen van
-  Greevenbroek, Kostadin Ninev, Madhavan Krishnan, Manuel Giraud,
-  Markus Beppler, Matthew Stevenson, Mauro Aranda, Nacho Barrientos,
-  Niall Dooley, Nicolas De Jaeghere, Paul David, Pavel Novichkov,
-  Philip Kaludercic, Pierre Téchoueyres, Rudolf Adamkovič, Sergey
-  Nichiporchik, Shreyas Ragavan, Stefan Kangas, Stephen Berman,
-  Stephen Gildea, Steve Downey, Thanos Apollo, Tomasz Hołubowicz,
-  Utkarsh Singh, Vincent Murphy, Xinglu Chen, Yuanchen Xie, fluentpwn,
-  okamsn.
+  Greevenbroek, Kostadin Ninev, Leilei332, Madhavan Krishnan, Manuel
+  Giraud, Markus Beppler, Matthew Stevenson, Mauro Aranda, Nacho
+  Barrientos, Niall Dooley, Nicolas De Jaeghere, Paul David, Pavel
+  Novichkov, Philip Kaludercic, Pierre Téchoueyres, Rahul M.
+  {{{space()}}} Juliato, Rudolf Adamkovič, Sergey Nichiporchik,
+  Shreyas Ragavan, Stefan Kangas, Stephen Berman, Stephen Gildea,
+  Steve Downey, Thanos Apollo, Tomasz Hołubowicz, Utkarsh Singh,
+  Vincent Murphy, Xinglu Chen, Yuanchen Xie, fluentpwn, okamsn.
 
 + Ideas and user feedback :: Aaron Jensen, Adam Porter, Adam Spiers,
   Adrian Manea, Aleksei Pirogov, Alex Griffin, Alex Koen, Alex
@@ -5779,7 +5740,8 @@ The Modus themes are a collective effort.  Every bit of work matters.
   Eugene, Fourchaux, Fredrik, Moesasji, Nick, Summer Emacs, TheBlob42,
   TitusMu, Trey, ZharMeny, bepolymathe, bit9tream, bangedorrunt,
   derek-upham, doolio, fleimgruber, gitrj95, iSeeU, jixiuf, ltmsyvag,
-  okamsn, pRot0ta1p, shipmints, soaringbird, tumashu, wakamenod.
+  okamsn, pedro-nonfree, pRot0ta1p, shipmints, soaringbird, tumashu,
+  wakamenod.
 
 + Packaging :: Basil L.{{{space()}}} Contovounesios, Eli Zaretskii,
   Glenn Morris, Mauro Aranda, Richard Stallman, Stefan Kangas (core
@@ -5812,7 +5774,7 @@ All errors are my own.
                  Version 1.3, 3 November 2008
 
 
- Copyright (C) 2000-2002, 2007-2008, 2025 Free Software Foundation, Inc.
+ Copyright (C) 2000, 2001, 2002, 2007, 2008 Free Software Foundation, Inc.
      <https://fsf.org/>
  Everyone is permitted to copy and distribute verbatim copies
  of this license document, but changing it is not allowed.

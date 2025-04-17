@@ -1,6 +1,6 @@
 ;;; modus-vivendi-tinted-theme.el --- Elegant, highly legible theme with a night sky background -*- lexical-binding:t -*-
 
-;; Copyright (C) 2019-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2025  Free Software Foundation, Inc.
 
 ;; Author: Protesilaos Stavrou <info@protesilaos.com>
 ;; Maintainer: Protesilaos Stavrou <info@protesilaos.com>
@@ -71,11 +71,11 @@ which corresponds to a minimum contrast in relative luminance of
       (red             "#ff5f59")
       (red-warmer      "#ff6b55")
       (red-cooler      "#ff7f86")
-      (red-faint       "#ff9f80")
+      (red-faint       "#ef8386")
       (red-intense     "#ff5f5f")
       (green           "#44bc44")
-      (green-warmer    "#70b900")
-      (green-cooler    "#00c06f")
+      (green-warmer    "#75c13e")
+      (green-cooler    "#11c777")
       (green-faint     "#88ca9f")
       (green-intense   "#44df44")
       (yellow          "#d0bc00")
@@ -165,14 +165,10 @@ which corresponds to a minimum contrast in relative luminance of
 
       (bg-completion       "#483d8a")
       (bg-hover            "#45605e")
-      (bg-hover-secondary  "#654a39")
+      (bg-hover-secondary  "#64404f")
       (bg-hl-line          "#303a6f")
       (bg-region           "#555a66")
       (fg-region           "#ffffff")
-
-      (bg-char-0 "#0050af")
-      (bg-char-1 "#7f1f7f")
-      (bg-char-2 "#625a00")
 
       (bg-mode-line-active        "#484d67")
       (fg-mode-line-active        "#ffffff")
@@ -214,13 +210,6 @@ which corresponds to a minimum contrast in relative luminance of
 
       (bg-diff-context    "#1a1f30")
 
-;;; Paren match
-
-      (bg-paren-match        "#5f789f")
-      (fg-paren-match        fg-main)
-      (bg-paren-expression   "#453040")
-      (underline-paren-match unspecified)
-
 ;;; Mappings
 
 ;;;; General mappings
@@ -233,8 +222,8 @@ which corresponds to a minimum contrast in relative luminance of
       (identifier yellow-faint)
 
       (err red)
-      (warning yellow-warmer)
-      (info cyan-cooler)
+      (warning yellow)
+      (info green-cooler)
 
       (underline-err red-intense)
       (underline-warning yellow)
@@ -255,30 +244,37 @@ which corresponds to a minimum contrast in relative luminance of
 ;;;; Code mappings
 
       (bracket fg-main)
-      (builtin magenta-warmer)
+      (builtin magenta)
       (comment red-faint)
-      (constant blue-cooler)
+      (constant magenta-cooler)
       (delimiter fg-main)
       (docmarkup magenta-faint)
       (docstring cyan-faint)
-      (fnname magenta)
-      (keyword magenta-cooler)
+      (fnname magenta-warmer)
+      (keyword blue-warmer)
       (number fg-main)
       (operator fg-main)
       (preprocessor red-cooler)
       (punctuation fg-main)
-      (rx-backslash magenta)
-      (rx-construct green-cooler)
-      (string blue-warmer)
-      (type cyan-cooler)
-      (variable cyan)
+      (rx-backslash magenta-warmer)
+      (rx-construct magenta-cooler)
+      (string blue)
+      (type green-cooler)
+      (variable cyan-warmer)
+
+;;;; Paren match
+
+      (bg-paren-match        bg-cyan-subtle)
+      (fg-paren-match        fg-main)
+      (underline-paren-match unspecified)
+      (bg-paren-expression   bg-yellow-nuanced)
 
 ;;;; Accent mappings
 
-      (accent-0 blue-cooler)
-      (accent-1 magenta-warmer)
-      (accent-2 cyan-cooler)
-      (accent-3 yellow)
+      (accent-0 magenta-cooler)
+      (accent-1 cyan)
+      (accent-2 magenta-warmer)
+      (accent-3 yellow-warmer)
 
 ;;;; Button mappings
 
@@ -336,14 +332,14 @@ which corresponds to a minimum contrast in relative luminance of
 
 ;;;; Mail mappings
 
-      (mail-cite-0 blue-warmer)
+      (mail-cite-0 blue)
       (mail-cite-1 yellow-cooler)
       (mail-cite-2 cyan-cooler)
       (mail-cite-3 red-cooler)
-      (mail-part blue)
-      (mail-recipient magenta-cooler)
+      (mail-part magenta-cooler)
+      (mail-recipient blue-warmer)
       (mail-subject magenta-warmer)
-      (mail-other magenta-faint)
+      (mail-other magenta)
 
 ;;;; Mark mappings
 
@@ -356,7 +352,7 @@ which corresponds to a minimum contrast in relative luminance of
 
 ;;;; Prompt mappings
 
-      (fg-prompt cyan-cooler)
+      (fg-prompt cyan-warmer)
       (bg-prompt unspecified)
 
 ;;;; Prose mappings
