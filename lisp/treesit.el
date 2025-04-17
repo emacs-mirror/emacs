@@ -190,9 +190,14 @@ the return value of that function instead."
 
 (defun treesit-language-at-point-default (position)
   "Default function for `treesit-language-at-point-function'.
-Return the deepest parser by embed level."
-  (treesit-parser-language
-   (car (treesit-parsers-at position))))
+
+Returns the language at POSITION, or nil if there's no parser in the
+buffer.  When there are multiple parsers that cover POSITION, use the
+parser with the deepest embed level as it's the \"most relevant\" parser
+at POSITION."
+  (let ((parser (car (treesit-parsers-at position))))
+    (when parser
+      (treesit-parser-language parser))))
 
 ;;; Node API supplement
 
@@ -855,7 +860,10 @@ by an overlay with non-nil `treesit-parser-local-p' property.
 If ONLY contains the symbol `global', include non-local parsers
 excluding the primary parser.
 
-If ONLY contains the symbol `primary', include the primary parser."
+If ONLY contains the symbol `primary', include the primary parser.
+
+The returned parsers are sorted in descending order of embed level.
+That is, the deepest embedded parser comes first."
   (let ((res nil))
     ;; Refer to (ref:local-parser-overlay) for more explanation of local
     ;; parser overlays.
