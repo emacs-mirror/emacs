@@ -154,7 +154,7 @@ or follows point."
     ;; FIXME: For some reason, the comment-start syntax regexp doesn't
     ;; work for me.  But I kept it around to be safe, and in the hope
     ;; that if can cover cases where comment-start-skip is unset.
-    (if (or (nth 4 (syntax-ppss))
+    (if (or (nth 8 (syntax-ppss))
             ;; If point is at the beginning of a comment delimiter,
             ;; syntax-ppss doesn't consider point as being inside a
             ;; comment.
@@ -168,11 +168,11 @@ or follows point."
                    ;; reached EOL or (nth 4 (syntax-ppss)) returns
                    ;; non-nil.
                    (re-search-forward comment-start-skip (pos-eol) t)
-                   (nth 4 (syntax-ppss))))
+                   (nth 8 (syntax-ppss))))
             (save-excursion
               (beginning-of-line)
               (and (re-search-forward "\\s-*\\s<" (line-end-position) t)
-                   (nth 4 (syntax-ppss)))))
+                   (nth 8 (syntax-ppss)))))
         (fill-paragraph argument (region-active-p))
       (beginning-of-defun)
       (let ((start (point)))
