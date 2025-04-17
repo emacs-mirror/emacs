@@ -5335,13 +5335,19 @@ the window has never shown before."
   :version "31.1"
   :group 'windows)
 
-(defun window--quit-restore-select-window (window)
+(defun window--quit-restore-select-window (window &optional frame)
   "Select WINDOW after having quit another one.
 Do not select an inactive minibuffer window."
   (when (and (window-live-p window)
              (or (not (window-minibuffer-p window))
                  (minibuffer-window-active-p window)))
-    (select-window window)))
+    ;; If WINDOW is not on the selected frame, don't switch to
+    ;; another frame.
+    (unless (and (eq frame (selected-frame))
+		 (not (eq frame (window-frame window))))
+      (setq frame (window-frame window))
+      (set-frame-selected-window frame window)
+      (select-frame-set-input-focus frame))))
 
 (defun quit-restore-window (&optional window bury-or-kill)
   "Quit WINDOW and deal with its buffer.
@@ -5400,6 +5406,7 @@ elsewhere.  This value is used by `quit-windows-on'."
                           (unless (eq (car buf) buffer)
                             (throw 'prev-buffer (car buf))))))
          (dedicated (window-dedicated-p window))
+	 (frame (window-frame window))
 	 quad entry reset-prev)
     (cond
      ;; First try to delete dedicated windows that are not side windows.
@@ -5407,7 +5414,7 @@ elsewhere.  This value is used by `quit-windows-on'."
            (window--delete
 	    window 'dedicated (memq bury-or-kill '(kill killing))))
       ;; If the previously selected window is still alive, select it.
-      (window--quit-restore-select-window quit-restore-2))
+      (window--quit-restore-select-window quit-restore-2 frame))
      ((and (not prev-buffer)
 	   (or (memq (nth 1 quit-restore) '(frame tab))
 	       (and (eq (nth 1 quit-restore) 'window)
@@ -5419,7 +5426,7 @@ elsewhere.  This value is used by `quit-windows-on'."
 	   ;; Delete WINDOW if possible.
 	   (window--delete window nil (eq bury-or-kill 'kill)))
       ;; If the previously selected window is still alive, select it.
-      (window--quit-restore-select-window quit-restore-2))
+      (window--quit-restore-select-window quit-restore-2 frame))
      ((and (or (and quit-restore-window-no-switch (not prev-buffer))
 	       ;; Ignore first of the previous buffers if
 	       ;; 'quit-restore-window-no-switch' says so.
@@ -5429,7 +5436,7 @@ elsewhere.  This value is used by `quit-windows-on'."
 	   (window--delete
 	    window nil (memq bury-or-kill '(kill killing))))
       ;; If the previously selected window is still alive, select it.
-      (window--quit-restore-select-window quit-restore-2))
+      (window--quit-restore-select-window quit-restore-2 frame))
      ((or (and (listp (setq quad (nth 1 quit-restore-prev)))
 	       (buffer-live-p (car quad))
 	       (eq (nth 3 quit-restore-prev) buffer)
