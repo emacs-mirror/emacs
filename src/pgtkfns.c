@@ -2291,7 +2291,7 @@ DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p, Sx_display_grayscale_p, 
        doc: /* SKIP: real doc in xfns.c.  */)
   (Lisp_Object terminal)
 {
-  return Qnil;
+  return Qt;
 }
 
 DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width, 0, 1, 0,
