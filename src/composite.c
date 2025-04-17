@@ -934,7 +934,7 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
   specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object pos = make_fixnum (charpos);
   ptrdiff_t to;
-  ptrdiff_t pt = PT, pt_byte = PT_BYTE;
+  ptrdiff_t pt = PT;
   Lisp_Object re, font_object, lgstring;
   ptrdiff_t len;
 
@@ -975,7 +975,7 @@ autocmp_chars (Lisp_Object rule, ptrdiff_t charpos, ptrdiff_t bytepos,
       /* Save point as marker before calling out to lisp.  */
       if (NILP (string))
 	record_unwind_protect (restore_point_unwind,
-			       build_marker (current_buffer, pt, pt_byte));
+			       build_marker (current_buffer, pt));
       lgstring = safe_calln (Vauto_composition_function, AREF (rule, 2),
 			    pos, make_fixnum (to), font_object, string,
 			    direction);

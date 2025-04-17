@@ -2842,17 +2842,6 @@ struct Lisp_Marker
      leaves the marker after the inserted text.  */
   bool_bf insertion_type : 1;
 
-  /* The remaining fields are meaningless in a marker that
-     does not point anywhere.  */
-
-  /* This is the char position where the marker points.  */
-  ptrdiff_t charpos;
-  /* This is the byte position.
-     It's mostly used as a charpos<->bytepos cache (i.e. it's not directly
-     used to implement the functionality of markers, but rather to (ab)use
-     markers as a cache for char<->byte mappings).  */
-  ptrdiff_t bytepos;
-
   /* If in a buffer's marker vector, this is the entry where it is stored.  */
   ptrdiff_t entry;
 } GCALIGNED_STRUCT;
@@ -4967,10 +4956,10 @@ extern ptrdiff_t marker_byte_position (Lisp_Object);
 extern void detach_marker (Lisp_Object);
 extern void unchain_marker (struct Lisp_Marker *);
 extern Lisp_Object set_marker_restricted (Lisp_Object, Lisp_Object, Lisp_Object);
-extern Lisp_Object set_marker_both (Lisp_Object, Lisp_Object, ptrdiff_t, ptrdiff_t);
+extern Lisp_Object set_marker_both (Lisp_Object, Lisp_Object, ptrdiff_t);
 extern Lisp_Object set_marker_restricted_both (Lisp_Object, Lisp_Object,
-                                               ptrdiff_t, ptrdiff_t);
-extern Lisp_Object build_marker (struct buffer *, ptrdiff_t, ptrdiff_t);
+                                               ptrdiff_t);
+extern Lisp_Object build_marker (struct buffer *, ptrdiff_t);
 extern void syms_of_marker (void);
 
 /* Defined in fileio.c.  */

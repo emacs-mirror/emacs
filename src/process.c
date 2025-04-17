@@ -1284,8 +1284,7 @@ update_process_mark (struct Lisp_Process *p)
   if (BUFFERP (buffer)
       && XMARKER (p->mark)->buffer != XBUFFER (buffer))
     set_marker_both (p->mark, buffer,
-		     BUF_ZV (XBUFFER (buffer)),
-		     BUF_ZV_BYTE (XBUFFER (buffer)));
+		     BUF_ZV (XBUFFER (buffer)));
 }
 
 DEFUN ("set-process-buffer", Fset_process_buffer, Sset_process_buffer,
@@ -6339,9 +6338,9 @@ read_process_output_after_insert (struct Lisp_Process *p, Lisp_Object *old_read_
      W3 is known to do that.  */
   if (BUFFERP (p->buffer)
       && (b = XBUFFER (p->buffer), b != current_buffer))
-    set_marker_both (p->mark, p->buffer, BUF_PT (b), BUF_PT_BYTE (b));
+    set_marker_both (p->mark, p->buffer, BUF_PT (b));
   else
-    set_marker_both (p->mark, p->buffer, PT, PT_BYTE);
+    set_marker_both (p->mark, p->buffer, PT);
 
   update_mode_lines = 23;
 
@@ -7942,7 +7941,7 @@ This inserts a status message into the process's buffer, if there is one.  */)
       insert_string (" ");
       Finsert (1, &msg);
       bset_read_only (current_buffer, tem);
-      set_marker_both (p->mark, p->buffer, PT, PT_BYTE);
+      set_marker_both (p->mark, p->buffer, PT);
 
       if (opoint >= before)
 	SET_PT_BOTH (opoint + (PT - before),

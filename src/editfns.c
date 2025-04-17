@@ -199,7 +199,7 @@ DEFUN ("point-marker", Fpoint_marker, Spoint_marker, 0, 0, 0,
        doc: /* Return value of point, as a marker object.  */)
   (void)
 {
-  return build_marker (current_buffer, PT, PT_BYTE);
+  return build_marker (current_buffer, PT);
 }
 
 DEFUN ("goto-char", Fgoto_char, Sgoto_char, 1, 1,
@@ -889,7 +889,7 @@ DEFUN ("point-min-marker", Fpoint_min_marker, Spoint_min_marker, 0, 0, 0,
 This is the beginning, unless narrowing (a buffer restriction) is in effect.  */)
   (void)
 {
-  return build_marker (current_buffer, BEGV, BEGV_BYTE);
+  return build_marker (current_buffer, BEGV);
 }
 
 DEFUN ("point-max", Fpoint_max, Spoint_max, 0, 0, 0,
@@ -909,7 +909,7 @@ This is (1+ (buffer-size)), unless narrowing (a buffer restriction)
 is in effect, in which case it is less.  */)
   (void)
 {
-  return build_marker (current_buffer, ZV, ZV_BYTE);
+  return build_marker (current_buffer, ZV);
 }
 
 DEFUN ("gap-position", Fgap_position, Sgap_position, 0, 0, 0,
@@ -3022,8 +3022,8 @@ save_restriction_save_1 (void)
     {
       Lisp_Object beg, end;
 
-      beg = build_marker (current_buffer, BEGV, BEGV_BYTE);
-      end = build_marker (current_buffer, ZV, ZV_BYTE);
+      beg = build_marker (current_buffer, BEGV);
+      end = build_marker (current_buffer, ZV);
 
       /* END must move forward if text is inserted at its exact location.  */
       XMARKER (end)->insertion_type = 1;
@@ -3056,22 +3056,27 @@ save_restriction_restore_1 (Lisp_Object data)
       struct Lisp_Marker *end = XMARKER (XCDR (data));
       eassert (buf == end->buffer);
 
+      ptrdiff_t beg_charpos, end_charpos;
       if (buf /* Verify marker still points to a buffer.  */
-	  && (beg->charpos != BUF_BEGV (buf) || end->charpos != BUF_ZV (buf)))
+	  && (beg_charpos = marker_vector_charpos (beg),
+	      end_charpos = marker_vector_charpos (end),
+	      beg_charpos != BUF_BEGV (buf) || end_charpos != BUF_ZV (buf)))
 	/* The restriction has changed from the saved one, so restore
 	   the saved restriction.  */
 	{
 	  ptrdiff_t pt = BUF_PT (buf);
+	  const ptrdiff_t beg_bytepos = marker_vector_bytepos (beg);
+	  const ptrdiff_t end_bytepos = marker_vector_bytepos (end);
 
-	  SET_BUF_BEGV_BOTH (buf, beg->charpos, beg->bytepos);
-	  SET_BUF_ZV_BOTH (buf, end->charpos, end->bytepos);
+	  SET_BUF_BEGV_BOTH (buf, beg_charpos, beg_bytepos);
+	  SET_BUF_ZV_BOTH (buf, end_charpos, end_bytepos);
 
-	  if (pt < beg->charpos || pt > end->charpos)
+	  if (pt < beg_charpos || pt > end_charpos)
 	    /* The point is outside the new visible range, move it inside. */
 	    SET_BUF_PT_BOTH (buf,
-			     clip_to_bounds (beg->charpos, pt, end->charpos),
-			     clip_to_bounds (beg->bytepos, BUF_PT_BYTE (buf),
-					     end->bytepos));
+			     clip_to_bounds (beg_charpos, pt, end_charpos),
+			     clip_to_bounds (beg_bytepos, BUF_PT_BYTE (buf),
+					     end_bytepos));
 
 	  buf->clip_changed = 1; /* Remember that the narrowing changed. */
 	}
@@ -4401,7 +4406,7 @@ transpose_markers (ptrdiff_t start1, ptrdiff_t end1,
 		   ptrdiff_t start1_byte, ptrdiff_t end1_byte,
 		   ptrdiff_t start2_byte, ptrdiff_t end2_byte)
 {
-  register ptrdiff_t amt1, amt1_byte, amt2, amt2_byte, diff, diff_byte, mpos;
+  register ptrdiff_t amt1, amt2, diff, mpos;
 
   /* Update point as if it were a marker.  */
   if (PT < start1)
@@ -4427,29 +4432,15 @@ transpose_markers (ptrdiff_t start1, ptrdiff_t end1,
 
   /* The difference between the region's lengths */
   diff = (end2 - start2) - (end1 - start1);
-  diff_byte = (end2_byte - start2_byte) - (end1_byte - start1_byte);
 
   /* For shifting each marker in a region by the length of the other
      region plus the distance between the regions.  */
   amt1 = (end2 - start2) + (start2 - end1);
   amt2 = (end1 - start1) + (start2 - end1);
-  amt1_byte = (end2_byte - start2_byte) + (start2_byte - end1_byte);
-  amt2_byte = (end1_byte - start1_byte) + (start2_byte - end1_byte);
 
   DO_MARKERS (current_buffer, marker)
     {
-      mpos = marker->bytepos;
-      if (mpos >= start1_byte && mpos < end2_byte)
-	{
-	  if (mpos < end1_byte)
-	    mpos += amt1_byte;
-	  else if (mpos < start2_byte)
-	    mpos += diff_byte;
-	  else
-	    mpos -= amt2_byte;
-	  marker->bytepos = mpos;
-	}
-      mpos = marker->charpos;
+      mpos = marker_vector_charpos (marker);
       if (mpos >= start1 && mpos < end2)
 	{
 	  if (mpos < end1)
@@ -4459,7 +4450,7 @@ transpose_markers (ptrdiff_t start1, ptrdiff_t end1,
 	  else
 	    mpos -= amt2;
 	}
-      marker->charpos = mpos;
+      marker_vector_set_charpos (marker, mpos);
     }
   END_DO_MARKERS;
 }

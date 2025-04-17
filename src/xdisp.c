@@ -12004,8 +12004,8 @@ WINDOW.  */)
   if (!EQ (buffer, w->contents))
     {
       wset_buffer (w, buffer);
-      set_marker_both (w->pointm, buffer, BEG, BEG_BYTE);
-      set_marker_both (w->old_pointm, buffer, BEG, BEG_BYTE);
+      set_marker_both (w->pointm, buffer, BEG);
+      set_marker_both (w->old_pointm, buffer, BEG);
     }
 
   value = window_text_pixel_size (window, Qnil, Qnil, x_limit, y_limit, Qnil,
@@ -12172,11 +12172,11 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
       bset_cache_long_scans (current_buffer, Qnil);
 
       oldpoint = message_dolog_marker1;
-      set_marker_restricted_both (oldpoint, Qnil, PT, PT_BYTE);
+      set_marker_restricted_both (oldpoint, Qnil, PT);
       oldbegv = message_dolog_marker2;
-      set_marker_restricted_both (oldbegv, Qnil, BEGV, BEGV_BYTE);
+      set_marker_restricted_both (oldbegv, Qnil, BEGV);
       oldzv = message_dolog_marker3;
-      set_marker_restricted_both (oldzv, Qnil, ZV, ZV_BYTE);
+      set_marker_restricted_both (oldzv, Qnil, ZV);
 
       if (PT == Z)
 	point_at_end = 1;
@@ -12750,8 +12750,8 @@ with_echo_area_buffer (struct window *w, int which,
   if (w)
     {
       wset_buffer (w, buffer);
-      set_marker_both (w->pointm, buffer, BEG, BEG_BYTE);
-      set_marker_both (w->old_pointm, buffer, BEG, BEG_BYTE);
+      set_marker_both (w->pointm, buffer, BEG);
+      set_marker_both (w->old_pointm, buffer, BEG);
     }
 
   bset_undo_list (current_buffer, Qt);
@@ -12839,14 +12839,11 @@ unwind_with_echo_area_buffer (Lisp_Object vector)
 
       wset_buffer (w, buffer);
       set_marker_restricted_both (w->pointm, buffer,
-				  XFIXNAT (AREF (vector, 5)),
-				  XFIXNAT (AREF (vector, 6)));
+				  XFIXNAT (AREF (vector, 5)));
       set_marker_restricted_both (w->old_pointm, buffer,
-				  XFIXNAT (AREF (vector, 7)),
-				  XFIXNAT (AREF (vector, 8)));
+				  XFIXNAT (AREF (vector, 7)));
       set_marker_restricted_both (w->start, buffer,
-				  XFIXNAT (AREF (vector, 9)),
-				  XFIXNAT (AREF (vector, 10)));
+				  XFIXNAT (AREF (vector, 9)));
     }
 
   Vwith_echo_area_save_vector = vector;
@@ -13077,8 +13074,7 @@ resize_mini_window (struct window *w, bool exact_p)
   /* By default, start display at the beginning.  */
   if (redisplay_adhoc_scroll_in_resize_mini_windows)
     set_marker_both (w->start, w->contents,
-		     BUF_BEGV (XBUFFER (w->contents)),
-		     BUF_BEGV_BYTE (XBUFFER (w->contents)));
+		     BUF_BEGV (XBUFFER (w->contents)));
 
   /* Nil means don't try to resize.  */
   if ((NILP (Vresize_mini_windows)
@@ -13733,7 +13729,7 @@ format_mode_line_unwind_data (struct frame *target_frame,
 	 unwinding (Bug#32777).  */
       ASET (vector, 10, buffer);
       current_buffer = b;
-      ASET (vector, 11, build_marker (current_buffer, PT, PT_BYTE));
+      ASET (vector, 11, build_marker (current_buffer, PT));
       current_buffer = cb;
     }
 
@@ -20350,13 +20346,13 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	{
 	  new_pt = BEGV;
 	  new_pt_byte = BEGV_BYTE;
-	  set_marker_both (w->pointm, Qnil, BEGV, BEGV_BYTE);
+	  set_marker_both (w->pointm, Qnil, BEGV);
 	}
       else if (new_pt > (ZV - 1))
 	{
 	  new_pt = ZV;
 	  new_pt_byte = ZV_BYTE;
-	  set_marker_both (w->pointm, Qnil, ZV, ZV_BYTE);
+	  set_marker_both (w->pointm, Qnil, ZV);
 	}
 
       /* We don't use SET_PT so that the point-motion hooks don't run.  */
@@ -20616,7 +20612,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 			    MATRIX_ROW_START_BYTEPOS (row));
 
 	  if (w != XWINDOW (selected_window))
-	    set_marker_both (w->pointm, Qnil, PT, PT_BYTE);
+	    set_marker_both (w->pointm, Qnil, PT);
 	  else if (current_buffer == old)
 	    SET_TEXT_POS (lpoint, PT, PT_BYTE);
 
@@ -20985,7 +20981,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
   /* Set the window start position here explicitly, to avoid an
      infinite loop in case the functions in window-scroll-functions
      get errors.  */
-  set_marker_both (w->start, Qnil, IT_CHARPOS (it), IT_BYTEPOS (it));
+  set_marker_both (w->start, Qnil, IT_CHARPOS (it));
 
   /* Run scroll hooks.  */
   startp = run_window_scroll_functions (window, it.current.pos);
@@ -21407,7 +21403,7 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
   int cursor_vpos = w->cursor.vpos;
 
   /* Make POS the new window start.  */
-  set_marker_both (w->start, Qnil, CHARPOS (pos), BYTEPOS (pos));
+  set_marker_both (w->start, Qnil, CHARPOS (pos));
 
   /* Mark cursor position as unknown.  No overlay arrow seen.  */
   w->cursor.vpos = -1;

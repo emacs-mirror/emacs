@@ -731,8 +731,8 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
       if (MARKERP (obj) && XMARKER (obj)->buffer == from)
 	{
 	  struct Lisp_Marker *m = XMARKER (obj);
-
-	  obj = build_marker (to, m->charpos, m->bytepos);
+	  const ptrdiff_t charpos = marker_vector_charpos (m);
+	  obj = build_marker (to, charpos);
 	  XMARKER (obj)->insertion_type = m->insertion_type;
 	}
 
@@ -763,9 +763,9 @@ record_buffer_markers (struct buffer *b)
       eassert (!NILP (BVAR (b, zv_marker)));
 
       XSETBUFFER (buffer, b);
-      set_marker_both (BVAR (b, pt_marker), buffer, b->pt, b->pt_byte);
-      set_marker_both (BVAR (b, begv_marker), buffer, b->begv, b->begv_byte);
-      set_marker_both (BVAR (b, zv_marker), buffer, b->zv, b->zv_byte);
+      set_marker_both (BVAR (b, pt_marker), buffer, b->pt);
+      set_marker_both (BVAR (b, begv_marker), buffer, b->begv);
+      set_marker_both (BVAR (b, zv_marker), buffer, b->zv);
     }
 }
 
@@ -899,16 +899,13 @@ Interactively, CLONE and INHIBIT-BUFFER-HOOKS are nil.  */)
       eassert (NILP (BVAR (b->base_buffer, zv_marker)));
 
       bset_pt_marker (b->base_buffer,
-		      build_marker (b->base_buffer, b->base_buffer->pt,
-				    b->base_buffer->pt_byte));
+		      build_marker (b->base_buffer, b->base_buffer->pt));
 
       bset_begv_marker (b->base_buffer,
-			build_marker (b->base_buffer, b->base_buffer->begv,
-				      b->base_buffer->begv_byte));
+			build_marker (b->base_buffer, b->base_buffer->begv));
 
       bset_zv_marker (b->base_buffer,
-		      build_marker (b->base_buffer, b->base_buffer->zv,
-				    b->base_buffer->zv_byte));
+		      build_marker (b->base_buffer, b->base_buffer->zv));
 
       XMARKER (BVAR (b->base_buffer, zv_marker))->insertion_type = 1;
     }
@@ -916,9 +913,9 @@ Interactively, CLONE and INHIBIT-BUFFER-HOOKS are nil.  */)
   if (NILP (clone))
     {
       /* Give the indirect buffer markers for its narrowing.  */
-      bset_pt_marker (b, build_marker (b, b->pt, b->pt_byte));
-      bset_begv_marker (b, build_marker (b, b->begv, b->begv_byte));
-      bset_zv_marker (b, build_marker (b, b->zv, b->zv_byte));
+      bset_pt_marker (b, build_marker (b, b->pt));
+      bset_begv_marker (b, build_marker (b, b->begv));
+      bset_zv_marker (b, build_marker (b, b->zv));
       XMARKER (BVAR (b, zv_marker))->insertion_type = 1;
     }
   else
@@ -2751,7 +2748,8 @@ current buffer is cleared.  */)
 
       DO_MARKERS (current_buffer, tail)
 	{
-	  tail->charpos = tail->bytepos;
+	  const ptrdiff_t bytepos = marker_vector_bytepos (tail);
+	  marker_vector_set_charpos (tail, bytepos);
 	}
       END_DO_MARKERS;
 
@@ -2905,8 +2903,9 @@ current buffer is cleared.  */)
 
       DO_MARKERS (current_buffer, tail)
 	{
-	  tail->bytepos = advance_to_char_boundary (tail->bytepos);
-	  tail->charpos = BYTE_TO_CHAR (tail->bytepos);
+	  ptrdiff_t bytepos = marker_vector_bytepos (tail);
+	  bytepos = advance_to_char_boundary (bytepos);
+	  marker_vector_set_charpos (tail, BYTE_TO_CHAR (bytepos));
 	}
       END_DO_MARKERS;
 

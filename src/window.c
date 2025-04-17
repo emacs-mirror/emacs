@@ -599,8 +599,7 @@ select_window_1 (Lisp_Object window, bool inhibit_point_swap)
       struct window *ow = XWINDOW (selected_window);
       if (BUFFERP (ow->contents))
 	set_marker_both (ow->pointm, ow->contents,
-			 BUF_PT (XBUFFER (ow->contents)),
-			 BUF_PT_BYTE (XBUFFER (ow->contents)));
+			 BUF_PT (XBUFFER (ow->contents)));
     }
 
   selected_window = window;
@@ -1781,7 +1780,7 @@ window_point (struct window *w)
 {
   return (w == XWINDOW (selected_window)
           ? BUF_PT (XBUFFER (w->contents))
-          : XMARKER (w->pointm)->charpos);
+          : marker_vector_charpos (XMARKER (w->pointm)));
 }
 
 DEFUN ("window-point", Fwindow_point, Swindow_point, 0, 1, 0,
@@ -3689,7 +3688,7 @@ window-start value is reasonable when this function is called.  */)
 	     can have unwanted side effects due to text properties.  */
 	  pos = *vmotion (startpos, startbyte, -top, w);
 
-	  set_marker_both (w->start, w->contents, pos.bufpos, pos.bytepos);
+	  set_marker_both (w->start, w->contents, pos.bufpos);
 	  w->window_end_valid = false;
 	  w->start_at_line_beg = (pos.bytepos == BEGV_BYTE
 				    || FETCH_BYTE (pos.bytepos - 1) == '\n');
@@ -4345,8 +4344,8 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer,
       w->hscroll = w->min_hscroll = w->hscroll_whole = 0;
       w->suspend_auto_hscroll = false;
       w->vscroll = 0;
-      set_marker_both (w->pointm, buffer, BUF_PT (b), BUF_PT_BYTE (b));
-      set_marker_both (w->old_pointm, buffer, BUF_PT (b), BUF_PT_BYTE (b));
+      set_marker_both (w->pointm, buffer, BUF_PT (b));
+      set_marker_both (w->old_pointm, buffer, BUF_PT (b));
       set_marker_restricted (w->start,
 			     make_fixnum (b->last_window_start),
 			     buffer);
@@ -4532,9 +4531,9 @@ temp_output_buffer_show (register Lisp_Object buf)
       w = XWINDOW (window);
       w->hscroll = w->min_hscroll = w->hscroll_whole = 0;
       w->suspend_auto_hscroll = false;
-      set_marker_restricted_both (w->start, buf, BEG, BEG);
-      set_marker_restricted_both (w->pointm, buf, BEG, BEG);
-      set_marker_restricted_both (w->old_pointm, buf, BEG, BEG);
+      set_marker_restricted_both (w->start, buf, BEG);
+      set_marker_restricted_both (w->pointm, buf, BEG);
+      set_marker_restricted_both (w->old_pointm, buf, BEG);
 
       /* Run temp-buffer-show-hook, with the chosen window selected
 	 and its buffer current.  */
@@ -5398,11 +5397,11 @@ set correctly.  See the code of `split-window' for how this is done.  */)
       /* Get dead window back its old buffer and markers.  */
       wset_buffer (n, n->old_buffer);
       set_marker_restricted
-	(n->start, make_fixnum (XMARKER (n->start)->charpos), n->contents);
+	(n->start, make_fixnum (marker_vector_charpos (XMARKER (n->start))), n->contents);
       set_marker_restricted
-	(n->pointm, make_fixnum (XMARKER (n->pointm)->charpos), n->contents);
+	(n->pointm, make_fixnum (marker_vector_charpos (XMARKER (n->pointm))), n->contents);
       set_marker_restricted
-	(n->old_pointm, make_fixnum (XMARKER (n->old_pointm)->charpos),
+	(n->old_pointm, make_fixnum (marker_vector_charpos (XMARKER (n->old_pointm))),
 	 n->contents);
 
       Vwindow_list = Qnil;
@@ -6017,7 +6016,7 @@ window_scroll_for_long_lines (struct window *w, int n, bool noerror)
   if (pos.bufpos < ZV)
     {
       set_marker_restricted_both (w->start, w->contents,
-				  pos.bufpos, pos.bytepos);
+				  pos.bufpos);
       w->start_at_line_beg = bolp;
       wset_update_mode_line (w);
       /* Set force_start so that redisplay_window will run
@@ -6339,8 +6338,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, bool whole, bool noerror)
 	}
 
       /* Set the window start, and set up the window for redisplay.  */
-      set_marker_restricted_both (w->start, w->contents, IT_CHARPOS (it),
-				  IT_BYTEPOS (it));
+      set_marker_restricted_both (w->start, w->contents, IT_CHARPOS (it));
       bytepos = marker_byte_position (w->start);
       w->start_at_line_beg = (pos == BEGV || FETCH_BYTE (bytepos - 1) == '\n');
       wset_update_mode_line (w);
@@ -6602,7 +6600,7 @@ window_scroll_line_based (Lisp_Object window, int n, bool whole, bool noerror)
     {
       int this_scroll_margin = window_scroll_margin (w, MARGIN_IN_LINES);
 
-      set_marker_restricted_both (w->start, w->contents, pos, pos_byte);
+      set_marker_restricted_both (w->start, w->contents, pos);
       w->start_at_line_beg = !NILP (bolp);
       wset_update_mode_line (w);
       /* Set force_start so that redisplay_window will run
@@ -6755,8 +6753,8 @@ scroll_command (Lisp_Object window, Lisp_Object n, int direction)
 
   if (other_window)
     {
-      set_marker_both (w->pointm, Qnil, PT, PT_BYTE);
-      set_marker_both (w->old_pointm, Qnil, PT, PT_BYTE);
+      set_marker_both (w->pointm, Qnil, PT);
+      set_marker_both (w->old_pointm, Qnil, PT);
     }
 
   unbind_to (count, Qnil);
@@ -7176,7 +7174,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
     }
 
   /* Set the new window start.  */
-  set_marker_both (w->start, w->contents, charpos, bytepos);
+  set_marker_both (w->start, w->contents, charpos);
 
   /* The window start was calculated with an iterator already adjusted
      by the existing vscroll, so w->start must not be combined with
@@ -7269,7 +7267,7 @@ from the top of the window.  */)
     {
       int height = window_internal_height (w);
       Fvertical_motion (make_fixnum (- (height / 2)), window, Qnil);
-      set_marker_both (w->start, w->contents, PT, PT_BYTE);
+      set_marker_both (w->start, w->contents, PT);
       w->start_at_line_beg = !NILP (Fbolp ());
       w->force_start = true;
 
@@ -7522,8 +7520,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	  w = XWINDOW (selected_window);
 	  set_marker_both (w->pointm,
 			   w->contents,
-			   BUF_PT (XBUFFER (w->contents)),
-			   BUF_PT_BYTE (XBUFFER (w->contents)));
+			   BUF_PT (XBUFFER (w->contents)));
 	}
 
       fset_redisplay (f);
@@ -7660,17 +7657,15 @@ the return value is nil.  Otherwise the value is t.  */)
 	    {
 	      /* Set window markers at start of visible range.  */
 	      if (XMARKER (w->start)->buffer == 0)
-		set_marker_restricted_both (w->start, w->contents, 0, 0);
+		set_marker_restricted_both (w->start, w->contents, 0);
 	      if (XMARKER (w->pointm)->buffer == 0)
 		set_marker_restricted_both
 		  (w->pointm, w->contents,
-		   BUF_PT (XBUFFER (w->contents)),
-		   BUF_PT_BYTE (XBUFFER (w->contents)));
+		   BUF_PT (XBUFFER (w->contents)));
 	      if (XMARKER (w->old_pointm)->buffer == 0)
 		set_marker_restricted_both
 		  (w->old_pointm, w->contents,
-		   BUF_PT (XBUFFER (w->contents)),
-		   BUF_PT_BYTE (XBUFFER (w->contents)));
+		   BUF_PT (XBUFFER (w->contents)));
 	      w->start_at_line_beg = true;
 	      if (FUNCTIONP (window_restore_killed_buffer_windows)
 		  && !MINI_WINDOW_P (w))
@@ -7691,9 +7686,9 @@ the return value is nil.  Otherwise the value is t.  */)
 	      window_discard_buffer_from_window (w->contents, window, false);
 	      /* This will set the markers to beginning of visible
 		 range.  */
-	      set_marker_restricted_both (w->start, w->contents, 0, 0);
-	      set_marker_restricted_both (w->pointm, w->contents, 0, 0);
-	      set_marker_restricted_both (w->old_pointm, w->contents, 0, 0);
+	      set_marker_restricted_both (w->start, w->contents, 0);
+	      set_marker_restricted_both (w->pointm, w->contents, 0);
+	      set_marker_restricted_both (w->old_pointm, w->contents, 0);
 	      w->start_at_line_beg = true;
 	      if (!MINI_WINDOW_P (w))
 		{
@@ -8052,8 +8047,7 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, ptrdiff_t i)
 	     the buffer; pointm is garbage in the selected window.  */
 	  if (EQ (window, selected_window))
 	    p->pointm = build_marker (XBUFFER (w->contents),
-				      BUF_PT (XBUFFER (w->contents)),
-				      BUF_PT_BYTE (XBUFFER (w->contents)));
+				      BUF_PT (XBUFFER (w->contents)));
 	  else
 	    p->pointm = Fcopy_marker (w->pointm, Qnil);
 	  p->old_pointm = Fcopy_marker (w->old_pointm, Qnil);

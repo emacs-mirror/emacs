@@ -3807,8 +3807,7 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
   struct Lisp_Marker *p = ALLOCATE_PLAIN_PSEUDOVECTOR (struct Lisp_Marker,
 						       PVEC_MARKER);
   p->buffer = 0;
-  p->bytepos = 0;
-  p->charpos = 0;
+  p->entry = 0;
   p->insertion_type = 0;
   p->need_adjustment = 0;
   return make_lisp_ptr (p, Lisp_Vectorlike);
@@ -3818,22 +3817,18 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
    at character position CHARPOS and byte position BYTEPOS.  */
 
 Lisp_Object
-build_marker (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t bytepos)
+build_marker (struct buffer *buf, ptrdiff_t charpos)
 {
   /* No dead buffers here.  */
   eassert (BUFFER_LIVE_P (buf));
 
-  /* Every character is at least one byte.  */
-  eassert (charpos <= bytepos);
-
   struct Lisp_Marker *m = ALLOCATE_PLAIN_PSEUDOVECTOR (struct Lisp_Marker,
 						       PVEC_MARKER);
   m->buffer = buf;
-  m->charpos = charpos;
-  m->bytepos = bytepos;
   m->insertion_type = 0;
   m->need_adjustment = 0;
   marker_vector_add (buf, m);
+  marker_vector_set_charpos (m, charpos);
   return make_lisp_ptr (m, Lisp_Vectorlike);
 }
 

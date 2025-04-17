@@ -2130,8 +2130,6 @@ dump_marker (struct dump_context *ctx, const struct Lisp_Marker *marker)
       dump_field_lv_rawptr (ctx, out, marker, &marker->buffer,
 			    Lisp_Vectorlike, WEIGHT_NORMAL);
       DUMP_FIELD_COPY (out, marker, entry);
-      DUMP_FIELD_COPY (out, marker, charpos);
-      DUMP_FIELD_COPY (out, marker, bytepos);
     }
   return finish_dump_pvec (ctx, &out->header);
 }

@@ -539,7 +539,7 @@ check_display_width (Lisp_Object window,
 			     make_fixnum (marker_byte_position (w->pointm)));
 		  record_unwind_protect (restore_window_buffer, oldbuf);
 		  wset_buffer (w, Fcurrent_buffer ());
-		  set_marker_both (w->pointm, w->contents, pos, pos_byte);
+		  set_marker_both (w->pointm, w->contents, pos);
 		}
 
 	      struct text_pos startpos;
@@ -2196,8 +2196,7 @@ restore_window_buffer (Lisp_Object list)
   wset_buffer (w, XCAR (list));
   list = XCDR (list);
   set_marker_both (w->pointm, w->contents,
-		   XFIXNAT (XCAR (list)),
-		   XFIXNAT (XCAR (XCDR (list))));
+		   XFIXNAT (XCAR (list)));
 }
 
 DEFUN ("vertical-motion", Fvertical_motion, Svertical_motion, 1, 3, 0,
@@ -2274,7 +2273,7 @@ buffer, whether or not it is currently displayed in some window.  */)
       record_unwind_protect (restore_window_buffer, old);
       wset_buffer (w, Fcurrent_buffer ());
       set_marker_both (w->pointm, w->contents,
-		       BUF_PT (current_buffer), BUF_PT_BYTE (current_buffer));
+		       BUF_PT (current_buffer));
     }
 
   if (noninteractive)

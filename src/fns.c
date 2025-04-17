@@ -2934,7 +2934,8 @@ internal_equal_1 (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 	  {
 	    return (XMARKER (o1)->buffer == XMARKER (o2)->buffer
 		    && (XMARKER (o1)->buffer == 0
-			|| XMARKER (o1)->bytepos == XMARKER (o2)->bytepos));
+			|| (marker_vector_charpos (XMARKER (o1))
+			    == marker_vector_charpos (XMARKER (o2)))));
 	  }
 	if (BOOL_VECTOR_P (o1))
 	  {
@@ -3158,8 +3159,8 @@ value_cmp (Lisp_Object a, Lisp_Object b, int maxdepth)
 		  int cmp = value_cmp (buf_a, buf_b, maxdepth - 1);
 		  if (cmp != 0)
 		    return cmp;
-		  ptrdiff_t pa = XMARKER (a)->charpos;
-		  ptrdiff_t pb = XMARKER (b)->charpos;
+		  ptrdiff_t pa = marker_vector_charpos (XMARKER (a));
+		  ptrdiff_t pb = marker_vector_charpos (XMARKER (b));
 		  return pa < pb ? -1 : pa > pb;
 		}
 
@@ -5482,10 +5483,11 @@ sxhash_obj (Lisp_Object obj, int depth)
 	  return sxhash_bignum (obj);
 	else if (pvec_type == PVEC_MARKER)
 	  {
-	    ptrdiff_t bytepos
-	      = XMARKER (obj)->buffer ? XMARKER (obj)->bytepos : 0;
+	    const ptrdiff_t charpos = (XMARKER (obj)->buffer
+				       ? marker_vector_charpos (XMARKER (obj))
+				       : 0);
 	    EMACS_UINT hash
-	      = sxhash_combine ((intptr_t) XMARKER (obj)->buffer, bytepos);
+	      = sxhash_combine ((intptr_t) XMARKER (obj)->buffer, charpos);
 	    return hash;
 	  }
 	else if (pvec_type == PVEC_BOOL_VECTOR)
