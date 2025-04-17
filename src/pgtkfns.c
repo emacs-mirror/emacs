@@ -3705,7 +3705,9 @@ unwind_gerror_ptr (void* data)
 }
 
 DEFUN ("x-gtk-launch-uri", Fx_gtk_launch_uri, Sx_gtk_launch_uri, 2, 2, 0,
-       doc: /* launch URI */)
+       doc: /* Tell GTK to launch the default application to show given URI.
+
+This function is only available on PGTK.  */)
   (Lisp_Object frame, Lisp_Object uri)
 {
   CHECK_FRAME (frame);
