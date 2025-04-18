@@ -1948,8 +1948,9 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
             (flymake--mode-line-counter-1 type))
       probe)))
 
-;;; Per-buffer diagnostic listing
-
+
+;;; Per-buffer diagnostic listings
+;;;
 (defvar-local flymake--diagnostics-buffer-source nil)
 
 (defvar flymake-diagnostics-buffer-mode-map
@@ -2005,21 +2006,27 @@ POS can be a buffer position or a button"
   (pop-to-buffer
    (flymake-show-diagnostic (if (button-type pos) (button-start pos) pos))))
 
-(defun flymake--tabulated-diagnostic-origin (diag)
-  (or (flymake-diagnostic-origin diag)
-      (let* ((backend (flymake-diagnostic-backend diag))
-             (bname (or (ignore-errors (symbol-name backend))
-                        "(anonymous function)")))
-        (propertize
-         (replace-regexp-in-string "\\(.\\)[^-]+\\(-\\|$\\)"
-                                   "\\1\\2" bname)
-         'help-echo (format "From `%s' backend" backend)))))
+(defvar flymake--tabulated-list-format-base
+  `[("File" 15)
+    ("Line" 5 ,(lambda (l1 l2)
+                 (< (plist-get (car l1) :line)
+                    (plist-get (car l2) :line)))
+     :right-align t)
+    ("Col" 3 nil :right-align t)
+    ("Type" 8 ,(lambda (l1 l2)
+                 (< (plist-get (car l1) :severity)
+                    (plist-get (car l2) :severity))))
+    ("Origin" 8 t)
+    ("Code" 8 t)
+    ("Message" 0 t)])
 
-(defun flymake--tabulated-entries-1 (diags project-root)
-  "Helper for `flymake--diagnostics-buffer-entries'.
-PROJECT-ROOT indicates that each entry should be preceded by the
-filename of the diagnostic relative to that directory."
+(defun flymake--tabulated-setup-1 (diags project-root)
+  "Helper for `flymake--tabulated-setup'.
+Sets `tabulated-list-format' and `tabulated-list-entries', dinamically
+resizing columns and ommiting redudant columns."
   (cl-loop
+   with fields = (copy-tree flymake--tabulated-list-format-base t)
+   initially (cl-loop for y across fields do (setf (cadr y) nil))
    for diag in diags
    for locus = (flymake-diagnostic-buffer diag)
    for file = (if (bufferp locus)
@@ -2044,78 +2051,108 @@ filename of the diagnostic relative to that directory."
          (;; somehow dead annotated diagnostic, ignore/give up
           t nil))
    for type = (flymake-diagnostic-type diag)
-   for origin = (flymake--tabulated-diagnostic-origin diag)
-   for data-vec = `[,(format "%s" line)
-                    ,(format "%s" col)
-                    ,(propertize (format "%s"
-                                         (flymake--lookup-type-property
-                                          type 'flymake-type-name type))
-                                 'face (flymake--lookup-type-property
-                                        type 'mode-line-face 'flymake-error))
-                    ,origin
-                    (,(flymake-diagnostic-text diag '(oneliner))
-                     mouse-face highlight
-                     help-echo "mouse-2: visit this diagnostic"
-                     face nil
-                     action flymake-goto-diagnostic
-                     mouse-action flymake-goto-diagnostic)]
-   when (and line col) collect
-   (list (list :diagnostic diag
-               :line line
-               :severity (flymake--lookup-type-property
-                          type
-                          'severity (warning-numeric-level :error)))
-         (if project-root
-             (vconcat `[(,(file-name-nondirectory file)
-                         help-echo ,(file-relative-name file project-root)
-                         face nil
-                         mouse-face highlight
-                         action flymake-goto-diagnostic
-                         mouse-action flymake-goto-diagnostic )]
-                      data-vec)
-           data-vec))))
+   for data-line = `[,(and project-root
+                           `(,(file-name-nondirectory file)
+                             help-echo ,(file-relative-name file project-root)
+                             face nil
+                             mouse-face highlight
+                             action flymake-goto-diagnostic
+                             mouse-action flymake-goto-diagnostic ))
+                     ,(format "%s" line)
+                     ,(format "%s" col)
+                     ,(propertize (format "%s"
+                                          (flymake--lookup-type-property
+                                           type 'flymake-type-name type))
+                                  'face (flymake--lookup-type-property
+                                         type 'mode-line-face 'flymake-error))
+                     ,(flymake-diagnostic-origin diag)
+                     ,(flymake-diagnostic-code diag)
+                     (,(flymake-diagnostic-text diag '(oneliner))
+                      mouse-face highlight
+                      help-echo "mouse-2: visit this diagnostic"
+                      face nil
+                      action flymake-goto-diagnostic
+                      mouse-action flymake-goto-diagnostic)]
+   for meta = (and line col
+                   (list :diagnostic diag
+                         :line line
+                         :severity (flymake--lookup-type-property
+                                    type
+                                    'severity (warning-numeric-level :error))))
+   when meta
+   do (cl-loop for x across data-line
+               for y across fields
+               for z across flymake--tabulated-list-format-base
+               for xlen = (cond ((stringp x) (length x))
+                                (t (length (car x))))
+               when (cl-plusp xlen)
+               do (setf (cadr y)
+                        (max xlen
+                             (or (cadr y) (cadr z)))))
+   collect (list meta data-line) into data
+   finally
+   ;; `data' and `fields' now hold more or less suitable values for
+   ;; `tabulated-list-entries' and `tabulated-list-format' respectively,
+   ;; but we need to trim them, first removing the columns of data where
+   ;; the corresponding field is known to be nil for every line, and
+   ;; then removing the field description itself.
+   (cl-loop
+    for entry in data
+    do (setf (cadr entry) (cl-loop for x across (cadr entry)
+                                   for y across fields
+                                   when (cadr y)
+                                   vconcat (vector (or x "-")))))
+   (setq tabulated-list-entries data
+         tabulated-list-format
+         (cl-loop for y across fields
+                  when (cadr y) vconcat (vector y)))))
 
-(defun flymake--diagnostics-buffer-entries ()
-  "Get tabulated list entries for current tabulated list buffer.
-Expects `flymake--diagnostics-buffer-entries' to be bound to a
-buffer."
-  ;; Do nothing if 'flymake--diagnostics-buffer-source' has not yet
-  ;; been set to a valid buffer.  This could happen when this function
-  ;; is called too early.  For example 'global-display-line-numbers-mode'
-  ;; calls us from its mode hook, when the diagnostic buffer has just
-  ;; been created by 'flymake-show-buffer-diagnostics', but is not yet
-  ;; set up properly (Bug#40529).
-  (when (bufferp flymake--diagnostics-buffer-source)
-    (with-current-buffer flymake--diagnostics-buffer-source
-      (when flymake-mode
-        (flymake--tabulated-entries-1 (flymake-diagnostics) nil)))))
-
-(defvar flymake--diagnostics-base-tabulated-list-format
-  `[("Line" 5 ,(lambda (l1 l2)
-                 (< (plist-get (car l1) :line)
-                    (plist-get (car l2) :line)))
-     :right-align t)
-    ("Col" 3 nil :right-align t)
-    ("Type" 8 ,(lambda (l1 l2)
-                 (< (plist-get (car l1) :severity)
-                    (plist-get (car l2) :severity))))
-    ("Origin" 8 t)
-    ("Message" 0 t)])
+(defun flymake--tabulated-setup (use-project)
+  "Helper for `flymake-diagnostics-buffer-mode'.
+And also `flymake-project-diagnostics-mode'."
+  (let ((saved-r-b-f revert-buffer-function)
+        (refresh
+         (lambda ()
+           (cond
+            (use-project
+             (let ((p (project-current)))
+               (flymake--tabulated-setup-1
+                (flymake--project-diagnostics p)
+                (project-root p))))
+            (t
+             ;; Do nothing if 'flymake--diagnostics-buffer-source' has
+             ;; not yet been set to a valid buffer.  This could happen
+             ;; when this function is called too early.  For example
+             ;; 'global-display-line-numbers-mode' calls us from its
+             ;; mode hook, when the diagnostic buffer has just been
+             ;; created by 'flymake-show-buffer-diagnostics', but is not
+             ;; yet set up properly (Bug#40529).
+             (flymake--tabulated-setup-1
+              (and (bufferp flymake--diagnostics-buffer-source)
+                   (with-current-buffer flymake--diagnostics-buffer-source
+                     (and flymake-mode
+                          (flymake-diagnostics))))
+               nil)))
+           (tabulated-list-init-header))))
+    (setq revert-buffer-function
+          (lambda (&rest args)
+            (funcall refresh)
+            (apply saved-r-b-f args)))))
 
 (define-derived-mode flymake-diagnostics-buffer-mode tabulated-list-mode
   "Flymake diagnostics"
   "A mode for listing Flymake diagnostics."
   :interactive nil
-  (setq tabulated-list-format flymake--diagnostics-base-tabulated-list-format)
-  (setq tabulated-list-entries
-        'flymake--diagnostics-buffer-entries)
-  (tabulated-list-init-header))
+  (flymake--tabulated-setup nil))
 
 (defun flymake--diagnostics-buffer-name ()
   (format "*Flymake diagnostics for `%s'*" (current-buffer)))
 
 (define-obsolete-function-alias 'flymake-show-diagnostics-buffer
   'flymake-show-buffer-diagnostics "1.2.1")
+
+(defun flymake--fit-diagnostics-window (window)
+  (fit-window-to-buffer window 15 8))
 
 (defun flymake-show-buffer-diagnostics (&optional diagnostic)
   "Show a list of Flymake diagnostics for current buffer."
@@ -2134,8 +2171,7 @@ buffer."
       (display-buffer (current-buffer)
                       `((display-buffer-reuse-window
                          display-buffer-below-selected)
-                        (window-height . (lambda (window)
-                                           (fit-window-to-buffer window 10)))))
+                        (window-height . flymake--fit-diagnostics-window)))
       (when (and diagnostic flymake-after-show-buffer-diagnostics-hook)
         (goto-char (point-min))
         (catch 'done
@@ -2174,14 +2210,9 @@ some of this variable's contents the diagnostic listings.")
 
 (define-derived-mode flymake-project-diagnostics-mode tabulated-list-mode
   "Flymake diagnostics"
-  "A mode for listing Flymake diagnostics."
+  "A mode for listing Flymake diagnostics in a project."
   :interactive nil
-  (setq tabulated-list-format
-        (vconcat [("File" 25 t)]
-                 flymake--diagnostics-base-tabulated-list-format))
-  (setq tabulated-list-entries
-        'flymake--project-diagnostics-entries)
-  (tabulated-list-init-header))
+  (flymake--tabulated-setup t))
 
 (cl-defun flymake--project-diagnostics (&optional (project (project-current)))
   "Get all known relevant diagnostics for PROJECT."
@@ -2226,11 +2257,6 @@ some of this variable's contents the diagnostic listings.")
                    append diags))
     (append buffer-annotated-diags relevant-foreign-diags list-only-diags)))
 
-(defun flymake--project-diagnostics-entries ()
-  (let ((p (project-current)))
-    (flymake--tabulated-entries-1 (flymake--project-diagnostics p)
-                                  (project-root p))))
-
 (defun flymake--project-diagnostics-buffer (root)
   (get-buffer-create (format "*Flymake diagnostics for `%s'*" root)))
 
@@ -2247,7 +2273,7 @@ some of this variable's contents the diagnostic listings.")
       (display-buffer (current-buffer)
                       `((display-buffer-reuse-window
                          display-buffer-at-bottom)
-                        (window-height . fit-window-to-buffer))))))
+                        (window-height . flymake--fit-diagnostics-window))))))
 
 (defun flymake--update-diagnostics-listings (buffer)
   "Update diagnostics listings somehow relevant to BUFFER."
