@@ -736,7 +736,7 @@ it."
         (delete-overlay ov)))))
 
 (defun treesit--update-ranges-local
-    (query embedded-lang modified-tick &optional beg end)
+    (query embedded-lang modified-tick &optional beg end offset)
   "Update range for local parsers between BEG and END.
 Use QUERY to get the ranges, and make sure each range has a local
 parser for EMBEDDED-LANG.
@@ -748,11 +748,16 @@ property.
 When this function touches an overlay, it sets the
 `treesit-parser-ov-timestamp' property of the overlay to
 MODIFIED-TICK.  This will help Emacs garbage-collect overlays that
-aren't in use anymore."
+aren't in use anymore.
+
+OFFSET is a cons of start and end offsets that are applied to the range
+for the local parser."
   ;; Update range.
   (let* ((host-lang (treesit-query-language query))
          (host-parser (treesit-parser-create host-lang))
-         (ranges (treesit-query-range host-parser query beg end)))
+         (ranges (treesit-query-range host-parser query beg end))
+         (offset-left (or (car offset) 0))
+         (offset-right (or (cdr offset) 0)))
     (pcase-dolist (`(,beg . ,end) ranges)
       (let ((has-parser nil))
         (setq
@@ -780,7 +785,8 @@ aren't in use anymore."
             (overlay-put ov 'treesit-parser-ov-timestamp
                          modified-tick)
             (treesit-parser-set-included-ranges
-             embedded-parser `((,beg . ,end)))))))))
+             embedded-parser `((,(+ beg offset-left)
+                                . ,(+ end offset-right))))))))))
 
 (defun treesit-update-ranges (&optional beg end)
   "Update the ranges for each language in the current buffer.
@@ -803,7 +809,7 @@ region."
          ((functionp query) (funcall query beg end))
          (local
           (treesit--update-ranges-local
-           query language modified-tick beg end))
+           query language modified-tick beg end offset))
          (t
           (let* ((host-lang (treesit-query-language query))
                  (parser (treesit-parser-create language))
