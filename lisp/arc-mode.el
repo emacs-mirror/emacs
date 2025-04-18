@@ -792,7 +792,15 @@ archive.
   ;; The funny [] here make it unlikely that the .elc file will be treated
   ;; as an archive by other software.
   (let (case-fold-search)
-    (cond ((looking-at "\\(PK00\\)?[P]K\003\004") 'zip)
+    ;;       See APPNOTE.txt (version 6.3.10) from PKWARE for the zip
+    ;;       file signatures:
+    ;;       - PK\003\004 == 0x04034b50: local file header signature
+    ;;         (section 4.3.7)
+    ;;       - PK\007\010 == 0x08074b50 (followed by local header):
+    ;;         spanned/split archive signature (section 8.5.3)
+    ;;       - PK00 == 0x30304b50 (followed by local header): temporary
+    ;;         spanned/split archive signature (section 8.5.4)
+    (cond ((looking-at "\\(?:PK\007\010\\|PK00\\)?[P]K\003\004") 'zip)
 	  ((looking-at "..-l[hz][0-9ds]-") 'lzh)
 	  ((looking-at "....................[\334]\247\304\375") 'zoo)
 	  ((and (looking-at "\C-z")	; signature too simple, IMHO

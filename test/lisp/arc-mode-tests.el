@@ -62,6 +62,79 @@
       (when (buffer-live-p tar-buffer) (kill-buffer tar-buffer))
       (when (buffer-live-p gz-buffer) (kill-buffer gz-buffer)))))
 
+(defun arc-mode-test-make-file (name)
+  "Create file NAME in default directory with content NAME.
+Return NAME."
+  (with-temp-buffer
+    (insert name)
+    (write-file name))
+  name)
+
+(defun arc-mode-test-make-archive (command arc files)
+  "Call COMMAND to create archive ARC containing FILES.
+Return a cons (ARC . EXIT-STATUS)."
+  (unless (listp command)
+    (setq command (list command)))
+  (delete-file arc nil)
+  (cons arc (funcall (archive--act-files command files) arc)))
+
+(defmacro define-arc-mode-test-on-type (name command extension type)
+  "Define and execute a test that tests function `archive-find-type'.
+Name the test based on NAME.  The generated test first calls
+
+  (call-process (car COMMAND) nil nil nil
+                (append COMMAND (list ARCHIVE MEMBER)))
+
+to create file ARCHIVE with extension EXTENSION and containing a single
+member MEMBER.  Then the test finds ARCHIVE and ensures that function
+`archive-find-type' detects it as an archive having type TYPE."
+  (let* ((command (eval command))
+         (argv0   (car command))
+         (type    (eval type)))
+    `(ert-deftest ,(intern (format "arc-mode-test-type-%s" name)) ()
+       (skip-unless (executable-find ,argv0))
+       (let ((default-directory arc-mode-tests-data-directory)
+             (member nil) (archive nil) (buffer nil)
+             result exit-status type)
+         (unwind-protect
+             (progn
+               (setq member (arc-mode-test-make-file "member")
+                     result (arc-mode-test-make-archive
+                             (quote ,command) ,(format "arc.%s" extension) (list member))
+                     archive (car result)
+                     exit-status (cdr result))
+               ;; do not count archiver errors as test failures
+               (skip-unless (eq exit-status 0))
+               (with-current-buffer
+                   (setq buffer (find-file-literally archive))
+                 (setq type (condition-case err
+                                (archive-find-type)
+                              (error
+                               ;; turn the most likely error into a nice
+                               ;; and self-explaining symbol that can be
+                               ;; compared in a `should'
+                               (if (string= (cadr err) "Buffer format not recognized")
+                                   'signature-not-recognized
+                                 (signal (car err) (cdr err))))))
+                 (should (eq type (quote ,type)))))
+           (when buffer (kill-buffer buffer))
+           (dolist (file (list member archive))
+             (when file (ignore-errors (delete-file file)))))))))
+
+(define-arc-mode-test-on-type "zip" '("zip") "zip" 'zip)
+
+(define-arc-mode-test-on-type "split-zip" '("zip" "-s1") "zip" 'zip)
+
+(define-arc-mode-test-on-type "arc" '("arc" "a") "arc" 'arc)
+
+(define-arc-mode-test-on-type "lha" '("lha" "a") "lzh" 'lzh)
+
+(define-arc-mode-test-on-type "rar" '("rar" "a") "rar" 'rar)
+
+(define-arc-mode-test-on-type "ar" '("ar" "q") "a" 'ar)
+
+(define-arc-mode-test-on-type "7z" '("7za" "a") "7z" '7z)
+
 (ert-deftest arc-mode-test-zip-ensure-ext ()
   "Regression test for bug#61326."
   (skip-unless (executable-find "zip"))
@@ -71,16 +144,6 @@
          (base-zip-2 "base-2.zip")
          (content-1 '("1" "2"))
          (content-2 '("3" "4"))
-         (make-file (lambda (name)
-                      (push name created-files)
-                      (with-temp-buffer
-                        (insert name)
-                        (write-file name))))
-         (make-zip
-          (lambda (zip files)
-            (delete-file zip nil)
-            (push zip created-files)
-            (funcall (archive--act-files '("zip") files) zip)))
          (update-fn
           (lambda (zip-nonempty)
             (with-current-buffer (find-file-noselect zip-nonempty)
@@ -123,9 +186,12 @@
     (unwind-protect
         (progn
           ;; setup: make two zip files with different contents
-          (mapc make-file (append content-1 content-2))
-          (funcall make-zip base-zip-1 content-1)
-          (funcall make-zip base-zip-2 content-2)
+          (dolist (file (append content-1 content-2))
+            (push (arc-mode-test-make-file file) created-files))
+          (push (car (arc-mode-test-make-archive "zip" base-zip-1 content-1))
+                created-files)
+          (push (car (arc-mode-test-make-archive "zip" base-zip-2 content-2))
+                created-files)
 
           ;; test 1: with "test-update" and "test-update.zip", update
           ;; "test-update": (1) ensure only "test-update" is modified, (2)
