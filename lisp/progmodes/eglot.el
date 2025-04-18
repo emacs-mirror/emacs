@@ -7,7 +7,7 @@
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.3") (eldoc "1.14.0") (external-completion "0.1") (flymake "1.2.1") (jsonrpc "1.0.24") (project "0.9.8") (seq "2.23") (xref "1.6.2"))
+;; Package-Requires: ((emacs "26.3") (eldoc "1.14.0") (external-completion "0.1") (flymake "1.4.0") (jsonrpc "1.0.24") (project "0.9.8") (seq "2.23") (xref "1.6.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid adding functionality
 ;; that is not available in the version of Emacs recorded above or any
@@ -2684,8 +2684,6 @@ expensive cached value of `file-truename'.")
                     ((<= sev 1) 'eglot-error)
                     ((= sev 2)  'eglot-warning)
                     (t          'eglot-note)))
-            (mess (source code message)
-              (concat source (and code (format " [%s]" code)) ": " message))
             (find-it (abspath)
               ;; `find-buffer-visiting' would be natural, but calls the
               ;; potentially slow `file-truename' (bug#70036).
@@ -2706,7 +2704,6 @@ expensive cached value of `file-truename'.")
            for diag-spec across diagnostics
            collect (eglot--dbind ((Diagnostic) range code message severity source tags)
                        diag-spec
-                     (setq message (mess source code message))
                      (pcase-let
                          ((`(,beg . ,end) (eglot-range-region range)))
                        ;; Fallback to `flymake-diag-region' if server
@@ -2729,8 +2726,9 @@ expensive cached value of `file-truename'.")
                        (eglot--make-diag
                         (current-buffer) beg end
                         (eglot--diag-type severity)
-                        message `((eglot-lsp-diag . ,diag-spec)
-                                  (eglot--doc-version . ,version))
+                        (list source code message)
+                        `((eglot-lsp-diag . ,diag-spec)
+                          (eglot--doc-version . ,version))
                         (when-let* ((faces
                                      (cl-loop for tag across tags
                                               when (alist-get tag eglot--tag-faces)
@@ -2748,12 +2746,12 @@ expensive cached value of `file-truename'.")
       (cl-loop
        for diag-spec across diagnostics
        collect (eglot--dbind ((Diagnostic) code range message severity source) diag-spec
-                 (setq message (mess source code message))
                  (let* ((start (plist-get range :start))
                         (line (1+ (plist-get start :line)))
                         (char (1+ (plist-get start :character))))
                    (eglot--make-diag
-                    path (cons line char) nil (eglot--diag-type severity) message)))
+                    path (cons line char) nil (eglot--diag-type severity)
+                    (list source code message))))
        into diags
        finally
        (setq flymake-list-only-diagnostics
