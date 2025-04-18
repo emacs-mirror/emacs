@@ -1516,13 +1516,14 @@ in your init files."
                      treesit-font-lock-settings
                      c-ts-mode-doxygen-comment-font-lock-settings))
         (setq-local treesit-range-settings
-                    (treesit-range-rules
-                     :embed 'doxygen
-                     :host 'c
-                     :local t
-                     `(((comment) @cap
-                        (:match
-                         ,c-ts-mode--doxygen-comment-regex @cap)))))))))
+                    (append treesit-range-settings
+                            (treesit-range-rules
+                             :embed 'doxygen
+                             :host 'c
+                             :local t
+                             `(((comment) @cap
+                                (:match
+                                 ,c-ts-mode--doxygen-comment-regex @cap))))))))))
 
 (derived-mode-add-parents 'c-ts-mode '(c-mode))
 

@@ -132,6 +132,12 @@
         ])))
   "Tree-sitter font-lock settings.")
 
+(defvar heex-ts--font-lock-feature-list
+  '(( heex-comment heex-keyword heex-doctype )
+    ( heex-component heex-tag heex-attribute heex-string )
+    () ())
+  "Tree-sitter font-lock feature list.")
+
 (defun heex-ts--defun-name (node)
   "Return the name of the defun NODE.
 Return nil if NODE is not a defun node or doesn't have a name."
@@ -165,6 +171,24 @@ Return nil if NODE is not a defun node or doesn't have a name."
     (text
      ,(rx bos (or "comment" "text") eos)))
   "`treesit-thing-settings' for HEEx.")
+
+(defvar heex-ts--range-rules
+  (treesit-range-rules
+   :embed 'elixir
+   :host 'heex
+   '((directive [(partial_expression_value)
+                 (ending_expression_value)]
+                @cap))
+
+   :embed 'elixir
+   :host 'heex
+   :local t
+   '((directive (expression_value) @cap)
+     (expression (expression_value) @cap))))
+
+(defvar elixir-ts--font-lock-settings)
+(defvar elixir-ts--font-lock-feature-list)
+(defvar elixir-ts--thing-settings)
 
 ;;;###autoload
 (define-derived-mode heex-ts-mode html-mode "HEEx"
@@ -204,11 +228,29 @@ Return nil if NODE is not a defun node or doesn't have a name."
     (setq-local treesit-simple-indent-rules heex-ts--indent-rules)
 
     (setq-local treesit-font-lock-feature-list
-                '(( heex-comment heex-keyword heex-doctype )
-                  ( heex-component heex-tag heex-attribute heex-string )
-                  () ()))
+                heex-ts--font-lock-feature-list)
 
-    (treesit-major-mode-setup)))
+    (when (treesit-ready-p 'elixir)
+      (require 'elixir-ts-mode)
+      (treesit-parser-create 'elixir)
+
+      (setq-local treesit-range-settings heex-ts--range-rules)
+
+      (setq-local treesit-font-lock-settings
+                  (append treesit-font-lock-settings
+                          elixir-ts--font-lock-settings))
+      (setq-local treesit-font-lock-feature-list
+                  (treesit-merge-font-lock-feature-list
+                   treesit-font-lock-feature-list
+                   elixir-ts--font-lock-feature-list))
+
+      (setq-local treesit-thing-settings
+                  (append treesit-thing-settings
+                          `((elixir ,@elixir-ts--thing-settings)))))
+
+    (treesit-major-mode-setup)
+    ;; Enable the 'sexp' navigation by default
+    (treesit-cycle-sexp-type)))
 
 (derived-mode-add-parents 'heex-ts-mode '(heex-mode))
 

@@ -195,9 +195,8 @@ Returns the language at POSITION, or nil if there's no parser in the
 buffer.  When there are multiple parsers that cover POSITION, use the
 parser with the deepest embed level as it's the \"most relevant\" parser
 at POSITION."
-  (let ((parser (car (treesit-parsers-at position))))
-    (when parser
-      (treesit-parser-language parser))))
+  (when-let* ((parser (car (treesit-parsers-at position))))
+    (treesit-parser-language parser)))
 
 ;;; Node API supplement
 

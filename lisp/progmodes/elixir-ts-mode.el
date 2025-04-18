@@ -567,18 +567,59 @@
 
   "Tree-sitter font-lock settings.")
 
-(defvar elixir-ts--treesit-range-rules
-  (when (treesit-available-p)
-    (treesit-range-rules
-     :embed 'heex
-     :host 'elixir
-     '((sigil (sigil_name) @_name
-              (:match "^[HF]$" @_name)
-              (quoted_content) @heex)))))
+(defvar elixir-ts--font-lock-feature-list
+  '(( elixir-comment elixir-doc elixir-definition)
+    ( elixir-string elixir-keyword elixir-data-type)
+    ( elixir-sigil elixir-builtin elixir-string-escape)
+    ( elixir-function-call elixir-variable elixir-operator elixir-number ))
+  "Tree-sitter font-lock feature list.")
 
+(defvar elixir-ts--thing-settings
+  `((sexp (not (or (and named
+                        ,(rx bos (or "source" "comment") eos))
+                   (and anonymous
+                        ,(rx (or "{" "}" "[" "]" "(" ")"
+                                 "do" "end"))))))
+    (list
+     (or (and "\\`arguments\\'" ,#'elixir-ts--with-parens-0-p)
+         (and "\\`unary_operator\\'" ,#'elixir-ts--with-parens-1-p)
+         ,(rx bos (or "block"
+                      "quoted_atom"
+                      "string"
+                      "interpolation"
+                      "sigil"
+                      "quoted_keyword"
+                      "list"
+                      "tuple"
+                      "bitstring"
+                      "map"
+                      "do_block"
+                      "anonymous_function")
+              eos)))
+    (sexp-default
+     ;; For `C-M-f' in "&|(a)"
+     ("(" . ,(lambda (node)
+               (equal (treesit-node-type (treesit-node-parent node))
+                      "unary_operator"))))
+    (sentence
+     ,(rx bos (or "call") eos))
+    (text
+     ,(rx bos (or "string" "sigil" "comment") eos)))
+  "`treesit-thing-settings' for Elixir.")
+
+(defvar elixir-ts--range-rules
+  (treesit-range-rules
+   :embed 'heex
+   :host 'elixir
+   '((sigil (sigil_name) @_name
+            (:match "^[HF]$" @_name)
+            (quoted_content) @heex))))
+
+(defvar heex-ts--range-rules)
 (defvar heex-ts--thing-settings)
 (defvar heex-ts--indent-rules)
 (defvar heex-ts--font-lock-settings)
+(defvar heex-ts--font-lock-feature-list)
 
 (defun elixir-ts--treesit-anchor-grand-parent-bol (_n parent &rest _)
   "Return the beginning of non-space characters for the parent node of PARENT."
@@ -693,11 +734,7 @@ Return nil if NODE is not a defun node or doesn't have a name."
     ;; Font-lock.
     (setq-local treesit-font-lock-settings elixir-ts--font-lock-settings)
     (setq-local treesit-font-lock-feature-list
-                '(( elixir-comment elixir-doc elixir-definition)
-                  ( elixir-string elixir-keyword elixir-data-type)
-                  ( elixir-sigil elixir-builtin elixir-string-escape)
-                  ( elixir-function-call elixir-variable elixir-operator elixir-number )))
-
+                elixir-ts--font-lock-feature-list)
 
     ;; Imenu.
     (setq-local treesit-simple-imenu-settings
@@ -708,37 +745,7 @@ Return nil if NODE is not a defun node or doesn't have a name."
 
     ;; Navigation.
     (setq-local treesit-thing-settings
-                `((elixir
-                   (sexp (not (or (and named
-                                       ,(rx bos (or "source" "comment") eos))
-                                  (and anonymous
-                                       ,(rx (or "{" "}" "[" "]" "(" ")"
-                                                "do" "end"))))))
-                   (list
-                    (or (and "\\`arguments\\'" ,#'elixir-ts--with-parens-0-p)
-                        (and "\\`unary_operator\\'" ,#'elixir-ts--with-parens-1-p)
-                        ,(rx bos (or "block"
-                                     "quoted_atom"
-                                     "string"
-                                     "interpolation"
-                                     "sigil"
-                                     "quoted_keyword"
-                                     "list"
-                                     "tuple"
-                                     "bitstring"
-                                     "map"
-                                     "do_block"
-                                     "anonymous_function")
-                             eos)))
-                   (sexp-default
-                    ;; For `C-M-f' in "&|(a)"
-                    ("(" . ,(lambda (node)
-                              (equal (treesit-node-type (treesit-node-parent node))
-                                     "unary_operator"))))
-                   (sentence
-                    ,(rx bos (or "call") eos))
-                   (text
-                    ,(rx bos (or "string" "sigil" "comment") eos)))
+                `((elixir ,@elixir-ts--thing-settings)
                   (heex ,@heex-ts--thing-settings)))
     (setq-local treesit-defun-type-regexp
                 '("call" . elixir-ts--defun-p))
@@ -747,7 +754,12 @@ Return nil if NODE is not a defun node or doesn't have a name."
 
     ;; Embedded Heex.
     (when (treesit-ensure-installed 'heex)
-      (setq-local treesit-range-settings elixir-ts--treesit-range-rules)
+      (setq-local treesit-range-settings
+                  (append elixir-ts--range-rules
+                          ;; Leave only local parsers from heex
+                          ;; for elixir->heex->elixir embedding.
+                          (seq-filter (lambda (r) (nth 2 r))
+                                      heex-ts--range-rules)))
 
       (setq-local treesit-font-lock-settings
                   (append treesit-font-lock-settings
@@ -758,12 +770,9 @@ Return nil if NODE is not a defun node or doesn't have a name."
                           heex-ts--indent-rules))
 
       (setq-local treesit-font-lock-feature-list
-                  '(( elixir-comment elixir-doc elixir-definition
-                      heex-comment heex-keyword heex-doctype )
-                    ( elixir-string elixir-keyword elixir-data-type
-                      heex-component heex-tag heex-attribute heex-string )
-                    ( elixir-sigil elixir-builtin elixir-string-escape)
-                    ( elixir-function-call elixir-variable elixir-operator elixir-number ))))
+                  (treesit-merge-font-lock-feature-list
+                   treesit-font-lock-feature-list
+                   heex-ts--font-lock-feature-list)))
 
     (treesit-major-mode-setup)
     (setq-local syntax-propertize-function #'elixir-ts--syntax-propertize)
