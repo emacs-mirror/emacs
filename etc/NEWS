@@ -549,6 +549,9 @@ This variable has no effect when Transient Mark mode is off.
 
 ** Tree-sitter
 
+*** New user option 'treesit-auto-install'.
+It controls the automatic installation of tree-sitter grammars.
+
 *** The file treesit-x.el defines a number of simple tree-sitter modes.
 Using the new macro 'define-treesit-generic-mode', generic modes are
 defined including, but not limited to, 'gitattributes-generic-ts-mode'.

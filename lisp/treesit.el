@@ -5277,6 +5277,29 @@ If anything goes wrong, this function signals an `treesit-error'."
       (dolist (file (directory-files query-dir t "\\.scm\\'" t))
         (copy-file file (expand-file-name (file-name-nondirectory file) dest-dir) t)))))
 
+(defcustom treesit-auto-install 'ask
+  "Automatic installation of a language grammar.
+If `ask', prompt for a confirmation before installing the required
+language grammar.  If `always', silently install the grammar.
+If nil or `never' or anything else, don't install the grammar
+even while visiting a file in the mode that requires such grammar."
+  :type '(choice (const :tag "Never try to install grammar" never)
+                 (const :tag "Always install grammar automatically" always)
+                 (const :tag "Ask whether to install grammar" ask))
+  :version "31.1")
+
+(defun treesit-ensure-installed (lang)
+  "Ensure that the grammar for the language LANG is installed.
+The option `treesit-auto-install' defines whether to install it
+automatically, or ask for a confirmation."
+  (or (treesit-ready-p lang t)
+      (when (or (eq treesit-auto-install 'always)
+                (and (eq treesit-auto-install 'ask)
+                     (y-or-n-p (format "Install grammar for `%s'?" lang))))
+        (treesit-install-language-grammar lang)
+        ;; Check that the grammar was installed successfully
+        (treesit-ready-p lang))))
+
 ;;; Shortdocs
 
 (defun treesit--generate-shortdoc-examples ()
