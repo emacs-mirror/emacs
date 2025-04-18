@@ -449,16 +449,73 @@ diagnostics at BEG."
 (flymake--diag-accessor flymake-diagnostic-end flymake--diag-end end)
 (flymake--diag-accessor flymake-diagnostic-buffer flymake--diag-locus locus)
 
-(defun flymake-diagnostic-text (diag)
-  "Get Flymake diagnostic DIAG's text."
-  (let ((a (flymake--diag-origin diag))
-        (b (flymake--diag-code diag))
-        (c (flymake--diag-message diag)))
+(defcustom flymake-diagnostic-format-alist
+  '((:help-echo . (origin code oneliner))
+    (:eol . (oneliner))
+    (:eldoc . (origin code message))
+    (:eldoc-echo . (origin code oneliner))
+    (t . (origin code oneliner)))
+  "How to format diagnostics for different output destinations.
+Value is an alist where each element looks like (DESTINATION . PARTS).
+DESTINATION is a symbol designating an outlet.  One of:
+
+- `:help-echo', for the native Flymake echoing of diagnostics in the
+   echo area as used my `flymake-goto-next-error' and `flymake-goto-prev-error';
+- `:eol', for use with `flymake-show-diagnostics-at-end-of-line';
+- `:eldoc', for use with Flymake's ElDoc backend;
+- `:eldoc-echo', for use with Flymake's ElDoc backend, but for ElDoc's own
+   confined outlets;
+- t for all other destinations.
+
+PARTS says which parts of the diagnostic to include.  It is a list of
+symbols where the following values are meaningful:
+
+- `origin': include diagnostic origin if it exists;
+- `code': include diagnostics code if it exists;
+- `message': include the full diagnostic's message text;
+- `oneliner': include truncated diagnostic text;"
+  :package-version '(Flymake . "1.4.0")
+  :type '(alist :key-type (choice (const :help-echo)
+                                  (const :eol)
+                                  (const :eldoc)
+                                  (const :eldoc-echo)
+                                  (const t))
+                :value-type (set (const origin)
+                                 (const code)
+                                 (const message)
+                                 (const oneliner))))
+
+(cl-defun flymake-diagnostic-text (diag
+                                   &optional (parts '(origin code message)))
+  "Describe diagnostic DIAG's as a string.
+PARTS says which parts of the diagnostic to include.  It is a list of
+symbols as described in `flymake-diagnostic-format-alist' (which see).
+PARTS defaults to `(origin code message)'."
+  (let* ((w parts)
+         (a (and (memq 'origin w) (flymake--diag-origin diag)))
+         (b (and (memq 'code w) (flymake--diag-code diag)))
+         (c (cond ((memq 'message w) (flymake--diag-message diag))
+                  ((memq 'oneliner w)
+                   (let* ((msg (flymake--diag-message diag)))
+                     (substring msg 0 (cl-loop for i from 0 for a across msg
+                                               when (eq a ?\n) return i)))))))
     (concat a
             (when (and a b) " ")
             (when b (concat "[" b "]"))
             (when (and c (or a b)) ": ")
             c)))
+
+(defun flymake--format-diagnostic (diag destination face-prop)
+  (let ((txt (flymake-diagnostic-text
+              diag (alist-get destination flymake-diagnostic-format-alist
+                              (alist-get t flymake-diagnostic-format-alist
+                                         '(origin code message))))))
+    (if face-prop
+        (propertize txt 'face
+                    (flymake--lookup-type-property
+                     (flymake-diagnostic-type diag) face-prop
+                     'flymake-error))
+      txt)))
 
 (defun flymake-diagnostic-oneliner (diag &optional nopaintp)
   "Get truncated one-line text string for diagnostic DIAG.
@@ -466,13 +523,14 @@ This is useful for displaying the DIAG's text to the user in
 confined spaces, such as the echo are.  Unless NOPAINTP is t,
 propertize returned text with the `echo-face' property of DIAG's
 type."
-  (let* ((txt (flymake-diagnostic-text diag))
-         (txt (substring txt 0 (cl-loop for i from 0 for a across txt
-                                        when (eq a ?\n) return i))))
+  (let* ((txt (flymake-diagnostic-text diag '(origin code oneliner))))
     (if nopaintp txt
       (propertize txt 'face
                   (flymake--lookup-type-property
                    (flymake-diagnostic-type diag) 'echo-face 'flymake-error)))))
+(make-obsolete 'flymake-diagnostic-oneliner
+               "use `flymake-diagnostic-text' instead."
+               "Flymake package version 1.4.0")
 
 (cl-defun flymake--really-all-overlays ()
   "Get flymake-related overlays.
@@ -849,9 +907,7 @@ Return to original margin width if ORIG-WIDTH is non-nil."
 (defun flymake--eol-overlay-summary (src-ovs)
   "Helper function for `flymake--update-eol-overlays'."
   (cl-flet ((summarize (d)
-              (propertize (flymake-diagnostic-oneliner d t) 'face
-                          (flymake--lookup-type-property (flymake--diag-type d)
-                                                         'eol-face))))
+              (flymake--format-diagnostic d :eol 'eol-face)))
     (let* ((diags
             (cl-sort
              (mapcar (lambda (o) (overlay-get o 'flymake-diagnostic)) src-ovs)
@@ -978,7 +1034,8 @@ Return nil or the overlay created."
         (lambda (window _ov pos)
           (with-selected-window window
             (mapconcat
-             #'flymake-diagnostic-oneliner
+             (lambda (d)
+               (flymake--format-diagnostic d :help-echo 'echo-face))
              (flymake-diagnostics pos)
              "\n"))))
       (default-maybe 'severity (warning-numeric-level :error))
@@ -1584,9 +1641,13 @@ START and STOP and LEN are as in `after-change-functions'."
 Intended for `eldoc-documentation-functions' (which see)."
   (when-let* ((diags (flymake-diagnostics (point))))
     (funcall report-doc
-             (mapconcat #'flymake-diagnostic-text diags "\n")
-             :echo (mapconcat #'flymake-diagnostic-oneliner
-                              diags "\n"))))
+             (mapconcat (lambda (d)
+                          (flymake--format-diagnostic d :eldoc 'echo-face))
+                        diags "\n")
+             :echo (mapconcat
+                    (lambda (d)
+                      (flymake--format-diagnostic d :eldoc-echo 'echo-face))
+                    diags "\n"))))
 
 (defun flymake-goto-next-error (&optional n filter interactive)
   "Go to Nth next Flymake diagnostic that matches FILTER.
@@ -1944,6 +2005,16 @@ POS can be a buffer position or a button"
   (pop-to-buffer
    (flymake-show-diagnostic (if (button-type pos) (button-start pos) pos))))
 
+(defun flymake--tabulated-diagnostic-origin (diag)
+  (or (flymake-diagnostic-origin diag)
+      (let* ((backend (flymake-diagnostic-backend diag))
+             (bname (or (ignore-errors (symbol-name backend))
+                        "(anonymous function)")))
+        (propertize
+         (replace-regexp-in-string "\\(.\\)[^-]+\\(-\\|$\\)"
+                                   "\\1\\2" bname)
+         'help-echo (format "From `%s' backend" backend)))))
+
 (defun flymake--tabulated-entries-1 (diags project-root)
   "Helper for `flymake--diagnostics-buffer-entries'.
 PROJECT-ROOT indicates that each entry should be preceded by the
@@ -1973,9 +2044,7 @@ filename of the diagnostic relative to that directory."
          (;; somehow dead annotated diagnostic, ignore/give up
           t nil))
    for type = (flymake-diagnostic-type diag)
-   for backend = (flymake-diagnostic-backend diag)
-   for bname = (or (ignore-errors (symbol-name backend))
-                   "(anonymous function)")
+   for origin = (flymake--tabulated-diagnostic-origin diag)
    for data-vec = `[,(format "%s" line)
                     ,(format "%s" col)
                     ,(propertize (format "%s"
@@ -1983,13 +2052,8 @@ filename of the diagnostic relative to that directory."
                                           type 'flymake-type-name type))
                                  'face (flymake--lookup-type-property
                                         type 'mode-line-face 'flymake-error))
-                    ,(propertize
-                      (if bname
-                          (replace-regexp-in-string "\\(.\\)[^-]+\\(-\\|$\\)"
-                                                    "\\1\\2" bname)
-                        "(anon)")
-                      'help-echo (format "From `%s' backend" backend))
-                    (,(flymake-diagnostic-oneliner diag t)
+                    ,origin
+                    (,(flymake-diagnostic-text diag '(oneliner))
                      mouse-face highlight
                      help-echo "mouse-2: visit this diagnostic"
                      face nil
@@ -2035,7 +2099,7 @@ buffer."
     ("Type" 8 ,(lambda (l1 l2)
                  (< (plist-get (car l1) :severity)
                     (plist-get (car l2) :severity))))
-    ("Backend" 8 t)
+    ("Origin" 8 t)
     ("Message" 0 t)])
 
 (define-derived-mode flymake-diagnostics-buffer-mode tabulated-list-mode

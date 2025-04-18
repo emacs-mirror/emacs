@@ -351,6 +351,9 @@ distracting and easily confused with actual code, or a significant
 early aid that relieves you from moving around or reaching for the
 mouse to consult an error message.
 
+@item flymake-diagnostic-format-alist
+Control which parts of a diagnostic to show in various situations.
+
 @item flymake-error-eol
 A custom face for summarizing diagnostic error messages.
 
