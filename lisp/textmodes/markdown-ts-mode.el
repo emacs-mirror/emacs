@@ -187,6 +187,7 @@ maps to tree-sitter language `cpp'.")
       (paragraph (inline (block_continuation) @markdown-ts-delimiter))))
 
    :language 'markdown-inline
+   :override t ;; override paren delimiter inside inline link
    :feature 'paragraph-inline
    '(((image_description) @link)
      ((link_destination) @font-lock-string-face)
