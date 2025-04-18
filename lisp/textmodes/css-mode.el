@@ -1341,6 +1341,11 @@ for determining whether point is within a selector."
 
 ;;; Tree-sitter
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(css "https://github.com/tree-sitter/tree-sitter-css" "v0.23.1")
+ t)
+
 (defvar css-ts-mode-map (copy-keymap css-mode-map)
   "Keymap used in `css-ts-mode'.")
 
@@ -1884,7 +1889,7 @@ can also be used to fill comments.
 
 \\{css-mode-map}"
   :syntax-table css-mode-syntax-table
-  (when (treesit-ready-p 'css)
+  (when (treesit-ensure-installed 'css)
     ;; Borrowed from `css-mode'.
     (setq-local syntax-propertize-function
                 css-syntax-propertize-function)

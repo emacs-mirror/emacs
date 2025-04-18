@@ -40,6 +40,11 @@
 (eval-when-compile (require 'rx))
 (treesit-declare-unavailable-functions)
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(cmake "https://github.com/uyha/tree-sitter-cmake" "v0.5.0")
+ t)
+
 (defcustom cmake-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `cmake-ts-mode'."
   :version "29.1"
@@ -212,7 +217,7 @@ Return nil if there is no name or if NODE is not a defun node."
   :group 'cmake
   :syntax-table cmake-ts-mode--syntax-table
 
-  (when (treesit-ready-p 'cmake)
+  (when (treesit-ensure-installed 'cmake)
     (setq treesit-primary-parser (treesit-parser-create 'cmake))
 
     ;; Comments.

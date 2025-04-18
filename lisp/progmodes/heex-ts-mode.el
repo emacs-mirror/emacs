@@ -44,6 +44,15 @@
 (eval-when-compile (require 'rx))
 (treesit-declare-unavailable-functions)
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(heex "https://github.com/phoenixframework/tree-sitter-heex" "v0.7.0")
+ t)
+(add-to-list
+ 'treesit-language-source-alist
+ '(elixir "https://github.com/elixir-lang/tree-sitter-elixir" "v0.3.3")
+ t)
+
 (defgroup heex-ts nil
   "Major mode for editing HEEx code."
   :prefix "heex-ts-"
@@ -162,7 +171,7 @@ Return nil if NODE is not a defun node or doesn't have a name."
   "Major mode for editing HEEx, powered by tree-sitter."
   :group 'heex-ts
 
-  (when (treesit-ready-p 'heex)
+  (when (treesit-ensure-installed 'heex)
     (setq treesit-primary-parser (treesit-parser-create 'heex))
 
     ;; Comments

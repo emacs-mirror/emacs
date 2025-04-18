@@ -35,6 +35,11 @@
 (declare-function treesit-node-type "treesit.c")
 (declare-function treesit-node-child-by-field-name "treesit.c")
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(yaml "https://github.com/tree-sitter-grammars/tree-sitter-yaml" "v0.7.0")
+ t)
+
 (defvar yaml-ts-mode--syntax-table
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?#  "<"  table)
@@ -162,7 +167,7 @@ Return nil if there is no name or if NODE is not a defun node."
   :group 'yaml
   :syntax-table yaml-ts-mode--syntax-table
 
-  (when (treesit-ready-p 'yaml)
+  (when (treesit-ensure-installed 'yaml)
     (setq treesit-primary-parser (treesit-parser-create 'yaml))
 
     ;; Comments.

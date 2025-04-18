@@ -86,6 +86,19 @@
 (eval-when-compile (require 'rx))
 (treesit-declare-unavailable-functions)
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(c "https://github.com/tree-sitter/tree-sitter-c" "v0.23.4")
+ t)
+(add-to-list
+ 'treesit-language-source-alist
+ '(cpp "https://github.com/tree-sitter/tree-sitter-cpp" "v0.23.4")
+ t)
+(add-to-list
+ 'treesit-language-source-alist
+ '(doxygen "https://github.com/tree-sitter-grammars/tree-sitter-doxygen" "v1.1.0")
+ t)
+
 ;;; Custom variables
 
 (defcustom c-ts-mode-indent-offset 2
@@ -1460,7 +1473,7 @@ in your init files."
   :group 'c
   :after-hook (c-ts-mode-set-modeline)
 
-  (when (treesit-ready-p 'c)
+  (when (treesit-ensure-installed 'c)
     ;; Create an "for-each" parser, see `c-ts-mode--emacs-set-ranges'
     ;; for more.
     (when c-ts-mode-emacs-sources-support
@@ -1495,7 +1508,8 @@ in your init files."
         (treesit-font-lock-recompute-features '(emacs-devel)))
 
       ;; Inject doxygen parser for comment.
-      (when (and c-ts-mode-enable-doxygen (treesit-ready-p 'doxygen t))
+      (when (and c-ts-mode-enable-doxygen
+                 (treesit-ensure-installed 'doxygen))
         (setq-local treesit-primary-parser primary-parser)
         (setq-local treesit-font-lock-settings
                     (append
@@ -1535,7 +1549,7 @@ recommended to enable `electric-pair-mode' with this mode."
   :group 'c++
   :after-hook (c-ts-mode-set-modeline)
 
-  (when (treesit-ready-p 'cpp)
+  (when (treesit-ensure-installed 'cpp)
     (let ((primary-parser (treesit-parser-create 'cpp)))
 
       ;; Syntax.
@@ -1557,7 +1571,8 @@ recommended to enable `electric-pair-mode' with this mode."
                     #'c-ts-mode--emacs-current-defun-name))
 
       ;; Inject doxygen parser for comment.
-      (when (and c-ts-mode-enable-doxygen (treesit-ready-p 'doxygen t))
+      (when (and c-ts-mode-enable-doxygen
+                 (treesit-ensure-installed 'doxygen))
         (setq-local treesit-primary-parser primary-parser)
         (setq-local treesit-font-lock-settings
                     (append
@@ -1669,9 +1684,6 @@ the code is C or C++, and based on that chooses whether to enable
   (setq major-mode-remap-defaults
         (assq-delete-all 'c-or-c++-mode major-mode-remap-defaults))
   (add-to-list 'major-mode-remap-defaults '(c-or-c++-mode . c-or-c++-ts-mode)))
-
-(when (and c-ts-mode-enable-doxygen (not (treesit-ready-p 'doxygen t)))
-  (message "Doxygen syntax highlighting can't be enabled, please install the language grammar."))
 
 (provide 'c-ts-mode)
 (provide 'c++-ts-mode)

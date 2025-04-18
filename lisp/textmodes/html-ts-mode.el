@@ -43,6 +43,11 @@
 (declare-function treesit-node-type "treesit.c")
 (declare-function treesit-search-subtree "treesit.c")
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(html "https://github.com/tree-sitter/tree-sitter-html" "v0.23.2")
+ t)
+
 (defcustom html-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `html-ts-mode'."
   :version "29.1"
@@ -144,7 +149,7 @@ Return nil if there is no name or if NODE is not a defun node."
   "Major mode for editing Html, powered by tree-sitter."
   :group 'html
 
-  (unless (treesit-ready-p 'html t)
+  (unless (treesit-ensure-installed 'html)
     (error "Tree-sitter for HTML isn't available"))
 
   (setq treesit-primary-parser (treesit-parser-create 'html))

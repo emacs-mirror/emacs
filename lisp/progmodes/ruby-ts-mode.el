@@ -123,6 +123,11 @@
 (require 'ruby-mode)
 (treesit-declare-unavailable-functions)
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(ruby "https://github.com/tree-sitter/tree-sitter-ruby" "v0.23.1")
+ t)
+
 (defgroup ruby-ts nil
   "Major mode for editing Ruby code."
   :prefix "ruby-ts-"
@@ -1155,7 +1160,7 @@ leading double colon is not added."
   :group 'ruby
   :syntax-table ruby-mode-syntax-table
 
-  (unless (treesit-ready-p 'ruby)
+  (unless (treesit-ensure-installed 'ruby)
     (error "Tree-sitter for Ruby isn't available"))
 
   (setq treesit-primary-parser (treesit-parser-create 'ruby))

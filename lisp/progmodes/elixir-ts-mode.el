@@ -57,6 +57,15 @@
 (eval-when-compile (require 'rx))
 (treesit-declare-unavailable-functions)
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(elixir "https://github.com/elixir-lang/tree-sitter-elixir" "v0.3.3")
+ t)
+(add-to-list
+ 'treesit-language-source-alist
+ '(heex "https://github.com/phoenixframework/tree-sitter-heex" "v0.7.0")
+ t)
+
 (defgroup elixir-ts nil
   "Major mode for editing Elixir code."
   :prefix "elixir-ts-"
@@ -667,11 +676,11 @@ Return nil if NODE is not a defun node or doesn't have a name."
   (add-hook 'post-self-insert-hook
             #'elixir-ts--electric-pair-string-delimiter 'append t)
 
-  (when (treesit-ready-p 'elixir)
+  (when (treesit-ensure-installed 'elixir)
     ;; The HEEx parser has to be created first for elixir to ensure elixir
     ;; is the first language when looking for treesit ranges.
     ;; (In Emacs 31 this requirement is removed.)
-    (when (treesit-ready-p 'heex)
+    (when (treesit-ensure-installed 'heex)
       ;; Require heex-ts-mode only when we load elixir-ts-mode
       ;; so that we don't get a tree-sitter compilation warning for
       ;; elixir-ts-mode.
@@ -737,7 +746,7 @@ Return nil if NODE is not a defun node or doesn't have a name."
     (setq-local treesit-defun-name-function #'elixir-ts--defun-name)
 
     ;; Embedded Heex.
-    (when (treesit-ready-p 'heex)
+    (when (treesit-ensure-installed 'heex)
       (setq-local treesit-range-settings elixir-ts--treesit-range-rules)
 
       (setq-local treesit-font-lock-settings

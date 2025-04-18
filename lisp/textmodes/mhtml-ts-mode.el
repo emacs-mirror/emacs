@@ -65,21 +65,24 @@
 ;; In a multi-language major mode can be useful to have an "installer" to
 ;; simplify the installation of the grammars supported by the major-mode.
 (defvar mhtml-ts-mode--language-source-alist
-  '((html . ("https://github.com/tree-sitter/tree-sitter-html"  "v0.23.2"))
-    (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.1"))
-    (jsdoc . ("https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.23.2"))
-    (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.23.1")))
+  '((html "https://github.com/tree-sitter/tree-sitter-html" "v0.23.2")
+    (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.1")
+    (jsdoc "https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.23.2")
+    (css "https://github.com/tree-sitter/tree-sitter-css" "v0.23.1"))
   "Treesitter language parsers required by `mhtml-ts-mode'.
-You can customize this variable if you want to stick to a specific
-commit and/or use different parsers.")
+You can customize `treesit-language-source-alist' if you want
+to stick to a specific commit and/or use different parsers.")
+
+(setq treesit-language-source-alist
+      (append treesit-language-source-alist
+              mhtml-ts-mode--language-source-alist))
 
 (defun mhtml-ts-mode-install-parsers ()
   "Install all the required treesitter parsers.
 `mhtml-ts-mode--language-source-alist' defines which parsers to install."
   (interactive)
-  (let ((treesit-language-source-alist mhtml-ts-mode--language-source-alist))
-    (dolist (item mhtml-ts-mode--language-source-alist)
-      (treesit-install-language-grammar (car item)))))
+  (dolist (item mhtml-ts-mode--language-source-alist)
+    (treesit-install-language-grammar (car item))))
 
 ;;; Custom variables
 
@@ -432,9 +435,9 @@ Calls REPORT-FN directly.  Requires tidy."
   "Major mode for editing HTML with embedded JavaScript and CSS.
 Powered by tree-sitter."
   (if (not (and
-            (treesit-ready-p 'html t)
-            (treesit-ready-p 'javascript t)
-            (treesit-ready-p 'css t)))
+            (treesit-ensure-installed 'html)
+            (treesit-ensure-installed 'javascript)
+            (treesit-ensure-installed 'css)))
       (error "Tree-sitter parsers for HTML isn't available.  You can
     install the parsers with M-x `mhtml-ts-mode-install-parsers'")
 
@@ -487,7 +490,7 @@ Powered by tree-sitter."
 
     ;; jsdoc is not mandatory for js-ts-mode, so we respect this by
     ;; adding jsdoc range rules only when jsdoc is available.
-    (when (treesit-ready-p 'jsdoc t)
+    (when (treesit-ensure-installed 'jsdoc)
       (setq-local treesit-range-settings
                   (append treesit-range-settings
                           (treesit-range-rules

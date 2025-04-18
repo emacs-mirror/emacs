@@ -3408,6 +3408,15 @@ This function is intended for use in `after-change-functions'."
 
 ;;; Tree sitter integration
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(javascript "https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.1")
+ t)
+(add-to-list
+ 'treesit-language-source-alist
+ '(jsdoc "https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.23.2")
+ t)
+
 (defun js--treesit-font-lock-compatibility-definition-feature ()
   "Font lock helper, to handle different releases of tree-sitter-javascript.
 Check if a node type is available, then return the right font lock rules
@@ -3973,7 +3982,7 @@ See `treesit-thing-settings' for more information.")
 \\<js-ts-mode-map>"
   :group 'js
   :syntax-table js-mode-syntax-table
-  (when (treesit-ready-p 'javascript)
+  (when (treesit-ensure-installed 'javascript)
     ;; Borrowed from `js-mode'.
     (setq-local prettify-symbols-alist js--prettify-symbols-alist)
     (setq-local parse-sexp-ignore-comments t)
@@ -4004,7 +4013,7 @@ See `treesit-thing-settings' for more information.")
     (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
     (setq-local treesit-font-lock-feature-list js--treesit-font-lock-feature-list)
 
-    (when (treesit-ready-p 'jsdoc t)
+    (when (treesit-ensure-installed 'jsdoc)
       (setq-local treesit-range-settings
                   (treesit-range-rules
                    :embed 'jsdoc

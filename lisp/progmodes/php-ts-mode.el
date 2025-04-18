@@ -81,23 +81,26 @@
 
 ;;; Install treesitter language parsers
 (defvar php-ts-mode--language-source-alist
-  '((php . ("https://github.com/tree-sitter/tree-sitter-php" "v0.23.11" "php/src"))
-    (phpdoc . ("https://github.com/claytonrcarter/tree-sitter-phpdoc"))
-    (html . ("https://github.com/tree-sitter/tree-sitter-html"  "v0.23.0"))
-    (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.0"))
-    (jsdoc . ("https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.23.0"))
-    (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.23.0")))
+  '((php "https://github.com/tree-sitter/tree-sitter-php" "v0.23.11" "php/src")
+    (phpdoc "https://github.com/claytonrcarter/tree-sitter-phpdoc")
+    (html "https://github.com/tree-sitter/tree-sitter-html" "v0.23.2")
+    (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.1")
+    (jsdoc "https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.23.2")
+    (css "https://github.com/tree-sitter/tree-sitter-css" "v0.23.1"))
   "Treesitter language parsers required by `php-ts-mode'.
-You can customize this variable if you want to stick to a specific
-commit and/or use different parsers.")
+You can customize `treesit-language-source-alist' if you want
+to stick to a specific commit and/or use different parsers.")
+
+(setq treesit-language-source-alist
+      (append treesit-language-source-alist
+              php-ts-mode--language-source-alist))
 
 (defun php-ts-mode-install-parsers ()
   "Install all the required treesitter parsers.
 `php-ts-mode--language-source-alist' defines which parsers to install."
   (interactive)
-  (let ((treesit-language-source-alist php-ts-mode--language-source-alist))
-    (dolist (item php-ts-mode--language-source-alist)
-      (treesit-install-language-grammar (car item)))))
+  (dolist (item php-ts-mode--language-source-alist)
+    (treesit-install-language-grammar (car item))))
 
 ;;; Custom variables
 
@@ -1384,12 +1387,12 @@ Depends on `c-ts-common-comment-setup'."
   :syntax-table php-ts-mode--syntax-table
 
   (if (not (and
-            (treesit-ready-p 'php)
-            (treesit-ready-p 'phpdoc)
-            (treesit-ready-p 'html)
-            (treesit-ready-p 'javascript)
-            (treesit-ready-p 'jsdoc)
-            (treesit-ready-p 'css)))
+            (treesit-ensure-installed 'php)
+            (treesit-ensure-installed 'phpdoc)
+            (treesit-ensure-installed 'html)
+            (treesit-ensure-installed 'javascript)
+            (treesit-ensure-installed 'jsdoc)
+            (treesit-ensure-installed 'css)))
       (error "Tree-sitter for PHP isn't
     available.  You can install the parsers with M-x
     `php-ts-mode-install-parsers'")

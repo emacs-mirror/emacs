@@ -41,6 +41,11 @@
 (require 'c-ts-common) ; For comment indent and filling.
 (treesit-declare-unavailable-functions)
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(rust "https://github.com/tree-sitter/tree-sitter-rust" "v0.23.2")
+ t)
+
 (defcustom rust-ts-mode-indent-offset 4
   "Number of spaces for each indentation step in `rust-ts-mode'."
   :version "29.1"
@@ -545,7 +550,7 @@ See `prettify-symbols-compose-predicate'."
   :group 'rust
   :syntax-table rust-ts-mode--syntax-table
 
-  (when (treesit-ready-p 'rust)
+  (when (treesit-ensure-installed 'rust)
     (setq treesit-primary-parser (treesit-parser-create 'rust))
 
     ;; Syntax.
