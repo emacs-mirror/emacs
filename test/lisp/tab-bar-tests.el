@@ -52,6 +52,10 @@
   (tab-bar-tabs-set nil))
 
 (ert-deftest tab-bar-tests-quit-restore-window ()
+  ;; Emba runs the container without "--tty"
+  ;; (the environment variable "TERM" is nil), and this
+  ;; test fails with '(error "Could not open file: /dev/tty")'.
+  ;; Therefore skip it unless it can use '(tty-type . "linux")'.
   (skip-unless (or (and (eq system-type 'gnu/linux) (getenv "TERM"))
                    (and (not noninteractive)
                         (eq system-type 'windows-nt))))
