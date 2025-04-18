@@ -225,11 +225,13 @@ albeit as a variable, not a user option.
 ** Windows
 
 +++
-*** New functions to modify window layout.
-Several functions to modify the window layout have been added:
-'window-layout-rotate-clockwise', 'window-layout-rotate-anticlockwise',
-'window-layout-flip-topdown', 'window-layout-flip-leftright',
-'window-layout-transpose', 'rotate-windows', and 'rotate-windows-back'.
+*** New commands to modify window layouts.
+'C-x w t' and 'C-x w r <left>/<right>' rotate the window layout.
+'C-x w o <left>/<right>' rotate the windows within the current layout.
+'C-x w f <left>/<right>/<up>/<down>' flip window layouts.
+
+By default these commands operate on the selected frame's root window.
+With a prefix argument, they operate on the selected window's parent.
 
 +++
 *** Windmove commands now move to skipped windows if invoked twice in a row.

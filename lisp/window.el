@@ -11381,6 +11381,29 @@ Used in `repeat-mode'."
   ;; Additional keys:
   "v" #'shrink-window)
 
+(defvar-keymap rotate-windows-repeat-map
+  :doc "Keymap to repeat window-rotating commands.
+Used in `repeat-mode'."
+  :repeat t
+  "<left>" #'rotate-windows-back
+  "<right>" #'rotate-windows)
+
+(defvar-keymap window-layout-rotate-repeat-map
+  :doc "Keymap to repeat window layout-rotating commands.
+Used in `repeat-mode'."
+  :repeat t
+  "<left>" #'window-layout-rotate-anticlockwise
+  "<right>" #'window-layout-rotate-clockwise)
+
+(defvar-keymap window-layout-flip-repeat-map
+  :doc "Keymap to repeat window-flipping commands.
+Used in `repeat-mode'."
+  :repeat t
+  "<left>" #'window-layout-flip-leftright
+  "<right>" #'window-layout-flip-leftright
+  "<up>" #'window-layout-flip-topdown
+  "<down>" #'window-layout-flip-topdown)
+
 (defvar-keymap window-prefix-map
   :doc "Keymap for subcommands of \\`C-x w'."
   "2" #'split-root-window-below
@@ -11391,7 +11414,17 @@ Used in `repeat-mode'."
   "^ t" #'tab-window-detach
   "-" #'fit-window-to-buffer
   "0" #'delete-windows-on
-  "q" #'quit-window)
+  "q" #'quit-window
+
+  "o <left>" #'rotate-windows-back
+  "o <right>" #'rotate-windows
+  "t" #'window-layout-transpose
+  "r <left>" #'window-layout-rotate-anticlockwise
+  "r <right>" #'window-layout-rotate-clockwise
+  "f <left>" #'window-layout-flip-leftright
+  "f <right>" #'window-layout-flip-leftright
+  "f <up>" #'window-layout-flip-topdown
+  "f <down>" #'window-layout-flip-topdown)
 (define-key ctl-x-map "w" window-prefix-map)
 
 (provide 'window)
