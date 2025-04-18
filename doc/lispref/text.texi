@@ -1932,7 +1932,7 @@ they default to the whole buffer.
 This function adjusts the indentation at the beginning of the current
 line to the value specified by the variable @code{left-margin}.  (That
 may involve either inserting or deleting whitespace.)  This function
-is value of @code{indent-line-function} in Paragraph-Indent Text mode.
+is the value of @code{indent-line-function} in Paragraph-Indent Text mode.
 @end defun
 
 @defopt left-margin
