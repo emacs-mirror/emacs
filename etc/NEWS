@@ -219,8 +219,8 @@ popup interface, such as the interfaces that the GNU ELPA packages Corfu
 and Company provide, you can set this option to the same sort function
 that your popup interface uses for a more integrated experience.
 
-Note: 'completion-preview-sort-function' was present also in Emacs 30.1,
-albeit as a variable, not a user option.
+('completion-preview-sort-function' was already present in Emacs 30.1,
+but as a plain Lisp variable, not a user option.)
 
 ** Windows
 
@@ -315,8 +315,9 @@ helps to restore window buffers across Emacs sessions.
 
 +++
 *** New function 'frame-deletable-p'.
-Calling this function before 'delete-frame' is useful to avoid that the
-latter throws an error when the argument FRAME cannot be deleted.
+Calling this function before 'delete-frame' is useful to avoid how the
+latter function signals an error when its FRAME argument cannot be
+deleted.
 
 +++
 *** New value 'force' for user option 'frame-inhibit-implied-resize'.
