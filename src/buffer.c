@@ -847,6 +847,8 @@ Interactively, CLONE and INHIBIT-BUFFER-HOOKS are nil.  */)
 
   /* Use the base buffer's text object.  */
   b->text = b->base_buffer->text;
+  /* Make sure index has a defined value.  */
+  b->own_text.index = NULL;
   /* We have no own text.  */
   b->indirections = -1;
   /* Notify base buffer that we share the text now.  */
