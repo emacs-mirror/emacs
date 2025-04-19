@@ -3113,9 +3113,7 @@ value_cmp (Lisp_Object a, Lisp_Object b, int maxdepth)
 	}
       if (NILP (b))
 	return 1;
-      else
-	goto type_mismatch;
-      goto tail_recurse;
+      goto type_mismatch;
 
     case Lisp_Vectorlike:
       if (VECTORLIKEP (b))
