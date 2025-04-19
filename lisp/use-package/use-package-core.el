@@ -1623,7 +1623,11 @@ no keyword implies `:all'."
 (defun use-package-handler/:custom-face (name _keyword args rest state)
   "Generate use-package custom-face keyword code."
   (use-package-concat
-   (mapcar #'(lambda (def) `(apply #'face-spec-set (backquote ,def))) args)
+   (mapcar #'(lambda (def)
+               `(progn
+                  (apply #'face-spec-set (append (backquote ,def) '(face-defface-spec)))
+                  (put ',(car def) 'face-modified t)))
+           args)
    (use-package-process-keywords name rest state)))
 
 ;;;; :init
@@ -1887,7 +1891,7 @@ Usage:
 :custom          Call `Custom-set' or `set-default' with each variable
                  definition without modifying the Emacs `custom-file'.
                  (compare with `custom-set-variables').
-:custom-face     Call `custom-set-faces' with each face definition.
+:custom-face     Call `face-spec-set' with each face definition.
 :ensure          Loads the package using package.el if necessary.
 :pin             Pin the package to an archive.
 :vc              Install the package directly from a version control system
