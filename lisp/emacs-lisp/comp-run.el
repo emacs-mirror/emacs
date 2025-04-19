@@ -282,6 +282,7 @@ display a message."
                                    (mapcar #'prin1-to-string expr)))
                    (_ (progn
                         (with-temp-file temp-file
+                          (insert ";;; -*- lexical-binding: t -*-\n")
                           (mapc #'insert expr-strings))
                         (comp-log "\n")
                         (mapc #'comp-log expr-strings)))
