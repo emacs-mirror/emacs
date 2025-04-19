@@ -42,7 +42,7 @@
 (defgroup heex-ts nil
   "Major mode for editing HEEx code."
   :prefix "heex-ts-"
-  :group 'langauges)
+  :group 'languages)
 
 (defcustom heex-ts-indent-offset 2
   "Indentation of HEEx statements."
