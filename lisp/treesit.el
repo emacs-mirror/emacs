@@ -5276,25 +5276,32 @@ If anything goes wrong, this function signals an `treesit-error'."
       (dolist (file (directory-files query-dir t "\\.scm\\'" t))
         (copy-file file (expand-file-name (file-name-nondirectory file) dest-dir) t)))))
 
-(defcustom treesit-auto-install 'ask
-  "Automatic installation of a language grammar.
-If `ask', prompt for a confirmation before installing the required
-language grammar.  If `always', silently install the grammar.
-If nil or `never' or anything else, don't install the grammar
-even while visiting a file in the mode that requires such grammar."
-  :type '(choice (const :tag "Never try to install grammar" never)
-                 (const :tag "Always install grammar automatically" always)
-                 (const :tag "Ask whether to install grammar" ask))
+(defcustom treesit-auto-install-grammar 'ask
+  "Whether to install trere-sitter language grammar libraries when needed.
+This controls whether Emacs will install missing grammar libraries
+when they are needed by some tree-sitter based mode.
+If `ask', ask for confirmation before installing the required grammar library.
+If `always', install the grammar library without asking.
+If nil or `never' or anything else, don't install the grammar library
+even while visiting a file in the mode that requires such grammar; this
+might dispolay a warning and/or fail to turn on the mode."
+  :type '(choice (const :tag "Never install grammar libraries" never)
+                 (const :tag "Always automatically install grammar libraries"
+                        always)
+                 (const :tag "Ask whether to install missing grammar libraries"
+                        ask))
   :version "31.1")
 
 (defun treesit-ensure-installed (lang)
-  "Ensure that the grammar for the language LANG is installed.
-The option `treesit-auto-install' defines whether to install it
-automatically, or ask for a confirmation."
+  "Ensure that the grammar library for the language LANG is installed.
+The option `treesit-auto-install-grammar' defines whether to install
+the grammar library if it's unavailable."
   (or (treesit-ready-p lang t)
-      (when (or (eq treesit-auto-install 'always)
-                (and (eq treesit-auto-install 'ask)
-                     (y-or-n-p (format "Install grammar for `%s'?" lang))))
+      (when (or (eq treesit-auto-install-grammar 'always)
+                (and (eq treesit-auto-install-grammar 'ask)
+                     (y-or-n-p (format "\
+Tree-sitter grammar for `%s' is missing; install it?"
+                                       lang))))
         (treesit-install-language-grammar lang)
         ;; Check that the grammar was installed successfully
         (treesit-ready-p lang))))
