@@ -5277,14 +5277,14 @@ If anything goes wrong, this function signals an `treesit-error'."
         (copy-file file (expand-file-name (file-name-nondirectory file) dest-dir) t)))))
 
 (defcustom treesit-auto-install-grammar 'ask
-  "Whether to install trere-sitter language grammar libraries when needed.
+  "Whether to install tree-sitter language grammar libraries when needed.
 This controls whether Emacs will install missing grammar libraries
 when they are needed by some tree-sitter based mode.
 If `ask', ask for confirmation before installing the required grammar library.
 If `always', install the grammar library without asking.
 If nil or `never' or anything else, don't install the grammar library
 even while visiting a file in the mode that requires such grammar; this
-might dispolay a warning and/or fail to turn on the mode."
+might display a warning and/or fail to turn on the mode."
   :type '(choice (const :tag "Never install grammar libraries" never)
                  (const :tag "Always automatically install grammar libraries"
                         always)
