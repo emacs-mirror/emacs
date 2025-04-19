@@ -1934,6 +1934,21 @@ it is bound by to mouse clicks on fringe and margin indicators,
 operating on the diagnostics of the corresponding line.  The user may
 bind it in other situations such as the diagnostic overlay map.
 
+*** More powerful 'flymake-make-diagnostic' API.
+Flymake backends can now specify origin and code attributes, allowing
+Flymake and other extensions to segregate diagnostics based on this
+extended information.
+
+*** New user option 'flymake-diagnostic-format-alist'.
+This provides fine-grained control over diagnostic formatting across
+different contexts, allowing you to specify which components (origin,
+code, message or one-liner message) appear in each output destination.
+
+*** Dynamic column sizing in diagnostic listings.
+The tabulated listings produced by 'flymake-show-buffer-diagnostics' and
+'flymake-show-project-diagnostics' now automatically their column widths
+based on content, optimizing display space and readability.
+
 ** SQLite
 
 +++
