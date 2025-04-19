@@ -826,7 +826,7 @@ distclean: bootstrap-clean
 maintainer-clean: distclean
 	rm -f TAGS
 
-ETAGS = ../lib-src/etags${EXEEXT}
+ETAGS = $(libsrc)/etags${EXEEXT}
 
 ${ETAGS}: FORCE
 	$(MAKE) -C $(dir $@) $(notdir $@)
