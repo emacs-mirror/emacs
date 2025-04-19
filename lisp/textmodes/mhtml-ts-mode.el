@@ -65,21 +65,24 @@
 ;; In a multi-language major mode can be useful to have an "installer" to
 ;; simplify the installation of the grammars supported by the major-mode.
 (defvar mhtml-ts-mode--language-source-alist
-  '((html . ("https://github.com/tree-sitter/tree-sitter-html"  "v0.23.2"))
-    (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.1"))
-    (jsdoc . ("https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.23.2"))
-    (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.23.1")))
+  '((html "https://github.com/tree-sitter/tree-sitter-html" "v0.23.2")
+    (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.1")
+    (jsdoc "https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.23.2")
+    (css "https://github.com/tree-sitter/tree-sitter-css" "v0.23.1"))
   "Treesitter language parsers required by `mhtml-ts-mode'.
-You can customize this variable if you want to stick to a specific
-commit and/or use different parsers.")
+You can customize `treesit-language-source-alist' if you want
+to stick to a specific commit and/or use different parsers.")
+
+(setq treesit-language-source-alist
+      (append treesit-language-source-alist
+              mhtml-ts-mode--language-source-alist))
 
 (defun mhtml-ts-mode-install-parsers ()
   "Install all the required treesitter parsers.
 `mhtml-ts-mode--language-source-alist' defines which parsers to install."
   (interactive)
-  (let ((treesit-language-source-alist mhtml-ts-mode--language-source-alist))
-    (dolist (item mhtml-ts-mode--language-source-alist)
-      (treesit-install-language-grammar (car item)))))
+  (dolist (item mhtml-ts-mode--language-source-alist)
+    (treesit-install-language-grammar (car item))))
 
 ;;; Custom variables
 
@@ -210,21 +213,6 @@ Optional ARGUMENTS to to be passed to it."
 (easy-menu-define mhtml-ts-mode-menu mhtml-ts-mode-map
   "Menu bar for `mhtml-ts-mode'."
   css-mode--menu)
-
-;; To enable some basic treesiter functionality, you should define
-;; a function that recognizes which grammar is used at-point.
-;; This function should be assigned to `treesit-language-at-point-function'
-(defun mhtml-ts-mode--language-at-point (point)
-  "Return the language at POINT assuming the point is within a HTML buffer."
-  (let* ((node (treesit-node-at point 'html))
-         (parent (treesit-node-parent node))
-         (node-query (format "(%s (%s))"
-                             (treesit-node-type parent)
-                             (treesit-node-type node))))
-    (cond
-     ((equal "(script_element (raw_text))" node-query) (js--treesit-language-at-point point))
-     ((equal "(style_element (raw_text))" node-query) 'css)
-     (t 'html))))
 
 ;; Custom font-lock function that's used to apply color to css color
 ;; The signature of the function should be conforming to signature
@@ -440,16 +428,16 @@ Calls REPORT-FN directly.  Requires tidy."
 
 ;;;###autoload
 (define-derived-mode mhtml-ts-mode html-ts-mode
-  '("HTML+" (:eval (let ((lang (mhtml-ts-mode--language-at-point (point))))
+  '("HTML+" (:eval (let ((lang (treesit-language-at (point))))
                      (cond ((eq lang 'html) "")
                            ((eq lang 'javascript) "JS")
                            ((eq lang 'css) "CSS")))))
   "Major mode for editing HTML with embedded JavaScript and CSS.
 Powered by tree-sitter."
   (if (not (and
-            (treesit-ready-p 'html t)
-            (treesit-ready-p 'javascript t)
-            (treesit-ready-p 'css t)))
+            (treesit-ensure-installed 'html)
+            (treesit-ensure-installed 'javascript)
+            (treesit-ensure-installed 'css)))
       (error "Tree-sitter parsers for HTML isn't available.  You can
     install the parsers with M-x `mhtml-ts-mode-install-parsers'")
 
@@ -502,7 +490,7 @@ Powered by tree-sitter."
 
     ;; jsdoc is not mandatory for js-ts-mode, so we respect this by
     ;; adding jsdoc range rules only when jsdoc is available.
-    (when (treesit-ready-p 'jsdoc t)
+    (when (treesit-ensure-installed 'jsdoc)
       (setq-local treesit-range-settings
                   (append treesit-range-settings
                           (treesit-range-rules
@@ -514,10 +502,6 @@ Powered by tree-sitter."
       (setq-local c-ts-common--comment-regexp
                   js--treesit-jsdoc-comment-regexp))
 
-
-    ;; Many treesit functions need to know the language at-point.
-    ;; So you should define such a function.
-    (setq-local treesit-language-at-point-function #'mhtml-ts-mode--language-at-point)
     (setq-local prettify-symbols-alist mhtml-ts-mode--prettify-symbols-alist)
 
     ;; Indent.

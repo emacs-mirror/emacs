@@ -89,8 +89,7 @@ Use `semantic-analyze-current-tag' to debug this fcn."
 
       (setq allhits (semantic--analyze-refs-full-lookup tag scope t))
 
-      (semantic-analyze-references (semantic-tag-name tag)
-				    :tag tag
+      (semantic-analyze-references  :tag tag
 				    :tagdb db
 				    :scope scope
 				    :rawsearchdata allhits)

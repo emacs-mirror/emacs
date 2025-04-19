@@ -2816,10 +2816,10 @@ The format of the data is (title url buffer), for use in of
 \\{eww-buffers-mode-map}"
   :interactive nil
   (buffer-disable-undo)
-  (setq truncate-lines t
-        ;; This is set so that pressing "g" with point just below the
-        ;; table will still update the listing.
-        revert-buffer-function #'eww--list-buffers-display-table))
+  (setq truncate-lines t)
+  ;; This is set so that pressing "g" with point just below the table
+  ;; will still update the listing.
+  (setq-local revert-buffer-function #'eww--list-buffers-display-table))
 
 ;;; Desktop support
 

@@ -37,15 +37,50 @@
  <url type="contribute">https://www.gnu.org/software/emacs/manual/html_node/emacs/Contributing.html</url>
  <launchable type="desktop-id">emacs.desktop</launchable>
  <launchable type="service">emacs.service</launchable>
+ <recommends>
+   <control>keyboard</control>
+
+   <!-- 80×24 at 6×13 per character -->
+   <display_length side="longest">480</display_length>
+   <display_length side="shortest">312</display_length>
+ </recommends>
+ <supports>
+   <control>console</control>
+   <control>pointing</control>
+   <control>touch</control>
+   <internet/>
+ </supports>
  <project_group>GNU</project_group>
  <project_license>GPL-3.0+ and GFDL-1.3+</project_license>
  <developer_name>Free Software Foundation</developer_name>
  <screenshots>
   <screenshot type="default">
-    <image type="source" width="632" height="354">https://www.gnu.org/software/emacs/images/appdata-26.png</image>
-    <caption>Editing a Lisp program whilst viewing the Emacs manual.</caption>
+    <image type="source" width="1024" height="576">https://www.gnu.org/software/emacs/images/appdata-26.png</image>
+    <caption>Editing a Lisp program, whilst viewing the manual</caption>
   </screenshot>
  </screenshots>
+
+ <!-- https://hughsie.github.io/oars/generate.html -->
+ <content_rating type="oars-1.1">
+   <!-- M-x doctor -->
+   <content_attribute id="violence-fantasy">moderate</content_attribute>
+   <content_attribute id="violence-sexual">intense</content_attribute>
+   <content_attribute id="drugs-alcohol">mild</content_attribute>
+   <content_attribute id="drugs-narcotics">mild</content_attribute>
+   <content_attribute id="sex-themes">moderate</content_attribute>
+   <content_attribute id="language-profanity">intense</content_attribute>
+
+   <!-- etc/JOKES -->
+   <content_attribute id="language-humor">mild</content_attribute>
+   <content_attribute id="sex-nudity">mild</content_attribute>
+
+   <!-- Gnus, rirc, etc. -->
+   <content_attribute id="social-chat">intense</content_attribute>
+
+   <!-- M-x report-emacs-bug -->
+   <content_attribute id="social-info">intense</content_attribute>
+ </content_rating>
+
  <update_contact>emacs-devel_AT_gnu.org</update_contact>
  <branding>
     <color type="primary" scheme_preference="light">#7f5ab6</color>

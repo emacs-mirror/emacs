@@ -110,8 +110,24 @@ non-whitespace characters of the current line."
 
 (defvar c-ts-common--comment-regexp
   ;; These covers C/C++, Java, JavaScript, TypeScript, Rust, C#.
-  (rx (or "comment" "line_comment" "block_comment"))
+  (rx (or "comment" "line_comment" "block_comment" "//" "/*"))
   "Regexp pattern that matches a comment in C-like languages.")
+
+(defun c-ts-common--line-comment-p (node)
+  "Return non-nil if NODE is a comment node."
+  (or (save-excursion
+        (goto-char (treesit-node-start node))
+        (looking-at "//"))
+      ;; In rust, NODE will be the body of a comment, and the
+      ;; parent will be the whole comment.
+      (let* ((parent (treesit-node-parent node))
+             (parent-start (treesit-node-start parent)))
+        (when (and (treesit-node-match-p
+                    parent c-ts-common--comment-regexp)
+                   parent parent-start)
+          (save-excursion
+            (goto-char parent-start)
+            (looking-at "//"))))))
 
 (defun c-ts-common--fill-paragraph (&optional arg)
   "Filling function for `c-ts-common'.
@@ -122,16 +138,7 @@ ARG is passed to `fill-paragraph'."
     (let ((node (treesit-node-at (point))))
       (when (string-match-p c-ts-common--comment-regexp
                             (treesit-node-type node))
-        (if (or (save-excursion
-                  (goto-char (treesit-node-start node))
-                  (looking-at "//"))
-                ;; In rust, NODE will be the body of a comment, and the
-                ;; parent will be the whole comment.
-                (if-let* ((start (treesit-node-start
-                                  (treesit-node-parent node))))
-                    (save-excursion
-                      (goto-char start)
-                      (looking-at "//"))))
+        (if (c-ts-common--line-comment-p node)
             (fill-comment-paragraph arg)
           (c-ts-common--fill-block-comment arg)))
       ;; Return t so `fill-paragraph' doesn't attempt to fill by
@@ -275,6 +282,8 @@ Set up:
  - `comment-end'
  - `comment-start-skip'
  - `comment-end-skip'
+ - `block-comment-start'
+ - `block-comment-end'
  - `adaptive-fill-mode'
  - `adaptive-fill-first-line-regexp'
  - `paragraph-start'
@@ -291,6 +300,8 @@ Set up:
               (rx (* (syntax whitespace))
                   (group (or (syntax comment-end)
                              (seq (+ "*") "/")))))
+  (setq-local block-comment-start "/*")
+  (setq-local block-comment-end "*/")
   (setq-local adaptive-fill-mode t)
   (setq-local adaptive-fill-function #'c-ts-common--adaptive-fill-prefix)
   ;; Always accept * or | as prefix, even if there's only one line in

@@ -1814,12 +1814,12 @@ ranges for each parser are correct before using parsers in a buffer, and
 call @code{treesit-language-at} to figure out the language responsible
 for the text at some position.  These two functions don't work by
 themselves; they need major modes to set @code{treesit-range-settings}
-and @code{treesit-language-at-point-function}, which do the actual work.
+and optionally @code{treesit-language-at-point-function}, which do the actual work.
 These functions and variables are explained in more detail towards the
 end of the section.
 
 In short, multi-language major modes should set
-@code{treesit-primary-parser}, @code{treesit-range-settings}, and
+@code{treesit-primary-parser}, @code{treesit-range-settings}, and optionally
 @code{treesit-language-at-point-function} before calling
 @code{treesit-major-mode-setup}.
 
@@ -1921,9 +1921,9 @@ This function returns the language of the text at buffer position
 @var{pos}.  Under the hood it calls
 @code{treesit-language-at-point-function} and returns its return
 value.  If @code{treesit-language-at-point-function} is @code{nil},
-this function returns the language of the first parser in the returned
-value of @code{treesit-parser-list}.  If there is no parser in the
-buffer, it returns @code{nil}.
+this function returns the language of the deepest parser by embed level
+among parsers returned by @code{treesit-parsers-at}.  If there is no
+parser at that buffer position, it returns @code{nil}.
 @end defun
 
 @heading Supporting multiple languages in major modes
@@ -2011,7 +2011,7 @@ directly translate into operations shown above.
 @end group
 
 @group
-;; Major modes with multiple languages should always set
+;; Major modes with multiple languages can optionally set
 ;; `treesit-language-at-point-function' (which see).
 (setq treesit-language-at-point-function
       (lambda (pos)
@@ -2094,17 +2094,45 @@ language of the buffer text at @var{pos}.  This variable is used by
 @code{treesit-language-at}.
 @end defvar
 
-@defun treesit-local-parsers-at &optional pos language
+@defun treesit-parsers-at &optional pos language with-host only
+This function returns all parsers at @var{pos} in the current buffer.
+@var{pos} defaults to point.  The returned parsers are sorted by the
+decreasing embed level.
+
+If @var{language} is non-@code{nil}, return parsers only for that
+language.
+
+If @var{with-host} is non-@code{nil}, return a list of
+@w{@code{(@var{parser} . @var{host-parser})}} where @var{host-parser}
+is the host parser which created the @var{parser}.
+
+If @var{only} is non-@code{nil}, return all parsers including the
+primary parser.
+
+The argument @var{only} can be a list of symbols that specify what
+parsers to include in the return value.
+
+If @var{only} contains the symbol @code{local}, include local parsers.
+Local parsers are those which only parse a limited region marked by an
+overlay with a non-@code{nil} @code{treesit-parser-local-p} property.
+
+If @var{only} contains the symbol @code{global}, include non-local parsers
+excluding the primary parser.
+
+If @var{only} contains the symbol `primary', include the primary parser.
+@end defun
+
+@defun treesit-local-parsers-at &optional pos language with-host
 This function returns all the local parsers at @var{pos} in the
 current buffer.  @var{pos} defaults to point.
 
 Local parsers are those which only parse a limited region marked by an
-overlay with a non-@code{nil} @code{treesit-parser} property.  If
-@var{language} is non-@code{nil}, only return parsers for that
+overlay with a non-@code{nil} @code{treesit-parser-local-p} property.
+If @var{language} is non-@code{nil}, only return parsers for that
 language.
 @end defun
 
-@defun treesit-local-parsers-on &optional beg end language
+@defun treesit-local-parsers-on &optional beg end language with-host
 This function is the same as @code{treesit-local-parsers-at}, but it
 returns the local parsers in the range between @var{beg} and @var{end}
 instead of at point.

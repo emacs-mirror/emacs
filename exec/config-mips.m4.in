@@ -18,6 +18,7 @@ dnl  You should have received a copy of the GNU General Public License
 dnl  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 define(`SYSCALL_open', `ifelse(`@MIPS_N32@',`yes',`6002',`4005')')
+dnl define(`SYSCALL_openat', `ifelse(`@MIPS_N32@',`yes',`6251',`4288')')
 define(`SYSCALL_close', `ifelse(`@MIPS_N32@',`yes',`6003',`4006')')
 define(`SYSCALL_mmap', `ifelse(`@MIPS_N32@',`yes',`6009',`4090')')
 define(`SYSCALL_nanosleep', `ifelse(`@MIPS_N32@',`yes',`6034',`4166')')
@@ -34,9 +35,14 @@ define(`SYSCALL', `ifelse(`@MIPS_N32@',`yes',`	move	$a4, $1
 	sw	$4, 28($sp)')')
 
 define(`RESTORE', `ifelse(`@MIPS_N32@',`yes',`	nop',`	addi	$sp, 32')')
+define(`FP', `ifelse(`@MIPS_N32@',`yes',`$s8',`$fp')')
 
 dnl For mips64.  Some assemblers don't want to assemble `daddi'.
-define(`DADDI2', `ifelse(`@DADDI_BROKEN@',`yes',`	li	$at, $2
-dadd		 $1, $1, $at',`	daddi	$1, $2')')
-define(`DADDI3', `ifelse(`@DADDI_BROKEN@',`yes',`	li	$at, $3
-dadd		 $1, $2, $at',`	daddi	$1, $2, $3')')
+define(`DADDI2', `ifelse(`@DADDI_BROKEN@',`yes',`.set noat
+li	$at, $2
+dadd	$1, $1, $at
+.set at',`	daddi	$1, $2')')
+define(`DADDI3', `ifelse(`@DADDI_BROKEN@',`yes',`.set noat
+li	$at, $3
+dadd	$1, $2, $at
+.set at',`	daddi	$1, $2, $3')')

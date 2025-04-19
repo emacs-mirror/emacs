@@ -1980,7 +1980,11 @@ With a prefix argument, show headings up to that LEVEL."
          (outline--insert-button (if close-p 'close 'open))))
      (or from (point-min)) (or to (point-max)))))
 
-(defun outline--fix-buttons-after-change (beg end _len)
+(defvar outline-after-change-functions nil
+  "List of functions to call after each text change in outline-mode.")
+
+(defun outline--fix-buttons-after-change (beg end len)
+  (run-hook-with-args 'outline-after-change-functions beg end len)
   ;; Handle whole lines
   (save-excursion (goto-char beg) (setq beg (pos-bol)))
   (save-excursion (goto-char end) (setq end (pos-eol)))

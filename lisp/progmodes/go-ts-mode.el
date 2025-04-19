@@ -46,6 +46,19 @@
 (eval-when-compile (require 'rx))
 (treesit-declare-unavailable-functions)
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(go "https://github.com/tree-sitter/tree-sitter-go" "v0.23.4")
+ t)
+(add-to-list
+ 'treesit-language-source-alist
+ '(gomod "https://github.com/camdencheek/tree-sitter-go-mod" "v1.1.0")
+ t)
+(add-to-list
+ 'treesit-language-source-alist
+ '(gowork "https://github.com/omertuc/tree-sitter-go-work")
+ t)
+
 (defcustom go-ts-mode-indent-offset 8
   "Number of spaces for each indentation step in `go-ts-mode'."
   :version "29.1"
@@ -277,7 +290,7 @@
   :group 'go
   :syntax-table go-ts-mode--syntax-table
 
-  (when (treesit-ready-p 'go)
+  (when (treesit-ensure-installed 'go)
     (setq treesit-primary-parser (treesit-parser-create 'go))
 
     ;; Comments.
@@ -306,6 +319,11 @@
                                  "argument_list"
                                  "literal_value")
                          eos))
+                   (sexp-default
+                    ;; For `C-M-f' in "switch a |{ }"
+                    (lambda (node)
+                      (equal (treesit-node-type (treesit-node-parent node))
+                             "expression_switch_statement")))
                    (sentence
                     (or "declaration" "statement")))))
 
@@ -579,7 +597,7 @@ what the parent of the node would be if it were a node."
   :group 'go
   :syntax-table go-mod-ts-mode--syntax-table
 
-  (when (treesit-ready-p 'gomod)
+  (when (treesit-ensure-installed 'gomod)
     (setq treesit-primary-parser (treesit-parser-create 'gomod))
 
     ;; Comments.
@@ -667,13 +685,15 @@ what the parent of the node would be if it were a node."
   "Major mode for editing go.work files, powered by tree-sitter."
   :group 'go
 
-  (when (treesit-ready-p 'gowork)
+  (when (treesit-ensure-installed 'gowork)
     (setq treesit-primary-parser (treesit-parser-create 'gowork))
 
     ;; Comments.
     (setq-local comment-start "// ")
     (setq-local comment-end "")
     (setq-local comment-start-skip (rx "//" (* (syntax whitespace))))
+    (setq-local block-comment-start "/*")
+    (setq-local block-comment-end "*/")
 
     ;; Indent.
     (setq-local indent-tabs-mode t

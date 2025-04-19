@@ -3564,11 +3564,13 @@ eventually provide a shell."
 (defconst python-shell-setup-code
   "\
 try:
-    import tty
+    import termios
 except ImportError:
     pass
 else:
-    tty.setraw(0)"
+    attr = termios.tcgetattr(0)
+    attr[3] &= ~termios.ECHO
+    termios.tcsetattr(0, termios.TCSADRAIN, attr)"
   "Code used to setup the inferior Python processes.")
 
 (defconst python-shell-eval-setup-code

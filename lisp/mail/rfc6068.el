@@ -39,7 +39,8 @@ string instead of decoding as utf-8."
            (buffer-string))))
     (if inhibit-decode
         string
-      (decode-coding-string string 'utf-8))))
+      (let (inhibit-eol-conversion)
+        (decode-coding-string string 'utf-8-dos)))))
 
 (defun rfc6068-parse-mailto-url (mailto-url)
   "Parse MAILTO-URL, and return an alist of header-name, header-value pairs.

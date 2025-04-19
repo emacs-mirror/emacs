@@ -791,10 +791,8 @@ Set file properties accordingly.  If FILENAME is non-nil, return its status."
   ;; Arbitrarily assume 10 commits per day.
   (/ (string-to-number rev) 10.0))
 
-(defvar vc-annotate-parent-rev)
-
 (defun vc-svn-annotate-current-time ()
-  (vc-svn-annotate-time-of-rev vc-annotate-parent-rev))
+  (vc-svn-annotate-time-of-rev vc-buffer-revision))
 
 (defconst vc-svn-annotate-re "[ \t]*\\([0-9]+\\)[ \t]+[^\t ]+ ")
 

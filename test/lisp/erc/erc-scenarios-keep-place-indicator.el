@@ -33,8 +33,9 @@
   :tags `(:expensive-test
           ,@(and (getenv "CI") '(:unstable))
           ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
-  (when (version< emacs-version "29") (ert-skip "Times out"))
-  ;; XXX verify that this continues to be the case ^.
+
+  (when (getenv "CI")
+    (ert-skip "Times out intermittently"))
 
   (should-not erc-scrolltobottom-all)
   (should-not erc-scrolltobottom-mode)

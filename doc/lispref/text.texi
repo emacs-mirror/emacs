@@ -1932,7 +1932,7 @@ they default to the whole buffer.
 This function adjusts the indentation at the beginning of the current
 line to the value specified by the variable @code{left-margin}.  (That
 may involve either inserting or deleting whitespace.)  This function
-is value of @code{indent-line-function} in Paragraph-Indent Text mode.
+is the value of @code{indent-line-function} in Paragraph-Indent Text mode.
 @end defun
 
 @defopt left-margin
@@ -5366,11 +5366,17 @@ available in this Emacs session.
 When SQLite support is available, the following functions can be used.
 
 @cindex database object
-@defun sqlite-open &optional file
+@defun sqlite-open &optional file readonly disable-uri
 This function opens @var{file} as an SQLite database file.  If
 @var{file} doesn't exist, a new database will be created and stored in
 that file.  If @var{file} is omitted or @code{nil}, a new in-memory
-database is created instead.
+database is created instead.  Second optional argument @var{readonly},
+if non-@code{nil}, means open the database only for reading; the
+database must already exist in that case.  By default, @var{file} can be
+a @file{file://} URI as well as a file name; in the unusual case that
+you have a local file whose name begins with @file{file:}, specify a
+non-@code{nil} value for the third optional argument @var{disable-uri}
+to disable the automatic recognition and processing of URIs.
 
 The return value is a @dfn{database object} that can be used as the
 argument to most of the subsequent functions described below.

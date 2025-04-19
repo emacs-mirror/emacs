@@ -1341,6 +1341,11 @@ for determining whether point is within a selector."
 
 ;;; Tree-sitter
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(css "https://github.com/tree-sitter/tree-sitter-css" "v0.23.1")
+ t)
+
 (defvar css-ts-mode-map (copy-keymap css-mode-map)
   "Keymap used in `css-ts-mode'.")
 
@@ -1781,7 +1786,13 @@ rgb()/rgba()."
            res)))))))
 
 (defvar css--treesit-thing-settings
-  `((css (list
+  `((css (sexp
+          (not (or (and named
+                        ,(rx bos (or "stylesheet" "comment") eos))
+                   (and anonymous
+                        ,(rx (or "{" "}" "[" "]"
+                                 "(" ")" ","))))))
+         (list
           ,(rx bos (or "keyframe_block_list"
                        "block"
                        "pseudo_class_arguments"
@@ -1804,7 +1815,7 @@ rgb()/rgba()."
                        "declaration")
                eos))
          (text
-          ,(rx bos "comment" eos))))
+          ,(rx bos (or "comment" "string_value") eos))))
   "Settings for `treesit-thing-settings'.")
 
 (defvar css--treesit-font-lock-feature-list
@@ -1847,6 +1858,8 @@ implementations: `css-mode' and `css-ts-mode'."
   (setq-local comment-start-skip "/\\*+[ \t]*")
   (setq-local comment-end "*/")
   (setq-local comment-end-skip "[ \t]*\\*+/")
+  (setq-local block-comment-start "/*")
+  (setq-local block-comment-end "*/")
   (setq-local electric-indent-chars
               (append css-electric-keys electric-indent-chars))
   ;; The default "." creates ambiguity with class selectors.
@@ -1876,7 +1889,7 @@ can also be used to fill comments.
 
 \\{css-mode-map}"
   :syntax-table css-mode-syntax-table
-  (when (treesit-ready-p 'css)
+  (when (treesit-ensure-installed 'css)
     ;; Borrowed from `css-mode'.
     (setq-local syntax-propertize-function
                 css-syntax-propertize-function)
@@ -2070,6 +2083,8 @@ be used to fill comments.
   "Major mode to edit \"Sassy CSS\" files."
   (setq-local comment-start "// ")
   (setq-local comment-end "")
+  (setq-local block-comment-start "/*")
+  (setq-local block-comment-end "*/")
   (setq-local comment-continue " *")
   (setq-local comment-start-skip "/[*/]+[ \t]*")
   (setq-local comment-end-skip "[ \t]*\\(?:\n\\|\\*+/\\)")

@@ -36,6 +36,11 @@
 (declare-function treesit-node-child "treesit.c")
 (declare-function treesit-node-child-by-field-name "treesit.c")
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(toml "https://github.com/tree-sitter-grammars/tree-sitter-toml" "v0.7.0")
+ t)
+
 (defcustom toml-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `toml-ts-mode'."
   :version "29.1"
@@ -123,7 +128,7 @@ Return nil if there is no name or if NODE is not a defun node."
   :group 'toml-mode
   :syntax-table toml-ts-mode--syntax-table
 
-  (when (treesit-ready-p 'toml)
+  (when (treesit-ensure-installed 'toml)
     (setq treesit-primary-parser (treesit-parser-create 'toml))
 
     ;; Comments

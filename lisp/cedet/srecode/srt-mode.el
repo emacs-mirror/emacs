@@ -276,7 +276,7 @@ we can tell font lock about them.")
 		  (prin1 (format "%c" key))
 		  )))
 	    (terpri)
-	    (princ (documentation-property C 'variable-documentation))
+	    (princ (cl--class-docstring (cl--find-class C)))
 	    (terpri)
 	    (when showexample
 	      (princ "Example:")
@@ -503,7 +503,7 @@ section or ? for an ask variable."
 	    (when inserter
 	      (let ((base
 		     (cons (oref inserter object-name)
-			   (if (and (slot-boundp inserter :secondname)
+			   (if (and (slot-boundp inserter 'secondname)
 				    (oref inserter secondname))
 			       (split-string (oref inserter secondname)
 					     ":")

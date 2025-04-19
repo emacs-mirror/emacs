@@ -3408,6 +3408,15 @@ This function is intended for use in `after-change-functions'."
 
 ;;; Tree sitter integration
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(javascript "https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.1")
+ t)
+(add-to-list
+ 'treesit-language-source-alist
+ '(jsdoc "https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.23.2")
+ t)
+
 (defun js--treesit-font-lock-compatibility-definition-feature ()
   "Font lock helper, to handle different releases of tree-sitter-javascript.
 Check if a node type is available, then return the right font lock rules
@@ -3730,22 +3739,6 @@ Return nil if there is no name or if NODE is not a defun node."
                     eos))))
     (_ t)))
 
-(defun js--treesit-language-at-point (point)
-  "Return the language at POINT."
-  (let* ((node (treesit-node-at point 'javascript))
-         (node-type (treesit-node-type node))
-         (node-start (treesit-node-start node))
-         (node-end (treesit-node-end node)))
-    (if (not (treesit-ready-p 'jsdoc t))
-        'javascript
-      (if (equal node-type "comment")
-          (save-excursion
-            (goto-char node-start)
-            (if (search-forward "/**" node-end t)
-                'jsdoc
-              'javascript))
-        'javascript))))
-
 ;;; Main Function
 
 ;;;###autoload
@@ -3788,6 +3781,8 @@ Currently there are `js-mode' and `js-ts-mode'."
   (setq-local comment-start "// ")
   (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end "")
+  (setq-local block-comment-start "/*")
+  (setq-local block-comment-end "*/")
   (setq-local fill-paragraph-function #'js-fill-paragraph)
   (setq-local normal-auto-fill-function #'js-do-auto-fill)
 
@@ -3987,7 +3982,7 @@ See `treesit-thing-settings' for more information.")
 \\<js-ts-mode-map>"
   :group 'js
   :syntax-table js-mode-syntax-table
-  (when (treesit-ready-p 'javascript)
+  (when (treesit-ensure-installed 'javascript)
     ;; Borrowed from `js-mode'.
     (setq-local prettify-symbols-alist js--prettify-symbols-alist)
     (setq-local parse-sexp-ignore-comments t)
@@ -4006,7 +4001,6 @@ See `treesit-thing-settings' for more information.")
 
     ;; Tree-sitter setup.
     (setq-local treesit-primary-parser (treesit-parser-create 'javascript))
-    (setq-local treesit-language-at-point-function #'js--treesit-language-at-point)
 
     ;; Indent.
     (setq-local treesit-simple-indent-rules js--treesit-indent-rules)
@@ -4019,7 +4013,7 @@ See `treesit-thing-settings' for more information.")
     (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
     (setq-local treesit-font-lock-feature-list js--treesit-font-lock-feature-list)
 
-    (when (treesit-ready-p 'jsdoc t)
+    (when (treesit-ensure-installed 'jsdoc)
       (setq-local treesit-range-settings
                   (treesit-range-rules
                    :embed 'jsdoc

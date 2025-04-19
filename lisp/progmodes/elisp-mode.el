@@ -1845,6 +1845,12 @@ Intended for `eldoc-documentation-functions' (which see)."
                          'font-lock-function-name-face
                        'font-lock-keyword-face)))))
 
+(defcustom elisp-eldoc-docstring-length-limit 1000
+  "Maximum length of doc strings displayed by elisp ElDoc functions."
+  :type 'natnum
+  :group 'elisp
+  :version "31.1")
+
 (defcustom elisp-eldoc-funcall-with-docstring-length 'short
   "Control length of doc string shown by `elisp-eldoc-funcall-with-docstring'.
 If set to `short', only show the first sentence of the doc string.
@@ -1861,21 +1867,26 @@ Intended for `eldoc-documentation-functions' (which see).
 Compared to `elisp-eldoc-funcall', this also includes the
 current function doc string, doc string length depends on
 `elisp-eldoc-funcall-with-docstring-length'."
-  (let* ((sym-info (elisp--fnsym-in-current-sexp))
-         (fn-sym (car sym-info))
-         (doc (when (fboundp fn-sym)
-                (propertize
-                 (cdr (help-split-fundoc
-                       (condition-case nil (documentation fn-sym t)
-                         (invalid-function nil))
-                       fn-sym))
-                 'face 'font-lock-doc-face))))
-    (when fn-sym
-      (funcall callback
+  (when-let* ((sym-info (elisp--fnsym-in-current-sexp))
+              (fn-sym (car sym-info))
+              ((fboundp fn-sym))
+              (fn-doc (or (cdr (help-split-fundoc
+                                (condition-case nil (documentation fn-sym t)
+                                  (invalid-function nil))
+                                fn-sym))
+                          "Undocumented."))
+              (more (- (length fn-doc) elisp-eldoc-docstring-length-limit))
+              (doc (concat
+                      (propertize
+                       (string-limit fn-doc elisp-eldoc-docstring-length-limit)
+                       'face 'font-lock-doc-face)
+                      (when (> more 0)
+                        (format "[%sc more]" more)))))
+    (funcall callback
                (concat (apply #'elisp-get-fnsym-args-string sym-info)
                        ;; Ensure not display the docstring in the
                        ;; mode-line.
-                       (when (and doc (not (minibufferp)))
+                       (when (not (minibufferp))
                          (concat
                           "\n"
                           (pcase elisp-eldoc-funcall-with-docstring-length
@@ -1887,7 +1898,7 @@ current function doc string, doc string length depends on
                :thing fn-sym
                :face (if (functionp fn-sym)
                          'font-lock-function-name-face
-                       'font-lock-keyword-face)))))
+                       'font-lock-keyword-face))))
 
 (defun elisp-eldoc-var-docstring (callback &rest _ignored)
   "Document variable at point by calling CALLBACK.
@@ -1915,12 +1926,12 @@ current variable value and a bigger chunk of the docstring."
 		       (symbol-value cs)
 		       (let* ((doc (documentation-property
                                     cs 'variable-documentation t))
-			      (more (- (length doc) 1000)))
+			      (more (- (length doc) elisp-eldoc-docstring-length-limit)))
 			 (concat (propertize
 				  (string-limit (if (string= doc "nil")
 						    "Undocumented."
 						  doc)
-					        1000)
+					        elisp-eldoc-docstring-length-limit)
 				  'face 'font-lock-doc-face)
 				 (when (> more 0)
 				   (format "[%sc more]" more)))))

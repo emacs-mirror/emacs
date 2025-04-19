@@ -727,12 +727,18 @@ emacs_offset (const void *emacs_ptr)
   return ptrdiff_t_to_dump_off (emacs_ptr_relative);
 }
 
-/* Return whether OBJECT is a symbol the storage of which is built
-   into Emacs (and so is invariant across ASLR).  */
+/* Return whether OBJECT is a symbol the storage of which is built into
+   Emacs (and hence is implicitly offset from an address in the Emacs
+   image).  */
+
 static bool
 dump_builtin_symbol_p (Lisp_Object object)
 {
-  return SYMBOLP (object) && c_symbol_p (XSYMBOL (object));
+  /* Symbols with position cannot be dumped, but not returning true for
+     them avoids producing references to unrelocated Lisp_Objects in
+     fixup processing or depending on the value of
+     symbols_with_pos_enabled.  */
+  return BARE_SYMBOL_P (object) && c_symbol_p (XSYMBOL (object));
 }
 
 /* Return whether OBJECT has the same bit pattern in all Emacs

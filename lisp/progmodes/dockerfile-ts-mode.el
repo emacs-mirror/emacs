@@ -40,6 +40,11 @@
 (eval-when-compile (require 'rx))
 (treesit-declare-unavailable-functions)
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile" "v0.2.0")
+ t)
+
 (defvar dockerfile-ts-mode--syntax-table
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?#  "<" table)
@@ -161,7 +166,7 @@ Return nil if there is no name or if NODE is not a stage node."
   :group 'dockerfile
   :syntax-table dockerfile-ts-mode--syntax-table
 
-  (when (treesit-ready-p 'dockerfile)
+  (when (treesit-ensure-installed 'dockerfile)
     (setq treesit-primary-parser (treesit-parser-create 'dockerfile))
 
     ;; Comments.

@@ -1824,6 +1824,22 @@ handle_one_android_event (struct android_display_info *dpyinfo,
       free (event->notification.action);
       goto OTHER;
 
+    case ANDROID_CONFIGURATION_CHANGED:
+      /* Update the display configuration from the event.  */
+      dpyinfo->resx = event->config.dpi_x;
+      dpyinfo->resy = event->config.dpi_y;
+      dpyinfo->font_resolution = event->config.dpi_scaled;
+#ifdef notdef
+      __android_log_print (ANDROID_LOG_VERBOSE, __func__,
+			   "New display configuration: "
+			   "resx = %.2f resy = %.2f font_resolution = %.2f",
+			   dpyinfo->resx, dpyinfo->resy, dpyinfo->font_resolution);
+#endif /* notdef */
+      inev.ie.kind = CONFIG_CHANGED_EVENT;
+      inev.ie.frame_or_window = XCAR (dpyinfo->name_list_element);
+      inev.ie.arg = Qfont_render;
+      goto OTHER;
+
     default:
       goto OTHER;
     }
@@ -7014,6 +7030,11 @@ for instance, `early-init.el', or they will be of no effect.  */);
   /* Key symbols.  */
   DEFSYM (Qselect, "select");
   DEFSYM (Qreturn, "return");
+
+  /* Display configuration updates.  */
+  DEFSYM (Qfont_render, "font-render");
+  DEFSYM (Qdynamic_setting, "dynamic-setting");
+  Fprovide (Qdynamic_setting, Qnil);
 }
 
 void

@@ -73,18 +73,13 @@ not meant to be used by other packages.
 Occasionally, for a command name intended for users to use, it is more
 convenient if some words come before the package's name prefix.  For
 example, it is our convention to have commands that list objects named
-as @samp{list-@var{something}}, e.g., a package called @samp{frob}
-could have a command @samp{list-frobs}, when its other global symbols
-begin with @samp{frob-}.  Also, constructs that define functions,
-variables, etc., work better if they start with @samp{define-}, so put
-the name prefix later on in the name.
-
-This recommendation applies even to names for traditional Lisp
-primitives that are not primitives in Emacs Lisp---such as
-@code{copy-list}.  Believe it or not, there is more than one plausible
-way to define @code{copy-list}.  Play it safe; append your name prefix
-to produce a name like @code{foo-copy-list} or @code{mylib-copy-list}
-instead.
+as @samp{list-@var{something}}, e.g., a package called @samp{frob} could
+have a command @samp{list-frobs}, when its other global symbols begin
+with @samp{frob-}.  Also, constructs that define functions, variables,
+etc., may work better if they start with @samp{define-}, so it's okay to
+put the name prefix later on in the name.  Outside of these
+well-established cases, however, err on the side of prepending your name
+prefix.
 
 If you write a function that you think ought to be added to Emacs under
 a certain name, such as @code{twiddle-files}, don't call it by that name

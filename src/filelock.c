@@ -605,7 +605,7 @@ lock_file (Lisp_Object fn)
       && NILP (Fverify_visited_file_modtime (subject_buf))
       && !NILP (Ffile_exists_p (fn))
       && !(!NILP (lfname) && current_lock_owner (NULL, lfname) == I_OWN_IT))
-    calln (intern ("userlock--ask-user-about-supersession-threat"), fn);
+    calln (Quserlock__ask_user_about_supersession_threat, fn);
 
   /* Don't do locking if the user has opted out.  */
   if (!NILP (lfname))
@@ -623,7 +623,7 @@ lock_file (Lisp_Object fn)
 	  memmove (dot + replacementlen, dot + 1, pidlen);
 	  strcpy (dot + replacementlen + pidlen, ")");
 	  memcpy (dot, replacement, replacementlen);
-	  attack = calln (intern ("ask-user-about-lock"), fn,
+	  attack = calln (Qask_user_about_lock, fn,
 			  build_string (lock_info.user));
 	  /* Take the lock if the user said so.  */
 	  if (!NILP (attack))
@@ -653,7 +653,7 @@ unlock_file (Lisp_Object fn)
 static Lisp_Object
 unlock_file_handle_error (Lisp_Object err)
 {
-  calln (intern ("userlock--handle-unlock-error"), err);
+  calln (Quserlock__handle_unlock_error, err);
   return Qnil;
 }
 
@@ -827,6 +827,10 @@ Info node `(emacs)Interlocking'.  */);
   DEFSYM (Qfile_locked_p, "file-locked-p");
   DEFSYM (Qmake_lock_file_name, "make-lock-file-name");
   DEFSYM (Qstring_replace, "string-replace");
+  DEFSYM (Qask_user_about_lock, "ask-user-about-lock");
+  DEFSYM (Quserlock__handle_unlock_error, "userlock--handle-unlock-error");
+  DEFSYM (Quserlock__ask_user_about_supersession_threat,
+	  "userlock--ask-user-about-supersession-threat");
 
   defsubr (&Slock_file);
   defsubr (&Sunlock_file);

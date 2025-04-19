@@ -42,6 +42,7 @@ variants of those files that can be used to sandbox Emacs before
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <asm/termbits.h>  /* mandatory accordingly to latest ioctl_tty(2) */
 #include <time.h>
 
 #include <asm/prctl.h>
@@ -62,6 +63,11 @@ variants of those files that can be used to sandbox Emacs before
 
 #ifndef ARCH_CET_STATUS
 #define ARCH_CET_STATUS 0x3001
+#endif
+
+/* https://github.com/torvalds/linux/commit/9651fcedf7b92d3f7f1ab179e8ab55b85ee10fc1 */
+#ifndef MAP_DROPPABLE
+#define MAP_DROPPABLE 0x08
 #endif
 
 static ATTRIBUTE_FORMAT_PRINTF (2, 3) _Noreturn void
@@ -187,7 +193,7 @@ main (int argc, char **argv)
            some versions of the dynamic loader still use it.  Also
            allow allocating thread stacks.  */
         SCMP_A3_32 (SCMP_CMP_MASKED_EQ,
-                    ~(MAP_SHARED | MAP_PRIVATE | MAP_FILE
+                    ~(MAP_SHARED | MAP_PRIVATE | MAP_FILE | MAP_DROPPABLE
                       | MAP_ANONYMOUS | MAP_FIXED | MAP_DENYWRITE
                       | MAP_STACK | MAP_NORESERVE),
                     0));
@@ -273,6 +279,11 @@ main (int argc, char **argv)
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (ioctl),
         SCMP_A0_32 (SCMP_CMP_EQ, STDIN_FILENO),
         SCMP_A1_32 (SCMP_CMP_EQ, TIOCGPGRP));
+
+  /* Allow `tcgetattr' call of glibc on physical terminal devices. */
+  RULE (SCMP_ACT_ALLOW, SCMP_SYS (ioctl),
+        SCMP_A0_32 (SCMP_CMP_EQ, STDERR_FILENO),
+        SCMP_A1_32 (SCMP_CMP_EQ, TCGETS));
 
   /* Allow reading (but not setting) file flags.  */
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (fcntl),

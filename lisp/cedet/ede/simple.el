@@ -86,7 +86,7 @@ ROOTPROJ is nil, since we will only create a single EDE project here."
 	(obj nil))
     (when pf
       (setq obj (eieio-persistent-read pf))
-      (oset obj :directory dir)
+      (oset obj directory dir)
       )
     obj))
 

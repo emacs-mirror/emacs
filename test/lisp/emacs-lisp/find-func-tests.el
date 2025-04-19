@@ -118,10 +118,13 @@ expected function symbol and function library, respectively."
 (declare-function compilation--message->loc nil "compile")
 
 (ert-deftest find-func-tests--locate-macro-generated-symbols () ;bug#45443
-  (should (cdr (find-function-search-for-symbol
-                #'compilation--message->loc nil "compile")))
-  (should (cdr (find-function-search-for-symbol
-                'c-mode-hook 'defvar "cc-mode"))))
+  (let ((trusted-content
+         (list (abbreviate-file-name (find-library-name "compile"))
+               (abbreviate-file-name (find-library-name "cc-mode")))))
+    (should (cdr (find-function-search-for-symbol
+                  #'compilation--message->loc nil "compile")))
+    (should (cdr (find-function-search-for-symbol
+                  'c-mode-hook 'defvar "cc-mode")))))
 
 (provide 'find-func-tests)
 ;;; find-func-tests.el ends here

@@ -166,6 +166,35 @@
                  (url-parse-make-urlobj "http" nil nil "банки.рф" nil
                                         "/фыва/" nil nil t))))
 
+(ert-deftest url-generic-parse-url/ms-windows-file-uri-hanlding ()
+  "Make an exception if a file:// URI  \"looks like\" a Windows file."
+  (should (equal (url-generic-parse-url "file:///c:/windows-path")
+                 (url-parse-make-urlobj "file" nil nil "" nil
+                                        "c:/windows-path" nil nil t)))
+  (should (equal (url-filename (url-generic-parse-url
+                                "file:///c:/directory/file.txt"))
+                 "c:/directory/file.txt"))
+  (should (equal (url-recreate-url
+                  (url-parse-make-urlobj "file" nil nil "" nil
+                                         "c:/directory/file.txt" nil nil t))
+                 "file:///c:/directory/file.txt"))
+  ;; https://www.rfc-editor.org/rfc/rfc8089.html#appendix-E.2
+  (should (equal (url-generic-parse-url "file:c:/path/to/file")
+                 (url-parse-make-urlobj "file" nil nil nil nil
+                                        "c:/path/to/file" nil nil nil)))
+  (should (equal (url-recreate-url
+                  (url-parse-make-urlobj "file" nil nil nil nil
+                                         "c:/path/to/file" nil nil nil))
+                 "file:/c:/path/to/file"))
+  ;; accept backslashes too
+  (should (equal (url-filename
+                  (url-generic-parse-url "file:///c:\\directory\\file.txt"))
+                 "c:\\directory\\file.txt"))
+  ;;
+  (should (equal (url-filename
+                  (url-generic-parse-url "file://localhost/c:/path/to/file"))
+                 "c:/path/to/file")))
+
 (provide 'url-parse-tests)
 
 ;;; url-parse-tests.el ends here

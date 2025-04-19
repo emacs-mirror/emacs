@@ -649,6 +649,11 @@ compilation and evaluation time conflicts."
 
 ;;; Tree-sitter support
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(c-sharp "https://github.com/tree-sitter/tree-sitter-c-sharp" "v0.23.1")
+ t)
+
 (defcustom csharp-ts-mode-indent-offset 4
   "Number of spaces for each indentation step in `csharp-ts-mode'."
   :type 'integer
@@ -1056,7 +1061,7 @@ Key bindings:
   "Major mode for editing C# code."
   :syntax-table (csharp--make-mode-syntax-table)
 
-  (unless (treesit-ready-p 'c-sharp)
+  (unless (treesit-ensure-installed 'c-sharp)
     (error "Tree-sitter for C# isn't available"))
 
   ;; Tree-sitter.

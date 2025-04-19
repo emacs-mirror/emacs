@@ -18,8 +18,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
-/* This should be the first include, as it may set up #defines affecting
-   interpretation of even the system includes. */
 #include <config.h>
 
 /* Work around GCC bug 102671.  */
@@ -7075,7 +7073,7 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
           argv[argc] = 0;
 
         argc = 0;
-        argv[argc++] = initial_argv[0];
+        argv[argc++] = initial_argv0;
 
 	if (strlen (dpy_name) != 0)
 	  {

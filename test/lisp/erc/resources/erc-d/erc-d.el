@@ -422,10 +422,19 @@ This will start the teardown for DIALOG."
         (make-erc-d-i-message :command "eof" :unparsed erc-d--eof-sentinel))
   (run-at-time nil nil #'erc-d-command dialog 'eof))
 
+(defun erc-d--forget-process (process)
+  "Set sentinel and filter for PROCESS to `ignore'."
+  (let ((server (process-get process :server)))
+    (set-process-sentinel server #'ignore)
+    (set-process-sentinel process #'ignore)
+    (set-process-filter server #'ignore)
+    (set-process-filter process #'ignore)))
+
 (defun erc-d--process-sentinel (process event)
   "Set up or tear down client-connection PROCESS depending on EVENT."
   (erc-d--log-process-event process process event)
-  (if (eq 'open (process-status process))
+  (if (and (eq 'open (process-status process))
+           (process-get process :dialog-dialogs))
       (erc-d--initialize-client process)
     (let* ((dialog (process-get process :dialog))
            (exes (and dialog (erc-d-dialog-exchanges dialog))))
@@ -435,7 +444,9 @@ This will start the teardown for DIALOG."
                 ;; Ignore disconnecting peer when pattern is DROP
                 ((and (string-prefix-p "deleted" event)
                       (erc-d--drop-p (ring-ref exes -1))))
-                (t (erc-d--teardown)))
+                (t (erc-d--forget-process process)
+                   (erc-d--teardown)))
+        (erc-d--forget-process process)
         (erc-d--teardown)))))
 
 (defun erc-d--filter (process string)

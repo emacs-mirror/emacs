@@ -42,6 +42,19 @@
 (require 'c-ts-common) ; For comment indent and filling.
 (treesit-declare-unavailable-functions)
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(typescript
+   "https://github.com/tree-sitter/tree-sitter-typescript" "v0.23.2"
+   "typescript/src")
+ t)
+(add-to-list
+ 'treesit-language-source-alist
+ '(tsx
+   "https://github.com/tree-sitter/tree-sitter-typescript" "v0.23.2"
+   "tsx/src")
+ t)
+
 (defcustom typescript-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `typescript-ts-mode'."
   :version "29.1"
@@ -140,7 +153,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((parent-is "type_arguments") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "type_parameters") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is ,(rx (or "variable" "lexical") "_" (or "declaration" "declarator")))
-      typescript-ts-mode--anchor-decl 1)
+      parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "arguments") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "array") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "formal_parameters") parent-bol typescript-ts-mode-indent-offset)
@@ -608,7 +621,7 @@ This mode is intended to be inherited by concrete major modes."
   :group 'typescript
   :syntax-table typescript-ts-mode--syntax-table
 
-  (when (treesit-ready-p 'typescript)
+  (when (treesit-ensure-installed 'typescript)
     (setq treesit-primary-parser (treesit-parser-create 'typescript))
 
     ;; Indent.
@@ -646,12 +659,14 @@ at least 3 (which is the default value)."
   :group 'typescript
   :syntax-table typescript-ts-mode--syntax-table
 
-  (when (treesit-ready-p 'tsx)
+  (when (treesit-ensure-installed 'tsx)
     (setq treesit-primary-parser (treesit-parser-create 'tsx))
 
     ;; Comments.
     (setq-local comment-start "// ")
     (setq-local comment-end "")
+    (setq-local block-comment-start "/*")
+    (setq-local block-comment-end "*/")
     (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
                                            (seq "/" (+ "*")))
                                        (* (syntax whitespace))))

@@ -1630,7 +1630,7 @@ with your script for an edit-interpret-debug cycle."
 This mode automatically falls back to `sh-mode' if the buffer is
 not written in Bash or sh."
   :syntax-table sh-mode-syntax-table
-  (when (treesit-ready-p 'bash)
+  (when (treesit-ensure-installed 'bash)
     (sh-set-shell "bash" nil nil)
     (add-hook 'flymake-diagnostic-functions #'sh-shellcheck-flymake nil t)
     (add-hook 'hack-local-variables-hook
@@ -1662,6 +1662,12 @@ not written in Bash or sh."
                                  "command_substitution"
                                  "process_substitution")
                          eos))
+                   (sexp-default
+                    ;; For `C-M-f' in "$|(a)"
+                    ("$(" .
+                     ,(lambda (node)
+                        (equal (treesit-node-type (treesit-node-parent node))
+                               "command_substitution"))))
                    (sentence
                     ,(rx bos (or "redirected_statement"
                                  "declaration_command"
@@ -3305,6 +3311,11 @@ member of `flymake-diagnostic-functions'."
       (process-send-eof sh--shellcheck-process))))
 
 ;;; Tree-sitter font-lock
+
+(add-to-list
+ 'treesit-language-source-alist
+ '(bash "https://github.com/tree-sitter/tree-sitter-bash" "v0.23.3")
+ t)
 
 (defvar sh-mode--treesit-operators
   '("|" "|&" "||" "&&" ">" ">>" "<" "<<" "<<-" "<<<" "==" "!=" ";&" ";;&")

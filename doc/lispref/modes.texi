@@ -2152,17 +2152,6 @@ windows, you can say something like:
 @end lisp
 @end defun
 
-@vindex mode-line-compact
-  Some modes put a lot of data in the mode line, pushing elements at
-the end of the mode line off to the right.  Emacs can ``compress'' the
-mode line if the @code{mode-line-compact} variable is non-@code{nil}
-by turning stretches of spaces into a single space.  If this variable
-is @code{long}, this is only done when the mode line is wider than the
-currently selected window.  (This computation is approximate, based on
-the number of characters, and not their displayed width.)  This
-variable can be buffer-local to only compress mode-lines in certain
-buffers.
-
 @node Mode Line Data
 @subsection The Data Structure of the Mode Line
 @cindex mode line construct

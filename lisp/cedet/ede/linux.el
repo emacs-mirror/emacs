@@ -227,7 +227,7 @@ All directories need at least one target.")
   "Make sure the targets slot is bound."
   (cl-call-next-method)
   (unless (slot-boundp this 'targets)
-    (oset this :targets nil)))
+    (oset this targets nil)))
 
 ;;; File Stuff
 ;;
@@ -377,9 +377,9 @@ Argument COMMAND is the command to use for compiling the target."
 	 (inc (ede-linux--include-path dir bdir arch))
 	 (ver (ede-linux-version dir)))
     (oset this version ver)
-    (oset this :build-directory bdir)
-    (oset this :architecture arch)
-    (oset this :include-path inc)
+    (oset this build-directory bdir)
+    (oset this architecture arch)
+    (oset this include-path inc)
     ))
 
 (provide 'ede/linux)

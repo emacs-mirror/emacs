@@ -77,7 +77,7 @@ where HEIGHT and WIDTH are the normal height and width of the window.
   (if current-prefix-arg (window-parent) (window-main-window)))
 
 ;;;###autoload
-(defun rotate-window-layout-counterclockwise (&optional window)
+(defun window-layout-rotate-anticlockwise (&optional window)
   "Rotate window layout of WINDOW counterclockwise by 90 degrees.
 
 If WINDOW is nil, it defaults to the root window of the selected frame.
@@ -88,7 +88,7 @@ selected window."
   (window--transpose window '(right . above) nil))
 
 ;;;###autoload
-(defun rotate-window-layout-clockwise (&optional window)
+(defun window-layout-rotate-clockwise (&optional window)
   "Rotate window layout under WINDOW clockwise by 90 degrees.
 
 If WINDOW is nil, it defaults to the root window of the selected frame.
@@ -99,7 +99,7 @@ selected window."
   (window--transpose window '(left . below) nil))
 
 ;;;###autoload
-(defun flip-window-layout-horizontally (&optional window)
+(defun window-layout-flip-leftright (&optional window)
   "Horizontally flip windows under WINDOW.
 
 Flip the window layout so that the window on the right becomes the
@@ -113,7 +113,7 @@ selected window."
   (window--transpose window '(below . left) t))
 
 ;;;###autoload
-(defun flip-window-layout-vertically (&optional window)
+(defun window-layout-flip-topdown (&optional window)
   "Vertically flip windows under WINDOW.
 
 Flip the window layout so that the top window becomes the bottom window,
@@ -127,7 +127,7 @@ selected window."
   (window--transpose window '(above . right) t))
 
 ;;;###autoload
-(defun transpose-window-layout (&optional window)
+(defun window-layout-transpose (&optional window)
   "Transpose windows under WINDOW.
 
 Reorganize the windows under WINDOW so that every horizontal split

@@ -348,6 +348,8 @@ See also the user variables `pascal-type-keywords', `pascal-start-keywords' and
   (setq-local comment-start "{")
   (setq-local comment-start-skip "(\\*+ *\\|{ *")
   (setq-local comment-end "}")
+  (setq-local block-comment-start "(*")
+  (setq-local block-comment-end "*)")
   (add-hook 'completion-at-point-functions 'pascal-completions-at-point nil t)
   ;; Font lock support
   (setq-local font-lock-defaults '(pascal-font-lock-keywords nil t))

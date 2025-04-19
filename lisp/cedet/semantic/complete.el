@@ -1899,7 +1899,7 @@ completion text in ghost text."
 	  (mapcar
 	   (lambda (class)
 	     (let* ((C (intern (car class)))
-		    (doc (documentation-property C 'variable-documentation))
+		    (doc (cl--class-docstring (cl--find-class C)))
 		    (doc1 (car (split-string doc "\n")))
 		    )
 	       (list 'const
@@ -1930,7 +1930,7 @@ DEFAULT-TAG is a semantic tag or string to use as the default value.
 If INITIAL-INPUT is non-nil, insert it in the minibuffer initially.
 HISTORY is a symbol representing a variable to store the history in."
   (semantic-complete-read-tag-engine
-   (semantic-collector-buffer-deep prompt :buffer (current-buffer))
+   (semantic-collector-buffer-deep :buffer (current-buffer))
    (semantic-displayer-traditional-with-focus-highlight)
    ;;(semantic-displayer-tooltip)
    prompt
@@ -1952,7 +1952,7 @@ DEFAULT-TAG is a semantic tag or string to use as the default value.
 If INITIAL-INPUT is non-nil, insert it in the minibuffer initially.
 HISTORY is a symbol representing a variable to store the history in."
   (semantic-complete-read-tag-engine
-   (semantic-collector-local-members prompt :buffer (current-buffer))
+   (semantic-collector-local-members :buffer (current-buffer))
    (semantic-displayer-traditional-with-focus-highlight)
    ;;(semantic-displayer-tooltip)
    prompt
@@ -1974,8 +1974,7 @@ DEFAULT-TAG is a semantic tag or string to use as the default value.
 If INITIAL-INPUT is non-nil, insert it in the minibuffer initially.
 HISTORY is a symbol representing a variable to store the history in."
   (semantic-complete-read-tag-engine
-   (semantic-collector-project-brutish prompt
-				       :buffer (current-buffer)
+   (semantic-collector-project-brutish :buffer (current-buffer)
 				       :path (current-buffer)
 				       )
    (semantic-displayer-traditional-with-focus-highlight)
@@ -2049,7 +2048,6 @@ prompts.  these are calculated from the CONTEXT variable passed in."
     (setq syms (nreverse (cdr (nreverse syms))))
     (semantic-complete-read-tag-engine
      (semantic-collector-analyze-completions
-      prompt
       :buffer (oref context buffer)
       :context context)
      (semantic-displayer-traditional-with-focus-highlight)

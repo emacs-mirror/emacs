@@ -136,7 +136,7 @@ If there is no table, create one, and fill it in."
     ;; Make sure we have a cache object in the DB index.
     (when (not cache)
       ;; The object won't change as we fill it with stuff.
-      (setq cache (semanticdb-typecache (semanticdb-full-filename table)))
+      (setq cache (semanticdb-typecache))
       (oset idx type-cache cache))
 
     cache))

@@ -135,11 +135,11 @@ with the current prefix.  The files are chosen according to
   :version "26.3")
 
 (defcustom help-enable-variable-value-editing nil
-  "If non-nil, allow editing values in *Help* buffers.
+  "If non-nil, allow editing variable values in *Help* buffers.
 
 To edit the value of a variable, use \\[describe-variable] to
 display a \"*Help*\" buffer, move point after the text
-\"Its value is\" and type \\`e'.
+\"Its value is\" and type \\`e' to invoke `help-fns-edit-variable'.
 
 Values that aren't readable by the Emacs Lisp reader can't be
 edited even if this option is enabled."
@@ -1555,7 +1555,16 @@ it is displayed along with the global value."
 
 (put 'help-fns-edit-variable 'disabled t)
 (defun help-fns-edit-variable ()
-  "Edit the variable under point."
+  "Edit the variable value at point in \"*Help*\" buffer.
+This command only works if `help-enable-variable-value-editing' is non-nil.
+
+To edit the value of a variable, use \\[describe-variable] followed by the name
+of a variable, to display a \"*Help*\" buffer, move point to
+the variable's value, usually after the text \"Its value is\", and
+type \\`e' to invoke this command.
+
+Values that aren't readable by the Emacs Lisp reader can't be edited
+by this command."
   (declare (completion ignore))
   (interactive)
   (let ((var (get-text-property (point) 'help-fns--edit-variable)))
@@ -1589,7 +1598,9 @@ it is displayed along with the global value."
   ;; Make a link to customize if this variable can be customized.
   (when (custom-variable-p variable)
     (let ((customize-label "customize")
-          (custom-set (get variable 'custom-set)))
+          (custom-set (get variable 'custom-set))
+          (opoint (with-current-buffer standard-output
+                    (point))))
       (princ (concat "  You can " customize-label (or text " this variable.")))
       (when (and custom-set
                  ;; Don't override manually written documentation.
@@ -1606,7 +1617,7 @@ it is displayed along with the global value."
                         "."))))
       (with-current-buffer standard-output
 	(save-excursion
-          (while (re-search-backward (concat "\\(" customize-label "\\)") nil t)
+          (while (re-search-backward (concat "\\(" customize-label "\\)") opoint t)
 	    (help-xref-button 1 'help-customize-variable variable))))
       (terpri))))
 
@@ -1965,7 +1976,8 @@ current buffer and the selected frame, respectively."
         (unless single
           ;; Don't record the `describe-variable' item in the stack.
           (setq help-xref-stack-item nil)
-          (help-setup-xref (list #'describe-symbol symbol) nil))
+          (let ((help-mode--current-data help-mode--current-data))
+            (help-setup-xref (list #'describe-symbol symbol) nil)))
         (goto-char (point-max))
         (help-xref--navigation-buttons)
         (goto-char (point-min))))))

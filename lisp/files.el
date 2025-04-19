@@ -4277,6 +4277,52 @@ all the specified local variables, but ignores any settings of \"mode:\"."
               (push elem file-local-variables-alist)))
           (hack-local-variables-apply))))))
 
+(defun internal--get-default-lexical-binding (from)
+  (let ((mib (lambda (node) (buttonize node (lambda (_) (info node))
+                                  nil "mouse-2: Jump to Info node"))))
+    (or (and (bufferp from) (zerop (buffer-size from)))
+        (and (stringp from)
+             (eql 0 (file-attribute-size (file-attributes from))))
+        (let ((source
+               (if (not (and (bufferp from)
+                             (string-match-p "\\` \\*load\\*\\(-[0-9]+\\)?\\'"
+                                             (buffer-name from))
+                             load-file-name))
+                   from
+                 (abbreviate-file-name load-file-name))))
+          (condition-case nil
+              (display-warning
+               `(files missing-lexbind-cookie
+                       ,(if (bufferp source) 'eval-buffer source))
+               (format-message "Missing `lexical-binding' cookie in %S.
+You can add one with `M-x %s RET'.
+See `%s' and `%s'
+for more information."
+                               source
+                               (buttonize "elisp-enable-lexical-binding"
+                                          (lambda (_)
+                                            (pop-to-buffer
+                                             (if (bufferp source) source
+                                               (find-file-noselect source)))
+                                            (call-interactively
+                                             #'elisp-enable-lexical-binding))
+                                          nil "mouse-2: Add cookie")
+                               (funcall mib "(elisp)Selecting Lisp Dialect")
+                               (funcall mib "(elisp)Converting to Lexical Binding"))
+               :warning)
+            ;; In various corner-case situations, `display-warning' may
+            ;; fail (e.g. not yet defined, or can't be (auto)loaded),
+            ;; so use a simple fallback that won't get in the way.
+            (error
+             ;; But not if this particular warning is disabled.
+             (unless (equal warning-inhibit-types
+                            '((files missing-lexbind-cookie)))
+               (message "Missing `lexical-binding' cookie in %S" source))))))
+    (default-toplevel-value 'lexical-binding)))
+
+(setq internal--get-default-lexical-binding-function
+      #'internal--get-default-lexical-binding)
+
 (defun hack-local-variables--find-variables (&optional handle-mode)
   "Return all local variables in the current buffer.
 If HANDLE-MODE is nil, we gather all the specified local

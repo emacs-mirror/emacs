@@ -817,7 +817,8 @@ or an empty string if none."
   "="              #'vc-git-stash-show-at-point
   "RET"            #'vc-git-stash-show-at-point
   "A"              #'vc-git-stash-apply-at-point
-  "P"              #'vc-git-stash-pop-at-point)
+  "P"              #'vc-git-stash-pop-at-point
+  "D"              #'vc-git-stash-delete-at-point)
 
 (defvar-keymap vc-git-stash-button-map
   :parent vc-git-stash-shared-map
@@ -2448,7 +2449,8 @@ the function returns nil."
 (defvar-keymap vc-dir-git-mode-map
   "z c" #'vc-git-stash
   "z s" #'vc-git-stash-snapshot
-  "z p" #'vc-git-stash-pop)
+  "z p" #'vc-git-stash-pop
+  "z d" #'vc-git-stash-delete)
 
 (define-minor-mode vc-dir-git-mode
   "A minor mode for git-specific commands in `vc-dir-mode' buffers.

@@ -6601,30 +6601,36 @@ To disable this, set option `delete-active-region' to nil.
 Interactively, ARG is the prefix arg (default 1)
 and KILLP is t if a prefix arg was specified."
   (interactive "*p\nP")
-  (when (eq backward-delete-char-untabify-method 'untabify)
-    (let ((count arg))
-      (save-excursion
-	(while (and (> count 0) (not (bobp)))
-	  (if (= (preceding-char) ?\t)
-	      (let ((col (current-column)))
-		(forward-char -1)
-		(setq col (- col (current-column)))
-		(insert-char ?\s col)
-		(delete-char 1)))
-	  (forward-char -1)
-	  (setq count (1- count))))))
-  (let* ((skip (cond ((eq backward-delete-char-untabify-method 'hungry) " \t")
-                     ((eq backward-delete-char-untabify-method 'all)
-                      " \t\n\r")))
-         (n (if skip
-                (let* ((oldpt (point))
-                       (wh (- oldpt (save-excursion
-                                      (skip-chars-backward skip)
-                                      (constrain-to-field nil oldpt)))))
-                  (+ arg (if (zerop wh) 0 (1- wh))))
-              arg)))
-    ;; Avoid warning about delete-backward-char
-    (with-no-warnings (delete-backward-char n killp))))
+  (if (and (use-region-p)
+           delete-active-region
+           (= arg 1))
+      ;; Delete the text of the region and deactivate the mark, in the
+      ;; same way that `delete-backward-char' does.
+      (with-no-warnings (delete-backward-char 1 killp))
+    (when (eq backward-delete-char-untabify-method 'untabify)
+      (let ((count arg))
+        (save-excursion
+	  (while (and (> count 0) (not (bobp)))
+	    (if (= (preceding-char) ?\t)
+	        (let ((col (current-column)))
+		  (forward-char -1)
+		  (setq col (- col (current-column)))
+		  (insert-char ?\s col)
+		  (delete-char 1)))
+	    (forward-char -1)
+	    (setq count (1- count))))))
+    (let* ((skip (cond ((eq backward-delete-char-untabify-method 'hungry) " \t")
+                       ((eq backward-delete-char-untabify-method 'all)
+                        " \t\n\r")))
+           (n (if skip
+                  (let* ((oldpt (point))
+                         (wh (- oldpt (save-excursion
+                                        (skip-chars-backward skip)
+                                        (constrain-to-field nil oldpt)))))
+                    (+ arg (if (zerop wh) 0 (1- wh))))
+                arg)))
+      ;; Avoid warning about delete-backward-char
+      (with-no-warnings (delete-backward-char n killp)))))
 
 (defun char-uppercase-p (char)
   "Return non-nil if CHAR is an upper-case character.

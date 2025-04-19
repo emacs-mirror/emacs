@@ -2819,6 +2819,25 @@ NATIVE_NAME (sendNotificationAction) (JNIEnv *env, jobject object,
   return event_serial;
 }
 
+JNIEXPORT jlong JNICALL
+NATIVE_NAME (sendConfigurationChanged) (JNIEnv *env, jobject object,
+					jfloat dpi_x, jfloat dpi_y,
+					jfloat dpi_scaled)
+{
+  JNI_STACK_ALIGNMENT_PROLOGUE;
+
+  union android_event event;
+
+  event.config.type = ANDROID_CONFIGURATION_CHANGED;
+  event.config.serial = ++event_serial;
+  event.config.window = ANDROID_NONE;
+  event.config.dpi_x = dpi_x;
+  event.config.dpi_y = dpi_y;
+  event.config.dpi_scaled = dpi_scaled;
+  android_write_event (&event);
+  return event_serial;
+}
+
 JNIEXPORT jboolean JNICALL
 NATIVE_NAME (shouldForwardMultimediaButtons) (JNIEnv *env,
 					      jobject object)

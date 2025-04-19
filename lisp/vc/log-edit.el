@@ -857,7 +857,8 @@ comment history, see `log-edit-comment-ring', and hides `log-edit-files-buf'."
 (defun log-edit-diff-fileset ()
   "Display diffs for the files to be committed."
   (interactive)
-  (vc-diff nil nil (list log-edit-vc-backend vc-log-fileset)))
+  (save-selected-window
+    (vc-diff nil nil (list log-edit-vc-backend vc-log-fileset))))
 
 (defun log-edit-show-diff ()
   "Show the diff for the files to be committed."

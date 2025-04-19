@@ -40,6 +40,11 @@
 (require 'rx)
 (treesit-declare-unavailable-functions)
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(json "https://github.com/tree-sitter/tree-sitter-json" "v0.24.8")
+ t)
+
 (defcustom json-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `json-ts-mode'."
   :version "29.1"
@@ -128,7 +133,7 @@ Return nil if there is no name or if NODE is not a defun node."
   :group 'json
   :syntax-table json-ts-mode--syntax-table
 
-  (unless (treesit-ready-p 'json)
+  (unless (treesit-ensure-installed 'json)
     (error "Tree-sitter for JSON isn't available"))
 
   (setq treesit-primary-parser (treesit-parser-create 'json))
@@ -137,6 +142,8 @@ Return nil if there is no name or if NODE is not a defun node."
   (setq-local comment-start "// ")
   (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end "")
+  (setq-local block-comment-start "/*")
+  (setq-local block-comment-end "*/")
 
   ;; Electric
   (setq-local electric-indent-chars

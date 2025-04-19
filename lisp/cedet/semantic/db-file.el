@@ -138,10 +138,6 @@ If DIRECTORY doesn't exist, create a new one."
     (unless db
       (setq db (make-instance
 		dbc  ; Create the database requested.  Perhaps
-		(concat (file-name-nondirectory
-			 (directory-file-name
-			  directory))
-			"/")
 		:file fn :tables nil
 		:semantic-tag-version semantic-tag-version
 		:semanticdb-version semanticdb-file-version)))

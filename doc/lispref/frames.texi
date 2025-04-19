@@ -2839,8 +2839,11 @@ than deleted.
 @end deffn
 
 The following function checks whether a frame can be safely deleted.  It
-is useful to avoid that a subsequent call of @code{delete-frame} throws
-an error.
+is useful for avoiding the situation whereby a subsequent call of
+@code{delete-frame} fails to delete its argument @var{frame} and/or
+signals an error.  To that end, your Lisp program should call
+@code{delete-frame} only if the following function returns
+non-@code{nil}.
 
 @defun frame-deletable-p &optional frame
 This function returns non-@code{nil} if the frame specified by

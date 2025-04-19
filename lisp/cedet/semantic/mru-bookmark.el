@@ -197,7 +197,7 @@ The resulting bookmark is then sorted within the ring."
 	    (ring-remove ring idx))
 	(setq idx (1+ idx)))
       ;; Create a new mark
-      (let ((sbm (semantic-bookmark (semantic-tag-name tag)
+      (let ((sbm (semantic-bookmark :object-name (semantic-tag-name tag)
 				    :tag tag)))
 	;; Take the mark, and update it for the current state.
 	(ring-insert ring sbm)

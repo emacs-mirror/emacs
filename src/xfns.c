@@ -5715,7 +5715,7 @@ TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.
 
 On MS Windows, this function just returns 1.
-On Nextstep, this function just returns nil.  */)
+On Nextstep and PGTK, this function just returns nil.  */)
   (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
@@ -5800,8 +5800,11 @@ The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.
 
+On PGTK and Nextstep, "screen" is in X terminology, not that of Wayland
+and Nextstep, respectively.
+
 On MS Windows, this function just returns 1.
-On Nextstep, "screen" is in X terminology, not that of Nextstep.
+
 For the number of physical monitors, use `(length
 \(display-monitor-attributes-list TERMINAL))' instead.  */)
   (Lisp_Object terminal)
@@ -5859,7 +5862,10 @@ TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.
 
 The value may be `always', `when-mapped', or `not-useful'.
-On Nextstep, the value may be `buffered', `retained', or `non-retained'.
+
+On Nextstep and PGTK, the value may be `buffered', `retained', or
+`non-retained'.
+
 On MS Windows, this returns nothing useful.  */)
   (Lisp_Object terminal)
 {
@@ -5897,7 +5903,9 @@ The value is one of the symbols `static-gray', `gray-scale',
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.
-\(On MS Windows, this function does not accept terminal objects.)  */)
+\(On MS Windows, this function does not accept terminal objects.)
+
+On PGTK, always return `true-color'.  */)
   (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
@@ -9624,9 +9632,10 @@ Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
 selection box, if specified.  If MUSTMATCH is non-nil, the returned file
 or directory must exist.
 
-This function is defined only on NS, Haiku, MS Windows, and X Windows with the
-Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
+This function is defined only on PGTK, NS, Haiku, MS Windows, and X Windows with
+the Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
 Otherwise, if ONLY-DIR-P is non-nil, the user can select only directories.
+
 On MS Windows 7 and later, the file selection dialog "remembers" the last
 directory where the user selected a file, and will open that directory
 instead of DIR on subsequent invocations of this function with the same

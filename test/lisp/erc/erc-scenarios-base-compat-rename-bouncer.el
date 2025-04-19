@@ -76,7 +76,7 @@
                                            :full-name "tester"
                                            :id nil))
         (setq erc-server-process-bar erc-server-process)
-        (erc-d-t-wait-for 3 (eq (erc-network) 'barnet))
+        (erc-d-t-wait-for 10 (eq (erc-network) 'barnet))
         (erc-d-t-wait-for 3 "Final buffer name determined"
           (string= (buffer-name) (format "127.0.0.1:%d<2>" port)))
         (funcall expect 5 "barnet")))

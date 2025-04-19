@@ -48,6 +48,11 @@
 (eval-when-compile
   (require 'rx))
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(lua "https://github.com/tree-sitter-grammars/tree-sitter-lua" "v0.3.0")
+ t)
+
 (defgroup lua-ts nil
   "Major mode for editing Lua files."
   :prefix "lua-ts-"
@@ -661,13 +666,15 @@ Calls REPORT-FN directly."
   :syntax-table lua-ts--syntax-table
   (use-local-map lua-ts-mode-map)
 
-  (when (treesit-ready-p 'lua)
+  (when (treesit-ensure-installed 'lua)
     (setq treesit-primary-parser (treesit-parser-create 'lua))
 
     ;; Comments.
     (setq-local comment-start "--")
     (setq-local comment-start-skip "--\\s-*")
     (setq-local comment-end "")
+    (setq-local block-comment-start "--[[" )
+    (setq-local block-comment-end "]]")
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings lua-ts--font-lock-settings)

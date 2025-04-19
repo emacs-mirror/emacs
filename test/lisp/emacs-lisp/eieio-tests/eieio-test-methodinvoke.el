@@ -138,7 +138,7 @@
 	       (:AFTER eitest-B-base1)
 	       (:AFTER eitest-B)
 	       )))
-    (eitest-F (eitest-B nil))
+    (eitest-F (eitest-B))
     (setq eieio-test-method-order-list (nreverse eieio-test-method-order-list))
     (eieio-test-match ans)))
 
@@ -153,7 +153,9 @@
 (ert-deftest eieio-test-method-order-list-4 ()
   ;; Both of these situations should succeed.
   (should (eitest-H 'eitest-A))
-  (should (eitest-H (eitest-A nil))))
+  (let ((eieio-backward-compatibility t))
+    (with-suppressed-warnings ((obsolete eieio-constructor-name-arg))
+      (should (eitest-H (eitest-A nil))))))
 
 ;;; Return value from :PRIMARY
 ;;
@@ -213,7 +215,7 @@
 	       (:STATIC C-base1)
 	       (:STATIC C-base2)
 	       )))
-    (C nil)
+    (C)
     (setq eieio-test-method-order-list (nreverse eieio-test-method-order-list))
     (eieio-test-match ans)))
 
@@ -262,7 +264,7 @@
 	       (:PRIMARY D-base2)
 	       (:PRIMARY D-base0)
 	       )))
-    (eitest-F (D nil))
+    (eitest-F (D))
     (setq eieio-test-method-order-list (nreverse eieio-test-method-order-list))
     (eieio-test-match ans)))
 
@@ -304,7 +306,7 @@
 	       (:PRIMARY E-base2)
 	       (:PRIMARY E-base0)
 	       )))
-    (eitest-F (E nil))
+    (eitest-F (E))
     (setq eieio-test-method-order-list (nreverse eieio-test-method-order-list))
     (eieio-test-match ans)))
 

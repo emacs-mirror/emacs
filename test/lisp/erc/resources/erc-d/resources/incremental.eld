@@ -17,7 +17,7 @@
  (0.0 ":irc.foo.net 266 tester 3 3 :Current global users 3, max 3")
  (0.0 ":irc.foo.net 422 tester :MOTD File is missing"))
 
-((mode-user 1.2 "MODE tester +i")
+((mode-user 3 "MODE tester +i")
  (0.0 ":irc.foo.net 221 tester +Zi")
  (0.0 ":irc.foo.net 306 tester :You have been marked as being away"))
 

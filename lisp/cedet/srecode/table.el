@@ -180,7 +180,6 @@ INIT are the initialization parameters for the new template table."
 	 (old (srecode-mode-table-find mt file))
 	 (attr (file-attributes file))
 	 (new (apply #'srecode-template-table
-		     (file-name-nondirectory file)
 		     :file file
 		     :filesize (file-attribute-size attr)
 		     :filedate (file-attribute-modification-time attr)

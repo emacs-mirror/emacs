@@ -671,69 +671,70 @@ In order to view pdf or rtf files in an Emacs buffer, you could use these:
 				      (boolean :tag "Boolean")))))))
 
 (defcustom filesets-ingroup-patterns
-  '(("^.+\\.tex$" t
+  ;; FIXME: This value does not seem realistically editable via the Custom UI.
+  `(("^.+\\.tex$" t
      (((:name "Package")
        (:pattern "\\\\usepackage\\W*\\(\\[[^]]*\\]\\W*\\)?{\\W*\\(.+\\)\\W*}")
        (:match-number 2)
        (:stub-flag t)
-       (:get-file-name (lambda (master file)
-			 (filesets-which-file master
-					      (concat file ".sty")
-					      (filesets-convert-path-list
-					       (or (getenv "MY_TEXINPUTS")
-						   (getenv "TEXINPUTS")))))))
+       (:get-file-name ,(lambda (master file)
+			  (filesets-which-file master
+					       (concat file ".sty")
+					       (filesets-convert-path-list
+						(or (getenv "MY_TEXINPUTS")
+						    (getenv "TEXINPUTS")))))))
       ((:name "Include")
        (:pattern "\\\\include\\W*{\\W*\\(.+\\)\\W*}")
-       (:get-file-name (lambda (master file)
-			 (filesets-which-file master
-					      (concat file ".tex")
-					      (filesets-convert-path-list
-					       (or (getenv "MY_TEXINPUTS")
-						   (getenv "TEXINPUTS"))))))
+       (:get-file-name ,(lambda (master file)
+			  (filesets-which-file master
+					       (concat file ".tex")
+					       (filesets-convert-path-list
+						(or (getenv "MY_TEXINPUTS")
+						    (getenv "TEXINPUTS"))))))
        (:scan-depth 5))
       ((:name "Input")
        (:pattern "\\\\input\\W*{\\W*\\(.+\\)\\W*}")
-       (:stubp (lambda (a b) (not (filesets-files-in-same-directory-p a b))))
-       (:get-file-name (lambda (master file)
-			 (filesets-which-file master
-					      (concat file ".tex")
-					      (filesets-convert-path-list
-					       (or (getenv "MY_TEXINPUTS")
-						   (getenv "TEXINPUTS"))))))
+       (:stubp ,(lambda (a b) (not (filesets-files-in-same-directory-p a b))))
+       (:get-file-name ,(lambda (master file)
+			  (filesets-which-file master
+					       (concat file ".tex")
+					       (filesets-convert-path-list
+						(or (getenv "MY_TEXINPUTS")
+						    (getenv "TEXINPUTS"))))))
        (:scan-depth 5))
       ((:name "Bibliography")
        (:pattern "\\\\bibliography\\W*{\\W*\\(.+\\)\\W*}")
-       (:get-file-name (lambda (master file)
-			 (filesets-which-file master
-					      (concat file ".bib")
-					      (filesets-convert-path-list
-					       (or (getenv "MY_BIBINPUTS")
-						   (getenv "BIBINPUTS")))))))))
+       (:get-file-name ,(lambda (master file)
+			  (filesets-which-file master
+					       (concat file ".bib")
+					       (filesets-convert-path-list
+						(or (getenv "MY_BIBINPUTS")
+						    (getenv "BIBINPUTS")))))))))
     ("^.+\\.el$" t
      (((:name "Require")
        (:pattern "(require\\W+'\\(.+\\))")
-       (:stubp (lambda (a b) (not (filesets-files-in-same-directory-p a b))))
-       (:get-file-name (lambda (master file)
-			 (filesets-which-file master
-					      (concat file ".el")
-					      load-path))))
+       (:stubp ,(lambda (a b) (not (filesets-files-in-same-directory-p a b))))
+       (:get-file-name ,(lambda (master file)
+			  (filesets-which-file master
+					       (concat file ".el")
+					       load-path))))
       ((:name "Load")
        (:pattern "(load\\(-library\\)?\\W+\"\\(.+\\)\")")
        (:match-number 2)
-       (:get-file-name (lambda (master file)
-			 (filesets-which-file master file load-path))))))
+       (:get-file-name ,(lambda (master file)
+			  (filesets-which-file master file load-path))))))
     ("^\\([A-ZÄÖÜ][a-zäöüß]+\\([A-ZÄÖÜ][a-zäöüß]+\\)+\\)$" t
      (((:pattern "\\<\\([A-ZÄÖÜ][a-zäöüß]+\\([A-ZÄÖÜ][a-zäöüß]+\\)+\\)\\>")
        (:scan-depth 5)
-       (:stubp (lambda (a b) (not (filesets-files-in-same-directory-p a b))))
+       (:stubp ,(lambda (a b) (not (filesets-files-in-same-directory-p a b))))
        (:case-sensitive t)
-       (:get-file-name (lambda (master file)
-			 (filesets-which-file
-			  master
-			  file
-			  (if (boundp 'emacs-wiki-directories)
-			      emacs-wiki-directories
-			    nil))))))))
+       (:get-file-name ,(lambda (master file)
+			  (filesets-which-file
+			   master
+			   file
+			   (if (boundp 'emacs-wiki-directories)
+			       emacs-wiki-directories
+			     nil))))))))
 
   "Inclusion group definitions.
 
@@ -1227,7 +1228,7 @@ Use the viewer defined in EV-ENTRY (a valid element of
 				(shell-quote-argument (if (functionp this)
 				                          (funcall this)
 				                        this))))
-			    fmt "")
+			    fmt)
 			 (shell-quote-argument file))))
 	       (output
 		(cond
@@ -2335,6 +2336,7 @@ fileset thinks this is necessary or not."
       (delete-file filesets-menu-cache-file))
     ;;(message "Filesets: saving menu cache")
     (with-temp-buffer
+      (insert ";; -*- mode: emacs-lisp; lexical-binding: t -*-\n")
       (dolist (this filesets-menu-cache-contents)
 	(if (get this 'custom-type)
 	    (progn
@@ -2427,7 +2429,8 @@ We apologize for the inconvenience.")))
   (cond
    ((and (not (equal filesets-menu-cache-file ""))
 	 (file-readable-p filesets-menu-cache-file))
-    (load-file filesets-menu-cache-file)
+    (let ((warning-inhibit-types '((files missing-lexbind-cookie))))
+      (load-file filesets-menu-cache-file))
     (if (and (equal filesets-cache-version filesets-version)
 	     (if filesets-cache-hostname-flag
 		 (equal filesets-cache-hostname (system-name))

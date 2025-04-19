@@ -146,8 +146,7 @@ specified in a C file."
 	    (value-dict (srecode-dictionary-add-section-dictionary
 			 dict "VALUE")))
 	(srecode-semantic-apply-tag-to-dict
-	 (srecode-semantic-tag (semantic-tag-name value-tag)
-			       :prime value-tag)
+	 (srecode-semantic-tag :prime value-tag)
 	 value-dict))
 
       ;; Discriminate using statements referring to namespaces and
@@ -224,8 +223,7 @@ specified in a C file."
 	(let ((template-dict (srecode-dictionary-add-section-dictionary
 			      templates-dict "ARGS")))
 	  (srecode-semantic-apply-tag-to-dict
-	   (srecode-semantic-tag (semantic-tag-name template)
-				 :prime template)
+	   (srecode-semantic-tag :prime template)
 	   template-dict)))))
   )
 

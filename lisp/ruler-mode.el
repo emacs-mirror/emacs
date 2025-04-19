@@ -511,7 +511,6 @@ START-EVENT is the mouse click event."
 
 (defvar-keymap ruler-mode-map
   :doc "Keymap for `ruler-mode'."
-  "<header-line> <down-mouse-1>"   #'ignore
   "<header-line> <down-mouse-3>"   #'ignore
   "<header-line> <down-mouse-2>"   #'ruler-mode-mouse-grab-any-column
   "<header-line> S-<down-mouse-1>" #'ruler-mode-mouse-set-left-margin
