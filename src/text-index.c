@@ -87,16 +87,16 @@ struct text_index
 
   /* Known position cache. This is the last position conversion result.  */
   struct text_pos cache;
-
-  /* Number of bytes in an interval. This is here instead of using a
-     constant mainly because it makes things more flexible for
-     experimentation.  The overhead is probably not worth worrying about
-     in the grander scheme of things anyway.  */
-  size_t interval;
 };
 
 enum
 {
+  /* Number of bytes in an interval.  */
+  TEXT_INDEX_INTERVAL = 4000,
+
+  /* Default capacity in number of intervals for text indices.  */
+  TEXT_INDEX_DEFAULT_CAPACITY = 20,
+
   /* Value indicating a non-position.  */
   TEXT_INDEX_INVALID_POSITION = -1
 };
@@ -134,7 +134,7 @@ is_cache_valid (const struct text_index *ti)
 static ptrdiff_t
 index_bytepos (const struct text_index *ti, ptrdiff_t entry)
 {
-  return BEG_BYTE + entry * ti->interval;
+  return BEG_BYTE + entry * TEXT_INDEX_INTERVAL;
 }
 
 /* Return the character position in index TI corresponding index entry
@@ -152,7 +152,7 @@ index_charpos (const struct text_index *ti, ptrdiff_t entry)
 static ptrdiff_t
 index_bytepos_entry (const struct text_index *ti, ptrdiff_t bytepos)
 {
-  return (bytepos - BEG_BYTE) / ti->interval;
+  return (bytepos - BEG_BYTE) / TEXT_INDEX_INTERVAL;
 }
 
 /* Return the entry of index TI for the largest character position <=
@@ -223,8 +223,7 @@ static struct text_index *
 make_text_index (size_t nbytes)
 {
   struct text_index *ti = xzalloc (sizeof *ti);
-  ti->interval = text_index_interval;
-  ti->capacity = 1 + index_bytepos_entry (ti, nbytes);
+  ti->capacity = TEXT_INDEX_DEFAULT_CAPACITY;
   ti->charpos = xnmalloc (ti->capacity, sizeof *ti->charpos);
   ti->charpos[0] = BEG;
   ti->nentries = 1;
@@ -250,7 +249,8 @@ append_entry (struct text_index *ti, ptrdiff_t charpos)
 {
   if (ti->nentries == ti->capacity)
     {
-      ti->capacity = max (10, 2 * ti->capacity);
+      eassert (ti->capacity > 0);
+      ti->capacity = 2 * ti->capacity;
       ti->charpos = xnrealloc (ti->charpos, ti->capacity,
 			       sizeof *ti->charpos);
     }
@@ -286,7 +286,7 @@ build_index (struct buffer *b, const struct text_pos to)
   const ptrdiff_t last_entry = ti->nentries - 1;
   ptrdiff_t charpos = index_charpos (ti, last_entry);
   ptrdiff_t bytepos = index_bytepos (ti, last_entry);
-  ptrdiff_t next_stop = bytepos + ti->interval;
+  ptrdiff_t next_stop = bytepos + TEXT_INDEX_INTERVAL;
 
   /* Quickly give up if there are not enough bytes left to scan to make
      a new index entry.  */
@@ -318,7 +318,7 @@ build_index (struct buffer *b, const struct text_pos to)
 
 	  /* Compute next stop. We are done if no next entry
 	     can be built.  */
-	  next_stop += ti->interval;
+	  next_stop += TEXT_INDEX_INTERVAL;
 	  if (next_stop >= z_byte)
 	    break;
 	}
@@ -661,27 +661,6 @@ text_index_invalidate (struct buffer *b, ptrdiff_t bytepos)
     invalidate_cache (ti);
 }
 
-/* The following is for testing / debugging / experimentation.  */
-
-DEFUN ("text-index--set", Ftext_index__set,
-       Stext_index__set, 1, 2, 0,
-       doc: /* Set text internal use on/off.
-USE non-nil means use text indices in all byte/character conversions.
-INTERVAL is the interval size to use for indices.  */)
-  (Lisp_Object use, Lisp_Object interval)
-{
-  use_text_index = !NILP (use);
-  text_index_interval = check_integer_range (interval, 1, 1000000);
-  Lisp_Object buffers = Fbuffer_list (Qnil);
-  FOR_EACH_TAIL (buffers)
-    {
-      struct buffer *b = XBUFFER (XCAR (buffers));
-      text_index_free (b->own_text.index);
-      b->own_text.index = NULL;
-    }
-  return Qnil;
-}
-
 DEFUN ("text-index--charpos-to-bytepos", Ftext_index__charpos_to_bytepos,
        Stext_index__charpos_to_bytepos, 1, 1, 0,
        doc: /* Convert CHARPOS to a bytepos in current buffer.
@@ -732,15 +711,9 @@ Compute with brute force.  */)
 void
 syms_of_text_index (void)
 {
-  defsubr (&Stext_index__set);
   defsubr (&Stext_index__charpos_to_bytepos);
   defsubr (&Stext_index__bytepos_to_charpos);
   defsubr (&Stext_index__charpos_to_bytepos_brute);
-
-  DEFVAR_INT ("text-index-interval", text_index_interval, doc: /* */);
-  text_index_interval = 4*1024;
-  DEFVAR_BOOL ("use-text-index", use_text_index, doc: /* */);
-  use_text_index = true;
 }
 
 void
