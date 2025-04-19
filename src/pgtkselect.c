@@ -17,8 +17,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
-/* This should be the first include, as it may set up #defines affecting
-   interpretation of even the system includes.  */
 #include <config.h>
 
 #include "lisp.h"
