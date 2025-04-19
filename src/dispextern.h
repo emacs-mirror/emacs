@@ -322,7 +322,7 @@ struct text_pos
 /* Set marker MARKER from text position POS.  */
 
 #define SET_MARKER_FROM_TEXT_POS(MARKER, POS) \
-     set_marker_both (MARKER, Qnil, CHARPOS (POS), BYTEPOS (POS))
+     set_marker_both (MARKER, Qnil, CHARPOS (POS))
 
 /* Value is non-zero if character and byte positions of POS1 and POS2
    are equal.  */

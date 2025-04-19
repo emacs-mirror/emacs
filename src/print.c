@@ -220,7 +220,7 @@ print_finish (struct print_context *pc)
       signal_after_change (PT - print_buffer.pos, 0, print_buffer.pos);
     }
   if (MARKERP (pc->old_printcharfun))
-    set_marker_both (pc->old_printcharfun, Qnil, PT, PT_BYTE);
+    set_marker_both (pc->old_printcharfun, Qnil, PT);
   if (pc->old_point >= 0)
     SET_PT_BOTH (pc->old_point
 		 + (pc->old_point >= pc->start_point

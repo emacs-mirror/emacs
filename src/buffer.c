@@ -763,9 +763,9 @@ record_buffer_markers (struct buffer *b)
       eassert (!NILP (BVAR (b, zv_marker)));
 
       XSETBUFFER (buffer, b);
-      set_marker_both (BVAR (b, pt_marker), buffer, b->pt, b->pt_byte);
-      set_marker_both (BVAR (b, begv_marker), buffer, b->begv, b->begv_byte);
-      set_marker_both (BVAR (b, zv_marker), buffer, b->zv, b->zv_byte);
+      set_marker_both (BVAR (b, pt_marker), buffer, b->pt);
+      set_marker_both (BVAR (b, begv_marker), buffer, b->begv);
+      set_marker_both (BVAR (b, zv_marker), buffer, b->zv);
     }
 }
 

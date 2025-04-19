@@ -4959,9 +4959,9 @@ extern ptrdiff_t buf_bytepos_to_charpos (struct buffer *, ptrdiff_t);
 extern void detach_marker (Lisp_Object);
 extern void unchain_marker (struct Lisp_Marker *);
 extern Lisp_Object set_marker_restricted (Lisp_Object, Lisp_Object, Lisp_Object);
-extern Lisp_Object set_marker_both (Lisp_Object, Lisp_Object, ptrdiff_t, ptrdiff_t);
+extern Lisp_Object set_marker_both (Lisp_Object, Lisp_Object, ptrdiff_t);
 extern Lisp_Object set_marker_restricted_both (Lisp_Object, Lisp_Object,
-                                               ptrdiff_t, ptrdiff_t);
+                                               ptrdiff_t);
 extern Lisp_Object build_marker (struct buffer *, ptrdiff_t);
 extern void syms_of_marker (void);
 

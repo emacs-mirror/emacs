@@ -500,7 +500,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	  break;
 
 	case 'd':		/* Value of point.  Does not do I/O.  */
-	  set_marker_both (point_marker, Qnil, PT, PT_BYTE);
+	  set_marker_both (point_marker, Qnil, PT);
 	  args[i] = point_marker;
 	  /* visargs[i] = Qnil; */
 	  varies[i] = 1;
@@ -658,7 +658,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
 	case 'r':		/* Region, point and mark as 2 args.  */
 	  {
 	    check_mark (true);
-	    set_marker_both (point_marker, Qnil, PT, PT_BYTE);
+	    set_marker_both (point_marker, Qnil, PT);
 	    ptrdiff_t mark = marker_position (BVAR (current_buffer, mark));
 	    /* visargs[i] = visargs[i + 1] = Qnil; */
 	    args[i] = PT < mark ? point_marker : BVAR (current_buffer, mark);

@@ -148,15 +148,8 @@ before it was killed.  */)
 
 static void
 attach_marker (struct Lisp_Marker *m, struct buffer *b,
-	       ptrdiff_t charpos, ptrdiff_t bytepos)
+	       ptrdiff_t charpos)
 {
-  /* In a single-byte buffer, two positions must be equal.
-     Otherwise, every character is at least one byte.  */
-  if (BUF_Z (b) == BUF_Z_BYTE (b))
-    eassert (charpos == bytepos);
-  else
-    eassert (charpos <= bytepos);
-
    if (m->buffer != b)
     {
       unchain_marker (m);
@@ -209,7 +202,7 @@ set_marker_internal (Lisp_Object marker, Lisp_Object position,
 
   else
     {
-      register ptrdiff_t charpos, bytepos;
+      register ptrdiff_t charpos;
 
       /* Do not use CHECK_FIXNUM_COERCE_MARKER because we
 	 don't want to call buf_charpos_to_bytepos if POSITION
@@ -222,15 +215,13 @@ set_marker_internal (Lisp_Object marker, Lisp_Object position,
 	  if (cpos > PTRDIFF_MAX)
 	    cpos = PTRDIFF_MAX;
 	  charpos = cpos;
-	  bytepos = -1;
 #else
-	  charpos = XFIXNUM (position), bytepos = -1;
+	  charpos = XFIXNUM (position);
 #endif
 	}
       else if (MARKERP (position))
 	{
 	  charpos = marker_vector_charpos (XMARKER (position));
-	  bytepos = marker_vector_bytepos (XMARKER (position));
 	}
       else
 	wrong_type_argument (Qinteger_or_marker_p, position);
@@ -238,18 +229,8 @@ set_marker_internal (Lisp_Object marker, Lisp_Object position,
       charpos = clip_to_bounds
 	(restricted ? BUF_BEGV (b) : BUF_BEG (b), charpos,
 	 restricted ? BUF_ZV (b) : BUF_Z (b));
-      /* Don't believe BYTEPOS if it comes from a different buffer,
-	 since that buffer might have a very different correspondence
-	 between character and byte positions.  */
-      if (bytepos == -1
-	  || !(MARKERP (position) && XMARKER (position)->buffer == b))
-	bytepos = buf_charpos_to_bytepos (b, charpos);
-      else
-	bytepos = clip_to_bounds
-	  (restricted ? BUF_BEGV_BYTE (b) : BUF_BEG_BYTE (b),
-	   bytepos, restricted ? BUF_ZV_BYTE (b) : BUF_Z_BYTE (b));
 
-      attach_marker (m, b, charpos, bytepos);
+      attach_marker (m, b, charpos);
     }
 
 #ifdef HAVE_TEXT_CONVERSION
@@ -303,7 +284,7 @@ set_marker_restricted (Lisp_Object marker, Lisp_Object position,
 
 Lisp_Object
 set_marker_both (Lisp_Object marker, Lisp_Object buffer,
-		 ptrdiff_t charpos, ptrdiff_t bytepos)
+		 ptrdiff_t charpos)
 {
   register struct Lisp_Marker *m;
   register struct buffer *b = live_buffer (buffer);
@@ -312,7 +293,7 @@ set_marker_both (Lisp_Object marker, Lisp_Object buffer,
   m = XMARKER (marker);
 
   if (b)
-    attach_marker (m, b, charpos, bytepos);
+    attach_marker (m, b, charpos);
   else
     unchain_marker (m);
   return marker;
@@ -322,7 +303,7 @@ set_marker_both (Lisp_Object marker, Lisp_Object buffer,
 
 Lisp_Object
 set_marker_restricted_both (Lisp_Object marker, Lisp_Object buffer,
-			    ptrdiff_t charpos, ptrdiff_t bytepos)
+			    ptrdiff_t charpos)
 {
   register struct Lisp_Marker *m;
   register struct buffer *b = live_buffer (buffer);
@@ -332,10 +313,9 @@ set_marker_restricted_both (Lisp_Object marker, Lisp_Object buffer,
 
   if (b)
     {
-      attach_marker
-	(m, b,
-	 clip_to_bounds (BUF_BEGV (b), charpos, BUF_ZV (b)),
-	 clip_to_bounds (BUF_BEGV_BYTE (b), bytepos, BUF_ZV_BYTE (b)));
+      attach_marker (m, b,
+		     clip_to_bounds (BUF_BEGV (b),
+				     charpos, BUF_ZV (b)));
     }
   else
     unchain_marker (m);
