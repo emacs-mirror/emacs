@@ -92,7 +92,7 @@ struct text_index
 enum
 {
   /* Number of bytes in an interval.  */
-  TEXT_INDEX_INTERVAL = 4000,
+  TEXT_INDEX_INTERVAL = 4096,
 
   /* Default capacity in number of intervals for text indices.  */
   TEXT_INDEX_DEFAULT_CAPACITY = 20,
