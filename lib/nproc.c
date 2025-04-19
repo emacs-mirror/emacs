@@ -398,20 +398,16 @@ parse_omp_threads (char const* threads)
   /* Convert it from positive decimal to 'unsigned long'.  */
   if (c_isdigit (*threads))
     {
-      char *endptr = NULL;
+      char *endptr;
       unsigned long int value = strtoul (threads, &endptr, 10);
-
-      if (endptr != NULL)
-        {
-          while (*endptr != '\0' && c_isspace (*endptr))
-            endptr++;
-          if (*endptr == '\0')
-            return value;
-          /* Also accept the first value in a nesting level,
-             since we can't determine the nesting level from env vars.  */
-          else if (*endptr == ',')
-            return value;
-        }
+      while (*endptr != '\0' && c_isspace (*endptr))
+        endptr++;
+      if (*endptr == '\0')
+        return value;
+      /* Also accept the first value in a nesting level,
+         since we can't determine the nesting level from env vars.  */
+      else if (*endptr == ',')
+        return value;
     }
 
   return ret;
@@ -438,6 +434,9 @@ num_processors (enum nproc_query query)
       query = NPROC_CURRENT;
     }
   /* Here query is one of NPROC_ALL, NPROC_CURRENT.  */
+  if (omp_env_limit == 1)
+    /* No need to even call num_processors_ignoring_omp (query).  */
+    return 1;
   {
     unsigned long nprocs = num_processors_ignoring_omp (query);
     return MIN (nprocs, omp_env_limit);

@@ -30,7 +30,12 @@
    <getopt.h>; our definitions will be present soon enough.  */
 #if @HAVE_GETOPT_H@
 # define _GL_SYSTEM_GETOPT
+/* Rename the system's 'struct option' to 'struct sys_option',
+   so that we don't have to rename ours to 'struct rpl_option'
+   (which would cause significant trouble in C++ mode).  */
+# define option sys_option
 # @INCLUDE_NEXT@ @NEXT_GETOPT_H@
+# undef option
 # undef _GL_SYSTEM_GETOPT
 #endif
 

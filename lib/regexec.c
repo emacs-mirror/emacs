@@ -185,7 +185,7 @@ static reg_errcode_t extend_buffers (re_match_context_t *mctx, int min_len);
 
 int
 regexec (const regex_t *__restrict preg, const char *__restrict string,
-	 size_t nmatch, regmatch_t pmatch[_REGEX_NELTS (nmatch)], int eflags)
+	 size_t nmatch, regmatch_t pmatch[], int eflags)
 {
   reg_errcode_t err;
   Idx start, length;
@@ -229,7 +229,7 @@ int
 attribute_compat_text_section
 __compat_regexec (const regex_t *__restrict preg,
 		  const char *__restrict string, size_t nmatch,
-		  regmatch_t pmatch[_REGEX_NELTS (nmatch)], int eflags)
+		  regmatch_t pmatch[], int eflags)
 {
   return regexec (preg, string, nmatch, pmatch,
 		  eflags & (REG_NOTBOL | REG_NOTEOL));
@@ -2721,8 +2721,8 @@ get_subexp (re_match_context_t *mctx, Idx bkref_node, Idx bkref_str_idx)
 	    continue; /* No.  */
 	  if (sub_top->path == NULL)
 	    {
-	      sub_top->path = calloc (sizeof (state_array_t),
-				      sl_str - sub_top->str_idx + 1);
+	      sub_top->path = calloc (sl_str - sub_top->str_idx + 1,
+                                      sizeof (state_array_t));
 	      if (sub_top->path == NULL)
 		return REG_ESPACE;
 	    }
@@ -3266,7 +3266,7 @@ build_trtable (const re_dfa_t *dfa, re_dfastate_t *state)
       if (ndests == 0)
 	{
 	  state->trtable = (re_dfastate_t **)
-	    calloc (sizeof (re_dfastate_t *), SBC_MAX);
+	    calloc (SBC_MAX, sizeof (re_dfastate_t *));
           if (__glibc_unlikely (state->trtable == NULL))
             return false;
 	  return true;
@@ -3338,7 +3338,7 @@ build_trtable (const re_dfa_t *dfa, re_dfastate_t *state)
 	 discern by looking at the character code: allocate a
 	 256-entry transition table.  */
       trtable = state->trtable =
-	(re_dfastate_t **) calloc (sizeof (re_dfastate_t *), SBC_MAX);
+	(re_dfastate_t **) calloc (SBC_MAX, sizeof (re_dfastate_t *));
       if (__glibc_unlikely (trtable == NULL))
 	goto out_free;
 
@@ -3369,7 +3369,7 @@ build_trtable (const re_dfa_t *dfa, re_dfastate_t *state)
 	 transition tables, one starting at trtable[0] and one
 	 starting at trtable[SBC_MAX].  */
       trtable = state->word_trtable =
-	(re_dfastate_t **) calloc (sizeof (re_dfastate_t *), 2 * SBC_MAX);
+	(re_dfastate_t **) calloc (2 * SBC_MAX, sizeof (re_dfastate_t *));
       if (__glibc_unlikely (trtable == NULL))
 	goto out_free;
 

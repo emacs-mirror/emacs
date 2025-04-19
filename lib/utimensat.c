@@ -136,8 +136,9 @@ rpl_utimensat (int fd, char const *file, struct timespec const times[2],
         }
 #   endif
 #  endif
-#  if defined __APPLE__ && defined __MACH__
-      /* macOS 10.13 does not reject invalid tv_nsec values either.  */
+#  if (defined __APPLE__ && defined __MACH__) || defined __gnu_hurd__
+      /* macOS 10.13 and GNU Hurd do not reject invalid tv_nsec values
+         either.  */
       if (times
           && ((times[0].tv_nsec != UTIME_OMIT
                && times[0].tv_nsec != UTIME_NOW
@@ -151,6 +152,7 @@ rpl_utimensat (int fd, char const *file, struct timespec const times[2],
           errno = EINVAL;
           return -1;
         }
+#   if defined __APPLE__ && defined __MACH__
       size_t len = strlen (file);
       if (len > 0 && file[len - 1] == '/')
         {
@@ -163,6 +165,7 @@ rpl_utimensat (int fd, char const *file, struct timespec const times[2],
               return -1;
             }
         }
+#   endif
 #  endif
       result = utimensat (fd, file, times, flag);
       /* Linux kernel 2.6.25 has a bug where it returns EINVAL for

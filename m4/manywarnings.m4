@@ -1,5 +1,5 @@
 # manywarnings.m4
-# serial 28
+# serial 29
 dnl Copyright (C) 2008-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -94,7 +94,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC(C)],
   # List all gcc warning categories.
   # To compare this list to your installed GCC's, run this Bash command:
   #
-  # comm -3 \
+  # export LC_ALL=C && comm -3 \
   #  <((sed -n 's/^  *\(-[^ 0-9][^ ]*\).*/\1/p' manywarnings.m4; \
   #     awk '/^[^#]/ {print $1}' ../build-aux/gcc-warning.spec) | sort) \
   #  <(LC_ALL=C gcc --help=warnings | sed -n 's/^  \(-[^ ]*\) .*/\1/p' | sort)

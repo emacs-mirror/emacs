@@ -45,7 +45,7 @@
 # include <utmp.h>
 #endif
 
-/* Needed for BOOT_TIME and USER_PROCESS.  */
+/* Needed for BOOT_TIME, USER_PROCESS, LOGIN_PROCESS.  */
 #if HAVE_UTMPX_H
 # if defined _THREAD_SAFE && defined UTMP_DATA_INIT
     /* When including both utmp.h and utmpx.h on AIX 4.3, with _THREAD_SAFE
@@ -74,7 +74,8 @@ struct gl_utmp
   struct timespec ut_ts;        /* time */
   pid_t ut_pid;                 /* process ID of ? */
   pid_t ut_session;             /* process ID of session leader */
-  short ut_type;                /* BOOT_TIME, USER_PROCESS, or other */
+  short ut_type;                /* BOOT_TIME, USER_PROCESS, LOGIN_PROCESS,
+                                   or other */
   struct { int e_termination; int e_exit; } ut_exit;
 };
 
@@ -257,19 +258,21 @@ struct utmpx32
 # define WTMP_FILE "/etc/wtmp"
 #endif
 
-/* In early versions of Android, <utmp.h> did not define BOOT_TIME, only
-   USER_PROCESS.  We need to use the value that is defined in newer versions
-   of Android.  */
+/* In early versions of Android, <utmp.h> did not define BOOT_TIME or
+   LOGIN_PROCESS, only USER_PROCESS.  We need to use the value that is defined
+   in newer versions of Android.  */
 #if defined __ANDROID__ && !defined BOOT_TIME
 # define BOOT_TIME 2
+# define LOGIN_PROCESS 6
 #endif
 
 /* Some platforms, such as OpenBSD, don't have an ut_type field and don't have
-   the BOOT_TIME and USER_PROCESS macros.  But we want to support them in
-   'struct gl_utmp'.  */
+   the BOOT_TIME, USER_PROCESS, and LOGIN_PROCESS macros.  But we want to
+   support them in 'struct gl_utmp'.  */
 #if !(HAVE_UTMPX_H ? HAVE_STRUCT_UTMPX_UT_TYPE : HAVE_STRUCT_UTMP_UT_TYPE)
 # define BOOT_TIME 2
 # define USER_PROCESS 0
+# define LOGIN_PROCESS 6
 #endif
 
 /* Macros that test (UT)->ut_type.  */
@@ -282,6 +285,11 @@ struct utmpx32
 # define UT_TYPE_USER_PROCESS(UT) ((UT)->ut_type == USER_PROCESS)
 #else
 # define UT_TYPE_USER_PROCESS(UT) 0
+#endif
+#ifdef LOGIN_PROCESS
+# define UT_TYPE_LOGIN_PROCESS(UT) ((UT)->ut_type == LOGIN_PROCESS)
+#else
+# define UT_TYPE_LOGIN_PROCESS(UT) 0
 #endif
 
 /* Determines whether an entry *UT corresponds to a user process.  */

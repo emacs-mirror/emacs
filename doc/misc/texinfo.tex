@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2025-01-31.21}
+\def\texinfoversion{2025-03-22.08}
 %
 % Copyright 1985, 1986, 1988, 1990-2025 Free Software Foundation, Inc.
 %
@@ -287,7 +287,6 @@
 % Avoid "undefined control sequence" errors.
 \def\currentchapterdefs{}
 \def\currentsectiondefs{}
-\def\currentsection{}
 \def\prevchapterdefs{}
 \def\prevsectiondefs{}
 \def\currentcolordefs{}
@@ -980,17 +979,50 @@ where each line of input produces a line of output.}
 \newif\ifpdf
 \newif\ifpdfmakepagedest
 
+% when pdftex is run in dvi mode, \pdfoutput is defined (so \pdfoutput=1
+% can be set).  So we test for \relax and 0 as well as being undefined.
+\ifx\pdfoutput\thisisundefined
+\else
+  \ifx\pdfoutput\relax
+  \else
+    \ifcase\pdfoutput
+    \else
+      \pdftrue
+    \fi
+  \fi
+\fi
+
+\newif\ifxetex
+\ifx\XeTeXrevision\thisisundefined\else
+  \xetextrue
+\fi
+
 \newif\ifluatex
 \ifx\luatexversion\thisisundefined\else
   \luatextrue
+  \ifnum\luatexversion>84
+    \pdftrue
+  \fi
 \fi
+
+\newif\ifpdforxetex
+\ifpdf
+  \pdforxetextrue
+\fi
+\ifxetex
+  \pdforxetextrue
+\fi
+
+
+
+% Whether to use non-ASCII bytes in internal link targets.  Presently this
+% is almost always on.
+\newif\iftxiuseunicodedestname
+\txiuseunicodedestnametrue
 
 %
 % For LuaTeX
 %
-
-\newif\iftxiuseunicodedestname
-\txiuseunicodedestnamefalse % For pdfTeX etc.
 
 \ifluatex
   % Use Unicode destination names
@@ -1045,7 +1077,7 @@ where each line of input produces a line of output.}
     %
   \endgroup
   \def\pdfescapestring#1{\directlua{PDFescstr('\luaescapestring{#1}')}}
-  \ifnum\luatexversion>84
+  \ifpdf
     % For LuaTeX >= 0.85
     \def\pdfdest{\pdfextension dest}
     \let\pdfoutput\outputmode
@@ -1066,33 +1098,6 @@ where each line of input produces a line of output.}
     \edef\pdfhorigin{\pdfvariable horigin}
     \edef\pdfvorigin{\pdfvariable vorigin}
   \fi
-\fi
-
-% when pdftex is run in dvi mode, \pdfoutput is defined (so \pdfoutput=1
-% can be set).  So we test for \relax and 0 as well as being undefined.
-\ifx\pdfoutput\thisisundefined
-\else
-  \ifx\pdfoutput\relax
-  \else
-    \ifcase\pdfoutput
-    \else
-      \pdftrue
-    \fi
-  \fi
-\fi
-
-\newif\ifxetex
-\ifx\XeTeXrevision\thisisundefined\else
-  \xetextrue
-\fi
-
-\newif\ifpdforxetex
-\pdforxetexfalse
-\ifpdf
-  \pdforxetextrue
-\fi
-\ifxetex
-  \pdforxetextrue
 \fi
 
 
@@ -1388,9 +1393,6 @@ output) for that.)}
     \safewhatsit{\pdfdest name{\pdfdestname} xyz}%
   }
   %
-  % used to mark target names; must be expandable.
-  \def\pdfmkpgn#1{#1}
-  %
   % Adding outlines to PDF; macros for calculating structure of outlines
   % come from Petr Olsak
   \def\expnumber#1{\expandafter\ifx\csname#1\endcsname\relax 0%
@@ -1416,7 +1418,7 @@ output) for that.)}
       \def\pdfdestname{#4}%
     \fi
     %
-    \pdfoutline goto name{\pdfmkpgn{\pdfdestname}}#2{\pdfoutlinetext}%
+    \pdfoutline goto name{\pdfdestname}#2{\pdfoutlinetext}%
   }
   %
   \def\pdfmakeoutlines{%
@@ -1427,15 +1429,18 @@ output) for that.)}
 	\def\thischapnum{##2}%
 	\def\thissecnum{0}%
 	\def\thissubsecnum{0}%
+	\def\indexlastsec{chap\thischapnum}%
       }%
       \def\numsecentry##1##2##3##4{%
 	\advancenumber{chap\thischapnum}%
 	\def\thissecnum{##2}%
 	\def\thissubsecnum{0}%
+	\def\indexlastsec{sec\thissecnum}%
       }%
       \def\numsubsecentry##1##2##3##4{%
 	\advancenumber{sec\thissecnum}%
 	\def\thissubsecnum{##2}%
+	\def\indexlastsec{subsec\thissecnum}%
       }%
       \def\numsubsubsecentry##1##2##3##4{%
 	\advancenumber{subsec\thissubsecnum}%
@@ -1443,7 +1448,13 @@ output) for that.)}
       \def\thischapnum{0}%
       \def\thissecnum{0}%
       \def\thissubsecnum{0}%
+      \let\indexlastsec\empty
       %
+      % Index initials are subsidiary to whatever sectioning command just
+      % occurred, usually @appendix or @chapter but occasionally a lower level.
+      \def\idxinitialentry##1##2##3##4{%
+        \expandafter\advancenumber\expandafter{\indexlastsec}%
+      }%
       % use \def rather than \let here because we redefine \chapentry et
       % al. a second time, below.
       \def\appentry{\numchapentry}%
@@ -1455,9 +1466,6 @@ output) for that.)}
       \def\unnsubsecentry{\numsubsecentry}%
       \def\unnsubsubsecentry{\numsubsubsecentry}%
       %
-      % Treat index initials like @section.  Note that this is the wrong
-      % level if the index is not at the level of @appendix or @chapter.
-      \def\idxinitialentry{\numsecentry}%
       \readdatafile{toc}%
       %
       % Read toc second time, this time actually producing the outlines.
@@ -1482,18 +1490,6 @@ output) for that.)}
       \def\idxinitialentry##1##2##3##4{%
         \dopdfoutline{##1}{}{idx.##1.##2}{##4}}%
       %
-      % PDF outlines are displayed using system fonts, instead of
-      % document fonts.  Therefore we cannot use special characters,
-      % since the encoding is unknown.  For example, the eogonek from
-      % Latin 2 (0xea) gets translated to a | character.  Info from
-      % Staszek Wawrykiewicz, 19 Jan 2004 04:09:24 +0100.
-      %
-      % TODO this right, we have to translate 8-bit characters to
-      % their "best" equivalent, based on the @documentencoding.  Too
-      % much work for too little return.  Just use the ASCII equivalents
-      % we use for the index sort strings.
-      %
-      \indexnofonts
       \ifnodeseen\else \dopdfoutlinecontents \fi % for @contents at beginning
       \setupdatafile
       % We can have normal brace characters in the PDF outlines, unlike
@@ -1501,9 +1497,9 @@ output) for that.)}
       \def\{{\lbracecharliteral}%
       \def\}{\rbracecharliteral}%
       \catcode`\\=\active \otherbackslash
-      \input \tocreadfilename
+      \input \tocreadfilename\relax
+      \ifnodeseen \dopdfoutlinecontents \fi % for @contents at end
     \endgroup
-    \ifnodeseen \dopdfoutlinecontents \fi % for @contents at end
   }
   \def\dopdfoutlinecontents{%
     \expandafter\dopdfoutline\expandafter{\putwordTOC}{}{txi.CONTENTS}{}%
@@ -1541,7 +1537,7 @@ output) for that.)}
   %
   \def\pdflink#1{\pdflinkpage{#1}{#1}}%
   \def\pdflinkpage#1#2{%
-    \startlink attr{/Border [0 0 0]} goto name{\pdfmkpgn{#1}}
+    \startlink attr{/Border [0 0 0]} goto name{#1}
     \setcolor{\linkcolor}#2\endlink}
 \else
   % non-pdf mode
@@ -1644,18 +1640,20 @@ output) for that.)}
       % horizontal space being required in the PDF viewer.
       \def\partentry##1##2##3##4{}% ignore parts in the outlines
       \def\numchapentry##1##2##3##4{%
-        \dopdfoutline{##2 ##1}{1}{##3}{##4}}%
+        \dopdfoutline{##2 ##1}{1}{##3}{##4}%
+        \def\indexseclevel{2}}%
       \def\numsecentry##1##2##3##4{%
-        \dopdfoutline{##1}{2}{##3}{##4}}%
+        \dopdfoutline{##1}{2}{##3}{##4}%
+        \def\indexseclevel{3}}%
       \def\numsubsecentry##1##2##3##4{%
-        \dopdfoutline{##1}{3}{##3}{##4}}%
+        \dopdfoutline{##1}{3}{##3}{##4}%
+        \def\indexseclevel{4}}%
       \def\numsubsubsecentry##1##2##3##4{%
-        \dopdfoutline{##1}{4}{##3}{##4}}%
+        \dopdfoutline{##1}{4}{##3}{##4}%
+        \def\indexseclevel{5}}%
       %
-      % Note this is at the wrong level unless the index is in an @appendix
-      % or @chapter.
       \def\idxinitialentry##1##2##3##4{%
-         \dopdfoutline{##1}{2}{idx.##1.##2}{##4}}%
+         \dopdfoutline{##1}{\indexseclevel}{idx.##1.##2}{##4}}%
       %
       \let\appentry\numchapentry%
       \let\appsecentry\numsecentry%
@@ -1680,7 +1678,9 @@ output) for that.)}
       \def\{{\lbracecharliteral}%
       \def\}{\rbracecharliteral}%
       \catcode`\\=\active \otherbackslash
+      \xetexpreauxfile
       \input \tocreadfilename\relax
+      \xetexpostauxfile
       \ifnodeseen \dopdfoutlinecontents \fi % for @contents at end
     \endgroup
   }
@@ -5177,8 +5177,8 @@ $$%
   %
   \uccode`\1=`\{ \uppercase{\def\{{1}}%
   \uccode`\1=`\} \uppercase{\def\}{1}}%
-  \let\lbracechar\{%
-  \let\rbracechar\}%
+  \def\lbracechar##1{\{}%
+  \def\rbracechar##1{\}}%
   %
   %
   % We need to get rid of all macros, leaving only the arguments (if present).
@@ -5523,6 +5523,8 @@ $$%
   \tolerance = 9500
   \plainfrenchspacing
   \everypar = {}% don't want the \kern\-parindent from indentation suppression.
+  \let\entry\indexentry
+  \ifxetex\xetexpreauxfile\fi
   %
   % See comment in \requireopenindexfile.
   \def\indexname{#1}\ifx\indexname\indexisfl\def\indexname{f1}\fi
@@ -5548,6 +5550,7 @@ $$%
     \fi
   \fi
   \closein 1
+  \ifxetex\xetexpostauxfile\fi
 \endgroup}
 
 % Checked in @bye
@@ -5583,7 +5586,9 @@ might help (with 'rm \jobname.?? \jobname.??s')%
       }%
     \else
       \begindoublecolumns
+      \ifxetex\xetexpreauxfile\fi
       \input \jobname.\indexname s
+      \ifxetex\xetexpostauxfile\fi
       \enddoublecolumns
     \fi
   }{%
@@ -5594,10 +5599,38 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     % should work because we (hopefully) don't otherwise use @ in index files.
     %\catcode`\@=12\relax
     \catcode`\@=0\relax
+    \ifxetex\xetexpreauxfile\fi
     \input \jobname.\indexname s
+    \ifxetex\xetexpostauxfile\fi
     \enddoublecolumns
   }%
 }
+
+\def\indexentry#1#2{%
+  \let\entrypagetarget\empty
+  \ifpdforxetex
+    % only link the index text to the page if no comma appears in the
+    % list of pages, i.e. there is only one page
+    \checkpagelistcomma{#2}\pagelistcomma
+    \expandafter\ifcase\pagelistcomma
+      \def\entrypagetarget{#2}%
+    \fi
+  \fi%
+  \entryinternal{#1}{#2}%
+}
+
+\def\checkpagelistcomma#1#2{%
+  \checkpagelistcommaxx#2#1,\finish
+}
+\def\checkpagelistcommaxx#1#2,#3\finish{%
+  \def\tmp{#3}%
+  \ifx\tmp\empty
+    \def#1{0\relax}
+  \else
+    \def#1{1\relax}
+  \fi
+}
+
 
 % These macros are used by the sorted index file itself.
 % Change them to control the appearance of the index.
@@ -5673,18 +5706,14 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \def\doindexinitialentry#1{%
   \ifpdforxetex
     \global\advance\idxinitialno by 1
-    \def\indexlbrace{\{}
-    \def\indexrbrace{\}}
-    \def\indexbackslash{\realbackslash}
-    \def\indexatchar{\@}
+    \def\indexlbrace{\{}%
+    \def\indexrbrace{\}}%
+    \def\indexbackslash{\realbackslash}%
+    \def\indexatchar{\@}%
     \writetocentry{idxinitial}{\asis #1}{IDX\the\idxinitialno}%
     % The @asis removes a pair of braces around e.g. {@indexatchar} that
     % are output by texindex.
     %
-    \vbox to 0pt{}%
-    % This vbox fixes the \pdfdest location for double column formatting.
-    % Without it, the \pdfdest is output above topskip glue at the top
-    % of a column as this glue is not added until the first box.
     \pdfmkdest{idx.\asis #1.IDX\the\idxinitialno}%
   \fi
 }
@@ -5704,16 +5733,18 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \newdimen\entrycontskip
 \entrycontskip=1em
 
-% for PDF output, whether to make the text of the entry a link to the page
-% number.  set for @contents and @shortcontents where there is only one
-% page number.
+% for PDF output, whether to make the text of the entry a link to the section.
+% set for @contents and @shortcontents.
 \newif\iflinkentrytext
 
-% \entry typesets a paragraph consisting of the text (#1), dot leaders, and
-% then page number (#2) flushed to the right margin.  It is used for index
-% and table of contents entries.  The paragraph is indented by \leftskip.
-% If \tocnodetarget is set, link text to the referenced node.
-\def\entry{%
+% \entryinternal typesets a paragraph consisting of the text (#1), dot
+% leaders, and then page number (#2) flushed to the right margin.  It is
+% used for index and table of contents entries.  The paragraph is indented
+% by \leftskip.
+% For PDF output, if \linkentrytexttrue and \tocnodetarget is set, link text
+% to the referenced node.  Else if \entrypagetarget is set, link text to the
+% page.
+\def\entryinternal{%
   \begingroup
     %
     % Start a new paragraph if necessary, so our assignments below can't
@@ -5761,7 +5792,11 @@ might help (with 'rm \jobname.?? \jobname.??s')%
             \endlink
           \fi
         \else
-          \unhbox\boxA
+          \ifx\entrypagetarget\empty
+            \unhbox\boxA
+          \else
+            \pdflinkpage{\entrypagetarget}{\unhbox\boxA}%
+          \fi
         \fi
       \else
         \unhbox\boxA
@@ -6433,6 +6468,10 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \parseargdef\subsubheading{\sectionheading{#1}{subsubsec}{Yomitfromtoc}{}
   \suppressfirstparagraphindent}
 
+% @xrefname - give text with printed name for linking to node and allow
+% referencing node, but do not print any heading.
+\parseargdef\xrefname{\donoderef{Yomitfromtoc}{#1}}%
+
 % These macros generate a chapter, section, etc. heading only
 % (including whitespace, linebreaking, etc. around it),
 % given all the information in convenient, parsed form.
@@ -6554,11 +6593,6 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \chapfonts \rm
     \let\footnote=\errfootnoteheading % give better error message
     %
-    % Have to define \currentsection before calling \donoderef, because the
-    % xref code eventually uses it.  On the other hand, it has to be called
-    % after \pchapsepmacro, or the headline will change too soon.
-    \gdef\currentsection{#1}%
-    %
     % Only insert the separating space if we have a chapter/appendix
     % number, and don't print the unnumbered ``number''.
     \ifx\temptype\Ynothingkeyword
@@ -6585,7 +6619,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     % been typeset.  If the destination for the pdf outline is after the
     % text, then jumping from the outline may wind up with the text not
     % being visible, for instance under high magnification.
-    \donoderef{#2}%
+    \donoderef{#2}{#1}%
     %
     % Typeset the actual heading.
     \nobreak % Avoid page breaks at the interline glue.
@@ -6701,21 +6735,17 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \ifx\temptype\Ynothingkeyword
       \setbox0 = \hbox{}%
       \def\toctype{unn}%
-      \gdef\currentsection{#1}%
     \else\ifx\temptype\Yomitfromtockeyword
-      % for @headings -- no section number, don't include in toc,
-      % and don't redefine \currentsection.
+      % for @headings -- no section number, don't include in toc.
       \setbox0 = \hbox{}%
       \def\toctype{omit}%
       \let\sectionlevel=\empty
     \else\ifx\temptype\Yappendixkeyword
       \setbox0 = \hbox{#4\enspace}%
       \def\toctype{app}%
-      \gdef\currentsection{#1}%
     \else
       \setbox0 = \hbox{#4\enspace}%
       \def\toctype{num}%
-      \gdef\currentsection{#1}%
     \fi\fi\fi
     %
     % Write the toc entry (before \donoderef).  See comments in \chapmacro.
@@ -6723,7 +6753,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     %
     % Write the node reference (= pdf destination for pdftex).
     % Again, see comments in \chapmacro.
-    \donoderef{#3}%
+    \donoderef{#3}{#1}%
     %
     % Interline glue will be inserted when the vbox is completed.
     % That glue will be a valid breakpoint for the page, since it'll be
@@ -6955,6 +6985,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 %
 \def\contents{%
   \startcontents{\putwordTOC}{\contentsmkdest}%
+    \ifxetex\xetexpreauxfile\fi
     \openin 1 \tocreadfilename\space
     \ifeof 1 \else
       \findsecnowidths
@@ -6966,6 +6997,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
       \pdfmakeoutlines
     \fi
     \closein 1
+    \ifxetex\xetexpostauxfile\fi
   \endgroup
   \contentsendroman
 }
@@ -6999,11 +7031,13 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \let\numsubsubsecentry = \numsecentry
     \let\appsubsubsecentry = \numsecentry
     \let\unnsubsubsecentry = \numsecentry
+    \ifxetex\xetexpreauxfile\fi
     \openin 1 \tocreadfilename\space
     \ifeof 1 \else
       \readtocfile
     \fi
     \closein 1
+    \ifxetex\xetexpostauxfile\fi
     \vfill \eject
     \contentsalignmacro % in case @setchapternewpage odd is in effect
   \endgroup
@@ -7167,6 +7201,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \extrasecnoskip=0pt
 
 \let\tocnodetarget\empty
+\let\entrypagetarget\empty
 
 % \tocentry{TITLE}{SEC NO}{NODE}{PAGE}
 %
@@ -7174,7 +7209,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \def\tocnodetarget{#3}%
   \def\secno{#2}%
   \ifx\empty\secno
-    \entry{#1}{#4}%
+    \entryinternal{#1}{#4}%
   \else
     \ifdim 0pt=\secnowidth
       \setbox0=\hbox{#2\hskip\labelspace\hskip\extrasecnoskip}%
@@ -7185,7 +7220,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
         #2\hskip\labelspace\hskip\extrasecnoskip\hfill}%
     \fi
     \entrycontskip=\wd0
-    \entry{\box0 #1}{#4}%
+    \entryinternal{\box0 #1}{#4}%
   \fi
 }
 \newdimen\labelspace
@@ -8170,18 +8205,11 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   }
 \fi
 
-\let\E=\expandafter
-
 % Used at the time of macro expansion.
 % Argument is macro body with arguments substituted
 \def\scanmacro#1{%
   \newlinechar`\^^M
-  % expand the expansion of \eatleadingcr twice to maybe remove a leading
-  % newline (and \else and \fi tokens), then call \eatspaces on the result.
-  \def\xeatspaces##1{%
-    \E\E\E\E\E\E\E\eatspaces\E\E\E\E\E\E\E{\eatleadingcr##1%
-  }}%
-  \def\xempty##1{}%
+  \def\xeatspaces##1{\eatleadingcrthen\eatspaces{##1}}%
   %
   % Process the macro body under the current catcode regime.
   \scantokens{#1@comment}%
@@ -8234,10 +8262,12 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \unbrace{\gdef\trim@@@ #1 } #2@{#1}
 }
 
-{\catcode`\^^M=\other%
-\gdef\eatleadingcr#1{\if\noexpand#1\noexpand^^M\else\E#1\fi}}%
-% Warning: this won't work for a delimited argument
-% or for an empty argument
+% Trim a single leading ^^M off a string, then call #1
+{\catcode`\^^M=\active \catcode`\Q=3%
+\gdef\eatleadingcrthen #1#2{\eatlcra #1Q#2Q^^MQ}%
+\gdef\eatlcra #1#2Q^^M{\eatlcrb #1#2Q}%
+\gdef\eatlcrb #1Q#2Q#3Q{#1{#2}}%
+}
 
 % Trim a single trailing ^^M off a string.
 {\catcode`\^^M=\other \catcode`\Q=3%
@@ -8373,6 +8403,10 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % <parameter list> is #, then the preceding argument is delimited by
 % an opening brace, and that opening brace is not consumed.
 
+% Make @ a letter, so that we can make private-to-Texinfo macro names.
+\edef\texiatcatcode{\the\catcode`\@}
+\catcode `@=11\relax
+
 % Parse the optional {params} list to @macro or @rmacro.
 % Set \paramno to the number of arguments,
 % and \paramlist to a parameter text for the macro (e.g. #1,#2,#3 for a
@@ -8385,14 +8419,13 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % That gets used by \mbodybackslash (above).
 %
 % If there are 10 or more arguments, a different technique is used: see
-% \parsemmanyargdef.
+% \parsemmanyargdef@@.
 %
 \def\parsemargdef#1;{%
   \paramno=0\def\paramlist{}%
   \let\hash\relax
   % \hash is redefined to `#' later to get it into definitions
   \let\xeatspaces\relax
-  \let\xempty\relax
   \parsemargdefxxx#1,;,%
   \ifnum\paramno<10\relax\else
     \paramno0\relax
@@ -8404,11 +8437,9 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \else \let\next=\parsemargdefxxx
     \advance\paramno by 1
     \expandafter\edef\csname macarg.\eatspaces{#1}\endcsname
-        {\xeatspaces{\hash\the\paramno\noexpand\xempty{}}}%
+        {\xeatspaces{\hash\the\paramno}}%
     \edef\paramlist{\paramlist\hash\the\paramno,}%
   \fi\next}
-% the \xempty{} is to give \eatleadingcr an argument in the case of an
-% empty macro argument.
 
 % \parsemacbody, \parsermacbody
 %
@@ -8419,14 +8450,12 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % body to be transformed.
 % Set \macrobody to the body of the macro, and call \macrodef.
 %
+\catcode `\@\texiatcatcode
 {\catcode`\ =\other\long\gdef\parsemacbody#1@end macro{%
 \xdef\macrobody{\eatcr{#1}}\endgroup\macrodef}}%
 {\catcode`\ =\other\long\gdef\parsermacbody#1@end rmacro{%
 \xdef\macrobody{\eatcr{#1}}\endgroup\macrodef}}%
-
-% Make @ a letter, so that we can make private-to-Texinfo macro names.
-\edef\texiatcatcode{\the\catcode`\@}
-\catcode `@=11\relax
+\catcode `\@=11\relax
 
 %%%%%%%%%%%%%% Code for > 10 arguments only   %%%%%%%%%%%%%%%%%%
 
@@ -8687,15 +8716,13 @@ might help (with 'rm \jobname.?? \jobname.??s')%
         \noexpand\expandafter
         \expandafter\noexpand\csname\the\macname @@\endcsname}%
       \expandafter\xdef\csname\the\macname @@\endcsname##1{%
-          \noexpand\passargtomacro
-          \expandafter\noexpand\csname\the\macname @@@\endcsname{##1,}}%
+        \noexpand\passargtomacro
+        \expandafter\noexpand\csname\the\macname @@@\endcsname{##1,}}%
       \expandafter\xdef\csname\the\macname @@@\endcsname##1{%
-          \expandafter\noexpand\csname\the\macname @@@@\endcsname ##1}%
-      \expandafter\expandafter
-      \expandafter\xdef
-      \expandafter\expandafter
-        \csname\the\macname @@@@\endcsname\paramlist{%
-          \endgroup\noexpand\scanmacro{\macrobody}}%
+        \expandafter\noexpand\csname\the\macname @@@@\endcsname ##1}%
+      \expandaftergroup{\expandafter\xdef\csname\the\macname @@@@\endcsname}%
+                       \paramlist{%
+        \endgroup\noexpand\scanmacro{\macrobody}}%
     \else % 10 or more:
       \expandafter\xdef\csname\the\macname\endcsname{%
         \noexpand\getargvals@{\the\macname}{\argl}%
@@ -8706,6 +8733,16 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \fi}
 
 \catcode `\@\texiatcatcode\relax % end private-to-Texinfo catcodes
+
+% utility definition to avoid excessive use of \expandafter.  call
+% as \expandaftergroup{CONTENT}\WORD to expand \WORD exactly once and remove
+% braces around CONTENT.
+\def\expandaftergroup#1#2{%
+  \expandafter\expandaftergroupx\expandafter{#2}{#1}%
+}
+\def\expandaftergroupx#1#2{%
+  #2#1%
+}
 
 \def\norecurse#1{\bgroup\cslet{#1}{macsave.#1}}
 
@@ -8876,9 +8913,8 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \expandafter\noexpand
     \csname\the\macname @@@\endcsname##1\noexpand\endlinemacro
   }
-  \expandafter\expandafter
-  \expandafter\xdef
-  \expandafter\expandafter\csname\the\macname @@@\endcsname\paramlist{%
+  \expandaftergroup{\expandafter\xdef\csname\the\macname @@@\endcsname}%
+                     \paramlist{%
     \newlinechar=13 % split \macrobody into lines
     \noexpand\scantokens{\macrobody}%
   }
@@ -8953,11 +8989,11 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \let\lastnode=\empty
 
 % Write a cross-reference definition for the current node.  #1 is the
-% type (Ynumbered, Yappendix, Ynothing).
+% type (Ynumbered, Yappendix, Ynothing).  #2 is the section title.
 %
-\def\donoderef#1{%
+\def\donoderef#1#2{%
   \ifx\lastnode\empty\else
-    \setref{\lastnode}{#1}%
+    \setref{\lastnode}{#1}{#2}%
     \global\let\lastnode=\empty
     \setnodeseenonce
   \fi
@@ -8978,21 +9014,28 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 %
 \def\savesf{\relax \ifhmode \savesfregister=\spacefactor \fi}
 \def\restoresf{\relax \ifhmode \spacefactor=\savesfregister \fi}
-\def\anchor#1{\savesf \setref{#1}{Ynothing}\restoresf \ignorespaces}
+\def\anchor#1{%
+  \savesf \setref{#1}{Yanchor}{#1}\restoresf \ignorespaces
+}
 
-% \setref{NAME}{SNT} defines a cross-reference point NAME (a node or an
-% anchor), which consists of three parts:
-% 1) NAME-title - the current sectioning name taken from \currentsection,
-%                 or the anchor name.
-% 2) NAME-snt   - section number and type, passed as the SNT arg, or
-%                 empty for anchors.
+% @namedanchor{NAME, XREFNAME} -- define xref target at arbitrary point
+% with label text for cross-references to it.
+\def\namedanchor#1{\donamedanchor#1\finish}%
+\def\donamedanchor#1,#2\finish{%
+  \savesf \setref{#1}{Yanchor}{\ignorespaces #2\unskip}\restoresf \ignorespaces
+}
+
+% \setref{NAME}{SNT}{TITLE} defines a cross-reference point NAME (a node
+% or an anchor), which consists of three parts:
+% 1) NAME-title - the current sectioning name
+% 2) NAME-snt   - section number and type, passed as the SNT arg.
 % 3) NAME-pg    - the page number.
 %
 % This is called from \donoderef, \anchor, and \dofloat.  In the case of
 % floats, there is an additional part, which is not written here:
 % 4) NAME-lof   - the text as it should appear in a @listoffloats.
 %
-\def\setref#1#2{%
+\def\setref#1#2#3{%
   \pdfmkdest{#1}%
   \iflinks
     {%
@@ -9004,7 +9047,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 	\write\auxfile{@xrdef{#1-% #1 of \setref, expanded by the \edef
 	  ##1}{##2}}% these are parameters of \writexrdef
       }%
-      \toks0 = \expandafter{\currentsection}%
+      \toks0 = {#3}%
       \immediate \writexrdef{title}{\the\toks0 }%
       \immediate \writexrdef{snt}{\csname #2\endcsname}% \Ynumbered etc.
       \safewhatsit{\writexrdef{pg}{\folio}}% will be written later, at \shipout
@@ -9058,15 +9101,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \setbox\infofilenamebox = \hbox{\infofilename\unskip}%
   %
   \startxreflink{#1}{#4}%
-  {%
-    % Have to otherify everything special to allow the \csname to
-    % include an _ in the xref name, etc.
-    \indexnofonts
-    \turnoffactive
-    \def\value##1{##1}%
-    \expandafter\global\expandafter\let\expandafter\Xthisreftitle
-      \csname XR#1-title\endcsname
-  }%
+  \getrefx{#1-title}\Xthisreftitle
   %
   % Float references are printed completely differently: "Figure 1.2"
   % instead of "[somenode], p.3".  \iffloat distinguishes them by
@@ -9099,21 +9134,23 @@ might help (with 'rm \jobname.?? \jobname.??s')%
       % Cross-manual reference with a printed manual name.
       %
       \crossmanualxref{\cite{\printedmanual\unskip}}%
-    %
     \else\ifdim \wd\infofilenamebox > 0pt
       % Cross-manual reference with only an info filename (arg 4), no
       % printed manual name (arg 5).  This is essentially the same as
       % the case above; we output the filename, since we have nothing else.
       %
       \crossmanualxref{\code{\infofilename\unskip}}%
-    %
     \else
       % Reference within this manual.
       %
-      % Only output a following space if the -snt ref is nonempty, as the ref
-      % will be empty for @unnumbered and @anchor.
-      \setbox2 = \hbox{\ignorespaces \refx{#1-snt}}%
-      \ifdim \wd2 > 0pt \refx{#1-snt}\space\fi
+      % Only output a following space if the -snt ref is nonempty, as is
+      % the case for @unnumbered and @anchor.
+      \getrefx{#1-snt}\tmp
+      \ifx\tmp\empty\else
+        \ifx\tmp\Yanchor\else
+          \tmp\space
+        \fi
+      \fi
       %
       % output the `[mynode]' via the macro below so it can be overridden.
       \xrefprintnodename\printedrefname
@@ -9169,7 +9206,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
         \else
           % Otherwise just copy the Info node name.
           \def\printedrefname{\ignorespaces #1}%
-        \fi%
+        \fi
       \fi
     \fi
   \fi
@@ -9201,7 +9238,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
        \ifnum\filenamelength>0
          goto file{\the\filename.pdf} name{\pdfdestname}%
        \else
-         goto name{\pdfmkpgn{\pdfdestname}}%
+         goto name{\pdfdestname}%
        \fi
      \else % XeTeX
        \ifnum\filenamelength>0
@@ -9281,6 +9318,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 %
 \def\Ynothing{}
 \def\Yomitfromtoc{}
+\def\Yanchor{\isanchor} \let\isanchor\relax
 \def\Ynumbered{%
   \ifnum\secno=0
     \putwordChapter@tie \the\chapno
@@ -9307,14 +9345,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 
 % \refx{NAME} - reference a cross-reference string named NAME.
 \def\refx#1{%
-  \requireauxfile
-  {%
-    \indexnofonts
-    \turnoffactive
-    \def\value##1{##1}%
-    \expandafter\global\expandafter\let\expandafter\thisrefX
-      \csname XR#1\endcsname
-  }%
+  \getrefx{#1}\thisrefX
   \ifx\thisrefX\relax
     % If not defined, say something at least.
     \angleleft un\-de\-fined\angleright
@@ -9333,6 +9364,17 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     % It's defined, so just use it.
     \thisrefX
   \fi
+}
+
+% Set #2 to xref string #1
+\def\getrefx#1#2{%
+  \requireauxfile
+  {%
+    \indexnofonts
+    \turnoffactive
+    \def\value##1{##1}%
+    \expandafter\global\expandafter\let\expandafter#2\csname XR#1\endcsname
+  }%
 }
 
 % This is the macro invoked by entries in the aux file.  Define a control
@@ -9399,12 +9441,14 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % Read the last existing aux file, if any.  No error if none exists.
 %
 \def\tryauxfile{%
+  \ifxetex\xetexpreauxfile\fi
   \openin 1 \jobname.aux
   \ifeof 1 \else
     \readdatafile{aux}%
     \global\havexrefstrue
   \fi
   \closein 1
+  \ifxetex\xetexpostauxfile\fi
 }
 
 \def\setupdatafile{%
@@ -9790,14 +9834,15 @@ might help (with 'rm \jobname.?? \jobname.??s')%
       \global\advance\floatno by 1
       %
       {%
-        % This magic value for \currentsection is output by \setref as the
-        % XREFLABEL-title value.  \xrefX uses it to distinguish float
+        % This magic value for the third argument of \setref is output as
+        % the XREFLABEL-title value.  \xrefX uses it to distinguish float
         % labels (which have a completely different output format) from
         % node and anchor labels.  And \xrdef uses it to construct the
         % lists of floats.
         %
-        \edef\currentsection{\floatmagic=\safefloattype}%
-        \setref{\floatlabel}{Yfloat}%
+        \edef\tmp{\noexpand\setref{\floatlabel}{Yfloat}%
+                  {\floatmagic=\safefloattype}}%
+        \tmp
       }%
     \fi
     %
@@ -9919,7 +9964,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 
 % #1 is the control sequence we are passed; we expand into a conditional
 % which is true if #1 represents a float ref.  That is, the magic
-% \currentsection value which we \setref above.
+% value which we passed to \setref above.
 %
 \def\iffloat#1{\expandafter\doiffloat#1==\finish}
 %
@@ -9976,6 +10021,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \toksA = \expandafter{\csname XR#1-lof\endcsname}%
   %
   % use the same \entry macro we use to generate the TOC and index.
+  \let\entry\entryinternal
   \edef\writeentry{\noexpand\entry{\the\toksA}{\csname XR#1-pg\endcsname}}%
   \writeentry
 }}
@@ -10071,17 +10117,24 @@ directory should work if nowhere else does.}
   \fi
 \fi
 
+\let\xetexpreauxfile\relax
+\let\xetexpostauxfile\relax
+
 % Set I/O by bytes instead of UTF-8 sequence for XeTeX and LuaTex
 % for non-UTF-8 (byte-wise) encodings.
 %
 \def\setbytewiseio{%
   \ifxetex
-    \XeTeXdefaultencoding "bytes"  % For subsequent files to be read
-    \XeTeXinputencoding "bytes"  % For document root file
-    % Unfortunately, there seems to be no corresponding XeTeX command for
-    % output encoding.  This is a problem for auxiliary index and TOC files.
-    % The only solution would be perhaps to write out @U{...} sequences in
-    % place of non-ASCII characters.
+    % For document root file
+    \XeTeXinputencoding "bytes"
+    %
+    % Setting for subsequent files to be read with @include.
+    \XeTeXdefaultencoding "bytes"
+    %
+    % Use UTF-8 for reading auxiliary index and TOC files, which are
+    % always output in UTF-8 with XeTeX.
+    \def\xetexpreauxfile{\XeTeXdefaultencoding "UTF-8"}%
+    \def\xetexpostauxfile{\XeTeXdefaultencoding "bytes"}%
   \fi
 
   \ifluatex
@@ -10713,12 +10766,12 @@ directory should work if nowhere else does.}
 
 % Suppress ligature creation from adjacent characters.
 \ifluatex
-  \def\nolig{{}}
-\else
   % Braces do not suppress ligature creation in LuaTeX, e.g. in of{}fice
   % to suppress the "ff" ligature.  Using a kern appears to be the only
   % workaround.
   \def\nolig{\kern0pt{}}
+\else
+  \def\nolig{{}}
 \fi
 
 % https://en.wikipedia.org/wiki/Plane_(Unicode)#Basic_M

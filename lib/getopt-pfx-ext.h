@@ -38,11 +38,9 @@
 # endif
 # undef getopt_long
 # undef getopt_long_only
-# undef option
 # undef _getopt_internal
 # define getopt_long __GETOPT_ID (getopt_long)
 # define getopt_long_only __GETOPT_ID (getopt_long_only)
-# define option __GETOPT_ID (option)
 # define _getopt_internal __GETOPT_ID (getopt_internal)
 
 /* The system's getopt.h may have already included getopt-ext.h to

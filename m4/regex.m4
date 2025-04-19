@@ -1,5 +1,5 @@
 # regex.m4
-# serial 78
+# serial 81
 dnl Copyright (C) 1996-2001, 2003-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -53,6 +53,11 @@ AC_DEFUN([gl_REGEX],
             /* Exit with distinguishable exit code.  */
             static void sigabrt_no_core (int sig) { raise (SIGTERM); }
             #endif
+
+            /* There is no need to check whether RE_SYNTAX_EMACS is
+               (RE_CHAR_CLASSES | RE_INTERVALS), corresponding to
+               Emacs 21 (2001) and later, because Gnulib's lib/regex.h
+               is always used and has this value.  */
           ]],
           [[int result = 0;
             static struct re_pattern_buffer regex;

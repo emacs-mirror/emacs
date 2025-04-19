@@ -57,6 +57,8 @@ AC_DEFUN([gl_EARLY],
   # Code from module byteswap:
   # Code from module c-ctype:
   # Code from module c-strcase:
+  # Code from module c-strcasecmp:
+  # Code from module c-strncasecmp:
   # Code from module c99:
   # Code from module canonicalize-lgpl:
   # Code from module careadlinkat:

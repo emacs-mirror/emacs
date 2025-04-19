@@ -186,7 +186,9 @@ _GL_FUNCDECL_SYS (timespec_getres, int, (struct timespec *ts, int base),
 #   endif
 _GL_CXXALIAS_SYS (timespec_getres, int, (struct timespec *ts, int base));
 #  endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (timespec_getres);
+# endif
 # elif defined GNULIB_POSIXCHECK
 #  undef timespec_getres
 #  if HAVE_RAW_DECL_TIMESPEC_GETRES
