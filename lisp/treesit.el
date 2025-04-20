@@ -4206,7 +4206,7 @@ Expected to be called after each text change."
 (defun treesit-show-paren-data--categorize (pos &optional end-p)
   (let* ((pred 'list)
          (parent (when (treesit-thing-defined-p
-                        pred (treesit-language-at pos))
+                        pred (treesit-language-at (if end-p (1- pos) pos)))
                    (treesit-parent-until
                     (treesit-node-at (if end-p (1- pos) pos)) pred)))
          (first (when parent (treesit-node-child parent 0)))
