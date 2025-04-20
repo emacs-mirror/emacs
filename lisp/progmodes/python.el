@@ -6159,7 +6159,9 @@ parent defun name."
   (let ((end-of-block-pos (save-excursion
                             (python-nav-end-of-block)))
         (end-of-statement-pos (save-excursion
-                                (python-nav-end-of-statement))))
+                                (python-nav-end-of-statement)
+                                (python-util-forward-comment -1)
+                                (point))))
     (and end-of-block-pos end-of-statement-pos
          (= end-of-block-pos end-of-statement-pos))))
 
@@ -6182,7 +6184,10 @@ parent defun name."
 
 (defun python-info-end-of-block-p ()
   "Return non-nil if point is at end of block."
-  (and (python-info-end-of-statement-p)
+  (and (= (point) (save-excursion
+                    (python-nav-end-of-statement)
+                    (python-util-forward-comment -1)
+                    (point)))
        (python-info-statement-ends-block-p)))
 
 (define-obsolete-function-alias

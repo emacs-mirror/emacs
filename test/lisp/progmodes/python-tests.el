@@ -5821,6 +5821,15 @@ if width == 0 and height == 0 and \\
    (python-tests-look-at "raise ValueError(")
    (should (python-info-statement-ends-block-p))))
 
+(ert-deftest python-info-statement-ends-block-p-3 ()
+  (python-tests-with-temp-buffer
+   "
+def function():
+    print()  # Comment
+"
+   (python-tests-look-at "print()")
+   (should (python-info-statement-ends-block-p))))
+
 (ert-deftest python-info-beginning-of-statement-p-1 ()
   (python-tests-with-temp-buffer
    "
@@ -5981,6 +5990,15 @@ if width == 0 and height == 0 and \\
    (should (not (python-info-end-of-block-p)))
    (goto-char (point-max))
    (python-util-forward-comment -1)
+   (should (python-info-end-of-block-p))))
+
+(ert-deftest python-info-end-of-block-p-3 ()
+  (python-tests-with-temp-buffer
+   "
+def function():
+    print()  # Comment
+"
+   (python-tests-look-at "  # Comment")
    (should (python-info-end-of-block-p))))
 
 (ert-deftest python-info-dedenter-opening-block-position-1 ()
