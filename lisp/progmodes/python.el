@@ -6156,14 +6156,25 @@ parent defun name."
 
 (defun python-info-statement-ends-block-p ()
   "Return non-nil if point is at end of block."
-  (let ((end-of-block-pos (save-excursion
-                            (python-nav-end-of-block)))
-        (end-of-statement-pos (save-excursion
-                                (python-nav-end-of-statement)
-                                (python-util-forward-comment -1)
-                                (point))))
-    (and end-of-block-pos end-of-statement-pos
-         (= end-of-block-pos end-of-statement-pos))))
+  (let* (current-statement
+         (current-indentation (save-excursion
+                                (setq current-statement
+                                      (python-nav-beginning-of-statement))
+                                (current-indentation)))
+         next-statement
+         (next-indentation (save-excursion
+                             (python-nav-forward-statement)
+                             (setq next-statement (point))
+                             (current-indentation))))
+    (unless (and (< current-statement next-statement)
+                 (<= current-indentation next-indentation))
+      (and-let* ((end-of-statement-pos (save-excursion
+                                         (python-nav-end-of-statement)
+                                         (python-util-forward-comment -1)
+                                         (point)))
+                 (end-of-block-pos (save-excursion
+                                     (python-nav-end-of-block))))
+        (= end-of-block-pos end-of-statement-pos)))))
 
 (defun python-info-beginning-of-statement-p ()
   "Return non-nil if point is at beginning of statement."
