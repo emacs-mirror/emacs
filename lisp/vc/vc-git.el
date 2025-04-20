@@ -108,6 +108,9 @@
   (require 'vc)
   (require 'vc-dir))
 
+;; Pacify "free variable" warning.
+(defvar log-edit-font-lock-keywords)
+
 (defgroup vc-git nil
   "VC Git backend."
   :version "24.1"
