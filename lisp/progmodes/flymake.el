@@ -871,14 +871,14 @@ Return to original margin width if ORIG-WIDTH is non-nil."
     (cond
      ((and orig-width flymake--original-margin-width)
       (if (eq flymake-margin-indicator-position 'left-margin)
-          (setq-local left-margin-width flymake--original-margin-width)
-        (setq-local right-margin-width flymake--original-margin-width)))
+          (setq left-margin-width flymake--original-margin-width)
+        (setq right-margin-width flymake--original-margin-width)))
      (t
       (if (eq flymake-margin-indicator-position 'left-margin)
-          (setq-local flymake--original-margin-width left-margin-width
-                      left-margin-width 2)
-        (setq-local flymake--original-margin-width right-margin-width
-                    right-margin-width 2))))
+          (setq flymake--original-margin-width left-margin-width
+		left-margin-width 2)
+        (setq flymake--original-margin-width right-margin-width
+	      right-margin-width 2))))
     ;; Apply margin to all windows available.
     (mapc (lambda (x)
             (set-window-buffer x (window-buffer x)))
@@ -1895,8 +1895,7 @@ correctly.")
   (let ((map (make-sparse-keymap)))
     ;; BEWARE: `mouse-wheel-UP-event' corresponds to `wheel-DOWN' events
     ;; and vice versa!!
-    (with-suppressed-warnings
-        ((obsolete mouse-wheel-up-event mouse-wheel-down-event))
+    (with-no-warnings
       (define-key map (vector 'mode-line mouse-wheel-down-event)
                   #'flymake--mode-line-counter-scroll-prev)
       (define-key map [mode-line wheel-down]
