@@ -1030,6 +1030,17 @@ F failing-test
                  (ert-with-test-buffer (:name "foo" :selected t)
                    (buffer-name)))))
 
+(ert-deftest ert-test-erts-pass ()
+  "Test that `ert-test-erts-file' reports test case passed."
+  (ert-test-erts-file (ert-resource-file "erts-pass.erts")
+                      (lambda () ())))
+
+(ert-deftest ert-test-erts-fail ()
+  "Test that `ert-test-erts-file' reports test case failed."
+  (should-error (ert-test-erts-file (ert-resource-file "erts-fail.erts")
+                                    (lambda () ()))
+                :type 'ert-test-failed))
+
 (ert-deftest ert-test-erts-skip-one ()
   "Test that Skip does not affect subsequent test cases (Bug#76839)."
   (should-error (ert-test-erts-file (ert-resource-file "erts-skip-one.erts")
