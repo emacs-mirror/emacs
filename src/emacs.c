@@ -808,6 +808,8 @@ find_emacs_executable (char const *argv0, ptrdiff_t *candidate_size)
 	  candidate = xpalloc (NULL, candidate_size,
 			       needed - *candidate_size + 1, -1, 1);
 	}
+      else
+	eassume (candidate);
       memcpy (candidate + 0, path_part, path_part_length);
       candidate[path_part_length] = DIRECTORY_SEP;
       memcpy (candidate + path_part_length + 1, argv0, argv0_length + 1);
