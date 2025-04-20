@@ -583,6 +583,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
   (with-current-buffer
       emerge-diff-buffer
     (erase-buffer)
+    (setq default-directory temporary-file-directory)
     (shell-command
      (format "%s %s %s %s"
 	     (shell-quote-argument emerge-diff-program)
@@ -755,16 +756,17 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 (defun emerge-make-diff3-list (file-A file-B file-ancestor)
   (setq emerge-diff-buffer (get-buffer-create "*emerge-diff*"))
   (with-current-buffer
-   emerge-diff-buffer
-   (erase-buffer)
-   (shell-command
-    (format "%s %s %s %s %s"
-	    (shell-quote-argument emerge-diff3-program)
-            emerge-diff-options
-	    (shell-quote-argument file-A)
-	    (shell-quote-argument file-ancestor)
-	    (shell-quote-argument file-B))
-    t))
+      emerge-diff-buffer
+    (erase-buffer)
+    (setq default-directory temporary-file-directory)
+    (shell-command
+     (format "%s %s %s %s %s"
+	     (shell-quote-argument emerge-diff3-program)
+             emerge-diff-options
+	     (shell-quote-argument file-A)
+	     (shell-quote-argument file-ancestor)
+	     (shell-quote-argument file-B))
+     t))
   (emerge-prepare-error-list emerge-diff3-ok-lines-regexp)
   (emerge-convert-diffs-to-markers
    emerge-A-buffer emerge-B-buffer emerge-merge-buffer
