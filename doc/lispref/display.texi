@@ -3186,18 +3186,21 @@ For example:
 @end example
 @end defun
 
-@defun face-all-attributes face &optional frame
+@defun face-all-attributes face &optional frame inherit
 This function returns an alist of attributes of @var{face}.  The
 elements of the result are name-value pairs of the form
 @w{@code{(@var{attr-name} . @var{attr-value})}}.  Optional argument
 @var{frame} specifies the frame whose definition of @var{face} to
 return; if omitted or @code{nil}, the returned value describes the
 default attributes of @var{face} for newly created frames, i.e.@: the
-values these attributes have before applying the face spec in the
-face's @code{defface} definition or the spec set by
-@code{face-spec-set}.  These default values of the attributes are
-normally @code{unspecified}, unless you have specified some other
-value using @code{set-face-attribute}; see below.
+values these attributes have before applying the face spec in the face's
+@code{defface} definition or the spec set by @code{face-spec-set}.
+These default values of the attributes are normally @code{unspecified},
+unless you have specified some other value using
+@code{set-face-attribute}; see below.  The optional argument
+@var{inherit} has the same meaning as the same argument to
+@code{face-attribute}, which see.  This is useful when you want the face
+attributes to be absolute and not @code{unspecified}.
 @end defun
 
 @defun merge-face-attribute attribute value1 value2

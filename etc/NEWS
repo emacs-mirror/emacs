@@ -2057,6 +2057,13 @@ This option tells 'flash-face-bell-function' and
 'flash-echo-area-bell-function' which face attributes should be used
 for flash.
 
++++
+*** 'face-all-attributes' now accepts an optional inherit argument.
+'inherit' has the same meaning as the same argument to 'face-attribute',
+which already takes this argument for a single attribute.  This is
+useful when you want the face attributes to be absolute and not
+'unspecified'.
+
 ---
 ** Flymake
 
