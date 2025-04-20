@@ -323,7 +323,7 @@ json_out_string (json_out_t *jo, Lisp_Object str, int skip)
 {
   /* FIXME: this code is slow, make faster! */
 
-  static const char hexchar[16] = "0123456789ABCDEF";
+  static const char hexchar[16] ATTRIBUTE_NONSTRING = "0123456789ABCDEF";
   ptrdiff_t len = SBYTES (str);
   json_make_room (jo, len + 2);
   json_out_byte (jo, '"');

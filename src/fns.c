@@ -6014,7 +6014,7 @@ hexbuf_digest (char *hexbuf, void const *digest, int digest_size)
 
   for (int i = digest_size - 1; i >= 0; i--)
     {
-      static char const hexdigit[16] = "0123456789abcdef";
+      static char const hexdigit[16] ATTRIBUTE_NONSTRING = "0123456789abcdef";
       int p_i = p[i];
       hexbuf[2 * i] = hexdigit[p_i >> 4];
       hexbuf[2 * i + 1] = hexdigit[p_i & 0xf];
