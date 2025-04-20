@@ -472,9 +472,9 @@ C-x C-k b 4
 will bind the last keyboard macro to the key sequence @kbd{C-x C-k 4}.
 
 @findex insert-kbd-macro
-  Once a macro has a command name, you can save its definition in a file.
-Then it can be used in another editing session.  First, visit the file
-you want to save the definition in.  Then use this command:
+  You can save a macro's definition in a file.  Then it can be used in
+another editing session.  First, visit the file you want to save the
+definition in.  Then use this command:
 
 @example
 M-x insert-kbd-macro @key{RET} @var{macroname} @key{RET}
@@ -493,6 +493,9 @@ macro will be defined each time you run Emacs.
 additional Lisp code to record the keys (if any) that you have bound
 to @var{macroname}, so that the macro will be reassigned the same keys
 when you load the file.
+
+  If you do not give @code{insert-kbd-macro} a macro name, it will
+insert Lisp code to restore the @code{last-kdb-macro}.
 
 @node Edit Keyboard Macro
 @section Editing a Keyboard Macro
