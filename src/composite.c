@@ -241,7 +241,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
     goto invalid_composition;
 
   hash_hash_t hash_code;
-  hash_index = hash_lookup_get_hash (hash_table, key, &hash_code);
+  hash_index = hash_find_get_hash (hash_table, key, &hash_code);
   if (hash_index >= 0)
     {
       /* We have already registered the same composition.  Change PROP

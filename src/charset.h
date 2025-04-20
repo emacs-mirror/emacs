@@ -285,7 +285,7 @@ extern int emacs_mule_charset[256];
 /* Return an index to Vcharset_hash_table of the charset whose symbol
    is SYMBOL.  */
 #define CHARSET_SYMBOL_HASH_INDEX(symbol)	\
-  hash_lookup (XHASH_TABLE (Vcharset_hash_table), symbol)
+  hash_find (XHASH_TABLE (Vcharset_hash_table), symbol)
 
 /* Return the attribute vector of CHARSET.  */
 #define CHARSET_ATTRIBUTES(charset) (charset)->attributes

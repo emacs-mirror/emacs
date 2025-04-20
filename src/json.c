@@ -1571,7 +1571,7 @@ json_parse_object (struct json_parser *parser)
 	    hash_hash_t hash;
 	    Lisp_Object key = parser->object_workspace[i];
 	    Lisp_Object value = parser->object_workspace[i + 1];
-	    ptrdiff_t i = hash_lookup_get_hash (h, key, &hash);
+	    ptrdiff_t i = hash_find_get_hash (h, key, &hash);
 	    if (i < 0)
 	      hash_put (h, key, value, hash);
 	    else

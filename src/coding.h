@@ -193,7 +193,7 @@ enum coding_attr_index
 /* Return the ID of CODING_SYSTEM_SYMBOL.  */
 
 #define CODING_SYSTEM_ID(coding_system_symbol)			\
-  hash_lookup (XHASH_TABLE (Vcoding_system_hash_table),		\
+  hash_find (XHASH_TABLE (Vcoding_system_hash_table),		\
 	       coding_system_symbol)
 
 /* Return true if CODING_SYSTEM_SYMBOL is a coding system.  */

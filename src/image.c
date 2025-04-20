@@ -5552,7 +5552,7 @@ xpm_free_color_cache (void)
 static int
 xpm_color_bucket (char *color_name)
 {
-  EMACS_UINT hash = hash_string (color_name, strlen (color_name));
+  EMACS_UINT hash = hash_char_array (color_name, strlen (color_name));
   return hash % XPM_COLOR_CACHE_BUCKETS;
 }
 
@@ -6238,7 +6238,7 @@ xpm_put_color_table_h (Lisp_Object color_table,
   Lisp_Object chars = make_unibyte_string (chars_start, chars_len);
 
   hash_hash_t hash_code;
-  hash_lookup_get_hash (table, chars, &hash_code);
+  hash_find_get_hash (table, chars, &hash_code);
   hash_put (table, chars, color, hash_code);
 }
 
@@ -6249,7 +6249,7 @@ xpm_get_color_table_h (Lisp_Object color_table,
 {
   struct Lisp_Hash_Table *table = XHASH_TABLE (color_table);
   ptrdiff_t i =
-    hash_lookup (table, make_unibyte_string (chars_start, chars_len));
+    hash_find (table, make_unibyte_string (chars_start, chars_len));
 
   return i >= 0 ? HASH_VALUE (table, i) : Qnil;
 }

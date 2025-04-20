@@ -2815,8 +2815,8 @@ equal_no_quit (Lisp_Object o1, Lisp_Object o2)
   return internal_equal (o1, o2, EQUAL_NO_QUIT, 0, Qnil);
 }
 
-static ptrdiff_t hash_lookup_with_hash (struct Lisp_Hash_Table *h,
-					Lisp_Object key, hash_hash_t hash);
+static ptrdiff_t hash_find_with_hash (struct Lisp_Hash_Table *h,
+				      Lisp_Object key, hash_hash_t hash);
 
 
 /* Return true if O1 and O2 are equal.  EQUAL_KIND specifies what kind
@@ -2848,7 +2848,7 @@ internal_equal_1 (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 	  {
 	    struct Lisp_Hash_Table *h = XHASH_TABLE (*ht);
 	    hash_hash_t hash = hash_from_key (h, o1);
-	    ptrdiff_t i = hash_lookup_with_hash (h, o1, hash);
+	    ptrdiff_t i = hash_find_with_hash (h, o1, hash);
 	    if (i >= 0)
 	      { /* `o1' was seen already.  */
 		Lisp_Object o2s = HASH_VALUE (h, i);
@@ -5031,8 +5031,8 @@ hash_table_thaw (Lisp_Object hash_table)
 /* Look up KEY with hash HASH in table H.
    Return entry index or -1 if none.  */
 static ptrdiff_t
-hash_lookup_with_hash (struct Lisp_Hash_Table *h,
-		       Lisp_Object key, hash_hash_t hash)
+hash_find_with_hash (struct Lisp_Hash_Table *h,
+		     Lisp_Object key, hash_hash_t hash)
 {
   ptrdiff_t start_of_bucket = hash_index_index (h, hash);
   for (ptrdiff_t i = HASH_INDEX (h, start_of_bucket);
@@ -5048,20 +5048,20 @@ hash_lookup_with_hash (struct Lisp_Hash_Table *h,
 
 /* Look up KEY in table H.  Return entry index or -1 if none.  */
 ptrdiff_t
-hash_lookup (struct Lisp_Hash_Table *h, Lisp_Object key)
+hash_find (struct Lisp_Hash_Table *h, Lisp_Object key)
 {
-  return hash_lookup_with_hash (h, key, hash_from_key (h, key));
+  return hash_find_with_hash (h, key, hash_from_key (h, key));
 }
 
 /* Look up KEY in hash table H.  Return its hash value in *PHASH.
    Value is the index of the entry in H matching KEY, or -1 if not found.  */
 ptrdiff_t
-hash_lookup_get_hash (struct Lisp_Hash_Table *h, Lisp_Object key,
-		      hash_hash_t *phash)
+hash_find_get_hash (struct Lisp_Hash_Table *h, Lisp_Object key,
+		    hash_hash_t *phash)
 {
   EMACS_UINT hash = hash_from_key (h, key);
   *phash = hash;
-  return hash_lookup_with_hash (h, key, hash);
+  return hash_find_with_hash (h, key, hash);
 }
 
 static void
@@ -5286,7 +5286,7 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
    can be any EMACS_UINT value.  */
 
 EMACS_UINT
-hash_string (char const *ptr, ptrdiff_t len)
+hash_char_array (char const *ptr, ptrdiff_t len)
 {
   char const *p   = ptr;
   char const *end = ptr + len;
@@ -5459,7 +5459,7 @@ sxhash_obj (Lisp_Object obj, int depth)
       return XHASH (obj);
 
     case Lisp_String:
-      return hash_string (SSDATA (obj), SBYTES (obj));
+      return hash_char_array (SSDATA (obj), SBYTES (obj));
 
     case Lisp_Vectorlike:
       {
@@ -5861,7 +5861,7 @@ usage: (gethash KEY TABLE &optional DEFAULT)  */)
   (Lisp_Object key, Lisp_Object table, Lisp_Object dflt)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
-  ptrdiff_t i = hash_lookup (h, key);
+  ptrdiff_t i = hash_find (h, key);
   return i >= 0 ? HASH_VALUE (h, i) : dflt;
 }
 
@@ -5876,7 +5876,7 @@ VALUE.  In any case, return VALUE.  */)
   check_mutable_hash_table (table, h);
 
   EMACS_UINT hash = hash_from_key (h, key);
-  ptrdiff_t i = hash_lookup_with_hash (h, key, hash);
+  ptrdiff_t i = hash_find_with_hash (h, key, hash);
   if (i >= 0)
     set_hash_value_slot (h, i, value);
   else

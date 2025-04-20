@@ -413,7 +413,7 @@ static bool
 module_global_reference_p (emacs_value v, ptrdiff_t *n)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (Vmodule_refs_hash);
-  /* Note that we can't use `hash_lookup' because V might be a local
+  /* Note that we can't use `hash_find' because V might be a local
      reference that's identical to some global reference.  */
   DOHASH (h, k, val)
     if (&XMODULE_GLOBAL_REFERENCE (val)->value == v)
@@ -431,7 +431,7 @@ module_make_global_ref (emacs_env *env, emacs_value value)
   struct Lisp_Hash_Table *h = XHASH_TABLE (Vmodule_refs_hash);
   Lisp_Object new_obj = value_to_lisp (value);
   hash_hash_t hashcode;
-  ptrdiff_t i = hash_lookup_get_hash (h, new_obj, &hashcode);
+  ptrdiff_t i = hash_find_get_hash (h, new_obj, &hashcode);
 
   /* Note: This approach requires the garbage collector to never move
      objects.  */
@@ -470,7 +470,7 @@ module_free_global_ref (emacs_env *env, emacs_value global_value)
   MODULE_FUNCTION_BEGIN ();
   struct Lisp_Hash_Table *h = XHASH_TABLE (Vmodule_refs_hash);
   Lisp_Object obj = value_to_lisp (global_value);
-  ptrdiff_t i = hash_lookup (h, obj);
+  ptrdiff_t i = hash_find (h, obj);
 
   if (module_assertions)
     {

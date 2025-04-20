@@ -1112,8 +1112,7 @@ usage: (define-charset-internal ...)  */)
 
   hash_hash_t hash_code;
   ptrdiff_t hash_index
-    = hash_lookup_get_hash (hash_table, args[charset_arg_name],
-			    &hash_code);
+    = hash_find_get_hash (hash_table, args[charset_arg_name], &hash_code);
   if (hash_index >= 0)
     {
       new_definition_p = false;
