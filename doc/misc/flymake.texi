@@ -178,6 +178,10 @@ listing includes the type of the diagnostic, its line and column in
 the file, as well as the diagnostic message.  You may sort the listing
 by each of these columns.
 
+When invoked on a diagnostic (either via the keyboard or a mouse click)
+the command @code{flymake-show-buffer-diagnostics} attempts to reveal
+said diagnostic in the listing.
+
 @node Mode line status
 @section Mode line status
 @cindex flymake mode line

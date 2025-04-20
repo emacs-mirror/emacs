@@ -1927,6 +1927,13 @@ When 'flymake-indicator-type' is set to 'fringes', as is now the default,
 flymake will automatically fall back to using margin indicators in
 windows without fringes, including any window on a text terminal.
 
+*** Enhanced 'flymake-show-buffer-diagnostics'.
+The command 'flymake-show-buffer-diagnostics' is now capable of
+highliting a nearby diagnostic in the resulting listing.  Additionally,
+it is bound by to mouse clicks on fringe and margin indicators,
+operating on the diagnostics of the corresponding line.  The user may
+bind it in other situations such as the diagnostic overlay map.
+
 ** SQLite
 
 +++

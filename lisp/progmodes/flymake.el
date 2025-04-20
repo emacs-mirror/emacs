@@ -859,9 +859,11 @@ associated `flymake-category' return DEFAULT."
                                  'face `(:inherit (,(cdr valuelist) default))
                                  'mouse-face 'highlight
                                  'help-echo "Open Flymake diagnostics"
-                                 'keymap `,(define-keymap
-                                             (format "<%s> <mouse-1>" flymake-margin-indicator-position)
-                                             #'flymake-show-buffer-diagnostics-at-event-line))))))))
+                                 'keymap (let ((map (make-sparse-keymap)))
+                                           (define-key
+                                            map `[,flymake-margin-indicator-position mouse-1]
+                                            #'flymake-show-buffer-diagnostics)
+                                           map))))))))
 
 (defun flymake--resize-margins (&optional orig-width)
   "Resize current window margins according to `flymake-margin-indicator-position'.
@@ -1447,28 +1449,13 @@ Interactively, with a prefix arg, FORCE is t."
                   nil)))
              (flymake--import-foreign-diagnostics))))))
 
-(defun flymake-show-buffer-diagnostics-at-event-line (event)
-  "Show diagnostics buffer on mouse click in the margin or fringe.
-This uses two different approaches to work.
-For margin it is set as a char property of the margin character directly.
-While in the fringe it is set as part of the `flymake-mode-map'."
-  (interactive "e")
-  (when-let* ((diagnostics (flymake-diagnostics-at-mouse-event event t))
-              (first-diag (car diagnostics)))
-    (with-selected-window (posn-window (event-end event))
-      (with-current-buffer (window-buffer)
-        (when (or (< (point) (flymake-diagnostic-beg first-diag))
-                  (> (point) (flymake-diagnostic-end first-diag)))
-          (goto-char (flymake-diagnostic-beg first-diag)))
-
-        (flymake-show-buffer-diagnostics first-diag)))))
-
-;; Set the fringe mouse-1 action directly and perform the filtering
-;; latter iterating over the overlays.
-(defvar-keymap flymake-mode-map
-               :doc "Keymap for `flymake-mode'."
-               (format "<%s> <mouse-1>" flymake-fringe-indicator-position)
-               #'flymake-show-buffer-diagnostics-at-event-line)
+(defvar flymake-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map
+                `[,flymake-fringe-indicator-position mouse-1]
+                #'flymake-show-buffer-diagnostics)
+    map)
+  "Keymap for `flymake-mode'")
 
 ;;;###autoload
 (define-minor-mode flymake-mode
@@ -1721,28 +1708,6 @@ default) no filter is applied."
                      t))
   (flymake-goto-next-error (- (or n 1)) filter interactive))
 
-(defun flymake-diagnostics-at-mouse-event (event full-line)
-  "Get the flymake diagnostics for a position given by a mouse EVENT.
-When FULL-LINE is not nil it gives all the diagnostics in the EVENT's
-line.  The function does not move the cursor position."
-  (mouse-minibuffer-check event)
-  (let* ((posn (event-end event))
-	 (pos (posn-point posn)))
-    (when (and (numberp pos)
-               (< pos (point-max))) ;; pos is == (point-max) when the click is after the buffer end.
-      (with-selected-window (posn-window posn)
-	(with-current-buffer (window-buffer)
-          (save-excursion
-            (goto-char pos)
-            (if full-line
-                (flymake-diagnostics (line-beginning-position) (line-end-position))
-              (flymake-diagnostics pos (1+ pos)))))))))
-
-(defun flymake-show-buffer-diagnostics-at-event-position (event)
-  (interactive "e")
-  (flymake-show-buffer-diagnostics
-   (car (flymake-diagnostics-at-mouse-event event nil))))
-
 
 ;;; Mode-line and menu
 ;;;
@@ -1751,7 +1716,7 @@ line.  The function does not move the cursor position."
     [ "Go to next problem"      flymake-goto-next-error t ]
     [ "Go to previous problem"  flymake-goto-prev-error t ]
     [ "Check now"               flymake-start t ]
-    [ "List all problems"       flymake-show-buffer-diagnostics-at-event-position t ]
+    [ "List all problems"       flymake-show-buffer-diagnostics t ]
     "--"
     [ "Go to log buffer"        flymake-switch-to-log-buffer t ]
     [ "Turn off Flymake"        flymake-mode t ]))
@@ -1778,15 +1743,6 @@ Separating each of these with space is not necessary."
   "The string to use in the Flymake mode line."
   :type 'string
   :version "29.1")
-
-(defcustom flymake-after-show-buffer-diagnostics-hook '(flymake-pulse-momentary-highlight-region)
-  "Hook called after jumping to a diagnostic line.
-
-This hooks are called when `flymake-show-buffer-diagnostics' receives
-the optional `diagnostic' argument and it matches an entry in the
-diagnostic's buffer."
-  :type 'hook
-  :version "31.0")
 
 (defvar flymake-mode-line-title '(:eval (flymake--mode-line-title))
   "Mode-line construct to show Flymake's mode name and menu.")
@@ -1958,19 +1914,8 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
     (define-key map (kbd "SPC") 'flymake-show-diagnostic)
     map))
 
-
-(defun flymake-pulse-momentary-highlight-region (&optional start end)
-  "Helper function to highlight region.
-This uses the point `line-beginning-position' and `line-end-position' to
-determine the optional START and END when the optional values are not
-specified."
-  (pulse-momentary-highlight-region (or start (line-beginning-position))
-                                    (or end (line-end-position))
-                                    'highlight))
-
-
 (defun flymake-show-diagnostic (pos &optional other-window)
-  "Show location of diagnostic at POS."
+  "From Flymake diagnostics buffer, show source of diagnostic at POS."
   (interactive (list (point) t))
   (let* ((id (or (tabulated-list-get-id pos)
                  (user-error "Nothing at point")))
@@ -1980,7 +1925,8 @@ specified."
          (end (flymake--diag-end diag))
          (visit (lambda (b e)
                   (goto-char b)
-                  (flymake-pulse-momentary-highlight-region b e))))
+                  (pulse-momentary-highlight-region
+                   b (or e (line-end-position))))))
     (with-current-buffer (cond ((bufferp locus) locus)
                                (t (find-file-noselect locus)))
       (with-selected-window
@@ -1999,7 +1945,7 @@ specified."
       (current-buffer))))
 
 (defun flymake-goto-diagnostic (pos)
-  "Show location of diagnostic at POS.
+  "From Flymake diagnostics buffer, goto source of diagnostic at POS.
 POS can be a buffer position or a button"
   (interactive "d")
   (pop-to-buffer
@@ -2154,8 +2100,35 @@ And also `flymake-project-diagnostics-mode'."
   (fit-window-to-buffer window 15 8))
 
 (defun flymake-show-buffer-diagnostics (&optional diagnostic)
-  "Show a list of Flymake diagnostics for current buffer."
-  (interactive)
+  "Show listing of Flymake diagnostics for current buffer.
+With optional DIAGNOSTIC, find and highlight this diagnostic in the
+listing.
+
+Interactively, grab DIAGNOSTIC from context.  For mouse events in
+margins and fringes, use the first diagnostic in the corresponding line,
+else look in the click position.  For non-mouse events, look for
+diagnostics at point.
+
+This function doesn't move point"
+  (interactive
+   (if (mouse-event-p last-command-event)
+       (with-selected-window (posn-window (event-end last-command-event))
+         (with-current-buffer (window-buffer)
+           (let* ((event-point (posn-point (event-end last-command-event)))
+                  (diags
+                   (or
+                    (flymake-diagnostics event-point)
+                    (let (event-lbp event-lep)
+                      (save-excursion
+                        (goto-char event-point)
+                        (setq event-lbp (line-beginning-position)
+                              event-lep (line-end-position)))
+                      (flymake-diagnostics event-lbp event-lep))))
+                  (diag (car diags)))
+             (unless diag
+               (error "No diagnostics here"))
+             (list diag))))
+     (flymake-diagnostics (point))))
   (unless flymake-mode
     (user-error "Flymake mode is not enabled in the current buffer"))
   (let* ((name (flymake--diagnostics-buffer-name))
@@ -2163,22 +2136,27 @@ And also `flymake-project-diagnostics-mode'."
          (target (or (get-buffer name)
                      (with-current-buffer (get-buffer-create name)
                        (flymake-diagnostics-buffer-mode)
-                       (current-buffer)))))
+                       (current-buffer))))
+         window)
     (with-current-buffer target
       (setq flymake--diagnostics-buffer-source source)
       (revert-buffer)
-      (display-buffer (current-buffer)
-                      `((display-buffer-reuse-window
-                         display-buffer-below-selected)
-                        (window-height . flymake--fit-diagnostics-window)))
-      (when (and diagnostic flymake-after-show-buffer-diagnostics-hook)
-        (goto-char (point-min))
-        (catch 'done
-          (while-let ((id (tabulated-list-get-id (point))))
-            (if (eq (plist-get id :diagnostic) diagnostic)
-                (progn (run-hooks 'flymake-after-show-buffer-diagnostics-hook)
-                       (throw 'done nil))
-              (forward-line))))))))
+      (setq window
+            (display-buffer (current-buffer)
+                            `((display-buffer-reuse-window
+                               display-buffer-below-selected)
+                              (window-height . flymake--fit-diagnostics-window))))
+      (when (and window diagnostic)
+        (with-selected-window window
+          (cl-loop initially (goto-char (point-min))
+                   until (eobp)
+                   until (eq (plist-get (tabulated-list-get-id) :diagnostic)
+                             diagnostic)
+                   do (forward-line)
+                   finally
+                   (recenter)
+                   (pulse-momentary-highlight-one-line
+                    (point) 'highlight)))))))
 
 
 ;;; Per-project diagnostic listing
