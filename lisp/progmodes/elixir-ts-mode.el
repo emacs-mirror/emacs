@@ -244,7 +244,21 @@
 (defvar elixir-ts--indent-rules
   (let ((offset elixir-ts-indent-offset))
     `((elixir
-       ((parent-is "^source$") column-0 0)
+       ((parent-is "^source$")
+        ,(lambda (_node _parent bol &rest _)
+           ;; If Elixir is embedded indent to parent
+           ;; otherwise indent to the bol.
+           (if (treesit-local-parsers-at (point))
+               (save-excursion
+                 (goto-char (treesit-node-start
+                             (treesit-node-at bol 'heex)))
+                 (back-to-indentation)
+                 (point))
+             (pos-bol)))
+        ,(lambda (_node _parent _bol &rest _)
+           (if (treesit-local-parsers-at (point))
+               elixir-ts-indent-offset
+             0)))
        ((parent-is "^string$") parent-bol 0)
        ((parent-is "^quoted_content$")
         (lambda (_n parent bol &rest _)

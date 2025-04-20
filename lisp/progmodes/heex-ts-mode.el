@@ -188,6 +188,7 @@ Return nil if NODE is not a defun node or doesn't have a name."
 
 (defvar elixir-ts--font-lock-settings)
 (defvar elixir-ts--font-lock-feature-list)
+(defvar elixir-ts--indent-rules)
 (defvar elixir-ts--thing-settings)
 
 ;;;###autoload
@@ -243,6 +244,10 @@ Return nil if NODE is not a defun node or doesn't have a name."
                   (treesit-merge-font-lock-feature-list
                    treesit-font-lock-feature-list
                    elixir-ts--font-lock-feature-list))
+
+      (setq-local treesit-simple-indent-rules
+                  (append treesit-simple-indent-rules
+                          elixir-ts--indent-rules))
 
       (setq-local treesit-thing-settings
                   (append treesit-thing-settings
