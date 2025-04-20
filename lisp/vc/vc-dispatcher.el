@@ -328,10 +328,11 @@ Intended to be used as the value of `vc-filter-command-function'."
                            (if file-or-list
                                " (files list to be appended)"
                              ""))
-                   (combine-and-quote-strings
-                    (cons command (remq nil (if files-separator-p
-                                                (butlast flags)
-                                              flags))))))))
+                   (concat (combine-and-quote-strings
+                            (cons command (remq nil (if files-separator-p
+                                                        (butlast flags)
+                                                      flags))))
+                           " ")))))
     (list (car edited) file-or-list
           (nconc (cdr edited) (and files-separator-p '("--"))))))
 
