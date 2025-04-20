@@ -35,7 +35,7 @@ without express or implied warranty.
 
 int
 XMenuRecompute(Display *display, register XMenu *menu)
-                     
+
                          	/* Menu object to be recomputed. */
 {
     register XMPane *p_ptr;	/* Pane pointer. */
@@ -120,4 +120,3 @@ XMenuRecompute(Display *display, register XMenu *menu)
     _XMErrorCode = XME_NO_ERROR;
     return(XM_SUCCESS);
 }
-
