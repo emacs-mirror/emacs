@@ -1257,6 +1257,11 @@ content-type of Web pages which don't have a valid 'Content-Type'
 header.  The default value is a function that considers a page with an
 HTML 'doctype' declaration to have context-type "text/html".
 
++++
+*** 'eww-switch-to-buffer' falls back to 'eww'.
+When there is no EWW buffers, 'eww-switch-to-buffer' falls back to
+calling 'eww'.
+
 ** CC mode
 
 +++

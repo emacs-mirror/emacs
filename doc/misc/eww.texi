@@ -259,6 +259,9 @@ to quickly kill, flip through and switch to specific EWW buffer.  To
 switch EWW buffers through a minibuffer prompt, press @kbd{s}
 (@code{eww-switch-to-buffer}).
 
+The @code{eww-switch-to-buffer} command will fallback to @code{eww}
+when there is no EWW buffers.
+
 @findex eww-browse-with-external-browser
 @vindex browse-url-secondary-browser-function
 @vindex eww-use-external-browser-for-content-type

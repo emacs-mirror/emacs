@@ -2321,25 +2321,29 @@ If CHARSET is nil then use UTF-8."
     (eww-reload nil charset)))
 
 (defun eww-switch-to-buffer ()
-  "Prompt for an EWW buffer to display in the selected window."
+  "Prompt for an EWW buffer to display in the selected window.
+If no such buffer exist, fallback to calling `eww'."
   (interactive nil eww-mode)
   (let ((completion-extra-properties
          `(:annotation-function
            ,(lambda (buf)
               (with-current-buffer buf
                 (format " %s" (eww-current-url))))))
-        (curbuf (current-buffer)))
-    (pop-to-buffer-same-window
-     (read-buffer "Switch to EWW buffer: "
-                  (cl-loop for buf in (nreverse (buffer-list))
+        (curbuf (current-buffer))
+        (list (cl-loop for buf in (nreverse (buffer-list))
                            if (with-current-buffer buf (derived-mode-p 'eww-mode))
-                           return buf)
-                  t
-                  (lambda (bufn)
-                    (setq bufn (if (consp bufn) (cdr bufn) (get-buffer bufn)))
-                    (and (with-current-buffer bufn
-                           (derived-mode-p 'eww-mode))
-                         (not (eq bufn curbuf))))))))
+                           return buf)))
+    (if list
+        (pop-to-buffer-same-window
+         (read-buffer "Switch to EWW buffer: "
+                      list
+                      t
+                      (lambda (bufn)
+                        (setq bufn (if (consp bufn) (cdr bufn) (get-buffer bufn)))
+                        (and (with-current-buffer bufn
+                               (derived-mode-p 'eww-mode))
+                             (not (eq bufn curbuf))))))
+      (call-interactively 'eww))))
 
 (defun eww-toggle-fonts ()
   "Toggle whether to use monospaced or font-enabled layouts."
@@ -2718,10 +2722,12 @@ see)."
 (defun eww-list-buffers ()
   "Pop a buffer with a list of eww buffers."
   (interactive)
-  (with-current-buffer (get-buffer-create "*eww buffers*")
-    (eww-buffers-mode)
-    (eww--list-buffers-display-table))
-  (pop-to-buffer "*eww buffers*"))
+  (if (null (eww-buffer-list))
+      (message "No EWW buffers.")
+    (with-current-buffer (get-buffer-create "*eww buffers*")
+      (eww-buffers-mode)
+      (eww--list-buffers-display-table))
+    (pop-to-buffer "*eww buffers*")))
 
 (defun eww--list-buffers-display-table (&optional _ignore-auto _noconfirm)
   "Display a table with the list of eww buffers.
