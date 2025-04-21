@@ -674,6 +674,9 @@ Run the SDB debugger.
 using the minibuffer.  The minibuffer's initial contents contain the
 standard executable name and options for the debugger, and sometimes
 also a guess for the name of the executable file you want to debug.
+For @code{pdb}, @code{perldb}, and @code{guiler}, if the current buffer
+visits a file, pressing @kbd{M-n} (@code{next-history-element})
+in the prompt suggests a full command line including that file name.
 Shell wildcards and variables are not allowed in this command line.
 Emacs assumes that the first command argument which does not start
 with a @samp{-} is the executable file name.

@@ -757,7 +757,11 @@ The option \"--fullname\" must be included in this value."
   :parent minibuffer-local-map
   "C-i" #'comint-dynamic-complete-filename)
 
-(defun gud-query-cmdline (minor-mode &optional init)
+(defun gud-query-cmdline (minor-mode &optional init default-list)
+  "Prompt for a command to run the debugger.
+MINOR-MODE is the name of the debugger to run.  INIT is the initial
+command, before any history is available.  DEFAULT-LIST is a list of
+default commands, accessible via \\[next-history-element]."
   (let* ((hist-sym (gud-symbol 'history nil minor-mode))
 	 (cmd-name (gud-val 'command-name minor-mode)))
     (unless (boundp hist-sym) (set hist-sym nil))
@@ -780,7 +784,8 @@ The option \"--fullname\" must be included in this value."
 			       (setq file f)))
                             file)))))
      gud-minibuffer-local-map nil
-     hist-sym)))
+     hist-sym
+     default-list)))
 
 (defvar gdb-first-prompt t)
 
@@ -1671,8 +1676,13 @@ Noninteractively, COMMAND-LINE should be on the form
 The directory containing the perl program becomes the initial
 working directory and source-file directory for your debugger."
   (interactive
-   (list (gud-query-cmdline 'perldb
-			    (concat (or (buffer-file-name) "-E 0") " "))))
+   (list
+    (gud-query-cmdline
+     'perldb
+     (concat (or (buffer-file-name) "-E 0") " ")
+     (when-let* ((file (buffer-file-name)))
+       (list (concat gud-perldb-command-name " "
+                     (shell-quote-argument file) " "))))))
 
   (gud-common-init command-line 'gud-perldb-massage-args
 		   'gud-perldb-marker-filter)
@@ -1802,7 +1812,11 @@ If called interactively, the command line will be prompted for.
 The directory containing this file becomes the initial working
 directory and source-file directory for your debugger."
   (interactive
-   (list (gud-query-cmdline 'pdb)))
+   (list (gud-query-cmdline
+          'pdb nil
+          (when-let* ((file (buffer-file-name)))
+            (list (concat gud-pdb-command-name " "
+                          (shell-quote-argument file)))))))
 
   (gud-common-init command-line nil 'gud-pdb-marker-filter)
   (setq-local gud-minor-mode 'pdb)
@@ -1889,7 +1903,12 @@ This should be an executable on your path, or an absolute file name."
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
   (interactive
-   (list (gud-query-cmdline 'guiler)))
+   (list
+    (gud-query-cmdline
+     'guiler nil
+     (when-let* ((file (buffer-file-name)))
+       (list (concat gud-guiler-command-name " "
+                     (shell-quote-argument file)))))))
 
   (gud-common-init command-line nil 'gud-guiler-marker-filter)
   (setq-local gud-minor-mode 'guiler)

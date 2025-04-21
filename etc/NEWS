@@ -1975,6 +1975,14 @@ normal file name starts with "file:", you can disable the URI
 recognition by invoking 'sqlite-open' with the new optional argument
 DISABLE-URI non-nil.
 
+** GUD
+
+---
+*** pdb, perldb, and guiler suggest debugging the current file via 'M-n'.
+When starting these debuggers (e.g., 'M-x pdb') while visiting a file,
+pressing 'M-n' in the command prompt suggests a command line including
+the file name, using the minibuffer's "future history".
+
 
 * New Modes and Packages in Emacs 31.1
 
