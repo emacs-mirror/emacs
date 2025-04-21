@@ -542,6 +542,13 @@ redundant).")
    "Additional things to highlight in grep output.
 This gets tacked on the end of the generated expressions.")
 
+(defvar grep-compilation-transform-finished-rules
+  '(("^Grep[/a-zA-Z]* finished with \\(?:\\(\\(?:[0-9]+ \\)?match\\(?:es\\)? found\\)\\|\\(no matches found\\)\\).*" . nil)
+    ("^Grep[/a-zA-Z]* \\(exited abnormally\\|interrupt\\|killed\\|terminated\\)\\(?:.*with code \\([0-9]+\\)\\)?.*" . nil))
+  "Rules added to `compilation-transform-file-match-alist' in `grep-mode'
+These prevent the \"Grep finished\" lines from being misinterpreted as
+matches (bug#77732).")
+
 ;;;###autoload
 (defvar grep-program "grep"
   "The default grep program for `grep-command' and `grep-find-command'.
@@ -971,6 +978,9 @@ The value depends on `grep-command', `grep-template',
               grep-hit-face)
   (setq-local compilation-error-regexp-alist
               grep-regexp-alist)
+  (setq-local compilation-transform-file-match-alist
+              (append grep-compilation-transform-finished-rules
+                      compilation-transform-file-match-alist))
   (setq-local compilation-mode-line-errors
               grep-mode-line-matches)
   ;; compilation-directory-matcher can't be nil, so we set it to a regexp that
