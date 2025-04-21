@@ -2386,9 +2386,54 @@ backward to previous statement."
     (python-nav-beginning-of-statement)
     (setq arg (1+ arg))))
 
+(defvar python-nav-cache nil
+  "Cache to hold the results of navigation functions.")
+
+(defvar python-nav-cache-tick 0
+  "`buffer-chars-modified-tick' when registering the navigation cache.")
+
+(defun python-nav-cache-get (kind)
+  "Get value from the navigation cache.
+If the current buffer is not modified, the navigation cache is searched
+using KIND and the current line number as a key."
+  (and (= (buffer-chars-modified-tick) python-nav-cache-tick)
+       (cdr (assoc (cons kind (line-number-at-pos nil t)) python-nav-cache))))
+
+(defun python-nav-cache-set (kind current target)
+  "Add a key-value pair to the navigation cache.
+Invalidate the navigation cache if the current buffer has been modified.
+Then add a key-value pair to the navigation cache.  The key consists of
+KIND and CURRENT line number, and the value is TARGET position."
+  (let ((tick (buffer-chars-modified-tick)))
+    (when (/= tick python-nav-cache-tick)
+      (setq-local python-nav-cache nil
+                  python-nav-cache-tick tick))
+    (push (cons (cons kind current) target) python-nav-cache)
+    target))
+
+(defun python-nav-with-cache (kind func)
+  "Cached version of the navigation FUNC.
+If a value is obtained from the navigation cache using KIND, it will
+navigate there and return the position.  Otherwise, use FUNC to navigate
+and cache the result."
+  (let ((target (python-nav-cache-get kind)))
+    (if target
+        (progn
+          (goto-char target)
+          (point-marker))
+      (let ((current (line-number-at-pos nil t)))
+        (python-nav-cache-set kind current (funcall func))))))
+
 (defun python-nav-beginning-of-block ()
   "Move to start of current block."
   (interactive "^")
+  (python-nav-with-cache
+   'beginning-of-block #'python-nav--beginning-of-block))
+
+(defun python-nav--beginning-of-block ()
+  "Move to start of current block.
+This is an internal implementation of `python-nav-beginning-of-block'
+without the navigation cache."
   (let ((starting-pos (point)))
     ;; Go to first line beginning a statement
     (while (and (not (bobp))
@@ -2413,6 +2458,13 @@ backward to previous statement."
 (defun python-nav-end-of-block ()
   "Move to end of current block."
   (interactive "^")
+  (python-nav-with-cache
+   'end-of-block #'python-nav--end-of-block))
+
+(defun python-nav--end-of-block ()
+  "Move to end of current block.
+This is an internal implementation of `python-nav-end-of-block' without
+the navigation cache."
   (when (python-nav-beginning-of-block)
     (let ((block-indentation (current-indentation)))
       (python-nav-end-of-statement)
