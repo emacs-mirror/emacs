@@ -3755,6 +3755,8 @@ variable.
   (setq-local compilation-error-regexp-alist
               python-shell-compilation-regexp-alist)
   (setq-local scroll-conservatively 1)
+  (setq-local comint-dynamic-complete-functions
+              '(comint-c-a-p-replace-by-expanded-history))
   (add-hook 'completion-at-point-functions
             #'python-shell-completion-at-point nil 'local)
   (define-key inferior-python-mode-map "\t"
