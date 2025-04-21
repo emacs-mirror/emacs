@@ -1930,9 +1930,9 @@ windows without fringes, including any window on a text terminal.
 *** Enhanced 'flymake-show-buffer-diagnostics'.
 The command 'flymake-show-buffer-diagnostics' is now capable of
 highliting a nearby diagnostic in the resulting listing.  Additionally,
-it is bound by to mouse clicks on fringe and margin indicators,
-operating on the diagnostics of the corresponding line.  The user may
-bind it in other situations such as the diagnostic overlay map.
+it is bound to mouse clicks on fringe and margin indicators, operating
+on the diagnostics of the corresponding line.  The user may bind it in
+other situations such as the diagnostic overlay map.
 
 *** More powerful 'flymake-make-diagnostic' API.
 Flymake backends can now specify origin and code attributes, allowing
@@ -1946,8 +1946,8 @@ code, message or one-liner message) appear in each output destination.
 
 *** Dynamic column sizing in diagnostic listings.
 The tabulated listings produced by 'flymake-show-buffer-diagnostics' and
-'flymake-show-project-diagnostics' now automatically their column widths
-based on content, optimizing display space and readability.
+'flymake-show-project-diagnostics' now automatically adjust their column
+widths based on content, optimizing display space and readability.
 
 ** SQLite
 
