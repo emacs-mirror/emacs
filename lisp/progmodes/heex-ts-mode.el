@@ -173,18 +173,19 @@ Return nil if NODE is not a defun node or doesn't have a name."
   "`treesit-thing-settings' for HEEx.")
 
 (defvar heex-ts--range-rules
-  (treesit-range-rules
-   :embed 'elixir
-   :host 'heex
-   '((directive [(partial_expression_value)
-                 (ending_expression_value)]
-                @cap))
+  (when (treesit-available-p)
+    (treesit-range-rules
+     :embed 'elixir
+     :host 'heex
+     '((directive [(partial_expression_value)
+                   (ending_expression_value)]
+                  @cap))
 
-   :embed 'elixir
-   :host 'heex
-   :local t
-   '((directive (expression_value) @cap)
-     (expression (expression_value) @cap))))
+     :embed 'elixir
+     :host 'heex
+     :local t
+     '((directive (expression_value) @cap)
+       (expression (expression_value) @cap)))))
 
 (defvar elixir-ts--font-lock-settings)
 (defvar elixir-ts--font-lock-feature-list)

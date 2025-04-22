@@ -622,12 +622,13 @@
   "`treesit-thing-settings' for Elixir.")
 
 (defvar elixir-ts--range-rules
-  (treesit-range-rules
-   :embed 'heex
-   :host 'elixir
-   '((sigil (sigil_name) @_name
-            (:match "^[HF]$" @_name)
-            (quoted_content) @heex))))
+  (when (treesit-available-p)
+    (treesit-range-rules
+     :embed 'heex
+     :host 'elixir
+     '((sigil (sigil_name) @_name
+              (:match "^[HF]$" @_name)
+              (quoted_content) @heex)))))
 
 (defvar heex-ts--range-rules)
 (defvar heex-ts--thing-settings)

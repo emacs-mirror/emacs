@@ -70,6 +70,9 @@ in a Emacs not built with tree-sitter library."
      (declare-function treesit-language-available-p "treesit.c")
      (declare-function treesit-language-version "treesit.c")
 
+     (declare-function treesit-language-abi-version "treesit.c")
+     (declare-function treesit-library-abi-version "treesit.c")
+
      (declare-function treesit-parser-p "treesit.c")
      (declare-function treesit-node-p "treesit.c")
      (declare-function treesit-compiled-query-p "treesit.c")
