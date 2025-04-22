@@ -1271,8 +1271,7 @@ DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p,
   struct android_display_info *dpyinfo;
 
   dpyinfo = check_android_display_info (terminal);
-  return (dpyinfo->n_planes > 1 && dpyinfo->n_planes <= 8
-	  ? Qt : Qnil);
+  return dpyinfo->n_planes > 1 ? Qt : Qnil;
 }
 
 DEFUN ("x-display-pixel-width", Fx_display_pixel_width,
