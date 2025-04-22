@@ -3846,8 +3846,6 @@ Currently there are `js-mode' and `js-ts-mode'."
   (setq-local comment-start "// ")
   (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end "")
-  (setq-local block-comment-start "/*")
-  (setq-local block-comment-end "*/")
   (setq-local fill-paragraph-function #'js-fill-paragraph)
   (setq-local normal-auto-fill-function #'js-do-auto-fill)
 

@@ -5015,7 +5015,6 @@ If a fill prefix is specified, it overrides all the above."
 		      (setq comment-start "/* " comment-end " */"))
 		  (unless (string-match "[ \t]*//" comment-start)
 		    (setq comment-start "// " comment-end "")))
-		(setq block-comment-start "/*" block-comment-end "*/")
 		(setq col (save-excursion
 			    (back-to-indentation)
 			    (current-column)))

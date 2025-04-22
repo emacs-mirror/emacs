@@ -142,8 +142,6 @@ Return nil if there is no name or if NODE is not a defun node."
   (setq-local comment-start "// ")
   (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
   (setq-local comment-end "")
-  (setq-local block-comment-start "/*")
-  (setq-local block-comment-end "*/")
 
   ;; Electric
   (setq-local electric-indent-chars

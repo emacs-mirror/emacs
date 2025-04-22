@@ -1767,9 +1767,7 @@ Coloring:
 
   (setq-local comment-start "// ")
   (setq-local comment-start-skip "\\(?://\\|(\\*\\|{\\)[ \t]*")
-  (setq-local comment-end-skip "[ \t]*\\(?:\n\\|\\*)\\|}\\)")
-  (setq-local block-comment-start "(*")
-  (setq-local block-comment-end "*)"))
+  (setq-local comment-end-skip "[ \t]*\\(?:\n\\|\\*)\\|}\\)"))
 
 (provide 'opascal)
 ;;; opascal.el ends here

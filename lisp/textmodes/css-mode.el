@@ -1858,8 +1858,6 @@ implementations: `css-mode' and `css-ts-mode'."
   (setq-local comment-start-skip "/\\*+[ \t]*")
   (setq-local comment-end "*/")
   (setq-local comment-end-skip "[ \t]*\\*+/")
-  (setq-local block-comment-start "/*")
-  (setq-local block-comment-end "*/")
   (setq-local electric-indent-chars
               (append css-electric-keys electric-indent-chars))
   ;; The default "." creates ambiguity with class selectors.
@@ -2083,8 +2081,6 @@ be used to fill comments.
   "Major mode to edit \"Sassy CSS\" files."
   (setq-local comment-start "// ")
   (setq-local comment-end "")
-  (setq-local block-comment-start "/*")
-  (setq-local block-comment-end "*/")
   (setq-local comment-continue " *")
   (setq-local comment-start-skip "/[*/]+[ \t]*")
   (setq-local comment-end-skip "[ \t]*\\(?:\n\\|\\*+/\\)")

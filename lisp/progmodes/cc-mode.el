@@ -610,8 +610,6 @@ that requires a literal mode spec at compile time."
   (make-local-variable 'comment-start)
   (make-local-variable 'comment-end)
   (make-local-variable 'comment-start-skip)
-  (make-local-variable 'block-comment-start)
-  (make-local-variable 'block-comment-end)
 
   (make-local-variable 'paragraph-start)
   (make-local-variable 'paragraph-separate)

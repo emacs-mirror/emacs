@@ -1984,15 +1984,6 @@ A major mode based on the tree-sitter library for editing "go.work"
 files.  If tree-sitter is properly set-up by the user, it can be
 enabled for files named "go.work".
 
-** New minor mode 'electric-block-comment-mode'.
-This mode automatically closes block comments.  Typing the value of
-'block-comment-start' closes it inserting the corresponding
-'block-comment-end'.  Thus, allows closing block comments for major
-modes that support it, such as: 'c-mode', 'c++-mode', 'java-mode',
-'js-mode', 'css-mode', and derived: 'html-mode', 'mhtml-mode',
-'xml-mode' and 'nxml-mode', 'pascal-mode', 'lua-ts-mode', 'lisp-mode'
-and 'common-lisp-mode'.
-
 
 * Incompatible Lisp Changes in Emacs 31.1
 

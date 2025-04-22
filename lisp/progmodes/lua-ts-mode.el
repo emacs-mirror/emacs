@@ -673,8 +673,6 @@ Calls REPORT-FN directly."
     (setq-local comment-start "--")
     (setq-local comment-start-skip "--\\s-*")
     (setq-local comment-end "")
-    (setq-local block-comment-start "--[[" )
-    (setq-local block-comment-end "]]")
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings lua-ts--font-lock-settings)

@@ -282,8 +282,6 @@ Set up:
  - `comment-end'
  - `comment-start-skip'
  - `comment-end-skip'
- - `block-comment-start'
- - `block-comment-end'
  - `adaptive-fill-mode'
  - `adaptive-fill-first-line-regexp'
  - `paragraph-start'
@@ -300,8 +298,6 @@ Set up:
               (rx (* (syntax whitespace))
                   (group (or (syntax comment-end)
                              (seq (+ "*") "/")))))
-  (setq-local block-comment-start "/*")
-  (setq-local block-comment-end "*/")
   (setq-local adaptive-fill-mode t)
   (setq-local adaptive-fill-function #'c-ts-common--adaptive-fill-prefix)
   ;; Always accept * or | as prefix, even if there's only one line in

@@ -828,8 +828,6 @@ or to switch back to an existing one."
 	      "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
   (setq-local comment-end-skip "[ \t]*\\(\\s>\\||#\\)")
   (setq-local font-lock-comment-end-skip "|#")
-  (setq-local block-comment-start "#|")
-  (setq-local block-comment-end "|#")
   (setq imenu-case-fold-search t))
 
 (defun lisp-find-tag-default ()
