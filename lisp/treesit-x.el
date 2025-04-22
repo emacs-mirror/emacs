@@ -123,7 +123,8 @@ of `define-treesit-generic-mode'.
          (add-to-list 'auto-mode-alist (cons re ',mode)))
 
        (define-derived-mode ,mode
-         ,(or parent 'fundamental-mode)
+         ,(or (if (eq (car-safe parent) 'quote) (cadr parent) parent)
+              'fundamental-mode)
          ,(or name pretty-name)
          ,(or docstring
               (concat (or name pretty-name) " mode.\n"
@@ -214,7 +215,7 @@ of `define-treesit-generic-mode'.
   :source "https://github.com/hankthetank27/tree-sitter-liquid"
   :auto-mode "\\.liquid\\'"
   :name "Liquid"
-  :parent mhtml-ts-mode
+  :parent 'mhtml-ts-mode
 
   (setq-local treesit-range-settings
               (append treesit-range-settings
