@@ -56,7 +56,6 @@
 ;; - spill auto-fill of comments onto the end of the next line.
 ;; - uncomment-region with a consp (for blocks) or somehow make the
 ;;   deletion of continuation markers less dangerous.
-;; - drop block-comment-<foo> unless it's really used.
 ;; - uncomment-region on a subpart of a comment.
 ;; - support gnu-style "multi-line with space in continue".
 ;; - somehow allow comment-dwim to use the region even if transient-mark-mode
@@ -182,10 +181,6 @@ guaranteed to be correctly ordered.  It is called within `save-excursion'.
 
 Applicable at least in modes for languages like fixed-format Fortran where
 comments always start in column zero.")
-
-;; ?? never set
-(defvar block-comment-start nil)
-(defvar block-comment-end nil)
 
 (defvar comment-quote-nested t
   "Non-nil if nested comments should be quoted.
@@ -718,12 +713,10 @@ Point is expected to be at the start of the comment."
 If CONTINUE is non-nil, use the `comment-continue' markers if any."
   (interactive "*")
   (comment-normalize-vars)
-  (let* ((empty (save-excursion (beginning-of-line)
-				(looking-at "[ \t]*$")))
-	 (starter (or (and continue comment-continue)
-		      (and empty block-comment-start) comment-start))
-	 (ender (or (and continue comment-continue "")
-		    (and empty block-comment-end) comment-end)))
+  (let ((starter (or (and continue comment-continue)
+                     comment-start))
+	(ender (or (and continue comment-continue "")
+                   comment-end)))
     (unless starter (error "No comment syntax defined"))
     (beginning-of-line)
     (let* ((eolpos (line-end-position))
