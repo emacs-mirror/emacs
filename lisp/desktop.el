@@ -174,7 +174,7 @@ to t, or add this line in your init file:
     (desktop-save-mode 1)
 
 When this mode is enabled, Emacs will save the desktop when it exits
-(this may prompt you, see the option `desktop-save').  The next time
+\(this may prompt you, see the option `desktop-save').  The next time
 Emacs starts, if this mode is active it will restore the desktop.
 
 To manually save the desktop at any time, use the command \\[desktop-save].
@@ -187,7 +187,6 @@ To see all the options you can set, browse the `desktop' customization group.
 
 For further details, see info node `(emacs)Saving Emacs Sessions'."
   :global t
-  :group 'desktop
   (if desktop-save-mode
       (desktop-auto-save-enable)
     (desktop-auto-save-disable)))
@@ -217,7 +216,6 @@ determine where the desktop is saved."
     (const :tag "Ask if desktop file exists, else don't save" ask-if-exists)
     (const :tag "Save if desktop file exists, else don't" if-exists)
     (const :tag "Never save" nil))
-  :group 'desktop
   :version "22.1")
 
 (defcustom desktop-auto-save-timeout auto-save-timeout
@@ -234,7 +232,6 @@ Zero or nil means disable auto-saving due to idleness."
 	   (if (and (integerp value) (> value 0))
 	       (desktop-auto-save-enable value)
 	     (desktop-auto-save-disable))))
-  :group 'desktop
   :version "24.4")
 
 (defcustom desktop-load-locked-desktop 'ask
@@ -260,27 +257,23 @@ case if you have remotely mounted (NFS) paths in
     (const :tag "Don't load" nil)
     (const :tag "Ask the user" ask)
     (const :tag "Load if no local process" check-pid))
-  :group 'desktop
   :version "22.2")
 
 (defcustom desktop-base-file-name
   (convert-standard-filename ".emacs.desktop")
   "Name of file for Emacs desktop, excluding the directory part."
-  :type 'file
-  :group 'desktop)
+  :type 'file)
 
 (defcustom desktop-base-lock-name
   (convert-standard-filename ".emacs.desktop.lock")
   "Name of lock file for Emacs desktop, excluding the directory part."
   :type 'file
-  :group 'desktop
   :version "22.2")
 
 (defcustom desktop-path (list user-emacs-directory "~")
   "List of directories to search for the desktop file.
 The base name of the file is specified in `desktop-base-file-name'."
   :type '(repeat directory)
-  :group 'desktop
   :version "23.2")                      ; user-emacs-directory added
 
 (defcustom desktop-missing-file-warning nil
@@ -290,7 +283,6 @@ Also pause for a moment to display message about errors signaled in
 
 If nil, just print error messages in the message buffer."
   :type 'boolean
-  :group 'desktop
   :version "22.1")
 
 (defcustom desktop-no-desktop-file-hook nil
@@ -298,7 +290,6 @@ If nil, just print error messages in the message buffer."
 Run in the directory in which the desktop file was sought.
 May be used to show a Dired buffer."
   :type 'hook
-  :group 'desktop
   :version "22.1")
 
 (defcustom desktop-not-loaded-hook nil
@@ -306,7 +297,6 @@ May be used to show a Dired buffer."
 Run in the directory in which the desktop file was found.
 May be used to deal with accidental multiple Emacs jobs."
   :type 'hook
-  :group 'desktop
   :options '(desktop-save-mode-off save-buffers-kill-emacs)
   :version "22.2")
 
@@ -314,7 +304,6 @@ May be used to deal with accidental multiple Emacs jobs."
   "Normal hook run after a successful `desktop-read'.
 May be used to show a buffer list."
   :type 'hook
-  :group 'desktop
   :options '(list-buffers)
   :version "22.1")
 
@@ -323,8 +312,7 @@ May be used to show a buffer list."
 Run with the desktop buffer current with only the header present.
 May be used to add to the desktop code or to truncate history lists,
 for example."
-  :type 'hook
-  :group 'desktop)
+  :type 'hook)
 
 (defcustom desktop-globals-to-save
   '(desktop-missing-file-warning
@@ -339,8 +327,7 @@ An element may be variable name (a symbol) or a cons cell of the form
 \(VAR . MAX-SIZE), which means to truncate VAR's value to at most
 MAX-SIZE elements (if the value is a list) before saving the value.
 Feature: Saving `kill-ring' implies saving `kill-ring-yank-pointer'."
-  :type '(repeat (restricted-sexp :match-alternatives (symbolp consp)))
-  :group 'desktop)
+  :type '(repeat (restricted-sexp :match-alternatives (symbolp consp))))
 
 (defcustom desktop-globals-to-clear
   '(kill-ring
@@ -354,7 +341,6 @@ An element may be variable name (a symbol) or a cons cell of the form
 \(VAR . FORM).  Symbols are set to nil and for cons cells VAR is set
 to the value obtained by evaluating FORM."
   :type '(repeat (restricted-sexp :match-alternatives (symbolp consp)))
-  :group 'desktop
   :version "22.1")
 
 (defcustom desktop-clear-preserve-buffers
@@ -364,8 +350,7 @@ to the value obtained by evaluating FORM."
 Each element is a regular expression.  Buffers with a name matched by any of
 these won't be deleted."
   :version "23.3"                       ; added Warnings - bug#6336
-  :type '(repeat regexp)
-  :group 'desktop)
+  :type '(repeat regexp))
 
 ;;;###autoload
 (defcustom desktop-locals-to-save
@@ -389,8 +374,7 @@ these won't be deleted."
   "List of local variables to save for each buffer.
 The variables are saved only when they really are local.  Conventional minor
 modes are restored automatically; they should not be listed here."
-  :type '(repeat symbol)
-  :group 'desktop)
+  :type '(repeat symbol))
 
 (defcustom desktop-buffers-not-to-save "\\` "
   "Regexp identifying buffers that are to be excluded from saving.
@@ -399,8 +383,7 @@ To exclude buffers that visit files, use `desktop-files-not-to-save'
 or `desktop-modes-not-to-save'."
   :type '(choice (const :tag "None" nil)
 		 regexp)
-  :version "24.4"		    ; skip invisible temporary buffers
-  :group 'desktop)
+  :version "24.4")		    ; skip invisible temporary buffers
 
 ;; Skip tramp and ange-ftp files
 (defcustom desktop-files-not-to-save
@@ -413,15 +396,13 @@ you may wish customizing `remote-file-name-access-timeout' to a non-nil
 value, to avoid hanging the desktop restoration because some remote
 host is off-line."
   :type '(choice (const :tag "None" nil)
-		 regexp)
-  :group 'desktop)
+		 regexp))
 
 ;; We skip TAGS files to save time (tags-file-name is saved instead).
 (defcustom desktop-modes-not-to-save
   '(tags-table-mode)
   "List of major modes whose buffers should not be saved."
-  :type '(repeat symbol)
-  :group 'desktop)
+  :type '(repeat symbol))
 
 (defcustom desktop-restore-frames (not (featurep 'android))
   "When non-nil, save and restore the frame and window configuration.
@@ -432,7 +413,6 @@ This option is enabled by default, except on Android.  It is disabled by
 default on Android because the window manager there prevents programs from
 restoring frames."
   :type 'boolean
-  :group 'desktop
   :version "31.1")
 
 (defcustom desktop-restore-in-current-display t
@@ -443,7 +423,6 @@ If `delete', deletes frames on other displays instead of restoring them."
   :type '(choice (const :tag "Restore in current display" t)
 		 (const :tag "Restore in original display" nil)
 		 (const :tag "Delete frames in other displays" delete))
-  :group 'desktop
   :version "24.4")
 
 (defcustom desktop-restore-forces-onscreen t
@@ -459,7 +438,6 @@ no effect on restoring frames in a non-GUI session."
   :type '(choice (const :tag "Only fully offscreen frames" t)
 		 (const :tag "Also partially offscreen frames" all)
 		 (const :tag "Do not force frames onscreen" nil))
-  :group 'desktop
   :version "24.4")
 
 (defcustom desktop-restore-reuses-frames t
@@ -469,7 +447,6 @@ If `keep', keeps existing frames and does not reuse them."
   :type '(choice (const :tag "Reuse existing frames" t)
 		 (const :tag "Delete existing frames" nil)
 		 (const :tag "Keep existing frames" keep))
-  :group 'desktop
   :version "24.4")
 
 (defcustom desktop-file-name-format 'absolute
@@ -479,7 +456,6 @@ Possible values are:
    tilde    -- Relative to ~.
    local    -- Relative to directory of desktop file."
   :type '(choice (const absolute) (const tilde) (const local))
-  :group 'desktop
   :version "22.1")
 
 (defcustom desktop-restore-eager t
@@ -487,20 +463,17 @@ Possible values are:
 Remaining buffers are restored lazily (when Emacs is idle).
 If value is t, all buffers are restored immediately."
   :type '(choice (const t) integer)
-  :group 'desktop
   :version "22.1")
 
 (defcustom desktop-lazy-verbose t
   "Verbose reporting of lazily created buffers."
   :type 'boolean
-  :group 'desktop
   :version "22.1")
 
 (defcustom desktop-lazy-idle-delay 5
   "Idle delay before starting to create buffers.
 See `desktop-restore-eager'."
   :type 'natnum
-  :group 'desktop
   :version "22.1")
 
 ;;;###autoload
@@ -578,8 +551,7 @@ and the name of the minor mode function are different have to be added to
 this table.  See also `desktop-minor-mode-handlers'."
   :type '(alist :key-type (symbol :tag "Minor mode")
                 :value-type (list :tag "Restore function"
-                                  (choice (const nil) function)))
-  :group 'desktop)
+                                  (choice (const nil) function))))
 
 ;;;###autoload
 (defvar desktop-minor-mode-handlers nil
@@ -682,7 +654,7 @@ Used to detect desktop file conflicts.")
 	 (lambda (mr)
 	   (mapcar #'copy-marker mr))))
   "Table of serialization/deserialization functions for variables.
-Each record is a list of form: (var serializer deserializer).
+Each record is a list of form: (VAR SERIALIZER DESERIALIZER).
 These records can be freely reordered, deleted, or new ones added.
 However, for compatibility, don't modify the functions for existing records.")
 
@@ -774,7 +746,9 @@ if different)."
   (dolist (var desktop-globals-to-clear)
     (if (symbolp var)
 	(set-default var nil)
-      (set-default var (eval (cdr var)))))
+      ;; FIXME: To avoid maiming kitten we should also support `funcall'
+      ;; instead of only `eval' here.
+      (set-default var (eval (cdr var) t))))
   (let ((preserve-regexp (concat "\\`\\("
                                  (mapconcat (lambda (regexp)
                                               (concat "\\(" regexp "\\)"))
@@ -866,7 +840,7 @@ buffer, which is (in order):
     `buffer-file-name';
     `buffer-name';
     `major-mode';
-    list of minor-modes,;
+    list of minor-modes;
     `point';
     `mark';
     `buffer-read-only';
@@ -980,7 +954,7 @@ QUOTE may be `may' (value may be quoted),
 	 (cons 'must
 	       `(,@(mapcar #'cdr
                            (nreverse (if use-list* (cdr newlist) newlist)))
-                 ,@(if use-list* (cdar newlist)))))))
+                 . ,(if use-list* (cdar newlist)))))))
     ((subrp value)
      (cons nil `(symbol-function
                  ',(intern-soft (substring (prin1-to-string value) 7 -1)))))
@@ -1026,8 +1000,8 @@ which means to truncate VAR's value to at most MAX-SIZE elements
     (when (boundp var)
       (when (and (integerp size)
 		 (> size 0)
-		 (listp (eval var)))
-	(desktop-truncate (eval var) size))
+		 (listp (symbol-value var)))
+	(desktop-truncate (symbol-value var) size))
       (insert "(setq "
 	      (symbol-name var)
 	      " "
@@ -1046,7 +1020,7 @@ have its state saved in the desktop file.")
   "Return t if buffer should have its state saved in the desktop file.
 FILENAME is the visited file name, BUFNAME is the buffer name, and
 MODE is the major mode.
-\n\(fn FILENAME BUFNAME MODE)"
+\n(fn FILENAME BUFNAME MODE)"
   (let ((case-fold-search nil)
 	(no-regexp-to-check (not (stringp desktop-files-not-to-save)))
 	dired-skip)
@@ -1339,14 +1313,9 @@ It returns t if a desktop file was loaded, nil otherwise.
              ;; Else, with a prefix arg, ask for a directory name.
              (and ask (read-directory-name "Directory for desktop file: " nil nil t))
              ;; Otherwise search desktop file in desktop-path.
-             (let ((dirs desktop-path))
-               (while (and dirs
-                           (not (file-exists-p
-                                 (desktop-full-file-name (car dirs)))))
-                 (setq dirs (cdr dirs)))
-               (and dirs (car dirs)))
+             (locate-file desktop-base-file-name desktop-path)
              ;; If not found and `desktop-path' is non-nil, use its first element.
-             (and desktop-path (car desktop-path))
+             (car desktop-path)
              ;; Default: .emacs.d.
              user-emacs-directory))))
     (if (file-exists-p (desktop-full-file-name))
@@ -1498,7 +1467,7 @@ This function is called from `window-configuration-change-hook'."
 	     (> desktop-auto-save-timeout 0))
     (setq desktop-auto-save-timer
 	  (run-with-idle-timer desktop-auto-save-timeout nil
-			       'desktop-auto-save))))
+			       #'desktop-auto-save))))
 
 (defun desktop-auto-save-cancel-timer ()
   (when desktop-auto-save-timer
@@ -1657,8 +1626,16 @@ and try to load that."
 	     (condition-case err
 		 ;; Evaluate point.  Thus point can be something like
 		 ;; '(search-forward ...
-		 (eval desktop-buffer-point)
-	       (error (message "%s" (error-message-string err)) 1))))
+		 ;; FIXME: How/where could this happen?  AFAICT this var
+		 ;; is lexical has been lexical since 2013 and thus equal
+                 ;; to the arg `buffer-point' which always comes from the
+                 ;; corresponding entry in `desktop-buffer-info' where we
+                 ;; put just an integer.
+                 ;; FIXME: If we want to keep this feature, we should
+                 ;; also allow `desktop-buffer-point' to be a function.
+		 (eval desktop-buffer-point t)
+	       (error (message "%s" (error-message-string err))
+	              (point-min)))))
 	  (when desktop-buffer-mark
             (if (consp desktop-buffer-mark)
                 (progn
@@ -1701,6 +1678,8 @@ and try to load that."
 ;; Backward compatibility -- update parameters to 205 standards.
 (defun desktop-buffer (buffer-filename buffer-name buffer-majormode
 		       mim pt mk ro tl fc cfs cr buffer-misc)
+  ;; FIXME: Actually, it's been obsolete since 1994 (commit ec4c6f225a81)!
+  (declare (obsolete desktop-create-buffer "31"))
   (desktop-create-buffer 205 buffer-filename buffer-name
 			 buffer-majormode (cdr mim) pt mk ro
 			 buffer-misc
@@ -1716,7 +1695,8 @@ ARGS must be an argument list for `desktop-create-buffer'."
   (setq desktop-buffer-args-list (nconc desktop-buffer-args-list (list args)))
   (unless desktop-lazy-timer
     (setq desktop-lazy-timer
-          (run-with-idle-timer desktop-lazy-idle-delay t 'desktop-idle-create-buffers))))
+          (run-with-idle-timer desktop-lazy-idle-delay t
+                               #'desktop-idle-create-buffers))))
 
 (defun desktop-lazy-create-buffer ()
   "Pop args from `desktop-buffer-args-list', create buffer and bury it."
