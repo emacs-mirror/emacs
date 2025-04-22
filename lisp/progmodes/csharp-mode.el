@@ -733,57 +733,39 @@ compilation and evaluation time conflicts."
 
 (defun csharp-ts-mode--test-this-expression ()
   "Return non-nil if (this_expression) is named in csharp grammar."
-  (ignore-errors
-    (treesit-query-compile 'c-sharp "(this_expression)" t)
-    t))
+  (treesit-query-valid-p 'c-sharp "(this_expression)"))
 
 (defun csharp-ts-mode--test-interpolated-string-text ()
   "Return non-nil if (interpolated_string_text) is in the grammar."
-  (ignore-errors
-    (treesit-query-compile 'c-sharp "(interpolated_string_text)" t)
-    t))
+  (treesit-query-valid-p 'c-sharp "(interpolated_string_text)"))
 
 (defun csharp-ts-mode--test-string-content ()
   "Return non-nil if (interpolated_string_text) is in the grammar."
-  (ignore-errors
-    (treesit-query-compile 'c-sharp "(string_content)" t)
-    t))
+  (treesit-query-valid-p 'c-sharp "(string_content)"))
 
 (defun csharp-ts-mode--test-type-constraint ()
   "Return non-nil if (type_constraint) is in the grammar."
-  (ignore-errors
-    (treesit-query-compile 'c-sharp "(type_constraint)" t)
-    t))
+  (treesit-query-valid-p 'c-sharp "(type_constraint)"))
 
 (defun csharp-ts-mode--test-type-of-expression ()
   "Return non-nil if (type_of_expression) is in the grammar."
-  (ignore-errors
-    (treesit-query-compile 'c-sharp "(type_of_expression)" t)
-    t))
+  (treesit-query-valid-p 'c-sharp "(type_of_expression)"))
 
 (defun csharp-ts-mode--test-typeof-expression ()
   "Return non-nil if (type_of_expression) is in the grammar."
-  (ignore-errors
-    (treesit-query-compile 'c-sharp "(typeof_expression)" t)
-    t))
+  (treesit-query-valid-p 'c-sharp "(typeof_expression)"))
 
 (defun csharp-ts-mode--test-name-equals ()
   "Return non-nil if (name_equals) is in the grammar."
-  (ignore-errors
-    (treesit-query-compile 'c-sharp "(name_equals)" t)
-    t))
+  (treesit-query-valid-p 'c-sharp "(name_equals)"))
 
 (defun csharp-ts-mode--test-if-directive ()
   "Return non-nil if (if_directive) is in the grammar."
-  (ignore-errors
-    (treesit-query-compile 'c-sharp "(if_directive)" t)
-    t))
+  (treesit-query-valid-p 'c-sharp "(if_directive)"))
 
 (defun csharp-ts-mode--test-method-declaration-type-field ()
   "Return non-nil if (method_declaration) has a type field."
-  (ignore-errors
-    (treesit-query-compile 'c-sharp "(method_declaration type: (_))" t)
-    t))
+  (treesit-query-valid-p 'c-sharp "(method_declaration type: (_))"))
 
 (defvar csharp-ts-mode--type-field
   (if (csharp-ts-mode--test-method-declaration-type-field)

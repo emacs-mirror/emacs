@@ -674,9 +674,7 @@ MODE should be either `c' or `cpp'."
       (mapcan
        (lambda (entry)
          (let ((keywords (cdr entry)))
-           (if (ignore-errors
-                 (treesit-query-compile 'c `([,@keywords] @cap) t)
-                 t)
+           (if (treesit-query-valid-p 'c `([,@keywords] @cap))
                (copy-sequence keywords)
              nil)))
        c-ts-mode--optional-c-keywords)

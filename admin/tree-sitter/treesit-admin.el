@@ -156,9 +156,7 @@ queries that has problems with latest grammar."
             (unless (memq language (alist-get mode mode-language-alist))
               (push language (alist-get mode mode-language-alist)))
             ;; Validate query.
-            (when (not (ignore-errors
-                         (treesit-query-compile language query t)
-                         t))
+            (unless (treesit-query-valid-p language query)
               (push (list mode language feature) invalid-feature-list)
               (setq all-queries-valid nil))))
         (when all-queries-valid
@@ -261,9 +259,7 @@ Return non-nil if all queries are valid, nil otherwise."
              (language (treesit-query-language query)))
         ;; Validate query.
         (when (and (eq lang language)
-                   (not (ignore-errors
-                          (treesit-query-compile language query t)
-                          t)))
+                   (not (treesit-query-valid-p language query)))
           (setq all-queries-valid nil))))
     all-queries-valid))
 

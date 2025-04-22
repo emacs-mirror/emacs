@@ -840,28 +840,23 @@ characters of the current line."
 
 (defun php-ts-mode--test-namespace-name-as-prefix-p ()
   "Return t if namespace_name_as_prefix is a named node, nil otherwise."
-  (ignore-errors
-    (progn (treesit-query-compile 'php "(namespace_name_as_prefix)" t) t)))
+  (treesit-query-valid-p 'php "(namespace_name_as_prefix)"))
 
 (defun php-ts-mode--test-namespace-aliasing-clause-p ()
   "Return t if namespace_aliasing_clause is a named node, nil otherwise."
-  (ignore-errors
-    (progn (treesit-query-compile 'php "(namespace_aliasing_clause)" t) t)))
+  (treesit-query-valid-p 'php "(namespace_aliasing_clause)"))
 
 (defun php-ts-mode--test-namespace-use-group-clause-p ()
   "Return t if namespace_use_group_clause is a named node, nil otherwise."
-  (ignore-errors
-    (progn (treesit-query-compile 'php "(namespace_use_group_clause)" t) t)))
+  (treesit-query-valid-p 'php "(namespace_use_group_clause)"))
 
 (defun php-ts-mode--test-visibility-modifier-operation-clause-p ()
   "Return t if (visibility_modifier (operation)) is defined, nil otherwise."
-  (ignore-errors
-    (progn (treesit-query-compile 'php "(visibility_modifier (operation))" t) t)))
+  (treesit-query-valid-p 'php "(visibility_modifier (operation))"))
 
 (defun php-ts-mode--test-property-hook-clause-p ()
   "Return t if property_hook is a named node, nil otherwise."
-  (ignore-errors
-    (progn (treesit-query-compile 'php "(property_hook)" t) t)))
+  (treesit-query-valid-p 'php "(property_hook)"))
 
 (defun php-ts-mode--font-lock-settings ()
   "Tree-sitter font-lock settings."
