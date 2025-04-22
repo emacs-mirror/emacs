@@ -11971,10 +11971,10 @@ x_new_focus_frame (struct x_display_info *dpyinfo, struct frame *frame)
 {
   struct frame *old_focus = dpyinfo->x_focus_frame;
 #if defined USE_GTK && !defined HAVE_GTK3 && defined HAVE_XINPUT2
+  XIEventMask mask;
   if (dpyinfo->supports_xi2)
     {
       ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
-      XIEventMask mask;
       mask.mask = alloca (l);
       mask.mask_len = l;
       memset (mask.mask, 0, l);
