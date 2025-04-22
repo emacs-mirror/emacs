@@ -77,7 +77,7 @@ CHECK_MARKER (Lisp_Object x)
 }
 
 
-/* Operations on markers. */
+/* Operations on markers.  */
 
 DEFUN ("marker-buffer", Fmarker_buffer, Smarker_buffer, 1, 1, 0,
        doc: /* Return the buffer that MARKER points into, or nil if none.

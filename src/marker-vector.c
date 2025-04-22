@@ -1,4 +1,4 @@
-/* Marker vectors..
+/* Marker vectors.
    Copyright (C) 2025 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -16,9 +16,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
-/* A marker vector is used to hold the markers of a buffer. The vector
+/* A marker vector is used to hold the markers of a buffer.  The vector
    is a normal Lisp vector that consists of a header and a number of
-   entries for each marker. A Lisp vector is used because the vector
+   entries for each marker.  A Lisp vector is used because the vector
    references markers "weakly", and that's what easy for igc.
 
    +------+-----------+---------+---------+--------------+
@@ -27,7 +27,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
    |<----- header --->|
 
    Entries consist of 2 vector slots MARKER and CHARPOS. MARKER holds a
-   marker, if the entry is in use. CHARPOS is not yet used. (The idea is
+   marker, if the entry is in use.  CHARPOS is not yet used.  (The idea is
    to move the positions from Lisp_Marker here, which speeds up
    adjusting positions when the text changes.)
 
@@ -35,16 +35,16 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
    marker vector.  Free entries form a singly-linked list using the
    MARKER field of entries.
 
-   MAX_ENTRY is the largest index ever used to store a marker. This is
+   MAX_ENTRY is the largest index ever used to store a marker.  This is
    used to (supposedly) speed up iteration over the marker vector, with
    the assumption that there might be a tail of slots in the marker
-   vector that is never used. Or, IOW, that we over-allocate room in the
+   vector that is never used.  Or, IOW, that we over-allocate room in the
    marker vector.
 
    Lisp_Marker objects contain the index under which they are stored in
    the marker vector.
 
-   The use of a free list gives O(1) for adding a marker. The index
+   The use of a free list gives O(1) for adding a marker.  The index
    stored in the Lisp_Marker provides O(1) deletion of a marker from
    the markers of a buffer.
 

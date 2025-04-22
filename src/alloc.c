@@ -7104,12 +7104,12 @@ sweep_symbols (void)
 }
 
 /* Remove BUFFER's markers that are due to be swept.  This is needed
-   since we treat marker references from BUF_MARKER weak references.
+   since we treat marker references from BUF_MARKER as weak references.
    This relies on the fact that marker vectors only contain markers,
    fixnums and nil, which means we only have to look at the marker
    slots.  If such a marker is not yet marked, it's dead and we remove
    it from the marker vector.  If it is not dead, it won't be freed
-   my sweep_vectors which is called after sweep_buffers.  */
+   by sweep_vectors which is called after sweep_buffers.  */
 
 static void
 unchain_dead_markers (struct buffer *b)

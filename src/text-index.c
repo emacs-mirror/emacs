@@ -31,7 +31,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
    The index consists of an array of character positions.  The entry at
    index ENTRY is the character position of the character containing the
-   byte position ENTRY * interval size. There is no entry for a partial
+   byte position ENTRY * interval size.  There is no entry for a partial
    interval at the end of the text.  The position (Z, Z_BYTE) is instead
    handled specially in the code.
 
@@ -85,7 +85,7 @@ struct text_index
   /* Number of entries allocated.  */
   size_t capacity;
 
-  /* Known position cache. This is the last position conversion result.  */
+  /* Known position cache.  This is the last position conversion result.  */
   struct text_pos cache;
 };
 

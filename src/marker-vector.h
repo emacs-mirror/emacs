@@ -28,7 +28,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
 enum
 {
-  /* Header. */
+  /* Header.  */
   MARKER_VECTOR_FREE = 0,
   MARKER_VECTOR_MAX_ENTRY = 1,
   MARKER_VECTOR_HEADER_SIZE = 2,
