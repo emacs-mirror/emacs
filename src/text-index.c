@@ -113,6 +113,13 @@ z_pos (const struct buffer *b)
 }
 
 static struct text_pos
+beg_pos (const struct buffer *b)
+{
+  return (struct text_pos)
+    {.charpos = BEG, .bytepos =BEG_BYTE};
+}
+
+static struct text_pos
 gpt_pos (const struct buffer *b)
 {
   return (struct text_pos)
@@ -124,6 +131,18 @@ pt_pos (const struct buffer *b)
 {
   return (struct text_pos)
     {.charpos = b->pt, .bytepos = b->pt_byte};
+}
+
+/* Return true if CHARPOS can be considered close enough to POS for text
+   index TI so that further improvements are not considered
+   necessary.  */
+
+static bool
+is_close_enough_charpos (const struct text_index *ti,
+			 ptrdiff_t charpos,
+			 const struct text_pos pos)
+{
+  return eabs (charpos - pos.charpos) < TEXT_INDEX_INTERVAL / 4;
 }
 
 /* Cache (CHARPOS, BYTEPOS) as known position in index TI.  */
@@ -642,14 +661,31 @@ buf_charpos_to_bytepos (struct buffer *b, const ptrdiff_t charpos)
     return z.bytepos;
   ensure_charpos_indexed (b, charpos);
 
-  struct text_index *ti = b->text->index;
-  const ptrdiff_t entry = index_charpos_entry (ti, charpos);
-  struct text_pos prev = index_text_pos (ti, entry);
-  struct text_pos next = next_known_text_pos (b, entry);
+  /* Begin with the interval (BEG, Z), and improve on that by taking known
+     positions into account like PT, GPT and the cache.  This might
+     already find the bytepos.  */
+  struct text_index *ti = ensure_has_index (b);
+  struct text_pos prev = beg_pos (b);
+  struct text_pos next = z;
 
   ptrdiff_t bytepos = narrow_charpos_bounds (b, &prev, &next, charpos);
   if (bytepos != TEXT_INDEX_INVALID_POSITION)
     return bytepos;
+
+  /* If one of the bounds is already good enough, avoid consulting
+     the index since that involves some overhead. */
+  if (!is_close_enough_charpos (ti, charpos, prev)
+      && !is_close_enough_charpos (ti, charpos, next))
+    {
+      ensure_charpos_indexed (b, charpos);
+      const ptrdiff_t entry = index_charpos_entry (ti, charpos);
+      const struct text_pos index_prev = index_text_pos (ti, entry);
+      narrow_charpos_bounds_1 (index_prev, &prev, &next, charpos);
+      const struct text_pos index_next = next_known_text_pos (b, entry);
+      narrow_charpos_bounds_1 (index_next, &prev, &next, charpos);
+    }
+
+
 
   /* Don't scan forward if CHARPOS is exactly on the previous know
      position because the index bytepos can be in the middle of a
