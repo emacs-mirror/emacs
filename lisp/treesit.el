@@ -4207,6 +4207,9 @@ Expected to be called after each text change."
 ;;; Show paren mode
 
 (defun treesit-show-paren-data--categorize (pos &optional end-p)
+  "Return a list suitable for `show-paren-data-function' (which see).
+If the optional argument END-P is non-nil, interpret the position POS
+as belonging to the node that ends before POS (by subtracting 1 from POS)."
   (let* ((pred 'list)
          (parent (when (treesit-thing-defined-p
                         pred (treesit-language-at (if end-p (1- pos) pos)))
