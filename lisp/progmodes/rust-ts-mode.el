@@ -43,7 +43,8 @@
 
 (add-to-list
  'treesit-language-source-alist
- '(rust "https://github.com/tree-sitter/tree-sitter-rust" "v0.23.2")
+ `(rust "https://github.com/tree-sitter/tree-sitter-rust"
+        ,(if (< (treesit-library-abi-version) 15) "v0.23.2" "v0.24.0"))
  t)
 
 (defcustom rust-ts-mode-indent-offset 4
