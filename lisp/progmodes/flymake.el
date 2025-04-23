@@ -1956,16 +1956,16 @@ POS can be a buffer position or a button"
 
 (defvar flymake--tabulated-list-format-base
   `[("File" 15)
-    ("Line" 5 ,(lambda (l1 l2)
+    ("Line" 4 ,(lambda (l1 l2)
                  (< (plist-get (car l1) :line)
                     (plist-get (car l2) :line)))
      :right-align t)
     ("Col" 3 nil :right-align t)
-    ("Type" 8 ,(lambda (l1 l2)
+    ("Type" 4 ,(lambda (l1 l2)
                  (< (plist-get (car l1) :severity)
                     (plist-get (car l2) :severity))))
-    ("Origin" 8 t)
-    ("Code" 8 t)
+    ("Origin" 6 t)
+    ("Code" 4 t)
     ("Message" 0 t)])
 
 (defun flymake--tabulated-setup-1 (diags project-root)
