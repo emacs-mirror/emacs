@@ -252,7 +252,7 @@ adjust_markers_for_delete (ptrdiff_t from, ptrdiff_t from_byte,
 {
   text_index_invalidate (current_buffer, from_byte);
   adjust_suspend_auto_hscroll (from, to);
-  marker_vector_adjust_for_delete (current_buffer, from, to);
+  marker_vector_adjust_for_replace (current_buffer, from, to - from, 0);
   adjust_overlays_for_delete (from, to - from);
 }
 
@@ -303,8 +303,6 @@ adjust_markers_for_replace (ptrdiff_t from, ptrdiff_t from_byte,
 			    ptrdiff_t old_chars, ptrdiff_t old_bytes,
 			    ptrdiff_t new_chars, ptrdiff_t new_bytes)
 {
-  text_index_invalidate (current_buffer, from_byte);
-
   if (old_chars == 0)
     {
       /* Just an insertion: markers at FROM may need to move or not depending
@@ -317,6 +315,7 @@ adjust_markers_for_replace (ptrdiff_t from, ptrdiff_t from_byte,
       return;
     }
 
+  text_index_invalidate (current_buffer, from_byte);
   adjust_suspend_auto_hscroll (from, from + old_chars);
   marker_vector_adjust_for_replace (current_buffer, from, old_chars, new_chars);
   check_markers ();

@@ -69,7 +69,6 @@ void marker_vector_reset (struct buffer *b);
 void marker_vector_set_charpos (struct Lisp_Marker *m, ptrdiff_t charpos);
 ptrdiff_t marker_vector_charpos (const struct Lisp_Marker *m);
 ptrdiff_t marker_vector_bytepos (const struct Lisp_Marker *m);
-void marker_vector_adjust_for_delete (struct buffer *b, ptrdiff_t from, ptrdiff_t to);
 void marker_vector_adjust_for_insert (struct buffer *b, const ptrdiff_t from,
 				      ptrdiff_t to, bool before_markers);
 void marker_vector_adjust_for_replace (struct buffer *b, ptrdiff_t from,

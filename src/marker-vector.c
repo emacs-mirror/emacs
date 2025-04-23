@@ -324,28 +324,6 @@ marker_vector_bytepos (const struct Lisp_Marker *m)
   return buf_charpos_to_bytepos (m->buffer, charpos);
 }
 
-/* Adjust all marker positions of buffer B for a deletion of a range
-   FROM_CHARPOS to TO_CHARPOS characters.  */
-
-void
-marker_vector_adjust_for_delete (struct buffer *b,
-				 const ptrdiff_t from_charpos,
-				 const ptrdiff_t to_charpos)
-{
-  const ptrdiff_t nchars = to_charpos - from_charpos;
-  struct Lisp_Vector *v = XVECTOR (BUF_MARKERS (b));
-  DO_MARKERS (b, m)
-    {
-      const ptrdiff_t charpos = XFIXNUM (CHARPOS (v, m->entry));
-      eassert (charpos <= Z);
-      if (charpos > to_charpos)
-	CHARPOS (v, m->entry) = make_fixnum (charpos - nchars);
-      else if (charpos > from_charpos)
-	CHARPOS (v, m->entry) = make_fixnum (from_charpos);
-    }
-  END_DO_MARKERS;
-}
-
 /* Adjust marker positions in buffer B for an insertion that stretches
    from FROM_CHARPOS to TO_CHARPOS.  When a marker points at the
    insertion point FROM_CHARPOS, we advance it if either its
