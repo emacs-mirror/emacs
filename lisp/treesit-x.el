@@ -110,7 +110,7 @@ of `define-treesit-generic-mode'.
         (_ (pop body))))
 
     (when (stringp source)
-      (setq source (list 'quote (ensure-list source))))
+      (setq source (list 'quote (list source nil nil nil nil nil :copy-queries t))))
     (when (stringp auto-mode)
       (setq auto-mode (list 'quote (ensure-list auto-mode))))
 

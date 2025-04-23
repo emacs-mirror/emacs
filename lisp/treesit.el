@@ -4962,7 +4962,7 @@ window."
 
 The value should be an alist where each element has the form
 
-    (LANG . (URL REVISION SOURCE-DIR CC C++ COMMIT))
+    (LANG . (URL REVISION SOURCE-DIR CC C++ COMMIT [KEYWORD VALUE]...))
 
 Only LANG and URL are mandatory.  LANG is the language symbol.
 URL is the URL of the grammar's Git repository or a directory
@@ -4977,7 +4977,13 @@ SOURCE-DIR is the relative subdirectory in the repository in which
 the grammar's parser.c file resides, defaulting to \"src\".
 
 CC and C++ are C and C++ compilers, defaulting to \"cc\" and
-\"c++\", respectively.")
+\"c++\", respectively.
+
+The currently supported keywords:
+
+`:copy-queries' when non-nil specifies whether to copy the files
+in the \"queries\" directory from the source directory to the
+installation directory.")
 
 (defun treesit--install-language-grammar-build-recipe (lang)
   "Interactively produce a download/build recipe for LANG and return it.
@@ -5161,7 +5167,7 @@ clone if `treesit--install-language-grammar-blobless' is t."
     (apply #'treesit--call-process-signal args)))
 
 (defun treesit--install-language-grammar-1
-    (out-dir lang url &optional revision source-dir cc c++ commit)
+    (out-dir lang url &optional revision source-dir cc c++ commit &rest args)
   "Compile and install a tree-sitter language grammar library.
 
 OUT-DIR is the directory to put the compiled library file.  If it
@@ -5183,7 +5189,14 @@ If anything goes wrong, this function signals an `treesit-error'."
          (workdir (if url-is-dir
                       maybe-repo-dir
                     (expand-file-name "repo")))
-         version)
+         copy-queries version)
+
+    ;; Process the keyword args.
+    (while (keywordp (car args))
+      (pcase (pop args)
+        (:copy-queries (setq copy-queries (pop args)))
+        (_ (pop args))))
+
     (unwind-protect
         (with-temp-buffer
           (if url-is-dir
@@ -5194,7 +5207,8 @@ If anything goes wrong, this function signals an `treesit-error'."
             (treesit--git-checkout-branch workdir commit))
           (setq version (treesit--language-git-revision workdir))
           (treesit--build-grammar workdir out-dir lang source-dir cc c++)
-          (treesit--copy-queries workdir out-dir lang))
+          (when copy-queries
+            (treesit--copy-queries workdir out-dir lang source-dir)))
       ;; Remove workdir if it's not a repo owned by user and we
       ;; managed to create it in the first place.
       (when (and (not url-is-dir) (file-exists-p workdir))
@@ -5273,14 +5287,18 @@ If anything goes wrong, this function signals an `treesit-error'."
         (ignore-errors (delete-file old-fname)))
       (message "Library installed to %s/%s" out-dir lib-name))))
 
-(defun treesit--copy-queries (workdir out-dir lang)
-  "Copy the LANG \"queries\" directory from WORKDIR to OUT-DIR."
-  (let* ((query-dir (expand-file-name "queries" workdir))
+(defun treesit--copy-queries (workdir out-dir lang source-dir)
+  "Copy files in LANG \"queries\" directory from WORKDIR to OUT-DIR.
+The copied query files are queries/highlights.scm."
+  (let* ((query-dir (expand-file-name
+                     (or (and source-dir (format "%s/../queries" source-dir))
+                         "queries")
+                     workdir))
          (dest-dir (expand-file-name (format "queries/%s" lang) out-dir)))
     (when (file-directory-p query-dir)
       (unless (file-directory-p dest-dir)
         (make-directory dest-dir t))
-      (dolist (file (directory-files query-dir t "\\.scm\\'" t))
+      (dolist (file (directory-files query-dir t "highlights\\.scm\\'" t))
         (copy-file file (expand-file-name (file-name-nondirectory file) dest-dir) t)))))
 
 (defcustom treesit-auto-install-grammar 'ask
