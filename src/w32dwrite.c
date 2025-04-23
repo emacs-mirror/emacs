@@ -768,8 +768,8 @@ convert_metrics_sz (int sz, float font_size, int units_per_em)
 }
 
 
-/* It the caller does not need ascent/descent information, it should pass
-   need_ascent_descent = false.  This is used to avoid the overhead of
+/* If the caller does not need ascent/descent information, it should pass
+   NEED_ASCENT_DESCENT = false.  This is used to avoid the overhead of
    calling GetGlyphRunOutline.  */
 
 static bool
