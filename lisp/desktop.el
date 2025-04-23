@@ -1313,7 +1313,8 @@ It returns t if a desktop file was loaded, nil otherwise.
              ;; Else, with a prefix arg, ask for a directory name.
              (and ask (read-directory-name "Directory for desktop file: " nil nil t))
              ;; Otherwise search desktop file in desktop-path.
-             (locate-file desktop-base-file-name desktop-path)
+             (when-let* ((file (locate-file desktop-base-file-name desktop-path)))
+               (file-name-directory file))
              ;; If not found and `desktop-path' is non-nil, use its first element.
              (car desktop-path)
              ;; Default: .emacs.d.
