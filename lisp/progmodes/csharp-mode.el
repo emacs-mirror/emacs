@@ -777,11 +777,19 @@ compilation and evaluation time conflicts."
    :feature 'expression
    '((conditional_expression (identifier) @font-lock-variable-use-face)
      (postfix_unary_expression (identifier)* @font-lock-variable-use-face)
-     (initializer_expression (assignment_expression left: (identifier) @font-lock-variable-use-face)))
+     (initializer_expression (assignment_expression left: (identifier) @font-lock-variable-use-face))
+     (interpolated_string_expression
+      (interpolation
+       (identifier) @font-lock-variable-use-face))
+     (interpolated_string_expression
+      (interpolation
+       (member_access_expression
+        expression: (identifier) @font-lock-variable-use-face
+        name: (identifier) @font-lock-property-use-face))))
 
    :language 'c-sharp
    :feature 'bracket
-   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
+   '((["(" ")" "[" "]" "{" "}" (interpolation_brace)]) @font-lock-bracket-face)
 
    :language 'c-sharp
    :feature 'delimiter
@@ -839,8 +847,7 @@ compilation and evaluation time conflicts."
               "$\""
               "@$\""
               "$@\"")
-          '((interpolated_string_expression)
-            (interpolation_start)
+          '((interpolation_start)
             (interpolation_quote)))]
      @font-lock-string-face)
 
