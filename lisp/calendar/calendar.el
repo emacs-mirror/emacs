@@ -2515,9 +2515,9 @@ ATTRLIST is a list with elements of the form :face face :foreground color."
     (if (not faceinfo)
         ;; No attributes to apply, so just use an existing-face.
         face
-      ;; FIXME should we be using numbered temp-faces, reusing where poss?
+      ;; Compute temp face name.
       (setq temp-face
-            (make-symbol
+            (intern
              (concat ":caltemp"
                      (mapconcat (lambda (sym)
                                   (cond
@@ -2525,10 +2525,12 @@ ATTRLIST is a list with elements of the form :face face :foreground color."
                                    ((numberp sym) (number-to-string sym))
                                    (t sym)))
                                 attrlist ""))))
-      (make-face temp-face)
-      (copy-face face temp-face)
-      ;; Apply the font aspects.
-      (apply #'set-face-attribute temp-face nil (nreverse faceinfo))
+      ;; Create this new face if it does not already exist.
+      (unless (member temp-face (face-list))
+        (make-face temp-face)
+        (copy-face face temp-face)
+        ;; Apply the font aspects.
+        (apply #'set-face-attribute temp-face nil (nreverse faceinfo)))
       temp-face)))
 
 (defun calendar-mark-visible-date (date &optional mark)
