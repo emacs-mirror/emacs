@@ -835,13 +835,15 @@ run_thread (void *state)
   self->m_getcjmp = NULL;
 #endif
 
-#ifndef HAVE_MPS
    for (struct handler *c = handlerlist_sentinel, *c_next; c; c = c_next)
      {
        c_next = c->nextfree;
+#ifndef HAVE_MPS
        xfree (c);
-     }
+#else
+       igc_xfree (c);
 #endif
+     }
 
   xfree (self->thread_name);
 

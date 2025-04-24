@@ -4513,7 +4513,7 @@ igc_alloc_blv (void)
 void *
 igc_alloc_handler (void)
 {
-  struct handler *h = alloc (sizeof *h, IGC_OBJ_HANDLER);
+  struct handler *h = igc_xzalloc_ambig (sizeof *h);
   return h;
 }
 
