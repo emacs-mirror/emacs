@@ -525,13 +525,13 @@ typedef struct ID2D1SimplifiedGeometrySinkVtbl {
   ULONG (STDMETHODCALLTYPE *AddRef) (ID2D1SimplifiedGeometrySink *This);
   ULONG (STDMETHODCALLTYPE *Release) (ID2D1SimplifiedGeometrySink *This);
 
-    VOID (STDMETHODCALLTYPE *SetFillMode)(ID2D1SimplifiedGeometrySink *This, D2D1_FILL_MODE fillMode);
-    VOID (STDMETHODCALLTYPE *SetSegmentFlags)(ID2D1SimplifiedGeometrySink *This, D2D1_PATH_SEGMENT vertexFlags);
-    VOID (STDMETHODCALLTYPE *BeginFigure)(ID2D1SimplifiedGeometrySink *This, D2D1_POINT_2F startPoint, D2D1_FIGURE_BEGIN figureBegin);
-    VOID (STDMETHODCALLTYPE *AddLines)(ID2D1SimplifiedGeometrySink *This, const D2D1_POINT_2F *points, UINT pointsCount);
-    VOID (STDMETHODCALLTYPE *AddBeziers)(ID2D1SimplifiedGeometrySink *This, const D2D1_BEZIER_SEGMENT *beziers, UINT beziersCount);
-    VOID (STDMETHODCALLTYPE *EndFigure)(ID2D1SimplifiedGeometrySink *This, D2D1_FIGURE_END figureEnd);
-    HRESULT (STDMETHODCALLTYPE *Close)(ID2D1SimplifiedGeometrySink *This);
+    VOID (STDMETHODCALLTYPE *SetFillMode) (ID2D1SimplifiedGeometrySink *This, D2D1_FILL_MODE fillMode);
+    VOID (STDMETHODCALLTYPE *SetSegmentFlags) (ID2D1SimplifiedGeometrySink *This, D2D1_PATH_SEGMENT vertexFlags);
+    VOID (STDMETHODCALLTYPE *BeginFigure) (ID2D1SimplifiedGeometrySink *This, D2D1_POINT_2F startPoint, D2D1_FIGURE_BEGIN figureBegin);
+    VOID (STDMETHODCALLTYPE *AddLines) (ID2D1SimplifiedGeometrySink *This, const D2D1_POINT_2F *points, UINT pointsCount);
+    VOID (STDMETHODCALLTYPE *AddBeziers) (ID2D1SimplifiedGeometrySink *This, const D2D1_BEZIER_SEGMENT *beziers, UINT beziersCount);
+    VOID (STDMETHODCALLTYPE *EndFigure) (ID2D1SimplifiedGeometrySink *This, D2D1_FIGURE_END figureEnd);
+    HRESULT (STDMETHODCALLTYPE *Close) (ID2D1SimplifiedGeometrySink *This);
   END_INTERFACE
 } ID2D1SimplifiedGeometrySinkVtbl;
 
@@ -873,8 +873,8 @@ text_extents_internal (IDWriteFontFace *dwrite_font_face,
 	  dwrite_geometry_sink.max_y = 0;
 	}
 
-      metrics->ascent = (int)round (-dwrite_geometry_sink.min_y);
-      metrics->descent = (int)round (dwrite_geometry_sink.max_y);
+      metrics->ascent = (int) round (-dwrite_geometry_sink.min_y);
+      metrics->descent = (int) round (dwrite_geometry_sink.max_y);
     }
 
   SAFE_FREE ();
@@ -1107,8 +1107,8 @@ w32_initialize_direct_write (void)
 #else
   dwrite_geometry_sink_vtbl.AddRef = (void *) geometry_sink_AddRef;
   dwrite_geometry_sink_vtbl.Release = (void *) geometry_sink_Release;
-  dwrite_geometry_sink_vtbl.QueryInterface = (void *)
-    geometry_sink_QueryInterface;
+  dwrite_geometry_sink_vtbl.QueryInterface
+    = (void *) geometry_sink_QueryInterface;
 #endif
 
   dwrite_geometry_sink_vtbl.AddBeziers = geometry_sink_AddBeziers;
