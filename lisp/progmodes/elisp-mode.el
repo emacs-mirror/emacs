@@ -307,18 +307,36 @@ Comments in the form will be lost."
 
 (defun elisp-enable-lexical-binding (&optional interactive)
   "Make the current buffer use `lexical-binding'.
+With a prefix argument \\[universal-argument], make the buffer use
+dynamic binding instead.
+In addition to setting the value of `lexical-binding' in the buffer,
+this function adds the lexbind cookie to the first line of the buffer,
+if it is not already there, so that saving the buffer to its file
+will cause Emacs to use the specified value of `lexical-binding'
+when the file is loaded henceforth.
 INTERACTIVE non-nil means ask the user for confirmation; this
-happens in interactive invocations."
+happens in interactive invocations.
+When calling from Lisp, use nil or a positive number as the value
+of INTERACTIVE to enable `lexical-binding', a negative number to
+disable it."
   (interactive "p")
-  (if (and (local-variable-p 'lexical-binding) lexical-binding)
-      (when interactive
-        (message "lexical-binding already enabled!")
-        (ding))
-    (when (or (not interactive)
-              (y-or-n-p (format "Enable lexical-binding in this %s? "
-                                (if buffer-file-name "file" "buffer"))))
-      (setq-local lexical-binding t)
-      (add-file-local-variable-prop-line 'lexical-binding t interactive))))
+  (let* ((disable-lexbind (or (and (numberp interactive)
+                                   (< interactive 0))
+                              (if current-prefix-arg t)))
+         (required-value (not disable-lexbind)))
+    (if (and (local-variable-p 'lexical-binding)
+             (null (xor required-value lexical-binding)))
+        (when interactive
+          (message "lexical-binding already %s!"
+                   (if disable-lexbind "disabled" "enabled"))
+          (ding))
+      (when (or (not interactive)
+                (y-or-n-p (format "%s lexical-binding in this %s? "
+                                  (if disable-lexbind "Disable" "Enable")
+                                  (if buffer-file-name "file" "buffer"))))
+        (setq-local lexical-binding required-value)
+        (add-file-local-variable-prop-line 'lexical-binding required-value
+                                           interactive)))))
 
 (defvar-keymap elisp--dynlex-modeline-map
   "<mode-line> <mouse-1>" #'elisp-enable-lexical-binding)
