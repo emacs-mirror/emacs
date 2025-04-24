@@ -6063,8 +6063,8 @@ Moves point into the widget that holds the value."
   (add-hook 'widget-forward-hook #'custom-dirlocals-maybe-update-cons nil t))
 
 (define-derived-mode Custom-dirlocals-mode nil "Custom dirlocals"
-  "Major mode for customize Directory Local Variables in the current directory.
-Entry to this mode calls the value of `Custom-mode-hook' if that value
+  "Major mode for customizing Directory Local Variables in current directory.
+Entry to this mode calls the value of `Custom-mode-hook' if its value
 is non-nil.
 
 \\{custom-dirlocals-map}"

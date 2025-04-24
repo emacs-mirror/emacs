@@ -1871,6 +1871,13 @@ New faces have been added to 'icomplete-vertical-mode':
 - 'icomplete-vertical-unselected-prefix-indicator-face' controls the
   appearance of unselected candidate prefixes.
 
+** Customize
+
+---
+*** New major mode 'Customize-dirlocals-mode'.
+This is intended for customizing directory-local variables in the
+current directory's '.dir-locals.el' file.
+
 ** Miscellaneous
 
 ---
