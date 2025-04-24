@@ -563,6 +563,16 @@ You can now insert or wrap text with multiple sets of parentheses and
 other matching delimiters at once with Electric Pair mode, by providing
 a prefix argument when inserting one of the delimiters.
 
+---
+** Electric pair mode now supports multi-character paired delimiters.
+'electric-pair-pairs' and 'electric-pair-text-pairs' now allows using
+strings for multi-character paired delimiters.
+
+To use this add a list to both electric pair variables: ("/*" . "*/").
+
+You can also specify to insert an extra space after the first string
+pair: ("/*" " */" t).
+
 +++
 ** You can now use 'M-~' during 'C-x s' ('save-some-buffers').
 Typing 'M-~' while saving some buffers means not to save the buffer and

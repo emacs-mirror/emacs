@@ -43,10 +43,34 @@ Pairs of delimiters in this list are a fallback in case they have
 no syntax relevant to `electric-pair-mode' in the mode's syntax
 table.
 
+Each list element should be in one of these forms:
+ (CHAR . CHAR)
+Where CHAR is character to be used as pair.
+
+ (STRING STRING SPC)
+Where STRING is a string to be used as pair and SPC a non-nil value
+which specifies to insert an extra space after first STRING.
+
+ (STRING . STRING)
+This is similar to (STRING STRING SPC) form, except that SPC (space) is
+ignored and will not be inserted.
+
+In both string pairs forms, the first string pair must be a regular
+expression.
+
+In comparation to character pairs, string pairs does not support
+inserting pairs in regions and can not be deleted with
+`electric-pair-delete-pair', thus string pairs should be used only for
+multi-character pairs.
+
 See also the variable `electric-pair-text-pairs'."
   :version "24.1"
   :group 'electricity
-  :type '(repeat (cons character character)))
+  :type '(repeat
+          (choice (cons :tag "Characters" character character)
+                  (cons :tag "Strings" string string)
+                  (list :tag "Strings, plus insert SPC after first string"
+                        string string boolean))))
 
 (defcustom electric-pair-text-pairs
   `((?\" . ?\")
@@ -56,10 +80,36 @@ See also the variable `electric-pair-text-pairs'."
 
 Pairs of delimiters in this list are a fallback in case they have
 no syntax relevant to `electric-pair-mode' in the syntax table
-defined in `electric-pair-text-syntax-table'."
+defined in `electric-pair-text-syntax-table'.
+
+Each list element should be in one of these forms:
+ (CHAR . CHAR)
+Where CHAR is character to be used as pair.
+
+ (STRING STRING SPC)
+Where STRING is a string to be used as pair and SPC a non-nil value
+which specifies to insert an extra space after first STRING.
+
+ (STRING . STRING)
+This is similar to (STRING STRING SPC) form, except that SPC (space) is
+ignored and will not be inserted.
+
+In both string pairs forms, the first string pair must be a regular
+expression.
+
+In comparation to character pairs, string pairs does not support
+inserting pairs in regions and can not be deleted with
+`electric-pair-delete-pair', thus string pairs should be used only for
+multi-character pairs.
+
+See also the variable `electric-pair-pairs'."
   :version "24.4"
   :group 'electricity
-  :type '(repeat (cons character character)))
+  :type '(repeat
+          (choice (cons :tag "Characters" character character)
+                  (cons :tag "Strings" string string)
+                  (list :tag "Strings, plus insert SPC after first string"
+                        string string boolean))))
 
 (defcustom electric-pair-skip-self #'electric-pair-default-skip-self
   "If non-nil, skip char instead of inserting a second closing paren.
@@ -276,6 +326,22 @@ string."
          (direct (assq command-event fallback))
          (reverse (rassq command-event fallback)))
     (cond
+     ((cl-loop
+       for pairs in fallback
+       if (and
+	   (stringp (car pairs))
+	   (looking-back (car pairs) (pos-bol)))
+         return (list
+                 'str
+                 ;; Get pair ender
+                 (if (proper-list-p pairs)
+                     (nth 1 pairs)
+                   (cdr pairs))
+                 nil
+                 ;; Check if pairs have to insert a space after
+                 ;; first pair was inserted.
+                 (if (proper-list-p pairs)
+                     (nth 2 pairs)))))
      ((memq (car table-syntax-and-pair)
             '(?\" ?\( ?\) ?\$))
       (append table-syntax-and-pair (list nil string-or-comment)))
@@ -560,7 +626,7 @@ The decision is taken by order of preference:
          (beg (when num (- pos num)))
          (skip-whitespace-info))
     (pcase (electric-pair-syntax-info last-command-event)
-      (`(,syntax ,pair ,unconditional ,_)
+      (`(,syntax ,pair ,unconditional ,space)
        (cond
         ((null pos) nil)
         ((zerop num) nil)
@@ -622,6 +688,12 @@ The decision is taken by order of preference:
                               pos))
          (forward-char num))
         ;; Insert matching pair.
+        ;; String pairs
+        ((and (eq syntax 'str) (not overwrite-mode))
+         (if space (insert " "))
+         (save-excursion
+           (insert pair)))
+        ;; Char pairs
         ((and (memq syntax '(?\( ?\" ?\$))
               (not overwrite-mode)
               (or unconditional
