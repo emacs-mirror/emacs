@@ -2044,6 +2044,12 @@ restore the old behavior, you can set 'eshell-pwd-convert-function' to
 ** The rx 'eval' form now uses the current Elisp dialect for evaluation.
 Previously, its argument was always evaluated using dynamic binding.
 
+---
+** Unused block comment variables have been removed.
+The unused variables 'block-comment-start' and 'block-comment-end',
+which never actually had any effect when set by major modes, have been
+removed.
+
 
 * Lisp Changes in Emacs 31.1
 
