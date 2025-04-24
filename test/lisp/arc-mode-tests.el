@@ -133,7 +133,10 @@ member MEMBER.  Then the test finds ARCHIVE and ensures that function
 
 (define-arc-mode-test-on-type "ar" '("ar" "q") "a" 'ar)
 
-(define-arc-mode-test-on-type "7z" '("7za" "a") "7z" '7z)
+(define-arc-mode-test-on-type "7z" (list (if (eq system-type 'windows-nt)
+                                             "7z" "7za")
+                                         "a")
+                              "7z" '7z)
 
 (ert-deftest arc-mode-test-zip-ensure-ext ()
   "Regression test for bug#61326."
