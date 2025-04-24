@@ -2912,6 +2912,8 @@ root_create_main_thread (struct igc *gc)
   void *start = &main_thread.s;
   void *end = (char *) &main_thread.s + sizeof (main_thread.s);
   root_create_exact (gc, start, end, scan_main_thread, "main-thread");
+  root_create_ambig (gc, main_thread.s.m_getcjmp, main_thread.s.m_getcjmp + 1,
+		     "main-thread-getcjmp");
 }
 
 void

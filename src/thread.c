@@ -39,6 +39,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define release_select_lock() do { } while (0)
 #endif
 
+#ifdef HAVE_MPS
+static sys_jmp_buf main_thread_getcjmp;
+#endif
+
 union aligned_thread_state main_thread
   = {{
       .header.size = PVECHEADERSIZE (PVEC_THREAD,
@@ -47,6 +51,9 @@ union aligned_thread_state main_thread
 				     VECSIZE (struct thread_state)),
       .m_last_thing_searched = LISPSYM_INITIALLY (Qnil),
       .m_saved_last_thing_searched = LISPSYM_INITIALLY (Qnil),
+#ifdef HAVE_MPS
+      .m_getcjmp = &main_thread_getcjmp,
+#endif
       .name = LISPSYM_INITIALLY (Qnil),
       .function = LISPSYM_INITIALLY (Qnil),
       .result = LISPSYM_INITIALLY (Qnil),
@@ -823,6 +830,10 @@ run_thread (void *state)
   self->m_specpdl = NULL;
   self->m_specpdl_ptr = NULL;
   self->m_specpdl_end = NULL;
+#ifdef HAVE_MPS
+  igc_xfree (self->m_getcjmp);
+  self->m_getcjmp = NULL;
+#endif
 
 #ifndef HAVE_MPS
    for (struct handler *c = handlerlist_sentinel, *c_next; c; c = c_next)
@@ -903,6 +914,9 @@ If NAME is given, it must be a string; it names the new thread.  */)
 				    PVEC_THREAD);
   new_thread->function = function;
   new_thread->name = name;
+#ifdef HAVE_MPS
+  new_thread->m_getcjmp = igc_xzalloc_ambig (sizeof (*new_thread->m_getcjmp));
+#endif
   /* Perhaps copy m_last_thing_searched from parent?  */
   new_thread->m_current_buffer = current_thread->m_current_buffer;
 

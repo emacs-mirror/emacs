@@ -186,8 +186,15 @@ struct thread_state
      so that if more than one thread calls read_char, they don't
      clobber each other's getcjmp, which will cause
      quit_throw_to_read_char crash due to using a wrong stack.  */
+#ifdef HAVE_MPS
+  /* For MPS, we need to use an indirect setjmp buffer so we can mark it
+     conservatively.  */
+  sys_jmp_buf *m_getcjmp;
+#define getcjmp (*(current_thread->m_getcjmp))
+#else
   sys_jmp_buf m_getcjmp;
 #define getcjmp (current_thread->m_getcjmp)
+#endif
 
   /* The OS identifier for this thread.  */
   sys_thread_t thread_id;
