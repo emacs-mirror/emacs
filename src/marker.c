@@ -119,7 +119,7 @@ before it was killed.  */)
 {
   CHECK_MARKER (marker);
 
-  return make_fixnum (marker_vector_charpos (XMARKER (marker)));
+  return make_fixnum (marker_vector_last_charpos (XMARKER (marker)));
 }
 
 /* Change M so it points to B at CHARPOS and BYTEPOS.  */

@@ -2842,7 +2842,9 @@ struct Lisp_Marker
      leaves the marker after the inserted text.  */
   bool_bf insertion_type : 1;
 
-  /* If in a buffer's marker vector, this is the entry where it is stored.  */
+  /* If in a buffer's marker vector, this is the entry where it is
+     stored.  If not in the marker vector, this is minus its last
+     character position. */
   ptrdiff_t entry;
 } GCALIGNED_STRUCT;
 
