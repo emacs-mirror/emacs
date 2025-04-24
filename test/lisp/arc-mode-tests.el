@@ -79,7 +79,7 @@ Return a cons (ARC . EXIT-STATUS)."
   (cons arc (funcall (archive--act-files command files) arc)))
 
 (defmacro define-arc-mode-test-on-type (name command extension type)
-  "Define and execute a test that tests function `archive-find-type'.
+  "Define a test that tests function `archive-find-type'.
 Name the test based on NAME.  The generated test first calls
 
   (call-process (car COMMAND) nil nil nil
@@ -133,10 +133,9 @@ member MEMBER.  Then the test finds ARCHIVE and ensures that function
 
 (define-arc-mode-test-on-type "ar" '("ar" "q") "a" 'ar)
 
-(define-arc-mode-test-on-type "7z" (list (if (eq system-type 'windows-nt)
-                                             "7z" "7za")
-                                         "a")
-                              "7z" '7z)
+;; prefer executable "7z" to "7za", since the former seems be supported
+;; on a broader range of ports
+(define-arc-mode-test-on-type "7z" '("7z" "a") "7z" '7z)
 
 (ert-deftest arc-mode-test-zip-ensure-ext ()
   "Regression test for bug#61326."
