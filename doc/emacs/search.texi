@@ -341,7 +341,7 @@ down-casing.
 @kindex M-s M-.
 @findex isearch-forward-thing-at-point
   To begin a new incremental search with the text near point yanked
-into the initial search string, type @kbd{M-s M-.} that runs the
+into the initial search string, type @kbd{M-s M-.}, which runs the
 command @code{isearch-forward-thing-at-point}.  If the region was
 active, then it yanks the text from the region into the search string.
 Otherwise, it tries to yank a URL, a symbol or an expression found
