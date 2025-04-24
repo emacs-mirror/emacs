@@ -270,9 +270,6 @@ marker_vector_remove (struct Lisp_Vector *v, struct Lisp_Marker *m)
   eassert (MARKERP (MARKER (v, m->entry)));
   eassert (XMARKER (MARKER (v, m->entry)) == m);
   push_free (v, m->entry);
-  /* The old GC contains at least one assertion that unchaining markers
-     in kill-buffer resets the markers' buffers.  IGC does not do this,
-     can't do this, and does not need it.  */
   m->buffer = NULL;
   m->entry = - XFIXNUM (CHARPOS (v, m->entry));
   check_marker_vector (v, false);
@@ -283,11 +280,10 @@ marker_vector_remove (struct Lisp_Vector *v, struct Lisp_Marker *m)
 void
 marker_vector_reset (struct buffer *b)
 {
-  /* The old GC contains at least one assertion that unchaining markers
-     in kill-buffer resets the markers' buffers.  IGC does not do this,
-     can't do this, and does not need it.  */
   DO_MARKERS (b, m)
     {
+      const struct Lisp_Vector *v = XVECTOR (BUF_MARKERS (m->buffer));
+      m->entry = - XFIXNUM (CHARPOS (v, m->entry));
       m->buffer = NULL;
     }
   END_DO_MARKERS;
