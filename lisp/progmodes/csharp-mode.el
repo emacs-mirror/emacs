@@ -591,10 +591,10 @@ compilation and evaluation time conflicts."
   "Regexp to match compilation warning from xbuild.")
 
 (defconst csharp-compilation-re-dotnet-error
-  "\\([^\r\n]+\\) : error [A-Z]+[0-9]+:")
+  "[[:blank:]]*\\([^\r\n]+\\) : error [A-Z]+[0-9]+:")
 
 (defconst csharp-compilation-re-dotnet-warning
-  "\\([^\r\n]+\\) : warning [A-Z]+[0-9]+:")
+  "[[:blank:]]*\\([^\r\n]+\\) : warning [A-Z]+[0-9]+:")
 
 (defconst csharp-compilation-re-dotnet-testfail
   (concat
