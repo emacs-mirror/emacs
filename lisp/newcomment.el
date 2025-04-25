@@ -714,13 +714,13 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
   (interactive "*")
   (comment-normalize-vars)
   (beginning-of-line)
-  (let* ((starter (or (and continue comment-continue)
-                      comment-start
-                      (error "No comment syntax defined")))
-	 (ender (or (and continue comment-continue "")
-                    comment-end))
-	 (begpos (comment-search-forward (line-end-position) t))
-	 cpos indent)
+  (let ((starter (or (and continue comment-continue)
+                     comment-start
+                     (error "No comment syntax defined")))
+	(ender (or (and continue comment-continue "")
+                   comment-end))
+	(begpos (comment-search-forward (line-end-position) t))
+	cpos indent)
     (cond
      ;; If we couldn't find a comment *starting* on this line, see if we
      ;; are already within a multiline comment at BOL (bug#78003).
