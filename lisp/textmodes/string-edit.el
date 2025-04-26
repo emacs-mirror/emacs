@@ -37,10 +37,10 @@
 
 ;;;###autoload
 (cl-defun string-edit (prompt string success-callback
-                              &key abort-callback major-mode read)
+                              &key abort-callback major-mode-sym read)
   "Switch to a new buffer to edit STRING.
 
-Call MAJOR-MODE (defaulting to `string-edit-mode') to set up the new
+Call MAJOR-MODE-SYM (defaulting to `string-edit-mode') to set up the new
 buffer, and insert PROMPT (defaulting to nothing) at the start of the
 buffer.
 
@@ -79,7 +79,7 @@ Also see `read-string-from-buffer'."
 
     (set-buffer-modified-p nil)
     (setq buffer-undo-list nil)
-    (funcall (or major-mode #'string-edit-mode))
+    (funcall (or major-mode-sym #'string-edit-mode))
     (string-edit-minor-mode)
     (setq-local string-edit--success-callback success-callback)
     (setq-local string-edit--abort-callback abort-callback)
