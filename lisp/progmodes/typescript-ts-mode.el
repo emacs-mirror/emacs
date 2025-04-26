@@ -80,7 +80,8 @@ level:
 
 For changes to this variable to take effect, restart the major mode."
   :version "31.1"
-  :type 'symbol)
+  :type 'symbol
+  :group 'typescript)
 
 (defface typescript-ts-jsx-tag-face
   '((t . (:inherit font-lock-function-call-face)))
