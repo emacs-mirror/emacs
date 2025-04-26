@@ -2298,7 +2298,6 @@ Optional argument FILESET, if non-nil, overrides the fileset."
   (interactive (list current-prefix-arg t))
   (if historic
       (call-interactively 'vc-version-diff)
-    (vc-maybe-buffer-sync not-essential)
     (let ((fileset (or fileset (vc-deduce-fileset t))))
       (vc-buffer-sync-fileset fileset not-essential)
       (vc-diff-internal t fileset nil nil

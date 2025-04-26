@@ -2344,6 +2344,9 @@ If PREDICATE is non-nil, only buffers satisfying it are eligible,
 and others are ignored.  PREDICATE is called with the buffer as
 the only argument, but not with the buffer as the current buffer.
 
+Note that indirect buffers don't count as visiting files,
+and that therefore this function only ever returns base buffers.
+
 If there is no such live buffer, return nil."
   (or (let ((buf (get-file-buffer filename)))
         (when (and buf (or (not predicate) (funcall predicate buf))) buf))
