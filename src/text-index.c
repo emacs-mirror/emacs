@@ -457,7 +457,7 @@ bytepos_forward_to_charpos (struct buffer *b, const struct text_pos from,
 			    ptrdiff_t to_charpos)
 {
   eassert (from.charpos < to_charpos);
-  ptrdiff_t bytepos = from.bytepos;
+  ptrdiff_t bytepos = char_start_bytepos (b, from.bytepos);
   ptrdiff_t charpos = from.charpos;
   while (charpos < to_charpos)
     {
@@ -620,21 +620,13 @@ buf_bytepos_to_charpos (struct buffer *b, const ptrdiff_t bytepos)
 
   /* Scan forward if the distance to the previous known position is
      smaller than the distance to the next known position.  */
-  ptrdiff_t charpos
+  const ptrdiff_t charpos
     = (bytepos - prev.bytepos < next.bytepos - bytepos)
       ? charpos_forward_to_bytepos (b, prev, bytepos)
       : charpos_backward_to_bytepos (b, next, bytepos);
 
   cache (ti, charpos, bytepos);
   return charpos;
-}
-
-static ptrdiff_t
-bytepos_of_head (struct buffer *b, ptrdiff_t bytepos)
-{
-  while (!CHAR_HEAD_P (BUF_FETCH_BYTE (b, bytepos)))
-    --bytepos;
-  return bytepos;
 }
 
 /* Return the byte position in buffer B corresponding to character
@@ -684,14 +676,12 @@ buf_charpos_to_bytepos (struct buffer *b, const ptrdiff_t charpos)
 	return prev.bytepos + (charpos - prev.charpos); /* ASCII-only!  */
     }
 
-  /* Don't scan forward if CHARPOS is exactly on the previous known
-     position because the index bytepos can be in the middle of a
-     character, which is found by scanning backwards.  */
-  ptrdiff_t bytepos
-    = (charpos == prev.charpos ? bytepos_of_head (b, prev.bytepos)
-       : (charpos - prev.charpos < next.charpos - charpos
-	  ? bytepos_forward_to_charpos (b, prev, charpos)
-	  : bytepos_backward_to_charpos (b, next, charpos)));
+  /* Scan forward if the distance to the previous known position is
+     smaller than the distance to the next known position.  */
+  const ptrdiff_t bytepos
+    = (charpos - prev.charpos < next.charpos - charpos
+       ? bytepos_forward_to_charpos (b, prev, charpos)
+       : bytepos_backward_to_charpos (b, next, charpos));
 
   cache (ti, charpos, bytepos);
   return bytepos;
