@@ -2281,34 +2281,34 @@ state of each file in the fileset."
        t (list backend (list rootdir)) rev1 rev2
        (called-interactively-p 'interactive)))))
 
-(defun vc-maybe-buffer-sync (not-urgent)
+(defun vc-maybe-buffer-sync (not-essential)
   (with-current-buffer (or (buffer-base-buffer) (current-buffer))
-    (when buffer-file-name (vc-buffer-sync not-urgent))))
+    (when buffer-file-name (vc-buffer-sync not-essential))))
 
 ;;;###autoload
-(defun vc-diff (&optional historic not-urgent fileset)
+(defun vc-diff (&optional historic not-essential fileset)
   "Display diffs between file revisions.
 Normally this compares the currently selected fileset with their
 working revisions.  With a prefix argument HISTORIC, it reads two revision
 designators specifying which revisions to compare.
 
-The optional argument NOT-URGENT non-nil means it is ok to say no to
-saving the buffer.  The optional argument FILESET can override the
-deduced fileset."
+Optional argument NOT-ESSENTIAL non-nil means it is okay to say no to
+saving the buffer.
+Optional argument FILESET, if non-nil, overrides the fileset."
   (interactive (list current-prefix-arg t))
   (if historic
       (call-interactively 'vc-version-diff)
-    (vc-maybe-buffer-sync not-urgent)
+    (vc-maybe-buffer-sync not-essential)
     (let ((fileset (or fileset (vc-deduce-fileset t))))
-      (vc-buffer-sync-fileset fileset not-urgent)
+      (vc-buffer-sync-fileset fileset not-essential)
       (vc-diff-internal t fileset nil nil
 			(called-interactively-p 'interactive)))))
 
-(defun vc-buffer-sync-fileset (fileset not-urgent)
+(defun vc-buffer-sync-fileset (fileset not-essential)
   (dolist (filename (cadr fileset))
     (when-let* ((buffer (find-buffer-visiting filename)))
       (with-current-buffer buffer
-	(vc-buffer-sync not-urgent)))))
+	(vc-buffer-sync not-essential)))))
 
 ;;;###autoload
 (defun vc-diff-mergebase (_files rev1 rev2)
@@ -2374,35 +2374,35 @@ state of each file in FILES."
     (error "More than one file is not supported"))))
 
 ;;;###autoload
-(defun vc-ediff (historic &optional not-urgent)
+(defun vc-ediff (historic &optional not-essential)
   "Display diffs between file revisions using ediff.
 Normally this compares the currently selected fileset with their
 working revisions.  With a prefix argument HISTORIC, it reads two revision
 designators specifying which revisions to compare.
 
-The optional argument NOT-URGENT non-nil means it is ok to say no to
+Optional argument NOT-ESSENTIAL non-nil means it is okay to say no to
 saving the buffer."
   (interactive (list current-prefix-arg t))
   (if historic
       (call-interactively 'vc-version-ediff)
-    (vc-maybe-buffer-sync not-urgent)
+    (vc-maybe-buffer-sync not-essential)
     (vc-version-ediff (cadr (vc-deduce-fileset t)) nil nil)))
 
 ;;;###autoload
-(defun vc-root-diff (historic &optional not-urgent)
+(defun vc-root-diff (historic &optional not-essential)
   "Display diffs between VC-controlled whole tree revisions.
 Normally, this compares the tree corresponding to the current
 fileset with the working revision.
 With a prefix argument HISTORIC, prompt for two revision
 designators specifying which revisions to compare.
 
-The optional argument NOT-URGENT non-nil means it is ok to say no to
+Optional argument NOT-ESSENTIAL non-nil means it is okay to say no to
 saving the buffer."
   (interactive (list current-prefix-arg t))
   (if historic
       ;; We want the diff for the VC root dir.
       (call-interactively 'vc-root-version-diff)
-    (vc-maybe-buffer-sync not-urgent)
+    (vc-maybe-buffer-sync not-essential)
     (let ((backend (vc-deduce-backend))
 	  (default-directory default-directory)
 	  rootdir)
