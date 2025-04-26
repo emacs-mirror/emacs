@@ -726,7 +726,7 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
      ;; are already within a multiline comment at BOL (bug#78003).
      ((and (not begpos) (not continue)
            comment-use-syntax comment-use-global-state
-           (nth 4 (syntax-ppss (line-beginning-position))))
+           (save-excursion (nth 4 (syntax-ppss (line-beginning-position)))))
       ;; We don't know anything about the nature of the multiline
       ;; construct, so immediately delegate to the mode.
       (indent-according-to-mode))

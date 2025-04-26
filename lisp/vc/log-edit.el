@@ -914,12 +914,16 @@ different header separator appropriate for `log-edit-mode'."
   (interactive)
   (when (or (called-interactively-p 'interactive)
             (log-edit-empty-buffer-p))
-    (dolist (header (append '("Summary") (and log-edit-setup-add-author
-                                              '("Author"))))
-
-      (insert (log-edit--make-header-line header)))
-    (insert "\n")
-    (message-position-point)))
+    ;; Put Author first because then the user can immediately yank in a
+    ;; multiline log message, or use \\`C-c C-w' (probably because they
+    ;; know it will generate exactly one line), without thereby pushing
+    ;; Author out of the header and into the log message body.
+    ;; (Also note that `log-edit-set-header' inserts all other headers
+    ;; before Summary.)
+    (when log-edit-setup-add-author
+      (insert (log-edit--make-header-line "Author")))
+    (insert (log-edit--make-header-line "Summary") "\n")
+    (end-of-line -1)))
 
 (defun log-edit-insert-cvs-template ()
   "Insert the commit log template specified by the CVS administrator, if any.
