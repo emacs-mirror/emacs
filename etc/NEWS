@@ -226,11 +226,12 @@ but as a plain Lisp variable, not a user option.)
 
 +++
 *** New commands to modify window layouts.
-'C-x w t' and 'C-x w r <left>/<right>' rotate the window layout.
-'C-x w o <left>/<right>' rotate the windows within the current layout.
-'C-x w f <left>/<right>/<up>/<down>' flip window layouts.
 
-By default these commands operate on the selected frame's root window.
+- 'C-x w t' and 'C-x w r <left>/<right>' rotate the window layout.
+- 'C-x w o <left>/<right>' rotate the windows within the current layout.
+- 'C-x w f <left>/<right>/<up>/<down>' flip window layouts.
+
+By default, these commands operate on the selected frame's root window.
 With a prefix argument, they operate on the selected window's parent.
 
 +++
@@ -376,12 +377,12 @@ docstring for arguments passed to a help-text function.
 
 ---
 *** New command 'project-root-find-file'.
-It is equivalent to running ‘project-any-command’ with ‘find-file’.
+It is equivalent to running 'project-any-command' with 'find-file'.
 
 ---
 *** New command 'project-customize-dirlocals'.
-It is equivalent to running ‘project-any-command’ with
-‘customize-dirlocals’.
+It is equivalent to running 'project-any-command' with
+'customize-dirlocals'.
 
 ---
 *** Improved prompt for 'project-switch-project'.
@@ -613,8 +614,7 @@ modes.
 *** Tree-sitter enabled modes now properly support 'show-paren-mode'.
 They do that by letting 'show-paren-mode' use the results of parsing by
 the tree-sitter library.  The new function 'treesit-show-paren-data' is
-used to communicate the tree-sitter parsing results to
-'show-paren-mode'.
+used to communicate the tree-sitter parsing results to 'show-paren-mode'.
 
 *** Tree-sitter enabled modes now properly support 'hs-minor-mode'.
 All commands from hideshow.el can selectively display blocks
@@ -632,15 +632,16 @@ variable 'treesit-language-display-name-alist' holds the translations of
 language symbols where that translation is not trivial.
 
 *** New function 'treesit-merge-font-lock-feature-list'.
-This function merges two tree-sitter font-lock feature lists.  Returns a
-new font-lock feature list with no duplicates in the same level.  It can
-be used to merge font-lock feature lists in a multi-language major mode.
+This function merges two tree-sitter font-lock feature lists.  It
+returns a new font-lock feature list with no duplicates in the same
+level.  It can be used to merge font-lock feature lists in a
+multi-language major mode.
 
 *** New function 'treesit-replace-font-lock-feature-settings'.
 Given two tree-sitter font-lock settings, it replaces the feature in the
 second font-lock settings with the same feature in the first font-lock
 settings.  In a multi-language major mode it is sometimes necessary to
-replace features from one of the major modes, with others that are
+replace features from one of the major modes with others, that are
 better suited to the new multilingual context.
 
 *** New function 'treesit-simple-indent-modify-rules'.
@@ -687,7 +688,7 @@ at point to explore.
 
 +++
 *** New user option 'c-ts-mode-enable-doxygen'.
-By default, this is nil, and the Doxygen comment blocks in C/C++ source
+By default, this is nil, and the Doxygen comment blocks in C/C++ sources
 are highlighted like other comments.  When non-nil, Doxygen comment
 blocks are syntax-highlighted if the Doxygen grammar library is
 available.
@@ -718,7 +719,7 @@ additional flags to pass to the go test command line.
 
 +++
 *** New user option 'java-ts-mode-enable-doxygen'.
-By default, this is nil, and the Doxygen comment blocks in Java source
+By default, this is nil, and the Doxygen comment blocks in Java sources
 are highlighted like other comments.  When non-nil, Doxygen comment
 blocks are syntax-highlighted if the Doxygen grammar library is
 available.
@@ -746,14 +747,14 @@ Rust number literals may have an optional type suffix.  When this option
 is non-nil, this suffix is fontified using 'font-lock-type-face'.
 
 ** EIEIO
+
 ---
 *** New value 'warn' for 'eieio-backward-compatibility'.
 This is the new default value and causes warnings to be emitted
 at run-time for the use of the associated deprecated features.
-(setq eieio-backward-compatibility t) can be used to recover
+'(setq eieio-backward-compatibility t)' can be used to recover
 the previous silence.
 
----
 ** Text mode
 
 ---
@@ -810,9 +811,9 @@ Otherwise, if set to 'full', display the full docstring.
 
 ---
 *** New user option 'elisp-eldoc-docstring-length-limit'.
-This user option controls the maximum length of doc strings in character
+This user option controls the maximum length of docstrings in character
 units that 'elisp-eldoc-funcall-with-docstring' and
-'elisp-eldoc-var-docstring-with-value' will show.  By default it is set
+'elisp-eldoc-var-docstring-with-value' will show.  By default, it is set
 to 1000 characters.
 
 ** Buffer Menu
@@ -1446,9 +1447,9 @@ a control panel window.
 When non-nil, 'dired-create-empty-file' creates a new empty file and
 adds an entry for it (or its topmost new parent directory if created)
 under the current subdirectory in the Dired buffer by default
-(otherwise, it adds adds the new file (and new subdirectories if
-provided) to whichever directory the user enters at the prompt).  When
-nil, `dired-create-empty-file' acts on the default directory by default.
+(otherwise, it adds the new file (and new subdirectories if provided) to
+whichever directory the user enters at the prompt).  When nil,
+'dired-create-empty-file' acts on the default directory by default.
 
 Note that setting this user option to non-nil makes invoking
 'dired-create-empty-file' outside of a Dired buffer raise an error (like
@@ -1839,7 +1840,7 @@ Meant to be given a global binding convenient to the user.  Example:
 
 - 'speedbar-prefer-window' tells 'speedbar' to open a side window
   instead of a frame.
-- ‘speedbar-dedicated-window’ defines whether the ‘speedbar’ is
+- 'speedbar-dedicated-window' defines whether the 'speedbar' is
   displayed in a dedicated window.
 - 'speedbar-window-default-width' defines the initial width of the
   'speedbar-window'.
@@ -1876,7 +1877,7 @@ New faces have been added to 'icomplete-vertical-mode':
 ---
 *** New major mode 'Customize-dirlocals-mode'.
 This is intended for customizing directory-local variables in the
-current directory's '.dir-locals.el' file.
+current directory's ".dir-locals.el" file.
 
 ** Miscellaneous
 
@@ -1924,7 +1925,7 @@ modes.
 Customize it to a non-nil value to have the fill-column indicators
 change their face if the current line exceeds the 'fill-column'.  The
 new face 'display-fill-column-indicator-warning-face' is used to
-highlight the fill-column indicators.  By default this is disabled.
+highlight the fill-column indicators.  By default, this is disabled.
 
 ---
 ** Flymake
@@ -1936,7 +1937,7 @@ windows without fringes, including any window on a text terminal.
 
 *** Enhanced 'flymake-show-buffer-diagnostics'.
 The command 'flymake-show-buffer-diagnostics' is now capable of
-highliting a nearby diagnostic in the resulting listing.  Additionally,
+highlighting a nearby diagnostic in the resulting listing.  Additionally,
 it is bound to mouse clicks on fringe and margin indicators, operating
 on the diagnostics of the corresponding line.  The user may bind it in
 other situations such as the diagnostic overlay map.
@@ -2240,9 +2241,9 @@ New convenience function 'find-function-update-type-alist' offers a
 concise way to update a symbol's 'find-function-type-alist' property.
 
 +++
-** 'inhibit-message' can now inhibit clearing of the echo-area.
+** 'inhibit-message' can now inhibit clearing of the echo area.
 Binding 'inhibit-message' to a non-nil value will now suppress both
-the display of messages and the clearing of the echo-area, such as
+the display of messages and the clearing of the echo area, such as
 caused by calling 'message' with a nil argument.
 
 ** Special Events
@@ -2295,7 +2296,7 @@ recognition APIs, the relevant permission dialog is now displayed, thus
 allowing Emacs users access to speech recognition utilities.
 
 Note: Accepting this permission allows the use of system APIs, which may
-send user data to Apple’s speech recognition servers.
+send user data to Apple's speech recognition servers.
 
 +++
 ** On Mac OS X, stipples now render with color.
