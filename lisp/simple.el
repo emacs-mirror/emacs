@@ -7265,7 +7265,7 @@ This variable is similar to `highlight-nonselected-windows'."
               (pt (window-point window))
               (cursor-face (get-text-property pt 'cursor-face)))
         (let* ((start (previous-single-property-change
-                       (1+ pt) 'cursor-face nil (point-min)))
+                       (min (1+ pt) (point-max)) 'cursor-face nil (point-min)))
                (end (next-single-property-change
                      pt 'cursor-face nil (point-max)))
                (new (redisplay--highlight-overlay-function
