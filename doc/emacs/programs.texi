@@ -958,11 +958,11 @@ argument specifies the number of levels to go down.
 
 @node Matching
 @subsection Matching Parentheses
-@cindex matching parentheses
+@cindex matching, parentheses and other paired delimiters
 @cindex parentheses, displaying matches
 
-  Emacs has a number of @dfn{parenthesis matching} features, which
-make it easy to see how and whether parentheses (or other delimiters)
+  Emacs has a number of @dfn{parenthesis matching} features, which make
+it easy to see how and whether parentheses (or other paired delimiters)
 match up.
 
   Whenever you type a self-inserting character that is a closing
@@ -1063,16 +1063,17 @@ nonblank line.
 @findex electric-pair-mode
   Electric Pair mode, a global minor mode, provides a way to easily
 insert matching delimiters: parentheses, braces, brackets, etc.
-Whenever you insert an opening delimiter, the matching closing
-delimiter is automatically inserted as well, leaving point between the
-two.  Conversely, when you insert a closing delimiter over an existing
-one, no insertion takes places, and that position is simply skipped
-over.  If the region is active (@pxref{Mark}), insertion of a
-delimiter operates on the region: the characters in the region are
-enclosed in a pair of matching delimiters, leaving point after the
-delimiter you typed.  If you provide a prefix argument when inserting
-a delimiter, the numeric value of that prefix argument specifies the
-number of pairs to insert.
+Whenever you insert an opening delimiter, the matching closing delimiter
+is automatically inserted as well, leaving point between the two.
+However, if you insert a closing delimiter where one already exists
+(probably a mistake, since typing the opening delimiter inserted the
+closing one for you), Emacs simply moves point to after the closing
+delimiter, skipping the insertion.  If the region is active
+(@pxref{Mark}), insertion of a delimiter operates on the region: the
+characters in the region are enclosed in a pair of matching delimiters,
+leaving point after the delimiter you typed.  If you provide a prefix
+argument when inserting a delimiter, the numeric value of that prefix
+argument specifies the number of pairs to insert.
 
 These variables control additional features of Electric Pair mode:
 

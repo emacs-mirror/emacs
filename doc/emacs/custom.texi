@@ -2165,6 +2165,10 @@ You can similarly enter the Shift, Control, and Meta modifiers by
 using @kbd{C-x @@ S}, @kbd{C-x @@ c}, and @kbd{C-x @@ m}, respectively,
 although this is rarely needed.
 
+  On graphical terminals, you can enable the Modifier Bar mode, which
+allows simulating the missing modifier keys by clicking a tool-bar
+button.  @xref{Tool Bars}.
+
 @node Function Keys
 @subsection Rebinding Function Keys
 

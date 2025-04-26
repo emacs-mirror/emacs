@@ -19,11 +19,11 @@ such as --prefix):
   ./configure --enable-checking='yes,glyphs' --enable-check-lisp-object-type \
     CFLAGS='-O0 -g3'
 
-The -O0 flag is important, as debugging optimized code can be hard.
-If the problem happens only with optimized code, you may need to
-enable optimizations.  If that happens, try using -Og first instead of
--O2, as -Og disables some optimizations that make debugging some code
-exceptionally hard.
+The -O0 flag is important, as debugging optimized code can be hard, even
+in the case that the -Og compiler option is used.  If the problem
+happens only with optimized code, you may need to enable optimizations.
+If that happens, try using -Og first instead of -O2, as -Og disables
+some optimizations that make debugging some code exceptionally hard.
 
 Older versions of GCC may need more than just the -g3 flag.  For more,
 search for "analyze failed assertions" below.

@@ -2157,7 +2157,7 @@ MSYS2 is an independent rewrite of MSYS, based on modern Cygwin and
 MinGW-w64 with the aim of better interoperability with native Windows
 software.  It plays the same role MSYS does in MinGW.  Being a
 distribution, MSYS2 provides tools to build software as well as more
-than 2.600 precompiled packages ready for use.
+than 2600 precompiled packages ready for use.
 
 @node EZWinPorts
 @section EZWinPorts

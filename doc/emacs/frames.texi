@@ -1346,15 +1346,18 @@ displayed by moving the mouse pointer to the top of the screen.
 @cindex displaying modifier keys in the tool bar
 @cindex mode, Modifier Bar
 @cindex Modifier Bar
-  Keyboards often lack one or more of the modifier keys that Emacs
-might want to use, making it difficult or impossible to input key
-sequences that contain them.  Emacs can optionally display a list of
-buttons that act as substitutes for modifier keys within the tool bar;
-these buttons are also referred to as the ``modifier bar''.  Clicking
-an icon within the modifier bar will cause a modifier key to be
-applied to the next keyboard event that is read.  The modifier bar is
-displayed when the global minor mode @code{modifier-bar-mode} is
-enabled; to do so, type @kbd{M-x modifier-bar-mode}.
+  Keyboards often lack one or more of the modifier keys (@pxref{Modifier
+Keys}) that Emacs users might want to use, making it difficult or
+impossible to input key sequences with these modifiers.  For example,
+many keyboards lack the Hyper and Super modifiers, and smartphones
+usually also lack Ctrl and Alt modifiers.  Emacs can optionally display
+a tool bar of buttons that can substitute the modifier keys; this
+additional tool bar is known as the @dfn{modifier bar}.  Clicking a
+button within the modifier bar will cause the modifier key shown on the
+button to be applied to the next keyboard event that Emacs reads.  The
+modifier bar is displayed when the global minor mode
+@code{modifier-bar-mode} is enabled; to do so, type @kbd{M-x
+modifier-bar-mode}.
 
 @node Tab Bars
 @section Tab Bars
