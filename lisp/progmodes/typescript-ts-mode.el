@@ -62,6 +62,26 @@
   :safe 'integerp
   :group 'typescript)
 
+(defcustom typescript-ts-mode-multivar-indent-style 'indent
+  "Indentation style for multivar declaration.
+
+If the value is `align', align each declaration:
+
+    const foo = 'bar',
+          car = 'cdr',
+          stop = 'start';
+
+If the value is `indent', indent subsequent declarations by one indent
+level:
+
+   const foo = 'bar',
+     car = 'cdr',
+     stop = 'start';
+
+For changes to this variable to take effect, restart the major mode."
+  :version "31.1"
+  :type 'symbol)
+
 (defface typescript-ts-jsx-tag-face
   '((t . (:inherit font-lock-function-call-face)))
   "Face for HTML tags like <div> and <p> in JSX."
@@ -153,7 +173,9 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((parent-is "type_arguments") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "type_parameters") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is ,(rx (or "variable" "lexical") "_" (or "declaration" "declarator")))
-      parent-bol typescript-ts-mode-indent-offset)
+      ,@(pcase typescript-ts-mode-multivar-indent-style
+          ('indent '(parent-bol typescript-ts-mode-indent-offset))
+          ('align '(typescript-ts-mode--anchor-decl 1))))
      ((parent-is "arguments") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "array") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "formal_parameters") parent-bol typescript-ts-mode-indent-offset)
