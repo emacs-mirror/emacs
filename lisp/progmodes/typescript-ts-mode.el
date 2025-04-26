@@ -68,14 +68,14 @@
 If the value is `align', align each declaration:
 
     const foo = \\='bar\\=',
-          car = \\='cdr\\=',
+          baz = \\='quux\\=',
           stop = \\='start\\=';
 
 If the value is `indent', indent subsequent declarations by one indent
 level:
 
    const foo = \\='bar\\=',
-     car = \\='cdr\\=',
+     baz = \\='quux\\=',
      stop = \\='start\\=';
 
 For changes to this variable to take effect, restart the major mode."
