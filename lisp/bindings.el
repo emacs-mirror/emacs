@@ -431,8 +431,8 @@ a menu, so this function is not useful for non-menu keymaps."
 
 (defcustom mode-line-collapse-minor-modes nil
   "Minor modes for which mode line lighters are hidden.
-Hidden lighters are collapsed into one, which is customizable via option
-`mode-line-collapse-minor-modes-to'.
+Hidden lighters are collapsed into one, which latter is customizable
+using the option `mode-line-collapse-minor-modes-to'.
 
 The value could be a list (MODES ...) which means to collapse lighters
 only for MODES, or a list (not MODES ...) which means to collapse all
