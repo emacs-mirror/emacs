@@ -629,6 +629,14 @@ buf_bytepos_to_charpos (struct buffer *b, const ptrdiff_t bytepos)
   return charpos;
 }
 
+static ptrdiff_t
+bytepos_of_head (struct buffer *b, ptrdiff_t bytepos)
+{
+  while (!CHAR_HEAD_P (BUF_FETCH_BYTE (b, bytepos)))
+    --bytepos;
+  return bytepos;
+}
+
 /* Return the byte position in buffer B corresponding to character
    position CHARPOS.  */
 
@@ -676,15 +684,14 @@ buf_charpos_to_bytepos (struct buffer *b, const ptrdiff_t charpos)
 	return prev.bytepos + (charpos - prev.charpos); /* ASCII-only!  */
     }
 
-  /* Don't scan forward if CHARPOS is exactly on the previous know
+  /* Don't scan forward if CHARPOS is exactly on the previous known
      position because the index bytepos can be in the middle of a
-     character, which is found by scanning backwards.  Otherwise, scan
-     forward if we believe that's less expensive.  */
+     character, which is found by scanning backwards.  */
   ptrdiff_t bytepos
-    = (charpos > prev.charpos
-       && charpos - prev.charpos < next.charpos - charpos)
-      ? bytepos_forward_to_charpos (b, prev, charpos)
-      : bytepos_backward_to_charpos (b, next, charpos);
+    = (charpos == prev.charpos ? bytepos_of_head (b, prev.bytepos)
+       : (charpos - prev.charpos < next.charpos - charpos
+	  ? bytepos_forward_to_charpos (b, prev, charpos)
+	  : bytepos_backward_to_charpos (b, next, charpos)));
 
   cache (ti, charpos, bytepos);
   return bytepos;
