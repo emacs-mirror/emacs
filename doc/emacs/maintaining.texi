@@ -1782,20 +1782,18 @@ more programs.  Files that belong to a project are typically stored in
 a hierarchy of directories; the top-level directory of the hierarchy
 is known as the @dfn{project root}.
 
-@cindex project back-end
+@cindex project backend
   Whether a given directory is a root of some project is determined by
-the project-specific infrastructure, known as @dfn{project back-end}.
-Emacs currently supports two such back-ends: VC-aware (@pxref{Version
+the project-specific infrastructure, known as @dfn{project backend}.
+Emacs currently supports two such backends: VC-aware (@pxref{Version
 Control}), whereby a VCS repository is considered a project; and EDE
 (@pxref{EDE}).  This is expected to be extended in the future to
 support additional types of projects.
 
   Which files do or don't belong to a project is also determined by
-the project back-end.  For example, the VC-aware back-end doesn't
+the project backend.  For example, the VC-aware backend doesn't
 consider ``ignored'' files (@pxref{VC Ignore}) to be part of the
-project.  Also, the VC-aware Project back-end considers ``untracked''
-files by default.  That behavior is controllable with the variable
-@code{project-vc-include-untracked}.
+project.  See its entry below for description and related options.
 
 @cindex current project name on mode line
 @defopt project-mode-line
@@ -1810,6 +1808,7 @@ The default value is @code{nil}.
 * Project Buffer Commands:: Commands for handling project buffers.
 * Switching Projects::      Switching between projects.
 * Managing Projects::       Managing the project list file.
+* VC-Aware Project Backend:: Default project backend.
 @end menu
 
 @node Project File Commands
@@ -2048,6 +2047,50 @@ predicate functions for project roots and objects.  The regexp is
 matched against the project root, and the predicate should take the
 project object as the only argument and return non-@code{nil} if the
 project should @emph{not} be saved to @code{project-list-file}.
+
+@cindex VC-aware project backend
+@cindex project backend, VC-aware
+@node VC-Aware Project Backend
+This backend is part of Emacs and is enabled by default.  (Other
+backends may need installation of add-on packages and their proper
+configuration.)
+
+It determines the contents of the project based on the VCS repository's
+configuration (if any), excluding the ``ignored'' files from the output.
+
+It has some performance optimizations for listing the files with some of
+the popular VCS systems (currently Git and Mercurial).
+
+@defopt project-vc-include-untracked
+By default, files which are neither registered with the VCS nor ignored
+are considered part of the project.  Customize this variable to nil to
+change that.
+@end defopt
+
+@defopt project-vc-ignores
+Using this variable you can add more ignore patterns to the project, to
+exclude more files from the project's file listing.  The value is a list
+of glob strings.  They can match both regular files and directories.  To
+anchor an entry to the project root, start it with @code{./}.  To match
+directories only, end it with @code{/}.
+@end defopt
+
+@defopt project-vc-name
+This variable allows you to change the automatically detected name of
+the project to a string of your choice.  By default the name is the base
+name of its root directory.
+@end defopt
+
+@defopt project-vc-extra-root-markers
+This variable allows you to set up detection of non-VC projects in this
+backend, and also to have some subdirectories detected as separate
+projects.  The value is a list.
+
+Each element is either a base file name or a glob pattern for such.
+
+Example values: @file{.dir-locals.el}, @file{package.json},
+@file{requirements.txt}, @file{*.gemspec}.
+@end defopt
 
 @node Change Log
 @section Change Logs
