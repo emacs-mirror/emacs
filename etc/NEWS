@@ -1727,6 +1727,9 @@ This replaces and generalizes the old 'vc-annotate-parent-file'.
 This specifies the revision to which the buffer's contents corresponds.
 This replaces and generalizes the old 'vc-annotate-parent-rev'.
 
+---
+*** vc-dav.el is now obsolete.
+
 ** Diff mode
 
 +++
