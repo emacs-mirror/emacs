@@ -586,7 +586,7 @@ verify FILTER, a function, and sort them by COMPARE (using KEY)."
   :package-version '(Flymake . "1.3.4"))
 
 (defface flymake-end-of-line-diagnostics-face
-  '((t :height 0.85 :box (:line-width -1)))
+  '((t :height 0.85))
   "Face used for end-of-line diagnostics.
 See variable `flymake-show-diagnostics-at-end-of-line'."
   :package-version '(Flymake . "1.3.5"))
@@ -616,8 +616,11 @@ See variable `flymake-show-diagnostics-at-end-of-line'."
 (defcustom flymake-show-diagnostics-at-end-of-line nil
   "If non-nil, add diagnostic summary messages at end-of-line.
 The value `short' means that only the most severe diagnostic
-shall be shown.  Any other non-nil value means show all
-diagnostic summaries at end-of-line."
+shall be shown.
+The value `fancy' means to layout diagnostic summary information
+below the affected line with Unicode graphics.
+Any other non-nil value means show all diagnostic summaries at
+end-of-line."
   :type '(choice (const :tag "Display most severe diagnostic" short)
                  (const :tag "Display all diagnostics" t)
                  (const :tag "Don't display diagnostics at end-of-line" nil))
@@ -908,42 +911,6 @@ Return to original margin width if ORIG-WIDTH is non-nil."
       (let ((src-ovs (delq ov (overlay-get eolov 'flymake-eol-source-overlays))))
         (overlay-put eolov 'flymake-eol-source-overlays src-ovs)))
     (delete-overlay ov)))
-
-(defun flymake--eol-overlay-summary (src-ovs)
-  "Helper function for `flymake--update-eol-overlays'."
-  (cl-flet ((summarize (d)
-              (flymake--format-diagnostic d :eol 'eol-face)))
-    (let* ((diags
-            (cl-sort
-             (mapcar (lambda (o) (overlay-get o 'flymake-diagnostic)) src-ovs)
-             #'>
-             :key (lambda (d) (flymake--severity (flymake-diagnostic-type d)))))
-           (summary
-            (concat
-             "  "
-             (cond ((eq flymake-show-diagnostics-at-end-of-line 'short)
-                    (concat
-                     (summarize (car diags))
-                     (and (cdr diags)
-                          (concat
-                           " "
-                           (propertize (format "and %s more"
-                                               (1- (length diags)))
-                                       'face 'flymake-eol-information-face)))))
-                   (t
-                    (mapconcat #'summarize diags " "))))))
-      (put-text-property 0 1 'cursor t summary)
-      summary)))
-
-(defun flymake--update-eol-overlays ()
-  "Update the `before-string' property of end-of-line overlays."
-  (save-restriction
-    (widen)
-    (dolist (o (overlays-in (point-min) (point-max)))
-      (when (overlay-get o 'flymake--eol-overlay)
-        (if-let* ((src-ovs (overlay-get o 'flymake-eol-source-overlays)))
-            (overlay-put o 'before-string (flymake--eol-overlay-summary src-ovs))
-          (delete-overlay o))))))
 
 (cl-defun flymake--highlight-line (diagnostic &optional foreign)
   "Attempt to overlay DIAGNOSTIC in current buffer.
@@ -2267,6 +2234,130 @@ some of this variable's contents the diagnostic listings.")
                 (and (eq major-mode 'flymake-diagnostics-buffer-mode)
                      (eq flymake--diagnostics-buffer-source buffer)))
         (revert-buffer)))))
+
+
+;;; Eol overlay helpers
+;;;
+(defun flymake--update-eol-overlays ()
+  "Update the `display' property of end-of-line overlays."
+  (save-restriction
+    (widen)
+    (dolist (o (overlays-in (point-min) (point-max)))
+      (when (overlay-get o 'flymake--eol-overlay)
+        (if-let* ((src-ovs (overlay-get o 'flymake-eol-source-overlays)))
+            (overlay-put o 'display (flymake--eol-overlay-summary src-ovs))
+          (delete-overlay o))))))
+
+(defun flymake--eol-overlay-summary (src-ovs)
+  "Helper function for `flymake--update-eol-overlays'."
+  (cl-flet ((summarize (d)
+              (flymake--format-diagnostic d :eol 'eol-face)))
+    (let* ((diags
+            (cl-sort
+             (mapcar (lambda (o) (overlay-get o 'flymake-diagnostic)) src-ovs)
+             #'>
+             :key (lambda (d) (flymake--severity (flymake-diagnostic-type d)))))
+           (summary
+            (concat
+             "  "
+             (cond ((eq flymake-show-diagnostics-at-end-of-line 'short)
+                    (concat
+                     (summarize (car diags))
+                     (and (cdr diags)
+                          (concat
+                           " "
+                           (propertize (format "and %s more"
+                                               (1- (length diags)))
+                                       'face 'flymake-eol-information-face)))))
+                   ((eq flymake-show-diagnostics-at-end-of-line 'fancy)
+                    (flymake--eol-draw-fancy diags #'summarize))
+                   (t
+                    (mapconcat #'summarize diags " ")))
+             "\n")))
+      (put-text-property 0 1 'cursor t summary)
+      summary)))
+
+(defun flymake--eol-draw-fancy-1 (text boxdraw-face line-beg-col
+                                       height-to-clear
+                                       text-beg-col
+                                       text-end-col)
+  (cl-flet ((move (cl)
+              (let* ((lep (line-end-position))
+                     (target (+ (point) cl))
+                     (diff (- target lep)))
+                (cond ((> diff 0)
+                       (goto-char lep)
+                       (insert (make-string diff ? )))
+                      (t
+                       (goto-char target)))))
+            (onward ()
+              (let ((rem (forward-line 1)))
+                (unless (and (not (eobp)) (zerop rem))
+                  (goto-char (point-max))
+                  (insert "\n")))))
+    (goto-char (point-min))
+    (cl-loop
+     with fork = (propertize "├" 'face boxdraw-face)
+     with pipe = (propertize "│" 'face boxdraw-face)
+     with inhibit-field-text-motion = t
+     for i from 0
+     repeat height-to-clear
+     do (move line-beg-col)
+     (let ((c (char-before)))
+       (delete-char -1)
+       (insert
+        (propertize
+         (cond ;; ((zerop i) "┬")
+          ((memq c '(?└ ?├)) fork)
+          (t         pipe))
+         'face boxdraw-face)))
+     (onward))
+    (move line-beg-col)
+    (delete-char -1)
+    (insert (propertize "└" 'face boxdraw-face))
+    (insert (propertize (make-string (- text-beg-col line-beg-col 1)
+                                     ?─)
+                        'face boxdraw-face))
+    (insert " ")
+    (let ((rect (with-temp-buffer
+                  (insert text)
+                  (let ((fill-column (- text-end-col text-beg-col)))
+                    (fill-paragraph)
+                    (forward-line 0)
+                    (move fill-column)
+                    (extract-rectangle (point-min) (point-max))))))
+      (insert-rectangle rect)
+      (+ height-to-clear (length rect)))))
+
+(defun flymake--eol-draw-fancy (diags summarize-fn)
+  (with-temp-buffer
+    (cl-loop
+     with sorted = (cl-sort diags #'> :key #'flymake-diagnostic-beg)
+     for diag in sorted
+     for text = (funcall summarize-fn diag)
+     for line-beg-col =
+     (with-current-buffer (flymake-diagnostic-buffer diag)
+       (save-excursion
+         (goto-char (flymake-diagnostic-beg diag))
+         (1+ (current-column))))
+     for height-to-clear = 0 then ret
+     for i from 0
+     for adjust = (* i 2)
+     for face = `(:inherit default
+                           :foreground
+                           ,(face-attribute
+                             (get-text-property 0 'face text)
+                             :foreground nil t))
+     for text-beg-col = (max (- (max 30 (+ line-beg-col 5)) adjust) (+ line-beg-col 1))
+     for text-end-col = (max 100 (+ text-beg-col 40))
+     for ret = (flymake--eol-draw-fancy-1
+                text
+                face
+                line-beg-col
+                height-to-clear
+                text-beg-col
+                text-end-col))
+    (concat " \n" (buffer-string))))
 
 (provide 'flymake)
 

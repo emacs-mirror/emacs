@@ -351,9 +351,11 @@ If non-@code{nil}, moving to errors with @code{flymake-goto-next-error} and
 @item flymake-show-diagnostics-at-end-of-line
 If non-@code{nil}, show summarized descriptions of diagnostics at the
 end of the line.  Depending on your preference, this can either be
-distracting and easily confused with actual code, or a significant
-early aid that relieves you from moving around or reaching for the
-mouse to consult an error message.
+distracting and easily confused with actual code, or a significant early
+aid that relieves you from moving around or reaching for the mouse to
+consult an error message.  This value may also be set to @code{fancy},
+which will attempt to layout diagnostics below the affected line using
+unicode graphics to point to diagnostic locus.
 
 @item flymake-diagnostic-format-alist
 Control which parts of a diagnostic to show in various situations.
