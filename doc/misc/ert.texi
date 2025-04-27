@@ -134,11 +134,11 @@ package @file{pp.el}):
 ;; (pp-to-string '('a 'b))                ; same as above
 @end lisp
 
-The code contained in these comments can be evaluated from time to
-time to compare the output with the expected output.  ERT formalizes
-this and introduces a common convention, which simplifies Emacs
-development, since programmers no longer have to manually find and
-evaluate such comments.
+The Lisp forms contained in these comments can be evaluated from time to
+time, e.g. with @kbd{C-x C-e}, to compare the output with the expected
+output.  ERT formalizes this and introduces a common convention, which
+simplifies Emacs development, since programmers no longer have to
+manually find and evaluate such comments.
 
 An ERT test definition equivalent to the above comments is this:
 
