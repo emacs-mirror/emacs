@@ -2240,13 +2240,6 @@ fix_frame (mps_ss_t ss, struct frame *f)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    // FIXME/igc: Check these
-    // output_data;
-    // terminal
-    // glyph_pool
-    // glyph matrices
-    // struct font_driver_list *font_driver_list;
-    // struct text_conversion_state conversion;
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, f, fix_vectorlike);
     IGC_FIX12_HEADER (ss, &f->face_cache);
     if (f->terminal)
@@ -2316,7 +2309,6 @@ fix_hash_table (mps_ss_t ss, struct Lisp_Hash_Table *h)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    // FIXME/igc: weak hash tables
     IGC_FIX12_WRAPPED_VEC (ss, &h->key);
     IGC_FIX12_WRAPPED_VEC (ss, &h->value);
     IGC_FIX12_WRAPPED_BYTES (ss, &h->hash);
