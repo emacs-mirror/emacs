@@ -2062,9 +2062,9 @@ It has some performance optimizations for listing the files with some of
 the popular VCS systems (currently Git and Mercurial).
 
 @defopt project-vc-include-untracked
-By default, files which are neither registered with the VCS nor ignored
-are considered part of the project.  Customize this variable to nil to
-change that.
+By default, files which are neither registered with nor ignored by the
+VCS are considered part of the project.  Customize this variable to nil
+to change that.
 @end defopt
 
 @defopt project-vc-ignores
