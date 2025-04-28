@@ -2516,7 +2516,7 @@ A slash character after any of these should begin a regexp."))
      (goto-char (point-min))
      (cl-loop
       while (search-forward-regexp
-             "^\\(?:.*.rb\\|-\\):\\([0-9]+\\): \\(.*\\)$"
+             "^\\(?:.*\\.rb\\|-\\):\\([0-9]+\\): \\(.*\\)$"
              nil t)
       for msg = (match-string 2)
       for (beg . end) = (flymake-diag-region
@@ -2625,7 +2625,7 @@ the gem \"rubocop\".  When t, it is used unconditionally."
          (goto-char (point-min))
          (cl-loop
           while (search-forward-regexp
-                 "^\\(?:.*.rb\\|-\\):\\([0-9]+\\):\\([0-9]+\\): \\(.*\\)$"
+                 "^\\(?:.*\\.rb\\|-\\):\\([0-9]+\\):\\([0-9]+\\): \\(.*\\)$"
                  nil t)
           for msg = (match-string 3)
           for (beg . end) = (flymake-diag-region
