@@ -250,8 +250,8 @@ when this variable is set to nil.")
   (lambda () (error "Diff functionality has not been set up"))
   "Function to display an appropriate `diff-mode' buffer for the change.
 Called by the `log-edit-show-diff' command.
-Should not leave the `diff-mode' buffer's window selected; that is, the
-Log Edit buffer's window should be selected when the function returns.")
+The function should display the buffer in a window and leave that window
+selected when it returns, probably by calling `pop-to-buffer'.")
 (defvar log-edit-listfun nil)
 
 (defvar log-edit-parent-buffer nil)
@@ -857,8 +857,7 @@ comment history, see `log-edit-comment-ring', and hides `log-edit-files-buf'."
 (defun log-edit-diff-fileset ()
   "Display diffs for the files to be committed."
   (interactive)
-  (save-selected-window
-    (vc-diff nil nil (list log-edit-vc-backend vc-log-fileset))))
+  (vc-diff nil nil (list log-edit-vc-backend vc-log-fileset)))
 
 (defun log-edit-show-diff ()
   "Show the diff for the files to be committed."
