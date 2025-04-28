@@ -190,10 +190,16 @@
   (should (equal (url-filename
                   (url-generic-parse-url "file:///c:\\directory\\file.txt"))
                  "c:\\directory\\file.txt"))
-  ;;
+  ;; paths with hostname = "localhost" should work too
   (should (equal (url-filename
                   (url-generic-parse-url "file://localhost/c:/path/to/file"))
-                 "c:/path/to/file")))
+                 "c:/path/to/file"))
+  ;; empty "file" url structs have to behave as they did before this fix
+  (should (equal (url-recreate-url
+                  (url-parse-make-urlobj "file" nil nil "myhost" nil
+                                         nil nil nil t))
+                 "file://myhost/")))
+
 
 (provide 'url-parse-tests)
 

@@ -86,6 +86,7 @@ If the specified port number is the default, return nil."
          ;; For Windows/DOS-like paths, `url-generic-parse-url' strips
          ;; the leading /, so we need to add it back (bug#76982)
 	 (file (if (and (string= "file" type)
+                        (url-filename urlobj)
                         (string-match "^[A-Za-z]:[/\\]" (url-filename urlobj)))
                    (concat "/" (url-filename urlobj))
                  (url-filename urlobj)))
