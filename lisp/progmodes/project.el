@@ -449,6 +449,9 @@ you might have to restart Emacs to see the effect."
   :package-version '(project . "0.2.0"))
 ;;;###autoload(put 'project-vc-merge-submodules 'safe-local-variable #'booleanp)
 
+;; FIXME Consider renaming this to `project-vc-include-unregistered' for
+;; consistency with VC.  "untracked" comes from Git and Mercurial so is
+;; fine for now, but these may not always be the most popular VCS.
 (defcustom project-vc-include-untracked t
   "When non-nil, the VC-aware project backend includes untracked files."
   :type 'boolean
