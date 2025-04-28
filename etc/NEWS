@@ -1716,6 +1716,14 @@ Now Emacs prompts to first register the unregistered files, so that all
 files in the fileset are in a compatible state for a checkin.
 
 ---
+*** New 'log-edit-hook' option to display diff of changes to commit.
+You can customize 'log-edit-hook' to include its new
+'log-edit-maybe-show-diff' option to enable displaying a diff of the
+changes to be committed in a window.  This is like the 'C-c C-d' command
+in Log Edit mode buffers, except that it does not select the *vc-diff*
+buffer's window, and so works well when added to 'log-edit-hook'.
+
+---
 *** New buffer-local variable 'vc-buffer-overriding-fileset'.
 Primarily intended for buffers not visiting files, this specifies the
 VC backend and VCS-managed file name or file names to which the buffer's

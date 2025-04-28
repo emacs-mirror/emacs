@@ -186,8 +186,8 @@ This applies when its SETUP argument is non-nil."
 			   log-edit-insert-changelog
 			   log-edit-show-files)
   "Hook run at the end of `log-edit'."
-  ;; Added log-edit-insert-message-template, moved log-edit-show-files.
-  :version "24.4"
+  ;; Added `log-edit-maybe-show-diff'.
+  :version "31.1"
   :group 'log-edit
   :type '(hook :options (log-edit-insert-message-template
 			 log-edit-insert-cvs-rcstemplate
@@ -195,7 +195,8 @@ This applies when its SETUP argument is non-nil."
 			 log-edit-insert-changelog
 			 log-edit-insert-filenames
 			 log-edit-insert-filenames-without-changelog
-			 log-edit-show-files)))
+			 log-edit-show-files
+                         log-edit-maybe-show-diff)))
 
 (defcustom log-edit-mode-hook (if (boundp 'vc-log-mode-hook) vc-log-mode-hook)
   "Hook run when entering `log-edit-mode'."
@@ -249,7 +250,7 @@ when this variable is set to nil.")
 (defvar log-edit-diff-function
   (lambda () (error "Diff functionality has not been set up"))
   "Function to display an appropriate `diff-mode' buffer for the change.
-Called by the `log-edit-show-diff' command.
+Called by `log-edit-show-diff' and `log-edit-maybe-show-diff'.
 The function should display the buffer in a window and leave that window
 selected when it returns, probably by calling `pop-to-buffer'.")
 (defvar log-edit-listfun nil)
@@ -860,9 +861,29 @@ comment history, see `log-edit-comment-ring', and hides `log-edit-files-buf'."
   (vc-diff nil nil (list log-edit-vc-backend vc-log-fileset)))
 
 (defun log-edit-show-diff ()
-  "Show the diff for the files to be committed."
+  "Show diff for the changes to be committed."
   (interactive)
   (funcall log-edit-diff-function))
+
+(defun log-edit-maybe-show-diff ()
+  "Show diff for the changes to be committed without selecting its window.
+This function is intended to be added to `log-edit-hook'.
+It does nothing in the case that the commit was initiated from a
+`diff-mode' buffer, i.e., when you are committing a patch.  This is
+because in that case the existing `diff-mode' buffer normally remains
+visible when the *vc-log* buffer pops up."
+  ;; No (interactive) form because our use of `vc-parent-buffer'
+  ;; assumes we are being called during \\`C-x v v' or similar.
+  ;; If a user wants a version of `log-edit-show-diff' which doesn't
+  ;; select the window they can use a `post-command-select-window'
+  ;; display buffer action alist entry on `log-edit-show-diff'.
+  (unless (and (bound-and-true-p vc-parent-buffer)
+	       (with-current-buffer vc-parent-buffer
+		 (derived-mode-p 'diff-mode)))
+    (save-selected-window
+      (let ((display-buffer-overriding-action '(nil
+                                                . ((inhibit-same-window . t)))))
+       (funcall log-edit-diff-function)))))
 
 (defun log-edit-show-files ()
   "Show the list of files to be committed."
