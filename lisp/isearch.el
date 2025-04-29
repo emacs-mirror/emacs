@@ -4625,7 +4625,13 @@ defaults to the value of `isearch-search-fun-default' when nil."
     ;; Otherwise, try to search for the next property.
     (unless beg
       (setq beg (funcall next-fun old))
-      (when beg (goto-char beg)))
+      (when beg
+        (if (or (null bound)
+                (if isearch-forward
+                    (< beg bound)
+                  (> beg bound)))
+            (goto-char beg)
+          (setq beg nil))))
     ;; Non-nil `beg' means there are more properties.
     (while (and beg (not found))
       ;; Search for the end of the current property.
@@ -4675,7 +4681,13 @@ defaults to the value of `isearch-search-fun-default' when nil."
       ;; Get the next text property.
       (unless found
         (setq beg (funcall next-fun end))
-        (when beg (goto-char beg))))
+        (when beg
+          (if (or (null bound)
+                  (if isearch-forward
+                      (< beg bound)
+                    (> beg bound)))
+              (goto-char beg)
+            (setq beg nil)))))
     (unless found (goto-char old))
     found))
 
