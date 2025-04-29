@@ -287,6 +287,19 @@ Comments in the form will be lost."
             (string-to-syntax "'")))))
      start end)))
 
+(defun elisp-outline-search (&optional bound move backward looking-at)
+  "Don't use leading parens in strings for outline headings."
+  (if looking-at
+      (and (looking-at outline-regexp)
+           (save-excursion (not (nth 8 (syntax-ppss (match-beginning 0))))))
+    (let ((search-success nil))
+      (while (and (setq search-success
+                        (funcall (if backward #'re-search-backward #'re-search-forward)
+                                 (concat "^\\(?:" outline-regexp "\\)")
+                                 bound (if move 'move t)))
+                  (save-excursion (nth 8 (syntax-ppss (match-beginning 0))))))
+      search-success)))
+
 (defcustom emacs-lisp-mode-hook nil
   "Hook run when entering Emacs Lisp mode."
   :options '(eldoc-mode imenu-add-menubar-index checkdoc-minor-mode)
@@ -382,6 +395,7 @@ be used instead.
   (add-hook 'xref-backend-functions #'elisp--xref-backend nil t)
   (setq-local project-vc-external-roots-function #'elisp-load-path-roots)
   (setq-local syntax-propertize-function #'elisp-mode-syntax-propertize)
+  (setq-local outline-search-function #'elisp-outline-search)
   (add-hook 'completion-at-point-functions
             #'elisp-completion-at-point nil 'local)
   (add-hook 'flymake-diagnostic-functions #'elisp-flymake-checkdoc nil t)

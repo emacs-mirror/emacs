@@ -261,7 +261,12 @@ non-nil and point is located on the heading line.")
 (defvar outline-font-lock-keywords
   '(
     ;; Highlight headings according to the level.
-    (eval . (list (or outline-search-function
+    (eval . (list (or (when outline-search-function
+                        (lambda (limit)
+                          (when-let* ((ret (funcall outline-search-function limit)))
+                            ;; This is equivalent to adding ".*" in the regexp below.
+                            (set-match-data (list (match-beginning 0) (pos-eol)))
+                            ret)))
                       (concat "^\\(?:" outline-regexp "\\).*" outline-heading-end-regexp))
                   0 '(if outline-minor-mode
                          (if outline-minor-mode-highlight
