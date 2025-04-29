@@ -1442,6 +1442,7 @@ Used internally for the (major-mode MODE) context specializers."
    (cl-call-next-method)))
 
 (cl--generic-prefill-dispatchers 0 oclosure)
+(cl--generic-prefill-dispatchers 0 (eql 'x) oclosure integer)
 
 ;;; Support for unloading.
 

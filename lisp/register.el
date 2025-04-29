@@ -35,7 +35,6 @@
 
 ;; FIXME: Clean up namespace usage!
 
-(declare-function frameset-register-p "frameset")
 (declare-function dired-current-directory "dired")
 
 (cl-defstruct
@@ -64,6 +63,7 @@ They both receive DATA as argument."
   (registerv--make data print-func jump-func insert-func))
 
 (defvar register-alist nil
+  ;; FIXME: This conflates the FRAME-CONFIGURATION and the FRAMESET cases.
   "Alist of elements (NAME . CONTENTS), one for each Emacs register.
 NAME is a character (a number).  CONTENTS is a string, number, marker, list
 or a struct returned by `registerv-make'.
@@ -387,10 +387,7 @@ satisfy `cl-typep', otherwise the new type should be defined with
 (cl-defmethod register--type ((_regval (eql file))) 'file)
 (cl-defmethod register--type ((_regval (eql file-query))) 'file-query)
 (cl-defmethod register--type ((_regval window-configuration)) 'window)
-(cl-deftype frame-register () '(satisfies frameset-register-p))
-(cl-defmethod register--type :extra "frame-register" (_regval) 'frame)
-(cl-deftype kmacro-register () '(satisfies kmacro-register-p))
-(cl-defmethod register--type :extra "kmacro-register" (_regval) 'kmacro)
+(cl-defmethod register--type ((regval oclosure)) (oclosure-type regval))
 
 (defun register-of-type-alist (types)
   "Filter `register-alist' according to TYPES."
@@ -644,6 +641,8 @@ Interactively, prompt for REGISTER using `register-read-with-preview'."
   ;; Turn the marker into a file-ref if the buffer is killed.
   (add-hook 'kill-buffer-hook 'register-swap-out nil t)
   (set-register register
+                ;; FIXME: How does this `current-frame-configuration' differ
+                ;; in practice with what `frameset-to-register' does?
 		(if arg (list (current-frame-configuration) (point-marker))
 		  (point-marker))))
 

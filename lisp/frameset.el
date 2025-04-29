@@ -1444,6 +1444,11 @@ Called from `list-registers' and `view-register'.  Internal use only."
 		   (if (= 1 ns) "" "s")
 		   (format-time-string "%c" (frameset-timestamp fs))))))
 
+(cl-defmethod register--type ((_regval frameset-register))
+  ;; FIXME: Why `frame' rather than `frameset'?
+  ;; FIXME: We shouldn't need to touch an internal function.
+  'frame)
+
 ;;;###autoload
 (defun frameset-to-register (register)
   "Store the current frameset in register REGISTER.
