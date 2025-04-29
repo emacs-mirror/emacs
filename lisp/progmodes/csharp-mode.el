@@ -777,15 +777,49 @@ compilation and evaluation time conflicts."
    :feature 'expression
    '((conditional_expression (identifier) @font-lock-variable-use-face)
      (postfix_unary_expression (identifier)* @font-lock-variable-use-face)
-     (initializer_expression (assignment_expression left: (identifier) @font-lock-variable-use-face))
+     (initializer_expression (assignment_expression left: (identifier) @font-lock-property-use-face))
      (interpolated_string_expression
       (interpolation
        (identifier) @font-lock-variable-use-face))
      (interpolated_string_expression
       (interpolation
        (member_access_expression
-        expression: (identifier) @font-lock-variable-use-face
-        name: (identifier) @font-lock-property-use-face))))
+        name: (identifier) @font-lock-property-use-face)))
+     ((interpolated_string_expression
+       (interpolation
+        (member_access_expression
+         expression: (identifier) @font-lock-variable-use-face)))
+      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+     ((element_access_expression (identifier) @font-lock-variable-use-face)
+      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+     ((element_access_expression (identifier) @font-lock-variable-use-face)
+      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+     ((return_statement (identifier) @font-lock-variable-use-face)
+      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+     ((return_statement (member_access_expression
+                         expression: (identifier) @font-lock-variable-use-face))
+      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+     ((is_pattern_expression
+       expression: (identifier) @font-lock-variable-use-face)
+      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+     ((is_pattern_expression
+       expression: (member_access_expression
+                    expression: (identifier) @font-lock-variable-use-face))
+      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+     (is_pattern_expression
+      expression: (member_access_expression
+                   name: (identifier) @font-lock-property-use-face))
+     (is_pattern_expression
+      pattern: (constant_pattern (identifier) @font-lock-type-face))
+     (is_pattern_expression
+      pattern: (constant_pattern (member_access_expression
+                                  name: (identifier) @font-lock-type-face)))
+     ((binary_expression
+       left: (identifier) @font-lock-variable-use-face)
+      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+     ((binary_expression
+       right: (identifier) @font-lock-variable-use-face)
+      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face)))
 
    :language 'c-sharp
    :feature 'bracket
@@ -869,6 +903,8 @@ compilation and evaluation time conflicts."
        (identifier) @font-lock-type-face))
      (array_type
       (identifier) @font-lock-type-face)
+     (qualified_name
+      name: (generic_name (identifier) @font-lock-type-face))
      (cast_expression (identifier) @font-lock-type-face)
      (cast_expression (generic_name (identifier) @font-lock-type-face))
      ["operator"] @font-lock-type-face
@@ -941,6 +977,8 @@ compilation and evaluation time conflicts."
        (identifier) @font-lock-variable-name-face))
 
      (variable_declaration (identifier) @font-lock-type-face)
+     (variable_declaration (qualified_name
+                            name: (generic_name (identifier) @font-lock-type-face)))
      (variable_declaration (generic_name (identifier) @font-lock-type-face))
      (variable_declarator (identifier) @font-lock-variable-name-face)
 
@@ -949,6 +987,8 @@ compilation and evaluation time conflicts."
      (parameter name: (identifier) @font-lock-variable-name-face)
 
      (lambda_expression (identifier) @font-lock-variable-name-face)
+     (lambda_expression
+      parameters: (implicit_parameter) @font-lock-variable-name-face)
 
      (declaration_expression type: (identifier) @font-lock-type-face)
      (declaration_expression name: (identifier) @font-lock-variable-name-face))
@@ -956,15 +996,25 @@ compilation and evaluation time conflicts."
    :language 'c-sharp
    :feature 'function
    '((invocation_expression
+      function: (identifier) @font-lock-function-call-face)
+     (invocation_expression
       function: (member_access_expression
                  name: (identifier) @font-lock-function-call-face))
-     (invocation_expression
-      function: (identifier) @font-lock-function-call-face)
      (invocation_expression
       function: (member_access_expression
                  name: (generic_name (identifier) @font-lock-function-call-face)))
      (invocation_expression
-      function: (generic_name (identifier) @font-lock-function-call-face)))
+      function: (generic_name (identifier) @font-lock-function-call-face))
+     ((invocation_expression
+       function: (member_access_expression
+                  expression: (identifier) @font-lock-variable-use-face))
+      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+     (argument (identifier) @font-lock-variable-use-face)
+     ((argument (member_access_expression
+                 expression: (identifier) @font-lock-variable-use-face))
+      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+     (argument (member_access_expression
+                name: (identifier) @font-lock-property-use-face)))
 
    :language 'c-sharp
    :feature 'escape-sequence
