@@ -111,7 +111,7 @@ declarations, accounting for the length of keyword (var, let, or const)."
 Argument LANGUAGE is either `typescript' or `tsx'."
   `((,language
      ((parent-is "program") column-0 0)
-     ((node-is "}") parent-bol 0)
+     ((node-is "}") standalone-parent 0)
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
      ((node-is ">") parent-bol 0)
@@ -121,7 +121,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((parent-is "ternary_expression") standalone-parent typescript-ts-mode-indent-offset)
      ((parent-is "member_expression") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "named_imports") parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "statement_block") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "statement_block") standalone-parent typescript-ts-mode-indent-offset)
      ((or (node-is "case")
           (node-is "default"))
       parent-bol typescript-ts-mode-indent-offset)
