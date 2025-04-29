@@ -41,7 +41,7 @@
   "Non-nil if this buffer's major mode is a variant of Text mode.")
 (make-obsolete-variable 'text-mode-variant
                         "\
-Don't set it, and instead of testing its value use `derived-mode-p'." "27.1")
+don't set it, and instead of testing its value use `derived-mode-p'." "27.1")
 
 ;; Actually defined in textconv.c.
 (defvar text-conversion-style)
