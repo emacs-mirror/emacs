@@ -3,9 +3,11 @@
 ;; Data types defined by `cl-deftype' are now recognized as argument
 ;; types for dispatching generic functions methods.
 
-;; Will be removed when included in cl-lib.
+;; Needed until merged in existing libraries.
 (require 'cl-lib)
 (eval-when-compile (require 'cl-macs))  ;For cl--find-class.
+(declare-function cl-remprop "cl-extra" (symbol propname))
+(declare-function cl--class-children "cl-extra" (class))
 
 ;; Extend `cl-deftype' to define data types which are also valid
 ;; argument types for dispatching generic function methods (see also
@@ -42,62 +44,60 @@
   "Type descriptors for types defined by `cl-deftype'.")
 
 (defun cl--type-p (object)
-  "Return non-nil if OBJECT is a used defined type.
-That is, a type of class `cl-type-class'."
+  "Return non-nil if OBJECT is a cl-type.
+That is, a type defined by `cl-deftype', of class `cl-type-class'."
   (and (symbolp object) (cl-type-class-p (cl--find-class object))))
 
-(defmacro cl--type-parents (name)
+(defsubst cl--type-parents (name)
   "Get parents of type with NAME.
-NAME is a symbol representing a type."
-  `(cl--class-allparents (cl--find-class ,name)))
+NAME is a symbol representing a type.
+Return a possibly empty list of types."
+  (cl--class-allparents (cl--find-class name)))
 
-(defun cl--type-children (name)
+(defsubst cl--type-children (name)
   "Get children of the type with NAME.
 NAME is a symbol representing a type.
 Return a possibly empty list of types."
-  (cl-check-type name (satisfies cl--type-p))
-  (let (children)
-    (dolist (elt cl--type-list)
-      (or (eq name elt)
-          (if (memq name (cl--type-parents elt))
-              (push elt children))))
-    children))
+  (cl--class-children (cl--find-class name)))
 
-(defun cl--type-dag ()
-  "Return a DAG from the list of defined types."
-  (mapcar (lambda (type) (cl--type-parents type)) cl--type-list))
+(defsubst cl--type-dag (types)
+  "Return a DAG from the list of TYPES."
+  (mapcar #'cl--type-parents types))
 
 ;; Keep it for now, for testing.
 (defun cl--type-undefine (name)
-  "Remove the definitions of type with NAME.
-NAME is an unquoted symbol representing a type.
-Signal an error if other types inherit from NAME."
-  (declare-function cl-remprop "cl-extra" (symbol propname))
+  "Remove the definition of cl-type with NAME.
+NAME is an unquoted symbol representing a cl-type.
+Signal an error if NAME has subtypes."
   (cl-check-type name (satisfies cl--type-p))
   (when-let* ((children (and (cl--type-p name)
                              (cl--type-children name))))
     (error "Type has children: %S" children))
+  (cl-remprop name 'cl--type-error)
   (cl-remprop name 'cl--class)
   (cl-remprop name 'cl-deftype-handler)
   (setq cl--type-list (delq name cl--type-list)))
 
 (defun cl--type-deftype (name parents &optional docstring)
-  "Generalize type with NAME for method dispatching.
+  ;; FIXME: Should we also receive the arglist?
+  "Generalize cl-type with NAME for method dispatching.
 PARENTS is a list of types NAME is a subtype of, or nil.
 DOCSTRING is an optional documentation string."
-  (let ((oldtlist (copy-sequence cl--type-list))
+  (let ((typelist cl--type-list)
         (oldplist (copy-sequence (symbol-plist name))))
     (condition-case err
         (let* ((class (cl--find-class name))
-               (recorded (memq name cl--type-list)))
+               (recorded (memq name typelist)))
           (if (null class)
               (or (null recorded)
                   (error "Type generalized, but doesn't exist"))
             (or recorded (error "Type exists, but not generalized"))
             (or (cl-type-class-p class)
+                ;; FIXME: We have some uses `cl-deftype' in Emacs that
+                ;; "complement" another declaration of the same type,
+                ;; so maybe we should turn this into a warning (and
+                ;; not overwrite the `cl--find-class' in that case)?
                 (error "Type in another class: %S" (type-of class))))
-          (if (memq name parents)
-              (error "Type in parents: %S" parents))
           ;; Setup a type descriptor for NAME.
           (setf (cl--find-class name)
                 (cl--type-class-make name docstring parents))
@@ -105,18 +105,23 @@ DOCSTRING is an optional documentation string."
               ;; Clear any previous error mark.
               (cl-remprop name 'cl--type-error)
             ;; Record new type to include its dependency in the DAG.
-            (push name cl--type-list))
+            (push name typelist))
           ;; `cl-types-of' iterates through all known types to collect
           ;; all those an object belongs to, sorted from the most
           ;; specific type to the more general type.  So, keep the
           ;; global list in this order.
+          ;; FIXME: This global operation is a bit worrisome, because it
+          ;; scales poorly with the number of types.  I guess it's OK
+          ;; for now because `cl-deftype' is not very popular, but it'll
+          ;; probably need to be replaced at some point.  Maybe we
+          ;; should simply require that the parents be defined already,
+          ;; then we can just `push' the new type, knowing it's in
+          ;; topological order by construction.
           (setq cl--type-list
                 (merge-ordered-lists
-                 (cl--type-dag)
+                 (cl--type-dag typelist)
                  (lambda (_) (error "Invalid dependency graph")))))
       (error
-       ;; On error restore previous data.
-       (setq cl--type-list oldtlist)
        (setf (symbol-plist name) oldplist)
        (error (format "Define %S failed: %s"
                       name (error-message-string err)))))))
@@ -155,16 +160,30 @@ If PARENTS is non-nil, ARGLIST must be nil."
       ((`(,decls . ,forms) (macroexp-parse-body body))
        (docstring (if (stringp (car decls))
                       (car decls)
-                    (cadr (assq :documentation decls))))
-       (parents (cdr (assq 'parents (cdr (assq 'declare decls))))))
+                      (cadr (assq :documentation decls))))
+       (declares (assq 'declare decls))
+       (parent-decl (assq 'parents (cdr declares)))
+       (parents (cdr parent-decl)))
+    (when parent-decl
+      ;; "Consume" the `parents' declaration.
+      (cl-callf (lambda (x) (delq parent-decl x)) (cdr declares))
+      (when (equal declares '(declare))
+        (cl-callf (lambda (x) (delq declares x)) decls)))
+    (if (memq name parents)
+        (error "Type in parents: %S" parents))
     (and parents arglist
          (error "Parents specified, but arglist not empty"))
-    (if docstring (setq forms (cons docstring forms)))
     `(eval-and-compile ;;cl-eval-when (compile load eval)
+       ;; FIXME: Where should `cl--type-deftype' go?  Currently, code
+       ;; using `cl-deftype' can use (eval-when-compile (require
+       ;; 'cl-lib)), so `cl--type-deftype' needs to go either to
+       ;; `cl-preloaded.el' or it should be autoloaded even when
+       ;; `cl-lib' is not loaded.
        (cl--type-deftype ',name ',parents ,docstring)
        (define-symbol-prop ',name 'cl-deftype-handler
                            (cl-function
                             (lambda (&cl-defs ('*) ,@arglist)
+                              ,@decls
                               ,@forms))))))
 
 ;; Ensure each type satisfies `eql'.
@@ -226,8 +245,8 @@ If PARENTS is non-nil, ARGLIST must be nil."
   "Return the types OBJECT belongs to.
 Return an unique list of types OBJECT belongs to, ordered from the
 most specific type to the most general."
-  (let ((found (list (cl--type-parents (cl-type-of object)))))
-    ;; Build a DAG of all types OBJECT belongs to.
+  (let (found)
+    ;; Build a list of all types OBJECT belongs to.
     (dolist (type cl--type-list)
       (and
        ;; Skip type, if it previously produced an error.
@@ -241,24 +260,25 @@ most specific type to the most general."
        ;; of another type, assuming that, most of the time, `assq'
        ;; will be faster than `cl-typep'.
        (null (assq type found))
-       ;; If OBJECT is of type, add type and its parents to the DAG.
-       (condition-case e
+       ;; If OBJECT is of type, add type to the matching list.
+       (condition-case-unless-debug e
            (cl-typep object type)
          (error (cl--type-error type e)))
-       ;; (dolist (p (cl--type-parents type))
-       ;;   (push (cl--type-parents p) found))
-       ;; Equivalent to the `dolist' above, but faster: avoid to
-       ;; recompute several lists of parents we already know.
-       (let ((pl (cl--type-parents type)))
-         (while pl
-           (push pl found)
-           (setq pl (cdr pl))))))
-    ;; Compute an ordered list of types from the collected DAG.
-    (setq found (merge-ordered-lists found))
-    ;; Return an unique value of this list of types, which is also the
-    ;; list of specifiers for this type.
+       (push type found)))
+    ;; Return an unique value of the list of types OBJECT belongs to,
+    ;; which is also the list of specifiers for OBJECT.
     (with-memoization (gethash found cl--type-unique)
-      found)))
+      ;; Compute a DAG from the collected matching types.
+      (let (dag)
+        (dolist (type found)
+          (let ((pl (cl--type-parents type)))
+            (while pl
+              (push pl dag)
+              (setq pl (cdr pl)))))
+        ;; Compute an ordered list of types from the DAG.
+        (merge-ordered-lists
+         (nreverse (cons (cl--type-parents (cl-type-of object))
+                         dag)))))))
 
 ;;; Method dispatching
 ;;
@@ -268,7 +288,7 @@ most specific type to the most general."
   (lambda (tag &rest _) (if (consp tag) tag)))
 
 (cl-defmethod cl-generic-generalizers :extra "cl-types-of" (type)
-  "Support for dispatch on types."
+  "Support for dispatch on cl-types."
   (if (cl--type-p type)
       (list cl--type-generalizer)
     (cl-call-next-method)))
