@@ -707,8 +707,9 @@ first capture group of `grep-heading-regexp'.")
          (let ((file-name (make-temp-file
                            (file-name-as-directory
                             (temporary-file-directory)))))
-           (when (file-remote-p result)
-             (write-region "Copyright\n" nil result))))
+           (when (file-remote-p file-name)
+             (write-region "Copyright\n" nil result))
+           file-name))
         ((and (eq system-type 'android) (featurep 'android)) 
          ;; /assets/etc is not accessible to grep or other shell
          ;; commands on Android, and therefore the template must
