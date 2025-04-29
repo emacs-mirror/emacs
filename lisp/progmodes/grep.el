@@ -703,13 +703,26 @@ first capture group of `grep-heading-regexp'.")
 	   (or result 0))))
 
 (defun grep-hello-file ()
-  (let ((result
-         (if (file-remote-p default-directory)
-             (make-temp-file (file-name-as-directory (temporary-file-directory)))
-           (expand-file-name "HELLO" data-directory))))
-    (when (file-remote-p result)
-      (write-region "Copyright\n" nil result))
-    result))
+  (cond ((file-remote-p default-directory)
+         (let ((file-name (make-temp-file
+                           (file-name-as-directory
+                            (temporary-file-directory)))))
+           (when (file-remote-p result)
+             (write-region "Copyright\n" nil result))))
+        ((and (eq system-type 'android) (featurep 'android)) 
+         ;; /assets/etc is not accessible to grep or other shell
+         ;; commands on Android, and therefore the template must
+         ;; be copied to a location that is.
+         (let ((temp-file (concat temporary-file-directory
+                                  "grep-test.txt")))
+           (prog1 temp-file
+             (unless (file-regular-p temp-file)
+               ;; Create a temporary file if grep-text.txt can't be
+               ;; overwritten.
+               (when (file-exists-p temp-file)
+                 (setq temp-file (make-temp-file "grep-test-")))
+               (write-region "Copyright\n" nil temp-file)))))
+        (t (expand-file-name "HELLO" data-directory))))
 
 ;;;###autoload
 (defun grep-compute-defaults ()
