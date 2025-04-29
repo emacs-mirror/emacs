@@ -327,7 +327,7 @@ Every next/previous file in the defined sequence is visited by
 				      default-directory
 				      buffer-file-name)))
 	 (file nil))
-    (while (not (string-equal
+    (while (not (file-equal-p
 		 (setq file (read-file-name
 			     "Next file to search (RET to end): "
 			     default-directory
