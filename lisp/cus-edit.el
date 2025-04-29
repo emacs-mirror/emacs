@@ -6085,7 +6085,7 @@ Moves point into the widget that holds the value."
   (run-mode-hooks 'Custom-mode-hook))
 
 ;; As discussed in bug#77228, deriving from `Custom-mode' would
-;; include all their settings that are not necessary for
+;; include all the settings that are not necessary for
 ;; `customize-dirlocals' and that can break it.
 ;; FIXME: Introduce a `Custom-base-mode', which could be useful
 ;; also for `gnus-custom-mode'.
