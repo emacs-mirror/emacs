@@ -906,7 +906,7 @@ Return to original margin width if ORIG-WIDTH is non-nil."
 
 (defun flymake--delete-overlay (ov)
   "Like `delete-overlay', delete OV, but do some more stuff."
-  (let ((eolov (overlay-get ov 'eol-ov)))
+  (let ((eolov (overlay-get ov 'flymake--eol-ov)))
     (when eolov
       (let ((src-ovs (delq ov (overlay-get eolov 'flymake-eol-source-overlays))))
         (overlay-put eolov 'flymake-eol-source-overlays src-ovs)))
@@ -1018,6 +1018,11 @@ Return nil or the overlay created."
     ;;
     (overlay-put ov 'evaporate t)
     (overlay-put ov 'flymake-overlay t)
+    (overlay-put ov 'modification-hooks
+                 `(,(lambda (ov after &rest _)
+                      (when-let* ((eolov
+                                   (and (null after) (overlay-get ov 'flymake--eol-ov))))
+                        (delete-overlay eolov)))))
     (overlay-put ov 'flymake-diagnostic diagnostic)
     ;; Handle `flymake-show-diagnostics-at-end-of-line'
     ;;
@@ -1039,7 +1044,7 @@ Return nil or the overlay created."
             (overlay-put eolov 'flymake--eol-overlay t)
             (overlay-put eolov 'flymake-eol-source-overlays (list ov))
             (overlay-put eolov 'evaporate (not (= start end)))) ; FIXME: fishy
-          (overlay-put ov 'eol-ov eolov))))
+          (overlay-put ov 'flymake--eol-ov eolov))))
     ov))
 
 ;; Nothing in Flymake uses this at all any more, so this is just for
