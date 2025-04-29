@@ -708,7 +708,7 @@ first capture group of `grep-heading-regexp'.")
                            (file-name-as-directory
                             (temporary-file-directory)))))
            (when (file-remote-p file-name)
-             (write-region "Copyright\n" nil result))
+             (write-region "Copyright\n" nil file-name))
            file-name))
         ((and (eq system-type 'android) (featurep 'android)) 
          ;; /assets/etc is not accessible to grep or other shell
