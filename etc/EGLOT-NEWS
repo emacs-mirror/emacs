@@ -47,6 +47,13 @@ The composition of Eglot's mode line can be fully customized by adding
 or removing symbols and strings from the customizable variable
 'eglot-mode-line-format'
 
+** Improved diagnostic-reporting performance and bugfixes (bug#77588)
+
+Eglot remembers the LSP document version to which diagonstics reported
+by the LSP server pertain.  This helps in skipping useless or harmful
+updates, avoiding flakiness with code actions and flickering overlays
+when the buffer is changed.
+
 
 * Changes in Eglot 1.18 (20/1/2025)
 

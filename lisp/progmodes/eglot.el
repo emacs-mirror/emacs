@@ -2228,7 +2228,7 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
              do (set (make-local-variable var) saved-binding))
     (remove-function (local 'imenu-create-index-function) #'eglot-imenu)
     (when eglot--current-flymake-report-fn
-      (eglot--report-to-flymake nil)
+      (eglot--report-to-flymake nil nil)
       (setq eglot--current-flymake-report-fn nil))
     (run-hooks 'eglot-managed-mode-hook)
     (let ((server eglot--cached-server))
@@ -2268,7 +2268,10 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
       (jsonrpc-error "No current JSON-RPC connection")))
 
 (defvar-local eglot--diagnostics nil
-  "Flymake diagnostics for this buffer.")
+  "A cons (DIAGNOSTICS . VERSION) for current buffer.
+DIAGNOSTICS is a list of Flymake diagnostics objects.  VERSION is the
+LSP Document version reported for DIAGNOSTICS (comparable to
+`eglot--versioned-identifier') or nil if server didn't bother.")
 
 (defvar revert-buffer-preserve-modes)
 (defun eglot--after-revert-hook ()
@@ -2699,8 +2702,11 @@ expensive cached value of `file-truename'.")
            initially
            (if (and version (/= version eglot--versioned-identifier))
                (cl-return))
-           (setq flymake-list-only-diagnostics
-                 (assoc-delete-all path flymake-list-only-diagnostics))
+           (setq
+            ;; if no explicit version received, assume it's current.
+            version eglot--versioned-identifier
+            flymake-list-only-diagnostics
+            (assoc-delete-all path flymake-list-only-diagnostics))
            for diag-spec across diagnostics
            collect (eglot--dbind ((Diagnostic) range code message severity source tags)
                        diag-spec
@@ -2740,9 +2746,9 @@ expensive cached value of `file-truename'.")
                            ;; starts on idle-timer (github#958)
                            (not (null flymake-no-changes-timeout))
                            eglot--current-flymake-report-fn)
-                          (eglot--report-to-flymake diags))
+                          (eglot--report-to-flymake diags version))
                          (t
-                          (setq eglot--diagnostics diags)))))
+                          (setq eglot--diagnostics (cons diags version))))))
       (cl-loop
        for diag-spec across diagnostics
        collect (eglot--dbind ((Diagnostic) code range message severity source) diag-spec
@@ -3134,22 +3140,24 @@ may be called multiple times (respecting the protocol of
 `flymake-diagnostic-functions')."
   (cond (eglot--managed-mode
          (setq eglot--current-flymake-report-fn report-fn)
-         (eglot--report-to-flymake eglot--diagnostics))
+         (eglot--report-to-flymake (car eglot--diagnostics)
+                                   (cdr eglot--diagnostics)))
         (t
          (funcall report-fn nil))))
 
-(defun eglot--report-to-flymake (diags)
+(defun eglot--report-to-flymake (diags version)
   "Internal helper for `eglot-flymake-backend'."
-  (save-restriction
-    (widen)
-    (funcall eglot--current-flymake-report-fn diags
-             ;; If the buffer hasn't changed since last
-             ;; call to the report function, flymake won't
-             ;; delete old diagnostics.  Using :region
-             ;; keyword forces flymake to delete
-             ;; them (github#159).
-             :region (cons (point-min) (point-max))))
-  (setq eglot--diagnostics diags))
+  (when (or (null version) (= version eglot--versioned-identifier))
+    (save-restriction
+      (widen)
+      (funcall eglot--current-flymake-report-fn diags
+               ;; If the buffer hasn't changed since last
+               ;; call to the report function, flymake won't
+               ;; delete old diagnostics.  Using :region
+               ;; keyword forces flymake to delete
+               ;; them (github#159).
+               :region (cons (point-min) (point-max)))))
+  (setq eglot--diagnostics (cons diags version)))
 
 (defun eglot-xref-backend () "Eglot xref backend." 'eglot)
 
