@@ -190,9 +190,8 @@ TYPES are the supported types of registers.
 MSG is the minibuffer message to show when a register is selected.
 ACT is the type of action the command is doing on register.
 SMATCH accept a boolean value to say if the command accepts non-matching
-registers.
-If NOCONFIRM is non-nil, request confirmation of register name by RET."
-  types msg act smatch noconfirm)
+registers."
+  types msg act smatch)
 
 (cl-defgeneric register-command-info (command)
   "Return a `register-preview-info' object storing data for COMMAND."
@@ -204,8 +203,7 @@ If NOCONFIRM is non-nil, request confirmation of register name by RET."
    :types '(string number)
    :msg "Insert register `%s'"
    :act 'insert
-   :smatch t
-   :noconfirm (memq register-use-preview '(nil never))))
+   :smatch t))
 (cl-defmethod register-command-info ((_command (eql jump-to-register)))
   (make-register-preview-info
    ;; FIXME: This should not be hardcoded but computed based on whether
@@ -214,86 +212,73 @@ If NOCONFIRM is non-nil, request confirmation of register name by RET."
              file buffer file-query)
    :msg "Jump to register `%s'"
    :act 'jump
-   :smatch t
-   :noconfirm (memq register-use-preview '(nil never))))
+   :smatch t))
 (cl-defmethod register-command-info ((_command (eql view-register)))
   (make-register-preview-info
    :types '(all)
    :msg "View register `%s'"
    :act 'view
-   :noconfirm (memq register-use-preview '(nil never))
    :smatch t))
 (cl-defmethod register-command-info ((_command (eql append-to-register)))
   (make-register-preview-info
    :types '(string) ;; FIXME: Fails on rectangles!
    :msg "Append to register `%s'"
    :act 'modify
-   :noconfirm (memq register-use-preview '(nil never))
    :smatch t))
 (cl-defmethod register-command-info ((_command (eql prepend-to-register)))
   (make-register-preview-info
    :types '(string) ;;FIXME: Fails on rectangles!
    :msg "Prepend to register `%s'"
    :act 'modify
-   :noconfirm (memq register-use-preview '(nil never))
    :smatch t))
 (cl-defmethod register-command-info ((_command (eql increment-register)))
   (make-register-preview-info
    :types '(string number) ;;FIXME: Fails on rectangles!
    :msg "Increment register `%s'"
    :act 'modify
-   :noconfirm (memq register-use-preview '(nil never))
    :smatch t))
 (cl-defmethod register-command-info ((_command (eql copy-to-register)))
   (make-register-preview-info
    :types '(all)
    :msg "Copy to register `%s'"
-   :act 'set
-   :noconfirm (memq register-use-preview '(nil never))))
+   :act 'set))
 (cl-defmethod register-command-info ((_command (eql point-to-register)))
   (make-register-preview-info
    :types '(all)
    :msg "Point to register `%s'"
-   :act 'set
-   :noconfirm (memq register-use-preview '(nil never))))
+   :act 'set))
 (cl-defmethod register-command-info ((_command (eql number-to-register)))
   (make-register-preview-info
    :types '(all)
    :msg "Number to register `%s'"
-   :act 'set
-   :noconfirm (memq register-use-preview '(nil never))))
+   :act 'set))
 (cl-defmethod register-command-info
     ((_command (eql window-configuration-to-register)))
   (make-register-preview-info
    :types '(all)
    :msg "Window configuration to register `%s'"
-   :act 'set
-   :noconfirm (memq register-use-preview '(nil never))))
+   :act 'set))
 (cl-defmethod register-command-info ((_command (eql frameset-to-register)))
   (make-register-preview-info
    :types '(all)
    :msg "Frameset to register `%s'"
-   :act 'set
-   :noconfirm (memq register-use-preview '(nil never))))
+   :act 'set))
 (cl-defmethod register-command-info ((_command (eql copy-rectangle-to-register)))
   (make-register-preview-info
    :types '(all)
    :msg "Copy rectangle to register `%s'"
    :act 'set
-   :noconfirm (memq register-use-preview '(nil never))
    :smatch t))
 (cl-defmethod register-command-info ((_command (eql file-to-register)))
   (make-register-preview-info
    :types '(all)
    :msg "File to register `%s'"
-   :act 'set
-   :noconfirm (memq register-use-preview '(nil never))))
+   :act 'set))
 (cl-defmethod register-command-info ((_command (eql buffer-to-register)))
   (make-register-preview-info
    :types '(all)
    :msg "Buffer to register `%s'"
-   :act 'set
-   :noconfirm (memq register-use-preview '(nil never))))
+   :act 'set))
 
 (defun register-preview-forward-line (arg)
   "Move to next or previous line in register preview buffer.
@@ -502,13 +487,13 @@ or `never'."
                 m))
          (data (register-command-info this-command))
          (enable-recursive-minibuffers t)
-         types msg result act win strs smatch noconfirm)
+         types msg result act win strs smatch
+         (noconfirm (memq register-use-preview '(nil never))))
     (if data
         (setq types     (register-preview-info-types data)
               msg       (register-preview-info-msg   data)
               act       (register-preview-info-act   data)
-              smatch    (register-preview-info-smatch data)
-              noconfirm (register-preview-info-noconfirm data))
+              smatch    (register-preview-info-smatch data))
       (setq types '(all)
             msg   "Overwrite register `%s'"
             act   'set))
@@ -600,7 +585,7 @@ or `never'."
                            (with-selected-window (minibuffer-window)
                              (minibuffer-message
                               msg (key-description pat)))
-                         ;; `:noconfirm' is specified explicitly, don't ask for
+                         ;; `noconfirm' is specified explicitly, don't ask for
                          ;; confirmation and exit immediately (bug#66394).
                          (setq result pat)
                          (exit-minibuffer))))))))
