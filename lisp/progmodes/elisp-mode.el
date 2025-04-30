@@ -294,10 +294,13 @@ Comments in the form will be lost."
            (save-excursion (not (nth 8 (syntax-ppss (match-beginning 0))))))
     (let ((search-success nil))
       (while (and (setq search-success
-                        (funcall (if backward #'re-search-backward #'re-search-forward)
+                        (funcall (if backward #'re-search-backward
+                                   #'re-search-forward)
                                  (concat "^\\(?:" outline-regexp "\\)")
                                  bound (if move 'move t)))
-                  (save-excursion (nth 8 (syntax-ppss (match-beginning 0))))))
+                  (save-excursion
+                    (save-match-data
+                      (nth 8 (syntax-ppss (match-beginning 0)))))))
       search-success)))
 
 (defcustom emacs-lisp-mode-hook nil
