@@ -220,6 +220,8 @@ If NOCONFIRM is non-nil, request confirmation of register name by RET."
   (ignore command))
 (cl-defmethod register-command-info ((_command (eql insert-register)))
   (make-register-preview-info
+   ;; FIXME: This should not be hardcoded but computed based on whether
+   ;; a given register type implements `register-val-insert'.
    :types '(string number)
    :msg "Insert register `%s'"
    :act 'insert
@@ -227,6 +229,8 @@ If NOCONFIRM is non-nil, request confirmation of register name by RET."
    :noconfirm (memq register-use-preview '(nil never))))
 (cl-defmethod register-command-info ((_command (eql jump-to-register)))
   (make-register-preview-info
+   ;; FIXME: This should not be hardcoded but computed based on whether
+   ;; a given register type implements `register-val-jump-to'.
    :types  '(window frame marker kmacro
              file buffer file-query)
    :msg "Jump to register `%s'"
@@ -242,21 +246,21 @@ If NOCONFIRM is non-nil, request confirmation of register name by RET."
    :smatch t))
 (cl-defmethod register-command-info ((_command (eql append-to-register)))
   (make-register-preview-info
-   :types '(string number)
+   :types '(string) ;; FIXME: Fails on rectangles!
    :msg "Append to register `%s'"
    :act 'modify
    :noconfirm (memq register-use-preview '(nil never))
    :smatch t))
 (cl-defmethod register-command-info ((_command (eql prepend-to-register)))
   (make-register-preview-info
-   :types '(string number)
+   :types '(string) ;;FIXME: Fails on rectangles!
    :msg "Prepend to register `%s'"
    :act 'modify
    :noconfirm (memq register-use-preview '(nil never))
    :smatch t))
 (cl-defmethod register-command-info ((_command (eql increment-register)))
   (make-register-preview-info
-   :types '(string number)
+   :types '(string number) ;;FIXME: Fails on rectangles!
    :msg "Increment register `%s'"
    :act 'modify
    :noconfirm (memq register-use-preview '(nil never))
