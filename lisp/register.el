@@ -268,36 +268,11 @@ satisfy `cl-typep', otherwise the new type should be defined with
              when (funcall pred (cdr register))
              collect register)))
 
-(defun register-preview (buffer &optional show-empty)
+(defun register-preview (buffer &optional show-empty pred)
   "Pop up a window showing the preview of registers in BUFFER.
-If SHOW-EMPTY is non-nil, show the preview window even if no registers.
-Format of each entry is controlled by the variable `register-preview-function'."
-  (when (or show-empty (consp register-alist))
-    (with-current-buffer-window buffer
-        register-preview-display-buffer-alist
-        nil
-      (with-current-buffer standard-output
-        (setq cursor-in-non-selected-windows nil)
-        (mapc (lambda (elem)
-                (when (get-register (car elem))
-                  (insert (funcall register-preview-function elem))))
-              register-alist)))))
-
-(defcustom register-preview-display-buffer-alist '(display-buffer-at-bottom
-                                                   (window-height . fit-window-to-buffer)
-	                                           (preserve-size . (nil . t)))
-  "Window configuration for the register preview buffer."
-  :type display-buffer--action-custom-type
-  :version "30.1")
-
-(defun register-preview-1 (buffer &optional show-empty pred)
-  "Pop up a window showing the preview of registers in BUFFER.
-
-This is the preview function used with the `register-read-with-preview-fancy'
-function.
 If SHOW-EMPTY is non-nil, show the preview window even if no registers.
 Optional argument PRED specifies the types of register to show;
-if it is nil, show all the registers.  See `register-type' for suitable types.
+if it is nil, show all the registers.
 Format of each entry is controlled by the variable `register-preview-function'."
   (let ((registers (register-of-type-alist pred)))
     (when (or show-empty (consp registers))
@@ -320,6 +295,13 @@ Format of each entry is controlled by the variable `register-preview-function'."
                   (eql regname (get-text-property (point) 'register--name))))
     (forward-line 1))
   (not (eobp)))
+
+(defcustom register-preview-display-buffer-alist '(display-buffer-at-bottom
+                                                   (window-height . fit-window-to-buffer)
+	                                           (preserve-size . (nil . t)))
+  "Window configuration for the register preview buffer."
+  :type display-buffer--action-custom-type
+  :version "30.1")
 
 (defun register--preview-get-defaults (pred strs)
   "Return default registers according to PRED and available registers.
@@ -417,13 +399,13 @@ or `never'."
                     ;; Do nothing when buffer1 is in use.
                     (unless (get-buffer-window buf)
                       (with-selected-window (minibuffer-selected-window)
-                        (register-preview-1 buffer 'show-empty pred))))))
+                        (register-preview buffer 'show-empty pred))))))
     (define-key map (kbd "<down>") #'register-preview-next)
     (define-key map (kbd "<up>")   #'register-preview-previous)
     (define-key map (kbd "C-n")    #'register-preview-next)
     (define-key map (kbd "C-p")    #'register-preview-previous)
     (unless (or executing-kbd-macro (eq register-use-preview 'never))
-      (register-preview-1 buf nil pred))
+      (register-preview buf nil pred))
     (unwind-protect
         (let ((setup ;; FIXME: Weird name for a `post-command-hook' function.
                (lambda ()
@@ -464,7 +446,7 @@ or `never'."
                        (when (or (eq noconfirm t) ; Using insist
                                  ;; Don't exit when noconfirm == (never)
                                  ;; If we are here user has pressed C-h
-                                 ;; calling `register-preview-1'.
+                                 ;; calling `register-preview'.
                                  (memq nil noconfirm))
                          ;; Happen only when
                          ;; *-use-preview == insist.
