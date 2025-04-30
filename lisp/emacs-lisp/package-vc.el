@@ -219,7 +219,9 @@ asynchronously."
   ;; FIXME: vc should be extended to allow querying the commit of a
   ;; directory (as is possible when dealing with git repositories).
   ;; This should be a fallback option.
-  (cl-loop with dir = (package-desc-dir pkg-desc)
+  (cl-loop with dir = (let ((pkg-spec (package-vc--desc->spec pkg-desc)))
+                        (or (plist-get pkg-spec :lisp-dir)
+                            (package-desc-dir pkg-desc)))
            for file in (directory-files dir t "\\.el\\'" t)
            when (vc-working-revision file) return it
            finally return "unknown"))
