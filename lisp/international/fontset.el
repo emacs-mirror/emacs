@@ -857,18 +857,7 @@
 		    pahawh-hmong
 		    medefaidrin
                     znamenny-musical-notation
-                    khudawadi
-                    khojki
-                    mahajani
-                    sogdian
-                    old-sogdian
                     old-turkic
-                    nabataean
-                    palmyrene
-                    linear-a
-                    linear-b
-                    caucasian-albanian
-                    elbasan
 		    byzantine-musical-symbol
 		    musical-symbol
 		    ancient-greek-musical-notation
