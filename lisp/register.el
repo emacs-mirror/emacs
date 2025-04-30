@@ -90,7 +90,6 @@ A list of the form (FRAME-CONFIGURATION POSITION)
 When collecting text with \\[append-to-register] (or \\[prepend-to-register]),
 contents of this register is added to the beginning (or end, respectively)
 of the marked text."
-  :group 'register
   :type '(choice (const :tag "None" nil)
 		 (character :tag "Use register" :value ?+)))
 
@@ -100,10 +99,9 @@ If nil, do not show register previews, unless `help-char' (or a member of
 `help-event-list') is pressed.
 
 This variable has no effect when `register-use-preview' is set to any
-value except \\='traditional."
+value except `traditional'."
   :version "24.4"
-  :type '(choice number (const :tag "No preview unless requested" nil))
-  :group 'register)
+  :type '(choice number (const :tag "No preview unless requested" nil)))
 
 (defcustom register-preview-default-keys (mapcar #'string (number-sequence ?a ?z))
   "Default keys for setting a new register."
@@ -193,7 +191,7 @@ when `register-use-preview' is set to t or nil."
 (defun register-preview-default (r)
   "Function used to format a register for traditional preview.
 This is the default value of the variable `register-preview-function',
-and is used when `register-use-preview' is set to \\='traditional."
+and is used when `register-use-preview' is set to `traditional'."
   (format "%s: %s\n"
 	  (single-key-description (car r))
 	  (register-describe-oneline (car r))))
@@ -474,7 +472,7 @@ If `help-char' (or a member of `help-event-list') is pressed,
 display preview window unconditionally.
 
 This function is used as the value of `register--read-with-preview-function'
-when `register-use-preview' is set to \\='traditional."
+when `register-use-preview' is set to `traditional'."
   (let* ((buffer "*Register Preview*")
 	 (timer (when (numberp register-preview-delay)
 		  (run-with-timer register-preview-delay nil
@@ -509,8 +507,8 @@ If `help-char' (or a member of `help-event-list') is pressed,
 display preview window regardless.
 
 This function is used as the value of `register--read-with-preview-function'
-when `register-use-preview' is set to any value other than \\='traditional
-or \\='never."
+when `register-use-preview' is set to any value other than `traditional'
+or `never'."
   (let* ((buffer "*Register Preview*")
          (buffer1 "*Register quick preview*")
          (buf (if register-use-preview buffer buffer1))
@@ -543,14 +541,14 @@ or \\='never."
                     (unless (get-buffer-window buf)
                       (with-selected-window (minibuffer-selected-window)
                         (register-preview-1 buffer 'show-empty types))))))
-    (define-key map (kbd "<down>") 'register-preview-next)
-    (define-key map (kbd "<up>")   'register-preview-previous)
-    (define-key map (kbd "C-n")    'register-preview-next)
-    (define-key map (kbd "C-p")    'register-preview-previous)
+    (define-key map (kbd "<down>") #'register-preview-next)
+    (define-key map (kbd "<up>")   #'register-preview-previous)
+    (define-key map (kbd "C-n")    #'register-preview-next)
+    (define-key map (kbd "C-p")    #'register-preview-previous)
     (unless (or executing-kbd-macro (eq register-use-preview 'never))
       (register-preview-1 buf nil types))
     (unwind-protect
-        (let ((setup
+        (let ((setup ;; FIXME: Weird name for a `post-command-hook' function.
                (lambda ()
                  (with-selected-window (minibuffer-window)
                    (let ((input (minibuffer-contents)))
@@ -639,7 +637,7 @@ Interactively, prompt for REGISTER using `register-read-with-preview'."
                         "Point to register: "))
                      current-prefix-arg))
   ;; Turn the marker into a file-ref if the buffer is killed.
-  (add-hook 'kill-buffer-hook 'register-swap-out nil t)
+  (add-hook 'kill-buffer-hook #'register-swap-out nil t)
   (set-register register
                 ;; FIXME: How does this `current-frame-configuration' differ
                 ;; in practice with what `frameset-to-register' does?
@@ -683,7 +681,7 @@ Interactively, prompt for REGISTER using `register-read-with-preview'."
 
 (make-obsolete 'frame-configuration-to-register 'frameset-to-register "24.4")
 
-(defalias 'register-to-point 'jump-to-register)
+(defalias 'register-to-point #'jump-to-register)
 (defun jump-to-register (register &optional delete)
   "Go to location stored in REGISTER, or restore configuration stored there.
 Push the mark if going to the location moves point, unless called in succession.
