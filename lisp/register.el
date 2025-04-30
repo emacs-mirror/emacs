@@ -223,43 +223,6 @@ Do nothing when defining or executing kmacros."
   (interactive)
   (register-preview-forward-line -1))
 
-(defun register-type (regval)
-  "Return register value REGVAL's type.
-Register type that can be returned is one of the following:
- - string
- - number
- - marker
- - buffer
- - file
- - file-query
- - window
- - frame
- - kmacro
-
-One can add new types to a specific command by defining a new `cl-defmethod'
-matching that command.  Predicates for type in new `cl-defmethod' should
-satisfy `cl-typep', otherwise the new type should be defined with
-`cl-deftype'."
-  (if (integerp (car-safe regval)) (setq regval (cdr regval)))
-  ;; Call register--type against the register value.
-  (register--type (if (consp regval)
-                     (car regval)
-                   regval)))
-
-(cl-defgeneric register--type (regval)
-  "Return the type of register value REGVAL."
-  (ignore regval))
-
-(cl-defmethod register--type ((_regval (eql nil))) 'null)
-(cl-defmethod register--type ((_regval string)) 'string)
-(cl-defmethod register--type ((_regval number)) 'number)
-(cl-defmethod register--type ((_regval marker)) 'marker)
-(cl-defmethod register--type ((_regval (eql buffer))) 'buffer)
-(cl-defmethod register--type ((_regval (eql file))) 'file)
-(cl-defmethod register--type ((_regval (eql file-query))) 'file-query)
-(cl-defmethod register--type ((_regval window-configuration)) 'window)
-(cl-defmethod register--type ((regval oclosure)) (oclosure-type regval))
-
 (defun register-of-type-alist (pred)
   "Filter `register-alist' according to PRED."
   (if (null pred)
@@ -569,13 +532,7 @@ ignored if the register contains anything but a frameset.
 Interactively, prompt for REGISTER using `register-read-with-preview'."
   (interactive (list (register-read-with-preview
 		      "Jump to register: "
-		      (lambda (regval)
-		        (memq (register-type regval)
-		              ;; FIXME: This should not be hardcoded but
-		              ;; computed based on whether a given register
-                              ;; type implements `register-val-jump-to'.
-		              '(window frame marker kmacro
-		                file buffer file-query))))
+		      #'register--jumpable-p)
 		     current-prefix-arg))
   (let ((val (get-register register)))
     (register-val-jump-to val delete)))
@@ -617,6 +574,24 @@ With a prefix argument, prompt for BUFFER as well."
   (with-current-buffer buffer
     (add-hook 'kill-buffer-hook #'register-buffer-to-file-query nil t))
   (set-register register (cons 'buffer buffer)))
+
+(defun register--get-method-type (val genfun)
+  (let* ((type (cl-type-of val))
+	 (types (cl--class-allparents (cl-find-class type))))
+    (while (and types (not (cl-find-method genfun nil (list (car types)))))
+      (setq types (cdr types)))
+    (car types)))
+
+(defun register--jumpable-p (regval)
+  "Return non-nil if `register-val-insert' is implemented for REGVAL."
+  (pcase (register--get-method-type regval 'register-val-jump-to)
+    ('t nil)
+    ('registerv (registerv-jump-func regval))
+    ('cons
+     (or (frame-configuration-p (car regval))
+	 (window-configuration-p (car regval))
+	 (memq (car regval) '(file buffer file-query))))
+    (type type)))
 
 (cl-defgeneric register-val-jump-to (_val _arg)
   "Execute the \"jump\" operation of VAL.
@@ -865,17 +840,21 @@ Interactively, prompt for REGISTER using `register-read-with-preview'."
 		 (barf-if-buffer-read-only)
 		 (list (register-read-with-preview
 		        "Insert register: "
-		        (lambda (regval)
-		          (memq (register-type regval)
-		                ;; FIXME: This should not be hardcoded but
-		                ;; computed based on whether a given register
-                                ;; type implements `register-val-insert'.
-		                '(string number))))
+		        #'register--insertable-p)
 		       (not current-prefix-arg))))
   (push-mark)
   (let ((val (get-register register)))
     (register-val-insert val))
   (if (not arg) (exchange-point-and-mark)))
+
+(defun register--insertable-p (regval)
+  "Return non-nil if `register-val-insert' is implemented for REGVAL."
+  (pcase (register--get-method-type regval 'register-val-insert)
+    ;; Only rectangles are currently supported.
+    ('t nil)
+    ('registerv (registerv-insert-func regval))
+    ('cons (stringp (car regval)))
+    (type type)))
 
 (cl-defgeneric register-val-insert (_val)
   "Insert register value VAL in current buffer at point."
