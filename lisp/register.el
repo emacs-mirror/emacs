@@ -186,11 +186,12 @@ This is the default value of the variable `register-preview-function'."
 
 (cl-defstruct register-preview-info
   "Store data for a specific register command.
-TYPES are the supported types of registers.
-ACT is the type of action the command is doing on register.
-SMATCH accept a boolean value to say if the command accepts non-matching
-registers."
-  types act smatch)
+TYPES holds the list of supported types of registers.
+  If nil, means it can operate on any register, even empty ones.
+  The t type means it can operate on any non-empty register.
+  The `null' type stands for the type of empty registers.
+ACT is the type of action the command is doing on register."
+  types act)
 
 (cl-defgeneric register-command-info (command)
   "Return a `register-preview-info' object storing data for COMMAND."
@@ -200,69 +201,54 @@ registers."
    ;; FIXME: This should not be hardcoded but computed based on whether
    ;; a given register type implements `register-val-insert'.
    :types '(string number)
-   :act 'insert
-   :smatch t))
+   :act 'insert))
 (cl-defmethod register-command-info ((_command (eql jump-to-register)))
   (make-register-preview-info
    ;; FIXME: This should not be hardcoded but computed based on whether
    ;; a given register type implements `register-val-jump-to'.
    :types  '(window frame marker kmacro
              file buffer file-query)
-   :act 'jump
-   :smatch t))
+   :act 'jump))
 (cl-defmethod register-command-info ((_command (eql view-register)))
   (make-register-preview-info
-   :types '(all)
-   :act 'view
-   :smatch t))
+   :types '(t)
+   :act 'view))
 (cl-defmethod register-command-info ((_command (eql append-to-register)))
   (make-register-preview-info
-   :types '(string) ;; FIXME: Fails on rectangles!
-   :act 'modify
-   :smatch t))
+   :types '(string null) ;;FIXME: Fails on rectangles!
+   :act 'modify))
 (cl-defmethod register-command-info ((_command (eql prepend-to-register)))
   (make-register-preview-info
-   :types '(string) ;;FIXME: Fails on rectangles!
-   :act 'modify
-   :smatch t))
+   :types '(string null) ;;FIXME: Fails on rectangles!
+   :act 'modify))
 (cl-defmethod register-command-info ((_command (eql increment-register)))
   (make-register-preview-info
-   :types '(string number) ;;FIXME: Fails on rectangles!
-   :act 'modify
-   :smatch t))
+   :types '(string number null) ;;FIXME: Fails on rectangles!
+   :act 'modify))
 (cl-defmethod register-command-info ((_command (eql copy-to-register)))
   (make-register-preview-info
-   :types '(all)
    :act 'set))
 (cl-defmethod register-command-info ((_command (eql point-to-register)))
   (make-register-preview-info
-   :types '(all)
    :act 'set))
 (cl-defmethod register-command-info ((_command (eql number-to-register)))
   (make-register-preview-info
-   :types '(all)
    :act 'set))
 (cl-defmethod register-command-info
     ((_command (eql window-configuration-to-register)))
   (make-register-preview-info
-   :types '(all)
    :act 'set))
 (cl-defmethod register-command-info ((_command (eql frameset-to-register)))
   (make-register-preview-info
-   :types '(all)
    :act 'set))
 (cl-defmethod register-command-info ((_command (eql copy-rectangle-to-register)))
   (make-register-preview-info
-   :types '(all)
-   :act 'set
-   :smatch t))
+   :act 'set))
 (cl-defmethod register-command-info ((_command (eql file-to-register)))
   (make-register-preview-info
-   :types '(all)
    :act 'set))
 (cl-defmethod register-command-info ((_command (eql buffer-to-register)))
   (make-register-preview-info
-   :types '(all)
    :act 'set))
 
 (defun register-preview-forward-line (arg)
@@ -340,7 +326,7 @@ satisfy `cl-typep', otherwise the new type should be defined with
 
 (defun register-of-type-alist (types)
   "Filter `register-alist' according to TYPES."
-  (if (memq 'all types)
+  (if (or (null types) (memq t types))
       register-alist
     (cl-loop for register in register-alist
              when (memq (register-type register) types)
@@ -375,9 +361,9 @@ This is the preview function used with the `register-read-with-preview-fancy'
 function.
 If SHOW-EMPTY is non-nil, show the preview window even if no registers.
 Optional argument TYPES (a list) specifies the types of register to show;
-if it is nil, show all the registers.  See `register-type' for suitable types.
+if it is nil or t, show all the registers.  See `register-type' for suitable types.
 Format of each entry is controlled by the variable `register-preview-function'."
-  (let ((registers (register-of-type-alist (or types '(all)))))
+  (let ((registers (register-of-type-alist types)))
     (when (or show-empty (consp registers))
       (with-current-buffer-window
         buffer
@@ -472,7 +458,7 @@ or `never'."
                 m))
          (data (register-command-info this-command))
          (enable-recursive-minibuffers t)
-         types result act win strs smatch
+         types result act win strs
          (msg (if (string-match ":? *\\'" prompt)
                   (concat (substring prompt 0 (match-beginning 0))
                           " `%s'")
@@ -480,14 +466,12 @@ or `never'."
          (noconfirm (memq register-use-preview '(nil never))))
     (if data
         (setq types     (register-preview-info-types data)
-              act       (register-preview-info-act   data)
-              smatch    (register-preview-info-smatch data))
-      (setq types '(all)
-            act   'set))
+              act       (register-preview-info-act   data))
+      (setq act   'set))
     (setq strs (mapcar (lambda (x)
                          (string (car x)))
                        (register-of-type-alist types)))
-    (when (and (memq act '(insert jump view)) (null strs))
+    (when (and types (not (memq 'null types)) (null strs))
       (error "No register suitable for `%s'" act))
     (dolist (k (cons help-char help-event-list))
       (define-key map (vector k)
@@ -512,7 +496,7 @@ or `never'."
                        ;; Only keep the first of the new chars.
                        (let ((new (substring input 1 2))
                              (old (substring input 0 1)))
-                         (setq input (if (or (null smatch)
+                         (setq input (if (or (null types)
                                              (member new strs))
                                          new old))
                          (delete-minibuffer-contents)
@@ -522,7 +506,7 @@ or `never'."
                          (when (and (string= new old)
                                     (eq register-use-preview 'insist))
                            (setq noconfirm t))))
-                     (when (and smatch (not (string= input ""))
+                     (when (and types (not (string= input ""))
                                 (not (member input strs)))
                        (setq input "")
                        (delete-minibuffer-contents)
