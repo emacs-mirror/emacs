@@ -120,12 +120,11 @@ provided function, `register-read-with-preview-traditional', behaves
 the same as in Emacs 29 and before: no filtering, no navigation,
 and no defaults.")
 
-(defvar register-preview-function nil
+(defvar register-preview-function #'register-preview-default
   "Function to format a register for previewing.
 Called with one argument, a cons (NAME . CONTENTS), as found
 in `register-alist'.  The function should return a string, the
-description of the argument.  The function to use is set according
-to the value of `register--read-with-preview-function'.")
+description of the argument.")
 
 (defcustom register-use-preview 'traditional
   "Whether register commands show preview of registers with non-nil values.
@@ -158,8 +157,7 @@ behavior of Emacs 29 and before."
          (setq register--read-with-preview-function
                (if (eq val 'traditional)
                    #'register-read-with-preview-traditional
-                 #'register-read-with-preview-fancy))
-         (setq register-preview-function nil)))
+                 #'register-read-with-preview-fancy))))
 
 (defun get-register (register)
   "Return contents of Emacs register named REGISTER, or nil if none."
@@ -179,31 +177,12 @@ See the documentation of the variable `register-alist' for possible VALUEs."
         (substring d (match-end 0))
       d)))
 
-(defun register-preview-default-1 (r)
-  "Function used to format a register for fancy previewing.
-This is used as the value of the variable `register-preview-function'
-when `register-use-preview' is set to t or nil."
-  (format "%s: %s\n"
-	  (propertize (string (car r))
-                      'display (single-key-description (car r)))
-	  (register-describe-oneline (car r))))
-
 (defun register-preview-default (r)
-  "Function used to format a register for traditional preview.
-This is the default value of the variable `register-preview-function',
-and is used when `register-use-preview' is set to `traditional'."
+  "Function used to format a register for previewing.
+This is the default value of the variable `register-preview-function'."
   (format "%s: %s\n"
 	  (single-key-description (car r))
 	  (register-describe-oneline (car r))))
-
-(cl-defgeneric register--preview-function (read-preview-function)
-  "Return a function to format registers for previewing by READ-PREVIEW-FUNCTION.")
-(cl-defmethod register--preview-function ((_read-preview-function
-                                           (eql register-read-with-preview-traditional)))
-  #'register-preview-default)
-(cl-defmethod register--preview-function ((_read-preview-function
-                                           (eql register-read-with-preview-fancy)))
-  #'register-preview-default-1)
 
 (cl-defstruct register-preview-info
   "Store data for a specific register command.
@@ -332,7 +311,7 @@ Do nothing when defining or executing kmacros."
               pos)
           (goto-char (if ovs
                          (overlay-start (car ovs))
-                         (point-min)))
+                       (point-min)))
           (setq pos (point))
           (and ovs (forward-line arg))
           (when (and (funcall fn)
@@ -401,9 +380,6 @@ satisfy `cl-typep', otherwise the new type should be defined with
   "Pop up a window showing the preview of registers in BUFFER.
 If SHOW-EMPTY is non-nil, show the preview window even if no registers.
 Format of each entry is controlled by the variable `register-preview-function'."
-  (unless register-preview-function
-    (setq register-preview-function (register--preview-function
-                                     register--read-with-preview-function)))
   (when (or show-empty (consp register-alist))
     (with-current-buffer-window buffer
         register-preview-display-buffer-alist
@@ -431,9 +407,6 @@ If SHOW-EMPTY is non-nil, show the preview window even if no registers.
 Optional argument TYPES (a list) specifies the types of register to show;
 if it is nil, show all the registers.  See `register-type' for suitable types.
 Format of each entry is controlled by the variable `register-preview-function'."
-  (unless register-preview-function
-    (setq register-preview-function (register--preview-function
-                                     register--read-with-preview-function)))
   (let ((registers (register-of-type-alist (or types '(all)))))
     (when (or show-empty (consp registers))
       (with-current-buffer-window
@@ -582,7 +555,7 @@ or `never'."
                        (setq input "")
                        (delete-minibuffer-contents)
                        (minibuffer-message "Not matching"))
-                     (when (not (string= input pat))
+                     (when (not (string= input pat)) ;; FIXME: Why this test?
                        (setq pat input))))
                  (unless (or (string= pat "")
                           (get-text-property (minibuffer-prompt-end)
