@@ -7116,14 +7116,21 @@ A customized `revert-buffer-function' need not run this hook.")
 (defvar revert-buffer-preserve-modes)
 
 (defvar revert-buffer-restore-functions '(revert-buffer-restore-read-only)
-  "Functions to preserve any state during `revert-buffer'.
-The value of this variable is a list of functions that are called before
-reverting the buffer.  Each of these functions are called without
-arguments and should return a lambda that can restore a previous state
-of the buffer.  Then after reverting the buffer each of these lambdas
-will be called one by one in the order of the list to restore previous
-states of the buffer.  An example of the buffer state is keeping the
-buffer read-only, or keeping minor modes, etc.")
+  "Functions to preserve buffer state during `revert-buffer'.
+The value of this variable is a list of functions that are called
+before reverting the buffer.  Each of these functions is called without
+arguments and should return a lambda form that can restore a previous
+state of the buffer.  After reverting the buffer, each of these lambda
+forms will be called in order to restore previous states of the buffer.
+An example of the buffer state is keeping the buffer read-only, or
+keeping minor modes, etc.
+
+The default value restores the buffer's read-only state to what it
+was before reverting.
+
+Set this variable to nil to disable restoring any buffer state
+attributes from before reverting.  Then only the file from which the
+buffer is reverted will determine the buffer's state after reverting.")
 
 (defun revert-buffer-restore-read-only ()
   "Preserve read-only state for `revert-buffer'."

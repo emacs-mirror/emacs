@@ -3058,11 +3058,11 @@ See also the related option `isearch-allow-motion'."
 
 (defcustom isearch-allow-motion nil
   "Whether to allow movement between isearch matches by cursor motion commands.
-If non-nil, the four motion commands \\[beginning-of-buffer], \\[end-of-buffer], \
-\\[scroll-up-command] and \\[scroll-down-command], when invoked during
-Isearch, move respectively to the first occurrence of the current search string
-in the buffer, the last one, the first one after the current window, and the
-last one before the current window.
+If non-nil, the four motion commands \\<isearch-mode-map>\\[beginning-of-buffer], \\[end-of-buffer], \
+\\[scroll-up-command] and \\[scroll-down-command], when invoked
+during Isearch, move respectively to the first occurrence of the current
+search string in the buffer, the last one, the first one after the current
+window, and the last one before the current window.
 If nil, these motion commands normally exit Isearch and are executed.
 See also the related options `isearch-motion-changes-direction' and
 `isearch-allow-scroll'."
@@ -3075,8 +3075,8 @@ See also the related options `isearch-motion-changes-direction' and
   "Whether motion commands during incremental search change search direction.
 If nil, the search direction (forward or backward) does not change when
 motion commands are used during incremental search, except when wrapping.
-If non-nil, the search direction is forward after \\[beginning-of-buffer] and \
-\\[scroll-up-command], and
+If non-nil, the search direction is forward after \
+\\<isearch-mode-map>\\[beginning-of-buffer] and \\[scroll-up-command], and
 backward after \\[end-of-buffer] and \\[scroll-down-command]."
   :type '(choice (const :tag "Off" nil)
                  (const :tag "On" t))

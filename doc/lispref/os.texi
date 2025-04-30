@@ -1953,14 +1953,18 @@ This is a synonym for @samp{%H:%M:%S}.
 This stands for the numeric day of week (1--7).  Monday is day 1.
 @item %U
 This stands for the week of the year (01--52), assuming that weeks
-start on Sunday.
+start on Sunday.  If January 1 is not a Sunday, the first partial week
+is week zero.
 @item %V
-This stands for the week of the year according to ISO 8601.
+This stands for the week of the year according to ISO 8601.  Note that,
+unlike @samp{%U} and @samp{%W}, the week according to ISO 8601 does
+@emph{not} roll over to 1 on January 1, but keeps its last number.
 @item %w
 This stands for the numeric day of week (0--6).  Sunday is day 0.
 @item %W
-This stands for the week of the year (01--52), assuming that weeks
-start on Monday.
+This stands for the week of the year (01--52), assuming that weeks start
+on Monday.  If January 1 is not a Monday, the first partial week is week
+zero.
 @item %x
 This has a locale-specific meaning.  In the default locale (named
 @samp{C}), it is equivalent to @samp{%D}.

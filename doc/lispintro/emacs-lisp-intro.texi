@@ -940,21 +940,21 @@ same time, and then press and release @kbd{t}.)
 
 Also, I often refer to one of Emacs's standard commands by listing the
 keys which you press to invoke the command and then giving the name of
-the command in parentheses, like this: @kbd{M-C-\}
+the command in parentheses, like this: @kbd{C-M-\}
 (@code{indent-region}).  What this means is that the
 @code{indent-region} command is customarily invoked by typing
-@kbd{M-C-\}.  (You can, if you wish, change the keys that are typed to
+@kbd{C-M-\}.  (You can, if you wish, change the keys that are typed to
 invoke the command; this is called @dfn{rebinding}.  @xref{Keymaps, ,
-Keymaps}.)  The abbreviation @kbd{M-C-\} means that you type your
-@key{META} key, @key{CTRL} key and @kbd{\} key all at the same time.
+Keymaps}.)  The abbreviation @kbd{C-M-\} means that you type your
+@key{CTRL} key, @key{META} key, and @kbd{\} key all at the same time.
 (On many modern keyboards the @key{META} key is labeled
 @key{ALT}.)
 Sometimes a combination like this is called a keychord, since it is
 similar to the way you play a chord on a piano.  If your keyboard does
 not have a @key{META} key, the @key{ESC} key prefix is used in place
-of it.  In this case, @kbd{M-C-\} means that you press and release your
+of it.  In this case, @kbd{C-M-\} means that you press and release your
 @key{ESC} key and then type the @key{CTRL} key and the @kbd{\} key at
-the same time.  But usually @kbd{M-C-\} means press the @key{CTRL} key
+the same time.  But usually @kbd{C-M-\} means press the @key{CTRL} key
 along with the key that is labeled @key{ALT} and, at the same time,
 press the @kbd{\} key.
 
@@ -962,7 +962,7 @@ In addition to typing a lone keychord, you can prefix what you type
 with @kbd{C-u}, which is called the @dfn{universal argument}.  The
 @kbd{C-u} keychord passes an argument to the subsequent command.
 Thus, to indent a region of plain text by 6 spaces, mark the region,
-and then type @w{@kbd{C-u 6 M-C-\}}.  (If you do not specify a number,
+and then type @w{@kbd{C-u 6 C-M-\}}.  (If you do not specify a number,
 Emacs either passes the number 4 to the command or otherwise runs the
 command differently than it would otherwise.)  @xref{Arguments, ,
 Numeric Arguments, emacs, The GNU Emacs Manual}.
@@ -1258,7 +1258,7 @@ Interaction mode or Emacs Lisp mode, you have available to you several
 commands to format the Lisp expression so it is easy to read.  For
 example, pressing the @key{TAB} key automatically indents the line the
 cursor is on by the right amount.  A command to properly indent the
-code in a region is customarily bound to @kbd{M-C-\}.  Indentation is
+code in a region is customarily bound to @kbd{C-M-\}.  Indentation is
 designed so that you can see which elements of a list belong to which
 list---elements of a sub-list are indented more than the elements of
 the enclosing list.

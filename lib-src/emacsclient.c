@@ -1715,8 +1715,13 @@ set_socket (bool no_exit_if_error)
 }
 
 #ifdef HAVE_NTGUI
-FARPROC set_fg;  /* Pointer to AllowSetForegroundWindow.  */
-FARPROC get_wc;  /* Pointer to RealGetWindowClassA.  */
+typedef void (* VOIDFNPTR) (void);
+typedef BOOL (WINAPI *AllowSetForegroundWindow_proc) (DWORD);
+/* Pointer to AllowSetForegroundWindow.  */
+static AllowSetForegroundWindow_proc set_fg;
+typedef UINT (WINAPI *RealGetWindowClassA_proc) (HWND, LPSTR, UINT);
+/* Pointer to RealGetWindowClassA.  */
+static RealGetWindowClassA_proc get_wc;
 
 void w32_set_user_model_id (void);
 
@@ -1794,8 +1799,8 @@ w32_give_focus (void)
      emacsclient can allow Emacs to grab the focus by calling the function
      AllowSetForegroundWindow.  Unfortunately, older Windows (W95, W98 and
      NT) lack this function, so we have to check its availability.  */
-  if ((set_fg = GetProcAddress (user32, "AllowSetForegroundWindow"))
-      && (get_wc = GetProcAddress (user32, "RealGetWindowClassA")))
+  if ((set_fg = (AllowSetForegroundWindow_proc) (VOIDFNPTR) GetProcAddress (user32, "AllowSetForegroundWindow"))
+      && (get_wc = (RealGetWindowClassA_proc) (VOIDFNPTR) GetProcAddress (user32, "RealGetWindowClassA")))
     EnumWindows (w32_find_emacs_process, (LPARAM) 0);
 }
 #endif /* HAVE_NTGUI */
