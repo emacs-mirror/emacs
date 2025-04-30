@@ -326,8 +326,7 @@ Do nothing when defining or executing kmacros."
     (let ((fn (if (> arg 0) #'eobp #'bobp))
           (posfn (if (> arg 0)
                      #'point-min
-                     (lambda () (1- (point-max)))))
-          str)
+                     (lambda () (1- (point-max))))))
       (with-current-buffer "*Register Preview*"
         (let ((ovs (overlays-in (point-min) (point-max)))
               pos)
@@ -339,12 +338,11 @@ Do nothing when defining or executing kmacros."
           (when (and (funcall fn)
                      (or (> arg 0) (eql pos (point))))
             (goto-char (funcall posfn)))
-          (setq str (buffer-substring-no-properties
-                     (pos-bol) (1+ (pos-bol))))
-          (remove-overlays)
-          (with-selected-window (minibuffer-window)
-            (delete-minibuffer-contents)
-            (insert str)))))))
+          (let ((reg (get-text-property (pos-bol) 'register--name)))
+            (remove-overlays)
+            (with-selected-window (minibuffer-window)
+              (delete-minibuffer-contents)
+              (insert (string reg)))))))))
 
 (defun register-preview-next ()
   "Go to next line in the register preview buffer."
@@ -444,10 +442,19 @@ Format of each entry is controlled by the variable `register-preview-function'."
         nil
         (with-current-buffer standard-output
           (setq cursor-in-non-selected-windows nil)
-          (mapc (lambda (elem)
-                  (when (get-register (car elem))
-                    (insert (funcall register-preview-function elem))))
-                registers))))))
+          (dolist (elem registers)
+            (when (cdr elem)
+              (let ((beg (point)))
+                (insert (funcall register-preview-function elem))
+                (put-text-property beg (point)
+                                   'register--name (car elem))))))))))
+
+(defun register--find-preview (regname)
+  (goto-char (point-min))
+  (while (not (or (eobp)
+                  (eql regname (get-text-property (point) 'register--name))))
+    (forward-line 1))
+  (not (eobp)))
 
 (cl-defgeneric register-preview-get-defaults (action)
   "Return default registers according to ACTION."
@@ -557,7 +564,8 @@ or `never'."
                  (with-selected-window (minibuffer-window)
                    (let ((input (minibuffer-contents)))
                      (when (> (length input) 1)
-                       (let ((new (substring input 1))
+                       ;; Only keep the first of the new chars.
+                       (let ((new (substring input 1 2))
                              (old (substring input 0 1)))
                          (setq input (if (or (null smatch)
                                              (member new strs))
@@ -576,6 +584,12 @@ or `never'."
                        (minibuffer-message "Not matching"))
                      (when (not (string= input pat))
                        (setq pat input))))
+                 (unless (or (string= pat "")
+                          (get-text-property (minibuffer-prompt-end)
+                           'display))
+                   (put-text-property (minibuffer-prompt-end)
+                                      (1+ (minibuffer-prompt-end))
+                                      'display (key-description pat)))
                  (if (setq win (get-buffer-window buffer))
                      (with-selected-window win
                        (when (or (eq noconfirm t) ; Using insist
@@ -594,24 +608,25 @@ or `never'."
                          (goto-char (point-min))
                          (remove-overlays)
                          (unless (string= pat "")
-                           (if (re-search-forward (concat "^" pat) nil t)
-                               (progn (move-overlay
-                                       ov
-                                       (match-beginning 0) (pos-eol))
+                           (if (register--find-preview (aref pat 0))
+                               (progn (move-overlay ov (point) (pos-eol))
                                       (overlay-put ov 'face 'match)
                                       (when msg
                                         (with-selected-window
                                             (minibuffer-window)
-                                          (minibuffer-message msg pat))))
+                                          (minibuffer-message
+                                           msg (key-description pat)))))
                              (with-selected-window (minibuffer-window)
                                (minibuffer-message
-                                "Register `%s' is empty" pat))))))
+                                "Register `%s' is empty"
+                                (key-description pat)))))))
                    (unless (string= pat "")
                      (with-selected-window (minibuffer-window)
                        (if (and (member pat strs)
                                 (null noconfirm))
                            (with-selected-window (minibuffer-window)
-                             (minibuffer-message msg pat))
+                             (minibuffer-message
+                              msg (key-description pat)))
                          ;; `:noconfirm' is specified explicitly, don't ask for
                          ;; confirmation and exit immediately (bug#66394).
                          (setq result pat)
