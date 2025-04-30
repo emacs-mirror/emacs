@@ -187,11 +187,10 @@ This is the default value of the variable `register-preview-function'."
 (cl-defstruct register-preview-info
   "Store data for a specific register command.
 TYPES are the supported types of registers.
-MSG is the minibuffer message to show when a register is selected.
 ACT is the type of action the command is doing on register.
 SMATCH accept a boolean value to say if the command accepts non-matching
 registers."
-  types msg act smatch)
+  types act smatch)
 
 (cl-defgeneric register-command-info (command)
   "Return a `register-preview-info' object storing data for COMMAND."
@@ -201,7 +200,6 @@ registers."
    ;; FIXME: This should not be hardcoded but computed based on whether
    ;; a given register type implements `register-val-insert'.
    :types '(string number)
-   :msg "Insert register `%s'"
    :act 'insert
    :smatch t))
 (cl-defmethod register-command-info ((_command (eql jump-to-register)))
@@ -210,74 +208,61 @@ registers."
    ;; a given register type implements `register-val-jump-to'.
    :types  '(window frame marker kmacro
              file buffer file-query)
-   :msg "Jump to register `%s'"
    :act 'jump
    :smatch t))
 (cl-defmethod register-command-info ((_command (eql view-register)))
   (make-register-preview-info
    :types '(all)
-   :msg "View register `%s'"
    :act 'view
    :smatch t))
 (cl-defmethod register-command-info ((_command (eql append-to-register)))
   (make-register-preview-info
    :types '(string) ;; FIXME: Fails on rectangles!
-   :msg "Append to register `%s'"
    :act 'modify
    :smatch t))
 (cl-defmethod register-command-info ((_command (eql prepend-to-register)))
   (make-register-preview-info
    :types '(string) ;;FIXME: Fails on rectangles!
-   :msg "Prepend to register `%s'"
    :act 'modify
    :smatch t))
 (cl-defmethod register-command-info ((_command (eql increment-register)))
   (make-register-preview-info
    :types '(string number) ;;FIXME: Fails on rectangles!
-   :msg "Increment register `%s'"
    :act 'modify
    :smatch t))
 (cl-defmethod register-command-info ((_command (eql copy-to-register)))
   (make-register-preview-info
    :types '(all)
-   :msg "Copy to register `%s'"
    :act 'set))
 (cl-defmethod register-command-info ((_command (eql point-to-register)))
   (make-register-preview-info
    :types '(all)
-   :msg "Point to register `%s'"
    :act 'set))
 (cl-defmethod register-command-info ((_command (eql number-to-register)))
   (make-register-preview-info
    :types '(all)
-   :msg "Number to register `%s'"
    :act 'set))
 (cl-defmethod register-command-info
     ((_command (eql window-configuration-to-register)))
   (make-register-preview-info
    :types '(all)
-   :msg "Window configuration to register `%s'"
    :act 'set))
 (cl-defmethod register-command-info ((_command (eql frameset-to-register)))
   (make-register-preview-info
    :types '(all)
-   :msg "Frameset to register `%s'"
    :act 'set))
 (cl-defmethod register-command-info ((_command (eql copy-rectangle-to-register)))
   (make-register-preview-info
    :types '(all)
-   :msg "Copy rectangle to register `%s'"
    :act 'set
    :smatch t))
 (cl-defmethod register-command-info ((_command (eql file-to-register)))
   (make-register-preview-info
    :types '(all)
-   :msg "File to register `%s'"
    :act 'set))
 (cl-defmethod register-command-info ((_command (eql buffer-to-register)))
   (make-register-preview-info
    :types '(all)
-   :msg "Buffer to register `%s'"
    :act 'set))
 
 (defun register-preview-forward-line (arg)
@@ -487,15 +472,17 @@ or `never'."
                 m))
          (data (register-command-info this-command))
          (enable-recursive-minibuffers t)
-         types msg result act win strs smatch
+         types result act win strs smatch
+         (msg (if (string-match ":? *\\'" prompt)
+                  (concat (substring prompt 0 (match-beginning 0))
+                          " `%s'")
+                "Using register `%s'"))
          (noconfirm (memq register-use-preview '(nil never))))
     (if data
         (setq types     (register-preview-info-types data)
-              msg       (register-preview-info-msg   data)
               act       (register-preview-info-act   data)
               smatch    (register-preview-info-smatch data))
       (setq types '(all)
-            msg   "Overwrite register `%s'"
             act   'set))
     (setq strs (mapcar (lambda (x)
                          (string (car x)))
