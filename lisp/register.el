@@ -185,30 +185,6 @@ This is the default value of the variable `register-preview-function'."
 	  (single-key-description (car r))
 	  (register-describe-oneline (car r))))
 
-(cl-defgeneric register-command-info (command)
-  "Return a list of types of registers to use for COMMAND."
-  (ignore command))
-(cl-defmethod register-command-info ((_command (eql insert-register)))
-   ;; FIXME: This should not be hardcoded but computed based on whether
-   ;; a given register type implements `register-val-insert'.
-  '(string number))
-(cl-defmethod register-command-info ((_command (eql jump-to-register)))
-   ;; FIXME: This should not be hardcoded but computed based on whether
-   ;; a given register type implements `register-val-jump-to'.
-  '(window frame marker kmacro
-    file buffer file-query))
-(cl-defmethod register-command-info ((_command (eql view-register)))
-  '(t))
-(cl-defmethod register-command-info ((_command (eql append-to-register)))
-  '(string null) ;;FIXME: Fails on rectangles!
-   )
-(cl-defmethod register-command-info ((_command (eql prepend-to-register)))
-  '(string null) ;;FIXME: Fails on rectangles!
-   )
-(cl-defmethod register-command-info ((_command (eql increment-register)))
-  '(string number null) ;;FIXME: Fails on rectangles!
-   )
-
 (defun register-preview-forward-line (arg)
   "Move to next or previous line in register preview buffer.
 If ARG is positive, go to next line; if negative, go to previous line.
@@ -422,11 +398,6 @@ or `never'."
          (map (let ((m (make-sparse-keymap)))
                 (set-keymap-parent m minibuffer-local-map)
                 m))
-         (types (register-command-info this-command))
-         (pred (or pred
-                   (when types
-                     (lambda (regval)
-                       (memq (register-type regval) types)))))
          (enable-recursive-minibuffers t)
          result win
          (msg (if (string-match ":? *\\'" prompt)
@@ -614,7 +585,15 @@ to delete any existing frames that the frameset doesn't mention.
 ignored if the register contains anything but a frameset.
 
 Interactively, prompt for REGISTER using `register-read-with-preview'."
-  (interactive (list (register-read-with-preview "Jump to register: ")
+  (interactive (list (register-read-with-preview
+		      "Jump to register: "
+		      (lambda (regval)
+		        (memq (register-type regval)
+		              ;; FIXME: This should not be hardcoded but
+		              ;; computed based on whether a given register
+                              ;; type implements `register-val-jump-to'.
+		              '(window frame marker kmacro
+		                file buffer file-query))))
 		     current-prefix-arg))
   (let ((val (get-register register)))
     (register-val-jump-to val delete)))
@@ -751,7 +730,10 @@ If REGISTER is empty or if it contains text, call
 
 Interactively, prompt for REGISTER using `register-read-with-preview'."
   (interactive (list current-prefix-arg
-		     (register-read-with-preview "Increment register: ")))
+		     (register-read-with-preview
+		      "Increment register: "
+		      (lambda (regval)
+		        (or (numberp regval) (null regval) (stringp regval))))))
   (let ((register-val (get-register register)))
     (cond
      ((numberp register-val)
@@ -766,7 +748,8 @@ Interactively, prompt for REGISTER using `register-read-with-preview'."
 REGISTER is a character, the name of the register.
 
 Interactively, prompt for REGISTER using `register-read-with-preview'."
-  (interactive (list (register-read-with-preview "View register: ")))
+  (interactive (list (register-read-with-preview "View register: "
+                                                 (lambda (regval) regval))))
   (let ((val (get-register register)))
     (if (null val)
 	(message "Register %s is empty" (single-key-description register))
@@ -898,7 +881,14 @@ and t otherwise.
 Interactively, prompt for REGISTER using `register-read-with-preview'."
   (interactive (progn
 		 (barf-if-buffer-read-only)
-		 (list (register-read-with-preview "Insert register: ")
+		 (list (register-read-with-preview
+		        "Insert register: "
+		        (lambda (regval)
+		          (memq (register-type regval)
+		                ;; FIXME: This should not be hardcoded but
+		                ;; computed based on whether a given register
+                                ;; type implements `register-val-insert'.
+		                '(string number))))
 		       (not current-prefix-arg))))
   (push-mark)
   (let ((val (get-register register)))
@@ -963,7 +953,10 @@ START and END are buffer positions indicating what to append.
 
 Interactively, prompt for REGISTER using `register-read-with-preview',
 and use mark and point as START and END."
-  (interactive (list (register-read-with-preview "Append to register: ")
+  (interactive (list (register-read-with-preview
+		      "Append to register: "
+		      (lambda (regval)
+		        (or (null regval) (stringp regval))))
 		     (region-beginning)
 		     (region-end)
 		     current-prefix-arg))
@@ -989,7 +982,10 @@ START and END are buffer positions indicating what to prepend.
 
 Interactively, prompt for REGISTER using `register-read-with-preview',
 and use mark and point as START and END."
-  (interactive (list (register-read-with-preview "Prepend to register: ")
+  (interactive (list (register-read-with-preview
+		      "Prepend to register: "
+		      (lambda (regval)
+		        (or (null regval) (stringp regval))))
 		     (region-beginning)
 		     (region-end)
 		     current-prefix-arg))
