@@ -189,9 +189,8 @@ This is the default value of the variable `register-preview-function'."
 TYPES holds the list of supported types of registers.
   If nil, means it can operate on any register, even empty ones.
   The t type means it can operate on any non-empty register.
-  The `null' type stands for the type of empty registers.
-ACT is the type of action the command is doing on register."
-  types act)
+  The `null' type stands for the type of empty registers."
+  types)
 
 (cl-defgeneric register-command-info (command)
   "Return a `register-preview-info' object storing data for COMMAND."
@@ -200,56 +199,45 @@ ACT is the type of action the command is doing on register."
   (make-register-preview-info
    ;; FIXME: This should not be hardcoded but computed based on whether
    ;; a given register type implements `register-val-insert'.
-   :types '(string number)
-   :act 'insert))
+   :types '(string number)))
 (cl-defmethod register-command-info ((_command (eql jump-to-register)))
   (make-register-preview-info
    ;; FIXME: This should not be hardcoded but computed based on whether
    ;; a given register type implements `register-val-jump-to'.
    :types  '(window frame marker kmacro
-             file buffer file-query)
-   :act 'jump))
+             file buffer file-query)))
 (cl-defmethod register-command-info ((_command (eql view-register)))
   (make-register-preview-info
-   :types '(t)
-   :act 'view))
+   :types '(t)))
 (cl-defmethod register-command-info ((_command (eql append-to-register)))
   (make-register-preview-info
    :types '(string null) ;;FIXME: Fails on rectangles!
-   :act 'modify))
+   ))
 (cl-defmethod register-command-info ((_command (eql prepend-to-register)))
   (make-register-preview-info
    :types '(string null) ;;FIXME: Fails on rectangles!
-   :act 'modify))
+   ))
 (cl-defmethod register-command-info ((_command (eql increment-register)))
   (make-register-preview-info
    :types '(string number null) ;;FIXME: Fails on rectangles!
-   :act 'modify))
+   ))
 (cl-defmethod register-command-info ((_command (eql copy-to-register)))
-  (make-register-preview-info
-   :act 'set))
+  (make-register-preview-info))
 (cl-defmethod register-command-info ((_command (eql point-to-register)))
-  (make-register-preview-info
-   :act 'set))
+  (make-register-preview-info))
 (cl-defmethod register-command-info ((_command (eql number-to-register)))
-  (make-register-preview-info
-   :act 'set))
+  (make-register-preview-info))
 (cl-defmethod register-command-info
     ((_command (eql window-configuration-to-register)))
-  (make-register-preview-info
-   :act 'set))
+  (make-register-preview-info))
 (cl-defmethod register-command-info ((_command (eql frameset-to-register)))
-  (make-register-preview-info
-   :act 'set))
+  (make-register-preview-info))
 (cl-defmethod register-command-info ((_command (eql copy-rectangle-to-register)))
-  (make-register-preview-info
-   :act 'set))
+  (make-register-preview-info))
 (cl-defmethod register-command-info ((_command (eql file-to-register)))
-  (make-register-preview-info
-   :act 'set))
+  (make-register-preview-info))
 (cl-defmethod register-command-info ((_command (eql buffer-to-register)))
-  (make-register-preview-info
-   :act 'set))
+  (make-register-preview-info))
 
 (defun register-preview-forward-line (arg)
   "Move to next or previous line in register preview buffer.
@@ -385,13 +373,13 @@ Format of each entry is controlled by the variable `register-preview-function'."
     (forward-line 1))
   (not (eobp)))
 
-(cl-defgeneric register-preview-get-defaults (action)
-  "Return default registers according to ACTION."
-  (ignore action))
-(cl-defmethod register-preview-get-defaults ((_action (eql set)))
-  (cl-loop for s in register-preview-default-keys
-           unless (assoc (string-to-char s) register-alist)
-           collect s))
+(defun register--preview-get-defaults (types strs)
+  "Return default registers according to TYPES and available registers.
+STRS is the list of non-empty registers that match TYPES,"
+  (unless types
+    (cl-loop for s in register-preview-default-keys
+             unless (member s strs)
+             collect s)))
 
 (defun register-read-with-preview (prompt)
   "Read register name, prompting with PROMPT; possibly show existing registers.
@@ -458,21 +446,19 @@ or `never'."
                 m))
          (data (register-command-info this-command))
          (enable-recursive-minibuffers t)
-         types result act win strs
+         types result win strs
          (msg (if (string-match ":? *\\'" prompt)
                   (concat (substring prompt 0 (match-beginning 0))
                           " `%s'")
                 "Using register `%s'"))
          (noconfirm (memq register-use-preview '(nil never))))
     (if data
-        (setq types     (register-preview-info-types data)
-              act       (register-preview-info-act   data))
-      (setq act   'set))
+        (setq types     (register-preview-info-types data)))
     (setq strs (mapcar (lambda (x)
                          (string (car x)))
                        (register-of-type-alist types)))
     (when (and types (not (memq 'null types)) (null strs))
-      (error "No register suitable for `%s'" act))
+      (error "No suitable register"))
     (dolist (k (cons help-char help-event-list))
       (define-key map (vector k)
                   (lambda ()
@@ -564,7 +550,7 @@ or `never'."
               (lambda () (add-hook 'post-command-hook setup nil 'local))
             (setq result (read-from-minibuffer
                           prompt nil map nil nil
-                          (register-preview-get-defaults act))))
+                          (register--preview-get-defaults types strs))))
           (cl-assert (and result (not (string= result "")))
                      nil "No register specified")
           (string-to-char result))
