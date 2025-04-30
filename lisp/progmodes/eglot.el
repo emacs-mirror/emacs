@@ -3147,16 +3147,24 @@ may be called multiple times (respecting the protocol of
 
 (defun eglot--report-to-flymake (diags version)
   "Internal helper for `eglot-flymake-backend'."
-  (when (or (null version) (= version eglot--versioned-identifier))
     (save-restriction
       (widen)
-      (funcall eglot--current-flymake-report-fn diags
-               ;; If the buffer hasn't changed since last
-               ;; call to the report function, flymake won't
-               ;; delete old diagnostics.  Using :region
-               ;; keyword forces flymake to delete
-               ;; them (github#159).
-               :region (cons (point-min) (point-max)))))
+      (if (or (null version) (= version eglot--versioned-identifier))
+          (funcall eglot--current-flymake-report-fn diags
+                   ;; If the buffer hasn't changed since last
+                   ;; call to the report function, flymake won't
+                   ;; delete old diagnostics.  Using :region
+                   ;; keyword forces flymake to delete
+                   ;; them (github#159).
+                   :region (cons (point-min) (point-max)))
+        ;; Here, we don't have anything up to date to give Flymake: we
+        ;; just want to keep whatever diagnostics it has annotated in
+        ;; the buffer. However, as a nice-to-have, we still want to
+        ;; signal we're alive and clear a possible "Wait" state.  We
+        ;; hackingly achieve this by reporting an empty list and making
+        ;; sure it pertains to a 0-length region.
+        (funcall eglot--current-flymake-report-fn nil
+                 :region (cons (point-min) (point-min)))))
   (setq eglot--diagnostics (cons diags version)))
 
 (defun eglot-xref-backend () "Eglot xref backend." 'eglot)
