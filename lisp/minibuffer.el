@@ -3539,8 +3539,8 @@ except that it passes the file name through `substitute-in-file-name'."
                      ;; expansion, so regexps containing $ won't work.  Drop
                      ;; them; we'll return more completions, but callers need to
                      ;; handle that anyway.
-                     (cl-remove-if (lambda (regexp) (string-search "$" regexp))
-                                   completion-regexp-list)))
+                     (seq-remove (lambda (regexp) (string-search "$" regexp))
+                                 completion-regexp-list)))
                 (complete-with-action action table sifned pred))))
         (cond
          ((null action)                 ; try-completion
