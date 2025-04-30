@@ -90,7 +90,6 @@ A list of the form (FRAME-CONFIGURATION POSITION)
 When collecting text with \\[append-to-register] (or \\[prepend-to-register]),
 contents of this register is added to the beginning (or end, respectively)
 of the marked text."
-  :group 'register
   :type '(choice (const :tag "None" nil)
 		 (character :tag "Use register" :value ?+)))
 
@@ -100,10 +99,9 @@ If nil, do not show register previews, unless `help-char' (or a member of
 `help-event-list') is pressed.
 
 This variable has no effect when `register-use-preview' is set to any
-value except \\='traditional."
+value except `traditional'."
   :version "24.4"
-  :type '(choice number (const :tag "No preview unless requested" nil))
-  :group 'register)
+  :type '(choice number (const :tag "No preview unless requested" nil)))
 
 (defcustom register-preview-default-keys (mapcar #'string (number-sequence ?a ?z))
   "Default keys for setting a new register."
@@ -112,7 +110,8 @@ value except \\='traditional."
 
 (defvar register--read-with-preview-function nil
   "Function to use for reading a register name with preview.
-Two functions are provided, one that provide navigation and highlighting
+Should implement the behavior documented for `register-read-with-preview'.
+Two functions are provided, one that provides navigation and highlighting
 of the selected register, filtering of register according to command in
 use, defaults register to use when setting a new register, confirmation
 and notification when you are about to overwrite a register, and generic
@@ -122,12 +121,11 @@ provided function, `register-read-with-preview-traditional', behaves
 the same as in Emacs 29 and before: no filtering, no navigation,
 and no defaults.")
 
-(defvar register-preview-function nil
+(defvar register-preview-function #'register-preview-default
   "Function to format a register for previewing.
 Called with one argument, a cons (NAME . CONTENTS), as found
 in `register-alist'.  The function should return a string, the
-description of the argument.  The function to use is set according
-to the value of `register--read-with-preview-function'.")
+description of the argument.")
 
 (defcustom register-use-preview 'traditional
   "Whether register commands show preview of registers with non-nil values.
@@ -160,8 +158,7 @@ behavior of Emacs 29 and before."
          (setq register--read-with-preview-function
                (if (eq val 'traditional)
                    #'register-read-with-preview-traditional
-                 #'register-read-with-preview-fancy))
-         (setq register-preview-function nil)))
+                 #'register-read-with-preview-fancy))))
 
 (defun get-register (register)
   "Return contents of Emacs register named REGISTER, or nil if none."
@@ -181,138 +178,12 @@ See the documentation of the variable `register-alist' for possible VALUEs."
         (substring d (match-end 0))
       d)))
 
-(defun register-preview-default-1 (r)
-  "Function used to format a register for fancy previewing.
-This is used as the value of the variable `register-preview-function'
-when `register-use-preview' is set to t or nil."
-  (format "%s: %s\n"
-	  (propertize (string (car r))
-                      'display (single-key-description (car r)))
-	  (register-describe-oneline (car r))))
-
 (defun register-preview-default (r)
-  "Function used to format a register for traditional preview.
-This is the default value of the variable `register-preview-function',
-and is used when `register-use-preview' is set to \\='traditional."
+  "Function used to format a register for previewing.
+This is the default value of the variable `register-preview-function'."
   (format "%s: %s\n"
 	  (single-key-description (car r))
 	  (register-describe-oneline (car r))))
-
-(cl-defgeneric register--preview-function (read-preview-function)
-  "Return a function to format registers for previewing by READ-PREVIEW-FUNCTION.")
-(cl-defmethod register--preview-function ((_read-preview-function
-                                           (eql register-read-with-preview-traditional)))
-  #'register-preview-default)
-(cl-defmethod register--preview-function ((_read-preview-function
-                                           (eql register-read-with-preview-fancy)))
-  #'register-preview-default-1)
-
-(cl-defstruct register-preview-info
-  "Store data for a specific register command.
-TYPES are the supported types of registers.
-MSG is the minibuffer message to show when a register is selected.
-ACT is the type of action the command is doing on register.
-SMATCH accept a boolean value to say if the command accepts non-matching
-registers.
-If NOCONFIRM is non-nil, request confirmation of register name by RET."
-  types msg act smatch noconfirm)
-
-(cl-defgeneric register-command-info (command)
-  "Return a `register-preview-info' object storing data for COMMAND."
-  (ignore command))
-(cl-defmethod register-command-info ((_command (eql insert-register)))
-  (make-register-preview-info
-   :types '(string number)
-   :msg "Insert register `%s'"
-   :act 'insert
-   :smatch t
-   :noconfirm (memq register-use-preview '(nil never))))
-(cl-defmethod register-command-info ((_command (eql jump-to-register)))
-  (make-register-preview-info
-   :types  '(window frame marker kmacro
-             file buffer file-query)
-   :msg "Jump to register `%s'"
-   :act 'jump
-   :smatch t
-   :noconfirm (memq register-use-preview '(nil never))))
-(cl-defmethod register-command-info ((_command (eql view-register)))
-  (make-register-preview-info
-   :types '(all)
-   :msg "View register `%s'"
-   :act 'view
-   :noconfirm (memq register-use-preview '(nil never))
-   :smatch t))
-(cl-defmethod register-command-info ((_command (eql append-to-register)))
-  (make-register-preview-info
-   :types '(string number)
-   :msg "Append to register `%s'"
-   :act 'modify
-   :noconfirm (memq register-use-preview '(nil never))
-   :smatch t))
-(cl-defmethod register-command-info ((_command (eql prepend-to-register)))
-  (make-register-preview-info
-   :types '(string number)
-   :msg "Prepend to register `%s'"
-   :act 'modify
-   :noconfirm (memq register-use-preview '(nil never))
-   :smatch t))
-(cl-defmethod register-command-info ((_command (eql increment-register)))
-  (make-register-preview-info
-   :types '(string number)
-   :msg "Increment register `%s'"
-   :act 'modify
-   :noconfirm (memq register-use-preview '(nil never))
-   :smatch t))
-(cl-defmethod register-command-info ((_command (eql copy-to-register)))
-  (make-register-preview-info
-   :types '(all)
-   :msg "Copy to register `%s'"
-   :act 'set
-   :noconfirm (memq register-use-preview '(nil never))))
-(cl-defmethod register-command-info ((_command (eql point-to-register)))
-  (make-register-preview-info
-   :types '(all)
-   :msg "Point to register `%s'"
-   :act 'set
-   :noconfirm (memq register-use-preview '(nil never))))
-(cl-defmethod register-command-info ((_command (eql number-to-register)))
-  (make-register-preview-info
-   :types '(all)
-   :msg "Number to register `%s'"
-   :act 'set
-   :noconfirm (memq register-use-preview '(nil never))))
-(cl-defmethod register-command-info
-    ((_command (eql window-configuration-to-register)))
-  (make-register-preview-info
-   :types '(all)
-   :msg "Window configuration to register `%s'"
-   :act 'set
-   :noconfirm (memq register-use-preview '(nil never))))
-(cl-defmethod register-command-info ((_command (eql frameset-to-register)))
-  (make-register-preview-info
-   :types '(all)
-   :msg "Frameset to register `%s'"
-   :act 'set
-   :noconfirm (memq register-use-preview '(nil never))))
-(cl-defmethod register-command-info ((_command (eql copy-rectangle-to-register)))
-  (make-register-preview-info
-   :types '(all)
-   :msg "Copy rectangle to register `%s'"
-   :act 'set
-   :noconfirm (memq register-use-preview '(nil never))
-   :smatch t))
-(cl-defmethod register-command-info ((_command (eql file-to-register)))
-  (make-register-preview-info
-   :types '(all)
-   :msg "File to register `%s'"
-   :act 'set
-   :noconfirm (memq register-use-preview '(nil never))))
-(cl-defmethod register-command-info ((_command (eql buffer-to-register)))
-  (make-register-preview-info
-   :types '(all)
-   :msg "Buffer to register `%s'"
-   :act 'set
-   :noconfirm (memq register-use-preview '(nil never))))
 
 (defun register-preview-forward-line (arg)
   "Move to next or previous line in register preview buffer.
@@ -324,25 +195,23 @@ Do nothing when defining or executing kmacros."
     (let ((fn (if (> arg 0) #'eobp #'bobp))
           (posfn (if (> arg 0)
                      #'point-min
-                     (lambda () (1- (point-max)))))
-          str)
+                     (lambda () (1- (point-max))))))
       (with-current-buffer "*Register Preview*"
         (let ((ovs (overlays-in (point-min) (point-max)))
               pos)
           (goto-char (if ovs
                          (overlay-start (car ovs))
-                         (point-min)))
+                       (point-min)))
           (setq pos (point))
           (and ovs (forward-line arg))
           (when (and (funcall fn)
                      (or (> arg 0) (eql pos (point))))
             (goto-char (funcall posfn)))
-          (setq str (buffer-substring-no-properties
-                     (pos-bol) (1+ (pos-bol))))
-          (remove-overlays)
-          (with-selected-window (minibuffer-window)
-            (delete-minibuffer-contents)
-            (insert str)))))))
+          (let ((reg (get-text-property (pos-bol) 'register--name)))
+            (remove-overlays)
+            (with-selected-window (minibuffer-window)
+              (delete-minibuffer-contents)
+              (insert (string reg)))))))))
 
 (defun register-preview-next ()
   "Go to next line in the register preview buffer."
@@ -354,66 +223,41 @@ Do nothing when defining or executing kmacros."
   (interactive)
   (register-preview-forward-line -1))
 
-(defun register-type (register)
-  "Return REGISTER type.
-Register type that can be returned is one of the following:
- - string
- - number
- - marker
- - buffer
- - file
- - file-query
- - window
- - frame
- - kmacro
-
-One can add new types to a specific command by defining a new `cl-defmethod'
-matching that command.  Predicates for type in new `cl-defmethod' should
-satisfy `cl-typep', otherwise the new type should be defined with
-`cl-deftype'."
-  ;; Call register--type against the register value.
-  (register--type (if (consp (cdr register))
-                     (cadr register)
-                   (cdr register))))
-
-(cl-defgeneric register--type (regval)
-  "Return the type of register value REGVAL."
-  (ignore regval))
-
-(cl-defmethod register--type ((_regval string)) 'string)
-(cl-defmethod register--type ((_regval number)) 'number)
-(cl-defmethod register--type ((_regval marker)) 'marker)
-(cl-defmethod register--type ((_regval (eql buffer))) 'buffer)
-(cl-defmethod register--type ((_regval (eql file))) 'file)
-(cl-defmethod register--type ((_regval (eql file-query))) 'file-query)
-(cl-defmethod register--type ((_regval window-configuration)) 'window)
-(cl-defmethod register--type ((regval oclosure)) (oclosure-type regval))
-
-(defun register-of-type-alist (types)
-  "Filter `register-alist' according to TYPES."
-  (if (memq 'all types)
+(defun register-of-type-alist (pred)
+  "Filter `register-alist' according to PRED."
+  (if (null pred)
       register-alist
     (cl-loop for register in register-alist
-             when (memq (register-type register) types)
+             when (funcall pred (cdr register))
              collect register)))
 
-(defun register-preview (buffer &optional show-empty)
+(defun register-preview (buffer &optional show-empty pred)
   "Pop up a window showing the preview of registers in BUFFER.
 If SHOW-EMPTY is non-nil, show the preview window even if no registers.
+Optional argument PRED specifies the types of register to show;
+if it is nil, show all the registers.
 Format of each entry is controlled by the variable `register-preview-function'."
-  (unless register-preview-function
-    (setq register-preview-function (register--preview-function
-                                     register--read-with-preview-function)))
-  (when (or show-empty (consp register-alist))
-    (with-current-buffer-window buffer
+  (let ((registers (register-of-type-alist pred)))
+    (when (or show-empty (consp registers))
+      (with-current-buffer-window
+        buffer
         register-preview-display-buffer-alist
         nil
-      (with-current-buffer standard-output
-        (setq cursor-in-non-selected-windows nil)
-        (mapc (lambda (elem)
-                (when (get-register (car elem))
-                  (insert (funcall register-preview-function elem))))
-              register-alist)))))
+        (with-current-buffer standard-output
+          (setq cursor-in-non-selected-windows nil)
+          (dolist (elem registers)
+            (when (cdr elem)
+              (let ((beg (point)))
+                (insert (funcall register-preview-function elem))
+                (put-text-property beg (point)
+                                   'register--name (car elem))))))))))
+
+(defun register--find-preview (regname)
+  (goto-char (point-min))
+  (while (not (or (eobp)
+                  (eql regname (get-text-property (point) 'register--name))))
+    (forward-line 1))
+  (not (eobp)))
 
 (defcustom register-preview-display-buffer-alist '(display-buffer-at-bottom
                                                    (window-height . fit-window-to-buffer)
@@ -422,49 +266,30 @@ Format of each entry is controlled by the variable `register-preview-function'."
   :type display-buffer--action-custom-type
   :version "30.1")
 
-(defun register-preview-1 (buffer &optional show-empty types)
-  "Pop up a window showing the preview of registers in BUFFER.
+(defun register--preview-get-defaults (pred strs)
+  "Return default registers according to PRED and available registers.
+STRS is the list of non-empty registers that match PRED,"
+  (unless pred
+    (cl-loop for s in register-preview-default-keys
+             unless (member s strs)
+             collect s)))
 
-This is the preview function used with the `register-read-with-preview-fancy'
-function.
-If SHOW-EMPTY is non-nil, show the preview window even if no registers.
-Optional argument TYPES (a list) specifies the types of register to show;
-if it is nil, show all the registers.  See `register-type' for suitable types.
-Format of each entry is controlled by the variable `register-preview-function'."
-  (unless register-preview-function
-    (setq register-preview-function (register--preview-function
-                                     register--read-with-preview-function)))
-  (let ((registers (register-of-type-alist (or types '(all)))))
-    (when (or show-empty (consp registers))
-      (with-current-buffer-window
-        buffer
-        register-preview-display-buffer-alist
-        nil
-        (with-current-buffer standard-output
-          (setq cursor-in-non-selected-windows nil)
-          (mapc (lambda (elem)
-                  (when (get-register (car elem))
-                    (insert (funcall register-preview-function elem))))
-                registers))))))
-
-(cl-defgeneric register-preview-get-defaults (action)
-  "Return default registers according to ACTION."
-  (ignore action))
-(cl-defmethod register-preview-get-defaults ((_action (eql set)))
-  (cl-loop for s in register-preview-default-keys
-           unless (assoc (string-to-char s) register-alist)
-           collect s))
-
-(defun register-read-with-preview (prompt)
+(defun register-read-with-preview (prompt &optional pred)
   "Read register name, prompting with PROMPT; possibly show existing registers.
 This reads and returns the name of a register.  PROMPT should be a string
 to prompt the user for the name.
 If `help-char' (or a member of `help-event-list') is pressed,
 display preview window unconditionally.
-This calls the function specified by `register--read-with-preview-function'."
-  (funcall register--read-with-preview-function prompt))
 
-(defun register-read-with-preview-traditional (prompt)
+PRED if non-nil should be a function specifying the kinds of registers that
+can be used.  It is called with one argument, a register value, and should
+return non-nil if and only if that register value can be used.
+The register value nil represents an empty register.
+
+This calls the function specified by `register--read-with-preview-function'."
+  (funcall register--read-with-preview-function prompt pred))
+
+(defun register-read-with-preview-traditional (prompt &optional _pred)
   "Read register name, prompting with PROMPT; possibly show existing registers.
 This reads and returns the name of a register.  PROMPT should be a string
 to prompt the user for the name.
@@ -474,7 +299,7 @@ If `help-char' (or a member of `help-event-list') is pressed,
 display preview window unconditionally.
 
 This function is used as the value of `register--read-with-preview-function'
-when `register-use-preview' is set to \\='traditional."
+when `register-use-preview' is set to `traditional'."
   (let* ((buffer "*Register Preview*")
 	 (timer (when (numberp register-preview-delay)
 		  (run-with-timer register-preview-delay nil
@@ -501,7 +326,7 @@ when `register-use-preview' is set to \\='traditional."
         (and (window-live-p w) (delete-window w)))
       (and (get-buffer buffer) (kill-buffer buffer)))))
 
-(defun register-read-with-preview-fancy (prompt)
+(defun register-read-with-preview-fancy (prompt &optional pred)
   "Read register name, prompting with PROMPT; possibly show existing registers.
 This reads and returns the name of a register.  PROMPT should be a string
 to prompt the user for the name.
@@ -509,8 +334,8 @@ If `help-char' (or a member of `help-event-list') is pressed,
 display preview window regardless.
 
 This function is used as the value of `register--read-with-preview-function'
-when `register-use-preview' is set to any value other than \\='traditional
-or \\='never."
+when `register-use-preview' is set to any value other than `traditional'
+or `never'."
   (let* ((buffer "*Register Preview*")
          (buffer1 "*Register quick preview*")
          (buf (if register-use-preview buffer buffer1))
@@ -518,23 +343,18 @@ or \\='never."
          (map (let ((m (make-sparse-keymap)))
                 (set-keymap-parent m minibuffer-local-map)
                 m))
-         (data (register-command-info this-command))
          (enable-recursive-minibuffers t)
-         types msg result act win strs smatch noconfirm)
-    (if data
-        (setq types     (register-preview-info-types data)
-              msg       (register-preview-info-msg   data)
-              act       (register-preview-info-act   data)
-              smatch    (register-preview-info-smatch data)
-              noconfirm (register-preview-info-noconfirm data))
-      (setq types '(all)
-            msg   "Overwrite register `%s'"
-            act   'set))
-    (setq strs (mapcar (lambda (x)
+         result win
+         (msg (if (string-match ":? *\\'" prompt)
+                  (concat (substring prompt 0 (match-beginning 0))
+                          " `%s'")
+                "Using register `%s'"))
+         (noconfirm (memq register-use-preview '(nil never)))
+         (strs (mapcar (lambda (x)
                          (string (car x)))
-                       (register-of-type-alist types)))
-    (when (and (memq act '(insert jump view)) (null strs))
-      (error "No register suitable for `%s'" act))
+                       (register-of-type-alist pred))))
+    (when (and pred (not (funcall pred nil)) (null strs))
+      (error "No suitable register"))
     (dolist (k (cons help-char help-event-list))
       (define-key map (vector k)
                   (lambda ()
@@ -542,23 +362,25 @@ or \\='never."
                     ;; Do nothing when buffer1 is in use.
                     (unless (get-buffer-window buf)
                       (with-selected-window (minibuffer-selected-window)
-                        (register-preview-1 buffer 'show-empty types))))))
-    (define-key map (kbd "<down>") 'register-preview-next)
-    (define-key map (kbd "<up>")   'register-preview-previous)
-    (define-key map (kbd "C-n")    'register-preview-next)
-    (define-key map (kbd "C-p")    'register-preview-previous)
+                        (register-preview buffer 'show-empty pred))))))
+    (define-key map (kbd "<down>") #'register-preview-next)
+    (define-key map (kbd "<up>")   #'register-preview-previous)
+    (define-key map (kbd "C-n")    #'register-preview-next)
+    (define-key map (kbd "C-p")    #'register-preview-previous)
     (unless (or executing-kbd-macro (eq register-use-preview 'never))
-      (register-preview-1 buf nil types))
+      (register-preview buf nil pred))
     (unwind-protect
-        (let ((setup
+        (let ((setup ;; FIXME: Weird name for a `post-command-hook' function.
                (lambda ()
                  (with-selected-window (minibuffer-window)
                    (let ((input (minibuffer-contents)))
                      (when (> (length input) 1)
-                       (let ((new (substring input 1))
-                             (old (substring input 0 1)))
-                         (setq input (if (or (null smatch)
-                                             (member new strs))
+                       ;; Only keep the first of the new chars.
+                       (let* ((new (substring input 1 2))
+                              (old (substring input 0 1))
+                              (newreg (aref new 0))
+                              (regval (cdr (assq newreg register-alist))))
+                         (setq input (if (or (null pred) (funcall pred regval))
                                          new old))
                          (delete-minibuffer-contents)
                          (insert input)
@@ -567,19 +389,27 @@ or \\='never."
                          (when (and (string= new old)
                                     (eq register-use-preview 'insist))
                            (setq noconfirm t))))
-                     (when (and smatch (not (string= input ""))
-                                (not (member input strs)))
+                     (when (and pred (not (string= input ""))
+                                (let* ((reg (aref input 0))
+                                       (regval (cdr (assq reg register-alist))))
+                                  (not (funcall pred regval))))
                        (setq input "")
                        (delete-minibuffer-contents)
                        (minibuffer-message "Not matching"))
-                     (when (not (string= input pat))
+                     (when (not (string= input pat)) ;; FIXME: Why this test?
                        (setq pat input))))
+                 (unless (or (string= pat "")
+                          (get-text-property (minibuffer-prompt-end)
+                           'display))
+                   (put-text-property (minibuffer-prompt-end)
+                                      (1+ (minibuffer-prompt-end))
+                                      'display (key-description pat)))
                  (if (setq win (get-buffer-window buffer))
                      (with-selected-window win
                        (when (or (eq noconfirm t) ; Using insist
                                  ;; Don't exit when noconfirm == (never)
                                  ;; If we are here user has pressed C-h
-                                 ;; calling `register-preview-1'.
+                                 ;; calling `register-preview'.
                                  (memq nil noconfirm))
                          ;; Happen only when
                          ;; *-use-preview == insist.
@@ -592,25 +422,26 @@ or \\='never."
                          (goto-char (point-min))
                          (remove-overlays)
                          (unless (string= pat "")
-                           (if (re-search-forward (concat "^" pat) nil t)
-                               (progn (move-overlay
-                                       ov
-                                       (match-beginning 0) (pos-eol))
+                           (if (register--find-preview (aref pat 0))
+                               (progn (move-overlay ov (point) (pos-eol))
                                       (overlay-put ov 'face 'match)
                                       (when msg
                                         (with-selected-window
                                             (minibuffer-window)
-                                          (minibuffer-message msg pat))))
+                                          (minibuffer-message
+                                           msg (key-description pat)))))
                              (with-selected-window (minibuffer-window)
                                (minibuffer-message
-                                "Register `%s' is empty" pat))))))
+                                "Register `%s' is empty"
+                                (key-description pat)))))))
                    (unless (string= pat "")
                      (with-selected-window (minibuffer-window)
                        (if (and (member pat strs)
                                 (null noconfirm))
                            (with-selected-window (minibuffer-window)
-                             (minibuffer-message msg pat))
-                         ;; `:noconfirm' is specified explicitly, don't ask for
+                             (minibuffer-message
+                              msg (key-description pat)))
+                         ;; `noconfirm' is specified explicitly, don't ask for
                          ;; confirmation and exit immediately (bug#66394).
                          (setq result pat)
                          (exit-minibuffer))))))))
@@ -618,7 +449,7 @@ or \\='never."
               (lambda () (add-hook 'post-command-hook setup nil 'local))
             (setq result (read-from-minibuffer
                           prompt nil map nil nil
-                          (register-preview-get-defaults act))))
+                          (register--preview-get-defaults pred strs))))
           (cl-assert (and result (not (string= result "")))
                      nil "No register specified")
           (string-to-char result))
@@ -639,7 +470,7 @@ Interactively, prompt for REGISTER using `register-read-with-preview'."
                         "Point to register: "))
                      current-prefix-arg))
   ;; Turn the marker into a file-ref if the buffer is killed.
-  (add-hook 'kill-buffer-hook 'register-swap-out nil t)
+  (add-hook 'kill-buffer-hook #'register-swap-out nil t)
   (set-register register
                 ;; FIXME: How does this `current-frame-configuration' differ
                 ;; in practice with what `frameset-to-register' does?
@@ -683,7 +514,7 @@ Interactively, prompt for REGISTER using `register-read-with-preview'."
 
 (make-obsolete 'frame-configuration-to-register 'frameset-to-register "24.4")
 
-(defalias 'register-to-point 'jump-to-register)
+(defalias 'register-to-point #'jump-to-register)
 (defun jump-to-register (register &optional delete)
   "Go to location stored in REGISTER, or restore configuration stored there.
 Push the mark if going to the location moves point, unless called in succession.
@@ -699,7 +530,9 @@ to delete any existing frames that the frameset doesn't mention.
 ignored if the register contains anything but a frameset.
 
 Interactively, prompt for REGISTER using `register-read-with-preview'."
-  (interactive (list (register-read-with-preview "Jump to register: ")
+  (interactive (list (register-read-with-preview
+		      "Jump to register: "
+		      #'register--jumpable-p)
 		     current-prefix-arg))
   (let ((val (get-register register)))
     (register-val-jump-to val delete)))
@@ -741,6 +574,24 @@ With a prefix argument, prompt for BUFFER as well."
   (with-current-buffer buffer
     (add-hook 'kill-buffer-hook #'register-buffer-to-file-query nil t))
   (set-register register (cons 'buffer buffer)))
+
+(defun register--get-method-type (val genfun)
+  (let* ((type (cl-type-of val))
+	 (types (cl--class-allparents (cl-find-class type))))
+    (while (and types (not (cl-find-method genfun nil (list (car types)))))
+      (setq types (cdr types)))
+    (car types)))
+
+(defun register--jumpable-p (regval)
+  "Return non-nil if `register-val-insert' is implemented for REGVAL."
+  (pcase (register--get-method-type regval 'register-val-jump-to)
+    ('t nil)
+    ('registerv (registerv-jump-func regval))
+    ('cons
+     (or (frame-configuration-p (car regval))
+	 (window-configuration-p (car regval))
+	 (memq (car regval) '(file buffer file-query))))
+    (type type)))
 
 (cl-defgeneric register-val-jump-to (_val _arg)
   "Execute the \"jump\" operation of VAL.
@@ -836,7 +687,10 @@ If REGISTER is empty or if it contains text, call
 
 Interactively, prompt for REGISTER using `register-read-with-preview'."
   (interactive (list current-prefix-arg
-		     (register-read-with-preview "Increment register: ")))
+		     (register-read-with-preview
+		      "Increment register: "
+		      (lambda (regval)
+		        (or (numberp regval) (null regval) (stringp regval))))))
   (let ((register-val (get-register register)))
     (cond
      ((numberp register-val)
@@ -851,7 +705,8 @@ Interactively, prompt for REGISTER using `register-read-with-preview'."
 REGISTER is a character, the name of the register.
 
 Interactively, prompt for REGISTER using `register-read-with-preview'."
-  (interactive (list (register-read-with-preview "View register: ")))
+  (interactive (list (register-read-with-preview "View register: "
+                                                 (lambda (regval) regval))))
   (let ((val (get-register register)))
     (if (null val)
 	(message "Register %s is empty" (single-key-description register))
@@ -983,12 +838,23 @@ and t otherwise.
 Interactively, prompt for REGISTER using `register-read-with-preview'."
   (interactive (progn
 		 (barf-if-buffer-read-only)
-		 (list (register-read-with-preview "Insert register: ")
+		 (list (register-read-with-preview
+		        "Insert register: "
+		        #'register--insertable-p)
 		       (not current-prefix-arg))))
   (push-mark)
   (let ((val (get-register register)))
     (register-val-insert val))
   (if (not arg) (exchange-point-and-mark)))
+
+(defun register--insertable-p (regval)
+  "Return non-nil if `register-val-insert' is implemented for REGVAL."
+  (pcase (register--get-method-type regval 'register-val-insert)
+    ;; Only rectangles are currently supported.
+    ('t nil)
+    ('registerv (registerv-insert-func regval))
+    ('cons (stringp (car regval)))
+    (type type)))
 
 (cl-defgeneric register-val-insert (_val)
   "Insert register value VAL in current buffer at point."
@@ -1048,7 +914,10 @@ START and END are buffer positions indicating what to append.
 
 Interactively, prompt for REGISTER using `register-read-with-preview',
 and use mark and point as START and END."
-  (interactive (list (register-read-with-preview "Append to register: ")
+  (interactive (list (register-read-with-preview
+		      "Append to register: "
+		      (lambda (regval)
+		        (or (null regval) (stringp regval))))
 		     (region-beginning)
 		     (region-end)
 		     current-prefix-arg))
@@ -1074,7 +943,10 @@ START and END are buffer positions indicating what to prepend.
 
 Interactively, prompt for REGISTER using `register-read-with-preview',
 and use mark and point as START and END."
-  (interactive (list (register-read-with-preview "Prepend to register: ")
+  (interactive (list (register-read-with-preview
+		      "Prepend to register: "
+		      (lambda (regval)
+		        (or (null regval) (stringp regval))))
 		     (region-beginning)
 		     (region-end)
 		     current-prefix-arg))

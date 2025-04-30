@@ -1412,15 +1412,15 @@ All keyword parameters default to nil."
    :reuse-frames (if arg t 'match)
    :cleanup-frames (if arg
 		       ;; delete frames
-		       nil
+		       t
 		     ;; iconify frames
 		     (lambda (frame action)
 		       (pcase action
-			 ('rejected (iconify-frame frame))
+			 (:rejected (iconify-frame frame))
 			 ;; In the unexpected case that a frame was a candidate
 			 ;; (matching frame id) and yet not restored, remove it
 			 ;; because it is in fact a duplicate.
-			 ('ignored (delete-frame frame))))))
+			 (:ignored (delete-frame frame))))))
 
   ;; Restore selected frame, buffer and point.
   (let ((frame (frameset-frame-with-id (frameset-register-frame-id data)))
@@ -1443,11 +1443,6 @@ Called from `list-registers' and `view-register'.  Internal use only."
 		   ns
 		   (if (= 1 ns) "" "s")
 		   (format-time-string "%c" (frameset-timestamp fs))))))
-
-(cl-defmethod register--type ((_regval frameset-register))
-  ;; FIXME: Why `frame' rather than `frameset'?
-  ;; FIXME: We shouldn't need to touch an internal function.
-  'frame)
 
 ;;;###autoload
 (defun frameset-to-register (register)
