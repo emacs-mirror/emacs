@@ -376,7 +376,7 @@ looked up and loaded.
 @cindex .emacs.d
 @cindex _emacs
 @cindex init.el
-@cinde early-init.el
+@cindex early-init.el
 @cindex registry, setting the HOME directory in
 
 On Windows, the @file{.emacs} init file may be called @file{_emacs} for
