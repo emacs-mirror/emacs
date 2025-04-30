@@ -20,7 +20,7 @@ such as --prefix):
     CFLAGS='-O0 -g3'
 
 The -O0 flag is important, as debugging optimized code can be hard, even
-in the case that the -Og compiler option is used.  If the problem
+in the case that the -Og compiler option is used.[1]  If the problem
 happens only with optimized code, you may need to enable optimizations.
 If that happens, try using -Og first instead of -O2, as -Og disables
 some optimizations that make debugging some code exceptionally hard.
@@ -37,6 +37,9 @@ this below under "Debugging Emacs redisplay problems".
 
 Emacs needs not be installed to be debugged, you can debug the binary
 created in the 'src' directory.
+
+[1]  gcc's -Og has some known problems and limitations, documented here:
+     https://gcc.gnu.org/bugzilla/show_bug.cgi?id=78685
 
 *** Configuring GDB
 
