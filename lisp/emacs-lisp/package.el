@@ -1007,7 +1007,9 @@ untar into a directory named DIR; otherwise, signal an error."
       ('dir
        (make-directory pkg-dir t)
        (let ((file-list
-              (directory-files-recursively default-directory "" nil)))
+              (or (and (derived-mode-p 'dired-mode)
+                       (dired-get-marked-files))
+                  (directory-files-recursively default-directory "" nil))))
          (dolist (source-file file-list)
            (let ((target-el-file
                   (expand-file-name (file-name-nondirectory source-file) pkg-dir)))
@@ -1251,7 +1253,9 @@ The return result is a `package-desc'."
         (with-temp-buffer
           (insert-file-contents desc-file)
           (package--read-pkg-desc 'dir))
-      (let ((files (directory-files-recursively default-directory "\\.el\\'"))
+      (let ((files (or (and (derived-mode-p 'dired-mode)
+                            (dired-get-marked-files))
+                       (directory-files-recursively default-directory "\\.el\\'")))
             info)
         (while files
           (with-temp-buffer
@@ -2373,7 +2377,8 @@ info node `(elisp)Packaging').
 
 Specially, if current buffer is a directory, the -pkg.el
 description file is not mandatory, in which case the information
-is derived from the main .el file in the directory.
+is derived from the main .el file in the directory.  Using Dired,
+you can restrict what files to install by marking specific files.
 
 Downloads and installs required packages as needed."
   (interactive)

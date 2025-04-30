@@ -1777,6 +1777,11 @@ interactively.
 *** 'package-upgrade' no longer accepts a string argument.
 When called from Lisp, it now only accepts a symbol.
 
+---
+*** 'package-install-from-buffer' respects files marked by Dired.
+When invoking the command in a Dired buffer with marked files,
+the command will only copy those files.
+
 +++
 *** package-x.el is now obsolete.
 
