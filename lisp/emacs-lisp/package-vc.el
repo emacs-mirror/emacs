@@ -241,10 +241,10 @@ asynchronously."
   (cl-assert (package-vc-p pkg-desc))
   (let* ((pkg-spec (package-vc--desc->spec pkg-desc))
          (name (symbol-name (package-desc-name pkg-desc)))
-         (directory (file-name-concat
+         (directory (expand-file-name
+                     (plist-get pkg-spec :lisp-dir)
                      (or (package-desc-dir pkg-desc)
-                         (expand-file-name name package-user-dir))
-                     (plist-get pkg-spec :lisp-dir)))
+                         (expand-file-name name package-user-dir))))
          (file (expand-file-name
                 (or (plist-get pkg-spec :main-file)
                     (concat name ".el"))
@@ -460,7 +460,7 @@ identify a package as a VC package later on), building
 documentation and marking the package as installed."
   (let* ((pkg-spec (package-vc--desc->spec pkg-desc))
          (lisp-dir (plist-get pkg-spec :lisp-dir))
-         (lisp-path (file-name-concat pkg-dir lisp-dir))
+         (lisp-path (expand-file-name lisp-dir pkg-dir))
          missing)
 
     ;; In case the package was installed directly from source, the
@@ -508,7 +508,7 @@ documentation and marking the package as installed."
            (with-temp-buffer
              (insert ";; Autoload indirection for package-vc\n\n")
              (prin1 `(load (expand-file-name
-                            ,(file-name-concat lisp-dir auto-name)
+                            ,(expand-file-name auto-name lisp-dir)
                             (or (and load-file-name
                                      (file-name-directory load-file-name))
                                 (car load-path))))
@@ -924,16 +924,17 @@ for the NAME of the package to set up."
                                 (read-string
                                  (format-prompt "Package name" base)
                                  nil nil base)))))
-  (unless (vc-responsible-backend dir)
-    (user-error "Directory %S is not under version control" dir))
   (package-vc--archives-initialize)
   (let* ((name (or name (file-name-base (directory-file-name dir))))
-         (pkg-dir (expand-file-name name package-user-dir)))
+         (pkg-dir (expand-file-name name package-user-dir))
+         (package-vc-selected-packages
+          (cons (list name :lisp-dir (expand-file-name dir))
+                package-vc-selected-packages)))
     (when (file-exists-p pkg-dir)
       (if (yes-or-no-p (format "Overwrite previous checkout for package `%s'?" name))
           (package--delete-directory pkg-dir)
         (error "There already exists a checkout for %s" name)))
-    (make-symbolic-link (expand-file-name dir) pkg-dir)
+    (make-directory pkg-dir t)
     (package-vc--unpack-1
      (package-desc-create
       :name (intern name)
