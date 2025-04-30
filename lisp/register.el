@@ -247,8 +247,8 @@ Do nothing when defining or executing kmacros."
   (interactive)
   (register-preview-forward-line -1))
 
-(defun register-type (register)
-  "Return REGISTER type.
+(defun register-type (regval)
+  "Return register value REGVAL's type.
 Register type that can be returned is one of the following:
  - string
  - number
@@ -264,10 +264,11 @@ One can add new types to a specific command by defining a new `cl-defmethod'
 matching that command.  Predicates for type in new `cl-defmethod' should
 satisfy `cl-typep', otherwise the new type should be defined with
 `cl-deftype'."
+  (if (integerp (car-safe regval)) (setq regval (cdr regval)))
   ;; Call register--type against the register value.
-  (register--type (if (consp (cdr register))
-                     (cadr register)
-                   (cdr register))))
+  (register--type (if (consp regval)
+                     (car regval)
+                   regval)))
 
 (cl-defgeneric register--type (regval)
   "Return the type of register value REGVAL."
@@ -425,8 +426,7 @@ or `never'."
          (pred (or pred
                    (when types
                      (lambda (regval)
-                       ;; FIXME: Dummy ?d because of the API of `register-type'
-                       (memq (register-type (cons ?d regval)) types)))))
+                       (memq (register-type regval) types)))))
          (enable-recursive-minibuffers t)
          result win
          (msg (if (string-match ":? *\\'" prompt)
