@@ -3369,7 +3369,11 @@ See `sh-mode--treesit-other-keywords' and
    :language 'bash
    :override t
    '((command_substitution) @sh-quoted-exec
-     (string (expansion (variable_name) @font-lock-variable-use-face)))
+     (expansion (variable_name) @font-lock-variable-use-face)
+     (expansion ["${" "}"] @font-lock-bracket-face)
+     (simple_expansion
+      "$" @font-lock-bracket-face
+      (variable_name) @font-lock-variable-use-face))
 
    :feature 'heredoc
    :language 'bash
