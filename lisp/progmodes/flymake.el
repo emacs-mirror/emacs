@@ -623,6 +623,7 @@ Any other non-nil value means show all diagnostic summaries at
 end-of-line."
   :type '(choice (const :tag "Display most severe diagnostic" short)
                  (const :tag "Display all diagnostics" t)
+                 (const :tag "Display all diagnostics using Unicode" fancy)
                  (const :tag "Don't display diagnostics at end-of-line" nil))
   :package-version '(Flymake . "1.3.6"))
 

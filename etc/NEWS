@@ -1952,9 +1952,9 @@ flymake will automatically fall back to using margin indicators in
 windows without fringes, including any window on a text terminal.
 
 *** Enhanced 'flymake-show-diagnostics-at-end-of-line'
-The new value 'fancy' allowed for this variable will attempt to layout
-diagnostics below the affected line using unicode graphics to point to
-diagnostic locus.
+The new value 'fancy' allowed for this user option will attempt to
+layout diagnostics below the affected line using unicode graphics to
+point to diagnostic locus.
 
 *** Enhanced 'flymake-show-buffer-diagnostics'.
 The command 'flymake-show-buffer-diagnostics' is now capable of
