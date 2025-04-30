@@ -269,6 +269,11 @@
 (declare-function treesit-node-parent "treesit.c")
 (declare-function treesit-node-prev-sibling "treesit.c")
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(python "https://github.com/tree-sitter/tree-sitter-python" "v0.23.6")
+ t)
+
 ;; Avoid compiler warnings
 (defvar compilation-error-regexp-alist)
 (defvar outline-heading-end-regexp)
@@ -7294,7 +7299,9 @@ implementations: `python-mode' and `python-ts-mode'."
 
 \\{python-ts-mode-map}"
   :syntax-table python-mode-syntax-table
-  (when (treesit-ready-p 'python)
+  (when (if (fboundp 'treesit-ensure-installed) ; Emacs 31
+            (treesit-ensure-installed 'python)
+          (treesit-ready-p 'python))
     (setq treesit-primary-parser (treesit-parser-create 'python))
     (setq-local treesit-font-lock-feature-list
                 '(( comment definition)
