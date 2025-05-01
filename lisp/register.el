@@ -575,16 +575,17 @@ With a prefix argument, prompt for BUFFER as well."
     (add-hook 'kill-buffer-hook #'register-buffer-to-file-query nil t))
   (set-register register (cons 'buffer buffer)))
 
-(defun register--get-method-type (val genfun)
+(defun register--get-method-type (val genfun &optional other-args-type)
   (let* ((type (cl-type-of val))
 	 (types (cl--class-allparents (cl-find-class type))))
-    (while (and types (not (cl-find-method genfun nil (list (car types)))))
+    (while (and types (not (cl-find-method genfun nil
+                                           (cons (car types) other-args-type))))
       (setq types (cdr types)))
     (car types)))
 
 (defun register--jumpable-p (regval)
   "Return non-nil if `register-val-insert' is implemented for REGVAL."
-  (pcase (register--get-method-type regval 'register-val-jump-to)
+  (pcase (register--get-method-type regval 'register-val-jump-to '(t))
     ('t nil)
     ('registerv (registerv-jump-func regval))
     ('cons
