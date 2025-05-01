@@ -998,6 +998,8 @@ untar into a directory named DIR; otherwise, signal an error."
           (apply #'nconc
                  (mapcar (lambda (pair) (list (car pair) (cdr pair))) alist))))
 
+(declare-function dired-get-marked-files "dired")
+
 (defun package-unpack (pkg-desc)
   "Install the contents of the current buffer as a package."
   (let* ((name (package-desc-name pkg-desc))
