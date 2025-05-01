@@ -590,10 +590,12 @@
 
 (defvar elixir-ts--thing-settings
   `((sexp (not (or (and named
-                        ,(rx bos (or "source" "comment") eos))
+                        ,(rx bos (or "source" "keywords" "comment")
+                             eos))
                    (and anonymous
-                        ,(rx (or "{" "}" "[" "]" "(" ")"
-                                 "do" "end"))))))
+                        ,(rx bos (or "{" "}" "[" "]" "(" ")" ","
+                                     "do" "end")
+                             eos)))))
     (list
      (or (and "\\`arguments\\'" ,#'elixir-ts--with-parens-0-p)
          (and "\\`unary_operator\\'" ,#'elixir-ts--with-parens-1-p)

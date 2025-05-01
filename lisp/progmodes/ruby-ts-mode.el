@@ -1179,11 +1179,12 @@ leading double colon is not added."
                                                   "then")
                                           eos))
                                 (and anonymous
-                                     ,(rx (or "do" "begin"
-                                              "if" "unless"
-                                              "def" "end"
-                                              "(" ")" "[" "]"
-                                              "{" "}" "|" "," ";"))))))
+                                     ,(rx bos (or "do" "begin"
+                                                  "if" "unless"
+                                                  "def" "end"
+                                                  "(" ")" "[" "]"
+                                                  "{" "}" "|" "," ";")
+                                          eos)))))
                  (list ,(cons (rx
                                bos
                                (or

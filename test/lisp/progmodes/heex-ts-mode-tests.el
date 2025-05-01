@@ -24,7 +24,7 @@
 (require 'treesit)
 
 (ert-deftest heex-ts-mode-test-indentation ()
-  (skip-unless (treesit-ready-p 'heex))
+  (skip-unless (and (treesit-ready-p 'heex) (treesit-ready-p 'elixir)))
   (ert-test-erts-file (ert-resource-file "indent.erts")))
 
 (provide 'heex-ts-mode-tests)
