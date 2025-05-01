@@ -217,6 +217,39 @@ EVENT is an event like `last-nonmenu-event'."
                      last-nonmenu-event))
   (calendar-scroll-left (* -3 arg) event))
 
+(defvar calendar-recenter-last-op nil
+  "Last calendar recenter operation performed.")
+
+;;;###cal-autoload
+(defun calendar-recenter ()
+  "Scroll the calendar so that the month of the date at point is centered.
+Next invocation puts this month on the leftmost position, and another
+invocation puts this month on the rightmost position.  Subsequent
+invocations reuse the same order in a cyclical manner."
+  (interactive)
+  (let ((positions '(center first last))
+        (cursor-month (calendar-extract-month
+                       (calendar-cursor-to-nearest-date))))
+    ;; Update global last position upon repeat.
+    (setq calendar-recenter-last-op
+          (if (eq this-command last-command)
+              (car (or (cdr (memq calendar-recenter-last-op positions))
+                       positions))
+            (car positions)))
+    ;; Like most functions in calendar, a span of three displayed months
+    ;; is implied here.
+    (cond ((eq calendar-recenter-last-op 'center)
+           (cond ((= cursor-month (1- displayed-month))
+                  (calendar-scroll-right))
+                 ((= cursor-month (1+ displayed-month))
+                  (calendar-scroll-left))))
+          ;; Other sub-cases should not happen as we should be centered
+          ;; from here.
+          ((eq calendar-recenter-last-op 'first)
+           (calendar-scroll-left))
+          ((eq calendar-recenter-last-op 'last)
+           (calendar-scroll-right 2)))))
+
 ;;;###cal-autoload
 (defun calendar-forward-day (arg)
   "Move the cursor forward ARG days.

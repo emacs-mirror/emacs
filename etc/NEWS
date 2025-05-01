@@ -2040,6 +2040,12 @@ DISABLE-URI non-nil.
 When starting these debuggers (e.g., 'M-x pdb') while visiting a file,
 pressing 'M-n' in the command prompt suggests a command line including
 the file name, using the minibuffer's "future history".
+** Calendar
+
++++
+*** New command 'calendar-recenter'.
+This command recenters the month of the date at point.  By default, it
+is bound to 'C-l' in the calendar buffer.
 
 
 * New Modes and Packages in Emacs 31.1

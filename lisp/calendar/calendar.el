@@ -1593,6 +1593,7 @@ Otherwise, use the selected window of EVENT's frame."
     (define-key map "\C-x>" 'calendar-scroll-left)
     (define-key map [next]  'calendar-scroll-left-three-months)
     (define-key map "\C-v"  'calendar-scroll-left-three-months)
+    (define-key map "\C-l"  'calendar-recenter)
     (define-key map "\C-b"  'calendar-backward-day)
     (define-key map "\C-p"  'calendar-backward-week)
     (define-key map "\e{"   'calendar-backward-month)

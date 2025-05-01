@@ -258,6 +258,8 @@ Scroll forward by three months (@code{calendar-scroll-left-three-months}).
 @itemx @key{PageUp}
 @itemx @key{prior}
 Scroll backward by three months (@code{calendar-scroll-right-three-months}).
+@item C-l
+Recenter the date at point.
 @end table
 
 @kindex > @r{(Calendar mode)}
@@ -292,6 +294,15 @@ calendar backward by a year.
   The function keys @key{PageDown} (or @key{next}) and @key{PageUp}
 (or @key{prior}) are equivalent to @kbd{C-v} and @kbd{M-v}, just as
 they are in other modes.
+
+@kindex C-l @r{(Calendar mode)}
+@findex calendar-recenter
+  The command @kbd{C-l} (@code{calendar-recenter}) scrolls the calendar
+on display so that the month of the date at point is centered
+horizontally.  Next invocation of this command puts that month on the
+leftmost position, and another invocation puts it on the rightmost
+position.  Subsequent invocations reuse the same order in a cyclical
+manner.
 
 @node Counting Days
 @section Counting Days
