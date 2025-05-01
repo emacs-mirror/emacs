@@ -43,6 +43,15 @@
 (require 'c-ts-common) ; For comment indent and filling.
 (treesit-declare-unavailable-functions)
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(java "https://github.com/tree-sitter/tree-sitter-java" "v0.23.5")
+ t)
+(add-to-list
+ 'treesit-language-source-alist
+ '(doxygen "https://github.com/tree-sitter-grammars/tree-sitter-doxygen" "v1.1.0")
+ t)
+
 (defcustom java-ts-mode-indent-offset 4
   "Number of spaces for each indentation step in `java-ts-mode'."
   :version "29.1"
@@ -385,7 +394,7 @@ Return nil if there is no name or if NODE is not a defun node."
   :group 'java
   :syntax-table java-ts-mode--syntax-table
 
-  (unless (treesit-ready-p 'java)
+  (unless (treesit-ensure-installed 'java)
     (error "Tree-sitter for Java isn't available"))
 
   (let ((primary-parser (treesit-parser-create 'java)))
@@ -436,19 +445,15 @@ Return nil if there is no name or if NODE is not a defun node."
 
     (setq-local treesit-thing-settings
                 `((java
-                   (sexp ,(rx (or "annotation"
-                                  "parenthesized_expression"
-                                  "argument_list"
-                                  "identifier"
-                                  "modifiers"
-                                  "block"
-                                  "body"
-                                  "literal"
-                                  "access"
-                                  "reference"
-                                  "_type"
-                                  "true"
-                                  "false")))
+                   (sexp (not (or (and named
+                                       ,(rx bos (or "program"
+                                                    "line_comment"
+                                                    "block_comment")
+                                            eos))
+                                  (and anonymous
+                                       ,(rx (or "{" "}" "[" "]"
+                                                "(" ")" "<" ">"
+                                                ","))))))
                    (list ,(rx bos (or "inferred_parameters"
                                       "parenthesized_expression"
                                       "argument_list"
@@ -484,7 +489,8 @@ Return nil if there is no name or if NODE is not a defun node."
                 java-ts-mode--font-lock-settings)
 
     ;; Inject doxygen parser for comment.
-    (when (and java-ts-mode-enable-doxygen (treesit-ready-p 'doxygen t))
+    (when (and java-ts-mode-enable-doxygen
+               (treesit-ensure-installed 'doxygen))
       (setq-local treesit-primary-parser primary-parser)
       (setq-local treesit-font-lock-settings
                   (append treesit-font-lock-settings
@@ -518,9 +524,6 @@ Return nil if there is no name or if NODE is not a defun node."
 
 (if (treesit-ready-p 'java)
     (add-to-list 'auto-mode-alist '("\\.java\\'" . java-ts-mode)))
-
-(when (and java-ts-mode-enable-doxygen (not (treesit-ready-p 'doxygen t)))
-  (message "Doxygen syntax highlighting can't be enabled, please install the language grammar."))
 
 (provide 'java-ts-mode)
 

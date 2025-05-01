@@ -44,10 +44,19 @@
 (eval-when-compile (require 'rx))
 (treesit-declare-unavailable-functions)
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(heex "https://github.com/phoenixframework/tree-sitter-heex" "v0.7.0")
+ t)
+(add-to-list
+ 'treesit-language-source-alist
+ '(elixir "https://github.com/elixir-lang/tree-sitter-elixir" "v0.3.3")
+ t)
+
 (defgroup heex-ts nil
   "Major mode for editing HEEx code."
   :prefix "heex-ts-"
-  :group 'langauges)
+  :group 'languages)
 
 (defcustom heex-ts-indent-offset 2
   "Indentation of HEEx statements."
@@ -55,12 +64,6 @@
   :type 'integer
   :safe 'integerp
   :group 'heex-ts)
-
-(defconst heex-ts--sexp-regexp
-  (rx bol
-      (or "directive" "tag" "component" "slot"
-          "attribute" "attribute_value" "quoted_attribute_value" "expression")
-      eol))
 
 ;; There seems to be no parent directive block for tree-sitter-heex,
 ;; so we ignore them for now until we learn how to query them.
@@ -129,6 +132,12 @@
         ])))
   "Tree-sitter font-lock settings.")
 
+(defvar heex-ts--font-lock-feature-list
+  '(( heex-comment heex-keyword heex-doctype )
+    ( heex-component heex-tag heex-attribute heex-string )
+    () ())
+  "Tree-sitter font-lock feature list.")
+
 (defun heex-ts--defun-name (node)
   "Return the name of the defun NODE.
 Return nil if NODE is not a defun node or doesn't have a name."
@@ -139,29 +148,61 @@ Return nil if NODE is not a defun node or doesn't have a name."
        (treesit-node-child (treesit-node-child node 0) 1) nil)))
     (_ nil)))
 
-(defun heex-ts--forward-sexp (&optional arg)
-  "Move forward across one balanced expression (sexp).
-With ARG, do it many times.  Negative ARG means move backward."
-  (or arg (setq arg 1))
-  (funcall
-   (if (> arg 0) #'treesit-end-of-thing #'treesit-beginning-of-thing)
-   heex-ts--sexp-regexp
-   (abs arg)))
+(defvar heex-ts--thing-settings
+  `((sexp
+     (not (or (and named
+                   ,(rx bos (or "fragment" "comment") eos))
+              (and anonymous
+                   ,(rx (or "<!" "<" ">" "{" "}"))))))
+    (list
+     ,(rx bos (or "doctype"
+                  "tag"
+                  "component"
+                  "slot"
+                  "expression"
+                  "directive"
+                  "comment")
+          eos))
+    (sentence
+     ,(rx bos (or "tag_name"
+                  "component_name"
+                  "attribute")
+          eos))
+    (text
+     ,(rx bos (or "comment" "text") eos)))
+  "`treesit-thing-settings' for HEEx.")
+
+(defvar heex-ts--range-rules
+  (when (treesit-available-p)
+    (treesit-range-rules
+     :embed 'elixir
+     :host 'heex
+     '((directive [(partial_expression_value)
+                   (ending_expression_value)]
+                  @cap))
+
+     :embed 'elixir
+     :host 'heex
+     :local t
+     '((directive (expression_value) @cap)
+       (expression (expression_value) @cap)))))
+
+(defvar elixir-ts--font-lock-settings)
+(defvar elixir-ts--font-lock-feature-list)
+(defvar elixir-ts--indent-rules)
+(defvar elixir-ts--thing-settings)
 
 ;;;###autoload
 (define-derived-mode heex-ts-mode html-mode "HEEx"
   "Major mode for editing HEEx, powered by tree-sitter."
   :group 'heex-ts
 
-  (when (treesit-ready-p 'heex)
+  (when (treesit-ensure-installed 'heex)
     (setq treesit-primary-parser (treesit-parser-create 'heex))
 
     ;; Comments
     (setq-local treesit-thing-settings
-                `((heex
-                   (text ,(regexp-opt '("comment" "text"))))))
-
-    (setq-local forward-sexp-function #'heex-ts--forward-sexp)
+                `((heex ,@heex-ts--thing-settings)))
 
     ;; Navigation.
     (setq-local treesit-defun-type-regexp
@@ -189,11 +230,33 @@ With ARG, do it many times.  Negative ARG means move backward."
     (setq-local treesit-simple-indent-rules heex-ts--indent-rules)
 
     (setq-local treesit-font-lock-feature-list
-                '(( heex-comment heex-keyword heex-doctype )
-                  ( heex-component heex-tag heex-attribute heex-string )
-                  () ()))
+                heex-ts--font-lock-feature-list)
 
-    (treesit-major-mode-setup)))
+    (when (treesit-ready-p 'elixir)
+      (require 'elixir-ts-mode)
+      (treesit-parser-create 'elixir)
+
+      (setq-local treesit-range-settings heex-ts--range-rules)
+
+      (setq-local treesit-font-lock-settings
+                  (append treesit-font-lock-settings
+                          elixir-ts--font-lock-settings))
+      (setq-local treesit-font-lock-feature-list
+                  (treesit-merge-font-lock-feature-list
+                   treesit-font-lock-feature-list
+                   elixir-ts--font-lock-feature-list))
+
+      (setq-local treesit-simple-indent-rules
+                  (append treesit-simple-indent-rules
+                          elixir-ts--indent-rules))
+
+      (setq-local treesit-thing-settings
+                  (append treesit-thing-settings
+                          `((elixir ,@elixir-ts--thing-settings)))))
+
+    (treesit-major-mode-setup)
+    ;; Enable the 'sexp' navigation by default
+    (treesit-cycle-sexp-type)))
 
 (derived-mode-add-parents 'heex-ts-mode '(heex-mode))
 

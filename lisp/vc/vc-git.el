@@ -108,6 +108,9 @@
   (require 'vc)
   (require 'vc-dir))
 
+;; Pacify "free variable" warning.
+(defvar log-edit-font-lock-keywords)
+
 (defgroup vc-git nil
   "VC Git backend."
   :version "24.1"
@@ -817,7 +820,8 @@ or an empty string if none."
   "="              #'vc-git-stash-show-at-point
   "RET"            #'vc-git-stash-show-at-point
   "A"              #'vc-git-stash-apply-at-point
-  "P"              #'vc-git-stash-pop-at-point)
+  "P"              #'vc-git-stash-pop-at-point
+  "D"              #'vc-git-stash-delete-at-point)
 
 (defvar-keymap vc-git-stash-button-map
   :parent vc-git-stash-shared-map
@@ -1202,9 +1206,9 @@ It is based on `log-edit-mode', and has Git-specific extensions."
           (with-temp-file patch-file
             (insert vc-git-patch-string))
           (unwind-protect
-              (vc-git-command nil 0 patch-file "apply" "--cached")
+              (vc-git-command nil 0 nil "apply" "--cached" patch-file)
             (delete-file patch-file))))
-      (when to-stash (vc-git--stash-staged-changes files)))
+      (when to-stash (vc-git--stash-staged-changes to-stash)))
     ;; When operating on the whole tree, better pass "-a" than ".",
     ;; since "."  fails when we're committing a merge.
     (apply #'vc-git-command nil 0
@@ -1228,7 +1232,7 @@ It is based on `log-edit-mode', and has Git-specific extensions."
         (unwind-protect
             (progn (with-temp-file cached
                      (vc-git-command t 0 nil "stash" "show" "-p"))
-                   (vc-git-command nil 0 cached "apply" "--cached"))
+                   (vc-git-command nil 0 nil "apply" "--cached" cached))
           (delete-file cached))
         (vc-git-command nil 0 nil "stash" "drop")))))
 
@@ -1259,7 +1263,8 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                 (unwind-protect
                     (progn
                       (vc-git-command nil 0 nil "read-tree" "HEAD")
-                      (vc-git-command nil 0 cached "apply" "--cached")
+                      (vc-git-command nil 0 nil "apply" "--cached"
+                                      cached)
                       (setq tree (git-string "write-tree")))
                   (delete-file index))))
           (delete-file cached))
@@ -2447,7 +2452,8 @@ the function returns nil."
 (defvar-keymap vc-dir-git-mode-map
   "z c" #'vc-git-stash
   "z s" #'vc-git-stash-snapshot
-  "z p" #'vc-git-stash-pop)
+  "z p" #'vc-git-stash-pop
+  "z d" #'vc-git-stash-delete)
 
 (define-minor-mode vc-dir-git-mode
   "A minor mode for git-specific commands in `vc-dir-mode' buffers.

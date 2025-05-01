@@ -5212,10 +5212,6 @@ x_update_opaque_region (struct frame *f, XEvent *configure)
 				   (configure
 				    ? configure->xconfigure.height
 				    : FRAME_PIXEL_HEIGHT (f))};
-#ifdef HAVE_GTK3
-  GObjectClass *object_class;
-  GtkWidgetClass *class;
-#endif
 
   if (!FRAME_DISPLAY_INFO (f)->alpha_bits)
     return;
@@ -5243,8 +5239,9 @@ x_update_opaque_region (struct frame *f, XEvent *configure)
 	 unknown reason.  (bug#55779) */
       if (!FRAME_PARENT_FRAME (f))
 	{
-	  object_class = G_OBJECT_GET_CLASS (FRAME_GTK_OUTER_WIDGET (f));
-	  class = GTK_WIDGET_CLASS (object_class);
+	  GObjectClass *object_class
+	    = G_OBJECT_GET_CLASS (FRAME_GTK_OUTER_WIDGET (f));
+	  GtkWidgetClass *class = GTK_WIDGET_CLASS (object_class);
 
 	  if (class->style_updated)
 	    class->style_updated (FRAME_GTK_OUTER_WIDGET (f));
@@ -7647,12 +7644,6 @@ x_update_end (struct frame *f)
 static void
 XTframe_up_to_date (struct frame *f)
 {
-#if defined HAVE_XSYNC && defined HAVE_GTK3
-  GtkWidget *widget;
-  GdkWindow *window;
-  GdkFrameClock *clock;
-#endif
-
   eassert (FRAME_X_P (f));
   block_input ();
   FRAME_MOUSE_UPDATE (f);
@@ -7679,10 +7670,10 @@ XTframe_up_to_date (struct frame *f)
 #else
   if (FRAME_X_OUTPUT (f)->xg_sync_end_pending_p)
     {
-      widget = FRAME_GTK_OUTER_WIDGET (f);
-      window = gtk_widget_get_window (widget);
+      GtkWidget *widget = FRAME_GTK_OUTER_WIDGET (f);
+      GdkWindow *window = gtk_widget_get_window (widget);
       eassert (window);
-      clock = gdk_window_get_frame_clock (window);
+      GdkFrameClock *clock = gdk_window_get_frame_clock (window);
       eassert (clock);
 
       gdk_frame_clock_request_phase (clock,
@@ -11993,11 +11984,9 @@ x_new_focus_frame (struct x_display_info *dpyinfo, struct frame *frame)
   struct frame *old_focus = dpyinfo->x_focus_frame;
 #if defined USE_GTK && !defined HAVE_GTK3 && defined HAVE_XINPUT2
   XIEventMask mask;
-  ptrdiff_t l;
-
   if (dpyinfo->supports_xi2)
     {
-      l = XIMaskLen (XI_LASTEVENT);
+      ptrdiff_t l = XIMaskLen (XI_LASTEVENT);
       mask.mask = alloca (l);
       mask.mask_len = l;
       memset (mask.mask, 0, l);
@@ -19323,12 +19312,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		struct frame *f
 		  = x_top_window_to_frame (dpyinfo,
 					   event->xclient.window);
-#if defined HAVE_GTK3
-		GtkWidget *widget;
-		GdkWindow *window;
-		GdkFrameClock *frame_clock;
-#endif
-
 		if (f)
 		  {
 #ifndef HAVE_GTK3
@@ -19349,8 +19332,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		    *finish = X_EVENT_DROP;
 #else
-		    widget = FRAME_GTK_OUTER_WIDGET (f);
-		    window = gtk_widget_get_window (widget);
+		    GtkWidget *widget = FRAME_GTK_OUTER_WIDGET (f);
+		    GdkWindow *window = gtk_widget_get_window (widget);
 		    eassert (window);
 
 		    /* This could be a (former) child frame for which
@@ -19360,7 +19343,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 		    if (widget && !FRAME_X_OUTPUT (f)->xg_sync_end_pending_p)
 		      {
-			frame_clock = gdk_window_get_frame_clock (window);
+			GdkFrameClock *frame_clock = gdk_window_get_frame_clock (window);
 			eassert (frame_clock);
 
 			gdk_frame_clock_request_phase (frame_clock,
@@ -24677,9 +24660,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      int i, ndevices, n_disabled, *disabled;
 	      struct xi_device_t *device;
 #if !defined USE_X_TOOLKIT && (!defined USE_GTK || defined HAVE_GTK3)
-	      bool any_changed;
-
-	      any_changed = false;
+	      bool any_changed = false;
 #endif /* !USE_X_TOOLKIT && (!USE_GTK || HAVE_GTK3) */
 	      hev = (XIHierarchyEvent *) xi_event;
 	      SAFE_NALLOCA (disabled, 1, hev->num_info);
@@ -24811,9 +24792,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    {
 	      struct xi_device_t *device, *source;
 	      bool menu_bar_p = false, tool_bar_p = false;
-#ifdef HAVE_GTK3
-	      GdkRectangle test_rect;
-#endif
 	      EMACS_INT local_detail;
 	      device = xi_device_from_id (dpyinfo, xev->deviceid);
 	      source = xi_device_from_id (dpyinfo, xev->sourceid);
@@ -24846,6 +24824,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		{
 		  int scale = xg_get_scale (f);
 
+		  GdkRectangle test_rect;
 		  test_rect.x = xev->event_x / scale;
 		  test_rect.y = xev->event_y / scale;
 		  test_rect.width = 1;
@@ -26503,9 +26482,6 @@ x_ignore_errors_for_next_request (struct x_display_info *dpyinfo,
 {
   struct x_failable_request *request, *max;
   unsigned long next_request;
-#ifdef HAVE_GTK3
-  GdkDisplay *gdpy;
-#endif
 
   /* This code is not reentrant, so be sure nothing calls it
      recursively in response to input.  */
@@ -26516,9 +26492,7 @@ x_ignore_errors_for_next_request (struct x_display_info *dpyinfo,
      callbacks, which this can be called from.  Instead of trying to
      restore our own, add a trap for the following requests with
      GDK as well.  */
-
-  gdpy = gdk_x11_lookup_xdisplay (dpyinfo->display);
-
+  GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (dpyinfo->display);
   if (gdpy)
     gdk_x11_display_error_trap_push (gdpy);
 #endif
@@ -26562,9 +26536,6 @@ void
 x_stop_ignoring_errors (struct x_display_info *dpyinfo)
 {
   struct x_failable_request *range;
-#ifdef HAVE_GTK3
-  GdkDisplay *gdpy;
-#endif
 
   range = dpyinfo->next_failable_request - 1;
   range->end = XNextRequest (dpyinfo->display) - 1;
@@ -26576,7 +26547,7 @@ x_stop_ignoring_errors (struct x_display_info *dpyinfo)
     emacs_abort ();
 
 #ifdef HAVE_GTK3
-  gdpy = gdk_x11_lookup_xdisplay (dpyinfo->display);
+  GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (dpyinfo->display);
 
   if (gdpy)
     gdk_x11_display_error_trap_pop_ignored (gdpy);
@@ -30660,7 +30631,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
           argv[argc] = 0;
 
         argc = 0;
-        argv[argc++] = initial_argv[0];
+        argv[argc++] = initial_argv0;
 
         if (! NILP (display_name))
           {

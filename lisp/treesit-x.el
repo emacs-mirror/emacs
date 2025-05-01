@@ -110,39 +110,33 @@ of `define-treesit-generic-mode'.
         (_ (pop body))))
 
     (when (stringp source)
-      (setq source (list 'quote (ensure-list source))))
+      (setq source (list 'quote (list source nil nil nil nil nil :copy-queries t))))
     (when (stringp auto-mode)
       (setq auto-mode (list 'quote (ensure-list auto-mode))))
 
     `(progn
        ;; Add lang and source to source-alist.
-       (add-to-list 'treesit-language-source-alist (cons ,lang ,source))
+       (add-to-list 'treesit-language-source-alist (cons ,lang ,source) t)
 
        ;; Add it to auto-mode-alist
        (dolist (re ,auto-mode)
          (add-to-list 'auto-mode-alist (cons re ',mode)))
 
        (define-derived-mode ,mode
-         ,(or parent 'fundamental-mode)
+         ,(or (if (eq (car-safe parent) 'quote) (cadr parent) parent)
+              'fundamental-mode)
          ,(or name pretty-name)
          ,(or docstring
               (concat (or name pretty-name) " mode.\n"
                       "This a tree-sitter mode defined with `define-treesit-generic-mode'."))
-         (treesit-generic-mode-setup ,lang ,source)
+         (treesit-generic-mode-setup ,lang)
          ,@body
          (treesit-major-mode-setup)))))
 
 ;;;###autoload
-(defun treesit-generic-mode-setup (lang source)
+(defun treesit-generic-mode-setup (lang)
   "Go into the treesit generic mode MODE."
-  (unless (treesit-ready-p lang t)
-    (when (y-or-n-p (format "Install grammar for %s?" lang))
-      (apply
-       #'treesit--install-language-grammar-1
-       (locate-user-emacs-file "tree-sitter")
-       lang source)))
-
-  (when (treesit-ready-p lang)
+  (when (treesit-ensure-installed lang)
     (setq treesit-primary-parser (treesit-parser-create lang))
 
     (when-let* ((query (treesit-generic-mode-font-lock-query lang)))
@@ -164,17 +158,26 @@ of `define-treesit-generic-mode'.
     ("@boolean"               . "@font-lock-constant-face")
     ("@comment"               . "@font-lock-comment-face")
     ("@constant"              . "@font-lock-constant-face")
+    ("@delimiter"             . "@font-lock-delimiter-face")
     ("@error"                 . "@font-lock-warning-face")
     ("@escape"                . "@font-lock-escape-face")
+    ("@function"              . "@font-lock-function-name-face")
+    ("@function.call"         . "@font-lock-function-call-face")
     ("@keyword"               . "@font-lock-keyword-face")
+    ("@keyword.operator"      . "@font-lock-operator-face")
+    ("@number"                . "@font-lock-number-face")
     ("@operator"              . "@font-lock-operator-face")
-    ("@property"              . "@font-lock-property-use-face")
+    ("@property"              . "@font-lock-property-name-face")
     ("@punctuation.bracket"   . "@font-lock-bracket-face")
     ("@punctuation.delimiter" . "@font-lock-delimiter-face")
     ("@punctuation.special"   . "@font-lock-misc-punctuation-face")
+    ("@string"                . "@font-lock-string-face")
     ("@string.regexp"         . "@font-lock-regexp-face")
     ("@string.special"        . "@font-lock-string-face")
-    ("@string"                . "@font-lock-string-face")
+    ("@tag.delimiter"         . "@font-lock-delimiter-face")
+    ("@text.reference"        . "@font-lock-doc-face")
+    ("@type"                  . "@font-lock-type-face")
+    ("@variable"              . "@font-lock-variable-name-face")
     ("@variable.builtin"      . "@font-lock-builtin-face")
     ("@variable.parameter"    . "@font-lock-variable-name-face")
     )
@@ -212,7 +215,7 @@ of `define-treesit-generic-mode'.
   :source "https://github.com/hankthetank27/tree-sitter-liquid"
   :auto-mode "\\.liquid\\'"
   :name "Liquid"
-  :parent mhtml-ts-mode
+  :parent 'mhtml-ts-mode
 
   (setq-local treesit-range-settings
               (append treesit-range-settings
@@ -241,7 +244,7 @@ of `define-treesit-generic-mode'.
                                                "for_loop_statement")
                                        eos)))))
 
-  (when (treesit-ready-p 'yaml t)
+  (when (treesit-ensure-installed 'yaml)
     (defvar yaml-ts-mode--font-lock-settings)
     (require 'yaml-ts-mode)
     (setq-local treesit-range-settings
@@ -310,7 +313,9 @@ Intended to be used in combination with such major modes as
                           (:match ,alpinejs-generic-ts-attr-regexp @_name)
                           (quoted_attribute_value "\"" @font-lock-string-face))))))
 
-  (treesit-major-mode-setup))
+  (treesit-major-mode-setup)
+
+  (run-mode-hooks 'alpinejs-generic-ts-setup-hook))
 
 (provide 'treesit-x)
 

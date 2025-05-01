@@ -72,31 +72,33 @@
 ;;; Query validation
 
 (defvar treesit-admin--builtin-language-sources
-  '((c "https://github.com/tree-sitter/tree-sitter-c")
-    (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
-    (cmake "https://github.com/uyha/tree-sitter-cmake")
-    (dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile")
-    (go "https://github.com/tree-sitter/tree-sitter-go")
-    (ruby "https://github.com/tree-sitter/tree-sitter-ruby")
-    (javascript "https://github.com/tree-sitter/tree-sitter-javascript")
+  '((c "https://github.com/tree-sitter/tree-sitter-c" "v0.23.4")
+    (cpp "https://github.com/tree-sitter/tree-sitter-cpp" "v0.23.4")
+    (cmake "https://github.com/uyha/tree-sitter-cmake" "v0.5.0")
+    (dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile" "v0.2.0")
+    (go "https://github.com/tree-sitter/tree-sitter-go" "v0.23.4")
+    (ruby "https://github.com/tree-sitter/tree-sitter-ruby" "v0.23.1")
+    (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.1")
     (typescript "https://github.com/tree-sitter/tree-sitter-typescript"
-                nil "typescript/src")
+                "v0.23.2" "typescript/src")
     (tsx "https://github.com/tree-sitter/tree-sitter-typescript"
-         nil "tsx/src")
-    (json "https://github.com/tree-sitter/tree-sitter-json")
-    (rust "https://github.com/tree-sitter/tree-sitter-rust")
+         "v0.23.2" "tsx/src")
+    (json "https://github.com/tree-sitter/tree-sitter-json" "v0.24.8")
+    (rust "https://github.com/tree-sitter/tree-sitter-rust" "v0.23.2")
     (php "https://github.com/tree-sitter/tree-sitter-php"
-         nil "php/src")
-    (css "https://github.com/tree-sitter/tree-sitter-css")
+         "v0.23.11" "php/src")
+    (css "https://github.com/tree-sitter/tree-sitter-css" "v0.23.1")
     (phpdoc "https://github.com/claytonrcarter/tree-sitter-phpdoc")
-    (doxygen "https://github.com/tree-sitter-grammars/tree-sitter-doxygen")
-    (lua "https://github.com/tree-sitter-grammars/tree-sitter-lua")
-    (python "https://github.com/tree-sitter/tree-sitter-python")
-    (html "https://github.com/tree-sitter/tree-sitter-html")
-    (elixir "https://github.com/elixir-lang/tree-sitter-elixir")
-    (heex "https://github.com/phoenixframework/tree-sitter-heex")
-    (java "https://github.com/tree-sitter/tree-sitter-java")
-    (jsdoc "https://github.com/tree-sitter/tree-sitter-jsdoc"))
+    (doxygen "https://github.com/tree-sitter-grammars/tree-sitter-doxygen" "v1.1.0")
+    (lua "https://github.com/tree-sitter-grammars/tree-sitter-lua" "v0.3.0")
+    (python "https://github.com/tree-sitter/tree-sitter-python" "v0.23.6")
+    (html "https://github.com/tree-sitter/tree-sitter-html" "v0.23.2")
+    (elixir "https://github.com/elixir-lang/tree-sitter-elixir" "v0.3.3")
+    (heex "https://github.com/phoenixframework/tree-sitter-heex" "v0.7.0")
+    (java "https://github.com/tree-sitter/tree-sitter-java" "v0.23.5")
+    (jsdoc "https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.23.2")
+    (toml "https://github.com/tree-sitter-grammars/tree-sitter-toml" "v0.7.0")
+    (yaml "https://github.com/tree-sitter-grammars/tree-sitter-yaml" "v0.7.0"))
   "A list of sources for the builtin modes.
 The source information are in the format of
 `treesit-language-source-alist'.  This is for development only.")
@@ -154,9 +156,7 @@ queries that has problems with latest grammar."
             (unless (memq language (alist-get mode mode-language-alist))
               (push language (alist-get mode mode-language-alist)))
             ;; Validate query.
-            (when (not (ignore-errors
-                         (treesit-query-compile language query t)
-                         t))
+            (unless (treesit-query-valid-p language query)
               (push (list mode language feature) invalid-feature-list)
               (setq all-queries-valid nil))))
         (when all-queries-valid
@@ -259,9 +259,7 @@ Return non-nil if all queries are valid, nil otherwise."
              (language (treesit-query-language query)))
         ;; Validate query.
         (when (and (eq lang language)
-                   (not (ignore-errors
-                          (treesit-query-compile language query t)
-                          t)))
+                   (not (treesit-query-valid-p language query)))
           (setq all-queries-valid nil))))
     all-queries-valid))
 

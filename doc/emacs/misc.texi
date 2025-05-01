@@ -2924,11 +2924,15 @@ can use @kbd{M-x desktop-read} to restore a previously-saved desktop
 if the current Emacs session didn't load any desktop yet.
 
 @vindex desktop-restore-frames
-  By default, the desktop tries to save and restore the frame and
-window configuration.  To disable this, set
-@code{desktop-restore-frames} to @code{nil}.  (See that variable's
-documentation for some related options that you can customize to
-fine-tune this behavior.)
+  By default, the desktop tries to save and restore the frame and window
+configuration.@footnote{
+Except on Android, where this option defaults to @code{nil} because the
+window manager (@pxref{Android Windowing}) is too prohibitive, and
+doesn't allow restoring frame configurations.}
+To disable or enable this, set @code{desktop-restore-frames} to
+@code{nil} or any non-@code{nil} value respectively.  (See that
+variable's documentation for some related options that you can customize
+to fine-tune this behavior.)
 
 @vindex frameset-filter-alist
   When the desktop restores the frame and window configuration, it
@@ -2968,8 +2972,8 @@ invoking @kbd{M-x desktop-read} next.  The @code{desktop-clear}
 command kills all buffers except for internal ones, and clears the
 global variables listed in @code{desktop-globals-to-clear}.  If you
 want it to preserve certain buffers, customize the variable
-@code{desktop-clear-preserve-buffers-regexp}, whose value is a regular
-expression matching the names of buffers not to kill.
+@code{desktop-clear-preserve-buffers}, whose value is a list of regular
+expressions matching the names of buffers not to kill.
 
 @vindex desktop-globals-to-save
   If you want to save minibuffer history from one session to

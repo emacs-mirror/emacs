@@ -110,12 +110,6 @@ If NOSNARF is `lex', then return the lex token."
 	  (while (string-match "^\\s-*\\s.+\\s-*" ct)
 	    (setq ct (concat (substring ct 0 (match-beginning 0))
 			     (substring ct (match-end 0)))))
-	  ;; End of a block comment.
-	  (if (and (boundp 'block-comment-end)
-		   block-comment-end
-		   (string-match block-comment-end ct))
-	      (setq ct (concat (substring ct 0 (match-beginning 0))
-			       (substring ct (match-end 0)))))
 	  ;; In case it's a real string, STRIPIT.
 	  (while (string-match "\\s-*\\s\"+\\s-*" ct)
 	    (setq ct (concat (substring ct 0 (match-beginning 0))

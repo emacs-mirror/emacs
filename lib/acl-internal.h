@@ -52,10 +52,7 @@ extern int aclsort (int, int, struct acl *);
 #include <errno.h>
 
 #include <limits.h>
-
-#ifndef SIZE_MAX
-# define SIZE_MAX ((size_t) -1)
-#endif
+#include <stdint.h>
 
 #ifndef HAVE_FCHMOD
 # define HAVE_FCHMOD false
@@ -121,8 +118,13 @@ rpl_acl_set_fd (int fd, acl_t acl)
 #  endif
 
 /* Linux-specific */
-/* Cygwin >= 2.5 implements this function, but it returns 1 for all
-   directories, thus is unusable.  */
+/* Cygwin >= 2.5 implements acl_extended_file(), but it returns 1 for nearly all
+   directories — for reasons explained in
+   <https://sourceware.org/pipermail/cygwin/2025-March/257762.html> —, thus is
+   unusable.  For the user, 'ls' should not print a '+' sign, indicating the
+   presence of an ACL, for 99,9% of the files; this would not be useful.
+   Therefore, on Cygwin, we ignore the acl_extended_file function and instead
+   use our own acl_access_nontrivial function.  */
 #  if !defined HAVE_ACL_EXTENDED_FILE || defined __CYGWIN__
 #   undef HAVE_ACL_EXTENDED_FILE
 #   define HAVE_ACL_EXTENDED_FILE false

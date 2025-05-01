@@ -245,9 +245,6 @@ Sean Whitton
 ==============================================================================
 2. Areas that someone is willing to maintain, although he would not
 necessarily mind if someone else was the official maintainer.
-This list also includes people who are in the process of handing over
-maintainership to someone listed above, but who want to continue to be
-CC'd as though they were still the primary maintainer, in the meantime.
 ==============================================================================
 
 Eli Zaretskii
@@ -342,7 +339,6 @@ Tassilo Horn
 
 Dmitry Gutov
 	lisp/whitespace.el
-	lisp/vc/*
 
 Vibhav Pant
        lisp/net/browse-url.el

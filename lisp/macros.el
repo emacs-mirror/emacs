@@ -49,7 +49,8 @@
 ;;;###autoload
 (defun insert-kbd-macro (macroname &optional keys)
   "Insert in buffer the definition of kbd macro MACRONAME, as Lisp code.
-MACRONAME should be a symbol.
+MACRONAME should be a symbol; if none is given, the function inserts
+the definition of `last-kdb-macro'.
 Optional second arg KEYS means also record the keys it is on
 \(this is the prefix argument, when calling interactively).
 

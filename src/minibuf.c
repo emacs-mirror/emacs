@@ -2103,7 +2103,7 @@ the values STRING, PREDICATE and `lambda'.  */)
   else if (HASH_TABLE_P (collection))
     {
       struct Lisp_Hash_Table *h = XHASH_TABLE (collection);
-      ptrdiff_t i = hash_lookup (h, string);
+      ptrdiff_t i = hash_find (h, string);
       if (i >= 0)
         {
           tem = HASH_KEY (h, i);
@@ -2480,7 +2480,7 @@ basic completion functions like `try-completion' and `all-completions'.  */);
   DEFVAR_BOOL ("minibuffer-allow-text-properties",
 	       minibuffer_allow_text_properties,
 	       doc: /* Non-nil means `read-from-minibuffer' should not discard text properties.
-The value could be let-bound or buffer-local in the minibuffer.
+Lisp code can let-bind this, or make it buffer-local in the minibuffer.
 This also affects `read-string', or any of the functions that do
 minibuffer input with completion, but it does not affect `read-minibuffer'
 that always discards text properties.  */);

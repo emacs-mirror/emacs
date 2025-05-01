@@ -532,12 +532,13 @@ decoding the current key sequence, nil otherwise."
   (not (memq modifier modifier-bar-modifier-list)))
 
 (define-minor-mode modifier-bar-mode
-  "Toggle display of the modifier bar.
+  "Toggle display of the key-modifier tool bar.
 
-When enabled, a small tool bar will be displayed next to the tool
-bar containing items bound to
-`tool-bar-event-apply-control-modifier' and its related commands,
-which see."
+When enabled, a small tool bar will be displayed in addition to the
+regular tool bar, containing buttons for key modifiers such as
+Ctrl, Shift, Alt, etc.  This is useful on terminals whose keyboard
+has no keys for these modifiers, such as smartphones and other
+devices with small keyboards."
   :init-value nil
   :global t
   :group 'tool-bar

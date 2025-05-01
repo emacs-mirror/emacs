@@ -13413,7 +13413,7 @@ clear_message (bool current_p, bool last_displayed_p)
 {
   Lisp_Object preserve = Qnil;
 
-  if (current_p)
+  if (current_p && !inhibit_message)
     {
       if (FUNCTIONP (Vclear_message_function)
           /* FIXME: (bug#63253) Same as for `set-message-function` above.  */
@@ -13681,6 +13681,9 @@ static Lisp_Object mode_line_proptrans_alist;
 
 /* List of strings making up the mode-line.  */
 static Lisp_Object mode_line_string_list;
+
+/* Element number for the stored mode line string. */
+static ptrdiff_t mode_line_elt_no;
 
 /* Base face property when building propertized mode line string.  */
 static Lisp_Object mode_line_string_face;
@@ -27774,57 +27777,94 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 	{
 	  /* The window is wide enough; just display the mode line we
 	     just computed. */
-	  display_string (NULL, mode_string, Qnil,
-			  0, 0, &it, 0, 0, 0,
-			  STRING_MULTIBYTE (mode_string));
+	  Lisp_Object start = make_fixnum (0), end;
+	  Lisp_Object elt;
+
+	  /* Display the mode line string one element by one element.
+	     This is to make the ranges of mouse highlighting
+	     correct.  */
+	  do
+	    {
+	      end = Fnext_single_property_change (start, Qmode_line_elt_no,
+						  mode_string, Qnil);
+	      elt = Fsubstring (mode_string, start, end);
+	      display_string (NULL, elt, Qnil, 0, 0, &it, 0, 0, 0,
+			      STRING_MULTIBYTE (elt));
+	      start = end;
+	    }
+	  while (!NILP (end));
 	}
       else
 	{
-	  /* Compress the mode line. */
-	  ptrdiff_t i = 0, i_byte = 0, start = 0;
+	  /* Compress the mode line.  */
+	  ptrdiff_t i = 0, i_byte = 0;
 	  int prev = 0;
+	  Lisp_Object start = make_fixnum (0), end;
+	  Lisp_Object elt = empty_unibyte_string;
 
-	  while (i < SCHARS (mode_string))
+	  /* Display the mode line string one element by one element.
+	     This is to make the ranges of mouse highlighting
+	     correct.  */
+	  do
 	    {
-	      int c = fetch_string_char_advance (mode_string, &i, &i_byte);
-	      if (c == ' ' && prev == ' ')
+	      end = Fnext_single_property_change (start,
+						  Qmode_line_elt_no,
+						  mode_string,
+						  make_fixnum (SCHARS (mode_string)));
+	      while (i < XFIXNUM (end))
 		{
-		  Lisp_Object prev_pos = make_fixnum (i - 1);
-
-		  /* SPC characters with 'display' properties are not
-                     really "empty", since they have non-trivial visual
-                     effects on the mode line.  */
-		  if (NILP (Fget_text_property (prev_pos, Qdisplay,
-						mode_string)))
+		  int c = fetch_string_char_advance (mode_string, &i, &i_byte);
+		  if (c == ' ' && prev == ' ')
 		    {
-		      display_string (NULL,
-				      Fsubstring (mode_string,
-						  make_fixnum (start),
-						  prev_pos),
-				      Qnil, 0, 0, &it, 0, 0, 0,
-				      STRING_MULTIBYTE (mode_string));
-		      /* Skip past the rest of the space characters. */
-		      while (c == ' ' && i < SCHARS (mode_string)
-			     && NILP (Fget_text_property (make_fixnum (i),
-							  Qdisplay,
-							  mode_string)))
-			{
-			  c = fetch_string_char_advance (mode_string,
-							 &i, &i_byte);
-			}
-		      start = i - 1;
-		    }
-		}
-	      prev = c;
-	    }
+		      Lisp_Object prev_pos = make_fixnum (i - 1);
+		      Lisp_Object display = Fget_text_property (prev_pos,
+								Qdisplay,
+								mode_string);
 
-	  /* Display the final bit. */
-	  if (start < i)
-	    display_string (NULL,
-			    Fsubstring (mode_string, make_fixnum (start),
-					make_fixnum (i)),
-			    Qnil, 0, 0, &it, 0, 0, 0,
-			    STRING_MULTIBYTE (mode_string));
+		      /* SPC characters with 'display' properties are not
+			 really "empty", since they have non-trivial visual
+			 effects on the mode line.  */
+		      if (NILP (display))
+			{
+			  elt = concat2 (elt, Fsubstring (mode_string,
+							  start,
+							  prev_pos));
+
+			  /* Skip past the rest of the space characters.  */
+			  Lisp_Object display = Fget_text_property (make_fixnum (i),
+								    Qdisplay,
+								    mode_string);
+			  while (c == ' ' && i < XFIXNUM (end)
+				 && NILP (display))
+			    {
+			      c = fetch_string_char_advance (mode_string,
+							     &i, &i_byte);
+			      display = Fget_text_property (make_fixnum (i),
+							    Qdisplay,
+							    mode_string);
+			    }
+
+			  /* Skip the final space no matter how the loop
+			     above ends.  */
+			  if (c == ' ' && NILP (display))
+			    start = end;
+			  else
+			    start = make_fixnum (i - 1);
+			}
+		    }
+		  prev = c;
+		}
+
+	      /* Append the final bit.  */
+	      if (XFIXNUM (start) < XFIXNUM (end))
+		elt = concat2 (elt, Fsubstring (mode_string, start, end));
+
+	      display_string (NULL, elt, Qnil, 0, 0, &it, 0, 0, 0,
+			      STRING_MULTIBYTE (elt));
+	      elt = empty_unibyte_string;
+	      start = end;
+	    }
+	  while (XFIXNUM (end) < SCHARS (mode_string));
 	}
     }
   pop_kboard ();
@@ -27854,7 +27894,7 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 	 glyph wider.  We actually add only as much space as is
 	 available for the last glyph of the modeline and whatever
 	 space is left beyond it, since that glyph could be only
-	 partially visible */
+	 partially visible.  */
       if (box_thickness > 0)
 	last->pixel_width += max (0, (box_thickness
 				      - (it.current_x - it.last_visible_x)));
@@ -27945,6 +27985,20 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
  tail_recurse:
   if (depth > 100)
     elt = build_string ("*too-deep*");
+
+  /* NOTE: Increment the number only for 'MODE_LINE_STRING', because for
+     other cases this variable is not used.  So we do not need to reset
+     the variable in every callers of this function.
+
+     NOTE: This might result in gaps in the stored element numbers
+     because some elements are processed recursively.  However, we
+     cannot increment this number when the number is stored because an
+     element could be stored by parts.  For example, "a%b" is stored as
+     two elements in the 'mode_line_string_list', but they should be
+     considered as one element, so we cannot increment this number when
+     "a" is stored.  */
+  if (mode_line_target == MODE_LINE_STRING)
+    mode_line_elt_no++;
 
   depth++;
 
@@ -28043,7 +28097,11 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 		n += store_mode_line_noprop (SSDATA (elt), -1, prec);
 		break;
 	      case MODE_LINE_STRING:
-		n += store_mode_line_string (NULL, elt, true, 0, prec, Qnil);
+		{
+		  AUTO_LIST2 (src, Qmode_line_elt_no,
+			      make_fixnum (mode_line_elt_no));
+		  n += store_mode_line_string (NULL, elt, true, 0, prec, src);
+		}
 		break;
 	      case MODE_LINE_DISPLAY:
 		n += display_string (NULL, elt, Qnil, 0, 0, it,
@@ -28096,8 +28154,10 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 		      Lisp_Object mode_string
 			= Fsubstring (elt, make_fixnum (charpos),
 				      make_fixnum (endpos));
+		      AUTO_LIST2 (src, Qmode_line_elt_no,
+				  make_fixnum (mode_line_elt_no));
 		      n += store_mode_line_string (NULL, mode_string, false,
-						   0, 0, Qnil);
+						   0, 0, src);
 		    }
 		    break;
 		  case MODE_LINE_DISPLAY:
@@ -28177,6 +28237,8 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 			{
 			  Lisp_Object tem = build_string (spec);
 			  props = Ftext_properties_at (make_fixnum (charpos), elt);
+			  props = plist_put (props, Qmode_line_elt_no,
+					     make_fixnum (mode_line_elt_no));
 			  /* Should only keep face property in props */
 			  n += store_mode_line_string (NULL, tem, false,
 						       field, prec, props);
@@ -28392,6 +28454,9 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 	  n += store_mode_line_noprop ("", field_width - n, 0);
 	  break;
 	case MODE_LINE_STRING:
+	  /* NOTE: Padding implicitly has 'mode-line-elt-no' property
+	     to be nil.  Normally padding spaces are between two real
+	     elements, so this should be good. */
 	  n += store_mode_line_string ("", Qnil, false, field_width - n, 0,
 				       Qnil);
 	  break;
@@ -28599,6 +28664,7 @@ are the selected window and the WINDOW's buffer).  */)
     }
 
   push_kboard (FRAME_KBOARD (it.f));
+  mode_line_elt_no = 0;
   display_mode_element (&it, 0, 0, 0, format, Qnil, false);
   pop_kboard ();
 
@@ -35819,15 +35885,15 @@ define_frame_cursor1 (struct frame *f, Emacs_Cursor cursor, Lisp_Object pointer)
 #endif
 }
 
-/* Take proper action when mouse has moved to the mode or header line
-   or marginal area AREA of window W, x-position X and y-position Y.
-   X is relative to the start of the text display area of W, so the
-   width of bitmap areas and scroll bars must be subtracted to get a
-   position relative to the start of the mode line.  */
+/* Take proper action when mouse has moved to one of the window's lines
+   (mode, tab, or header) or marginal area AREA of window W, x-position
+   X and y-position Y.  X is relative to the start of the text display
+   area of W, so the width of bitmap areas and scroll bars must be
+   subtracted to get a position relative to the start of a line.  */
 
 static void
-note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
-				    enum window_part area)
+note_line_or_margin_highlight (Lisp_Object window, int x, int y,
+			       enum window_part area)
 {
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
@@ -35963,9 +36029,13 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
       /* Change the mouse pointer according to what is under it.  */
       if (FRAME_WINDOW_P (f))
 	{
-	  bool draggable = (! WINDOW_BOTTOMMOST_P (w)
-			    || minibuf_level
-			    || NILP (Vresize_mini_windows));
+	  bool draggable_window_bottom_line =
+	    (area == ON_MODE_LINE && (! WINDOW_BOTTOMMOST_P (w)
+				      || minibuf_level
+				      || NILP (Vresize_mini_windows)));
+	  bool draggable_window_top_line =
+	    ((area == ON_HEADER_LINE || area == ON_TAB_LINE)
+	     && ! WINDOW_TOPMOST_P (w));
 
 	  if (STRINGP (string))
 	    {
@@ -35984,11 +36054,12 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 		  map = Fget_text_property (pos, Qlocal_map, string);
 		  if (!KEYMAPP (map))
 		    map = Fget_text_property (pos, Qkeymap, string);
-		  if (!KEYMAPP (map) && draggable && area == ON_MODE_LINE)
+		  if (!KEYMAPP (map) && (draggable_window_top_line
+					 || draggable_window_bottom_line))
 		    cursor = FRAME_OUTPUT_DATA (f)->vertical_drag_cursor;
 		}
 	    }
-	  else if (draggable && area == ON_MODE_LINE)
+	  else if (draggable_window_top_line || draggable_window_bottom_line)
 	    cursor = FRAME_OUTPUT_DATA (f)->vertical_drag_cursor;
 	  else if ((area == ON_MODE_LINE
 		    && WINDOW_BOTTOMMOST_P (w)
@@ -36420,11 +36491,11 @@ note_mouse_highlight (struct frame *f, int x, int y)
     }
 #endif
 
-  /* Mouse is on the mode, header line or margin?  */
+  /* Mouse is on a line or margin?  */
   if (part == ON_MODE_LINE || part == ON_HEADER_LINE || part == ON_TAB_LINE
       || part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
     {
-      note_mode_line_or_margin_highlight (window, x, y, part);
+      note_line_or_margin_highlight (window, x, y, part);
 
 #ifdef HAVE_WINDOW_SYSTEM
       if (part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
@@ -37699,6 +37770,7 @@ be let-bound around code that needs to disable messages temporarily. */);
   DEFSYM (Qfontification_functions, "fontification-functions");
   DEFSYM (Qlong_line_optimizations_in_fontification_functions,
 	  "long-line-optimizations-in-fontification-functions");
+  DEFSYM (Qmode_line_elt_no, "mode-line-elt-no");
 
   /* Name of the symbol which disables Lisp evaluation in 'display'
      properties.  This is used by enriched.el.  */

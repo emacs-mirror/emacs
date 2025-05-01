@@ -50,7 +50,6 @@ static char const UNKNOWN_SECURITY_CONTEXT[] = "?";
 #  include <selinux/selinux.h>
 # endif
 # include <stdckdint.h>
-# include <stdint.h>
 # include <string.h>
 # include <arpa/inet.h>
 # include <sys/xattr.h>
@@ -363,6 +362,29 @@ acl_nfs4_nontrivial (uint32_t *xattr, ssize_t nbytes)
 }
 #endif
 
+#if (!USE_LINUX_XATTR && USE_ACL && HAVE_ACL_GET_FD \
+     && !HAVE_ACL_EXTENDED_FILE && !HAVE_ACL_TYPE_EXTENDED \
+     && !HAVE_ACL_GET_LINK_NP)
+# include <fcntl.h>
+# ifdef O_PATH
+
+/* Like acl_get_file, but do not follow symbolic links.  */
+static acl_t
+acl_get_link_np (char const *name, acl_type_t type)
+{
+  int fd = open (name, O_PATH | O_NOFOLLOW);
+  if (fd < 0)
+    return NULL;
+  acl_t r = acl_get_fd (fd);
+  int err = errno;
+  close (fd);
+  errno = err;
+  return r;
+}
+#  define HAVE_ACL_GET_LINK_NP 1
+# endif
+#endif
+
 /* Return 1 if NAME has a nontrivial access control list,
    0 if ACLs are not supported, or if NAME has no or only a base ACL,
    and -1 (setting errno) on error.  Note callers can determine
@@ -468,7 +490,7 @@ file_has_aclinfo (MAYBE_UNUSED char const *restrict name,
       ret = -1;
 #   else /* FreeBSD, NetBSD >= 10, IRIX, Tru64, Cygwin >= 2.5 */
     acl_t (*acl_get_file_or_link) (char const *, acl_type_t) = acl_get_file;
-#    if HAVE_ACL_GET_LINK_NP /* FreeBSD, NetBSD >= 10 */
+#    if HAVE_ACL_GET_LINK_NP /* FreeBSD, NetBSD >= 10, Cygwin >= 2.5 */
     if (! (flags & ACL_SYMLINK_FOLLOW))
       acl_get_file_or_link = acl_get_link_np;
 #    endif

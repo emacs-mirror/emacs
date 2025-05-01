@@ -287,6 +287,22 @@ Comments in the form will be lost."
             (string-to-syntax "'")))))
      start end)))
 
+(defun elisp-outline-search (&optional bound move backward looking-at)
+  "Don't use leading parens in strings for outline headings."
+  (if looking-at
+      (and (looking-at outline-regexp)
+           (save-excursion (not (nth 8 (syntax-ppss (match-beginning 0))))))
+    (let ((search-success nil))
+      (while (and (setq search-success
+                        (funcall (if backward #'re-search-backward
+                                   #'re-search-forward)
+                                 (concat "^\\(?:" outline-regexp "\\)")
+                                 bound (if move 'move t)))
+                  (save-excursion
+                    (save-match-data
+                      (nth 8 (syntax-ppss (match-beginning 0)))))))
+      search-success)))
+
 (defcustom emacs-lisp-mode-hook nil
   "Hook run when entering Emacs Lisp mode."
   :options '(eldoc-mode imenu-add-menubar-index checkdoc-minor-mode)
@@ -307,18 +323,36 @@ Comments in the form will be lost."
 
 (defun elisp-enable-lexical-binding (&optional interactive)
   "Make the current buffer use `lexical-binding'.
+With a prefix argument \\[universal-argument], make the buffer use
+dynamic binding instead.
+In addition to setting the value of `lexical-binding' in the buffer,
+this function adds the lexbind cookie to the first line of the buffer,
+if it is not already there, so that saving the buffer to its file
+will cause Emacs to use the specified value of `lexical-binding'
+when the file is loaded henceforth.
 INTERACTIVE non-nil means ask the user for confirmation; this
-happens in interactive invocations."
+happens in interactive invocations.
+When calling from Lisp, use nil or a positive number as the value
+of INTERACTIVE to enable `lexical-binding', a negative number to
+disable it."
   (interactive "p")
-  (if (and (local-variable-p 'lexical-binding) lexical-binding)
-      (when interactive
-        (message "lexical-binding already enabled!")
-        (ding))
-    (when (or (not interactive)
-              (y-or-n-p (format "Enable lexical-binding in this %s? "
-                                (if buffer-file-name "file" "buffer"))))
-      (setq-local lexical-binding t)
-      (add-file-local-variable-prop-line 'lexical-binding t interactive))))
+  (let* ((disable-lexbind (or (and (numberp interactive)
+                                   (< interactive 0))
+                              (if current-prefix-arg t)))
+         (required-value (not disable-lexbind)))
+    (if (and (local-variable-p 'lexical-binding)
+             (null (xor required-value lexical-binding)))
+        (when interactive
+          (message "lexical-binding already %s!"
+                   (if disable-lexbind "disabled" "enabled"))
+          (ding))
+      (when (or (not interactive)
+                (y-or-n-p (format "%s lexical-binding in this %s? "
+                                  (if disable-lexbind "Disable" "Enable")
+                                  (if buffer-file-name "file" "buffer"))))
+        (setq-local lexical-binding required-value)
+        (add-file-local-variable-prop-line 'lexical-binding required-value
+                                           interactive)))))
 
 (defvar-keymap elisp--dynlex-modeline-map
   "<mode-line> <mouse-1>" #'elisp-enable-lexical-binding)
@@ -364,6 +398,7 @@ be used instead.
   (add-hook 'xref-backend-functions #'elisp--xref-backend nil t)
   (setq-local project-vc-external-roots-function #'elisp-load-path-roots)
   (setq-local syntax-propertize-function #'elisp-mode-syntax-propertize)
+  (setq-local outline-search-function #'elisp-outline-search)
   (add-hook 'completion-at-point-functions
             #'elisp-completion-at-point nil 'local)
   (add-hook 'flymake-diagnostic-functions #'elisp-flymake-checkdoc nil t)
@@ -1845,6 +1880,61 @@ Intended for `eldoc-documentation-functions' (which see)."
                          'font-lock-function-name-face
                        'font-lock-keyword-face)))))
 
+(defcustom elisp-eldoc-docstring-length-limit 1000
+  "Maximum length of doc strings displayed by elisp ElDoc functions."
+  :type 'natnum
+  :group 'elisp
+  :version "31.1")
+
+(defcustom elisp-eldoc-funcall-with-docstring-length 'short
+  "Control length of doc string shown by `elisp-eldoc-funcall-with-docstring'.
+If set to `short', only show the first sentence of the doc string.
+Otherwise if set to `full', display full doc string."
+  :type '(choice
+          (const :tag "Short" short)
+          (const :tag "Full" full))
+  :group 'elisp
+  :version "31.1")
+
+(defun elisp-eldoc-funcall-with-docstring (callback &rest _ignored)
+  "Document function call at point by calling CALLBACK.
+Intended for `eldoc-documentation-functions' (which see).
+Compared to `elisp-eldoc-funcall', this also includes the
+current function doc string, doc string length depends on
+`elisp-eldoc-funcall-with-docstring-length'."
+  (when-let* ((sym-info (elisp--fnsym-in-current-sexp))
+              (fn-sym (car sym-info))
+              ((fboundp fn-sym))
+              (fn-doc (or (cdr (help-split-fundoc
+                                (condition-case nil (documentation fn-sym t)
+                                  (invalid-function nil))
+                                fn-sym))
+                          "Undocumented."))
+              (more (- (length fn-doc) elisp-eldoc-docstring-length-limit))
+              (doc (concat
+                      (propertize
+                       (string-limit fn-doc elisp-eldoc-docstring-length-limit)
+                       'face 'font-lock-doc-face)
+                      (when (> more 0)
+                        (format "[%sc more]" more)))))
+    (funcall callback
+               (concat (apply #'elisp-get-fnsym-args-string sym-info)
+                       ;; Ensure not display the docstring in the
+                       ;; mode-line.
+                       (when (not (minibufferp))
+                         (concat
+                          "\n"
+                          (pcase elisp-eldoc-funcall-with-docstring-length
+                            ('full doc)
+                            ('short
+                             (save-match-data
+                               (when (string-match "\\." doc)
+                                 (concat "\n" (substring doc 0 (match-end 0))))))))))
+               :thing fn-sym
+               :face (if (functionp fn-sym)
+                         'font-lock-function-name-face
+                       'font-lock-keyword-face))))
+
 (defun elisp-eldoc-var-docstring (callback &rest _ignored)
   "Document variable at point by calling CALLBACK.
 Intended for `eldoc-documentation-functions' (which see).
@@ -1871,12 +1961,12 @@ current variable value and a bigger chunk of the docstring."
 		       (symbol-value cs)
 		       (let* ((doc (documentation-property
                                     cs 'variable-documentation t))
-			      (more (- (length doc) 1000)))
+			      (more (- (length doc) elisp-eldoc-docstring-length-limit)))
 			 (concat (propertize
 				  (string-limit (if (string= doc "nil")
 						    "Undocumented."
 						  doc)
-					        1000)
+					        elisp-eldoc-docstring-length-limit)
 				  'face 'font-lock-doc-face)
 				 (when (> more 0)
 				   (format "[%sc more]" more)))))

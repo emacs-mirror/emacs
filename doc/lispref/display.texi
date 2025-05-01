@@ -404,8 +404,10 @@ elapsed since the time the first message was emitted.
 
 @defvar inhibit-message
 When this variable is non-@code{nil}, @code{message} and related functions
-will not display any messages in the Echo Area.  Echo-area messages
-are still logged in the @file{*Messages*} buffer, though.
+will not display any messages in the Echo Area, and will also not clear
+previous echo-area messages when @code{message} is called with a
+@code{nil} or an empty argument.  Echo-area messages are still logged in
+the @file{*Messages*} buffer, though.
 @end defvar
 
 @defmac with-temp-message message &rest body
@@ -4122,6 +4124,14 @@ available, since it also checks whether the coding system for the text
 terminal can encode the character (@pxref{Terminal I/O Encoding}).
 @end defun
 
+@defun char-displayable-on-frame-p char frame
+This function behaves like @code{char-displayable-p} does (relative to
+@var{frame}), but in the graphical case, it does not perform the final
+check of whether the underlying text terminal can encode the character.
+It thus provides a displayability check for @var{char} more specific to
+@var{frame}.
+@end defun
+
 @node Low-Level Font
 @subsection Low-Level Font Representation
 @cindex font property
@@ -5607,12 +5617,20 @@ instead of the text that has the display specification.
 
 @item (slice @var{x} @var{y} @var{width} @var{height})
 This specification together with @code{image} specifies a @dfn{slice}
-(a partial area) of the image to display.  The elements @var{y} and
-@var{x} specify the top left corner of the slice, within the image;
-@var{width} and @var{height} specify the width and height of the
-slice.  Integers are numbers of pixels.  A floating-point number
-in the range 0.0--1.0 stands for that fraction of the width or height
-of the entire image.
+(a partial area) of the image to display.  More precisely, the
+specification should have the following form:
+
+@lisp
+ ((slice @var{x} @var{y} @var{width} @var{height}) @var{image-desc})
+@end lisp
+
+@noindent
+where @var{image-desc} is an image descriptor described above.  The
+elements @var{x} and @var{y} specify the top left corner of the slice,
+within the image; @var{width} and @var{height} specify the width and
+height of the slice.  Integers are numbers of pixels.  A floating-point
+number in the range 0.0--1.0 stands for that fraction of the width or
+height of the entire image.
 
 @item ((margin nil) @var{string})
 A display specification of this form means to display @var{string}

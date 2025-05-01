@@ -30,9 +30,9 @@ The traditional unexec dumper, deprecated since Emacs 27, has been
 removed.
 
 ---
-** Emacs's old ctags program is no longer built or installed.
+** Emacs's old 'ctags' program is no longer built or installed.
 You are encouraged to use Universal Ctags <https://ctags.io/> instead.
-For now, to get the old ctags behavior you can can run 'etags --ctags'
+For now, to get the old 'ctags' behavior you can can run 'etags --ctags'
 or use a shell script named 'ctags' that runs 'etags --ctags "$@"'.
 
 ---
@@ -63,6 +63,9 @@ init file.
 
 
 * Changes in Emacs 31.1
+
+** 'prettify-symbols-mode' attempts to ignore undisplayable characters.
+Previously, such characters would be rendered as, e.g., white boxes.
 
 +++
 ** 'standard-display-table' now has more extra slots.
@@ -216,22 +219,25 @@ popup interface, such as the interfaces that the GNU ELPA packages Corfu
 and Company provide, you can set this option to the same sort function
 that your popup interface uses for a more integrated experience.
 
-Note: 'completion-preview-sort-function' was present also in Emacs 30.1,
-albeit as a variable, not a user option.
+('completion-preview-sort-function' was already present in Emacs 30.1,
+but as a plain Lisp variable, not a user option.)
 
 ** Windows
 
 +++
-*** New functions to modify window layout.
-Several functions to modify the window layout have been added:
-'rotate-window-layout-clockwise', 'rotate-window-layout-anticlockwise',
-'flip-window-layout-vertically', 'flip-window-layout-horizontally',
-'transpose-window-layout', 'rotate-windows', and 'rotate-windows-back'.
+*** New commands to modify window layouts.
+
+- 'C-x w t' and 'C-x w r <left>/<right>' rotate the window layout.
+- 'C-x w o <left>/<right>' rotate the windows within the current layout.
+- 'C-x w f <left>/<right>/<up>/<down>' flip window layouts.
+
+By default, these commands operate on the selected frame's root window.
+With a prefix argument, they operate on the selected window's parent.
 
 +++
 *** Windmove commands now move to skipped windows if invoked twice in a row.
 The new user option 'windmove-allow-repeated-command-override' controls
-this behavior: if it's non-nil, invoking the same windmove command twice
+this behavior: if it is non-nil, invoking the same windmove command twice
 overrides the 'no-other-window' property, allowing navigation to windows
 that would normally be skipped.  The default is t; customize it to nil
 if you want the old behavior.
@@ -304,20 +310,36 @@ window whose buffer shares text with the buffer to display.
 *** New variable 'window-state-normalize-buffer-name'.
 When bound to non-nil, 'window-state-get' will normalize 'uniquify'
 managed buffer names by removing 'uniquify' prefixes and suffixes.  This
-helps restore window buffers across Emacs sessions.
+helps to restore window buffers across Emacs sessions.
 
 ** Frames
 
 +++
 *** New function 'frame-deletable-p'.
-Calling this function before 'delete-frame' is useful to avoid that the
-latter throws an error when the argument FRAME cannot be deleted.
+If this function returns nil, the following call to 'delete-frame' might
+fail to delete its argument FRAME or might signal an error.  It is
+therefore advisable to use this function as part of a condition that
+determines whether to call 'delete-frame'.
 
 +++
 *** New value 'force' for user option 'frame-inhibit-implied-resize'.
 This will inhibit implied resizing while a new frame is made and can be
 useful on tiling window managers where the initial frame size should be
 specified by external means.
+
+** Mode Line
+
++++
+*** New user option 'mode-line-collapse-minor-modes'.
+If non-nil, minor mode lighters on the mode line are collapsed into a
+single button.  The value could also be a list to specify minor mode
+lighters to hide or show.  The default value is nil, which retains the
+previous behavior of showing all minor mode lighters.
+
+*** New user option 'mode-line-modes-delimiters'.
+This option allows changing or removing the delimiters shown around
+the major mode and list of minor modes in the mode line.  The default
+retains the existing behavior of inserting parentheses.
 
 ** Tab Bars and Tab Lines
 
@@ -360,12 +382,12 @@ docstring for arguments passed to a help-text function.
 
 ---
 *** New command 'project-root-find-file'.
-It is equivalent to running ‘project-any-command’ with ‘find-file’.
+It is equivalent to running 'project-any-command' with 'find-file'.
 
 ---
 *** New command 'project-customize-dirlocals'.
-It is equivalent to running ‘project-any-command’ with
-‘customize-dirlocals’.
+It is equivalent to running 'project-any-command' with
+'customize-dirlocals'.
 
 ---
 *** Improved prompt for 'project-switch-project'.
@@ -435,8 +457,8 @@ doesn't already mention 'setopt', the 'describe-variable' command will
 now add a note about this automatically.
 
 +++
-** New user option 'eldoc-help-at-pt' to show help at point via Eldoc.
-When enabled, display the 'help-at-pt-kbd-string' via Eldoc.  This
+** New user option 'eldoc-help-at-pt' to show help at point via ElDoc.
+When enabled, display the 'help-at-pt-kbd-string' via ElDoc.  This
 setting is an alternative to 'help-at-pt-display-when-idle'.
 
 
@@ -475,9 +497,13 @@ method to facilitate writing in the orthographies of the five languages
 simultaneously.
 
 ---
+*** New input methods for languages based on Burmese.
+These include: Burmese, Burmese (visual order), Shan, and Mon.
+
+---
 ** 'visual-wrap-prefix-mode' now supports variable-pitch fonts.
 When using 'visual-wrap-prefix-mode' in buffers with variable-pitch
-fonts, the wrapped text will now be lined up correctly so that it's
+fonts, the wrapped text will now be lined up correctly so that it is
 exactly below the text after the prefix on the first line.
 
 ---
@@ -520,7 +546,7 @@ based on the state of the buffer, such as for the different states of
 modal editing packages.
 
 ** New user variable 'exchange-point-and-mark-highlight-region'.
-When set to nil, this modifies `exchange-point-and-mark' so that it doesn't
+When set to nil, this modifies 'exchange-point-and-mark' so that it doesn't
 activate the mark if it is not already active.
 The default value is t, which retains the old behavior.
 This variable has no effect when Transient Mark mode is off.
@@ -528,9 +554,215 @@ This variable has no effect when Transient Mark mode is off.
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
+** Tree-sitter
+
+*** New user option 'treesit-auto-install-grammar'.
+It controls the automatic installation of tree-sitter grammar libraries
+needed for tree-sitter based modes, if these grammar libraries are not
+available when such modes are turned on.
+
+*** The file treesit-x.el defines a number of simple tree-sitter modes.
+Using the new macro 'define-treesit-generic-mode', generic modes are
+defined including, but not limited to, 'gitattributes-generic-ts-mode'.
+Visiting a file in such mode asks for confirmation before installing
+its tree-sitter grammar.  Then it highlights the visited file
+according to the syntax defined by the grammar.
+
+*** New command 'treesit-cycle-sexp-type'.
+It cycles the type of navigation for commands that move across sexp's
+and lists, such as 'treesit-forward-sexp', 'treesit-forward-list',
+'treesit-down-list', and 'treesit-up-list'.  The type can be either
+'list', the default, or 'sexp'.
+With the default 'list' type these commands move using syntax tables for
+symbols and using the thing 'list' for lists.
+With the 'sexp' type these commands move across nodes defined by
+the tree-sitter thing 'sexp' in 'treesit-thing-settings'.
+
++++
+*** Indirect buffers can have their own parser list.
+Before, indirect buffers share their base buffer’s parser list and
+parsers.  Now they can have their own parser list.
+
++++
+*** New variable 'treesit-language-remap-alist'.
+This variable allows a user to remap one language into another, such
+that creating a parser for language A actually creates a parser for
+language B.  By extension, any font-lock rules or indentation rules for
+language A will be applied to language B instead.
+
+This is useful for reusing font-lock rules and indentation rules of
+language A for language B, when language B is a strict superset of
+language A.
+
++++
+*** New accessor functions for each setting in 'treesit-font-lock-settings'.
+Now users can access a setting's query, feature, enable flag, and
+override flag by 'treesit-font-lock-setting-query',
+'treesit-font-lock-setting-feature', 'treesit-font-lock-setting-enable',
+and 'treesit-font-lock-setting-override'.
+
+*** New tree-sitter thing 'list'.
+Unlike the existing thing 'sexp' that defines both lists and atoms,
+'list' defines only lists to be navigated by 'forward-sexp'.
+The new function 'treesit-forward-sexp-list' uses 'list'
+to move across lists.  But to move across atoms inside the list
+it uses 'forward-sexp-default-function'.
+
+*** New tree-sitter based functions for moving by lists.
+If a major mode defines 'list' in 'treesit-thing-settings',
+tree-sitter setup for these modes sets 'forward-list-function' to
+'treesit-forward-list', 'up-list-function' to 'treesit-up-list', and
+'down-list-function' to 'treesit-down-list'.  This enables the
+'forward-list', 'up-list', and 'down-list' motion commands for those
+modes.
+
+*** Tree-sitter enabled modes now properly support 'show-paren-mode'.
+They do that by letting 'show-paren-mode' use the results of parsing by
+the tree-sitter library.  The new function 'treesit-show-paren-data' is
+used to communicate the tree-sitter parsing results to 'show-paren-mode'.
+
+*** Tree-sitter enabled modes now properly support 'hs-minor-mode'.
+All commands from hideshow.el can selectively display blocks
+defined by the new tree-sitter thing 'list'.
+
+*** New tree-sitter thing 'comment'.
+The new variable 'forward-comment-function' is set to the new function
+'treesit-forward-comment' if a major mode defines the thing 'comment'.
+
++++
+*** New function 'treesit-language-display-name'.
+This new function returns the display name of a language given the
+language symbol.  For example, 'cpp' is translated to "C++".  A new
+variable 'treesit-language-display-name-alist' holds the translations of
+language symbols where that translation is not trivial.
+
+*** New function 'treesit-merge-font-lock-feature-list'.
+This function merges two tree-sitter font-lock feature lists.  It
+returns a new font-lock feature list with no duplicates in the same
+level.  It can be used to merge font-lock feature lists in a
+multi-language major mode.
+
+*** New function 'treesit-replace-font-lock-feature-settings'.
+Given two tree-sitter font-lock settings, it replaces the feature in the
+second font-lock settings with the same feature in the first font-lock
+settings.  In a multi-language major mode it is sometimes necessary to
+replace features from one of the major modes with others, that are
+better suited to the new multilingual context.
+
+*** New function 'treesit-simple-indent-modify-rules'.
+Given two tree-sitter indent rules, it replaces, adds, or prepends rules
+in the old rules with new ones, then returns the modified rules.  In a
+multi-language major mode it is sometimes necessary to modify rules from
+one of the major modes to better suit the new multilingual context.
+
++++
+*** New variable 'treesit-aggregated-simple-imenu-settings'.
+This variable allows major modes to setup Imenu for multiple languages.
+
++++
+*** New variable 'treesit-aggregated-outline-predicate'.
+This variable allows major modes to setup 'outline-minor-mode'
+for multiple languages.
+
+*** New function 'treesit-simple-indent-add-rules'.
+This new function makes it easier to customize indent rules for
+tree-sitter modes.
+
+*** New variable 'treesit-simple-indent-override-rules'.
+Users can customize this variable to add simple custom indentation rules
+for tree-sitter major modes.
+
++++
+*** 'treesit-language-at-point-function' is now optional.
+Multi-language major modes can rely on the default return value from
+'treesit-language-at' that uses the new function 'treesit-parsers-at'.
+
++++
+*** New command 'treesit-explore'.
+This command replaces 'treesit-explore-mode'.  It turns on
+'treesit-explore-mode' if it is not on, and pops up the explorer buffer
+if it is already on.
+
++++
+*** 'treesit-explore-mode' now supports local parsers.
+Now 'treesit-explore-mode' (or 'treesit-explore') prompts for a parser
+rather than a language, and it is now possible to select a local parser
+at point to explore.
+
+** C-ts mode
+
++++
+*** New user option 'c-ts-mode-enable-doxygen'.
+By default, this is nil, and the Doxygen comment blocks in C/C++ sources
+are highlighted like other comments.  When non-nil, Doxygen comment
+blocks are syntax-highlighted if the Doxygen grammar library is
+available.
+
+** Go-ts mode
+
++++
+*** New unit test commands.
+Three new commands are now available to run unit tests.
+
+The 'go-ts-mode-test-function-at-point' command runs the unit test at
+point.  If a region is active, it runs all the unit tests under the
+region.  It is bound to 'C-c C-t t' in 'go-ts-mode'.
+
+The 'go-ts-mode-test-this-file' command runs all unit tests in the current
+file.  It is bound to 'C-c C-t f' in 'go-ts-mode'.
+
+The 'go-ts-mode-test-this-package' command runs all unit tests under the
+package of the current buffer.  It is bound to 'C-c C-t p' in 'go-ts-mode'.
+
+The 'go-ts-mode-build-tags' user option is available to set a list of
+build tags for the test commands.
+
+The 'go-ts-mode-test-flags' user option is available to set a list of
+additional flags to pass to the go test command line.
+
+** Java-ts mode
+
++++
+*** New user option 'java-ts-mode-enable-doxygen'.
+By default, this is nil, and the Doxygen comment blocks in Java sources
+are highlighted like other comments.  When non-nil, Doxygen comment
+blocks are syntax-highlighted if the Doxygen grammar library is
+available.
+
 ---
+*** New user option 'java-ts-mode-method-chaining-indent-offset'.
+Now method chaining is indented by 8 spaces rather than 4, and this
+option controls how much is indented for method chaining.
+
+** PHP-ts mode
+
+---
+*** 'php-ts-mode-run-php-webserver' can now accept a custom "php.ini" file.
+You can use the new optional argument CONFIG when calling
+'php-ts-mode-run-php-webserver' to pass an alternative "php.ini" file to
+the built-in Web server.  Interactively, when invoked with a prefix
+argument, 'php-ts-mode-run-php-webserver' prompts for the config file as
+well as for other connection parameters.
+
+** Rust-ts mode
+
+---
+*** New user option 'rust-ts-mode-fontify-number-suffix-as-type'.
+Rust number literals may have an optional type suffix.  When this option
+is non-nil, this suffix is fontified using 'font-lock-type-face'.
+
+** EIEIO
+
+---
+*** New value 'warn' for 'eieio-backward-compatibility'.
+This is the new default value and causes warnings to be emitted
+at run-time for the use of the associated deprecated features.
+'(setq eieio-backward-compatibility t)' can be used to recover
+the previous silence.
+
 ** Text mode
 
+---
 *** New commands to convert between ASCII and full-width characters.
 New commands 'fullwidth-region' and 'fullwidth-word' convert ASCII
 characters in region or in the word at point to the corresponding
@@ -539,23 +771,25 @@ characters in CJK texts.  For example, 'A' is converted to 'Ａ', '1' is
 converted to '１', etc.  Companion commands 'halfwidth-region' and
 'halfwidth-word' perform the opposite conversion.
 
----
 ** ASM mode
 
-*** 'asm-mode-set-comment-hook' is obsolete.
-You can now set `asm-comment-char' from 'asm-mode-hook' instead.
-
 ---
+*** 'asm-mode-set-comment-hook' is obsolete.
+You can now set 'asm-comment-char' from 'asm-mode-hook' instead.
+
 ** Ibuffer
 
+---
 *** New column 'recency' in Ibuffer display.
 The user option 'ibuffer-formats' configures the Ibuffer formats.  Add
 'recency' to the format to display the column.
 
+---
 *** New value 'title' for the user option 'ibuffer-use-header-line'.
 Display column titles in the header line if 'ibuffer-use-header-line' is
 set to 'title'.
 
+---
 *** New user option 'ibuffer-human-readable-size'.
 When non-nil, buffer sizes are shown in human readable format.
 
@@ -565,9 +799,31 @@ The prompts 'opstring' and 'active-opstring' can now either be strings
 or functions.  This is useful when your prompts can benefit from dynamic
 content.
 
+** ElDoc
+
 ---
+*** New ElDoc function 'elisp-eldoc-funcall-with-docstring'.
+This function includes the current function's docstring in the ElDoc
+echo area and can be used as a more detailed alternative to
+'elisp-eldoc-funcall'.
+
+---
+*** New user option 'elisp-eldoc-funcall-with-docstring-length'.
+This user option specifies how long function docstrings must be
+displayed in 'elisp-eldoc-funcall-with-docstring'.  If set to 'short'
+(the default), only display the first sentence of the docstring.
+Otherwise, if set to 'full', display the full docstring.
+
+---
+*** New user option 'elisp-eldoc-docstring-length-limit'.
+This user option controls the maximum length of docstrings in character
+units that 'elisp-eldoc-funcall-with-docstring' and
+'elisp-eldoc-var-docstring-with-value' will show.  By default, it is set
+to 1000 characters.
+
 ** Buffer Menu
 
+---
 *** New user option 'Buffer-menu-human-readable-sizes'.
 When non-nil, buffer sizes are shown in human readable format.  The
 default is nil, which retains the old format.
@@ -664,6 +920,14 @@ It is an alias for the 'progn' special-form.
 +++
 *** 'cl-gensym' is now obsolete; use 'gensym' instead.
 
++++
+*** New macro 'cl-with-accessors'.
+This macro is similar to 'with-slots', but uses accessor functions
+instead of slot names.  It is useful when slots' accessor functions are
+used repeatedly, such as reading from a slot and then writing to that
+slot.  Symbol macros are created for the accessor functions using
+'cl-symbol-macrolet', so that they can be used with 'setq' and 'setf'.
+
 ** Whitespace
 
 ---
@@ -712,6 +976,12 @@ is the default.  As before, saved places are scheduled to be saved at
 Emacs exit.
 
 ** Savehist
+
+---
+*** The history file can be modified by external tools.
+Emacs can now handle this case gracefully by merging the external
+and internal history information.
+This feature is activated only when 'savehist-additional-variables' is nil.
 
 ---
 *** Savehist no longer saves additional variables more than once.
@@ -881,30 +1151,31 @@ only search in input history.  If you customize it to the symbol 'dwim',
 those commands search in input history only when the point is after the
 last prompt.
 
-+++
 ** Mail Utils
 
++++
 *** New user option 'mail-re-regexps'.
 This contains the list of regular expressions used to match "Re:" and
 international variants of it when modifying the Subject field in
 replies.
 
-+++
 ** Rmail
 
++++
 *** 'rmail-re-abbrevs' default value is now derived from 'mail-re-regexps'.
 'mail-re-regexps' is a new user option that is easier to customize than
 'rmail-re-abbrevs'.  'rmail-re-abbrevs' is still honored if it was
 already set.
 
-+++
 ** Message
 
++++
 *** 'message-subject-re-regexp' default value is now derived from 'mail-re-regexps'.
 'mail-re-regexps' is a new user option that is easier to customize than
 'message-subject-re-regexp'.  'message-subject-re-regexp' is still
 honored if it was already set.
 
++++
 *** 'message-strip-subject-re' now matches case-insensitively.
 
 ** SHR
@@ -970,51 +1241,6 @@ To get the old behavior back, add an element '(enum-open
 . brace-list-open)' to 'c-offsets-alist' in your CC mode style, or amend
 'c-offsets-alist' likewise in any of the other ways detailed in the
 "(ccmode) Config Basics" node of the CC mode manual.
-
-** Go-ts mode
-
-+++
-*** New unit test commands.
-Three new commands are now available to run unit tests.
-
-The 'go-ts-mode-test-function-at-point' command runs the unit test at
-point.  If a region is active, it runs all the unit tests under the
-region.  It is bound to 'C-c C-t t' in 'go-ts-mode'.
-
-The 'go-ts-mode-test-this-file' command runs all unit tests in the current
-file.  It is bound to 'C-c C-t f' in 'go-ts-mode'.
-
-The 'go-ts-mode-test-this-package' command runs all unit tests under the
-package of the current buffer.  It is bound to 'C-c C-t p' in 'go-ts-mode'.
-
-The 'go-ts-mode-build-tags' user option is available to set a list of
-build tags for the test commands.
-
-The 'go-ts-mode-test-flags' user option is available to set a list of
-additional flags to pass to the go test command line.
-
-** C-ts mode
-
-+++
-*** New user option 'c-ts-mode-enable-doxygen'.
-By default, this is nil, and the Doxygen comment blocks in C/C++ source
-are highlighted like other comments.  When non-nil, Doxygen comment
-blocks are syntax-highlighted if the Doxygen grammar library is
-available.
-
-** Java-ts mode
-
-+++
-*** New user option 'java-ts-mode-enable-doxygen'.
-By default, this is nil, and the Doxygen comment blocks in Java source
-are highlighted like other comments.  When non-nil, Doxygen comment
-blocks are syntax-highlighted if the Doxygen grammar library is
-available.
-
----
-*** New user option 'java-ts-mode-method-chaining-indent-offset'.
-Now method chaining is indented by 8 spaces rather than 4, and this
-variable controls how much is indented for method chaining.
 
 ** Emacs Lisp mode
 
@@ -1193,23 +1419,6 @@ They suggest the previous revision as the default for REV1, not the last
 one as before.  This makes them different from 'vc-diff' and
 'vc-root-diff' when those are called without a prefix argument.
 
-** PHP-ts mode
-
----
-*** 'php-ts-mode-run-php-webserver' can now accept a custom "php.ini" file.
-You can use the new optional argument CONFIG when calling
-'php-ts-mode-run-php-webserver' to pass an alternative "php.ini" file to
-the built-in Web server.  Interactively, when invoked with a prefix
-argument, 'php-ts-mode-run-php-webserver' prompts for the config file as
-well as for other connection parameters.
-
-** Rust-ts mode
-
----
-*** New user option 'rust-ts-mode-fontify-number-suffix-as-type'.
-Rust number literals may have an optional type suffix.  When this option
-is non-nil, this suffix is fontified using 'font-lock-type-face'.
-
 ** Ediff
 
 +++
@@ -1229,14 +1438,28 @@ changes when supplied with a universal prefix argument via 'C-u':
 - 'C-u c b' copies all changes from buffer C to buffer B.
 
 +++
-*** Ediff now supports more flexible custom window layouts
+*** Ediff now supports more flexible custom window layouts.
 Custom implementations of 'ediff-window-setup-function' no
-longer need to display *all* ediff windows.  Any of the A, B, C,
+longer need to display *all* Ediff windows.  Any of the A, B, C,
 and control windows can be left undisplayed and the corresponding
 variable set to nil.  This change enables custom layouts without
 a control panel window.
 
 ** Dired
+
+---
+*** New user option 'dired-create-empty-file-in-current-directory'.
+When non-nil, 'dired-create-empty-file' creates a new empty file and
+adds an entry for it (or its topmost new parent directory if created)
+under the current subdirectory in the Dired buffer by default
+(otherwise, it adds the new file (and new subdirectories if provided) to
+whichever directory the user enters at the prompt).  When nil,
+'dired-create-empty-file' acts on the default directory by default.
+
+Note that setting this user option to non-nil makes invoking
+'dired-create-empty-file' outside of a Dired buffer raise an error (like
+other Dired commands that always prompt with the current subdirectory,
+such as 'dired-create-directory').
 
 +++
 *** New user option 'dired-check-symlinks' allows disabling validity checks.
@@ -1347,7 +1570,7 @@ mode.  Now, one needs to say '(midnight-mode +1)' instead.
 
 ** Python mode
 
-*** New repeat-map for Python indentation commands.
+*** New 'repeat-map' for Python indentation commands.
 The commands 'python-indent-shift-left' and 'python-indent-shift-right'
 can now be repeated using 'repeat-mode'.  With 'repeat-mode' enabled,
 after invoking one of these commands via 'C-c <' or 'C-c >', you can
@@ -1457,10 +1680,10 @@ command line.
 
 ---
 *** New user options 'vc-resolve-conflicts' and 'vc-*-resolve-conflicts'.
-Control whether to mark a conflicted file as resolved when saving.
-You can now control it globally, with 'vc-resolve-conflicts' or for
+They control whether to mark a conflicted file as resolved when saving.
+You can now control it globally, with 'vc-resolve-conflicts', or for
 specific backends with 'vc-bzr-resolve-conflicts',
-'vc-hg-resolve-conflicts' and 'vc-svn-resolve-conflicts'.
+'vc-hg-resolve-conflicts', and 'vc-svn-resolve-conflicts'.
 
 ---
 *** New value for 'vc-git-resolve-conflicts'.
@@ -1468,6 +1691,52 @@ The option now accepts the symbol 'default' as a value, which is
 its default value.  Effectively, the default value hasn't changed,
 since 'vc-resolve-conflicts' defaults to t, the previous default value
 for 'vc-git-resolve-conflicts'.
+
+---
+*** VC Directory can now automatically add and remove marks on other lines.
+When you try to use a mark or unmark command where doing so would only
+be permitted if other lines were marked or unmarked first, Emacs
+will now ask you if you'd like to change the marks on those other lines.
+For example, if you try to mark a file contained within a directory that
+is already marked, Emacs will offer to unmark the directory, first.
+Previously, Emacs would simply refuse to make any changes.
+You can customize 'vc-dir-allow-mass-mark-changes' to restore the old
+behavior or dispense with the prompting.
+
+---
+*** New VC Directory bindings 'z d' and 'D' to delete Git stashes.
+These correspond to the existing 'z p' to pop a stash and 'P' to pop the
+stash at point (deleting the stash at point is also bound to 'C-k').
+
+---
+*** VC Directory now offers to register files when checking in mixed filesets.
+Previously, if some files to be checked in were unregistered but others
+were added, removed or edited, Emacs would refuse to proceed.
+Now Emacs prompts to first register the unregistered files, so that all
+files in the fileset are in a compatible state for a checkin.
+
+---
+*** New 'log-edit-hook' option to display diff of changes to commit.
+You can customize 'log-edit-hook' to include its new
+'log-edit-maybe-show-diff' option to enable displaying a diff of the
+changes to be committed in a window.  This is like the 'C-c C-d' command
+in Log Edit mode buffers, except that it does not select the *vc-diff*
+buffer's window, and so works well when added to 'log-edit-hook'.
+
+---
+*** New buffer-local variable 'vc-buffer-overriding-fileset'.
+Primarily intended for buffers not visiting files, this specifies the
+VC backend and VCS-managed file name or file names to which the buffer's
+contents corresponds.  It overrides the behavior of 'vc-deduce-fileset'.
+This replaces and generalizes the old 'vc-annotate-parent-file'.
+
+---
+*** New buffer-local variable 'vc-buffer-revision'.
+This specifies the revision to which the buffer's contents corresponds.
+This replaces and generalizes the old 'vc-annotate-parent-rev'.
+
+---
+*** vc-dav.el is now obsolete.
 
 ** Diff mode
 
@@ -1507,6 +1776,11 @@ interactively.
 ---
 *** 'package-upgrade' no longer accepts a string argument.
 When called from Lisp, it now only accepts a symbol.
+
+---
+*** 'package-install-from-buffer' respects files marked by Dired.
+When invoking the command in a Dired buffer with marked files,
+the command will only copy those files.
 
 +++
 *** package-x.el is now obsolete.
@@ -1577,27 +1851,22 @@ Meant to be given a global binding convenient to the user.  Example:
 ** Speedbar
 
 +++
-*** The new command 'speedbar-window-mode' opens Speedbar in a window
-instead of a frame.
+*** New commands for Speedbar.
+
+- 'speedbar-window-mode' opens Speedbar in a window instead of a frame.
+- 'speedbar-window' is an alias for 'speedbar-window-mode'.
 
 +++
-*** New command 'speedbar-window' is an alias for 'speedbar-window-mode'.
+*** New user options for Speedbar.
 
-+++
-*** The new user option 'speedbar-prefer-window', tells 'speedbar' to
-open a side window instead of a frame.
-
-+++
-*** The new user option ‘speedbar-dedicated-window’ defines whether the
-‘speedbar’ is displayed in a dedicated window.
-
-+++
-*** The new user option 'speedbar-window-default-width' defines the
-initial width of the 'speedbar-window'
-
-+++
-*** The new user option 'speedbar-window-max-width' defines the maximum
-width of the 'speedbar-window' when it is closed and then restored.
+- 'speedbar-prefer-window' tells 'speedbar' to open a side window
+  instead of a frame.
+- 'speedbar-dedicated-window' defines whether the 'speedbar' is
+  displayed in a dedicated window.
+- 'speedbar-window-default-width' defines the initial width of the
+  'speedbar-window'.
+- 'speedbar-window-max-width' defines the maximum width of the
+  'speedbar-window' when it is closed and then restored.
 
 ---
 *** 'speedbar-easymenu-definition-trailer' is now a function.
@@ -1606,6 +1875,7 @@ width of the 'speedbar-window' when it is closed and then restored.
 
 *** New user options for 'icomplete-vertical-mode'.
 New user options have been added to enhance 'icomplete-vertical-mode':
+
 - 'icomplete-vertical-in-buffer-adjust-list' aligns in-buffer
   completion to the original cursor column.
 - 'icomplete-vertical-render-prefix-indicator' adds a prefix indicator
@@ -1617,20 +1887,18 @@ New user options have been added to enhance 'icomplete-vertical-mode':
 
 *** New faces for 'icomplete-vertical-mode'.
 New faces have been added to 'icomplete-vertical-mode':
+
 - 'icomplete-vertical-selected-prefix-indicator-face' controls the
   appearance of the selected candidate prefix.
 - 'icomplete-vertical-unselected-prefix-indicator-face' controls the
   appearance of unselected candidate prefixes.
 
-** CL-Lib
+** Customize
 
-+++
-*** New macro 'cl-with-accessors'.
-This macro is similar to 'with-slots', but uses accessor functions
-instead of slot names.  It is useful when slots' accessor functions are
-used repeatedly, such as reading from a slot and then writing to that
-slot.  Symbol macros are created for the accessor functions using
-'cl-symbol-macrolet', so that they can be used with 'setq' and 'setf'.
+---
+*** New major mode 'Customize-dirlocals-mode'.
+This is intended for customizing directory-local variables in the
+current directory's ".dir-locals.el" file.
 
 ** Miscellaneous
 
@@ -1678,7 +1946,63 @@ modes.
 Customize it to a non-nil value to have the fill-column indicators
 change their face if the current line exceeds the 'fill-column'.  The
 new face 'display-fill-column-indicator-warning-face' is used to
-highlight the fill-column indicators.  By default this is disabled.
+highlight the fill-column indicators.  By default, this is disabled.
+
+---
+** Flymake
+
+*** Windows without fringes now automatically use margin indicators.
+When 'flymake-indicator-type' is set to 'fringes', as is now the default,
+flymake will automatically fall back to using margin indicators in
+windows without fringes, including any window on a text terminal.
+
+*** Enhanced 'flymake-show-diagnostics-at-end-of-line'
+The new value 'fancy' allowed for this user option will attempt to
+layout diagnostics below the affected line using unicode graphics to
+point to diagnostic locus.
+
+*** Enhanced 'flymake-show-buffer-diagnostics'.
+The command 'flymake-show-buffer-diagnostics' is now capable of
+highlighting a nearby diagnostic in the resulting listing.  Additionally,
+it is bound to mouse clicks on fringe and margin indicators, operating
+on the diagnostics of the corresponding line.  The user may bind it in
+other situations such as the diagnostic overlay map.
+
+*** More powerful 'flymake-make-diagnostic' API.
+Flymake backends can now specify origin and code attributes, allowing
+Flymake and other extensions to segregate diagnostics based on this
+extended information.
+
+*** New user option 'flymake-diagnostic-format-alist'.
+This provides fine-grained control over diagnostic formatting across
+different contexts, allowing you to specify which components (origin,
+code, message or one-liner message) appear in each output destination.
+
+*** Dynamic column sizing in diagnostic listings.
+The tabulated listings produced by 'flymake-show-buffer-diagnostics' and
+'flymake-show-project-diagnostics' now automatically adjust their column
+widths based on content, optimizing display space and readability.
+
+** SQLite
+
++++
+*** SQLite databases can now be opened in read-only mode.
+The new optional argument READONLY to 'sqlite-open' function allows to
+open an existing database only for reading.
+
+*** 'sqlite-open' now recognizes 'file://' URIs as well as file names.
+The 'file://' URIs are supported by default.  In the unusual case that a
+normal file name starts with "file:", you can disable the URI
+recognition by invoking 'sqlite-open' with the new optional argument
+DISABLE-URI non-nil.
+
+** GUD
+
+---
+*** pdb, perldb, and guiler suggest debugging the current file via 'M-n'.
+When starting these debuggers (e.g., 'M-x pdb') while visiting a file,
+pressing 'M-n' in the command prompt suggests a command line including
+the file name, using the minibuffer's "future history".
 
 
 * New Modes and Packages in Emacs 31.1
@@ -1701,21 +2025,6 @@ embedded JavaScript and CSS.
 A major mode based on the tree-sitter library for editing "go.work"
 files.  If tree-sitter is properly set-up by the user, it can be
 enabled for files named "go.work".
-
-** The file treesit-x.el defines a number of simple treesit modes.
-Using the new macro 'define-treesit-generic-mode' generic modes are
-defined including, but not limited to, 'gitattributes-generic-ts-mode'.
-Visiting a file in such mode ask for confirmation before installing
-its tree-sitter grammar.  Then it highlights the visited file
-according to syntax defined by the grammar.
-
-** New minor mode 'electric-block-comment-mode'.
-This mode automatically close block comment, typing
-`block-comment-start' closes it inserting their corresponding
-`block-comment-end'.  Thus, allows closing block comments for major
-modes that support it, such as: c-mode, c++-mode, java-mode, js-mode,
-css-mode, and derived: html-mode, mhtml-mode, xml-mode and nxml-mode,
-pascal-mode, lua-ts-mode, lisp-mode and common-lisp-mode
 
 
 * Incompatible Lisp Changes in Emacs 31.1
@@ -1770,6 +2079,12 @@ restore the old behavior, you can set 'eshell-pwd-convert-function' to
 ** The rx 'eval' form now uses the current Elisp dialect for evaluation.
 Previously, its argument was always evaluated using dynamic binding.
 
+---
+** Unused block comment variables have been removed.
+The unused variables 'block-comment-start' and 'block-comment-end',
+which never actually had any effect when set by major modes, have been
+removed.
+
 
 * Lisp Changes in Emacs 31.1
 
@@ -1780,18 +2095,30 @@ You can now directly pass it a string or a buffer rather than a function.
 Actually passing it a function is now deprecated.
 
 +++
+** New function 'char-displayable-on-frame-p'.
+'char-displayable-on-frame-p' returns non-nil if Emacs ought to be able
+to display its char argument on a given frame.  This new function,
+unlike 'char-displayable-p', does not check whether the character can be
+encoded by the underlying terminal.
+
++++
 ** New macros 'static-when' and 'static-unless'.
 Like 'static-if', these macros evaluate their condition at
 macro-expansion time and are useful for writing code that can work
 across different Emacs versions.
 
+** Lexical binding
+
 ---
-** You can change the default value of 'lexical-binding'.
+*** You can change the default value of 'lexical-binding'.
 While the default is still the use of dynamic binding dialect of Elisp
 in those places that don't explicitly set 'lexical-binding' you can
 change it globally with:
 
     (set-default-toplevel-value 'lexical-binding t)
+
+---
+*** Loading a file displays a warning if there is no 'lexical-binding' cookie.
 
 +++
 ** New macros 'incf' and 'decf'.
@@ -1819,9 +2146,9 @@ This means that you can now call it with just one argument, like
 The following macros, previously only available in the experimental
 'ert-x' module, are now considered stable and have been moved to 'ert':
 
-- ert-with-test-buffer
-- ert-with-buffer-selected
-- ert-with-buffer-renamed
+- 'ert-with-test-buffer'
+- 'ert-with-buffer-selected'
+- 'ert-with-buffer-renamed'
 
 See "(ert) Helper Functions" node in the ERT manual for more information.
 
@@ -1866,114 +2193,6 @@ authorize the invoked D-Bus method (for example via polkit).
 
 ** The customization group 'wp' has been removed.
 It has been obsolete since Emacs 26.1.  Use the group 'text' instead.
-
-** Changes in tree-sitter modes
-
-+++
-*** Indirect buffers can have their own parser list.
-Before, indirect buffers share their base buffer’s parser list and
-parsers.  Now they can have their own parser list.
-
-+++
-*** New variable 'treesit-language-remap-alist'.
-This variable allows a user to remap one language into another, such
-that creating a parser for language A actually creates a parser for
-language B.  By extension, any font-lock rules or indentation rules for
-language A will be applied to language B instead.
-
-This is useful for reusing font-lock rules and indentation rules of
-language A for language B, when language B is a strict superset of
-language A.
-
-+++
-*** New accessor functions for each setting in 'treesit-font-lock-settings'.
-Now users can access a setting's query, feature, enable flag, and
-override flag by 'treesit-font-lock-setting-query',
-'treesit-font-lock-setting-feature', 'treesit-font-lock-setting-enable',
-and 'treesit-font-lock-setting-override'.
-
-*** New tree-sitter thing 'list'.
-Unlike the existing thing 'sexp' that defines both lists and atoms,
-'list' defines only lists to be navigated by 'forward-sexp'.
-The new function 'treesit-forward-sexp-list' uses 'list'
-to move across lists.  But to move across atoms inside the list
-it uses 'forward-sexp-default-function'.
-
-*** New tree-sitter based functions for moving by lists.
-If a major mode defines 'list' in 'treesit-thing-settings',
-tree-sitter setup for these modes sets 'forward-list-function' to
-'treesit-forward-list', 'up-list-function' to 'treesit-up-list', and
-'down-list-function' to 'treesit-down-list'.  This enables the
-'forward-list', 'up-list', and 'down-list' motion commands for those
-modes.
-
-*** Tree-sitter enabled modes now properly support 'show-paren-mode'.
-They do that by letting 'show-paren-mode' use the results of parsing by
-the tree-sitter library.  The new function 'treesit-show-paren-data' is
-used to communicate the tree-sitter parsing results to
-'show-paren-mode'.
-
-*** Tree-sitter enabled modes now properly support 'hs-minor-mode'.
-All commands from hideshow.el can selectively display blocks
-defined by the new tree-sitter thing 'list'.
-
-*** New tree-sitter thing 'comment'.
-The new variable 'forward-comment-function' is set to the new function
-'treesit-forward-comment' if a major mode defines the thing 'comment'.
-
-+++
-*** New function 'treesit-language-display-name'.
-This new function returns the display name of a language given the
-language symbol.  For example, 'cpp' is translated to "C++".  A new
-variable 'treesit-language-display-name-alist' holds the translations of
-language symbols where that translation is not trivial.
-
-*** New function 'treesit-merge-font-lock-feature-list'.
-This function merges two tree-sitter font-lock feature lists.  Returns a
-new font-lock feature list with no duplicates in the same level.  It can
-be used to merge font-lock feature lists in a multi-language major mode.
-
-*** New function 'treesit-replace-font-lock-feature-settings'.
-Given two tree-sitter font-lock settings, it replaces the feature in the
-second font-lock settings with the same feature in the first font-lock
-settings.  In a multi-language major mode it is sometimes necessary to
-replace features from one of the major modes, with others that are
-better suited to the new multilingual context.
-
-*** New function 'treesit-simple-indent-modify-rules'.
-Given two tree-sitter indent rules, it replaces, adds, or prepends rules
-in the old rules with new ones, then returns the modified rules.  In a
-multi-language major mode it is sometimes necessary to modify rules from
-one of the major modes to better suit the new multilingual context.
-
-+++
-*** New command 'treesit-explore'.
-This command replaces 'treesit-explore-mode'.  It turns on
-'treesit-explore-mode' if it’s not on, and pops up the explorer buffer
-if it’s already on.
-
-+++
-*** 'treesit-explore-mode' now supports local parsers.
-Now 'treesit-explore-mode' (or 'treesit-explore') prompts for a parser
-rather than a language, and it’s now possible to select a local parser
-at point to explore.
-
-+++
-*** New variable 'treesit-aggregated-simple-imenu-settings'.
-This variable allows major modes to setup Imenu for multiple languages.
-
-+++
-*** New variable 'treesit-aggregated-outline-predicate'.
-This variable allows major modes to setup 'outline-minor-mode'
-for multiple languages.
-
-*** New function 'treesit-simple-indent-add-rules'.
-This new function makes it easier to customize indent rules for
-tree-sitter modes.
-
-*** New variable 'treesit-simple-indent-override-rules'.
-Users can customize this variable to add simple custom indentation rules
-for tree-sitter major modes.
 
 +++
 ** New optional BUFFER argument for 'string-pixel-width'.
@@ -2055,6 +2274,12 @@ provide instructions for finding the definition.
 New convenience function 'find-function-update-type-alist' offers a
 concise way to update a symbol's 'find-function-type-alist' property.
 
++++
+** 'inhibit-message' can now inhibit clearing of the echo area.
+Binding 'inhibit-message' to a non-nil value will now suppress both
+the display of messages and the clearing of the echo area, such as
+caused by calling 'message' with a nil argument.
+
 ** Special Events
 
 +++
@@ -2086,13 +2311,26 @@ editing sessions to be started from non-main threads.  The only platform
 where this remains unsupported is Nextstep (GNUstep or Mac OS).
 
 ---
+** 'desktop-restore-frames' has been disabled by default on Android systems.
+Restrictions imposed on clients by the window manager on these systems
+are too prohibitive and don't allow restoring frame configurations.
+(For the same reason many window management facilities are also not
+implemented by Emacs.)
+
+---
+** Emacs responds to runtime display configuration changes on Android.
+The upshot of this is that Emacs will adapt to display resolution /
+layout changes applied while an Emacs session is active, which is
+possible on some recently released devices.
+
+---
 ** 'NSSpeechRecognitionUsageDescription' now included in "Info.plist" (macOS).
 Should Emacs (or any built-in shell) invoke a process using macOS speech
 recognition APIs, the relevant permission dialog is now displayed, thus
 allowing Emacs users access to speech recognition utilities.
 
 Note: Accepting this permission allows the use of system APIs, which may
-send user data to Apple’s speech recognition servers.
+send user data to Apple's speech recognition servers.
 
 +++
 ** On Mac OS X, stipples now render with color.

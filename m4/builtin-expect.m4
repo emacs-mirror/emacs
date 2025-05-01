@@ -1,5 +1,5 @@
 # builtin-expect.m4
-# serial 2
+# serial 3
 dnl Copyright 2016-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -48,5 +48,4 @@ AC_DEFUN([gl___BUILTIN_EXPECT],
 #elif HAVE___BUILTIN_EXPECT == 2
 # include <builtins.h>
 #endif
-    ])
-])
+])])

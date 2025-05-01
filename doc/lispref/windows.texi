@@ -2256,7 +2256,7 @@ unless stated otherwise.
 counterclockwise.
 @cindex rotate window layout
 
-@deffn Command rotate-window-layout-clockwise &optional window
+@deffn Command window-layout-rotate-clockwise &optional window
 This command rotates the window layout clockwise by 90 degrees.  Imagine
 a layout with three live windows @var{A}, @var{B} and @var{C} as
 depicted on the left below.  Then this command will produce the layout
@@ -2276,8 +2276,8 @@ on the right.
 @end smallexample
 @end deffn
 
-@deffn Command rotate-window-layout-counterclockwise &optional window
-This is like @code{rotate-window-layout-clockwise} but rotates the
+@deffn Command window-layout-rotate-anticlockwise &optional window
+This is like @code{window-layout-rotate-clockwise} but rotates the
 layout in the opposite direction as demonstrated in the example below.
 
 @smallexample
@@ -2298,7 +2298,7 @@ The next two commands @sc{flip} the window layout---rotate it around an
 imaginary horizontal or vertical axis.
 @cindex flip window layout
 
-@deffn Command flip-window-layout-vertically &optional window
+@deffn Command window-layout-flip-topdown &optional window
 This command flips windows such that windows on the bottom become
 windows on the top and vice-versa as in the example below.
 
@@ -2316,7 +2316,7 @@ windows on the top and vice-versa as in the example below.
 @end smallexample
 @end deffn
 
-@deffn Command flip-window-layout-horizontally &optional window
+@deffn Command window-layout-flip-leftright &optional window
 This command rearranges window in a way that the windows on the right
 become the window on the left, and vice-versa.
 
@@ -2338,7 +2338,7 @@ The next command can be used for @sc{transposing} windows---changing
 horizontal splits to vertical ones and vice-versa.
 @cindex transposing windows
 
-@deffn Command transpose-window-layout &optional window
+@deffn Command window-layout-transpose &optional window
 This command reorganizes windows such that every horizontal split
 becomes a vertical split and vice versa.
 

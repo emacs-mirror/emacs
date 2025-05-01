@@ -33,20 +33,25 @@
 
 (defvar string-edit--success-callback)
 (defvar string-edit--abort-callback)
+(defvar string-edit--read)
 
 ;;;###autoload
 (cl-defun string-edit (prompt string success-callback
-                              &key abort-callback)
+                              &key abort-callback major-mode-sym read)
   "Switch to a new buffer to edit STRING.
-When the user finishes editing (with \\<string-edit-mode-map>\\[string-edit-done]), SUCCESS-CALLBACK
-is called with the resulting string.
 
-If the user aborts (with \\<string-edit-mode-map>\\[string-edit-abort]), ABORT-CALLBACK (if any) is
-called with no parameters.
+Call MAJOR-MODE-SYM (defaulting to `string-edit-mode') to set up the new
+buffer, and insert PROMPT (defaulting to nothing) at the start of the
+buffer.
 
-PROMPT will be inserted at the start of the buffer, but won't be
-included in the resulting string.  If PROMPT is nil, no help text
-will be inserted.
+When the user finishes editing (with \\<string-edit-minor-mode-map>\\[string-edit-done]), call
+READ (defaulting to `identity') on the resulting string, omitting PROMPT if any.
+
+If READ returns without an error, quit the buffer and call
+SUCCESS-CALLBACK on the result.
+
+If the user aborts (with \\<string-edit-minor-mode-map>\\[string-edit-abort]),
+call ABORT-CALLBACK (if any) with no parameters.
 
 Also see `read-string-from-buffer'."
   (with-current-buffer (generate-new-buffer "*edit string*")
@@ -74,26 +79,27 @@ Also see `read-string-from-buffer'."
 
     (set-buffer-modified-p nil)
     (setq buffer-undo-list nil)
-    (string-edit-mode)
+    (funcall (or major-mode-sym #'string-edit-mode))
+    (string-edit-minor-mode)
     (setq-local string-edit--success-callback success-callback)
     (setq-local string-edit--abort-callback abort-callback)
+    (setq-local string-edit--read read)
     (setq-local header-line-format
                 (substitute-command-keys
-                 "Type \\<string-edit-mode-map>\\[string-edit-done] when you've finished editing or \\[string-edit-abort] to abort"))
+                 "Type \\<string-edit-minor-mode-map>\\[string-edit-done] when you've finished editing or \\[string-edit-abort] to abort"))
     (message "%s" (substitute-command-keys
-                   "Type \\<string-edit-mode-map>\\[string-edit-done] when you've finished editing"))))
+                   "Type \\<string-edit-minor-mode-map>\\[string-edit-done] when you've finished editing"))))
 
 ;;;###autoload
 (defun read-string-from-buffer (prompt string)
   "Switch to a new buffer to edit STRING in a recursive edit.
 The user finishes editing with \\<string-edit-mode-map>\\[string-edit-done], or aborts with \\<string-edit-mode-map>\\[string-edit-abort]).
 
-PROMPT will be inserted at the start of the buffer, but won't be
-included in the resulting string.  If nil, no prompt will be
-inserted in the buffer.
+Insert PROMPT at the start of the buffer.  If nil, no prompt is
+inserted.
 
-When the user exits recursive edit, this function returns the
-edited STRING.
+When the user exits recursive edit, return the contents of the
+buffer (without including PROMPT).
 
 Also see `string-edit'."
   (string-edit
@@ -108,11 +114,16 @@ Also see `string-edit'."
   (recursive-edit)
   string)
 
-(defvar-keymap string-edit-mode-map
+(defvar-keymap string-edit-minor-mode-map
   "C-c C-c" #'string-edit-done
   "C-c C-k" #'string-edit-abort)
 
-(define-derived-mode string-edit-mode text-mode "String"
+(define-minor-mode string-edit-minor-mode
+  "Minor mode for editing strings"
+  :lighter "String"
+  :interactive nil)
+
+(define-derived-mode string-edit-mode text-mode "Text"
   "Mode for editing strings."
   :interactive nil)
 
@@ -120,13 +131,16 @@ Also see `string-edit'."
   "Finish editing the string and call the callback function.
 This will kill the current buffer."
   (interactive)
-  (goto-char (point-min))
-  ;; Skip past the help text.
-  (text-property-search-forward 'string-edit--prompt)
-  (let ((string (buffer-substring (point) (point-max)))
-        (callback string-edit--success-callback))
+  (let* ((string
+          (save-excursion
+            (goto-char (point-min))
+            ;; Skip past the help text.
+            (text-property-search-forward 'string-edit--prompt)
+            (buffer-substring (point) (point-max))))
+         (valid (funcall (or string-edit--read #'identity) string))
+         (callback string-edit--success-callback))
     (quit-window 'kill)
-    (funcall callback string)))
+    (funcall callback valid)))
 
 (defun string-edit-abort ()
   "Abort editing the current string."

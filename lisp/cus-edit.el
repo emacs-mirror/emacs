@@ -5919,7 +5919,9 @@ This stores EXP (without evaluating it) as the saved spec for SYMBOL."
 (defvar-local custom-dirlocals-file-widget nil
   "Widget that holds the name of the dir-locals file being customized.")
 
-(defvar-keymap custom-dirlocals-map
+(define-obsolete-variable-alias 'custom-dirlocals-map
+  'Custom-dirlocals-mode-map "31.1")
+(defvar-keymap Custom-dirlocals-mode-map
   :doc "Keymap used in the \"*Customize Dirlocals*\" buffer."
   :full t
   :parent widget-keymap
@@ -5951,7 +5953,7 @@ This stores EXP (without evaluating it) as the saved spec for SYMBOL."
 See `custom-commands' for further explanation.")
 
 (easy-menu-define
-  Custom-dirlocals-menu (list custom-dirlocals-map
+  Custom-dirlocals-menu (list Custom-dirlocals-mode-map
                               custom-dirlocals-field-map)
   "Menu used in dirlocals customization buffers."
   (nconc (list "Custom"
@@ -6062,31 +6064,45 @@ Moves point into the widget that holds the value."
   (custom--initialize-widget-variables)
   (add-hook 'widget-forward-hook #'custom-dirlocals-maybe-update-cons nil t))
 
+(define-derived-mode Custom-dirlocals-mode nil "Custom dirlocals"
+  "Major mode for customizing Directory Local Variables in current directory."
+  (custom-dirlocals--set-widget-vars)
+  (setq-local text-conversion-style 'action)
+  (setq-local touch-screen-keyboard-function
+              #'Custom-display-on-screen-keyboard-p)
+  (setq-local revert-buffer-function #'Custom-dirlocals-revert-buffer)
+  (setq-local tool-bar-map
+              (or custom-dirlocals-tool-bar-map
+                  ;; Set up `custom-dirlocals-tool-bar-map'.
+                  (let ((map (make-sparse-keymap)))
+                    (mapc
+                     (lambda (arg)
+                       (tool-bar-local-item-from-menu
+                        (nth 1 arg) (nth 4 arg) map Custom-dirlocals-mode-map
+                        :label (nth 5 arg)))
+                     custom-dirlocals-commands)
+                    (setq custom-dirlocals-tool-bar-map map))))
+  (run-mode-hooks 'Custom-mode-hook))
+
+;; As discussed in bug#77228, deriving from `Custom-mode' would
+;; include all the settings that are not necessary for
+;; `customize-dirlocals' and that can break it.
+;; FIXME: Introduce a `Custom-base-mode', which could be useful
+;; also for `gnus-custom-mode'.
+(derived-mode-add-parents 'Custom-dirlocals-mode '(Custom-mode))
+
 (defmacro custom-dirlocals-with-buffer (&rest body)
   "Arrange to execute BODY in a \"*Customize Dirlocals*\" buffer."
   ;; We don't use `custom-buffer-create' because the settings here
   ;; don't go into the `custom-file'.
   `(progn
      (switch-to-buffer "*Customize Dirlocals*")
-     (kill-all-local-variables)
+
      (let ((inhibit-read-only t))
        (erase-buffer))
      (remove-overlays)
-     (custom-dirlocals--set-widget-vars)
+     (Custom-dirlocals-mode)
      ,@body
-     (setq-local tool-bar-map
-                 (or custom-dirlocals-tool-bar-map
-                     ;; Set up `custom-dirlocals-tool-bar-map'.
-                     (let ((map (make-sparse-keymap)))
-                       (mapc
-                        (lambda (arg)
-                          (tool-bar-local-item-from-menu
-                           (nth 1 arg) (nth 4 arg) map custom-dirlocals-map
-                           :label (nth 5 arg)))
-                        custom-dirlocals-commands)
-                       (setq custom-dirlocals-tool-bar-map map))))
-     (setq-local revert-buffer-function #'Custom-dirlocals-revert-buffer)
-     (use-local-map custom-dirlocals-map)
      (widget-setup)))
 
 (defun custom-dirlocals-get-options ()

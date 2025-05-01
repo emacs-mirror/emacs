@@ -135,11 +135,11 @@ with the current prefix.  The files are chosen according to
   :version "26.3")
 
 (defcustom help-enable-variable-value-editing nil
-  "If non-nil, allow editing values in *Help* buffers.
+  "If non-nil, allow editing variable values in *Help* buffers.
 
 To edit the value of a variable, use \\[describe-variable] to
 display a \"*Help*\" buffer, move point after the text
-\"Its value is\" and type \\`e'.
+\"Its value is\" and type \\`e' to invoke `help-fns-edit-variable'.
 
 Values that aren't readable by the Emacs Lisp reader can't be
 edited even if this option is enabled."
@@ -875,20 +875,6 @@ the C sources, too."
              (function-get function 'disabled))
     (insert "  This function is disabled.\n")))
 
-(add-hook 'help-fns-describe-variable-functions #'help--recommend-setopt)
-(defun help--recommend-setopt (symbol)
-  ;; TODO: This would be better if added to the docstring itself, but I
-  ;;       ran into `byte-compile-dynamic-docstring' and gave up.
-  (when (and (get symbol 'custom-set)
-             ;; Don't override manually written documentation.
-             (not (string-match (rx word-start "setopt" word-end)
-                                (documentation-property
-                                 symbol 'variable-documentation))))
-    ;; FIXME: `princ` removes text properties added by s-c-k.
-    (princ (substitute-command-keys "\
-Setting this variable with `setq' has no effect; use either `setopt'
-or \\[customize-option] to change its value.\n\n"))))
-
 (defun help-fns--first-release-regexp (symbol)
   (let* ((name (symbol-name symbol))
          (quoted (regexp-quote name)))
@@ -1569,17 +1555,35 @@ it is displayed along with the global value."
 
 (put 'help-fns-edit-variable 'disabled t)
 (defun help-fns-edit-variable ()
-  "Edit the variable under point."
+  "Edit the variable value at point in \"*Help*\" buffer.
+This command only works if `help-enable-variable-value-editing' is non-nil.
+
+To edit the value of a variable, use \\[describe-variable] followed by the name
+of a variable, to display a \"*Help*\" buffer, move point to
+the variable's value, usually after the text \"Its value is\", and
+type \\`e' to invoke this command.
+
+Values that aren't readable by the Emacs Lisp reader can't be edited
+by this command."
   (declare (completion ignore))
   (interactive)
   (let ((var (get-text-property (point) 'help-fns--edit-variable)))
     (unless var
       (error "No variable under point"))
-    (let ((str (read-string-from-buffer
-                (format ";; Edit the `%s' variable." (nth 0 var))
-                (prin1-to-string (nth 1 var)))))
-      (set (nth 0 var) (read str))
-      (revert-buffer))))
+    (string-edit
+     (format ";; Edit the `%s' variable." (nth 0 var))
+     (prin1-to-string (nth 1 var))
+     (lambda (edited)
+       (set (nth 0 var) edited)
+       (exit-recursive-edit))
+     :abort-callback
+     (lambda ()
+       (exit-recursive-edit)
+       (error "Aborted edit, variable unchanged"))
+     :major-mode #'emacs-lisp-mode
+     :read #'read)
+    (recursive-edit)
+    (revert-buffer)))
 
 (autoload 'shortdoc-help-fns-examples-function "shortdoc")
 
@@ -1602,12 +1606,28 @@ it is displayed along with the global value."
 (defun help-fns--customize-variable (variable &optional text)
   ;; Make a link to customize if this variable can be customized.
   (when (custom-variable-p variable)
-    (let ((customize-label "customize"))
+    (let ((customize-label "customize")
+          (custom-set (get variable 'custom-set))
+          (opoint (with-current-buffer standard-output
+                    (point))))
       (princ (concat "  You can " customize-label (or text " this variable.")))
+      (when (and custom-set
+                 ;; Don't override manually written documentation.
+                 (not (string-match (rx word-start "setopt" word-end)
+                                    (documentation-property
+                                     variable 'variable-documentation))))
+        (princ (substitute-quotes
+                (concat "\n  Setting this variable directly with `setq' may not take effect;"
+                        "\n  use either customize or `setopt'"
+                        ;; Skip text if `custom-set' property is an
+                        ;; anonymous function.
+                        (when (symbolp custom-set)
+                          (concat ", or call `" (symbol-name custom-set) "'"))
+                        "."))))
       (with-current-buffer standard-output
 	(save-excursion
-          (re-search-backward (concat "\\(" customize-label "\\)"))
-	  (help-xref-button 1 'help-customize-variable variable)))
+          (while (re-search-backward (concat "\\(" customize-label "\\)") opoint t)
+	    (help-xref-button 1 'help-customize-variable variable))))
       (terpri))))
 
 (add-hook 'help-fns-describe-variable-functions
@@ -1965,7 +1985,8 @@ current buffer and the selected frame, respectively."
         (unless single
           ;; Don't record the `describe-variable' item in the stack.
           (setq help-xref-stack-item nil)
-          (help-setup-xref (list #'describe-symbol symbol) nil))
+          (let ((help-mode--current-data help-mode--current-data))
+            (help-setup-xref (list #'describe-symbol symbol) nil)))
         (goto-char (point-max))
         (help-xref--navigation-buttons)
         (goto-char (point-min))))))

@@ -346,7 +346,7 @@ json_out_string (json_out_t *jo, Lisp_Object str, int skip)
 {
   /* FIXME: this code is slow, make faster! */
 
-  static const char hexchar[16] = "0123456789ABCDEF";
+  static const char hexchar[16] ATTRIBUTE_NONSTRING = "0123456789ABCDEF";
   ptrdiff_t len = SBYTES (str);
   json_make_room (jo, len + 2);
   json_out_byte (jo, '"');
@@ -1612,7 +1612,7 @@ json_parse_object (struct json_parser *parser)
 	    hash_hash_t hash;
 	    Lisp_Object key = parser->object_workspace[i];
 	    Lisp_Object value = parser->object_workspace[i + 1];
-	    ptrdiff_t i = hash_lookup_get_hash (h, key, &hash);
+	    ptrdiff_t i = hash_find_get_hash (h, key, &hash);
 	    if (i < 0)
 	      hash_put (h, key, value, hash);
 	    else

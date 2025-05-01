@@ -66,15 +66,14 @@ typedef unsigned long int active_reg_t;
 
 /* The following bits are used to determine the regexp syntax we
    recognize.  The set/not-set meanings are chosen so that Emacs syntax
-   remains the value 0.  The bits are given in alphabetical order, and
-   the definitions shifted by one from the previous bit; thus, when we
-   add or remove a bit, only one other definition need change.  */
+   is the value 0 for Emacs 20 (2000) and earlier, and the value
+   RE_SYNTAX_EMACS for Emacs 21 (2001) and later.  */
 typedef unsigned long int reg_syntax_t;
 
 #ifdef __USE_GNU
 /* If this bit is not set, then \ inside a bracket expression is literal.
    If set, then such a \ quotes the following character.  */
-# define RE_BACKSLASH_ESCAPE_IN_LISTS ((unsigned long int) 1)
+# define RE_BACKSLASH_ESCAPE_IN_LISTS 1ul
 
 /* If this bit is not set, then + and ? are operators, and \+ and \? are
      literals.
@@ -215,7 +214,8 @@ extern reg_syntax_t re_syntax_options;
    (The [[[ comments delimit what gets put into the Texinfo file, so
    don't delete them!)  */
 /* [[[begin syntaxes]]] */
-# define RE_SYNTAX_EMACS 0
+# define RE_SYNTAX_EMACS						\
+  (RE_CHAR_CLASSES | RE_INTERVALS)
 
 # define RE_SYNTAX_AWK							\
   (RE_BACKSLASH_ESCAPE_IN_LISTS   | RE_DOT_NOT_NULL			\
@@ -522,20 +522,6 @@ typedef struct
 
 /* Declarations for routines.  */
 
-#ifndef _REGEX_NELTS
-# if (defined __STDC_VERSION__ && 199901L <= __STDC_VERSION__ \
-	&& !defined __STDC_NO_VLA__)
-#  define _REGEX_NELTS(n) n
-# else
-#  define _REGEX_NELTS(n)
-# endif
-#endif
-
-#if defined __GNUC__ && 4 < __GNUC__ + (6 <= __GNUC_MINOR__)
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wvla"
-#endif
-
 #ifndef _Attr_access_
 # ifdef __attr_access
 #  define _Attr_access_(arg) __attr_access (arg)
@@ -682,8 +668,7 @@ extern int regcomp (regex_t *_Restrict_ __preg,
 
 extern int regexec (const regex_t *_Restrict_ __preg,
 		    const char *_Restrict_ __String, size_t __nmatch,
-		    regmatch_t __pmatch[_Restrict_arr_
-					_REGEX_NELTS (__nmatch)],
+		    regmatch_t __pmatch[_Restrict_arr_],
 		    int __eflags);
 
 extern size_t regerror (int __errcode, const regex_t *_Restrict_ __preg,
@@ -691,10 +676,6 @@ extern size_t regerror (int __errcode, const regex_t *_Restrict_ __preg,
     _Attr_access_ ((__write_only__, 3, 4));
 
 extern void regfree (regex_t *__preg);
-
-#if defined __GNUC__ && 4 < __GNUC__ + (6 <= __GNUC_MINOR__)
-# pragma GCC diagnostic pop
-#endif
 
 #ifdef __cplusplus
 }

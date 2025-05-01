@@ -241,6 +241,8 @@ formatting them:
   there will be no individual ChangeLog entries beyond the one in the
   summary line.
 
+- If the commit message is a single-line, it should end with a period.
+
 - If the commit has more than one author, the commit message should
   contain separate lines to mention the other authors, like the
   following:

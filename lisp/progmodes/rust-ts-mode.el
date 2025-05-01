@@ -41,6 +41,13 @@
 (require 'c-ts-common) ; For comment indent and filling.
 (treesit-declare-unavailable-functions)
 
+(add-to-list
+ 'treesit-language-source-alist
+ `(rust "https://github.com/tree-sitter/tree-sitter-rust"
+        ,(when (treesit-available-p)
+           (if (< (treesit-library-abi-version) 15) "v0.23.2" "v0.24.0")))
+ t)
+
 (defcustom rust-ts-mode-indent-offset 4
   "Number of spaces for each indentation step in `rust-ts-mode'."
   :version "29.1"
@@ -545,7 +552,7 @@ See `prettify-symbols-compose-predicate'."
   :group 'rust
   :syntax-table rust-ts-mode--syntax-table
 
-  (when (treesit-ready-p 'rust)
+  (when (treesit-ensure-installed 'rust)
     (setq treesit-primary-parser (treesit-parser-create 'rust))
 
     ;; Syntax.
@@ -578,6 +585,16 @@ See `prettify-symbols-compose-predicate'."
                   ("Struct" "\\`struct_item\\'" nil nil)
                   ("Fn" "\\`function_item\\'" nil nil)))
 
+    ;; Outline.
+    (setq-local treesit-outline-predicate
+                (rx bos (or "mod_item"
+                            "enum_item"
+                            "impl_item"
+                            "type_item"
+                            "struct_item"
+                            "function_item"
+                            "trait_item")
+                    eos))
     ;; Indent.
     (setq-local indent-tabs-mode nil
                 treesit-simple-indent-rules rust-ts-mode--indent-rules)

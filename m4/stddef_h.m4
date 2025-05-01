@@ -1,5 +1,5 @@
 # stddef_h.m4
-# serial 17
+# serial 19
 dnl Copyright (C) 2009-2025 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -90,24 +90,25 @@ AC_DEFUN_ONCE([gl_STDDEF_H],
     GL_GENERATE_STDDEF_H=true
   fi
 
-  AC_CACHE_CHECK([for clean definition of __STDC_VERSION_STDDEF_H__],
-    [gl_cv_clean_version_stddef],
-    [AC_PREPROC_IFELSE(
-       [AC_LANG_SOURCE(
-          [[/* https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114870 */
-            #include <stddef.h>
-            #undef __STDC_VERSION_STDDEF_H__
-            #include <time.h>
-            #ifdef __STDC_VERSION_STDDEF_H__
-            # error "<time.h> defines __STDC_VERSION_STDDEF_H__"
-            #endif
-          ]])],
-        [gl_cv_clean_version_stddef=yes],
-        [gl_cv_clean_version_stddef=no])])
-  if test "$gl_cv_clean_version_stddef" = no; then
-    STDDEF_NOT_IDEMPOTENT=1
-    GL_GENERATE_STDDEF_H=true
-  fi
+  dnl https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114870
+  dnl affects GCC 13 and 14.
+  AC_CACHE_CHECK([whether <stddef.h> is idempotent],
+    [gl_cv_stddef_idempotent],
+    [AC_COMPILE_IFELSE([AC_LANG_SOURCE(
+       [[
+       #if __GNUC__ == 13 || __GNUC__ == 14
+        #error "bug 114870 is present"
+       #endif
+       ]])],
+       [gl_cv_stddef_idempotent="guessing yes"],
+       [gl_cv_stddef_idempotent="guessing no"])
+    ])
+  case "$gl_cv_stddef_idempotent" in
+    *yes) ;;
+    *) STDDEF_NOT_IDEMPOTENT=1
+       GL_GENERATE_STDDEF_H=true
+       ;;
+  esac
 
   if $GL_GENERATE_STDDEF_H; then
     gl_NEXT_HEADERS([stddef.h])

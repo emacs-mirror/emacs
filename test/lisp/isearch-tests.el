@@ -247,7 +247,29 @@
     (dolist (pos (append (reverse pairs) nil))
       (should (eq (car pos) (isearch-search-string "foo$" nil t)))
       (should (equal (match-string 0) "foo"))
-      (when (cdr pos) (should (eq (cdr pos) (match-end 0)))))))
+      (when (cdr pos) (should (eq (cdr pos) (match-end 0))))))
+
+  ;; With BOUND arg (bug#78116)
+  (goto-char (point-min))
+  (let ((isearch-forward t)
+        (isearch-regexp nil)
+        (pos (car pairs)))
+    (should (eq (cdr pos) (isearch-search-string "foo" (cdr pos) t)))
+    (should (eq nil (isearch-search-string "foo" (cdr pos) t)))
+    ;; Start on the text property inside boundaries
+    (forward-char -1)
+    (should (eq nil (isearch-search-string "foo" (cdr pos) t))))
+
+  ;; With BOUND arg (bug#78116)
+  (goto-char (point-max))
+  (let ((isearch-forward nil)
+        (isearch-regexp nil)
+        (pos (car (last pairs))))
+    (should (eq (car pos) (isearch-search-string "foo" (car pos) t)))
+    (should (eq nil (isearch-search-string "foo" (car pos) t)))
+    ;; Start on the text property inside boundaries
+    (forward-char 1)
+    (should (eq nil (isearch-search-string "foo" (car pos) t)))))
 
 (ert-deftest isearch--test-search-fun-in-text-property ()
   (let* ((pairs '((4 . 7) (11 . 14) (21 . 24)))

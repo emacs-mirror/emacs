@@ -115,6 +115,42 @@ typedef struct DWRITE_GLYPH_METRICS {
   INT32 verticalOriginY;
 } DWRITE_GLYPH_METRICS;
 
+typedef struct D2D1_POINT_2F {
+    float x;
+    float y;
+} D2D1_POINT_2F;
+
+typedef struct D2D1_BEZIER_SEGMENT {
+  D2D1_POINT_2F point1;
+  D2D1_POINT_2F point2;
+  D2D1_POINT_2F point3;
+} D2D1_BEZIER_SEGMENT;
+
+typedef enum D2D1_FILL_MODE {
+  D2D1_FILL_MODE_ALTERNATE   = 0,
+  D2D1_FILL_MODE_WINDING     = 1,
+  D2D1_FILL_MODE_FORCE_DWORD = 0xffffffff
+} D2D1_FILL_MODE;
+
+typedef enum D2D1_PATH_SEGMENT {
+  D2D1_PATH_SEGMENT_NONE                    = 0x00000000,
+  D2D1_PATH_SEGMENT_FORCE_UNSTROKED         = 0x00000001,
+  D2D1_PATH_SEGMENT_FORCE_ROUND_LINE_JOIN   = 0x00000002,
+  D2D1_PATH_SEGMENT_FORCE_DWORD             = 0xffffffff
+} D2D1_PATH_SEGMENT;
+
+typedef enum D2D1_FIGURE_BEGIN {
+  D2D1_FIGURE_BEGIN_FILLED      = 0,
+  D2D1_FIGURE_BEGIN_HOLLOW      = 1,
+  D2D1_FIGURE_BEGIN_FORCE_DWORD = 0xffffffff
+} D2D1_FIGURE_BEGIN;
+
+typedef enum D2D1_FIGURE_END {
+  D2D1_FIGURE_END_OPEN        = 0,
+  D2D1_FIGURE_END_CLOSED      = 1,
+  D2D1_FIGURE_END_FORCE_DWORD = 0xffffffff
+} D2D1_FIGURE_END;
+
 typedef interface IDWriteRenderingParams IDWriteRenderingParams;
 typedef interface IDWriteFont IDWriteFont;
 typedef interface IDWriteGdiInterop IDWriteGdiInterop;
@@ -124,6 +160,7 @@ typedef interface IDWriteFontFace IDWriteFontFace;
 typedef interface IDWriteBitmapRenderTarget IDWriteBitmapRenderTarget;
 typedef interface IDWriteBitmapRenderTarget1 IDWriteBitmapRenderTarget1;
 typedef interface IDWriteColorGlyphRunEnumerator IDWriteColorGlyphRunEnumerator;
+typedef interface ID2D1SimplifiedGeometrySink ID2D1SimplifiedGeometrySink;
 
 DEFINE_GUID (IID_IDWriteBitmapRenderTarget1, 0x791e8298, 0x3ef3, 0x4230, 0x98,
 	     0x80, 0xc9, 0xbd, 0xec, 0xc4, 0x20, 0x64);
@@ -192,7 +229,16 @@ typedef struct IDWriteFontFaceVtbl {
 
   EMACS_DWRITE_UNUSED (TryGetFontTable);
   EMACS_DWRITE_UNUSED (ReleaseFontTable);
-  EMACS_DWRITE_UNUSED (GetGlyphRunOutline);
+  HRESULT (STDMETHODCALLTYPE *GetGlyphRunOutline)
+    (IDWriteFontFace *This,
+     FLOAT emSize,
+     const UINT16 *glyph_indices,
+     const DWRITE_GLYPH_OFFSET *glyph_offsets,
+     const FLOAT *glyph_advances,
+     UINT32 glyph_count,
+     WINBOOL is_sideways,
+     WINBOOL is_right_to_left,
+     ID2D1SimplifiedGeometrySink *geometry_sink);
   EMACS_DWRITE_UNUSED (GetRecommendedRenderingMode);
   EMACS_DWRITE_UNUSED (GetGdiCompatibleMetrics);
 
@@ -470,8 +516,34 @@ typedef struct IDWriteFactory2Vtbl {
 interface IDWriteFactory2 {
   CONST_VTBL IDWriteFactory2Vtbl *lpVtbl;
 };
+
+typedef struct ID2D1SimplifiedGeometrySinkVtbl {
+  BEGIN_INTERFACE
+
+  HRESULT (STDMETHODCALLTYPE *QueryInterface)
+    (ID2D1SimplifiedGeometrySink *This, REFIID riid, void **ppvObject);
+  ULONG (STDMETHODCALLTYPE *AddRef) (ID2D1SimplifiedGeometrySink *This);
+  ULONG (STDMETHODCALLTYPE *Release) (ID2D1SimplifiedGeometrySink *This);
+
+    VOID (STDMETHODCALLTYPE *SetFillMode) (ID2D1SimplifiedGeometrySink *This, D2D1_FILL_MODE fillMode);
+    VOID (STDMETHODCALLTYPE *SetSegmentFlags) (ID2D1SimplifiedGeometrySink *This, D2D1_PATH_SEGMENT vertexFlags);
+    VOID (STDMETHODCALLTYPE *BeginFigure) (ID2D1SimplifiedGeometrySink *This, D2D1_POINT_2F startPoint, D2D1_FIGURE_BEGIN figureBegin);
+    VOID (STDMETHODCALLTYPE *AddLines) (ID2D1SimplifiedGeometrySink *This, const D2D1_POINT_2F *points, UINT pointsCount);
+    VOID (STDMETHODCALLTYPE *AddBeziers) (ID2D1SimplifiedGeometrySink *This, const D2D1_BEZIER_SEGMENT *beziers, UINT beziersCount);
+    VOID (STDMETHODCALLTYPE *EndFigure) (ID2D1SimplifiedGeometrySink *This, D2D1_FIGURE_END figureEnd);
+    HRESULT (STDMETHODCALLTYPE *Close) (ID2D1SimplifiedGeometrySink *This);
+  END_INTERFACE
+} ID2D1SimplifiedGeometrySinkVtbl;
+
+interface ID2D1SimplifiedGeometrySink {
+    const ID2D1SimplifiedGeometrySinkVtbl *lpVtbl;
+};
+
+typedef ID2D1SimplifiedGeometrySink IDWriteGeometrySink;
+
 #else /* MINGW_W64 */
 # include <dwrite_3.h>
+# include <d2d1.h>
 #endif
 
 /* User configurable variables.  If they are smaller than 0, use
@@ -498,12 +570,127 @@ release_com (IUnknown **i)
 
 #define RELEASE_COM(i) release_com ((IUnknown **) &i)
 
+/* Implementation of IDWriteGeometrySink, used to the get bounding
+   vertical coordinates of glyphs (ascent/descent).  The methods that
+   affect the bounding box are BeginFigure (which gives a start point),
+   AddBeziers and AddLines.
+
+   Normal procedures to get text extents fail to give correct
+   ascent/descent metrics for individual glyphs, using a default value
+   for an entire font.  That is not acceptable, specially for fonts like
+   "Sans Serif Collection", which include glyphs for many different
+   scripts and have a huge default value.
+
+   Because of that, we need to use the GetGlyphRunOutline and examine
+   the glyph's geometry.
+*/
+
+struct geometry_sink
+{
+  IDWriteGeometrySink sink;
+  int empty;
+  float min_y, max_y;
+};
+
+static HRESULT STDMETHODCALLTYPE
+geometry_sink_QueryInterface (IUnknown *This, REFIID ri, void **r)
+{
+  return E_NOINTERFACE;
+}
+
+/* There is nothing to allocate of free heres, so we can safely skip ref counting.  */
+static ULONG STDMETHODCALLTYPE
+geometry_sink_AddRef (IUnknown *This)
+{
+  return 1;
+}
+
+static ULONG STDMETHODCALLTYPE
+geometry_sink_Release (IUnknown *This)
+{
+  return 1;
+}
+
+static void STDMETHODCALLTYPE
+geometry_sink_AddBeziers (IDWriteGeometrySink *This,
+			  const D2D1_BEZIER_SEGMENT *beziers, UINT32 count)
+{
+  struct geometry_sink *sink = (struct geometry_sink *) This;
+  for (UINT32 i = 0; i < count; i++)
+    {
+      if (sink->min_y > beziers[i].point1.y)
+	sink->min_y = beziers[i].point1.y;
+      if (sink->max_y < beziers[i].point1.y)
+	sink->max_y = beziers[i].point1.y;
+      if (sink->min_y > beziers[i].point2.y)
+	sink->min_y = beziers[i].point2.y;
+      if (sink->max_y < beziers[i].point2.y)
+	sink->max_y = beziers[i].point2.y;
+      if (sink->min_y > beziers[i].point3.y)
+	sink->min_y = beziers[i].point3.y;
+      if (sink->max_y < beziers[i].point3.y)
+	sink->max_y = beziers[i].point3.y;
+    }
+}
+
+static void STDMETHODCALLTYPE
+geometry_sink_AddLines (IDWriteGeometrySink *This,
+			const D2D1_POINT_2F *points, UINT32 count)
+{
+  struct geometry_sink *sink = (struct geometry_sink *) This;
+  for (UINT32 i = 0; i < count; i++)
+    {
+      if (sink->min_y > points[i].y)
+	sink->min_y = points[i].y;
+      if (sink->max_y < points[i].y)
+	sink->max_y = points[i].y;
+    }
+}
+
+static void STDMETHODCALLTYPE
+geometry_sink_BeginFigure (IDWriteGeometrySink *This,
+			   D2D1_POINT_2F startPoint,
+			   D2D1_FIGURE_BEGIN figureBegin)
+{
+  struct geometry_sink *sink = (struct geometry_sink *) This;
+  if (sink->min_y > startPoint.y)
+    sink->min_y = startPoint.y;
+  if (sink->max_y < startPoint.y)
+    sink->max_y = startPoint.y;
+  sink->empty = 0;
+}
+
+static void STDMETHODCALLTYPE
+geometry_sink_EndFigure (IDWriteGeometrySink *This, D2D1_FIGURE_END figureEnd)
+{
+}
+
+static HRESULT STDMETHODCALLTYPE
+geometry_sink_Close (IDWriteGeometrySink *This)
+{
+  return S_OK;
+}
+
+static void STDMETHODCALLTYPE
+geometry_sink_SetFillMode (IDWriteGeometrySink *This,
+			   D2D1_FILL_MODE fillMode)
+{
+}
+
+static void STDMETHODCALLTYPE
+geometry_sink_SetSegmentFlags (IDWriteGeometrySink *This,
+			       D2D1_PATH_SEGMENT vertexFlags)
+{
+}
+
 /* Global variables for DirectWrite.  */
 static bool direct_write_available = false;
 static IDWriteFactory *dwrite_factory = NULL;
 static IDWriteFactory2 *dwrite_factory2 = NULL;
 static IDWriteGdiInterop *gdi_interop = NULL;
 static IDWriteRenderingParams *rendering_params = NULL;
+static struct geometry_sink dwrite_geometry_sink;
+static ID2D1SimplifiedGeometrySinkVtbl dwrite_geometry_sink_vtbl;
 
 static bool
 verify_hr (HRESULT hr, const char *msg)
@@ -580,9 +767,14 @@ convert_metrics_sz (int sz, float font_size, int units_per_em)
   return (float) sz * font_size / units_per_em;
 }
 
-/* Does not fill in the ascent and descent fields of metrics.  */
+
+/* If the caller does not need ascent/descent information, it should pass
+   NEED_ASCENT_DESCENT = false.  This is used to avoid the overhead of
+   calling GetGlyphRunOutline.  */
+
 static bool
 text_extents_internal (IDWriteFontFace *dwrite_font_face,
+		       bool need_ascent_descent,
 		       float font_size, const unsigned *code,
 		       int nglyphs, struct font_metrics *metrics)
 {
@@ -652,6 +844,39 @@ text_extents_internal (IDWriteFontFace *dwrite_font_face,
 	metrics->rbearing = rbearing;
     }
   metrics->width = round (width);
+
+  if (need_ascent_descent)
+    {
+      dwrite_geometry_sink.min_y = FLT_MAX;
+      dwrite_geometry_sink.max_y = -FLT_MAX;
+      dwrite_geometry_sink.empty = 1;
+
+      hr = dwrite_font_face->lpVtbl->GetGlyphRunOutline (dwrite_font_face,
+							 font_size,
+							 indices,
+							 NULL,
+							 NULL,
+							 nglyphs,
+							 FALSE,
+							 FALSE,
+							 &dwrite_geometry_sink.sink);
+
+      if (!verify_hr (hr, "Failed to GetGlyhRunOutline"))
+	{
+	  SAFE_FREE ();
+	  return false;
+	}
+
+      if (dwrite_geometry_sink.empty)
+	{
+	  dwrite_geometry_sink.min_y = 0;
+	  dwrite_geometry_sink.max_y = 0;
+	}
+
+      metrics->ascent = (int) round (-dwrite_geometry_sink.min_y);
+      metrics->descent = (int) round (dwrite_geometry_sink.max_y);
+    }
+
   SAFE_FREE ();
   return true;
 }
@@ -697,7 +922,8 @@ w32_dwrite_text_extents (struct font *font, const unsigned *code, int nglyphs,
   metrics->ascent = font->ascent;
   metrics->descent = font->descent;
 
-  return text_extents_internal (dwrite_font_face, font_size, code, nglyphs,
+  return text_extents_internal (dwrite_font_face, true,
+				font_size, code, nglyphs,
 				metrics);
 }
 
@@ -871,8 +1097,29 @@ w32_initialize_direct_write (void)
       return;
     }
 
-  direct_write_available = true;
+  dwrite_geometry_sink.sink.lpVtbl = &dwrite_geometry_sink_vtbl;
 
+#ifdef MINGW_W64
+  dwrite_geometry_sink_vtbl.Base.AddRef = geometry_sink_AddRef;
+  dwrite_geometry_sink_vtbl.Base.Release = geometry_sink_Release;
+  dwrite_geometry_sink_vtbl.Base.QueryInterface =
+    geometry_sink_QueryInterface;
+#else
+  dwrite_geometry_sink_vtbl.AddRef = (void *) geometry_sink_AddRef;
+  dwrite_geometry_sink_vtbl.Release = (void *) geometry_sink_Release;
+  dwrite_geometry_sink_vtbl.QueryInterface
+    = (void *) geometry_sink_QueryInterface;
+#endif
+
+  dwrite_geometry_sink_vtbl.AddBeziers = geometry_sink_AddBeziers;
+  dwrite_geometry_sink_vtbl.AddLines = geometry_sink_AddLines;
+  dwrite_geometry_sink_vtbl.BeginFigure = geometry_sink_BeginFigure;
+  dwrite_geometry_sink_vtbl.EndFigure = geometry_sink_EndFigure;
+  dwrite_geometry_sink_vtbl.Close = geometry_sink_Close;
+  dwrite_geometry_sink_vtbl.SetFillMode = geometry_sink_SetFillMode;
+  dwrite_geometry_sink_vtbl.SetSegmentFlags = geometry_sink_SetSegmentFlags;
+
+  direct_write_available = true;
   w32_inhibit_dwrite = false;
 }
 
@@ -896,7 +1143,7 @@ w32_dwrite_draw (HDC hdc, int x, int y, unsigned *glyphs, int len,
     return false;
 
   struct font_metrics metrics;
-  if (!text_extents_internal (dwrite_font_face, font_size, glyphs, len,
+  if (!text_extents_internal (dwrite_font_face, false, font_size, glyphs, len,
 			      &metrics))
     {
       uniscribe_font->dwrite_skip_font = true;
@@ -935,7 +1182,7 @@ w32_dwrite_draw (HDC hdc, int x, int y, unsigned *glyphs, int len,
 
   for (int i = 0; i < len; i++)
     {
-      if (!text_extents_internal (dwrite_font_face, font_size, glyphs + i, 1,
+      if (!text_extents_internal (dwrite_font_face, false, font_size, glyphs + i, 1,
 				  &metrics))
 	{
 	  uniscribe_font->dwrite_skip_font = true;

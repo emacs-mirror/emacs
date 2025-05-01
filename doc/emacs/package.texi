@@ -654,7 +654,13 @@ maintainer, you can use the command @code{package-report-bug} to
 report a bug via Email.  This report will include all the user options
 that you have customized.  If you have made a change you wish to share
 with the maintainers, first commit your changes then use the command
-@code{package-vc-prepare-patch} to share it.  @xref{Preparing Patches}.
+@code{package-vc-prepare-patch} to share it.
+@iftex
+@xref{Preparing Patches,,,emacs-xtra, Specialized Emacs Features}.
+@end iftex
+@ifnottex
+@xref{Preparing Patches}.
+@end ifnottex
 
 @findex package-vc-install-from-checkout
 @findex package-vc-rebuild

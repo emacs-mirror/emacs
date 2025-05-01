@@ -149,7 +149,6 @@ HOSTS can be a string or a list of strings."
 
 (defvar auth-source-pass-backend
   (auth-source-backend
-   (when (<= emacs-major-version 25) "password-store")
    :source "." ;; not used
    :type 'password-store
    :search-function #'auth-source-pass-search)

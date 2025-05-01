@@ -176,6 +176,9 @@ also call that function before the next warning.")
   "Format for displaying the warning type in the warning message.
 The result of formatting the type this way gets included in the
 message under the control of the string in `warning-levels'.")
+;;;###autoload
+(defvar warning-inhibit-types nil
+  "Like `warning-suppress-log-types', but intended for programs to let-bind.")
 
 (defun warning-numeric-level (level)
   "Return a numeric measure of the warning severity level LEVEL."
@@ -277,9 +280,10 @@ disable automatic display of the warning or disable the warning
 entirely by setting `warning-suppress-types' or
 `warning-suppress-log-types' on their behalf."
   (if (not (or after-init-time noninteractive (daemonp)))
-      ;; Ensure warnings that happen early in the startup sequence
-      ;; are visible when startup completes (bug#20792).
-      (delay-warning type message level buffer-name)
+      (or (warning-suppress-p type warning-inhibit-types)
+          ;; Ensure warnings that happen early in the startup sequence
+          ;; are visible when startup completes (bug#20792).
+          (delay-warning type message level buffer-name))
     (unless level
       (setq level :warning))
     (unless buffer-name
@@ -290,6 +294,7 @@ entirely by setting `warning-suppress-types' or
         (setq level new)))
     (or (< (warning-numeric-level level)
 	   (warning-numeric-level warning-minimum-log-level))
+        (warning-suppress-p type warning-inhibit-types)
 	(warning-suppress-p type warning-suppress-log-types)
 	(let* ((typename (if (consp type) (car type) type))
 	       (old (get-buffer buffer-name))

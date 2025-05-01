@@ -244,6 +244,8 @@
 	(lydian #x10920)
 	(kharoshthi #x10A00)
 	(manichaean #x10AC0)
+	(avestan #x10B00)
+	(old-turkic #x10C00 #x10C01)
 	(hanifi-rohingya #x10D00 #x10D24 #x10D39)
         (garay #x10D50 #x10D70 #x10D4A #x10D41)
 	(yezidi #x10E80)
@@ -254,6 +256,7 @@
 	(old-uyghur #x10F70)
         (brahmi #x11013 #x11045 #x11052 #x11065)
         (kaithi #x1108D #x110B0 #x110BD)
+        (chakma #x11103 #x11127)
 	(mahajani #x11150)
         (sharada #x11191 #x111B3 #x111CD)
 	(khojki #x11200)
@@ -846,11 +849,13 @@
                     yezidi
 		    kharoshthi
 		    manichaean
+		    avestan
                     chorasmian
 		    elymaic
                     old-uyghur
                     brahmi
                     kaithi
+                    chakma
                     sharada
                     grantha
                     tirhuta
@@ -871,6 +876,7 @@
                     mahajani
                     sogdian
                     old-sogdian
+                    old-turkic
                     nabataean
                     palmyrene
                     linear-a

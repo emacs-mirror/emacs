@@ -35,6 +35,11 @@
 (declare-function treesit-node-type "treesit.c")
 (declare-function treesit-node-child-by-field-name "treesit.c")
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(yaml "https://github.com/tree-sitter-grammars/tree-sitter-yaml" "v0.7.0")
+ t)
+
 (defvar yaml-ts-mode--syntax-table
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?#  "<"  table)
@@ -129,18 +134,21 @@ boundaries.  JUSTIFY is passed to `fill-paragraph'."
   (save-restriction
     (widen)
     (let ((node (treesit-node-at (point))))
-      (if (member (treesit-node-type node) '("block_scalar" "comment"))
-        (let* ((start (treesit-node-start node))
-               (end (treesit-node-end node))
-               (start-marker (point-marker))
-               (fill-paragraph-function nil))
-          (save-excursion
-            (goto-char start)
-            (forward-line)
-            (move-marker start-marker (point))
-            (narrow-to-region (point) end))
-          (fill-region start-marker end justify))
-        t))))
+      (pcase (treesit-node-type node)
+        ("block_scalar"
+         (let* ((start (treesit-node-start node))
+                (end (treesit-node-end node))
+                (start-marker (point-marker))
+                (fill-paragraph-function nil))
+           (save-excursion
+             (goto-char start)
+             (forward-line)
+             (move-marker start-marker (point))
+             (narrow-to-region (point) end))
+           (fill-region start-marker end justify)))
+        ("comment"
+         (fill-comment-paragraph justify))))
+    t))
 
 (defun yaml-ts-mode--defun-name (node)
   "Return the defun name of NODE.
@@ -162,12 +170,13 @@ Return nil if there is no name or if NODE is not a defun node."
   :group 'yaml
   :syntax-table yaml-ts-mode--syntax-table
 
-  (when (treesit-ready-p 'yaml)
+  (when (treesit-ensure-installed 'yaml)
     (setq treesit-primary-parser (treesit-parser-create 'yaml))
 
     ;; Comments.
     (setq-local comment-start "# ")
     (setq-local comment-end "")
+    (setq-local comment-start-skip "#+\\s-*")
 
     ;; Indentation.
     (setq-local indent-tabs-mode nil)

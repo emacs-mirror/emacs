@@ -72,6 +72,9 @@ Section
 
   # add registry key to enable uninstall from control panel
   WriteRegStr HKLM "${UNINST_KEY}" "DisplayName" "GNU Emacs ${VERSION_BRANCH}"
+  WriteRegStr HKLM "${UNINST_KEY}" "DisplayIcon" "$\"$UninstallerPath$\""
+  WriteRegStr HKLM "${UNINST_KEY}" "DisplayVersion" "${VERSION_BRANCH}"
+  WriteRegStr HKLM "${UNINST_KEY}" "Publisher" "Free Software Foundation, Inc."
   WriteRegStr HKLM "${UNINST_KEY}" "UninstallString" "$\"$UninstallerPath$\""
 
   ;Create shortcuts

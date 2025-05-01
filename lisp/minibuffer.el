@@ -3504,13 +3504,66 @@ same as `substitute-in-file-name'."
           (setq qpos (1- qpos)))
         (cons qpos #'minibuffer-maybe-quote-filename)))))
 
-(defalias 'completion--file-name-table
-  (completion-table-with-quoting #'completion-file-name-table
-                                 #'substitute-in-file-name
-                                 #'completion--sifn-requote)
+(defun completion--sifn-boundaries (string table pred suffix)
+  "Return completion boundaries on file name STRING.
+
+Runs `substitute-in-file-name' on STRING first, but returns completion
+boundaries for the original string."
+  ;; We want to compute the start boundary on the result of
+  ;; `substitute-in-file-name' (since that's what we use for actual completion),
+  ;; and then transform that into an offset in STRING instead.  We can't do this
+  ;; if we expand environment variables, so double the $s to prevent that.
+  (let* ((doubled-string (replace-regexp-in-string "\\$" "$$" string t t))
+         ;; sifn will change $$ back into $, so the result is a suffix of STRING
+         ;; (in fact, it's the last absolute file name in STRING).
+         (last-file-name (substitute-in-file-name doubled-string))
+         (bounds (completion-boundaries last-file-name table pred suffix)))
+    (cl-assert (string-suffix-p last-file-name string) t)
+    ;; BOUNDS contains the start boundary in LAST-FILE-NAME; adjust it to be an
+    ;; offset in STRING instead.
+    (cons (+ (- (length string) (length last-file-name)) (car bounds))
+          ;; No special processing happens on SUFFIX and the end boundary.
+          (cdr bounds))))
+
+(defun completion--file-name-table (orig pred action)
   "Internal subroutine for `read-file-name'.  Do not call this.
 This is a completion table for file names, like `completion-file-name-table'
-except that it passes the file name through `substitute-in-file-name'.")
+except that it passes the file name through `substitute-in-file-name'."
+  (let ((table #'completion-file-name-table))
+    (if (eq (car-safe action) 'boundaries)
+        (cons 'boundaries (completion--sifn-boundaries orig table pred (cdr action)))
+      (let* ((sifned (substitute-in-file-name orig))
+             (result
+              (let ((completion-regexp-list
+                     ;; Regexps are matched against the real file names after
+                     ;; expansion, so regexps containing $ won't work.  Drop
+                     ;; them; we'll return more completions, but callers need to
+                     ;; handle that anyway.
+                     (seq-remove (lambda (regexp) (string-search "$" regexp))
+                                 completion-regexp-list)))
+                (complete-with-action action table sifned pred))))
+        (cond
+         ((null action)                 ; try-completion
+          (if (stringp result)
+              ;; Extract the newly added text, quote any dollar signs, and
+              ;; append it to ORIG.
+              (let ((new-text (substring result (length sifned))))
+                (concat orig (minibuffer--double-dollars new-text)))
+            result))
+         ((eq action t)                 ; all-completions
+          (mapcar
+           (let ((orig-prefix
+                  (substring orig (car (completion--sifn-boundaries orig table pred ""))))
+                 (sifned-prefix-length
+                  (- (length sifned)
+                     (car (completion-boundaries sifned table pred "")))))
+             ;; Extract the newly added text, quote any dollar signs, and append
+             ;; it to the part of ORIG inside the completion boundaries.
+             (lambda (compl)
+               (let ((new-text (substring compl sifned-prefix-length)))
+                 (concat orig-prefix (minibuffer--double-dollars new-text)))))
+           result))
+         (t result))))))
 
 (defalias 'read-file-name-internal
   (completion-table-in-turn #'completion--embedded-envvar-table
@@ -3585,7 +3638,7 @@ like the `beginning-of-buffer' command."
 
 (defun read-file-name (prompt &optional dir default-filename mustmatch initial predicate)
   "Read a file name, prompting with PROMPT and completing in directory DIR.
-Retrun the file name as a string.
+Return the file name as a string.
 The return value is not expanded---you must call `expand-file-name'
 yourself.
 
@@ -4500,12 +4553,17 @@ the same set of elements."
       ;; Then for each of those non-constant elements, extract the
       ;; commonality between them.
       (let ((res ())
-            (fixed ""))
+            (fixed "")
+            ;; Accumulate each stretch of wildcards, and process them as a unit.
+            (wildcards ()))
         ;; Make the implicit trailing `any' explicit.
         (dolist (elem (append pattern '(any)))
           (if (stringp elem)
-              (setq fixed (concat fixed elem))
+              (progn
+                (setq fixed (concat fixed elem))
+                (setq wildcards nil))
             (let ((comps ()))
+              (push elem wildcards)
               (dolist (cc (prog1 ccs (setq ccs nil)))
                 (push (car cc) comps)
                 (push (cdr cc) ccs))
@@ -4529,14 +4587,16 @@ the same set of elements."
                     (push prefix res)
                   ;; `prefix' only wants to include the fixed part before the
                   ;; wildcard, not the result of growing that fixed part.
-                  (when (eq elem 'prefix)
+                  (when (seq-some (lambda (elem) (eq elem 'prefix)) wildcards)
                     (setq prefix fixed))
                   (push prefix res)
-                  (push elem res)
+                  ;; Push all the wildcards in this stretch, to preserve `point' and
+                  ;; `star' wildcards before ELEM.
+                  (setq res (append wildcards res))
                   ;; Extract common suffix additionally to common prefix.
                   ;; Don't do it for `any' since it could lead to a merged
                   ;; completion that doesn't itself match the candidates.
-                  (when (and (memq elem '(star point prefix))
+                  (when (and (seq-some (lambda (elem) (memq elem '(star point prefix))) wildcards)
                              ;; If prefix is one of the completions, there's no
                              ;; suffix left to find.
                              (not (assoc-string prefix comps t)))
@@ -4550,7 +4610,9 @@ the same set of elements."
                                         comps))))))
                       (cl-assert (stringp suffix))
                       (unless (equal suffix "")
-                        (push suffix res)))))
+                        (push suffix res))))
+                  ;; We pushed these wildcards on RES, so we're done with them.
+                  (setq wildcards nil))
                 (setq fixed "")))))
         ;; We return it in reverse order.
         res)))))

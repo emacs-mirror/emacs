@@ -3408,6 +3408,15 @@ This function is intended for use in `after-change-functions'."
 
 ;;; Tree sitter integration
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(javascript "https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.1")
+ t)
+(add-to-list
+ 'treesit-language-source-alist
+ '(jsdoc "https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.23.2")
+ t)
+
 (defun js--treesit-font-lock-compatibility-definition-feature ()
   "Font lock helper, to handle different releases of tree-sitter-javascript.
 Check if a node type is available, then return the right font lock rules
@@ -3440,25 +3449,86 @@ Check if a node type is available, then return the right indent rules."
      `(((match "<" "jsx_text") parent 0)
        ((parent-is "jsx_text") parent js-indent-level)))))
 
+(defun js--treesit-switch-body-helper (_node parent _bol &rest _args)
+  "Anchor helper for the switch body..
+If \"{\" is on a newline return the PARENT bol plus an offset,
+otherwise return the usual `parent-bol' value.  If `js-switch-indent-offset' > 0
+this is the offset, otherwise is `js-indent-level'."
+  (save-excursion
+    (goto-char (treesit-node-start parent))
+    (back-to-indentation)
+    (if (not (eq ?{ (char-after)))
+        (+ (point) js-switch-indent-offset)
+      (let ((offset ; offset relative to "{"
+             (if (= js-switch-indent-offset 0)
+                 js-indent-level
+               js-switch-indent-offset))
+            (pos ; position relative to the "statement_block"
+             (treesit-node-start
+              (treesit-node-parent
+               parent))))
+        (+ pos offset)))))
+
+(defun js--treesit-member-chained-expression-helper (_node parent _bol &rest _args)
+  "Anchor helper for member chained expressions.
+Returns a position relative to PARENT context and the value of
+`js-chain-indent'.
+See `js-chain-indent' and `js--chained-expression-p'."
+  (let ((parent-start (treesit-node-start parent)))
+    (if (not js-chain-indent)
+	(if-let* ((ancestor-node
+		   (treesit-parent-until
+		    parent
+		    "variable_declarator")))
+	    (treesit-node-start ancestor-node)
+	  (save-excursion
+	    (goto-char parent-start)
+	    (back-to-indentation)
+	    (if (eq parent-start (point))
+		(+ parent-start js-indent-level)
+	      parent-start)))
+      (save-excursion
+        (goto-char parent-start)
+        (let ((pos (search-forward "." (pos-eol) t 1)))
+          (if (and pos (> pos 0))
+              (- pos 1)
+            parent-start))))))
+
+(defun js--treesit-arrow-function-helper (node parent bol &rest args)
+  "Anchor helper for arrow_function, return a position based on context.
+If and arrow function has a variable_declarator ancestor, returns the
+same value of `grand-parent' otherwise return `parent-bol' plus
+`js-indent-level'.
+PARENT is NODE's parent, BOL is the beginning of non-whitespace
+characters of the current line."
+  (if-let* ((ancestor-node
+	     (treesit-parent-until
+	      parent
+	      "variable_declarator")))
+      (apply (alist-get 'grand-parent treesit-simple-indent-presets)
+             node parent bol args)
+    (+ (apply (alist-get 'parent-bol treesit-simple-indent-presets)
+              node parent bol args)
+       js-indent-level)))
+
 (defvar js--treesit-indent-rules
-  (let ((switch-case (rx "switch_" (or "case" "default"))))
     `((javascript
        ((parent-is "program") parent-bol 0)
-       ((node-is "}") parent-bol 0)
+       ((node-is "}") standalone-parent 0)
        ((node-is ")") parent-bol 0)
        ((node-is "]") parent-bol 0)
        ((node-is ">") parent-bol 0)
        ((and (parent-is "comment") c-ts-common-looking-at-star)
         c-ts-common-comment-start-after-first-star -1)
        ((parent-is "comment") prev-adaptive-prefix 0)
+       ((n-p-gp "identifier" "ternary_expression" "parenthesized_expression")
+	parent 0)
        ((parent-is "ternary_expression") parent-bol js-indent-level)
-       ((parent-is "member_expression") parent-bol js-indent-level)
-       ((node-is ,switch-case) parent-bol 0)
-       ;; "{" on the newline.
-       ((node-is "statement_block") parent-bol js-indent-level)
+       ((parent-is "sequence_expression") parent 0)
+       ((parent-is "member_expression") js--treesit-member-chained-expression-helper 0)
        ((parent-is "named_imports") parent-bol js-indent-level)
-       ((parent-is "statement_block") parent-bol js-indent-level)
-       ((parent-is "variable_declarator") parent-bol js-indent-level)
+       ((parent-is "statement_block") standalone-parent js-indent-level)
+       ((parent-is "variable_declarator") parent 0)
        ((parent-is "arguments") parent-bol js-indent-level)
        ((parent-is "array") parent-bol js-indent-level)
        ((parent-is "formal_parameters") parent-bol js-indent-level)
@@ -3467,12 +3537,16 @@ Check if a node type is available, then return the right indent rules."
        ((parent-is "object_pattern") parent-bol js-indent-level)
        ((parent-is "object") parent-bol js-indent-level)
        ((parent-is "pair") parent-bol js-indent-level)
-       ((parent-is "arrow_function") parent-bol js-indent-level)
+       ((parent-is "arrow_function") js--treesit-arrow-function-helper 0)
        ((parent-is "parenthesized_expression") parent-bol js-indent-level)
        ((parent-is "binary_expression") parent-bol js-indent-level)
+       ((parent-is "assignment_expression") parent-bol js-indent-level)
        ((parent-is "class_body") parent-bol js-indent-level)
-       ((parent-is ,switch-case) parent-bol js-indent-level)
-       ((parent-is "statement_block") parent-bol js-indent-level)
+       ;; "{" on the newline, should stay here.
+       ((node-is "statement_block") parent-bol 0)
+       ((parent-is "switch_statement") parent-bol 0)
+       ((parent-is "switch_body") js--treesit-switch-body-helper 0)
+       ((parent-is ,(rx "switch_" (or "case" "default"))) parent-bol js-indent-level)
        ((match "while" "do_statement") parent-bol 0)
        ((match "else" "if_statement") parent-bol 0)
        ((parent-is ,(rx (or (seq (or "if" "for" "for_in" "while" "do") "_statement")
@@ -3493,7 +3567,7 @@ Check if a node type is available, then return the right indent rules."
        (no-node parent-bol 0))
       (jsdoc
        ((and (parent-is "document") c-ts-common-looking-at-star)
-        c-ts-common-comment-start-after-first-star -1)))))
+        c-ts-common-comment-start-after-first-star -1))))
 
 (defvar js--treesit-keywords
   '("as" "async" "await" "break" "case" "catch" "class" "const" "continue"
@@ -3729,22 +3803,6 @@ Return nil if there is no name or if NODE is not a defun node."
                             "function_expression")
                     eos))))
     (_ t)))
-
-(defun js--treesit-language-at-point (point)
-  "Return the language at POINT."
-  (let* ((node (treesit-node-at point 'javascript))
-         (node-type (treesit-node-type node))
-         (node-start (treesit-node-start node))
-         (node-end (treesit-node-end node)))
-    (if (not (treesit-ready-p 'jsdoc t))
-        'javascript
-      (if (equal node-type "comment")
-          (save-excursion
-            (goto-char node-start)
-            (if (search-forward "/**" node-end t)
-                'jsdoc
-              'javascript))
-        'javascript))))
 
 ;;; Main Function
 
@@ -3987,7 +4045,7 @@ See `treesit-thing-settings' for more information.")
 \\<js-ts-mode-map>"
   :group 'js
   :syntax-table js-mode-syntax-table
-  (when (treesit-ready-p 'javascript)
+  (when (treesit-ensure-installed 'javascript)
     ;; Borrowed from `js-mode'.
     (setq-local prettify-symbols-alist js--prettify-symbols-alist)
     (setq-local parse-sexp-ignore-comments t)
@@ -4006,7 +4064,6 @@ See `treesit-thing-settings' for more information.")
 
     ;; Tree-sitter setup.
     (setq-local treesit-primary-parser (treesit-parser-create 'javascript))
-    (setq-local treesit-language-at-point-function #'js--treesit-language-at-point)
 
     ;; Indent.
     (setq-local treesit-simple-indent-rules js--treesit-indent-rules)
@@ -4019,7 +4076,7 @@ See `treesit-thing-settings' for more information.")
     (setq-local treesit-font-lock-settings js--treesit-font-lock-settings)
     (setq-local treesit-font-lock-feature-list js--treesit-font-lock-feature-list)
 
-    (when (treesit-ready-p 'jsdoc t)
+    (when (treesit-ensure-installed 'jsdoc)
       (setq-local treesit-range-settings
                   (treesit-range-rules
                    :embed 'jsdoc

@@ -231,10 +231,10 @@ struct exec_jump_command
   /* The value of AT_BASE inside the aux vector.  */
   USER_WORD at_base;
 
-#if defined __mips__ && !defined MIPS_NABI
-  /* The FPU mode to apply.  */
+#if defined __mips__ && !defined __LP64__
+  /* The FPU mode to apply.  Not used when !MIPS_NABI.  */
   USER_WORD fpu_mode;
-#endif /* defined __mips__ && !defined MIPS_NABI */
+#endif /* defined __mips__ && !defined __LP64__ */
 };
 
 
@@ -831,7 +831,7 @@ insert_args (struct exec_tracee *tracee, USER_REGS_STRUCT *regs,
   assert (new3 == new + effective_size);
 
   /* And that it is properly aligned.  */
-  assert (!(new3 & (sizeof new3 - 2)));
+  assert (!(new3 & (sizeof new3 - 1)));
 
   /* Now modify the system call argument to point to new +
      text_size.  */
@@ -916,7 +916,9 @@ exec_0 (char *name, struct exec_tracee *tracee,
   program_header program;
   USER_WORD entry, program_entry, offset;
   USER_WORD header_offset;
+  USER_WORD name_len, aligned_len;
   struct exec_jump_command jump;
+  /* This also encompasses !__LP64__.  */
 #if defined __mips__ && !defined MIPS_NABI
   int fpu_mode;
 #endif /* defined __mips__ && !defined MIPS_NABI */
@@ -1129,7 +1131,9 @@ exec_0 (char *name, struct exec_tracee *tracee,
     fpu_mode = FP_FRE;
 
   jump.fpu_mode = fpu_mode;
-#endif /* defined __mips__ && !defined MIPS_NABI */
+#elif defined __mips__ && !defined __LP64__
+  jump.fpu_mode = 0;
+#endif /* defined __mips__ && defined MIPS_NABI && !defined __LP64__ */
 
   /* The offset used for at_phdr should be that of the first
      mapping.  */
@@ -1145,6 +1149,23 @@ exec_0 (char *name, struct exec_tracee *tracee,
   memcpy (loader_area + loader_area_used, &jump,
 	  sizeof jump);
   loader_area_used += sizeof jump;
+
+  /* Copy the length of NAME and NAME itself to the loader area.  */
+  name_len = strlen (name);
+  aligned_len = ((name_len + 1 + sizeof name_len - 1)
+		 & -sizeof name_len);
+  if (sizeof loader_area - loader_area_used
+      < aligned_len + sizeof name_len)
+    goto fail1;
+  memcpy (loader_area + loader_area_used, &name_len, sizeof name_len);
+  loader_area_used += sizeof name_len;
+  memcpy (loader_area + loader_area_used, name, name_len + 1);
+  loader_area_used += name_len + 1;
+
+  /* Properly align the loader area.  */
+  offset = aligned_len - (name_len + 1);
+  while (offset--)
+    loader_area[loader_area_used++] = '\0';
 
   /* Close the file descriptor and return the number of bytes
      used.  */

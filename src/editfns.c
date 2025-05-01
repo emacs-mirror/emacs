@@ -1440,8 +1440,9 @@ DEFUN ("insert-char", Finsert_char, Sinsert_char, 1, 3,
               (prefix-numeric-value current-prefix-arg)\
               t))",
        doc: /* Insert COUNT copies of CHARACTER.
+
 Interactively, prompt for CHARACTER using `read-char-by-name'.
-You can specify CHARACTER in one of these ways:
+You can specify CHARACTER at the prompt in one of these ways:
 
  - As its Unicode character name, e.g. \"LATIN SMALL LETTER A\".
    Completion is available; if you type a substring of the name
@@ -1455,14 +1456,18 @@ You can specify CHARACTER in one of these ways:
  - As a code point with a radix specified with #, e.g. #o21430
    (octal), #x2318 (hex), or #10r8984 (decimal).
 
-If called interactively, COUNT is given by the prefix argument.  If
-omitted or nil, it defaults to 1.
+When called from Lisp, CHARACTER should be an integer whose value
+is valid for a character; see `characterp'.  To specify a character by
+its Unicode name in calls from Lisp, use `char-from-name'.
+
+When called interactively, COUNT is the prefix argument.  If omitted or
+nil, it defaults to 1.
 
 Inserting the character(s) relocates point and before-insertion
 markers in the same ways as the function `insert'.
 
 The optional third argument INHERIT, if non-nil, says to inherit text
-properties from adjoining text, if those properties are sticky.  If
+properties from adjoining text, if those properties are sticky.  When
 called interactively, INHERIT is t.  */)
   (Lisp_Object character, Lisp_Object count, Lisp_Object inherit)
 {
@@ -1916,7 +1921,10 @@ static bool compareseq_early_abort (struct context *);
 #include "diffseq.h"
 
 DEFUN ("replace-region-contents", Freplace_region_contents,
-       Sreplace_region_contents, 3, 6, 0,
+       Sreplace_region_contents, 3, 6,
+       "(list (if (use-region-p) (region-beginning) (point-min)) \
+              (if (use-region-p) (region-end) (point-max)) 	 \
+              (get-buffer (read-buffer-to-switch \"Source buffer: \")))",
        doc: /* Replace the region between BEG and END with that of SOURCE.
 SOURCE can be a buffer, a string, or a vector [SBUF SBEG SEND]
 denoting the subtring SBEG..SEND of buffer SBUF.
@@ -1925,8 +1933,11 @@ If optional argument INHERIT is non-nil, the inserted text will inherit
 properties from adjoining text.
 
 As far as possible the replacement is non-destructive, i.e. existing
-buffer contents, markers, properties, and overlays in the current
-buffer stay intact.
+buffer contents, markers, point, properties, and overlays in the current
+buffer stay intact.  Point is treated like an "insert before" marker:
+if point starts at END, it will always be at the end of the replacement
+when this function returns, whereas if point starts at BEG it will
+remain at BEG only if the replaced text is not empty.
 
 Because this function can be very slow if there is a large number of
 differences between the two buffers, there are two optional arguments
@@ -1937,14 +1948,16 @@ for comparing the buffers.  If it takes longer than MAX-SECS, the
 function falls back to a plain `delete-region' and
 `insert-buffer-substring'.  (Note that the checks are not performed
 too evenly over time, so in some cases it may run a bit longer than
-allowed).
+allowed).  In partricular, passing zero as the value of MAX-SECS
+disables the comparison step, so this function immediately falls
+back to a plain delete/insert method.
 
 The optional argument MAX-COSTS defines the quality of the difference
 computation.  If the actual costs exceed this limit, heuristics are
 used to provide a faster but suboptimal solution.  The default value
 is 1000000.
 
-Note: If the replacement is a string, it’ll usually be placed internally
+Note: If the replacement is a string, it'll usually be placed internally
 in a temporary buffer.  Therefore, all else being equal, it is preferable
 to pass a buffer rather than a string as SOURCE argument.
 
@@ -1968,6 +1981,7 @@ a buffer or a string.  But this is deprecated.  */)
   if (FUNCTIONP (source))
     {
       specpdl_ref count = SPECPDL_INDEX ();
+      record_unwind_protect_excursion ();
       record_unwind_protect (save_restriction_restore,
 			     save_restriction_save ());
       Fnarrow_to_region (beg, end);
@@ -2119,7 +2133,6 @@ a buffer or a string.  But this is deprecated.  */)
 
   Fundo_boundary ();
   bool modification_hooks_inhibited = false;
-  record_unwind_protect_excursion ();
 
   /* We are going to make a lot of small modifications, and having the
      modification hooks called for each of them will slow us down.
@@ -2383,10 +2396,6 @@ Both characters must have the same length of multi-byte form.  */)
 	    record_change (pos, 1);
 	  for (i = 0; i < len; i++) *p++ = tostr[i];
 
-#ifdef HAVE_TREE_SITTER
-	  /* FIXME: Why not do it when we `signal_after_change`?  */
-	  treesit_record_change (pos_byte, pos_byte + len, pos_byte + len);
-#endif
 	  last_changed =  pos + 1;
 	}
       pos_byte = pos_byte_next;
@@ -2395,6 +2404,9 @@ Both characters must have the same length of multi-byte form.  */)
 
   if (changed > 0)
     {
+#ifdef HAVE_TREE_SITTER
+      treesit_record_change (changed, last_changed, last_changed);
+#endif
       signal_after_change (changed,
 			   last_changed - changed, last_changed - changed);
       update_compositions (changed, last_changed, CHECK_ALL);
@@ -3160,6 +3172,9 @@ Return the message.
 
 In batch mode, the message is printed to the standard error stream,
 followed by a newline.
+
+If the variable `inhibit-message' is non-nil, the message is not
+displayed, only logged in the `*Messages*' buffer.
 
 The first argument is a format control string, and the rest are data
 to be formatted under control of the string.  Percent sign (%), grave

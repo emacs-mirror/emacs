@@ -4544,14 +4544,14 @@ extern Lisp_Object larger_vector (Lisp_Object, ptrdiff_t, ptrdiff_t);
 extern bool sweep_weak_table (struct Lisp_Hash_Table *, bool);
 extern void hexbuf_digest (char *, void const *, int);
 extern char *extract_data_from_object (Lisp_Object, ptrdiff_t *, ptrdiff_t *);
-EMACS_UINT hash_string (char const *, ptrdiff_t);
+EMACS_UINT hash_char_array (char const *, ptrdiff_t);
 EMACS_UINT sxhash (Lisp_Object);
 Lisp_Object make_hash_table (const struct hash_table_test *, EMACS_INT,
                              hash_table_weakness_t);
 Lisp_Object hash_table_weakness_symbol (hash_table_weakness_t weak);
-ptrdiff_t hash_lookup (struct Lisp_Hash_Table *, Lisp_Object);
-ptrdiff_t hash_lookup_get_hash (struct Lisp_Hash_Table *h, Lisp_Object key,
-				hash_hash_t *phash);
+ptrdiff_t hash_find (struct Lisp_Hash_Table *, Lisp_Object);
+ptrdiff_t hash_find_get_hash (struct Lisp_Hash_Table *h, Lisp_Object key,
+			      hash_hash_t *phash);
 ptrdiff_t hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 		    hash_hash_t);
 void hash_remove_from_table (struct Lisp_Hash_Table *, Lisp_Object);
@@ -5510,8 +5510,11 @@ extern void init_frame_once (void);
 extern void syms_of_frame (void);
 
 /* Defined in emacs.c.  */
+#ifndef WINDOWSNT
 extern char **initial_argv;
 extern int initial_argc;
+#endif
+extern char *initial_argv0;
 extern char const *emacs_wd;
 #if defined (HAVE_X_WINDOWS) || defined (HAVE_PGTK) || defined (HAVE_NS)
 extern bool display_arg;

@@ -103,8 +103,7 @@
                      ("lisp/c${CTTQ1}et/se-u" "lisp/c${CTTQ1}et/semantic-utest")
                      ("lisp/ced${CTTQ2}se-u" "lisp/ced${CTTQ2}semantic-utest")
                      ;; Test that env-vars don't prevent partial-completion.
-                     ;; FIXME: Ideally we'd like to keep the ${CTTQ}!
-                     ("lis/c${CTTQ1}/se-u" "lisp/cedet/semantic-utest")
+                     ("lis/c${CTTQ1}/se-u" "lisp/c${CTTQ1}et/semantic-utest")
                      ))
       (should (equal (completion-try-completion input
                                                 #'completion--file-name-table
@@ -257,6 +256,48 @@
   (should (null
            (car (completion-pcm-all-completions
                  "li-pac*" '("do-not-list-packages") nil 7)))))
+
+(ert-deftest completion-pcm-test-7 ()
+  ;; Wildcards are preserved even when right before a delimiter.
+  (should (equal
+           (completion-pcm-try-completion
+            "x*/"
+            '("x1/y1" "x2/y2")
+            nil 3)
+           '("x*/y" . 4)))
+  ;; Or around point.
+  (should (equal
+           (completion-pcm--merge-try
+            '(point star "foo") '("xxfoo" "xyfoo") "" "")
+           '("x*foo" . 1)))
+  (should (equal
+           (completion-pcm--merge-try
+            '(star point "foo") '("xxfoo" "xyfoo") "" "")
+           '("x*foo" . 2)))
+  ;; This is important if the wildcard is at the start of a component.
+  (should (equal
+           (completion-pcm-try-completion
+            "*/minibuf"
+            '("lisp/minibuffer.el" "src/minibuf.c")
+            nil 9)
+           '("*/minibuf" . 9)))
+  ;; A series of wildcards is preserved (for now), along with point's position.
+  (should (equal
+           (completion-pcm--merge-try
+            '(star star point star "foo") '("xxfoo" "xyfoo") "" "")
+           '("x***foo" . 3)))
+  ;; The series of wildcards is considered together; if any of them wants the common suffix, it's generated.
+  (should (equal
+           (completion-pcm--merge-try
+            '(prefix any) '("xfoo" "yfoo") "" "")
+           '("foo" . 0)))
+  ;; We consider each series of wildcards separately: if one series
+  ;; wants the common suffix, but the next one does not, it doesn't get
+  ;; the common suffix.
+  (should (equal
+           (completion-pcm--merge-try
+            '(prefix any "bar" any) '("xbarxfoo" "ybaryfoo") "" "")
+           '("bar" . 3))))
 
 (ert-deftest completion-substring-test-1 ()
   ;; One third of a match!

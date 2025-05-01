@@ -986,7 +986,6 @@ Unless KEEP, removes the old indentation."
     (define-key map ")" 'cperl-electric-rparen)
     (define-key map ";" 'cperl-electric-semi)
     (define-key map ":" 'cperl-electric-terminator)
-    (define-key map "\C-j" 'newline-and-indent)
     (define-key map "\C-c\C-j" 'cperl-linefeed)
     (define-key map "\C-c\C-t" 'cperl-invert-if-unless)
     (define-key map "\C-c\C-a" 'cperl-toggle-auto-newline)

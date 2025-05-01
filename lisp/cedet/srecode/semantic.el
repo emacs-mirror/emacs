@@ -129,8 +129,7 @@ variable default values, and other things."
 			    larg nil nil)))
 	    ;; Apply the sub-argument to the subdictionary.
 	    (srecode-semantic-apply-tag-to-dict
-	     (srecode-semantic-tag (semantic-tag-name larg)
-				   :prime larg)
+	     (srecode-semantic-tag :prime larg)
 	     subdict)
 	    )
 	  ;; Next!
@@ -203,8 +202,7 @@ variable default values, and other things."
     (when (not tag)
       (error "No tag for current template.  Use the semantic kill-ring"))
     (srecode-semantic-apply-tag-to-dict
-     (srecode-semantic-tag (semantic-tag-name tag)
-			   :prime tag)
+     (srecode-semantic-tag :prime tag)
      dict)))
 
 ;;; :tagtype ARGUMENT HANDLING
@@ -394,7 +392,7 @@ as `function' will leave point where code might be inserted."
     ;; Resolve TAG into the dictionary.  We may have a :tag arg
     ;; from the macro such that we don't need to do this.
     (when (not (srecode-dictionary-lookup-name dict "TAG"))
-      (let ((tagobj (srecode-semantic-tag (semantic-tag-name tag) :prime tag))
+      (let ((tagobj (srecode-semantic-tag :prime tag))
 	    )
 	(srecode-semantic-apply-tag-to-dict tagobj dict)))
 

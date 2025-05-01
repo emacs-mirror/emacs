@@ -91,7 +91,7 @@ emba.gnu.org:5050, is not accessible publicly.  Instead, the container
 images must be build locally.  Change the current directory to a
 recent Emacs branch (not a worktree), and apply the command
 
-  docker build --target emacs-inotify --tag emacs-inotify \
+  docker buildx build --target emacs-inotify --tag emacs-inotify \
     -f test/infra/Dockerfile.emba .
 
 This creates the Debian-based image emacs-inotify, based on the

@@ -6769,6 +6769,15 @@ the following settings are required:
 @end group
 @end lisp
 
+@vindex warning-suppress-types
+@value{tramp} warnings are displayed in the @file{*Warnings*} buffer,
+which pops up.  If you don't want to see this buffer for every
+@value{tramp} warning, set @code{warning-suppress-types}:
+
+@lisp
+(setq warning-suppress-types '((tramp)))
+@end lisp
+
 If @code{tramp-verbose} is greater than or equal to 10, Lisp
 backtraces are also added to the @value{tramp} debug buffer in case of
 errors.

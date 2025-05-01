@@ -1093,7 +1093,7 @@ type @kbd{M-x normal-mode} to re-read them.
 Here is another example, with the time stamp inserted into
 the last paragraph of an HTML document.
 Since this template is at the end of the document, not in the first
-eight lines, @code{time-stamp-format} starts with @code{-10/} to tell
+eight lines, @code{time-stamp-pattern} starts with @code{-10/} to tell
 @code{time-stamp} to look at the last 10 lines.
 The @code{%%} asks for the default format
 (specified by @code{time-stamp-format}).
@@ -2529,7 +2529,7 @@ select a group of images to copy somewhere else).  The @kbd{m}
 (@code{image-mode-mark-file}) command will mark the current file in
 any Dired buffer(s) that display the current file's directory.  If no
 such buffer is open, the directory is opened in a new buffer.  To
-unmark files, use the @kbd{u} (@code{image-mode-mark-file}) command.
+unmark files, use the @kbd{u} (@code{image-mode-unmark-file}) command.
 Finally, if you just want to copy the current buffers file name to the
 kill ring, you can use the @kbd{w}
 (@code{image-mode-copy-file-name-as-kill}) command.

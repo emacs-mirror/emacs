@@ -185,9 +185,10 @@ pair.
       ;; Can't use backquote here, it's too early in the bootstrap.
       (setq expr
             (cons
-             (list 'set
-                   (list 'make-local-variable (list 'quote (car pairs)))
-                   (car (cdr pairs)))
+             (list 'setq (car pairs)
+                   (list 'prog1
+                    (car (cdr pairs))
+                    (list 'make-local-variable (list 'quote (car pairs)))))
              expr))
       (setq pairs (cdr (cdr pairs))))
     (macroexp-progn (nreverse expr))))
@@ -197,7 +198,7 @@ pair.
 Like `defvar' but additionally marks the variable as being automatically
 buffer-local wherever it is set.
 \n(fn SYMBOL &optional VALUE DOCSTRING)"
-  (declare (debug defvar) (doc-string 3) (indent 2))
+  (declare (debug defvar) (doc-string 3) (indent defun))
   ;; Can't use backquote here, it's too early in the bootstrap.
   (let ((value (car-safe args))
         (docstring (car-safe (cdr-safe args))))
@@ -4772,6 +4773,7 @@ Interactively, prompt for SOURCE.
 The replacement is performed using `replace-region-contents'
 which also describes the MAX-SECS and MAX-COSTS arguments and the
 return value."
+  (declare (obsolete replace-region-contents "31.1"))
   (interactive "bSource buffer: ")
   (replace-region-contents (point-min) (point-max) (get-buffer source)
                            max-secs max-costs))
@@ -6391,57 +6393,83 @@ backwards ARG times if negative."
 ;;;; Text clones
 
 (defvar text-clone--maintaining nil)
+(defvar text-clone--pending-overlays nil)
 
 (defun text-clone--maintain (ol1 after beg end &optional _len)
   "Propagate the changes made under the overlay OL1 to the other clones.
 This is used on the `modification-hooks' property of text clones."
   (when (and after (not undo-in-progress)
-             (not text-clone--maintaining)
-             (overlay-start ol1))
-    (let ((margin (if (overlay-get ol1 'text-clone-spreadp) 1 0)))
-      (setq beg (max beg (+ (overlay-start ol1) margin)))
-      (setq end (min end (- (overlay-end ol1) margin)))
+             (not text-clone--maintaining))
+    ;; An after-change hook (like this one) should never modify a buffer,
+    ;; so record the change and arrange to process it soon.
+    (let ((pending (overlay-get ol1 'text-clone--pending)))
+      (if pending
+          (progn
+            (setcar pending (min beg (car pending)))
+            (setcdr pending (max end (cdr pending))))
+        (overlay-put ol1 'text-clone--pending (cons beg end))
+        (push ol1 text-clone--pending-overlays)
+        (unless (memq #'text-clone--maintain-overlays
+                 (default-value 'post-command-hook))
+          ;; Perform the update as soon as possible.
+          (add-hook 'post-command-hook #'text-clone--maintain-overlays)
+          (run-with-timer 0 nil #'text-clone--maintain-overlays))))))
+
+(defun text-clone--maintain-overlays ()
+  (while text-clone--pending-overlays
+    (let* ((ol1 (pop text-clone--pending-overlays))
+           (pending (overlay-get ol1 'text-clone--pending))
+           (margin (if (overlay-get ol1 'text-clone-spreadp) 1 0))
+           (beg (max (car pending)
+                     (+ (or (overlay-start ol1) (point-max)) margin)))
+           (end (min (cdr pending)
+                     (- (or (overlay-end ol1) (1- beg)) margin))))
+      (overlay-put ol1 'text-clone--pending nil)
       (when (<= beg end)
-	(save-excursion
-	  (when (overlay-get ol1 'text-clone-syntax)
-	    ;; Check content of the clone's text.
-	    (let ((cbeg (+ (overlay-start ol1) margin))
-		  (cend (- (overlay-end ol1) margin)))
-	      (goto-char cbeg)
-	      (save-match-data
-		(if (not (re-search-forward
-			  (overlay-get ol1 'text-clone-syntax) cend t))
-		    ;; Mark the overlay for deletion.
-		    (setq end cbeg)
-		  (when (< (match-end 0) cend)
-		    ;; Shrink the clone at its end.
-		    (setq end (min end (match-end 0)))
-		    (move-overlay ol1 (overlay-start ol1)
-				  (+ (match-end 0) margin)))
-		  (when (> (match-beginning 0) cbeg)
-		    ;; Shrink the clone at its beginning.
-		    (setq beg (max (match-beginning 0) beg))
-		    (move-overlay ol1 (- (match-beginning 0) margin)
-				  (overlay-end ol1)))))))
-	  ;; Now go ahead and update the clones.
-	  (let ((head (- beg (overlay-start ol1)))
-		(tail (- (overlay-end ol1) end))
-		(str (buffer-substring beg end))
-		(nothing-left t)
-		(text-clone--maintaining t))
-	    (dolist (ol2 (overlay-get ol1 'text-clones))
-	      (let ((oe (overlay-end ol2)))
-		(unless (or (eq ol1 ol2) (null oe))
-		  (setq nothing-left nil)
-		  (let ((mod-beg (+ (overlay-start ol2) head)))
-		    ;;(overlay-put ol2 'modification-hooks nil)
-		    (goto-char (- (overlay-end ol2) tail))
-		    (unless (> mod-beg (point))
-		      (save-excursion (insert str))
-		      (delete-region mod-beg (point)))
-		    ;;(overlay-put ol2 'modification-hooks '(text-clone--maintain))
-		    ))))
-	    (if nothing-left (delete-overlay ol1))))))))
+	(with-current-buffer (overlay-buffer ol1)
+	  (save-excursion
+	    (when (overlay-get ol1 'text-clone-syntax)
+	      ;; Check content of the clone's text.
+	      (let ((cbeg (+ (overlay-start ol1) margin))
+		    (cend (- (overlay-end ol1) margin)))
+		(goto-char cbeg)
+		(save-match-data
+		  (if (not (re-search-forward
+			    (overlay-get ol1 'text-clone-syntax) cend t))
+		      ;; Mark the overlay for deletion.
+		      (setq end cbeg)
+		    (when (< (match-end 0) cend)
+		      ;; Shrink the clone at its end.
+		      (setq end (min end (match-end 0)))
+		      (move-overlay ol1 (overlay-start ol1)
+				    (+ (match-end 0) margin)))
+		    (when (> (match-beginning 0) cbeg)
+		      ;; Shrink the clone at its beginning.
+		      (setq beg (max (match-beginning 0) beg))
+		      (move-overlay ol1 (- (match-beginning 0) margin)
+				    (overlay-end ol1)))))))
+	    ;; Now go ahead and update the clones.
+	    (let ((head (- beg (overlay-start ol1)))
+		  (tail (- (overlay-end ol1) end))
+		  (str (buffer-substring beg end))
+		  (nothing-left t)
+		  (text-clone--maintaining t))
+	      (dolist (ol2 (overlay-get ol1 'text-clones))
+		(let ((oe (overlay-end ol2)))
+		  (unless (or (eq ol1 ol2) (null oe))
+		    (setq nothing-left nil)
+		    (let ((mod-beg (+ (overlay-start ol2) head)))
+		      ;;(overlay-put ol2 'modification-hooks nil)
+		      (goto-char (- (overlay-end ol2) tail))
+		      (unless (> mod-beg (point))
+		        (save-excursion (insert str))
+		        (delete-region mod-beg (point)))
+		      ;;(overlay-put ol2 'modification-hooks
+		      ;; '(text-clone--maintain))
+		      ))))
+	      (if nothing-left (delete-overlay ol1))))))))
+  (remove-hook 'post-command-hook #'text-clone--maintain-overlays)
+  (cancel-function-timers #'text-clone--maintain-overlays))
 
 (defun text-clone-create (start end &optional spreadp syntax)
   "Create a text clone of START...END at point.

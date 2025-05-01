@@ -4255,6 +4255,8 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	  (ignore-errors (delete-file tmp-name1))
 	  (ignore-errors (delete-file tmp-name2)))))))
 
+(tramp--test-deftest-without-file-attributes tramp-test20-file-modes)
+
 ;; Method "smb" could run into "NT_STATUS_REVISION_MISMATCH" error.
 (defmacro tramp--test-ignore-add-name-to-file-error (&rest body)
   "Run BODY, ignoring \"error with add-name-to-file\" file error."
@@ -4553,6 +4555,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	     (dir2 (file-name-as-directory dir1)))
 	(should (string-equal (file-truename dir1) (expand-file-name dir1)))
 	(should (string-equal (file-truename dir2) (expand-file-name dir2)))))))
+
+(tramp--test-deftest-without-file-attributes tramp-test21-file-links)
 
 (ert-deftest tramp-test22-file-times ()
   "Check `set-file-times' and `file-newer-than-file-p'."

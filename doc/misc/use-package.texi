@@ -1471,7 +1471,7 @@ faces.  Example:
 (use-package example
   :custom-face
   (example-1-face ((t (:foreground "LightPink"))))
-  (example-2-face ((t (:foreground "LightGreen"))) face-defspec-spec))
+  (example-2-face ((t (:foreground "LightGreen")))))
 @end group
 
 @group
@@ -1485,6 +1485,11 @@ faces.  Example:
   (load-theme 'zenburn t))
 @end group
 @end lisp
+
+Similarly to @code{:custom} (@pxref{User options}), this allows
+configuring customizable faces outside of Customize (@pxref{Saving
+Customizations,,, emacs, GNU Emacs Manual}).  Using both systems to
+configure the same face can lead to confusing results.
 
 @node Hiding minor modes
 @section Hiding minor modes with diminish and delight

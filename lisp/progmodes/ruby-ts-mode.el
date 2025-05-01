@@ -123,6 +123,11 @@
 (require 'ruby-mode)
 (treesit-declare-unavailable-functions)
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(ruby "https://github.com/tree-sitter/tree-sitter-ruby" "v0.23.1")
+ t)
+
 (defgroup ruby-ts nil
   "Major mode for editing Ruby code."
   :prefix "ruby-ts-"
@@ -1155,7 +1160,7 @@ leading double colon is not added."
   :group 'ruby
   :syntax-table ruby-mode-syntax-table
 
-  (unless (treesit-ready-p 'ruby)
+  (unless (treesit-ensure-installed 'ruby)
     (error "Tree-sitter for Ruby isn't available"))
 
   (setq treesit-primary-parser (treesit-parser-create 'ruby))
@@ -1167,52 +1172,18 @@ leading double colon is not added."
 
   (setq-local treesit-thing-settings
               `((ruby
-                 (sexp ,(cons (rx
-                               bos
-                               (or
-                                "class"
-                                "singleton_class"
-                                "module"
-                                "method"
-                                "singleton_method"
-                                "array"
-                                "hash"
-                                "parenthesized_statements"
-                                "method_parameters"
-                                "array_pattern"
-                                "hash_pattern"
-                                "if"
-                                "else"
-                                "then"
-                                "unless"
-                                "case"
-                                "case_match"
-                                "when"
-                                "while"
-                                "until"
-                                "for"
-                                "block"
-                                "do_block"
-                                "begin"
-                                "integer"
-                                "identifier"
-                                "self"
-                                "super"
-                                "constant"
-                                "simple_symbol"
-                                "hash_key_symbol"
-                                "symbol_array"
-                                "string"
-                                "string_array"
-                                "heredoc_body"
-                                "regex"
-                                "argument_list"
-                                "interpolation"
-                                "instance_variable"
-                                "global_variable"
-                                )
-                               eos)
-                              #'ruby-ts--sexp-p))
+                 (sexp (not (or (and named
+                                     ,(rx bos (or "program"
+                                                  "body_statement"
+                                                  "comment"
+                                                  "then")
+                                          eos))
+                                (and anonymous
+                                     ,(rx (or "do" "begin"
+                                              "if" "unless"
+                                              "def" "end"
+                                              "(" ")" "[" "]"
+                                              "{" "}" "|" "," ";"))))))
                  (list ,(cons (rx
                                bos
                                (or
@@ -1253,6 +1224,12 @@ leading double colon is not added."
                                 "hash")
                                eos)
                               #'ruby-ts--list-p))
+                 (sexp-default
+                  ;; For `C-M-f' in "#|{a}"
+                  ("#{" . ,(lambda (node)
+                             (and (eq (char-after (point)) ?{)
+                                  (equal (treesit-node-type (treesit-node-parent node))
+                                         "interpolation")))))
                  (sentence ,(rx bos (or "return"
                                         "body_statement"
                                         "call"
@@ -1260,19 +1237,8 @@ leading double colon is not added."
                                 eos))
                  (text ,(lambda (node)
                           (or (member (treesit-node-type node)
-                                      '("comment" "string_content" "heredoc_content"))
-                              ;; for C-M-f in hash[:key] and hash['key']
-                              (and (member (treesit-node-text node)
-                                           '("[" "]"))
-                                   (equal (treesit-node-type
-                                           (treesit-node-parent node))
-                                          "element_reference"))
-                              ;; for C-M-f in "abc #{ghi} def"
-                              (and (member (treesit-node-text node)
-                                           '("#{" "}"))
-                                   (equal (treesit-node-type
-                                           (treesit-node-parent node))
-                                          "interpolation"))))))))
+                                      '("comment" "string_content"
+                                        "heredoc_content"))))))))
 
   ;; Imenu.
   (setq-local imenu-create-index-function #'ruby-ts--imenu)

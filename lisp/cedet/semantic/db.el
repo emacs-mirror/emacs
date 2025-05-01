@@ -188,7 +188,6 @@ If one doesn't exist, create it."
       (oref obj index)
     (let ((idx nil))
       (setq idx (funcall semanticdb-default-find-index-class
-			 (concat (eieio-object-name obj) " index")
 			 ;; Fill in the defaults
 		         :table obj
 			 ))
@@ -413,7 +412,6 @@ If the table for FILE does not exist, create one."
       ;; This implementation will satisfy autoloaded classes
       ;; for tables.
       (setq newtab (funcall (oref db new-table-class)
-			    (file-name-nondirectory file)
 			    :file (file-name-nondirectory file)
 			    ))
       (setf (slot-value newtab 'parent-db) db)
@@ -486,7 +484,7 @@ other than :table."
     (if obj
 	obj ;; Just return it.
       ;; No object, let's create a new one and return that.
-      (setq obj (funcall desired-class "Cache" :table table))
+      (setq obj (make-instance desired-class :table table))
       (object-add-to-list table 'cache obj)
       obj)))
 

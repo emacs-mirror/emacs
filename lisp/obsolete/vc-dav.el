@@ -5,6 +5,7 @@
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: url, vc
 ;; Package: vc
+;; Obsolete-since: 31.1
 
 ;; This file is part of GNU Emacs.
 

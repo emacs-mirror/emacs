@@ -257,11 +257,10 @@ keyboard input to go into icons."
 If WINDOW is not live (or not a window) do nothing and don't evaluate
 BODY, instead returning nil."
   (declare (indent 1) (debug (form body)))
-  (let ((w (gensym "window")))
-    `(let ((,w ,window))
-      (when (window-live-p ,w)
-        (with-selected-window ,w
-          ,@body)))))
+  (cl-once-only (window)
+    `(when (window-live-p ,window)
+       (with-selected-window ,window
+         ,@body))))
 
 (defun ediff-get-window-by-clicking (_wind _prev-wind wind-number)
   (let (event)

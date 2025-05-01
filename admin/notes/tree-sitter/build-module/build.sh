@@ -59,8 +59,11 @@ case "${lang}" in
         sourcedir="tree-sitter-typescript/tsx/src"
         grammardir="tree-sitter-typescript/tsx"
         ;;
+    "toml")
+        org="tree-sitter-grammars"
+        ;;
     "yaml")
-        org="ikatyang"
+        org="tree-sitter-grammars"
         ;;
 esac
 

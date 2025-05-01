@@ -556,7 +556,7 @@ collection clause."
       (should (= def 4)))
     (should (= 4 (mystruct-def x)))
     (should (= 1 (mystruct-abc x)))))
- 
+
 (ert-deftest cl-lib-arglist-performance ()
   ;; An `&aux' should not cause lambda's arglist to be turned into an &rest
   ;; that's parsed by hand.

@@ -489,7 +489,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
                   (macroexp--unfold-lambda `(,fn ,eexp . ,eargs)))
                  (_ `(,fn ,eexp . ,eargs)))))
             (`(funcall . ,_) form)      ;bug#53227
-            (`(,func . ,_)
+            (`(,(and func (pred symbolp)) . ,_)
              (let ((handler (function-get func 'compiler-macro)))
                ;; Macro expand compiler macros.  This cannot be delayed to
                ;; byte-optimize-form because the output of the compiler-macro can

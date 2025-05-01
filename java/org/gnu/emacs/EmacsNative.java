@@ -196,6 +196,10 @@ public final class EmacsNative
   /* Send an ANDROID_NOTIFICATION_ACTION event.  */
   public static native void sendNotificationAction (String tag, String action);
 
+  /* Send an ANDROID_CONFIGURATION_CHANGED event.  */
+  public static native void sendConfigurationChanged (float dpiX, float dpiY,
+						      float dpiScaled);
+
   /* Return the file name associated with the specified file
      descriptor, or NULL if there is none.  */
   public static native byte[] getProcName (int fd);

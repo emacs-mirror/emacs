@@ -348,7 +348,7 @@ Works with: brace-list-intro, enum-intro, constraint-cont."
        (c-go-up-list-backward nil (c-langelem-pos c-syntactic-element)))
      (looking-at "\\s(")
      (save-excursion
-       (skip-syntax-backward " \t([{" (c-point 'boi))
+       (skip-chars-backward " \t([{" (c-point 'boi))
        (eq (point) (c-point 'boi)))
      (progn (forward-char)
 	    (c-forward-syntactic-ws (c-point 'eol))

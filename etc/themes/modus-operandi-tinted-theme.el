@@ -1,6 +1,6 @@
-;;; modus-operandi-tinted-theme.el --- Elegant, highly legible theme with a light ocher background -*- lexical-binding:t -*-
+;;; modus-operandi-tinted-theme.el --- Elegant, highly legible theme with a light ochre background -*- lexical-binding:t -*-
 
-;; Copyright (C) 2019-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2025  Free Software Foundation, Inc.
 
 ;; Author: Protesilaos Stavrou <info@protesilaos.com>
 ;; Maintainer: Protesilaos Stavrou <info@protesilaos.com>
@@ -44,7 +44,7 @@
 
 ;;;###theme-autoload
   (deftheme modus-operandi-tinted
-    "Elegant, highly legible theme with a light ocher background.
+    "Elegant, highly legible theme with a light ochre background.
 Conforms with the highest legibility standard for color contrast
 between background and foreground in any given piece of text,
 which corresponds to a minimum contrast in relative luminance of
@@ -73,18 +73,18 @@ which corresponds to a minimum contrast in relative luminance of
       (red-cooler      "#a0132f")
       (red-faint       "#7f0000")
       (red-intense     "#d00000")
-      (green           "#006800")
-      (green-warmer    "#316500")
-      (green-cooler    "#00663f")
+      (green           "#006300")
+      (green-warmer    "#306010")
+      (green-cooler    "#00603f")
       (green-faint     "#2a5045")
       (green-intense   "#008900")
-      (yellow          "#6f5500")
-      (yellow-warmer   "#884900")
-      (yellow-cooler   "#7a4f2f")
-      (yellow-faint    "#624416")
+      (yellow          "#6d5000")
+      (yellow-warmer   "#894000")
+      (yellow-cooler   "#602938")
+      (yellow-faint    "#574316")
       (yellow-intense  "#808000")
       (blue            "#0031a9")
-      (blue-warmer     "#3548cf")
+      (blue-warmer     "#3546c2")
       (blue-cooler     "#0000b0")
       (blue-faint      "#003497")
       (blue-intense    "#0000ff")
@@ -93,10 +93,10 @@ which corresponds to a minimum contrast in relative luminance of
       (magenta-cooler  "#531ab6")
       (magenta-faint   "#7c318f")
       (magenta-intense "#dd22dd")
-      (cyan            "#005e8b")
-      (cyan-warmer     "#3f578f")
+      (cyan            "#00598b")
+      (cyan-warmer     "#32548f")
       (cyan-cooler     "#005f5f")
-      (cyan-faint      "#005077")
+      (cyan-faint      "#304463")
       (cyan-intense    "#008899")
 
 ;;; Uncommon accent foregrounds
@@ -165,14 +165,10 @@ which corresponds to a minimum contrast in relative luminance of
 
       (bg-completion       "#f0c1cf")
       (bg-hover            "#b2e4dc")
-      (bg-hover-secondary  "#f5d0a0")
+      (bg-hover-secondary  "#dfe09f")
       (bg-hl-line          "#f1d5d0")
       (bg-region           "#c2bcb5")
       (fg-region           "#000000")
-
-      (bg-char-0 "#7feaff")
-      (bg-char-1 "#ffaaff")
-      (bg-char-2 "#dff000")
 
       (bg-mode-line-active        "#cab9b2")
       (fg-mode-line-active        "#000000")
@@ -214,13 +210,6 @@ which corresponds to a minimum contrast in relative luminance of
 
       (bg-diff-context    "#efe9df")
 
-;;; Paren match
-
-      (bg-paren-match        "#7fdfcf")
-      (fg-paren-match        fg-main)
-      (bg-paren-expression   "#efd3f5")
-      (underline-paren-match unspecified)
-
 ;;; Mappings
 
 ;;;; General mappings
@@ -230,11 +219,11 @@ which corresponds to a minimum contrast in relative luminance of
 
       (keybind red)
       (name magenta)
-      (identifier yellow-cooler)
+      (identifier yellow-faint)
 
       (err red)
-      (warning yellow-warmer)
-      (info cyan-cooler)
+      (warning yellow)
+      (info green)
 
       (underline-err red-intense)
       (underline-warning yellow-intense)
@@ -255,30 +244,37 @@ which corresponds to a minimum contrast in relative luminance of
 ;;;; Code mappings
 
       (bracket fg-main)
-      (builtin magenta-warmer)
+      (builtin magenta)
       (comment red-faint)
-      (constant blue-cooler)
+      (constant magenta-cooler)
       (delimiter fg-main)
       (docmarkup magenta-faint)
-      (docstring green-faint)
-      (fnname magenta)
-      (keyword magenta-cooler)
+      (docstring cyan-faint)
+      (fnname yellow-cooler)
+      (keyword blue)
       (number fg-main)
       (operator fg-main)
-      (preprocessor red-cooler)
+      (preprocessor yellow-warmer)
       (punctuation fg-main)
-      (rx-backslash magenta)
-      (rx-construct green-cooler)
-      (string blue-warmer)
-      (type cyan-cooler)
-      (variable cyan)
+      (rx-backslash magenta-warmer)
+      (rx-construct magenta-cooler)
+      (string cyan)
+      (type green-warmer)
+      (variable green-cooler)
+
+;;;; Paren match
+
+      (bg-paren-match        bg-cyan-subtle)
+      (fg-paren-match        fg-main)
+      (underline-paren-match unspecified)
+      (bg-paren-expression   bg-yellow-nuanced)
 
 ;;;; Accent mappings
 
-      (accent-0 blue)
-      (accent-1 magenta-warmer)
-      (accent-2 cyan)
-      (accent-3 red)
+      (accent-0 red-cooler)
+      (accent-1 cyan)
+      (accent-2 magenta-cooler)
+      (accent-3 yellow-warmer)
 
 ;;;; Button mappings
 
@@ -336,14 +332,14 @@ which corresponds to a minimum contrast in relative luminance of
 
 ;;;; Mail mappings
 
-      (mail-cite-0 blue-faint)
-      (mail-cite-1 yellow-warmer)
-      (mail-cite-2 cyan-cooler)
+      (mail-cite-0 cyan-cooler)
+      (mail-cite-1 yellow)
+      (mail-cite-2 green-warmer)
       (mail-cite-3 red-cooler)
-      (mail-part cyan)
-      (mail-recipient magenta-cooler)
+      (mail-part magenta-cooler)
+      (mail-recipient blue-warmer)
       (mail-subject magenta-warmer)
-      (mail-other magenta-faint)
+      (mail-other magenta)
 
 ;;;; Mark mappings
 
@@ -356,7 +352,7 @@ which corresponds to a minimum contrast in relative luminance of
 
 ;;;; Prompt mappings
 
-      (fg-prompt cyan-cooler)
+      (fg-prompt green-cooler)
       (bg-prompt unspecified)
 
 ;;;; Prose mappings
@@ -366,13 +362,13 @@ which corresponds to a minimum contrast in relative luminance of
       (bg-prose-block-contents bg-dim)
 
       (bg-prose-code unspecified)
-      (fg-prose-code cyan-cooler)
+      (fg-prose-code green-cooler)
 
       (bg-prose-macro unspecified)
-      (fg-prose-macro magenta-cooler)
+      (fg-prose-macro blue-cooler)
 
       (bg-prose-verbatim unspecified)
-      (fg-prose-verbatim magenta-warmer)
+      (fg-prose-verbatim yellow-warmer)
 
       (prose-done green)
       (prose-todo red)
@@ -458,7 +454,7 @@ which corresponds to a minimum contrast in relative luminance of
 
 ;;;; Heading mappings
 
-      (fg-heading-0 cyan-cooler)
+      (fg-heading-0 green-cooler)
       (fg-heading-1 fg-main)
       (fg-heading-2 yellow-faint)
       (fg-heading-3 fg-alt)

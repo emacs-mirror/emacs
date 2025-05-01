@@ -31,7 +31,7 @@
 # include <string.h>
 #endif
 
-#if USE_ACL && HAVE_ACL_GET_FILE /* Linux, FreeBSD, Mac OS X, IRIX, Tru64, Cygwin >= 2.5 */
+#if USE_ACL && HAVE_ACL_GET_FILE /* Linux, FreeBSD, NetBSD >= 10, Mac OS X, IRIX, Tru64, Cygwin >= 2.5 */
 
 # if HAVE_ACL_TYPE_EXTENDED /* Mac OS X */
 
@@ -45,7 +45,7 @@ acl_extended_nontrivial (acl_t acl)
   return (acl_entries (acl) > 0);
 }
 
-# else /* Linux, FreeBSD, IRIX, Tru64, Cygwin >= 2.5 */
+# else /* Linux, FreeBSD, NetBSD >= 10, IRIX, Tru64, Cygwin >= 2.5 */
 
 /* ACL is an ACL, from a file, stored as type ACL_TYPE_ACCESS.
    Return 1 if the given ACL is non-trivial.
@@ -59,7 +59,7 @@ acl_access_nontrivial (acl_t acl)
      at least, allowing us to write
         return (3 < acl_entries (acl));
      but the following code is more robust.  */
-#  if HAVE_ACL_FIRST_ENTRY /* Linux, FreeBSD, Cygwin >= 2.5 */
+#  if HAVE_ACL_FIRST_ENTRY /* Linux, FreeBSD, NetBSD >= 10, Cygwin >= 2.5 */
 
   acl_entry_t ace;
   int got_one;
@@ -548,7 +548,7 @@ void
 free_permission_context (struct permission_context *ctx)
 {
 #if USE_ACL
-# if HAVE_ACL_GET_FILE /* Linux, FreeBSD, Mac OS X, IRIX, Tru64, Cygwin >= 2.5 */
+# if HAVE_ACL_GET_FILE /* Linux, FreeBSD, NetBSD >= 10, Mac OS X, IRIX, Tru64, Cygwin >= 2.5 */
   if (ctx->acl)
     acl_free (ctx->acl);
 #  if !HAVE_ACL_TYPE_EXTENDED

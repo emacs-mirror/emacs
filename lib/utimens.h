@@ -25,7 +25,7 @@
 #include <time.h>
 
 #if HAVE_UTIMENS || HAVE_LUTIMENS
-# include <sys/time.h>
+# include <sys/stat.h>
 #endif
 
 #ifdef __cplusplus

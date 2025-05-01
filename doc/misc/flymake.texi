@@ -62,7 +62,7 @@ To learn about using Flymake, @pxref{Using Flymake}.
 When the Emacs LSP support mode Eglot is enabled, Flymake will use that
 as an additional back-end.  @xref{Eglot Features,,, eglot, Eglot: The
 Emacs LSP Client}.  Flymake is also designed to be easily extended to
-support new backends via an Elisp interface.  @xref{Extending Flymake}.
+support new backends via an Elisp interface.  @xref{Flymake API}.
 
 @ifnottex
 @insertcopying
@@ -70,7 +70,7 @@ support new backends via an Elisp interface.  @xref{Extending Flymake}.
 
 @menu
 * Using Flymake::
-* Extending Flymake::
+* Flymake API::
 * The legacy Proc backend::
 * GNU Free Documentation License::
 * Index::
@@ -178,6 +178,10 @@ listing includes the type of the diagnostic, its line and column in
 the file, as well as the diagnostic message.  You may sort the listing
 by each of these columns.
 
+When invoked on a diagnostic (either via the keyboard or a mouse click)
+the command @code{flymake-show-buffer-diagnostics} attempts to reveal
+said diagnostic in the listing.
+
 @node Mode line status
 @section Mode line status
 @cindex flymake mode line
@@ -210,7 +214,7 @@ investigate and remedy the situation (@pxref{Troubleshooting}).
 @item @code{?}
 @tab There are no applicable Flymake backends for this buffer, thus Flymake
 cannot annotate it.  To fix this, a user may look to extending Flymake
-and add a new backend (@pxref{Extending Flymake}).
+and add a new backend (@pxref{Flymake API}).
 
 @end multitable
 
@@ -313,6 +317,9 @@ The indicator type which Flymake should use to indicate lines with
 errors or warnings.
 Depending on your preference, this can either use @code{fringes} or
 @code{margins} for indicating errors.
+If set to @code{fringes} (the default), it will automatically fall back
+to using margins in windows or frames without fringes, such as text
+terminals.
 
 @item flymake-error-bitmap
 A bitmap used in the fringe to mark lines for which an error has
@@ -344,9 +351,14 @@ If non-@code{nil}, moving to errors with @code{flymake-goto-next-error} and
 @item flymake-show-diagnostics-at-end-of-line
 If non-@code{nil}, show summarized descriptions of diagnostics at the
 end of the line.  Depending on your preference, this can either be
-distracting and easily confused with actual code, or a significant
-early aid that relieves you from moving around or reaching for the
-mouse to consult an error message.
+distracting and easily confused with actual code, or a significant early
+aid that relieves you from moving around or reaching for the mouse to
+consult an error message.  This value may also be set to @code{fancy},
+which will attempt to layout diagnostics below the affected line using
+unicode graphics to point to diagnostic locus.
+
+@item flymake-diagnostic-format-alist
+Control which parts of a diagnostic to show in various situations.
 
 @item flymake-error-eol
 A custom face for summarizing diagnostic error messages.
@@ -358,19 +370,23 @@ A custom face for summarizing diagnostic warning messages.
 A custom face for summarizing diagnostic notes.
 @end vtable
 
-@node Extending Flymake
-@chapter Extending Flymake
+@node Flymake API, The legacy Proc backend, Using Flymake, Top
+@chapter Flymake API
 @cindex extending flymake
 
-Flymake can primarily be extended in one of two ways:
+Flymake's API supports the following use cases:
 
 @enumerate
 @item
-By changing the look and feel of the annotations produced by the
+Changing the look and feel of the annotations produced by the
 different backends.  @xref{Flymake error types}.
 
 @item
-By adding a new buffer-checking backend.  @xref{Backend functions}.
+Adding a new buffer-checking backend.  @xref{Backend functions}.
+
+@item
+Writing extension to and process Flymake's output. @xref{Inspecting
+diagnostics}.
 @end enumerate
 
 The following sections discuss each approach in detail.
@@ -378,6 +394,7 @@ The following sections discuss each approach in detail.
 @menu
 * Flymake error types::
 * Backend functions::
+* Inspecting diagnostics::
 @end menu
 
 @node Flymake error types
@@ -670,37 +687,19 @@ reports targeting other parts of the buffer remain valid.
 Before delivering them to Flymake, backends create diagnostic objects
 by calling the function @code{flymake-make-diagnostic}.
 
-@deffn Function flymake-make-diagnostic locus beg end type text &optional data
+@deffn Function flymake-make-diagnostic locus beg end type info &optional data
 Make a Flymake diagnostic for the region of text in @var{locus}'s
-delimited by @var{beg} and @var{end}.  @var{type} is a diagnostic
-symbol (@pxref{Flymake error types}), and @var{text} is a description
-of the problem detected in this region.  Most commonly @var{locus} is
-the buffer object designating for the current buffer being
-syntax-checked.  However, it may be a string naming a file relative
-to the current working directory.  @xref{Foreign and list-only
-diagnostics}, for when this may be useful.  Depending on the type of
-@var{locus}, @var{beg} and @var{end} are both either buffer positions
-or conses (@var{line} . @var{col}) which specify the line and column
-of the diagnostic's start and end positions, respectively.
-@end deffn
-
-@cindex access diagnostic object
-These objects' properties can be accessed with the functions
-@code{flymake-diagnostic-backend}, @code{flymake-diagnostic-buffer},
-@code{flymake-diagnostic-text}, @code{flymake-diagnostic-beg},
-@code{flymake-diagnostic-end}, @code{flymake-diagnostic-type} and
-@code{flymake-diagnostic-data}.
-
-Additionally, the function @code{flymake-diagnostics} will collect
-such objects in the region you specify.
-
-@cindex collect diagnostic objects
-@deffn Function flymake-diagnostics beg end
-Get a list of Flymake diagnostics in the region determined by
-@var{beg} and @var{end}.  If neither @var{beg} or @var{end} is
-supplied, use the whole buffer, otherwise if @var{beg} is
-non-@code{nil} and @var{end} is @code{nil}, consider only diagnostics
-at @var{beg}.
+delimited by @var{beg} and @var{end}.  @var{type} is a diagnostic symbol
+(@pxref{Flymake error types}).  @var{text} can be a string or a list
+(@var{origin} @var{code} @var{message}) appropriately categorizing and
+describing the diagnostic.  Most commonly, @var{locus} is the buffer
+object designating for the current buffer being syntax-checked.
+However, it may be a string naming a file relative to the current
+working directory.  @xref{Foreign and list-only diagnostics}, for when
+this may be useful.  Depending on the type of @var{locus}, @var{beg} and
+@var{end} are both either buffer positions or conses (@var{line}
+. @var{col}) which specify the line and column of the diagnostic's start
+and end positions, respectively.
 @end deffn
 
 @cindex buffer position from line and column number
@@ -859,7 +858,7 @@ Binding,,, elisp, The Emacs Lisp Reference Manual}) to be active.
                       ;;
                       (cl-loop
                        while (search-forward-regexp
-                              "^\\(?:.*.rb\\|-\\):\\([0-9]+\\): \\(.*\\)$"
+                              "^\\(?:.*\\.rb\\|-\\):\\([0-9]+\\): \\(.*\\)$"
                               nil t)
                        for msg = (match-string 2)
                        for (beg . end) = (flymake-diag-region
@@ -896,6 +895,32 @@ Binding,,, elisp, The Emacs Lisp Reference Manual}) to be active.
 (add-hook 'ruby-mode-hook 'ruby-setup-flymake-backend)
 @end group
 @end example
+
+@node Inspecting diagnostics
+@section Inspecting diagnostics
+
+When Flymake has called on the backend and collected its diagnostics, it
+will annotate the buffer with it.  After this happens, Elisp programs
+may call @code{flymake-diagnostics} to collect such objects in a
+specified region.
+
+@cindex collect diagnostic objects
+@deffn Function flymake-diagnostics beg end
+Get a list of Flymake diagnostics in the region determined by
+@var{beg} and @var{end}.  If neither @var{beg} or @var{end} is
+supplied, use the whole buffer, otherwise if @var{beg} is
+non-@code{nil} and @var{end} is @code{nil}, consider only diagnostics
+at @var{beg}.
+@end deffn
+
+@cindex access diagnostic object
+A diagnostic object's properties can be accessed with the functions
+@code{flymake-diagnostic-backend}, @code{flymake-diagnostic-buffer},
+@code{flymake-diagnostic-origin}, @code{flymake-diagnostic-code}
+@code{flymake-diagnostic-message}, @code{flymake-diagnostic-beg},
+@code{flymake-diagnostic-end}, @code{flymake-diagnostic-type} and
+@code{flymake-diagnostic-data}.  @code{flymake-diagnostic-text} will
+compose the diagnostic's origin, code and message in a single string.
 
 @node The legacy Proc backend
 @chapter The legacy ``Proc'' backend

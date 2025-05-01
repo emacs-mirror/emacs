@@ -2344,6 +2344,9 @@ If PREDICATE is non-nil, only buffers satisfying it are eligible,
 and others are ignored.  PREDICATE is called with the buffer as
 the only argument, but not with the buffer as the current buffer.
 
+Note that indirect buffers don't count as visiting files,
+and that therefore this function only ever returns base buffers.
+
 If there is no such live buffer, return nil."
   (or (let ((buf (get-file-buffer filename)))
         (when (and buf (or (not predicate) (funcall predicate buf))) buf))
@@ -4276,6 +4279,52 @@ all the specified local variables, but ignores any settings of \"mode:\"."
             (when-let* ((elem (assq variable result)))
               (push elem file-local-variables-alist)))
           (hack-local-variables-apply))))))
+
+(defun internal--get-default-lexical-binding (from)
+  (let ((mib (lambda (node) (buttonize node (lambda (_) (info node))
+                                  nil "mouse-2: Jump to Info node"))))
+    (or (and (bufferp from) (zerop (buffer-size from)))
+        (and (stringp from)
+             (eql 0 (file-attribute-size (file-attributes from))))
+        (let ((source
+               (if (not (and (bufferp from)
+                             (string-match-p "\\` \\*load\\*\\(-[0-9]+\\)?\\'"
+                                             (buffer-name from))
+                             load-file-name))
+                   from
+                 (abbreviate-file-name load-file-name))))
+          (condition-case nil
+              (display-warning
+               `(files missing-lexbind-cookie
+                       ,(if (bufferp source) 'eval-buffer source))
+               (format-message "Missing `lexical-binding' cookie in %S.
+You can add one with `M-x %s RET'.
+See `%s' and `%s'
+for more information."
+                               source
+                               (buttonize "elisp-enable-lexical-binding"
+                                          (lambda (_)
+                                            (pop-to-buffer
+                                             (if (bufferp source) source
+                                               (find-file-noselect source)))
+                                            (call-interactively
+                                             #'elisp-enable-lexical-binding))
+                                          nil "mouse-2: Add cookie")
+                               (funcall mib "(elisp)Selecting Lisp Dialect")
+                               (funcall mib "(elisp)Converting to Lexical Binding"))
+               :warning)
+            ;; In various corner-case situations, `display-warning' may
+            ;; fail (e.g. not yet defined, or can't be (auto)loaded),
+            ;; so use a simple fallback that won't get in the way.
+            (error
+             ;; But not if this particular warning is disabled.
+             (unless (equal warning-inhibit-types
+                            '((files missing-lexbind-cookie)))
+               (message "Missing `lexical-binding' cookie in %S" source))))))
+    (default-toplevel-value 'lexical-binding)))
+
+(setq internal--get-default-lexical-binding-function
+      #'internal--get-default-lexical-binding)
 
 (defun hack-local-variables--find-variables (&optional handle-mode)
   "Return all local variables in the current buffer.
@@ -7067,14 +7116,21 @@ A customized `revert-buffer-function' need not run this hook.")
 (defvar revert-buffer-preserve-modes)
 
 (defvar revert-buffer-restore-functions '(revert-buffer-restore-read-only)
-  "Functions to preserve any state during `revert-buffer'.
-The value of this variable is a list of functions that are called before
-reverting the buffer.  Each of these functions are called without
-arguments and should return a lambda that can restore a previous state
-of the buffer.  Then after reverting the buffer each of these lambdas
-will be called one by one in the order of the list to restore previous
-states of the buffer.  An example of the buffer state is keeping the
-buffer read-only, or keeping minor modes, etc.")
+  "Functions to preserve buffer state during `revert-buffer'.
+The value of this variable is a list of functions that are called
+before reverting the buffer.  Each of these functions is called without
+arguments and should return a lambda form that can restore a previous
+state of the buffer.  After reverting the buffer, each of these lambda
+forms will be called in order to restore previous states of the buffer.
+An example of the buffer state is keeping the buffer read-only, or
+keeping minor modes, etc.
+
+The default value restores the buffer's read-only state to what it
+was before reverting.
+
+Set this variable to nil to disable restoring any buffer state
+attributes from before reverting.  Then only the file from which the
+buffer is reverted will determine the buffer's state after reverting.")
 
 (defun revert-buffer-restore-read-only ()
   "Preserve read-only state for `revert-buffer'."

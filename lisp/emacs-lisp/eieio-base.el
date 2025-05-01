@@ -207,11 +207,12 @@ All slots are unbound, except those initialized with PARAMS."
     nobj))
 
 (cl-defmethod make-instance ((class (subclass eieio-named)) &rest args)
-  (if (not (stringp (car args)))
+  (if (not (and eieio-backward-compatibility args
+            (let ((x (car args))) (or (stringp x) (null x)))))
       (cl-call-next-method)
-    (funcall (if eieio-backward-compatibility #'ignore #'message)
-             "Obsolete: name passed without :object-name to %S constructor"
-             class)
+    (when (eq eieio-backward-compatibility 'warn)
+      (message "Obsolete: name passed without :object-name to %S constructor"
+               class))
     (apply #'cl-call-next-method class :object-name args)))
 
 ;;; eieio-persistent
@@ -345,6 +346,8 @@ objects found there."
                   (object-of-class-p newobj 'eieio-named)
                   (not (oref newobj object-name))
                   name)
+         (when (eq eieio-backward-compatibility 'warn)
+           (message "Obsolete name slot initialized for %S" newobj))
          (oset newobj object-name name))
 
        newobj))))

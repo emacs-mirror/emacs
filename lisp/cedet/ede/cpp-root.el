@@ -327,7 +327,7 @@ If one doesn't exist, create a new one for this directory."
 	 (ans (object-assoc dir :path targets))
 	 )
     (when (not ans)
-      (setq ans (ede-cpp-root-target dir
+      (setq ans (ede-cpp-root-target
                  :name (file-name-nondirectory
 			(directory-file-name dir))
 		 :path dir

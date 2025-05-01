@@ -167,14 +167,7 @@
   (interactive "p")
   (calc-with-trail-buffer
    (let ((buffer-read-only nil))
-     (save-restriction
-       (narrow-to-region   ; don't delete "Emacs Trail" header
-	(save-excursion
-	  (goto-char (point-min))
-	  (forward-line 1)
-	  (point))
-	(point-max))
-       (kill-line n)))
+     (kill-line n))
    (calc-trail-here)))
 
 (provide 'calc-trail)

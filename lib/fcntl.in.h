@@ -22,8 +22,12 @@
 #endif
 @PRAGMA_COLUMNS@
 
-#if defined __need_system_fcntl_h
-/* Special invocation convention.  */
+#if defined __need_system_fcntl_h || defined _@GUARD_PREFIX@_ALREADY_INCLUDING_FCNTL_H
+/* Special invocation convention:
+   - On Haiku we have a sequence of nested includes
+       <fcntl.h> -> <unistd.h> -> <fcntl.h>
+     In this situation, GNULIB_defined_O_NONBLOCK gets defined before the
+     system's definition of O_NONBLOCK is processed.  */
 
 /* Needed before <sys/stat.h>.
    May also define off_t to a 64-bit type on native Windows.  */
@@ -50,6 +54,8 @@
 
 #ifndef _@GUARD_PREFIX@_FCNTL_H
 
+#define _@GUARD_PREFIX@_ALREADY_INCLUDING_FCNTL_H
+
 /* Needed before <sys/stat.h>.
    May also define off_t to a 64-bit type on native Windows.
    Also defines off64_t on macOS, NetBSD, OpenBSD, MSVC, Cygwin, Haiku.  */
@@ -71,6 +77,8 @@
     && (defined _WIN32 && ! defined __CYGWIN__)
 # include <io.h>
 #endif
+
+#undef _@GUARD_PREFIX@_ALREADY_INCLUDING_FCNTL_H
 
 #ifndef _@GUARD_PREFIX@_FCNTL_H
 #define _@GUARD_PREFIX@_FCNTL_H

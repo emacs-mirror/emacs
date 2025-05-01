@@ -892,9 +892,9 @@ If REGEXP is given, lines that match it will be deleted."
 	(when (or (file-exists-p auto) (file-exists-p dribble-file))
 	  ;; Load whichever file is newest -- the auto save file
 	  ;; or the "real" file.
-	  (if (file-newer-than-file-p auto dribble-file)
-	      (nnheader-insert-file-contents auto)
-	    (nnheader-insert-file-contents dribble-file))
+	  (nnheader-insert-file-contents
+	   (if (file-newer-than-file-p auto dribble-file)
+	       auto dribble-file))
 	  (unless (zerop (buffer-size))
 	    (set-buffer-modified-p t))
 	  ;; Set the file modes to reflect the .newsrc file modes.
@@ -916,9 +916,10 @@ If REGEXP is given, lines that match it will be deleted."
 (defun gnus-dribble-eval-file ()
   (when gnus-dribble-eval-file
     (setq gnus-dribble-eval-file nil)
-    (let ((gnus-dribble-ignore t))
-      (with-current-buffer gnus-dribble-buffer
-	(eval-buffer (current-buffer))))))
+    (with-current-buffer gnus-dribble-buffer
+    (let ((gnus-dribble-ignore t)
+          (warning-inhibit-types '((files missing-lexbind-cookie))))
+      (eval-buffer (current-buffer))))))
 
 (defun gnus-dribble-delete-file ()
   (when (file-exists-p (gnus-dribble-file-name))

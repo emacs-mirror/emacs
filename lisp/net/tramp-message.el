@@ -464,7 +464,7 @@ the resulting error message."
   "Show a warning.
 VEC-OR-PROC identifies the connection to use, remaining arguments passed
 to `tramp-message'."
-  (declare (tramp-suppress-trace t))
+  (declare (indent 1) (tramp-suppress-trace t))
   (let (signal-hook-function)
     (apply 'tramp-message vec-or-proc 2 fmt-string arguments)
     (apply 'lwarn 'tramp :warning fmt-string arguments)))

@@ -542,6 +542,13 @@ redundant).")
    "Additional things to highlight in grep output.
 This gets tacked on the end of the generated expressions.")
 
+(defvar grep-compilation-transform-finished-rules
+  '(("^Grep[/a-zA-Z]* finished with \\(?:\\(\\(?:[0-9]+ \\)?match\\(?:es\\)? found\\)\\|\\(no matches found\\)\\).*" . nil)
+    ("^Grep[/a-zA-Z]* \\(exited abnormally\\|interrupt\\|killed\\|terminated\\)\\(?:.*with code \\([0-9]+\\)\\)?.*" . nil))
+  "Rules added to `compilation-transform-file-match-alist' in `grep-mode'
+These prevent the \"Grep finished\" lines from being misinterpreted as
+matches (bug#77732).")
+
 ;;;###autoload
 (defvar grep-program "grep"
   "The default grep program for `grep-command' and `grep-find-command'.
@@ -696,13 +703,27 @@ first capture group of `grep-heading-regexp'.")
 	   (or result 0))))
 
 (defun grep-hello-file ()
-  (let ((result
-         (if (file-remote-p default-directory)
-             (make-temp-file (file-name-as-directory (temporary-file-directory)))
-           (expand-file-name "HELLO" data-directory))))
-    (when (file-remote-p result)
-      (write-region "Copyright\n" nil result))
-    result))
+  (cond ((file-remote-p default-directory)
+         (let ((file-name (make-temp-file
+                           (file-name-as-directory
+                            (temporary-file-directory)))))
+           (when (file-remote-p file-name)
+             (write-region "Copyright\n" nil file-name))
+           file-name))
+        ((and (eq system-type 'android) (featurep 'android)) 
+         ;; /assets/etc is not accessible to grep or other shell
+         ;; commands on Android, and therefore the template must
+         ;; be copied to a location that is.
+         (let ((temp-file (concat temporary-file-directory
+                                  "grep-test.txt")))
+           (prog1 temp-file
+             (unless (file-regular-p temp-file)
+               ;; Create a temporary file if grep-text.txt can't be
+               ;; overwritten.
+               (when (file-exists-p temp-file)
+                 (setq temp-file (make-temp-file "grep-test-")))
+               (write-region "Copyright\n" nil temp-file)))))
+        (t (expand-file-name "HELLO" data-directory))))
 
 ;;;###autoload
 (defun grep-compute-defaults ()
@@ -971,6 +992,9 @@ The value depends on `grep-command', `grep-template',
               grep-hit-face)
   (setq-local compilation-error-regexp-alist
               grep-regexp-alist)
+  (setq-local compilation-transform-file-match-alist
+              (append grep-compilation-transform-finished-rules
+                      compilation-transform-file-match-alist))
   (setq-local compilation-mode-line-errors
               grep-mode-line-matches)
   ;; compilation-directory-matcher can't be nil, so we set it to a regexp that

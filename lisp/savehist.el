@@ -72,7 +72,11 @@ as long as `savehist-save-minibuffer-history' is non-nil.
 
 User options should be saved with the Customize interface.  This
 list is useful for saving automatically updated variables that are not
-minibuffer histories, such as `compile-command' or `kill-ring'."
+minibuffer histories, such as `compile-command' or `kill-ring'.
+
+NOTE: If this variable is not nil, then Emacs will not try to handle
+gracefully concurrent modifications to the `savehist-file', e.g. by other
+Emacs sessions or other tools like file-synchronization systems."
   :type '(repeat variable))
 
 (defcustom savehist-ignored-variables nil ;; '(command-history)
@@ -115,8 +119,7 @@ executes in under 5 ms on my system."
            savehist-autosave-interval
            (null savehist-timer))
       (setq savehist-timer
-	    (run-with-timer savehist-autosave-interval
-			    savehist-autosave-interval #'savehist-autosave))
+	    (run-with-timer savehist-autosave-interval t #'savehist-autosave))
     (savehist--cancel-timer)))
 
 (defcustom savehist-autosave-interval (* 5 60)
@@ -142,7 +145,7 @@ to save."
 ;; This should be capable of representing characters used by Emacs.
 ;; We prefer UTF-8 over ISO 2022 because it is well-known outside
 ;; Mule.
-(defvar savehist-coding-system 'utf-8-unix
+(defvar savehist-coding-system 'utf-8-emacs-unix
   "The coding system Savehist uses for saving the minibuffer history.
 Changing this value while Emacs is running is supported, but considered
 unwise, unless you know what you are doing.")
@@ -158,9 +161,11 @@ along with minibuffer history.  You can change its value off
 `savehist-save-hook' to influence which variables are saved.")
 
 (defvar savehist-loaded nil
-  "Whether the history has already been loaded.
-This prevents toggling Savehist mode from destroying existing
-minibuffer history.")
+ "Whether the history has already been loaded.")
+(make-obsolete-variable 'savehist-loaded 'savehist--file-sync-modtime "31")
+
+(defvar savehist--file-sync-modtime nil
+  "Modtime of the `savehist-file' when we last sync'd up with it.")
 
 
 ;; Functions.
@@ -197,23 +202,68 @@ histories, which is probably undesirable."
   :global t
   (if (not savehist-mode)
       (savehist-uninstall)
-    (when (and (not savehist-loaded)
-	       (file-exists-p savehist-file))
+    (savehist--reload (called-interactively-p 'interactive))
+    (savehist-install)))
+
+(defun savehist--reload (interactively)
+  "Load the history data from `savehist-file'.
+Be careful to do it while preserving the current history data."
+  (when (and (file-exists-p savehist-file)
+             (not (and savehist-loaded
+                       (equal savehist--file-sync-modtime
+                              (savehist--file-modtime)))))
+    ;; FIXME: Process the file manually rather than passing it to `load'.
+    (let ((savehist-old-minibuffer-history-variables
+           (delq nil (mapcar (lambda (s)
+                               (and (boundp s) (cons s (symbol-value s))))
+                             (cons 'savehist-minibuffer-history-variables
+                                   savehist-minibuffer-history-variables)))))
       (condition-case errvar
 	  (progn
 	    ;; Don't set coding-system-for-read -- we rely on the
 	    ;; coding cookie to convey that information.  That way, if
 	    ;; the user changes the value of savehist-coding-system,
 	    ;; we can still correctly load the old file.
-	    (load savehist-file nil (not (called-interactively-p 'interactive)))
+            (let ((warning-inhibit-types '((files missing-lexbind-cookie))))
+	      (load savehist-file nil
+                    (not interactively)))
+            (setq savehist--file-sync-modtime (savehist--file-modtime))
 	    (setq savehist-loaded t))
 	(error
 	 ;; Don't install the mode if reading failed.  Doing so would
 	 ;; effectively destroy the user's data at the next save.
 	 (setq savehist-mode nil)
 	 (savehist-uninstall)
-	 (signal (car errvar) (cdr errvar)))))
-    (savehist-install)))
+	 (signal (car errvar) (cdr errvar))))
+
+      ;; In case we're loading the file late, there was info in the history
+      ;; variables that may have been overwritten by the info extracted from
+      ;; the file, so put it back in.
+      (pcase-dolist (`(,s . ,v) savehist-old-minibuffer-history-variables)
+        ;; For each histvar that we knew about, make sure all the entries that
+        ;; were there before are still here now and in the same order.
+        (with-demoted-errors "%S" ;Maybe some var is not a list or something.
+          (unless (equal v (symbol-value s))
+            (set s (savehist--merge v (symbol-value s)))))))))
+
+(defun savehist--file-modtime ()
+  (or (file-attribute-modification-time (file-attributes savehist-file))
+      t))
+
+(defun savehist--merge (old new)
+  "Merge the OLD history we had with the NEW history we just loaded."
+  ;; We don't know the relative age of the various entries in OLD and
+  ;; NEW; it's possible that most entries in NEW are much older than
+  ;; those in OLD or vice versa, or anything in-between.  Maybe we should
+  ;; export the `lib/diffseq.h' to ELisp and use it here, but in the mean
+  ;; time we interleave the two lists, which should usually be tolerable.
+  (let ((res ()))
+    (while (and old new)
+      (push (pop old) res) ;; Keep the first element first.
+      (push (pop new) res))
+    ;; In order to avoid problems when merging repeatedly, we want to be
+    ;; idempotent, i.e. (merge (merge OLD NEW) NEW) = (merge OLD NEW).
+    (delete-dups (nconc (nreverse res) old new))))
 
 (defun savehist-install ()
   "Hook Savehist into Emacs.
@@ -238,11 +288,21 @@ Unbound symbols referenced in `savehist-additional-variables' are ignored.
 If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
  and don't save the buffer if they are the same."
   (interactive)
+  ;; FIXME: We don't know how to merge old and new values of those vars
+  ;; in `savehist-additional-variables', so only do the auto-sync
+  ;; if there aren't such variables.
+  (unless (or savehist-additional-variables
+              (equal savehist--file-sync-modtime (savehist--file-modtime)))
+    ;; The file has been changed since last time we saw it.
+    ;; Probably some other Emacs session.  Load the corresponding info so we
+    ;; don't end up throwing it away by blindly overwriting it.  There's
+    ;; still a race-condition, but hopefully less problematic.
+    (savehist--reload nil))
   (with-temp-buffer
     (insert
      (format-message
       (concat
-       ";; -*- mode: emacs-lisp; coding: %s -*-\n"
+       ";; -*- mode: emacs-lisp; lexical-binding: t; coding: %s -*-\n"
        ";; Minibuffer history file, automatically generated by `savehist'.\n"
        "\n")
       savehist-coding-system))
@@ -315,6 +375,12 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 	          (insert ?\n))))))))
     ;; If autosaving, avoid writing if nothing has changed since the
     ;; last write.
+    ;; Note: it may be the case that nothing changed but that the
+    ;; underlying file is not what we would write (because the file has been
+    ;; overwritten by something else, but reloading the file had no effect);
+    ;; the fact that we still do not autosave in this case is not a bug:
+    ;; without this, when several Emacs processes share the same history
+    ;; file, they'd keep fighting over it without ever reaching a fixpoint.
     (let ((checksum (md5 (current-buffer) nil nil savehist-coding-system)))
       (condition-case err
         (unless (and auto-save (equal checksum savehist-last-checksum))
@@ -333,6 +399,7 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 			  (unless (called-interactively-p 'interactive) 'quiet)))
 	  (when savehist-file-modes
 	    (set-file-modes savehist-file savehist-file-modes))
+          (setq savehist--file-sync-modtime (savehist--file-modtime))
 	  (setq savehist-last-checksum checksum))
         (file-error
          (unless savehist--has-given-file-warning
@@ -377,7 +444,12 @@ Does nothing if Savehist mode is off."
 	      ;; (which `read-password' does),
 	      ;; `minibuffer-history-variable' is bound to t to mean
 	      ;; "no history is being recorded".
-	      (memq minibuffer-history-variable savehist-ignored-variables))
+	      (memq minibuffer-history-variable savehist-ignored-variables)
+	      ;; Filter out uninterned history vars since we can't
+              ;; reliably write+read them back in anyway (and presumably
+              ;; they are not intended to survive sessions).
+	      (not (eq (intern-soft minibuffer-history-variable)
+	               minibuffer-history-variable)))
     (add-to-list 'savehist-minibuffer-history-variables
 		 minibuffer-history-variable)))
 

@@ -480,7 +480,7 @@ This is used when subprojects are made in named subdirectories."
 	     (bug (nth 2 pi))
 	     (cof (nth 3 pi))
 	     (ampf (project-am-makefile
-		    pn :name pn
+		    :name pn
 		    :version ver
 		    :mailinglist (or bug "")
 		    :file fn)))

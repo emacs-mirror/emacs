@@ -52,6 +52,16 @@
   (tab-bar-tabs-set nil))
 
 (ert-deftest tab-bar-tests-quit-restore-window ()
+  (skip-when (pcase system-type
+               ;; Skip test on MS-Windows in batch mode, since terminal
+               ;; frames cannot be created in that case.
+               ('windows-nt noninteractive)
+               ;; Emba runs the container without "--tty"
+               ;; (the environment variable "TERM" is nil), and this
+               ;; test fails with '(error "Could not open file: /dev/tty")'.
+               ;; Therefore skip it unless it can use '(tty-type . "linux")'.
+               ('gnu/linux (null (getenv "TERM")))))
+
   (let* ((frame-params (when noninteractive
                          '((window-system . nil)
                            (tty-type . "linux"))))
@@ -90,11 +100,12 @@
       (quit-window)
       (should (eq (length (window-list)) 1))
       (should (eq (length (frame-list)) 2))
-      ;; FIXME: uncomment (should (equal (buffer-name) "*Messages*"))
+      (should (equal (buffer-name) "*Messages*"))
       (quit-window)
       (should (eq (length (frame-list)) 2))
-      ;; Clean up the frame afterwards
-      (delete-frame))
+      ;; Delete the created frame afterwards because with tty frames
+      ;; the output of 'message' is bound to the original frame
+      (delete-frame (car (frame-list))))
 
     ;; 2.1. 'quit-restore-window' should close the tab
     ;; from initial window (bug#59862)
@@ -134,7 +145,7 @@
       ;; Clean up the tab afterwards
       (tab-close))
 
-    ;; 3. Don't delete the frame with dedicated window
+    ;; 3.1. Don't delete the frame with dedicated window
     ;; from the second tab (bug#71386)
     (with-selected-frame (make-frame frame-params)
       (switch-to-buffer (generate-new-buffer "test1"))
@@ -150,8 +161,25 @@
       (kill-buffer)
       (should (eq (length (frame-list)) 1)))
 
-    ;; Clean up tabs afterwards
-    (tab-bar-tabs-set nil)))
+    ;; 3.2. Don't delete the frame with an effectively-dedicated window
+    ;; from the second tab (bug#71386)
+    (with-selected-frame (make-frame frame-params)
+      (let ((switch-to-prev-buffer-skip #'always)
+            (kill-buffer-quit-windows nil))
+        (switch-to-buffer (generate-new-buffer "test1"))
+        (tab-bar-new-tab)
+        (switch-to-buffer (generate-new-buffer "test2"))
+        ;; This makes the window effectively dedicated.
+        (set-window-prev-buffers nil nil)
+        ;; Killing the buffer should close the tab, leave one open tab,
+        ;; and not delete the frame.
+        (kill-buffer)
+        (should (eq (length (tab-bar-tabs)) 1))
+        (should (eq (length (frame-list)) 2))
+        (delete-frame))))
+
+  ;; Clean up tabs afterwards
+  (tab-bar-tabs-set nil))
 
 (provide 'tab-bar-tests)
 ;;; tab-bar-tests.el ends here

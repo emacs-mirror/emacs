@@ -309,11 +309,7 @@ If there is no database for DIRECTORY available, then
 	   )
       (if found
 	  (setq db found)
-	(setq db (make-instance
-		  dbeC
-		  directory
-		  :ebrowse-struct ebd
-		  ))
+	(setq db (make-instance dbeC :ebrowse-struct ebd))
 	(oset db reference-directory directory))
 
       ;; Once we recycle or make a new DB, refresh the

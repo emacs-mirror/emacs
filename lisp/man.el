@@ -635,9 +635,7 @@ This is necessary if one wants to dump man.el with Emacs."
 	     (if Man-sed-script
 		 (concat "-e '" Man-sed-script "'")
 	       "")
-             ;; Use octal numbers.  Otherwise, \032 (Ctrl-Z) would
-             ;; suspend remote connections.
-	     "-e '/^[\\o001-\\o032][\\o001-\\o032]*$/d'"
+	     "-e '/^[[:cntrl:]][[:cntrl:]]*$/d'"
 	     "-e '/\e[789]/s///g'"
 	     "-e '/Reformatting page.  Wait/d'"
 	     "-e '/Reformatting entry.  Wait/d'"
@@ -772,7 +770,7 @@ Different man programs support this feature in different ways.
 The default Debian man program (\"man-db\") has a `--local-file'
 \(or `-l') option for this purpose.  The default Red Hat man
 program has no such option, but interprets any name containing
-a \"/\" as a local filename.  The function returns either `man-db'
+a \"/\" as a local filename.  The function returns either `man-db',
 `man', or nil."
   (if (eq Man-support-local-filenames 'auto-detect)
       (with-connection-local-variables
@@ -1166,6 +1164,7 @@ for the current invocation."
 
 (defmacro Man-start-calling (&rest body)
   "Start the man command in `body' after setting up the environment."
+  (declare (debug t))
   `(let ((process-environment (copy-sequence process-environment))
 	;; The following is so Awk script gets \n intact
 	;; But don't prevent decoding of the outside.
@@ -1253,7 +1252,7 @@ Return the buffer in which the manpage will appear."
 				    exit-status)))
 		 (setq msg exit-status))
 	     (man--maybe-fontify-manpage)
-	     (Man-bgproc-sentinel bufname msg))))))
+	     (Man-bgproc-sentinel (cons buffer exit-status) msg))))))
     buffer))
 
 (defun Man-update-manpage ()
@@ -1541,17 +1540,26 @@ command is run.  Second argument STRING is the entire string of output."
   "Manpage background process sentinel.
 When manpage command is run asynchronously, PROCESS is the process
 object for the manpage command; when manpage command is run
-synchronously, PROCESS is the name of the buffer where the manpage
-command is run.  Second argument MSG is the exit message of the
-manpage command."
-  (let ((Man-buffer (if (stringp process) (get-buffer process)
-		      (process-buffer process)))
+synchronously, PROCESS is a cons (BUFFER . EXIT-STATUS) of the buffer
+where the manpage command has run and the exit status of the manpage
+command.  Second argument MSG is the exit message of the manpage
+command."
+  (let ((asynchronous (processp process))
+        Man-buffer process-status exit-status
 	(delete-buff nil)
 	message)
 
+    (if asynchronous
+        (setq Man-buffer     (process-buffer process)
+              process-status (process-status process)
+              exit-status    (process-exit-status process))
+      (setq Man-buffer     (car process)
+            process-status 'exit
+            exit-status    (cdr process)))
+
     (if (not (buffer-live-p Man-buffer)) ;; deleted buffer
-	(or (stringp process)
-	    (set-process-buffer process nil))
+	(and asynchronous
+	     (set-process-buffer process nil))
 
       (with-current-buffer Man-buffer
 	(save-excursion
@@ -1570,15 +1578,14 @@ manpage command."
 		  ;; `Man-highlight-references'.  The \\s- bits here are
 		  ;; meant to allow for multiple options with -k among them.
 		  ((and (string-match "\\(\\`\\|\\s-\\)-k\\s-" Man-arguments)
-			(eq (process-status process) 'exit)
-			(= (process-exit-status process) 0)
+			(eq process-status 'exit)
+			(= exit-status 0)
 			(= (point-min) (point-max)))
 		   (setq message (format "%s: no matches" Man-arguments)
 			 delete-buff t))
 
-		  ((or (stringp process)
-		       (not (and (eq (process-status process) 'exit)
-				 (= (process-exit-status process) 0))))
+		  ((not (and (eq process-status 'exit)
+			     (= exit-status 0)))
 		   (or (zerop (length msg))
 		       (progn
 			 (setq message
@@ -1630,10 +1637,13 @@ manpage command."
             (progn
               (quit-restore-window
                (get-buffer-window Man-buffer t) 'kill)
-              ;; Ensure that we end up in the correct window.
-              (let ((old-window (old-selected-window)))
-                (when (window-live-p old-window)
-                  (select-window old-window))))
+              ;; Ensure that we end up in the correct window.  Which is
+              ;; only relevant in rather special cases and if we have
+              ;; been called in an asynchronous fashion, see bug#38164.
+              (and asynchronous
+                   (let ((old-window (old-selected-window)))
+                     (when (window-live-p old-window)
+                       (select-window old-window)))))
           (kill-buffer Man-buffer)))
 
       (when message

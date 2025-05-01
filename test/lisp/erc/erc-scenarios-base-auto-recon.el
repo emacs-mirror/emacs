@@ -39,7 +39,7 @@
 ;; This demos one possible flavor of intermittent service.
 ;; It may end up needing to be marked :unstable.
 
-(ert-deftest erc-scenarios-base-auto-recon-unavailable ()
+(ert-deftest erc-scenarios-base-auto-recon-check/no-reuse ()
   :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-server-flood-penalty 0.1)
@@ -48,6 +48,7 @@
        (erc-server-auto-reconnect t)
        (expect (erc-d-t-make-expecter))
        (erc-scenarios-common-dialog "base/reconnect")
+       (erc-server-delayed-check-reconnect-reuse-process-p nil)
        (dumb-server nil))
 
     (ert-info ("Dialing fails: nobody home")
@@ -94,14 +95,12 @@
 
 ;; Here, a listener accepts but doesn't respond to any messages.
 
-(ert-deftest erc-scenarios-base-auto-recon-no-proto ()
+(ert-deftest erc-scenarios-base-auto-recon-check/reuse ()
   :tags '(:expensive-test)
+  (should erc-server-delayed-check-reconnect-reuse-process-p)
   (erc-scenarios-common-with-cleanup
       ((erc-server-flood-penalty 0.1)
        (erc-scenarios-common-dialog "base/reconnect")
-       (erc-d-auto-pong nil)
-       (erc-d-tmpl-vars
-        `((cookie . ,(lambda (a) (funcall a :set (funcall a :match 1))))))
        (dumb-server (erc-d-run "localhost" t 'unexpected-disconnect))
        (port (process-contact dumb-server :service))
        (erc--server-reconnect-timeout-scale-function (lambda (_) 1))
@@ -117,19 +116,19 @@
         (funcall expect 10 "server is in debug mode")
         (should (equal (buffer-name) "FooNet"))
         (erc-d-t-wait-for 10 erc--server-reconnect-timer)
-        (delete-process dumb-server)
         (funcall expect 10 "failed")
 
         (ert-info ("Reconnect function freezes attempts at 1")
           (funcall expect 10 '(: "reconnecting" (+ nonl) "attempt 1/2"))
-          (funcall expect 10 "nobody home")
-          (funcall expect 10 "timed out while dialing")
+          (funcall expect 10 "Timed out while dialing")
+          (funcall expect 10 "Nobody home")
           (funcall expect 10 '(: "reconnecting" (+ nonl) "attempt 1/2"))
-          (funcall expect 10 "nobody home"))))
+          (funcall expect 10 "Timed out while dialing")
+          (funcall expect 10 "Nobody home"))))
 
     (ert-info ("Service restored")
+      (delete-process dumb-server)
       (setq dumb-server (erc-d-run "localhost" port
-                                   'just-ping
                                    'unexpected-disconnect))
       (with-current-buffer "FooNet"
         (funcall expect 30 "server is in debug mode")))

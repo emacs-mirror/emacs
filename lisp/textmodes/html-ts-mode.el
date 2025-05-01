@@ -43,6 +43,11 @@
 (declare-function treesit-node-type "treesit.c")
 (declare-function treesit-search-subtree "treesit.c")
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(html "https://github.com/tree-sitter/tree-sitter-html" "v0.23.2")
+ t)
+
 (defcustom html-ts-mode-indent-offset 2
   "Number of spaces for each indentation step in `html-ts-mode'."
   :version "29.1"
@@ -90,15 +95,15 @@
 
 (defvar html-ts-mode--treesit-things-settings
   `((html
-     (sexp ,(regexp-opt '("element"
-                          "text"
-                          "attribute"
-                          "value")))
-     (list ,(rx (or
-                 ;; Also match script_element and style_element
-                 "element"
-                 ;; HTML comments have the element syntax
-                 "comment")))
+     (sexp (not (or (and named
+                         ,(rx bos (or "document" "tag_name") eos))
+                    (and anonymous
+                         ,(rx (or "<!" "<" ">" "</"))))))
+     (list ,(rx (or "doctype"
+                    ;; Also match script_element and style_element
+                    "element"
+                    ;; HTML comments have the element syntax
+                    "comment")))
      (sentence ,(rx (and bos (or "tag_name" "attribute") eos)))
      (text ,(regexp-opt '("comment" "text")))))
   "Settings for `treesit-thing-settings'.")
@@ -144,7 +149,7 @@ Return nil if there is no name or if NODE is not a defun node."
   "Major mode for editing Html, powered by tree-sitter."
   :group 'html
 
-  (unless (treesit-ready-p 'html t)
+  (unless (treesit-ensure-installed 'html)
     (error "Tree-sitter for HTML isn't available"))
 
   (setq treesit-primary-parser (treesit-parser-create 'html))

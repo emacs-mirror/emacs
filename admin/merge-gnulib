@@ -58,7 +58,7 @@ GNULIB_MODULES='
 AVOIDED_MODULES='
   access btowc chmod close crypto/af_alg dup fchdir fstat gnulib-i18n
   iswblank iswctype iswdigit iswxdigit langinfo-h libgmp-mpq
-  localename-unsafe-limited lock
+  locale-h localename-unsafe-limited lock
   mbrtowc mbsinit memchr mkdir msvc-inval msvc-nothrow nl_langinfo
   openat-die opendir pthread-h raise
   save-cwd select setenv sigprocmask stat stdarg-h
@@ -79,6 +79,10 @@ case $src in
   */ | '') ;;
   *) src=$src/ ;;
 esac
+
+GNULIB_TOOL_FLAGS="$GNULIB_TOOL_FLAGS
+  --local-dir="$src"admin/gnulib-patches
+"
 
 # Gnulib's source directory.
 gnulib_srcdir=${1-$src../gnulib}

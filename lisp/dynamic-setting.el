@@ -46,7 +46,8 @@ the current form for the frame (i.e. hinting or somesuch changed)."
   (let ((new-font (and (fboundp 'font-get-system-font)
 		       (font-get-system-font)))
 	(frame-list (frames-on-display-list display-or-frame)))
-    (when (and new-font (display-graphic-p display-or-frame))
+    (when (and (or (not set-font) new-font)
+               (display-graphic-p display-or-frame))
       (clear-font-cache)
       (if set-font
 	  ;; Set the font on all current and future frames, as though

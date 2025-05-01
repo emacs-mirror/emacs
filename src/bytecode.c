@@ -1780,7 +1780,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
               }
             else
 	      {
-		ptrdiff_t i = hash_lookup (h, v1);
+		ptrdiff_t i = hash_find (h, v1);
 		if (i >= 0)
 		  {
 		    op = XFIXNUM (HASH_VALUE (h, i));

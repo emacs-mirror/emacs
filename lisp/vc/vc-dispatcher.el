@@ -109,7 +109,9 @@
 ;; TODO:
 ;; - log buffers need font-locking.
 
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'cl-print))
 
 ;; General customization
 
@@ -177,8 +179,9 @@ Another is that undo information is not kept."
 (defun vc-setup-buffer (buf)
   "Prepare BUF for executing a slave command and make it current."
   (let ((camefrom (current-buffer))
-	(olddir default-directory))
-    (set-buffer (get-buffer-create buf))
+	(olddir default-directory)
+        (buf (get-buffer-create buf)))
+    (set-buffer buf)
     (let ((oldproc (get-buffer-process (current-buffer))))
       ;; If we wanted to wait for oldproc to finish before doing
       ;; something, we'd have used vc-eval-after.
@@ -325,10 +328,11 @@ Intended to be used as the value of `vc-filter-command-function'."
                            (if file-or-list
                                " (files list to be appended)"
                              ""))
-                   (combine-and-quote-strings
-                    (cons command (remq nil (if files-separator-p
-                                                (butlast flags)
-                                              flags))))))))
+                   (concat (combine-and-quote-strings
+                            (cons command (remq nil (if files-separator-p
+                                                        (butlast flags)
+                                                      flags))))
+                           " ")))))
     (list (car edited) file-or-list
           (nconc (cdr edited) (and files-separator-p '("--"))))))
 
@@ -472,10 +476,22 @@ Display the buffer in some window, but don't select it."
                   (unless (eq (point) (point-min))
 	            (insert "\n"))
                   (setq new-window-start (point))
-                  (insert "Running \"" cmd)
+                  (insert "Running '" cmd)
                   (dolist (flag flags)
-	            (insert " " flag))
-                  (insert "\"...\n")
+                    (let ((lines (string-lines flag)))
+                      (insert " ")
+                      ;; If the argument has newlines in it (as a commit
+                      ;; message commonly will) then ellipse it down so
+                      ;; that the whole command is more readable.
+                      (if (cdr lines)
+                          (let ((flag (copy-sequence flag))
+                                (cl-print-string-length (length
+                                                         (car lines))))
+                            (set-text-properties 0 (length flag) nil
+                                                 flag)
+                            (cl-prin1 flag buffer))
+                        (insert flag))))
+                  (insert "'...\n")
                   args))))
 	(setq proc (apply #'vc-do-command t 'async command nil args))))
     (unless vc--inhibit-async-window
@@ -681,9 +697,9 @@ editing!"
   (when vc-dir-buffers
     (vc-dir-resynch-file file)))
 
-(defun vc-buffer-sync (&optional not-urgent)
+(defun vc-buffer-sync (&optional not-essential)
   "Make sure the current buffer and its working file are in sync.
-NOT-URGENT means it is ok to continue if the user says not to save."
+NOT-ESSENTIAL means it is okay to continue if the user says not to save."
   (let (missing)
     (when (cond
            ((buffer-modified-p))
@@ -696,7 +712,7 @@ NOT-URGENT means it is ok to continue if the user says not to save."
                                     "is missing on disk"
                                   "modified"))))
           (save-buffer)
-        (unless not-urgent
+        (unless not-essential
           (error "Aborted"))))))
 
 ;; Command closures

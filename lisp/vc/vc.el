@@ -38,6 +38,9 @@
 ;;   J.D. Smith <jdsmith@alum.mit.edu>
 ;;   Andre Spiegel <spiegel@gnu.org>
 ;;   Richard Stallman <rms@gnu.org>
+;;   Dmitry Gutov <dmitry@gutov.dev>
+;;   Juri Linkov <juri@linkov.net>
+;;   Sean Whitton <spwhitton@spwhitton.name>
 ;;
 ;; In July 2007 ESR returned and redesigned the mode to cope better
 ;; with modern version-control systems that do commits by fileset
@@ -1181,6 +1184,19 @@ If the value is t, the backend is deduced in all modes."
 (declare-function vc-dir-deduce-fileset "vc-dir" (&optional state-model-only-files))
 (declare-function dired-vc-deduce-fileset "dired-aux" (&optional state-model-only-files not-state-changing))
 
+(defvar-local vc-buffer-overriding-fileset nil
+  "Specialized, static value for `vc-deduce-fileset' for this buffer.
+If non-nil, this should be a list of length 2 or 5.
+See `vc-deduce-fileset' regarding these possible forms.
+If this list is of length 2, it will be used only when the
+STATE-MODEL-ONLY-FILES argument to `vc-deduce-fileset' is nil.")
+
+(defvar-local vc-buffer-revision nil
+  "VCS revision to which this buffer's contents corresponds.
+Lisp code which sets this should also set `vc-buffer-overriding-fileset'
+such that the buffer's local variables also specify a VC backend,
+rendering the value of this variable unambiguous.")
+
 (defun vc-deduce-fileset (&optional not-state-changing
 				    allow-unregistered
 				    state-model-only-files)
@@ -1220,6 +1236,14 @@ BEWARE: this function may change the current buffer."
     (set-buffer (buffer-base-buffer)))
   (let (backend)
     (cond
+     ((and vc-buffer-overriding-fileset
+           (not (or (length= vc-buffer-overriding-fileset 2)
+                    (length= vc-buffer-overriding-fileset 5))))
+      (error "Invalid value for `vc-buffer-overriding-fileset' %S"
+             vc-buffer-overriding-fileset))
+     ((and (or (not state-model-only-files)
+               (length= vc-buffer-overriding-fileset 5))
+           vc-buffer-overriding-fileset))
      ((derived-mode-p 'vc-dir-mode)
       (vc-dir-deduce-fileset state-model-only-files))
      ((derived-mode-p 'dired-mode)
@@ -1262,6 +1286,9 @@ BEWARE: this function may change the current buffer."
 	      (list buffer-file-name))))
      (t (error "File is not under version control")))))
 
+;; This function should possibly honor `vc-buffer-overriding-fileset'
+;; when the fileset consists of a single file, but only if that file is
+;; part of the current working revision, i.e., actually on disk now.
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."
   (cond
@@ -1281,6 +1308,48 @@ BEWARE: this function may change the current buffer."
     (unless (vc-backend buffer-file-name)
       (error "File %s is not under version control" buffer-file-name))))
 
+(defun vc-only-files-state-and-model (files backend)
+  "Compute last three `vc-deduce-fileset' return value elements for FILES.
+FILES should be a pair, or list of pairs, of files and their VC states.
+BACKEND is the VC backend responsible for FILES."
+  (let* ((files (if (proper-list-p files) files (list files)))
+         files* states-alist states state)
+    ;; Check that all files are in a consistent state, since we use that
+    ;; state to decide which operation to perform.
+    (pcase-dolist (`(,file . ,state) files)
+      (push file files*)
+      (push file (alist-get state states-alist nil nil #'eq)))
+    (setq states (mapcar #'car states-alist))
+    (cond ((length= states 1)
+           (setq state (car states)))
+          ((cl-subsetp states '(added removed edited))
+           (setq state 'edited))
+
+          ;; Special, but common case:
+          ;; checking in both changes and new files at once.
+          ((and (cl-subsetp states '(added removed edited unregistered))
+                (y-or-n-p "Some files are unregistered; register them first?"))
+           (vc-register (list backend
+                              (cdr (assq 'unregistered states-alist))))
+           (setq state 'edited))
+
+          (t
+           (let* ((pred (lambda (elt)
+                          (memq (car elt) '(added removed edited))))
+                  (compat-alist (cl-remove-if-not pred states-alist))
+                  (other-alist (cl-remove-if pred states-alist))
+                  (first (car (or compat-alist other-alist)))
+                  (second (if compat-alist
+                              (car other-alist)
+                            (cadr other-alist))))
+             (error "\
+To apply VC operations to multiple files, the files must be in similar VC states.
+%s in state %s clashes with %s in state %s"
+                    (cadr first) (car first) (cadr second) (car second)))))
+    (list files* state
+          (and state (not (eq state 'unregistered))
+               (vc-checkout-model backend files*)))))
+
 ;;; Support for the C-x v v command.
 ;; This is where all the single-file-oriented code from before the fileset
 ;; rewrite lives.
@@ -1291,12 +1360,6 @@ BEWARE: this function may change the current buffer."
     (and backend
          (or (eq (vc-checkout-model backend (list file)) 'implicit)
              (memq (vc-state file) '(edited needs-merge conflict))))))
-
-(defun vc-compatible-state (p q)
-  "Control which states can be in the same commit."
-  (or
-   (eq p q)
-   (and (member p '(edited added removed)) (member q '(edited added removed)))))
 
 (defun vc-read-backend (prompt &optional backends default)
   (let ((backends (or backends vc-handled-backends))
@@ -1322,6 +1385,8 @@ For modern merging-based version control systems:
    backend with which to register the fileset.
   If every work file in the VC fileset is either added or modified,
    pop up a *vc-log* buffer to commit the fileset changes.
+  (If some are added or modified and some are unregistered, offer to
+   register the unregistered ones, first.)
   For a centralized version control system, if any work file in
    the VC fileset is out of date, offer to update the fileset.
 
@@ -1410,7 +1475,7 @@ from which to check out the file(s)."
         ;; do nothing
         (message "Fileset is up-to-date"))))
      ;; Files have local changes
-     ((vc-compatible-state state 'edited)
+     ((memq state '(added removed edited))
       (let ((ready-for-commit files))
 	;; CVS, SVN and bzr don't care about read-only (bug#9781).
 	;; RCS does, SCCS might (someone should check...).
@@ -2001,7 +2066,7 @@ in the output buffer."
     (setq-local revert-buffer-function
                 (lambda (_ _) (vc-diff-patch-string patch-string)))
     (setq-local vc-patch-string patch-string)
-    (display-buffer (current-buffer))
+    (pop-to-buffer (current-buffer))
     (vc-run-delayed (vc-diff-finish (current-buffer) nil))))
 
 (defun vc-diff-internal (async vc-fileset rev1 rev2 &optional verbose buffer)
@@ -2216,34 +2281,58 @@ state of each file in the fileset."
        t (list backend (list rootdir)) rev1 rev2
        (called-interactively-p 'interactive)))))
 
-(defun vc-maybe-buffer-sync (not-urgent)
-  (with-current-buffer (or (buffer-base-buffer) (current-buffer))
-    (when buffer-file-name (vc-buffer-sync not-urgent))))
-
 ;;;###autoload
-(defun vc-diff (&optional historic not-urgent fileset)
+(defun vc-diff (&optional historic not-essential fileset)
   "Display diffs between file revisions.
 Normally this compares the currently selected fileset with their
 working revisions.  With a prefix argument HISTORIC, it reads two revision
 designators specifying which revisions to compare.
 
-The optional argument NOT-URGENT non-nil means it is ok to say no to
-saving the buffer.  The optional argument FILESET can override the
-deduced fileset."
+Optional argument NOT-ESSENTIAL non-nil means it is okay to say no to
+saving the buffer.
+Optional argument FILESET, if non-nil, overrides the fileset."
   (interactive (list current-prefix-arg t))
   (if historic
       (call-interactively 'vc-version-diff)
-    (vc-maybe-buffer-sync not-urgent)
     (let ((fileset (or fileset (vc-deduce-fileset t))))
-      (vc-buffer-sync-fileset fileset not-urgent)
+      (vc-buffer-sync-fileset fileset not-essential)
       (vc-diff-internal t fileset nil nil
 			(called-interactively-p 'interactive)))))
 
-(defun vc-buffer-sync-fileset (fileset not-urgent)
-  (dolist (filename (cadr fileset))
-    (when-let* ((buffer (find-buffer-visiting filename)))
-      (with-current-buffer buffer
-	(vc-buffer-sync not-urgent)))))
+(defun vc-buffer-sync-fileset (fileset &optional not-essential missing-in-dirs)
+  "Call `vc-buffer-sync' for most buffers visiting files in FILESET.
+NOT-ESSENTIAL means it is okay to continue if the user says not to save.
+
+For files named explicitly in FILESET, this function always syncs their
+buffers.  By contrast, for directories named in FILESET, its behavior
+depends on MISSING-IN-DIRS.  For each directory named in FILESET, it
+considers buffers visiting any file contained within that directory or
+its subdirectories.  If MISSING-IN-DIRS is nil, it syncs only those
+buffers whose files exist on disk.  Otherwise it syncs all of them."
+  ;; This treatment of directories named in FILESET is wanted for, at
+  ;; least, users with `vc-find-revision-no-save' set to non-nil: not
+  ;; treating directories this way would imply calling `vc-buffer-sync'
+  ;; on all buffers generated by \\`C-x v ~' during \\`C-x v D'.
+  (let (dirs buffers)
+    (dolist (name (cadr fileset))
+      (if (file-directory-p name)
+          (push name dirs)
+        (when-let* ((buf (find-buffer-visiting name)))
+          (push buf buffers))))
+    (when dirs
+      (setq buffers
+            (cl-nunion buffers
+                       (match-buffers
+                        (lambda (buf)
+                          (and-let*
+                              ((file (buffer-local-value 'buffer-file-name buf))
+                               ((or missing-in-dirs (file-exists-p file)))
+                               ((cl-some (lambda (dir)
+                                           (file-in-directory-p file dir))
+                                         dirs)))))))))
+    (dolist (buf buffers)
+      (with-current-buffer buf
+        (vc-buffer-sync not-essential)))))
 
 ;;;###autoload
 (defun vc-diff-mergebase (_files rev1 rev2)
@@ -2309,35 +2398,35 @@ state of each file in FILES."
     (error "More than one file is not supported"))))
 
 ;;;###autoload
-(defun vc-ediff (historic &optional not-urgent)
+(defun vc-ediff (historic &optional not-essential)
   "Display diffs between file revisions using ediff.
 Normally this compares the currently selected fileset with their
 working revisions.  With a prefix argument HISTORIC, it reads two revision
 designators specifying which revisions to compare.
 
-The optional argument NOT-URGENT non-nil means it is ok to say no to
+Optional argument NOT-ESSENTIAL non-nil means it is okay to say no to
 saving the buffer."
   (interactive (list current-prefix-arg t))
   (if historic
       (call-interactively 'vc-version-ediff)
-    (vc-maybe-buffer-sync not-urgent)
-    (vc-version-ediff (cadr (vc-deduce-fileset t)) nil nil)))
+    (let ((fileset (vc-deduce-fileset)))
+      (vc-buffer-sync-fileset fileset not-essential)
+      (vc-version-ediff (cadr fileset) nil nil))))
 
 ;;;###autoload
-(defun vc-root-diff (historic &optional not-urgent)
+(defun vc-root-diff (historic &optional not-essential)
   "Display diffs between VC-controlled whole tree revisions.
 Normally, this compares the tree corresponding to the current
 fileset with the working revision.
 With a prefix argument HISTORIC, prompt for two revision
 designators specifying which revisions to compare.
 
-The optional argument NOT-URGENT non-nil means it is ok to say no to
+Optional argument NOT-ESSENTIAL non-nil means it is okay to say no to
 saving the buffer."
   (interactive (list current-prefix-arg t))
   (if historic
       ;; We want the diff for the VC root dir.
       (call-interactively 'vc-root-version-diff)
-    (vc-maybe-buffer-sync not-urgent)
     (let ((backend (vc-deduce-backend))
 	  (default-directory default-directory)
 	  rootdir)
@@ -2352,10 +2441,11 @@ saving the buffer."
       ;; relative to it.  Bind default-directory to the root directory
       ;; here, this way the *vc-diff* buffer is setup correctly, so
       ;; relative file names work.
-      (let ((default-directory rootdir))
-        (vc-diff-internal
-         t (list backend (list rootdir)) nil nil
-         (called-interactively-p 'interactive))))))
+      (let ((default-directory rootdir)
+            (fileset `(,backend (,rootdir))))
+        (vc-buffer-sync-fileset fileset not-essential)
+        (vc-diff-internal t fileset nil nil
+                          (called-interactively-p 'interactive))))))
 
 ;;;###autoload
 (defun vc-root-dir ()
@@ -2401,7 +2491,8 @@ Use BACKEND as the VC backend if specified."
 Saves the buffer to the file."
   (let ((automatic-backup (vc-version-backup-file-name file revision))
 	(filebuf (or (get-file-buffer file) (current-buffer)))
-        (filename (vc-version-backup-file-name file revision 'manual)))
+        (filename (vc-version-backup-file-name file revision 'manual))
+        (backend (or backend (vc-backend file))))
     (unless (file-exists-p filename)
       (if (file-exists-p automatic-backup)
           (rename-file automatic-backup filename nil)
@@ -2419,19 +2510,19 @@ Saves the buffer to the file."
 		      ;; Change buffer to get local value of
 		      ;; vc-checkout-switches.
 		      (with-current-buffer filebuf
-			(if backend
-			    (vc-call-backend backend 'find-revision file revision outbuf)
-			  (vc-call find-revision file revision outbuf)))))
+			(vc-call-backend backend 'find-revision
+                                         file revision outbuf))))
 		  (setq failed nil))
 	      (when (and failed (file-exists-p filename))
 		(delete-file filename))))
 	  (vc-mode-line file))
 	(message "Checking out %s...done" filename)))
-    (let ((result-buf (find-file-noselect filename)))
+    (let ((result-buf (find-file-noselect filename))
+          (file (expand-file-name file))) ; ensure it's absolute
       (with-current-buffer result-buf
-	;; Set the parent buffer so that things like
-	;; C-x v g, C-x v l, ... etc work.
-        (setq-local vc-parent-buffer filebuf))
+        (setq-local vc-parent-buffer filebuf
+                    vc-buffer-overriding-fileset `(,backend (,file))
+                    vc-buffer-revision revision))
       result-buf)))
 
 (defun vc-find-revision-no-save (file revision &optional backend buffer)
@@ -2440,9 +2531,11 @@ If BUFFER omitted or nil, this function creates a new buffer and sets
 `buffer-file-name' to the name constructed from the file name and the
 revision number.
 Unlike `vc-find-revision-save', doesn't save the buffer to the file."
-  (let* ((buffer (when (buffer-live-p buffer) buffer))
+  (let* ((buffer (and (buffer-live-p buffer) buffer))
          (filebuf (or buffer (get-file-buffer file) (current-buffer)))
-         (filename (unless buffer (vc-version-backup-file-name file revision 'manual))))
+         (filename (and (not buffer)
+                        (vc-version-backup-file-name file revision 'manual)))
+         (backend (or backend (vc-backend file))))
     (unless (and (not buffer)
                  (or (get-file-buffer filename)
                      (file-exists-p filename)))
@@ -2453,9 +2546,7 @@ Unlike `vc-find-revision-save', doesn't save the buffer to the file."
                 (unless buffer (setq buffer-file-name filename))
 		(let ((outbuf (current-buffer)))
 		  (with-current-buffer filebuf
-		    (if backend
-			(vc-call-backend backend 'find-revision file revision outbuf)
-		      (vc-call find-revision file revision outbuf))))
+		    (vc-call-backend backend 'find-revision file revision outbuf)))
                 (decode-coding-inserted-region (point-min) (point-max) file)
                 (after-insert-file-set-coding (- (point-max) (point-min)))
                 (goto-char (point-min))
@@ -2483,9 +2574,12 @@ Unlike `vc-find-revision-save', doesn't save the buffer to the file."
 	      (kill-buffer (get-file-buffer filename)))))))
     (let ((result-buf (or buffer
                           (get-file-buffer filename)
-                          (find-file-noselect filename))))
+                          (find-file-noselect filename)))
+          (file (expand-file-name file))) ; ensure it's absolute
       (with-current-buffer result-buf
-        (setq-local vc-parent-buffer filebuf))
+        (setq-local vc-parent-buffer filebuf
+                    vc-buffer-overriding-fileset `(,backend (,file))
+                    vc-buffer-revision revision))
       result-buf)))
 
 ;; Header-insertion code
@@ -2550,9 +2644,8 @@ the variable `vc-BACKEND-header'."
               (prevrev
                (vc-call-backend backend
                                 'previous-revision rootdir rev)))
-         (save-selected-window
-           (vc-diff-internal nil (list backend (list rootdir))
-                             prevrev rev)))))))
+         (vc-diff-internal nil (list backend (list rootdir))
+                           prevrev rev))))))
 
 ;;;###autoload
 (defun vc-merge ()
@@ -3058,11 +3151,10 @@ shown log style is available via `vc-log-short-style'."
        (list rev lim)))
     (t
      (list nil (when (> vc-log-show-limit 0) vc-log-show-limit)))))
-  (let* ((vc-fileset (vc-deduce-fileset t)) ;FIXME: Why t? --Stef
+  (let* ((vc-fileset (vc-deduce-fileset t))
 	 (backend (car vc-fileset))
 	 (files (cadr vc-fileset))
-;;	 (working-revision (or working-revision (vc-working-revision (car files))))
-         )
+	 (working-revision (or working-revision vc-buffer-revision)))
     (vc-print-log-internal backend files working-revision nil limit)))
 
 ;;;###autoload

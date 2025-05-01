@@ -95,12 +95,15 @@
 # include <stdio.h>
 #endif
 
+/* FreeBSD 14.0, NetBSD 10.0, OpenBSD 7.5, Solaris 11.4, and glibc 2.41
+   do not define O_CLOEXEC in <unistd.h>.  */
 /* Cygwin 1.7.1 and Android 4.3 declare unlinkat in <fcntl.h>, not in
    <unistd.h>.  */
 /* But avoid namespace pollution on glibc systems.  */
-#if (@GNULIB_UNLINKAT@ || defined GNULIB_POSIXCHECK) \
-    && (defined __CYGWIN__ || defined __ANDROID__) \
-    && ! defined __GLIBC__
+#if ! defined O_CLOEXEC \
+    || ((@GNULIB_UNLINKAT@ || defined GNULIB_POSIXCHECK) \
+         && (defined __CYGWIN__ || defined __ANDROID__) \
+         && ! defined __GLIBC__)
 # include <fcntl.h>
 #endif
 
@@ -463,7 +466,9 @@ _GL_CXXALIAS_SYS (copy_file_range, ssize_t, (int ifd, off_t *ipos,
                                              int ofd, off_t *opos,
                                              size_t len, unsigned flags));
 # endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (copy_file_range);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef copy_file_range
 # if HAVE_RAW_DECL_COPY_FILE_RANGE
@@ -1362,11 +1367,21 @@ _GL_WARN_ON_USE (gethostname, "gethostname is unportable - "
      ${LOGNAME-$USER}        on Unix platforms,
      $USERNAME               on native Windows platforms.
  */
-# if !@HAVE_DECL_GETLOGIN@
+# if @REPLACE_GETLOGIN@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   define getlogin rpl_getlogin
+#  endif
+_GL_FUNCDECL_RPL (getlogin, char *, (void), );
+_GL_CXXALIAS_RPL (getlogin, char *, (void));
+# else
+#  if !@HAVE_DECL_GETLOGIN@
 _GL_FUNCDECL_SYS (getlogin, char *, (void), );
-# endif
+#  endif
 _GL_CXXALIAS_SYS (getlogin, char *, (void));
+# endif
+# if __GLIBC__ >= 2
 _GL_CXXALIASWARN (getlogin);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef getlogin
 # if HAVE_RAW_DECL_GETLOGIN
@@ -2405,7 +2420,7 @@ _GL_WARN_ON_USE (unlinkat, "unlinkat is not portable - "
 #if @GNULIB_USLEEP@
 /* Pause the execution of the current thread for N microseconds.
    Returns 0 on completion, or -1 on range error.
-   See the POSIX:2001 specification
+   See the POSIX.1-2004 specification
    <https://pubs.opengroup.org/onlinepubs/009695399/functions/usleep.html>.  */
 # if @REPLACE_USLEEP@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)

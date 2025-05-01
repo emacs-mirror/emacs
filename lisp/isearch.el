@@ -1950,7 +1950,14 @@ Use `isearch-exit' to quit without signaling."
 	      (funcall isearch-wrap-function)
 	    (goto-char (if isearch-forward (point-min) (point-max))))))
     ;; C-s in reverse or C-r in forward, change direction.
-    (if (and isearch-other-end isearch-repeat-on-direction-change)
+    (if (and isearch-other-end isearch-repeat-on-direction-change
+             (or (null isearch-cmds)
+                 ;; Go to 'isearch-other-end' only when point is still
+                 ;; on the current match.  However, after scrolling
+                 ;; (when 'isearch-allow-scroll' is 'unlimited'),
+                 ;; repeat the reversed search from a new position
+                 ;; where point was moved during scrolling (bug#78074).
+                 (eq (isearch--state-point (car isearch-cmds)) (point))))
         (goto-char isearch-other-end))
     (setq isearch-forward (not isearch-forward)
 	  isearch-success t))
@@ -3051,11 +3058,11 @@ See also the related option `isearch-allow-motion'."
 
 (defcustom isearch-allow-motion nil
   "Whether to allow movement between isearch matches by cursor motion commands.
-If non-nil, the four motion commands \\[beginning-of-buffer], \\[end-of-buffer], \
-\\[scroll-up-command] and \\[scroll-down-command], when invoked during
-Isearch, move respectively to the first occurrence of the current search string
-in the buffer, the last one, the first one after the current window, and the
-last one before the current window.
+If non-nil, the four motion commands \\<isearch-mode-map>\\[beginning-of-buffer], \\[end-of-buffer], \
+\\[scroll-up-command] and \\[scroll-down-command], when invoked
+during Isearch, move respectively to the first occurrence of the current
+search string in the buffer, the last one, the first one after the current
+window, and the last one before the current window.
 If nil, these motion commands normally exit Isearch and are executed.
 See also the related options `isearch-motion-changes-direction' and
 `isearch-allow-scroll'."
@@ -3068,8 +3075,8 @@ See also the related options `isearch-motion-changes-direction' and
   "Whether motion commands during incremental search change search direction.
 If nil, the search direction (forward or backward) does not change when
 motion commands are used during incremental search, except when wrapping.
-If non-nil, the search direction is forward after \\[beginning-of-buffer] and \
-\\[scroll-up-command], and
+If non-nil, the search direction is forward after \
+\\<isearch-mode-map>\\[beginning-of-buffer] and \\[scroll-up-command], and
 backward after \\[end-of-buffer] and \\[scroll-down-command]."
   :type '(choice (const :tag "Off" nil)
                  (const :tag "On" t))
@@ -4618,7 +4625,13 @@ defaults to the value of `isearch-search-fun-default' when nil."
     ;; Otherwise, try to search for the next property.
     (unless beg
       (setq beg (funcall next-fun old))
-      (when beg (goto-char beg)))
+      (when beg
+        (if (or (null bound)
+                (if isearch-forward
+                    (< beg bound)
+                  (> beg bound)))
+            (goto-char beg)
+          (setq beg nil))))
     ;; Non-nil `beg' means there are more properties.
     (while (and beg (not found))
       ;; Search for the end of the current property.
@@ -4668,7 +4681,13 @@ defaults to the value of `isearch-search-fun-default' when nil."
       ;; Get the next text property.
       (unless found
         (setq beg (funcall next-fun end))
-        (when beg (goto-char beg))))
+        (when beg
+          (if (or (null bound)
+                  (if isearch-forward
+                      (< beg bound)
+                    (> beg bound)))
+              (goto-char beg)
+            (setq beg nil)))))
     (unless found (goto-char old))
     found))
 

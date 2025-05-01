@@ -86,6 +86,19 @@
 (eval-when-compile (require 'rx))
 (treesit-declare-unavailable-functions)
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(c "https://github.com/tree-sitter/tree-sitter-c" "v0.23.4")
+ t)
+(add-to-list
+ 'treesit-language-source-alist
+ '(cpp "https://github.com/tree-sitter/tree-sitter-cpp" "v0.23.4")
+ t)
+(add-to-list
+ 'treesit-language-source-alist
+ '(doxygen "https://github.com/tree-sitter-grammars/tree-sitter-doxygen" "v1.1.0")
+ t)
+
 ;;; Custom variables
 
 (defcustom c-ts-mode-indent-offset 2
@@ -661,9 +674,7 @@ MODE should be either `c' or `cpp'."
       (mapcan
        (lambda (entry)
          (let ((keywords (cdr entry)))
-           (if (ignore-errors
-                 (treesit-query-compile 'c `([,@keywords] @cap) t)
-                 t)
+           (if (treesit-query-valid-p 'c `([,@keywords] @cap))
                (copy-sequence keywords)
              nil)))
        c-ts-mode--optional-c-keywords)
@@ -1194,7 +1205,11 @@ if `c-ts-mode-emacs-sources-support' is non-nil."
 (defvar c-ts-mode--thing-settings
   `(;; It's more useful to include semicolons as sexp so
     ;; that users can move to the end of a statement.
-    (sexp (not ,(rx (or "{" "}" "[" "]" "(" ")" ","))))
+    (sexp (not (or (and named
+                        ,(rx bos (or "translation_unit" "comment") eos))
+                   (and anonymous
+                        ,(rx (or "{" "}" "[" "]"
+                                 "(" ")" ","))))))
     (list
      ,(regexp-opt '("preproc_params"
                     "preproc_if"
@@ -1456,7 +1471,7 @@ in your init files."
   :group 'c
   :after-hook (c-ts-mode-set-modeline)
 
-  (when (treesit-ready-p 'c)
+  (when (treesit-ensure-installed 'c)
     ;; Create an "for-each" parser, see `c-ts-mode--emacs-set-ranges'
     ;; for more.
     (when c-ts-mode-emacs-sources-support
@@ -1488,25 +1503,25 @@ in your init files."
         (setq-local treesit-range-settings
                     (treesit-range-rules 'c-ts-mode--emacs-set-ranges))
 
-        (setq-local treesit-language-at-point-function
-                    (lambda (_pos) 'c))
         (treesit-font-lock-recompute-features '(emacs-devel)))
 
       ;; Inject doxygen parser for comment.
-      (when (and c-ts-mode-enable-doxygen (treesit-ready-p 'doxygen t))
+      (when (and c-ts-mode-enable-doxygen
+                 (treesit-ensure-installed 'doxygen))
         (setq-local treesit-primary-parser primary-parser)
         (setq-local treesit-font-lock-settings
                     (append
                      treesit-font-lock-settings
                      c-ts-mode-doxygen-comment-font-lock-settings))
         (setq-local treesit-range-settings
-                    (treesit-range-rules
-                     :embed 'doxygen
-                     :host 'c
-                     :local t
-                     `(((comment) @cap
-                        (:match
-                         ,c-ts-mode--doxygen-comment-regex @cap)))))))))
+                    (append treesit-range-settings
+                            (treesit-range-rules
+                             :embed 'doxygen
+                             :host 'c
+                             :local t
+                             `(((comment) @cap
+                                (:match
+                                 ,c-ts-mode--doxygen-comment-regex @cap))))))))))
 
 (derived-mode-add-parents 'c-ts-mode '(c-mode))
 
@@ -1533,7 +1548,7 @@ recommended to enable `electric-pair-mode' with this mode."
   :group 'c++
   :after-hook (c-ts-mode-set-modeline)
 
-  (when (treesit-ready-p 'cpp)
+  (when (treesit-ensure-installed 'cpp)
     (let ((primary-parser (treesit-parser-create 'cpp)))
 
       ;; Syntax.
@@ -1555,7 +1570,8 @@ recommended to enable `electric-pair-mode' with this mode."
                     #'c-ts-mode--emacs-current-defun-name))
 
       ;; Inject doxygen parser for comment.
-      (when (and c-ts-mode-enable-doxygen (treesit-ready-p 'doxygen t))
+      (when (and c-ts-mode-enable-doxygen
+                 (treesit-ensure-installed 'doxygen))
         (setq-local treesit-primary-parser primary-parser)
         (setq-local treesit-font-lock-settings
                     (append
@@ -1667,9 +1683,6 @@ the code is C or C++, and based on that chooses whether to enable
   (setq major-mode-remap-defaults
         (assq-delete-all 'c-or-c++-mode major-mode-remap-defaults))
   (add-to-list 'major-mode-remap-defaults '(c-or-c++-mode . c-or-c++-ts-mode)))
-
-(when (and c-ts-mode-enable-doxygen (not (treesit-ready-p 'doxygen t)))
-  (message "Doxygen syntax highlighting can't be enabled, please install the language grammar."))
 
 (provide 'c-ts-mode)
 (provide 'c++-ts-mode)

@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Since 2010-03, 073589f4, Emacs 24.1, this file is only used
    by the MS-DOS port of Emacs.  */
 
-/* Emacs config.h may rename various library functions such as malloc.  */
 #include <config.h>
 
 #include <stdlib.h>

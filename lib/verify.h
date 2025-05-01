@@ -157,9 +157,10 @@
 #define _GL_CONCAT0(x, y) x##y
 
 /* _GL_COUNTER is an integer, preferably one that changes each time we
-   use it.  Use __COUNTER__ if it works, falling back on __LINE__
-   otherwise.  __LINE__ isn't perfect, but it's better than a
-   constant.  */
+   use it.  Use __COUNTER__ if it works (it does so with most compilers,
+   see <https://www.open-std.org/jtc1/sc22/wg14/www/docs/n3457.htm>),
+   falling back on __LINE__ otherwise.  __LINE__ isn't perfect, but it's
+   better than a constant.  */
 #if defined __COUNTER__ && __COUNTER__ != __COUNTER__
 # define _GL_COUNTER __COUNTER__
 #else

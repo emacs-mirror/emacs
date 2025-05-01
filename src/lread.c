@@ -1272,6 +1272,21 @@ close_file_unwind_android_fd (void *ptr)
 
 #endif
 
+static Lisp_Object
+get_lexical_binding (Lisp_Object stream, Lisp_Object from)
+{
+  lexical_cookie_t lexc = lisp_file_lexical_cookie (stream);
+  return ((lexc == Cookie_Lex
+	   ? Qt
+	   : (lexc == Cookie_Dyn
+	      ? Qnil
+	      : ((NILP (from)	/* Loading a byte-compiled file.  */
+		  || NILP (Vinternal__get_default_lexical_binding_function))
+		 ? Fdefault_toplevel_value (Qlexical_binding)
+		 : calln (Vinternal__get_default_lexical_binding_function,
+			  from)))));
+}
+
 DEFUN ("load", Fload, Sload, 1, 5, 0,
        doc: /* Execute a file of Lisp code named FILE.
 First try FILE with `.elc' appended, then try with `.el', then try
@@ -1721,11 +1736,8 @@ Return t if the file exists and loads successfully.  */)
     }
   else
     {
-      lexical_cookie_t lexc = lisp_file_lexical_cookie (Qget_file_char);
       Fset (Qlexical_binding,
-	    (lexc == Cookie_Lex ? Qt
-	     : lexc == Cookie_Dyn ? Qnil
-	     : Fdefault_toplevel_value (Qlexical_binding)));
+	    get_lexical_binding (Qget_file_char, compiled ? Qnil : file));
 
       if (! version || version >= 22)
         readevalloop (Qget_file_char, &input, hist_file_name,
@@ -2610,11 +2622,7 @@ This function preserves the position of point.  */)
   specbind (Qstandard_output, tem);
   record_unwind_protect_excursion ();
   BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
-  lexical_cookie_t lexc = lisp_file_lexical_cookie (buf);
-  specbind (Qlexical_binding,
-	    lexc == Cookie_Lex ? Qt
-	    : lexc == Cookie_Dyn ? Qnil
-	    : Fdefault_toplevel_value (Qlexical_binding));
+  specbind (Qlexical_binding, get_lexical_binding (buf, buf));
   BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
   readevalloop (buf, 0, filename,
 		!NILP (printflag), unibyte, Qnil, Qnil, Qnil);
@@ -4216,7 +4224,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 			  = XHASH_TABLE (read_objects_map);
 			Lisp_Object number = make_fixnum (n);
 			hash_hash_t hash;
-			ptrdiff_t i = hash_lookup_get_hash (h, number, &hash);
+			ptrdiff_t i = hash_find_get_hash (h, number, &hash);
 			if (i >= 0)
 			  /* Not normal, but input could be malformed.  */
 			  set_hash_value_slot (h, i, placeholder);
@@ -4234,7 +4242,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 			/* #N# -- reference to numbered object */
 			struct Lisp_Hash_Table *h
 			  = XHASH_TABLE (read_objects_map);
-			ptrdiff_t i = hash_lookup (h, make_fixnum (n));
+			ptrdiff_t i = hash_find (h, make_fixnum (n));
 			if (i < 0)
 			  INVALID_SYNTAX_WITH_BUFFER ();
 			obj = HASH_VALUE (h, i);
@@ -4533,7 +4541,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 		struct Lisp_Hash_Table *h2
 		  = XHASH_TABLE (read_objects_completed);
 		hash_hash_t hash;
-		ptrdiff_t i = hash_lookup_get_hash (h2, placeholder, &hash);
+		ptrdiff_t i = hash_find_get_hash (h2, placeholder, &hash);
 		eassert (i < 0);
 		hash_put (h2, placeholder, Qnil, hash);
 		obj = placeholder;
@@ -4548,7 +4556,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 		    struct Lisp_Hash_Table *h2
 		      = XHASH_TABLE (read_objects_completed);
 		    hash_hash_t hash;
-		    ptrdiff_t i = hash_lookup_get_hash (h2, obj, &hash);
+		    ptrdiff_t i = hash_find_get_hash (h2, obj, &hash);
 		    eassert (i < 0);
 		    hash_put (h2, obj, Qnil, hash);
 		  }
@@ -4560,8 +4568,8 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 		/* ...and #n# will use the real value from now on.  */
 		struct Lisp_Hash_Table *h = XHASH_TABLE (read_objects_map);
 		hash_hash_t hash;
-		ptrdiff_t i = hash_lookup_get_hash (h, e->u.numbered.number,
-						    &hash);
+		ptrdiff_t i = hash_find_get_hash (h, e->u.numbered.number,
+						  &hash);
 		eassert (i >= 0);
 		set_hash_value_slot (h, i, obj);
 	      }
@@ -4615,7 +4623,7 @@ substitute_object_recurse (struct subst *subst, Lisp_Object subtree)
      by #n=, which means that we can find it as a value in
      COMPLETED.  */
   if (EQ (subst->completed, Qt)
-      || hash_lookup (XHASH_TABLE (subst->completed), subtree) >= 0)
+      || hash_find (XHASH_TABLE (subst->completed), subtree) >= 0)
     subst->seen = Fcons (subtree, subst->seen);
 
   /* Recurse according to subtree's type.
@@ -5127,11 +5135,11 @@ OBARRAY, if nil, defaults to the value of the variable `obarray'.  */)
 static ptrdiff_t
 obarray_index (struct Lisp_Obarray *oa, const char *str, ptrdiff_t size_byte)
 {
-  EMACS_UINT hash = hash_string (str, size_byte);
+  EMACS_UINT hash = hash_char_array (str, size_byte);
   return knuth_hash (reduce_emacs_uint_to_hash_hash (hash), oa->size_bits);
 }
 
-/* Return the symbol in OBARRAY whose names matches the string
+/* Return the symbol in OBARRAY whose name matches the string
    of SIZE characters (SIZE_BYTE bytes) at PTR.
    If there is no such symbol, return the integer bucket number of
    where the symbol would be if it were present.
@@ -6121,6 +6129,11 @@ through `require'.  */);
   DEFSYM (Qweakness, "weakness");
 
   DEFSYM (Qchar_from_name, "char-from-name");
+
+  DEFVAR_LISP ("internal--get-default-lexical-binding-function",
+	       Vinternal__get_default_lexical_binding_function,
+	       doc: /* Function to decide default lexical-binding.  */);
+  Vinternal__get_default_lexical_binding_function = Qnil;
 
   DEFVAR_LISP ("read-symbol-shorthands", Vread_symbol_shorthands,
           doc: /* Alist of known symbol-name shorthands.

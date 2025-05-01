@@ -1811,6 +1811,21 @@ formats by setting each of the variables @code{eol-mnemonic-unix},
 @code{eol-mnemonic-dos}, @code{eol-mnemonic-mac}, and
 @code{eol-mnemonic-undecided} to the strings you prefer.
 
+@vindex mode-line-compact
+@vindex mode-line-collapse-minor-modes
+  Some modes put a lot of data in the mode line, pushing elements at the
+end of the mode line off to the right.  Emacs can ``compress'' the mode
+line if the @code{mode-line-compact} variable is non-@code{nil} by
+turning stretches of spaces into a single space.  If this variable is
+@code{long}, this is only done when the mode line is wider than the
+currently selected window.  (This computation is approximate, based on
+the number of characters, and not their displayed width.)  This variable
+can be buffer-local to only compress mode-lines in certain buffers.  To
+further ``compress'' the mode line, you may customize the
+@code{mode-line-collapse-minor-modes} option to a non-@code{nil} value,
+and Emacs will hide some minor mode indicators on the mode line by
+collapsing them into a single clickable button.
+
 @node Text Display
 @section How Text Is Displayed
 @cindex characters (in text)

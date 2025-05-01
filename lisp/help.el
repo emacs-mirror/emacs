@@ -2191,7 +2191,10 @@ The `temp-buffer-window-setup-hook' hook is called."
   (let ((msg (eval help-form t)))
     (if (stringp msg)
 	(with-output-to-temp-buffer " *Char Help*"
-	  (princ msg)))))
+          ;; Use `insert' instead of `princ' so that keys in `help-form'
+          ;; are displayed with `help-key-binding' face (bug#77118).
+          (with-current-buffer standard-output
+            (insert msg))))))
 
 (defun help--append-keystrokes-help (str)
   (let* ((keys (this-single-command-keys))

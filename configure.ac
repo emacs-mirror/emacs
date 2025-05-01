@@ -1866,6 +1866,7 @@ AS_IF([test $gl_gcc_warnings = no],
     gl_WARN_ADD([$w])
   done
   gl_WARN_ADD([-Wredundant-decls])     # Prefer this, as we don't use Bison.
+  gl_WARN_ADD([-Wtrailing-whitespace]) # This project's coding style
   gl_WARN_ADD([-Wno-missing-field-initializers]) # We need this one
   gl_WARN_ADD([-Wno-override-init])    # More trouble than it is worth
   gl_WARN_ADD([-Wno-sign-compare])     # Too many warnings for now
@@ -2239,7 +2240,7 @@ AC_CACHE_CHECK([for flags to work around GCC bug 58416],
 	       [AC_LANG_DEFINES_PROVIDED
 		[/* Work around GCC bug with double in unions on x86,
 		    where the generated insns copy non-floating-point data
-		    via fldl/fstpl instruction pairs.  This can misbehave
+		    via fldl/fstpl instruction pairs.  This can misbehave if
 		    the data's bit pattern looks like a NaN.  See, e.g.:
 		       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58416#c10
 		       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71460

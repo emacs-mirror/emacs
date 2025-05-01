@@ -3545,7 +3545,7 @@ BODY is the backend specific code."
       nil)))
 
 (defcustom tramp-use-file-attributes t
-  "Whether to use \"file-attributes\" file property for check.
+  "Whether to use \"file-attributes\" connection property for check.
 This is relevant for read, write, and execute permissions.  On some file
 systems using NFS4_ACL, the permission string as returned from `stat' or
 `ls', is not sufficient to provide more fine-grained information.
@@ -4368,13 +4368,12 @@ Let-bind it when necessary.")
   "Like `file-readable-p' for Tramp files."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-readable-p"
-      (or (tramp-check-cached-permissions v ?r)
+      (or (tramp-check-cached-permissions v ?r 'force)
 	  ;; `tramp-check-cached-permissions' doesn't handle symbolic
 	  ;; links.
 	  (and-let* ((symlink (file-symlink-p filename))
 		     ((stringp symlink))
-		     ((file-readable-p
-		       (concat (file-remote-p filename) symlink)))))))))
+		     ((file-readable-p (file-truename filename)))))))))
 
 (defun tramp-handle-file-regular-p (filename)
   "Like `file-regular-p' for Tramp files."
@@ -4468,7 +4467,12 @@ existing) are returned."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
     (with-tramp-file-property v localname "file-writable-p"
       (if (file-exists-p filename)
-	  (tramp-check-cached-permissions v ?w)
+          (or (tramp-check-cached-permissions v ?w 'force)
+	      ;; `tramp-check-cached-permissions' doesn't handle
+	      ;; symbolic links.
+	      (and-let* ((symlink (file-symlink-p filename))
+		         ((stringp symlink))
+		         ((file-writable-p (file-truename filename))))))
 	;; If file doesn't exist, check if directory is writable.
 	(and (file-directory-p (file-name-directory filename))
 	     (file-writable-p (file-name-directory filename)))))))
@@ -6472,22 +6476,23 @@ VEC is used for tracing."
       (when vec (tramp-message vec 7 "locale %s" (or locale "C")))
       (or locale "C"))))
 
-(defun tramp-check-cached-permissions (vec access)
+(defun tramp-check-cached-permissions (vec access &optional force)
   "Check `file-attributes' caches for VEC.
-Return t if according to the cache access type ACCESS is known to
-be granted."
+Return t if according to the cache access type ACCESS is known to be
+granted, if `tramp-use-file-attributes' mandates this.  If FORCE is
+non-nil, use connection property \"file-attributes\" mandatory."
   (when-let* ((offset (cond
                        ((eq ?r access) 1)
                        ((eq ?w access) 2)
                        ((eq ?x access) 3)
-                       ((eq ?s access) 3)))
+                       ((eq ?s access) 3)
+                       ((eq ?t access) 3)))
+              ((or force (tramp-use-file-attributes vec)))
 	      (file-attr (file-attributes (tramp-make-tramp-file-name vec)))
+              ;; Not a symlink.
+              ((not (stringp (file-attribute-type file-attr))))
 	      (remote-uid (tramp-get-remote-uid vec 'integer))
 	      (remote-gid (tramp-get-remote-gid vec 'integer)))
-    (or
-     ;; Not a symlink.
-     (eq t (file-attribute-type file-attr))
-     (null (file-attribute-type file-attr)))
     (or
      ;; World accessible.
      (eq access (aref (file-attribute-modes file-attr) (+ offset 6)))

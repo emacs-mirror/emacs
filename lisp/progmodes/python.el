@@ -269,6 +269,11 @@
 (declare-function treesit-node-parent "treesit.c")
 (declare-function treesit-node-prev-sibling "treesit.c")
 
+(add-to-list
+ 'treesit-language-source-alist
+ '(python "https://github.com/tree-sitter/tree-sitter-python" "v0.23.6")
+ t)
+
 ;; Avoid compiler warnings
 (defvar compilation-error-regexp-alist)
 (defvar outline-heading-end-regexp)
@@ -1230,7 +1235,15 @@ fontified."
       name: (identifier) @font-lock-type-face)
      (parameters (identifier) @font-lock-variable-name-face)
      (parameters (typed_parameter (identifier) @font-lock-variable-name-face))
-     (parameters (default_parameter name: (identifier) @font-lock-variable-name-face)))
+     (parameters (default_parameter name: (identifier) @font-lock-variable-name-face))
+     (lambda_parameters (identifier) @font-lock-variable-name-face)
+     (for_in_clause
+      left: (identifier) @font-lock-variable-name-face)
+     ((import_from_statement
+       name: ((dotted_name (identifier) @font-lock-type-face)))
+      (:match "\\`[A-Z][A-Za-z0-9]+\\'" @font-lock-type-face))
+     (import_from_statement
+      name: ((dotted_name (identifier) @font-lock-variable-name-face))))
 
    :feature 'builtin
    :language 'python
@@ -1259,7 +1272,12 @@ fontified."
 
    :feature 'constant
    :language 'python
-   '([(true) (false) (none)] @font-lock-constant-face)
+   '([(true) (false) (none)] @font-lock-constant-face
+     ((identifier) @font-lock-constant-face
+      (:match "\\`[A-Z][A-Z0-9_]+\\'" @font-lock-constant-face))
+     ((attribute
+       attribute: (identifier) @font-lock-constant-face)
+      (:match "\\`[A-Z][A-Z0-9_]+\\'" @font-lock-constant-face)))
 
    :feature 'assignment
    :language 'python
@@ -1287,8 +1305,6 @@ fontified."
 
    :feature 'type
    :language 'python
-   ;; Override built-in faces when dict/list are used for type hints.
-   :override t
    `(((identifier) @font-lock-type-face
       (:match ,(rx-to-string
                 `(seq bol (or ,@python--treesit-exceptions)
@@ -1333,7 +1349,9 @@ fontified."
      ((call function: (identifier) @func-name
             (argument_list :anchor (_)
                            (binary_operator) @python--treesit-fontify-union-types-strict))
-      (:match "^is\\(?:instance\\|subclass\\)$" @func-name)))
+      (:match "^is\\(?:instance\\|subclass\\)$" @func-name))
+     ((identifier) @font-lock-type-face
+      (:match "\\`[A-Z][A-Za-z0-9]+\\'" @font-lock-type-face)))
 
    :feature 'escape-sequence
    :language 'python
@@ -2386,9 +2404,54 @@ backward to previous statement."
     (python-nav-beginning-of-statement)
     (setq arg (1+ arg))))
 
+(defvar python-nav-cache nil
+  "Cache to hold the results of navigation functions.")
+
+(defvar python-nav-cache-tick 0
+  "`buffer-chars-modified-tick' when registering the navigation cache.")
+
+(defun python-nav-cache-get (kind)
+  "Get value from the navigation cache.
+If the current buffer is not modified, the navigation cache is searched
+using KIND and the current line number as a key."
+  (and (= (buffer-chars-modified-tick) python-nav-cache-tick)
+       (cdr (assoc (cons kind (line-number-at-pos nil t)) python-nav-cache))))
+
+(defun python-nav-cache-set (kind current target)
+  "Add a key-value pair to the navigation cache.
+Invalidate the navigation cache if the current buffer has been modified.
+Then add a key-value pair to the navigation cache.  The key consists of
+KIND and CURRENT line number, and the value is TARGET position."
+  (let ((tick (buffer-chars-modified-tick)))
+    (when (/= tick python-nav-cache-tick)
+      (setq-local python-nav-cache nil
+                  python-nav-cache-tick tick))
+    (push (cons (cons kind current) target) python-nav-cache)
+    target))
+
+(defun python-nav-with-cache (kind func)
+  "Cached version of the navigation FUNC.
+If a value is obtained from the navigation cache using KIND, it will
+navigate there and return the position.  Otherwise, use FUNC to navigate
+and cache the result."
+  (let ((target (python-nav-cache-get kind)))
+    (if target
+        (progn
+          (goto-char target)
+          (point-marker))
+      (let ((current (line-number-at-pos nil t)))
+        (python-nav-cache-set kind current (funcall func))))))
+
 (defun python-nav-beginning-of-block ()
   "Move to start of current block."
   (interactive "^")
+  (python-nav-with-cache
+   'beginning-of-block #'python-nav--beginning-of-block))
+
+(defun python-nav--beginning-of-block ()
+  "Move to start of current block.
+This is an internal implementation of `python-nav-beginning-of-block'
+without the navigation cache."
   (let ((starting-pos (point)))
     ;; Go to first line beginning a statement
     (while (and (not (bobp))
@@ -2413,6 +2476,13 @@ backward to previous statement."
 (defun python-nav-end-of-block ()
   "Move to end of current block."
   (interactive "^")
+  (python-nav-with-cache
+   'end-of-block #'python-nav--end-of-block))
+
+(defun python-nav--end-of-block ()
+  "Move to end of current block.
+This is an internal implementation of `python-nav-end-of-block' without
+the navigation cache."
   (when (python-nav-beginning-of-block)
     (let ((block-indentation (current-indentation)))
       (python-nav-end-of-statement)
@@ -3564,11 +3634,13 @@ eventually provide a shell."
 (defconst python-shell-setup-code
   "\
 try:
-    import tty
+    import termios
 except ImportError:
     pass
 else:
-    tty.setraw(0)"
+    attr = termios.tcgetattr(0)
+    attr[3] &= ~termios.ECHO
+    termios.tcsetattr(0, termios.TCSADRAIN, attr)"
   "Code used to setup the inferior Python processes.")
 
 (defconst python-shell-eval-setup-code
@@ -3701,6 +3773,8 @@ variable.
   (setq-local compilation-error-regexp-alist
               python-shell-compilation-regexp-alist)
   (setq-local scroll-conservatively 1)
+  (setq-local comint-dynamic-complete-functions
+              '(comint-c-a-p-replace-by-expanded-history))
   (add-hook 'completion-at-point-functions
             #'python-shell-completion-at-point nil 'local)
   (define-key inferior-python-mode-map "\t"
@@ -6154,12 +6228,25 @@ parent defun name."
 
 (defun python-info-statement-ends-block-p ()
   "Return non-nil if point is at end of block."
-  (let ((end-of-block-pos (save-excursion
-                            (python-nav-end-of-block)))
-        (end-of-statement-pos (save-excursion
-                                (python-nav-end-of-statement))))
-    (and end-of-block-pos end-of-statement-pos
-         (= end-of-block-pos end-of-statement-pos))))
+  (let* (current-statement
+         (current-indentation (save-excursion
+                                (setq current-statement
+                                      (python-nav-beginning-of-statement))
+                                (current-indentation)))
+         next-statement
+         (next-indentation (save-excursion
+                             (python-nav-forward-statement)
+                             (setq next-statement (point))
+                             (current-indentation))))
+    (unless (and (< current-statement next-statement)
+                 (<= current-indentation next-indentation))
+      (and-let* ((end-of-statement-pos (save-excursion
+                                         (python-nav-end-of-statement)
+                                         (python-util-forward-comment -1)
+                                         (point)))
+                 (end-of-block-pos (save-excursion
+                                     (python-nav-end-of-block))))
+        (= end-of-block-pos end-of-statement-pos)))))
 
 (defun python-info-beginning-of-statement-p ()
   "Return non-nil if point is at beginning of statement."
@@ -6180,7 +6267,10 @@ parent defun name."
 
 (defun python-info-end-of-block-p ()
   "Return non-nil if point is at end of block."
-  (and (python-info-end-of-statement-p)
+  (and (= (point) (save-excursion
+                    (python-nav-end-of-statement)
+                    (python-util-forward-comment -1)
+                    (point)))
        (python-info-statement-ends-block-p)))
 
 (define-obsolete-function-alias
@@ -7222,7 +7312,9 @@ implementations: `python-mode' and `python-ts-mode'."
 
 \\{python-ts-mode-map}"
   :syntax-table python-mode-syntax-table
-  (when (treesit-ready-p 'python)
+  (when (if (fboundp 'treesit-ensure-installed) ; Emacs 31
+            (treesit-ensure-installed 'python)
+          (treesit-ready-p 'python))
     (setq treesit-primary-parser (treesit-parser-create 'python))
     (setq-local treesit-font-lock-feature-list
                 '(( comment definition)

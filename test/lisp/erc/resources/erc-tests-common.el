@@ -291,18 +291,13 @@ string."
          (got (erc--remove-text-properties
                (buffer-substring (point-min) erc-insert-marker)))
          (repr (funcall (or trans-fn #'identity) (prin1-to-string got)))
-         (xstr (read (with-temp-buffer
-                       (insert-file-contents-literally expect-file)
-                       (buffer-string)))))
+         ;;
+         xstr)
     (with-current-buffer (generate-new-buffer name)
       (with-silent-modifications
         (insert (setq got (read repr))))
       (when buf-init-fn (funcall buf-init-fn))
       (erc-mode))
-    (unless noninteractive
-      (with-current-buffer (generate-new-buffer (format "%s-xpt" name))
-        (insert xstr)
-        (erc-mode)))
     ;; LHS is a string, RHS is a symbol.
     (if (string= erc-tests-common-snapshot-save-p
                  (ert-test-name (ert-running-test)))
@@ -311,6 +306,13 @@ string."
             (insert repr))
           ;; Limit writing snapshots to one test at a time.
           (message "erc-tests-common-snapshot-compare: wrote %S" expect-file))
+      (setq xstr (read (with-temp-buffer
+                         (insert-file-contents-literally expect-file)
+                         (buffer-string))))
+      (unless noninteractive
+        (with-current-buffer (generate-new-buffer (format "%s-xpt" name))
+          (insert xstr)
+          (erc-mode)))
       (if (file-exists-p expect-file)
           ;; Ensure string-valued properties, like timestamps, aren't
           ;; recursive (signals `max-lisp-eval-depth' exceeded).

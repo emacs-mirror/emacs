@@ -81,23 +81,26 @@
 
 ;;; Install treesitter language parsers
 (defvar php-ts-mode--language-source-alist
-  '((php . ("https://github.com/tree-sitter/tree-sitter-php" "v0.23.11" "php/src"))
-    (phpdoc . ("https://github.com/claytonrcarter/tree-sitter-phpdoc"))
-    (html . ("https://github.com/tree-sitter/tree-sitter-html"  "v0.23.0"))
-    (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.0"))
-    (jsdoc . ("https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.23.0"))
-    (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.23.0")))
+  '((php "https://github.com/tree-sitter/tree-sitter-php" "v0.23.11" "php/src")
+    (phpdoc "https://github.com/claytonrcarter/tree-sitter-phpdoc")
+    (html "https://github.com/tree-sitter/tree-sitter-html" "v0.23.2")
+    (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.1")
+    (jsdoc "https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.23.2")
+    (css "https://github.com/tree-sitter/tree-sitter-css" "v0.23.1"))
   "Treesitter language parsers required by `php-ts-mode'.
-You can customize this variable if you want to stick to a specific
-commit and/or use different parsers.")
+You can customize `treesit-language-source-alist' if you want
+to stick to a specific commit and/or use different parsers.")
+
+(setq treesit-language-source-alist
+      (append treesit-language-source-alist
+              php-ts-mode--language-source-alist))
 
 (defun php-ts-mode-install-parsers ()
   "Install all the required treesitter parsers.
 `php-ts-mode--language-source-alist' defines which parsers to install."
   (interactive)
-  (let ((treesit-language-source-alist php-ts-mode--language-source-alist))
-    (dolist (item php-ts-mode--language-source-alist)
-      (treesit-install-language-grammar (car item)))))
+  (dolist (item php-ts-mode--language-source-alist)
+    (treesit-install-language-grammar (car item))))
 
 ;;; Custom variables
 
@@ -837,28 +840,23 @@ characters of the current line."
 
 (defun php-ts-mode--test-namespace-name-as-prefix-p ()
   "Return t if namespace_name_as_prefix is a named node, nil otherwise."
-  (ignore-errors
-    (progn (treesit-query-compile 'php "(namespace_name_as_prefix)" t) t)))
+  (treesit-query-valid-p 'php "(namespace_name_as_prefix)"))
 
 (defun php-ts-mode--test-namespace-aliasing-clause-p ()
   "Return t if namespace_aliasing_clause is a named node, nil otherwise."
-  (ignore-errors
-    (progn (treesit-query-compile 'php "(namespace_aliasing_clause)" t) t)))
+  (treesit-query-valid-p 'php "(namespace_aliasing_clause)"))
 
 (defun php-ts-mode--test-namespace-use-group-clause-p ()
   "Return t if namespace_use_group_clause is a named node, nil otherwise."
-  (ignore-errors
-    (progn (treesit-query-compile 'php "(namespace_use_group_clause)" t) t)))
+  (treesit-query-valid-p 'php "(namespace_use_group_clause)"))
 
 (defun php-ts-mode--test-visibility-modifier-operation-clause-p ()
   "Return t if (visibility_modifier (operation)) is defined, nil otherwise."
-  (ignore-errors
-    (progn (treesit-query-compile 'php "(visibility_modifier (operation))" t) t)))
+  (treesit-query-valid-p 'php "(visibility_modifier (operation))"))
 
 (defun php-ts-mode--test-property-hook-clause-p ()
   "Return t if property_hook is a named node, nil otherwise."
-  (ignore-errors
-    (progn (treesit-query-compile 'php "(property_hook)" t) t)))
+  (treesit-query-valid-p 'php "(property_hook)"))
 
 (defun php-ts-mode--font-lock-settings ()
   "Tree-sitter font-lock settings."
@@ -1150,32 +1148,6 @@ For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
    'font-lock-warning-face
    override start end))
 
-(defun php-ts-mode--html-language-at-point (point)
-  "Return the language at POINT assuming the point is within a HTML region."
-  (let* ((node (treesit-node-at point 'html))
-         (parent (treesit-node-parent node))
-         (node-query (format "(%s (%s))"
-                             (treesit-node-type parent)
-                             (treesit-node-type node))))
-    (cond
-     ((string-equal "(script_element (raw_text))" node-query) 'javascript)
-     ((string-equal "(style_element (raw_text))" node-query) 'css)
-     (t 'html))))
-
-(defun php-ts-mode--language-at-point (point)
-  "Return the language at POINT."
-  (let* ((node (treesit-node-at point 'php))
-         (node-type (treesit-node-type node))
-         (parent (treesit-node-parent node))
-         (node-query (format "(%s (%s))" (treesit-node-type parent) node-type)))
-    (save-excursion
-      (goto-char (treesit-node-start node))
-      (cond
-       ((not (member node-query '("(program (text))"
-                                  "(text_interpolation (text))")))
-        'php)
-       (t (php-ts-mode--html-language-at-point point))))))
-
 
 ;;; Imenu
 
@@ -1410,12 +1382,12 @@ Depends on `c-ts-common-comment-setup'."
   :syntax-table php-ts-mode--syntax-table
 
   (if (not (and
-            (treesit-ready-p 'php)
-            (treesit-ready-p 'phpdoc)
-            (treesit-ready-p 'html)
-            (treesit-ready-p 'javascript)
-            (treesit-ready-p 'jsdoc)
-            (treesit-ready-p 'css)))
+            (treesit-ensure-installed 'php)
+            (treesit-ensure-installed 'phpdoc)
+            (treesit-ensure-installed 'html)
+            (treesit-ensure-installed 'javascript)
+            (treesit-ensure-installed 'jsdoc)
+            (treesit-ensure-installed 'css)))
       (error "Tree-sitter for PHP isn't
     available.  You can install the parsers with M-x
     `php-ts-mode-install-parsers'")
@@ -1466,8 +1438,6 @@ Depends on `c-ts-common-comment-setup'."
                     (start_tag (tag_name))
                     (raw_text) @cap))))
 
-    (setq-local treesit-language-at-point-function #'php-ts-mode--language-at-point)
-
     ;; Navigation.
     (setq-local treesit-defun-type-regexp
                 (regexp-opt '("class_declaration"
@@ -1483,7 +1453,14 @@ Depends on `c-ts-common-comment-setup'."
     (setq-local treesit-thing-settings
                 `((php
                    (defun ,treesit-defun-type-regexp)
-                   (sexp (not ,(rx (or "{" "}" "[" "]" "(" ")" ","))))
+                   (sexp (not (or (and named
+                                       ,(rx bos (or "program"
+                                                    "comment")
+                                            eos))
+                                  (and anonymous
+                                       ,(rx bos (or "{" "}" "[" "]"
+                                                    "(" ")" ",")
+                                            eos)))))
                    (list
                     ,(rx bos (or "namespace_use_group"
                                  "enum_declaration_list"
@@ -1548,7 +1525,7 @@ Depends on `c-ts-common-comment-setup'."
     (setq-local electric-indent-chars
                 (append "{}():;," electric-indent-chars))
 
-    ;; Imenu/Which-function/Outline
+    ;; Imenu/Which-function
     (setq-local treesit-simple-imenu-settings
                 '(("Class" "\\`class_declaration\\'" nil nil)
                   ("Enum" "\\`enum_declaration\\'" nil nil)
@@ -1559,6 +1536,16 @@ Depends on `c-ts-common-comment-setup'."
                   ("Trait" "\\`trait_declaration\\'" nil nil)
                   ("Variable" "\\`variable_name\\'" nil nil)
                   ("Constant" "\\`const_element\\'" nil nil)))
+
+    ;; Outline
+    (setq-local treesit-outline-predicate
+                (rx bos (or "class_declaration"
+                            "function_definition"
+                            "interface_declaration"
+                            "method_declaration"
+                            "namespace_definition"
+                            "trait_declaration")
+                    eos))
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings

@@ -708,7 +708,11 @@ must call it to obtain the actual value."
           (condition-case nil
               (unless (auth-source-search-collection
                        (plist-get spec key)
-                       (slot-value backend key))
+                       (slot-value
+                        backend
+                        (if (keywordp key)
+                            (intern-soft (substring (symbol-name key) 1))
+                          key)))
                 (setq filtered-backends (delq backend filtered-backends))
                 (cl-return))
             (invalid-slot-name nil))))
@@ -2391,21 +2395,21 @@ See `auth-source-search' for details on SPEC."
   :version "28.1")
 
 (defvar authinfo--keywords
-  '(("^#.*" . font-lock-comment-face)
+  '(("^#.*" (0 'font-lock-comment-face))
     ("^\\(machine\\)[ \t]+\\([^ \t\n]+\\)"
-     (1 font-lock-variable-name-face)
-     (2 font-lock-builtin-face))
+     (1 'font-lock-variable-name-face)
+     (2 'font-lock-builtin-face))
     ("\\(login\\)[ \t]+\\([^ \t\n]+\\)"
-     (1 font-lock-comment-delimiter-face)
-     (2 font-lock-keyword-face))
+     (1 'font-lock-comment-delimiter-face)
+     (2 'font-lock-keyword-face))
     ("\\(password\\)[ \t]+\\([^ \t\n]+\\)"
-     (1 font-lock-comment-delimiter-face)
-     (2 font-lock-doc-face))
+     (1 'font-lock-comment-delimiter-face)
+     (2 'font-lock-doc-face))
     ("\\(port\\)[ \t]+\\([^ \t\n]+\\)"
-     (1 font-lock-comment-delimiter-face)
-     (2 font-lock-type-face))
+     (1 'font-lock-comment-delimiter-face)
+     (2 'font-lock-type-face))
     ("\\([^ \t\n]+\\)[, \t]+\\([^ \t\n]+\\)"
-     (1 font-lock-constant-face)
+     (1 'font-lock-constant-face)
      (2 nil))))
 
 ;;;###autoload

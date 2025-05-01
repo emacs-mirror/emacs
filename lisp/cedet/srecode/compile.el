@@ -199,8 +199,7 @@ STATE is the current compilation state."
 	(tag nil)
 	(class nil)
 	(table nil)
-	(STATE (srecode-compile-state (file-name-nondirectory
-				       (buffer-file-name))))
+	(STATE (srecode-compile-state))
 	(mode nil)
 	(application nil)
 	(framework nil)
@@ -263,7 +262,7 @@ STATE is the current compilation state."
 	    ;; Create a compound dictionary value from "value".
 	    (require 'srecode/dictionary)
 	    (let ((cv (srecode-dictionary-compound-variable
-		       name :value value)))
+		       :value value)))
 	      (setq vars (cons (cons name cv) vars)))
 	    ))
 	)
@@ -361,7 +360,7 @@ STATE is the current compile state as an object of class
 			     :where 'end)))))))
 
     ;; Construct and return the template object.
-    (srecode-template (semantic-tag-name tag)
+    (srecode-template :object-name (semantic-tag-name tag)
 		      :context    context
 		      :args       (nreverse addargs)
 		      :dictionary root-dict
@@ -504,7 +503,8 @@ PROPS are additional properties that might need to be passed
 to the inserter constructor."
   ;;(message "Compile: %s %S" name props)
   (if (not key)
-      (apply #'make-instance 'srecode-template-inserter-variable name props)
+      (apply #'make-instance 'srecode-template-inserter-variable
+             :object-name name props)
     (let ((classes (eieio-class-children 'srecode-template-inserter))
 	  (new nil))
       ;; Loop over the various subclasses and
@@ -515,7 +515,8 @@ to the inserter constructor."
 	(when (and (not (class-abstract-p (car classes)))
 		   (equal (oref-default (car classes) key) key))
 	  ;; Create the new class, and apply state.
-	  (setq new (apply #'make-instance (car classes) name props))
+	  (setq new (apply #'make-instance (car classes)
+	                   :object-name name props))
 	  (srecode-inserter-apply-state new STATE)
 	  )
 	(setq classes (cdr classes)))
@@ -589,7 +590,7 @@ A list of defined variables VARS provides a variable table."
 (cl-defmethod srecode-dump ((tmp srecode-template))
   "Dump the contents of the SRecode template tmp."
   (princ "== Template \"")
-  (princ (eieio-object-name-string tmp))
+  (princ (slot-value tmp 'object-name))
   (princ "\" in context ")
   (princ (oref tmp context))
   (princ "\n")
@@ -635,7 +636,7 @@ Argument INDENT specifies the indentation level for the list."
 (cl-defmethod srecode-dump ((ins srecode-template-inserter) _indent)
   "Dump the state of the SRecode template inserter INS."
   (princ "INS: \"")
-  (princ (eieio-object-name-string ins))
+  (princ (slot-value ins 'object-name))
   (when (oref ins secondname)
     (princ "\" : \"")
     (princ (oref ins secondname)))

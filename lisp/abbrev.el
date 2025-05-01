@@ -42,7 +42,7 @@
 (defcustom abbrev-file-name
   (locate-user-emacs-file "abbrev_defs" ".abbrev_defs")
   "Default name of file from which to read and where to save abbrevs."
-  :initialize 'custom-initialize-delay
+  :initialize #'custom-initialize-delay
   :type 'file)
 
 (defcustom only-global-abbrevs nil
@@ -62,7 +62,7 @@ be replaced by its expansion."
   ;; defining it again.
   :variable abbrev-mode)
 
-(put 'abbrev-mode 'safe-local-variable 'booleanp)
+(put 'abbrev-mode 'safe-local-variable #'booleanp)
 
 
 (define-obsolete-variable-alias 'edit-abbrevs-map
@@ -225,7 +225,8 @@ about loading the abbrevs."
    (list
     (read-file-name (format-prompt "Read abbrev file" abbrev-file-name)
 		    nil abbrev-file-name t)))
-  (load (or file abbrev-file-name) nil quietly)
+  (let ((warning-inhibit-types '((files missing-lexbind-cookie))))
+    (load (or file abbrev-file-name) nil quietly))
   (setq abbrevs-changed nil))
 
 (defun quietly-read-abbrev-file (&optional file)
@@ -270,7 +271,8 @@ abbrevs have been saved."
       (when (unencodable-char-position (point-min) (point-max) 'utf-8)
 	(setq coding-system-for-write 'utf-8-emacs))
       (goto-char (point-min))
-      (insert (format ";;-*-coding: %s;-*-\n" coding-system-for-write))
+      (insert (format ";; -*- coding: %S; lexical-binding: t -*-\n"
+                      coding-system-for-write))
       (write-region nil nil file nil (and (not verbose) 0)))))
 
 (defun abbrev-edit-save-to-file (file)
@@ -494,13 +496,13 @@ A prefix argument means don't query; expand all abbrevs."
     (set sym nil)	     ; Make sure it won't be confused for an abbrev.
     (put sym prop val)))
 
-(defalias 'abbrev-get 'get
+(defalias 'abbrev-get #'get
   "Get the property PROP of abbrev ABBREV
 See `define-abbrev' for the effect of some special properties.
 
 \(fn ABBREV PROP)")
 
-(defalias 'abbrev-put 'put
+(defalias 'abbrev-put #'put
   "Set the property PROP of abbrev ABBREV to value VAL.
 See `define-abbrev' for the effect of some special properties.
 
@@ -573,8 +575,7 @@ This causes `save-some-buffers' to offer to save the abbrevs.")
 
 (defcustom abbrev-all-caps nil
   "Non-nil means expand multi-word abbrevs in all caps if the abbrev was so."
-  :type 'boolean
-  :group 'abbrev-mode)
+  :type 'boolean)
 
 (defvar abbrev-start-location nil
   "Buffer position for `expand-abbrev' to use as the start of the abbrev.
@@ -691,7 +692,7 @@ current (if global is nil) or standard syntax table."
           (cl-pushnew (aref abbrev (match-beginning 0)) badchars)
           (setq pos (1+ pos)))
         (error "Some abbrev characters (%s) are not word constituents %s"
-               (apply 'string (nreverse badchars))
+               (apply #'string (nreverse badchars))
                (if global "in the standard syntax" "in this mode"))))))
 
 (defun define-global-abbrev (abbrev expansion)
@@ -1096,8 +1097,7 @@ This differs from ordinary undo in that other editing done since then
 is not undone."
   (interactive)
   (save-excursion
-    (unless (or (< last-abbrev-location (point-min))
-                (> last-abbrev-location (point-max)))
+    (when (<= (point-min) last-abbrev-location (point-max))
       (goto-char last-abbrev-location)
       (when (stringp last-abbrev-text)
         ;; This isn't correct if last-abbrev's hook was used
@@ -1106,9 +1106,9 @@ is not undone."
           (unless (stringp val)
             (error "Value of abbrev-symbol must be a string"))
           ;; Don't inherit properties here; just copy from old contents.
-          (insert last-abbrev-text)
-          ;; Delete after inserting, to better preserve markers.
-          (delete-region (point) (+ (point) (length val)))
+          (replace-region-contents (point) (+ (point) (length val))
+                                   last-abbrev-text 0)
+          (goto-char (+ (point) (length last-abbrev-text)))
           (setq last-abbrev-text nil))))))
 
 (defun abbrev--write (sym)
@@ -1158,21 +1158,21 @@ a call to `define-abbrev-table' that, when evaluated, will define
 the abbrev table NAME exactly as it is currently defined.
 Abbrevs marked as \"system abbrevs\" are ignored."
   (let ((symbols (abbrev--table-symbols name readable)))
-    (setq symbols (sort symbols 'string-lessp))
+    (setq symbols (sort symbols #'string-lessp))
     (let ((standard-output (current-buffer)))
       (if readable
           (progn
             (insert "(")
             (prin1 name)
             (insert ")\n\n")
-            (mapc 'abbrev--describe symbols)
+            (mapc #'abbrev--describe symbols)
             (insert "\n\n"))
         (insert "(define-abbrev-table '")
         (prin1 name)
         (if (null symbols)
             (insert " '())\n\n")
           (insert "\n  '(\n")
-          (mapc 'abbrev--write symbols)
+          (mapc #'abbrev--write symbols)
           (insert "   ))\n\n")))
       nil)))
 
@@ -1215,7 +1215,7 @@ Properties with special meaning:
     ;; There is really no docstring, instead the docstring arg
     ;; is a property name.
     (push docstring props) (setq docstring nil))
-  (eval `(defvar ,tablename nil ,@(if docstring (list docstring))))
+  (defvar-1 tablename nil docstring)
   (let ((table (if (boundp tablename) (symbol-value tablename))))
     (unless table
       (setq table (make-abbrev-table))
@@ -1229,7 +1229,7 @@ Properties with special meaning:
       (unless (cdr props) (error "Missing value for property %S" (car props)))
       (abbrev-table-put table (pop props) (pop props)))
     (dolist (elt definitions)
-      (apply 'define-abbrev table elt))))
+      (apply #'define-abbrev table elt))))
 
 (defun abbrev-table-menu (table &optional prompt sortfun)
   "Return a menu that shows all abbrevs in TABLE.

@@ -1,6 +1,6 @@
 ;;; modus-vivendi-tritanopia-theme.el --- Tritanopia-optimized theme with a black background -*- lexical-binding:t -*-
 
-;; Copyright (C) 2019-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2025  Free Software Foundation, Inc.
 
 ;; Author: Protesilaos Stavrou <info@protesilaos.com>
 ;; Maintainer: Protesilaos Stavrou <info@protesilaos.com>
@@ -63,7 +63,7 @@ standard)."
       (bg-dim           "#1e1e1e")
       (fg-main          "#ffffff")
       (fg-dim           "#989898")
-      (fg-alt           "#c6daff")
+      (fg-alt           "#a0d7f2")
       (bg-active        "#535353")
       (bg-inactive      "#303030")
       (border           "#646464")
@@ -167,14 +167,10 @@ standard)."
 
       (bg-completion       "#004253")
       (bg-hover            "#8e3e3b")
-      (bg-hover-secondary  "#00405f")
+      (bg-hover-secondary  "#204853")
       (bg-hl-line          "#2f3849")
       (bg-region           "#5a5a5a")
       (fg-region           "#ffffff")
-
-      (bg-char-0 "#922a00")
-      (bg-char-1 "#00709f")
-      (bg-char-2 "#5f3faf")
 
       (bg-mode-line-active        "#003c52")
       (fg-mode-line-active        "#f0f0f0")
@@ -215,13 +211,6 @@ standard)."
       (fg-removed-intense "#ff9095")
 
       (bg-diff-context    "#1a1a1a")
-
-;;; Paren match
-
-      (bg-paren-match        "#2f7f9f")
-      (fg-paren-match        fg-main)
-      (bg-paren-expression   "#453040")
-      (underline-paren-match unspecified)
 
 ;;; Mappings
 
@@ -274,6 +263,13 @@ standard)."
       (string cyan)
       (type blue-warmer)
       (variable cyan-cooler)
+
+;;;; Paren match
+
+      (bg-paren-match        bg-cyan-subtle)
+      (fg-paren-match        fg-main)
+      (underline-paren-match unspecified)
+      (bg-paren-expression   bg-red-nuanced)
 
 ;;;; Accent mappings
 
@@ -385,7 +381,7 @@ standard)."
       (prose-table fg-alt)
       (prose-table-formula red-cooler)
 
-      (prose-tag magenta-faint)
+      (prose-tag fg-alt)
 
 ;;;; Rainbow mappings
 

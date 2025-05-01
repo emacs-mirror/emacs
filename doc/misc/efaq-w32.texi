@@ -353,6 +353,7 @@ not bundled with Emacs.  @xref{Other useful ports}.
 @section What is my init file?
 @cindex .emacs
 @cindex init file
+@cindex early init file
 
 When Emacs starts up, it attempts to load and execute the contents of
 a file commonly called @file{.emacs} (though it may have other names,
@@ -362,22 +363,31 @@ code to your .emacs, or you can use the Customization interface
 accessible from the @emph{Options} menu.  If the file does not exist,
 Emacs will start with the default settings.
 
+In addition, Emacs 27 and later attempts to load and execute the
+contents of the @file{early-init.el} file.  As its name suggests, this
+file, if it exists, is loaded and executed early on during the Emacs
+startup sequence, before @code{.emacs}, and is intended to contain the
+few initializations which must be performed before @file{.emacs} is
+looked up and loaded.
+
 @node Location of init file
 @section Where do I put my init file?
 @cindex HOME directory
 @cindex .emacs.d
 @cindex _emacs
 @cindex init.el
+@cindex early-init.el
 @cindex registry, setting the HOME directory in
 
-On Windows, the @file{.emacs} file may be called @file{_emacs} for
+On Windows, the @file{.emacs} init file may be called @file{_emacs} for
 backward compatibility with DOS and FAT filesystems where filenames
 could not start with a dot.  Some users prefer to continue using such
 a name due to historical problems various Windows tools had in the
 past with file names that begin with a dot.  The init file may also be
-called @file{.emacs.d/init.el}.  Many of the other files that are
-created by Lisp packages are stored in the @file{.emacs.d} directory
-too, which keeps all your Emacs related files in one place.
+called @file{.emacs.d/init.el}.  The @file{early-init.el} file and many
+of the other files that are created by Lisp packages are stored in the
+@file{.emacs.d} directory too, which keeps all your Emacs related files
+in one place.
 
 All the files mentioned above should go in your @env{HOME} directory.
 The @env{HOME} directory is determined by following the steps below:
@@ -2157,7 +2167,7 @@ MSYS2 is an independent rewrite of MSYS, based on modern Cygwin and
 MinGW-w64 with the aim of better interoperability with native Windows
 software.  It plays the same role MSYS does in MinGW.  Being a
 distribution, MSYS2 provides tools to build software as well as more
-than 2.600 precompiled packages ready for use.
+than 2600 precompiled packages ready for use.
 
 @node EZWinPorts
 @section EZWinPorts

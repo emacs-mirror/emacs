@@ -39,7 +39,7 @@
    then 'switch (INT_PROMOTE (E))' pacifies gcc -Wswitch-enum if some
    enum values are deliberately omitted from the switch's cases.
    Here, unary + is safer than a cast or inline function, as unary +
-   does only integer promotions.  */
+   does only integer promotions and is disallowed on pointers.  */
 #define INT_PROMOTE(e) (+ (e))
 
 
