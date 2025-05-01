@@ -244,7 +244,7 @@ asynchronously."
   (let* ((pkg-spec (package-vc--desc->spec pkg-desc))
          (name (symbol-name (package-desc-name pkg-desc)))
          (directory (expand-file-name
-                     (plist-get pkg-spec :lisp-dir)
+                     (or (plist-get pkg-spec :lisp-dir) ".")
                      (or (package-desc-dir pkg-desc)
                          (expand-file-name name package-user-dir))))
          (file (expand-file-name
@@ -462,7 +462,7 @@ identify a package as a VC package later on), building
 documentation and marking the package as installed."
   (let* ((pkg-spec (package-vc--desc->spec pkg-desc))
          (lisp-dir (plist-get pkg-spec :lisp-dir))
-         (lisp-path (expand-file-name lisp-dir pkg-dir))
+         (lisp-path (expand-file-name (or lisp-dir ".") pkg-dir))
          missing)
 
     ;; In case the package was installed directly from source, the
