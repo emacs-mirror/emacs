@@ -1424,12 +1424,16 @@ Return t if the file exists and loads successfully.  */)
 	    suffixes = CALLN (Fappend, suffixes, Vload_file_rep_suffixes);
 	}
 
+      Lisp_Object load_path = Vload_path;
+      if (FUNCTIONP (Vload_path_filter_function))
+	load_path = calln (Vload_path_filter_function, load_path, file, suffixes);
+
 #if !defined USE_ANDROID_ASSETS
-      fd = openp (Vload_path, file, suffixes, &found, Qnil,
+      fd = openp (load_path, file, suffixes, &found, Qnil,
 		  load_prefer_newer, no_native, NULL);
 #else
       asset = NULL;
-      rc = openp (Vload_path, file, suffixes, &found, Qnil,
+      rc = openp (load_path, file, suffixes, &found, Qnil,
 		  load_prefer_newer, no_native, &asset);
       fd.fd = rc;
       fd.asset = asset;
@@ -6106,6 +6110,18 @@ where FILE is the filename of the eln file, including the .eln extension.
 `load-no-native' non-nil will also make Emacs not load native code
 through `require'.  */);
   load_no_native = false;
+
+  DEFVAR_LISP ("load-path-filter-function",
+	       Vload_path_filter_function,
+	       doc: /* Non-nil means to call this function to filter `load-path' for `load'.
+
+When load is called, this function is called with three arguments: the
+current value of `load-path' (a list of directories), the FILE argument
+to load, and the current load-suffixes.
+
+It should return a list of directories, which `load' will use instead of
+`load-path'.  */);
+  Vload_path_filter_function = Qnil;
 
   /* Vsource_directory was initialized in init_lread.  */
 

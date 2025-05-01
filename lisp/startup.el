@@ -1143,6 +1143,39 @@ the `--debug-init' option to view a complete error backtrace."
 (defvar lisp-directory nil
   "Directory where Emacs's own *.el and *.elc Lisp files are installed.")
 
+(defvar load-path-filter--cache nil
+  "A cache used by `load-path-filter-cache-directory-files'.
+
+This is an alist.  The car of each entry is a list of load suffixes,
+such as returned by `get-load-suffixes'.  The cdr of each entry is a
+cons whose car is an optimized regex matching those suffixes at the end
+of a string, and whose cdr is a hashtable mapping directories to files
+in that directory which end with one of the suffixes.")
+
+(defun load-path-filter-cache-directory-files (path file suffixes)
+  "Filter PATH to only directories which might contain FILE with SUFFIXES.
+
+Doesn't filter if FILE is an absolute file name or if FILE is a relative
+file name with more than one component.
+
+Caches directory contents in `load-path-filter--cache'."
+  (if (file-name-directory file)
+      ;; FILE has more than one component, don't bother filtering.
+      path
+    (seq-filter
+     (let ((rx-and-ht
+            (with-memoization (alist-get suffixes load-path-filter--cache nil nil #'equal)
+              (cons
+               (concat (regexp-opt suffixes) "\\'")
+               (make-hash-table :test #'equal)))))
+       (lambda (dir)
+         (when (file-directory-p dir)
+           (try-completion
+            file
+            (with-memoization (gethash dir (cdr rx-and-ht))
+              (directory-files dir nil (car rx-and-ht) t))))))
+     path)))
+
 (defun command-line ()
   "A subroutine of `normal-top-level'.
 Amongst another things, it parses the command-line arguments."
