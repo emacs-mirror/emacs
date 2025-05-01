@@ -84,7 +84,26 @@ default:
   script:
     - docker pull ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}
     - 'export PWD=$(pwd)'
-    - 'docker run -i -e EMACS_EMBA_CI=${EMACS_EMBA_CI} -e EMACS_TEST_JUNIT_REPORT=${EMACS_TEST_JUNIT_REPORT} -e EMACS_TEST_TIMEOUT=${EMACS_TEST_TIMEOUT} -e EMACS_TEST_VERBOSE=${EMACS_TEST_VERBOSE} -e NPROC=`nproc` --volumes-from $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):ro --name ${test_name} ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} /bin/bash -xvc "git fetch ${PWD} HEAD && echo checking out these updated files && git diff --name-only FETCH_HEAD && ( git diff --name-only FETCH_HEAD | xargs git checkout -f FETCH_HEAD ) && make -j \$NPROC && make -k -j \$NPROC ${make_params}"'
+    - 'docker run -i \
+     -e EMACS_EMBA_CI=${EMACS_EMBA_CI} \
+     -e EMACS_TEST_JUNIT_REPORT=${EMACS_TEST_JUNIT_REPORT} \
+     -e EMACS_TEST_TIMEOUT=${EMACS_TEST_TIMEOUT} \
+     -e EMACS_TEST_VERBOSE=${EMACS_TEST_VERBOSE} \
+     -e NPROC=`nproc` \
+     -e http_proxy=${http_proxy} \
+     -e https_proxy=${https_proxy} \
+     -e no_proxy=${no_proxy} \
+     --volumes-from $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):ro \
+     --name ${test_name} \
+     ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} \
+     /bin/bash -xvc \
+       "git fetch ${PWD} HEAD && \
+        echo checking out these updated files && \
+        git diff --name-only FETCH_HEAD && \
+        ( git diff --name-only FETCH_HEAD | \
+          xargs git checkout -f FETCH_HEAD ) && \
+        make -j \$NPROC && \
+        make -k -j \$NPROC ${make_params}"'
   after_script:
     # - docker ps -a
     # - pwd; printenv
@@ -187,13 +206,14 @@ default:
         - "**.in"
         - lisp/align.el
         - lisp/progmodes/*-ts-mode.el
+        - lisp/progmodes/c-ts-common.el
         - lisp/progmodes/csharp-mode.el
         - lisp/progmodes/js.el
         - lisp/progmodes/python.el
         - lisp/progmodes/sh-script.el
         - lisp/textmodes/*-ts-mode.el
         - lisp/textmodes/css-mode.el
-        - lisp/treesit.el
+        - lisp/treesit*.el
         - src/treesit.{h,c}
         - test/infra/*
         - test/lisp/align-resources/**
@@ -293,10 +313,8 @@ test-eglot:
     make_params: >-
       check-expensive
         TEST_HOME=/root LOGFILES="lisp/progmodes/eglot-tests.log"
-        # EMACS_EXTRAOPT="--eval \(package-reinstall\ \(quote\ company\)\)
-        #                 --eval \(package-reinstall\ \(quote\ yasnippet\)\)
-        #                 --eval \(use-package\ company\)
-        #                 --eval \(use-package\ yasnippet\)"
+        # EMACS_EXTRAOPT="--eval \(use-package\ company\ :ensure\ t\)
+        #                 --eval \(use-package\ yasnippet\ :ensure\ t\)"
 
 build-image-tree-sitter:
   stage: platform-images
