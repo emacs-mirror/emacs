@@ -91,9 +91,8 @@
 You can customize `treesit-language-source-alist' if you want
 to stick to a specific commit and/or use different parsers.")
 
-(setq treesit-language-source-alist
-      (append treesit-language-source-alist
-              php-ts-mode--language-source-alist))
+(dolist (item php-ts-mode--language-source-alist)
+  (add-to-list 'treesit-language-source-alist item t))
 
 (defun php-ts-mode-install-parsers ()
   "Install all the required treesitter parsers.
