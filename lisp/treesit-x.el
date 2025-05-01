@@ -244,9 +244,10 @@ of `define-treesit-generic-mode'.
                                                "for_loop_statement")
                                        eos)))))
 
-  (when (treesit-ensure-installed 'yaml)
-    (defvar yaml-ts-mode--font-lock-settings)
+  (when (treesit-ready-p 'yaml t)
     (require 'yaml-ts-mode)
+    (defvar yaml-ts-mode--font-lock-settings)
+    (defvar yaml-ts-mode--font-lock-feature-list)
     (setq-local treesit-range-settings
                 (append treesit-range-settings
                         (treesit-range-rules
@@ -256,7 +257,11 @@ of `define-treesit-generic-mode'.
                          '(((front_matter) @cap)))))
     (setq-local treesit-font-lock-settings
                 (append treesit-font-lock-settings
-                        yaml-ts-mode--font-lock-settings))))
+                        yaml-ts-mode--font-lock-settings))
+    (setq-local treesit-font-lock-feature-list
+                (treesit-merge-font-lock-feature-list
+                 treesit-font-lock-feature-list
+                 yaml-ts-mode--font-lock-feature-list))))
 
 (defvar alpinejs-generic-ts-attr-regexp
   (rx bos (or "x-" ":" "@"))

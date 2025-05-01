@@ -178,7 +178,8 @@ maps to tree-sitter language `cpp'.")
    :language 'markdown
    :feature 'paragraph
    :override 'prepend
-   '((block_quote_marker) @markdown-ts-delimiter
+   '((block_quote) @italic
+     (block_quote_marker) @markdown-ts-delimiter
      (fenced_code_block_delimiter) @markdown-ts-delimiter
      (fenced_code_block
       (info_string (language) @markdown-ts-language-keyword))
@@ -217,6 +218,12 @@ maps to tree-sitter language `cpp'.")
     (if (markdown-ts-imenu-node-p node)
 	(thread-first (treesit-node-parent node) (treesit-node-text))
       name)))
+
+(defun markdown-ts-outline-predicate (node)
+  "Match a hierarchical section that has a heading."
+  (and (equal (treesit-node-type node) "section")
+       (when-let* ((child (treesit-node-child node 0)))
+         (equal (treesit-node-type child) "atx_heading"))))
 
 ;;; Code blocks
 
@@ -288,9 +295,25 @@ the same features enabled in MODE."
    :range-fn #'treesit-range-fn-exclude-children
    '((inline) @markdown-inline)
 
+   :embed 'yaml
+   :host 'markdown
+   :local t
+   '((minus_metadata) @yaml)
+
+   :embed 'toml
+   :host 'markdown
+   :local t
+   '((plus_metadata) @toml)
+
    :embed 'html
    :host 'markdown
+   :local t
    '((html_block) @html)
+
+   :embed 'html
+   :host 'markdown-inline
+   :local t
+   '((html_tag) @html)
 
    :embed #'markdown-ts--convert-code-block-language
    :host 'markdown
@@ -304,19 +327,61 @@ the same features enabled in MODE."
   "Setup treesit for `markdown-ts-mode'."
   (setq-local treesit-font-lock-settings markdown-ts--treesit-settings)
   (setq-local treesit-range-settings (markdown-ts--range-settings))
+
+  (when (treesit-ready-p 'html t)
+    (require 'html-ts-mode)
+    (defvar html-ts-mode--font-lock-settings)
+    (defvar html-ts-mode--treesit-font-lock-feature-list)
+    (setq-local treesit-font-lock-settings
+                (append treesit-font-lock-settings
+                        html-ts-mode--font-lock-settings))
+    (setq-local treesit-font-lock-feature-list
+                (treesit-merge-font-lock-feature-list
+                 treesit-font-lock-feature-list
+                 html-ts-mode--treesit-font-lock-feature-list)))
+
+  (when (treesit-ready-p 'yaml t)
+    (require 'yaml-ts-mode)
+    (defvar yaml-ts-mode--font-lock-settings)
+    (defvar yaml-ts-mode--font-lock-feature-list)
+    (setq-local treesit-font-lock-settings
+                (append treesit-font-lock-settings
+                        yaml-ts-mode--font-lock-settings))
+    (setq-local treesit-font-lock-feature-list
+                (treesit-merge-font-lock-feature-list
+                 treesit-font-lock-feature-list
+                 yaml-ts-mode--font-lock-feature-list)))
+
+  (when (treesit-ready-p 'toml t)
+    (require 'toml-ts-mode)
+    (defvar toml-ts-mode--font-lock-settings)
+    (defvar toml-ts-mode--font-lock-feature-list)
+    (setq treesit-font-lock-settings
+          (append treesit-font-lock-settings
+                  toml-ts-mode--font-lock-settings))
+    (setq-local treesit-font-lock-feature-list
+                (treesit-merge-font-lock-feature-list
+                 treesit-font-lock-feature-list
+                 toml-ts-mode--font-lock-feature-list)))
+
   (treesit-major-mode-setup))
 
 ;;;###autoload
 (define-derived-mode markdown-ts-mode text-mode "Markdown"
   "Major mode for editing Markdown using tree-sitter grammar."
+
+  (setq-local comment-start "<!-- ")
+  (setq-local comment-end " -->")
+
   (setq-local font-lock-defaults nil
 	      treesit-font-lock-feature-list '((delimiter heading)
 					       (paragraph)
 					       (paragraph-inline)))
 
   (setq-local treesit-simple-imenu-settings
-              `(("Headings" markdown-ts-imenu-node-p nil markdown-ts-imenu-name-function)))
-  (setq-local treesit-outline-predicate "section")
+              `(("Headings" ,#'markdown-ts-imenu-node-p
+                 nil ,#'markdown-ts-imenu-name-function)))
+  (setq-local treesit-outline-predicate #'markdown-ts-outline-predicate)
 
   (when (and (treesit-ensure-installed 'markdown)
              (treesit-ensure-installed 'markdown-inline))
