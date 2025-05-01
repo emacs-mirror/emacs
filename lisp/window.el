@@ -8237,8 +8237,8 @@ Action alist entries are:
    the displayed buffer by using the same category in the condition
    part of `display-buffer-alist' entries.
  `this-command' -- A symbol naming the command now being executed, or a
-  list of such symbols to mean the condition when any of those commands
-  are now being executed.
+  list of command symbols, to mean the condition that any of those
+  commands are being executed.
   You can use this in the condition part of `display-buffer-alist'
   entries to match buffers displayed by particular commands.
 

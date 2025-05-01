@@ -3917,8 +3917,8 @@ entry in @code{display-buffer-alist}.
 
 @vindex this-command@r{, a buffer display action alist entry}
 @item this-command
-The value is a symbol naming a command or a list of such symbols.  It
-means the condition when that command, or any of those commands, are now
+The value is a symbol naming a command or a list of command symbols.  It
+represents the condition which is satisfied if any of those commands are
 being executed.  You can use this in the condition part of
 @code{display-buffer-alist} entries to match buffers displayed during
 the execution of particular commands.
