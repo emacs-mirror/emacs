@@ -312,6 +312,11 @@ When bound to non-nil, 'window-state-get' will normalize 'uniquify'
 managed buffer names by removing 'uniquify' prefixes and suffixes.  This
 helps to restore window buffers across Emacs sessions.
 
++++
+*** New action alist entry 'this-command' for 'display-buffer'.
+You can use this in 'display-buffer-alist' to match buffers displayed
+during the execution of particular commands.
+
 ** Frames
 
 +++

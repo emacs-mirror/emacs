@@ -3914,6 +3914,14 @@ List, @code{buffer-match-p}}.  Thus, if a Lisp program uses a particular
 @var{symbol} as the category when calling @code{display-buffer}, users
 can customize how these buffers will be displayed by including such an
 entry in @code{display-buffer-alist}.
+
+@vindex this-command@r{, a buffer display action alist entry}
+@item this-command
+The value is a symbol naming a command or a list of such symbols.  It
+means the condition when that command, or any of those commands, are now
+being executed.  You can use this in the condition part of
+@code{display-buffer-alist} entries to match buffers displayed during
+the execution of particular commands.
 @end table
 
 By convention, the entries @code{window-height}, @code{window-width}
