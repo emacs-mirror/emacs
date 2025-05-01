@@ -2048,9 +2048,10 @@ matched against the project root, and the predicate should take the
 project object as the only argument and return non-@code{nil} if the
 project should @emph{not} be saved to @code{project-list-file}.
 
+@node VC-Aware Project Backend
+@subsection VC-Aware Project Backend
 @cindex VC-aware project backend
 @cindex project backend, VC-aware
-@node VC-Aware Project Backend
 This backend is part of Emacs and is enabled by default.  (Other
 backends may need installation of add-on packages and their proper
 configuration.)
