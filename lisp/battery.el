@@ -136,7 +136,13 @@ Its cons cells are of the form
     (CONVERSION . REPLACEMENT-TEXT)
 
 CONVERSION is the character code of a \"conversion specification\"
-introduced by a `%' character in a control string."
+introduced by a `%' character in a control string.  See the
+documentation of `battery-echo-area-format' for supported conversion
+specifications and the format used by `battery' to show battery
+status in the echo area.
+
+The default value of the function is determined at startup, and depends
+on the battery-related services available on the system."
   :version "28.1"
   :type '(choice (const nil) function))
 
