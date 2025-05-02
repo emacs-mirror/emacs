@@ -541,7 +541,7 @@ related data structures in a terse and user-friendly format:
  'pgrow' dumps all glyphs in current glyph_row 'row'.
  'pcursor' dumps current output_cursor.
 
-The above commands also exist in a version with an 'x' suffix which takes an
+The above commands also exist in versions with an 'x' suffix which take an
 object of the relevant type as argument.  For example, 'pgrowx' dumps all
 glyphs in its argument, which must be of type 'struct glyph_row'.
 
