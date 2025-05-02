@@ -3514,16 +3514,19 @@ boundaries for the original string."
   ;; and then transform that into an offset in STRING instead.  We can't do this
   ;; if we expand environment variables, so double the $s to prevent that.
   (let* ((doubled-string (replace-regexp-in-string "\\$" "$$" string t t))
-         ;; sifn will change $$ back into $, so the result is a suffix of STRING
-         ;; (in fact, it's the last absolute file name in STRING).
-         (last-file-name (substitute-in-file-name doubled-string))
-         (bounds (completion-boundaries last-file-name table pred suffix)))
-    (cl-assert (string-suffix-p last-file-name string) t)
-    ;; BOUNDS contains the start boundary in LAST-FILE-NAME; adjust it to be an
-    ;; offset in STRING instead.
-    (cons (+ (- (length string) (length last-file-name)) (car bounds))
-          ;; No special processing happens on SUFFIX and the end boundary.
-          (cdr bounds))))
+         ;; sifn will change $$ back into $, so SIFNED is mostly the
+         ;; same as STRING, with some text deleted.
+         (sifned (substitute-in-file-name doubled-string))
+         (bounds (completion-boundaries sifned table pred suffix))
+         (sifned-start (car bounds))
+         ;; Adjust SIFNED-START to be an offset in STRING instead of in SIFNED.
+         (string-start (+ (- sifned-start (length sifned)) (length string))))
+    ;; The text within the boundaries should be identical.
+    (cl-assert
+     (eq t (compare-strings sifned sifned-start nil string string-start nil))
+     t)
+    ;; No special processing happens on SUFFIX and the end boundary.
+    (cons string-start (cdr bounds))))
 
 (defun completion--file-name-table (orig pred action)
   "Internal subroutine for `read-file-name'.  Do not call this.
