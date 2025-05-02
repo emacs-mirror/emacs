@@ -5169,6 +5169,27 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
       ;; (untrace-function #'completion-file-name-table)
       (tramp-change-syntax orig-syntax))))
 
+(defun tramp--test-split-on-boundary (s)
+  "Return completion boundaries for string S."
+  (let ((bounds (completion-boundaries s #'completion--file-name-table nil "")))
+    (cons (substring s nil (car bounds)) (substring s (car bounds)))))
+
+(ert-deftest tramp-test26-file-name-completion-boundaries ()
+  "Test file name completion boundaries are correct in various cases."
+  ;; `completion--file-name-table' was reworked in Emacs 31, the
+  ;; boundaries are always incorrect before that.
+  (skip-unless (tramp--test-emacs31-p))
+
+  (should (equal (tramp--test-split-on-boundary "/ssh:user@host:foo")
+                 '("/ssh:user@host:" . "foo")))
+  (should (equal (tramp--test-split-on-boundary "/ssh:user@host:/~/foo")
+                 '("/ssh:user@host:/~/" . "foo")))
+  (should (equal (tramp--test-split-on-boundary "/ssh:user@host:/usr//usr/foo")
+                 '("/ssh:user@host:/usr//usr/" . "foo")))
+  (should (equal (tramp--test-split-on-boundary
+                  "/ssh:user@host:/ssh:user@host://usr/foo")
+                 '("/ssh:user@host:/ssh:user@host://usr/" . "foo"))))
+
 (ert-deftest tramp-test27-load ()
   "Check `load'."
   (skip-unless (tramp--test-enabled))
@@ -7182,6 +7203,12 @@ Some semantics has been changed for there, without new functions
 or variables, so we check the Emacs version directly."
   (>= emacs-major-version 29))
 
+(defun tramp--test-emacs31-p ()
+  "Check for Emacs version >= 31.1.
+Some semantics has been changed for there, without new functions
+or variables, so we check the Emacs version directly."
+  (>= emacs-major-version 31))
+
 (defun tramp--test-adb-p ()
   "Check, whether the remote host runs Android.
 This requires restrictions of file name syntax."
@@ -8529,29 +8556,6 @@ Since it unloads Tramp, it shall be the last test to run."
   (require 'tramp-archive)
   (should (featurep 'tramp))
   (should (featurep 'tramp-archive)))
-
-(defun tramp--test-emacs31-p ()
-  "Check for Emacs version >= 31.1."
-  (>= emacs-major-version 31))
-
-(defun tramp--split-on-boundary (s)
-  (let ((bounds (completion-boundaries s #'completion--file-name-table nil "")))
-    (cons (substring s nil (car bounds)) (substring s (car bounds)))))
-
-(ert-deftest tramp-test51-file-name-completion-boundaries ()
-  "Test file name completion boundaries are correct in various cases."
-  ;; `completion--file-name-table' was reworked in 31, the boundaries
-  ;; are always incorrect before that.
-  (skip-unless (tramp--test-emacs31-p))
-
-  (should (equal (tramp--split-on-boundary "/ssh:user@host:foo")
-                 '("/ssh:user@host:" . "foo")))
-  (should (equal (tramp--split-on-boundary "/ssh:user@host:/~/foo")
-                 '("/ssh:user@host:/~/" . "foo")))
-  (should (equal (tramp--split-on-boundary "/ssh:user@host:/usr//usr/foo")
-                 '("/ssh:user@host:/usr//usr/" . "foo")))
-  (should (equal (tramp--split-on-boundary "/ssh:user@host:/ssh:user@host://usr/foo")
-                 '("/ssh:user@host:/ssh:user@host://usr/" . "foo"))))
 
 (defun tramp-test-all (&optional interactive)
   "Run all tests for \\[tramp].
