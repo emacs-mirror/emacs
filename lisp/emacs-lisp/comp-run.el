@@ -54,6 +54,23 @@ or one if there's just one execution unit."
   :risky t
   :version "28.1")
 
+;; If we could start compilations that were skipped if and when AC power
+;; is subsequently reconnected, we could consider changing the default
+;; to nil.  --spwhitton
+(defcustom native-comp-async-on-battery-power t
+  "Whether to start asynchronous native compilation while on battery power.
+Customize this to nil to disable starting async compilations when AC
+power is not connected.  Async compilations that are already running
+when AC power is disconnected are not affected.  Compilations skipped
+because AC power was disconnected are not started again if AC power is
+subsequently reconnected; in most cases, those compilations will not be
+tried again until after you next restart Emacs.
+
+Customizing this to nil has no effect unless `battery-status-function'
+can correctly detect the absence of connected AC power on your platform."
+  :type 'boolean
+  :version "31.1")
+
 (defcustom native-comp-async-report-warnings-errors t
   "Whether to report warnings and errors from asynchronous native compilation.
 
@@ -158,6 +175,16 @@ LOAD and SELECTOR work as described in `native--compile-async'."
                       (string-match-p re file))
                     native-comp-jit-compilation-deny-list))))
 
+(defvar battery-status-function)
+
+(defun native--compile-skip-on-battery-p ()
+  "Should we skip JIT compilation because we're running on battery power?"
+  (and-let* (((not native-comp-async-on-battery-power))
+             ((require 'battery))
+             battery-status-function
+             (status (assq ?L (funcall battery-status-function)))
+             ((not (string= (cdr status) "on-line"))))))
+
 (defvar comp-files-queue ()
   "List of Emacs Lisp files to be compiled.")
 
@@ -221,7 +248,8 @@ display a message."
   (cl-assert (null comp-no-spawn))
   (if (or comp-files-queue
           (> (comp--async-runnings) 0))
-      (unless (>= (comp--async-runnings) (comp--effective-async-max-jobs))
+      (unless (or (>= (comp--async-runnings) (comp--effective-async-max-jobs))
+                  (native--compile-skip-on-battery-p))
         (cl-loop
          for (source-file . load) = (pop comp-files-queue)
          while source-file

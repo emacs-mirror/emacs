@@ -466,6 +466,11 @@ now add a note about this automatically.
 When enabled, display the 'help-at-pt-kbd-string' via ElDoc.  This
 setting is an alternative to 'help-at-pt-display-when-idle'.
 
+---
+** New user option 'native-comp-async-on-battery-power'.
+Customize this to nil to disable starting new asynchronous native
+compilations while AC power is not connected.
+
 
 * Editing Changes in Emacs 31.1
 
