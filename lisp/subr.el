@@ -7632,8 +7632,8 @@ CONDITION is either:
   * `this-command': the buffer matches if the command now being executed
     is `eq' to or a `memq' of the cons-cell's cdr.
     (This case is not useful when calling `buffer-match-p' directly, but
-    is needed to support the `this-command' buffer display action alist
-    entry.  See `display-buffer'.)
+    is needed to support the `this-command' buffer display condition
+    entry.  See Info node `(elisp)Choosing Window'.)
   * `not': the cadr is interpreted as a negation of a condition.
   * `and': the cdr is a list of recursive conditions, that all have
     to be met.

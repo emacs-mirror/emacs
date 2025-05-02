@@ -8236,11 +8236,6 @@ Action alist entries are:
    `(category . symbol)' in its action argument, then you can match
    the displayed buffer by using the same category in the condition
    part of `display-buffer-alist' entries.
- `this-command' -- A symbol naming the command now being executed, or a
-  list of command symbols, to mean the condition that any of those
-  commands are being executed.
-  You can use this in the condition part of `display-buffer-alist'
-  entries to match buffers displayed by particular commands.
 
 The entries `window-height', `window-width', `window-size' and
 `preserve-size' are applied only when the window used for
