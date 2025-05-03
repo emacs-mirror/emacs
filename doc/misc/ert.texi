@@ -946,6 +946,7 @@ where the @samp{|} character is in the ``after'' form (and issue a
 test failure if that isn't the case).  (This is used in all subsequent
 tests, unless overridden by a new @samp{Point-Char} spec.)
 
+@cindex skipping tests, in erts file
 @item Skip
 If this is present and value is a form that evaluates to a
 non-@code{nil} value, the test will be skipped.
