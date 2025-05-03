@@ -54,9 +54,9 @@ or one if there's just one execution unit."
   :risky t
   :version "28.1")
 
-;; If we could start compilations that were skipped if and when AC power
-;; is subsequently reconnected, we could consider changing the default
-;; to nil.  --spwhitton
+;; TODO If we could start compilations that were skipped if and when AC
+;;      power is subsequently reconnected, we could consider changing
+;;      the default to nil.  --spwhitton
 (defcustom native-comp-async-on-battery-power t
   "Whether to start asynchronous native compilation while on battery power.
 Customize this to nil to disable starting async compilations when AC
@@ -179,11 +179,28 @@ LOAD and SELECTOR work as described in `native--compile-async'."
 
 (defun native--compile-skip-on-battery-p ()
   "Should we skip JIT compilation because we're running on battery power?"
+  ;; The `battery-status-function' API is not specified so as to
+  ;; render it cleanly machine-readable, so we resort to heuristics.
+  ;; We could extend the API to return machine-readable information in
+  ;; the alist when an optional boolean argument is provided to the
+  ;; `battery-status-function'; we could use `func-arity' to check
+  ;; whether a custom `battery-status-function' supports the extension.
+  ;; However, so far in the time we've had battery.el, it would appear
+  ;; that this is the first time we've wanted to use the information
+  ;; other than just for generating messages.
   (and-let* (((not native-comp-async-on-battery-power))
              ((require 'battery))
              battery-status-function
-             (status (assq ?L (funcall battery-status-function)))
-             ((not (string= (cdr status) "on-line"))))))
+             (res (funcall battery-status-function))
+             ((or (member (cdr (assq ?L res)) '("off-line" "BAT" "Battery"))
+                  ;; If %L has not given us what we need, we don't
+                  ;; consider battery charge levels or percentages,
+                  ;; because power users often configure their batteries
+                  ;; to stop charging at less than 100% as a way to
+                  ;; extend the lifetime of their battery hardware.
+                  (string= (cdr (assq ?b res)) "+")
+                  (member (cdr (assq ?B res)) '("charging" "pending-charge"))
+                  (not (string= (cdr (assq ?B res)) "discharging")))))))
 
 (defvar comp-files-queue ()
   "List of Emacs Lisp files to be compiled.")
