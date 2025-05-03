@@ -12265,7 +12265,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
     static char const wrapper[] =
       "<svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" "
       "xmlns:xi=\"http://www.w3.org/2001/XInclude\" "
-      "style=\"color: #%06X; fill: currentColor;\" "
+      "style=\"color: #%06X;\" "
       "width=\"%d\" height=\"%d\" preserveAspectRatio=\"none\" "
       "viewBox=\"0 0 %f %f\">"
       "<rect width=\"100%%\" height=\"100%%\" fill=\"#%06X\"/>"
