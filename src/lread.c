@@ -2589,11 +2589,14 @@ DO-ALLOW-PRINT, if non-nil, specifies that output functions in the
  evaluated code should work normally even if PRINTFLAG is nil, in
  which case the output is displayed in the echo area.
 
-This function ignores the current value of the `lexical-binding'
-variable.  Instead it will heed any
+This function ignores the global value of the `lexical-binding'
+variable.  Instead it will heed the buffer-local value of that
+variable and any
   -*- lexical-binding: t -*-
-settings in the buffer, and if there is no such setting, the buffer
-will be evaluated without lexical binding.
+settings in the buffer; if there is no such setting, and the
+buffer-local value of the variable is nil, the buffer will be
+evaluated with the value of `lexical binding' equal to its
+top-level default value, as returned by `default-toplevel-value'.
 
 This function preserves the position of point.  */)
   (Lisp_Object buffer, Lisp_Object printflag, Lisp_Object filename,
@@ -2621,7 +2624,10 @@ This function preserves the position of point.  */)
   specbind (Qstandard_output, tem);
   record_unwind_protect_excursion ();
   BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
-  specbind (Qlexical_binding, get_lexical_binding (buf, buf));
+  /* Don't emit a warning about 'lexical-binding' if it already has a
+     local binding in the buffer.  */
+  if (NILP (Flocal_variable_p (Qlexical_binding, buf)))
+    specbind (Qlexical_binding, get_lexical_binding (buf, buf));
   BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
   readevalloop (buf, 0, filename,
 		!NILP (printflag), unibyte, Qnil, Qnil, Qnil);
