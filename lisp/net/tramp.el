@@ -4114,6 +4114,7 @@ Let-bind it when necessary.")
   ;; Otherwise, remove any trailing slash from localname component.
   ;; Method, host, etc, are unchanged.
   (while (with-parsed-tramp-file-name directory nil
+	   (setq localname (file-name-unquote localname))
 	   (and (length> localname 0)
 		(eq (aref localname (1- (length localname))) ?/)
 		(not (string= localname "/"))))
@@ -4202,8 +4203,8 @@ Let-bind it when necessary.")
     (eq (file-attribute-type (file-attributes (file-truename filename))) t)))
 
 (defun tramp-handle-file-equal-p (filename1 filename2)
-  "Like `file-equalp-p' for Tramp files."
-  ;; Native `file-equalp-p' calls `file-truename', which requires a
+  "Like `file-equal-p' for Tramp files."
+  ;; Native `file-equal-p' calls `file-truename', which requires a
   ;; remote connection.  This can be avoided, if FILENAME1 and
   ;; FILENAME2 are not located on the same remote host.
   (when (tramp-equal-remote
