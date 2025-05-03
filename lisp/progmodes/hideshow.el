@@ -228,9 +228,21 @@
   :prefix "hs-"
   :group 'languages)
 
+(defface hs-ellipsis
+  '((t :height 0.80 :box (:line-width -1) :inherit default))
+  "Face used for hideshow ellipsis.
+Note: If `selective-display' ellipsis already has a face, hideshow will
+use that face for the ellipsis instead."
+  :version "31.1")
+
 (defcustom hs-hide-comments-when-hiding-all t
   "Hide the comments too when you do an `hs-hide-all'."
   :type 'boolean)
+
+(defcustom hs-display-lines-hidden nil
+  "If non-nil, display the number of hidden lines next to the ellipsis."
+  :type 'boolean
+  :version "31.1")
 
 (defcustom hs-minor-mode-hook nil
   "Hook called when hideshow minor mode is activated or deactivated."
@@ -528,8 +540,17 @@ to call with the newly initialized overlay."
         (io (if (eq 'block hs-isearch-open)
                 ;; backward compatibility -- `block'<=>`code'
                 'code
-              hs-isearch-open)))
+              hs-isearch-open))
+        (map (make-sparse-keymap)))
     (overlay-put ov 'invisible 'hs)
+    (define-key map (kbd "<mouse-1>") #'hs-show-block)
+    (overlay-put ov 'display
+                 (propertize
+                  (hs--get-ellipsis b e)
+                  'mouse-face
+                  'highlight
+                  'help-echo "mouse-1: show hidden lines"
+                  'keymap map))
     (overlay-put ov 'hs kind)
     (overlay-put ov 'hs-b-offset b-offset)
     (overlay-put ov 'hs-e-offset e-offset)
@@ -539,6 +560,48 @@ to call with the newly initialized overlay."
                    'hs-isearch-show-temporary))
     (when hs-set-up-overlay (funcall hs-set-up-overlay ov))
     ov))
+
+(defun hs--get-ellipsis (b e)
+  "Helper function for `hs-make-overlay'.
+This return the ellipsis string to use and its face."
+  (cond*
+   ((bind*
+     (d-t-ellipsis (display-table-slot standard-display-table 'selective-display))
+     (d-t-face ; Get only the first glyph face
+      (if d-t-ellipsis (glyph-face (aref d-t-ellipsis 0))))
+     ;; Convert the ellipsis vector from display-table to a propertized
+     ;; string
+     (ellipsis
+      (cond
+       ((and d-t-ellipsis
+             (not (stringp d-t-ellipsis))
+             ;; Ensure the vector is not empty
+             (not (length= d-t-ellipsis 0)))
+        (let ((string
+               (mapconcat
+                (lambda (g)
+                  (apply #'propertize
+                         (char-to-string (glyph-char g))
+                         (if (glyph-face g)
+                             (list 'face (glyph-face g)))))
+                d-t-ellipsis)))
+          ;; If the ellipsis string has no face, use `hs-ellipsis'
+          (if (get-text-property 0 'face string)
+              string
+            (propertize string 'face 'hs-ellipsis))))
+       ((char-displayable-on-frame-p ?…)
+        (propertize "…" 'face 'hs-ellipsis))
+       (t (propertize "..." 'face 'hs-ellipsis))))))
+   (hs-display-lines-hidden
+    (let ((lines (1- (count-lines b e))))
+      (concat
+       (propertize
+        (concat (number-to-string lines)
+                (if (= lines 1) " line" " lines"))
+        'face (or d-t-face 'hs-ellipsis))
+       ellipsis)))
+   (t
+    ellipsis)))
 
 (defun hs-isearch-show (ov)
   "Delete overlay OV, and set `hs-headline' to nil.

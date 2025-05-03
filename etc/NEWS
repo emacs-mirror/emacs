@@ -721,6 +721,12 @@ Now 'treesit-explore-mode' (or 'treesit-explore') prompts for a parser
 rather than a language, and it is now possible to select a local parser
 at point to explore.
 
+** Hideshow
+
+*** New user option 'hs-display-lines-hidden'.
+If this option is non-nil, Hideshow displays the number of hidden
+lines next to the ellipsis.
+
 ** C-ts mode
 
 +++
