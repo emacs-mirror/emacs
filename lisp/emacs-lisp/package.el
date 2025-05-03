@@ -1013,9 +1013,11 @@ untar into a directory named DIR; otherwise, signal an error."
                        (dired-get-marked-files))
                   (directory-files-recursively default-directory "" nil))))
          (dolist (source-file file-list)
-           (let ((target-el-file
-                  (expand-file-name (file-name-nondirectory source-file) pkg-dir)))
-             (copy-file source-file target-el-file t)))
+           (let ((target (expand-file-name
+                          (file-relative-name source-file default-directory)
+                          pkg-dir)))
+             (make-directory (file-name-directory target) t)
+             (copy-file source-file target t)))
          ;; Now that the files have been installed, this package is
          ;; indistinguishable from a `tar' or a `single'. Let's make
          ;; things simple by ensuring we're one of them.
@@ -1255,27 +1257,24 @@ The return result is a `package-desc'."
         (with-temp-buffer
           (insert-file-contents desc-file)
           (package--read-pkg-desc 'dir))
-      (let ((files (or (and (derived-mode-p 'dired-mode)
-                            (dired-get-marked-files))
-                       (directory-files-recursively default-directory "\\.el\\'")))
-            info)
-        (while files
-          (with-temp-buffer
-            (let ((file (pop files)))
-              ;; The file may be a link to a nonexistent file; e.g., a
-              ;; lock file.
-              (when (file-exists-p file)
+      (catch 'found
+        (let ((files (or (and (derived-mode-p 'dired-mode)
+                              (dired-get-marked-files))
+                         (directory-files-recursively default-directory "\\.el\\'"))))
+          ;; We sort the file names in lexicographical order, to ensure
+          ;; that we check shorter file names first (ie. those further
+          ;; up in the directory structure).
+          (dolist (file (sort files))
+            ;; The file may be a link to a nonexistent file; e.g., a
+            ;; lock file.
+            (when (file-exists-p file)
+              (with-temp-buffer
                 (insert-file-contents file)
                 ;; When we find the file with the data,
-                (when (setq info (ignore-errors (package-buffer-info)))
-                  ;; stop looping,
-                  (setq files nil)
-                  ;; set the 'dir kind,
-                  (setf (package-desc-kind info) 'dir))))))
-        (unless info
-          (error "No .el files with package headers in `%s'" default-directory))
-        ;; and return the info.
-        info))))
+                (when-let* ((info (ignore-errors (package-buffer-info))))
+                  (setf (package-desc-kind info) 'dir)
+                  (throw 'found info))))))
+        (error "No .el files with package headers in `%s'" default-directory)))))
 
 
 ;;; Communicating with Archives
