@@ -20201,13 +20201,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
       /* If mouse-highlight is an integer, input clears out
 	 mouse highlighting.  */
-      if (!hlinfo->mouse_face_hidden && FIXNUMP (Vmouse_highlight)
-	  && (f == 0
+      if (!hlinfo->mouse_face_hidden
+	  && FIXNUMP (Vmouse_highlight)
+	  && (f == NULL
+	      || (!EQ (f->tab_bar_window, hlinfo->mouse_face_window)
 #if ! defined (USE_GTK)
-	      || !EQ (f->tool_bar_window, hlinfo->mouse_face_window)
+		  && !EQ (f->tool_bar_window, hlinfo->mouse_face_window)
 #endif
-	      || !EQ (f->tab_bar_window, hlinfo->mouse_face_window))
-	  )
+		 )))
         {
 	  mouse_frame = hlinfo->mouse_face_mouse_frame;
 
