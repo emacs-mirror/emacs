@@ -2630,7 +2630,7 @@ return it back to the server.  :null is returned if the list was empty."
     (if (and actions label) (cdr (assoc label actions)) :null)))
 
 (cl-defmethod eglot-handle-notification
-  (_server (_method (eql window/logMessage)) &key _type _message)
+  (_server (_method (eql window/logMessage)) &key _type _message &allow-other-keys)
   "Handle notification window/logMessage.") ;; noop, use events buffer
 
 (cl-defmethod eglot-handle-notification
