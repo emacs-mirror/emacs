@@ -127,10 +127,10 @@ maps to tree-sitter language `cpp'.")
 (defface markdown-ts-heading-6 '((t (:inherit outline-6)))
   "Face for sixth level Markdown headings.")
 
-(defface markdown-ts-list-marker '((t (:inherit font-lock-keyword-face)))
+(defface markdown-ts-list-marker '((t (:inherit shadow)))
   "Face for Markdown list markers like - and *.")
 
-(defface markdown-ts-block-quote '((t (:inherit font-lock-string-face)))
+(defface markdown-ts-block-quote '((t (:inherit italic)))
   "Face for Markdown block quotes.")
 
 (defface markdown-ts-language-keyword '((t (:inherit font-lock-keyword-face)))
@@ -140,10 +140,11 @@ maps to tree-sitter language `cpp'.")
 
 (defvar markdown-ts--treesit-settings
   (treesit-font-lock-rules
-   :language 'markdown
+   :language 'markdown-inline
    :override t
    :feature 'delimiter
-   '([ "[" "]" "(" ")" ] @shadow)
+   '((inline_link [ "[" "]" "(" ")" ] @shadow)
+     (image [ "!" "[" "]" "(" ")" ] @shadow))
 
    :language 'markdown
    :feature 'heading
@@ -172,14 +173,12 @@ maps to tree-sitter language `cpp'.")
      (list_item (list_marker_star) @markdown-ts-list-marker)
      (list_item (list_marker_plus) @markdown-ts-list-marker)
      (list_item (list_marker_minus) @markdown-ts-list-marker)
-     (list_item (list_marker_dot) @markdown-ts-list-marker)
-
-     (block_quote) @markdown-ts-block-quote)
+     (list_item (list_marker_dot) @markdown-ts-list-marker))
 
    :language 'markdown
    :feature 'paragraph
    :override 'prepend
-   '((block_quote) @italic
+   '((block_quote) @markdown-ts-block-quote
      (block_quote_marker) @markdown-ts-delimiter
      (fenced_code_block_delimiter) @markdown-ts-delimiter
      (fenced_code_block
@@ -189,7 +188,7 @@ maps to tree-sitter language `cpp'.")
       (paragraph (inline (block_continuation) @markdown-ts-delimiter))))
 
    :language 'markdown-inline
-   :override t ;; override paren delimiter inside inline link
+   :override 'append
    :feature 'paragraph-inline
    '(((image_description) @link)
      ((link_destination) @font-lock-string-face)
@@ -313,7 +312,6 @@ the same features enabled in MODE."
 
    :embed 'html
    :host 'markdown-inline
-   :local t
    '((html_tag) @html)
 
    :embed #'markdown-ts--convert-code-block-language
@@ -330,6 +328,7 @@ the same features enabled in MODE."
   (setq-local treesit-range-settings (markdown-ts--range-settings))
 
   (when (treesit-ready-p 'html t)
+    (treesit-parser-create 'html)
     (require 'html-ts-mode)
     (defvar html-ts-mode--font-lock-settings)
     (defvar html-ts-mode--treesit-font-lock-feature-list)
