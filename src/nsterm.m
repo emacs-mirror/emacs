@@ -6962,10 +6962,12 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 
   [NSCursor setHiddenUntilMouseMoves:! NILP (Vmake_pointer_invisible)];
 
-  if (hlinfo->mouse_face_hidden && FIXNUMP (Vmouse_highlight))
+  if (!hlinfo->mouse_face_hidden
+      && FIXNUMP (Vmouse_highlight)
+      && !EQ (emacsframe->tab_bar_window, hlinfo->mouse_face_window))
     {
       clear_mouse_face (hlinfo);
-      hlinfo->mouse_face_hidden = 1;
+      hlinfo->mouse_face_hidden = true;
     }
 
   if (!processingCompose)
