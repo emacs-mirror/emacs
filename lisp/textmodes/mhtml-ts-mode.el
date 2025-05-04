@@ -50,9 +50,9 @@
 ;;; Code:
 
 (require 'treesit)
+(require 'html-ts-mode)
 (require 'css-mode) ;; for embed css into html
 (require 'js) ;; for embed javascript into html
-(require 'html-ts-mode)
 
 (eval-when-compile
   (require 'rx))
@@ -62,26 +62,13 @@
 ;; in a Emacs not built with tree-sitter library.
 (treesit-declare-unavailable-functions)
 
-;; In a multi-language major mode can be useful to have an "installer" to
-;; simplify the installation of the grammars supported by the major-mode.
-(defvar mhtml-ts-mode--language-source-alist
-  '((html "https://github.com/tree-sitter/tree-sitter-html" "v0.23.2")
-    (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.1")
-    (jsdoc "https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.23.2")
-    (css "https://github.com/tree-sitter/tree-sitter-css" "v0.23.1"))
-  "Treesitter language parsers required by `mhtml-ts-mode'.
-You can customize `treesit-language-source-alist' if you want
-to stick to a specific commit and/or use different parsers.")
-
-(dolist (item mhtml-ts-mode--language-source-alist)
-  (add-to-list 'treesit-language-source-alist item t))
-
 (defun mhtml-ts-mode-install-parsers ()
   "Install all the required treesitter parsers.
-`mhtml-ts-mode--language-source-alist' defines which parsers to install."
+`treesit-language-source-alist' defines which parsers to install.
+It's pre-filled by loading \"html-ts-mode\", \"css-mode\", \"js\"."
   (interactive)
-  (dolist (item mhtml-ts-mode--language-source-alist)
-    (treesit-install-language-grammar (car item))))
+  (dolist (lang '(html css javascript jsdoc))
+    (treesit-install-language-grammar lang)))
 
 ;;; Custom variables
 
