@@ -344,7 +344,7 @@ terminated by the end of line (i.e., `comment-end' is empty)."
   "Return the mirror image of string S, without any trailing space."
   (comment-string-strip (concat (nreverse (string-to-list s))) nil t))
 
-(defvar comment-setup-function nil
+(defvar comment-setup-function #'ignore
   "Function to set up variables needed by commenting functions.")
 
 ;;;###autoload
@@ -354,8 +354,7 @@ All the `comment-*' commands call this function to set up various
 variables, like `comment-start', to ensure that the commenting
 functions work correctly.  Lisp callers of any other `comment-*'
 function should first call this function explicitly."
-  (when (functionp comment-setup-function)
-    (funcall comment-setup-function))
+  (funcall comment-setup-function)
   (unless (and (not comment-start) noerror)
     (unless comment-start
       (let ((cs (read-string "No comment syntax is defined.  Use: ")))
