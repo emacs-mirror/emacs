@@ -356,6 +356,26 @@ Return nil if there is no name or if NODE is not a defun node."
      (js-name js-name)
      (css-name css-name))))
 
+(defvar-local mhtml-ts-mode--comment-current-lang nil)
+
+(defun mhtml-ts-mode--comment-setup ()
+  (let ((lang (treesit-language-at (point))))
+    (unless (eq mhtml-ts-mode--comment-current-lang lang)
+      (setq mhtml-ts-mode--comment-current-lang lang)
+      (pcase lang
+        ('html
+         (setq-local comment-start "<!-- ")
+         (setq-local comment-start-skip nil)
+         (setq-local comment-end " -->")
+         (setq-local comment-end-skip nil))
+        ('css
+         (setq-local comment-start "/*")
+         (setq-local comment-start-skip "/\\*+[ \t]*")
+         (setq-local comment-end "*/")
+         (setq-local comment-end-skip "[ \t]*\\*+/"))
+        ('javascript
+         (c-ts-common-comment-setup))))))
+
 ;;; Flymake integration
 
 (defvar-local mhtml-ts-mode--flymake-process nil
@@ -431,9 +451,8 @@ Powered by tree-sitter."
     ;; just like it's done in the original mode.
 
     ;; Comment.
-    ;; indenting settings for js-ts-mode.
-    (c-ts-common-comment-setup)
     (setq-local comment-multi-line t)
+    (setq-local comment-setup-function #'mhtml-ts-mode--comment-setup)
 
     ;; Font-lock.
 
