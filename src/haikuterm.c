@@ -3352,9 +3352,9 @@ haiku_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 	    /* If mouse-highlight is an integer, input clears out
 	       mouse highlighting.  */
 	    if (!hlinfo->mouse_face_hidden && FIXNUMP (Vmouse_highlight)
-		&& (f == 0
-		    || !EQ (f->tool_bar_window, hlinfo->mouse_face_window)
-		    || !EQ (f->tab_bar_window, hlinfo->mouse_face_window)))
+		&& (f == NULL
+		    || (!EQ (f->tool_bar_window, hlinfo->mouse_face_window)
+			&& !EQ (f->tab_bar_window, hlinfo->mouse_face_window))))
 	      {
 		mouse_frame = hlinfo->mouse_face_mouse_frame;
 

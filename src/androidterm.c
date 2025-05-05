@@ -957,9 +957,9 @@ handle_one_android_event (struct android_display_info *dpyinfo,
       /* If mouse-highlight is an integer, input clears out
 	 mouse highlighting.  */
       if (!hlinfo->mouse_face_hidden && FIXNUMP (Vmouse_highlight)
-	  && (any == 0
-	      || !EQ (any->tool_bar_window, hlinfo->mouse_face_window)
-	      || !EQ (any->tab_bar_window, hlinfo->mouse_face_window)))
+	  && (any == NULL
+	      || (!EQ (any->tool_bar_window, hlinfo->mouse_face_window)
+		  && !EQ (any->tab_bar_window, hlinfo->mouse_face_window))))
         {
 	  mouse_frame = hlinfo->mouse_face_mouse_frame;
 
