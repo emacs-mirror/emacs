@@ -22,9 +22,6 @@
 (defvar cl--type-list nil
   "Precedence list of the defined cl-types.")
 
-(defvar cl--type-dispatch-list nil
-  "List of types that need to be checked during dispatch.")
-
 ;; FIXME: The `cl-deftype-handler' property should arguably be turned
 ;; into a field of this struct (but it has performance and
 ;; compatibility implications, so let's not make that change for now).
@@ -51,71 +48,44 @@
 That is, a type defined by `cl-deftype', of class `cl-type-class'."
   (and (symbolp object) (cl-type-class-p (cl--find-class object))))
 
-(defun cl--type-parents (name)
-  "Get parents of type with NAME.
-NAME is a symbol representing a type.
-Return a possibly empty list of types."
-  (cl--class-allparents (cl--find-class name)))
-
-;; Keep it for now, for testing.
-(defun cl--type-undefine (name)
-  "Remove the definition of cl-type with NAME.
-NAME is an unquoted symbol representing a cl-type.
-Signal an error if NAME has subtypes."
-  (cl-check-type name (satisfies cl--type-p))
-  (when-let* ((children (cl--class-children (cl--find-class name))))
-    (error "Type has children: %S" children))
-  (cl-remprop name 'cl--type-flag)
-  (cl-remprop name 'cl--class)
-  (cl-remprop name 'cl-deftype-handler)
-  (setq cl--type-dispatch-list (delq name cl--type-dispatch-list))
-  (setq cl--type-list (delq name cl--type-list)))
-
-(defun cl--type-deftype (name parents &optional docstring)
-  ;; FIXME: Should we also receive the arglist?
+(defun cl--type-deftype (name parents arglist &optional docstring)
   "Register cl-type with NAME for method dispatching.
 PARENTS is a list of types NAME is a subtype of, or nil.
 DOCSTRING is an optional documentation string."
-  (condition-case err
-      (let* ((class (cl--find-class name))
-             (recorded (memq name cl--type-list)))
-        (if (null class)
-            (or (null recorded)
-                (error "Type registered, but doesn't exist"))
-          (or recorded (error "Type exists, but not registered"))
-          (or (cl-type-class-p class)
-              ;; FIXME: We have some uses `cl-deftype' in Emacs that
-              ;; "complement" another declaration of the same type,
-              ;; so maybe we should turn this into a warning (and
-              ;; not overwrite the `cl--find-class' in that case)?
-              (error "Type in another class: %S" (type-of class))))
-        ;; Setup a type descriptor for NAME.
-        (setf (cl--find-class name)
-              (cl--type-class-make name docstring parents))
-        ;; Reset NAME as a newly defined type.
-        (cl-remprop name 'cl--type-flag)
-        ;; Record new type.  The constructor of the class
-        ;; `cl-type-class' already ensures that parent types must be
-        ;; defined before their "child" types (i.e. already added to
-        ;; the `cl--type-list' for types defined with `cl-deftype').
-        ;; So it is enough to simply push a new type at the beginning
-        ;; of the list.
-        ;; Redefinition is more complicated, because child types may
-        ;; be in the list, so moving the type to the head can be
-        ;; incorrect.  The "cheap" solution is to leave the list
-        ;; unchanged (and hope the redefinition doesn't change the
-        ;; hierarchy too much).
-        ;; Side note: Redefinitions introduce other problems as well
-        ;; because the class object's `parents` slot contains
-        ;; references to `cl--class` objects, so after a redefinition
-        ;; via (setf (cl--find-class FOO) ...), the children's
-        ;; `parents` slots point to the old class object.  That's a
-        ;; problem that affects all types and that we don't really try
-        ;; to solve currently.
-        (or recorded (push name cl--type-list)))
-    (error
-     (error (format "Define %S failed: %s"
-                    name (error-message-string err))))))
+  (let* ((class (cl--find-class name)))
+    (when class
+      (or (cl-type-class-p class)
+          ;; FIXME: We have some uses `cl-deftype' in Emacs that
+          ;; "complement" another declaration of the same type,
+          ;; so maybe we should turn this into a warning (and
+          ;; not overwrite the `cl--find-class' in that case)?
+          (error "Type in another class: %S" (type-of class))))
+    ;; Setup a type descriptor for NAME.
+    (setf (cl--find-class name)
+          (cl--type-class-make name docstring parents))
+    ;; Record new type.  The constructor of the class
+    ;; `cl-type-class' already ensures that parent types must be
+    ;; defined before their "child" types (i.e. already added to
+    ;; the `cl--type-list' for types defined with `cl-deftype').
+    ;; So it is enough to simply push a new type at the beginning
+    ;; of the list.
+    ;; Redefinition is more complicated, because child types may
+    ;; be in the list, so moving the type to the head can be
+    ;; incorrect.  The "cheap" solution is to leave the list
+    ;; unchanged (and hope the redefinition doesn't change the
+    ;; hierarchy too much).
+    ;; Side note: Redefinitions introduce other problems as well
+    ;; because the class object's `parents` slot contains
+    ;; references to `cl--class` objects, so after a redefinition
+    ;; via (setf (cl--find-class FOO) ...), the children's
+    ;; `parents` slots point to the old class object.  That's a
+    ;; problem that affects all types and that we don't really try
+    ;; to solve currently.
+    (or (memq name cl--type-list)
+        ;; Exclude types that can't be used without arguments.
+        ;; They'd signal errors in `cl-types-of'!
+        (not (memq (car arglist) '(nil &rest &optional &keys)))
+        (push name cl--type-list))))
 
 ;;;###autoload
 (defmacro cl-deftype2 (name arglist &rest body)
@@ -170,7 +140,7 @@ If PARENTS is non-nil, ARGLIST must be nil."
        ;; 'cl-lib)), so `cl--type-deftype' needs to go either to
        ;; `cl-preloaded.el' or it should be autoloaded even when
        ;; `cl-lib' is not loaded.
-       (cl--type-deftype ',name ',parents ,docstring)
+       (cl--type-deftype ',name ',parents ',arglist ,docstring)
        (define-symbol-prop ',name 'cl-deftype-handler
                            (cl-function
                             (lambda (&cl-defs ('*) ,@arglist)
@@ -180,17 +150,6 @@ If PARENTS is non-nil, ARGLIST must be nil."
 ;; Ensure each type satisfies `eql'.
 (defvar cl--type-unique (make-hash-table :test 'equal)
   "Record an unique value of each type.")
-
-(defun cl--type-error (type error)
-  "Mark TYPE as in-error, and report the produced ERROR value."
-  ;; Temporarily raise the recursion limit to avoid another recursion
-  ;; error while reporting ERROR.
-  (let ((max-lisp-eval-depth (+ 800 max-lisp-eval-depth)))
-    ;; Mark TYPE as in-error and remove it from the dispatch list.
-    (put type 'cl--type-flag 'error)
-    (setq cl--type-dispatch-list (delq type cl--type-dispatch-list))
-    (warn  "cl-types-of %s, %s" type (error-message-string error)))
-  nil)
 
 ;; FIXME: `cl-types-of' CPU cost is proportional to the number of types
 ;; defined with `cl-deftype', so the more popular it gets, the slower
@@ -234,59 +193,54 @@ If PARENTS is non-nil, ARGLIST must be nil."
 ;; - in `cl-types-of' start by calling `cl-type-of', then use the map
 ;;   to find which cl-types may need to be checked.
 ;;
-(defun cl-types-of (object)
-"Return the types OBJECT belongs to.
+(defun cl-types-of (object &optional types)
+  "Return the types OBJECT belongs to.
 Return an unique list of types OBJECT belongs to, ordered from the
-most specific type to the most general."
-(let* ((root-type (cl-type-of object))
-       (found (list root-type)))
-  ;; Build a list of all types OBJECT belongs to.
-  (dolist (type cl--type-list)
-    (let ((flag (get type 'cl--type-flag)))
+most specific type to the most general.
+TYPES is an internal argument."
+  (let* ((found nil))
+    ;; Build a list of all types OBJECT belongs to.
+    (dolist (type (or types cl--type-list))
       (and
-       ;; Skip type, if it previously produced an error.
-       (not (eq flag 'error))
-       ;; Skip type which we are sure will not match.
-       (or (null flag) (eq flag root-type))
        ;; If OBJECT is of type, add type to the matching list.
-       (condition-case-unless-debug e
+       (if types
+           ;; For method dispatch, we don't need to filter out errors, since
+           ;; we can presume that method dispatch is used only on
+           ;; sanely-defined types.
            (cl-typep object type)
-         (error (cl--type-error type e)))
-       (or flag (put type 'cl--type-flag root-type))
-       (push type found))))
-  ;; Return an unique value of the list of types OBJECT belongs to,
-  ;; which is also the list of specifiers for OBJECT.
-  (with-memoization (gethash found cl--type-unique)
-    ;; Compute an ordered list of types from the DAG.
-    (merge-ordered-lists (mapcar #'cl--type-parents found)))))
+         (condition-case-unless-debug e
+             (cl-typep object type)
+           (error (setq cl--type-list (delq type cl--type-list))
+                  (warn  "cl-types-of %S: %s"
+                         type (error-message-string e)))))
+       (push type found)))
+    (push (cl-type-of object) found)
+    ;; Return an unique value of the list of types OBJECT belongs to,
+    ;; which is also the list of specifiers for OBJECT.
+    (with-memoization (gethash found cl--type-unique)
+      ;; Compute an ordered list of types from the DAG.
+      (merge-ordered-lists
+       (mapcar (lambda (type) (cl--class-allparents (cl--find-class type)))
+               (nreverse found))))))
 
 ;;; Method dispatching
 ;;
 
-;; For a declaration like
-;;
-;;   (cl-deftype list-of (elem-type)
-;;     `(and list
-;;           (satisfies ,(lambda (list)
-;;                         (cl-every (lambda (elem)
-;;                                     (cl-typep elem elem-type))
-;;                                   list)))))
-;;
-;; we add the type to `cl--type-list' even though it's unusable there
-;; (the `cl-typep` call in `cl-types-of' will always signal an error
-;; because the type can't be used without argument).
-;;
-;; One way to solve this (and even open up the possibility to
-;; dispatch on complex types like `(list-of FOO)') is to populate
-;; `cl--type-dispatch-list' (i.e. the list of types that need to
-;; be checked during dispatch) from `cl-generic-generalizers' so it
-;; includes only those types for which there's a method, rather than
-;; all defined types.
+(defvar cl--type-dispatch-list nil
+  "List of types that need to be checked during dispatch.")
 
 (cl-generic-define-generalizer cl--type-generalizer
+  ;; FIXME: This priority can't be always right.  :-(
+  ;; E.g. a method dispatching on a type like (or number function),
+  ;; should take precedence over a method on `t' but not over a method
+  ;; on `number'.  Similarly a method dispatching on a type like
+  ;; (satisfies (lambda (x) (equal x '(A . B)))) should take precedence
+  ;; over a method on (head 'A).
+  ;; Fixing this 100% is impossible so this generalizer is condemned to
+  ;; suffer from "undefined method ordering" problems, unless/until we
+  ;; restrict it somehow to a subset that we can handle reliably.
   20 ;; "typeof" < "cl-types-of" < "head" priority
-  (lambda (obj &rest _) `(let ((cl--type-list cl--type-dispatch-list))
-                           (cl-types-of ,obj)))
+  (lambda (obj &rest _) `(cl-types-of ,obj cl--type-dispatch-list))
   (lambda (tag &rest _) (if (consp tag) tag)))
 
 (cl-defmethod cl-generic-generalizers :extra "cl-types-of" (type)
@@ -296,12 +250,30 @@ most specific type to the most general."
         ;; Add a new dispatch type to the dispatch list, then
         ;; synchronize with `cl--type-list' so that both lists follow
         ;; the same type precedence order.
+        ;; The `merge-ordered-lists' is `cl-types-of' should we make this
+        ;; ordering unnecessary, but it's still handy for all those types
+        ;; that don't declare their parents.
         (unless (memq type cl--type-dispatch-list)
           (setq cl--type-dispatch-list
                 (seq-intersection cl--type-list
                                   (cons type cl--type-dispatch-list))))
         (list cl--type-generalizer))
     (cl-call-next-method)))
+
+;;; Support for unloading.
+
+;; Keep it for now, for testing.
+(defun cl--type-undefine (name)
+  "Remove the definition of cl-type with NAME.
+NAME is an unquoted symbol representing a cl-type.
+Signal an error if NAME has subtypes."
+  (cl-check-type name (satisfies cl--type-p))
+  (when-let* ((children (cl--class-children (cl--find-class name))))
+    (error "Type has children: %S" children))
+  (cl-remprop name 'cl--class)
+  (cl-remprop name 'cl-deftype-handler)
+  (setq cl--type-dispatch-list (delq name cl--type-dispatch-list))
+  (setq cl--type-list (delq name cl--type-list)))
 
 (provide 'cl-types)
 
