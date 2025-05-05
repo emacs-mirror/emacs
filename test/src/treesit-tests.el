@@ -58,6 +58,14 @@
 (declare-function treesit-search-forward "treesit.c")
 (declare-function treesit-search-subtree "treesit.c")
 
+(declare-function treesit-parse-string "treesit.c")
+(declare-function treesit-parser-tracking-line-column-p "treesit.c")
+(declare-function treesit-tracking-line-column-p "treesit.c")
+(declare-function treesit--linecol-at "treesit.c")
+(declare-function treesit--linecol-cache-set "treesit.c")
+(declare-function treesit--linecol-cache "treesit.c")
+
+
 ;;; Basic API
 
 (ert-deftest treesit-basic-parsing ()
@@ -290,6 +298,7 @@
     (should (equal (treesit--linecol-at 2) '(1 . 1)))
     (should (equal (treesit--linecol-at 1) '(1 . 0)))))
 
+(defvar treesit-languages-require-line-column-tracking)
 (ert-deftest treesit-linecol-enable-disable ()
   "Test enabling/disabling linecol tracking."
   (skip-unless (treesit-language-available-p 'json))
