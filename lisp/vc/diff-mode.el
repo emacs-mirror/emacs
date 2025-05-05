@@ -3181,7 +3181,12 @@ When OLD is non-nil, highlight the hunk from the old source."
               ((memq diff-font-lock-syntax '(hunk-also hunk-only))
                (with-temp-buffer
                  (insert text)
-                 (diff-syntax-fontify-props file text line-nb t))))))))
+                 ;; Enabling a major mode on a single hunk without
+                 ;; sufficient context often raises many errors such as
+                 ;; "Premature end of data", "Invalid search bound", etc.
+                 ;; So need to ignore all these errors.
+                 (ignore-errors
+                   (diff-syntax-fontify-props file text line-nb t)))))))))
 
     ;; Put properties over the hunk text
     (goto-char beg)
