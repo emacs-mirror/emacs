@@ -2059,6 +2059,10 @@ is bound to 'C-l' in the calendar buffer.
 
 * New Modes and Packages in Emacs 31.1
 
+** New minor mode 'delete-trailing-whitespace-mode'.
+A simple buffer-local mode that runs 'delete-trailing-whitespace'
+before saving the buffer.
+
 ** New major mode 'conf-npmrc-mode'.
 A major mode based on 'conf-mode' for editing ".npmrc" files.
 
