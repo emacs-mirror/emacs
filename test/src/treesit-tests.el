@@ -228,6 +228,7 @@
 
 (ert-deftest treesit-linecol-basic ()
   "Tests for basic lincol synchronization."
+  (skip-unless (fboundp 'treesit--linecol-cache))
   (with-temp-buffer
     (should (equal (treesit--linecol-cache)
                    '(:line 0 :col 0 :bytepos 0)))
@@ -271,6 +272,7 @@
 
 (ert-deftest treesit-linecol-search-back-across-newline ()
   "Search for newline backwards."
+  (skip-unless (fboundp 'treesit--linecol-at))
   (with-temp-buffer
     (insert "\n ")
     (treesit--linecol-cache-set 2 1 3)
@@ -280,6 +282,7 @@
 
 (ert-deftest treesit-linecol-col-same-line ()
   "Test col calculation when cache and target pos is in the same line."
+  (skip-unless (fboundp 'treesit--linecol-at))
   (with-temp-buffer
     (insert "aaaaaa")
     (treesit--linecol-cache-set 1 5 6)
