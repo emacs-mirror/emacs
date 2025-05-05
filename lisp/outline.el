@@ -522,7 +522,10 @@ outline font-lock faces to those of major mode."
     (let ((regexp (unless outline-search-function
                     (concat "^\\(?:" outline-regexp "\\).*$"))))
       (while (if outline-search-function
-                 (funcall outline-search-function)
+                 (when-let* ((ret (funcall outline-search-function)))
+                   ;; This is equivalent to adding ".*" in the regexp above.
+                   (set-match-data (list (match-beginning 0) (pos-eol)))
+                   ret)
                (re-search-forward regexp nil t))
         (let ((overlay (make-overlay (match-beginning 0) (match-end 0))))
           (overlay-put overlay 'outline-highlight t)
