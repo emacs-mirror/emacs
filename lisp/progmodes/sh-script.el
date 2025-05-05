@@ -3321,7 +3321,7 @@ See `sh-mode--treesit-other-keywords' and
    :feature 'string-interpolation
    :language 'bash
    :override t
-   '((command_substitution) @sh-quoted-exec
+   '((command_substitution (command) @sh-quoted-exec)
      (expansion (variable_name) @font-lock-variable-use-face)
      (expansion ["${" "}"] @font-lock-bracket-face)
      (simple_expansion
