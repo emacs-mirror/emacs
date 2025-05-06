@@ -5401,6 +5401,12 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (< (- (point-max) (point-min)) (length "foo"))
 		(while (accept-process-output proc 0 nil t))))
+            ;; Some `cat' implementations do not support the `cat -'
+            ;; call.  We skip then.
+            (skip-unless
+             (not
+              (string-match-p (rx "cat: -: input file is output file\n")
+                              (buffer-string))))
 	    (should (string-match-p "foo" (buffer-string))))
 
 	;; Cleanup.
@@ -5595,6 +5601,12 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (< (- (point-max) (point-min)) (length "foo"))
 		(while (accept-process-output proc 0 nil t))))
+            ;; Some `cat' implementations do not support the `cat -'
+            ;; call.  We skip then.
+            (skip-unless
+             (not
+              (string-match-p (rx "cat: -: input file is output file\n")
+                              (buffer-string))))
 	    (should (string-match-p "foo" (buffer-string))))
 
 	;; Cleanup.
