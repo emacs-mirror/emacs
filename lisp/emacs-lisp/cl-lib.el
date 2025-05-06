@@ -560,6 +560,19 @@ If ALIST is non-nil, the new pairs are prepended to it."
   ;; those rare places where we do need it.
   )
 
+(static-if (not (fboundp 'cl-defmethod))
+    ;; `cl-generic' requires `cl-lib' at compile-time, so `cl-lib' can't
+    ;; use `cl-defmethod' before `cl-generic' has been compiled.
+    ;; Also, there is no mechanism to autoload methods, so this can't be
+    ;; moved to `cl-extra.el'.
+    nil
+  (declare-function cl--type-generalizers "cl-extra" (type))
+  (cl-defmethod cl-generic-generalizers :extra "cl-types-of" (type)
+  "Support for dispatch on cl-types."
+  (if (and (symbolp type) (cl-type-class-p (cl--find-class type)))
+      (cl--type-generalizers type)
+    (cl-call-next-method))))
+
 (defun cl--old-struct-type-of (orig-fun object)
   (or (and (vectorp object) (> (length object) 0)
            (let ((tag (aref object 0)))

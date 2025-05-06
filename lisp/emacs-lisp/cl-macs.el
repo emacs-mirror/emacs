@@ -3786,15 +3786,52 @@ macro that returns its `&whole' argument."
 ;;;###autoload
 (defmacro cl-deftype (name arglist &rest body)
   "Define NAME as a new data type.
-The type name can then be used in `cl-typecase', `cl-check-type', etc."
-  (declare (debug cl-defmacro) (doc-string 3) (indent 2))
-  `(cl-eval-when (compile load eval)
-     (define-symbol-prop ',name 'cl-deftype-handler
-                         (cl-function (lambda (&cl-defs ('*) ,@arglist) ,@body)))))
+The type NAME can then be used in `cl-typecase', `cl-check-type',
+etc., and to some extent, as method specializer.
 
-(cl-deftype extended-char () '(and character (not base-char)))
-;; Define fixnum so `cl-typep' recognize it and the type check emitted
-;; by `cl-the' is effective.
+ARGLIST is a Common Lisp argument list of the sort accepted by
+`cl-defmacro'.  BODY forms should return a type specifier that is equivalent
+to the type (see the Info node `(cl)Type Predicates').
+
+If there is a `declare' form in BODY, the spec (parents . PARENTS)
+can specify a list of types NAME is a subtype of.
+The list of PARENTS types determines the order of methods invocation,
+and missing PARENTS may cause incorrect ordering of methods, while
+extraneous PARENTS may cause use of extraneous methods.
+
+If PARENTS is non-nil, ARGLIST must be nil."
+  (declare (debug cl-defmacro) (doc-string 3) (indent 2))
+  (pcase-let*
+      ((`(,decls . ,forms) (macroexp-parse-body body))
+       (docstring (if (stringp (car decls))
+                      (car decls)
+                      (cadr (assq :documentation decls))))
+       (declares (assq 'declare decls))
+       (parent-decl (assq 'parents (cdr declares)))
+       (parents (cdr parent-decl)))
+    (when parent-decl
+      ;; "Consume" the `parents' declaration.
+      (cl-callf (lambda (x) (delq parent-decl x)) (cdr declares))
+      (when (equal declares '(declare))
+        (cl-callf (lambda (x) (delq declares x)) decls)))
+    (and parents arglist
+         (error "Parents specified, but arglist not empty"))
+    `(eval-and-compile ;;cl-eval-when (compile load eval)
+       ;; FIXME: Where should `cl--type-deftype' go?  Currently, code
+       ;; using `cl-deftype' can use (eval-when-compile (require
+       ;; 'cl-lib)), so `cl--type-deftype' needs to go either to
+       ;; `cl-preloaded.el' or it should be autoloaded even when
+       ;; `cl-lib' is not loaded.
+       (cl--type-deftype ',name ',parents ',arglist ,docstring)
+       (define-symbol-prop ',name 'cl-deftype-handler
+                           (cl-function
+                            (lambda (&cl-defs ('*) ,@arglist)
+                              ,@decls
+                              ,@forms))))))
+
+(static-if (not (fboundp 'cl--type-deftype))
+    nil ;; Can't define it yet!
+  (cl-deftype extended-char () '(and character (not base-char))))
 
 ;;; Additional functions that we can now define because we've defined
 ;;; `cl-defsubst' and `cl-typep'.
