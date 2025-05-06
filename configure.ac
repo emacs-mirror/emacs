@@ -49,6 +49,11 @@ if test "$XCONFIGURE" = "android"; then
     CFLAGS="$CFLAGS -D_FILE_OFFSET_BITS=32"
     enable_largefile=no
     enable_year2038=no])
+  # Gnulib should not attempt not to reimplement tzalloc, as strftime
+  # attempts to link with symbols that are only present in the Gnulib
+  # replacement.
+  AS_IF([test "$ANDROID_SDK" -ge "35"],
+    [gl_cv_onwards_func_tzalloc="future OS version"])
 fi
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
@@ -6341,10 +6346,10 @@ dnl posix_spawn.  The chdir and setsid functionality is relatively
 dnl recent, so we check for it specifically.
 AC_CHECK_HEADERS([spawn.h])
 AC_SUBST([HAVE_SPAWN_H])
-AC_CHECK_FUNCS([posix_spawn \
-                posix_spawn_file_actions_addchdir \
-                posix_spawn_file_actions_addchdir_np \
-                posix_spawnattr_setflags])
+gl_CHECK_FUNCS_ANDROID([posix_spawn], [#include <spawn.h>])
+gl_CHECK_FUNCS_ANDROID([posix_spawn_file_actions_addchdir], [#include <spawn.h>])
+gl_CHECK_FUNCS_ANDROID([posix_spawn_file_actions_addchdir_np], [#include <spawn.h>])
+gl_CHECK_FUNCS_ANDROID([posix_spawnattr_setflags], [#include <spawn.h>])
 AC_SUBST([HAVE_POSIX_SPAWN])
 AC_SUBST([HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR])
 AC_SUBST([HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR_NP])
