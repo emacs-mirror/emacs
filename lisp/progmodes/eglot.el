@@ -2531,7 +2531,11 @@ still unanswered LSP requests to the server\n"))))
   '(:eval
     (when (and (memq 'mode-line eglot-code-action-indications)
                (overlay-buffer eglot--suggestion-overlay))
-      (overlay-get eglot--suggestion-overlay 'eglot--suggestion-tooltip)))
+      (eglot--mode-line-props
+       eglot-code-action-indicator 'eglot-code-action-indicator-face
+       `((mouse-1
+          eglot-code-actions-at-mouse
+          "execute code actions at point")))))
   "Eglot mode line construct for at-point code actions.")
 
 (add-to-list
@@ -2578,7 +2582,7 @@ still unanswered LSP requests to the server\n"))))
 (defvar eglot-diagnostics-map
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-2] #'eglot-code-actions-at-mouse)
-    (define-key map [left-margin mouse-2] #'eglot-code-actions-at-mouse)
+    (define-key map [left-margin mouse-1] #'eglot-code-actions-at-mouse)
     map)
   "Keymap active in Eglot-backed Flymake diagnostic overlays.")
 
@@ -4146,14 +4150,13 @@ at point.  With prefix argument, prompt for ACTION-KIND."
              (setq tooltip
                    (propertize eglot-code-action-indicator
                                'face 'eglot-code-action-indicator-face
-                               'help-echo blurb
+                               'help-echo "mouse-1: execute code actions at point"
                                'mouse-face 'highlight
                                'keymap eglot-diagnostics-map))
              (save-excursion
                (goto-char (car bounds))
                (let ((ov (make-overlay (car bounds) (cadr bounds))))
                  (overlay-put ov 'eglot--actions actions)
-                 (overlay-put ov 'eglot--suggestion-tooltip tooltip)
                  (overlay-put
                   ov
                   'before-string
