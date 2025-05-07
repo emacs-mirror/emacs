@@ -73,9 +73,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
 struct text_index
 {
-  /* Value at index IDX is the character position of byte position IDX *
-     INTERVAL.  Note that that byte position may be in the middle of a
-     character.  The value at index 0 is BEG.  */
+  /* Array of character positions.  Value at some index I is the
+     character position of byte position I * TEXT_INDEX_INTERVAL.
+     Note that that byte position may be in the middle of a character.
+     The value at index 0 is BEG.  */
   ptrdiff_t *charpos;
 
   /* Number of valid entries in the above array.  This is always at least 1
@@ -104,8 +105,8 @@ enum
 };
 
 /* Get PT, GPT, Z as text_pos structures..  Use these instead of BUF_PT,
-   and so to make sure to never try to get positions from markers, which
-   could lead to infinite recursion.  */
+   and so on to make sure to never try to get positions from markers,
+   like BUF_PT does, which could lead to infinite recursion.  */
 
 static struct text_pos
 z_pos (const struct buffer *b)
@@ -182,8 +183,8 @@ index_bytepos (const struct text_index *ti, ptrdiff_t entry)
   return BEG_BYTE + entry * TEXT_INDEX_INTERVAL;
 }
 
-/* Return the character position in index TI corresponding index entry
-   ENTRY.  */
+/* Return the character position in index TI corresponding to index
+   entry ENTRY.  */
 
 static ptrdiff_t
 index_charpos (const struct text_index *ti, ptrdiff_t entry)
@@ -192,7 +193,7 @@ index_charpos (const struct text_index *ti, ptrdiff_t entry)
   return ti->charpos[entry];
 }
 
-/* Return the index entry for BYTEPOS in index TI.  */
+/* Return the entry index for BYTEPOS in text index TI.  */
 
 static ptrdiff_t
 index_bytepos_entry (const struct text_index *ti, ptrdiff_t bytepos)
@@ -200,8 +201,8 @@ index_bytepos_entry (const struct text_index *ti, ptrdiff_t bytepos)
   return (bytepos - BEG_BYTE) / TEXT_INDEX_INTERVAL;
 }
 
-/* Return the entry of index TI for the largest character position <=
-   CHARPOS.  */
+/* Return the entry of index TI for the largest character position that
+   is <= CHARPOS.  */
 
 static ptrdiff_t
 index_charpos_entry (const struct text_index *ti, ptrdiff_t charpos)
@@ -261,11 +262,10 @@ char_start_bytepos (struct buffer *b, ptrdiff_t bytepos)
   return bytepos;
 }
 
-/* Allocate and return a text index structure with enough room for a
-   text of length NBYTES bytes.  */
+/* Allocate and return a text index structure with default capacity.  */
 
 static struct text_index *
-make_text_index (size_t nbytes)
+make_text_index (void)
 {
   struct text_index *ti = xzalloc (sizeof *ti);
   ti->capacity = TEXT_INDEX_DEFAULT_CAPACITY;
@@ -276,7 +276,7 @@ make_text_index (size_t nbytes)
   return ti;
 }
 
-/* Free the text index TI.  TI may be NULL.  */
+/* Free the text index TI if it is non-null.  */
 
 void
 text_index_free (struct text_index *ti)
@@ -304,7 +304,7 @@ append_entry (struct text_index *ti, ptrdiff_t charpos)
 }
 
 /* Build text index of buffer B up to and including position TO.
-   One of TO.charpos or TO.bytepos must be non-zero.  */
+   One of TO.charpos or TO.bytepos must be a valid position.  */
 
 static void
 build_index (struct buffer *b, const struct text_pos to)
@@ -370,13 +370,14 @@ build_index (struct buffer *b, const struct text_pos to)
     }
 }
 
-/* Make sure that buffer B has a text index.  */
+/* Make sure that buffer B has a text index.  Value is a pointer to the
+   possibly newly allocated t4xt index.  */
 
 static struct text_index *
 ensure_has_index (struct buffer *b)
 {
   if (b->text->index == NULL)
-    b->text->index = make_text_index (z_pos (b).bytepos);
+    b->text->index = make_text_index ();
   return b->text->index;
 }
 
@@ -448,9 +449,8 @@ charpos_backward_to_bytepos (struct buffer *b, const struct text_pos from,
 }
 
 /* In buffer B, starting from FROM, scan forward in B's text to
-   TO_CHARPOS, and return the corresponding byte position.  The byte
-   position is the one of the character start.  FROM's charpos
-   must be < TO_CHARPOS.  */
+   TO_CHARPOS, and return the corresponding byte position.  FROM's
+   charpos must be <= TO_CHARPOS.  */
 
 static ptrdiff_t
 bytepos_forward_to_charpos (struct buffer *b, const struct text_pos from,
@@ -470,9 +470,8 @@ bytepos_forward_to_charpos (struct buffer *b, const struct text_pos from,
 }
 
 /* In buffer B, starting from FROM, scan backward in B's text to
-   TO_CHARPOS, and return the corresponding byte position.  The byte
-   position is the one of the character start.  FROM's charpos must be
-   >= TO_CHARPOS.  */
+   TO_CHARPOS, and return the corresponding byte position.  FROM's
+   charpos must be >= TO_CHARPOS.  */
 
 static ptrdiff_t
 bytepos_backward_to_charpos (struct buffer *b, const struct text_pos from,
