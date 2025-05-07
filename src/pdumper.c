@@ -2807,7 +2807,7 @@ dump_obarray (struct dump_context *ctx, Lisp_Object object)
 static dump_off
 dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
 {
-#if CHECK_STRUCTS && !defined HASH_buffer_B02F648B82
+#if CHECK_STRUCTS && !defined HASH_buffer_23EB984887
 # error "buffer changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct buffer munged_buffer = *in_buffer;
