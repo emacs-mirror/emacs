@@ -564,6 +564,11 @@ This variable has no effect when Transient Mark mode is off.
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
+** Register
+*** The "*Register Preview*" buffer shows only suitable registers.
+That was already the case for the "fancy" UI but is now also true in
+the default UI you get, i.e. when 'register-use-preview' is 'traditional'.
+
 ** Tree-sitter
 
 *** New user option 'treesit-auto-install-grammar'.

@@ -289,7 +289,7 @@ The register value nil represents an empty register.
 This calls the function specified by `register--read-with-preview-function'."
   (funcall register--read-with-preview-function prompt pred))
 
-(defun register-read-with-preview-traditional (prompt &optional _pred)
+(defun register-read-with-preview-traditional (prompt &optional pred)
   "Read register name, prompting with PROMPT; possibly show existing registers.
 This reads and returns the name of a register.  PROMPT should be a string
 to prompt the user for the name.
@@ -305,7 +305,7 @@ when `register-use-preview' is set to `traditional'."
 		  (run-with-timer register-preview-delay nil
 				  (lambda ()
 				    (unless (get-buffer-window buffer)
-				      (register-preview buffer))))))
+				      (register-preview buffer nil pred))))))
 	 (help-chars (cl-loop for c in (cons help-char help-event-list)
 			      when (not (get-register c))
 			      collect c)))
@@ -314,7 +314,7 @@ when `register-use-preview' is set to `traditional'."
 	  (while (memq (read-key (propertize prompt 'face 'minibuffer-prompt))
 		       help-chars)
 	    (unless (get-buffer-window buffer)
-	      (register-preview buffer 'show-empty)))
+	      (register-preview buffer 'show-empty pred)))
           (when (or (eq ?\C-g last-input-event)
                     (eq 'escape last-input-event)
                     (eq ?\C-\[ last-input-event))
