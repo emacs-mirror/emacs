@@ -491,10 +491,11 @@ The fields are used as follows:
      (:copier nil))
   "Type descriptors for derived types, i.e. defined by `cl-deftype'.")
 
-(defun cl--define-derived-type (name parents arglist &optional docstring)
+(defun cl--define-derived-type (name expander &optional parents)
   "Register derived type with NAME for method dispatching.
-PARENTS is a list of types NAME is a subtype of, or nil.
-DOCSTRING is an optional documentation string."
+EXPANDER is the function that computes the type specifier from
+the arguments passed to the derived type.
+PARENTS is a list of types NAME is a subtype of, or nil."
   (let* ((class (cl--find-class name)))
     (when class
       (or (cl-derived-type-class-p class)
@@ -505,7 +506,9 @@ DOCSTRING is an optional documentation string."
           (error "Type in another class: %S" (type-of class))))
     ;; Setup a type descriptor for NAME.
     (setf (cl--find-class name)
-          (cl--derived-type-class-make name docstring parents))
+          (cl--derived-type-class-make name (function-documentation expander)
+                                       parents))
+    (define-symbol-prop name 'cl-deftype-handler expander)
     ;; Record new type.  The constructor of the class
     ;; `cl-type-class' already ensures that parent types must be
     ;; defined before their "child" types (i.e. already added to
@@ -527,7 +530,7 @@ DOCSTRING is an optional documentation string."
     (or (memq name cl--derived-type-list)
         ;; Exclude types that can't be used without arguments.
         ;; They'd signal errors in `cl-types-of'!
-        (not (memq (car arglist) '(nil &rest &optional &keys)))
+        (not (ignore-errors (funcall expander)))
         (push name cl--derived-type-list))))
 
 ;; Make sure functions defined with cl-defsubst can be inlined even in

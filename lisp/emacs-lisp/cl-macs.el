@@ -3803,9 +3803,6 @@ If PARENTS is non-nil, ARGLIST must be nil."
   (declare (debug cl-defmacro) (doc-string 3) (indent 2))
   (pcase-let*
       ((`(,decls . ,forms) (macroexp-parse-body body))
-       (docstring (if (stringp (car decls))
-                      (car decls)
-                      (cadr (assq :documentation decls))))
        (declares (assq 'declare decls))
        (parent-decl (assq 'parents (cdr declares)))
        (parents (cdr parent-decl)))
@@ -3817,12 +3814,10 @@ If PARENTS is non-nil, ARGLIST must be nil."
     (and parents arglist
          (error "Parents specified, but arglist not empty"))
     `(eval-and-compile
-       (cl--define-derived-type ',name ',parents ',arglist ,docstring)
-       (define-symbol-prop ',name 'cl-deftype-handler
-                           (cl-function
-                            (lambda (&cl-defs ('*) ,@arglist)
-                              ,@decls
-                              ,@forms))))))
+       (cl--define-derived-type
+        ',name
+        (cl-function (lambda (&cl-defs ('*) ,@arglist) ,@decls ,@forms))
+        ',parents))))
 
 (static-if (not (fboundp 'cl--define-derived-type))
     nil ;; Can't define it yet!
