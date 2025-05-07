@@ -817,7 +817,8 @@ Called with `font-lock-beg' and `font-lock-end' dynamically bound."
            (skip-syntax-forward " ")
 
            ;; find the beginning of the previous tag
-           (when (not (equal (char-after) ?\<))
+           (when (and (not (equal (char-after) ?\<))
+                      (< nxml-prolog-end (point)))
              (search-backward "<" nxml-prolog-end t))
            (nxml-ensure-scan-up-to-date)
            (nxml-move-outside-backwards)
