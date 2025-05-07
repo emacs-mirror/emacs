@@ -572,7 +572,7 @@ If ALIST is non-nil, the new pairs are prepended to it."
     (if (and (symbolp type) (cl-type-class-p (cl--find-class type))
              ;; Make sure this derived type can be used without arguments.
              (let ((expander (get type 'cl-deftype-handler)))
-               (and expander (ignore-error (funcall expander)))))
+               (and expander (ignore-errors (funcall expander)))))
         (cl--type-generalizers type)
       (cl-call-next-method))))
 
