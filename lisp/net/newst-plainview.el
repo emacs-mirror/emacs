@@ -1271,12 +1271,10 @@ FEED-NAME-SYMBOL tells to which feed this item belongs."
                       (setq format (substring format 2)))
                      ((string= "%l" prefix)
                       ;; logo
-                      (let ((disabled (cond ((eq (newsticker--age item) 'feed)
+                      (let ((disabled (cond ((eq age 'feed)
                                              (= (newsticker--stat-num-items
                                                  feed-name-symbol 'new) 0))
-                                            (t
-                                             (not (eq (newsticker--age item)
-                                                      'new))))))
+                                            (t (not (eq age 'new))))))
                         (let ((img (newsticker--image-read feed-name-symbol
                                                            disabled)))
                           (when img
@@ -1284,19 +1282,17 @@ FEED-NAME-SYMBOL tells to which feed this item belongs."
                       (setq format (substring format 2)))
                      ((string= "%L" prefix)
                       ;; logo or title
-                      (let ((disabled (cond ((eq (newsticker--age item) 'feed)
+                      (let ((disabled (cond ((eq age 'feed)
                                              (= (newsticker--stat-num-items
                                                  feed-name-symbol 'new) 0))
-                                            (t
-                                             (not (eq (newsticker--age item)
-                                                      'new))))))
+                                            (t (not (eq age 'new))))))
                         (let ((img (newsticker--image-read feed-name-symbol
                                                            disabled)))
                           (if img
                               (newsticker--insert-image img (format "[logo: %s]" (car item)))
                             (when (car item)
                               (setq pos-text-start (point-marker))
-			      (if (eq (newsticker--age item) 'feed)
+			      (if (eq age 'feed)
 				  (insert (newsticker--title item))
 				;; FIXME: This is not the "real" title!
 				(insert (format "%s"
@@ -1307,7 +1303,7 @@ FEED-NAME-SYMBOL tells to which feed this item belongs."
                      ((string= "%s" prefix)
                       ;; statistics
                       (setq pos-stat-start (point-marker))
-                      (if (eq (newsticker--age item) 'feed)
+                      (if (eq age 'feed)
                           (insert (newsticker--buffer-statistics
                                    feed-name-symbol)))
                       (setq pos-stat-end (point-marker))
