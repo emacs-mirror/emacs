@@ -2301,6 +2301,11 @@ provide instructions for finding the definition.
 New convenience function 'find-function-update-type-alist' offers a
 concise way to update a symbol's 'find-function-type-alist' property.
 
+---
+** New function variable 'comment-setup-function' for multi-language modes.
+It can set comment-related variables such as 'comment-start'
+depending on the language under point.
+
 +++
 ** 'inhibit-message' can now inhibit clearing of the echo area.
 Binding 'inhibit-message' to a non-nil value will now suppress both
