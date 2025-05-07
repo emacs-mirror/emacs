@@ -1035,24 +1035,26 @@ TYPES is an internal argument."
       (and
        ;; If OBJECT is of type, add type to the matching list.
        (if types
-           ;; For method dispatch, we don't need to filter out errors, since
-           ;; we can presume that method dispatch is used only on
+           ;; For method dispatch, we don't need to filter out errors,
+           ;; since we can presume that method dispatch is used only on
            ;; sanely-defined types.
            (cl-typep object type)
          (condition-case-unless-debug e
              (cl-typep object type)
            (error (setq cl--type-list (delq type cl--type-list))
                   (warn  "cl-types-of %S: %s"
-                         type (error-message-string e)))))
+                         type (error-message-string e))
+                  nil)))
        (push type found)))
     (push (cl-type-of object) found)
     ;; Return an unique value of the list of types OBJECT belongs to,
     ;; which is also the list of specifiers for OBJECT.
     (with-memoization (gethash found cl--type-unique)
       ;; Compute an ordered list of types from the DAG.
-      (merge-ordered-lists
-       (mapcar (lambda (type) (cl--class-allparents (cl--find-class type)))
-               (nreverse found))))))
+      (let (dag)
+        (dolist (type found)
+          (push (cl--class-allparents (cl--find-class type)) dag))
+        (merge-ordered-lists dag)))))
 
 (defvar cl--type-dispatch-list nil
   "List of types that need to be checked during dispatch.")
