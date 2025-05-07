@@ -921,6 +921,11 @@ Emacs 25.1), and gnudoit (obsolete since Emacs 25.1).
 ** CL-Lib
 
 +++
+*** Derived types (i.e. 'cl-deftype')  can now be used as method specializers,
+As part of this new support, the new function 'cl-types-of' returns
+the list of types to which a value belongs.
+
++++
 *** Some cl-lib functions and macros are now built-in.
 These functions or macros have been added to Emacs Lisp, and the old
 names are now aliases for the built-in equivalents:
