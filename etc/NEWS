@@ -2049,6 +2049,7 @@ DISABLE-URI non-nil.
 When starting these debuggers (e.g., 'M-x pdb') while visiting a file,
 pressing 'M-n' in the command prompt suggests a command line including
 the file name, using the minibuffer's "future history".
+
 ** Calendar
 
 +++
@@ -2056,6 +2057,11 @@ the file name, using the minibuffer's "future history".
 This command recenters the month of the date at point.  By default, it
 is bound to 'C-l' in the calendar buffer.
 
+---
+*** Mouse wheel bindings for scrolling the calendar.
+You can now use the mouse wheel to scroll the calendar by 3 months.
+With the shift modifier, it scrolls by one month.  With the meta
+modifier, it scrolls by year.
 
 * New Modes and Packages in Emacs 31.1
 
