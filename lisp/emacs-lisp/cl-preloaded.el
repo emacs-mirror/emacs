@@ -491,10 +491,12 @@ The fields are used as follows:
      (:copier nil))
   "Type descriptors for derived types, i.e. defined by `cl-deftype'.")
 
-(defun cl--define-derived-type (name expander &optional parents)
+(defun cl--define-derived-type (name expander predicate &optional parents)
   "Register derived type with NAME for method dispatching.
 EXPANDER is the function that computes the type specifier from
 the arguments passed to the derived type.
+PREDICATE is the precomputed function to test this type when used as an
+atomic type, or nil if it cannot be used as an atomic type.
 PARENTS is a list of types NAME is a subtype of, or nil."
   (let* ((class (cl--find-class name)))
     (when class
@@ -509,6 +511,8 @@ PARENTS is a list of types NAME is a subtype of, or nil."
           (cl--derived-type-class-make name (function-documentation expander)
                                        parents))
     (define-symbol-prop name 'cl-deftype-handler expander)
+    (when predicate
+      (define-symbol-prop name 'cl-deftype-satisfies predicate))
     ;; Record new type.  The constructor of the class
     ;; `cl-type-class' already ensures that parent types must be
     ;; defined before their "child" types (i.e. already added to
@@ -530,7 +534,7 @@ PARENTS is a list of types NAME is a subtype of, or nil."
     (or (memq name cl--derived-type-list)
         ;; Exclude types that can't be used without arguments.
         ;; They'd signal errors in `cl-types-of'!
-        (not (ignore-errors (funcall expander)))
+        (not predicate)
         (push name cl--derived-type-list))))
 
 ;; Make sure functions defined with cl-defsubst can be inlined even in

@@ -1034,20 +1034,22 @@ TYPES is an internal argument."
   (let* ((found nil))
     ;; Build a list of all types OBJECT belongs to.
     (dolist (type (or types cl--derived-type-list))
-      (and
-       ;; If OBJECT is of type, add type to the matching list.
-       (if types
-           ;; For method dispatch, we don't need to filter out errors,
-           ;; since we can presume that method dispatch is used only on
-           ;; sanely-defined types.
-           (cl-typep object type)
-         (condition-case-unless-debug e
-             (cl-typep object type)
-           (error (setq cl--derived-type-list (delq type cl--derived-type-list))
-                  (warn  "cl-types-of %S: %s"
-                         type (error-message-string e))
-                  nil)))
-       (push type found)))
+      (let ((pred (get type 'cl-deftype-satisfies)))
+        (and
+         ;; If OBJECT is of type, add type to the matching list.
+         (if types
+             ;; For method dispatch, we don't need to filter out errors,
+             ;; since we can presume that method dispatch is used only on
+             ;; sanely-defined types.
+             (funcall pred object)
+           (condition-case-unless-debug e
+               (funcall pred object)
+             (error (setq cl--derived-type-list
+                          (delq type cl--derived-type-list))
+                    (warn  "cl-types-of %S: %s"
+                           type (error-message-string e))
+                    nil)))
+         (push type found))))
     (push (cl-type-of object) found)
     ;; Return the list of types OBJECT belongs to, which is also the list
     ;; of specifiers for OBJECT. This memoization has two purposes:
