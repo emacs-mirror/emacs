@@ -31,7 +31,7 @@
      || defined __need_ptrdiff_t || defined __need_NULL             \
      || defined __need_wint_t)                                      \
     /* Avoid warning triggered by "gcc -std=gnu23 -Wsystem-headers" \
-       in Fedora 40 with gcc 14.0.1.                                \
+       in GCC 13.3 and 14.2                                         \
        <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114870>.  */   \
     && !@STDDEF_NOT_IDEMPOTENT@
 /* Special invocation convention inside gcc header files.  In

@@ -291,7 +291,7 @@ function bar() {
 ;;;; Tree-sitter tests.
 
 (ert-deftest js-ts-mode-test-indentation ()
-  (skip-unless (treesit-ready-p 'javascript))
+  (skip-unless (and (treesit-ready-p 'javascript) (treesit-ready-p 'jsdoc)))
   (ert-test-erts-file (ert-resource-file "js-ts-indents.erts")))
 
 (provide 'js-tests)

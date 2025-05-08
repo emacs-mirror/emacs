@@ -84,8 +84,9 @@
 ;; 'syntax-table
 ;;   Used to modify the syntax of some characters.  It is used to
 ;;   mark the "<" and ">" of angle bracket parens with paren syntax, to
-;;   "hide" obtrusive characters in preprocessor lines, and to mark C++
-;;   raw strings to enable their fontification.
+;;   "hide" obtrusive characters in preprocessor lines, to mark C++ raw
+;;   strings to enable their fontification, and to mark syntactically
+;;   wrong single quotes, again for their fontification.
 ;;
 ;;   This property is used on single characters and is therefore
 ;;   always treated as front and rear nonsticky (or start and end open
@@ -142,9 +143,14 @@
 ;;       Put on the brace which introduces a brace list and on the commas
 ;;       which separate the elements within it.
 ;;
-;; 'c-typedef This property is applied to the first character of a
-;;   "typedef" keyword.  It's value is a list of the identifiers that
-;;   the "typedef" declares as types.
+;; 'c-digit-separator
+;;   Used for digit separators in numeric literals, where it gets set
+;;   with the value t.
+;;
+;; 'c-typedef
+;;   This property is applied to the first character of a "typedef"
+;;   keyword.  It's value is a list of the identifiers that the "typedef"
+;;   declares as types.
 ;;
 ;; 'c-awk-NL-prop
 ;;   Used in AWK mode to mark the various kinds of newlines.  See
@@ -713,11 +719,11 @@ comment at the start of cc-engine.el for more info."
 
 
 (defmacro c-looking-at-c++-attribute ()
-  ;; If we're in C++ Mode, and point is at the [[ introducing an attribute,
-  ;; return the position of the end of the attribute, otherwise return nil.
-  ;; The match data are NOT preserved over this macro.
+  ;; If we're in C or C++ Mode, and point is at the [[ introducing an
+  ;; attribute, return the position of the end of the attribute, otherwise
+  ;; return nil.  The match data are NOT preserved over this macro.
   `(and
-    (c-major-mode-is 'c++-mode)
+    (c-major-mode-is '(c-mode c++-mode))
     (looking-at "\\[\\[")
     (save-excursion
       (and
@@ -1511,7 +1517,7 @@ comment at the start of cc-engine.el for more info."
 	     ;; In a string/comment?
 	     ((setq lit-range (c-literal-limits from))
 	      (goto-char (cdr lit-range)))
-	     ;; Skip over a C++ attribute?
+	     ;; Skip over a C or C++ attribute?
 	     ((eq (char-after) ?\[)
 	      (if (setq attr-end (c-looking-at-c++-attribute))
 		  (goto-char attr-end)
@@ -1946,11 +1952,11 @@ comment at the start of cc-engine.el for more info."
 (defvar c-sws-lit-limits nil)
 
 (defun c-enclosing-c++-attribute ()
-  ;; If we're in C++ Mode, and point is within a correctly balanced [[ ... ]]
-  ;; attribute structure, return a cons of its starting and ending positions.
-  ;; Otherwise, return nil.
+  ;; If we're in C or C++ Mode, and point is within a correctly balanced [[
+  ;; ... ]] attribute structure, return a cons of its starting and ending
+  ;; positions.  Otherwise, return nil.
   (and
-   (c-major-mode-is 'c++-mode)
+   (c-major-mode-is '(c-mode c++-mode))
    (save-excursion
      (let ((lim (max (- (point) 200) (point-min)))
 	   cand)
@@ -2139,7 +2145,7 @@ comment at the start of cc-engine.el for more info."
     (when (or (looking-at c-syntactic-ws-start)
 	      (and c-opt-cpp-prefix
 		   (looking-at c-noise-macro-name-re))
-	      (and (c-major-mode-is 'c++-mode)
+	      (and (c-major-mode-is '(c-mode c++-mode))
 		   (looking-at "\\[\\["))
 	      (looking-at c-doc-line-join-re))
 
@@ -2397,7 +2403,7 @@ comment at the start of cc-engine.el for more info."
 		      (re-search-backward doc-line-join-here
 					  (c-point 'bopl) t))
 		     (and
-		      (c-major-mode-is 'c++-mode)
+		      (c-major-mode-is '(c-mode c++-mode))
 		      (eq (char-before) ?\])
 		      (eq (char-before (1- (point))) ?\])
 		      (save-excursion
@@ -2570,7 +2576,7 @@ comment at the start of cc-engine.el for more info."
 	      (goto-char next-rung-pos)
 	      t)
 
-	     ((and (c-major-mode-is 'c++-mode)
+	     ((and (c-major-mode-is '(c-mode c++-mode))
 		   (eq (char-before) ?\])
 		   (eq (char-before (1- (point))) ?\])
 		   (save-excursion
@@ -8637,15 +8643,35 @@ multi-line strings (but not C++, for example)."
       (goto-char here)
       nil)))
 
+(defmacro c-forward-align-clause-throw-if-invalid (throw-tag)
+  ;; If we are at a `c-type-modifier-with-parens-key' keyword, try to go
+  ;; forward over the clause it introduces, and return t.  If the clause is
+  ;; ill formed (or absent), move point to START, set RES to nil, and throw
+  ;; nil to the tag THROW-TAG.  Otherwise, return nil.  The match data are
+  ;; preserved.
+  ;; This macro is intended only for use withing `c-forward-type'.
+  `(if (save-match-data
+	 (looking-at c-type-modifier-with-parens-key))
+       (if (and (zerop (c-forward-token-2))
+		(eq (char-after) ?\()
+		(c-safe (c-go-list-forward))
+		(eq (char-before) ?\))
+		(setq pos (point))
+		(progn (c-forward-syntactic-ws) t))
+	   t
+	 (setq res nil)
+	 (goto-char start)
+	 (throw ,throw-tag nil))
+     nil))
+
 (defun c-forward-keyword-clause (match &optional stop-at-end)
-  ;; Submatch MATCH in the current match data is assumed to surround a
-  ;; token.  If it's a keyword, move over it and any immediately
-  ;; following clauses associated with it, stopping either at the start
-  ;; of the next token, or (when STOP-AT-END is non-nil) at the end
-  ;; of the clause.  t is returned in that case, otherwise the point
-  ;; stays and nil is returned.  The kind of clauses that are
-  ;; recognized are those specified by `c-type-list-kwds',
-  ;; `c-ref-list-kwds', `c-colon-type-list-kwds',
+  ;; Submatch MATCH in the current match data is assumed to surround a token.
+  ;; If it's a keyword, move over it and, if present, over any immediately
+  ;; following clauses associated with it, stopping either at the start of the
+  ;; next token, or (when STOP-AT-END is non-nil) at the end of the clause.  t
+  ;; is returned in that case, otherwise the point stays and nil is returned.
+  ;; The kind of clauses that are recognized are those specified by
+  ;; `c-type-list-kwds', `c-ref-list-kwds', `c-colon-type-list-kwds',
   ;; `c-paren-nontype-kwds', `c-paren-type-kwds', `c-<>-type-kwds',
   ;; `c-<>-arglist-kwds', and `c-protection-kwds'.
   ;;
@@ -9332,7 +9358,7 @@ multi-line strings (but not C++, for example)."
   ;;   o - 'found if it's a type that matches one in `c-found-types';
   ;;   o - 'maybe if it's an identifier that might be a type;
   ;;   o - 'decltype if it's a decltype(variable) declaration; - or
-  ;;   o - 'no-id if "auto" precluded parsing a type identifier (C++)
+  ;;   o - 'no-id if "auto" precluded parsing a type identifier (C or C++)
   ;;      or the type int was implicit (C).
   ;;   o -  nil if it can't be a type (the point isn't moved then).
   ;;
@@ -9353,327 +9379,370 @@ multi-line strings (but not C++, for example)."
     (c-forward-syntactic-ws))
 
   (let ((start (point)) pos res name-res id-start id-end id-range
-	post-prefix-pos prefix-end-pos)
+	post-prefix-pos prefix-end-pos equals-makes-type)
 
     ;; Skip leading type modifiers.  If any are found we know it's a
     ;; prefix of a type.
-    (when c-maybe-typeless-specifier-re
-      (while (looking-at c-maybe-typeless-specifier-re)
-	(save-match-data
-	  (when (looking-at c-no-type-key)
-	    (setq res 'no-id)))
-	(goto-char (match-end 1))
-	(setq prefix-end-pos (point))
-	(setq pos (point))
-	(c-forward-syntactic-ws)
-	(or (eq res 'no-id)
-	    (setq res 'prefix))))
-    (setq post-prefix-pos (point))
-
-    (cond
-     ((looking-at c-typeof-key) ; e.g. C++'s "decltype".
-      (goto-char (match-end 1))
-      (setq pos (point))
-      (c-forward-syntactic-ws)
-      (setq res (and (eq (char-after) ?\()
-		     (c-safe (c-forward-sexp))
-		     'decltype))
-      (if res
-	  (progn
+    (catch 'type-error
+      (when c-maybe-typeless-specifier-re
+	(while (looking-at c-maybe-typeless-specifier-re)
+	  (save-match-data
+	    (when (looking-at c-no-type-key)
+	      (setq res 'no-id))
+	    (when (looking-at c-no-type-with-equals-key)
+	      (setq equals-makes-type t)))
+	  (if (c-forward-align-clause-throw-if-invalid 'type-error)
+	      (setq prefix-end-pos pos)
+	    (goto-char (match-end 1))
+	    (setq prefix-end-pos (point))
 	    (setq pos (point))
-	    (c-forward-syntactic-ws))
-	(goto-char start)))
+	    (c-forward-syntactic-ws)
+	    (or (eq res 'no-id)
+		(setq res 'prefix)))))
+      (setq post-prefix-pos (point))
 
-     ((looking-at c-type-prefix-key) ; e.g. "struct", "class", but NOT
-				     ; "typedef".
-      (goto-char (match-end 1))
-      (setq pos (point))
-      (c-forward-syntactic-ws)
-
-      (while (cond
-	      ((looking-at c-decl-hangon-key)
-	       (c-forward-keyword-clause 1 t)
-	       (setq pos (point))
-	       (c-forward-syntactic-ws))
-	      ((looking-at c-pack-key)
-	       (goto-char (match-end 1))
-	       (setq pos (point))
-	       (c-forward-syntactic-ws))
-	      ((and c-opt-cpp-prefix
-		    (looking-at c-noise-macro-with-parens-name-re))
-	       (c-forward-noise-clause t)
-	       (setq pos (point))
-	       (c-forward-syntactic-ws))))
-
-      (setq id-start (point))
-      (setq name-res (c-forward-name t))
-      (setq pos (point))
-      (setq res (not (null name-res)))
-      (when (eq name-res t)
-	;; With some keywords the name can be used without the prefix, so we
-	;; add the name to `c-found-types' when this is the case.
-	(when (save-excursion
-		(goto-char post-prefix-pos)
-		(looking-at c-self-contained-typename-key))
-	  (c-add-type id-start
-		      (point)))
-	(when (and c-record-type-identifiers
-		   c-last-identifier-range)
-	  (c-record-type-id c-last-identifier-range)))
-      (c-forward-syntactic-ws)
-      (when (and brace-block-too
-		 (memq res '(t nil))
-		 (eq (char-after) ?\{)
-		 (save-excursion
-		   (c-safe
-		     (progn (c-forward-sexp)
-			    (setq pos (point))))))
-	(goto-char pos)
-	(c-forward-syntactic-ws)
-	(setq res t))
-      (unless res (goto-char start)))	; invalid syntax
-
-     ((and
-       (not (eq res 'no-id))
-       (progn
-	 (setq pos nil)
-	 (while (and c-opt-cpp-prefix
-		     (looking-at c-noise-macro-with-parens-name-re))
-	   (c-forward-noise-clause))
-	 (if (looking-at c-identifier-start)
-	     (save-excursion
-	       (setq id-start (point)
-		     name-res (c-forward-name t))
-	       (when name-res
-		 (setq id-end (point)
-		       id-range c-last-identifier-range))))
-	 (and (cond ((looking-at c-primitive-type-key)
-		     (setq res t))
-		    ((c-with-syntax-table c-identifier-syntax-table
-		       (looking-at c-known-type-key))
-		     (setq res 'known)))
-	      (or (not id-end)
-		  (>= (save-excursion
-			(save-match-data
-			  (goto-char (match-end 1))
-			  (setq pos (point))
-			  (c-forward-syntactic-ws)
-			  pos))
-		      id-end)
-		  (setq res nil)))))
-      ;; Looking at a primitive or known type identifier.  We've
-      ;; checked for a name first so that we don't go here if the
-      ;; known type match only is a prefix of another name.
-
-      (setq id-end (match-end 1))
-
-      (when (and c-record-type-identifiers
-		 (or c-promote-possible-types (eq res t)))
-	(c-record-type-id (cons (match-beginning 1) (match-end 1))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
       (cond
-       ((and c-opt-type-component-key
+       ((looking-at c-typeof-key)	; e.g. C++'s "decltype".
+	(goto-char (match-end 1))
+	(setq pos (point))
+	(c-forward-syntactic-ws)
+	(setq res (and (eq (char-after) ?\()
+		       (c-safe (c-forward-sexp))
+		       'decltype))
+	(if res
+	    (progn
+	      (setq pos (point))
+	      (c-forward-syntactic-ws))
+	  (goto-char start)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+       ((looking-at c-type-prefix-key)	; e.g. "struct", "class", but NOT
+					; "typedef".
+	(goto-char (match-end 1))
+	(setq pos (point))
+	(c-forward-syntactic-ws)
+
+	(while (cond
+		((looking-at c-decl-hangon-key)
+		 (c-forward-keyword-clause 1 t)
+		 (setq pos (point))
+		 (c-forward-syntactic-ws))
+		((looking-at c-pack-key)
+		 (goto-char (match-end 1))
+		 (setq pos (point))
+		 (c-forward-syntactic-ws))
+		((and c-opt-cpp-prefix
+		      (looking-at c-noise-macro-with-parens-name-re))
+		 (c-forward-noise-clause t)
+		 (setq pos (point))
+		 (c-forward-syntactic-ws))))
+
+	(setq id-start (point))
+	(setq name-res (c-forward-name t))
+	(setq pos (point))
+	(setq res (not (null name-res)))
+	(when (eq name-res t)
+	  ;; With some keywords the name can be used without the prefix, so we
+	  ;; add the name to `c-found-types' when this is the case.
+	  (when (save-excursion
+		  (goto-char post-prefix-pos)
+		  (looking-at c-self-contained-typename-key))
+	    (c-add-type id-start
+			(point)))
+	  (when (and c-record-type-identifiers
+		     c-last-identifier-range)
+	    (c-record-type-id c-last-identifier-range)))
+	(c-forward-syntactic-ws)
+	(when (and brace-block-too
+		   (memq res '(t nil))
+		   (eq (char-after) ?\{)
+		   (save-excursion
+		     (c-safe
+		       (progn (c-forward-sexp)
+			      (setq pos (point))))))
+	  (goto-char pos)
+	  (c-forward-syntactic-ws)
+	  (setq res t))
+	(unless res (goto-char start)))	; invalid syntax
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+       ((looking-at c-type-with-paren-key) ; C's "_BitInt".
+	(goto-char (match-end 1))
+	(c-forward-syntactic-ws)
+	(if (and (eq (char-after) ?\()
+		 (c-go-list-forward nil (min (+ (point) 500) (point-max)))
+		 (eq (char-before) ?\)))
+	    (progn
+	      (setq pos (point))
+	      (c-forward-syntactic-ws)
+	      (setq res t))
+	  (goto-char start)
+	  (setq res nil)))		; invalid syntax.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+       ((and
+	 (not (eq res 'no-id))
+	 (not (and equals-makes-type
+		   (save-excursion
+		     (and (zerop (c-forward-token-2))
+			  (looking-at "=\\([^=]\\|$\\)")))
+		   (setq res 'no-id)))
+	 (progn
+	   (setq pos nil)
+	   (while (and c-opt-cpp-prefix
+		       (looking-at c-noise-macro-with-parens-name-re))
+	     (c-forward-noise-clause))
+	   (if (looking-at c-identifier-start)
+	       (save-excursion
+		 (setq id-start (point)
+		       name-res (c-forward-name t))
+		 (when name-res
+		   (setq id-end (point)
+			 id-range c-last-identifier-range))))
+	   (and (cond ((looking-at c-primitive-type-key)
+		       (setq res t))
+		      ((c-with-syntax-table c-identifier-syntax-table
+			 (looking-at c-known-type-key))
+		       (setq res 'known)))
+		(or (not id-end)
+		    (>= (save-excursion
+			  (save-match-data
+			    (goto-char (match-end 1))
+			    (setq pos (point))
+			    (c-forward-syntactic-ws)
+			    pos))
+			id-end)
+		    (setq res nil)))))
+	;; Looking at a primitive or known type identifier.  We've
+	;; checked for a name first so that we don't go here if the
+	;; known type match only is a prefix of another name.
+
+	(setq id-end (match-end 1))
+
+	(when (and c-record-type-identifiers
+		   (or c-promote-possible-types (eq res t)))
+	  (c-record-type-id (cons (match-beginning 1) (match-end 1))))
+
+	(cond
+	 ((and c-opt-type-component-key
 	       (save-match-data
 		 (looking-at c-opt-type-component-key)))
 	  ;; There might be more keywords for the type.
-	(let (safe-pos)
-	  (c-forward-keyword-clause 1 t)
-	  (while (progn
-		   (setq safe-pos (point))
-		   (c-forward-syntactic-ws)
-		   (looking-at c-opt-type-component-key))
-	    (when (and c-record-type-identifiers
-		       (looking-at c-primitive-type-key))
-	      (c-record-type-id (cons (match-beginning 1)
-				      (match-end 1))))
-	    (c-forward-keyword-clause 1 t))
-	  (if (looking-at c-primitive-type-key)
-	      (progn
-		(when c-record-type-identifiers
-		  (c-record-type-id (cons (match-beginning 1)
-					  (match-end 1))))
-		(c-forward-keyword-clause 1 t)
-		(setq res t)
-		(while (progn
-			 (setq safe-pos (point))
-			 (c-forward-syntactic-ws)
-			 (looking-at c-opt-type-component-key))
+	  (let (safe-pos)
+	    (c-forward-keyword-clause 1 t)
+	    (while (progn
+		     (setq safe-pos (point))
+		     (c-forward-syntactic-ws)
+		     (looking-at c-opt-type-component-key))
+	      (when (and c-record-type-identifiers
+			 (looking-at c-primitive-type-key))
+		(c-record-type-id (cons (match-beginning 1)
+					(match-end 1))))
+	      (or (c-forward-align-clause-throw-if-invalid 'type-error)
 		  (c-forward-keyword-clause 1 t)))
-	    (goto-char safe-pos)
-	    (setq res 'prefix))
-	  (setq pos (point))))
-	((save-match-data (c-forward-keyword-clause 1 t))
-	 (while (progn
-		  (setq pos (point))
-		  (c-forward-syntactic-ws)
-		  (and c-opt-type-component-key
-		       (looking-at c-opt-type-component-key)))
-	   (c-forward-keyword-clause 1 t)))
-	(pos (goto-char pos))
-	(t (goto-char (match-end 1))
-	   (setq pos (point))))
-      (c-forward-syntactic-ws))
-
-     ((and (eq name-res t)
-	   (eq res 'prefix)
-	   (c-major-mode-is 'c-mode)
-	   (save-excursion
-	     (goto-char id-end)
-	     (setq pos (point))
-	     (c-forward-syntactic-ws)
-	     (and (not (looking-at c-symbol-start))
-		  (or
-		   (not (looking-at c-type-decl-prefix-key))
-		   (and (eq (char-after) ?\()
-			(not (save-excursion
-			       (c-forward-declarator))))))))
-      ;; A C specifier followed by an implicit int, e.g.
-      ;; "register count;"
-      (goto-char prefix-end-pos)
-      (setq pos (point))
-      (unless stop-at-end
+	    (if (looking-at c-primitive-type-key)
+		(progn
+		  (when c-record-type-identifiers
+		    (c-record-type-id (cons (match-beginning 1)
+					    (match-end 1))))
+		  (c-forward-keyword-clause 1 t)
+		  (setq res t)
+		  (while (progn
+			   (setq safe-pos (point))
+			   (c-forward-syntactic-ws)
+			   (looking-at c-opt-type-component-key))
+		    (c-forward-keyword-clause 1 t)))
+	      (goto-char safe-pos)
+	      (setq res 'prefix))
+	    (setq pos (point))))
+	 ((save-match-data (c-forward-keyword-clause 1 t))
+	  (while (progn
+		   (setq pos (point))
+		   (c-forward-syntactic-ws)
+		   (and c-opt-type-component-key
+			(looking-at c-opt-type-component-key)))
+	    (or (c-forward-align-clause-throw-if-invalid 'type-error)
+		(c-forward-keyword-clause 1 t))))
+	 (pos (goto-char pos))
+	 (t (goto-char (match-end 1))
+	    (setq pos (point))))
 	(c-forward-syntactic-ws))
-      (setq res 'no-id))
 
-     (name-res
-      (cond ((eq name-res t)
-	     ;; A normal identifier.
-	     (goto-char id-end)
-	     (setq pos (point))
-	     (c-forward-syntactic-ws)
-	     (if (or res c-promote-possible-types)
-		 (progn
-		   (when (not (eq c-promote-possible-types 'just-one))
-		     (c-add-type id-start id-end))
-		   (when (and c-record-type-identifiers id-range)
-		     (c-record-type-id id-range))
-		   (unless res
-		     (setq res 'found))
-		   (when (eq res 'prefix)
-		     (setq res t)))
-	       (setq res (if (c-check-qualified-type id-start)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+       ((and (eq name-res t)
+	     (eq res 'prefix)
+	     (c-major-mode-is 'c-mode)
+	     (save-excursion
+	       (goto-char id-end)
+	       (setq pos (point))
+	       (c-forward-syntactic-ws)
+	       (and (not (looking-at c-symbol-start))
+		    (or
+		     (not (looking-at c-type-decl-prefix-key))
+		     (and (eq (char-after) ?\()
+			  (not (save-excursion
+				 (c-forward-declarator))))))))
+	;; A C specifier followed by an implicit int, e.g.
+	;; "register count;"
+	(goto-char prefix-end-pos)
+	(setq pos (point))
+	(unless stop-at-end
+	  (c-forward-syntactic-ws))
+	(setq res 'no-id))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+       (name-res
+	(cond ((eq name-res t)
+	       ;; A normal identifier.
+	       (goto-char id-end)
+	       (setq pos (point))
+	       (c-forward-syntactic-ws)
+	       (if (or res c-promote-possible-types)
+		   (progn
+		     (when (not (eq c-promote-possible-types 'just-one))
+		       (c-add-type id-start id-end))
+		     (when (and c-record-type-identifiers id-range)
+		       (c-record-type-id id-range))
+		     (unless res
+		       (setq res 'found))
+		     (when (eq res 'prefix)
+		       (setq res t)))
+		 (setq res (if (c-check-qualified-type id-start)
+			       ;; It's an identifier that has been used as
+			       ;; a type somewhere else.
+			       'found
+			     ;; It's an identifier that might be a type.
+			     'maybe))))
+	      ((eq name-res 'template)
+	       ;; A template is sometimes a type.
+	       (goto-char id-end)
+	       (setq pos (point))
+	       (c-forward-syntactic-ws)
+	       (setq res
+		     (if (eq (char-after) ?\()
+			 (if (c-check-qualified-type id-start)
 			     ;; It's an identifier that has been used as
 			     ;; a type somewhere else.
 			     'found
 			   ;; It's an identifier that might be a type.
-			   'maybe))))
-	    ((eq name-res 'template)
-	     ;; A template is sometimes a type.
-	     (goto-char id-end)
-	     (setq pos (point))
-	     (c-forward-syntactic-ws)
-	     (setq res
-		   (if (eq (char-after) ?\()
-		       (if (c-check-qualified-type id-start)
-			   ;; It's an identifier that has been used as
-			   ;; a type somewhere else.
-			   'found
-			 ;; It's an identifier that might be a type.
-			 'maybe)
-		     t)))
-	    (t
-	     ;; Otherwise it's an operator identifier, which is not a type.
-	     (goto-char start)
-	     (setq res nil))))
+			   'maybe)
+		       t)))
+	      (t
+	       ;; Otherwise it's an operator identifier, which is not a type.
+	       (goto-char start)
+	       (setq res nil))))
 
-     ((eq res 'prefix)
-      ;; Deal with "extern "C" foo_t my_foo;"
-      (setq res nil)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-    (when (not (memq res '(nil no-id)))
-      ;; Skip trailing type modifiers.  If any are found we know it's
-      ;; a type.
-      (when c-opt-type-modifier-key
-	(while (looking-at c-opt-type-modifier-key) ; e.g. "const", "volatile"
+       ((eq res 'prefix)
+	;; Deal with "extern "C" foo_t my_foo;"
+	(setq res nil)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+      (when (not (memq res '(nil no-id)))
+	;; Skip trailing type modifiers.  If any are found we know it's
+	;; a type.
+	(when c-opt-type-modifier-key
+	  (while (looking-at c-opt-type-modifier-key) ; e.g. "const", "volatile"
+	    (unless (c-forward-align-clause-throw-if-invalid 'type-error)
+	      (goto-char (match-end 1))
+	      (setq pos (point))
+	      (c-forward-syntactic-ws)
+	      (setq res t))))
+
+	;; Step over any type suffix operator.  Do not let the existence
+	;; of these alter the classification of the found type, since
+	;; these operators typically are allowed in normal expressions
+	;; too.
+	(when c-opt-type-suffix-key	; e.g. "..."
+	  (while (looking-at c-opt-type-suffix-key)
+	    (goto-char (match-end 1))
+	    (setq pos (point))
+	    (c-forward-syntactic-ws)))
+
+	;; Skip any "WS" identifiers (e.g. "final" or "override" in C++)
+	(while (looking-at c-type-decl-suffix-ws-ids-key)
 	  (goto-char (match-end 1))
 	  (setq pos (point))
 	  (c-forward-syntactic-ws)
-	  (setq res t)))
+	  (setq res t))
 
-      ;; Step over any type suffix operator.  Do not let the existence
-      ;; of these alter the classification of the found type, since
-      ;; these operators typically are allowed in normal expressions
-      ;; too.
-      (when c-opt-type-suffix-key	; e.g. "..."
-	(while (looking-at c-opt-type-suffix-key)
-	  (goto-char (match-end 1))
+	(when c-opt-type-concat-key	; Only/mainly for pike.
+	  ;; Look for a trailing operator that concatenates the type
+	  ;; with a following one, and if so step past that one through
+	  ;; a recursive call.  Note that we don't record concatenated
+	  ;; types in `c-found-types' - it's the component types that
+	  ;; are recorded when appropriate.
 	  (setq pos (point))
-	  (c-forward-syntactic-ws)))
+	  (let* ((c-promote-possible-types (or (memq res '(t known))
+					       c-promote-possible-types))
+		 ;; If we can't promote then set `c-record-found-types' so that
+		 ;; we can merge in the types from the second part afterwards if
+		 ;; it turns out to be a known type there.
+		 (c-record-found-types (and c-record-type-identifiers
+					    (not c-promote-possible-types)))
+		 subres)
+	    (if (and (looking-at c-opt-type-concat-key)
 
-      ;; Skip any "WS" identifiers (e.g. "final" or "override" in C++)
-      (while (looking-at c-type-decl-suffix-ws-ids-key)
-	(goto-char (match-end 1))
-	(setq pos (point))
-	(c-forward-syntactic-ws)
-	(setq res t))
+		     (progn
+		       (goto-char (match-end 1))
+		       (c-forward-syntactic-ws)
+		       (setq subres (c-forward-type nil t))
+		       (setq pos (point))))
 
-      (when c-opt-type-concat-key	; Only/mainly for pike.
-	;; Look for a trailing operator that concatenates the type
-	;; with a following one, and if so step past that one through
-	;; a recursive call.  Note that we don't record concatenated
-	;; types in `c-found-types' - it's the component types that
-	;; are recorded when appropriate.
-	(setq pos (point))
-	(let* ((c-promote-possible-types (or (memq res '(t known))
-					     c-promote-possible-types))
-	       ;; If we can't promote then set `c-record-found-types' so that
-	       ;; we can merge in the types from the second part afterwards if
-	       ;; it turns out to be a known type there.
-	       (c-record-found-types (and c-record-type-identifiers
-					  (not c-promote-possible-types)))
-	       subres)
-	  (if (and (looking-at c-opt-type-concat-key)
+		(progn
+		  ;; If either operand certainly is a type then both are, but we
+		  ;; don't let the existence of the operator itself promote two
+		  ;; uncertain types to a certain one.
+		  (cond ((eq res t))
+			((eq subres t)
+			 (unless (eq name-res 'template)
+			   (c-add-type id-start id-end))
+			 (when (and c-record-type-identifiers id-range)
+			   (c-record-type-id id-range))
+			 (setq res t))
+			((eq res 'known))
+			((eq subres 'known)
+			 (setq res 'known))
+			((eq res 'found))
+			((eq subres 'found)
+			 (setq res 'found))
+			(t
+			 (setq res 'maybe)))
 
-		   (progn
-		     (goto-char (match-end 1))
-		     (c-forward-syntactic-ws)
-		     (setq subres (c-forward-type nil t))
-		     (setq pos (point))))
+		  (when (and (eq res t)
+			     (consp c-record-found-types))
+		    ;; Cause the confirmed types to get fontified.
+		    (let ((cur c-record-found-types))
+		      (while (consp (car-safe cur))
+			(c-fontify-new-found-type
+			 (buffer-substring-no-properties (caar cur) (cdar cur)))
+			(setq cur (cdr cur))))
+		    ;; Merge in the ranges of any types found by the second
+		    ;; `c-forward-type'.
+		    (setq c-record-type-identifiers
+			  ;; `nconc' doesn't mind that the tail of
+			  ;; `c-record-found-types' is t.
+			  (nconc c-record-found-types
+				 c-record-type-identifiers)))))))
 
-	      (progn
-		;; If either operand certainly is a type then both are, but we
-		;; don't let the existence of the operator itself promote two
-		;; uncertain types to a certain one.
-		(cond ((eq res t))
-		      ((eq subres t)
-		       (unless (eq name-res 'template)
-			 (c-add-type id-start id-end))
-		       (when (and c-record-type-identifiers id-range)
-			 (c-record-type-id id-range))
-		       (setq res t))
-		      ((eq res 'known))
-		      ((eq subres 'known)
-		       (setq res 'known))
-		      ((eq res 'found))
-		      ((eq subres 'found)
-		       (setq res 'found))
-		      (t
-		       (setq res 'maybe)))
+	(goto-char pos)
+	(unless stop-at-end
+	  (c-forward-syntactic-ws))
 
-		(when (and (eq res t)
-			   (consp c-record-found-types))
-		  ;; Cause the confirmed types to get fontified.
-		  (let ((cur c-record-found-types))
-		    (while (consp (car-safe cur))
-		      (c-fontify-new-found-type
-		       (buffer-substring-no-properties (caar cur) (cdar cur)))
-		      (setq cur (cdr cur))))
-		  ;; Merge in the ranges of any types found by the second
-		  ;; `c-forward-type'.
-		  (setq c-record-type-identifiers
-			;; `nconc' doesn't mind that the tail of
-			;; `c-record-found-types' is t.
-			(nconc c-record-found-types
-			       c-record-type-identifiers)))))))
-
-      (goto-char pos)
-      (unless stop-at-end
-	(c-forward-syntactic-ws))
-
-      (when (and c-record-found-types (memq res '(known found)) id-range)
-	(setq c-record-found-types
-	      (cons id-range c-record-found-types))))
-
+	(when (and c-record-found-types (memq res '(known found)) id-range)
+	  (setq c-record-found-types
+		(cons id-range c-record-found-types)))))
     ;;(message "c-forward-type %s -> %s: %s" start (point) res)
 
     res))
@@ -10008,6 +10077,32 @@ point unchanged and return nil."
   (or limit (setq limit (point-max)))
   (and (zerop (c-forward-token-2))	; over "requires".
        (c-forward-constraint-clause limit stop-at-end)))
+
+(defun c-in-id-arglist ()
+  ;; If point is inside a paren delimited non-empty arglist, all of whose
+  ;; arguments are identifiers, return a cons of the start and (after) the end
+  ;; of the arglist.  Otherwise return nil.
+  (let* ((paren-state (c-parse-state))
+	 (enclosing-paren-pos (c-most-enclosing-brace paren-state)))
+    (save-excursion
+      (and
+       enclosing-paren-pos
+       (eq (char-after enclosing-paren-pos) ?\()
+       (progn
+	 (goto-char (1+ enclosing-paren-pos))
+	 (c-forward-syntactic-ws)
+	 (catch 'in-arglist
+	   (while
+	       (and
+		(c-on-identifier)
+		(zerop (c-forward-token-2))
+		(progn
+		  (when (eq (char-after) ?\))
+		    (throw 'in-arglist
+			   (cons enclosing-paren-pos (1+ (point)))))
+		  (eq (char-after) ?\,))
+		(zerop (c-forward-token-2))))
+	   nil))))))
 
 (defun c-forward-decl-arglist (not-top id-in-parens &optional limit)
   ;; Point is at an open parenthesis, assumed to be the arglist of a function
@@ -11287,10 +11382,13 @@ This function might do hidden buffer changes."
 		      ;; style declarations and parenthesis style initializers
 		      ;; aren't allowed then the single identifier must be a
 		      ;; type, else we require that it's known or found
-		      ;; (primitive types are handled above).
+		      ;; (primitive types are handled above).  We also allow
+		      ;; 'maybe types when nameless types can be in arglists.
 		      (or (and (not c-recognize-knr-p)
 			       (not c-recognize-paren-inits))
-			  (memq at-type '(known found))))
+			  (memq at-type '(known found))
+			  (and c-recognize-nameless-type-decls
+			       (eq at-type 'maybe))))
 		     ((eq context '<>)
 		      ;; Inside a template arglist.  Accept known and found
 		      ;; types; other identifiers could just as well be

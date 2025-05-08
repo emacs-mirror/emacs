@@ -888,8 +888,12 @@ floats.  In all other circumstances, @code{cl-coerce} signals an
 error.
 @end defun
 
-@defmac cl-deftype name arglist forms@dots{}
-This macro defines a new type called @var{name}.  It is similar
+@node Derived types
+@subsection Derived types
+
+@defmac cl-deftype name arglist [docstring] [decls] forms@dots{}
+This macro defines a new type called @var{name}.
+Types defined this way are called @dfn{derived types}.  It is similar
 to @code{defmacro} in many ways; when @var{name} is encountered
 as a type name, the body @var{forms} are evaluated and should
 return a type specifier that is equivalent to the type.  The
@@ -922,6 +926,26 @@ The @code{cl-typecase} (@pxref{Conditionals}) and @code{cl-check-type}
 (@pxref{Assertions}) macros also use type names.  The @code{cl-map},
 @code{cl-concatenate}, and @code{cl-merge} functions take type-name
 arguments to specify the type of sequence to return.  @xref{Sequences}.
+
+Contrary to Common Lisp, CL-Lib supports the use of derived types
+as method specializers.  This comes with a significant caveat: derived
+types are much too flexible for Emacs to be able to automatically find
+out which type is a subtype of another, so the ordering of
+methods is not well-defined when several methods are applicable for
+a given argument value and the specializer of one or more of those
+methods is a derived type.  To make the order more well-defined, a derived type
+definition can explicitly state that it is a subtype of others using the
+@var{decls} argument:
+
+@example
+(cl-deftype unsigned-byte (&optional bits)
+  (list 'integer 0 (if (eq bits '*) bits (1- (ash 1 bits)))))
+
+(cl-deftype unsigned-8bits ()
+  "Unsigned 8-bits integer."
+  (declare (parents unsigned-byte))
+  '(unsigned-byte 8))
+@end example
 
 @node Equality Predicates
 @section Equality Predicates

@@ -3552,32 +3552,20 @@ Of course, we really can't know that for sure, so it's just a heuristic."
            (or (cdr (assq sym byte-compile-function-environment))
                (cdr (assq sym macroexpand-all-environment))))))
 
-;; Please keep it in sync with `comp-known-predicates'.
-(pcase-dolist (`(,type . ,pred)
-               ;; Mostly kept in alphabetical order.
-               ;; These aren't defined via `cl--define-built-in-type'.
-               '((base-char	. characterp) ;Could be subtype of `fixnum'.
-                 (character	. natnump)    ;Could be subtype of `fixnum'.
-                 (command	. commandp)   ;Subtype of closure & subr.
-                 (keyword	. keywordp)   ;Would need `keyword-with-pos`.
-                 (natnum	. natnump)    ;Subtype of fixnum & bignum.
-                 (real		. numberp)    ;Not clear where it would fit.
-                 ;; This one is redundant, but we keep it to silence a
-                 ;; warning during the early bootstrap when `cl-seq.el' gets
-                 ;; loaded before `cl-preloaded.el' is defined.
-                 (list		. listp)
-                 ))
-  (put type 'cl-deftype-satisfies pred))
-
 ;;;###autoload
 (define-inline cl-typep (val type)
   "Return t if VAL is of type TYPE, nil otherwise."
   (inline-letevals (val)
     (pcase (inline-const-val type)
+      ((and (or (and type (pred symbolp)) `(,type))
+            (guard (get type 'cl-deftype-satisfies)))
+       (inline-quote (funcall #',(get type 'cl-deftype-satisfies) ,val)))
       ((and `(,name . ,args) (guard (get name 'cl-deftype-handler)))
        (inline-quote
         (cl-typep ,val ',(apply (get name 'cl-deftype-handler) args))))
-      (`(,(and name (or 'integer 'float 'real 'number))
+      ;; FIXME: Move this to a `cl-deftype'.  The problem being that these
+      ;; types are hybrid "built-in and derived".
+      (`(,(and name (or 'integer 'float 'number))
          . ,(or `(,min ,max) pcase--dontcare))
        (inline-quote
         (and (cl-typep ,val ',name)
@@ -3611,8 +3599,6 @@ Of course, we really can't know that for sure, so it's just a heuristic."
       ((and (pred symbolp) type (guard (get type 'cl-deftype-handler)))
        (inline-quote
         (cl-typep ,val ',(funcall (get type 'cl-deftype-handler)))))
-      ((and (pred symbolp) type (guard (get type 'cl-deftype-satisfies)))
-       (inline-quote (funcall #',(get type 'cl-deftype-satisfies) ,val)))
       ((and (or 'nil 't) type) (inline-quote ',type))
       ((and (pred symbolp) type)
        (macroexp-warn-and-return
@@ -3785,19 +3771,87 @@ macro that returns its `&whole' argument."
 
 ;;;###autoload
 (defmacro cl-deftype (name arglist &rest body)
-  "Define NAME as a new data type.
-The type name can then be used in `cl-typecase', `cl-check-type', etc."
+  "Define NAME as a new, so-called derived type.
+The type NAME can then be used in `cl-typecase', `cl-check-type',
+etc., and to some extent, as method specializer.
+
+ARGLIST is a Common Lisp argument list of the sort accepted by
+`cl-defmacro'.  BODY forms should return a type specifier that is equivalent
+to the type (see the Info node `(cl)Type Predicates').
+
+If there is a `declare' form in BODY, the spec (parents . PARENTS)
+can specify a list of types NAME is a subtype of.
+The list of PARENTS types determines the order of methods invocation,
+and missing PARENTS may cause incorrect ordering of methods, while
+extraneous PARENTS may cause use of extraneous methods.
+
+If PARENTS is non-nil, ARGLIST must be nil."
   (declare (debug cl-defmacro) (doc-string 3) (indent 2))
-  `(cl-eval-when (compile load eval)
-     (define-symbol-prop ',name 'cl-deftype-handler
-                         (cl-function (lambda (&cl-defs ('*) ,@arglist) ,@body)))))
+  (pcase-let*
+      ((`(,decls . ,forms) (macroexp-parse-body body))
+       (declares (assq 'declare decls))
+       (parent-decl (assq 'parents (cdr declares)))
+       (parents (cdr parent-decl)))
+    (when parent-decl
+      ;; "Consume" the `parents' declaration.
+      (cl-callf (lambda (x) (delq parent-decl x)) (cdr declares))
+      (when (equal declares '(declare))
+        (cl-callf (lambda (x) (delq declares x)) decls)))
+    (and parents arglist
+         (error "Parents specified, but arglist not empty"))
+    (let* ((expander
+            `(cl-function (lambda (&cl-defs ('*) ,@arglist) ,@decls ,@forms)))
+           ;; FIXME: Pass a better lexical context.
+           (specifier (ignore-errors (funcall (eval expander t))))
+           (predicate
+            (pcase specifier
+              (`(satisfies ,f) `#',f)
+              ('nil nil)
+              (type `(lambda (x) (cl-typep x ',type))))))
+      `(eval-and-compile
+         (cl--define-derived-type
+          ',name ,expander ,predicate ',parents)))))
 
-(cl-deftype extended-char () '(and character (not base-char)))
-;; Define fixnum so `cl-typep' recognize it and the type check emitted
-;; by `cl-the' is effective.
+;; This one is redundant, but we keep it to silence a
+;; warning during the early bootstrap when `cl-seq.el' gets
+;; loaded before `cl-preloaded.el' is defined.
+(put 'list 'cl-deftype-satisfies #'listp)
 
-;;; Additional functions that we can now define because we've defined
-;;; `cl-defsubst' and `cl-typep'.
+(static-if (not (fboundp 'cl--define-derived-type))
+    nil ;; Can't define them yet!
+  (cl-deftype natnum () (declare (parents integer)) '(satisfies natnump))
+  (cl-deftype character () (declare (parents fixnum natnum))
+               '(and fixnum natnum))
+  (cl-deftype base-char () (declare (parents character))
+              '(satisfies characterp))
+  (cl-deftype extended-char () (declare (parents character))
+              '(and character (not base-char)))
+  (cl-deftype keyword () (declare (parents symbol)) '(satisfies keywordp))
+  (cl-deftype command ()
+    ;; FIXME: Can't use `function' as parent because of arrays as
+    ;; keyboard macros, which are redundant since `kmacro.el'!!
+    ;;(declare (parents function))
+    '(satisfies commandp))
+
+  (eval-when-compile
+    (defmacro cl--defnumtype (type base)
+      `(cl-deftype ,type (&optional min max)
+         (list 'and ',base
+               (if (memq min '(* nil)) t
+                 (if (consp min)
+                     `(satisfies . ,(lambda (val) (> val (car min))))
+                   `(satisfies . ,(lambda (val) (>= val min)))))
+               (if (memq max '(* nil)) t
+                 (if (consp max)
+                     `(satisfies . ,(lambda (val) (< val (car max))))
+                   `(satisfies . ,(lambda (val) (<= val max)))))))))
+  ;;(cl--defnumtype integer ??)
+  ;;(cl--defnumtype float ??)
+  ;;(cl--defnumtype number ??)
+  (cl--defnumtype real number))
+
+;; Additional functions that we can now define because we've defined
+;; `cl-defsubst' and `cl-typep'.
 
 (define-inline cl-struct-slot-value (struct-type slot-name inst)
   "Return the value of slot SLOT-NAME in INST of STRUCT-TYPE.

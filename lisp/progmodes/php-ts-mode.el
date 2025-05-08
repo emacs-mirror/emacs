@@ -69,6 +69,7 @@
 
 (require 'treesit)
 (require 'c-ts-common) ;; For comment indent and filling.
+(require 'html-ts-mode) ;; for embed html
 (require 'css-mode) ;; for embed css into html
 (require 'js) ;; for embed javascript into html
 (require 'comint)
@@ -82,25 +83,21 @@
 ;;; Install treesitter language parsers
 (defvar php-ts-mode--language-source-alist
   '((php "https://github.com/tree-sitter/tree-sitter-php" "v0.23.11" "php/src")
-    (phpdoc "https://github.com/claytonrcarter/tree-sitter-phpdoc")
-    (html "https://github.com/tree-sitter/tree-sitter-html" "v0.23.2")
-    (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.1")
-    (jsdoc "https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.23.2")
-    (css "https://github.com/tree-sitter/tree-sitter-css" "v0.23.1"))
+    (phpdoc "https://github.com/claytonrcarter/tree-sitter-phpdoc"))
   "Treesitter language parsers required by `php-ts-mode'.
 You can customize `treesit-language-source-alist' if you want
 to stick to a specific commit and/or use different parsers.")
 
-(setq treesit-language-source-alist
-      (append treesit-language-source-alist
-              php-ts-mode--language-source-alist))
+(dolist (item php-ts-mode--language-source-alist)
+  (add-to-list 'treesit-language-source-alist item t))
 
 (defun php-ts-mode-install-parsers ()
   "Install all the required treesitter parsers.
-`php-ts-mode--language-source-alist' defines which parsers to install."
+`treesit-language-source-alist' defines which parsers to install.
+It's pre-filled by loading \"html-ts-mode\", \"css-mode\", \"js\"."
   (interactive)
-  (dolist (item php-ts-mode--language-source-alist)
-    (treesit-install-language-grammar (car item))))
+  (dolist (lang '(php phpdoc html css javascript jsdoc))
+    (treesit-install-language-grammar lang)))
 
 ;;; Custom variables
 
@@ -1391,13 +1388,6 @@ Depends on `c-ts-common-comment-setup'."
       (error "Tree-sitter for PHP isn't
     available.  You can install the parsers with M-x
     `php-ts-mode-install-parsers'")
-
-    ;; Require html-ts-mode only when we load php-ts-mode
-    ;; so that we don't get a tree-sitter compilation warning for
-    ;; php-ts-mode.
-    (defvar html-ts-mode--indent-rules)
-    (require 'html-ts-mode)
-    ;; For embed html
 
     ;; phpdoc is a local parser, don't create a parser for it
     (treesit-parser-create 'html)

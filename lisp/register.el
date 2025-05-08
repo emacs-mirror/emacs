@@ -289,7 +289,7 @@ The register value nil represents an empty register.
 This calls the function specified by `register--read-with-preview-function'."
   (funcall register--read-with-preview-function prompt pred))
 
-(defun register-read-with-preview-traditional (prompt &optional _pred)
+(defun register-read-with-preview-traditional (prompt &optional pred)
   "Read register name, prompting with PROMPT; possibly show existing registers.
 This reads and returns the name of a register.  PROMPT should be a string
 to prompt the user for the name.
@@ -305,7 +305,7 @@ when `register-use-preview' is set to `traditional'."
 		  (run-with-timer register-preview-delay nil
 				  (lambda ()
 				    (unless (get-buffer-window buffer)
-				      (register-preview buffer))))))
+				      (register-preview buffer nil pred))))))
 	 (help-chars (cl-loop for c in (cons help-char help-event-list)
 			      when (not (get-register c))
 			      collect c)))
@@ -314,7 +314,7 @@ when `register-use-preview' is set to `traditional'."
 	  (while (memq (read-key (propertize prompt 'face 'minibuffer-prompt))
 		       help-chars)
 	    (unless (get-buffer-window buffer)
-	      (register-preview buffer 'show-empty)))
+	      (register-preview buffer 'show-empty pred)))
           (when (or (eq ?\C-g last-input-event)
                     (eq 'escape last-input-event)
                     (eq ?\C-\[ last-input-event))
@@ -575,16 +575,17 @@ With a prefix argument, prompt for BUFFER as well."
     (add-hook 'kill-buffer-hook #'register-buffer-to-file-query nil t))
   (set-register register (cons 'buffer buffer)))
 
-(defun register--get-method-type (val genfun)
+(defun register--get-method-type (val genfun &optional other-args-type)
   (let* ((type (cl-type-of val))
 	 (types (cl--class-allparents (cl-find-class type))))
-    (while (and types (not (cl-find-method genfun nil (list (car types)))))
+    (while (and types (not (cl-find-method genfun nil
+                                           (cons (car types) other-args-type))))
       (setq types (cdr types)))
     (car types)))
 
 (defun register--jumpable-p (regval)
   "Return non-nil if `register-val-insert' is implemented for REGVAL."
-  (pcase (register--get-method-type regval 'register-val-jump-to)
+  (pcase (register--get-method-type regval 'register-val-jump-to '(t))
     ('t nil)
     ('registerv (registerv-jump-func regval))
     ('cons

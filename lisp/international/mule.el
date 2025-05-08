@@ -809,8 +809,9 @@ coding-system, to avoid infinite recursion.
 
 `:default-char'
 
-VALUE must be a character.  On encoding, a character not supported by
-the coding system is replaced with VALUE.
+VALUE must be a character.  On encoding, characters that are not
+supported by the coding system are each replaced with VALUE.  If
+not specified, the default is the space character #x20.
 
 `:for-unibyte'
 

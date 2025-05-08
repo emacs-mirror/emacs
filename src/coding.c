@@ -7363,6 +7363,7 @@ decode_coding (struct coding_system *coding)
   struct ccl_spec cclspec;
   int carryover;
   int i;
+  specpdl_ref count = SPECPDL_INDEX ();
 
   USE_SAFE_ALLOCA;
 
@@ -7389,6 +7390,9 @@ decode_coding (struct coding_system *coding)
 
       undo_list = BVAR (current_buffer, undo_list);
       bset_undo_list (current_buffer, Qt);
+      /* Avoid running nested *-change-functions via 'produce_annotation'.
+         Our callers run *-change-functions over the whole region anyway.  */
+      specbind (Qinhibit_modification_hooks, Qt);
     }
 
   coding->consumed = coding->consumed_char = 0;
@@ -7501,7 +7505,7 @@ decode_coding (struct coding_system *coding)
       record_insert (coding->dst_pos, coding->produced_char);
     }
 
-  SAFE_FREE ();
+  SAFE_FREE_UNBIND_TO (count, Qnil);
 }
 
 

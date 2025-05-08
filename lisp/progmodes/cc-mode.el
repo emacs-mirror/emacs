@@ -194,6 +194,8 @@
 	(c-clear-char-properties (point-min) (point-max) 'c-is-sws)
 	(c-clear-char-properties (point-min) (point-max) 'c-in-sws)
 	(c-clear-char-properties (point-min) (point-max) 'c-type)
+	(if c-has-quoted-numbers
+	    (c-clear-char-properties (point-min) (point-max) 'c-digit-separator))
 	(if (c-major-mode-is 'awk-mode)
 	    (c-clear-char-properties (point-min) (point-max) 'c-awk-NL-prop))))
     (setq c-buffer-is-cc-mode nil)))
@@ -2596,7 +2598,7 @@ with // and /*, not more generic line and block comments."
       (goto-char (car ml-delim)))
     (c-backward-syntactic-ws lim)
     (when (setq enclosing-attribute (c-enclosing-c++-attribute))
-      (goto-char (car enclosing-attribute)) ; Only happens in C++ Mode.
+      (goto-char (car enclosing-attribute)) ; Only happens in C or C++ Mode.
       (c-backward-syntactic-ws lim))
     (while (and (> (point) lim)
 		(memq (char-before) '(?\[ ?\()))

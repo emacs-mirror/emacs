@@ -1273,7 +1273,9 @@ fontified."
    :feature 'constant
    :language 'python
    '([(true) (false) (none)] @font-lock-constant-face
-     ((identifier) @font-lock-constant-face
+     ((assignment  (identifier) @font-lock-constant-face)
+      (:match "\\`[A-Z][A-Z0-9_]+\\'" @font-lock-constant-face))
+     ((call arguments: (argument_list (identifier) @font-lock-constant-face))
       (:match "\\`[A-Z][A-Z0-9_]+\\'" @font-lock-constant-face))
      ((attribute
        attribute: (identifier) @font-lock-constant-face)

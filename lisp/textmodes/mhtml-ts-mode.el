@@ -50,9 +50,9 @@
 ;;; Code:
 
 (require 'treesit)
+(require 'html-ts-mode)
 (require 'css-mode) ;; for embed css into html
 (require 'js) ;; for embed javascript into html
-(require 'html-ts-mode)
 
 (eval-when-compile
   (require 'rx))
@@ -62,27 +62,13 @@
 ;; in a Emacs not built with tree-sitter library.
 (treesit-declare-unavailable-functions)
 
-;; In a multi-language major mode can be useful to have an "installer" to
-;; simplify the installation of the grammars supported by the major-mode.
-(defvar mhtml-ts-mode--language-source-alist
-  '((html "https://github.com/tree-sitter/tree-sitter-html" "v0.23.2")
-    (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.1")
-    (jsdoc "https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.23.2")
-    (css "https://github.com/tree-sitter/tree-sitter-css" "v0.23.1"))
-  "Treesitter language parsers required by `mhtml-ts-mode'.
-You can customize `treesit-language-source-alist' if you want
-to stick to a specific commit and/or use different parsers.")
-
-(setq treesit-language-source-alist
-      (append treesit-language-source-alist
-              mhtml-ts-mode--language-source-alist))
-
 (defun mhtml-ts-mode-install-parsers ()
   "Install all the required treesitter parsers.
-`mhtml-ts-mode--language-source-alist' defines which parsers to install."
+`treesit-language-source-alist' defines which parsers to install.
+It's pre-filled by loading \"html-ts-mode\", \"css-mode\", \"js\"."
   (interactive)
-  (dolist (item mhtml-ts-mode--language-source-alist)
-    (treesit-install-language-grammar (car item))))
+  (dolist (lang '(html css javascript jsdoc))
+    (treesit-install-language-grammar lang)))
 
 ;;; Custom variables
 
@@ -370,6 +356,26 @@ Return nil if there is no name or if NODE is not a defun node."
      (js-name js-name)
      (css-name css-name))))
 
+(defvar-local mhtml-ts-mode--comment-current-lang nil)
+
+(defun mhtml-ts-mode--comment-setup ()
+  (let ((lang (treesit-language-at (point))))
+    (unless (eq mhtml-ts-mode--comment-current-lang lang)
+      (setq mhtml-ts-mode--comment-current-lang lang)
+      (pcase lang
+        ('html
+         (setq-local comment-start "<!-- ")
+         (setq-local comment-start-skip nil)
+         (setq-local comment-end " -->")
+         (setq-local comment-end-skip nil))
+        ('css
+         (setq-local comment-start "/*")
+         (setq-local comment-start-skip "/\\*+[ \t]*")
+         (setq-local comment-end "*/")
+         (setq-local comment-end-skip "[ \t]*\\*+/"))
+        ('javascript
+         (c-ts-common-comment-setup))))))
+
 ;;; Flymake integration
 
 (defvar-local mhtml-ts-mode--flymake-process nil
@@ -445,9 +451,8 @@ Powered by tree-sitter."
     ;; just like it's done in the original mode.
 
     ;; Comment.
-    ;; indenting settings for js-ts-mode.
-    (c-ts-common-comment-setup)
     (setq-local comment-multi-line t)
+    (setq-local comment-setup-function #'mhtml-ts-mode--comment-setup)
 
     ;; Font-lock.
 

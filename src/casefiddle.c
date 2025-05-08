@@ -543,6 +543,12 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
 #ifdef HAVE_TREE_SITTER
   ptrdiff_t start_byte = CHAR_TO_BYTE (start);
   ptrdiff_t old_end_byte = CHAR_TO_BYTE (end);
+  struct ts_linecol start_linecol
+    = treesit_linecol_maybe (start, start_byte,
+			     BUF_TS_LINECOL_POINT (current_buffer));
+  struct ts_linecol old_end_linecol
+    = treesit_linecol_maybe (end, old_end_byte,
+			      BUF_TS_LINECOL_POINT (current_buffer));
 #endif
 
   ptrdiff_t orig_end = end;
@@ -565,8 +571,11 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
       update_compositions (start, end, CHECK_ALL);
     }
 #ifdef HAVE_TREE_SITTER
-      treesit_record_change (start_byte, old_end_byte,
-			     CHAR_TO_BYTE (orig_end + added));
+  ptrdiff_t new_end = orig_end + added;
+  ptrdiff_t new_end_byte = CHAR_TO_BYTE (new_end);
+
+  treesit_record_change (start_byte, old_end_byte, new_end_byte,
+			 start_linecol, old_end_linecol, new_end);
 #endif
 
   return orig_end + added;

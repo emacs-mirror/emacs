@@ -114,6 +114,13 @@
    '((ERROR) @font-lock-warning-face))
   "Font-lock settings for TOML.")
 
+(defvar toml-ts-mode--font-lock-feature-list
+  '((comment)
+    (constant number pair string)
+    (escape-sequence)
+    (delimiter error))
+  "Font-lock feature list for TOML.")
+
 (defun toml-ts-mode--defun-name (node)
   "Return the defun name of NODE.
 Return nil if there is no name or if NODE is not a defun node."
@@ -153,11 +160,7 @@ Return nil if there is no name or if NODE is not a defun node."
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings toml-ts-mode--font-lock-settings)
-    (setq-local treesit-font-lock-feature-list
-                '((comment)
-                  (constant number pair string)
-                  (escape-sequence)
-                  (delimiter error)))
+    (setq-local treesit-font-lock-feature-list toml-ts-mode--font-lock-feature-list)
 
     ;; Imenu.
     (setq-local treesit-simple-imenu-settings

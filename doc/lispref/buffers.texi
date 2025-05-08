@@ -1006,6 +1006,13 @@ This is pertinent only when this function is called by
 satisfied if the action alist with which @code{display-buffer} was
 called includes @w{@code{(category . @var{expr})}} in the value of its
 @var{action} argument.  @xref{Buffer Display Action Alists}.
+@item this-command
+@vindex this-command@r{, a buffer display condition entry}
+This too is pertinent only when this function is called by
+@code{display-buffer} (@pxref{Buffer Display Action Alists}), and is
+satisfied when the command now being executed is equal to @var{expr}, or
+if @var{expr} is a list, when the command now being executed is a member
+of that list.
 @end table
 @item t
 Satisfied by any buffer.  A convenient alternative to @code{""} (empty

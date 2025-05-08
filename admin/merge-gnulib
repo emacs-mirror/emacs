@@ -80,10 +80,6 @@ case $src in
   *) src=$src/ ;;
 esac
 
-GNULIB_TOOL_FLAGS="$GNULIB_TOOL_FLAGS
-  --local-dir="$src"admin/gnulib-patches
-"
-
 # Gnulib's source directory.
 gnulib_srcdir=${1-$src../gnulib}
 

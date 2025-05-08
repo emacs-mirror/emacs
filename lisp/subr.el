@@ -7629,6 +7629,11 @@ CONDITION is either:
     the buffer matches if the caller of `display-buffer' provides
     `(category . SYMBOL)' in its ACTION argument, and SYMBOL is `eq'
     to the cons-cell's cdr.
+  * `this-command': the buffer matches if the command now being executed
+    is `eq' to or a `memq' of the cons-cell's cdr.
+    (This case is not useful when calling `buffer-match-p' directly, but
+    is needed to support the `this-command' buffer display condition
+    entry.  See Info node `(elisp)Choosing Window'.)
   * `not': the cadr is interpreted as a negation of a condition.
   * `and': the cdr is a list of recursive conditions, that all have
     to be met.
@@ -7659,6 +7664,10 @@ CONDITION is either:
                                    (if args nil '(nil)))))))
                       (`(category . ,category)
                        (eq (alist-get 'category (cdar args)) category))
+                      (`(this-command . ,command-or-commands)
+                       (if (listp command-or-commands)
+                           (memq this-command command-or-commands)
+                         (eq this-command command-or-commands)))
                       (`(major-mode . ,mode)
                        (eq
                         (buffer-local-value 'major-mode buffer)

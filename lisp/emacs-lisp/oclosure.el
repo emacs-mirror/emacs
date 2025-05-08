@@ -151,7 +151,7 @@
 (defun oclosure--p (oclosure)
   (not (not (oclosure-type oclosure))))
 
-(cl-deftype oclosure () '(satisfies oclosure--p))
+(define-symbol-prop 'oclosure 'cl-deftype-satisfies #'oclosure--p)
 
 (defun oclosure--slot-mutable-p (slotdesc)
   (not (alist-get :read-only (cl--slot-descriptor-props slotdesc))))

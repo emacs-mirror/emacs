@@ -1167,8 +1167,6 @@ static const char *decode_mode_spec (struct window *, int, int, Lisp_Object *);
 static void display_menu_bar (struct window *);
 static void display_tab_bar (struct window *);
 static void update_tab_bar (struct frame *, bool);
-static ptrdiff_t display_count_lines (ptrdiff_t, ptrdiff_t, ptrdiff_t,
-				      ptrdiff_t *);
 static void pint2str (register char *, register int, register ptrdiff_t);
 
 static int display_string (const char *, Lisp_Object, Lisp_Object,
@@ -29411,7 +29409,7 @@ count_lines (ptrdiff_t start_byte, ptrdiff_t end_byte)
    found COUNT lines, or LIMIT_BYTE if we hit the limit before finding
    COUNT lines.  */
 
-static ptrdiff_t
+ptrdiff_t
 display_count_lines (ptrdiff_t start_byte,
 		     ptrdiff_t limit_byte, ptrdiff_t count,
 		     ptrdiff_t *byte_pos_ptr)

@@ -812,7 +812,16 @@ w32_console_read_socket (struct terminal *terminal,
 		  add = 1;
 		}
 	      if (add)
-		kbd_buffer_store_event_hold (&inev, hold_quit);
+		{
+		  Mouse_HLInfo *hlinfo =
+		    &terminal->display_info.tty->mouse_highlight;
+		  if (!hlinfo->mouse_face_hidden && FIXNUMP (Vmouse_highlight))
+		    {
+		      clear_mouse_face (hlinfo);
+		      hlinfo->mouse_face_hidden = true;
+		    }
+		  kbd_buffer_store_event_hold (&inev, hold_quit);
+		}
 	      break;
 
             case MOUSE_EVENT:

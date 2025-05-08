@@ -136,7 +136,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_Weak_Hash_Table_Weak_Part_DA91AF2025
 #  error "struct Lisp_Weak_Hash_Table_Weak_Part changed"
 # endif
-# ifndef HASH_buffer_DF486266DF
+# ifndef HASH_buffer_8A05DEE6AE
 #  error "struct buffer changed"
 # endif
 # ifndef HASH_glyph_pool_FE89FC9050
@@ -163,7 +163,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_User_Ptr_7DC5544B44
 #  error "struct Lisp_User_Ptr changed"
 # endif
-# ifndef HASH_thread_state_94925620A8
+# ifndef HASH_thread_state_6E2079C09F
 #  error "struct thread_state changed"
 # endif
 # ifndef HASH_Lisp_Mutex_744F44A86D
@@ -208,7 +208,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_module_global_reference_85FFC23A88
 #  error "struct module_global_reference changed"
 # endif
-# ifndef HASH_Lisp_TS_Parser_C53391180E
+# ifndef HASH_Lisp_TS_Parser_66A8E2974E
 #  error "struct Lisp_TS_Parser changed"
 # endif
 # ifndef HASH_Lisp_TS_Query_31B815035A

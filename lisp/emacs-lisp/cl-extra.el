@@ -965,6 +965,136 @@ Outputs to the current buffer."
       (insert (propertize "\nClass Allocated Slots:\n\n" 'face 'bold))
       (mapc #'cl--describe-class-slot cslots))))
 
+;;;; Method dispatch on `cl-deftype' types (a.k.a "derived types").
+
+;; Extend `cl-deftype' to define data types which are also valid
+;; argument types for dispatching generic function methods (see also
+;; <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=77725>).
+;;
+;; The main entry points are:
+;;
+;; - `cl-deftype', that defines new data types.
+;;
+;; - `cl-types-of', that returns the types an object belongs to.
+
+;; Ensure each type satisfies `eql'.
+(defvar cl--types-of-memo (make-hash-table :test 'equal)
+  "Memoization table used in `cl-types-of'.")
+
+;; FIXME: `cl-types-of' CPU cost is proportional to the number of types
+;; defined with `cl-deftype', so the more popular it gets, the slower
+;; it becomes.  And of course, the cost of each type check is
+;; unbounded, so a single "expensive" type can slow everything down
+;; further.
+;;
+;; The usual dispatch is
+;;
+;;   (lambda (arg &rest args)
+;;     (let ((f (gethash (cl-typeof arg) precomputed-methods-table)))
+;;       (if f
+;;           (apply f arg args)
+;;         ;; Slow case when encountering a new type
+;;         ...)))
+;;
+;; where often the most expensive part is `&rest' (which has to
+;; allocate a list for those remaining arguments),
+;;
+;; So we're talking about replacing
+;;
+;;   &rest + cl-type-of + gethash + if + apply
+;;
+;; with a function that loops over N types, calling `cl-typep' on each
+;; one of them (`cl-typep' itself being a recursive function that
+;; basically interprets the type language).  This is going to slow
+;; down dispatch very significantly for those generic functions that
+;; have a method that dispatches on a derived type, compared to
+;; those that don't.
+;;
+;; As a simple optimization, the method dispatch tests only those
+;; derived types which have been used as a specialize in a method.
+;;
+;; A possible further improvement:
+;;
+;; - based on the PARENTS declaration, create a map from builtin-type
+;;   to the set of cl-types that have that builtin-type among their
+;;   parents.  That presumes some PARENTS include some builtin-types,
+;;   obviously otherwise the map will be trivial with all cl-types
+;;   associated with the `t' "dummy parent".  [ We could even go crazy
+;;   and try and guess PARENTS when not provided, by analyzing the
+;;   type's definition. ]
+;; - in `cl-types-of' start by calling `cl-type-of', then use the map
+;;   to find which cl-types may need to be checked.
+;;
+;;;###autoload
+(defun cl-types-of (object &optional types)
+  "Return the atomic types OBJECT belongs to.
+Return an unique list of types OBJECT belongs to, ordered from the
+most specific type to the most general.
+TYPES is an internal argument."
+  (let* ((found nil))
+    ;; Build a list of all types OBJECT belongs to.
+    (dolist (type (or types cl--derived-type-list))
+      (let ((pred (get type 'cl-deftype-satisfies)))
+        (and
+         ;; If OBJECT is of type, add type to the matching list.
+         (if types
+             ;; For method dispatch, we don't need to filter out errors,
+             ;; since we can presume that method dispatch is used only on
+             ;; sanely-defined types.
+             (funcall pred object)
+           (condition-case-unless-debug e
+               (funcall pred object)
+             (error (setq cl--derived-type-list
+                          (delq type cl--derived-type-list))
+                    (warn  "cl-types-of %S: %s"
+                           type (error-message-string e))
+                    nil)))
+         (push type found))))
+    (push (cl-type-of object) found)
+    ;; Return the list of types OBJECT belongs to, which is also the list
+    ;; of specifiers for OBJECT. This memoization has two purposes:
+    ;; - Speed up computation.
+    ;; - Make sure we always return the same (eq) object, so that the
+    ;;   method dispatch's own caching works as it should.
+    (with-memoization (gethash found cl--types-of-memo)
+      ;; Compute an ordered list of types from the DAG.
+      (let (dag)
+        (dolist (type found)
+          (push (cl--class-allparents (cl--find-class type)) dag))
+        (merge-ordered-lists dag)))))
+
+(defvar cl--derived-type-dispatch-list nil
+  "List of types that need to be checked during dispatch.")
+
+(cl-generic-define-generalizer cl--derived-type-generalizer
+  ;; FIXME: This priority can't be always right.  :-(
+  ;; E.g. a method dispatching on a type like (or number function),
+  ;; should take precedence over a method on `t' but not over a method
+  ;; on `number'.  Similarly a method dispatching on a type like
+  ;; (satisfies (lambda (x) (equal x '(A . B)))) should take precedence
+  ;; over a method on (head 'A).
+  ;; Fixing this 100% is impossible so this generalizer is condemned to
+  ;; suffer from "undefined method ordering" problems, unless/until we
+  ;; restrict it somehow to a subset that we can handle reliably.
+  20 ;; "typeof" < "cl-types-of" < "head" priority
+  (lambda (obj &rest _) `(cl-types-of ,obj cl--derived-type-dispatch-list))
+  (lambda (tag &rest _) (if (consp tag) tag)))
+
+;;;###autoload
+(defun cl--derived-type-generalizers (type)
+  ;; Add a new dispatch type to the dispatch list, then
+  ;; synchronize with `cl--derived-type-list' so that both lists follow
+  ;; the same type precedence order.
+  ;; The `merge-ordered-lists' is `cl-types-of' should we make this
+  ;; ordering unnecessary, but it's still handy for all those types
+  ;; that don't declare their parents.
+  (unless (memq type cl--derived-type-dispatch-list)
+    (setq cl--derived-type-dispatch-list
+          (seq-intersection cl--derived-type-list
+                            (cons type cl--derived-type-dispatch-list))))
+  (list cl--derived-type-generalizer))
+
+;;;; Trailer
 
 (make-obsolete-variable 'cl-extra-load-hook
                         "use `with-eval-after-load' instead." "28.1")

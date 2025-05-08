@@ -86,6 +86,7 @@
 (cc-bytecomp-defvar parse-sexp-lookup-properties) ; Emacs only.
 
 (declare-function cl-set-difference "cl-seq" (cl-list1 cl-list2 &rest cl-keys))
+(declare-function cl-delete-duplicates "cl-seq" (seq &rest cl-keys))
 
 ;; Need to declare these local symbols during compilation since
 ;; they're referenced from lambdas in `byte-compile' calls that are
@@ -521,6 +522,29 @@
       (c-put-font-lock-face (car elem) (cdr elem)
 			    c-reference-face-name))))
 
+(defun c-font-lock-cpp-messages (limit)
+  ;; Font lock #error and #warning messages between point and LIMIT.
+  ;; Always return nil to prevent a further call to this function.
+  ;; The position of point at the end of this function is random.
+  (while
+      (and (< (point) limit)
+	   (re-search-forward c-cpp-messages-re limit t))
+    (let ((beg (match-beginning c-cpp-message-match-no))
+	  (end (match-end c-cpp-message-match-no)))
+      (c-put-font-lock-string-face beg end)
+      ;; We replace '(1) (punctuation) syntax-table text properties on ' by
+      ;; '(3) (symbol), so that these characters won't later get the warning
+      ;; face.
+      (goto-char beg)
+      (while (and
+	      (< (point) end)
+	      (c-search-forward-char-property-with-value-on-char
+	       'syntax-table '(1) ?\' end))
+	(c-put-char-property ;; -trim-caches
+			    (1- (point)) 'syntax-table '(3)))
+      (goto-char end)))
+  nil)
+
 (c-lang-defconst c-cpp-matchers
   "Font lock matchers for preprocessor directives and purely lexical
 stuff.  Used on level 1 and higher."
@@ -529,28 +553,20 @@ stuff.  Used on level 1 and higher."
   ;; sets `font-lock-type-face' in languages where
   ;; `c-recognize-<>-arglists' is set.
 
-  t `(,@(when (c-lang-const c-opt-cpp-prefix)
+  t `(;; Fontify "invalid" comment delimiters
+      ,@(when (and (c-lang-const c-block-comment-starter)
+		   (c-lang-const c-line-comment-starter))
+	  `(c-maybe-font-lock-wrong-style-comments))
+      ,@(when (c-lang-const c-opt-cpp-prefix)
 	  (let* ((noncontinued-line-end "\\(\\=\\|\\(\\=\\|[^\\]\\)[\n\r]\\)")
 		 (ncle-depth (regexp-opt-depth noncontinued-line-end))
 		 (sws-depth (c-lang-const c-syntactic-ws-depth))
 		 (nsws-depth (c-lang-const c-nonempty-syntactic-ws-depth)))
 
-	    `(;; Fontify "invalid" comment delimiters
-	      ,@(when (and (c-lang-const c-block-comment-starter)
-			   (c-lang-const c-line-comment-starter))
-		  `(c-maybe-font-lock-wrong-style-comments))
-
-	      ;; The stuff after #error and #warning is a message, so
+	    `(;; The stuff after #error and #warning is a message, so
 	      ;; fontify it as a string.
 	      ,@(when (c-lang-const c-cpp-message-directives)
-		  (let* ((re (c-make-keywords-re 'appendable ; nil
-			       (c-lang-const c-cpp-message-directives)))
-			 (re-depth (regexp-opt-depth re)))
-		    `((,(concat noncontinued-line-end
-				(c-lang-const c-opt-cpp-prefix)
-				re
-				"\\s +\\(.*\\)$")
-		       ,(+ ncle-depth re-depth 1) font-lock-string-face t))))
+		  '(c-font-lock-cpp-messages))
 
 	      ;; Fontify filenames in #include <...> as strings.
 	      ,@(when (c-lang-const c-cpp-include-directives)
@@ -1219,22 +1235,29 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; characters it allows within the list.
   (let ((type (and (> match-pos (point-min))
 		   (c-get-char-property (1- match-pos) 'c-type)))
-	id-pos)
+	id-pos tok-end-pos)
     (cond
      ;; Are we just after something like "(foo((bar))" ?
      ((and (eq (char-before match-pos) ?\))
 	   (c-go-list-backward match-pos)
 	   (progn
 	     (c-backward-syntactic-ws)
-	     (and (setq id-pos (c-on-identifier))
-		  (goto-char id-pos)
-		  (progn
-		    (c-backward-syntactic-ws)
-		    (eq (char-before) ?\()))))
-      (c-get-fontification-context (point) not-front-decl toplev))
+	     (setq tok-end-pos (point))
+	     (cond
+	      ((and (setq id-pos (c-on-identifier))
+		    (goto-char id-pos)
+		    (progn
+		      (c-backward-syntactic-ws)
+		      (eq (char-before) ?\()))
+	       (c-get-fontification-context (point) not-front-decl toplev))
+	      ((progn
+		 (goto-char tok-end-pos)
+		 (and (zerop (c-backward-token-2))
+		      (looking-at c-type-internal-paren-key)))
+	       (cons 'not-decl nil))))))
      ((not (memq (char-before match-pos) '(?\( ?, ?\[ ?< ?{)))
       (cons (and toplev 'top) nil))
-     ;; A control flow expression or a decltype
+     ;; A control flow expression or a decltype, etc.
      ((and (eq (char-before match-pos) ?\()
 	   (save-excursion
 	     (goto-char match-pos)
@@ -1246,7 +1269,8 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	       (cons nil nil))
 	      ((or (looking-at c-block-stmt-2-key)
 		   (looking-at c-block-stmt-1-2-key)
-		   (looking-at c-typeof-key))
+		   (looking-at c-typeof-key)
+		   (looking-at c-type-internal-paren-key))
 	       (cons nil t))
 	      (t nil)))))
      ;; Near BOB.
@@ -1531,8 +1555,8 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	    ;; `parse-sexp-lookup-properties' (when it exists).
 	    (parse-sexp-lookup-properties
 	     (cc-eval-when-compile
-	       (boundp 'parse-sexp-lookup-properties))
-	     ))
+	       (boundp 'parse-sexp-lookup-properties)))
+	    list-bounds)
 
 	;; Below we fontify a whole declaration even when it crosses the limit,
 	;; to avoid gaps when jit/lazy-lock fontifies the file a block at a
@@ -1622,6 +1646,24 @@ casts and declarations are fontified.  Used on level 2 and higher."
 		   nil)
 		  ((eq context 'generic)
 		   (c-font-lock-c11-generic-clause))
+
+		  ;; K&R parameters.
+		  ((and
+		    c-recognize-knr-p
+		    (or toplev inside-macro)
+		    (eq context 'decl)
+		    (setq list-bounds (c-in-id-arglist))
+		    (save-excursion
+		      (goto-char (car list-bounds))
+		      (and (zerop (c-backward-token-2))
+			   (eq (point) (c-on-identifier))))
+		    (save-excursion
+		      (goto-char (cdr list-bounds))
+		      (c-forward-syntactic-ws)
+		      (not (memq (char-after) '(?\; ?{ ?\? ?: ?\,)))))
+		   ;; Nothing to fontify.
+		   (goto-char (cdr list-bounds)))
+
 		  (t
 		   (setq decl-or-cast
 			 (c-forward-decl-or-cast-1
@@ -2371,7 +2413,10 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
 
       ;; Fontify basic types.
       ,(let ((re (c-make-keywords-re nil
-		   (c-lang-const c-primitive-type-kwds))))
+		   (cl-delete-duplicates
+		    (append (c-lang-const c-primitive-type-kwds)
+			    (c-lang-const c-type-with-paren-kwds))
+		    :test #'equal))))
 	 (if (c-major-mode-is 'pike-mode)
 	     ;; No symbol is a keyword after "->" in Pike.
 	     `(,(concat "\\(\\=.?\\|[^>]\\|[^-]>\\)"

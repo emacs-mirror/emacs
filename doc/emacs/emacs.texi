@@ -884,6 +884,7 @@ Projects
 * Project Buffer Commands:: Commands for handling project buffers.
 * Switching Projects::      Switching between projects.
 * Managing Projects::       Managing the project list file.
+* VC-Aware Project Backend:: Default project backend.
 
 Change Logs
 

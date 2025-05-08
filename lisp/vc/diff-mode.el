@@ -174,8 +174,6 @@ The default \"-b\" means to ignore whitespace-only changes,
 (defvar-local diff-default-directory nil
   "The default directory where the current Diff buffer was created.")
 
-(defvar diff-outline-regexp
-  "\\([*+][*+][*+] [^0-9]\\|@@ ...\\|\\*\\*\\* [0-9].\\|--- [0-9]..\\)")
 
 ;;;;
 ;;;; keymap, menu, ...
@@ -613,6 +611,9 @@ See https://lists.gnu.org/r/emacs-devel/2007-11/msg01990.html")
 (defconst diff-file-header-re (concat "^\\(--- .+\n\\+\\+\\+ \\|\\*\\*\\* .+\n--- \\|[^-+!<>0-9@* \n]\\).+\n" (substring diff-hunk-header-re 1)))
 
 (defconst diff-separator-re "^--+ ?$")
+
+(defvar diff-outline-regexp
+  (concat "\\(^diff.*\\|" diff-hunk-header-re "\\)"))
 
 (defvar diff-narrowed-to nil)
 
@@ -1719,7 +1720,7 @@ modified lines of the diff."
                       'hg
                     nil))))
   (when (eq diff-buffer-type 'git)
-    (setq diff-outline-regexp
+    (setq-local diff-outline-regexp
           (concat "\\(^diff --git.*\\|" diff-hunk-header-re "\\)")))
   (setq-local outline-level #'diff--outline-level)
   (setq-local outline-regexp diff-outline-regexp))
@@ -3181,7 +3182,8 @@ When OLD is non-nil, highlight the hunk from the old source."
               ((memq diff-font-lock-syntax '(hunk-also hunk-only))
                (with-temp-buffer
                  (insert text)
-                 (diff-syntax-fontify-props file text line-nb t))))))))
+                 (with-demoted-errors "%S"
+                   (diff-syntax-fontify-props file text line-nb t)))))))))
 
     ;; Put properties over the hunk text
     (goto-char beg)

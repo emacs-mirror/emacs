@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1997-1999, 2001-2025 Free Software Foundation, Inc.
 
-;; Author: Carsten Dominik <dominik@science.uva.nl>
+;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Maintainer: auctex-devel@gnu.org
 
 ;; This file is part of GNU Emacs.

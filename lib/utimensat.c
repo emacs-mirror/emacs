@@ -118,7 +118,7 @@ rpl_utimensat (int fd, char const *file, struct timespec const times[2],
             ts[1] = times[1];
           times = ts;
         }
-#   if defined __hppa__ || defined __NetBSD__
+#   if defined __hppa || defined __NetBSD__
       /* Linux kernel 2.6.22.19 on hppa does not reject invalid tv_nsec
          values.
 

@@ -1433,6 +1433,9 @@ Interactively, with a prefix arg, FORCE is t."
     map)
   "Keymap for `flymake-mode'")
 
+(defvar-local flymake-current-diagnostic-line 0
+  "The line of the most recently focused diagnostic in a diagnostics buffer.")
+
 ;;;###autoload
 (define-minor-mode flymake-mode
   "Toggle Flymake mode on or off.
@@ -1893,7 +1896,8 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
 (defun flymake-show-diagnostic (pos &optional other-window)
   "From Flymake diagnostics buffer, show source of diagnostic at POS."
   (interactive (list (point) t))
-  (let* ((id (or (tabulated-list-get-id pos)
+  (let* ((diagnostics-buffer (current-buffer))
+         (id (or (tabulated-list-get-id pos)
                  (user-error "Nothing at point")))
          (diag (plist-get id :diagnostic))
          (locus (flymake--diag-locus diag))
@@ -1903,6 +1907,7 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
                   (goto-char b)
                   (pulse-momentary-highlight-region
                    b (or e (line-end-position))))))
+    (setq flymake-current-diagnostic-line (line-number-at-pos pos))
     (with-current-buffer (cond ((bufferp locus) locus)
                                (t (find-file-noselect locus)))
       (with-selected-window
@@ -1918,6 +1923,8 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
                                                  (car beg)
                                                  (cdr beg))))
                  (funcall visit bbeg bend)))))
+      ;; Emacs < 27
+      (setq next-error-last-buffer diagnostics-buffer)
       (current-buffer))))
 
 (defun flymake-goto-diagnostic (pos)
@@ -2031,6 +2038,7 @@ resizing columns and ommiting redudant columns."
 (defun flymake--tabulated-setup (use-project)
   "Helper for `flymake-diagnostics-buffer-mode'.
 And also `flymake-project-diagnostics-mode'."
+  (setq-local next-error-function #'flymake--diagnostics-next-error)
   (let ((saved-r-b-f revert-buffer-function)
         (refresh
          (lambda ()
@@ -2059,6 +2067,23 @@ And also `flymake-project-diagnostics-mode'."
           (lambda (&rest args)
             (funcall refresh)
             (apply saved-r-b-f args)))))
+
+(defun flymake--diagnostics-next-error (n &optional reset)
+  "`next-error-function' for flymake diagnostics buffers.
+N is an integer representing how many errors to move.
+If RESET is non-nil, return to the beginning of the errors before
+moving."
+  (let ((line (if reset 1 flymake-current-diagnostic-line))
+        (total-lines (count-lines (point-min) (point-max))))
+    (goto-char (point-min))
+    (unless (zerop total-lines)
+      (let ((target-line (+ line n)))
+        (setq target-line (max 1 target-line))
+        (setq target-line (min target-line total-lines))
+        (forward-line (1- target-line))))
+    (when-let* ((win (get-buffer-window nil t)))
+      (set-window-point win (point)))
+    (flymake-goto-diagnostic (point))))
 
 (define-derived-mode flymake-diagnostics-buffer-mode tabulated-list-mode
   "Flymake diagnostics"
@@ -2116,6 +2141,7 @@ This function doesn't move point"
          window)
     (with-current-buffer target
       (setq flymake--diagnostics-buffer-source source)
+      (setq next-error-last-buffer (current-buffer))
       (revert-buffer)
       (setq window
             (display-buffer (current-buffer)
@@ -2222,6 +2248,7 @@ some of this variable's contents the diagnostic listings.")
     (with-current-buffer buffer
       (flymake-project-diagnostics-mode)
       (setq-local flymake--project-diagnostic-list-project prj)
+      (setq next-error-last-buffer (current-buffer))
       (revert-buffer)
       (display-buffer (current-buffer)
                       `((display-buffer-reuse-window

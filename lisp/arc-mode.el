@@ -2090,6 +2090,25 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                           ;; an 8-byte uncompressed size.
                           (archive-l-e (+ p 46 fnlen 4) 8)
                         ucsize))
+             (up-len  (if (and (> exlen 9) ; 0x7075 Tag: 2 bytes,
+                                           ; TSize:      2 bytes,
+                                           ; Version:    1 byte,
+                                           ; CRC32:      4 bytes
+                               ;; UPath extension tag 0x7075 ("up")
+                               (eq (char-after (+ p 46 fnlen)) ?u)
+                               (eq (char-after (+ p 46 fnlen 1)) ?p))
+                          ;; Subtract 1 byte for version and 4 more
+                          ;; bytes for file-name's CRC-32
+                          (- (archive-l-e (+ p 46 fnlen 2) 2) 5)))
+             (upath   (if up-len
+                          ;; FIXME: Should verify UPath is up-to-date by
+                          ;; computing CRC-32 and comparing with the
+                          ;; value stored before UPath
+                          (decode-coding-region (+ p 46 fnlen 9)
+                                                (+ p 46 fnlen 9 up-len)
+                                                'utf-8-unix
+                                                t)))
+             (efnname (or upath efnname))
 	     (isdir   (and (= ucsize 0)
 			   (string= (file-name-nondirectory efnname) "")))
 	     (mode    (cond ((memq creator '(2 3)) ; Unix

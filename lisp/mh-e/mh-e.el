@@ -2766,12 +2766,6 @@ here that you would like to be displayed in
 Real definition, below, uses variables that aren't defined yet."
       nil)))
 
-(defvar mh-delay-invisible-header-generation-flag t
-  "Non-nil means to delay the generation of invisible header fields.
-Because the function `mh-invisible-headers' uses both
-`mh-invisible-header-fields' and `mh-invisible-header-fields', it
-cannot be run until both variables have been initialized.")
-
 (defcustom mh-invisible-header-fields nil
   "Additional header fields to hide.
 

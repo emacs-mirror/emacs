@@ -835,7 +835,7 @@ there be copies of the opener contained in the multi-line string."
 (c-lang-defconst c-has-quoted-numbers
   "Whether the language has numbers quoted like 4'294'967'295."
   t nil
-  c++ t)
+  (c c++) t)
 (c-lang-defvar c-has-quoted-numbers (c-lang-const c-has-quoted-numbers))
 
 (c-lang-defconst c-has-compound-literals
@@ -1172,11 +1172,37 @@ string message."
 	   '("error"))
   (c c++ objc pike) '("error" "warning"))
 
+(c-lang-defconst c-cpp-message-directives-re
+  ;; Appendable regexp matching any of the tokens in `c-cpp-message-directives'.
+  t (c-make-keywords-re 'appendable (c-lang-const c-cpp-message-directives)))
+
+(c-lang-defconst noncontinued-line-end
+  t "\\(\\=\\|\\(\\=\\|[^\\]\\)[\n\r]\\)")
+(c-lang-defconst ncle-depth
+  t (regexp-opt-depth (c-lang-const noncontinued-line-end)))
+
+(c-lang-defconst c-cpp-messages-re
+  ;; Regexp to match a #error or #warning construct.  See
+  ;; `c-cpp-message-directives'.
+  t (if (c-lang-const c-cpp-message-directives)
+	(concat (c-lang-const noncontinued-line-end)
+		(c-lang-const c-opt-cpp-prefix)
+		(c-lang-const c-cpp-message-directives-re)
+		"\\s +\\(\\(\\\\\\(\\\\?\n\\|.\\)\\|[^\n]\\)*\\)$")))
+(c-lang-defvar c-cpp-messages-re (c-lang-const c-cpp-messages-re))
+
+(c-lang-defconst c-cpp-message-match-no
+    t (if (c-lang-const c-cpp-messages-re)
+	  (+ 1 (c-lang-const ncle-depth)
+	     (regexp-opt-depth (c-lang-const c-cpp-message-directives-re)))))
+(c-lang-defvar c-cpp-message-match-no (c-lang-const c-cpp-message-match-no))
+
 (c-lang-defconst c-cpp-include-directives
   "List of cpp directives (without the prefix) that are followed by a
 file name in angle brackets or quotes."
   t    (if (c-lang-const c-opt-cpp-prefix)
 	   '("include"))
+  c '("include" "embed")
   objc '("include" "import"))
 
 (c-lang-defconst c-cpp-include-key
@@ -1235,7 +1261,8 @@ definition, or nil if the language doesn't have any."
   "List of cpp directives (without the prefix) that are followed by an
 expression."
   t (if (c-lang-const c-opt-cpp-prefix)
-	'("if" "elif")))
+	'("if" "elif"
+	  "elifdef" "elifndef")))
 
 (c-lang-defconst c-cpp-expr-intro-re
   "Regexp which matches the start of a CPP directive which contains an
@@ -1751,9 +1778,10 @@ This doesn't count the merely contextual bits of the regexp match."
 		(c-lang-const c-opt-cpp-symbol) ; usually #
 		(substring (c-lang-const c-stmt-delim-chars) 1)) ; ";{}?:"
       (c-lang-const c-stmt-delim-chars))
-  c++ (concat (substring (c-lang-const c-stmt-boundary-skip-chars) 0 1) ; "^"
-	      "["
-	      (substring (c-lang-const c-stmt-boundary-skip-chars) 1))) ; ";{}?:"
+  (c c++) (concat
+	   (substring (c-lang-const c-stmt-boundary-skip-chars) 0 1) ; "^"
+	   "["
+	   (substring (c-lang-const c-stmt-boundary-skip-chars) 1))) ; ";{}?:"
 (c-lang-defvar c-stmt-boundary-skip-chars
   (c-lang-const c-stmt-boundary-skip-chars))
 
@@ -2250,7 +2278,7 @@ This works in Emacs >= 25.1."
 ;; `c-kwds-lang-consts' list below and used to build `c-keywords' etc.
 
 (c-lang-defconst c-primitive-type-kwds
-  "Primitive type keywords.  As opposed to the other keyword lists, the
+  "Primitive type keywords.  As opposed to most other keyword lists, the
 keywords listed here are fontified with the type face instead of the
 keyword face.
 
@@ -2265,10 +2293,12 @@ the appropriate place for that."
   t    '("char" "double" "float" "int" "long" "short" "signed"
 	 "unsigned" "void")
   c    (append
-	'("_Bool" "_Complex" "_Imaginary") ; Conditionally defined in C99.
+	'("_Bool" "_Complex" "_Imaginary" ;) Conditionally defined in C99.
+	  "_Decimal32" "_Decimal64" "_Decimal128"
+	  "bool" "char8_t" "char16_t" "char32_t" "nullptr_t")
 	(c-lang-const c-primitive-type-kwds))
   c++  (append
-	'("bool" "wchar_t" "char8_t" "char16_t" "char32_t")
+	'("bool" "wchar_t" "char8_t" "char16_t" "char32_t" "nullptr_t")
 	(c-lang-const c-primitive-type-kwds))
   ;; Objective-C extends C, but probably not the new stuff in C99.
   objc (append
@@ -2327,7 +2357,7 @@ of a variable declaration."
   "Keywords followed by a parenthesized expression, which stands for
 the type of that expression."
   t nil
-  c '("typeof")				; longstanding GNU C(++) extension.
+  c '("typeof" "typeof_unqual")
   c++ '("decltype" "typeof"))
 
 (c-lang-defconst c-typeof-key
@@ -2357,6 +2387,16 @@ used in declarations without the keyword."
 (c-lang-defvar c-self-contained-typename-key
 	       (c-lang-const c-self-contained-typename-key))
 
+(c-lang-defconst c-type-with-paren-kwds
+  "Keywords followed by a parenthesis expression, which form types."
+  t nil
+  c '("_BitInt"))
+
+(c-lang-defconst c-type-with-paren-key
+  "Adorned regexp which matches an element of `c-type-with-paren-kwds'."
+  t (c-make-keywords-re t (c-lang-const c-type-with-paren-kwds)))
+(c-lang-defvar c-type-with-paren-key (c-lang-const c-type-with-paren-key))
+
 (c-lang-defconst c-type-prefix-kwds
   "Keywords where the following name - if any - is a type name, and
 where the keyword together with the symbol works as a type in
@@ -2375,6 +2415,31 @@ on one of the `*-decl-kwds' lists."
   t (c-make-keywords-re t (c-lang-const c-type-prefix-kwds)))
 (c-lang-defvar c-type-prefix-key (c-lang-const c-type-prefix-key))
 
+(c-lang-defconst c-type-modifier-with-parens-kwds
+  "Keywords which have parenthesis expressions which modify a type.
+They can appear anywhere in the type.  Not included here are kwds which
+stand in place of a type, namely those in `c-no-type-kwds'."
+  t nil
+  c '("alignof" "alignas" "_Alignas" "_Alignof"))
+
+(c-lang-defconst c-type-modifier-with-parens-key
+  ;; Adorned regexp matching `c-type-modifier-with-parens-kwds'.
+  t (c-make-keywords-re t (c-lang-const c-type-modifier-with-parens-kwds)))
+(c-lang-defvar c-type-modifier-with-parens-key
+  (c-lang-const c-type-modifier-with-parens-key))
+
+(c-lang-defconst c-type-internal-paren-kwds
+  ;; Keywords which can be followed by a parenthesis expression inside a type
+  ;; specification.
+  t (append (c-lang-const c-type-with-paren-kwds)
+	    (c-lang-const c-type-modifier-with-parens-kwds)))
+
+(c-lang-defconst c-type-internal-paren-key
+  ;; Adorned regexp matching any member of `c-type-internal-paren-kwds'.
+  t (c-make-keywords-re t (c-lang-const c-type-internal-paren-kwds)))
+(c-lang-defvar c-type-internal-paren-key
+  (c-lang-const c-type-internal-paren-key))
+
 (c-lang-defconst c-type-modifier-prefix-kwds
   "Type modifier keywords which can appear in front of a type.  These can
 also occur almost anywhere in types but they don't build a type of
@@ -2386,6 +2451,7 @@ fontified with the keyword face and not the type face."
   objc '("const" "volatile")
   java '("final")
   t    (append (c-lang-const c-no-type-kwds)
+	       (c-lang-const c-type-modifier-with-parens-kwds)
 	       (c-lang-const c-type-modifier-prefix-kwds)))
 
 (c-lang-defconst c-opt-type-modifier-prefix-key
@@ -2427,7 +2493,8 @@ the type face."
   ;; or a complete type).
   t (c--delete-duplicates (append (c-lang-const c-primitive-type-kwds)
 				  (c-lang-const c-type-prefix-kwds)
-				  (c-lang-const c-type-modifier-kwds))
+				  (c-lang-const c-type-modifier-kwds)
+				  (c-lang-const c-type-with-paren-kwds))
 			  :test 'string-equal))
 
 (c-lang-defconst c-type-decl-suffix-ws-ids-kwds
@@ -2539,7 +2606,7 @@ and precede the opening brace."
   "Set to t when we recognize a colon and then a type after an enum,
 e.g., enum foo : int { A, B, C };"
   t nil
-  c++ t)
+  (c c++) t)
 (c-lang-defvar c-recognize-post-brace-list-type-p
 	       (c-lang-const c-recognize-post-brace-list-type-p))
 
@@ -2643,6 +2710,17 @@ will be handled."
   ;; Regexp matching an entry from `c-no-type-kwds'
   t (c-make-keywords-re t (c-lang-const c-no-type-kwds)))
 (c-lang-defvar c-no-type-key (c-lang-const c-no-type-key))
+
+(c-lang-defconst c-no-type-with-equals-kwds
+  "Keywords after which no type is needed when there's an = sign."
+  t nil
+  c '("auto"))
+
+(c-lang-defconst c-no-type-with-equals-key
+  ;; Regexp mathing an entry from `c-no-type-with-equals-kwds'.
+  t (c-make-keywords-re t (c-lang-const c-no-type-with-equals-kwds)))
+(c-lang-defvar c-no-type-with-equals-key
+  (c-lang-const c-no-type-with-equals-key))
 
 (c-lang-defconst c-typeless-decl-kwds
   "Keywords introducing declarations where the (first) identifier
@@ -2750,10 +2828,12 @@ If any of these also are on `c-type-list-kwds', `c-ref-list-kwds',
 `c-<>-type-kwds', or `c-<>-arglist-kwds' then the associated clauses
 will be handled."
   t    nil
-  (c c++) '("extern" "inline" "register" "static")
-  c    (append '("auto") (c-lang-const c-modifier-kwds))
-  c++  (append '("consteval" "constexpr" "constinit" "explicit"
-		 "friend" "mutable" "template" "thread_local" "virtual")
+  (c c++) '("constexpr" "extern" "inline" "register"
+	    "static" "thread_local")
+  c    (append '("auto" "_Thread_local")
+	       (c-lang-const c-modifier-kwds))
+  c++  (append '("consteval" "constinit" "explicit"
+		 "friend" "mutable" "template" "virtual")
 	       ;; "using" is now handled specially (2020-09-14).
 	       (c-lang-const c-modifier-kwds))
   objc '("auto" "bycopy" "byref" "extern" "in" "inout" "oneway" "out" "static")
@@ -3061,7 +3141,9 @@ contain type identifiers."
   (c c++) '(;; GCC extension.
 	    "__attribute__"
 	    ;; MSVC extension.
-	    "__declspec")
+	    "__declspec"
+	    "static_assert")
+  c (append (c-lang-const c-paren-nontype-kwds) '("_Static_assert"))
   c++ (append (c-lang-const c-paren-nontype-kwds) '("noexcept" "alignas")))
 
 (c-lang-defconst c-paren-nontype-key
@@ -3337,11 +3419,9 @@ not really template operators."
 (c-lang-defconst c-constant-kwds
   "Keywords for constants."
   t       nil
-  c       '("NULL" ;; Not a keyword, but practically works as one.
-	    "false" "true")		; Defined in C99.
-  c++     (append
-           '("nullptr")
-           (c-lang-const c-constant-kwds c))
+  (c c++) '("NULL" ;; Not a keyword, but practically works as one.
+	    "false" "true"		; Defined in C99.
+	    "nullptr")
   objc    '("nil" "Nil" "YES" "NO" "IBAction" "IBOutlet"
 	    "NS_DURING" "NS_HANDLER" "NS_ENDHANDLER")
   idl     '("TRUE" "FALSE")
@@ -3618,7 +3698,8 @@ Note that Java specific rules are currently applied to tell this from
   t (c-make-keywords-re t
       (c--set-difference (c-lang-const c-keywords)
 			 (append (c-lang-const c-primitive-type-kwds)
-				 (c-lang-const c-constant-kwds))
+				 (c-lang-const c-constant-kwds)
+				 (c-lang-const c-type-with-paren-kwds))
 			 :test 'string-equal)))
 (c-lang-defvar c-regular-keywords-regexp
   (c-lang-const c-regular-keywords-regexp))
@@ -4236,6 +4317,13 @@ This is only used in c++-mode."
   c++ "&&?\\(\\S.\\|$\\)")
 (c-lang-defvar c-pre-brace-non-bracelist-key
   (c-lang-const c-pre-brace-non-bracelist-key))
+
+(c-lang-defconst c-recognize-nameless-type-decls
+  "Non-nil means a type may be used in an arglist without an identifier."
+  t nil
+  c t)
+(c-lang-defvar c-recognize-nameless-type-decls
+  (c-lang-const c-recognize-nameless-type-decls))
 
 (c-lang-defconst c-recognize-typeless-decls
   "Non-nil means function declarations without return type should be

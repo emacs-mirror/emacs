@@ -560,6 +560,21 @@ If ALIST is non-nil, the new pairs are prepended to it."
   ;; those rare places where we do need it.
   )
 
+(when (fboundp 'cl-generic-define-method)
+  ;; `cl-generic' requires `cl-lib' at compile-time, so `cl-lib' can't
+  ;; use `cl-defmethod' before `cl-generic' has been loaded.
+  ;; Also, there is no mechanism to autoload methods, so this can't be
+  ;; moved to `cl-extra.el'.
+  (declare-function cl--derived-type-generalizers "cl-extra" (type))
+  (cl-defmethod cl-generic-generalizers :extra "derived-types" (type)
+    "Support for dispatch on derived types, i.e. defined with `cl-deftype'."
+    (if (and (symbolp type) (cl-derived-type-class-p (cl--find-class type))
+             ;; Make sure this derived type can be used without arguments.
+             (let ((expander (get type 'cl-deftype-handler)))
+               (and expander (with-demoted-errors "%S" (funcall expander)))))
+        (cl--derived-type-generalizers type)
+      (cl-call-next-method))))
+
 (defun cl--old-struct-type-of (orig-fun object)
   (or (and (vectorp object) (> (length object) 0)
            (let ((tag (aref object 0)))

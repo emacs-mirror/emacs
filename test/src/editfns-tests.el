@@ -498,10 +498,10 @@
 (defvar sanity-check-change-functions-op nil)
 (defmacro sanity-check-change-functions-with-op (op &rest body)
   (declare (debug t) (indent 1))
-  `(let ((sanity-check-change-functions-op ,op))
-     (sanity-check--message "%S..." sanity-check-change-functions-op)
+  `(let ((sanity-check-change-functions-op (list ,op)))
+     (sanity-check--message "%S..." ,op)
      ,@body
-     (sanity-check--message "%S...done" sanity-check-change-functions-op)))
+     (sanity-check--message "%S...done" ,op)))
 
 (defun sanity-check--message (&rest args)
   (if sanity-check-change-functions-verbose (apply #'message args)))
@@ -530,6 +530,7 @@
     (setq sanity-check-change-functions-buffer-size (buffer-size)))))
 
 (defun sanity-check-change-functions-before (beg end)
+  (push `(BEFORE ,beg ,end) sanity-check-change-functions-op)
   (sanity-check--message "Before: %S %S" beg end)
   (unless (<= (point-min) beg end (point-max))
     (sanity-check-change-functions-error
@@ -540,6 +541,7 @@
   (setq sanity-check-change-functions-end end))
 
 (defun sanity-check-change-functions-after (beg end len)
+  (push `(AFTER ,beg ,end ,len) sanity-check-change-functions-op)
   (sanity-check--message "After : %S %S (%S)" beg end len)
   (unless (<= (point-min) beg end (point-max))
     (sanity-check-change-functions-error
@@ -565,7 +567,7 @@
 (defun sanity-check-change-functions-errors ()
   (sanity-check-change-functions-check-size)
   (if sanity-check-change-functions-errors
-      (cons sanity-check-change-functions-op
+      (cons (reverse sanity-check-change-functions-op)
             sanity-check-change-functions-errors)))
 
 (ert-deftest editfns-tests--before/after-change-functions ()
@@ -590,6 +592,24 @@
       (sanity-check-change-functions-with-op 'DECODE-CODING-REGION
         (decode-coding-region beg (point) 'utf-8)
         (should (null (sanity-check-change-functions-errors)))))
+
+    (let ((beg (point)))                ;bug#78042
+      (apply #'insert (make-list 5000 "hell\351 "))
+      (sanity-check-change-functions-with-op 'DECODE-CODING-LARGE-REGION
+        (decode-coding-region beg (point) 'windows-1252)
+        (should-not (sanity-check-change-functions-errors))))
+
+    (let ((beg (point)))                ;bug#78042
+      (sanity-check-change-functions-with-op 'DECODE-CODING-INSERT
+        ;; The `insert' calls make sure we track the buffer-size
+        ;; so as to detect if `decode-coding-string' fails to run the
+        ;; `*-change-functions'.
+        (insert "<")
+        (decode-coding-string "hell\351 " 'windows-1252 nil (current-buffer))
+        (forward-char 6)
+        (insert ">")
+        (should (equal "<hellé >" (buffer-substring beg (point))))
+        (should-not (sanity-check-change-functions-errors))))
 
     (sanity-check-change-functions-with-op 'ENCODE-CODING-STRING
       (encode-coding-string "ééé" 'utf-8 nil (current-buffer))
