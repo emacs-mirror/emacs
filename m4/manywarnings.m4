@@ -97,7 +97,7 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC(C)],
   # export LC_ALL=C && comm -3 \
   #  <((sed -n 's/^  *\(-[^ 0-9][^ ]*\).*/\1/p' manywarnings.m4; \
   #     awk '/^[^#]/ {print $1}' ../build-aux/gcc-warning.spec) | sort) \
-  #  <(LC_ALL=C gcc --help=warnings | sed -n 's/^  \(-[^ ]*\) .*/\1/p' | sort)
+  #  <(gcc --help=warnings | sed -n 's/^  \(-[^ ]*\) .*/\1/p' | sort)
 
   $1=
   for gl_manywarn_item in -fanalyzer -fstrict-flex-arrays \
@@ -106,7 +106,6 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC(C)],
     -Wbad-function-cast \
     -Wcast-align=strict \
     -Wdate-time \
-    -Wdisabled-optimization \
     -Wdouble-promotion \
     -Wduplicated-branches \
     -Wduplicated-cond \

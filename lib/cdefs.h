@@ -482,7 +482,7 @@
    run in pedantic mode if the uses are carefully marked using the
    `__extension__' keyword.  But this is not generally available before
    version 2.8.  */
-#if !(__GNUC_PREREQ (2,8) || defined __clang__)
+#if ! (__GNUC_PREREQ (2,8) || defined __clang__ || 0x5150 <= __SUNPRO_C)
 # define __extension__		/* Ignore */
 #endif
 

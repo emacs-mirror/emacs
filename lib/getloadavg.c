@@ -140,7 +140,7 @@
 #  define SUNOS_5
 # endif
 
-# if defined (__osf__) && (defined (__alpha) || defined (__alpha__))
+# if defined (__osf__) && defined (__alpha)
 #  define OSF_ALPHA
 #  include <sys/mbuf.h>
 #  include <sys/socket.h>
@@ -499,9 +499,9 @@ getloadavg (double loadavg[], int nelem)
   }
 # endif
 
-# if !defined (LDAV_DONE) && (defined __linux__ || defined __ANDROID__) \
-  && (!defined __ANDROID__ || __ANDROID_API__ >= 13)
-                                      /* Linux without glibc, Android, Cygwin */
+# if (!defined LDAV_DONE \
+      && (defined __ANDROID__ ? 13 <= __ANDROID_API__ : defined __linux__))
+                    /* non-Android Linux without glibc, Android 3.2+, Cygwin */
 #  define LDAV_DONE
 #  undef LOAD_AVE_TYPE
 
@@ -514,7 +514,7 @@ getloadavg (double loadavg[], int nelem)
     loadavg[2] = info.loads[2] / (double)(1U << SI_LOAD_SHIFT);
     elem = 3;
   }
-# endif /* __linux__ || __ANDROID__ */
+# endif /* __ANDROID__ ? 13 <= __ANDROID_API__ : __linux__ */
 
 # if !defined (LDAV_DONE) && defined __CYGWIN__
                                       /* Cygwin */
