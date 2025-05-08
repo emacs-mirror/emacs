@@ -8118,14 +8118,13 @@ decode_coding_object (struct coding_system *coding,
 	move_gap_both (from, from_byte);
       if (BASE_EQ (src_object, dst_object))
 	{
-	  DO_MARKERS (current_buffer, tail)
+	  FOR_EACH_MARKER (current_buffer, tail)
 	    {
 	      const ptrdiff_t charpos = marker_vector_charpos (tail);
 	      tail->need_adjustment
 		= charpos == (tail->insertion_type ? from : to);
 	      need_marker_adjustment |= tail->need_adjustment;
 	    }
-	  END_DO_MARKERS;
 	  saved_pt = PT, saved_pt_byte = PT_BYTE;
 	  TEMP_SET_PT_BOTH (from, from_byte);
 	  current_buffer->text->inhibit_shrinking = true;
@@ -8250,7 +8249,7 @@ decode_coding_object (struct coding_system *coding,
 
       if (need_marker_adjustment)
 	{
-	  DO_MARKERS (current_buffer, tail)
+	  FOR_EACH_MARKER (current_buffer, tail)
 	    {
 	      if (tail->need_adjustment)
 		{
@@ -8269,7 +8268,6 @@ decode_coding_object (struct coding_system *coding,
 		    }
 		}
 	    }
-	  END_DO_MARKERS;
 	}
     }
 
@@ -8340,14 +8338,13 @@ encode_coding_object (struct coding_system *coding,
   if (BASE_EQ (src_object, dst_object) && BUFFERP (src_object))
     {
       same_buffer = true;
-      DO_MARKERS (XBUFFER (src_object), tail)
+      FOR_EACH_MARKER (XBUFFER (src_object), tail)
 	{
 	  const ptrdiff_t charpos = marker_vector_charpos (tail);
 	  tail->need_adjustment
 	    = charpos == (tail->insertion_type ? from : to);
 	  need_marker_adjustment |= tail->need_adjustment;
 	}
-      END_DO_MARKERS;
     }
 
   if (! NILP (CODING_ATTR_PRE_WRITE (attrs)))
@@ -8505,7 +8502,7 @@ encode_coding_object (struct coding_system *coding,
 
       if (need_marker_adjustment)
 	{
-	  DO_MARKERS (current_buffer, tail)
+	  FOR_EACH_MARKER (current_buffer, tail)
 	    {
 	      if (tail->need_adjustment)
 		{
@@ -8524,7 +8521,6 @@ encode_coding_object (struct coding_system *coding,
 		    }
 		}
 	    }
-	  END_DO_MARKERS;
 	}
     }
 

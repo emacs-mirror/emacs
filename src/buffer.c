@@ -2073,12 +2073,11 @@ cleaning up all windows currently displaying the buffer to be killed. */)
       /* Unchain all markers that belong to this indirect buffer.
 	 Don't unchain the markers that belong to the base buffer
 	 or its other indirect buffers.  */
-      DO_MARKERS (b, m)
+      FOR_EACH_MARKER (b, m)
 	{
 	  if (m->buffer == b)
 	    marker_vector_remove (XVECTOR (BUF_MARKERS (b)), m);
 	}
-      END_DO_MARKERS;
 
      /* Intervals should be owned by the base buffer (Bug#16502).  */
       i = buffer_intervals (b);
@@ -2618,7 +2617,7 @@ results, see Info node `(elisp)Swapping Text'.  */)
   other_buffer->text->end_unchanged = other_buffer->text->gpt;
   swap_buffer_overlays (current_buffer, other_buffer);
   {
-    DO_MARKERS (current_buffer, m)
+    FOR_EACH_MARKER (current_buffer, m)
       {
 	if (m->buffer == other_buffer)
 	  m->buffer = current_buffer;
@@ -2627,8 +2626,7 @@ results, see Info node `(elisp)Swapping Text'.  */)
 	     BUF_MARKERS(buf) should either be for `buf' or dead.  */
 	  eassert (!m->buffer);
       }
-    END_DO_MARKERS;
-    DO_MARKERS (other_buffer, m)
+    FOR_EACH_MARKER (other_buffer, m)
       {
 	if (m->buffer == current_buffer)
 	  m->buffer = other_buffer;
@@ -2637,7 +2635,6 @@ results, see Info node `(elisp)Swapping Text'.  */)
 	     BUF_MARKERS(buf) should either be for `buf' or dead.  */
 	  eassert (!m->buffer);
       }
-    END_DO_MARKERS;
   }
 
   { /* Some of the C code expects that both window markers of a
@@ -2746,12 +2743,11 @@ current buffer is cleared.  */)
       GPT = GPT_BYTE;
       TEMP_SET_PT_BOTH (PT_BYTE, PT_BYTE);
 
-      DO_MARKERS (current_buffer, tail)
+      FOR_EACH_MARKER (current_buffer, tail)
 	{
 	  const ptrdiff_t bytepos = marker_vector_bytepos (tail);
 	  marker_vector_set_charpos (tail, bytepos);
 	}
-      END_DO_MARKERS;
 
       /* Convert multibyte form of 8-bit characters to unibyte.  */
       pos = BEG;
@@ -2901,13 +2897,12 @@ current buffer is cleared.  */)
 	TEMP_SET_PT_BOTH (position, byte);
       }
 
-      DO_MARKERS (current_buffer, tail)
+      FOR_EACH_MARKER (current_buffer, tail)
 	{
 	  ptrdiff_t bytepos = marker_vector_bytepos (tail);
 	  bytepos = advance_to_char_boundary (bytepos);
 	  marker_vector_set_charpos (tail, BYTE_TO_CHAR (bytepos));
 	}
-      END_DO_MARKERS;
 
       /* Do this last, so it can calculate the new correspondences
 	 between chars and bytes.  */

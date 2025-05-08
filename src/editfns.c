@@ -4438,7 +4438,7 @@ transpose_markers (ptrdiff_t start1, ptrdiff_t end1,
   amt1 = (end2 - start2) + (start2 - end1);
   amt2 = (end1 - start1) + (start2 - end1);
 
-  DO_MARKERS (current_buffer, marker)
+  FOR_EACH_MARKER (current_buffer, marker)
     {
       mpos = marker_vector_charpos (marker);
       if (mpos >= start1 && mpos < end2)
@@ -4452,7 +4452,6 @@ transpose_markers (ptrdiff_t start1, ptrdiff_t end1,
 	}
       marker_vector_set_charpos (marker, mpos);
     }
-  END_DO_MARKERS;
 }
 
 DEFUN ("transpose-regions", Ftranspose_regions, Stranspose_regions, 4, 5,

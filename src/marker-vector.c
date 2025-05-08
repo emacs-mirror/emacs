@@ -164,9 +164,8 @@ check_marker_vector (struct Lisp_Vector *v, bool allocating)
 
   size_t nused = 0;
   Lisp_Object mv = make_lisp_ptr (v, Lisp_Vectorlike);
-  DO_MARKERS_OF_VECTOR (mv, m)
+  FOR_EACH_MARKER_OF_VECTOR (mv, m)
     {
-      eassert (m->entry == e_);
       eassert (m->buffer != NULL);
       if (!allocating)
 	{
@@ -175,7 +174,6 @@ check_marker_vector (struct Lisp_Vector *v, bool allocating)
 	}
       ++nused;
     }
-  END_DO_MARKERS;
 
   eassert ((nused + nfree) * MARKER_VECTOR_ENTRY_SIZE
 	   + MARKER_VECTOR_HEADER_SIZE == gc_vsize (v));
@@ -280,13 +278,12 @@ marker_vector_remove (struct Lisp_Vector *v, struct Lisp_Marker *m)
 void
 marker_vector_reset (struct buffer *b)
 {
-  DO_MARKERS (b, m)
+  FOR_EACH_MARKER (b, m)
     {
       const struct Lisp_Vector *v = XVECTOR (BUF_MARKERS (m->buffer));
       m->entry = - XFIXNUM (CHARPOS (v, m->entry));
       m->buffer = NULL;
     }
-  END_DO_MARKERS;
   BUF_MARKERS (b) = Qnil;
 }
 
@@ -344,7 +341,7 @@ marker_vector_adjust_for_insert (struct buffer *b,
 {
   const ptrdiff_t nchars = to_charpos - from_charpos;
   struct Lisp_Vector *v = XVECTOR (BUF_MARKERS (b));
-  DO_MARKERS (b, m)
+  FOR_EACH_MARKER (b, m)
     {
       const ptrdiff_t charpos = XFIXNUM (CHARPOS (v, m->entry));
       if (charpos == from_charpos)
@@ -355,7 +352,6 @@ marker_vector_adjust_for_insert (struct buffer *b,
       else if (charpos > from_charpos)
 	CHARPOS (v, m->entry) = make_fixnum (charpos + nchars);
     }
-  END_DO_MARKERS;
 }
 
 /* Adjust marker positions of buffer Bs for a replacement of text at
@@ -371,7 +367,7 @@ marker_vector_adjust_for_replace (struct buffer *b,
   const ptrdiff_t diff_nchars = new_nchars - old_nchars;
   const ptrdiff_t old_to_charpos = from_charpos + old_nchars;
   struct Lisp_Vector *v = XVECTOR (BUF_MARKERS (b));
-  DO_MARKERS (b, m)
+  FOR_EACH_MARKER (b, m)
     {
       const ptrdiff_t charpos = XFIXNUM (CHARPOS (v, m->entry));
       if (charpos >= old_to_charpos)
@@ -379,5 +375,4 @@ marker_vector_adjust_for_replace (struct buffer *b,
       else if (charpos > from_charpos)
 	CHARPOS (v, m->entry) = make_fixnum (from_charpos);
     }
-  END_DO_MARKERS;
 }

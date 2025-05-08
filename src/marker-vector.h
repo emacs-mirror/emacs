@@ -39,27 +39,55 @@ enum
   MARKER_VECTOR_ENTRY_SIZE = 2,
 };
 
-/* Iterate over markers in marker vector MV, binding a variable with
-   name M to a pointer to Lisp_Marker.  The loop must be ended
-   with an END_DO_MARKERS.  */
+struct for_each_marker_data
+{
+  ptrdiff_t e;
+  ptrdiff_t end;
+  Lisp_Object m;
+  Lisp_Object mv;
+  bool continued;
+  struct Lisp_Marker *marker;
+};
 
-# define DO_MARKERS_OF_VECTOR(mv, m)					\
-  for (ptrdiff_t e_ = MARKER_VECTOR_HEADER_SIZE,			\
-	 end_ = XFIXNUM (AREF (mv, MARKER_VECTOR_MAX_ENTRY));		\
-       e_ <= end_;							\
-       e_ += MARKER_VECTOR_ENTRY_SIZE)					\
-    {									\
-       Lisp_Object m_ = AREF (mv, e_ + MARKER_VECTOR_OFFSET_MARKER);	\
-       if (MARKERP (m_))						\
-	 {								\
-            struct Lisp_Marker *m = XMARKER (m_);
+INLINE struct for_each_marker_data
+build_for_each_marker_data(Lisp_Object mv)
+{
+  struct for_each_marker_data ret;
+  ret.e = MARKER_VECTOR_HEADER_SIZE;
+  ret.end = XFIXNUM (AREF (mv, MARKER_VECTOR_MAX_ENTRY));
+  ret.m = Qnil;
+  ret.mv = mv;
+  ret.marker = NULL;
+  ret.continued = true;
+  return ret;
+}
 
-/* Iterate over markers of buffer B, binding a variable with name M to a
-   pointer to Lisp_Marker.  The loop must be ended with an
-   END_DO_MARKERS.  */
+INLINE bool
+next_marker_entry (struct for_each_marker_data *d)
+{
+  if (!d->continued)
+    return false;
+  while (d->e <= d->end)
+    {
+      d->m = AREF (d->mv, d->e + MARKER_VECTOR_OFFSET_MARKER);
+      d->e += MARKER_VECTOR_ENTRY_SIZE;
+      if (MARKERP (d->m))
+	{
+	  d->marker = XMARKER (d->m);
+	  d->continued = false;
+	  return true;
+	}
+    }
+  return false;
+}
 
-# define DO_MARKERS(b, m) DO_MARKERS_OF_VECTOR (BUF_MARKERS (b), m)
-# define END_DO_MARKERS }}
+#define FOR_EACH_MARKER_OF_VECTOR(v, m)					\
+  for (struct for_each_marker_data d_ = build_for_each_marker_data (v); \
+       next_marker_entry (&d_);)					\
+    for (struct Lisp_Marker *m = d_.marker; !d_.continued; d_.continued = true)
+
+#define FOR_EACH_MARKER(b, m) \
+  FOR_EACH_MARKER_OF_VECTOR (BUF_MARKERS (b), m)
 
 Lisp_Object make_marker_vector (void);
 Lisp_Object alloc_marker_vector (ptrdiff_t len);
