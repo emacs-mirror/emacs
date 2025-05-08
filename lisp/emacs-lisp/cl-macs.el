@@ -3812,6 +3812,11 @@ If PARENTS is non-nil, ARGLIST must be nil."
          (cl--define-derived-type
           ',name ,expander ,predicate ',parents)))))
 
+;; This one is redundant, but we keep it to silence a
+;; warning during the early bootstrap when `cl-seq.el' gets
+;; loaded before `cl-preloaded.el' is defined.
+(put 'list 'cl-deftype-satisfies #'listp)
+
 (static-if (not (fboundp 'cl--define-derived-type))
     nil ;; Can't define them yet!
   (cl-deftype natnum () (declare (parents integer)) '(satisfies natnump))
@@ -3827,10 +3832,6 @@ If PARENTS is non-nil, ARGLIST must be nil."
     ;; keyboard macros, which are redundant since `kmacro.el'!!
     ;;(declare (parents function))
     '(satisfies commandp))
-  ;; This one is redundant, but we keep it to silence a
-  ;; warning during the early bootstrap when `cl-seq.el' gets
-  ;; loaded before `cl-preloaded.el' is defined.
-  (put 'list 'cl-deftype-satisfies #'listp)
 
   (eval-when-compile
     (defmacro cl--defnumtype (type base)

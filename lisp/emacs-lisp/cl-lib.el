@@ -560,12 +560,11 @@ If ALIST is non-nil, the new pairs are prepended to it."
   ;; those rare places where we do need it.
   )
 
-(static-if (not (fboundp 'cl-defmethod))
-    ;; `cl-generic' requires `cl-lib' at compile-time, so `cl-lib' can't
-    ;; use `cl-defmethod' before `cl-generic' has been compiled.
-    ;; Also, there is no mechanism to autoload methods, so this can't be
-    ;; moved to `cl-extra.el'.
-    nil
+(when (fboundp 'cl-generic-define-method)
+  ;; `cl-generic' requires `cl-lib' at compile-time, so `cl-lib' can't
+  ;; use `cl-defmethod' before `cl-generic' has been loaded.
+  ;; Also, there is no mechanism to autoload methods, so this can't be
+  ;; moved to `cl-extra.el'.
   (declare-function cl--derived-type-generalizers "cl-extra" (type))
   (cl-defmethod cl-generic-generalizers :extra "derived-types" (type)
     "Support for dispatch on derived types, i.e. defined with `cl-deftype'."
