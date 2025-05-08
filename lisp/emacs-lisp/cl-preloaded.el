@@ -505,37 +505,26 @@ PARENTS is a list of types NAME is a subtype of, or nil."
           ;; "complement" another declaration of the same type,
           ;; so maybe we should turn this into a warning (and
           ;; not overwrite the `cl--find-class' in that case)?
-          (error "Type in another class: %S" (type-of class))))
+          (error "Type %S already in another class: %S" name (type-of class))))
     ;; Setup a type descriptor for NAME.
     (setf (cl--find-class name)
           (cl--derived-type-class-make name (function-documentation expander)
                                        parents))
     (define-symbol-prop name 'cl-deftype-handler expander)
     (when predicate
-      (define-symbol-prop name 'cl-deftype-satisfies predicate))
-    ;; Record new type.  The constructor of the class
-    ;; `cl-type-class' already ensures that parent types must be
-    ;; defined before their "child" types (i.e. already added to
-    ;; the `cl--derived-type-list' for types defined with `cl-deftype').
-    ;; So it is enough to simply push a new type at the beginning
-    ;; of the list.
-    ;; Redefinition is more complicated, because child types may
-    ;; be in the list, so moving the type to the head can be
-    ;; incorrect.  The "cheap" solution is to leave the list
-    ;; unchanged (and hope the redefinition doesn't change the
-    ;; hierarchy too much).
-    ;; Side note: Redefinitions introduce other problems as well
-    ;; because the class object's `parents` slot contains
-    ;; references to `cl--class` objects, so after a redefinition
-    ;; via (setf (cl--find-class FOO) ...), the children's
-    ;; `parents` slots point to the old class object.  That's a
-    ;; problem that affects all types and that we don't really try
-    ;; to solve currently.
-    (or (memq name cl--derived-type-list)
-        ;; Exclude types that can't be used without arguments.
-        ;; They'd signal errors in `cl-types-of'!
-        (not predicate)
-        (push name cl--derived-type-list))))
+      (define-symbol-prop name 'cl-deftype-satisfies predicate)
+      ;; If the type can be used without arguments, record it for
+      ;; use by `cl-types-of'.
+      ;; The order in `cl--derived-type-list' is important, but the
+      ;; constructor of the class `cl-type-class' already ensures that
+      ;; parent types must be defined before their "child" types
+      ;; (i.e. already added to the `cl--derived-type-list' for types
+      ;; defined with `cl-deftype').  So it is enough to simply push
+      ;; a new type at the beginning of the list.
+      ;; Redefinition is a can of worms anyway, so we don't try to be clever
+      ;; in that case.
+      (or (memq name cl--derived-type-list)
+          (push name cl--derived-type-list)))))
 
 ;; Make sure functions defined with cl-defsubst can be inlined even in
 ;; packages which do not require CL.  We don't put an autoload cookie
