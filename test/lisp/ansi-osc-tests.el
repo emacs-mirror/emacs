@@ -30,8 +30,7 @@
 (require 'ert)
 
 (defvar ansi-osc-tests--strings
-  `(
-    ("Hello World" "Hello World")
+  `(("Hello World" "Hello World")
 
     ;; window title
     ("Buffer \e]2;A window title\e\\content" "Buffer content")
@@ -44,6 +43,10 @@
 
     ;; hyperlink
     ("\e]8;;http://example.com\e\\This is a link\e]8;;\e\\" "This is a link")
+
+    ;; multiple sequences
+    ("Escape \e]2;A window title\e\\sequence followed by \e]2;unfinished sequence"
+     "Escape sequence followed by \e]2;unfinished sequence")
     ))
 ;; Don't output those strings to stdout since they may have
 ;; side-effects on the environment
@@ -54,4 +57,44 @@
       (with-temp-buffer
         (insert input)
         (ansi-osc-apply-on-region (point-min) (point-max))
-        (should (equal (buffer-string) text))))))
+        (should (equal
+                 (buffer-substring-no-properties
+                  (point-min) (point-max))
+                 text))))))
+
+(ert-deftest ansi-osc-tests-apply-region-no-handlers-multiple-calls ()
+  (let ((ansi-osc-handlers nil))
+    (with-temp-buffer
+      (insert
+       (concat "First set the window title \e]2;A window title\e\\"
+               "then change it\e]2;Another "))
+      (ansi-osc-apply-on-region (point-min) (point-max))
+      (let ((pos (point)))
+        (insert "title\e\\, and stop.")
+        (ansi-osc-apply-on-region pos (point-max)))
+      (should
+       (equal
+        (buffer-substring-no-properties (point-min) (point-max))
+        "First set the window title then change it, and stop.")))))
+
+(ert-deftest ansi-osc-tests-filter-region ()
+  (pcase-dolist (`(,input ,text) ansi-osc-tests--strings)
+    (with-temp-buffer
+      (insert input)
+      (ansi-osc-filter-region (point-min) (point-max))
+      (should (equal (buffer-string) text)))))
+
+
+(ert-deftest ansi-osc-tests-filter-region-with-multiple-calls ()
+  (with-temp-buffer
+    (insert
+     (concat "First set the window title \e]2;A window title\e\\"
+             "then change it\e]2;Another "))
+    (ansi-osc-filter-region (point-min) (point-max))
+    (let ((pos (point)))
+      (insert "title\e\\, and stop.")
+      (ansi-osc-filter-region pos (point-max)))
+    (should
+     (equal
+      (buffer-string)
+      "First set the window title then change it, and stop."))))
