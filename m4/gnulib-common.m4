@@ -1630,7 +1630,7 @@ dnl
 dnl This macro sets two variables:
 dnl   - gl_cv_onwards_func_<func>   to yes / no / "future OS version"
 dnl   - ac_cv_func_<func>           to yes / no / no
-dnl The first variable allows to distinguish all three cases.
+dnl The first variable allows distinguishing all three cases.
 dnl The second variable is set, so that an invocation
 dnl   gl_CHECK_FUNCS_ANDROID([func], [[#include <foo.h>]])
 dnl can be used as a drop-in replacement for
@@ -1683,7 +1683,7 @@ dnl
 dnl This macro sets two variables:
 dnl   - gl_cv_onwards_func_<func>   to yes / no / "future OS version"
 dnl   - ac_cv_func_<func>           to yes / no / no
-dnl The first variable allows to distinguish all three cases.
+dnl The first variable allows distinguishing all three cases.
 dnl The second variable is set, so that an invocation
 dnl   gl_CHECK_FUNCS_MACOS([func], [[#include <foo.h>]])
 dnl can be used as a drop-in replacement for
