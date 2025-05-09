@@ -504,7 +504,7 @@ This can alter PLIST."
         (setq ses--ses-buffer-list (delq buf ses--ses-buffer-list)))
        (t
         (with-current-buffer buf
-          (when (gethash name ses--named-cell-hashmap)
+          (when (and ses--named-cell-hashmap (gethash name ses--named-cell-hashmap))
             (setq used-elsewhere t
                   buffer-list nil))))))
     (unless used-elsewhere
@@ -3452,7 +3452,7 @@ while in the SES buffer."
           ((minibufferp) ses--completion-table)
           ((derived-mode-p 'help-mode) nil)
           (t (user-error "Not in a SES buffer")))))
-  (when named-cell-hashmap
+  (if named-cell-hashmap
     (let ((ses--list-orig-buffer (or ses--list-orig-buffer (current-buffer))))
       (help-setup-xref
        (list (lambda (named-cell-hashmap buffer)
@@ -3474,7 +3474,8 @@ while in the SES buffer."
                        (princ "\n"))
                      named-cell-hashmap))
           (with-current-buffer standard-output
-            (buffer-string)))))))
+            (buffer-string)))))
+    (message "No named cell found")))
 
 
 ;;----------------------------------------------------------------------------
