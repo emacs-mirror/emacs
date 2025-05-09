@@ -2205,24 +2205,39 @@ candidate_frame (Lisp_Object candidate, Lisp_Object frame, Lisp_Object minibuf)
 static Lisp_Object
 next_frame (Lisp_Object frame, Lisp_Object minibuf)
 {
-  Lisp_Object f, tail;
-  int passed = 0;
+  Lisp_Object f, tail, next = Qnil;
+  bool passed = false;
 
   eassume (CONSP (Vframe_list));
 
-  while (passed < 2)
-    FOR_EACH_FRAME (tail, f)
-      {
-	if (passed)
-	  {
-	    f = candidate_frame (f, frame, minibuf);
-	    if (!NILP (f))
-	      return f;
-	  }
-	if (EQ (frame, f))
-	  passed++;
-      }
-  return frame;
+  FOR_EACH_FRAME (tail, f)
+    {
+      if (EQ (f, frame))
+	/* If we encounter FRAME, set PASSED to true.  */
+	passed = true;
+      else
+	{
+	  f = candidate_frame (f, frame, minibuf);
+
+	  if (!NILP (f))
+	    {
+	      if (passed)
+		/* If we passed FRAME already, return first suitable
+		   candidate following it.  */
+		return f;
+	      else if (NILP (next))
+		/* If we didn't pass FRAME and have no suitable
+		   candidate yet, set NEXT to the first suitable
+		   candidate preceding FRAME.  */
+		next = f;
+	    }
+	}
+    }
+
+  /* We have scanned all frames.  Return first candidate preceding FRAME
+     if we have found one.  Otherwise return FRAME regardless of whether
+     it is a suitable candidate or not.  */
+  return NILP (next) ? frame : next;
 }
 
 /* Return the previous frame in the frame list before FRAME.  */
@@ -2237,21 +2252,26 @@ prev_frame (Lisp_Object frame, Lisp_Object minibuf)
   FOR_EACH_FRAME (tail, f)
     {
       if (EQ (frame, f) && !NILP (prev))
+	/* If we encounter FRAME and already have found a suitable
+	   candidate preceding it, return that candidate.  */
 	return prev;
+
       f = candidate_frame (f, frame, minibuf);
+
       if (!NILP (f))
+	/* PREV is always the last suitable candidate we found.  */
 	prev = f;
     }
 
   /* We've scanned the entire list.  */
   if (NILP (prev))
     /* We went through the whole frame list without finding a single
-       acceptable frame.  Return the original frame.  */
+       acceptable frame.  Return FRAME.  */
     return frame;
   else
-    /* There were no acceptable frames in the list before FRAME; otherwise,
-       we would have returned directly from the loop.  Since PREV is the last
-       acceptable frame in the list, return it.  */
+    /* There were no acceptable frames in the list before FRAME;
+       otherwise, we would have returned directly from the loop.  Since
+       PREV is the last suitable frame in the list, return it.  */
     return prev;
 }
 
@@ -2259,7 +2279,7 @@ prev_frame (Lisp_Object frame, Lisp_Object minibuf)
 DEFUN ("next-frame", Fnext_frame, Snext_frame, 0, 2, 0,
        doc: /* Return the next frame in the frame list after FRAME.
 Only frames on the same terminal as FRAME are included in the list
-of candidate frames.  If omitted, FRAME defaults to the selected frame.
+of candidate frames.  FRAME defaults to the selected frame.
 
 If MINIFRAME is nil (the default), include all frames except
 minibuffer-only frames.
@@ -2271,7 +2291,9 @@ If MINIFRAME is `visible', include only visible frames.
 
 If MINIFRAME is 0, include only visible and iconified frames.
 
-If MINIFRAME is any other value, include all frames.  */)
+If MINIFRAME is any other value, include all frames.
+
+Return FRAME if no suitable next frame is found.  */)
   (Lisp_Object frame, Lisp_Object miniframe)
 {
   if (NILP (frame))
@@ -2282,15 +2304,22 @@ If MINIFRAME is any other value, include all frames.  */)
 
 DEFUN ("previous-frame", Fprevious_frame, Sprevious_frame, 0, 2, 0,
        doc: /* Return the previous frame in the frame list before FRAME.
-It considers only frames on the same terminal as FRAME.
-By default, skip minibuffer-only frames.
-If omitted, FRAME defaults to the selected frame.
-If optional argument MINIFRAME is nil, exclude minibuffer-only frames.
-If MINIFRAME is a window, include only its own frame
-and any frame now using that window as the minibuffer.
-If MINIFRAME is `visible', include all visible frames.
-If MINIFRAME is 0, include all visible and iconified frames.
-Otherwise, include all frames.  */)
+Only frames on the same terminal as FRAME are included in the list
+of candidate frames.  FRAME defaults to the selected frame.
+
+If MINIFRAME is nil (the default), include all frames except
+minibuffer-only frames.
+
+If MINIFRAME is a window, include only its own frame and any frame now
+using that window as the minibuffer.
+
+If MINIFRAME is `visible', include only visible frames.
+
+If MINIFRAME is 0, include only visible and iconified frames.
+
+If MINIFRAME is any other value, include all frames.
+
+Return FRAME if no suitable previous frame is found.  */)
   (Lisp_Object frame, Lisp_Object miniframe)
 {
   if (NILP (frame))
