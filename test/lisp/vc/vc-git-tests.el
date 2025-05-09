@@ -122,7 +122,7 @@ agnostic of init.defaultbranch."
   (write-region "hello" nil "README")
   (vc-git-test--run "add" "README")
   (vc-git-test--run "commit" "-mFirst")
-  (string-trim (vc-git-test--run "branch" "--show-current")))
+  (string-trim (vc-git-test--run "rev-parse" "--abbrev-ref" "HEAD")))
 
 (defun vc-git-test--dir-headers (headers)
   "Return an alist of header values as they would appear in `vc-dir'.
