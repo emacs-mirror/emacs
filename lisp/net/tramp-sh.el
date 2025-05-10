@@ -3115,7 +3115,9 @@ will be used."
 			(let ((pid (tramp-send-command-and-read v "echo $$")))
 			  (setq p (tramp-get-connection-process v))
 			  (process-put p 'remote-pid pid))
-			(when (memq connection-type '(nil pipe))
+			(when
+			    (or (memq connection-type '(nil pipe))
+				(tramp-check-remote-uname v tramp-sunos-unames))
 			  ;; Disable carriage return to newline
 			  ;; translation.  This does not work on
 			  ;; macOS, see Bug#50748.
@@ -3131,6 +3133,9 @@ will be used."
 			  ;; should set a timeout
 			  ;; instead.  See `tramp-pipe-stty-settings'.
 			  ;; (Bug#62093)
+			  ;; On Solaris, the maximum line length
+			  ;; depends also on MAX_CANON (256).  So we
+			  ;; disable buffering as well.
 			  ;; FIXME: Shall we rather use "stty raw"?
 			  (tramp-send-command
 			   v (format
