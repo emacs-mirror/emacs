@@ -713,8 +713,7 @@ This function returns a list (URL NEW-WINDOW-FLAG) for use in
 `interactive'.  NEW-WINDOW-FLAG is the prefix arg; if
 `browse-url-new-window-flag' is non-nil, invert the prefix arg
 instead."
-  (let ((event (elt (this-command-keys) 0)))
-    (mouse-set-point event))
+  (mouse-set-point last-nonmenu-event)
   (list (read-string prompt (or (and transient-mark-mode mark-active
 				     ;; rfc2396 Appendix E.
 				     (replace-regexp-in-string
