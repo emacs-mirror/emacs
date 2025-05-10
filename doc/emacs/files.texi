@@ -1110,13 +1110,15 @@ End:
 -->
 @end example
 
-@vindex time-stamp-format
 By default the time stamp is
 formatted according to your locale setting (@pxref{Environment}) and
 time zone (@pxref{Time of Day,,, elisp, The Emacs Lisp Reference
 Manual}).
+@vindex time-stamp-time-zone
+Set @code{time-stamp-time-zone} to override the time zone used.
+@vindex time-stamp-format
 See the built-in documentation for the variable @code{time-stamp-format}
-for specifics and other variables that affect the formatting.
+for specifics on formatting and other variables that affect it.
 
 @node Time Stamps for One File
 @subsubsection Forcing Time Stamps for One File

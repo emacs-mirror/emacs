@@ -1217,10 +1217,10 @@ lines.  Here is a table of them:
 @table @samp
 @item ;;; Commentary:
 This begins introductory comments that explain how the library works.
-It should come right after the copying permissions, terminated by a
-@samp{Change Log}, @samp{History} or @samp{Code} comment line.  This
-text is used by the Finder package, so it should make sense in that
-context.
+It should come right after the copying permissions, and is terminated by
+one of the comment lines described below: @samp{Change Log},
+@samp{History} or @samp{Code}.  This text is used by the Finder package,
+so it should make sense in that context.
 
 @item ;;; Change Log:
 This begins an optional log of changes to the file over time.  Don't
