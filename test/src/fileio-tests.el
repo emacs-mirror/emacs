@@ -217,4 +217,23 @@ Also check that an encoding error can appear in a symlink."
   (should-not (file-exists-p "//"))
   (should (file-attributes "//")))
 
+(ert-deftest fileio-tests-w32-time-stamp-granularity ()
+  "Test 100-nsec granularity of file time stamps on MS-Windows."
+  (skip-unless (eq system-type 'windows-nt))
+  ;; FIXME: This only works on NTFS volumes, so should skip the test if
+  ;; not NTFS.  But we don't expose the filesystem type to Lisp.
+  (let ((tfile (make-temp-file "tstamp")))
+    (unwind-protect
+        (progn
+          (set-file-times tfile (encode-time '(59.123456789 15 23 01 02 2025)))
+          (should
+           (equal (format-time-string "%Y/%m/%d %H:%M:%S.%N"
+		                      (file-attribute-modification-time
+                                       (file-attributes tfile)))
+                  ;; Last 2 digits of seconds must be zero due to
+                  ;; 100-nsec resolution of Windows file time stamps.
+                  "2025/02/01 23:15:59.123456700")))
+      (delete-file tfile))))
+
+
 ;;; fileio-tests.el ends here
