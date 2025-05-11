@@ -5076,9 +5076,10 @@ initialize_utc_base (void)
 }
 
 static time_t
-convert_time (FILETIME ft)
+convert_time (FILETIME ft, int *time_nsec)
 {
   ULONGLONG tmp;
+  time_t time_sec;
 
   if (!init)
     {
@@ -5090,7 +5091,10 @@ convert_time (FILETIME ft)
     return 0;
 
   FILETIME_TO_U64 (tmp, ft);
-  return (time_t) ((tmp - utc_base) / 10000000L);
+  tmp -= utc_base;
+  time_sec = (time_t) (tmp / 10000000L);
+  *time_nsec = (tmp - (ULONGLONG) time_sec * 10000000L) * 100L;
+  return time_sec;
 }
 
 static void
@@ -5707,11 +5711,19 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
   buf->st_nlink = nlinks;
 
   /* Convert timestamps to Unix format. */
-  buf->st_mtime = convert_time (wtime);
-  buf->st_atime = convert_time (atime);
-  if (buf->st_atime == 0) buf->st_atime = buf->st_mtime;
-  buf->st_ctime = convert_time (ctime);
-  if (buf->st_ctime == 0) buf->st_ctime = buf->st_mtime;
+  buf->st_mtime = convert_time (wtime, &buf->st_mtimensec);
+  buf->st_atime = convert_time (atime, &buf->st_atimensec);
+  if (buf->st_atime == 0)
+    {
+      buf->st_atime = buf->st_mtime;
+      buf->st_atimensec = buf->st_mtimensec;
+    }
+  buf->st_ctime = convert_time (ctime, &buf->st_ctimensec);
+  if (buf->st_ctime == 0)
+    {
+      buf->st_ctime = buf->st_mtime;
+      buf->st_ctimensec = buf->st_mtimensec;
+    }
 
   /* determine rwx permissions */
   if (is_a_symlink && !follow_symlinks)
@@ -5853,11 +5865,19 @@ fstat (int desc, struct stat * buf)
   buf->st_size += info.nFileSizeLow;
 
   /* Convert timestamps to Unix format. */
-  buf->st_mtime = convert_time (info.ftLastWriteTime);
-  buf->st_atime = convert_time (info.ftLastAccessTime);
-  if (buf->st_atime == 0) buf->st_atime = buf->st_mtime;
-  buf->st_ctime = convert_time (info.ftCreationTime);
-  if (buf->st_ctime == 0) buf->st_ctime = buf->st_mtime;
+  buf->st_mtime = convert_time (info.ftLastWriteTime, &buf->st_mtimensec);
+  buf->st_atime = convert_time (info.ftLastAccessTime, &buf->st_atimensec);
+  if (buf->st_atime == 0)
+    {
+      buf->st_atime = buf->st_mtime;
+      buf->st_atimensec = buf->st_mtimensec;
+    }
+  buf->st_ctime = convert_time (info.ftCreationTime, &buf->st_ctimensec);
+  if (buf->st_ctime == 0)
+    {
+      buf->st_ctime = buf->st_mtime;
+      buf->st_ctimensec = buf->st_mtimensec;
+    }
 
   /* determine rwx permissions */
   if (info.dwFileAttributes & FILE_ATTRIBUTE_READONLY)

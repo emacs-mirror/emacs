@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <direct.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <math.h>
 #include <errno.h>
 #include <ctype.h>
 #include <sys/timeb.h>
@@ -256,7 +257,7 @@ static long double utc_base;
 static int init = 0;
 
 static time_t
-convert_time (FILETIME ft)
+convert_time (FILETIME ft, int *time_nsec)
 {
   long double ret;
 
@@ -266,7 +267,8 @@ convert_time (FILETIME ft)
   ret = (long double) ft.dwHighDateTime
     * 4096.0L * 1024.0L * 1024.0L + ft.dwLowDateTime;
   ret -= utc_base;
-  return (time_t) (ret * 1e-7L);
+  *time_nsec = (int) fmodl (ret, 1.0e7L) * 100;
+  return (time_t) (ret * 1.0e-7L);
 }
 
 static int
@@ -373,11 +375,19 @@ stat (const char * path, struct stat * buf)
   buf->st_size += wfd.nFileSizeLow;
 
   /* Convert timestamps to Unix format. */
-  buf->st_mtime = convert_time (wfd.ftLastWriteTime);
-  buf->st_atime = convert_time (wfd.ftLastAccessTime);
-  if (buf->st_atime == 0) buf->st_atime = buf->st_mtime;
-  buf->st_ctime = convert_time (wfd.ftCreationTime);
-  if (buf->st_ctime == 0) buf->st_ctime = buf->st_mtime;
+  buf->st_mtime = convert_time (wfd.ftLastWriteTime, &buf->st_mtimensec);
+  buf->st_atime = convert_time (wfd.ftLastAccessTime, &buf->st_atimensec);
+  if (buf->st_atime == 0)
+    {
+      buf->st_atime = buf->st_mtime;
+      buf->st_atimensec = buf->st_mtimensec;
+    }
+  buf->st_ctime = convert_time (wfd.ftCreationTime, &buf->st_ctimensec);
+  if (buf->st_ctime == 0)
+    {
+      buf->st_ctime = buf->st_mtime;
+      buf->st_ctimensec = buf->st_mtimensec;
+    }
 
   /* determine rwx permissions */
   if (wfd.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
@@ -473,11 +483,19 @@ fstat (int desc, struct stat * buf)
   buf->st_size += info.nFileSizeLow;
 
   /* Convert timestamps to Unix format. */
-  buf->st_mtime = convert_time (info.ftLastWriteTime);
-  buf->st_atime = convert_time (info.ftLastAccessTime);
-  if (buf->st_atime == 0) buf->st_atime = buf->st_mtime;
-  buf->st_ctime = convert_time (info.ftCreationTime);
-  if (buf->st_ctime == 0) buf->st_ctime = buf->st_mtime;
+  buf->st_mtime = convert_time (info.ftLastWriteTime, &buf->st_mtimensec);
+  buf->st_atime = convert_time (info.ftLastAccessTime, &buf->st_atimensec);
+  if (buf->st_atime == 0)
+    {
+      buf->st_atime = buf->st_mtime;
+      buf->st_atimensec = buf->st_mtimensec;
+    }
+  buf->st_ctime = convert_time (info.ftCreationTime, &buf->st_ctimensec);
+  if (buf->st_ctime == 0)
+    {
+      buf->st_ctime = buf->st_mtime;
+      buf->st_ctimensec = buf->st_mtimensec;
+    }
 
   /* determine rwx permissions */
   if (info.dwFileAttributes & FILE_ATTRIBUTE_READONLY)

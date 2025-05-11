@@ -108,6 +108,9 @@ struct stat {
   time_t	   st_ctime;
   char		   st_uname[260];
   char		   st_gname[260];
+  int		   st_atimensec;
+  int		   st_mtimensec;
+  int		   st_ctimensec;
 };
 
 /* These are here to avoid compiler warnings when using wchar.h.  */
