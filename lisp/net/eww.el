@@ -2324,26 +2324,26 @@ If CHARSET is nil then use UTF-8."
   "Prompt for an EWW buffer to display in the selected window.
 If no such buffer exist, fallback to calling `eww'."
   (interactive nil eww-mode)
-  (let ((completion-extra-properties
-         `(:annotation-function
-           ,(lambda (buf)
-              (with-current-buffer buf
-                (format " %s" (eww-current-url))))))
-        (curbuf (current-buffer))
-        (list (cl-loop for buf in (nreverse (buffer-list))
+  (let ((list (cl-loop for buf in (nreverse (buffer-list))
                            if (with-current-buffer buf (derived-mode-p 'eww-mode))
                            return buf)))
     (if list
-        (pop-to-buffer-same-window
-         (read-buffer "Switch to EWW buffer: "
-                      list
-                      t
-                      (lambda (bufn)
-                        (setq bufn (if (consp bufn) (cdr bufn) (get-buffer bufn)))
-                        (and (with-current-buffer bufn
-                               (derived-mode-p 'eww-mode))
-                             (not (eq bufn curbuf))))))
-      (call-interactively 'eww))))
+        (let ((completion-extra-properties
+               `(:annotation-function
+                 ,(lambda (buf)
+                    (with-current-buffer buf
+                      (format " %s" (eww-current-url))))))
+              (curbuf (current-buffer)))
+          (pop-to-buffer-same-window
+           (read-buffer "Switch to EWW buffer: "
+                        list
+                        t
+                        (lambda (bufn)
+                          (setq bufn (if (consp bufn) (cdr bufn) (get-buffer bufn)))
+                          (and (with-current-buffer bufn
+                                 (derived-mode-p 'eww-mode))
+                               (not (eq bufn curbuf)))))))
+      (call-interactively #'eww))))
 
 (defun eww-toggle-fonts ()
   "Toggle whether to use monospaced or font-enabled layouts."
