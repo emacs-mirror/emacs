@@ -1766,10 +1766,19 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
 					      ;matching, esp. with
 					      ;different forms of
 					      ;MONTH
-               (month (nth 1 sexp))
+               (month-exp (nth 1 sexp))
+               (months (cond ((eq month-exp t) nil) ; don't add a BYMONTH clause
+                             ((integerp month-exp) (list month-exp))
+                             (t month-exp)))
                (dayname (nth 2 sexp))
                (n (nth 3 sexp))
                (day (nth 4 sexp))
+               (dtstart
+                ;; Start on the first day matching the rule in
+                ;; icalendar-recurring-start-year:
+                (calendar-nth-named-day n dayname
+                                        (if months (apply #'min months) 1)
+                                        icalendar-recurring-start-year))
                (summary
                 (replace-regexp-in-string
 		 "\\(^\s+\\|\s+$\\)" ""
@@ -1781,31 +1790,19 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
               (error "Don't know if or how to implement day in `diary-float'")))
 
           (cons (concat
-                 ;;Start today (yes this is an arbitrary choice):
                  "\nDTSTART;VALUE=DATE:"
-                 (format-time-string "%Y%m%d")
-                 ;;BUT remove today if `diary-float'
-                 ;;expression does not hold true for today:
-                 (when
-                     (null (calendar-dlet ((date (calendar-current-date))
-                                           (entry entry-main))
-                             (diary-float month dayname n)))
-                   (concat
-                    "\nEXDATE;VALUE=DATE:"
-                    (format-time-string "%Y%m%d")))
+                 (format "%04d%02d%02d"
+                         (calendar-extract-year dtstart)
+                         (calendar-extract-month dtstart)
+                         (calendar-extract-day dtstart))
                  "\nRRULE:"
-                 (if (or (numberp month) (listp month))
+                 (if months
                      "FREQ=YEARLY;BYMONTH="
                    "FREQ=MONTHLY")
-                 (when
-                     (listp month)
+                 (when months
                    (mapconcat
-                    (lambda (m)
-                      (number-to-string m))
-                    (cadr month) ","))
-                 (when
-                     (numberp month)
-                   (number-to-string month))
+                    (lambda (m) (number-to-string m))
+                    months ","))
                  ";BYDAY="
                  (number-to-string n)
 		 (aref icalendar--weekday-array dayname))
