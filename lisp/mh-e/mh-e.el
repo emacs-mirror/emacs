@@ -26,6 +26,8 @@
 
 ;; MH-E is an Emacs interface to the MH mail system.
 
+;; To learn about MH-E, read The MH-E Manual at info node '(mh-e)'.
+
 ;; MH-E is compatible with MH versions 6.8.4 and higher, all versions
 ;; of nmh, and GNU mailutils 1.0 and higher.
 
