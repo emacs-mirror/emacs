@@ -3817,38 +3817,40 @@ If PARENTS is non-nil, ARGLIST must be nil."
 ;; loaded before `cl-preloaded.el' is defined.
 (put 'list 'cl-deftype-satisfies #'listp)
 
-(static-if (not (fboundp 'cl--define-derived-type))
-    nil ;; Can't define them yet!
-  (cl-deftype natnum () (declare (parents integer)) '(satisfies natnump))
-  (cl-deftype character () (declare (parents fixnum natnum))
-               '(and fixnum natnum))
-  (cl-deftype base-char () (declare (parents character))
-              '(satisfies characterp))
-  (cl-deftype extended-char () (declare (parents character))
-              '(and character (not base-char)))
-  (cl-deftype keyword () (declare (parents symbol)) '(satisfies keywordp))
-  (cl-deftype command ()
-    ;; FIXME: Can't use `function' as parent because of arrays as
-    ;; keyboard macros, which are redundant since `kmacro.el'!!
-    ;;(declare (parents function))
-    '(satisfies commandp))
+;; Thanks to `eval-and-compile', `cl--define-derived-type' is needed
+;; both at compile-time and at runtime, so we need to double-check.
+(static-if (not (fboundp 'cl--define-derived-type)) nil
+  (unless (fboundp 'cl--define-derived-type)
+    (cl-deftype natnum () (declare (parents integer)) '(satisfies natnump))
+    (cl-deftype character () (declare (parents fixnum natnum))
+                '(and fixnum natnum))
+    (cl-deftype base-char () (declare (parents character))
+                '(satisfies characterp))
+    (cl-deftype extended-char () (declare (parents character))
+                '(and character (not base-char)))
+    (cl-deftype keyword () (declare (parents symbol)) '(satisfies keywordp))
+    (cl-deftype command ()
+      ;; FIXME: Can't use `function' as parent because of arrays as
+      ;; keyboard macros, which are redundant since `kmacro.el'!!
+      ;;(declare (parents function))
+      '(satisfies commandp))
 
-  (eval-when-compile
-    (defmacro cl--defnumtype (type base)
-      `(cl-deftype ,type (&optional min max)
-         (list 'and ',base
-               (if (memq min '(* nil)) t
-                 (if (consp min)
-                     `(satisfies . ,(lambda (val) (> val (car min))))
-                   `(satisfies . ,(lambda (val) (>= val min)))))
-               (if (memq max '(* nil)) t
-                 (if (consp max)
-                     `(satisfies . ,(lambda (val) (< val (car max))))
-                   `(satisfies . ,(lambda (val) (<= val max)))))))))
-  ;;(cl--defnumtype integer ??)
-  ;;(cl--defnumtype float ??)
-  ;;(cl--defnumtype number ??)
-  (cl--defnumtype real number))
+    (eval-when-compile
+      (defmacro cl--defnumtype (type base)
+        `(cl-deftype ,type (&optional min max)
+           (list 'and ',base
+                 (if (memq min '(* nil)) t
+                   (if (consp min)
+                       `(satisfies . ,(lambda (val) (> val (car min))))
+                     `(satisfies . ,(lambda (val) (>= val min)))))
+                 (if (memq max '(* nil)) t
+                   (if (consp max)
+                       `(satisfies . ,(lambda (val) (< val (car max))))
+                     `(satisfies . ,(lambda (val) (<= val max)))))))))
+    ;;(cl--defnumtype integer ??)
+    ;;(cl--defnumtype float ??)
+    ;;(cl--defnumtype number ??)
+    (cl--defnumtype real number)))
 
 ;; Additional functions that we can now define because we've defined
 ;; `cl-defsubst' and `cl-typep'.
