@@ -274,7 +274,7 @@ it should return non-nil to make Global Auto-Revert Mode not
 revert this buffer.")
 
 (defcustom auto-revert-remote-files nil
-  "If non-nil remote files are also reverted."
+  "If nil remote files are not reverted in Auto Revert modes."
   :group 'auto-revert
   :type 'boolean
   :version "24.4")
