@@ -4617,13 +4617,22 @@ If NOERROR, return predicate, else erroring function."
        'keymap eglot-hierarchy-label-map
        'action
        (lambda (_btn)
-         (pop-to-buffer (find-file-noselect (eglot-uri-to-path (or parent-uri uri))))
-         (eglot--goto
-          (or
-           (elt
-            (get-text-property 0 'eglot--hierarchy-call-sites name)
-            0)
-           item-range))))
+         (let* ((method
+                 (get-text-property 0 'eglot--hierarchy-method name))
+                (target-uri
+                 (if (eq method :callHierarchy/outgoingCalls)
+                     ;; We probably want `parent-uri' for this edge case
+                     ;; because that's where the call site we want
+                     ;; lives.  (bug#78250, bug#78367).
+                     (or parent-uri uri)
+                   uri)))
+           (pop-to-buffer (find-file-noselect (eglot-uri-to-path target-uri)))
+           (eglot--goto
+            (or
+             (elt
+              (get-text-property 0 'eglot--hierarchy-call-sites name)
+              0)
+             item-range)))))
       (buffer-string))))
 
 (defun eglot--hierarchy-1 (name provider preparer specs)
