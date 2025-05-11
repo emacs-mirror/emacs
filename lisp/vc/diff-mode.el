@@ -207,7 +207,8 @@ The default \"-b\" means to ignore whitespace-only changes,
           ;; We want to inherit most bindings from
           ;; `diff-mode-shared-map', but not all since they may hide
           ;; useful `M-<foo>' global bindings when editing.
-          (dolist (key '("A" "r" "R" "g" "q" "W" "w" "z"))
+          (dolist (key '("A" "r" "R" "g" "q" "W" "w" "z" "?"
+                         "SPC" "S-SPC" "DEL"))
             (keymap-set map key nil))
           map)
   ;; From compilation-minor-mode.
