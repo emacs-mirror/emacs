@@ -4108,6 +4108,69 @@ logon_network_drive (const char *path)
     }
 }
 
+/* Subroutine of faccessat.  Determines attributes of FILE (which is
+   assumed to be in UTF-8 and after map_w32_filename) as reported by
+   GetFileAttributes.  Returns -1 if it fails (meaning the file doesn't
+   exist or cannot be accessed by the current user), otherwise returns
+   the bitmap of file's attributes.  */
+static DWORD
+access_attrs (const char *file)
+{
+  DWORD attrs;
+
+  if (w32_unicode_filenames)
+    {
+      wchar_t file_w[MAX_PATH];
+
+      filename_to_utf16 (file, file_w);
+      attrs = GetFileAttributesW (file_w);
+    }
+  else
+    {
+      char file_a[MAX_PATH];
+
+      filename_to_ansi (file, file_a);
+      attrs = GetFileAttributesA (file_a);
+    }
+
+  if (attrs == -1)
+    {
+      DWORD w32err = GetLastError ();
+
+      switch (w32err)
+	{
+	case ERROR_INVALID_NAME:
+	case ERROR_BAD_PATHNAME:
+	  if (is_unc_volume (file))
+	    {
+	      attrs = unc_volume_file_attributes (file);
+	      if (attrs == -1)
+		{
+		  errno = EACCES;
+		  return -1;
+		}
+	      return attrs;
+	    }
+	  /* FALLTHROUGH */
+	  FALLTHROUGH;
+	case ERROR_FILE_NOT_FOUND:
+	case ERROR_PATH_NOT_FOUND:
+	case ERROR_INVALID_DRIVE:
+	case ERROR_NOT_READY:
+	case ERROR_BAD_NETPATH:
+	case ERROR_BAD_NET_NAME:
+	  errno = ENOENT;
+	  break;
+	default:
+	  errno = EACCES;
+	  break;
+	}
+      return -1;
+    }
+
+  return attrs;
+}
+
 /* Emulate faccessat(2).  */
 int
 faccessat (int dirfd, const char * path, int mode, int flags)
@@ -4142,65 +4205,26 @@ faccessat (int dirfd, const char * path, int mode, int flags)
   /* MSVCRT implementation of 'access' doesn't recognize D_OK, and its
      newer versions blow up when passed D_OK.  */
   path = map_w32_filename (path, NULL);
+
+  attributes = access_attrs (path);
+  if (attributes == -1)	/* PATH doesn't exist or is inaccessible */
+    return -1;
+
   /* If the last element of PATH is a symlink, we need to resolve it
      to get the attributes of its target file.  Note: any symlinks in
      PATH elements other than the last one are transparently resolved
      by GetFileAttributes below.  */
+  int not_a_symlink = ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) == 0);
   if ((volume_info.flags & FILE_SUPPORTS_REPARSE_POINTS) != 0
-      && (flags & AT_SYMLINK_NOFOLLOW) == 0)
-    path = chase_symlinks (path);
-
-  if (w32_unicode_filenames)
+      && (flags & AT_SYMLINK_NOFOLLOW) == 0
+      && !not_a_symlink)
     {
-      wchar_t path_w[MAX_PATH];
-
-      filename_to_utf16 (path, path_w);
-      attributes = GetFileAttributesW (path_w);
-    }
-  else
-    {
-      char path_a[MAX_PATH];
-
-      filename_to_ansi (path, path_a);
-      attributes = GetFileAttributesA (path_a);
+      path = chase_symlinks (path);
+      attributes = access_attrs (path);
+      if (attributes == -1)
+	return -1;
     }
 
-  if (attributes == -1)
-    {
-      DWORD w32err = GetLastError ();
-
-      switch (w32err)
-	{
-	case ERROR_INVALID_NAME:
-	case ERROR_BAD_PATHNAME:
-	  if (is_unc_volume (path))
-	    {
-	      attributes = unc_volume_file_attributes (path);
-	      if (attributes == -1)
-		{
-		  errno = EACCES;
-		  return -1;
-		}
-	      goto check_attrs;
-	    }
-	  /* FALLTHROUGH */
-	  FALLTHROUGH;
-	case ERROR_FILE_NOT_FOUND:
-	case ERROR_PATH_NOT_FOUND:
-	case ERROR_INVALID_DRIVE:
-	case ERROR_NOT_READY:
-	case ERROR_BAD_NETPATH:
-	case ERROR_BAD_NET_NAME:
-	  errno = ENOENT;
-	  break;
-	default:
-	  errno = EACCES;
-	  break;
-	}
-      return -1;
-    }
-
- check_attrs:
   if ((mode & X_OK) != 0
       && !(is_exec (path) || (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0))
     {
