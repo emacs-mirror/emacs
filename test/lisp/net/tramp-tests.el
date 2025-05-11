@@ -5083,6 +5083,14 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 			 ipv6-postfix tramp-postfix-host-format)))
 		     ;; The hop string fits only the initial syntax.
 		     (hop (and (eq tramp-syntax orig-syntax) hop))
+		     ;; Needed for host name completion.
+		     (default-user
+		      (file-remote-p
+		       (concat tramp-prefix-format hop method-string host-string)
+		       'user))
+		     (default-user-string
+		      (unless (tramp-string-empty-or-nil-p default-user)
+			(concat default-user tramp-postfix-user-format)))
                      test result completions)
 
 		(dolist
@@ -5120,7 +5128,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 			      tramp-prefix-format hop method-string host-string)
 			    ,(concat
 			      tramp-prefix-format hop method-string
-			      user-string host-string))
+			      default-user-string host-string))
 			   ,host-string)))
 		      ;; Complete user and host name.
 		      (unless (or (tramp-string-empty-or-nil-p user)
