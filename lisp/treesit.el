@@ -839,6 +839,11 @@ those inside are kept."
            if (<= start (car range) (cdr range) end)
            collect range))
 
+(defvar treesit--parser-overlay-offset 0
+  "Defines at which position to get the parser overlay.
+The commands that move backward need to set it to -1 to be
+able to use the range that ends immediately before point.")
+
 (defun treesit-parsers-at (&optional pos language with-host only)
   "Return all parsers at POS.
 
@@ -869,7 +874,8 @@ That is, the deepest embedded parser comes first."
   (let ((res nil))
     ;; Refer to (ref:local-parser-overlay) for more explanation of local
     ;; parser overlays.
-    (dolist (ov (overlays-at (or pos (point))))
+    (dolist (ov (overlays-at (+ (or pos (point))
+                                treesit--parser-overlay-offset)))
       (when-let* ((parser (overlay-get ov 'treesit-parser))
                   (host-parser (or (null with-host)
                                    (overlay-get ov 'treesit-host-parser)))
@@ -3019,7 +3025,8 @@ across atoms (such as symbols or words) inside the list."
           t)
         (if (> arg 0)
             (treesit-end-of-thing pred (abs arg) 'restricted)
-          (treesit-beginning-of-thing pred (abs arg) 'restricted))
+          (let ((treesit--parser-overlay-offset -1))
+            (treesit-beginning-of-thing pred (abs arg) 'restricted)))
         ;; If we couldn't move, we should signal an error and report
         ;; the obstacle, like `forward-sexp' does.  If we couldn't
         ;; find a parent, we simply return nil without moving point,
@@ -3034,6 +3041,7 @@ the boundaries of the list.
 ARG is described in the docstring of `forward-list'."
   (let* ((pred (or treesit-sexp-type-regexp 'list))
          (arg (or arg 1))
+         (treesit--parser-overlay-offset (if (> arg 0) 0 -1))
          (cnt arg)
          (inc (if (> arg 0) 1 -1)))
     (while (/= cnt 0)
@@ -3161,6 +3169,7 @@ ARG is described in the docstring of `up-list'."
   (interactive "^p")
   (let* ((pred (or treesit-sexp-type-regexp 'list))
          (arg (or arg 1))
+         (treesit--parser-overlay-offset -1)
          (cnt arg)
          (inc (if (> arg 0) 1 -1)))
     (while (/= cnt 0)
