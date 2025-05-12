@@ -2789,14 +2789,15 @@ called this function are inserted into the buffer."
     (if (> (point) (marker-position pmark))
 	(kill-region pmark (point)))))
 
-(defun comint-delchar-or-maybe-eof (arg)
-  "Delete ARG characters forward or send an EOF to subprocess.
+(defun comint-delchar-or-maybe-eof (&optional _arg)
+  "Behave like the global binding or send an EOF to subprocess.
 Sends an EOF only if point is at the end of the buffer and there is no input."
-  (interactive "p" comint-mode)
+  (interactive nil comint-mode)
   (let ((proc (get-buffer-process (current-buffer))))
     (if (and (eobp) proc (= (point) (marker-position (process-mark proc))))
 	(comint-send-eof)
-      (delete-char arg))))
+      (let ((cmd (lookup-key global-map (this-command-keys))))
+	(call-interactively (or (command-remapping cmd) cmd))))))
 
 (defun comint-send-eof ()
   "Send an EOF to the current buffer's process."
