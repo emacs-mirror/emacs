@@ -305,6 +305,8 @@ specifies what to do when the user exits the help buffer.
 
 Do not call this in the scope of `with-help-window'."
   (and (not (get-buffer-window standard-output))
+       ;; FIXME: Call this code *after* we display the buffer, so we can
+       ;; detect reliably whether it's been put in its own frame or what.
        (let ((first-message
 	      (cond ((or
 		      pop-up-frames
@@ -331,7 +333,7 @@ Do not call this in the scope of `with-help-window'."
 			   (list (selected-window) (window-buffer)
 				 (window-start) (window-point)))
 		     "Type \\[switch-to-buffer] RET to remove help window."))))
-	 (funcall (or function 'message)
+	 (funcall (or function #'message)
 		  (concat
 		   (if first-message
 		       (substitute-command-keys first-message))
@@ -1396,10 +1398,10 @@ Otherwise, return a new string."
     ;; overriding-local-map, or from a \\<mapname> construct in STRING
     ;; itself.
     (let ((keymap overriding-local-map)
-          (inhibit-modification-hooks t)
           (inhibit-read-only t)
           (orig-buf (current-buffer)))
       (with-temp-buffer
+        (setq-local inhibit-modification-hooks t) ;; For speed.
         (insert string)
         (goto-char (point-min))
         (while (< (point) (point-max))
@@ -2170,8 +2172,7 @@ The `temp-buffer-window-setup-hook' hook is called."
           buffer-file-name nil)
     (setq-local help-mode--current-data nil)
     (buffer-disable-undo)
-    (let ((inhibit-read-only t)
-	  (inhibit-modification-hooks t))
+    (let ((inhibit-read-only t))
       (erase-buffer)
       (delete-all-overlays)
       (prog1
