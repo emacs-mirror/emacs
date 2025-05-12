@@ -1056,6 +1056,13 @@ the opening delimiter is offscreen.  The context is usually the line
 that contains the opening delimiter, except if the opening delimiter
 is on its own line, in which case the context includes the previous
 nonblank line.
+
+@item
+@vindex show-paren-not-in-comments-or-strings
+If the value of @code{show-paren-not-in-comments-or-strings} is
+@code{all}, delimiters inside comments and strings will not be
+highlighted.  Otherwise if the value is set to @code{on-mismatch}, the
+mismatched delimiters inside comments will not be highlighted.
 @end itemize
 
 @cindex Electric Pair mode

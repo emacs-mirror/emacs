@@ -483,6 +483,13 @@ setting is an alternative to 'help-at-pt-display-when-idle'.
 Customize this to nil to disable starting new asynchronous native
 compilations while AC power is not connected.
 
+** New user option 'show-paren-not-in-comments-or-strings'
+This option tells show-paren not to highlight the parens that are inside
+a comment or string.  If set to 'all', do not highlight the parens that
+are inside comments or strings.  If set to 'on-mismatch', the parens
+mismatched inside comments will not be highlighted.  If set to nil (the
+default), highlight the parens wherever they are.
+
 
 * Editing Changes in Emacs 31.1
 
