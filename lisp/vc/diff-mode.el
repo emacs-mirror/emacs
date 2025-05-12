@@ -180,7 +180,6 @@ The default \"-b\" means to ignore whitespace-only changes,
 ;;;;
 
 (defvar-keymap diff-mode-shared-map
-  :parent special-mode-map
   "n" #'diff-hunk-next
   "N" #'diff-file-next
   "p" #'diff-hunk-prev
@@ -207,8 +206,7 @@ The default \"-b\" means to ignore whitespace-only changes,
           ;; We want to inherit most bindings from
           ;; `diff-mode-shared-map', but not all since they may hide
           ;; useful `M-<foo>' global bindings when editing.
-          (dolist (key '("A" "r" "R" "g" "q" "W" "w" "z" "?"
-                         "SPC" "S-SPC" "DEL"))
+          (dolist (key '("A" "r" "R" "W" "w"))
             (keymap-set map key nil))
           map)
   ;; From compilation-minor-mode.
@@ -1599,7 +1597,9 @@ else cover the whole buffer."
 ;; It should be lower than `outline-minor-mode' and `view-mode'.
 (or (assq 'diff-mode-read-only minor-mode-map-alist)
     (nconc minor-mode-map-alist
-           (list (cons 'diff-mode-read-only diff-mode-shared-map))))
+           (list (cons 'diff-mode-read-only
+                       (make-composed-keymap diff-mode-shared-map
+                                             special-mode-map)))))
 
 (defvar whitespace-style)
 (defvar whitespace-trailing-regexp)
