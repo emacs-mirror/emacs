@@ -258,7 +258,8 @@ SUBDIR_TARGETS =
 define subdir_template
   SUBDIR_TARGETS += check-$(subst /,-,$(1))
   .PHONY: check-$(subst /,-,$(1))
-  check-$(subst /,-,$(1)):
+  check-$(subst /,-,$(1)): \
+    $(patsubst %,check-%,$(subst /,-,$(wildcard $(1)/*-tests)))
 	@${MAKE} check LOGFILES="$(patsubst %.el,%.log, \
 		$(patsubst $(srcdir)/%,%,$(wildcard ${srcdir}/$(1)/*.el)))"
 endef
