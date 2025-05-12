@@ -6977,7 +6977,7 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 
   if (!hlinfo->mouse_face_hidden
       && FIXNUMP (Vmouse_highlight)
-      && !EQ (emacsframe->tab_bar_window, hlinfo->mouse_face_window))
+      && !EQ ((*emacsframe)->tab_bar_window, hlinfo->mouse_face_window))
     {
       clear_mouse_face (hlinfo);
       hlinfo->mouse_face_hidden = true;
