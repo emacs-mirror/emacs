@@ -531,7 +531,10 @@
 	   (re-search-forward c-cpp-messages-re limit t))
     (let ((beg (match-beginning c-cpp-message-match-no))
 	  (end (match-end c-cpp-message-match-no)))
-      (c-put-font-lock-string-face beg end)
+      ;; Don't use c-put-font-lock-string-face here, since in XEmacs that
+      ;; would fail to fontify the first and last characters - We don't have
+      ;; any string delimiters in this construction.
+      (c-put-font-lock-face beg end 'font-lock-string-face)
       ;; We replace '(1) (punctuation) syntax-table text properties on ' by
       ;; '(3) (symbol), so that these characters won't later get the warning
       ;; face.
@@ -2413,7 +2416,7 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
 
       ;; Fontify basic types.
       ,(let ((re (c-make-keywords-re nil
-		   (cl-delete-duplicates
+		   (c--delete-duplicates
 		    (append (c-lang-const c-primitive-type-kwds)
 			    (c-lang-const c-type-with-paren-kwds))
 		    :test #'equal))))
