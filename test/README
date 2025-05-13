@@ -50,9 +50,9 @@ following targets:
   Like "make check", but run all tests.
 
 * make check-<dirname>
-  Like "make check", but run only the tests in test/<dirname>/*.el.
-  <dirname> is a relative directory path, which has replaced "/" by "-",
-  like in "check-src" or "check-lisp-net".
+  Like "make check", but run only the tests in test/<dirname>/*.el and
+  test/<dirname>/*-tests/*.el.  <dirname> is a relative directory path,
+  which has replaced "/" by "-", like in "check-src" or "check-lisp-net".
 
 * make <filename>  -or-  make <filename>.log
   Run all tests declared in <filename>.el.  This includes expensive
