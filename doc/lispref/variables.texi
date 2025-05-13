@@ -1941,6 +1941,38 @@ global value of @var{symbol} regardless of whether your code runs in
 the context of @var{symbol}'s let-binding.
 @end defun
 
+@cindex top-level buffer-local value
+  In addition, a variable's buffer-local value may be shadowed by a
+let-binding.  There are two further functions to get and set the
+top-level buffer-local value of a variable.
+
+@defun buffer-local-toplevel-value symbol &optional buffer
+This function returns the local value for @var{symbol} in @var{buffer},
+defaulting to the current buffer, outside of any let-binding.  If
+@var{symbol} is not local in @var{buffer}, this function signals an
+error.
+@end defun
+
+@defun set-buffer-local-toplevel-value symbol value &optional buffer
+This function sets the local value of @var{symbol} to @var{value} in
+@var{buffer}, defaulting to the current buffer, outside of any
+let-binding.
+
+@var{symbol} is made local in @var{buffer} if it was not already.  For
+global variables, this means @var{symbol} will have a separate value in
+@var{buffer}; for variables that are automatically buffer-local, this
+function causes a local value for them to exist in @var{buffer}.  If
+@var{symbol} is permanently buffer-local, @var{value} will now persist
+as the buffer-local value for the variable across changes of major mode.
+
+This is useful when you want to make a change to a buffer-local value
+that will persist after the command now being executed completes, but
+where your code may be executed with that variable let-bound.  In this
+case the usual tool for setting buffer-local values, @code{setq-local},
+will only change the value of the let-binding, and not the underlying
+buffer-local value.  This function sets the latter.
+@end defun
+
 
 @node File Local Variables
 @section File Local Variables

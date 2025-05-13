@@ -174,6 +174,9 @@ of VARIABLEs set by earlier pairs.
 The return value of the `setq-local' form is the VALUE of the last
 pair.
 
+In some corner cases you may need to resort to
+`set-buffer-local-toplevel-value' instead, which see.
+
 \(fn [VARIABLE VALUE]...)"
   (declare (debug setq))
   (unless (evenp (length pairs))

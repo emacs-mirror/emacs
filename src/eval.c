@@ -759,6 +759,27 @@ default_toplevel_binding (Lisp_Object symbol)
   return binding;
 }
 
+static union specbinding *
+local_toplevel_binding (Lisp_Object symbol, Lisp_Object buf)
+{
+  union specbinding *binding = NULL;
+  union specbinding *pdl = specpdl_ptr;
+  while (pdl > specpdl)
+    {
+      switch ((--pdl)->kind)
+	{
+	case SPECPDL_LET_LOCAL:
+	  if (BASE_EQ (specpdl_where (pdl), buf)
+	      && EQ (specpdl_symbol (pdl), symbol))
+	    binding = pdl;
+	  break;
+
+	default: break;
+	}
+    }
+  return binding;
+}
+
 /* Look for a lexical-binding of SYMBOL somewhere up the stack.
    This will only find bindings created with interpreted code, since once
    compiled names of lexical variables are basically gone anyway.  */
@@ -810,6 +831,53 @@ DEFUN ("set-default-toplevel-value", Fset_default_toplevel_value,
     set_specpdl_old_value (binding, value);
   else
     Fset_default (symbol, value);
+  return Qnil;
+}
+
+DEFUN ("buffer-local-toplevel-value",
+       Fbuffer_local_toplevel_value,
+       Sbuffer_local_toplevel_value, 1, 2, 0,
+       doc: /* Return SYMBOL's toplevel local value in BUFFER.
+"Toplevel" means outside of any let binding.
+BUFFER defaults to the current buffer.
+If SYMBOL has no local value in BUFFER, signals an error.  */)
+  (Lisp_Object symbol, Lisp_Object buffer)
+{
+  if (NILP (buffer))
+    buffer = Fcurrent_buffer ();
+  if (NILP (Flocal_variable_p (symbol, buffer)))
+    xsignal1 (Qvoid_variable, symbol);
+  union specbinding *binding = local_toplevel_binding (symbol, buffer);
+  return binding
+    ? specpdl_old_value (binding)
+    : Fbuffer_local_value (symbol, buffer);
+}
+
+DEFUN ("set-buffer-local-toplevel-value",
+       Fset_buffer_local_toplevel_value,
+       Sset_buffer_local_toplevel_value, 2, 3, 0,
+       doc: /* Set SYMBOL's toplevel local value to VALUE in BUFFER.
+"Toplevel" means outside of any let binding.
+BUFFER defaults to the current buffer.
+Makes SYMBOL buffer-local in BUFFER if it was not already.  */)
+     (Lisp_Object symbol, Lisp_Object value, Lisp_Object buffer)
+{
+  Lisp_Object buf = !NILP (buffer) ? buffer : Fcurrent_buffer ();
+  union specbinding *binding = local_toplevel_binding (symbol, buf);
+
+  if (binding)
+    set_specpdl_old_value (binding, value);
+  else if (NILP (buffer))
+    Fset (Fmake_local_variable (symbol), value);
+  else
+    {
+      specpdl_ref count = SPECPDL_INDEX ();
+      record_unwind_current_buffer ();
+      Fset_buffer (buffer);
+      Fset (Fmake_local_variable (symbol), value);
+      unbind_to (count, Qnil);
+    }
+
   return Qnil;
 }
 
@@ -4502,6 +4570,8 @@ alist of active lexical bindings.  */);
   defsubr (&Smake_interpreted_closure);
   defsubr (&Sdefault_toplevel_value);
   defsubr (&Sset_default_toplevel_value);
+  defsubr (&Sbuffer_local_toplevel_value);
+  defsubr (&Sset_buffer_local_toplevel_value);
   defsubr (&Sdefvar);
   defsubr (&Sdefvar_1);
   defsubr (&Sdefvaralias);

@@ -2362,6 +2362,12 @@ sleep state.
 'advertised-undo', 'advertised-widget-backward', and
 'dired-advertised-find-file'.
 
++++
+** New functions to get and set top-level buffer-local values.
+'buffer-local-toplevel-value' and 'set-buffer-local-toplevel-value' get
+and set the top-level buffer-local value of a variable.  A top-level
+value is the one that variable has outside of any let-bindings.
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 

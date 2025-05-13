@@ -199,19 +199,7 @@ Another is that undo information is not kept."
       (setq-local vc-parent-buffer-name
                   (concat " from " (buffer-name camefrom))))
 
-    ;; We want to set the buffer-local value of `default-directory' to
-    ;; olddir.  This `setq' alone ought to be sufficient.  But if there
-    ;; is a let-binding of `default-directory' in effect, such as the
-    ;; one established by `vc-print-root-log', then all we are able to
-    ;; do is change the let-binding, and not affect the underlying
-    ;; buffer-local cell.  Work around this using `run-with-timer'.
-    ;; See bug#53626 and bug#77306.
-    (setq default-directory olddir)
-    (run-with-timer 0 nil (lambda ()
-                            (when (buffer-live-p buf)
-                              (with-current-buffer buf
-                                (setq default-directory olddir)))))
-
+    (set-buffer-local-toplevel-value 'default-directory olddir)
     (let ((buffer-undo-list t)
           (inhibit-read-only t))
       (erase-buffer))))
