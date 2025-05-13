@@ -1273,8 +1273,8 @@ is first appended to NAME, to speed up finding a non-existent buffer.  */)
     genbase = name;
   else
     {
-      enum { bug_52711 = true };  /* https://bugs.gnu.org/57211 */
-      char number[bug_52711 ? INT_BUFSIZE_BOUND (int) + 1 : sizeof "-999999"];
+      enum { bug_57211 = true };  /* https://bugs.gnu.org/57211 */
+      char number[bug_57211 ? INT_BUFSIZE_BOUND (int) + 1 : sizeof "-999999"];
       EMACS_INT r = get_random ();
       eassume (0 <= r);
       int i = r % 1000000;
