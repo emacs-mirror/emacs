@@ -1791,8 +1791,8 @@ came from or how to save it, rather than with how to edit the contents.
 
   The global value of a variable with buffer-local bindings is also
 called the @dfn{default} value, because it is the value that is in
-effect whenever neither the current buffer nor the selected frame has
-its own binding for the variable.
+effect whenever the current buffer lacks its own binding for the
+variable.
 
   The functions @code{default-value} and @code{setq-default} access and
 change a variable's default value regardless of whether the current
