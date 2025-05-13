@@ -180,6 +180,10 @@ The default \"-b\" means to ignore whitespace-only changes,
 ;;;;
 
 (defvar-keymap diff-mode-shared-map
+  :doc "Additional bindings for read-only `diff-mode' buffers.
+These bindings are also available with an ESC prefix
+(i.e. a \\=`M-' prefix) in read-write `diff-mode' buffers,
+and with a `diff-minor-mode-prefix' prefix in `diff-minor-mode'."
   "n" #'diff-hunk-next
   "N" #'diff-file-next
   "p" #'diff-hunk-prev
