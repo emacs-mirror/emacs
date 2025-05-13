@@ -1165,7 +1165,8 @@ object."
                ;; Remove the leading "/" for local MS Windows-style paths.
                (normalized (if (and (not remote-prefix)
                                     (eq system-type 'windows-nt)
-                                    (cl-plusp (length retval)))
+                                    (cl-plusp (length retval))
+                                    (eq (aref retval 0) ?/))
                                (w32-long-file-name (substring retval 1))
                              retval)))
           (concat remote-prefix normalized))
