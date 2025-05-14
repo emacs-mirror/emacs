@@ -351,7 +351,7 @@
 ;;;; Method dispatch for derived types.
 
 (cl-deftype multiples-of (&optional m)
-  (let ((multiplep (if (eq m '*)
+  (let ((multiplep (if (memq m '(nil *))
                        #'ignore
 		     (lambda (n) (= 0 (% n m))))))
     `(and integer (satisfies ,multiplep))))
@@ -368,7 +368,7 @@
 
 (cl-deftype unsigned-byte (&optional bits)
   "Unsigned integer."
-  `(integer 0 ,(if (eq bits '*) bits (1- (ash 1 bits)))))
+  `(integer 0 ,(if (memq bits '(nil *)) bits (1- (ash 1 bits)))))
 
 (cl-deftype unsigned-16bits ()
   "Unsigned 16-bits integer."
