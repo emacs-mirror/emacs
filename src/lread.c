@@ -1205,7 +1205,21 @@ This uses the variables `load-suffixes' and `load-file-rep-suffixes'.  */)
       Lisp_Object exts = Vload_file_rep_suffixes;
       Lisp_Object suffix = XCAR (suffixes);
       FOR_EACH_TAIL (exts)
-	lst = Fcons (concat2 (suffix, XCAR (exts)), lst);
+	{
+	  Lisp_Object ext = XCAR (exts);
+#ifdef HAVE_MODULES
+	  if (SCHARS (ext) > 0
+	      && (suffix_p (suffix, MODULES_SUFFIX)
+# ifdef MODULES_SECONDARY_SUFFIX
+		  || suffix_p (suffix, MODULES_SECONDARY_SUFFIX)
+# endif
+		 )
+	      && !NILP (Fmember (ext, Fsymbol_value (
+					Qjka_compr_load_suffixes))))
+	    continue;
+#endif
+	  lst = Fcons (concat2 (suffix, ext), lst);
+	}
     }
   return Fnreverse (lst);
 }
@@ -5929,6 +5943,8 @@ in order to do so.  However, if you want to customize which suffixes
 the loading functions recognize as compression suffixes, you should
 customize `jka-compr-load-suffixes' rather than the present variable.  */);
   Vload_file_rep_suffixes = list1 (empty_unibyte_string);
+
+  DEFSYM (Qjka_compr_load_suffixes, "jka-compr-load-suffixes");
 
   DEFVAR_BOOL ("load-in-progress", load_in_progress,
 	       doc: /* Non-nil if inside of `load'.  */);
