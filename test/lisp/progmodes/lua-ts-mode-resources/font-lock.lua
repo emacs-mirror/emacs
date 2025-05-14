@@ -11,6 +11,11 @@ Multi-line comment
 -- <- font-lock-comment-face
 local line_comment = "comment" -- comment
 --                                ^ font-lock-comment-face
+---@alias MyNumber integer
+-- <- font-lock-comment-delimiter-face
+------Calculate new number
+-- ^ font-lock-comment-delimiter-face
+function calc() end
 
 -- Definition
 local function f1() end

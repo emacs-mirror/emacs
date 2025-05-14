@@ -168,10 +168,13 @@ values of OVERRIDE."
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
          (node-text (treesit-node-text node t))
-         (delimiter-end (+ 2 node-start)))
+         (delimiter-end (progn
+                          (goto-char node-start)
+                          (while (looking-at-p "-") (forward-char))
+                          (point))))
     (when (and (>= node-start start)
                (<= delimiter-end end)
-               (string-match "\\`--" node-text))
+               (string-match "\\`---*" node-text))
       (treesit-fontify-with-override node-start
                                      delimiter-end
                                      'font-lock-comment-delimiter-face
