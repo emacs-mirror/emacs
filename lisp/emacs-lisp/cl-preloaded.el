@@ -508,8 +508,11 @@ PARENTS is a list of types NAME is a subtype of, or nil."
           (error "Type %S already in another class: %S" name (type-of class))))
     ;; Setup a type descriptor for NAME.
     (setf (cl--find-class name)
-          (cl--derived-type-class-make name (function-documentation expander)
-                                       parents))
+          (cl--derived-type-class-make
+           name
+           (and (fboundp 'function-documentation) ;Bootstrap corner case.
+                (function-documentation expander))
+           parents))
     (define-symbol-prop name 'cl-deftype-handler expander)
     (when predicate
       (define-symbol-prop name 'cl-deftype-satisfies predicate)
