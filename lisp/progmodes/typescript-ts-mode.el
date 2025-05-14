@@ -610,7 +610,7 @@ This mode is intended to be inherited by concrete major modes."
   :syntax-table typescript-ts-mode--syntax-table
 
   ;; Comments.
-  (c-ts-common-comment-setup)
+  (setq-local comment-setup-function #'js--treesit-comment-setup)
 
   ;; Electric
   (setq-local electric-indent-chars

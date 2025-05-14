@@ -4038,6 +4038,17 @@ See `treesit-thing-settings' for more information.")
   (rx bos (or "comment" "line_comment" "block_comment" "description") eos)
   "Regexp for `c-ts-common--comment-regexp'.")
 
+(defvar-local js--treesit-comment-jsx 'undefined)
+
+(defun js--treesit-comment-setup ()
+  (let ((jsx (not (null (treesit-parent-until
+                         (treesit-node-at (point)) "jsx")))))
+    (unless (eq js--treesit-comment-jsx jsx)
+      (setq js--treesit-comment-jsx jsx)
+      (cond (jsx (setq-local comment-start "{/* ")
+                 (setq-local comment-end " */}"))
+            (t (c-ts-common-comment-setup))))))
+
 ;;;###autoload
 (define-derived-mode js-ts-mode js-base-mode "JavaScript"
   "Major mode for editing JavaScript.
@@ -4052,7 +4063,7 @@ See `treesit-thing-settings' for more information.")
     ;; Which-func.
     (setq-local which-func-imenu-joiner-function #'js--which-func-joiner)
     ;; Comment.
-    (c-ts-common-comment-setup)
+    (setq-local comment-setup-function #'js--treesit-comment-setup)
     (setq-local comment-multi-line t)
 
     ;; Electric-indent.
