@@ -741,43 +741,39 @@ Internal use only.  */)
 static union specbinding *
 default_toplevel_binding (Lisp_Object symbol)
 {
-  union specbinding *binding = NULL;
-  union specbinding *pdl = specpdl_ptr;
-  while (pdl > specpdl)
+  for (union specbinding *pdl = specpdl; pdl < specpdl_ptr; ++pdl)
     {
-      switch ((--pdl)->kind)
+      switch (pdl->kind)
 	{
 	case SPECPDL_LET_DEFAULT:
 	case SPECPDL_LET:
 	  if (EQ (specpdl_symbol (pdl), symbol))
-	    binding = pdl;
+	    return pdl;
 	  break;
 
 	default: break;
 	}
     }
-  return binding;
+  return NULL;
 }
 
 static union specbinding *
 local_toplevel_binding (Lisp_Object symbol, Lisp_Object buf)
 {
-  union specbinding *binding = NULL;
-  union specbinding *pdl = specpdl_ptr;
-  while (pdl > specpdl)
+  for (union specbinding *pdl = specpdl; pdl < specpdl_ptr; ++pdl)
     {
-      switch ((--pdl)->kind)
+      switch (pdl->kind)
 	{
 	case SPECPDL_LET_LOCAL:
 	  if (BASE_EQ (specpdl_where (pdl), buf)
 	      && EQ (specpdl_symbol (pdl), symbol))
-	    binding = pdl;
+	    return pdl;
 	  break;
 
 	default: break;
 	}
     }
-  return binding;
+  return NULL;
 }
 
 /* Look for a lexical-binding of SYMBOL somewhere up the stack.
