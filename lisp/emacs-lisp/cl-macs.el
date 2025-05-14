@@ -3820,7 +3820,7 @@ If PARENTS is non-nil, ARGLIST must be nil."
 ;; Thanks to `eval-and-compile', `cl--define-derived-type' is needed
 ;; both at compile-time and at runtime, so we need to double-check.
 (static-if (not (fboundp 'cl--define-derived-type)) nil
-  (unless (fboundp 'cl--define-derived-type)
+  (when (fboundp 'cl--define-derived-type)
     (cl-deftype natnum () (declare (parents integer)) '(satisfies natnump))
     (cl-deftype character () (declare (parents fixnum natnum))
                 '(and fixnum natnum))
