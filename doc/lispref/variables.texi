@@ -1942,9 +1942,10 @@ the context of @var{symbol}'s let-binding.
 @end defun
 
 @cindex top-level buffer-local value
-  In addition, a variable's buffer-local value may be shadowed by a
-let-binding.  There are two further functions to get and set the
-top-level buffer-local value of a variable.
+  A variable's buffer-local value may also be shadowed by a
+let-binding.  Two functions allow getting and setting the
+top-level buffer-local value of a variable, i.e., the value outside of
+the let-binding.
 
 @defun buffer-local-toplevel-value symbol &optional buffer
 This function returns the local value for @var{symbol} in @var{buffer},
@@ -1966,10 +1967,10 @@ function causes a local value for them to exist in @var{buffer}.  If
 as the buffer-local value for the variable across changes of major mode.
 
 This is useful when you want to make a change to a buffer-local value
-that will persist after the command now being executed completes, but
+that will persist after the command now being executed completes,
 where your code may be executed with that variable let-bound.  In this
-case the usual tool for setting buffer-local values, @code{setq-local},
-will only change the value of the let-binding, and not the underlying
+case the usual way of setting buffer-local values, using @code{setq-local},
+will only change the value inside the let-binding, and not the underlying
 buffer-local value.  This function sets the latter.
 @end defun
 

@@ -833,7 +833,7 @@ DEFUN ("set-default-toplevel-value", Fset_default_toplevel_value,
 DEFUN ("buffer-local-toplevel-value",
        Fbuffer_local_toplevel_value,
        Sbuffer_local_toplevel_value, 1, 2, 0,
-       doc: /* Return SYMBOL's toplevel local value in BUFFER.
+       doc: /* Return SYMBOL's toplevel buffer-local value in BUFFER.
 "Toplevel" means outside of any let binding.
 BUFFER defaults to the current buffer.
 If SYMBOL has no local value in BUFFER, signals an error.  */)
@@ -852,8 +852,8 @@ If SYMBOL has no local value in BUFFER, signals an error.  */)
 DEFUN ("set-buffer-local-toplevel-value",
        Fset_buffer_local_toplevel_value,
        Sset_buffer_local_toplevel_value, 2, 3, 0,
-       doc: /* Set SYMBOL's toplevel local value to VALUE in BUFFER.
-"Toplevel" means outside of any let binding.
+       doc: /* Set SYMBOL's toplevel buffer-local value in BUFFER to VALUE.
+"Toplevel" means outside of any let-binding.
 BUFFER defaults to the current buffer.
 Makes SYMBOL buffer-local in BUFFER if it was not already.  */)
      (Lisp_Object symbol, Lisp_Object value, Lisp_Object buffer)
