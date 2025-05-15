@@ -197,20 +197,9 @@ for completion."
   :version "29.1"
   :group 'find-function)
 
-(defcustom find-function-mode-lower-precedence nil
-  "If non-nil, `find-function-mode' defines keys in the global map.
-This is for compatibility with the historical behavior of
-the old `find-function-setup-keys'."
-  :type 'boolean
-  :version "31.1"
-  :group 'find-function
-  :set (lambda (symbol value)
-         ;; Toggle the mode off before changing this setting in order to
-         ;; avoid getting into an inconsistent state.
-         (let ((already-on find-function-mode))
-           (when already-on (find-function-mode -1))
-           (set-default symbol value)
-           (when already-on (find-function-mode 1)))))
+;; Compiler defvars.  The variable will be defined later with
+;; `defcustom' when everything used in the :set functions is defined.
+(defvar find-function-mode-lower-precedence)
 
 ;;; Functions:
 
@@ -890,6 +879,21 @@ See `find-function-on-key'."
   "Turn on `find-function-mode', which see."
   (find-function-mode 1))
 (make-obsolete 'find-function-setup-keys 'find-function-mode "31.1")
+
+;; Custom variables with :set requires everything be defined
+(defcustom find-function-mode-lower-precedence nil
+  "If non-nil, `find-function-mode' defines keys in the global map.
+This is for compatibility with the historical behavior of
+the old `find-function-setup-keys'."
+  :type 'boolean
+  :version "31.1"
+  :set (lambda (symbol value)
+         ;; Toggle the mode off before changing this setting in order to
+         ;; avoid getting into an inconsistent state.
+         (let ((already-on find-function-mode))
+           (when already-on (find-function-mode -1))
+           (set-default symbol value)
+           (when already-on (find-function-mode 1)))))
 
 (provide 'find-func)
 
