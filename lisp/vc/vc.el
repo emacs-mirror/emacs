@@ -29,7 +29,9 @@
 ;;
 ;;   Per Cederqvist <ceder@lysator.liu.se>
 ;;   Paul Eggert <eggert@twinsun.com>
+;;   Dmitry Gutov <dmitry@gutov.dev>
 ;;   Sebastian Kremer <sk@thp.uni-koeln.de>
+;;   Juri Linkov <juri@linkov.net>
 ;;   Martin Lorentzson <martinl@gnu.org>
 ;;   Dave Love <fx@gnu.org>
 ;;   Stefan Monnier <monnier@cs.yale.edu>
@@ -38,8 +40,6 @@
 ;;   J.D. Smith <jdsmith@alum.mit.edu>
 ;;   Andre Spiegel <spiegel@gnu.org>
 ;;   Richard Stallman <rms@gnu.org>
-;;   Dmitry Gutov <dmitry@gutov.dev>
-;;   Juri Linkov <juri@linkov.net>
 ;;   Sean Whitton <spwhitton@spwhitton.name>
 ;;
 ;; In July 2007 ESR returned and redesigned the mode to cope better
