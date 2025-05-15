@@ -4256,7 +4256,7 @@ read0 (Lisp_Object readcharfun, bool locate_syms)
 		if (c == 'r' || c == 'R')
 		  {
 		    /* #NrDIGITS -- radix-N number */
-		    if (n < 0 || n > 36)
+		    if (n < 2 || n > 36)
 		      invalid_radix_integer (n, readcharfun);
 		    obj = read_integer (readcharfun, n);
 		    break;
