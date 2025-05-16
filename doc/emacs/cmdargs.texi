@@ -146,6 +146,13 @@ appends (rather than prepends) the remainder to @code{load-path}.
 (On MS Windows, use @samp{;} instead of @samp{:}; i.e., use
 the value of @code{path-separator}.)
 
+Note that the changes to @code{load-path} as result of using this option
+do @emph{not} affect the directories where Emacs looks for the site
+startup file and the Lisp packages loaded by the user's early-init and
+init files (@pxref{Init File}), because @code{load-path} is changed by
+the @samp{-L} option @emph{after} these files are loaded and
+interpreted.
+
 @item -f @var{function}
 @opindex -f
 @itemx --funcall=@var{function}
