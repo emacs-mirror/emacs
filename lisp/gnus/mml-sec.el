@@ -34,6 +34,7 @@
 (autoload 'mail-strip-quoted-names "mail-utils")
 (autoload 'mml2015-sign "mml2015")
 (autoload 'mml2015-encrypt "mml2015")
+(autoload 'mml-unobtrusive-sign "mml2015")
 (autoload 'mml1991-sign "mml1991")
 (autoload 'mml1991-encrypt "mml1991")
 (autoload 'message-fetch-field "message")
@@ -56,6 +57,7 @@
   '(("smime"     mml-smime-sign-buffer     mml-smime-sign-query)
     ("pgp"       mml-pgp-sign-buffer       list)
     ("pgpauto"   mml-pgpauto-sign-buffer  list)
+    ("unobtrusive" mml-unobtrusive-sign-buffer list)
     ("pgpmime"   mml-pgpmime-sign-buffer   list))
   "Alist of MIME signer functions.")
 
@@ -196,6 +198,10 @@ You can also customize or set `mml-signencrypt-style-alist' instead."
 
 (defun mml-pgpmime-sign-buffer (cont)
   (or (mml2015-sign cont)
+      (error "Signing failed... inspect message logs for errors")))
+
+(defun mml-unobtrusive-sign-buffer (cont)
+  (or (mml-unobtrusive-sign cont)
       (error "Signing failed... inspect message logs for errors")))
 
 (defun mml-pgpmime-encrypt-buffer (cont &optional sign)
@@ -392,6 +398,11 @@ Use METHOD if given.  Else use `mml-secure-method' or
   (mml-secure-message
    (or method mml-secure-method mml-default-sign-method)
    'encrypt))
+
+(defun mml-secure-message-sign-unobtrusive ()
+  "Add MML tag to encrypt/sign the entire message."
+  (interactive nil mml-mode)
+  (mml-secure-message "unobtrusive" 'sign))
 
 (defun mml-secure-message-sign-smime ()
   "Add MML tag to encrypt/sign the entire message."

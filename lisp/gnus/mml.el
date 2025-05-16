@@ -40,10 +40,11 @@
 (autoload 'message-posting-charset "message")
 (autoload 'dnd-get-local-file-name "dnd")
 
-(autoload 'message-options-set    "message")
-(autoload 'message-narrow-to-head "message")
-(autoload 'message-in-body-p      "message")
-(autoload 'message-mail-p         "message")
+(autoload 'message-options-set     "message")
+(autoload 'message-narrow-to-head  "message")
+(autoload 'message-in-body-p       "message")
+(autoload 'message-mail-p          "message")
+(autoload 'message-cleanup-headers "message")
 
 (defvar gnus-article-mime-handles)
 (defvar gnus-newsrc-hashtb)
@@ -51,6 +52,7 @@
 (defvar message-options)
 (defvar message-posting-charset)
 (defvar message-required-mail-headers)
+(defvar message-ignored-mail-headers)
 (defvar message-required-news-headers)
 (defvar dnd-protocol-alist)
 (defvar mml-dnd-protocol-alist)
@@ -265,6 +267,8 @@ part.  This is for the internal use, you should never modify the value.")
 	  (apply #'mml-insert-tag
 		 secure-mode
 		 `(,@tags
+                   ,"likely-headers"
+                   ,(mml-get-likely-headers)
 		   ,(if keyfile "keyfile")
 		   ,keyfile
 		   ,@(apply #'append
@@ -491,6 +495,21 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 
 (declare-function libxml-parse-html-region "xml.c"
 		  (start end &optional base-url discard-comments))
+
+(defun mml-get-likely-headers ()
+  "Get likely final headers from the existing message"
+  (save-excursion
+    (save-restriction
+      (message-narrow-to-headers-or-head)
+      (let ((x (buffer-substring (point-min) (point-max))))
+        (with-temp-buffer
+          (insert x)
+          (message-remove-header "Bcc")
+          (message-remove-header message-ignored-mail-headers t)
+          (mail-encode-encoded-word-buffer)
+          (message-cleanup-headers)
+          (buffer-string)
+          )))))
 
 (defun mml-generate-mime (&optional multipart-type content-type)
   "Generate a MIME message based on the current MML document.
@@ -839,20 +858,19 @@ type detected."
 	    (message-options-set 'message-sender sender))
 	  (if (setq recipients (cdr (assq 'recipients cont)))
 	      (message-options-set 'message-recipients recipients))
-	  (let ((style (mml-signencrypt-style
-			(car (or sign-item encrypt-item)))))
-	    ;; check if: we're both signing & encrypting, both methods
-	    ;; are the same (why would they be different?!), and that
-	    ;; the signencrypt style allows for combined operation.
-	    (if (and sign-item encrypt-item (equal (car sign-item)
-						   (car encrypt-item))
-		     (equal style 'combined))
-		(funcall (nth 1 encrypt-item) cont t)
-	      ;; otherwise, revert to the old behavior.
-	      (when sign-item
-		(funcall (nth 1 sign-item) cont))
-	      (when encrypt-item
-		(funcall (nth 1 encrypt-item) cont)))))))))
+	  ;; check if: we're both signing & encrypting, both methods
+	  ;; are the same (why would they be different?!), and that
+	  ;; the signencrypt style allows for combined operation.
+	  (if (and sign-item encrypt-item (equal (car sign-item)
+						 (car encrypt-item))
+		   (equal 'combined (mml-signencrypt-style
+			             (car encrypt-item))))
+	      (funcall (nth 1 encrypt-item) cont t)
+	    ;; otherwise, revert to the old behavior.
+	    (when sign-item
+	      (funcall (nth 1 sign-item) cont))
+	    (when encrypt-item
+	      (funcall (nth 1 encrypt-item) cont))))))))
 
 (defun mml-compute-boundary (cont)
   "Return a unique boundary that does not exist in CONT."
@@ -1168,7 +1186,8 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
     "s" (define-keymap
           "p" #'mml-secure-message-sign-pgpmime
           "o" #'mml-secure-message-sign-pgp
-          "s" #'mml-secure-message-sign-smime)
+          "s" #'mml-secure-message-sign-smime
+          "u" #'mml-secure-message-sign-unobtrusive)
     "S" (define-keymap
           "p" #'mml-secure-sign-pgpmime
           "o" #'mml-secure-sign-pgp

@@ -212,6 +212,14 @@ check out the repository to prepare a patch for the package maintainer.
 ---
 *** Messages from Ansible are now recognized.
 
+** Mml
+
+---
+*** mml can now generate unobtrusive signatures.
+These tend to stand out less when displayed in common receiving MUA than
+PGP/MIME signatures.  New command 'mml-secure-message-sign-unobtrusive',
+bound to 'C-c RET s u' in 'mml-mode-map'.
+
 ** Flymake
 
 +++
