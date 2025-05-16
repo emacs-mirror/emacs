@@ -3978,8 +3978,9 @@ by `treesit-simple-imenu-settings'."
       (lambda (entry)
         (let* ((lang (car entry))
                (settings (cdr entry))
-               (global-parser (car (treesit-parsers-at nil lang nil '(primary global))))
-               (local-parsers (treesit-local-parsers-at nil lang)))
+               (global-parser (car (treesit-parser-list nil lang)))
+               (local-parsers
+                (treesit-parser-list nil lang 'embedded)))
           (cons (treesit-language-display-name lang)
                 ;; No one says you can't have both global and local
                 ;; parsers for the same language.  E.g., Rust uses
