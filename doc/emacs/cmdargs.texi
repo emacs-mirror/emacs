@@ -574,7 +574,7 @@ whenever we say ``colon-separated list of directories'', it pertains
 to Unix and GNU/Linux systems.  On MS-DOS and MS-Windows, the
 directories are separated by semi-colons instead, since DOS/Windows
 file names might include a colon after a drive letter.} to search for
-Emacs Lisp files.  If set, it modifies the usual initial value of the
+Emacs Lisp files.  If set, it replaces the usual initial value of the
 @code{load-path} variable (@pxref{Lisp Libraries}).  An empty element
 stands for the default value of @code{load-path}; e.g., using
 @samp{EMACSLOADPATH="/tmp:"} adds @file{/tmp} to the front of
