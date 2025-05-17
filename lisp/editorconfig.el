@@ -709,7 +709,8 @@ Meant to be used on `auto-coding-functions'."
 Meant to be used on `hack-dir-local-get-variables-functions'."
   (when (stringp buffer-file-name)
     (let* ((props (editorconfig-call-get-properties-function buffer-file-name))
-           (alist (editorconfig--get-local-variables props)))
+           (alist (if (< 0 (hash-table-count props))
+                      (editorconfig--get-local-variables props))))
       ;; FIXME: If there's `/foo/.editorconfig', `/foo/bar/.dir-locals.el',
       ;; and `/foo/bar/baz/.editorconfig', it would be nice to return two
       ;; pairs here, so that hack-dir-local can give different priorities
