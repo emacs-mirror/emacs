@@ -566,6 +566,8 @@ to call with the newly initialized overlay."
 This returns the ellipsis string to use and its face."
   (cond*
    ((bind*
+     (standard-display-table (or standard-display-table
+                                 (make-display-table)))
      (d-t-ellipsis (display-table-slot standard-display-table 'selective-display))
      (d-t-face ; Get only the first glyph face
       (if d-t-ellipsis (glyph-face (aref d-t-ellipsis 0))))
