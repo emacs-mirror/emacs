@@ -615,14 +615,6 @@ float-pi
 @end example
 @end defspec
 
-  @strong{Warning:} If you use a @code{defconst} or @code{defvar}
-special form while the variable has a local binding (made with
-@code{let}, or a function argument), it sets the local binding rather
-than the global binding.  This is not what you usually want.  To
-prevent this, use these special forms at top level in a file, where
-normally no local binding is in effect, and make sure to load the file
-before making a local binding for the variable.
-
 @node Tips for Defining
 @section Tips for Defining Variables Robustly
 
