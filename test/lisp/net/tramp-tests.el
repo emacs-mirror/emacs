@@ -5054,14 +5054,20 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 			 ipv6-postfix tramp-postfix-host-format)))
 		     ;; The hop string fits only the initial syntax.
 		     (hop (and (eq tramp-syntax orig-syntax) hop))
+		     ;; Needed for host name completion.
+		     (default-user
+		      (file-remote-p
+		       (concat tramp-prefix-format hop method-string host-string)
+		       'user))
+		     (default-user-string
+		      (unless (tramp-string-empty-or-nil-p default-user)
+			(concat default-user tramp-postfix-user-format)))
                      test result completions)
 
 		(dolist
 		    (test-and-result
 		     ;; These are triples of strings (TEST-STRING
-		     ;; RESULT-CHECK COMPLETION-CHECK).  RESULT-CHECK
-		     ;; could be not unique, in this case it is a list
-		     ;; (RESULT1 RESULT2 ...).
+		     ;; RESULT-CHECK COMPLETION-CHECK).
 		     (append
 		      ;; Complete method name.
 		      (unless (string-empty-p tramp-method-regexp)
@@ -5087,11 +5093,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 			     ipv6-prefix
 			     (substring-no-properties
 			      host 0 (min 2 (length host))))
-			   (,(concat
-			      tramp-prefix-format hop method-string host-string)
-			    ,(concat
-			      tramp-prefix-format hop method-string
-			      user-string host-string))
+			   ,(concat
+			     tramp-prefix-format hop method-string
+			     default-user-string host-string)
 			   ,host-string)))
 		      ;; Complete user and host name.
 		      (unless (or (tramp-string-empty-or-nil-p user)
@@ -5132,14 +5136,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
                         ;; (tramp--test-message
                         ;;  "syntax: %s style: %s test: %s result: %s"
                         ;;  syntax style test result)
-			(if (stringp (cadr test-and-result))
-			    (should
-			     (string-prefix-p (cadr test-and-result) result))
-			  (should
-			   (let (res)
-			     (dolist (elem (cadr test-and-result) res)
-			       (setq
-				res (or res (string-prefix-p elem result))))))))
+			(should (string-prefix-p (cadr test-and-result) result)))
 
                     (with-current-buffer "*Completions*"
 		      ;; We must remove leading `default-directory'.
@@ -7348,7 +7345,7 @@ This does not support external Emacs calls."
   (tramp-method-out-of-band-p tramp-test-vec 1))
 
 (defun tramp--test-putty-p ()
-  "Check, whether the method method usaes PuTTY.
+  "Check, whether the method uses PuTTY.
 This does not support connection share for more than two connections."
   (member
    (file-remote-p ert-remote-temporary-file-directory 'method)
@@ -7364,6 +7361,15 @@ This requires restrictions of file name syntax."
 This does not support special file names."
   (string-equal
    "rsync" (file-remote-p ert-remote-temporary-file-directory 'method)))
+
+(defun tramp--test-scp-p ()
+  "Check, whether an scp method is used.
+This does not support quoted special characters in recent sshd
+implementations."
+  ;; Detected with OpenSSH_9.9p1.
+  (member
+   (file-remote-p ert-remote-temporary-file-directory 'method)
+   '("pscp" "scp" "scpx")))
 
 (defun tramp--test-sh-p ()
   "Check, whether the remote host runs a based method from tramp-sh.el."
@@ -7737,6 +7743,7 @@ This requires restrictions of file name syntax."
   (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; SLOW ~ 620s
   (skip-unless (not (tramp--test-container-p)))
   (skip-unless (not (tramp--test-rsync-p)))
+  (skip-unless (not (tramp--test-scp-p)))
   (skip-unless (not (tramp--test-windows-nt-and-out-of-band-p)))
   (skip-unless (not (tramp--test-ksh-p)))
   (skip-unless (not (tramp--test-gdrive-p)))

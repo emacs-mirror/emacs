@@ -1035,11 +1035,11 @@ After the first time stamp, the line might look like this:
 Time-stamp: <1993-07-06 11:05:14 terryg>
 @end example
 
-Second, configure Emacs to run @code{time-stamp} any time it saves a
+Second, configure your Emacs to run @code{time-stamp} whenever it saves a
 file, by adding @code{time-stamp}
 to @code{before-save-hook} (@pxref{Hooks}).
-You can either customize the option @code{before-save-hook}
-(with @kbd{M-x customize-option}, @pxref{Specific Customization}),
+You can either use @kbd{M-x customize-option} (@pxref{Specific
+Customization}) to customize the option @code{before-save-hook},
 or you can edit your init file adding this line:
 
 @example

@@ -1,4 +1,4 @@
-;;; elec-pair.el --- Automatic parenthesis pairing  -*- lexical-binding:t -*-
+;;; elec-pair.el --- Automatically insert matching delimiters  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013-2025 Free Software Foundation, Inc.
 
@@ -20,6 +20,11 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;;  This library provides a way to easily insert pairs of matching
+;;  delimiters (parentheses, braces, brackets, quotes, etc.) and
+;;  optionally preserve or override the balance of delimiters.  It is
+;;  documented in the Emacs user manual node "(emacs) Matching".
 
 ;;; Code:
 
@@ -59,15 +64,16 @@ defined in `electric-pair-text-syntax-table'."
 (defcustom electric-pair-skip-self #'electric-pair-default-skip-self
   "If non-nil, skip char instead of inserting a second closing paren.
 
-When inserting a closing paren character right before the same character,
-just skip that character instead, so that hitting ( followed by ) results
-in \"()\" rather than \"())\".
+When inserting a closing delimiter right before the same character, just
+skip that character instead, so that, for example, consecutively
+typing `(' and `)' results in \"()\" rather than \"())\".
 
-This can be convenient for people who find it easier to hit ) than \\[forward-char].
+This can be convenient for people who find it easier to type `)' than
+\\[forward-char].
 
-Can also be a function of one argument (the closer char just
-inserted), in which case that function's return value is
-considered instead."
+Can also be a function of one argument (the closing delimiter just
+inserted), in which case that function's return value is considered
+instead."
   :version "24.1"
   :group 'electricity
   :type '(choice
@@ -80,9 +86,9 @@ considered instead."
   #'electric-pair-default-inhibit
   "Predicate to prevent insertion of a matching pair.
 
-The function is called with a single char (the opening char just inserted).
-If it returns non-nil, then `electric-pair-mode' will not insert a matching
-closer."
+The function is called with a single char (the opening delimiter just
+inserted).  If it returns non-nil, then `electric-pair-mode' will not
+insert a matching closing delimiter."
   :version "24.4"
   :group 'electricity
   :type '(choice
@@ -92,22 +98,32 @@ closer."
           function))
 
 (defcustom electric-pair-preserve-balance t
-  "Non-nil if default pairing and skipping should help balance parentheses.
+  "Whether to keep matching delimiters balanced.
+When non-nil, typing a delimiter inserts only this character if there is
+a unpaired matching delimiter later (if the latter is a closing
+delimiter) or earlier (if the latter is a opening delimiter) in the
+buffer.  When nil, inserting a delimiter disregards unpaired matching
+delimiters.
 
-The default values of `electric-pair-inhibit-predicate' and
-`electric-pair-skip-self' check this variable before delegating to other
-predicates responsible for making decisions on whether to pair/skip some
-characters based on the actual state of the buffer's parentheses and
-quotes."
+Whether this variable takes effect depends on the variables
+`electric-pair-inhibit-predicate' and `electric-pair-skip-self', which
+check the value of this variable before delegating to other predicates
+responsible for making decisions on whether to pair/skip some characters
+based on the actual state of the buffer's delimiters.  In addition, this
+variable has no effect if there is an active region."
   :version "24.4"
   :group 'electricity
   :type 'boolean)
 
 (defcustom electric-pair-delete-adjacent-pairs t
-  "If non-nil, backspacing an open paren also deletes adjacent closer.
+  "Whether to automatically delete a matching delimiter.
+If non-nil, then when an opening delimiter immediately precedes a
+matching closing delimiter and point is between them, typing DEL (the
+backspace key) deletes both delimiters.  If nil, only the opening
+delimiter is deleted.
 
-Can also be a function of no arguments, in which case that function's
-return value is considered instead."
+The value of this variable can also be a function of no arguments, in
+which case that function's return value is considered instead."
   :version "24.4"
   :group 'electricity
   :type '(choice
@@ -116,10 +132,14 @@ return value is considered instead."
           function))
 
 (defcustom electric-pair-open-newline-between-pairs t
-  "If non-nil, a newline between adjacent parentheses opens an extra one.
+  "Whether to insert an extra newline between matching delimiters.
+If non-nil, then when an opening delimiter immediately precedes a
+matching closing delimiter and point is between them, typing a newline
+automatically inserts an extra newline after point.  If nil, just one
+newline is inserted before point.
 
-Can also be a function of no arguments, in which case that function's
-return value is considered instead."
+The value of this variable can also be a function of no arguments, in
+which case that function's return value is considered instead."
   :version "24.4"
   :group 'electricity
   :type '(choice
@@ -128,16 +148,19 @@ return value is considered instead."
           function))
 
 (defcustom electric-pair-skip-whitespace t
-  "If non-nil skip whitespace when skipping over closing parens.
+  "Whether typing a closing delimiter moves point over whitespace.
+If non-nil and point is separated from a closing delimiter only by
+whitespace, then typing a closing delimiter of the same type does not
+insert that character but instead moves point to immediately after the
+already present closing delimiter.  If the value of this variable is set
+tothe symbol `chomp', then the whitespace moved over is deleted.  If the
+value is nil, typing a closing delimiter simply inserts it at point.
 
 The specific kind of whitespace skipped is given by the variable
 `electric-pair-skip-whitespace-chars'.
 
-The symbol `chomp' specifies that the skipped-over whitespace
-should be deleted.
-
-Can also be a function of no arguments, in which case that function's
-return value is considered instead."
+The value of this variable can also be a function of no arguments, in
+which case that function's return value is considered instead."
   :version "24.4"
   :group 'electricity
   :type '(choice
@@ -157,16 +180,16 @@ return value is considered instead."
 
 (defvar-local electric-pair-skip-whitespace-function
   #'electric-pair--skip-whitespace
-  "Function to use to skip whitespace forward.
+  "Function to use to move point forward over whitespace.
 Before attempting a skip, if `electric-pair-skip-whitespace' is
-non-nil, this function is called.  It move point to a new buffer
+non-nil, this function is called.  It moves point to a new buffer
 position, presumably skipping only whitespace in between.")
 
 (defun electric-pair-analyze-conversion (string)
-  "Notice that STRING has been deleted by an input method.
+  "Delete delimiters enclosing the STRING deleted by an input method.
 If the last character of STRING is an electric pair character,
 and the character after point is too, then delete that other
-character."
+character.  Called by `analyze-text-conversion'."
   (let* ((prev (aref string (1- (length string))))
          (next (char-after))
          (syntax-info (electric-pair-syntax-info prev))
@@ -177,7 +200,8 @@ character."
       (delete-char 1))))
 
 (defun electric-pair--skip-whitespace ()
-  "Skip whitespace forward, not crossing comment or string boundaries."
+  "Move point forward over whitespace.
+But do not move point if doing so crosses comment or string boundaries."
   (let ((saved (point))
         (string-or-comment (nth 8 (syntax-ppss))))
     (skip-chars-forward (apply #'string electric-pair-skip-whitespace-chars))
@@ -187,9 +211,9 @@ character."
 (defvar electric-pair-text-syntax-table prog-mode-syntax-table
   "Syntax table used when pairing inside comments and strings.
 
-`electric-pair-mode' considers this syntax table only when point in inside
-quotes or comments.  If lookup fails here, `electric-pair-text-pairs' will
-be considered.")
+`electric-pair-mode' considers this syntax table only when point is
+within text marked as a comment or enclosed within quotes.  If lookup
+fails here, `electric-pair-text-pairs' will be considered.")
 
 (defun electric-pair-conservative-inhibit (char)
   (or
@@ -206,7 +230,7 @@ be considered.")
   "Run BODY with appropriate syntax table active.
 STRING-OR-COMMENT is the start position of the string/comment
 in which we are, if applicable.
-Uses the text-mode syntax table if within a string or a comment."
+Uses the `text-mode' syntax table if within a string or a comment."
   (declare (debug t) (indent 1))
   `(electric-pair--with-syntax-1 ,string-or-comment (lambda () ,@body)))
 
@@ -229,11 +253,11 @@ Uses the text-mode syntax table if within a string or a comment."
 (defun electric-pair-syntax-info (command-event)
   "Calculate a list (SYNTAX PAIR UNCONDITIONAL STRING-OR-COMMENT-START).
 
-SYNTAX is COMMAND-EVENT's syntax character.  PAIR is
-COMMAND-EVENT's pair.  UNCONDITIONAL indicates the variables
-`electric-pair-pairs' or `electric-pair-text-pairs' were used to
-lookup syntax.  STRING-OR-COMMENT-START indicates that point is
-inside a comment or string."
+SYNTAX is COMMAND-EVENT's syntax character.  PAIR is COMMAND-EVENT's
+pair.  UNCONDITIONAL indicates that the variables `electric-pair-pairs'
+or `electric-pair-text-pairs' were used to look up syntax.
+STRING-OR-COMMENT-START indicates that point is inside a comment or
+string."
   (let* ((pre-string-or-comment (or (bobp)
                                     (nth 8 (save-excursion
                                              (syntax-ppss (1- (point)))))))
@@ -264,20 +288,20 @@ inside a comment or string."
   (let ((last-command-event char)
 	(blink-matching-paren nil)
 	(electric-pair-mode nil)
-        ;; When adding the "closer" delimiter, a job his function is
+        ;; When adding a closing delimiter, a job this function is
         ;; frequently used for, we don't want to munch any extra
         ;; newlines above us.  That would be the default behavior of
-        ;; `electric-layout-mode', which potentially kicked in before
-        ;; us to add these newlines, and is probably about to kick in
-        ;; again after we add the closer.
+        ;; `electric-layout-mode', which potentially kicked in before us
+        ;; to add these newlines, and is probably about to kick in again
+        ;; after we add the closer.
         (electric-layout-allow-duplicate-newlines t))
     (self-insert-command times)))
 
 (defun electric-pair--syntax-ppss (&optional pos where)
-  "Like `syntax-ppss', but sometimes fallback to `parse-partial-sexp'.
+  "Like `syntax-ppss', but maybe fall back to `parse-partial-sexp'.
 
 WHERE is a list defaulting to \\='(string comment) and indicates
-when to fallback to `parse-partial-sexp'."
+when to fall back to `parse-partial-sexp'."
   (let* ((pos (or pos (point)))
          (where (or where '(string comment)))
          (quick-ppss (syntax-ppss pos))
@@ -298,12 +322,12 @@ when to fallback to `parse-partial-sexp'."
           (parse-partial-sexp (point-min) pos)
         quick-ppss))))
 
-;; Balancing means controlling pairing and skipping of parentheses
+;; Balancing means controlling pairing and skipping of delimiters
 ;; so that, if possible, the buffer ends up at least as balanced as
 ;; before, if not more.  The algorithm is slightly complex because
 ;; some situations like "()))" need pairing to occur at the end but
 ;; not at the beginning.  Balancing should also happen independently
-;; for different types of parentheses, so that having your {}'s
+;; for different types of delimiter, so that having your {}'s
 ;; unbalanced doesn't keep `electric-pair-mode' from balancing your
 ;; ()'s and your []'s.
 (defun electric-pair--balance-info (direction string-or-comment)
@@ -322,7 +346,7 @@ If point is not enclosed by any lists, return ((t) . (t))."
   (let* (innermost
          outermost
          (at-top-level-or-equivalent-fn
-          ;; called when `scan-sexps' ran perfectly, when it found
+          ;; Called when `scan-sexps' ran perfectly, when it found
           ;; a parenthesis pointing in the direction of travel.
           ;; Also when travel started inside a comment and exited it.
           (lambda ()
@@ -330,7 +354,7 @@ If point is not enclosed by any lists, return ((t) . (t))."
             (unless innermost
               (setq innermost (list t)))))
          (ended-prematurely-fn
-          ;; called when `scan-sexps' crashed against a parenthesis
+          ;; Called when `scan-sexps' crashed against a parenthesis
           ;; pointing opposite the direction of travel.  After
           ;; traversing that character, the idea is to travel one sexp
           ;; in the opposite direction looking for a matching
@@ -381,7 +405,7 @@ If point is not enclosed by any lists, return ((t) . (t))."
               (funcall at-top-level-or-equivalent-fn))
           (scan-error
            (cond ((or
-                   ;; some error happened and it is not of the "ended
+                   ;; Some error happened and it is not of the "ended
                    ;; prematurely" kind...
                    (not (string-match "ends prematurely" (nth 1 err)))
                    ;; ... or we were in a comment and just came out of
@@ -390,7 +414,7 @@ If point is not enclosed by any lists, return ((t) . (t))."
                         (not (nth 8 (syntax-ppss)))))
                   (funcall at-top-level-or-equivalent-fn))
                  (t
-                  ;; exit the sexp
+                  ;; Exit the sexp.
                   (goto-char (nth 3 err))
                   (funcall ended-prematurely-fn)))))))
     (cons innermost outermost)))
@@ -440,7 +464,7 @@ strings."
        (unwind-protect (progn ,@body) (goto-char ,point)))))
 
 (defun electric-pair-inhibit-if-helps-balance (char)
-  "Return non-nil if auto-pairing of CHAR would hurt parentheses' balance.
+  "Return non-nil if auto-pairing of CHAR unbalances delimiters.
 
 Works by first removing the character from the buffer, then doing
 some list calculations, finally restoring the situation as if nothing
@@ -471,7 +495,7 @@ happened."
                  (electric-pair--unbalanced-strings-p char)))))))))
 
 (defun electric-pair-skip-if-helps-balance (char)
-  "Return non-nil if skipping CHAR would benefit parentheses' balance.
+  "Return non-nil if skipping CHAR preserves balance of delimiters.
 Works by first removing the character from the buffer, then doing
 some list calculations, finally restoring the situation as if nothing
 happened."
@@ -507,7 +531,10 @@ happened."
     (electric-pair-conservative-inhibit char)))
 
 (defun electric-pair-post-self-insert-function ()
-  "Member of `post-self-insert-hook'.  Do main work for `electric-pair-mode'.
+  "Do main work for `electric-pair-mode'.
+This function is added to `post-self-insert-hook' when
+`electric-pair-mode' is enabled.
+
 If the newly inserted character C has delimiter syntax, this
 function may decide to insert additional paired delimiters, or
 skip the insertion of the new character altogether by jumping
@@ -567,14 +594,18 @@ The decision is taken by order of preference:
                        (if (functionp electric-pair-skip-self)
                            (electric-pair--save-literal-point-excursion
                              (goto-char pos)
-                             (funcall electric-pair-skip-self last-command-event))
+                             (funcall electric-pair-skip-self
+                                      last-command-event))
                          electric-pair-skip-self))
                    (save-excursion
-                     (when (and (not (and unconditional
-                                          (eq syntax ?\")))
-                                (setq skip-whitespace-info
-                                      (if (and (not (eq electric-pair-skip-whitespace 'chomp))
-                                               (functionp electric-pair-skip-whitespace))
+                     (when (and
+                            (not (and unconditional (eq syntax ?\")))
+                            (setq skip-whitespace-info
+                                  (if (and
+                                       (not
+                                        (eq electric-pair-skip-whitespace
+                                            'chomp))
+                                       (functionp electric-pair-skip-whitespace))
                                           (funcall electric-pair-skip-whitespace)
                                         electric-pair-skip-whitespace)))
                        (funcall electric-pair-skip-whitespace-function))
@@ -602,7 +633,8 @@ The decision is taken by order of preference:
 
 (defun electric-pair-open-newline-between-pairs-psif ()
   "Honor `electric-pair-open-newline-between-pairs'.
-Member of `post-self-insert-hook' if `electric-pair-mode' is on."
+This function is added to `post-self-insert-hook' when
+`electric-pair-mode' is enabled."
   (when (and (if (functionp electric-pair-open-newline-between-pairs)
                  (funcall electric-pair-open-newline-between-pairs)
                electric-pair-open-newline-between-pairs)
@@ -653,15 +685,15 @@ ARG and KILLP are passed directly to
 
 ;;;###autoload
 (define-minor-mode electric-pair-mode
-  "Toggle automatic parens pairing (Electric Pair mode).
+  "Toggle automatic pairing of delimiters (Electric Pair mode).
 
-Electric Pair mode is a global minor mode.  When enabled, typing
-an open parenthesis automatically inserts the corresponding
-closing parenthesis, and vice versa.  (Likewise for brackets, etc.).
-If the region is active, the parentheses (brackets, etc.) are
-inserted around the region instead.
+Electric Pair mode is a global minor mode.  When enabled, typing an
+opening delimiter (parenthesis, bracket, etc.) automatically inserts the
+corresponding closing delimiter.  If the region is active, the
+delimiters are inserted around the region instead.
 
-To toggle the mode in a single buffer, use `electric-pair-local-mode'."
+To toggle the mode only in the current buffer, use
+`electric-pair-local-mode'."
   :global t :group 'electricity
   (if electric-pair-mode
       (progn

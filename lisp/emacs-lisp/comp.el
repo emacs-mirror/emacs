@@ -3724,12 +3724,22 @@ variable \"NATIVE_DISABLED\" is set, only byte compile."
 
 ;;;###autoload
 (defun native-compile-prune-cache ()
-  "Remove .eln files that aren't applicable to the current Emacs invocation."
+  "Remove *.eln files that aren't usable by the current Emacs build.
+
+This command removes all the *.eln files in `native-comp-eln-load-path'
+which are incompatible with the Emacs session in which you invoke this
+command.  This includes the *.eln files compiled by all the Emacs
+sessions where `comp-native-version-dir' had a value different from the
+current session.
+
+Note that this command does not prune the *.eln files in the last
+directory in `native-comp-eln-load-path', which holds *.eln files
+compiled during the Emacs build process."
   (interactive)
   (unless (featurep 'native-compile)
     (user-error "This Emacs isn't built with native-compile support"))
-  ;; The last item in native-comp-eln-load-path is assumed to be a system
-  ;; directory, so don't try to delete anything there (bug#59658).
+  ;; The last directory in 'native-comp-eln-load-path' is assumed to be a
+  ;; system directory, so don't try to delete anything there (bug#59658).
   (dolist (dir (butlast native-comp-eln-load-path))
     ;; If a directory is non absolute it is assumed to be relative to
     ;; `invocation-directory'.

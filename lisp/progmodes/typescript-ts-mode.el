@@ -162,7 +162,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((and (parent-is "comment") c-ts-common-looking-at-star)
       c-ts-common-comment-start-after-first-star -1)
      ((parent-is "comment") prev-adaptive-prefix 0)
-     ((parent-is "ternary_expression") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "ternary_expression") standalone-parent typescript-ts-mode-indent-offset)
      ((parent-is "member_expression") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "named_imports") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "statement_block") parent-bol typescript-ts-mode-indent-offset)

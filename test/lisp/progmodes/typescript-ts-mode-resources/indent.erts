@@ -93,6 +93,15 @@ const foo = () => {
 };
 =-=-=
 
+Name: Chained ternary expressions
+
+=-=
+const a = cond1 ? 1
+  : cond2 ? 2
+  : cond3 ? 3
+  : 4;
+=-=-=
+
 Code:
   (lambda ()
     (setq tsx-ts-mode-indent-offset 2)
