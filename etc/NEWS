@@ -1946,6 +1946,13 @@ New faces have been added to 'icomplete-vertical-mode':
 This is intended for customizing directory-local variables in the
 current directory's ".dir-locals.el" file.
 
+** Pulse
+
+--
+*** New function 'pulse-faces'.
+This function pulses a specified list of faces.  The pulse duration is
+determined by the new user option 'pulse-face-duration'.
+
 ** Miscellaneous
 
 ---
