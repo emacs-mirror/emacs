@@ -349,22 +349,24 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
 (defvar url-cookie-timer nil)
 
 (defcustom url-cookie-save-interval 3600
-  "The number of seconds between automatic saves of cookies.
-Default is 1 hour.  Note that if you change this variable outside of
-the `customize' interface after `url-do-setup' has been run, you need
-to run the `url-cookie-setup-save-timer' function manually."
+  "If non-nil, the number of seconds between automatic saves of cookies.
+Default is 1 hour; set to nil to disable automatic saving of cookies.
+Note that if you change this variable outside of the `customize'
+interface after `url-do-setup' has been run, you need to run
+the `url-cookie-setup-save-timer' function manually."
   :set (lambda (var val)
          (set-default var val)
          (if (bound-and-true-p url-setup-done)
              (url-cookie-setup-save-timer)))
-  :type 'natnum)
+  :type '(choice (const :tag "Disable automatic saving of cookies" :value nil)
+                 (natnum :tag "Interval in seconds for auto-saving cookies")))
 
 (defun url-cookie-setup-save-timer ()
   "Reset the cookie saver timer."
   (interactive)
   (ignore-errors (cancel-timer url-cookie-timer))
   (setq url-cookie-timer nil)
-  (if url-cookie-save-interval
+  (if (natnump url-cookie-save-interval)
       (setq url-cookie-timer (run-at-time url-cookie-save-interval
 					  url-cookie-save-interval
 					  #'url-cookie-write-file))))
