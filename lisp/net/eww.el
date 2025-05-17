@@ -2320,29 +2320,33 @@ If CHARSET is nil then use UTF-8."
       (eww-reload nil 'utf-8)
     (eww-reload nil charset)))
 
+(defun eww--buffer-p (buf)
+  (provided-mode-derived-p (buffer-local-value 'major-mode buf)
+                           'eww-mode))
+
 (defun eww-switch-to-buffer ()
   "Prompt for an EWW buffer to display in the selected window.
 If no such buffer exist, fallback to calling `eww'."
   (interactive nil eww-mode)
   (let ((list (cl-loop for buf in (nreverse (buffer-list))
-                           if (with-current-buffer buf (derived-mode-p 'eww-mode))
-                           return buf)))
+                       if (eww--buffer-p buf)
+                       return buf)))
     (if list
-        (let ((completion-extra-properties
-               `(:annotation-function
-                 ,(lambda (buf)
-                    (with-current-buffer buf
-                      (format " %s" (eww-current-url))))))
-              (curbuf (current-buffer)))
-          (pop-to-buffer-same-window
-           (read-buffer "Switch to EWW buffer: "
-                        list
-                        t
-                        (lambda (bufn)
-                          (setq bufn (if (consp bufn) (cdr bufn) (get-buffer bufn)))
-                          (and (with-current-buffer bufn
-                                 (derived-mode-p 'eww-mode))
-                               (not (eq bufn curbuf)))))))
+        (pop-to-buffer-same-window
+         (let ((curbuf (current-buffer)))
+           (minibuffer-with-setup-hook
+               (lambda ()
+                 (setq-local completion-extra-properties
+                             `(:annotation-function
+                               ,(lambda (buf)
+                                  (with-current-buffer buf
+                                    (format " %s" (eww-current-url)))))))
+             (read-buffer "Switch to EWW buffer: "
+                          list t
+                          (lambda (bufn)
+                            (setq bufn (or (cdr-safe bufn) (get-buffer bufn)))
+                            (and (eww--buffer-p bufn)
+                                 (not (eq bufn curbuf))))))))
       (call-interactively #'eww))))
 
 (defun eww-toggle-fonts ()
