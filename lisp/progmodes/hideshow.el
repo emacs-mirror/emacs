@@ -563,7 +563,7 @@ to call with the newly initialized overlay."
 
 (defun hs--get-ellipsis (b e)
   "Helper function for `hs-make-overlay'.
-This return the ellipsis string to use and its face."
+This returns the ellipsis string to use and its face."
   (cond*
    ((bind*
      (d-t-ellipsis (display-table-slot standard-display-table 'selective-display))
