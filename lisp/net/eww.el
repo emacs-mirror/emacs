@@ -784,9 +784,11 @@ Use CODING-SYSTEM to decode the region; if nil, decode as UTF-8.
 This replaces the region with the preprocessed HTML."
   (setq coding-system (or coding-system 'utf-8))
   (with-restriction start end
-    (condition-case nil
-        (decode-coding-region (point-min) (point-max) coding-system)
-      (coding-system-error nil))
+    (unless (and (not enable-multibyte-characters)
+		 (eq coding-system 'utf-8))
+      (condition-case nil
+          (decode-coding-region (point-min) (point-max) coding-system)
+        (coding-system-error nil)))
     ;; Remove CRLF and replace NUL with &#0; before parsing.
     (while (re-search-forward "\\(\r$\\)\\|\0" nil t)
       (replace-match (if (match-beginning 1) "" "&#0;") t t))
@@ -1034,7 +1036,7 @@ This replaces the region with the preprocessed HTML."
 	(erase-buffer)
 	(insert data)
 	(condition-case nil
-	    (decode-coding-region (point-min) (1+ (length data)) encode)
+	    (decode-coding-region (point-min) (point) encode)
 	  (coding-system-error nil)))
       (goto-char (point-min)))))
 
@@ -1383,7 +1385,7 @@ within text input fields."
   (setq-local shr-url-transformer #'eww--transform-url)
   ;; Also rescale images when rescaling the text.
   (add-hook 'text-scale-mode-hook #'eww--rescale-images nil t)
-  (setq-local outline-search-function 'shr-outline-search
+  (setq-local outline-search-function #'shr-outline-search
               outline-level 'shr-outline-level)
   (add-hook 'post-command-hook #'eww-check-text-conversion nil t)
   (setq buffer-read-only t)
@@ -2322,24 +2324,22 @@ If CHARSET is nil then use UTF-8."
 If no such buffer exist, fallback to calling `eww'."
   (interactive nil eww-mode)
   (let ((list (cl-loop for buf in (nreverse (buffer-list))
-                       if (eww--buffer-p buf)
-                       return buf)))
+                       if (and (eww--buffer-p buf)
+                               (not (eq buf (current-buffer))))
+                       collect (buffer-name buf))))
     (if list
         (pop-to-buffer-same-window
-         (let ((curbuf (current-buffer)))
-           (minibuffer-with-setup-hook
-               (lambda ()
-                 (setq-local completion-extra-properties
-                             `(:annotation-function
-                               ,(lambda (buf)
-                                  (with-current-buffer buf
-                                    (format " %s" (eww-current-url)))))))
-             (read-buffer "Switch to EWW buffer: "
-                          list t
-                          (lambda (bufn)
-                            (setq bufn (or (cdr-safe bufn) (get-buffer bufn)))
-                            (and (eww--buffer-p bufn)
-                                 (not (eq bufn curbuf))))))))
+         (if (length= list 1)
+             (car list)
+           (completing-read "Switch to EWW buffer: "
+                            (completion-table-with-metadata
+                             list
+                             `((category . buffer)
+                               (annotation-function
+                                . ,(lambda (buf)
+                                     (with-current-buffer buf
+                                       (format " %s" (eww-current-url)))))))
+                            nil t)))
       (call-interactively #'eww))))
 
 (defun eww-toggle-fonts ()
@@ -2714,7 +2714,7 @@ see)."
 
 (defun eww-buffer-list ()
   "Return a list of all live eww buffers."
-  (match-buffers '(derived-mode . eww-mode)))
+  (match-buffers #'eww--buffer-p))
 
 (defun eww-list-buffers ()
   "Pop a buffer with a list of eww buffers."
