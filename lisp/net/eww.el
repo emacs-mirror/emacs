@@ -49,7 +49,6 @@
 - %t is replaced by the title.
 - %u is replaced by the URL."
   :version "24.4"
-  :group 'eww
   :type 'string)
 
 (defcustom eww-search-confirm-send-region t
@@ -60,13 +59,11 @@ default to mitigate the risk of accidental data leak.  Set this
 variable to nil to send the region to the search engine
 straight away."
   :version "31.1"
-  :group 'eww
   :type 'boolean)
 
 (defcustom eww-search-prefix "https://duckduckgo.com/html/?q="
   "Prefix URL to search engine."
   :version "24.4"
-  :group 'eww
   :type 'string)
 
 (defcustom eww-use-browse-url "\\`mailto:"
@@ -80,7 +77,6 @@ The action to be taken can be further customized via
   "Default directory where `eww' saves downloaded files.
 Used by `eww--download-directory', which see."
   :version "29.1"
-  :group 'eww
   :type 'directory)
 
 (defun eww--download-directory ()
@@ -99,7 +95,6 @@ is defined, use the latter instead."
 This should either be a directory name or a function (called with
 no parameters) that returns a directory name."
   :version "28.1"
-  :group 'eww
   :type '(choice directory function))
 
 ;;;###autoload
@@ -113,7 +108,6 @@ Each of the elements is a function returning either a string or a list
 of strings.  The results will be joined into a single list with
 duplicate entries (if any) removed."
   :version "30.1"
-  :group 'eww
   :type 'hook
   :options '(eww-links-at-point
              thing-at-point-url-at-point
@@ -131,13 +125,11 @@ complete response of the server from which the page was requested.
 If the list of the functions is exhausted without any non-nil value,
 EWW assumes content-type is \"application/octet-stream\", per RFC-9110."
   :version "31.1"
-  :group 'eww
   :type '(repeat function))
 
 (defcustom eww-bookmarks-directory user-emacs-directory
   "Directory where bookmark files will be stored."
   :version "25.1"
-  :group 'eww
   :type 'directory)
 
 (defcustom eww-desktop-remove-duplicates t
@@ -146,7 +138,6 @@ If non-nil, repetitive EWW history entries (comprising of the URI, the
 title, and the point position) will not be saved as part of the Emacs
 desktop.  Otherwise, such entries will be retained."
   :version "25.1"
-  :group 'eww
   :type 'boolean)
 
 (defcustom eww-restore-desktop nil
@@ -156,7 +147,6 @@ If nil, buffers will require manual reload, and will contain the text
 specified in `eww-restore-reload-prompt' instead of the actual Web
 page contents."
   :version "25.1"
-  :group 'eww
   :type '(choice (const :tag "Restore all automatically" t)
                  (const :tag "Require manual reload" nil)))
 
@@ -167,13 +157,11 @@ This prompt will be used if `eww-restore-desktop' is nil.
 
 The string will be passed through `substitute-command-keys'."
   :version "25.1"
-  :group 'eww
   :type 'string)
 
 (defcustom eww-history-limit 50
   "Maximum number of entries to retain in the history."
   :version "25.1"
-  :group 'eww
   :type '(choice (const :tag "Unlimited" nil)
                  integer))
 
@@ -192,7 +180,6 @@ the first item is the program, and the rest are the arguments."
   "\\`\\(video/\\|audio/\\|application/ogg\\)"
   "Always use external browser for specified content-type."
   :version "24.4"
-  :group 'eww
   :type '(choice (const :tag "Never" nil)
                  regexp))
 
@@ -203,7 +190,6 @@ If t, then open the URL in a new tab rather than a new buffer if
 If `tab-bar', then open the URL in a new tab only when
 the tab bar is enabled."
   :version "27.1"
-  :group 'eww
   :type '(choice (const :tag "Always open URL in new tab" t)
                  (const :tag "Open new tab when tab bar is enabled" tab-bar)
                  (const :tag "Never open URL in new tab" nil)))
@@ -226,7 +212,6 @@ EWW provides the following values for this option:
 
 You can also set this to any other function you wish."
   :version "30.1"
-  :group 'eww
   :type '(choice (function-item :tag "Delete future history"
                                 eww-delete-future-history)
                  (function-item :tag "Clone previous history"
@@ -238,7 +223,6 @@ You can also set this to any other function you wish."
 (defcustom eww-after-render-hook nil
   "A hook called after eww has finished rendering the buffer."
   :version "25.1"
-  :group 'eww
   :type 'hook)
 
 (defcustom eww-auto-rename-buffer nil
@@ -266,20 +250,17 @@ of `eww-buffer-name-length'."
           (const :tag "Do not rename buffers (default)" nil)
           (const :tag "Rename buffer to web page title" title)
           (const :tag "Rename buffer to web page URL" url)
-          (function :tag "A user-defined function to rename the buffer"))
-  :group 'eww)
+          (function :tag "A user-defined function to rename the buffer")))
 
 (defcustom eww-buffer-name-length 40
   "Length of renamed buffer name, per `eww-auto-rename-buffer'."
   :type 'natnum
-  :version "29.1"
-  :group 'eww)
+  :version "29.1")
 
 (defcustom eww-form-checkbox-selected-symbol "[X]"
   "Symbol used to represent a selected checkbox.
 See also `eww-form-checkbox-symbol'."
   :version "24.4"
-  :group 'eww
   :type '(choice (const "[X]")
                  (const "☒")            ; Unicode BALLOT BOX WITH X
                  (const "☑")            ; Unicode BALLOT BOX WITH CHECK
@@ -289,7 +270,6 @@ See also `eww-form-checkbox-symbol'."
   "Symbol used to represent a checkbox.
 See also `eww-form-checkbox-selected-symbol'."
   :version "24.4"
-  :group 'eww
   :type '(choice (const "[ ]")
                  (const "☐")            ; Unicode BALLOT BOX
                  string))
@@ -327,62 +307,54 @@ by default."
      :box (:line-width 2 :style released-button)
      :background "#808080" :foreground "black"))
   "Face for eww buffer buttons."
-  :version "24.4"
-  :group 'eww)
+  :version "24.4")
 
 (defface eww-form-file
   '((((type x w32 ns haiku pgtk android) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "#808080" :foreground "black"))
   "Face for eww buffer buttons."
-  :version "25.1"
-  :group 'eww)
+  :version "25.1")
 
 (defface eww-form-checkbox
   '((((type x w32 ns haiku pgtk android) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "lightgrey" :foreground "black"))
   "Face for eww buffer buttons."
-  :version "24.4"
-  :group 'eww)
+  :version "24.4")
 
 (defface eww-form-select
   '((((type x w32 ns haiku pgtk android) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "lightgrey" :foreground "black"))
   "Face for eww buffer buttons."
-  :version "24.4"
-  :group 'eww)
+  :version "24.4")
 
 (defface eww-form-text
   '((t :background "#505050"
        :foreground "white"
        :box (:line-width 1)))
   "Face for eww text inputs."
-  :version "24.4"
-  :group 'eww)
+  :version "24.4")
 
 (defface eww-form-textarea
   '((t :background "#C0C0C0"
        :foreground "black"
        :box (:line-width 1)))
   "Face for eww textarea inputs."
-  :version "24.4"
-  :group 'eww)
+  :version "24.4")
 
 (defface eww-invalid-certificate
   '((default :weight bold)
     (((class color)) :foreground "red"))
   "Face for web pages with invalid certificates."
-  :version "25.1"
-  :group 'eww)
+  :version "25.1")
 
 (defface eww-valid-certificate
   '((default :weight bold)
     (((class color)) :foreground "ForestGreen"))
   "Face for web pages with valid certificates."
-  :version "25.1"
-  :group 'eww)
+  :version "25.1")
 
 (defvar eww-data nil)
 (defvar eww-history nil)
