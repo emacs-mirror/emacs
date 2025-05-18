@@ -1454,7 +1454,7 @@ point is moved into the passwords (see `authinfo-hide-elements').
 
 (fn)" t)
 (autoload 'read-passwd "auth-source" "\
-Read a password, prompting with PROMPT, and return it.
+Read a password, prompting with PROMPT, and return password as a string.
 If optional CONFIRM is non-nil, read the password twice to make sure.
 Optional DEFAULT is a default password to use instead of empty input.
 
@@ -9703,15 +9703,15 @@ either customize it (see the info node `Easy Customization')
 or call the function `electric-pair-mode'.")
 (custom-autoload 'electric-pair-mode "elec-pair" nil)
 (autoload 'electric-pair-mode "elec-pair" "\
-Toggle automatic parens pairing (Electric Pair mode).
+Toggle automatic pairing of delimiters (Electric Pair mode).
 
-Electric Pair mode is a global minor mode.  When enabled, typing
-an open parenthesis automatically inserts the corresponding
-closing parenthesis, and vice versa.  (Likewise for brackets, etc.).
-If the region is active, the parentheses (brackets, etc.) are
-inserted around the region instead.
+Electric Pair mode is a global minor mode.  When enabled, typing an
+opening delimiter (parenthesis, bracket, etc.) automatically inserts the
+corresponding closing delimiter.  If the region is active, the
+delimiters are inserted around the region instead.
 
-To toggle the mode in a single buffer, use `electric-pair-local-mode'.
+To toggle the mode only in the current buffer, use
+`electric-pair-local-mode'.
 
 This is a global minor mode.  If called interactively, toggle the
 `Electric-Pair mode' mode.  If the prefix argument is positive, enable
@@ -10852,26 +10852,29 @@ Display the documentation for TEST-OR-TEST-NAME (a symbol or ert-test).
 (autoload 'ert-font-lock-deftest "ert-font-lock" "\
 Define test NAME (a symbol) using assertions from TEST-STR.
 
-Other than MAJOR-MODE and TEST-STR parameters, this macro accepts
-the same parameters and keywords as `ert-deftest' and is intended
-to be used through `ert'.
+The MAJOR-MODE symbol determines the syntax and font lock of TEST-STR.
 
-(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] [:tags \\='(TAG...)] MAJOR-MODE TEST-STR)" nil t)
-(function-put 'ert-font-lock-deftest 'doc-string-elt 3)
-(function-put 'ert-font-lock-deftest 'lisp-indent-function 2)
+Except for the MAJOR-MODE and TEST-STR parameters, this macro accepts
+the same arguments and keywords as `ert-deftest' and is intended to be
+used through `ert'.
+
+(fn NAME [DOCSTRING] [:expected-result RESULT-TYPE] [:tags \\='(TAG...)] MAJOR-MODE TEST-STR)" nil t)
+(function-put 'ert-font-lock-deftest 'doc-string-elt 2)
+(function-put 'ert-font-lock-deftest 'lisp-indent-function 1)
 (autoload 'ert-font-lock-deftest-file "ert-font-lock" "\
 Define test NAME (a symbol) using assertions from FILE.
 
-FILE - path to a file with assertions in ERT resource director as
-return by `ert-resource-directory'.
+FILE names a file with assertions in the ERT resource directory, as
+returned by `ert-resource-directory'.  The MAJOR-MODE symbol determines
+the syntax and font lock of FILE's contents.
 
-Other than MAJOR-MODE and FILE parameters, this macro accepts the
-same parameters and keywords as `ert-deftest' and is intended to
-be used through `ert'.
+Except for the MAJOR-MODE and FILE parameters, this macro accepts the
+same arguments and keywords as `ert-deftest' and is intended to be used
+through `ert'.
 
-(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] [:tags \\='(TAG...)] MAJOR-MODE FILE)" nil t)
-(function-put 'ert-font-lock-deftest-file 'doc-string-elt 3)
-(function-put 'ert-font-lock-deftest-file 'lisp-indent-function 2)
+(fn NAME [DOCSTRING] [:expected-result RESULT-TYPE] [:tags \\='(TAG...)] MAJOR-MODE FILE)" nil t)
+(function-put 'ert-font-lock-deftest-file 'doc-string-elt 2)
+(function-put 'ert-font-lock-deftest-file 'lisp-indent-function 1)
 (autoload 'ert-font-lock-test-string "ert-font-lock" "\
 Check font faces in TEST-STRING set by MODE.
 
@@ -12468,9 +12471,15 @@ For adding local variables on the first line of a file, for example
 for settings like `lexical-binding, which must be specified there,
 use the `add-file-local-variable-prop-line' command instead.
 
+If optional variable INTERACTIVE is non-nil, display a message telling
+the user how to make the new value take effect.
+
 (fn VARIABLE VALUE &optional INTERACTIVE)" t)
 (autoload 'delete-file-local-variable "files-x" "\
 Delete all settings of file-local VARIABLE from the Local Variables list.
+
+If optional variable INTERACTIVE is non-nil, display a message telling
+the user how to make the new value take effect.
 
 (fn VARIABLE &optional INTERACTIVE)" t)
 (autoload 'add-file-local-variable-prop-line "files-x" "\
@@ -12486,9 +12495,15 @@ then this function adds it.
 To add variables to the Local Variables list at the end of the file,
 use the `add-file-local-variable' command instead.
 
+If optional variable INTERACTIVE is non-nil, display a message telling
+the user how to make the new value take effect.
+
 (fn VARIABLE VALUE &optional INTERACTIVE)" t)
 (autoload 'delete-file-local-variable-prop-line "files-x" "\
 Delete all settings of file-local VARIABLE from the -*- line.
+
+If optional variable INTERACTIVE is non-nil, display a message telling
+the user how to make the new value take effect.
 
 (fn VARIABLE &optional INTERACTIVE)" t)
 (autoload 'add-dir-local-variable "files-x" "\
@@ -19220,6 +19235,7 @@ Optional argument KATAKANA-ONLY non-nil means to convert only KATAKANA char.
 (autoload 'read-hiragana-string "japan-util" "\
 Read a Hiragana string from the minibuffer, prompting with string PROMPT.
 If non-nil, second arg INITIAL-INPUT is a string to insert before reading.
+Return the string read from the minibuffer.
 
 (fn PROMPT &optional INITIAL-INPUT)")
 (register-definition-prefixes "japan-util" '("japanese-"))
@@ -21773,6 +21789,7 @@ but still shows the full information.
 (autoload 'read-charset "mule-diag" "\
 Read a character set from the minibuffer, prompting with string PROMPT.
 It must be an Emacs character set listed in the variable `charset-list'.
+Return the charset as a symbol.
 
 Optional arguments are DEFAULT-VALUE and INITIAL-INPUT.
 DEFAULT-VALUE, if non-nil, is the default value.
@@ -26491,6 +26508,12 @@ argument, restrict the suggestions to imports defining the symbol
 at point.  If there is only one such suggestion, act without
 asking.
 
+If the buffer does not belong to a project, the import statement is
+searched under the buffer's default directory.  For example, if the file
+is located directly under the home directory, all files under the home
+directory will be searched.  Please note that this can take a long time
+and may appear to hang.
+
 When calling from Lisp, use a non-nil NAME to restrict the
 suggestions to imports defining NAME.
 
@@ -26512,7 +26535,17 @@ asking.
 (autoload 'python-sort-imports "python" "\
 Sort Python imports in the current buffer." t)
 (autoload 'python-fix-imports "python" "\
-Add missing imports and remove unused ones from the current buffer." t)
+Add missing imports and remove unused ones from the current buffer.
+
+If there are missing imports, ask for an import statement using all
+imports found in the current project as suggestions.  If there is only
+one such suggestion, act without asking.
+
+If the buffer does not belong to a project, the import statement is
+searched under the buffer's default directory.  For example, if the file
+is located directly under the home directory, all files under the home
+directory will be searched.  Please note that this can take a long time
+and may appear to hang." t)
 (autoload 'python-base-mode "python" "\
 Generic major mode for editing Python files.
 
@@ -29547,6 +29580,7 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
 `:eg-result-string' properties." (declare (indent defun)) (shortdoc--check group functions) `(progn (setq shortdoc--groups (delq (assq ',group shortdoc--groups) shortdoc--groups)) (push (cons ',group ',functions) shortdoc--groups)))
 (autoload 'shortdoc-display-group "shortdoc" "\
 Pop to a buffer with short documentation summary for functions in GROUP.
+Interactively, prompt for GROUP.
 If FUNCTION is non-nil, place point on the entry for FUNCTION (if any).
 If SAME-WINDOW, don't pop to a new window.
 
@@ -30385,10 +30419,10 @@ Spam reports will be queued with the method used when
 
 (defalias 'speedbar 'speedbar-frame-mode)
 (autoload 'speedbar-frame-mode "speedbar" "\
-Enable or disable speedbar.  Positive ARG means turn on, negative turn off.
-A nil ARG means toggle.  Once the speedbar frame is activated, a buffer in
-`speedbar-mode' will be displayed.  Currently, only one speedbar is
-supported at a time.
+Enable or disable speedbar.
+Positive ARG means turn on, negative turn off.  A nil ARG means toggle.
+Once the speedbar frame is activated, a buffer in `speedbar-mode' will
+be displayed.  Currently, only one speedbar is supported at a time.
 `speedbar-before-popup-hook' is called before popping up the speedbar frame.
 `speedbar-before-delete-hook' is called before the frame is deleted.
 
@@ -30954,6 +30988,9 @@ The user finishes editing with \\<string-edit-mode-map>\\[string-edit-done], or 
 PROMPT will be inserted at the start of the buffer, but won't be
 included in the resulting string.  If nil, no prompt will be
 inserted in the buffer.
+
+When the user exits recursive edit, this function returns the
+edited STRING.
 
 Also see `string-edit'.
 
@@ -33115,9 +33152,9 @@ Valid ZONE values are described in the documentation of `format-time-string'.
 (put 'time-stamp-count 'safe-local-variable 'integerp)
 (put 'time-stamp-pattern 'safe-local-variable 'stringp)
 (autoload 'time-stamp "time-stamp" "\
-Update any time stamp string(s) in the buffer.
-This function looks for a time stamp template and updates it with
-the current date, time, and/or other info.
+Update any time stamp strings (timestamps) in the buffer.
+Look for a time stamp template and update it with the current
+date, time, author, and/or other info.
 
 The template, which you manually create on one of the first 8 lines
 of the file before running this function, by default can look like
@@ -33140,12 +33177,11 @@ To enable automatic time-stamping for only a specific file, add
 this line to a local variables list near the end of the file:
     eval: (add-hook \\='before-save-hook \\='time-stamp nil t)
 
-If the file has no time-stamp template, this function does nothing.
+If the file has no time stamp template or if `time-stamp-active' is nil,
+this function does nothing.
 
 You can set `time-stamp-pattern' in a file's local variables list
-to customize the information in the time stamp and where it is written.
-
-The time stamp is updated only if `time-stamp-active' is non-nil." t)
+to customize the information in the time stamp and where it is written." t)
 (autoload 'time-stamp-toggle-active "time-stamp" "\
 Toggle `time-stamp-active', setting whether \\[time-stamp] updates a buffer.
 With ARG, turn time stamping on if and only if ARG is positive.
@@ -33618,9 +33654,10 @@ the output buffer or changing the window configuration.
 
 ;;; Generated autoloads from net/tramp.el
 
+(push (purecopy '(tramp 0)) package--builtin-versions)
  (when (featurep 'tramp-compat)
   (load "tramp-compat" 'noerror 'nomessage))
-(defvar tramp-mode t "\
+(defvar tramp-mode (fboundp 'make-process) "\
 Whether Tramp is enabled.
 If it is set to nil, all remote file names are used literally.")
 (custom-autoload 'tramp-mode "tramp" t)
@@ -33779,7 +33816,7 @@ Add archive file name handler to `file-name-handler-alist'." (when (and tramp-ar
 
 ;;; Generated autoloads from net/trampver.el
 
-(push (purecopy '(tramp 2 7 1 30 1)) package--builtin-versions)
+(push (purecopy '(tramp 2 7 3 -1)) package--builtin-versions)
 (register-definition-prefixes "trampver" '("tramp-"))
 
 
@@ -34898,11 +34935,11 @@ Usage:
 :magic-fallback  Form to be added to `magic-fallback-mode-alist'.
 :interpreter     Form to be added to `interpreter-mode-alist'.
 
-:commands        Define autoloads for commands that will be defined by the
-                 package.  This is useful if the package is being lazily
-                 loaded, and you wish to conditionally call functions in your
+:commands        Define autoloads for commands defined by the package.
+                 This is useful if the package is being lazily loaded,
+                 and you wish to conditionally call functions in your
                  `:init' block that are defined in the package.
-:autoload        Similar to :commands, but it for no-interactive one.
+:autoload        Similar to `:commands', but used for non-interactive functions.
 :hook            Specify hook(s) to attach this package to.
 
 :bind            Bind keys, and define autoloads for the bound commands.
