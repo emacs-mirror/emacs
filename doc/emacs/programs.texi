@@ -1086,6 +1086,11 @@ delimiters, leaving point after the delimiter you typed (this
 facilitates continuing to type either before the text following the
 opening delimiter or after the closing delimiter).
 
+  If you provide a prefix argument when inserting an opening
+delimiter---and if the region is active, also when inserting a closing
+delimiter---this results in the insertion of as many nested pairs of
+matching delimiters as the numeric value of that prefix argument.
+
   There are several user options for modifying the behavior of Electric
 Pair mode:
 
