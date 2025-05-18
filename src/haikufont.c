@@ -890,25 +890,32 @@ haikufont_close (struct font *font)
     return;
 
   block_input ();
-  if (info && info->be_font)
+  if (info->be_font)
     BFont_close (info->be_font);
 
-  for (i = 0; i < info->metrics_nrows; i++)
-    {
-      if (info->metrics[i])
-	xfree (info->metrics[i]);
-    }
-
   if (info->metrics)
-    xfree (info->metrics);
-
-  for (i = 0; i < 0x100; ++i)
     {
-      if (info->glyphs[i])
-	xfree (info->glyphs[i]);
+      for (i = 0; i < info->metrics_nrows; i++)
+	{
+	  if (info->metrics[i])
+	    xfree (info->metrics[i]);
+	}
+      xfree (info->metrics);
     }
 
-  xfree (info->glyphs);
+  if (info->glyphs)
+    {
+      for (i = 0; i < 0x100; ++i)
+	{
+	  if (info->glyphs[i])
+	    xfree (info->glyphs[i]);
+	}
+      xfree (info->glyphs);
+    }
+
+  info->metrics = NULL;
+  info->glyphs = NULL;
+  info->be_font = NULL;
   unblock_input ();
 }
 
