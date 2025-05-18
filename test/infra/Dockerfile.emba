@@ -140,7 +140,13 @@ RUN src/emacs -Q --batch \
     --eval '(message "treesit-language-source-alist\n%s" \
         (pp-to-string treesit-language-source-alist))' \
     --eval '(dolist (lang (sort (mapcar (quote car) treesit-language-source-alist))) \
-        (message "%s ABI version %d" lang (treesit-language-abi-version lang)))'
+        (message "%s ABI version %d" lang (treesit-language-abi-version lang)))' \
+    -l admin/tree-sitter/treesit-admin.el \
+    --eval '(setq treesit-admin--builtin-language-sources treesit-language-source-alist)' \
+    -f treesit-admin-check-manual-coverage \
+    --eval '(treesit-admin--generate-compatibility-report \
+        (list (expand-file-name "src/emacs")) treesit-admin--builtin-modes \
+        (expand-file-name "compatibility-report.html"))'
 
 FROM emacs-base as emacs-gnustep
 
