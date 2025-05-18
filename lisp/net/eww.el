@@ -35,6 +35,7 @@
 (require 'url-file)
 (require 'vtable)
 (require 'xdg)
+(require 'track-changes)
 (eval-when-compile (require 'subr-x))
 
 (defgroup eww nil
@@ -812,7 +813,6 @@ This replaces the region with the preprocessed HTML."
       (setq bidi-paragraph-direction nil)
       (plist-put eww-data :dom document)
       (let ((inhibit-read-only t)
-	    (inhibit-modification-hooks t)
             ;; Possibly set by the caller, e.g., `eww-render' which
             ;; preserves the old URL #target before chasing redirects.
             (shr-target-id (or shr-target-id
@@ -848,6 +848,10 @@ This replaces the region with the preprocessed HTML."
 	  (while (and (not (eobp))
 		      (get-text-property (point) 'eww-form))
 	    (forward-line 1)))))
+      ;; We used to enable this in `eww-mode', but it cause tracking
+      ;; of changes while we insert the document, whereas we only care about
+      ;; changes performed afterwards.
+      (track-changes-register #'eww--track-changes :nobefore t)
       (eww-size-text-inputs))))
 
 (defun eww-display-html (charset url &optional document point buffer)
@@ -1350,14 +1354,11 @@ within text input fields."
 ;; Autoload cookie needed by desktop.el.
 ;;;###autoload
 (define-derived-mode eww-mode special-mode "eww"
-  "Mode for browsing the web.
-
-\\{eww-mode-map}"
+  "Mode for browsing the web."
   :interactive nil
   (setq-local eww-data (list :title ""))
   (setq-local browse-url-browser-function #'eww-browse-url)
-  (add-hook 'after-change-functions #'eww-process-text-input nil t)
-  (add-hook 'context-menu-functions 'eww-context-menu 5 t)
+  (add-hook 'context-menu-functions #'eww-context-menu 5 t)
   (setq-local eww-history nil)
   (setq-local eww-history-position 0)
   (when (boundp 'tool-bar-map)
@@ -1485,7 +1486,6 @@ instead of `browse-url-new-window-flag'."
 
 (defun eww-restore-history (elem)
   (let ((inhibit-read-only t)
-	(inhibit-modification-hooks t)
 	(text (plist-get elem :text)))
     (setq eww-data elem)
     (if (null text)
@@ -1756,16 +1756,34 @@ Interactively, EVENT is the value of `last-nonmenu-event'."
   "List of input types which represent a text input.
 See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 
-(defun eww-process-text-input (beg end replace-length)
-  (when-let* ((pos (field-beginning (point))))
-    (let* ((form (get-text-property pos 'eww-form))
-	   (properties (text-properties-at pos))
+(defun eww--track-changes (tracker-id)
+  (track-changes-fetch
+   tracker-id
+   (lambda (beg end len)
+     (eww--process-text-input beg end len)
+     ;; Disregard our own changes.
+     (track-changes-fetch tracker-id #'ignore))))
+
+(defun eww--process-text-input (beg end replace-length)
+  (when-let* ((_ (integerp replace-length))
+              (pos end)
+              (form (or (get-text-property pos 'eww-form)
+                        (progn
+                          (setq pos (max (point-min) (1- beg)))
+                          (get-text-property pos 'eww-form)))))
+    (let* ((properties (text-properties-at pos))
            (buffer-undo-list t)
 	   (inhibit-read-only t)
 	   (length (- end beg replace-length))
 	   (type (plist-get form :type)))
-      (when (and form
-		 (member type eww-text-input-types))
+      (when (member type eww-text-input-types)
+	;; Make sure the new text has the right properties, which also
+	;; integrates the new text into the "current field".
+	(set-text-properties beg end properties)
+	;; FIXME: This tries to preserve the "length" of the input field,
+        ;; but we should try to preserve the *width* instead.
+        ;; FIXME: Maybe instead of inserting/deleting spaces, we should
+        ;; have a single stretch-space character at the end.
 	(cond
 	 ((> length 0)
 	  ;; Delete some space at the end.
@@ -1781,18 +1799,21 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 	 ((< length 0)
 	  ;; Add padding.
 	  (save-excursion
-	    (goto-char end)
-	    (goto-char
-	     (if (equal type "textarea")
-		 (1- (line-end-position))
-	       (1+ (eww-end-of-field))))
-	    (let ((start (point)))
-              (insert (make-string (abs length) ? ))
-	      (set-text-properties start (point) properties))
-	    (goto-char (1- end)))))
-	(set-text-properties (cdr (assq :start form))
-                             (cdr (assq :end form))
-			     properties)
+	    (goto-char pos)
+	    (let* ((field-length (- (eww-end-of-field)
+                                    (eww-beginning-of-field)))
+                   (ideal-length (cdr (assq :length form))))
+              ;; FIXME: This test isn't right for multiline fields.
+              (when (or (null ideal-length) (> ideal-length field-length))
+	        (goto-char
+		 (if (equal type "textarea")
+		     (1- (line-end-position))
+		   (1+ (eww-end-of-field))))
+		(let ((start (point)))
+	          (insert (make-string (min (abs length)
+	                                    (- ideal-length field-length))
+	                               ? ))
+	          (set-text-properties start (point) properties)))))))
 	(let ((value (buffer-substring-no-properties
 		      (eww-beginning-of-field)
 		      (eww-end-of-field))))
@@ -2014,11 +2035,11 @@ Interactively, EVENT is the value of `last-nonmenu-event'."
 		(< start (point-max)))
       (when (or (get-text-property start 'eww-form)
 		(setq start (next-single-property-change start 'eww-form)))
-	(let ((props (get-text-property start 'eww-form)))
-          (nconc props (list (cons :start start)))
+	(let ((props (get-text-property start 'eww-form))
+              (beg start))
           (setq start (next-single-property-change
                        start 'eww-form nil (point-max)))
-          (nconc props (list (cons :end start))))))))
+          (nconc props (list (cons :length (- start beg)))))))))
 
 (defun eww-input-value (input)
   (let ((type (plist-get input :type))
