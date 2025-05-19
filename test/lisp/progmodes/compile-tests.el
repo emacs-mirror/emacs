@@ -372,6 +372,15 @@
      1 nil 59 "main.php")
     (php "Fatal error: Call to undefined function: mysql_pconnect() in db.inc on line 66"
      1 nil 66 "db.inc")
+    ;; rust
+    (rust
+     "error[E0277]: `Foo` is not an iterator\n --> src/main.rs:4:16"
+     1 16 4 "src/main.rs")
+    (rust "warning: borrow of packed field is unsafe and requires unsafe function or block (error E0133)\n  --> lint_example.rs:11:13"
+           1 13 11 "lint_example.rs")
+    (rust
+     "note: required by a bound in `Trait`\n  --> src/auxiliary/trait-debuginfo.rs:23:18"
+     1 18 23 "src/auxiliary/trait-debuginfo.rs")
     ;; ruby (uses gnu)
     (gnu "plain-exception.rb:7:in `fun': unhandled exception"
      1 nil 7 "plain-exception.rb")
@@ -538,9 +547,9 @@ The test data is in `compile-tests--test-regexps-data'."
                    1 15 5 "alpha.c")))
         (compile--test-error-line test))
 
-      (should (eq compilation-num-errors-found 107))
-      (should (eq compilation-num-warnings-found 36))
-      (should (eq compilation-num-infos-found 35)))))
+      (should (eq compilation-num-errors-found 108))
+      (should (eq compilation-num-warnings-found 37))
+      (should (eq compilation-num-infos-found 36)))))
 
 (ert-deftest compile-test-grep-regexps ()
   "Test the `grep-regexp-alist' regexps.
