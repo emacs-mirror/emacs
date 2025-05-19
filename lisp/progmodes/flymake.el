@@ -1891,6 +1891,10 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET") 'flymake-goto-diagnostic)
     (define-key map (kbd "SPC") 'flymake-show-diagnostic)
+    (keymap-set map "C-o" #'flymake-show-diagnostic)
+    (keymap-set map "C-m" #'flymake-goto-diagnostic)
+    (keymap-set map "n" #'next-error-this-buffer-no-select)
+    (keymap-set map "p" #'previous-error-this-buffer-no-select)
     map))
 
 (defun flymake-show-diagnostic (pos &optional other-window)
@@ -2186,6 +2190,11 @@ Commands such as `flymake-show-project-diagnostics' will include
 some of this variable's contents the diagnostic listings.")
 
 (defvar-local flymake--project-diagnostic-list-project nil)
+
+(defvar flymake-project-diagnostics-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map flymake-diagnostics-buffer-mode-map)
+    map))
 
 (define-derived-mode flymake-project-diagnostics-mode tabulated-list-mode
   "Flymake diagnostics"
