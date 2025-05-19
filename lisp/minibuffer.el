@@ -3536,6 +3536,16 @@ except that it passes the file name through `substitute-in-file-name'."
     (if (eq (car-safe action) 'boundaries)
         (cons 'boundaries (completion--sifn-boundaries orig table pred (cdr action)))
       (let* ((sifned (substitute-in-file-name orig))
+             (orig-start (car (completion--sifn-boundaries orig table pred "")))
+             (sifned-start (car (completion-boundaries sifned table pred "")))
+             (orig-in-bounds (substring orig orig-start))
+             (sifned-in-bounds (substring sifned sifned-start))
+             (only-need-double-dollars
+              ;; If true, sifn only un-doubled $s in ORIG, so we can fix a
+              ;; completion to match ORIG by just doubling $s again.  This
+              ;; preserves more text from the completion, behaving better with
+              ;; non-nil `completion-ignore-case'.
+              (string-equal orig-in-bounds (minibuffer--double-dollars sifned-in-bounds)))
              (result
               (let ((completion-regexp-list
                      ;; Regexps are matched against the real file names after
@@ -3550,21 +3560,21 @@ except that it passes the file name through `substitute-in-file-name'."
           (if (stringp result)
               ;; Extract the newly added text, quote any dollar signs, and
               ;; append it to ORIG.
-              (let ((new-text (substring result (length sifned))))
-                (concat orig (minibuffer--double-dollars new-text)))
+              (if only-need-double-dollars
+                  (concat (substring orig nil orig-start)
+                          (minibuffer--double-dollars (substring result sifned-start)))
+                (let ((new-text (substring result (length sifned))))
+                  (concat orig (minibuffer--double-dollars new-text))))
             result))
          ((eq action t)                 ; all-completions
           (mapcar
-           (let ((orig-prefix
-                  (substring orig (car (completion--sifn-boundaries orig table pred ""))))
-                 (sifned-prefix-length
-                  (- (length sifned)
-                     (car (completion-boundaries sifned table pred "")))))
+           (if only-need-double-dollars
+               #'minibuffer--double-dollars
              ;; Extract the newly added text, quote any dollar signs, and append
              ;; it to the part of ORIG inside the completion boundaries.
              (lambda (compl)
-               (let ((new-text (substring compl sifned-prefix-length)))
-                 (concat orig-prefix (minibuffer--double-dollars new-text)))))
+               (let ((new-text (substring compl (length sifned-in-bounds))))
+                 (concat orig-in-bounds (minibuffer--double-dollars new-text)))))
            result))
          (t result))))))
 
