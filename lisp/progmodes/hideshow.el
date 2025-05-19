@@ -219,6 +219,7 @@
 ;; unbundles state save and restore, and includes more isearch support.
 
 ;;; Code:
+(require 'mule-util) ; For `truncate-string-ellipsis'
 
 ;;---------------------------------------------------------------------------
 ;; user-configurable variables
@@ -564,46 +565,35 @@ to call with the newly initialized overlay."
 (defun hs--get-ellipsis (b e)
   "Helper function for `hs-make-overlay'.
 This returns the ellipsis string to use and its face."
-  (cond*
-   ((bind*
-     (standard-display-table (or standard-display-table
-                                 (make-display-table)))
-     (d-t-ellipsis (display-table-slot standard-display-table 'selective-display))
-     (d-t-face ; Get only the first glyph face
-      (if d-t-ellipsis (glyph-face (aref d-t-ellipsis 0))))
-     ;; Convert the ellipsis vector from display-table to a propertized
-     ;; string
-     (ellipsis
-      (cond
-       ((and d-t-ellipsis
-             (not (stringp d-t-ellipsis))
-             ;; Ensure the vector is not empty
-             (not (length= d-t-ellipsis 0)))
-        (let ((string
-               (mapconcat
-                (lambda (g)
-                  (apply #'propertize
-                         (char-to-string (glyph-char g))
-                         (if (glyph-face g)
-                             (list 'face (glyph-face g)))))
-                d-t-ellipsis)))
-          ;; If the ellipsis string has no face, use `hs-ellipsis'
-          (if (get-text-property 0 'face string)
-              string
-            (propertize string 'face 'hs-ellipsis))))
-       ((char-displayable-on-frame-p ?…)
-        (propertize "…" 'face 'hs-ellipsis))
-       (t (propertize "..." 'face 'hs-ellipsis))))))
-   (hs-display-lines-hidden
-    (let ((lines (1- (count-lines b e))))
-      (concat
-       (propertize
-        (concat (number-to-string lines)
-                (if (= lines 1) " line" " lines"))
-        'face (or d-t-face 'hs-ellipsis))
-       ellipsis)))
-   (t
-    ellipsis)))
+  (let* ((standard-display-table
+          (or standard-display-table (make-display-table)))
+         (d-t-ellipsis
+          (display-table-slot standard-display-table 'selective-display))
+         ;; Convert ellipsis vector to a propertized string
+         (string
+          (if (and (vectorp d-t-ellipsis)
+                   ;; Ensure the vector is not empty
+                   (not (length= d-t-ellipsis 0)))
+              (mapconcat
+               (lambda (g)
+                 (apply #'propertize (char-to-string (glyph-char g))
+                        (if (glyph-face g) (list 'face (glyph-face g)))))
+               d-t-ellipsis)))
+         (string-face (if string (get-text-property 0 'face string)))
+         (lines (if-let* (hs-display-lines-hidden
+                          (l (1- (count-lines b e)))
+                          (l-str (concat (number-to-string l)
+                                         (if (= l 1) " line" " lines"))))
+                    (apply #'propertize l-str
+                           (if string-face
+                               (list 'face string-face))))))
+    (if string-face
+        ;; Return STRING and LINES if STRING has no face
+        (concat lines string)
+      ;; Otherwise propertize both with `hs-ellipsis'
+      (propertize
+       (concat lines (or string (truncate-string-ellipsis)))
+       'face 'hs-ellipsis))))
 
 (defun hs-isearch-show (ov)
   "Delete overlay OV, and set `hs-headline' to nil.
