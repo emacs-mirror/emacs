@@ -10153,14 +10153,14 @@ for `fit-frame-to-buffer'."
 	;; this may cause lines getting wrapped.  To avoid that, round
 	;; sizes up here which will, however, leave a blank space at the
 	;; end of the longest line(s).
-	(setq text-minus-body-width
-	      (+ text-minus-body-width
-		 (- char-width
-		    (% text-minus-body-width char-width))))
-	(setq text-minus-body-height
-	      (+ text-minus-body-height
-		 (- char-height
-		    (% text-minus-body-height char-height)))))
+	(let ((remainder (% text-minus-body-width char-width)))
+	  (unless (zerop remainder)
+	    (setq text-minus-body-width
+		  (+ text-minus-body-width (- char-width remainder)))))
+	(let ((remainder (% text-minus-body-height char-height)))
+	  (unless (zerop remainder)
+	    (setq text-minus-body-height
+		  (+ text-minus-body-height(- char-height remainder))))))
       (setq text-width
             (if width
                 (+ width text-minus-body-width)
