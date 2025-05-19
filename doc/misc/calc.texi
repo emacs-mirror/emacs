@@ -10179,7 +10179,7 @@ result @samp{[120]} (because 120 is the ASCII code of the lower-case
 is displayed only according to the current mode settings.  But
 running Quick Calc again and entering @samp{120} will produce the
 result @samp{120 (16#78, 8#170, x)} which shows the number in its
-decimal, hexadecimal, octal, and ASCII forms.
+decimal, hexadecimal, octal, and character forms.
 
 Please note that the Quick Calculator is not any faster at loading
 or computing the answer than the full Calculator; the name ``quick''
@@ -10836,11 +10836,11 @@ from 1 to @samp{n}.
 @cindex Strings
 @cindex Character strings
 Character strings are not a special data type in the Calculator.
-Rather, a string is represented simply as a vector all of whose
-elements are integers in the range 0 to 255 (ASCII codes).  You can
-enter a string at any time by pressing the @kbd{"} key.  Quotation
-marks and backslashes are written @samp{\"} and @samp{\\}, respectively,
-inside strings.  Other notations introduced by backslashes are:
+Rather, a string is represented simply as a vector all of whose elements
+are integers in the Latin-1 range 0 to 255.  You can enter a string at
+any time by pressing the @kbd{"} key.  Quotation marks and backslashes
+are written @samp{\"} and @samp{\\}, respectively, inside strings.
+Other notations introduced by backslashes are:
 
 @example
 @group
@@ -10857,21 +10857,24 @@ inside strings.  Other notations introduced by backslashes are:
 
 @noindent
 Finally, a backslash followed by three octal digits produces any
-character from its ASCII code.
+character from its code.
 
 @kindex d "
 @pindex calc-display-strings
 Strings are normally displayed in vector-of-integers form.  The
 @w{@kbd{d "}} (@code{calc-display-strings}) command toggles a mode in
 which any vectors of small integers are displayed as quoted strings
-instead.
+instead.  The display of strings containing higher character codes can
+be enabled by increasing the custom variable
+@code{calc-string-maximum-character} (@pxref{Customizing Calc}).
 
 The backslash notations shown above are also used for displaying
-strings.  Characters 128 and above are not translated by Calc; unless
-you have an Emacs modified for 8-bit fonts, these will show up in
-backslash-octal-digits notation.  For characters below 32, and
-for character 127, Calc uses the backslash-letter combination if
-there is one, or otherwise uses a @samp{\^} sequence.
+strings.  For ASCII control characters (below 32), and for the
+@code{DEL} character (127), Calc uses the backslash-letter combination
+if there is one, or otherwise uses a @samp{\^} sequence.  Control
+characters above 127 are not translated by Calc, and will show up in
+backslash-octal-digits notation.  The display of higher character codes
+will depend on your display settings and system font coverage.
 
 The only Calc feature that uses strings is @dfn{compositions};
 @pxref{Compositions}.  Strings also provide a convenient
@@ -35682,6 +35685,33 @@ date.  The customization buffer will offer several standard dates to
 choose from, or the user can enter their own date.
 
 The default value of @code{calc-gregorian-switch} is @code{nil}.
+@end defvar
+
+@defvar calc-string-maximum-character
+@xref{Strings}.@*
+
+The variable @code{calc-string-maximum-character} is the maximum value
+of a vector's elements for @code{calc-display-strings}, @code{string},
+and @code{bstring} to display the vector as a string.  This maximum
+@emph{must} represent a character, i.e. it's a non-negative integer less
+than or equal to @code{(max-char)} or @code{0x3FFFFF}.  Any negative
+value effectively disables the display of strings, and for values larger
+than @code{0x3FFFFF} the display acts as if the maximum were
+@code{0x3FFFFF}.  Some natural choices (and their resulting ranges) are:
+
+@itemize
+@item
+@code{0x7F} or 127 (ASCII),
+@item
+@code{0xFF} or 255 (Latin-1, the default),
+@item
+@code{0x10FFFF} (Unicode),
+@item
+@code{0x3FFFFF} (Emacs).
+@end itemize
+
+The default value of @code{calc-string-maximum-character} is @code{0xFF}
+or 255.
 @end defvar
 
 @node Reporting Bugs

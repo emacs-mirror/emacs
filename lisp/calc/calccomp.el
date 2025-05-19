@@ -907,13 +907,20 @@
 		(concat " " math-comp-right-bracket)))))
 
 (defun math-vector-is-string (a)
+  "Return t if A can be displayed as a string, and nil otherwise.
+
+Elements of A must either be a character (see `characterp') or a complex
+number with only a real character part, each with a value less than or
+equal to the custom variable `calc-string-maximum-character'."
   (while (and (setq a (cdr a))
-	      (or (and (natnump (car a))
-		       (<= (car a) 255))
+	      (or (and (characterp (car a))
+		       (<= (car a)
+			   calc-string-maximum-character))
 		  (and (eq (car-safe (car a)) 'cplx)
-		       (natnump (nth 1 (car a)))
+		       (characterp (nth 1 (car a)))
 		       (eq (nth 2 (car a)) 0)
-		       (<= (nth 1 (car a)) 255)))))
+		       (<= (nth 1 (car a))
+			   calc-string-maximum-character)))))
   (null a))
 
 (defconst math-vector-to-string-chars '( ( ?\" . "\\\"" )
