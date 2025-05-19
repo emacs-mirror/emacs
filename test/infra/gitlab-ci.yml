@@ -110,16 +110,12 @@ default:
     # - test -n "$(docker ps -aq -f name=${test_name})" && ( docker export ${test_name} | tar -tvf - )
     # Prepare test artifacts.
     - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/test ${test_name}
-    - find ${test_name}/ -depth ! -name "*.log" ! -name "*.xml" -type f -print
-    - find ${test_name}/ -depth ! -name "*.log" ! -name "*.xml" -type f -delete
-    - find ${test_name}/ -depth -empty -type d -print
-    - find ${test_name}/ -depth -empty -type d -delete
-    - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/configure.log ${test_name}
-    - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/compatibility-report.html ${test_name}
+    - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/configure.log ${test_name} || true
+    - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/compatibility-report.html ${test_name} || true
     - test -n "$(docker ps -aq -f name=${test_name})" && docker rm ${test_name}
-    # - find ${test_name} ! \( -name "*.log" -o -name ${EMACS_TEST_JUNIT_REPORT} \) -type f -delete
+    - find ${test_name} ! \( -name "*.log" -o -name ${EMACS_TEST_JUNIT_REPORT} -o -name compatibility-report.html \) -type f -delete
     # BusyBox find does not know -empty.
-    # - find ${test_name} -type d -depth -exec rmdir {} + 2>/dev/null
+    - find ${test_name} -type d -depth -exec rmdir {} + 2>/dev/null
 
 .build-template:
   needs: []
@@ -326,9 +322,6 @@ build-image-tree-sitter:
   extends: [.job-template, .build-template, .tree-sitter-template]
   variables:
     target: emacs-tree-sitter
-  artifacts:
-    paths:
-      - ${test_name}/compatibility-report.html
 
 test-tree-sitter:
   stage: platforms
