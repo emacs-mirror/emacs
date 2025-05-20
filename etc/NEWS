@@ -383,6 +383,12 @@ customize help text for tabs displayed on the tab-bar.  Help text is
 normally shown in the echo area or via tooltips.  See the variable's
 docstring for arguments passed to a help-text function.
 
+---
+*** New command 'tab-line-move-tab-forward' ('C-x M-<right>').
+Together with the new command 'tab-line-move-tab-backward'
+('C-x M-<left>') it can be used to move the current tab
+on the tab line to a different position.
+
 ** Project
 
 ---

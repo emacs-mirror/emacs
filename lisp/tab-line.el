@@ -1004,7 +1004,7 @@ is possible when `tab-line-switch-cycling' is non-nil."
               (switch-to-buffer buffer))))))))
 
 (defun tab-line-mouse-move-tab (event)
-  "Move a tab to a different position on the tab line.
+  "Move a tab to a different position on the tab line using mouse.
 This command should be bound to a drag event.  It moves the tab
 at the mouse-down event to the position at mouse-up event.
 It can be used only when `tab-line-tabs-function' is
@@ -1027,6 +1027,46 @@ customized to `tab-line-tabs-fixed-window-buffers'."
         (set-window-parameter window1 'tab-line-buffers buffers)
         (set-window-parameter window1 'tab-line-cache nil)
         (with-selected-window window1 (force-mode-line-update))))))
+
+(defun tab-line-move-tab-forward (&optional arg)
+  "Move a tab to a different position on the tab line.
+ARG specifies the number of positions to move:
+- When positive, move the current tab ARG positions to the right.
+- When negative, move the current tab -ARG positions to the left.
+- When nil, act as if ARG is 1, moving one position to the right.
+It can be used only when `tab-line-tabs-function' is
+customized to `tab-line-tabs-fixed-window-buffers'."
+  (interactive "p")
+  (when (eq tab-line-tabs-function #'tab-line-tabs-fixed-window-buffers)
+    (let* ((window (selected-window))
+           (buffers (window-parameter window 'tab-line-buffers))
+           (buffer (current-buffer))
+           (pos (seq-position buffers buffer))
+           (len (length buffers))
+           (new-pos (+ pos (or arg 1))))
+      (when (and pos (> len 1))
+        (setq new-pos (if tab-line-switch-cycling
+                          (mod new-pos len)
+                        (max 0 (min new-pos (1- len)))))
+        (setq buffers (delq buffer buffers))
+        (setq buffers (append
+                       (seq-take buffers new-pos)
+                       (list buffer)
+                       (seq-drop buffers new-pos)))
+        (set-window-parameter window 'tab-line-buffers buffers)
+        (set-window-parameter window 'tab-line-cache nil)
+        (force-mode-line-update)))))
+
+(defun tab-line-move-tab-backward (&optional arg)
+  "Move a tab to a different position on the tab line.
+ARG specifies the number of positions to move:
+- When positive, move the current tab ARG positions to the left.
+- When negative, move the current tab -ARG positions to the right.
+- When nil, act as if ARG is 1, moving one position to the left.
+It can be used only when `tab-line-tabs-function' is
+customized to `tab-line-tabs-fixed-window-buffers'."
+  (interactive "p")
+  (tab-line-move-tab-forward (- (or arg 1))))
 
 
 (defcustom tab-line-close-tab-function 'bury-buffer
@@ -1133,14 +1173,18 @@ However, return the correct mouse position list if EVENT is a
   :doc "Keymap for keys of `tab-line-mode'."
   "C-x <left>"    #'tab-line-switch-to-prev-tab
   "C-x C-<left>"  #'tab-line-switch-to-prev-tab
+  "C-x M-<left>"  #'tab-line-move-tab-backward
   "C-x <right>"   #'tab-line-switch-to-next-tab
-  "C-x C-<right>" #'tab-line-switch-to-next-tab)
+  "C-x C-<right>" #'tab-line-switch-to-next-tab
+  "C-x M-<right>" #'tab-line-move-tab-forward)
 
 (defvar-keymap tab-line-switch-repeat-map
   :doc "Keymap to repeat tab/buffer cycling.  Used in `repeat-mode'."
   :repeat t
-  "<left>"  #'tab-line-switch-to-prev-tab
-  "<right>" #'tab-line-switch-to-next-tab)
+  "<left>"    #'tab-line-switch-to-prev-tab
+  "M-<left>"  #'tab-line-move-tab-backward
+  "<right>"   #'tab-line-switch-to-next-tab
+  "M-<right>" #'tab-line-move-tab-forward)
 
 ;;;###autoload
 (define-minor-mode tab-line-mode
