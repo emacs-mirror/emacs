@@ -177,7 +177,7 @@ Valid symbols are `truncation', `wrap', `escape', `control',
 
 ;;;###autoload
 (defun standard-display-unicode-special-glyphs ()
-  "Display some glyps using Unicode characters.
+  "Display some glyphs using Unicode characters.
 The glyphs being changed by this function are `vertical-border',
 `box-vertical',`box-horizontal', `box-down-right', `box-down-left',
 `box-up-right', `box-up-left',`box-double-vertical',
