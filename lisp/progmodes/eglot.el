@@ -4168,8 +4168,8 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                                      'display
                                      `((margin left-margin)
                                        ,tooltip)))))
-                 (setq eglot--suggestion-overlay ov)))))
-         (when use-text-p (funcall cb blurb)))
+                 (setq eglot--suggestion-overlay ov))))
+           (when use-text-p (funcall cb blurb))))
        :hint :textDocument/codeAction)
       (and use-text-p t))))
 
