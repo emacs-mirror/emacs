@@ -2981,6 +2981,14 @@ delimits medium sized statements in the source code.  It is,
 however, smaller in scope than sentences.  This is used by
 `treesit-forward-sexp' and friends.")
 
+(defvar-local treesit-sexp-type-down-list nil
+  "A regexp that matches the sexp nodes for `down-list'.
+This is used by `treesit-down-list'.")
+
+(defvar-local treesit-sexp-type-up-list nil
+  "A regexp that matches the sexp nodes for `up-list'.
+This is used by `treesit-up-list'.")
+
 ;; Avoid interpreting the symbol `list' as a function.
 (put 'list 'treesit-thing-symbol t)
 
@@ -3126,7 +3134,9 @@ redefined by the variable `down-list-function'.
 
 ARG is described in the docstring of `down-list'."
   (interactive "^p")
-  (let* ((pred (or treesit-sexp-type-regexp 'list))
+  (let* ((pred (or treesit-sexp-type-down-list
+                   treesit-sexp-type-regexp
+                   'list))
          (arg (or arg 1))
          (cnt arg)
          (inc (if (> arg 0) 1 -1)))
@@ -3142,7 +3152,8 @@ ARG is described in the docstring of `down-list'."
                         (treesit-thing-prev (point) pred)))
              (child (when sibling
                       (treesit-node-child sibling (if (> arg 0) 0 -1)))))
-        (or (when (and (null treesit-sexp-type-regexp)
+        (or (when (and (null (or treesit-sexp-type-down-list
+                                 treesit-sexp-type-regexp))
                        default-pos
                        (or (null child)
                            (if (> arg 0)
@@ -3167,7 +3178,9 @@ redefined by the variable `up-list-function'.
 
 ARG is described in the docstring of `up-list'."
   (interactive "^p")
-  (let* ((pred (or treesit-sexp-type-regexp 'list))
+  (let* ((pred (or treesit-sexp-type-up-list
+                   treesit-sexp-type-regexp
+                   'list))
          (arg (or arg 1))
          (treesit--parser-overlay-offset -1)
          (cnt arg)
@@ -3195,7 +3208,8 @@ ARG is described in the docstring of `up-list'."
                             (treesit-node-at (point) (car parsers)) pred)
                     parsers (cdr parsers)))))
 
-        (or (when (and (null treesit-sexp-type-regexp)
+        (or (when (and (null (or treesit-sexp-type-up-list
+                                 treesit-sexp-type-regexp))
                        default-pos
                        (or (null parent)
                            (if (> arg 0)
