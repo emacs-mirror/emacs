@@ -380,6 +380,25 @@ appropriate version control system.  If @code{vc-command-messages} is
 non-@code{nil}, VC displays messages to indicate which shell commands
 it runs, and additional messages when the commands finish.
 
+@vindex vc-async-checkin
+  Normally checkin operations are done synchronously; that is, Emacs
+waits until the checkin has completed before doing anything else.  This
+can be inconvenient for repositories in which the checkin operation is
+slow, such as Git repositories where you check in changes to very large
+files, or Mercurial repositories with a very large number of files.
+
+  For those backends which support it, setting @code{vc-async-checkin}
+to non-@code{nil} switches to doing checkin operations asynchronously.
+This is particularly useful as a directory local variable in
+repositories where checkin operations are slow (@pxref{Directory Local
+Variables,,,elisp,GNU Emacs Lisp Reference Manual}).
+
+  While an asynchronous checkin operation is in progress, if you use
+@kbd{C-x C-s} to save a buffer visiting any file within the current VC
+tree, then the operation reverts to a synchronous checkin and Emacs
+waits for it to complete before saving the buffer.  This is to avoid
+nondeterminism regarding exactly what changes get checked in.
+
 @node RCS and SCCS
 @subsubsection Options for RCS and SCCS
 

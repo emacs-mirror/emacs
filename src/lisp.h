@@ -3752,7 +3752,7 @@ extern void defvar_kboard (struct Lisp_Fwd const *, char const *);
    These are used in the syms_of_FILENAME functions.
 
    An ordinary (not in buffer_defaults, per-buffer, or per-keyboard)
-   lisp variable is actually a field in `struct emacs_globals'.  The
+   Lisp variable is actually a field in `struct emacs_globals'.  The
    field's name begins with "f_", which is a convention enforced by
    these macros.  Each such global has a corresponding #define in
    globals.h; the plain name should be used in the code.
@@ -3799,6 +3799,7 @@ extern void defvar_kboard (struct Lisp_Fwd const *, char const *);
    - The specpdl stack keeps track of backtraces, unwind-protects and
      dynamic let-bindings.  It is allocated from the 'specpdl' array,
      a manually managed stack.
+     ("pdl" stands for "push-down list" which just means "stack".)
    - The handler stack keeps track of active catch tags and condition-case
      handlers.  It is allocated in a manually managed stack implemented by a
      doubly-linked list allocated via xmalloc and never freed.  */

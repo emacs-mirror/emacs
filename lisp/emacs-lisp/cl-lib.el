@@ -568,10 +568,7 @@ If ALIST is non-nil, the new pairs are prepended to it."
   (declare-function cl--derived-type-generalizers "cl-extra" (type))
   (cl-defmethod cl-generic-generalizers :extra "derived-types" (type)
     "Support for dispatch on derived types, i.e. defined with `cl-deftype'."
-    (if (and (symbolp type) (cl-derived-type-class-p (cl--find-class type))
-             ;; Make sure this derived type can be used without arguments.
-             (let ((expander (get type 'cl-deftype-handler)))
-               (and expander (with-demoted-errors "%S" (funcall expander)))))
+    (if (and (symbolp type) (cl-derived-type-class-p (cl--find-class type)))
         (cl--derived-type-generalizers type)
       (cl-call-next-method))))
 

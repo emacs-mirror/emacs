@@ -1061,51 +1061,99 @@ nonblank line.
 @cindex Electric Pair mode
 @cindex inserting matching parentheses
 @findex electric-pair-mode
-  Electric Pair mode, a global minor mode, provides a way to easily
-insert matching delimiters: parentheses, braces, brackets, etc.
-Whenever you insert an opening delimiter, the matching closing delimiter
-is automatically inserted as well, leaving point between the two.
-However, if you insert a closing delimiter where one already exists
-(probably a mistake, since typing the opening delimiter inserted the
-closing one for you), Emacs simply moves point to after the closing
-delimiter, skipping the insertion.  If the region is active
-(@pxref{Mark}), insertion of a delimiter operates on the region: the
-characters in the region are enclosed in a pair of matching delimiters,
-leaving point after the delimiter you typed.  If you provide a prefix
-argument when inserting a delimiter, the numeric value of that prefix
-argument specifies the number of pairs to insert.
+  Electric Pair mode is a minor mode that provides a way to easily
+insert pairs of matching delimiters: parentheses, braces, brackets,
+quotes, etc.@: (what counts as matching delimiters depends on the major
+mode).  To toggle Electric Pair mode globally, type @w{@kbd{M-x
+electric-pair-mode}}.  To toggle it only in the current buffer, type
+@w{@kbd{M-x electric-pair-local-mode}}.
 
-These variables control additional features of Electric Pair mode:
+  When this mode is enabled, typing an opening delimiter inserts both
+that character and, immediately following it, the matching closing
+delimiter, leaving point between the two.  This makes it unnecessary to
+type a matching closing delimiter in most cases.  If you type one
+nonetheless, Emacs simply inserts that character, unless point is
+immediately before a closing delimiter of the same type; in that case,
+point moves to immediately after the closing delimiter and no additional
+closing delimiter is inserted.  Thus, typing the sequence <opening
+delimiter>, <matching closing delimiter> is a perhaps more convenient
+alternative to the sequence <opening delimiter>, @kbd{C-f}.
+
+  With an active region (@pxref{Mark}), Electric Pair mode operates
+differently: inserting either an opening or a closing delimiter encloses
+the characters in the region within the resulting pair of matching
+delimiters, leaving point after the delimiter you typed (this
+facilitates continuing to type either before the text following the
+opening delimiter or after the closing delimiter).
+
+  If you provide a prefix argument when inserting an opening
+delimiter---and if the region is active, also when inserting a closing
+delimiter---this results in the insertion of as many nested pairs of
+matching delimiters as the numeric value of that prefix argument.
+
+  There are several user options for modifying the behavior of Electric
+Pair mode:
 
 @itemize @bullet
 @item
 @vindex electric-pair-preserve-balance
-@code{electric-pair-preserve-balance}, when non-@code{nil}, makes the
-default pairing logic balance out the number of opening and closing
-delimiters.
+@code{electric-pair-preserve-balance}, when non-@code{nil} (the
+default), makes typing a delimiter preserve the balance between opening
+and closing delimiters.  Thus, if you type an opening delimiter and
+there is an unpaired matching closing delimiter later in the buffer,
+then only the opening delimiter gets inserted (and not a matching
+closing delimiter immediately following it); likewise, if there is an
+unpaired opening delimiter, then typing a matching closing delimiter
+later in the buffer inserts this character even when the following
+character is another matching closing delimiter.
+
+  When set to @code{nil}, typing an opening delimiter inserts only this
+character, but only when point is either immediately before or
+immediately after a matching opening delimiter, or immediately before a
+letter or digit; in all other positions inserting an opening delimiter
+automatically inserts a matching closing delimiter immediately following
+it, even if there is an unpaired matching closing delimiter later in the
+buffer.  And typing a closing delimiter immediately before another
+closing delimiter of the same type does not insert that character but
+moves point as described above, even when there is an unpaired matching
+opening delimiter earlier in the buffer.
+
+  If there is an active region, this variable has no effect.
 
 @item
 @vindex electric-pair-delete-adjacent-pairs
-@code{electric-pair-delete-adjacent-pairs}, when non-@code{nil}, makes
-backspacing between two adjacent delimiters also automatically delete
-the closing delimiter.
+@code{electric-pair-delete-adjacent-pairs}, when non-@code{nil} (the
+default), makes deleting an opening delimiter by typing the @key{DEL}
+key (which is normally the @key{BACKSPACE} key; @pxref{DEL Does Not
+Delete}) automatically also delete an immediately following matching
+closing delimiter (but not if there are any characters---including just
+whitespace---between the paired delimiters).  When set to @code{nil},
+typing @key{BACKSPACE} deletes only the opening delimiter.  (Typing
+@key{BACKSPACE} to delete a closing delimiter always deletes only this
+character.)
 
 @item
 @vindex electric-pair-open-newline-between-pairs
-@code{electric-pair-open-newline-between-pairs}, when non-@code{nil},
-makes inserting a newline between two adjacent pairs also
-automatically open an extra newline after point.
+When @code{electric-pair-open-newline-between-pairs} is non-@code{nil}
+(the default) and point is between an opening delimiter and an
+immediately following matching closing delimiter, then typing a newline
+automatically inserts an extra newline after point (possibly indenting
+the empty line point is on, depending on the major mode).  When set to
+@code{nil}, typing a newline inserts only one newline before point, as
+usual.
 
 @item
 @vindex electric-pair-skip-whitespace
-@code{electric-pair-skip-whitespace}, when non-@code{nil}, causes the minor
-mode to skip whitespace forward before deciding whether to skip over
-the closing delimiter.
+When @code{electric-pair-skip-whitespace} has its default non-@code{nil}
+value and point is separated from a closing delimiter only by
+whitespace, then typing a closing delimiter of the same type does not
+insert that character but instead moves point to immediately after the
+already present closing delimiter.  You can also set this option to
+additionally delete any whitespace that point moves over.  When set to
+@code{nil}, typing a closing delimiter simply inserts that character
+(even when this makes the following closing delimiter of the same type
+unbalanced).
 @end itemize
-
-To toggle Electric Pair mode, type @kbd{M-x electric-pair-mode}.  To
-toggle the mode in a single buffer, use @kbd{M-x
-electric-pair-local-mode}.
 
 @node Comments
 @section Manipulating Comments
@@ -1668,6 +1716,7 @@ Hide all blocks @var{n} levels below this block
 @end table
 
 @vindex hs-hide-comments-when-hiding-all
+@vindex hs-display-lines-hidden
 @vindex hs-isearch-open
 @vindex hs-special-modes-alist
   These variables can be used to customize Hideshow mode:
@@ -1676,6 +1725,10 @@ Hide all blocks @var{n} levels below this block
 @item hs-hide-comments-when-hiding-all
 If non-@code{nil}, @kbd{C-c @@ C-M-h} (@code{hs-hide-all}) hides
 comments too.
+
+@item hs-display-lines-hidden
+If non-@code{nil}, display the number of hidden lines next to the
+ellipsis.
 
 @item hs-isearch-open
 This variable specifies the conditions under which incremental search

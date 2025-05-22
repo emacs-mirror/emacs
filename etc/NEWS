@@ -383,6 +383,12 @@ customize help text for tabs displayed on the tab-bar.  Help text is
 normally shown in the echo area or via tooltips.  See the variable's
 docstring for arguments passed to a help-text function.
 
+---
+*** New command 'tab-line-move-tab-forward' ('C-x M-<right>').
+Together with the new command 'tab-line-move-tab-backward'
+('C-x M-<left>') it can be used to move the current tab
+on the tab line to a different position.
+
 ** Project
 
 ---
@@ -720,6 +726,12 @@ if it is already on.
 Now 'treesit-explore-mode' (or 'treesit-explore') prompts for a parser
 rather than a language, and it is now possible to select a local parser
 at point to explore.
+
+** Hideshow
+
+*** New user option 'hs-display-lines-hidden'.
+If this option is non-nil, Hideshow displays the number of hidden
+lines next to the ellipsis.
 
 ** C-ts mode
 
@@ -1257,6 +1269,11 @@ content-type of Web pages which don't have a valid 'Content-Type'
 header.  The default value is a function that considers a page with an
 HTML 'doctype' declaration to have context-type "text/html".
 
++++
+*** 'eww-switch-to-buffer' falls back to 'eww'.
+When there is no EWW buffers, 'eww-switch-to-buffer' falls back to
+calling 'eww'.
+
 ** CC mode
 
 +++
@@ -1752,6 +1769,10 @@ were added, removed or edited, Emacs would refuse to proceed.
 Now Emacs prompts to first register the unregistered files, so that all
 files in the fileset are in a compatible state for a checkin.
 
++++
+*** New user option 'vc-async-checkin' to enable async checkin operations.
+Currently only supported by the Git and Mercurial backends.
+
 ---
 *** New 'log-edit-hook' option to display diff of changes to commit.
 You can customize 'log-edit-hook' to include its new
@@ -1937,6 +1958,13 @@ New faces have been added to 'icomplete-vertical-mode':
 This is intended for customizing directory-local variables in the
 current directory's ".dir-locals.el" file.
 
+** Pulse
+
+--
+*** New function 'pulse-faces'.
+This function pulses a specified list of faces.  The pulse duration is
+determined by the new user option 'pulse-face-duration'.
+
 ** Miscellaneous
 
 ---
@@ -1984,6 +2012,31 @@ Customize it to a non-nil value to have the fill-column indicators
 change their face if the current line exceeds the 'fill-column'.  The
 new face 'display-fill-column-indicator-warning-face' is used to
 highlight the fill-column indicators.  By default, this is disabled.
+
+---
+*** New function 'flash-face-bell-function'.
+This function flashes a face briefly.
+It is intended to be used in 'ring-bell-function'.
+
+---
+*** New function 'flash-echo-area-bell-function'.
+This function flashes current echo area briefly.
+It is intended to be used in 'ring-bell-function'.
+
+---
+*** New user option 'flash-face-duration'.
+This option controls the flash duration for 'flash-face-bell-function'
+and 'flash-echo-area-bell-function'.
+
+---
+*** New user option 'flash-face-faces'.
+This option tells 'flash-face-bell-function' which faces should flash.
+
+---
+*** New user option 'flash-face-attributes'
+This option tells 'flash-face-bell-function' and
+'flash-echo-area-bell-function' which face attributes should be used
+for flash.
 
 ---
 ** Flymake
@@ -2040,6 +2093,7 @@ DISABLE-URI non-nil.
 When starting these debuggers (e.g., 'M-x pdb') while visiting a file,
 pressing 'M-n' in the command prompt suggests a command line including
 the file name, using the minibuffer's "future history".
+
 ** Calendar
 
 +++
@@ -2047,8 +2101,17 @@ the file name, using the minibuffer's "future history".
 This command recenters the month of the date at point.  By default, it
 is bound to 'C-l' in the calendar buffer.
 
+---
+*** Mouse wheel bindings for scrolling the calendar.
+You can now use the mouse wheel to scroll the calendar by 3 months.
+With the shift modifier, it scrolls by one month.  With the meta
+modifier, it scrolls by year.
 
 * New Modes and Packages in Emacs 31.1
+
+** New minor mode 'delete-trailing-whitespace-mode'.
+A simple buffer-local mode that runs 'delete-trailing-whitespace'
+before saving the buffer.
 
 ** New major mode 'conf-npmrc-mode'.
 A major mode based on 'conf-mode' for editing ".npmrc" files.
@@ -2342,6 +2405,12 @@ sleep state.
 ** Function aliases obsolete since Emacs 23.2 have been removed:
 'advertised-undo', 'advertised-widget-backward', and
 'dired-advertised-find-file'.
+
++++
+** New functions to get and set top-level buffer-local values.
+'buffer-local-toplevel-value' and 'set-buffer-local-toplevel-value' get
+and set the top-level buffer-local value of a variable.  A top-level
+value is the one that variable has outside of any let-bindings.
 
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems

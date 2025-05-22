@@ -238,6 +238,37 @@
 (ert-deftest core-elisp-tests-3-backquote ()
   (should (eq 3 (eval ``,,'(+ 1 2) t))))
 
+(defvar-local c-e-l 'foo)
+(ert-deftest core-elisp-tests-4-toplevel-values ()
+  (setq-default c-e-l 'foo)
+  (let ((c-e-l 'bar))
+    (let ((c-e-l 'baz))
+      (setq-default c-e-l 'bar)
+      (should (eq c-e-l 'bar))
+      (should (eq (default-toplevel-value 'c-e-l) 'foo))
+      (set-default-toplevel-value 'c-e-l 'baz)
+      (should (eq c-e-l 'bar))
+      (should (eq (default-toplevel-value 'c-e-l) 'baz))))
+  (let ((c-e-u 'foo))
+    (should (condition-case _
+                (default-toplevel-value 'c-e-u)
+              (void-variable t))))
+  (with-temp-buffer
+    (setq-local c-e-l 'bar)
+    (should (eq (buffer-local-toplevel-value 'c-e-l) 'bar))
+    (let ((c-e-l 'baz))
+      (let ((c-e-l 'quux))
+        (setq-local c-e-l 'baz)
+        (should (eq c-e-l 'baz))
+        (should (eq (buffer-local-toplevel-value 'c-e-l) 'bar))
+        (set-buffer-local-toplevel-value 'c-e-l 'foo)
+        (should (eq c-e-l 'baz))
+        (should (eq (buffer-local-toplevel-value 'c-e-l) 'foo)))))
+  (with-temp-buffer
+    (should (condition-case _
+                (buffer-local-toplevel-value 'c-e-l)
+              (void-variable t)))))
+
 ;; Test up-list and backward-up-list.
 (defun lisp-run-up-list-test (fn data start instructions)
   (cl-labels ((posof (thing)

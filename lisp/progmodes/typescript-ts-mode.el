@@ -162,7 +162,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((and (parent-is "comment") c-ts-common-looking-at-star)
       c-ts-common-comment-start-after-first-star -1)
      ((parent-is "comment") prev-adaptive-prefix 0)
-     ((parent-is "ternary_expression") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "ternary_expression") standalone-parent typescript-ts-mode-indent-offset)
      ((parent-is "member_expression") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "named_imports") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "statement_block") parent-bol typescript-ts-mode-indent-offset)
@@ -610,7 +610,7 @@ This mode is intended to be inherited by concrete major modes."
   :syntax-table typescript-ts-mode--syntax-table
 
   ;; Comments.
-  (c-ts-common-comment-setup)
+  (setq-local comment-setup-function #'js--treesit-comment-setup)
 
   ;; Electric
   (setq-local electric-indent-chars

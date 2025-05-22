@@ -1030,13 +1030,13 @@ programming language:
 
 @example
 @group
-(rx "/*"                    ; Initial /*
+(rx "/*"                            ; Initial /*
     (zero-or-more
-     (or (not "*")          ;  Either non-*,
-         (seq "*"           ;  or * followed by
-              (not "/"))))  ;     non-/
-    (one-or-more "*")       ; At least one star,
-    "/")                    ; and the final /
+     (or (not "*")                  ;  Either non-*,
+         (seq (one-or-more "*")     ;  or some * followed by
+              (not (or "*" "/"))))) ;     neither * nor /
+    (one-or-more "*")               ; At least one star,
+    "/")                            ; and the final /
 @end group
 @end example
 
@@ -1047,7 +1047,7 @@ or, using shorter synonyms and written more compactly,
 @group
 (rx "/*"
     (* (| (not "*")
-          (: "*" (not "/"))))
+          (: (+ "*") (not (in "*/")))))
     (+ "*") "/")
 @end group
 @end example
@@ -1056,7 +1056,7 @@ or, using shorter synonyms and written more compactly,
 In conventional string syntax, it would be written
 
 @example
-"/\\*\\(?:[^*]\\|\\*[^/]\\)*\\*+/"
+"/\\*\\(?:[^*]\\|\\*+[^*/]\\)*\\*+/"
 @end example
 
 The @code{rx} notation is mainly useful in Lisp code; it cannot be

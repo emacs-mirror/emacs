@@ -615,14 +615,6 @@ float-pi
 @end example
 @end defspec
 
-  @strong{Warning:} If you use a @code{defconst} or @code{defvar}
-special form while the variable has a local binding (made with
-@code{let}, or a function argument), it sets the local binding rather
-than the global binding.  This is not what you usually want.  To
-prevent this, use these special forms at top level in a file, where
-normally no local binding is in effect, and make sure to load the file
-before making a local binding for the variable.
-
 @node Tips for Defining
 @section Tips for Defining Variables Robustly
 
@@ -1792,8 +1784,8 @@ came from or how to save it, rather than with how to edit the contents.
 
   The global value of a variable with buffer-local bindings is also
 called the @dfn{default} value, because it is the value that is in
-effect whenever neither the current buffer nor the selected frame has
-its own binding for the variable.
+effect whenever the current buffer lacks its own binding for the
+variable.
 
   The functions @code{default-value} and @code{setq-default} access and
 change a variable's default value regardless of whether the current
@@ -1939,6 +1931,39 @@ This function sets the top-level default value of @var{symbol} to the
 specified @var{value}.  This comes in handy when you want to set the
 global value of @var{symbol} regardless of whether your code runs in
 the context of @var{symbol}'s let-binding.
+@end defun
+
+@cindex top-level buffer-local value
+  A variable's buffer-local value may also be shadowed by a
+let-binding.  Two functions allow getting and setting the
+top-level buffer-local value of a variable, i.e., the value outside of
+the let-binding.
+
+@defun buffer-local-toplevel-value symbol &optional buffer
+This function returns the local value for @var{symbol} in @var{buffer},
+defaulting to the current buffer, outside of any let-binding.  If
+@var{symbol} is not local in @var{buffer}, this function signals an
+error.
+@end defun
+
+@defun set-buffer-local-toplevel-value symbol value &optional buffer
+This function sets the local value of @var{symbol} to @var{value} in
+@var{buffer}, defaulting to the current buffer, outside of any
+let-binding.
+
+@var{symbol} is made local in @var{buffer} if it was not already.  For
+global variables, this means @var{symbol} will have a separate value in
+@var{buffer}; for variables that are automatically buffer-local, this
+function causes a local value for them to exist in @var{buffer}.  If
+@var{symbol} is permanently buffer-local, @var{value} will now persist
+as the buffer-local value for the variable across changes of major mode.
+
+This is useful when you want to make a change to a buffer-local value
+that will persist after the command now being executed completes,
+where your code may be executed with that variable let-bound.  In this
+case the usual way of setting buffer-local values, using @code{setq-local},
+will only change the value inside the let-binding, and not the underlying
+buffer-local value.  This function sets the latter.
 @end defun
 
 

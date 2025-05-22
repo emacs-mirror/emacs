@@ -208,10 +208,15 @@ Otherwise they are treated as Emacs regexps (for backward compatibility)."
   '("%b %e %H:%M"
     "%b %e  %Y")
   "List of `format-time-string' specs to display file time stamps.
-These specs are used ONLY if a valid locale can not be determined.
+These specs are used ONLY if a valid locale can not be determined,
+or if the locale is \"C\" or \"POSIX\".  If a valid non-\"C\" locale
+can be determined, file time stamps are displayed using hardcoded
+formats \"%m-%d %H:%M\" for new files and \"%Y-%m-%d\" for old files.
 
-If `ls-lisp-use-localized-time-format' is non-nil, these specs are used
-regardless of whether the locale can be determined.
+If `ls-lisp-use-localized-time-format' is non-nil, the specs specified
+by this option are used regardless of whether the locale can be determined.
+
+The locale is determined by `ls-lisp-format-time', which see.
 
 Syntax:  (EARLY-TIME-FORMAT OLD-TIME-FORMAT)
 
@@ -228,7 +233,7 @@ current year.  The OLD-TIME-FORMAT is used for older files.  To use ISO
 
 (defcustom ls-lisp-use-localized-time-format nil
   "Non-nil means to always use `ls-lisp-format-time-list' for time stamps.
-This applies even if a valid locale is specified.
+This applies even if a valid locale is determined by `ls-lisp-format-time'.
 
 WARNING: Using localized date/time format might cause Dired columns
 to fail to line up, e.g. if month names are not all of the same length."
@@ -827,7 +832,11 @@ Return nil if no time switch found."
   "Format time for file with attributes FILE-ATTR according to TIME-INDEX.
 Use the same method as ls to decide whether to show time-of-day or year,
 depending on distance between file date and the current time.
-All ls time options, namely c, t and u, are handled."
+All ls time options, namely c, t and u, are handled.
+
+This function determines as side effect the locale relevant for
+displaying times, by using `system-time-locale' if non-nil, and
+falling back to environment variables LC_ALL, LC_TIME, and LANG."
   (let* ((time (nth (or time-index 5) file-attr)) ; default is last modtime
 	 (diff (time-subtract time nil))
 	 ;; Consider a time to be recent if it is within the past six

@@ -2,4 +2,5 @@
 If:
     PathMatch: "src/*.c"
 CompileFlags:
-    Add: [-Wno-unused-macros, -include=config.h]
+    Add: [-Wno-unused-macros, -include=config.h, -fstrict-flex-arrays=3]
+    Remove: [-fstrict-flex-arrays]

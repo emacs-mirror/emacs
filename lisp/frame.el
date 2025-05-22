@@ -1226,10 +1226,11 @@ recently selected windows nor the buffer list."
     (set-mouse-position frame (1- (frame-width frame)) 0))))
 
 (defun other-frame (arg)
-  "Select the ARGth different visible frame on current display, and raise it.
-All frames are arranged in a cyclic order.
-This command selects the frame ARG steps away in that order.
-A negative ARG moves in the opposite order.
+  "Select the ARGth visible frame on current display, and raise it.
+All frames are arranged in a cyclic order.  This command selects the
+frame ARG steps away from the selected frame in that order.  A negative
+ARG moves in the opposite order.  It does not select a minibuffer-only
+frame.
 
 To make this command work properly, you must tell Emacs how the
 system (or the window manager) generally handles focus-switching
@@ -1291,18 +1292,38 @@ Calls `suspend-emacs' if invoked from the controlling tty device,
       (suspend-tty)))
    (t (suspend-emacs))))
 
-(defun make-frame-names-alist ()
-  ;; Only consider the frames on the same display.
-  (let* ((current-frame (selected-frame))
-	 (falist
-	  (cons
-	   (cons (frame-parameter current-frame 'name) current-frame) nil))
-	 (frame (next-frame nil 0)))
-    (while (not (eq frame current-frame))
-      (progn
-	(push (cons (frame-parameter frame 'name) frame) falist)
-	(setq frame (next-frame frame 0))))
-    falist))
+(defun frame-list-1 (&optional frame)
+  "Return list of all live frames starting with FRAME.
+The optional argument FRAME must specify a live frame and defaults to
+the selected frame.  Tooltip frames are not included."
+  (let* ((frame (window-normalize-frame frame))
+	 (frames (frame-list)))
+    (unless (eq (car frames) frame)
+      (let ((tail frames))
+	(while tail
+	  (if (eq (cadr tail) frame)
+	      (let ((head (cdr tail)))
+		(setcdr tail nil)
+		(setq frames (nconc head frames))
+		(setq tail nil))
+	    (setq tail (cdr tail))))))
+    frames))
+
+(defun make-frame-names-alist (&optional frame)
+  "Return alist of frame names and frames starting with FRAME.
+Only visible or iconified frames on the same terminal as FRAME are
+listed.  Frames with a non-nil `no-other-frame' parameter are not
+listed.  The optional argument FRAME must specify a live frame and
+defaults to the selected frame."
+  (let ((frames (frame-list-1 frame))
+	(terminal (frame-parameter frame 'terminal))
+	alist)
+    (dolist (frame frames)
+      (when (and (frame-visible-p frame)
+		 (eq (frame-parameter frame 'terminal) terminal)
+		 (not (frame-parameter frame 'no-other-frame)))
+	(push (cons (frame-parameter frame 'name) frame) alist)))
+    (nreverse alist)))
 
 (defvar frame-name-history nil)
 (defun select-frame-by-name (name)
@@ -2816,32 +2837,29 @@ deleting them."
   (interactive "i\nP")
   (setq frame (window-normalize-frame frame))
   (let ((minibuffer-frame (window-frame (minibuffer-window frame)))
-        (this (next-frame frame t))
         (parent (frame-parent frame))
-        next)
+	(frames (frame-list)))
     ;; In a first round consider minibuffer-less frames only.
-    (while (not (eq this frame))
-      (setq next (next-frame this t))
-      (unless (or (eq (window-frame (minibuffer-window this)) this)
+    (dolist (this frames)
+      (unless (or (eq this frame)
+		  (eq this minibuffer-frame)
+		  (eq (window-frame (minibuffer-window this)) this)
                   ;; When FRAME is a child frame, delete its siblings
                   ;; only.
                   (and parent (not (eq (frame-parent this) parent)))
-                  ;; Do not delete a child frame of FRAME.
-                  (eq (frame-parent this) frame))
-        (if iconify (iconify-frame this) (delete-frame this)))
-      (setq this next))
+                  ;; Do not delete frame descending from FRAME.
+                  (frame-ancestor-p frame this))
+        (if iconify (iconify-frame this) (delete-frame this))))
     ;; In a second round consider all remaining frames.
-    (setq this (next-frame frame t))
-    (while (not (eq this frame))
-      (setq next (next-frame this t))
-      (unless (or (eq this minibuffer-frame)
+    (dolist (this frames)
+      (unless (or (eq this frame)
+		  (eq this minibuffer-frame)
                   ;; When FRAME is a child frame, delete its siblings
                   ;; only.
                   (and parent (not (eq (frame-parent this) parent)))
-                  ;; Do not delete a child frame of FRAME.
-                  (eq (frame-parent this) frame))
-        (if iconify (iconify-frame this) (delete-frame this)))
-      (setq this next))))
+                  ;; Do not delete frame descending from FRAME.
+                  (frame-ancestor-p frame this))
+        (if iconify (iconify-frame this) (delete-frame this))))))
 
 (defvar undelete-frame--deleted-frames nil
   "Internal variable used by `undelete-frame--save-deleted-frame'.")

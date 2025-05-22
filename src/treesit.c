@@ -757,6 +757,7 @@ treesit_load_language (Lisp_Object language_symbol,
   error = NULL;
   handle = NULL;
 
+  Lisp_Object loaded_lib = Qnil;
   FOR_EACH_TAIL (tail)
     {
       char *library_name = SSDATA (XCAR (tail));
@@ -764,7 +765,10 @@ treesit_load_language (Lisp_Object language_symbol,
       handle = dynlib_open (library_name);
       error = dynlib_error ();
       if (error == NULL)
-	break;
+	{
+	  loaded_lib = XCAR (tail);
+	  break;
+	}
       else
 	error_list = Fcons (build_string (error), error_list);
     }
@@ -808,9 +812,15 @@ treesit_load_language (Lisp_Object language_symbol,
   ts_parser_delete (parser);
   if (!success)
     {
+      Lisp_Object fmt =
+	build_string ("%s's ABI version is %d, but supported versions are %d-%d");
+      Lisp_Object formatted_msg =
+	CALLN (Fformat_message, fmt, loaded_lib,
+	       make_fixnum (ts_language_version (lang)),
+	       make_fixnum (TREE_SITTER_MIN_COMPATIBLE_LANGUAGE_VERSION),
+	       make_fixnum (TREE_SITTER_LANGUAGE_VERSION));
       *signal_symbol = Qtreesit_load_language_error;
-      *signal_data = list2 (Qversion_mismatch,
-			    make_fixnum (ts_language_version (lang)));
+      *signal_data = list2 (Qlang_version_mismatch, formatted_msg);
       return loaded_lang;
     }
 
@@ -5091,7 +5101,7 @@ syms_of_treesit (void)
 
   DEFSYM (Qnot_found, "not-found");
   DEFSYM (Qsymbol_error, "symbol-error");
-  DEFSYM (Qversion_mismatch, "version-mismatch");
+  DEFSYM (Qlang_version_mismatch, "language-grammar-version-mismatch");
 
   DEFSYM (Qtreesit_error, "treesit-error");
   DEFSYM (Qtreesit_query_error, "treesit-query-error");

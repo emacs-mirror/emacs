@@ -252,16 +252,27 @@ version 20.2.
 
 @findex turn-on-reftex
 @findex reftex-mode
+@findex use-package
 @vindex LaTeX-mode-hook
 @vindex latex-mode-hook
 To turn @RefTeX{} Mode on and off in a particular buffer, use
 @kbd{M-x reftex-mode @key{RET}}.  To turn on @RefTeX{} Mode for all
 LaTeX files, add the following lines to your @file{.emacs} file:
 
-@example
+@lisp
 (add-hook 'LaTeX-mode-hook #'turn-on-reftex)  ; with AUCTeX LaTeX mode
 (add-hook 'latex-mode-hook #'turn-on-reftex)  ; with Emacs latex mode
-@end example
+@end lisp
+
+@noindent
+Users of the use-package library can achieve the same result with:
+
+@lisp
+(use-package reftex  ; with AUCTeX LaTeX mode
+  :hook (LaTeX-mode . turn-on-reftex))
+(use-package reftex  ; with Emacs latex mode
+  :hook (latex-mode . turn-on-reftex))
+@end lisp
 
 That's all!
 

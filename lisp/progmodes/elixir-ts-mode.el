@@ -792,9 +792,15 @@ Return nil if NODE is not a defun node or doesn't have a name."
                    heex-ts--font-lock-feature-list)))
 
     (treesit-major-mode-setup)
+
     (setq-local syntax-propertize-function #'elixir-ts--syntax-propertize)
+
     ;; Enable the 'sexp' navigation by default
-    (treesit-cycle-sexp-type)))
+    (setq-local forward-sexp-function #'treesit-forward-sexp
+                treesit-sexp-type-regexp 'sexp
+                ;; But still use 'list' for `down-list' and `up-list'
+                treesit-sexp-type-down-list 'list
+                treesit-sexp-type-up-list 'list)))
 
 (derived-mode-add-parents 'elixir-ts-mode '(elixir-mode))
 

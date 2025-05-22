@@ -888,6 +888,21 @@ buffer if the variable `delete-trailing-lines' is non-nil."
   ;; Return nil for the benefit of `write-file-functions'.
   nil)
 
+(defun delete-trailing-whitespace-if-possible ()
+  "Call `delete-trailing-whitespace' unless the buffer is read-only."
+  (unless buffer-read-only (delete-trailing-whitespace)))
+
+(define-minor-mode delete-trailing-whitespace-mode
+  "Delete trailing whitespace before saving the current buffer."
+  :global nil
+  (cond
+   (delete-trailing-whitespace-mode
+    (add-hook 'before-save-hook
+              #'delete-trailing-whitespace-if-possible nil t))
+   (t
+    (remove-hook 'before-save-hook
+                 #'delete-trailing-whitespace-if-possible t))))
+
 (defun newline-and-indent (&optional arg)
   "Insert a newline, then indent according to major mode.
 Indentation is done using the value of `indent-line-function'.

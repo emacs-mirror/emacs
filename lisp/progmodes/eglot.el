@@ -1165,7 +1165,8 @@ object."
                ;; Remove the leading "/" for local MS Windows-style paths.
                (normalized (if (and (not remote-prefix)
                                     (eq system-type 'windows-nt)
-                                    (cl-plusp (length retval)))
+                                    (cl-plusp (length retval))
+                                    (eq (aref retval 0) ?/))
                                (w32-long-file-name (substring retval 1))
                              retval)))
           (concat remote-prefix normalized))
@@ -4167,8 +4168,8 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                                      'display
                                      `((margin left-margin)
                                        ,tooltip)))))
-                 (setq eglot--suggestion-overlay ov)))))
-         (when use-text-p (funcall cb blurb)))
+                 (setq eglot--suggestion-overlay ov))))
+           (when use-text-p (funcall cb blurb))))
        :hint :textDocument/codeAction)
       (and use-text-p t))))
 
@@ -4601,7 +4602,7 @@ If NOERROR, return predicate, else erroring function."
     map)
   "Keymap active in labels Eglot hierarchy buffers.")
 
-(defun eglot--hierarchy-label (node)
+(defun eglot--hierarchy-label (node parent-uri)
   (eglot--dbind ((HierarchyItem) name uri _detail ((:range item-range))) node
     (with-temp-buffer
       (insert (propertize
@@ -4617,13 +4618,22 @@ If NOERROR, return predicate, else erroring function."
        'keymap eglot-hierarchy-label-map
        'action
        (lambda (_btn)
-         (pop-to-buffer (find-file-noselect (eglot-uri-to-path uri)))
-         (eglot--goto
-          (or
-           (elt
-            (get-text-property 0 'eglot--hierarchy-call-sites name)
-            0)
-           item-range))))
+         (let* ((method
+                 (get-text-property 0 'eglot--hierarchy-method name))
+                (target-uri
+                 (if (eq method :callHierarchy/outgoingCalls)
+                     ;; We probably want `parent-uri' for this edge case
+                     ;; because that's where the call site we want
+                     ;; lives.  (bug#78250, bug#78367).
+                     (or parent-uri uri)
+                   uri)))
+           (pop-to-buffer (find-file-noselect (eglot-uri-to-path target-uri)))
+           (eglot--goto
+            (or
+             (elt
+              (get-text-property 0 'eglot--hierarchy-call-sites name)
+              0)
+             item-range)))))
       (buffer-string))))
 
 (defun eglot--hierarchy-1 (name provider preparer specs)
@@ -4657,20 +4667,21 @@ If NOERROR, return predicate, else erroring function."
   (cl-labels ((expander-for (node)
                 (lambda (_widget)
                   (mapcar
-                   #'convert
+                   (lambda (child)
+                     (convert child (plist-get node :uri)))
                    (eglot--hierarchy-children node))))
-              (convert (node)
+              (convert (node parent-uri)
                 (let ((w (widget-convert
                           'tree-widget
-                          :tag (eglot--hierarchy-label node)
+                          :tag (eglot--hierarchy-label node parent-uri)
                           :expander (expander-for node))))
                   (widget-put w :empty-icon
                               (widget-get w :leaf-icon))
                   w)))
     (let ((inhibit-read-only t))
       (erase-buffer)
-      (mapc (lambda (r)
-              (let ((w (widget-create (convert r))))
+      (mapc (lambda (root)
+              (let ((w (widget-create (convert root nil))))
                 (widget-apply-action w)))
             eglot--hierarchy-roots)
       (goto-char (point-min))))

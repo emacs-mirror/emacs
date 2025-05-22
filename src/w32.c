@@ -4108,6 +4108,69 @@ logon_network_drive (const char *path)
     }
 }
 
+/* Subroutine of faccessat.  Determines attributes of FILE (which is
+   assumed to be in UTF-8 and after map_w32_filename) as reported by
+   GetFileAttributes.  Returns -1 if it fails (meaning the file doesn't
+   exist or cannot be accessed by the current user), otherwise returns
+   the bitmap of file's attributes.  */
+static DWORD
+access_attrs (const char *file)
+{
+  DWORD attrs;
+
+  if (w32_unicode_filenames)
+    {
+      wchar_t file_w[MAX_PATH];
+
+      filename_to_utf16 (file, file_w);
+      attrs = GetFileAttributesW (file_w);
+    }
+  else
+    {
+      char file_a[MAX_PATH];
+
+      filename_to_ansi (file, file_a);
+      attrs = GetFileAttributesA (file_a);
+    }
+
+  if (attrs == -1)
+    {
+      DWORD w32err = GetLastError ();
+
+      switch (w32err)
+	{
+	case ERROR_INVALID_NAME:
+	case ERROR_BAD_PATHNAME:
+	  if (is_unc_volume (file))
+	    {
+	      attrs = unc_volume_file_attributes (file);
+	      if (attrs == -1)
+		{
+		  errno = EACCES;
+		  return -1;
+		}
+	      return attrs;
+	    }
+	  /* FALLTHROUGH */
+	  FALLTHROUGH;
+	case ERROR_FILE_NOT_FOUND:
+	case ERROR_PATH_NOT_FOUND:
+	case ERROR_INVALID_DRIVE:
+	case ERROR_NOT_READY:
+	case ERROR_BAD_NETPATH:
+	case ERROR_BAD_NET_NAME:
+	  errno = ENOENT;
+	  break;
+	default:
+	  errno = EACCES;
+	  break;
+	}
+      return -1;
+    }
+
+  return attrs;
+}
+
 /* Emulate faccessat(2).  */
 int
 faccessat (int dirfd, const char * path, int mode, int flags)
@@ -4142,65 +4205,26 @@ faccessat (int dirfd, const char * path, int mode, int flags)
   /* MSVCRT implementation of 'access' doesn't recognize D_OK, and its
      newer versions blow up when passed D_OK.  */
   path = map_w32_filename (path, NULL);
+
+  attributes = access_attrs (path);
+  if (attributes == -1)	/* PATH doesn't exist or is inaccessible */
+    return -1;
+
   /* If the last element of PATH is a symlink, we need to resolve it
      to get the attributes of its target file.  Note: any symlinks in
      PATH elements other than the last one are transparently resolved
      by GetFileAttributes below.  */
+  int not_a_symlink = ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) == 0);
   if ((volume_info.flags & FILE_SUPPORTS_REPARSE_POINTS) != 0
-      && (flags & AT_SYMLINK_NOFOLLOW) == 0)
-    path = chase_symlinks (path);
-
-  if (w32_unicode_filenames)
+      && (flags & AT_SYMLINK_NOFOLLOW) == 0
+      && !not_a_symlink)
     {
-      wchar_t path_w[MAX_PATH];
-
-      filename_to_utf16 (path, path_w);
-      attributes = GetFileAttributesW (path_w);
-    }
-  else
-    {
-      char path_a[MAX_PATH];
-
-      filename_to_ansi (path, path_a);
-      attributes = GetFileAttributesA (path_a);
+      path = chase_symlinks (path);
+      attributes = access_attrs (path);
+      if (attributes == -1)
+	return -1;
     }
 
-  if (attributes == -1)
-    {
-      DWORD w32err = GetLastError ();
-
-      switch (w32err)
-	{
-	case ERROR_INVALID_NAME:
-	case ERROR_BAD_PATHNAME:
-	  if (is_unc_volume (path))
-	    {
-	      attributes = unc_volume_file_attributes (path);
-	      if (attributes == -1)
-		{
-		  errno = EACCES;
-		  return -1;
-		}
-	      goto check_attrs;
-	    }
-	  /* FALLTHROUGH */
-	  FALLTHROUGH;
-	case ERROR_FILE_NOT_FOUND:
-	case ERROR_PATH_NOT_FOUND:
-	case ERROR_INVALID_DRIVE:
-	case ERROR_NOT_READY:
-	case ERROR_BAD_NETPATH:
-	case ERROR_BAD_NET_NAME:
-	  errno = ENOENT;
-	  break;
-	default:
-	  errno = EACCES;
-	  break;
-	}
-      return -1;
-    }
-
- check_attrs:
   if ((mode & X_OK) != 0
       && !(is_exec (path) || (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0))
     {
@@ -5076,9 +5100,10 @@ initialize_utc_base (void)
 }
 
 static time_t
-convert_time (FILETIME ft)
+convert_time (FILETIME ft, int *time_nsec)
 {
   ULONGLONG tmp;
+  time_t time_sec;
 
   if (!init)
     {
@@ -5090,7 +5115,10 @@ convert_time (FILETIME ft)
     return 0;
 
   FILETIME_TO_U64 (tmp, ft);
-  return (time_t) ((tmp - utc_base) / 10000000L);
+  tmp -= utc_base;
+  time_sec = (time_t) (tmp / 10000000L);
+  *time_nsec = (tmp - (ULONGLONG) time_sec * 10000000L) * 100L;
+  return time_sec;
 }
 
 static void
@@ -5707,11 +5735,19 @@ stat_worker (const char * path, struct stat * buf, int follow_symlinks)
   buf->st_nlink = nlinks;
 
   /* Convert timestamps to Unix format. */
-  buf->st_mtime = convert_time (wtime);
-  buf->st_atime = convert_time (atime);
-  if (buf->st_atime == 0) buf->st_atime = buf->st_mtime;
-  buf->st_ctime = convert_time (ctime);
-  if (buf->st_ctime == 0) buf->st_ctime = buf->st_mtime;
+  buf->st_mtime = convert_time (wtime, &buf->st_mtimensec);
+  buf->st_atime = convert_time (atime, &buf->st_atimensec);
+  if (buf->st_atime == 0)
+    {
+      buf->st_atime = buf->st_mtime;
+      buf->st_atimensec = buf->st_mtimensec;
+    }
+  buf->st_ctime = convert_time (ctime, &buf->st_ctimensec);
+  if (buf->st_ctime == 0)
+    {
+      buf->st_ctime = buf->st_mtime;
+      buf->st_ctimensec = buf->st_mtimensec;
+    }
 
   /* determine rwx permissions */
   if (is_a_symlink && !follow_symlinks)
@@ -5853,11 +5889,19 @@ fstat (int desc, struct stat * buf)
   buf->st_size += info.nFileSizeLow;
 
   /* Convert timestamps to Unix format. */
-  buf->st_mtime = convert_time (info.ftLastWriteTime);
-  buf->st_atime = convert_time (info.ftLastAccessTime);
-  if (buf->st_atime == 0) buf->st_atime = buf->st_mtime;
-  buf->st_ctime = convert_time (info.ftCreationTime);
-  if (buf->st_ctime == 0) buf->st_ctime = buf->st_mtime;
+  buf->st_mtime = convert_time (info.ftLastWriteTime, &buf->st_mtimensec);
+  buf->st_atime = convert_time (info.ftLastAccessTime, &buf->st_atimensec);
+  if (buf->st_atime == 0)
+    {
+      buf->st_atime = buf->st_mtime;
+      buf->st_atimensec = buf->st_mtimensec;
+    }
+  buf->st_ctime = convert_time (info.ftCreationTime, &buf->st_ctimensec);
+  if (buf->st_ctime == 0)
+    {
+      buf->st_ctime = buf->st_mtime;
+      buf->st_ctimensec = buf->st_mtimensec;
+    }
 
   /* determine rwx permissions */
   if (info.dwFileAttributes & FILE_ATTRIBUTE_READONLY)

@@ -227,6 +227,50 @@ Only pulses the line if `pulse-command-advice-flag' is non-nil."
   (when pulse-command-advice-flag
     (pulse-momentary-highlight-one-line (point))))
 
+;;; Pulse faces
+;; Functions for pulsing any defined face(s).
+(require 'face-remap)
+
+(defcustom pulse-face-duration pulse-delay
+  "Time (in seconds) used for `pulse-faces' duration."
+  :type 'number
+  :group 'pulse
+  :version "31.1")
+
+;; FIXME: The pulse's smooth effect cannot be achieved here because
+;;        the face-remaping will not work well for that.
+(defun pulse-faces (faces &optional with-face)
+  "Briefly pulse FACES by using attributes of face WITH-FACE (if defined).
+FACES should be a list of faces to pulse.
+WITH-FACE is optional, it can be a defined face or a list
+of face properties to apply.  If nil or omitted, it defaults
+to `pulse-highlight-face'."
+  (when-let* (((numberp pulse-face-duration)) ; Ensure time is a number
+              (with-face (or with-face 'pulse-highlight-face))
+              (in-buffer (current-buffer))
+              (cookies (mapcar (lambda (f)
+                                 (if (consp with-face)
+                                     (apply #'face-remap-add-relative
+                                            f with-face)
+                                   (face-remap-add-relative f with-face)))
+                               faces)))
+    ;; Use run-with-timer if the duration is very long, so as to avoid
+    ;; blocking emacs; otherwise fall back to 'sleep-for'.
+    (if (> pulse-face-duration 0.1)
+        (run-with-timer pulse-face-duration 0
+                        (lambda ()
+                          ;; Remove the face remaping in the buffer
+                          ;; where `pulse-faces' was called.
+                          (if (buffer-live-p in-buffer)
+                              (with-current-buffer in-buffer
+                                (mapc #'face-remap-remove-relative cookies)))))
+      (unwind-protect
+          (progn
+            ;; Redisplay to apply the face remapping.
+            (redisplay)
+            (sleep-for pulse-face-duration))
+        (mapc #'face-remap-remove-relative cookies)))))
+
 (provide 'pulse)
 
 ;;; pulse.el ends here

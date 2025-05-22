@@ -35,6 +35,7 @@
 (require 'url-file)
 (require 'vtable)
 (require 'xdg)
+(require 'track-changes)
 (eval-when-compile (require 'subr-x))
 
 (defgroup eww nil
@@ -49,7 +50,6 @@
 - %t is replaced by the title.
 - %u is replaced by the URL."
   :version "24.4"
-  :group 'eww
   :type 'string)
 
 (defcustom eww-search-confirm-send-region t
@@ -60,13 +60,11 @@ default to mitigate the risk of accidental data leak.  Set this
 variable to nil to send the region to the search engine
 straight away."
   :version "31.1"
-  :group 'eww
   :type 'boolean)
 
 (defcustom eww-search-prefix "https://duckduckgo.com/html/?q="
   "Prefix URL to search engine."
   :version "24.4"
-  :group 'eww
   :type 'string)
 
 (defcustom eww-use-browse-url "\\`mailto:"
@@ -80,7 +78,6 @@ The action to be taken can be further customized via
   "Default directory where `eww' saves downloaded files.
 Used by `eww--download-directory', which see."
   :version "29.1"
-  :group 'eww
   :type 'directory)
 
 (defun eww--download-directory ()
@@ -99,7 +96,6 @@ is defined, use the latter instead."
 This should either be a directory name or a function (called with
 no parameters) that returns a directory name."
   :version "28.1"
-  :group 'eww
   :type '(choice directory function))
 
 ;;;###autoload
@@ -113,7 +109,6 @@ Each of the elements is a function returning either a string or a list
 of strings.  The results will be joined into a single list with
 duplicate entries (if any) removed."
   :version "30.1"
-  :group 'eww
   :type 'hook
   :options '(eww-links-at-point
              thing-at-point-url-at-point
@@ -131,13 +126,11 @@ complete response of the server from which the page was requested.
 If the list of the functions is exhausted without any non-nil value,
 EWW assumes content-type is \"application/octet-stream\", per RFC-9110."
   :version "31.1"
-  :group 'eww
   :type '(repeat function))
 
 (defcustom eww-bookmarks-directory user-emacs-directory
   "Directory where bookmark files will be stored."
   :version "25.1"
-  :group 'eww
   :type 'directory)
 
 (defcustom eww-desktop-remove-duplicates t
@@ -146,7 +139,6 @@ If non-nil, repetitive EWW history entries (comprising of the URI, the
 title, and the point position) will not be saved as part of the Emacs
 desktop.  Otherwise, such entries will be retained."
   :version "25.1"
-  :group 'eww
   :type 'boolean)
 
 (defcustom eww-restore-desktop nil
@@ -156,7 +148,6 @@ If nil, buffers will require manual reload, and will contain the text
 specified in `eww-restore-reload-prompt' instead of the actual Web
 page contents."
   :version "25.1"
-  :group 'eww
   :type '(choice (const :tag "Restore all automatically" t)
                  (const :tag "Require manual reload" nil)))
 
@@ -167,13 +158,11 @@ This prompt will be used if `eww-restore-desktop' is nil.
 
 The string will be passed through `substitute-command-keys'."
   :version "25.1"
-  :group 'eww
   :type 'string)
 
 (defcustom eww-history-limit 50
   "Maximum number of entries to retain in the history."
   :version "25.1"
-  :group 'eww
   :type '(choice (const :tag "Unlimited" nil)
                  integer))
 
@@ -192,7 +181,6 @@ the first item is the program, and the rest are the arguments."
   "\\`\\(video/\\|audio/\\|application/ogg\\)"
   "Always use external browser for specified content-type."
   :version "24.4"
-  :group 'eww
   :type '(choice (const :tag "Never" nil)
                  regexp))
 
@@ -203,7 +191,6 @@ If t, then open the URL in a new tab rather than a new buffer if
 If `tab-bar', then open the URL in a new tab only when
 the tab bar is enabled."
   :version "27.1"
-  :group 'eww
   :type '(choice (const :tag "Always open URL in new tab" t)
                  (const :tag "Open new tab when tab bar is enabled" tab-bar)
                  (const :tag "Never open URL in new tab" nil)))
@@ -226,7 +213,6 @@ EWW provides the following values for this option:
 
 You can also set this to any other function you wish."
   :version "30.1"
-  :group 'eww
   :type '(choice (function-item :tag "Delete future history"
                                 eww-delete-future-history)
                  (function-item :tag "Clone previous history"
@@ -238,7 +224,6 @@ You can also set this to any other function you wish."
 (defcustom eww-after-render-hook nil
   "A hook called after eww has finished rendering the buffer."
   :version "25.1"
-  :group 'eww
   :type 'hook)
 
 (defcustom eww-auto-rename-buffer nil
@@ -266,20 +251,17 @@ of `eww-buffer-name-length'."
           (const :tag "Do not rename buffers (default)" nil)
           (const :tag "Rename buffer to web page title" title)
           (const :tag "Rename buffer to web page URL" url)
-          (function :tag "A user-defined function to rename the buffer"))
-  :group 'eww)
+          (function :tag "A user-defined function to rename the buffer")))
 
 (defcustom eww-buffer-name-length 40
   "Length of renamed buffer name, per `eww-auto-rename-buffer'."
   :type 'natnum
-  :version "29.1"
-  :group 'eww)
+  :version "29.1")
 
 (defcustom eww-form-checkbox-selected-symbol "[X]"
   "Symbol used to represent a selected checkbox.
 See also `eww-form-checkbox-symbol'."
   :version "24.4"
-  :group 'eww
   :type '(choice (const "[X]")
                  (const "☒")            ; Unicode BALLOT BOX WITH X
                  (const "☑")            ; Unicode BALLOT BOX WITH CHECK
@@ -289,7 +271,6 @@ See also `eww-form-checkbox-symbol'."
   "Symbol used to represent a checkbox.
 See also `eww-form-checkbox-selected-symbol'."
   :version "24.4"
-  :group 'eww
   :type '(choice (const "[ ]")
                  (const "☐")            ; Unicode BALLOT BOX
                  string))
@@ -327,62 +308,54 @@ by default."
      :box (:line-width 2 :style released-button)
      :background "#808080" :foreground "black"))
   "Face for eww buffer buttons."
-  :version "24.4"
-  :group 'eww)
+  :version "24.4")
 
 (defface eww-form-file
   '((((type x w32 ns haiku pgtk android) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "#808080" :foreground "black"))
   "Face for eww buffer buttons."
-  :version "25.1"
-  :group 'eww)
+  :version "25.1")
 
 (defface eww-form-checkbox
   '((((type x w32 ns haiku pgtk android) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "lightgrey" :foreground "black"))
   "Face for eww buffer buttons."
-  :version "24.4"
-  :group 'eww)
+  :version "24.4")
 
 (defface eww-form-select
   '((((type x w32 ns haiku pgtk android) (class color))	; Like default mode line
      :box (:line-width 2 :style released-button)
      :background "lightgrey" :foreground "black"))
   "Face for eww buffer buttons."
-  :version "24.4"
-  :group 'eww)
+  :version "24.4")
 
 (defface eww-form-text
   '((t :background "#505050"
        :foreground "white"
        :box (:line-width 1)))
   "Face for eww text inputs."
-  :version "24.4"
-  :group 'eww)
+  :version "24.4")
 
 (defface eww-form-textarea
   '((t :background "#C0C0C0"
        :foreground "black"
        :box (:line-width 1)))
   "Face for eww textarea inputs."
-  :version "24.4"
-  :group 'eww)
+  :version "24.4")
 
 (defface eww-invalid-certificate
   '((default :weight bold)
     (((class color)) :foreground "red"))
   "Face for web pages with invalid certificates."
-  :version "25.1"
-  :group 'eww)
+  :version "25.1")
 
 (defface eww-valid-certificate
   '((default :weight bold)
     (((class color)) :foreground "ForestGreen"))
   "Face for web pages with valid certificates."
-  :version "25.1"
-  :group 'eww)
+  :version "25.1")
 
 (defvar eww-data nil)
 (defvar eww-history nil)
@@ -811,9 +784,11 @@ Use CODING-SYSTEM to decode the region; if nil, decode as UTF-8.
 This replaces the region with the preprocessed HTML."
   (setq coding-system (or coding-system 'utf-8))
   (with-restriction start end
-    (condition-case nil
-        (decode-coding-region (point-min) (point-max) coding-system)
-      (coding-system-error nil))
+    (unless (and (not enable-multibyte-characters)
+		 (eq coding-system 'utf-8))
+      (condition-case nil
+          (decode-coding-region (point-min) (point-max) coding-system)
+        (coding-system-error nil)))
     ;; Remove CRLF and replace NUL with &#0; before parsing.
     (while (re-search-forward "\\(\r$\\)\\|\0" nil t)
       (replace-match (if (match-beginning 1) "" "&#0;") t t))
@@ -840,7 +815,6 @@ This replaces the region with the preprocessed HTML."
       (setq bidi-paragraph-direction nil)
       (plist-put eww-data :dom document)
       (let ((inhibit-read-only t)
-	    (inhibit-modification-hooks t)
             ;; Possibly set by the caller, e.g., `eww-render' which
             ;; preserves the old URL #target before chasing redirects.
             (shr-target-id (or shr-target-id
@@ -876,6 +850,10 @@ This replaces the region with the preprocessed HTML."
 	  (while (and (not (eobp))
 		      (get-text-property (point) 'eww-form))
 	    (forward-line 1)))))
+      ;; We used to enable this in `eww-mode', but it cause tracking
+      ;; of changes while we insert the document, whereas we only care about
+      ;; changes performed afterwards.
+      (track-changes-register #'eww--track-changes :nobefore t)
       (eww-size-text-inputs))))
 
 (defun eww-display-html (charset url &optional document point buffer)
@@ -1058,7 +1036,7 @@ This replaces the region with the preprocessed HTML."
 	(erase-buffer)
 	(insert data)
 	(condition-case nil
-	    (decode-coding-region (point-min) (1+ (length data)) encode)
+	    (decode-coding-region (point-min) (point) encode)
 	  (coding-system-error nil)))
       (goto-char (point-min)))))
 
@@ -1378,14 +1356,11 @@ within text input fields."
 ;; Autoload cookie needed by desktop.el.
 ;;;###autoload
 (define-derived-mode eww-mode special-mode "eww"
-  "Mode for browsing the web.
-
-\\{eww-mode-map}"
+  "Mode for browsing the web."
   :interactive nil
   (setq-local eww-data (list :title ""))
   (setq-local browse-url-browser-function #'eww-browse-url)
-  (add-hook 'after-change-functions #'eww-process-text-input nil t)
-  (add-hook 'context-menu-functions 'eww-context-menu 5 t)
+  (add-hook 'context-menu-functions #'eww-context-menu 5 t)
   (setq-local eww-history nil)
   (setq-local eww-history-position 0)
   (when (boundp 'tool-bar-map)
@@ -1410,7 +1385,7 @@ within text input fields."
   (setq-local shr-url-transformer #'eww--transform-url)
   ;; Also rescale images when rescaling the text.
   (add-hook 'text-scale-mode-hook #'eww--rescale-images nil t)
-  (setq-local outline-search-function 'shr-outline-search
+  (setq-local outline-search-function #'shr-outline-search
               outline-level 'shr-outline-level)
   (add-hook 'post-command-hook #'eww-check-text-conversion nil t)
   (setq buffer-read-only t)
@@ -1513,7 +1488,6 @@ instead of `browse-url-new-window-flag'."
 
 (defun eww-restore-history (elem)
   (let ((inhibit-read-only t)
-	(inhibit-modification-hooks t)
 	(text (plist-get elem :text)))
     (setq eww-data elem)
     (if (null text)
@@ -1784,16 +1758,34 @@ Interactively, EVENT is the value of `last-nonmenu-event'."
   "List of input types which represent a text input.
 See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 
-(defun eww-process-text-input (beg end replace-length)
-  (when-let* ((pos (field-beginning (point))))
-    (let* ((form (get-text-property pos 'eww-form))
-	   (properties (text-properties-at pos))
+(defun eww--track-changes (tracker-id)
+  (track-changes-fetch
+   tracker-id
+   (lambda (beg end len)
+     (eww--process-text-input beg end len)
+     ;; Disregard our own changes.
+     (track-changes-fetch tracker-id #'ignore))))
+
+(defun eww--process-text-input (beg end replace-length)
+  (when-let* ((_ (integerp replace-length))
+              (pos end)
+              (form (or (get-text-property pos 'eww-form)
+                        (progn
+                          (setq pos (max (point-min) (1- beg)))
+                          (get-text-property pos 'eww-form)))))
+    (let* ((properties (text-properties-at pos))
            (buffer-undo-list t)
 	   (inhibit-read-only t)
 	   (length (- end beg replace-length))
 	   (type (plist-get form :type)))
-      (when (and form
-		 (member type eww-text-input-types))
+      (when (member type eww-text-input-types)
+	;; Make sure the new text has the right properties, which also
+	;; integrates the new text into the "current field".
+	(set-text-properties beg end properties)
+	;; FIXME: This tries to preserve the "length" of the input field,
+        ;; but we should try to preserve the *width* instead.
+        ;; FIXME: Maybe instead of inserting/deleting spaces, we should
+        ;; have a single stretch-space character at the end.
 	(cond
 	 ((> length 0)
 	  ;; Delete some space at the end.
@@ -1809,18 +1801,21 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 	 ((< length 0)
 	  ;; Add padding.
 	  (save-excursion
-	    (goto-char end)
-	    (goto-char
-	     (if (equal type "textarea")
-		 (1- (line-end-position))
-	       (1+ (eww-end-of-field))))
-	    (let ((start (point)))
-              (insert (make-string (abs length) ? ))
-	      (set-text-properties start (point) properties))
-	    (goto-char (1- end)))))
-	(set-text-properties (cdr (assq :start form))
-                             (cdr (assq :end form))
-			     properties)
+	    (goto-char pos)
+	    (let* ((field-length (- (eww-end-of-field)
+                                    (eww-beginning-of-field)))
+                   (ideal-length (cdr (assq :length form))))
+              ;; FIXME: This test isn't right for multiline fields.
+              (when (or (null ideal-length) (> ideal-length field-length))
+	        (goto-char
+		 (if (equal type "textarea")
+		     (1- (line-end-position))
+		   (1+ (eww-end-of-field))))
+		(let ((start (point)))
+	          (insert (make-string (min (abs length)
+	                                    (- ideal-length field-length))
+	                               ? ))
+	          (set-text-properties start (point) properties)))))))
 	(let ((value (buffer-substring-no-properties
 		      (eww-beginning-of-field)
 		      (eww-end-of-field))))
@@ -2042,11 +2037,11 @@ Interactively, EVENT is the value of `last-nonmenu-event'."
 		(< start (point-max)))
       (when (or (get-text-property start 'eww-form)
 		(setq start (next-single-property-change start 'eww-form)))
-	(let ((props (get-text-property start 'eww-form)))
-          (nconc props (list (cons :start start)))
+	(let ((props (get-text-property start 'eww-form))
+              (beg start))
           (setq start (next-single-property-change
                        start 'eww-form nil (point-max)))
-          (nconc props (list (cons :end start))))))))
+          (nconc props (list (cons :length (- start beg)))))))))
 
 (defun eww-input-value (input)
   (let ((type (plist-get input :type))
@@ -2320,26 +2315,32 @@ If CHARSET is nil then use UTF-8."
       (eww-reload nil 'utf-8)
     (eww-reload nil charset)))
 
+(defun eww--buffer-p (buf)
+  (provided-mode-derived-p (buffer-local-value 'major-mode buf)
+                           'eww-mode))
+
 (defun eww-switch-to-buffer ()
-  "Prompt for an EWW buffer to display in the selected window."
+  "Prompt for an EWW buffer to display in the selected window.
+If no such buffer exist, fallback to calling `eww'."
   (interactive nil eww-mode)
-  (let ((completion-extra-properties
-         `(:annotation-function
-           ,(lambda (buf)
-              (with-current-buffer buf
-                (format " %s" (eww-current-url))))))
-        (curbuf (current-buffer)))
-    (pop-to-buffer-same-window
-     (read-buffer "Switch to EWW buffer: "
-                  (cl-loop for buf in (nreverse (buffer-list))
-                           if (with-current-buffer buf (derived-mode-p 'eww-mode))
-                           return buf)
-                  t
-                  (lambda (bufn)
-                    (setq bufn (if (consp bufn) (cdr bufn) (get-buffer bufn)))
-                    (and (with-current-buffer bufn
-                           (derived-mode-p 'eww-mode))
-                         (not (eq bufn curbuf))))))))
+  (let ((list (cl-loop for buf in (nreverse (buffer-list))
+                       if (and (eww--buffer-p buf)
+                               (not (eq buf (current-buffer))))
+                       collect (buffer-name buf))))
+    (if list
+        (pop-to-buffer-same-window
+         (if (length= list 1)
+             (car list)
+           (completing-read "Switch to EWW buffer: "
+                            (completion-table-with-metadata
+                             list
+                             `((category . buffer)
+                               (annotation-function
+                                . ,(lambda (buf)
+                                     (with-current-buffer buf
+                                       (format " %s" (eww-current-url)))))))
+                            nil t)))
+      (call-interactively #'eww))))
 
 (defun eww-toggle-fonts ()
   "Toggle whether to use monospaced or font-enabled layouts."
@@ -2713,15 +2714,17 @@ see)."
 
 (defun eww-buffer-list ()
   "Return a list of all live eww buffers."
-  (match-buffers '(derived-mode . eww-mode)))
+  (match-buffers #'eww--buffer-p))
 
 (defun eww-list-buffers ()
   "Pop a buffer with a list of eww buffers."
   (interactive)
-  (with-current-buffer (get-buffer-create "*eww buffers*")
-    (eww-buffers-mode)
-    (eww--list-buffers-display-table))
-  (pop-to-buffer "*eww buffers*"))
+  (if (null (eww-buffer-list))
+      (message "No EWW buffers.")
+    (with-current-buffer (get-buffer-create "*eww buffers*")
+      (eww-buffers-mode)
+      (eww--list-buffers-display-table))
+    (pop-to-buffer "*eww buffers*")))
 
 (defun eww--list-buffers-display-table (&optional _ignore-auto _noconfirm)
   "Display a table with the list of eww buffers.

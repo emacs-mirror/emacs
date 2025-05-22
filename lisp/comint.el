@@ -434,7 +434,7 @@ This is used by `comint-watch-for-password-prompt' to reduce the amount
 of time spent searching for password prompts.")
 
 ;; Here are the per-interpreter hooks.
-(defvar comint-get-old-input (function comint-get-old-input-default)
+(defvar comint-get-old-input #'comint-get-old-input-default
   "Function that returns old text in Comint mode.
 This function is called when return is typed while the point is in old
 text.  It returns the text to be submitted as process input.  The
@@ -477,7 +477,7 @@ either globally or locally.")
 (defvar comint-input-sender-no-newline nil
   "Non-nil directs the `comint-input-sender' function not to send a newline.")
 
-(defvar comint-input-sender (function comint-simple-send)
+(defvar comint-input-sender #'comint-simple-send
   "Function to actually send to PROCESS the STRING submitted by user.
 Usually this is just `comint-simple-send', but if your mode needs to
 massage the input string, put a different function here.
@@ -536,42 +536,42 @@ via PTYs.")
 (defvar comint-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Keys:
-    (define-key map "\ep" 	  'comint-previous-input)
-    (define-key map "\en" 	  'comint-next-input)
-    (define-key map [C-up] 	  'comint-previous-input)
-    (define-key map [C-down] 	  'comint-next-input)
-    (define-key map "\er" 	  'comint-history-isearch-backward-regexp)
-    (define-key map [?\C-c ?\M-r] 'comint-previous-matching-input-from-input)
-    (define-key map [?\C-c ?\M-s] 'comint-next-matching-input-from-input)
-    (define-key map [?\C-x up]    'comint-complete-input-ring)
-    (define-key map "\e\C-l" 	  'comint-show-output)
-    (define-key map "\C-m" 	  'comint-send-input)
-    (define-key map "\C-d" 	  'comint-delchar-or-maybe-eof)
+    (define-key map "\ep" 	  #'comint-previous-input)
+    (define-key map "\en" 	  #'comint-next-input)
+    (define-key map [C-up] 	  #'comint-previous-input)
+    (define-key map [C-down] 	  #'comint-next-input)
+    (define-key map "\er" 	  #'comint-history-isearch-backward-regexp)
+    (define-key map [?\C-c ?\M-r] #'comint-previous-matching-input-from-input)
+    (define-key map [?\C-c ?\M-s] #'comint-next-matching-input-from-input)
+    (define-key map [?\C-x up]    #'comint-complete-input-ring)
+    (define-key map "\e\C-l" 	  #'comint-show-output)
+    (define-key map "\C-m" 	  #'comint-send-input)
+    (define-key map "\C-d" 	  #'comint-delchar-or-maybe-eof)
     ;; The following two are standardly bound to delete-forward-char,
     ;; but they should never do EOF, just delete.
-    (define-key map [delete] 	  'delete-forward-char)
-    (define-key map [kp-delete]	  'delete-forward-char)
-    (define-key map "\C-c " 	  'comint-accumulate)
-    (define-key map "\C-c\C-x" 	  'comint-get-next-from-history)
-    (define-key map "\C-c\C-a" 	  'comint-bol-or-process-mark)
-    (define-key map "\C-c\C-u" 	  'comint-kill-input)
-    (define-key map "\C-c\C-w" 	  'backward-kill-word)
-    (define-key map "\C-c\C-c" 	  'comint-interrupt-subjob)
-    (define-key map "\C-c\C-z" 	  'comint-stop-subjob)
-    (define-key map "\C-c\C-\\"   'comint-quit-subjob)
-    (define-key map "\C-c\C-m" 	  'comint-copy-old-input)
-    (define-key map "\C-c\C-o" 	  'comint-delete-output)
-    (define-key map "\C-c\M-o"    'comint-clear-buffer)
-    (define-key map "\C-c\C-r" 	  'comint-show-output)
-    (define-key map "\C-c\C-e" 	  'comint-show-maximum-output)
-    (define-key map "\C-c\C-l" 	  'comint-dynamic-list-input-ring)
-    (define-key map "\C-c\C-n" 	  'comint-next-prompt)
-    (define-key map "\C-c\C-p" 	  'comint-previous-prompt)
-    (define-key map "\C-c\C-d" 	  'comint-send-eof)
-    (define-key map "\C-c\C-s" 	  'comint-write-output)
-    (define-key map "\C-c." 	  'comint-insert-previous-argument)
+    (define-key map [delete] 	  #'delete-forward-char)
+    (define-key map [kp-delete]	  #'delete-forward-char)
+    (define-key map "\C-c " 	  #'comint-accumulate)
+    (define-key map "\C-c\C-x" 	  #'comint-get-next-from-history)
+    (define-key map "\C-c\C-a" 	  #'comint-bol-or-process-mark)
+    (define-key map "\C-c\C-u" 	  #'comint-kill-input)
+    (define-key map "\C-c\C-w" 	  #'backward-kill-word)
+    (define-key map "\C-c\C-c" 	  #'comint-interrupt-subjob)
+    (define-key map "\C-c\C-z" 	  #'comint-stop-subjob)
+    (define-key map "\C-c\C-\\"   #'comint-quit-subjob)
+    (define-key map "\C-c\C-m" 	  #'comint-copy-old-input)
+    (define-key map "\C-c\C-o" 	  #'comint-delete-output)
+    (define-key map "\C-c\M-o"    #'comint-clear-buffer)
+    (define-key map "\C-c\C-r" 	  #'comint-show-output)
+    (define-key map "\C-c\C-e" 	  #'comint-show-maximum-output)
+    (define-key map "\C-c\C-l" 	  #'comint-dynamic-list-input-ring)
+    (define-key map "\C-c\C-n" 	  #'comint-next-prompt)
+    (define-key map "\C-c\C-p" 	  #'comint-previous-prompt)
+    (define-key map "\C-c\C-d" 	  #'comint-send-eof)
+    (define-key map "\C-c\C-s" 	  #'comint-write-output)
+    (define-key map "\C-c." 	  #'comint-insert-previous-argument)
     ;; Mouse Buttons:
-    (define-key map [mouse-2]     'comint-insert-input)
+    (define-key map [mouse-2]     #'comint-insert-input)
     ;; Menu bars:
     ;; completion:
     (define-key map [menu-bar completion]
@@ -650,7 +650,8 @@ via PTYs.")
   "C-p" #'comint-previous-prompt)
 
 ;; Fixme: Is this still relevant?
-(defvar comint-ptyp t
+(defvar-local comint-ptyp t
+  ;; FIXME: What bug and how does this work around that bug?
   "Non-nil if communications via pty; false if by pipe.  Buffer local.
 This is to work around a bug in Emacs process signaling.")
 
@@ -670,7 +671,7 @@ This is to support the command \\[comint-get-next-from-history].")
   "Non-nil if you are accumulating input lines to send as input together.
 The command \\[comint-accumulate] sets this.")
 
-(defvar comint-stored-incomplete-input nil
+(defvar-local comint-stored-incomplete-input nil
   "Stored input for history cycling.")
 
 (put 'comint-replace-by-expanded-history 'menu-enable 'comint-input-autoexpand)
@@ -735,20 +736,10 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   ;; It is ok to let the input method edit prompt text, but RET must
   ;; be processed by Emacs.
   (setq text-conversion-style 'action)
-  (make-local-variable 'comint-last-prompt)
+  ;; FIXME: Should be the responsibility of the setter to use `setq-local'!
   (make-local-variable 'comint-prompt-regexp)        ; Don't set; default
   (make-local-variable 'comint-input-ring-size)      ; ...to global val.
-  (make-local-variable 'comint-input-ring)
   (make-local-variable 'comint-input-ring-file-name)
-  (or (and (boundp 'comint-input-ring) comint-input-ring)
-      (setq comint-input-ring (make-ring comint-input-ring-size)))
-  (make-local-variable 'comint-input-ring-index)
-  (make-local-variable 'comint-save-input-ring-index)
-  (or (and (boundp 'comint-input-ring-index) comint-input-ring-index)
-      (setq comint-input-ring-index nil))
-  (or (and (boundp 'comint-save-input-ring-index) comint-save-input-ring-index)
-      (setq comint-save-input-ring-index nil))
-  (make-local-variable 'comint-matching-input-from-input-string)
   (make-local-variable 'comint-input-autoexpand)
   (make-local-variable 'comint-input-ignoredups)
   (make-local-variable 'comint-delimiter-argument-list)
@@ -760,7 +751,15 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-scroll-to-bottom-on-input)
   (make-local-variable 'comint-move-point-for-output)
   (make-local-variable 'comint-scroll-show-maximum-output)
-  (make-local-variable 'comint-stored-incomplete-input)
+  (make-local-variable 'comint-process-echoes)
+  (make-local-variable 'comint-file-name-chars)
+  (make-local-variable 'comint-file-name-quote-list)
+  (or (and (boundp 'comint-input-ring) comint-input-ring)
+      (setq-local comint-input-ring (make-ring comint-input-ring-size)))
+  (or (and (boundp 'comint-input-ring-index) comint-input-ring-index)
+      (setq-local comint-input-ring-index nil))
+  (or (and (boundp 'comint-save-input-ring-index) comint-save-input-ring-index)
+      (setq-local comint-save-input-ring-index nil))
   ;; Following disabled because it seems to break the case when
   ;; comint-scroll-show-maximum-output is nil, and no-one can remember
   ;; what the original problem was.  If there are problems with point
@@ -769,11 +768,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   ;;
   ;; This makes it really work to keep point at the bottom.
   ;; (setq-local scroll-conservatively 10000)
-  (add-hook 'pre-command-hook 'comint-preinput-scroll-to-bottom t t)
-  (make-local-variable 'comint-ptyp)
-  (make-local-variable 'comint-process-echoes)
-  (make-local-variable 'comint-file-name-chars)
-  (make-local-variable 'comint-file-name-quote-list)
+  (add-hook 'pre-command-hook #'comint-preinput-scroll-to-bottom t t)
   ;; dir tracking on remote files
   (setq-local comint-file-name-prefix
               (or (file-remote-p default-directory) ""))
@@ -781,9 +776,9 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (setq-local font-lock-defaults '(nil t))
   (add-function :filter-return (local 'filter-buffer-substring-function)
                 #'comint--unmark-string-as-output)
-  (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
-  (add-hook 'isearch-mode-hook 'comint-history-isearch-setup nil t)
-  (add-hook 'completion-at-point-functions 'comint-completion-at-point nil t)
+  (add-hook 'change-major-mode-hook #'font-lock-defontify nil t)
+  (add-hook 'isearch-mode-hook #'comint-history-isearch-setup nil t)
+  (add-hook 'completion-at-point-functions #'comint-completion-at-point nil t)
   ;; This behavior is not useful in comint buffers, and is annoying
   (setq-local next-line-add-newlines nil))
 
@@ -885,7 +880,7 @@ series of processes in the same Comint buffer.  The hook
 	   (if (consp command)
 	       (open-network-stream name buffer (car command) (cdr command))
 	     (comint-exec-1 name buffer command switches))))
-      (set-process-filter proc 'comint-output-filter)
+      (set-process-filter proc #'comint-output-filter)
       (setq-local comint-ptyp process-connection-type) ; t if pty, nil if pipe.
       ;; Jump to the end, and set the process mark.
       (goto-char (point-max))
@@ -920,7 +915,7 @@ series of processes in the same Comint buffer.  The hook
 			 ;; If the command has slashes, make sure we
 			 ;; first look relative to the current directory.
 			 (cons default-directory exec-path) exec-path)))
-      (setq proc (apply 'start-file-process name buffer command switches)))
+      (setq proc (apply #'start-file-process name buffer command switches)))
     ;; Some file name handler cannot start a process, fe ange-ftp.
     (unless (processp proc) (error "No process started"))
     (let ((coding-systems (process-coding-system proc)))
@@ -1167,7 +1162,7 @@ See also `comint-read-input-ring'."
 	(set-buffer history-buffer)
 	(let ((keymap (make-sparse-keymap)))
 	  (set-keymap-parent keymap (current-local-map))
-	  (define-key keymap "\C-m" 'comint-dynamic-list-input-ring-select)
+	  (define-key keymap "\C-m" #'comint-dynamic-list-input-ring-select)
 	  (use-local-map keymap))
 	(forward-line 3)
 	(while (search-backward "completion" nil 'move)
@@ -1365,12 +1360,12 @@ If N is negative, search forwards for the -Nth following match."
     (unless (memq last-command '(comint-previous-matching-input-from-input
 				 comint-next-matching-input-from-input))
       ;; Starting a new search
-      (setq comint-matching-input-from-input-string
-	    (buffer-substring
-	     (or (marker-position comint-accum-marker)
-		 (process-mark (get-buffer-process (current-buffer))))
-	     (point))
-	    comint-input-ring-index nil))
+      (setq-local comint-matching-input-from-input-string
+	          (buffer-substring
+	           (or (marker-position comint-accum-marker)
+		       (process-mark (get-buffer-process (current-buffer))))
+		   (point))
+		  comint-input-ring-index nil))
     (comint-previous-matching-input
      (concat "^" (regexp-quote comint-matching-input-from-input-string))
      n t)
@@ -1499,7 +1494,7 @@ actual side-effect."
 	       (let* ((mb1 (match-beginning 1)) (me1 (match-end 1))
 		      (mb2 (match-beginning 2)) (me2 (match-end 2))
 		      (exp (buffer-substring (or mb2 mb1) (or me2 me1)))
-		      (pref (if (save-match-data (looking-at "!\\?")) "" "^"))
+		      (pref (if (looking-at-p "!\\?") "" "^"))
 		      (pos (save-match-data
 			     (comint-previous-matching-input-string-position
 			      (concat pref (regexp-quote exp)) 1))))
@@ -1601,21 +1596,21 @@ Intended to be added to `isearch-mode-hook' in `comint-mode'."
     (setq-local isearch-push-state-function
                 #'comint-history-isearch-push-state)
     (setq-local isearch-lazy-count nil)
-    (add-hook 'isearch-mode-end-hook 'comint-history-isearch-end nil t)))
+    (add-hook 'isearch-mode-end-hook #'comint-history-isearch-end nil t)))
 
 (defun comint-history-isearch-end ()
   "Clean up the comint after terminating Isearch in comint."
   (if comint-history-isearch-message-overlay
       (delete-overlay comint-history-isearch-message-overlay))
   (setq isearch-message-prefix-add nil)
-  (setq isearch-search-fun-function 'isearch-search-fun-default)
+  (setq isearch-search-fun-function #'isearch-search-fun-default)
   (setq isearch-message-function nil)
   (setq isearch-wrap-function nil)
   (setq isearch-push-state-function nil)
   ;; Force isearch to not change mark.
   (setq isearch-opoint (point))
   (kill-local-variable 'isearch-lazy-count)
-  (remove-hook 'isearch-mode-end-hook 'comint-history-isearch-end t)
+  (remove-hook 'isearch-mode-end-hook #'comint-history-isearch-end t)
   (unless isearch-suspended
     (setq comint--force-history-isearch nil)))
 
@@ -1732,9 +1727,9 @@ or to the last history element for a backward search."
   ;; When `comint-history-isearch-search' fails on reaching the
   ;; beginning/end of the history, wrap the search to the first/last
   ;; input history element.
-  (if isearch-forward
-      (comint-goto-input (1- (ring-length comint-input-ring)))
-    (comint-goto-input nil))
+  (comint-goto-input (if isearch-forward
+                         (1- (ring-length comint-input-ring))
+                       nil))
   (goto-char (if isearch-forward (comint-line-beginning-position) (point-max))))
 
 (defun comint-history-isearch-push-state ()
@@ -2116,7 +2111,7 @@ either globally or locally.")
   "If nil, Comint will interpret `carriage control' characters in output.
 See `comint-carriage-motion' for details.")
 
-(defvar comint-last-prompt nil
+(defvar-local comint-last-prompt nil
   "Markers pointing to the last prompt.
 If non-nil, a cons cell containing markers.  The car points to
 the start, the cdr to the end of the last prompt recognized.")
@@ -2789,14 +2784,15 @@ called this function are inserted into the buffer."
     (if (> (point) (marker-position pmark))
 	(kill-region pmark (point)))))
 
-(defun comint-delchar-or-maybe-eof (arg)
-  "Delete ARG characters forward or send an EOF to subprocess.
+(defun comint-delchar-or-maybe-eof (&optional _arg)
+  "Behave like the global binding or send an EOF to subprocess.
 Sends an EOF only if point is at the end of the buffer and there is no input."
-  (interactive "p" comint-mode)
+  (interactive nil comint-mode)
   (let ((proc (get-buffer-process (current-buffer))))
     (if (and (eobp) proc (= (point) (marker-position (process-mark proc))))
 	(comint-send-eof)
-      (delete-char arg))))
+      (let ((cmd (lookup-key global-map (this-command-keys))))
+	(call-interactively (or (command-remapping cmd) cmd))))))
 
 (defun comint-send-eof ()
   "Send an EOF to the current buffer's process."
@@ -3360,7 +3356,7 @@ See `comint-word'."
        (t (error "Unexpected case in comint--unquote&requote-argument!")))
       (setq qpos (match-end 0)))
     (funcall push (substring qstr qpos) (length qstr))
-    (list (mapconcat #'identity (nreverse ustrs) "")
+    (list (mapconcat #'identity (nreverse ustrs))
           qupos #'comint-quote-filename)))
 
 (defun comint--unquote-argument (str)
@@ -3516,7 +3512,7 @@ specifying a common substring for adding the faces
 `completions-first-difference' and `completions-common-part' to
 the completions."
   (let ((window (get-buffer-window "*Completions*" 0)))
-    (setq completions (sort completions 'string-lessp))
+    (setq completions (sort completions #'string-lessp))
     (if (and (eq last-command this-command)
 	     window (window-live-p window) (window-buffer window)
 	     (buffer-name (window-buffer window))
@@ -3811,7 +3807,7 @@ and does not normally need to be invoked by the end user or programmer."
 
 ;; Because the cleanup happens as a callback, it's not easy to guarantee
 ;; that it really occurs.
-(defalias 'comint-redirect-remove-redirection 'comint-redirect-cleanup)
+(defalias 'comint-redirect-remove-redirection #'comint-redirect-cleanup)
 
 (defun comint-redirect-filter (orig-filter process input-string)
   "Filter function which redirects output from PROCESS to a buffer or buffers.
@@ -4013,11 +4009,13 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 (define-obsolete-variable-alias
   'comint-osc-handlers 'ansi-osc-handlers "30.1")
 (define-obsolete-function-alias
-  'comint-osc-directory-tracker 'ansi-osc-directory-tracker "30.1")
+  'comint-osc-directory-tracker #'ansi-osc-directory-tracker "30.1")
 (define-obsolete-function-alias
-  'comint-osc-hyperlink-handler 'ansi-osc-hyperlink-handler "30.1")
-(define-obsolete-function-alias
-  'comint-osc-hyperlink 'ansi-osc-hyperlink "30.1")
+  'comint-osc-hyperlink-handler #'ansi-osc-hyperlink-handler "30.1")
+;; There's never been any `comint-osc-hyperlink' function (nor
+;; is there a `ansi-osc-hyperlink')!
+;;(define-obsolete-function-alias
+;;  'comint-osc-hyperlink #'ansi-osc-hyperlink "30.1")
 (define-obsolete-variable-alias
   'comint-osc-hyperlink-map 'ansi-osc-hyperlink-map "30.1")
 

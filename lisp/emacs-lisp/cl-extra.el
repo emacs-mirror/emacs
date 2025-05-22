@@ -1082,6 +1082,15 @@ TYPES is an internal argument."
 
 ;;;###autoload
 (defun cl--derived-type-generalizers (type)
+  ;; Make sure this derived type can be used without arguments.
+  (let ((expander (or (get type 'cl-deftype-handler)
+                      (error "Type %S lacks cl-deftype-handler" type))))
+    ;; Check that the type can be used without arguments.
+    (funcall expander)
+    ;; Check that we have a precomputed predicate since that's what
+    ;; `cl-types-of' uses.
+    (unless (get type 'cl-deftype-satisfies)
+      (error "Type %S lacks cl-deftype-satisfies" type)))
   ;; Add a new dispatch type to the dispatch list, then
   ;; synchronize with `cl--derived-type-list' so that both lists follow
   ;; the same type precedence order.

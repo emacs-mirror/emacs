@@ -1,4 +1,4 @@
-;;; vc-misc-tests.el --- backend-agnostic VC tests  -*- lexical-binding:t -*-
+;;; vc-test-misc.el --- backend-agnostic VC tests  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2025 Free Software Foundation, Inc.
 
@@ -63,5 +63,5 @@
         (should (equal (test-it `(Git ("missing" ,temp "present")))
                        missing+present))))))
 
-(provide 'vc-misc-tests)
-;;; vc-misc-tests.el ends here
+(provide 'vc-test-misc)
+;;; vc-test-misc.el ends here

@@ -624,8 +624,15 @@ the C sources, too."
               (let ((start (point)))
                 (help-fns--insert-menu-bindings
                  menus
-                 (concat "It can " (and keys "also ")
+                 (concat "It " (if remapped "could " "can ") (and keys "also ")
                          "be invoked from the menu: "))
+                (when remapped
+                  (princ ", but that was remapped to ")
+                  (princ (if (symbolp remapped)
+                             (format-message "`%s'" remapped)
+		           "an anonymous command"))
+                  (princ "as well.\n"))
+                (or remapped (princ "."))
                 (fill-region-as-paragraph start (point))))
             (ensure-empty-lines)))))))
 

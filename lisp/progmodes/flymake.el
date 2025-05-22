@@ -2376,11 +2376,11 @@ some of this variable's contents the diagnostic listings.")
      for height-to-clear = 0 then ret
      for i from 0
      for adjust = (* i 2)
-     for face = `(:inherit default
-                           :foreground
-                           ,(face-attribute
-                             (get-text-property 0 'face text)
-                             :foreground nil t))
+     for face = `(:foreground
+                  ,(face-attribute
+                    (or (get-text-property 0 'face text)
+                        'flymake-error)
+                    :foreground nil t))
      for text-beg-col = (max (- (max 30 (+ line-beg-col 5)) adjust) (+ line-beg-col 1))
      for text-end-col = (max 100 (+ text-beg-col 40))
      for ret = (flymake--eol-draw-fancy-1

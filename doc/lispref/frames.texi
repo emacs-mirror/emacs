@@ -2886,15 +2886,16 @@ the @code{delete-frame} call in a @code{condition-case} form.
 @defun frame-list
 This function returns a list of all the live frames, i.e., those that
 have not been deleted.  It is analogous to @code{buffer-list} for
-buffers, and includes frames on all terminals.  The list that you get
-is newly created, so modifying the list doesn't have any effect on the
-internals of Emacs.
+buffers, and includes frames on all terminals with the exception of
+tooltip frames (@pxref{Tooltips}).  The list that you get is newly
+created, so modifying the list doesn't have any effect on the internals
+of Emacs.
 @end defun
 
 @defun visible-frame-list
 This function returns a list of just the currently visible frames.
-@xref{Visibility of Frames}.  Frames on text terminals always count as
-visible, even though only the selected one is actually displayed.
+@xref{Visibility of Frames}.  Frames on text terminals will count as
+visible even though only the selected one is actually displayed.
 @end defun
 
 @defun frame-list-z-order &optional display
@@ -2917,7 +2918,7 @@ This function lets you cycle conveniently through all the frames on a
 specific terminal from an arbitrary starting point.  It returns the
 frame following @var{frame}, in the list of all live frames, on
 @var{frame}'s terminal.  The argument @var{frame} must specify a live
-frame and defaults to the selected frame.  It never returns a frame
+frame and defaults to the selected frame.  It does not return a frame
 whose @code{no-other-frame} parameter (@pxref{Frame Interaction
 Parameters}) is non-@code{nil}.
 
@@ -2937,6 +2938,10 @@ minibuffer window.
 @item anything else
 Consider all frames.
 @end table
+
+If this function does not find a suitable frame, it returns @var{frame}
+even if it would not qualify according to the @var{minibuf} argument or
+its @code{no-other-frame} parameter.
 @end defun
 
 @defun previous-frame &optional frame minibuf

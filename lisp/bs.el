@@ -572,7 +572,7 @@ SORT-DESCRIPTION is an element of `bs-sort-functions'."
   "Go to line which represents the current buffer.
 Actually, it goes to the line which begins with the character
 in `bs-string-current' or `bs-string-current-marked'."
-  (let ((regexp (concat "\\`"
+  (let ((regexp (concat "^"
 			(regexp-opt (list bs-string-current
 			                  bs-string-current-marked))))
 	point)

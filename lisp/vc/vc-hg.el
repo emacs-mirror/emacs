@@ -1181,25 +1181,42 @@ If toggling on, also insert its message into the buffer."
   "Major mode for editing Hg log messages.
 It is based on `log-edit-mode', and has Hg-specific extensions.")
 
+(autoload 'vc-wait-for-process-before-save "vc-dispatcher")
+
 (defun vc-hg-checkin (files comment &optional _rev)
   "Hg-specific version of `vc-backend-checkin'.
 REV is ignored."
-  (apply #'vc-hg-command nil 0 files
-         (nconc (list "commit" "-m")
-                (vc-hg--extract-headers comment))))
+  (let ((args (nconc (list "commit" "-m")
+                     (vc-hg--extract-headers comment))))
+    (if vc-async-checkin
+        (let ((buffer (vc-hg--async-buffer)))
+          (vc-wait-for-process-before-save
+           (apply #'vc-hg--async-command buffer (nconc args files))
+           "Finishing checking in files...")
+          (with-current-buffer buffer
+            (vc-run-delayed
+              (vc-compilation-mode 'hg)))
+          (vc-set-async-update buffer))
+      (apply #'vc-hg-command nil 0 files args))))
 
 (defun vc-hg-checkin-patch (patch-string comment)
   (let ((patch-file (make-temp-file "hg-patch")))
     (write-region patch-string nil patch-file)
     (unwind-protect
-        (progn
+        (let ((args (list "update"
+                          "--merge" "--tool" "internal:local"
+                          "tip")))
           (apply #'vc-hg-command nil 0 nil
                  (nconc (list "import" "--bypass" patch-file "-m")
                         (vc-hg--extract-headers comment)))
-          (vc-hg-command nil 0 nil
-                         "update"
-                         "--merge" "--tool" "internal:local"
-                         "tip"))
+          (if vc-async-checkin
+              (let ((buffer (vc-hg--async-buffer)))
+                (apply #'vc-hg--async-command buffer args)
+                (with-current-buffer buffer
+                  (vc-run-delayed
+                    (vc-compilation-mode 'hg)))
+                (vc-set-async-update buffer))
+            (apply #'vc-hg-command nil 0 nil args)))
       (delete-file patch-file))))
 
 (defun vc-hg--extract-headers (comment)
@@ -1381,7 +1398,7 @@ REV is the revision to check out into WORKFILE."
 
 ;; Follows vc-hg-command (or vc-do-async-command), which uses vc-do-command
 ;; from vc-dispatcher.
-(declare-function vc-exec-after "vc-dispatcher" (code &optional success))
+(declare-function vc-exec-after "vc-dispatcher" (code &optional success proc))
 ;; Follows vc-exec-after.
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 
@@ -1543,15 +1560,14 @@ call \"hg push -r REVS\" to push the specified revisions REVS."
 (defun vc-hg-merge-branch ()
   "Prompt for revision and merge it into working directory.
 This runs the command \"hg merge\"."
-  (let* ((root (vc-hg-root default-directory))
-	 (buffer (format "*vc-hg : %s*" (expand-file-name root)))
-         ;; Disable pager.
-         (process-environment (cons "HGPLAIN=1" process-environment))
-         (branch (vc-read-revision "Revision to merge: ")))
-    (apply #'vc-do-async-command buffer root vc-hg-program
+  (let ((buffer (vc-hg--async-buffer))
+        (branch (vc-read-revision "Revision to merge: ")))
+    (apply #'vc-hg--async-command buffer
            (append '("--config" "ui.report_untrusted=0" "merge")
-                   (unless (string= branch "") (list branch))))
-    (with-current-buffer buffer (vc-run-delayed (vc-compilation-mode 'hg)))
+                   (and (not (string-empty-p branch)) (list branch))))
+    (with-current-buffer buffer
+      (vc-run-delayed
+        (vc-compilation-mode 'hg)))
     (vc-set-async-update buffer)))
 
 (defun vc-hg-prepare-patch (rev)
@@ -1571,15 +1587,33 @@ This runs the command \"hg merge\"."
   "A wrapper around `vc-do-command' for use in vc-hg.el.
 This function differs from `vc-do-command' in that it invokes
 `vc-hg-program', and passes `vc-hg-global-switches' to it before FLAGS."
+  (vc-hg--command-1 #'vc-do-command
+                    (list (or buffer "*vc*")
+                          okstatus vc-hg-program file-or-list)
+                    flags))
+
+(defun vc-hg--async-command (buffer &rest args)
+  "Wrapper around `vc-do-async-command' like `vc-hg-command'."
+  (vc-hg--command-1 #'vc-do-async-command
+                    (list buffer (vc-hg-root default-directory)
+                          vc-hg-program)
+                    args))
+
+(defun vc-hg--async-buffer ()
+  "Buffer passed to `vc-do-async-command' by vg-hg.el commands.
+Intended for use via the `vc-hg--async-command' wrapper."
+  (format "*vc-hg : %s*"
+          (expand-file-name (vc-hg-root default-directory))))
+
+(defun vc-hg--command-1 (fun args flags)
   ;; Disable pager.
-  (let ((process-environment (cons "HGPLAIN=1" process-environment))
-        (flags (append '("--config" "ui.report_untrusted=0") flags)))
-    (apply #'vc-do-command (or buffer "*vc*")
-           okstatus vc-hg-program file-or-list
-           (if (stringp vc-hg-global-switches)
-               (cons vc-hg-global-switches flags)
-             (append vc-hg-global-switches
-                     flags)))))
+  (let ((process-environment (cons "HGPLAIN=1" process-environment)))
+    (apply fun (append args
+                       '("--config" "ui.report_untrusted=0")
+                       (if (stringp vc-hg-global-switches)
+                           (cons vc-hg-global-switches flags)
+                         (append vc-hg-global-switches
+                                 flags))))))
 
 (defun vc-hg-root (file)
   (vc-find-root file ".hg"))

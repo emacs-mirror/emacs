@@ -201,8 +201,8 @@ Leave mails for this many days" :value 14)))))
 					   (string :tag "Program"))
 				    (group :inline t
 					   (const :format ""
-						  :value :authenticator)
-					   (choice :tag "Authenticator"
+						  :value :authentication)
+					   (choice :tag "Authentication"
 						   :value login
 						   ,@mail-source-imap-authenticators))
 				    (group :inline t

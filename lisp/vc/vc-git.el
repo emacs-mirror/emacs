@@ -1111,6 +1111,19 @@ It is based on `log-edit-mode', and has Git-specific extensions."
        ("Sign-Off" . ,(boolean-arg-fn "--signoff")))
      comment)))
 
+(defmacro vc-git--with-apply-temp-to-staging (temp &rest body)
+  (declare (indent 1) (debug (symbolp body)))
+  `(let ((,temp (make-nearby-temp-file ,(format "git-%s" temp))))
+     (unwind-protect (progn ,@body
+                            ;; This uses `file-local-name' to strip the
+                            ;; TRAMP prefix, not `file-relative-name',
+                            ;; because we've had at least one problem
+                            ;; report where relativizing the file name
+                            ;; meant that Git failed to find it.
+                            (vc-git-command nil 0 nil "apply" "--cached"
+                                            (file-local-name ,temp)))
+       (delete-file ,temp))))
+
 (defun vc-git-checkin (files comment &optional _rev)
   (let* ((file1 (or (car files) default-directory))
          (root (vc-git-root file1))
@@ -1194,8 +1207,7 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                     (t (push file-name to-stash)))
               (setq pos (point))))))
       (unless (string-empty-p vc-git-patch-string)
-        (let ((patch-file (make-nearby-temp-file "git-patch"))
-              ;; Temporarily countermand the let-binding at the
+        (let (;; Temporarily countermand the let-binding at the
               ;; beginning of this function.
               (coding-system-for-write
                (coding-system-change-eol-conversion
@@ -1203,38 +1215,48 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                 ;; to have the Unix EOL format, because Git expects
                 ;; that, even on Windows.
                 (or pcsw vc-git-commits-coding-system) 'unix)))
-          (with-temp-file patch-file
-            (insert vc-git-patch-string))
-          (unwind-protect
-              (vc-git-command nil 0 nil "apply" "--cached" patch-file)
-            (delete-file patch-file))))
+          (vc-git--with-apply-temp-to-staging patch
+            (with-temp-file patch
+              (insert vc-git-patch-string)))))
       (when to-stash (vc-git--stash-staged-changes to-stash)))
-    ;; When operating on the whole tree, better pass "-a" than ".",
-    ;; since "."  fails when we're committing a merge.
-    (apply #'vc-git-command nil 0
-           (if (and only (not vc-git-patch-string)) files)
-           (nconc (if msg-file (list "commit" "-F"
-                                     (file-local-name msg-file))
-                    (list "commit" "-m"))
-                  (let ((args
-                         (vc-git--log-edit-extract-headers comment)))
-                    (when msg-file
-                      (let ((coding-system-for-write
-                             (or pcsw vc-git-commits-coding-system)))
-                        (write-region (car args) nil msg-file))
-                      (setq args (cdr args)))
-                    args)
-                  (unless vc-git-patch-string
-                    (if only (list "--only" "--") '("-a")))))
-    (if (and msg-file (file-exists-p msg-file)) (delete-file msg-file))
-    (when to-stash
-      (let ((cached (make-nearby-temp-file "git-cached")))
-        (unwind-protect
-            (progn (with-temp-file cached
-                     (vc-git-command t 0 nil "stash" "show" "-p"))
-                   (vc-git-command nil 0 nil "apply" "--cached" cached))
-          (delete-file cached))
-        (vc-git-command nil 0 nil "stash" "drop")))))
+    (let ((files (and only (not vc-git-patch-string) files))
+          (args (vc-git--log-edit-extract-headers comment))
+          (buffer (format "*vc-git : %s*" (expand-file-name root)))
+          (post
+           (lambda ()
+             (when (and msg-file (file-exists-p msg-file))
+               (delete-file msg-file))
+             (when to-stash
+               (vc-git--with-apply-temp-to-staging cached
+                 (with-temp-file cached
+                   (vc-git-command t 0 nil "stash" "show" "-p")))))))
+      (when msg-file
+        (let ((coding-system-for-write
+               (or pcsw vc-git-commits-coding-system)))
+          (write-region (car args) nil msg-file))
+        (setq args (cdr args)))
+      (setq args (nconc (if msg-file
+                            (list "commit" "-F"
+                                  (file-local-name msg-file))
+                          (list "commit" "-m"))
+                        args
+                        ;; When operating on the whole tree, better pass
+                        ;; "-a" than ".", since "."  fails when we're
+                        ;; committing a merge.
+                        (and (not vc-git-patch-string)
+                             (if only (list "--only" "--") '("-a")))))
+      (if vc-async-checkin
+          (progn (vc-wait-for-process-before-save
+                  (apply #'vc-do-async-command buffer root
+                         vc-git-program (nconc args files))
+                  "Finishing checking in files...")
+                 (with-current-buffer buffer
+                   (vc-run-delayed
+                     (vc-compilation-mode 'git)
+                     (funcall post)))
+                 (vc-set-async-update buffer))
+        (apply #'vc-git-command nil 0 files args)
+        (funcall post)))))
 
 (defun vc-git--stash-staged-changes (files)
   "Stash only the staged changes to FILES."
@@ -1263,8 +1285,10 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                 (unwind-protect
                     (progn
                       (vc-git-command nil 0 nil "read-tree" "HEAD")
+                      ;; See `vc-git--with-apply-temp-to-staging'
+                      ;; regarding use of `file-local-name'.
                       (vc-git-command nil 0 nil "apply" "--cached"
-                                      cached)
+                                      (file-local-name cached))
                       (setq tree (git-string "write-tree")))
                   (delete-file index))))
           (delete-file cached))

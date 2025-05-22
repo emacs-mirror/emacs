@@ -291,7 +291,8 @@ abbrevs have been saved."
 The saved abbrevs are written to the file specified by
 `abbrev-file-name'."
   (interactive nil edit-abbrevs-mode)
-  (abbrev-edit-save-to-file abbrev-file-name))
+  (abbrev-edit-save-to-file abbrev-file-name)
+  (setq abbrevs-changed nil))
 
 
 (defun add-mode-abbrev (arg)

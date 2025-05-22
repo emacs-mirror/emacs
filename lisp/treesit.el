@@ -839,6 +839,11 @@ those inside are kept."
            if (<= start (car range) (cdr range) end)
            collect range))
 
+(defvar treesit--parser-overlay-offset 0
+  "Defines at which position to get the parser overlay.
+The commands that move backward need to set it to -1 to be
+able to use the range that ends immediately before point.")
+
 (defun treesit-parsers-at (&optional pos language with-host only)
   "Return all parsers at POS.
 
@@ -869,7 +874,8 @@ That is, the deepest embedded parser comes first."
   (let ((res nil))
     ;; Refer to (ref:local-parser-overlay) for more explanation of local
     ;; parser overlays.
-    (dolist (ov (overlays-at (or pos (point))))
+    (dolist (ov (overlays-at (+ (or pos (point))
+                                treesit--parser-overlay-offset)))
       (when-let* ((parser (overlay-get ov 'treesit-parser))
                   (host-parser (or (null with-host)
                                    (overlay-get ov 'treesit-host-parser)))
@@ -2524,14 +2530,12 @@ the function."
         ;; `functionp'.
         ((alist-get exp treesit-simple-indent-presets))
         ((functionp exp) exp)
-        ((symbolp exp)
-         (if (null exp)
-             exp
-           ;; Matchers only return lambdas, anchors only return
-           ;; integer, so we should never see a variable.
-           (signal 'treesit-indent-error
-                   (list "Couldn't find the preset corresponding to expression"
-                         exp))))
+        ;; There are higher-order presets that take arguments, like
+        ;; (nth-sibling 1 t), so it's possible for exp to be something
+        ;; other than numbers and functions.  Don't signal an error if
+        ;; exp isn't a function nor a number.  In fact, allow exp to be
+        ;; any symbol or keyword, so users can define higher-order
+        ;; presets that takes keyword or symbol as arguments.
         (t exp)))
 
 ;; This variable might seem unnecessary: why split
@@ -2977,6 +2981,14 @@ delimits medium sized statements in the source code.  It is,
 however, smaller in scope than sentences.  This is used by
 `treesit-forward-sexp' and friends.")
 
+(defvar-local treesit-sexp-type-down-list nil
+  "A regexp that matches the sexp nodes for `down-list'.
+This is used by `treesit-down-list'.")
+
+(defvar-local treesit-sexp-type-up-list nil
+  "A regexp that matches the sexp nodes for `up-list'.
+This is used by `treesit-up-list'.")
+
 ;; Avoid interpreting the symbol `list' as a function.
 (put 'list 'treesit-thing-symbol t)
 
@@ -3021,7 +3033,8 @@ across atoms (such as symbols or words) inside the list."
           t)
         (if (> arg 0)
             (treesit-end-of-thing pred (abs arg) 'restricted)
-          (treesit-beginning-of-thing pred (abs arg) 'restricted))
+          (let ((treesit--parser-overlay-offset -1))
+            (treesit-beginning-of-thing pred (abs arg) 'restricted)))
         ;; If we couldn't move, we should signal an error and report
         ;; the obstacle, like `forward-sexp' does.  If we couldn't
         ;; find a parent, we simply return nil without moving point,
@@ -3036,6 +3049,7 @@ the boundaries of the list.
 ARG is described in the docstring of `forward-list'."
   (let* ((pred (or treesit-sexp-type-regexp 'list))
          (arg (or arg 1))
+         (treesit--parser-overlay-offset (if (> arg 0) 0 -1))
          (cnt arg)
          (inc (if (> arg 0) 1 -1)))
     (while (/= cnt 0)
@@ -3120,7 +3134,9 @@ redefined by the variable `down-list-function'.
 
 ARG is described in the docstring of `down-list'."
   (interactive "^p")
-  (let* ((pred (or treesit-sexp-type-regexp 'list))
+  (let* ((pred (or treesit-sexp-type-down-list
+                   treesit-sexp-type-regexp
+                   'list))
          (arg (or arg 1))
          (cnt arg)
          (inc (if (> arg 0) 1 -1)))
@@ -3136,7 +3152,8 @@ ARG is described in the docstring of `down-list'."
                         (treesit-thing-prev (point) pred)))
              (child (when sibling
                       (treesit-node-child sibling (if (> arg 0) 0 -1)))))
-        (or (when (and (null treesit-sexp-type-regexp)
+        (or (when (and (null (or treesit-sexp-type-down-list
+                                 treesit-sexp-type-regexp))
                        default-pos
                        (or (null child)
                            (if (> arg 0)
@@ -3161,8 +3178,11 @@ redefined by the variable `up-list-function'.
 
 ARG is described in the docstring of `up-list'."
   (interactive "^p")
-  (let* ((pred (or treesit-sexp-type-regexp 'list))
+  (let* ((pred (or treesit-sexp-type-up-list
+                   treesit-sexp-type-regexp
+                   'list))
          (arg (or arg 1))
+         (treesit--parser-overlay-offset -1)
          (cnt arg)
          (inc (if (> arg 0) 1 -1)))
     (while (/= cnt 0)
@@ -3188,7 +3208,8 @@ ARG is described in the docstring of `up-list'."
                             (treesit-node-at (point) (car parsers)) pred)
                     parsers (cdr parsers)))))
 
-        (or (when (and (null treesit-sexp-type-regexp)
+        (or (when (and (null (or treesit-sexp-type-up-list
+                                 treesit-sexp-type-regexp))
                        default-pos
                        (or (null parent)
                            (if (> arg 0)
@@ -3971,8 +3992,9 @@ by `treesit-simple-imenu-settings'."
       (lambda (entry)
         (let* ((lang (car entry))
                (settings (cdr entry))
-               (global-parser (car (treesit-parsers-at nil lang nil '(primary global))))
-               (local-parsers (treesit-local-parsers-at nil lang)))
+               (global-parser (car (treesit-parser-list nil lang)))
+               (local-parsers
+                (treesit-parser-list nil lang 'embedded)))
           (cons (treesit-language-display-name lang)
                 ;; No one says you can't have both global and local
                 ;; parsers for the same language.  E.g., Rust uses
@@ -4289,7 +4311,7 @@ instead of emitting a warning."
         (pcase-let ((`(,available . ,err)
                      (treesit-language-available-p lang t)))
           (when (not available)
-            (setq msg (format "language grammar for %s is unavailable (%s): %s"
+            (setq msg (format "language grammar for %s failed to load (%s): %s"
                               lang (nth 0 err)
                               (string-join
                                (mapcar (lambda (x) (format "%s" x))

@@ -132,6 +132,22 @@
                      (car result)))
     (should (string= "Sommerferien" (cdr result)))))
 
+(ert-deftest icalendar--convert-float-to-ical ()
+  "Test method for `icalendar--convert-float-to-ical'."
+  ;; See Bug#78085
+  (let* ((calendar-date-style 'iso)
+         (icalendar-recurring-start-year 2025)
+         (first-saturday-date "20250104") ; first Sat. in 2025
+         result)
+    (setq result (icalendar--convert-float-to-ical
+                  "" "%%(diary-float t 6 1) 1st Sat/month"))
+    (should (consp result))
+    (should (string= (concat
+                      "\nDTSTART;VALUE=DATE:" first-saturday-date
+                      "\nRRULE:FREQ=MONTHLY;BYDAY=1SA")
+                     (car result)))
+    (should (string= "1st Sat/month" (cdr result)))))
+
 (ert-deftest icalendar--convert-yearly-to-ical ()
   "Test method for `icalendar--convert-yearly-to-ical'."
   (let* ((calendar-date-style 'iso)

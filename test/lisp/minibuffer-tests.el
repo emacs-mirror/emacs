@@ -108,7 +108,26 @@
       (should (equal (completion-try-completion input
                                                 #'completion--file-name-table
                                                 nil (length input))
-                     (cons output (length output)))))))
+                     (cons output (length output)))))
+    ;; Everything also works with `completion-ignore-case'.
+    (let ((completion-ignore-case t))
+      (pcase-dolist (`(,input ,output)
+                     '(
+                       ("data/M-CTTQ" "data/minibuffer-test-cttq$$tion")
+                       ("data/M-CTTQ$$t" "data/minibuffer-test-cttq$$tion")
+                       ;; When an env var is in the completion bounds, try-completion
+                       ;; won't change letter case.
+                       ("lisp/c${CTTQ1}E" "lisp/c${CTTQ1}Et/")
+                       ("lisp/ced${CTTQ2}SE-U" "lisp/ced${CTTQ2}SEmantic-utest")
+                       ;; If the env var is before the completion bounds, try-completion
+                       ;; *will* change letter case.
+                       ("lisp/c${CTTQ1}et/SE-U" "lisp/c${CTTQ1}et/semantic-utest")
+                       ("lis/c${CTTQ1}/SE-U" "lisp/c${CTTQ1}et/semantic-utest")
+                       ))
+        (should (equal (car (completion-try-completion input
+                                                       #'completion--file-name-table
+                                                       nil (length input)))
+                       output))))))
 
 (ert-deftest completion--insert-strings-faces ()
   (with-temp-buffer

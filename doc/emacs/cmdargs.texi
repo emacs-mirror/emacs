@@ -146,6 +146,13 @@ appends (rather than prepends) the remainder to @code{load-path}.
 (On MS Windows, use @samp{;} instead of @samp{:}; i.e., use
 the value of @code{path-separator}.)
 
+Note that the changes to @code{load-path} as result of using this option
+do @emph{not} affect the directories where Emacs looks for the site
+startup file and the Lisp packages loaded by the user's early-init and
+init files (@pxref{Init File}), because @code{load-path} is changed by
+the @samp{-L} option @emph{after} these files are loaded and
+interpreted.
+
 @item -f @var{function}
 @opindex -f
 @itemx --funcall=@var{function}
@@ -567,7 +574,7 @@ whenever we say ``colon-separated list of directories'', it pertains
 to Unix and GNU/Linux systems.  On MS-DOS and MS-Windows, the
 directories are separated by semi-colons instead, since DOS/Windows
 file names might include a colon after a drive letter.} to search for
-Emacs Lisp files.  If set, it modifies the usual initial value of the
+Emacs Lisp files.  If set, it replaces the usual initial value of the
 @code{load-path} variable (@pxref{Lisp Libraries}).  An empty element
 stands for the default value of @code{load-path}; e.g., using
 @samp{EMACSLOADPATH="/tmp:"} adds @file{/tmp} to the front of

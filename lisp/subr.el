@@ -174,6 +174,9 @@ of VARIABLEs set by earlier pairs.
 The return value of the `setq-local' form is the VALUE of the last
 pair.
 
+In some corner cases you may need to resort to
+`set-buffer-local-toplevel-value' instead, which see.
+
 \(fn [VARIABLE VALUE]...)"
   (declare (debug setq))
   (unless (evenp (length pairs))
@@ -330,7 +333,8 @@ the value of the last one, or nil if there are none."
           (cons 'progn body)
         nil)
     (macroexp-warn-and-return (format-message "`static-when' with empty body")
-                              (list 'progn nil nil) '(empty-body static-when) t)))
+                              nil '(empty-body static-when) t
+                              condition)))
 
 (defmacro unless (cond &rest body)
   "If COND yields nil, do BODY, else return nil.
@@ -7436,11 +7440,11 @@ TRIM-LEFT and TRIM-RIGHT default to \"[ \\t\\n\\r]+\"."
   (declare (important-return-value t))
   (string-trim-left (string-trim-right string trim-right) trim-left))
 
-(defsubst hash-table-contains-p (key table)
-  "Return non-nil if TABLE has an element with KEY."
-  (declare (side-effect-free t)
-           (important-return-value t))
-  (let ((missing (make-symbol "missing")))
+(let ((missing (make-symbol "missing")))
+  (defsubst hash-table-contains-p (key table)
+    "Return non-nil if TABLE has an element with KEY."
+    (declare (side-effect-free t)
+             (important-return-value t))
     (not (eq (gethash key table missing) missing))))
 
 ;; The initial anchoring is for better performance in searching matches.

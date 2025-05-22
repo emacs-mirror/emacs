@@ -1523,6 +1523,8 @@ of the line.  This expects the xmltok-* variables to be set up as by
 	((progn
 	   (goto-char pos)
 	   (forward-line -1)
+           (while (looking-at "^[[:blank:]]*$")
+             (forward-line -1))
 	   (<= (point) xmltok-start))
 	 (goto-char (+ xmltok-start (length open-delim)))
 	 (when (and (string= open-delim "<!--")
