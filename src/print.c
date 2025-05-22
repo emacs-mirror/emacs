@@ -2149,9 +2149,9 @@ print_vectorlike_unreadable (Lisp_Object obj, bool escapeflag, char *buf,
       print_string (Ftreesit_node_type (obj), printcharfun);
       print_c_string (delim2, printcharfun);
       print_c_string (" in ", printcharfun);
-      print_object (Ftreesit_node_start (obj), printcharfun, escapeflag);
+      print_object (Ftreesit_node_start (obj), escapeflag, pc);
       printchar ('-', printcharfun);
-      print_object (Ftreesit_node_end (obj), printcharfun, escapeflag);
+      print_object (Ftreesit_node_end (obj), escapeflag, pc);
       printchar ('>', printcharfun);
       return;
 #endif
