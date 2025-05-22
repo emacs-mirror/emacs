@@ -3089,20 +3089,21 @@ characters."
                            (set-match-data real-match-data)
                            (match-substitute-replacement
                             next-replacement nocasify literal))))
-		  ;; Bind message-log-max so we don't fill up the
-		  ;; message log with a bunch of identical messages.
-		  (let ((message-log-max nil)
-			(replacement-presentation
-			 (if query-replace-show-replacement
-			     (save-match-data
-			       (set-match-data real-match-data)
-			       (match-substitute-replacement next-replacement
-							     nocasify literal))
-			   next-replacement)))
-		    (message message
-                             (query-replace-descr from-string)
-                             (query-replace-descr replacement-presentation)))
-		  (setq key (read-event))
+		  (let* ((replacement-presentation
+			  (if query-replace-show-replacement
+			      (save-match-data
+			        (set-match-data real-match-data)
+			        (match-substitute-replacement next-replacement
+							      nocasify literal))
+			    next-replacement))
+			 (prompt
+			  (format message
+                                  (query-replace-descr from-string)
+                                  (query-replace-descr
+                                   replacement-presentation))))
+                    ;; Use `read-key' so that escape sequences on TTYs
+                    ;; are properly mapped back to the intended key.
+		    (setq key (read-key prompt)))
 		  ;; Necessary in case something happens during
 		  ;; read-event that clobbers the match data.
 		  (set-match-data real-match-data)
