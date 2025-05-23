@@ -2098,9 +2098,9 @@ print_vectorlike_unreadable (Lisp_Object obj, bool escapeflag, char *buf,
       {
 	struct Lisp_Native_Comp_Unit *cu = XNATIVE_COMP_UNIT (obj);
 	print_c_string ("#<native compilation unit: ", printcharfun);
-	print_object (cu->file, printcharfun, escapeflag);
+	print_object (cu->file, escapeflag, pc);
 	printchar (' ', printcharfun);
-	print_object (cu->optimize_qualities, printcharfun, escapeflag);
+	print_object (cu->optimize_qualities, escapeflag, pc);
 	printchar ('>', printcharfun);
 	return;
       }
