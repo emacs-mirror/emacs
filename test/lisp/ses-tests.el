@@ -341,19 +341,19 @@ cell has to be rewritten to data area."
                                (>= x 4)))
                  '(9 10))))
 
-;; Tests for ses-setq
+;; Tests for ses-set
 
-(ert-deftest ses-setq-sv ()
+(ert-deftest ses-set-sv ()
   "Set values, cells denoted by symbol."
   (let ((ses-initial-size '(4 . 3))
         (ses-after-entry-functions nil))
     (with-temp-buffer
       (ses-mode)
-      (ses-setq A1 1 B1 2
+      (ses-set A1 1 B1 2
                 A2 (+ A1 B1) B2 (+ B1 A2))
       (should (eq A2 3))
       (should (eq B2 5))
-      (ses-setq A1 0)
+      (ses-set A1 0)
       ;; values are'nt changed because (+ A1 B1) and (+ B1 A2) are
       ;; evaluated before being set to A2 and B2. So A2's formula is 3,
       ;; and B2's formula is 5
@@ -361,30 +361,30 @@ cell has to be rewritten to data area."
       (should (eq B2 5))
       )))
 
-(ert-deftest ses-setq-sv-sf ()
+(ert-deftest ses-set-sqv-sqfq ()
   "Set values and formulas, cells denoted by symbol."
   (let ((ses-initial-size '(4 . 3))
         (ses-after-entry-functions nil))
     (with-temp-buffer
       (ses-mode)
-      (ses-setq A1 1 B1 2
-                :: sf A2 (+ A1 B1) B2 (+ B1 A2))
+      (ses-set A1 1 B1 2
+                :: sqfq A2 (+ A1 B1) B2 (+ B1 A2))
       (should (eq A1 1))
       (should (eq B1 2))
       (should (eq A2 3))
       (should (eq B2 5))
-      (ses-setq A1 0)
+      (ses-set A1 0)
       (should (eq A2 2))
       (should (eq B2 4))
       )))
 
-(ert-deftest ses-setq-rcv ()
+(ert-deftest ses-set-rcv ()
   "Set values, cells denoted by coordinates."
   (let ((ses-initial-size '(4 . 3))
         (ses-after-entry-functions nil))
     (with-temp-buffer
       (ses-mode)
-      (ses-setq :: rcv
+      (ses-set :: rcv
                 0 0 1; A1 := 1
                 0 1 2; B1 := 2
                 1 0 (+ A1 B1); A2 := A1 + B1
@@ -394,7 +394,7 @@ cell has to be rewritten to data area."
       (should (eq B1 2))
       (should (eq A2 3))
       (should (eq B2 5))
-      (ses-setq A1 0)
+      (ses-set A1 0)
       (should (eq A1 0))
       ;; values are'nt changed because (+ A1 B1) and (+ B1 A2) are
       ;; evaluated before being set to A2 and B2. So A2's formula is 3,
@@ -403,16 +403,16 @@ cell has to be rewritten to data area."
       (should (eq B2 5))
       )))
 
-(ert-deftest ses-setq-rcv-rcf ()
+(ert-deftest ses-set-rcv-rcfq ()
   "Set values and formulas, cells denoted by coordinates."
   (let ((ses-initial-size '(4 . 3))
         (ses-after-entry-functions nil))
     (with-temp-buffer
       (ses-mode)
-      (ses-setq :: rcv
+      (ses-set :: rcv
                 0 0 1; A1 := 1
                 0 1 2; B1 := 2
-                :: rcf
+                :: rcfq
                 1 0 (+ A1 B1); A2 := A1 + B1
                 1 1 (+ B1 A2); B2 := B1 + A2
                 )
@@ -420,105 +420,132 @@ cell has to be rewritten to data area."
       (should (eq B1 2))
       (should (eq A2 3))
       (should (eq B2 5))
-      (ses-setq A1 0)
+      (ses-set A1 0)
       (should (eq A1 0))
       (should (eq A2 2))
       (should (eq B2 4))
       )))
 
-(ert-deftest ses-setq-rcxv ()
+(ert-deftest ses-set-rcxv ()
   "Set values, cells denoted by coordinates expressions."
   (let ((ses-initial-size '(4 . 3))
-        (ses-after-entry-functions nil))
-    (cl-progv '(zero one) '(0 1)
-      (with-temp-buffer
-        (ses-mode)
-        (ses-setq :: rcv
-                  zero zero 1; A1 := 1
-                  zero one  2; B1 := 2
-                  one zero  (+ A1 B1); A2 := A1 + B1
-                  one one   (+ B1 A2); B2 := B1 + A2
-                  )
-        (should (eq A2 3))
-        (should (eq B2 5))
-        (ses-setq A1 0)
-        (should (eq A1 0))
-        ;; values are'nt changed because (+ A1 B1) and (+ B1 A2) are
-        ;; evaluated before being set to A2 and B2. So A2's formula is 3,
-        ;; and B2's formula is 5
-        (should (eq A2 3))
-        (should (eq B2 5))))))
+        (ses-after-entry-functions nil)
+        (zero 0)
+        (one 1))
+    (with-temp-buffer
+      (ses-mode)
+      (ses-set :: rcv
+               zero zero 1; A1 := 1
+               zero one  2; B1 := 2
+               one zero  (+ A1 B1); A2 := A1 + B1
+               one one   (+ B1 A2); B2 := B1 + A2
+               )
+      (should (eq A2 3))
+      (should (eq B2 5))
+      (ses-set A1 0)
+      (should (eq A1 0))
+      ;; values are'nt changed because (+ A1 B1) and (+ B1 A2) are
+      ;; evaluated before being set to A2 and B2. So A2's formula is 3,
+      ;; and B2's formula is 5
+      (should (eq A2 3))
+      (should (eq B2 5)))))
 
-(ert-deftest ses-setq-rcxv-rcxf ()
+(ert-deftest ses-set-rcxv-rcxfq ()
   "Set values and formulas, cells denoted by coordinates expressions."
   (let ((ses-initial-size '(4 . 3))
-        (ses-after-entry-functions nil))
-    (cl-progv '(zero one) '(0 1)
-      (with-temp-buffer
-        (ses-mode)
-        (ses-setq :: rcv
-                  zero zero 1; A1 := 1
-                  zero one  2; B1 := 2
-                  :: rcf
-                  one zero  (+ A1 B1); A2 := A1 + B1
-                  one one   (+ B1 A2); B2 := B1 + A2
-                  )
-        (should (eq A2 3))
-        (should (eq B2 5))
-        (ses-setq A1 0)
-        (should (eq A1 0))
-        (should (eq A2 2))
-        (should (eq B2 4))))))
+        (ses-after-entry-functions nil)
+        (zero 0)
+        (one 1))
+    (with-temp-buffer
+      (ses-mode)
+      (ses-set :: rcv
+               zero zero 1; A1 := 1
+               zero one  2; B1 := 2
+               :: rcfq
+               one zero  (+ A1 B1); A2 := A1 + B1
+               one one   (+ B1 A2); B2 := B1 + A2
+               )
+      (should (eq A2 3))
+      (should (eq B2 5))
+      (ses-set A1 0)
+      (should (eq A1 0))
+      (should (eq A2 2))
+      (should (eq B2 4)))))
 
-(ert-deftest ses-setq-sv-sfq ()
+(ert-deftest ses-set-sqv-sqf ()
   "Set values and formulas, formulas are expressions."
   (let ((ses-initial-size '(4 . 3))
-        (ses-after-entry-functions nil))
-    (cl-progv
-        '(A2-form B2-form)
-        '((+ A1 B1) (+ B1 A2))
-      (with-temp-buffer
-        (ses-mode)
-        (ses-setq
-         A1 1; A1 := 1
-         B1 2; B1 := 2
-         :: sfq
-         A2 A2-form; A2 := A1 + B1
-         B2 B2-form; B2 := B1 + A2
-         )
-        (should (eq A1 1))
-        (should (eq B1 2))
-        (should (eq A2 3))
-        (should (eq B2 5))
-        (ses-setq A1 0)
-        (should (eq A1 0))
-        (should (eq A2 2))
-        (should (eq B2 4))))))
+        (ses-after-entry-functions nil)
+        (A2-form '(+ A1 B1))
+        (B2-form '(+ B1 A2)))
+    (with-temp-buffer
+      (ses-mode)
+      (ses-set
+       A1 1; A1 := 1
+       B1 2; B1 := 2
+       :: sqf
+       A2 A2-form; A2 := A1 + B1
+       B2 B2-form; B2 := B1 + A2
+       )
+      (should (eq A1 1))
+      (should (eq B1 2))
+      (should (eq A2 3))
+      (should (eq B2 5))
+      (ses-set A1 0)
+      (should (eq A1 0))
+      (should (eq A2 2))
+      (should (eq B2 4)))))
 
-(ert-deftest ses-setq-rcv-rcfq ()
+(ert-deftest ses-set-rcv-rcf ()
   "Set values and formulas, cells denoted by coordinates, formulas are expressions."
   (let ((ses-initial-size '(4 . 3))
-        (ses-after-entry-functions nil))
-    (cl-progv
-        '(A2-form B2-form)
-        '((+ A1 B1) (+ B1 A2))
-      (with-temp-buffer
-        (ses-mode)
-        (ses-setq :: rcv
-                  0 0 1; A1 := 1
-                  0 1 2; B1 := 2
-                  :: rcfq
-                  1 0 A2-form; A2 := A1 + B1
-                  1 1 B2-form; B2 := B1 + A2
-                  )
-        (should (eq A1 1))
-        (should (eq B1 2))
-        (should (eq A2 3))
-        (should (eq B2 5))
-        (ses-setq A1 0)
-        (should (eq A1 0))
-        (should (eq A2 2))
-        (should (eq B2 4))))))
+        (ses-after-entry-functions nil)
+        (A2-form '(+ A1 B1))
+        (B2-form '(+ B1 A2)))
+    (with-temp-buffer
+      (ses-mode)
+      (ses-set :: rcv
+               0 0 1; A1 := 1
+               0 1 2; B1 := 2
+               :: rcf
+               1 0 A2-form; A2 := A1 + B1
+               1 1 B2-form; B2 := B1 + A2
+               )
+      (should (eq A1 1))
+      (should (eq B1 2))
+      (should (eq A2 3))
+      (should (eq B2 5))
+      (ses-set A1 0)
+      (should (eq A1 0))
+      (should (eq A2 2))
+      (should (eq B2 4)))))
+
+
+(ert-deftest ses-set-sv-sfq ()
+  "Set values and formulas, symbols expressions."
+  (let ((ses-initial-size '(4 . 3))
+        (ses-after-entry-functions nil)
+        (A1-sym 'A1)
+        (A2-sym 'A2))
+    (with-temp-buffer
+      (ses-mode)
+      (ses-set
+       :: sv
+       A1-sym 1; A1 := 1
+       'B1 2; B1 := 2
+       :: sf
+       A2-sym '(+ A1 B1); A2 := A1 + B1
+       :: sfq
+       'B2    (+ B1 A2); B2 := B1 + A2
+       )
+      (should (eq A1 1))
+      (should (eq B1 2))
+      (should (eq A2 3))
+      (should (eq B2 5))
+      (ses-set A1 0)
+      (should (eq A1 0))
+      (should (eq A2 2))
+      (should (eq B2 4)))))
 
 (provide 'ses-tests)
 
