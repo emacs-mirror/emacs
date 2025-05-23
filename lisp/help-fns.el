@@ -1587,7 +1587,7 @@ by this command."
      (lambda ()
        (exit-recursive-edit)
        (error "Aborted edit, variable unchanged"))
-     :major-mode #'emacs-lisp-mode
+     :major-mode-sym #'emacs-lisp-mode
      :read #'read)
     (recursive-edit)
     (revert-buffer)))
