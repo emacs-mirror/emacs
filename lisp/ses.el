@@ -4093,8 +4093,7 @@ WIDTH the additional width to be padded if >0, <= 0 if no padding is to
 be added.
 FILL the fill character to be padded."
   (setq printer (or printer  (ses-col-printer ses--col) ses--default-printer))
-  (let ((width   (ses-col-width ses--col))
-	half)
+  (let ((width   (ses-col-width ses--col)))
     (or span (setq span 0))
     (setq value (ses-call-printer printer value))
     (dotimes (x span)
