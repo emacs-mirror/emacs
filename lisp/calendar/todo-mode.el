@@ -5821,7 +5821,13 @@ keys already entered and those still available."
       (if (memq last '(default copy))
 	  (progn
 	    (setq params0 nil)
-            (funcall gen-and-exec))
+            (funcall gen-and-exec)
+	    ;; Since the item insertion command is now done, unset
+	    ;; transient keymap to ensure the next Todo mode key is
+	    ;; recognized (bug#78506).  (Only for "default" and "copy"
+	    ;; parameters: for others, `last' may not yet be the final
+	    ;; parameter, so the map must still be evaluated.)
+	    (setq map nil))
         (let ((key (funcall key-of last)))
 	  (funcall add-to-prompt key (make-symbol
                                       (concat (symbol-name last) ":GO!")))

@@ -1220,7 +1220,6 @@ keybindings you've set using either the @code{:bind} keyword or the
 @cindex hooks
 @findex :hook
 The @code{:hook} keyword allows adding functions to hooks.  It takes
-@c FIXME: The actual forms accepted by :hook are different, see below!
 one argument of the form @var{hooks}, specifying one or more functions
 to add to one or more hooks.  For the purposes of @code{:hook}, the
 name of hook variables should always exclude the @samp{-hook} suffix.
@@ -1291,6 +1290,17 @@ applied, the following examples are all equivalent:
   :init
   (add-hook 'prog-mode-hook #'company-mode)
   (add-hook 'text-mode-hook #'company-mode))
+@end group
+@end lisp
+
+To add more than one function to the same hook, add them separately,
+like this:
+
+@lisp
+@group
+(use-package company
+  :hook ((prog-mode . company-mode)
+         (prog-mode . some-other-function)))
 @end group
 @end lisp
 
