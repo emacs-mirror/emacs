@@ -6113,14 +6113,15 @@ through `require'.  */);
 
   DEFVAR_LISP ("load-path-filter-function",
 	       Vload_path_filter_function,
-	       doc: /* Non-nil means to call this function to filter `load-path' for `load'.
+	       doc: /* If non-nil, a function to filter `load-path' for `load'.
 
-When load is called, this function is called with three arguments: the
-current value of `load-path' (a list of directories), the FILE argument
-to load, and the current load-suffixes.
+If this variable is a function, it is called when `load' is about to
+search for a file along `load-path'.  This function is called with three
+arguments: the current value of `load-path' (a list of directories),
+the FILE argument to `load', and the current list of load-suffixes.
 
-It should return a list of directories, which `load' will use instead of
-`load-path'.  */);
+It should return a (hopefully shorter) list of directories, which `load'
+will use instead of `load-path' to look for the file to load.  */);
   Vload_path_filter_function = Qnil;
 
   /* Vsource_directory was initialized in init_lread.  */

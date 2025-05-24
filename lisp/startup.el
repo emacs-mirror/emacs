@@ -1146,19 +1146,25 @@ the `--debug-init' option to view a complete error backtrace."
 (defvar load-path-filter--cache nil
   "A cache used by `load-path-filter-cache-directory-files'.
 
-This is an alist.  The car of each entry is a list of load suffixes,
+The value is an alist.  The car of each entry is a list of load suffixes,
 such as returned by `get-load-suffixes'.  The cdr of each entry is a
-cons whose car is an optimized regex matching those suffixes at the end
-of a string, and whose cdr is a hashtable mapping directories to files
-in that directory which end with one of the suffixes.")
+cons whose car is an `regex-opt' optimized regex matching those suffixes
+at the end of a string, and whose cdr is a hash-table mapping directories
+to files in those directories which end with one of the suffixes.
+The hash-table uses `equal' as its key comparison function.")
 
 (defun load-path-filter-cache-directory-files (path file suffixes)
-  "Filter PATH to only directories which might contain FILE with SUFFIXES.
+  "Filter PATH to leave only directories which might contain FILE with SUFFIXES.
 
-Doesn't filter if FILE is an absolute file name or if FILE is a relative
-file name with more than one component.
+PATH should be a list of directories such as `load-path'.
+Returns a copy of PATH with any directories that cannot contain FILE
+with SUFFIXES removed from it.
+Doesn't filter PATH if FILE is an absolute file name or if FILE is
+a relative file name with leading directories.
 
-Caches directory contents in `load-path-filter--cache'."
+Caches contents of directories in `load-path-filter--cache'.
+
+This function is called from `load' via `load-path-filter-function'."
   (if (file-name-directory file)
       ;; FILE has more than one component, don't bother filtering.
       path

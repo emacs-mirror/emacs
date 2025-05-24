@@ -2213,6 +2213,13 @@ Like 'static-if', these macros evaluate their condition at
 macro-expansion time and are useful for writing code that can work
 across different Emacs versions.
 
++++
+** New feature to speed up repeated lookup of Lisp files in 'load-path'.
+If the new variable 'load-path-filter-function' is set to the new
+function 'load-path-filter-cache-directory-files', calling 'load' will
+cache the directories it scans and their files, and the following
+lookups should be faster.
+
 ** Lexical binding
 
 ---
