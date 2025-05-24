@@ -2904,15 +2904,100 @@ ns_define_fringe_bitmap (int which, unsigned short *bits, int h, int w)
   if (!fringe_bmp)
     fringe_bmp = [[NSMutableDictionary alloc] initWithCapacity:25];
 
-  [p moveToPoint:NSMakePoint (0, 0)];
+  uint8_t *points = alloca((h + 1) * (w + 1) * 4);
+  uint8_t *cur = points;
 
-  for (int y = 0 ; y < h ; y++)
-    for (int x = 0 ; x < w ; x++)
+  /* Find all the outgoing edges in a clockwise path.  That is, we only
+     want to list the edges leaving a point, not the ones entering a
+     point, so we don't double count them.  */
+  for (int y = 0 ; y < h + 1 ; y++)
+    for (int x = 0 ; x < w + 1 ; x++)
       {
-        bool bit = bits[y] & (1 << (w - x - 1));
-        if (bit)
-          [p appendBezierPathWithRect:NSMakeRect (x, y, 1, 1)];
+        int nw=0, ne=0, se=0, sw=0;
+        if (x != 0 && y != 0)
+          nw = bits[y-1] & (1 << (w - x));
+
+        if (x != 0 && y < h)
+          sw = bits[y] & (1 << (w - x));
+
+        if (x < w && y < h)
+          se = bits[y] & (1 << (w - x - 1));
+
+        if (x < w && y != 0)
+          ne = bits[y-1] & (1 << (w - x - 1));
+
+        cur[0] = !nw && ne; /* north */
+        cur[1] = !ne && se; /* east */
+        cur[2] = !se && sw; /* south */
+        cur[3] = !sw && nw; /* west */
+        cur += 4;
       }
+
+  /* Find all the points with edges and trace them out.  */
+  int v = 0;
+  char last = 0;
+  while (v < (h + 1) * (w + 1) * 4)
+    {
+      char this = 0;
+      int x = (v/4) % (w+1);
+      int y = (v/4) / (w+1);
+
+      if (points[v+3])
+        {
+          /* west */
+          points[v+3] = 0;
+          v = v - 4;
+          this = 'w';
+        }
+      else if (points[v+1])
+        {
+          /* east */
+          points[v+1] = 0;
+          v = v + 4;
+          this = 'e';
+        }
+      else if (points[v+2])
+        {
+          /* south */
+          points[v+2] = 0;
+          v = ((y+1)*(w+1) + x) * 4;
+          this = 's';
+        }
+      else if (points[v])
+        {
+          /* north */
+          points[v] = 0;
+          v = ((y-1)*(w+1) + x) * 4;
+          this = 'n';
+        }
+      else
+        {
+          /* no edge */
+          v = v + 4;
+
+          if (last)
+            {
+              /* If we reach here we were tracing a shape but have run
+                 out of edges, so we must be back to the start (or
+                 something's gone wrong).  */
+              [p closePath];
+              last = 0;
+            }
+        }
+
+      if (this)
+        {
+          /* If we've found an edge we now need to either move to that
+             point (if it's the start of a shape) or draw a line from
+             the last corner to this point, but only if it's a
+             corner.  */
+          if (!last)
+            [p moveToPoint:NSMakePoint (x, y)];
+          else if (last && last != this)
+              [p lineToPoint:NSMakePoint (x, y)];
+          last = this;
+        }
+    }
 
   [fringe_bmp setObject:p forKey:[NSNumber numberWithInt:which]];
 }
