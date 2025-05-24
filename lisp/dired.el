@@ -3721,7 +3721,13 @@ instead of `dired-actual-switches'."
 	    ;; ange-ftp listings.
 	    (and (dired-switches-recursive-p switches)
 		 (string-match "\\`/.*:\\(/.*\\)" default-directory)
-		 (concat "\\`" (match-string 1 default-directory)))))
+		 (concat "\\`" (match-string 1 default-directory))))
+           ;; Regexp that describes the beginning of line of a
+           ;; file/directory entry (as opposed to a subdirectory
+           ;; heading), including the optional mark, inode, and size.
+           (file-entry-beg-re (concat dired-re-maybe-mark
+                                      dired-re-inode-size
+                                      dired-re-perms)))
       (goto-char (point-min))
       (setq dired-subdir-alist nil)
       (while (re-search-forward dired-subdir-regexp nil t)
@@ -3730,8 +3736,7 @@ instead of `dired-actual-switches'."
 	(unless (save-excursion
 		  (goto-char (match-beginning 0))
 		  (beginning-of-line)
-		  (forward-char 2)
-		  (looking-at-p dired-re-perms))
+		  (looking-at-p file-entry-beg-re))
 	  (save-excursion
 	    (goto-char (match-beginning 1))
 	    (setq new-dir-name
