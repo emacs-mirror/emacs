@@ -1191,7 +1191,7 @@ keybindings you've set using either the @code{:bind} keyword or the
 @cindex hooks
 @findex :hook
 The @code{:hook} keyword allows adding functions to hooks.  It takes
-one argument of the form @var{hooks}, specifying  or more functions
+one argument of the form @var{hooks}, specifying one or more functions
 to add to one or more hooks.  For the purposes of @code{:hook}, the
 name of hook variables should always exclude the @samp{-hook} suffix.
 It is appended automatically for you, to save some typing.
