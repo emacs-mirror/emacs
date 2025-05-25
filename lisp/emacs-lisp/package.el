@@ -3283,6 +3283,42 @@ either a full name or nil, and EMAIL is a valid email address."
                               'help-echo new-help
                               'face 'package-status-new)))
                "] "))))))
+(defvar package-menu--tool-bar-map
+  (let ((map (make-sparse-keymap)))
+    (tool-bar-local-item-from-menu
+     #'package-menu-execute "package-menu/execute"
+     map package-menu-mode-map)
+    (define-key-after map [separator-1] menu-bar-separator)
+    (tool-bar-local-item-from-menu
+     #'package-menu-mark-unmark "package-menu/unmark"
+     map package-menu-mode-map)
+    (tool-bar-local-item-from-menu
+     #'package-menu-mark-install "package-menu/install"
+     map package-menu-mode-map)
+    (tool-bar-local-item-from-menu
+     #'package-menu-mark-delete "package-menu/delete"
+     map package-menu-mode-map)
+    (tool-bar-local-item-from-menu
+     #'package-menu-describe-package "package-menu/info"
+     map package-menu-mode-map)
+    (tool-bar-local-item-from-menu
+     #'package-browse-url "package-menu/url"
+     map package-menu-mode-map)
+    (tool-bar-local-item
+     "package-menu/upgrade" 'package-upgrade-all
+    'package-upgrade-all
+     map :help "Upgrade all the packages")
+    (define-key-after map [separator-2] menu-bar-separator)
+    (tool-bar-local-item
+     "search" 'isearch-forward 'search map
+     :help "Search" :vert-only t)
+    (tool-bar-local-item-from-menu
+     #'revert-buffer "refresh"
+     map package-menu-mode-map)
+    (tool-bar-local-item-from-menu
+     #'quit-window "close"
+     map package-menu-mode-map)
+    map))
 
 (define-derived-mode package-menu-mode tabulated-list-mode "Package Menu"
   "Major mode for browsing a list of packages.
@@ -3303,6 +3339,7 @@ The most useful commands here are:
               (append
                mode-line-misc-info
                package-menu-mode-line-format))
+  (setq-local tool-bar-map package-menu--tool-bar-map)
   (setq tabulated-list-format
         `[("Package" ,package-name-column-width package-menu--name-predicate)
           ("Version" ,package-version-column-width package-menu--version-predicate)
