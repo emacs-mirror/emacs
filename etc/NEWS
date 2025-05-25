@@ -389,6 +389,10 @@ Together with the new command 'tab-line-move-tab-backward'
 ('C-x M-<left>') it can be used to move the current tab
 on the tab line to a different position.
 
+---
+*** New command 'tab-line-close-other-tabs'.
+It's bound to the tab's context menu item "Close other tabs".
+
 ** Project
 
 ---

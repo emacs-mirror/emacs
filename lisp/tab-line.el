@@ -1111,12 +1111,42 @@ sight of the tab line."
           (funcall tab-line-close-tab-function tab)))
         (force-mode-line-update)))))
 
+(defun tab-line-close-other-tabs (&optional event)
+  "Close all tabs on the selected window, except the tab on EVENT.
+It preforms the same actions on the closed tabs as in `tab-line-close-tab'."
+  (interactive (list last-nonmenu-event))
+  (when (tab-line-track-tap event)
+    (let* ((posnp (and (listp event)
+                       (tab-line-event-start event)))
+           (window (and posnp (posn-window posnp)))
+           (keep-tab (tab-line--get-tab-property 'tab (car (posn-string posnp)))))
+      (with-selected-window (or window (selected-window))
+        (dolist (tab (delete keep-tab (funcall tab-line-tabs-function)))
+          (let ((buffer (if (bufferp tab) tab (cdr (assq 'buffer tab))))
+                (close-function (unless (bufferp tab) (cdr (assq 'close tab)))))
+            (cond
+             ((functionp close-function)
+              (funcall close-function))
+             ((eq tab-line-close-tab-function 'kill-buffer)
+              (kill-buffer buffer))
+             ((eq tab-line-close-tab-function 'bury-buffer)
+              (if (eq buffer (current-buffer))
+                  (bury-buffer)
+                (set-window-prev-buffers nil (assq-delete-all buffer (window-prev-buffers)))
+                (set-window-next-buffers nil (delq buffer (window-next-buffers)))))
+             ((functionp tab-line-close-tab-function)
+              (funcall tab-line-close-tab-function tab)))))
+        (force-mode-line-update)))))
+
 (defun tab-line-tab-context-menu (&optional event)
   "Pop up the context menu for a tab-line tab."
   (interactive "e")
   (let ((menu (make-sparse-keymap (propertize "Context Menu" 'hide t))))
     (define-key-after menu [close]
       '(menu-item "Close" tab-line-close-tab :help "Close the tab"))
+    (define-key-after menu [close-other]
+      '(menu-item "Close other tabs" tab-line-close-other-tabs
+                  :help "Close all other tabs"))
     (popup-menu menu event)))
 
 (defun tab-line-context-menu (&optional event)
