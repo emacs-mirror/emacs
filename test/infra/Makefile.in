@@ -124,7 +124,8 @@ tree-sitter-files:
 	@echo '.tree-sitter-files:' >>$(FILE)
 	@echo '  variables:' >>$(FILE)
 	@echo '    tree_sitter_files: >-' >>$(FILE)
-	@for name in $(TREE-SITTER-FILES) ; do echo "      $${name}" >>$(FILE) ; done
+	@for name in $(TREE-SITTER-FILES) ; \
+		do echo "      $${name}" >>$(FILE) ; done
 
 $(FILE):
 	$(AM_V_GEN)
