@@ -10289,6 +10289,30 @@ w32_read_registry (HKEY rootkey, Lisp_Object lkey, Lisp_Object lname)
 }
 
 
+/* mingw.org's MinGW doesn't declare _dstbias.  MinGW64 defines it as a
+   macro.  */
+#ifndef _dstbias
+__MINGW_IMPORT int _dstbias;
+#endif
+
+/* Fix a bug in MS implementation of 'tzset'.  This function should be
+   called immediately after 'tzset'.  */
+void
+w32_fix_tzset (void)
+{
+  char *tz_env = getenv ("TZ");
+
+  /* When TZ is defined in the environment, '_tzset' updates _daylight,
+     but not _dstbias.  Then if we are switching from a timezone without
+     DST to a timezone with DST, 'localtime' and friends will apply zero
+     DST bias, which is incorrect. (When TZ is not defined, '_tzset'
+     does update _dstbias using values obtained from Windows API
+     GetTimeZoneInformation.)  Here we fix that blunder by detecting
+     this situation and forcing _dstbias to be 1 hour.  */
+  if (tz_env && _daylight && !_dstbias)
+    _dstbias = -3600;
+}
+
 /* The Windows CRT functions are "optimized for speed", so they don't
    check for timezone and DST changes if they were last called less
    than 1 minute ago (see http://support.microsoft.com/kb/821231).  So
@@ -10299,6 +10323,7 @@ struct tm *
 sys_localtime (const time_t *t)
 {
   tzset ();
+  w32_fix_tzset ();
   return localtime (t);
 }
 

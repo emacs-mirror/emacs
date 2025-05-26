@@ -234,6 +234,7 @@ extern int openat (int, const char *, int, int);
 extern int fchmodat (int, char const *, mode_t, int);
 extern int lchmod (char const *, mode_t);
 extern bool symlinks_supported (const char *);
+extern void w32_fix_tzset (void);
 
 
 /* Return total and free memory info.  */
