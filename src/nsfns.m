@@ -2692,41 +2692,28 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
       struct MonitorInfo *m = &monitors[i];
       NSRect fr = [s frame];
       NSRect vfr = [s visibleFrame];
-      short y, vy;
 
 #ifdef NS_IMPL_COCOA
       NSDictionary *dict = [s deviceDescription];
       NSNumber *nid = [dict objectForKey:@"NSScreenNumber"];
       CGDirectDisplayID did = [nid unsignedIntValue];
 #endif
+
+      /* The primary display is always the first in the array.  */
       if (i == 0)
-        {
-          primary_display_height = fr.size.height;
-          y = (short) fr.origin.y;
-          vy = (short) vfr.origin.y;
-        }
-      else
-        {
-          /* Flip y coordinate as NS screen coordinates originate from
-	     the bottom.  */
-          y = (short) (primary_display_height - fr.size.height - fr.origin.y);
-          vy = (short) (primary_display_height -
-                        vfr.size.height - vfr.origin.y);
-        }
+	primary_display_height = fr.size.height;
+
+      /* Flip y coordinate as NS screen coordinates originate from
+	 the bottom.  */
 
       m->geom.x = (short) fr.origin.x;
-      m->geom.y = y;
+      m->geom.y = (short) (primary_display_height - NSMaxY(fr));
       m->geom.width = (unsigned short) fr.size.width;
       m->geom.height = (unsigned short) fr.size.height;
 
+      /* The work area excludes the menu bar and the dock.  */
       m->work.x = (short) vfr.origin.x;
-      /* y is flipped on NS, so vy - y are pixels missing at the
-	 bottom, and fr.size.height - vfr.size.height are pixels
-	 missing in total.
-
-	 Pixels missing at top are fr.size.height - vfr.size.height -
-	 vy + y.  work.y is then pixels missing at top + y.  */
-      m->work.y = (short) (fr.size.height - vfr.size.height) - vy + y + y;
+      m->work.y = (short) (primary_display_height - NSMaxY(vfr));
       m->work.width = (unsigned short) vfr.size.width;
       m->work.height = (unsigned short) vfr.size.height;
 
