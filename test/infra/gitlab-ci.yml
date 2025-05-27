@@ -113,7 +113,7 @@ default:
     - 'test -n "$(docker ps -aq -f name=${test_name})" &&
      docker cp ${test_name}:checkout/test ${test_name}'
     - 'test -n "$(docker ps -aq -f name=${test_name})" &&
-     docker cp ${test_name}:checkout/configure.log ${test_name} || true'
+     docker cp ${test_name}:checkout/config.log ${test_name} || true'
     - 'test -n "$(docker ps -aq -f name=${test_name})" &&
      docker cp ${test_name}:checkout/compatibility-report.html ${test_name} ||
      true'
