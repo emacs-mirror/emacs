@@ -1649,7 +1649,10 @@ Point should be just after a string that matches TAG."
   (or (and (eq (char-after (point)) ?\001)
 	   (eq (char-after (- (point) (length tag) 1)) ?\177))
       ;; We are not on the explicit tag name, but perhaps it follows.
-      (looking-at (concat "[^\177\n]*\177" (regexp-quote tag) "\001"))))
+      (looking-at (concat "[^\177\n]*\177"
+                          (regexp-quote tag)
+                          ;; The optional "/x" part is for Ada tags.
+                          "\\(/[fpsbtk]\\)?\001"))))
 
 ;; t if point is at a tag line that has an implicit name.
 ;; point should be just after a string that matches TAG.
