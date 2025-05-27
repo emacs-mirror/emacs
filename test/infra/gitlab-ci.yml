@@ -91,7 +91,7 @@ default:
     # - test -n "$(docker ps -aq -f name=${test_name})" && ( docker export ${test_name} | tar -tvf - )
     # Prepare test artifacts.
     - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/test ${test_name}
-    - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/configure.log ${test_name} || true
+    - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/config.log ${test_name} || true
     - test -n "$(docker ps -aq -f name=${test_name})" && docker rm ${test_name}
     - find ${test_name} ! \( -name "*.log" -o -name ${EMACS_TEST_JUNIT_REPORT} \) -type f -delete
     # BusyBox find does not know -empty.
@@ -269,8 +269,8 @@ test-filenotify-gio:
     # This is needed in order to get a JUnit test report.
     make_params: >-
       check-expensive
-        TEST_HOME=/root
-        LOGFILES="lisp/autorevert-tests.log lisp/filenotify-tests.log"
+      TEST_HOME=/root
+      LOGFILES="lisp/autorevert-tests.log lisp/filenotify-tests.log"
 
 build-image-eglot:
   stage: platform-images
@@ -288,12 +288,7 @@ test-eglot:
     target: emacs-eglot
     # This is needed in order to get a JUnit test report.
     make_params: >-
-      check-expensive
-        TEST_HOME=/root LOGFILES="lisp/progmodes/eglot-tests.log"
-        # EMACS_EXTRAOPT="--eval \(package-reinstall\ \(quote\ company\)\)
-        #                 --eval \(package-reinstall\ \(quote\ yasnippet\)\)
-        #                 --eval \(use-package\ company\)
-        #                 --eval \(use-package\ yasnippet\)"
+      check-expensive TEST_HOME=/root LOGFILES="lisp/progmodes/eglot-tests.log"
 
 build-image-tree-sitter:
   stage: platform-images
