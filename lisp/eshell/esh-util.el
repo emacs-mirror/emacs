@@ -869,18 +869,37 @@ gid format.  Valid values are `string' and `integer', defaulting to
   "If the `processp' function does not exist, PROC is not a process."
   (and (fboundp 'processp) (processp proc)))
 
-(defun eshell-process-list-p (procs)
+(cl-defgeneric eshell-task-p (_object)
+  "Return non-nil if OBJECT is a task.
+A \"task\" is a process or process-like object."
+  nil)
+
+(cl-defgeneric eshell-task-status (task)
+  "Return the status for TASK, similar to `process-status' (which see).")
+
+(cl-defgeneric eshell-task-active-p (task)
+  "Return non-nil if TASK is still active in Eshell.
+An active task is any task that still has work left to do before being
+cleaned up.")
+
+(defun eshell-task-list-p (procs)
   "Return non-nil if PROCS is a list of process objects."
   (and (listp procs)
-       (seq-every-p #'eshell-processp procs)))
+       (seq-every-p #'eshell-task-p procs)))
 
-(defun eshell-make-process-list (procs)
+(define-obsolete-function-alias 'eshell-process-list-p
+ 'eshell-task-list-p "31.1")
+
+(defun eshell-make-task-list (procs)
   "Make a list of process objects from PROCS if possible.
 PROCS can be a single process or a list thereof.  If PROCS is
 anything else, return nil instead."
   (pcase procs
-    ((pred eshell-processp) (list procs))
-    ((pred eshell-process-list-p) procs)))
+    ((pred eshell-task-p) (list procs))
+    ((pred eshell-task-list-p) procs)))
+
+(define-obsolete-function-alias 'eshell-make-process-list
+ 'eshell-make-task-list "31.1")
 
 ;; (defun eshell-copy-file
 ;;   (file newname &optional ok-if-already-exists keep-date)
