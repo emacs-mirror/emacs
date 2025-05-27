@@ -2892,14 +2892,6 @@ root_create_buffer (struct igc *gc, struct buffer *b)
 }
 
 static void
-root_create_terminal_list (struct igc *gc)
-{
-  void *start = &terminal_list;
-  void *end = (char *) start + sizeof (terminal_list);
-  root_create_ambig (gc, start, end, "terminal-list");
-}
-
-static void
 root_create_tty_list (struct igc *gc)
 {
   root_create_exact (gc, &tty_list, (&tty_list) + 1,
@@ -2940,6 +2932,12 @@ void
 igc_root_create_exact_ptr (void *var_addr)
 {
   root_create_exact_ptr (global_igc, var_addr);
+}
+
+static void
+root_create_terminal_list (struct igc *gc)
+{
+  root_create_exact_ptr (gc, &terminal_list);
 }
 
 static void
