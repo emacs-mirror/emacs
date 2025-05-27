@@ -618,7 +618,7 @@ newline."
   (let* ((proc-running-p (eshell-head-process))
          (send-to-process-p (and proc-running-p (not queue-p))))
     (unless (and send-to-process-p
-		 (not (eq (process-status
+		 (not (eq (eshell-task-status
 			   (eshell-head-process))
                           'run)))
       (if (or send-to-process-p

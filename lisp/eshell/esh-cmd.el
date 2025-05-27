@@ -1083,7 +1083,7 @@ STATUS is its status."
     ;; element is a list of the form (BACKGROUND FORM PROCESSES) (see
     ;; `eshell-add-command').
     (dolist (command (eshell-commands-for-process proc))
-      (unless (seq-some #'eshell-process-active-p (nth 2 command))
+      (unless (seq-some #'eshell-task-active-p (nth 2 command))
         (setf (nth 2 command) nil) ; Clear processes from command.
         (if (and ;; Check STATUS to determine whether we want to resume or
                  ;; abort the command.
@@ -1365,13 +1365,13 @@ have been replaced by constants."
 		    (setcdr form (cdr new-form)))
 		  (eshell-do-eval form synchronous-p))
               (if-let* (((memq (car form) eshell-deferrable-commands))
-                        (procs (eshell-make-process-list result)))
+                        (procs (eshell-make-task-list result)))
                   (if synchronous-p
 		      (funcall #'eshell-wait-for-processes procs)
 		    (eshell-manipulate form "inserting ignore form"
 		      (setcar form 'ignore)
 		      (setcdr form nil))
-                    (when (seq-some #'eshell-process-active-p procs)
+                    (when (seq-some #'eshell-task-active-p procs)
                       (throw 'eshell-defer procs)))
                 (list 'quote result))))))))))))
 
