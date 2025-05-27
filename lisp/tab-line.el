@@ -1083,6 +1083,13 @@ This option is useful when `tab-line-tabs-function' has the value
   :group 'tab-line
   :version "27.1")
 
+(defun tab-line--current-tab ()
+  "Return the current tab in the tab line."
+  (seq-find (lambda (tab)
+              (eq (if (bufferp tab) tab (alist-get 'buffer tab))
+                  (current-buffer)))
+            (funcall tab-line-tabs-function)))
+
 (defun tab-line-close-tab (&optional event)
   "Close the selected tab.
 This command is usually invoked by clicking on the close button on the
@@ -1093,7 +1100,9 @@ sight of the tab line."
     (let* ((posnp (and (listp event)
                        (tab-line-event-start event)))
            (window (and posnp (posn-window posnp)))
-           (tab (tab-line--get-tab-property 'tab (car (posn-string posnp))))
+           (tab (if posnp
+                    (tab-line--get-tab-property 'tab (car (posn-string posnp)))
+                  (tab-line--current-tab)))
            (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab))))
            (close-function (unless (bufferp tab) (cdr (assq 'close tab)))))
       (with-selected-window (or window (selected-window))
@@ -1119,7 +1128,9 @@ It preforms the same actions on the closed tabs as in `tab-line-close-tab'."
     (let* ((posnp (and (listp event)
                        (tab-line-event-start event)))
            (window (and posnp (posn-window posnp)))
-           (keep-tab (tab-line--get-tab-property 'tab (car (posn-string posnp)))))
+           (keep-tab (if posnp
+                         (tab-line--get-tab-property 'tab (car (posn-string posnp)))
+                       (tab-line--current-tab))))
       (with-selected-window (or window (selected-window))
         (dolist (tab (delete keep-tab (funcall tab-line-tabs-function)))
           (let ((buffer (if (bufferp tab) tab (cdr (assq 'buffer tab))))
