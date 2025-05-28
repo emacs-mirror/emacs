@@ -438,22 +438,32 @@ this defaults to the current buffer."
           (put-text-property sub-start sub-end 'display (list prop value)
                              object)
         ;; We have old properties.
-        (let ((vector nil))
+        (let (type)
           ;; Make disp into a list.
           (setq disp
                 (cond
                  ((vectorp disp)
-                  (setq vector t)
+                  (setq type 'vector)
                   (seq-into disp 'list))
-                 ((not (consp (car disp)))
+                 ((or (not (consp (car-safe disp)))
+                      ;; If disp looks like ((margin ...) ...), that's
+                      ;; still a single display specification.
+                      (eq (caar disp) 'margin))
+                  (setq type 'scalar)
                   (list disp))
                  (t
+                  (setq type 'list)
                   disp)))
           ;; Remove any old instances.
           (when-let* ((old (assoc prop disp)))
-            (setq disp (delete old disp)))
+            ;; If the property value was a list, don't modify the
+            ;; original value in place; it could be used by other
+            ;; regions of text.
+            (setq disp (if (eq type 'list)
+                           (remove old disp)
+                         (delete old disp))))
           (setq disp (cons (list prop value) disp))
-          (when vector
+          (when (eq type 'vector)
             (setq disp (seq-into disp 'vector)))
           ;; Finally update the range.
           (put-text-property sub-start sub-end 'display disp object)))
