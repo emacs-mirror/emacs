@@ -416,28 +416,25 @@ indivisible unit."
         (setq start (1+ start))))
     (nreverse result)))
 
-;;;###autoload
-(defun add-display-text-property (start end spec value &optional object)
-  "Add the display specification (SPEC VALUE) to the text from START to END.
-If any text in the region has a non-nil `display' property, the existing
-display specifications are retained.
-
-OBJECT is either a string or a buffer to add the specification to.
-If omitted, OBJECT defaults to the current buffer."
+(defun add-remove--display-text-property (start end spec value
+                                                &optional object remove)
   (let ((sub-start start)
         (sub-end 0)
+        (limit (if (stringp object)
+                   (min (length object) end)
+                 (min end (point-max))))
         disp)
     (while (< sub-end end)
       (setq sub-end (next-single-property-change sub-start 'display object
-                                                 (if (stringp object)
-                                                     (min (length object) end)
-                                                   (min end (point-max)))))
+                                                 limit))
       (if (not (setq disp (get-text-property sub-start 'display object)))
           ;; No old properties in this range.
-          (put-text-property sub-start sub-end 'display (list spec value)
-                             object)
+          (unless remove
+            (put-text-property sub-start sub-end 'display (list spec value)
+                               object))
         ;; We have old properties.
-        (let (type)
+        (let ((changed nil)
+              type)
           ;; Make disp into a list.
           (setq disp
                 (cond
@@ -460,13 +457,40 @@ If omitted, OBJECT defaults to the current buffer."
             ;; regions of text.
             (setq disp (if (eq type 'list)
                            (remove old disp)
-                         (delete old disp))))
-          (setq disp (cons (list spec value) disp))
-          (when (eq type 'vector)
-            (setq disp (seq-into disp 'vector)))
-          ;; Finally update the range.
-          (put-text-property sub-start sub-end 'display disp object)))
+                         (delete old disp))
+                  changed t))
+          (unless remove
+            (setq disp (cons (list spec value) disp)
+                  changed t))
+          (when changed
+            (if (not disp)
+                (remove-text-properties sub-start sub-end '(display nil) object)
+              (when (eq type 'vector)
+                (setq disp (seq-into disp 'vector)))
+              ;; Finally update the range.
+              (put-text-property sub-start sub-end 'display disp object)))))
       (setq sub-start sub-end))))
+
+;;;###autoload
+(defun add-display-text-property (start end spec value &optional object)
+  "Add the display specification (SPEC VALUE) to the text from START to END.
+If any text in the region has a non-nil `display' property, the existing
+display specifications are retained.
+
+OBJECT is either a string or a buffer to add the specification to.
+If omitted, OBJECT defaults to the current buffer."
+  (add-remove--display-text-property start end spec value object))
+
+;;;###autoload
+(defun remove-display-text-property (start end spec &optional object)
+  "Remove the display specification SPEC from the text from START to END.
+SPEC is the car of the display specification to remove, e.g. `height'.
+If any text in the region has other display specifications, those specs
+are retained.
+
+OBJECT is either a string or a buffer to remove the specification from.
+If omitted, OBJECT defaults to the current buffer."
+  (add-remove--display-text-property start end spec nil object 'remove))
 
 ;;;###autoload
 (defun read-process-name (prompt)

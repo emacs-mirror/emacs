@@ -2414,6 +2414,12 @@ Now overlays can also have this property, with the same effect for the
 text "covered" by the overlay.
 
 +++
+** New function 'remove-display-text-property'.
+This function removes a display property from the specified region of
+text, preserving any other display properties already set for that
+region.
+
++++
 ** New macro 'cond*'.
 The new macro 'cond*' is an alternative to 'cond' and 'pcase'.
 Like them, it can be used to define several clauses, each one with its

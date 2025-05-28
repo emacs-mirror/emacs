@@ -226,6 +226,14 @@ by `visual-wrap-extra-indent'."
         (propertize prefix 'face face)
       prefix)))
 
+(defun visual-wrap--remove-properties (start end)
+  "Remove visual wrapping text properties from START to END."
+  ;; Remove `min-width' from any prefixes we detected.
+  (remove-display-text-property start end 'min-width)
+  ;; Remove `wrap-prefix' related properties from any lines with
+  ;; prefixes we detected.
+  (remove-text-properties start end '(wrap-prefix nil)))
+
 (defun visual-wrap-prefix-function (beg end)
   "Indent the region between BEG and END with visual filling."
   ;; Any change at the beginning of a line might change its wrap
@@ -238,6 +246,7 @@ by `visual-wrap-extra-indent'."
   (goto-char beg)
   (forward-line 0)
   (setq beg (point))
+  (visual-wrap--remove-properties beg end)
   (while (< (point) end)
     ;; Check if the display property at the end of this line is "safe".
     (if (visual-wrap--display-property-safe-p
@@ -283,7 +292,7 @@ To enable this minor mode across all buffers, enable
     (with-silent-modifications
       (save-restriction
         (widen)
-        (remove-text-properties (point-min) (point-max) '(wrap-prefix nil))))))
+        (visual-wrap--remove-properties (point-min) (point-max))))))
 
 ;;;###autoload
 (define-globalized-minor-mode global-visual-wrap-prefix-mode
