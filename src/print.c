@@ -469,18 +469,18 @@ strout (const char *ptr, ptrdiff_t size, ptrdiff_t size_byte,
    because printing one char can relocate.  */
 
 static void
-print_string (Lisp_Object string, Lisp_Object printcharfun)
+print_string_1 (Lisp_Object string, Lisp_Object printcharfun, bool escape_nonascii)
 {
   if (EQ (printcharfun, Qt) || NILP (printcharfun))
     {
       ptrdiff_t chars;
 
-      if (print_escape_nonascii)
+      if (escape_nonascii)
 	string = string_escape_byte8 (string);
 
       if (STRING_MULTIBYTE (string))
 	chars = SCHARS (string);
-      else if (! print_escape_nonascii
+      else if (! escape_nonascii
 	       && (EQ (printcharfun, Qt)
 		   ? ! NILP (BVAR (&buffer_defaults, enable_multibyte_characters))
 		   : ! NILP (BVAR (current_buffer, enable_multibyte_characters))))
@@ -542,6 +542,12 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
 	    i += len;
 	  }
     }
+}
+
+static void
+print_string (Lisp_Object string, Lisp_Object printcharfun)
+{
+  print_string_1 (string, printcharfun, print_escape_nonascii);
 }
 
 DEFUN ("write-char", Fwrite_char, Swrite_char, 1, 2, 0,
@@ -2282,7 +2288,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	}
       else if (STRINGP (num))
 	{
-	  strout (SSDATA (num), SCHARS (num), SBYTES (num), printcharfun);
+	  print_string_1 (num, printcharfun, false);
 	  goto next_obj;
 	}
     }
