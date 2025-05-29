@@ -429,6 +429,8 @@ This user option describes projects that should always be skipped by
 *** New command 'project-save-some-buffers' bound to 'C-x p C-x s'.
 This is like 'C-x s', but only for this project's buffers.
 
+*** 'project-remember-project' can now be called interactively.
+
 ** Registers
 
 *** New functions 'buffer-to-register' and 'file-to-register'.
