@@ -2481,6 +2481,8 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
       else
 	error ("Attempt to delete the only frame");
     }
+  else if (IS_DAEMON && FRAME_INITIAL_P (f) && NILP (force))
+    error ("Attempt to delete daemon's initial frame");
 #ifdef HAVE_X_WINDOWS
   else if ((x_dnd_in_progress && f == x_dnd_frame)
 	   || (x_dnd_waiting_for_finish && f == x_dnd_finish_frame))
@@ -2953,10 +2955,11 @@ FRAME must be a live frame and defaults to the selected one.
 When `undelete-frame-mode' is enabled, the 16 most recently deleted
 frames can be undeleted with `undelete-frame', which see.
 
-A frame may not be deleted if its minibuffer serves as surrogate
-minibuffer for another frame.  Normally, you may not delete a frame if
-all other frames are invisible, but if the second optional argument
-FORCE is non-nil, you may do so.
+Do not delete a frame whose minibuffer serves as surrogate minibuffer
+for another frame.  Do not delete a frame if all other frames are
+invisible unless the second optional argument FORCE is non-nil.  Do not
+delete the initial terminal frame of an Emacs process running as daemon
+unless FORCE is non-nil.
 
 This function runs `delete-frame-functions' before actually
 deleting the frame, unless the frame is a tooltip.
