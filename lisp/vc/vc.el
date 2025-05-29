@@ -1020,6 +1020,9 @@ Not supported by all backends."
   :safe #'booleanp
   :version "31.1")
 
+(defvar vc-async-checkin-backends '(Git Hg)
+  "Backends which support `vc-async-checkin'.")
+
 
 ;; File property caching
 
@@ -1889,9 +1892,7 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
                      (vc-call-backend backend 'checkin
                                       files comment rev))
                    (mapc #'vc-delete-automatic-version-backups files)))
-       (if (and vc-async-checkin
-                ;; Backends which support `vc-async-checkin'.
-                (memq backend '(Git Hg)))
+       (if (and vc-async-checkin (memq backend vc-async-checkin-backends))
            ;; Rely on `vc-set-async-update' to update properties.
            (do-it)
          (message "Checking in %s..." (vc-delistify files))
