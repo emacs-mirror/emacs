@@ -793,7 +793,6 @@ or a buffer name."
 
 	(when describe-bindings-outline
           (setq-local outline-regexp ".*:$")
-          (setq-local outline-heading-end-regexp ":\n")
           (setq-local outline-level (lambda () 1))
           (setq-local outline-minor-mode-cycle t
                       outline-minor-mode-highlight t
