@@ -1773,6 +1773,13 @@ were added, removed or edited, Emacs would refuse to proceed.
 Now Emacs prompts to first register the unregistered files, so that all
 files in the fileset are in a compatible state for a checkin.
 
+---
+*** New user option 'vc-dir-hide-up-to-date-on-revert'.
+If you customize this variable to non-nil, the 'g' command to refresh
+the VC Directory buffer also has the effect of the 'x' command.
+That is, typing 'g' refreshes the buffer and also hides items in the
+'up-to-date' and 'ignored' states.
+
 +++
 *** New user option 'vc-async-checkin' to enable async checkin operations.
 Currently only supported by the Git and Mercurial backends.

@@ -158,6 +158,14 @@ option."
   :group 'vc
   :version "31.1")
 
+(defcustom vc-dir-hide-up-to-date-on-revert nil
+  "If non-nil, \\<vc-dir-mode-map>\\[revert-buffer] in VC-Dir buffers also does \\[vc-dir-hide-up-to-date].
+That is, refreshing the VC-Dir buffer also hides `up-to-date' and
+`ignored' items."
+  :type 'boolean
+  :group 'vc
+  :version "31.1")
+
 (defun vc-dir-move-to-goal-column ()
   ;; Used to keep the cursor on the file name column.
   (beginning-of-line)
@@ -1347,7 +1355,9 @@ specific headers."
                               (not (vc-dir-fileinfo->needs-update info))))))))))))
 
 (defun vc-dir-revert-buffer-function (&optional _ignore-auto _noconfirm)
-  (vc-dir-refresh))
+  (vc-dir-refresh)
+  (when vc-dir-hide-up-to-date-on-revert
+    (vc-dir-hide-state)))
 
 (defun vc-dir-refresh ()
   "Refresh the contents of the *VC-dir* buffer.
