@@ -4124,7 +4124,7 @@ This function expects to be in the right *tramp* buffer."
 	  (setq newdl (cons d newdl))))
       (setq dirlist (nreverse newdl))))
   (when (tramp-send-command-and-check
-         vec (format "(unalias %s; %s command -pv %s)"
+         vec (format "(unalias %s; %s command -v %s)"
                      progname
                      (if dirlist (concat "PATH=" (string-join dirlist ":")) "")
                      progname))
