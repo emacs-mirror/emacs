@@ -1894,41 +1894,49 @@ The optional argument PATCH-STRING is a string to check in as a patch.
 
 Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
   (run-hooks 'vc-before-checkin-hook)
-  (vc-start-logentry
-   files comment initial-contents
-   "Enter a change comment."
-   "*vc-log*"
-   (lambda ()
-     (vc-call-backend backend 'log-edit-mode))
-   (lambda (files comment)
-     ;; "This log message intentionally left almost blank".
-     ;; RCS 5.7 gripes about whitespace-only comments too.
-     (unless (and comment (string-match "[^\t\n ]" comment))
-       (setq comment "*** empty log message ***"))
-     (cl-labels ((do-it ()
-                   ;; We used to change buffers to get local value of
-                   ;; `vc-checkin-switches', but the (singular) local
-                   ;; buffer is not well defined for filesets.
-                   (if patch-string
-                       (vc-call-backend backend 'checkin-patch
-                                        patch-string comment)
-                     (vc-call-backend backend 'checkin
-                                      files comment rev))
-                   (mapc #'vc-delete-automatic-version-backups files)))
-       (if (and vc-async-checkin (memq backend vc-async-checkin-backends))
-           ;; Rely on `vc-set-async-update' to update properties.
-           (do-it)
-         (message "Checking in %s..." (vc-delistify files))
-         (with-vc-properties files (do-it)
-                             `((vc-state . up-to-date)
-                               (vc-checkout-time
-                                . ,(file-attribute-modification-time
-			            (file-attributes file)))
-                               (vc-working-revision . nil)))
-         (message "Checking in %s...done" (vc-delistify files)))))
-   'vc-checkin-hook
-   backend
-   patch-string))
+  (let ((do-async (and vc-async-checkin
+                       (memq backend vc-async-checkin-backends))))
+   (vc-start-logentry
+    files comment initial-contents
+    "Enter a change comment."
+    "*vc-log*"
+    (lambda ()
+      (vc-call-backend backend 'log-edit-mode))
+    (lambda (files comment)
+      ;; "This log message intentionally left almost blank".
+      ;; RCS 5.7 gripes about whitespace-only comments too.
+      (unless (and comment (string-match "[^\t\n ]" comment))
+        (setq comment "*** empty log message ***"))
+      (cl-labels ((do-it ()
+                    ;; We used to change buffers to get local value of
+                    ;; `vc-checkin-switches', but the (singular) local
+                    ;; buffer is not well defined for filesets.
+                    (if patch-string
+                        (vc-call-backend backend 'checkin-patch
+                                         patch-string comment)
+                      (vc-call-backend backend 'checkin
+                                       files comment rev))
+                    (mapc #'vc-delete-automatic-version-backups files)))
+        (if do-async
+            ;; Rely on `vc-set-async-update' to update properties.
+            (do-it)
+          (message "Checking in %s..." (vc-delistify files))
+          (with-vc-properties files (do-it)
+                              `((vc-state . up-to-date)
+                                (vc-checkout-time
+                                 . ,(file-attribute-modification-time
+			             (file-attributes file)))
+                                (vc-working-revision . nil)))
+          (message "Checking in %s...done" (vc-delistify files)))))
+
+    ;; FIXME: In the async case we need the hook to be added to the
+    ;; buffer with the checkin process, using `vc-run-delayed'.  Ideally
+    ;; the identity of that buffer would be exposed to this code,
+    ;; somehow, so we could always handle running the hook up here.
+    (and (not do-async) 'vc-checkin-hook)
+
+    backend
+    patch-string)))
 
 (defun vc-default-checkin-patch (_backend patch-string comment)
   (pcase-let* ((`(,backend ,files) (with-temp-buffer
