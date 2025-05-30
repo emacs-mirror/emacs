@@ -874,19 +874,15 @@ the buffer contents as a comment."
     (setq vc-log-operation nil)
 
     ;; Quit windows on logbuf.
-    (cond
-     ((not logbuf))
-     (vc-delete-logbuf-window
-      (quit-windows-on logbuf t (selected-frame)))
-     (t
-      (quit-windows-on logbuf nil 0)))
+    (cond ((not logbuf))
+          (vc-delete-logbuf-window
+           (quit-windows-on logbuf t (selected-frame)))
+          (t
+           (quit-windows-on logbuf nil 0)))
 
     ;; Now make sure we see the expanded headers
-    (when log-fileset
-      (mapc
-       (lambda (file) (vc-resynch-buffer file t t))
-       log-fileset))
-    (run-hooks after-hook 'vc-finish-logentry-hook)))
+    (mapc (lambda (file) (vc-resynch-buffer file t t)) log-fileset)
+    (run-hooks after-hook)))
 
 (defun vc-dispatcher-browsing ()
   "Are we in a directory browser buffer?"
