@@ -952,12 +952,9 @@ Categories mode."
 				 todo-current-todo-file) ".toda")
 		      ;; Otherwise, jump to the category in the todo file.
 		      todo-current-todo-file)))
-	   (len (length todo-categories))
 	   (cat+file (unless cat
 		       (todo-read-category "Jump to category: "
 					    (if archive 'archive) file)))
-	   (add-item (and todo-add-item-if-new-category
-			  (> (length todo-categories) len)))
 	   (category (or cat (car cat+file))))
       (unless cat (setq file0 (cdr cat+file)))
       (with-current-buffer (find-file-noselect file0 'nowarn)
@@ -971,7 +968,10 @@ Categories mode."
         (todo-category-select)
         (goto-char (point-min))
 	(if (bound-and-true-p hl-line-mode) (hl-line-highlight))
-        (when add-item (todo-insert-item--basic))))))
+        (when (and todo-add-item-if-new-category
+                   ;; A new category is empty on creation.
+                   (seq-every-p #'zerop (cdr (assoc category todo-categories))))
+          (todo-insert-item--basic))))))
 
 (defun todo-next-item (&optional count)
   "Move point down to the beginning of the next item.
