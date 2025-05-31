@@ -149,7 +149,8 @@
   (error nil))
 
 (condition-case nil
-    (require 'cus-start)
+    (unless (featurep 'cus-start)
+      (require 'cus-start))
   (error nil))
 
 (put 'custom-define-hook 'custom-type 'hook)
