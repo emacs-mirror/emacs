@@ -713,5 +713,7 @@ for all methods.  Resulting data are derived from connection history."
 ;;; TODO:
 ;;
 ;; * Use multisession.el, starting with Emacs 29.1.
+;;
+;; Use `with-memoization', starting with Emacs 29.1.
 
 ;;; tramp-cache.el ends here

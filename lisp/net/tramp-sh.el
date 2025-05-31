@@ -190,7 +190,10 @@ The string is used in `tramp-methods'.")
               `("scp"
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
-				             ("-e" "none") ("%h")))
+					     ("-e" "none")
+				             ("-o" ,(format "SetEnv=\"TERM=%s\""
+							    tramp-terminal-type))
+					     ("%h")))
                 (tramp-async-args           (("-q")))
 		(tramp-direct-async         ("-t" "-t"))
                 (tramp-remote-shell         ,tramp-default-remote-shell)
@@ -208,6 +211,8 @@ The string is used in `tramp-methods'.")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
 				             ("-e" "none") ("-t" "-t")
 					     ("-o" "RemoteCommand=\"%l\"")
+				             ("-o" ,(format "SetEnv=\"TERM=%s\""
+							    tramp-terminal-type))
 					     ("%h")))
                 (tramp-async-args           (("-q")))
                 (tramp-remote-shell         ,tramp-default-remote-shell)
@@ -223,7 +228,10 @@ The string is used in `tramp-methods'.")
               `("rsync"
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
-				             ("-e" "none") ("%h")))
+				             ("-e" "none")
+				             ("-o" ,(format "SetEnv=\"TERM=%s\""
+							    tramp-terminal-type))
+					     ("%h")))
                 (tramp-async-args           (("-q")))
                 (tramp-direct-async         t)
                 (tramp-remote-shell         ,tramp-default-remote-shell)
@@ -254,7 +262,10 @@ The string is used in `tramp-methods'.")
               `("ssh"
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
-				             ("-e" "none") ("%h")))
+				             ("-e" "none")
+				             ("-o" ,(format "SetEnv=\"TERM=%s\""
+							    tramp-terminal-type))
+					     ("%h")))
                 (tramp-async-args           (("-q")))
 		(tramp-direct-async         ("-t" "-t"))
                 (tramp-remote-shell         ,tramp-default-remote-shell)
@@ -265,6 +276,8 @@ The string is used in `tramp-methods'.")
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
 				             ("-e" "none") ("-t" "-t")
+				             ("-o" ,(format "SetEnv=\"TERM=%s\""
+							    tramp-terminal-type))
 					     ("-o" "RemoteCommand=\"%l\"")
 					     ("%h")))
                 (tramp-async-args           (("-q")))
@@ -301,6 +314,7 @@ The string is used in `tramp-methods'.")
                 ;; remote host echoes the command.
 		;; The "-p" argument doesn't work reliably, see Bug#50594.
                 (tramp-login-args           (("SUDO_PROMPT=P\"\"a\"\"s\"\"s\"\"w\"\"o\"\"r\"\"d\"\":")
+                                             (,(format "TERM=%s" tramp-terminal-type))
                                              ("sudo") ("-u" "%u") ("-s") ("-H")
 				             ("%l")))
                 (tramp-remote-shell         ,tramp-default-remote-shell)
@@ -4123,12 +4137,33 @@ This function expects to be in the right *tramp* buffer."
 	(unless (char-equal ?~ (aref d 0))
 	  (setq newdl (cons d newdl))))
       (setq dirlist (nreverse newdl))))
-  (when (tramp-send-command-and-check
-         vec (format "(unalias %s; %s command -v %s)"
-                     progname
-                     (if dirlist (concat "PATH=" (string-join dirlist ":")) "")
-                     progname))
-    (string-trim (tramp-get-buffer-string (tramp-get-connection-buffer vec)))))
+  (let ((command
+	 (concat
+	  (when dirlist (format "PATH=%s " (string-join dirlist ":")))
+	  "command -v " progname))
+	(pipe-buf (tramp-get-remote-pipe-buf vec))
+	tmpfile chunk chunksize)
+    (when (if (length< command pipe-buf)
+	      (tramp-send-command-and-check vec command)
+	    ;; Use a temporary file.  We cannot use `write-region'
+	    ;; because setting the remote path happens in the early
+	    ;; connection handshake, and not all external tools are
+	    ;; determined yet.
+	    (setq command (concat command "\n")
+		  tmpfile (tramp-make-tramp-temp-file vec))
+	    (while (not (string-empty-p command))
+	      (setq chunksize (min (length command) (/ pipe-buf 2))
+		    chunk (substring command 0 chunksize)
+		    command (substring command chunksize))
+	      (tramp-send-command
+	       vec (format "printf \"%%b\" \"$*\" %s >>%s"
+			   (tramp-shell-quote-argument chunk)
+			   (tramp-shell-quote-argument tmpfile))))
+	    (tramp-send-command-and-check
+	     vec (format ". %s && rm -f %s" tmpfile tmpfile)))
+
+      (string-trim
+       (tramp-get-buffer-string (tramp-get-connection-buffer vec))))))
 
 ;; On hydra.nixos.org, the $PATH environment variable is too long to
 ;; send it.  This is likely not due to PATH_MAX, but PIPE_BUF.  We
@@ -4162,12 +4197,11 @@ variable PATH."
 	  (setq chunksize (min (length command) (/ pipe-buf 2))
 		chunk (substring command 0 chunksize)
 		command (substring command chunksize))
-	  (tramp-send-command vec (format
-				   "printf \"%%b\" \"$*\" %s >>%s"
-				   (tramp-shell-quote-argument chunk)
-				   (tramp-shell-quote-argument tmpfile))))
-	(tramp-send-command vec (format ". %s" tmpfile))
-	(tramp-send-command vec (format "rm -f %s" tmpfile))))))
+	  (tramp-send-command
+	   vec (format "printf \"%%b\" \"$*\" %s >>%s"
+		       (tramp-shell-quote-argument chunk)
+		       (tramp-shell-quote-argument tmpfile))))
+	(tramp-send-command vec (format ". %s && rm -f %s" tmpfile tmpfile))))))
 
 ;; ------------------------------------------------------------
 ;; -- Communication with external shell --
@@ -5108,6 +5142,7 @@ Goes through the list `tramp-inline-compress-commands'."
 
    (t "-3")))
 
+;;;###tramp-autoload
 (defun tramp-timeout-session (vec)
   "Close the connection VEC after a session timeout.
 If there is just some editing, retry it after 5 seconds."

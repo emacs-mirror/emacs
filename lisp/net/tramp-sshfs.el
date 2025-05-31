@@ -62,6 +62,8 @@
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-q") ("-l" "%u") ("-p" "%p")
 				             ("-e" "none") ("%a" "%a")
+				             ("-o" ,(format "SetEnv=\"TERM=%s\""
+							    tramp-terminal-type))
 					     ("%h") ("%l")))
                 (tramp-direct-async         t)
                 (tramp-remote-shell         ,tramp-default-remote-shell)
