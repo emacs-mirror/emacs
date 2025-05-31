@@ -74,7 +74,7 @@ extra indent = 2
       (face-background face nil t)))))
 
 (defvar visual-wrap--safe-display-specs
-  '(height raise)
+  '(space-width min-width height raise)
   "A list of display specs that don't interfere with wrap prefixes.
 A \"safe\" display spec is one that won't interfere with the additional
 text properties that `visual-wrap-prefix-mode' uses.
@@ -98,8 +98,8 @@ members of `visual-wrap--safe-display-specs' (which see)."
   (when (or (vectorp display) (listp display))
     (not (catch 'unsafe
            (mapc (lambda (spec)
-                   (unless (memq (car-safe spec)
-                                 visual-wrap--safe-display-specs)
+                   (unless (member (car-safe spec)
+                                   visual-wrap--safe-display-specs)
                      (throw 'unsafe t)))
                  display)))))
 
