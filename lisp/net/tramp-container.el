@@ -551,6 +551,7 @@ see its function help for a description of the format."
                 (tramp-login-args (("exec")
                                    ("-it")
                                    ("-u" "%u")
+				   ("-e" ,(format "TERM=%s" tramp-terminal-type))
                                    ("%h")
 			           ("%l")))
 		(tramp-direct-async (,tramp-default-remote-shell "-c"))
@@ -565,6 +566,7 @@ see its function help for a description of the format."
                 (tramp-login-args (("exec")
                                    ("-it")
                                    ("-u" "%u")
+				   ("-e" ,(format "TERM=%s" tramp-terminal-type))
                                    ("%h")
 			           ("%l")))
 		(tramp-direct-async (,tramp-default-remote-shell "-c"))
@@ -583,6 +585,7 @@ see its function help for a description of the format."
                 (tramp-login-args (("exec")
                                    ("-it")
                                    ("-u" "%u")
+				   ("-e" ,(format "TERM=%s" tramp-terminal-type))
                                    ("%h")
 			           ("%l")))
 		(tramp-direct-async (,tramp-default-remote-shell "-c"))
@@ -597,6 +600,7 @@ see its function help for a description of the format."
                 (tramp-login-args (("exec")
                                    ("-it")
                                    ("-u" "%u")
+				   ("-e" ,(format "TERM=%s" tramp-terminal-type))
                                    ("%h")
 			           ("%l")))
 		(tramp-direct-async (,tramp-default-remote-shell "-c"))
@@ -754,6 +758,8 @@ see its function help for a description of the format."
 	       `(,tramp-apptainer-method
 		 (tramp-login-program ,tramp-apptainer-program)
 		 (tramp-login-args (("shell")
+				    ("--env"
+				     ,(format "TERM=%s" tramp-terminal-type))
 				    ("instance://%h")
 				    ("%h"))) ; Needed for multi-hop check.
 		 (tramp-remote-shell ,tramp-default-remote-shell)
@@ -777,6 +783,8 @@ see its function help for a description of the format."
 		 (tramp-login-args (("shell")
 				    ("-q")
 				    ("--uid" "%u")
+				    ("-E"
+				     ,(format "TERM=%s" tramp-terminal-type))
 				    ("%h")))
 		 (tramp-remote-shell ,tramp-default-remote-shell)
 		 (tramp-remote-shell-login ("-l"))

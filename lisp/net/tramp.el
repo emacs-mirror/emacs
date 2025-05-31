@@ -6255,15 +6255,22 @@ the remote host use line-endings as defined in the variable
 	    (process-send-string p string)))))))
 
 (defun tramp-process-sentinel (proc event)
-  "Flush file caches and remove shell prompt."
+  "Flush file caches and remove shell prompt.
+Set exit status of PROC as connection property \" process-exit-status\"."
   (unless (process-live-p proc)
     (let ((vec (process-get proc 'tramp-vector))
 	  (buf (process-buffer proc))
 	  (prompt (tramp-get-connection-property proc "prompt")))
       (when vec
-	(tramp-message vec 5 "Sentinel called: `%S' `%s'" proc event)
+	(tramp-message
+	 vec 5 "Sentinel called: `%S' event: `%s' status: %s"
+	 proc event (process-exit-status proc))
         (tramp-flush-connection-properties proc)
-        (tramp-flush-directory-properties vec "/"))
+        (tramp-flush-directory-properties vec "/")
+	;; Sometimes, the process has been deleted already before we
+	;; can retrieve the exit status.
+	(tramp-set-connection-property
+	 vec " process-exit-status" (process-exit-status proc)))
       (when (buffer-live-p buf)
 	(with-current-buffer buf
           (when (and prompt (tramp-search-regexp (rx (literal prompt))))

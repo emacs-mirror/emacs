@@ -162,6 +162,7 @@ this variable \"client min protocol=NT1\"."
 	"NT_STATUS_PASSWORD_MUST_CHANGE"
 	"NT_STATUS_RESOURCE_NAME_NOT_FOUND"
 	"NT_STATUS_REVISION_MISMATCH"
+	"NT_STATUS_RPC_SS_CONTEXT_MISMATCH"
 	"NT_STATUS_SHARING_VIOLATION"
 	"NT_STATUS_TRUSTED_RELATIONSHIP_FAILURE"
 	"NT_STATUS_UNSUCCESSFUL"
@@ -316,7 +317,7 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
 ;; Options for remote processes via winexe.
 (defcustom tramp-smb-winexe-program "winexe"
   "Name of winexe client to run.
-If it isn't found in the local $PATH, the absolute path of winexe
+If it isn't found in the local $PATH, the absolute path of \"winexe\"
 shall be given.  This is needed for remote processes."
   :group 'tramp
   :version "24.3"
@@ -488,12 +489,13 @@ arguments to pass to the OPERATION."
 		       (args      (list (concat "//" host "/" share) "-E"))
 		       (options   tramp-smb-options))
 
-		  (if (tramp-string-empty-or-nil-p user)
-		      (setq args (append args (list "-N")))
-		    (setq args (append args (list "-U" user))))
+		  (setq args
+			(append args
+			 (if (tramp-string-empty-or-nil-p user)
+			     (list "-N")
+			   (list "-U" (if domain (concat domain "/" user) user)))
+			 (when port (list "-p" port))))
 
-		  (when domain (setq args (append args (list "-W" domain))))
-		  (when port   (setq args (append args (list "-p" port))))
 		  (when tramp-smb-conf
 		    (setq args (append args (list "-s" tramp-smb-conf))))
 		  (while options
@@ -779,12 +781,13 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		 (args      (list (concat "//" host "/" share) "-E"))
 		 (options   tramp-smb-options))
 
-	    (if (tramp-string-empty-or-nil-p user)
-		(setq args (append args (list "-N")))
-	      (setq args (append args (list "-U" user))))
+	    (setq args
+		  (append args
+		   (if (tramp-string-empty-or-nil-p user)
+		       (list "-N")
+		     (list "-U" (if domain (concat domain "/" user) user)))
+		   (when port (list "-p" port))))
 
-	    (when domain (setq args (append args (list "-W" domain))))
-	    (when port   (setq args (append args (list "-p" port))))
 	    (when tramp-smb-conf
 	      (setq args (append args (list "-s" tramp-smb-conf))))
 	    (while options
@@ -1251,6 +1254,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	    (tramp-set-connection-property
 	     v " process-buffer"
 	     (or outbuf (generate-new-buffer tramp-temp-buffer-name)))
+	    (tramp-flush-connection-property v " process-exit-status")
 	    (with-current-buffer (tramp-get-connection-buffer v)
 	      ;; Preserve buffer contents.
 	      (narrow-to-region (point-max) (point-max))
@@ -1366,12 +1370,13 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 				(string-replace "\n" "," acl-string)))
 	       (options   tramp-smb-options))
 
-	  (if (tramp-string-empty-or-nil-p user)
-	      (setq args (append args (list "-N")))
-	    (setq args (append args (list "-U" user))))
+	  (setq args
+		(append args
+		 (if (tramp-string-empty-or-nil-p user)
+		     (list "-N")
+		   (list "-U" (if domain (concat domain "/" user) user)))
+		 (when port (list "-p" port))))
 
-	  (when domain (setq args (append args (list "-W" domain))))
-	  (when port   (setq args (append args (list "-p" port))))
 	  (when tramp-smb-conf
 	    (setq args (append args (list "-s" tramp-smb-conf))))
 	  (while options
@@ -1906,16 +1911,19 @@ If ARGUMENT is non-nil, use it as argument for
 	     (share    (setq args (list (concat "//" host "/" share))))
 	     (t        (setq args (list "-g" "-L" host ))))
 
-	    (if (tramp-string-empty-or-nil-p user)
-		(setq args (append args (list "-N")))
-	      (setq args (append args (list "-U" user))))
+	    (setq args
+		  (append args
+		   (if (tramp-string-empty-or-nil-p user)
+		       (list "-N")
+		     (list "-U" (if domain (concat domain "/" user) user)))
+		   (when port (list "-p" port))))
 
-	    (when domain (setq args (append args (list "-W" domain))))
-	    (when port   (setq args (append args (list "-p" port))))
 	    (when tramp-smb-conf
 	      (setq args (append args (list "-s" tramp-smb-conf))))
 	    (dolist (option options)
 	      (setq args (append args (list "--option" option))))
+	    ;; For debugging.
+	    (setq args (append args (list "-d" "1")))
 	    (when argument
 	      (setq args (append args (list argument))))
 
@@ -2026,6 +2034,8 @@ Removes smb prompt.  Returns nil if an error message has appeared."
   (when (tramp-file-name-port vec)
     (tramp-error vec 'file-error "Port not supported for remote processes"))
 
+  ;; In case of "NT_STATUS_RPC_SS_CONTEXT_MISMATCH", the remote server
+  ;; is a Samba server.  winexe cannot install the respective service there.
   (tramp-smb-maybe-open-connection
    vec
    (format
@@ -2037,12 +2047,14 @@ Removes smb prompt.  Returns nil if an error message has appeared."
   ;; Suppress "^M".  Shouldn't we specify utf8?
   (set-process-coding-system (tramp-get-connection-process vec) 'raw-text-dos)
 
-  ;; Set width to 128.  This avoids mixing prompt and long error messages.
+  ;; Set width to 128 ($bufsize.Width) or 102 ($winsize.Width),
+  ;; respectively.  $winsize.Width cannot be larger.  This avoids
+  ;; mixing prompt and long error messages.
   (tramp-smb-send-command vec "$rawui = (Get-Host).UI.RawUI")
   (tramp-smb-send-command vec "$bufsize = $rawui.BufferSize")
   (tramp-smb-send-command vec "$winsize = $rawui.WindowSize")
   (tramp-smb-send-command vec "$bufsize.Width = 128")
-  (tramp-smb-send-command vec "$winsize.Width = 128")
+  (tramp-smb-send-command vec "$winsize.Width = 102")
   (tramp-smb-send-command vec "$rawui.BufferSize = $bufsize")
   (tramp-smb-send-command vec "$rawui.WindowSize = $winsize"))
 
@@ -2069,5 +2081,7 @@ Removes smb prompt.  Returns nil if an error message has appeared."
 ;;   several places, especially in `tramp-smb-handle-insert-directory'.
 ;;
 ;; * Keep a separate connection process per share.
+;;
+;; * Keep a permanent connection process for `process-file'.
 
 ;;; tramp-smb.el ends here
