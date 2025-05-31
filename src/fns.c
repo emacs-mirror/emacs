@@ -3041,7 +3041,7 @@ fixnum_float_cmp (EMACS_INT a, double b)
     {
       /* This doesn't mean that a=b because the conversion may have rounded.
 	 However, b must be an integer that fits in an EMACS_INT,
-	 because |b| ≤ 2|a| and EMACS_INT has at least one bit more than
+	 because |b| <= 2|a| and EMACS_INT has at least one bit more than
 	 needed to represent any fixnum.
 	 Thus we can compare in the integer domain instead.  */
       EMACS_INT ib = b;		/* lossless conversion */
