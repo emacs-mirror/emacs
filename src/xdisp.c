@@ -5570,7 +5570,7 @@ setup_for_ellipsis (struct it *it, int len)
 
 
 static Lisp_Object
-find_display_property (Lisp_Object disp, Lisp_Object prop)
+find_display_property (Lisp_Object disp, Lisp_Object spec)
 {
   Lisp_Object elem;
   if (NILP (disp))
@@ -5583,7 +5583,7 @@ find_display_property (Lisp_Object disp, Lisp_Object prop)
 	  elem = AREF (disp, i);
 	  if (CONSP (elem)
 	      && CONSP (XCDR (elem))
-	      && EQ (XCAR (elem), prop))
+	      && EQ (XCAR (elem), spec))
 	    goto found;
 	}
       return Qnil;
@@ -5597,7 +5597,7 @@ find_display_property (Lisp_Object disp, Lisp_Object prop)
 	  elem = XCAR (disp);
 	  if (CONSP (elem)
 	      && CONSP (XCDR (elem))
-	      && EQ (XCAR (elem), prop))
+	      && EQ (XCAR (elem), spec))
 	    goto found;
 
 	  /* Check that we have a proper list before going to the next
@@ -5612,7 +5612,7 @@ find_display_property (Lisp_Object disp, Lisp_Object prop)
   /* A simple display spec.  */
   else if (CONSP (disp)
 	   && CONSP (XCDR (disp))
-	   && EQ (XCAR (disp), prop))
+	   && EQ (XCAR (disp), spec))
     {
       elem = disp;
       goto found;
@@ -5753,13 +5753,15 @@ display_min_width (struct it *it, ptrdiff_t charpos,
 
 DEFUN ("get-display-property", Fget_display_property,
        Sget_display_property, 2, 4, 0,
-       doc: /* Get the value of the `display' property PROP at POSITION.
-If OBJECT, this should be a buffer or string where the property is
-fetched from.  If omitted, OBJECT defaults to the current buffer.
+       doc: /* Get the value of the display specification SPEC at POSITION.
+SPEC is the car of the display specification to fetch, e.g. `height'.
 
-If PROPERTIES, look for value of PROP in PROPERTIES instead of the
-properties at POSITION.  */)
-  (Lisp_Object position, Lisp_Object prop, Lisp_Object object,
+OBJECT is either a string or a buffer to fetch the specification from.
+If omitted, OBJECT defaults to the current buffer.
+
+If PROPERTIES is non-nil, look for value of SPEC in PROPERTIES instead
+of the properties at POSITION.  */)
+  (Lisp_Object position, Lisp_Object spec, Lisp_Object object,
    Lisp_Object properties)
 {
   if (NILP (properties))
@@ -5767,7 +5769,7 @@ properties at POSITION.  */)
   else
     CHECK_LIST (properties);
 
-  return find_display_property (properties, prop);
+  return find_display_property (properties, spec);
 }
 
 

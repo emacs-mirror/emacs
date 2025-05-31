@@ -417,14 +417,13 @@ indivisible unit."
     (nreverse result)))
 
 ;;;###autoload
-(defun add-display-text-property (start end prop value
-                                        &optional object)
-  "Add display property PROP with VALUE to the text from START to END.
-If any text in the region has a non-nil `display' property, those
-properties are retained.
+(defun add-display-text-property (start end spec value &optional object)
+  "Add the display specification (SPEC VALUE) to the text from START to END.
+If any text in the region has a non-nil `display' property, the existing
+display specifications are retained.
 
-If OBJECT is non-nil, it should be a string or a buffer.  If nil,
-this defaults to the current buffer."
+OBJECT is either a string or a buffer to add the specification to.
+If omitted, OBJECT defaults to the current buffer."
   (let ((sub-start start)
         (sub-end 0)
         disp)
@@ -435,7 +434,7 @@ this defaults to the current buffer."
                                                    (min end (point-max)))))
       (if (not (setq disp (get-text-property sub-start 'display object)))
           ;; No old properties in this range.
-          (put-text-property sub-start sub-end 'display (list prop value)
+          (put-text-property sub-start sub-end 'display (list spec value)
                              object)
         ;; We have old properties.
         (let (type)
@@ -455,14 +454,14 @@ this defaults to the current buffer."
                   (setq type 'list)
                   disp)))
           ;; Remove any old instances.
-          (when-let* ((old (assoc prop disp)))
+          (when-let* ((old (assoc spec disp)))
             ;; If the property value was a list, don't modify the
             ;; original value in place; it could be used by other
             ;; regions of text.
             (setq disp (if (eq type 'list)
                            (remove old disp)
                          (delete old disp))))
-          (setq disp (cons (list prop value) disp))
+          (setq disp (cons (list spec value) disp))
           (when (eq type 'vector)
             (setq disp (seq-into disp 'vector)))
           ;; Finally update the range.
