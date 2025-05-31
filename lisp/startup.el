@@ -1151,6 +1151,8 @@ such as returned by `get-load-suffixes'.  The cdr of each entry is a
 cons whose car is an `regex-opt' optimized regex matching those suffixes
 at the end of a string, and whose cdr is a hash-table mapping directories
 to files in those directories which end with one of the suffixes.
+Since the list of load suffixes usually includes an empty string, the
+hash-table will also include subdirectories of those directories.
 The hash-table uses `equal' as its key comparison function.")
 
 (defun load-path-filter-cache-directory-files (path file suffixes)
