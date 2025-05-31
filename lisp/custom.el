@@ -699,8 +699,7 @@ The result is that the change is treated as having been made through Custom."
       (ignore-errors
         (require 'cus-load))
       (ignore-errors
-        (unless (featurep 'cus-start)
-          (require 'cus-start)))
+        (require 'cus-start))
       (dolist (load (get symbol 'custom-loads))
         (cond ((symbolp load) (ignore-errors (require load)))
 	      ;; This is subsumed by the test below, but it's much faster.
