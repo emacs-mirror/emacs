@@ -1148,11 +1148,12 @@ the `--debug-init' option to view a complete error backtrace."
 
 The value is an alist.  The car of each entry is a list of load suffixes,
 such as returned by `get-load-suffixes'.  The cdr of each entry is a
-cons whose car is an `regex-opt' optimized regex matching those suffixes
+cons whose car is a regex matching those suffixes
 at the end of a string, and whose cdr is a hash-table mapping directories
 to files in those directories which end with one of the suffixes.
-Since the list of load suffixes usually includes an empty string, the
-hash-table will also include subdirectories of those directories.
+These can also be nil, in which case no filtering will happen.
+The files named in the hash-table can be of any kind,
+including subdirectories.
 The hash-table uses `equal' as its key comparison function.")
 
 (defun load-path-filter-cache-directory-files (path file suffixes)
@@ -1170,19 +1171,28 @@ This function is called from `load' via `load-path-filter-function'."
   (if (file-name-directory file)
       ;; FILE has more than one component, don't bother filtering.
       path
-    (seq-filter
-     (let ((rx-and-ht
-            (with-memoization (alist-get suffixes load-path-filter--cache nil nil #'equal)
-              (cons
-               (concat (regexp-opt suffixes) "\\'")
-               (make-hash-table :test #'equal)))))
-       (lambda (dir)
-         (when (file-directory-p dir)
-           (try-completion
-            file
-            (with-memoization (gethash dir (cdr rx-and-ht))
-              (directory-files dir nil (car rx-and-ht) t))))))
-     path)))
+    (pcase-let
+        ((`(,rx . ,ht)
+          (with-memoization (alist-get suffixes load-path-filter--cache
+                                       nil nil #'equal)
+            (if (member "" suffixes)
+                '(nil ;; Optimize the filtering.
+                  ;; Don't bother filtering if "" is among the suffixes.
+                  ;; It's a much less common use-case and it would use
+                  ;; more memory to keep the corresponding info.
+                  . nil)
+              (cons (concat (regexp-opt suffixes) "\\'")
+                    (make-hash-table :test #'equal))))))
+      (if (null ht)
+          path
+        (seq-filter
+         (lambda (dir)
+           (when (file-directory-p dir)
+             (try-completion
+              file
+              (with-memoization (gethash dir ht)
+                (directory-files dir nil rx t)))))
+         path)))))
 
 (defun command-line ()
   "A subroutine of `normal-top-level'.
