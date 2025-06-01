@@ -96,6 +96,11 @@ const foo = () => {
 Name: Chained ternary expressions
 
 =-=
+const a = cond1 ? 1 :
+  cond2 ? 2 :
+  cond3 ? 3 :
+  cond 4: 5;
+
 const a = cond1 ? 1
   : cond2 ? 2
   : cond3 ? 3

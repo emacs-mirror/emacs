@@ -229,6 +229,26 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     "&&" "||" "!" "?.")
   "TypeScript operators for tree-sitter font-locking.")
 
+(defun typescript-ts--standalone-parent-p (parent)
+  "Return t if PARENT can be considered standalone.
+This is used for `treesit-simple-indent-standalone-predicate'."
+  (save-excursion
+    (goto-char (treesit-node-start parent))
+    (cond
+     ;; Never allow nested ternary_expression node to be standalone
+     ;; parent, to avoid nested indentation.
+     ((equal (treesit-node-type (treesit-node-parent parent))
+             "ternary_expression")
+      nil)
+     ;; If there's only whitespace before node, consider
+     ;; this node standalone. To support function
+     ;; chaining, allow a dot to be before the node.
+     ((looking-back (rx bol (* whitespace) (? "."))
+                    (line-beginning-position))
+      (if (looking-back "\\.")
+          (1- (point))
+        (point))))))
+
 (defun tsx-ts-mode--font-lock-compatibility-bb1f97b (language)
   "Font lock rules helper, to handle different releases of tree-sitter-tsx.
 Check if a node type is available, then return the right font lock rules.
@@ -679,6 +699,8 @@ This mode is intended to be inherited by concrete major modes."
     ;; Indent.
     (setq-local treesit-simple-indent-rules
                 (typescript-ts-mode--indent-rules 'typescript))
+    (setq-local treesit-simple-indent-standalone-predicate
+                #'typescript-ts--standalone-parent-p)
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings
@@ -728,6 +750,8 @@ at least 3 (which is the default value)."
     ;; Indent.
     (setq-local treesit-simple-indent-rules
                 (typescript-ts-mode--indent-rules 'tsx))
+    (setq-local treesit-simple-indent-standalone-predicate
+                #'typescript-ts--standalone-parent-p)
 
     (setq-local treesit-thing-settings
                 `((tsx
