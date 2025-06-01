@@ -2197,6 +2197,14 @@ fix_buffer (mps_ss_t ss, struct buffer *b)
 }
 
 static mps_res_t
+scan_buffer (mps_ss_t ss, void *start, void *end, void *closure)
+{
+  igc_assert (PSEUDOVECTOR_TYPE (start) == PVEC_BUFFER);
+  igc_assert ((char *) end - (char *) start == sizeof (struct buffer));
+  return fix_buffer (ss, start);
+}
+
+static mps_res_t
 fix_glyph_pool (mps_ss_t ss, struct glyph_pool *pool)
 {
   MPS_SCAN_BEGIN (ss)
@@ -2887,8 +2895,7 @@ root_create_lispsym (struct igc *gc)
 static void
 root_create_buffer (struct igc *gc, struct buffer *b)
 {
-  void *start = &b->name_, *end = &b->own_text;
-  root_create_ambig (gc, start, end, "buffer");
+  root_create_exact (gc, b, b + 1, scan_buffer, "buffer");
 }
 
 static void
