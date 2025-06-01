@@ -1581,28 +1581,40 @@ If LIMIT is a revision string, use it as an end-revision."
            ,(format "--pretty=tformat:%s" (car vc-git-root-log-format))
            "--abbrev-commit"
            ,@(ensure-list vc-git-shortlog-switches)
-           ,(concat (if (string= remote-location "")
+           ,(concat (if (string-empty-p remote-location)
 	                "@{upstream}"
 	              remote-location)
 	            "..HEAD"))))
 
+(defun vc-git--fetch-incoming (remote-location)
+  (vc-git-command nil 0 nil "fetch"
+                  (and (not (string-empty-p remote-location))
+                       ;; Extract remote from "remote/branch".
+                       (replace-regexp-in-string "/.*" ""
+                                                 remote-location))))
+
 (defun vc-git-log-incoming (buffer remote-location)
   (vc-setup-buffer buffer)
-  (vc-git-command nil 0 nil "fetch"
-                  (unless (string= remote-location "")
-                    ;; `remote-location' is in format "repository/branch",
-                    ;; so remove everything except a repository name.
-                    (replace-regexp-in-string
-                     "/.*" "" remote-location)))
+  (vc-git--fetch-incoming remote-location)
   (apply #'vc-git-command buffer 'async nil
          `("log"
            "--no-color" "--graph" "--decorate" "--date=short"
            ,(format "--pretty=tformat:%s" (car vc-git-root-log-format))
            "--abbrev-commit"
            ,@(ensure-list vc-git-shortlog-switches)
-           ,(concat "HEAD.." (if (string= remote-location "")
+           ,(concat "HEAD.." (if (string-empty-p remote-location)
 			         "@{upstream}"
 		               remote-location)))))
+
+(defun vc-git-incoming-revision (remote-location)
+  (vc-git--fetch-incoming remote-location)
+  (ignore-errors              ; in order to return nil if no such branch
+    (with-output-to-string
+      (vc-git-command standard-output 0 nil
+                      "log" "--max-count=1" "--pretty=format:%H"
+                      (if (string-empty-p remote-location)
+			  "@{upstream}"
+		        remote-location)))))
 
 (defun vc-git-log-search (buffer pattern)
   "Search the log of changes for PATTERN and output results into BUFFER.

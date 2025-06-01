@@ -357,6 +357,12 @@
 ;;   Insert in BUFFER the revision log for the changes that will be
 ;;   received when performing a pull operation from REMOTE-LOCATION.
 ;;
+;; * incoming-revision (remote-location)
+;;
+;;   Return revision at the head of the branch at REMOTE-LOCATION.
+;;   If there is no such branch there, return nil.  (Should signal an
+;;   error, not return nil, in the case that fetching data fails.)
+;;
 ;; - log-search (buffer pattern)
 ;;
 ;;   Search for PATTERN in the revision log and output results into BUFFER.

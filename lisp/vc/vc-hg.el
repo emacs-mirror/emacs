@@ -1452,13 +1452,26 @@ This runs the command \"hg summary\"."
 
 (defun vc-hg-log-incoming (buffer remote-location)
   (vc-setup-buffer buffer)
-  (vc-hg-command buffer 1 nil "incoming" "-n" (unless (string= remote-location "")
-						remote-location)))
+  (vc-hg-command buffer 1 nil "incoming" "-n"
+                 (and (not (string-empty-p remote-location))
+		      remote-location)))
+
+(defun vc-hg-incoming-revision (remote-location)
+  (let ((output (with-output-to-string
+                  ;; Exits 1 to mean nothing to pull.
+                  (vc-hg-command standard-output 1 nil
+                                 "incoming" "-qn" "--limit=1"
+                                 "--template={node}"
+                                 (and (not (string-empty-p remote-location))
+		                      remote-location)))))
+    (and (not (string-empty-p output))
+         output)))
 
 (defun vc-hg-log-outgoing (buffer remote-location)
   (vc-setup-buffer buffer)
-  (vc-hg-command buffer 1 nil "outgoing" "-n" (unless (string= remote-location "")
-						remote-location)))
+  (vc-hg-command buffer 1 nil "outgoing" "-n"
+                 (and (not (string-empty-p remote-location))
+		      remote-location)))
 
 (defvar vc-hg-error-regexp-alist
   '(("^M \\(.+\\)" 1 nil nil 0))
