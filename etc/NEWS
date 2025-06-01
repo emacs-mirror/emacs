@@ -3879,6 +3879,12 @@ It offers a more concise way to create a completion table with metadata.
 ** 'all-completions' and 'unintern' no longer support old calling conventions.
 
 +++
+** New function 'string-common-prefix'.
+Return the longest common prefix from a collection of strings.  This
+function is similar to 'try-completion', but it returns a string in all
+cases.
+
++++
 ** New symbol property 'find-function-type-alist' used by 'find-function' etc.
 Macros that define an object in a way that makes the object's name and
 the macro call site defining the object hard to associate can add an

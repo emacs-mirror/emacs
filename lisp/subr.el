@@ -6129,6 +6129,32 @@ attention to letter-case differences."
          (eq t (compare-strings suffix nil nil
                                 string start-pos nil ignore-case)))))
 
+(defun string-common-prefix (strings &optional ignore-case)
+  "Return the longest common prefix from a collection of STRINGS.
+
+Return \"\" if there is no common prefix or if STRINGS is nil.
+If STRINGS contains exactly one string, return that string.
+
+If IGNORE-CASE is non-nil, letter case is ignored when matching the
+substrings, but no guarantee is made about the letter-case of the return
+value, except that it comes from one of the members of STRINGS.
+
+STRINGS may be a list of strings or any other collection type supported
+by `try-completion' and `all-completions' (which see).  To find the
+common prefix of a subset of STRINGS (filtered by string prefix, regular
+expression, or predicate function), use `all-completions' to perform the
+filtering and pass the result to `string-common-prefix' as STRINGS."
+  ;; Note that `try-completion' is not affected by `completion-styles'.
+  (let* ((completion-ignore-case ignore-case)
+         (completion-regexp-list nil)
+         (prefix (try-completion "" strings)))
+    (if (stringp prefix)
+        prefix
+      ;; nil means there was no match.
+      ;; t means that the "" argument was an exact match.
+      ;; We always return a string, so we treat both cases the same.
+      "")))
+
 (defun bidi-string-mark-left-to-right (str)
   "Return a string that can be safely inserted in left-to-right text.
 

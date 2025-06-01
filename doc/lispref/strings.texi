@@ -248,6 +248,43 @@ equivalent to 0.  Thus, @w{@code{(substring-no-properties
 properties removed.
 @end defun
 
+@cindex common prefix of a collection of strings
+@cindex string completion
+@defun string-common-prefix strings &optional ignore-case
+This function returns the longest initial substring common to all
+members of @var{strings}.  It returns an empty string if there is no
+common prefix or if @var{strings} is @code{nil}.  If @var{strings}
+contains exactly one string, it returns that string.
+
+@example
+(string-common-prefix '("foobar" "foozot"))
+     @result{} "foo"
+(string-common-prefix '("foobar" "foozot" "gazonk"))
+     @result{} ""
+(string-common-prefix '("foobar"))
+     @result{} "foobar"
+@end example
+
+If @var{ignore-case} is non-@code{nil}, letter case is ignored when
+matching the substrings, but no guarantee is made about the letter-case
+of the return value, except that it comes from one of the members of
+@var{strings}.
+
+@var{strings} may be a list of strings or any other collection type
+supported by @code{try-completion} and @code{all-completions}
+(@pxref{Basic Completion}).  This function is similar to
+@code{try-completion}, but always returns a string.  The filtering
+features of the completion functions (by string prefix, regular
+expression, and predicate function) are available using
+@code{all-completions}:
+
+@example
+(string-common-prefix (all-completions
+                       "foo" '("foobar" "foobaz" "gazonk")))
+     @result{} "fooba"
+@end example
+@end defun
+
 @defun concat &rest sequences
 @cindex copying strings
 @cindex concatenating strings

@@ -965,6 +965,9 @@ too short).  Both of those begin with the string @samp{foobar}.
      @result{} "foobar"
 @end group
 @end smallexample
+
+  See also the function @code{string-common-prefix} in
+@ref{Creating Strings}.
 @end defun
 
 @defun all-completions string collection &optional predicate
