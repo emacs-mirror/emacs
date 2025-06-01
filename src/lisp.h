@@ -5171,9 +5171,10 @@ extern bool no_site_lisp;
 /* True means put details like time stamps into builds.  */
 extern bool build_details;
 
-#ifndef WINDOWSNT
-/* 0 not a daemon, 1 foreground daemon, 2 background daemon.  */
+/* 0 not a daemon, 1 new-style (foreground), 2 old-style (background).
+   A negative value means the daemon initialization was already done.  */
 extern int daemon_type;
+#ifndef WINDOWSNT
 #define IS_DAEMON (daemon_type != 0)
 /* Non-zero means daemon-initialized has not yet been called.  */
 #define DAEMON_RUNNING (daemon_type >= 0)

@@ -141,15 +141,17 @@ typedef HRESULT (WINAPI *TaskDialogIndirect_Proc) (
     OUT BOOL *pfVerificationFlagChecked);
 
 #ifdef NTGUI_UNICODE
-GetMenuItemInfoA_Proc get_menu_item_info = GetMenuItemInfoA;
-SetMenuItemInfoA_Proc set_menu_item_info = SetMenuItemInfoA;
+static GetMenuItemInfoA_Proc get_menu_item_info = GetMenuItemInfoA;
+static SetMenuItemInfoA_Proc set_menu_item_info = SetMenuItemInfoA;
+extern AppendMenuW_Proc unicode_append_menu;
 AppendMenuW_Proc unicode_append_menu = AppendMenuW;
-MessageBoxW_Proc unicode_message_box = MessageBoxW;
+static MessageBoxW_Proc unicode_message_box = MessageBoxW;
 #else /* !NTGUI_UNICODE */
-GetMenuItemInfoA_Proc get_menu_item_info = NULL;
-SetMenuItemInfoA_Proc set_menu_item_info = NULL;
+static GetMenuItemInfoA_Proc get_menu_item_info = NULL;
+static SetMenuItemInfoA_Proc set_menu_item_info = NULL;
+extern AppendMenuW_Proc unicode_append_menu;
 AppendMenuW_Proc unicode_append_menu = NULL;
-MessageBoxW_Proc unicode_message_box = NULL;
+static MessageBoxW_Proc unicode_message_box = NULL;
 #endif /* NTGUI_UNICODE */
 
 static TaskDialogIndirect_Proc task_dialog_indirect;

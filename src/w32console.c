@@ -64,6 +64,7 @@ static CONSOLE_CURSOR_INFO console_cursor_info;
 static CONSOLE_CURSOR_INFO prev_console_cursor;
 #endif
 
+extern HANDLE  keyboard_handle;
 HANDLE  keyboard_handle;
 int w32_console_unicode_input;
 
@@ -623,7 +624,9 @@ sys_tgetstr (char *cap, char **area)
 			stubs from cm.c
  ***********************************************************************/
 
+extern struct tty_display_info *current_tty;
 struct tty_display_info *current_tty = NULL;
+extern int cost;
 int cost = 0;
 
 int evalcost (int);

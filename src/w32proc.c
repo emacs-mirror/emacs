@@ -1795,8 +1795,8 @@ msg_wait_for_objects (DWORD nCount, HANDLE *lpHandles,
 #define _P_NOWAIT 1
 
 /* Child process management list.  */
-int child_proc_count = 0;
-child_process child_procs[ MAX_CHILDREN ];
+static int child_proc_count = 0;
+static child_process child_procs[ MAX_CHILDREN ];
 
 static DWORD WINAPI reader_thread (void *arg);
 
@@ -4293,7 +4293,7 @@ int_from_hex (char * s)
 
 /* We need to build a global list, since the EnumSystemLocale callback
    function isn't given a context pointer.  */
-Lisp_Object Vw32_valid_locale_ids;
+static Lisp_Object Vw32_valid_locale_ids;
 
 static BOOL CALLBACK ALIGN_STACK
 enum_locale_fn (LPTSTR localeNum)
@@ -4357,7 +4357,7 @@ If successful, the new locale id is returned, otherwise nil.  */)
 
 /* We need to build a global list, since the EnumCodePages callback
    function isn't given a context pointer.  */
-Lisp_Object Vw32_valid_codepages;
+static Lisp_Object Vw32_valid_codepages;
 
 static BOOL CALLBACK ALIGN_STACK
 enum_codepage_fn (LPTSTR codepageNum)

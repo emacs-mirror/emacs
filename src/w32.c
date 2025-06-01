@@ -126,8 +126,11 @@ typedef struct _MEMORY_STATUS_EX {
    (excptr->ExceptionRecord->ExceptionCode) and the address where the
    exception happened (excptr->ExceptionRecord->ExceptionAddress), as
    well as some additional information specific to the exception.  */
+extern PEXCEPTION_POINTERS excptr;
 PEXCEPTION_POINTERS excptr;
+extern PEXCEPTION_RECORD excprec;
 PEXCEPTION_RECORD excprec;
+extern PCONTEXT ctxrec;
 PCONTEXT ctxrec;
 
 #include <lmcons.h>
@@ -353,7 +356,9 @@ static BOOL g_b_init_expand_environment_strings_w;
 static BOOL g_b_init_get_user_default_ui_language;
 static BOOL g_b_init_get_console_font_size;
 
+extern BOOL g_b_init_compare_string_w;
 BOOL g_b_init_compare_string_w;
+extern BOOL g_b_init_debug_break_process;
 BOOL g_b_init_debug_break_process;
 
 /*
@@ -379,12 +384,12 @@ typedef BOOL (WINAPI * GetProcessTimes_Proc) (
     LPFILETIME kernel_time,
     LPFILETIME user_time);
 
-GetProcessTimes_Proc get_process_times_fn = NULL;
+static GetProcessTimes_Proc get_process_times_fn = NULL;
 
 #ifdef _UNICODE
-const char * const LookupAccountSid_Name = "LookupAccountSidW";
+static const char * const LookupAccountSid_Name = "LookupAccountSidW";
 #else
-const char * const LookupAccountSid_Name = "LookupAccountSidA";
+static const char * const LookupAccountSid_Name = "LookupAccountSidA";
 #endif
 typedef BOOL (WINAPI * LookupAccountSid_Proc) (
     LPCTSTR lpSystemName,
@@ -3647,7 +3652,7 @@ is_exec (const char * name)
    the code that calls them doesn't grok UTF-8 encoded file names we
    produce in dirent->d_name[].  */
 
-struct dirent dir_static;       /* simulated directory contents */
+static struct dirent dir_static;       /* simulated directory contents */
 static HANDLE dir_find_handle = INVALID_HANDLE_VALUE;
 static int    dir_is_fat;
 static char   dir_pathname[MAX_UTF8_PATH];
@@ -4777,7 +4782,7 @@ int
 sys_rename_replace (const char *oldname, const char *newname, BOOL force)
 {
   BOOL result;
-  char temp[MAX_UTF8_PATH], temp_a[MAX_PATH];
+  char temp[MAX_UTF8_PATH], temp_a[MAX_PATH + 15]; /* "+ 15": pacify GCC */
   int newname_dev;
   int oldname_dev;
   bool have_temp_a = false;
@@ -7760,55 +7765,56 @@ w32_memory_info (unsigned long long *totalram, unsigned long long *freeram,
    (eg. gethostname). */
 
 /* function pointers for relevant socket functions */
-int (PASCAL *pfn_WSAStartup) (WORD wVersionRequired, LPWSADATA lpWSAData);
-void (PASCAL *pfn_WSASetLastError) (int iError);
-int (PASCAL *pfn_WSAGetLastError) (void);
-int (PASCAL *pfn_WSAEventSelect) (SOCKET s, HANDLE hEventObject, long lNetworkEvents);
-int (PASCAL *pfn_WSAEnumNetworkEvents) (SOCKET s, HANDLE hEventObject,
+static int (PASCAL *pfn_WSAStartup) (WORD wVersionRequired, LPWSADATA lpWSAData);
+static void (PASCAL *pfn_WSASetLastError) (int iError);
+static int (PASCAL *pfn_WSAGetLastError) (void);
+static int (PASCAL *pfn_WSAEventSelect) (SOCKET s, HANDLE hEventObject, long lNetworkEvents);
+static int (PASCAL *pfn_WSAEnumNetworkEvents) (SOCKET s, HANDLE hEventObject,
 					WSANETWORKEVENTS *NetworkEvents);
 
-HANDLE (PASCAL *pfn_WSACreateEvent) (void);
-int (PASCAL *pfn_WSACloseEvent) (HANDLE hEvent);
-int (PASCAL *pfn_socket) (int af, int type, int protocol);
-int (PASCAL *pfn_bind) (SOCKET s, const struct sockaddr *addr, int namelen);
-int (PASCAL *pfn_connect) (SOCKET s, const struct sockaddr *addr, int namelen);
-int (PASCAL *pfn_ioctlsocket) (SOCKET s, long cmd, u_long *argp);
-int (PASCAL *pfn_recv) (SOCKET s, char * buf, int len, int flags);
-int (PASCAL *pfn_send) (SOCKET s, const char * buf, int len, int flags);
-int (PASCAL *pfn_closesocket) (SOCKET s);
-int (PASCAL *pfn_shutdown) (SOCKET s, int how);
-int (PASCAL *pfn_WSACleanup) (void);
+static HANDLE (PASCAL *pfn_WSACreateEvent) (void);
+static int (PASCAL *pfn_WSACloseEvent) (HANDLE hEvent);
+static int (PASCAL *pfn_socket) (int af, int type, int protocol);
+static int (PASCAL *pfn_bind) (SOCKET s, const struct sockaddr *addr, int namelen);
+static int (PASCAL *pfn_connect) (SOCKET s, const struct sockaddr *addr, int namelen);
+static int (PASCAL *pfn_ioctlsocket) (SOCKET s, long cmd, u_long *argp);
+static int (PASCAL *pfn_recv) (SOCKET s, char * buf, int len, int flags);
+static int (PASCAL *pfn_send) (SOCKET s, const char * buf, int len, int flags);
+static int (PASCAL *pfn_closesocket) (SOCKET s);
+static int (PASCAL *pfn_shutdown) (SOCKET s, int how);
+static int (PASCAL *pfn_WSACleanup) (void);
 
-u_short (PASCAL *pfn_htons) (u_short hostshort);
-u_short (PASCAL *pfn_ntohs) (u_short netshort);
-u_long (PASCAL *pfn_htonl) (u_long hostlong);
-u_long (PASCAL *pfn_ntohl) (u_long netlong);
-unsigned long (PASCAL *pfn_inet_addr) (const char * cp);
-int (PASCAL *pfn_gethostname) (char * name, int namelen);
-struct hostent * (PASCAL *pfn_gethostbyname) (const char * name);
-struct servent * (PASCAL *pfn_getservbyname) (const char * name, const char * proto);
-int (PASCAL *pfn_getpeername) (SOCKET s, struct sockaddr *addr, int * namelen);
-int (PASCAL *pfn_setsockopt) (SOCKET s, int level, int optname,
+static u_short (PASCAL *pfn_htons) (u_short hostshort);
+static u_short (PASCAL *pfn_ntohs) (u_short netshort);
+static u_long (PASCAL *pfn_htonl) (u_long hostlong);
+static u_long (PASCAL *pfn_ntohl) (u_long netlong);
+static unsigned long (PASCAL *pfn_inet_addr) (const char * cp);
+static int (PASCAL *pfn_gethostname) (char * name, int namelen);
+static struct hostent * (PASCAL *pfn_gethostbyname) (const char * name);
+static struct servent * (PASCAL *pfn_getservbyname) (const char * name, const char * proto);
+static int (PASCAL *pfn_getpeername) (SOCKET s, struct sockaddr *addr, int * namelen);
+static int (PASCAL *pfn_setsockopt) (SOCKET s, int level, int optname,
 			      const char * optval, int optlen);
-int (PASCAL *pfn_listen) (SOCKET s, int backlog);
-int (PASCAL *pfn_getsockname) (SOCKET s, struct sockaddr * name,
+static int (PASCAL *pfn_listen) (SOCKET s, int backlog);
+static int (PASCAL *pfn_getsockname) (SOCKET s, struct sockaddr * name,
 			       int * namelen);
-SOCKET (PASCAL *pfn_accept) (SOCKET s, struct sockaddr * addr, int * addrlen);
-int (PASCAL *pfn_recvfrom) (SOCKET s, char * buf, int len, int flags,
+static SOCKET (PASCAL *pfn_accept) (SOCKET s, struct sockaddr * addr, int * addrlen);
+static int (PASCAL *pfn_recvfrom) (SOCKET s, char * buf, int len, int flags,
 		       struct sockaddr * from, int * fromlen);
-int (PASCAL *pfn_sendto) (SOCKET s, const char * buf, int len, int flags,
+static int (PASCAL *pfn_sendto) (SOCKET s, const char * buf, int len, int flags,
 			  const struct sockaddr * to, int tolen);
 
-int (PASCAL *pfn_getaddrinfo) (const char *, const char *,
+static int (PASCAL *pfn_getaddrinfo) (const char *, const char *,
 			       const struct addrinfo *, struct addrinfo **);
-void (PASCAL *pfn_freeaddrinfo) (struct addrinfo *);
+static void (PASCAL *pfn_freeaddrinfo) (struct addrinfo *);
 
 /* SetHandleInformation is only needed to make sockets non-inheritable. */
-BOOL (WINAPI *pfn_SetHandleInformation) (HANDLE object, DWORD mask, DWORD flags);
+static BOOL (WINAPI *pfn_SetHandleInformation) (HANDLE object, DWORD mask, DWORD flags);
 #ifndef HANDLE_FLAG_INHERIT
 #define HANDLE_FLAG_INHERIT	1
 #endif
 
+extern HANDLE winsock_lib;
 HANDLE winsock_lib;
 static int winsock_inuse;
 
@@ -7971,7 +7977,7 @@ check_errno (void)
 }
 
 /* Extend strerror to handle the winsock-specific error codes.  */
-struct {
+static struct {
   int errnum;
   const char * msg;
 } _wsa_errlist[] = {

@@ -118,10 +118,10 @@ typedef struct tagGLYPHSET
 #endif /* compiling for pre-Win2k */
 
 /* Dynamic linking to SetLayeredWindowAttribute (only since 2000).  */
-BOOL (WINAPI *pfnSetLayeredWindowAttributes) (HWND, COLORREF, BYTE, DWORD);
+static BOOL (WINAPI *pfnSetLayeredWindowAttributes) (HWND, COLORREF, BYTE, DWORD);
 
 /* PlgBlt is available since Windows 2000.  */
-BOOL (WINAPI *pfnPlgBlt) (HDC, const POINT *, HDC, int, int, int, int, HBITMAP, int, int);
+static BOOL (WINAPI *pfnPlgBlt) (HDC, const POINT *, HDC, int, int, int, int, HBITMAP, int, int);
 
 /* Define required types and constants on systems with older headers
    lest they be absent.  */
@@ -159,8 +159,8 @@ typedef struct _TOUCHINPUT
 typedef BOOL (WINAPI * CloseTouchInputHandle_proc) (HANDLE);
 typedef BOOL (WINAPI * GetTouchInputInfo_proc) (HANDLE, UINT, PTOUCHINPUT, int);
 
-CloseTouchInputHandle_proc pfnCloseTouchInputHandle;
-GetTouchInputInfo_proc pfnGetTouchInputInfo;
+static CloseTouchInputHandle_proc pfnCloseTouchInputHandle;
+static GetTouchInputInfo_proc pfnGetTouchInputInfo;
 
 #ifndef LWA_ALPHA
 #define LWA_ALPHA 0x02
@@ -193,14 +193,14 @@ HANDLE hWindowsThread = NULL;
 DWORD dwMainThreadId = 0;
 HANDLE hMainThread = NULL;
 
-int vertical_scroll_bar_min_handle;
-int horizontal_scroll_bar_min_handle;
-int vertical_scroll_bar_top_border;
-int vertical_scroll_bar_bottom_border;
-int horizontal_scroll_bar_left_border;
-int horizontal_scroll_bar_right_border;
+static int vertical_scroll_bar_min_handle;
+static int horizontal_scroll_bar_min_handle;
+static int vertical_scroll_bar_top_border;
+static int vertical_scroll_bar_bottom_border;
+static int horizontal_scroll_bar_left_border;
+static int horizontal_scroll_bar_right_border;
 
-int last_scroll_bar_drag_pos;
+static int last_scroll_bar_drag_pos;
 
 /* Keyboard code page - may be changed by language-change events.  */
 int w32_keyboard_codepage;

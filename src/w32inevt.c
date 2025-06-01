@@ -72,6 +72,7 @@ w32_read_console_input (HANDLE h, INPUT_RECORD *rec, DWORD recsize,
 }
 
 /* Set by w32_console_toggle_lock_key.  */
+extern int faked_key;
 int faked_key;
 
 static int
