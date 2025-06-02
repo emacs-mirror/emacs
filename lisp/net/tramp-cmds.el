@@ -177,7 +177,7 @@ interactively, a Tramp connection has to be selected."
 
     ;; Cancel timer.
     (dolist (timer timer-list)
-      (when (and (eq (timer--function timer) 'tramp-timeout-session)
+      (when (and (eq (timer--function timer) #'tramp-timeout-session)
 		 (tramp-file-name-equal-p vec (car (timer--args timer))))
 	(cancel-timer timer)))
 
