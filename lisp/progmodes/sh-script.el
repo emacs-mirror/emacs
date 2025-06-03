@@ -1153,15 +1153,6 @@ and command `sh-reset-indent-vars-to-global-values'."
   :options '(sh-electric-here-document-mode)
   :group 'sh-script)
 
-(defcustom sh-popup-occur-buffer nil
-  "Controls when  `smie-config-guess' pops the `*indent*' buffer.
-If t it is always shown.  If nil, it is shown only when there
-are conflicts."
-  :type '(choice
-	  (const :tag "Only when there are conflicts." nil)
-	  (const :tag "Always"  t))
-  :group 'sh-indentation)
-
 (defcustom sh-basic-offset 4
   "The default indentation increment.
 This value is used for the `+' and `-' symbols in an indentation variable."
