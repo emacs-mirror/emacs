@@ -2443,6 +2443,16 @@ command for reporting bugs).
 ** The elint package is now obsolete.
 Use the byte-compiler instead; it provides more and more useful warnings.
 
+** Newsticker
+
+---
+*** New user option 'newsticker-hide-old-feed-header-in-newsticker-buffer'.
+It controls whether to automatically hide the header of feeds whose
+items are all old or obsolete in the plainview *newsticker* buffer.
+This is only visually interesting if the content of those feeds are also
+hidden (see 'newsticker-hide-old-items-in-newsticker-buffer' and
+'newsticker-show-descriptions-of-new-items')."
+
 
 * New Modes and Packages in Emacs 31.1
 
