@@ -241,11 +241,11 @@ This is used for `treesit-simple-indent-standalone-predicate'."
              "ternary_expression")
       nil)
      ;; If there's only whitespace before node, consider
-     ;; this node standalone. To support function
+     ;; this node standalone.  To support function
      ;; chaining, allow a dot to be before the node.
      ((looking-back (rx bol (* whitespace) (? "."))
                     (line-beginning-position))
-      (if (looking-back "\\.")
+      (if (looking-back "\\." nil)
           (1- (point))
         (point))))))
 
