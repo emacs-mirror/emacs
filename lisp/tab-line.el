@@ -862,7 +862,7 @@ the selected tab visible."
 Interactively, ARG is the prefix numeric argument and defaults to 1."
   (interactive (list current-prefix-arg last-nonmenu-event))
   (when (tab-line-track-tap event)
-    (let ((window (and (listp event)
+    (let ((window (and (consp event)
                        (posn-window (tab-line-event-start event)))))
       (tab-line-hscroll arg window)
       (force-mode-line-update window))))
@@ -872,7 +872,7 @@ Interactively, ARG is the prefix numeric argument and defaults to 1."
 Interactively, ARG is the prefix numeric argument and defaults to 1."
   (interactive (list current-prefix-arg last-nonmenu-event))
   (when (tab-line-track-tap event)
-    (let ((window (and (listp event)
+    (let ((window (and (consp event)
                        (posn-window (tab-line-event-start event)))))
       (tab-line-hscroll (- (or arg 1)) window)
       (force-mode-line-update window))))
@@ -888,7 +888,7 @@ corresponding to the new buffer shown in the window."
     (if (functionp tab-line-new-tab-choice)
         (funcall tab-line-new-tab-choice)
       (let ((tab-line-tabs-buffer-groups mouse-buffer-menu-mode-groups))
-        (if (and (listp event)
+        (if (and (consp event)
                  (display-popup-menus-p)
                  (not tty-menu-open-use-tmm))
             (mouse-buffer-menu event) ; like (buffer-menu-open)
@@ -954,7 +954,7 @@ switches to the previous buffer in the sequence defined by
 is possible when `tab-line-switch-cycling' is non-nil."
   (interactive (list last-nonmenu-event
                      (prefix-numeric-value current-prefix-arg)))
-  (let ((window (and (listp event) (posn-window (event-start event)))))
+  (let ((window (and (consp event) (posn-window (event-start event)))))
     (with-selected-window (or window (selected-window))
       (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
           (previous-buffer arg t)
@@ -984,7 +984,7 @@ switches to the next buffer in the sequence defined by
 is possible when `tab-line-switch-cycling' is non-nil."
   (interactive (list last-nonmenu-event
                      (prefix-numeric-value current-prefix-arg)))
-  (let ((window (and (listp event) (posn-window (event-start event)))))
+  (let ((window (and (consp event) (posn-window (event-start event)))))
     (with-selected-window (or window (selected-window))
       (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
           (next-buffer arg t)
@@ -1097,7 +1097,7 @@ right side of the tab.  This command buries the buffer, so it goes out of
 sight of the tab line."
   (interactive (list last-nonmenu-event))
   (when (tab-line-track-tap event)
-    (let* ((posnp (and (listp event)
+    (let* ((posnp (and (consp event)
                        (tab-line-event-start event)))
            (window (and posnp (posn-window posnp)))
            (tab (if posnp
@@ -1125,7 +1125,7 @@ sight of the tab line."
 It preforms the same actions on the closed tabs as in `tab-line-close-tab'."
   (interactive (list last-nonmenu-event))
   (when (tab-line-track-tap event)
-    (let* ((posnp (and (listp event)
+    (let* ((posnp (and (consp event)
                        (tab-line-event-start event)))
            (window (and posnp (posn-window posnp)))
            (keep-tab (if posnp
