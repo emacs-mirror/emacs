@@ -2193,6 +2193,17 @@ Latin-1 range 0-255.  This hard-coded maximum is replaced by
 the display of matching vectors as Unicode strings.  The default value
 is '0xFF' or '255' to preserve the existing behavior.
 
+** Time
+
+*** New user option 'world-clock-sort-order'.
+This option controls the order of timezone entries in the 'world-clock'.
+By default, no sorting is done, and entries appear in the same order as
+in 'world-clock-list'.  Any format understood by 'format-time-string'
+can be used to specify a key for the sort order, which is updated upon
+each refresh.  The sort direction can be controlled by using a cons cell
+of a format string and a boolean.  Alternatively, a sorting function can
+be provided directly.
+
 
 
 * New Modes and Packages in Emacs 31.1
