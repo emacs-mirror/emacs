@@ -862,8 +862,7 @@ the selected tab visible."
 Interactively, ARG is the prefix numeric argument and defaults to 1."
   (interactive (list current-prefix-arg last-nonmenu-event))
   (when (tab-line-track-tap event)
-    (let ((window (and (consp event)
-                       (posn-window (tab-line-event-start event)))))
+    (let ((window (posn-window (tab-line-event-start event))))
       (tab-line-hscroll arg window)
       (force-mode-line-update window))))
 
@@ -872,8 +871,7 @@ Interactively, ARG is the prefix numeric argument and defaults to 1."
 Interactively, ARG is the prefix numeric argument and defaults to 1."
   (interactive (list current-prefix-arg last-nonmenu-event))
   (when (tab-line-track-tap event)
-    (let ((window (and (consp event)
-                       (posn-window (tab-line-event-start event)))))
+    (let ((window (posn-window (tab-line-event-start event))))
       (tab-line-hscroll (- (or arg 1)) window)
       (force-mode-line-update window))))
 
@@ -954,27 +952,26 @@ switches to the previous buffer in the sequence defined by
 is possible when `tab-line-switch-cycling' is non-nil."
   (interactive (list last-nonmenu-event
                      (prefix-numeric-value current-prefix-arg)))
-  (let ((window (and (consp event) (posn-window (event-start event)))))
-    (with-selected-window (or window (selected-window))
-      (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
-          (previous-buffer arg t)
-        (let* ((buffers (seq-keep
-                         (lambda (tab) (or (and (bufferp tab) tab)
-                                           (alist-get 'buffer tab)))
-                         (funcall tab-line-tabs-function)))
-               (old-pos (seq-position buffers (current-buffer)))
-               (new-pos (when old-pos (- old-pos (or arg 1))))
-               (new-pos (when new-pos
-                          (if tab-line-switch-cycling
-                              (mod new-pos (length buffers))
-                            (max new-pos 0))))
-               (buffer (when new-pos (nth new-pos buffers))))
-          (when (bufferp buffer)
-            (let ((switch-to-buffer-obey-display-actions nil))
-              (switch-to-buffer buffer))))))))
+  (with-selected-window (posn-window (event-start event))
+    (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
+        (previous-buffer arg t)
+      (let* ((buffers (seq-keep
+                       (lambda (tab) (or (and (bufferp tab) tab)
+                                         (alist-get 'buffer tab)))
+                       (funcall tab-line-tabs-function)))
+             (old-pos (seq-position buffers (current-buffer)))
+             (new-pos (when old-pos (- old-pos (or arg 1))))
+             (new-pos (when new-pos
+                        (if tab-line-switch-cycling
+                            (mod new-pos (length buffers))
+                          (max new-pos 0))))
+             (buffer (when new-pos (nth new-pos buffers))))
+        (when (bufferp buffer)
+          (let ((switch-to-buffer-obey-display-actions nil))
+            (switch-to-buffer buffer)))))))
 
 (defun tab-line-switch-to-next-tab (&optional event arg)
- "Switch to the next ARGth tab's buffer.
+  "Switch to the next ARGth tab's buffer.
 When `tab-line-tabs-function' is `tab-line-tabs-window-buffers',
 its effect is the same as using the `next-buffer' command
 \(\\[next-buffer]).
@@ -984,24 +981,23 @@ switches to the next buffer in the sequence defined by
 is possible when `tab-line-switch-cycling' is non-nil."
   (interactive (list last-nonmenu-event
                      (prefix-numeric-value current-prefix-arg)))
-  (let ((window (and (consp event) (posn-window (event-start event)))))
-    (with-selected-window (or window (selected-window))
-      (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
-          (next-buffer arg t)
-        (let* ((buffers (seq-keep
-                         (lambda (tab) (or (and (bufferp tab) tab)
-                                           (alist-get 'buffer tab)))
-                         (funcall tab-line-tabs-function)))
-               (old-pos (seq-position buffers (current-buffer)))
-               (new-pos (when old-pos (+ old-pos (or arg 1))))
-               (new-pos (when new-pos
-                          (if tab-line-switch-cycling
-                              (mod new-pos (length buffers))
-                            (min new-pos (1- (length buffers))))))
-               (buffer (when new-pos (nth new-pos buffers))))
-          (when (bufferp buffer)
-            (let ((switch-to-buffer-obey-display-actions nil))
-              (switch-to-buffer buffer))))))))
+  (with-selected-window (posn-window (event-start event))
+    (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
+        (next-buffer arg t)
+      (let* ((buffers (seq-keep
+                       (lambda (tab) (or (and (bufferp tab) tab)
+                                         (alist-get 'buffer tab)))
+                       (funcall tab-line-tabs-function)))
+             (old-pos (seq-position buffers (current-buffer)))
+             (new-pos (when old-pos (+ old-pos (or arg 1))))
+             (new-pos (when new-pos
+                        (if tab-line-switch-cycling
+                            (mod new-pos (length buffers))
+                          (min new-pos (1- (length buffers))))))
+             (buffer (when new-pos (nth new-pos buffers))))
+        (when (bufferp buffer)
+          (let ((switch-to-buffer-obey-display-actions nil))
+            (switch-to-buffer buffer)))))))
 
 (defun tab-line-mouse-move-tab (event)
   "Move a tab to a different position on the tab line using mouse.
@@ -1097,15 +1093,13 @@ right side of the tab.  This command buries the buffer, so it goes out of
 sight of the tab line."
   (interactive (list last-nonmenu-event))
   (when (tab-line-track-tap event)
-    (let* ((posnp (and (consp event)
-                       (tab-line-event-start event)))
-           (window (and posnp (posn-window posnp)))
-           (tab (if posnp
+    (let* ((posnp (tab-line-event-start event))
+           (tab (if (consp event)
                     (tab-line--get-tab-property 'tab (car (posn-string posnp)))
                   (tab-line--current-tab)))
            (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab))))
            (close-function (unless (bufferp tab) (cdr (assq 'close tab)))))
-      (with-selected-window (or window (selected-window))
+      (with-selected-window (posn-window posnp)
         (cond
          ((functionp close-function)
           (funcall close-function))
@@ -1125,13 +1119,11 @@ sight of the tab line."
 It preforms the same actions on the closed tabs as in `tab-line-close-tab'."
   (interactive (list last-nonmenu-event))
   (when (tab-line-track-tap event)
-    (let* ((posnp (and (consp event)
-                       (tab-line-event-start event)))
-           (window (and posnp (posn-window posnp)))
-           (keep-tab (if posnp
+    (let* ((posnp (tab-line-event-start event))
+           (keep-tab (if (consp event)
                          (tab-line--get-tab-property 'tab (car (posn-string posnp)))
                        (tab-line--current-tab))))
-      (with-selected-window (or window (selected-window))
+      (with-selected-window (posn-window posnp)
         (dolist (tab (delete keep-tab (funcall tab-line-tabs-function)))
           (let ((buffer (if (bufferp tab) tab (cdr (assq 'buffer tab))))
                 (close-function (unless (bufferp tab) (cdr (assq 'close tab)))))
