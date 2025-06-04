@@ -4171,7 +4171,7 @@ ns_draw_stretch_glyph_string (struct glyph_string *s)
 	      face = FACE_FROM_ID_OR_NULL (s->f,
 					   MOUSE_HL_INFO (s->f)->mouse_face_face_id);
 
-	      if (!s->face)
+	      if (!face)
 		face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
 	      prepare_face_for_display (s->f, face);
 
