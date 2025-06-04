@@ -3054,7 +3054,7 @@ LIMIT can also be a string, which means the revision before which to stop."
   (let* ((dir-present (cl-some #'file-directory-p files))
          (shortlog (not (null (memq (if dir-present 'directory 'file)
                                     vc-log-short-style))))
-	(buffer-name "*vc-change-log*")
+	 (buffer-name "*vc-change-log*")
          (type (or type (if shortlog 'short 'long))))
       (vc-log-internal-common
        backend buffer-name files type
@@ -3085,7 +3085,7 @@ LIMIT can also be a string, which means the revision before which to stop."
            (vc-call-backend bk 'show-log-entry working-revision)))
        (lambda (_ignore-auto _noconfirm)
 	 (vc-print-log-internal backend files working-revision
-                              is-start-revision limit type)))))
+                                is-start-revision limit type)))))
 
 (defvar vc-log-view-type nil
   "Set this to record the type of VC log shown in the current buffer.
