@@ -10392,10 +10392,21 @@ move_it_in_display_line_to (struct it *it,
 			      if (BUFFER_POS_REACHED_P ())
 				{
 				  if (ITERATOR_AT_END_OF_LINE_P (it))
-				    result = MOVE_POS_MATCH_OR_ZV;
-				  else
-				    result = MOVE_LINE_CONTINUED;
-				  break;
+				    {
+				      result = MOVE_POS_MATCH_OR_ZV;
+				      break;
+				    }
+				  /* When word-wrapping IMAGES or
+				     STRETCHES which just fit on a line,
+				     do not return early, before the
+				     wrap point can be restored */
+				  else if ((prev_method != GET_FROM_STRETCH
+					    && prev_method != GET_FROM_IMAGE)
+					   || it->line_wrap != WORD_WRAP)
+				    {
+				      result = MOVE_LINE_CONTINUED;
+				      break;
+				    }
 				}
 			      if (ITERATOR_AT_END_OF_LINE_P (it)
 				  && (it->line_wrap != WORD_WRAP
