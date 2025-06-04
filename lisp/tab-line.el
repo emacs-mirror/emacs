@@ -952,7 +952,7 @@ switches to the previous buffer in the sequence defined by
 is possible when `tab-line-switch-cycling' is non-nil."
   (interactive (list last-nonmenu-event
                      (prefix-numeric-value current-prefix-arg)))
-  (with-selected-window (posn-window (event-start event))
+  (with-selected-window (posn-window (tab-line-event-start event))
     (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
         (previous-buffer arg t)
       (let* ((buffers (seq-keep
@@ -981,7 +981,7 @@ switches to the next buffer in the sequence defined by
 is possible when `tab-line-switch-cycling' is non-nil."
   (interactive (list last-nonmenu-event
                      (prefix-numeric-value current-prefix-arg)))
-  (with-selected-window (posn-window (event-start event))
+  (with-selected-window (posn-window (tab-line-event-start event))
     (if (eq tab-line-tabs-function #'tab-line-tabs-window-buffers)
         (next-buffer arg t)
       (let* ((buffers (seq-keep
