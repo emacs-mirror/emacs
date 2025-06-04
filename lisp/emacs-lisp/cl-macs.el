@@ -3807,7 +3807,7 @@ If PARENTS is non-nil, ARGLIST must be nil."
             (pcase specifier
               (`(satisfies ,f) `#',f)
               ('nil nil)
-              (type `(lambda (x) (cl-typep x ',type))))))
+              (type `(lambda (x) (ignore x) (cl-typep x ',type))))))
       `(eval-and-compile
          (cl--define-derived-type
           ',name ,expander ,predicate ',parents)))))
