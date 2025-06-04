@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Transient User and Developer Manual
-@subtitle for version 0.8.6
+@subtitle for version 0.9.1
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -53,7 +53,7 @@ resource to get over that hurdle is Psionic K's interactive tutorial,
 available at @uref{https://github.com/positron-solutions/transient-showcase}.
 
 @noindent
-This manual is for Transient version 0.8.6.
+This manual is for Transient version 0.9.1.
 
 @insertcopying
 @end ifnottex
@@ -216,13 +216,14 @@ A transient prefix command is invoked like any other command by
 pressing the key that is bound to that command.  The main difference
 to other commands is that a transient prefix command activates a
 transient keymap, which temporarily binds the transient's infix and
-suffix commands, and that those bindings are displayed in a transient
-menu, displayed in a popup buffer.  Bindings from other keymaps may,
-or may not, be disabled while the transient state is in effect.
+suffix commands, and that those bindings are shown in menu buffer,
+which is displayed in a new window, until the menu is exited.
+Bindings from other keymaps may, or may not, be disabled while the
+transient state is in effect.
 
 There are two kinds of commands that are available after invoking a
 transient prefix command; infix and suffix commands.  Infix commands
-set some value (which is then shown in the popup buffer), without
+set some value (which is then shown in the menu buffer), without
 leaving the transient.  Suffix commands, on the other hand, usually
 quit the transient and they may use the values set by the infix
 commands, i.e., the infix @strong{arguments}.
@@ -249,7 +250,7 @@ prefix key, but not the complete transient).
 A transient prefix command can be bound as a suffix of another
 transient.  Invoking such a suffix replaces the current transient
 state with a new transient state, i.e., the available bindings change
-and the information displayed in the popup buffer is updated
+and the information displayed in the menu buffer is updated
 accordingly.  Pressing @kbd{C-g} while a nested transient is active only
 quits the innermost transient, causing a return to the previous
 transient.
@@ -308,36 +309,59 @@ if any.
 @cindex common suffix commands
 
 A few shared suffix commands are available in all transients.  These
-suffix commands are not shown in the popup buffer by default.
+suffix commands are not shown permanently in every menu by default.
+Most of these commands share a common prefix key and pressing that key
+causes the common commands to be temporarily shown in the active menu.
 
-This includes the aborting commands mentioned in the previous section,
-as well as some other commands that are all bound to @kbd{C-x @var{KEY}}.  After
-@kbd{C-x} is pressed, a section featuring all these common commands is
-temporarily shown in the popup buffer.  After invoking one of them,
-the section disappears again.  Note, however, that one of these
-commands is described as ``Show common permanently''; invoke that if you
-want the common commands to always be shown for all transients.
+@defopt transient-show-common-commands
+This option controls whether shared suffix commands are permanently
+shown alongside the menu-specific infix and suffix commands.  By
+default, the shared commands are not permanently shown to avoid
+wasting precious space and overwhelming the user with too many
+choices.
+
+If you prefer to always see these commands, then set this option to
+a non-@code{nil} value.  Alternatively the value can be toggled for the
+current Emacs session only, using @code{transient-toggle-common}, described
+below.
+@end defopt
+
+@defopt transient-common-command-prefix
+This option specifies the prefix key used in all transient menus
+to invoke most of the shared commands, which are available in all
+transient menus.  By default these bindings are only shown after
+pressing that prefix key and before following that up with a valid
+key binding (but see the previous option).
+
+For historic reasons @kbd{C-x} is used by default, but users are
+encouraged to pick another key, preferably one that is not commonly
+used in Emacs but is still convenient to them.
+
+Usually, while a transient menu is active, the user cannot invoke
+commands that are not bound in the menu itself.  For those menus it
+does not matter, if @kbd{C-x} or another commonly used prefix key is used
+for common menu commands.  However, certain other, newer menus do
+not suppress key bindings established outside the menu itself, and
+in those cases a binding for a common menu command could shadow an
+external binding.  For example, @kbd{C-x C-s} could not be used to invoke
+@code{save-buffer}, if that binding is shadowed by the menu binding for
+@code{transient-save}.
+
+Which key is most suitable depends on the user's preferences, but
+good choices may include function keys and @kbd{C-z} (for many keyboard
+layouts @kbd{z} is right next to @kbd{x}, and invoking @code{suspend-frame}, while a
+transient menu is active, would not be a good idea anyway).
+@end defopt
 
 @table @asis
 @item @kbd{C-x t} (@code{transient-toggle-common})
 @kindex C-x t
 @findex transient-toggle-common
-This command toggles whether the generic commands that are common to
-all transients are always displayed or only after typing the
-incomplete prefix key sequence @kbd{C-x}.  This only affects the current
+This command toggles whether the generic commands, that are common
+to all transients, are permanently displayed or only after typing
+the incomplete prefix key sequence@kbd{}.  This only affects the current
 Emacs session.
 @end table
-
-@defopt transient-show-common-commands
-This option controls whether shared suffix commands are shown
-alongside the transient-specific infix and suffix commands.  By
-default, the shared commands are not shown to avoid overwhelming
-the user with too many options.
-
-While a transient is active, pressing @kbd{C-x} always shows the common
-commands.  The value of this option can be changed for the current
-Emacs session by typing @kbd{C-x t} while a transient is active.
-@end defopt
 
 The other common commands are described in either the previous or in
 one of the following sections.
@@ -362,6 +386,10 @@ If the user does not save the value and just exits using a regular
 suffix command, then the value is merely saved to the transient's
 history.  That value won't be used when the transient is next invoked,
 but it is easily accessible (@pxref{Using History}).
+
+Option @code{transient-common-command-prefix} controls the prefix key used
+in the following bindings.  For simplicity's sake the default, @kbd{C-x},
+is shown below.
 
 @table @asis
 @item @kbd{C-x s} (@code{transient-set})
@@ -396,6 +424,10 @@ Every time the user invokes a suffix command the transient's current
 value is saved to its history.  These values can be cycled through,
 the same way one can cycle through the history of commands that read
 user-input in the minibuffer.
+
+Option @code{transient-common-command-prefix} controls the prefix key used
+in the following bindings.  For simplicity's sake the default, @kbd{C-x},
+is shown below.
 
 @table @asis
 @item @kbd{C-M-p} (@code{transient-history-prev})
@@ -496,8 +528,8 @@ For suffixes, 0 is also valid; it means that the suffix is not
 displayed at any level.
 
 The levels of individual transients and/or their individual suffixes
-can be changed interactively, by invoking the transient and then
-pressing @kbd{C-x l} to enter the ``edit'' mode, see below.
+can be changed interactively, by invoking the menu and entering its
+``edit'' mode using the command @code{transient-set-level}, as described below.
 
 The default level for both transients and their suffixes is 4.  The
 @code{transient-default-level} option only controls the default for
@@ -517,6 +549,10 @@ user has not set that individually.
 This option names the file that is used to persist the levels of
 transients and their suffixes between Emacs sessions.
 @end defopt
+
+Option @code{transient-common-command-prefix} controls the prefix key used
+in the following bindings.  For simplicity's sake the default, @kbd{C-x},
+is shown below.
 
 @table @asis
 @item @kbd{C-x l} (@code{transient-set-level})
@@ -606,13 +642,13 @@ window, and the key bindings are the same as for @code{scroll-up-command} and
 @code{scroll-down-command} in other buffers.
 
 @deffn Command transient-scroll-up arg
-This command scrolls text of transient popup window upward @var{ARG}
+This command scrolls text of transient's menu window upward @var{ARG}
 lines.  If @var{ARG} is @code{nil}, then it scrolls near full screen.  This
 is a wrapper around @code{scroll-up-command} (which see).
 @end deffn
 
 @deffn Command transient-scroll-down arg
-This command scrolls text of transient popup window down @var{ARG}
+This command scrolls text of transient's menu window down @var{ARG}
 lines.  If @var{ARG} is @code{nil}, then it scrolls near full screen.  This
 is a wrapper around @code{scroll-down-command} (which see).
 @end deffn
@@ -642,43 +678,31 @@ More options are described in @ref{Common Suffix Commands}, in @ref{Saving Value
 @anchor{Essential Options}
 @subheading Essential Options
 
-Also see @ref{Common Suffix Commands}.
+Two more essential options are documented in @ref{Common Suffix Commands}.
 
 @defopt transient-show-popup
-This option controls whether the current transient's infix and
-suffix commands are shown in the popup buffer.
+This option controls whether and when transient's menu buffer is
+shown.
 
 @itemize
 @item
-If @code{t} (the default) then the popup buffer is shown as soon as a
+If @code{t} (the default), then the buffer is shown as soon as a
 transient prefix command is invoked.
 
 @item
-If @code{nil}, then the popup buffer is not shown unless the user
-explicitly requests it, by pressing an incomplete prefix key
-sequence.
+If @code{nil}, then the buffer is not shown unless the user explicitly
+requests it, by pressing an incomplete prefix key sequence.
 
 @item
 If a number, then the a brief one-line summary is shown instead of
-the popup buffer.  If zero or negative, then not even that summary
+the menu buffer.  If zero or negative, then not even that summary
 is shown; only the pressed key itself is shown.
 
-The popup is shown when the user explicitly requests it by
+The buffer is shown once the user explicitly requests it by
 pressing an incomplete prefix key sequence.  Unless this is zero,
-the popup is shown after that many seconds of inactivity (using
-the absolute value).
+the menu is shown after that many seconds of inactivity (using the
+absolute value).
 @end itemize
-@end defopt
-
-@defopt transient-show-common-commands
-This option controls whether shared suffix commands are shown
-alongside the transient-specific infix and suffix commands.  By
-default, the shared commands are not shown to avoid overwhelming
-the user with too many options.
-
-While a transient is active, pressing @kbd{C-x} always shows the common
-commands.  The value of this option can be changed for the current
-Emacs session by typing @kbd{C-x t} while a transient is active.
 @end defopt
 
 @defopt transient-show-during-minibuffer-read
@@ -724,15 +748,15 @@ element has to be accessed the same way as the older elements.
 @end defopt
 
 @defopt transient-enable-popup-navigation
-This option controls whether navigation commands are enabled in the
-transient popup buffer.  If the value is @code{verbose} (the default),
+This option controls whether navigation commands are enabled in
+transient's menu buffer.  If the value is @code{verbose} (the default),
 brief documentation about the command under point is additionally
 show in the echo area.
 
-While a transient is active the transient popup buffer is not the
-current buffer, making it necessary to use dedicated commands to act
-on that buffer itself.  If this option is non-@code{nil}, then the
-following features are available:
+While a transient is active the menu buffer is not the current
+buffer, making it necessary to use dedicated commands to act on that
+buffer itself.  If this option is non-@code{nil}, then the following
+features are available:
 
 @itemize
 @item
@@ -744,7 +768,7 @@ following features are available:
 @item
 @kbd{mouse-1} invokes the clicked on suffix.
 @item
-@kbd{C-s} and @kbd{C-r} start isearch in the popup buffer.
+@kbd{C-s} and @kbd{C-r} start isearch in the menu buffer.
 @end itemize
 
 By default @kbd{M-@key{RET}} is bound to @code{transient-push-button}, instead of
@@ -754,8 +778,8 @@ if no transient were active."
 @end defopt
 
 @defopt transient-display-buffer-action
-This option specifies the action used to display the transient popup
-buffer.  The transient popup buffer is displayed in a window using
+This option specifies the action used to display the transient's
+menu buffer.  The menu buffer is displayed in a window using
 @code{(display-buffer @var{BUFFER} transient-display-buffer-action)}.
 
 The value of this option has the form @code{(@var{FUNCTION} . @var{ALIST})},
@@ -815,7 +839,7 @@ dimensions.
 @subheading Auxiliary Options
 
 @defopt transient-mode-line-format
-This option controls whether the transient popup buffer has a
+This option controls whether transient's menu buffer has a
 mode-line, separator line, or neither.
 
 If @code{nil}, then the buffer has no mode-line.  If the buffer is not
@@ -895,7 +919,7 @@ optimized for lisp.
 
 @defopt transient-align-variable-pitch
 This option controls whether columns are aligned pixel-wise in the
-popup buffer.
+menu buffer.
 
 If this is non-@code{nil}, then columns are aligned pixel-wise to support
 variable-pitch fonts.  Keys are not aligned, so you should use a
@@ -909,10 +933,10 @@ the @code{default} face.
 
 @defopt transient-force-fixed-pitch
 This option controls whether to force the use of a monospaced font
-in popup buffer.  Even if you use a proportional font for the
-@code{default} face, you might still want to use a monospaced font in
-transient's popup buffer.  Setting this option to @code{t} causes @code{default}
-to be remapped to @code{fixed-pitch} in that buffer.
+in menu buffer.  Even if you use a proportional font for the @code{default}
+face, you might still want to use a monospaced font in the menu
+buffer.  Setting this option to @code{t} causes @code{default} to be remapped to
+@code{fixed-pitch} in that buffer.
 @end defopt
 
 @anchor{Developer Options}
@@ -934,6 +958,13 @@ predicates of those suffixes prevent that more than one of them is
 enabled at a time.
 @end defopt
 
+@defopt transient-error-on-insert-failure
+This option controls whether to signal an error when
+@code{transient-insert-suffix} or @code{transient-append-suffix} failed to insert
+a suffix into an existing prefix.  By default a warning is shown
+instead.
+@end defopt
+
 @defopt transient-highlight-higher-levels
 This option controls whether suffixes that would not be available by
 default are highlighted.
@@ -949,7 +980,13 @@ same customization.
 @subheading Hook Variables
 
 @defvar transient-exit-hook
-This hook is run after a transient is exited.
+This hook is run after a transient menu is exited, even if another
+transient menu becomes active at the same time.
+@end defvar
+
+@defvar transient-post-exit-hook
+This hook is run after a transient menu is exited, provided no other
+transient menu becomes active at the same time.
 @end defvar
 
 @defvar transient-setup-buffer-hook
@@ -973,13 +1010,16 @@ with an example:
 @end lisp
 
 This inserts a new infix argument to toggle the @code{--reverse} argument
-after the infix argument that toggles @code{-3} in @code{magit-patch-apply}.
+after the infix argument that is bound to @code{-3} in @code{magit-patch-apply}.
 
 The following functions share a few arguments:
 
 @itemize
 @item
 @var{PREFIX} is a transient prefix command, a symbol.
+
+PREFIX may also by a symbol identifying a separately defined group,
+which can be included in multiple prefixes.  See TODO@.
 
 @item
 @var{SUFFIX} is a transient infix or suffix specification in the same form
@@ -992,25 +1032,33 @@ means the former.  @xref{Suffix Specifications}.
 @code{transient-define-prefix}.  @xref{Group Specifications}.
 
 @item
-@var{LOC} is a command, a key vector, a key description (a string as
-returned by @code{key-description}), or a list specifying coordinates (the
-last element may also be a command or key).  For example @code{(1 0 -1)}
+@var{LOC} is a key description (a string as returned by @code{key-description}
+and understood by @code{kbd}), a command, a symbol identifying an included
+group, or a vector specifying coordinates.  For example, @code{[1 0 -1]}
 identifies the last suffix (@code{-1}) of the first subgroup (@code{0}) of the
 second group (@code{1}).
 
-If @var{LOC} is a list of coordinates, then it can be used to identify a
-group, not just an individual suffix command.
+If @var{LOC} is a vector, then it can be used to identify a group, not
+just an individual suffix command.  The last element in a vector may
+also be a symbol or key, in which case the preceding elements must
+match a group and the last element is looked up within that group.
 
 The function @code{transient-get-suffix} can be useful to determine whether
-a certain coordination list identifies the suffix or group that you
+a certain coordinate vector identifies the suffix or group that you
 expect it to identify.  In hairy cases it may be necessary to look
-at the definition of the transient prefix command.
+at the internal layout representation, which you can access using
+the function @code{transient--get-layout}.
 @end itemize
 
 These functions operate on the information stored in the
-@code{transient--layout} property of the @var{PREFIX} symbol.  Suffix entries in
-that tree are not objects but have the form @code{(@var{LEVEL} @var{CLASS} @var{PLIST})}, where
-@var{PLIST} should set at least @code{:key}, @code{:description} and @code{:command}.
+@code{transient--layout} property of the @var{PREFIX} symbol.  Elements in that
+tree are not objects but have the form @code{(@var{CLASS} @var{PLIST}) for suffixes} and
+[CLASS PLIST CHILDREN] for groups.  At the root of the tree is an
+element [N nil CHILDREN], where N is the version of the layout format,
+currently and hopefully for a long time 2.  While that element looks
+like a group vector, that element does not count when identifying a
+group using a coordinate vector, i.e., [0] is its first child, not the
+root element itself.
 
 @defun transient-insert-suffix prefix loc suffix &optional keep-other
 @end defun
@@ -1024,8 +1072,8 @@ that multiple suffix commands can be bound to the same key, provided
 they are never active at the same time, see @ref{Predicate Slots}.
 
 Unfortunately both false-positives and false-negatives are possible.
-To deal with the former use non-@code{nil} @var{KEEP-OTHER@.}  The symbol @code{always}
-prevents the removal of a false-positive in some cases where other
+To deal with the former, use non-@code{nil} @var{KEEP-OTHER@.}  The symbol @code{always}
+prevents the removal of a false-positive, in some cases where other
 non-@code{nil} values would fail.  To deal with false-negatives remove the
 conflicting binding separately, using @code{transient-remove-suffix}.
 @end defun
@@ -1049,14 +1097,28 @@ This function edits the suffix or group at @var{LOC} in @var{PREFIX}, by setting
 the @var{PROP} of its plist to @var{VALUE}.
 @end defun
 
+Some prefix commands share suffixes, which are separately and then
+included in each prefix when it is defined.  The inclusion is done by
+reference, the included suffix groups are not inlined by default.  So
+if you change, for example, the key binding for an argument in
+@code{magit-diff} (@code{d}) the same change also applies to @code{magit-diff-refresh} (@code{D}).
+In the rare case that this is not desirable use @code{transient-inline-group}
+before making changes to included suffixes.
+
+@defun transient-inline-group PREFIX GROUP
+This function inlines the included GROUP into PREFIX, by replacing
+the symbol GROUP with its expanded layout in the layout of PREFIX@.
+@end defun
+
 Most of these functions do not signal an error if they cannot perform
 the requested modification.  The functions that insert new suffixes
 show a warning if @var{LOC} cannot be found in @var{PREFIX} without signaling an
 error.  The reason for doing it like this is that establishing a key
 binding (and that is what we essentially are trying to do here) should
 not prevent the rest of the configuration from loading.  Among these
-functions only @code{transient-get-suffix} and @code{transient-suffix-put} may
-signal an error.
+functions only @code{transient-get-suffix} and @code{transient-suffix-put} signal
+an error by default.  If you really want the insert functions to also
+signal an error, set @code{transient-error-on-insert-failure} to @code{t}.
 
 @node Defining New Commands
 @chapter Defining New Commands
@@ -1084,7 +1146,7 @@ When the user calls a transient prefix command, a transient
 (temporary) keymap is activated, which binds the transient's infix and
 suffix commands, and functions that control the transient state are
 added to @code{pre-command-hook} and @code{post-command-hook}.  The available suffix
-and infix commands and their state are shown in a popup buffer until
+and infix commands and their state are shown in a menu buffer until
 the transient state is exited by invoking a suffix command.
 
 Calling an infix command causes its value to be changed.  How that is
@@ -1095,7 +1157,7 @@ toggled on or off.  More complex infix commands may read a value from
 the user, using the minibuffer.
 
 Calling a suffix command usually causes the transient to be exited;
-the transient keymaps and hook functions are removed, the popup buffer
+the transient keymaps and hook functions are removed, the menu buffer
 no longer shows information about the (no longer bound) suffix
 commands, the values of some public global variables are set, while
 some internal global variables are unset, and finally the command is
@@ -1113,11 +1175,11 @@ arguments have been set using a command such as @code{universal-argument}.
 @cindex command dispatchers
 Transient can be used to implement simple ``command dispatchers''.  The
 main benefit then is that the user can see all the available commands
-in a popup buffer, which can be thought of as a ``menu''.  That is
-useful by itself because it frees the user from having to remember all
-the keys that are valid after a certain prefix key or command.
-Magit's @code{magit-dispatch} (on @kbd{C-x M-g}) command is an example of using
-Transient to merely implement a command dispatcher.
+in a temporarily shown buffer, which can be thought of as a ``menu''.
+That is useful by itself because it frees the user from having to
+remember all the keys that are valid after a certain prefix key or
+command.  Magit's @code{magit-dispatch} (on @kbd{C-x M-g}) command is an example of
+using Transient to merely implement a command dispatcher.
 
 In addition to that, Transient also allows users to interactively pass
 arguments to commands.  These arguments can be much more complex than
@@ -1197,7 +1259,7 @@ argument supported by the constructor of that class.  The
 explicitly.
 
 @var{GROUP}s add key bindings for infix and suffix commands and specify
-how these bindings are presented in the popup buffer.  At least one
+how these bindings are presented in the menu buffer.  At least one
 @var{GROUP} has to be specified.  @xref{Binding Suffix and Infix Commands}.
 
 The @var{BODY} is optional.  If it is omitted, then @var{ARGLIST} is ignored and
@@ -1227,6 +1289,22 @@ setup function:
 
 For example, the scope of the @code{magit-branch-configure} transient is
 the branch whose variables are being configured.
+@end defmac
+
+Sometimes multiple prefix commands share a common set of suffixes.
+For example, while @code{magit-diff} (@code{d}) and @code{magit-diff-refresh} (@code{D}) offer
+different suffixes to actually create or update a diff, they both
+offer the same infix arguments to control how that diff is formatted.
+Such shared groups should be defined using @code{transient-define-group}
+and then included in multiple prefixes, by using the symbol that
+identifies the group in the prefix definition, in a location where
+you would otherwise use a group vector.  If an included group is
+placed at the top-level of a prefix (as opposed of inside inside
+a vector as a child group), then the symbol should be quoted.
+
+@defmac transient-define-group name group@dots{}
+This macro define one or more groups and stores them in symbol NAME@.
+GROUPs have the same form as for @code{transient-define-prefix}.
 @end defmac
 
 @node Binding Suffix and Infix Commands
@@ -1439,7 +1517,15 @@ the object's values just for the binding inside this transient.
 @xref{Enabling and Disabling Suffixes}.
 
 @item
-@var{KEY} is the key binding, either a vector or key description string.
+KEY is the key binding, a string in the format returned by
+@code{describe-key} and understood by @code{kbd}.
+
+That format is more permissive than the one accepted by @code{key-valid-p}.
+Being more permissive makes it possible, for example, to write the
+key binding, which toggles the @code{-a} command line argument, as "-a",
+instead of having to write "- a".  Likewise additional spaces can be
+added, which is not removed when displaying the binding in the menu,
+which is useful for alignment purposes.
 
 @item
 @var{DESCRIPTION} is the description, either a string or a function that
@@ -1490,7 +1576,7 @@ which case the first string is used as the short argument (which can
 also be specified using @code{:shortarg}) and the second as the long argument
 (which can also be specified using @code{:argument}).
 
-Only the long argument is displayed in the popup buffer.  See
+Only the long argument is displayed in the menu buffer.  See
 @code{transient-detect-key-conflicts} for how the short argument may be
 used.
 
@@ -2151,7 +2237,7 @@ children from scratch.
 @defun transient--insert-group group
 This generic function formats the group and its elements and inserts
 the result into the current buffer, which is a temporary buffer.
-The contents of that buffer are later inserted into the popup buffer.
+The contents of that buffer are later inserted into the menu buffer.
 
 Functions that are called by this function may need to operate in
 the buffer from which the transient was called.  To do so they can
@@ -2231,8 +2317,8 @@ anywhere a suffix can appear.  Display-only suffix specifications
 take these form:
 
 @lisp
-([LEVEL] :info DESCRIPTION [KEYWORD VALUE]...)
-([LEVEL] :info* DESCRIPTION [KEYWORD VALUE]...)
+(:info DESCRIPTION [KEYWORD VALUE]...)
+(:info* DESCRIPTION [KEYWORD VALUE]...)
 @end lisp
 
 The @code{:info} and @code{:info*} keyword arguments replaces the @code{:description}
@@ -2252,6 +2338,26 @@ The @code{transient-lisp-variable} class can be used to show and change the
 value of lisp variables.  This class is not fully featured yet and
 it is somewhat likely that future improvements won't be fully
 backward compatible.
+
+@item
+The @code{transient-cons-option} class is intended for situations where
+@code{transient-args} should return an alist, instead of a list of strings
+(arguments).  Such suffixes can be specified in prefix definitions
+like so:
+
+@lisp
+(:cons OPTION :key KEY [KEYWORD VALUE]...)
+@end lisp
+
+OPTION may be something other than a string, likely a keyword or
+some other symbol, it is used as the @code{car} of the cons-cell.  When
+using such an inline definition @code{:key} has to be specified.  In most
+cases @code{:reader} should also be specified.  When defining such a suffix
+separately, the "alist key" has to be specified using the @code{:variable}
+keyword argument.
+
+This class is still experimental it is somewhat likely that future
+improvements won't be fully backward compatible.
 
 @item
 The @code{transient-describe-target} class is used by the command
@@ -2656,7 +2762,15 @@ and @code{advice*} slots (see @ref{Slots of @code{transient-suffix}}) are define
 
 @itemize
 @item
-@code{key} The key, a key vector or a key description string.
+@code{key} is the key binding, a string in the format returned by
+@code{describe-key} and understood by @code{kbd}.
+
+That format is more permissive than the one accepted by @code{key-valid-p}.
+Being more permissive makes it possible, for example, to write the
+key binding, which toggles the @code{-a} command line argument, as "-a",
+instead of having to write "- a".  Likewise additional spaces can be
+added, which is not removed when displaying the binding in the menu,
+which is useful for alignment purposes.
 
 @item
 @code{command} The command, a symbol.
@@ -2665,7 +2779,7 @@ and @code{advice*} slots (see @ref{Slots of @code{transient-suffix}}) are define
 @code{transient} Whether to stay transient.  @xref{Transient State}.
 
 @item
-@code{format} The format used to display the suffix in the popup buffer.
+@code{format} The format used to display the suffix in the menu buffer.
 It must contain the following %-placeholders:
 
 @itemize
@@ -2898,20 +3012,20 @@ available depending on user preference.
 @node FAQ
 @appendix FAQ
 
-@anchor{Can I control how the popup buffer is displayed?}
-@appendixsec Can I control how the popup buffer is displayed?
+@anchor{Can I control how the menu buffer is displayed?}
+@appendixsec Can I control how the menu buffer is displayed?
 
 Yes, see @code{transient-display-buffer-action} in @ref{Configuration}.  You can
-also control how the popup buffer is displayed on a case-by-case basis
+also control how the menu buffer is displayed on a case-by-case basis
 by passing @code{:display-action} to @code{transient-define-prefix}.
 
-@anchor{How can I copy text from the popup buffer?}
-@appendixsec How can I copy text from the popup buffer?
+@anchor{How can I copy text from the menu buffer?}
+@appendixsec How can I copy text from the menu buffer?
 
-To be able to mark text in Transient's popup buffer using the mouse,
+To be able to mark text in Transient's menu buffer using the mouse,
 you have to add the below binding.  Note that for technical reasons,
 the region won't be visualized, while doing so.  After you have quit
-the transient popup, you will be able to yank it in another buffer.
+the transient menu, you will be able to yank it in another buffer.
 
 @lisp
 (keymap-set transient-predicate-map
@@ -2942,49 +3056,6 @@ See @uref{https://github.com/magit/transient/wiki/Comparison-with-prefix-keys-an
 @appendixsec How does Transient compare to Magit-Popup and Hydra?
 
 See @uref{https://github.com/magit/transient/wiki/Comparison-with-other-packages}.
-
-@anchor{Why did some of the key bindings change?}
-@appendixsec Why did some of the key bindings change?
-
-You may have noticed that the bindings for some of the common commands
-do @strong{not} have the prefix @kbd{C-x} and that furthermore some of these commands
-are grayed out while others are not.  That unfortunately is a bit
-confusing if the section of common commands is not shown permanently,
-making the following explanation necessary.
-
-The purpose of usually hiding that section but showing it after the
-user pressed the respective prefix key is to conserve space and not
-overwhelm users with too much noise, while allowing the user to
-quickly list common bindings on demand.
-
-That however should not keep us from using the best possible key
-bindings.  The bindings that do use a prefix do so to avoid wasting
-too many non-prefix bindings, keeping them available for use in
-individual transients.  The bindings that do not use a prefix and that
-are @strong{not} grayed out are very important bindings that are @strong{always}
-available, even when invoking the ``common command key prefix'' or @strong{any
-other} transient-specific prefix.  The non-prefix keys that @strong{are} grayed
-out however, are not available when any incomplete prefix key sequence
-is active.  They do not use the ``common command key prefix'' because it
-is likely that users want to invoke them several times in a row and
-e.g., @kbd{M-p M-p M-p} is much more convenient than @kbd{C-x M-p C-x M-p C-x M-p}.
-
-You may also have noticed that the ``Set'' command is bound to @kbd{C-x s},
-while Magit-Popup used to bind @kbd{C-c C-c} instead.  I have seen several
-users praise the latter binding (sic), so I did not change it
-willy-nilly.  The reason that I changed it is that using different
-prefix keys for different common commands, would have made the
-temporary display of the common commands even more confusing, i.e.,
-after pressing @kbd{C-c} all the bindings that begin with the @kbd{C-x} prefix
-would be grayed out.
-
-Using a single prefix for common commands key means that all other
-potential prefix keys can be used for transient-specific commands
-@strong{without} the section of common commands also popping up.  @kbd{C-c} in
-particular is a prefix that I want to (and already do) use for Magit, and
-also using that for a common command would prevent me from doing so.
-
-(See also the next question.)
 
 @anchor{Why does @kbd{q} not quit popups anymore?}
 @appendixsec Why does @kbd{q} not quit popups anymore?
