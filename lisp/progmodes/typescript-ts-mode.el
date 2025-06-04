@@ -245,7 +245,7 @@ This is used for `treesit-simple-indent-standalone-predicate'."
      ;; chaining, allow a dot to be before the node.
      ((looking-back (rx bol (* whitespace) (? "."))
                     (line-beginning-position))
-      (if (looking-back "\\." nil)
+      (if (looking-back "\\." (max (point-min) (1- (point))))
           (1- (point))
         (point))))))
 
