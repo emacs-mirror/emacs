@@ -1029,6 +1029,23 @@ Not supported by all backends."
 (defvar vc-async-checkin-backends '(Git Hg)
   "Backends which support `vc-async-checkin'.")
 
+(defmacro vc--with-backend-in-rootdir (desc &rest body)
+  (declare (indent 1) (debug (sexp sexp body)))
+  ;; Intentionally capture `backend' and `rootdir':
+  ;; no need to keep repeating them.
+  `(let ((backend (vc-deduce-backend))
+         (default-directory default-directory)
+	 rootdir)
+     (if backend
+	 (setq rootdir (vc-call-backend backend 'root default-directory))
+       (setq rootdir
+             (read-directory-name ,(format "Directory for %s: " desc)))
+       (setq backend (vc-responsible-backend rootdir))
+       (unless backend
+         (error "Directory is not version controlled")))
+     (setq default-directory rootdir)
+     ,@body))
+
 
 ;; File property caching
 
@@ -2298,20 +2315,10 @@ state of each file in the fileset."
   ;; This is a mix of `vc-root-diff' and `vc-version-diff'
   (when (and (not rev1) rev2)
     (error "Not a valid revision range"))
-  (let ((backend (vc-deduce-backend))
-        (default-directory default-directory)
-        rootdir)
-    (if backend
-        (setq rootdir (vc-call-backend backend 'root default-directory))
-      (setq rootdir (read-directory-name "Directory for VC root-diff: "))
-      (setq backend (vc-responsible-backend rootdir))
-      (if backend
-          (setq default-directory rootdir)
-        (error "Directory is not version controlled")))
+  (vc--with-backend-in-rootdir "VC root-diff"
     (let ((default-directory rootdir))
-      (vc-diff-internal
-       t (list backend (list rootdir)) rev1 rev2
-       (called-interactively-p 'interactive)))))
+      (vc-diff-internal t (list backend (list rootdir)) rev1 rev2
+                        (called-interactively-p 'interactive)))))
 
 ;;;###autoload
 (defun vc-diff (&optional historic not-essential fileset)
@@ -2377,21 +2384,11 @@ The merge base is a common ancestor between REV1 and REV2 revisions."
           (list backend (list (vc-call-backend backend 'root default-directory)))))))
   (when (and (not rev1) rev2)
     (error "Not a valid revision range"))
-  (let ((backend (vc-deduce-backend))
-        (default-directory default-directory)
-        rootdir)
-    (if backend
-        (setq rootdir (vc-call-backend backend 'root default-directory))
-      (setq rootdir (read-directory-name "Directory for VC root-diff: "))
-      (setq backend (vc-responsible-backend rootdir))
-      (if backend
-          (setq default-directory rootdir)
-        (error "Directory is not version controlled")))
+  (vc--with-backend-in-rootdir "VC root-diff"
     (let ((default-directory rootdir)
           (rev1 (vc-call-backend backend 'mergebase rev1 rev2)))
-      (vc-diff-internal
-       t (list backend (list rootdir)) rev1 rev2
-       (called-interactively-p 'interactive)))))
+      (vc-diff-internal t (list backend (list rootdir)) rev1 rev2
+                        (called-interactively-p 'interactive)))))
 
 (declare-function ediff-load-version-control "ediff" (&optional silent))
 (declare-function ediff-vc-internal "ediff-vers"
@@ -2459,16 +2456,7 @@ saving the buffer."
   (if historic
       ;; We want the diff for the VC root dir.
       (call-interactively 'vc-root-version-diff)
-    (let ((backend (vc-deduce-backend))
-	  (default-directory default-directory)
-	  rootdir)
-      (if backend
-	  (setq rootdir (vc-call-backend backend 'root default-directory))
-	(setq rootdir (read-directory-name "Directory for VC root-diff: "))
-	(setq backend (vc-responsible-backend rootdir))
-	(if backend
-	    (setq default-directory rootdir)
-	  (error "Directory is not version controlled")))
+    (vc--with-backend-in-rootdir "VC root-diff"
       ;; VC diff for the root directory produces output that is
       ;; relative to it.  Bind default-directory to the root directory
       ;; here, this way the *vc-diff* buffer is setup correctly, so
@@ -3218,23 +3206,14 @@ with its diffs (if the underlying VCS backend supports that)."
        (list lim)))
     (t
      (list (when (> vc-log-show-limit 0) vc-log-show-limit)))))
-  (let* ((backend (vc-deduce-backend))
-	 (default-directory default-directory)
-	 (with-diff (and (eq limit 1) revision))
-	 (vc-log-short-style (unless with-diff vc-log-short-style))
-	 rootdir)
-    (if backend
-	(setq rootdir (vc-call-backend backend 'root default-directory))
-      (setq rootdir (read-directory-name "Directory for VC revision log: "))
-      (setq backend (vc-responsible-backend rootdir))
-      (unless backend
-        (error "Directory is not version controlled")))
-    (setq default-directory rootdir)
-    (vc-print-log-internal backend (list rootdir) revision revision limit
-                           (when with-diff 'with-diff))
-    ;; We're looking at the root, so displaying " from <some-file>" in
-    ;; the mode line isn't helpful.
-    (setq vc-parent-buffer-name nil)))
+  (vc--with-backend-in-rootdir "VC revision log"
+    (let* ((with-diff (and (eq limit 1) revision))
+           (vc-log-short-style (and (not with-diff) vc-log-short-style)))
+      (vc-print-log-internal backend (list rootdir) revision revision limit
+                             (and with-diff 'with-diff))
+      ;; We're looking at the root, so displaying " from <some-file>" in
+      ;; the mode line isn't helpful.
+      (setq vc-parent-buffer-name nil))))
 
 ;;;###autoload
 (defun vc-print-branch-log (branch)
@@ -3261,9 +3240,7 @@ In some version control systems REMOTE-LOCATION can be a remote branch name."
   (interactive
    (when current-prefix-arg
      (list (read-string "Remote location/branch (empty for default): "))))
-  (let ((backend (vc-deduce-backend)))
-    (unless backend
-      (error "Buffer is not version controlled"))
+  (vc--with-backend-in-rootdir "VC root-log"
     (vc-incoming-outgoing-internal backend (or remote-location "")
                                    "*vc-incoming*" 'log-incoming)))
 
@@ -3275,9 +3252,7 @@ In some version control systems REMOTE-LOCATION can be a remote branch name."
   (interactive
    (when current-prefix-arg
      (list (read-string "Remote location/branch (empty for default): "))))
-  (let ((backend (vc-deduce-backend)))
-    (unless backend
-      (error "Buffer is not version controlled"))
+  (vc--with-backend-in-rootdir "VC root-log"
     (vc-incoming-outgoing-internal backend (or remote-location "")
                                    "*vc-outgoing*" 'log-outgoing)))
 
@@ -3311,16 +3286,7 @@ The merge base is a common ancestor of revisions REV1 and REV2."
     (or (ignore-errors (vc-deduce-fileset t))
         (let ((backend (or (vc-deduce-backend) (vc-responsible-backend default-directory))))
           (list backend (list (vc-call-backend backend 'root default-directory)))))))
-  (let ((backend (vc-deduce-backend))
-	(default-directory default-directory)
-	rootdir)
-    (if backend
-	(setq rootdir (vc-call-backend backend 'root default-directory))
-      (setq rootdir (read-directory-name "Directory for VC root-log: "))
-      (setq backend (vc-responsible-backend rootdir))
-      (unless backend
-        (error "Directory is not version controlled")))
-    (setq default-directory rootdir)
+  (vc--with-backend-in-rootdir "VC root-log"
     (setq rev1 (vc-call-backend backend 'mergebase rev1 rev2))
     (vc-print-log-internal backend (list rootdir) rev1 t (or rev2 ""))))
 
