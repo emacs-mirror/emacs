@@ -644,6 +644,14 @@ Nodes are not automatically updated when the associated buffer is
 modified, and there is no way to update a node once it is retrieved.
 Using an outdated node signals the @code{treesit-node-outdated} error.
 
+@cindex printed representation, of treesit nodes
+The printed representation of a tree-sitter node uses the hash notation
+described in @ref{Printed Representation}.  It looks like
+@w{@samp{#<treesit-node @var{type} in @var{pos1}-@var{pos2}>}}, where
+@var{type} is the type of the node (which comes from the tree-sitter
+grammar used by the buffer), and @var{pos1} and @var{pos2} are buffer
+positions of the node's span.  Tree-sitter nodes have no read syntax.
+
 @heading Retrieving nodes from syntax tree
 @cindex retrieving tree-sitter nodes
 @cindex syntax tree, retrieving nodes
@@ -684,7 +692,7 @@ Example:
 @group
 ;; Find the node at point in a C parser's syntax tree.
 (treesit-node-at (point) 'c)
-  @result{} #<treesit-node (primitive_type) in 23-27>
+  @result{} #<treesit-node primitive_type in 23-27>
 @end group
 @end example
 @end defun
@@ -791,7 +799,7 @@ This function finds the child of @var{node} whose field name is
 @group
 ;; Get the child that has "body" as its field name.
 (treesit-node-child-by-field-name node "body")
-  @result{} #<treesit-node (compound_statement) in 45-89>
+  @result{} #<treesit-node compound_statement in 45-89>
 @end group
 @end example
 @end defun
