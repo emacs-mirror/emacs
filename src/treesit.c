@@ -5193,13 +5193,16 @@ then in the system default locations for dynamic libraries, in that order.  */);
 	       doc:
 	       /* A list defining things.
 
-The value should be an alist of (LANGUAGE . DEFINITIONS), where
-LANGUAGE is a language symbol, and DEFINITIONS is a list of
+The value should be defined by the major mode, and should be an alist
+of the form (LANGUAGE . DEFINITIONS), where LANGUAGE is a language
+symbol and DEFINITIONS is a list whose elements are of the form
 
     (THING PRED)
 
-THING is a symbol representing the thing, like `defun', `sexp', or
-`sentence'; PRED defines what kind of node can be qualified as THING.
+THING is a symbol representing the thing, like `defun', `defclass',
+`sexp', `sentence', `comment', or any other symbol that is meaningful
+for the major mode; PRED defines what kind of node can be qualified
+as THING.
 
 PRED can be a regexp string that matches the type of the node; it can
 be a predicate function that takes the node as the sole argument and
@@ -5207,12 +5210,13 @@ returns t if the node is the thing, and nil otherwise; it can be a
 cons (REGEXP . FN), which is a combination of a regexp and a predicate
 function, and the node has to match both to qualify as the thing.
 
-PRED can also be recursively defined.  It can be (or PRED...), meaning
-satisfying anyone of the inner PREDs qualifies the node; or (and
-PRED...) meaning satisfying all of the inner PREDs qualifies the node;
-or (not PRED), meaning not satisfying the inner PRED qualifies the node.
+PRED can also be recursively defined.  It can be:
 
-There are two pre-defined predicates, `named' and `anonymous`.  They
+ (or PRED...), meaning satisfying any of the inner PREDs qualifies the node;
+ (and PRED...) meaning satisfying all of the inner PREDs qualifies the node;
+ (not PRED), meaning not satisfying the inner PRED qualifies the node.
+
+There are two pre-defined predicates, `named' and `anonymous'.  They
 match named nodes and anonymous nodes, respectively.
 
 Finally, PRED can refer to other THINGs defined in this list by using
