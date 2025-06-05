@@ -1456,10 +1456,7 @@ when printing the error message."
 	(let ((fn name))
 	  (while (and (symbolp fn)
 		      (fboundp fn)
-		      (or (symbolp (symbol-function fn))
-			  (consp (symbol-function fn))
-			  (and (not macro-p)
-			       (compiled-function-p (symbol-function fn)))))
+		      (functionp (symbol-function fn)))
 	    (setq fn (symbol-function fn)))
           (let ((advertised (get-advertised-calling-convention
                              (if (and (symbolp fn) (fboundp fn))
@@ -1471,7 +1468,7 @@ when printing the error message."
               (if macro-p
                   `(macro lambda ,advertised)
                 `(lambda ,advertised)))
-             ((and (not macro-p) (compiled-function-p fn)) fn)
+             ((and (not macro-p) (functionp fn)) fn)
              ((not (consp fn)) nil)
              ((eq 'macro (car fn)) (cdr fn))
              (macro-p nil)
