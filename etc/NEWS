@@ -2209,6 +2209,17 @@ removed.
 The initial terminal frame of an Emacs process running as daemon can be
 deleted via 'delete-frame' if and only if its optional FORCE argument is
 non-nil.
+
+---
+** 'date-to-time' no longer accepts malformed times with time zone like "EDT".
+Time strings like "2025-06-04T13:21:00 EDT" are not in valid ISO 8601
+time format, and 'date-to-time' now signals an error for them.  Use a
+numerical time-zone specification, like "2025-06-04T13:21:00-0400",
+instead, which gives the time offset as +/-hh or +/-hh:mm.  A designator
+"Z" for UTC time is also supported.  Less formal space-separated time
+formats, like "2025-06-04 13:21:00 EDT", without the ISO 8601 "T"
+separator, are also supported.
+
 
 * Lisp Changes in Emacs 31.1
 
