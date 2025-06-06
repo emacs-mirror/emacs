@@ -1556,8 +1556,8 @@ from which to check out the file(s)."
 			 ;; said no to saving it; in that case, don't revert,
 			 ;; because the user might intend to save after
 			 ;; finishing the log entry and committing.
-			 (not (and visited (buffer-modified-p))))
-		(vc-revert-file file)
+			 (not (and visited (buffer-modified-p visited))))
+                (vc-revert-file file)
 		(setq ready-for-commit (delete file ready-for-commit))))))
 	;; Remaining files need to be committed
 	(if (not ready-for-commit)
