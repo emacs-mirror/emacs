@@ -1574,13 +1574,28 @@ general form of conditions."
             (and (memq (cdr buffer) buffers)
                  (not
                   (project--buffer-check
-                   (cdr buffer) project-ignore-buffer-conditions)))))
-         (buffer (read-buffer
-                  "Switch to buffer: "
-                  (when (funcall predicate (cons other-name other-buffer))
-                    other-name)
-                  nil
-                  predicate)))
+                   buffer project-ignore-buffer-conditions)))))
+         (buffer
+          (if (and (fboundp 'uniquify-get-unique-names)
+                   uniquify-buffer-name-style)
+              ;; Forgo the use of `buffer-read-function' (often nil) in
+              ;; favor of uniquifying the buffers better.
+              (let* ((unique-names (uniquify-get-unique-names buffers))
+                     (other-name (when (funcall predicate (cons other-name other-buffer))
+                                   (car (rassoc other-buffer unique-names))))
+                     (result (completing-read
+                              "Switch to buffer: "
+                              unique-names
+                              predicate
+                              nil nil nil
+                              other-name)))
+                (assoc-default result unique-names #'equal result))
+            (read-buffer
+             "Switch to buffer: "
+             (when (funcall predicate (cons other-name other-buffer))
+               other-name)
+             nil
+             predicate))))
     ;; XXX: This check hardcodes the default buffer-belonging relation
     ;; which `project-buffers' is allowed to override.  Straighten
     ;; this up sometime later.  Or not.  Since we can add a method
