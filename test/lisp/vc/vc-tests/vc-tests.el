@@ -69,8 +69,8 @@
 ;; HISTORY FUNCTIONS
 ;;
 ;; * print-log (files buffer &optional shortlog start-revision limit)
-;; * log-outgoing (backend remote-location)
-;; * log-incoming (backend remote-location)
+;; - log-outgoing (backend remote-location)
+;; - log-incoming (backend remote-location)
 ;; - log-view-mode ()
 ;; - show-log-entry (revision)
 ;; - comment-history (file)

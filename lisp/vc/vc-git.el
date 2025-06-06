@@ -70,8 +70,7 @@
 ;; - get-change-comment (files rev)                OK
 ;; HISTORY FUNCTIONS
 ;; * print-log (files buffer &optional shortlog start-revision limit)   OK
-;; * log-outgoing (buffer remote-location)         OK
-;; * log-incoming (buffer remote-location)         OK
+;; * incoming-revision (remote-location)           OK
 ;; - log-search (buffer pattern)                   OK
 ;; - log-view-mode ()                              OK
 ;; - show-log-entry (revision)                     OK
@@ -1577,41 +1576,12 @@ If LIMIT is a revision string, use it as an end-revision."
                   (list "-p"))
 		'("--")))))))
 
-(defun vc-git-log-outgoing (buffer remote-location)
-  (vc-setup-buffer buffer)
-  (apply #'vc-git-command buffer 'async nil
-         `("log"
-           "--no-color" "--graph" "--decorate" "--date=short"
-           ,(format "--pretty=tformat:%s" (car vc-git-root-log-format))
-           "--abbrev-commit"
-           ,@(ensure-list vc-git-shortlog-switches)
-           ,(concat (if (string-empty-p remote-location)
-	                "@{upstream}"
-	              remote-location)
-	            "..HEAD"))))
-
-(defun vc-git--fetch-incoming (remote-location)
+(defun vc-git-incoming-revision (remote-location)
   (vc-git-command nil 0 nil "fetch"
                   (and (not (string-empty-p remote-location))
                        ;; Extract remote from "remote/branch".
                        (replace-regexp-in-string "/.*" ""
-                                                 remote-location))))
-
-(defun vc-git-log-incoming (buffer remote-location)
-  (vc-setup-buffer buffer)
-  (vc-git--fetch-incoming remote-location)
-  (apply #'vc-git-command buffer 'async nil
-         `("log"
-           "--no-color" "--graph" "--decorate" "--date=short"
-           ,(format "--pretty=tformat:%s" (car vc-git-root-log-format))
-           "--abbrev-commit"
-           ,@(ensure-list vc-git-shortlog-switches)
-           ,(concat "HEAD.." (if (string-empty-p remote-location)
-			         "@{upstream}"
-		               remote-location)))))
-
-(defun vc-git-incoming-revision (remote-location)
-  (vc-git--fetch-incoming remote-location)
+                                                 remote-location)))
   (ignore-errors              ; in order to return nil if no such branch
     (with-output-to-string
       (vc-git-command standard-output 0 nil

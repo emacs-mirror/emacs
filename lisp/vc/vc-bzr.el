@@ -816,6 +816,7 @@ If LIMIT is non-nil, show no more than this many entries."
       (indent-region (match-end 0) (point-max) 2)
       (buffer-substring (match-end 0) (point-max)))))
 
+;; FIXME: Implement `vc-bzr-mergebase' and then delete this.
 (defun vc-bzr-log-incoming (buffer remote-location)
   (apply #'vc-bzr-command "missing" buffer 'async nil
 	 (list "--theirs-only" (and (not (string-empty-p remote-location))
@@ -832,6 +833,7 @@ If LIMIT is non-nil, show no more than this many entries."
     (and (re-search-forward "^revision-id: " nil t)
          (buffer-substring (point) (pos-eol)))))
 
+;; FIXME: Implement `vc-bzr-mergebase' and then delete this.
 (defun vc-bzr-log-outgoing (buffer remote-location)
   (apply #'vc-bzr-command "missing" buffer 'async nil
 	 (list "--mine-only" (and (not (string-empty-p remote-location))

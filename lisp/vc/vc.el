@@ -347,15 +347,17 @@
 ;;   revision shown, rather than the working revision, which is normally
 ;;   the case).  Not all backends support this.
 ;;
-;; * log-outgoing (buffer remote-location)
+;; - log-outgoing (buffer remote-location) (DEPRECATED)
 ;;
 ;;   Insert in BUFFER the revision log for the changes that will be
 ;;   sent when performing a push operation to REMOTE-LOCATION.
+;;   Deprecated: implement incoming-revision and mergebase instead.
 ;;
-;; * log-incoming (buffer remote-location)
+;; - log-incoming (buffer remote-location) (DEPRECATED)
 ;;
 ;;   Insert in BUFFER the revision log for the changes that will be
 ;;   received when performing a pull operation from REMOTE-LOCATION.
+;;   Deprecated: implement incoming-revision and mergebase instead.
 ;;
 ;; * incoming-revision (remote-location)
 ;;
@@ -3252,6 +3254,16 @@ In some version control systems REMOTE-LOCATION can be a remote branch name."
     (vc-incoming-outgoing-internal backend (or remote-location "")
                                    "*vc-incoming*" 'log-incoming)))
 
+(defun vc-default-log-incoming (_backend buffer remote-location)
+  (vc--with-backend-in-rootdir ""
+    (let ((incoming (or (vc-call-backend backend
+                                         'incoming-revision
+                                         remote-location)
+                        (user-error "No incoming revision -- local-only branch?"))))
+      (vc-call-backend backend 'print-log (list rootdir) buffer t
+                       (vc-call-backend backend 'mergebase incoming)
+                       incoming))))
+
 ;;;###autoload
 (defun vc-log-outgoing (&optional remote-location)
   "Show log of changes that will be sent with a push operation to REMOTE-LOCATION.
@@ -3263,6 +3275,16 @@ In some version control systems REMOTE-LOCATION can be a remote branch name."
   (vc--with-backend-in-rootdir "VC root-log"
     (vc-incoming-outgoing-internal backend (or remote-location "")
                                    "*vc-outgoing*" 'log-outgoing)))
+
+(defun vc-default-log-outgoing (_backend buffer remote-location)
+  (vc--with-backend-in-rootdir ""
+    (let ((incoming (or (vc-call-backend backend
+                                         'incoming-revision
+                                         remote-location)
+                        (user-error "No incoming revision -- local-only branch?"))))
+      (vc-call-backend backend 'print-log (list rootdir) buffer t
+                       (vc-call-backend backend 'mergebase incoming)
+                       ""))))
 
 ;;;###autoload
 (defun vc-log-search (pattern)

@@ -1809,6 +1809,12 @@ This replaces and generalizes the old 'vc-annotate-parent-rev'.
 ---
 *** vc-dav.el is now obsolete.
 
+---
+*** The 'log-incoming' and 'log-outgoing' functions are deprecated.
+Backend authors should implement the 'incoming-revision' and 'mergebase'
+backend functions instead.  These are jointly sufficient to support the
+'C-x v I' and 'C-x v O' commands.
+
 ** Diff mode
 
 +++
