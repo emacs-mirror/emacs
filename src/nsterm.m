@@ -3035,35 +3035,32 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct face *face = p->face;
-  NSRect clearRect = NSZeroRect;
+  NSRect bmpRect = NSZeroRect;
   NSRect rowRect = ns_row_rect (w, row, ANY_AREA);
 
   NSTRACE_WHEN (NSTRACE_GROUP_FRINGE, "ns_draw_fringe_bitmap");
   NSTRACE_MSG ("which:%d cursor:%d overlay:%d width:%d height:%d period:%d",
                p->which, p->cursor_p, p->overlay_p, p->wd, p->h, p->dh);
 
+  /* Work out the rectangle we will need to clear.  */
+  bmpRect = NSMakeRect (p->x, p->y, p->wd, p->h);
+
+  if (p->bx >= 0)
+    bmpRect = NSUnionRect (bmpRect, NSMakeRect (p->bx, p->by, p->nx, p->ny));
+
+  /* Handle partially visible rows.  */
+  bmpRect = NSIntersectionRect (bmpRect, rowRect);
+
+  /* Clip to the bitmap's area.  */
+  ns_focus (f, &bmpRect, 1);
+
   /* Clear screen unless overlay.  */
-  if (!p->overlay_p)
+  if (!p->overlay_p && !NSIsEmptyRect (clearRect))
     {
-      /* Work out the rectangle we will need to clear.  */
-      clearRect = NSMakeRect (p->x, p->y, p->wd, p->h);
+      NSTRACE_RECT ("clearRect", clearRect);
 
-      if (p->bx >= 0)
-        clearRect = NSUnionRect (clearRect, NSMakeRect (p->bx, p->by, p->nx, p->ny));
-
-      /* Handle partially visible rows.  */
-      clearRect = NSIntersectionRect (clearRect, rowRect);
-
-      /* The visible portion of imageRect will always be contained
-	 within clearRect.  */
-      ns_focus (f, &clearRect, 1);
-      if (!NSIsEmptyRect (clearRect))
-        {
-          NSTRACE_RECT ("clearRect", clearRect);
-
-          [[NSColor colorWithUnsignedLong:face->background] set];
-          NSRectFill (clearRect);
-        }
+      [[NSColor colorWithUnsignedLong:face->background] set];
+      NSRectFill (clearRect);
     }
 
   NSBezierPath *bmp = [fringe_bmp objectForKey:[NSNumber numberWithInt:p->which]];
