@@ -1030,7 +1030,7 @@ Not supported by all backends."
   "Backends which support `vc-async-checkin'.")
 
 (defmacro vc--with-backend-in-rootdir (desc &rest body)
-  (declare (indent 1) (debug (sexp sexp body)))
+  (declare (indent 1) (debug (sexp body)))
   ;; Intentionally capture `backend' and `rootdir':
   ;; no need to keep repeating them.
   `(let ((backend (vc-deduce-backend))
