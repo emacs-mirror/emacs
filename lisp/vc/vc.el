@@ -283,6 +283,12 @@
 ;;   If FILE is in the `added' state it should be returned to the
 ;;   `unregistered' state.
 ;;
+;; - revert-files (files)
+;;
+;;   As revert, except that the first argument is a list of files, all
+;;   of which require reversion, and reversion from version backups is
+;;   not done.  Backends can implement this for faster mass reverts.
+;;
 ;; - merge-file (file &optional rev1 rev2)
 ;;
 ;;   Merge the changes between REV1 and REV2 into the current working
@@ -1546,19 +1552,22 @@ from which to check out the file(s)."
 		    (read-only-mode -1)))))))
 	;; Allow user to revert files with no changes
 	(save-excursion
-          (dolist (file files)
-            (let ((visited (get-file-buffer file)))
-              ;; For files with locking, if the file does not contain
-              ;; any changes, just let go of the lock, i.e. revert.
-              (when (and (not (eq model 'implicit))
-			 (eq state 'up-to-date)
-			 ;; If buffer is modified, that means the user just
-			 ;; said no to saving it; in that case, don't revert,
-			 ;; because the user might intend to save after
-			 ;; finishing the log entry and committing.
-			 (not (and visited (buffer-modified-p visited))))
-                (vc-revert-file file)
-		(setq ready-for-commit (delete file ready-for-commit))))))
+          (let (to-revert)
+            (dolist (file files)
+              (let ((visited (get-file-buffer file)))
+                ;; For files with locking, if the file does not contain
+                ;; any changes, just let go of the lock, i.e. revert.
+                (when (and (not (eq model 'implicit))
+			   (eq state 'up-to-date)
+			   ;; If buffer is modified, that means the user just
+			   ;; said no to saving it; in that case, don't revert,
+			   ;; because the user might intend to save after
+			   ;; finishing the log entry and committing.
+			   (not (and visited (buffer-modified-p visited))))
+                  (push file to-revert))))
+            (vc-revert-files backend to-revert)
+            (setq ready-for-commit
+                  (cl-nset-difference ready-for-commit to-revert))))
 	;; Remaining files need to be committed
 	(if (not ready-for-commit)
 	    (message "No files remain to be committed")
@@ -1951,9 +1960,11 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
                  (expand-file-name f tmpdir)))
     (unwind-protect
         (progn
-          (dolist (f files)
-            (with-current-buffer (find-file-noselect f)
-              (vc-revert-file buffer-file-name)))
+          (vc-revert-files backend
+                           (mapcar (lambda (f)
+                                     (with-current-buffer (find-file-noselect f)
+                                       buffer-file-name))
+                                   files))
           (with-temp-buffer
             ;; Trying to support CVS too.  Assuming that vc-diff
             ;; there will usually have diff root in default-directory.
@@ -3355,6 +3366,7 @@ This asks for confirmation if the buffer contents are not identical
 to the working revision (except for keyword expansion)."
   (interactive)
   (let* ((vc-fileset (vc-deduce-fileset))
+         (backend (car vc-fileset))
 	 (files (cadr vc-fileset))
 	 (queried nil)
 	 diff-buffer)
@@ -3397,10 +3409,7 @@ to the working revision (except for keyword expansion)."
 	    (error "Revert canceled")))
       (when diff-buffer
 	(quit-windows-on diff-buffer (eq vc-revert-show-diff 'kill))))
-    (dolist (file files)
-      (message "Reverting %s..." (vc-delistify files))
-      (vc-revert-file file)
-      (message "Reverting %s...done" (vc-delistify files)))))
+    (vc-revert-files backend files)))
 
 ;;;###autoload
 (defun vc-pull (&optional arg)
@@ -3532,6 +3541,23 @@ If FILE is a directory, revert all files inside that directory."
      (vc-checkout-time . ,(file-attribute-modification-time
 			   (file-attributes file)))))
   (vc-resynch-buffer file t t))
+
+(defun vc-revert-files (backend files)
+  "Revert each of FILES to the repository working version it was based on.
+For entries in FILES that are directories, revert all files inside them."
+  (when files
+    (message "Reverting %s..." (vc-delistify files))
+    (if (not (vc-find-backend-function backend 'revert-files))
+        (mapc #'vc-revert-file files)
+      (with-vc-properties files
+                          (vc-call-backend backend 'revert-files files)
+                          `((vc-state . up-to-date)))
+      (dolist (file files)
+        (vc-file-setprop file 'vc-checkout-time
+                         (file-attribute-modification-time
+                          (file-attributes file)))
+        (vc-resynch-buffer file t t)))
+    (message "Reverting %s...done" (vc-delistify files))))
 
 ;;;###autoload
 (defun vc-change-backend (file backend)

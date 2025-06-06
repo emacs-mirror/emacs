@@ -1333,11 +1333,16 @@ It is based on `log-edit-mode', and has Git-specific extensions."
   (vc-git-command nil 0 file "checkout" (or rev "HEAD")))
 
 (defun vc-git-revert (file &optional contents-done)
-  "Revert FILE to the version stored in the git repository."
+  "Revert FILE to the version stored in the Git repository."
   (if contents-done
       (vc-git-command nil 0 file "update-index" "--")
     (vc-git-command nil 0 file "reset" "-q" "--")
     (vc-git-command nil nil file "checkout" "-q" "--")))
+
+(defun vc-git-revert-files (files)
+  "Revert FILES to the versions stored in the Git repository."
+  (vc-git-command nil 0 files "reset" "-q" "--")
+  (vc-git-command nil nil files "checkout" "-q" "--"))
 
 (defvar vc-git-error-regexp-alist
   '(("^ \\(.+\\)\\> *|" 1 nil nil 0))

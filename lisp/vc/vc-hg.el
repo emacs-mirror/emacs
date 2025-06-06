@@ -1315,10 +1315,13 @@ REV is the revision to check out into WORKFILE."
 (defun vc-hg-revert (file &optional contents-done)
   (unless contents-done
     (with-temp-buffer
-      (apply #'vc-hg-command
-             t 0 file
-             "revert"
+      (apply #'vc-hg-command t 0 file "revert"
              (append (vc-switches 'hg 'revert))))))
+
+(defun vc-hg-revert-files (files)
+  (with-temp-buffer
+    (apply #'vc-hg-command t 0 files "revert"
+           (append (vc-switches 'hg 'revert)))))
 
 ;;; Hg specific functionality.
 
