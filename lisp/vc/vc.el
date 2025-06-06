@@ -337,15 +337,15 @@
 ;; * print-log (files buffer &optional shortlog start-revision limit)
 ;;
 ;;   Insert the revision log for FILES into BUFFER.
-;;   If SHORTLOG is true insert a short version of the log.
-;;   If LIMIT is true insert only insert LIMIT log entries.  If the
-;;   backend does not support limiting the number of entries to show
-;;   it should return `limit-unsupported'.
+;;   If SHORTLOG is non-nil insert a short version of the log.
+;;   If LIMIT is non-nil insert only insert LIMIT log entries.
+;;   When LIMIT is a string it means stop at that revision.
+;;   If the backend does not support limiting the number of entries to
+;;   show it should return `limit-unsupported'.
 ;;   If START-REVISION is given, then show the log starting from that
 ;;   revision ("starting" in the sense of it being the _newest_
 ;;   revision shown, rather than the working revision, which is normally
-;;   the case).  Not all backends support this.  At present, this is
-;;   only ever used with LIMIT = 1 (by vc-annotate-show-log-revision-at-line).
+;;   the case).  Not all backends support this.
 ;;
 ;; * log-outgoing (buffer remote-location)
 ;;
