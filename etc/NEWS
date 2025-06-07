@@ -2058,8 +2058,8 @@ This option tells 'flash-face-bell-function' and
 for flash.
 
 +++
-*** 'face-all-attributes' now accepts an optional inherit argument.
-'inherit' has the same meaning as the same argument to 'face-attribute',
+*** 'face-all-attributes' now accepts an optional argument INHERIT.
+It has the same meaning as the INHERIT argument to 'face-attribute',
 which already takes this argument for a single attribute.  This is
 useful when you want the face attributes to be absolute and not
 'unspecified'.
