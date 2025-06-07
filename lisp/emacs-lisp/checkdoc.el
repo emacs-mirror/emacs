@@ -1761,24 +1761,31 @@ function,command,variable,option or symbol." ms1))))))
 
 	     ;;   Addendum:  Make sure they appear in the doc in the same
 	     ;;              order that they are found in the arg list.
-	     (let ((args (nthcdr 4 fp))
-		   (last-pos 0)
-		   (found 1)
-		   (order (and (nth 3 fp) (car (nth 3 fp))))
-		   (nocheck (append '("&optional" "&rest" "&key" "&aux"
-                                      "&context" "&environment" "&whole"
-                                      "&body" "&allow-other-keys" "nil")
-                                    (nth 3 fp)))
+	     (let* ((args (nthcdr 4 fp))
+                    (this-arg (car args))
+                    (this-arg (if (string-prefix-p ":" this-arg)
+                                  (substring this-arg 1)
+                                this-arg))
+		    (last-pos 0)
+		    (found 1)
+		    (order (and (nth 3 fp) (car (nth 3 fp))))
+		    (nocheck (append '("&optional" "&rest" "&key" "&aux"
+                                       "&context" "&environment" "&whole"
+                                       "&body" "&allow-other-keys" "nil")
+                                     (nth 3 fp)))
 		   (inopts nil))
 	       (while (and args found (> found last-pos))
                  (if (or (member (car args) nocheck)
-                         (string-match "\\`_" (car args)))
+                         (string-match "\\`_" this-arg))
 		     (setq args (cdr args)
+                           this-arg (if (string-prefix-p ":" (car args))
+                                        (substring (car args) 1)
+                                      (car args))
 			   inopts t)
 		   (setq last-pos found
 			 found (save-excursion
 				 (re-search-forward
-				  (concat "\\<" (upcase (car args))
+				  (concat "\\<" (upcase this-arg)
 					  ;; Require whitespace OR
 					  ;; ITEMth<space> OR
 					  ;; ITEMs<space>
@@ -1791,7 +1798,7 @@ function,command,variable,option or symbol." ms1))))))
 			 ;; and see if the user wants to capitalize it.
 			 (if (save-excursion
 			       (re-search-forward
-				(concat "\\<\\(" (car args)
+				(concat "\\<\\(" this-arg
 					;; Require whitespace OR
 					;; ITEMth<space> OR
 					;; ITEMs<space>
@@ -1801,10 +1808,15 @@ function,command,variable,option or symbol." ms1))))))
 				  (match-beginning 1) (match-end 1)
 				  (format-message
                                    "If this is the argument `%s', it should appear as %s.  Fix?"
-				   (car args) (upcase (car args)))
-				  (upcase (car args)) t)
+				   this-arg (upcase this-arg))
+				  (upcase this-arg) t)
 				 (setq found (match-beginning 1))))))
-		   (if found (setq args (cdr args)))))
+		   (if found (setq args
+                                   (cdr args)
+                                   this-arg (if (string-prefix-p ":"
+                                                                 (car args))
+                                                (substring (car args) 1)
+                                               (car args))))))
 	       (if (not found)
 		   ;; It wasn't found at all!  Offer to attach this new symbol
 		   ;; to the end of the documentation string.
@@ -1817,7 +1829,7 @@ function,command,variable,option or symbol." ms1))))))
 			 (goto-char e) (forward-char -1)
 			 (insert "\n"
 				 (if inopts "Optional a" "A")
-				 "rgument " (upcase (car args))
+				 "rgument " (upcase this-arg)
 				 " ")
 			 (insert (read-string "Describe: "))
 			 (if (not (save-excursion (forward-char -1)
@@ -1828,7 +1840,7 @@ function,command,variable,option or symbol." ms1))))))
                        (checkdoc-create-error
                         (format-message
                          "Argument `%s' should appear (as %s) in the doc string"
-                         (car args) (upcase (car args)))
+                         (car args) (upcase this-arg))
                         s (marker-position e))))
 		 (if (or (and order (eq order 'yes))
 			 (and (not order) checkdoc-arguments-in-order-flag))
