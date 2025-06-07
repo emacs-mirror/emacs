@@ -2480,7 +2480,8 @@ purposes)."
 	;; Assure `buffer-display-table' is unique
 	;; when two or more windows are visible.
 	(setq buffer-display-table
-	      (copy-sequence buffer-display-table)))
+	      (copy-sequence (or buffer-display-table
+                                 standard-display-table))))
       (unless buffer-display-table
 	(setq buffer-display-table (make-display-table)))
       (dolist (entry whitespace-display-mappings)
