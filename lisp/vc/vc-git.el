@@ -592,6 +592,13 @@ or an empty string if none."
   "Process sentinel for the various dir-status stages."
   (let (next-stage
         (files (vc-git-dir-status-state->files git-state)))
+    ;; First stage is always update-index.
+    ;;   After that, if no commits yet, ls-files-added.
+    ;;   Otherwise, if there are commits, diff-index.
+    ;;     After diff-index, if FILES non-nil, ls-files-up-to-date.
+    ;;     After diff-index, if FILES     nil, ls-files-conflict.
+    ;; Then always ls-files-unknown.
+    ;; Finally, if FILES non-nil, ls-files-ignored.
     (goto-char (point-min))
     (pcase (vc-git-dir-status-state->stage git-state)
       ('update-index
@@ -639,6 +646,9 @@ or an empty string if none."
          (vc-git-dir-status-update-file git-state (match-string 1) 'ignored
                                         (vc-git-create-extra-fileinfo 0 0))))
       ('diff-index
+       ;; This is output from 'git diff-index' without --cached.
+       ;; Therefore this stage compares HEAD and the working tree and
+       ;; ignores the index (cf. git-diff-index(1) "RAW OUTPUT FORMAT").
        (setq next-stage (if files 'ls-files-up-to-date 'ls-files-conflict))
        (while (re-search-forward
                ":\\([0-7]\\{6\\}\\) \\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\(\\([ADMUT]\\)\0\\([^\0]+\\)\\|\\([CR]\\)[0-9]*\0\\([^\0]+\\)\0\\([^\0]+\\)\\)\0"
