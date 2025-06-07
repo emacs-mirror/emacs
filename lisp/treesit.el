@@ -3432,7 +3432,10 @@ This is a tree-sitter equivalent of `beginning-of-defun'.
 Behavior of this function depends on `treesit-defun-type-regexp'
 and `treesit-defun-skipper'.  If `treesit-defun-type-regexp' is
 not set, Emacs also looks for definition of defun in
-`treesit-thing-settings'."
+`treesit-thing-settings'.
+
+Whether this goes to the innermost nested defun or a top-level
+one is determined by the value of `treesit-defun-tactic'."
   (interactive "^p")
   (or (not (eq this-command 'treesit-beginning-of-defun))
       (eq last-command 'treesit-beginning-of-defun)
