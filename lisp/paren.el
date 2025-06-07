@@ -111,16 +111,17 @@ On non-graphical frames, the context is shown in the echo area."
   :version "29.1")
 
 (defcustom show-paren-not-in-comments-or-strings nil
-  "Do not highlight the paren that are inside a comment or string.
-If set to `all', do not highlight the paren that are inside comments
-or strings.
-If set to `on-mismatch', the paren mismatched inside comments will not be
-highlighted.
-If set to nil (by default), highlight the paren wherever it is."
+  "If non-nil, do not highlight the parens inside comments and strings.
+If set to `all', never highlight parens inside comments and strings.
+If set to `on-mismatch', do not highlight mismatched parens inside
+comments and strings.
+If set to nil (the default), always highlight parens wherever they are."
   :type '(choice
-          (const :tag "Never highlight" all)
-          (const :tag "Don't highlight when mismatched" on-mismatch)
-          (const :tag "Always highlight" nil))
+          (const :tag "Never highlight parens in comments and strings" all)
+          (const
+           :tag "Don't highlight mismatched parens in comments and strings"
+           on-mismatch)
+          (const :tag "Always highlight parens" nil))
   :version "31.1")
 
 (defvar show-paren--idle-timer nil)

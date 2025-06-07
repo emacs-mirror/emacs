@@ -1061,8 +1061,10 @@ nonblank line.
 @vindex show-paren-not-in-comments-or-strings
 If the value of @code{show-paren-not-in-comments-or-strings} is
 @code{all}, delimiters inside comments and strings will not be
-highlighted.  Otherwise if the value is set to @code{on-mismatch}, the
-mismatched delimiters inside comments will not be highlighted.
+highlighted.  Otherwise, if the value is set to @code{on-mismatch}, the
+mismatched delimiters inside comments will not be highlighted.  The
+default is @code{nil}, so delimiters inside comments and strings are
+always highlighted.
 @end itemize
 
 @cindex Electric Pair mode
