@@ -36,6 +36,7 @@
 ;; FIXME: Clean up namespace usage!
 
 (declare-function dired-current-directory "dired")
+(declare-function cl-find-class "cl-extra")
 
 (cl-defstruct
   (registerv (:constructor nil)

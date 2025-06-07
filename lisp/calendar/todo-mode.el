@@ -952,12 +952,9 @@ Categories mode."
 				 todo-current-todo-file) ".toda")
 		      ;; Otherwise, jump to the category in the todo file.
 		      todo-current-todo-file)))
-	   (len (length todo-categories))
 	   (cat+file (unless cat
 		       (todo-read-category "Jump to category: "
 					    (if archive 'archive) file)))
-	   (add-item (and todo-add-item-if-new-category
-			  (> (length todo-categories) len)))
 	   (category (or cat (car cat+file))))
       (unless cat (setq file0 (cdr cat+file)))
       (with-current-buffer (find-file-noselect file0 'nowarn)
@@ -971,7 +968,10 @@ Categories mode."
         (todo-category-select)
         (goto-char (point-min))
 	(if (bound-and-true-p hl-line-mode) (hl-line-highlight))
-        (when add-item (todo-insert-item--basic))))))
+        (when (and todo-add-item-if-new-category
+                   ;; A new category is empty on creation.
+                   (seq-every-p #'zerop (cdr (assoc category todo-categories))))
+          (todo-insert-item--basic))))))
 
 (defun todo-next-item (&optional count)
   "Move point down to the beginning of the next item.
@@ -5821,7 +5821,13 @@ keys already entered and those still available."
       (if (memq last '(default copy))
 	  (progn
 	    (setq params0 nil)
-            (funcall gen-and-exec))
+            (funcall gen-and-exec)
+	    ;; Since the item insertion command is now done, unset
+	    ;; transient keymap to ensure the next Todo mode key is
+	    ;; recognized (bug#78506).  (Only for "default" and "copy"
+	    ;; parameters: for others, `last' may not yet be the final
+	    ;; parameter, so the map must still be evaluated.)
+	    (setq map nil))
         (let ((key (funcall key-of last)))
 	  (funcall add-to-prompt key (make-symbol
                                       (concat (symbol-name last) ":GO!")))

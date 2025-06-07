@@ -44,6 +44,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "pdumper.h"
 #include "w32common.h"
 
+extern int uniscribe_available;
 int uniscribe_available = 0;
 
 /* EnumFontFamiliesEx callback.  */
@@ -53,6 +54,7 @@ static int CALLBACK ALIGN_STACK add_opentype_font_name_to_list (ENUMLOGFONTEX *,
 #ifdef HAVE_HARFBUZZ
 
 struct font_driver harfbuzz_font_driver;
+extern int harfbuzz_available;
 int harfbuzz_available = 0;
 
 /* Typedefs for HarfBuzz functions which we call through function
@@ -811,9 +813,9 @@ typedef HRESULT (WINAPI *ScriptGetFontLanguageTags_Proc)
 typedef HRESULT (WINAPI *ScriptGetFontFeatureTags_Proc)
   (HDC, SCRIPT_CACHE *, SCRIPT_ANALYSIS *, OPENTYPE_TAG, OPENTYPE_TAG, int, OPENTYPE_TAG *, int *);
 
-ScriptGetFontScriptTags_Proc script_get_font_scripts_fn;
-ScriptGetFontLanguageTags_Proc script_get_font_languages_fn;
-ScriptGetFontFeatureTags_Proc script_get_font_features_fn;
+static ScriptGetFontScriptTags_Proc script_get_font_scripts_fn;
+static ScriptGetFontLanguageTags_Proc script_get_font_languages_fn;
+static ScriptGetFontFeatureTags_Proc script_get_font_features_fn;
 
 static bool uniscribe_new_apis;
 

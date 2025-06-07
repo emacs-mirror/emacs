@@ -271,6 +271,7 @@ extern const char *w32_get_string_resource (void *v_rdb,
                                             const char *class);
 
 /* w32fns.c */
+extern frame_parm_handler w32_frame_parm_handlers[];
 extern void w32_default_font_parameter (struct frame* f, Lisp_Object parms);
 extern Lisp_Object w32_process_dnd_data (int format, void *pDataObj);
 

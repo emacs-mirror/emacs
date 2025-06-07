@@ -50,7 +50,8 @@ CRITICAL_SECTION critsect;
 extern HANDLE keyboard_handle;
 #endif /* WINDOWSNT */
 
-HANDLE input_available = NULL;
+static HANDLE input_available = NULL;
+extern HANDLE interrupt_handle;
 HANDLE interrupt_handle = NULL;
 
 void
@@ -265,9 +266,9 @@ typedef struct int_msg
   struct int_msg *lpNext;
 } int_msg;
 
-int_msg *lpHead = NULL;
-int_msg *lpTail = NULL;
-int nQueue = 0;
+static int_msg *lpHead = NULL;
+static int_msg *lpTail = NULL;
+static int nQueue = 0;
 
 BOOL
 get_next_msg (W32Msg * lpmsg, BOOL bWait)

@@ -644,6 +644,14 @@ Nodes are not automatically updated when the associated buffer is
 modified, and there is no way to update a node once it is retrieved.
 Using an outdated node signals the @code{treesit-node-outdated} error.
 
+@cindex printed representation, of treesit nodes
+The printed representation of a tree-sitter node uses the hash notation
+described in @ref{Printed Representation}.  It looks like
+@w{@samp{#<treesit-node @var{type} in @var{pos1}-@var{pos2}>}}, where
+@var{type} is the type of the node (which comes from the tree-sitter
+grammar used by the buffer), and @var{pos1} and @var{pos2} are buffer
+positions of the node's span.  Tree-sitter nodes have no read syntax.
+
 @heading Retrieving nodes from syntax tree
 @cindex retrieving tree-sitter nodes
 @cindex syntax tree, retrieving nodes
@@ -684,7 +692,7 @@ Example:
 @group
 ;; Find the node at point in a C parser's syntax tree.
 (treesit-node-at (point) 'c)
-  @result{} #<treesit-node (primitive_type) in 23-27>
+  @result{} #<treesit-node primitive_type in 23-27>
 @end group
 @end example
 @end defun
@@ -791,7 +799,7 @@ This function finds the child of @var{node} whose field name is
 @group
 ;; Get the child that has "body" as its field name.
 (treesit-node-child-by-field-name node "body")
-  @result{} #<treesit-node (compound_statement) in 45-89>
+  @result{} #<treesit-node compound_statement in 45-89>
 @end group
 @end example
 @end defun
@@ -1619,14 +1627,16 @@ documentation about pattern-matching.  The documentation can be found at
 
 It's often useful to be able to identify and find certain @dfn{things} in
 a buffer, like function and class definitions, statements, code blocks,
-strings, comments, etc.  Emacs allows users to define what kind of
-tree-sitter node corresponds to a ``thing''.  This enables handy
-features like jumping to the next function, marking the code block at
-point, or transposing two function arguments.
+strings, comments, etc., in terms of node types defined by the
+tree-sitter grammar used in the buffer.  Emacs allows Lisp programs to
+define what kinds of tree-sitter nodes corresponds to each ``thing''.
+This enables handy features like jumping to the next function, marking
+the code block at point, transposing two function arguments, etc.
 
 The ``things'' feature in Emacs is independent of the pattern matching
-feature of tree-sitter, and comparatively less powerful, but more
-suitable for navigation and traversing the parse tree.
+feature of tree-sitter (@pxref{Pattern Matching}), and comparatively
+less powerful, but more suitable for navigation and traversing the
+buffer text in terms of the tree-sitter parse tree.
 
 @findex treesit-thing-definition
 @findex treesit-thing-defined-p
@@ -1635,12 +1645,22 @@ predicate of a defined thing with @code{treesit-thing-definition}, and
 test if a thing is defined with @code{treesit-thing-defined-p}.
 
 @defvar treesit-thing-settings
-This is an alist of thing definitions for each language.  The key of
-each entry is a language symbol, and the value is a list of thing
-definitions of the form @w{@code{(@var{thing} @var{pred})}}, where
-@var{thing} is a symbol representing the thing, like @code{defun},
-@code{sexp}, or @code{sentence}; and @var{pred} specifies what kind of
-tree-sitter node is this @var{thing}.
+This is an alist of thing definitions for each language supported by the
+grammar used in a buffer; it should be defined by the buffer's major
+mode (the default value is @code{nil}).  The key of each entry is a
+language symbol (e.g., @code{c} for C, @code{cpp} for C@t{++}, etc.),
+and the value is a list of thing definitions of the form
+@w{@code{(@var{thing} @var{pred})}}, where @var{thing} is a symbol
+representing the thing, and @var{pred} specifies what kinds of
+tree-sitter nodes are considered as this @var{thing}.
+
+@cindex @code{sexp}, treesit-defined thing
+@cindex @code{list}, treesit-defined thing
+The symbol used to define the @var{thing} can be anything meaningful for
+the major mode: @code{defun}, @code{defclass}, @code{sentence},
+@code{comment}, @code{string}, etc.  To support tree-sitter based
+navigation commands (@pxref{List Motion}), the mode should define two
+things: @code{list} and @code{sexp}.
 
 @var{pred} can be a regexp string that matches the type of the node; it
 can be a function that takes a node as the argument and returns a
@@ -1660,13 +1680,16 @@ meaning that not satisfying @var{pred} qualifies the node.
 Finally, @var{pred} can refer to other @var{thing}s defined in this
 list.  For example, @w{@code{(or sexp sentence)}} defines something
 that's either a @code{sexp} thing or a @code{sentence} thing, as defined
-by some other rule in the alist.
+by some other rules in the alist.
 
+@cindex @code{named}, treesit-defined thing
+@cindex @code{anonymous}, treesit-defined thing
 There are two pre-defined predicates: @code{named} and @code{anonymous},
-which qualify, respectively, named and anonymous nodes.  They can be
-combined with @code{and} to narrow down the match.
+which qualify, respectively, named and anonymous nodes of the
+tree-sitter grammar.  They can be combined with @code{and} to narrow
+down the match.
 
-Here's an example @code{treesit-thing-settings} for C and C++:
+Here's an example @code{treesit-thing-settings} for C and C@t{++}:
 
 @example
 @group
@@ -1676,6 +1699,8 @@ Here's an example @code{treesit-thing-settings} for C and C++:
   (comment "comment")
   (string "raw_string_literal")
   (text (or comment string)))
+@end group
+@group
  (cpp
   (defun ("function_definition" . cpp-ts-mode-defun-valid-p))
   (defclass "class_specifier")
@@ -1685,12 +1710,12 @@ Here's an example @code{treesit-thing-settings} for C and C++:
 
 @noindent
 Note that this example is modified for didactic purposes, and isn't
-exactly how C and C@t{++} modes define things.
+exactly how tree-sitter based C and C@t{++} modes define things.
 @end defvar
 
-Emacs builtin functions already make use some thing definitions.
+Emacs builtin functions already make use of some thing definitions.
 Command @code{treesit-forward-sexp} uses the @code{sexp} definition if
-major mode defines it; @code{treesit-forward-list},
+major mode defines it (@pxref{List Motion}); @code{treesit-forward-list},
 @code{treesit-down-list}, @code{treesit-up-list},
 @code{treesit-show-paren-data} use the @code{list} definition (its
 symbol @code{list} has the symbol property @code{treesit-thing-symbol}
@@ -1699,8 +1724,8 @@ to avoid ambiguity with the function that has the same name);
 Defun movement functions like @code{treesit-end-of-defun} uses the
 @code{defun} definition (@code{defun} definition is overridden by
 @var{treesit-defun-type-regexp} for backward compatibility).  Major
-modes can also define @code{comment}, @code{string}, @code{text}
-(generally comments and strings).
+modes can also define @code{comment}, @code{string}, and @code{text}
+things (to match comments and strings).
 
 The rest of this section lists a few functions that take advantage of
 the thing definitions.  Besides the functions below, some other
@@ -1709,10 +1734,10 @@ tree-traversing functions like @code{treesit-search-forward},
 @code{treesit-induce-sparse-tree}, etc.  @xref{Retrieving Nodes}.
 
 @defun treesit-node-match-p node thing &optional ignore-missing
-This function checks whether @var{node} is a @var{thing}.
+This function checks whether @var{node} represents a @var{thing}.
 
-If @var{node} is a @var{thing}, return non-@code{nil}, otherwise return
-@code{nil}.  For convenience, if @code{node} is @code{nil}, this
+If @var{node} represents @var{thing}, return non-@code{nil}, otherwise
+return @code{nil}.  For convenience, if @code{node} is @code{nil}, this
 function just returns @code{nil}.
 
 The @var{thing} can be either a thing symbol like @code{defun}, or
@@ -1727,8 +1752,9 @@ undefined and just returns @code{nil}; but it still signals the error if
 @end defun
 
 @defun treesit-thing-prev position thing
-This function returns the first node before @var{position} that is the
-specified @var{thing}.  If no such node exists, it returns @code{nil}.
+This function returns the first node before @var{position} in the
+current buffer that is the specified @var{thing}.  If no such node
+exists, it returns @code{nil}.
 It's guaranteed that, if a node is returned, the node's end position is
 less or equal to @var{position}.  In other words, this function never
 returns a node that encloses @var{position}.
@@ -1753,8 +1779,9 @@ function doesn't move point.
 
 A positive @var{arg} means moving forward that many instances of
 @var{thing}; negative @var{arg} means moving backward.  If @var{side} is
-@code{beg}, this function stops at the beginning of @var{thing}; if
-@code{end}, stop at the end of @var{thing}.
+@code{beg}, this function returns the position of the beginning of
+@var{thing}; if it's @code{end}, it returns the position at the end of
+@var{thing}.
 
 Like in @code{treesit-thing-prev}, @var{thing} can be a thing symbol
 defined in @code{treesit-thing-settings}, or a predicate.
@@ -1780,8 +1807,8 @@ less or equal to @var{position}, and it's end position is greater or equal to
 @var{position}.
 
 If @var{strict} is non-@code{nil}, this function uses strict comparison,
-i.e., start position must be strictly greater than @var{position}, and end
-position must be strictly less than @var{position}.
+i.e., start position must be strictly smaller than @var{position}, and end
+position must be strictly greater than @var{position}.
 
 @var{thing} can be either a thing symbol defined in
 @code{treesit-thing-settings}, or a predicate.

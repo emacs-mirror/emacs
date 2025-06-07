@@ -1,10 +1,1163 @@
+2025-05-17  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix saving abbrevs by 'abbrev-edit-save-buffer'
+
+	* lisp/abbrev.el (abbrev-edit-save-buffer): Reset
+	'abbrevs-changed'.  Suggested by Rick <rbielaws@gmail.com>.
+	(Bug#78435)
+
+2025-05-15  Konstantin Kharlamov  <Hi-Angel@yandex.ru>
+
+	typescript-ts-mode: align ternary-chain branches (bug#78187)
+
+	* lisp/progmodes/typescript-ts-mode.el:
+	(typescript-ts-mode--indent-rules): Make sure each new ternary
+	branch is aligned with the previous one.
+	* test/lisp/progmodes/typescript-ts-mode-resources/indent.erts:
+	(Chained ternary expressions): New test.
+
+2025-05-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	Improve Tramp test
+
+	* test/lisp/net/tramp-tests.el
+	(tramp-test26-interactive-file-name-completion): Adapt test.
+
+2025-05-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* lisp/autorevert.el (auto-revert-remote-files): Adapt docstring.
+
+2025-05-10  Stephen Berman  <stephen.berman@gmx.net>
+
+	Improve Electric Pair mode documentation (bug#78021)
+
+	* doc/emacs/programs.texi (Matching): Clarify and improve
+	documentation of Electric Pair mode.
+
+	* lisp/elec-pair.el: Improve description in header line.  Add text
+	and a reference to the Emacs user manual in the Commentary section.
+	(electric-pair-skip-self, electric-pair-inhibit-predicate)
+	(electric-pair-preserve-balance)
+	(electric-pair-delete-adjacent-pairs)
+	(electric-pair-open-newline-between-pairs)
+	(electric-pair-skip-whitespace)
+	(electric-pair-skip-whitespace-function)
+	(electric-pair-analyze-conversion)
+	(electric-pair--skip-whitespace)
+	(electric-pair-text-syntax-table, electric-pair--with-syntax)
+	(electric-pair-syntax-info, electric-pair--insert)
+	(electric-pair--syntax-ppss, electric-pair--balance-info)
+	(electric-pair-inhibit-if-helps-balance)
+	(electric-pair-skip-if-helps-balance)
+	(electric-pair-open-newline-between-pairs-psif)
+	(electric-pair-mode): Clarify and improve doc strings and some comments.
+	(electric-pair-post-self-insert-function): Restructure doc string
+	to shorten overlong first line, and reformat overlong lines of code.
+
+2025-05-10  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix indentation of XML comments
+
+	* lisp/nxml/nxml-mode.el (nxml-compute-indent-in-delimited-token):
+	Fix indentation in XML comments with empty lines.  Patch by John
+	Ciolfi <ciolfi@mathworks.com>.  (Bug#73206)
+
+2025-05-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	Improve Tramp's make-process handling for Solaris
+
+	* lisp/net/tramp-sh.el (tramp-sh-handle-make-process):
+	Disable buffering also for remote Solaris hosts.
+	Reported by Stacey Marshall <stacey.marshall@gmail.com>.
+
+2025-05-08  Stephen Gildea  <stepheng+emacs@gildea.com>
+
+	Document 'time-stamp-time-zone' in Emacs Manual
+
+	* doc/emacs/files.texi (Time Stamp Customization): Document
+	time-stamp-time-zone.
+
+2025-05-07  Yuan Fu  <casouri@gmail.com>
+
+	Make treesit--simple-indent-eval more permissive (bug#78065)
+
+	* lisp/treesit.el (treesit--simple-indent-eval): Allow EXP to be
+	anything, so higher-order indent presets can take anything as an
+	argument: t, nil, symbols, keywords, etc.
+
+2025-05-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	Adapt Tramp tests
+
+	* test/lisp/net/tramp-tests.el (tramp-test29-start-file-process)
+	(tramp-test30-make-process): Adapt tests.
+
+2025-05-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix quoted local file name parts in Tramp
+
+	* lisp/net/tramp.el (tramp-handle-directory-file-name):
+	* lisp/net/tramp-integration.el (tramp-rfn-eshadow-update-overlay):
+	Handle quoted local file name part.
+
+2025-05-01  Jostein Kjønigsen  <jostein@kjonigsen.net>
+
+	Fix compilation-mode matches for csharp-mode (bug#78128)
+
+	* lisp/progmodes/csharp-mode.el:
+	(csharp-compilation-re-dotnet-error):
+	(csharp-compilation-re-dotnet-warning): Ignore leading whitespace.
+
+2025-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	Add 3 scripts to fontset setup
+
+	* lisp/international/fontset.el (setup-default-fontset)
+	(script-representative-chars): Add support for Avestan, Old Turkic
+	and Chakma.  Patch by Werner Lemberg <wl@gnu.org>.  Do not merge
+	to master.
+
+2025-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix compilation errors in emacsclient.c with MinGW GCC 15
+
+	* lib-src/emacsclient.c (set_fg, get_wc): Declare using actual
+	function signatures.
+	(w32_give_focus): Cast return value of 'GetProcAddress' to correct
+	pointer types.  (Bug#78160)
+
+2025-04-27  Po Lu  <luangruo@yahoo.com>
+
+	Fix the Android build
+
+	* java/README.res: Move from java/res/README, as the AAPT does
+	not permit non-resource files in resource directories.
+
+2025-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid infinite recursion under 'rectangle-mark-mode'
+
+	* lisp/rect.el (rectangle--region-beginning)
+	(rectangle--region-end): Avoid infinite recursion.  Patch by Alcor
+	<alcor@tilde.club>.  Do not merge to master.  (Bug#77973)
+
+2025-04-26  Sean Bright  <sean@seanbright.com>  (tiny change)
+
+	Include additional version metadata during Windows install
+
+	* admin/nt/dist-build/emacs.nsi: Add DisplayIcon, DisplayVersion, and
+	  Publisher values to the Uninstall registry key.
+
+2025-04-25  Stephen Gildea  <stepheng+emacs@gildea.com>
+
+	* doc/emacs/files.texi (Time Stamp Customization): Typo.
+
+2025-04-19  Spencer Baugh  <sbaugh@janestreet.com>
+
+	Backport: fix flymake margin indicator fallback logic
+
+	Backport 861e7f8b60e4bf076bf5991d25a22b3a012746bd to fix bug#77313, so
+	that fringe indicators are once again reliably the default on frames
+	that support them.
+
+	Do not merge to master.
+
+	* lisp/progmodes/flymake.el (flymake-indicator-type)
+	(flymake-mode): Fix margin fallback behavior.
+
+2025-04-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* lisp/progmodes/heex-ts-mode.el (heex-ts): Fix :group name.
+
+2025-04-18  Konstantin Kharlamov  <Hi-Angel@yandex.ru>
+
+	Fix typescript-ts-mode indentation (bug#77803)
+
+	Don't align variable names to their declaratory expression.
+
+	Before this commit in code like:
+
+	    const a = 1,
+	          b = 2;
+
+	the b would get indented to `const'.  Similarly for `var' and
+	`let'. The expected behavior instead is getting indented to
+	`typescript-ts-mode-indent-offset'.
+
+	* lisp/progmodes/typescript-ts-mode.el
+	(typescript-ts-mode--indent-rules): Indent identifiers declarations to
+	`typescript-ts-mode-indent-offset'.
+	* test/lisp/progmodes/typescript-ts-mode-resources/indent.erts
+	(Lexical and variable declarations): Update test accordingly.
+
+2025-04-18  Yuan Fu  <casouri@gmail.com>
+
+	Handle offset in treesit--update-ranges-local (bug#77848)
+
+	* lisp/treesit.el:
+	(treesit--update-ranges-local): Add OFFSET parameter.
+	(treesit-update-ranges): Pass offset to
+	treesit--update-ranges-local.
+
+2025-04-18  kobarity  <kobarity@gmail.com>
+
+	Disable echo back instead of setting tty to raw in Inferior Python
+
+	* lisp/progmodes/python.el (python-shell-setup-code): Change the
+	Python setup code.  (Bug#76943)
+
+	(cherry picked from commit 4c5c20ddc2cdde570ccf54c4aa60644828ee213d)
+
+2025-04-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* admin/notes/emba: Fix docker build instruction.
+
+2025-04-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	Backport: Fix tree-sitter tests on Emba
+
+	* test/infra/Dockerfile.emba: Use tree-sitter-rust v0.23.3 in
+	order to match ABI version of libtree-sitter0.
+
+	(cherry picked from commit 788c9cfb62c7fd50b171a9209dd7453bd03f14bf)
+
+2025-04-15  Wojciech Siewierski  <wojciech@siewierski.eu>
+
+	Fix deleting the first line of calc trail
+
+	* lisp/calc/calc-trail.el (calc-trail-kill): Remove the check
+	preventing the removal of the first trail line, which is no
+	longer relevant since commit 8e1376a3912.  (Bug#77816)
+
+2025-04-13  Po Lu  <luangruo@yahoo.com>
+
+	Fix file descriptor leaks on arm Android
+
+	* exec/loader-aarch64.s (_start):
+
+	* exec/loader-armeabi.s (_start): Fix thinko.
+	Do not merge to master.
+
+2025-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	lisp/help.el (help-form-show): Improve last change (bug#77118)
+
+	Fill the buffer from within the `with-output-to-temp-buffer`, as before.
+
+2025-04-12  Stephen Berman  <stephen.berman@gmx.net>
+
+	Fix display of keys in 'help-form' buffers (bug#77118)
+
+	* lisp/help.el (help-form-show): Use 'insert' instead of 'princ'
+	so that keys in 'help-form' are displayed with 'help-key-binding' face.
+
+2025-04-12  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve documentation of 'user-emacs-directory'
+
+	* doc/emacs/custom.texi (Find Init): Document the effect of
+	'user-emacs-directory' on native compilation.  Advise against
+	changing the value of 'user-emacs-directory' in init files.
+	(Bug#77745)
+
+2025-04-11  Sean Whitton  <spwhitton@spwhitton.name>
+
+	Update remarks on name prefixes in coding conventions
+
+	* doc/lispref/tips.texi (Coding Conventions): Say that it's okay
+	to put the name prefix later for defining constructs, rather
+	than explicitly instructing the reader to do so.  Condense the
+	recommendation to err on the side of prepending the name prefix.
+
+2025-04-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix Tramp problem with loooongish file names
+
+	* lisp/net/tramp-sh.el (tramp-readlink-file-truename): New defconst.
+	(tramp-bundle-read-file-names): Use new %m and %q format specifiers.
+	(tramp-sh-handle-file-truename): Use `tramp-readlink-file-truename'.
+	(tramp-bundle-read-file-names, tramp-get-remote-readlink): Simplify.
+	(tramp-expand-script): Add format specifiers %m and %q for test
+	commands.  Addapt readlink call.
+	Reported by Stacey Marshall <stacey.marshall@gmail.com>.
+
+2025-04-03  Yuan Fu  <casouri@gmail.com>
+
+	Tighten the criteria for a defun in typescript-ts-mode (bug#77369)
+
+	* lisp/progmodes/typescript-ts-mode.el:
+	(typescript-ts-mode--defun-type-regexp): New
+	variable (backported from master).
+	(typescript-ts-mode--defun-predicate): New function.
+	(typescript-ts-base-mode): Use new predicate.
+
+2025-04-03  Stephen Berman  <stephen.berman@gmx.net>
+
+	Fix obsolete documentation of desktop library
+
+	* doc/emacs/misc.texi (Saving Emacs Sessions): Replace
+	documentation of the long-deleted user option
+	'desktop-clear-preserve-buffers-regexp' with documentation of
+	'desktop-clear-preserve-buffers'.
+
+2025-04-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	Improve Tramp's initial warnings
+
+	* lisp/net/tramp-cache.el (tramp-dump-connection-properties):
+	Adapt comment.
+
+	* lisp/net/tramp-compat.el (tramp-warning): Declare and use it.
+
+	* lisp/net/tramp-message.el (tramp-warning): Declare `indent'.
+
+2025-04-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	Explain, how to suppress Tramp warnings
+
+	* doc/misc/tramp.texi (Frequently Asked Questions): Remove double item.
+	(Traces and Profiles): Mention `warning-suppress-types'.  (Bug#77422)
+
+2025-04-01  Stephen Gildea  <stepheng+emacs@gildea.com>
+
+	printed manuals: xrefs in and out of "Preparing Patches"
+
+	Fix two cases of links where the on-line manual is one document but the
+	manual is split into separate documents for printing:
+
+	* doc/emacs/package.texi (Fetching Package Sources): fix printed link to
+	"Preparing Patches" to point to separate document.
+	* doc/emacs/vc1-xtra.texi (Preparing Patches): fix printed link to
+	"Directory Variables" to point to separate document.
+
+2025-04-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix Tramp's file-attributes cache
+
+	* lisp/net/tramp-adb.el (tramp-adb-handle-file-executable-p):
+	Check also for sticky bit.
+	(tramp-adb-handle-file-readable-p): Simplify.
+
+	* lisp/net/tramp-gvfs.el (tramp-gvfs-handle-file-executable-p):
+	Check also for sticky bit.  Force `file-attributes' check.
+
+	* lisp/net/tramp-sh.el (tramp-sh-handle-file-executable-p):
+	Check also for sticky bit.
+	(tramp-sh-handle-file-readable-p)
+	(tramp-sh-handle-file-writable-p): Simplify.
+
+	* lisp/net/tramp-sudoedit.el (tramp-sudoedit-handle-file-executable-p):
+	Check also for sticky bit.
+	(tramp-sudoedit-handle-file-readable-p)
+	(tramp-sudoedit-handle-file-writable-p): Simplify.
+
+	* lisp/net/tramp.el (tramp-use-file-attributes): Fix docstring.
+	(tramp-handle-file-readable-p, tramp-handle-file-writable-p):
+	Force `file-attributes' check.  Use `file-truename' for symbolic links.
+	(tramp-check-cached-permissions): New optional argument FORCE.
+	Fix symlink check.  Check also for sticky bit.  (Bug#77402)
+
+	* test/lisp/net/tramp-tests.el
+	(tramp-test20-file-modes-without-file-attributes)
+	(tramp-test21-file-links-without-file-attributes): New tests.
+
+2025-04-01  Pip Cet  <pipcet@protonmail.com>
+
+	Fix compilation errors due to insufficient compiler safety (bug#63288)
+
+	The default safety level is 1.  Restoring the default safety level to
+	1 after it was temporarily 0 should reset byte-compile-delete-errors
+	to nil, its default level.  Failing to do that resulted in
+	miscompilation of code in highly-parallel builds.
+
+	* lisp/emacs-lisp/cl-macs.el (cl--do-proclaim): Change
+	'byte-compile-delete-errors' to become t only at 'safety' level 0, not
+	levels 1 or 2.
+
+	(cherry picked from commit 53a5dada413662389a17c551a00d215e51f5049f)
+
+2025-03-30  Stephen Gildea  <stepheng+emacs@gildea.com>
+
+	Backport expansion of Time Stamp documentation
+
+	* doc/emacs/files.texi (Time Stamps): Add examples of enabling
+	time stamping with add-hook, setting time-stamp-pattern as a
+	file-local variable, and showing a time stamp at the end of a
+	file.  Divide into three sections.
+	* doc/emacs/emacs.texi: Add new nodes to menu.
+	* lisp/info.el (Info-file-list-for-emacs): Remove entry that
+	points Info at time-stamp discussion in the Autotype document.
+	* lisp/time-stamp.el (time-stamp-format, time-stamp-active,
+	time-stamp-count, time-stamp-pattern, time-stamp, time-stamp-string):
+	Expand doc strings.  Include Info cross-references.
+
+	Cherry picked from commits on the main branch.
+	Do not merge to master.
+
+2025-03-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.7.3-pre
+
+	* doc/misc/tramp.texi: Use @dots{} where appropriate.
+	(External methods): Precise remark on rsync speed.
+	(Customizing Methods): Add incus-tramp.
+	(Password handling): Mention expiration of cached passwords when a
+	session timeout happens.
+	(Predefined connection information): Mention also "androidsu" as
+	special case of "tmpdir".
+	(Ad-hoc multi-hops, Frequently Asked Questions):
+	Improve description how ad-hoc multi-hop file names can be made
+	persistent.  (Bug#65039, Bug#76457)
+	(Remote processes): Signals are not delivered to remote direct
+	async processes.  Say, that there are restrictions for transfer of
+	binary data to remote direct async processes.
+	(Bug Reports): Explain bisecting.
+	(Frequently Asked Questions): Improve index.  Speak about
+	fingerprint readers.  Recommend `small-temporary-file-directory'
+	for ssh sockets.
+	(External packages): Rename subsection "Timers, process filters,
+	process sentinels, redisplay".
+	(Extension packages): New node.
+	(Top, Files directories and localnames): Add it to @menu.
+
+	* doc/misc/trampver.texi:
+	* lisp/net/trampver.el (tramp-version): Adapt Tramp versions.
+	(tramp-repository-branch, tramp-repository-version):
+	Remove ;;;###tramp-autoload cookie.
+
+	* lisp/net/tramp-adb.el:
+	* lisp/net/tramp-androidsu.el:
+	* lisp/net/tramp-cache.el:
+	* lisp/net/tramp-cmds.el:
+	* lisp/net/tramp-compat.el:
+	* lisp/net/tramp-container.el:
+	* lisp/net/tramp-crypt.el:
+	* lisp/net/tramp-ftp.el:
+	* lisp/net/tramp-fuse.el:
+	* lisp/net/tramp-gvfs.el:
+	* lisp/net/tramp-integration.el:
+	* lisp/net/tramp-message.el:
+	* lisp/net/tramp-rclone.el:
+	* lisp/net/tramp-sh.el:
+	* lisp/net/tramp-smb.el:
+	* lisp/net/tramp-sshfs.el:
+	* lisp/net/tramp-sudoedit.el:
+	* lisp/net/tramp.el: Use `when-let*', `if-let*' and `and-let*'
+	consequently.  (Bug#73441)
+
+	* lisp/net/tramp-adb.el (tramp-adb-maybe-open-connection):
+	Move setting of sentinel up.
+
+	* lisp/net/tramp-archive.el (tramp-archive-file-name-p):
+	Add ;;;###tramp-autoload cookie.
+	(tramp-archive-local-file-name): New defun.
+
+	* lisp/net/tramp-cache.el (tramp-connection-properties): Add link
+	to the Tramp manual in the docstring.
+	(tramp-get-connection-property, tramp-set-connection-property):
+	Don't raise a debug message for the `tramp-cache-version' key.
+	(with-tramp-saved-connection-property)
+	(with-tramp-saved-connection-properties): Add traces.
+	(tramp-dump-connection-properties): Don't save connection property
+	"pw-spec".
+
+	* lisp/net/tramp-cmds.el (tramp-repository-branch)
+	(tramp-repository-version): Declare.
+
+	* lisp/net/tramp-gvfs.el (tramp-gvfs-do-copy-or-rename-file):
+	(tramp-gvfs-do-copy-or-rename-file): Don't use the truename.
+	Handle symlinks.
+	(tramp-gvfs-local-file-name): New defun.
+
+	* lisp/net/tramp-message.el (tramp-repository-branch)
+	(tramp-repository-version): Declare.
+	(tramp-error-with-buffer, tramp-user-error): Don't redisplay in
+	`sit-for'.  (Bug#73718)
+	(tramp-warning): Fix `lwarn' call.
+
+	* lisp/net/tramp.el (tramp-read-passwd):
+	* lisp/net/tramp-sh.el (tramp-maybe-open-connection):
+	* lisp/net/tramp-sudoedit.el (tramp-sudoedit-send-command):
+	Rename connection property "password-vector" to "pw-vector".
+
+	* lisp/net/tramp-sh.el (tramp-methods) <pscp, psftp>:
+	Adapt `tramp-copy-args' argument.
+	(tramp-get-remote-pipe-buf, tramp-actions-before-shell):
+	Use `tramp-fingerprint-prompt-regexp'.
+	(tramp-sh-handle-copy-directory):
+	Apply `tramp-do-copy-or-rename-file-directly' if possible.
+	(tramp-do-copy-or-rename-file): Refactor.  Handle symlinks.
+	(Bug#76678)
+	(tramp-plink-option-exists-p): New defun.
+	(tramp-ssh-or-plink-options): Rename from
+	`tramp-ssh-controlmaster-options'.  Adapt further plink options.
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-maybe-open-connection): Adapt calls.
+	(tramp-sh-handle-make-process): Don't set connection property
+	"remote-pid", it's unused.
+	(tramp-sh-handle-process-file): Do proper quoting.
+	(tramp-vc-file-name-handler): Add `file-directory-p', which is
+	used in `vc-find-root'.  (Bug#74026)
+	(tramp-maybe-open-connection): Use connection property "hop-vector".
+	(tramp-get-remote-pipe-buf): Make it more robust.
+
+	* lisp/net/tramp-smb.el (tramp-smb-errors): Add string.
+	(tramp-smb-handle-copy-directory): Don't check existence of
+	DIRNAME, this is done in `tramp-skeleton-copy-directory' already.
+	(tramp-smb-handle-copy-file, tramp-smb-handle-rename-file): Refactor.
+
+	* lisp/net/tramp-sshfs.el (tramp-sshfs-handle-process-file):
+	STDERR is not implemented.
+
+	* lisp/net/tramp-sudoedit.el (tramp-sudoedit-do-copy-or-rename-file):
+	Don't use the truename.  Handle symlinks.
+
+	* lisp/net/tramp.el (tramp-mode): Set to nil on MS-DOS.
+	(tramp-otp-password-prompt-regexp): Add TACC HPC prompt.
+	(tramp-wrong-passwd-regexp): Add fingerprint messages.
+	(tramp-fingerprint-prompt-regexp, tramp-use-fingerprint):
+	New defcustoms.
+	(tramp-string-empty-or-nil-p):
+	Declare `tramp-suppress-trace' property.
+	(tramp-barf-if-file-missing): Accept also symlinks.
+	(tramp-skeleton-file-exists-p)
+	(tramp-handle-file-directory-p): Protect against cyclic symlinks.
+	(tramp-skeleton-make-symbolic-link): Drop volume letter when flushing.
+	(tramp-skeleton-process-file): Raise a warning if STDERR is not
+	implemented.
+	(tramp-skeleton-set-file-modes-times-uid-gid): Fix typo.
+	(tramp-compute-multi-hops): Check for
+	`tramp-sh-file-name-handler-p', it works only for this.
+	(tramp-handle-shell-command):
+	Respect `async-shell-command-display-buffer'.
+	(tramp-action-password, tramp-process-actions): Use connection
+	property "hop-vector".
+	(tramp-action-fingerprint, tramp-action-show-message): New defuns.
+	(tramp-action-show-and-confirm-message): Start check at (point-min).
+	(tramp-wait-for-regexp): Don't redisplay in `sit-for'.  (Bug#73718)
+	(tramp-convert-file-attributes): Don't cache
+	"file-attributes-ID-FORMAT".
+	(tramp-read-passwd, tramp-clear-passwd): Rewrite.  (Bug#74105)
+
+	* test/lisp/net/tramp-tests.el (auth-source-cache-expiry)
+	(ert-batch-backtrace-right-margin): Set them to nil.
+	(vc-handled-backends): Suppress if noninteractive.
+	(tramp--test-enabled): Cleanup also
+	`tramp-compat-temporary-file-directory'.
+	(tramp-test11-copy-file, tramp-test12-rename-file)
+	(tramp-test18-file-attributes, tramp--test-deftest-with-stat)
+	(tramp--test-deftest-with-perl, tramp--test-deftest-with-ls)
+	(tramp--test-deftest-without-file-attributes)
+	(tramp-test21-file-links, tramp-test28-process-file)
+	(tramp-test32-shell-command, tramp-test36-vc-registered)
+	(tramp-test39-make-lock-file-name, tramp--test-check-files)
+	(tramp-test42-utf8, tramp-test43-file-system-info)
+	(tramp-test44-file-user-group-ids, tramp-test47-read-password):
+	Adapt tests.
+	(tramp-test47-read-fingerprint): New test.
+
+2025-03-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	lisp/emacs-lisp/cl-macs.el (cl-labels): Fix docstring (bug#77348)
+
+2025-03-29  Dominik Schrempf  <dominik.schrempf@gmail.com>  (tiny change)
+
+	Fix minor issues in documentation of `use-package'
+
+	(Bug#77311)
+
+2025-03-29  Vincenzo Pupillo  <v.pupillo@gmail.com>
+
+	PHP should be in the PATH, either locally or remotely. (bug#76242).
+
+	* lisp/progmodes/php-ts-mode.el
+	(php-ts-mode-php-default-executable): Renamed from
+	'php-ts-mode-php-executable'.
+	(php-ts-mode--executable): New function that returns the absolute
+	filename of the PHP executable, local or remote, based on
+	'default-directory'.
+	(php-ts-mode--anchor-prev-sibling): Replaced 'when-let' with
+	“when-let*.”
+	(php-ts-mode--indent-defun): Replaced 'when-let' with
+	'when-let*'.
+	(php-ts-mode-run-php-webserver): Use the new function
+	(php-ts-mode-php-default-executable).
+	(run-php): Use the new function (php-ts-mode-php-default-executable).
+
+2025-03-29  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid warning when loading 'go-ts-mode'
+
+	* lisp/progmodes/go-ts-mode.el (treesit-ready-p): Silence the
+	warning if the gomod language library is not installed.
+	(Bug#77213)
+
+2025-03-25  Yue Yi  <include_yy@qq.com>
+
+	peg.texi: Fix bug#76555 even a bit more
+
+	* doc/lispref/peg.texi (Parsing Expression Grammars):
+	Fix other part of the grammar of `define-peg-ruleset` example.
+
+2025-03-25  Yue Yi  <include_yy@qq.com>
+
+	peg.texi: Fix bug#76555 even a bit more
+
+	* doc/lispref/peg.texi (Parsing Expression Grammars):
+	Fix grammar of `define-peg-ruleset` example.
+
+2025-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	PEG: Fix bug#76555
+
+	* doc/lispref/peg.texi (Parsing Expression Grammars):
+	Fix `define-peg-ruleset` example.
+
+	* lisp/progmodes/peg.el (define-peg-rule): Fix indent rule.
+
+2025-03-23  Juri Linkov  <juri@linkov.net>
+
+	Add a choice to 'dired-movement-style' to restore the previous behavior
+
+	* lisp/dired.el (dired-movement-style): Add new values
+	'bounded-files' and 'cycle-files' (bug#76596).
+	(dired--move-to-next-line): Use new values for users
+	who prefer the default behavior of Emacs 30.1.
+
+2025-03-23  Stefan Kangas  <stefankangas@gmail.com>
+
+	Improve docstring of should-error
+
+	* lisp/emacs-lisp/ert.el (should-error): Improve docstring.
+
+2025-03-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	Use debian:bookworm for emba tests (don't merge)
+
+	There are problems with treesitter installation from debian:sid.
+
+	* test/infra/Dockerfile.emba (emacs-base): Use debian:bookworm.
+	(emacs-eglot, emacs-tree-sitter): Use emacs-base.
+	(emacs-native-comp): Install libgccjit-12-dev.
+
+2025-03-22  Juri Linkov  <juri@linkov.net>
+
+	* lisp/treesit.el (treesit-indent-region): Handle markers (bug#77077).
+
+	Ensure that markers are converted to integers for 'beg' and 'end'.
+
+2025-03-20  Jindrich Makovicka  <makovick@gmail.com>  (tiny change)
+
+	Fix OSX build without pdumper
+
+	* Makefile.in (install-arch-dep) [ns_self_contained]: Add missing
+	DUMPING = pdumper check.
+
+2025-03-16  Po Lu  <luangruo@yahoo.com>
+
+	Fix clipboard object handle leak on Android 3.1 to 11.0
+
+	* src/androidselect.c (extract_fd_offsets): Release retrieved
+	ParcelFileDescriptor objects on APIs 12 through 30.
+
+2025-03-16  Eshel Yaron  <me@eshelyaron.com>
+
+	Only disable 'completion-preview-active-mode' when it is on
+
+	* lisp/completion-preview.el
+	(completion-preview--post-command): Avoid calling
+	'completion-preview-active-mode' to disable the mode when
+	already off, since it forces a costly redisplay. (Bug#76964)
+
+2025-03-15  Jonas Bernoulli  <jonas@bernoul.li>
+
+	Backport Transient commit f69e1286
+
+	2025-03-12 f69e128654627275e7483a735f670bd53501999d
+	transient-suffix-object: Handle duplicated command invoked using mouse
+
+	Fixes bug#76680.
+
+2025-03-15  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix 'whitespace-mode' in CJK locales
+
+	* lisp/international/characters.el (ambiguous-width-chars): Remove
+	U+00A4 and U+00B7 from the list of ambiguous-width characters.
+	(cjk-ambiguous-chars-are-wide): Doc fix.  (Bug#76852)
+
+2025-03-13  Yuan Fu  <casouri@gmail.com>
+
+	Fix treesit-parser-create behavior regarding indirect buffers
+
+	The previous fix fixed the problem that treesit-parser-create
+	always use the current buffer, but that introduce another subtle
+	problem: if an indirect buffer creates a parser, the parser
+	saves the base buffer rather than the indirect buffer.  In Emacs
+	29, if you create a parser in an indirect buffer, the parser
+	saves the indirect buffer.  This change of behavior breaks some
+	existing use-cases for people using indirect buffer with
+	tree-sitter.
+
+	In Emacs 31, indirect buffers and base buffer get their own
+	parser list, so this problem doesn't exist anymore.  The fix is
+	only for Emacs 30.
+
+	* src/treesit.c (Ftreesit_parser_create): Use the buffer that's
+	given to treesit-parser-create, even if it's an indirect buffer.
+
+2025-03-13  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix 'dired-movement-style' in Dired when subdirs are shown
+
+	* lisp/dired.el (dired--move-to-next-line): Don't consider
+	sub-directory lines as empty.  (Bug#76596)
+
+2025-03-11  Sean Whitton  <spwhitton@spwhitton.name>
+
+	Correct some outdated docs for hack-local-variables
+
+	* doc/lispref/variables.texi (File Local Variables):
+	<hack-local-variables>: Say that it applies directory-local
+	variables too.  Add a cross-reference.
+	(Directory Local Variables): Document dir-local-variables-alist.
+	* lisp/files.el (hack-local-variables): Say that it always puts
+	into effect directory-local variables.
+
+2025-03-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	Add keyword placeholder to tramp.el
+
+	* lisp/net/tramp.el: Add Version, Package-Requires, Package-Type
+	and URL keywords.
+
+2025-03-09  Stefan Kangas  <stefankangas@gmail.com>
+
+	Rewrite ERT manual introduction
+
+	* doc/misc/ert.texi (Top): Rewrite for clarity.  Don't give such
+	prominent mention to to TDD or JUnit, references which now seem dated.
+
+2025-03-09  Eli Zaretskii  <eliz@gnu.org>
+
+	Document return values of the various read-* functions
+
+	* lisp/textmodes/string-edit.el (read-string-from-buffer):
+	* lisp/simple.el (read-from-kill-ring, read-shell-command)
+	(read-signal-name):
+	* lisp/replace.el (read-regexp-case-fold-search):
+	* lisp/auth-source.el (read-passwd):
+	* lisp/subr.el (read-key, read-number):
+	* lisp/minibuffer.el (read-file-name, read-no-blanks-input):
+	* lisp/international/mule-cmds.el (read-multilingual-string):
+	* lisp/language/japan-util.el (read-hiragana-string):
+	* lisp/files-x.el (read-file-local-variable)
+	(read-file-local-variable-mode, read-file-local-variable-value):
+	* lisp/faces.el (read-face-font, read-face-name):
+	* lisp/simple.el (read-extended-command):
+	* lisp/env.el (read-envvar-name):
+	* lisp/files.el (read-directory-name):
+	* lisp/faces.el (read-color):
+	* lisp/international/mule-diag.el (read-charset):
+	* lisp/emacs-lisp/map-ynp.el (read-answer):
+	* src/coding.c (Fread_coding_system)
+	(Fread_non_nil_coding_system):
+	* src/minibuf.c (Fread_command, Fread_from_minibuffer):
+	* src/lread.c (Fread_char, Fread_char_exclusive, Fread_event): Doc
+	fixes.
+
+2025-03-09  Ben Scuron  <bscuron19@gmail.com>  (tiny change)
+
+	Fix TAGS regeneration with Universal Ctags
+
+	* lisp/progmodes/etags-regen.el (etags-regen--append-tags): Move
+	the "-o" option to before the filename, as Ctags doesn't allow
+	it to follow the file name.  (Bug#76855)
+
+2025-03-08  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix crash in daemon when "C-x C-c" while a client frame shows tooltip
+
+	* src/frame.c (delete_frame): Ignore tooltip frames when looking
+	for other frames on the same terminal.  (Bug#76842)
+
+	(cherry picked from commit d2445c8c23595efdd444fce6f0c33ba66b596812)
+
+2025-03-07  Stefan Kangas  <stefankangas@gmail.com>
+
+	Explicitly document read-string return value
+
+	* src/minibuf.c (Fread_string): Document return value explicitly.
+	Better document PROMPT argument, and reflow docstring.  (Bug#76797)
+
+2025-03-07  kobarity  <kobarity@gmail.com>
+
+	Improve docstrings of python.el import management
+
+	Added notes that when adding import statements for a file that
+	does not belong to a project, it may take some time to find
+	candidate import statements in the default directory.
+
+	* lisp/progmodes/python.el (python-add-import)
+	(python-fix-imports): Improve docstring.  (Bug#74894)
+
+2025-03-06  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid warnings about 'image-scaling-factor' in builds --without-x
+
+	* lisp/cus-start.el (standard): Exclude 'image-*' options if Emacs
+	was built without GUI support.  (Bug#76716)
+
+2025-03-06  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix etags tests broken by updating Copyright years
+
+	* test/manual/etags/ETAGS.good_1:
+	* test/manual/etags/ETAGS.good_2:
+	* test/manual/etags/ETAGS.good_3:
+	* test/manual/etags/ETAGS.good_4:
+	* test/manual/etags/ETAGS.good_5:
+	* test/manual/etags/ETAGS.good_6:
+	* test/manual/etags/CTAGS.good:
+	* test/manual/etags/CTAGS.good_crlf:
+	* test/manual/etags/CTAGS.good_update: Update.  (Bug#76744)
+
+2025-03-06  Mauro Aranda  <maurooaranda@gmail.com>
+
+	Fix some widgets in customize-dirlocals
+
+	* lisp/cus-edit.el (custom-dynamic-cons-value-create): Make sure
+	to eval the keymap property.  (Bug#76756)
+
+2025-03-05  Thierry Volpiatto  <thievol@posteo.net>
+
+	Fix register-use-preview behavior with never value
+
+	Allow popping up preview when pressing C-h.
+
+	Don't exit the minibuffer when the call to
+	register-read-with-preview-fancy is triggered by C-h.
+
+	* lisp/register.el (register-read-with-preview-fancy): Do it.
+
+2025-03-05  Po Lu  <luangruo@yahoo.com>
+
+	Move java/incrementing-version-code to AndroidManifest.xml.in
+
+	* admin/admin.el (admin-android-version-code-regexp): New
+	variable.
+	(set-version): Modify AndroidManifest.xml.in instead.
+
+	* java/AndroidManifest.xml.in (Version-code): Define version
+	code.
+
+	* java/incrementing-version-code: Delete file.
+
+2025-03-05  Peter Oliver  <git@mavit.org.uk>
+
+	Provide an Android version code derived from the Emacs version
+
+	The version code is intended to be an integer that increments
+	for each Android package release
+	(https://developer.android.com/studio/publish/versioning#versioningsettings).
+
+	If we keep this updated under version control, then F-Droid (a
+	third-party Android package repository), can watch for that, and
+	use it to automatically build Emacs packages for Android each
+	time a new Emacs release is tagged
+	(https://f-droid.org/en/docs/Build_Metadata_Reference/#UpdateCheckData).
+
+	* admin/admin.el (set-version): Update version code in
+	java/incrementing-version-code
+	* java/incrementing-version-code: New file containing an Android
+	version code corresponding to the current Emacs version.
+	(bug#75809)
+
+2025-03-04  Vitaliy Chepelev  <vitalij@gmx.com>  (tiny change)
+
+	image-dired: Don't croak on file names with regexp characters
+
+	* lisp/image/image-dired-dired.el (image-dired-mark-tagged-files):
+	* lisp/image/image-dired-tags.el (image-dired-get-comment)
+	(image-dired-write-comments, image-dired-list-tags)
+	(image-dired-remove-tag, image-dired-write-tags): Quote file name
+	for search-forward-regexp.  (Bug#73445)
+
+	(cherry picked from commit 7930fe2f44f50b6a7abf5fbe1218dcc15e85b28d)
+
+2025-03-04  Po Lu  <luangruo@yahoo.com>
+
+	Document requirements respecting XDG MIME databases on Android
+
+	* doc/emacs/android.texi (Android Software): State that librsvg
+	requires a MIME database to display embedded images, and how to
+	acquire such a database.
+
+2025-03-02  Pip Cet  <pipcet@protonmail.com>
+
+	Improve instructions for running with -fsanitize=address (bug#76393)
+
+	* etc/DEBUG (ASAN_OPTIONS): Add 'detect_stack_use_after_return=0'
+	requirement.  Remove obsolete unexec commentary.
+
+	(cherry picked from commit 1e84a8767692f9f3a3bc37eba8eeb8f9d537322d)
+
+2025-03-01  Dmitry Gutov  <dmitry@gutov.dev>
+
+	Fix the use of xref-window-local-history together with Xref buffer
+
+	* lisp/progmodes/xref.el (xref--push-markers): Temporarily
+	restore the selected window as well, using the value from the
+	new argument (bug#76565).  Update both callers.
+
+2025-03-01  Dmitry Gutov  <dmitry@gutov.dev>
+
+	completing-read-multiple: Fix support for ":" as separator
+
+	* lisp/emacs-lisp/crm.el (completing-read-multiple):
+	Do not search for separators inside the prompt (bug#76461).
+
+2025-03-01  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix 'M-q' in 'makefile-mode'
+
+	* lisp/progmodes/make-mode.el (makefile-mode-map): Bind 'M-q' to
+	'fill-paragraph', as 'prog-mode's default binding is not
+	appropriate for Makefile's syntax.  (Bug#76641)
+
+2025-03-01  Randy Taylor  <dev@rjt.dev>
+
+	Fix go-ts-mode const_spec highlighting (Bug#76330)
+
+	* lisp/progmodes/go-ts-mode.el (go-ts-mode--font-lock-settings):
+	Handle multiple const_spec identifiers.
+	* test/lisp/progmodes/go-ts-mode-resources/font-lock.go:
+	Add test case.
+
+2025-03-01  Stefan Kangas  <stefankangas@gmail.com>
+
+	keymaps.texi: Move "Changing Key Bindings" section up
+
+	* doc/lispref/keymaps.texi (Changing Key Bindings): Move section
+	up.  (Bug#52821)
+
+2025-03-01  Stefan Kangas  <stefankangas@gmail.com>
+
+	keymaps.texi: Move "Key Sequences" section down
+
+	* doc/lispref/keymaps.texi (Key Sequences): Move section
+	down.  (Bug#52821)
+
+2025-03-01  Stefan Kangas  <stefankangas@gmail.com>
+
+	Improve process-get/process-put docstrings
+
+	* lisp/subr.el (process-get, process-put): Explain the purpose of these
+	functions in the docstring.
+
+2025-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix recent change in diff-no-select
+
+	* lisp/vc/diff.el (diff-no-select): Keep initial default directory
+	in *Diff* buffer.
+
+2025-02-28  Po Lu  <luangruo@yahoo.com>
+
+	Prevent rare freeze on Android 4.2 through 4.4
+
+	* src/android.c (android_run_select_thread, android_init_events)
+	(android_select): Enable self-pipes on all Android versions <= 21.
+	The Android C library provides a functioning pselect on these
+	systems, but it does not apply the signal mask atomically.
+	(android_run_select_thread): Correct typo.  This never produced
+	any adverse consequences, as the relevant signals would already
+	have been blocked by `setupSystemThread'.
+
+	Do not merge to master.
+
+2025-02-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* lisp/proced.el (proced-<): Check, that NUM1 and NUM2 are numbers.
+
+	(Bug#76549)
+
+2025-02-28  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix mouse-2 clicks on mode line and header line
+
+	* src/keymap.c (Fcurrent_active_maps): For clicks on mode-line and
+	header-line, always override the keymaps at buffer position.
+	(Bug#75219)
+
+	(cherry picked from commit c41ea047a434710c4b7bc8280695c83fbe5fff35)
+
+2025-02-27  Stefan Kangas  <stefankangas@gmail.com>
+
+	Recommend secure-hash in md5 docstring
+
+	* src/fns.c (Fmd5): Repeat explanation from manual about md5 being
+	"semi-obsolete", and recommend using secure-hash instead.
+
+2025-02-27  Tomas Nordin  <tomasn@posteo.net>
+
+	Improve docstring of add-hook and remove-hook
+
+	* lisp/subr.el (add-hook, remove-hook): Remove detail about setting to
+	nil and talk about functions instead of hooks.  (Bug#72915)
+
+2025-02-27  Jared Finder  <jared@finder.org>
+
+	* lisp/subr.el (read-key): Add 'tab-line' (bug#76408).
+
+	Backport:
+	(cherry picked from commit 0c8abe8bb5072c46a93585cb325c249f85f3d9c2)
+
+2025-02-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix fns-tests-collate-strings failure with musl
+
+	* test/src/fns-tests.el (fns-tests-collate-strings):
+	Don’t assume "en_XY.UTF-8", or any particular string,
+	is an invalid locale, as they all seem to be valid in musl.
+	Instead, simply test that a non-string is invalid.
+	(Bug#76550)
+
+2025-02-26  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix setup of coding-systems on MS-Windows
+
+	* src/emacs.c (main) [HAVE_PDUMPER] [WINDOWSNT]: Call
+	'w32_init_file_name_codepage' again after loading the pdumper
+	file.
+	* src/w32.c (w32_init_file_name_codepage) [HAVE_PDUMPER]:
+	Reinitialize additional variables.  (Bug#75207)
+
+	(cherry picked from commit cc5cd4de93d1e5ba205cbf0c370aef4559bc342b)
+
+2025-02-25  Basil L. Contovounesios  <basil@contovou.net>
+
+	Fix ert-font-lock macro signatures
+
+	* doc/misc/ert.texi (Syntax Highlighting Tests):
+	* test/lisp/emacs-lisp/ert-font-lock-tests.el
+	(test-line-comment-p--emacs-lisp, test-line-comment-p--shell-script)
+	(test-line-comment-p--javascript, test-line-comment-p--python)
+	(test-line-comment-p--c, test-macro-test--correct-highlighting)
+	(test-macro-test--docstring, test-macro-test--failing)
+	(test-macro-test--file, test-macro-test--file-no-asserts)
+	(test-macro-test--file-failing): Reindent macro calls.
+	(with-temp-buffer-str-mode): Evaluate macro arguments left-to-right.
+	(ert-font-lock--wrap-begin-end): Use rx for more robust composition.
+	(test-line-comment-p--php): Require that php-mode is callable, not
+	already loaded.
+
+	* lisp/emacs-lisp/ert-font-lock.el (ert-font-lock-deftest)
+	(ert-font-lock-deftest-file): NAME is not followed by an empty list
+	like in ert-deftest, so the optional DOCSTRING is actually the
+	second argument.  Adapt calling convention in docstring, and debug,
+	doc-string, and indent properties accordingly (bug#76372).  Fix
+	docstring grammar, document MAJOR-MODE, and avoid referring to a
+	file name as a path.
+
+2025-02-24  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix a typo in 'window_text_pixel_size'
+
+	This typo caused strange mis-behaviors in buffers
+	with non-ASCII characters.
+	* src/xdisp.c (window_text_pixel_size): Fix typo.  (Bug#76519)
+
+2025-02-24  Ulrich Müller  <ulm@gentoo.org>
+
+	* doc/misc/efaq.texi (New in Emacs 30): Fix typo.  (Bug#76518)
+
+2025-02-23  Joseph Turner  <joseph@breatheoutbreathe.in>
+
+	Upgrade out-of-date VC package dependencies
+
+	* lisp/emacs-lisp/package-vc.el (package-vc-install-dependencies): Pass
+	the specified package version when checking if a package is installed.
+
+	(Bug#73781)
+
+	(cherry picked from commit 71a4670a9fa238f920ce88b938f703b605ad2f48)
+
+2025-02-23  Vincenzo Pupillo  <v.pupillo@gmail.com>
+
+	Constant highlighting no longer captures Java annotations
+
+	* lisp/progmodes/java-ts-mode.el
+	(java-ts-mode--fontify-constant): New function.
+	(java-ts-mode--font-lock-settings): Use it.
+
+2025-02-23  Stefan Kangas  <stefankangas@gmail.com>
+
+	Improve wording of lsh docstring
+
+	* lisp/subr.el (lsh): Improve wording of docstring.
+
+2025-02-23  Stefan Kangas  <stefankangas@gmail.com>
+
+	Don't document deleted xwidget functions
+
+	* doc/lispref/display.texi (Xwidgets): Don't document deleted function
+	xwidget-webkit-execute-script-rv.  Fix name of deleted and then re-added
+	function xwidget-webkit-title.
+
+2025-02-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	Use a persistent directory as default directory in diff
+
+	* lisp/vc/diff.el (diff-no-select): Use `temporary-file-directory'
+	as default directory.  Set default file permissions temporarily to
+	#o600.  (Bug#69606)
+
+	(cherry picked from commit ae439cc1b9f428a8247548f4ef3b992608a3c09b)
+
+2025-02-23  Stefan Kangas  <stefankangas@gmail.com>
+
+	Sync build-aux/update-copyright from Gnulib
+
+	* build-aux/update-copyright: Copy from Gnulib.  This fixes a bug
+	where troff markers were introduced in ChangeLog files.
+	(Do not merge to master.)
+
+2025-02-23  Stefan Kangas  <stefankangas@gmail.com>
+
+	Minor refactoring in admin/admin.el
+
+	* admin/admin.el (admin--read-root-directory):
+	(admin--read-version): New functions.
+	(add-release-logs, set-version, set-copyright, make-manuals)
+	(make-manuals-dist, make-news-html-file): Use above new function.
+
+2025-02-23  Stefan Kangas  <stefankangas@gmail.com>
+
+	Bump Emacs version to 30.1.50
+
+	* README:
+	* configure.ac:
+	* etc/NEWS:
+	* exec/configure.ac:
+	* msdos/sed2v2.inp:
+	* nt/README.W32: Bump Emacs version to 30.1.50.
+
+2025-02-23  Stefan Kangas  <stefankangas@gmail.com>
+
+	Release Emacs 30.1
+
+	* ChangeLog.5: New file.
+	* Makefile.in (CHANGELOG_HISTORY_INDEX_MAX): Bump.
+	* etc/HISTORY: Add Emacs 30.1.
+
 2025-02-23  Stefan Kangas  <stefankangas@gmail.com>
 
 	* Version 30.1 released.
 
 This file records repository revisions from
 commit 1cda0967b4d3c815fc610794ad6a8fc2b913a3c5 (exclusive) to
-commit bcba098505e4f80eef41e4be9726f1f9868223f3 (inclusive).
+commit 299d3a440121ff6692a85615ff97e6ad4dde91db (inclusive).
 See ChangeLog.4 for earlier changes.
 
 ;; Local Variables:

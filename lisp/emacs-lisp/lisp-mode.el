@@ -147,7 +147,7 @@
                   '(;; Elisp
                     "defgroup" "deftheme"
                     "define-widget" "define-error"
-                    "defface" "cl-deftype" "cl-defstruct"
+                    "defface" "cl-deftype" "cl-defstruct" "oclosure-define"
                     ;; CL
                     "deftype" "defstruct"
                     "define-condition" "defpackage"

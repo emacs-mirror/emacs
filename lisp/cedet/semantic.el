@@ -1075,11 +1075,13 @@ Semantic mode.
     ;; re-activated.
     (setq semantic-new-buffer-fcn-was-run nil)
     ;; restore the original `imenu-create-index-function'
-    (unless (eq semantic--create-index-function-origin
-                imenu-create-index-function)
-      (setq imenu-create-index-function
-            (or semantic--create-index-function-origin
-                (default-value 'imenu-create-index-function))))))
+    (dolist (b (buffer-list))
+      (with-current-buffer b
+        (unless (eq semantic--create-index-function-origin
+                    imenu-create-index-function)
+          (setq imenu-create-index-function
+                (or semantic--create-index-function-origin
+                    (default-value 'imenu-create-index-function))))))))
 
 ;;; Autoload some functions that are not in semantic/loaddefs
 

@@ -299,7 +299,10 @@ Used for listing local printers or renamed cells.")
 
 (defconst ses-standard-printer-functions
   '(ses-center
-    ses-center-span ses-dashfill ses-dashfill-span
+    ses-center-span
+    ses-left
+    ses-left-span
+    ses-dashfill ses-dashfill-span
     ses-tildefill-span
     ses-prin1)
   "List of print functions to be included in initial history of printer functions.
@@ -4080,6 +4083,25 @@ either (ses-range BEG END) or (list ...).  The TEST is evaluated."
   (put x 'side-effect-free t))
 
 
+(defun ses--align (value align-fn span fill printer)
+  "Helper fonction for \\{ses-center} and \\{ses-left}. Please refer to these functions help.
+ALIGN-FN shall be a function to concatenate the padding, it shall have
+parameters (VALUE WIDTH FILL) with:
+VALUE a string already formatted by PRINTER to which padding is to be
+concatenated.
+WIDTH the additional width to be padded if >0, <= 0 if no padding is to
+be added.
+FILL the fill character to be padded."
+  (setq printer (or printer  (ses-col-printer ses--col) ses--default-printer))
+  (let ((width   (ses-col-width ses--col)))
+    (or span (setq span 0))
+    (setq value (ses-call-printer printer value))
+    (dotimes (x span)
+      (setq width (+ width 1 (ses-col-width (+ ses--col span (- x))))))
+    ;; Set column width.
+    (setq width (- width (string-width value)))
+    (funcall align-fn value width fill)))
+
 ;;----------------------------------------------------------------------------
 ;; Standard print functions
 ;;----------------------------------------------------------------------------
@@ -4087,36 +4109,56 @@ either (ses-range BEG END) or (list ...).  The TEST is evaluated."
 (defun ses-center (value &optional span fill printer)
   "Print VALUE, centered within column.
 FILL is the fill character for centering (default = space).
-SPAN indicates how many additional rightward columns to include
-in width (default = 0).
+SPAN indicates how many additional rightward columns to include in
+width (default = 0).
 PRINTER is the printer to use for printing the value, default is the
-column printer if any, or the spreadsheet the spreadsheet default
-printer otherwise."
-  (setq printer (or printer  (ses-col-printer ses--col) ses--default-printer))
-  (let ((width   (ses-col-width ses--col))
-	half)
-    (or fill (setq fill ?\s))
-    (or span (setq span 0))
-    (setq value (ses-call-printer printer value))
-    (dotimes (x span)
-      (setq width (+ width 1 (ses-col-width (+ ses--col span (- x))))))
-    ;; Set column width.
-    (setq width (- width (string-width value)))
-    (if (<= width 0)
-	value ; Too large for field, anyway.
-      (setq half (make-string (/ width 2) fill))
-      (concat half value half
-	      (if (oddp width) (char-to-string fill))))))
+column printer if any, or the spreadsheet default printer otherwise."
+  (ses--align value
+              (lambda (value width fill)
+                (if (<= width 0)
+	            value ; Too large for field, anyway.
+                  (let ((half (make-string (/ width 2) fill)))
+                    (concat half value half
+	                    (if (oddp width) (char-to-string fill))))))
+              span (or fill ?\s) printer))
+
+(defun ses--span (align-fn value fill printer)
+  "Helper function for \\{ses-center-span} and \\{ses-left-span}. Please refer to these functions help.
+ALIGN-FN shall be a function such as \\{ses-center} or \\{ses-left}."
+  (let ((end (1+ ses--col)))
+    (while (and (< end ses--numcols)
+		(memq (ses-cell-value ses--row end) '(nil *skip*)))
+      (setq end (1+ end)))
+    (funcall align-fn value (- end ses--col 1) fill printer)))
+
 
 (defun ses-center-span (value &optional fill printer)
   "Print VALUE, centered within the span that starts in the current column
 and continues until the next nonblank column.
 FILL specifies the fill character (default = space)."
-  (let ((end (1+ ses--col)))
-    (while (and (< end ses--numcols)
-		(memq (ses-cell-value ses--row end) '(nil *skip*)))
-      (setq end (1+ end)))
-    (ses-center value (- end ses--col 1) fill printer)))
+  (ses--span #'ses-center value fill printer))
+
+(defun ses-left (value &optional span fill printer)
+  "Print VALUE, left aligned within column.
+FILL is the fill character for aligning (default = '-').
+SPAN indicates how many additional rightward columns to include
+in width (default = 0).
+PRINTER is the printer to use for printing the value, default is the
+column printer if any, or the spreadsheet the spreadsheet default
+printer otherwise."
+  (ses--align value
+              (lambda (value width fill)
+                (if (<= width 0)
+	            value ; Too large for field, anyway.
+                  (concat value (make-string width fill))))
+              span (or fill ?-) printer))
+
+(defun ses-left-span (value &optional fill printer)
+  "Print VALUE, aligned left within the span that starts in the current column
+and continues until the next nonblank column.
+FILL specifies the fill character (default = '-')."
+  (ses--span #'ses-left value fill printer))
+
 
 (defun ses-dashfill (value &optional span printer)
   "Print VALUE centered using dashes.

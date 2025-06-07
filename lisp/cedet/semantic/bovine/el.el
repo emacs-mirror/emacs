@@ -396,6 +396,7 @@ Return a bovination list to use."
          )))
   defstruct
   cl-defstruct
+  oclosure-define
   )
 
 (semantic-elisp-setup-form-parser

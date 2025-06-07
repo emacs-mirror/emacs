@@ -389,6 +389,10 @@ Together with the new command 'tab-line-move-tab-backward'
 ('C-x M-<left>') it can be used to move the current tab
 on the tab line to a different position.
 
+---
+*** New command 'tab-line-close-other-tabs'.
+It's bound to the tab's context menu item "Close other tabs".
+
 ** Project
 
 ---
@@ -424,6 +428,8 @@ This user option describes projects that should always be skipped by
 ---
 *** New command 'project-save-some-buffers' bound to 'C-x p C-x s'.
 This is like 'C-x s', but only for this project's buffers.
+
+*** 'project-remember-project' can now be called interactively.
 
 ** Registers
 
@@ -1769,6 +1775,13 @@ were added, removed or edited, Emacs would refuse to proceed.
 Now Emacs prompts to first register the unregistered files, so that all
 files in the fileset are in a compatible state for a checkin.
 
+---
+*** New user option 'vc-dir-hide-up-to-date-on-revert'.
+If you customize this variable to non-nil, the 'g' command to refresh
+the VC Directory buffer also has the effect of the 'x' command.
+That is, typing 'g' refreshes the buffer and also hides items in the
+'up-to-date' and 'ignored' states.
+
 +++
 *** New user option 'vc-async-checkin' to enable async checkin operations.
 Currently only supported by the Git and Mercurial backends.
@@ -1795,6 +1808,12 @@ This replaces and generalizes the old 'vc-annotate-parent-rev'.
 
 ---
 *** vc-dav.el is now obsolete.
+
+---
+*** The 'log-incoming' and 'log-outgoing' functions are deprecated.
+Backend authors should implement the 'incoming-revision' and 'mergebase'
+backend functions instead.  These are jointly sufficient to support the
+'C-x v I' and 'C-x v O' commands.
 
 ** Diff mode
 
@@ -2191,6 +2210,22 @@ The unused variables 'block-comment-start' and 'block-comment-end',
 which never actually had any effect when set by major modes, have been
 removed.
 
++++
+** 'delete-frame' now needs non-nil FORCE argument to delete daemon frame.
+The initial terminal frame of an Emacs process running as daemon can be
+deleted via 'delete-frame' if and only if its optional FORCE argument is
+non-nil.
+
+---
+** 'date-to-time' no longer accepts malformed times with time zone like "EDT".
+Time strings like "2025-06-04T13:21:00 EDT" are not in valid ISO 8601
+time format, and 'date-to-time' now signals an error for them.  Use a
+numerical time-zone specification, like "2025-06-04T13:21:00-0400",
+instead, which gives the time offset as +/-hh or +/-hh:mm.  A designator
+"Z" for UTC time is also supported.  Less formal space-separated time
+formats, like "2025-06-04 13:21:00 EDT", without the ISO 8601 "T"
+separator, are also supported.
+
 
 * Lisp Changes in Emacs 31.1
 
@@ -2212,6 +2247,13 @@ encoded by the underlying terminal.
 Like 'static-if', these macros evaluate their condition at
 macro-expansion time and are useful for writing code that can work
 across different Emacs versions.
+
++++
+** New feature to speed up repeated lookup of Lisp files in 'load-path'.
+If the new variable 'load-path-filter-function' is set to the new
+function 'load-path-filter-cache-directory-files', calling 'load' will
+cache the directories it scans and their files, and the following
+lookups should be faster.
 
 ** Lexical binding
 

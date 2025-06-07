@@ -669,14 +669,17 @@ Set mark before moving, if the buffer already existed."
 
 ;;;###autoload
 (defun find-function (function)
-  "Find the definition of the FUNCTION near point.
+  "Find the definition of the Emacs Lisp FUNCTION near point.
 
 Finds the source file containing the definition of the function
 near point (selected by `function-called-at-point') in a buffer and
 places point before the definition.
 Set mark before moving, if the buffer already existed.
 
-See also `find-function-recenter-line' and `find-function-after-hook'."
+See also `find-function-recenter-line' and `find-function-after-hook'.
+
+Use \\[xref-find-definitions] to find definitions of functions and variables
+that are not part of Emacs."
   (interactive (find-function-read))
   (find-function-do-it function nil 'switch-to-buffer))
 

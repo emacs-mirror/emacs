@@ -47,12 +47,13 @@
 (defmacro with-time-stamp-test-time (reference-time &rest body)
   "Force `time-stamp' to use time REFERENCE-TIME while evaluating BODY."
   (declare (indent 1) (debug t))
-  `(cl-letf*
-         ((orig-time-stamp-string-fn (symbol-function 'time-stamp-string))
-         ((symbol-function 'time-stamp-string)
-          (lambda (ts-format)
-            (apply orig-time-stamp-string-fn ts-format ,reference-time nil))))
-     ,@body))
+  (cl-with-gensyms (g-orig-time-stamp-string-fn)
+    `(cl-letf*
+         ((,g-orig-time-stamp-string-fn (symbol-function 'time-stamp-string))
+          ((symbol-function 'time-stamp-string)
+           (lambda (ts-format)
+             (funcall ,g-orig-time-stamp-string-fn ts-format ,reference-time))))
+       ,@body)))
 
 (defmacro with-time-stamp-system-name (name &rest body)
   "Force function `system-name' to return NAME while evaluating BODY."
@@ -64,13 +65,14 @@
 (defmacro time-stamp-should-warn (form)
   "Similar to `should' and also verify that FORM generates a format warning."
   (declare (debug t))
-  `(let ((warning-count 0))
-     (cl-letf (((symbol-function 'time-stamp-conv-warn)
-                (lambda (_old _new &optional _newer)
-                  (setq warning-count (1+ warning-count)))))
-       (should ,form)
-       (unless (= warning-count 1)
-         (ert-fail (format "Should have warned about format: %S" ',form))))))
+  (cl-with-gensyms (g-warning-count)
+    `(let ((,g-warning-count 0))
+       (cl-letf (((symbol-function 'time-stamp-conv-warn)
+                  (lambda (_old _new &optional _newer)
+                    (incf ,g-warning-count))))
+         (should ,form)
+         (unless (= ,g-warning-count 1)
+           (ert-fail (format "Should have warned about format: %S" ',form)))))))
 
 ;;; Tests:
 
@@ -355,9 +357,9 @@
       (should (equal (time-stamp-string "%:a" ref-time1) Monday))
       ;; recommended 1997-2019, warned since 2024, will change
       (time-stamp-should-warn
-       (should (equal (time-stamp-string "%3A" ref-time1) MON)))
+       (equal (time-stamp-string "%3A" ref-time1) MON))
       (time-stamp-should-warn
-       (should (equal (time-stamp-string "%10A" ref-time1) p10-MONDAY)))
+       (equal (time-stamp-string "%10A" ref-time1) p10-MONDAY))
       ;; implemented since 2001, recommended since 2019
       (should (equal (time-stamp-string "%#a" ref-time1) MON))
       (should (equal (time-stamp-string "%#3a" ref-time1) MON))
@@ -411,9 +413,9 @@
       (should (equal (time-stamp-string "%:b" ref-time1) January))
       ;; recommended 1997-2019, warned since 2024, will change
       (time-stamp-should-warn
-       (should (equal (time-stamp-string "%3B" ref-time1) JAN)))
+       (equal (time-stamp-string "%3B" ref-time1) JAN))
       (time-stamp-should-warn
-       (should (equal (time-stamp-string "%10B" ref-time1) p10-JANUARY)))
+       (equal (time-stamp-string "%10B" ref-time1) p10-JANUARY))
       ;; implemented since 2001, recommended since 2019
       (should (equal (time-stamp-string "%#b" ref-time1) JAN))
       (should (equal (time-stamp-string "%#3b" ref-time1) JAN))
@@ -606,9 +608,9 @@
     (should (equal (time-stamp-string "%02y" ref-time2) "16"))
     ;; recommended 1997-2019, warned since 2024
     (time-stamp-should-warn
-     (should (equal (time-stamp-string "%:y" ref-time1) "2006")))
+     (equal (time-stamp-string "%:y" ref-time1) "2006"))
     (time-stamp-should-warn
-     (should (equal (time-stamp-string "%:y" ref-time2) "2016")))
+     (equal (time-stamp-string "%:y" ref-time2) "2016"))
     ;; %-y and %_y warned 1997-2019, changed in 2019
     ;; (We don't expect these forms to be useful,
     ;; but we test here so that we can confidently state that
@@ -757,12 +759,12 @@
                        "test-system-name.example.org")))
       ;; recommended 1997-2019, warned since 2024
       (time-stamp-should-warn
-       (should (equal (time-stamp-string "%s" ref-time1)
-                      "test-system-name.example.org")))
+       (equal (time-stamp-string "%s" ref-time1)
+              "test-system-name.example.org"))
       (time-stamp-should-warn
-       (should (equal (time-stamp-string "%U" ref-time1) "100%d Tester")))
+       (equal (time-stamp-string "%U" ref-time1) "100%d Tester"))
       (time-stamp-should-warn
-       (should (equal (time-stamp-string "%u" ref-time1) "test-logname")))
+       (equal (time-stamp-string "%u" ref-time1) "test-logname"))
       ;; implemented since 2001, recommended since 2019
       (should (equal (time-stamp-string "%L" ref-time1) "100%d Tester"))
       (should (equal (time-stamp-string "%l" ref-time1) "test-logname"))
@@ -983,10 +985,11 @@ The interval arguments H M and S are all non-negative."
 Use the free variables `form-string' and `pattern-mod'.
 The functions in `pattern-mod' are composed left to right."
   (declare (debug t))
-  `(let ((result ,expect))
-     (dolist (fn pattern-mod)
-       (setq result (funcall fn result)))
-     (should (equal (formatz form-string ,zone) result))))
+  (cl-with-gensyms (g-result g-fn)
+    `(let ((,g-result ,expect))
+       (dolist (,g-fn pattern-mod)
+         (setq ,g-result (funcall ,g-fn ,g-result)))
+       (should (equal (formatz form-string ,zone) ,g-result)))))
 
 ;; These test cases have zeros in all places (first, last, none, both)
 ;; for hours, minutes, and seconds.
@@ -1358,5 +1361,15 @@ Return non-nil if the definition is found."
   ;; options that don't make sense with %z
   (should (equal "" (formatz "%#z" 0)))
   )
+
+
+;;; Repeat the indent properties declared by the macros above,
+;;; so that we can indent code before we eval this buffer.
+;; Local variables:
+;; eval: (put 'with-time-stamp-test-env 'lisp-indent-function 0)
+;; eval: (put 'with-time-stamp-test-time 'lisp-indent-function 1)
+;; eval: (put 'with-time-stamp-system-name 'lisp-indent-function 1)
+;; eval: (put 'define-formatz-tests 'lisp-indent-function 1)
+;; End:
 
 ;;; time-stamp-tests.el ends here

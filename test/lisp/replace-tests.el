@@ -538,7 +538,7 @@ Return the last evalled form in BODY."
          ;; Bind `read-event' to simulate user input.
          ;; If `replace-tests-bind-read-string' is non-nil, then
          ;; bind `read-string' as well.
-         (cl-letf (((symbol-function 'read-event)
+         (cl-letf (((symbol-function 'read-key)
                     (lambda (&rest _args)
                       (incf ,count)
                       (pcase ,count ; Build the clauses from CHAR-NUMS

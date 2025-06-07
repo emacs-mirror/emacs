@@ -540,5 +540,23 @@ otherwise, use a different charset."
       (should (eq callback-buffer buffer))
       (should (equal str "tata"))))
 
+(ert-deftest test-print-number-realloc ()
+  ;; Test for bug#78590.  Note that this may in rare cases crash unfixed
+  ;; Emacs versions.
+  (let ((print-circle t)
+        (print-number-table (make-hash-table))
+        (print-continuous-numbering t)
+        (str "yy")
+        (outstr ""))
+    (garbage-collect)
+    (ignore (make-string 100 ?a))
+    (puthash str (make-string 3 ?x) print-number-table)
+    (prin1 str
+           (lambda (c)
+             (setq outstr (concat outstr (string c)))
+             (garbage-collect)
+             (ignore (make-string 100 ?b))))
+    (should (equal outstr "xxx"))))
+
 (provide 'print-tests)
 ;;; print-tests.el ends here

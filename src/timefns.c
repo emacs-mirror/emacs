@@ -189,6 +189,7 @@ emacs_localtime_rz (timezone_t tz, time_t const *t, struct tm *tm)
      display-time) are in real danger of missing timezone and DST
      changes.  Calling tzset before each localtime call fixes that.  */
   tzset ();
+  w32_fix_tzset ();
 #endif
   tm = localtime_rz (tz, t, tm);
   if (!tm && errno == ENOMEM)
@@ -306,6 +307,9 @@ tzlookup (Lisp_Object zone, bool settz)
       block_input ();
       emacs_setenv_TZ (zone_string);
       tzset ();
+#ifdef WINDOWSNT
+      w32_fix_tzset ();
+#endif
       timezone_t old_tz = local_tz;
       local_tz = new_tz;
       tzfree (old_tz);

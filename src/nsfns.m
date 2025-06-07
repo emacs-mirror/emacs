@@ -2613,100 +2613,6 @@ DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
   return make_fixnum (ns_display_pixel_height (dpyinfo));
 }
 
-#ifdef NS_IMPL_COCOA
-
-/* Returns the name for the screen that OBJ represents, or NULL.
-   Caller must free return value.
-*/
-
-static char *
-ns_get_name_from_ioreg (io_object_t obj)
-{
-  char *name = NULL;
-
-  NSDictionary *info = (NSDictionary *)
-    IODisplayCreateInfoDictionary (obj, kIODisplayOnlyPreferredName);
-  NSDictionary *names = [info objectForKey:
-                                [NSString stringWithUTF8String:
-                                            kDisplayProductName]];
-
-  if ([names count] > 0)
-    {
-      NSString *n = [names objectForKey: [[names allKeys]
-                                                 objectAtIndex:0]];
-      if (n != nil) name = xstrdup ([n UTF8String]);
-    }
-
-  [info release];
-
-  return name;
-}
-
-/* Returns the name for the screen that DID came from, or NULL.
-   Caller must free return value.
-*/
-
-static char *
-ns_screen_name (CGDirectDisplayID did)
-{
-  char *name = NULL;
-
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1090
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1090
-  if (CGDisplayIOServicePort == NULL)
-#endif
-    {
-      mach_port_t masterPort;
-      io_iterator_t it;
-      io_object_t obj;
-
-      /* CGDisplayIOServicePort is deprecated.  Do it another (harder) way.
-
-         Is this code OK for macOS < 10.9, and GNUstep?  I suspect it is,
-         in which case is it worth keeping the other method in here?  */
-
-      if (IOMasterPort (MACH_PORT_NULL, &masterPort) != kIOReturnSuccess
-          || IOServiceGetMatchingServices (masterPort,
-                                           IOServiceMatching ("IONDRVDevice"),
-                                           &it) != kIOReturnSuccess)
-        return name;
-
-      /* Must loop until we find a name.  Many devices can have the same unit
-         number (represents different GPU parts), but only one has a name.  */
-      while (! name && (obj = IOIteratorNext (it)))
-        {
-          CFMutableDictionaryRef props;
-          const void *val;
-
-          if (IORegistryEntryCreateCFProperties (obj,
-                                                 &props,
-                                                 kCFAllocatorDefault,
-                                                 kNilOptions) == kIOReturnSuccess
-              && props != nil
-              && (val = CFDictionaryGetValue(props, @"IOFBDependentIndex")))
-            {
-              unsigned nr = [(NSNumber *)val unsignedIntegerValue];
-              if (nr == CGDisplayUnitNumber (did))
-                name = ns_get_name_from_ioreg (obj);
-            }
-
-          CFRelease (props);
-          IOObjectRelease (obj);
-        }
-
-      IOObjectRelease (it);
-    }
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1090
-  else
-#endif
-#endif /* #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1090 */
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1090
-    name = ns_get_name_from_ioreg (CGDisplayIOServicePort (did));
-#endif
-  return name;
-}
-#endif /* NS_IMPL_COCOA */
-
 static Lisp_Object
 ns_make_monitor_attribute_list (struct MonitorInfo *monitors,
                                 int n_monitors,
@@ -2787,46 +2693,51 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
       struct MonitorInfo *m = &monitors[i];
       NSRect fr = [s frame];
       NSRect vfr = [s visibleFrame];
-      short y, vy;
 
 #ifdef NS_IMPL_COCOA
       NSDictionary *dict = [s deviceDescription];
       NSNumber *nid = [dict objectForKey:@"NSScreenNumber"];
       CGDirectDisplayID did = [nid unsignedIntValue];
 #endif
+
+      /* The primary display is always the first in the array.  */
       if (i == 0)
-        {
-          primary_display_height = fr.size.height;
-          y = (short) fr.origin.y;
-          vy = (short) vfr.origin.y;
-        }
-      else
-        {
-          /* Flip y coordinate as NS screen coordinates originate from
-	     the bottom.  */
-          y = (short) (primary_display_height - fr.size.height - fr.origin.y);
-          vy = (short) (primary_display_height -
-                        vfr.size.height - vfr.origin.y);
-        }
+	primary_display_height = fr.size.height;
+
+      /* Flip y coordinate as NS screen coordinates originate from
+	 the bottom.  */
 
       m->geom.x = (short) fr.origin.x;
-      m->geom.y = y;
+      m->geom.y = (short) (primary_display_height - NSMaxY(fr));
       m->geom.width = (unsigned short) fr.size.width;
       m->geom.height = (unsigned short) fr.size.height;
 
+      /* The work area excludes the menu bar and the dock.  */
       m->work.x = (short) vfr.origin.x;
-      /* y is flipped on NS, so vy - y are pixels missing at the
-	 bottom, and fr.size.height - vfr.size.height are pixels
-	 missing in total.
-
-	 Pixels missing at top are fr.size.height - vfr.size.height -
-	 vy + y.  work.y is then pixels missing at top + y.  */
-      m->work.y = (short) (fr.size.height - vfr.size.height) - vy + y + y;
+      m->work.y = (short) (primary_display_height - NSMaxY(vfr));
       m->work.width = (unsigned short) vfr.size.width;
       m->work.height = (unsigned short) vfr.size.height;
 
 #ifdef NS_IMPL_COCOA
-      m->name = ns_screen_name (did);
+      m->name = NULL;
+      if ([s respondsToSelector:@selector(localizedName)])
+        {
+	  NSString *name = [s valueForKey:@"localizedName"];
+	  if (name != NULL)
+	    {
+	      m->name = xmalloc ([name lengthOfBytesUsingEncoding: NSUTF8StringEncoding] + 1);
+	      strcpy(m->name, [name UTF8String]);
+	    }
+        }
+      /* If necessary, synthesize a name of the following form:
+	  %dx%d@%d,%d width height x y. */
+      if (m->name == NULL)
+	{
+	  char buf[25]; /* sufficient for 12345x78901@34567,90123 */
+	  snprintf (buf, sizeof(buf), "%ux%u@%d,%d",
+		    m->work.width, m->work.height, m->work.x, m->work.y);
+	  m->name = xstrdup (buf);
+	}
 
       {
         CGSize mms = CGDisplayScreenSize (did);

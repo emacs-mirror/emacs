@@ -404,6 +404,8 @@ This variable is buffer-local."
    (regexp-opt
     '("Enter" "enter" "Enter same" "enter same" "Enter the" "enter the"
       "Current"
+      ;; Ansible.  (Bug#78442)
+      "Vault" "SSH" "BECOME"
       "Enter Auth" "enter auth" "Old" "old" "New" "new" "login"
       "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "PEM" "SUDO"
       "[sudo]" "doas" "Repeat" "Bad" "Retype" "Verify")
@@ -418,6 +420,8 @@ This variable is buffer-local."
    ;; The ccrypt encryption dialog doesn't end with a colon, so
    ;; treat it specially.
    "\\|^Enter encryption key: (repeat) *\\'"
+   ;; Ansible.  The vault-id syntax is a guess.  (Bug#78442)
+   "\\|^Vault password ([^@-][^@]*): \\'"
    ;; Default openssh format: "user@host's password:".
    "\\|^[^@ \t\n]+@[^@ \t\n]+'s password: *\\'"
    ;; openssh-8.6p1 format: "(user@host) Password:".

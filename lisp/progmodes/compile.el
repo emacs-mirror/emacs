@@ -565,6 +565,19 @@ during global destruction\\.$\\)" 1 2)
      "\\(?:Parse\\|Fatal\\) error: \\(.*\\) in \\(.*\\) on line \\([0-9]+\\)"
      2 3 nil nil)
 
+    (rust
+     ,(rx bol (or (group-n 1 "error") (group-n 2 "warning") (group-n 3 "note"))
+          (? "[" (+ (in "A-Z" "0-9")) "]") ":" (* nonl)
+          "\n" (+ " ") "-->"
+          " " (group-n 4 (+ nonl))        ; file
+          ":" (group-n 5 (+ (in "0-9")))  ; line
+          ":" (group-n 6 (+ (in "0-9")))) ; column
+     4 5 6 (2 . 3)
+     nil
+     (1 compilation-error-face)
+     (2 compilation-warning-face)
+     (3 compilation-info-face))
+
     (rxp
      "^\\(?:Error\\|Warnin\\(g\\)\\):.*\n.* line \\([0-9]+\\) char\
  \\([0-9]+\\) of file://\\(.+\\)"

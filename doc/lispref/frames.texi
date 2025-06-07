@@ -2808,6 +2808,9 @@ Note that a frame cannot be deleted as long as its minibuffer serves as
 surrogate minibuffer for another frame (@pxref{Minibuffers and Frames}).
 Normally, you cannot delete a frame if all other frames are invisible,
 but if @var{force} is non-@code{nil}, then you are allowed to do so.
+Also, the initial terminal frame of an Emacs process running as daemon
+(@pxref{Initial Options, daemon,, emacs, The GNU Emacs Manual}) can be
+deleted if and only if @var{force} is non-@code{nil}.
 @end deffn
 
 @defun frame-live-p frame

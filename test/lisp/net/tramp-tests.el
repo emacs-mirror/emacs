@@ -67,6 +67,7 @@
 (require 'vc-git)
 (require 'vc-hg)
 
+(declare-function project-mode-line-format "project")
 (declare-function tramp-check-remote-uname "tramp-sh")
 (declare-function tramp-find-executable "tramp-sh")
 (declare-function tramp-get-remote-chmod-h "tramp-sh")
@@ -89,6 +90,7 @@
 (defvar tramp-use-connection-share)
 
 ;; Declared in Emacs 30.1.
+(defvar project-mode-line)
 (defvar remote-file-name-access-timeout)
 (defvar remote-file-name-inhibit-delete-by-moving-to-trash)
 
@@ -278,9 +280,10 @@ being the result.")
 		       (| "rclone" "sshfs") ".")
 		   (file-name-nondirectory file)))
 	    (tramp--test-message "Delete %s" file)
-	    (if (file-directory-p file)
-		(delete-directory file 'recursive)
-	      (delete-file file))))))
+	    (ignore-errors ;; Wrong permissions?
+	      (if (file-directory-p file)
+		  (delete-directory file 'recursive)
+		(delete-file file)))))))
     ;; Cleanup connection.
     (tramp-cleanup-connection tramp-test-vec nil 'keep-password))
 
@@ -3761,11 +3764,7 @@ This tests also `access-file', `file-readable-p',
 	   (tmp-name2 (tramp--test-make-temp-name nil quoted))
 	   ;; File name with "//".
 	   (tmp-name3
-	    (format
-	     "%s%s"
-	     (file-remote-p tmp-name1)
-	     (replace-regexp-in-string
-	      "/" "//" (file-remote-p tmp-name1 'localname))))
+	    (replace-regexp-in-string "/" "//" (file-local-name tmp-name1)))
 	   ;; `file-ownership-preserved-p' is implemented only in tramp-sh.el.
 	   (test-file-ownership-preserved-p (tramp--test-sh-p))
 	   attr)
@@ -3887,28 +3886,13 @@ This tests also `access-file', `file-readable-p',
 		;; symlinked files to a non-existing or cyclic target.
 		(when test-file-ownership-preserved-p
 		  (should (file-ownership-preserved-p tmp-name2 'group)))
-		(delete-file tmp-name2)))
+		(delete-file tmp-name2))
 
-	    ;; Check, that "//" in symlinks are handled properly.
-	    (with-temp-buffer
-	      (let ((default-directory ert-remote-temporary-file-directory))
-		(shell-command
-		 (format
-		  "ln -s %s %s"
-		  (tramp-file-name-localname
-		   (tramp-dissect-file-name tmp-name3))
-		  (tramp-file-name-localname
-		   (tramp-dissect-file-name tmp-name2)))
-		 t)))
-	    (when (file-symlink-p tmp-name2)
+	      ;; Check, that "//" in symlinks are handled properly.
+	      (make-symbolic-link tmp-name3 tmp-name2)
+	      (should (file-symlink-p tmp-name2))
 	      (setq attr (file-attributes tmp-name2))
-	      (should
-	       (string-equal
-		(file-attribute-type attr)
-		(funcall
-		 (if (tramp--test-sshfs-p) #'file-name-nondirectory #'identity)
-		 (tramp-file-name-localname
-		  (tramp-dissect-file-name tmp-name3)))))
+	      (should (string-equal (file-attribute-type attr) tmp-name3))
 	      (delete-file tmp-name2))
 
 	    (when test-file-ownership-preserved-p
@@ -5164,7 +5148,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
       ;; (tramp--test-message "%s" (tramp-get-buffer-string trace-buffer))
       ;; (untrace-function #'tramp-completion-file-name-handler)
       ;; (untrace-function #'completion-file-name-table)
-      (tramp-change-syntax orig-syntax))))
+      (tramp-change-syntax orig-syntax)
+      (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password))))
 
 (defun tramp--test-split-on-boundary (s)
   "Return completion boundaries for string S."
@@ -5177,15 +5162,12 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   ;; boundaries are always incorrect before that.
   (skip-unless (tramp--test-emacs31-p))
 
-  (should (equal (tramp--test-split-on-boundary "/ssh:user@host:foo")
-                 '("/ssh:user@host:" . "foo")))
-  (should (equal (tramp--test-split-on-boundary "/ssh:user@host:/~/foo")
-                 '("/ssh:user@host:/~/" . "foo")))
-  (should (equal (tramp--test-split-on-boundary "/ssh:user@host:/usr//usr/foo")
-                 '("/ssh:user@host:/usr//usr/" . "foo")))
-  (should (equal (tramp--test-split-on-boundary
-                  "/ssh:user@host:/ssh:user@host://usr/foo")
-                 '("/ssh:user@host:/ssh:user@host://usr/" . "foo"))))
+  (let ((remote (file-remote-p ert-remote-temporary-file-directory)))
+    (dolist
+	(file `(,remote ,(concat remote "/~/")
+		,(concat remote "/usr//usr/") ,(concat remote remote "//usr/")))
+      (should (equal (tramp--test-split-on-boundary (concat file "foo"))
+                     `(,file . "foo"))))))
 
 (ert-deftest tramp-test27-load ()
   "Check `load'."
@@ -6511,6 +6493,7 @@ INPUT, if non-nil, is a string sent to the process."
 	    (file-remote-p default-directory 'localname)))
 	  ;; The shell "sh" shall always exist.
 	  (should (executable-find "sh" 'remote))
+
 	  ;; Since the last element in `exec-path' is the current
 	  ;; directory, an executable file in that directory will be
 	  ;; found.
@@ -6539,19 +6522,19 @@ INPUT, if non-nil, is a string sent to the process."
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-crypt-p)))
 
-  (let* ((tmp-name (tramp--test-make-temp-name))
+  (let* ((tmp-name1 (tramp--test-make-temp-name))
 	 (default-directory ert-remote-temporary-file-directory)
          (orig-exec-path (exec-path))
          (tramp-remote-path tramp-remote-path)
 	 (orig-tramp-remote-path tramp-remote-path)
-	 path)
+	 tmp-name2 path)
     ;; The "flatpak" method modifies `tramp-remote-path'.
     (skip-unless (not (tramp-compat-connection-local-p tramp-remote-path)))
     (unwind-protect
 	(progn
           ;; Non existing directories are removed.
           (setq tramp-remote-path
-                (cons (file-remote-p tmp-name 'localname) tramp-remote-path))
+                (cons (file-remote-p tmp-name1 'localname) tramp-remote-path))
           (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
           (should (equal (exec-path) orig-exec-path))
           (setq tramp-remote-path orig-tramp-remote-path)
@@ -6564,11 +6547,11 @@ INPUT, if non-nil, is a string sent to the process."
 
           ;; We make a super long `tramp-remote-path'.
 	  (unless (tramp--test-container-oob-p)
-            (make-directory tmp-name)
-            (should (file-directory-p tmp-name))
+            (make-directory tmp-name1)
+            (should (file-directory-p tmp-name1))
             (while (length< (string-join orig-exec-path ":") 5000)
               (let ((dir (make-temp-file
-			  (file-name-as-directory tmp-name) 'dir)))
+			  (file-name-as-directory tmp-name1) 'dir)))
 		(should (file-directory-p dir))
 		(setq tramp-remote-path
                       (append
@@ -6591,12 +6574,33 @@ INPUT, if non-nil, is a string sent to the process."
               (should
 	       (string-equal path (string-join (butlast orig-exec-path) ":"))))
 	    ;; The shell "sh" shall always exist.
-	    (should (executable-find "sh" 'remote))))
+	    (should (executable-find "sh" 'remote))
+
+	    ;; Since the last element in `exec-path' is the current
+	    ;; directory, an executable file in that directory will be
+	    ;; found.
+	    (setq tmp-name2
+		  (expand-file-name
+		   "foo"
+		   (concat (file-remote-p default-directory)
+			   (car (last orig-exec-path 2)))))
+	    (write-region "foo" nil tmp-name2)
+	    (should (file-exists-p tmp-name2))
+
+	    (set-file-modes tmp-name2 #o777)
+	    (should (file-executable-p tmp-name2))
+	    (should
+	     (string-equal
+	      (executable-find (file-name-nondirectory tmp-name2) 'remote)
+	      (file-remote-p tmp-name2 'localname)))
+	    (should-not
+	     (executable-find
+	      (concat (file-name-nondirectory tmp-name2) "foo") 'remote))))
 
       ;; Cleanup.
+      (ignore-errors (delete-directory tmp-name1 'recursive))
       (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
-      (setq tramp-remote-path orig-tramp-remote-path)
-      (ignore-errors (delete-directory tmp-name 'recursive)))))
+      (setq tramp-remote-path orig-tramp-remote-path))))
 
 (tramp--test-deftest-direct-async-process tramp-test35-remote-path)
 
@@ -8372,8 +8376,52 @@ process sentinels.  They shall not disturb each other."
   ;; Cleanup.
   (tramp-cleanup-connection tramp-test-vec 'keep-debug))
 
+;; This test is inspired by Bug#78572.
+(ert-deftest tramp-test48-session-timeout ()
+  "Check that Tramp handles a session timeout properly."
+  (skip-unless (tramp--test-enabled))
+  (skip-unless
+   (tramp-get-method-parameter tramp-test-vec 'tramp-session-timeout))
+
+  ;; We want to see the timeout message.
+  (tramp--test-instrument-test-case 3
+    (let ((remote-file-name-inhibit-cache t)
+	  (tmp-name (tramp--test-make-temp-name)))
+      (unwind-protect
+	  (progn
+	    (should-not (file-exists-p tmp-name))
+	    (write-region "foo" nil tmp-name)
+	    (should (file-exists-p tmp-name))
+
+	    (tramp-timeout-session tramp-test-vec)
+	    (should (file-exists-p tmp-name))
+	    (should (directory-files (file-name-directory tmp-name)))
+
+	    ;; `project-mode-line' was introduced in Emacs 30.1.
+	    (when (boundp 'project-mode-line)
+	      (require 'project)
+	      (ert-with-message-capture captured-messages
+		(let ((project-mode-line t))
+		  (with-temp-buffer
+		    (set-visited-file-name tmp-name)
+		    (insert "foo")
+		    (should (buffer-modified-p))
+		    (tramp-timeout-session tramp-test-vec)
+		    ;; This calls `file-directory-p' and
+		    ;; `directory-files'.  Shouldn't raise an error when
+		    ;; not connected.
+		    (project-mode-line-format)
+		    ;; Steal the file lock.
+		    (cl-letf (((symbol-function #'ask-user-about-lock) #'always))
+		      (save-buffer)))
+		  (should-not
+		   (string-match-p "File is missing:" captured-messages))))))
+
+	;; Cleanup.
+	(ignore-errors (delete-file tmp-name))))))
+
 ;; This test is inspired by Bug#29163.
-(ert-deftest tramp-test48-auto-load ()
+(ert-deftest tramp-test49-auto-load ()
   "Check that Tramp autoloads properly."
   ;; If we use another syntax but `default', Tramp is already loaded
   ;; due to the `tramp-change-syntax' call.
@@ -8398,7 +8446,7 @@ process sentinels.  They shall not disturb each other."
 	(mapconcat #'shell-quote-argument load-path " -L ")
 	(shell-quote-argument code)))))))
 
-(ert-deftest tramp-test48-delay-load ()
+(ert-deftest tramp-test49-delay-load ()
   "Check that Tramp is loaded lazily, only when needed."
   ;; Tramp is neither loaded at Emacs startup, nor when completing a
   ;; non-Tramp file name like "/foo".  Completing a Tramp-alike file
@@ -8428,7 +8476,7 @@ process sentinels.  They shall not disturb each other."
 	  (mapconcat #'shell-quote-argument load-path " -L ")
 	  (shell-quote-argument (format code tm)))))))))
 
-(ert-deftest tramp-test48-recursive-load ()
+(ert-deftest tramp-test49-recursive-load ()
   "Check that Tramp does not fail due to recursive load."
   (skip-unless (tramp--test-enabled))
 
@@ -8452,7 +8500,7 @@ process sentinels.  They shall not disturb each other."
 	  (mapconcat #'shell-quote-argument load-path " -L ")
 	  (shell-quote-argument code))))))))
 
-(ert-deftest tramp-test48-remote-load-path ()
+(ert-deftest tramp-test49-remote-load-path ()
   "Check that Tramp autoloads its packages with remote `load-path'."
   ;; `tramp-cleanup-all-connections' is autoloaded from tramp-cmds.el.
   ;; It shall still work, when a remote file name is in the
@@ -8477,7 +8525,7 @@ process sentinels.  They shall not disturb each other."
 	(mapconcat #'shell-quote-argument load-path " -L ")
 	(shell-quote-argument code)))))))
 
-(ert-deftest tramp-test49-without-remote-files ()
+(ert-deftest tramp-test50-without-remote-files ()
   "Check that Tramp can be suppressed."
   (skip-unless (tramp--test-enabled))
 
@@ -8492,7 +8540,7 @@ process sentinels.  They shall not disturb each other."
   (setq tramp-mode t)
   (should (file-remote-p ert-remote-temporary-file-directory)))
 
-(ert-deftest tramp-test50-unload ()
+(ert-deftest tramp-test51-unload ()
   "Check that Tramp and its subpackages unload completely.
 Since it unloads Tramp, it shall be the last test to run."
   :tags '(:expensive-test)

@@ -159,7 +159,7 @@ skip_nonspace (const char *str)
 /* This value is never changed by the code.  We keep the code that
    supports also the value of '"', but let's allow the compiler to
    optimize it out, until someone actually uses that.  */
-const int escape_char = '\\';
+static const int escape_char = '\\';
 
 /* Get next token from input, advancing pointer.  */
 static int
@@ -509,8 +509,8 @@ setup_argv (void)
    termination when interrupted.  At the moment, only one child process
    can be running at any one time.  */
 
-PROCESS_INFORMATION child;
-int interactive = TRUE;
+static PROCESS_INFORMATION child;
+static int interactive = TRUE;
 
 BOOL console_event_handler (DWORD);
 

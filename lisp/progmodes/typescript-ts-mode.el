@@ -155,7 +155,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
   (typescript-ts-mode--check-dialect language)
   `((,language
      ((parent-is "program") column-0 0)
-     ((node-is "}") parent-bol 0)
+     ((node-is "}") standalone-parent 0)
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
      ((node-is ">") parent-bol 0)
@@ -165,7 +165,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((parent-is "ternary_expression") standalone-parent typescript-ts-mode-indent-offset)
      ((parent-is "member_expression") parent-bol typescript-ts-mode-indent-offset)
      ((parent-is "named_imports") parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "statement_block") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "statement_block") standalone-parent typescript-ts-mode-indent-offset)
      ((or (node-is "case")
           (node-is "default"))
       parent-bol typescript-ts-mode-indent-offset)
@@ -229,6 +229,26 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     "&&" "||" "!" "?.")
   "TypeScript operators for tree-sitter font-locking.")
 
+(defun typescript-ts--standalone-parent-p (parent)
+  "Return t if PARENT can be considered standalone.
+This is used for `treesit-simple-indent-standalone-predicate'."
+  (save-excursion
+    (goto-char (treesit-node-start parent))
+    (cond
+     ;; Never allow nested ternary_expression node to be standalone
+     ;; parent, to avoid nested indentation.
+     ((equal (treesit-node-type (treesit-node-parent parent))
+             "ternary_expression")
+      nil)
+     ;; If there's only whitespace before node, consider
+     ;; this node standalone.  To support function
+     ;; chaining, allow a dot to be before the node.
+     ((looking-back (rx bol (* whitespace) (? "."))
+                    (line-beginning-position))
+      (if (looking-back "\\." (max (point-min) (1- (point))))
+          (1- (point))
+        (point))))))
+
 (defun tsx-ts-mode--font-lock-compatibility-bb1f97b (language)
   "Font lock rules helper, to handle different releases of tree-sitter-tsx.
 Check if a node type is available, then return the right font lock rules.
@@ -254,7 +274,10 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 		      @typescript-ts-jsx-tag-face)
 
                      (jsx_attribute (property_identifier)
-                                    @typescript-ts-jsx-attribute-face)))
+                                    @typescript-ts-jsx-attribute-face)
+
+                     (jsx_expression (identifier)
+                                     @font-lock-variable-use-face)))
         (queries-b '((jsx_opening_element
 	              [(nested_identifier (identifier)) (identifier)]
 	              @typescript-ts-jsx-tag-face)
@@ -268,7 +291,10 @@ Argument LANGUAGE is either `typescript' or `tsx'."
 	              @typescript-ts-jsx-tag-face)
 
                      (jsx_attribute (property_identifier)
-                                    @typescript-ts-jsx-attribute-face))))
+                                    @typescript-ts-jsx-attribute-face)
+
+                     (jsx_expression (identifier)
+                                     @font-lock-variable-use-face))))
     (or (and (treesit-query-valid-p language queries-a)
              queries-a)
         (and (treesit-query-valid-p language queries-b)
@@ -305,6 +331,10 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      :feature 'constant
      `(((identifier) @font-lock-constant-face
         (:match "\\`[A-Z_][0-9A-Z_]*\\'" @font-lock-constant-face))
+       ((identifier) @font-lock-constant-face
+        (:equal "document" @font-lock-constant-face))
+       ((identifier) @font-lock-constant-face
+        (:equal "console" @font-lock-constant-face))
        [(true) (false) (null) (undefined)] @font-lock-constant-face)
 
      :language language
@@ -404,7 +434,28 @@ Argument LANGUAGE is either `typescript' or `tsx'."
         parameters:
         [(_ (identifier) @font-lock-variable-name-face)
          (_ (_ (identifier) @font-lock-variable-name-face))
-         (_ (_ (_ (identifier) @font-lock-variable-name-face)))]))
+         (_ (_ (_ (identifier) @font-lock-variable-name-face)))])
+
+       (template_substitution (identifier) @font-lock-variable-use-face)
+
+       (call_expression
+        arguments: (arguments (identifier) @font-lock-variable-use-face))
+
+       (pair
+        value: (identifier) @font-lock-variable-use-face)
+
+       ;; What is being called could be a static Type (convention
+       ;; CamelCase, leading caps).
+       ((member_expression
+         object: (identifier) @font-lock-type-face)
+        (:match "\\`[A-Z_][0-9A-Za-z_]*\\'" @font-lock-type-face))
+       ;; If not, assume what is being called is a instance-value
+       ;; and in that it's a variable. Properties are less used in
+       ;; javascript/typescript)
+       (member_expression
+        object: (identifier) @font-lock-variable-use-face)
+
+       (non_null_expression (identifier) @font-lock-variable-use-face))
 
      :language language
      :feature 'property
@@ -610,6 +661,7 @@ This mode is intended to be inherited by concrete major modes."
   :syntax-table typescript-ts-mode--syntax-table
 
   ;; Comments.
+  (c-ts-common-comment-setup)
   (setq-local comment-setup-function #'js--treesit-comment-setup)
 
   ;; Electric
@@ -648,6 +700,8 @@ This mode is intended to be inherited by concrete major modes."
     ;; Indent.
     (setq-local treesit-simple-indent-rules
                 (typescript-ts-mode--indent-rules 'typescript))
+    (setq-local treesit-simple-indent-standalone-predicate
+                #'typescript-ts--standalone-parent-p)
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings
@@ -697,6 +751,8 @@ at least 3 (which is the default value)."
     ;; Indent.
     (setq-local treesit-simple-indent-rules
                 (typescript-ts-mode--indent-rules 'tsx))
+    (setq-local treesit-simple-indent-standalone-predicate
+                #'typescript-ts--standalone-parent-p)
 
     (setq-local treesit-thing-settings
                 `((tsx

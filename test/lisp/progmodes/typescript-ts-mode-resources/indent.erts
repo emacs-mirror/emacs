@@ -96,6 +96,11 @@ const foo = () => {
 Name: Chained ternary expressions
 
 =-=
+const a = cond1 ? 1 :
+  cond2 ? 2 :
+  cond3 ? 3 :
+  cond 4: 5;
+
 const a = cond1 ? 1
   : cond2 ? 2
   : cond3 ? 3
@@ -180,5 +185,30 @@ bar?: boolean;
 interface Foo {
   foo: string;
   bar?: boolean;
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (setq tsx-ts-mode-indent-offset 2)
+    (tsx-ts-mode)
+    (setq indent-tabs-mode nil)
+    (indent-region (line-beginning-position 7) (point-max)))
+
+Name: Function body with params misindented (bug#78121)
+
+=-=
+const f1 = (a1: string,
+            a2: number) => {
+    const f2 = (a1: string,
+                a2: number) => {
+      const f3 = (a1: string,
+                  a2: number) =>
+        {
+          return;
+        }
+      return;
+    }
+  return;
 }
 =-=-=

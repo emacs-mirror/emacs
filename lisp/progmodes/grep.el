@@ -710,7 +710,7 @@ first capture group of `grep-heading-regexp'.")
            (when (file-remote-p file-name)
              (write-region "Copyright\n" nil file-name))
            file-name))
-        ((and (eq system-type 'android) (featurep 'android)) 
+        ((and (eq system-type 'android) (featurep 'android))
          ;; /assets/etc is not accessible to grep or other shell
          ;; commands on Android, and therefore the template must
          ;; be copied to a location that is.

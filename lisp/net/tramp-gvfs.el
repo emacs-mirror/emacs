@@ -2347,11 +2347,11 @@ connection if a previous connection has died for some reason."
 	  ;; Save the password.
 	  (ignore-errors
 	    (and (functionp tramp-password-save-function)
-		 (funcall tramp-password-save-function)))
+		 (funcall tramp-password-save-function))))))
 
-	  ;; Mark it as connected.
-	  (tramp-set-connection-property
-	   (tramp-get-connection-process vec) "connected" t))))))
+    ;; Mark it as connected.
+    (tramp-set-connection-property
+     (tramp-get-connection-process vec) "connected" t)))
 
 (defun tramp-gvfs-gio-tool-p (vec)
   "Check, whether the gio tool is available."

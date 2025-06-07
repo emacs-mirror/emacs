@@ -478,6 +478,16 @@ select the source buffer."
            '(nil (inhibit-same-window . t))))
       (next-error n))))
 
+(defun next-error-this-buffer-no-select (&optional n)
+  "Move point to the next error in the current buffer and highlight match.
+Prefix arg N says how many error messages to move forwards (or
+backwards, if negative).
+Finds and highlights the source line like \\[next-error], but does not
+select the source buffer."
+  (interactive "p")
+  (next-error-select-buffer (current-buffer))
+  (next-error-no-select n))
+
 (defun previous-error-no-select (&optional n)
   "Move point to the previous error in the `next-error' buffer and highlight match.
 Prefix arg N says how many error messages to move backwards (or
@@ -486,6 +496,16 @@ Finds and highlights the source line like \\[previous-error], but does not
 select the source buffer."
   (interactive "p")
   (next-error-no-select (- (or n 1))))
+
+(defun previous-error-this-buffer-no-select (&optional n)
+  "Move point to the previous error in the current buffer and highlight match.
+Prefix arg N says how many error messages to move forwards (or
+backwards, if negative).
+Finds and highlights the source line like \\[previous-error], but does not
+select the source buffer."
+  (interactive "p")
+  (next-error-select-buffer (current-buffer))
+  (previous-error-no-select n))
 
 ;; Internal variable for `next-error-follow-mode-post-command-hook'.
 (defvar next-error-follow-last-line nil)

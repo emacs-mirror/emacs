@@ -1143,6 +1143,57 @@ the `--debug-init' option to view a complete error backtrace."
 (defvar lisp-directory nil
   "Directory where Emacs's own *.el and *.elc Lisp files are installed.")
 
+(defvar load-path-filter--cache nil
+  "A cache used by `load-path-filter-cache-directory-files'.
+
+The value is an alist.  The car of each entry is a list of load suffixes,
+such as returned by `get-load-suffixes'.  The cdr of each entry is a
+cons whose car is a regex matching those suffixes
+at the end of a string, and whose cdr is a hash-table mapping directories
+to files in those directories which end with one of the suffixes.
+These can also be nil, in which case no filtering will happen.
+The files named in the hash-table can be of any kind,
+including subdirectories.
+The hash-table uses `equal' as its key comparison function.")
+
+(defun load-path-filter-cache-directory-files (path file suffixes)
+  "Filter PATH to leave only directories which might contain FILE with SUFFIXES.
+
+PATH should be a list of directories such as `load-path'.
+Returns a copy of PATH with any directories that cannot contain FILE
+with SUFFIXES removed from it.
+Doesn't filter PATH if FILE is an absolute file name or if FILE is
+a relative file name with leading directories.
+
+Caches contents of directories in `load-path-filter--cache'.
+
+This function is called from `load' via `load-path-filter-function'."
+  (if (file-name-directory file)
+      ;; FILE has more than one component, don't bother filtering.
+      path
+    (pcase-let
+        ((`(,rx . ,ht)
+          (with-memoization (alist-get suffixes load-path-filter--cache
+                                       nil nil #'equal)
+            (if (member "" suffixes)
+                '(nil ;; Optimize the filtering.
+                  ;; Don't bother filtering if "" is among the suffixes.
+                  ;; It's a much less common use-case and it would use
+                  ;; more memory to keep the corresponding info.
+                  . nil)
+              (cons (concat (regexp-opt suffixes) "\\'")
+                    (make-hash-table :test #'equal))))))
+      (if (null ht)
+          path
+        (seq-filter
+         (lambda (dir)
+           (when (file-directory-p dir)
+             (try-completion
+              file
+              (with-memoization (gethash dir ht)
+                (directory-files dir nil rx t)))))
+         path)))))
+
 (defun command-line ()
   "A subroutine of `normal-top-level'.
 Amongst another things, it parses the command-line arguments."

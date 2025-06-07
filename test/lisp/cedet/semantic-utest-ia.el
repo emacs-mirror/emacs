@@ -141,7 +141,8 @@
               (semantic-src-utest-buffer-refs))
 
         (kill-buffer b)
-        ))))
+        )))
+  (semantic-mode -1))
 
 (defun semantic-ia-utest-buffer ()
   "Run analyzer completion unit-test pass in the current buffer."

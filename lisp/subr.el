@@ -161,11 +161,12 @@ of previous VARs.
     `(progn . ,(nreverse exps))))
 
 (defmacro setq-local (&rest pairs)
-  "Make each VARIABLE buffer-local and assign to it the corresponding VALUE.
+  "Make each VARIABLE local to current buffer and set it to corresponding VALUE.
 
 The arguments are variable/value pairs.  For each VARIABLE in a pair,
-make VARIABLE buffer-local and assign to it the corresponding VALUE
-of the pair.  The VARIABLEs are literal symbols and should not be quoted.
+make VARIABLE buffer-local in the current buffer and assign to it the
+corresponding VALUE of the pair.  The VARIABLEs are literal symbols
+and should not be quoted.
 
 The VALUE of the Nth pair is not computed until after the VARIABLE
 of the (N-1)th pair is set; thus, each VALUE can use the new VALUEs
@@ -4478,7 +4479,7 @@ don't change the volume setting of the sound device.
   :device DEVICE - play sound on DEVICE.  If not specified,
 a system-dependent default device name is used.
 
-Note: :data and :device are currently not supported on Windows."
+Note: :device is currently not supported on Windows."
   (if (fboundp 'play-sound-internal)
       (play-sound-internal sound)
     (error "This Emacs binary lacks sound support")))

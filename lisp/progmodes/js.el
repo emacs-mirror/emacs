@@ -4063,6 +4063,7 @@ See `treesit-thing-settings' for more information.")
     ;; Which-func.
     (setq-local which-func-imenu-joiner-function #'js--which-func-joiner)
     ;; Comment.
+    (c-ts-common-comment-setup)
     (setq-local comment-setup-function #'js--treesit-comment-setup)
     (setq-local comment-multi-line t)
 

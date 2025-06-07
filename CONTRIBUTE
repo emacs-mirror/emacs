@@ -234,7 +234,9 @@ formatting them:
 - Lines in ChangeLog entries should preferably be not longer than 63
   characters, and must not exceed 78 characters, unless they consist
   of a single word of at most 140 characters; this 78/140 limit is
-  enforced by a commit hook.
+  enforced by a commit hook.  (The 63-character preference is to
+  avoid too-long lines in the ChangeLog file generated from Git logs,
+  where each entry line is indented by a TAB.)
 
 - If only a single file is changed, the summary line can be the normal
   first line of a ChangeLog entry (starting with the asterisk).  Then

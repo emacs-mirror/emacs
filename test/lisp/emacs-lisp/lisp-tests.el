@@ -212,21 +212,7 @@
     (goto-char (point-min))
     (should-error (forward-sexp)))) ;; FIXME: Shouldn't be an error.
 
-;; Test some core Elisp rules.
-(defvar c-e-x)
-(ert-deftest core-elisp-tests-1-defvar-in-let ()
-  "Test some core Elisp rules."
-  (with-temp-buffer
-    ;; Check that when defvar is run within a let-binding, the toplevel default
-    ;; is properly initialized.
-    (should (equal (list (let ((c-e-x 1)) (defvar c-e-x 2) c-e-x) c-e-x)
-                   '(1 2)))
-    (should (equal (list (let ((c-e-x 1))
-                           (defcustom c-e-x 2 "doc" :group 'blah :type 'integer) c-e-x)
-                         c-e-x)
-                   '(1 2)))))
-
-(ert-deftest core-elisp-tests-2-window-configurations ()
+(ert-deftest core-elisp-tests-1-window-configurations ()
   "Test properties of window-configurations."
   (let ((wc (current-window-configuration)))
     (with-current-buffer (window-buffer (frame-selected-window))
@@ -235,39 +221,9 @@
     (set-window-configuration wc)
     (should (or (not mark-active) (mark)))))
 
-(ert-deftest core-elisp-tests-3-backquote ()
+;; For variable binding tests, see src/data-tests.el.
+(ert-deftest core-elisp-tests-2-backquote ()
   (should (eq 3 (eval ``,,'(+ 1 2) t))))
-
-(defvar-local c-e-l 'foo)
-(ert-deftest core-elisp-tests-4-toplevel-values ()
-  (setq-default c-e-l 'foo)
-  (let ((c-e-l 'bar))
-    (let ((c-e-l 'baz))
-      (setq-default c-e-l 'bar)
-      (should (eq c-e-l 'bar))
-      (should (eq (default-toplevel-value 'c-e-l) 'foo))
-      (set-default-toplevel-value 'c-e-l 'baz)
-      (should (eq c-e-l 'bar))
-      (should (eq (default-toplevel-value 'c-e-l) 'baz))))
-  (let ((c-e-u 'foo))
-    (should (condition-case _
-                (default-toplevel-value 'c-e-u)
-              (void-variable t))))
-  (with-temp-buffer
-    (setq-local c-e-l 'bar)
-    (should (eq (buffer-local-toplevel-value 'c-e-l) 'bar))
-    (let ((c-e-l 'baz))
-      (let ((c-e-l 'quux))
-        (setq-local c-e-l 'baz)
-        (should (eq c-e-l 'baz))
-        (should (eq (buffer-local-toplevel-value 'c-e-l) 'bar))
-        (set-buffer-local-toplevel-value 'c-e-l 'foo)
-        (should (eq c-e-l 'baz))
-        (should (eq (buffer-local-toplevel-value 'c-e-l) 'foo)))))
-  (with-temp-buffer
-    (should (condition-case _
-                (buffer-local-toplevel-value 'c-e-l)
-              (void-variable t)))))
 
 ;; Test up-list and backward-up-list.
 (defun lisp-run-up-list-test (fn data start instructions)

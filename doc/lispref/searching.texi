@@ -616,7 +616,10 @@ This matches horizontal whitespace, as defined by Annex C of the
 Unicode Technical Standard #18.  In particular, it matches spaces,
 tabs, and other characters whose Unicode @samp{general-category}
 property (@pxref{Character Properties}) indicates they are spacing
-separators.
+separators.  (If you only need to look for ASCII whitespace characters,
+we suggest using an explicit set of character alternatives, such as
+@w{@samp{[ \t]}}, instead, as it will be faster than
+@code{[[:blank:]]}.)
 @item [:cntrl:]
 This matches any character whose code is in the range 0--31.
 @item [:digit:]

@@ -1153,47 +1153,12 @@ and command `sh-reset-indent-vars-to-global-values'."
   :options '(sh-electric-here-document-mode)
   :group 'sh-script)
 
-(defcustom sh-popup-occur-buffer nil
-  "Controls when  `smie-config-guess' pops the `*indent*' buffer.
-If t it is always shown.  If nil, it is shown only when there
-are conflicts."
-  :type '(choice
-	  (const :tag "Only when there are conflicts." nil)
-	  (const :tag "Always"  t))
-  :group 'sh-indentation)
-
-(defcustom sh-first-lines-indent 0
-  "The indentation of the first non-blank non-comment line.
-Usually 0 meaning first column.
-Can be set to a number, or to nil which means leave it as is."
-  :type '(choice
-	  (const :tag "Leave as is"	nil)
-	  (integer :tag "Column number"
-		   :menu-tag "Indent to this col (0 means first col)" ))
-  :group 'sh-indentation)
-
-
 (defcustom sh-basic-offset 4
   "The default indentation increment.
 This value is used for the `+' and `-' symbols in an indentation variable."
   :type 'integer
   :safe #'integerp
   :group 'sh-indentation)
-
-(defcustom sh-indent-comment t
-  "How a comment line is to be indented.
-nil means leave it as it is;
-t  means indent it as a normal line, aligning it to previous non-blank
-   non-comment line;
-a number means align to that column, e.g. 0 means first column."
-  :type '(choice
-	  (const :tag "Leave as is." nil)
-	  (const :tag "Indent as a normal line."  t)
-	  (integer :menu-tag "Indent to this col (0 means first col)."
-		   :tag "Indent to column number.") )
-  :version "24.3"
-  :group 'sh-indentation)
-
 
 (defvar sh-debug nil
   "Enable lots of debug messages - if function `sh-debug' is enabled.")
@@ -1219,16 +1184,6 @@ a number means align to that column, e.g. 0 means first column."
 	   :menu-tag "*   Indent right half sh-basic-offset")
     (const :tag "/ " :value /
 	   :menu-tag "/   Indent left  half sh-basic-offset")))
-
-(defcustom sh-indent-for-else 0
-  "How much to indent an `else' relative to its `if'.  Usually 0."
-  :type `(choice
-	  (integer :menu-tag "A number (positive=>indent right)"
-		   :tag "A number")
-	  (const :tag "--") ;; separator!
-	  ,@ sh-symbol-list
-	  )
-  :group 'sh-indentation)
 
 (defconst sh-number-or-symbol-list
   (append '((integer :menu-tag "A number (positive=>indent right)"
@@ -1380,19 +1335,17 @@ punctuation characters like `-'."
 
 (defconst sh-var-list
   '(
-    sh-basic-offset sh-first-lines-indent sh-indent-after-case
+    sh-basic-offset sh-indent-after-case
     sh-indent-after-do sh-indent-after-done
     sh-indent-after-else
     sh-indent-after-if
     sh-indent-after-loop-construct
     sh-indent-after-open
-    sh-indent-comment
     sh-indent-for-case-alt
     sh-indent-for-case-label
     sh-indent-for-continuation
     sh-indent-for-do
     sh-indent-for-done
-    sh-indent-for-else
     sh-indent-for-fi
     sh-indent-for-then
     )
@@ -3368,7 +3321,7 @@ See `sh-mode--treesit-other-keywords' and
    :feature 'string-interpolation
    :language 'bash
    :override t
-   '((command_substitution) @sh-quoted-exec
+   '((command_substitution (command) @sh-quoted-exec)
      (expansion (variable_name) @font-lock-variable-use-face)
      (expansion ["${" "}"] @font-lock-bracket-face)
      (simple_expansion

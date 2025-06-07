@@ -487,6 +487,17 @@ symbol: php
 Parse error: parse error, unexpected $ in main.php on line 59
 Fatal error: Call to undefined function: mysql_pconnect() in db.inc on line 66
 
+* Rust
+
+symbol: rust
+
+error[E0277]: `Foo` is not an iterator
+  --> src/main.rs:4:16
+warning: borrow of packed field is unsafe and requires unsafe function or block (error E0133)
+  --> lint_example.rs:11:13
+note: required by a bound in `Trait`
+  --> src/auxiliary/trait-debuginfo.rs:23:18
+
 * Ruby
 
 symbol: ruby

@@ -18,10 +18,10 @@
 # GNU Emacs support for the GitLab protocol for CI.
 
 # The presence of this file does not imply any FSF/GNU endorsement of
-# any particular service that uses that protocol.  Also, it is intended for
-# evaluation purposes, thus possibly temporary.
+# any particular service that uses that protocol.
 
-# Maintainer: Ted Zlatanov <tzz@lifelogs.com>
+# Author: Ted Zlatanov <tzz@lifelogs.com>
+# Maintainer: Michael Albinus <michael.albinus@gmx.de>
 # URL: https://emba.gnu.org/emacs/emacs
 
 # Never run merge request pipelines, they usually duplicate push pipelines
@@ -67,7 +67,8 @@ default:
   before_script:
     - docker info
     - echo "docker registry is ${CI_REGISTRY}"
-    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+    - 'docker login
+     -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}'
 
 .job-template:
   variables:
@@ -93,7 +94,8 @@ default:
      -e http_proxy=${http_proxy}
      -e https_proxy=${https_proxy}
      -e no_proxy=${no_proxy}
-     --volumes-from $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):ro
+     --volumes-from
+     $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):ro
      --name ${test_name}
      ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}
      /bin/bash -xvc
@@ -107,15 +109,20 @@ default:
   after_script:
     # - docker ps -a
     # - pwd; printenv
-    # - test -n "$(docker ps -aq -f name=${test_name})" && ( docker export ${test_name} | tar -tvf - )
     # Prepare test artifacts.
-    - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/test ${test_name}
-    - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/configure.log ${test_name} || true
-    - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/compatibility-report.html ${test_name} || true
-    - test -n "$(docker ps -aq -f name=${test_name})" && docker rm ${test_name}
-    - find ${test_name} ! \( -name "*.log" -o -name ${EMACS_TEST_JUNIT_REPORT} -o -name compatibility-report.html \) -type f -delete
+    - 'test -n "$(docker ps -aq -f name=${test_name})" &&
+     docker cp ${test_name}:checkout/test ${test_name}'
+    - 'test -n "$(docker ps -aq -f name=${test_name})" &&
+     docker cp ${test_name}:checkout/config.log ${test_name} || true'
+    - 'test -n "$(docker ps -aq -f name=${test_name})" &&
+     docker cp ${test_name}:checkout/compatibility-report.html ${test_name} ||
+     true'
+    - 'test -n "$(docker ps -aq -f name=${test_name})" && docker rm ${test_name}'
+    - 'find ${test_name}
+     ! \( -name "*.log" -o -name ${EMACS_TEST_JUNIT_REPORT} -o
+          -name compatibility-report.html \) -type f -delete'
     # BusyBox find does not know -empty.
-    - find ${test_name} -type d -depth -exec rmdir {} + 2>/dev/null
+    - 'find ${test_name} -type d -depth -exec rmdir {} + 2>/dev/null'
 
 .build-template:
   needs: []
@@ -147,8 +154,10 @@ default:
         - src/macfont.{h,m}
       when: never
   script:
-    - docker build --pull --target ${target} -t ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} -f test/infra/Dockerfile.emba .
-    - docker push ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}
+    - 'docker build --pull --target ${target}
+     -t ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}
+     -f test/infra/Dockerfile.emba .'
+    - 'docker push ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}'
 
 .test-template:
   cache:
@@ -293,8 +302,8 @@ test-filenotify-gio:
     # This is needed in order to get a JUnit test report.
     make_params: >-
       check-expensive
-        TEST_HOME=/root
-        LOGFILES="lisp/autorevert-tests.log lisp/filenotify-tests.log"
+      TEST_HOME=/root
+      LOGFILES="lisp/autorevert-tests.log lisp/filenotify-tests.log"
 
 build-image-eglot:
   stage: platform-images
@@ -312,10 +321,10 @@ test-eglot:
     target: emacs-eglot
     # This is needed in order to get a JUnit test report.
     make_params: >-
-      check-expensive
-        TEST_HOME=/root LOGFILES="lisp/progmodes/eglot-tests.log"
-        # EMACS_EXTRAOPT="--eval \(use-package\ company\ :ensure\ t\)
-        #                 --eval \(use-package\ yasnippet\ :ensure\ t\)"
+      check-expensive TEST_HOME=/root LOGFILES="lisp/progmodes/eglot-tests.log"
+
+    # EMACS_EXTRAOPT="--eval \(use-package\ company\ :ensure\ t\)
+    #                 --eval \(use-package\ yasnippet\ :ensure\ t\)"
 
 build-image-tree-sitter:
   stage: platform-images

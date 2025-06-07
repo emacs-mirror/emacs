@@ -4177,7 +4177,7 @@ ns_draw_stretch_glyph_string (struct glyph_string *s)
 	      face = FACE_FROM_ID_OR_NULL (s->f,
 					   MOUSE_HL_INFO (s->f)->mouse_face_face_id);
 
-	      if (!s->face)
+	      if (!face)
 		face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
 	      prepare_face_for_display (s->f, face);
 
@@ -9823,11 +9823,11 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   /* Don't do anything for child frames because that leads to weird
      child frame placement in some cases involving Dock placement and
      Dock Hiding.  */
+#ifdef NS_IMPL_COCOA
   struct frame *f = *((EmacsView *) [self delegate])->emacsframe;
   if (FRAME_PARENT_FRAME (f))
     return frameRect;
 
-#ifdef NS_IMPL_COCOA
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1090
   // If separate spaces is on, it is like each screen is independent.  There is
   // no spanning of frames across screens.

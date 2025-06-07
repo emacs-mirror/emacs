@@ -2837,12 +2837,14 @@ deleting them."
   (interactive "i\nP")
   (setq frame (window-normalize-frame frame))
   (let ((minibuffer-frame (window-frame (minibuffer-window frame)))
+	(terminal (frame-terminal frame))
         (parent (frame-parent frame))
 	(frames (frame-list)))
     ;; In a first round consider minibuffer-less frames only.
     (dolist (this frames)
       (unless (or (eq this frame)
 		  (eq this minibuffer-frame)
+		  (not (eq (frame-terminal this) terminal))
 		  (eq (window-frame (minibuffer-window this)) this)
                   ;; When FRAME is a child frame, delete its siblings
                   ;; only.
@@ -2854,6 +2856,7 @@ deleting them."
     (dolist (this frames)
       (unless (or (eq this frame)
 		  (eq this minibuffer-frame)
+		  (not (eq (frame-terminal this) terminal))
                   ;; When FRAME is a child frame, delete its siblings
                   ;; only.
                   (and parent (not (eq (frame-parent this) parent)))

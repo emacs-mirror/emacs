@@ -223,6 +223,26 @@ feature: to pass the function as the @var{read-function} argument to
 @code{eval-region}.  @xref{Definition of eval-region,, Eval}.
 @end defvar
 
+@defun load-path-filter-cache-directory-files path filename suffixes
+This function filters @var{path} to remove any directories that could
+not hold @var{filename} with any of @var{suffixes}, and returns the
+filtered list of directories.  The function caches the directories it
+scans and the files inside them, and uses the cache in subsequent calls,
+which speeds up repeated lookups of files in @var{path}.
+@end defun
+
+@defvar load-path-filter-function
+If this variable names a function, @code{load} will call that function
+when it scans @code{load-path} to find files.  The function will be
+called with 3 arguments: the value of @code{load-path}, @var{filename},
+the name of a file being looked up as passed to @code{load}, and a list
+of suffixes to append to @var{filename}.  It should return a shorter
+list of directories where @var{filename} can reside, thus making the
+lookup faster.  The function
+@code{load-path-filter-cache-directory-files} is a good candidate to be
+such a function.
+@end defvar
+
   For information about how @code{load} is used in building Emacs, see
 @ref{Building Emacs}.
 

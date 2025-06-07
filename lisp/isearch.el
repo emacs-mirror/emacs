@@ -4610,9 +4610,7 @@ defaults to the value of `isearch-search-fun-default' when nil."
 (defun search-within-boundaries ( search-fun get-fun next-fun
                                   string &optional bound noerror count)
   (let* ((old (point))
-         ;; Check if point is already on the property.
-         (beg (when (funcall get-fun old) old))
-         end found (i 0)
+         beg end found skip (i 0)
          (subregexp
           (and isearch-regexp
                (save-match-data
@@ -4622,18 +4620,33 @@ defaults to the value of `isearch-search-fun-default' when nil."
                      (when (subregexp-context-p string (match-beginning 0))
                        ;; The ^/$ is not inside a char-range or escaped.
                        (throw 'subregexp t))))))))
-    ;; Otherwise, try to search for the next property.
-    (unless beg
-      (setq beg (funcall next-fun old))
-      (when beg
-        (if (or (null bound)
-                (if isearch-forward
-                    (< beg bound)
-                  (> beg bound)))
-            (goto-char beg)
-          (setq beg nil))))
+
+    ;; Optimization for non-subregexp case to set the initial position
+    ;; on the first match assuming there is no need to check boundaries
+    ;; for a search string/regexp without anchors (bug#78520).
+    (unless subregexp
+      (save-match-data
+        (if (funcall (or search-fun (isearch-search-fun-default))
+                     string bound noerror count)
+            (goto-char (if isearch-forward (match-beginning 0) (match-end 0)))
+          (setq skip t))))
+
+    (unless skip
+      ;; Check if point is already on the property.
+      (setq beg (when (funcall get-fun (point)) (point)))
+      ;; Otherwise, try to search for the next property.
+      (unless beg
+        (setq beg (funcall next-fun (point)))
+        (when beg
+          (if (or (null bound)
+                  (if isearch-forward
+                      (< beg bound)
+                    (> beg bound)))
+              (goto-char beg)
+            (setq beg nil)))))
+
     ;; Non-nil `beg' means there are more properties.
-    (while (and beg (not found))
+    (while (and beg (not found) (not skip))
       ;; Search for the end of the current property.
       (setq end (funcall next-fun beg))
       ;; Handle ^/$ specially by matching in a temporary buffer.

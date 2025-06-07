@@ -237,26 +237,28 @@ typedef struct Emacs_GESTURECONFIG
 typedef BOOL (WINAPI * SetGestureConfig_proc) (HWND, DWORD, UINT,
 					       Emacs_PGESTURECONFIG, UINT);
 
-TrackMouseEvent_Proc track_mouse_event_fn = NULL;
-ImmGetCompositionString_Proc get_composition_string_fn = NULL;
-ImmGetContext_Proc get_ime_context_fn = NULL;
-ImmGetOpenStatus_Proc get_ime_open_status_fn = NULL;
-ImmSetOpenStatus_Proc set_ime_open_status_fn = NULL;
-ImmReleaseContext_Proc release_ime_context_fn = NULL;
-ImmSetCompositionWindow_Proc set_ime_composition_window_fn = NULL;
-MonitorFromPoint_Proc monitor_from_point_fn = NULL;
-GetMonitorInfo_Proc get_monitor_info_fn = NULL;
-MonitorFromWindow_Proc monitor_from_window_fn = NULL;
-EnumDisplayMonitors_Proc enum_display_monitors_fn = NULL;
-GetTitleBarInfo_Proc get_title_bar_info_fn = NULL;
+static TrackMouseEvent_Proc track_mouse_event_fn = NULL;
+static ImmGetCompositionString_Proc get_composition_string_fn = NULL;
+static ImmGetContext_Proc get_ime_context_fn = NULL;
+static ImmGetOpenStatus_Proc get_ime_open_status_fn = NULL;
+static ImmSetOpenStatus_Proc set_ime_open_status_fn = NULL;
+static ImmReleaseContext_Proc release_ime_context_fn = NULL;
+static ImmSetCompositionWindow_Proc set_ime_composition_window_fn = NULL;
+static MonitorFromPoint_Proc monitor_from_point_fn = NULL;
+static GetMonitorInfo_Proc get_monitor_info_fn = NULL;
+static MonitorFromWindow_Proc monitor_from_window_fn = NULL;
+static EnumDisplayMonitors_Proc enum_display_monitors_fn = NULL;
+static GetTitleBarInfo_Proc get_title_bar_info_fn = NULL;
+extern IsDebuggerPresent_Proc is_debugger_present;
 IsDebuggerPresent_Proc is_debugger_present = NULL;
+extern SetThreadDescription_Proc set_thread_description;
 SetThreadDescription_Proc set_thread_description = NULL;
-SetWindowTheme_Proc SetWindowTheme_fn = NULL;
-DwmSetWindowAttribute_Proc DwmSetWindowAttribute_fn = NULL;
-WTSUnRegisterSessionNotification_Proc WTSUnRegisterSessionNotification_fn = NULL;
-WTSRegisterSessionNotification_Proc WTSRegisterSessionNotification_fn = NULL;
-RegisterTouchWindow_proc RegisterTouchWindow_fn = NULL;
-SetGestureConfig_proc SetGestureConfig_fn = NULL;
+static SetWindowTheme_Proc SetWindowTheme_fn = NULL;
+static DwmSetWindowAttribute_Proc DwmSetWindowAttribute_fn = NULL;
+static WTSUnRegisterSessionNotification_Proc WTSUnRegisterSessionNotification_fn = NULL;
+static WTSRegisterSessionNotification_Proc WTSRegisterSessionNotification_fn = NULL;
+static RegisterTouchWindow_proc RegisterTouchWindow_fn = NULL;
+static SetGestureConfig_proc SetGestureConfig_fn = NULL;
 
 extern AppendMenuW_Proc unicode_append_menu;
 
@@ -312,7 +314,7 @@ int w32_minor_version;
 int w32_build_number;
 
 /* If the OS is set to use dark mode.  */
-BOOL w32_darkmode = FALSE;
+static BOOL w32_darkmode = FALSE;
 
 /* Distinguish between Windows NT and Windows 95.  */
 int os_subtype;
@@ -574,7 +576,7 @@ typedef struct colormap_t
   COLORREF colorref;
 } colormap_t;
 
-colormap_t w32_color_map[] =
+static colormap_t w32_color_map[] =
 {
   {"snow"                      , PALETTERGB (255,250,250)},
   {"ghost white"               , PALETTERGB (248,248,255)},
@@ -3816,7 +3818,7 @@ w32_msg_pump (deferred_msg * msg_buf)
     }
 }
 
-deferred_msg * deferred_msg_head;
+static deferred_msg * deferred_msg_head;
 
 static deferred_msg *
 find_deferred_msg (HWND hwnd, UINT msg)
@@ -7356,7 +7358,7 @@ static void compute_tip_xy (struct frame *, Lisp_Object, Lisp_Object,
 			    Lisp_Object, int, int, int *, int *);
 
 /* The frame of the currently visible tooltip.  */
-Lisp_Object tip_frame;
+static Lisp_Object tip_frame;
 
 /* The window-system window corresponding to the frame of the
    currently visible tooltip.  */
@@ -7364,16 +7366,16 @@ Window tip_window;
 
 /* A timer that hides or deletes the currently visible tooltip when it
    fires.  */
-Lisp_Object tip_timer;
+static Lisp_Object tip_timer;
 
 /* STRING argument of last `x-show-tip' call.  */
-Lisp_Object tip_last_string;
+static Lisp_Object tip_last_string;
 
 /* Normalized FRAME argument of last `x-show-tip' call.  */
-Lisp_Object tip_last_frame;
+static Lisp_Object tip_last_frame;
 
 /* PARMS argument of last `x-show-tip' call.  */
-Lisp_Object tip_last_parms;
+static Lisp_Object tip_last_parms;
 
 
 static void
@@ -10901,7 +10903,7 @@ w32_get_resource (const char *key, const char *name, LPDWORD lpdwtype)
  ***********************************************************************/
 
 typedef BOOL (WINAPI * SystemParametersInfoW_Proc) (UINT,UINT,PVOID,UINT);
-SystemParametersInfoW_Proc system_parameters_info_w_fn = NULL;
+static SystemParametersInfoW_Proc system_parameters_info_w_fn = NULL;
 
 DEFUN ("w32-set-wallpaper", Fw32_set_wallpaper, Sw32_set_wallpaper, 1, 1, 0,
        doc: /* Set the desktop wallpaper image to IMAGE-FILE.  */)

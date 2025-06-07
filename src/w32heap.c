@@ -87,14 +87,14 @@ typedef struct _RTL_HEAP_PARAMETERS {
 } RTL_HEAP_PARAMETERS, *PRTL_HEAP_PARAMETERS;
 
 /* Info for keeping track of our dynamic heap used after dumping. */
-unsigned char *data_region_base = NULL;
-unsigned char *data_region_end = NULL;
+static unsigned char *data_region_base = NULL;
+static unsigned char *data_region_end = NULL;
 
 /* Handle for the private heap:
     - inside the dumped_data[] array before dump with unexec,
     - outside of it after dump, or always if pdumper is used.
 */
-HANDLE heap = NULL;
+static HANDLE heap = NULL;
 
 /* We redirect the standard allocation functions.  */
 malloc_fn the_malloc_fn;

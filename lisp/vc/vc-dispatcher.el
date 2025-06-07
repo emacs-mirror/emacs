@@ -122,6 +122,15 @@ dispatcher client mode imposes itself."
   :type 'hook
   :group 'vc)
 
+;; This hook was undeclared and undocumented until declared obsolete.
+;; I believe it can be replaced with `vc-log-after-operation-hook'; if
+;; someone can demonstrate a case where this is wanted too, we can
+;; unobsolete it.  --spwhitton
+(defvar vc-finish-logentry-hook nil
+  "Additional hook run at the end of `vc-finish-logentry'.")
+(make-obsolete-variable 'vc-finish-logentry-hook 'vc-log-after-operation-hook
+                        "31.1" 'set)
+
 (defcustom vc-delete-logbuf-window t
   "If non-nil, delete the log buffer and window after each logical action.
 If nil, bury that buffer instead.
@@ -874,18 +883,14 @@ the buffer contents as a comment."
     (setq vc-log-operation nil)
 
     ;; Quit windows on logbuf.
-    (cond
-     ((not logbuf))
-     (vc-delete-logbuf-window
-      (quit-windows-on logbuf t (selected-frame)))
-     (t
-      (quit-windows-on logbuf nil 0)))
+    (cond ((not logbuf))
+          (vc-delete-logbuf-window
+           (quit-windows-on logbuf t (selected-frame)))
+          (t
+           (quit-windows-on logbuf nil 0)))
 
     ;; Now make sure we see the expanded headers
-    (when log-fileset
-      (mapc
-       (lambda (file) (vc-resynch-buffer file t t))
-       log-fileset))
+    (mapc (lambda (file) (vc-resynch-buffer file t t)) log-fileset)
     (run-hooks after-hook 'vc-finish-logentry-hook)))
 
 (defun vc-dispatcher-browsing ()
