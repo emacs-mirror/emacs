@@ -314,15 +314,6 @@ Good example of file name that needs this: \"test[56].xx\".")
                (string= (substring str 0 (1+ (length name)))
                         (concat name "\0"))))))))
 
-(defun vc-git--state-code (code)
-  "Convert from a string to an added/deleted/modified state."
-  (pcase (string-to-char code)
-    (?M 'edited)
-    (?A 'added)
-    (?D 'removed)
-    (?U 'edited)     ;; FIXME
-    (?T 'edited)))   ;; FIXME
-
 (defvar vc-git--program-version nil)
 
 (connection-local-set-profile-variables
@@ -657,7 +648,7 @@ or an empty string if none."
                (state (or (match-string 4) (match-string 6)))
                (name (or (match-string 5) (match-string 7)))
                (new-name (match-string 8)))
-           (if new-name  ; Copy or rename.
+           (if new-name                 ; Copy or rename.
                (if (eq ?C (string-to-char state))
                    (vc-git-dir-status-update-file
                     git-state new-name 'added
@@ -671,7 +662,13 @@ or an empty string if none."
                   (vc-git-create-extra-fileinfo old-perm new-perm
                                                 'rename name)))
              (vc-git-dir-status-update-file
-              git-state name (vc-git--state-code state)
+              git-state name (pcase (string-to-char state)
+                               (?M 'edited)
+                               (?A 'added)
+                               (?C 'added)
+                               (?D 'removed)
+                               (?U 'edited)  ;; FIXME
+                               (?T 'edited)) ;; FIXME
               (vc-git-create-extra-fileinfo old-perm new-perm)))))))
     ;; If we had files but now we don't, it's time to stop.
     (when (and files (not (vc-git-dir-status-state->files git-state)))
