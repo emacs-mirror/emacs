@@ -3641,6 +3641,12 @@ To disable the use of GTK input methods, evaluate:
 This will also cause system input methods and features such as the
 Compose key to stop working.
 
+We are told that 'C-S-u' is misinterpreted due to the GTK "feature"
+whereby 'C-S-u' is used to input characters by their Unicode codepoints,
+and that this can be changed or turned off using the 'ibus-setup'
+program under the Emoji tab, or by changing the setting of the dconf key
+'org.freedesktop.ibus.panel.emoji'.
+
 On X Windows, users should not use Emacs configured with PGTK, since
 this and many other problems do not exist on the regular X builds.
 
