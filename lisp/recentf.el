@@ -505,7 +505,9 @@ Enable `recentf-mode' if it isn't already."
    (list
     (progn (unless recentf-mode (recentf-mode 1))
            (completing-read (format-prompt "Open recent file" nil)
-                            recentf-list nil t))))
+                            (completion-table-with-metadata
+                             recentf-list '((category . recentf)))
+                            nil t))))
   (when file
     (funcall recentf-menu-action file)))
 
