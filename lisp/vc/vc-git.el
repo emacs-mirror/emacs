@@ -374,11 +374,9 @@ in the order given by `git status'."
      (pcase code
        ("!!" 'ignored)
        ("??" 'unregistered)
-       ;; I have only seen this with a file that is only present in the
-       ;; index.  Let us call this `removed'.
-       ("AD" 'removed)
+       ("D " 'removed)
        (_ (cond
-           ((string-match-p "^[ RD]+$" code) 'removed)
+           ((string-match-p "^.D$" code) 'missing)
            ((string-match-p "^[ M]+$" code) 'edited)
            ((string-match-p "^[ A]+$" code) 'added)
            ((string-match-p "^[ U]+$" code) 'conflict)
@@ -594,9 +592,9 @@ or an empty string if none."
         (files (vc-git-dir-status-state->files git-state)))
     ;; First stage is always update-index.
     ;;   After that, if no commits yet, ls-files-added.
-    ;;   Otherwise, if there are commits, diff-index.
-    ;;     After diff-index, if FILES non-nil, ls-files-up-to-date.
-    ;;     After diff-index, if FILES     nil, ls-files-conflict.
+    ;;   Otherwise (there are commits), diff-index then ls-files-missing.
+    ;;     After ls-files-missing, if FILES non-nil, ls-files-up-to-date.
+    ;;     After ls-files-missing, if FILES     nil, ls-files-conflict.
     ;; Then always ls-files-unknown.
     ;; Finally, if FILES non-nil, ls-files-ignored.
     (goto-char (point-min))
@@ -636,6 +634,11 @@ or an empty string if none."
            (vc-git-dir-status-update-file
             git-state name 'conflict
             (vc-git-create-extra-fileinfo perm perm)))))
+      ('ls-files-missing
+       (setq next-stage (if files 'ls-files-up-to-date 'ls-files-conflict))
+       (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
+         (vc-git-dir-status-update-file git-state (match-string 1) 'missing
+                                        (vc-git-create-extra-fileinfo 0 0))))
       ('ls-files-unknown
        (when files (setq next-stage 'ls-files-ignored))
        (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
@@ -649,7 +652,12 @@ or an empty string if none."
        ;; This is output from 'git diff-index' without --cached.
        ;; Therefore this stage compares HEAD and the working tree and
        ;; ignores the index (cf. git-diff-index(1) "RAW OUTPUT FORMAT").
-       (setq next-stage (if files 'ls-files-up-to-date 'ls-files-conflict))
+       ;; In particular that means it cannot distinguish between
+       ;; `removed' (deletion staged) and `missing' (deleted only in
+       ;; working tree).  Set them all to `removed' and then do
+       ;; `ls-files-missing' as the next stage to possibly change some
+       ;; of those just set to `removed', to `missing'.
+       (setq next-stage 'ls-files-missing)
        (while (re-search-forward
                ":\\([0-7]\\{6\\}\\) \\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\(\\([ADMUT]\\)\0\\([^\0]+\\)\\|\\([CR]\\)[0-9]*\0\\([^\0]+\\)\0\\([^\0]+\\)\\)\0"
                nil t 1)
@@ -720,6 +728,9 @@ or an empty string if none."
       ('ls-files-conflict
        (vc-git-command (current-buffer) 'async files
                        "ls-files" "-z" "-u" "--"))
+      ('ls-files-missing
+       (vc-git-command (current-buffer) 'async files
+                       "ls-files" "-z" "-d" "--"))
       ('ls-files-unknown
        (vc-git-command (current-buffer) 'async files
                        "ls-files" "-z" "-o" "--exclude-standard" "--"))
