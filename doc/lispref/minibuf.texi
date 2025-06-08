@@ -2125,11 +2125,8 @@ when a slow operation is involved, such as calling an external process.
 
 @defun completion-table-with-metadata table metadata
 This function creates a completion table that behaves like the existing
-completion table @var{table}, except with additional metadata, specified
-by the completion metadata alist @var{metadata}.  If @var{table} already
-provides completion metadata, that metadata is merged with
-@var{metadata}, giving precedence to @var{metadata} in case an entry
-appears both.
+completion table @var{table}, except that the new table uses the alist
+@var{metadata} as its completion metadata.
 @end defun
 
 @node Completion in Buffers
