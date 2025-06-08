@@ -71,8 +71,11 @@ RUN apt-get update && \
 # Install clangd, tsserver, rust-analyzer.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      clangd node-typescript rust-analyzer cargo \
+      clangd npm node-typescript rust-analyzer cargo \
     && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g typescript-language-server typescript
+RUN npm install -g vscode-json-languageserver
 
 # eclipse-jdt-ls is planned as Java language server.
 # See <https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1024246>.
