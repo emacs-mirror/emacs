@@ -118,11 +118,13 @@ default:
      docker cp ${test_name}:checkout/compatibility-report.html ${test_name} ||
      true'
     - 'test -n "$(docker ps -aq -f name=${test_name})" && docker rm ${test_name}'
-    - 'find ${test_name}
-     ! \( -name "*.log" -o -name ${EMACS_TEST_JUNIT_REPORT} -o
-          -name compatibility-report.html \) -type f -delete'
+    - 'test -d ${test_name} &&
+     find ${test_name}
+       ! \( -name "*.log" -o -name ${EMACS_TEST_JUNIT_REPORT} -o
+            -name compatibility-report.html \) -type f -delete'
     # BusyBox find does not know -empty.
-    - 'find ${test_name} -type d -depth -exec rmdir {} + 2>/dev/null'
+    - 'test -d ${test_name} &&
+     find ${test_name} -type d -depth -exec rmdir {} + 2>/dev/null'
 
 .build-template:
   needs: []

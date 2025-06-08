@@ -66,7 +66,11 @@ jobs run scheduled in a pipeline every 8 hours.
 The log files for every test job are kept on the server for a week.
 They can be downloaded from the server, visiting the URL
 <https://emba.gnu.org/emacs/emacs/-/pipelines>, and selecting the job
-in question.
+in question.  Browse the job artifacts.
+
+Additionally, the artifacts of the 'test-tree-sitter' job contain the
+file 'compatibility-report.html', which reports tree-sitter grammars
+compatibility status.
 
 Every pipeline generates a JUnit test report for the respective test
 jobs, which can be inspected on the pipeline web page.  This test
