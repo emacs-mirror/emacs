@@ -1374,12 +1374,12 @@ BACKEND is the VC backend responsible for FILES."
     (setq states (mapcar #'car states-alist))
     (cond ((length= states 1)
            (setq state (car states)))
-          ((cl-subsetp states '(added removed edited))
+          ((cl-subsetp states '(added missing removed edited))
            (setq state 'edited))
 
           ;; Special, but common case:
           ;; checking in both changes and new files at once.
-          ((and (cl-subsetp states '(added removed edited unregistered))
+          ((and (cl-subsetp states '(added missing removed edited unregistered))
                 (y-or-n-p "Some files are unregistered; register them first?"))
            (vc-register (list backend
                               (cdr (assq 'unregistered states-alist))))
@@ -1387,7 +1387,7 @@ BACKEND is the VC backend responsible for FILES."
 
           (t
            (let* ((pred (lambda (elt)
-                          (memq (car elt) '(added removed edited))))
+                          (memq (car elt) '(added missing removed edited))))
                   (compat-alist (cl-remove-if-not pred states-alist))
                   (other-alist (cl-remove-if pred states-alist))
                   (first (car (or compat-alist other-alist)))
@@ -1526,7 +1526,7 @@ from which to check out the file(s)."
         ;; do nothing
         (message "Fileset is up-to-date"))))
      ;; Files have local changes
-     ((memq state '(added removed edited))
+     ((memq state '(added missing removed edited))
       (let ((ready-for-commit files))
 	;; CVS, SVN and bzr don't care about read-only (bug#9781).
 	;; RCS does, SCCS might (someone should check...).
