@@ -423,10 +423,16 @@ static void do_async_work (void);
 
 /* Advance or retreat a buffered input event pointer.  */
 
-static union buffered_input_event *
+union buffered_input_event *
 next_kbd_event (union buffered_input_event *ptr)
 {
   return ptr == kbd_buffer + KBD_BUFFER_SIZE - 1 ? kbd_buffer : ptr + 1;
+}
+
+union buffered_input_event *
+prev_kbd_event (union buffered_input_event *ptr)
+{
+  return ptr == kbd_buffer ? kbd_buffer + KBD_BUFFER_SIZE - 1 : ptr - 1;
 }
 
 /* Like EVENT_START, but assume EVENT is an event.
@@ -12892,10 +12898,6 @@ delete_kboard (KBOARD *kb)
 void
 init_keyboard (void)
 {
-#ifdef HAVE_MPS
-  igc_root_create_ambig (kbd_buffer, kbd_buffer + ARRAYELTS (kbd_buffer),
-			 "kbd-buffer");
-#endif
   /* This is correct before outermost invocation of the editor loop.  */
   command_loop_level = -1;
   quit_char = Ctl ('g');

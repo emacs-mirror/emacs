@@ -60,6 +60,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 #include "thread.h"
 #include "treesit.h"
 #include "termchar.h"
+#include "keyboard.h"
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -1725,6 +1726,32 @@ scan_tty_list (mps_ss_t ss, void *start, void *end, void *closure)
   return MPS_RES_OK;
 }
 
+static mps_res_t
+scan_kbd_buffer_ambig (mps_ss_t ss, void *start, void *end, void *closure)
+{
+  igc_assert (start == kbd_buffer);
+  igc_assert (end == kbd_buffer + ARRAYELTS (kbd_buffer));
+
+  /* Instead of tracing the entire kbd_buffer, only scan the region from
+     kbd_fetch_ptr - 1 to kbd_store_ptr + 1.  The -1/+1 is supposed to
+     cover the cases where MPS stops the mutator while those pointers
+     are being updated. */
+
+  union buffered_input_event *fetch = prev_kbd_event (kbd_fetch_ptr);
+  union buffered_input_event *store = next_kbd_event (kbd_store_ptr);
+
+  if (fetch <= store - 2)
+    return scan_ambig (ss, fetch, store, closure);
+  else
+    {
+      mps_res_t res
+	= scan_ambig (ss, fetch, kbd_buffer + KBD_BUFFER_SIZE, closure);
+      if (res == MPS_RES_OK)
+	res = scan_ambig (ss, kbd_buffer, store, closure);
+      return res;
+    }
+}
+
 /***********************************************************************
 			 Default pad, fwd, ...
  ***********************************************************************/
@@ -2903,6 +2930,14 @@ root_create_tty_list (struct igc *gc)
 {
   root_create_exact (gc, &tty_list, (&tty_list) + 1,
 		     scan_tty_list, "tty-list");
+}
+
+static void
+root_create_kbd_buffer (struct igc *gc)
+{
+  root_create (gc, kbd_buffer, kbd_buffer + ARRAYELTS (kbd_buffer),
+	       mps_rank_ambig (), scan_kbd_buffer_ambig, NULL,
+	       true, "kbd-buffer");
 }
 
 static void
@@ -4934,6 +4969,7 @@ make_igc (void)
   root_create_main_thread (gc);
   root_create_exact_ptr (gc, &current_thread);
   root_create_exact_ptr (gc, &all_threads);
+  root_create_kbd_buffer (gc);
 
   enable_messages (gc, true);
   return gc;
