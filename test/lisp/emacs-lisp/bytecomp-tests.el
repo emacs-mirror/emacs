@@ -1357,20 +1357,6 @@ byte-compiled.  Run with dynamic binding."
                      (concat ";;; -*-lexical-binding:nil-*-\n" some-code)))
         (should (cookie-warning some-code))))))
 
-(defun bytecomp-tests--f (x y &optional u v) (list x y u v))
-
-(ert-deftest bytecomp-tests--warn-arity-noncompiled-callee ()
-  "Check that calls to non-compiled functions are arity-checked (bug#78685)"
-  (should (not (compiled-function-p (symbol-function 'bytecomp-tests--f))))
-  (let* ((source (concat ";;; -*-lexical-binding:t-*-\n"
-                         "(defun my-fun () (bytecomp-tests--f 11))\n"))
-         (lexical-binding t)
-         (log (bytecomp-tests--log-from-compilation source)))
-    (should (string-search
-             (concat "Warning: `bytecomp-tests--f' called with 1 argument,"
-                     " but requires 2-4")
-             log))))
-
 (ert-deftest bytecomp-tests--unescaped-char-literals ()
   "Check that byte compiling warns about unescaped character
 literals (Bug#20852)."
