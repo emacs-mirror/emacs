@@ -1501,7 +1501,7 @@ from which to check out the file(s)."
             (t
              (vc-register vc-fileset))))
      ((eq state 'missing)
-      (mapc #'vc-delete-file files))
+      (vc-delete-file files))
      ;; Files are up-to-date, or need a merge and user specified a revision
      ((or (eq state 'up-to-date) (and verbose (eq state 'needs-update)))
       (cond
@@ -3658,48 +3658,57 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
       (vc-checkin file new-backend comment (stringp comment)))))
 
 ;;;###autoload
-(defun vc-delete-file (file)
+(defun vc-delete-file (file-or-files)
   "Delete file and mark it as such in the version control system.
-If called interactively, read FILE, defaulting to the current
-buffer's file name if it's under version control."
+If called interactively, read FILE-OR-FILES, defaulting to the current
+buffer's file name if it's under version control.
+When called from Lisp, FILE-OR-FILES can be a file name or a list of
+file names."
   (interactive (list (read-file-name "VC delete file: " nil
                                      (when (vc-backend buffer-file-name)
                                        buffer-file-name)
                                      t)))
-  (setq file (expand-file-name file))
-  (let ((buf (get-file-buffer file))
-        (backend (vc-backend file)))
-    (unless backend
-      (error "File %s is not under version control"
-             (file-name-nondirectory file)))
-    (unless (vc-find-backend-function backend 'delete-file)
-      (error "Deleting files under %s is not supported in VC" backend))
-    (when (and buf (buffer-modified-p buf))
-      (error "Please save or undo your changes before deleting %s" file))
-    (let ((state (vc-state file)))
-      (when (eq state 'edited)
-        (error "Please commit or undo your changes before deleting %s" file))
-      (when (eq state 'conflict)
-        (error "Please resolve the conflicts before deleting %s" file)))
-    (unless (y-or-n-p (format "Really want to delete %s? "
-			      (file-name-nondirectory file)))
-      (error "Abort!"))
-    (unless (or (file-directory-p file) (null make-backup-files)
-                (not (file-exists-p file)))
-      (with-current-buffer (or buf (find-file-noselect file))
-	(let ((backup-inhibited nil))
-	  (backup-buffer))))
-    ;; Bind `default-directory' so that the command that the backend
-    ;; runs to remove the file is invoked in the correct context.
-    (let ((default-directory (file-name-directory file)))
-      (vc-call-backend backend 'delete-file file))
-    ;; If the backend hasn't deleted the file itself, let's do it for him.
-    (when (file-exists-p file) (delete-file file))
-    ;; Forget what VC knew about the file.
-    (vc-file-clearprops file)
-    ;; Make sure the buffer is deleted and the *vc-dir* buffers are
-    ;; updated after this.
-    (vc-resynch-buffer file nil t)))
+  (setq file-or-files (mapcar #'expand-file-name (ensure-list file-or-files)))
+  (dolist (file file-or-files)
+    (let ((buf (get-file-buffer file))
+          (backend (vc-backend file)))
+      (unless backend
+        (error "File %s is not under version control"
+               (file-name-nondirectory file)))
+      (unless (vc-find-backend-function backend 'delete-file)
+        (error "Deleting files under %s is not supported in VC" backend))
+      (when (and buf (buffer-modified-p buf))
+        (error "Please save or undo your changes before deleting %s" file))
+      (let ((state (vc-state file)))
+        (when (eq state 'edited)
+          (error "Please commit or undo your changes before deleting %s" file))
+        (when (eq state 'conflict)
+          (error "Please resolve the conflicts before deleting %s" file)))))
+  (unless (y-or-n-p (if (cdr file-or-files)
+                        (format "Really want to delete these %d files? "
+                                (length file-or-files))
+                      (format "Really want to delete %s? "
+			      (file-name-nondirectory (car file-or-files)))))
+    (error "Abort!"))
+  (dolist (file file-or-files)
+    (let ((buf (get-file-buffer file))
+          (backend (vc-backend file)))
+      (unless (or (file-directory-p file) (null make-backup-files)
+                  (not (file-exists-p file)))
+        (with-current-buffer (or buf (find-file-noselect file))
+          (let ((backup-inhibited nil))
+	    (backup-buffer))))
+      ;; Bind `default-directory' so that the command that the backend
+      ;; runs to remove the file is invoked in the correct context.
+      (let ((default-directory (file-name-directory file)))
+        (vc-call-backend backend 'delete-file file))
+      ;; If the backend hasn't deleted the file itself, let's do it for him.
+      (when (file-exists-p file) (delete-file file))
+      ;; Forget what VC knew about the file.
+      (vc-file-clearprops file)
+      ;; Make sure the buffer is deleted and the *vc-dir* buffers are
+      ;; updated after this.
+      (vc-resynch-buffer file nil t))))
 
 ;;;###autoload
 (defun vc-rename-file (old new)
