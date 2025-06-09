@@ -1602,10 +1602,7 @@ If ALL is non-nil, update prompts in all IRC buffers."
 
 (defun rcirc-channel-p (target)
   "Return t if TARGET is a channel name."
-  (and target
-       (not (zerop (length target)))
-       (or (eq (aref target 0) ?#)
-           (eq (aref target 0) ?&))))
+  (and (stringp target) (string-match-p (rx bos (or ?# ?&)) target)))
 
 (defcustom rcirc-log-directory (locate-user-emacs-file "rcirc-log")
   "Directory to keep IRC logfiles."
