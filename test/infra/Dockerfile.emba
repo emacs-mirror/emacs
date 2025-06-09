@@ -34,10 +34,9 @@ RUN apt-get update && \
 
 FROM emacs-base as emacs-inotify
 
-# We install clangd for Eglot tests.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      inotify-tools clangd \
+      inotify-tools \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /checkout
