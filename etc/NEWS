@@ -1891,6 +1891,13 @@ the command will only copy those files.
 +++
 *** package-x.el is now obsolete.
 
+
+** RCIRC
+
++++
+*** Authentication via NickServ can access password from 'auth-source'
+For details, consult 'rcirc-authinfo'.
+
 ** Xref
 
 ---
