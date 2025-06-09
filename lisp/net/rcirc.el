@@ -302,8 +302,8 @@ Examples:
                                           (string :tag "Password"))
                                     (list :tag "CertFP"
                                           (const certfp)
-                                          (string :tag "Key")
-                                          (string :tag "Certificate")))))
+                                          (file :tag "Key" :must-match t)
+                                          (file :tag "Certificate" :must-match t)))))
 
 (defcustom rcirc-auto-authenticate-flag t
   "Non-nil means automatically send authentication string to server.
