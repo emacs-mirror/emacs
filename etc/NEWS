@@ -1783,6 +1783,27 @@ were added, removed or edited, Emacs would refuse to proceed.
 Now Emacs prompts to first register the unregistered files, so that all
 files in the fileset are in a compatible state for a checkin.
 
++++
+*** 'C-x v v' handles missing and removed files more consistently.
+Missing files are those which have been removed from the filesystem but
+are still tracked by version control.  Removed files are those scheduled
+to be removed from version control in the next commit.  Previously,
+different backends were inconsistent about applying these statuses to
+files, and 'C-x v v' behaved subtly differently for the two statuses.
+The combination of these differences between backends and in 'C-x v v'
+behavior was confusing.  Now,
+
+- the Git backend properly marks files as missing if you just delete
+  them instead of using 'C-x v x'
+- in VC-Dir, you can use 'C-x v v' on missing files to mark them as
+  removed
+- when committing, you can include missing files in a set of files with
+  different statuses, just like you've always been able to include
+  removed files.
+
+There is still some further work to do to rationalize VC's handling of
+file removal.
+
 ---
 *** New user option 'vc-dir-hide-up-to-date-on-revert'.
 If you customize this variable to non-nil, the 'g' command to refresh

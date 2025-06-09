@@ -541,11 +541,10 @@ or Dired buffer:
 @itemize @bullet
 @item
 If there is more than one file in the VC fileset and the files have
-inconsistent version control statuses, signal an error.  (Note,
-however, that a fileset is allowed to include both newly-added files
-and modified files; @pxref{Registering}.)  Also signal an error if the
-files in the fileset are missing (removed from the filesystem, but
-still tracked by version control), or are ignored by version control.
+inconsistent version control statuses, signal an error.  (Note, however,
+that a fileset is allowed to include both newly-added files, removed
+files and modified files; @pxref{Registering}.)  Also signal an error if
+any files in the fileset are ignored by version control.
 
 @item
 If every file in the VC fileset is registered and unchanged with
@@ -612,8 +611,7 @@ its default mode), @kbd{C-x v v} does the following:
 @item
 If there is more than one file in the VC fileset and the files have
 inconsistent version control statuses, signal an error.  Also signal
-an error if the files in the fileset are missing (removed from the
-filesystem, but still tracked by version control).
+an error if any files in the fileset are ignored by version control.
 
 @item
 If each file in the VC fileset is not registered with a version
