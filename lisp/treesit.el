@@ -2970,6 +2970,8 @@ BACKWARD and ALL are the same as in `treesit-search-forward'."
       (goto-char current-pos)))
     node))
 
+;;; Sexp functions
+
 (make-obsolete 'treesit-sexp-type-regexp
                "`treesit-sexp-type-regexp' will be removed soon, use `treesit-thing-settings' instead." "30.1")
 
