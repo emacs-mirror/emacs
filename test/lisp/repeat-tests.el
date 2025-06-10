@@ -224,9 +224,9 @@
        "C-M-e c z"
        '((1 e)) "cz")
       ;; 'C-M-o' should also activate
-      ;; (repeat-tests--check
-      ;;  "C-M-o c z"
-      ;;  '((1 o) (1 c)) "z")
+      (repeat-tests--check
+       "C-M-o c z"
+       '((1 o) (1 c)) "z")
       )))
 
 (ert-deftest repeat-tests-continue-another ()
@@ -246,9 +246,9 @@
        "C-M-e t z"
        '((1 e)) "tz")
       ;; 'C-M-u' should also activate
-      ;; (repeat-tests--check
-      ;;  "C-M-u t z"
-      ;;  '((1 u) (1 t)) "z")
+      (repeat-tests--check
+       "C-M-u t z"
+       '((1 u) (1 t)) "z")
       ;; 'C-M-o' shared with another map should continue current map
       (repeat-tests--check
        "C-M-s t C-M-o C-M-o t z"
