@@ -7600,7 +7600,8 @@ This command is used in the special Dired buffer created by
 			       (condition-case nil
 				   (save-excursion (recover-file file))
 				 (error
-				  "Failed to recover `%s'" file)))
+				  (message
+				   "Failed to recover `%s'" file))))
 			     files
 			     '("file" "files" "recover"))
 	    (message "No files can be recovered from this session now")))
