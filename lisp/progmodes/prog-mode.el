@@ -153,7 +153,7 @@ or follows point."
   (save-excursion
     ;; FIXME: For some reason, the comment-start syntax regexp doesn't
     ;; work for me.  But I kept it around to be safe, and in the hope
-    ;; that if can cover cases where comment-start-skip is unset.
+    ;; that it can cover cases where comment-start-skip is unset.
     (if (or (nth 8 (syntax-ppss))
             ;; If point is at the beginning of a comment delimiter,
             ;; syntax-ppss doesn't consider point as being inside a
