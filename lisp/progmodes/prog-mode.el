@@ -141,6 +141,31 @@ instead."
 	  (end (progn (forward-sexp 1) (point))))
       (indent-region start end nil))))
 
+(defun prog--text-at-point-p ()
+  "Return non-nil if point is in text (comment or string)."
+  ;; FIXME: For some reason, the comment-start syntax regexp doesn't
+  ;; work for me.  But I kept it around to be safe, and in the hope
+  ;; that it can cover cases where comment-start-skip is unset.
+  (or (nth 8 (syntax-ppss))
+      ;; If point is at the beginning of a comment delimiter,
+      ;; syntax-ppss doesn't consider point as being inside a
+      ;; comment.
+      (save-excursion
+        (beginning-of-line)
+        (and comment-start-skip
+             ;; FIXME: This doesn't work for the case where there
+             ;; are two matches of comment-start-skip, and the
+             ;; first one is, say, inside a string.  We need to
+             ;; call re-search-forward repeatedly until either
+             ;; reached EOL or (nth 4 (syntax-ppss)) returns
+             ;; non-nil.
+             (re-search-forward comment-start-skip (pos-eol) t)
+             (nth 8 (syntax-ppss))))
+      (save-excursion
+        (beginning-of-line)
+        (and (re-search-forward "\\s-*\\s<" (line-end-position) t)
+             (nth 8 (syntax-ppss))))))
+
 (defun prog-fill-reindent-defun (&optional argument)
   "Refill or reindent the paragraph or defun that contains point.
 
@@ -151,28 +176,7 @@ Otherwise, reindent the function definition that contains point
 or follows point."
   (interactive "P")
   (save-excursion
-    ;; FIXME: For some reason, the comment-start syntax regexp doesn't
-    ;; work for me.  But I kept it around to be safe, and in the hope
-    ;; that it can cover cases where comment-start-skip is unset.
-    (if (or (nth 8 (syntax-ppss))
-            ;; If point is at the beginning of a comment delimiter,
-            ;; syntax-ppss doesn't consider point as being inside a
-            ;; comment.
-            (save-excursion
-              (beginning-of-line)
-              (and comment-start-skip
-                   ;; FIXME: This doesn't work for the case where there
-                   ;; are two matches of comment-start-skip, and the
-                   ;; first one is, say, inside a string.  We need to
-                   ;; call re-search-forward repeatedly until either
-                   ;; reached EOL or (nth 4 (syntax-ppss)) returns
-                   ;; non-nil.
-                   (re-search-forward comment-start-skip (pos-eol) t)
-                   (nth 8 (syntax-ppss))))
-            (save-excursion
-              (beginning-of-line)
-              (and (re-search-forward "\\s-*\\s<" (line-end-position) t)
-                   (nth 8 (syntax-ppss)))))
+    (if (prog--text-at-point-p)
         (fill-paragraph argument (region-active-p))
       (beginning-of-defun)
       (let ((start (point)))
