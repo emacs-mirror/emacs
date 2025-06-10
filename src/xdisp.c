@@ -17160,6 +17160,9 @@ redisplay_internal (void)
   /* Record a function that clears redisplaying_p
      when we leave this function.  */
   specpdl_ref count = SPECPDL_INDEX ();
+  if (!redisplay_can_quit)
+    specbind (Qinhibit_quit, Qt);
+
   record_unwind_protect_void (unwind_redisplay);
   redisplaying_p = true;
   block_buffer_flips ();
@@ -38752,6 +38755,14 @@ The default value is zero, which disables this feature.
 The recommended non-zero value is between 100000 and 1000000,
 depending on your patience and the speed of your system.  */);
   max_redisplay_ticks = 0;
+
+  DEFVAR_BOOL ("redisplay-can-quit",
+	       redisplay_can_quit,
+	       doc: /* If true allow quit to interrupt redisplay.
+Normally, we inhibit quit in redisplay to ensure each update completes
+atomically and leaves the display in a known-good state.  You may want to
+set this variable to t to help debug redisplay hangs.  */);
+  redisplay_can_quit = false;
 
   /* Called by decode_mode_spec.  */
   DEFSYM (Qfile_remote_p, "file-remote-p");
