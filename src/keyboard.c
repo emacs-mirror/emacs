@@ -4711,11 +4711,22 @@ static struct timespec
 timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
 {
   /* First run the code that was delayed.  */
-  while (CONSP (pending_funcalls))
+  if (CONSP (pending_funcalls))
     {
-      Lisp_Object funcall = XCAR (pending_funcalls);
-      pending_funcalls = XCDR (pending_funcalls);
-      safe_calln (Qapply, XCAR (funcall), XCDR (funcall));
+      /* safe_calln eats signals but doesn't block quit per se.  Do it
+	 here so C-g doesn't end execution of pending function calls
+	 prematurely.  */
+      specpdl_ref count = SPECPDL_INDEX ();
+      specbind (Qinhibit_quit, Qt);
+      specbind (Qdeactivate_mark, Vdeactivate_mark);
+      while (CONSP (pending_funcalls))
+	{
+	  Lisp_Object funcall = XCAR (pending_funcalls);
+	  pending_funcalls = XCDR (pending_funcalls);
+	  safe_calln (Qapply, XCAR (funcall), XCDR (funcall));
+	}
+
+      unbind_to (count, Qnil);
     }
 
   if (! (CONSP (timers) || CONSP (idle_timers)))
@@ -4814,7 +4825,7 @@ timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
 	  if (NILP (AREF (chosen_timer, 0)))
 	    {
 	      specpdl_ref count = SPECPDL_INDEX ();
-	      Lisp_Object old_deactivate_mark = Vdeactivate_mark;
+	      specbind (Qdeactivate_mark, Vdeactivate_mark);
 
 	      /* Mark the timer as triggered to prevent problems if the lisp
 		 code fails to reschedule it right.  */
@@ -4823,7 +4834,6 @@ timer_check_2 (Lisp_Object timers, Lisp_Object idle_timers)
 	      specbind (Qinhibit_quit, Qt);
 
 	      calln (Qtimer_event_handler, chosen_timer);
-	      Vdeactivate_mark = old_deactivate_mark;
 	      timers_run++;
 	      unbind_to (count, Qnil);
 
