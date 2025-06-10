@@ -2462,6 +2462,12 @@ Setting it to t allows C-g to interrupt redisplay, which can be useful
 for debugging redisplay hangs but may leave the display in an
 inconsistent state.
 
+---
+** 'throw-on-input' no longer loses input events.
+When 'throw-on-input' is set and causes a quit, Emacs now preserves
+the input event that triggered the quit by placing it back on the
+unread events queue before quitting.
+
 ** Special Events
 
 +++

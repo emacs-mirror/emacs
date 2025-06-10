@@ -846,6 +846,23 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
 
 #endif
 
+  /* If we're going to quit anyway as soon as we return because we're in
+     quit-on-input mode, stash the read event and return nil instead so
+     that we don't lose the event if our lisp caller immediately signals
+     quit.  */
+  if (!NILP (val)
+      && NILP (Vexecuting_kbd_macro)
+      && !NILP (Vthrow_on_input)
+      && NILP (Vinhibit_quit)
+      && !NILP (Vquit_flag))
+    {
+      Lisp_Object old_unread = Vunread_command_events;
+      Vunread_command_events = CALLN (Fappend, old_unread, list1 (val));
+      probably_quit ();
+      /* If we somehow didn't quit, forget all about it.  */
+      Vunread_command_events = old_unread;
+    }
+
 #ifdef HAVE_TEXT_CONVERSION
   return unbind_to (count, val);
 #else
