@@ -1859,10 +1859,14 @@ void
 probably_quit (void)
 {
   specpdl_ref gc_count = inhibit_garbage_collection ();
-  if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))
-    process_quit_flag ();
-  else if (pending_signals)
+
+  /* Quit promptly if processing pending signals makes us want to
+     quit.  */
+  if (!QUITP && pending_signals)
     process_pending_signals ();
+  if (QUITP)
+    process_quit_flag ();
+
   unbind_to (gc_count, Qnil);
 }
 
