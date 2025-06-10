@@ -3695,15 +3695,15 @@ across, return nil.
 THING can be a regexp, a predicate function, and more.  See
 `treesit-thing-settings' for details.
 
-TACTIC determines how does this function move between things.  It
-can be `nested', `top-level', `restricted', or nil.  `nested'
-means normal nested navigation: try to move to siblings first,
-and if there aren't enough siblings, move to the parent and its
-siblings.  `top-level' means only consider top-level things, and
-nested things are ignored.  `restricted' means movement is
-restricted inside the thing that encloses POS (i.e., parent),
-should there be one.  If omitted, TACTIC is considered to be
-`nested'.
+TACTIC determines how does this function move between things.  It can be
+`nested', `top-level', `restricted', `parent-first' or nil.  `nested'
+means normal nested navigation: try to move to siblings first, and if
+there aren't enough siblings, move to the parent and its siblings.
+`top-level' means only consider top-level things, and nested things are
+ignored.  `restricted' means movement is restricted inside the thing
+that encloses POS (i.e., parent), should there be one.  `parent' means
+move to the parent if there is one; and move to siblings if there's no
+parent.  If omitted, TACTIC is considered to be `nested'.
 
 RECURSING is an internal parameter, if non-nil, it means this
 function is called recursively."
@@ -3737,6 +3737,11 @@ function is called recursively."
             (setq parent (treesit-node-top-level parent thing t)
                   prev nil
                   next nil))
+          ;; When PARENT is nil, `nested' and `parent-first' are the
+          ;; same, if there is a PARENT, pretend there is no nested PREV
+          ;; and NEXT so the following code moves to the parent.
+          (when (and (eq tactic 'parent-first) parent)
+            (setq prev nil next nil))
           ;; If TACTIC is `restricted', the implementation is simple.
           ;; In principle we don't go to parent's beg/end for
           ;; `restricted' tactic, but if the parent is a "leaf thing"
