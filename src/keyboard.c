@@ -2485,37 +2485,10 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
     }
 }
 
-/* Read a character from the keyboard; call the redisplay if needed.  */
-/* commandflag 0 means do not autosave, but do redisplay.
-   -1 means do not redisplay, but do autosave.
-   -2 means do neither.
-   1 means do both.
-
-   The argument MAP is a keymap for menu prompting.
-
-   PREV_EVENT is the previous input event, or nil if we are reading
-   the first event of a key sequence (or not reading a key sequence).
-   If PREV_EVENT is t, that is a "magic" value that says
-   not to run input methods, but in other respects to act as if
-   not reading a key sequence.
-
-   If USED_MOUSE_MENU is non-null, then set *USED_MOUSE_MENU to true
-   if we used a mouse menu to read the input, or false otherwise.  If
-   USED_MOUSE_MENU is null, don't dereference it.
-
-   Value is -2 when we find input on another keyboard.  A second call
-   to read_char will read it.
-
-   If END_TIME is non-null, it is a pointer to a struct timespec
-   specifying the maximum time to wait until.  If no input arrives by
-   that time, stop waiting and return nil.
-
-   Value is t if we showed a menu and the user rejected it.  */
-
-Lisp_Object
-read_char (int commandflag, Lisp_Object map,
-	   Lisp_Object prev_event,
-	   bool *used_mouse_menu, struct timespec *end_time)
+static Lisp_Object
+read_char_internal (int commandflag, Lisp_Object map,
+		    Lisp_Object prev_event,
+		    bool *used_mouse_menu, struct timespec *end_time)
 {
   Lisp_Object c;
   sys_jmp_buf local_getcjmp;
@@ -3384,6 +3357,53 @@ read_char (int commandflag, Lisp_Object map,
   RESUME_POLLING;
   input_was_pending = input_pending;
   return c;
+}
+
+/* Read a character from the keyboard; call the redisplay if needed.  */
+/* commandflag 0 means do not autosave, but do redisplay.
+   -1 means do not redisplay, but do autosave.
+   -2 means do neither.
+   1 means do both.
+
+   The argument MAP is a keymap for menu prompting.
+
+   PREV_EVENT is the previous input event, or nil if we are reading
+   the first event of a key sequence (or not reading a key sequence).
+   If PREV_EVENT is t, that is a "magic" value that says
+   not to run input methods, but in other respects to act as if
+   not reading a key sequence.
+
+   If USED_MOUSE_MENU is non-null, then set *USED_MOUSE_MENU to true
+   if we used a mouse menu to read the input, or false otherwise.  If
+   USED_MOUSE_MENU is null, don't dereference it.
+
+   Value is -2 when we find input on another keyboard.  A second call
+   to read_char will read it.
+
+   If END_TIME is non-null, it is a pointer to a struct timespec
+   specifying the maximum time to wait until.  If no input arrives by
+   that time, stop waiting and return nil.
+
+   Value is t if we showed a menu and the user rejected it.  */
+Lisp_Object
+read_char (int commandflag, Lisp_Object map,
+	   Lisp_Object prev_event,
+	   bool *used_mouse_menu, struct timespec *end_time)
+{
+  specpdl_ref count = SPECPDL_INDEX ();
+  bool convert_quits =
+    NILP (Vexecuting_kbd_macro) && NILP (Vthrow_on_input);
+
+  if (convert_quits)
+    specbind (Qinhibit_quit, Qt);
+  Lisp_Object result = read_char_internal (
+    commandflag, map, prev_event, used_mouse_menu, end_time);
+  if (convert_quits && !NILP (Vquit_flag)) {
+    Vquit_flag = Qnil;
+    result = make_fixnum (quit_char);
+  }
+
+  return unbind_to (count, result);
 }
 
 /* Record a key that came from a mouse menu.

@@ -494,6 +494,13 @@ highlight the parens wherever they are.
 
 * Editing Changes in Emacs 31.1
 
+---
+** C-g in command loops now reliably invokes the quit keybinding.
+Previously, C-g in a command loop could unpredictably either signal an
+error or invoke the quit_char keybinding, depending on the relative
+timing of input and redisplay.  This has been fixed so that C-g now
+consistently runs the quit_char keybinding.
+
 ** Commands for keyboard translation.
 'key-translate' is now interactive.  It prompts for a key to translate
 from, and another to translate to, and sets 'keyboard-translate-table'.
