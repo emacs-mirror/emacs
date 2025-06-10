@@ -58,6 +58,7 @@
 (require 'cl-lib)
 (require 'font-lock)
 (require 'seq)
+(require 'prog-mode) ; For `prog--text-at-point-p'.
 
 ;;; Function declarations
 
@@ -3861,6 +3862,28 @@ The delimiter between nested defun names is controlled by
       (setq node (treesit-node-parent node)))
     name))
 
+;;; Prog mode
+
+(defun treesit-fill-reindent-defun (&optional justify)
+  "Refill/reindent the paragraph/defun that contains point.
+
+This is a tree-sitter implementation of `prog-fill-reindent-defun'.
+
+`treesit-major-mode-setup' assigns this function to
+`prog-fill-reindent-defun-function' if the major mode defines the
+`defun' thing.
+
+JUSTIFY is the same as in `fill-paragraph'."
+  (interactive "P")
+  (save-excursion
+    (if (prog--text-at-point-p)
+        (fill-paragraph justify (region-active-p))
+      (let* ((treesit-defun-tactic 'parent-first)
+             (node (treesit-defun-at-point)))
+        (indent-region (treesit-node-start node)
+                       (treesit-node-end node)
+                       nil)))))
+
 ;;; Imenu
 
 (defvar treesit-simple-imenu-settings nil
@@ -4351,8 +4374,8 @@ and enable `font-lock-mode'.
 If `treesit-simple-indent-rules' is non-nil, set up indentation.
 
 If `treesit-defun-type-regexp' is non-nil or `defun' is defined
-in `treesit-thing-settings', set up `beginning-of-defun-function'
-and `end-of-defun-function'.
+in `treesit-thing-settings', set up `beginning-of-defun-function',
+`end-of-defun-function', and `prog-fill-reindent-defun-function'.
 
 If `treesit-defun-name-function' is non-nil, set up
 `add-log-current-defun'.
@@ -4415,7 +4438,9 @@ before calling this function."
     ;; the variables.  In future we should update `end-of-defun' to
     ;; work with nested defuns.
     (setq-local beginning-of-defun-function #'treesit-beginning-of-defun)
-    (setq-local end-of-defun-function #'treesit-end-of-defun))
+    (setq-local end-of-defun-function #'treesit-end-of-defun)
+    (setq-local prog-fill-reindent-defun-function
+                #'treesit-fill-reindent-defun))
   ;; Defun name.
   (when treesit-defun-name-function
     (setq-local add-log-current-defun-function

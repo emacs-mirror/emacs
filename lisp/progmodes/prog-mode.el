@@ -166,22 +166,36 @@ instead."
         (and (re-search-forward "\\s-*\\s<" (line-end-position) t)
              (nth 8 (syntax-ppss))))))
 
-(defun prog-fill-reindent-defun (&optional argument)
+(defvar prog-fill-reindent-defun-function
+  #'prog-fill-reindent-defun-default
+  "Function called by `prog-fill-reindent-defun' to do the actual work.
+It should take the same argument as `prog-fill-reindent-defun'.")
+
+(defun prog-fill-reindent-defun-default (&optional justify)
+  "Default implementation of `prog-fill-reindent-defun'.
+JUSTIFY is the same as in `fill-paragraph'."
+  (interactive "P")
+  (save-excursion
+    (if (prog--text-at-point-p)
+        (fill-paragraph justify (region-active-p))
+      (beginning-of-defun)
+      (let ((start (point)))
+        (end-of-defun)
+        (indent-region start (point) nil)))))
+
+(defun prog-fill-reindent-defun (&optional justify)
   "Refill or reindent the paragraph or defun that contains point.
 
 If the point is in a string or a comment, fill the paragraph that
 contains point or follows point.
 
 Otherwise, reindent the function definition that contains point
-or follows point."
+or follows point.
+
+If JUSTIFY is non-nil (interactively, with prefix argument), justify as
+well."
   (interactive "P")
-  (save-excursion
-    (if (prog--text-at-point-p)
-        (fill-paragraph argument (region-active-p))
-      (beginning-of-defun)
-      (let ((start (point)))
-        (end-of-defun)
-        (indent-region start (point) nil)))))
+  (funcall prog-fill-reindent-defun-function justify))
 
 (defun prog-first-column ()
   "Return the indentation column normally used for top-level constructs."
