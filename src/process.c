@@ -5533,13 +5533,12 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  /* If data can be read from the process, do so until exhausted.  */
 	  if (wait_proc->infd >= 0)
 	    {
-	      unsigned int count = 0;
 	      XSETPROCESS (proc, wait_proc);
 
 	      while (true)
 		{
 		  int nread = read_process_output (proc, wait_proc->infd);
-		  rarely_quit (++count);
+		  maybe_quit ();
 		  if (nread < 0)
 		    {
 		      if (errno != EINTR)
