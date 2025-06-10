@@ -2455,6 +2455,13 @@ Binding 'inhibit-message' to a non-nil value will now suppress both
 the display of messages and the clearing of the echo area, such as
 caused by calling 'message' with a nil argument.
 
+---
+** New variable 'redisplay-can-quit' to allow quit during redisplay.
+This variable is normally nil to ensure redisplay completes atomically.
+Setting it to t allows C-g to interrupt redisplay, which can be useful
+for debugging redisplay hangs but may leave the display in an
+inconsistent state.
+
 ** Special Events
 
 +++
