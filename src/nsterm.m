@@ -5487,10 +5487,10 @@ ns_update_window_end (struct window *w, bool cursor_on_p,
 static void
 ns_flush_display (struct frame *f)
 {
-  struct input_event ie;
-
-  EVENT_INIT (ie);
-  ns_read_socket_1 (FRAME_TERMINAL (f), &ie, YES);
+  /* Must pass NULL for hold_quit: otherwise,
+     we lose quits under load because we discard what ends
+     up in hold_quit.  */
+  ns_read_socket_1 (FRAME_TERMINAL (f), NULL, YES);
 }
 
 /* This and next define (many of the) public functions in this

@@ -2002,6 +2002,11 @@ determined by the new user option 'pulse-face-duration'.
 ** Miscellaneous
 
 ---
+*** Fixed lost C-g events on NS port under heavy load.
+The NS port now no longer loses quits when redisplay happens frequently,
+for example, during certain kinds of heavy IO load.
+
+---
 *** 'tooltip-mode' now shows tooltips after delay on TTY frames.
 Display of tooltips on text-only terminals now happens after
 'tooltip-delay' as it does on GUI terminals.  To get back the old
