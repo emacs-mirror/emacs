@@ -188,9 +188,12 @@ This variant works around bugs in `eval-when-compile' in various
 	 (subrp (symbol-function 'mapcan)))
     ;; XEmacs and Emacs >= 26.
     `(mapcan ,fun ,liszt))
-   ((eq c--cl-library 'cl-lib)
-    ;; Emacs >= 24.3, < 26.
-    `(cl-mapcan ,fun ,liszt))
+   ;; The following was commented out on 2025-06-02.  cl-mapcan fails in an
+   ;; obscure fashion in c-keywords-obarray.  See that c-lang-defvar for
+   ;; details.
+   ;; ((eq c--cl-library 'cl-lib)
+   ;;  ;; Emacs >= 24.3, < 26.
+   ;;  `(cl-mapcan ,fun ,liszt))
    (t
     ;; Emacs <= 24.2.  It would be nice to be able to distinguish between
     ;; compile-time and run-time use here.
@@ -199,16 +202,16 @@ This variant works around bugs in `eval-when-compile' in various
 (defmacro c--set-difference (liszt1 liszt2 &rest other-args)
   ;; Macro to smooth out the renaming of `set-difference' in Emacs 24.3.
   (declare (debug (form form &rest [symbolp form])))
-  (if (eq c--cl-library 'cl-lib)
-      `(cl-set-difference ,liszt1 ,liszt2 ,@other-args)
-    `(set-difference ,liszt1 ,liszt2 ,@other-args)))
+  (if (fboundp 'set-difference)
+      `(set-difference ,liszt1 ,liszt2 ,@other-args)
+    `(cl-set-difference ,liszt1 ,liszt2 ,@other-args)))
 
 (defmacro c--intersection (liszt1 liszt2 &rest other-args)
   ;; Macro to smooth out the renaming of `intersection' in Emacs 24.3.
   (declare (debug (form form &rest [symbolp form])))
-  (if (eq c--cl-library 'cl-lib)
-      `(cl-intersection ,liszt1 ,liszt2 ,@other-args)
-    `(intersection ,liszt1 ,liszt2 ,@other-args)))
+  (if (fboundp 'intersection)
+      `(intersection ,liszt1 ,liszt2 ,@other-args)
+    `(cl-intersection ,liszt1 ,liszt2 ,@other-args)))
 
 (eval-and-compile
   (defmacro c--macroexpand-all (form &optional environment)
@@ -221,9 +224,9 @@ This variant works around bugs in `eval-when-compile' in various
   (defmacro c--delete-duplicates (cl-seq &rest cl-keys)
     ;; Macro to smooth out the renaming of `delete-duplicates' in Emacs 24.3.
     (declare (debug (form &rest [symbolp form])))
-    (if (eq c--cl-library 'cl-lib)
-	`(cl-delete-duplicates ,cl-seq ,@cl-keys)
-      `(delete-duplicates ,cl-seq ,@cl-keys))))
+    (if (fboundp 'delete-duplicates)
+	`(delete-duplicates ,cl-seq ,@cl-keys)
+      `(cl-delete-duplicates ,cl-seq ,@cl-keys))))
 
 (defmacro c-font-lock-flush (beg end)
   "Declare the region BEG...END's fontification as out-of-date.
@@ -1367,7 +1370,7 @@ MODE is either a mode symbol or a list of mode symbols."
       ((and (< -from- -to-)
 	    (get-text-property -from- ,property))
        -from-)
-      ((< (setq pos (next-single-property-change -from- ,property nil -to-))
+      ((< (setq pos (c-next-single-property-change -from- ,property nil -to-))
 	  -to-)
        pos)
       (most-positive-fixnum))))
