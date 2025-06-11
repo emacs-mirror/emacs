@@ -71,44 +71,75 @@
 
 ;;; Query validation
 
-(defvar treesit-admin--builtin-language-sources
-  '((c "https://github.com/tree-sitter/tree-sitter-c" "v0.23.4")
-    (cpp "https://github.com/tree-sitter/tree-sitter-cpp" "v0.23.4")
-    (cmake "https://github.com/uyha/tree-sitter-cmake" "v0.5.0")
-    (dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile" "v0.2.0")
-    (go "https://github.com/tree-sitter/tree-sitter-go" "v0.23.4")
-    (ruby "https://github.com/tree-sitter/tree-sitter-ruby" "v0.23.1")
-    (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "v0.23.1")
-    (typescript "https://github.com/tree-sitter/tree-sitter-typescript"
-                "v0.23.2" "typescript/src")
-    (tsx "https://github.com/tree-sitter/tree-sitter-typescript"
-         "v0.23.2" "tsx/src")
-    (json "https://github.com/tree-sitter/tree-sitter-json" "v0.24.8")
-    (rust "https://github.com/tree-sitter/tree-sitter-rust" "v0.23.2")
-    (php "https://github.com/tree-sitter/tree-sitter-php"
-         "v0.23.11" "php/src")
-    (css "https://github.com/tree-sitter/tree-sitter-css" "v0.23.1")
-    (phpdoc "https://github.com/claytonrcarter/tree-sitter-phpdoc")
-    (doxygen "https://github.com/tree-sitter-grammars/tree-sitter-doxygen" "v1.1.0")
-    (lua "https://github.com/tree-sitter-grammars/tree-sitter-lua" "v0.3.0")
-    (python "https://github.com/tree-sitter/tree-sitter-python" "v0.23.6")
-    (html "https://github.com/tree-sitter/tree-sitter-html" "v0.23.2")
-    (elixir "https://github.com/elixir-lang/tree-sitter-elixir" "v0.3.3")
-    (heex "https://github.com/phoenixframework/tree-sitter-heex" "v0.7.0")
-    (java "https://github.com/tree-sitter/tree-sitter-java" "v0.23.5")
-    (jsdoc "https://github.com/tree-sitter/tree-sitter-jsdoc" "v0.23.2")
-    (toml "https://github.com/tree-sitter-grammars/tree-sitter-toml" "v0.7.0")
-    (yaml "https://github.com/tree-sitter-grammars/tree-sitter-yaml" "v0.7.0"))
-  "A list of sources for the builtin modes.
-The source information are in the format of
-`treesit-language-source-alist'.  This is for development only.")
-
 (defvar treesit-admin--builtin-modes
-  '( c-ts-mode c++-ts-mode cmake-ts-mode dockerfile-ts-mode
-     go-ts-mode ruby-ts-mode js-ts-mode typescript-ts-mode tsx-ts-mode
-     json-ts-mode rust-ts-mode php-ts-mode css-ts-mode lua-ts-mode
-     html-ts-mode elixir-ts-mode heex-ts-mode java-ts-mode)
+  '(bash-ts-mode
+    c++-ts-mode
+    c-ts-mode
+    cmake-ts-mode
+    csharp-ts-mode
+    css-ts-mode
+    dockerfile-ts-mode
+    elixir-ts-mode
+    go-ts-mode
+    heex-ts-mode
+    html-ts-mode
+    java-ts-mode
+    js-ts-mode
+    json-ts-mode
+    lua-ts-mode
+    markdown-ts-mode
+    php-ts-mode
+    python-ts-mode
+    ruby-ts-mode
+    rust-ts-mode
+    toml-ts-mode
+    tsx-ts-mode
+    typescript-ts-mode)
   "Builtin tree-sitter modes that we check.")
+
+(defvar treesit-admin--builtin-features
+  '(c-ts-mode
+    cmake-ts-mode
+    csharp-mode
+    css-mode
+    dockerfile-ts-mode
+    elixir-ts-mode
+    go-ts-mode
+    heex-ts-mode
+    html-ts-mode
+    java-ts-mode
+    js
+    json-ts-mode
+    lua-ts-mode
+    markdown-ts-mode
+    php-ts-mode
+    python
+    ruby-ts-mode
+    rust-ts-mode
+    sh-script
+    toml-ts-mode
+    treesit-x
+    typescript-ts-mode
+    yaml-ts-mode)
+  "Built in features that modify treesit-language-source-alist when loaded.")
+
+(defun treesit-admin--populated-treesit-language-source-alist ()
+  "Ensure that treesit-language-source-alist is fully populated.
+This is done by `require'ing all of the features that extend it."
+  (dolist (feature treesit-admin--builtin-features)
+    (require feature))
+  treesit-language-source-alist)
+
+(defun treesit-admin--unversioned-treesit-language-source-alist ()
+  "Return a copy of treesit-language-source-alist, with any revisions removed."
+  (mapcar
+   (lambda (source)
+     (if (nthcdr 2 source)
+         (let ((unversioned-source (copy-sequence source)))
+           (setcar (nthcdr 2 unversioned-source) nil)
+           unversioned-source)
+       source))
+   (treesit-admin--populated-treesit-language-source-alist)))
 
 (defun treesit-admin--verify-major-mode-queries (modes source-alist grammar-dir)
   "Verify font-lock queries in MODES.
@@ -228,7 +259,7 @@ queries that has problems with latest grammar."
   (interactive)
   (treesit-admin--verify-major-mode-queries
    treesit-admin--builtin-modes
-   treesit-admin--builtin-language-sources
+   (treesit-admin--populated-treesit-language-source-alist)
    "/tmp/tree-sitter-grammars"))
 
 ;;; Compatibility report
@@ -268,6 +299,8 @@ Return non-nil if all queries are valid, nil otherwise."
   (let ((settings
          (with-temp-buffer
            (ignore-errors
+             (when (eq mode 'bash-ts-mode)
+               (insert "#!/bin/bash"))
              ;; TODO: A more generic way to find all queries.
              (let ((c-ts-mode-enable-doxygen t)
                    (c-ts-mode-enable-doxygen t)
@@ -387,7 +420,7 @@ EMACS-EXECUTABLES is a list of Emacs executables to check for."
                     (buffer-string))
                   (treesit-admin--last-compatible-grammar-for-modes
                    modes
-                   treesit-admin--builtin-language-sources
+                   (treesit-admin--unversioned-treesit-language-source-alist)
                    "/tmp/treesit-grammar"
                    emacs)))
           emacs-executables))
