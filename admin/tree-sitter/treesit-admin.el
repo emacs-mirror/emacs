@@ -517,8 +517,9 @@ EMACS-EXECUTABLES is a list of Emacs executables to check for."
           (insert (format "<th>%s</th>" emacs-version)))
         (insert "</tr>\n")
         (dolist (lang languages)
-          (insert "<tr>")
-          (insert (format "<th>%s</th>" lang))
+          (insert (format "<tr><th><a href=\"%s\"><code>%s</code></a></th>"
+                          (nth 1 (assoc lang treesit-language-source-alist))
+                          lang))
           (dolist (emacs-version (mapcar #'car tables))
             (let* ((key (cons lang emacs-version))
                    (plist (gethash key database))
