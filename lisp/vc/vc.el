@@ -1377,12 +1377,25 @@ BACKEND is the VC backend responsible for FILES."
           ((cl-subsetp states '(added missing removed edited))
            (setq state 'edited))
 
-          ;; Special, but common case:
-          ;; checking in both changes and new files at once.
-          ((and (cl-subsetp states '(added missing removed edited unregistered))
-                (y-or-n-p "Some files are unregistered; register them first?"))
-           (vc-register (list backend
-                              (cdr (assq 'unregistered states-alist))))
+          ;; Special, but common case: checking in both changes and new
+          ;; files at once.  The actual registration is delayed until
+          ;; `vc-checkin' so that if the user changes their mind while
+          ;; entering the log message, we leave things as we found them.
+          ;;
+          ;; An alternative would be to delay it until the backend
+          ;; `vc-*-checkin'.  The advantages would be that those
+          ;; functions could complete the whole operation in fewer total
+          ;; shell commands, and if the checkin itself fails they could
+          ;; ensure the file is left unregistered then too (e.g. for Git
+          ;; we may be able to use 'git add -N', though that would still
+          ;; require a subsequent 'git reset').
+          ;; The disadvantage would be a more complex VC API because we
+          ;; would have to distinguish between backends which can and
+          ;; can't handle registration and checkin together.
+          ((and (cl-subsetp states
+                            '(added missing removed edited unregistered))
+                (y-or-n-p "\
+Some files are unregistered; register them before checking in?"))
            (setq state 'edited))
 
           (t
@@ -1470,7 +1483,7 @@ from which to check out the file(s)."
   (let* ((vc-fileset (vc-deduce-fileset nil t 'state-model-only-files))
          (backend (car vc-fileset))
 	 (files (nth 1 vc-fileset))
-         ;; (fileset-only-files (nth 2 vc-fileset))
+         (fileset-only-files (nth 2 vc-fileset))
          ;; FIXME: We used to call `vc-recompute-state' here.
          (state (nth 3 vc-fileset))
          ;; The backend should check that the checkout-model is consistent
@@ -1550,6 +1563,9 @@ from which to check out the file(s)."
 		  (with-current-buffer visited
 		    (read-only-mode -1)))))))
 	;; Allow user to revert files with no changes
+        ;; FIXME: This will never do anything because STATE will never
+        ;; be `up-to-date' in this branch of the cond.
+        ;; How did the code end up like this?  --spwhitton
 	(save-excursion
           (let (to-revert)
             (dolist (file files)
@@ -1570,17 +1586,22 @@ from which to check out the file(s)."
 	;; Remaining files need to be committed
 	(if (not ready-for-commit)
 	    (message "No files remain to be committed")
-	  (if (not verbose)
-	      (vc-checkin ready-for-commit backend)
-	    (let* ((revision (read-string "New revision or backend: "))
-                   (revision-downcase (downcase revision)))
-	      (if (member
-		   revision-downcase
-		   (mapcar (lambda (arg) (downcase (symbol-name arg)))
-			   vc-handled-backends))
-		  (let ((vsym (intern revision-downcase)))
-		    (dolist (file files) (vc-transfer-file file vsym)))
-		(vc-checkin ready-for-commit backend nil nil revision)))))))
+          ;; In the case there actually are any unregistered files then
+          ;; `vc-deduce-backend', via `vc-only-files-state-and-model',
+          ;; has already prompted the user to approve registering them.
+	  (let ((register (cl-remove-if #'vc-backend fileset-only-files)))
+            (if (not verbose)
+	        (vc-checkin ready-for-commit backend nil nil nil nil register)
+	      (let* ((revision (read-string "New revision or backend: "))
+                     (revision-downcase (downcase revision)))
+	        (if (member
+		     revision-downcase
+		     (mapcar (lambda (arg) (downcase (symbol-name arg)))
+			     vc-handled-backends))
+		    (let ((vsym (intern revision-downcase)))
+		      (dolist (file files) (vc-transfer-file file vsym)))
+		  (vc-checkin ready-for-commit backend
+                              nil nil revision nil register))))))))
      ;; locked by somebody else (locking VCSes only)
      ((stringp state)
       ;; In the old days, we computed the revision once and used it on
@@ -1891,7 +1912,8 @@ Type \\[vc-next-action] to check in changes.")
      (substitute-command-keys
       "Please explain why you stole the lock.  Type \\`C-c C-c' when done"))))
 
-(defun vc-checkin (files backend &optional comment initial-contents rev patch-string)
+(defun vc-checkin
+    (files backend &optional comment initial-contents rev patch-string register)
   "Check in FILES.
 
 COMMENT is a comment string; if omitted, a buffer is popped up to accept
@@ -1901,6 +1923,9 @@ initial contents of the log entry buffer.
 The optional argument REV may be a string specifying the new revision
 level (only supported for some older VCSes, like RCS and CVS).
 The optional argument PATCH-STRING is a string to check in as a patch.
+If the optional argument REGISTER is non-nil, it should be a list of
+files to register before checking in; if any of these are already
+registered the checkin will abort.
 
 Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
   (run-hooks 'vc-before-checkin-hook)
@@ -1917,6 +1942,7 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
       ;; RCS 5.7 gripes about whitespace-only comments too.
       (unless (and comment (string-match "[^\t\n ]" comment))
         (setq comment "*** empty log message ***"))
+      (when register (vc-register (list backend files)))
       (cl-labels ((do-it ()
                     ;; We used to change buffers to get local value of
                     ;; `vc-checkin-switches', but the (singular) local
