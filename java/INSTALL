@@ -39,7 +39,7 @@ script like so:
 Replacing the paths in the command line above with:
 
   - the path to the `android.jar' headers which come with the Android
-    SDK.  They must correspond to Android version 15 (API level 35).
+    SDK.  They must correspond to Android version 16 (API level 36).
 
   - the path to the C compiler in the Android NDK, for the kind of CPU
     you are building Emacs to run on.
@@ -116,7 +116,7 @@ DEX format employed by Android.  There is one subdirectory for each
 version of the build tools, but the version you opt for is not of
 paramount significance: if your version does not work, configure will
 protest, so install a newer one.  We anticipate that most recent
-releases will work, such as those from the 34.0.x, and 35.0.x series.
+releases will work, such as those from the 35.0.x and 36.0.x series.
 
 
 BUILDING WITH OLD NDK VERSIONS
