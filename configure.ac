@@ -960,7 +960,7 @@ a valid path to android.jar.  See config.log for more details.])
   fi
 
   AC_CACHE_CHECK([whether android.jar is new enough],
-    [emacs_cv_android_v_or_later],
+    [emacs_cv_android_w_or_later],
     AS_IF([rm -f conftest.class
 cat << EOF > conftest.java
 
@@ -968,18 +968,18 @@ import android.os.Build;
 
 class conftest
 {
-  private static int test = Build.VERSION_CODES.VANILLA_ICE_CREAM;
+  private static int test = Build.VERSION_CODES.BAKLAVA;
 }
 
 EOF
 ("$JAVAC" -classpath "$with_android" -target 1.7 -source 1.7 conftest.java \
   -d . >&AS_MESSAGE_LOG_FD 2>&1) && test -s conftest.class && rm -f conftest.class],
-          [emacs_cv_android_v_or_later=yes],
-          [emacs_cv_android_v_or_later=no]))
+          [emacs_cv_android_w_or_later=yes],
+          [emacs_cv_android_w_or_later=no]))
 
-  if test "$emacs_cv_android_v_or_later" = "no"; then
+  if test "$emacs_cv_android_w_or_later" = "no"; then
     AC_MSG_ERROR([Emacs must be built with an android.jar file produced for \
-Android 15 (Vanilla Ice Cream) or later.])
+Android 16 (BAKLAVA) or later.])
   fi
 
   dnl See if the Java compiler supports the `--release' option which
@@ -1190,6 +1190,8 @@ main (void)
    foo = "emacs_api_34";
 #elif __ANDROID_API__ < 36
    foo = "emacs_api_35";
+#elif __ANDROID_API__ < 37
+   foo = "emacs_api_36";
 #else
    foo = "emacs_api_future";
 #endif
