@@ -1793,13 +1793,14 @@ files, and 'C-x v v' behaved subtly differently for the two statuses.
 The combination of these differences between backends and in 'C-x v v'
 behavior was confusing.  Now,
 
-- the Git backend properly marks files as missing if you just delete
-  them instead of using 'C-x v x'
 - in VC-Dir, you can use 'C-x v v' on missing files to mark them as
   removed
 - when committing, you can include missing files in a set of files with
   different statuses, just like you've always been able to include
   removed files.
+
+In addition, the Git backend has been fixed to display missing files as
+'missing' instead of incorrectly subsuming them to the 'removed' status.
 
 There is still some further work to do to rationalize VC's handling of
 file removal.
