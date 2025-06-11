@@ -4,9 +4,9 @@
 #+language: en
 #+options: ':t toc:nil author:t email:t num:t
 #+startup: content
-#+macro: stable-version 4.7.0
-#+macro: release-date 2025-04-17
-#+macro: development-version 4.8.0-dev
+#+macro: stable-version 4.8.0
+#+macro: release-date 2025-06-11
+#+macro: development-version 4.9.0-dev
 #+macro: file @@texinfo:@file{@@$1@@texinfo:}@@
 #+macro: space @@texinfo:@: @@
 #+macro: kbd @@texinfo:@kbd{@@$1@@texinfo:}@@
@@ -1321,7 +1321,7 @@ semantic color mappings instead of the full palette ([[#h:34c7a691-19bb-4037-8d2
 
 #+findex: modus-themes-preview-colors
 #+findex: modus-themes-preview-colors-current
-Aliases for these commands are ~modus-themes-preview-colors~ and
+Aliases for those commands are ~modus-themes-preview-colors~ and
 ~modus-themes-preview-colors-current~.
 
 Each row includes a foreground and background rendition of the given
@@ -1356,7 +1356,7 @@ value in some other application.
 :END:
 
 #+findex: modus-themes-get-color-value
-The fuction ~modus-themes-get-color-value~ can be called from Lisp to
+The function ~modus-themes-get-color-value~ can be called from Lisp to
 return the value of a color from the active Modus theme palette. It
 takea a =COLOR= argument and an optional =OVERRIDES=. It also accepts
 a third =THEME= argument, to get the color from the given theme.
@@ -2936,7 +2936,7 @@ Reload the theme for changes to take effect.
 :CUSTOM_ID: h:a5140c9c-18b2-45db-8021-38d0b5074116
 :END:
 
-By the default, the background of the ~region~ face extends from the
+By default, the background of the ~region~ face extends from the
 end of the line to the edge of the window.  To limit it to the end of
 the line, we need to override the face's =:extend= attribute.  Adding
 this to the Emacs configuration file will suffice:
@@ -4395,6 +4395,7 @@ have lots of extensions, so the "full support" may not be 100% true…
 + term
 + textsec
 + tldr
++ tmr
 + transient (pop-up windows such as Magit's)
 + trashed
 + treemacs
@@ -5075,7 +5076,7 @@ Consult the doc string of ~shr-use-colors~.
 :end:
 #+cindex: Fonts in EWW, Elfeed, Ement, and SHR
 
-By default, packages that build on top of the Simple HTML Remember
+By default, packages that build on top of the Simple HTML Renderer
 (~shr~) use proportionately spaced fonts.  This is controlled by the
 user option ~shr-use-fonts~, which is set to non-~nil~ by default.  To
 use the standard font instead, set that variable to ~nil~.
@@ -5696,51 +5697,53 @@ The Modus themes are a collective effort.  Every bit of work matters.
   Griffin, Anders Johansson, Antonio Ruiz, Basil L.{{{space()}}}
   Contovounesios, Björn Lindström, Carlo Zancanaro, Christian Tietze,
   Daniel Mendler, David Edmondson, Eli Zaretskii, Fritz Grabo, Gautier
-  Ponsinet, Illia Ostapyshyn, Jared Finder, Kévin Le Gouguec, Koen van
-  Greevenbroek, Kostadin Ninev, Leilei332, Madhavan Krishnan, Manuel
-  Giraud, Markus Beppler, Matthew Stevenson, Mauro Aranda, Nacho
-  Barrientos, Niall Dooley, Nicolas De Jaeghere, Paul David, Pavel
-  Novichkov, Philip Kaludercic, Pierre Téchoueyres, Rahul M.
-  {{{space()}}} Juliato, Rudolf Adamkovič, Sergey Nichiporchik,
-  Shreyas Ragavan, Stefan Kangas, Stephen Berman, Stephen Gildea,
-  Steve Downey, Thanos Apollo, Tomasz Hołubowicz, Utkarsh Singh,
-  Vincent Murphy, Xinglu Chen, Yuanchen Xie, fluentpwn, okamsn.
+  Ponsinet, Illia Ostapyshyn, Jacob S.{{{space()}}} Gordon, Jared
+  Finder, Kévin Le Gouguec, Koen van Greevenbroek, Kostadin Ninev,
+  Leilei332, Madhavan Krishnan, Manuel Giraud, Markus Beppler, Matthew
+  Stevenson, Mauro Aranda, Nacho Barrientos, Niall Dooley, Nicolas De
+  Jaeghere, Paul David, Pavel Novichkov, Philip Kaludercic, Pierre
+  Téchoueyres, Rahul M.{{{space()}}} Juliato, Rudolf Adamkovič,
+  Sergey Nichiporchik, Shreyas Ragavan, Stefan Kangas, Stephen Berman,
+  Stephen Gildea, Steve Downey, Thanos Apollo, Tomasz Hołubowicz,
+  Utkarsh Singh, Vincent Murphy, Xinglu Chen, Yuanchen Xie, fluentpwn,
+  okamsn.
 
 + Ideas and user feedback :: Aaron Jensen, Adam Porter, Adam Spiers,
   Adrian Manea, Aleksei Pirogov, Alex Griffin, Alex Koen, Alex
-  Peitsinis, Alexey Shmalko, Alok Singh, Anders Johansson, André
-  Alexandre Gomes, Andrew Tropin, Antonio Hernández Blas, Arif Rezai,
-  Augusto Stoffel, Basil L.{{{space()}}} Contovounesios, Bernd
-  Rellermeyer, Burgess Chang, Charlotte Van Petegem, Christian Tietze,
-  Christopher Dimech, Christopher League, Damien Cassou, Daniel
-  Mendler, Dario Gjorgjevski, David Edmondson, Davor Rotim, Divan
-  Santana, Eliraz Kedmi, Emanuele Michele Alberto Monterosso, Farasha
-  Euker, Feng Shu, Filippo Argiolas, Gautier Ponsinet, Gerry Agbobada,
-  Gianluca Recchia, Gonçalo Marrafa, Guilherme Semente, Gustavo
-  Barros, Hörmetjan Yiltiz, Ilja Kocken, Imran Khan, Iris Garcia, Ivan
-  Popovych, Jabir Ali Ouassou, James Ferguson, Jeremy Friesen, Jerry
-  Zhang, Johannes Grødem, John Haman, John Wick, Jonas Collberg, Jorge
-  Morais, Joshua O'Connor, Julio C. Villasante, Kenta Usami, Kevin
-  Fleming, Kévin Le Gouguec, Kevin Kainan Li, Kostadin Ninev, Laith
-  Bahodi, Lasse Lindner, Len Trigg, Lennart C.{{{space()}}} Karssen,
-  Luis Miguel Castañeda, Magne Hov, Manuel Giraud, Manuel Uberti, Mark
-  Bestley, Mark Burton, Mark Simpson, Marko Kocic, Markus Beppler,
-  Matt Armstrong, Matthias Fuchs, Mattias Engdegård, Mauro Aranda,
-  Maxime Tréca, Michael Goldenberg, Morgan Smith, Morgan Willcock,
-  Murilo Pereira, Nicky van Foreest, Nicolas De Jaeghere, Nicolas
-  Semrau, Olaf Meeuwissen, Oliver Epper, Pablo Stafforini, Paul
-  Poloskov, Pengji Zhang, Pete Kazmier, Peter Wu, Philip Kaludercic,
-  Pierre Téchoueyres, Przemysław Kryger, Robert Hepple, Roman Rudakov,
-  Russell Sim, Ryan Phillips, Rytis Paškauskas, Rudolf Adamkovič, Sam
-  Kleinman, Samuel Culpepper, Saša Janiška, Shreyas Ragavan, Simon
-  Pugnet, Steve Downey, Tassilo Horn, Thanos Apollo, Thibaut Verron,
-  Thomas Heartman, Togan Muftuoglu, Tony Zorman, Trey Merkley, Tomasz
-  Hołubowicz, Toon Claes, Uri Sharf, Utkarsh Singh, Vincent Foley,
-  Zoltan Kiraly. As well as users: Ben, CsBigDataHub1, Emacs Contrib,
-  Eugene, Fourchaux, Fredrik, Moesasji, Nick, Summer Emacs, TheBlob42,
-  TitusMu, Trey, ZharMeny, bepolymathe, bit9tream, bangedorrunt,
-  derek-upham, doolio, fleimgruber, gitrj95, iSeeU, jixiuf, ltmsyvag,
-  okamsn, pedro-nonfree, pRot0ta1p, shipmints, soaringbird, tumashu,
+  Peitsinis, Alexandr Semenov, Alexey Shmalko, Alok Singh, Anders
+  Johansson, André Alexandre Gomes, Andrew Tropin, Antonio Hernández
+  Blas, Arif Rezai, Augusto Stoffel, Basil L.{{{space()}}}
+  Contovounesios, Bernd Rellermeyer, Burgess Chang, Charlotte Van
+  Petegem, Christian Tietze, Christopher Dimech, Christopher League,
+  Damien Cassou, Daniel Mendler, Dario Gjorgjevski, David Edmondson,
+  Davor Rotim, Divan Santana, Eliraz Kedmi, Emanuele Michele Alberto
+  Monterosso, Farasha Euker, Feng Shu, Filippo Argiolas, Gautier
+  Ponsinet, Gerry Agbobada, Gianluca Recchia, Gonçalo Marrafa,
+  Guilherme Semente, Gustavo Barros, Hörmetjan Yiltiz, Ilja Kocken,
+  Imran Khan, Iris Garcia, Ivan Popovych, Jabir Ali Ouassou, James
+  Ferguson, Jeremy Friesen, Jerry Zhang, Johannes Grødem, John Haman,
+  John Wick, Jonas Collberg, Jorge Morais, Joshua O'Connor, Julio C.
+  Villasante, Kenta Usami, Kevin Fleming, Kévin Le Gouguec, Kevin
+  Kainan Li, Kostadin Ninev, Laith Bahodi, Lasse Lindner, Len Trigg,
+  Lennart C.{{{space()}}} Karssen, Luis Miguel Castañeda, Magne Hov,
+  Manuel Giraud, Manuel Uberti, Mark Bestley, Mark Burton, Mark
+  Simpson, Marko Kocic, Markus Beppler, Matt Armstrong, Matthias
+  Fuchs, Mattias Engdegård, Mauro Aranda, Maxime Tréca, Michael
+  Goldenberg, Morgan Smith, Morgan Willcock, Murilo Pereira, Nicky van
+  Foreest, Nicolas De Jaeghere, Nicolas Semrau, Olaf Meeuwissen,
+  Oliver Epper, Pablo Stafforini, Paul Poloskov, Pengji Zhang, Pete
+  Kazmier, Peter Wu, Philip Kaludercic, Pierre Téchoueyres, Przemysław
+  Kryger, Robert Hepple, Roman Rudakov, Russell Sim, Ryan Phillips,
+  Rytis Paškauskas, Rudolf Adamkovič, Sam Kleinman, Samuel Culpepper,
+  Saša Janiška, Shreyas Ragavan, Simon Pugnet, Steve Downey, Tassilo
+  Horn, Thanos Apollo, Thibaut Verron, Thomas Heartman, Togan
+  Muftuoglu, Tony Zorman, Trey Merkley, Tomasz Hołubowicz, Toon Claes,
+  Uri Sharf, Utkarsh Singh, Vincent Foley, Zoltan Kiraly. As well as
+  users: Ben, CsBigDataHub1, Emacs Contrib, Eugene, Fourchaux,
+  Fredrik, Moesasji, Nick, Summer Emacs, TheBlob42, TitusMu, Trey,
+  ZharMeny, bepolymathe, bit9tream, bangedorrunt, derek-upham, doolio,
+  fleimgruber, gitrj95, iSeeU, jixiuf, ltmsyvag, okamsn,
+  pedro-nonfree, pRot0ta1p, shipmints, soaringbird, tumashu,
   wakamenod.
 
 + Packaging :: Basil L.{{{space()}}} Contovounesios, Eli Zaretskii,

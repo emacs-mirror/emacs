@@ -5,7 +5,7 @@
 ;; Author: Protesilaos Stavrou <info@protesilaos.com>
 ;; Maintainer: Protesilaos Stavrou <info@protesilaos.com>
 ;; URL: https://github.com/protesilaos/modus-themes
-;; Version: 4.7.0
+;; Version: 4.8.0
 ;; Package-Requires: ((emacs "28.1"))
 ;; Keywords: faces, theme, accessibility
 
@@ -333,7 +333,9 @@ the same as using the command `modus-themes-select'."
 
 (defcustom modus-themes-after-load-theme-hook nil
   "Hook that runs after loading a Modus theme.
-This is used by the command `modus-themes-toggle'."
+This is used by the commands `modus-themes-toggle',
+`modus-themes-rotate', `modus-themes-select', as well as the function
+`modus-themes-load-theme'."
   :type 'hook
   :package-version '(modus-themes . "4.0.0")
   :version "30.1"
@@ -1260,34 +1262,31 @@ Disable other themes per `modus-themes-disable-other-themes'."
 
 ;;;;; Rotate through a list of themes
 
-(defun modus-themes--rotate (themes)
-  "Rotate THEMES rightward such that the car is moved to the end."
-  (if (proper-list-p themes)
-      (let* ((index (seq-position themes (modus-themes--current-theme)))
-             (offset (1+ index)))
-        (append (nthcdr offset themes) (take offset themes)))
-    (error "The `%s' is not a list" themes)))
-
-(defun modus-themes--rotate-p (themes)
-  "Return a new theme among THEMES if it is possible to rotate to it."
-  (if-let* ((new-theme (car (modus-themes--rotate themes))))
-      (if (eq new-theme (modus-themes--current-theme))
-          (car (modus-themes--rotate-p (modus-themes--rotate themes)))
-        new-theme)
+(defun modus-themes--next-in-rotation (themes &optional reverse)
+  "Return a new theme among THEMES if it is possible to rotate to it.
+The argument REVERSE controls the direction of rotation."
+  (if-let* ((index (seq-position themes (modus-themes--current-theme)))
+            (offset (mod (if reverse (1- index) (1+ index))
+                         (length themes)))
+            (new-theme (nth offset themes)))
+      new-theme
     (error "Cannot determine a theme among `%s'" themes)))
 
 ;;;###autoload
-(defun modus-themes-rotate (themes)
+(defun modus-themes-rotate (themes &optional reverse)
   "Rotate to the next theme among THEMES.
-When called interactively THEMES is the value of `modus-themes-to-rotate'.
+When called interactively THEMES is the value of `modus-themes-to-rotate'
+and REVERSE is the prefix argument.
 
 If the current theme is already the next in line, then move to the one
-after.  Perform the rotation rightwards, such that the first element in
-the list becomes the last.  Do not modify THEMES in the process."
-  (interactive (list modus-themes-to-rotate))
+after.  The rotation is performed rightwards if REVERSE is nil (the
+default), and leftwards if REVERSE is non-nil.  Perform the rotation
+such that the current element in the list becomes the last.  Do not
+modify THEMES in the process."
+  (interactive (list modus-themes-to-rotate current-prefix-arg))
   (unless (proper-list-p themes)
     "This is not a list of themes: `%s'" themes)
-  (let ((candidate (modus-themes--rotate-p themes)))
+  (let ((candidate (modus-themes--next-in-rotation themes reverse)))
     (if (modus-themes--modus-p candidate)
         (progn
           (message "Rotating to `%s'" (propertize (symbol-name candidate) 'face 'success))
@@ -1690,6 +1689,7 @@ FG and BG are the main colors."
     `(escape-glyph ((,c :foreground ,err)))
     `(file-name-shadow ((,c :inherit shadow)))
     `(header-line ((,c :inherit modus-themes-ui-variable-pitch :background ,bg-dim)))
+    `(header-line-inactive ((,c :inherit (modus-themes-ui-variable-pitch shadow))))
     `(header-line-highlight ((,c :background ,bg-hover :foreground ,fg-main :box ,fg-main)))
     `(help-argument-name ((,c :inherit modus-themes-slant :foreground ,variable)))
     `(help-key-binding ((,c :inherit modus-themes-key-binding)))
@@ -2504,6 +2504,7 @@ FG and BG are the main colors."
     `(font-lock-number-face ((,c :foreground ,number)))
     `(font-lock-operator-face ((,c :foreground ,operator)))
     `(font-lock-preprocessor-face ((,c :foreground ,preprocessor)))
+    `(font-lock-property-name-face ((,c :foreground ,property)))
     `(font-lock-punctuation-face ((,c :foreground ,punctuation)))
     `(font-lock-regexp-grouping-backslash ((,c :inherit modus-themes-bold :foreground ,rx-backslash)))
     `(font-lock-regexp-grouping-construct ((,c :inherit modus-themes-bold :foreground ,rx-construct)))
@@ -2635,7 +2636,7 @@ FG and BG are the main colors."
     `(gnus-summary-low-ticked ((,c :inherit italic :foreground ,err)))
     `(gnus-summary-low-undownloaded ((,c :inherit italic :foreground ,warning)))
     `(gnus-summary-low-unread ((,c :inherit italic)))
-    `(gnus-summary-normal-ancient (( )))
+    `(gnus-summary-normal-ancient ((,c :inherit shadow)))
     `(gnus-summary-normal-read ((,c :inherit shadow)))
     `(gnus-summary-normal-ticked ((,c :foreground ,err)))
     `(gnus-summary-normal-undownloaded ((,c :foreground ,warning)))
@@ -2926,7 +2927,8 @@ FG and BG are the main colors."
     `(keycast-command ((,c :inherit bold)))
     `(keycast-key ((,c :inherit modus-themes-bold :background ,keybind :foreground ,bg-main)))
 ;;;;; kmacro-menu
-    `(kmacro-menu-mark ((,c :inherit bold)))
+    ;; Use `list' here to avoid a spurious warning about `kmacro-menu-mark'.
+    (list 'kmacro-menu-mark `((,c :inherit bold)))
     `(kmacro-menu-marked ((,c :inherit modus-themes-mark-sel)))
     `(kmacro-menu-flagged ((,c :inherit modus-themes-mark-del)))
 ;;;;; ledger-mode
@@ -3872,6 +3874,14 @@ FG and BG are the main colors."
     `(tldr-description ((,c :inherit font-lock-doc-face)))
     `(tldr-introduction ((,c :inherit font-lock-comment-face)))
     `(tldr-title ((,c :inherit bold)))
+;;;;; tmr
+    `(tmr-mode-line-active ((,c :inherit bold :foreground ,modeline-info)))
+    `(tmr-mode-line-soon ((,c :inherit bold :foreground ,modeline-warning)))
+    `(tmr-mode-line-urgent ((,c :inherit bold :foreground ,modeline-err)))
+    `(tmr-tabulated-description ((,c :foreground ,docstring)))
+    `(tmr-tabulated-end-time ((,c :foreground ,date-deadline)))
+    `(tmr-tabulated-remaining-time ((,c :foreground ,date-scheduled)))
+    `(tmr-tabulated-start-time ((,c :foreground ,date-common)))
 ;;;;; transient
     `(transient-active-infix ((,c :inherit highlight)))
     `(transient-amaranth ((,c :inherit bold :foreground ,yellow-warmer)))
