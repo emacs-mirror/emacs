@@ -325,11 +325,15 @@ Return non-nil if all queries are valid, nil otherwise."
                      settings)))))
 
 (defun treesit-admin--find-latest-compatible-revision
-    (mode language source-alist grammar-dir &optional emacs-executable)
+    (mode language source-alist grammar-dir revision-type
+          &optional emacs-executable)
   "Find the latest revision for LANGUAGE that's compatible with MODE.
 
 MODE, LANGUAGE, SOURCE-ALIST, GRAMMAR-DIR are the same as in
 `treesit-admin--verify-major-mode-queries'.
+
+REVISION-TYPE is `commit' or `tag', to inspect all or only tagged commits
+respectively.
 
 By default, use the Emacs executable that spawned the current Emacs
 session to validate grammars, but if EMACS-EXECUTABLE is non-nil, use it
@@ -337,9 +341,9 @@ instead.
 
 Return a plist of the form
 
-    (:version VERSION :head-version HEAD-VERSION :timestamp TIMESTAMP).
+    (:version VERSION :latest-version LATEST-VERSION :timestamp TIMESTAMP).
 
-HEAD-VERSION is the version of the HEAD, VERSION is the latest
+LATEST-VERSION is the most-recent version, VERSION is the most-recent
 compatible version.  TIMESTAMP is the commit date of VERSION in UNIX
 epoch format."
   (let ((treesit-extra-load-path (list grammar-dir))
@@ -350,7 +354,7 @@ epoch format."
         (emacs-executable
          (or emacs-executable
              (expand-file-name invocation-name invocation-directory)))
-        head-version version exit-code timestamp)
+        latest-version version exit-code timestamp)
     (when (not recipe)
       (signal 'treesit-error `("Cannot find recipe" ,language)))
     (let ((url (pop recipe))
@@ -377,44 +381,70 @@ epoch format."
         (treesit--git-clone-repo url revision workdir)
         (when commit
           (treesit--git-checkout-branch workdir commit))
-        (setq head-version (treesit--language-git-revision workdir))
-        (treesit--build-grammar
-         workdir grammar-dir language source-dir cc c++)
-        (while (not (eq exit-code 0))
-          (unless (null exit-code)
-            (treesit--git-checkout-branch workdir "HEAD~")
+        (cond
+         ((eq revision-type 'tag)
+          (cl-dolist (tag (treesit--language-git-version-tags workdir))
+            (unless latest-version
+              (setq latest-version tag))
+            (treesit--git-checkout-branch workdir tag)
             (treesit--build-grammar
-             workdir grammar-dir language source-dir cc c++))
-          (setq version (treesit--language-git-revision workdir))
-          (setq timestamp (treesit--language-git-timestamp workdir))
-          (message "Validateing version %s" version)
-          (setq exit-code
-                (call-process
-                 emacs-executable nil t nil
-                 "-Q" "--batch"
-                 "--eval" (prin1-to-string
-                           `(let ((treesit-extra-load-path
-                                   '(,grammar-dir)))
-                              (load ,treesit-admin-file-name)
-                              (if (treesit-admin--validate-mode-lang
-                                   ',mode ',language)
-                                  (kill-emacs 0)
-                                (kill-emacs -1)))))))))
-    (list :version version :head-version head-version :timestamp timestamp)))
+             workdir grammar-dir language source-dir cc c++)
+            (setq timestamp (treesit--language-git-timestamp workdir))
+            (setq exit-code
+                  (treesit-admin--validate-grammar
+                   emacs-executable mode grammar-dir language tag))
+            (when (eq exit-code 0)
+              (setq version tag)
+              (cl-return))))
+         ((eq revision-type 'commit)
+          (setq latest-version (treesit--language-git-revision workdir))
+          (treesit--build-grammar
+           workdir grammar-dir language source-dir cc c++)
+          (while (not (eq exit-code 0))
+            (unless (null exit-code)
+              (treesit--git-checkout-branch workdir "HEAD~")
+              (treesit--build-grammar
+               workdir grammar-dir language source-dir cc c++))
+            (setq version (treesit--language-git-revision workdir))
+            (setq timestamp (treesit--language-git-timestamp workdir))
+            (setq exit-code
+                  (treesit-admin--validate-grammar
+                   emacs-executable mode grammar-dir language version)))))))
+    (list :version version
+          :latest-version latest-version
+          :timestamp timestamp)))
+
+(defun treesit-admin--validate-grammar
+    (emacs-executable mode grammar-dir language version)
+"Validate VERSION of LANGUAGE in GRAMMAR-DIR for MODE with EMACS-EXECUTABLE."
+  (message "Validating version %s" version)
+  (call-process
+   emacs-executable nil t nil
+   "-Q" "--batch"
+   "--eval" (prin1-to-string
+             `(let ((treesit-extra-load-path
+                     '(,grammar-dir)))
+                (load ,treesit-admin-file-name)
+                (if (treesit-admin--validate-mode-lang
+                     ',mode ',language)
+                    (kill-emacs 0)
+                  (kill-emacs -1))))))
 
 (defun treesit-admin--last-compatible-grammar-for-modes
-    (modes source-alist grammar-dir &optional emacs-executable)
+    (modes source-alist grammar-dir revision-type &optional emacs-executable)
   "Generate an alist listing latest compatible grammar versions.
 
 MODES, SOURCE-ALIST, GRAMMAR-DIR are the same as
 `treesit-admin--verify-major-mode-queries'.  If EMACS-EXECUTABLE is
 non-nil, use it for validating queries.
 
+REVISION-TYPE is as for `treesit-admin--find-latest-compatible-revision'.
+
 Return an alist of an alist of a plist:
 
-    ((MODE . ((LANG . (:version VERSION :head-VERSION HEAD-VERSION)) ...)) ...)
+    ((MODE . ((LANG . (:version VERSION :latest-version LATEST-VERSION)) ...)) ...)
 
-VERSION and HEAD-VERSION in the plist are the same as in
+VERSION and LATEST-VERSION in the plist are the same as in
 `treesit-admin--find-latest-compatible-revision'."
   (mapcar
    (lambda (mode)
@@ -423,7 +453,7 @@ VERSION and HEAD-VERSION in the plist are the same as in
             (lambda (language)
               (cons language
                     (treesit-admin--find-latest-compatible-revision
-                     mode language source-alist grammar-dir
+                     mode language source-alist grammar-dir revision-type
                      emacs-executable)))
             (treesit-admin--mode-languages mode))))
    modes))
@@ -438,74 +468,82 @@ us from eager compiling a compiled query that's already lazily
 compiled).
 
 EMACS-EXECUTABLES is a list of Emacs executables to check for."
-  (let ((tables
-         (mapcar
-          (lambda (emacs)
-            (cons (with-temp-buffer
-                    (call-process emacs nil t nil
-                                  "-Q" "--batch"
-                                  "--eval" "(princ emacs-version)")
-                    (buffer-string))
-                  (treesit-admin--last-compatible-grammar-for-modes
-                   modes
-                   (treesit-admin--unversioned-treesit-language-source-alist)
-                   "/tmp/treesit-grammar"
-                   emacs)))
-          emacs-executables))
-        (database (make-hash-table :test #'equal))
-        languages)
-    (dolist (table tables)
-      (dolist (mode-entry (cdr table))
-        (dolist (language-entry (cdr mode-entry))
-          (let* ((lang (car language-entry))
-                 (plist (cdr language-entry))
-                 ;; KEY = (LANG . EMACS-VERSION)
-                 (key (cons lang (car table)))
-                 (existing-plist (gethash key database)))
-            (push lang languages)
-            ;; If there are two major modes that uses LANG, and they
-            ;; have different compatible versions, use the older
-            ;; version.
-            (when (or (not existing-plist)
-                      (< (plist-get plist :timestamp)
-                         (plist-get existing-plist :timestamp)))
-              (puthash key plist database))))))
-    (setq languages (cl-sort (cl-remove-duplicates languages)
-                             (lambda (a b)
-                               (string< (symbol-name a) (symbol-name b)))))
-    ;; Compose HTML table.
-    (with-temp-buffer
-      (insert "<tr><th>Language</th>")
-      (dolist (emacs-version (mapcar #'car tables))
-        (insert (format "<th>%s</th>" emacs-version)))
-      (insert "</tr>\n")
-      (dolist (lang languages)
-        (insert "<tr>")
-        (insert (format "<th>%s</th>" lang))
+  (with-temp-buffer
+    (dolist (revision-type (list 'tag 'commit))
+      (let ((tables
+             (mapcar
+              (lambda (emacs)
+                (cons (with-temp-buffer
+                        (call-process emacs nil t nil
+                                      "-Q" "--batch"
+                                      "--eval" "(princ emacs-version)")
+                        (buffer-string))
+                      (treesit-admin--last-compatible-grammar-for-modes
+                       modes
+                       (treesit-admin--unversioned-treesit-language-source-alist)
+                       "/tmp/treesit-grammar"
+                       revision-type
+                       emacs)))
+              emacs-executables))
+            (database (make-hash-table :test #'equal))
+            languages)
+        (dolist (table tables)
+          (dolist (mode-entry (cdr table))
+            (dolist (language-entry (cdr mode-entry))
+              (let* ((lang (car language-entry))
+                     (plist (cdr language-entry))
+                     ;; KEY = (LANG . EMACS-VERSION)
+                     (key (cons lang (car table)))
+                     (existing-plist (gethash key database)))
+                (push lang languages)
+                ;; If there are two major modes that uses LANG, and they
+                ;; have different compatible versions, use the older
+                ;; version.
+                (when (or (not existing-plist)
+                          (< (plist-get plist :timestamp)
+                             (plist-get existing-plist :timestamp)))
+                  (puthash key plist database))))))
+        (setq languages (cl-sort (cl-remove-duplicates languages)
+                                 (lambda (a b)
+                                   (string< (symbol-name a) (symbol-name b)))))
+        ;; Compose HTML table.
+        (insert "<table>"
+                "<caption>"
+                (cond ((eq revision-type 'tag) "Tagged")
+                      ((eq revision-type 'commit) "All"))
+                " commits</caption>\n")
+        (insert "<tr><th>Language</th>")
         (dolist (emacs-version (mapcar #'car tables))
-          (let* ((key (cons lang emacs-version))
-                 (plist (gethash key database))
-                 (version (plist-get plist :version))
-                 (head-version (plist-get plist :head-version))
-                 (classname
-                  (if (equal version head-version) "head" "")))
-            (if (not plist)
-                (insert "<td></td>")
-              (insert (format "<td class=\"%s\">%s</td>"
-                              classname version)))))
-        (insert "</tr>\n"))
+          (insert (format "<th>%s</th>" emacs-version)))
+        (insert "</tr>\n")
+        (dolist (lang languages)
+          (insert "<tr>")
+          (insert (format "<th>%s</th>" lang))
+          (dolist (emacs-version (mapcar #'car tables))
+            (let* ((key (cons lang emacs-version))
+                   (plist (gethash key database))
+                   (version (plist-get plist :version))
+                   (latest-version (plist-get plist :latest-version))
+                   (classname
+                    (if (equal version latest-version) "latest" "")))
+              (if (not plist)
+                  (insert "<td></td>")
+                (insert (format "<td class=\"%s\">%s</td>"
+                                classname version)))))
+          (insert "</tr>\n"))
+        (insert "</table>\n")))
 
-      ;; Compose table with template and write to out file.
-      (let ((time (current-time-string nil t))
-            (table-text (buffer-string)))
-        (erase-buffer)
-        (insert-file-contents treesit-admin--compat-template-file-name)
-        (goto-char (point-min))
-        (search-forward "___REPLACE_TIME___")
-        (replace-match (format "%s UTC" time) t)
-        (search-forward "___REPLACE_TABLE___")
-        (replace-match table-text t)
-        (write-region (point-min) (point-max) out-file)))))
+    ;; Compose table with template and write to out file.
+    (let ((time (current-time-string nil t))
+          (table-text (buffer-string)))
+      (erase-buffer)
+      (insert-file-contents treesit-admin--compat-template-file-name)
+      (goto-char (point-min))
+      (search-forward "___REPLACE_TIME___")
+      (replace-match (format "%s UTC" time) t)
+      (search-forward "___REPLACE_TABLE___")
+      (replace-match table-text t)
+      (write-region (point-min) (point-max) out-file))))
 
 (provide 'treesit-admin)
 
