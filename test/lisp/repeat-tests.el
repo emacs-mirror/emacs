@@ -27,6 +27,7 @@
 ;; Key mnemonics: a - activate (enter, also b, s),
 ;;                c - continue (also d, t, also o, u),
 ;;                e - continue-only (not activate),
+;;                g - global continue,
 ;;                q - quit (exit)
 
 (defvar repeat-tests-calls nil)
@@ -50,6 +51,10 @@
 (defun repeat-tests-call-e (&optional arg)
   (interactive "p")
   (push `(,arg e) repeat-tests-calls))
+
+(defun repeat-tests-call-g (&optional arg)
+  (interactive "p")
+  (push `(,arg g) repeat-tests-calls))
 
 (defun repeat-tests-call-o (&optional arg)
   (interactive "p")
@@ -78,6 +83,7 @@
   "C-M-a"   'repeat-tests-call-a
   "C-M-b"   'repeat-tests-call-b
   "C-M-e"   'repeat-tests-call-e
+  "C-M-g"   'repeat-tests-call-g
   "C-M-o"   'repeat-tests-call-o
   "C-M-s"   'repeat-tests-call-s
   "C-M-u"   'repeat-tests-call-u)
@@ -107,6 +113,8 @@
 
 ;; Test using a variable instead of the symbol:
 (put 'repeat-tests-call-b 'repeat-map repeat-tests-repeat-map)
+
+(put 'repeat-tests-call-g 'repeat-continue t)
 
 (defmacro with-repeat-mode (map &rest body)
   "Create environment for testing `repeat-mode'."
@@ -215,6 +223,10 @@
   (with-repeat-mode repeat-tests-global-map
     (let ((repeat-echo-function 'ignore)
           (repeat-check-key nil))
+      ;; Global 'C-M-g' used as continue
+      (repeat-tests--check
+       "C-M-a c C-M-g c z"
+       '((1 a) (1 c) (1 g) (1 c)) "z")
       ;; 'C-M-e' and 'C-M-o' used as continue
       (repeat-tests--check
        "C-M-a c C-M-e C-M-o c z"
