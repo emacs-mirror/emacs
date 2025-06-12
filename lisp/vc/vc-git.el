@@ -1141,6 +1141,8 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                                             (file-local-name ,temp)))
        (delete-file ,temp))))
 
+(defalias 'vc-git-async-checkins #'always)
+
 (defun vc-git-checkin (files comment &optional _rev)
   (let* ((parent (current-buffer))
          (file1 (or (car files) default-directory))
