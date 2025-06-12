@@ -2170,9 +2170,9 @@ You can now use the mouse wheel to scroll the calendar by 3 months.
 With the shift modifier, it scrolls by one month.  With the meta
 modifier, it scrolls by year.
 
-*** Simpler month and year navigation binds in calendar.
-The month and year navigation binds 'M-}', 'M-{', 'C-x ]' and 'C-x ['
-now admit the alternatives '}', '{', ']' and '['.
+*** Simpler key bindings for navigation in calendar by months and by years.
+The month and year navigation key bindings 'M-}', 'M-{', 'C-x ]' and
+'C-x [' now have the alternative keys '}', '{', ']' and '['.
 
 
 * New Modes and Packages in Emacs 31.1
