@@ -484,7 +484,7 @@ This is a reduced example from GNU nano's initial screen."
       (should (equal "test"
                      (term-test-screen-from-input
                       40 1 "te\e]2;\xce\xb1\xce\xb2\e\\st")))
-      (should (equal '(("2" . "Î±Î²")) captured)))
+      (should (equal '(("2" . "\u03b1\u03b2")) captured)))
 
     ;; Ignore unhandled and invalid OSC sequences
     (setq captured nil)
