@@ -3069,6 +3069,9 @@ See `term-prompt-regexp'."
 (defconst term-control-seq-prefix-regexp
   "[\032\e]")
 
+(defconst term--osc-max-bytes (* 32 1024 1024)
+  "Limit the length of OSC sequences to keep in memory.")
+
 (defun term-emulate-terminal (proc str)
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
