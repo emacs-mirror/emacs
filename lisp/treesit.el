@@ -2984,12 +2984,16 @@ delimits medium sized statements in the source code.  It is,
 however, smaller in scope than sentences.  This is used by
 `treesit-forward-sexp' and friends.")
 
-(defvar-local treesit-sexp-type-down-list nil
-  "A regexp that matches the sexp nodes for `down-list'.
+(defvar-local treesit-sexp-thing nil
+  "A thing that matches the sexp nodes for `forward-sexp'.
+This is used by `treesit-forward-sexp' and `treesit-forward-list'.")
+
+(defvar-local treesit-sexp-thing-down-list nil
+  "A thing that matches the sexp nodes for `down-list'.
 This is used by `treesit-down-list'.")
 
-(defvar-local treesit-sexp-type-up-list nil
-  "A regexp that matches the sexp nodes for `up-list'.
+(defvar-local treesit-sexp-thing-up-list nil
+  "A thing that matches the sexp nodes for `up-list'.
 This is used by `treesit-up-list'.")
 
 ;; Avoid interpreting the symbol `list' as a function.
@@ -3023,7 +3027,7 @@ across lists, whereas uses `forward-sexp-default-function' to move
 across atoms (such as symbols or words) inside the list."
   (interactive "^p")
   (let ((arg (or arg 1))
-        (pred (or treesit-sexp-type-regexp 'sexp))
+        (pred (or treesit-sexp-thing 'sexp))
         (node-at-point
          (treesit-node-at (point) (treesit-language-at (point)))))
     (or (when (and node-at-point
@@ -3050,7 +3054,7 @@ Fall back to DEFAULT-FUNCTION as long as it doesn't cross
 the boundaries of the list.
 
 ARG is described in the docstring of `forward-list'."
-  (let* ((pred (or treesit-sexp-type-regexp 'list))
+  (let* ((pred (or treesit-sexp-thing 'list))
          (arg (or arg 1))
          (treesit--parser-overlay-offset (if (> arg 0) 0 -1))
          (cnt arg)
@@ -3137,8 +3141,8 @@ redefined by the variable `down-list-function'.
 
 ARG is described in the docstring of `down-list'."
   (interactive "^p")
-  (let* ((pred (or treesit-sexp-type-down-list
-                   treesit-sexp-type-regexp
+  (let* ((pred (or treesit-sexp-thing-down-list
+                   treesit-sexp-thing
                    'list))
          (arg (or arg 1))
          (cnt arg)
@@ -3155,8 +3159,8 @@ ARG is described in the docstring of `down-list'."
                         (treesit-thing-prev (point) pred)))
              (child (when sibling
                       (treesit-node-child sibling (if (> arg 0) 0 -1)))))
-        (or (when (and (null (or treesit-sexp-type-down-list
-                                 treesit-sexp-type-regexp))
+        (or (when (and (null (or treesit-sexp-thing-down-list
+                                 treesit-sexp-thing))
                        default-pos
                        (or (null child)
                            (if (> arg 0)
@@ -3181,8 +3185,8 @@ redefined by the variable `up-list-function'.
 
 ARG is described in the docstring of `up-list'."
   (interactive "^p")
-  (let* ((pred (or treesit-sexp-type-up-list
-                   treesit-sexp-type-regexp
+  (let* ((pred (or treesit-sexp-thing-up-list
+                   treesit-sexp-thing
                    'list))
          (arg (or arg 1))
          (treesit--parser-overlay-offset -1)
@@ -3211,8 +3215,8 @@ ARG is described in the docstring of `up-list'."
                             (treesit-node-at (point) (car parsers)) pred)
                     parsers (cdr parsers)))))
 
-        (or (when (and (null (or treesit-sexp-type-up-list
-                                 treesit-sexp-type-regexp))
+        (or (when (and (null (or treesit-sexp-thing-up-list
+                                 treesit-sexp-thing))
                        default-pos
                        (or (null parent)
                            (if (> arg 0)
@@ -3231,7 +3235,7 @@ ARG is described in the docstring of `up-list'."
                             (point) (point))))))
       (setq cnt (- cnt inc)))))
 
-(defun treesit-cycle-sexp-type (&optional interactive)
+(defun treesit-cycle-sexp-thing (&optional interactive)
   "Cycle the type of navigation for sexp and list commands.
 This type affects navigation commands such as `treesit-forward-sexp',
 `treesit-forward-list', `treesit-down-list', `treesit-up-list'.
@@ -3251,19 +3255,19 @@ treesit-based modes."
   (interactive "p")
   (if (not (treesit-thing-defined-p 'list (treesit-language-at (point))))
       (user-error "No `list' thing is defined in `treesit-thing-settings'")
-    (setq-local treesit-sexp-type-regexp
-                (unless treesit-sexp-type-regexp
+    (setq-local treesit-sexp-thing
+                (unless treesit-sexp-thing
                   (if (treesit-thing-defined-p
                        'sexp (treesit-language-at (point)))
                       'sexp
                     #'treesit-node-named))
                 forward-sexp-function
-                (if treesit-sexp-type-regexp
+                (if treesit-sexp-thing
                     #'treesit-forward-sexp
                   #'treesit-forward-sexp-list))
     (when interactive
-      (message "Cycle sexp type to navigate %s"
-               (or (and treesit-sexp-type-regexp
+      (message "Cycle sexp thing to navigate %s"
+               (or (and treesit-sexp-thing
                         "treesit nodes")
                    "syntax symbols and treesit lists")))))
 

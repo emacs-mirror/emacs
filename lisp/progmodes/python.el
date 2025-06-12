@@ -7332,18 +7332,20 @@ implementations: `python-mode' and `python-ts-mode'."
     (setq-local treesit-defun-name-function
                 #'python--treesit-defun-name)
 
-    (setq-local treesit-sentence-type-regexp
-                (regexp-opt '("statement"
-                              "clause")))
+    (when (boundp 'treesit-sentence-type-regexp)
+      (setq-local treesit-sentence-type-regexp
+                  (regexp-opt '("statement"
+                                "clause"))))
 
-    (setq-local treesit-sexp-type-regexp
-                (regexp-opt '("expression"
-                              "string"
-                              "call"
-                              "operator"
-                              "identifier"
-                              "integer"
-                              "float")))
+    (when (boundp 'treesit-sexp-type-regexp)
+      (setq-local treesit-sexp-type-regexp
+                  (regexp-opt '("expression"
+                                "string"
+                                "call"
+                                "operator"
+                                "identifier"
+                                "integer"
+                                "float"))))
 
     (treesit-major-mode-setup)
 

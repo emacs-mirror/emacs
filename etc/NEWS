@@ -603,7 +603,7 @@ Visiting a file in such mode asks for confirmation before installing
 its tree-sitter grammar.  Then it highlights the visited file
 according to the syntax defined by the grammar.
 
-*** New command 'treesit-cycle-sexp-type'.
+*** New command 'treesit-cycle-sexp-thing'.
 It cycles the type of navigation for commands that move across sexp's
 and lists, such as 'treesit-forward-sexp', 'treesit-forward-list',
 'treesit-down-list', and 'treesit-up-list'.  The type can be either
