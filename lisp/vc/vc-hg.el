@@ -525,7 +525,7 @@ This requires hg 4.4 or later, for the \"-L\" option of \"hg log\"."
               (cons 'vc-hg-region-history-font-lock-keywords
                     (cdr font-lock-defaults))))
 
-(defun vc-hg-diff (files &optional oldvers newvers buffer _async)
+(defun vc-hg-diff (files &optional oldvers newvers buffer async)
   "Get a difference report using hg between two revisions of FILES."
   (let* ((firstfile (car files))
          (working (and firstfile (vc-working-revision firstfile))))
@@ -535,7 +535,7 @@ This requires hg 4.4 or later, for the \"-L\" option of \"hg log\"."
       (setq oldvers working))
     (apply #'vc-hg-command
 	   (or buffer "*vc-diff*")
-           nil ; bug#21969
+           (if async 'async 1)
            files "diff"
            (append
             (vc-switches 'hg 'diff)
@@ -1182,6 +1182,8 @@ If toggling on, also insert its message into the buffer."
 It is based on `log-edit-mode', and has Hg-specific extensions.")
 
 (autoload 'vc-wait-for-process-before-save "vc-dispatcher")
+
+(defalias 'vc-hg-async-checkins #'always)
 
 (defun vc-hg-checkin (files comment &optional _rev)
   "Hg-specific version of `vc-backend-checkin'.

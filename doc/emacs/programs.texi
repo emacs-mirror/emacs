@@ -267,13 +267,17 @@ bindings for that purpose.
 @cindex nested defuns
 @vindex treesit-defun-tactic
   Some programming languages supported @dfn{nested defuns}, whereby a
-defun (such as a function or a method or a class) can be defined
-inside (i.e., as part of the body) of another defun.  The commands
-described above by default find the beginning and the end of the
-@emph{innermost} defun around point.  Major modes based on the
-tree-sitter library provide control of this behavior: if the variable
-@code{treesit-defun-tactic} is set to the value @code{top-level}, the
-defun commands will find the @emph{outermost} defuns instead.
+defun (such as a function or a method or a class) can be defined inside
+(i.e., as part of the body) of another defun.  The commands described
+above by default find the beginning and the end of the @emph{innermost}
+defun around point.  Major modes based on the tree-sitter library
+provide control of this behavior: by default, the value of
+@code{treesit-defun-tactic} is set to @code{nested}; if it's set
+to@code{top-level}, the defun commands will find the @emph{outermost}
+defuns instead; if the value is set to @code{parent-first}, the defun
+command always tries to move out of the current enclosing defun rather
+than moving to the previous or next defun around point; if there's no
+enclosing defun, it moves to the previous or next defun.
 
 @node Moving by Sentences
 @subsection Moving by Sentences
@@ -1056,6 +1060,15 @@ the opening delimiter is offscreen.  The context is usually the line
 that contains the opening delimiter, except if the opening delimiter
 is on its own line, in which case the context includes the previous
 nonblank line.
+
+@item
+@vindex show-paren-not-in-comments-or-strings
+If the value of @code{show-paren-not-in-comments-or-strings} is
+@code{all}, delimiters inside comments and strings will not be
+highlighted.  Otherwise, if the value is set to @code{on-mismatch}, the
+mismatched delimiters inside comments will not be highlighted.  The
+default is @code{nil}, so delimiters inside comments and strings are
+always highlighted.
 @end itemize
 
 @cindex Electric Pair mode

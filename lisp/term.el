@@ -304,6 +304,7 @@
   (require 'cl-lib))
 (require 'comint) ; Password regexp.
 (require 'ansi-color)
+(require 'ansi-osc)
 (require 'ehelp)
 (require 'ring)
 (require 'shell)
@@ -602,6 +603,33 @@ must be done each time a process is executed in a term mode buffer (e.g.,
 executed once, when the buffer is created."
   :type 'hook
   :group 'term)
+
+(defvar term-osc-handlers nil
+  "Terminal-specific OSC sequence handler function alist.
+
+OSC (Operating System Command) is a category of ANSI escape sequence
+used in terminal application to introduce custom commands.  Terminals
+ignore unknown OSC sequences by default.  Handlers can be registered here
+to add support for new OSC sequences to `term'.
+
+Functions in this alist are passed matching valid OSC sequences as
+they're sent to the terminal.
+
+Valid OSC sequences are of the form
+  ESC ] code ; text BEL
+  ESC ] code ; text ESC \
+
+Each entry has the form (CODE . FUNCTION), where CODE is the string that
+appears before the semicolon.
+
+FUNCTION is called with two arguments CODE and TEXT, with TEXT being the
+content of the OSC sequence after the semicolon.  When the function is
+called, the term buffer is active and with point and content valid at
+the time the OSC sequence appears in the stream.
+
+Any code not on this alist is further looked up in `ansi-osc-handlers',
+which collects OSC handlers that can also work outside of a terminal
+context.  For details, see `ansi-osc-apply-on-region'.")
 
 (defvar term-mode-map
   (let ((map (make-sparse-keymap)))
@@ -3030,12 +3058,19 @@ See `term-prompt-regexp'."
    "\e\\(?:[DM78c]\\|"
    ;; another Emacs specific control sequence,
    "AnSiT[^\n]+\n\\|"
+   ;; OSC (See [ECMA-48] section 8.3.89 "Operation System Command".)
+   ;; The spec only allows 0x08-0x0d 0x20-7e, but this regexp also
+   ;; allows non-ascii (UTF-8) characters.
+   "\\][^\x00-\x07\x0e-\x1f\x7f]*\\(?:\a\\|\e\\\\\\)?\\|"
    ;; or an escape sequence (section 5.4 "Control Sequences"),
    "\\[\\([\x30-\x3F]*\\)[\x20-\x2F]*[\x40-\x7E]\\)\\)")
   "Regexp matching control sequences handled by term.el.")
 
 (defconst term-control-seq-prefix-regexp
   "[\032\e]")
+
+(defconst term--osc-max-bytes (* 32 1024 1024)
+  "Limit the length of OSC sequences to keep in memory.")
 
 (defun term-emulate-terminal (proc str)
   (when (buffer-live-p (process-buffer proc))
@@ -3232,6 +3267,33 @@ See `term-prompt-regexp'."
                             (split-string ctl-params ";"))
                            (aref str (1- ctl-end))
                            private))))
+                     (?\] ;; An OSC sequence
+                      (let ((seq-str (substring str (+ i 2) ctl-end)))
+                        (string-match
+                         "\\`\\(\\([0-9A-Za-z]+\\);\\)?.*?\\(\a\\|\e\\\\\\)?\\'"
+                         seq-str)
+                        (let ((code (match-string 2 seq-str))
+                              (text-start (match-end 1))
+                              (end-mark (match-beginning 3)))
+                          (when (and code end-mark)
+                            (when-let* ((func (cdr (or (assoc-string
+                                                        code term-osc-handlers)
+                                                       (assoc-string
+                                                        code ansi-osc-handlers)))))
+                              (with-demoted-errors "term OSC error: %S"
+                                (funcall
+                                 func code
+                                 (decode-coding-string
+                                  (substring seq-str text-start end-mark)
+                                  locale-coding-system t)))))
+                          (when (and (not end-mark)
+                                     (>= ctl-end str-length)
+                                     (< (- ctl-end i) term--osc-max-bytes))
+                            ;; Continue ignoring until the end marker.
+                            (setq term-terminal-undecoded-bytes
+                                  (substring str i)))))
+                      ;; Consume everything
+                      (setq i ctl-end))
                      (?D ;; Scroll forward (apparently not documented in
                       ;; [ECMA-48], [ctlseqs] mentions it as C1
                       ;; character "Index" though).

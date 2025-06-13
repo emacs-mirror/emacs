@@ -270,8 +270,13 @@ The ARGUMENTS for each METHOD symbol are:
   `sasl': NICK PASSWORD
   `certfp': KEY CERT
 
+For `nickserv', PASSWORD may be the symbol `:auth-source', in which case
+the host, nick and port will be used to query a password from an
+available `auth-source' backend.
+
 Examples:
  ((\"Libera.Chat\" nickserv \"bob\" \"p455w0rd\")
+  (\"Libera.Chat\" nickserv \"bob\" :auth-source)
   (\"Libera.Chat\" chanserv \"bob\" \"#bobland\" \"passwd99\")
   (\"Libera.Chat\" certfp \"/path/to/key\" \"/path/to/cert\")
   (\"bitlbee\" bitlbee \"robert\" \"sekrit\")
@@ -282,7 +287,9 @@ Examples:
                 :value-type (choice (list :tag "NickServ"
                                           (const nickserv)
                                           (string :tag "Nick")
-                                          (string :tag "Password"))
+                                          (choice
+                                           (string :tag "Password")
+                                           (const :tag "Use Auth-Source" :auth-source)))
                                     (list :tag "ChanServ"
                                           (const chanserv)
                                           (string :tag "Nick")
@@ -302,8 +309,8 @@ Examples:
                                           (string :tag "Password"))
                                     (list :tag "CertFP"
                                           (const certfp)
-                                          (string :tag "Key")
-                                          (string :tag "Certificate")))))
+                                          (file :tag "Key" :must-match t)
+                                          (file :tag "Certificate" :must-match t)))))
 
 (defcustom rcirc-auto-authenticate-flag t
   "Non-nil means automatically send authentication string to server.
@@ -1602,10 +1609,7 @@ If ALL is non-nil, update prompts in all IRC buffers."
 
 (defun rcirc-channel-p (target)
   "Return t if TARGET is a channel name."
-  (and target
-       (not (zerop (length target)))
-       (or (eq (aref target 0) ?#)
-           (eq (aref target 0) ?&))))
+  (and (stringp target) (string-match-p (rx bos (or ?# ?&)) target)))
 
 (defcustom rcirc-log-directory (locate-user-emacs-file "rcirc-log")
   "Directory to keep IRC logfiles."
@@ -3669,40 +3673,44 @@ specified in RFC2812, where 005 stood for RPL_BOUNCE."
 Passwords are stored in `rcirc-authinfo' (which see)."
   (interactive)
   (with-rcirc-server-buffer
-    (dolist (i rcirc-authinfo)
-      (let ((process (rcirc-buffer-process))
-            (server (car i))
-            (nick (nth 2 i))
-            (method (cadr i))
-            (args (cdddr i)))
-        (when (and (string-match server rcirc-server))
-          (if (and (memq method '(nickserv chanserv bitlbee))
-                   (string-match nick rcirc-nick))
-              ;; the following methods rely on the user's nickname.
-              (cl-case method
-                (nickserv
-                 (rcirc-send-privmsg
-                  process
-                  (or (cadr args) "NickServ")
-                  (concat "IDENTIFY " (car args))))
-                (chanserv
-                 (rcirc-send-privmsg
-                  process
-                  "ChanServ"
-                  (format "IDENTIFY %s %s" (car args) (cadr args))))
-                (bitlbee
-                 (rcirc-send-privmsg
-                  process
-                  "&bitlbee"
-                  (concat "IDENTIFY " (car args))))
-                (sasl nil))
-            ;; quakenet authentication doesn't rely on the user's nickname.
-            ;; the variable `nick' here represents the Q account name.
-            (when (eq method 'quakenet)
-              (rcirc-send-privmsg
-               process
-               "Q@CServe.quakenet.org"
-               (format "AUTH %s %s" nick (car args))))))))))
+    (pcase-dolist (`(,(rx (regexp rcirc-server)) . ,ai) rcirc-authinfo)
+      (pcase ai
+        (`(nickserv ,(rx (regexp rcirc-nick)) :auth-source . ,(or `(,nickserv) '()))
+         (if-let* ((auth (auth-source-search
+                          :host rcirc-server
+                          :port (nth 1 rcirc-connection-info)
+                          :user (nth 2 rcirc-connection-info)))
+                   (password (auth-info-password (car auth))))
+             (rcirc-send-privmsg
+              (rcirc-buffer-process)
+              (or nickserv "NickServ")
+              (concat "IDENTIFY " password))
+           (rcirc-print
+            (rcirc-buffer-process) rcirc-nick "ERROR" nil
+            "No auth-source entry found for `nickserv' authentication")))
+        (`(nickserv ,(rx (regexp rcirc-nick)) ,password . ,(or `(,nickserv) '()))
+         (rcirc-send-privmsg
+          (rcirc-buffer-process)
+          (or nickserv "NickServ")
+          (concat "IDENTIFY " password)))
+        (`(chanserv ,(rx (regexp rcirc-nick)) ,channel ,password)
+         (rcirc-send-privmsg
+          (rcirc-buffer-process)
+          "ChanServ"
+          (format "IDENTIFY %s %s" channel password)))
+        (`(bitlbee ,(rx (regexp rcirc-nick)) ,password)
+         (rcirc-send-privmsg
+          (rcirc-buffer-process)
+          "&bitlbee"
+          (concat "IDENTIFY " password)))
+        (`(quakenet ,account ,password)
+         ;; quakenet authentication doesn't rely on the user's
+         ;; nickname.  the variable `account' here represents the Q
+         ;; account name.
+         (rcirc-send-privmsg
+          (rcirc-buffer-process)
+          "Q@CServe.quakenet.org"
+          (format "AUTH %s %s" account password)))))))
 
 (defun rcirc-handler-INVITE (process sender args _text)
   "Notify user of an invitation from SENDER.

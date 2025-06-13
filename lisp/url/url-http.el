@@ -325,8 +325,10 @@ Use `url-http-referer' as the Referer-header (subject to `url-privacy-level')."
 					  url-http-target-url)
                                          nil 'any nil)))
          (ref-url (url-http--encode-string url-http-referer)))
-    (if (equal "" real-fname)
-	(setq real-fname "/"))
+    ;; RFC 3986 section 6.2.3 says an empty path should be normalized to
+    ;; "/", even if the filename is non-empty.  (Bug#78640)
+    (unless (string-match-p "\\`/" real-fname)
+      (setq real-fname (concat "/" real-fname)))
     (setq no-cache (and no-cache (string-match "no-cache" no-cache)))
     (if auth
 	(setq auth (concat "Authorization: " auth "\r\n")))

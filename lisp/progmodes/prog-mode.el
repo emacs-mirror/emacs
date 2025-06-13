@@ -141,43 +141,61 @@ instead."
 	  (end (progn (forward-sexp 1) (point))))
       (indent-region start end nil))))
 
-(defun prog-fill-reindent-defun (&optional argument)
+(defun prog--text-at-point-p ()
+  "Return non-nil if point is in text (comment or string)."
+  ;; FIXME: For some reason, the comment-start syntax regexp doesn't
+  ;; work for me.  But I kept it around to be safe, and in the hope
+  ;; that it can cover cases where comment-start-skip is unset.
+  (or (nth 8 (syntax-ppss))
+      ;; If point is at the beginning of a comment delimiter,
+      ;; syntax-ppss doesn't consider point as being inside a
+      ;; comment.
+      (save-excursion
+        (beginning-of-line)
+        (and comment-start-skip
+             ;; FIXME: This doesn't work for the case where there
+             ;; are two matches of comment-start-skip, and the
+             ;; first one is, say, inside a string.  We need to
+             ;; call re-search-forward repeatedly until either
+             ;; reached EOL or (nth 4 (syntax-ppss)) returns
+             ;; non-nil.
+             (re-search-forward comment-start-skip (pos-eol) t)
+             (nth 8 (syntax-ppss))))
+      (save-excursion
+        (beginning-of-line)
+        (and (re-search-forward "\\s-*\\s<" (line-end-position) t)
+             (nth 8 (syntax-ppss))))))
+
+(defvar prog-fill-reindent-defun-function
+  #'prog-fill-reindent-defun-default
+  "Function called by `prog-fill-reindent-defun' to do the actual work.
+It should take the same argument as `prog-fill-reindent-defun'.")
+
+(defun prog-fill-reindent-defun-default (&optional justify)
+  "Default implementation of `prog-fill-reindent-defun'.
+JUSTIFY is the same as in `fill-paragraph'."
+  (interactive "P")
+  (save-excursion
+    (if (prog--text-at-point-p)
+        (fill-paragraph justify (region-active-p))
+      (beginning-of-defun)
+      (let ((start (point)))
+        (end-of-defun)
+        (indent-region start (point) nil)))))
+
+(defun prog-fill-reindent-defun (&optional justify)
   "Refill or reindent the paragraph or defun that contains point.
 
 If the point is in a string or a comment, fill the paragraph that
 contains point or follows point.
 
 Otherwise, reindent the function definition that contains point
-or follows point."
+or follows point.
+
+If JUSTIFY is non-nil (interactively, with prefix argument), justify as
+well."
   (interactive "P")
-  (save-excursion
-    ;; FIXME: For some reason, the comment-start syntax regexp doesn't
-    ;; work for me.  But I kept it around to be safe, and in the hope
-    ;; that if can cover cases where comment-start-skip is unset.
-    (if (or (nth 8 (syntax-ppss))
-            ;; If point is at the beginning of a comment delimiter,
-            ;; syntax-ppss doesn't consider point as being inside a
-            ;; comment.
-            (save-excursion
-              (beginning-of-line)
-              (and comment-start-skip
-                   ;; FIXME: This doesn't work for the case where there
-                   ;; are two matches of comment-start-skip, and the
-                   ;; first one is, say, inside a string.  We need to
-                   ;; call re-search-forward repeatedly until either
-                   ;; reached EOL or (nth 4 (syntax-ppss)) returns
-                   ;; non-nil.
-                   (re-search-forward comment-start-skip (pos-eol) t)
-                   (nth 8 (syntax-ppss))))
-            (save-excursion
-              (beginning-of-line)
-              (and (re-search-forward "\\s-*\\s<" (line-end-position) t)
-                   (nth 8 (syntax-ppss)))))
-        (fill-paragraph argument (region-active-p))
-      (beginning-of-defun)
-      (let ((start (point)))
-        (end-of-defun)
-        (indent-region start (point) nil)))))
+  (funcall prog-fill-reindent-defun-function justify))
 
 (defun prog-first-column ()
   "Return the indentation column normally used for top-level constructs."

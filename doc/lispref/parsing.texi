@@ -1787,15 +1787,17 @@ Like in @code{treesit-thing-prev}, @var{thing} can be a thing symbol
 defined in @code{treesit-thing-settings}, or a predicate.
 
 @var{tactic} determines how this function moves between things.  It can
-be @code{nested}, @code{top-level}, @code{restricted}, or @code{nil}.
-@code{nested} or @code{nil} means normal nested navigation: first try to
-move across siblings; if there aren't any siblings left in the current
-level, move to the parent, then its siblings, and so on.
-@code{top-level} means only navigate across top-level things and ignore
-nested things.  @code{restricted} means movement is restricted within
-the thing that encloses @var{position}, if there is such a thing.  This
-tactic is useful for commands that want to stop at the current nesting
-level and not move up.
+be @code{nested}, @code{top-level}, @code{restricted},
+@code{parent-first}, or @code{nil}.  @code{nested} or @code{nil} means
+normal nested navigation: first try to move across siblings; if there
+aren't any siblings left in the current level, move to the parent, then
+its siblings, and so on.  @code{top-level} means only navigate across
+top-level things and ignore nested things.  @code{restricted} means
+movement is restricted within the thing that encloses @var{position}, if
+there is such a thing.  This tactic is useful for commands that want to
+stop at the current nesting level and not move up.  @var{parent-first}
+means move to the parent if there is one; and move to siblings if
+there's no parent.
 @end defun
 
 @defun treesit-thing-at position thing &optional strict

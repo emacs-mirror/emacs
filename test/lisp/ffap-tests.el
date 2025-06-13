@@ -105,7 +105,7 @@ left alone when opening a URL in an external browser."
     (with-temp-buffer
       (insert string)
       (goto-char (point-min))
-      (forward-char 10)
+      (forward-char 3)
       (ffap-string-at-point))))
 
 (ert-deftest ffap-test-with-spaces ()
@@ -113,7 +113,7 @@ left alone when opening a URL in an external browser."
    (equal
     (ffap-test-string
      t "c:/Program Files/Open Text Evaluation Media/Open Text Exceed 14 x86/Program here.txt")
-    "/Program Files/Open Text Evaluation Media/Open Text Exceed 14 x86/Program here.txt"))
+    "c:/Program Files/Open Text Evaluation Media/Open Text Exceed 14 x86/Program here.txt"))
   (should
    (equal
     (ffap-test-string
@@ -122,23 +122,39 @@ left alone when opening a URL in an external browser."
   (should
    (equal
     (ffap-test-string
-     t "c:/Program Files/Open Text Evaluation Media/Open Text Exceed 14 x86/Program Files/Hummingbird/")
-    "/Program Files/Open Text Evaluation Media/Open Text Exceed 14 x86/Program Files/Hummingbird/"))
+     t "z:/Program Files/Open Text Evaluation Media/Open Text Exceed 14 x86/Program Files/Hummingbird/")
+    "z:/Program Files/Open Text Evaluation Media/Open Text Exceed 14 x86/Program Files/Hummingbird/"))
   (should
    (equal
     (ffap-test-string
      t "c:\\Program Files\\Open Text Evaluation Media\\Open Text Exceed 14 x86\\Program Files\\Hummingbird\\")
-    "\\Program Files\\Open Text Evaluation Media\\Open Text Exceed 14 x86\\Program Files\\Hummingbird\\"))
+    "c:\\Program Files\\Open Text Evaluation Media\\Open Text Exceed 14 x86\\Program Files\\Hummingbird\\"))
   (should
    (equal
     (ffap-test-string
-     t "c:\\Program Files\\Freescale\\CW for MPC55xx and MPC56xx 2.10\\PowerPC_EABI_Tools\\Command_Line_Tools\\CLT_Usage_Notes.txt")
-    "\\Program Files\\Freescale\\CW for MPC55xx and MPC56xx 2.10\\PowerPC_EABI_Tools\\Command_Line_Tools\\CLT_Usage_Notes.txt"))
+     t "d:\\Program Files\\Freescale\\CW for MPC55xx and MPC56xx 2.10\\PowerPC_EABI_Tools\\Command_Line_Tools\\CLT_Usage_Notes.txt")
+    "d:\\Program Files\\Freescale\\CW for MPC55xx and MPC56xx 2.10\\PowerPC_EABI_Tools\\Command_Line_Tools\\CLT_Usage_Notes.txt"))
   (should
    (equal
     (ffap-test-string
      t "C:\\temp\\program.log on Windows or /var/log/program.log on Unix.")
-    "\\temp\\program.log")))
+    "C:\\temp\\program.log"))
+  (should
+   (equal
+    (ffap-test-string t "~/tmp/")
+    "~/tmp/"))
+  (should
+   (equal
+    (ffap-test-string nil "~/tmp/")
+    "~/tmp/"))
+  (should
+   (equal
+    (ffap-test-string t "~abc123_áè/foo")
+    "~abc123_áè/foo"))
+  (should
+   (equal
+    (ffap-test-string t "c:/Program Files/my program.exe and here's more text")
+    "c:/Program Files/my program.exe")))
 
 (ert-deftest ffap-test-no-newlines ()
   (should-not

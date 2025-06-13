@@ -167,13 +167,13 @@ The function's value is the number of actions taken."
 				     'quit))
 		     ;; Prompt in the echo area.
 		     (let ((cursor-in-echo-area (not no-cursor-in-echo-area)))
-                       (message (substitute-command-keys
-                                 (format
-                                  (apply #'propertize
-                                         "%s(\\`y', \\`n', \\`!', \\`.', \\`q', %sor \\`%s') "
-                                         minibuffer-prompt-properties)
-                                  prompt user-keys
-                                  (help-key))))
+                       (message "%s" (substitute-command-keys
+                                     (format
+                                      (apply #'propertize
+                                             "%s(\\`y', \\`n', \\`!', \\`.', \\`q', %sor \\`%s') "
+                                             minibuffer-prompt-properties)
+                                      prompt user-keys
+                                      (help-key))))
 		       (if minibuffer-auto-raise
 			   (raise-frame (window-frame (minibuffer-window))))
                        (unwind-protect
@@ -194,14 +194,14 @@ The function's value is the number of actions taken."
                          (when (fboundp 'set-text-conversion-style)
                            (set-text-conversion-style text-conversion-style)))
 		       ;; Show the answer to the question.
-                       (message (substitute-command-keys
-                                 (format
-                                  "%s(\\`y', \\`n', \\`!', \\`.', \\`q', %sor \\`%s') %s"
-                                  prompt user-keys
-                                  (help-key)
-                                  (if (equal char -1)
-                                      "[end-of-keyboard-macro]"
-                                    (single-key-description char))))))
+                       (message "%s" (substitute-command-keys
+                                      (format
+                                       "%s(\\`y', \\`n', \\`!', \\`.', \\`q', %sor \\`%s') %s"
+                                       prompt user-keys
+                                       (help-key)
+                                       (if (equal char -1)
+                                           "[end-of-keyboard-macro]"
+                                         (single-key-description char))))))
 		     (setq def (lookup-key map (vector char))))
 		   (cond ((eq def 'exit)
 			  (setq next (lambda () nil)))
@@ -276,10 +276,10 @@ Type \\`SPC' or \\`y' to %s the current %s;
 			  (funcall try-again))
 			 (t
 			  ;; Random char.
-                          (message (substitute-command-keys
-                                    (format
-                                     "Type \\`%s' for help"
-                                     (help-key))))
+                          (message "%s" (substitute-command-keys
+                                         (format
+                                          "Type \\`%s' for help"
+                                          (help-key))))
 			  (beep)
 			  (sit-for 1)
 			  (funcall try-again))))

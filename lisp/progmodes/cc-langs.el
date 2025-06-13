@@ -346,7 +346,7 @@ the comment syntax to handle both line style \"//\" and block style
   (modify-syntax-entry ?&  "."     table)
   (modify-syntax-entry ?|  "."     table)
   (modify-syntax-entry ?\' "\""    table)
-  (modify-syntax-entry ?\240 "."   table)
+  (modify-syntax-entry ?\240 " "   table)
 
   ;; Set up block and line oriented comments.  The new C
   ;; standard mandates both comment styles even in C, so since

@@ -754,8 +754,10 @@ in the echo area.
         (dolist (def (plist-get repeat :enter))
           (push `(put ',def 'repeat-map ',variable-name) props))
         (dolist (def (plist-get repeat :continue))
-          (push `(put ',def 'repeat-continue
-                      (cons ',variable-name (get ',def 'repeat-continue)))
+          (push `(let ((val (get ',def 'repeat-continue)))
+                   (when (listp val)
+                     (put ',def 'repeat-continue
+                          (cons ',variable-name val))))
                 props))
         (while defs
           (pop defs)

@@ -119,6 +119,11 @@
 ;;   Takes no arguments.  Backends that return non-nil can update
 ;;   buffers on `vc-retrieve-tag' based on user input.  In this case
 ;;   user will be prompted to update buffers on `vc-retrieve-tag'.
+;;
+;; - async-checkins
+;;
+;;   Takes no arguments.  Backends that return non-nil can (and do)
+;;   perform async checkins when `vc-async-checkin' is non-nil.
 
 ;; STATE-QUERYING FUNCTIONS
 ;;
@@ -871,6 +876,14 @@ if the local changes in the file have not been found and displayed yet."
                  (const :tag "Yes" t))
   :version "22.1")
 
+(defcustom vc-allow-async-diff nil
+  "Non-nil to allow asynchronous diff process.
+Enabling this means the buffer will be displayed before the diff is
+generated, and so might only say \"No changes ...\"."
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t))
+  :version "31.1")
+
 ;;;###autoload
 (defcustom vc-checkout-hook nil
   "Normal hook (list of functions) run after checking out a file.
@@ -1033,9 +1046,6 @@ Not supported by all backends."
   :type 'boolean
   :safe #'booleanp
   :version "31.1")
-
-(defvar vc-async-checkin-backends '(Git Hg)
-  "Backends which support `vc-async-checkin'.")
 
 (defmacro vc--with-backend-in-rootdir (desc &rest body)
   (declare (indent 1) (debug (sexp body)))
@@ -1374,20 +1384,33 @@ BACKEND is the VC backend responsible for FILES."
     (setq states (mapcar #'car states-alist))
     (cond ((length= states 1)
            (setq state (car states)))
-          ((cl-subsetp states '(added removed edited))
+          ((cl-subsetp states '(added missing removed edited))
            (setq state 'edited))
 
-          ;; Special, but common case:
-          ;; checking in both changes and new files at once.
-          ((and (cl-subsetp states '(added removed edited unregistered))
-                (y-or-n-p "Some files are unregistered; register them first?"))
-           (vc-register (list backend
-                              (cdr (assq 'unregistered states-alist))))
+          ;; Special, but common case: checking in both changes and new
+          ;; files at once.  The actual registration is delayed until
+          ;; `vc-checkin' so that if the user changes their mind while
+          ;; entering the log message, we leave things as we found them.
+          ;;
+          ;; An alternative would be to delay it until the backend
+          ;; `vc-*-checkin'.  The advantages would be that those
+          ;; functions could complete the whole operation in fewer total
+          ;; shell commands, and if the checkin itself fails they could
+          ;; ensure the file is left unregistered then too (e.g. for Git
+          ;; we may be able to use 'git add -N', though that would still
+          ;; require a subsequent 'git reset').
+          ;; The disadvantage would be a more complex VC API because we
+          ;; would have to distinguish between backends which can and
+          ;; can't handle registration and checkin together.
+          ((and (cl-subsetp states
+                            '(added missing removed edited unregistered))
+                (y-or-n-p "\
+Some files are unregistered; register them before checking in?"))
            (setq state 'edited))
 
           (t
            (let* ((pred (lambda (elt)
-                          (memq (car elt) '(added removed edited))))
+                          (memq (car elt) '(added missing removed edited))))
                   (compat-alist (cl-remove-if-not pred states-alist))
                   (other-alist (cl-remove-if pred states-alist))
                   (first (car (or compat-alist other-alist)))
@@ -1426,9 +1449,8 @@ To apply VC operations to multiple files, the files must be in similar VC states
 (defun vc-next-action (verbose)
   "Do the next logical version control operation on the current fileset.
 This requires that all files in the current VC fileset be in the
-same state.  If they are not, signal an error.  Also signal an error if
-files in the fileset are missing (removed, but tracked by version control),
-or are ignored by the version control system.
+sufficiently similar states.  If they are not, signal an error.
+Also signal an error if files in the fileset are ignored by the VCS.
 
 For modern merging-based version control systems:
   If every file in the fileset is not registered for version
@@ -1471,7 +1493,7 @@ from which to check out the file(s)."
   (let* ((vc-fileset (vc-deduce-fileset nil t 'state-model-only-files))
          (backend (car vc-fileset))
 	 (files (nth 1 vc-fileset))
-         ;; (fileset-only-files (nth 2 vc-fileset))
+         (fileset-only-files (nth 2 vc-fileset))
          ;; FIXME: We used to call `vc-recompute-state' here.
          (state (nth 3 vc-fileset))
          ;; The backend should check that the checkout-model is consistent
@@ -1489,8 +1511,6 @@ from which to check out the file(s)."
 
     ;; Do the right thing.
     (cond
-     ((eq state 'missing)
-      (error "Fileset files are missing, so cannot be operated on"))
      ((eq state 'ignored)
       (error "Fileset files are ignored by the version-control system"))
      ;; Fileset comes from a diff-mode buffer, see
@@ -1503,6 +1523,8 @@ from which to check out the file(s)."
                (vc-register (cons backend (cdr vc-fileset)))))
             (t
              (vc-register vc-fileset))))
+     ((eq state 'missing)
+      (vc-delete-file files))
      ;; Files are up-to-date, or need a merge and user specified a revision
      ((or (eq state 'up-to-date) (and verbose (eq state 'needs-update)))
       (cond
@@ -1527,7 +1549,7 @@ from which to check out the file(s)."
         ;; do nothing
         (message "Fileset is up-to-date"))))
      ;; Files have local changes
-     ((memq state '(added removed edited))
+     ((memq state '(added missing removed edited))
       (let ((ready-for-commit files))
 	;; CVS, SVN and bzr don't care about read-only (bug#9781).
 	;; RCS does, SCCS might (someone should check...).
@@ -1551,6 +1573,9 @@ from which to check out the file(s)."
 		  (with-current-buffer visited
 		    (read-only-mode -1)))))))
 	;; Allow user to revert files with no changes
+        ;; FIXME: This will never do anything because STATE will never
+        ;; be `up-to-date' in this branch of the cond.
+        ;; How did the code end up like this?  --spwhitton
 	(save-excursion
           (let (to-revert)
             (dolist (file files)
@@ -1571,17 +1596,22 @@ from which to check out the file(s)."
 	;; Remaining files need to be committed
 	(if (not ready-for-commit)
 	    (message "No files remain to be committed")
-	  (if (not verbose)
-	      (vc-checkin ready-for-commit backend)
-	    (let* ((revision (read-string "New revision or backend: "))
-                   (revision-downcase (downcase revision)))
-	      (if (member
-		   revision-downcase
-		   (mapcar (lambda (arg) (downcase (symbol-name arg)))
-			   vc-handled-backends))
-		  (let ((vsym (intern revision-downcase)))
-		    (dolist (file files) (vc-transfer-file file vsym)))
-		(vc-checkin ready-for-commit backend nil nil revision)))))))
+          ;; In the case there actually are any unregistered files then
+          ;; `vc-deduce-backend', via `vc-only-files-state-and-model',
+          ;; has already prompted the user to approve registering them.
+	  (let ((register (cl-remove-if #'vc-backend fileset-only-files)))
+            (if (not verbose)
+	        (vc-checkin ready-for-commit backend nil nil nil nil register)
+	      (let* ((revision (read-string "New revision or backend: "))
+                     (revision-downcase (downcase revision)))
+	        (if (member
+		     revision-downcase
+		     (mapcar (lambda (arg) (downcase (symbol-name arg)))
+			     vc-handled-backends))
+		    (let ((vsym (intern revision-downcase)))
+		      (dolist (file files) (vc-transfer-file file vsym)))
+		  (vc-checkin ready-for-commit backend
+                              nil nil revision nil register))))))))
      ;; locked by somebody else (locking VCSes only)
      ((stringp state)
       ;; In the old days, we computed the revision once and used it on
@@ -1892,7 +1922,10 @@ Type \\[vc-next-action] to check in changes.")
      (substitute-command-keys
       "Please explain why you stole the lock.  Type \\`C-c C-c' when done"))))
 
-(defun vc-checkin (files backend &optional comment initial-contents rev patch-string)
+(defalias 'vc-default-async-checkins #'ignore)
+
+(defun vc-checkin
+    (files backend &optional comment initial-contents rev patch-string register)
   "Check in FILES.
 
 COMMENT is a comment string; if omitted, a buffer is popped up to accept
@@ -1902,11 +1935,14 @@ initial contents of the log entry buffer.
 The optional argument REV may be a string specifying the new revision
 level (only supported for some older VCSes, like RCS and CVS).
 The optional argument PATCH-STRING is a string to check in as a patch.
+If the optional argument REGISTER is non-nil, it should be a list of
+files to register before checking in; if any of these are already
+registered the checkin will abort.
 
 Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
   (run-hooks 'vc-before-checkin-hook)
   (let ((do-async (and vc-async-checkin
-                       (memq backend vc-async-checkin-backends))))
+                       (vc-call-backend backend 'async-checkins))))
    (vc-start-logentry
     files comment initial-contents
     "Enter a change comment."
@@ -1918,6 +1954,7 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
       ;; RCS 5.7 gripes about whitespace-only comments too.
       (unless (and comment (string-match "[^\t\n ]" comment))
         (setq comment "*** empty log message ***"))
+      (when register (vc-register (list backend files)))
       (cl-labels ((do-it ()
                     ;; We used to change buffers to get local value of
                     ;; `vc-checkin-switches', but the (singular) local
@@ -2323,7 +2360,7 @@ state of each file in the fileset."
     (error "Not a valid revision range"))
   ;; Yes, it's painful to call (vc-deduce-fileset) again.  Alas, the
   ;; placement rules for (interactive) don't actually leave us a choice.
-  (vc-diff-internal t (vc-deduce-fileset t) rev1 rev2
+  (vc-diff-internal vc-allow-async-diff (vc-deduce-fileset t) rev1 rev2
 		    (called-interactively-p 'interactive)))
 
 ;;;###autoload
@@ -2338,7 +2375,7 @@ state of each file in the fileset."
     (error "Not a valid revision range"))
   (vc--with-backend-in-rootdir "VC root-diff"
     (let ((default-directory rootdir))
-      (vc-diff-internal t (list backend (list rootdir)) rev1 rev2
+      (vc-diff-internal vc-allow-async-diff (list backend (list rootdir)) rev1 rev2
                         (called-interactively-p 'interactive)))))
 
 ;;;###autoload
@@ -2356,7 +2393,7 @@ Optional argument FILESET, if non-nil, overrides the fileset."
       (call-interactively 'vc-version-diff)
     (let ((fileset (or fileset (vc-deduce-fileset t))))
       (vc-buffer-sync-fileset fileset not-essential)
-      (vc-diff-internal t fileset nil nil
+      (vc-diff-internal vc-allow-async-diff fileset nil nil
 			(called-interactively-p 'interactive)))))
 
 (defun vc-buffer-sync-fileset (fileset &optional not-essential missing-in-dirs)
@@ -2408,8 +2445,9 @@ The merge base is a common ancestor between REV1 and REV2 revisions."
   (vc--with-backend-in-rootdir "VC root-diff"
     (let ((default-directory rootdir)
           (rev1 (vc-call-backend backend 'mergebase rev1 rev2)))
-      (vc-diff-internal t (list backend (list rootdir)) rev1 rev2
-                        (called-interactively-p 'interactive)))))
+      (vc-diff-internal
+       vc-allow-async-diff (list backend (list rootdir)) rev1 rev2
+       (called-interactively-p 'interactive)))))
 
 (declare-function ediff-load-version-control "ediff" (&optional silent))
 (declare-function ediff-vc-internal "ediff-vers"
@@ -2485,7 +2523,7 @@ saving the buffer."
       (let ((default-directory rootdir)
             (fileset `(,backend (,rootdir))))
         (vc-buffer-sync-fileset fileset not-essential)
-        (vc-diff-internal t fileset nil nil
+        (vc-diff-internal vc-allow-async-diff fileset nil nil
                           (called-interactively-p 'interactive))))))
 
 ;;;###autoload
@@ -3659,48 +3697,57 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
       (vc-checkin file new-backend comment (stringp comment)))))
 
 ;;;###autoload
-(defun vc-delete-file (file)
+(defun vc-delete-file (file-or-files)
   "Delete file and mark it as such in the version control system.
-If called interactively, read FILE, defaulting to the current
-buffer's file name if it's under version control."
+If called interactively, read FILE-OR-FILES, defaulting to the current
+buffer's file name if it's under version control.
+When called from Lisp, FILE-OR-FILES can be a file name or a list of
+file names."
   (interactive (list (read-file-name "VC delete file: " nil
                                      (when (vc-backend buffer-file-name)
                                        buffer-file-name)
                                      t)))
-  (setq file (expand-file-name file))
-  (let ((buf (get-file-buffer file))
-        (backend (vc-backend file)))
-    (unless backend
-      (error "File %s is not under version control"
-             (file-name-nondirectory file)))
-    (unless (vc-find-backend-function backend 'delete-file)
-      (error "Deleting files under %s is not supported in VC" backend))
-    (when (and buf (buffer-modified-p buf))
-      (error "Please save or undo your changes before deleting %s" file))
-    (let ((state (vc-state file)))
-      (when (eq state 'edited)
-        (error "Please commit or undo your changes before deleting %s" file))
-      (when (eq state 'conflict)
-        (error "Please resolve the conflicts before deleting %s" file)))
-    (unless (y-or-n-p (format "Really want to delete %s? "
-			      (file-name-nondirectory file)))
-      (error "Abort!"))
-    (unless (or (file-directory-p file) (null make-backup-files)
-                (not (file-exists-p file)))
-      (with-current-buffer (or buf (find-file-noselect file))
-	(let ((backup-inhibited nil))
-	  (backup-buffer))))
-    ;; Bind `default-directory' so that the command that the backend
-    ;; runs to remove the file is invoked in the correct context.
-    (let ((default-directory (file-name-directory file)))
-      (vc-call-backend backend 'delete-file file))
-    ;; If the backend hasn't deleted the file itself, let's do it for him.
-    (when (file-exists-p file) (delete-file file))
-    ;; Forget what VC knew about the file.
-    (vc-file-clearprops file)
-    ;; Make sure the buffer is deleted and the *vc-dir* buffers are
-    ;; updated after this.
-    (vc-resynch-buffer file nil t)))
+  (setq file-or-files (mapcar #'expand-file-name (ensure-list file-or-files)))
+  (dolist (file file-or-files)
+    (let ((buf (get-file-buffer file))
+          (backend (vc-backend file)))
+      (unless backend
+        (error "File %s is not under version control"
+               (file-name-nondirectory file)))
+      (unless (vc-find-backend-function backend 'delete-file)
+        (error "Deleting files under %s is not supported in VC" backend))
+      (when (and buf (buffer-modified-p buf))
+        (error "Please save or undo your changes before deleting %s" file))
+      (let ((state (vc-state file)))
+        (when (eq state 'edited)
+          (error "Please commit or undo your changes before deleting %s" file))
+        (when (eq state 'conflict)
+          (error "Please resolve the conflicts before deleting %s" file)))))
+  (unless (y-or-n-p (if (cdr file-or-files)
+                        (format "Really want to delete these %d files? "
+                                (length file-or-files))
+                      (format "Really want to delete %s? "
+			      (file-name-nondirectory (car file-or-files)))))
+    (error "Abort!"))
+  (dolist (file file-or-files)
+    (let ((buf (get-file-buffer file))
+          (backend (vc-backend file)))
+      (unless (or (file-directory-p file) (null make-backup-files)
+                  (not (file-exists-p file)))
+        (with-current-buffer (or buf (find-file-noselect file))
+          (let ((backup-inhibited nil))
+	    (backup-buffer))))
+      ;; Bind `default-directory' so that the command that the backend
+      ;; runs to remove the file is invoked in the correct context.
+      (let ((default-directory (file-name-directory file)))
+        (vc-call-backend backend 'delete-file file))
+      ;; If the backend hasn't deleted the file itself, let's do it for him.
+      (when (file-exists-p file) (delete-file file))
+      ;; Forget what VC knew about the file.
+      (vc-file-clearprops file)
+      ;; Make sure the buffer is deleted and the *vc-dir* buffers are
+      ;; updated after this.
+      (vc-resynch-buffer file nil t))))
 
 ;;;###autoload
 (defun vc-rename-file (old new)

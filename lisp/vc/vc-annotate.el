@@ -594,6 +594,7 @@ the file in question, search for the log entry required and move point."
 	     (car rev-at-line) t 1)))))))
 
 (defun vc-annotate-show-diff-revision-at-line-internal (filediff)
+  (defvar vc-allow-async-diff)
   (if (not (derived-mode-p 'vc-annotate-mode))
       (message "Cannot be invoked outside of a vc annotate buffer")
     (let* ((rev-at-line (vc-annotate-extract-revision-at-line))
@@ -606,7 +607,7 @@ the file in question, search for the log entry required and move point."
 	      (vc-call-backend vc-annotate-backend 'previous-revision
                                (if filediff fname nil) rev))
 	(vc-diff-internal
-         t
+         vc-allow-async-diff
          ;; The value passed here should follow what
          ;; `vc-deduce-fileset' returns.
          (list vc-annotate-backend

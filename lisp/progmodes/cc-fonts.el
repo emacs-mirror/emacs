@@ -1989,19 +1989,19 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	     (>= (point) (cadar string-delims))
 	     (or (not (cdr string-delims))
 		 (< (point) (cadr string-delims))))
-	(if (cdr string-delims)
-	    (goto-char (cadr string-delims))
-	  (if (equal (c-get-char-property (1- (cadar string-delims))
-					  'syntax-table)
-		     '(15))		; "Always" the case.
-	      ;; The next search should be successful for an unterminated ml
-	      ;; string inside a macro, but not for any other unterminated
-	      ;; string.
-	      (progn
-		(or (c-search-forward-char-property 'syntax-table '(15) limit)
-		    (goto-char limit))
-		(setq string-delims nil))
-	    (c-benign-error "Missing '(15) syntax-table property at %d"
+	(cond
+	 ((cdr string-delims)
+	  (goto-char (cadr string-delims)))
+	 ((equal (c-get-char-property (1- (cadar string-delims))
+				      'syntax-table)
+		 '(15))			; "Always" the case.
+	  ;; The next search should be successful for an unterminated ml
+	  ;; string inside a macro, but not for any other unterminated
+	  ;; string.
+	  (or (c-search-forward-char-property 'syntax-table '(15) limit)
+	      (goto-char limit))
+	  (setq string-delims nil))
+	 (t (c-benign-error "Messing '(15) syntax-table property at %d"
 			    (1- (cadar string-delims)))
 	    (setq string-delims nil))))
 
@@ -2009,10 +2009,14 @@ casts and declarations are fontified.  Used on level 2 and higher."
        ((and string-delims
 	     (cdr string-delims)
 	     (>= (point) (cadr string-delims)))
-	(c-put-font-lock-face (cadr string-delims) (1+ (cadr string-delims))
-			      'font-lock-string-face)
-	(c-remove-font-lock-face (1+ (cadr string-delims))
-				 (caddr string-delims))
+	(unless (featurep 'xemacs)
+	  (c-put-font-lock-face (cadr string-delims) (1+ (cadr string-delims))
+				'font-lock-string-face))
+	(c-remove-font-lock-face
+	 (if (featurep 'xemacs)
+	     (cadr string-delims)
+	   (1+ (cadr string-delims)))
+	 (caddr string-delims))
 	(goto-char (caddr string-delims))
 	(setq string-delims nil))
 
@@ -2021,10 +2025,11 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	(if (cdr string-delims)
 	    (progn
 	      (c-remove-font-lock-face (caar string-delims)
-				       (1- (cadar string-delims)))
-	      (c-put-font-lock-face (1- (cadar string-delims))
-				    (cadar string-delims)
-				    'font-lock-string-face))
+				       (cadar string-delims))
+	      (unless (featurep 'xemacs)
+		(c-put-font-lock-face (1- (cadar string-delims))
+				      (cadar string-delims)
+				      'font-lock-string-face)))
 	  (c-put-font-lock-face (caar string-delims) (cadar string-delims)
 				'font-lock-warning-face))
 	(goto-char (cadar string-delims)))))

@@ -402,13 +402,11 @@ function symbol (unquoted)."
                           ;; repeat-map is non-nil, map is always
                           ;; non-nil
                           (if (eq repeat-type :continue-only)
-                              `((unless (memq ',repeat-map
-                                              (or (get ,fun 'repeat-continue)
-                                                  '()))
-                                  (put ,fun 'repeat-continue
-                                       (append (or (get ,fun 'repeat-continue)
-                                                   '())
-                                               (list ',repeat-map))))
+                              `((let ((cur (get ,fun 'repeat-continue)))
+                                  (when (and (listp cur)
+                                             (not (memq ',repeat-map cur)))
+                                    (put ,fun 'repeat-continue
+                                         (append cur (list ',repeat-map)))))
                                 (bind-key ,(car form) ,fun ,map ,filter))
                             `(,@(when (and repeat-map (not (eq repeat-type :exit)))
                                   `((put ,fun 'repeat-map ',repeat-map)))
@@ -446,6 +444,9 @@ Accepts keyword arguments:
                          same behavior as if no special keyword had
                          been used (that is, the command is bound, and
                          it's `repeat-map' property set)
+:continue-only BINDINGS - Within the scope of `:repeat-map', will make
+                         the command continue but not enter the repeat
+                         map, via the `repeat-continue' property
 :filter FORM           - optional form to determine when bindings apply
 
 The rest of the arguments are conses of keybinding string and a

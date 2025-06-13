@@ -696,18 +696,39 @@
     (insert "Foo bar zot gazonk")
     (add-display-text-property 4 8 'height 2.0)
     (add-display-text-property 2 12 'raise 0.5)
-    (should (equal (get-text-property 2 'display) '(raise 0.5)))
-    (should (equal (get-text-property 5 'display)
-                   '((raise 0.5) (height 2.0))))
-    (should (equal (get-text-property 9 'display) '(raise 0.5))))
+    (add-display-text-property 6 10 'height 1.0)
+    (should (equal-including-properties
+             (buffer-string)
+             #("Foo bar zot gazonk"
+               1 3 (display (raise 0.5))
+               3 5 (display ((raise 0.5) (height 2.0)))
+               5 9 (display ((height 1.0) (raise 0.5)))
+               9 11 (display (raise 0.5))))))
   (with-temp-buffer
     (insert "Foo bar zot gazonk")
     (put-text-property 4 8 'display [(height 2.0)])
     (add-display-text-property 2 12 'raise 0.5)
-    (should (equal (get-text-property 2 'display) '(raise 0.5)))
-    (should (equal (get-text-property 5 'display)
-                   [(raise 0.5) (height 2.0)]))
-    (should (equal (get-text-property 9 'display) '(raise 0.5))))
+    (add-display-text-property 6 10 'height 1.0)
+    (should (equal-including-properties
+             (buffer-string)
+             #("Foo bar zot gazonk"
+               1 3 (display (raise 0.5))
+               3 5 (display [(raise 0.5) (height 2.0)])
+               5 7 (display [(height 1.0) (raise 0.5)])
+               7 9 (display ((height 1.0) (raise 0.5)))
+               9 11 (display (raise 0.5))))))
+  (with-temp-buffer
+    (insert "Foo bar zot gazonk")
+    (add-display-text-property 4 8 '(margin nil) "Hi")
+    (add-display-text-property 2 12 'raise 0.5)
+    (add-display-text-property 6 10 '(margin nil) "Bye")
+    (should (equal-including-properties
+             (buffer-string)
+             #("Foo bar zot gazonk"
+               1 3 (display (raise 0.5))
+               3 5 (display ((raise 0.5) ((margin nil) "Hi")))
+               5 9 (display (((margin nil) "Bye") (raise 0.5)))
+               9 11 (display (raise 0.5))))))
   (with-temp-buffer
     (should (equal-including-properties
              (let ((str (copy-sequence "some useless string")))
@@ -718,6 +739,44 @@
                2 4 (display (raise 0.5))
                4 8 (display ((raise 0.5) (height 2.0)))
                8 12 (display (raise 0.5)))))))
+
+(ert-deftest subr-x-test-remove-display-text-property ()
+  (with-temp-buffer
+    (insert "Foo bar zot gazonk")
+    (add-display-text-property 4 12 'height 2.0)
+    (add-display-text-property 2 8 'raise 0.5)
+    (remove-display-text-property 6 10 'height)
+    (should (equal-including-properties
+             (buffer-string)
+             #("Foo bar zot gazonk"
+               1 3 (display (raise 0.5))
+               3 5 (display ((raise 0.5) (height 2.0)))
+               5 7 (display ((raise 0.5)))
+               9 11 (display (height 2.0))))))
+  (with-temp-buffer
+    (insert "Foo bar zot gazonk")
+    (put-text-property 4 12 'display [(height 2.0)])
+    (add-display-text-property 2 8 'raise 0.5)
+    (remove-display-text-property 6 10 'height)
+    (should (equal-including-properties
+             (buffer-string)
+             #("Foo bar zot gazonk"
+               1 3 (display (raise 0.5))
+               3 5 (display [(raise 0.5) (height 2.0)])
+               5 7 (display [(raise 0.5)])
+               9 11 (display [(height 2.0)])))))
+  (with-temp-buffer
+    (should (equal-including-properties
+             (let ((str (copy-sequence "Foo bar zot gazonk")))
+               (add-display-text-property 3 11 'height 2.0 str)
+               (add-display-text-property 1 7 'raise 0.5 str)
+               (remove-display-text-property 5 9 'height str)
+               str)
+             #("Foo bar zot gazonk"
+               1 3 (display (raise 0.5))
+               3 5 (display ((raise 0.5) (height 2.0)))
+               5 7 (display ((raise 0.5)))
+               9 11 (display (height 2.0)))))))
 
 (ert-deftest subr-x-named-let ()
   (let ((funs ()))

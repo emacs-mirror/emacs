@@ -210,6 +210,13 @@ which corresponds to a minimum contrast in relative luminance of
 
       (bg-diff-context    "#efe9df")
 
+;;; Paren match
+
+      (bg-paren-match        "#7fdfcf")
+      (fg-paren-match        fg-main)
+      (bg-paren-expression   "#efd3f5")
+      (underline-paren-match unspecified)
+
 ;;; Mappings
 
 ;;;; General mappings
@@ -255,19 +262,13 @@ which corresponds to a minimum contrast in relative luminance of
       (number fg-main)
       (operator fg-main)
       (preprocessor yellow-warmer)
+      (property green-cooler)
       (punctuation fg-main)
       (rx-backslash magenta-warmer)
       (rx-construct magenta-cooler)
       (string cyan)
       (type green-warmer)
       (variable green-cooler)
-
-;;;; Paren match
-
-      (bg-paren-match        bg-cyan-subtle)
-      (fg-paren-match        fg-main)
-      (underline-paren-match unspecified)
-      (bg-paren-expression   bg-yellow-nuanced)
 
 ;;;; Accent mappings
 
@@ -332,11 +333,11 @@ which corresponds to a minimum contrast in relative luminance of
 
 ;;;; Mail mappings
 
-      (mail-cite-0 cyan-cooler)
+      (mail-cite-0 cyan)
       (mail-cite-1 yellow)
       (mail-cite-2 green-warmer)
       (mail-cite-3 red-cooler)
-      (mail-part magenta-cooler)
+      (mail-part green-cooler)
       (mail-recipient blue-warmer)
       (mail-subject magenta-warmer)
       (mail-other magenta)

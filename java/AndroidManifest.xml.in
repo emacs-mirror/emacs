@@ -207,7 +207,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
 
   <uses-sdk android:minSdkVersion="@ANDROID_MIN_SDK@"
-	    android:targetSdkVersion="35"/>
+	    android:targetSdkVersion="36"/>
 
   <application android:name="org.gnu.emacs.EmacsApplication"
 	       android:label="Emacs"

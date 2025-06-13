@@ -84,12 +84,16 @@ Move point one week forward (@code{calendar-forward-week}).
 @item C-p
 Move point one week backward (@code{calendar-backward-week}).
 @item M-@}
+@itemx @}
 Move point one month forward (@code{calendar-forward-month}).
 @item M-@{
+@itemx @{
 Move point one month backward (@code{calendar-backward-month}).
 @item C-x ]
+@itemx ]
 Move point one year forward (@code{calendar-forward-year}).
 @item C-x [
+@itemx [
 Move point one year backward (@code{calendar-backward-year}).
 @end table
 
@@ -114,12 +118,16 @@ week.  @kbd{C-f} (@code{calendar-forward-day}) and @kbd{C-b}
 @kbd{C-p}, just as they normally are in other modes.
 
 @kindex M-@} @r{(Calendar mode)}
+@kindex @} @r{(Calendar mode)}
 @findex calendar-forward-month
 @kindex M-@{ @r{(Calendar mode)}
+@kindex @{ @r{(Calendar mode)}
 @findex calendar-backward-month
 @kindex C-x ] @r{(Calendar mode)}
+@kindex ] @r{(Calendar mode)}
 @findex calendar-forward-year
 @kindex C-x [ @r{(Calendar mode)}
+@kindex [ @r{(Calendar mode)}
 @findex calendar-backward-year
   The commands for motion by months and years work like those for
 weeks, but move a larger distance.  The month commands @kbd{M-@}}
@@ -136,6 +144,9 @@ for movement through text: the ordinary Emacs paragraph commands move
 to the beginning or end of a paragraph, whereas these month and year
 commands move by an entire month or an entire year, keeping the same
 date within the month or year.
+
+  You can also use the simpler to type keystrokes @kbd{@}} and @kbd{@{}
+to navigate by month, and @kbd{]} and @kbd{[} to navigate by year.
 
   All these commands accept a numeric argument as a repeat count.
 For convenience, the digit keys and the minus sign specify numeric

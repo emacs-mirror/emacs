@@ -797,10 +797,10 @@ Return nil if NODE is not a defun node or doesn't have a name."
 
     ;; Enable the 'sexp' navigation by default
     (setq-local forward-sexp-function #'treesit-forward-sexp
-                treesit-sexp-type-regexp 'sexp
+                treesit-sexp-thing 'sexp
                 ;; But still use 'list' for `down-list' and `up-list'
-                treesit-sexp-type-down-list 'list
-                treesit-sexp-type-up-list 'list)))
+                treesit-sexp-thing-down-list 'list
+                treesit-sexp-thing-up-list 'list)))
 
 (derived-mode-add-parents 'elixir-ts-mode '(elixir-mode))
 

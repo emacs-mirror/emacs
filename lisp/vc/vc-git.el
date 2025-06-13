@@ -314,15 +314,6 @@ Good example of file name that needs this: \"test[56].xx\".")
                (string= (substring str 0 (1+ (length name)))
                         (concat name "\0"))))))))
 
-(defun vc-git--state-code (code)
-  "Convert from a string to an added/deleted/modified state."
-  (pcase (string-to-char code)
-    (?M 'edited)
-    (?A 'added)
-    (?D 'removed)
-    (?U 'edited)     ;; FIXME
-    (?T 'edited)))   ;; FIXME
-
 (defvar vc-git--program-version nil)
 
 (connection-local-set-profile-variables
@@ -383,11 +374,9 @@ in the order given by `git status'."
      (pcase code
        ("!!" 'ignored)
        ("??" 'unregistered)
-       ;; I have only seen this with a file that is only present in the
-       ;; index.  Let us call this `removed'.
-       ("AD" 'removed)
+       ("D " 'removed)
        (_ (cond
-           ((string-match-p "^[ RD]+$" code) 'removed)
+           ((string-match-p "^.D$" code) 'missing)
            ((string-match-p "^[ M]+$" code) 'edited)
            ((string-match-p "^[ A]+$" code) 'added)
            ((string-match-p "^[ U]+$" code) 'conflict)
@@ -601,6 +590,13 @@ or an empty string if none."
   "Process sentinel for the various dir-status stages."
   (let (next-stage
         (files (vc-git-dir-status-state->files git-state)))
+    ;; First stage is always update-index.
+    ;;   After that, if no commits yet, ls-files-added.
+    ;;   Otherwise (there are commits), diff-index then ls-files-missing.
+    ;;     After ls-files-missing, if FILES non-nil, ls-files-up-to-date.
+    ;;     After ls-files-missing, if FILES     nil, ls-files-conflict.
+    ;; Then always ls-files-unknown.
+    ;; Finally, if FILES non-nil, ls-files-ignored.
     (goto-char (point-min))
     (pcase (vc-git-dir-status-state->stage git-state)
       ('update-index
@@ -638,6 +634,11 @@ or an empty string if none."
            (vc-git-dir-status-update-file
             git-state name 'conflict
             (vc-git-create-extra-fileinfo perm perm)))))
+      ('ls-files-missing
+       (setq next-stage (if files 'ls-files-up-to-date 'ls-files-conflict))
+       (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
+         (vc-git-dir-status-update-file git-state (match-string 1) 'missing
+                                        (vc-git-create-extra-fileinfo 0 0))))
       ('ls-files-unknown
        (when files (setq next-stage 'ls-files-ignored))
        (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
@@ -648,7 +649,15 @@ or an empty string if none."
          (vc-git-dir-status-update-file git-state (match-string 1) 'ignored
                                         (vc-git-create-extra-fileinfo 0 0))))
       ('diff-index
-       (setq next-stage (if files 'ls-files-up-to-date 'ls-files-conflict))
+       ;; This is output from 'git diff-index' without --cached.
+       ;; Therefore this stage compares HEAD and the working tree and
+       ;; ignores the index (cf. git-diff-index(1) "RAW OUTPUT FORMAT").
+       ;; In particular that means it cannot distinguish between
+       ;; `removed' (deletion staged) and `missing' (deleted only in
+       ;; working tree).  Set them all to `removed' and then do
+       ;; `ls-files-missing' as the next stage to possibly change some
+       ;; of those just set to `removed', to `missing'.
+       (setq next-stage 'ls-files-missing)
        (while (re-search-forward
                ":\\([0-7]\\{6\\}\\) \\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\(\\([ADMUT]\\)\0\\([^\0]+\\)\\|\\([CR]\\)[0-9]*\0\\([^\0]+\\)\0\\([^\0]+\\)\\)\0"
                nil t 1)
@@ -657,7 +666,7 @@ or an empty string if none."
                (state (or (match-string 4) (match-string 6)))
                (name (or (match-string 5) (match-string 7)))
                (new-name (match-string 8)))
-           (if new-name  ; Copy or rename.
+           (if new-name                 ; Copy or rename.
                (if (eq ?C (string-to-char state))
                    (vc-git-dir-status-update-file
                     git-state new-name 'added
@@ -671,7 +680,13 @@ or an empty string if none."
                   (vc-git-create-extra-fileinfo old-perm new-perm
                                                 'rename name)))
              (vc-git-dir-status-update-file
-              git-state name (vc-git--state-code state)
+              git-state name (pcase (string-to-char state)
+                               (?M 'edited)
+                               (?A 'added)
+                               (?C 'added)
+                               (?D 'removed)
+                               (?U 'edited)  ;; FIXME
+                               (?T 'edited)) ;; FIXME
               (vc-git-create-extra-fileinfo old-perm new-perm)))))))
     ;; If we had files but now we don't, it's time to stop.
     (when (and files (not (vc-git-dir-status-state->files git-state)))
@@ -713,6 +728,9 @@ or an empty string if none."
       ('ls-files-conflict
        (vc-git-command (current-buffer) 'async files
                        "ls-files" "-z" "-u" "--"))
+      ('ls-files-missing
+       (vc-git-command (current-buffer) 'async files
+                       "ls-files" "-z" "-d" "--"))
       ('ls-files-unknown
        (vc-git-command (current-buffer) 'async files
                        "ls-files" "-z" "-o" "--exclude-standard" "--"))
@@ -1122,6 +1140,8 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                             (vc-git-command nil 0 nil "apply" "--cached"
                                             (file-local-name ,temp)))
        (delete-file ,temp))))
+
+(defalias 'vc-git-async-checkins #'always)
 
 (defun vc-git-checkin (files comment &optional _rev)
   (let* ((parent (current-buffer))
@@ -1785,7 +1805,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
                                 samp coding-system-for-read t)))
     (setq coding-system-for-read 'undecided)))
 
-(defun vc-git-diff (files &optional rev1 rev2 buffer _async)
+(defun vc-git-diff (files &optional rev1 rev2 buffer async)
   "Get a difference report using Git between two revisions of FILES."
   (let (process-file-side-effects
         (command "diff-tree"))
@@ -1797,7 +1817,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
       (unless rev1 (setq rev1 "HEAD")))
     (if vc-git-diff-switches
         (apply #'vc-git-command (or buffer "*vc-diff*")
-	       1 ; bug#21969
+               (if async 'async 1)
                files
                command
                "--exit-code"

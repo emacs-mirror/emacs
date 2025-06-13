@@ -1618,7 +1618,7 @@ recommended to enable `electric-pair-mode' with this mode."
     "--"
     ("Toggle..."
      ["Subword Mode" subword-mode
-      :style toggle :selected subword-mode
+      :style toggle :selected (bound-and-true-p subword-mode)
       :help "Toggle subword movement and editing mode"])))
 
 ;; We could alternatively use parsers, but if this works well, I don't

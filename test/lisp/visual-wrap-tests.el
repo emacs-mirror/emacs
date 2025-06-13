@@ -1,6 +1,6 @@
 ;;; visual-wrap-tests.el --- Tests for `visual-wrap-prefix-mode'  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2024 Free Software Foundation, Inc.
+;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,7 +19,7 @@
 
 ;;; Commentary:
 
-;; Tets for `visual-wrap-prefix-mode'.
+;; Tests for `visual-wrap-prefix-mode'.
 
 ;;; Code:
 
@@ -116,5 +116,41 @@ should *not* add wrapping properties to either block."
              #("* a\n* b\n"
               0 4 (display ((image :type bmp)))
               4 8 (display ((image :type bmp) (height 1.5))))))))
+
+(ert-deftest visual-wrap-tests/wrap-prefix-stickiness ()
+  "Test that `wrap-prefix' doesn't persist across multiple lines when typing.
+See bug#76018."
+  (with-temp-buffer
+    (insert "* this zoo contains goats")
+    (visual-wrap-prefix-function (point-min) (point-max))
+    (should (equal-including-properties
+             (buffer-string)
+             #("* this zoo contains goats"
+               0  2 ( wrap-prefix (space :align-to (2 . width))
+                      display (min-width ((2 . width))))
+               2 25 ( wrap-prefix (space :align-to (2 . width))))))
+    (let ((start (point)))
+      (insert-and-inherit "\n\nit also contains pandas")
+      (visual-wrap-prefix-function start (point-max)))
+    (should (equal-including-properties
+             (buffer-string)
+             #("* this zoo contains goats\n\nit also contains pandas"
+               0  2 ( wrap-prefix (space :align-to (2 . width))
+                      display (min-width ((2 . width))))
+               2 25 ( wrap-prefix (space :align-to (2 . width))))))))
+
+(ert-deftest visual-wrap-tests/cleanup ()
+  "Test that deactivating `visual-wrap-prefix-mode' cleans up text properties."
+  (with-temp-buffer
+    (insert "* hello\n* hi")
+    (visual-wrap-prefix-function (point-min) (point-max))
+    ;; Make sure we've added the visual-wrapping properties.
+    (should (equal (text-properties-at (point-min))
+                   '( wrap-prefix (space :align-to (2 . width))
+                      display (min-width ((2 . width))))))
+    (visual-wrap-prefix-mode -1)
+    (should (equal-including-properties
+             (buffer-string)
+             "* hello\n* hi"))))
 
 ;; visual-wrap-tests.el ends here

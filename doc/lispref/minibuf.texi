@@ -2123,6 +2123,12 @@ same argument only need to call @var{function} once.  This can be useful
 when a slow operation is involved, such as calling an external process.
 @end defun
 
+@defun completion-table-with-metadata table metadata
+This function creates a completion table that behaves like the existing
+completion table @var{table}, except that the new table uses the alist
+@var{metadata} as its completion metadata.
+@end defun
+
 @node Completion in Buffers
 @subsection Completion in Ordinary Buffers
 @cindex inline completion

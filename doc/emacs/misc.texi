@@ -430,7 +430,7 @@ checks in @code{network-security-protocol-checks}).
 The protocols older than @acronym{TLS1.0} are believed to be
 vulnerable to a variety of attacks, and you may want to avoid using
 these if what you're doing requires higher security.  (This is the
-@code{ssl} check in @code{network-security-protocol-checks}).
+@code{version} check in @code{network-security-protocol-checks}).
 
 @item Triple DES (or @acronym{3DES}) cipher
 The @acronym{3DES} stream cipher provides at most 112 bits of

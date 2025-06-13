@@ -255,8 +255,10 @@ Return nil if NODE is not a defun node or doesn't have a name."
                           `((elixir ,@elixir-ts--thing-settings)))))
 
     (treesit-major-mode-setup)
+
     ;; Enable the 'sexp' navigation by default
-    (treesit-cycle-sexp-type)))
+    (setq-local forward-sexp-function #'treesit-forward-sexp
+                treesit-sexp-thing 'sexp)))
 
 (derived-mode-add-parents 'heex-ts-mode '(heex-mode))
 

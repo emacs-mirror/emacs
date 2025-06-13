@@ -427,9 +427,18 @@ the map can't be set on the command symbol property `repeat-map'.")
 When Repeat mode is enabled, certain commands bound to multi-key
 sequences can be repeated by typing a single key, after typing the
 full key sequence once.
-The commands which can be repeated like that are those whose symbol
- has the property `repeat-map' which specifies a keymap of single
-keys for repeating.
+
+The commands that can be repeated in this way are those whose symbols
+have the `repeat-map' property, which specifies a keymap of single keys
+for repeating.
+
+Normally, invoking a command outside that keymap terminates the
+repeating sequence.  However, if the command's `repeat-continue'
+property is non-nil, it may instead continue the current repeating
+sequence: if the property is a list of keymaps, then the command
+continues when the current repeat map is in the list; if the property is
+t, the command always continues the sequence.
+
 See `describe-repeat-maps' for a list of all repeatable commands."
   :global t :group 'repeat
   (if (not repeat-mode)
@@ -460,12 +469,11 @@ See `describe-repeat-maps' for a list of all repeatable commands."
   (when repeat-mode
     (let ((map-sym (or repeat-map (repeat--command-property 'repeat-map)))
           (continue (repeat--command-property 'repeat-continue)))
-      (when continue
-        (if repeat-in-progress
-            (when (and (consp continue)
-                       (memq repeat-in-progress continue))
-              (setq map-sym repeat-in-progress))
-          (setq map-sym nil)))
+      (when (and repeat-in-progress
+                 (or (eq continue t)
+                     (and (consp continue)
+                          (memq repeat-in-progress continue))))
+        (setq map-sym repeat-in-progress))
       map-sym)))
 
 (defun repeat-get-map (map)
@@ -495,7 +503,8 @@ See `describe-repeat-maps' for a list of all repeatable commands."
        ;; in the middle of repeating sequence (bug#47566).
        (or (< (minibuffer-depth) (car repeat--prev-mb))
            (eq current-minibuffer-command (cdr repeat--prev-mb)))
-       (repeat-check-key last-command-event map)
+       (or (eq (repeat--command-property 'repeat-continue) t)
+           (repeat-check-key last-command-event map))
        t))
 
 (defun repeat-pre-hook ()

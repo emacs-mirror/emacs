@@ -419,6 +419,123 @@ This is a reduced example from GNU nano's initial screen."
                    (term-test-screen-from-input
                     40 1 bytes)))))
 
+(ert-deftest term-ignore-osc ()
+  ;; BEL-terminated OSC sequence
+  (should (equal "test"
+                 (term-test-screen-from-input
+                  40 1 "te\e]0;window title\ast")))
+  ;; ESC \-terminated OSC sequence
+  (should (equal "test"
+                 (term-test-screen-from-input
+                  40 1 "te\e]0;window title\e\\st")))
+  ;; Long OSC sequence split into multiple chunks
+  (should (equal "test"
+                 (term-test-screen-from-input
+                  40 1 '("te\e]0;win" "dow " " title\ast"))))
+  ;; OSC sequence that start and ends with the chunk
+  (should (equal "test"
+                 (term-test-screen-from-input
+                  40 1 '("te" "\e]0;window " "title\a" "st"))))
+
+  ;; Invalid control characters break out of the OSC sequence, for
+  ;; safety.
+  (should (equal "tetitlest"
+                 (term-test-screen-from-input
+                  40 1 '("te\e]0;window\x05title\ast"))))
+
+  (let ((locale-coding-system 'utf-8-unix))
+    ;; An OSC sequence with multibyte UTF-8 characters.  This is not
+    ;; exactly standard-compliant, but too common not to support.
+    (should (equal "test"
+                   (term-test-screen-from-input
+                    40 1 "te\e]0;\xce\xb1\xce\xb2\e\\st")))))
+
+(ert-deftest term-handle-osc ()
+  (let* ((captured nil)
+         (handler (lambda (code text)
+                    (push (cons code text)
+                          captured)))
+         (term-osc-handlers `(("2" . ,handler)
+                              ("1994" . ,handler))))
+
+    ;; Send OSC sequences to handler
+    (should (equal "test"
+                   (term-test-screen-from-input
+                    40 1 "te\e]2;foo\as\e]1994;bar\at")))
+    (should (equal '(("2" . "foo")
+                     ("1994" . "bar"))
+                   (nreverse captured)))
+
+    ;; OSC sequences and code can be chunked
+    (setq captured nil)
+    (should (equal "test"
+                   (term-test-screen-from-input
+                    40 1 `("te\e]2;chunked fo"
+                           "o\as\e]19"
+                           "94;chunked ba"
+                           "r\at"))))
+    (should (equal '(("2" . "chunked foo")
+                     ("1994" . "chunked bar"))
+                   (nreverse captured)))
+
+    ;; OSC sequences can contain multibyte characters
+    (let ((locale-coding-system 'utf-8-unix))
+      (setq captured nil)
+      (should (equal "test"
+                     (term-test-screen-from-input
+                      40 1 "te\e]2;\xce\xb1\xce\xb2\e\\st")))
+      (should (equal '(("2" . "\u03b1\u03b2")) captured)))
+
+    ;; Ignore unhandled and invalid OSC sequences
+    (setq captured nil)
+    (should (equal
+             "test"
+             (term-test-screen-from-input
+              40 1 "t\e]3;unhandled\aest")))
+    (should-not captured)
+    (should (equal
+             "test"
+             (term-test-screen-from-input
+              40 1 "t\e]2missing semicolon\aest")))
+    (should-not captured)
+
+    (should (equal
+             "test"
+             (term-test-screen-from-input
+              40 1 "t\e]2;not ended\003est")))
+    (should-not captured)))
+
+(ert-deftest term-call-ansi-osc-handlers ()
+  (let* ((captured nil)
+         (osc-handler (lambda (code text)
+                        (push (list 'osc code text)
+                              captured)))
+         (term-handler (lambda (code text)
+                         (push (list 'term code text)
+                               captured)))
+         (ansi-osc-handlers `(("1" . ,osc-handler)
+                              ("2" . ,osc-handler)
+                              ("3" . ,osc-handler)))
+         (term-osc-handlers `(("2" . ,term-handler)
+                              ("3" . nil))))
+
+    (should
+     (equal
+      "test"
+      (term-test-screen-from-input
+       40 1 (concat
+             "te"
+             "\e]1;a\a" ;; sent to osc-handler
+             "\e]2;b\a" ;; sent to term-handler
+             "\e]3;c\a" ;; ignored; disabled in term
+             "\e]4;d\a" ;; ignored; not registered
+             "st"))))
+    (should
+     (equal
+      '((osc "1" "a")
+        (term "2" "b"))
+      (nreverse captured)))))
+
 (provide 'term-tests)
 
 ;;; term-tests.el ends here

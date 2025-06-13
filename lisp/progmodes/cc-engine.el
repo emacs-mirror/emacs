@@ -2033,11 +2033,11 @@ comment at the start of cc-engine.el for more info."
 						  ; comment delimiters are 2
 						  ; chars long.
 	     (or (get-text-property end 'c-in-sws)
-		 (next-single-property-change end 'c-in-sws nil
-					      (cdr c-sws-lit-limits))
+		 (c-next-single-property-change end 'c-in-sws nil
+						(cdr c-sws-lit-limits))
 		 (get-text-property end 'c-is-sws)
-		 (next-single-property-change end 'c-is-sws nil
-					      (cdr c-sws-lit-limits))))
+		 (c-next-single-property-change end 'c-is-sws nil
+						(cdr c-sws-lit-limits))))
 	(cdr c-sws-lit-limits))))
 
 (defun c-invalidate-sws-region-after-ins (end)
@@ -2055,10 +2055,10 @@ comment at the start of cc-engine.el for more info."
 	      limits (cons (point)
 			   (progn (c-end-of-macro) (point)))))
       (when (memq lit-type '(c c++ pound))
-	(let ((next-in (next-single-property-change (car limits) 'c-in-sws
-						    nil (cdr limits)))
-	      (next-is (next-single-property-change (car limits) 'c-is-sws
-						    nil (cdr limits))))
+	(let ((next-in (c-next-single-property-change (car limits) 'c-in-sws
+						      nil (cdr limits)))
+	      (next-is (c-next-single-property-change (car limits) 'c-is-sws
+						      nil (cdr limits))))
 	  (and (or next-in next-is)
 	       (cdr limits)))))))
 
@@ -2141,7 +2141,7 @@ comment at the start of cc-engine.el for more info."
     ;; Skip simple ws and do a quick check on the following character to see
     ;; if it's anything that can't start syntactic ws, so we can bail out
     ;; early in the majority of cases when there just are a few ws chars.
-    (c-skip-ws-chars-forward " \t\n\r\f\v")
+    (c-skip-ws-chars-forward " \t\n\r\f\v ")
     (when (or (looking-at c-syntactic-ws-start)
 	      (and c-opt-cpp-prefix
 		   (looking-at c-noise-macro-name-re))
@@ -2154,7 +2154,7 @@ comment at the start of cc-engine.el for more info."
 						  'c-is-sws t))
 	  ;; Find the last rung position to avoid setting properties in all
 	  ;; the cases when the marked rung is complete.
-	  ;; (`next-single-property-change' is certain to move at least one
+	  ;; (`c-next-single-property-change' is certain to move at least one
 	  ;; step forward.)
 	  (setq rung-pos (1- (c-next-single-property-change
 			      rung-is-marked 'c-is-sws nil rung-end-pos)))
@@ -2182,7 +2182,7 @@ comment at the start of cc-engine.el for more info."
 		    ;; If the `c-in-sws' region extended past the last
 		    ;; `c-is-sws' char we have to go back a bit.
 		    (or (get-text-property (1- (point)) 'c-is-sws)
-			(goto-char (previous-single-property-change
+			(goto-char (c-previous-single-property-change
 				    (point) 'c-is-sws)))
 		    (backward-char))
 
@@ -2191,7 +2191,7 @@ comment at the start of cc-engine.el for more info."
 		   rung-pos (point) (point-max))
 
 		  (setq rung-pos (point))
-		  (and (> (c-skip-ws-chars-forward " \t\n\r\f\v") 0)
+		  (and (> (c-skip-ws-chars-forward " \t\n\r\f\v ") 0)
 		       (not (eobp))))
 
 	      ;; We'll loop here if there is simple ws after the last rung.
@@ -2258,7 +2258,7 @@ comment at the start of cc-engine.el for more info."
 		(and c-opt-cpp-prefix
 		     (looking-at c-opt-cpp-start)
 		     (setq macro-start (point))
-		     (progn (c-skip-ws-chars-backward " \t")
+		     (progn (c-skip-ws-chars-backward " \t ")
 			    (bolp))
 		     (or (bobp)
 			 (progn (backward-char)
@@ -2298,7 +2298,7 @@ comment at the start of cc-engine.el for more info."
 	;; We've searched over a piece of non-white syntactic ws.  See if this
 	;; can be cached.
 	(setq next-rung-pos (point))
-	(c-skip-ws-chars-forward " \t\n\r\f\v")
+	(c-skip-ws-chars-forward " \t\n\r\f\v ")
 	(setq rung-end-pos (min (1+ (point)) (point-max)))
 
 	(if (or
@@ -2395,7 +2395,7 @@ comment at the start of cc-engine.el for more info."
     ;; bail out early in the majority of cases when there just are a few ws
     ;; chars.  Newlines are complicated in the backward direction, so we can't
     ;; skip over them.
-    (c-skip-ws-chars-backward " \t\f")
+    (c-skip-ws-chars-backward " \t\f ")
     (when (and (not (bobp))
 	       (save-excursion
 		 (or (and
@@ -2423,7 +2423,7 @@ comment at the start of cc-engine.el for more info."
       (setq simple-ws-beg (or attr-end	      ; After attribute.
 			      (match-end 1) ; Noise macro, etc.
 			      (match-end 0))) ; c-syntactic-ws-end
-      (c-skip-ws-chars-backward " \t\n\r\f\v")
+      (c-skip-ws-chars-backward " \t\n\r\f\v ")
       (if (setq rung-is-marked (text-property-any
 				(point) (min (1+ rung-pos) (point-max))
 				'c-is-sws t))
@@ -2447,7 +2447,7 @@ comment at the start of cc-engine.el for more info."
 
 		  ;; The following search is the main reason that `c-in-sws'
 		  ;; and `c-is-sws' aren't combined to one property.
-		  (goto-char (previous-single-property-change
+		  (goto-char (c-previous-single-property-change
 			      (point) 'c-in-sws nil (point-min)))
 		  (unless (get-text-property (point) 'c-is-sws)
 		    ;; If the `c-in-sws' region extended past the first
@@ -2460,10 +2460,10 @@ comment at the start of cc-engine.el for more info."
 		   (point) rung-pos (point-min))
 
 		  (setq rung-pos (point))
-		  (if (and (< (min (c-skip-ws-chars-backward " \t\f\v")
+		  (if (and (< (min (c-skip-ws-chars-backward " \t\f\v ")
 				   (progn
 				     (setq simple-ws-beg (point))
-				     (c-skip-ws-chars-backward " \t\n\r\f\v")))
+				     (c-skip-ws-chars-backward " \t\n\r\f\v ")))
 			      0)
 			   (setq rung-is-marked
 				 (text-property-any (point) rung-pos
@@ -2543,7 +2543,7 @@ comment at the start of cc-engine.el for more info."
 		  ;; the macro, and then `simple-ws-beg' must be kept on the
 		  ;; same side of those comments.
 		  (goto-char simple-ws-beg)
-		  (c-skip-ws-chars-backward " \t\n\r\f\v")
+		  (c-skip-ws-chars-backward " \t\n\r\f\v ")
 		  (if (eq (char-before) ?\\)
 		      (forward-char))
 		  (forward-line 1)
@@ -2556,7 +2556,7 @@ comment at the start of cc-engine.el for more info."
 		  t)))
 
 	     ((/= (save-excursion
-		    (c-skip-ws-chars-forward " \t\n\r\f\v" simple-ws-beg)
+		    (c-skip-ws-chars-forward " \t\n\r\f\v " simple-ws-beg)
 		    (setq next-rung-pos (point)))
 		  simple-ws-beg)
 	      ;; Skipped over comments.  Must put point at the end of
@@ -2593,8 +2593,8 @@ comment at the start of cc-engine.el for more info."
 	;; We've searched over a piece of non-white syntactic ws.  See if this
 	;; can be cached.
 	(setq next-rung-pos (point))
-	(c-skip-ws-chars-backward " \t\f\v")
-
+	(c-skip-ws-chars-backward " \t\f\v ")
+	
 	(if (or
 	     ;; Cache if we started either from a marked rung or from a
 	     ;; completely uncached position.
@@ -2603,7 +2603,7 @@ comment at the start of cc-engine.el for more info."
 
 	     ;; Cache if there's a marked rung in the encountered simple ws.
 	     (save-excursion
-	       (c-skip-ws-chars-backward " \t\n\r\f\v")
+	       (c-skip-ws-chars-backward " \t\n\r\f\v ")
 	       (text-property-any (point) (min (1+ next-rung-pos) (point-max))
 				  'c-is-sws t)))
 
@@ -6548,7 +6548,7 @@ comment at the start of cc-engine.el for more info."
 	   ;; inside a comment?
 	   (while (and (not (bobp))
 		       (c-got-face-at (1- (point)) c-literal-faces))
-	     (goto-char (previous-single-property-change
+	     (goto-char (c-previous-single-property-change
 			 (point) 'face nil (point-min)))) ; No limit.  FIXME, perhaps?  2020-12-07.
 
 	   ;; XEmacs doesn't fontify the quotes surrounding string
@@ -6718,7 +6718,7 @@ comment at the start of cc-engine.el for more info."
 	      (goto-char start-in-literal)
 	    (goto-char cfd-start-pos)
 	    (while (progn
-		     (goto-char (previous-single-property-change
+		     (goto-char (c-previous-single-property-change
 				 (point) 'c-type nil start-in-literal))
 		     (and (> (point) start-in-literal)
 			  (not (eq (c-get-char-property (point) 'c-type)

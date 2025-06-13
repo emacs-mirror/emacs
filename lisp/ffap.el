@@ -1140,7 +1140,7 @@ The arguments CHARS, BEG and END are handled as described in
   "Last string returned by the function `ffap-string-at-point'.")
 
 (defcustom ffap-file-name-with-spaces nil
-  "If non-nil, enable looking for paths with spaces in `ffap-string-at-point'.
+  "If non-nil, allow file names with spaces in `ffap-string-at-point'.
 Enabling this variable may lead to `find-file-at-point' guessing
 wrong more often when trying to find a file name intermingled
 with normal text, but can be useful when working on systems that
@@ -1286,10 +1286,16 @@ return an empty string, and set `ffap-string-at-point-region' to `(1 1)'."
 	          (if (and ffap-file-name-with-spaces
 			   (memq mode '(nil file)))
 		      (when (setq dir-separator (ffap-dir-separator-near-point))
-		        (while (re-search-backward
-			        (regexp-quote dir-separator)
-			        (line-beginning-position) t)
-		          (goto-char (match-beginning 0))))
+                        (let ((dirsep-re (regexp-quote dir-separator))
+                              (line-beg (line-beginning-position)))
+		          (while (re-search-backward dirsep-re line-beg t)
+		            (goto-char (match-beginning 0)))
+                          (if (and (looking-at dirsep-re)
+                                   (looking-back
+                                    ;; Either "~[USER]" or drive letter.
+                                    "\\(~[[:graph:]]*\\|[a-zA-Z]:\\)"
+                                    line-beg))
+                              (goto-char (match-beginning 0)))))
 		    (skip-chars-backward (car args))
 		    (skip-chars-forward (nth 1 args) pt))
 		  (point))))

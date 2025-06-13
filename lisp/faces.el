@@ -442,15 +442,16 @@ If `inhibit-x-resources' is non-nil, this function does nothing."
   (symbol-name (check-face face)))
 
 
-(defun face-all-attributes (face &optional frame)
+(defun face-all-attributes (face &optional frame inherit)
   "Return an alist stating the attributes of FACE.
 Each element of the result has the form (ATTR-NAME . ATTR-VALUE).
 If FRAME is omitted or nil the value describes the default attributes,
-but if you specify FRAME, the value describes the attributes
-of FACE on FRAME."
+but if you specify FRAME, the value describes the attributes of FACE
+on FRAME.
+INHERIT has the same meaning as in `face-attribute', which see."
   (mapcar (lambda (pair)
 	    (let ((attr (car pair)))
-	      (cons attr (face-attribute face attr (or frame t)))))
+	      (cons attr (face-attribute face attr (or frame t) inherit))))
   	  face-attribute-name-alist))
 
 (defun face-attribute (face attribute &optional frame inherit)

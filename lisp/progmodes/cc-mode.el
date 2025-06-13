@@ -2291,7 +2291,7 @@ with // and /*, not more generic line and block comments."
 		     (end1
 		      (or (and (eq (get-text-property end 'face)
 				   'font-lock-comment-face)
-			       (previous-single-property-change end 'face))
+			       (c-previous-single-property-change end 'face))
 			  end)))
 	     (when (>= end1 beg) ; Don't hassle about changes entirely in
 					; comments.
@@ -2311,8 +2311,8 @@ with // and /*, not more generic line and block comments."
 			  (setq type-pos
 				(if (get-text-property (1- end1) 'c-type)
 				    end1
-				  (previous-single-property-change end1 'c-type
-								   nil lim))))
+				  (c-previous-single-property-change end1 'c-type
+								     nil lim))))
 		 (setq type (get-text-property (max (1- type-pos) lim) 'c-type))
 
 		 (when (memq type '(c-decl-id-start c-decl-type-start))

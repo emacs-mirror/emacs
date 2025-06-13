@@ -62,7 +62,8 @@ pointed by `ansi-osc--marker'."
               (delete-region pos0 (point))
             (setq ansi-osc--marker (copy-marker pos0))))))))
 
-(defvar-local ansi-osc-handlers '(("2" . ansi-osc-window-title-handler)
+(defvar-local ansi-osc-handlers '(("0" . ansi-osc-window-title-handler)
+                                  ("2" . ansi-osc-window-title-handler)
                                   ("7" . ansi-osc-directory-tracker)
                                   ("8" . ansi-osc-hyperlink-handler))
   "Alist of handlers for OSC escape sequences.

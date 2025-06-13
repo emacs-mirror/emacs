@@ -110,6 +110,20 @@ On non-graphical frames, the context is shown in the echo area."
                  (const :tag "In child-frame" child-frame))
   :version "29.1")
 
+(defcustom show-paren-not-in-comments-or-strings nil
+  "If non-nil, do not highlight the parens inside comments and strings.
+If set to `all', never highlight parens inside comments and strings.
+If set to `on-mismatch', do not highlight mismatched parens inside
+comments and strings.
+If set to nil (the default), always highlight parens wherever they are."
+  :type '(choice
+          (const :tag "Never highlight parens in comments and strings" all)
+          (const
+           :tag "Don't highlight mismatched parens in comments and strings"
+           on-mismatch)
+          (const :tag "Always highlight parens" nil))
+  :version "31.1")
+
 (defvar show-paren--idle-timer nil)
 (defvar show-paren--overlay
   (let ((ol (make-overlay (point) (point) nil t))) (delete-overlay ol) ol)
@@ -450,88 +464,97 @@ It is the default value of `show-paren-data-function'."
           (setq show-paren--last-pos (point)))
 
       ;; Found something to highlight.
-      (let* ((here-beg (nth 0 data))
-             (here-end (nth 1 data))
-             (there-beg (nth 2 data))
-             (there-end (nth 3 data))
-             (mismatch (nth 4 data))
-             (highlight-expression
-              (or (eq show-paren-style 'expression)
-                  (and there-beg
-                       (eq show-paren-style 'mixed)
-                       (let ((closest (if (< there-beg here-beg)
-                                          (1- there-end) (1+ there-beg))))
-                         (not (pos-visible-in-window-p closest))))))
-             (face
-              (cond
-               (mismatch
-                (if show-paren-ring-bell-on-mismatch
-                    (beep))
-                'show-paren-mismatch)
-               (highlight-expression 'show-paren-match-expression)
-               (t 'show-paren-match))))
-        ;;
-        ;; If matching backwards, highlight the closeparen
-        ;; before point as well as its matching open.
-        ;; If matching forward, and the openparen is unbalanced,
-        ;; highlight the paren at point to indicate misbalance.
-        ;; Otherwise, turn off any such highlighting.
-        (if (or (not here-beg)
-                (and (not show-paren-highlight-openparen)
-                     (> here-end (point))
-                     (<= here-beg (point))
-                     (integerp there-beg)))
-            (delete-overlay show-paren--overlay-1)
-          (move-overlay show-paren--overlay-1
-                        here-beg here-end (current-buffer))
-          ;; Always set the overlay face, since it varies.
-          (overlay-put show-paren--overlay-1 'priority show-paren-priority)
-          (overlay-put show-paren--overlay-1 'face face))
-        ;;
-        ;; Turn on highlighting for the matching paren, if found.
-        ;; If it's an unmatched paren, turn off any such highlighting.
-        (if (not there-beg)
-            (delete-overlay show-paren--overlay)
-          (if highlight-expression
-              (move-overlay show-paren--overlay
-                            (if (< there-beg here-beg) here-end here-beg)
-                            (if (< there-beg here-beg) there-beg there-end)
-                            (current-buffer))
-            (move-overlay show-paren--overlay
-                          there-beg there-end (current-buffer)))
-          ;; If `show-paren-context-when-offscreen' is non-nil and
-          ;; point is at a closing paren, show the context around the
-          ;; opening paren.
-          (let ((openparen (min here-beg there-beg)))
-            (when (and show-paren-context-when-offscreen
-                       (not (eql show-paren--last-pos (point)))
-                       (< there-beg here-beg)
-                       ;; Either OPENPAREN position is fully visible...
-                       (not (or (pos-visible-in-window-p openparen)
-                                (let ((dfh4 (* 0.25 (default-font-height)))
-                                      (part
-                                       (pos-visible-in-window-p openparen
-                                                                nil t)))
-                                  ;; ...or partially visible, and the
-                                  ;; invisible part is less than 1/4th
-                                  ;; of the default font height
-                                  (and (>= (length part) 4)
-                                       (< (nth 2 part) dfh4)
-                                       (< (nth 3 part) dfh4))))))
-              (let ((context (blink-paren-open-paren-line-string
-                              openparen))
-                    (message-log-max nil))
+      (catch 'sp-exit
+        (let* ((here-beg (nth 0 data))
+               (here-end (nth 1 data))
+               (there-beg (nth 2 data))
+               (there-end (nth 3 data))
+               (mismatch (nth 4 data))
+               (highlight-expression
+                (or (eq show-paren-style 'expression)
+                    (and there-beg
+                         (eq show-paren-style 'mixed)
+                         (let ((closest (if (< there-beg here-beg)
+                                            (1- there-end) (1+ there-beg))))
+                           (not (pos-visible-in-window-p closest))))))
+               (face
                 (cond
-                 ((eq show-paren-context-when-offscreen 'child-frame)
-                  (show-paren--show-context-in-child-frame context))
-                 ((eq show-paren-context-when-offscreen 'overlay)
-                  (show-paren--show-context-in-overlay context))
-                 (show-paren-context-when-offscreen
-                  (minibuffer-message "Matches %s" context))))))
-          (setq show-paren--last-pos (point))
-          ;; Always set the overlay face, since it varies.
-          (overlay-put show-paren--overlay 'priority show-paren-priority)
-          (overlay-put show-paren--overlay 'face face))))))
+                 (mismatch
+                  (if (and (eq show-paren-not-in-comments-or-strings 'on-mismatch)
+                           (save-excursion
+                             (syntax-ppss-context (syntax-ppss here-beg))))
+                      (throw 'sp-exit nil))
+                  (if show-paren-ring-bell-on-mismatch
+                      (beep))
+                  'show-paren-mismatch)
+                 (highlight-expression 'show-paren-match-expression)
+                 (t 'show-paren-match))))
+          (if (and (eq show-paren-not-in-comments-or-strings 'all)
+                   (save-excursion
+                     (syntax-ppss-context (syntax-ppss here-beg))))
+              (throw 'sp-exit nil))
+          ;;
+          ;; If matching backwards, highlight the closeparen
+          ;; before point as well as its matching open.
+          ;; If matching forward, and the openparen is unbalanced,
+          ;; highlight the paren at point to indicate misbalance.
+          ;; Otherwise, turn off any such highlighting.
+          (if (or (not here-beg)
+                  (and (not show-paren-highlight-openparen)
+                       (> here-end (point))
+                       (<= here-beg (point))
+                       (integerp there-beg)))
+              (delete-overlay show-paren--overlay-1)
+            (move-overlay show-paren--overlay-1
+                          here-beg here-end (current-buffer))
+            ;; Always set the overlay face, since it varies.
+            (overlay-put show-paren--overlay-1 'priority show-paren-priority)
+            (overlay-put show-paren--overlay-1 'face face))
+          ;;
+          ;; Turn on highlighting for the matching paren, if found.
+          ;; If it's an unmatched paren, turn off any such highlighting.
+          (if (not there-beg)
+              (delete-overlay show-paren--overlay)
+            (if highlight-expression
+                (move-overlay show-paren--overlay
+                              (if (< there-beg here-beg) here-end here-beg)
+                              (if (< there-beg here-beg) there-beg there-end)
+                              (current-buffer))
+              (move-overlay show-paren--overlay
+                            there-beg there-end (current-buffer)))
+            ;; If `show-paren-context-when-offscreen' is non-nil and
+            ;; point is at a closing paren, show the context around the
+            ;; opening paren.
+            (let ((openparen (min here-beg there-beg)))
+              (when (and show-paren-context-when-offscreen
+                         (not (eql show-paren--last-pos (point)))
+                         (< there-beg here-beg)
+                         ;; Either OPENPAREN position is fully visible...
+                         (not (or (pos-visible-in-window-p openparen)
+                                  (let ((dfh4 (* 0.25 (default-font-height)))
+                                        (part
+                                         (pos-visible-in-window-p openparen
+                                                                  nil t)))
+                                    ;; ...or partially visible, and the
+                                    ;; invisible part is less than 1/4th
+                                    ;; of the default font height
+                                    (and (>= (length part) 4)
+                                         (< (nth 2 part) dfh4)
+                                         (< (nth 3 part) dfh4))))))
+                (let ((context (blink-paren-open-paren-line-string
+                                openparen))
+                      (message-log-max nil))
+                  (cond
+                   ((eq show-paren-context-when-offscreen 'child-frame)
+                    (show-paren--show-context-in-child-frame context))
+                   ((eq show-paren-context-when-offscreen 'overlay)
+                    (show-paren--show-context-in-overlay context))
+                   (show-paren-context-when-offscreen
+                    (minibuffer-message "Matches %s" context))))))
+            (setq show-paren--last-pos (point))
+            ;; Always set the overlay face, since it varies.
+            (overlay-put show-paren--overlay 'priority show-paren-priority)
+            (overlay-put show-paren--overlay 'face face)))))))
 
 (provide 'paren)
 

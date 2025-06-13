@@ -847,6 +847,9 @@ DIFF-FUNCTION is `log-edit-diff-function' for the Log Edit buffer."
                  msg)
       (vc-finish-logentry (eq comment t)))))
 
+(defvar log-edit-vc-backend)
+(declare-function vc-buffer-sync-fileset "vc")
+
 ;; vc-finish-logentry is typically called from a log-edit buffer (see
 ;; vc-start-logentry).
 (defun vc-finish-logentry (&optional nocomment)
@@ -858,10 +861,9 @@ the buffer contents as a comment."
   ;; Check and record the comment, if any.
   (unless nocomment
     (run-hooks 'vc-logentry-check-hook))
-  ;; Sync parent buffer in case the user modified it while editing the comment.
-  ;; But not if it is a vc-dir buffer.
-  (with-current-buffer vc-parent-buffer
-    (or (vc-dispatcher-browsing) (vc-buffer-sync)))
+  ;; Must pass NOT-ESSENTIAL nil because we later call
+  ;; `vc-resynch-buffer' with NOQUERY non-nil.
+  (vc-buffer-sync-fileset (list log-edit-vc-backend vc-log-fileset))
   (unless vc-log-operation
     (error "No log operation is pending"))
 

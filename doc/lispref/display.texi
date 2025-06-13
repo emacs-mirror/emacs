@@ -3186,18 +3186,21 @@ For example:
 @end example
 @end defun
 
-@defun face-all-attributes face &optional frame
+@defun face-all-attributes face &optional frame inherit
 This function returns an alist of attributes of @var{face}.  The
 elements of the result are name-value pairs of the form
 @w{@code{(@var{attr-name} . @var{attr-value})}}.  Optional argument
 @var{frame} specifies the frame whose definition of @var{face} to
 return; if omitted or @code{nil}, the returned value describes the
 default attributes of @var{face} for newly created frames, i.e.@: the
-values these attributes have before applying the face spec in the
-face's @code{defface} definition or the spec set by
-@code{face-spec-set}.  These default values of the attributes are
-normally @code{unspecified}, unless you have specified some other
-value using @code{set-face-attribute}; see below.
+values these attributes have before applying the face spec in the face's
+@code{defface} definition or the spec set by @code{face-spec-set}.
+These default values of the attributes are normally @code{unspecified},
+unless you have specified some other value using
+@code{set-face-attribute}; see below.  The optional argument
+@var{inherit} has the same meaning as the same argument to
+@code{face-attribute}, which see.  This is useful when you want the face
+attributes to be absolute and not @code{unspecified}.
 @end defun
 
 @defun merge-face-attribute attribute value1 value2
@@ -5257,29 +5260,29 @@ Properties}.
 specification, or a list or vector containing several display
 specifications.
 
-@defun get-display-property position prop &optional object properties
-This convenience function can be used to get a specific display
-property, no matter whether the @code{display} property is a vector, a
-list or a simple property.  This is like @code{get-text-property}
-(@pxref{Examining Properties}), but works on the @code{display} property
-only.  For properties with a single value (e.g.@: @code{height}, this
-returns the value itself; for properties with a list of values (e.g.@:
-@code{slice}), this returns the list of values.
+@defun get-display-property position spec &optional object properties
+This convenience function can be used to get the value of a specific
+display specification, no matter whether the @code{display} property is
+a vector, a list or a single display specification.  This is like
+@code{get-text-property} (@pxref{Examining Properties}), but works on
+the @code{display} property only.  For specifications with a single
+value (e.g.@: @code{height}), this returns the value itself; for
+properties with a list of values (e.g.@: @code{slice}), this returns the
+list of values.
 
 @var{position} is the position in the buffer or string to examine, and
-@var{prop} is the @code{display} property to return.  The optional
-@var{object} argument should be either a string or a buffer, and
-defaults to the current buffer.  If the optional @var{properties}
-argument is non-@code{nil}, it should be a @code{display} property,
-and in that case, @var{position} and @var{object} are ignored.  (This
-can be useful if you've already gotten the @code{display} property
-with @code{get-char-property}, for instance (@pxref{Examining
-Properties}).
+@var{spec} is the @sc{car} of the display specification to return.  The
+optional @var{object} argument should be either a string or a buffer,
+and defaults to the current buffer.  If the optional @var{properties}
+argument is non-@code{nil}, it should be a @code{display} property, and
+in that case, @var{position} and @var{object} are ignored.  (This can be
+useful if you've already gotten the @code{display} property with
+@code{get-char-property}, for instance (@pxref{Examining Properties}).
 @end defun
 
-@defun add-display-text-property start end prop value &optional object
-Add @code{display} property @var{prop} of @var{value} to the text from
-@var{start} to @var{end}.
+@defun add-display-text-property start end spec value &optional object
+Add the display specification @code{(@var{prop} @var{value})} to the
+text from @var{start} to @var{end}.
 
 If any text in the region has a non-@code{nil} @code{display}
 property, those properties are retained.  For instance:
@@ -5290,13 +5293,51 @@ property, those properties are retained.  For instance:
 @end lisp
 
 After doing this, the region from 2 to 4 will have the @code{raise}
-@code{display} property, the region from 4 to 8 will have both the
-@code{raise} and @code{height} @code{display} properties, and finally
-the region from 8 to 12 will only have the @code{raise} @code{display}
-property.
+display specification, the region from 4 to 8 will have both the
+@code{raise} and @code{height} display specifications, and finally the
+region from 8 to 12 will only have the @code{raise} display
+specification.
 
-If @var{object} is non-@code{nil}, it should be a string or a buffer.
-If @code{nil}, this defaults to the current buffer.
+@var{object} is either a string or a buffer to add the specification to.
+If omitted, @var{object} defaults to the current buffer.
+@end defun
+
+@defun remove-display-text-property start end spec &optional object
+Remove the display specification @var{spec} from the text from
+@var{start} to @var{end}.  @var{spec} is the @sc{car} of the display
+specification to remove, e.g.@: @code{height} or @code{'(margin nil)}.
+
+If any text in the region has any other @code{display} properties, those
+properties are retained.  For instance:
+
+@lisp
+@group
+(add-display-text-property 1 8 'raise 0.5)
+(add-display-text-property 4 8 'height 2.0)
+(remove-display-text-property 2 6 'raise)
+@end group
+@end lisp
+
+After doing this, the text will have the following @code{display}
+properties:
+
+@itemize @bullet
+@item
+The region from 1 to 2, only @code{raise}
+
+@item
+The region from 2 to 4, no properties
+
+@item
+The region from 4 to 6, only @code{height}
+
+@item
+The region from 6 to 8, both @code{raise} and @code{height}
+
+@end itemize
+
+@var{object} is either a string or a buffer to remove the specification
+from. If omitted, @var{object} defaults to the current buffer.
 @end defun
 
 @cindex display property, unsafe evaluation

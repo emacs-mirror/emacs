@@ -143,29 +143,27 @@ members of `visual-wrap--safe-display-specs' (which see)."
        (t
         "")))))
 
-(defun visual-wrap--apply-to-line (position)
-  "Apply visual-wrapping properties to the logical line starting at POSITION."
-  (save-excursion
-    (goto-char position)
-    (when-let* ((first-line-prefix (fill-match-adaptive-prefix))
-                (next-line-prefix (visual-wrap--content-prefix
-                                   first-line-prefix position)))
-      (when (numberp next-line-prefix)
-        ;; Set a minimum width for the prefix so it lines up correctly
-        ;; with subsequent lines.  Make sure not to do this past the end
-        ;; of the line though!  (`fill-match-adaptive-prefix' could
-        ;; potentially return a prefix longer than the current line in
-        ;; the buffer.)
-        (add-display-text-property
-         position (min (+ position (length first-line-prefix))
-                       (pos-eol))
-         'min-width `((,next-line-prefix . width))))
-      (setq next-line-prefix (visual-wrap--adjust-prefix next-line-prefix))
-      (put-text-property
-       position (pos-eol) 'wrap-prefix
-       (if (numberp next-line-prefix)
-           `(space :align-to (,next-line-prefix . width))
-         next-line-prefix)))))
+(defun visual-wrap--apply-to-line ()
+  "Apply visual-wrapping properties to the logical line starting at point."
+  (when-let* ((first-line-prefix (fill-match-adaptive-prefix))
+              (next-line-prefix (visual-wrap--content-prefix
+                                 first-line-prefix (point))))
+    (when (numberp next-line-prefix)
+      ;; Set a minimum width for the prefix so it lines up correctly
+      ;; with subsequent lines.  Make sure not to do this past the end
+      ;; of the line though!  (`fill-match-adaptive-prefix' could
+      ;; potentially return a prefix longer than the current line in the
+      ;; buffer.)
+      (add-display-text-property
+       (point) (min (+ (point) (length first-line-prefix))
+                     (pos-eol))
+       'min-width `((,next-line-prefix . width))))
+    (setq next-line-prefix (visual-wrap--adjust-prefix next-line-prefix))
+    (put-text-property
+     (point) (pos-eol) 'wrap-prefix
+     (if (numberp next-line-prefix)
+         `(space :align-to (,next-line-prefix . width))
+       next-line-prefix))))
 
 (defun visual-wrap--content-prefix (prefix position)
   "Get the next-line prefix for the specified first-line PREFIX.
@@ -226,6 +224,14 @@ by `visual-wrap-extra-indent'."
         (propertize prefix 'face face)
       prefix)))
 
+(defun visual-wrap--remove-properties (start end)
+  "Remove visual wrapping text properties from START to END."
+  ;; Remove `min-width' from any prefixes we detected.
+  (remove-display-text-property start end 'min-width)
+  ;; Remove `wrap-prefix' related properties from any lines with
+  ;; prefixes we detected.
+  (remove-text-properties start end '(wrap-prefix nil)))
+
 (defun visual-wrap-prefix-function (beg end)
   "Indent the region between BEG and END with visual filling."
   ;; Any change at the beginning of a line might change its wrap
@@ -238,6 +244,7 @@ by `visual-wrap-extra-indent'."
   (goto-char beg)
   (forward-line 0)
   (setq beg (point))
+  (visual-wrap--remove-properties beg end)
   (while (< (point) end)
     ;; Check if the display property at the end of this line is "safe".
     (if (visual-wrap--display-property-safe-p
@@ -245,7 +252,7 @@ by `visual-wrap-extra-indent'."
         ;; If so, we can apply our visual wrapping properties to this
         ;; line and continue to the next line.
         (progn
-          (visual-wrap--apply-to-line (point))
+          (visual-wrap--apply-to-line)
           (forward-line))
       ;; Otherwise, skip ahead until the end of any unsafe display
       ;; properties.  NOTE: We do this out of an abundance of caution to
@@ -283,7 +290,7 @@ To enable this minor mode across all buffers, enable
     (with-silent-modifications
       (save-restriction
         (widen)
-        (remove-text-properties (point-min) (point-max) '(wrap-prefix nil))))))
+        (visual-wrap--remove-properties (point-min) (point-max))))))
 
 ;;;###autoload
 (define-globalized-minor-mode global-visual-wrap-prefix-mode

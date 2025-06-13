@@ -29,15 +29,14 @@ FROM debian:bookworm as emacs-base
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
       libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev \
-      libxml2-dev libdbus-1-dev libacl1-dev acl git texinfo gdb \
+      libxml2-dev libdbus-1-dev libacl1-dev acl git man-db texinfo gdb \
     && rm -rf /var/lib/apt/lists/*
 
 FROM emacs-base as emacs-inotify
 
-# We install clangd for Eglot tests.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      inotify-tools clangd \
+      inotify-tools \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /checkout
@@ -60,13 +59,23 @@ RUN ./autogen.sh autoconf
 RUN ./configure --with-file-notification=gfile
 RUN make -j `nproc` bootstrap
 
-FROM emacs-base as emacs-eglot
+FROM debian:trixie as emacs-eglot
 
-# Install clangd, tsserver.
+# This mimics emacs-base.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      clangd node-typescript \
+      libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev \
+      libxml2-dev libdbus-1-dev libacl1-dev acl git man-db texinfo gdb \
     && rm -rf /var/lib/apt/lists/*
+
+# Install clangd, tsserver, rust-analyzer.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
+      clangd npm node-typescript rust-analyzer cargo \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g typescript-language-server typescript
+RUN npm install -g vscode-json-languageserver
 
 # eclipse-jdt-ls is planned as Java language server.
 # See <https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1024246>.
@@ -80,9 +89,6 @@ RUN apt-get update && \
 #       snapd \
 #     && rm -rf /var/lib/apt/lists/*
 # RUN snap install core
-
-# # Install rust-analyzer.
-# RUN snap install rust-analyzer --beta
 
 # # Install typescript-language-server.
 # RUN snap install typescript-language-server

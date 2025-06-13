@@ -58,6 +58,7 @@ import android.util.SparseArray;
 import android.util.Log;
 
 import android.os.Build;
+import android.os.SystemClock;
 
 /* This defines a window, which is a handle.  Windows represent a
    rectangular subset of the screen with their own contents.
@@ -888,6 +889,20 @@ public final class EmacsWindow extends EmacsHandleObject
   onActivityDetached ()
   {
     EmacsNative.sendWindowAction (this.handle, 0);
+  }
+
+  /* Dispatch a back gesture invocation as a KeyPress event.  Lamentably
+     the platform does not appear to support reporting keyboard
+     modifiers with these events.  */
+
+  public void
+  onBackInvoked ()
+  {
+    long time = SystemClock.uptimeMillis ();
+    EmacsNative.sendKeyPress (this.handle, time, 0,
+			      KeyEvent.KEYCODE_BACK, 0);
+    EmacsNative.sendKeyRelease (this.handle, time, 0,
+				KeyEvent.KEYCODE_BACK, 0);
   }
 
 
