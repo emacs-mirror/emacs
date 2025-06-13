@@ -637,6 +637,7 @@ considered file(s)."
     (log-view-diff-common beg end t)))
 
 (defun log-view-diff-common (beg end &optional whole-changeset)
+  (defvar vc-allow-async-diff)
   (let* ((to (log-view-current-tag beg))
          (fr-entry (log-view-current-entry end))
          (fr (cadr fr-entry)))
@@ -650,15 +651,16 @@ considered file(s)."
                     (point))))
       (setq fr (vc-call-backend log-view-vc-backend 'previous-revision nil fr)))
     (vc-diff-internal
-     t (list log-view-vc-backend
-             ;; The value passed here should follow what
-             ;; `vc-deduce-fileset' returns.  If we want to see the
-             ;; diff for all the files in the changeset, pass NIL for
-             ;; the file list.
-             (unless whole-changeset
-               (if log-view-per-file-logs
-                   (list (log-view-current-file))
-                 log-view-vc-fileset)))
+     vc-allow-async-diff
+     (list log-view-vc-backend
+           ;; The value passed here should follow what
+           ;; `vc-deduce-fileset' returns.  If we want to see the
+           ;; diff for all the files in the changeset, pass NIL for
+           ;; the file list.
+           (unless whole-changeset
+             (if log-view-per-file-logs
+                 (list (log-view-current-file))
+               log-view-vc-fileset)))
      fr to)))
 
 (provide 'log-view)

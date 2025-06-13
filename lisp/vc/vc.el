@@ -876,6 +876,14 @@ if the local changes in the file have not been found and displayed yet."
                  (const :tag "Yes" t))
   :version "22.1")
 
+(defcustom vc-allow-async-diff nil
+  "Non-nil to allow asynchronous diff process.
+Enabling this means the buffer will be displayed before the diff is
+generated, and so might only say \"No changes ...\"."
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Yes" t))
+  :version "31.1")
+
 ;;;###autoload
 (defcustom vc-checkout-hook nil
   "Normal hook (list of functions) run after checking out a file.
@@ -2352,7 +2360,7 @@ state of each file in the fileset."
     (error "Not a valid revision range"))
   ;; Yes, it's painful to call (vc-deduce-fileset) again.  Alas, the
   ;; placement rules for (interactive) don't actually leave us a choice.
-  (vc-diff-internal t (vc-deduce-fileset t) rev1 rev2
+  (vc-diff-internal vc-allow-async-diff (vc-deduce-fileset t) rev1 rev2
 		    (called-interactively-p 'interactive)))
 
 ;;;###autoload
@@ -2367,7 +2375,7 @@ state of each file in the fileset."
     (error "Not a valid revision range"))
   (vc--with-backend-in-rootdir "VC root-diff"
     (let ((default-directory rootdir))
-      (vc-diff-internal t (list backend (list rootdir)) rev1 rev2
+      (vc-diff-internal vc-allow-async-diff (list backend (list rootdir)) rev1 rev2
                         (called-interactively-p 'interactive)))))
 
 ;;;###autoload
@@ -2385,7 +2393,7 @@ Optional argument FILESET, if non-nil, overrides the fileset."
       (call-interactively 'vc-version-diff)
     (let ((fileset (or fileset (vc-deduce-fileset t))))
       (vc-buffer-sync-fileset fileset not-essential)
-      (vc-diff-internal t fileset nil nil
+      (vc-diff-internal vc-allow-async-diff fileset nil nil
 			(called-interactively-p 'interactive)))))
 
 (defun vc-buffer-sync-fileset (fileset &optional not-essential missing-in-dirs)
@@ -2437,8 +2445,9 @@ The merge base is a common ancestor between REV1 and REV2 revisions."
   (vc--with-backend-in-rootdir "VC root-diff"
     (let ((default-directory rootdir)
           (rev1 (vc-call-backend backend 'mergebase rev1 rev2)))
-      (vc-diff-internal t (list backend (list rootdir)) rev1 rev2
-                        (called-interactively-p 'interactive)))))
+      (vc-diff-internal
+       vc-allow-async-diff (list backend (list rootdir)) rev1 rev2
+       (called-interactively-p 'interactive)))))
 
 (declare-function ediff-load-version-control "ediff" (&optional silent))
 (declare-function ediff-vc-internal "ediff-vers"
@@ -2514,7 +2523,7 @@ saving the buffer."
       (let ((default-directory rootdir)
             (fileset `(,backend (,rootdir))))
         (vc-buffer-sync-fileset fileset not-essential)
-        (vc-diff-internal t fileset nil nil
+        (vc-diff-internal vc-allow-async-diff fileset nil nil
                           (called-interactively-p 'interactive))))))
 
 ;;;###autoload

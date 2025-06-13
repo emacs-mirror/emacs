@@ -1805,7 +1805,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
                                 samp coding-system-for-read t)))
     (setq coding-system-for-read 'undecided)))
 
-(defun vc-git-diff (files &optional rev1 rev2 buffer _async)
+(defun vc-git-diff (files &optional rev1 rev2 buffer async)
   "Get a difference report using Git between two revisions of FILES."
   (let (process-file-side-effects
         (command "diff-tree"))
@@ -1817,7 +1817,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
       (unless rev1 (setq rev1 "HEAD")))
     (if vc-git-diff-switches
         (apply #'vc-git-command (or buffer "*vc-diff*")
-	       1 ; bug#21969
+               (if async 'async 1)
                files
                command
                "--exit-code"
