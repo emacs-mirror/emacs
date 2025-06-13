@@ -3221,6 +3221,69 @@ either a full name or nil, and EMAIL is a valid email address."
 (defvar package-menu--transaction-status nil
   "Mode-line status of ongoing package transaction.")
 
+(defconst package-menu-mode-line-format
+  '((package-menu-mode-line-info
+     (:eval (symbol-value 'package-menu-mode-line-info)))))
+
+(defvar-local package-menu-mode-line-info nil
+  "Variable which stores package-menu mode-line format.")
+
+(defun package-menu--set-mode-line-format ()
+  "Display package-menu mode-line."
+  (when-let* ((buf (get-buffer "*Packages*"))
+              ((buffer-live-p buf)))
+    (with-current-buffer buf
+      (setq package-menu-mode-line-info
+            (let ((installed 0)
+                  (new 0)
+                  (total (length package-archive-contents))
+                  (to-upgrade (length (package-menu--find-upgrades)))
+                  (total-help "Total number of packages of all package archives")
+                  (installed-help "Total number of packages installed")
+                  (upgrade-help "Total number of packages to upgrade")
+                  (new-help "Total number of packages added recently"))
+
+              (save-excursion
+                (goto-char (point-min))
+                (while (not (eobp))
+                  (let ((status (package-menu-get-status)))
+                    (cond
+                     ((member status
+                              '("installed" "dependency" "unsigned"))
+                      (setq installed (1+ installed)))
+                     ((equal status "new")
+                      (setq new (1+ new)))))
+                  (forward-line)))
+
+              (setq installed (number-to-string installed))
+              (setq total (number-to-string total))
+              (setq to-upgrade (number-to-string to-upgrade))
+
+              (list
+               " ["
+               (propertize "Total: " 'help-echo total-help)
+               (propertize total
+                           'help-echo total-help
+                           'face 'font-lock-keyword-face)
+               " / "
+               (propertize "Installed: " 'help-echo installed-help)
+               (propertize installed
+                           'help-echo installed-help
+                           'face 'package-status-installed)
+               " / "
+               (propertize "To Upgrade: " 'help-echo upgrade-help)
+               (propertize to-upgrade
+                           'help-echo upgrade-help
+                           'face 'font-lock-keyword-face)
+               (when (> new 0)
+                 (concat
+                  " / "
+                  (propertize "New: " 'help-echo new-help)
+                  (propertize (number-to-string new)
+                              'help-echo new-help
+                              'face 'package-status-new)))
+               "] "))))))
+
 (define-derived-mode package-menu-mode tabulated-list-mode "Package Menu"
   "Major mode for browsing a list of packages.
 The most useful commands here are:
@@ -3236,6 +3299,10 @@ The most useful commands here are:
   (setq mode-line-process '((package--downloads-in-progress ":Loading")
                             (package-menu--transaction-status
                              package-menu--transaction-status)))
+  (setq-local mode-line-misc-info
+              (append
+               mode-line-misc-info
+               package-menu-mode-line-format))
   (setq tabulated-list-format
         `[("Package" ,package-name-column-width package-menu--name-predicate)
           ("Version" ,package-version-column-width package-menu--version-predicate)
@@ -3642,6 +3709,24 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
   "Face used on the status and version of avail-obso packages."
   :version "25.1")
 
+(defface package-mark-install-line
+  '((((class color) (background light))
+     :background "darkolivegreen1" :extend t)
+    (((class color) (background dark))
+     :background "seagreen" :extend t)
+    (t :inherit (highlight) :extend t))
+  "Face used for highlighting the line where a package is marked to be install."
+  :version "31.1")
+
+(defface package-mark-delete-line
+  '((((class color) (background light))
+     :background "rosybrown1" :extend t)
+    (((class color) (background dark))
+     :background "indianred4" :extend t)
+    (t :inherit (highlight) :extend t))
+  "Face used for highlighting the line where a package is marked to be delete."
+  :version "31.1")
+
 
 ;;; Package menu printing
 
@@ -3702,6 +3787,20 @@ function.  The args ARG and NOCONFIRM, passed from
   (package-refresh-contents package-menu-async))
 (define-obsolete-function-alias 'package-menu-refresh 'revert-buffer "27.1")
 
+(defun package-menu--overlay-line (face)
+  "Highlight whole line with face FACE."
+  (let ((ov (make-overlay (line-beginning-position)
+                          (1+ (line-end-position)))))
+    (overlay-put ov 'pkg-menu-ov t)
+    (overlay-put ov 'evaporate t)
+    (overlay-put ov 'face face)))
+
+(defun package-menu--remove-overlay ()
+  "Remove all overlays done by `package-menu--overlay-line' in current line."
+  (remove-overlays (line-beginning-position)
+                   (1+ (line-end-position))
+                   'pkg-menu-ov t))
+
 (defun package-menu-hide-package ()
   "Hide in Package Menu packages that match a regexp.
 Prompt for the regexp to match against package names.
@@ -3757,7 +3856,8 @@ The current package is the package at point."
   (package--ensure-package-menu-mode)
   (if (member (package-menu-get-status)
               '("installed" "source" "dependency" "obsolete" "unsigned"))
-      (tabulated-list-put-tag "D" t)
+      (progn (package-menu--overlay-line 'package-mark-delete-line)
+             (tabulated-list-put-tag "D" t))
     (forward-line)))
 
 (defun package-menu-mark-install (&optional _num)
@@ -3766,7 +3866,8 @@ The current package is the package at point."
   (interactive "p" package-menu-mode)
   (package--ensure-package-menu-mode)
   (if (member (package-menu-get-status) '("available" "avail-obso" "new" "dependency"))
-      (tabulated-list-put-tag "I" t)
+      (progn (package-menu--overlay-line 'package-mark-install-line)
+             (tabulated-list-put-tag "I" t))
     (forward-line)))
 
 (defun package-menu-mark-unmark (&optional _num)
@@ -3774,6 +3875,7 @@ The current package is the package at point."
 The current package is the package at point."
   (interactive "p" package-menu-mode)
   (package--ensure-package-menu-mode)
+  (package-menu--remove-overlay)
   (tabulated-list-put-tag " " t))
 
 (defun package-menu-backup-unmark ()
@@ -3781,6 +3883,7 @@ The current package is the package at point."
   (interactive nil package-menu-mode)
   (package--ensure-package-menu-mode)
   (forward-line -1)
+  (package-menu--remove-overlay)
   (tabulated-list-put-tag " "))
 
 (defun package-menu-mark-obsolete-for-deletion ()
@@ -3791,7 +3894,8 @@ The current package is the package at point."
     (goto-char (point-min))
     (while (not (eobp))
       (if (equal (package-menu-get-status) "obsolete")
-          (tabulated-list-put-tag "D" t)
+          (progn (package-menu--overlay-line 'package-mark-delete-line)
+                 (tabulated-list-put-tag "D" t))
         (forward-line 1)))))
 
 (defvar package--quick-help-keys
@@ -4225,6 +4329,8 @@ short description."
             #'package-menu--post-refresh)
   (add-hook 'package--post-download-archives-hook
             #'package-menu--mark-or-notify-upgrades 'append)
+  (add-hook 'package--post-download-archives-hook
+            #'package-menu--set-mode-line-format 'append)
 
   ;; Generate the Package Menu.
   (let ((buf (get-buffer-create "*Packages*")))

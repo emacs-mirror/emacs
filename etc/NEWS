@@ -1914,6 +1914,14 @@ the command will only copy those files.
 +++
 *** package-x.el is now obsolete.
 
+---
+*** Package menu now highlights packages marked for installation or deletion.
+
+*** Package menu now displays the total number of the package type.
+Package menu now displays in the mode line the total number of packages
+installed, total number of packages from all the package archives, total
+number of packages to upgrade and total number of new packages
+available.
 
 ** RCIRC
 
