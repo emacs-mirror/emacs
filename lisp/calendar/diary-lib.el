@@ -1280,8 +1280,15 @@ function that converts absolute dates to dates of the appropriate type."
        (month "[0-9]+\\|\\*")
        (day "[0-9]+\\|\\*")
        (year "[0-9]+\\|\\*"))
-    (let* ((case-fold-search t)
-           marks)
+    (let ((months-alist (if months (calendar-make-alist months)
+                          (calendar-make-alist
+                           calendar-month-name-array
+                           1 nil calendar-month-abbrev-array
+                           (mapcar (lambda (e)
+                                     (format "%s." e))
+                                   calendar-month-abbrev-array))))
+          (case-fold-search t)
+          marks)
       (dolist (date-form diary-date-forms)
         (if (eq (car date-form) 'backup) ; ignore 'backup directive
             (setq date-form (cdr date-form)))
@@ -1363,16 +1370,7 @@ function that converts absolute dates to dates of the appropriate type."
                 (if mm-name
                     (setq mm
                           (if (string-equal mm-name "*") 0
-                            (cdr (assoc-string
-                                  mm-name
-                                  (if months (calendar-make-alist months)
-                                    (calendar-make-alist
-                                     calendar-month-name-array
-                                     1 nil calendar-month-abbrev-array
-                                     (mapcar (lambda (e)
-                                               (format "%s." e))
-                                             calendar-month-abbrev-array)))
-                                  t)))))
+                            (cdr (assoc-string mm-name months-alist t)))))
                 (funcall markfunc mm dd yy marks)))))))))
 
 ;;;###cal-autoload
