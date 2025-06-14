@@ -560,7 +560,9 @@ before returning.  */)
 static Lisp_Object
 export_log (struct profiler_log *plog)
 {
-  if (!plog->log) return Qnil;
+  if (!plog->log)
+    return Qnil;
+
   log_t *log = plog->log;
   /* The returned hash table uses `equal' as key equivalence predicate
      which is more discriminating than the `function-equal' used by
