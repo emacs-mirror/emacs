@@ -1888,7 +1888,7 @@ See also the function `condition-case'.  */
   (Lisp_Object error_symbol, Lisp_Object data)
 {
   /* If they call us with nonsensical arguments, produce "peculiar error".  */
-  if (NILP (error_symbol) && NILP (data))
+  if (NILP (error_symbol) && !CONSP (data))
     error_symbol = Qerror;
   signal_or_quit (error_symbol, data, false);
   eassume (false);

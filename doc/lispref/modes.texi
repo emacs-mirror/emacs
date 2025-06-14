@@ -3273,10 +3273,7 @@ Lock mode is enabled, to set all the other variables.
 @defvar font-lock-defaults
 This variable is set by modes to specify how to fontify text in that
 mode.  It automatically becomes buffer-local when set.  If its value
-is @code{nil}, Font Lock mode does no highlighting, and you can use
-the @samp{Faces} menu (under @samp{Edit} and then @samp{Text
-Properties} in the menu bar) to assign faces explicitly to text in the
-buffer.
+is @code{nil}, Font Lock mode does no highlighting.
 
 If non-@code{nil}, the value should look like this:
 
