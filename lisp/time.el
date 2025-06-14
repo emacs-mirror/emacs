@@ -592,8 +592,8 @@ See `world-clock'."
 (defvar world-clock--timer nil
   "The current world clock timer.")
 
-(defun world-clock--sort-entries (tzlist time)
-  "Sort TZLIST according to `world-clock-sort-order' at a given TIME."
+(defun world-clock--sort-entries (tzlist timeval)
+  "Sort TZLIST according to `world-clock-sort-order' at a given TIMEVAL."
   (pcase world-clock-sort-order
     ((pred null) tzlist)
     ((or (and (pred stringp) format)
@@ -601,9 +601,9 @@ See `world-clock'."
 	   ,(and (pred booleanp) reverse)))
      (sort tzlist
 	   :key (lambda (entry)
-		  (format-time-string format time (car entry)))
+		  (format-time-string format timeval (car entry)))
 	   :reverse reverse))
-    ((pred functionp) (funcall world-clock-sort-order tzlist time))
+    ((pred functionp) (funcall world-clock-sort-order tzlist timeval))
     (_ (error "Invalid `world-clock-sort-order': `%s'"
 	      world-clock-sort-order))))
 
