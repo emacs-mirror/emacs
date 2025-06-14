@@ -581,6 +581,14 @@ activate the mark if it is not already active.
 The default value is t, which retains the old behavior.
 This variable has no effect when Transient Mark mode is off.
 
+---
+** New commands for filling text using semantic linefeeds.
+The new command 'fill-paragraph-semlf' fills a paragraph of text using
+"semantic linefeeds", whereby a newline is inserted after every
+sentence.  The new command 'fill-region-as-paragraph-semlf' fills a
+region of text using semantic linefeeds as if the region were a single
+paragraph.
+
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
