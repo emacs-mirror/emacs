@@ -266,6 +266,7 @@ extern AppendMenuW_Proc unicode_append_menu;
 static int ignore_ime_char = 0;
 
 /* W95 mousewheel handler */
+extern unsigned int msh_mousewheel;
 unsigned int msh_mousewheel = 0;
 
 /* Timers */

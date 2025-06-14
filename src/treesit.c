@@ -937,7 +937,7 @@ void treesit_debug_print_linecol (struct ts_linecol);
 void
 treesit_debug_print_linecol (struct ts_linecol linecol)
 {
-  printf ("{ line=%ld col=%ld bytepos=%ld }\n", linecol.line, linecol.col, linecol.bytepos);
+  printf ("{ line=%td col=%td bytepos=%td }\n", linecol.line, linecol.col, linecol.bytepos);
 }
 
 /* Returns true if BUF tracks linecol.  */

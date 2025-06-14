@@ -1565,9 +1565,10 @@ find_crlf (char *in_string, int len)
 /* The following 2 functions are only available since XP, so we load
    them dynamically and provide fallbacks.  */
 
-int (WINAPI *pfn_getaddrinfo) (const char *, const char *,
-			       const struct addrinfo *, struct addrinfo **);
-void (WINAPI *pfn_freeaddrinfo) (struct addrinfo *);
+static int (WINAPI *pfn_getaddrinfo) (const char *, const char *,
+				      const struct addrinfo *,
+				      struct addrinfo **);
+static void (WINAPI *pfn_freeaddrinfo) (struct addrinfo *);
 
 static int
 load_ws2 (void)
