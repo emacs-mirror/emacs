@@ -333,6 +333,10 @@ helps to restore window buffers across Emacs sessions.
 You can use this in 'display-buffer-alist' to match buffers displayed
 during the execution of particular commands.
 
+*** New command 'other-window-backward' ('C-x O').
+This moves in the opposite direction of 'other-window' and is for its
+default keybinding consistent with 'repeat-mode'.
+
 ** Frames
 
 +++
