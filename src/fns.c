@@ -3409,9 +3409,8 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
 	    vals[i_before] = dummy;
 	}
     }
-  else
+  else if (BOOL_VECTOR_P (seq))
     {
-      eassert (BOOL_VECTOR_P (seq));
       for (EMACS_INT i = 0; i < leni; i++)
 	{
 	  Lisp_Object dummy = calln (fn, bool_vector_ref (seq, i));
@@ -3419,6 +3418,8 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
 	    vals[i] = dummy;
 	}
     }
+  else
+    wrong_type_argument (Qsequencep, seq);
 
   return leni;
 }
