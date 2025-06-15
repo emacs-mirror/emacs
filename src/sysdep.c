@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/random.h>
 #include <unistd.h>
 
+#include <boot-time.h>
 #include <c-ctype.h>
 #include <close-stream.h>
 #include <pathmax.h>
@@ -3453,39 +3454,6 @@ put_jiffies (Lisp_Object attrs, Lisp_Object propname,
   return Fcons (Fcons (propname, time_from_jiffies (ticks, hz, Qnil)), attrs);
 }
 
-static Lisp_Object
-get_up_time (void)
-{
-  FILE *fup;
-  Lisp_Object up = Qnil;
-
-  block_input ();
-  fup = emacs_fopen ("/proc/uptime", "r");
-
-  if (fup)
-    {
-      unsigned long long upsec;
-      EMACS_UINT upfrac;
-      int upfrac_start, upfrac_end;
-
-      if (fscanf (fup, "%llu.%n%"pI"u%n",
-		  &upsec, &upfrac_start, &upfrac, &upfrac_end)
-	  == 2)
-	{
-	  EMACS_INT hz = 1;
-	  for (int i = upfrac_start; i < upfrac_end; i++)
-	    hz *= 10;
-	  Lisp_Object sec = make_uint (upsec);
-	  Lisp_Object subsec = Fcons (make_fixnum (upfrac), make_fixnum (hz));
-	  up = Ftime_add (sec, subsec);
-	}
-      emacs_fclose (fup);
-    }
-  unblock_input ();
-
-  return up;
-}
-
 # if defined GNU_LINUX || defined __ANDROID__
 #define MAJOR(d) (((unsigned)(d) >> 8) & 0xfff)
 #define MINOR(d) (((unsigned)(d) & 0xff) | (((unsigned)(d) & 0xfff00000) >> 12))
@@ -3702,11 +3670,12 @@ system_process_attributes (Lisp_Object pid)
 	      attrs = put_jiffies (attrs, Qcstime, cstime, hz);
 	      attrs = put_jiffies (attrs, Qctime, cstime + cutime, hz);
 
-	      Lisp_Object uptime = get_up_time ();
-	      if (!NILP (uptime))
+	      struct timespec bt;
+	      if (get_boot_time (&bt) == 0)
 		{
+		  Lisp_Object boot = Ftime_convert (timespec_to_lisp (bt), hz);
 		  Lisp_Object now = Ftime_convert (Qnil, hz);
-		  Lisp_Object boot = Ftime_subtract (now, uptime);
+		  Lisp_Object uptime = Ftime_subtract (now, boot);
 		  Lisp_Object tstart = time_from_jiffies (start, hz, hz);
 		  Lisp_Object lstart =
 		    Ftime_convert (Ftime_add (boot, tstart), Qnil);
