@@ -5166,7 +5166,8 @@ binding slots have been popped."
        (pcase-let*
            ;; `macro' is non-nil if it defines a macro.
            ;; `fun' is the function part of `arg' (defaults to `arg').
-           (((or (and (or `(cons 'macro ,fun) `'(macro . ,fun)) (let macro t))
+           (((or (and (or `(cons 'macro ,fun) `'(macro . ,(app (list 'quote) fun)))
+                      (let macro t))
                  (and (let fun arg) (let macro nil)))
              arg)
             ;; `lam' is the lambda expression in `fun' (or nil if not

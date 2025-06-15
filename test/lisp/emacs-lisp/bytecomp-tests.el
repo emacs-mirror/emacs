@@ -1322,6 +1322,24 @@ byte-compiled.  Run with dynamic binding."
       (defun def () (m))))
   (should (equal (funcall 'def) 4)))
 
+(ert-deftest test-eager-load-macro-expand-defalias ()
+  (ert-with-temp-file elfile
+    :suffix ".el"
+    (write-region
+     (concat ";;; -*- lexical-binding: t -*-\n"
+             (mapconcat #'prin1-to-string
+                        '((defalias 'nothing '(macro . ignore))
+                          (defalias 'something (cons 'macro #'identity))
+                          (defalias 'five (cons 'macro (lambda (&rest _) 5)))
+                          (eval-when-compile
+                            (defun def () (or (nothing t) (something (five nil))))))
+                        "\n"))
+     nil elfile)
+    (let* ((byte-compile-debug t)
+           (byte-compile-dest-file-function #'ignore))
+      (byte-compile-file elfile)
+      (should (equal (funcall 'def) 5)))))
+
 (defmacro bytecomp-tests--with-temp-file (file-name-var &rest body)
   (declare (indent 1))
   (cl-check-type file-name-var symbol)
