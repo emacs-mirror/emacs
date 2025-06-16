@@ -1089,11 +1089,27 @@ chars to try and eliminate some spurious differences."
           ;;                 (list match-num1 match-num2 startline))
           (overlay-put ol 'evaporate t)
           (dolist (x props)
-            (when (or (> end beg)
-                      ;; Don't highlight the char we cover artificially.
-                      (not (memq (car-safe x) '(face font-lock-face))))
-              (overlay-put ol (car x) (cdr x))))
+            (if (or (> end beg)
+                    (not (memq (car-safe x) '(face font-lock-face))))
+                (overlay-put ol (car x) (cdr x))
+              ;; Don't highlight the char we cover artificially.
+              (overlay-put ol (if (= beg olbeg) 'before-string 'after-string)
+                           (propertize
+                            " " (car-safe x) (cdr-safe x)
+                            'display '(space :width 0.5)))))
           ol)))))
+
+(defcustom smerge-refine-shadow-cursor t
+  "If non-nil, display a shadow cursor on the other side of smerge refined regions.
+Its appearance is controlled by the face `smerge-refine-shadow-cursor'."
+  :type 'boolean
+  :version "31.1")
+
+(defface smerge-refine-shadow-cursor
+  '((t :box (:line-width (-2 . -2))))
+  "Face placed on a character to highlight it as the shadow cursor.
+The presence of the shadow cursor depends on the
+variable `smerge-refine-shadow-cursor'.")
 
 ;;;###autoload
 (defun smerge-refine-regions (beg1 end1 beg2 end2 props-c &optional preproc props-r props-a)
@@ -1124,7 +1140,11 @@ used to replace chars to try and eliminate some spurious differences."
           (ol2 (make-overlay beg2 end2 nil
                              ;; Make it shrink rather than spread when editing.
                              'front-advance nil))
-         (common-props '((evaporate . t) (smerge--refine-region . t))))
+          (common-props '((evaporate . t) (smerge--refine-region . t)
+                          (cursor-sensor-functions
+                           smerge--refine-shadow-cursor))))
+      (when smerge-refine-shadow-cursor
+        (cursor-sensor-mode 1))
       (dolist (prop (or props-a props-c))
         (when (and (not (memq (car prop) '(face font-lock-face)))
                    (member prop (or props-r props-c))
@@ -1215,6 +1235,55 @@ used to replace chars to try and eliminate some spurious differences."
 (define-obsolete-function-alias 'smerge-refine-subst
   #'smerge-refine-regions "26.1")
 
+(defun smerge--refine-at-right-margin-p (pos window)
+  ;; FIXME: `posn-at-point' seems to be costly/slow.
+  (when-let* ((posn (posn-at-point pos window))
+              (xy (nth 2 posn))
+              (x (car-safe xy))
+              (_ (numberp x)))
+    (> (+ x (with-selected-window window (string-pixel-width " ")))
+       (car (window-text-pixel-size window)))))
+
+(defun smerge--refine-shadow-cursor (window _oldpos dir)
+  (let ((ol (window-parameter window 'smerge--refine-shadow-cursor)))
+    (if (not (and smerge-refine-shadow-cursor
+                  (memq dir '(entered moved))))
+        (if ol (delete-overlay ol))
+      (with-current-buffer (window-buffer window)
+        (let* ((cursor (window-point window))
+               (other-beg (ignore-errors (smerge--refine-other-pos cursor))))
+          (if (not other-beg)
+              (if ol (delete-overlay ol))
+            (let ((other-end (min (point-max) (1+ other-beg))))
+              ;; If other-beg/end covers a "wide" char like TAB or LF, the
+              ;; resulting shadow cursor doesn't look like a cursor, so try
+              ;; and convert it to a before-string space.
+              (when (or (and (eq ?\n (char-after other-beg))
+                             (not (smerge--refine-at-right-margin-p
+                                   other-beg window)))
+                        (and (eq ?\t (char-after other-beg))
+                             ;; FIXME: `posn-at-point' seems to be costly/slow.
+                             (when-let* ((posn (posn-at-point other-beg window))
+                                         (xy (nth 2 posn))
+                                         (x (car-safe xy))
+                                         (_ (numberp x)))
+                               (< (1+ (% x tab-width)) tab-width))))
+                (setq other-end other-beg))
+              ;; FIXME: Doesn't obey `cursor-in-non-selected-windows'.
+              (if ol (move-overlay ol other-beg other-end)
+                (setq ol (make-overlay other-beg other-end nil t nil))
+                (setf (window-parameter window 'smerge--refine-shadow-cursor)
+                      ol)
+                (overlay-put ol 'window window)
+                (overlay-put ol 'face 'smerge-refine-shadow-cursor))
+              ;; When the shadow cursor needs to be at EOB (or TAB or EOL),
+              ;; "draw" it as a pseudo space character.
+              (overlay-put ol 'before-string
+                           (when (= other-beg other-end)
+                             (eval-when-compile
+                               (propertize
+                                " " 'face 'smerge-refine-shadow-cursor)))))))))))
+
 (defun smerge-refine (&optional part)
   "Highlight the words of the conflict that are different.
 For 3-way conflicts, highlights only two of the three parts.
@@ -1265,56 +1334,58 @@ repeating the command will highlight other two parts."
 			 (unless smerge-use-changed-face
 			   '((smerge . refine) (font-lock-face . smerge-refined-added))))))
 
-(defun smerge-refine-exchange-point ()
-  "Go to the matching position in the other chunk."
-  (interactive)
+(defun smerge--refine-other-pos (pos)
   (let* ((covering-ol
-          (let ((ols (overlays-at (point))))
+          (let ((ols (overlays-at pos)))
             (while (and ols (not (overlay-get (car ols)
                                               'smerge--refine-region)))
               (pop ols))
             (or (car ols)
                 (user-error "Not inside a refined region"))))
          (ref-pos
-          (if (or (get-char-property (point) 'smerge--refine-other)
-                  (get-char-property (1- (point)) 'smerge--refine-other))
-              (point)
+	  (if (or (get-char-property pos 'smerge--refine-other)
+		  (get-char-property (1- pos) 'smerge--refine-other))
+	      pos
             (let ((next (next-single-char-property-change
-                         (point) 'smerge--refine-other nil
+                         pos 'smerge--refine-other nil
                          (overlay-end covering-ol)))
                   (prev (previous-single-char-property-change
-                         (point) 'smerge--refine-other nil
+                         pos 'smerge--refine-other nil
                          (overlay-start covering-ol))))
               (cond
                ((and (> prev (overlay-start covering-ol))
                      (or (>= next (overlay-end covering-ol))
-                         (> (- next (point)) (- (point) prev))))
+                         (> (- next pos) (- pos prev))))
                 prev)
                ((< next (overlay-end covering-ol)) next)
                (t (user-error "No \"other\" position info found"))))))
          (boundary
           (cond
-           ((< ref-pos (point))
+           ((< ref-pos pos)
             (let ((adjust (get-char-property (1- ref-pos)
                                              'smerge--refine-adjust)))
-              (min (point) (+ ref-pos (or (cdr adjust) 0)))))
-           ((> ref-pos (point))
+              (min pos (+ ref-pos (or (cdr adjust) 0)))))
+           ((> ref-pos pos)
             (let ((adjust (get-char-property ref-pos 'smerge--refine-adjust)))
-              (max (point) (- ref-pos (or (car adjust) 0)))))
+              (max pos (- ref-pos (or (car adjust) 0)))))
            (t ref-pos)))
          (other-forw (get-char-property ref-pos 'smerge--refine-other))
          (other-back (get-char-property (1- ref-pos) 'smerge--refine-other))
          (other (or other-forw other-back))
-         (dist (- boundary (point))))
+         (dist (- boundary pos)))
     (if (not (overlay-start other))
         (user-error "The \"other\" position has vanished")
-      (goto-char
-       (- (if other-forw
-              (- (overlay-start other)
-                 (or (car (overlay-get other 'smerge--refine-adjust)) 0))
-            (+ (overlay-end other)
-               (or (cdr (overlay-get other 'smerge--refine-adjust)) 0)))
-          dist)))))
+      (- (if other-forw
+             (- (overlay-start other)
+                (or (car (overlay-get other 'smerge--refine-adjust)) 0))
+           (+ (overlay-end other)
+              (or (cdr (overlay-get other 'smerge--refine-adjust)) 0)))
+         dist))))
+
+(defun smerge-refine-exchange-point ()
+  "Go to the matching position in the other chunk."
+  (interactive)
+  (goto-char (smerge--refine-other-pos (point))))
 
 (defun smerge-swap ()
   ;; FIXME: Extend for diff3 to allow swapping the middle end as well.

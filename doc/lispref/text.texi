@@ -3986,10 +3986,13 @@ These properties are obsolete; please use
 This special property records a list of functions that react to cursor
 motion.  Each function in the list is called, just before redisplay,
 with 3 arguments: the affected window, the previous known position of
-the cursor, and one of the symbols @code{entered} or @code{left},
-depending on whether the cursor is entering the text that has this
-property or leaving it.  The functions are called only when the minor
-mode @code{cursor-sensor-mode} is turned on.
+the cursor, and a symbol indicating the direction of the movement.
+The movement can be @code{entered} or @code{left}, depending on whether
+the cursor is entering the text that has this property or leaving it, or
+@code{moved} when the cursor moved within that text.
+Other values for the direction should be ignored.
+The functions are called only when the minor mode
+@code{cursor-sensor-mode} is turned on.
 
 When the variable @code{cursor-sensor-inhibit} is non-@code{nil}, the
 @code{cursor-sensor-functions} property is ignored.

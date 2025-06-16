@@ -922,7 +922,8 @@ are discarded, which matches the behavior of physical terminals and other
 terminal emulators. Control sequences and escape sequences are still processed
 correctly regardless of margin position.
 
-** Smerge
+---
+** SMerge
 
 *** New command 'smerge-extend' extends a conflict over surrounding lines.
 
@@ -930,6 +931,18 @@ correctly regardless of margin position.
 When used inside a refined chunk, it jumps to the matching position in
 the "other" side of the refinement: if you're in the new text, it jumps
 to the corresponding position in the old text and vice versa.
+
+*** New variable 'smerge-refine-shadow-cursor'.
+When 'smerge-refine' shows the conflict diffs at word granularity, a
+"shadow cursor" is now displayed in the "lower" version when point
+is in the "upper" version, and vice versa.  The "shadow cursor" is
+just the character corresponding to the position where
+'smerge-refine-exchange-point' would jump, shown in a new distinct
+face 'smerge-refine-shadow-cursor', by default a box face.
+
+** Cursor-Sensor mode
++++
+*** New direction 'moved' used when the cursor moved within the active area.
 
 ** Image Dired
 
