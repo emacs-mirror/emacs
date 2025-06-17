@@ -19449,9 +19449,11 @@ try_scrolling (Lisp_Object window, bool just_this_one_p,
       if (! cursor_row_fully_visible_p (w, extra_scroll_margin_lines <= 1,
 					false, false)
 	  /* It's possible that the cursor is on the first line of the
-	     buffer, which is partially obscured due to a vscroll
-	     (Bug#7537).  In that case, avoid looping forever. */
-	  && extra_scroll_margin_lines < w->desired_matrix->nrows - 1)
+	     buffer/window, which is partially obscured due to a vscroll
+	     (Bug#7537, Bug#78766).  If so, just return, since the code
+	     above is not prepared to deal with that case.  */
+	  && !(MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P
+		 (w, MATRIX_ROW (w->desired_matrix, w->cursor.vpos))))
 	{
 	  clear_glyph_matrix (w->desired_matrix);
 	  ++extra_scroll_margin_lines;
