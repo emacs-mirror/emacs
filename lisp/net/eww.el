@@ -863,8 +863,7 @@ This replaces the region with the preprocessed HTML."
   (unless document
     (let ((dom (eww--parse-html-region (point) (point-max) charset)))
       (when (eww-default-readable-p url)
-        (eww-score-readability dom)
-        (setq dom (eww-highest-readability dom))
+        (setq dom (eww-readable-dom dom))
         (with-current-buffer buffer
           (plist-put eww-data :readable t)))
       (setq document (eww-document-base url dom))))
@@ -1163,42 +1162,97 @@ adds a new entry to `eww-history'."
                 (eww--parse-html-region (point-min) (point-max))))
          (base (plist-get eww-data :url)))
     (when make-readable
-      (eww-score-readability dom)
-      (setq dom (eww-highest-readability dom)))
+      (setq dom (eww-readable-dom dom)))
     (when eww-readable-adds-to-history
       (eww-save-history)
       (eww--before-browse)
-      (dolist (elem '(:source :url :title :next :previous :up :peer))
+      (dolist (elem '(:source :url :peer))
         (plist-put eww-data elem (plist-get old-data elem))))
     (eww-display-document (eww-document-base base dom))
     (plist-put eww-data :readable make-readable)
     (eww--after-page-change)))
 
-(defun eww-score-readability (node)
-  (let ((score -1))
-    (cond
-     ((memq (dom-tag node) '(script head comment))
-      (setq score -2))
-     ((eq (dom-tag node) 'meta)
-      (setq score -1))
-     ((eq (dom-tag node) 'img)
-      (setq score 2))
-     ((eq (dom-tag node) 'a)
-      (setq score (- (length (split-string (dom-text node))))))
-     (t
+(defun eww--walk-readability (node callback &optional noscore)
+  "Walk through all children of NODE to score readability.
+After scoring, call CALLBACK with the node and score.  If NOSCORE is
+non-nil, don't actually compute a score; just call the callback."
+  (let ((score nil))
+    (unless noscore
+      (cond
+       ((stringp node)
+        (setq score (length (split-string node))
+              noscore t))
+       ((memq (dom-tag node) '(script head comment))
+        (setq score -2
+              noscore t))
+       ((eq (dom-tag node) 'meta)
+        (setq score -1
+              noscore t))
+       ((eq (dom-tag node) 'img)
+        (setq score 2
+              noscore t))
+       ((eq (dom-tag node) 'a)
+        (setq score (- (length (split-string (dom-text node))))
+              noscore t))
+       (t
+        (setq score -1))))
+    (when (consp node)
       (dolist (elem (dom-children node))
-	(cond
-         ((stringp elem)
-          (setq score (+ score (length (split-string elem)))))
-         ((consp elem)
-	  (setq score (+ score
-			 (or (cdr (assoc :eww-readability-score (cdr elem)))
-			     (eww-score-readability elem)))))))))
-    ;; Cache the score of the node to avoid recomputing all the time.
-    (dom-set-attribute node :eww-readability-score score)
+        (let ((subscore (eww--walk-readability elem callback noscore)))
+          (when (and (not noscore) subscore)
+            (incf score subscore)))))
+    (funcall callback node score)
     score))
 
+(defun eww-readable-dom (dom)
+  "Return a readable version of DOM."
+  (let ((head-nodes nil)
+        (best-node nil)
+        (best-score most-negative-fixnum))
+    (eww--walk-readability
+     dom
+     (lambda (node score)
+       (when (consp node)
+         (when (and score (> score best-score)
+                    ;; We set a lower bound to how long we accept that
+                    ;; the readable portion of the page is going to be.
+                    (> (length (split-string (dom-texts node))) 100))
+           (setq best-score score
+                 best-node node))
+         ;; Keep track of any <title> and <link> tags we find to include
+         ;; in the final document.  EWW uses them for various features,
+         ;; like renaming the buffer or navigating to "next" and
+         ;; "previous" pages.  NOTE: We could probably filter out
+         ;; stylesheet <link> tags here, though it doesn't really matter
+         ;; since we don't *do* anything with stylesheets...
+         (when (memq (dom-tag node) '(title link))
+           ;; Copy the node, but not any of its (non-text) children.
+           ;; This way, we can ensure that we don't include a node
+           ;; directly in our list in addition to as a child of some
+           ;; other node in the list.  This is ok for <title> and <link>
+           ;; tags, but might need changed if supporting other tags.
+           (let* ((inner-text (dom-texts node ""))
+                  (new-node `(,(dom-tag node)
+                              ,(dom-attributes node)
+                              ,@(when (length> inner-text 0)
+                                  (list inner-text)))))
+             (push new-node head-nodes))))))
+    (if (and best-node (not (eq best-node dom)))
+        `(html nil
+               (head nil ,@head-nodes)
+               (body nil ,best-node))
+      dom)))
+
+(defun eww-score-readability (node)
+  (declare (obsolete 'eww--walk-readability "31.1"))
+  (eww--walk-readability
+   node
+   (lambda (node score)
+     (when (and score (consp node))
+       (dom-set-attribute node :eww-readability-score score)))))
+
 (defun eww-highest-readability (node)
+  (declare (obsolete 'eww-readable-dom "31.1"))
   (let ((result node)
 	highest)
     (dolist (elem (dom-non-text-children node))
