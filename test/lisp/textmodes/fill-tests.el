@@ -122,6 +122,17 @@ eius. Foo")))
   ;; w
 ")))
 
+(ert-deftest fill-test-fill-region ()
+  "Test the `fill-region' function."
+  (ert-test-erts-file (ert-resource-file "fill-region.erts")
+                      (lambda ()
+			(fill-region
+                         (point)
+                         (progn
+                           (goto-char (point-max))
+                           (forward-line -1)
+                           (beginning-of-line)
+                           (point))))))
 
 (ert-deftest fill-test-fill-region-as-paragraph-semlf ()
   "Test the `fill-region-as-paragraph-semlf' function."

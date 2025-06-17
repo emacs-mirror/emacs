@@ -647,8 +647,8 @@ The break position will be always after LINEBEG and generally before point."
     (indent-line-to (current-left-margin))
     (put-text-property beg (point) 'face 'default)))
 
-(defun fill-region-as-paragraph (from to &optional justify
-				      nosqueeze squeeze-after)
+(defun fill-region-as-paragraph-default (from to &optional justify
+				              nosqueeze squeeze-after)
   "Fill the region as if it were a single paragraph.
 This command removes any paragraph breaks in the region and
 extra newlines at the end, and indents and fills lines between the
@@ -799,6 +799,39 @@ space does not end a sentence, so don't break a line there."
       (set-marker to nil)
       ;; Return the fill-prefix we used
       fill-prefix)))
+
+(defvar fill-region-as-paragraph-function #'fill-region-as-paragraph-default
+  "Function to fill the region as if it were a single paragraph.
+It should accept the arguments defined by `fill-region-as-paragraph' and
+return the `fill-prefix' used for filling.")
+
+(defun fill-region-as-paragraph (from to &optional justify
+				      nosqueeze squeeze-after)
+  "Fill the region as if it were a single paragraph.
+The behavior of this command is controlled by the variable
+`fill-region-as-paragraph-function', with the default implementation
+being `fill-region-as-paragraph-default'.
+
+The arguments FROM and TO define the boundaries of the region.
+
+The optional third argument JUSTIFY, when called interactively with a
+prefix arg, is assigned the value `full'.
+When called from Lisp, JUSTIFY can specify any type of justification;
+see `default-justification' for the possible values.
+Optional fourth arg NOSQUEEZE non-nil means not to make spaces between
+words canonical before filling.
+Fifth arg SQUEEZE-AFTER, if non-nil, should be a buffer position; it
+means canonicalize spaces only starting from that position.
+See `canonically-space-region' for the meaning of canonicalization of
+spaces.
+
+It returns the `fill-prefix' used for filling."
+  (interactive (progn
+		 (barf-if-buffer-read-only)
+		 (list (region-beginning) (region-end)
+		       (if current-prefix-arg 'full))))
+  (funcall fill-region-as-paragraph-function
+           from to justify nosqueeze squeeze-after))
 
 (defsubst skip-line-prefix (prefix)
   "If point is inside the string PREFIX at the beginning of line, move past it."
@@ -1061,7 +1094,10 @@ if variable `use-hard-newlines' is on).
 Return the `fill-prefix' used for filling the last paragraph.
 
 If `sentence-end-double-space' is non-nil, then period followed by one
-space does not end a sentence, so don't break a line there."
+space does not end a sentence, so don't break a line there.
+
+The variable `fill-region-as-paragraph-function' can be used to override
+how paragraphs are filled."
   (interactive (progn
 		 (barf-if-buffer-read-only)
 		 (list (region-beginning) (region-end)
@@ -1621,19 +1657,19 @@ For more details about semantic linefeeds, see `fill-paragraph-semlf'."
     (with-restriction (line-beginning-position) to
       (let ((fill-column (point-max)))
         (setq pfx (or (save-excursion
-                        (fill-region-as-paragraph (point)
-                                                  (point-max)
-                                                  nil
-                                                  nosqueeze
-                                                  squeeze-after))
+                        (fill-region-as-paragraph-default (point)
+                                                          (point-max)
+                                                          nil
+                                                          nosqueeze
+                                                          squeeze-after))
                       "")))
       (while (not (eobp))
         (let ((fill-prefix pfx))
-	  (fill-region-as-paragraph (point)
-				    (progn (forward-sentence) (point))
-				    justify
-                                    nosqueeze
-                                    squeeze-after))
+	  (fill-region-as-paragraph-default (point)
+				            (progn (forward-sentence) (point))
+				            justify
+                                            nosqueeze
+                                            squeeze-after))
         (when (and (> (point) (line-beginning-position))
 		   (< (point) (line-end-position)))
 	  (delete-horizontal-space)

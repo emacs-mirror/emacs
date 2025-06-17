@@ -600,12 +600,15 @@ can also call @kbd{M-x fill-region} to specifically fill the text in
 the region.
 
 @findex fill-region-as-paragraph
+@vindex fill-region-as-paragraph-function
   @kbd{M-q} and @code{fill-region} use the usual Emacs criteria for
 finding paragraph boundaries (@pxref{Paragraphs}).  For more control,
-you can use @kbd{M-x fill-region-as-paragraph}, which refills
-everything between point and mark as a single paragraph.  This command
-deletes any blank lines within the region, so separate blocks of text
-end up combined into one block.
+you can use @kbd{M-x fill-region-as-paragraph}, which refills everything
+between point and mark as a single paragraph.  The behavior of this
+command is controlled by the variable
+@code{fill-region-as-paragraph-function}.  By default, it deletes any
+blank lines within the region, so separate blocks of text end up
+combined into one block.
 
 @cindex justification
   A numeric argument to @kbd{M-q} tells it to @dfn{justify} the text

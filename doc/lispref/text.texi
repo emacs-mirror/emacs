@@ -1737,7 +1737,12 @@ described above.
 
 @deffn Command fill-region-as-paragraph start end &optional justify nosqueeze squeeze-after
 This command considers a region of text as a single paragraph and fills
-it.  If the region was made up of many paragraphs, the blank lines
+it.  The behavior of this command is controlled by the variable
+@code{fill-region-as-paragraph-function}, with the default
+implementation being @code{fill-region-as-paragraph-default}, which is
+described in detail below.
+
+If the region was made up of many paragraphs, the blank lines
 between paragraphs are removed.  This function justifies as well as
 filling when @var{justify} is non-@code{nil}.
 
@@ -1839,6 +1844,14 @@ should return the difference between @var{n} and the number of
 paragraphs actually moved.  The default value of this variable is
 @code{forward-paragraph}.  @xref{Paragraphs,,, emacs, The GNU Emacs
 Manual}.
+@end defvar
+
+@defvar fill-region-as-paragraph-function
+This variable provides a way to override how functions like
+@code{fill-region} fill text.  Its value should be a function, which
+should accept the arguments defined by @code{fill-region-as-paragraph}
+and return the fill prefix used for filling.  The default value of this
+variable is @code{fill-region-as-paragraph-default}.
 @end defvar
 
 @defvar use-hard-newlines
