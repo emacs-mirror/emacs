@@ -1848,10 +1848,11 @@ Manual}.
 
 @defvar fill-region-as-paragraph-function
 This variable provides a way to override how functions like
-@code{fill-region} fill text.  Its value should be a function, which
-should accept the arguments defined by @code{fill-region-as-paragraph}
-and return the fill prefix used for filling.  The default value of this
-variable is @code{fill-region-as-paragraph-default}.
+@code{fill-paragraph} and @code{fill-region} fill text.  Its value
+should be a function, which should accept the arguments defined by
+@code{fill-region-as-paragraph} and return the fill prefix used for
+filling.  The default value of this variable is
+@code{fill-region-as-paragraph-default}.
 @end defvar
 
 @defvar use-hard-newlines
