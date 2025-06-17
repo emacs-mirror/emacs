@@ -30,7 +30,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/random.h>
 #include <unistd.h>
 
-#include <boot-time.h>
 #include <c-ctype.h>
 #include <close-stream.h>
 #include <pathmax.h>
@@ -3454,6 +3453,48 @@ put_jiffies (Lisp_Object attrs, Lisp_Object propname,
   return Fcons (Fcons (propname, time_from_jiffies (ticks, hz, Qnil)), attrs);
 }
 
+/* Get the host boot time into *BT and return 0 if successful;
+   otherwise, possibly set *BT and return -1.
+   Do not use get_boot_time, which returns a container's
+   boot time instead of the underlying host's boot time.  */
+static int
+get_host_boot_time (struct timespec *bt)
+{
+  int ret = -1;
+
+  block_input ();
+  FILE *fp = emacs_fopen ("/proc/stat", "r");
+
+  if (fp)
+    {
+      /* Look for "btime SECONDS" at line start, and return SECONDS if found.
+	 N counts bytes currently matched in BTIME_PAT.
+	 It starts at 1 to pretend scanning starts just after '\n'.  */
+      int n = 1;
+      static char const btime_pat[7] ATTRIBUTE_NONSTRING = "\nbtime ";
+
+      for (int c; 0 <= (c = getc (fp)); )
+	{
+	  n = c == btime_pat[n] ? n + 1 : c == '\n';
+	  if (n == sizeof btime_pat)
+	    {
+	      intmax_t btime;
+	      if (fscanf (fp, "%jd", &btime) == 1)
+		{
+		  ret = -ckd_add (&bt->tv_sec, btime, 0);
+		  bt->tv_nsec = 0;
+		}
+	      break;
+	    }
+	}
+
+      emacs_fclose (fp);
+    }
+  unblock_input ();
+
+  return ret;
+}
+
 # if defined GNU_LINUX || defined __ANDROID__
 #define MAJOR(d) (((unsigned)(d) >> 8) & 0xfff)
 #define MINOR(d) (((unsigned)(d) & 0xff) | (((unsigned)(d) & 0xfff00000) >> 12))
@@ -3671,7 +3712,7 @@ system_process_attributes (Lisp_Object pid)
 	      attrs = put_jiffies (attrs, Qctime, cstime + cutime, hz);
 
 	      struct timespec bt;
-	      if (get_boot_time (&bt) == 0)
+	      if (get_host_boot_time (&bt) == 0)
 		{
 		  Lisp_Object boot = Ftime_convert (timespec_to_lisp (bt), hz);
 		  Lisp_Object now = Ftime_convert (Qnil, hz);
