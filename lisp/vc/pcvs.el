@@ -161,7 +161,7 @@
   "?"              #'cvs-help
   "h"              #'cvs-help
   "q"              #'cvs-bury-buffer
-  "z"              #'kill-this-buffer
+  "z"              #'kill-current-buffer
   "F"              #'cvs-mode-set-flags
   "!"              #'cvs-mode-force-command
   "C-c C-c"        #'cvs-mode-kill-process

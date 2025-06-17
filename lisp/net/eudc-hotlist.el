@@ -128,7 +128,7 @@ These are the special commands of this mode:\\<eudc-hotlist-mode-map>
     (setq eudc-server-hotlist (nreverse hotlist))
     (eudc-install-menu)
     (eudc-save-options)
-    (kill-this-buffer)))
+    (kill-current-buffer)))
 
 (defun eudc-hotlist-select-server ()
   "Select the server at point as the current server."
