@@ -96,6 +96,11 @@ void *igc_xpalloc_ambig (void *pa, ptrdiff_t *nitems,
 			 ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
 			 ptrdiff_t item_size);
 
+Lisp_Object *igc_xpalloc_lisp_objs_exact (Lisp_Object *pa, ptrdiff_t *nitems,
+					  ptrdiff_t nitems_incr_min,
+					  ptrdiff_t nitems_max,
+					  const char *label);
+
 typedef int igc_scan_result_t; /* zero means success */
 struct igc_ss;
 typedef igc_scan_result_t (*igc_scan_area_t) (struct igc_ss *ss, void *start,
