@@ -3334,12 +3334,11 @@ igc_grow_rdstack (struct read_stack *rs)
 }
 
 Lisp_Object *
-igc_xalloc_lisp_objs_exact (size_t n)
+igc_xalloc_lisp_objs_exact (size_t n, const char *label)
 {
   size_t size = n * sizeof (Lisp_Object);
   void *p = xzalloc (size);
-  root_create_exact (global_igc, p, (char *) p + size, scan_exact,
-		     "xalloc-exact");
+  root_create_exact (global_igc, p, (char *) p + size, scan_exact, label);
   return p;
 }
 

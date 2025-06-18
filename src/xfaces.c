@@ -7363,7 +7363,8 @@ init_xfaces (void)
 	  /* Allocate the lface_id_to_name[] array.  */
 	  lface_id_to_name_size = next_lface_id = nfaces;
 #ifdef HAVE_MPS
-	  lface_id_to_name = igc_xalloc_lisp_objs_exact (next_lface_id);
+	  lface_id_to_name = igc_xalloc_lisp_objs_exact (next_lface_id,
+							 "lface-id-to-name");
 #else
 	  lface_id_to_name = xnmalloc (next_lface_id, sizeof *lface_id_to_name);
 #endif
