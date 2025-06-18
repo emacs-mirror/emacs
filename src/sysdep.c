@@ -3453,46 +3453,19 @@ put_jiffies (Lisp_Object attrs, Lisp_Object propname,
   return Fcons (Fcons (propname, time_from_jiffies (ticks, hz, Qnil)), attrs);
 }
 
-/* Get the host boot time into *BT and return 0 if successful;
-   otherwise, possibly set *BT and return -1.
+/* Return the host uptime with resolution HZ if successful, otherwise nil.
    Do not use get_boot_time, which returns a container's
    boot time instead of the underlying host's boot time.  */
-static int
-get_host_boot_time (struct timespec *bt)
+static Lisp_Object
+get_host_uptime (Lisp_Object hz)
 {
-  int ret = -1;
-
-  block_input ();
-  FILE *fp = emacs_fopen ("/proc/stat", "r");
-
-  if (fp)
-    {
-      /* Look for "btime SECONDS" at line start, and return SECONDS if found.
-	 N counts bytes currently matched in BTIME_PAT.
-	 It starts at 1 to pretend scanning starts just after '\n'.  */
-      int n = 1;
-      static char const btime_pat[7] ATTRIBUTE_NONSTRING = "\nbtime ";
-
-      for (int c; 0 <= (c = getc (fp)); )
-	{
-	  n = c == btime_pat[n] ? n + 1 : c == '\n';
-	  if (n == sizeof btime_pat)
-	    {
-	      intmax_t btime;
-	      if (fscanf (fp, "%jd", &btime) == 1)
-		{
-		  ret = -ckd_add (&bt->tv_sec, btime, 0);
-		  bt->tv_nsec = 0;
-		}
-	      break;
-	    }
-	}
-
-      emacs_fclose (fp);
-    }
-  unblock_input ();
-
-  return ret;
+  /* clock_gettime is available in glibc 2.14+, Android, and musl libc.  */
+# if !defined __GLIBC__ || 2 < __GLIBC__ + (14 <= __GLIBC_MINOR__)
+  struct timespec upt;
+  if (0 <= clock_gettime (CLOCK_BOOTTIME, &upt))
+    return Ftime_convert (timespec_to_lisp (upt), hz);
+#endif
+  return Qnil;
 }
 
 # if defined GNU_LINUX || defined __ANDROID__
@@ -3711,12 +3684,11 @@ system_process_attributes (Lisp_Object pid)
 	      attrs = put_jiffies (attrs, Qcstime, cstime, hz);
 	      attrs = put_jiffies (attrs, Qctime, cstime + cutime, hz);
 
-	      struct timespec bt;
-	      if (get_host_boot_time (&bt) == 0)
+	      Lisp_Object uptime = get_host_uptime (hz);
+	      if (!NILP (uptime))
 		{
-		  Lisp_Object boot = Ftime_convert (timespec_to_lisp (bt), hz);
 		  Lisp_Object now = Ftime_convert (Qnil, hz);
-		  Lisp_Object uptime = Ftime_subtract (now, boot);
+		  Lisp_Object boot = Ftime_subtract (now, uptime);
 		  Lisp_Object tstart = time_from_jiffies (start, hz, hz);
 		  Lisp_Object lstart =
 		    Ftime_convert (Ftime_add (boot, tstart), Qnil);
