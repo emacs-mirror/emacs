@@ -3508,7 +3508,6 @@ igc_xpalloc_lisp_objs_exact (Lisp_Object *pa, ptrdiff_t *nitems,
 			     ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
 			     ptrdiff_t item_size, const char *label)
 {
-  igc_assert (item_size == word_size);
   ptrdiff_t nitems_old = *nitems;
   ptrdiff_t nitems_new = nitems_old;
   ptrdiff_t nbytes
