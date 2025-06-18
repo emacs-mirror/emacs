@@ -2628,13 +2628,14 @@ definition."
   (goto-char (ert--button-action-position))
   (ert-results-jump-between-summary-and-result))
 
-(defun ert--results-progress-bar-button-help-echo (_window _object pos)
+(defun ert--results-progress-bar-button-help-echo (_window object pos)
   "Show the test name in `help-echo'."
   (format
    "%s\nmouse-2, RET: Reveal test result"
-   (save-excursion
-     (goto-char pos)
-     (or (ert-test-at-point) ""))))
+   (with-current-buffer object
+     (save-excursion
+       (goto-char pos)
+       (or (ert-test-at-point) "")))))
 
 (defun ert-results-rerun-all-tests ()
   "Re-run all tests, using the same selector.
