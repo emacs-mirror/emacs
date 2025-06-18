@@ -2990,11 +2990,8 @@ Value is a vector of face attributes.  */)
 	{
 #ifdef HAVE_MPS
 	  lface_id_to_name
-	    = igc_xpalloc_lisp_objs_exact (lface_id_to_name,
-					   &lface_id_to_name_size,
-					   1, MAX_FACE_ID,
-					   sizeof *lface_id_to_name,
-					   "lface-id-to-name");
+	    = igc_xpalloc_ambig (lface_id_to_name, &lface_id_to_name_size,
+				 1, MAX_FACE_ID, sizeof *lface_id_to_name);
 #else
 	  lface_id_to_name = xpalloc (lface_id_to_name, &lface_id_to_name_size,
 				      1, MAX_FACE_ID, sizeof *lface_id_to_name);
@@ -7364,7 +7361,8 @@ init_xfaces (void)
 	  /* Allocate the lface_id_to_name[] array.  */
 	  lface_id_to_name_size = next_lface_id = nfaces;
 #ifdef HAVE_MPS
-	  lface_id_to_name = igc_xalloc_lisp_objs_exact (next_lface_id);
+	  lface_id_to_name
+	    = igc_xzalloc_ambig (next_lface_id * sizeof *lface_id_to_name);
 #else
 	  lface_id_to_name = xnmalloc (next_lface_id, sizeof *lface_id_to_name);
 #endif
