@@ -1184,6 +1184,30 @@ adds a new entry to `eww-history'."
       (plist-put eww-data :readable make-readable)
       (eww--after-page-change))))
 
+(defun eww--string-count-words (string)
+  "Return the number of words in STRING."
+  (let ((start 0)
+        (count 0))
+    (while (string-match split-string-default-separators string start)
+      (when (< start (match-beginning 0))
+        (incf count))
+      (setq start (match-end 0)))
+    (when (length> string (1+ start))
+      (incf count))
+    count))
+
+(defun eww--dom-count-words (node)
+  "Return the number of words in all the textual data under NODE."
+  (cond
+   ((stringp node)
+    (eww--string-count-words node))
+   ((memq (dom-tag node) '(script comment))
+    0)
+   (t
+    (let ((total 0))
+      (dolist (elem (dom-children node) total)
+        (incf total (eww--dom-count-words elem)))))))
+
 (defun eww--walk-readability (node callback &optional noscore)
   "Walk through all children of NODE to score readability.
 After scoring, call CALLBACK with the node and score.  If NOSCORE is
@@ -1192,7 +1216,7 @@ non-nil, don't actually compute a score; just call the callback."
     (unless noscore
       (cond
        ((stringp node)
-        (setq score (length (split-string node))
+        (setq score (eww--string-count-words node)
               noscore t))
        ((memq (dom-tag node) '(head comment script style template))
         (setq score -2
@@ -1204,7 +1228,7 @@ non-nil, don't actually compute a score; just call the callback."
         (setq score 2
               noscore t))
        ((eq (dom-tag node) 'a)
-        (setq score (- (length (split-string (dom-inner-text node))))
+        (setq score (- (eww--dom-count-words node))
               noscore t))
        (t
         (setq score -1))))
@@ -1229,7 +1253,7 @@ If EWW can't create a readable version, return nil instead."
          (when (and score (> score best-score)
                     ;; We set a lower bound to how long we accept that
                     ;; the readable portion of the page is going to be.
-                    (> (length (split-string (dom-inner-text node))) 100))
+                    (> (eww--dom-count-words node) 100))
            (setq best-score score
                  best-node node))
          ;; Keep track of any <title> and <link> tags we find to include
