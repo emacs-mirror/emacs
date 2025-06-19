@@ -828,6 +828,12 @@ This replaces the region with the preprocessed HTML."
   (unless document
     (let ((dom (eww--parse-html-region (point) (point-max) charset)))
       (when (eww-default-readable-p url)
+        ;; HACK: Work around bug#77299.  By displaying the full
+        ;; document first, we can ensure that the `:title' property in
+        ;; `eww-data' gets set properly.  This is inefficient, since
+        ;; it requires rendering the document twice.
+        (let ((shr-inhibit-images t))
+          (eww-display-document (eww-document-base url dom) point buffer))
         (eww-score-readability dom)
         (setq dom (eww-highest-readability dom))
         (with-current-buffer buffer
