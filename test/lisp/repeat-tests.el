@@ -93,7 +93,9 @@
   :repeat ( :enter    (repeat-tests-call-s)
             :continue (repeat-tests-call-e
                        repeat-tests-call-o
-                       repeat-tests-call-u))
+                       repeat-tests-call-u)
+            :hints    ((repeat-tests-call-t . "test")
+                       (repeat-tests-call-o . "another test")))
   "s"     'ignore ;; for non-nil repeat-check-key only
   "t"     'repeat-tests-call-t
   "C-M-o" 'repeat-tests-call-o
@@ -238,8 +240,7 @@
       ;; 'C-M-o' should also activate
       (repeat-tests--check
        "C-M-o c z"
-       '((1 o) (1 c)) "z")
-      )))
+       '((1 o) (1 c)) "z"))))
 
 (ert-deftest repeat-tests-continue-another ()
   (with-repeat-mode repeat-tests-global-map
@@ -268,6 +269,20 @@
       (repeat-tests--check
        "C-M-a c C-M-o C-M-o c z"
        '((1 a) (1 c) (1 o) (1 o) (1 c)) "z"))))
+
+(ert-deftest repeat-tests-hints ()
+  (with-repeat-mode repeat-tests-global-map
+    (let ((repeat-echo-function 'ignore)
+          (repeat-check-key nil))
+      (execute-kbd-macro (kbd "C-M-s"))
+      (should (equal (repeat-echo-message-string (repeat-get-map repeat-in-progress))
+                     #("Repeat with s, [T]est, C-M-o (an[O]ther test), C-M-u"
+                       12 13
+                       (face read-multiple-choice-face)
+                       23 28
+                       (face read-multiple-choice-face)
+                       47 52
+                       (face read-multiple-choice-face)))))))
 
 
 (require 'use-package)
