@@ -336,9 +336,13 @@ Return them as multiple value."
       (nreverse res))))
 
 (defun comp-supertypes (type)
-  "Return the ordered list of supertypes of TYPE."
-  (or (assq type (comp-cstr-ctxt-typeof-types comp-ctxt))
-      (error "Type %S missing from typeof-types!" type)))
+   "Return the ordered list of supertypes of TYPE."
+   (or (assq type (comp-cstr-ctxt-typeof-types comp-ctxt))
+       (progn
+	 (display-warning
+	  'native-compiler
+	  (format "Unknown type %S" type))
+	 '(t))))
 
 (defun comp--union-typesets (&rest typesets)
   "Union types present into TYPESETS."

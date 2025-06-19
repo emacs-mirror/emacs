@@ -971,6 +971,13 @@ at each prompt, for instance with the following command:
 printf "\e]7;file://%s%s\e\\" "$HOSTNAME" "$PWD"
 @end example
 
+@noindent
+Then tell Emacs to process the escape codes:
+
+@lisp
+(add-hook 'comint-output-filter-functions #'comint-osc-process-output)
+@end lisp
+
 @vindex explicit-shell-file-name
 @cindex environment variables for subshells
 @cindex @env{ESHELL} environment variable
@@ -1204,7 +1211,7 @@ supports some extended escape codes, like some of the @acronym{OSC}
 (Operating System Codes) if you put the following in your init file:
 
 @lisp
-(add-hook 'comint-output-filter-functions 'comint-osc-process-output)
+(add-hook 'comint-output-filter-functions #'comint-osc-process-output)
 @end lisp
 
 With this enabled, the output from, for instance, @code{ls

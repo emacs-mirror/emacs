@@ -138,12 +138,9 @@ RUN src/emacs -Q --batch \
         (treesit-library-abi-version t) (treesit-library-abi-version))' \
     --eval '(message "\nInstalling grammars\n===================")' \
     --eval '(setq treesit-extra-load-path (list "/root/.emacs.d/tree-sitter"))' \
-    --eval '(dolist (feature (quote (c-ts-mode cmake-ts-mode csharp-mode \
-        dockerfile-ts-mode elixir-ts-mode heex-ts-mode go-ts-mode java-ts-mode \
-        js json-ts-mode lua-ts-mode php-ts-mode python ruby-ts-mode rust-ts-mode \
-        sh-script typescript-ts-mode css-mode html-ts-mode markdown-ts-mode \
-        toml-ts-mode yaml-ts-mode treesit-x))) (require feature))' \
-    --eval '(dolist (lang (mapcar (quote car) treesit-language-source-alist)) \
+    -l admin/tree-sitter/treesit-admin.el \
+    --eval '(dolist (lang (mapcar (quote car) \
+                                  (treesit-admin--populated-treesit-language-source-alist))) \
         (treesit-install-language-grammar lang "/root/.emacs.d/tree-sitter"))' \
     --eval '(message "\ntreesit-language-source-alist")' \
     --eval '(message "=============================")' \
@@ -152,9 +149,6 @@ RUN src/emacs -Q --batch \
     --eval \
         '(dolist (lang (sort (mapcar (quote car) treesit-language-source-alist))) \
          (message "%s ABI version %d" lang (treesit-language-abi-version lang)))' \
-    -l admin/tree-sitter/treesit-admin.el \
-    --eval '(setq treesit-admin--builtin-language-sources \
-        treesit-language-source-alist)' \
     --eval '(message "\ntreesit-admin-check-manual-coverage")' \
     --eval '(message "===================================")' \
     -f treesit-admin-check-manual-coverage \

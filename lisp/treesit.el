@@ -2973,17 +2973,6 @@ BACKWARD and ALL are the same as in `treesit-search-forward'."
 
 ;;; Sexp functions
 
-(make-obsolete 'treesit-sexp-type-regexp
-               "`treesit-sexp-type-regexp' will be removed soon, use `treesit-thing-settings' instead." "30.1")
-
-(defvar-local treesit-sexp-type-regexp nil
-  "A regexp that matches the node type of sexp nodes.
-
-A sexp node is a node that is bigger than punctuation, and
-delimits medium sized statements in the source code.  It is,
-however, smaller in scope than sentences.  This is used by
-`treesit-forward-sexp' and friends.")
-
 (defvar-local treesit-sexp-thing nil
   "A thing that matches the sexp nodes for `forward-sexp'.
 This is used by `treesit-forward-sexp' and `treesit-forward-list'.")
@@ -3501,29 +3490,6 @@ set, Emacs also looks for definition of defun in
         (if (or (eq arg 0) (not (eq orig-point (point))))
             (throw 'done nil)
           (setq arg (if (> arg 0) (1+ arg) (1- arg))))))))
-
-(make-obsolete 'treesit-text-type-regexp
-               "`treesit-text-type-regexp' will be removed soon, use `treesit-thing-settings' instead." "30.1")
-
-(defvar-local treesit-text-type-regexp "\\`comment\\'"
-  "A regexp that matches the node type of textual nodes.
-
-A textual node is a node that is not normal code, such as
-comments and multiline string literals.  For example,
-\"(line|block)_comment\" in the case of a comment, or
-\"text_block\" in the case of a string.  This is used by
-`prog-fill-reindent-defun' and friends.")
-
-(make-obsolete 'treesit-sentence-type-regexp
-               "`treesit-sentence-type-regexp' will be removed soon, use `treesit-thing-settings' instead." "30.1")
-
-(defvar-local treesit-sentence-type-regexp nil
-  "A regexp that matches the node type of sentence nodes.
-
-A sentence node is a node that is bigger than a sexp, and
-delimits larger statements in the source code.  It is, however,
-smaller in scope than defuns.  This is used by
-`treesit-forward-sentence' and friends.")
 
 (defun treesit-forward-sentence (&optional arg)
   "Tree-sitter `forward-sentence-function' implementation.

@@ -628,6 +628,37 @@ Otherwise, 1 / 0 is changed to uinf (undirected infinity).")
 (defcalcmodevar calc-display-strings nil
   "If non-nil, display vectors of byte-sized integers as strings.")
 
+(defcustom calc-string-maximum-character #xFF
+  "Maximum value of vector contents to be displayed as a string.
+
+If a vector consists of characters up to this maximum value, the
+function `calc-display-strings' will toggle displaying the vector as a
+string.  This maximum value must represent a character (see `characterp').
+Some natural choices (and their resulting ranges) are:
+
+- `0x7F'     (`ASCII'),
+- `0xFF'     (`Latin-1', the default),
+- `0x10FFFF' (`Unicode'),
+- `0x3FFFFF' (`Emacs').
+
+Characters for low control codes are either caret or backslash escaped,
+while others without a glyph are displayed in backslash-octal notation.
+The display of strings containing higher character codes will depend on
+your display settings and system font coverage.
+
+See the following for further information:
+
+- info node `(calc)Strings',
+- info node `(elisp)Text Representations',
+- info node `(emacs)Text Display'."
+  :version "31.1"
+  :type '(choice (restricted-sexp :tag "Character Code"
+                                  :match-alternatives (characterp))
+                 (const :tag "ASCII"   #x7F)
+                 (const :tag "Latin-1" #xFF)
+                 (const :tag "Unicode" #x10FFFF)
+                 (const :tag "Emacs"   #x3FFFFF)))
+
 (defcalcmodevar calc-matrix-just 'center
   "If nil, vector elements are left-justified.
 If `right', vector elements are right-justified.

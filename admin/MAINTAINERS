@@ -242,6 +242,9 @@ Sean Whitton
 	    doc/misc/ediff.texi
 	    test/lisp/vc/*
 
+Stephane Marks
+	lisp/emacs-lisp/vtable.el
+
 ==============================================================================
 2. Areas that someone is willing to maintain, although he would not
 necessarily mind if someone else was the official maintainer.

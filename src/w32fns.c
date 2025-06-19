@@ -266,6 +266,7 @@ extern AppendMenuW_Proc unicode_append_menu;
 static int ignore_ime_char = 0;
 
 /* W95 mousewheel handler */
+extern unsigned int msh_mousewheel;
 unsigned int msh_mousewheel = 0;
 
 /* Timers */
@@ -3977,6 +3978,13 @@ post_character_message (HWND hwnd, UINT msg,
 	|| (wmsg.dwModifiers == 0
 	    && w32_quit_key && wParam == w32_quit_key))
       {
+	/* See keyboard.c:handle_interrupt.  We repeat the same code
+           here to support the triple-C-g feature.  */
+	static int force_quit_count;
+	int count = NILP (Vquit_flag) ? 1 : force_quit_count + 1;
+	force_quit_count = count;
+	if (count == 3)
+	  Vinhibit_quit = Qnil;
 	Vquit_flag = Qt;
 
 	/* The choice of message is somewhat arbitrary, as long as

@@ -119,7 +119,8 @@ executes in under 5 ms on my system."
            savehist-autosave-interval
            (null savehist-timer))
       (setq savehist-timer
-	    (run-with-timer savehist-autosave-interval t #'savehist-autosave))
+            (run-with-timer savehist-autosave-interval
+                            savehist-autosave-interval #'savehist-autosave))
     (savehist--cancel-timer)))
 
 (defcustom savehist-autosave-interval (* 5 60)

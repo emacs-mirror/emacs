@@ -586,9 +586,16 @@ This function can be used to force exit of repetition while it's active."
                   (let ((key (car key-cmd))
                         (cmd (cdr key-cmd)))
                     (if-let* ((hint (and (symbolp cmd)
-                                         (get cmd 'repeat-hint))))
+                                         (get cmd 'repeat-hint)))
+                              (last (aref key (1- (length key)))))
                         ;; Reuse `read-multiple-choice' formatting.
-                        (cdr (rmc--add-key-description (list key hint)))
+                        (if (= (length key) 1)
+                            (cdr (rmc--add-key-description (list last hint)))
+                          (format "%s (%s)"
+                                  (propertize (key-description key)
+                                              'face 'read-multiple-choice-face)
+                                  (cdr (rmc--add-key-description
+                                        (list (event-basic-type last) hint)))))
                       (propertize (key-description key)
                                   'face 'read-multiple-choice-face))))
                 keys ", ")

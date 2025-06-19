@@ -6110,6 +6110,24 @@ tree-sitter."
   (python-imenu-create-flat-index
    (python-imenu-treesit-create-index)))
 
+
+;;; Tree-sitter things
+
+(defvar python--thing-settings
+  `((python
+     (defun ,(rx (or "function" "class") "_definition"))
+     (sexp ,(rx (or "expression"
+                    "string"
+                    "call"
+                    "operator"
+                    "identifier"
+                    "integer"
+                    "float")))
+     (sentence ,(rx (or "statement"
+                        "clause")))
+     (text ,(rx (or "string" "comment")))))
+  "`treesit-thing-settings' for Python.")
+
 ;;; Misc helpers
 
 (defun python-info-current-defun (&optional include-type)
@@ -7327,26 +7345,10 @@ implementations: `python-mode' and `python-ts-mode'."
     (setq-local treesit-font-lock-settings python--treesit-settings)
     (setq-local imenu-create-index-function
                 #'python-imenu-treesit-create-index)
-    (setq-local treesit-defun-type-regexp (rx (or "function" "class")
-                                              "_definition"))
     (setq-local treesit-defun-name-function
                 #'python--treesit-defun-name)
 
-    (when (boundp 'treesit-sentence-type-regexp)
-      (setq-local treesit-sentence-type-regexp
-                  (regexp-opt '("statement"
-                                "clause"))))
-
-    (when (boundp 'treesit-sexp-type-regexp)
-      (setq-local treesit-sexp-type-regexp
-                  (regexp-opt '("expression"
-                                "string"
-                                "call"
-                                "operator"
-                                "identifier"
-                                "integer"
-                                "float"))))
-
+    (setq treesit-thing-settings python--thing-settings)
     (treesit-major-mode-setup)
 
     (setq-local syntax-propertize-function #'python--treesit-syntax-propertize)

@@ -574,7 +574,11 @@ DEFUN ("profiler-cpu-log", Fprofiler_cpu_log, Sprofiler_cpu_log,
 The log is a hash-table mapping backtraces to counters which represent
 the amount of time spent at those points.  Every backtrace is a vector
 of functions, where the last few elements may be nil.
-Before returning, a new log is allocated for future samples.  */)
+
+If the profiler has not run since the last invocation of
+`profiler-cpu-log' (or was never run at all), return nil.  If the
+profiler is currently running, allocate a new log for future samples
+before returning.  */)
   (void)
 {
   /* Temporarily stop profiling to avoid it interfering with our data
@@ -596,6 +600,9 @@ Before returning, a new log is allocated for future samples.  */)
 static Lisp_Object
 export_log (struct profiler_log *plog)
 {
+  if (!plog->log)
+    return Qnil;
+
   log_t *log = plog->log;
   /* The returned hash table uses `equal' as key equivalence predicate
      which is more discriminating than the `function-equal' used by
@@ -679,7 +686,11 @@ DEFUN ("profiler-memory-log",
 The log is a hash-table mapping backtraces to counters which represent
 the amount of memory allocated at those points.  Every backtrace is a vector
 of functions, where the last few elements may be nil.
-Before returning, a new log is allocated for future samples.  */)
+
+If the profiler has not run since the last invocation of
+`profiler-memory-log' (or was never run at all), return nil.  If the
+profiler is currently running, allocate a new log for future samples
+before returning.  */)
   (void)
 {
   bool prof_mem = profiler_memory_running;

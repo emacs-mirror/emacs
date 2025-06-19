@@ -1737,22 +1737,15 @@ same way as ordinary functions.
 
   @xref{Lexical Binding}, for an example of using a closure.
 
-  Currently, an Emacs Lisp closure object is represented by a list
-with the symbol @code{closure} as the first element, a list
-representing the lexical environment as the second element, and the
-argument list and body forms as the remaining elements:
-
 @example
 ;; @r{lexical binding is enabled.}
 (lambda (x) (* x x))
      @result{} #f(lambda (x) [t] (* x x))
 @end example
 
-@noindent
-However, the fact that the internal structure of a closure is
-exposed to the rest of the Lisp world is considered an internal
-implementation detail.  For this reason, we recommend against directly
-examining or altering the structure of closure objects.
+  The internal structure of a closure is an implementation matter and we
+recommend against examining or altering it directly.  For the curious,
+@pxref{Closure Objects}.
 
 @node OClosures
 @section Open Closures

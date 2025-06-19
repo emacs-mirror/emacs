@@ -67,7 +67,7 @@ default setting for optimization purposes.")
   "If nil, drop support for some behaviors of older versions of EIEIO.
 Currently under control of this var:
 - Define every class as a var whose value is the class symbol.
-- Define <class>-child-p and <class>-list-p predicates.
+- Define <class>-child-p predicate.
 - Allow object names in constructors.
 When `warn', also emit warnings at run-time when code uses those
 deprecated features.")
@@ -224,8 +224,7 @@ It creates an autoload function for CNAME's constructor."
       (autoload cname filename doc nil nil)
       (autoload (intern (format "%s-p" cname)) filename "" nil nil)
       (when eieio-backward-compatibility
-        (autoload (intern (format "%s-child-p" cname)) filename "" nil nil)
-        (autoload (intern (format "%s-list-p" cname)) filename "" nil nil)))))
+        (autoload (intern (format "%s-child-p" cname)) filename "" nil nil)))))
 
 (defun eieio--full-class-object (class)
   "Like `eieio--class-object' but loads the class if needed."
@@ -351,31 +350,6 @@ See `defclass' for more information."
       (set cname cname)
       (make-obsolete-variable cname (format "use '%s instead" cname)
                               "25.1"))
-
-    ;; Create a handy list of the class test too
-    (when eieio-backward-compatibility
-      (let ((csym (intern (concat (symbol-name cname) "-list-p"))))
-        (defalias csym
-          (lambda (obj)
-            (:documentation
-             (internal--format-docstring-line
-              "Test OBJ to see if it a list of objects which are a child of type `%s'."
-              cname))
-            (when (eq eieio-backward-compatibility 'warn)
-              (message "Use of obsolete function %S" csym))
-            (when (listp obj)
-              (let ((ans t)) ;; nil is valid
-                ;; Loop over all the elements of the input list, test
-                ;; each to make sure it is a child of the desired object class.
-                (while (and obj ans)
-                  (setq ans (and (eieio-object-p (car obj))
-                                 (object-of-class-p (car obj) 'cname)))
-                  (setq obj (cdr obj)))
-                ans))))
-        (make-obsolete csym (format
-                             "use (cl-typep ... '(list-of %s)) instead"
-                             cname)
-                       "25.1")))
 
     ;; Store the new class vector definition into the symbol.  We need to
     ;; do this first so that we can call defmethod for the accessor.

@@ -682,14 +682,29 @@ treesit_load_language_push_for_each_suffix (Lisp_Object lib_base_name,
       Lisp_Object candidate1 = concat2 (lib_base_name, XCAR (suffixes));
 #ifndef WINDOWSNT
       /* On Posix hosts, support libraries named with ABI version
-         numbers.  In the foreseeable future we only need to support
-         version 0.0.  For more details, see
+         numbers.  Originally tree-sitter grammars are always versioned
+         at 0.0, so we first try that.  For more details, see
          https://lists.gnu.org/archive/html/emacs-devel/2023-04/msg00386.html.  */
       Lisp_Object candidate2 = concat2 (candidate1, Vtreesit_str_dot_0);
       Lisp_Object candidate3 = concat2 (candidate2, Vtreesit_str_dot_0);
 
       *path_candidates = Fcons (candidate3, *path_candidates);
       *path_candidates = Fcons (candidate2, *path_candidates);
+
+      /* Since 2025, tree-sitter grammars use their supported
+         TREE_SITTER_LANGUAGE_VERSION as the major version.  So we need
+         to try all the version supported by the tree-sitter library
+         too.  (See bug#78754)  */
+      for (int version = TREE_SITTER_MIN_COMPATIBLE_LANGUAGE_VERSION;
+	   version <= TREE_SITTER_LANGUAGE_VERSION;
+	   version++)
+	{
+	  char ext[16]; // 16 should be enough until the end of universe.
+	  snprintf ((char *) &ext, 16, ".%d.0", version);
+	  Lisp_Object versioned_candidate = concat2 (candidate1,
+						     build_string (ext));
+	  *path_candidates = Fcons (versioned_candidate, *path_candidates);
+	}
 #endif
       *path_candidates = Fcons (candidate1, *path_candidates);
     }
@@ -937,7 +952,7 @@ void treesit_debug_print_linecol (struct ts_linecol);
 void
 treesit_debug_print_linecol (struct ts_linecol linecol)
 {
-  printf ("{ line=%ld col=%ld bytepos=%ld }\n", linecol.line, linecol.col, linecol.bytepos);
+  printf ("{ line=%td col=%td bytepos=%td }\n", linecol.line, linecol.col, linecol.bytepos);
 }
 
 /* Returns true if BUF tracks linecol.  */

@@ -579,6 +579,9 @@
     (comp-test-73270-child3 'child3)
     (comp-test-73270-child4 'child4)))
 
+(defun comp-test-76573-1-f ()
+  (record 'undeclared-type))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;

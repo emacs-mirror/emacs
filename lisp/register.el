@@ -30,13 +30,13 @@
 ;; documented in the Emacs user's manual: (info "(emacs) Registers").
 
 (eval-when-compile (require 'cl-lib))
+(eval-when-compile (require 'cl-macs))  ;For `cl--find-class'.
 
 ;;; Code:
 
 ;; FIXME: Clean up namespace usage!
 
 (declare-function dired-current-directory "dired")
-(declare-function cl-find-class "cl-extra")
 
 (cl-defstruct
   (registerv (:constructor nil)
@@ -578,7 +578,7 @@ With a prefix argument, prompt for BUFFER as well."
 
 (defun register--get-method-type (val genfun &optional other-args-type)
   (let* ((type (cl-type-of val))
-	 (types (cl--class-allparents (cl-find-class type))))
+	 (types (cl--class-allparents (cl--find-class type))))
     (while (and types (not (cl-find-method genfun nil
                                            (cons (car types) other-args-type))))
       (setq types (cdr types)))

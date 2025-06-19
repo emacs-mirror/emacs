@@ -571,7 +571,7 @@ otherwise they are formatted according to `eudc-user-attribute-names-alist'."
 	(widget-insert " ")
 	(widget-create 'push-button
 		       :notify (lambda (&rest _ignore)
-				 (kill-this-buffer))
+				 (kill-current-buffer))
 		       "Quit")
 	(eudc-mode)
 	(widget-setup)
@@ -1096,7 +1096,7 @@ queries the server for the existing fields and displays a corresponding form."
     (widget-insert " ")
     (widget-create 'push-button
 		   :notify (lambda (&rest _ignore)
-			     (kill-this-buffer))
+			     (kill-current-buffer))
 		   "Quit")
     (goto-char pt)
     (use-local-map widget-keymap)

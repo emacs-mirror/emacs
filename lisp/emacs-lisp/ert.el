@@ -2399,7 +2399,7 @@ SELECTOR; the default t means run all the defined tests."
 
 (define-button-type 'ert--results-progress-bar-button
   'action #'ert--results-progress-bar-button-action
-  'help-echo "mouse-2, RET: Reveal test result")
+  'help-echo #'ert--results-progress-bar-button-help-echo)
 
 (define-button-type 'ert--test-name-button
   'action #'ert--test-name-button-action
@@ -2627,6 +2627,15 @@ definition."
   "Jump to details for the test represented by the character clicked in BUTTON."
   (goto-char (ert--button-action-position))
   (ert-results-jump-between-summary-and-result))
+
+(defun ert--results-progress-bar-button-help-echo (_window object pos)
+  "Show the test name in `help-echo'."
+  (format
+   "%s\nmouse-2, RET: Reveal test result"
+   (with-current-buffer object
+     (save-excursion
+       (goto-char pos)
+       (or (ert-test-at-point) "")))))
 
 (defun ert-results-rerun-all-tests ()
   "Re-run all tests, using the same selector.
