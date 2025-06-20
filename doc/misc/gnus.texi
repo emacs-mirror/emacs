@@ -837,6 +837,7 @@ Various
 * Mode Lines::                  Displaying information in the mode lines.
 * Highlighting and Menus::      Making buffers look all nice and cozy.
 * Daemons::                     Gnus can do things behind your back.
+* Notifications::               Setting up desktop notifications.
 * Undo::                        Some actions can be undone.
 * Predicate Specifiers::        Specifying predicates.
 * Moderation::                  What to do if you're a moderator.
@@ -22683,6 +22684,7 @@ For instance, @code{nnir-notmuch-program} is now
 * Mode Lines::                  Displaying information in the mode lines.
 * Highlighting and Menus::      Making buffers look all nice and cozy.
 * Daemons::                     Gnus can do things behind your back.
+* Notifications::               Setting up desktop notifications.
 * Undo::                        Some actions can be undone.
 * Predicate Specifiers::        Specifying predicates.
 * Moderation::                  What to do if you're a moderator.
@@ -23732,6 +23734,36 @@ functions that scan all news and mail from all servers every two seconds
 is a sure-fire way of getting booted off any respectable system.  So
 behave.
 
+@node Notifications
+@section Notifications
+@cindex notifications, desktop
+@cindex desktop notifications
+
+Gnus provides the @code{gnus-notifications} package that, combined with
+a @code{gnus-demon} handler, can be used to notify you when fresh news
+or mails arrive via desktop notifications.  Here's a basic configuration
+to put in your @file{~/.gnus.el} file:
+
+@lisp
+(require 'gnus-notifications)
+(add-hook 'gnus-after-getting-new-news-hook #'gnus-notifications)
+(gnus-demon-add-handler #'gnus-demon-scan-news 15 3) ;every 15 minutes
+@end lisp
+
+@noindent
+The above will produce notifications for new arrivals when the
+@code{gnus-after-getting-new-news-hook} hook runs, which is triggered
+after retrieving news and mails with the @code{gnus-demon-scan-news}
+procedure.  The demon handler is configured to scan news every fifteen
+minutes, once Emacs has been idle for three minutes.
+
+@quotation Important
+@code{gnus-notifications} will only emit notifications for groups whose
+level is equal or lower than @var{gnus-notifications-minimum-level},
+which defaults to @code{1}, so make sure to set the level of the groups
+you want to be notified for to @code{1}, or adjust the value of
+@var{gnus-notifications-minimum-level} to your needs.
+@end quotation
 
 @node Undo
 @section Undo
