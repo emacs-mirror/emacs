@@ -438,7 +438,6 @@ Starting Gnus
 * Finding the News::            Choosing a method for getting news.
 * The Server is Down::          How can I read my mail then?
 * Child Gnusae::                You can have more than one Gnus active at a time.
-* Fetching a Group::            Starting Gnus just to read a group.
 * New Groups::                  What is Gnus supposed to do with new groups?
 * Changing Servers::            You may want to move from one server to another.
 * Startup Files::               Those pesky startup files---@file{.newsrc}.
@@ -661,7 +660,7 @@ Getting News
 * NNTP::                        Reading news from an @acronym{NNTP} server.
 * News Spool::                  Reading news from the local spool.
 
-@acronym{NNTP}
+NNTP
 
 * Direct Functions::            Connecting directly to the server.
 * Indirect Functions::          Connecting indirectly to the server.
@@ -731,8 +730,8 @@ Document Groups
 
 Virtual Groups
 
-* Selection Groups::            Articles selected from many places.
-* Combined Groups::             Combining multiple  groups.
+* Selection Groups::            Combining articles from many groups.
+* Combined Groups::             Combining multiple groups.
 
 Email Based Diary
 
@@ -841,6 +840,7 @@ Various
 * Undo::                        Some actions can be undone.
 * Predicate Specifiers::        Specifying predicates.
 * Moderation::                  What to do if you're a moderator.
+* Fetching a Group::            Starting Gnus just to read a group.
 * Image Enhancements::          Emacs can display images.
 * Fuzzy Matching::              What's the big fuzz?
 * Thwarting Email Spam::        Simple ways to avoid unsolicited commercial email.
