@@ -141,14 +141,17 @@
       ))))
 
 (defun network-test--resolve-system-name ()
-  (cl-loop for address in (network-lookup-address-info (system-name))
-           when (or (and (= (length address) 5)
-                         ;; IPv4 localhost addresses start with 127.
-                         (= (elt address 0) 127))
-                    (and (= (length address) 9)
-                         ;; IPv6 localhost address.
-                         (equal address [0 0 0 0 0 0 0 1 0])))
-           return t))
+  (let ((addresses (network-lookup-address-info (system-name))))
+    (if addresses
+        (cl-loop for address in (network-lookup-address-info (system-name))
+                 when (or (and (= (length address) 5)
+                               ;; IPv4 localhost addresses start with 127.
+                               (= (elt address 0) 127))
+                          (and (= (length address) 9)
+                               ;; IPv6 localhost address.
+                               (equal address [0 0 0 0 0 0 0 1 0])))
+                 return t)
+      t)))
 
 (ert-deftest echo-server-with-dns ()
   (skip-when (network-test--resolve-system-name))
