@@ -323,10 +323,11 @@ test-eglot:
     target: emacs-eglot
     # This is needed in order to get a JUnit test report.
     make_params: >-
-      check-expensive TEST_HOME=/root LOGFILES="lisp/progmodes/eglot-tests.log"
-
-    # EMACS_EXTRAOPT="--eval \(use-package\ company\ :ensure\ t\)
-    #                 --eval \(use-package\ yasnippet\ :ensure\ t\)"
+      check-expensive
+      TEST_HOME=/root
+      LOGFILES="lisp/progmodes/eglot-tests.log"
+      EMACS_EXTRAOPT="--eval \(use-package\ company\ :ensure\ t\)
+                      --eval \(use-package\ yasnippet\ :ensure\ t\)"
 
 build-image-tree-sitter:
   stage: platform-images
