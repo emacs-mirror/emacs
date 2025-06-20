@@ -24,13 +24,13 @@
 
 ;;; Tree-sitter language versions
 ;;
-;; go-ts-mode is known to work with the following languages and version:
+;; go-ts-mode has been tested with the following grammars and version:
 ;; - tree-sitter-go: v0.23.4-1-g12fe553
 ;; - tree-sitter-go-mod: v1.1.0-3b01edce
 ;; - tree-sitter-go-work: 949a8a47
 ;;
 ;; We try our best to make builtin modes work with latest grammar
-;; versions, so a more recent grammar version has a good chance to work.
+;; versions, so a more recent grammar has a good chance to work too.
 ;; Send us a bug report if it doesn't.
 
 ;;; Commentary:
@@ -48,15 +48,18 @@
 
 (add-to-list
  'treesit-language-source-alist
- '(go "https://github.com/tree-sitter/tree-sitter-go" "v0.23.4")
+ '(go "https://github.com/tree-sitter/tree-sitter-go"
+      :commit "12fe553fdaaa7449f764bc876fd777704d4fb752")
  t)
 (add-to-list
  'treesit-language-source-alist
- '(gomod "https://github.com/camdencheek/tree-sitter-go-mod" "v1.1.0")
+ '(gomod "https://github.com/camdencheek/tree-sitter-go-mod"
+         :commit "3b01edce2b9ea6766ca19328d1850e456fde3103")
  t)
 (add-to-list
  'treesit-language-source-alist
- '(gowork "https://github.com/omertuc/tree-sitter-go-work")
+ '(gowork "https://github.com/omertuc/tree-sitter-go-work"
+          :commit "949a8a470559543857a62102c84700d291fc984c")
  t)
 
 (defcustom go-ts-mode-indent-offset 8

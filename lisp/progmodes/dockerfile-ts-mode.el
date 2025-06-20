@@ -24,11 +24,11 @@
 
 ;;; Tree-sitter language versions
 ;;
-;; dockerfile-ts-mode is known to work with the following languages and version:
+;; dockerfile-ts-mode has been tested with the following grammars and version:
 ;; - tree-sitter-dockerfile: v0.2.0-1-g087daa2
 ;;
 ;; We try our best to make builtin modes work with latest grammar
-;; versions, so a more recent grammar version has a good chance to work.
+;; versions, so a more recent grammar has a good chance to work too.
 ;; Send us a bug report if it doesn't.
 
 ;;; Commentary:
@@ -42,7 +42,8 @@
 
 (add-to-list
  'treesit-language-source-alist
- '(dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile" "v0.2.0")
+ '(dockerfile "https://github.com/camdencheek/tree-sitter-dockerfile"
+              :commit "087daa20438a6cc01fa5e6fe6906d77c869d19fe")
  t)
 
 (defvar dockerfile-ts-mode--syntax-table

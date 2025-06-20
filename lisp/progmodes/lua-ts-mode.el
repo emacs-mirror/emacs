@@ -50,7 +50,8 @@
 
 (add-to-list
  'treesit-language-source-alist
- '(lua "https://github.com/tree-sitter-grammars/tree-sitter-lua" "v0.3.0")
+ '(lua "https://github.com/tree-sitter-grammars/tree-sitter-lua"
+       :commit "db16e76558122e834ee214c8dc755b4a3edc82a9")
  t)
 
 (defgroup lua-ts nil

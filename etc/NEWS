@@ -604,6 +604,10 @@ It controls the automatic installation of tree-sitter grammar libraries
 needed for tree-sitter based modes, if these grammar libraries are not
 available when such modes are turned on.
 
+*** 'treesit-language-source-alist' supports keywords.
+The language and URL are mandatory, but remaining data can use keywords:
+'(json "https://github.com/tree-sitter/tree-sitter-json" :commit "4d770d3")
+
 *** The file treesit-x.el defines a number of simple tree-sitter modes.
 Using the new macro 'define-treesit-generic-mode', generic modes are
 defined including, but not limited to, 'gitattributes-generic-ts-mode'.

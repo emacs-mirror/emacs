@@ -271,7 +271,8 @@
 
 (add-to-list
  'treesit-language-source-alist
- '(python "https://github.com/tree-sitter/tree-sitter-python" "v0.23.6")
+ '(python "https://github.com/tree-sitter/tree-sitter-python"
+          :commit "bffb65a8cfe4e46290331dfef0dbf0ef3679de11")
  t)
 
 ;; Avoid compiler warnings

@@ -134,11 +134,21 @@ This is done by `require'ing all of the features that extend it."
   "Return a copy of treesit-language-source-alist, with any revisions removed."
   (mapcar
    (lambda (source)
-     (if (nthcdr 2 source)
-         (let ((unversioned-source (copy-sequence source)))
-           (setcar (nthcdr 2 unversioned-source) nil)
-           unversioned-source)
-       source))
+     (cond ((or (memq :revision source)
+                (memq :commit source))
+            (when (memq :revision source)
+              (let ((unversioned-source (copy-sequence source)))
+                (setcar (cdr (memq :revision unversioned-source)) nil)
+                unversioned-source))
+            (when (memq :commit source)
+              (let ((unversioned-source (copy-sequence source)))
+                (setcar (cdr (memq :commit unversioned-source)) nil)
+                unversioned-source)))
+           ((nthcdr 2 source)
+            (let ((unversioned-source (copy-sequence source)))
+              (setcar (nthcdr 2 unversioned-source) nil)
+              unversioned-source))
+           (t source)))
    (treesit-admin--populated-treesit-language-source-alist)))
 
 (defun treesit-admin--verify-major-mode-queries (modes source-alist grammar-dir)
@@ -343,8 +353,26 @@ epoch format."
         head-version version exit-code timestamp)
     (when (not recipe)
       (signal 'treesit-error `("Cannot find recipe" ,language)))
-    (pcase-let ((`(,url ,revision ,source-dir ,cc ,c++ ,commit)
-                 recipe))
+    (let ((url (pop recipe))
+          revision source-dir cc c++ commit copy-queries)
+
+      ;; Process the keywords.
+      (while (keywordp (car recipe))
+        (pcase (pop recipe)
+          (:revision     (setq revision     (pop recipe)))
+          (:source-dir   (setq source-dir   (pop recipe)))
+          (:cc           (setq cc           (pop recipe)))
+          (:c++          (setq c++          (pop recipe)))
+          (:commit       (setq commit       (pop recipe)))
+          (:copy-queries (setq copy-queries (pop recipe)))))
+
+      ;; Old positional convention for backward-compatibility.
+      (unless revision   (setq revision   (nth 0 recipe)))
+      (unless source-dir (setq source-dir (nth 1 recipe)))
+      (unless cc         (setq cc         (nth 2 recipe)))
+      (unless c++        (setq c++        (nth 3 recipe)))
+      (unless commit     (setq commit     (nth 4 recipe)))
+
       (with-temp-buffer
         (treesit--git-clone-repo url revision workdir)
         (when commit

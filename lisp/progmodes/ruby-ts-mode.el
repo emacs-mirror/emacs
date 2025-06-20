@@ -24,11 +24,11 @@
 
 ;;; Tree-sitter language versions
 ;;
-;; ruby-ts-mode is known to work with the following languages and version:
+;; ruby-ts-mode has been tested with the following grammars and version:
 ;; - tree-sitter-ruby: v0.23.1
 ;;
 ;; We try our best to make builtin modes work with latest grammar
-;; versions, so a more recent grammar version has a good chance to work.
+;; versions, so a more recent grammar has a good chance to work too.
 ;; Send us a bug report if it doesn't.
 
 ;;; Commentary:
@@ -125,7 +125,8 @@
 
 (add-to-list
  'treesit-language-source-alist
- '(ruby "https://github.com/tree-sitter/tree-sitter-ruby" "v0.23.1")
+ '(ruby "https://github.com/tree-sitter/tree-sitter-ruby"
+        :commit "71bd32fb7607035768799732addba884a37a6210")
  t)
 
 (defgroup ruby-ts nil

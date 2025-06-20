@@ -22,6 +22,16 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Tree-sitter language versions
+;;
+;; markdown-ts-mode has been tested with the following grammars and version:
+;; - tree-sitter-markdown: v0.4.1
+;; - tree-sitter-markdown-inline: v0.4.1
+;;
+;; We try our best to make builtin modes work with latest grammar
+;; versions, so a more recent grammar has a good chance to work too.
+;; Send us a bug report if it doesn't.
+
 ;;; Commentary:
 ;;
 
@@ -38,14 +48,16 @@
 (add-to-list
  'treesit-language-source-alist
  '(markdown
-   "https://github.com/tree-sitter-grammars/tree-sitter-markdown" "v0.4.1"
-   "tree-sitter-markdown/src")
+   "https://github.com/tree-sitter-grammars/tree-sitter-markdown"
+   :commit "413285231ce8fa8b11e7074bbe265b48aa7277f9"
+   :source-dir "tree-sitter-markdown/src")
  t)
 (add-to-list
  'treesit-language-source-alist
  '(markdown-inline
-   "https://github.com/tree-sitter-grammars/tree-sitter-markdown" "v0.4.1"
-   "tree-sitter-markdown-inline/src")
+   "https://github.com/tree-sitter-grammars/tree-sitter-markdown"
+   :commit "413285231ce8fa8b11e7074bbe265b48aa7277f9"
+   :source-dir "tree-sitter-markdown-inline/src")
  t)
 
 ;;; Helper functions

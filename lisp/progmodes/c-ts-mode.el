@@ -24,14 +24,14 @@
 
 ;;; Tree-sitter language versions
 ;;
-;; c-ts-mode is known to work with the following languages and version:
+;; c-ts-mode has been tested with the following grammars and version:
 ;; - tree-sitter-c: v0.23.4-1-g3aa2995
 ;;
-;; c++-ts-mode is known to work with the following languages and version:
+;; c++-ts-mode has been tested with the following grammars and version:
 ;; - tree-sitter-cpp: v0.23.4-1-gf41b4f6
 ;;
 ;; We try our best to make builtin modes work with latest grammar
-;; versions, so a more recent grammar version has a good chance to work.
+;; versions, so a more recent grammar has a good chance to work too.
 ;; Send us a bug report if it doesn't.
 
 ;;; Commentary:
@@ -88,15 +88,18 @@
 
 (add-to-list
  'treesit-language-source-alist
- '(c "https://github.com/tree-sitter/tree-sitter-c" "v0.23.4")
+ '(c "https://github.com/tree-sitter/tree-sitter-c"
+     :commit "3aa2995549d5d8b26928e8d3fa2770fd4327414e")
  t)
 (add-to-list
  'treesit-language-source-alist
- '(cpp "https://github.com/tree-sitter/tree-sitter-cpp" "v0.23.4")
+ '(cpp "https://github.com/tree-sitter/tree-sitter-cpp"
+       :commit "f41b4f66a42100be405f96bdc4ebc4a61095d3e8")
  t)
 (add-to-list
  'treesit-language-source-alist
- '(doxygen "https://github.com/tree-sitter-grammars/tree-sitter-doxygen" "v1.1.0")
+ '(doxygen "https://github.com/tree-sitter-grammars/tree-sitter-doxygen"
+           :commit "1e28054cb5be80d5febac082706225e42eff14e6")
  t)
 
 ;;; Custom variables

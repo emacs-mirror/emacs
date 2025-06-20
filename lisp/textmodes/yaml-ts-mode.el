@@ -37,7 +37,8 @@
 
 (add-to-list
  'treesit-language-source-alist
- '(yaml "https://github.com/tree-sitter-grammars/tree-sitter-yaml" "v0.7.0")
+ '(yaml "https://github.com/tree-sitter-grammars/tree-sitter-yaml"
+        :commit "b733d3f5f5005890f324333dd57e1f0badec5c87")
  t)
 
 (defvar yaml-ts-mode--syntax-table

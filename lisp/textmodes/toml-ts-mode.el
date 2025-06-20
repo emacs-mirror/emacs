@@ -38,7 +38,8 @@
 
 (add-to-list
  'treesit-language-source-alist
- '(toml "https://github.com/tree-sitter-grammars/tree-sitter-toml" "v0.7.0")
+ '(toml "https://github.com/tree-sitter-grammars/tree-sitter-toml"
+        :commit "64b56832c2cffe41758f28e05c756a3a98d16f41")
  t)
 
 (defcustom toml-ts-mode-indent-offset 2
