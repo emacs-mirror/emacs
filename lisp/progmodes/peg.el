@@ -5,6 +5,7 @@
 ;; Author: Helmut Eller <eller.helmut@gmail.com>
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Version: 1.0.1
+;; Package-Requires: ((emacs "25"))
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -934,7 +935,8 @@ input.  PATH is the list of rules that we have visited so far."
   (cl-adjoin `(not ,x) merged :test #'equal))
 
 (cl-defmethod peg--merge-error (merged (_ (eql action)) _action) merged)
-(cl-defmethod peg--merge-error (merged (_ (eql null))) merged)
+(cl-defmethod peg--merge-error (merged (_ (eql guard)) e)
+  (if (eq e t) merged (cl-adjoin `(guard ,e) merged :test #'equal)))
 
 (provide 'peg)
 (require 'peg)
