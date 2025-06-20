@@ -143,7 +143,7 @@
 (defun network-test--resolve-system-name ()
   (let ((addresses (network-lookup-address-info (system-name))))
     (if addresses
-        (cl-loop for address in (network-lookup-address-info (system-name))
+        (cl-loop for address in addresses
                  when (or (and (= (length address) 5)
                                ;; IPv4 localhost addresses start with 127.
                                (= (elt address 0) 127))
