@@ -1012,12 +1012,12 @@ comment at the start of cc-engine.el for more info."
 	  (setq ret 'previous
 		pos saved)
 
-	;; Begin at start and not pos to detect macros if we stand
-	;; directly after the #.
-	(goto-char start)
-	(if (looking-at "\\<\\|\\W")
-	    ;; Record this as the first token if not starting inside it.
-	    (setq tok start))
+	 ;; Begin at start and not pos to detect macros if we stand
+	 ;; directly after the #.
+	 (goto-char start)
+	 (if (looking-at "\\_<\\|\\W")
+	     ;; Record this as the first token if not starting inside it.
+	     (setq tok start))
 
 	;; The following while loop goes back one sexp (balanced parens,
 	;; etc. with contents, or symbol or suchlike) each iteration.  This
@@ -8835,7 +8835,7 @@ multi-line strings (but not C++, for example)."
     (if (and (c-major-mode-is 'c++-mode)
 	     (save-excursion
 	       (and (zerop (c-backward-token-2))
-		    (looking-at "import\\>\\(?:[^_$]\\|$\\)"))))
+		    (looking-at "import\\_>"))))
 	(when (looking-at "<\\(?:\\\\.\\|[^\\\n\r\t>]\\)*\\(>\\)?")
 	  (if (match-beginning 1)	; A terminated <..>
 	      (progn
@@ -11995,9 +11995,8 @@ This function might do hidden buffer changes."
 	    ((and
 	      (c-major-mode-is 'c++-mode)
 	      (search-forward-regexp
-	       "\\=p\\(r\\(ivate\\|otected\\)\\|ublic\\)\\>[^_]" nil t)
-	      (progn (backward-char)
-		     (c-forward-syntactic-ws limit)
+	       "\\=p\\(r\\(ivate\\|otected\\)\\|ublic\\)\\_>" nil t)
+	      (progn (c-forward-syntactic-ws limit)
 		     (looking-at ":\\([^:]\\|\\'\\)"))) ; A single colon.
 	     (forward-char)
 	     (setq label-type t))
@@ -12010,7 +12009,7 @@ This function might do hidden buffer changes."
 	       (setq qt-symbol-idx
 		     (and (c-major-mode-is 'c++-mode)
 			  (string-match
-			   "\\(p\\(r\\(ivate\\|otected\\)\\|ublic\\)\\|more\\)\\>"
+			   "\\(p\\(r\\(ivate\\|otected\\)\\|ublic\\)\\|more\\)\\_>"
 			   (buffer-substring start (point)))))
 	       (c-forward-syntactic-ws limit)
 	       (cond
@@ -12023,7 +12022,7 @@ This function might do hidden buffer changes."
 			   'qt-1kwd-colon
 			 'goto-target)))
 		((and qt-symbol-idx
-		      (search-forward-regexp "\\=\\(slots\\|Q_SLOTS\\)\\>" limit t)
+		      (search-forward-regexp "\\=\\(slots\\|Q_SLOTS\\)\\_>" limit t)
 		      (progn (c-forward-syntactic-ws limit)
 			     (looking-at ":\\([^:]\\|\\'\\)"))) ; A single colon
 		 (forward-char)
@@ -12439,14 +12438,14 @@ comment at the start of cc-engine.el for more info."
   ;; This function might do hidden buffer changes.
   (c-forward-sexp (cond
 		   ;; else if()
-		   ((looking-at (concat "\\<else"
+		   ((looking-at (concat "\\_<else\\_>"
 					"\\([ \t\n]\\|\\\\\n\\)+"
-					"if\\>\\([^_]\\|$\\)"))
+					"\\_<if\\_>"))
 		    3)
 		   ;; do, else, try, finally
-		   ((looking-at (concat "\\<\\("
+		   ((looking-at (concat "\\_<\\("
 					"do\\|else\\|try\\|finally"
-					"\\)\\>\\([^_]\\|$\\)"))
+					"\\)\\_>"))
 		    1)
 		   ;; for, if, while, switch, catch, synchronized, foreach
 		   (t 2))))
@@ -12730,9 +12729,11 @@ comment at the start of cc-engine.el for more info."
   ;;
   ;; If the check is successful, the return value is the start of the
   ;; keyword that tells what kind of construct it is, i.e. typically
-  ;; what `c-decl-block-key' matched.  Also, if GOTO-START is set then
-  ;; the point will be at the start of the construct, before any
-  ;; leading specifiers, otherwise it's at the returned position.
+  ;; what `c-decl-block-key' matched.  Also, if GOTO-START is set then point
+  ;; will be left at the start of the construct.  This is often at the
+  ;; return value, but if there is a template preceding it, point will be
+  ;; left at its start.  If there are Java annotations preceding it, point
+  ;; will be left at the last of these.
   ;;
   ;; The point is clobbered if the check is unsuccessful.
   ;;
@@ -12875,7 +12876,9 @@ comment at the start of cc-engine.el for more info."
 		;; but that'd only occur in invalid code so there's
 		;; no use spending effort on it.
 		(let ((end (match-end 0))
-		      (kwd-sym (c-keyword-sym (match-string 0))))
+		      (kwd-sym (c-keyword-sym (match-string 0)))
+		      (annotation (and c-annotation-re
+				       (looking-at c-annotation-re))))
 		  (unless
 		      (and kwd-sym
 			   ;; Moving over a protection kwd and the following
@@ -12885,7 +12888,12 @@ comment at the start of cc-engine.el for more info."
 			   (not (c-keyword-member kwd-sym 'c-protection-kwds))
 			   (c-forward-keyword-clause 0))
 		    (goto-char end)
-		    (c-forward-syntactic-ws))))
+		    (c-forward-syntactic-ws)
+		    (when annotation
+		      (setq first-specifier-pos (match-beginning 0))
+		      (when (and (eq (char-after) ?\()
+				 (c-go-list-forward (point) kwd-start))
+			(c-forward-syntactic-ws))))))
 
 	       ((c-syntactic-re-search-forward c-symbol-start
 					       kwd-start 'move t)
@@ -14101,7 +14109,7 @@ comment at the start of cc-engine.el for more info."
 	(c-forward-syntactic-ws lim)
 	(when (looking-at c-requires-clause-key)
 	  (c-forward-c++-requires-clause lim nil)))
-      (when (looking-at "\\(alignas\\)\\([^a-zA-Z0-9_$]\\|$\\)")
+      (when (looking-at "\\_<\\(alignas\\)\\_>")
 	(c-forward-keyword-clause 1))
       (when (and (eq (char-after) ?\()
 		 (c-go-list-forward nil lim))
@@ -14115,7 +14123,7 @@ comment at the start of cc-engine.el for more info."
 	    (and (<= (point) lim-or-max)
 		 (cond
 		  ((save-excursion
-		     (and (looking-at "throw\\([^a-zA-Z0-9_]\\|$\\)")
+		     (and (looking-at "\\_<throw\\_>")
 			  (progn (goto-char (match-beginning 1))
 				 (c-forward-syntactic-ws lim)
 				 (eq (char-after) ?\())
@@ -14357,10 +14365,10 @@ comment at the start of cc-engine.el for more info."
 
 		       ((and (eq step-type 'up)
 			     (>= (point) old-boi)
-			     (looking-at "else\\>[^_]")
+			     (looking-at "else\\_>")
 			     (save-excursion
 			       (goto-char old-pos)
-			       (looking-at "if\\>[^_]")))
+			       (looking-at "if\\_>")))
 			;; Special case to avoid deeper and deeper indentation
 			;; of "else if" clauses.
 			)
@@ -14427,7 +14435,7 @@ comment at the start of cc-engine.el for more info."
 		  (if (and c-recognize-paren-inexpr-blocks
 			   (progn
 			     (c-backward-syntactic-ws containing-sexp)
-			     (or (not (looking-at "\\>"))
+			     (or (not (looking-at "\\_>"))
 				 (not (c-on-identifier))))
 			   (save-excursion
 			     (goto-char (1+ paren-pos))
@@ -14892,13 +14900,13 @@ comment at the start of cc-engine.el for more info."
 	(setq macro-start nil))
 
        ;; CASE 11: an else clause?
-       ((looking-at "else\\>[^_]")
+       ((looking-at "else\\_>")
 	(c-beginning-of-statement-1 containing-sexp)
 	(c-add-stmt-syntax 'else-clause nil t
 			   containing-sexp paren-state))
 
        ;; CASE 12: while closure of a do/while construct?
-       ((and (looking-at "while\\>[^_]")
+       ((and (looking-at "while\\_>")
 	     (save-excursion
 	       (prog1 (eq (c-beginning-of-statement-1 containing-sexp)
 			  'beginning)
@@ -14912,9 +14920,9 @@ comment at the start of cc-engine.el for more info."
        ;; after every try, catch and finally.
        ((save-excursion
 	  (and (cond ((c-major-mode-is 'c++-mode)
-		      (looking-at "catch\\>[^_]"))
+		      (looking-at "catch\\_>"))
 		     ((c-major-mode-is 'java-mode)
-		      (looking-at "\\(catch\\|finally\\)\\>[^_]")))
+		      (looking-at "\\(catch\\|finally\\)\\_>")))
 	       (and (c-safe (c-backward-syntactic-ws)
 			    (c-backward-sexp)
 			    t)
@@ -14925,7 +14933,7 @@ comment at the start of cc-engine.el for more info."
 		    (if (eq (char-after) ?\()
 			(c-safe (c-backward-sexp) t)
 		      t))
-	       (looking-at "\\(try\\|catch\\)\\>[^_]")
+	       (looking-at "\\(try\\|catch\\)\\_>")
 	       (setq placeholder (point))))
 	(goto-char placeholder)
 	(c-add-stmt-syntax 'catch-clause nil t
@@ -15046,7 +15054,7 @@ comment at the start of cc-engine.el for more info."
 	       (save-excursion
 		 (setq tmpsymbol
 		       (if (and (eq (c-beginning-of-statement-1 lim) 'up)
-				(looking-at "switch\\>[^_]"))
+				(looking-at "switch\\_>"))
 			   ;; If the surrounding statement is a switch then
 			   ;; let's analyze all labels as switch labels, so
 			   ;; that they get lined up consistently.
@@ -15341,7 +15349,7 @@ comment at the start of cc-engine.el for more info."
 	    (let ((where (cdr injava-inher))
 		  (cont (car injava-inher)))
 	      (goto-char where)
-	      (cond ((looking-at "throws\\>[^_]")
+	      (cond ((looking-at "throws\\_>")
 		     (c-add-syntax 'func-decl-cont
 				   (progn (c-beginning-of-statement-1 lim)
 					  (c-point 'boi))))
@@ -15480,7 +15488,7 @@ comment at the start of cc-engine.el for more info."
 		 (save-excursion
 		   (c-beginning-of-statement-1 lim)
 		   (setq placeholder (point))
-		   (if (looking-at "static\\>[^_]")
+		   (if (looking-at "static\\_>")
 		       (c-forward-token-2 1 nil indent-point))
 		   (and (looking-at c-class-key)
 			(zerop (c-forward-token-2 2 nil indent-point))
@@ -15553,7 +15561,7 @@ comment at the start of cc-engine.el for more info."
 	       (eq containing-decl-open containing-sexp))
 	  (save-excursion
 	    (goto-char containing-decl-open)
-	    (setq tmp-pos (c-looking-at-decl-block t)))
+	    (setq tmp-pos (c-looking-at-decl-block nil)))
 	  (c-add-class-syntax 'class-close
 			      containing-decl-open
 			      containing-decl-start
@@ -15930,7 +15938,7 @@ comment at the start of cc-engine.el for more info."
 	 ((progn
 	    (goto-char containing-sexp)
 	    (and (c-safe (c-forward-sexp -1) t)
-		 (looking-at "\\<for\\>[^_]")))
+		 (looking-at "\\_<for\\_>")))
 	  (goto-char (1+ containing-sexp))
 	  (c-forward-syntactic-ws indent-point)
 	  (if (eq char-before-ip ?\;)

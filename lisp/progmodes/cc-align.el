@@ -117,7 +117,7 @@ Works with: topmost-intro-cont."
   (save-excursion
     (let (case-fold-search)
       (goto-char (c-langelem-pos langelem))
-      (if (looking-at "\\<DEFUN\\>")
+      (if (looking-at "\\_<DEFUN\\_>")
 	  c-basic-offset))))
 
 (defun c-block-in-arglist-dwim (arglist-start)
@@ -554,7 +554,7 @@ Works with: func-decl-cont."
 	   (throws (catch 'done
 		     (goto-char (c-langelem-pos langelem))
 		     (while (zerop (c-forward-token-2 1 t lim))
-		       (if (looking-at "throws\\>[^_]")
+		       (if (looking-at "throws\\_>")
 			   (throw 'done t))))))
       (if throws
 	  (if (zerop (c-forward-token-2 1 nil (c-point 'eol)))
@@ -1513,7 +1513,7 @@ ACTION associated with `block-close' syntax."
 	       (progn (goto-char (c-langelem-pos langelem))
 		      (if (eq (char-after) ?{)
 			  (c-safe (c-forward-sexp -1)))
-		      (looking-at "\\<do\\>[^_]")))
+		      (looking-at "\\_<do\\_>")))
 	  '(before)
 	'(before after)))))
 

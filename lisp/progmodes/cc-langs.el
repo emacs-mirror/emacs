@@ -382,7 +382,8 @@ The syntax tables aren't stored directly since they're quite large."
 		 ;; every keyword is a single symbol.
 		 '(modify-syntax-entry ?@ "_" table))
 		((c-major-mode-is 'java-mode)
-		 '(modify-syntax-entry ?@ "'" table))
+		 ;; In Java, @ can be the start of an annotation symbol.
+		 `(modify-syntax-entry ?@ "_" table))
 		((c-major-mode-is 'pike-mode)
 		 '(modify-syntax-entry ?@ "." table)))
 	 table)))
@@ -951,7 +952,7 @@ This value is by default merged into `c-operators'."
 			     '(left-assoc right-assoc)
 			     t)))
       (when ops
-	(c-make-keywords-re 'appendable ops))))
+	(c-make-keywords-re t ops))))
 (c-lang-defvar c-opt-identifier-concat-key
   (c-lang-const c-opt-identifier-concat-key))
 
@@ -967,7 +968,7 @@ This value is by default merged into `c-operators'."
 			     '(prefix)
 			     t)))
       (when ops
-	(c-make-keywords-re 'appendable ops))))
+	(c-make-keywords-re t ops))))
 (c-lang-defvar c-opt-identifier-prefix-key
 	       (c-lang-const c-opt-identifier-prefix-key))
 
@@ -996,7 +997,7 @@ it's not taken care of by default."
   ;; considered internal - change `c-after-id-concat-ops' instead.
   t (concat (c-lang-const c-symbol-start)
 	    (if (c-lang-const c-after-id-concat-ops)
-		(concat "\\|" (c-make-keywords-re 'appendable
+		(concat "\\|" (c-make-keywords-re t
 				(c-lang-const c-after-id-concat-ops)))
 	      "")))
 
@@ -1036,7 +1037,7 @@ e.g. identifiers with template arguments such as \"A<X,Y>\" in C++."
 		 (if (c-lang-const c-after-id-concat-ops)
 		     (concat
 		      "\\("
-		       (c-make-keywords-re 'appendable
+		       (c-make-keywords-re t
 			 (c-lang-const c-after-id-concat-ops))
 		      (concat
 		       ;; For flexibility, consider the symbol match
@@ -1055,6 +1056,13 @@ e.g. identifiers with template arguments such as \"A<X,Y>\" in C++."
 		 "\\)*")
 	      "")))
 (c-lang-defvar c-identifier-key (c-lang-const c-identifier-key))
+
+(c-lang-defconst c-annotation-re
+  "Regexp that matches the first token of an annotation or nil.
+Currently only used in Java Mode."
+  t nil
+  java "\\_<@[[:alnum:]]+\\_>")
+(c-lang-defvar c-annotation-re (c-lang-const c-annotation-re))
 
 (c-lang-defconst c-module-name-re
   "This regexp matches (a component of) a module name.
@@ -1174,7 +1182,7 @@ string message."
 
 (c-lang-defconst c-cpp-message-directives-re
   ;; Appendable regexp matching any of the tokens in `c-cpp-message-directives'.
-  t (c-make-keywords-re 'appendable (c-lang-const c-cpp-message-directives)))
+  t (c-make-keywords-re t (c-lang-const c-cpp-message-directives)))
 
 (c-lang-defconst noncontinued-line-end
   t "\\(\\=\\|\\(\\=\\|[^\\]\\)[\n\r]\\)")
@@ -1212,8 +1220,7 @@ file name in angle brackets or quotes."
 	     (c-lang-const c-cpp-include-directives))
 	(concat
 	 (c-lang-const c-anchored-cpp-prefix)
-	 (c-make-keywords-re 'appendable
-	   (c-lang-const c-cpp-include-directives))
+	 (c-make-keywords-re t (c-lang-const c-cpp-include-directives))
 	 "[ \t]*")
       regexp-unmatchable))
 (c-lang-defvar c-cpp-include-key (c-lang-const c-cpp-include-key))
@@ -1825,7 +1832,7 @@ This doesn't count the merely contextual bits of the regexp match."
   t nil
   c++ '("..."))
 (c-lang-defconst c-pack-key
-  t (c-make-keywords-re 'appendable (c-lang-const c-pack-ops)))
+  t (c-make-keywords-re t (c-lang-const c-pack-ops)))
 (c-lang-defvar c-pack-key (c-lang-const c-pack-key))
 
 (c-lang-defconst c-auto-ops
@@ -2260,8 +2267,8 @@ This works in Emacs >= 25.1."
 (c-lang-defconst c-paragraph-start
   "Regexp to append to `paragraph-start'."
   t    "$"
-  java "\\(@[a-zA-Z]+\\>\\|$\\)"	; For Javadoc.
-  pike "\\(@[a-zA-Z_-]+\\>\\([^{]\\|$\\)\\|$\\)") ; For Pike refdoc.
+  java "\\(@[a-zA-Z]+\\_>\\|$\\)" ; For Javadoc.
+  pike "\\(@[a-zA-Z_-]+\\_>\\([^{]\\|$\\)\\|$\\)") ; For Pike refdoc.
 (c-lang-defvar c-paragraph-start (c-lang-const c-paragraph-start))
 
 (c-lang-defconst c-paragraph-separate
@@ -2796,12 +2803,9 @@ Not to be confused with `c-requires-clause-kwds'."
   c++ '("requires"))
 
 (c-lang-defconst c-fun-name-substitute-key
-  ;; An unadorned regular expression which matches any member of
+  ;; An adorned regular expression which matches any member of
   ;; `c-fun-name-substitute-kwds'.
   t (c-make-keywords-re t (c-lang-const c-fun-name-substitute-kwds)))
-;; We use 'appendable, so that we get "\\>" on the regexp, but without a further
-;; character, which would mess up backward regexp search from just after the
-;; keyword.  If only XEmacs had \\_>.  ;-(
 (c-lang-defvar c-fun-name-substitute-key
 	       (c-lang-const c-fun-name-substitute-key))
 
@@ -2814,7 +2818,6 @@ This should not be confused with `c-fun-name-substitute-kwds'."
 (c-lang-defconst c-requires-clause-key
   ;; A regexp matching any member of `c-requires-clause-kwds'.
   t (c-make-keywords-re t (c-lang-const c-requires-clause-kwds)))
-;; See `c-fun-name-substitute-key' for the justification of appendable.
 (c-lang-defvar c-requires-clause-key (c-lang-const c-requires-clause-key))
 
 (c-lang-defconst c-modifier-kwds
@@ -3499,7 +3502,7 @@ Note that Java specific rules are currently applied to tell this from
 (c-lang-defconst c-brace-stack-thing-key
   ;; Regexp matching any keyword or operator relevant to the brace stack (see
   ;; `c-update-brace-stack' in cc-engine.el).
-  t (c-make-keywords-re 'appendable
+  t (c-make-keywords-re t
       (append
        (c-lang-const c-flat-decl-block-kwds)
        (if (c-lang-const c-recognize-<>-arglists)
@@ -3511,7 +3514,7 @@ Note that Java specific rules are currently applied to tell this from
   ;; Regexp matching any keyword or operator relevant to the brace stack when
   ;; a semicolon is not relevant (see `c-update-brace-stack' in
   ;; cc-engine.el).
-  t (c-make-keywords-re 'appendable
+  t (c-make-keywords-re t
       (append
        (c-lang-const c-flat-decl-block-kwds)
        (if (c-lang-const c-recognize-<>-arglists)
@@ -3627,7 +3630,7 @@ Note that Java specific rules are currently applied to tell this from
 (c-lang-defconst c-stmt-block-only-keywords-regexp
   ;; A regexp matching a keyword in `c-stmt-block-only-keywords'.  Such a
   ;; match can start and end only at token boundaries.
-  t (concat "\\(\\<\\|\\=\\)"
+  t (concat "\\(\\_<\\|\\=\\)"
 	    (c-make-keywords-re t (c-lang-const c-stmt-block-only-keywords))))
 (c-lang-defvar c-stmt-block-only-keywords-regexp
   (c-lang-const c-stmt-block-only-keywords-regexp))
@@ -3684,12 +3687,9 @@ Note that Java specific rules are currently applied to tell this from
 		;; Emacs has an odd bug that causes `mapcan' to fail
 		;; with unintelligible errors.  (XEmacs works.)
 		;; (2015-06-24): This bug has not yet been fixed.
-		;;(mapcan (lambda (lang-const)
-		;;	      (list lang-const t))
-		;;	    lang-const-list)
-		(apply 'nconc (mapcar (lambda (lang-const)
-					(list lang-const t))
-				      lang-const-list))))
+		(c--mapcan (lambda (lang-const)
+			      (list lang-const t))
+			    lang-const-list)))
     obarray))
 
 (c-lang-defconst c-regular-keywords-regexp
@@ -4073,16 +4073,13 @@ possible for good performance."
 
 (c-lang-defconst c-type-decl-prefix-keywords-key
   ;; Regexp matching any keyword operator that might precede the identifier in
-  ;; a declaration, e.g. "const" or nil.  It doesn't test there is no "_"
-  ;; following the keyword.
+  ;; a declaration, e.g. "const" or nil.
   t (if (or (c-lang-const c-type-modifier-kwds) (c-lang-const c-modifier-kwds))
-	(concat
 	 (regexp-opt (c--delete-duplicates
 		      (append (c-lang-const c-type-modifier-kwds)
 			      (c-lang-const c-modifier-kwds))
 		      :test 'string-equal)
-		     t)
-	 "\\>")))
+		     'symbols)))
 
 (c-lang-defconst c-maybe-typeless-specifier-re
   "Regexp matching keywords which might, but needn't, declare variables with
@@ -4100,16 +4097,14 @@ The operator found is either the first submatch (if it is not a
 keyword) or the second submatch (if it is)."
   t (if (c-lang-const c-type-decl-prefix-keywords-key)
 	(concat "\\(\\`a\\`\\)\\|"	; 1 - will never match.
-		(c-lang-const c-type-decl-prefix-keywords-key) ; 2
-		"\\([^_]\\|$\\)")			       ; 3
+		(c-lang-const c-type-decl-prefix-keywords-key)) ; 2
       "\\`a\\`") ;; Default to a regexp that never matches.
   ;; Check that there's no "=" afterwards to avoid matching tokens
   ;; like "*=".
   (c objc) (concat "\\("		; 1
 		   "[*(]"
 		   "\\)\\|"
-		   (c-lang-const c-type-decl-prefix-keywords-key) ; 2
-		   "\\([^=_]\\|$\\)")	; 3
+		   (c-lang-const c-type-decl-prefix-keywords-key)) ; 2
   c++  (concat "\\("			; 1
 	       "&&"
 	       "\\|"
@@ -4124,10 +4119,10 @@ keyword) or the second submatch (if it is)."
 		       ;; `c-font-lock-declarators' and
 		       ;; `c-font-lock-declarations' that check for a
 		       ;; complete name followed by ":: *".
-		       (c-lang-const c-identifier-start)
+		       (c-lang-const c-identifier-start) ; 5
 		       "\\)")
-	       "\\)"
-	       "\\([^=_]\\|$\\)")	; 5
+	       "\\)"			; 2
+	       "\\([^=_]\\|$\\)")	; 6
   pike "\\(\\*\\)\\([^=]\\|$\\)")
 
 (c-lang-defvar c-type-decl-prefix-key (c-lang-const c-type-decl-prefix-key)
@@ -4167,7 +4162,7 @@ is in effect when this is matched (see `c-identifier-syntax-table')."
   ;; function argument list parenthesis.
   t    (if (c-lang-const c-type-modifier-kwds)
 	   (concat "\\((\\|"
-		   (regexp-opt (c-lang-const c-type-modifier-kwds) t) "\\>"
+		   (regexp-opt (c-lang-const c-type-modifier-kwds) 'symbols)
 		   "\\)")
 	 "\\((\\)")
   (c c++ objc) (concat
@@ -4182,8 +4177,7 @@ is in effect when this is matched (see `c-identifier-syntax-table')."
 		     (regexp-opt
 		      (append (c-lang-const c-fun-name-substitute-kwds)
 			      (c-lang-const c-type-modifier-kwds))
-		      t)
-		     "\\>")
+		      'symbols))
 		  "")
 		"\\)")
   java "\\([[()]\\)"
@@ -4261,8 +4255,8 @@ is in effect or not."
   ;; Regexp matching the known type identifiers.  This is initialized
   ;; from the type keywords and `*-font-lock-extra-types'.  The first
   ;; submatch is the one that matches the type.  Note that this regexp
-  ;; assumes that symbol constituents like '_' and '$' have word
-  ;; syntax.
+  ;; assumes that symbol constituents like '_' and '$' have word or
+  ;; symbol syntax.
   (let* ((extra-types
 	  (when (boundp (c-mode-symbol "font-lock-extra-types"))
 	    (c-mode-var "font-lock-extra-types")))
@@ -4276,14 +4270,14 @@ is in effect or not."
 			      (unless (string-match "[][.*+?^$\\]" re)
 				re))
 			    extra-types))))
-    (concat "\\<\\("
+    (concat "\\_<\\("
 	    (c-concat-separated
 	     (append (list (c-make-keywords-re nil
 			     (append (c-lang-const c-primitive-type-kwds)
 				     plain-strings)))
 		     regexp-strings)
 	     "\\|")
-	    "\\)\\>")))
+	    "\\)\\_>")))
 
 (c-lang-defconst c-special-brace-lists
 "List of open- and close-chars that makes up a pike-style brace list,
@@ -4370,9 +4364,7 @@ the invalidity of the putative template construct."
   ;; needed.
   t (if (c-lang-const c-enum-list-kwds)
 	(concat
-	 "\\<\\("
-	 (c-make-keywords-re nil (c-lang-const c-enum-list-kwds))
-	 "\\)\\>"
+	 (c-make-keywords-re t (c-lang-const c-enum-list-kwds))
 	 ;; Disallow various common punctuation chars that can't come
 	 ;; before the '{' of the enum list, to avoid searching too far.
 	 "[^][{};/#=]*"
