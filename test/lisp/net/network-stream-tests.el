@@ -151,9 +151,7 @@
            return t))
 
 (ert-deftest echo-server-with-dns ()
-  (unless (network-test--resolve-system-name)
-    (ert-skip "Can't test resolver for (system-name)"))
-
+  (skip-when (network-test--resolve-system-name))
   (let* ((server (make-server (system-name)))
          (port (aref (process-contact server :local) 4))
          (proc (make-network-process :name "foo"
