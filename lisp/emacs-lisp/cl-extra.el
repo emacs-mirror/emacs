@@ -494,13 +494,17 @@ Optional second arg STATE is a random-state object."
     (let* ((i (cl-callf (lambda (x) (% (1+ x) 55)) (cl--random-state-i state)))
 	   (j (cl-callf (lambda (x) (% (1+ x) 55)) (cl--random-state-j state)))
 	   (n (aset vec i (logand 8388607 (- (aref vec i) (aref vec j))))))
-      (if (integerp lim)
-	  (if (<= lim 512) (% n lim)
-	    (if (> lim 8388607) (setq n (+ (ash n 9) (cl-random 512 state))))
-	    (let ((mask 1023))
-	      (while (< mask (1- lim)) (setq mask (1+ (+ mask mask))))
-	      (if (< (setq n (logand n mask)) lim) n (cl-random lim state))))
-	(* (/ n '8388608e0) lim)))))
+      (cond
+       ((natnump lim)
+	(if (<= lim 512) (% n lim)
+	  (if (> lim 8388607) (setq n (+ (ash n 9) (cl-random 512 state))))
+	  (let ((mask 1023))
+	    (while (< mask (1- lim)) (setq mask (1+ (+ mask mask))))
+	    (if (< (setq n (logand n mask)) lim) n (cl-random lim state)))))
+       ((< 0 lim 1.0e+INF)
+        (* (/ n '8388608e0) lim))
+       (t
+        (error "Limit %S not supported by cl-random" lim))))))
 
 ;;;###autoload
 (defun cl-make-random-state (&optional state)

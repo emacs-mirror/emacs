@@ -438,6 +438,15 @@
 		 (my-foo most-positive-fixnum)))
   )
 
+(ert-deftest cl-extra-test-random ()
+  (should-error (cl-random -1))
+  (should-error (cl-random -0.5))
+  (should-error (cl-random -1.0e+INF))
+  (should-error (cl-random 0))
+  (should-error (cl-random 0.0))
+  (should-error (cl-random -0.0))
+  (should-error (cl-random 1.0e+INF))
+  (should (eql (cl-random 1) 0)))
 
 
 ;;; cl-extra-tests.el ends here
