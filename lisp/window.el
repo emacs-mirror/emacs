@@ -5899,6 +5899,16 @@ changed by this function."
 	   window (- (if new-parent 1.0 (window-normal-size window horizontal))
 		     new-normal)))
 
+	(unless horizontal
+	  (let ((quit-restore (window-parameter window 'quit-restore)))
+	    (when quit-restore
+	      (let ((quad (nth 1 quit-restore)))
+		(when (and (listp quad) (integerp (nth 3 quad)))
+		  ;; When WINDOW has a 'quit-restore' parameter that
+		  ;; specifies a previous height to restore, remove that
+		  ;; - it does more harm than good now (Bug#78835).
+		  (setf (nth 3 quad) nil))))))
+
 	(let ((new (split-window-internal
 		    window new-pixel-size side new-normal refer)))
           (window--pixel-to-total frame horizontal)
