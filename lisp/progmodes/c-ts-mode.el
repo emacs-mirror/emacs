@@ -202,7 +202,7 @@ To set the default indent style globally, use
           (if (functionp style)
               (funcall style)
             (c-ts-mode--simple-indent-rules
-             (if (derived-mode-p 'c-ts-mode) 'c 'c++)
+             (if (derived-mode-p 'c-ts-mode) 'c 'cpp)
              style)))))
 
 (defcustom c-ts-mode-emacs-sources-support t
