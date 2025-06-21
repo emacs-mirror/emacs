@@ -278,6 +278,7 @@
 ;; Avoid compiler warnings
 (defvar compilation-error-regexp-alist)
 (defvar outline-heading-end-regexp)
+(defvar treesit-thing-settings)
 
 (autoload 'comint-mode "comint")
 (autoload 'help-function-arglist "help-fns")
