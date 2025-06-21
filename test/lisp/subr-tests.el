@@ -1505,5 +1505,16 @@ final or penultimate step during initialization."))
     (should (hash-table-contains-p 'cookie h))
     (should (hash-table-contains-p 'milk h))))
 
+(ert-deftest subr-test-split-string ()
+  (let ((text "-*- lexical-binding: t; -*-")
+        (seps "-\\*-")
+        (trim "[ \t\n\r-]+"))
+    (should (equal (split-string text seps nil trim)
+                   '("" "lexical-binding: t;" "")))
+    (should (equal (split-string text seps t trim)
+                   '("lexical-binding: t;")))
+    (should (equal (split-string text "[ \t\n\r-]*-\\*-[ \t\n\r-]*")
+                   '("" "lexical-binding: t;" "")))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

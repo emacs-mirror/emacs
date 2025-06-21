@@ -5755,9 +5755,9 @@ the substrings between the splitting points are collected as a list,
 which is returned.
 
 If SEPARATORS is non-nil, it should be a regular expression matching text
-that separates, but is not part of, the substrings.  If nil it defaults to
-`split-string-default-separators', normally \"[ \\f\\t\\n\\r\\v]+\", and
-OMIT-NULLS is forced to t.
+that separates, but is not part of, the substrings.  If omitted or nil,
+it defaults to `split-string-default-separators', whose value is
+normally \"[ \\f\\t\\n\\r\\v]+\", and OMIT-NULLS is then forced to t.
 
 If OMIT-NULLS is t, zero-length substrings are omitted from the list (so
 that for the default value of SEPARATORS leading and trailing whitespace
@@ -5767,11 +5767,6 @@ which correctly parses CSV format, for example.
 If TRIM is non-nil, it should be a regular expression to match
 text to trim from the beginning and end of each substring.  If trimming
 makes the substring empty, it is treated as null.
-
-If you want to trim whitespace from the substrings, the reliably correct
-way is using TRIM.  Making SEPARATORS match that whitespace gives incorrect
-results when there is whitespace at the start or end of STRING.  If you
-see such calls to `split-string', please fix them.
 
 Note that the effect of `(split-string STRING)' is the same as
 `(split-string STRING split-string-default-separators t)'.  In the rare
@@ -5785,7 +5780,9 @@ Modifies the match data; use `save-match-data' if necessary."
 	 (start 0)
 	 this-start this-end
 	 notfirst
+         match-beg
 	 (list nil)
+         (strlen (length string))
 	 (push-one
 	  ;; Push the substring in range THIS-START to THIS-END
 	  ;; onto LIST, trimming it and perhaps discarding it.
@@ -5794,6 +5791,7 @@ Modifies the match data; use `save-match-data' if necessary."
 	      ;; Discard the trim from start of this substring.
 	      (let ((tem (string-match trim string this-start)))
 		(and (eq tem this-start)
+                     (<= (match-end 0) this-end)
 		     (setq this-start (match-end 0)))))
 
 	    (when (or keep-nulls (< this-start this-end))
@@ -5811,18 +5809,25 @@ Modifies the match data; use `save-match-data' if necessary."
 
     (while (and (string-match rexp string
 			      (if (and notfirst
-				       (= start (match-beginning 0))
-				       (< start (length string)))
+				       (= start match-beg) ; empty match
+				       (< start strlen))
 				  (1+ start) start))
-		(< start (length string)))
-      (setq notfirst t)
-      (setq this-start start this-end (match-beginning 0)
-	    start (match-end 0))
+		(< start strlen))
+      (setq notfirst t
+            match-beg (match-beginning 0))
+      ;; If the separator is right at the beginning, produce an empty
+      ;; substring in the result list.
+      (if (= start match-beg)
+          (setq this-start (match-end 0)
+                this-end this-start)
+        ;; Otherwise produce a substring from start to the separator.
+        (setq this-start start this-end match-beg))
+      (setq start (match-end 0))
 
       (funcall push-one))
 
     ;; Handle the substring at the end of STRING.
-    (setq this-start start this-end (length string))
+    (setq this-start start this-end strlen)
     (funcall push-one)
 
     (nreverse list)))
