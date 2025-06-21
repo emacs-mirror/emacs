@@ -7347,6 +7347,7 @@ init_xfaces (void)
 #endif
 
   face_attr_sym[0] = Qface;
+  face_attr_sym[LFACE_FAMILY_INDEX] = QCfamily;
   face_attr_sym[LFACE_FOUNDRY_INDEX] = QCfoundry;
   face_attr_sym[LFACE_SWIDTH_INDEX] = QCwidth;
   face_attr_sym[LFACE_HEIGHT_INDEX] = QCheight;
