@@ -2203,9 +2203,13 @@ EXTERNAL is the prefix argument.  If called interactively with
      ;; This is a #target url in the same page as the current one.
      ((and (setq target (url-target (url-generic-parse-url url)))
 	   (eww-same-page-p url (plist-get eww-data :url)))
-      (let ((point (point)))
+      (let ((old-data eww-data)
+            (point (point)))
 	(eww-save-history)
         (eww--before-browse)
+        ;; Copy previous `eww-data', since everything but the URL will
+        ;; stay the same, and we don't re-render the document.
+        (setq eww-data (copy-sequence old-data))
 	(plist-put eww-data :url url)
         (goto-char (point-min))
         (if-let* ((match (text-property-search-forward 'shr-target-id target #'member)))
