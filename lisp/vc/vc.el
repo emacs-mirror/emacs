@@ -1954,7 +1954,7 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
       ;; RCS 5.7 gripes about whitespace-only comments too.
       (unless (and comment (string-match "[^\t\n ]" comment))
         (setq comment "*** empty log message ***"))
-      (when register (vc-register (list backend files)))
+      (when register (vc-register (list backend register)))
       (cl-labels ((do-it ()
                     ;; We used to change buffers to get local value of
                     ;; `vc-checkin-switches', but the (singular) local
