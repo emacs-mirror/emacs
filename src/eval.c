@@ -171,7 +171,7 @@ backtrace_top (void)
   /* This is so "xbacktrace" doesn't crash in pdumped Emacs if they
      invoke the command before init_eval_once_for_pdumper initializes
      specpdl machinery.  See also backtrace_p above.  */
-  if (!specpdl)
+  if (!current_thread || !specpdl)
     return NULL;
 
   union specbinding *pdl = specpdl_ptr - 1;
