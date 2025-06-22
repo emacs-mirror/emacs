@@ -1359,6 +1359,7 @@ exemple d’une feuille organisée en détails-et-synthèse.
 * La zone données:  The data area.
 * Variables locales-tampon dans les feuilles: Buffer-local variables in spreadsheets.
 * Utilisation de advice-add dans @acronym{SES}: Uses of advice-add in @acronym{SES}.
+* Automatiser l'édition d'une feuille @acronym{SES}: Automating editing a  @acronym{SES} sheet.
 @end menu
 
 @node Deferred updates
@@ -1541,6 +1542,84 @@ propriétés @code{'ses}), ensuite comme des formules séparées par des
 tabulations, ensuite (si tout le reste a échoué) comme une seule
 formule pour la cellule courante.
 @end table
+
+@node Automating editing a @acronym{SES} sheet
+@section Automatiser l'édition d'une feuille @acronym{SES}
+
+À condition de savoir un peu coder en Emacs-LISP vous pouvez créer du
+code Emacs-LISP qui modifie une feuille @acronym{SES} en utilisant la
+macro @code{ses-set}. La macro @code{ses-set} permet facilement de
+modifier des cellules en changeant leur valeur ou leur formule.
+
+Voici un exemple :
+
+@example
+(defun my-insert-time ()
+  (interactive)
+  (ses-check-curcell)
+  (let ((now (calcFunc-now)))
+    (ses-set :: sv ses--curcell
+	     (list 'hms
+		   (calcFunc-hour now)
+		   (calcFunc-minute now)
+		   (calcFunc-second now)))
+    ))
+(defun my-ses-mode-hook ()
+  (cond
+   ((string-match "/timesheet/" (buffer-file-name))
+    (require 'calc-ext)
+    (keymap-set ses-mode-map "T" my-insert-time)
+    (ses-define-local-printer
+     'hms
+     (lambda (x)
+       (cond ((eq (car-safe x) 'hms)
+	      (let ((calc-hms-format "%s:%s"))
+		(math-format-value x)))
+	     ((not x) "")
+	     (t (ses-prin1 x)))))
+    ))
+(add-hook 'ses-mode-hook my-ses-mode-hook)
+@end example
+
+Ce code crée une commande interactive @code{my-insert-time} qui insère
+l'heure courante dans une cellule, et permet d'accéder à cette commande
+par le raccourci @kbd{T} pour toutes les feuilles qui ont
+@samp{/timesheet/} dans leur chemin. Ces feuilles auront aussi la
+fonction d'impression locale @code{hms} qui permettra d'affichier
+l'heure @code{(hms @var{hh} @var{mm} @var{ss})} comme
+@samp{@var{hh}:@var{mm}}.
+
+@deffn {Macro} ses-set &rest args
+Règle la valeur ou la formule de cellules.  @var{args} est une liste de
+groupes d'éléments à traiter. Chaque groupe d'éléments est soit un
+commutateur de type de réglage, soit le réglage d'une cellule. Les types
+de réglage possibles sont identifiés par @code{sqv}, @code{sv},
+@code{sf}, @code{sqf}, @code{sfq}, @code{sqfq}, @code{rcv}, @code{rcf}
+ou @code{rcfq}. Le type de réglage par défaut est @code{sqv}. Le type de
+réglage peut être commuté par ce groupe d'éléments :
+
+:: @var{id-nouveau-type-réglage}
+
+Dans @var{id-nouveau-type-réglage} le @code{s} signifie symbole,
+@code{rc} signifie ligne-colonne (r pour row en anglais), @code{s} ou
+@code{rc} indique si la cellule est pointée par un symbole pour par ses
+coordonnées, avec @code{0 0} pour @code{A1}. @code{v} signifie valeur,
+et @code{f} signifie formule et cela indique ce qui est assigné à la
+cellule.  @code{q} indique si l'élément est implicitement cité (quote)
+ou non.
+
+Ainsi:
+
+(set-set A1 1 :: sv 'A2 2 :: sqfq B1 (+ A1 A2) :: sqf B2 '(+ A1 A2))
+
+règle la cellule A1 à la valeur 1, A2 à la valeur 2, B1 à la formule
+A1+A2, et B2 à la formule A1+A2. Les mêmes réglages peuvent être faits
+ainsi :
+
+(set-set :: rcv 0 0 1 1 0 2 :: rcfq 0 1 (+ A1 A2) :: rcf 1 1 '(+ A1 A2))
+@end deffn
+
+
 
 @c ===================================================================
 @node Index
