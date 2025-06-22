@@ -3715,7 +3715,7 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
     (((class color) (background dark))
      :background "seagreen" :extend t)
     (t :inherit (highlight) :extend t))
-  "Face used for highlighting the line where a package is marked to be install."
+  "Face used for highlighting in package-menu packages marked to be installed."
   :version "31.1")
 
 (defface package-mark-delete-line
@@ -3724,7 +3724,7 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
     (((class color) (background dark))
      :background "indianred4" :extend t)
     (t :inherit (highlight) :extend t))
-  "Face used for highlighting the line where a package is marked to be delete."
+  "Face used for highlighting in package-menu packages marked to be deleted."
   :version "31.1")
 
 
