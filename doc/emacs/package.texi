@@ -333,9 +333,9 @@ it depends on uninstallable packages.
 The package is installed.
 
 @item new
-Equivalent to @samp{available}, except that the package became newly
-available on the package archive after your last invocation of
-@kbd{M-x list-packages}.
+Equivalent to @samp{available}, except that the package was added to the
+package archive since your previous invocation of @w{@kbd{M-x
+list-packages}}.
 
 @item obsolete
 The package is an outdated installed version; in addition to this
