@@ -1487,8 +1487,10 @@ in your init files."
       (setq-local comment-end " */")
       ;; Indent.
       (setq-local treesit-simple-indent-rules
-                  (c-ts-mode--simple-indent-rules
-                   'c c-ts-mode-indent-style))
+                  (if (functionp c-ts-mode-indent-style)
+                      (funcall c-ts-mode-indent-style)
+                    (c-ts-mode--simple-indent-rules
+                     'c c-ts-mode-indent-style)))
       ;; (setq-local treesit-simple-indent-rules
       ;;             `((c . ,(alist-get 'gnu (c-ts-mode--indent-styles 'c)))))
       ;; Font-lock.
@@ -1560,8 +1562,10 @@ recommended to enable `electric-pair-mode' with this mode."
 
       ;; Indent.
       (setq-local treesit-simple-indent-rules
-                  (c-ts-mode--simple-indent-rules
-                   'cpp c-ts-mode-indent-style))
+                  (if (functionp c-ts-mode-indent-style)
+                      (funcall c-ts-mode-indent-style)
+                    (c-ts-mode--simple-indent-rules
+                     'cpp c-ts-mode-indent-style)))
 
       ;; Font-lock.
       (setq-local treesit-font-lock-settings
