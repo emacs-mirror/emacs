@@ -731,18 +731,31 @@ print \"(\\n\";
 foreach $f (@files) {
   ($p = $f) =~ s/\\\"/\\\\\\\"/g;
   ($q = \"$dir/$f\") =~ s/\\\"/\\\\\\\"/g;
-  print \"(\",
-    ((-d \"$q\") ? \"\\\"$p/\\\" \\\"$q\\\" t\" : \"\\\"$p\\\" \\\"$q\\\" nil\"),
+  print \"(\\\"$q\\\"\",
     ((-e \"$q\") ? \" t\" : \" nil\"),
     ((-r \"$q\") ? \" t\" : \" nil\"),
+    ((-d \"$q\") ? \" t\" : \" nil\"),
+    ((-x \"$q\") ? \" t\" : \" nil\"),
     \")\\n\";
 }
 print \")\\n\";
 ' \"$1\" %n"
   "Perl script to produce output suitable for use with
-`file-name-all-completions' on the remote file system.
-Format specifiers are replaced by `tramp-expand-script', percent
-characters need to be doubled.")
+`file-name-all-completions' on the remote file system.  It returns the
+same format as `tramp-bundle-read-file-names'.  Format specifiers are
+replaced by `tramp-expand-script', percent characters need to be
+doubled.")
+
+(defconst tramp-shell-file-name-all-completions
+  "cd \"$1\" 2>&1; %l -a %n | while IFS= read file; do
+    quoted=`echo \"$1/$file\" | sed -e \"s#//#/#g\" -e \"s/\\\"/\\\\\\\\\\\\\\\\\\\"/g\"`
+    printf \"%%b\n\" \"$quoted\"
+  done | tramp_bundle_read_file_names"
+   "Shell script to produce output suitable for use with
+`file-name-all-completions' on the remote file system.  It returns the
+same format as `tramp-bundle-read-file-names'.  Format specifiers are
+replaced by `tramp-expand-script', percent characters need to be
+doubled.")
 
 ;; Perl script to implement `file-attributes' in a Lisp `read'able
 ;; output.  If you are hacking on this, note that you get *no* output
@@ -1172,21 +1185,22 @@ characters need to be doubled.")
 
 (defconst tramp-bundle-read-file-names
   "echo \"(\"
-while read file; do
-  quoted=`echo \"$file\" | sed -e \"s/\\\"/\\\\\\\\\\\\\\\\\\\"/\"`
+while IFS= read file; do
+  quoted=`echo \"$file\" | sed -e \"s/\\\"/\\\\\\\\\\\\\\\\\\\"/g\"`
   printf \"(%%b\" \"\\\"$quoted\\\"\"
   if %q \"$file\"; then printf \" %%b\" t; else printf \" %%b\" nil; fi
   if %m -r \"$file\"; then printf \" %%b\" t; else printf \" %%b\" nil; fi
-  if %m -d \"$file\"; then printf \" %%b)\n\" t; else printf \" %%b)\n\" nil; fi
+  if %m -d \"$file\"; then printf \" %%b\" t; else printf \" %%b\" nil; fi
+  if %m -x \"$file\"; then printf \" %%b)\n\" t; else printf \" %%b)\n\" nil; fi
 done
 echo \")\""
-  "Script to check file attributes of a bundle of files.
-It must be sent formatted with three strings; the tests for file
-existence, file readability, and file directory.  Input shall be
-read via here-document, otherwise the command could exceed
-maximum length of command line.
-Format specifiers \"%s\" are replaced before the script is used,
-percent characters need to be doubled.")
+  "Shell script to check file attributes of a bundle of files.
+For every file, it returns a list with the absolute file name, and the
+tests for file existence, file readability, file directory, and file
+executable.  Input shall be read via here-document, otherwise the
+command could exceed maximum length of command line.  Format specifiers
+\"%s\" are replaced before the script is used, percent characters need
+to be doubled.")
 
 ;; New handlers should be added here.
 ;;;###tramp-autoload
@@ -1945,47 +1959,40 @@ ID-FORMAT valid values are `string' and `integer'."
 	       ;; reliably tagging the directories with a trailing "/".
 	       ;; Because I rock.  --daniel@danann.net
 	       (if (tramp-get-remote-perl v)
-		   (progn
-		     (tramp-maybe-send-script
-		      v tramp-perl-file-name-all-completions
-		      "tramp_perl_file_name_all_completions")
-		     (setq result
-			   (tramp-send-command-and-read
-			    v (format "tramp_perl_file_name_all_completions %s"
-				      (tramp-shell-quote-argument localname))
-			    'noerror))
-		     ;; Cached values.
-		     (dolist (elt result)
-		       (tramp-set-file-property
-			v (cadr elt) "file-directory-p" (nth 2 elt))
-		       (tramp-set-file-property
-			v (cadr elt) "file-exists-p" (nth 3 elt))
-		       (tramp-set-file-property
-			v (cadr elt) "file-readable-p" (nth 4 elt)))
-		     ;; Result.
-		     (mapcar #'car result))
+		   (tramp-maybe-send-script
+		    v tramp-perl-file-name-all-completions
+		    "tramp_perl_file_name_all_completions")
+		 ;; Used in `tramp-shell-file-name-all-completions'.
+		 (tramp-maybe-send-script
+		  v tramp-bundle-read-file-names "tramp_bundle_read_file_names")
+		 (tramp-maybe-send-script
+		  v tramp-shell-file-name-all-completions
+		  "tramp_shell_file_name_all_completions"))
 
-		 ;; Do it with ls.
-		 (when (tramp-send-command-and-check
-			v (format (concat
-				   "cd %s 2>&1 && %s -a 2>%s"
-				   " | while IFS= read f; do"
-				   " if %s -d \"$f\" 2>%s;"
-				   " then echo \"$f/\"; else echo \"$f\"; fi;"
-				   " done")
-				  (tramp-shell-quote-argument localname)
-				  (tramp-get-ls-command v)
-				  (tramp-get-remote-null-device v)
-				  (tramp-get-test-command v)
-				  (tramp-get-remote-null-device v)))
+	       (dolist
+		   (elt
+		    (tramp-send-command-and-read
+		     v (format
+			"%s %s"
+			(if (tramp-get-remote-perl v)
+			    "tramp_perl_file_name_all_completions"
+			  "tramp_shell_file_name_all_completions")
+			(tramp-shell-quote-argument localname))
+		     'noerror)
+		    result)
+		 ;; Don't cache "." and "..".
+		 (when (string-match-p
+			directory-files-no-dot-files-regexp
+			(file-name-nondirectory (car elt)))
+		   (tramp-set-file-property v (car elt) "file-exists-p" (nth 1 elt))
+		   (tramp-set-file-property v (car elt) "file-readable-p" (nth 2 elt))
+		   (tramp-set-file-property v (car elt) "file-directory-p" (nth 3 elt))
+		   (tramp-set-file-property v (car elt) "file-executable-p" (nth 4 elt)))
 
-		   ;; Now grab the output.
-		   (with-current-buffer (tramp-get-buffer v)
-		     (goto-char (point-max))
-		     (while (zerop (forward-line -1))
-		       (push
-			(buffer-substring (point) (line-end-position)) result)))
-		   result))))))))))
+		 (push
+		  (concat
+		   (file-name-nondirectory (car elt)) (and (nth 3 elt) "/"))
+		  result))))))))))
 
 ;; cp, mv and ln
 
@@ -3640,7 +3647,8 @@ filled are described in `tramp-bundle-read-file-names'."
 
       (tramp-set-file-property vec (car elt) "file-exists-p" (nth 1 elt))
       (tramp-set-file-property vec (car elt) "file-readable-p" (nth 2 elt))
-      (tramp-set-file-property vec (car elt) "file-directory-p" (nth 3 elt)))))
+      (tramp-set-file-property vec (car elt) "file-directory-p" (nth 3 elt))
+      (tramp-set-file-property vec (car elt) "file-executable-p" (nth 4 elt)))))
 
 (defvar tramp-vc-registered-file-names nil
   "List used to collect file names, which are checked during `vc-registered'.")

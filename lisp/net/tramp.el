@@ -2218,7 +2218,7 @@ This shouldn't be changed globally, but let-bind where needed.")
 (defmacro with-tramp-suspended-timers (&rest body)
   "Run BODY with suspended timers.
 Obey `tramp-dont-suspend-timers'."
-  (declare (indent 0) (debug ((form body) body)))
+  (declare (indent 0) (debug t))
   `(if tramp-dont-suspend-timers
        (progn ,@body)
      (let ((stimers (with-timeout-suspend))
@@ -2759,7 +2759,7 @@ whether HANDLER is to be called.  Add operations defined in
 (progn (defmacro without-remote-files (&rest body)
   "Deactivate remote file names temporarily.
 Run BODY."
-  (declare (indent 0) (debug ((form body) body)))
+  (declare (indent 0) (debug t))
   `(let ((file-name-handler-alist (copy-tree file-name-handler-alist))
          tramp-mode)
      (tramp-unload-file-name-handlers)
