@@ -235,5 +235,31 @@ Also check that an encoding error can appear in a symlink."
                   "2025/02/01 23:15:59.123456700")))
       (delete-file tfile))))
 
+(defconst ert--tests-dir
+  (file-name-directory (macroexp-file-name)))
+
+(ert-deftest fileio-tests--insert-file-contents-supersession ()
+  (ert-with-temp-file file
+    (write-region "foo" nil file)
+    (let* ((asked nil)
+           (buf (find-file-noselect file))
+           (auast (lambda (&rest _) (setq asked t))))
+      (unwind-protect
+          (with-current-buffer buf
+            ;; Pretend someone else edited the file.
+            (write-region "bar" nil file 'append)
+            ;; Use `advice-add' rather than `cl-letf' because the function
+            ;; may not be defined yet.
+            (advice-add 'ask-user-about-supersession-threat :override auast)
+            ;; Modify the local buffer via `insert-file-contents'.
+            (insert-file-contents
+             (expand-file-name "lread-resources/somelib.el"
+                               ert--tests-dir)
+             nil nil nil 'replace))
+        (advice-remove 'ask-user-about-supersession-threat auast)
+        (kill-buffer buf))
+      ;; We should have prompted about the supersession threat.
+      (should asked))))
+
 
 ;;; fileio-tests.el ends here
