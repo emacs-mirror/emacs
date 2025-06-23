@@ -1826,6 +1826,14 @@ further ``compress'' the mode line, you may customize the
 and Emacs will hide some minor mode indicators on the mode line by
 collapsing them into a single clickable button.
 
+@findex mode-line-invisible-mode
+  By default, most buffers display a mode line, but if the mode line is
+not useful in a buffer, you can use the command @w{@kbd{M-x
+mode-line-invisible-mode}} to hide the mode line in the current buffer,
+the mode line remains hidden until this command is called again.  To
+always hide the mode line when entering to a major mode, add
+@code{mode-line-invisible-mode} to a hook (@pxref{Hooks}).
+
 @node Text Display
 @section How Text Is Displayed
 @cindex characters (in text)
