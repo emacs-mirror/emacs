@@ -1432,12 +1432,10 @@ Optional integers MON and YR are used instead of today's date."
 	  (fit-window-to-buffer nil nil calendar-minimum-window-height)
 	;; For a full height window or a window that is horizontally
 	;; combined don't fit height to that of its buffer.
-	(set-window-vscroll nil 0))
-      (sit-for 0))
+	(set-window-vscroll nil 0)))
     (and calendar-mark-holidays-flag
          ;; (calendar-date-is-valid-p today) ; useful for BC dates
-         (calendar-mark-holidays)
-         (and in-calendar-window (sit-for 0)))
+         (calendar-mark-holidays))
     (unwind-protect
         (if calendar-mark-diary-entries-flag (diary-mark-entries))
       (run-hooks (if today-visible
