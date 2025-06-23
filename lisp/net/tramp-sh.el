@@ -748,8 +748,8 @@ doubled.")
 
 (defconst tramp-shell-file-name-all-completions
   "cd \"$1\" 2>&1; %l -a %n | while IFS= read file; do
-    quoted=`echo \"$1/$file\" | sed -e \"s#//#/#g\" -e \"s/\\\"/\\\\\\\\\\\\\\\\\\\"/g\"`
-    printf \"%%b\n\" \"$quoted\"
+    quoted=`echo \"$1/$file\" | sed -e \"s#//#/#g\"`
+    printf \"%%s\\n\" \"$quoted\"
   done | tramp_bundle_read_file_names"
    "Shell script to produce output suitable for use with
 `file-name-all-completions' on the remote file system.  It returns the
@@ -1187,11 +1187,11 @@ characters need to be doubled.")
   "echo \"(\"
 while IFS= read file; do
   quoted=`echo \"$file\" | sed -e \"s/\\\"/\\\\\\\\\\\\\\\\\\\"/g\"`
-  printf \"(%%b\" \"\\\"$quoted\\\"\"
-  if %q \"$file\"; then printf \" %%b\" t; else printf \" %%b\" nil; fi
-  if %m -r \"$file\"; then printf \" %%b\" t; else printf \" %%b\" nil; fi
-  if %m -d \"$file\"; then printf \" %%b\" t; else printf \" %%b\" nil; fi
-  if %m -x \"$file\"; then printf \" %%b)\n\" t; else printf \" %%b)\n\" nil; fi
+  printf \"(%%s\" \"\\\"$quoted\\\"\"
+  if %q \"$file\"; then printf \" %%s\" t; else printf \" %%s\" nil; fi
+  if %m -r \"$file\"; then printf \" %%s\" t; else printf \" %%s\" nil; fi
+  if %m -d \"$file\"; then printf \" %%s\" t; else printf \" %%s\" nil; fi
+  if %m -x \"$file\"; then printf \" %%s)\\n\" t; else printf \" %%s)\\n\" nil; fi
 done
 echo \")\""
   "Shell script to check file attributes of a bundle of files.
