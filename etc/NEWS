@@ -353,6 +353,11 @@ This option allows changing or removing the delimiters shown around
 the major mode and list of minor modes in the mode line.  The default
 retains the existing behavior of inserting parentheses.
 
++++
+*** New minor mode 'mode-line-invisible-mode'.
+This command toggles the mode-line visibility of the current buffer:
+hides it if it is shown, and shows it if it's hidden.
+
 ** Tab Bars and Tab Lines
 
 ---
