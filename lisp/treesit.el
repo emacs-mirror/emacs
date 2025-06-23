@@ -5165,7 +5165,7 @@ nil."
 (defun treesit--language-git-version-tags (repo-dir)
   "Return a list of Git version tags in REPO-DIR, sorted latest first.
 
-Return the output of \"git tag --list --sort=-version:refname 'v*'\".
+Return the output of \"git tag --list --sort=-version:refname \\='v*\\='\".
 If anything goes wrong, return nil."
   (with-temp-buffer
     (cond
