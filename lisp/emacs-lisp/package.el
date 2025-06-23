@@ -3264,24 +3264,24 @@ either a full name or nil, and EMAIL is a valid email address."
                (propertize "Total: " 'help-echo total-help)
                (propertize total
                            'help-echo total-help
-                           'face 'font-lock-keyword-face)
+                           'face 'package-mode-line-total)
                " / "
                (propertize "Installed: " 'help-echo installed-help)
                (propertize installed
                            'help-echo installed-help
-                           'face 'package-status-installed)
+                           'face 'package-mode-line-installed)
                " / "
                (propertize "To Upgrade: " 'help-echo upgrade-help)
                (propertize to-upgrade
                            'help-echo upgrade-help
-                           'face 'font-lock-keyword-face)
+                           'face 'package-mode-line-to-upgrade)
                (when (> new 0)
                  (concat
                   " / "
                   (propertize "New: " 'help-echo new-help)
                   (propertize (number-to-string new)
                               'help-echo new-help
-                              'face 'package-status-new)))
+                              'face 'package-mode-line-new)))
                "] "))))))
 (defvar package-menu--tool-bar-map
   (let ((map (make-sparse-keymap)))
@@ -3762,6 +3762,22 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
      :background "indianred4" :extend t)
     (t :inherit (highlight) :extend t))
   "Face used for highlighting in package-menu packages marked to be deleted."
+  :version "31.1")
+
+(defface package-mode-line-total nil
+  "Face for the total number of packages displayed on the mode line."
+  :version "31.1")
+
+(defface package-mode-line-installed '((t :inherit package-status-installed))
+  "Face for the number of installed packages displayed on the mode line."
+  :version "31.1")
+
+(defface package-mode-line-to-upgrade '((t :inherit bold))
+  "Face for the number of packages to upgrade displayed on the mode line."
+  :version "31.1")
+
+(defface package-mode-line-new '((t :inherit package-status-new))
+  "Face for the number of new packages displayed on the mode line."
   :version "31.1")
 
 
