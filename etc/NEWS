@@ -1055,6 +1055,15 @@ compatible.
 'recentf-save-list' can print a message when saving the recentf list.
 The new option, if set to nil, suppresses this message.
 
+---
+*** New user option 'recentf-suppress-open-file-help'.
+By default, invoking 'recentf-open-files' displays a message saying what
+action clicking or typing RET on the item at point executes, and tabbing
+between items in the *Open Recent* buffer likewise displays such
+messages.  To suppress these messages, customize the user option
+'recentf-suppress-open-file-help' to non-nil.  The default value of this
+option is nil.
+
 ** Saveplace
 
 ---

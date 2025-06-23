@@ -1383,19 +1383,23 @@ nothing is shown in the echo area."
     (widget-echo-help (point)))
   (run-hooks 'widget-move-hook))
 
-(defun widget-forward (arg)
+(defun widget-forward (arg &optional suppress-echo)
   "Move point to the next field or button.
-With optional ARG, move across that many fields."
+With optional ARG, move across that many fields.
+When the second optional argument is non-nil,
+nothing is shown in the echo area."
   (interactive "p")
   (run-hooks 'widget-forward-hook)
-  (widget-move arg))
+  (widget-move arg suppress-echo))
 
-(defun widget-backward (arg)
+(defun widget-backward (arg &optional suppress-echo)
   "Move point to the previous field or button.
-With optional ARG, move across that many fields."
+With optional ARG, move across that many fields.
+When the second optional argument is non-nil,
+nothing is shown in the echo area."
   (interactive "p")
   (run-hooks 'widget-backward-hook)
-  (widget-move (- arg)))
+  (widget-move (- arg) suppress-echo))
 
 ;; Since the widget code uses a `field' property to identify fields,
 ;; ordinary beginning-of-line does the right thing.
