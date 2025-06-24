@@ -361,7 +361,8 @@ This file is loaded at run-time before `user-init-file'.  It contains
 inits that need to be in place for the entire site, but which, due to
 their higher incidence of change, don't make sense to put into Emacs's
 dump file.  Thus, the run-time load order is: 1. file described in
-this variable, if non-nil; 2. `user-init-file'; 3. `default.el'.
+this variable, if non-nil; 2. `early-init-file', 3. `user-init-file';
+4. `default.el'.
 
 Don't use the `site-start.el' file for things some users may not like.
 Put them in `default.el' instead, so that users can more easily
@@ -1426,6 +1427,21 @@ please check its value")
 	  (setq xdg-dir (concat "~" init-file-user "/.config/emacs/"))
 	  (startup--xdg-or-homedot xdg-dir init-file-user)))
 
+  ;; Run the site-start library if it exists.
+  ;; This used to come after the early init file, but was moved here to
+  ;; make it possible for sites to do early init things on behalf of
+  ;; their users, such as adding to `package-directory-list'.
+  ;; This certainly has to come before loading the regular init file.
+  ;; Note that `user-init-file' is nil at this point.  Code that might
+  ;; be loaded from `site-run-file' and wants to test if -q was given
+  ;; should check `init-file-user' instead, since that is already set.
+  ;; See cus-edit.el for an example.
+  (when site-run-file
+    ;; Sites should not disable the startup screen.
+    ;; Only individuals may disable the startup screen.
+    (let ((inhibit-startup-screen inhibit-startup-screen))
+      (load site-run-file t t)))
+
   ;; Load the early init file, if found.
   (startup--load-user-init-file
    (lambda ()
@@ -1537,20 +1553,7 @@ please check its value")
   (let ((old-scalable-fonts-allowed scalable-fonts-allowed)
 	(old-face-ignored-fonts face-ignored-fonts))
 
-    ;; Run the site-start library if it exists.  The point of this file is
-    ;; that it is run before .emacs.  There is no point in doing this after
-    ;; .emacs; that is useless.
-    ;; Note that user-init-file is nil at this point.  Code that might
-    ;; be loaded from site-run-file and wants to test if -q was given
-    ;; should check init-file-user instead, since that is already set.
-    ;; See cus-edit.el for an example.
-    (if site-run-file
-        ;; Sites should not disable the startup screen.
-        ;; Only individuals should disable the startup screen.
-        (let ((inhibit-startup-screen inhibit-startup-screen))
-	  (load site-run-file t t)))
-
-    ;; Load that user's init file, or the default one, or none.
+    ;; Load the user's init file, or the default one, or none.
     (startup--load-user-init-file
      (lambda ()
        (cond

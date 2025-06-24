@@ -94,6 +94,11 @@ if requested by environment variables such as @env{LANG}.
 It does some basic parsing of the command-line arguments.
 
 @item
+It loads the library @file{site-start}, if it exists.  This is not
+done if the options @samp{-Q} or @samp{--no-site-file} were specified.
+@cindex @file{site-start.el}
+
+@item
 It loads your early init file (@pxref{Early Init File,,, emacs, The
 GNU Emacs Manual}).  This is not done if the options @samp{-q},
 @samp{-Q}, or @samp{--batch} were specified.  If the @samp{-u} option
@@ -149,11 +154,6 @@ rather than build-time, context.
 
 @c @item
 @c It registers the colors available for tty frames.
-
-@item
-It loads the library @file{site-start}, if it exists.  This is not
-done if the options @samp{-Q} or @samp{--no-site-file} were specified.
-@cindex @file{site-start.el}
 
 @item
 It loads your init file (@pxref{Init File}).  This is not done if the
@@ -432,9 +432,9 @@ loading of this file with the option @samp{--no-site-file}.
 
 @defopt site-run-file
 This variable specifies the site-customization file to load before the
-user's init file.  Its normal value is @code{"site-start"}.  The only
-way you can change it with real effect is to do so before dumping
-Emacs.
+user's early init file and regular init file.  Its normal value is
+@code{"site-start"}.  The only way you can change it with real effect is
+to do so before dumping Emacs.
 @c So why even mention it here.  I imagine it is almost never changed.
 @end defopt
 

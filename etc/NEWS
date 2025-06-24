@@ -61,6 +61,13 @@ OS selection instead of terminal-specific keybindings.
 You can keep the old behavior by putting '(xterm-mouse-mode -1)' in your
 init file.
 
++++
+** 'site-start.el' is now loaded before the user's early init file.
+Previously the order was early-init.el, site-start.el and then the
+user's regular init file, but now site-start.el comes first.  This
+allows site administrators to customize things that can normally only be
+done from early-init.el, such as adding to 'package-directory-list'.
+
 
 * Changes in Emacs 31.1
 
