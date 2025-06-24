@@ -946,19 +946,18 @@ since it could result in memory overflow and make Emacs crash."
 	  (put symbol 'custom-set (cadr prop)))
       ;; This is used by describe-variable.
       (if version (put symbol 'custom-version version))
-      ;; Don't re-add to custom-delayed-init-variables post-startup.
-      (unless after-init-time
-	;; Note this is the _only_ initialize property we handle.
-	(if (eq (cadr (memq :initialize rest)) #'custom-initialize-delay)
-	    ;; These vars are defined early and should hence be initialized
-	    ;; early, even if this file happens to be loaded late.  so add them
-	    ;; to the end of custom-delayed-init-variables.  Otherwise,
-	    ;; auto-save-file-name-transforms will appear in customize-rogue.
-	    (add-to-list 'custom-delayed-init-variables symbol 'append)))
       ;; If this is NOT while dumping Emacs, set up the rest of the
       ;; customization info.  This is the stuff that is not needed
       ;; until someone does M-x customize etc.
-      (unless dump-mode
+      (if dump-mode
+	  ;; Don't re-add to custom-delayed-init-variables post-startup.
+	  ;; Note this is the _only_ initialize property we handle.
+	  (if (eq (cadr (memq :initialize rest)) #'custom-initialize-delay)
+	      ;; These vars are defined early and should hence be initialized
+	      ;; early, even if this file happens to be loaded late.  so add
+              ;; them to the end of custom-delayed-init-variables.  Otherwise,
+	      ;; auto-save-file-name-transforms will appear in customize-rogue.
+	      (add-to-list 'custom-delayed-init-variables symbol 'append))
 	;; Add it to the right group(s).
 	(if (listp group)
 	    (dolist (g group)
