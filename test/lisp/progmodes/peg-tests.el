@@ -396,5 +396,12 @@ resp. succeeded instead of signaling an error."
 ;; (peg-ex-last-digit2 (make-string 500000 ?-))
 ;; (peg-ex-last-digit2 (make-string 500000 ?5))
 
+(ert-deftest peg-tests--peg-parse ()
+  (with-temp-buffer
+    (insert "abc")
+    (goto-char (point-min))
+    (peg-parse (bob) "ab")
+    (should (looking-at "c"))))
+
 (provide 'peg-tests)
 ;;; peg-tests.el ends here

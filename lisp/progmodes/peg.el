@@ -317,11 +317,15 @@ EXPS is a list of rules/expressions that failed.")
   "Match PEXS at point.
 PEXS is a sequence of PEG expressions, implicitly combined with `and'.
 Returns STACK if the match succeed and signals an error on failure,
-moving point along the way."
+moving point along the way.
+For backward compatibility (and convenience) PEXS can also be a list of
+RULES in which case we run the first such rule.  In case of ambiguity,
+prefix PEXS with \"\" so it doesn't look like a list of rules."
   (if (and (consp (car pexs))
            (symbolp (caar pexs))
-           (not (ignore-errors
-                  (not (eq 'call (car (peg-normalize (car pexs))))))))
+           (not (or (get (peg--rule-id (caar pexs)) 'peg--rule-definition)
+                    (ignore-errors
+                      (not (eq 'call (car (peg-normalize (car pexs)))))))))
       ;; The first of `pexs' has not been defined as a rule, so assume
       ;; that none of them have been and they should be fed to
       ;; `with-peg-rules'
