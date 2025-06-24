@@ -187,7 +187,7 @@ Return nil if there is no name or if NODE is not a defun node."
     ;; Comments.
     (setq-local comment-start "# ")
     (setq-local comment-end "")
-    (setq-local comment-start-skip "#+\\s-*")
+    (setq-local comment-start-skip "#+ *")
 
     ;; Indentation.
     (setq-local indent-tabs-mode nil)
