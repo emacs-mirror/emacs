@@ -523,8 +523,14 @@ executed once, when the buffer is created."
   :group 'comint)
 
 (defcustom comint-terminfo-terminal "dumb"
-  "Value to use for TERM when the system uses terminfo."
-  :type 'string
+  "Value to use for TERM when the system uses terminfo.
+If the system's terminfo database contains a definition for the
+\"dumb-emacs-ansi\" terminal (as all recent versions of terminfo do),
+set this to \"dumb-emacs-ansi\" and then some terminfo-aware programs
+will send colorized output when run under Comint."
+  :type '(choice (const "dumb")
+                 (const "dumb-emacs-ansi")
+                 string)
   :group 'comint
   :version "26.1")
 

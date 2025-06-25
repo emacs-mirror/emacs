@@ -997,6 +997,10 @@ from.  For example, if you use bash, the file sent to it is
 @file{~/.emacs_bash}.  If this file is not found, Emacs tries with
 @file{~/.emacs.d/init_@var{shellname}.sh}.
 
+  You can enable colorized output for many commands by customizing the
+variable @code{comint-terminfo-terminal} to the value
+@samp{"dumb-emacs-ansi"} (@pxref{Shell Options}).
+
   To specify a coding system for the shell, you can use the command
 @kbd{C-x @key{RET} c} immediately before @kbd{M-x shell}.  You can
 also change the coding system for a running subshell by typing
@@ -1639,13 +1643,15 @@ underlying shell, of course.
 @vindex system-uses-terminfo
 @vindex TERM@r{, environment variable, in sub-shell}
 Comint mode sets the @env{TERM} environment variable to a safe default
-value, but this value disables some useful features.  For example,
-color is disabled in applications that use @env{TERM} to determine if
-color is supported.  Therefore, Emacs provides an option
-@code{comint-terminfo-terminal} to let you choose a terminal with more
-advanced features, as defined in your system's terminfo database.
-Emacs will use this option as the value for @env{TERM} so long as
-@code{system-uses-terminfo} is non-@code{nil}.
+value, but this disables some useful features.  For example, colorized
+output is disabled in applications that use @env{TERM} to determine
+whether color is supported.  If the terminfo database on your system
+contains a definition for the @samp{"dumb-emacs-ansi"} terminal type (as
+all recent versions of terminfo do), you can enable advanced terminal
+features, including color, by customizing the option
+@code{comint-terminfo-terminal} to @samp{"dumb-emacs-ansi"}.  Emacs will
+use @code{comint-terminfo-terminal} as the value for @env{TERM} so long
+as @code{system-uses-terminfo} is non-@code{nil}.
 
 Both @code{comint-terminfo-terminal} and @code{system-uses-terminfo}
 can be declared as connection-local variables to adjust these options
