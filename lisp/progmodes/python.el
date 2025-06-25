@@ -6123,13 +6123,34 @@ tree-sitter."
 (defvar python--thing-settings
   `((python
      (defun ,(rx (or "function" "class") "_definition"))
-     (sexp ,(rx (or "expression"
-                    "string"
-                    "call"
-                    "operator"
-                    "identifier"
-                    "integer"
-                    "float")))
+     (sexp (not (or (and named
+                         ,(rx bos (or "module"
+                                      "block"
+                                      "comment")
+                              eos))
+                    (and anonymous
+                         ,(rx bos (or "(" ")" "[" "]" "{" "}" ",")
+                              eos)))))
+     (list ,(rx bos (or "parameters"
+                        "type_parameter"
+                        "parenthesized_list_splat"
+                        "argument_list"
+                        "_list_pattern"
+                        "_tuple_pattern"
+                        "dict_pattern"
+                        "tuple_pattern"
+                        "list_pattern"
+                        "list"
+                        "set"
+                        "tuple"
+                        "dictionary"
+                        "list_comprehension"
+                        "dictionary_comprehension"
+                        "set_comprehension"
+                        "generator_expression"
+                        "parenthesized_expression"
+                        "interpolation")
+                eos))
      (sentence ,(rx (or "statement"
                         "clause")))
      (text ,(rx (or "string" "comment")))))
@@ -7355,8 +7376,11 @@ implementations: `python-mode' and `python-ts-mode'."
     (setq-local treesit-defun-name-function
                 #'python--treesit-defun-name)
 
-    (setq treesit-thing-settings python--thing-settings)
+    (setq-local treesit-thing-settings python--thing-settings)
     (treesit-major-mode-setup)
+    ;; Enable the `sexp' navigation by default
+    (setq-local forward-sexp-function #'treesit-forward-sexp
+                treesit-sexp-thing 'sexp)
 
     (setq-local syntax-propertize-function #'python--treesit-syntax-propertize)
 
