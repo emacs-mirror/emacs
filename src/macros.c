@@ -57,7 +57,8 @@ macro before appending to it.  */)
   if (!current_kboard->kbd_macro_buffer)
     {
 #ifdef HAVE_MPS
-      current_kboard->kbd_macro_buffer = igc_xzalloc_ambig (30 * word_size);
+      current_kboard->kbd_macro_buffer
+	= igc_xalloc_lisp_objs_exact (30, "kbd-macro-buffer");
 #else
       current_kboard->kbd_macro_buffer = xmalloc (30 * word_size);
 #endif
@@ -71,8 +72,10 @@ macro before appending to it.  */)
       if (current_kboard->kbd_macro_bufsize > 200)
 	{
 #ifdef HAVE_MPS
-	  current_kboard->kbd_macro_buffer = igc_xnrealloc_ambig
-	    (current_kboard->kbd_macro_buffer, 30, word_size);
+	  current_kboard->kbd_macro_buffer
+	    = igc_xnrealloc_lisp_objs_exact (current_kboard->kbd_macro_bufsize,
+					     current_kboard->kbd_macro_buffer,
+					     30, "kbd-macro-buffer");
 #else
 	  current_kboard->kbd_macro_buffer
 	    = xrealloc (current_kboard->kbd_macro_buffer, 30 * word_size);
@@ -97,11 +100,12 @@ macro before appending to it.  */)
       if (current_kboard->kbd_macro_bufsize - incr < len)
 	{
 #ifdef HAVE_MPS
-	  current_kboard->kbd_macro_buffer
-	    = igc_xpalloc_ambig (current_kboard->kbd_macro_buffer,
-				 &current_kboard->kbd_macro_bufsize,
-				 len - current_kboard->kbd_macro_bufsize + incr, -1,
-				 sizeof *current_kboard->kbd_macro_buffer);
+	  struct kboard *kb = current_kboard;
+	  kb->kbd_macro_buffer
+	    = igc_xpalloc_lisp_objs_exact (kb->kbd_macro_buffer,
+					   &kb->kbd_macro_bufsize,
+					   len - kb->kbd_macro_bufsize + incr,
+					   -1, "kbd-macro-buffer");
 #else
 	  current_kboard->kbd_macro_buffer
 	    = xpalloc (current_kboard->kbd_macro_buffer,
@@ -207,9 +211,9 @@ store_kbd_macro_char (Lisp_Object c)
 	  ptrdiff_t end_offset = kb->kbd_macro_end - kb->kbd_macro_buffer;
 #ifdef HAVE_MPS
 	  kb->kbd_macro_buffer =
-	    igc_xpalloc_ambig (kb->kbd_macro_buffer,
-			       &kb->kbd_macro_bufsize,
-			       1, -1, sizeof *kb->kbd_macro_buffer);
+	    igc_xpalloc_lisp_objs_exact (kb->kbd_macro_buffer,
+					 &kb->kbd_macro_bufsize,
+					 1, -1, "kbd-macro-buffer");
 #else
 	  kb->kbd_macro_buffer = xpalloc (kb->kbd_macro_buffer,
 					  &kb->kbd_macro_bufsize,

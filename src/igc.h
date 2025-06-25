@@ -101,6 +101,11 @@ Lisp_Object *igc_xpalloc_lisp_objs_exact (Lisp_Object *pa, ptrdiff_t *nitems,
 					  ptrdiff_t nitems_max,
 					  const char *label);
 
+Lisp_Object *igc_xnrealloc_lisp_objs_exact (ptrdiff_t nitems_old,
+					    Lisp_Object *old,
+					    ptrdiff_t nitems_new,
+					    const char *label);
+
 typedef int igc_scan_result_t; /* zero means success */
 struct igc_ss;
 typedef igc_scan_result_t (*igc_scan_area_t) (struct igc_ss *ss, void *start,

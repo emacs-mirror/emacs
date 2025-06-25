@@ -3522,6 +3522,22 @@ igc_xpalloc_lisp_objs_exact (Lisp_Object *pa, ptrdiff_t *nitems,
   return new;
 }
 
+Lisp_Object *
+igc_xnrealloc_lisp_objs_exact (ptrdiff_t nitems_old,
+			       Lisp_Object *old,
+			       ptrdiff_t nitems_new,
+			       const char *label)
+{
+  ptrdiff_t nbytes = nitems_new * word_size;
+  Lisp_Object *new = xzalloc (nbytes);
+  root_create_exact (global_igc, new, new + nitems_new, scan_exact, label);
+  for (ptrdiff_t i = 0, n = min (nitems_old, nitems_new); i < n; i++)
+    new[i] = old[i];
+  igc_destroy_root_with_start (old);
+  xfree (old);
+  return new;
+}
+
 static void
 finalize_bignum (struct Lisp_Bignum *n)
 {
