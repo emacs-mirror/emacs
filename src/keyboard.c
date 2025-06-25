@@ -12841,7 +12841,7 @@ KBOARD *
 allocate_kboard (Lisp_Object type)
 {
 #ifdef HAVE_MPS
-  KBOARD *kb = igc_xzalloc_ambig (sizeof *kb);
+  KBOARD *kb = igc_alloc_kboard ();
 #else
   KBOARD *kb = xmalloc (sizeof *kb);
 #endif
