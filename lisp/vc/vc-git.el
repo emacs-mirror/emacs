@@ -1937,13 +1937,18 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 
 ;;; MISCELLANEOUS
 
+(defsubst vc-git--maybe-abbrev ()
+  (if vc-use-short-revision "--abbrev-commit" "--no-abbrev-commit"))
+
 (defun vc-git-previous-revision (file rev)
   "Git-specific version of `vc-previous-revision'."
   (if file
       (let* ((fname (file-relative-name file))
              (prev-rev (with-temp-buffer
                          (and
-                          (vc-git--out-ok "rev-list" "-2" rev "--" fname)
+                          (vc-git--out-ok "rev-list"
+                                          (vc-git--maybe-abbrev)
+                                          "-2" rev "--" fname)
                           (goto-char (point-max))
                           (bolp)
                           (zerop (forward-line -1))
@@ -1974,7 +1979,9 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
          (current-rev
           (with-temp-buffer
             (and
-             (vc-git--out-ok "rev-list" "-1" rev "--" file)
+             (vc-git--out-ok "rev-list"
+                             (vc-git--maybe-abbrev)
+                             "-1" rev "--" file)
              (goto-char (point-max))
              (bolp)
              (zerop (forward-line -1))
@@ -1986,7 +1993,9 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
           (and current-rev
                (with-temp-buffer
                  (and
-                  (vc-git--out-ok "rev-list" "HEAD" "--" file)
+                  (vc-git--out-ok "rev-list"
+                                  (vc-git--maybe-abbrev)
+                                  "HEAD" "--" file)
                   (goto-char (point-min))
                   (search-forward current-rev nil t)
                   (zerop (forward-line -1))

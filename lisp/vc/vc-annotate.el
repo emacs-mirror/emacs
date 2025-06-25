@@ -557,8 +557,9 @@ Return a cons (REV . FILENAME)."
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
 	(setq prev-rev
-	      (vc-call-backend vc-annotate-backend 'previous-revision
-                               fname rev))
+              (let ((vc-use-short-revision vc-annotate-use-short-revision))
+                (vc-call-backend vc-annotate-backend 'previous-revision
+                                 fname rev)))
 	(if (not prev-rev)
             (message "No previous revisions")
           (vc-annotate-warp-revision prev-rev fname))))))
@@ -613,8 +614,9 @@ the file in question, search for the log entry required and move point."
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
 	(setq prev-rev
-	      (vc-call-backend vc-annotate-backend 'previous-revision
-                               (if filediff fname nil) rev))
+              (let ((vc-use-short-revision vc-annotate-use-short-revision))
+                (vc-call-backend vc-annotate-backend 'previous-revision
+                                 (if filediff fname nil) rev)))
 	(vc-diff-internal
          vc-allow-async-diff
          ;; The value passed here should follow what
@@ -658,23 +660,27 @@ describes a revision number, so warp to that revision."
       (cond
        ((and (integerp revspec) (> revspec 0))
 	(setq newrev vc-buffer-revision)
-	(while (and (> revspec 0) newrev)
-          (setq newrev (vc-call-backend vc-annotate-backend 'next-revision
-                                        (or file
-                                            (caadr vc-buffer-overriding-fileset))
-                                        newrev))
-          (setq revspec (1- revspec)))
+        (let ((vc-use-short-revision vc-annotate-use-short-revision))
+	  (while (and (> revspec 0) newrev)
+            (setq newrev
+                  (vc-call-backend vc-annotate-backend 'next-revision
+                                   (or file
+                                       (caadr vc-buffer-overriding-fileset))
+                                   newrev))
+            (setq revspec (1- revspec))))
 	(unless newrev
 	  (message "Cannot increment %d revisions from revision %s"
 		   revspeccopy vc-buffer-revision)))
        ((and (integerp revspec) (< revspec 0))
 	(setq newrev vc-buffer-revision)
-	(while (and (< revspec 0) newrev)
-          (setq newrev (vc-call-backend vc-annotate-backend 'previous-revision
-                                        (or file
-                                            (caadr vc-buffer-overriding-fileset))
-                                        newrev))
-          (setq revspec (1+ revspec)))
+        (let ((vc-use-short-revision vc-annotate-use-short-revision))
+	  (while (and (< revspec 0) newrev)
+            (setq newrev
+                  (vc-call-backend vc-annotate-backend 'previous-revision
+                                   (or file
+                                       (caadr vc-buffer-overriding-fileset))
+                                   newrev))
+            (setq revspec (1+ revspec))))
 	(unless newrev
 	  (message "Cannot decrement %d revisions from revision %s"
 		   (- 0 revspeccopy) vc-buffer-revision)))
