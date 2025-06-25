@@ -275,7 +275,8 @@ automatically)."
       (tuareg-mode :language-id "ocaml") reason-mode)
      . ("ocamllsp"))
     ((ruby-mode ruby-ts-mode)
-     . ("solargraph" "socket" "--port" :autoport))
+     . ,(eglot-alternatives
+         '(("solargraph" "socket" "--port" :autoport) "ruby-lsp")))
     (haskell-mode
      . ("haskell-language-server-wrapper" "--lsp"))
     (elm-mode . ("elm-language-server"))
