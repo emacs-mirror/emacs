@@ -949,7 +949,7 @@ since it could result in memory overflow and make Emacs crash."
       ;; If this is NOT while dumping Emacs, set up the rest of the
       ;; customization info.  This is the stuff that is not needed
       ;; until someone does M-x customize etc.
-      (if dump-mode
+      (if (or dump-mode (and (featurep 'android) (not after-init-time)))
 	  ;; Don't re-add to custom-delayed-init-variables post-startup.
 	  ;; Note this is the _only_ initialize property we handle.
 	  (if (eq (cadr (memq :initialize rest)) #'custom-initialize-delay)
