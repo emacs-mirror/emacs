@@ -1141,7 +1141,8 @@ and \"]\"."
                        (if-let* ((pos (funcall
                                        #'treesit-navigate-thing
                                        (point) (car conf) (cdr conf)
-                                       treesit-defun-type-regexp tactic)))
+                                       (or treesit-defun-type-regexp 'defun)
+                                       tactic)))
                            (save-excursion
                              (goto-char pos)
                              (funcall treesit-defun-skipper)
