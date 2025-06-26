@@ -1093,10 +1093,14 @@ chars to try and eliminate some spurious differences."
                     (not (memq (car-safe x) '(face font-lock-face))))
                 (overlay-put ol (car x) (cdr x))
               ;; Don't highlight the char we cover artificially.
-              (overlay-put ol (if (= beg olbeg) 'before-string 'after-string)
-                           (propertize
-                            " " (car-safe x) (cdr-safe x)
-                            'display '(space :width 0.5)))))
+              ;; FIXME: We don't want to insert any space because it
+              ;; causes misalignment.  A `:box' face with a line
+              ;; only on one side would be a good solution.
+              ;; (overlay-put ol (if (= beg olbeg) 'before-string 'after-string)
+              ;;              (propertize
+              ;;               " " (car-safe x) (cdr-safe x)
+              ;;               'display '(space :width 0.5)))
+              ))
           ol)))))
 
 (defcustom smerge-refine-shadow-cursor t
