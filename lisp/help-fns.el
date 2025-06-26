@@ -632,7 +632,11 @@ the C sources, too."
                              (format-message "`%s'" remapped)
 		           "an anonymous command"))
                   (princ "as well.\n"))
-                (or remapped (princ "."))
+                ;; The (= (point) start) condition tests whether
+                ;; 'help-fns--insert-menu-bindings' inserted anything;
+                ;; if it didn't, we already have a period from the
+                ;; previous 'princ' call.
+                (or remapped (= (point) start) (princ "."))
                 (fill-region-as-paragraph start (point))))
             (ensure-empty-lines)))))))
 
