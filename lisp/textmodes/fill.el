@@ -78,21 +78,24 @@ placed at the beginning or end of a line by filling.
 See the documentation of `kinsoku' for more information."
   :type 'boolean)
 
-(defun set-fill-prefix ()
+(defun set-fill-prefix (&optional arg)
   "Set the fill prefix to the current line up to point.
 Filling expects lines to start with the fill prefix and
-reinserts the fill prefix in each resulting line."
-  (interactive)
-  (let ((left-margin-pos (save-excursion (move-to-left-margin) (point))))
-    (if (> (point) left-margin-pos)
-	(progn
-	  (setq fill-prefix (buffer-substring left-margin-pos (point)))
-	  (if (equal fill-prefix "")
+reinserts the fill prefix in each resulting line.
+With a prefix argument, cancel the fill prefix."
+  (interactive "P")
+  (if arg
+      (setq fill-prefix nil)
+    (let ((left-margin-pos (save-excursion (move-to-left-margin) (point))))
+      (if (> (point) left-margin-pos)
+	  (progn
+	    (setq fill-prefix (buffer-substring left-margin-pos (point)))
+	    (when (equal fill-prefix "")
 	      (setq fill-prefix nil)))
-      (setq fill-prefix nil)))
+        (setq fill-prefix nil))))
   (if fill-prefix
       (message "fill-prefix: \"%s\"" fill-prefix)
-    (message "fill-prefix canceled")))
+    (message "fill-prefix cancelled")))
 
 (defcustom adaptive-fill-mode t
   "Non-nil means determine a paragraph's fill prefix from its text."

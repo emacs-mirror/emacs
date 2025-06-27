@@ -699,8 +699,9 @@ a new paragraph.
   To specify a fill prefix for the current buffer, move to a line that
 starts with the desired prefix, put point at the end of the prefix,
 and type @w{@kbd{C-x .}}@: (@code{set-fill-prefix}).  (That's a period
-after the @kbd{C-x}.)  To turn off the fill prefix, specify an empty
-prefix: type @w{@kbd{C-x .}}@: with point at the beginning of a line.
+after the @kbd{C-x}.)  To turn off the fill prefix, either type
+@w{@kbd{C-u C-x .}}@: or specify an empty prefix: type @w{@kbd{C-x .}}@:
+with point at the beginning of a line.
 
   When a fill prefix is in effect, the fill commands remove the fill
 prefix from each line of the paragraph before filling, and insert it

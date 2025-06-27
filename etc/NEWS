@@ -619,6 +619,11 @@ sentence.  The new command 'fill-region-as-paragraph-semlf' fills a
 region of text using semantic linefeeds as if the region were a single
 paragraph.
 
++++
+** 'C-u C-x .' clears the fill prefix.
+You can now use 'C-u C-x .' to clear the fill prefix, similarly to how
+you could already use 'C-u C-x C-n' to clear the goal column.
+
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
