@@ -419,7 +419,19 @@ should be applied to the background or to the foreground."
 		       (read-string (format-prompt "Annotate span days" 20)
 				    nil nil "20"))))))))
   (setq vc-annotate-display-mode display-mode) ;Not sure why.  --Stef
-  (let* ((temp-buffer-name (format "*Annotate %s (rev %s)*" (buffer-name) rev))
+  (let* ((backend (or backend
+                      (car vc-buffer-overriding-fileset)
+                      (vc-backend file)))
+         (file-buffer (get-file-buffer file))
+         (temp-buffer-name
+          (format "*Annotate %s (rev %s)*"
+                  (if file-buffer
+                      (buffer-name file-buffer)
+                    ;; Try to avoid ambiguity.
+                    (file-relative-name file
+                                        (vc-call-backend backend 'root
+                                                         default-directory)))
+                  rev))
          (temp-buffer-show-function 'vc-annotate-display-select)
          ;; If BUF is specified, we presume the caller maintains current line,
          ;; so we don't need to do it here.  This implementation may give
@@ -436,45 +448,42 @@ should be applied to the background or to the foreground."
 		(rename-buffer temp-buffer-name t)
 		;; In case it had to be uniquified.
 		(setq temp-buffer-name (buffer-name))))
-    (let ((backend (or backend
-                       (car vc-buffer-overriding-fileset)
-                       (vc-backend file)))
-          (coding-system-for-read buffer-file-coding-system))
-     (with-output-to-temp-buffer temp-buffer-name
-       ;; For a VC backend running on DOS/Windows, it's normal to
-       ;; produce CRLF EOLs even if the original file has Unix EOLs,
-       ;; which will show ^M characters in the Annotate buffer.  (One
-       ;; known case in point is "svn annotate".)  Prevent that by
-       ;; forcing DOS EOL decoding.
-       (if (memq system-type '(windows-nt ms-dos))
-           (setq coding-system-for-read
-                 (coding-system-change-eol-conversion coding-system-for-read
-                                                      'dos)))
-       (vc-call-backend backend 'annotate-command file
-                        (get-buffer temp-buffer-name) rev)
-       ;; we must setup the mode first, and then set our local
-       ;; variables before the show-function is called at the exit of
-       ;; with-output-to-temp-buffer
-       (with-current-buffer temp-buffer-name
-         (unless (equal major-mode 'vc-annotate-mode)
-           (vc-annotate-mode))
-         (setq-local vc-annotate-backend backend)
-         (setq-local vc-buffer-overriding-fileset `(,backend (,file)))
-         (setq-local vc-buffer-revision rev)
-         (setq-local vc-annotate-parent-display-mode display-mode)
-         (kill-local-variable 'revert-buffer-function))))
+    (let ((coding-system-for-read buffer-file-coding-system))
+      (with-output-to-temp-buffer temp-buffer-name
+        ;; For a VC backend running on DOS/Windows, it's normal to
+        ;; produce CRLF EOLs even if the original file has Unix EOLs,
+        ;; which will show ^M characters in the Annotate buffer.  (One
+        ;; known case in point is "svn annotate".)  Prevent that by
+        ;; forcing DOS EOL decoding.
+        (if (memq system-type '(windows-nt ms-dos))
+            (setq coding-system-for-read
+                  (coding-system-change-eol-conversion coding-system-for-read
+                                                       'dos)))
+        (vc-call-backend backend 'annotate-command file
+                         (get-buffer temp-buffer-name) rev)
+        ;; we must setup the mode first, and then set our local
+        ;; variables before the show-function is called at the exit of
+        ;; with-output-to-temp-buffer
+        (with-current-buffer temp-buffer-name
+          (unless (equal major-mode 'vc-annotate-mode)
+            (vc-annotate-mode))
+          (setq-local vc-annotate-backend backend)
+          (setq-local vc-buffer-overriding-fileset `(,backend (,file)))
+          (setq-local vc-buffer-revision rev)
+          (setq-local vc-annotate-parent-display-mode display-mode)
+          (kill-local-variable 'revert-buffer-function))))
 
     (with-current-buffer temp-buffer-name
       (vc-run-delayed
-       ;; Ideally, we'd rather not move point if the user has already
-       ;; moved it elsewhere, but really point here is not the position
-       ;; of the user's cursor :-(
-       (when current-line           ;(and (bobp))
-         (goto-char (point-min))
-         (forward-line (1- current-line))
-         (setq vc-sentinel-movepoint (point)))
-       (unless (active-minibuffer-window)
-         (message "Annotating... done"))))))
+        ;; Ideally, we'd rather not move point if the user has already
+        ;; moved it elsewhere, but really point here is not the position
+        ;; of the user's cursor :-(
+        (when current-line              ;(and (bobp))
+          (goto-char (point-min))
+          (forward-line (1- current-line))
+          (setq vc-sentinel-movepoint (point)))
+        (unless (active-minibuffer-window)
+          (message "Annotating... done"))))))
 
 (defun vc-annotate-prev-revision (prefix)
   "Visit the annotation of the revision previous to this one.
