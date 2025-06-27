@@ -1876,6 +1876,12 @@ the VC Directory buffer also has the effect of the 'x' command.
 That is, typing 'g' refreshes the buffer and also hides items in the
 'up-to-date' and 'ignored' states.
 
+---
+*** New user option 'vc-dir-save-some-buffers-on-revert'.
+If you customize this variable to non-nil, Emacs will offer to save
+relevant buffers before generating the contents of a VC Directory buffer
+(like the third-party package Magit does with its status buffer).
+
 +++
 *** New user option 'vc-async-checkin' to enable async checkin operations.
 Currently only supported by the Git and Mercurial backends.

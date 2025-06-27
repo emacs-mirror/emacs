@@ -166,6 +166,12 @@ That is, refreshing the VC-Dir buffer also hides `up-to-date' and
   :group 'vc
   :version "31.1")
 
+(defcustom vc-dir-save-some-buffers-on-revert nil
+  "If non-nil, first offer to save relevant buffers when refreshing VC-Dir."
+  :type 'boolean
+  :group 'vc
+  :version "31.1")
+
 (defun vc-dir-move-to-goal-column ()
   ;; Used to keep the cursor on the file name column.
   (beginning-of-line)
@@ -1367,6 +1373,8 @@ Throw an error if another update process is in progress."
       (error "Another update process is in progress, cannot run two at a time")
     (let ((def-dir default-directory)
 	  (backend vc-dir-backend))
+      (when vc-dir-save-some-buffers-on-revert
+        (vc-buffer-sync-fileset `(,vc-dir-backend (,def-dir)) t))
       (vc-set-mode-line-busy-indicator)
       ;; Call the `dir-status' backend function.
       ;; `dir-status' is supposed to be asynchronous.
