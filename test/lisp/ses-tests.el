@@ -547,6 +547,46 @@ cell has to be rewritten to data area."
       (should (eq A2 2))
       (should (eq B2 4)))))
 
+(ert-deftest ses-range-reading-directions ()
+  "Test ses-range with reading directions"
+  (let ((ses-initial-size '(5 . 3))
+        (ses-initial-default-printer "%S")
+        (ses-after-entry-functions nil))
+    (with-temp-buffer
+      (ses-mode)
+      (dolist (c '((0 0 "A1"); A1
+                   (1 0 "A2"); A2
+                   (0 1 "B1"); B1
+                   (1 1 "B2"); B2
+                   (2 0 (apply 'concat (ses-range A1 B1 <))); A3
+                   (2 1 (apply 'concat (ses-range A1 B1 >))); B3
+                   (2 2 (apply 'concat (ses-range A1 B2 >v))); C3
+                   (3 0 (apply 'concat (ses-range A1 B2 >^))); A4
+                   (3 1 (apply 'concat (ses-range A1 B2 <v))); B4
+                   (3 2 (apply 'concat (ses-range A1 B2 <^))); C4
+
+                   (0 2 (apply 'concat (ses-range A1 B2 v>))); C1
+                   (1 2 (apply 'concat (ses-range A1 B2 ^>))); C2
+                   (4 0 (apply 'concat (ses-range A1 B2 v<))); A5
+                   (4 1 (apply 'concat (ses-range A1 B2 ^<))); B5
+                   ))
+        (apply 'ses-cell-set-formula c)
+        (apply 'ses-calculate-cell (list (car c) (cadr c) nil)))
+      (ses-recalculate-all)
+      (should (string= A3 "B1A1"))
+      (should (string= B3 "A1B1"))
+
+      (should (string= C3 "A1B1A2B2"))
+      (should (string= A4 "A2B2A1B1"))
+      (should (string= B4 "B1A1B2A2"))
+      (should (string= C4 "B2A2B1A1"))
+      
+      (should (string= C1 "A1A2B1B2"))
+      (should (string= C2 "A2A1B2B1"))
+      (should (string= A5 "B1B2A1A2"))
+      (should (string= B5 "B2B1A2A1"))
+      )))
+
 (provide 'ses-tests)
 
 ;;; ses-tests.el ends here
