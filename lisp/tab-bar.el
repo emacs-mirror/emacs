@@ -280,11 +280,13 @@ a list of frames to update."
     (dolist (frame frame-lst)
       (unless (or (frame-parameter frame 'tab-bar-lines-keep-state)
                   (and (eq auto-resize-tab-bars 'grow-only)
-                       (> (frame-parameter frame 'tab-bar-lines) 1)))
+                       (> (frame-parameter frame 'tab-bar-lines) 1))
+                  ;; Don't enable tab-bar in daemon's initial frame.
+                  (and (daemonp) (not (frame-parameter frame 'client))))
         (set-frame-parameter frame 'tab-bar-lines
                              (tab-bar--tab-bar-lines-for-frame frame)))))
   ;; Update `default-frame-alist'
-  (when (eq frames t)
+  (when (and (eq frames t) (not (daemonp)))
     (setq default-frame-alist
           (cons (cons 'tab-bar-lines
                       (if (and tab-bar-mode (eq tab-bar-show t)) 1 0))
@@ -600,7 +602,11 @@ on each new frame when the global `tab-bar-mode' is disabled,
 or if you want to disable the tab bar individually on each
 new frame when the global `tab-bar-mode' is enabled, by using
 
-  (add-hook \\='after-make-frame-functions #\\='toggle-frame-tab-bar)"
+  (add-hook \\='after-make-frame-functions #\\='toggle-frame-tab-bar)
+
+Or when starting Emacs in daemon mode:
+
+  (add-hook \\='server-after-make-frame-hook #\\='toggle-frame-tab-bar)"
   (interactive)
   (set-frame-parameter frame 'tab-bar-lines
                        (if (> (frame-parameter frame 'tab-bar-lines) 0) 0 1))
